@@ -1,0 +1,286 @@
+#! /usr/bin/ruby -w
+
+#=================================================================================================
+# Test cases of Depot for Ruby
+#                                                       Copyright (C) 2000-2005 Mikio Hirabayashi
+# This file is part of QDBM, Quick Database Manager.
+# QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
+# Lesser General Public License as published by the Free Software Foundation; either version
+# 2.1 of the License or any later version.  QDBM is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+# You should have received a copy of the GNU Lesser General Public License along with QDBM; if
+# not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+# 02111-1307 USA.
+#=================================================================================================
+
+
+require 'depot'
+
+
+# main routine
+def main()
+  $0.gsub!(/.*\//, "")
+  (ARGV.length >= 1) || usage()
+  if(ARGV[0] == "write")
+    rv = runwrite()
+  elsif(ARGV[0] == "read")
+    rv = runread()
+  elsif(ARGV[0] == "misc")
+    rv = runmisc()
+  else
+    usage()
+  end
+  return rv
+end
+
+
+# print the usage and exit
+def usage()
+  printf(STDERR, "%s: test cases for Depot for Ruby\n", $0)
+  printf(STDERR, "\n")
+  printf(STDERR, "usage:\n")
+  printf(STDERR, "  %s write name rnum bnum\n", $0)
+  printf(STDERR, "  %s read name\n", $0)
+  printf(STDERR, "  %s misc name\n", $0)
+  printf(STDERR, "\n")
+  exit(1)
+end
+
+
+# parse arguments of write command
+def runwrite()
+  name = nil
+  rnum = -1
+  bnum = -1
+  i = 1
+  while(i < ARGV.length)
+    if(!name && ARGV[i] =~ /^-/)
+      usage()
+    elsif(!name)
+      name = ARGV[i]
+    elsif(rnum < 0)
+      rnum = ARGV[i].to_i()
+    elsif(bnum < 0)
+      bnum = ARGV[i].to_i()
+    else
+      usage()
+    end
+    i += 1
+  end
+  (name && rnum > 0 && bnum > 0) || usage()
+  dowrite(name, rnum, bnum)
+  return 0
+end
+
+
+# parse arguments of read command
+def runread()
+  name = nil
+  i = 1
+  while(i < ARGV.length)
+    if(!name && ARGV[i] =~ /^-/)
+      usage()
+    elsif(!name)
+      name = ARGV[i]
+    else
+      usage()
+    end
+    i += 1
+  end
+  (name) || usage()
+  doread(name)
+  return 0
+end
+
+
+# parse arguments of misc command
+def runmisc()
+  name = nil
+  i = 1
+  while(i < ARGV.length)
+    if(!name && ARGV[i] =~ /^-/)
+      usage()
+    elsif(!name)
+      name = ARGV[i]
+    else
+      usage()
+    end
+    i += 1
+  end
+  (name) || usage()
+  domisc(name)
+  return 0
+end
+
+
+# perform write command
+def dowrite(name, rnum, bnum)
+  printf("<Writing Test>\n  name=%s  rnum=%d  bnum=%d\n\n", name, rnum, bnum)
+  depot = nil
+  begin
+    # open a database
+    depot = Depot::new(name, Depot::OWRITER | Depot::OCREAT | Depot::OTRUNC, bnum)
+    # loop for each record
+    STDOUT.sync = true
+    1.upto(rnum) do |i|
+      buf = sprintf("%08d", i)
+      # store a record
+      depot.put(buf, buf)
+      # print progression
+      if(rnum > 250 && i % (rnum / 250) == 0)
+        print(".")
+        if(i == rnum || i % (rnum / 10) == 0)
+          printf(" (%08d)\n", i)
+        end
+      end
+    end
+  rescue
+    printf("%s: %s: %s\n", $0, name, $!)
+    return 1
+  ensure
+    begin
+      # close the database
+      (depot) && depot.close()
+    rescue
+      return 1
+    end
+  end
+  printf("ok\n\n")
+  return 0
+end
+
+
+# perform read command
+def doread(name)
+  printf("<Reading Test>\n  name=%s\n\n", name)
+  depot = nil
+  begin
+    # open a database
+    depot = Depot::new(name)
+    # get the number of record
+    rnum = depot.rnum()
+    # loop for each record
+    STDOUT.sync = true
+    1.upto(rnum) do |i|
+      buf = sprintf("%08d", i)
+      # store a record
+      depot.get(buf)
+      # print progression
+      if(rnum > 250 && i % (rnum / 250) == 0)
+        print(".")
+        if(i == rnum || i % (rnum / 10) == 0)
+          printf(" (%08d)\n", i)
+        end
+      end
+    end
+  rescue
+    printf("%s: %s: %s\n", $0, name, $!)
+    return 1
+  ensure
+    begin
+      # close the database
+      (depot) && depot.close()
+    rescue
+      return 1
+    end
+  end
+  printf("ok\n\n")
+  return 0
+end
+
+
+# perform misc command
+def domisc(name)
+  loopnum = 500
+  bucketnum = 16
+  threadnum = 10
+  printf("<Miscellaneous Test>\n  name=%s\n\n", name)
+  depot = nil
+  begin
+    # open the database
+    printf("Creating a database ... ")
+    depot = Depot::open("casket", Depot::OWRITER | Depot::OCREAT | Depot::OTRUNC, bucketnum)
+    printf("ok\n")
+    # store records
+    printf("Storing records ... ")
+    1.upto(loopnum) do |i|
+      buf =  sprintf("%08d", i)
+      depot[buf] = buf
+    end
+    printf("ok\n")
+    # retrieve records
+    printf("Retrieving records ... ")
+    1.upto(loopnum) do |i|
+      buf =  sprintf("%08d", i)
+      (depot[buf] == buf) || raise("key and value does not match")
+    end
+    printf("ok\n")
+    # traverse records
+    printf("Traversing records ... ")
+    depot.each() do |key, val|
+      (key == val) || raise("key and value does not match")
+    end
+    depot.keys()
+    depot.values()
+    printf("ok\n")
+    # silent mode operations
+    printf("Silent mode operations ... ")
+    depot.silent = true
+    depot.put("foo", "bar", Depot::DKEEP)
+    depot.put("foo", "bar", Depot::DKEEP)
+    depot.get("foo")
+    depot.out("foo")
+    depot.out("foo")
+    depot.get("nil")
+    depot.fetch("nil", "void");
+    depot.keys()
+    depot.values()
+    printf("ok\n")
+  rescue
+    printf("%s: %s: %s\n", $0, name, $!)
+    return 1
+  ensure
+    # close the database
+    printf("Closing the database ... ")
+    (depot) && depot.close()
+    printf("ok\n")
+  end
+  # test iterator and threads
+  printf("Processing with iterator and threads ... ")
+  Depot::new("casket", Depot::OWRITER) do |depot|
+    (depot.rnum() == loopnum) || raise("record number is invalid")
+    depot.clear()
+    threads = []
+    1.upto(threadnum) do |i|
+      t = Thread::new() do
+        1.upto(loopnum) do |j|
+          buf = sprintf("%08d", j)
+          depot.put(buf, "*", Depot::DCAT)
+        end
+      end
+      threads.push(t)
+    end
+    threads.each do |t|
+      t.join()
+    end
+    1.upto(loopnum) do |i|
+      buf = sprintf("%08d", i)
+      (depot.vsiz(buf) == threadnum) || raise("thread writing is invalid")
+    end
+    (depot.index("*" * threadnum)) || raise("thread writing is invalid")
+  end
+  printf("ok\n")
+  printf("all ok\n\n")
+  return 0
+end
+
+
+# execute main
+$0.gsub!(/.*\//, "")
+exit(main())
+
+
+
+# END OF FILE

@@ -1,0 +1,9 @@
+#! /bin/sh
+
+# man generator from spex.html
+
+egrep '^(<dt>|<dd>|<p>)' |
+sed -e 's/@/__at__/g' -e 's/<kbd>/.TP@.B /' -e 's/<p>/.PP@/' \
+  -e 's/<[^>]*>//g' -e 's/&lt;/</g' -e 's/&gt;/>/g' -e 's/&amp;/\&/g' -e 's/-/\\-/g' |
+tr '@' '\n' |
+sed -e 's/__at__/@/g'

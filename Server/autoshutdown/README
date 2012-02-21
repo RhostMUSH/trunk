@@ -1,0 +1,11 @@
+The makefile will 'make' the program that will STOP the mush.
+Please tweek 'autolog.h' with the proper parameters.
+
+
+The 'startup.sh' will START the mush.
+
+
+Both of these are intended to be used for automations (automated processes)
+like your rc.local file and/or startup scripts when you bring your server up.
+
+

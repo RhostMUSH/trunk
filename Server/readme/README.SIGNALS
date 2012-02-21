@@ -1,0 +1,6 @@
+The following signals can be given to Rhost:
+
+
+kill -USR1    -- causes RhostMUSH to issue a @reboot
+kill -USR2    -- causes RhostMUSH to issue a @shutdown
+kill -TERM    -- causes RhostMUSH to issue a panic @dump/flat and immediately exit (no db save)

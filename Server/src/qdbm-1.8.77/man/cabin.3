@@ -1,0 +1,899 @@
+.TH CABIN 3 "2004-04-22" "Man Page" "Quick Database Manager"
+
+.SH NAME
+Cabin \- the utility API of QDBM
+
+.SH SYNOPSIS
+.PP
+.B #include <cabin.h>
+.br
+.B #include <stdlib.h>
+.PP
+.B extern void (*cbfatalfunc)(const char *message);
+.PP
+.B void *cbmalloc(size_t size);
+.PP
+.B void *cbrealloc(void *ptr, size_t size);
+.PP
+.B char *cbmemdup(const char *ptr, int size);
+.PP
+.B void cbfree(void *ptr);
+.PP
+.B void cbglobalgc(void *ptr, void (*func)(void *));
+.PP
+.B void cbggcsweep(void);
+.PP
+.B int cbvmemavail(size_t size);
+.PP
+.B void cbisort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+.PP
+.B void cbssort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+.PP
+.B void cbhsort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+.PP
+.B void cbqsort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+.PP
+.B int cbstricmp(const char *astr, const char *bstr);
+.PP
+.B int cbstrfwmatch(const char *str, const char *key);
+.PP
+.B int cbstrfwimatch(const char *str, const char *key);
+.PP
+.B int cbstrbwmatch(const char *str, const char *key);
+.PP
+.B int cbstrbwimatch(const char *str, const char *key);
+.PP
+.B char *cbstrstrkmp(const char *haystack, const char *needle);
+.PP
+.B char *cbstrstrbm(const char *haystack, const char *needle);
+.PP
+.B char *cbstrtoupper(char *str);
+.PP
+.B char *cbstrtolower(char *str);
+.PP
+.B char *cbstrtrim(char *str);
+.PP
+.B char *cbstrsqzspc(char *str);
+.PP
+.B int cbstrcountutf(const char *str);
+.PP
+.B char *cbstrcututf(char *str, int num);
+.PP
+.B CBDATUM *cbdatumopen(const char *ptr, int size);
+.PP
+.B CBDATUM *cbdatumdup(const CBDATUM *datum);
+.PP
+.B void cbdatumclose(CBDATUM *datum);
+.PP
+.B void cbdatumcat(CBDATUM *datum, const char *ptr, int size);
+.PP
+.B const char *cbdatumptr(const CBDATUM *datum);
+.PP
+.B int cbdatumsize(const CBDATUM *datum);
+.PP
+.B void cbdatumsetsize(CBDATUM *datum, int size);
+.PP
+.B void cbdatumprintf(CBDATUM *datum, const char *format, ...);
+.PP
+.B char *cbdatumtomalloc(CBDATUM *datum, int *sp);
+.PP
+.B CBLIST *cblistopen(void);
+.PP
+.B CBLIST *cblistdup(const CBLIST *list);
+.PP
+.B void cblistclose(CBLIST *list);
+.PP
+.B int cblistnum(const CBLIST *list);
+.PP
+.B const char *cblistval(const CBLIST *list, int index, int *sp);
+.PP
+.B void cblistpush(CBLIST *list, const char *ptr, int size);
+.PP
+.B char *cblistpop(CBLIST *list, int *sp);
+.PP
+.B void cblistunshift(CBLIST *list, const char *ptr, int size);
+.PP
+.B char *cblistshift(CBLIST *list, int *sp);
+.PP
+.B void cblistinsert(CBLIST *list, int index, const char *ptr, int size);
+.PP
+.B char *cblistremove(CBLIST *list, int index, int *sp);
+.PP
+.B void cblistover(CBLIST *list, int index, const char *ptr, int size);
+.PP
+.B void cblistsort(CBLIST *list);
+.PP
+.B int cblistlsearch(const CBLIST *list, const char *ptr, int size);
+.PP
+.B int cblistbsearch(const CBLIST *list, const char *ptr, int size);
+.PP
+.B char *cblistdump(const CBLIST *list, int *sp);
+.PP
+.B CBLIST *cblistload(const char *ptr, int size);
+.PP
+.B CBMAP *cbmapopen(void);
+.PP
+.B CBMAP *cbmapdup(CBMAP *map);
+.PP
+.B void cbmapclose(CBMAP *map);
+.PP
+.B int cbmapput(CBMAP *map, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int over);
+.PP
+.B void cbmapputcat(CBMAP *map, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+.PP
+.B int cbmapout(CBMAP *map, const char *kbuf, int ksiz);
+.PP
+.B const char *cbmapget(const CBMAP *map, const char *kbuf, int ksiz, int *sp);
+.PP
+.B int cbmapmove(CBMAP *map, const char *kbuf, int ksiz, int head);
+.PP
+.B void cbmapiterinit(CBMAP *map);
+.PP
+.B const char *cbmapiternext(CBMAP *map, int *sp);
+.PP
+.B const char *cbmapiterval(const char *kbuf, int *sp);
+.PP
+.B int cbmaprnum(const CBMAP *map);
+.PP
+.B CBLIST *cbmapkeys(CBMAP *map);
+.PP
+.B CBLIST *cbmapvals(CBMAP *map);
+.PP
+.B char *cbmapdump(const CBMAP *map, int *sp);
+.PP
+.B CBMAP *cbmapload(const char *ptr, int size);
+.PP
+.B char *cbmaploadone(const char *ptr, int size, const char *kbuf, int ksiz, int *sp);
+.PP
+.B CBHEAP *cbheapopen(int size, int max, int(*compar)(const void *, const void *));
+.PP
+.B CBHEAP *cbheapdup(CBHEAP *heap);
+.PP
+.B void cbheapclose(CBHEAP *heap);
+.PP
+.B int cbheapnum(CBHEAP *heap);
+.PP
+.B int cbheapinsert(CBHEAP *heap, const void *ptr);
+.PP
+.B void *cbheapval(CBHEAP *heap, int index);
+.PP
+.B void *cbheaptomalloc(CBHEAP *heap, int *np);
+.PP
+.B char *cbsprintf(const char *format, ...);
+.PP
+.B char *cbreplace(const char *str, CBMAP *pairs);
+.PP
+.B CBLIST *cbsplit(const char *ptr, int size, const char *delim);
+.PP
+.B char *cbreadfile(const char *name, int *sp);
+.PP
+.B int cbwritefile(const char *name, const char *ptr, int size);
+.PP
+.B CBLIST *cbreadlines(const char *name);
+.PP
+.B CBLIST *cbdirlist(const char *name);
+.PP
+.B int cbfilestat(const char *name, int *isdirp, int *sizep, time_t *mtimep);
+.PP
+.B int cbremove(const char *name);
+.PP
+.B CBMAP *cburlbreak(const char *str);
+.PP
+.B char *cburlresolve(const char *base, const char *target);
+.PP
+.B char *cburlencode(const char *ptr, int size);
+.PP
+.B char *cburldecode(const char *str, int *sp);
+.PP
+.B char *cbbaseencode(const char *ptr, int size);
+.PP
+.B char *cbbasedecode(const char *str, int *sp);
+.PP
+.B char *cbquoteencode(const char *ptr, int size);
+.PP
+.B char *cbquotedecode(const char *str, int *sp);
+.PP
+.B char *cbmimebreak(const char *ptr, int size, CBMAP *attrs, int *sp);
+.PP
+.B CBLIST *cbmimeparts(const char *ptr, int size, const char *boundary);
+.PP
+.B char *cbmimeencode(const char *str, const char *encname, int base);
+.PP
+.B char *cbmimedecode(const char *str, char *enp);
+.PP
+.B CBLIST *cbcsvrows(const char *str);
+.PP
+.B CBLIST *cbcsvcells(const char *str);
+.PP
+.B char *cbcsvescape(const char *str);
+.PP
+.B char *cbcsvunescape(const char *str);
+.PP
+.B CBLIST *cbxmlbreak(const char *str, int cr);
+.PP
+.B CBMAP *cbxmlattrs(const char *str);
+.PP
+.B char *cbxmlescape(const char *str);
+.PP
+.B char *cbxmlunescape(const char *str);
+.PP
+.B char *cbdeflate(const char *ptr, int size, int *sp);
+.PP
+.B char *cbinflate(const char *ptr, int size, int *sp);
+.PP
+.B char *cbgzencode(const char *ptr, int size, int *sp);
+.PP
+.B char *cbgzdecode(const char *ptr, int size, int *sp);
+.PP
+.B unsigned int cbgetcrc(const char *ptr, int size);
+.P
+.B char *cblzoencode(const char *ptr, int size, int *sp);
+.PP
+.B char *cblzodecode(const char *ptr, int size, int *sp);
+.PP
+.B char *cbbzencode(const char *ptr, int size, int *sp);
+.PP
+.B char *cbbzdecode(const char *ptr, int size, int *sp);
+.PP
+.B char *cbiconv(const char *ptr, int size, const char *icode, const char *ocode, int *sp, int *mp);
+.PP
+.B const char *cbencname(const char *ptr, int size);
+.PP
+.B int cbjetlag(void);
+.PP
+.B void cbcalendar(time_t t, int jl, int *yearp, int *monp, int *dayp, int *hourp, int *minp, int *secp);
+.PP
+.B int cbdayofweek(int year, int mon, int day);
+.PP
+.B char *cbdatestrwww(time_t t, int jl);
+.PP
+.B char *cbdatestrhttp(time_t t, int jl);
+.PP
+.B time_t cbstrmktime(const char *str);
+.PP
+.B void cbproctime(double *usrp, double *sysp);
+.PP
+.B void cbstdiobin(void);
+
+.SH DESCRIPTION
+.PP
+Cabin is the utility API which provides memory allocating functions, sorting functions, extensible datum, array list, hash map, heap array, and so on for handling records easily on memory.  This API features also parsing MIME, CSV, and XML, and features various types of encoding and decoding.
+.PP
+In order to use Cabin, you should include `cabin.h' and `stdlib.h' in the source files.  Usually, the following description will be near the beginning of a source file.
+.PP
+.RS
+.B #include <cabin.h>
+.br
+.B #include <stdlib.h>
+.RE
+.PP
+A pointer to `CBDATUM' is used as a handle of an extensible datum.  A datum handle is opened with the function `cbdatumopen' and closed with `cbdatumclose'.  A pointer to `CBLIST' is used as a handle of an array list.  A list handle is opened with the function `cblistopen' and closed with `cblistclose'.  A pointer to `CBMAP' is used as a handle of a hash map.  A map handle is opened with the function `cbmapopen' and closed with `cbmapclose'.  A pointer to `CBHEAP' is used as a handle of a heap array.  A heap handle is opened with the function `cbheapopen' and closed with `cbheapclose'.  You should not refer directly to any member of each handles.
+.PP
+The external variable `cbfatalfunc' is the pointer to call back function for handling a fatal error.
+.TP
+.B extern void (*cbfatalfunc)(const char *message);
+The argument specifies the error message.  The initial value of this variable is `NULL'.  If the value is `NULL', the default function is called when a fatal error occurs.  A fatal error occurs when memory allocation is failed.
+.PP
+The function `cbmalloc' is used in order to allocate a region on memory.
+.TP
+.B void *cbmalloc(size_t size);
+`size' specifies the size of the region.  The return value is the pointer to the allocated region.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbrealloc' is used in order to re\-allocate a region on memory.
+.TP
+.B void *cbrealloc(void *ptr, size_t size);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  The return value is the pointer to the re\-allocated region.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbmemdup' is used in order to duplicate a region on memory.
+.TP
+.B char *cbmemdup(const char *ptr, int size);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the pointer to the allocated region of the duplicate.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbfree' is used in order to free a region on memory.
+.TP
+.B void cbfree(void *ptr);
+`ptr' specifies the pointer to a region.  If it is `NULL', this function has no effect.  Although this function is just a wrapper of `free' call, this is useful in applications using another package of the `malloc' series.
+.PP
+The function `cbglobalgc' is used in order to register the pointer or handle of an object to the global garbage collector.
+.TP
+.B void cbglobalgc(void *ptr, void (*func)(void *));
+`ptr' specifies the pointer or handle of an object.  `func' specifies the pointer to a function to release resources of the object.  Its argument is the pointer or handle of the object to release.  This function assures that resources of an object are released when the process exits normally by returning from the `main' function or calling the `exit' function.
+.PP
+The function `cbggcsweep' is used in order to exercise the global garbage collector explicitly.
+.TP
+.B void cbggcsweep(void);
+Note that you should not use objects registered to the global garbage collector any longer after calling this function.  Because the global garbage collector is initialized and you can register new objects into it.
+.PP
+The function `cbvmemavail' is used in order to check availability of allocation of the virtual memory.
+.TP
+.B int cbvmemavail(size_t size);
+`size' specifies the size of region to be allocated newly.  The return value is true if allocation should be success, or false if not.
+.PP
+The function `cbisort' is used in order to sort an array using insert sort.
+.TP
+.B void cbisort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+`base' specifies the pointer to an array.  `nmemb' specifies the number of elements of the array.  `size' specifies the size of each element.  `compar' specifies the pointer to comparing function.  The two arguments specify the pointers of elements.  The comparing function should returns positive if the former is big, negative if the latter is big, 0 if both are equal.  Insert sort is useful only if most elements have been sorted already.
+.PP
+The function `cbssort' is used in order to sort an array using shell sort.
+.TP
+.B void cbssort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+`base' specifies the pointer to an array.  `nmemb' specifies the number of elements of the array.  `size' specifies the size of each element.  `compar' specifies the pointer to comparing function.  The two arguments specify the pointers of elements.  The comparing function should returns positive if the former is big, negative if the latter is big, 0 if both are equal.  If most elements have been sorted, shell sort may be faster than heap sort or quick sort.
+.PP
+The function `cbhsort' is used in order to sort an array using heap sort.
+.TP
+.B void cbhsort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+`base' specifies the pointer to an array.  `nmemb' specifies the number of elements of the array.  `size' specifies the size of each element. `compar' specifies the pointer to comparing function.  The two arguments specify the pointers of elements.  The comparing function should returns positive if the former is big, negative if the latter is big, 0 if both are equal.  Although heap sort is robust against bias of input, quick sort is faster in most cases.
+.PP
+The function `cbqsort' is used in order to sort an array using quick sort.
+.TP
+.B void cbqsort(void *base, int nmemb, int size, int(*compar)(const void *, const void *));
+`base' specifies the pointer to an array.  `nmemb' specifies the number of elements of the array.  `size' specifies the size of each element. `compar' specifies the pointer to comparing function.  The two arguments specify the pointers of elements.  The comparing function should returns positive if the former is big, negative if the latter is big, 0 if both are equal.  Being sensitive to bias of input, quick sort is the fastest sorting algorithm.
+.PP
+The function `cbstricmp' is used in order to compare two strings with case insensitive evaluation.
+.TP
+.B int cbstricmp(const char *astr, const char *bstr);
+`astr' specifies the pointer of one string.  `astr' specifies the pointer of the other string.  The return value is positive if the former is big, negative if the latter is big, 0 if both are equivalent.  Upper cases and lower cases of alphabets in ASCII code are not distinguished.
+.PP
+The function `cbstrfwmatch' is used in order to check whether a string begins with a key.
+.TP
+.B int cbstrfwmatch(const char *str, const char *key);
+`str' specifies the pointer of a target string.  `key' specifies the pointer of a forward matching key string.  The return value is true if the target string begins with the key, else, it is false.
+.PP
+The function `cbstrfwimatch' is used in order to check whether a string begins with a key, with case insensitive evaluation.
+.TP
+.B int cbstrfwimatch(const char *str, const char *key);
+`str' specifies the pointer of a target string.  `key' specifies the pointer of a forward matching key string.  The return value is true if the target string begins with the key, else, it is false.  Upper cases and lower cases of alphabets in ASCII code are not distinguished.
+.PP
+The function `cbstrbwmatch' is used in order to check whether a string ends with a key.
+.TP
+.B int cbstrbwmatch(const char *str, const char *key);
+`str' specifies the pointer of a target string.  `key' specifies the pointer of a backward matching key string.  The return value is true if the target string ends with the key, else, it is false.
+.PP
+The function `cbstrbwimatch' is used in order to check whether a string ends with a key, with case insensitive evaluation.
+.TP
+.B int cbstrbwimatch(const char *str, const char *key);
+`str' specifies the pointer of a target string.  `key' specifies the pointer of a backward matching key string.  The return value is true if the target string ends with the key, else, it is false.  Upper cases and lower cases of alphabets in ASCII code are not distinguished.
+.PP
+The function `cbstrstrkmp' is used in order to locate a substring in a string using KMP method.
+.TP
+.B char *cbstrstrkmp(const char *haystack, const char *needle);
+`haystack' specifies the pointer of a target string.  `needle' specifies the pointer of a substring to be found.  The return value is the pointer to the beginning of the substring or `NULL' if the substring is not found.  In most cases, `strstr' as a built\-in function of the compiler is faster than this function.
+.PP
+The function `cbstrstrkmp' is used in order to locate a substring in a string using BM method.
+.TP
+.B char *cbstrstrbm(const char *haystack, const char *needle);
+`haystack' specifies the pointer of a target string.  `needle' specifies the pointer of a substring to be found.  The return value is the pointer to the beginning of the substring or `NULL' if the substring is not found.  In most cases, `strstr' as a built\-in function of the compiler is faster than this function.
+.PP
+The function `cbstrtoupper' is used in order to convert the letters of a string to upper case.
+.TP
+.B char *cbstrtoupper(char *str);
+`str' specifies the pointer of a string to convert.  The return value is the pointer to the string.
+.PP
+The function `cbstrtolower' is used in order to convert the letters of a string to lower case.
+.TP
+.B char *cbstrtolower(char *str);
+`str' specifies the pointer of a string to convert.  The return value is the pointer to the string.
+.PP
+The function `cbstrtrim' is used in order to cut space characters at head or tail of a string.
+.TP
+.B char *cbstrtrim(char *str);
+`str' specifies the pointer of a string to convert.  The return value is the pointer to the string.
+.PP
+The function `cbstrsqzspc' is used in order to squeeze space characters in a string and trim it.
+.TP
+.B char *cbstrsqzspc(char *str);
+`str' specifies the pointer of a string to convert.  The return value is the pointer to the string.
+.PP
+The function `cbstrcountutf' is used in order to count the number of characters in a string of UTF\-8.
+.TP
+.B int cbstrcountutf(const char *str);
+`str' specifies the pointer of a string of UTF\-8.  The return value is the number of characters in the string.
+.PP
+The function `cbstrcututf' is used in order to cut a string of UTF\-8 at the specified number of characters.
+.TP
+.B char *cbstrcututf(char *str, int num);
+`str' specifies the pointer of a string of UTF\-8.  `num' specifies the number of characters to be kept.  The return value is the pointer to the string.
+.PP
+The function `cbdatumopen' is used in order to get a datum handle.
+.TP
+.B CBDATUM *cbdatumopen(const char *ptr, int size);
+`ptr' specifies the pointer to the region of the initial content.  If it is `NULL', an empty datum is created.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is a datum handle.
+.PP
+The function `cbdatumdup' is used in order to copy a datum.
+.TP
+.B CBDATUM *cbdatumdup(const CBDATUM *datum);
+`datum' specifies a datum handle.  The return value is a new datum handle.
+.PP
+The function `cbdatumclose' is used in order to free a datum handle.
+.TP
+.B void cbdatumclose(CBDATUM *datum);
+`datum' specifies a datum handle.  Because the region of a closed handle is released, it becomes impossible to use the handle.
+.PP
+The function `cbdatumcat' is used in order to concatenate a datum and a region.
+.TP
+.B void cbdatumcat(CBDATUM *datum, const char *ptr, int size);
+`datum' specifies a datum handle.  `ptr' specifies the pointer to the region to be appended.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.
+.PP
+The function `cbdatumptr' is used in order to get the pointer of the region of a datum.
+.TP
+.B const char *cbdatumptr(const CBDATUM *datum);
+`datum' specifies a datum handle.  The return value is the pointer of the region of a datum.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.
+.PP
+The function `cbdatumsize' is used in order to get the size of the region of a datum.
+.TP
+.B int cbdatumsize(const CBDATUM *datum);
+`datum' specifies a datum handle.  The return value is the size of the region of a datum.
+.PP
+The function `cbdatumsetsize' is used in order to change the size of the region of a datum.
+.TP
+.B void cbdatumsetsize(CBDATUM *datum, int size);
+`datum' specifies a datum handle.  `size' specifies the new size of the region.  If the new size is bigger than the one of old, the surplus region is filled with zero codes.
+.PP
+The function `cbdatumprintf' is used in order to perform formatted output into a datum.
+.TP
+.B void cbdatumprintf(CBDATUM *datum, const char *format, ...);
+`format' specifies a printf-like format string.  The conversion character `%' can be used with such flag characters as `s', `d', `o', `u', `x', `X', `c', `e', `E', `f', `g', `G', `@', `?', `:', `%'.  `@' works as with `s' but escapes meta characters of XML.  `?' works as with `s' but escapes meta characters of URL.  `:' works as with `s' but performs MIME encoding as UTF-8.  The other conversion character work as with each original.
+.PP
+The function `cbdatumtomalloc' is used in order to convert a datum to an allocated region.
+.TP
+.B char *cbdatumtomalloc(CBDATUM *datum, int *sp);
+`datum' specifies a datum handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the datum.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  Because the region of the original datum is released, it should not be released again.
+.PP
+The function `cblistopen' is used in order to get a list handle.
+.TP
+.B CBLIST *cblistopen(void);
+The return value is a list handle.
+.PP
+The function `cblistdup' is used in order to copy a list.
+.TP
+.B CBLIST *cblistdup(const CBLIST *list);
+`list' specifies a list handle.  The return value is a new list handle.
+.PP
+The function `cblistclose' is used in order to close a list handle.
+.TP
+.B void cblistclose(CBLIST *list);
+`list' specifies a list handle.  Because the region of a closed handle is released, it becomes impossible to use the handle.
+.PP
+The function `cblistnum' is used in order to get the number of elements of a list.
+.TP
+.B int cblistnum(const CBLIST *list);
+`list' specifies a list handle.  The return value is the number of elements of the list.
+.PP
+The function `cblistval' is used in order to get the pointer to the region of an element of a list.
+.TP
+.B const char *cblistval(const CBLIST *list, int index, int *sp);
+`list' specifies a list handle.  `index' specifies the index of an element.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the element.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  If `index' is equal to or more than the number of elements, the return value is `NULL'.
+.PP
+The function `cblistpush' is used in order to add an element at the end of a list.
+.TP
+.B void cblistpush(CBLIST *list, const char *ptr, int size);
+`list' specifies a list handle.  `ptr' specifies the pointer to the region of an element.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.
+.PP
+The function `cblistpop' is used in order to remove an element of the end of a list.
+.TP
+.B char *cblistpop(CBLIST *list, int *sp);
+`list' specifies a list handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the value.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  If the list is empty, the return value is `NULL'.
+.PP
+The function `cblistunshift' is used in order to add an element at the top of a list.
+.TP
+.B void cblistunshift(CBLIST *list, const char *ptr, int size);
+`list' specifies a list handle.  `ptr' specifies the pointer to the region of an element.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.
+.PP
+The function `cblistshift' is used in order to remove an element of the top of a list.
+.TP
+.B char *cblistshift(CBLIST *list, int *sp);
+`list' specifies a list handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the value.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  If the list is empty, the return value is `NULL'.
+.PP
+The function `cblistinsert' is used in order to add an element at the specified location of a list.
+.TP
+.B void cblistinsert(CBLIST *list, int index, const char *ptr, int size);
+`list' specifies a list handle.  `index' specifies the index of an element.  `ptr' specifies the pointer to the region of the element.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.
+.PP
+The function `cblistremove' is used in order to remove an element at the specified location of a list.
+.TP
+.B char *cblistremove(CBLIST *list, int index, int *sp);
+`list' specifies a list handle.  `index' specifies the index of an element.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the value.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  If `index' is equal to or more than the number of elements, no element is removed and the return value is `NULL'.
+.PP
+The function `cblistover' is used in order to overwrite an element at the specified location of a list.
+.TP
+.B void cblistover(CBLIST *list, int index, const char *ptr, int size);
+`list' specifies a list handle.  `index' specifies the index of an element.  `ptr' specifies the pointer to the region of the new content.  `size' specifies the size of the new content.  If it is negative, the size is assigned with `strlen(ptr)'.  If `index' is equal to or more than the number of elements, this function has no effect.
+.PP
+The function `cblistsort' is used in order to sort elements of a list in lexical order.
+.TP
+.B void cblistsort(CBLIST *list);
+`list' specifies a list handle.  Quick sort is used for sorting.
+.PP
+The function `cblistlsearch' is used in order to search a list for an element using liner search.
+.TP
+.B int cblistlsearch(const CBLIST *list, const char *ptr, int size);
+`list' specifies a list handle.  `ptr' specifies the pointer to the region of a key.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the index of a corresponding element or \-1 if there is no corresponding element.  If two or more elements corresponds, the former returns.
+.PP
+The function `cblistbsearch' is used in order to search a list for an element using binary search.
+.TP
+.B int cblistbsearch(const CBLIST *list, const char *ptr, int size);
+`list' specifies a list handle.  It should be sorted in lexical order.  `ptr' specifies the pointer to the region of a key.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the index of a corresponding element or \-1 if there is no corresponding element.  If two or more elements corresponds, which returns is not defined.
+.PP
+The function `cblistdump' is used in order to serialize a list into a byte array.
+.TP
+.B char *cblistdump(const CBLIST *list, int *sp);
+`list' specifies a list handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  The return value is the pointer to the region of the result serial region.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cblistload' is used in order to redintegrate a serialized list.
+.TP
+.B CBLIST *cblistload(const char *ptr, int size);
+`ptr' specifies the pointer to a byte array.  `size' specifies the size of the region.  The return value is a new list handle.
+.PP
+The function `cbmapopen' is used in order to get a map handle.
+.TP
+.B CBMAP *cbmapopen(void);
+The return value is a map handle.
+.PP
+The function `cbmapdup' is used in order to copy a map.
+.TP
+.B CBMAP *cbmapdup(CBMAP *map);
+`map' specifies a map handle.  The return value is a new map handle.  The iterator of the source map is initialized.
+.PP
+The function `cbmapclose' is used in order to close a map handle.
+.TP
+.B void cbmapclose(CBMAP *map);
+`map' specifies a map handle.  Because the region of a closed handle is released, it becomes impossible to use the handle.
+.PP
+The function `cbmapput' is used in order to store a record into a map.
+.TP
+.B int cbmapput(CBMAP *map, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int over);
+`map' specifies a map handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `vbuf' specifies the pointer to the region of a value.  `vsiz' specifies the size of the region of the value.  If it is negative, the size is assigned with `strlen(vbuf)'.  `over' specifies whether the value of the duplicated record is overwritten or not.  If `over' is false and the key is duplicated, the return value is false, else, it is true.
+.PP
+The function `cbmapputcat' is used in order to concatenate a value at the end of the value of the existing record.
+.TP
+.B void cbmapputcat(CBMAP *map, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
+`map' specifies a map handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `vbuf' specifies the pointer to the region of a value.  `vsiz' specifies the size of the region of the value.  If it is negative, the size is assigned with `strlen(vbuf)'.  If there is no corresponding record, a new record is created.
+.PP
+The function `cbmapout' is used in order to delete a record in a map.
+.TP
+.B int cbmapout(CBMAP *map, const char *kbuf, int ksiz);
+`map' specifies a map handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is true.  False is returned when no record corresponds to the specified key.
+.PP
+The function `cbmapget' is used in order to retrieve a record in a map.
+.TP
+.B const char *cbmapget(const CBMAP *map, const char *kbuf, int ksiz, int *sp);
+`map' specifies a map handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the value of the corresponding record.  `NULL' is returned when no record corresponds.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.
+.PP
+The function `cbmapmove' is used in order to move a record to the edge of a map.
+.TP
+.B int cbmapmove(CBMAP *map, const char *kbuf, int ksiz, int head);
+`map' specifies a map handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `head' specifies the destination which is head if it is true or tail if else.  If successful, the return value is true.  False is returned when no record corresponds to the specified key.
+.PP
+The function `cbmapiterinit' is used in order to initialize the iterator of a map.
+.TP
+.B void cbmapiterinit(CBMAP *map);
+`map' specifies a map handle.  The iterator is used in order to access the key of every record stored in a map.
+.PP
+The function `cbmapiternext' is used in order to get the next key of the iterator of a map.
+.TP
+.B const char *cbmapiternext(CBMAP *map, int *sp);
+`map' specifies a map handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the next key, else, it is `NULL'.  `NULL' is returned when no record is to be get out of the iterator.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  The order of iteration is assured to be the same of the one of storing.
+.PP
+The function `cbmapiterval' is used in order to get the value binded to the key fetched from the iterator of a map.
+.TP
+.B const char *cbmapiterval(const char *kbuf, int *sp);
+`kbuf' specifies the pointer to the region of a iteration key.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the value of the corresponding record.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.
+.PP
+The function `cbmaprnum' is used in order to get the number of the records stored in a map.
+.TP
+.B int cbmaprnum(const CBMAP *map);
+`map' specifies a map handle.  The return value is the number of the records stored in the map.
+.PP
+The function `cbmapkeys' is used in order to get the list handle contains all keys in a map.
+.TP
+.B CBLIST *cbmapkeys(CBMAP *map);
+`map' specifies a map handle.  The return value is the list handle contains all keys in the map.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.
+.PP
+The function `cbmapvals' is used in order to get the list handle contains all values in a map.
+.TP
+.B CBLIST *cbmapvals(CBMAP *map);
+`map' specifies a map handle.  The return value is the list handle contains all values in the map.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.
+.PP
+The function `cbmapdump' is used in order to serialize a map into a byte array.
+.TP
+.B char *cbmapdump(const CBMAP *map, int *sp);
+`map' specifies a map handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  The return value is the pointer to the region of the result serial region.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbmapload' is used in order to redintegrate a serialized map.
+.TP
+.B CBMAP *cbmapload(const char *ptr, int size);
+`ptr' specifies the pointer to a byte array.  `size' specifies the size of the region.  The return value is a new map handle.
+.PP
+The function `cbmaploadone' is used in order to extract a record from a serialized map.
+.TP
+.B char *cbmaploadone(const char *ptr, int size, const char *kbuf, int ksiz, int *sp);
+`ptr' specifies the pointer to a byte array.  `size' specifies the size of the region.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the value of the corresponding record.  `NULL' is returned when no record corresponds.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.
+.PP
+The function `cbheapopen' is used in order to get a heap handle.
+.TP
+.B CBHEAP *cbheapopen(int size, int max, int(*compar)(const void *, const void *));
+`size' specifies the size of each record.  `max' specifies the maximum number of records in the heap.  `compar' specifies the pointer to comparing function.  The two arguments specify the pointers of records.  The comparing function should returns positive if the former is big, negative if the latter is big, 0 if both are equal.  The return value is a heap handle.
+.PP
+The function `cbheapdup' is used in order to copy a heap.
+.TP
+.B CBHEAP *cbheapdup(CBHEAP *heap);
+`heap' specifies a heap handle.  The return value is a new heap handle.
+.PP
+The function `cbheapclose' is used in order to close a heap handle.
+.TP
+.B void cbheapclose(CBHEAP *heap);
+`heap' specifies a heap handle.  Because the region of a closed handle is released, it becomes impossible to use the handle.
+.PP
+The function `cbheapnum' is used in order to get the number of the records stored in a heap.
+.TP
+.B int cbheapnum(CBHEAP *heap);
+`heap' specifies a heap handle.  The return value is the number of the records stored in the heap.
+.PP
+The function `cbheapinsert' is used in order to insert a record into a heap.
+.TP
+.B int cbheapinsert(CBHEAP *heap, const void *ptr);
+`heap' specifies a heap handle.  `ptr' specifies the pointer to the region of a record.  The return value is true if the record is added, else false.  If the new record is bigger than the biggest existing regord, the new record is not added.  If the new record is added and the number of records exceeds the maximum number, the biggest existing record is removed.
+.PP
+The function `cbheapval' is used in order to get the pointer to the region of a record in a heap.
+.TP
+.B void *cbheapval(CBHEAP *heap, int index);
+`heap' specifies a heap handle.  `index' specifies the index of a record.  The return value is the pointer to the region of the record.  If `index' is equal to or more than the number of records, the return value is `NULL'.  Note that records are organized by the nagative order the comparing function.
+.PP
+The function `cbheaptomalloc' is used in order to convert a heap to an allocated region.
+.TP
+.B void *cbheaptomalloc(CBHEAP *heap, int *np);
+`heap' specifies a heap handle.  `np' specifies the pointer to a variable to which the number of records of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the heap.  Records are sorted.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  Because the region of the original heap is released, it should not be released again.
+.PP
+The function `cbsprintf' is used in order to allocate a formatted string on memory.
+.TP
+.B char *cbsprintf(const char *format, ...);
+`format' specifies a printf\-like format string.  The conversion character `%' can be used with such flag characters as `d', `o', `u', `x', `X', `e', `E', `f', `g', `G', `c', `s', and `%'.  Specifiers of the field length and the precision can be put between the conversion characters and the flag characters.  The specifiers consist of decimal characters, `.', `+', `\-', and the space character.  The other arguments are used according to the format string.  The return value is the pointer to the allocated region of the result string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbreplace' is used in order to replace some patterns in a string.
+.TP
+.B char *cbreplace(const char *str, CBMAP *pairs);
+`str' specifies the pointer to a source string.  `pairs' specifies the handle of a map composed of pairs of replacement.  The key of each pair specifies a pattern before replacement and its value specifies the pattern after replacement.  The return value is the pointer to the allocated region of the result string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbsplit' is used in order to make a list by splitting a serial datum.
+.TP
+.B CBLIST *cbsplit(const char *ptr, int size, const char *delim);
+`ptr' specifies the pointer to the region of the source content.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `delim' specifies a string containing delimiting characters.  If it is `NULL', zero code is used as a delimiter.  The return value is a list handle.  If two delimiters are successive, it is assumed that an empty element is between the two.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose'.
+.PP
+The function `cbreadfile' is used in order to read whole data of a file.
+.TP
+.B char *cbreadfile(const char *name, int *sp);
+`name' specifies the name of a file.  If it is `NULL', the standard input is specified.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the allocated region of the read data.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbwritefile' is used in order to write a serial datum into a file.
+.TP
+.B int cbwritefile(const char *name, const char *ptr, int size);
+`name specifies the name of a file.  If it is `NULL', the standard output is specified.  `ptr' specifies the pointer to the region of the source content.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  If successful, the return value is true, else, it is false.  If the file exists, it is overwritten.  Else, a new file is created.
+.PP
+The function `cbreadlines' is used in order to read every line of a file.
+.TP
+.B CBLIST *cbreadlines(const char *name);
+`name' specifies the name of a file.  If it is `NULL', the standard input is specified.  The return value is a list handle of the lines if successful, else it is NULL.  Line separators are cut out.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.
+.PP
+The function `cbdirlist' is used in order to read names of files in a directory.
+.TP
+.B CBLIST *cbdirlist(const char *name);
+`name' specifies the name of a directory.  The return value is a list handle of names if successful, else it is NULL.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.
+.PP
+The function `cbfilestat' is used in order to get the status of a file or a directory.
+.TP
+.B int cbfilestat(const char *name, int *isdirp, int *sizep, time_t *mtimep);
+`name' specifies the name of a file or a directory.  `dirp' specifies the pointer to a variable to which whether the file is a directory is assigned.  If it is `NULL', it is not used.  `sizep' specifies the pointer to a variable to which the size of the file is assigned.  If it is `NULL', it is not used.  `mtimep' specifies the pointer to a variable to which the last modified time of the file is assigned.  If it is `NULL', it is not used.  If successful, the return value is true, else, false.  False is returned when the file does not exist or the permission is denied.
+.PP
+The function `cbremove' is used in order to remove a file or a directory and its sub ones recursively.
+.TP
+.B int cbremove(const char *name);
+`name' specifies the name of a file or a directory.  If successful, the return value is true, else, false.  False is returned when the file does not exist or the permission is denied.
+.PP
+The function `cburlbreak' is used in order to break up a URL into elements.
+.TP
+.B CBMAP *cburlbreak(const char *str);
+`str' specifies the pointer to a string of URL.  The return value is a map handle.  Each key of the map is the name of an element.  The key "self" specifies the URL itself.  The key "scheme" specifies the scheme.  The key "host" specifies the host of the server.  The key "port" specifies the port number of the server.  The key "authority" specifies the authority information.  The key "path" specifies the path of the resource.  The key "file" specifies the file name without the directory section.  The key "query" specifies the query string.  The key "fragment" specifies the fragment string.  Supported schema are HTTP, HTTPS, FTP, and FILE.  Absolute URL and relative URL are supported.  Because the handle of the return value is opened with the function `cbmapopen', it should be closed with the function `cbmapclose' if it is no longer in use.
+.PP
+The runction `cburlresolve' is used in order to resolve a relative URL with another absolute URL.
+.TP
+.B char *cburlresolve(const char *base, const char *target);
+`base' specifies an absolute URL of a base location.  `target' specifies a URL to be resolved.  The return value is a resolved URL.  If the target URL is relative, a new URL of relative location from the base location is returned.  Else, a copy of the target URL is returned.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cburlencode' is used in order to encode a serial object with URL encoding.
+.TP
+.B char *cburlencode(const char *ptr, int size);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the pointer to the result string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cburldecode' is used in order to decode a string encoded with URL encoding.
+.TP
+.B char *cburldecode(const char *str, int *sp);
+`str' specifies the pointer to a source string.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the result.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbbaseencode' is used in order to encode a serial object with Base64 encoding.
+.TP
+.B char *cbbaseencode(const char *ptr, int size);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the pointer to the result string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbbasedecode' is used in order to decode a string encoded with Base64 encoding.
+.TP
+.B char *cbbasedecode(const char *str, int *sp);
+`str' specifies the pointer to a source string.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the result.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbquoteencode' is used in order to encode a serial object with quoted\-printable encoding.
+.TP
+.B char *cbquoteencode(const char *ptr, int size);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the pointer to the result string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbquotedecode' is used in order to decode a string encoded with quoted\-printable encoding.
+.TP
+.B char *cbquotedecode(const char *str, int *sp);
+`str' specifies the pointer to a source string.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer to the region of the result.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbmimebreak' is used in order to split a string of MIME into headers and the body.
+.TP
+.B char *cbmimebreak(const char *ptr, int size, CBMAP *attrs, int *sp);
+`ptr' specifies the pointer to the region of MIME data.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `attrs' specifies a map handle to store attributes.  If it is `NULL', it is not used.  Each key of the map is an attribute name uncapitalized.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  The return value is the pointer of the body data.  If the content type is defined, the attribute map has the key "TYPE" specifying the type.  If the character encoding is defined, the key "CHARSET" specifies the encoding name.  If the boundary string of multipart is defined, the key "BOUNDARY" specifies the string.  If the content disposition is defined, the key "DISPOSITION" specifies the direction.  If the file name is defined, the key "FILENAME" specifies the name.  If the attribute name is defined, the key "NAME" specifies the name.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbmimeparts' is used in order to split multipart data of MIME into its parts.
+.TP
+.B CBLIST *cbmimeparts(const char *ptr, int size, const char *boundary);
+`ptr' specifies the pointer to the region of multipart data of MIME.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `boundary' specifies the pointer to the region of the boundary string.  The return value is a list handle.  Each element of the list is the string of a part.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.
+.PP
+The function `cbmimeencode' is used in order to encode a string with MIME encoding.
+.TP
+.B char *cbmimeencode(const char *str, const char *encname, int base);
+`str' specifies the pointer to a string.  `encname' specifies a string of the name of the character encoding.  The return value is the pointer to the result string.  `base' specifies whether to use Base64 encoding.  If it is false, quoted\-printable is used.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbmimedecode' is used in order to decode a string encoded with MIME encoding.
+.TP
+.B char *cbmimedecode(const char *str, char *enp);
+`str' specifies the pointer to an encoded string.  `enp' specifies the pointer to a region into which the name of encoding is written.  If it is `NULL', it is not used.  The size of the buffer should be equal to or more than 32 bytes.  The return value is the pointer to the result string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbcsvrows' is used in order to split a string of CSV into rows.
+.TP
+.B CBLIST *cbcsvrows(const char *str);
+`str' specifies the pointer to the region of an CSV string.  The return value is a list handle.  Each element of the list is a string of a row.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.  The character encoding of the input string should be US\-ASCII, UTF\-8, ISO\-8859\-*, EUC\-*, or Shift_JIS.  Being compatible with MS\-Excel, these functions for CSV can handle cells including such meta characters as comma, between double quotation marks.
+.PP
+The function `cbcsvcells' is used in order to split the string of a row of CSV into cells.
+.TP
+.B CBLIST *cbcsvcells(const char *str);
+`str' specifies the pointer to the region of a row of CSV.  The return value is a list handle.  Each element of the list is the unescaped string of a cell of the row.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.
+.PP
+The function `cbcsvescape' is used in order to escape a string with the meta characters of CSV.
+.TP
+.B char *cbcsvescape(const char *str);
+`str' specifies the pointer to the region of a string.  The return value is the pointer to the escaped string sanitized of meta characters.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbcsvunescape' is used in order to unescape a string with the escaped meta characters of CSV.
+.TP
+.B char *cbcsvunescape(const char *str);
+`str' specifies the pointer to the region of a string with meta characters.  The return value is the pointer to the unescaped string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbxmlbreak' is used in order to split a string of XML into tags and text sections.
+.TP
+.B CBLIST *cbxmlbreak(const char *str, int cr);
+`str' specifies the pointer to the region of an XML string.  `cr' specifies whether to remove comments.  The return value is a list handle.  Each element of the list is the string of a tag or a text section.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.  The character encoding of the input string should be US\-ASCII, UTF\-8, ISO\-8859\-*, EUC\-*, or Shift_JIS.  Because these functions for XML are not XML parser with validation check, it can handle also HTML and SGML.
+.PP
+The function `cbxmlattrs' is used in order to get the map of attributes of an XML tag.
+.TP
+.B CBMAP *cbxmlattrs(const char *str);
+`str' specifies the pointer to the region of a tag string.  The return value is a map handle.  Each key of the map is the name of an attribute.  Each value is unescaped.  You can get the name of the tag with the key of an empty string.  Because the handle of the return value is opened with the function `cbmapopen', it should be closed with the function `cbmapclose' if it is no longer in use.
+.PP
+The function `cbxmlescape' is used in order to escape a string with the meta characters of XML.
+.TP
+.B char *cbxmlescape(const char *str);
+`str' specifies the pointer to the region of a string.  The return value is the pointer to the escaped string sanitized of meta characters.  This function converts only `&', `<', `>', and `"'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbxmlunescape' is used in order to unescape a string with the entity references of XML.
+.TP
+.B char *cbxmlunescape(const char *str);
+`str' specifies the pointer to the region of a string.  The return value is the pointer to the unescaped string.  This function restores only `&amp;', `&lt;', `&gt;', and `&quot;'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbdeflate' is used in order to compress a serial object with ZLIB.
+.TP
+.B char *cbdeflate(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with ZLIB enabled.
+.PP
+The function `cbinflate' is used in order to decompress a serial object compressed with ZLIB.
+.TP
+.B char *cbinflate(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with ZLIB enabled.
+.PP
+The function `cbgzencode' is used in order to compress a serial object with GZIP.
+.TP
+.B char *cbgzencode(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with ZLIB enabled.
+.PP
+The function `cbgzdecode' is used in order to decompress a serial object compressed with GZIP.
+.TP
+.B char *cbgzdecode(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with ZLIB enabled.
+.PP
+The function `cbgetcrc' is used in order to get the CRC32 checksum of a serial object.
+.TP
+.B unsigned int cbgetcrc(const char *ptr, int size);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the CRC32 checksum of the object.  This function is available only if QDBM was built with ZLIB enabled.
+.PP
+The function `cblzoencode' is used in order to compress a serial object with LZO.
+.TP
+.B char *cblzoencode(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with LZO enabled.
+.PP
+The function `cblzodecode' is used in order to decompress a serial object compressed with LZO.
+.TP
+.B char *cblzodecode(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with LZO enabled.
+.PP
+The function `cbbzencode' is used in order to compress a serial object with BZIP2.
+.TP
+.B char *cbbzencode(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with BZIP2 enabled.
+.PP
+The function `cbbzdecode' is used in order to decompress a serial object compressed with BZIP2.
+.TP
+.B char *cbbzdecode(const char *ptr, int size, int *sp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with BZIP2 enabled.
+.PP
+The function `cbiconv' is used in order to convert the character encoding of a string.
+.TP
+.B char *cbiconv(const char *ptr, int size, const char *icode, const char *ocode, int *sp, int *mp);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  `icode' specifies the name of encoding of the input string.  `ocode' specifies the name of encoding of the output string.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  `mp' specifies the pointer to a variable to which the number of missing characters by failure of conversion is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the result object, else, it is `NULL'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  This function is available only if QDBM was built with ICONV enabled.
+.PP
+The function `cbencname' is used in order to detect the encoding of a string automatically.
+.TP
+.B const char *cbencname(const char *ptr, int size);
+`ptr' specifies the pointer to a region.  `size' specifies the size of the region.  If it is negative, the size is assigned with `strlen(ptr)'.  The return value is the string of the encoding name of the string.  As it stands, US\-ASCII, ISO\-2022\-JP, Shift_JIS, CP932, EUC\-JP, UTF\-8, UTF\-16, UTF\-16BE, and UTF\-16LE are supported.  If none of them matches, ISO\-8859\-1 is selected.  This function is available only if QDBM was built with ICONV enabled.
+.PP
+The function `cbjetlag' is used in order to get the jet lag of the local time in seconds.
+.TP
+.B int cbjetlag(void);
+The return value is the jet lag of the local time in seconds.
+.PP
+The function `cbcalendar' is used in order to get the Gregorian calendar of a time.
+.TP
+.B void cbcalendar(time_t t, int jl, int *yearp, int *monp, int *dayp, int *hourp, int *minp, int *secp);
+`t' specifies a source time.  If it is negative, the current time is specified.  `jl' specifies the jet lag of a location in seconds.  `yearp' specifies the pointer to a variable to which the year is assigned.  If it is `NULL', it is not used.  `monp' specifies the pointer to a variable to which the month is assigned.  If it is `NULL', it is not used.  1 means January and 12 means December.  `dayp' specifies the pointer to a variable to which the day of the month is assigned.  If it is `NULL', it is not used.  `hourp' specifies the pointer to a variable to which the hours is assigned.  If it is `NULL', it is not used.  `minp' specifies the pointer to a variable to which the minutes is assigned.  If it is `NULL', it is not used.  `secp' specifies the pointer to a variable to which the seconds is assigned.  If it is `NULL', it is not used.
+.PP
+The function `cbdayofweek' is used in order to get the day of week of a date.
+.TP
+.B int cbdayofweek(int year, int mon, int day);
+`year' specifies the year of a date.  `mon' specifies the month of the date.  `day' specifies the day of the date.  The return value is the day of week of the date.  0 means Sunday and 6 means Saturday.
+.PP
+The function `cbdatestrwww' is used in order to get the string for a date in W3CDTF.
+.TP
+.B char *cbdatestrwww(time_t t, int jl);
+`t' specifies a source time.  If it is negative, the current time is specified.  `jl' specifies the jet lag of a location in seconds.  The return value is the string of the date in W3CDTF (YYYY\-MM\-DDThh:mm:ddTZD).  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbdatestrhttp' is used in order to get the string for a date in RFC 1123 format.
+.TP
+.B char *cbdatestrhttp(time_t t, int jl);
+`t' specifies a source time.  If it is negative, the current time is specified.  `jl' specifies the jet lag of a location in seconds.  The return value is the string of the date in RFC 1123 format (Wdy, DD\-Mon\-YYYY hh:mm:dd TZD).  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `cbstrmktime' is used in order to get the time value of a date string in decimal, hexadecimal, W3CDTF, or RFC 822 (1123).
+.TP
+.B time_t cbstrmktime(const char *str);
+`str' specifies a date string in decimal, hexadecimal, W3CDTF, or RFC 822 (1123).  The return value is the time value of the date or \-1 if the format is invalid.  Decimal can be trailed by "s" for in seconds, "m" for in minutes, "h" for in hours, and "d" for in days.
+.PP
+The function `cbproctime' is used in order to get user and system processing times.
+.TP
+.B void cbproctime(double *usrp, double *sysp);
+`usrp' specifies the pointer to a variable to which the user processing time is assigned.  If it is `NULL', it is not used.  The unit of time is seconds.  `sysp' specifies the pointer to a variable to which the system processing time is assigned.  If it is `NULL', it is not used.  The unit of time is seconds.
+.PP
+The function `cbstdiobin' is used in order to ensure that the standard I/O is binary mode.
+.TP
+.B void cbstdiobin(void);
+This function is useful for applications on dosish file systems.
+.PP
+Functions of Cabin except for `cbglobalgc' are thread\-safe as long as a handle is not accessed by threads at the same time, on the assumption that `errno', `malloc', and so on are thread\-safe.
+
+.SH SEE ALSO
+.PP
+.BR qdbm (3),
+.BR depot (3),
+.BR curia (3),
+.BR relic (3),
+.BR hovel (3),
+.BR villa (3),
+.BR odeum (3),
+.BR ndbm (3),
+.BR gdbm (3)

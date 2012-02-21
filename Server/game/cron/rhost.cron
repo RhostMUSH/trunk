@@ -1,0 +1,6 @@
+#1
+@dump/flat; @@ dump the main game database to flatfile
+wmail/unload; @@ dump the mail database to flatfile
+@areg/unload; @@ dump the registration database to flatfile
+newsdb/unload; @@ dump the news bbs database to flatfile
+

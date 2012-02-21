@@ -1,0 +1,331 @@
+# Makefile for C++ interface of QDBM
+
+
+
+#================================================================
+# Setting variables
+#================================================================
+
+
+# Generic settings
+SHELL = @SHELL@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+# Packaging
+PACKAGE = qdbm
+LIBVER = @LIBVER@
+LIBREV = @LIBREV@
+
+# Targets
+MYHEADS = xqdbm.h xadbm.h xdepot.h xcuria.h xvilla.h
+MYLIBOBJS =  xqdbm.o xadbm.o xdepot.o xcuria.o xvilla.o
+MYLIBS = libxqdbm.a libxqdbm.so.$(LIBVER).$(LIBREV).0 libxqdbm.so.$(LIBVER) libxqdbm.so
+MYBINS = xdptest xcrtest xvltest
+MYDOCS = xspex.html xspex-ja.html xapidoc
+MYWINLIBS = libxqdbm.a libxqdbm.dll.a
+MYMACLIBS = libxqdbm.a libxqdbm.$(LIBVER).$(LIBREV).0.dylib \
+  libxqdbm.$(LIBVER).dylib libxqdbm.dylib
+MYHPUXLIBS = libxqdbm.a libxqdbm.sl
+
+# Install destinations
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+MYHEADDIR = @includedir@
+MYLIBDIR = @libdir@
+MYBINDIR = @bindir@
+MYDATADIR = @datadir@/$(PACKAGE)/plus
+DESTDIR =
+
+# Building binaries
+CXX = @CXX@
+CPPFLAGS = @CPPFLAGS@ -I$(srcdir) -I$(srcdir)/.. -I$(MYHEADDIR) \
+  -I$(HOME)/include -I/usr/local/include @MYDEFS@ \
+  -D_XOPEN_SOURCE_EXTENDED=1 -D_GNU_SOURCE=1 -D__EXTENSIONS__=1 -D_HPUX_SOURCE=1 \
+  -D_POSIX_MAPPED_FILES=1 -D_POSIX_SYNCHRONIZED_IO=1 \
+  -DPIC=1 -D_THREAD_SAFE=1 -D_REENTRANT=1 -DNDEBUG
+CXXFLAGS = -Wall -ansi -pedantic -fsigned-char -fPIC -O2 -fno-strict-aliasing @MYOPTS@
+LD = @LD@
+LIBS = -lqdbm @LIBS@
+LIBLDFLAGS = @LDFLAGS@ -L. -L$(srcdir)/.. -L$(MYLIBDIR) \
+  -L$(HOME)/lib -L/usr/local/lib $(LIBS)
+LDFLAGS = @LDFLAGS@ -L. -L$(srcdir)/.. -L$(MYLIBDIR) \
+  -L$(HOME)/lib -L/usr/local/lib -lxqdbm $(LIBS)
+LDENV = LD_RUN_PATH=/lib:/usr/lib:$(MYLIBDIR):$(HOME)/lib:/usr/local/lib
+AR = @AR@
+ARFLAGS = rcsv
+RUNENV = LD_LIBRARY_PATH=.:..:/lib:/usr/lib:$(MYLIBDIR):$(HOME)/lib:/usr/local/lib
+
+
+
+#================================================================
+# Suffix rules
+#================================================================
+
+
+.SUFFIXES :
+.SUFFIXES : .cc .o
+
+.cc.o :
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<
+
+
+
+#================================================================
+# Actions
+#================================================================
+
+
+targets : @TARGETS@
+
+
+all : $(MYLIBS) $(MYBINS)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Ready to install.\n'
+	@printf '#================================================================\n'
+
+
+static :
+	make MYLIBS="$(MYLIBS)" LDFLAGS="-static $(LDFLAGS)" all
+
+
+debug :
+	make MYLIBS="$(MYLIBS)" CPPFLAGS="$(CPPFLAGS) -UNDEBUG" \
+	  CXXFLAGS="$(CXXFLAGS) -g" LDFLAGS="-static $(LDFLAGS)" all
+
+
+devel :
+	make MYLIBS="$(MYLIBS)" CPPFLAGS="$(CPPFLAGS) -UNDEBUG" \
+	  CXXFLAGS="$(CXXFLAGS) -g -pipe" all
+	sync ; sync
+
+
+profile :
+	make MYLIBS="$(MYLIBS)" CXXFLAGS="$(CXXFLAGS) -pg -g -Werror" \
+	  LDFLAGS="-static $(LDFLAGS)" all
+
+
+clean :
+	rm -rf $(MYLIBS) $(MYBINS) *.o *.a *.so \
+	  *.exe *.dll.a *.dll *.dylib *.sl a.out TAGS gmon.out leak.log casket *~
+
+
+install :
+	mkdir -p $(DESTDIR)$(MYHEADDIR)
+	cd $(srcdir) && cp -Rf $(MYHEADS) $(DESTDIR)$(MYHEADDIR)
+	mkdir -p $(DESTDIR)$(MYLIBDIR)
+	cp -Rf $(MYLIBS) $(DESTDIR)$(MYLIBDIR)
+	mkdir -p $(DESTDIR)$(MYBINDIR)
+	cp -Rf $(MYBINS) $(DESTDIR)$(MYBINDIR)
+	mkdir -p $(DESTDIR)$(MYDATADIR)
+	cp -Rf $(MYDOCS) $(DESTDIR)$(MYDATADIR)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Thanks for using QDBM for C++.\n'
+	@printf '#================================================================\n'
+
+
+install-strip :
+	make DESTDIR=$(DESTDIR) install
+	cd $(DESTDIR)$(MYBINDIR) && strip $(MYBINS)
+
+
+uninstall :
+	cd $(DESTDIR)$(MYHEADDIR) && rm -f $(MYHEADS)
+	cd $(DESTDIR)$(MYLIBDIR) && rm -f $(MYLIBS)
+	cd $(DESTDIR)$(MYBINDIR) && rm -f $(MYBINS)
+	rm -rf $(DESTDIR)$(MYDATADIR)
+
+
+dist :
+	autoconf
+	make doc
+	make distclean
+
+
+distclean : clean
+	rm -rf Makefile config.cache config.log config.status autom4te.cache
+
+
+TAGS :
+	etags -o $@ *.c *.h
+
+
+check :
+	sync ; sync
+	rm -rf casket*
+	$(RUNENV) ./xdptest write casket 50000 5000
+	$(RUNENV) ./xdptest read casket
+	$(RUNENV) ./xdptest multi casket 10000 1000 10
+	$(RUNENV) ./xdptest misc casket
+	rm -rf casket*
+	$(RUNENV) ./xcrtest write casket 50000 5000 10
+	$(RUNENV) ./xcrtest read casket
+	$(RUNENV) ./xcrtest multi casket 10000 1000 10 10
+	$(RUNENV) ./xcrtest misc casket
+	rm -rf casket*
+	$(RUNENV) ./xcrtest write -lob casket 500 50 10
+	$(RUNENV) ./xcrtest read -lob casket
+	$(RUNENV) ./xcrtest multi -lob casket 500 50 10 10
+	rm -rf casket*
+	$(RUNENV) ./xvltest write casket 50000
+	$(RUNENV) ./xvltest read casket
+	$(RUNENV) ./xvltest multi casket 10000 10
+	$(RUNENV) ./xvltest misc casket
+	rm -rf casket*
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Checking completed.\n'
+	@printf '#================================================================\n'
+
+
+doc :
+	make docclean
+	mkdir -p xapidoc
+	doxygen
+
+
+docclean :
+	rm -rf xapidoc
+
+
+win :
+	make MYLIBS="libxqdbm.dll.a" \
+	  CXXFLAGS="-Wall -ansi -pedantic -fsigned-char -O0 -DNDEBUG"
+
+
+check-win :
+	make check
+
+
+install-win :
+	make MYBINS="`for file in $(MYBINS) ; do echo $$file.exe ; done | tr '\n' ' '`" \
+	  MYLIBS="libxqdbm.dll.a" install
+	cp -Rf xqdbm.dll $(DESTDIR)$(MYBINDIR)
+
+
+uninstall-win :
+	make MYBINS="`for file in $(MYBINS) ; do echo $$file.exe ; done | tr '\n' ' '`" \
+	  MYLIBS="libxqdbm.dll.a" uninstall
+	rm -f $(DESTDIR)$(MYBINDIR)/xqdbm.dll
+
+
+mac :
+	make MYLIBS="$(MYMACLIBS)" CXXFLAGS="-Wall -fsigned-char -fno-common -O1 -DNDEBUG"
+
+
+check-mac :
+	make RUNENV="DYLD_LIBRARY_PATH=.:..:/usr/local/lib" check
+
+
+install-mac :
+	make MYLIBS="$(MYMACLIBS)" install
+
+
+uninstall-mac :
+	make MYLIBS="$(MYMACLIBS)" uninstall
+
+
+hpux :
+	make MYLIBS="$(MYHPUXLIBS)"
+
+
+check-hpux :
+	make RUNENV="SHLIB_PATH=.:..:/usr/local/lib" check
+
+
+install-hpux :
+	make MYLIBS="$(MYHPUXLIBS)" install
+
+
+uninstall-hpux :
+	make MYLIBS="$(MYHPUXLIBS)" uninstall
+
+
+.PHONY : all clean install check
+
+
+
+#================================================================
+# Building binaries
+#================================================================
+
+
+libxqdbm.a : $(MYLIBOBJS)
+	$(AR) $(ARFLAGS) $@ $(MYLIBOBJS)
+
+
+libxqdbm.so.$(LIBVER).$(LIBREV).0 : $(MYLIBOBJS)
+	if $(CXX) --print-prog-name=ld | egrep -i '(solaris|/ccs/|/ucb/)' > /dev/null ; \
+	  then \
+	    $(CXX) -shared -Wl,-G,-h,libxqdbm.so.$(LIBVER) -o $@ $(MYLIBOBJS) $(LIBLDFLAGS) ; \
+	  else \
+	    $(CXX) -shared -Wl,-soname,libxqdbm.so.$(LIBVER) -o $@ $(MYLIBOBJS) $(LIBLDFLAGS) ; \
+	  fi
+
+
+libxqdbm.so.$(LIBVER) : libxqdbm.so.$(LIBVER).$(LIBREV).0
+	ln -f -s libxqdbm.so.$(LIBVER).$(LIBREV).0 $@
+
+
+libxqdbm.so : libxqdbm.so.$(LIBVER).$(LIBREV).0
+	ln -f -s libxqdbm.so.$(LIBVER).$(LIBREV).0 $@
+
+
+libxqdbm.dll.a : xqdbm.dll
+
+
+xqdbm.dll : $(MYLIBOBJS)
+	$(CXX) -shared -o $@ \
+	  -Wl,--out-implib=lib$@.a \
+	  -Wl,--export-all-symbols \
+	  -Wl,--enable-auto-import \
+	  -Wl,--add-stdcall-alias \
+	  -Wl,--whole-archive \
+	  -Wl,--no-whole-archive $(MYLIBOBJS) $(LIBLDFLAGS)
+
+
+libxqdbm.$(LIBVER).$(LIBREV).0.dylib : $(MYLIBOBJS)
+	$(CXX) -dynamiclib -o $@ \
+	  -install_name $(MYLIBDIR)/libxqdbm.$(LIBVER).dylib \
+	  -current_version $(LIBVER).$(LIBREV).0 \
+	  -compatibility_version $(LIBVER) \
+	  $(MYLIBOBJS) $(LIBLDFLAGS)
+
+
+libxqdbm.$(LIBVER).dylib : libxqdbm.$(LIBVER).$(LIBREV).0.dylib
+	ln -f -s libxqdbm.$(LIBVER).$(LIBREV).0.dylib $@
+
+
+libxqdbm.dylib : libxqdbm.$(LIBVER).$(LIBREV).0.dylib
+	ln -f -s libxqdbm.$(LIBVER).$(LIBREV).0.dylib $@
+
+
+libxqdbm.sl : $(MYLIBOBJS)
+	$(CXX) -shared -Wl,-b -o $@ $(MYLIBOBJS) $(LIBLDFLAGS)
+
+
+xdptest : xdptest.o $(MYLIBS)
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ xdptest.o $(LDFLAGS)
+
+
+xcrtest : xcrtest.o $(MYLIBS)
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ xcrtest.o $(LDFLAGS)
+
+
+xvltest : xvltest.o $(MYLIBS)
+	$(LDENV) $(CXX) $(CXXFLAGS) -o $@ xvltest.o $(LDFLAGS)
+
+
+xadbm.o : xqdbm.h xadbm.h
+
+xdepot.o xdptest.o : xqdbm.h xadbm.h xdepot.h
+
+xcuria.o xcrtest.o : xqdbm.h xadbm.h xcuria.h
+
+xvilla.o xvltest.o : xqdbm.h xadbm.h xvilla.h
+
+
+
+# END OF FILE

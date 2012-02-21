@@ -1,0 +1,16 @@
+#!/bin/sh
+PATH=/bin:/usr/bin:
+# You need this library path for the new gdbm
+# LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/gdbm-1.8.3:../src/gdbm-1.8.3/.libs
+# export LD_LIBRARY_PATH
+#
+#	Convert from arbitrary format to MUSH V2 flat file format.
+#
+case $# in
+	1)	./dbconvert $1 x ;;
+	2)	./dbconvert $1 x <$2 ;;
+	3)	./dbconvert $1 x <$2 >$3 ;;
+	*)	echo Usage: $0 'gdbm_file [source_file [dest_file]]'; exit 1 ;;
+esac
+
+exit 0

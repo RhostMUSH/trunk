@@ -1,0 +1,292 @@
+#! /usr/bin/perl -w
+
+#=================================================================================================
+# Test cases of Depot for Perl
+#                                                       Copyright (C) 2000-2005 Mikio Hirabayashi
+# This file is part of QDBM, Quick Database Manager.
+# QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
+# Lesser General Public License as published by the Free Software Foundation; either version
+# 2.1 of the License or any later version.  QDBM is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+# You should have received a copy of the GNU Lesser General Public License along with QDBM; if
+# not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+# 02111-1307 USA.
+#=================================================================================================
+
+
+use strict;
+use warnings;
+use ExtUtils::testlib;
+use Depot;
+
+
+# main routine
+sub main {
+    my($rv);
+    (scalar(@ARGV) >= 1) || usage();
+    if($ARGV[0] eq "write"){
+        $rv = runwrite();
+    } elsif($ARGV[0] eq "read"){
+        $rv = runread();
+    } elsif($ARGV[0] eq "tie"){
+        $rv = runtie();
+    } else {
+        usage();
+    }
+    return $rv;
+}
+
+
+# print the usage and exit
+sub usage {
+    printf(STDERR "$0: test cases for Depot for Perl\n");
+    printf(STDERR "\n");
+    printf(STDERR "usage:\n");
+    printf(STDERR "  $0 write name rnum bnum\n");
+    printf(STDERR "  $0 read name\n");
+    printf(STDERR "  $0 tie name\n");
+    printf(STDERR "\n");
+    exit(1);
+}
+
+
+# parse arguments of write command
+sub runwrite {
+    my($name, $rnum, $bnum, $i, $rv);
+    for($i = 1; $i < scalar(@ARGV); $i++){
+        if(!defined($name) && $ARGV[$i] =~ m/^-/){
+            usage();
+        } elsif(!defined($name)){
+            $name = $ARGV[$i];
+        } elsif(!defined($rnum)){
+            $rnum = $ARGV[$i];
+        } elsif(!defined($bnum)){
+            $bnum = $ARGV[$i];
+        } else {
+            usage();
+        }
+    }
+    (defined($name) && defined($rnum) && defined($bnum)) || usage();
+    ($name && $rnum > 0 && $bnum > 0) || usage();
+    $rv = dowrite($name, $rnum, $bnum);
+    return $rv;
+}
+
+
+# parse arguments of read command
+sub runread {
+    my($name, $i, $rv);
+    for($i = 1; $i < scalar(@ARGV); $i++){
+        if(!defined($name) && $ARGV[$i] =~ m/^-/){
+            usage();
+        } elsif(!defined($name)){
+            $name = $ARGV[$i];
+        } else {
+            usage();
+        }
+    }
+    (defined($name)) || usage();
+    ($name) || usage();
+    $rv = doread($name);
+    return $rv;
+}
+
+
+# parse arguments of tie command
+sub runtie {
+    my($name, $i, $rv);
+    for($i = 1; $i < scalar(@ARGV); $i++){
+        if(!defined($name) && $ARGV[$i] =~ m/^-/){
+            usage();
+        } elsif(!defined($name)){
+            $name = $ARGV[$i];
+        } else {
+            usage();
+        }
+    }
+    (defined($name)) || usage();
+    ($name) || usage();
+    $rv = dotie($name);
+    return $rv;
+}
+
+
+# perform write command
+sub dowrite {
+    my($name, $rnum, $bnum) = @_;
+    my($i, $depot, $buf, $err);
+    printf("<Writing Test>\n  name=$name  rnum=$rnum  bnum=$bnum\n\n");
+    # open a database
+    if(!($depot = new Depot($name, Depot::OWRITER | Depot::OCREAT | Depot::OTRUNC, $bnum))){
+        printf(STDERR "$0: $name: open error: $Depot::errmsg\n");
+        return 1;
+    }
+    # loop for each record
+    $err = 0;
+    $| = 1;
+    for($i = 1; $i <= $rnum; $i++){
+        $buf = sprintf("%08d", $i);
+        # store a record
+        if(!$depot->put($buf, $buf, Depot::DKEEP)){
+            printf(STDERR "$0: $name: put error: $Depot::errmsg\n");
+            $err = 1;
+            last;
+        }
+        # print progression
+        if($rnum > 250 && $i % ($rnum / 250) == 0){
+            print('.');
+            if($i == $rnum || $i % ($rnum / 10) == 0){
+                printf(" (%08d)\n", $i);
+            }
+        }
+    }
+    # close the database
+    if(!$depot->close()){
+        printf(STDERR "$0: $name: close error: $Depot::errmsg\n");
+        return 1;
+    }
+    ($err) || printf("ok\n\n");
+    return $err ? 1 : 0;
+}
+
+
+# perform read command
+sub doread {
+    my($name) = @_;
+    my($i, $depot, $rnum, $buf, $err);
+    printf("<Reading Test>\n  name=$name\n\n");
+    # open a database
+    if(!($depot = new Depot($name))){
+        printf(STDERR "$0: $name: open error: $Depot::errmsg\n");
+        return 1;
+    }
+    # get the number of records
+    $rnum = $depot->rnum();
+    # loop for each record
+    $err = 0;
+    $| = 1;
+    for($i = 1; $i <= $rnum; $i++){
+        $buf = sprintf("%08d", $i);
+        # store a record
+        if(!$depot->get($buf)){
+            printf(STDERR "$0: $name: get error: $Depot::errmsg\n");
+            $err = 1;
+            last;
+        }
+        # print progression
+        if($rnum > 250 && $i % ($rnum / 250) == 0){
+            print('.');
+            if($i == $rnum || $i % ($rnum / 10) == 0){
+                printf(" (%08d)\n", $i);
+            }
+        }
+    }
+    # close the database
+    if(!$depot->close()){
+        printf(STDERR "$0: $name: close error: $Depot::errmsg\n");
+        return 1;
+    }
+    ($err) || printf("ok\n\n");
+    return $err ? 1 : 0;
+}
+
+
+# perform tie command
+sub dotie {
+    my($name) = @_;
+    my($LOOPNUM) = 100;
+    my($BUCKETNUM) = 16;
+    my($i, $depot, $rnum, %hash, $buf, $key, $val);
+    printf("<Tying Test>\n  name=$name\n\n");
+    $| = 1;
+    # open the database
+    printf("Creating a database with tied hash ... ");
+    if(!($depot = tie(%hash, "Depot", $name,
+                      Depot::OWRITER | Depot::OCREAT | Depot::OTRUNC, $BUCKETNUM))){
+        printf(STDERR "$0: $name: open error: $Depot::errmsg\n");
+        return 1;
+    }
+    printf("ok\n");
+    # store records
+    printf("Storing records into tied hash ... ");
+    for($i = 1; $i <= $LOOPNUM; $i++){
+        $buf = sprintf("%08d", $i);
+        if(!($hash{$buf} = $buf)){
+            printf(STDERR "$0: $name: store error: $Depot::errmsg\n");
+            return 1;
+        }
+    }
+    printf("ok\n");
+    # retrieve records
+    printf("Retrieving records in tied hash ... ");
+    for($i = 1; $i <= $LOOPNUM; $i++){
+        $buf = sprintf("%08d", $i);
+        if(!$hash{$buf}){
+            printf(STDERR "$0: $name: fetch error: $Depot::errmsg\n");
+            return 1;
+        }
+    }
+    printf("ok\n");
+    # traverse records
+    printf("Traversing records in tied hash ... ");
+    $i = 0;
+    while(($key, $val) = each(%hash)){
+        if($key ne $val){
+            printf(STDERR "$0: $name: each error: $Depot::errmsg\n");
+            return 1;
+        }
+        $i++;
+    }
+    if($i != $LOOPNUM){
+        printf(STDERR "$0: $name: each error: $Depot::errmsg\n");
+        return 1;
+    }
+    printf("ok\n");
+    # delete a record
+    printf("Deleting a record in tied hash ... ");
+    $buf = sprintf("%08d", $LOOPNUM / 2);
+    if(!(delete $hash{$buf}) || scalar(keys(%hash)) != $LOOPNUM - 1){
+        printf(STDERR "$0: $name: delete error: $Depot::errmsg\n");
+        return 1;
+    }
+    printf("ok\n");
+    # clear the hash
+    printf("Clear a record in tied hash ... ");
+    %hash = ();
+    if(scalar(keys(%hash)) != 0){
+        printf(STDERR "$0: $name: clear error: $Depot::errmsg\n");
+        return 1;
+    }
+    printf("ok\n");
+    # test filters
+    printf("Testing filters ... ");
+    $depot->filter_store_key(sub { s/$/\0/; });
+    $depot->filter_store_value(sub { s/$/\0/; });
+    $depot->filter_fetch_key(sub { s/\0$//; });
+    $depot->filter_fetch_value(sub { s/\0$//; });
+    $hash{"tako"} = "ika";
+    if(!exists($hash{"tako"}) || scalar(keys(%hash)) != 1 || scalar(values(%hash)) != 1 ||
+       $hash{"tako"} ne "ika" || !delete($hash{"tako"})){
+        printf(STDERR "$0: $name: filter error: $Depot::errmsg\n");
+        return 1;
+    }
+    printf("ok\n");
+    # close the database
+    printf("Closing the tied hash ... ");
+    $depot = undef;
+    untie(%hash);
+    printf("ok\n");
+    printf("all ok\n\n");
+    return 0;
+}
+
+
+# execute main
+$0 =~ s/.*\///;
+exit(main());
+
+
+
+# END OF FILE

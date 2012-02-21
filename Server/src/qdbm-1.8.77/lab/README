@@ -1,0 +1,73 @@
+================================================================
+ Utilities for test and experiment
+================================================================
+
+
+- hashtest
+
+  This command is used in order to see performance of hash functions.
+
+
+- sorttest
+
+  This command is used in order to see performance of sorting functions.
+
+
+- fmtcnv031127
+
+  This command is used in order to convert a database file from older
+  format than 1.7.13 to the latest format.
+
+  Usage for a database of Depot:
+
+    fmtcnv031127 < old > new
+
+  Usage for a database of Villa:
+
+    fmtcnv031127 -v < old > new
+
+  Usage for a database of Villa (deflated):
+
+    fmtcnv031127 -v -z < old > new
+
+
+- setbdflush
+
+  This command is used in order to set the device file `bdflush' of Linux
+  to see the best performance of QDBM.
+
+
+- tabcheck
+
+  This command is used in order to check whether tab or tailing space is
+  in source files.
+
+
+- diffcheck
+
+  This command is used in order to see difference of each file in two
+  directories.
+
+
+- stepcount
+
+  This command is used in order to count speps of source files.
+
+
+- edswap
+
+  This command is used in order to swap strings with ed command.
+
+
+- ccdoc
+
+  This command is used in order to create documents about source code using
+  GNU source-highlight.
+
+
+- texttohtml
+
+  This command is used in order to convert plain text to HTML.
+
+
+== END OF FILE ==

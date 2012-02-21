@@ -1,0 +1,5 @@
+lj and rj aliases for ljust and rjust
+--This line, and those below, will be ignored--
+
+M    Server/game/alias.conf
+M    Server/readme/RHOST.CHANGES
