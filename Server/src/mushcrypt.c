@@ -219,13 +219,16 @@ const char szFail[] = "$FAIL$$";
 const char *mux_crypt(const char *szPassword, const char *szSetting, int *piType)
 {
     static char buf[SHA1_PREFIX_LENGTH + ENCODED_SALT_LENGTH + 1 + ENCODED_HASH_LENGTH + 1 + 16];
-    const char *pSaltField = NULL;
+    char *pSaltField = NULL;
     size_t nSaltField = 0, nAlgo, nSetting;
     char *p;
     SHA1_CONTEXT shac;
     char szHashRaw[21];
     int i;
 
+notify(1234,"Running muxcrypt");
+notify(1234, unsafe_tprintf("Value1-A: %s", szSetting));
+notify(1234, unsafe_tprintf("Value1-B: %s", szPassword));
     memset(szHashRaw, '\0', sizeof(szHashRaw));
     *piType = CRYPT_FAIL;
 
@@ -239,9 +242,11 @@ const char *mux_crypt(const char *szPassword, const char *szSetting, int *piType
             if (  nAlgo == SHA1_PREFIX_LENGTH
                && memcmp(szSetting, szSHA1Prefix, SHA1_PREFIX_LENGTH) == 0)
             {
+notify(1234,"Should be working.");
                 // SHA-1
                 //
                 pSaltField = p;
+notify(1234, unsafe_tprintf("Salt: %d/%s", nSaltField, pSaltField));
                 p = strchr(pSaltField, '$');
                 if (p)
                 {
@@ -270,6 +275,7 @@ const char *mux_crypt(const char *szPassword, const char *szSetting, int *piType
             {
                 *piType = CRYPT_OTHER;
             }
+notify(1234, unsafe_tprintf("Salt2: %d/%s", nSaltField, pSaltField));
         }
     }
     else if (szSetting[0] == '_')
@@ -330,7 +336,7 @@ const char *mux_crypt(const char *szPassword, const char *szSetting, int *piType
     }
 
     // Calculate SHA-1 Hash.
-
+notify(1234, "Crypting Check...");
     SHA1_Init(&shac);
     SHA1_Compute(&shac, nSaltField, pSaltField);
     SHA1_Compute(&shac, strlen(szPassword), szPassword);
@@ -355,9 +361,13 @@ const char *mux_crypt(const char *szPassword, const char *szSetting, int *piType
     //
     memset(buf, '\0', sizeof(buf));
     strncpy(buf, szSHA1Prefix, SHA1_PREFIX_LENGTH);
+notify(1234, unsafe_tprintf("Value2-A: %s", buf));
     memcpy(buf + SHA1_PREFIX_LENGTH, pSaltField, nSaltField);
+notify(1234, unsafe_tprintf("Value2-B: %s", buf));
     buf[SHA1_PREFIX_LENGTH + nSaltField] = '$';
+notify(1234, unsafe_tprintf("Value2-C: %s", buf));
     EncodeBase64(20, szHashRaw, buf + SHA1_PREFIX_LENGTH + nSaltField + 1);
+notify(1234, unsafe_tprintf("Value2-D: %s", buf));
     return buf;
 }
 

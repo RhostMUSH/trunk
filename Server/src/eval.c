@@ -17,9 +17,12 @@ char *index(const char *, int);
 #include "alloc.h"
 #include "rhost_ansi.h"
 #include "command.h"
+#include "match.h"
 
 #include "debug.h"
 #define FILENUM EVAL_C
+
+extern dbref FDECL(match_thing_quiet, (dbref, char *));
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -369,10 +372,18 @@ static void
 tcache_finish(void)
 {
     TCENT *xp;
-    char *tpr_buff = NULL, *tprp_buff = NULL;
+    char *tpr_buff = NULL, *tprp_buff = NULL, *s_aptext = NULL, *s_aptextptr = NULL, *s_strtokr = NULL, *tbuff = NULL;
+    int i_apflags, i_targetlist;
+    dbref i_apowner, passtarget, targetlist[LBUF_SIZE], i;
+    ATTR *ap_log;
+
     DPUSH; /* #66 */
 
+    for (i = 0; i < LBUF_SIZE; i++)
+       targetlist[i]=-2000000;
+
     tprp_buff = tpr_buff = alloc_lbuf("tcache_finish");
+    tbuff = alloc_lbuf("bounce_on_notify_exec");
     while (tcache_head != NULL) {
 	xp = tcache_head;
 	tcache_head = xp->next;
@@ -380,10 +391,44 @@ tcache_finish(void)
 	notify(Owner(xp->player),
 	       safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
 		       xp->orig, xp->result));
+
+       if ( Bouncer(xp->player) ) {
+            ap_log = atr_str("BOUNCEFORWARD");
+            if ( ap_log ) {
+               s_aptext = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
+               if ( s_aptext && *s_aptext ) {
+                  s_aptextptr = strtok_r(s_aptext, " ", &s_strtokr);
+                  i_targetlist = 0;
+                  for (i = 0; i < LBUF_SIZE; i++)
+                     targetlist[i]=-2000000;
+                  while ( s_aptextptr ) {
+                     passtarget = match_thing_quiet(xp->player, s_aptextptr);
+                     for (i = 0; i < LBUF_SIZE; i++) {
+                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
+                           break;
+                     }
+                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != xp->player) && (Owner(xp->player) != passtarget) ) {
+                        if ( !No_Ansi_Ex(passtarget) )
+                           sprintf(tbuff, "%sBounce [#%d]>%s %.3950s", ANSI_HILITE, xp->player, ANSI_NORMAL, tpr_buff);
+                        else
+                           sprintf(tbuff, "Bounce [#%d]> %.3950s", xp->player, tpr_buff);
+                        notify_quiet(passtarget, tbuff);
+                     }
+                     s_aptextptr = strtok_r(NULL, " ", &s_strtokr);
+                     targetlist[i_targetlist] = passtarget;
+                     i_targetlist++;
+                  }
+               }
+               free_lbuf(s_aptext);
+            }
+        }
+
+
 	free_lbuf(xp->orig);
 	free_lbuf(xp->result);
 	free_sbuf(xp);
     }
+    free_lbuf(tbuff);
     free_lbuf(tpr_buff);
     tcache_top = 1;
     tcache_count = 0;
@@ -814,12 +859,17 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
        intervalchk = 100;
     else
        intervalchk = mudconf.cpuintervalchk;
+
     bufc = buff = alloc_lbuf("exec.buff");
+
     if ( mudstate.chkcpu_toggle || (((endtme - starttme) > timechk) && ((tinterval/100) > intervalchk)) ) {
         mudstate.chkcpu_toggle = 1;
         RETURN(buff); /* #67 */
     }
 
+    if ( !Good_chk(player) || !Good_chk(caller) || !Good_chk(cause) ) {
+        RETURN(buff); /* #67 */
+    }
     // Requires strict ansi compliance, but it looks pretty.
     if ( mudstate.stack_val > mudconf.stack_limit 
 	 &&
