@@ -1,0 +1,129 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH ODMGR 1 "2005-05-23" "Man Page" "Quick Database Manager"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+odmgr \- administration utility for QDBM Odeum
+.SH SYNOPSIS
+.B odmgr create
+.I name
+.br
+.B odmgr put
+.RI "[-uri " str "] [-title " str "] [-author " str "] [-date " str "] [-wmax " num "] [-keep] " name " [" file "]"
+.br
+.B odmgr out
+.RI "[-id] " name " " expr
+.br
+.B odmgr get
+.RI "[-id] [-t|-h] " name " " expr
+.br
+.B odmgr search
+.RI "[-max " num "] [-or] [-idf] [-t|-h|-n] " name " " words...
+.br
+.B odmgr list
+.RI "[-t|-h] " name
+.br
+.B odmgr optimize
+.I name
+.br
+.B odmgr inform
+.I name
+.br
+.B odmgr merge
+.I name elems...
+.br
+.B odmgr remove
+.I name
+.br
+.B odmgr break
+.RI "[-h|-k|-s] [" file "]"
+.br
+.B odmgr version
+.SH DESCRIPTION
+This manual page documents briefly the
+.B odmgr
+commands.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+
+\fBodmgr\fP is a utility for debugging Odeum and its applications. It
+features editing and checking of a database. It can be used for
+full-text search systems with shell scripts. This command is used in
+the above format. \fIname\fP specifies a database name. \fIfile\fP
+specifies a file name, \fIexpr\fP specifies the URI or the ID number
+of a document, \fIwords\fP specifies searching words. \fIelems\fP specifies
+element databases.
+.SH OPTIONS
+A summary of options is included below.
+For a complete description, see the
+file:///usr/share/doc/qdbm-doc/spex.html#odeumcli .
+.TP
+.BI "\-uri "
+specify the URI of the document explicitly.
+.TP
+.BI "\-title " str
+specify the title of the document.
+.TP
+.BI "\-author " str
+specify the author of the document.
+.TP
+.BI "\-date " str
+specify the modified date of the document.
+.TP
+.BI "\-wmax " num
+specify the max number of words to be stored.
+.TP
+.B \-keep
+the storing mode is not to be overwrite.
+.TP
+.B \-id
+specify a document not by a URI but by an ID number.
+.TP
+.B \-t
+output the details of a document in tab separated format.
+.TP
+.B \-h
+output the details of a document in human-readable format.
+.TP
+.B \-k
+output keywords of a document.
+.TP
+.B \-s
+output summary of a document.
+.TP
+.BI "\-max " num
+specify the max number of documents of the output.
+.TP
+.B \-or
+perform OR search, nut AND search.
+.TP
+.B \-idf
+tune scores with IDF.
+.TP
+.B \-n
+show ID numbers and scores only.
+.SH SEE ALSO
+.BR qdbm (3),
+.BR odidx (1),
+.BR odeum (3).
+.BR odopen (3).
+.SH AUTHOR
+QDBM was written by Mikio Hirabayashi <mikio@fallabs.com>.
+.PP
+This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
+for the Debian project (but may be used by others).

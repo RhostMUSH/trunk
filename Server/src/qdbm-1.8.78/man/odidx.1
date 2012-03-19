@@ -1,0 +1,90 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH ODIDX 1 "2005-05-23" "Man Page" "Quick Database Manager"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+odidx \- indexer of document files
+.SH SYNOPSIS
+.B odidx register
+.RI "[-l " file "] [-wmax " num "] [-tsuf " sufs "] [-hsuf " sufs "] " name "[" dir "]"
+.br
+.B odidx relate
+.I name
+.br
+.B odidx purge
+.I name
+.SH DESCRIPTION
+This manual page documents briefly the
+.B odidx
+commands.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+The command \fBodidx\fP is a utility for indexing files on the local
+file system.  This command is useful for a full-text search system of
+a Web site. Supported file format are plain text and HTML. Supported
+character encoding are US-ASCII and ISO-8859-1. The URI of each
+document is specified with the path of its file. Attributes named as
+\fItitle\fP and \fIdate\fP are given to each documents. When a document
+is already existing in the database, it is registered if its last
+modification time is newer, or it is ignored. Modification times are
+stored in the sub database `_mtime' in the main database
+directory. Score information are stored in the sub database `_score'
+in the main database directory. This command is used in the above
+format. \fIname\fP specifies a database name.  \fIdir\fP specifies a
+directory name.
+.SH OPTIONS
+A summary of options is included below.
+For a complete description, see the
+file:///usr/share/doc/qdbm-doc/spex.html#odeumcli.
+.TP
+.BI "\-l " file
+read a file and get list of paths of files to register. If `-' is
+specified, the standard input is read.
+.TP
+.BI "\-wmax " num
+specify the max number of words to be stored in the document database.
+.TP
+.BI "\-tsuf " sufs
+specify suffixes of plain text files in comma separated
+format. The default is `-tsuf .txt,.text'.
+.TP
+.BI "\-hsuf " sufs
+specify suffixes of HTML files in comma separated format. The
+default is `-hsuf .html,.htm'.
+.SH EXAMPLES
+For example, to register files which are under `/home/mikio' and whose
+suffix are `.txt', `.c', or `.h', perform the following command.
+.br
+\fB     odidx register -tsuf ".txt,.c,.h" -hsuf "" casket /home/mikio\fP
+.br
+.PP
+Thus, to retrieve documents which include `unix' and `posix' and show the top 8
+terms, perform the following command.
+.br
+\fB     odmgr search -max 8 -h casket "unix posix"\fP
+.br
+.SH SEE ALSO
+.BR qdbm (3),
+.BR odmgr (1),
+.BR odeum (3),
+.BR odopen (3).
+.SH AUTHOR
+QDBM was written by Mikio Hirabayashi <mikio@fallabs.com>.
+.PP
+This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
+for the Debian project (but may be used by others).

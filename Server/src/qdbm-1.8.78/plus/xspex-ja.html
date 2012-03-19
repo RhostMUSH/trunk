@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="author" content="Mikio Hirabayashi" />
+<meta name="keywords" content="QDBM, C++, Depot, Curia, Villa" />
+<meta name="description" content="specifications of C++ API of QDBM" />
+<link rel="contents" href="./" />
+<link rel="alternate" href="xspex.html" hreflang="en" title="the English version" />
+<link rev="made" href="mailto:mikio@fallabs.com" />
+<title>Specifications of QDBM for C++ (Japanese)</title>
+<style type="text/css">html { margin: 0em 0em; padding: 0em 0em; background: #eeeeee none; }
+body { margin: 2em 2em; padding: 0em 0em;
+  background: #eeeeee none; color: #111111;
+  font-style: normal; font-weight: normal; }
+h1 { margin-top: 1.8em; margin-bottom: 1.3em; font-weight: bold; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold;
+  border-left: solid 0.6em #445555; border-bottom: solid 1pt #bbbbbb;
+  padding: 0.5em 0.5em; width: 60%; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; }
+hr { margin-top: 2.5em; margin-bottom: 1.5em; height: 1pt;
+  color: #999999; background-color: #999999; border: none; }
+div.note,div.navi { text-align: right; }
+div.logo { text-align: center; margin: 3em 0em; }
+div.logo img { border: inset 2pt #ccccdd; }
+p { margin: 0.8em 0em; line-height: 140%; }
+p,dd { text-indent: 0.8em; }
+div,pre { margin-left: 1.7em; margin-right: 1.7em; }
+pre { background-color: #ddddee; padding: 0.2em; border: 1pt solid #bbbbcc; font-size: smaller; }
+kbd { color: #111111; font-style: normal; font-weight: bold; }
+a { color: #0022aa; text-decoration: none; }
+a:hover,a:focus { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+table { padding: 1pt 2pt 1pt 2pt; border: none; margin-left: 1.7em; border-collapse: collapse; }
+th { padding: 1pt 4pt 1pt 4pt; border-style: none;
+  text-align: left; vertical-align: bottom; }
+td { padding: 1pt 4pt 1pt 4pt; border: 1pt solid #333333;
+  text-align: left; vertical-align: top; }
+ul,ol,dl { line-height: 140%; }
+dt { margin-left: 1.2em; }
+dd { margin-left: 2.0em; }
+ul.lines { list-style-type: none; }
+@media print {
+  html,body { margin: 0em 0em; background-color: #ffffff; color: #000000; }
+  h1 { padding: 8em 0em 0.5em 0em; text-align: center; }
+  h2 { page-break-before: always; }
+  div.note { text-align: center; }
+  div.navi,div.logo { display: none }
+  hr { display: none; }
+  pre { margin: 0.8em 0.8em; background-color: #ffffff;
+    border: 1pt solid #aaaaaa; font-size: smaller; }
+  a,kbd { color: #000000; text-decoration: none; }
+  h1,h2,h3 { font-family: sans-serif; }
+  p,div,li,dt,dd { font-family: serif; }
+  pre,kbd { font-family: monospace; }
+  dd { font-size: smaller; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>QDBM付属C++用API仕様書</h1>
+
+<div class="note">Copyright (C) 2000-2006 Mikio Hirabayashi</div>
+<div class="note">Last Update: Thu, 26 Oct 2006 15:00:20 +0900</div>
+<div class="navi">[<a href="xapidoc/index.html">API</a>] [<a href="xspex.html" hreflang="en">English</a>]</div>
+
+<hr />
+
+<h2>目次</h2>
+
+<ol>
+<li><a href="#overview">概要</a></li>
+<li><a href="#installation">インストール</a></li>
+<li><a href="#examples">サンプルコード</a></li>
+<li><a href="#bugs">バグ</a></li>
+</ol>
+
+<hr />
+
+<h2><a name="overview" id="overview" class="head">概要</a></h2>
+
+<p>QDBMにはC++言語用のAPIがある。QDBMの基本APIと拡張APIと上級APIの関数群をC++のクラス機構を用いてカプセル化し、かつスレッドセーフにしたものである。</p>
+
+<p>基本APIはファイルを用いてハッシュデータベースを実現する。クラス `Depot' のコンストラクタによってデータベースファイルが開かれる。データベースを閉じるにはメンバ関数 `close' を呼ぶ。明示的にデータベースを閉じないでインスタンスが破棄される場合は、デストラクタによってデータベースが閉じられる。メンバ関数 `put' はレコードを追加するために用いる。メンバ関数 `out' はレコードを削除するために用いる。メンバ関数 `get' はレコードを検索するために用いる。その他にも、C言語の基本APIとほぼ同じ操作を利用することができる。各メンバ関数はエラー時にクラス `Depot_error' のインスタンスを投げる。</p>
+
+<p>拡張APIはディレクトリと複数のファイルを用いてハッシュデータベースを実現する。クラス `Curia' のコンストラクタによってデータベースディレクトリが開かれる。データベースを閉じるにはメンバ関数 `close' を呼ぶ。明示的にデータベースを閉じないでインスタンスが破棄される場合は、デストラクタによってデータベースが閉じられる。メンバ関数 `put' はレコードを追加するために用いる。メンバ関数 `out' はレコードを削除するために用いる。メンバ関数 `get' はレコードを検索するために用いる。ラージオブジェクトを扱うこともできる。その他にも、C言語の拡張APIとほぼ同じ操作を利用することができる。各メンバ関数はエラー時にクラス `Curia_error' のインスタンスを投げる。</p>
+
+<p>上級APIはファイルを用いてB+木データベースを実現する。クラス `Villa' のコンストラクタによってデータベースファイルが開かれる。データベースを閉じるにはメンバ関数 `close' を呼ぶ。明示的にデータベースを閉じないでインスタンスが破棄される場合は、デストラクタによってデータベースが閉じられる。メンバ関数 `put' はレコードを追加するために用いる。メンバ関数 `out' はレコードを削除するために用いる。メンバ関数 `get' はレコードを検索するために用いる。その他にも、C言語の上級APIとほぼ同じ操作を利用することができる。各メンバ関数はエラー時にクラス `Villa_error' のインスタンスを投げる。</p>
+
+<p>`Depot' と `Curia' と `Villa' はクラス `ADBM' の派生クラスである。このクラスはUNIX標準のDBMと同様の機能を持つデータベースマネージャを抽象化したインタフェースであり、純粋仮想関数の宣言のみを行う。各メンバ関数はエラー時にクラス `DBM_error' のインスタンスを投げる。このフレームワークでは、レコードのキーや値はクラス `Datum' として表現される。`Datum' のインスタンスはデータ領域のポインタとそのサイズを持つ。四つのAPIから適切なものを選択する際には、実行効率を重視するなら `Depot' を、スケーラビリティを重視するなら `Curia' を、順序に基づく参照が必要なら `Villa' を、エレガンスと保守性を重視するなら `ADBM' を選ぶべきであろう。データベースファイルは各APIの間で互換性がない。</p>
+
+<p>アプリケーションのソースファイルにおいて、`Depot' を用いるには `xdepot.h' を、`Curia' を用いるには `xcuria.h' を、`Villa' を用いるには `xvilla.h' を、`ADBM' を用いるには `xadbm.h' をインクルードする必要がある。各クラスは名前空間 `qdbm' にパッケージされている。</p>
+
+<p>C言語のAPIは、スレッド間でデータベースハンドルを共有しない限りはスレッドセーフである。C++のAPIでは、複数のスレッドが同じハンドルにアクセスしてもスレッドセーフである。このAPIはPOSIXスレッドパッケージを前提として実装されている。別のスレッドパッケージを用いる場合は、独自のC++用ラッパを書くべきである。</p>
+
+<p>`put' で既存のレコードの上書きがキャンセルされた際や `get' で存在しないレコードが検索された際には例外によって操作の失敗が通知されるが、それが鬱陶しい場合は `silent' フラグを真にするとよい。その場合は失敗が戻り値によって通知される。</p>
+
+<p>APIの詳細に関しては、サブディレクトリ `<a href="xapidoc/">xapidoc</a>' の文書と各ヘッダファイルを参照すること。</p>
+
+<hr />
+
+<h2><a name="installation" id="installation" class="head">インストール</a></h2>
+
+<h3>準備</h3>
+
+<p>GCCの3.3以降のバージョンがインストールされ、QDBMが `/usr/local' 以下にインストールされていることが必要である。</p>
+
+<p>インストール作業は、サブディレクトリ `plus' をカレントディレクトリにして行う。</p>
+
+<pre>cd plus
+</pre>
+
+<h3>普通の手順</h3>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check
+</pre>
+
+<p>プログラムをインストールする。作業は `root' ユーザで行う。</p>
+
+<pre>make install
+</pre>
+
+<p>一連の作業が終ると、ヘッダファイル `xdepot.h' と `xcuria.h' と `xvilla.h' と `xadbm.h' が `/usr/local/include' に、ライブラリ `libxqdbm.so' 等が `/usr/local/lib' に、コマンド `xdptest' と `xcrtest' と `xvltest' が `/usr/local/bin' にインストールされる。</p>
+
+<p>アンインストールするには、`./configure' をした後の状態で以下のコマンドを実行する。作業は `root' ユーザで行う。</p>
+
+<pre>make uninstall
+</pre>
+
+<h3>Windowsの場合</h3>
+
+<p>Windows（Cygwin）にインストールする場合、以下の手順に従う。</p>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make win
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check-win
+</pre>
+
+<p>プログラムをインストールする。なお、アンインストールする場合は `make uninstall-win' とする。</p>
+
+<pre>make install-win
+</pre>
+
+<p>Windowsでは、静的ライブラリ `libxqdbm.a' の代わりにインポートライブラリ `libxqdbm.dll.a' が生成され、さらにダイナミックリンクライブラリ `xqdbm.dll' が生成される。`xqdbm.dll' は `/usr/local/bin' にインストールされる。</p>
+
+<p>C++用のAPIではMinGWを用いたビルドはサポートされない。</p>
+
+<h3>Mac OS Xの場合</h3>
+
+<p>Mac OS X（Darwin）にインストールする場合、以下の手順に従う。</p>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make mac
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check-mac
+</pre>
+
+<p>プログラムをインストールする。なお、アンインストールする場合は `make uninstall-mac' とする。</p>
+
+<pre>make install-mac
+</pre>
+
+<p>Mac OS Xでは、`libxqdbm.so' 等の代わりに `libxqdbm.dylib' 等が生成される。</p>
+
+<h3>HP-UXの場合</h3>
+
+<p>HP-UXにインストールする場合、以下の手順に従う。</p>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make hpux
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check-hpux
+</pre>
+
+<p>プログラムをインストールする。なお、アンインストールする場合は `make uninstall-hpux' とする。</p>
+
+<pre>make install-hpux
+</pre>
+
+<p>HP-UXでは、`libxqdbm.so' 等の代わりに `libxqdbm.sl' が生成される。</p>
+
+<hr />
+
+<h2><a name="examples" id="examples" class="head">サンプルコード</a></h2>
+
+<p>名前と対応させて電話番号を格納し、それを検索するアプリケーションのサンプルコードを以下に示す。</p>
+
+<pre>#include &lt;xdepot.h&gt;
+#include &lt;cstdlib&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+using namespace qdbm;
+
+const char* NAME = "mikio";
+const char* NUMBER = "000-1234-5678";
+const char* DBNAME = "book";
+
+int main(int argc, char** argv){
+  try {
+
+    // データベースを開く
+    Depot depot(DBNAME, Depot::OWRITER | Depot::OCREAT);
+
+    // レコードを格納する
+    depot.put(NAME, -1, NUMBER, -1);
+
+    // レコードを取得する
+    char* val = depot.get(NAME, -1);
+    cout &lt;&lt; "Name: " &lt;&lt; NAME &lt;&lt; endl;
+    cout &lt;&lt; "Number: " &lt;&lt; val &lt;&lt; endl;
+    free(val);
+
+    // データベースを閉じる
+    depot.close();
+
+  } catch(Depot_error&amp; e){
+    cerr &lt;&lt; e &lt;&lt; endl;
+    return 1;
+  }
+  return 0;
+}
+</pre>
+
+<p>上記の例を `ADBM' クラスを用いて書き直した例を以下に示す。</p>
+
+<pre>#include &lt;xadbm.h&gt;
+#include &lt;xdepot.h&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+using namespace qdbm;
+
+const char* NAME = "mikio";
+const char* NUMBER = "000-1234-5678";
+const char* DBNAME = "book";
+
+int main(int argc, char** argv){
+  try {
+
+    // データベースを開く
+    Depot depot(DBNAME, Depot::OWRITER | Depot::OCREAT);
+    ADBM&amp; dbm = depot;
+
+    // レコードを準備する
+    Datum key(NAME);
+    Datum val(NUMBER);
+
+    // レコードを格納する
+    dbm.storerec(key, val);
+
+    // レコードを取得する
+    const Datum&amp; res = dbm.fetchrec(key);
+    cout &lt;&lt; "Name: " &lt;&lt; NAME &lt;&lt; endl;
+    cout &lt;&lt; "Number: " &lt;&lt; res &lt;&lt; endl;
+
+    // データベースを閉じる
+    dbm.close();
+
+  } catch(DBM_error&amp; e){
+    cerr &lt;&lt; e &lt;&lt; endl;
+    return 1;
+  }
+  return 0;
+}
+</pre>
+
+<p>`Villa' クラスを用いて文字列の前方一致検索を行う例を以下に示す。</p>
+
+<pre>#include &lt;xvilla.h&gt;
+#include &lt;cstdlib&gt;
+#include &lt;cstring&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+using namespace qdbm;
+
+const char* DBNAME = "words";
+const char* PREFIX = "apple";
+
+int main(int argc, char** argv){
+  try {
+
+    // データベースを開く
+    Villa villa(DBNAME, Villa::OWRITER | Villa::OCREAT);
+
+    // レコードを格納する
+    villa.put("applet", -1, "little application", -1, Villa::DDUP);
+    villa.put("aurora", -1, "polar wonderwork", -1, Villa::DDUP);
+    villa.put("apple", -1, "delicious fruit", -1, Villa::DDUP);
+    villa.put("amigo", -1, "good friend", -1, Villa::DDUP);
+    villa.put("apple", -1, "big city", -1, Villa::DDUP);
+
+    try {
+
+      // カーソルを候補の先頭に置く
+      villa.curjump(PREFIX, -1);
+
+      // カーソルを走査する
+      for(;;){
+        char* key = villa.curkey();
+        if(strstr(key, PREFIX) != key){
+          free(key);
+          break;
+        }
+        char* val = villa.curval();
+        cout &lt;&lt; key &lt;&lt; ": " &lt;&lt; val &lt;&lt; endl;
+        free(key);
+        free(val);
+        villa.curnext();
+      }
+
+    } catch(Villa_error&amp; e){
+      if(e.code() != Villa::ENOITEM) throw e;
+    }
+
+    // データベースを閉じる
+    villa.close();
+
+  } catch(Villa_error&amp; e){
+    cerr &lt;&lt; e &lt;&lt; endl;
+    return 1;
+  }
+  return 0;
+}
+</pre>
+
+<p>C++用APIを利用したプログラムをビルドするには、ライブラリ `xqdbm' と `qdbm' をリンク対象に加える必要がある。例えば、`sample.cc' から `sample' を作るには、以下のようにビルドを行う。</p>
+
+<pre>g++ -I/usr/local/include -o sample sample.cc -L/usr/local/lib -lxqdbm -lqdbm
+</pre>
+
+<hr />
+
+<h2><a name="bugs" id="bugs" class="head">バグ</a></h2>
+
+<p>ひとつのプロセスで複数のデータベースファイルを同時に利用することは可能であるが、同じデータベースファイルの複数のハンドルを利用してはならない。ひとつのデータベースを複数のスレッドで利用する場合には、メインスレッドで生成したハンドルを他のスレッドに渡せばよい。</p>
+
+<p>一般的なオブジェクトを直列化してデータベースに格納する仕組みはないので、必要ならば、`Datum' クラスを拡張してその仕組みを作ってほしい。また、`Villa' の比較関数で、直列化したオブジェクトを復元した上で比較するようにすれば、よりオブジェクト指向データベースらしくなるだろう。</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->

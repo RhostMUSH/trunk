@@ -1,0 +1,63 @@
+.TH CBTEST 1 "2005-06-01" "Man Page" "Quick Database Manager"
+
+.SH NAME
+cbtest \- test cases for QDBM Cabin
+
+.SH SYNOPSIS
+.PP
+.B cbtest sort
+.RI "[-d] " rnum
+.br
+.B cbtest strstr
+.RI "[-d] " rnum
+.br
+.B cbtest list
+.RI "[-d] " rnum
+.br
+.B cbtest map
+.RI "[-d] " rnum
+.br
+.B cbtest wicked
+.I rnum
+.br
+.B cbtest misc
+
+.SH DESCRIPTION
+.PP
+The command `cbtest' is a utility for facility test and performance test.  Measure the execution time of the command.  This command is used in the following format.  `rnum' specifies the number of records.
+.PP
+.TP
+.B cbtest sort [-d] rnum
+Perform test of sorting algorithms.
+.TP
+.B cbtest sort [-d] rnum
+Perform test of string locating algorithms.
+.TP
+.B cbtest list [-d] rnum
+Perform writing test of list.
+.TP
+.B cbtest map [-d] rnum
+Perform writing test of map.
+.TP
+.B cbtest wicked rnum
+Perform updating operations of list and map selected at random.
+.TP
+.B cbtest misc
+Perform test of miscellaneous routines.
+.PP
+Options feature the following.
+.PP
+.RS
+.B -d
+: read and show data of the result.
+.RE
+.PP
+This command returns 0 on success, another on failure.
+
+.SH SEE ALSO
+.PP
+.BR qdbm (3),
+.BR cabin (3)
+
+.SH AUTHOR
+QDBM was written by Mikio Hirabayashi <mikio@fallabs.com>.

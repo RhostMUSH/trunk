@@ -1,0 +1,194 @@
+#! /usr/bin/ruby -w
+
+#================================================================
+# myrbdoc
+# Document generator for Ruby sources
+#================================================================
+
+
+# main routine
+def main
+  files = []
+  err = false
+  destdir = nil
+  ptitle = "Ruby API"
+  afile = nil
+  i = 0
+  while(i < ARGV.length)
+    if(files.length < 1 && ARGV[i] =~ /^-/)
+      if(ARGV[i] == "-d")
+        destdir = ARGV[i+=1]
+      elsif(ARGV[i] == "-t")
+        ptitle = ARGV[i+=1]
+      elsif(ARGV[i] == "-a")
+        afile = ARGV[i+=1]
+      else
+        usage()
+      end
+    else
+      files.push(ARGV[i])
+    end
+    i += 1
+  end
+  (files.length > 0) || usage()
+  (destdir) || (destdir = ".")
+  (File::directory?(destdir)) || Dir::mkdir(destdir)
+  files.each() do |file|
+    makedoc(destdir, ptitle, file)
+  end
+  makeindex(destdir, ptitle, afile, files)
+  return 0
+end
+
+
+# print the usage and exit
+def usage
+  printf(STDERR, "%s: usage: %s: [-d dir] [-t str] [-a file] file ...\n", $0, $0)
+  exit(1)
+end
+
+
+# generate a document
+def makedoc(destdir, ptitle, name)
+  source = name.gsub(/.*\//, "")
+  dest = sprintf("%s/%s.html", destdir, source)
+  File::open(name, "r") do |infile|
+    File::open(dest, "w") do |outfile|
+      writehead(outfile, ptitle, source)
+      while(line = infile.gets())
+        line.chomp!()
+        line.gsub!(/^ */, "")
+        if(line =~ /^\x23\x23/)
+          group = Array::new()
+          while(line = infile.gets())
+            line.chomp!()
+            line.gsub!(/^ */, "")
+            (line =~ /^\x23[^@]/) || break
+            (line.length() > 1) || next
+            group.push(line)
+          end
+          if(group.length() > 1)
+            printf(outfile, "<dl>\n")
+            kbd = group[0] =~ /^\x23:/
+            group.each() do |elem|
+              elem.gsub!(/^\x23[ :]*/, "")
+              elem.gsub!(/&/, "&amp;")
+              elem.gsub!(/</, "&lt;")
+              elem.gsub!(/>/, "&gt;")
+              elem.gsub!(/\x22/, "&quot;")
+            end
+            if(kbd)
+              printf(outfile, "<dt><em>%s</em></dt>\n", group[0])
+            else
+              printf(outfile, "<dt><kbd>%s</kbd></dt>\n", group[0])
+            end
+            group.shift()
+            if(group.length > 0)
+              printf(outfile, "<dd>\n")
+              group.each() do |elem|
+                printf(outfile, "%s\n", elem)
+              end
+              printf(outfile, "</dd>\n")
+            end
+            printf(outfile, "</dl>\n")
+          end
+        end
+      end
+      printf(outfile, "<hr />\n")
+      writetail(outfile)
+    end
+  end
+end
+
+
+# generate the index file
+def makeindex(destdir, ptitle, afile, files)
+  dest = sprintf("%s/index.html", destdir)
+  File::open(dest, "w") do |outfile|
+    writehead(outfile, ptitle)
+    if(afile)
+      File::open(afile, "r") do |infile|
+        while(line = infile.gets())
+          line.chomp!()
+          printf(outfile, "%s\n", line)
+        end
+      end
+      printf(outfile, "<hr />\n")
+    end
+    printf(outfile, "<h2>API</h2>\n")
+    printf(outfile, "<ul>\n")
+    files.each() do |file|
+      file = file.gsub(/.*\//, "")
+      printf(outfile, "<li><a href=\"%s.html\">%s</a></li>\n", file, file.gsub(/\..*/, ""))
+    end
+    printf(outfile, "</ul>\n")
+    printf(outfile, "<hr />\n")
+    writetail(outfile)
+  end
+end
+
+
+# write header
+def writehead(outfile, ptitle, name = nil)
+  if(name)
+    title = sprintf("%s (%s)", name.gsub(/\..*/, ""), ptitle)
+    head = sprintf("API of %s", name.gsub(/\..*/, ""))
+    navi = "<div class=\"note\">[<a href=\"index.html\">Back</a>]</div>"
+  else
+    title = sprintf("INDEX (%s)", ptitle)
+    head = ptitle
+    navi = "<div class=\"note\">Ruby Source Documents</div>"
+  end
+printf(outfile, "%s", <<__MYEOF)
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link rel="contents" href="./" />
+<link rev="made" href="mailto:mikio\@fallabs.com" />
+<title>#{title}</title>
+<style type="text/css">html { margin: 0em 0em; padding 0em 0em; background: #eeeeee none; }
+body { background-color: #eeeeee; color: #111111; padding: 1.5em 2em; margin: 0em 0em;
+  border-left: double 3.0em #eedddd; border-right: solid 1.0em #eedddd;
+  font-style: normal; font-weight: normal; font-family: serif; }
+h1 { margin-top: 0.8em; margin-bottom: 1.3em; font-weight: bold; font-family: sans-serif; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold; font-family: sans-serif; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; font-family: sans-serif; }
+p,ul,ol,dl { line-height: 140%; }
+em { color: #111111; font-style: italic; font-weight: normal; font-family: serif; }
+kbd { color: #111111; font-style: normal; font-weight: bold; font-family: monospace; }
+a { color: #0022aa; text-decoration: none; }
+a:hover { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+.note { text-align: right; }
+</style>
+</head>
+<body>
+#{navi}
+<h1>#{head}</h1>
+<hr />
+__MYEOF
+end
+
+
+# write tail
+def writetail(outfile)
+  (sec, min, hour, mday, mon, year) = Time::now.to_a
+  datestr = sprintf("%04d/%02d/%02d", year, mon, mday)
+printf(outfile, "%s", <<__MYEOF)
+<div class="note">Generated by #{$0}, #{datestr}.</div>
+</body>
+</html>
+__MYEOF
+end
+
+
+# execute main
+#$0.gsub!(/.*\//, "")
+exit(main())
+
+
+
+# END OF FILE

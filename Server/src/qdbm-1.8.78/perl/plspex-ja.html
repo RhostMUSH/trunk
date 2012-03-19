@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="author" content="Mikio Hirabayashi" />
+<meta name="keywords" content="QDBM, Perl, Depot, Curia, Villa" />
+<meta name="description" content="specifications of Perl API of QDBM" />
+<link rel="contents" href="./" />
+<link rel="alternate" href="plspex.html" hreflang="en" title="the English version" />
+<link rev="made" href="mailto:mikio@fallabs.com" />
+<title>Specifications of QDBM for Perl (Japanese)</title>
+<style type="text/css">html { margin: 0em 0em; padding: 0em 0em; background: #eeeeee none; }
+body { margin: 2em 2em; padding: 0em 0em;
+  background: #eeeeee none; color: #111111;
+  font-style: normal; font-weight: normal; }
+h1 { margin-top: 1.8em; margin-bottom: 1.3em; font-weight: bold; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold;
+  border-left: solid 0.6em #445555; border-bottom: solid 1pt #bbbbbb;
+  padding: 0.5em 0.5em; width: 60%; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; }
+hr { margin-top: 2.5em; margin-bottom: 1.5em; height: 1pt;
+  color: #999999; background-color: #999999; border: none; }
+div.note,div.navi { text-align: right; }
+div.logo { text-align: center; margin: 3em 0em; }
+div.logo img { border: inset 2pt #ccccdd; }
+p { margin: 0.8em 0em; line-height: 140%; }
+p,dd { text-indent: 0.8em; }
+div,pre { margin-left: 1.7em; margin-right: 1.7em; }
+pre { background-color: #ddddee; padding: 0.2em; border: 1pt solid #bbbbcc; font-size: smaller; }
+kbd { color: #111111; font-style: normal; font-weight: bold; }
+a { color: #0022aa; text-decoration: none; }
+a:hover,a:focus { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+table { padding: 1pt 2pt 1pt 2pt; border: none; margin-left: 1.7em; border-collapse: collapse; }
+th { padding: 1pt 4pt 1pt 4pt; border-style: none;
+  text-align: left; vertical-align: bottom; }
+td { padding: 1pt 4pt 1pt 4pt; border: 1pt solid #333333;
+  text-align: left; vertical-align: top; }
+ul,ol,dl { line-height: 140%; }
+dt { margin-left: 1.2em; }
+dd { margin-left: 2.0em; }
+ul.lines { list-style-type: none; }
+@media print {
+  html,body { margin: 0em 0em; background-color: #ffffff; color: #000000; }
+  h1 { padding: 8em 0em 0.5em 0em; text-align: center; }
+  h2 { page-break-before: always; }
+  div.note { text-align: center; }
+  div.navi,div.logo { display: none }
+  hr { display: none; }
+  pre { margin: 0.8em 0.8em; background-color: #ffffff;
+    border: 1pt solid #aaaaaa; font-size: smaller; }
+  a,kbd { color: #000000; text-decoration: none; }
+  h1,h2,h3 { font-family: sans-serif; }
+  p,div,li,dt,dd { font-family: serif; }
+  pre,kbd { font-family: monospace; }
+  dd { font-size: smaller; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>QDBM付属Perl用API仕様書</h1>
+
+<div class="note">Copyright (C) 2000-2006 Mikio Hirabayashi</div>
+<div class="note">Last Update: Thu, 26 Oct 2006 15:00:20 +0900</div>
+<div class="navi">[<a href="plapidoc/index.html">API</a>] [<a href="plspex.html" hreflang="en">English</a>]</div>
+
+<hr />
+
+<h2>目次</h2>
+
+<ol>
+<li><a href="#overview">概要</a></li>
+<li><a href="#installation">インストール</a></li>
+<li><a href="#examples">サンプルコード</a></li>
+<li><a href="#bugs">バグ</a></li>
+</ol>
+
+<hr />
+
+<h2><a name="overview" id="overview" class="head">概要</a></h2>
+
+<p>QDBMにはPerl言語用のAPIがある。QDBMの基本APIと拡張APIと上級APIの関数群をPerlのクラス機構を用いてカプセル化したものである。C言語のAPIをXS言語を介して呼び出すように実装されている。データベースを扱うには、メソッドを明示的に呼び出す方法と、ハッシュにタイする方法がある。</p>
+
+<p>メソッドを明示的に利用する場合、クラス `Depot' か `Curia' か `Villa' のコンストラクタ `new' を呼び出してデータベースを開き、その戻り値のオブジェクトをハンドルにする。データベースを閉じるにはメソッド `close' を呼ぶ。明示的にデータベースを閉じないでインスタンスが破棄される場合は、デストラクタによってデータベースが閉じられる。メソッド `put' はレコードを追加するために用いる。メソッド `out' はレコードを削除するために用いる。メソッド `get' はレコードを検索するために用いる。その他にも、C言語のAPIとほぼ同じ操作を利用することができる。</p>
+
+<p>ハッシュにタイする場合、`tie' 関数の第三引数以降にコンストラクタと同様の引数を与える。タイした以後はそのハッシュに対する操作はデータベースへの操作とみなされる。データベースを閉じるには `untie' 関数を用いる。</p>
+
+<p>データベースに格納するレコードのキーと値は文字列として扱われるが、バイナリデータをそのまま格納することも可能である。`Depot' はファイルを用いてハッシュデータベースを実現し、`Curia' はディレクトリと複数のファイルを用いてハッシュデータベースを実現し、`Villa' はファイルを用いてB+木データベースを実現する。`Depot' は最も高速である。`Curia' は最もスケーラブルである。`Villa' はカーソルによって順序に基づく参照を可能にする。</p>
+
+<p>APIの詳細に関しては、サブディレクトリ `<a href="plapidoc/">plapidoc</a>' の文書を参照すること。</p>
+
+<hr />
+
+<h2><a name="installation" id="installation" class="head">インストール</a></h2>
+
+<p>Perlの5.6.0以降のバージョンがインストールされ、QDBMが `/usr/local' 以下にインストールされていることが必要である。</p>
+
+<p>インストール作業は、サブディレクトリ `perl' をカレントディレクトリにして行う。</p>
+
+<pre>cd perl
+</pre>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check
+</pre>
+
+<p>プログラムをインストールする。作業は `root' ユーザで行う。</p>
+
+<pre>make install
+</pre>
+
+<p>一連の作業が終ると、Perlのインストールディレクトリに応じた適当な場所に `Depot.so'、`Depot.pm' 、`Curia.so' 、`Curia.pm' 、`Villa.so' 、`Villa.pm' 等のライブラリがインストールされ、コマンド `pldptest' と `plcrtest' と `plvltest' が `/usr/local/bin' にインストールされる。</p>
+
+<p>アンインストールするには、`./configure' をした後の状態で以下のコマンドを実行する。作業は `root' ユーザで行う。</p>
+
+<pre>make uninstall
+</pre>
+
+<hr />
+
+<h2><a name="examples" id="examples" class="head">サンプルコード</a></h2>
+
+<p>名前と対応させて電話番号を格納し、それを検索するアプリケーションのサンプルコードを以下に示す。</p>
+
+<pre>use Depot;
+
+use constant NAME =&gt; "mikio";
+use constant NUMBER =&gt; "000-1234-5678";
+use constant DBNAME =&gt; "book";
+
+sub main {
+    my($depot, $val);
+
+    # データベースを開く
+    if(!($depot = new Depot(&amp;DBNAME, Depot::OWRITER | Depot::OCREAT))){
+        printf(STDERR "new failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    # レコードを格納する
+    if(!$depot-&gt;put(&amp;NAME, &amp;NUMBER)){
+        printf(STDERR "put failed: %s\n", $Depot::errmsg);
+    }
+
+    # レコードを取得する
+    if(!($val = $depot-&gt;get(&amp;NAME))){
+        printf(STDERR "get failed: %s\n", $Depot::errmsg);
+    } else {
+        printf("Name: %s\n", &amp;NAME);
+        printf("Number: %s\n", $val);
+    }
+
+    # データベースを閉じる
+    if(!$depot-&gt;close()){
+        printf(STDERR "close failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    return 0;
+}
+
+exit(main());
+</pre>
+
+<p>上記の例をタイ関数を用いて書き直した例を以下に示す。</p>
+
+<pre>use Depot;
+
+use constant NAME =&gt; "mikio";
+use constant NUMBER =&gt; "000-1234-5678";
+use constant DBNAME =&gt; "book";
+
+sub main {
+    my(%hash, $val);
+
+    # データベースを開く
+    if(!tie(%hash, "Depot", &amp;DBNAME, Depot::OWRITER | Depot::OCREAT)){
+        printf(STDERR "tie failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    # レコードを格納する
+    if(!($hash{&amp;NAME} = &amp;NUMBER)){
+        printf(STDERR "store failed: %s\n", $Depot::errmsg);
+    }
+
+    # レコードを取得する
+    if(!($val = $hash{&amp;NAME})){
+        printf(STDERR "fetch failed: %s\n", $Depot::errmsg);
+    } else {
+        printf("Name: %s\n", &amp;NAME);
+        printf("Number: %s\n", $val);
+    }
+
+    # データベースを閉じる
+    if(!untie(%hash)){
+        printf(STDERR "untie failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    return 0;
+}
+
+exit(main());
+</pre>
+
+<p>`Villa' クラスを用いて文字列の前方一致検索を行う例を以下に示す。</p>
+
+<pre>use Villa;
+
+use constant DBNAME =&gt; "words";
+use constant PREFIX =&gt; "apple";
+
+sub main {
+    my($villa, $key, $val);
+
+    # データベースを開く
+    if(!($villa = new Villa(&amp;DBNAME, Villa::OWRITER | Villa::OCREAT))){
+        printf(STDERR "new failed: %s\n", $Villa::errmsg);
+        return 1;
+    }
+
+    # レコードを格納する
+    if(!$villa-&gt;put("applet", "little application", Villa::DDUP) ||
+       !$villa-&gt;put("aurora", "polar wonderwork", Villa::DDUP) ||
+       !$villa-&gt;put("apple", "delicious fruit", Villa::DDUP) ||
+       !$villa-&gt;put("amigo", "good friend", Villa::DDUP) ||
+       !$villa-&gt;put("apple", "big city", Villa::DDUP)){
+        printf(STDERR "put failed: %s\n", $Villa::errmsg);
+    }
+
+    # カーソルを候補の先頭に置く
+    $villa-&gt;curjump(&amp;PREFIX);
+
+    # カーソルを走査する
+    while($key = $villa-&gt;curkey()){
+        my($prefix) = &amp;PREFIX;
+        ($key =~ m/^$prefix/) || last;
+        $val = $villa-&gt;curval();
+        printf("%s: %s\n", $key, $val);
+        $villa-&gt;curnext();
+    }
+
+    # データベースを閉じる
+    if(!$villa-&gt;close()){
+        printf(STDERR "close failed: %s\n", $Villa::errmsg);
+        return 1;
+    }
+
+    return 0;
+}
+
+exit(main());
+</pre>
+
+<hr />
+
+<h2><a name="bugs" id="bugs" class="head">バグ</a></h2>
+
+<p>今のところ、AnyDBM_Fileの仲間ではない。</p>
+
+<p>もしもPerlハッカー達の手にかかれば、より効率的な実装がなされるだろう。</p>
+
+<p>インタフェースを簡潔にするため、Perl用のCuriaにはラージオブジェクトを扱う機能がなく、Perl用のVillaの比較関数にはユーザ定義関数を指定できない。</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->

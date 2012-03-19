@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="author" content="Mikio Hirabayashi" />
+<meta name="keywords" content="QDBM, DBM, database, CGI" />
+<meta name="description" content="specifications of CGI of QDBM" />
+<link rel="contents" href="./" />
+<link rel="alternate" href="cgispex.html" hreflang="en" title="the English version" />
+<link rev="made" href="mailto:mikio@fallabs.com" />
+<title>Specifications of CGI Scripts of QDBM (Japanese)</title>
+<style type="text/css">html { margin: 0em 0em; padding: 0em 0em; background: #eeeeee none; }
+body { margin: 2em 2em; padding: 0em 0em;
+  background: #eeeeee none; color: #111111;
+  font-style: normal; font-weight: normal; }
+h1 { margin-top: 1.8em; margin-bottom: 1.3em; font-weight: bold; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold;
+  border-left: solid 0.6em #445555; border-bottom: solid 1pt #bbbbbb;
+  padding: 0.5em 0.5em; width: 60%; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; }
+hr { margin-top: 2.5em; margin-bottom: 1.5em; height: 1pt;
+  color: #999999; background-color: #999999; border: none; }
+div.note,div.navi { text-align: right; }
+div.logo { text-align: center; margin: 3em 0em; }
+div.logo img { border: inset 2pt #ccccdd; }
+p { margin: 0.8em 0em; line-height: 140%; }
+p,dd { text-indent: 0.8em; }
+div,pre { margin-left: 1.7em; margin-right: 1.7em; }
+pre { background-color: #ddddee; padding: 0.2em; border: 1pt solid #bbbbcc; font-size: smaller; }
+kbd { color: #111111; font-style: normal; font-weight: bold; }
+a { color: #0022aa; text-decoration: none; }
+a:hover,a:focus { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+table { padding: 1pt 2pt 1pt 2pt; border: none; margin-left: 1.7em; border-collapse: collapse; }
+th { padding: 1pt 4pt 1pt 4pt; border-style: none;
+  text-align: left; vertical-align: bottom; }
+td { padding: 1pt 4pt 1pt 4pt; border: 1pt solid #333333;
+  text-align: left; vertical-align: top; }
+ul,ol,dl { line-height: 140%; }
+dt { margin-left: 1.2em; }
+dd { margin-left: 2.0em; }
+ul.lines { list-style-type: none; }
+@media print {
+  html,body { margin: 0em 0em; background-color: #ffffff; color: #000000; }
+  h1 { padding: 8em 0em 0.5em 0em; text-align: center; }
+  h2 { page-break-before: always; }
+  div.note { text-align: center; }
+  div.navi,div.logo { display: none }
+  hr { display: none; }
+  pre { margin: 0.8em 0.8em; background-color: #ffffff;
+    border: 1pt solid #aaaaaa; font-size: smaller; }
+  a,kbd { color: #000000; text-decoration: none; }
+  h1,h2,h3 { font-family: sans-serif; }
+  p,div,li,dt,dd { font-family: serif; }
+  pre,kbd { font-family: monospace; }
+  dd { font-size: smaller; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>QDBM付属CGIスクリプト仕様書</h1>
+
+<div class="note">Copyright (C) 2000-2006 Mikio Hirabayashi</div>
+<div class="note">Last Update: Thu, 26 Oct 2006 15:00:20 +0900</div>
+<div class="navi">[<a href="cgispex.html" hreflang="en">English</a>]</div>
+
+<hr />
+
+<h2>目次</h2>
+
+<ol>
+<li><a href="#overview">概要</a></li>
+<li><a href="#building">ビルド</a></li>
+<li><a href="#qadm">データベース管理用CGIスクリプト</a></li>
+<li><a href="#qupl">ファイルアップロード用CGIスクリプト</a></li>
+<li><a href="#qfts">全文検索用CGIスクリプト</a></li>
+<li><a href="#webconf">Webサーバの設定</a></li>
+</ol>
+
+<hr />
+
+<h2><a name="overview" id="overview" class="head">概要</a></h2>
+
+<p>ユーティリティもしくはアプリケーションのサンプルとして、QDBMのパッケージには三つのCGIスクリプトが付属する。第一はDepotとCuriaとVillaのデータベースファイルを管理するものである。第二はCabinのユーティリティを用いてファイルのアップロードを行うものである。第三はOdeumのデータベースを用いて全文検索を行うものである。</p>
+
+<hr />
+
+<h2><a name="building" id="building" class="head">ビルド</a></h2>
+
+<p>Webサーバ上でCGIが利用でき、QDBMが `/usr/local' 以下にインストールされていることが必要である。</p>
+
+<p>インストール作業は、サブディレクトリ `cgi' をカレントディレクトリにして行う。</p>
+
+<pre>cd cgi
+</pre>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make
+</pre>
+
+<p>プログラムをインストールする。作業は `root' ユーザで行う。</p>
+
+<pre>make install
+</pre>
+
+<p>一連の作業が終ると、以下のファイルがインストールされる。その他にも文書が `/usr/local/share/qdbm/cgi' にインストールされる。</p>
+
+<pre>/usr/local/libexec/qadm.cgi
+/usr/local/libexec/qupl.cgi
+/usr/local/libexec/qfts.cgi
+/usr/local/share/qdbm/cgi/qadm.conf
+/usr/local/share/qdbm/cgi/qupl.conf
+/usr/local/share/qdbm/cgi/qfts.conf
+</pre>
+
+<p>以下の各セクションの指示に従って、利用するCGIスクリプトとその設定ファイルをWWWに公開されたディレクトリにコピーする。</p>
+
+<hr />
+
+<h2><a name="qadm" id="qadm" class="head">データベース管理用CGIスクリプト</a></h2>
+
+<p>`qadm.cgi' は、DepotとCuriaとVillaのデータベースを管理するためのCGIスクリプトである。これを使うと、WWWを介してデータベースの管理を行うことができる。レコードのキーと値は文字列であるものとする。Villaの比較関数は辞書順である。利用できる操作は、データベースの一覧、データベースの作成、データベースの削除、データベースのダウンロード、レコードの一覧、レコードの追加、およびレコードの削除である。</p>
+
+<p>`qadm.cgi' のインストールは次の手順に従う。CGIが利用できるディレクトリに `qdbm.cgi' と `qadm.conf' をコピーする。また、同じディレクトリの直下に `qadmdir' という名前のディレクトリを作成する。例えば、CGIを置くディレクトリが /home/mikio/public_html の場合、以下のようにする。</p>
+
+<pre>cd /home/mikio/public_html
+cp /usr/local/libexec/qadm.cgi .
+cp /usr/local/share/qdbm/cgi/qadm.conf .
+mkdir qadmdir
+</pre>
+
+<p>`qadmdir' ディレクトリは `qadm.cgi' のプロセスが読み書きおよび実行できるパーミッションである必要がある。最も簡単には、以下のようにする。他にも、CGIスクリプトにsetuidビットを立てたり、いわゆるsuExecのような機能を用いる方法もある。</p>
+
+<pre>cd /home/mikio/public_html
+chmod 1777 qadmdir
+</pre>
+
+<p>`qadm.conf' は設定ファイルである。デフォルトでは以下のような内容を持つが、ユーザが任意に修正することができる。</p>
+
+<pre>encoding: UTF-8
+lang: en
+title: Administration CGI
+datadir: qadmdir
+keychop: true
+valchop: false
+</pre>
+
+<p>`encoding' はCGIスクリプトによって表示されるページおよびデータベースファイル内のレコードの文字コードを指定する。`lang' は表示されるページの言語を指定する。`title' は表示されるページのタイトルを指定する。`datadir' はデータベースファイルが格納されるディレクトリのパスを指定する。`keychop' と `valchop' は、レコードのキーと値の内容を正規化するか否かを指定する。`true' の場合は、末尾の空白を取り除き、かつ改行コードが内容に含まれないようにする。</p>
+
+<p>設置された `qadm.cgi' のURLにWebブラウザを用いてアクセスする。あとは、表示された案内にしたがってデータベースの管理を行えばよい。</p>
+
+<p>自動化されたエージェントがデータベースに登録されたレコードを検索するために、URLで直接レコードを指定し、その値の内容そのものをプレーンテキストとして取得する機構もある。例えばCGIスクリプトのURLが `http://a.b.c/qadm.cgi' であり、`staff' という名前のデータベースに格納された `mikio' というキーのレコードの値を取り出すには、エージェントは `http://a.b.c/qadm.cgi/staff/mikio' を参照すればよい。すなわち、CGIスクリプトのURLの後ろに、`/' で区切ってデータベース名（接尾辞は不要）とキーを指定すればよい。</p>
+
+<p>既存のデータベースファイルを管理対象にしたい場合は、`qadmdir' ディレクトリの中にそれを置けばよい。ただし、Depotによるデータベースファイルの名前には接尾辞として `.dp' をつけ、Curiaによるデータベースディレクトリの名前には接尾辞として `.cr' をつけ、Villaによるデータベースファイルの名前には接尾辞として `.vl' をつける必要がある。例えば `foo.dp'、`bar.cr'、`baz.vl' などとする。また、各データベースファイルまたはディレクトリはCGIスクリプトのプロセスによって読み書き可能である必要がある。</p>
+
+<hr />
+
+<h2><a name="qupl" id="qupl" class="head">ファイルアップロード用CGIスクリプト</a></h2>
+
+<p>`qupl.cgi' は、Cabinを使ってファイルをアップロードするためのCGIスクリプトである。これを使うと、Webサーバに任意のファイルをアップロードすることができる。ファイルのダウンロードや削除も可能である。</p>
+
+<p>`qupl.cgi' のインストールは次の手順に従う。CGIが利用できるディレクトリに `qupl.cgi' と `qupl.conf' をコピーする。また、同じディレクトリの直下に `qupldir' という名前のディレクトリを作成する。例えば、CGIを置くディレクトリが /home/mikio/public_html の場合、以下のようにする。</p>
+
+<pre>cd /home/mikio/public_html
+cp /usr/local/libexec/qupl.cgi .
+cp /usr/local/share/qdbm/cgi/qupl.conf .
+mkdir qupldir
+</pre>
+
+<p>`qupldir' ディレクトリは `qupl.cgi' のプロセスが読み書きおよび実行できるパーミッションである必要がある。最も簡単には、以下のようにする。他にも、CGIスクリプトにsetuidビットを立てたり、いわゆるsuExecのような機能を用いる方法もある。</p>
+
+<pre>cd /home/mikio/public_html
+chmod 1777 qupldir
+</pre>
+
+<p>`qupl.conf' は設定ファイルである。デフォルトでは以下のような内容を持つが、ユーザが任意に修正することができる。</p>
+
+<pre>encoding: UTF-8
+lang: en
+title: Administration CGI
+datadir: qupldir
+quota: 67108864
+</pre>
+
+<p>`encoding' はCGIスクリプトによって表示されるページおよびデータベースファイル内のレコードの文字コードを指定する。`lang' は表示されるページの言語を指定する。`title' は表示されるページのタイトルを指定する。`datadir' はアップロードしたファイルが格納されるディレクトリのパスを指定する。`quota' はアップロードできるファイルの総容量の上限を指定する。</p>
+
+<p>設置された `qupl.cgi' のURLにWebブラウザを用いてアクセスする。あとは、表示された案内にしたがってファイルの管理を行えばよい。</p>
+
+<hr />
+
+<h2><a name="qfts" id="qfts" class="head">全文検索用CGIスクリプト</a></h2>
+
+<p>`qfts.cgi' は、Odeumのデータベースを用いて全文検索を行うCGIスクリプトである。これを使うと、Webサイトの全文検索を行うことができる。インデックスの作成はコマンド `odidx' を用いて行い、`qfts.cgi' によってそのデータベースの検索を行う。検索方式には、指定した語を全て含む文書を検索する「AND検索」と、指定した語の少なくとも一つを含む「OR検索」がある。検索結果はスコアに応じて並べられる。</p>
+
+<p>`qfts.cgi' のインストールは次の手順に従う。CGIが利用できるディレクトリに `qfts.cgi' と `qfts.conf' をコピーする。また、同じディレクトリの直下に `casket' という名前のインデックスを作成する。例えば、CGIスクリプトを置くディレクトリが /home/mikio/public_html の場合、以下のようにする。</p>
+
+<pre>cd /home/mikio/public_html
+cp /usr/local/libexec/qfts.cgi .
+cp /usr/local/share/qdbm/cgi/qfts.conf .
+odidx register casket
+odidx relate casket
+</pre>
+
+<p>検索対象のディレクトリがCGIスクリプトを置くディレクトリの下にない場合は、そこに検索対象のディレクトリへのシンボリックリンクを作ればよい。</p>
+
+<p>サイトの更新があった際には、以下の手順でインデックスも更新すべきである。この作業は `crontab' などを用いて自動化するとよい。</p>
+
+<pre>cd /home/mikio/public_html
+odidx register casket
+odidx purge casket
+odidx relate casket
+odmgr optimize casket
+</pre>
+
+<p>`qfts.conf' は設定ファイルである。デフォルトでは以下のような内容を持つが、ユーザが任意に修正することができる。</p>
+
+<pre>encoding: ISO-8859-1
+lang: en
+title: Full-text Search CGI
+index: casket
+prefix: ./
+diridx: index.html
+decuri: false
+help: &lt;h1&gt;Full-text Search CGI&lt;/h1&gt;
+help: &lt;p&gt;Input search words into the above form and push the [Search] button.&lt;/p&gt;
+help: &lt;p&gt;This is a sample application of the inverted API of QDBM.&lt;/p&gt;
+</pre>
+
+<p>`encoding' はCGIスクリプトによって表示されるページおよびデータベースファイル内のレコードの文字コードを指定する。`lang' は表示されるページの言語を指定する。`title' は表示されるページのタイトルを指定する。`index' はインデックスのパスを指定する。`prefix' は各文書のURIにつける接頭辞を指定する。例えば `prefix' に `http://x.y.z/foo/' を指定すると、`./bar/baz.html' や `bar/baz.html' は `http://x.y.z/foo/bar/baz.html' として表示される。`diridx' はディレクトリの代表ファイルの名前を指定する。例えば `diridx' に `index.html' を指定すると、`./foo/index.html' は `./foo/' として表示される。`decuri' は、値が `true' なら、文書のURIをデコードして表現することを指示する。`help' は最初のページで表示されるヘルプメッセージを指定する。</p>
+
+<p>設置された `qfts.cgi' のURLにWebブラウザを用いてアクセスする。あとは、表示された案内にしたがって全文検索を行えばよい。</p>
+
+<p>インデックスを生成するコマンド `odidx' の詳細についてはQDBMの基本仕様書を参照すること。大規模なサイトのインデックスを生成する際には、サイズを小さくするために、ZLIBを有効にしてQDBMをビルドすることを検討すべきである。</p>
+
+<hr />
+
+<h2><a name="webconf" id="webconf" class="head">Webサーバの設定</a></h2>
+
+<p>CGIスクリプトを利用するには、WWWサーバの設定でCGIの実行を許可する必要がある。通常のコンテンツと同じ場所にCGIスクリプトを設置する場合、Apacheの設定ファイルには以下のように記述する。</p>
+
+<pre>Options ExecCGI
+AddHandler cgi-script .cgi
+</pre>
+
+<p>あるいはCGIスクリプト専用のディレクトリを設ける場合、Apacheの設定ファイルには以下のように記述する。</p>
+
+<pre>ScriptAlias /~mikio/cgi-bin/ "/home/mikio/public_html/cgi-bin"
+</pre>
+
+<p>WWWサーバのライブラリ検索パスに `/usr/local/lib' が含まれていない場合、それを明示的に指定する必要があるかもしれない。Apacheの設定ファイルには以下のように記述する。</p>
+
+<pre>SetEnv LD_LIBRARY_PATH "/lib:/usr/lib:/usr/local/lib"
+</pre>
+
+<p>MicrosoftのIISを利用する場合、CGIスクリプトの設置場所と実行時のカレントディレクトリが異なる。後者は「仮想ディレクトリ」のルートとなるので、設定ファイルはそこに設置する必要がある。</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->

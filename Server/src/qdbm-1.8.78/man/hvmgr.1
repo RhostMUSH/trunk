@@ -1,0 +1,89 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH HVMGR 1 "2005-05-23" "Man Page" "Quick Database Manager"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+hvmgr \- administration utility for QDBM Hovel
+.SH SYNOPSIS
+.B hvmgr create
+.RI "[-qdbm " "bnum dnum " "] [-s] " name
+.br
+.B hvmgr store
+.RI "[-qdbm] [-kx] [-vx|-vf] [-insert] " name " " key " " val
+.br
+.B hvmgr delete
+.RI "[-qdbm] [-kx] " name " " key
+.br
+.B hvmgr fetch
+.RI "[-qdbm] [-kx] [-ox] [-n] " name " " key
+.br
+.B hvmgr list
+.RI "[-qdbm] [-ox] " name
+.br
+.B hvmgr optimize
+.RI "[-qdbm] " name
+.SH DESCRIPTION
+This manual page documents briefly the
+.B hvmgr
+commands.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+\fBhvmgr\fP is a utility for debugging Hovel and its applications. It
+features editing and checking of a database. It can be used for
+database applications with shell scripts. This command is used in the
+above format.  \fIname\fP specifies a database name. \fIkey\fP
+specifies the key of a record. \fIval\fP specifies the value of a
+record.
+.SH OPTIONS
+A summary of options is included below.
+For a complete description, see the
+file:///usr/share/doc/qdbm-doc/spex.html#hovelcli.
+.TP
+.BI "\-qdbm [" bnum " " dnum "]"
+use `gdbm_open2' to open the database. \fIbnum\fP specifies
+the number of the elements of the bucket array. \fIdnum\fP specifies the number
+of division of the database.
+.TP
+.B \-s
+make the file sparse.
+.TP
+.B \-kx
+treat \fIkey\fP as a binary expression of hexadecimal notation.
+.TP
+.B \-vx
+treat \fIval\fP as a binary expression of hexadecimal notation.
+.TP
+.B \-vf
+read the value from a file specified with \fIval\fP.
+.TP
+.B \-insert
+specify the storing mode for `GDBM_INSERT'.
+.TP
+.B \-ox
+treat the output as a binary expression of hexadecimal notation.
+.TP
+.B \-n
+do not output the trailing newline.
+.SH SEE ALSO
+.BR qdbm (3),
+.BR hovel (3).
+.SH AUTHOR
+QDBM was written by Mikio Hirabayashi <mikio@fallabs.com>.
+.PP
+This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
+for the Debian project (but may be used by others).

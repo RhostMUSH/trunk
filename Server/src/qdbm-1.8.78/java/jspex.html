@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="author" content="Mikio Hirabayashi" />
+<meta name="keywords" content="QDBM, Java, Depot, Curia, Villa" />
+<meta name="description" content="specifications of Java API of QDBM" />
+<link rel="contents" href="./" />
+<link rel="alternate" href="jspex-ja.html" hreflang="ja" title="the Japanese version" />
+<link rev="made" href="mailto:mikio@fallabs.com" />
+<title>Specifications of QDBM for Java</title>
+<style type="text/css">html { margin: 0em 0em; padding: 0em 0em; background: #eeeeee none; }
+body { margin: 2em 2em; padding: 0em 0em;
+  background: #eeeeee none; color: #111111;
+  font-style: normal; font-weight: normal; }
+h1 { margin-top: 1.8em; margin-bottom: 1.3em; font-weight: bold; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold;
+  border-left: solid 0.6em #445555; border-bottom: solid 1pt #bbbbbb;
+  padding: 0.5em 0.5em; width: 60%; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; }
+hr { margin-top: 2.5em; margin-bottom: 1.5em; height: 1pt;
+  color: #999999; background-color: #999999; border: none; }
+div.note,div.navi { text-align: right; }
+div.logo { text-align: center; margin: 3em 0em; }
+div.logo img { border: inset 2pt #ccccdd; }
+p { margin: 0.8em 0em; line-height: 140%; }
+p,dd { text-indent: 0.8em; }
+div,pre { margin-left: 1.7em; margin-right: 1.7em; }
+pre { background-color: #ddddee; padding: 0.2em; border: 1pt solid #bbbbcc; font-size: smaller; }
+kbd { color: #111111; font-style: normal; font-weight: bold; }
+a { color: #0022aa; text-decoration: none; }
+a:hover,a:focus { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+table { padding: 1pt 2pt 1pt 2pt; border: none; margin-left: 1.7em; border-collapse: collapse; }
+th { padding: 1pt 4pt 1pt 4pt; border-style: none;
+  text-align: left; vertical-align: bottom; }
+td { padding: 1pt 4pt 1pt 4pt; border: 1pt solid #333333;
+  text-align: left; vertical-align: top; }
+ul,ol,dl { line-height: 140%; }
+dt { margin-left: 1.2em; }
+dd { margin-left: 2.0em; }
+ul.lines { list-style-type: none; }
+@media print {
+  html,body { margin: 0em 0em; background-color: #ffffff; color: #000000; }
+  h1 { padding: 8em 0em 0.5em 0em; text-align: center; }
+  h2 { page-break-before: always; }
+  div.note { text-align: center; }
+  div.navi,div.logo { display: none }
+  hr { display: none; }
+  pre { margin: 0.8em 0.8em; background-color: #ffffff;
+    border: 1pt solid #aaaaaa; font-size: smaller; }
+  a,kbd { color: #000000; text-decoration: none; }
+  h1,h2,h3 { font-family: sans-serif; }
+  p,div,li,dt,dd { font-family: serif; }
+  pre,kbd { font-family: monospace; }
+  dd { font-size: smaller; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>Specifications of QDBM for Java</h1>
+
+<div class="note">Copyright (C) 2000-2006 Mikio Hirabayashi</div>
+<div class="note">Last Update: Thu, 26 Oct 2006 15:00:20 +0900</div>
+<div class="navi">[<a href="japidoc/index.html">API</a>] [<a href="jspex-ja.html" hreflang="ja">Japanese</a>]</div>
+
+<hr />
+
+<h2>Table of Contents</h2>
+
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#setting">Setting</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#bugs">Bugs</a></li>
+</ol>
+
+<hr />
+
+<h2><a name="overview" id="overview" class="head">Overview</a></h2>
+
+<p>QDBM provides API for Java.  This encapsulates the basic API, the extended API, and the advanced API of QDBM, and make them thread-safe.  These APIs are implemented with the APIs for C called with Java Native Interface.</p>
+
+<p>The basic API for Java realizes a hash database with a file.  Constructors of the class `Depot' open a database file.  The method `close' is used in order to close the database.  Although the finalizer also try to close the database, do not rely on it.  The method `put' is used in order to store a record.  The method `out' is used in order to delete a record.  The method `get' is used in order to retrieve a record.  Besides, most operations like ones of the basic API for C are available.  Each methods throws an instance of the class `DepotException' if an error occurs.</p>
+
+<p>The extended API for Java realizes a hash database with a directory and multiple files.  Constructors of the class `Curia' open a database directory.  The method `close' is used in order to close the database.  Although the finalizer also try to close the database, do not rely on it.  The method `put' is used in order to store a record.  The method `out' is used in order to delete a record.  The method `get' is used in order to retrieve a record.   Operations for managing large objects are also provided.  Besides, most operations like ones of the extended API for C are available.  Each methods throws an instance of the class `CuriaException' if an error occurs.</p>
+
+<p>The advanced API for Java realizes a B+ tree database with a file.  Constructors of the class `Villa' open a database file.  The method `close' is used in order to close the database.  Although the finalizer also try to close the database, do not rely on it.  The method `put' is used in order to store a record.  The method `out' is used in order to delete a record.  The method `get' is used in order to retrieve a record.  Besides, most operations like ones of the advanced API for C are available.  Each methods throws an instance of the class `VillaException' if an error occurs.</p>
+
+<p>`Depot', `Curia', and `Villa' implement the interface `ADBM' which is abstraction of database managers compatible with DBM of UNIX standard.  Each methods throws an instance of the class `DBMException'.  When you choose the one of four APIs, `Depot' is suggested if performance is weighted, `Curia' is suggested if scalability is weighted, `Villa' is suggested if ordering access is required, `ADBM' is suggested if elegance and maintenance are weighted.  Besides, a database file is not compatible with each API.</p>
+
+<p>Each class is packaged in `qdbm'.  You can import the package in source files of application.</p>
+
+<p>While APIs for C are thread-safe unless plural threads do not share a database handle, APIs for Java are thread-safe even if plural threads share a handle.</p>
+
+<p>When `put' overwriting an existing record is cancelled or `get' retrieving a missing record, failure of the operation is noticed by exception.  If you dislike such behavior, set the `silent' flag to be true.  Then, failure of the operation is noticed by the return value.</p>
+
+<p>For more information about the APIs, read documents in the sub directory `<a href="japidoc/">japidoc</a>'.</p>
+
+<hr />
+
+<h2><a name="installation" id="installation" class="head">Installation</a></h2>
+
+<h3>Preparation</h3>
+
+<p>Make sure that JDK of 1.2 or later version is installed, the environment variable `JAVA_HOME' is set appropriately.  And make sure that QDBM is installed under `/usr/local'.</p>
+
+<p>Change the current working directory to the sub directory named `java'.</p>
+
+<pre>cd java
+</pre>
+
+<h3>Usual Steps</h3>
+
+<p>Run the configuration script.  If you use GCC for Java compilation, append the option `--with-gcj'.</p>
+
+<pre>./configure
+</pre>
+
+<p>Build programs.</p>
+
+<pre>make
+</pre>
+
+<p>Perform self-diagnostic test.</p>
+
+<pre>make check
+</pre>
+
+<p>Install programs.  This operation must be carried out by the root user.</p>
+
+<pre>make install
+</pre>
+
+<p>When a series of work finishes, a Java archive `qdbm.jar' is installed under the `/usr/local/lib'.  And, such native libraries as `libjqdbm.so' are installed under `/usr/local/lib'.</p>
+
+<p>To uninstall them, execute the following command after `./configure'.  This operation must be carried out by the root user.</p>
+
+<pre>make uninstall
+</pre>
+
+<h3>For Windows</h3>
+
+<p>On Windows (Cygwin), you should follow the procedures below for installation.</p>
+
+<p>Run the configuration script.</p>
+
+<pre>./configure
+</pre>
+
+<p>Build programs.</p>
+
+<pre>make win
+</pre>
+
+<p>Perform self-diagnostic test.</p>
+
+<pre>make check-win
+</pre>
+
+<p>Install programs.  As well, perform `make uninstall-win' to uninstall them.</p>
+
+<pre>make install-win
+</pre>
+
+<p>On Windows, an import library `libjqdbm.dll.a' is created, and a dynamic linking library `jqdbm.dll' is created instead of such a shared libraries as `libjqdbm.so'.  `jqdbm.dll' is installed into `/usr/local/bin'.</p>
+
+<p>In order to build QDBM using MinGW on Cygwin, you should perform `make mingw' instead of `make win'.  With the UNIX emulation layer of Cygwin, generated programs depend on `cygwin1.dll'.  This problem is solved by linking them to the Win32 native DLL with MinGW.</p>
+
+<h3>For Mac OS X</h3>
+
+<p>On Mac OS X (Darwin), you should follow the procedures below for installation.</p>
+
+<p>Run the configuration script.</p>
+
+<pre>./configure
+</pre>
+
+<p>Build programs.</p>
+
+<pre>make mac
+</pre>
+
+<p>Perform self-diagnostic test.</p>
+
+<pre>make check-mac
+</pre>
+
+<p>Install programs.  As well, perform `make uninstall-mac' to uninstall them.</p>
+
+<pre>make install-mac
+</pre>
+
+<p>On Mac OS X, `libjqdbm.dylib', `libqdbm.jnilib' and so on are created instead of `libjqdbm.so' and so on.</p>
+
+<h3>For HP-UX</h3>
+
+<p>On HP-UX, you should follow the procedures below for installation.</p>
+
+<p>Run the configuration script.</p>
+
+<pre>./configure
+</pre>
+
+<p>Build programs.</p>
+
+<pre>make hpux
+</pre>
+
+<p>Perform self-diagnostic test.</p>
+
+<pre>make check-hpux
+</pre>
+
+<p>Install programs.  As well, perform `make uninstall-hpux' to uninstall them.</p>
+
+<pre>make install-hpux
+</pre>
+
+<p>On HP-UX, `libjqdbm.sl' is created instead of `libjqdbm.so' and so on.</p>
+
+<hr />
+
+<h2><a name="setting" id="setting" class="head">Setting</a></h2>
+
+<p>To build and execute programs using QDBM, the following environment variable should be set.</p>
+
+<p>Set the class path, which the environment variable `CLASSPATH' defines, to include the full path of `qdbm.jar'.</p>
+
+<pre>CLASSPATH=$CLASSPATH:/usr/local/lib/qdbm.jar
+export CLASSPATH
+</pre>
+
+<p>Set the library path, which the environment variable `LD_LIBRARY_PATH' defines, to include `/usr/local/lib'.  As well, this setting is not wanted on Windows, and Mac OS X uses the environment variable `DYLD_LIBRARY_PATH', and HP-UX uses the environment variable `SHLIB_PATH'.</p>
+
+<pre>LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+export LD_LIBRARY_PATH
+</pre>
+
+<hr />
+
+<h2><a name="examples" id="examples" class="head">Examples</a></h2>
+
+<p>The following example stores and retrieves a phone number, using the name as the key.</p>
+
+<pre>import qdbm.*;
+
+public class Sample {
+
+  static final String NAME = "mikio";
+  static final String NUMBER = "000-1234-5678";
+  static final String DBNAME = "book";
+
+  public static void main(String[] args){
+    Depot depot = null;
+    try {
+
+      // open the database
+      depot = new Depot(DBNAME, Depot.OWRITER | Depot.OCREAT, -1);
+
+      // store the record
+      depot.put(NAME.getBytes(), NUMBER.getBytes());
+
+      // retrieve the record
+      byte[] res = depot.get(NAME.getBytes());
+      System.out.println("Name: " + NAME);
+      System.out.println("Number: " + new String(res));
+
+    } catch(DepotException e){
+      e.printStackTrace();
+    } finally {
+
+      // close the database
+      if(depot != null){
+        try {
+          depot.close();
+        } catch(DepotException e){
+          e.printStackTrace();
+        }
+      }
+
+    }
+  }
+
+}
+</pre>
+
+<p>The following example is a transcription of the one above, using the interface `ADBM'.</p>
+
+<pre>import qdbm.*;
+
+public class Sample {
+
+  static final String NAME = "mikio";
+  static final String NUMBER = "000-1234-5678";
+  static final String DBNAME = "book";
+
+  public static void main(String[] args){
+    ADBM dbm = null;
+    try {
+
+      // open the database
+      dbm = new Depot(DBNAME, Depot.OWRITER | Depot.OCREAT, -1);
+
+      // store the record
+      dbm.store(NAME.getBytes(), NUMBER.getBytes(), true);
+
+      // retrieve the record
+      byte[] res = dbm.fetch(NAME.getBytes());
+      System.out.println("Name: " + NAME);
+      System.out.println("Number: " + new String(res));
+
+    } catch(DBMException e){
+      e.printStackTrace();
+    } finally {
+
+      // close the database
+      if(dbm != null){
+        try {
+          dbm.close();
+        } catch(DBMException e){
+          e.printStackTrace();
+        }
+      }
+
+    }
+  }
+
+}
+</pre>
+
+<p>The following example performs forward matching search for strings, using the class `Villa'.</p>
+
+<pre>import qdbm.*;
+
+public class Sample {
+
+  static final String DBNAME = "words";
+  static final String PREFIX = "apple";
+
+  public static void main(String[] args){
+    Villa villa = null;
+    try {
+
+      // open the database
+      villa = new Villa(DBNAME, Villa.OWRITER | Villa.OCREAT, Villa.CMPOBJ);
+
+      // store records
+      villa.putobj("applet", "little application", Villa.DDUP);
+      villa.putobj("aurora", "polar wonderwork", Villa.DDUP);
+      villa.putobj("apple", "delicious fruit", Villa.DDUP);
+      villa.putobj("amigo", "good friend", Villa.DDUP);
+      villa.putobj("apple", "big city", Villa.DDUP);
+
+      try {
+
+        // set the cursor at the top of candidates
+        villa.curjumpobj(PREFIX, Villa.JFORWARD);
+
+        // scan with the cursor
+        for(;;){
+          String key = (String)villa.curkeyobj();
+          if(!key.startsWith(PREFIX)) break;
+          String val = (String)villa.curvalobj();
+          System.out.println(key + ": " + val);
+          villa.curnext();
+        }
+
+      } catch(VillaException e){
+        if(e.ecode != Villa.ENOITEM) throw e;
+      }
+    } catch(VillaException e){
+      e.printStackTrace();
+    } finally {
+
+      // close the database
+      if(villa != null){
+        try {
+          villa.close();
+        } catch(VillaException e){
+          e.printStackTrace();
+        }
+      }
+
+    }
+  }
+
+}
+</pre>
+
+<p>For building a program using Java API of QDBM, set the environment variables and then perform `javac'.  For example, the following command is executed to build `Sample.class' from `Sample.java'.</p>
+
+<pre>javac Sample.java
+</pre>
+
+<hr />
+
+<h2><a name="bugs" id="bugs" class="head">Bugs</a></h2>
+
+<p>QDBM has restrictions that two or more handles of the same database file should not be used by a process at the same time.  So, when a database is used by two or more threads, open the database in the main thread and pass the handle to each thread.</p>
+
+<p>Although methodology to store a serialized object is useful, object serialization is inefficient in time and space.  So, if there is a method to get the byte array from an object, you should store the byte arrays.  Besides, comparing keys in hash database is performed to serialized data even if they were objects.  That is, if two objects are not according completely in serialized condition, even if the value of `equals' is true, they are not qualified as corresponding keys.  This problem is not for B+ tree database, because the comparing function can be assigned appropriately.</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->
