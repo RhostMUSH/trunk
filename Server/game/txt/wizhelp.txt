@@ -5860,6 +5860,11 @@
   when ALT_INVENTORIES are enabled.  If no string is specified, the default
   of 'backpack' is used.  Ansi, tabs, and carriage returns are stripped.
 
+& ip_address
+  Config parameter: ip_address <address>.  Default: 0.0.0.0
+  Specifies the IP address on which the game listens for new connections.
+  See Also: port.
+
 & kill_guarantee_cost
   Config parameter: kill_guarantee_cost <amount>.  Default: 100
   Specifies the amount of money you have to spend (ie. kill target = <amount>)
@@ -6746,6 +6751,7 @@
 & port
   Config parameter: port <port>.  Default: 6250
   Specifies the IP port on which the game listens for new connections.
+  See Also: ip_address.
 
 & postdump_message
   Config parameter: postdump_message <message>.  Default: blank

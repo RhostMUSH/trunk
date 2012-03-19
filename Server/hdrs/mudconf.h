@@ -41,6 +41,7 @@ struct confdata {
 	char	roomlog_path[128]; /* Path where LOGROOM and LOGROOMENH is sent */
         char	logdb_name[128];/* Name of log db */
 	int	round_kludge; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */
+	char ip_address[15];
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
         int     debug_id;       /* shared memory key for debug monitor */

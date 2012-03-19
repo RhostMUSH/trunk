@@ -82,7 +82,7 @@ extern CF_HAND(cf_site);
 extern int NDECL(next_timer);
 int signal_depth;
 
-int make_socket(int port)
+int make_socket(int port, char* address)
 {
     int s, opt;
     FILE *f_fptr;
@@ -124,7 +124,10 @@ int make_socket(int port)
     }
     serverreq = (struct sockaddr_in *) bindreq->addr.buf;
     serverreq->sin_family = AF_INET;
-    serverreq->sin_addr.s_addr = INADDR_ANY;
+    if(inet_addr((const char*)address) != -1)
+        serverreq->sin_addr.s_addr = inet_addr((const char*)address);
+    else
+        serverreq->sin_addr.s_addr = INADDR_ANY;
     serverreq->sin_port = htons(port);
     bindreq->addr.len = sizeof(struct sockaddr_in);
     bindret->addr.maxlen = sizeof(struct sockaddr_in);
@@ -151,7 +154,10 @@ int make_socket(int port)
 	log_perror("NET", "FAIL", NULL, "setsockopt");
     }
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
+    if(inet_addr((const char*)address) != -1)
+        server.sin_addr.s_addr = inet_addr((const char*)address);
+    else
+        server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
 	log_perror("NET", "FAIL", NULL, "bind");
@@ -182,7 +188,7 @@ int maxd;
 
 
 void 
-shovechars(int port)
+shovechars(int port,char* address)
 {
     fd_set input_set, output_set;
     struct timeval last_slice, current_time, next_slice, timeout, slice_timeout;
@@ -207,7 +213,7 @@ shovechars(int port)
 
     DPUSH; /* #2 */
     mudstate.debug_cmd = (char *) "< shovechars >";
-    sock = make_socket(port);
+    sock = make_socket(port, address);
     maxd = sock + 1;
     get_tod(&last_slice);
     i_oldlasttime = i_oldlastcnt = 0;

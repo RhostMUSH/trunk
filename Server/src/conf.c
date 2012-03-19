@@ -80,6 +80,7 @@ NDECL(cf_init)
     strcpy(mudconf.compress, "/usr/ucb/compress");
     strcpy(mudconf.uncompress, "/usr/ucb/zcat -c");
     strcpy(mudconf.status_file, "shutdown.status");
+	strcpy(mudconf.ip_address, "0.0.0.0");
     mudconf.port = 6250;
     mudconf.html_port = 6251;
     mudconf.debug_id = 44660;
@@ -2867,6 +2868,9 @@ CONF conftable[] =
     {(char *) "inventory_name",
      cf_string, CA_IMMORTAL, (int *) mudconf.invname, 79, 0, CA_PUBLIC,
      (char *) "What is the inventory name for alt inventory?"},
+    {(char *) "ip_address",
+     cf_string, CA_DISABLED, (int *) mudconf.ip_address, 15, 0, CA_WIZARD,
+     (char *) "IP address for the MUSH to listen on."},
     {(char *) "kill_guarantee_cost",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.killguarantee, 0, 0, CA_PUBLIC,
      (char *) "How much money to guarentee a kill?\r\n"\
