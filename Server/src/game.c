@@ -62,6 +62,7 @@ extern void FDECL(do_log, (dbref, dbref, int, char *, char *));
 extern void FDECL(ignore_signals, ());
 extern void FDECL(reset_signals, ());
 extern dbref FDECL(match_thing, (dbref, char *));
+extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern void FDECL(init_logfile, ());
 extern void FDECL(close_logfile, ());
 
@@ -584,7 +585,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0;
-    int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0;
+    int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
     FWDLIST *fp;
     ATTR *ap_log;
 
@@ -612,6 +613,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     
     /* If we want NOSPOOF output, generate it.  It is only needed if
      * we are sending the message to the target object */
+    for (i = 0; i < LBUF_SIZE; i++)
+       targetlist[i]=-2000000;
 
     if (key & MSG_ME) {
 	mp = msg_ns = alloc_lbuf("notify_check");
@@ -880,6 +883,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	    }
 	}
 /* Bounce if you got them */
+        for (i = 0; i < LBUF_SIZE; i++)
+           targetlist[i]=-2000000;
+
 	if ( Bouncer(target) ) {
 	    pass_listen=1; 
             ap_log = atr_str("BOUNCEFORWARD");
@@ -888,13 +894,23 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                if ( s_aptext && *s_aptext ) {
                   s_aptextptr = strtok_r(s_aptext, " ", &s_strtokr);
                   tbuff = alloc_lbuf("bounce_on_notify");
+                  i_targetlist = 0;
                   while ( s_aptextptr ) {
-                     passtarget = match_thing(target, s_aptextptr);
-                     if ( Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != target) ) {
-                        sprintf(tbuff, "Bounce [#%d]> %.3950s", target, msg);
+                     passtarget = match_thing_quiet(target, s_aptextptr);
+                     for (i = 0; i < LBUF_SIZE; i++) {
+                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
+                           break;
+                     }
+                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != target) && !((passtarget == Owner(target)) && Puppet(target)) ) {
+                        if ( !No_Ansi_Ex(passtarget) )
+                           sprintf(tbuff, "%sBounce [#%d]>%s %.3950s", ANSI_HILITE, target, ANSI_NORMAL, msg);
+                        else
+                           sprintf(tbuff, "Bounce [#%d]> %.3950s", target, msg);
                         notify_quiet(passtarget, tbuff);
                      }
                      s_aptextptr = strtok_r(NULL, " ", &s_strtokr);
+                     targetlist[i_targetlist] = passtarget;
+                     i_targetlist++;
                   }
                   free_lbuf(tbuff);
                }

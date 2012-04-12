@@ -6616,6 +6616,8 @@
          of it's normal behavior, and make exit movement visible.
          @list options to see if it's in effect or not.
   
+  See Also: CLOAK, DARK, UNFINDABLE
+  
 & SHOWFAILCMD
   Flag: SHOWFAILCMD([f])  
   
@@ -7084,7 +7086,7 @@
   variables like @aenter.  This is settable by ROYALTY and SUPER-ROYALTY
   only.  You must be DARK as well to make this flag effectively work.
   
-  See Also: DARK, UNFINDABLE
+  See Also: DARK, UNFINDABLE, BLIND
   
 & FUBAR
   Flag: FUBAR(f)  
@@ -10222,9 +10224,14 @@ See Also: timefmt()
   See Also: right(), mid(), delete(), ljc(), rjc()
   
 & RAND()
-  Function: rand(<num>)
+  Function: rand(<num>[,,<boolean>])
+            rand(<min>,<max>[,<boolean>])
  
   Rand returns an integer between 0 and num-1.
+  
+  You may optionally specify a min/max pair of where the random number will range between.
+  
+  If you specify the boolean, it will return the value as a double.  Max double is 100 digits.
  
   Example:
     > say rand(10)
@@ -11201,11 +11208,14 @@ See Also: timefmt()
   See Also: iter(), citer(), nsiter(), list()
   
 & creplace()
-  Function: creplace(<string>, <position>, <string2>[, <type>])
+  Function: creplace(<string>, <position>, <string2>[, <type>][,<range>])
   
   The creplace function will replace characters starting at position
   <position> and based on the type, will continue to overwrite till
   end of one of the strings.  You can replace one or more characters.
+  
+  If you specify the range, it will give the number of characters to enact
+  upon.  Default is length of string2.
   
   Valid types are: 
         o - overwrite : starting at position it'll continue to overwrite
@@ -15857,7 +15867,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: pack()
 
 & PACK()
-  Function: pack(<number>[,<radix>])
+  Function: pack(<number>[[,<radix>][,<penn compat flag>]])
    
   Returns the equivalent of the given number using the specified base.
   The default radix is 64. Bases greater than 10 will be more compact
@@ -15868,6 +15878,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Bulletin Board. For this reason, and to support bases: 2, 8, and 16,
   this conversion is not the radix-64 conversion used in unix-to-unix
   copy (uuencode).  The range of the radix is between 2 and 64.
+  
+  You may specify the PennMUSH compatable toggle (1) which will mimic Penn's
+  64 bit packing algo.
    
   Examples:
     >think pack(629126998)
@@ -15883,12 +15896,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             roman()
   
 & UNPACK()
-  Function: unpack(<packed number>[,<radix>])
+  Function: unpack(<packed number>[[,<radix>][,<penn compat flag>]])
    
   Returns the equivalent normal base-10 number of the given
   packed-number using the specified base. The default radix is 64.
   The inverse function of unpack is pack.  The radix can be between
   2 and 64.
+  
+  You may specify tghe PennMUSh compatable toggle (1) which will mimic Penn's
+  64 bit packing algo.
    
   Examples:
     >think unpack(bVxTM)
@@ -17943,7 +17959,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   This function pads a string with leading <fill> characters, or with spaces
   if no fill character is given) ("right-justifies") so it is <length> long.
   If <string> is longer than <length>, the <string> is returned; it is not
-  truncated.
+  truncated. <fill> may be a string of over one character.
  
   Examples:
     > say -[rjust(foo,6)]-
@@ -18024,7 +18040,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   This function pads a string with trailing <fill> characters, or with spaces
   if no fill character is given) ("left-justifies") so it is <length> long.
   If <string> is longer than <length>, the <string> is returned; it is not
-  truncated.
+  truncated.  <fill> may be a string of more than one character.
  
   Examples:
     > say -[ljust(foo,6)]-
@@ -23459,6 +23475,10 @@ Changes
 * replace() handles multiple arguments [ASH]
 * ifelse() handles %$ [ASH]
 * objeval() with third arg to bypass NO_CODE flag [ASH]
+* BOUNCEFORWARD/BOUNCE now redirects TRACE [ASH]
+* pack()/unpack() optionally handles Penn's 64 bit compression [ASH]
+* creplace() handles optional range value [ASH]
+* ljust()/rjust() handles multi-character filler [ASH]
 
 Bug Fixes
 ---------

@@ -4227,16 +4227,17 @@ FUNCTION(fun_moon)
  * fun_crc32  - use crc32 bitmath - taken from MUX2 with permission
  ************************************************************************************/
 static char aRadixTable[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@$";
+static char aRadixTablePenn[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 FUNCTION(fun_unpack)
 {
-   int iRadix, c, LeadingCharacter, iValue, i;
+   int iRadix, c, LeadingCharacter, iValue, i, i_penn;
    double sum;
    char MatchTable[256], *pString, cutoff[65];
 
-   if (!fn_range_check("UNPACK", nfargs, 1, 2, buff, bufcx))
+   if (!fn_range_check("UNPACK", nfargs, 1, 3, buff, bufcx))
       return;
    iRadix = 64;
-   if ( nfargs == 2 ) {
+   if ( nfargs >= 2 ) {
       if ( !is_integer(fargs[1]) ||
            ((iRadix = atoi(fargs[1])) < 2) ||
            (64 < iRadix) ) {
@@ -4244,10 +4245,26 @@ FUNCTION(fun_unpack)
          return;
       }
    }
+ 
+   i_penn = 0;
+   if ( nfargs >= 3 ) {
+      if ( *fargs[2] ) {
+         i_penn = atoi(fargs[2]);
+         if ( i_penn != 0 ) {
+            i_penn = 1;
+         }
+      }
+   }
 
    memset(MatchTable, 0, sizeof(MatchTable));
-   for (i = 0; i < iRadix; i++) {
-      MatchTable[(unsigned int) aRadixTable[i]] = i+1;
+   if ( i_penn ) {
+      for (i = 0; i < iRadix; i++) {
+         MatchTable[(unsigned int) aRadixTablePenn[i]] = i+1;
+      }
+   } else {
+      for (i = 0; i < iRadix; i++) {
+         MatchTable[(unsigned int) aRadixTable[i]] = i+1;
+      }
    }
    memset(cutoff, 0, sizeof(cutoff));
    sprintf(cutoff, "%64.64s", fargs[0]);
@@ -4274,14 +4291,14 @@ FUNCTION(fun_unpack)
 
 FUNCTION(fun_pack)
 {
-   int iRadix;
+   int iRadix, i_penn;
    double val, iDiv, iTerm;
    char TempBuffer[80], *p, *q, temp, cutoff[64];
 
-   if (!fn_range_check("PACK", nfargs, 1, 2, buff, bufcx))
+   if (!fn_range_check("PACK", nfargs, 1, 3, buff, bufcx))
       return;
    if ( !is_integer(fargs[0]) ||
-        ((nfargs == 2) && !is_integer(fargs[1])) ) {
+        ((nfargs >= 2) && !is_integer(fargs[1])) ) {
       safe_str("#-1 ARGUMENTS MUST BE NUMBERS", buff, bufcx);
       return;
    }
@@ -4289,13 +4306,26 @@ FUNCTION(fun_pack)
    sprintf(cutoff, "%19.19s", fargs[0]);
    val = safe_atof(cutoff);
    iRadix = 64;
-   if (nfargs == 2) {
+   if (nfargs >= 2) {
       iRadix = atoi(fargs[1]);
       if ((iRadix < 2) || (64 < iRadix)) {
          safe_str("#-1 RADIX MUST BE A NUMBER BETWEEN 2 and 64", buff, bufcx);
          return;
       }
    }
+   i_penn = 0;
+   if ( nfargs >= 3 ) {
+      if ( *fargs[2] ) {
+         i_penn = atoi(fargs[2]);
+         if ( i_penn != 0 ) {
+            i_penn = 1;
+            if ( iRadix > 36 ) {
+               i_penn = 2;
+            }
+         }
+      }
+   }
+
    memset(TempBuffer, 0, sizeof(TempBuffer));
    p = TempBuffer;
    if (val < 0) {
@@ -4311,13 +4341,21 @@ FUNCTION(fun_pack)
          iTerm = iRadix - 1;
       if ( iTerm < 0 )
          iTerm = 0;
-      *p++ = aRadixTable[(int)iTerm];
+      if ( i_penn == 2 ) {
+         *p++ = aRadixTablePenn[(int)iTerm];
+      } else {
+         *p++ = aRadixTable[(int)iTerm];
+      }
    }
    if ( val < 0 )
       val = 0;
    if ( val > (iRadix - 1) )
       val = iRadix - 1;
-   *p++ = aRadixTable[(int)val];
+   if ( i_penn == 2 ) {
+      *p++ = aRadixTablePenn[(int)val];
+   } else {
+      *p++ = aRadixTable[(int)val];
+   }
    *p-- = '\0';
    while (q < p) {
       temp = *p;
@@ -4328,7 +4366,15 @@ FUNCTION(fun_pack)
       ++q;
 
   }
-  safe_str(TempBuffer, buff, bufcx);
+  if ( (i_penn == 1) ) {
+     p = TempBuffer;
+     while ( p && *p ) {
+        safe_chr(ToLower(*p), buff, bufcx);
+        p++;
+     }
+  } else {
+     safe_str(TempBuffer, buff, bufcx);
+  }
 }
 
 static unsigned int CRC32_Table[256] =
@@ -5143,14 +5189,72 @@ FUNCTION(fun_garble)
 
 FUNCTION(fun_rand)
 {
-    int num;
-    static char tempbuff[LBUF_SIZE/2];
+    int i_num, i_num2;
+    double d_num, d_num2, d_num3;
+    static char tempbuff[LBUF_SIZE/2], *fakerand, *fakerandptr;
 
-    num = atoi(fargs[0]);
-    if (num < 1)
-       safe_str("0", buff, bufcx);
-    else {
-       sprintf(tempbuff, "%ld", (long)(random() % num));
+    if (!fn_range_check("RAND", nfargs, 1, 3, buff, bufcx)) {
+      return;
+    }
+
+    i_num = i_num2 = 0;
+    d_num = d_num2 = d_num3 = 0;
+    if ( (nfargs > 2) && *fargs[2] && (atoi(fargs[2]) == 1) ) {
+       d_num = safe_atof(fargs[0]);
+
+       if ( (nfargs > 1) && *fargs[1] ) {
+          fakerandptr = fakerand = alloc_lbuf("double_rand");
+          d_num  = safe_atof(fargs[0]);
+          d_num2 = safe_atof(fargs[1]);
+          if ( (d_num2 < d_num) || (d_num < 0) ) {
+             safe_str("0", buff, bufcx);
+             return;
+          }
+          while ( strlen(fakerand) < 300 ) {
+             i_num=random();
+             sprintf(tempbuff, "%ld", (long)i_num);
+             safe_str(tempbuff, fakerand, &fakerandptr);
+             if ( i_num == 0 )
+                break;
+          }
+          d_num3 = safe_atof(fakerand);
+          free_lbuf(fakerand);
+          if ( d_num2 == d_num ) {
+             sprintf(tempbuff, "%.0f", (double)d_num);
+          } else {
+             sprintf(tempbuff, "%.0f", (double)(fmod(d_num3, ((d_num2 + 1) - d_num)) + d_num) );
+          }
+       } else {
+          if (d_num < 1) {
+             safe_str("0", buff, bufcx);
+             return;
+          } else {
+             sprintf(tempbuff, "%.0f", (double)(fmod(d_num3, d_num)) );
+          }
+       }
+       safe_str(tempbuff, buff, bufcx);
+    } else {
+       i_num = atoi(fargs[0]);
+
+       if ( (nfargs > 1) && *fargs[1] ) {
+          i_num2 = atoi(fargs[1]);
+          if ( (i_num2 < i_num) || (i_num < 0) ) {
+             safe_str("0", buff, bufcx);
+             return;
+          }
+          if ( i_num2 == i_num ) {
+             sprintf(tempbuff, "%ld", (long)i_num);
+          } else {
+             sprintf(tempbuff, "%ld", (long)((random() % ((i_num2 + 1) - i_num)) + i_num) );
+          }
+       } else {
+          if (i_num < 1) {
+             safe_str("0", buff, bufcx);
+             return;
+          } else {
+             sprintf(tempbuff, "%ld", (long)(random() % i_num));
+          }
+       }
        safe_str(tempbuff, buff, bufcx);
     }
 }
@@ -14620,7 +14724,7 @@ sanitize_input_cnt(char *s_base_str, char *s_in_str, char sep, int  *i_len, int 
     int i_tmp, i_found;
 
     *i_len = countwords(s_base_str, sep);
-    if ( *i_len == 0 ) {
+    if ( (*i_len == 0) && (i_key != IF_INSERT) ) {
        return(0);
     }
 
@@ -15802,9 +15906,9 @@ FUNCTION(fun_caplist)
 FUNCTION(fun_creplace)
 {
    char *curr, *cp, sep, *sop, *sp, *curr_temp, *sop_temp;
-   int  i_val, i_cntr, exit_val;
+   int  i_val, i_cntr, exit_val, i_range, i_rangecnt;
 
-   if (!fn_range_check("CREPLACE", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
        return;
 
    curr_temp = exec(player, cause, caller,
@@ -15830,20 +15934,34 @@ FUNCTION(fun_creplace)
    safe_str(strip_ansi(sop_temp),sop,&sp);
    free_lbuf(sop_temp);
    sp = sop;
-   if ( nfargs > 3 )
+   if ( nfargs > 3 ) {
       sep = ToLower((int)*fargs[3]);
-   else
+   } else {
       sep = 'o';
+   }
+   i_rangecnt = i_range = 0;
+   if ( nfargs > 4 ) {
+      i_range = atoi(fargs[4]);
+      if ( i_range < 0 ) {
+         i_range = 0;
+      }
+   }
    i_cntr = 1;
    exit_val = 0;
    if ( sep == 'c' ) {    /* Overwrite and Cut */
       while (( *cp || *sp ) && !exit_val ) {
          if ( *sp && *cp && i_cntr >= i_val ) {
+            i_rangecnt++;
             safe_chr(*sp, buff, bufcx);
             sp++;
-            cp++;
+            if ( (i_rangecnt <= i_range) || (i_range == 0) )
+               cp++;
          } else if ( *cp ) {
-            safe_chr(*cp, buff, bufcx);
+            if ( (i_cntr >= i_val) && (i_rangecnt < i_range) && (i_range != 0) ) {
+               i_rangecnt++;
+            } else {
+               safe_chr(*cp, buff, bufcx);
+            }
             cp++;
          } else {
             exit_val=1;
@@ -15865,14 +15983,19 @@ FUNCTION(fun_creplace)
       while (( *cp || *sp )) {
          if ( *sp && i_cntr >= i_val ) {
             if ( *sp ) {
+               i_rangecnt++;
                safe_chr(*sp, buff, bufcx);
                sp++;
             }
-            if ( *cp )
+            if ( *cp && ((i_rangecnt <= i_range) || (i_range == 0)) )
                cp++;
          } else {
             if ( *cp ) {
-               safe_chr(*cp, buff, bufcx);
+               if ( (i_cntr >= i_val) && (i_rangecnt < i_range) && (i_range !=0) ) {
+                  i_rangecnt++;
+               } else {
+                  safe_chr(*cp, buff, bufcx);
+               }
                cp++;
             }
          }
@@ -20186,45 +20309,59 @@ FUNCTION(fun_setinter)
 
 FUNCTION(fun_ljust)
 {
-    int spaces, i;
-    char sep;
+    int spaces, i, filllen;
+    char filler[LBUF_SIZE];
 
-    varargs_preamble("LJUST", 3);
-    spaces = atoi(fargs[1]) - strlen(strip_all_special(fargs[0]));
+    if ( !fn_range_check("LJUST", nfargs, 2, 3, buff, bufcx))
+       return;
+
+    spaces = atoi(fargs[1]);
+
+    filllen = 1;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       if ( strlen(strip_all_special(fargs[2])) < 1 )
+          sprintf(filler, " ");
+       else
+          sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+    } else {
+       sprintf(filler, " ");
+    }
+    filllen = strlen(filler);
 
     /* Sanitize number of spaces */
-
-    if ((spaces <= 0) || (spaces > 80)) {
-       /* no padding needed, just return string */
-       safe_str(fargs[0], buff, bufcx);
-       return;
-    } else if (spaces > LBUF_SIZE) {
+    if ( spaces > LBUF_SIZE) 
        spaces = LBUF_SIZE;
-    }
     safe_str(fargs[0], buff, bufcx);
-    for (i = 0; i < spaces; i++)
-       safe_chr(sep, buff, bufcx);
+    for (i = strlen(strip_all_special(fargs[0])); i < spaces; i++)
+       safe_chr(filler[i % filllen], buff, bufcx);
 }
 
 FUNCTION(fun_rjust)
 {
-    int spaces, i;
-    char sep;
+    int spaces, i, filllen;
+    char filler[LBUF_SIZE];
 
-    varargs_preamble("RJUST", 3);
+    if ( !fn_range_check("RJUST", nfargs, 2, 3, buff, bufcx))
+       return;
+
+    filllen = 1;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       if ( strlen(strip_all_special(fargs[2])) < 1 )
+          sprintf(filler, " ");
+       else
+          sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+    } else {
+       sprintf(filler, " ");
+    }
+    filllen = strlen(filler);
+
     spaces = atoi(fargs[1]) - strlen(strip_all_special(fargs[0]));
 
     /* Sanitize number of spaces */
-
-    if ((spaces <= 0) || (spaces > 80)) {
-       /* no padding needed, just return string */
-       safe_str(fargs[0], buff, bufcx);
-       return;
-    } else if (spaces > LBUF_SIZE) {
+    if ( spaces > LBUF_SIZE )
        spaces = LBUF_SIZE;
-    }
     for (i = 0; i < spaces; i++)
-       safe_chr(sep, buff, bufcx);
+       safe_chr(filler[i % filllen], buff, bufcx);
     safe_str(fargs[0], buff, bufcx);
 }
 
@@ -20239,7 +20376,6 @@ FUNCTION(fun_center)
 
     width = atoi(fargs[1]);
     len = strlen(strip_all_special(fargs[0]));
-
     if ( (len >= width) || (width > (LBUF_SIZE -2)) ) {
        safe_str(fargs[0], buff, bufcx);
        return;
@@ -20260,7 +20396,7 @@ FUNCTION(fun_center)
        safe_chr(filler[i % filllen], buff, bufcx);
     safe_str(fargs[0], buff, bufcx);
     trail_chrs = width - lead_chrs - len;
-    q = i + strlen(fargs[0]);
+    q = i + strlen(strip_all_special(fargs[0]));
     for (i = 0; i < trail_chrs; i++) {
        safe_chr(filler[q % filllen], buff, bufcx);
        q++;
@@ -21193,8 +21329,8 @@ FUNCTION(fun_trace)
 
 FUNCTION(fun_ljc)
 {
-  int len, inlen, idx;
-  char *tptr, sep;
+  int len, inlen, idx, filllen;
+  char *tptr, filler[LBUF_SIZE];
 
   if (!fn_range_check("LJC", nfargs, 2, 3, buff, bufcx)) {
      return;
@@ -21204,9 +21340,17 @@ FUNCTION(fun_ljc)
   len = atoi(fargs[1]);
 
   /* seperator */
-  sep = ' ';
-  if ( nfargs > 2 && *fargs[2] )
-     sep = *fargs[2];
+  filllen = 1;
+  if ( (nfargs > 2) && *fargs[2] ) {
+     if ( strlen(strip_all_special(fargs[2])) < 1 )
+        sprintf(filler, " ");
+     else
+        sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+  } else {
+     sprintf(filler, " ");
+  }
+  filllen = strlen(filler);
+
   if( len <= 0 )
     return;
 
@@ -21234,7 +21378,7 @@ FUNCTION(fun_ljc)
   }
 /* Second, add trailing spaces.   */
   while(idx < len) {
-      safe_chr(sep, buff, bufcx);
+      safe_chr(filler[idx % filllen], buff, bufcx);
       idx++;
   }
 #else
@@ -21242,8 +21386,9 @@ FUNCTION(fun_ljc)
       if( idx < inlen ) {
           safe_chr(*tptr, buff, bufcx);
           tptr++;
-      } else
-          safe_chr(sep, buff, bufcx);
+      } else {
+          safe_chr(filler[idx % filllen], buff, bufcx);
+      }
   }
 #endif
 
@@ -21258,8 +21403,8 @@ FUNCTION(fun_ljc)
 
 FUNCTION(fun_rjc)
 {
-  int len, inlen, idx, spaces;
-  char *tptr, sep;
+  int len, inlen, idx, spaces, filllen;
+  char *tptr, filler[LBUF_SIZE];
 
   if (!fn_range_check("RJC", nfargs, 2, 3, buff, bufcx)) {
      return;
@@ -21267,9 +21412,16 @@ FUNCTION(fun_rjc)
   inlen = strlen(strip_all_special(fargs[0]));
   len = atoi(fargs[1]);
 
-  sep = ' ';
-  if ( nfargs > 2 && *fargs[2])
-     sep = *fargs[2];
+  filllen = 1;
+  if ( (nfargs > 2) && *fargs[2] ) {
+     if ( strlen(strip_all_special(fargs[2])) < 1 )
+        sprintf(filler, " ");
+     else
+        sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+  } else {
+     sprintf(filler, " ");
+  }
+  filllen = strlen(filler);
 
   if( len <= 0 )
     return;
@@ -21286,7 +21438,7 @@ FUNCTION(fun_rjc)
   }
 
   for( idx = 0; idx < spaces; idx++ ) {
-    safe_chr(sep, buff, bufcx);
+    safe_chr(filler[idx % filllen], buff, bufcx);
   }
 #ifdef ZENTY_ANSI
   // Traverse the entire string.
@@ -23776,7 +23928,7 @@ FUN flist[] =
     {"QUOTA", fun_quota, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"R", fun_r, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"RACE", fun_race, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"RAND", fun_rand, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"RAND", fun_rand, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RANDEXTRACT", fun_randextract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RANDMATCH", fun_randmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RANDPOS", fun_randpos, 2, 0, CA_PUBLIC, CA_NO_CODE},

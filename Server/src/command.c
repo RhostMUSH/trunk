@@ -42,6 +42,8 @@ extern int lookup(char *, char *);
 extern CF_HAND(cf_site);
 extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
+extern dbref FDECL(match_thing_quiet, (dbref, char *));
+
 
 #ifdef CACHE_OBJS
 #define CACHING "object"
@@ -2363,17 +2365,17 @@ process_command(dbref player, dbref cause, int interactive,
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
     int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, boot_cnt, i_loc;
-    int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit;
+    int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *s_logroom, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
-    char *tpr_buff, *tprp_buff;
-    dbref pcexit, aowner, aowner2, aownerX, spamowner;
+    char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff;
+    dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, targetlist[LBUF_SIZE], i_apowner;
     CMDENT *cmdp;
     ZLISTNODE *zonelistnodeptr;
     dbref realloc;
     struct itimerval itimer;
     DESC *d;
-    ATTR *hk_ap2;
+    ATTR *hk_ap2, *ap_log;
     time_t chk_stop;
 
     DPUSH; /* #29 */
@@ -2657,6 +2659,39 @@ process_command(dbref player, dbref cause, int interactive,
     if (Verbose(player)) {
         tprp_buff = tpr_buff = alloc_lbuf("process_command");
 	notify(Owner(player), safe_tprintf(tpr_buff, &tprp_buff, "%s] %s", Name(player), command));
+        if ( Bouncer(player) ) {
+            ap_log = atr_str("BOUNCEFORWARD");
+            if ( ap_log ) {
+               s_aptext = atr_get(player, ap_log->number, &i_apowner, &i_apflags);
+               if ( s_aptext && *s_aptext ) {
+                  s_aptextptr = strtok_r(s_aptext, " ", &s_strtokr);
+                  tbuff = alloc_lbuf("bounce_on_command");
+                  i_targetlist = 0;
+                  for (i = 0; i < LBUF_SIZE; i++) 
+                     targetlist[i] = -2000000;
+                  while ( s_aptextptr ) {
+                     passtarget = match_thing_quiet(player, s_aptextptr);
+                     for (i = 0; i < LBUF_SIZE; i++) {
+                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
+                           break;
+                     }
+                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != Owner(player)) ) {
+                        if ( !No_Ansi_Ex(passtarget) )
+                           sprintf(tbuff, "%sBounce [#%d]>%s %s] %.3950s", ANSI_HILITE, player, ANSI_NORMAL, Name(player), command);
+                        else
+                           sprintf(tbuff, "Bounce [#%d]> %s] %.3950s", player, Name(player), command);
+                        notify_quiet(passtarget, tbuff);
+                     }
+                     s_aptextptr = strtok_r(NULL, " ", &s_strtokr);
+                     targetlist[i_targetlist] = passtarget;
+                     i_targetlist++;
+                  }
+                  free_lbuf(tbuff);
+               }
+               free_lbuf(s_aptext);
+            }
+        }
+
         free_lbuf(tpr_buff);
     }
 
