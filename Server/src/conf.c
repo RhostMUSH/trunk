@@ -575,6 +575,10 @@ NDECL(cf_init)
     mudconf.def_thing_rx = 1;
     mudconf.def_thing_tx = 1;
 #endif /* REALITY_LEVELS */
+#ifdef SQLITE
+    mudconf.sqlite_query_limit = 5;
+    strcpy( mudconf.sqlite_db_path, "sqlite" );
+#endif /* SQLITE */
 
     /* maximum logs allowed per command */
     mudconf.log_maximum = 1;
@@ -3632,6 +3636,15 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.round_kludge, 0, 0, CA_PUBLIC,
      (char *) "Kludgy fix for rounding even numbers.\r\n"\
               "                             Default: 0   Value: %d"}, /* [Loki] */
+#ifdef SQLITE
+    {(char *) "sqlite_query_limit",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.sqlite_query_limit, 0, 0, CA_WIZARD,
+     (char *) "Maximum time in seconds that a SQLite query may run.\r\n"\
+              "                             Default: 5   Value: %d"},
+    {(char *) "sqlite_db_path",
+     cf_int, CA_GOD | CA_IMMORTAL, (int*) mudconf.sqlite_db_path, 128, 0, CA_WIZARD,
+     (char *) "Path to the directory to store SQLite database files, relative to game/" },
+#endif /*SQLITE*/
 #ifdef REALITY_LEVELS
     {(char *) "reality_level",
      cf_rlevel, CA_DISABLED, (int *)&mudconf, 0, 0, CA_WIZARD,

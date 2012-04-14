@@ -4515,7 +4515,8 @@
   sidefx_maxcalls           sidefx_returnval          sideeffects             
   signal_action             signal_cron               signal_object           
   signal_object_type        space_compress            spam_limit              
-  spam_msg                  spam_objmsg               stack_limit
+  spam_msg                  spam_objmsg               sqlite_db_path
+  sqlite_query_limit        stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -7341,6 +7342,22 @@
   the threshold for spamming determined by the SPAMMONITOR flag.
   
   See Also: SPAMMONITOR, spam_msg, spam_limit
+
+& sqlite_db_path
+  Config parameter: sqlite_db_path <string>. Default: sqlite
+
+  This specifies the path (relative to game/) where SQLite database files will
+  be stored.
+
+  See Also: sqlite_query_limit
+
+& sqlite_query_limit
+  Config parameter: sqlite_query_limit <value>. Default: 5
+
+  This specifies the maximum number of seconds for which a query may run
+  before it's cancelled.
+
+  See Also: sqlite_db_path
 
 & stack_limit
   Config parameter: stack_limit <value>.  Default: 10000

@@ -22,7 +22,15 @@
  * loop being entered. By this point all databases are loaded and
  * all variables configured.
  */
+
+#ifdef SQLITE
+       extern void local_sqlite_init(void);
+#endif /* SQLITE */
+
 void local_startup(void) {
+#ifdef SQLITE
+   local_sqlite_init();
+#endif /* SQLITE */
    load_regexp_functions();
 }
 

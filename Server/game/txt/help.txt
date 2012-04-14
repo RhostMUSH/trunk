@@ -245,6 +245,7 @@
                                WIPE, ZEMIT, and REMIT
   OTHER sideeffects supported: DESTROY, TOGGLE, TXLEVEL, RXLEVEL, RSET, 
                                and MOVE
+  DATABASE sideeffects supported: SQLITE_QUERY
   
   Help is available on MUX, PENN and OTHER side-effects by name.
   
@@ -8166,15 +8167,15 @@
   SETR_OLD()      SETUNION()      SHIFT()        SHL()          SHR()        
   SHUFFLE()       SIGN()          SIN()          SINGLETIME()   SORT()       
   SORTBY()        SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
-  SPELLNUM()      SPLICE()        SQRT()         SQUISH()       STARTTIME()  
-  STARTSECS()     STATS()         STEP()         STR()          STRCAT()     
-  STRDISTANCE()   STREQ()         STRFUNC()      STRIP()        STRIPACCENTS()
-  STRIPANSI()     STRLEN()        STRMATCH()     STRMATH()      SUB()        
-  SUBJ()          SWITCH()        SWITCHALL()    T()            TAN()        
-  TEL()           TIME()          TIMEFMT()      TOBIN()        TODEC()      
-  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
-  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
-  TRANSLATE() 
+  SPELLNUM()      SPLICE()        SQLITE_QUERY() SQRT()         SQUISH()     
+  STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
+  STRCAT()        STRDISTANCE()   STREQ()        STRFUNC()      STRIP()      
+  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()    
+  SUB()           SUBJ()          SWITCH()       SWITCHALL()    T()          
+  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()      
+  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()    
+  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()         
+  TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -8365,6 +8366,9 @@
                        PARENT() PEMIT() R() REMIT() RSET() RXLEVEL() SET() 
                        SETQ() SETQ_OLD() SETR() SETR_OLD() TEL() TOGGLE() 
                        TXLEVEL() WIPE() ZEMIT()
+             See Also: help side effect functions  
+  
+  Dbase Side-Effects:  SQLITE_QUERY()
              See Also: help side effect functions  
   
   { 'help function classes7' for more }
@@ -9723,6 +9727,54 @@
    
   See Also: SUBSTITUTIONS, obj(), poss(), aposs()
   
+& SQLITE_QUERY()
+  Function: sqlite_query(<db>,<query>[,<cdel>[,<rdel>[,<arg1>,...,<argN>]]])
+  
+  This function executes the given query on a SQLite database. The database is
+  automatically created when necessary, so no additional set-up is needed to
+  begin using SQLite. The default column delimiter is '|', and the default row
+  delimiter is '^'.
+  
+  Note that SQL statements often contain characters like ',', '(', or ')', so
+  it can be particularly helpful to save queries in an attribute and use V()
+  or U() to access them.
+  
+  Since sqlite_query supports parameterized queries, this is even easier. The
+  second INSERT statement below demonstrates parameterized queries. One
+  important note is that the column and row delimiter arguments are still
+  required for all queries, even though they are only used for queries that
+  return data, such as SELECT queries.
+  
+  The arguments are the <db> [dbname], <query> [database query], 
+  <cdel> [column delimiter], <rdel> [row delimiter], and <arg1> through <argN>
+  which are the parameters.
+ 
+  {see SQLITE_QUERY2 for examples}
+
+& SQLITE_QUERY2
+  (CONTINUED)
+  Function: sqlite_query(<db>,<query>[,<cdel>[,<rdel>[,<arg1>,...,<argN>]]])
+  
+  Example:
+    > @va me = CREATE TABLE test ( testFieldA STRING, testFieldB STRING )
+    Set.
+    > say sqlite_query( testdb, v(va) )
+    You say ""
+    > @va me = INSERT INTO test VALUES ( 'a', 'b' )
+    Set.
+    > say sqlite_query( testdb, v(va) )
+    You say ""
+    > say sqlite_query( testdb, SELECT * FROM test )
+    You say "a|b"
+    > @va me = INSERT INTO test VALUES ( ?, ? )
+    Set.
+    > say sqlite_query( testdb, v(va), , , c, d )
+    You say ""
+    > say sqlite_query( testdb, SELECT * FROM test )
+    You say "a|b^c|d"
+  
+  See Also: @cluster 
+
 & SQUISH()
   Function squish(<string>[,<delimeter>])
   
@@ -23227,36 +23279,37 @@ Mail: Done
 & side effect functions
   Function Lists: Side Effect Functions.
     
-  clone()       - Clones an object.
-  create()      - Creates an object.
-  destroy()     - Destroys an object.
-  dig()         - Creates a room object.
-  emit()        - Emits a string to your location.
-  lemit()       - Like emit(), but finds the outermost room of your location.
-  link()        - Links an object to another.
-  list()        - Like iter(), but is buffer limit safe.
-  lock()        - Sets a specified lock on an object.
-  name()        - Sets the name of an object.
-  nameq()       - (Re)names setq variables with a new label.
-  npemit()      - Like pemit(), but will not strip spaces.
-  oemit()       - Like emit(), but will omit a specified target.
-  open()        - Opens an exit.
-  parent()      - Parents an object to another.
-  pemit()       - Emits a string to a list of targets.
-  r()           - Accesses local registers, and outputs its contents.
-  remit()       - Emits text to a specified room.
-  rset()        - Like set(), but returns the string that is set.
-  rxlevel()     - Sets or unsets a reality receive level for an object.
-  set()         - Sets an attribute on an object.
-  setq()        - Copies a string into a local register.
-  setq_old()    - Like setq(), but with old-style MUSH functionality.
-  setr()        - Like setq(), but also displays the string copied to the register.
-  setr_old()    - Like setr(), but with old-style MUSH functionality.
-  tel()         - Teleports an object to a location.
-  toggle()      - Toggles a toggle on an object.
-  txlevel()     - Sets or unsets a reality transmit level for an object.
-  wipe()        - Wipes attribute(s) from object.
-  zemit()       - Emits a string to every room of a zone.
+  clone()         - Clones an object.
+  create()        - Creates an object.
+  destroy()       - Destroys an object.
+  dig()           - Creates a room object.
+  emit()          - Emits a string to your location.
+  lemit()         - Like emit(), but finds the outermost room of your location.
+  link()          - Links an object to another.
+  list()          - Like iter(), but is buffer limit safe.
+  lock()          - Sets a specified lock on an object.
+  name()          - Sets the name of an object.
+  nameq()         - (Re)names setq variables with a new label.
+  npemit()        - Like pemit(), but will not strip spaces.
+  oemit()         - Like emit(), but will omit a specified target.
+  open()          - Opens an exit.
+  parent()        - Parents an object to another.
+  pemit()         - Emits a string to a list of targets.
+  r()             - Accesses local registers, and outputs its contents.
+  remit()         - Emits text to a specified room.
+  rset()          - Like set(), but returns the string that is set.
+  rxlevel()       - Sets or unsets a reality receive level for an object.
+  set()           - Sets an attribute on an object.
+  setq()          - Copies a string into a local register.
+  setq_old()      - Like setq(), but with old-style MUSH functionality.
+  setr()          - Like setq(), but also displays the string copied to the register.
+  setr_old()      - Like setr(), but with old-style MUSH functionality.
+  tel()           - Teleports an object to a location.
+  toggle()        - Toggles a toggle on an object.
+  txlevel()       - Sets or unsets a reality transmit level for an object.
+  wipe()          - Wipes attribute(s) from object.
+  zemit()         - Emits a string to every room of a zone.
+  sqllite_query() - SQL Lite database query
 
 & zone functions
   Function Lists: Zone Functions.
@@ -23457,6 +23510,7 @@ New Features
 * chkgarbage() function to check if target is GOING [ASH]
 * lookup_site() to see the real in-use SITE of a port [ASH]
 * ee() for engineering notation of floating points [ASH]
+* Added native support for SQLITE [ASH] -- Thanks Ol'Sarge/Ternary
 
 
 Changes
