@@ -307,8 +307,9 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
               if ( *s3 == ')' ) 
                  i_inparen--;
               if ( (*s3 == '\\') && (i_inparen > 0) ) {
-                 s3++;
-              }
+                 if ( *(s3+1) && (*(s3+1) != '.') && (*(s3+1) != '+') && (*(s3+1) != '*') )
+                    s3++;
+              } 
               *s2 = *s3;
               if ( *s3 )
                  s3++;

@@ -4,7 +4,7 @@
 
 #include "copyright.h"
 
-#define MUSH_VERSION            "3.9.2"         /* Base version number*/
+#define MUSH_VERSION            "3.9.3"         /* Base version number*/
 
 #if defined(ZENTY_ANSI) && defined(REALITY_LEVELS)
 #define EXT_MUSH_VER "RL(A)"
@@ -16,9 +16,9 @@
 #define EXT_MUSH_VER ""
 #endif
 
-#define PATCHLEVEL		1		/* Patch sequence number     */
+#define PATCHLEVEL		0		/* Patch sequence number     */
 #define PATCHLEVELEXT		""
-#define	MUSH_RELEASE_DATE	"08/30/2011"	/* Source release date       */
+#define	MUSH_RELEASE_DATE	"02/23/2012"	/* Source release date       */
 
 /* Define if an ALPHA release */
 #define ALPHA 1   		

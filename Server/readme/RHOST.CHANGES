@@ -1,3 +1,11 @@
+			RhostMUSH 3.9.3 Update File
+Feature push for 4.0. Rhost is now Open Source, and contributions are
+welcome.
+
+[FEATURE] Added rhost_installer.sh functionality for Google code.
+				- Odin
+
+------------------------------------------------------------------------------
                          RhostMUSH 3.9.2 Update File
 @assert/@break didn't handle {} correctly.
 				- Thanks Wyrd
@@ -8,6 +16,8 @@ crash bug in command.c with regards to mail handler
 aliased rjust to rj and ljust to lj and updated help files appropiately.
 				- Thanks Montague
 glibc for MAX_INT/MIN_INT had issues with math functions - wrapper fixes this.
+parser issue with regexp, parenthesis, and backslashes -- Fixed
+				- Thanks Chime
 
                          RhostMUSH 3.9.1 Update File
 Credits for any features should go here.  All changes should go into the main help.txt file

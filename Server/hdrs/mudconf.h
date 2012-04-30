@@ -405,6 +405,10 @@ struct confdata {
         RLEVEL  def_thing_rx;	/* Default thing RX level */
         RLEVEL  def_thing_tx;	/* Default thing TX level */
 #endif /* REALITY_LEVELS */
+#ifdef SQLITE
+        int     sqlite_query_limit;
+        char    sqlite_db_path[128];
+#endif /* SQLITE */
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */

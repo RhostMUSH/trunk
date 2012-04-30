@@ -72,7 +72,8 @@ D_SRC	= door.c shs.c mushcrypt.c news.c mail.c mailfix.c debug.c senses.c \
 	  unparse.c eval.c command.c wild.c netcommon.c functions.c vattr.c \
 	  db.c db_rw.c compress.c stringutil.c object.c conf.c flags.c htab.c \
 	  compat.c file_c.c player_c.c bsd.c alloc.c autoreg.c levels.c \
-          local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c $(DR_SRC)
+          local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c \
+          sqlite.c $(DR_SRC)
 
 D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  create.o game.o help.o look.o match.o move.o player.o predicates.o \
@@ -80,7 +81,8 @@ D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  unparse.o eval.o command.o wild.o netcommon.o functions.o vattr.o \
 	  db.o db_rw.o compress.o stringutil.o object.o conf.o flags.o htab.o \
           compat.o file_c.o player_c.o bsd.o alloc.o autoreg.o levels.o \
-          local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o $(DR_OBJ)
+          local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o \
+          sqlite.o $(DR_OBJ)
 
 D_INC	= door.h shs.h news.h mail.h debug.h \
 	  copyright.h flags.h help.h htab.h interface.h match.h functions.h \

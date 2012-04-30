@@ -5189,14 +5189,72 @@ FUNCTION(fun_garble)
 
 FUNCTION(fun_rand)
 {
-    int num;
-    static char tempbuff[LBUF_SIZE/2];
+    int i_num, i_num2;
+    double d_num, d_num2, d_num3;
+    static char tempbuff[LBUF_SIZE/2], *fakerand, *fakerandptr;
 
-    num = atoi(fargs[0]);
-    if (num < 1)
-       safe_str("0", buff, bufcx);
-    else {
-       sprintf(tempbuff, "%ld", (long)(random() % num));
+    if (!fn_range_check("RAND", nfargs, 1, 3, buff, bufcx)) {
+      return;
+    }
+
+    i_num = i_num2 = 0;
+    d_num = d_num2 = d_num3 = 0;
+    if ( (nfargs > 2) && *fargs[2] && (atoi(fargs[2]) == 1) ) {
+       d_num = safe_atof(fargs[0]);
+
+       if ( (nfargs > 1) && *fargs[1] ) {
+          fakerandptr = fakerand = alloc_lbuf("double_rand");
+          d_num  = safe_atof(fargs[0]);
+          d_num2 = safe_atof(fargs[1]);
+          if ( (d_num2 < d_num) || (d_num < 0) ) {
+             safe_str("0", buff, bufcx);
+             return;
+          }
+          while ( strlen(fakerand) < 300 ) {
+             i_num=random();
+             sprintf(tempbuff, "%ld", (long)i_num);
+             safe_str(tempbuff, fakerand, &fakerandptr);
+             if ( i_num == 0 )
+                break;
+          }
+          d_num3 = safe_atof(fakerand);
+          free_lbuf(fakerand);
+          if ( d_num2 == d_num ) {
+             sprintf(tempbuff, "%.0f", (double)d_num);
+          } else {
+             sprintf(tempbuff, "%.0f", (double)(fmod(d_num3, ((d_num2 + 1) - d_num)) + d_num) );
+          }
+       } else {
+          if (d_num < 1) {
+             safe_str("0", buff, bufcx);
+             return;
+          } else {
+             sprintf(tempbuff, "%.0f", (double)(fmod(d_num3, d_num)) );
+          }
+       }
+       safe_str(tempbuff, buff, bufcx);
+    } else {
+       i_num = atoi(fargs[0]);
+
+       if ( (nfargs > 1) && *fargs[1] ) {
+          i_num2 = atoi(fargs[1]);
+          if ( (i_num2 < i_num) || (i_num < 0) ) {
+             safe_str("0", buff, bufcx);
+             return;
+          }
+          if ( i_num2 == i_num ) {
+             sprintf(tempbuff, "%ld", (long)i_num);
+          } else {
+             sprintf(tempbuff, "%ld", (long)((random() % ((i_num2 + 1) - i_num)) + i_num) );
+          }
+       } else {
+          if (i_num < 1) {
+             safe_str("0", buff, bufcx);
+             return;
+          } else {
+             sprintf(tempbuff, "%ld", (long)(random() % i_num));
+          }
+       }
        safe_str(tempbuff, buff, bufcx);
     }
 }
@@ -23870,7 +23928,7 @@ FUN flist[] =
     {"QUOTA", fun_quota, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"R", fun_r, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"RACE", fun_race, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"RAND", fun_rand, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"RAND", fun_rand, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RANDEXTRACT", fun_randextract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RANDMATCH", fun_randmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RANDPOS", fun_randpos, 2, 0, CA_PUBLIC, CA_NO_CODE},

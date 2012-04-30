@@ -1,4 +1,4 @@
-Welcome to Rhostmush!
+Welcome to OpenSource Rhostmush!
 
 If you have syntax issues running 'make config', 'make confsource' 
 or 'make bugreport' please run the script: ./bin/script_setup.sh
