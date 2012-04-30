@@ -1,0 +1,143 @@
+.TH RELIC 3 "2004-04-22" "Man Page" "Quick Database Manager"
+
+.SH NAME
+Relic \- the NDBM\-compatible API of QDBM
+
+.SH SYNOPSIS
+.PP
+.B #include <relic.h>
+.br
+.B #include <stdlib.h>
+.br
+.B #include <sys/types.h>
+.br
+.B #include <sys/stat.h>
+.br
+.B #include <fcntl.h>
+.PP
+.B typedef struct { void *dptr; size_t dsize; } datum;
+.PP
+.B DBM *dbm_open(char *name, int flags, int mode);
+.PP
+.B void dbm_close(DBM *db);
+.PP
+.B int dbm_store(DBM *db, datum key, datum content, int flags);
+.PP
+.B int dbm_delete(DBM *db, datum key);
+.PP
+.B datum dbm_fetch(DBM *db, datum key);
+.PP
+.B datum dbm_firstkey(DBM *db);
+.PP
+.B datum dbm_nextkey(DBM *db);
+.PP
+.B int dbm_error(DBM *db);
+.PP
+.B int dbm_clearerr(DBM *db);
+.PP
+.B int dbm_rdonly(DBM *db);
+.PP
+.B int dbm_dirfno(DBM *db);
+.PP
+.B int dbm_pagfno(DBM *db);
+
+.SH DESCRIPTION
+.PP
+Relic is the API which is compatible with NDBM.  So, Relic wraps functions of Depot as API of NDBM.  It is easy to port an application from NDBM to QDBM.  In most cases, you should only replace the includings of `ndbm.h' with `relic.h' and replace the linking option `\-lndbm' with `\-lqdbm'.
+.PP
+The original NDBM treats a database as a pair of files.  One, `a directory file', has a name with suffix `.dir' and stores a bit map of keys.  The other, `a data file', has a name with suffix `.pag' and stores entities of each records.  Relic creates the directory file as a mere dummy file and creates the data file as a database.  Relic has no restriction about the size of each record.  Relic cannot handle database files made by the original NDBM.
+.PP
+In order to use Relic, you should include `relic.h', `stdlib.h', `sys/types.h', `sys/stat.h' and `fcntl.h' in the source files.  Usually, the following description will be near the beginning of a source file.
+.PP
+.RS
+.B #include <relic.h>
+.br
+.B #include <stdlib.h>
+.br
+.B #include <sys/types.h>
+.br
+.B #include <sys/stat.h>
+.br
+.B #include <fcntl.h>
+.RE
+.PP
+A pointer to `DBM' is used as a database handle.  A database handle is opened with the function `dbm_open' and closed with `dbm_close'.  You should not refer directly to any member of a handle.
+.PP
+Structures of `datum' type is used in order to give and receive data of keys and values with functions of Relic.
+.TP
+.B typedef struct { void *dptr; size_t dsize; } datum;
+`dptr' specifies the pointer to the region of a key or a value. `dsize' specifies the size of the region.
+.PP
+The function `dbm_open' is used in order to get a database handle.
+.TP
+.B DBM *dbm_open(char *name, int flags, int mode);
+`name' specifies the name of a database.  The file names are concatenated with suffixes.  `flags' is the same as one of `open' call, although `O_WRONLY' is treated as `O_RDWR' and additional flags except for `O_CREAT' and `O_TRUNC' have no effect.  `mode' specifies the mode of the database file as one of `open' call does.  The return value is the database handle or `NULL' if it is not successful.
+.PP
+The function `dbm_close' is used in order to close a database handle.
+.TP
+.B void dbm_close(DBM *db);
+`db' specifies a database handle.  Because the region of the closed handle is released, it becomes impossible to use the handle.
+.PP
+The function `dbm_store' is used in order to store a record.
+.TP
+.B int dbm_store(DBM *db, datum key, datum content, int flags);
+`db' specifies a database handle.  `key' specifies a structure of a key.  `content' specifies a structure of a value.  `flags' specifies behavior when the key overlaps, by the following values: `DBM_REPLACE', which means the specified value overwrites the existing one, `DBM_INSERT', which means the existing value is kept.  The return value is 0 if it is successful, 1 if it gives up because of overlaps of the key, \-1 if other error occurs.
+.PP
+The function `dbm_delete' is used in order to delete a record.
+.TP
+.B int dbm_delete(DBM *db, datum key);
+`db' specifies a database handle.  `key' specifies a structure of a key.  The return value is 0 if it is successful, \-1 if some errors occur.
+.PP
+The function `dbm_fetch' is used in order to retrieve a record.
+.TP
+.B datum dbm_fetch(DBM *db, datum key);
+`db' specifies a database handle.  `key' specifies a structure of a key.  The return value is a structure of the result.  If a record corresponds, the member `dptr' of the structure is the pointer to the region of the value.  If no record corresponds or some errors occur, `dptr' is `NULL'.  `dptr' points to the region related with the handle.  The region is available until the next time of calling this function with the same handle.
+.PP
+The function `dbm_firstkey' is used in order to get the first key of a database.
+.TP
+.B datum dbm_firstkey(DBM *db);
+`db' specifies a database handle.  The return value is a structure of the result.  If a record corresponds, the member `dptr' of the structure is the pointer to the region of the first key.  If no record corresponds or some errors occur, `dptr' is `NULL'.  `dptr' points to the region related with the handle.  The region is available until the next time of calling this function or the function `dbm_nextkey' with the same handle.
+.PP
+The function `dbm_nextkey' is used in order to get the next key of a database.
+.TP
+.B datum dbm_nextkey(DBM *db);
+`db' specifies a database handle.  The return value is a structure of the result.  If a record corresponds, the member `dptr' of the structure is the pointer to the region of the next key.  If no record corresponds or some errors occur, `dptr' is `NULL'.  `dptr' points to the region related with the handle.  The region is available until the next time of calling this function or the function `dbm_firstkey' with the same handle.
+.PP
+The function `dbm_error' is used in order to check whether a database has a fatal error or not.
+.TP
+.B int dbm_error(DBM *db);
+`db' specifies a database handle.  The return value is true if the database has a fatal error, false if not.
+.PP
+The function `dbm_clearerr' has no effect.
+.TP
+.B int dbm_clearerr(DBM *db);
+`db' specifies a database handle.  The return value is 0.  The function is only for compatibility.
+.PP
+The function `dbm_rdonly' is used in order to check whether a handle is read\-only or not.
+.TP
+.B int dbm_rdonly(DBM *db);
+`db' specifies a database handle.  The return value is true if the handle is read\-only, or false if not read\-only.
+.PP
+The function `dbm_dirfno' is used in order to get the file descriptor of a directory file.
+.TP
+.B int dbm_dirfno(DBM *db);
+`db' specifies a database handle.  The return value is the file descriptor of the directory file.
+.PP
+The function `dbm_pagfno' is used in order to get the file descriptor of a data file.
+.TP
+.B int dbm_pagfno(DBM *db);
+`db' specifies a database handle.  The return value is the file descriptor of the data file.
+.PP
+Functions of Relic are thread\-safe as long as a handle is not accessed by threads at the same time, on the assumption that `errno', `malloc', and so on are thread\-safe.
+
+.SH SEE ALSO
+.PP
+.BR qdbm (3),
+.BR depot (3),
+.BR curia (3),
+.BR hovel (3),
+.BR cabin (3),
+.BR villa (3),
+.BR odeum (3),
+.BR ndbm (3),
+.BR gdbm (3)

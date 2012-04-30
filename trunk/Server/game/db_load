@@ -1,0 +1,24 @@
+#!/bin/sh
+PATH=/bin:/usr/bin:
+# You need this library path for the new gdbm
+# LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/gdbm-1.8.3:../src/gdbm-1.8.3/.libs
+# export LD_LIBRARY_PATH
+#
+#	Convert from arbitrary format to MUSH V2 GDBM format.
+#
+case $# in
+	1)	./dbconvert $1 X ;;
+	2)	./dbconvert $1 X <$2 ;;
+	3)	if [ -f "$1.db" -o -f "$1.dir" -o -f "$1.pag" ]
+		then
+   			echo "Can not db_load.  Please move or remove the following:"
+			echo "$1.db", "$1.dir", and "$1.pag"
+			echo "then retype: $0 $@"
+ 			exit 0
+		fi
+		./dbconvert $1 X <$2 >$3
+		;;
+	*)	echo Usage: $0 'gdbm_file [source_file [dest_file]]'; exit 1 ;;
+esac
+
+exit 0

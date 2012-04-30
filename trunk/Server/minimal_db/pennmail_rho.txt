@@ -1,0 +1,195 @@
+& help
+@MAIL
+  @mail[/<switches>] [<msg-list> [= <target>]]
+  @mail[/<switches>] <player-list> = [<subject>/]<message>
+ 
+  @mail invokes the built-in MUSH mailer, which allows players to send
+  and receive mail. Pronoun/function substitution is performed on
+  any messages you may try to send.  
+ 
+  A <msg-list> is one of the following:
+        A single msg # (ex: 3)
+        A message range (ex: 2-5, -7, 3-)
+
+	(unsupported)
+        A folder number and message number/range (ex: 0:3, 1:2-5, 2:-7)
+
+        A sender (ex: *paul)
+
+	(unsupported)
+        An age of mail in days (ex: ~3 (exactly 3), <2, >1)
+           "days" here means 24-hour periods from the current time.
+
+	(Use 'O'(read), 'B'(both unread and new), 'M'(marked), 'S'(safe))
+        One of the following: "read", "unread", "cleared", "tagged",
+        "urgent", "all" (all messages in all folders), "folder" (all
+        messages in current folder)
+  A <player-list> is a space-separated list of recipients, which may be:
+        Player names
+        Player dbref #'s
+        Message #'s, in which case you send to the sender of that message.
+        An alias name (see help @malias)
+ 
+  See the following topics:
+    mail-sending   mail-reading   mail-folders   mail-other   mail-admin
+
+& @MAIL
+@MAIL
+  @mail[/<switches>] [<msg-list> [= <target>]]
+  @mail[/<switches>] <player-list> = [<subject>/]<message>
+ 
+  @mail invokes the built-in MUSH mailer, which allows players to send
+  and receive mail. Pronoun/function substitution is performed on
+  any messages you may try to send.  
+ 
+  A <msg-list> is one of the following:
+        A single msg # (ex: 3)
+        A message range (ex: 2-5, -7, 3-)
+
+	(unsupported)
+        A folder number and message number/range (ex: 0:3, 1:2-5, 2:-7)
+
+        A sender (ex: *paul)
+
+	(unsupported)
+        An age of mail in days (ex: ~3 (exactly 3), <2, >1)
+           "days" here means 24-hour periods from the current time.
+
+	(Use 'O'(read), 'B'(both unread and new), 'M'(marked), 'S'(safe))
+        One of the following: "read", "unread", "cleared", "tagged",
+        "urgent", "all" (all messages in all folders), "folder" (all
+        messages in current folder)
+  A <player-list> is a space-separated list of recipients, which may be:
+        Player names
+        Player dbref #'s
+        Message #'s, in which case you send to the sender of that message.
+        An alias name (see help @malias)
+ 
+  See the following topics:
+    mail-sending   mail-reading   mail-folders   mail-other   mail-admin
+
+& mail-sending
+MAIL-SENDING 
+  @mail[/switch] <player-list> = [<subject>]/<msg>
+        This sends the message <msg> to all players in <player-list>.
+        If no subject is given, the message subject is the beginning
+        of the message itself.
+        All function substitutions are valid in <msg> including mail(#) which
+        will allow you to forward mail you have received to other users.
+        The following switches are available:
+                /send   - same as no switch
+                /urgent - mail is marked as "Urgent"
+
+		(unsupported - both below)
+                /silent - no notification to sender that mail was sent
+                /nosig  - no mail signature
+        If you have an @mailsignature attribute set on yourself, its
+        contents will be evaluated and appended to the message unless
+        the /nosig switch is given.
+ 
+  @mail/fwd <msg-list> = <player-list>
+        This sends a copy of all the messages in <msg-list> to
+        all the players in <player-list>. The copy will appear to have
+        been sent by you (not the original sender), and its status will
+        be "Forwarded".
+ 
+
+& mail-reading
+MAIL-READING
+ 
+  @mail <msg #>
+  @mail/read <msg-list>
+        This displays messages which match the msg# or msg-list from
+        your current folder.
+  
+  @mail
+  @mail <msg-list, but not a single msg #> 
+  @mail/list <msg-list>
+        This gives a brief list of all mail in the current folder,
+        with sender name, time sent, and message status.
+        The status field is a set of characters (ex: NC-UF+) which mean:
+                N = New (unread) message
+                C = Cleared message
+                U = Urgent message
+                F = Forwarded message
+                + = Tagged message
+        The opposites of these (read messages, etc.) are indicated with a
+        '-' in the status field in that position.
+        
+& mail-folders
+MAIL-FOLDERS
+  The MUSH mail system allows each player 16 folders, numbered from
+  0 to 15. Mail can only be in 1 folder at a time. Folder 0 is
+  the "inbox" where new mail is received. Most @mail commands
+  operate on only the current folder.
+  (actually, you can have unlimited folders, but they're named, not numbered)
+ 
+  @mail/folder
+        This commands lists all folders which contain mail, telling
+        how many messages are in each, and what the current folder is.
+ 
+  @mail/folder <folder#|foldername>
+        This command sets your current folder to <folder#>.
+ 
+  (not supported.  They always have names)
+  @mail/folder <folder#> = <foldername>
+        This command gives <folder#> a name. 
+ 
+  @mail/unfolder <folder#|foldername>
+        This command removes a folder's name
+ 
+  @mail/file <msg-list>=<folder#>
+        This command moves all messages in msg-list from the current
+        folder to a new folder, <folder#>.
+
+& mail-other
+MAIL-OTHER
+  @mail/clear [<msg-list | all>]
+  @mail/unclear [<msg-list> | all>]
+        These commands mark mail in the current folder as cleared or uncleared.
+        Mail marked for clearing is deleted when you disconnect, or
+        if you use @mail/purge. If no msg-list is specified, all
+        mail in your current folder is cleared. If "all" is given instead
+        of a msg-list, all mail in *all* folders is cleared/uncleared.
+  
+  @mail/purge
+        Actually deletes all messages marked for clearing with @mail/clear.
+        This is done automatically when you log out.
+ 
+  (Following two not supported)
+  @mail/tag [<msg-list | all>]
+  @mail/untag [<msg-list> | all>]
+        These commands tag or untag mail in the current folder.
+        Tagged mail can be later acted on en masse by using "tagged" as
+        the msg-list for other commands (which does *not* untag them
+        afterward). If no msg-list is specified, all messages in the
+        current folder are tagged/untagged. If "all" is given as the
+        msg-list, all mail in *all* folders is tagged/untagged.
+        (Ex: To clear all mail from Paul and Chani, @mail/tag *paul,
+        @mail/tag *chani, @mail/clear tagged, @mail/untag all).
+
+& mail-admin
+MAIL-ADMIN
+  
+  The @mail command can also take the following switches:
+  
+    @mail/stats [<player>]    --  Basic mail statistics.
+    @mail/dstats [<player>]   --  Also provides read/unread count.
+    @mail/fstats [<player>]   --  Does all that, plus gives space usage.
+  
+    @mail/debug <action>[=<player>]
+    @mail/nuke
+  
+  Only wizards may stats players other than themselves. The mail statistics
+  commands are computationally expensive, and thus are subject to "daytime"
+  restrictions. They also cost the same as a @find (100 pennies).
+  
+  The /debug switch does sanity checking on the mail database, and may only
+  be used by a wizard. "@mail/debug sanity" just does the check; the command
+  "@mail/debug clear=<player name or dbref number>" wipes mail for an object.
+  "@mail/debug fix" attempts to repair problems noted in the sanity check.
+ 
+  The /nuke switch destroys the post office, erasing all @mail everywhere.  
+  It may only be used by God.
+  
+

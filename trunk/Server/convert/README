@@ -1,0 +1,27 @@
+cleanattrs.c           - attribute cleaner for RhostMUSH flatfiles.
+                         gcc cleanattrs.c -o cleanattrs
+                         syntax:  ./cleanattrs <inputflatfile> <outputfilename>
+                         example: ./cleanattrs netrhost.db.flat netrhost.db.cleaned
+
+dbpuller.c             - MUX2 db puller
+                         gcc dbpuller.c -o dbpuller
+                         Syntax:  ./dbpuller <dbref#> [<optional attribute>]
+                         example: ./dbpuller 123
+
+dbpuller.sh            - main db puller script for RhostMUSH
+
+data                   - data directory where db puller data is stored
+
+doconvert.sh           - main db flatfile converter script for RhostMUSH
+conv.c                 - generic PennMUSH 1.5 converter (called by script)
+conv.pl                - generic PennMUSH 1.6-1.7 converter (called by script)
+pennconv.c             - Penn 1.6 PennMUSH converter
+conv.template          - generic template for PennMUSH conversion (called by perl)
+convm2.c               - MUX2 converter (called by script)
+convtm3.c              - TinyMUSH3.0 converter (called by script)
+convtm31.c             - TinyMUSH3.1 converted (called by script)
+quote2.c               - TinyMUX helper script
+quote2tm31.c           - TinyMUSH3 helper script
+tinyquote.c            - TinyMUSH2 helper script
+tinyconv.c             - TinyMUSH2 generic converter
+penn18x_converter.tgz  - main tarball for full PennMUSH 1.8.x flatfile conversion

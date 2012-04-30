@@ -1,0 +1,151 @@
+# Makefile for Perl interface of QDBM
+
+
+
+#================================================================
+# Setting variables
+#================================================================
+
+
+# Generic settings
+SHELL = @SHELL@
+
+# Packaging
+PACKAGE = qdbm
+
+# Targets
+MYBINS = depot/pldptest curia/plcrtest villa/plvltest
+MYDOCS = plspex.html plspex-ja.html plapidoc
+
+# Install destinations
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+MYBINDIR = @bindir@
+MYDATADIR = @datadir@/$(PACKAGE)/perl
+DESTDIR =
+
+# Building binaries
+CC = gcc
+INC = -I. -I../.. -I$(HOME)/include -I/usr/local/include
+OPTIMIZE = -O2
+LD = gcc
+LIBS = -L../.. -I$(HOME)/lib -L/usr/local/lib -lqdbm @LIBS@
+RUNENV = LD_LIBRARY_PATH=.:..:../..:/usr/local/lib:$(HOME)/lib
+
+
+
+#================================================================
+# Actions
+#================================================================
+
+
+all :
+	cd depot && [ -f Makefile ] || \
+	  $(RUNENV) perl Makefile.PL CC="$(CC)" INC="$(INC)" OPTIMIZE="$(OPTIMIZE)" \
+	    LD="$(LD)" LIBS="$(LIBS)" PREFIX="$(prefix)" ; \
+	  $(RUNENV) make
+	cd curia && [ -f Makefile ] || \
+	  $(RUNENV) perl Makefile.PL CC="$(CC)" INC="$(INC)" OPTIMIZE="$(OPTIMIZE)" \
+	    LD="$(LD)" LIBS="$(LIBS)" PREFIX="$(prefix)" ; \
+	  $(RUNENV) make
+	cd villa && [ -f Makefile ] || \
+	  $(RUNENV) perl Makefile.PL CC="$(CC)" INC="$(INC)" OPTIMIZE="$(OPTIMIZE)" \
+	    LD="$(LD)" LIBS="$(LIBS)" PREFIX="$(prefix)" ; \
+	  $(RUNENV) make
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Ready to install.\n'
+	@printf '#================================================================\n'
+
+
+clean :
+	cd depot && if [ -f Makefile ] ; then $(RUNENV) make -i clean ; fi || true
+	cd depot && rm -rf Makefile blib pm_to_blib *.c *.o *.bs *.old casket *~
+	cd curia && if [ -f Makefile ] ; then $(RUNENV) make -i clean ; fi || true
+	cd curia && rm -rf Makefile blib pm_to_blib *.c *.o *.bs *.old casket *~
+	cd villa && if [ -f Makefile ] ; then $(RUNENV) make -i clean ; fi || true
+	cd villa && rm -rf Makefile blib pm_to_blib *.c *.o *.bs *.old casket *~
+	rm -rf casket *~
+
+
+install :
+	cd depot && $(RUNENV) make install
+	cd curia && $(RUNENV) make install
+	cd villa && $(RUNENV) make install
+	mkdir -p $(DESTDIR)$(MYBINDIR)
+	cp -f $(MYBINS) $(DESTDIR)$(MYBINDIR)
+	mkdir -p $(DESTDIR)$(MYDATADIR)
+	cp -Rf $(MYDOCS) $(DESTDIR)$(MYDATADIR)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Thanks for using QDBM for Perl.\n'
+	@printf '#================================================================\n'
+
+
+uninstall :
+	pprefix=`perl -e 'foreach(@INC){ print "$$_\n"; }' | grep -v '^\.'` ; \
+	  find $$pprefix -print | sort | uniq | egrep '(Depot|Curia|Villa)' | xargs rm -rf
+	for file in $(MYBINS) ; \
+	  do \
+	    file=`printf '%s' $$file | sed 's/.*\///'` ; \
+	    if [ -n "$$file" ] ; then rm -f "$(DESTDIR)$(MYBINDIR)/$$file" ; fi ; \
+	  done
+	rm -rf $(DESTDIR)$(MYDATADIR)
+
+
+check :
+	sync ; sync
+	cd depot && rm -rf casket
+	cd depot && \
+	  $(RUNENV) perl -w pldptest write casket 10000 1000
+	cd depot && \
+	  $(RUNENV) perl -w pldptest read casket
+	cd depot && \
+	  $(RUNENV) perl -w pldptest tie casket
+	cd depot && rm -rf casket
+	cd curia && rm -rf casket
+	cd curia && \
+	  $(RUNENV) perl -w plcrtest write casket 10000 100 10
+	cd curia && \
+	  $(RUNENV) perl -w plcrtest read casket
+	cd curia && \
+	  $(RUNENV) perl -w plcrtest tie casket
+	cd curia && rm -rf casket
+	cd villa && rm -rf casket
+	cd villa && \
+	  $(RUNENV) perl -w plvltest write casket 10000
+	cd villa && \
+	  $(RUNENV) perl -w plvltest read casket
+	cd villa && \
+	  $(RUNENV) perl -w plvltest tie casket
+	cd villa && rm -rf casket
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Checking completed.\n'
+	@printf '#================================================================\n'
+
+
+doc :
+	make docclean
+	$(RUNENV) ./mypldoc -d plapidoc -t "QDBM for Perl" -a overview \
+	  depot/Depot.pm curia/Curia.pm villa/Villa.pm
+
+
+docclean :
+	rm -rf plapidoc
+
+
+dist :
+	make doc
+	make distclean
+
+
+distclean : clean
+	rm -rf Makefile config.cache config.log config.status autom4te.cache
+
+
+.PHONY : all clean install check
+
+
+
+# END OF FILE

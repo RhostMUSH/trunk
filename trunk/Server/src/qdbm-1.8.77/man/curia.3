@@ -1,0 +1,286 @@
+.TH CURIA 3 "2004-04-22" "Man Page" "Quick Database Manager"
+
+.SH NAME
+Curia \- the extended API of QDBM
+
+.SH SYNOPSIS
+.PP
+.B #include <depot.h>
+.br
+.B #include <curia.h>
+.br
+.B #include <stdlib.h>
+.PP
+.B CURIA *cropen(const char *name, int omode, int bnum, int dnum);
+.PP
+.B int crclose(CURIA *curia);
+.PP
+.B int crput(CURIA *curia, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int dmode);
+.PP
+.B int crout(CURIA *curia, const char *kbuf, int ksiz);
+.PP
+.B char *crget(CURIA *curia, const char *kbuf, int ksiz, int start, int max, int *sp);
+.PP
+.B int crgetwb(CURIA *curia, const char *kbuf, int ksiz, int start, int max, char *vbuf);
+.PP
+.B int crvsiz(CURIA *curia, const char *kbuf, int ksiz);
+.PP
+.B int criterinit(CURIA *curia);
+.PP
+.B char *criternext(CURIA *curia, int *sp);
+.PP
+.B int crsetalign(CURIA *curia, int align);
+.PP
+.B int crsetfbpsiz(CURIA *curia, int size);
+.PP
+.B int crsync(CURIA *curia);
+.PP
+.B int croptimize(CURIA *curia, int bnum);
+.PP
+.B char *crname(CURIA *curia);
+.PP
+.B int crfsiz(CURIA *curia);
+.PP
+.B double crfsizd(CURIA *curia);
+.PP
+.B int crbnum(CURIA *curia);
+.PP
+.B int crbusenum(CURIA *curia);
+.PP
+.B int crrnum(CURIA *curia);
+.PP
+.B int crwritable(CURIA *curia);
+.PP
+.B int crfatalerror(CURIA *curia);
+.PP
+.B int crinode(CURIA *curia);
+.PP
+.B time_t crmtime(CURIA *curia);
+.PP
+.B int crremove(const char *name);
+.PP
+.B int crrepair(const char *name);
+.PP
+.B int crexportdb(CURIA *curia, const char *name);
+.PP
+.B int crimportdb(CURIA *curia, const char *name);
+.PP
+.B char *crsnaffle(const char *name, const char *kbuf, int ksiz, int *sp);
+.PP
+.B int crputlob(CURIA *curia, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int dmode);
+.PP
+.B int croutlob(CURIA *curia, const char *kbuf, int ksiz);
+.PP
+.B char *crgetlob(CURIA *curia, const char *kbuf, int ksiz, int start, int max, int *sp);
+.PP
+.B int crgetlobfd(CURIA *curia, const char *kbuf, int ksiz);
+.PP
+.B int crvsizlob(CURIA *curia, const char *kbuf, int ksiz);
+.PP
+.B int crrnumlob(CURIA *curia);
+
+.SH DESCRIPTION
+.PP
+Curia is the extended API of QDBM.  It provides routines for managing multiple database files in a directory.  Restrictions of some file systems that the size of each file is limited are escaped by dividing a database file into two or more.  If the database files deploy on multiple devices, the scalability is improved.
+.PP
+Although Depot creates a database with a file name, Curia creates a database with a directory name.  A database file named as `depot' is placed in the specified directory.  Although it keeps the attribute of the database, it does not keep the entities of the records.  Besides, sub directories are created by the number of division of the database, named with 4 digits.  The database files are placed in the subdirectories.  The entities of the records are stored in the database file.  For example, in the case that a database directory named as `casket' and the number of division is 3, `casket/depot', `casket/0001/depot', `casket/0002/depot' and `casket/0003/depot' are created.  No error occurs even if the namesake directory exists when creating a database.  So, if sub directories exists and some devices are mounted on the sub directories, the database files deploy on the multiple devices.  It is possible for the database files to deploy on multiple file servers using NFS and so on.
+.PP
+Curia features managing large objects.  Although usual records are stored in some database files, records of large objects are stored in individual files.  Because the files of large objects are deployed in different directories named with the hash values, the access speed is part\-way robust although it is slower than the speed of usual records.  Large and not often accessed data should be secluded as large objects.  By doing this, the access speed of usual records is improved.  The directory hierarchies of large objects are placed in the directory named as `lob' in the sub directories of the database.  Because the key spaces of the usual records and the large objects are different, the operations keep out of each other.
+.PP
+In order to use Curia, you should include `depot.h', `curia.h' and `stdlib.h' in the source files.  Usually, the following description will be near the beginning of a source file.
+.PP
+.RS
+.B #include <depot.h>
+.br
+.B #include <curia.h>
+.br
+.B #include <stdlib.h>
+.RE
+.PP
+A pointer to `CURIA' is used as a database handle.  It is like that some file I/O routines of `stdio.h' use a pointer to `FILE'.  A database handle is opened with the function `cropen' and closed with `crclose'.  You should not refer directly to any member of the handle.  If a fatal error occurs in a database, any access method via the handle except `crclose' will not work and return error status.  Although a process is allowed to use multiple database handles at the same time, handles of the same database directory should not be used.
+.PP
+Curia also assign the external variable `dpecode' with the error code.  The function `dperrmsg' is used in order to get the message of the error code.
+.PP
+The function `cropen' is used in order to get a database handle.
+.TP
+.B CURIA *cropen(const char *name, int omode, int bnum, int dnum);
+`name' specifies the name of a database directory.  `omode' specifies the connection mode: `CR_OWRITER' as a writer, `CR_OREADER' as a reader.  If the mode is `CR_OWRITER', the following may be added by bitwise or: `CR_OCREAT', which means it creates a new database if not exist, `CR_OTRUNC', which means it creates a new database regardless if one exists.  Both of `CR_OREADER' and `CR_OWRITER' can be added to by bitwise or: `CR_ONOLCK', which means it opens a database directory without file locking, or `CR_OLCKNB', which means locking is performed without blocking.  `CR_OCREAT' can be added to by bitwise or: `CR_OSPARSE', which means it creates database files as sparse files.  `bnum' specifies the number of elements of each bucket array.  If it is not more than 0, the default value is specified.  The size of each bucket array is determined on creating, and can not be changed except for by optimization of the database.  Suggested size of each bucket array is about from 0.5 to 4 times of the number of all records to store.  `dnum' specifies the number of division of the database.  If it is not more than 0, the default value is specified.  The number of division can not be changed from the initial value.  The max number of division is 512.  The return value is the database handle or `NULL' if it is not successful.  While connecting as a writer, an exclusive lock is invoked to the database directory.  While connecting as a reader, a shared lock is invoked to the database directory.  The thread blocks until the lock is achieved.  If `CR_ONOLCK' is used, the application is responsible for exclusion control.
+.PP
+The function `crclose' is used in order to close a database handle.
+.TP
+.B int crclose(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is true, else, it is false.  Because the region of a closed handle is released, it becomes impossible to use the handle.  Updating a database is assured to be written when the handle is closed.  If a writer opens a database but does not close it appropriately, the database will be broken.
+.PP
+The function `crput' is used in order to store a record.
+.TP
+.B int crput(CURIA *curia, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int dmode);
+`curia' specifies a database handle connected as a writer.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `vbuf' specifies the pointer to the region of a value.  `vsiz' specifies the size of the region of the value.  If it is negative, the size is assigned with `strlen(vbuf)'.  `dmode' specifies behavior when the key overlaps, by the following values: `CR_DOVER', which means the specified value overwrites the existing one, `CR_DKEEP', which means the existing value is kept, `CR_DCAT', which means the specified value is concatenated at the end of the existing value.  If successful, the return value is true, else, it is false.
+.PP
+The function `crout' is used in order to delete a record.
+.TP
+.B int crout(CURIA *curia, const char *kbuf, int ksiz);
+`curia' specifies a database handle connected as a writer.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is true, else, it is false.  false is returned when no record corresponds to the specified key.
+.PP
+The function `crget' is used in order to retrieve a record.
+.TP
+.B char *crget(CURIA *curia, const char *kbuf, int ksiz, int start, int max, int *sp);
+`curia' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `start' specifies the offset address of the beginning of the region of the value to be read.  `max' specifies the max size to be read.  If it is negative, the size to read is unlimited.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the value of the corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to the specified key or the size of the value of the corresponding record is less than `start'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `crgetwb' is used in order to retrieve a record and write the value into a buffer.
+.TP
+.B int crgetwb(CURIA *curia, const char *kbuf, int ksiz, int start, int max, char *vbuf);
+`curia' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `start' specifies the offset address of the beginning of the region of the value to be read.  `max' specifies the max size to be read.  It shuld be equal to or less than the size of the writing buffer.  `vbuf' specifies the pointer to a buffer into which the value of the corresponding record is written.  If successful, the return value is the size of the written data, else, it is \-1.  \-1 is returned when no record corresponds to the specified key or the size of the value of the corresponding record is less than `start'.  Note that no additional zero code is appended at the end of the region of the writing buffer.
+.PP
+The function `crvsiz' is used in order to get the size of the value of a record.
+.TP
+.B int crvsiz(CURIA *curia, const char *kbuf, int ksiz);
+`curia' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is the size of the value of the corresponding record, else, it is \-1.  Because this function does not read the entity of a record, it is faster than `crget'.
+.PP
+The function `criterinit' is used in order to initialize the iterator of a database handle.
+.TP
+.B int criterinit(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is true, else, it is false.  The iterator is used in order to access the key of every record stored in a database.
+.PP
+The function `criternext' is used in order to get the next key of the iterator.
+.TP
+.B char *criternext(CURIA *curia, int *sp);
+`curia' specifies a database handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the next key, else, it is `NULL'.  `NULL' is returned when no record is to be get out of the iterator.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  It is possible to access every record by iteration of calling this function.  However, it is not assured if updating the database is occurred while the iteration.  Besides, the order of this traversal access method is arbitrary, so it is not assured that the order of storing matches the one of the traversal access.
+.PP
+The function `crsetalign' is used in order to set alignment of a database handle.
+.TP
+.B int crsetalign(CURIA *curia, int align);
+`curia' specifies a database handle connected as a writer.  `align' specifies the size of alignment.  If successful, the return value is true, else, it is false.  If alignment is set to a database, the efficiency of overwriting values is improved.  The size of alignment is suggested to be average size of the values of the records to be stored.  If alignment is positive, padding whose size is multiple number of the alignment is placed.  If alignment is negative, as `vsiz' is the size of a value, the size of padding is calculated with `(vsiz / pow(2, abs(align) \- 1))'.  Because alignment setting is not saved in a database, you should specify alignment every opening a database.
+.PP
+The function `crsetfbpsiz' is used in order to set the size of the free block pool of a database handle.
+.TP
+.B int crsetfbpsiz(CURIA *curia, int size);
+`curia' specifies a database handle connected as a writer.  `size' specifies the size of the free block pool of a database.  If successful, the return value is true, else, it is false.  The default size of the free block pool is 16.  If the size is greater, the space efficiency of overwriting values is improved with the time efficiency sacrificed.
+.PP
+The function `crsync' is used in order to synchronize updating contents with the files and the devices.
+.TP
+.B int crsync(CURIA *curia);
+`curia' specifies a database handle connected as a writer.  If successful, the return value is true, else, it is false.  This function is useful when another process uses the connected database directory.
+.PP
+The function `croptimize' is used in order to optimize a database.
+.TP
+.B int croptimize(CURIA *curia, int bnum);
+`curia' specifies a database handle connected as a writer.  `bnum' specifies the number of the elements of each bucket array.  If it is not more than 0, the default value is specified.  In an alternating succession of deleting and storing with overwrite or concatenate, dispensable regions accumulate.  This function is useful to do away with them.
+.PP
+The function `crname' is used in order to get the name of a database.
+.TP
+.B char *crname(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is the pointer to the region of the name of the database, else, it is `NULL'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `crfsiz' is used in order to get the total size of database files.
+.TP
+.B int crfsiz(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is the total size of the database files, else, it is \-1.  If the total size is more than 2GB, the return value overflows.
+.PP
+The function `crfsizd' is used in order to get the total size of database files as double\-precision floating\-point number.
+.TP
+.B double crfsizd(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is the total size of the database files, else, it is \-1.0.
+.PP
+The function `crbnum' is used in order to get the total number of the elements of each bucket array.
+.TP
+.B int crbnum(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is the total number of the elements of each bucket array, else, it is \-1.
+.PP
+The function `crbusenum' is used in order to get the total number of the used elements of each bucket array.
+.TP
+.B int crbusenum(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is the total number of the used elements of each bucket array, else, it is \-1.  This function is inefficient because it accesses all elements of each bucket array.
+.PP
+The function `crrnum' is used in order to get the number of the records stored in a database.
+.TP
+.B int crrnum(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is the number of the records stored in the database, else, it is \-1.
+.PP
+The function `crwritable' is used in order to check whether a database handle is a writer or not.
+.TP
+.B int crwritable(CURIA *curia);
+`curia' specifies a database handle.  The return value is true if the handle is a writer, false if not.
+.PP
+The function `crfatalerror' is used in order to check whether a database has a fatal error or not.
+.TP
+.B int crfatalerror(CURIA *curia);
+`curia' specifies a database handle.  The return value is true if the database has a fatal error, false if not.
+.PP
+The function `crinode' is used in order to get the inode number of a database directory.
+.TP
+.B int crinode(CURIA *curia);
+`curia' specifies a database handle.  The return value is the inode number of the database directory.
+.PP
+The function `crmtime' is used in order to get the last modified time of a database.
+.TP
+.B time_t crmtime(CURIA *curia);
+`curia' specifies a database handle.  The return value is the last modified time of the database.
+.PP
+The function `crremove' is used in order to remove a database directory.
+.TP
+.B int crremove(const char *name);
+`name' specifies the name of a database directory.  If successful, the return value is true, else, it is false.
+.PP
+The function `crrepair' is used in order to repair a broken database directory.
+.TP
+.B int crrepair(const char *name);
+`name' specifies the name of a database directory.  If successful, the return value is true, else, it is false.  There is no guarantee that all records in a repaired database directory correspond to the original or expected state.
+.PP
+The function `crexportdb' is used in order to dump all records as endian independent data.
+.TP
+.B int crexportdb(CURIA *curia, const char *name);
+`curia' specifies a database handle.  `name' specifies the name of an output directory.  If successful, the return value is true, else, it is false.  Note that large objects are ignored.
+.PP
+The function `crimportdb' is used in order to load all records from endian independent data.
+.TP
+.B int crimportdb(CURIA *curia, const char *name);
+`curia' specifies a database handle connected as a writer.  The database of the handle must be empty.  `name' specifies the name of an input directory.  If successful, the return value is true, else, it is false.  Note that large objects are ignored.
+.PP
+The function `crsnaffle' is used in order to retrieve a record directly from a database directory.
+.TP
+.B char *crsnaffle(const char *name, const char *kbuf, int ksiz, int *sp);
+`name' specifies the name of a database directory.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the value of the corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to the specified key.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  Although this function can be used even while the database directory is locked by another process, it is not assured that recent updated is reflected.
+.PP
+The function `crputlob' is used in order to store a large object.
+.TP
+.B int crputlob(CURIA *curia, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int dmode);
+`curia' specifies a database handle connected as a writer.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `vbuf' specifies the pointer to the region of a value.  `vsiz' specifies the size of the region of the value.  If it is negative, the size is assigned with `strlen(vbuf)'.  `dmode' specifies behavior when the key overlaps, by the following values: `CR_DOVER', which means the specified value overwrites the existing one, `CR_DKEEP', which means the existing value is kept, `CR_DCAT', which means the specified value is concatenated at the end of the existing value.  If successful, the return value is true, else, it is false.
+.PP
+The function `croutlob' is used in order to delete a large object.
+.TP
+.B int croutlob(CURIA *curia, const char *kbuf, int ksiz);
+`curia' specifies a database handle connected as a writer.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is true, else, it is false.  false is returned when no large object corresponds to the specified key.
+.PP
+The function `crgetlob' is used in order to retrieve a large object.
+.TP
+.B char *crgetlob(CURIA *curia, const char *kbuf, int ksiz, int start, int max, int *sp);
+`curia' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `start' specifies the offset address of the beginning of the region of the value to be read.  `max' specifies the max size to be read.  If it is negative, the size to read is unlimited.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the value of the corresponding large object, else, it is `NULL'.  `NULL' is returned when no large object corresponds to the specified key or the size of the value of the corresponding large object is less than `start'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `crgetlobfd' is used in order to get the file descriptor of a large object.
+.TP
+.B int crgetlobfd(CURIA *curia, const char *kbuf, int ksiz);
+`curia' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is the file descriptor of the corresponding large object, else, it is \-1.  \-1 is returned when no large object corresponds to the specified key.  The returned file descriptor is opened with the `open' call.  If the database handle was opened as a writer, the descriptor is writable (O_RDWR), else, it is not writable (O_RDONLY).  The descriptor should be closed with the `close' call if it is no longer in use.
+.PP
+The function `crvsizlob' is used in order to get the size of the value of a large object.
+.TP
+.B int crvsizlob(CURIA *curia, const char *kbuf, int ksiz);
+`curia' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is the size of the value of the corresponding large object, else, it is \-1.  Because this function does not read the entity of a large object, it is faster than `crgetlob'.
+.PP
+The function `crrnumlob' is used in order to get the number of the large objects stored in a database.
+.TP
+.B int crrnumlob(CURIA *curia);
+`curia' specifies a database handle.  If successful, the return value is the number of the large objects stored in the database, else, it is \-1.
+.PP
+If QDBM was built with POSIX thread enabled, the global variable `dpecode' is treated as thread specific data, and functions of Curia are reentrant.  In that case, they are thread\-safe as long as a handle is not accessed by threads at the same time, on the assumption that `errno', `malloc', and so on are thread\-safe.
+
+.SH SEE ALSO
+.PP
+.BR qdbm (3),
+.BR depot (3),
+.BR relic (3),
+.BR hovel (3),
+.BR cabin (3),
+.BR villa (3),
+.BR odeum (3),
+.BR ndbm (3),
+.BR gdbm (3)

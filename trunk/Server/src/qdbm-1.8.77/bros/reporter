@@ -1,0 +1,140 @@
+#! /bin/sh
+
+#================================================================
+# reporter
+# Generate a report of benchmark test
+#================================================================
+
+
+# check arguments
+if [ $# != 1 ] || [ $1 -lt 1 ]
+then
+  printf 'usage: reporter recnum\n' 1>&2
+  exit 1
+fi
+RECNUM=$1
+
+
+# function to print real time of executing a command
+exectime(){
+  sync ; sync ; sleep 1
+  HIDEPRGR=1 ; export HIDEPRGR
+  TMPSTR=`( time $1 ) 2>&1 | grep real`
+  TMPSTR=`echo $TMPSTR | sed -e 's/.* //' -e 's/s//' -e 's/m/ \* 60 + /'`
+  perl -e "printf('%.2f', $TMPSTR);"
+}
+
+
+# function to print file size
+filesize(){
+  ls -l $1 | tr -s ' ' | tr ' ' '\t' | cut -f 5
+}
+
+
+# print the headers
+printf '%s,%s,%s,%s\n' "NAME" "WRITE" "READ" "SIZE"
+
+
+# test of QDBM
+rm -rf casket*
+WRITETIME=`exectime "./qdbmtest write casket $RECNUM"`
+READTIME=`exectime "./qdbmtest read casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "QDBM" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of NDBM
+rm -rf casket*
+WRITETIME=`exectime "./ndbmtest write casket $RECNUM"`
+READTIME=`exectime "./ndbmtest read casket $RECNUM"`
+FDIRSIZE=`filesize casket.dir`
+FPAGSIZE=`filesize casket.pag`
+FILESIZE=`expr $FDIRSIZE + $FPAGSIZE`
+printf '%s,%s,%s,%s\n' "NDBM" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of SDBM
+rm -rf casket*
+WRITETIME=`exectime "./sdbmtest write casket $RECNUM"`
+READTIME=`exectime "./sdbmtest read casket $RECNUM"`
+FDIRSIZE=`filesize casket.dir`
+FPAGSIZE=`filesize casket.pag`
+FILESIZE=`expr $FDIRSIZE + $FPAGSIZE`
+printf '%s,%s,%s,%s\n' "SDBM" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of GDBM
+rm -rf casket*
+WRITETIME=`exectime "./gdbmtest write casket $RECNUM"`
+READTIME=`exectime "./gdbmtest read casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "GDBM" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of TDB
+rm -rf casket*
+WRITETIME=`exectime "./tdbtest write casket $RECNUM"`
+READTIME=`exectime "./tdbtest read casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "TDB" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of CDB
+rm -rf casket*
+WRITETIME=`exectime "./cdbtest write casket $RECNUM"`
+READTIME=`exectime "./cdbtest read casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "CDB" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of BDB
+rm -rf casket*
+WRITETIME=`exectime "./bdbtest write casket $RECNUM"`
+READTIME=`exectime "./bdbtest read casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "BDB" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of QDBM-BT-A
+rm -rf casket*
+WRITETIME=`exectime "./qdbmtest btwrite casket $RECNUM"`
+READTIME=`exectime "./qdbmtest btread casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "QDBM-BT-ASC" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of QDBM-BT-R
+rm -rf casket*
+WRITETIME=`exectime "./qdbmtest btwrite -rnd casket $RECNUM"`
+READTIME=`exectime "./qdbmtest btread -rnd casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "QDBM-BT-RND" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of BDB-BT-ASC
+rm -rf casket*
+WRITETIME=`exectime "./bdbtest btwrite casket $RECNUM"`
+READTIME=`exectime "./bdbtest btread casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "BDB-BT-ASC" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# test of BDB-BT-RND
+rm -rf casket*
+WRITETIME=`exectime "./bdbtest btwrite -rnd casket $RECNUM"`
+READTIME=`exectime "./bdbtest btread -rnd casket $RECNUM"`
+FILESIZE=`filesize casket`
+printf '%s,%s,%s,%s\n' "BDB-BT-RND" "$WRITETIME" "$READTIME" "$FILESIZE"
+
+
+# remove garbage
+rm -rf casket*
+sync ; sync
+
+
+# exit normally
+exit 0
+
+
+
+# END OF FILE

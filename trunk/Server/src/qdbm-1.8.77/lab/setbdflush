@@ -1,0 +1,24 @@
+#! /bin/sh
+
+#================================================================
+# setbdflush
+# Setting the parameters of kernel daemon to flush dirty buffers
+#================================================================
+
+
+# show previous setting
+printf 'old value:\n  '
+sysctl vm.bdflush | tr '\t' ' '
+
+
+# set new parameters
+printf 'current value:\n  '
+sysctl -w "vm.bdflush=80 1000 0 0 0 10000 100 0 0"
+
+
+# exit normally
+exit 0
+
+
+
+# END OF FILE

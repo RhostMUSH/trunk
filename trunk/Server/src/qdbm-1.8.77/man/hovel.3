@@ -1,0 +1,164 @@
+.TH HOVEL 3 "2004-04-22" "Man Page" "Quick Database Manager"
+
+.SH NAME
+Hovel \- the GDBM\-compatible API of QDBM
+
+.SH SYNOPSIS
+.PP
+.B #include <hovel.h>
+.br
+.B #include <stdlib.h>
+.br
+.B #include <sys/types.h>
+.br
+.B #include <sys/stat.h>
+.PP
+.B typedef struct { char *dptr; size_t dsize; } datum;
+.PP
+.B extern char *gdbm_version;
+.PP
+.B extern gdbm_error gdbm_errno;
+.PP
+.B char *gdbm_strerror(gdbm_error gdbmerrno);
+.PP
+.B GDBM_FILE gdbm_open(char *name, int block_size, int read_write, int mode, void (*fatal_func)(void));
+.PP
+.B GDBM_FILE gdbm_open2(char *name, int read_write, int mode, int bnum, int dnum, int align);
+.PP
+.B void gdbm_close(GDBM_FILE dbf);
+.PP
+.B int gdbm_store(GDBM_FILE dbf, datum key, datum content, int flag);
+.PP
+.B int gdbm_delete(GDBM_FILE dbf, datum key);
+.PP
+.B datum gdbm_fetch(GDBM_FILE dbf, datum key);
+.PP
+.B int gdbm_exists(GDBM_FILE dbf, datum key);
+.PP
+.B datum gdbm_firstkey(GDBM_FILE dbf);
+.PP
+.B datum gdbm_nextkey(GDBM_FILE dbf, datum key);
+.PP
+.B void gdbm_sync(GDBM_FILE dbf);
+.PP
+.B int gdbm_reorganize(GDBM_FILE dbf);
+.PP
+.B int gdbm_fdesc(GDBM_FILE dbf);
+.PP
+.B int gdbm_setopt(GDBM_FILE dbf, int option, int *value, int size);
+
+.SH DESCRIPTION
+.PP
+Hovel is the API which is compatible with GDBM.  So, Hovel wraps functions of Depot and Curia as API of GDBM.  It is easy to port an application from GDBM to QDBM.  In most cases, you should only replace the includings of `gdbm.h' with `hovel.h' and replace the linking option `\-lgdbm' with `\-lqdbm'.  Hovel cannot handle database files made by the original GDBM.
+.PP
+In order to use Hovel, you should include `hovel.h', `stdlib.h', `sys/types.h' and `sys/stat.h' in the source files.  Usually, the following description will be near the beginning of a source file.
+.PP
+.RS
+.B #include <hovel.h>
+.br
+.B #include <stdlib.h>
+.br
+.B #include <sys/types.h>
+.br
+.B #include <sys/stat.h>
+.RE
+.PP
+An object of `GDBM_FILE' is used as a database handle.  A database handle is opened with the function `gdbm_open' and closed with `gdbm_close'.  You should not refer directly to any member of a handle.  Although Hovel works as a wrapper of Depot and handles a database file usually, if you use the function `gdbm_open2' to open the handle, it is possible to make behavior of a handle as a wrapper of Curia and treat a database directory.
+.PP
+Structures of `datum' type is used in order to give and receive data of keys and values with functions of Hovel.
+.TP
+.B typedef struct { char *dptr; size_t dsize; } datum;
+`dptr' specifies the pointer to the region of a key or a value.  `dsize' specifies the size of the region.
+.PP
+The external variable `gdbm_version' is the string containing the version information.
+.TP
+.B extern char *gdbm_version;
+.PP
+The external variable `gdbm_errno' is assigned with the last happened error code.  Refer to `hovel.h' for details of the error codes.
+.TP
+.B extern gdbm_error gdbm_errno;
+The initial value of this variable is `GDBM_NO_ERROR'.  The other values are `GDBM_MALLOC_ERROR', `GDBM_BLOCK_SIZE_ERROR', `GDBM_FILE_OPEN_ERROR', `GDBM_FILE_WRITE_ERROR', `GDBM_FILE_SEEK_ERROR', `GDBM_FILE_READ_ERROR', `GDBM_BAD_MAGIC_NUMBER', `GDBM_EMPTY_DATABASE', `GDBM_CANT_BE_READER', `GDBM_CANT_BE_WRITER', `GDBM_READER_CANT_DELETE', `GDBM_READER_CANT_STORE', `GDBM_READER_CANT_REORGANIZE', `GDBM_UNKNOWN_UPDATE', `GDBM_ITEM_NOT_FOUND', `GDBM_REORGANIZE_FAILED', `GDBM_CANNOT_REPLACE', `GDBM_ILLEGAL_DATA', `GDBM_OPT_ALREADY_SET', and `GDBM_OPT_ILLEGAL'.
+.PP
+The function `gdbm_strerror' is used in order to get a message string corresponding to an error code.
+.TP
+.B char *gdbm_strerror(gdbm_error gdbmerrno);
+`gdbmerrno' specifies an error code.  The return value is the message string of the error code.  The region of the return value is not writable.
+.PP
+The function `gdbm_open' is used in order to get a database handle after the fashion of GDBM.
+.TP
+.B GDBM_FILE gdbm_open(char *name, int block_size, int read_write, int mode, void (*fatal_func)(void));
+`name' specifies the name of a database.  `block_size' is ignored.  `read_write' specifies the connection mode: `GDBM_READER' as a reader, `GDBM_WRITER', `GDBM_WRCREAT' and `GDBM_NEWDB' as a writer.  `GDBM_WRCREAT' makes a database file or directory if it does not exist.  `GDBM_NEWDB' makes a new database even if it exists.  You can add the following to writer modes by bitwise or: `GDBM_SYNC', `GDBM_NOLOCK', `GDBM_LOCKNB', `GDBM_FAST', and `GDBM_SPARSE'.  `GDBM_SYNC' means a database is synchronized after every updating method.  `GDBM_NOLOCK' means a database is opened without file locking.  `GDBM_LOCKNB' means file locking is performed without blocking.  `GDBM_FAST' is ignored.  `GDBM_SPARSE' is an original mode of QDBM and makes database a sparse file.  `mode' specifies mode of a database file as the one of `open' call does.  `fatal_func' is ignored.  The return value is the database handle or `NULL' if it is not successful.
+.PP
+The function `gdbm_open2' is used in order to get a database handle after the fashion of QDBM.
+.TP
+.B GDBM_FILE gdbm_open2(char *name, int read_write, int mode, int bnum, int dnum, int align);
+`name' specifies the name of a database.  `read_write' specifies the connection mode: `GDBM_READER' as a reader, `GDBM_WRITER', `GDBM_WRCREAT' and `GDBM_NEWDB' as a writer.  `GDBM_WRCREAT' makes a database file or directory if it does not exist.  `GDBM_NEWDB' makes a new database even if it exists.  You can add the following to writer modes by bitwise or: `GDBM_SYNC', `GDBM_NOLOCK', `GDBM_LOCKNB', `GDBM_FAST', and `GDBM_SPARSE'.  `GDBM_SYNC' means a database is synchronized after every updating method.  `GDBM_NOLOCK' means a database is opened without file locking.  `GDBM_LOCKNB' means file locking is performed without blocking.  `GDBM_FAST' is ignored.  `GDBM_SPARSE' is an original mode of QDBM and makes database sparse files.  `mode' specifies a mode of a database file or a database directory as the one of `open' or `mkdir' call does.  `bnum' specifies the number of elements of each bucket array.  If it is not more than 0, the default value is specified.  `dnum' specifies the number of division of the database.  If it is not more than 0, the returning handle is created as a wrapper of Depot, else, it is as a wrapper of Curia.  `align' specifies the basic size of alignment.  The return value is the database handle or `NULL' if it is not successful.  If the database already exists, whether it is one of Depot or Curia is measured automatically.
+.PP
+The function `gdbm_close' is used in order to close a database handle.
+.TP
+.B void gdbm_close(GDBM_FILE dbf);
+`dbf' specifies a database handle.  Because the region of the closed handle is released, it becomes impossible to use the handle.
+.PP
+The function `gdbm_store' is used in order to store a record.
+.TP
+.B int gdbm_store(GDBM_FILE dbf, datum key, datum content, int flag);
+`dbf' specifies a database handle connected as a writer.  `key' specifies a structure of a key.  `content' specifies a structure of a value.  `flag' specifies behavior when the key overlaps, by the following values: `GDBM_REPLACE', which means the specified value overwrites the existing one, `GDBM_INSERT', which means the existing value is kept.  The return value is 0 if it is successful, 1 if it gives up because of overlaps of the key, \-1 if other error occurs.
+.PP
+The function `gdbm_delete' is used in order to delete a record.
+.TP
+.B int gdbm_delete(GDBM_FILE dbf, datum key);
+`dbf' specifies a database handle connected as a writer.  `key' specifies a structure of a key.  The return value is 0 if it is successful, \-1 if some errors occur.
+.PP
+The function `gdbm_fetch' is used in order to retrieve a record.
+.TP
+.B datum gdbm_fetch(GDBM_FILE dbf, datum key);
+`dbf' specifies a database handle.  `key' specifies a structure of a key.  The return value is a structure of the result.  If a record corresponds, the member `dptr' of the structure is the pointer to the region of the value.  If no record corresponds or some errors occur, `dptr' is `NULL'.  Because the region pointed to by `dptr' is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `gdbm_exists' is used in order to check whether a record exists or not.
+.TP
+.B int gdbm_exists(GDBM_FILE dbf, datum key);
+`dbf' specifies a database handle.  `key' specifies a structure of a key.  The return value is true if a record corresponds and no error occurs, or false, else, it is false.
+.PP
+The function `gdbm_firstkey' is used in order to get the first key of a database.
+.TP
+.B datum gdbm_firstkey(GDBM_FILE dbf);
+`dbf' specifies a database handle.  The return value is a structure of the result.  If a record corresponds, the member `dptr' of the structure is the pointer to the region of the first key.  If no record corresponds or some errors occur, `dptr' is `NULL'.  Because the region pointed to by `dptr' is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `gdbm_nextkey' is used in order to get the next key of a database.
+.TP
+.B datum gdbm_nextkey(GDBM_FILE dbf, datum key);
+`dbf' specifies a database handle.  The return value is a structure of the result.  If a record corresponds, the member `dptr' of the structure is the pointer to the region of the next key.  If no record corresponds or some errors occur, `dptr' is `NULL'.  Because the region pointed to by `dptr' is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `gdbm_sync' is used in order to synchronize updating contents with the file and the device.
+.TP
+.B void gdbm_sync(GDBM_FILE dbf);
+`dbf' specifies a database handle connected as a writer.
+.PP
+The function `gdbm_reorganize' is used in order to reorganize a database.
+.TP
+.B int gdbm_reorganize(GDBM_FILE dbf);
+`dbf' specifies a database handle connected as a writer.  If successful, the return value is 0, else \-1.
+.PP
+The function `gdbm_fdesc' is used in order to get the file descriptor of a database file.
+.TP
+.B int gdbm_fdesc(GDBM_FILE dbf);
+`dbf' specifies a database handle connected as a writer.  The return value is the file descriptor of the database file.  If the database is a directory the return value is \-1.
+.PP
+The function `gdbm_setopt' has no effect.
+.TP
+.B int gdbm_setopt(GDBM_FILE dbf, int option, int *value, int size);
+`dbf' specifies a database handle.  `option' is ignored.  `size' is ignored.  The return value is 0.  The function is only for compatibility.
+.PP
+If QDBM was built with POSIX thread enabled, the global variable `gdbm_errno' is treated as thread specific data, and functions of Hovel are reentrant.  In that case, they are thread\-safe as long as a handle is not accessed by threads at the same time, on the assumption that `errno', `malloc', and so on are thread\-safe.
+
+.SH SEE ALSO
+.PP
+.BR qdbm (3),
+.BR depot (3),
+.BR curia (3),
+.BR relic (3),
+.BR cabin (3),
+.BR villa (3),
+.BR odeum (3),
+.BR ndbm (3),
+.BR gdbm (3)

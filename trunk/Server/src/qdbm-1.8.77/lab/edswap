@@ -1,0 +1,36 @@
+#! /bin/sh
+
+#================================================================
+# edswap
+# Swap strings with ed command
+#================================================================
+
+
+# check arguments
+if [ $# -lt 3 ]
+then
+  printf 'edswap: usage: edswap regex string files...\n' 1>&2
+  exit 1
+fi
+
+
+# make expressions
+bef=`printf "$1" | sed 's/\//\\\\\//g'` ; shift
+aft=$1 ; shift
+
+
+# edit files
+while [ -n "$1" ]
+do
+  printf "== $1 ==\n"
+  printf "1,\$ s/$bef/$aft/g\nw\n" | ed "$1"
+  shift
+done
+
+
+# exit normally
+exit 0
+
+
+
+# END OF FILE

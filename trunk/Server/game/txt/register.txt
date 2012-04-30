@@ -1,0 +1,18 @@
+                           Welcome to RhostMUSH
+
+     The site you have just connected to is in full registration mode.
+     If you desire a character, you must email your request to:
+                                  <emails>
+
+     Include in your request your first and second choices for a
+     character name and the password that you want.  Creation time
+     will take between 24-48 hours.
+
+  /~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\ 
+  )) To continue old character   ----------=>   connect <player> <password>(( 
+ ((  To connect a guest          ----------=>   connect guest guest         ))
+  )) To see who is on            ----------=>   WHO                        (( 
+ ((  To quit your character      ----------=>   QUIT                        ))
+  )) To get help once connected  ----------=>   help (i.e. : help commands)(( 
+  \_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/
+   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  

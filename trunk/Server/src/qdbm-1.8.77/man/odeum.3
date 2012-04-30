@@ -1,0 +1,419 @@
+.TH ODEUM 3 "2004-04-22" "Man Page" "Quick Database Manager"
+
+.SH NAME
+Odeum \- the inverted API of QDBM
+
+.SH SYNOPSIS
+.PP
+.B #include <depot.h>
+.br
+.B #include <cabin.h>
+.br
+.B #include <odeum.h>
+.br
+.B #include <stdlib.h>
+.PP
+.B typedef struct { int id; int score; } ODPAIR;
+.PP
+.B ODEUM *odopen(const char *name, int omode);
+.PP
+.B int odclose(ODEUM *odeum);
+.PP
+.B int odput(ODEUM *odeum, const ODDOC *doc, int wmax, int over);
+.PP
+.B int odout(ODEUM *odeum, const char *uri);
+.PP
+.B int odoutbyid(ODEUM *odeum, int id);
+.PP
+.B ODDOC *odget(ODEUM *odeum, const char *uri);
+.PP
+.B ODDOC *odgetbyid(ODEUM *odeum, int id);
+.PP
+.B int odgetidbyuri(ODEUM *odeum, const char *uri);
+.PP
+.B int odcheck(ODEUM *odeum, int id);
+.PP
+.B ODPAIR *odsearch(ODEUM *odeum, const char *word, int max, int *np);
+.PP
+.B int odsearchdnum(ODEUM *odeum, const char *word);
+.PP
+.B int oditerinit(ODEUM *odeum);
+.PP
+.B ODDOC *oditernext(ODEUM *odeum);
+.PP
+.B int odsync(ODEUM *odeum);
+.PP
+.B int odoptimize(ODEUM *odeum);
+.PP
+.B char *odname(ODEUM *odeum);
+.PP
+.B double odfsiz(ODEUM *odeum);
+.PP
+.B int odbnum(ODEUM *odeum);
+.PP
+.B int odbusenum(ODEUM *odeum);
+.PP
+.B int oddnum(ODEUM *odeum);
+.PP
+.B int odwnum(ODEUM *odeum);
+.PP
+.B int odwritable(ODEUM *odeum);
+.PP
+.B int odfatalerror(ODEUM *odeum);
+.PP
+.B int odinode(ODEUM *odeum);
+.PP
+.B time_t odmtime(ODEUM *odeum);
+.PP
+.B int odmerge(const char *name, const CBLIST *elemnames);
+.PP
+.B int odremove(const char *name);
+.PP
+.B ODDOC *oddocopen(const char *uri);
+.PP
+.B void oddocclose(ODDOC *doc);
+.PP
+.B void oddocaddattr(ODDOC *doc, const char *name, const char *value);
+.PP
+.B void oddocaddword(ODDOC *doc, const char *normal, const char *asis);
+.PP
+.B int oddocid(const ODDOC *doc);
+.PP
+.B const char *oddocuri(const ODDOC *doc);
+.PP
+.B const char *oddocgetattr(const ODDOC *doc, const char *name);
+.PP
+.B const CBLIST *oddocnwords(const ODDOC *doc);
+.PP
+.B const CBLIST *oddocawords(const ODDOC *doc);
+.PP
+.B CBMAP *oddocscores(const ODDOC *doc, int max, ODEUM *odeum);
+.PP
+.B CBLIST *odbreaktext(const char *text);
+.PP
+.B char *odnormalizeword(const char *asis);
+.PP
+.B ODPAIR *odpairsand(ODPAIR *apairs, int anum, ODPAIR *bpairs, int bnum, int *np);
+.PP
+.B ODPAIR *odpairsor(ODPAIR *apairs, int anum, ODPAIR *bpairs, int bnum, int *np);
+.PP
+.B ODPAIR *odpairsnotand(ODPAIR *apairs, int anum, ODPAIR *bpairs, int bnum, int *np);
+.PP
+.B void odpairssort(ODPAIR *pairs, int pnum);
+.PP
+.B double odlogarithm(double x);
+.PP
+.B double odvectorcosine(const int *avec, const int *bvec, int vnum);
+.PP
+.B void odsettuning(int ibnum, int idnum, int cbnum, int csiz);
+.PP
+.B void odanalyzetext(ODEUM *odeum, const char *text, CBLIST *awords, CBLIST *nwords);
+.PP
+.B void odsetcharclass(ODEUM *odeum, const char *spacechars, const char *delimchars, const char *gluechars);
+.PP
+.B ODPAIR *odquery(ODEUM *odeum, const char *query, int *np, CBLIST *errors);
+
+.SH DESCRIPTION
+Odeum is the API which handles an inverted index.  An inverted index is a data structure to retrieve a list of some documents that include one of words which were extracted from a population of documents.  It is easy to realize a full\-text search system with an inverted index.  Odeum provides an abstract data structure which consists of words and attributes of a document.  It is used when an application stores a document into a database and when an application retrieves some documents from a database.
+.PP
+Odeum does not provide methods to extract the text from the original data of a document.  It should be implemented by applications.  Although Odeum provides utilities to extract words from a text, it is oriented to such languages whose words are separated with space characters as English.  If an application handles such languages which need morphological analysis or N\-gram analysis as Japanese, or if an application perform more such rarefied analysis of natural languages as stemming, its own analyzing method can be adopted.  Result of search is expressed as an array contains elements which are structures composed of the ID number of documents and its score.  In order to search with two or more words, Odeum provides utilities of set operations.
+.PP
+Odeum is implemented, based on Curia, Cabin, and Villa.  Odeum creates a database with a directory name.  Some databases of Curia and Villa are placed in the specified directory.  For example, `casket/docs', `casket/index', and `casket/rdocs' are created in the case that a database directory named as `casket'.  `docs' is a database directory of Curia.  The key of each record is the ID number of a document, and the value is such attributes as URI.  `index' is a database directory of Curia.  The key of each record is the normalized form of a word, and the value is an array whose element is a pair of the ID number of a document including the word and its score.  `rdocs' is a database file of Villa.  The key of each record is the URI of a document, and the value is its ID number.
+.PP
+In order to use Odeum, you should include `depot.h', `cabin.h', `odeum.h' and `stdlib.h' in the source files.  Usually, the following description will be near the beginning of a source file.
+.PP
+.RS
+.B #include <depot.h>
+.br
+.B #include <cabin.h>
+.br
+.B #include <odeum.h>
+.br
+.B #include <stdlib.h>
+.RE
+.PP
+A pointer to `ODEUM' is used as a database handle.  A database handle is opened with the function `odopen' and closed with `odclose'.  You should not refer directly to any member of the handle.  If a fatal error occurs in a database, any access method via the handle except `odclose' will not work and return error status.  Although a process is allowed to use multiple database handles at the same time, handles of the same database file should not be used.
+.PP
+A pointer to `ODDOC' is used as a document handle.  A document handle is opened with the function `oddocopen' and closed with `oddocclose'.  You should not refer directly to any member of the handle.  A document consists of attributes and words.  Each word is expressed as a pair of a normalized form and a appearance form.
+.PP
+Odeum also assign the external variable `dpecode' with the error code. The function `dperrmsg' is used in order to get the message of the error code.
+.PP
+Structures of `ODPAIR' type is used in order to handle results of search.
+.TP
+.B typedef struct { int id; int score; } ODPAIR;
+`id' specifies the ID number of a document.  `score' specifies the score calculated from the number of searching words in the document.
+.PP
+The function `odopen' is used in order to get a database handle.
+.TP
+.B ODEUM *odopen(const char *name, int omode);
+`name' specifies the name of a database directory.  `omode' specifies the connection mode: `OD_OWRITER' as a writer, `OD_OREADER' as a reader.  If the mode is `OD_OWRITER', the following may be added by bitwise or: `OD_OCREAT', which means it creates a new database if not exist, `OD_OTRUNC', which means it creates a new database regardless if one exists.  Both of `OD_OREADER' and `OD_OWRITER' can be added to by bitwise or: `OD_ONOLCK', which means it opens a database directory without file locking, or `OD_OLCKNB', which means locking is performed without blocking.  The return value is the database handle or `NULL' if it is not successful.  While connecting as a writer, an exclusive lock is invoked to the database directory.  While connecting as a reader, a shared lock is invoked to the database directory.  The thread blocks until the lock is achieved.  If `OD_ONOLCK' is used, the application is responsible for exclusion control.
+.PP
+The function `odclose' is used in order to close a database handle.
+.TP
+.B int odclose(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is true, else, it is false.  Because the region of a closed handle is released, it becomes impossible to use the handle.  Updating a database is assured to be written when the handle is closed.  If a writer opens a database but does not close it appropriately, the database will be broken.
+.PP
+The function `odput' is used in order to store a document.
+.TP
+.B int odput(ODEUM *odeum, const ODDOC *doc, int wmax, int over);
+`odeum' specifies a database handle connected as a writer.  `doc' specifies a document handle.  `wmax' specifies the max number of words to be stored in the document database.  If it is negative, the number is unlimited.  `over' specifies whether the data of the duplicated document is overwritten or not.  If it is false and the URI of the document is duplicated, the function returns as an error.  If successful, the return value is true, else, it is false.
+.PP
+The function `odout' is used in order to delete a document specified by a URI.
+.TP
+.B int odout(ODEUM *odeum, const char *uri);
+`odeum' specifies a database handle connected as a writer.  `uri' specifies the string of the URI of a document.  If successful, the return value is true, else, it is false.  False is returned when no document corresponds to the specified URI.
+.PP
+The function `odoutbyid' is used in order to delete a document specified by an ID number.
+.TP
+.B int odoutbyid(ODEUM *odeum, int id);
+`odeum' specifies a database handle connected as a writer.  `id' specifies the ID number of a document.  If successful, the return value is true, else, it is false.  False is returned when no document corresponds to the specified ID number.
+.PP
+The function `odget' is used in order to retrieve a document specified by a URI.
+.TP
+.B ODDOC *odget(ODEUM *odeum, const char *uri);
+`odeum' specifies a database handle.  `uri' specifies the string of the URI of a document.  If successful, the return value is the handle of the corresponding document, else, it is `NULL'.  `NULL' is returned when no document corresponds to the specified URI.  Because the handle of the return value is opened with the function `oddocopen', it should be closed with the function `oddocclose'.
+.PP
+The function `odgetbyid' is used in order to retrieve a document by an ID number.
+.TP
+.B ODDOC *odgetbyid(ODEUM *odeum, int id);
+`odeum' specifies a database handle.  `id' specifies the ID number of a document.  If successful, the return value is the handle of the corresponding document, else, it is `NULL'.  `NULL' is returned when no document corresponds to the specified ID number.  Because the handle of the return value is opened with the function `oddocopen', it should be closed with the function `oddocclose'.
+.PP
+The function `odgetidbyuri' is used in order to retrieve the ID of the document specified by a URI.
+.TP
+.B int odgetidbyuri(ODEUM *odeum, const char *uri);
+`odeum' specifies a database handle.  `uri' specifies the string the URI of a document.  If successful, the return value is the ID number of the document, else, it is \-1.  \-1 is returned when no document corresponds to the specified URI.
+.PP
+The function `odcheck' is used in order to check whether the document specified by an ID number exists.
+.TP
+.B int odcheck(ODEUM *odeum, int id);
+`odeum' specifies a database handle.  `id' specifies the ID number of a document.  The return value is true if the document exists, else, it is false.
+.PP
+The function `odsearch' is used in order to search the inverted index for documents including a particular word.
+.TP
+.B ODPAIR *odsearch(ODEUM *odeum, const char *word, int max, int *np);
+`odeum' specifies a database handle.  `word' specifies a searching word.  `max' specifies the max number of documents to be retrieve.  `np' specifies the pointer to a variable to which the number of the elements of the return value is assigned.  If successful, the return value is the pointer to an array, else, it is `NULL'.  Each element of the array is a pair of the ID number and the score of a document, and sorted in descending order of their scores.  Even if no document corresponds to the specified word, it is not error but returns an dummy array.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  Note that each element of the array of the return value can be data of a deleted document.
+.PP
+The function `odsearchnum' is used in order to get the number of documents including a word.
+.TP
+.B int odsearchdnum(ODEUM *odeum, const char *word);
+`odeum' specifies a database handle.  `word' specifies a searching word.  If successful, the return value is the number of documents including the word, else, it is \-1.  Because this function does not read the entity of the inverted index, it is faster than `odsearch'.
+.PP
+The function `oditerinit' is used in order to initialize the iterator of a database handle.
+.TP
+.B int oditerinit(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is true, else, it is false.  The iterator is used in order to access every document stored in a database.
+.PP
+The function `oditernext' is used in order to get the next key of the iterator.
+.TP
+.B ODDOC *oditernext(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is the handle of the next document, else, it is `NULL'.  `NULL' is returned when no document is to be get out of the iterator.  It is possible to access every document by iteration of calling this function.  However, it is not assured if updating the database is occurred while the iteration.  Besides, the order of this traversal access method is arbitrary, so it is not assured that the order of string matches the one of the traversal access.  Because the handle of the return value is opened with the function `oddocopen', it should be closed with the function `oddocclose'.
+.PP
+The function `odsync' is used in order to synchronize updating contents with the files and the devices.
+.TP
+.B int odsync(ODEUM *odeum);
+`odeum' specifies a database handle connected as a writer.  If successful, the return value is true, else, it is false.  This function is useful when another process uses the connected database directory.
+.PP
+The function `odoptimize' is used in order to optimize a database.
+.TP
+.B int odoptimize(ODEUM *odeum);
+`odeum' specifies a database handle connected as a writer.  If successful, the return value is true, else, it is false.  Elements of the deleted documents in the inverted index are purged.
+.PP
+The function `odname' is used in order to get the name of a database.
+.TP
+.B char *odname(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is the pointer to the region of the name of the database, else, it is `NULL'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `odfsiz' is used in order to get the total size of database files.
+.TP
+.B double odfsiz(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is the total size of the database files, else, it is \-1.0.
+.PP
+The function `odbnum' is used in order to get the total number of the elements of the bucket arrays in the inverted index.
+.TP
+.B int odbnum(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is the total number of the elements of the bucket arrays, else, it is \-1.
+.PP
+The function `odbusenum' is used in order to get the total number of the used elements of the bucket arrays in the inverted index.
+.TP
+.B int odbusenum(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is the total number of the used elements of the bucket arrays, else, it is \-1.
+.PP
+The function `oddnum' is used in order to get the number of the documents stored in a database.
+.TP
+.B int oddnum(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is the number of the documents stored in the database, else, it is \-1.
+.PP
+The function `odwnum' is used in order to get the number of the words stored in a database.
+.TP
+.B int odwnum(ODEUM *odeum);
+`odeum' specifies a database handle.  If successful, the return value is the number of the words stored in the database, else, it is \-1.  Because of the I/O buffer, the return value may be less than the hard number.
+.PP
+The function `odwritable' is used in order to check whether a database handle is a writer or not.
+.TP
+.B int odwritable(ODEUM *odeum);
+`odeum' specifies a database handle.  The return value is true if the handle is a writer, false if not.
+.PP
+The function `odfatalerror' is used in order to check whether a database has a fatal error or not.
+.TP
+.B int odfatalerror(ODEUM *odeum);
+`odeum' specifies a database handle.  The return value is true if the database has a fatal error, false if not.
+.PP
+The function `odinode' is used in order to get the inode number of a database directory.
+.TP
+.B int odinode(ODEUM *odeum);
+`odeum' specifies a database handle.  The return value is the inode number of the database directory.
+.PP
+The function `odmtime' is used in order to get the last modified time of a database.
+.TP
+.B time_t odmtime(ODEUM *odeum);
+`odeum' specifies a database handle.  The return value is the last modified time of the database.
+.PP
+The function `odmerge' is used in order to merge plural database directories.
+.TP
+.B int odmerge(const char *name, const CBLIST *elemnames);
+`name' specifies the name of a database directory to create.  `elemnames' specifies a list of names of element databases.  If successful, the return value is true, else, it is false.  If two or more documents which have the same URL come in, the first one is adopted and the others are ignored.
+.PP
+The function `odremove' is used in order to remove a database directory.
+.TP
+.B int odremove(const char *name);
+`name' specifies the name of a database directory.  If successful, the return value is true, else, it is false.  A database directory can contain databases of other APIs of QDBM, they are also removed by this function.
+.PP
+The function `oddocopen' is used in order to get a document handle.
+.TP
+.B ODDOC *oddocopen(const char *uri);
+`uri' specifies the URI of a document.  The return value is a document handle.  The ID number of a new document is not defined.  It is defined when the document is stored in a database.
+.PP
+The function `oddocclose' is used in order to close a document handle.
+.TP
+.B void oddocclose(ODDOC *doc);
+`doc' specifies a document handle.  Because the region of a closed handle is released, it becomes impossible to use the handle.
+.PP
+The function `oddocaddattr' is used in order to add an attribute to a document.
+.TP
+.B void oddocaddattr(ODDOC *doc, const char *name, const char *value);
+`doc' specifies a document handle.  `name' specifies the string of the name of an attribute.  `value' specifies the string of the value of the attribute.
+.PP
+The function `oddocaddword' is used in order to add a word to a document.
+.TP
+.B void oddocaddword(ODDOC *doc, const char *normal, const char *asis);
+`doc' specifies a document handle.  `normal' specifies the string of the normalized form of a word.  Normalized forms are treated as keys of the inverted index.  If the normalized form of a word is an empty string, the word is not reflected in the inverted index.  `asis' specifies the string of the appearance form of the word.  Appearance forms are used after the document is retrieved by an application.
+.PP
+The function `oddocid' is used in order to get the ID number of a document.
+.TP
+.B int oddocid(const ODDOC *doc);
+`doc' specifies a document handle.  The return value is the ID number of a document.
+.PP
+The function `oddocuri' is used in order to get the URI of a document.
+.TP
+.B const char *oddocuri(const ODDOC *doc);
+`doc' specifies a document handle.  The return value is the string of the URI of a document.
+.PP
+The function `oddocgetattr' is used in order to get the value of an attribute of a document.
+.TP
+.B const char *oddocgetattr(const ODDOC *doc, const char *name);
+`doc' specifies a document handle.  `name' specifies the string of the name of an attribute.  The return value is the string of the value of the attribute, or `NULL' if no attribute corresponds.
+.PP
+The function `oddocnwords' is used in order to get the list handle contains words in normalized form of a document.
+.TP
+.B const CBLIST *oddocnwords(const ODDOC *doc);
+`doc' specifies a document handle.  The return value is the list handle contains words in normalized form.
+.PP
+The function `oddocawords' is used in order to get the list handle contains words in appearance form of a document.
+.TP
+.B const CBLIST *oddocawords(const ODDOC *doc);
+`doc' specifies a document handle.  The return value is the list handle contains words in appearance form.
+.PP
+The function `oddocscores' is used in order to get the map handle contains keywords in normalized form and their scores.
+.TP
+.B CBMAP *oddocscores(const ODDOC *doc, int max, ODEUM *odeum);
+`doc' specifies a document handle.  `max' specifies the max number of keywords to get.  `odeum' specifies a database handle with which the IDF for weighting is calculate.  If it is `NULL', it is not used.  The return value is the map handle contains keywords and their scores.  Scores are expressed as decimal strings.  Because the handle of the return value is opened with the function `cbmapopen', it should be closed with the function `cbmapclose' if it is no longer in use.
+.PP
+The function `odbreaktext' is used in order to break a text into words in appearance form.
+.TP
+.B CBLIST *odbreaktext(const char *text);
+`text' specifies the string of a text.  The return value is the list handle contains words in appearance form.  Words are separated with space characters and such delimiters as period, comma and so on.  Because the handle of the return value is opened with the function `cblistopen', it should be closed with the function `cblistclose' if it is no longer in use.
+.PP
+The function `odnormalizeword' is used in order to make the normalized form of a word.
+.TP
+.B char *odnormalizeword(const char *asis);
+`asis' specifies the string of the appearance form of a word.  The return value is is the string of the normalized form of the word.  Alphabets of the ASCII code are unified into lower cases.  Words composed of only delimiters are treated as empty strings.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `odpairsand' is used in order to get the common elements of two sets of documents.
+.TP
+.B ODPAIR *odpairsand(ODPAIR *apairs, int anum, ODPAIR *bpairs, int bnum, int *np);
+`apairs' specifies the pointer to the former document array.  `anum' specifies the number of the elements of the former document array.  `bpairs' specifies the pointer to the latter document array.  `bnum' specifies the number of the elements of the latter document array.  `np' specifies the pointer to a variable to which the number of the elements of the return value is assigned.  The return value is the pointer to a new document array whose elements commonly belong to the specified two sets.  Elements of the array are sorted in descending order of their scores.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `odpairsor' is used in order to get the sum of elements of two sets of documents.
+.TP
+.B ODPAIR *odpairsor(ODPAIR *apairs, int anum, ODPAIR *bpairs, int bnum, int *np);
+`apairs' specifies the pointer to the former document array.  `anum' specifies the number of the elements of the former document array.  `bpairs' specifies the pointer to the latter document array.  `bnum' specifies the number of the elements of the latter document array.  `np' specifies the pointer to a variable to which the number of the elements of the return value is assigned.  The return value is the pointer to a new document array whose elements belong to both or either of the specified two sets.  Elements of the array are sorted in descending order of their scores.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `odpairsnotand' is used in order to get the difference set of documents.
+.TP
+.B ODPAIR *odpairsnotand(ODPAIR *apairs, int anum, ODPAIR *bpairs, int bnum, int *np);
+`apairs' specifies the pointer to the former document array.  `anum' specifies the number of the elements of the former document array.  `bpairs' specifies the pointer to the latter document array of the sum of elements.  `bnum' specifies the number of the elements of the latter document array.  `np' specifies the pointer to a variable to which the number of the elements of the return value is assigned.  The return value is the pointer to a new document array whose elements belong to the former set but not to the latter set.  Elements of the array are sorted in descending order of their scores.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `odpairssort' is used in order to sort a set of documents in descending order of scores.
+.TP
+.B void odpairssort(ODPAIR *pairs, int pnum);
+`pairs' specifies the pointer to a document array.  `pnum' specifies the number of the elements of the document array.
+.PP
+The function `odlogarithm' is used in order to get the natural logarithm of a number.
+.TP
+.B double odlogarithm(double x);
+`x' specifies a number.  The return value is the natural logarithm of the number.  If the number is equal to or less than 1.0, the return value is 0.0.  This function is useful when an application calculates the IDF of search results.
+.PP
+The function `odvectorcosine' is used in order to get the cosine of the angle of two vectors.
+.TP
+.B double odvectorcosine(const int *avec, const int *bvec, int vnum);
+`avec' specifies the pointer to one array of numbers.  `bvec' specifies the pointer to the other array of numbers.  `vnum' specifies the number of elements of each array.  The return value is the cosine of the angle of two vectors.  This function is useful when an application calculates similarity of documents.
+.PP
+The function `odsettuning' is used in order to set the global tuning parameters.
+.TP
+.B void odsettuning(int ibnum, int idnum, int cbnum, int csiz);
+`ibnum' specifies the number of buckets for inverted indexes.  `idnum' specifies the division number of inverted index.  `cbnum' specifies the number of buckets for dirty buffers.  `csiz' specifies the maximum bytes to use memory for dirty buffers.  The default setting is equivalent to `odsettuning(32749, 7, 262139, 8388608)'.  This function should be called before opening a handle.
+.PP
+The function `odanalyzetext' is used in order to break a text into words and store appearance forms and normalized form into lists.
+.TP
+.B void odanalyzetext(ODEUM *odeum, const char *text, CBLIST *awords, CBLIST *nwords);
+`odeum' specifies a database handle.  `text' specifies the string of a text.  `awords' specifies a list handle into which appearance form is store.  `nwords' specifies a list handle into which normalized form is store.  If it is `NULL', it is ignored.  Words are separated with space characters and such delimiters as period, comma and so on.
+.PP
+The function `odsetcharclass' is used in order to set the classes of characters used by `odanalyzetext'.
+.TP
+.B void odsetcharclass(ODEUM *odeum, const char *spacechars, const char *delimchars, const char *gluechars);
+`odeum' specifies a database handle.  `spacechars' spacifies a string contains space characters.  `delimchars' spacifies a string contains delimiter characters.  `gluechars' spacifies a string contains glue characters.
+.PP
+The function `odquery' is used in order to query a database using a small boolean query language.
+.TP
+.B ODPAIR *odquery(ODEUM *odeum, const char *query, int *np, CBLIST *errors);
+`odeum' specifies a database handle.  'query' specifies the text of the query.  `np' specifies the pointer to a variable to which the number of the elements of the return value is assigned.  `errors' specifies a list handle into which error messages are stored.  If it is `NULL', it is ignored.  If successful, the return value is the pointer to an array, else, it is `NULL'.  Each element of the array is a pair of the ID number and the score of a document, and sorted in descending order of their scores.  Even if no document corresponds to the specified condition, it is not error but returns an dummy array.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  Note that each element of the array of the return value can be data of a deleted document.
+.PP
+If QDBM was built with POSIX thread enabled, the global variable `dpecode' is treated as thread specific data, and functions of Odeum are reentrant.  In that case, they are thread\-safe as long as a handle is not accessed by threads at the same time, on the assumption that `errno', `malloc', and so on are thread\-safe.
+.PP
+If QDBM was built with ZLIB enabled, records in the database for document attributes are compressed.  In that case, the size of the database is reduced to 30% or less.  Thus, you should enable ZLIB if you use Odeum.  A database of Odeum created without ZLIB enabled is not available on environment with ZLIB enabled, and vice versa.  If ZLIB was not enabled but LZO, LZO is used instead.
+.PP
+The query language of the function `odquery' is a basic language following this grammar:
+.PP
+.RS
+expr ::= subexpr ( op subexpr )*
+.br
+subexpr ::= WORD
+.br
+subexpr ::= LPAREN expr RPAREN
+.RE
+.PP
+Operators are "&" (AND), "|" (OR), and "!" (NOTAND).  You can use parenthesis to group sub-expressions together in order to change order of operations.  The given query is broken up using the function `odanalyzetext', so if you want to specify different text breaking rules, then make sure that you at least set "&", "|", "!", "(", and ")" to be delimiter characters.  Consecutive words are treated as having an implicit "&" operator between them, so "zed shaw" is actually "zed & shaw".
+.PP
+The encoding of the query text should be the same with the encoding of target documents.  Moreover, each of space characters, delimiter characters, and glue characters should be single byte.
+
+.SH SEE ALSO
+.PP
+.BR qdbm (3),
+.BR depot (3),
+.BR curia (3),
+.BR relic (3),
+.BR hovel (3),
+.BR cabin (3),
+.BR villa (3),
+.BR ndbm (3),
+.BR gdbm (3)

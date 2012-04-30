@@ -1,0 +1,37 @@
+README ........................ - This file.
+areghost.txt .................. - AutoRegister Host File (SITE REGISTERED).
+autoreg.txt ................... - AutoRegister Host File (SITE NOT REGISTERED).
+autoreg_include.txt ........... - File sent via email with autoregistration.
+badsite.txt ................... - Forbid Site Host File.
+connect.txt ................... - Normal Connection Host File.
+create_reg.txt ................ - Fail to create player with Registration.
+doorconf.txt .................. - @doors to connect to.
+down.txt ...................... - File shown with @disable logins in effect.
+error.txt ..................... - Random Error Messages - Design your own! :)
+full.txt ...................... - File shown when max players reached.
+guest.txt ..................... - File shown to guests connecting.
+help.txt ...................... - Standard help file.
+motd.txt ...................... - MOTD file when people connect.
+news.txt ...................... - Standard news file.
+newuser.txt ................... - File seen when NEW player first connects.
+noguest.txt ................... - File seen when site set NOGUEST with guest.
+plushelp.txt .................. - +help file (if enabled)
+quit.txt ...................... - File seen when you QUIT/LOGOUT of the mush.
+register.txt .................. - File seen when registration enabled.
+wizhelp.txt ................... - Standard wizard help file.
+wizmotd.txt ................... - WIZMOTD file when wizards connect.
+
+Q:  How do I put color in these files?
+A:  Look at ansi.h and you need to put the literal ASCII codes.
+    They will look like: ^[[0m (for ANSI_NORMAL).  That's <ESC>[
+
+Q:  I want to design my own txt files to read in the mush.
+A:  Easy.  Design them like help.txt would be set up, mkindx the file,
+    then you can access it via @dynhelp online.
+
+Q:  Do I have to mkindx these files whenever I make changes?
+A:  Only the ones that have '& ' index. (help.txt, wizhelp.txt, news.txt, etc)
+
+Q:  Do I have to @readcache in the game whenever I make a change?
+A:  Only when you modify any of the files listed in this README.  Not the ones
+    you use with @dynhelp.

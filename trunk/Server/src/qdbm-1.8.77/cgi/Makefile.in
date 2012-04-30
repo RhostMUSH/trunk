@@ -1,0 +1,147 @@
+# Makefile for CGI scripts for QDBM
+
+
+
+#================================================================
+# Setting variables
+#================================================================
+
+
+# Generic settings
+SHELL = @SHELL@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+# Packaging
+PACKAGE = qdbm
+
+# Targets
+MYCGIS = qadm.cgi qupl.cgi qfts.cgi
+MYCONFS = qadm.conf qupl.conf qfts.conf
+MYDOCS = cgispex.html cgispex-ja.html
+
+# Building binaries
+CC = gcc
+CPPFLAGS = -I$(srcdir) -I$(srcdir)/.. -I$(HOME)/include -I/usr/local/include \
+  -D_XOPEN_SOURCE_EXTENDED=1 -D_GNU_SOURCE=1 -D__EXTENSIONS__=1 -D_HPUX_SOURCE=1 \
+  -D_POSIX_MAPPED_FILES=1 -D_POSIX_SYNCHRONIZED_IO=1 -DNDEBUG
+CFLAGS = -Wall -ansi -pedantic -fsigned-char -O2
+LIBS = -lqdbm @LIBS@
+LDFLAGS = -L$(srcdir)/.. -L$(HOME)/lib -L/usr/local/lib $(LIBS)
+LDENV = LD_RUN_PATH=/lib:/usr/lib:$(HOME)/lib:/usr/local/lib:$(prefix)/lib
+
+# Install destinations
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+MYLIBEXECDIR = @libexecdir@
+MYDATADIR = @datadir@/$(PACKAGE)/cgi
+DESTDIR =
+
+
+
+#================================================================
+# Suffix rules
+#================================================================
+
+
+.SUFFIXES :
+.SUFFIXES : .c .o
+
+.c.o :
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $<
+
+
+
+#================================================================
+# Actions
+#================================================================
+
+
+targets : @TARGETS@
+
+
+all : $(MYCGIS)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Ready to install.\n'
+	@printf '#================================================================\n'
+
+
+static :
+	make LDFLAGS="-static $(LDFLAGS)" all
+
+
+debug :
+	make CFLAGS="$(CFLAGS) -g" LDFLAGS="-static $(LDFLAGS)" all
+
+
+devel :
+	make CFLAGS="$(CFLAGS) -g -pipe" all
+	sync ; sync
+
+
+clean :
+	rm -rf $(MYCGIS) *.o leak.log *~
+
+
+install :
+	mkdir -p $(DESTDIR)$(MYLIBEXECDIR)
+	cp -Rf $(MYCGIS) $(DESTDIR)$(MYLIBEXECDIR)
+	mkdir -p $(DESTDIR)$(MYDATADIR)
+	cp -Rf $(MYCONFS) $(MYDOCS) $(DESTDIR)$(MYDATADIR)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Thanks for using CGI scripts of QDBM.\n'
+	@printf '#================================================================\n'
+
+
+install-strip :
+	make DESTDIR=$(DESTDIR) install
+	cd $(DESTDIR)$(MYLIBEXECDIR) && strip $(MYCGIS)
+
+
+
+uninstall :
+	cd $(DESTDIR)$(MYLIBEXECDIR) && rm -f $(MYCGIS)
+	rm -rf $(DESTDIR)$(MYDATADIR)
+
+
+dist :
+	autoconf
+	make distclean
+
+
+distclean : clean
+	rm -rf Makefile config.cache config.log config.status autom4te.cache \
+	  qadmdir/* qupldir/* casket
+
+
+mingw :
+	make CC="gcc -mno-cygwin" MYLIBS="libqdbm.dll.a" \
+	  CFLAGS="-Wall -fsigned-char -O0 -DNDEBUG" \
+	  LDFLAGS="-L$(srcdir)/.. -L/usr/local/lib -lqdbm"
+
+
+.PHONY : all clean
+
+
+
+#================================================================
+# Building binaries
+#================================================================
+
+
+qadm.cgi : qadm.o
+	$(LDENV) $(CC) $(CFLAGS) -o $@ qadm.o $(LDFLAGS)
+
+
+qupl.cgi : qupl.o
+	$(LDENV) $(CC) $(CFLAGS) -o $@ qupl.o $(LDFLAGS)
+
+
+qfts.cgi : qfts.o
+	$(LDENV) $(CC) $(CFLAGS) -o $@ qfts.o $(LDFLAGS)
+
+
+
+# END OF FILE

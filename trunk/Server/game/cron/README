@@ -1,0 +1,30 @@
+The rhost.cron file will be in the syntax as follows:
+
+username (or dbref#)
+command1;command2;command3;...;commandN
+command
+command
+command1;command2;command3;...;commandN
+
+
+You can have commands strung together with a semicolon
+on the same line.  This counts as a single line of input.
+You can have at most 20 lines of commands after the target
+you wish to execute the commands as.  The target may
+be a player name OR a dbref# of any valid dbref# within
+the game.  Invalid targets will abort the cron process.
+Non-printable characters in the cron file will abort
+the process.  Any aborts or warnings will be logged
+in the netrhost.gamelog.  
+
+Here is a working example of the code cron file.
+This example will perform dumps of the mush.
+
+rhost.cron
+--------------< cut here > ----------------
+#1
+@dump/flat; @@ dump the main game database to flatfile
+wmail/unload; @@ dump the mail database to flatfile
+@areg/unload; @@ dump the registration database to flatfile
+newsdb/unload; @@ dump the news bbs database to flatfile
+--------------< cut here > ----------------
