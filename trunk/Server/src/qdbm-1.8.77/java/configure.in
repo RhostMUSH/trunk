@@ -1,0 +1,263 @@
+# Source of configuration for Java interface of QDBM
+
+
+
+#================================================================
+# Generic Settings
+#================================================================
+
+
+# Targets
+AC_INIT(qdbm-java, 1.0.0)
+
+# Export variables
+LIBVER=1
+LIBREV=0
+TARGETS="all"
+MYJAVAHOME="/usr/java"
+JVMPLATFORM="linux"
+JAVAC="javac"
+JAR="jar"
+JAVAH="javah"
+JAVADOC="javadoc"
+JAVARUN="java"
+MYDEFS=""
+MYOPTS=""
+LD="ld"
+
+# Building paths
+pathtmp="$PATH"
+PATH="$HOME/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+PATH="$PATH:/usr/ccs/bin:/usr/ucb:/usr/xpg4/bin:/usr/xpg6/bin:$pathtmp"
+LIBRARY_PATH="$HOME/lib:/usr/local/lib:$LIBRARY_PATH"
+LD_LIBRARY_PATH="$HOME/lib:/usr/local/lib:$LD_LIBRARY_PATH"
+CPATH="$HOME/include:/usr/local/include:$CPATH"
+export PATH LIBRARY_PATH LD_LIBRARY_PATH CPATH
+
+
+
+#================================================================
+# Options
+#================================================================
+
+
+# Debug mode
+AC_ARG_ENABLE(debug,
+  AC_HELP_STRING([--enable-debug], [build for debugging]))
+if test "$enable_debug" = "yes"
+then
+  TARGETS="debug"
+fi
+
+# Developping mode
+AC_ARG_ENABLE(devel,
+  AC_HELP_STRING([--enable-devel], [build for development]))
+if test "$enable_devel" = "yes"
+then
+  TARGETS="devel"
+fi
+
+# Enable gcj
+AC_ARG_WITH(gcj,
+  AC_HELP_STRING([--with-gcj], [build with gcj, gcc for Java]))
+
+
+
+#================================================================
+# Checking Commands to Build with
+#================================================================
+
+
+# Home directory of Java
+printf 'checking MYJAVAHOME... '
+if test -d "$JAVA_HOME"
+then
+  MYJAVAHOME="$JAVA_HOME"
+fi
+printf '%s\n' "$MYJAVAHOME"
+
+# Platform of Java
+printf 'checking JVMPLATFORM... '
+if uname | grep Darwin > /dev/null
+then
+  JVMPLATFORM="mac"
+else
+  for file in `\ls $MYJAVAHOME/include`
+  do
+    if test -d "$MYJAVAHOME/include/$file"
+    then
+      JVMPLATFORM="$file"
+    fi
+  done
+fi
+printf '%s\n' "$JVMPLATFORM"
+
+# Java compiler
+printf 'checking JAVAC... '
+JAVAC="$MYJAVAHOME/bin/javac"
+if uname | grep Darwin > /dev/null
+then
+  if test -x "$MYJAVAHOME/Commands/javac"
+  then
+    JAVAC="$MYJAVAHOME/Commands/javac"
+  else
+    JAVAC="$MYJAVAHOME/bin/javac"
+  fi
+fi
+if test "$with_gcj" = "yes"
+then
+  JAVAC="gcj -C -Wall"
+  printf 'gcj -C -Wall\n'
+elif test -x "$JAVAC"
+then
+  printf '%s\n' "$JAVAC"
+else
+  printf 'no\n'
+  printf '#================================================================\n' 1>&2
+  printf '# WARNING: %s is not found.\n' "$JAVAC" 1>&2
+  printf '#================================================================\n' 1>&2
+fi
+
+# Other building tools
+if test "$with_gcj" = "yes"
+then
+  JAR="jar"
+  JAVAH="gcjh"
+  JAVADOC="false"
+  JAVARUN="gij"
+elif uname | grep Darwin > /dev/null
+then
+  if test -x "$MYJAVAHOME/Commands/java"
+  then
+    JAR="$MYJAVAHOME/Commands/jar"
+    JAVAH="$MYJAVAHOME/Commands/javah"
+    JAVADOC="$MYJAVAHOME/Commands/javadoc"
+    JAVARUN="$MYJAVAHOME/Commands/java"
+  else
+    JAR="$MYJAVAHOME/bin/jar"
+    JAVAH="$MYJAVAHOME/bin/javah"
+    JAVADOC="$MYJAVAHOME/bin/javadoc"
+    JAVARUN="$MYJAVAHOME/bin/java"
+  fi
+else
+  JAR="$MYJAVAHOME/bin/jar"
+  JAVAH="$MYJAVAHOME/bin/javah"
+  JAVADOC="$MYJAVAHOME/bin/javadoc"
+  JAVARUN="$MYJAVAHOME/bin/java"
+fi
+
+# C compiler
+AC_PROG_CC
+if test "$GCC" != "yes"
+then
+  printf '#================================================================\n' 1>&2
+  printf '# WARNING: GCC is required to build this package.\n' 1>&2
+  printf '#================================================================\n' 1>&2
+fi
+if uname | egrep -i 'SunOS' > /dev/null 2>&1
+then
+  MYOPTS="-O1"
+fi
+if uname | egrep -i 'BSD' > /dev/null 2>&1
+then
+  MYOPTS="-O1"
+fi
+if gcc --version | egrep -i '^2\.(8|9)' > /dev/null 2>&1
+then
+  MYOPTS="-O1"
+fi
+
+# Linker
+printf 'checking for ld... '
+if which ld | grep '/ld$' > /dev/null 2>&1
+then
+  LD=`which ld`
+  printf '%s\n' "$LD"
+else
+  printf 'no\n'
+  printf '#================================================================\n' 1>&2
+  printf '# WARNING: ld is not found in PATH.\n' 1>&2
+  printf '#================================================================\n' 1>&2
+fi
+
+
+
+#================================================================
+# Checking Libraries
+#================================================================
+
+
+# Underlying libraries
+AC_CHECK_LIB(c, main)
+AC_CHECK_LIB(pthread, main)
+AC_CHECK_LIB(z, main)
+AC_CHECK_LIB(lzo2, main)
+AC_CHECK_LIB(bz2, main)
+AC_CHECK_LIB(iconv, main)
+
+# Fundamental QDBM libraries
+AC_CHECK_LIB(qdbm, main, true,
+  printf 'checking whether /usr/local/lib/libqdbm.* is... '
+  if ls /usr/local/lib/libqdbm.* > /dev/null 2>&1
+  then
+    printf 'yes\n'
+  else
+    printf 'no\n'
+    printf '#================================================================\n' 1>&2
+    printf '# WARNING: Install QDBM libraries before installation.\n' 1>&2
+    printf '#================================================================\n' 1>&2
+  fi
+)
+
+# For old BSDs
+if uname -a | grep BSD > /dev/null &&
+  test -f /usr/lib/libc_r.a && test ! -f /usr/lib/libpthread.a
+then
+  LIBS=`printf '%s' "$LIBS" | sed 's/-lc/-lc_r/g'`
+fi
+
+# Duplication of QDBM for Java
+AC_CHECK_LIB(jqdbm, main,
+  printf '#================================================================\n' 1>&2
+  printf '# WARNING: An old library was detected.\n' 1>&2
+  printf '#================================================================\n' 1>&2
+)
+
+
+
+#================================================================
+# Generic Settings
+#================================================================
+
+# Data types
+if uname | grep '^SunOS' > /dev/null
+then
+  MYDEFS='-Dint64_t=long\ long'
+elif uname | grep '^CYGWIN' > /dev/null
+then
+  MYDEFS='-D__int64=long\ long'
+fi
+
+# Export variables
+AC_SUBST(LIBVER)
+AC_SUBST(LIBREV)
+AC_SUBST(TARGETS)
+AC_SUBST(MYJAVAHOME)
+AC_SUBST(JVMPLATFORM)
+AC_SUBST(JAVAC)
+AC_SUBST(JAR)
+AC_SUBST(JAVAH)
+AC_SUBST(JAVADOC)
+AC_SUBST(JAVARUN)
+AC_SUBST(MYDEFS)
+AC_SUBST(MYOPTS)
+AC_SUBST(LD)
+AC_SUBST(CPPFLAGS)
+AC_SUBST(LDFLAGS)
+
+# Targets
+AC_OUTPUT(Makefile)
+
+
+
+# END OF FILE

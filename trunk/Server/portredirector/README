@@ -1,0 +1,19 @@
+This is a port redirector incase you decide to move your mush
+to a new site/port.  To use, first, compile the code.  To do
+this you would type the following:
+
+                  cc portmsg.c -o portmsg
+
+if 'cc' is not defined, try the following:
+
+                 gcc portmsg.c -o portmsg
+
+Once compiled, you would then modify the file 'file' to describe
+the mush, what was done, where it's moved to, then specify the
+IP address and the PORT where specified.
+
+To launch the application, you would then type:
+
+                 ./portmsg file <port>
+
+Where <port> is the port where the mush used to run at.              

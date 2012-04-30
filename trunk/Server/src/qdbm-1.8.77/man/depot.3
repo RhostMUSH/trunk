@@ -1,0 +1,275 @@
+.TH DEPOT 3 "2004-04-22" "Man Page" "Quick Database Manager"
+
+.SH NAME
+Depot \- the basic API of QDBM
+
+.SH SYNOPSIS
+.PP
+.B #include <depot.h>
+.br
+.B #include <stdlib.h>
+.PP
+.B extern const char *dpversion;
+.PP
+.B extern int dpecode;
+.PP
+.B const char *dperrmsg(int ecode);
+.PP
+.B DEPOT *dpopen(const char *name, int omode, int bnum);
+.PP
+.B int dpclose(DEPOT *depot);
+.PP
+.B int dpput(DEPOT *depot, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int dmode);
+.PP
+.B int dpout(DEPOT *depot, const char *kbuf, int ksiz);
+.PP
+.B char *dpget(DEPOT *depot, const char *kbuf, int ksiz, int start, int max, int *sp);
+.PP
+.B int dpgetwb(DEPOT *depot, const char *kbuf, int ksiz, int start, int max, char *vbuf);
+.PP
+.B int dpvsiz(DEPOT *depot, const char *kbuf, int ksiz);
+.PP
+.B int dpiterinit(DEPOT *depot);
+.PP
+.B char *dpiternext(DEPOT *depot, int *sp);
+.PP
+.B int dpsetalign(DEPOT *depot, int align);
+.PP
+.B int dpsetfbpsiz(DEPOT *depot, int size);
+.PP
+.B int dpsync(DEPOT *depot);
+.PP
+.B int dpoptimize(DEPOT *depot, int bnum);
+.PP
+.B char *dpname(DEPOT *depot);
+.PP
+.B int dpfsiz(DEPOT *depot);
+.PP
+.B int dpbnum(DEPOT *depot);
+.PP
+.B int dpbusenum(DEPOT *depot);
+.PP
+.B int dprnum(DEPOT *depot);
+.PP
+.B int dpwritable(DEPOT *depot);
+.PP
+.B int dpfatalerror(DEPOT *depot);
+.PP
+.B int dpinode(DEPOT *depot);
+.PP
+.B time_t dpmtime(DEPOT *depot);
+.PP
+.B int dpfdesc(DEPOT *depot);
+.PP
+.B int dpremove(const char *name);
+.PP
+.B int dprepair(const char *name);
+.PP
+.B int dpexportdb(DEPOT *depot, const char *name);
+.PP
+.B int dpimportdb(DEPOT *depot, const char *name);
+.PP
+.B char *dpsnaffle(const char *name, const char *kbuf, int ksiz, int *sp);
+.PP
+.B int dpinnerhash(const char *kbuf, int ksiz);
+.PP
+.B int dpouterhash(const char *kbuf, int ksiz);
+.PP
+.B int dpprimenum(int num);
+
+.SH DESCRIPTION
+.PP
+Depot is the basic API of QDBM.  Almost all features for managing a database provided by QDBM are implemented by Depot.  Other APIs are no more than wrappers of Depot.  Depot is the fastest in all APIs of QDBM.
+.PP
+In order to use Depot, you should include `depot.h' and `stdlib.h' in the source files.  Usually, the following description will be near the beginning of a source file.
+.PP
+.RS
+.B #include <depot.h>
+.br
+.B #include <stdlib.h>
+.RE
+.PP
+A pointer to `DEPOT' is used as a database handle.  It is like that some file I/O routines of `stdio.h' use a pointer to `FILE'.  A database handle is opened with the function `dpopen' and closed with `dpclose'.  You should not refer directly to any member of the handle.  If a fatal error occurs in a database, any access method via the handle except `dpclose' will not work and return error status.  Although a process is allowed to use multiple database handles at the same time, handles of the same database file should not be used.
+.PP
+The external variable `dpversion' is the string containing the version information.
+.TP
+.B extern const char *dpversion;
+.PP
+The external variable `dpecode' is assigned with the last happened error code.  Refer to `depot.h' for details of the error codes.
+.TP
+.B extern int dpecode;
+The initial value of this variable is `DP_NOERR'.  The other values are `DP_EFATAL', `DP_EMODE', `DP_EBROKEN', `DP_EKEEP', `DP_ENOITEM', `DP_EALLOC', `DP_EMAP', `DP_EOPEN', `DP_ECLOSE', `DP_ETRUNC', `DP_ESYNC', `DP_ESTAT', `DP_ESEEK', `DP_EREAD', `DP_EWRITE', `DP_ELOCK', `DP_EUNLINK', `DP_EMKDIR', `DP_ERMDIR', and `DP_EMISC'.
+.PP
+The function `dperrmsg' is used in order to get a message string corresponding to an error code.
+.TP
+.B const char *dperrmsg(int ecode);
+`ecode' specifies an error code.  The return value is the message string of the error code.  The region of the return value is not writable.
+.PP
+The function `dpopen' is used in order to get a database handle.
+.TP
+.B DEPOT *dpopen(const char *name, int omode, int bnum);
+`name' specifies the name of a database file.  `omode' specifies the connection mode: `DP_OWRITER' as a writer, `DP_OREADER' as a reader.  If the mode is `DP_OWRITER', the following may be added by bitwise or: `DP_OCREAT', which means it creates a new database if not exist, `DP_OTRUNC', which means it creates a new database regardless if one exists.  Both of `DP_OREADER' and `DP_OWRITER' can be added to by bitwise or: `DP_ONOLCK', which means it opens a database file without file locking, or `DP_OLCKNB', which means locking is performed without blocking.  `DP_OCREAT' can be added to by bitwise or: `DP_OSPARSE', which means it creates a database file as a sparse file.  `bnum' specifies the number of elements of the bucket array.  If it is not more than 0, the default value is specified.  The size of a bucket array is determined on creating, and can not be changed except for by optimization of the database.  Suggested size of a bucket array is about from 0.5 to 4 times of the number of all records to store.  The return value is the database handle or `NULL' if it is not successful.  While connecting as a writer, an exclusive lock is invoked to the database file.  While connecting as a reader, a shared lock is invoked to the database file.  The thread blocks until the lock is achieved.  If `DP_ONOLCK' is used, the application is responsible for exclusion control.
+.PP
+The function `dpclose' is used in order to close a database handle.
+.TP
+.B int dpclose(DEPOT *depot);
+`depot' specifies a database handle.  If successful, the return value is true, else, it is false.  Because the region of a closed handle is released, it becomes impossible to use the handle.  Updating a database is assured to be written when the handle is closed.  If a writer opens a database but does not close it appropriately, the database will be broken.
+.PP
+The function `dpput' is used in order to store a record.
+.TP
+.B int dpput(DEPOT *depot, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int dmode);
+`depot' specifies a database handle connected as a writer.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `vbuf' specifies the pointer to the region of a value.  `vsiz' specifies the size of the region of the value.  If it is negative, the size is assigned with `strlen(vbuf)'.  `dmode' specifies behavior when the key overlaps, by the following values: `DP_DOVER', which means the specified value overwrites the existing one, `DP_DKEEP', which means the existing value is kept, `DP_DCAT', which means the specified value is concatenated at the end of the existing value.  If successful, the return value is true, else, it is false.
+.PP
+The function `dpout' is used in order to delete a record.
+.TP
+.B int dpout(DEPOT *depot, const char *kbuf, int ksiz);
+`depot' specifies a database handle connected as a writer.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is true, else, it is false.  false is returned when no record corresponds to the specified key.
+.PP
+The function `dpget' is used in order to retrieve a record.
+.TP
+.B char *dpget(DEPOT *depot, const char *kbuf, int ksiz, int start, int max, int *sp);
+`depot' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `start' specifies the offset address of the beginning of the region of the value to be read.  `max' specifies the max size to be read.  If it is negative, the size to read is unlimited.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the value of the corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to the specified key or the size of the value of the corresponding record is less than `start'.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `dpgetwb' is used in order to retrieve a record and write the value into a buffer.
+.TP
+.B int dpgetwb(DEPOT *depot, const char *kbuf, int ksiz, int start, int max, char *vbuf);
+`depot' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `start' specifies the offset address of the beginning of the region of the value to be read.  `max' specifies the max size to be read.  It shuld be equal to or less than the size of the writing buffer.  `vbuf' specifies the pointer to a buffer into which the value of the corresponding record is written.  If successful, the return value is the size of the written data, else, it is \-1.  \-1 is returned when no record corresponds to the specified key or the size of the value of the corresponding record is less than `start'.  Note that no additional zero code is appended at the end of the region of the writing buffer.
+.PP
+The function `dpvsiz' is used in order to get the size of the value of a record.
+.TP
+.B int dpvsiz(DEPOT *depot, const char *kbuf, int ksiz);
+`depot' specifies a database handle.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  If successful, the return value is the size of the value of the corresponding record, else, it is \-1.  Because this function does not read the entity of a record, it is faster than `dpget'.
+.PP
+The function `dpiterinit' is used in order to initialize the iterator of a database handle.
+.TP
+.B int dpiterinit(DEPOT *depot);
+`depot' specifies a database handle.  If successful, the return value is true, else, it is false.  The iterator is used in order to access the key of every record stored in a database.
+.PP
+The function `dpiternext' is used in order to get the next key of the iterator.
+.TP
+.B char *dpiternext(DEPOT *depot, int *sp);
+`depot' specifies a database handle.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the next key, else, it is `NULL'.  `NULL' is returned when no record is to be get out of the iterator.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  It is possible to access every record by iteration of calling this function.  However, it is not assured if updating the database is occurred while the iteration.  Besides, the order of this traversal access method is arbitrary, so it is not assured that the order of storing matches the one of the traversal access.
+.PP
+The function `dpsetalign' is used in order to set alignment of a database handle.
+.TP
+.B int dpsetalign(DEPOT *depot, int align);
+`depot' specifies a database handle connected as a writer.  `align' specifies the size of alignment.  If successful, the return value is true, else, it is false.  If alignment is set to a database, the efficiency of overwriting values is improved.  The size of alignment is suggested to be average size of the values of the records to be stored.  If alignment is positive, padding whose size is multiple number of the alignment is placed.  If alignment is negative, as `vsiz' is the size of a value, the size of padding is calculated with `(vsiz / pow(2, abs(align) \- 1))'.  Because alignment setting is not saved in a database, you should specify alignment every opening a database.
+.PP
+The function `dpsetfbpsiz' is used in order to set the size of the free block pool of a database handle.
+.TP
+.B int dpsetfbpsiz(DEPOT *depot, int size);
+`depot' specifies a database handle connected as a writer.  `size' specifies the size of the free block pool of a database.  If successful, the return value is true, else, it is false.  The default size of the free block pool is 16.  If the size is greater, the space efficiency of overwriting values is improved with the time efficiency sacrificed.
+.PP
+The function `dpsync' is used in order to synchronize updating contents with the file and the device.
+.TP
+.B int dpsync(DEPOT *depot);
+`depot' specifies a database handle connected as a writer.  If successful, the return value is true, else, it is false.  This function is useful when another process uses the connected database file.
+.PP
+The function `dpoptimize' is used in order to optimize a database.
+.TP
+.B int dpoptimize(DEPOT *depot, int bnum);
+`depot' specifies a database handle connected as a writer.  `bnum' specifies the number of the elements of the bucket array.  If it is not more than 0, the default value is specified.  If successful, the return value is true, else, it is false.  In an alternating succession of deleting and storing with overwrite or concatenate, dispensable regions accumulate.  This function is useful to do away with them.
+.PP
+The function `dpname' is used in order to get the name of a database.
+.TP
+.B char *dpname(DEPOT *depot);
+`depot' specifies a database handle.  If successful, the return value is the pointer to the region of the name of the database, else, it is `NULL'.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.
+.PP
+The function `dpfsiz' is used in order to get the size of a database file.
+.TP
+.B int dpfsiz(DEPOT *depot);
+`depot' specifies a database handle.  If successful, the return value is the size of the database file, else, it is \-1.
+.PP
+The function `dpbnum' is used in order to get the number of the elements of the bucket array.
+.TP
+.B int dpbnum(DEPOT *depot);
+`depot' specifies a database handle.  If successful, the return value is the number of the elements of the bucket array, else, it is \-1.
+.PP
+The function `dpbusenum' is used in order to get the number of the used elements of the bucket array.
+.TP
+.B int dpbusenum(DEPOT *depot);
+`depot' specifies a database handle.  If successful, the return value is the number of the used elements of the bucket array, else, it is \-1.  This function is inefficient because it accesses all elements of the bucket array.
+.PP
+The function `dprnum' is used in order to get the number of the records stored in a database.
+.TP
+.B int dprnum(DEPOT *depot);
+`depot' specifies a database handle.  If successful, the return value is the number of the records stored in the database, else, it is \-1.
+.PP
+The function `dpwritable' is used in order to check whether a database handle is a writer or not.
+.TP
+.B int dpwritable(DEPOT *depot);
+`depot' specifies a database handle.  The return value is true if the handle is a writer, false if not.
+.PP
+The function `dpfatalerror' is used in order to check whether a database has a fatal error or not.
+.TP
+.B int dpfatalerror(DEPOT *depot);
+`depot' specifies a database handle.  The return value is true if the database has a fatal error, false if not.
+.PP
+The function `dpinode' is used in order to get the inode number of a database file.
+.TP
+.B int dpinode(DEPOT *depot);
+`depot' specifies a database handle.  The return value is the inode number of the database file.
+.PP
+The function `dpmtime' is used in order to get the last modified time of a database.
+.TP
+.B time_t dpmtime(DEPOT *depot);
+`depot' specifies a database handle.  The return value is the last modified time of the database.
+.PP
+The function `dpfdesc' is used in order to get the file descriptor of a database file.
+.TP
+.B int dpfdesc(DEPOT *depot);
+`depot' specifies a database handle.  The return value is the file descriptor of the database file.  Handling the file descriptor of a database file directly is not suggested.
+.PP
+The function `dpremove' is used in order to remove a database file.
+.TP
+.B int dpremove(const char *name);
+`name' specifies the name of a database file.  If successful, the return value is true, else, it is false.
+.PP
+The function `dprepair' is used in order to repair a broken database file.
+.TP
+.B int dprepair(const char *name);
+`name' specifies the name of a database file.  If successful, the return value is true, else, it is false.  There is no guarantee that all records in a repaired database file correspond to the original or expected state.
+.PP
+The function `dpexportdb' is used in order to dump all records as endian independent data.
+.TP
+.B int dpexportdb(DEPOT *depot, const char *name);
+`depot' specifies a database handle.  `name' specifies the name of an output file.  If successful, the return value is true, else, it is false.
+.PP
+The function `dpimportdb' is used in order to load all records from endian independent data.
+.TP
+.B int dpimportdb(DEPOT *depot, const char *name);
+`depot' specifies a database handle connected as a writer.  The database of the handle must be empty.  `name' specifies the name of an input file.  If successful, the return value is true, else, it is false.
+.PP
+The function `dpsnaffle' is used in order to retrieve a record directly from a database file.
+.TP
+.B char *dpsnaffle(const char *name, const char *kbuf, int ksiz, int *sp);
+`name' specifies the name of a database file.  `kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  `sp' specifies the pointer to a variable to which the size of the region of the return value is assigned.  If it is `NULL', it is not used.  If successful, the return value is the pointer to the region of the value of the corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to the specified key.  Because an additional zero code is appended at the end of the region of the return value, the return value can be treated as a character string.  Because the region of the return value is allocated with the `malloc' call, it should be released with the `free' call if it is no longer in use.  Although this function can be used even while the database file is locked by another process, it is not assured that recent updated is reflected.
+.PP
+The function `dpinnerhash' is a hash function used inside Depot.
+.TP
+.B int dpinnerhash(const char *kbuf, int ksiz);
+`kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  The return value is the hash value of 31 bits length computed from the key.  This function is useful when an application calculates the state of the inside bucket array.
+.PP
+The function `dpouterhash' is a hash function which is independent from the hash functions used inside Depot.
+.TP
+.B int dpouterhash(const char *kbuf, int ksiz);
+`kbuf' specifies the pointer to the region of a key.  `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned with `strlen(kbuf)'.  The return value is the hash value of 31 bits length computed from the key.  This function is useful when an application uses its own hash algorithm outside Depot.
+.PP
+The function `dpprimenum' is used in order to get a natural prime number not less than a number.
+.TP
+.B int dpprimenum(int num);
+`num' specified a natural number.  The return value is a natural prime number not less than the specified number.  This function is useful when an application determines the size of a bucket array of its own hash algorithm.
+.PP
+If QDBM was built with POSIX thread enabled, the global variable `dpecode' is treated as thread specific data, and functions of Depot are reentrant.  In that case, they are thread\-safe as long as a handle is not accessed by threads at the same time, on the assumption that `errno', `malloc', and so on are thread\-safe.
+
+.SH SEE ALSO
+.PP
+.BR qdbm (3),
+.BR curia (3),
+.BR relic (3),
+.BR hovel (3),
+.BR cabin (3),
+.BR villa (3),
+.BR odeum (3),
+.BR ndbm (3),
+.BR gdbm (3)

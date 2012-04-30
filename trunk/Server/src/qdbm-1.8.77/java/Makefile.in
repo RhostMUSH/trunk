@@ -1,0 +1,318 @@
+# Makefile for Java interface of QDBM
+
+
+
+#================================================================
+# Setting variables
+#================================================================
+
+
+# Generic settings
+SHELL = @SHELL@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+# Packaging
+PACKAGE = qdbm
+LIBVER = @LIBVER@
+LIBREV = @LIBREV@
+
+# Targets
+MYCLASSES = ADBM.class DBMException.class Util.class \
+  Depot.class DepotException.class DepotTester.class \
+  Curia.class CuriaException.class CuriaTester.class \
+  Villa.class VillaCursor.class VillaException.class VillaTester.class
+MYJARS = qdbm.jar
+MYLIBOBJS = jdepot.o jcuria.o jvilla.o jutil.o
+MYLIBS = libjqdbm.so.$(LIBVER).$(LIBREV).0 libjqdbm.so.$(LIBVER) libjqdbm.so
+MYDOCS = jspex.html jspex-ja.html japidoc
+MYWINLIBS = libjqdbm.dll.a
+MYMACLIBS = libjqdbm.$(LIBVER).$(LIBREV).0.dylib libjqdbm.$(LIBVER).dylib \
+  libjqdbm.dylib libjqdbm.jnilib
+MYHPUXLIBS = libjqdbm.sl
+
+
+# Install destinations
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+MYHEADDIR = @includedir@
+MYLIBDIR = @libdir@
+MYDATADIR = @datadir@/$(PACKAGE)/java
+DESTDIR =
+
+# Building binaries
+MYJAVAHOME = @MYJAVAHOME@
+JVMPLATFORM = @JVMPLATFORM@
+JAVAC = @JAVAC@
+JAVACFLAGS = -d .
+JAR = @JAR@
+JAVAH = @JAVAH@
+JAVADOC = @JAVADOC@
+JAVARUN = @JAVARUN@
+CC = @CC@
+CPPFLAGS = @CPPFLAGS@ -I$(srcdir) -I$(srcdir)/.. -I$(MYHEADDIR) \
+  -I$(HOME)/include -I/usr/local/include \
+  -I$(MYJAVAHOME)/include -I$(MYJAVAHOME)/include/$(JVMPLATFORM) -I$(MYJAVAHOME)/Headers \
+  @MYDEFS@ -D_XOPEN_SOURCE_EXTENDED=1 -D_GNU_SOURCE=1 -D__EXTENSIONS__=1 -D_HPUX_SOURCE=1 \
+  -D_POSIX_MAPPED_FILES=1 -D_POSIX_SYNCHRONIZED_IO=1 \
+  -DPIC=1 -D_THREAD_SAFE=1 -D_REENTRANT=1 -DNDEBUG
+CFLAGS = -Wall -fPIC -fsigned-char -O2 @MYOPTS@
+LD = @LD@
+LIBS = -lqdbm @LIBS@
+LIBLDFLAGS = @LDFLAGS@ -L. -L$(srcdir)/.. -L$(MYLIBDIR) -L$(HOME)/lib -L/usr/local/lib $(LIBS)
+RUNENV = LD_LIBRARY_PATH=.:..:/lib:/usr/lib:$(MYLIBDIR):$(HOME)/lib:/usr/local/lib
+
+
+
+#================================================================
+# Suffix rules
+#================================================================
+
+
+.SUFFIXES :
+.SUFFIXES : .c .o .java .class
+
+.c.o :
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
+
+.java.class :
+	$(JAVAC) $(JAVACFLAGS) $(srcdir)/*.java
+	for file in `ls qdbm` ;\
+	  do \
+	    ln -f -s qdbm/$$file . ;\
+	  done
+
+
+
+#================================================================
+# Actions
+#================================================================
+
+
+targets : @TARGETS@
+
+
+all : $(MYJARS) $(MYLIBS)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Ready to install.\n'
+	@printf '#================================================================\n'
+
+
+debug :
+	make MYLIBS="$(MYLIBS)" JAVACFLAGS="-g $(JAVACFLAGS)" \
+	  CPPFLAGS="$(CPPFLAGS) -UNDEBUG" CFLAGS="$(CFLAGS) -g" all
+
+
+devel :
+	make MYLIBS="$(MYLIBS)" JAVACFLAGS="-g $(JAVACFLAGS)" \
+	  CPPFLAGS="$(CPPFLAGS) -UNDEBUG" CFLAGS="$(CFLAGS) -g -pipe" all
+	sync ; sync
+
+
+clean :
+	rm -rf qdbm *.class $(MYLIBS) *.jar *.o *.a *.so \
+	  *.exe *.dll.a *.dll *.dylib *.jnilib *.sl a.out casket *~
+
+
+install :
+	mkdir -p $(DESTDIR)$(MYLIBDIR)
+	cp -Rf $(MYJARS) $(DESTDIR)$(MYLIBDIR)
+	cp -Rf $(MYLIBS) $(DESTDIR)$(MYLIBDIR)
+	mkdir -p $(DESTDIR)$(MYDATADIR)
+	cp -Rf $(MYDOCS) $(DESTDIR)$(MYDATADIR)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Thanks for using QDBM for Java.\n'
+	@printf '#================================================================\n'
+
+
+uninstall :
+	cd $(DESTDIR)$(MYLIBDIR) && rm -f $(MYJARS)
+	cd $(DESTDIR)$(MYLIBDIR) && rm -f $(MYLIBS)
+	rm -rf $(DESTDIR)$(MYDATADIR)
+
+
+dist :
+	autoconf
+	make doc
+	make distclean
+
+
+distclean : clean
+	rm -rf Makefile config.cache config.log config.status autom4te.cache
+
+
+head : Depot.class Curia.class Villa.class VillaCursor.class Util.class
+	CLASSPATH=. $(JAVAH) -jni qdbm.Depot qdbm.Curia qdbm.Villa qdbm.VillaCursor qdbm.Util
+
+
+check :
+	sync ; sync
+	rm -rf casket
+	$(RUNENV) CLASSPATH=qdbm.jar $(JAVARUN) qdbm.DepotTester casket
+	@if [ -f casket ] ; then true ; else false ; fi
+	rm -rf casket
+	$(RUNENV) CLASSPATH=qdbm.jar $(JAVARUN) qdbm.CuriaTester casket
+	@if [ -d casket ] ; then true ; else false ; fi
+	rm -rf casket
+	$(RUNENV) CLASSPATH=qdbm.jar $(JAVARUN) qdbm.VillaTester casket
+	@if [ -f casket ] ; then true ; else false ; fi
+	rm -rf casket
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Checking completed.\n'
+	@printf '#================================================================\n'
+
+
+doc :
+	make docclean
+	mkdir -p japidoc
+	$(JAVADOC) -locale en -windowtitle qdbm -overview joverview -tag note:a:"Note:" \
+	  -d japidoc -nodeprecated -nohelp -quiet *.java
+
+
+dox :
+	make docclean
+	mkdir -p japidoc
+	doxygen
+
+
+docclean :
+	rm -rf japidoc
+
+
+win :
+	make MYLIBS="$(MYWINLIBS)" CFLAGS="-Wall -fsigned-char -O0 -DNDEBUG"
+
+
+mingw :
+	make CC="gcc -mno-cygwin" MYLIBS="$(MYWINLIBS)" \
+	  CFLAGS="-Wall -fsigned-char -O0 -DNDEBUG" \
+	  LIBLDFLAGS="-L. -L$(srcdir)/.. -L/usr/local/lib -lqdbm"
+
+
+check-win :
+	make check
+
+
+install-win :
+	make MYLIBS="$(MYWINLIBS)" install
+	cp -Rf jqdbm.dll $(DESTDIR)$(MYBINDIR)
+
+
+uninstall-win :
+	make MYLIBS="$(MYWINLIBS)" uninstall
+	rm -f $(DESTDIR)$(MYBINDIR)/jqdbm.dll
+
+
+mac :
+	make MYLIBS="$(MYMACLIBS)" CFLAGS="-Wall -fsigned-char -fno-common -O2 -DNDEBUG"
+
+
+check-mac :
+	make RUNENV="DYLD_LIBRARY_PATH=.:..:/usr/local/lib" check
+
+
+install-mac :
+	make MYLIBS="$(MYMACLIBS)" install
+
+
+uninstall-mac :
+	make MYLIBS="$(MYMACLIBS)" uninstall
+
+
+hpux :
+	make MYLIBS="$(MYHPUXLIBS)"
+
+
+check-hpux :
+	make RUNENV="SHLIB_PATH=.:..:/usr/local/lib" check
+
+
+install-hpux :
+	make MYLIBS="$(MYHPUXLIBS)" install
+
+
+uninstall-hpux :
+	make MYLIBS="$(MYHPUXLIBS)" uninstall
+
+
+.PHONY : all clean install check
+
+
+
+#================================================================
+# Building binaries
+#================================================================
+
+
+qdbm.jar : $(MYCLASSES)
+	$(JAR) cvf $@ qdbm/*.class
+
+
+libjqdbm.so.$(LIBVER).$(LIBREV).0 : $(MYLIBOBJS)
+	if $(CC) --print-prog-name=ld | egrep -i '(solaris|/ccs/|/ucb/)' > /dev/null ; \
+	  then \
+	    $(CC) -shared -Wl,-G,-h,libjqdbm.so.$(LIBVER) -o $@ $(MYLIBOBJS) $(LIBLDFLAGS) ; \
+	  else \
+	    $(CC) -shared -Wl,-soname,libjqdbm.so.$(LIBVER) -o $@ $(MYLIBOBJS) $(LIBLDFLAGS) ; \
+	  fi
+
+
+libjqdbm.so.$(LIBVER) : libjqdbm.so.$(LIBVER).$(LIBREV).0
+	ln -f -s libjqdbm.so.$(LIBVER).$(LIBREV).0 $@
+
+
+libjqdbm.so : libjqdbm.so.$(LIBVER).$(LIBREV).0
+	ln -f -s libjqdbm.so.$(LIBVER).$(LIBREV).0 $@
+
+
+libjqdbm.dll.a : jqdbm.dll
+
+
+jqdbm.dll : $(MYLIBOBJS)
+	$(CC) -shared -o $@ \
+	  -Wl,--out-implib=lib$@.a \
+	  -Wl,--export-all-symbols \
+	  -Wl,--enable-auto-import \
+	  -Wl,--add-stdcall-alias \
+	  -Wl,--whole-archive \
+	  -Wl,--no-whole-archive $(MYLIBOBJS) $(LIBLDFLAGS)
+
+
+libjqdbm.$(LIBVER).$(LIBREV).0.dylib : $(MYLIBOBJS)
+	$(CC) -dynamiclib -o $@ \
+	  -install_name $(MYLIBDIR)/libjqdbm.$(LIBVER).dylib \
+	  -current_version $(LIBVER).$(LIBREV).0 \
+	  -compatibility_version $(LIBVER) \
+	  $(MYLIBOBJS) $(LIBLDFLAGS)
+
+
+libjqdbm.$(LIBVER).dylib : libjqdbm.$(LIBVER).$(LIBREV).0.dylib
+	ln -f -s libjqdbm.$(LIBVER).$(LIBREV).0.dylib $@
+
+
+libjqdbm.dylib : libjqdbm.$(LIBVER).$(LIBREV).0.dylib
+	ln -f -s libjqdbm.$(LIBVER).$(LIBREV).0.dylib $@
+
+
+libjqdbm.jnilib : libjqdbm.$(LIBVER).$(LIBREV).0.dylib
+	ln -f -s libjqdbm.$(LIBVER).$(LIBREV).0.dylib $@
+
+
+libjqdbm.sl : $(MYLIBOBJS)
+	$(CC) -shared -Wl,-b -o $@ $(MYLIBOBJS) $(LIBLDFLAGS)
+
+
+jdepot.o : qdbm_Depot.h
+
+jcuria.o : qdbm_Curia.h
+
+jvilla.o : qdbm_Villa.h qdbm_VillaCursor.h
+
+jutil.o : qdbm_Util.h
+
+
+
+# END OF FILE

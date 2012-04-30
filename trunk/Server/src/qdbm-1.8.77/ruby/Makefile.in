@@ -1,0 +1,139 @@
+# Makefile for Ruby interface of QDBM
+
+
+
+#================================================================
+# Setting variables
+#================================================================
+
+
+# Generic settings
+SHELL = @SHELL@
+
+# Packaging
+PACKAGE = qdbm
+
+# Targets
+MYBINS = depot/rbdptest curia/rbcrtest villa/rbvltest
+MYDOCS = rbspex.html rbspex-ja.html rbapidoc
+
+# Install destinations
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+MYBINDIR = @bindir@
+MYDATADIR = @datadir@/$(PACKAGE)/ruby
+DESTDIR =
+
+# Building binaries
+RUNENV = LD_LIBRARY_PATH=.:..:../..:/usr/local/lib
+
+
+
+#================================================================
+# Actions
+#================================================================
+
+
+all :
+	cd depot && [ -f Makefile ] || $(RUNENV) ruby extconf.rb ; $(RUNENV) make
+	cd curia && [ -f Makefile ] || $(RUNENV) ruby extconf.rb ; $(RUNENV) make
+	cd villa && [ -f Makefile ] || $(RUNENV) ruby extconf.rb ; $(RUNENV) make
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Ready to install.\n'
+	@printf '#================================================================\n'
+
+
+clean :
+	cd depot ; if [ -f Makefile ] ; then $(RUNENV) make -i clean ; fi || true
+	cd depot ; rm -rf Makefile *.o *.so *.log casket *~
+	cd curia ; if [ -f Makefile ] ; then $(RUNENV) make -i clean ; fi || true
+	cd curia ; rm -rf Makefile *.o *.so *.log casket *~
+	cd villa ; if [ -f Makefile ] ; then $(RUNENV) make -i clean ; fi || true
+	cd villa ; rm -rf Makefile *.o *.so *.log casket *~
+	rm -rf casket *~
+
+
+install :
+	cd depot ; make install
+	cd curia ; make install
+	cd villa ; make install
+	mkdir -p $(DESTDIR)$(MYBINDIR)
+	cp -f $(MYBINS) $(DESTDIR)$(MYBINDIR)
+	mkdir -p $(DESTDIR)$(MYDATADIR)
+	cp -Rf $(MYDOCS) $(DESTDIR)$(MYDATADIR)
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Thanks for using QDBM for Ruby.\n'
+	@printf '#================================================================\n'
+
+
+uninstall :
+	pprefix=`ruby -e '$$:.each() do |path| ; printf("%s\n", path) ; end' | grep -v '^\.'` ; \
+	  find $$pprefix -print | sort | uniq | \
+	  egrep '(mod_depot\.so|depot\.rb|mod_curia\.so|curia\.rb|mod_villa\.so|villa\.rb)' | \
+	  xargs rm -f
+	for file in $(MYBINS) ; \
+	  do \
+	    file=`printf '%s' $$file | sed 's/.*\///'` ; \
+	    rm -f "$(DESTDIR)$(MYBINDIR)/$$file" ; \
+	  done
+	rm -rf $(DESTDIR)$(MYDATADIR)
+
+
+check :
+	sync ; sync
+	cd depot && rm -rf casket
+	cd depot && \
+	  $(RUNENV) ruby -w -Ilib rbdptest write casket 10000 1000
+	cd depot && \
+	  $(RUNENV) ruby -w -Ilib rbdptest read casket
+	cd depot && \
+	  $(RUNENV) ruby -w -Ilib rbdptest misc casket
+	cd depot && rm -rf casket
+	cd curia && rm -rf casket
+	cd curia && \
+	  $(RUNENV) ruby -w -Ilib rbcrtest write casket 10000 1000 10
+	cd curia && \
+	  $(RUNENV) ruby -w -Ilib rbcrtest read casket
+	cd curia && \
+	  $(RUNENV) ruby -w -Ilib rbcrtest misc casket
+	cd curia && rm -rf casket
+	cd villa && rm -rf casket
+	cd villa && \
+	  $(RUNENV) ruby -w -Ilib rbvltest write casket 10000
+	cd villa && \
+	  $(RUNENV) ruby -w -Ilib rbvltest read casket
+	cd villa && \
+	  $(RUNENV) ruby -w -Ilib rbvltest misc casket
+	cd villa && rm -rf casket
+	@printf '\n'
+	@printf '#================================================================\n'
+	@printf '# Checking completed.\n'
+	@printf '#================================================================\n'
+
+
+doc :
+	make docclean
+	$(RUNENV) ./myrbdoc -d rbapidoc -t "QDBM for Ruby" -a overview \
+	  depot/lib/depot.rb curia/lib/curia.rb villa/lib/villa.rb
+
+
+docclean :
+	rm -rf rbapidoc
+
+
+dist :
+	make doc
+	make distclean
+
+
+distclean : clean
+	rm -rf Makefile config.cache config.log config.status autom4te.cache
+
+
+.PHONY : all clean install check
+
+
+
+# END OF FILE

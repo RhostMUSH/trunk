@@ -1,0 +1,5 @@
+& help
+RhostMUSH		- The main RhostMUSH support site
+
+& rhostmush
+rhostmush.org 4201

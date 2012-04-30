@@ -1,0 +1,13 @@
+&help
+=======================================================================
+-=                        RhostMUSH News                             =-
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+-=-------------------------------------------------------------------=-
+-=-------------------------------------------------------------------=-
+-=  An interactive news system has been written to allow users to    =-
+-=  communicate with each other. This system is described in the     =-
+-=  help files which can be accessed by typing 'help news'.          =-
+-=  If you are receiving messages of the type 'News: ...' they are   =-
+-=  coming from this system and you should refer to the help files   =-
+-=  for more information.                                            =-
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

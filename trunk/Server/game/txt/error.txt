@@ -1,0 +1,6 @@
+& 0
+Huh?  (Type "help" for help.)
+& 1
+A great book falls into your lap.  Its titled 'help'.
+& 2
+Perhaps you need 'help'?

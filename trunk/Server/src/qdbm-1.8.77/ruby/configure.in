@@ -1,0 +1,42 @@
+# Source of configuration for Ruby interface of QDBM
+
+
+
+# Targets
+AC_INIT(qdbm-ruby, 1.0.0)
+
+# Building paths
+pathtmp="$PATH"
+PATH="$HOME/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+PATH="$PATH:/usr/ccs/bin:/usr/ucb:/usr/xpg4/bin:/usr/xpg6/bin:$pathtmp"
+LIBRARY_PATH="$HOME/lib:/usr/local/lib:$LIBRARY_PATH"
+LD_LIBRARY_PATH="$HOME/lib:/usr/local/lib:$LD_LIBRARY_PATH"
+CPATH="$HOME/include:/usr/local/include:$CPATH"
+export PATH LIBRARY_PATH LD_LIBRARY_PATH CPATH
+
+# Setting the default prefix
+if test "$prefix" = NONE
+then
+  prefix=`ruby -rrbconfig -e 'puts(Config::CONFIG.fetch("prefix"))'`
+fi
+
+# Duplication of QDBM for Ruby
+AC_CHECK_LIB(qdbm, main, true,
+  printf 'checking whether /usr/local/lib/libqdbm.* is... '
+  if ls /usr/local/lib/libqdbm.* > /dev/null 2>&1
+  then
+    printf 'yes\n'
+  else
+    printf 'no\n'
+    printf '#================================================================\n' 1>&2
+    printf '# WARNING: Install QDBM libraries before installation.\n' 1>&2
+    printf '#================================================================\n' 1>&2
+  fi
+)
+
+# Targets
+AC_OUTPUT(Makefile)
+
+
+
+# END OF FILE

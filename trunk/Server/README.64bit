@@ -1,0 +1,23 @@
+RhostMUSH automatically detects 64-bit platforms, and should compile
+cleanly on these.
+
+In case you are trying to compile Rhost on some other crazy-wide CPUs
+such as the PS2, PS3 or other 128 or 256 bit CPUs, you can easily do
+so by changing a few lines of code in conf.c.
+
+change:
+typedef unsigned int	pmath1;
+typedef int		pmath2;
+#define ALLIGN1 4
+
+
+to:
+typedef unsigned long	pmath1;
+typedef long		pmath2;
+#define ALLIGN1 8
+
+, replacing 8 with the size of your CPU's long integer. (4 for 32-bit,
+8 for 64-bit, 16 for 128-bit, etc etc)
+
+RhostMUSH has only been tested to work on the AMD64, but there is no
+reason to believe the same will not hold true for IA64.

@@ -1,0 +1,5 @@
+MANIFEST
+extconf.rb
+depot.rb
+mod_depot.c
+rbdptest
