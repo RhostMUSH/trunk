@@ -144,11 +144,14 @@ strip_safe_ansi(const char *raw)
 #endif 
            if ( isAnsi[(int) *(p+2)] ) {
               p+=3;
+              continue;
            }
-           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
-                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+           if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
+                (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
+              continue;
            }
+           *q++ = *p++;
         } else {
             *q++ = *p++;
         }
@@ -175,11 +178,14 @@ strip_all_special(const char *raw)
 #endif
            if ( isAnsi[(int) *(p+2)]) {
               p+=3; // strip safe ansi
+              continue;
            }
            if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
                 *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
+              continue;
            }
+           *q++ = *p++;
         } else if (*p == ESC_CHAR) {
             // Strip normal ansi
             while (*p && !isalpha((int)*p))
@@ -212,11 +218,14 @@ strip_all_ansi(const char *raw)
 #endif 
            if ( isAnsi[(int) *(p+2)] ) {
               p+=3; // strip safe ansi
+              continue;
            }
-           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
-                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+           if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
+                (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
+              continue;
            }
+           *q++ = *p++;
         } else if (*p == ESC_CHAR) {
             // Strip normal ansi
             while (*p && !isalpha((int)*p))

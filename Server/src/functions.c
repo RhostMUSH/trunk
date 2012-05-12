@@ -19600,11 +19600,14 @@ FUNCTION(fun_stripansi)
 #endif
            if ( isAnsi[(int) *(cp+2)] ) {
               cp+=3;
+              continue;
            }
            if ( (*(cp+2) == '0') && ((*(cp+3) == 'x') || (*(cp+3) == 'X')) &&
                 *(cp+4) && *(cp+5) && isxdigit(*(cp+4)) && isxdigit(*(cp+5)) ) {
               cp+=6;
+              continue;
            }
+           safe_chr(*cp++, buff, bufcx);
         } else {
             safe_chr(*cp++, buff, bufcx);
         }
