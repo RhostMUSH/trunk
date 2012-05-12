@@ -645,8 +645,11 @@ void parse_accents(char *string, char *buff, char **bufptr)
 // Change %c/%x substitutions into real ansi now.
 void parse_ansi(char *string, char *buff, char **bufptr)
 {
-    char *bufc;
+    char *bufc, s_twochar[3], s_final[80];
+    int i_tohex;
 
+    memset(s_twochar, '\0', sizeof(s_twochar));
+    memset(s_final, '\0', sizeof(s_final));
     bufc = *bufptr;
     while(*string && ((bufc - buff) < (LBUF_SIZE-10))) {
         if(*string == '\\') {
@@ -679,6 +682,40 @@ void parse_ansi(char *string, char *buff, char **bufptr)
                 switch (*++string) {
                 case '\0':
                     safe_chr(*string, buff, &bufc);
+                    break;
+                case '0': /* Do XTERM color here */
+                    switch ( *(string+1) ) {
+                       case 'X': /* Background color */
+                          if ( (*(string+2) && isxdigit(*(string+2))) && (*(string+3) && isxdigit(*(string+3))) ) {
+                             s_twochar[0]=*(string+2);
+                             s_twochar[1]=*(string+3);
+                             sscanf(s_twochar, "%x", &i_tohex);
+                             string+=3;
+                             sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
+                             safe_str(s_final, buff, &bufc);
+                             sprintf(s_final, "%dm", i_tohex);
+                          }
+                          break;
+                       case 'x': /* Foreground color */
+                          if ( (*(string+2) && isxdigit(*(string+2))) && (*(string+3) && isxdigit(*(string+3))) ) {
+                             s_twochar[0]=*(string+2);
+                             s_twochar[1]=*(string+3);
+                             sscanf(s_twochar, "%x", &i_tohex);
+                             sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
+                             string+=3;
+                             safe_str(s_final, buff, &bufc);
+                             sprintf(s_final, "%dm", i_tohex);
+                          }
+                          break;
+                       default:
+#ifdef TINY_SUB
+                          safe_str("%x", buff, &bufc);
+#else
+                          safe_str("%c", buff, &bufc);
+#endif
+                          safe_chr(*string, buff, &bufc);
+                          break;
+                    }  
                     break;
                 case 'n':
                     safe_str((char *) ANSI_NORMAL, buff, &bufc);

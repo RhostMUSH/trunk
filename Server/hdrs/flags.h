@@ -172,7 +172,7 @@
 #define BLIND           0x00100000      /* Exits and locations snuff arrived/left */
 #define NOCODE		0x00200000	/* Players may not code */
 #define HAS_PROTECT	0x00400000	/* Player target has protect name data */
-/* 0x00800000 free */
+#define XTERMCOLOR      0x00800000      /* Extended AnSI Xterm colors */
 /* 0x01000000 free */
 /* 0x02000000 free */
 /* 0x04000000 free */
@@ -795,6 +795,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Indestructable(x)	((Flags2(x) & INDESTRUCTABLE) != 0)
 #define ShowAnsi(x)	((Flags2(x) & ANSI) != 0)
 #define ShowAnsiColor(x)	((Flags2(x) & ANSICOLOR) != 0)
+#define ShowAnsiXterm(x)	((Flags4(x) & XTERMCOLOR) != 0)
 #define NoFlash(x)	((Flags2(x) & NOFLASH) != 0)
 #define NoUnderline(x)	((Flags4(x) & NOUNDERLINE) != 0)
 #define NoName(x)	((Flags4(x) & NONAME) != 0)

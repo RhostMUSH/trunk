@@ -138,13 +138,20 @@ strip_safe_ansi(const char *raw)
             p++;
 
 #ifdef TINY_SUB
-        if((*p == '%') && (*(p+1) == 'x') && isAnsi[(int) *(p+2)])
+        if( (*p == '%') && (*(p+1) == 'x') ) {
 #else
-        if((*p == '%') && (*(p+1) == 'c') && isAnsi[(int) *(p+2)])
-#endif
-            p+=3;
-        else
+        if( (*p == '%') && (*(p+1) == 'c') ) { 
+#endif 
+           if ( isAnsi[(int) *(p+2)] ) {
+              p+=3;
+           }
+           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+           }
+        } else {
             *q++ = *p++;
+        }
     }
     *q = '\0';
     RETURN(buf); /* #99 */
@@ -162,11 +169,17 @@ strip_all_special(const char *raw)
 
     while (p && *p) {
 #ifdef TINY_SUB
-        if((*p == '%') && (*(p+1) == 'x') && isAnsi[(int) *(p+2)]) {
+        if ( (*p == '%') && (*(p+1) == 'x') ) { 
 #else
-        if((*p == '%') && (*(p+1) == 'c') && isAnsi[(int) *(p+2)]) {
+        if(  (*p == '%') && (*(p+1) == 'c') ) {
 #endif
-            p+=3; // strip safe ansi
+           if ( isAnsi[(int) *(p+2)]) {
+              p+=3; // strip safe ansi
+           }
+           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+           }
         } else if (*p == ESC_CHAR) {
             // Strip normal ansi
             while (*p && !isalpha((int)*p))
@@ -175,8 +188,9 @@ strip_all_special(const char *raw)
                 p++;
         } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
            p+=3;
-        } else
+        } else {
             *q++ = *p++;
+        }
     }
     *q = '\0';
     RETURN(buf); /* #100 */
@@ -192,19 +206,26 @@ strip_all_ansi(const char *raw)
 
     while (p && *p) {
 #ifdef TINY_SUB
-        if((*p == '%') && (*(p+1) == 'x') && isAnsi[(int) *(p+2)]) {
+        if( (*p == '%') && (*(p+1) == 'x') ) { 
 #else
-        if((*p == '%') && (*(p+1) == 'c') && isAnsi[(int) *(p+2)]) {
-#endif
-            p+=3; // strip safe ansi
+        if( (*p == '%') && (*(p+1) == 'c') ) {
+#endif 
+           if ( isAnsi[(int) *(p+2)] ) {
+              p+=3; // strip safe ansi
+           }
+           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+           }
         } else if (*p == ESC_CHAR) {
             // Strip normal ansi
             while (*p && !isalpha((int)*p))
                 p++;
             if (*p)
                 p++;
-        } else
+        } else {
             *q++ = *p++;
+        }
     }
     *q = '\0';
     RETURN(buf); /* #100 */
@@ -293,19 +314,146 @@ strip_ansi_color(const char *raw)
     while (p && *p) {
 	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
-	} else
-	    /* We've got an ANSI code here */
-	    if (*(p + 1) && *(p + 2) && *(p + 3) && (*(p + 1) == '[') &&
-		(*(p + 3) == 'm')) {
-	    /* This code is ok to pass */
+	} else {
+	   /* We've got an ANSI code here */
+	   if (*(p + 1) && *(p + 2) && *(p + 3) && (*(p + 1) == '[') && (*(p + 3) == 'm')) {
+	       /* This code is ok to pass */
+	       *q++ = *p++;
+	   } else {
+	      /* Skip to end. */
+	      while (*p && !isalpha((int)*p))
+                 p++;
+                 if (*p)
+                    p++;
+           }
+        }
+    }
+    *q = '\0';
+    RETURN(buf); /* #104 */
+}
+
+char *ansi_translate_bg[256]={
+   ANSI_BBLACK, ANSI_BRED, ANSI_BGREEN, ANSI_BYELLOW, ANSI_BBLUE, ANSI_BMAGENTA, ANSI_BCYAN, ANSI_BWHITE,
+   ANSI_BBLACK, ANSI_BRED, ANSI_BGREEN, ANSI_BYELLOW, ANSI_BBLUE, ANSI_BMAGENTA, ANSI_BCYAN, ANSI_BWHITE,
+   ANSI_BBLACK, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BCYAN,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BBLUE,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BBLUE, ANSI_BBLUE,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN,
+   ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN,
+   ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN,
+   ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN,
+   ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BGREEN, ANSI_BCYAN,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BWHITE, ANSI_BWHITE, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW,
+   ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BGREEN, ANSI_BWHITE,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE,
+   ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED,
+   ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW,
+   ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BRED, ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE,
+   ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK,
+   ANSI_BBLACK, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE
+};
+
+char *ansi_translate_fg[256]={
+   ANSI_BLACK, ANSI_RED, ANSI_GREEN, ANSI_YELLOW, ANSI_BLUE, ANSI_MAGENTA, ANSI_CYAN, ANSI_WHITE,
+   ANSI_BLACK_H, ANSI_RED_H, ANSI_GREEN_H, ANSI_YELLOW_H, ANSI_BLUE_H, ANSI_MAGENTA_H, ANSI_CYAN_H, ANSI_WHITE_H,
+   ANSI_BLACK, ANSI_BLUE, ANSI_BLUE, ANSI_BLUE, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN, ANSI_CYAN,
+   ANSI_BLUE, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN_H, ANSI_GREEN, ANSI_CYAN, ANSI_BLUE_H,
+   ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_BLUE_H, ANSI_BLUE_H,
+   ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H,
+   ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_RED, ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H,
+   ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN, ANSI_GREEN, ANSI_CYAN, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_BLUE_H,
+   ANSI_GREEN, ANSI_GREEN, ANSI_GREEN, ANSI_CYAN, ANSI_CYAN, ANSI_BLUE_H, ANSI_GREEN_H, ANSI_GREEN,
+   ANSI_GREEN, ANSI_CYAN, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H,
+   ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H,
+   ANSI_RED, ANSI_RED, ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED, ANSI_RED,
+   ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW, ANSI_GREEN, ANSI_CYAN,
+   ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN, ANSI_GREEN, ANSI_GREEN, ANSI_CYAN, ANSI_CYAN_H, ANSI_CYAN_H,
+   ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H,
+   ANSI_GREEN_H, ANSI_GREEN_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_RED, ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H,
+   ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H,
+   ANSI_YELLOW, ANSI_YELLOW, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW,
+   ANSI_YELLOW, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_GREEN_H, ANSI_WHITE_H,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H,
+   ANSI_RED, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H,
+   ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW, ANSI_YELLOW, ANSI_MAGENTA_H,
+   ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW, ANSI_YELLOW_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H,
+   ANSI_YELLOW, ANSI_YELLOW, ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H,
+   ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_RED_H, ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H,
+   ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H,
+   ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW_H, ANSI_YELLOW_H,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H,
+   ANSI_BLACK, ANSI_BLACK, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H,
+   ANSI_BLACK_H, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H
+};
+
+static char *
+strip_ansi_xterm(const char *raw)
+{
+    static char buf[LBUF_SIZE];
+    char *p = (char *) raw;
+    char *q = buf;
+    char *r;
+    int i_val, i_chk, i_type, i_chk2;
+
+    DPUSH; /* #104 */
+
+    i_val = i_chk = i_type = 0;
+    r = NULL;
+
+    while (p && *p) {
+	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
 	} else {
-	    /* Skip to end. */
-	    while (*p && !isalpha((int)*p))
-		p++;
-	    if (*p)
-		p++;
-	}
+	    /* We've got an ANSI code here -- verify it's XTERM codes */
+            if ( (*(p+1) && (*(p+1) == '[')) && (*(p+2) && ((*(p+2) == '4') || (*(p+2) == '3'))) && (*(p+3) && (*(p+3) == '8')) ) {
+               if ( *(p+2) == '3' ) {
+                  i_type = 0;
+               } else {
+                  i_type = 1;
+               }
+               i_chk = 0;
+	       while (*p && !isalpha((int)*p)) {
+                  if ( *p == ';' )
+                     i_chk++;
+                  if ( i_chk == 2 ) {
+                     i_chk2 = -1;
+                     sscanf( p+1, "%d", &i_chk2);
+                     if ( (i_chk2 >= 0) && (i_chk2 < 256) ) {
+                        if ( i_type ) {
+                           r = ansi_translate_bg[i_chk2];
+                        } else {
+                           r = ansi_translate_fg[i_chk2];
+                        }
+                        while ( r && *r ) {
+	                   *q++ = *r++;
+                        }
+                     }
+                     i_chk++;
+                  }
+		  p++;
+               }
+               if ( *p )
+                  p++;
+            } else {
+	       *q++ = *p++;
+            }
+        }
     }
     *q = '\0';
     RETURN(buf); /* #104 */
@@ -1556,6 +1704,8 @@ queue_string(DESC * d, const char *s)
 	new = strip_ansi(s);
     else if (!ShowAnsiColor(d->player) && index(s, ESC_CHAR))
 	new = strip_ansi_color(s);
+    else if (!ShowAnsiXterm(d->player) && index(s, ESC_CHAR))
+        new = strip_ansi_xterm(s);
     else
 	new = (char *) s;
     if (NoFlash(d->player) && index(new, ESC_CHAR))
