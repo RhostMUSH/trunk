@@ -46,6 +46,7 @@ extern void NDECL(cf_init);
 extern void NDECL(pcache_init);
 extern int FDECL(cf_read, (char *fn));
 extern void NDECL(init_functab);
+extern void NDECL(init_ansitab);
 extern void FDECL(close_sockets, (int emergency, char *message));
 extern void NDECL(close_main_socket);
 extern void NDECL(init_version);
@@ -1864,6 +1865,7 @@ main(int argc, char *argv[])
     init_powertab();
     init_depowertab();
     init_functab();
+    init_ansitab();
     init_attrtab();
     init_version();
 #ifdef ENABLE_DOORS

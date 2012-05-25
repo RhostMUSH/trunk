@@ -7172,7 +7172,7 @@
   
   You need both the ANSI and ANSICOLOR flags to see ansi color.
   
-  See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH
+  See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
   
 & XTERMCOLOR
   Flag: XTERMCOLOR([t])
@@ -7183,7 +7183,7 @@
   
   You need all three flags:  ANSI, ANSICOLOR, and XTEMRCOLOR to see extended.
   
-  See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH
+  See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
 
 & XTERMCOLOR LIST
              256 Color suport list.  [ansi(fg-value/bg-value,string)]
@@ -7329,7 +7329,7 @@
   
   You need both the ANSI and ANSICOLOR flags to see ansi color.
   
-  See Also: ANSI, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH
+  See Also: ANSI, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
   
 & ANSINAMES
   An addition to the code allows you to have ansi colors on ALL data types.
@@ -8236,9 +8236,9 @@
  CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
  CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()   
  CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
- CLUSTER_XGET()       CMDS()             COLUMNS()          COMP()            
- CON()                CONFIG()           CONN()             CONTROLS()        
- CONVSECS()    
+ CLUSTER_XGET()       CMDS()             COLORS()           COLUMNS()        
+ COMP()               CON()              CONFIG()           CONN()           
+ CONTROLS()           CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -8366,7 +8366,7 @@
 & FUNCTION CLASSES
   Topic: FUNCTION CLASSES
    
-  Ansi:                 ANSI() STRIPANSI()
+  Ansi:                 ANSI() STRIPANSI() COLORS()
               See Also: help ansi functions
   
   Arithmetic:           ABS() ADD() AVG() BETWEEN() BOUND() DEC() DICE()
@@ -13219,6 +13219,32 @@ wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
       <* this is a|   test of|wrapcolumn*>
   
   See Also: columns(), wrap()
+  
+& COLORS()
+Function: colors([[<value>], [<key>]])
+ 
+  This function displays the pallet of colors available on the RhostMUSH.  This
+  function is only available if ZENTY_ANSI is enabled (@version shows '(A)').
+  The valid arguments are as follows.
+  
+  Valid optional <value> parameters:
+    0-2    - page value of the total list of colornames available. (0 default)
+    string - the string of the color name you wish to see the numerical value of.
+  
+  Valid <key> parameters:
+    d      - show the decimal value (0-255) of the XTERM specific color (default).
+    h      - show the hex value (0x00-0xFF) of the XTERM specific color.
+    c      - show the 16 color code translation of the XTERM specific color.
+  
+  Examples:
+    > say colors()
+    You say "aliceblue antiquewhite ... grey88"
+    > say colors(1)
+    You say "grey89 grey90 ... xterm43"
+    > say [colors(pink)] [colors(pink,h)] [colors(pink,c)]
+    You say "218 0xda wh"
+  
+  See Also: XTERMCOLOR, XTERMCOLOR LIST, ANSI()
   
 & COLUMNS()
 Function: columns()  Syntax follows:
@@ -18877,6 +18903,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     w - white foreground                W - white background
   
     0x<hex> -- example:  0xC4 for 256 color foreground support
+    +color  -- example:  +pink for the 256 color foreground 'pink'.
     /       -- foreground/background indicator -- required
      
   For example, "ansi(fc, Test)" would hilight "Test" in flashing cyan.
@@ -18897,7 +18924,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   the background color.  To make ansi() aware of this format, a '/' must
   be used for the color setting.  You may specify a foreground and 
   background at the same time such as ansi(120/200,string) or by  using
-  hex like ansi(0xca/0xab,string).  Hex is case-insensitive.
+  hex like ansi(0xca/0xab,string).  ansi(+colorname/+colorname) is allowed 
+  for foreground and background.  Hex is case-insensitive.
   
   There is also a substitution for colors.  This is '%c' and works just
   as '%n' would for your name.  %crred%cn is red, %c0x01red%cn is also red.
@@ -18913,6 +18941,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "I like <skyblue> rocks and <indianred> balloons"
     > say I like [ansi(0x26/,skyblue)] rocks and [ansi(0xcB/,indianred)] ballons.
     You say "I like <skyblue> rocks and <indianred> balloons"
+    > say I like [ansi(+skyblue/,skyblue)] [ansi(+indianred/,indianred)] ballons.
+    You say "I like <skyblue> <indianred> balloons"
   
   The words 'blue' and 'red' being their respected colors.  Any ansi
   sequence can be substituted this way (including flash), and will
@@ -18934,7 +18964,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   been reversed or not.
   
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, SUBSTITUTIONS,
-            XTERMCOLOR LIST
+            XTERMCOLOR LIST, COLORS()
   
 & STRIPANSI()
   Function: stripansi(<string>)
@@ -23423,6 +23453,7 @@ Mail: Done
       
   ansi()        - ANSI formats a string.
   stripansi()   - Strips ANSI characters from a string.
+  colors()      - List colors or optionally display value of color.
 
 & time functions
   Function Lists: Time Functions.
@@ -23693,6 +23724,7 @@ New Features
 * ee() for engineering notation of floating points [ASH]
 * Added native support for SQLITE [ASH] -- Thanks Ol'Sarge/Ternary
 * Added 256 color support to the internal markup translater [ASH]
+* colors() for color listing as well as numerical/hex display [ASH]
 
 
 Changes
