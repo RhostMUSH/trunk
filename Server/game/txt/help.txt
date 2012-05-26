@@ -13228,13 +13228,14 @@ Function: colors([[<value>], [<key>]])
   The valid arguments are as follows.
   
   Valid optional <value> parameters:
-    0-2    - page value of the total list of colornames available. (0 default)
-    string - the string of the color name you wish to see the numerical value of.
+    0-2     - page value of the total list of colornames available. (0 def)
+    string  - the string of the color name you wish to see the value of.
+    *wild*  - the list of colors that match the wildcard (* and ? accepted)
   
   Valid <key> parameters:
-    d      - show the decimal value (0-255) of the XTERM specific color (default).
-    h      - show the hex value (0x00-0xFF) of the XTERM specific color.
-    c      - show the 16 color code translation of the XTERM specific color.
+    d       - show the decimal value (0-255) of the XTERM specific color (def).
+    h       - show the hex value (0x00-0xFF) of the XTERM specific color.
+    c       - show the 16 color code translation of the XTERM specific color.
   
   Examples:
     > say colors()

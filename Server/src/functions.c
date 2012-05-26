@@ -20293,7 +20293,7 @@ FUNCTION(fun_colors)
 {
     PENNANSI *cm; 
     char *s_buff;
-    int i_first = 0, i_count = 0, i_val = 0, i_key = 0;
+    int i_first = 0, i_count = 0, i_val = 0, i_key = 0, i_iswild = 0 ;
      
     if (!fn_range_check("COLORS", nfargs, 1, 2, buff, bufcx))
        return;
@@ -20304,7 +20304,10 @@ FUNCTION(fun_colors)
        if ( *fargs[1] == 'c' )
           i_key = 2;
     }
-    if ( (nfargs > 0) && *fargs[0] ) {
+    if ( *fargs[0] && (strchr(fargs[0], '*') || strchr(fargs[0], '?')) ) {
+       i_iswild = 1;
+    }
+    if ( !i_iswild && (nfargs > 0) && *fargs[0] ) {
        if ( isalpha(*fargs[0]) ) {
           cm = (PENNANSI *)hashfind(fargs[0], &mudstate.ansi_htab);
           if ( cm ) {
@@ -20327,20 +20330,35 @@ FUNCTION(fun_colors)
        if ( i_val < 0 ) i_val = 0;
     }
     for (cm = penn_namecolors; cm->name; cm++) {
-       i_count++;
-       if ( i_count < ((i_val * 350) + 1) ) {
-          continue;
+       if ( i_iswild ) {
+          if ( quick_wild(fargs[0], cm->name) ) {
+             if ( i_first ) {
+                safe_chr(' ', buff, bufcx);
+             }
+             safe_str(cm->name, buff, bufcx);
+             i_first = 1;
+          }
+       } else {
+          i_count++;
+          if ( i_count < ((i_val * 350) + 1) ) {
+             continue;
+          }
+          if ( i_first ) {
+             safe_chr(' ', buff, bufcx);
+          }
+          i_first = 1;
+          safe_str(cm->name, buff, bufcx);
+          if (i_count >= ((i_val + 1) * 350) )
+             break;
        }
-       if ( i_first ) {
-          safe_chr(' ', buff, bufcx);
-       }
-       i_first = 1;
-       safe_str(cm->name, buff, bufcx);
-       if (i_count >= ((i_val + 1) * 350) )
-          break;
     }
-    if ( !i_first )
-       safe_str((char *)"#-1 NO VALUES FOR PAGE SPECIFIED", buff, bufcx);
+    if ( !i_first ) {
+       if ( i_iswild ) {
+          safe_str((char *)"#-1 NO MATCHING COLORS FOUND", buff, bufcx);
+       } else {
+          safe_str((char *)"#-1 NO VALUES FOR PAGE SPECIFIED", buff, bufcx);
+       }
+    }
 }
 
 FUNCTION(fun_ansi)
@@ -20520,6 +20538,11 @@ FUNCTION(fun_ansi)
     }
 }
 #else
+
+FUNCTION(fun_colors)
+{
+   safe_str("#-1 FUNCTION NOT AVAILABLE WITHOUT ZENTY-ANSI ENABLED", buff, bufcx);
+}
 
 FUNCTION(fun_ansi)
 {
@@ -24798,9 +24821,7 @@ FUN flist[] =
     {"CLUSTER_WIPE", fun_cluster_wipe, 1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"CLUSTER_XGET", fun_cluster_xget, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CMDS", fun_cmds, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-#ifdef ZENTY_ANSI
     {"COLORS", fun_colors, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-#endif
     {"COLUMNS", fun_columns, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"COMP", fun_comp, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CON", fun_con, 1, 0, CA_PUBLIC, CA_NO_CODE},
