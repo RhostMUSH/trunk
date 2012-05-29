@@ -772,9 +772,6 @@ BADNAME	*bp, *backp;
 int protectname_check ( char *protect_name, dbref checker, int key ) {
    PROTECTNAME *bp;
 
-   if ( Immortal(checker) && !key )
-      return 1;
-
    for ( bp=mudstate.protectname_head; bp; bp=bp->next) {
       if ( quick_wild(bp->name, protect_name) ) {
          if ( !key && (bp->i_name == checker) ) {
@@ -783,6 +780,8 @@ int protectname_check ( char *protect_name, dbref checker, int key ) {
             else
                return 1;
          } else {
+            if ( Immortal(checker) && !key )
+               return 1;
             return 0;
          }
       }
