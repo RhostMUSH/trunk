@@ -8479,6 +8479,8 @@ void do_protect(dbref player, dbref cause, int key, char *name)
             notify(player, unsafe_tprintf("The name '%s' is already marked as an alias.", name));
          } else if ( i_return == -3 ) {
             notify(player, unsafe_tprintf("The name '%s' is already set in your @alias attribute.", name));
+         } else if ( i_return == -5 ) {
+            notify(player, unsafe_tprintf("The name '%s' is their current active name.  Can not alias.", name));
          } else if ( i_return == -4 ) {
             p_lookup = (int)hashfind(name, &mudstate.player_htab);
             if ( p_lookup == player ) {

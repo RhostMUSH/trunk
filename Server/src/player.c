@@ -709,11 +709,12 @@ dbref protectname_unalias (char *protect_name, dbref player)
                bp->i_key=0;
                return target;
             } else {
-               tp = temp = alloc_lbuf("protectname_alias");
+               tp = temp = alloc_lbuf("protectname_unalias");
                safe_str(bp->name, temp, &tp);
 	       for (tp=temp; *tp; tp++)
 		   *tp = ToLower((int)*tp);
 	       p = (int)hashfind(temp, &mudstate.player_htab);
+               free_lbuf(temp);
                if ( p == target ) {
                   delete_player_name(target, bp->name);
                   return -5;
@@ -738,8 +739,11 @@ dbref protectname_alias (char *protect_name, dbref player)
       if ( Wizard(player) || (bp->i_name == player) ) {
          if ( !string_compare( protect_name, bp->name ) ) {
             target = bp->i_name;
+            if ( !string_compare(protect_name, Name(target)) ) {
+               return -5;
+            }
             s_alias = atr_get(bp->i_name, A_ALIAS, &aowner, &aflags);
-            if ( !string_compare( protect_name, s_alias ) ) {
+            if ( !string_compare(protect_name, s_alias) ) {
                free_lbuf(s_alias);
                return -3;
             }
