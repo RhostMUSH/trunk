@@ -1773,7 +1773,6 @@ NDECL(process_preload)
                      *s_matchstr = '\0';
                      i_matchint = atoi(s_matchstr+1);
                      if ( (i_matchint == 1) ) {
-                        add_player_name(thing, s_strtok);
                         protectname_add(s_strtok, thing);
                         protectname_alias(s_strtok, thing);
                      }
