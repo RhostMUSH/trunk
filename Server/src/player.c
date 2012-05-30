@@ -720,9 +720,9 @@ dbref protectname_unalias (char *protect_name, dbref player)
 dbref protectname_alias (char *protect_name, dbref player)
 {
    PROTECTNAME *bp, *backp;
-   dbref target, aowner;
+   dbref target, aowner, p;
    int aflags;
-   char *s_alias;
+   char *s_alias, *tp, *temp;
 
    backp = NULL;
    for ( bp=mudstate.protectname_head; bp; backp=bp, bp=bp->next ) {
@@ -736,9 +736,19 @@ dbref protectname_alias (char *protect_name, dbref player)
             }
             free_lbuf(s_alias);
             if ( !bp->i_key ) {
-               add_player_name(target, bp->name);
-               bp->i_key=1;
-               return target;
+               tp = temp = alloc_lbuf("protectname_alias");
+               safe_str(bp->name, temp, &tp);
+	       for (tp=temp; *tp; tp++)
+		   *tp = ToLower((int)*tp);
+	       p = (int)hashfind(temp, &mudstate.player_htab);
+               free_lbuf(temp);
+               if ( !p ) {
+                  add_player_name(target, bp->name);
+                  bp->i_key=1;
+                  return target;
+               } else {
+                  return -4;
+               }
             } else {
                return -2;
             }

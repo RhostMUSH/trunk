@@ -23750,6 +23750,7 @@ Changes
 * ljust()/rjust() handles multi-character filler [ASH]
 * ansi() takes FG/BG arguments (1-255). e.g. ansi(100/200,string) [ASH]
 * %c/%x substitutions take 1-255 ansi subs via %c0x##%cn (ergo: hex) [ASH]
+* better sanitization for @Protect with a built-in way to fix aliases [ASH]
 
 Bug Fixes
 ---------

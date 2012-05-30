@@ -6588,8 +6588,12 @@ list_hashstats(dbref player)
     list_hashstat(player, "News topics", &mudstate.news_htab);
     list_hashstat(player, "Help topics", &mudstate.help_htab);
     list_hashstat(player, "Wizhelp topics", &mudstate.wizhelp_htab);
+    list_hashstat(player, "Error topics", &mudstate.error_htab);
 #ifdef PLUSHELP
     list_hashstat(player, "PlusHelp topics", &mudstate.plushelp_htab);
+#endif
+#ifdef ZENTY_ANSI
+    list_hashstat(player, "256 ANSI Colors", &mudstate.ansi_htab);
 #endif
     list_vhashstats(player);
     DPOP; /* #51 */
@@ -8417,7 +8421,7 @@ void show_hook(char *bf, char *bfptr, int key)
 void do_protect(dbref player, dbref cause, int key, char *name)
 {
    int i_first;
-   dbref i_return, target;
+   dbref i_return, target, p_lookup;
    char *s_protect_buff, *s_protect_ptr;
    PROTECTNAME *bp;
 
@@ -8475,6 +8479,27 @@ void do_protect(dbref player, dbref cause, int key, char *name)
             notify(player, unsafe_tprintf("The name '%s' is already marked as an alias.", name));
          } else if ( i_return == -3 ) {
             notify(player, unsafe_tprintf("The name '%s' is already set in your @alias attribute.", name));
+         } else if ( i_return == -4 ) {
+            p_lookup = (int)hashfind(name, &mudstate.player_htab);
+            if ( p_lookup == player ) {
+               notify(player, unsafe_tprintf("Somehow, the name '%s' has been aliased but is not marked as such.  Fixing.", name, p_lookup));
+               delete_player_name(player, name);
+               i_return = protectname_alias(name, player);
+               for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
+                  if ( bp->i_name == i_return ) {
+                     if ( i_first )
+                        safe_chr('\t', s_protect_buff, &s_protect_ptr);
+                     i_first=1;
+                     safe_str(bp->name, s_protect_buff, &s_protect_ptr);
+                     if ( bp->i_key )
+                        safe_str(":1", s_protect_buff, &s_protect_ptr);
+                  }
+               }
+               if ( Good_chk(i_return) )
+                  atr_add(i_return, A_PROTECTNAME, s_protect_buff, i_return, 0);
+            } else {
+               notify(player, unsafe_tprintf("Somehow, the name '%s' has been aliased by someone else [#%d].", name, p_lookup));
+            }
          } else {
             notify(player, unsafe_tprintf("You have successfully activated '%s' as an alias.", name));
             for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
