@@ -8526,6 +8526,8 @@ void do_protect(dbref player, dbref cause, int key, char *name)
             notify(player, unsafe_tprintf("The name '%s' is their current active name.  Can not unalias.", name));
          } else if ( i_return == -4 ) {
             notify(player, unsafe_tprintf("The name '%s' is their current @alias attribute.  Can not unalias.", name));
+         } else if ( i_return == -5 ) {
+            notify(player, unsafe_tprintf("The name '%s' is already unmarked from being an alias, but was still hashed as an alias.  Fixed.", name));
          } else {
             notify(player, unsafe_tprintf("You have successfully de-activated '%s' as an alias.", name));
             for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
