@@ -20440,6 +20440,32 @@ FUNCTION(fun_ansi)
               safe_str(t_buff2, buff, bufcx);
            }
            free_lbuf(t_buff2);
+        } else if ( t_buff[0] == '+' ) {
+           memset(t_buff3, 0, sizeof(t_buff3));
+           t = t_buff3;
+           u = t_buff+1;
+           while ( *u && (*u != '/') ) {
+              *t = *u;
+              t++;
+              u++;
+           }
+           cm = (PENNANSI *)NULL;
+           if ( *t_buff3 ) {
+              cm = (PENNANSI *)hashfind(t_buff3, &mudstate.ansi_htab);
+           }
+           if ( cm ) {
+              i_fgcolor = cm->i_xterm;
+              t_buff2 = alloc_lbuf("fun_ansi");
+              if ( (i_fgcolor >= 0) && (i_fgcolor < 256) ) {
+#ifdef TINY_SUB
+                 sprintf(t_buff2, "%%x0x%02x", i_fgcolor);
+#else
+                 sprintf(t_buff2, "%%c0x%02x", i_fgcolor);
+#endif
+                 safe_str(t_buff2, buff, bufcx);
+              }
+              free_lbuf(t_buff2);
+           }
         } else {
            while (*s) {
               switch (*s) {
