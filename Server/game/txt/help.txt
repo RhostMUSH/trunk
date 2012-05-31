@@ -22,7 +22,7 @@
   
   If there are any errors in the help text, please notify a Wizard.
   An HTML version of all the help contained here is available at
-  http://rhost.blueaether.com/autohelp/help.html
+  http://rhostmush.com/autohelp/help.html
   
 & +help
   If enabled (please check @list options), this will work just like normal
