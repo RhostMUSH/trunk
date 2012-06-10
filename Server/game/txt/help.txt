@@ -23764,3 +23764,4 @@ Bug Fixes
 * NO_CODE broke global_error_obj if enabled.  Fixed [ASH]
 * regexp issue with command  matching and parenthesis and backslashes [ASH]
 * Immortals were not able to re-@name themselves to a protected name [ASH]
+* @include didn't evaluate %0 args passed to it [ASH]

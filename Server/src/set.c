@@ -1899,7 +1899,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
    while (buff1ptr && !mudstate.breakst) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
-         process_command(player, cause, 1, cp, s_buff, 10, InProgram(player));
+         process_command(player, cause, 0, cp, s_buff, 10, InProgram(player));
       }
    }
    free_lbuf(buff1);
