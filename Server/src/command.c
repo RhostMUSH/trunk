@@ -1068,7 +1068,7 @@ CMDENT command_table[] =
     {(char *) "@icmd", icmd_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP | CS_ARGV, 0, do_icmd},
     {(char *) "@include", include_sw, CA_GBL_INTERP, CA_NO_CODE,
-     0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND,
+     0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_STRIP_AROUND,
      0, do_include},
     {(char *) "@kick", kick_sw, CA_WIZARD, 0,
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
