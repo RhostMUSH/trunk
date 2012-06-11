@@ -686,9 +686,9 @@ dbref protectname_remove (char *protect_name, dbref player)
 dbref protectname_unalias (char *protect_name, dbref player)
 {
    PROTECTNAME *bp, *backp;
-   dbref target, aowner;
+   dbref target, aowner, p;
    int aflags;
-   char *s_alias;
+   char *s_alias, *tp, *temp;
 
    backp = NULL;
    for ( bp=mudstate.protectname_head; bp; backp=bp, bp=bp->next ) {
@@ -709,6 +709,16 @@ dbref protectname_unalias (char *protect_name, dbref player)
                bp->i_key=0;
                return target;
             } else {
+               tp = temp = alloc_lbuf("protectname_unalias");
+               safe_str(bp->name, temp, &tp);
+	       for (tp=temp; *tp; tp++)
+		   *tp = ToLower((int)*tp);
+	       p = (int)hashfind(temp, &mudstate.player_htab);
+               free_lbuf(temp);
+               if ( p == target ) {
+                  delete_player_name(target, bp->name);
+                  return -5;
+               }
                return -2;
             }
          }
@@ -720,25 +730,38 @@ dbref protectname_unalias (char *protect_name, dbref player)
 dbref protectname_alias (char *protect_name, dbref player)
 {
    PROTECTNAME *bp, *backp;
-   dbref target, aowner;
+   dbref target, aowner, p;
    int aflags;
-   char *s_alias;
+   char *s_alias, *tp, *temp;
 
    backp = NULL;
    for ( bp=mudstate.protectname_head; bp; backp=bp, bp=bp->next ) {
       if ( Wizard(player) || (bp->i_name == player) ) {
          if ( !string_compare( protect_name, bp->name ) ) {
             target = bp->i_name;
+            if ( !string_compare(protect_name, Name(target)) ) {
+               return -5;
+            }
             s_alias = atr_get(bp->i_name, A_ALIAS, &aowner, &aflags);
-            if ( !string_compare( protect_name, s_alias ) ) {
+            if ( !string_compare(protect_name, s_alias) ) {
                free_lbuf(s_alias);
                return -3;
             }
             free_lbuf(s_alias);
             if ( !bp->i_key ) {
-               add_player_name(target, bp->name);
-               bp->i_key=1;
-               return target;
+               tp = temp = alloc_lbuf("protectname_alias");
+               safe_str(bp->name, temp, &tp);
+	       for (tp=temp; *tp; tp++)
+		   *tp = ToLower((int)*tp);
+	       p = (int)hashfind(temp, &mudstate.player_htab);
+               free_lbuf(temp);
+               if ( !p ) {
+                  add_player_name(target, bp->name);
+                  bp->i_key=1;
+                  return target;
+               } else {
+                  return -4;
+               }
             } else {
                return -2;
             }
@@ -772,9 +795,6 @@ BADNAME	*bp, *backp;
 int protectname_check ( char *protect_name, dbref checker, int key ) {
    PROTECTNAME *bp;
 
-   if ( Immortal(checker) && !key )
-      return 1;
-
    for ( bp=mudstate.protectname_head; bp; bp=bp->next) {
       if ( quick_wild(bp->name, protect_name) ) {
          if ( !key && (bp->i_name == checker) ) {
@@ -783,6 +803,8 @@ int protectname_check ( char *protect_name, dbref checker, int key ) {
             else
                return 1;
          } else {
+            if ( Immortal(checker) && !key )
+               return 1;
             return 0;
          }
       }

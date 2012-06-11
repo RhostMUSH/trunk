@@ -897,6 +897,7 @@ FLAGENT gen_flags[] =
   {"SPAMMONITOR", SPAMMONITOR, 'w', FLAG4, CA_IMMORTAL, 0, 0, fh_immortal_bit},
   {"ZONEPARENT", ZONEPARENT, 'y', FLAG4, 0, 0, 0, fh_any},
   {"HAS_PROTECT", HAS_PROTECT, '+', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, fh_god},
+  {"XTERMCOLOR", XTERMCOLOR, 't', FLAG4, 0, 0, 0, fh_any},
   {"", 0, ' ', 0, 0, 0, 0, NULL}
 };
 

@@ -216,7 +216,8 @@ info() {
             echo "RhostMUSH, by default, have u(), ufun(), and zfun() functions parse by"
             echo "relation of the enactor instead of by relation of the target.  This is"
             echo "more MUSE compatable than MUSH.  If you wish to have it more compatable"
-            echo "to MUX/TinyMUSH/Penn, then you need this enabled."
+            echo "to MUX/TinyMUSH/Penn, then you need this enabled.  Keep in mind, turning"
+            echo "off this compatibility WILL BREAK MUX/PENN/MUSH COMPATIBILITY!"
          fi
          ;;
       3) if [ $BETAOPT -eq 1 ]

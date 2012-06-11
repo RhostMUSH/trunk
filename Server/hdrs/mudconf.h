@@ -576,6 +576,7 @@ struct statedata {
 	HASHTAB	help_htab;	/* Help topics hashtable */
 	HASHTAB	wizhelp_htab;	/* Wizard help topics hashtable */
 	HASHTAB error_htab;
+        HASHTAB ansi_htab;	/* 256 colortab */
 #ifdef PLUSHELP
 	HASHTAB	plushelp_htab;	/* PlusHelp topics hashtable */
 #endif
