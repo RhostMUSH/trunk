@@ -23592,11 +23592,12 @@ ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
 SEA - Seawolf
  
-Current Revision: 3.9.2p1
+Current Revision: 3.9.3p0
 
 Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
+  3.9.3: 3.9.3p0
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -23647,9 +23648,6 @@ New Features
 * @blacklist for adding blacklisted specific IP addresses (like TOR) [ASH]
 * cluster_wipe() added to mimic @cluster/wipe [ASH]
 * chktrace() to check what stage of tracing the parser is at [ASH]
-* @include for content inclusion ala PennMUSH [ASH]
-* @sudo for command processing [ASH]
-* @skip for command processing [ASH]
 * privatize() for making local functions (ulocal/localize/etc) null regs [ASH]
 
 Changes
@@ -23678,12 +23676,6 @@ Changes
 * Error entries (in error.txt) starting with '!' are evaluated [ASH]
 * map() handles multicharacter output delimiter [ASH]
 * switch_search admin param to switch search and searchng [ASH]
-* printf() has : for filler character [ASH]
-* added mux_lcon_compat to enforce lcon() returns empty string [ASH]
-* setq()/setr() now understand '+' for dynamic named variables [ASH]
-* /PROTECT switch to @function for tagging of deleting regs [ASH]
-* map() delimiter is controlled by a config param map_space_delim [ASH]
-* @function now allows /min and /max for user-defined functions [ASH]
 
 Bug Fixes
 ---------
@@ -23705,6 +23697,28 @@ Bug Fixes
 * cleanup of missing elements in help.txt
 * possible missed LBUF_FREE in notify code on extremely rare conditions [ASH]
 * Double pass on @protect [ASH]
+
+& 3.9.2p0
+Release Date: 12/01/10
+Status: Alpha
+  
+New Features
+------------
+* @include for content inclusion ala PennMUSH [ASH]
+* @sudo for command processing [ASH]
+* @skip for command processing [ASH]
+
+Changes
+-------
+* printf() has : for filler character [ASH]
+* added mux_lcon_compat to enforce lcon() returns empty string [ASH]
+* setq()/setr() now understand '+' for dynamic named variables [ASH]
+* /PROTECT switch to @function for tagging of deleting regs [ASH]
+* map() delimiter is controlled by a config param map_space_delim [ASH]
+* @function now allows /min and /max for user-defined functions [ASH]
+
+Bug Fixes
+---------
 * MySQL 3rd party patch corrupted the LBUF stack.  While we do not officially
   support the MySQL patch, it was fixed nevertheless [ASH]
 * Backing out new code could cause internal attributes to be redefined. [ASH]
@@ -23713,7 +23727,7 @@ Bug Fixes
 * @skip didn't evaluate properly [ASH]
 
 & 3.9.2p1
-Release 09/30/2011
+Release 10/30/2011
 Status: Alpha
 
 New Features
@@ -23723,11 +23737,7 @@ New Features
 * chkgarbage() function to check if target is GOING [ASH]
 * lookup_site() to see the real in-use SITE of a port [ASH]
 * ee() for engineering notation of floating points [ASH]
-* Added native support for SQLITE [ASH] -- Thanks Ol'Sarge/Ternary
-* Added 256 color support to the internal markup translater [ASH]
-* colors() for color listing as well as numerical/hex display [ASH]
-
-
+  
 Changes
 -------
 * singletime() now handles (w)eeks, (M)onths, and (y)ears like MUX [ASH]
@@ -23744,14 +23754,7 @@ Changes
 * replace() handles multiple arguments [ASH]
 * ifelse() handles %$ [ASH]
 * objeval() with third arg to bypass NO_CODE flag [ASH]
-* BOUNCEFORWARD/BOUNCE now redirects TRACE [ASH]
-* pack()/unpack() optionally handles Penn's 64 bit compression [ASH]
-* creplace() handles optional range value [ASH]
-* ljust()/rjust() handles multi-character filler [ASH]
-* ansi() takes FG/BG arguments (1-255). e.g. ansi(100/200,string) [ASH]
-* %c/%x substitutions take 1-255 ansi subs via %c0x##%cn (ergo: hex) [ASH]
-* better sanitization for @Protect with a built-in way to fix aliases [ASH]
-
+  
 Bug Fixes
 ---------
 * @assert/@break didn't handle {}'s for multiple args [ASH]
@@ -23761,7 +23764,44 @@ Bug Fixes
 * @include didn't properly evaluate arguments [ASH]
 * elapsed time in time fields in timefmt() broke with negative numbers [ASH]
 * CPUTIME didn't report CPU seconds correctly in 64 bit platforfms [ASH]
+
+& 3.9.3p0
+Release Date: 05/30/12
+Status: Alpha
+  
+New Features
+------------
+* Added native support for SQLITE [ASH] -- Thanks Ol'Sarge/Ternary
+* Added 256 color support to the internal markup translater [ASH]
+* colors() for color listing as well as numerical/hex display [ASH]
+  
+Changes
+-------
+* BOUNCEFORWARD/BOUNCE now redirects TRACE [ASH]
+* pack()/unpack() optionally handles Penn's 64 bit compression [ASH]
+* creplace() handles optional range value [ASH]
+* ljust()/rjust() handles multi-character filler [ASH]
+* ansi() takes FG/BG arguments (1-255). e.g. ansi(100/200,string) [ASH]
+* %c/%x substitutions take 1-255 ansi subs via %c0x##%cn (ergo: hex) [ASH]
+* better sanitization for @Protect with a built-in way to fix aliases [ASH]
+  
+Bug Fixes
+---------
 * NO_CODE broke global_error_obj if enabled.  Fixed [ASH]
 * regexp issue with command  matching and parenthesis and backslashes [ASH]
 * Immortals were not able to re-@name themselves to a protected name [ASH]
 * @include didn't evaluate %0 args passed to it [ASH]
+
+& 3.9.3p1
+Release Date: 06/20/12
+Status: Alpha
+
+New Features
+------------
+  
+Changes
+-------
+
+Bug Fixes
+---------
+* the asksource.sh script broke on ubuntu because it didn't have slocate
