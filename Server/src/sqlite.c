@@ -45,6 +45,11 @@ FUNCTION(local_fun_sqlite_query)
    unsigned int i, rVal, firstA=1, firstB=1, argIdx, argCount;
    char colDelimit[LBUF_SIZE], rowDelimit[LBUF_SIZE];
 
+   if ( mudstate.heavy_cpu_lockdown == 1 ) {
+      safe_str("#-1 FUNCTION HAS BEEN LOCKED DOWN FOR HEAVY CPU USE.", buff, bufcx);
+      return;
+   }
+
    if( nfargs < 2 ) {
       safe_str( "#-1 FUNCTION (sqlite_query) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx );
       ival( buff, bufcx, nfargs );
@@ -52,6 +57,17 @@ FUNCTION(local_fun_sqlite_query)
       return;
    }
 
+   if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + mudconf.cputimechk) ) {
+      safe_str("#-1 HEAVY CPU LIMIT ON PROTECTED FUNCTION EXCEEDED", buff, bufcx);
+      mudstate.chkcpu_toggle = 1;
+      mudstate.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
+      if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + (mudconf.cputimechk * 3)) ) {
+         mudstate.heavy_cpu_lockdown = 1;
+      }
+      return;
+   }
+
+   mudstate.heavy_cpu_tmark2 = time(NULL);
 #ifdef DEBUG_SQLITE
    printf( "Construct file paths..\n" );
 #endif

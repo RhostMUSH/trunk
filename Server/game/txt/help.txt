@@ -935,9 +935,13 @@
   See Also: look, smell, touch, listen, @staste, @sataste, @sotaste
   
 & think
-  Command: think <string>
+  Command: think[/<swiches>] <string>
   Returns the string to the enactor at the permission level of the enactor.
   This works just as @pemit me=<string> would work.
+  
+  The following switches are available:
+     /noansi   - Show the string literally and don't process ansi.  Only
+                 useful with ZENTY_ANSI enabled (at compiletime).
     
   See Also: @pemit, @emit, say, pose
  
@@ -1628,12 +1632,16 @@
   Displays <message> to everyone in your current room, preceded by your name
   and optionally a space.  Example: the command 'pose jumps for joy' produces
   '<yourname> jumps for joy'.
- 
+  
+  No switches are available for the ':' or ';' shorthands.
+   
   The following switches are available:
      /default - (default) Put a space between your name and the message
                 (IE, display '<name> <message>').
      /nospace - Don't put a space between your name and the message
                 (IE, display '<name><message>').
+     /noansi   - Show the string literally and don't process ansi.  Only
+                 useful with ZENTY_ANSI enabled (at compiletime).
  
   See Also: page, say, whisper, :, ;, "
   
@@ -1707,9 +1715,13 @@
   See Also: @emit, @oemit, NOSPOOF
   
 & say
-  Command: say <message>
+  Command: say[/<switches>] <message>
   Says <message> out loud to everyone in your current room. You can also
-  use '"<message>'.
+  use '"<message>'.  No switches are allowed with the '"' shorthand.
+  
+  The following switches exist for the say command:
+    /noansi    - Show the string literally and don't process ansi.  Only
+                 useful with ZENTY_ANSI enabled (at compiletime).
   
   See Also: page, pose, whisper, :, ;, ", @saystring
   
@@ -1936,6 +1948,10 @@
   However, if a zero number is passed to this command.  The processing
   of the command stops there and no further processing is done.
   
+  Available Switches:
+    /queued -- process the <commands(s)> by queuing them (default).
+    /inline -- process the <commands(s)> inline and do not queue them.
+  
   This works opposite of @break.
   
   Example:
@@ -1951,7 +1967,7 @@
   See Also: $-COMMAND, @@, @break, @skip
 
 & @break
-  Command: @break <value> [=<command(s)>]
+  Command: @break[/switch] <value> [=<command(s)>]
   
   The @break command is used to optionally break out of any processing of
   commands.  The possible values to pass to it are zero (0) or non-zero
@@ -1959,6 +1975,10 @@
   then it treats it as a NOOP and continues processing as if nothing occurred.
   However, if a non-zero number is passed to this command.  The processing
   of the command stops there and no further processing is done.
+  
+  Available Switches:
+    /queued -- process the <commands(s)> by queuing them (default).
+    /inline -- process the <commands(s)> inline and do not queue them.
   
   Example:
     > @create obj
@@ -2510,16 +2530,19 @@
   that contains the object you are inside with the /room switch.
  
   The following switches are available:
-     /here  - Sends the message to everyone in the same location as you.
-     /room  - Sends the message to everyone in the room that contains the
-             object you are in.  Starting from your location, this switch
-             'leaves' objects until it reaches a room, and @emits the message
-             there.
-     /sub   - Substitute '##' in the string for the target's dbref#.  Note,
-              that iter(), parse() or any function that also handles ## will
-              handle it prior to @emit.
-  If both switches are specified, the message is sent to both places.  If
-  neither is specified, /here is assumed.
+     /here   - Sends the message to everyone in the same location as you.
+     /room   - Sends the message to everyone in the room that contains the
+               object you are in.  Starting from your location, this switch
+               'leaves' objects until it reaches a room, and @emits the message
+               there.
+     /sub    - Substitute '##' in the string for the target's dbref#.  Note,
+               that iter(), parse() or any function that also handles ## will
+               handle it prior to @emit.
+     /noansi - Show the string literally and don't process ansi.  Only
+               useful with ZENTY_ANSI enabled (at compiletime).
+  
+  If both /here and /room switches are specified, the message is sent to both 
+  places.  If neither is specified, /here is assumed.
  
   Some MUSHes may restrict the use of this command.
   
@@ -2551,17 +2574,19 @@
   flag set and the object performing the @force does not.
  
   The following switches are available:
-     /here  - Sends the message to everyone in the same location as <object>.
-     /room  - Sends the message to everyone in the room that contains the
-              object that <object> is in.  Starting from your location, this
-              switch 'leaves' objects until it reaches a room, and @emits the
-              message there.
-  
-  If both switches are specified, the message is sent to both places.  If
-  neither is specified, /here is assumed.
- 
+     /here   - Sends the message to everyone in the same location as <object>.
+     /room   - Sends the message to everyone in the room that contains the
+               object that <object> is in.  Starting from your location, this
+               switch 'leaves' objects until it reaches a room, and @emits the
+               message there.
+     /noansi - Show the string literally and don't process ansi.  Only
+               useful with ZENTY_ANSI enabled (at compiletime).
+    
+  If both /here and /room switches are specified, the message is sent to both 
+  places.  If neither is specified, /here is assumed.
+   
   Some MUSHes may restrict the use of this command.
-  
+    
   See Also: @emit, @fpose, @fsay, INHERIT, SPOOFING
   
 & @find
@@ -2764,6 +2789,7 @@
          help mail lock   - help on how to set a mail lock.
          help @lock keys  - list of valid keys you can use in @locking.
          help @lock locks - list of available locks you can @lock.
+         help @lock type <lock> - give detailed help on the specific lock.
   
   See Also: @chown, @unlock
   
@@ -7408,14 +7434,17 @@
   
 & TERSE
   Flag: TERSE(t)
- 
+   
   If you are set TERSE then you are not shown the description, success/failure
   messages, contents, or exits of locations you enter.  You must use the LOOK
   or EXAMINE commands to see this information.
- 
+   
   Others in the location still get the osucc/ofail messages and the asucc or
   afail command list is still run.
- 
+  
+  If this is set on a ROOM, then the room will behave as if the person 
+  entering is set TERSE.
+   
   See Also: examine, look, MYOPIC
   
 & ROBOT
@@ -18555,12 +18584,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: setq_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
   
 & TRIM()
-  Function: trim(<string> [,<trim style> [,<trim character>]])
+  Function: trim(<string> [,<trim style> [,<trim character(s)>]])
  
   This function will trim trailing and/or lead characters on the string
   that you specify.  <trim character> specifies the character to trim (default
   is space), and <trim style> tells the kind of trimming to perform (default
-  is trim both sides of the string).
+  is trim both sides of the string).  You may specify more than one character
+  for trimming.
  
   The following values for <trim style> are recognized:
       'b' :   Trim both ends of the string (default)
@@ -23597,7 +23627,7 @@ Current Revision: 3.9.3p0
 Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
-  3.9.3: 3.9.3p0
+  3.9.3: 3.9.3p0, 3.9.3p1
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -23798,9 +23828,22 @@ Status: Alpha
 
 New Features
 ------------
+* added nslookup() for immortals with proper CPU/delay protection [ASH]
+* added room_toggles for default toggles for room creation [ASH]
+* added exit_toggles for default toggles for exit creation [ASH]
+* added robot_toggles for default toggles for @robot creation [ASH]
+* added player_toggles for default toggles for player creation [ASH]
+* added thing_toggles for default toggles for object creation [ASH]
+* added @list default_toggles to show the above default toggles [ASH]
   
 Changes
 -------
+* TERSE flag works on ROOMS [ASH]
+* @break and @assert have /queued and /inline switches [ASH]
+* trim() allows trimming multiple characters [ASH]
+* think, @emit, @oemit, pose, and say understand the /noansi switch [ASH]
+* The basic @ansiname allows 256 colors now via 0x## or 0X## [ASH]
+* made @list default_flags no longer worthless [ASH]
 
 Bug Fixes
 ---------

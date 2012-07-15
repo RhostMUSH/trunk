@@ -1970,16 +1970,22 @@ has_flag(dbref player, dbref it, char *flagname)
  */
 
 char *
-flag_description(dbref player, dbref target, int test)
+flag_description(dbref player, dbref target, int test, int *vp, int i_type)
 {
     char *buff, *bp;
-    FLAGENT *fp;
+    FLAGENT *fp; 
+    FLAGSET *fset;
     int otype;
     FLAG fv;
 
     /* Allocate the return buffer */
 
-    otype = Typeof(target);
+    fset = (FLAGSET *) vp;
+
+    if ( vp )
+       otype = i_type;
+    else
+       otype = Typeof(target);
     bp = buff = alloc_lbuf("flag_description");
 
     /* Store the header strings and object type */
@@ -2004,14 +2010,25 @@ flag_description(dbref player, dbref target, int test)
     for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
 	 fp;
 	 fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)) {
-	if (fp->flagflag & FLAG2)
-	    fv = Flags2(target);
-	else if (fp->flagflag & FLAG3)
-	    fv = Flags3(target);
-	else if (fp->flagflag & FLAG4)
-	    fv = Flags4(target);
-	else
-	    fv = Flags(target);
+        if ( vp ) {
+	   if (fp->flagflag & FLAG2)
+               fv = (*fset).word2;
+	   else if (fp->flagflag & FLAG3)
+	       fv = (*fset).word3;
+	   else if (fp->flagflag & FLAG4)
+	       fv = (*fset).word4;
+	   else
+	       fv = (*fset).word1;
+        } else {
+	   if (fp->flagflag & FLAG2)
+	       fv = Flags2(target);
+	   else if (fp->flagflag & FLAG3)
+	       fv = Flags3(target);
+	   else if (fp->flagflag & FLAG4)
+	       fv = Flags4(target);
+	   else
+	       fv = Flags(target);
+        }
 	if (fv & fp->flagvalue) {
 	    if ((fp->listperm & CA_BUILDER) && !Builder(player))
 		continue;
@@ -2218,16 +2235,19 @@ depower_description(dbref player, dbref target, int flag, int f2)
 }
 
 char *
-toggle_description(dbref player, dbref target, int test, int keyval)
+toggle_description(dbref player, dbref target, int test, int keyval, int *vp)
 {
     char *buff, *bp;
     TOGENT *tp;
+    FLAGSET *fset;
     FLAG tv;
     int t2;
 
     /* Allocate the return buffer */
 
     bp = buff = alloc_lbuf("toggle_description");
+ 
+    fset = (FLAGSET *) vp;
 
     if (test) {
         safe_str((char *) ANSIEX(ANSI_HILITE), buff, &bp);
@@ -2240,10 +2260,17 @@ toggle_description(dbref player, dbref target, int test, int keyval)
     	 tp;
 	 tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
     
-	if (tp->toggleflag & TOGGLE2)
-	    tv = Toggles2(target);
-	else
-	    tv = Toggles(target);
+        if ( vp ) {
+	   if (tp->toggleflag & TOGGLE2)
+	       tv = (*fset).word2;
+	   else
+	       tv = (*fset).word1;
+        } else {
+	   if (tp->toggleflag & TOGGLE2)
+	       tv = Toggles2(target);
+	   else
+	       tv = Toggles(target);
+        }
 	if (tv & tp->togglevalue) {
 	    if ((tp->listperm & CA_GUILDMASTER) && !Guildmaster(player))
 		continue;
@@ -2397,7 +2424,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
 char *
 parse_ansi_name(dbref target, char *ansibuf)
 {
-   char *buf2, *s, ansitmp[30];
+   char *buf2, *s, ansitmp[30], ansitmp2[30];
 
        buf2 = alloc_lbuf("ansi_exitname");
        memset(ansitmp, 0, sizeof(ansitmp));
@@ -2405,6 +2432,18 @@ parse_ansi_name(dbref target, char *ansibuf)
        s = ansitmp;
        while (*s) {
           switch (*s) {
+             case '0': /* Is this hex? */
+                 if ( (*(s+1) == 'x') || (*(s+1) == 'X') ) {
+                    if ( isxdigit(*(s+2)) && isxdigit(*(s+3)) ) {
+#ifdef TINY_SUB
+                       sprintf(ansitmp2, "%s%c%c%c", (char *)"%x0", *(s+1), *(s+2), *(s+3));
+#else
+                       sprintf(ansitmp2, "%s%c%c%c", (char *)"%c0", *(s+1), *(s+2), *(s+3));
+#endif
+                       strcat(buf2, ansitmp2);
+                       s+=3;
+                    }
+                 }
              case 'h':		/* hilite */
                  if ( mudconf.global_ansimask & MASK_HILITE )
 	            strcat(buf2, SAFE_ANSI_HILITE);

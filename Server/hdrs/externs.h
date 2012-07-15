@@ -777,6 +777,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SAY_NOEVAL      256     /* Don't parse message */
 #define SAY_PNOEVAL     512     /* Don't parse pose message */
 #define SAY_SUBSTITUTE 1024     /* Substitute ## for player dbref# */
+#define SAY_NOANSI     2048	/* No Ansi on messages */
 #define	SET_QUIET	1	/* Don't display 'Set.' message. */
 #define SET_NOISY	2
 #define SET_RSET	4	/* set() is really rset() */

@@ -73,6 +73,12 @@ CMDENT * lookup_orig_command(char *cmdname);
  *    switch bitwise
  */
 
+NAMETAB break_sw[] =
+{
+    {(char *) "queued", 1, CA_PUBLIC, 0, 0}, /* Default value -- no need to label it */
+    {(char *) "inline", 1, CA_PUBLIC, 0, BREAK_INLINE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB evaltab_sw[] =
 {
     {(char *) "immortal", 1, CA_IMMORTAL, 0, 5},
@@ -271,6 +277,7 @@ NAMETAB emit_sw[] =
     {(char *) "here", 1, CA_PUBLIC, 0, SAY_HERE | SW_MULTIPLE},
     {(char *) "room", 1, CA_PUBLIC, 0, SAY_ROOM | SW_MULTIPLE},
     {(char *) "sub", 1, CA_PUBLIC, 0, SAY_SUBSTITUTE | SW_MULTIPLE},
+    {(char *) "noansi", 1, CA_PUBLIC, 0, SAY_NOANSI | SW_MULTIPLE},
     //    {(char *) "noeval", 1, CA_PUBLIC, 0, SAY_NOEVAL | SW_MULTIPLE}, 
     {NULL, 0, 0, 0, 0}};
 
@@ -321,6 +328,24 @@ NAMETAB flagdef_sw[] =
     {(char *) "see", 2, CA_IMMORTAL, 0, FLAGDEF_SEE},
     {(char *) "list", 2, CA_IMMORTAL, 0, FLAGDEF_LIST},
     {(char *) "letter", 2, CA_IMMORTAL, 0, FLAGDEF_CHAR},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB oemit_sw[] =
+{
+    {(char *) "noansi", 1, CA_PUBLIC, 0, PEMIT_NOANSI | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+NAMETAB say_sw[] =
+{
+    {(char *) "noansi", 1, CA_PUBLIC, 0, SAY_NOANSI | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB think_sw[] =
+{
+    {(char *) "noansi", 1, CA_PUBLIC, 0, SAY_NOANSI | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB fsay_sw[] =
+{
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB fpose_sw[] =
@@ -671,7 +696,8 @@ NAMETAB pemit_sw[] =
 NAMETAB pose_sw[] =
 {
     {(char *) "default", 1, CA_PUBLIC, 0, 0},
-    {(char *) "nospace", 1, CA_PUBLIC, 0, SAY_NOSPACE},
+    {(char *) "nospace", 3, CA_PUBLIC, 0, SAY_NOSPACE},
+    {(char *) "noansi", 3, CA_PUBLIC, 0, SAY_NOANSI | SW_MULTIPLE},
     //    {(char *) "noeval", 1, 0, CA_PUBLIC, SAY_PNOEVAL}, 
     {NULL, 0, 0, 0, 0}};
 
@@ -892,7 +918,7 @@ NAMETAB wait_sw[] =
 NAMETAB wall_sw[] =
 {
     {(char *) "emit", 1, CA_WIZARD | CA_ADMIN | CA_BUILDER, 0, SAY_WALLEMIT},
-    {(char *) "no_prefix", 1, CA_WIZARD, 0, SAY_NOTAG | SW_MULTIPLE},
+    {(char *) "no_prefix", 3, CA_WIZARD, 0, SAY_NOTAG | SW_MULTIPLE},
     {(char *) "pose", 1, CA_WIZARD | CA_ADMIN | CA_BUILDER, 0, SAY_WALLPOSE},
     {(char *) "wizard", 1, CA_WIZARD | CA_ADMIN | CA_BUILDER, 0, SAY_WIZSHOUT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
@@ -955,7 +981,7 @@ CMDENT command_table[] =
      0, do_apply_marked},
     {(char *) "@areg", areg_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_areg},
-    {(char *) "@assert", NULL, CA_PUBLIC, CA_NO_CODE,
+    {(char *) "@assert", break_sw, CA_PUBLIC, CA_NO_CODE,
      0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_assert},
     {(char *) "@attribute", attrib_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_attribute},
@@ -964,7 +990,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_boot},
     {(char *) "@bfree", NULL, CA_GOD | CA_IMMORTAL, 0,
      0, CS_NO_ARGS, 0, do_buff_free},
-    {(char *) "@break", NULL, CA_PUBLIC, CA_NO_CODE,
+    {(char *) "@break", break_sw, CA_PUBLIC, CA_NO_CODE,
      0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_break},
     {(char *) "@chown", chown_sw,
      CA_NO_SLAVE | CA_NO_GUEST | CA_GBL_BUILD | CA_NO_WANDER, 0,
@@ -1053,7 +1079,7 @@ CMDENT command_table[] =
      PEMIT_FPOSE, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
     {(char *) "@freeze", NULL, CA_WIZARD, 0,
      0, CS_ONE_ARG, 0, do_freeze},
-    {(char *) "@fsay", NULL, CA_LOCATION | CA_NO_SLAVE, CA_NO_CODE,
+    {(char *) "@fsay", fsay_sw, CA_LOCATION | CA_NO_SLAVE, CA_NO_CODE,
      PEMIT_FSAY, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
     {(char *) "@function", function_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_function},
@@ -1113,7 +1139,7 @@ CMDENT command_table[] =
      0, CS_TWO_ARG, 0, do_notify},
     {(char *) "@nuke", nuke_sw, CA_ADMIN | CA_WIZARD | CA_IMMORTAL, 0,
      DEST_ONE, CS_ONE_ARG | CS_INTERP, 0, do_nuke},
-    {(char *) "@oemit", NULL,
+    {(char *) "@oemit", oemit_sw,
      CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
      PEMIT_OEMIT, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
     {(char *) "@open", open_sw,
@@ -1289,7 +1315,7 @@ CMDENT command_table[] =
      SAY_POSE, CS_ONE_ARG | CS_INTERP, 0, do_say},
     {(char *) "rpage", NULL, CA_NO_SLAVE, 0,
      PAGE_RET, CS_ONE_ARG | CS_INTERP, 0, do_page_one},
-    {(char *) "say", NULL, CA_LOCATION | CA_NO_SLAVE, 0,
+    {(char *) "say", say_sw, CA_LOCATION | CA_NO_SLAVE, 0,
      SAY_SAY, CS_ONE_ARG | CS_INTERP, 0, do_say},
     {(char *) "score", NULL, 0, 0,
      LOOK_SCORE, CS_NO_ARGS, 0, do_score},
@@ -1302,7 +1328,7 @@ CMDENT command_table[] =
     {(char *) "taste", NULL, CA_LOCATION, 0,
      LOOK_LOOK, CS_ONE_ARG | CS_INTERP, 0, do_taste},
     /* Added THINK for compatibility -- 120198 Ash */
-    {(char *) "think", NULL, CA_NO_SLAVE, 0,
+    {(char *) "think", think_sw, CA_NO_SLAVE, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_think},
     /* Added TOUCH sense - 090898 Ash - touch_sw created for future need */
     {(char *) "touch", NULL, CA_LOCATION, 0,
@@ -2399,6 +2425,7 @@ process_command(dbref player, dbref cause, int interactive,
     mudstate.debug_cmd = (char *) "< process_command >";
     mudstate.last_cmd_timestamp = mudstate.now;
     mudstate.heavy_cpu_recurse = 0;
+    mudstate.heavy_cpu_tmark1 = time(NULL);
     mudstate.stack_val = 0;
     mudstate.stack_toggle = 0;
     mudstate.sidefx_currcalls = 0;
@@ -4824,16 +4851,51 @@ CF_HAND(cf_cmd_alias)
     return retval;
 }
 
-/* ---------------------------------------------------------------------------
- * list_df_flags: List default flags at create time.
- */
+
+static void 
+list_df_toggles(dbref player)
+{
+    char *buff, *s_buff;
+    DPUSH; // #41-a
+
+    notify(player, "Default Toggle Listing -- All Types.");
+    buff = alloc_lbuf("list_df_toggles");
+    s_buff = toggle_description(player, player, 0, 0, (int *)&mudconf.player_toggles);
+    sprintf(buff, "------------------------------------------------------------------------------\nPlayer Flags:");
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = toggle_description(player, player, 0, 0, (int *)&mudconf.room_toggles);
+    sprintf(buff, "------------------------------------------------------------------------------\nRoom Flags:");
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = toggle_description(player, player, 0, 0, (int *)&mudconf.exit_toggles);
+    sprintf(buff, "------------------------------------------------------------------------------\nExit Flags:");
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = toggle_description(player, player, 0, 0, (int *)&mudconf.thing_toggles);
+    sprintf(buff, "------------------------------------------------------------------------------\nThing Flags:");
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = toggle_description(player, player, 0, 0, (int *)&mudconf.robot_toggles);
+    sprintf(buff, "------------------------------------------------------------------------------\nRobot Flags:");
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+
+    free_lbuf(buff);
+
+    DPOP; // #41-a
+}
 
 static void 
 list_df_flags(dbref player)
 {
-    char *playerb, *roomb, *thingb, *exitb, *robotb, *buff;
- 
-    DPUSH; /* #41 */
+    char *playerb, *roomb, *thingb, *exitb, *robotb, *buff, *s_buff;
+    DPUSH; // #41
 
     playerb = decode_flags(player, player, 
 			   (mudconf.player_flags.word1 | TYPE_PLAYER),
@@ -4865,11 +4927,34 @@ list_df_flags(dbref player)
 			  mudconf.robot_flags.word3,
 			  mudconf.robot_flags.word4
 	);
+    notify(player, "Default Flag Listing -- All Types.  (note: THING type letter is a space)");
     buff = alloc_lbuf("list_df_flags");
-    sprintf(buff,
-	    "Default flags: Players...%s Rooms...%s Exits...%s Things...%s Robots...%s",
-	    playerb, roomb, exitb, thingb, robotb);
+    s_buff = flag_description(player, player, 0, (int *)&mudconf.player_flags, TYPE_PLAYER);
+    sprintf(buff, "------------------------------------------------------------------------------\nPlayer Flags: %s", playerb);
     notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = flag_description(player, player, 0, (int *)&mudconf.room_flags, TYPE_ROOM);
+    sprintf(buff, "------------------------------------------------------------------------------\nRoom Flags: %s", roomb);
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = flag_description(player, player, 0, (int *)&mudconf.exit_flags, TYPE_EXIT);
+    sprintf(buff, "------------------------------------------------------------------------------\nExit Flags: %s", exitb);
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = flag_description(player, player, 0, (int *)&mudconf.thing_flags, TYPE_THING);
+    sprintf(buff, "------------------------------------------------------------------------------\nThing Flags: %s", thingb);
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+    s_buff = flag_description(player, player, 0, (int *)&mudconf.robot_flags, TYPE_PLAYER);
+    sprintf(buff, "------------------------------------------------------------------------------\nRobot Flags: %s", robotb);
+    notify(player, buff);
+    notify(player, s_buff);
+    free_lbuf(s_buff);
+
     free_lbuf(buff);
     free_mbuf(playerb);
     free_mbuf(roomb);
@@ -4877,7 +4962,7 @@ list_df_flags(dbref player)
     free_mbuf(thingb);
     free_mbuf(robotb);
 
-    DPOP; /* #41 */
+    DPOP; // #41
 }
 
 /* ---------------------------------------------------------------------------
@@ -6997,6 +7082,7 @@ list_rlevels(dbref player)
 #define LIST_DEPOWERS	28
 #define LIST_STACKS	29
 #define LIST_FUNPERMS	30
+#define	LIST_DF_TOGGLES	31
 
 NAMETAB list_names[] =
 {
@@ -7010,6 +7096,7 @@ NAMETAB list_names[] =
     {(char *) "costs", 3, CA_PUBLIC, 0, LIST_COSTS},
     {(char *) "db_stats", 2, CA_WIZARD, 0, LIST_DB_STATS},
     {(char *) "default_flags", 1, CA_PUBLIC, 0, LIST_DF_FLAGS},
+    {(char *) "default_toggles", 1, CA_PUBLIC, 0, LIST_DF_TOGGLES},
     {(char *) "flags", 2, CA_PUBLIC, 0, LIST_FLAGS},
     {(char *) "functions", 4, CA_PUBLIC, 0, LIST_FUNCTIONS},
     {(char *) "globals", 2, CA_WIZARD, 0, LIST_GLOBALS},
@@ -7131,6 +7218,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 	interp_nametab(player, enable_names, mudconf.control_flags,
 		       (char *) "Global parameters:", (char *) "enabled",
 		       (char *) "disabled");
+	break;
+    case LIST_DF_TOGGLES:
+	list_df_toggles(player);
 	break;
     case LIST_DF_FLAGS:
 	list_df_flags(player);
@@ -7743,7 +7833,11 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
   if (is_number(arg1_eval) && (atoi(arg1_eval) == 0)) {
     mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
-       wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+       if ( key == BREAK_INLINE) {
+          process_command(player, cause, 1, arg2, cargs, ncargs, 0);
+       } else {
+          wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+       }
     }
   }
   if ( i_evaled )
@@ -7762,7 +7856,11 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
   if (is_number(arg1_eval) && (atoi(arg1_eval) != 0)) {
     mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
-       wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+       if ( key == BREAK_INLINE) {
+          process_command(player, cause, 1, arg2, cargs, ncargs, 0);
+       } else {
+          wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+       }
     }
   }
   if ( i_evaled )

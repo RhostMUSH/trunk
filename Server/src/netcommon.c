@@ -2113,7 +2113,7 @@ announce_connect(dbref player, DESC * d, int dc)
         if (loc == NOTHING)
            notify_check(player, player, buf, 0, key, 0);
         else
-           notify_except_rlevel(loc, player, player, buf);
+           notify_except_rlevel(loc, player, player, buf, 0);
 #else
         notify_check(player, player, buf, 0, key, 0);
 #endif /* REALITY_LEVELS */
@@ -2315,7 +2315,7 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
             if (loc == NOTHING)
                notify_check(player, player, buf, 0, key, 0);
             else
-               notify_except_rlevel(loc, player, player, buf);
+               notify_except_rlevel(loc, player, player, buf, 0);
 #else
             notify_check(player, player, buf, 0, key, 0);
 #endif /* REALITY_LEVELS */
@@ -2422,7 +2422,7 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	  if (loc == NOTHING) {
 	    notify_check(player, player, buf, 0, key, 0);
 	  } else {
-	    notify_except_rlevel(loc, player, player, buf);
+	    notify_except_rlevel(loc, player, player, buf, 0);
 	  }
 #else
             notify_check(player, player, buf, 0, key, 0);

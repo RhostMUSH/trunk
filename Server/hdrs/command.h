@@ -283,6 +283,7 @@ typedef struct aliasentry {
 #define CA_EVAL		0x00000004      /* Code evals? */
 #define CA_CLUSTER	0x00000010	/* Clustered? */
 
+#define BREAK_INLINE	0x00000001	/* @break/@assert should not go to wait queue */
 
 #define HOOK_BEFORE	0x00000001	/* BEFORE hook */
 #define HOOK_AFTER	0x00000002	/* AFTER hook */

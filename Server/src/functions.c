@@ -2448,6 +2448,107 @@ FUNCTION(fun_writable)
    ival(buff, bufcx, Set_attr(s_thing, t_thing, atr, 0));
 }
 
+FUNCTION(fun_nslookup)
+{
+   struct sockaddr_in p_sock, *p_sock2;
+   void *v_sock;
+   struct addrinfo hints, *res, *p_res;
+   char hostname[NI_MAXHOST + 1], ipstr[INET_ADDRSTRLEN + 1], *p_chk;
+   int i_validip = 1, i_timechk=5;
+
+   if ( mudstate.heavy_cpu_lockdown == 1 ) {
+      safe_str("#-1 FUNCTION HAS BEEN LOCKED DOWN FOR HEAVY CPU USE.", buff, bufcx);
+      return;
+   }
+   if ( !*fargs[0] ) {
+      safe_str("#-1 EXPECTS AN IP OR HOSTNAME", buff, bufcx);
+      return;
+   } 
+   if (mudstate.last_cmd_timestamp == mudstate.now) {
+       mudstate.heavy_cpu_recurse += 1;
+   }
+
+   if ( mudconf.cputimechk < i_timechk )
+      i_timechk = mudconf.cputimechk;
+   /* insanely dangerous function -- only allow 5 per command */
+   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+      mudstate.chkcpu_toggle = 1;
+      mudstate.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
+      safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+      return;
+   }
+/* nslookup should eat itself if it's over 5 seconds on a lookup */
+   if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + 5) ) {
+      safe_str("#-1 HEAVY CPU LIMIT ON PROTECTED FUNCTION EXCEEDED", buff, bufcx);
+      mudstate.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
+      mudstate.chkcpu_toggle = 1;
+      if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
+         mudstate.heavy_cpu_lockdown = 1;
+      } 
+      return;
+   }
+   memset(hostname, '\0', sizeof(hostname));
+   memset(ipstr, '\0', sizeof(ipstr));
+   mudstate.heavy_cpu_tmark2 = time(NULL);
+
+   p_chk = fargs[0];
+   while ( *p_chk ) {
+      if ( !(isdigit(*p_chk) || (*p_chk == '.')) ) {
+         i_validip = 0;
+         break;
+      }
+      p_chk++;
+   }
+   if ( i_validip ) {
+      memset((void*)&p_sock, 0 , sizeof(p_sock)); 
+      p_sock.sin_family = AF_INET; 
+      if ( *fargs[0] && (inet_aton(fargs[0], &(p_sock.sin_addr)) == 0) )  {
+         safe_str("#-1 INVALID IP", buff, bufcx);
+         return;
+      }
+
+      if ( getnameinfo((struct sockaddr*)&p_sock, sizeof(struct sockaddr), hostname, sizeof(hostname) - 1, NULL, 0, NI_NAMEREQD) ) { 
+         safe_str("#-1 ERROR RESOLVING IP", buff, bufcx);
+      } else {
+         safe_str(hostname, buff, bufcx);
+      }
+   } else {
+      memset(&hints, 0, sizeof(hints));
+      hints.ai_socktype = SOCK_STREAM;
+      hints.ai_family = AF_INET;
+      if ((getaddrinfo(fargs[0], NULL, &hints, &res)) != 0) {
+         safe_str("#-1 INVALID HOSTNAME", buff, bufcx);
+         mudstate.heavy_cpu_tmark2 = time(NULL);
+         if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + 5) ) {
+            mudstate.chkcpu_toggle = 1;
+            if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
+               mudstate.heavy_cpu_lockdown = 1;
+            } 
+         }
+         return;
+      }
+      i_validip = 0;
+      for( p_res = res; p_res != NULL; p_res = p_res->ai_next) {
+         p_sock2 = (struct sockaddr_in *)p_res->ai_addr;
+         v_sock = &(p_sock2->sin_addr);
+
+         inet_ntop(p_res->ai_family, v_sock, ipstr, sizeof(ipstr)-1);
+         if ( i_validip ) 
+            safe_chr(' ', buff, bufcx);
+         safe_str(ipstr, buff, bufcx);
+         i_validip = 1;
+      }
+      freeaddrinfo(res);
+   }
+   mudstate.heavy_cpu_tmark2 = time(NULL);
+   if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + 5) ) {
+      mudstate.chkcpu_toggle = 1;
+      if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
+         mudstate.heavy_cpu_lockdown = 1;
+      } 
+   }
+}
+
 FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 {
   struct wrapinfo winfo;
@@ -5750,7 +5851,7 @@ static int handle_flaglists(dbref player, dbref cause, char *name, char *fstr, i
         if (!*s)
            return 0;
 
-        if (*s == '\\') {
+        if (*s == '\\' || *s == '%') {
            esc_chr = 1;
            continue;
         }
@@ -16360,7 +16461,7 @@ FUNCTION(fun_lflags)
          (Examinable(player, target) || Wizard(player)))) &&
          (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
          (mudconf.pub_flags || Examinable(player, target) || (target == cause)) ) {
-       pt1 = flag_description(player, target, 0);
+       pt1 = flag_description(player, target, 0, (int *)NULL, 0);
        safe_str(pt1, buff, bufcx);
        free_lbuf(pt1);
     } else {
@@ -16377,7 +16478,7 @@ FUNCTION(fun_ltoggles)
     if (!Good_obj(target) || (!Controls(player, target))) {
        safe_str("#-1", buff, bufcx);
     } else {
-       pt1 = toggle_description(player, target, 0, 0);
+       pt1 = toggle_description(player, target, 0, 0, (int *)NULL);
        safe_str(pt1, buff, bufcx);
        free_lbuf(pt1);
     }
@@ -22348,13 +22449,14 @@ FUNCTION(fun_isdbref)
 
 FUNCTION(fun_trim)
 {
-    char *p, *lastchar, *q, sep;
-    int trim;
+    char *p, *lastchar, *q, *sep;
+    int trim, trim_size;
 
     if (nfargs == 0) {
          return;
     }
-    mvarargs_preamble("TRIM", 1, 3);
+    if (!fn_range_check("TRIM", nfargs, 1, 3, buff, bufcx))
+       return;
     if (nfargs >= 2) {
          switch (ToLower((int)*fargs[1])) {
                 case 'l':
@@ -22370,11 +22472,17 @@ FUNCTION(fun_trim)
     } else {
          trim = 3;
     }
-
+    sep = alloc_lbuf("fun_trim");
+    if ( nfargs >= 3 ) {
+       sprintf(sep, "%s", fargs[2]);
+    } else {
+       sprintf(sep, " ");
+    }
+    trim_size = strlen(sep);
     if (trim == 2 || trim == 3) {
          p = lastchar = fargs[0];
          while (*p != '\0') {
-             if (*p != sep)
+             if ( memchr(sep, *p, trim_size) == NULL )
                   lastchar = p;
              p++;
          }
@@ -22383,13 +22491,14 @@ FUNCTION(fun_trim)
     q = fargs[0];
     if (trim == 1 || trim == 3) {
          while (*q != '\0') {
-             if (*q == sep)
+             if ( memchr(sep, *q, trim_size) != NULL )
                   q++;
              else
                   break;
          }
     }
     safe_str(q, buff, bufcx);
+    free_lbuf(sep);
 }
 
 FUNCTION(fun_chomp)
@@ -25099,6 +25208,7 @@ FUN flist[] =
     {"NOT", fun_not, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"NOTCHR", fun_notchr, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"NSITER", fun_nsiter, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"NSLOOKUP", fun_nslookup, 1, 0, CA_IMMORTAL, CA_NO_CODE},
     {"NULL", fun_null, -1, 0, CA_PUBLIC, 0},
     {"NUM", fun_num, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"NUMMATCH", fun_nummatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
