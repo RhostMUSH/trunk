@@ -733,10 +733,16 @@ NAMETAB depower_sw[] =
     {(char *) "remove", 1, CA_PUBLIC, 0, POWER_REMOVE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB rpage_sw[] =
+{
+    {(char *) "noansi", 1, CA_PUBLIC, 0, PAGE_NOANSI | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB page_sw[] =
 {
     {(char *) "port", 1, CA_WIZARD, 0, PAGE_PORT},
     {(char *) "location", 1, CA_WIZARD, 0, PAGE_LOC},
+    {(char *) "noansi", 1, CA_PUBLIC, 0, PAGE_NOANSI | SW_MULTIPLE},
     //    {(char *) "noeval", 1, CA_WIZARD, 0, PAGE_NOEVAL},
     {NULL, 0, 0, 0, 0}};
 
@@ -1294,7 +1300,7 @@ CMDENT command_table[] =
      TEL_JOIN, CS_TWO_ARG | CS_ARGV | CS_INTERP, 0, do_teleport},
     {(char *) "kill", NULL, CA_NO_GUEST | CA_NO_SLAVE, 0,
      KILL_KILL, CS_TWO_ARG | CS_INTERP, 0, do_kill},
-    {(char *) "lpage", NULL, CA_NO_SLAVE, 0,
+    {(char *) "lpage", rpage_sw, CA_NO_SLAVE, 0,
      PAGE_LAST, CS_ONE_ARG | CS_INTERP, 0, do_page_one},
     {(char *) "leave", leave_sw, CA_LOCATION, 0,
      0, CS_NO_ARGS | CS_INTERP, 0, do_leave},
@@ -1303,7 +1309,7 @@ CMDENT command_table[] =
      LOOK_LOOK, CS_ONE_ARG | CS_INTERP, 0, do_listen},
     {(char *) "look", look_sw, CA_LOCATION, 0,
      LOOK_LOOK, CS_ONE_ARG | CS_INTERP, 0, do_look},
-    {(char *) "mrpage", NULL, CA_NO_SLAVE, 0,
+    {(char *) "mrpage", rpage_sw, CA_NO_SLAVE, 0,
      PAGE_RETMULTI, CS_ONE_ARG | CS_INTERP, 0, do_page_one},
     {(char *) "news", news_sw, CA_NO_SLAVE, 0,
      0, CS_TWO_ARG, 0, do_news},
@@ -1313,7 +1319,7 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_page},
     {(char *) "pose", pose_sw, CA_LOCATION | CA_NO_SLAVE, 0,
      SAY_POSE, CS_ONE_ARG | CS_INTERP, 0, do_say},
-    {(char *) "rpage", NULL, CA_NO_SLAVE, 0,
+    {(char *) "rpage", rpage_sw, CA_NO_SLAVE, 0,
      PAGE_RET, CS_ONE_ARG | CS_INTERP, 0, do_page_one},
     {(char *) "say", say_sw, CA_LOCATION | CA_NO_SLAVE, 0,
      SAY_SAY, CS_ONE_ARG | CS_INTERP, 0, do_say},

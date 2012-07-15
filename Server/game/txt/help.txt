@@ -1547,12 +1547,12 @@
   See Also: @robot, OUTPUTPREFIX, ROBOT
   
 & page
-  Command: p[age] <player-list> [=[<control>]<message>]
-           p[age] ,<player-list-seperated-by-commas> [=[<control>]<message>]
-           p[age] <message> (if @toggled MUXPAGE)
-           lp[age] <message to last person(s) you paged>
-           rp[age] <message to last person who paged you>
-           mrp[age] <message to player list included in last page to you>
+  Command: p[age][/<switch>] <player-list> [=[<control>]<message>]
+           p[age][/<switch>] ,<player-list-seperated-by-commas> [=[<control>]<message>]
+           p[age][/<switch>] <message> (if @toggled MUXPAGE)
+           lp[age][/<switch>] <message to last person(s) you paged>
+           rp[age][/<switch>] <message to last person who paged you>
+           mrp[age][/<switch>] <message to player list included in last page to you>
  
   Note: If you are paging people with spaces in their name, start the page
         with a comma.  i.e.  page ,player with space, player2 = message
@@ -1571,6 +1571,9 @@
   as 'From afar, <player> <message>', with ';' omitting the space between
   <player> and <message>.  '"' formats the message in normal page format
   (this is the default).
+  
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
  
 { 'help page2' for more }
   
@@ -1597,7 +1600,7 @@
             rpage, lpage, mrpage
   
 & mrpage
-  Command: mrpage [[<control>]<message>]
+  Command: mrpage[/<switch>] [[<control>]<message>]
   
   This command will automatically page the last person(s) who paged you.
   This will in essence, page the entire list that you saw in the last page
@@ -1606,23 +1609,32 @@
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
   
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
+  
   See Also: page, lpage, whisper, say, pose
   
 & rpage
-  Command: rpage [[<control>]<message>]
+  Command: rpage[/<switch>] [[<control>]<message>]
   
   This command will automatically page the last person who paged you.
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
   
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
+  
   See Also: page, lpage, mrpage, whisper, say, pose
   
 & lpage
-  Command: lpage [[<control>]<message>]
+  Command: lpage[/<switch>] [[<control>]<message>]
   
   This command will automatically page the last person(s) who you paged.
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
+  
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
   
   See Also: page, rpage, mrpage, whisper, say, pose
   
@@ -23842,6 +23854,7 @@ Changes
 * @break and @assert have /queued and /inline switches [ASH]
 * trim() allows trimming multiple characters [ASH]
 * think, @emit, @oemit, pose, and say understand the /noansi switch [ASH]
+* page, rpage, lpage, mrpage understand the /noansi switch [ASH]
 * The basic @ansiname allows 256 colors now via 0x## or 0X## [ASH]
 * made @list default_flags no longer worthless [ASH]
 

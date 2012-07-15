@@ -521,7 +521,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
  * Page-pose code from shadow@prelude.cc.purdue.
  */
 
-static void page_pose (dbref player, dbref target, int port, char *message)
+static void page_pose (dbref player, dbref target, int port, char *message, int key)
 {
   char	*nbuf, *tpr_buff, *tprp_buff;
   
@@ -531,15 +531,24 @@ static void page_pose (dbref player, dbref target, int port, char *message)
   if (Wizard(player))
     mudstate.droveride = 1;
   tprp_buff = tpr_buff = alloc_lbuf("page_pose");
-  notify_with_cause2(port, player,
-		     safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), message));
+  if ( key & PAGE_NOANSI ) {
+     noansi_notify_with_cause2(port, player,
+		        safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), message));
+  } else {
+     notify_with_cause2(port, player,
+		        safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), message));
+  }
   free_lbuf(tpr_buff);
   mudstate.droveride = 0;
   if (mudstate.pageref != NOTHING) {
     tprp_buff = tpr_buff = alloc_lbuf("page_pose");
-    notify(player,
-	   safe_tprintf(tpr_buff, &tprp_buff, "Long distance to port %d: %s%s",
-		   port, nbuf, message));
+    if ( key & PAGE_NOANSI ) {
+       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Long distance to port %d: %s%s",
+                      port, nbuf, message));
+    } else {
+       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Long distance to port %d: %s%s",
+                      port, nbuf, message));
+    }
     free_lbuf(tpr_buff);
   } else
     notify(player, "Bad Port.");
@@ -655,12 +664,16 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
         *pos2, *pos3, *px, *lbuff, *lbx, *alias_pos1, *alias_px, *pl_alias, *mpg, 
         *t_msg, *t_msgp, *tpr_buff, *tprp_buff, *s_ret_warn, *s_ret_warnptr;
   int	flags, port, got, got2, num, nuts, pc, fnum, lnum, *ilist, pl_aflags, 
-        mpr_chk, nkey, s_ret_warnkey;
+        mpr_chk, nkey, s_ret_warnkey, ansikey;
   
         /* Lensy:
          *  If they type 'page' by itself, then tell them who they last paged
          */
-        pc = mpr_chk = nkey =0;
+        pc = mpr_chk = nkey = ansikey = 0;
+        if ( key & PAGE_NOANSI ) {
+           ansikey = PAGE_NOANSI;
+        }
+        key = (key &~ PAGE_NOANSI);
         if (((!tname && !message) || (*tname == '\0' && *message == '\0'))
               && MuxPage(player) && !(key & PAGE_LOC)) {
           // get last page attr
@@ -921,11 +934,11 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		switch (*p1) {
 		case ':':
 			p1[0] = ' ';
-			page_pose(player, target, port, p1);
+			page_pose(player, target, port, p1, ansikey);
 			p1[0] = ':';
 			break;
 		case ';':
-			page_pose(player, target, port, p1+1);
+			page_pose(player, target, port, p1+1, ansikey);
 			break;
 		case '"':
 			p1++;
@@ -935,15 +948,25 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		  	if (Wizard(player))
 		    	  mudstate.droveride = 1;
                         tprp_buff = tpr_buff;
-			notify_with_cause2(port, player,
-				safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                        if ( !ansikey ) {
+			   notify_with_cause2(port, player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                        } else {
+			   noansi_notify_with_cause2(port, player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                        }
 			mudstate.droveride = 0;
 			if (mudstate.pageref == NOTHING)
-				notify(player, "Bad Port.");
+			   notify(player, "Bad Port.");
 			else  {
-                        	tprp_buff = tpr_buff;
-				notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged port %d with '%s'.",
-					port, p1));
+                           tprp_buff = tpr_buff;
+                           if ( !ansikey ) {
+			      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged port %d with '%s'.",
+			             port, p1));
+                           } else {
+			      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged port %d with '%s'.",
+			             port, p1));
+                           }
 			}
 			if (nuts)
 			  p1--;
@@ -1083,29 +1106,60 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 			if (num == 1) {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s(%s)%s", Name(player), pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s(%s)%s", Name(player), pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s(%s)%s", Name(player), pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                                }
                              }
                           } else {
-	        	     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                             if ( !ansikey ) {
+	        	        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                             } else {
+	        	        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                             }
                           }
 			} else {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s(%s)%s", alias_pos1, Name(player), 
-                                              pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s(%s)%s", alias_pos1, Name(player), 
+                                                 pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s(%s)%s", alias_pos1, Name(player), 
+                                                 pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", alias_pos1, Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", alias_pos1, Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", alias_pos1, Name(player), p1));
+                                }
                              }
                           } else {
-			     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", pos1, Name(player), p1));
+                             if ( !ansikey ) {
+			        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", pos1, Name(player), p1));
+                             } else {
+			        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", pos1, Name(player), p1));
+                             }
                           }
                         }
                         free_lbuf(pl_alias);
@@ -1125,29 +1179,60 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 			if (num == 1) {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s(%s) pages: %s", Name(player), pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s(%s) pages: %s", Name(player), pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s(%s) pages: %s", Name(player), pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                                }
                              }
                           } else {
-			     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                             if ( !ansikey ) {
+			        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                             } else {
+			        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                             }
                           }
 			} else {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s(%s) pages: %s", alias_pos1, Name(player), 
-                                               pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s(%s) pages: %s", alias_pos1, Name(player), 
+                                                  pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s(%s) pages: %s", alias_pos1, Name(player), 
+                                                  pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", alias_pos1, Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", alias_pos1, Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", alias_pos1, Name(player), p1));
+                                }
                              }
                           } else {
-			     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", pos1, Name(player), p1));
+                             if ( !ansikey ) {
+			        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", pos1, Name(player), p1));
+                             } else {
+			        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", pos1, Name(player), p1));
+                             }
                           }
                         }
                         free_lbuf(pl_alias);
@@ -1189,11 +1274,19 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		  p1++;
                 tprp_buff = tpr_buff = alloc_lbuf("do_page");
 		if (num == 1) {
-		  notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", Name(*ilist), pos3, p1));
+                  if ( !ansikey ) {
+		     notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", Name(*ilist), pos3, p1));
+                  } else {
+		     noansi_notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", Name(*ilist), pos3, p1));
+                  }
 		}
 		else {
 		  *(pos1 + strlen(pos1) - 1) = '\0';
-		  notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", pos1 + 5, pos3, p1));
+                  if ( !ansikey ) {
+		     notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", pos1 + 5, pos3, p1));
+                  } else {
+		     noansi_notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", pos1 + 5, pos3, p1));
+                  }
 		}
                 free_lbuf(tpr_buff);
 		free_lbuf(pos3);
@@ -1203,11 +1296,19 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 	      default:
                 tprp_buff = tpr_buff = alloc_lbuf("do_page");
 		if (num == 1) {
-		  notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", Name(*ilist), p1));
+                  if ( !ansikey ) {
+		     notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", Name(*ilist), p1));
+                  } else {
+		     noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", Name(*ilist), p1));
+                  }
 		}
 		else {
 		  *(pos1 + strlen(pos1) - 1) = '\0';
-		  notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", pos1 + 5, p1));
+                  if ( !ansikey ) {
+		     notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", pos1 + 5, p1));
+                  } else {
+		     noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", pos1 + 5, p1));
+                  }
 		}
                 free_lbuf(tpr_buff);
 	    }

@@ -116,6 +116,8 @@ extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
 						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, 0)
 #define	noansi_notify_with_cause_real(p,c,m,x)	notify_check(p,c,m,0, \
 						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, x)
+#define	noansi_notify_with_cause2(p,c,m)	notify_check(NOTHING,c,m,p, \
+						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, 0)
 #else
 #define	noansi_notify(p,m)			notify_check(p,p,m,0, \
                         MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
@@ -127,6 +129,8 @@ extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
 						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
 #define	noansi_notify_with_cause_real(p,c,m,x)	notify_check(p,c,m,0, \
 						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, x)
+#define	noansi_notify_with_cause2(p,c,m)	notify_check(NOTHING,c,m,p, \
+						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
 #endif
 #define	notify_quiet(p,m)		notify_check(p,p,m,0, \
 						MSG_PUP_ALWAYS|MSG_ME, 0)
@@ -689,6 +693,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PAGE_RETMULTI	8	/* Respond but to multi players */
 #define PAGE_LOC        16      /* (muxpage) page/loc notifies a plyr of your loc */
 #define PAGE_NOEVAL     32      /* Don't evaluate text prior to sending */
+#define PAGE_NOANSI	64	/* Don't ansifi the page */
 #define	PASS_ANY	1	/* name=newpass */
 #define	PASS_MINE	2	/* oldpass=newpass */
 #define	PCRE_PLAYER	1	/* create new player */
