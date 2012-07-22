@@ -18945,28 +18945,54 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     c - cyan foreground                 C - cyan background
     w - white foreground                W - white background
   
-    0x<hex> -- example:  0xC4 for 256 color foreground support
-    +color  -- example:  +pink for the 256 color foreground 'pink'.
-    /       -- foreground/background indicator -- required
-     
   For example, "ansi(fc, Test)" would hilight "Test" in flashing cyan.
   
   See 'XTERMCOLOR LIST' for the 256 color list.
   
-{ 'help ansi2' for more -- XTERMCOLOR and 256 color support}
-  
+{ 'help ansi2' for more -- The 256 Color Support}
+
 & ANSI2
-  Function: ansi(<codes>,<string>)  -- CONTINUED
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
+  
+  For 256 color support, we offer multiple methods to handle it.  This needs
+  the XTERMCOLOR flag to be set in addition to the normal ANSI and ANSICOLOR.
+  
+  First, you may specify the color with the + prefix.  This does not require 
+  the '/' in the second option unless you intend to use background  colors.
+  
+  For 256 Color support we offer:
+    0x<hex> -- example:  ansi(0xC4/,string) for 256 color foreground support
+                         ansi(/0xC4,string) for 256 color background support
+                         ansi(0xC4/0xC1,string) for FG and BG support
+               This requires / regardless of FG or BG colors.
+    0-255   -- example:  ansi(196/,string) instead of '0xC4' for decimal.
+               This requires / regardless of FG or BG colors.
+    +color  -- example:  ansi(+pink,string) for the 256 color foreground 'pink'.
+               This does NOT require / regardless of FG colors, but does for BG.
+    /       -- foreground/background indicator -- required where mentioned.
+   
+  You may mix and match the methods of the 256 color support.  As ansi() 
+  supports multiple arguments, you may also use multiple types in different
+  arguments.
+  
+  You may also use the %c/%x substitution (depending what is configured) to
+  display 256 colors by using the '0x##' for foreground and '0X##' for 
+  background.  Example: %c0xc4%c0X20whee%cn.  This allows you to even mix
+  and match different ansi types like: %c0xc4%c0X20%cuwhee%cn to underline.
+  0x## is foreground, and 0X## is background when using percent substitutions.
+     
+{ 'help ansi3' for more -- about XTERMCOLOR and ANSI examples }
+  
+& ANSI3
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
   
   You may also use the XTERM color support if your client supports it.
   You must set the XTERMCOLOR flag to see the extended color set.
   
   See XTERMCOLOR LIST for the extended color list and codes used for it.
   
-  You must specify a number from 0 to 255 for the foreground color and/or
-  the background color.  To make ansi() aware of this format, a '/' must
-  be used for the color setting.  You may specify a foreground and 
-  background at the same time such as ansi(120/200,string) or by  using
   hex like ansi(0xca/0xab,string).  ansi(+colorname/+colorname) is allowed 
   for foreground and background.  Hex is case-insensitive.
   
@@ -18975,26 +19001,30 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   If you use %c substitutions, the 'x' after the '0' IS CASE SENSITIVE.  
   0x01 would be foreground, 0X01 would be background.
   
-  For example: 
-    > say I like %cbblue %cnrocks and %crred %cnballoons
-    You say "I like <blue> rocks and <red> balloons"
-    > say I like [ansi(b,blue)] rocks and [ansi(r,red)] balloons
-    You say "I like <blue> rocks and <red> balloons"
-    > say I like [ansi(38/,skyblue)] rocks and [ansi(203/,indianred)] balloons.
-    You say "I like <skyblue> rocks and <indianred> balloons"
-    > say I like [ansi(0x26/,skyblue)] rocks and [ansi(0xcB/,indianred)] ballons.
-    You say "I like <skyblue> rocks and <indianred> balloons"
-    > say I like [ansi(+skyblue/,skyblue)] [ansi(+indianred/,indianred)] ballons.
-    You say "I like <skyblue> <indianred> balloons"
+  Examples: 
+    > say I like %cbblue %cnrocks and %crred %cnballs
+    You say "I like <blue> rocks and <red> balls"
+    > say I like [ansi(b,blue)] rocks and [ansi(r,red)] balls
+    You say "I like <blue> rocks and <red> balls"
+    > say I like [ansi(38/,skyblue)] rocks and [ansi(203/,indianred)] balls
+    You say "I like <skyblue> rocks and <indianred> balls"
+    > say I like [ansi(0x26/,skyblue)] [ansi(0xcB/,indianred)] ballons
+    You say "I like <skyblue> <indianred> balls"
+    > say I like [ansi(+skyblue,skyblue)] [ansi(+indianred,indianred)] balls
+    You say "I like <skyblue> <indianred> balls" (note / not needed for +FG)
+    > say I like [ansi(+skyblue/,skyblue)] [ansi(+indianred/,indianred)] balls
+    You say "I like <skyblue> <indianred> balls"
   
   The words 'blue' and 'red' being their respected colors.  Any ansi
-  sequence can be substituted this way (including flash), and will
-  continue till either the end of the line or until a normal code
-  is entered.
+  sequence can be substituted using percent substitutions, and will
+  continue till either the end of the line or until a normalization ansi 
+  code is entered (the %cn).
    
-{ 'help ansi3' for more -- Flags required and information }
-& ANSI3
-  Function: ansi(<codes>,<string>)  -- CONTINUED
+{ 'help ansi4' for more -- Flags required and information }
+
+& ANSI4
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
   
   NOTE:  The ANSI flag is used to see base ansi sequences (flash,highlight,etc)
          The ANSICOLOR flag is used _with_ ANSI to see color.
