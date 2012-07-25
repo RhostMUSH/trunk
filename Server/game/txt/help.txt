@@ -23887,6 +23887,7 @@ Changes
 * page, rpage, lpage, mrpage understand the /noansi switch [ASH]
 * The basic @ansiname allows 256 colors now via 0x## or 0X## [ASH]
 * made @list default_flags no longer worthless [ASH]
+* / is superflurous with regards to FG colors in ansi() [ASH]
 
 Bug Fixes
 ---------

@@ -20462,7 +20462,7 @@ FUNCTION(fun_colors)
 FUNCTION(fun_ansi)
 {
     PENNANSI *cm;
-    char *s, *t, *u, t_buff[60], *t_buffchk, *t_buff2, t_buff3[61];
+    char *q, *s, *t, *u, t_buff[60], *t_buffchk, *t_buff2, t_buff3[61];
     int i, j, i_xterm_ansi, i_fgcolor, i_bgcolor;
 
     if ( nfargs < 2 ) {
@@ -20476,8 +20476,13 @@ FUNCTION(fun_ansi)
     memset(t_buff, 0, sizeof(t_buff));
     for (i = 0; i < j; i++) {
         i_fgcolor = i_bgcolor = -1;
-        strncpy(t_buff, fargs[i * 2], 59);
-        s = t_buff;
+        strncpy(t_buff3, fargs[i * 2], 59);
+        q = trim_spaces(t_buff3);
+        while ( *q && isspace(*q) ) {
+           q++;
+        }
+        strncpy(t_buff, q, 59);
+        free_lbuf(q);
         if ( (t_buffchk = strchr(t_buff, '/')) != NULL ) {
            if ( isdigit(t_buff[0]) ) {
               if ( ((t_buff[1] == 'x') || (t_buff[1] == 'X')) && isxdigit(t_buff[2]) && isxdigit(t_buff[3]) )
@@ -20494,35 +20499,46 @@ FUNCTION(fun_ansi)
                  u++;
               }
               cm = (PENNANSI *)NULL;
-              if ( *t_buff3 ) {
-                 cm = (PENNANSI *)hashfind(t_buff3, &mudstate.ansi_htab);
+              q = trim_spaces(t_buff3);
+              if ( *q ) {
+                 cm = (PENNANSI *)hashfind(q, &mudstate.ansi_htab);
               }
+              free_lbuf(q);
               if ( cm ) {
                  i_fgcolor = cm->i_xterm;
               }
            }
-           if ( isdigit(*(t_buffchk+1)) ) {
-              if ( ((*(t_buffchk+2) == 'x') || (*(t_buffchk+2) == 'X')) && isxdigit(*(t_buffchk+3)) && isxdigit(*(t_buffchk+4)) )
-                 sscanf(t_buffchk+3, "%x", &i_bgcolor);
+           if ( *(t_buffchk+1) ) {
+              q = trim_spaces(t_buffchk+1);
+           } else {
+              q = alloc_lbuf("trim_space_buff");
+              strcpy(q, t_buffchk);
+           }
+           if ( isdigit(*q) ) {
+              if ( ((*(q+1) == 'x') || (*(q+1) == 'X')) && isxdigit(*(q+2)) && isxdigit(*(q+3)) )
+                 sscanf(q+2, "%x", &i_bgcolor);
               else
-                 i_bgcolor = atoi(t_buffchk+1);
-           } else if ( *(t_buffchk+1) == '+') {
+                 i_bgcolor = atoi(q);
+           } else if ( *(q) == '+') {
               memset(t_buff3, 0, sizeof(t_buff3));
               t = t_buff3;
-              u = t_buffchk+2;
+              u = q+1;
               while ( *u ) {
                  *t = *u;
                  t++;
                  u++;
               }
               cm = (PENNANSI *)NULL;
+              s = trim_spaces(t_buff3);
               if ( *t_buff3 ) {
-                 cm = (PENNANSI *)hashfind(t_buff3, &mudstate.ansi_htab);
+                 cm = (PENNANSI *)hashfind(s, &mudstate.ansi_htab);
               }
+              free_lbuf(s);
               if ( cm ) {
                  i_bgcolor = cm->i_xterm;
               }
            }
+           free_lbuf(q);
            t_buff2 = alloc_lbuf("fun_ansi");
            if ( (i_fgcolor >= 0) && (i_fgcolor < 256) ) {
 #ifdef TINY_SUB
@@ -20551,9 +20567,11 @@ FUNCTION(fun_ansi)
               u++;
            }
            cm = (PENNANSI *)NULL;
-           if ( *t_buff3 ) {
-              cm = (PENNANSI *)hashfind(t_buff3, &mudstate.ansi_htab);
+           s = trim_spaces(t_buff3);
+           if ( *s ) {
+              cm = (PENNANSI *)hashfind(s, &mudstate.ansi_htab);
            }
+           free_lbuf(s);
            if ( cm ) {
               i_fgcolor = cm->i_xterm;
               t_buff2 = alloc_lbuf("fun_ansi");
@@ -20567,6 +20585,22 @@ FUNCTION(fun_ansi)
               }
               free_lbuf(t_buff2);
            }
+        } else if ( isdigit( t_buff[0] ) ) {
+           if ( ((t_buff[1] == 'x') || (t_buff[1] == 'X')) && isxdigit(t_buff[2]) && isxdigit(t_buff[3]) ) {
+              sscanf(t_buff+2, "%x", &i_fgcolor);
+           } else {
+              i_fgcolor = atoi(t_buff);
+           }
+           t_buff2 = alloc_lbuf("fun_ansi");
+           if ( (i_fgcolor >= 0) && (i_fgcolor < 256) ) {
+#ifdef TINY_SUB
+              sprintf(t_buff2, "%%x0x%02x", i_fgcolor);
+#else
+              sprintf(t_buff2, "%%c0x%02x", i_fgcolor);
+#endif
+              safe_str(t_buff2, buff, bufcx);
+           }
+           free_lbuf(t_buff2);
         } else {
            while (*s) {
               switch (*s) {
