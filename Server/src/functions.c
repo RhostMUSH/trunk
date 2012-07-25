@@ -20476,11 +20476,7 @@ FUNCTION(fun_ansi)
     memset(t_buff, 0, sizeof(t_buff));
     for (i = 0; i < j; i++) {
         i_fgcolor = i_bgcolor = -1;
-        strncpy(t_buff3, fargs[i * 2], 59);
-        q = trim_spaces(t_buff3);
-        while ( *q && isspace(*q) ) {
-           q++;
-        }
+        q = trim_spaces(fargs[i * 2]);
         strncpy(t_buff, q, 59);
         free_lbuf(q);
         if ( (t_buffchk = strchr(t_buff, '/')) != NULL ) {
