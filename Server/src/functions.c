@@ -20746,6 +20746,7 @@ FUNCTION(fun_ansi)
     for (i = 0; i < j; i++) {
         i_fgcolor = i_bgcolor = -1;
         q = trim_spaces(fargs[i * 2]);
+        s = fargs[i * 2];
         strncpy(t_buff, q, 59);
         free_lbuf(q);
         if ( (t_buffchk = strchr(t_buff, '/')) != NULL ) {
