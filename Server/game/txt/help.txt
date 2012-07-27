@@ -13277,6 +13277,8 @@ Function: colors([[<value>], [<key>]])
     d       - show the decimal value (0-255) of the XTERM specific color (def).
     h       - show the hex value (0x00-0xFF) of the XTERM specific color.
     c       - show the 16 color code translation of the XTERM specific color.
+    x       - show the 24bit (#000000-#FFFFFF) color code XTERM translation.
+    r       - show the RGB (0 0 0 - 255 255 255) color code XTERM translation.
   
   Examples:
     > say colors()
@@ -23895,6 +23897,8 @@ Changes
 * made @list default_flags no longer worthless [ASH]
 * / is superflurous with regards to FG colors in ansi() [ASH]
 * ansi() allows #FFFFFF, <#FFFFFF>, and <R G B> modes [ASH]
+* colors() has the 'x' option to display #FFFFFF format [ASH]
+* colors() has the 'r' option to display R G B format [ASH]
 
 Bug Fixes
 ---------

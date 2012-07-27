@@ -20656,8 +20656,10 @@ FUNCTION(fun_accent)
 FUNCTION(fun_colors)
 {
     PENNANSI *cm; 
+    MUXANSI *cx;
     char *s_buff;
     int i_first = 0, i_count = 0, i_val = 0, i_key = 0, i_iswild = 0 ;
+    int r = 0, g = 0, b = 0;
      
     if (!fn_range_check("COLORS", nfargs, 1, 2, buff, bufcx))
        return;
@@ -20667,6 +20669,10 @@ FUNCTION(fun_colors)
           i_key = 1;
        if ( *fargs[1] == 'c' )
           i_key = 2;
+       if ( *fargs[1] == 'x' )
+          i_key = 3;
+       if ( *fargs[1] == 'r' )
+          i_key = 4;
     }
     if ( *fargs[0] && (strchr(fargs[0], '*') || strchr(fargs[0], '?')) ) {
        i_iswild = 1;
@@ -20680,6 +20686,18 @@ FUNCTION(fun_colors)
                 sprintf(s_buff, "0x%02x", cm->i_xterm);
              } else if ( i_key == 2) {
                 sprintf(s_buff, "%s", ansi_translate_16[cm->i_xterm]);
+             } else if ( (i_key == 3) || (i_key == 4) ) {
+                for (cx = mux_namecolors; cx->s_hex; cx++) {
+                   if ( cx->i_dec == cm->i_xterm ) {
+                      if ( i_key == 3 ) {
+                         sprintf(s_buff, "#%s", cx->s_hex);
+                      } else {
+                         sscanf(cx->s_hex, "%2x%2x%2x", &r, &g, &b);
+                         sprintf(s_buff, "%d %d %d", r, g, b);
+                      }
+                      break;
+                   }
+                }
              } else {
                 sprintf(s_buff, "%d", cm->i_xterm);
              }
