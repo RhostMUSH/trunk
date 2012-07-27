@@ -18961,16 +18961,22 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   First, you may specify the color with the + prefix.  This does not require 
   the '/' in the second option unless you intend to use background  colors.
   
-  For 256 Color support we offer:
-    0x<hex> -- example:  ansi(0xC4/,string) for 256 color foreground support
-                         ansi(/0xC4,string) for 256 color background support
-                         ansi(0xC4/0xC1,string) for FG and BG support
-               This requires / regardless of FG or BG colors.
-    0-255   -- example:  ansi(196/,string) instead of '0xC4' for decimal.
-               This requires / regardless of FG or BG colors.
-    +color  -- example:  ansi(+pink,string) for the 256 color foreground 'pink'.
-               This does NOT require / regardless of FG colors, but does for BG.
-    /       -- foreground/background indicator -- required where mentioned.
+  For 256 Color support we offer for the <FG> and <BG> options:
+    0x<hex>     -- example:  ansi(0xC4/,string) for 256 color foreground support
+                             ansi(/0xC4,string) for 256 color background support
+                             ansi(0xC4/0xC1,string) for FG and BG support
+                   This does NOT require / for FG colors, but does for BG.
+    0-255       -- example:  ansi(196/,string) instead of '0xC4' for decimal.
+                   This does NOT require / for FG colors, but does for BG.
+    +color      -- example:  ansi(+pink,string) for the 256 color foreground 'pink'.
+                   This does NOT require / for FG colors, but does for BG.
+    #FFFFFF     -- example:  ansi(#FF0000,string) to specify the RGB values.
+                   This requires / regardless of FG or BG colors.
+    <#FFFFFF>   -- example:  ansi(<#FF0000>,string) to specify the RGB values.
+                   This requires / regardless of FG or BG colors.
+    <R G B>     -- example:  ansi(<255 0 0>,string) to specify the RGB values.
+                   This requires / regardless of FG or BG colors.
+    /           -- foreground/background indicator -- required where mentioned.
    
   You may mix and match the methods of the 256 color support.  As ansi() 
   supports multiple arguments, you may also use multiple types in different
@@ -23888,6 +23894,7 @@ Changes
 * The basic @ansiname allows 256 colors now via 0x## or 0X## [ASH]
 * made @list default_flags no longer worthless [ASH]
 * / is superflurous with regards to FG colors in ansi() [ASH]
+* ansi() allows #FFFFFF, <#FFFFFF>, and <R G B> modes [ASH]
 
 Bug Fixes
 ---------
