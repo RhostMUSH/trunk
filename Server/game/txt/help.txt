@@ -18971,11 +18971,11 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     +color      -- example:  ansi(+pink,string) for the 256 color foreground 'pink'.
                    This does NOT require / for FG colors, but does for BG.
     #FFFFFF     -- example:  ansi(#FF0000,string) to specify the RGB values.
-                   This requires / regardless of FG or BG colors.
+                   This does NOT require / for FG colors, but does for BG.
     <#FFFFFF>   -- example:  ansi(<#FF0000>,string) to specify the RGB values.
-                   This requires / regardless of FG or BG colors.
+                   This does NOT require / for FG colors, but does for BG.
     <R G B>     -- example:  ansi(<255 0 0>,string) to specify the RGB values.
-                   This requires / regardless of FG or BG colors.
+                   This does NOT require / for FG colors, but does for BG.
     /           -- foreground/background indicator -- required where mentioned.
    
   You may mix and match the methods of the 256 color support.  As ansi() 
