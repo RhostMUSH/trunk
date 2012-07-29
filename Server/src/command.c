@@ -1209,7 +1209,7 @@ CMDENT command_table[] =
 #endif
     {(char *) "@shutdown", NULL, CA_PUBLIC, 0, 0, CS_ONE_ARG, 0, do_shutdown},
     {(char *) "@site", site_sw, CA_IMMORTAL, 0, 0, CS_TWO_ARG, 0, do_site},
-    {(char *) "@skip", NULL, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_CMDARG, 0, do_skip},
+    {(char *) "@skip", NULL, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_skip},
     {(char *) "@snapshot", snapshot_sw, CA_IMMORTAL, 0, 0, CS_TWO_ARG | CS_INTERP, 0, do_snapshot},
 #ifndef NO_SNOOP
     {(char *) "@snoop", snoop_sw, CA_PUBLIC | CA_IGNORE_ROYAL, 0,
@@ -1217,7 +1217,7 @@ CMDENT command_table[] =
 #endif
     {(char *) "@stats", stats_sw, 0, CA_NO_CODE,
      0, CS_ONE_ARG | CS_INTERP, 0, do_stats},
-    {(char *) "@sudo", NULL, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_CMDARG, 0, do_sudo},
+    {(char *) "@sudo", NULL, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
     {(char *) "@sweep", sweep_sw, 0, 0,
      0, CS_ONE_ARG, 0, do_sweep},
     {(char *) "@switch", switch_sw, CA_GBL_INTERP, CA_NO_CODE,
@@ -7828,7 +7828,7 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
 }
 
 void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
-  char *arg1_eval = NULL;
+  char *arg1_eval = NULL, *cp;
   int i_evaled = 0;
 
   if ( mudconf.break_compatibility ) {
@@ -7840,7 +7840,13 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
     mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
-          process_command(player, cause, 1, arg2, cargs, ncargs, 0);
+          while (arg2) {
+             cp = parse_to(&arg2, ';', 0);
+             if (cp && *cp) {
+                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+             }
+          }
+          /* process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -7851,7 +7857,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
 }
 
 void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
-  char *arg1_eval = NULL;
+  char *arg1_eval = NULL, *cp;
   int i_evaled = 0;
 
   if ( mudconf.break_compatibility ) {
@@ -7863,7 +7869,13 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
     mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
-          process_command(player, cause, 1, arg2, cargs, ncargs, 0);
+          while (arg2) {
+             cp = parse_to(&arg2, ';', 0);
+             if (cp && *cp) {
+                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+             }
+          }
+/*        process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -8366,7 +8378,7 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
 
 void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_command, char *args[], int nargs)
 {
-   char *retbuff;
+   char *retbuff, *cp;
    int old_trainmode;
 
    if ( !s_boolian || !*s_boolian || !s_command || !*s_command ) {
@@ -8378,7 +8390,13 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_comman
 //    if ( desc_in_use == NULL ) {
 //       mudstate.trainmode = 1;
 //    }
-      process_command(player, cause, 1, s_command, args, nargs, 0);
+      while (s_command) {
+         cp = parse_to(&s_command, ';', 0);
+         if (cp && *cp) {
+            process_command(player, cause, 1, cp, args, nargs, 0);
+         }
+      }
+      /* process_command(player, cause, 1, s_command, args, nargs, 0); */
       mudstate.trainmode = old_trainmode;
    }
    free_lbuf(retbuff);
@@ -8388,7 +8406,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_comman
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
-   char *retbuff;
+   char *retbuff, *cp;
    int old_trainmode;
 
    if ( mudstate.sudo_cntr >= 1 ) {
@@ -8415,7 +8433,13 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
 // if ( desc_in_use == NULL ) {
 //    mudstate.trainmode = 1;
 // }
-   process_command(target, target, 1, s_command, args, nargs, 0);
+   while (s_command) {
+      cp = parse_to(&s_command, ';', 0);
+      if (cp && *cp) {
+         process_command(target, target, 1, cp, args, nargs, 0);
+      }
+   }
+   /* process_command(target, target, 1, s_command, args, nargs, 0); */
    mudstate.trainmode = old_trainmode;
    mudstate.sudo_cntr--;
 }

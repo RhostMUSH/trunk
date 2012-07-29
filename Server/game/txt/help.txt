@@ -23899,6 +23899,7 @@ Changes
 * ansi() allows #FFFFFF, <#FFFFFF>, and <R G B> modes [ASH]
 * colors() has the 'x' option to display #FFFFFF format [ASH]
 * colors() has the 'r' option to display R G B format [ASH]
+* @sudo, @skip handle multiple arguments now [ASH]
 
 Bug Fixes
 ---------
