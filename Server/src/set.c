@@ -770,7 +770,7 @@ void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
 	if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
 		return;
 	if (key == TOGGLE_CHECK || (!key && !(*toggle))) {
-	  pt1 = toggle_description(player, thing, 1, 0);
+	  pt1 = toggle_description(player, thing, 1, 0, (int *)NULL);
 	  notify(player,pt1);
 	  free_lbuf(pt1);
 	} else {
@@ -778,7 +778,7 @@ void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
              notify_quiet(player, "Permission denied.");
           } else { 
              if (key == TOGGLE_CLEAR) {
-	        pt1 = toggle_description(player, thing, 1, 1);
+	        pt1 = toggle_description(player, thing, 1, 1, (int *)NULL);
                 if ( *pt1 ) 
 	           toggle_set(thing, player, pt1, (key | SET_QUIET | SIDEEFFECT));
 	        free_lbuf(pt1);

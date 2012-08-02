@@ -935,9 +935,13 @@
   See Also: look, smell, touch, listen, @staste, @sataste, @sotaste
   
 & think
-  Command: think <string>
+  Command: think[/<swiches>] <string>
   Returns the string to the enactor at the permission level of the enactor.
   This works just as @pemit me=<string> would work.
+  
+  The following switches are available:
+     /noansi   - Show the string literally and don't process ansi.  Only
+                 useful with ZENTY_ANSI enabled (at compiletime).
     
   See Also: @pemit, @emit, say, pose
  
@@ -1543,12 +1547,12 @@
   See Also: @robot, OUTPUTPREFIX, ROBOT
   
 & page
-  Command: p[age] <player-list> [=[<control>]<message>]
-           p[age] ,<player-list-seperated-by-commas> [=[<control>]<message>]
-           p[age] <message> (if @toggled MUXPAGE)
-           lp[age] <message to last person(s) you paged>
-           rp[age] <message to last person who paged you>
-           mrp[age] <message to player list included in last page to you>
+  Command: p[age][/<switch>] <player-list> [=[<control>]<message>]
+           p[age][/<switch>] ,<player-list-seperated-by-commas> [=[<control>]<message>]
+           p[age][/<switch>] <message> (if @toggled MUXPAGE)
+           lp[age][/<switch>] <message to last person(s) you paged>
+           rp[age][/<switch>] <message to last person who paged you>
+           mrp[age][/<switch>] <message to player list included in last page to you>
  
   Note: If you are paging people with spaces in their name, start the page
         with a comma.  i.e.  page ,player with space, player2 = message
@@ -1567,6 +1571,9 @@
   as 'From afar, <player> <message>', with ';' omitting the space between
   <player> and <message>.  '"' formats the message in normal page format
   (this is the default).
+  
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
  
 { 'help page2' for more }
   
@@ -1593,7 +1600,7 @@
             rpage, lpage, mrpage
   
 & mrpage
-  Command: mrpage [[<control>]<message>]
+  Command: mrpage[/<switch>] [[<control>]<message>]
   
   This command will automatically page the last person(s) who paged you.
   This will in essence, page the entire list that you saw in the last page
@@ -1602,23 +1609,32 @@
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
   
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
+  
   See Also: page, lpage, whisper, say, pose
   
 & rpage
-  Command: rpage [[<control>]<message>]
+  Command: rpage[/<switch>] [[<control>]<message>]
   
   This command will automatically page the last person who paged you.
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
   
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
+  
   See Also: page, lpage, mrpage, whisper, say, pose
   
 & lpage
-  Command: lpage [[<control>]<message>]
+  Command: lpage[/<switch>] [[<control>]<message>]
   
   This command will automatically page the last person(s) who you paged.
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
+  
+  Switches available:
+    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
   
   See Also: page, rpage, mrpage, whisper, say, pose
   
@@ -1628,12 +1644,16 @@
   Displays <message> to everyone in your current room, preceded by your name
   and optionally a space.  Example: the command 'pose jumps for joy' produces
   '<yourname> jumps for joy'.
- 
+  
+  No switches are available for the ':' or ';' shorthands.
+   
   The following switches are available:
      /default - (default) Put a space between your name and the message
                 (IE, display '<name> <message>').
      /nospace - Don't put a space between your name and the message
                 (IE, display '<name><message>').
+     /noansi   - Show the string literally and don't process ansi.  Only
+                 useful with ZENTY_ANSI enabled (at compiletime).
  
   See Also: page, say, whisper, :, ;, "
   
@@ -1707,9 +1727,13 @@
   See Also: @emit, @oemit, NOSPOOF
   
 & say
-  Command: say <message>
+  Command: say[/<switches>] <message>
   Says <message> out loud to everyone in your current room. You can also
-  use '"<message>'.
+  use '"<message>'.  No switches are allowed with the '"' shorthand.
+  
+  The following switches exist for the say command:
+    /noansi    - Show the string literally and don't process ansi.  Only
+                 useful with ZENTY_ANSI enabled (at compiletime).
   
   See Also: page, pose, whisper, :, ;, ", @saystring
   
@@ -1936,6 +1960,10 @@
   However, if a zero number is passed to this command.  The processing
   of the command stops there and no further processing is done.
   
+  Available Switches:
+    /queued -- process the <commands(s)> by queuing them (default).
+    /inline -- process the <commands(s)> inline and do not queue them.
+  
   This works opposite of @break.
   
   Example:
@@ -1951,7 +1979,7 @@
   See Also: $-COMMAND, @@, @break, @skip
 
 & @break
-  Command: @break <value> [=<command(s)>]
+  Command: @break[/switch] <value> [=<command(s)>]
   
   The @break command is used to optionally break out of any processing of
   commands.  The possible values to pass to it are zero (0) or non-zero
@@ -1959,6 +1987,10 @@
   then it treats it as a NOOP and continues processing as if nothing occurred.
   However, if a non-zero number is passed to this command.  The processing
   of the command stops there and no further processing is done.
+  
+  Available Switches:
+    /queued -- process the <commands(s)> by queuing them (default).
+    /inline -- process the <commands(s)> inline and do not queue them.
   
   Example:
     > @create obj
@@ -2510,16 +2542,19 @@
   that contains the object you are inside with the /room switch.
  
   The following switches are available:
-     /here  - Sends the message to everyone in the same location as you.
-     /room  - Sends the message to everyone in the room that contains the
-             object you are in.  Starting from your location, this switch
-             'leaves' objects until it reaches a room, and @emits the message
-             there.
-     /sub   - Substitute '##' in the string for the target's dbref#.  Note,
-              that iter(), parse() or any function that also handles ## will
-              handle it prior to @emit.
-  If both switches are specified, the message is sent to both places.  If
-  neither is specified, /here is assumed.
+     /here   - Sends the message to everyone in the same location as you.
+     /room   - Sends the message to everyone in the room that contains the
+               object you are in.  Starting from your location, this switch
+               'leaves' objects until it reaches a room, and @emits the message
+               there.
+     /sub    - Substitute '##' in the string for the target's dbref#.  Note,
+               that iter(), parse() or any function that also handles ## will
+               handle it prior to @emit.
+     /noansi - Show the string literally and don't process ansi.  Only
+               useful with ZENTY_ANSI enabled (at compiletime).
+  
+  If both /here and /room switches are specified, the message is sent to both 
+  places.  If neither is specified, /here is assumed.
  
   Some MUSHes may restrict the use of this command.
   
@@ -2551,17 +2586,19 @@
   flag set and the object performing the @force does not.
  
   The following switches are available:
-     /here  - Sends the message to everyone in the same location as <object>.
-     /room  - Sends the message to everyone in the room that contains the
-              object that <object> is in.  Starting from your location, this
-              switch 'leaves' objects until it reaches a room, and @emits the
-              message there.
-  
-  If both switches are specified, the message is sent to both places.  If
-  neither is specified, /here is assumed.
- 
+     /here   - Sends the message to everyone in the same location as <object>.
+     /room   - Sends the message to everyone in the room that contains the
+               object that <object> is in.  Starting from your location, this
+               switch 'leaves' objects until it reaches a room, and @emits the
+               message there.
+     /noansi - Show the string literally and don't process ansi.  Only
+               useful with ZENTY_ANSI enabled (at compiletime).
+    
+  If both /here and /room switches are specified, the message is sent to both 
+  places.  If neither is specified, /here is assumed.
+   
   Some MUSHes may restrict the use of this command.
-  
+    
   See Also: @emit, @fpose, @fsay, INHERIT, SPOOFING
   
 & @find
@@ -2764,6 +2801,7 @@
          help mail lock   - help on how to set a mail lock.
          help @lock keys  - list of valid keys you can use in @locking.
          help @lock locks - list of available locks you can @lock.
+         help @lock type <lock> - give detailed help on the specific lock.
   
   See Also: @chown, @unlock
   
@@ -7408,14 +7446,17 @@
   
 & TERSE
   Flag: TERSE(t)
- 
+   
   If you are set TERSE then you are not shown the description, success/failure
   messages, contents, or exits of locations you enter.  You must use the LOOK
   or EXAMINE commands to see this information.
- 
+   
   Others in the location still get the osucc/ofail messages and the asucc or
   afail command list is still run.
- 
+  
+  If this is set on a ROOM, then the room will behave as if the person 
+  entering is set TERSE.
+   
   See Also: examine, look, MYOPIC
   
 & ROBOT
@@ -13236,6 +13277,8 @@ Function: colors([[<value>], [<key>]])
     d       - show the decimal value (0-255) of the XTERM specific color (def).
     h       - show the hex value (0x00-0xFF) of the XTERM specific color.
     c       - show the 16 color code translation of the XTERM specific color.
+    x       - show the 24bit (#000000-#FFFFFF) color code XTERM translation.
+    r       - show the RGB (0 0 0 - 255 255 255) color code XTERM translation.
   
   Examples:
     > say colors()
@@ -18555,12 +18598,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: setq_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
   
 & TRIM()
-  Function: trim(<string> [,<trim style> [,<trim character>]])
+  Function: trim(<string> [,<trim style> [,<trim character(s)>]])
  
   This function will trim trailing and/or lead characters on the string
   that you specify.  <trim character> specifies the character to trim (default
   is space), and <trim style> tells the kind of trimming to perform (default
-  is trim both sides of the string).
+  is trim both sides of the string).  You may specify more than one character
+  for trimming.
  
   The following values for <trim style> are recognized:
       'b' :   Trim both ends of the string (default)
@@ -18903,28 +18947,60 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     c - cyan foreground                 C - cyan background
     w - white foreground                W - white background
   
-    0x<hex> -- example:  0xC4 for 256 color foreground support
-    +color  -- example:  +pink for the 256 color foreground 'pink'.
-    /       -- foreground/background indicator -- required
-     
   For example, "ansi(fc, Test)" would hilight "Test" in flashing cyan.
   
   See 'XTERMCOLOR LIST' for the 256 color list.
   
-{ 'help ansi2' for more -- XTERMCOLOR and 256 color support}
-  
+{ 'help ansi2' for more -- The 256 Color Support}
+
 & ANSI2
-  Function: ansi(<codes>,<string>)  -- CONTINUED
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
+  
+  For 256 color support, we offer multiple methods to handle it.  This needs
+  the XTERMCOLOR flag to be set in addition to the normal ANSI and ANSICOLOR.
+  
+  First, you may specify the color with the + prefix.  This does not require 
+  the '/' in the second option unless you intend to use background  colors.
+  
+  For 256 Color support we offer for the <FG> and <BG> options:
+    0x<hex>     -- example:  ansi(0xC4/,string) for 256 color foreground support
+                             ansi(/0xC4,string) for 256 color background support
+                             ansi(0xC4/0xC1,string) for FG and BG support
+                   This does NOT require / for FG colors, but does for BG.
+    0-255       -- example:  ansi(196/,string) instead of '0xC4' for decimal.
+                   This does NOT require / for FG colors, but does for BG.
+    +color      -- example:  ansi(+pink,string) for the 256 color foreground 'pink'.
+                   This does NOT require / for FG colors, but does for BG.
+    #FFFFFF     -- example:  ansi(#FF0000,string) to specify the RGB values.
+                   This does NOT require / for FG colors, but does for BG.
+    <#FFFFFF>   -- example:  ansi(<#FF0000>,string) to specify the RGB values.
+                   This does NOT require / for FG colors, but does for BG.
+    <R G B>     -- example:  ansi(<255 0 0>,string) to specify the RGB values.
+                   This does NOT require / for FG colors, but does for BG.
+    /           -- foreground/background indicator -- required where mentioned.
+   
+  You may mix and match the methods of the 256 color support.  As ansi() 
+  supports multiple arguments, you may also use multiple types in different
+  arguments.
+  
+  You may also use the %c/%x substitution (depending what is configured) to
+  display 256 colors by using the '0x##' for foreground and '0X##' for 
+  background.  Example: %c0xc4%c0X20whee%cn.  This allows you to even mix
+  and match different ansi types like: %c0xc4%c0X20%cuwhee%cn to underline.
+  0x## is foreground, and 0X## is background when using percent substitutions.
+     
+{ 'help ansi3' for more -- about XTERMCOLOR and ANSI examples }
+  
+& ANSI3
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
   
   You may also use the XTERM color support if your client supports it.
   You must set the XTERMCOLOR flag to see the extended color set.
   
   See XTERMCOLOR LIST for the extended color list and codes used for it.
   
-  You must specify a number from 0 to 255 for the foreground color and/or
-  the background color.  To make ansi() aware of this format, a '/' must
-  be used for the color setting.  You may specify a foreground and 
-  background at the same time such as ansi(120/200,string) or by  using
   hex like ansi(0xca/0xab,string).  ansi(+colorname/+colorname) is allowed 
   for foreground and background.  Hex is case-insensitive.
   
@@ -18933,26 +19009,30 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   If you use %c substitutions, the 'x' after the '0' IS CASE SENSITIVE.  
   0x01 would be foreground, 0X01 would be background.
   
-  For example: 
-    > say I like %cbblue %cnrocks and %crred %cnballoons
-    You say "I like <blue> rocks and <red> balloons"
-    > say I like [ansi(b,blue)] rocks and [ansi(r,red)] balloons
-    You say "I like <blue> rocks and <red> balloons"
-    > say I like [ansi(38/,skyblue)] rocks and [ansi(203/,indianred)] balloons.
-    You say "I like <skyblue> rocks and <indianred> balloons"
-    > say I like [ansi(0x26/,skyblue)] rocks and [ansi(0xcB/,indianred)] ballons.
-    You say "I like <skyblue> rocks and <indianred> balloons"
-    > say I like [ansi(+skyblue/,skyblue)] [ansi(+indianred/,indianred)] ballons.
-    You say "I like <skyblue> <indianred> balloons"
+  Examples: 
+    > say I like %cbblue %cnrocks and %crred %cnballs
+    You say "I like <blue> rocks and <red> balls"
+    > say I like [ansi(b,blue)] rocks and [ansi(r,red)] balls
+    You say "I like <blue> rocks and <red> balls"
+    > say I like [ansi(38/,skyblue)] rocks and [ansi(203/,indianred)] balls
+    You say "I like <skyblue> rocks and <indianred> balls"
+    > say I like [ansi(0x26/,skyblue)] [ansi(0xcB/,indianred)] ballons
+    You say "I like <skyblue> <indianred> balls"
+    > say I like [ansi(+skyblue,skyblue)] [ansi(+indianred,indianred)] balls
+    You say "I like <skyblue> <indianred> balls" (note / not needed for +FG)
+    > say I like [ansi(+skyblue/,skyblue)] [ansi(+indianred/,indianred)] balls
+    You say "I like <skyblue> <indianred> balls"
   
   The words 'blue' and 'red' being their respected colors.  Any ansi
-  sequence can be substituted this way (including flash), and will
-  continue till either the end of the line or until a normal code
-  is entered.
+  sequence can be substituted using percent substitutions, and will
+  continue till either the end of the line or until a normalization ansi 
+  code is entered (the %cn).
    
-{ 'help ansi3' for more -- Flags required and information }
-& ANSI3
-  Function: ansi(<codes>,<string>)  -- CONTINUED
+{ 'help ansi4' for more -- Flags required and information }
+
+& ANSI4
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
   
   NOTE:  The ANSI flag is used to see base ansi sequences (flash,highlight,etc)
          The ANSICOLOR flag is used _with_ ANSI to see color.
@@ -23592,11 +23672,12 @@ ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
 SEA - Seawolf
  
-Current Revision: 3.9.2p1
+Current Revision: 3.9.3p0
 
 Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
+  3.9.3: 3.9.3p0, 3.9.3p1
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -23647,9 +23728,6 @@ New Features
 * @blacklist for adding blacklisted specific IP addresses (like TOR) [ASH]
 * cluster_wipe() added to mimic @cluster/wipe [ASH]
 * chktrace() to check what stage of tracing the parser is at [ASH]
-* @include for content inclusion ala PennMUSH [ASH]
-* @sudo for command processing [ASH]
-* @skip for command processing [ASH]
 * privatize() for making local functions (ulocal/localize/etc) null regs [ASH]
 
 Changes
@@ -23678,12 +23756,6 @@ Changes
 * Error entries (in error.txt) starting with '!' are evaluated [ASH]
 * map() handles multicharacter output delimiter [ASH]
 * switch_search admin param to switch search and searchng [ASH]
-* printf() has : for filler character [ASH]
-* added mux_lcon_compat to enforce lcon() returns empty string [ASH]
-* setq()/setr() now understand '+' for dynamic named variables [ASH]
-* /PROTECT switch to @function for tagging of deleting regs [ASH]
-* map() delimiter is controlled by a config param map_space_delim [ASH]
-* @function now allows /min and /max for user-defined functions [ASH]
 
 Bug Fixes
 ---------
@@ -23705,6 +23777,28 @@ Bug Fixes
 * cleanup of missing elements in help.txt
 * possible missed LBUF_FREE in notify code on extremely rare conditions [ASH]
 * Double pass on @protect [ASH]
+
+& 3.9.2p0
+Release Date: 12/01/10
+Status: Alpha
+  
+New Features
+------------
+* @include for content inclusion ala PennMUSH [ASH]
+* @sudo for command processing [ASH]
+* @skip for command processing [ASH]
+
+Changes
+-------
+* printf() has : for filler character [ASH]
+* added mux_lcon_compat to enforce lcon() returns empty string [ASH]
+* setq()/setr() now understand '+' for dynamic named variables [ASH]
+* /PROTECT switch to @function for tagging of deleting regs [ASH]
+* map() delimiter is controlled by a config param map_space_delim [ASH]
+* @function now allows /min and /max for user-defined functions [ASH]
+
+Bug Fixes
+---------
 * MySQL 3rd party patch corrupted the LBUF stack.  While we do not officially
   support the MySQL patch, it was fixed nevertheless [ASH]
 * Backing out new code could cause internal attributes to be redefined. [ASH]
@@ -23713,7 +23807,7 @@ Bug Fixes
 * @skip didn't evaluate properly [ASH]
 
 & 3.9.2p1
-Release 09/30/2011
+Release 10/30/2011
 Status: Alpha
 
 New Features
@@ -23723,11 +23817,7 @@ New Features
 * chkgarbage() function to check if target is GOING [ASH]
 * lookup_site() to see the real in-use SITE of a port [ASH]
 * ee() for engineering notation of floating points [ASH]
-* Added native support for SQLITE [ASH] -- Thanks Ol'Sarge/Ternary
-* Added 256 color support to the internal markup translater [ASH]
-* colors() for color listing as well as numerical/hex display [ASH]
-
-
+  
 Changes
 -------
 * singletime() now handles (w)eeks, (M)onths, and (y)ears like MUX [ASH]
@@ -23744,14 +23834,7 @@ Changes
 * replace() handles multiple arguments [ASH]
 * ifelse() handles %$ [ASH]
 * objeval() with third arg to bypass NO_CODE flag [ASH]
-* BOUNCEFORWARD/BOUNCE now redirects TRACE [ASH]
-* pack()/unpack() optionally handles Penn's 64 bit compression [ASH]
-* creplace() handles optional range value [ASH]
-* ljust()/rjust() handles multi-character filler [ASH]
-* ansi() takes FG/BG arguments (1-255). e.g. ansi(100/200,string) [ASH]
-* %c/%x substitutions take 1-255 ansi subs via %c0x##%cn (ergo: hex) [ASH]
-* better sanitization for @Protect with a built-in way to fix aliases [ASH]
-
+  
 Bug Fixes
 ---------
 * @assert/@break didn't handle {}'s for multiple args [ASH]
@@ -23761,7 +23844,63 @@ Bug Fixes
 * @include didn't properly evaluate arguments [ASH]
 * elapsed time in time fields in timefmt() broke with negative numbers [ASH]
 * CPUTIME didn't report CPU seconds correctly in 64 bit platforfms [ASH]
+
+& 3.9.3p0
+Release Date: 05/30/12
+Status: Alpha
+  
+New Features
+------------
+* Added native support for SQLITE [ASH] -- Thanks Ol'Sarge/Ternary
+* Added 256 color support to the internal markup translater [ASH]
+* colors() for color listing as well as numerical/hex display [ASH]
+  
+Changes
+-------
+* BOUNCEFORWARD/BOUNCE now redirects TRACE [ASH]
+* pack()/unpack() optionally handles Penn's 64 bit compression [ASH]
+* creplace() handles optional range value [ASH]
+* ljust()/rjust() handles multi-character filler [ASH]
+* ansi() takes FG/BG arguments (1-255). e.g. ansi(100/200,string) [ASH]
+* %c/%x substitutions take 1-255 ansi subs via %c0x##%cn (ergo: hex) [ASH]
+* better sanitization for @Protect with a built-in way to fix aliases [ASH]
+  
+Bug Fixes
+---------
 * NO_CODE broke global_error_obj if enabled.  Fixed [ASH]
 * regexp issue with command  matching and parenthesis and backslashes [ASH]
 * Immortals were not able to re-@name themselves to a protected name [ASH]
 * @include didn't evaluate %0 args passed to it [ASH]
+
+& 3.9.3p1
+Release Date: 06/20/12
+Status: Alpha
+
+New Features
+------------
+* added nslookup() for immortals with proper CPU/delay protection [ASH]
+* added room_toggles for default toggles for room creation [ASH]
+* added exit_toggles for default toggles for exit creation [ASH]
+* added robot_toggles for default toggles for @robot creation [ASH]
+* added player_toggles for default toggles for player creation [ASH]
+* added thing_toggles for default toggles for object creation [ASH]
+* added @list default_toggles to show the above default toggles [ASH]
+  
+Changes
+-------
+* TERSE flag works on ROOMS [ASH]
+* @break and @assert have /queued and /inline switches [ASH]
+* trim() allows trimming multiple characters [ASH]
+* think, @emit, @oemit, pose, and say understand the /noansi switch [ASH]
+* page, rpage, lpage, mrpage understand the /noansi switch [ASH]
+* The basic @ansiname allows 256 colors now via 0x## or 0X## [ASH]
+* made @list default_flags no longer worthless [ASH]
+* / is superflurous with regards to FG colors in ansi() [ASH]
+* ansi() allows #FFFFFF, <#FFFFFF>, and <R G B> modes [ASH]
+* colors() has the 'x' option to display #FFFFFF format [ASH]
+* colors() has the 'r' option to display R G B format [ASH]
+* @sudo, @skip handle multiple arguments now [ASH]
+
+Bug Fixes
+---------
+* the asksource.sh script broke on ubuntu because it didn't have slocate

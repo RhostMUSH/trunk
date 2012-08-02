@@ -47,19 +47,24 @@ static const char *broadcast_msg = "Broadcast: ";
 
 void do_think (dbref player, dbref cause, int key, char *message)
 {
-   notify(player, unsafe_tprintf("%s",message));
+   if ( key == SAY_NOANSI ) {
+      noansi_notify(player, unsafe_tprintf("%s",message));
+   } else {
+      notify(player, unsafe_tprintf("%s",message));
+   }
 }
 
 void do_say (dbref player, dbref cause, int key, char *message)
 {
   dbref	loc, aowner;
   char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff;
-  int	say_flags, depth, aflags, say_flags2;
+  int	say_flags, depth, aflags, say_flags2, no_ansi;
   
 	/* Convert prefix-coded messages into the normal type */
+        no_ansi = key & (SAY_NOANSI);
         say_flags2 = key & (SAY_SUBSTITUTE);
 	say_flags  = key & (SAY_NOTAG|SAY_HERE|SAY_ROOM);
-	key &= ~(SAY_NOTAG|SAY_HERE|SAY_ROOM|SAY_SUBSTITUTE);
+	key &= ~(SAY_NOTAG|SAY_HERE|SAY_ROOM|SAY_SUBSTITUTE|SAY_NOANSI);
 
 	if (key == SAY_PREFIX) {
 		switch (*message++) {
@@ -120,48 +125,103 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 if ( SafeLog(player) ) {
                    if ( pbuf && *pbuf ) {
-		      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                      if ( no_ansi ) {
+		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                      } else {
+		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                      }
                    } else {
-		      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                      if ( no_ansi ) {
+		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                      } else {
+		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                      }
                    }
                 } else {
-		   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You say \"%s\"", message));
+                   if ( no_ansi ) {
+		      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You say \"%s\"", message));
+                   } else {
+		      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You say \"%s\"", message));
+                   }
                 }
                 tprp_buff = tpr_buff;
                 if ( Anonymous(player) && Cloak(player) ) {
-                   if ( pbuf && *pbuf )
+                   if ( pbuf && *pbuf ) {
 #ifdef REALITY_LEVELS
-                      notify_except_rlevel(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
+                      
+                      if ( no_ansi ) {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message), MSG_NO_ANSI );
+                      } else {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message), 0);
+                      }
 #else
-                      notify_except(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
+                      if ( no_ansi ) {
+                         noansi_notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
+                      } else {
+                         notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
+                      }
 #endif /* REALITY_LEVELS */
-                   else
+                   } else {
 #ifdef REALITY_LEVELS
-                      notify_except_rlevel(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
+                      if ( no_ansi ) {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message), MSG_NO_ANSI);
+                      } else {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message), 0);
+                      }
 #else
-                      notify_except(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
+                      if ( no_ansi ) {
+                         noansi_notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
+                      } else {
+                         notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
+                      }
 #endif /* REALITY_LEVELS */
+                   }
                 } else {
-                   if ( pbuf && *pbuf )
+                   if ( pbuf && *pbuf ) {
 #ifdef REALITY_LEVELS
-                      notify_except_rlevel(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                      if ( no_ansi ) {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), MSG_NO_ANSI);
+                      } else {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
+                      }
 #else
-                      notify_except(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                      if ( no_ansi ) {
+                         noansi_notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                      } else {
+                         notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                      }
 #endif /* REALITY_LEVELS */
-                   else
+                   } else {
 #ifdef REALITY_LEVELS
-                      notify_except_rlevel(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                      if ( no_ansi ) {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), MSG_NO_ANSI);
+                      } else {
+                         notify_except_rlevel(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
+                      }
 #else
-                      notify_except(loc, player, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                      if ( no_ansi ) {
+                         noansi_notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                      } else {
+                         notify_except(loc, player, player,
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                      }
 #endif /* REALITY_LEVELS */
+                   }
                 }
                 free_lbuf(tpr_buff);
                 free_lbuf(pbuf);
@@ -170,19 +230,39 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
-                   notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message));
+                   if ( no_ansi ) {
+                      notify_except_rlevel(loc, player, -1,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message), MSG_NO_ANSI);
+                   } else {
+                      notify_except_rlevel(loc, player, -1,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message), 0);
+                   }
 #else
-                   notify_all_from_inside(loc, player,
-                        safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message));
+                   if ( no_ansi ) {
+                      noansi_notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message));
+                   } else {
+                      notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message));
+                   }
 #endif /* REALITY_LEVELS */
                 } else {
 #ifdef REALITY_LEVELS
-                   notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
+                   if ( no_ansi ) {
+                      notify_except_rlevel(loc, player, -1,
+                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message), MSG_NO_ANSI);
+                   } else {
+                      notify_except_rlevel(loc, player, -1,
+                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message), 0);
+                   }
 #else
-                   notify_all_from_inside(loc, player,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
+                   if ( no_ansi ) {
+                      noansi_notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
+                   } else {
+                      notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
+                   }
 #endif /* REALITY_LEVELS */
                 }
                 free_lbuf(tpr_buff);
@@ -191,19 +271,39 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
-                   notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message));
+                   if ( no_ansi ) {
+                      notify_except_rlevel(loc, player, -1,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message), MSG_NO_ANSI);
+                   } else {
+                      notify_except_rlevel(loc, player, -1,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message), 0);
+                   }
 #else
-                   notify_all_from_inside(loc, player,
-                        safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message));
+                   if ( no_ansi ) {
+                      noansi_notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message));
+                   } else {
+                      notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message));
+                   }
 #endif /* REALITY_LEVELS */
                 } else {
 #ifdef REALITY_LEVELS
-                   notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
+                   if ( no_ansi ) {
+                      notify_except_rlevel(loc, player, -1,
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message), MSG_NO_ANSI);
+                   } else {
+                      notify_except_rlevel(loc, player, -1,
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message), 0);
+                   }
 #else
-                   notify_all_from_inside(loc, player,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
+                   if ( no_ansi ) {
+                      noansi_notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
+                   } else {
+                      notify_all_from_inside(loc, player,
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
+                   }
 #endif /* REALITY_LEVELS */
                 }
                 free_lbuf(tpr_buff);
@@ -211,69 +311,80 @@ void do_say (dbref player, dbref cause, int key, char *message)
 	case SAY_EMIT:
 	        if (say_flags2 & SAY_SUBSTITUTE)
 		  mudstate.emit_substitute = 1;
-		if ((say_flags & SAY_HERE) || !say_flags)
+		if ((say_flags & SAY_HERE) || !say_flags) {
 #ifdef REALITY_LEVELS
-                        notify_except_rlevel(loc, player, -1, message);
+                   if ( no_ansi ) {
+                      notify_except_rlevel(loc, player, -1, message, MSG_NO_ANSI);
+                   } else {
+                      notify_except_rlevel(loc, player, -1, message, 0);
+                   }
 #else
-                        notify_all_from_inside(loc, player, message);
+                   if ( no_ansi ) {
+                      noansi_notify_all_from_inside(loc, player, message);
+                   } else {
+                      notify_all_from_inside(loc, player, message);
+                   }
 #endif /* REALITY_LEVELS */
+                }
 		if (say_flags & SAY_ROOM) {
-			if ((Typeof(loc) == TYPE_ROOM) &&
-			    (say_flags & SAY_HERE)) {
- 			        mudstate.emit_substitute = 0;
-				return;
-			}
-			depth = 0;
-			while((Typeof(loc) != TYPE_ROOM) &&
-			      (depth++ < 20)) {
-				loc = Location(loc);
-				if ((loc == NOTHING) ||
-				    (loc == Location(loc))) {
-				  mudstate.emit_substitute = 0;
-				  return;
-				}
-			}
-			if (Typeof(loc) == TYPE_ROOM) {
+                   if ((Typeof(loc) == TYPE_ROOM) && (say_flags & SAY_HERE)) {
+                      mudstate.emit_substitute = 0;
+                      return;
+                   }
+                   depth = 0;
+                   while((Typeof(loc) != TYPE_ROOM) && (depth++ < 20)) {
+                      loc = Location(loc);
+                      if ((loc == NOTHING) || (loc == Location(loc))) {
+                         mudstate.emit_substitute = 0;
+                         return;
+                      }
+                   }
+                   if (Typeof(loc) == TYPE_ROOM) {
 #ifdef REALITY_LEVELS
-                                notify_except_rlevel(loc, player, -1, message);
+                      if ( no_ansi ) {
+                         notify_except_rlevel(loc, player, -1, message, MSG_NO_ANSI);
+                      } else {
+                         notify_except_rlevel(loc, player, -1, message, 0);
+                      }
 #else
-                                notify_all_from_inside(loc, player, message);
+                      if ( no_ansi ) {
+                         noansi_notify_all_from_inside(loc, player, message);
+                      } else {
+                         notify_all_from_inside(loc, player, message);
+                      }
 #endif /* REALITY_LEVELS */
-			}
+                   }
 		}
 		mudstate.emit_substitute = 0;
 		break;
 	case SAY_SHOUT:
-		if (say_flags & SAY_NOTAG) mudstate.nowall_over = 1;
+		if (say_flags & SAY_NOTAG) 
+                   mudstate.nowall_over = 1;
 		if (Admin(player)) {
 		  /* let them pass quietly */
-		} else if (Flags2(player) & NO_WALLS) {
-		    notify(player,
-		      "You are set NO_WALLS and cannot send an announcement.");
-		    return;
-		} else if (No_yell(player)) {
-			notify(player,
-			  "Your @wall privilages are presently suspended.");
-			return;
-		} else if ((Guildmaster(player) || HasPriv(player,NOTHING,POWER_FREE_WALL,POWER4,NOTHING) || FreeFlag(player)) &&
-			   !DePriv(player,NOTHING,DP_FREE,POWER6,POWER_LEVEL_NA)) {
-		  /* skip payment */
+                } else if (Flags2(player) & NO_WALLS) {
+                   notify(player, "You are set NO_WALLS and cannot send an announcement.");
+                   return;
+                } else if (No_yell(player)) {
+                   notify(player, "Your @wall privilages are presently suspended.");
+                   return;
+                } else if ((Guildmaster(player) || HasPriv(player,NOTHING,POWER_FREE_WALL,POWER4,NOTHING) || FreeFlag(player)) &&
+                           !DePriv(player,NOTHING,DP_FREE,POWER6,POWER_LEVEL_NA)) {
+                   /* skip payment */
 		} else if (!payfor(player,mudconf.wall_cost)) {
-                        tprp_buff = tpr_buff = alloc_lbuf("do_say");
-                        notify(player,
-                                safe_tprintf(tpr_buff, &tprp_buff, "You don't have enough %s to shout.",
-                                        mudconf.many_coins));
-                        free_lbuf(tpr_buff);
-			return;
+                   tprp_buff = tpr_buff = alloc_lbuf("do_say");
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You don't have enough %s to shout.", mudconf.many_coins));
+                   free_lbuf(tpr_buff);
+                   return;
 		} else {
                     tprp_buff = tpr_buff = alloc_lbuf("do_say");
-		    notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
                                    "You have been charged %d %s for that announcement.",
                                    mudconf.wall_cost,
                                    mudconf.wall_cost == 1 ? mudconf.one_coin : mudconf.many_coins));
                     free_lbuf(tpr_buff);
 		}
-		switch (*message) {
+                switch (*message) {
 		case ':':
 			message[0] = ' ';
 			say_shout(0, announce_msg, say_flags, player, message);
@@ -410,7 +521,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
  * Page-pose code from shadow@prelude.cc.purdue.
  */
 
-static void page_pose (dbref player, dbref target, int port, char *message)
+static void page_pose (dbref player, dbref target, int port, char *message, int key)
 {
   char	*nbuf, *tpr_buff, *tprp_buff;
   
@@ -420,15 +531,24 @@ static void page_pose (dbref player, dbref target, int port, char *message)
   if (Wizard(player))
     mudstate.droveride = 1;
   tprp_buff = tpr_buff = alloc_lbuf("page_pose");
-  notify_with_cause2(port, player,
-		     safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), message));
+  if ( key & PAGE_NOANSI ) {
+     noansi_notify_with_cause2(port, player,
+		        safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), message));
+  } else {
+     notify_with_cause2(port, player,
+		        safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), message));
+  }
   free_lbuf(tpr_buff);
   mudstate.droveride = 0;
   if (mudstate.pageref != NOTHING) {
     tprp_buff = tpr_buff = alloc_lbuf("page_pose");
-    notify(player,
-	   safe_tprintf(tpr_buff, &tprp_buff, "Long distance to port %d: %s%s",
-		   port, nbuf, message));
+    if ( key & PAGE_NOANSI ) {
+       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Long distance to port %d: %s%s",
+                      port, nbuf, message));
+    } else {
+       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Long distance to port %d: %s%s",
+                      port, nbuf, message));
+    }
     free_lbuf(tpr_buff);
   } else
     notify(player, "Bad Port.");
@@ -544,12 +664,16 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
         *pos2, *pos3, *px, *lbuff, *lbx, *alias_pos1, *alias_px, *pl_alias, *mpg, 
         *t_msg, *t_msgp, *tpr_buff, *tprp_buff, *s_ret_warn, *s_ret_warnptr;
   int	flags, port, got, got2, num, nuts, pc, fnum, lnum, *ilist, pl_aflags, 
-        mpr_chk, nkey, s_ret_warnkey;
+        mpr_chk, nkey, s_ret_warnkey, ansikey;
   
         /* Lensy:
          *  If they type 'page' by itself, then tell them who they last paged
          */
-        pc = mpr_chk = nkey =0;
+        pc = mpr_chk = nkey = ansikey = 0;
+        if ( key & PAGE_NOANSI ) {
+           ansikey = PAGE_NOANSI;
+        }
+        key = (key &~ PAGE_NOANSI);
         if (((!tname && !message) || (*tname == '\0' && *message == '\0'))
               && MuxPage(player) && !(key & PAGE_LOC)) {
           // get last page attr
@@ -810,11 +934,11 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		switch (*p1) {
 		case ':':
 			p1[0] = ' ';
-			page_pose(player, target, port, p1);
+			page_pose(player, target, port, p1, ansikey);
 			p1[0] = ':';
 			break;
 		case ';':
-			page_pose(player, target, port, p1+1);
+			page_pose(player, target, port, p1+1, ansikey);
 			break;
 		case '"':
 			p1++;
@@ -824,15 +948,25 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		  	if (Wizard(player))
 		    	  mudstate.droveride = 1;
                         tprp_buff = tpr_buff;
-			notify_with_cause2(port, player,
-				safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                        if ( !ansikey ) {
+			   notify_with_cause2(port, player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                        } else {
+			   noansi_notify_with_cause2(port, player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                        }
 			mudstate.droveride = 0;
 			if (mudstate.pageref == NOTHING)
-				notify(player, "Bad Port.");
+			   notify(player, "Bad Port.");
 			else  {
-                        	tprp_buff = tpr_buff;
-				notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged port %d with '%s'.",
-					port, p1));
+                           tprp_buff = tpr_buff;
+                           if ( !ansikey ) {
+			      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged port %d with '%s'.",
+			             port, p1));
+                           } else {
+			      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged port %d with '%s'.",
+			             port, p1));
+                           }
 			}
 			if (nuts)
 			  p1--;
@@ -972,29 +1106,60 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 			if (num == 1) {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s(%s)%s", Name(player), pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s(%s)%s", Name(player), pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s(%s)%s", Name(player), pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                                }
                              }
                           } else {
-	        	     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                             if ( !ansikey ) {
+	        	        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                             } else {
+	        	        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "From afar, %s%s", Name(player), p1));
+                             }
                           }
 			} else {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s(%s)%s", alias_pos1, Name(player), 
-                                              pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s(%s)%s", alias_pos1, Name(player), 
+                                                 pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s(%s)%s", alias_pos1, Name(player), 
+                                                 pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", alias_pos1, Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", alias_pos1, Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", alias_pos1, Name(player), p1));
+                                }
                              }
                           } else {
-			     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", pos1, Name(player), p1));
+                             if ( !ansikey ) {
+			        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", pos1, Name(player), p1));
+                             } else {
+			        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s From afar, %s%s", pos1, Name(player), p1));
+                             }
                           }
                         }
                         free_lbuf(pl_alias);
@@ -1014,29 +1179,60 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 			if (num == 1) {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s(%s) pages: %s", Name(player), pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s(%s) pages: %s", Name(player), pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s(%s) pages: %s", Name(player), pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                                }
                              }
                           } else {
-			     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                             if ( !ansikey ) {
+			        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                             } else {
+			        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s pages: %s", Name(player), p1));
+                             }
                           }
 			} else {
                           if ( Good_obj(target) && VPage(target) ) {
                              if (*pl_alias) {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s(%s) pages: %s", alias_pos1, Name(player), 
-                                               pl_alias, p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s(%s) pages: %s", alias_pos1, Name(player), 
+                                                  pl_alias, p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s(%s) pages: %s", alias_pos1, Name(player), 
+                                                  pl_alias, p1));
+                                }
                              } else {
-			        notify_with_cause(target, player,
-				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", alias_pos1, Name(player), p1));
+                                if ( !ansikey ) {
+			           notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", alias_pos1, Name(player), p1));
+                                } else {
+			           noansi_notify_with_cause(target, player,
+				         safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", alias_pos1, Name(player), p1));
+                                }
                              }
                           } else {
-			     notify_with_cause(target, player,
-				   safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", pos1, Name(player), p1));
+                             if ( !ansikey ) {
+			        notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", pos1, Name(player), p1));
+                             } else {
+			        noansi_notify_with_cause(target, player,
+				      safe_tprintf(tpr_buff, &tprp_buff, "%s %s pages: %s", pos1, Name(player), p1));
+                             }
                           }
                         }
                         free_lbuf(pl_alias);
@@ -1078,11 +1274,19 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		  p1++;
                 tprp_buff = tpr_buff = alloc_lbuf("do_page");
 		if (num == 1) {
-		  notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", Name(*ilist), pos3, p1));
+                  if ( !ansikey ) {
+		     notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", Name(*ilist), pos3, p1));
+                  } else {
+		     noansi_notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", Name(*ilist), pos3, p1));
+                  }
 		}
 		else {
 		  *(pos1 + strlen(pos1) - 1) = '\0';
-		  notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", pos1 + 5, pos3, p1));
+                  if ( !ansikey ) {
+		     notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", pos1 + 5, pos3, p1));
+                  } else {
+		     noansi_notify(player,safe_tprintf(tpr_buff, &tprp_buff, "Long distance to %s: %s%s", pos1 + 5, pos3, p1));
+                  }
 		}
                 free_lbuf(tpr_buff);
 		free_lbuf(pos3);
@@ -1092,11 +1296,19 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 	      default:
                 tprp_buff = tpr_buff = alloc_lbuf("do_page");
 		if (num == 1) {
-		  notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", Name(*ilist), p1));
+                  if ( !ansikey ) {
+		     notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", Name(*ilist), p1));
+                  } else {
+		     noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", Name(*ilist), p1));
+                  }
 		}
 		else {
 		  *(pos1 + strlen(pos1) - 1) = '\0';
-		  notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", pos1 + 5, p1));
+                  if ( !ansikey ) {
+		     notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", pos1 + 5, p1));
+                  } else {
+		     noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You paged %s with '%s'.", pos1 + 5, p1));
+                  }
 		}
                 free_lbuf(tpr_buff);
 	    }
@@ -1599,7 +1811,11 @@ ZLISTNODE *z_ptr, *y_ptr;
                         tx = tell;
                         safe_str("[oemit] ",tell,&tx);
                         safe_str(result,tell,&tx);
-                        notify_with_cause(target,player,tell);
+                        if ( noansi ) {
+                           noansi_notify_with_cause(target,player,tell);
+                        } else {
+                           notify_with_cause(target,player,tell);
+                        }
                         free_lbuf(tell);
                      }
                   }

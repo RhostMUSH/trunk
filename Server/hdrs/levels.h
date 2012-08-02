@@ -15,7 +15,7 @@ extern void	FDECL(decompile_rlevels, (dbref, dbref, char *));
 extern void 	FDECL(did_it_rlevel, (dbref, dbref, int, const char *, int,
 				const char *, int, char *[], int));
 extern void 	FDECL(notify_except_rlevel, (dbref, dbref, dbref,
-				const char *));
+				const char *, int));
 extern void     FDECL(notify_except2_rlevel, (dbref, dbref, dbref, dbref,
 				const char *));
 extern void	FDECL(notify_except2_rlevel2, (dbref, dbref, dbref, dbref,

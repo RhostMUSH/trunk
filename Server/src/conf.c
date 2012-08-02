@@ -591,6 +591,9 @@ NDECL(cf_init)
     mudstate.new_vattr = 0;
     mudstate.last_cmd_timestamp = 0;
     mudstate.heavy_cpu_recurse = 0;
+    mudstate.heavy_cpu_tmark1 = time(NULL);
+    mudstate.heavy_cpu_tmark2 = time(NULL);
+    mudstate.heavy_cpu_lockdown = 0;
     mudstate.max_logins_allowed = 0;
     mudstate.iter_inum = -1;
     /* Current CPU slam level */
@@ -2632,6 +2635,9 @@ CONF conftable[] =
     {(char *) "exit_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.exit_flags, 0, 0, CA_PUBLIC,
      (char *) "These are default flags set on new exits."},
+    {(char *) "exit_toggles",
+     cf_set_toggles, CA_GOD | CA_IMMORTAL, (int *) &mudconf.exit_toggles, 0, 0, CA_PUBLIC,
+     (char *) "These are default toggles set on new exits."},
     {(char *) "exit_quota",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.exit_quota, 0, 0, CA_PUBLIC,
      (char *) "How much quota does an exit take up?\r\n"\
@@ -3193,6 +3199,9 @@ CONF conftable[] =
     {(char *) "player_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.player_flags, 0, 0, CA_WIZARD,
      (char *) "Default flags used on new players."},
+    {(char *) "player_toggles",
+     cf_set_toggles, CA_GOD | CA_IMMORTAL, (int *) &mudconf.player_toggles, 0, 0, CA_WIZARD,
+     (char *) "Default toggles used on new players."},
     {(char *) "player_listen",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.player_listen, 0, 0, CA_PUBLIC,
      (char *) "Can players trigger @listen/@hear? DANGEROUS"},
@@ -3315,6 +3324,9 @@ CONF conftable[] =
     {(char *) "robot_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.robot_flags, 0, 0, CA_WIZARD,
      (char *) "Flags a robot is set with."},
+    {(char *) "robot_toggles",
+     cf_set_toggles, CA_GOD | CA_IMMORTAL, (int *) &mudconf.robot_toggles, 0, 0, CA_WIZARD,
+     (char *) "Toggles a robot is set with."},
     {(char *) "robot_speech",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.robot_speak, 0, 0, CA_PUBLIC,
      (char *) "Are robots allowed to talk?"},
@@ -3327,6 +3339,9 @@ CONF conftable[] =
     {(char *) "room_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.room_flags, 0, 0, CA_WIZARD,
      (char *) "Default flags for a new room."},
+    {(char *) "room_toggles",
+     cf_set_toggles, CA_GOD | CA_IMMORTAL, (int *) &mudconf.room_toggles, 0, 0, CA_WIZARD,
+     (char *) "Default toggles for a new room."},
     {(char *) "roomlog_path",
      cf_string, CA_DISABLED, (int *) mudconf.roomlog_path, 128, 0, CA_WIZARD,
      (char *) "Path where LOGROOM logs are sent."},
@@ -3482,6 +3497,9 @@ CONF conftable[] =
      (char *) "Does the TERSE flag show movement?"},
     {(char *) "thing_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.thing_flags, 0, 0, CA_WIZARD,
+     (char *) "Default flags on new things>"},
+    {(char *) "thing_toggles",
+     cf_set_toggles, CA_GOD | CA_IMMORTAL, (int *) &mudconf.thing_toggles, 0, 0, CA_WIZARD,
      (char *) "Default flags on new things>"},
     {(char *) "thing_quota",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.thing_quota, 0, 0, CA_WIZARD,

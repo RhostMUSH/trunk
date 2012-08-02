@@ -1206,6 +1206,9 @@ look_simple(dbref player, dbref thing, int obey_terse)
 	free_lbuf(buff);
     }
     pattr = (obey_terse && Terse(player)) ? 0 : A_DESC;
+    if ( pattr ) {
+       pattr = (obey_terse && Terse(thing) && isRoom(thing)) ? 0 : A_DESC;
+    }
 #ifdef REALITY_LEVELS
     did_it_rlevel(player, thing, pattr, "You see nothing special.",
            A_ODESC, NULL, A_ADESC, (char **) NULL, 0);
@@ -1214,7 +1217,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
            A_ODESC, NULL, A_ADESC, (char **) NULL, 0);
 #endif /* REALITY_LEVELS */
 
-    if (!mudconf.quiet_look && (!Terse(player) || mudconf.terse_look)) {
+    if (!mudconf.quiet_look && (!Terse(player) || !(isRoom(thing) && Terse(thing)) || mudconf.terse_look)) {
 	look_atrs(player, thing, 0);
     }
 }
@@ -1226,7 +1229,7 @@ show_desc(dbref player, dbref loc, int key)
     dbref aowner;
     int aflags;
 
-    if ((key & LK_OBEYTERSE) && Terse(player)) {
+    if ((key & LK_OBEYTERSE) && (Terse(player) || (Terse(loc) && isRoom(loc))) ) {
 	did_it(player, loc, 0, NULL, A_ODESC, NULL,
 	       A_ADESC, (char **) NULL, 0);
     }
@@ -1279,6 +1282,10 @@ look_in(dbref player, dbref loc, int key)
     /* tell him the name, and the number if he can link to it */
     if ( !Good_obj(loc) || Going(loc) || Recover(loc) )
         return;
+
+    if ( !is_terse ) {
+       is_terse = (key & LK_OBEYTERSE) ? (Terse(loc) && isRoom(loc)) : 0;
+    }
 
     has_namefmt = 0;
     if ( mudconf.fmt_names && (isRoom(loc) || isThing(loc)) && !NoName(loc) ) {
@@ -1440,7 +1447,7 @@ do_look(dbref player, dbref cause, int key, char *name)
 		(Cloak(thing) && Wizard(player) && (!SCloak(thing) || Immortal(player)))) {
 		look_simple(player, thing, !mudconf.terse_look);
 		if (!(Flags(thing) & OPAQUE) &&
-		    (!Terse(player) || mudconf.terse_contents)) {
+		    (!Terse(player) || !(Good_chk(loc) && Terse(loc) && isRoom(loc)) || mudconf.terse_contents)) {
 		    look_contents_altinv(player, thing, "Carrying:");
 		}
                 if (mudconf.showother_altinv && mudconf.alt_inventories)
@@ -1536,10 +1543,10 @@ debug_examine(dbref player, dbref thing)
     notify(player, unsafe_tprintf("Owner   = %d", Owner(thing)));
     notify(player, unsafe_tprintf("Pennies = %d", Pennies(thing)));
     viewzonelist(player, thing);
-    buf = flag_description(player, thing, 1);
+    buf = flag_description(player, thing, 1, (int *)NULL, 0);
     notify(player, unsafe_tprintf("Flags   = %s", buf));
     free_lbuf(buf);
-    buf = toggle_description(player, thing, 1, 0);
+    buf = toggle_description(player, thing, 1, 0, (int *)NULL);
     notify(player, unsafe_tprintf("Toggles = %s", buf));
     free_lbuf(buf);
     buf = power_description(player, thing, 0, 1);
@@ -1838,7 +1845,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	notify(player, buf2);
 	free_lbuf(buf2);
 	if (mudconf.ex_flags) {
-	   buf2 = flag_description(player, thing, 1);
+	   buf2 = flag_description(player, thing, 1, (int *)NULL, 0);
 	   notify(player, buf2);
 	   free_lbuf(buf2);
 	}
@@ -1919,7 +1926,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	free_lbuf(buf2);
 
         viewzonelist(player, thing);
-	buf2 = toggle_description(player, thing, 1, 0);
+	buf2 = toggle_description(player, thing, 1, 0, (int *)NULL);
 	if (strlen(buf2) > 9 + strlen(ANSIEX(ANSI_HILITE)) +
                            strlen(ANSIEX(ANSI_NORMAL)))	/* Toggles:  */
 	    notify(player, buf2);

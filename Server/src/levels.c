@@ -758,17 +758,17 @@ ATTR 	*tst_glb, *format_atr;
 }
 
 void 
-notify_except_rlevel(dbref loc, dbref player, dbref exception, const char *msg)
+notify_except_rlevel(dbref loc, dbref player, dbref exception, const char *msg, int key)
 {
     dbref first;
 
       if (loc != exception && IsReal(loc, player))
 	notify_check(loc, player, msg, 0,
-		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A), 0);
+		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
       DOLIST(first, Contents(loc)) {
 	if (first != exception && IsReal(first, player)) {
 	    notify_check(first, player, msg, 0,
-			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE), 0);
+			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
 	}
       }
 }

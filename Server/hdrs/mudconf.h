@@ -647,6 +647,9 @@ struct statedata {
 	int	max_logins_allowed; /* Total logins allowed based on free OS descriptors */
 	int	last_cmd_timestamp;
 	int	heavy_cpu_recurse;	/* functions with heavy CPU usage */
+        time_t	heavy_cpu_tmark1;	/* Time maker */
+        time_t	heavy_cpu_tmark2;	/* Time maker */
+        int	heavy_cpu_lockdown;	/* Lock down a function if heavilly abused */
 	int	cmp_lastsite;    	/* Last site that connected */
 	int	cmp_lastsite_cnt; 	/* Number of times last site connected */
 	int	last_con_attempt;
