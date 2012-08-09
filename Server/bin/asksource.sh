@@ -1004,19 +1004,22 @@ setdefaults() {
      echo "BSD identified.  Configuring..."
      DEFS="-DBSD_LIKE ${DEFS}"
   fi
-  Z1=$(ls /lib/libsqlite3.* 2>/dev/null|wc -l)
-  Z2=$(ls /usr/lib/libsqlite3.* 2>/dev/null|wc -l)
-  Z3=$(ls /usr/local/lib/libsqlite3.* 2>/dev/null|wc -l)
-  if [ -n "${LDCONFIG}" ]
+  if [ "${XB[4]}" = "X" ]
   then
-     Z4=$(${LDCONFIG} -p|grep -c libsqlite3.so)
-  else
-     Z4=0
-  fi
-  if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
-  then
-     echo "Patching -lsqlite3..."
-     MORELIBS="-lsqlite3 ${MORELIBS}"
+     Z1=$(ls /lib/libsqlite3.* 2>/dev/null|wc -l)
+     Z2=$(ls /usr/lib/libsqlite3.* 2>/dev/null|wc -l)
+     Z3=$(ls /usr/local/lib/libsqlite3.* 2>/dev/null|wc -l)
+     if [ -n "${LDCONFIG}" ]
+     then
+        Z4=$(${LDCONFIG} -p|grep -c libsqlite3.so)
+     else
+        Z4=0
+     fi
+     if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
+     then
+        echo "Patching -lsqlite3..."
+        MORELIBS="-lsqlite3 ${MORELIBS}"
+     fi
   fi
   BOB1=$(uname -r|cut -f1 -d".")
   BOB2=$(uname -s)
