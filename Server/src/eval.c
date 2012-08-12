@@ -663,19 +663,10 @@ void parse_ansi(char *string, char *buff, char **bufptr)
             string++;
             if(*string == '\\') {
                 safe_chr(*string, buff, &bufc);
-#ifdef TINY_SUB
-            } else if((*string == '%') && (*(string+1) == 'x')) {
-                safe_str("%x", buff, &bufc);
-#else
-            } else if((*string == '%') && (*(string+1) == 'c')) {
-                safe_str("%c", buff, &bufc);
-#endif
+            } else if((*string == '%') && (*(string+1) == SAFE_CHR )) {
+                safe_str((char*)SAFE_CHRST, buff, &bufc);
                 string++;
-#ifdef TINY_SUB
-            } else if(*string != 'x') {
-#else
-            } else if(*string != 'c') {
-#endif
+            } else if(*string != SAFE_CHR) {
                 safe_chr('%', buff, &bufc);
                 safe_chr(*string, buff, &bufc);
             } else {
@@ -708,11 +699,7 @@ void parse_ansi(char *string, char *buff, char **bufptr)
                           }
                           break;
                        default:
-#ifdef TINY_SUB
-                          safe_str("%x", buff, &bufc);
-#else
-                          safe_str("%c", buff, &bufc);
-#endif
+                          safe_str((char *)SAFE_CHRST, buff, &bufc);
                           safe_chr(*string, buff, &bufc);
                           break;
                     }  
@@ -801,11 +788,7 @@ void parse_ansi(char *string, char *buff, char **bufptr)
                         safe_str((char *) ANSI_BWHITE, buff, &bufc);
                     break;
                 default:
-#ifdef TINY_SUB
-                    safe_str("%x", buff, &bufc);
-#else
-                    safe_str("%c", buff, &bufc);
-#endif
+                    safe_str((char *)SAFE_CHRST, buff, &bufc);
                     safe_chr(*string, buff, &bufc);
                     break;
                 }
@@ -1053,11 +1036,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 	    case '%':		/* Percent - a literal % */
 #ifdef ZENTY_ANSI            
-#ifdef TINY_SUB
-               if(*(dstr + 1) == 'x')
-#else
-               if(*(dstr + 1) == 'c')
-#endif
+               if(*(dstr + 1) == SAFE_CHR)
                   safe_str("%%", buff, &bufc);
                else if ( *(dstr + 1) == 'f' )
                   safe_str("%%", buff, &bufc);
@@ -1098,11 +1077,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 // Leave the ansi code intact
                 if(!(eval & EV_PARSE_ANSI)) {        
                     safe_chr('%', buff, &bufc);
-#ifdef TINY_SUB
-                    safe_chr('x', buff, &bufc);
-#else
-                    safe_chr('c', buff, &bufc);
-#endif
+                    safe_chr(SAFE_CHR, buff, &bufc);
                     break;
                 }
 #endif

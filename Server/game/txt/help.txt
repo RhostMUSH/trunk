@@ -9702,8 +9702,12 @@
          & - process carrage returns and keep in same column field.  This
              will break up lines based on carrage returns (%r) and keep
              formatted into the same column specified in the format.
-         : - will specify filler character for what is between the ::'s.
-             example: :.:
+         : - will specify filler characters for what is between the ::'s.
+             If the string starts with '!', any blank lines will have a
+             space filler.  You must specify two ':'s for begining/end tags.
+               examples: :.:  -- fill with a single '.'
+                         :!.: -- fill with a single '.' on non-blank lines.
+                         :[ansi(hg,.,hb,.)]: -- fill with multi-color.
       Value fields:
          1-3000 - format value to padd
          0 - if prepending a number, tells it to padd 0's.
@@ -14671,7 +14675,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   is similar to that of iter(), except it takes it as a character by 
   character basis instead of a word by word basis.  The special substitution
   of '##' is used for the current item of the list.  #@ is used for the
-  positional match of that item in that list.
+  positional match of that item in that list.  This is similar to 
+  the explode function found on other mushes or in PHP.
   
   Examples:
     > say citer(boo!,##)
@@ -23875,7 +23880,7 @@ Bug Fixes
 & 3.9.3p1
 Release Date: 06/20/12
 Status: Alpha
-
+  
 New Features
 ------------
 * added nslookup() for immortals with proper CPU/delay protection [ASH]
@@ -23900,7 +23905,25 @@ Changes
 * colors() has the 'x' option to display #FFFFFF format [ASH]
 * colors() has the 'r' option to display R G B format [ASH]
 * @sudo, @skip handle multiple arguments now [ASH]
-
+  
 Bug Fixes
 ---------
 * the asksource.sh script broke on ubuntu because it didn't have slocate
+
+& 3.9.3p2
+
+Release Date: 08/10/12
+Status: Alpha
+  
+New Features
+------------
+* ansi() engine totally rewritten to better utilize and optimize [ASH]
+  
+Changes
+-------
+* printf() handles multi-character filler and filler is ANSI-aware [ASH]
+* printf() for :: padding optionally put spaces for 'blank lines' [ASH]
+  
+Bug Fixes
+---------
+* printf() had a color clobbering affect in certain circumstances [ASH]

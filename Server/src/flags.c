@@ -2435,11 +2435,7 @@ parse_ansi_name(dbref target, char *ansibuf)
              case '0': /* Is this hex? */
                  if ( (*(s+1) == 'x') || (*(s+1) == 'X') ) {
                     if ( isxdigit(*(s+2)) && isxdigit(*(s+3)) ) {
-#ifdef TINY_SUB
-                       sprintf(ansitmp2, "%s%c%c%c", (char *)"%x0", *(s+1), *(s+2), *(s+3));
-#else
-                       sprintf(ansitmp2, "%s%c%c%c", (char *)"%c0", *(s+1), *(s+2), *(s+3));
-#endif
+                       sprintf(ansitmp2, "%s0%c%c%c", (char *)SAFE_CHRST, *(s+1), *(s+2), *(s+3));
                        strcat(buf2, ansitmp2);
                        s+=3;
                     }
