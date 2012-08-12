@@ -572,7 +572,6 @@ void parse_accents(char *string, char *buff, char **bufptr)
             string++;
          } else if ( (*string == '%') && (*(string+1) == '<') ) { 
             string+=2;
-/*          while ( *string && (i_extendcnt < i_extendallow) ) { */
             while ( *string ) {
                if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
                   s_intbuf[0] = *(string);
@@ -651,7 +650,7 @@ void parse_ansi(char *string, char *buff, char **bufptr)
     memset(s_twochar, '\0', sizeof(s_twochar));
     memset(s_final, '\0', sizeof(s_final));
     bufc = *bufptr;
-    while(*string && ((bufc - buff) < (LBUF_SIZE-10))) {
+    while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
             if(*string != '%') {
