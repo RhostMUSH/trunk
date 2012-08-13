@@ -7683,6 +7683,7 @@ FUNCTION(fun_printf)
    fm.format_padch = '\0';
    memset(fm.format_padst, '\0', sizeof(fm.format_padst));
    fm.format_padstsize = 0;
+   fm.formatting = 0;
    for( pp = fargs[0]; !fmterror && pp && *pp; pp++ ) {
       switch( *pp ) {
          case '!': /* end of fieldsuppress1 */
@@ -7810,7 +7811,7 @@ FUNCTION(fun_printf)
                   formatpass = 0;
                   switch( *pp ) {
                      case ':': /* Filler Character */
-                        if ( *(pp+1) && *(pp+2) == ':' ) {
+                        if ( *(pp+1) && (*(pp+2) == ':') ) {
                            if( fm.formatting ) {
                               safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
                               fmterror = 1;
@@ -7820,8 +7821,7 @@ FUNCTION(fun_printf)
                            fm.format_padch=(char)*pp;
                            pp++;
                            fm.formatting = 1;
-                        }
-                        if ( *(pp+1) && (strchr(pp+1, ':') != NULL) ) {
+                        } else if ( *(pp+1) && (strchr(pp+1, ':') != NULL) ) {
                            if( fm.formatting ) {
                               safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
                               fmterror = 1;
