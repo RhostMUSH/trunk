@@ -6962,6 +6962,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
        fm->format_padstsize = 0;
        fm->format_padch = ' ';
     } else if ( *(fm->format_padst) == '!') {
+       fm->format_padstsize = strlen(strip_all_special(fm->format_padst));
        for ( idx = 0; idx < (LBUF_SIZE - 1); idx++ ) {
           s_padstring[idx] = fm->format_padst[idx+1];
        }
