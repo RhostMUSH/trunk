@@ -7674,8 +7674,8 @@ FUNCTION(fun_printf)
    char *s_strarray[30], *s_strptr, *s_tmpbuff;
    struct timefmt_format fm, fm_array[30];
 
-   if ( nfargs < 2 ) {
-      safe_str("#-1 FUNCTION (PRINTF) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+   if ( (nfargs < 2) || (nfargs > 28) ) {
+      safe_str("#-1 FUNCTION (PRINTF) EXPECTS BETWEEN 2 AND 28 ARGUMENTS [RECEIVED ", buff, bufcx);
       ival(buff, bufcx, nfargs);
       safe_chr(']', buff, bufcx);
       return;
