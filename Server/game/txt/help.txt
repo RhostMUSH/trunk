@@ -9752,6 +9752,44 @@
                                            |15 16 17 18 |
                                            |19          |
   
+{ 'help printf examples2' for more examples }
+
+& PRINTF EXAMPLES2
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Examples: (continued)
+    > &dropcap me=%b_______%r|__%b%b%b__|%r%b%b%b|%b|%r%b%b%b|_|
+    > &story me=%r'was the night before Christmas, when all through the house%r
+                Not a creature was stirring, not even a mouse.%r
+                The stockings were hung by the chimney with care,%r
+                In hopes that St Nicholas soon would be there.
+    > @emit printf($&-9s $&-68s,ansi(ch,u(dropcap)),u(story))
+     _______                                                                      
+    |__   __| 'was the night before Christmas, when all through the house         
+       | |    Not a creature was stirring, not even a mouse.                      
+       |_|    The stockings were hung by the chimney with care,                   
+              In hopes that St Nicholas soon would be there.    
+    
+    Note: The large 'T' will be in highlighted cyan.
+  
+    > @emit printf($1&s$:[ansi(+purple,+,hb,.,g,-,+orange,`,+indianred,~)]:&_50s
+                   $1&s,ansi(+pink,@%r@%r@),ansi(hu+red,A B C 1 2 3%r1),
+                   ansi(+pink,@%r@%r@))
+  
+    @A.-`~+.-`~B.-`~+.-`~C.-`~+.-`~1.-`~+.-`~2.-`~+.-`3@
+    @+.-`~+.-`~+.-`~+.-`~+.-`1+.-`~+.-`~+.-`~+.-`~+.-`~@
+    @+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~@
+  
+    Note: The '@' on the outside are pink.
+          The '+' are purple.
+          The '.' are blue highlight.
+          The '-' are green.
+          The '`' are orange.
+          The '~' are indian red.
+          The 'A B C 1 2 3' and the '1' are justified across 50 characters.
+              -- They are also underscored and highlighted red.
+              -- Padding is aligned properly.
+  
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
