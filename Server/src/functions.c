@@ -111,6 +111,7 @@ char *ansi_translate_16[257]={
    "wh", "wh", "wh", "wh", "wh", "wh", "wh", "wh", (char *)NULL,
 };
 
+#ifdef ZENTY_ANSI
 static struct MUX_COLORMAP mux_namecolors[] = {
     {0, "000000"},
     {1, "800000"},
@@ -370,6 +371,7 @@ static struct MUX_COLORMAP mux_namecolors[] = {
     {255, "eeeeee"},
     {0, NULL},
 };
+#endif
 
 static struct PENN_COLORMAP penn_namecolors[]= {
    {"aliceblue", 15 },
@@ -6942,7 +6944,9 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
     safe_str_fm( fmtbuff, buff, bufcx, fm );
   }
   else {
+/*
 #ifdef ZENTY_ANSI
+*/
     if ( fm->breakonreturn ) {
        s_justbuff = strip_all_special(fmtbuff);
        i_nostripansi=0;
@@ -6955,9 +6959,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
     } else {
        i_stripansi = strlen(strip_all_special(fmtbuff));
     }
+/*
 #else
     i_stripansi = strlen(strip_ansi(fmtbuff));
 #endif
+*/
     if ( (i_stripansi == 0) && (*(fm->format_padst) == '!') ) {
        fm->format_padstsize = 0;
        fm->format_padch = ' ';
@@ -7007,6 +7013,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
     if( !fm->leftjust ) {
       if ( fm->format_padstsize > 0 ) {
          s_pp = s_padstring;
+notify(1234, unsafe_tprintf("Padwidth: %d/%d", padwidth, i_stripansi));
          for( idx = 0; idx < padwidth; idx++, currwidth++ ) {
            if ( !s_pp || !*s_pp ) 
               s_pp = s_padstring;
