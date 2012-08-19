@@ -10199,7 +10199,7 @@ internal_logstatus( void )
 void
 do_blacklist(dbref player, dbref cause, int key, char *name) 
 {
-   char *s_buff, *s_buffptr;
+   char *s_buff, *s_buffptr, *tmpbuff;
    int i_loop_chk, i_page, i_page_val, i_invalid;
    struct in_addr in_tempaddr, in_tempaddr2;
    FILE *f_in;
@@ -10227,6 +10227,8 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             break;
          }
          s_buffptr = s_buff = alloc_lbuf("do_blacklistLBUF");
+         tmpbuff = alloc_lbuf("do_blacklistLBUF2");
+         memset(tmpbuff, '\0', LBUF_SIZE);
          i_loop_chk=0;
          b_lst_ptr = mudstate.bl_list;
          notify(player, "==============================================================================");
@@ -10244,15 +10246,18 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                if ( !*s_buff ) {
                   sprintf(s_buff, "   %-18s", (char *)inet_ntoa(b_lst_ptr->site_addr));
                } else {
-                  sprintf(s_buff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                }
             } else {
-               sprintf(s_buff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+               sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+               memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                notify(player, s_buff);
                memset(s_buff, '\0', LBUF_SIZE);
             }
             b_lst_ptr = b_lst_ptr->next;
          } 
+         free_lbuf(tmpbuff);
          if ( (i_loop_chk % 4) != 0 ) {
             notify(player, s_buff);
          }
