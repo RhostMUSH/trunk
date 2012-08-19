@@ -14766,6 +14766,11 @@ FUNCTION(fun_version)
   }
 }
 
+FUNCTION(fun_strlenraw)
+{
+    ival(buff, bufcx, (int) strlen(fargs[0]));
+}
+
 FUNCTION(fun_strlen)
 {
     ival(buff, bufcx, (int) strlen(strip_all_special(fargs[0])));
@@ -26350,6 +26355,7 @@ FUN flist[] =
     {"STRCAT", fun_strcat, 0,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRFUNC", fun_strfunc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRLEN", fun_strlen, -1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"STRLENRAW", fun_strlenraw, -1, 0, CA_IMMORTAL, CA_NO_CODE},
     {"STRMATCH", fun_strmatch, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRMATH", fun_strmath, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUB", fun_sub, 2, 0, CA_PUBLIC, CA_NO_CODE},
@@ -26597,13 +26603,14 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                                          "Target Object: #%d\n"\
                                          "Attribute Name: %s\n"\
                                          "Arguments: min %d, max %d\n"\
-                                         "Permissions:%s%s%s",
+                                         "Permissions:%s%s%s%s",
                                          ufp->name, 
                                          ufp->obj, 
                                          ((ap != NULL) ? ap->name : "(DELETED)"),
                                          ufp->minargs, ufp->maxargs,
                                          ((ufp->flags & FN_PRIV) ? " WIZARD " : " "),
                                          ((ufp->flags & FN_PRES) ? "PRESERVED " : " "),
+                                         ((ufp->flags & FN_NOTRACE) ? "NOTRACE " : " "),
                                          ((ufp->flags & FN_PROTECT) ? "PROTECTED" : " ")) );
              listset_nametab(player, access_nametab, access_nametab2, ufp->perms, ufp->perms2, "Flags:", 1);
              tprp_buff = tpr_buff;
@@ -26636,7 +26643,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        tprp_buff = tpr_buff;
        notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %3s %3s %-4s",
               "------------------------", "--------",
-              "--------------------------", "---", "---", "---"));
+              "--------------------------", "---", "---", "----"));
        i_tcount = count = 0;
        memset(s_minargs, '\0', sizeof(s_minargs));
        memset(s_maxargs, '\0', sizeof(s_maxargs));
@@ -26668,13 +26675,13 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                 sprintf(s_minargs, "%-3d", ufp2->minargs);
              }
              if (!(ufp2->flags & FN_PRIV) || Wizard(player)) {
-                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c",
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
                        ufp2->name, ufp2->obj, ap->name, s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                       ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-')));
+                       ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
              } else {
-                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c",
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
                        ufp2->name, ufp2->obj, "(INVALID ATTRIBUTE)", s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                       ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-')));
+                       ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
              }
              count++;
           }
@@ -26682,7 +26689,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        tprp_buff = tpr_buff;
        notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %3s %3s %-4s",
               "------------------------", "--------",
-              "--------------------------", "---", "---", "---"));
+              "--------------------------", "---", "---", "----"));
        tprp_buff = tpr_buff;
        if ( i_tcount != count )
           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d matched]", i_tcount, count));

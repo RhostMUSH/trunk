@@ -269,6 +269,7 @@ NDECL(cf_init)
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
+    mudstate.notrace = 0;		/* Do not trace */
     mudstate.nocodeoverride = 0;	/* Override nocode */
     mudstate.global_regs_wipe = 0;	/* localize variables - wipe if enabled */
     mudstate.includecnt = 0;

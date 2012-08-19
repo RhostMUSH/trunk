@@ -689,6 +689,7 @@ struct statedata {
 	int	includecnt;	/* @include count */
 	int	includenest;	/* @include nest count */
 	int	nocodeoverride;	/* Override NO_CODE flag for objeval() */
+	int	notrace;	/* Do not trace */
         BLACKLIST *bl_list; 	/* The black list */
 #else
 	int	logging;	/* Are we in the middle of logging? */

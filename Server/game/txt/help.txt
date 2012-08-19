@@ -23956,12 +23956,15 @@ Status: Alpha
 New Features
 ------------
 * ansi() engine totally rewritten to better utilize and optimize [ASH]
+* NOTRACE switch to @function to disabling tracing of global functions [ASH]
   
 Changes
 -------
 * printf() handles multi-character filler and filler is ANSI-aware [ASH]
 * printf() for :: padding optionally put spaces for 'blank lines' [ASH]
 * enabled QDBM database support right out of the config script [ASH]
+* @funciton/list and /display displays functions tagged NOTRACE [ASH]
+* global errors can no longer be traced [ASH]
   
 Bug Fixes
 ---------

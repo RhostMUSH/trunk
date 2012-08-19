@@ -822,7 +822,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     static char tfunbuff[33];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags;
-    int is_trace, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
+    int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
     FUN *fp;
     UFUN *ufp;
     ATTR *sub_ap;
@@ -907,6 +907,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     gender = -1;
     alldone = 0;
     is_trace = Trace(player) && !(eval & EV_NOTRACE);
+    if ( mudstate.notrace )
+       is_trace = 0;
     is_top = 0;
     mudstate.eval_rec++;
 
@@ -1924,6 +1926,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             if ( ufp && (ufp->perms & CA_EVAL) ) {
                 feval = (feval | EV_EVAL | EV_STRIP);
             }
+            if ( ufp && (ufp->flags & FN_NOTRACE) ) {
+                feval = (feval | EV_NOTRACE);
+            }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
 				 ')', feval, fargs, nfargs,
 				 cargs, ncargs);
@@ -2036,8 +2041,14 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        }
                     }
 		    mudstate.allowbypass = 1;
-		    tbuf = exec(i, cause, player, feval,
-				tstr, fargs, nfargs);
+                    if ( ufp->flags & FN_NOTRACE ) {
+                       is_trace_bkup = mudstate.notrace;
+                       mudstate.notrace = 1;
+                    }
+		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs);
+                    if ( ufp->flags & FN_NOTRACE ) {
+                       mudstate.notrace = is_trace_bkup;
+                    }
 		    mudstate.allowbypass = 0;
                     if ( ufp->flags & FN_PRES ) {
                        for (z = 0; z < MAX_GLOBAL_REGS; z++) {

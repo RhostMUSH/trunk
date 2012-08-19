@@ -364,6 +364,7 @@ NAMETAB function_sw[] =
     {(char *) "display", 2, CA_WIZARD, 0, FN_DISPLAY},
     {(char *) "minimum", 2, CA_WIZARD, 0, FN_MIN},
     {(char *) "maximum", 2, CA_WIZARD, 0, FN_MAX},
+    {(char *) "notrace", 2, CA_WIZARD, 0, FN_NOTRACE|SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB genhelp_sw[] =
@@ -2396,7 +2397,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, boot_cnt, i_loc;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, boot_cnt, i_loc, i_trace;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *s_logroom, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -2418,6 +2419,7 @@ process_command(dbref player, dbref cause, int interactive,
     cval = cval2 = 0;
     mudstate.func_bypass = 0;
     mudstate.shifted = 0;
+    mudstate.notrace = 0;
     succ = i_fndexit = 0;
     s_logroom = NULL;
     cache_reset(0);
@@ -4073,9 +4075,13 @@ process_command(dbref player, dbref cause, int interactive,
                }
                lcbuf = atr_get(mudconf.global_error_obj, A_VA, &aowner2, &aflags2);
                mudstate.nocodeoverride = 1;
+               i_trace = 0;
+               i_trace = mudstate.notrace;
+               mudstate.notrace = 1;
                lcbuf_temp = exec(mudconf.global_error_obj, cause, cause, 
                                  EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, lcbuf,
                                  arr_prog, narg_prog );
+               mudstate.notrace = i_trace;
                mudstate.nocodeoverride = 0;
                notify(player, lcbuf_temp);
                free_lbuf(lcbuf);

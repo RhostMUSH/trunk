@@ -2316,6 +2316,7 @@
     /delete     - delete the specified user-defined function.
     /display    - displays the details of the specified function.
     /protect    - all setq registers called in a localized function are nulled.
+    /notrace    - the specified function when defined can't be TRACEed.
     /max        - Set the maximum number of arguments for the function.
                   The default is '-1' or unlimited.
     /min        - Set the minimum number of arguments for the function.
@@ -2324,8 +2325,8 @@
   The function definitions created by @function are not stored in the database
   so they need to be re-created each time the RhostMUSH is started.  It is
   recommended that the Startup attribute for player #1 include code to
-  set up all global functions.  The privalaged and preserved switches may
-  be combined.
+  set up all global functions.  The privalaged and preserved, protect, and
+  notrace switches may be combined.
    
   Function definitions may not be removed (aside from shutting down and
   restarting the RhostMUSH, but they may be redefined so that they point to an
@@ -2339,6 +2340,7 @@
   Examples:  @function myfunction=#123/myattribute
              @function/priv/pres myfunction=#123/myattribute
              @function/priv/pres/prot myfunction=#123/myattribute
+             @function/priv/pres/prot/notrace myfunction=#123/myattribute
              @function/list
              @function/display myfunction
              @function/delete myfunction
@@ -2349,6 +2351,7 @@
              W - privalaged
              p - preserved
              + - protected
+             t - notrace
   
   You will see the MAX and MIN fields only if they are outside the defaults. 
   
@@ -5097,7 +5100,8 @@
 & error_file
   Config parameter: error_file <file>.  Default: error.txt
   Indicates the file that will be read for the error (huh? messages) that
-  are randomly generated.
+  are randomly generated.  Any element that starts with a '!' will be
+  evaluated.  Error file code can not be traced.
 
 & error_index
   Config parameter: error_index <file>.  Default: error.indx
@@ -5465,6 +5469,7 @@
 
 & global_error_obj
   Config parameter: global_error_obj <dbref>.    Default: -1
+  
   Specifies the object that it looks for, to evaluate an attribute
   whenever a 'Huh? (Type 'help' for help)' would have shown up.
   The attribute is the VA attribute (settable by @va or &va), and
@@ -5475,6 +5480,10 @@
   to be set SIDEFX and nothing else.  The string they typed will
   be passed as '%0'.  It will be unevaluated and 'as-is'.
   
+  This feature can not be TRACEd.  If you wish to debug this code,
+  execute it via think, @eval, or other syntax and not through
+  the global error code itself.
+   
   Why the VA attribute?  Why not?  I felt it was being all alone
   and left out of the fun ;)
   

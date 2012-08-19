@@ -621,7 +621,7 @@ errmsg(dbref player)
 {
     FILE *fp;
     char *p, *line;
-    int offset, first;
+    int offset, first, i_trace;
     struct help_entry *htab_entry;
     char matched;
     char *topic_list, *buffp, filename[129 + 32];
@@ -633,6 +633,7 @@ errmsg(dbref player)
       strcpy(errbuf,dmsg);
       return errbuf;
     }
+    i_trace = 0;
     htab = &mudstate.error_htab;
     strcpy(errbuf,myitoa(random() % (mudstate.errornum)));
     htab_entry = (struct help_entry *) hashfind(errbuf, htab);
@@ -704,9 +705,12 @@ errmsg(dbref player)
     free_lbuf(line);
     tf_fclose(fp);
     if ( *errbuf == '!' ) {
+       i_trace = mudstate.notrace;
+       mudstate.notrace = 1;
        buffp = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, errbuf+1, (char **) NULL, 0);
        strcpy(errbuf, buffp);
        free_lbuf(buffp);
+       mudstate.notrace = i_trace;
     }
     return errbuf;
 }
