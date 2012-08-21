@@ -23965,8 +23965,10 @@ Changes
 * enabled QDBM database support right out of the config script [ASH]
 * @funciton/list and /display displays functions tagged NOTRACE [ASH]
 * global errors can no longer be traced [ASH]
+* Rewrote ansi and accent parser to be faster and single-parsed [ASH]
   
 Bug Fixes
 ---------
 * printf() had a color clobbering affect in certain circumstances [ASH]
 * fixed up some library lookup code in the asksource.sh script [ASH]
+* fixed the random dissapearing backslash issue [ASH]

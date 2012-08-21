@@ -23593,7 +23593,7 @@ FUNCTION(fun_chr)
          i = atoi(fargs[0]);
          if ((i < 32) || (i > 126)) {
              if ( (i >= 160) && (i <= 255) ) {
-                sprintf(s_buff, "%%%%<%03d>", i);
+                sprintf(s_buff, "%%<%03d>", i); 
                 safe_str(s_buff, buff, bufcx);
              } else
                 safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);

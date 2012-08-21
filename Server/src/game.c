@@ -583,7 +583,7 @@ dflt_from_msg(dbref sender, dbref sendloc)
 void 
 notify_check(dbref target, dbref sender, const char *msg, int port, int key, int i_type)
 {
-    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
+    char *msg_ns, *mp, *msg_ns2, *mp2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0;
@@ -620,6 +620,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     if (key & MSG_ME) {
 	mp = msg_ns = alloc_lbuf("notify_check");
+	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
 	if (!port && Nospoof(target) &&
 	    (target != sender) &&
 	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&
@@ -652,28 +653,20 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	    free_sbuf(tbuff);
 	}
 #ifdef ZENTY_ANSI       
-       if(!(key & MSG_NO_ANSI))
-           parse_ansi((char *) msg, msg_ns, &mp);
-       else
+       if(!(key & MSG_NO_ANSI)) {
+           parse_ansi((char *) msg, msg_ns, &mp, msg_ns2, &mp2);
+           *mp = '\0';
+           *mp2 = '\0';
+           if ( Accents(target) ) {
+              memcpy(msg_ns, msg_ns2, LBUF_SIZE);
+           } 
+       } else
 #endif
            safe_str((char *) msg, msg_ns, &mp);
     
-       *mp = '\0';
 #ifdef ZENTY_ANSI       
-        if ( Accents(target) && !(key & MSG_NO_ANSI) ) {
-	   msg_ns2 = alloc_lbuf("notify_check_accents");
-           memcpy(msg_ns2, msg_ns, LBUF_SIZE);
-           mp = msg_ns;
-           parse_accents((char *) msg_ns2, msg_ns, &mp);
-           *mp = '\0';
-           free_lbuf(msg_ns2);
-        } else if ( !(key & MSG_NO_ANSI) ) {
-	   msg_ns2 = alloc_lbuf("notify_check_accents");
-           strcpy(msg_ns2, strip_safe_accents(msg_ns));
-           strcpy(msg_ns, msg_ns2);
-           free_lbuf(msg_ns2);
-        }
 #endif
+        free_lbuf(msg_ns2);
     } else {
 	msg_ns = NULL;
     }

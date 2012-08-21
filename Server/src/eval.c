@@ -544,134 +544,109 @@ static const int mux_isprint[256] =
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1   // F
 };
 
-void parse_accents(char *string, char *buff, char **bufptr)
-{
-   char *bufc, s_intbuf[4];
-   unsigned char ch1, ch2, ch;
-   int accent_toggle;
-   int i_extendallow, i_extendcnt, i_extendnum;
-   bufc = *bufptr;
-   accent_toggle = 0;
-   i_extendallow = 3;
-   i_extendcnt = 0;
-   s_intbuf[3] = '\0';
-   while ( *string && ((bufc - buff) < (LBUF_SIZE-10)) ) {
-      if (*string == '\\') {
-         string++;
-         if (*string != '%') {
-            safe_chr('\\', buff, &bufc);
-         }
-         if (*string && (*string != '\\'))
-            safe_chr(*string, buff, &bufc);
-      } else if (*string == '%') {
-         string++;
-         if (*string == '\\') {
-            safe_chr(*string, buff, &bufc);
-         } else if ( (*string == '%') && (*(string+1) == 'f') ) {
-            safe_str("%f", buff, &bufc);
-            string++;
-         } else if ( (*string == '%') && (*(string+1) == '<') ) { 
-            string+=2;
-            while ( *string ) {
-               if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
-                  s_intbuf[0] = *(string);
-                  s_intbuf[1] = *(string+1);
-                  s_intbuf[2] = *(string+2);
-                  i_extendnum = atoi(s_intbuf);
-                  if ( (i_extendnum >= 160) && (i_extendnum <= 250) )
-                     safe_chr((char) i_extendnum, buff, &bufc);
-                  else {
-                     switch(i_extendnum) {
-                        case 251:
-                        case 252: safe_chr('u', buff, &bufc);
-                                  break;
-                        case 253:
-                        case 255: safe_chr('y', buff, &bufc);
-                                  break;
-                        case 254: safe_chr('p', buff, &bufc);
-                                  break;
-                     }
-                  }
-                  i_extendcnt+=3;
-                  string+=3;
-                  if (*string == '>' ) {
-                     break;
-                  }
-               } else {
-                  safe_chr(*string, buff, &bufc);
-                  break;
-               }
-            }
-         } else if (*string != 'f') { 
-            safe_chr('%', buff, &bufc);
-            safe_chr(*string, buff, &bufc);
-         } else {
-            ch = (unsigned char)*(++string);
-            if ( ch == 'n' ) {
-               accent_toggle = 0;
-            } else {
-               ch2 = AccentCombo2[(int)ch];
-               if ( ch2 > 0 ) {
-                  accent_toggle = 1;
-               } else {
-                  if ( !isprint(*string) )
-                     safe_chr(*string, buff, &bufc);
-               }
-            }
-         }
-      } else {
-         if ( accent_toggle ) {
-            ch1 = AccentCombo1[(int)*string];
-            if ( ch1 > 0 ) {
-               ch = AccentCombo3[(int)(ch1 - 1)][(int)ch2];
-               if ( !mux_isprint[(int)ch] ) 
-                  safe_chr(*string, buff, &bufc);
-               else
-                  safe_chr(ch, buff, &bufc);
-            } else {
-               safe_chr(*string, buff, &bufc);
-            }
-         } else {
-            safe_chr(*string, buff, &bufc);
-         }
-      }
-      if ( *string )
-        string++;
-   }
-   *bufptr = bufc;
-}
-
+// This handles accents as well!
+// buff/bufptr is the ansi
+// buff2/buf2ptr is the accents + ansi
 // Change %c/%x substitutions into real ansi now.
-void parse_ansi(char *string, char *buff, char **bufptr)
+void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr)
 {
-    char *bufc, s_twochar[3], s_final[80];
-    int i_tohex;
+    char *bufc, *bufc2, s_twochar[3], s_final[80], s_intbuf[4];
+    unsigned char ch1, ch2, ch;
+    int i_tohex, accent_toggle, i_extendallow, i_extendcnt, i_extendnum;
+
 
     memset(s_twochar, '\0', sizeof(s_twochar));
     memset(s_final, '\0', sizeof(s_final));
     bufc = *bufptr;
+    bufc2 = *buf2ptr;
+    accent_toggle = 0;
+    i_extendallow = 3;
+    i_extendcnt = 0;
+    s_intbuf[3] = '\0';
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
             if(*string != '%') {
                 safe_chr('\\', buff, &bufc);
+                safe_chr('\\', buff2, &bufc2);
             }
-            if(*string && (*string != '\\'))
+            if(*string && (*string != '\\')) {
                 safe_chr(*string, buff, &bufc);
+                safe_chr(*string, buff2, &bufc2);
+            }
         } else if(*string == '%') {
             string++;
             if(*string == '\\') {
                 safe_chr(*string, buff, &bufc);
-            } else if((*string == '%') && (*(string+1) == SAFE_CHR )) {
+                safe_chr(*string, buff2, &bufc2);
+            } else if ((*string == '%') && (*(string+1) == SAFE_CHR )) {
                 safe_str((char*)SAFE_CHRST, buff, &bufc);
+                safe_str((char*)SAFE_CHRST, buff2, &bufc2);
                 string++;
-            } else if(*string != SAFE_CHR) {
+            } else if ((*string == '%') && (*(string+1) == 'f')) {
+                safe_str("%f", buff, &bufc);
+                safe_str("%f", buff2, &bufc2);
+                string++;
+            } else if ( (*string != SAFE_CHR) && (*string != 'f') && (*string != '<') ) {
                 safe_chr('%', buff, &bufc);
                 safe_chr(*string, buff, &bufc);
+                safe_chr('%', buff2, &bufc2);
+                safe_chr(*string, buff2, &bufc2);
+/*          } else if ( (*string == '%') && (*(string+1) == '<') ) { 
+                string+=2; */
+            } else if ( (*string == '<') ) {
+                string++;
+                while ( *string ) {
+                   if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
+                      s_intbuf[0] = *(string);
+                      s_intbuf[1] = *(string+1);
+                      s_intbuf[2] = *(string+2);
+                      i_extendnum = atoi(s_intbuf);
+                      if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
+                         safe_chr((char) i_extendnum, buff2, &bufc2);
+                      } else {
+                         switch(i_extendnum) {
+                            case 251:
+                            case 252: safe_chr('u', buff2, &bufc2);
+                                      break;
+                            case 253:
+                            case 255: safe_chr('y', buff2, &bufc2);
+                                      break;
+                            case 254: safe_chr('p', buff2, &bufc2);
+                                      break;
+                         }
+                      }
+                      i_extendcnt+=3;
+                      string+=3;
+                      if (*string == '>' ) {
+                         break;
+                      }
+                   } else {
+                      safe_chr(*string, buff, &bufc);
+                      safe_chr(*string, buff2, &bufc2);
+                      break;
+                   }
+                }
+            } else if ( (*string == 'f') ) {
+                ch = (unsigned char)*(++string);
+                if ( ch == 'n' ) {
+                   accent_toggle = 0;
+                } else {
+                   ch2 = AccentCombo2[(int)ch];
+                   if ( ch2 > 0 ) {
+                      accent_toggle = 1;
+                   } else {
+                      if ( !isprint(*string) ) {
+                         safe_chr(*string, buff, &bufc);
+                         safe_chr(*string, buff2, &bufc2);
+                      }
+                   }
+                }
             } else {
                 switch (*++string) {
                 case '\0':
                     safe_chr(*string, buff, &bufc);
+                    safe_chr(*string, buff2, &bufc2);
                     break;
                 case '0': /* Do XTERM color here */
                     switch ( *(string+1) ) {
@@ -683,6 +658,7 @@ void parse_ansi(char *string, char *buff, char **bufptr)
                              string+=3;
                              sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
                              safe_str(s_final, buff, &bufc);
+                             safe_str(s_final, buff2, &bufc2);
                              sprintf(s_final, "%dm", i_tohex);
                           }
                           break;
@@ -694,105 +670,165 @@ void parse_ansi(char *string, char *buff, char **bufptr)
                              sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
                              string+=3;
                              safe_str(s_final, buff, &bufc);
+                             safe_str(s_final, buff2, &bufc2);
                              sprintf(s_final, "%dm", i_tohex);
                           }
                           break;
                        default:
                           safe_str((char *)SAFE_CHRST, buff, &bufc);
                           safe_chr(*string, buff, &bufc);
+                          safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                          safe_chr(*string, buff2, &bufc2);
                           break;
                     }  
                     break;
                 case 'n':
                     safe_str((char *) ANSI_NORMAL, buff, &bufc);
+                    safe_str((char *) ANSI_NORMAL, buff2, &bufc2);
                     break;
                 case 'f':
-                    if ( mudconf.global_ansimask & MASK_BLINK )
+                    if ( mudconf.global_ansimask & MASK_BLINK ) {
                         safe_str((char *) ANSI_BLINK, buff, &bufc);
+                        safe_str((char *) ANSI_BLINK, buff2, &bufc2);
+                    }
                     break;
                 case 'u':
-                    if ( mudconf.global_ansimask & MASK_UNDERSCORE )
+                    if ( mudconf.global_ansimask & MASK_UNDERSCORE ) {
                         safe_str((char *) ANSI_UNDERSCORE, buff, &bufc);
+                        safe_str((char *) ANSI_UNDERSCORE, buff2, &bufc2);
+                    }
                     break;
                 case 'i':
-                    if ( mudconf.global_ansimask & MASK_INVERSE )
+                    if ( mudconf.global_ansimask & MASK_INVERSE ) {
                         safe_str((char *) ANSI_INVERSE, buff, &bufc);
+                        safe_str((char *) ANSI_INVERSE, buff2, &bufc2);
+                    }
                     break;
                 case 'h':
-                    if ( mudconf.global_ansimask & MASK_HILITE )
+                    if ( mudconf.global_ansimask & MASK_HILITE ) {
                         safe_str((char *) ANSI_HILITE, buff, &bufc);
+                        safe_str((char *) ANSI_HILITE, buff2, &bufc2);
+                    }
                     break;
                 case 'x':
-                    if ( mudconf.global_ansimask & MASK_BLACK )
+                    if ( mudconf.global_ansimask & MASK_BLACK ) {
                         safe_str((char *) ANSI_BLACK, buff, &bufc);
+                        safe_str((char *) ANSI_BLACK, buff2, &bufc2);
+                    }
                     break;
                 case 'X':
-                    if ( mudconf.global_ansimask & MASK_BBLACK )
+                    if ( mudconf.global_ansimask & MASK_BBLACK ) {
                         safe_str((char *) ANSI_BBLACK, buff, &bufc);
+                        safe_str((char *) ANSI_BBLACK, buff2, &bufc2);
+                    }
                     break;
                 case 'r':
-                    if ( mudconf.global_ansimask & MASK_RED )
+                    if ( mudconf.global_ansimask & MASK_RED ) {
                         safe_str((char *) ANSI_RED, buff, &bufc);
+                        safe_str((char *) ANSI_RED, buff2, &bufc2);
+                    }
                     break;
                 case 'R':
-                    if ( mudconf.global_ansimask & MASK_BRED )
+                    if ( mudconf.global_ansimask & MASK_BRED ) {
                         safe_str((char *) ANSI_BRED, buff, &bufc);
+                        safe_str((char *) ANSI_BRED, buff2, &bufc2);
+                    }
                     break;
                 case 'g':
-                    if ( mudconf.global_ansimask & MASK_GREEN )
+                    if ( mudconf.global_ansimask & MASK_GREEN ) {
                         safe_str((char *) ANSI_GREEN, buff, &bufc);
+                        safe_str((char *) ANSI_GREEN, buff2, &bufc2);
+                    }
                     break;
                 case 'G':
-                    if ( mudconf.global_ansimask & MASK_BGREEN )
+                    if ( mudconf.global_ansimask & MASK_BGREEN ) {
                         safe_str((char *) ANSI_BGREEN, buff, &bufc);
+                        safe_str((char *) ANSI_BGREEN, buff2, &bufc2);
+                    }
                     break;
                 case 'y':
-                    if ( mudconf.global_ansimask & MASK_YELLOW )
+                    if ( mudconf.global_ansimask & MASK_YELLOW ) {
                         safe_str((char *) ANSI_YELLOW, buff, &bufc);
+                        safe_str((char *) ANSI_YELLOW, buff2, &bufc2);
+                    }
                     break;
                 case 'Y':
-                    if ( mudconf.global_ansimask & MASK_BYELLOW )
+                    if ( mudconf.global_ansimask & MASK_BYELLOW ) {
                         safe_str((char *) ANSI_BYELLOW, buff, &bufc);
+                        safe_str((char *) ANSI_BYELLOW, buff2, &bufc2);
+                    }
                     break;
                 case 'b':
-                    if ( mudconf.global_ansimask & MASK_BLUE )
+                    if ( mudconf.global_ansimask & MASK_BLUE ) {
                         safe_str((char *) ANSI_BLUE, buff, &bufc);
+                        safe_str((char *) ANSI_BLUE, buff2, &bufc2);
+                    }
                     break;
                 case 'B':
-                    if ( mudconf.global_ansimask & MASK_BBLUE )
+                    if ( mudconf.global_ansimask & MASK_BBLUE ) {
                         safe_str((char *) ANSI_BBLUE, buff, &bufc);
+                        safe_str((char *) ANSI_BBLUE, buff2, &bufc2);
+                    }
                     break;
                 case 'm':
-                    if ( mudconf.global_ansimask & MASK_MAGENTA )
+                    if ( mudconf.global_ansimask & MASK_MAGENTA ) {
                         safe_str((char *) ANSI_MAGENTA, buff, &bufc);
+                        safe_str((char *) ANSI_MAGENTA, buff2, &bufc2);
+                    }
                     break;
                 case 'M':
-                    if ( mudconf.global_ansimask & MASK_BMAGENTA )
+                    if ( mudconf.global_ansimask & MASK_BMAGENTA ) {
                         safe_str((char *) ANSI_BMAGENTA, buff, &bufc);
+                        safe_str((char *) ANSI_BMAGENTA, buff2, &bufc2);
+                    }
                     break;
                 case 'c':
-                    if ( mudconf.global_ansimask & MASK_CYAN )
+                    if ( mudconf.global_ansimask & MASK_CYAN ) {
                         safe_str((char *) ANSI_CYAN, buff, &bufc);
+                        safe_str((char *) ANSI_CYAN, buff2, &bufc2);
+                    }
                     break;
                 case 'C':
-                    if ( mudconf.global_ansimask & MASK_BCYAN )
+                    if ( mudconf.global_ansimask & MASK_BCYAN ) {
                         safe_str((char *) ANSI_BCYAN, buff, &bufc);
+                        safe_str((char *) ANSI_BCYAN, buff2, &bufc2);
+                    }
                     break;
                 case 'w':
-                    if ( mudconf.global_ansimask & MASK_WHITE )
+                    if ( mudconf.global_ansimask & MASK_WHITE ) {
                         safe_str((char *) ANSI_WHITE, buff, &bufc);
+                        safe_str((char *) ANSI_WHITE, buff2, &bufc2);
+                    }
                     break;
                 case 'W':
-                    if ( mudconf.global_ansimask & MASK_BWHITE )
+                    if ( mudconf.global_ansimask & MASK_BWHITE ) {
                         safe_str((char *) ANSI_BWHITE, buff, &bufc);
+                        safe_str((char *) ANSI_BWHITE, buff2, &bufc2);
+                    }
                     break;
                 default:
                     safe_str((char *)SAFE_CHRST, buff, &bufc);
                     safe_chr(*string, buff, &bufc);
+                    safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                    safe_chr(*string, buff2, &bufc2);
                     break;
                 }
             }
         } else {
+            if ( accent_toggle ) {
+               ch1 = AccentCombo1[(int)*string];
+               if ( ch1 > 0 ) {
+                  ch = AccentCombo3[(int)(ch1 - 1)][(int)ch2];
+                  if ( !mux_isprint[(int)ch] ) 
+                     safe_chr(*string, buff2, &bufc2);
+                  else
+                     safe_chr(ch, buff2, &bufc2);
+               } else {
+                  safe_chr(*string, buff2, &bufc2);
+               }
+            } else {
+               safe_chr(*string, buff2, &bufc2);
+            }
             safe_chr(*string, buff, &bufc);
         }
         if ( *string )
@@ -800,7 +836,9 @@ void parse_ansi(char *string, char *buff, char **bufptr)
     }
     // toss in the normal
     safe_str(ANSI_NORMAL, buff, &bufc); 
+    safe_str(ANSI_NORMAL, buff2, &bufc2); 
     *bufptr = bufc;
+    *buf2ptr = bufc2;
 }
 
 #endif
@@ -1180,7 +1218,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		}
 		break;
             case '<':		/* High-Bit/UTF8 characters */
-                safe_str("%%<", buff, &bufc);
+                safe_str("%<", buff, &bufc);
                 break;
             case 'f':		/* Accents */
             case 'F':	
