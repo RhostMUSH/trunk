@@ -604,15 +604,19 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       i_extendnum = atoi(s_intbuf);
                       if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
+                         safe_chr(' ', buff, &bufc);
                       } else {
                          switch(i_extendnum) {
                             case 251:
                             case 252: safe_chr('u', buff2, &bufc2);
+                                      safe_chr(' ', buff, &bufc);
                                       break;
                             case 253:
                             case 255: safe_chr('y', buff2, &bufc2);
+                                      safe_chr(' ', buff, &bufc);
                                       break;
                             case 254: safe_chr('p', buff2, &bufc2);
+                                      safe_chr(' ', buff, &bufc);
                                       break;
                          }
                       }
