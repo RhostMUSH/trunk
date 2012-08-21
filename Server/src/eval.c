@@ -981,7 +981,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    dstr++;
 #ifdef ZENTY_ANSI
             // If the caracter after the \ is a commenting char, keep it
-            if((*dstr == '\\') || (*dstr == '%'))
+/*          if((*dstr == '\\') || (*dstr == '%')) */
+            if (*dstr == '\\')
                safe_chr('\\', buff, &bufc);
 #endif
 	    if (*dstr)
