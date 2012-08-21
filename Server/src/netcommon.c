@@ -1460,6 +1460,7 @@ raw_broadcast(va_alist)
     mptr = message = alloc_lbuf("raw_broadcast_message");
     mp_ns2 = msg_ns2 = alloc_lbuf("notify_check_accents");
     parse_ansi( (char *) buff, message, &mptr, msg_ns2, &mp_ns2);
+    *mp_ns2 = '\0';
 #endif   
     strcpy(antemp, ANSI_NORMAL);
     DESC_ITER_CONN(d) {
@@ -2732,6 +2733,7 @@ dump_users(DESC * e, char *match, int key)
            abufp = abuf = alloc_lbuf("doing_header");
            mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
 	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+           *mp2 = '\0';
            if ( Accents(e->player) ) {
 	      queue_string(e, msg_ns2);
            } else {
@@ -2748,6 +2750,7 @@ dump_users(DESC * e, char *match, int key)
            abufp = abuf = alloc_lbuf("doing_header");
            mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
 	   parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+           *mp2 = '\0';
            if ( Accents(e->player) ) {
 	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                            mudstate.guild_hdr, msg_ns2));
@@ -2774,8 +2777,8 @@ dump_users(DESC * e, char *match, int key)
 	parse_ansi(d->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp);
         if ( !Accents(e->player) ) {
            strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
-	   pDoing = doingAccentBuf;
         }
+	pDoing = doingAccentBuf;
 #else
 	pDoing = d->doing;
 #endif
