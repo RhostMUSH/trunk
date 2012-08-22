@@ -1086,7 +1086,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                   safe_str("%%", buff, &bufc);
                else
 #endif                
-                  safe_chr('%', buff, &bufc);            
+                  safe_str("\\%", buff, &bufc);            
 		  break;
 #ifndef NOEXTSUBS
 #ifdef TINY_SUB
