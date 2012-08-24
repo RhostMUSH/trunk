@@ -646,9 +646,17 @@ NAMETAB drain_sw[] =
     {NULL, 0, 0, 0, 0}};
 
 
+NAMETAB sudo_sw[] =
+{
+    {(char *) "globalize", 2, CA_PUBLIC, 0, SUDO_GLOBAL},
+    {(char *) "clearregs", 2, CA_PUBLIC, 0, SUDO_CLEAR},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB include_sw[] =
 {
-    {(char *) "command", 1, CA_PUBLIC, 0, INCLUDE_COMMAND},
+    {(char *) "command", 2, CA_PUBLIC, 0, INCLUDE_COMMAND},
+    {(char *) "localize", 2, CA_PUBLIC, 0, INCLUDE_LOCAL | SW_MULTIPLE},
+    {(char *) "clearregs", 2, CA_PUBLIC, 0, INCLUDE_CLEAR | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB notify_sw[] =
@@ -1218,7 +1226,7 @@ CMDENT command_table[] =
 #endif
     {(char *) "@stats", stats_sw, 0, CA_NO_CODE,
      0, CS_ONE_ARG | CS_INTERP, 0, do_stats},
-    {(char *) "@sudo", NULL, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
+    {(char *) "@sudo", sudo_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
     {(char *) "@sweep", sweep_sw, 0, 0,
      0, CS_ONE_ARG, 0, do_sweep},
     {(char *) "@switch", switch_sw, CA_GBL_INTERP, CA_NO_CODE,
@@ -8412,8 +8420,8 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_comman
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
-   char *retbuff, *cp;
-   int old_trainmode;
+   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
+   int old_trainmode, x;
 
    if ( mudstate.sudo_cntr >= 1 ) {
       notify(player, "You can't nest @sudo.");
@@ -8434,17 +8442,36 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       notify(player, "Permission denied.");
       return;
    }
+
    mudstate.sudo_cntr++;
    old_trainmode=mudstate.trainmode;
-// if ( desc_in_use == NULL ) {
-//    mudstate.trainmode = 1;
-// }
+
+   if ( !(key & SUDO_GLOBAL) || (key & INCLUDE_CLEAR) ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         savereg[x] = alloc_lbuf("ulocal_reg");
+         pt = savereg[x];
+         safe_str(mudstate.global_regs[x],savereg[x],&pt);
+         if ( key & SUDO_CLEAR ) {
+            *mudstate.global_regs[x] = '\0';
+         }
+      }
+   }
+
    while (s_command) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
          process_command(target, target, 1, cp, args, nargs, 0);
       }
    }
+
+   if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         pt = mudstate.global_regs[x];
+         safe_str(savereg[x],mudstate.global_regs[x],&pt);
+         free_lbuf(savereg[x]);
+      }
+   }
+
    /* process_command(target, target, 1, s_command, args, nargs, 0); */
    mudstate.trainmode = old_trainmode;
    mudstate.sudo_cntr--;

@@ -5364,7 +5364,7 @@
   See Also: @away, @reject, page
   
 & @sudo
-  Command: @sudo <target>=<command>
+  Command: @sudo[</switch>] <target>=<command>
   
   The @sudo allows you to execute a command through the target.  This is done
   through the normal command processor and while similiar permissions to
@@ -5372,7 +5372,12 @@
   can you @sudo to something you have no control over.  @sudo performs the
   action according to the target's viewpoint, including location.  @sudo
   only works on a single command.  If you wish to @sudo multiple commands,
-  use in junction with @include.
+  use in junction with @include.  By default, all registers altered during
+  the @sudo are considered local.
+  
+  Available switches:
+    /globalize -- treat registers to target as non-localized.  Dangerous.
+    /clearregs -- clear the registers of the default localized registers.
   
   Examples:
     > @sudo *player=say boo
@@ -5427,7 +5432,10 @@
   can only nest to 3 levels deep.
   
   The following switches exist for @include:
-    /command - bypass the $command/^listen portion of the attribute.
+    /command   - bypass the $command/^listen portion of the attribute.
+    /clearregs - clear the registers prior to calling included attribute.
+                 Note: this automatically sets the localize option.
+    /localize  - localizes the registers for the include duration.
     
   {see @include2 for examples}
 
@@ -23966,9 +23974,12 @@ Changes
 * @funciton/list and /display displays functions tagged NOTRACE [ASH]
 * global errors can no longer be traced [ASH]
 * Rewrote ansi and accent parser to be faster and single-parsed [ASH]
+* added /localize and /clearregs to @include for Penn compat. [ASH]
+* added /globalize and /clearregs to @sudo. [ASH]
   
 Bug Fixes
 ---------
 * printf() had a color clobbering affect in certain circumstances [ASH]
 * fixed up some library lookup code in the asksource.sh script [ASH]
 * fixed the random dissapearing backslash issue [ASH]
+* secured @sudo for registers. [ASH]
