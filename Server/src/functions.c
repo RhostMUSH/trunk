@@ -7013,7 +7013,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
     if( !fm->leftjust ) {
       if ( fm->format_padstsize > 0 ) {
          s_pp = s_padstring;
-notify(1234, unsafe_tprintf("Padwidth: %d/%d", padwidth, i_stripansi));
          for( idx = 0; idx < padwidth; idx++, currwidth++ ) {
            if ( !s_pp || !*s_pp ) 
               s_pp = s_padstring;
