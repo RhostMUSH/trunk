@@ -7405,8 +7405,10 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
               }
           }
        } else {
-          if ( i_usepadding ) 
+          if ( i_usepadding ) {
              safe_str(s_padbuf, buff, bufcx);
+             i_usepadding = 0;
+          }
           if ( fm->breakonreturn && !((*fmtbuff == '\r') || (*fmtbuff == '\n')) ) {
              safe_chr_fm( *fmtbuff, buff, bufcx, fm );
              i_padmenow++;
@@ -7417,6 +7419,39 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
        }
        fmtbuff++;
        currwidth++;
+    } 
+    while ( *fmtbuff ) {
+       if ( !fm->leftjust && fm->breakonreturn && shold ) {
+          if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == 'f') && isprint(*(fmtbuff+2))) ) {
+             safe_chr( *fmtbuff, shold, sholdptr );
+             safe_chr( *(fmtbuff+1), shold, sholdptr );
+             safe_chr( *(fmtbuff+2), shold, sholdptr );
+             fmtbuff+=3;
+          } else if ( (*fmtbuff == '%') && (*(fmtbuff+1) == SAFE_CHR) ) {
+             if ( isAnsi[(int) *(fmtbuff+2)] ) {
+                safe_chr( *fmtbuff, shold, sholdptr );
+                safe_chr( *(fmtbuff+1), shold, sholdptr );
+                safe_chr( *(fmtbuff+2), shold, sholdptr );
+                fmtbuff+=3;
+             } else if ( (*(fmtbuff+2) == '0') && (*(fmtbuff+3) && ((*(fmtbuff+3) == 'X') || (*(fmtbuff+3) == 'x'))) ) {
+                if ( *(fmtbuff+4) && *(fmtbuff+5) && isxdigit(*(fmtbuff+4)) && isxdigit(*(fmtbuff+5)) ) {
+                   safe_chr( *fmtbuff, shold, sholdptr );
+                   safe_chr( *(fmtbuff+1), shold, sholdptr );
+                   safe_chr( *(fmtbuff+2), shold, sholdptr );
+                   safe_chr( *(fmtbuff+3), shold, sholdptr );
+                   safe_chr( *(fmtbuff+4), shold, sholdptr );
+                   safe_chr( *(fmtbuff+5), shold, sholdptr );
+                   fmtbuff+=6;
+                }
+             } else {
+                break;
+             }
+          } else {
+             break;
+          }
+       } else {
+          break;
+       }
     }
     if ( fm->breakonreturn && shold ) {
        if ( *fmtbuff && !i_breakhappen ) {
