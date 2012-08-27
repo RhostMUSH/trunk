@@ -871,6 +871,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define TRIG_PROGRAM    2       /* Trigger is actually a @program */
 #define TRIG_COMMAND    4       /* Can Trigger $commands */
 #define INCLUDE_COMMAND	1	/* Can @insert trigger $commands */
+#define INCLUDE_LOCAL	2	/* Localize all the @included foo */
+#define INCLUDE_CLEAR	4	/* Clear the attributes locally */
+#define SUDO_GLOBAL	1	/* Reverse of localized */
+#define SUDO_CLEAR	2	/* Clear registers */
 #define	TWARP_QUEUE	1	/* Warp the wait and sem queues */
 #define	TWARP_DUMP	2	/* Warp the dump interval */
 #define	TWARP_CLEAN	4	/* Warp the cleaning interval */

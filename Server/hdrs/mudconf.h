@@ -1,1030 +1,782 @@
-/* externs.h - Prototypes for externs not defined elsewhere */
+/* mudconf.h:	runtime configuration structure */
 
-#include "copyright.h"
+#ifndef _M_CONF_H
+#define _M_CONF_H
 
-#ifndef _M__EXTERNS__H
-#define	_M__EXTERNS__H
-
-#include "db.h"
-#include "mudconf.h"
-#include "pcre.h"
-#include "tprintf.h"
-
-#ifndef _DB_C
-#define INLINE
-#else /* _DB_C */
-  #ifdef __GNUC__
-  #define INLINE inline
-  #else /* __GNUC__ */
-  #define INLINE
-  #endif /* __GNUC__ */
-#endif /* _DB_C */
-
-#define	ToLower(s) (isupper(s) ? tolower(s) : (s))
-#define	ToUpper(s) (islower(s) ? toupper(s) : (s))
-#define DOING_SIZE 32	/* @doing and @doing/header size */
-#define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#'))
-
-extern long	FDECL(count_player,(dbref, int));
-/* From conf.c */
-extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
-extern int	FDECL(cf_modify_multibits, (int *, int *, char *, long, long, dbref, char *));
-extern void	FDECL(list_options_boolean, (dbref, int));
-extern void	FDECL(list_options_values, (dbref, int));
-extern void	FDECL(cf_display, (dbref, char *, int, char *, char **));
-extern void     FDECL(sideEffectMaskToString, (int, char *, char **));
-/* From udb_achunk.c */
-extern int	NDECL(dddb_close);
-extern int	FDECL(dddb_setfile, (char *));
-extern int	NDECL(dddb_init);
-
-extern void	NDECL(cache_var_init);
-extern void	NDECL(dddb_var_init);
-
-/* From bsd.c */
-extern void	FDECL(reset_signals, ());
-extern void	FDECL(ignore_signals, ());
-
-/* From netcommon.c */
-extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref));
-extern int	FDECL(fetch_idle, (dbref));
-extern int	FDECL(fetch_connect, (dbref));
-extern void	FDECL(broadcast_monitor, (dbref,int,char*,char*,char*,int,int,int,char *));
-extern void	VDECL(raw_broadcast, (dbref,int, char *, ...));
-extern void	VDECL(raw_broadcast2, (int, char *, ...));
-extern char *	FDECL(strip_ansi, (const char *));
-#ifdef ZENTY_ANSI
-extern char *   FDECL(strip_safe_ansi, (const char *));
-extern char *   FDECL(strip_safe_accents, (const char *));
-extern char *   FDECL(strip_all_ansi, (const char *));
-extern char *   FDECL(strip_all_special, (const char *));
+#ifdef VMS
+#include "multinet_root:[multinet.include.sys]types.h"
+#include "multinet_root:[multinet.include.netinet]in.h"
 #else
-#define strip_safe_ansi(x) (x)
-#define strip_safe_accents(x) (x)
-#define strip_all_ansi(x) strip_ansi(x)
-#define strip_all_special(x) strip_ansi(x)
+#include <netinet/in.h>
 #endif
-extern char *	FDECL(strip_nonprint, (const char *));
-extern char *	FDECL(strip_returntab, (const char *, int));
+#include "config.h"
+#include "htab.h"
+#include "alloc.h"
+#include "flags.h"
 
-extern int	NDECL(areg_init);
-extern void	NDECL(areg_close);
-extern int	FDECL(areg_check, (char *, int));
-extern void	FDECL(areg_add, (char *, dbref));
-extern int	FDECL(areg_del_player, (dbref));
+/* CONFDATA:	runtime configurable parameters */
 
-/* From cque.c */
-extern void     FDECL(show_que_func, (dbref, char *, int, char, char *, char *[], char));
+#define MAXEVLEVEL	10
+typedef unsigned char Uchar;
 
-extern int	FDECL(nfy_que, (dbref, int, int, int));
-extern int	FDECL(halt_que, (dbref, dbref));
-extern int	FDECL(halt_que_pid, (dbref, int, int));
-extern int	FDECL(halt_que_all, (void));
-extern void	FDECL(wait_que, (dbref, dbref, int, dbref, char *, char *[],
-			int, char *[], char *[]));
-extern int	NDECL(que_next);
-extern int	FDECL(do_top, (int ncmds));
-extern void	NDECL(recover_queue_deposits);
-
-/* From eval.c */
-extern void	NDECL(tcache_init);
-extern char *	FDECL(parse_to, (char **, char, int));
-extern char *	FDECL(parse_arglist, (dbref, dbref, dbref, char *, char, int,
-			char *[], int, char*[], int));
-extern int	FDECL(get_gender, (dbref));
-#ifdef ZENTY_ANSI
-extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **));
-extern int      FDECL(parse_comments, (char *, char *, char **));
+typedef struct confdata CONFDATA;
+struct confdata {
+	int	cache_trim;	/* Should cache be shrunk to original size */
+	int	cache_steal_dirty; /* Should cache code write dirty attrs */
+	int	cache_depth;	/* Number of entries in each cache cell */
+	int	cache_width;	/* Number of cache cells */
+	int	cache_names;	/* Should object names be cached separately */
+#ifndef STANDALONE
+        char    data_dir[128];   /* Directory for database files */
+        char    txt_dir[128];    /* Directory for txt and help files */
+	char	image_dir[128];	/* Snapshot image directory */
+	char	indb[128];	/* database file name */
+	char	outdb[128];	/* checkpoint the database to here */
+	char	crashdb[128];	/* write database here on crash */
+	char	gdbm[128];	/* use this gdbm file if we need one */
+	int	compress_db;	/* should we use compress */
+	char	compress[128];	/* program to run to compress */
+	char	uncompress[128];/* program to run to uncompress */
+	char	status_file[128]; /* Where to write arg to @shutdown */
+	char	roomlog_path[128]; /* Path where LOGROOM and LOGROOMENH is sent */
+        char	logdb_name[128];/* Name of log db */
+	int	round_kludge; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */
+	int	port;		/* user port */
+	int	html_port;	/* html port - Thorin 6/97 */
+        int     debug_id;       /* shared memory key for debug monitor */
+	int	authenticate;	/* Do we wish to use AUTH protocol? */
+	int	init_size;	/* initial db size */
+	int	have_guest;	/* Do we wish to allow a GUEST character? */
+	int	max_num_guests;
+	int	wall_cost;
+	int	comcost;
+	int	maildelete;
+	int	mailsub;
+	int	start_build;
+	char	guest_file[32];	/* display if guest connects */
+	char	conn_file[32];	/* display on connect if no registration */
+	char	creg_file[32];	/* display on connect if registration */
+	char	regf_file[32];	/* display on (failed) create if reg is on */
+	char	motd_file[32];	/* display this file on login */
+	char	wizmotd_file[32]; /* display this file on login to wizards */
+	char	quit_file[32];	/* display on quit */
+	char	down_file[32];	/* display this file if no logins */
+	char	full_file[32];	/* display when max users exceeded */
+	char	site_file[32];	/* display if conn from bad site */
+	char	crea_file[32];	/* display this on login for new users */
+	char	help_file[32];	/* HELP text file */
+#ifdef PLUSHELP
+	char	plushelp_file[32];	/* +HELP text file */
+	char	plushelp_indx[32];	/* +HELP index file */
 #endif
-extern char *	FDECL(exec, (dbref, dbref, dbref, int, char *, char *[], int));
-
-/* From flags.c */
-extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
-
-/* From game.c */
-#define	notify(p,m)			notify_check(p,p,m,0, \
-                        MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
-#ifdef ZENTY_ANSI
-#define noansi_notify(p,m)              notify_check(p,p,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, 0)
-#define	noansi_notify_all_from_inside(p,c,m)	notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS_A|MSG_F_UP|MSG_F_CONTENTS|MSG_S_INSIDE|MSG_NO_ANSI, 0)
-#define	noansi_notify_all_from_inside_real(p,c,m,x)	notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS_A|MSG_F_UP|MSG_F_CONTENTS|MSG_S_INSIDE|MSG_NO_ANSI, x)
-#define	noansi_notify_with_cause(p,c,m)	notify_check(p,c,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, 0)
-#define	noansi_notify_with_cause_real(p,c,m,x)	notify_check(p,c,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, x)
-#define	noansi_notify_with_cause2(p,c,m)	notify_check(NOTHING,c,m,p, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, 0)
+	char	help_indx[32];	/* HELP index file */
+	char	news_file[32];	/* NEWS text file */
+	char	news_indx[32];	/* NEWS index file */
+	char	whelp_file[32];	/* Wizard help text file */
+	char	whelp_indx[32];	/* Wizard help index file */
+	char	error_file[32]; /* huh? file */
+	char	error_indx[32]; /* huh? index */
+	char	gconf_file[32];
+	char	areg_file[32];
+	char	aregh_file[32];
+	char	door_file[32];
+	char	door_indx[32];
+        char    manlog_file[32]; /* Manual log file if /manual switch used */
+        char    mailinclude_file[32]; /* File to include with autoregistration */
+	char	mailprog[16];
+	char	guild_default[12];
+	char    guild_attrname[33];
+	char	motd_msg[1024];	/* Wizard-settable login message */
+	char	wizmotd_msg[1024];  /* Login message for wizards only */
+	char	downmotd_msg[1024];  /* Settable 'logins disabled' message */
+	char	fullmotd_msg[1024];  /* Settable 'Too many players' message */
+	char	dump_msg[128];	/* Message displayed when @dump-ing */
+	char	postdump_msg[128];  /* Message displayed after @dump-ing */
+        char  spam_msg[128];    /* Message displayed when spammonitor kicks in */
+        char  spam_objmsg[128]; /* Message displayed when object spammonitor kicks in */
+	int	whereis_notify;
+	int	max_size;
+	int	name_spaces;	/* allow player names to have spaces */
+	int	fork_dump;	/* perform dump in a forked process */
+	int	fork_vfork;	/* use vfork to fork */
+	int	sig_action;	/* What to do with fatal signals */
+	int	paranoid_alloc;	/* Rigorous buffer integrity checks */
+	int	max_players;	/* Max # of connected players */
+	int	dump_interval;	/* interval between ckp dumps in seconds */
+	int	check_interval;	/* interval between db check/cleans in secs */
+	int	dump_offset;	/* when to take first checkpoint dump */
+	int	check_offset;	/* when to perform first check and clean */
+	int	idle_timeout;	/* Boot off players idle this long in secs */
+	int	conn_timeout;	/* Allow this long to connect before booting */
+	int	idle_interval;	/* when to check for idle users */
+	int	retry_limit;	/* close conn after this many bad logins */
+	int	regtry_limit;
+	int	output_limit;	/* Max # chars queued for output */
+	int	paycheck;	/* players earn this much each day connected */
+	int	paystart;	/* new players start with this much money */
+	int	paylimit;	/* getting money gets hard over this much */
+	int	start_quota;	/* Quota for new players */
+	int	payfind;	/* chance to find a penny with wandering */
+	int	digcost;	/* cost of @dig command */
+	int	linkcost;	/* cost of @link command */
+	int	opencost;	/* cost of @open command */
+	int	createmin;	/* default (and minimum) cost of @create cmd */
+	int	createmax;	/* max cost of @create command */
+	int	killmin;	/* default (and minimum) cost of kill cmd */
+	int	killmax;	/* max cost of kill command */
+	int	killguarantee;	/* cost of kill cmd that guarantees success */
+	int	robotcost;	/* cost of @robot command */
+	int	pagecost;	/* cost of @page command */
+	int	searchcost;	/* cost of commands that search the whole DB */
+	int	waitcost;	/* cost of @wait (refunded when finishes) */
+	int	queuemax;	/* max commands a player (nonwiz) may have in queue */
+	int	wizqueuemax;	/* Max commands a wizard may have in queue */
+	int	queue_chunk;	/* # cmds to run from queue when idle */
+	int	active_q_chunk;	/* # cmds to run from queue when active */
+	int	machinecost;	/* One in mc+1 cmds costs 1 penny (POW2-1) */
+	int	room_quota;	/* quota needed to make a room */
+	int	exit_quota;	/* quota needed to make an exit */
+	int	thing_quota;	/* quota needed to make a thing */
+	int	player_quota;	/* quota needed to make a robot player */
+	int	sacfactor;	/* sacrifice earns (obj_cost/sfactor) + sadj */
+	int	sacadjust;	/* ... */
+	int	clone_copy_cost;/* Does @clone copy value? */
+	int	use_hostname;	/* TRUE = use machine NAME rather than quad */
+	int	recycle;	/* allow object recycling */
+	int	quotas;		/* TRUE = have building quotas */
+	int	rooms_can_open; /* TRUE = rooms are able to use @open/open() */
+	int	ex_flags;	/* TRUE = show flags on examine */
+	int	robot_speak;	/* TRUE = allow robots to speak */
+	int	pub_flags;	/* TRUE = flags() works on anything */
+	int	quiet_look;	/* TRUE = don't see attribs when looking */
+	int	exam_public;	/* Does EXAM show public attrs by default? */
+	int	read_rem_desc;	/* Can the DESCs of nonlocal objs be read? */
+	int	read_rem_name;	/* Can the NAMEs of nonlocal objs be read? */
+	int	sweep_dark;	/* Can you sweep dark places? */
+	int	player_listen;	/* Are AxHEAR triggered on players? */
+	int	quiet_whisper;	/* Can others tell when you whisper? */
+	int	dark_sleepers;	/* Are sleeping players 'dark'? */
+	int	see_own_dark;	/* Do you see your own dark stuff? */
+	int	idle_wiz_dark;	/* Do idling wizards get set dark? */
+	int	pemit_players;	/* Can you @pemit to faraway players? */
+	int	pemit_any;	/* Can you @pemit to ANY remote object? */
+	int	match_mine;	/* Should you check yourself for $-commands? */
+	int	match_mine_pl;	/* Should players check selves for $-cmds? */
+	int	match_pl;
+	int	switch_df_all;	/* Should @switch match all by default? */
+	int	fascist_tport;	/* Src of teleport must be owned/JUMP_OK */
+	int	terse_look;	/* Does manual look obey TERSE */
+	int	terse_contents;	/* Does TERSE look show exits */
+	int	terse_exits;	/* Does TERSE look show obvious exits */
+	int	terse_movemsg;	/* Show move msgs (SUCC/LEAVE/etc) if TERSE? */
+	int	trace_topdown;	/* Is TRACE output top-down or bottom-up? */
+	int	trace_limit;	/* Max lines of trace output if top-down */
+	int	safe_unowned;	/* Are objects not owned by you safe? */
+	int	parent_control;	/* Obey ControlLock on parent */
+	int	space_compress;	/* Convert multiple spaces into one space */
+	int	start_room;	/* initial location and home for players */
+	int	start_home;	/* initial HOME for players */
+	int	default_home;	/* HOME when home is inaccessable */
+	int	master_room;	/* Room containing default cmds/exits/etc */
+	int	intern_comp;	/* compress internal strings */
+	FLAGSET	player_flags;	/* Flags players start with */
+	FLAGSET	room_flags;	/* Flags rooms start with */
+	FLAGSET	exit_flags;	/* Flags exits start with */
+	FLAGSET	thing_flags;	/* Flags things start with */
+	FLAGSET	robot_flags;	/* Flags robots start with */
+	FLAGSET	player_toggles;	/* Flags players start with */
+	FLAGSET	room_toggles;	/* Flags rooms start with */
+	FLAGSET	exit_toggles;	/* Flags exits start with */
+	FLAGSET	thing_toggles;	/* Flags things start with */
+	FLAGSET	robot_toggles;	/* Flags robots start with */
+	int	vattr_flags;	/* Attr flags for all user-defined attrs */
+	int	abort_on_bug;	/* Dump core after logging a bug  DBG ONLY */
+	char	mud_name[32];	/* Name of the mud */
+        char	muddb_name[32];	/* Name of the DB (mail and news) files */
+	int	rwho_transmit;	/* Should we transmit RWHO data */
+	char	rwho_host[64];	/* Remote RWHO host */
+	char	rwho_pass[32];	/* Remote RWHO password */
+	int	rwho_info_port;	/* Port to which we dump WHO information */
+	int	rwho_data_port;	/* Port to which remote RWHO dumps data */
+	int	rwho_interval;	/* seconds between RWHO dumps to remote */
+	char	one_coin[32];	/* name of one coin (ie. "penny") */
+	char	many_coins[32];	/* name of many coins (ie. "pennies") */
+	int	timeslice;	/* How often do we bump people's cmd quotas? */
+	int	cmd_quota_max;	/* Max commands at one time */
+	int	cmd_quota_incr;	/* Bump #cmds allowed by this each timeslice */
+	int	control_flags;	/* Global runtime control flags */
+	int	log_options;	/* What gets logged */
+	int	log_info;	/* Info that goes into log entries */
+	Uchar	markdata[8];	/* Masks for marking/unmarking */
+	int	func_nest_lim;	/* Max nesting of functions */
+	int	func_invk_lim;	/* Max funcs invoked by a command */
+        int     wildmatch_lim;    /* Ceiling on the wildmatching recursion */
+	int	ntfy_nest_lim;	/* Max nesting of notifys */
+	int	lock_nest_lim;	/* Max nesting of lock evals */
+	int	parent_nest_lim;/* Max levels of parents */
+	int	global_aconn; 	/* Turn on/off global aconnects */
+	int	global_adconn;	/* Turn on/off global adisconnects */
+        int     room_aconn;     /* Turn on/off room aconnects */
+        int     room_adconn;    /* Turn on/off room adisconnects */
+	int	mailbox_size;
+	int	mailmax_send;
+	int	mailmax_fold;
+	int	vlimit;
+	int	player_dark;
+	int	comm_dark;
+	int	who_unfindable;
+	int	who_default;
+	int	money_limit[4];
+	int	offline_reg;
+	int	online_reg;
+	int	areg_lim;
+        int     whohost_size;
+        int     who_showwiz;
+        int     who_showwiztype;
+        int     wiz_override;   /* Enable/disable wizzes overriding locks */
+        int     wiz_uselock;    /* Enable/disable wizzes overriding uselocks */
+        int     idle_wiz_cloak; /* Enable/disable wizzes cloaking when idle */
+        int     idle_message;   /* Enable/disable wizzes getting idle messages */
+        int     no_startup;     /* Disable/enable triggering startups */
+        int     newpass_god;    /* Allow immortals to newpassword #1 */
+        int     who_wizlevel;   /* Specifies what level show up with WHO */
+        int     allow_whodark;  /* Allows players set DARK from not showing on WHO */
+        int     allow_ansinames;/* Allows names of all dbtypes to be ansified */
+                                /* 0:none/1:player/2:thing/4:room/8:exit/15:everything */
+        int     who_comment;    /* Allows the (Bummer) and other messages in WHO */
+        int     safe_wipe;      /* Anything set SAFE or INDESTRUCTABLE can't be @wiped */
+        int     secure_jumpok;  /* Sorry, only arch and higher can set jump_ok on non-rooms */
+	int	fmt_contents;	/* Check for content formats @conformat */
+	int	fmt_exits;	/* Check for exit formats @exitformat and @darkexitformat */
+	int	fmt_names;	/* Check for name format @nameformat */
+	int	enable_tstamps;	/* Enable modify/created timestamps */
+        int     secure_dark;    /* Players can't set dark on themselves but only themselves */
+        int     room_parent;    /* Default global that all new rooms are @parented to */
+        int     thing_parent;   /* Default global that all new objects are @parented to */
+        int     exit_parent;    /* Default global that all new exits are @parented to */
+        int     player_parent;  /* Default global that all new players are @parented to */
+	int	room_defobj;	/* Default global that room built-in attribs inherit */
+	int	thing_defobj;	/* Default global that thing built-in attribs inherit */
+	int	exit_defobj;	/* Default global that exit built-in attribs inherit */
+	int	player_defobj;	/* Default global that player built-in attribs inherit */
+        int     alt_inventories; /* Define alternate inventory types (worn/wielded) */
+        int     altover_inv;    /* Define if alt inventories override 'inventory' */
+        int     showother_altinv; /* Define if others see 'equipment' when looking at target */
+        int     restrict_home;  /* Define level of restriction */
+        int     restrict_home2; /* Define level of restriction (2nd word) */
+	char    invname[80];    /* Define name of inventory type - default 'backpack' */
+	int     sideeffects;	/* Define sideeffects (set-1,create-2,link-4,pemit-8,tel-16) */
+	int     restrict_sidefx; /* Restrict setting side-effects to bitlevel (0 default/any) */
+        int     cpuintervalchk; /* CPU level to check for overflowing CPU processes */
+        int     cputimechk;     /* Time notification of time elapses from start of command */
+        int     mail_tolist;	/* have the '@' in mail be the default */
+        int     mail_default;   /* Switch 'mail' from mail/quick to mail/status */
+        int     login_to_prog;  /* When you log in you're still in a program (if 1) */
+        int     noshell_prog;   /* Can not use | to exit programs (minus immortal) */
+        int     sidefx_returnval; /* Sideeffects return dbref# when it creates things */
+        int     noregist_onwho; /* Axe the 'R' on the WHO for registration enabled */
+        int     nospam_connect; /* Disable logging from forbid sites */
+        int     lnum_compat;    /* PENN/MUX lwho() compatibility */
+        int     nand_compat;    /* Old (BROKEN) pre-p15 Rhost nand compatibility */
+        int     hasattrp_compat; /* Boolean: does hasattrp only check parents */
+        int     must_unlquota;  /* Forces you to @quota/unlock before you give @quota */
+        char    forbid_host[1000]; /* forbid host names */
+        char    suspect_host[1000]; /* suspect host names */
+        char    register_host[1000]; /* register host names */
+        char    noguest_host[1000]; /* noguest host names */
+        char    autoreg_host[1000]; /* noguest host names */
+        char    validate_host[1000]; /* Invalidate autoregister email masks */
+        char    goodmail_host[1000]; /* Good hosts to allow to autoregister ALWAYS */
+        char    log_command_list[1000]; /* List of commands to log */
+        char    nobroadcast_host[1000]; /* Don't broadcast to sites in this host */
+        int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
+        int     paranoid_exit_linking; /* unlinked exits can't be linked unless controlled */
+        int     notonerr_return; /* If function returns '#-1' not() returns '0' if disabled */
+        int     safer_passwords; /* Taken from TinyMUSH - requires harder passwords */
+        int     max_sitecons;	/* Define maximum number of connects from a site */
+	int	mail_def_object;	/* Default object to use global mail eval aliases */
+	int	mail_autodeltime;	/* Autodelete on mail - time in days */
+        char    guest_namelist[1000]; /* A string of guest names that can be used */
+        int	nonindxtxt_maxlines; /* Maximum lines a non-indexed .txt file can have */
+        int     hackattr_nowiz;	/* _attributes are not wiz only by default */
+	int     hackattr_see;   /* _attributes can be viewable by nonwizzes */
+        int	penn_playercmds; /* Do $commands on players like PENN */
+	int	format_compatibility;	/* Mush/mux compatibility */
+	int	brace_compatibility;	/* Mux compatibility */
+	int	max_cpu_cycles;  /* Maximum allowed CPU slams allowed in a row */
+	int	cpu_secure_lvl;	/* Action to take when max_cpu_cycles reached */
+	int	expand_goto;	/* Toggle on/off expanding exit names to use 'goto' */
+	int	global_ansimask;	/* Ansi mask on what to allow/deny */
+	int	wizmax_vattr_limit;	/* Maximum vattrs set by wizard+ */
+	int	max_vattr_limit;	/* Maximum vattrs set by player */
+	int	max_dest_limit;	/* Maximum number you can @destroy */
+        int     wizmax_dest_limit; 	/* Maximum number wiz can @destroy */
+	int	vattr_limit_checkwiz;	/* Is wizard checking enabled? */
+	int	hide_nospoof;	/* Hide the nospoof flag - default no */
+        int	partial_conn;	/* Trigger @aconnects on partial connect */
+        int	partial_deconn;	/* Trigger @adisconnects on partial disconnect */
+	int	secure_functions; /* Fix functions to be safer on evaluation - mask */
+        int     penn_switches; /* PENN like switch()/switchall() */
+	int	heavy_cpu_max; /* Specify maximum for heavy cpu function-usage */
+	int	lastsite_paranoia;	/* Enable paranoia level on connections */
+	int	pcreate_paranoia;	/* Enable paranoia level on creations */
+	int	max_lastsite_cnt;	/* Count of maximum lastsite information */
+	int	min_con_attempt;	/* Minimum ammount of time between connections */
+        int	lattr_default_oldstyle;	/* lattr's output is snuffed? */
+	int	formats_are_local;	/* A_*_FMT's are local to self */
+	int	descs_are_local;	/* All did_it() stuff is localized */
+	int	max_pcreate_lim;	/* Maximum times a player can 'create' from con screen */
+	int	max_pcreate_time;	/* Time (in seconds) that a player can issue create from screen */
+	int	global_parent_obj;	/* Global parent generic object */
+	int	global_parent_room;	/* Global parent room object */
+	int	global_parent_thing;	/* Global parent thing object */
+	int	global_parent_player;	/* Global parent player object */
+	int	global_parent_exit;	/* Global parent exit object */
+	int	global_clone_obj;	/* Global that all things are @cloned from */
+	int	global_clone_room;	/* Global that rooms are @cloned from */
+	int	global_clone_thing;	/* Global that things are @cloned from */
+	int	global_clone_player;	/* Global that players are @cloned from */
+	int	global_clone_exit;	/* Global that exits are @cloned from */
+	int	zone_parents;		/* Zones inherit attributes to children */
+	int	global_error_obj;	/* Object that handles all 'unfound' commands */
+	int	signal_object;		/* Signal Handling Object */
+	int	signal_object_type;	/* functions or trigger like a startup */
+        int	look_moreflags;		/* Show global flags on attributes */
+	int	secure_atruselock;	/* Make attribute uselocks work only with @toggle */
+	int	hook_obj;		/* Global command hook object */
+	int 	hook_cmd;		/* Issue hook command value */
+	int	stack_limit;		/* Ceiling for command stack value */
+	int	spam_limit;		/* Ceiling on #commands per minute */
+        int     mail_verbosity;         /* Allow messages to disconnected players and subject info */
+        int     always_blind;           /* Does movement through exits always work by default? */
+        char    mail_anonymous[32];     /* Anonymous player mail is sent to */
+        int     sidefx_maxcalls;        /* Maximum sideeffects allowed in a command */
+        char    oattr_uses_altname[32]; /* o-attribs use this name optionally */
+        int     oattr_enable_altname;   /* Enable/disable alternate names through exits */
+        int     empower_fulltel;        /* FULLTEL power handles more than 'self' */
+        int     bcc_hidden;             /* +bcc hides who mail is sent to on target */
+	int     exits_conn_rooms;       /* If defined, rooms with an exit are not considered floating */
+	int	global_attrdefault;	/* Global Attribute Default Handler for Objects */
+	int	ahear_maxcount;		/* Maximum loop with ahear counts */
+	int	ahear_maxtime;		/* Max time in seconds between ahears */
+	int	switch_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	examine_restrictive;	/* Is examine restrictive  */
+	int	queue_compatible;	/* Is the QUEUE mush compatible */
+        int     max_percentsubs;	/* Maximum %-subs per command */
+	int	lcon_checks_dark;	/* Does lcon/xcon check dark? */
+	int	mail_hidden;		/* Does mail/anon hide who it is originally sent to */
+	int	enforce_unfindable;	/* Enforce unfindable on target */
+	int	zones_like_parents;	/* Make zones behave like @parents for self/inventory/contents */
+	int	sub_override;		/* override %-substitutions */
+	int	log_maximum;		/* Maximum logtotext() allowed */
+	int	power_objects;		/* Objects can have powers */
+	int	shs_reverse;		/* SHS reversed for sha function */
+	int	break_compatibility;	/* @break/@assert double-eval compatibility */
+	char	sub_include[200];	/* Include specified characters for %-subs */
+	int	log_network_errors;	/* Turn on or off network error logging */
+	int	old_elist;		/* old elist processing */
+	int	cluster_cap;		/* Cluster cap for processing */
+	int	clusterfunc_cap;	/* Cluster cap for processing (function) */
+	int	mux_child_compat;	/* Is it MUX/TM3 compatable for children() */
+	int	mux_lcon_compat;	/* Is it MUX/TM3 compatable for children() */
+	int	switch_search;		/* Switch search() and searchng() */
+	int	signal_crontab;		/* Signal the crontab via USR1 */
+        int 	max_name_protect;	/* Maximum name protects allowed */
+	int	map_delim_space;	/* map() delimitats space if specified null */
+	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
+	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
+	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
+#ifdef REALITY_LEVELS
+        int no_levels;          /* # of reality levels */
+        struct rlevel_def {
+            char name[9];	/* name of level */
+            RLEVEL value;	/* bitmask for level */
+            char attr[33];	/* RLevel desc attribute */
+        } reality_level[32];	/* Reality levels */
+        int wiz_always_real;	/* Wizards are always real */
+	int reality_locks;	/* Allow user-lock to be reality lock */
+        int reality_locktype;	/* What type of lock will the user-lock be? */
+        RLEVEL  def_room_rx;	/* Default room RX level */
+        RLEVEL  def_room_tx;	/* Default room TX level */
+        RLEVEL  def_player_rx;	/* Default player RX level */
+        RLEVEL  def_player_tx;	/* Default player RX level */
+        RLEVEL  def_exit_rx;	/* Default exit RX level */
+        RLEVEL  def_exit_tx;	/* Default exit TX level */
+        RLEVEL  def_thing_rx;	/* Default thing RX level */
+        RLEVEL  def_thing_tx;	/* Default thing TX level */
+#endif /* REALITY_LEVELS */
+#ifdef SQLITE
+        int     sqlite_query_limit;
+        char    sqlite_db_path[128];
+#endif /* SQLITE */
 #else
-#define	noansi_notify(p,m)			notify_check(p,p,m,0, \
-                        MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
-#define	noansi_notify_all_from_inside(p,c,m)	notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS_A|MSG_F_UP|MSG_F_CONTENTS|MSG_S_INSIDE, 0)
-#define	noansi_notify_all_from_inside_real(p,c,m,x)	notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS_A|MSG_F_UP|MSG_F_CONTENTS|MSG_S_INSIDE, x)
-#define	noansi_notify_with_cause(p,c,m)	notify_check(p,c,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
-#define	noansi_notify_with_cause_real(p,c,m,x)	notify_check(p,c,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, x)
-#define	noansi_notify_with_cause2(p,c,m)	notify_check(NOTHING,c,m,p, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
+	int	paylimit;	/* getting money gets hard over this much */
+	int	digcost;	/* cost of @dig command */
+	int	opencost;	/* cost of @open command */
+	int	robotcost;	/* cost of @robot command */
+	int	createmin;	/* default (and minimum) cost of @create cmd */
+	int	createmax;	/* max cost of @create command */
+	int	sacfactor;	/* sacrifice earns (obj_cost/sfactor) + sadj */
+	int	sacadjust;	/* ... */
+	int	room_quota;	/* quota needed to make a room */
+	int	exit_quota;	/* quota needed to make an exit */
+	int	thing_quota;	/* quota needed to make a thing */
+	int	player_quota;	/* quota needed to make a robot player */
+	int	quotas;		/* TRUE = have building quotas */
+	int	start_room;	/* initial location and home for players */
+	int	start_home;	/* initial HOME for players */
+	int	default_home;	/* HOME when home is inaccessable */
+	int	vattr_flags;	/* Attr flags for all user-defined attrs */
+	int	log_options;	/* What gets logged */
+	int	log_info;	/* Info that goes into log entries */
+	Uchar	markdata[8];	/* Masks for marking/unmarking */
+	int	ntfy_nest_lim;	/* Max nesting of notifys */
+	int	vlimit;
+        int     safer_passwords; /* Taken from TinyMUSH - requires harder passwords */
+	int	vattr_limit_checkwiz;	/* Is wizard checking enabled? */
+	int	switch_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	enforce_unfindable;	/* Enforce unfindable on target */
+	int	power_objects;		/* Objects can have powers */
+	char	sub_include[200];
+	int	old_elist;		/* Old elist processing */
+#endif	/* STANDALONE */
+};
+
+extern CONFDATA mudconf;
+
+typedef struct site_data SITE;
+struct site_data {
+	struct site_data *next;		/* Next site in chain */
+	struct in_addr address;		/* Host or network address */
+	struct in_addr mask;		/* Mask to apply before comparing */
+	int	flag;			/* Value to return on match */
+	int	key;			/* Auto sited or not? */
+};
+
+
+typedef struct markbuf MARKBUF;
+struct markbuf {
+	char	chunk[5000];
+};
+
+typedef struct alist ALIST;
+struct alist {
+	char	*data;
+	int	len;
+	struct alist *next;
+};
+
+typedef struct protectname_struc PROTECTNAME;
+struct protectname_struc {
+	char	*name;
+	dbref	i_name;
+	int	i_key;
+	struct protectname_struc	*next;
+};
+typedef struct badname_struc BADNAME;
+struct badname_struc {
+	char	*name;
+	struct badname_struc	*next;
+};
+
+typedef struct forward_list FWDLIST;
+struct forward_list {
+	int	count;
+	int	data[1000];
+};
+
+typedef struct blacklist_list BLACKLIST;
+struct blacklist_list {
+	char	s_site[20];
+        struct	in_addr	site_addr;
+	struct	in_addr mask_addr;
+	struct	blacklist_list	*next;
+};
+
+typedef struct statedata STATEDATA;
+struct statedata {
+#ifndef STANDALONE
+        /* command profiling */
+        int     objevalst;
+	int	breakst;
+        int     shell_program;  /* Shelled out of @program */
+        dbref   store_lastcr;   /* Store the last created dbref# for functions */
+	dbref	store_lastx1;	/* Store the last created exit# for dig */
+	dbref	store_lastx2;	/* Store the previous created exit# for dig */
+	dbref	store_loc;	/* Store target location for open/dig */
+        int     evalcount;
+        int     funccount;
+        int     attribfetchcount;
+	int	func_ignore;
+        int     func_bypass;
+	int	initializing;	/* are we reading config file at startup? */
+	int	panicking;	/* are we in the middle of dying horribly? */
+	int	logging;	/* Are we in the middle of logging? */
+	int	epoch;		/* Generation number for dumps */
+	int	generation;	/* DB global generation number */
+	dbref	curr_enactor;	/* Who initiated the current command */
+	dbref	curr_player;	/* Who is running the current command */
+        char    *curr_cmd;      /* The current command */
+        char    *iter_arr[50];   /* Iter recursive memory - text*/
+        int     iter_inumarr[50];/* Iter recursive memory - number*/
+        int     iter_inumbrk[50];/* Iter recursive memory - break*/
+        int     iter_inum;      /* Iter inum value */
+	int	alarm_triggered;/* Has periodic alarm signal occurred? */
+	time_t	now;		/* What time is it now? */
+	time_t	lastnow;	/* What time was it last? */
+	time_t	dump_counter;	/* Countdown to next db dump */
+	time_t	check_counter;	/* Countdown to next db check */
+	time_t	idle_counter;	/* Countdown to next idle check */
+	time_t	rwho_counter;	/* Countdown to next RWHO dump */
+	time_t	mstats_counter;	/* Countdown to next mstats snapshot */
+	time_t  chkcpu_stopper; /* What time was it when command started */
+	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
+	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
+	int	ahear_count;	/* Current ahear nest count */
+	dbref	ahear_lastplr;	/* Last Player to try the ahear thingy */
+	int	ahear_currtime;	/* Time the ahear was issued */
+        int     force_halt;     /* Can you force the halted person? */
+	int	rwho_on;	/* Have we connected to an RWHO server? */
+	int	shutdown_flag;	/* Should interface be shut down? */
+	int	reboot_flag;
+	char	version[128];	/* MUSH version string */
+	char	short_ver[64];	/* Short version number (for RWHO) */
+	time_t	start_time;	/* When was MUSH started */
+	time_t	reboot_time;
+        time_t  mushflat_time;  /* When was MUSH last @dump/flatted */
+        time_t  aregflat_time;  /* When was @reg last flatfiled */
+        time_t  newsflat_time;  /* When was news last flatfiled */
+        time_t  mailflat_time;  /* When was mail last flatfiled */
+	char	buffer[256];	/* A buffer for holding temp stuff */
+        char    *lbuf_buffer;	/* An lbuf buffer we can globally use */
+	char	*debug_cmd;	/* The command we are executing (if any) */
+	char	doing_hdr[81];	/* Doing column header in the WHO display */
+	char	ng_doing_hdr[81];
+	char	guild_hdr[12];
+        char    last_command[LBUF_SIZE]; /* Easy buffer of last command */
+	SITE	*access_list;	/* Access states for sites */
+	SITE	*suspect_list;	/* Sites that are suspect */
+	SITE	*special_list;	/* Sites that have special requirements */
+        HASHTAB cmd_alias_htab; /* Command alias hashtable */
+	HASHTAB	command_htab;	/* Commands hashtable */
+	HASHTAB	logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
+	HASHTAB func_htab;	/* Functions hashtable */
+	HASHTAB ufunc_htab;	/* Local functions hashtable */
+	HASHTAB flags_htab;	/* Flags hashtable */
+	HASHTAB toggles_htab;	/* Toggles hashtable */
+	HASHTAB powers_htab;
+	HASHTAB depowers_htab;
+	HASHTAB	attr_name_htab;	/* Attribute names hashtable */
+	NHSHTAB	attr_num_htab;	/* Attribute numbers hashtable */
+	HASHTAB player_htab;	/* Player name->number hashtable */
+	NHSHTAB	desc_htab;	/* Socket descriptor hashtable */
+	NHSHTAB	fwdlist_htab;	/* Room forwardlists */
+	NHSHTAB	parent_htab;	/* Parent $-command exclusion */
+	HASHTAB	news_htab;	/* News topics hashtable */
+	HASHTAB	help_htab;	/* Help topics hashtable */
+	HASHTAB	wizhelp_htab;	/* Wizard help topics hashtable */
+	HASHTAB error_htab;
+        HASHTAB ansi_htab;	/* 256 colortab */
+#ifdef PLUSHELP
+	HASHTAB	plushelp_htab;	/* PlusHelp topics hashtable */
 #endif
-#define	notify_quiet(p,m)		notify_check(p,p,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME, 0)
-#define	notify_with_cause(p,c,m)	notify_check(p,c,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
-#define	notify_with_cause_real(p,c,m,x)	notify_check(p,c,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, x)
-#define	notify_with_cause2(p,c,m)	notify_check(NOTHING,c,m,p, \
-						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
-#define	notify_quiet_with_cause(p,c,m)	notify_check(p,c,m,0, \
-						MSG_PUP_ALWAYS|MSG_ME, 0)
-#define	notify_puppet(p,c,m)		notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_F_DOWN, 0)
-#define	notify_quiet_puppet(p,c,m)	notify_check(p,c,m,0, \
-						MSG_ME, 0)
-#define	notify_all(p,c,m)		notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS|MSG_F_UP|MSG_F_CONTENTS, 0)
-#define	notify_all_from_inside(p,c,m)	notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS_A|MSG_F_UP|MSG_F_CONTENTS|MSG_S_INSIDE, 0)
-#define	notify_all_from_inside_real(p,c,m,x)	notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS_A|MSG_F_UP|MSG_F_CONTENTS|MSG_S_INSIDE, x)
-#define	notify_all_from_outside(p,c,m)	notify_check(p,c,m,0, \
-						MSG_ME_ALL|MSG_NBR_EXITS|MSG_F_UP|MSG_F_CONTENTS|MSG_S_OUTSIDE, 0)
-#define	notify_all_from_inside_quiet(p,c,m)	notify_check(p,c,m,0, \
-						MSG_ME|MSG_F_CONTENTS|MSG_SILENT, 0)
-extern void	FDECL(notify_except, (dbref, dbref, dbref,
-			const char *));
-extern void	FDECL(notify_except2, (dbref, dbref, dbref, dbref,
-			 const char *));
-extern void	FDECL(notify_except3, (dbref, dbref, dbref, dbref, int,
-			 const char *));
-extern void	FDECL(notify_except_someone, (dbref, dbref, dbref,
-			const char *, const char *));
-extern int	FDECL(check_filter, (dbref, dbref, int,
-			const char *));
-extern void	FDECL(notify_check, (dbref, dbref, const char *, int, int, int));
-extern int	FDECL(Hearer, (dbref));
-extern void	NDECL(report);
-extern void	FDECL(do_rwho, (dbref, dbref, int));
-extern int	FDECL(atr_match, (dbref, dbref, char, char *, int, int));
-extern int	FDECL(list_check, (dbref, dbref, char, char *, int, int, int));
-	
-/* From help.c */
-extern int	FDECL(helpindex_read, (HASHTAB *, char *));
-extern void	FDECL(helpindex_load, (dbref));
-extern void	NDECL(helpindex_init);
-extern char *	FDECL(errmsg, (dbref));
-extern char *	FDECL(doorparm, (char *));
-
-/* From htab.c */
-extern int	FDECL(cf_ntab_access, (int *, char *, long, long, dbref, char *));
-
-/* From log.c */
-extern int	FDECL(start_log, (const char *, const char *));
-extern void	NDECL(end_log);
-extern void	FDECL(log_perror, (const char *, const char *,const char *,
-			const char *));
-extern void	FDECL(log_text, (char *));
-extern void	FDECL(log_number, (int));
-extern void	FDECL(log_name, (dbref));
-extern void	FDECL(log_name_and_loc, (dbref));
-extern char *	FDECL(OBJTYP, (dbref));
-extern void	FDECL(log_type_and_name, (dbref));
-extern void	FDECL(log_type_and_num, (dbref));
-
-/* From look.c */
-extern void	FDECL(look_in, (dbref,dbref, int));
-extern long	FDECL(count_atrs, (dbref));
-extern char *	FDECL(grep_internal, (dbref, dbref, char *, char *, int));
-extern void     FDECL(viewzonelist, (dbref, dbref));
-/* MMMail decs */
-extern void	NDECL(mail_rem_dump);
-extern int	NDECL(mail_init);
-extern void	NDECL(mail_close);
-extern void	FDECL(mail_mark, (dbref,int,char *,dbref,int));
-extern void	FDECL(mail_md1, (dbref, dbref, int, int));
-extern int	FDECL(stricmp, (char *, char*));
-extern long	FDECL(mcount_size, (dbref, char *));
-extern long	NDECL(mcount_size_tot);
-extern void	FDECL(mail_gblout, (dbref));
-extern char *   FDECL(mailquick, (dbref, char*));
-extern char *   FDECL(mail_alias_function, (dbref, int, char *, char *));
-extern char *   FDECL(mail_quick_function, (dbref, char *, int));
-extern void     FDECL(mail_status, (dbref, char *, dbref, int, int, char *, char *));
-extern void	FDECL(folder_plist_function, (dbref, char *, char *, char *));
-extern void	FDECL(folder_current_function, (dbref, int, char *, char *, char *));
-
-
-/* From match.c */
-extern dbref    FDECL(match_controlled_quiet, (dbref, const char *));
-/* From move.c */
-extern void	FDECL(move_object, (dbref, dbref));
-extern void	FDECL(move_via_generic, (dbref, dbref, dbref, int));
-extern void	FDECL(move_via_exit, (dbref, dbref, dbref, dbref, int));
-extern int	FDECL(move_via_teleport, (dbref, dbref, dbref, int, int));
-extern void	FDECL(move_exit, (dbref, dbref, int, const char *, int));
-extern void	FDECL(do_enter_internal, (dbref, dbref, int));
-
-/* From news.c */
-extern void NDECL(start_news_system);
-extern void NDECL(shutdown_news_system);
-extern void FDECL(news_player_nuke_hook, (dbref, dbref));
-
-/* From object.c */
-extern dbref	NDECL(start_home);
-extern dbref	NDECL(default_home);
-extern int	FDECL(can_set_home, (dbref, dbref, dbref));
-extern dbref	FDECL(new_home, (dbref));
-extern dbref	FDECL(clone_home, (dbref, dbref));
-extern void	FDECL(divest_object, (dbref));
-extern dbref	FDECL(create_obj, (dbref, int, char *, int));
-extern void	FDECL(destroy_obj, (dbref, dbref, int));
-extern void	FDECL(empty_obj, (dbref));
-
-/* From player.c */
-extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
-extern int	FDECL(check_pass, (dbref, const char *, int));
-extern dbref	FDECL(connect_player, (char *, char *, char *));
-extern dbref	FDECL(create_player, (char *, char *, dbref, int));
-extern int	FDECL(add_player_name, (dbref, char *));
-extern int	FDECL(delete_player_name, (dbref, char *));
-extern dbref	FDECL(lookup_player, (dbref, char *, int));
-extern void	NDECL(load_player_names);
-extern void	FDECL(badname_add, (char *));
-extern void	FDECL(badname_remove, (char *));
-extern int	FDECL(badname_check, (char *, dbref));
-extern void	FDECL(badname_list, (dbref, const char *));
-extern int	FDECL(protectname_add, (char *, dbref));
-extern dbref	FDECL(protectname_remove, (char *, dbref));
-extern int	FDECL(protectname_check, (char *, dbref, int));
-extern void	FDECL(protectname_list, (dbref, int, dbref));
-extern dbref	FDECL(protectname_alias, (char *, dbref));
-extern dbref	FDECL(protectname_unalias, (char *, dbref));
-extern int	FDECL(reg_internal, (char *, char *, char *, int));
-
-/* From predicates.c */
-extern int	FDECL(isreal_chk, (dbref, dbref, int));
-extern int      FDECL(Read_attr, (dbref, dbref, ATTR*, dbref, int, int));
-extern int      FDECL(See_attr, (dbref, dbref, ATTR*, dbref, int, int));
-extern int	FDECL(Controls, (dbref, dbref));
-extern int	FDECL(Examinable, (dbref, dbref));
-extern int	FDECL(Controlsforattr, (dbref, dbref, ATTR*, int));
-extern dbref	FDECL(absloc, (dbref));
-extern int	FDECL(evlevchk, (dbref, int));
-extern dbref	FDECL(insert_first, (dbref, dbref));
-extern dbref	FDECL(remove_first, (dbref, dbref));
-extern dbref	FDECL(reverse_list, (dbref));
-extern int	FDECL(member, (dbref, dbref));
-extern int	FDECL(is_integer, (char *));
-extern int	FDECL(is_number, (char *));
-extern int	FDECL(is_rhointeger, (char *));
-extern int	FDECL(could_doit, (dbref, dbref, int, int));
-extern int	FDECL(can_see, (dbref, dbref, int));
-extern int	FDECL(can_see2, (dbref, dbref, int));
-extern void	FDECL(add_quota, (dbref, int, int));
-extern int	FDECL(canpayfees, (dbref, dbref, int, int, int));
-extern int	FDECL(giveto, (dbref,int,dbref));
-extern int	FDECL(payfor, (dbref,int));
-extern int	FDECL(payfor_give, (dbref,int));
-extern int	FDECL(payfor_force, (dbref, int));
-extern int	FDECL(pay_quota_force, (dbref, int, int));
-extern int	FDECL(pay_quota, (dbref, dbref, int, int, int));
-extern int	FDECL(q_check, (dbref, dbref, int, char, char, int, int));
-extern int	FDECL(ok_name, (const char *));
-extern int	FDECL(ok_player_name, (const char *));
-extern int	FDECL(ok_attr_name, (const char *));
-extern int	FDECL(ok_password, (const char *, dbref, int));
-extern void	FDECL(handle_ears, (dbref, int, int));
-extern dbref	FDECL(match_possessed, (dbref, dbref, char *, dbref, int));
-extern void	FDECL(parse_range, (char **, dbref *, dbref *));
-extern int	FDECL(parse_thing_slash, (dbref, char *, char **, dbref *));
-extern int	FDECL(get_obj_and_lock, (dbref, char *, dbref *, ATTR **,
-			char *, char**));
-extern dbref	FDECL(where_is, (dbref));
-extern dbref	FDECL(where_room, (dbref));
-extern int	FDECL(locatable, (dbref, dbref, dbref));
-extern int	FDECL(nearby, (dbref, dbref));
-extern int	FDECL(exit_visible, (dbref, dbref, int));
-extern int	FDECL(exit_displayable, (dbref, dbref, int));
-extern void	FDECL(did_it, (dbref, dbref, int, const char *, int,
-			const char *, int, char *[], int));
-extern void	FDECL(list_bufstats, (dbref));
-extern void	FDECL(list_buftrace, (dbref));
-
-/* From set.c */
-extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
-extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
-extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
-			int, int, OBLOCKMASTER *, int));
-extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int));
-extern dbref	FDECL(match_controlled, (dbref, const char *));
-extern dbref	FDECL(match_controlled_or_twinked, (dbref, const char *));
-extern dbref	FDECL(match_affected, (dbref, const char *));
-extern dbref	FDECL(match_examinable, (dbref,const char *));
-
-/* From stringutil.c */
-extern char *	FDECL(munge_space, (char *));
-extern char *	FDECL(trim_spaces, (char *));
-extern char *	FDECL(grabto, (char **, char));
-extern int	FDECL(string_compare, (const char *, const char *));
-extern int	FDECL(string_prefix, (const char *, const char *));
-extern const char *	FDECL(string_match, (const char * ,const char *));
-extern char *	FDECL(dollar_to_space, (const char *));
-extern char *	FDECL(replace_string, (const char *, const char *,
-			const char *, int));
-extern char *	FDECL(replace_tokens, (const char *, const char *, const char *, const char *));
-extern char *	FDECL(replace_string_inplace, (const char *,  const char *,
-			char *));
-extern char *	FDECL(skip_space, (const char *));
-extern char *	FDECL(seek_char, (const char *, char));
-extern int	FDECL(prefix_match, (const char *, const char *));
-extern int	FDECL(minmatch, (char *, char *, int));
-extern char *	FDECL(strsave, (const char *));
-extern int	FDECL(safe_copy_str, (char *, char *, char **, int));
-extern int	FDECL(safe_copy_strmax, (char *, char *, char **, int));
-extern int	FDECL(safe_copy_chr, (char, char *, char **, int));
-extern int	FDECL(matches_exit_from_list, (char *, char *));
-extern char *	FDECL(myitoa, (int));
-extern char *   FDECL(translate_string, (const char *, int));
-extern char *	FDECL(find_cluster, (dbref, dbref, int));
-extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
-
-/* From boolexp.c */
-extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *));
-extern BOOLEXP *FDECL(parse_boolexp, (dbref,const char *, int));
-extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int));
-
-/* From functions.c */
-extern int	FDECL(xlate, (char *));
-
-/* From unparse.c */
-extern char *	FDECL(unparse_boolexp, (dbref, BOOLEXP *));
-extern char *	FDECL(unparse_boolexp_quiet, (dbref, BOOLEXP *));
-extern char *	FDECL(unparse_boolexp_decompile, (dbref, BOOLEXP *));
-extern char *	FDECL(unparse_boolexp_function, (dbref, BOOLEXP *));
-
-/* From walkdb.c */
-extern int	FDECL(chown_all, (dbref, dbref));
-
-extern void	FDECL(olist_init,(OBLOCKMASTER *));
-extern void     FDECL(olist_cleanup,(OBLOCKMASTER *));
-extern void	FDECL(olist_add, (OBLOCKMASTER *,dbref));
-extern dbref	FDECL(olist_first, (OBLOCKMASTER *));
-extern dbref	FDECL(olist_next, (OBLOCKMASTER *));
-extern void	FDECL(file_olist_init,(FILE **, const char *));
-extern void     FDECL(file_olist_cleanup,(FILE **));
-extern void	FDECL(file_olist_add, (FILE **,dbref));
-extern dbref	FDECL(file_olist_first, (FILE **));
-extern dbref	FDECL(file_olist_next, (FILE **));
-
-/* From wild.c */
-extern int	FDECL(wild, (char *, char *, char *[], int));
-extern int	FDECL(wild_match, (char *, char *, char *[], int, int));
-extern int	FDECL(quick_wild, (char *, char *));
-
-/* From match.c */
-extern dbref	FDECL(pref_match, (dbref, dbref, const char *));
-
-/* From compress.c */
-extern const char *	FDECL(uncompress, (const char *, int));
-extern const char *	FDECL(compress, (const char *, int));
-extern char *	FDECL(uncompress_str, (char *, const char *, int));
-
-/* From command.c */
-extern int	FDECL(check_access, (dbref, int, int, int));
-extern int	FDECL(flagcheck, (char *, char*));
-extern int      FDECL(cmdtest, (dbref, char *));
-extern int      FDECL(zonecmdtest, (dbref, char *));
-
-
-/* from db.c */
-extern int	FDECL(Commer, (dbref));
-extern void	FDECL(s_Pass, (dbref, const char *));
-extern void     FDECL(s_MPass, (dbref, const char *));
-extern void	FDECL(s_Name, (dbref, const char *));
-extern char *	FDECL(Guild, (dbref));
-extern char *	FDECL(Name, (dbref));
-extern int	FDECL(fwdlist_load, (FWDLIST *, dbref, char *));
-extern void	FDECL(fwdlist_set, (dbref, FWDLIST *));
-extern void	FDECL(fwdlist_clr, (dbref));
-extern int	FDECL(fwdlist_rewrite, (FWDLIST *, char *));
-extern FWDLIST *FDECL(fwdlist_get, (dbref));
-extern void	FDECL(clone_object, (dbref, dbref));
-extern void	NDECL(init_min_db);
-extern void	NDECL(atr_push);
-extern void	NDECL(atr_pop);
-extern int	FDECL(atr_head, (dbref, char **));
-extern int	FDECL(atr_next, (char **));
-extern int	FDECL(init_gdbm_db, (char *));
-extern void	FDECL(atr_cpy, (dbref, dbref, dbref));
-extern void	FDECL(atr_chown, (dbref));
-extern void	FDECL(atr_clr, (dbref, int));
-extern void	FDECL(atr_add_raw, (dbref, int, char *));
-extern void	FDECL(atr_add, (dbref, int, char *, dbref, int));
-extern void	FDECL(atr_set_owner, (dbref, int, dbref));
-extern void	FDECL(atr_set_flags, (dbref, int, int));
-extern char *	FDECL(atr_get_raw, (dbref, int));
-extern char *	FDECL(atr_get_ash, (dbref, int, dbref *, int *, int, char *));
-extern char *	FDECL(atr_pget_ash, (dbref, int, dbref *, int *, int, char *));
-extern char *	FDECL(atr_get_str, (char *, dbref, int, dbref *, int *));
-extern char *	FDECL(atr_pget_str, (char *, dbref, int, dbref *, int *, int *));
-extern int	FDECL(atr_get_info, (dbref, int, dbref *, int *));
-extern int	FDECL(atr_pget_info, (dbref, int, dbref *, int *));
-extern void	FDECL(atr_free, (dbref));
-
-/* from mushcrypt.c */
-extern char *   FDECL(mush_crypt, (const char *));
-extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, int));
-
-/* Powers keys */
-
-/* IMPORTANT -- Keep this table in sync with the powers table in command.c
- * The constants are used as array indexes into the powers table.
- */
-
-#define	POW_CHG_QUOTAS	0	/* May change quotas of controlled players */
-#define	POW_CHOWN_ANY	1	/* Ignore loc/holding restrictions on @chown */
-#define	POW_CHOWN_ME	2	/* May @chown things to me */
-#define	POW_CHOWN_OTHER	3	/* May @chown things to others */
-#define	POW_CHOWN_PLYR	4	/* May @chown players */
-#define	POW_CONTROL_ALL	5	/* I control everything */
-#define	POW_WIZARD_WHO	6	/* See extra WHO information */
-#define	POW_EXAM_ALL	7	/* I can examine everything */
-#define	POW_FIND_UNFIND	8	/* Can find unfindable players */
-#define	POW_FREE_MONEY	9	/* I have infinite money */
-#define	POW_FREE_QUOTA	10	/* I have infinite quota */
-#define	POW_GRAB_PLAYER	11	/* Can @tel players to me */
-#define	POW_IGNORE_RST	12	/* Ignore penalty flags in access checks */
-#define	POW_JOIN_PLAYER	13	/* Can @tel to loc of player */
-#define	POW_LONGFINGERS	14	/* Can get/whisper/etc from a distance */
-#define	POW_NO_BOOT	15	/* Player is immune from @booting */
-#define	POW_NO_TOAD	16	/* Player is immune from @toading/@destroying */
-#define	POW_RENAME_ME	17	/* Player can change name or password */
-#define	POW_SEE_AFLAGS	18	/* Player can see admin (hidden) flags */
-#define	POW_SEE_QUEUE	19	/* Player can see the entire queue */
-#define	POW_SEE_HIDDEN	20	/* Player can see hidden players on WHO list */
-#define	POW_SEE_IATTRS	21	/* Player can see invisible attributes */
-#define	POW_SEE_MFLAGS	22	/* Player can see game maintenance flags */
-#define	POW_SEE_AATTRS	23	/* Player can set administration attributes */
-#define	POW_SET_AFLAGS	24	/* Player can set admin flags */
-#define	POW_SET_MATTRS	25	/* Player can set maintenance attributes */
-#define	POW_SET_MFLAGS	26	/* Player can set game maintenance flags */
-#define	POW_STAT_ANY	27	/* Can @stat anyone */
-#define	POW_STEAL	28	/* Can give negative money */
-#define	POW_TEL_ANYWHR	29	/* Ignore control/JUMP_OK on @tel */
-#define	POW_TEL_UNRST	30	/* Ignore object type restrictions on @tel */
-#define	POW_UNKILLABLE	31	/* Can't be killed */
-
-/* Command handler keys */
-
-#define AFLAGS_FULL	1
-#define AREG_LOAD	1
-#define AREG_UNLOAD	2
-#define AREG_LIST	4
-#define AREG_ADD	8
-#define AREG_ADD_FORCE	16
-#define AREG_DEL_PLAY	32
-#define AREG_DEL_EMAIL	64
-#define AREG_LIMIT	128
-#define AREG_WIPE	256
-#define AREG_DEL_AEMAIL 512
-#define AREG_CLEAN	1024
-#define	ATTRIB_ACCESS	1	/* Change access to attribute */
-#define	ATTRIB_RENAME	2	/* Rename attribute */
-#define	ATTRIB_DELETE	4	/* Delete attribute */
-#define	BOOT_QUIET	1	/* Inhibit boot message to victim */
-#define	BOOT_PORT	2	/* Boot by port number */
-#define	CHOWN_ONE	1	/* item = new_owner */
-#define	CHOWN_ALL	2	/* old_owner = new_owner */
-#define CHOWN_PRESERVE  4       /* wiz+ only. Don't set halt, keep flags */
-#define	CLONE_LOCATION	0	/* Create cloned object in my location */
-#define	CLONE_INHERIT	1	/* Keep INHERIT bit if set */
-#define	CLONE_PRESERVE	2	/* Preserve the owner of the object */
-#define	CLONE_INVENTORY	4	/* Create cloned object in my inventory */
-#define	CLONE_SET_COST	8	/* ARG2 is cost of cloned object */
-#define	CLONE_SET_LOC	16	/* ARG2 is location of cloned object */
-#define	CLONE_SET_NAME	32	/* ARG2 is alternate name of cloned object */
-#define	CLONE_PARENT	64	/* Set parent on obj instd of cloning attrs */
-#define CONV_ALTERNATE	1
-#define CONV_ALL	2
-#define CONV_OVER	4
-#define CPATTR_CLEAR	1
-#define CPATTR_VERB	2
-#define	CRE_INVENTORY	0	/* Create object in my inventory */
-#define	CRE_LOCATION	1	/* Create object in my location */
-#define	CRE_SET_LOC	2	/* ARG2 is location of new object */
-#define DECOMP_ALL	0	/* Decompile everything - default */
-#define DECOMP_FLAGS    1	/* Decompile flags */
-#define DECOMP_ATTRS	2	/* Decompile Attrs */
-#define	DBCK_DEFAULT	1	/* Get default tests too */
-#define	DBCK_REPORT	2	/* Report info to invoker */
-#define	DBCK_FULL	4	/* Do all tests */
-#define	DBCK_FLOATING	8	/* Look for floating rooms */
-#define	DBCK_PURGE	16	/* Purge the db of refs to going objects */
-#define	DBCK_LINKS	32	/* Validate exit and object chains */
-#define	DBCK_WEALTH	64	/* Validate object value/wealth */
-#define	DBCK_OWNER	128	/* Do more extensive owner checking */
-#define	DBCK_OWN_EXIT	256	/* Check exit owner owns src or dest */
-#define	DBCK_WIZARD	512	/* Check for wizards/wiz objects */
-#define	DBCK_TYPES	1024	/* Check for valid & appropriate types */
-#define	DBCK_SPARE	2048	/* Make sure spare header fields are NOTHING */
-#define	DBCK_HOMES	4096	/* Make sure homes and droptos are valid */
-#define	DEST_ONE	1	/* object */
-#define	DEST_ALL	2	/* owner */
-#define	DEST_OVERRIDE	4	/* override Safe() */
-#define DEST_PURGE	8
-#define	DIG_TELEPORT	1	/* teleport to room after @digging */
-#define DOLIST_SPACE    0       /* expect spaces as delimiter */
-#define DOLIST_DELIMIT  1       /* expect custom delimiter */
-#define DOLIST_NOTIFY   2	/* queue a '@notify me' at end */
-#define DOLIST_PID	4	/* Queue a '@notify/pid me=<pid>' at end */
-#define	DOING_MESSAGE	0	/* Set my DOING message */
-#define	DOING_HEADER	1	/* Set the DOING header */
-#define	DOING_POLL	2	/* List DOING header */
-#define DOING_UNIQUE	4
-#define DOOR_SW_LIST	1
-#define DOOR_SW_OPEN	2
-#define DOOR_SW_CLOSE	4
-#define DOOR_SW_STATUS  8
-#define DOOR_SW_FULL    16
-#define	DROP_QUIET	1	/* Don't do odrop/adrop if control */
-#define	DUMP_STRUCT	1	/* Dump flat structure file */
-#define	DUMP_TEXT	2	/* Dump text (gdbm) file */
-#define	DUMP_FLAT	4	/* Dump db to flatfile   */
-#define	EXAM_DEFAULT	0	/* Default */
-#define	EXAM_BRIEF	1	/* Nonowner sees basic info (non-attribute) */
-#define	EXAM_LONG	2	/* Nonowner sees public attrs too */
-#define	EXAM_DEBUG	4	/* Display more info for finding db problems */
-#define	EXAM_PARENT	8	/* Get attr from parent when exam obj/attr */
-#define EXAM_QUICK      16      /* Nonowner sees just owner */
-#define	FIXDB_OWNER	1	/* Fix OWNER field */
-#define	FIXDB_LOC	2	/* Fix LOCATION field */
-#define	FIXDB_CON	4	/* Fix CONTENTS field */
-#define	FIXDB_EXITS	8	/* Fix EXITS field */
-#define	FIXDB_NEXT	16	/* Fix NEXT field */
-#define	FIXDB_PENNIES	32	/* Fix PENNIES field */
-#define	FIXDB_ZONE	64	/* Fix ZONE field */
-#define	FIXDB_LINK	128	/* Fix LINK field */
-#define	FIXDB_PARENT	256	/* Fix PARENT field */
-#define	FIXDB_DEL_PN	512	/* Remove player name from player name index */
-#define	FIXDB_ADD_PN	1024	/* Add player name to player name index */
-#define	FIXDB_NAME	2048	/* Set NAME attribute */
-#define FIXDB_TYPE	4096	/* Fix type of object - DANGEROUS */
-#define FLAGSW_REMOVE	1
-#define FLAGDEF_SET     1       /* Set flag 'set' permissions */
-#define FLAGDEF_UNSET   2	/* Set flag 'unset' permissions */
-#define FLAGDEF_SEE     4	/* Set flag 'see' permissions */
-#define FLAGDEF_LIST	8	/* List current flags and permissions (default) */
-#define FLAGDEF_CHAR  	16	/* Redefine the character for the flag */
-#define	FRC_PREFIX	0	/* #num command */
-#define	FRC_COMMAND	1	/* what=command */
-#define	GET_QUIET	1	/* Don't do osucc/asucc if control */
-#define	GIVE_MONEY	1	/* Give money */
-#define	GIVE_QUOTA	2	/* Give quota */
-#define	GIVE_QUIET	64	/* Inhibit give messages */
-#define	GLOB_ENABLE	1	/* key to enable */
-#define	GLOB_DISABLE	2	/* key to disable */
-#define	GLOB_LIST	3	/* key to list */
-#define GREP_QUIET	1
-#define GREP_REGEXP	2	/* regexp handler */
-#define	HALT_ALL	1	/* halt everything */
-#define HALT_PID	2
-#define HALT_PIDSTOP	4	/* stop pid processing */
-#define HALT_PIDCONT	8	/* restore pid processing */
-#define HIDE_ON         1       /* Hide from WHO */
-#define HIDE_OFF        2       /* Unhide from WHO */
-#define	HELP_HELP	1	/* get data from help file */
-#define	HELP_NEWS	2	/* get data from news file */
-#define	HELP_WIZHELP	3	/* get data from wizard help file */
-#define HELP_PLUSHELP   4       /* get data from plus help file */
-#define LIMIT_LIST	1	/* Set global @limits */
-#define LIMIT_VADD	2	/* VAttr limit */
-#define LIMIT_DADD	4	/* @destroy limit */
-#define LIMIT_RESET	8	/* Reset limits to global defaults */
-#define ICMD_DISABLE	0
-#define ICMD_IGNORE	1
-#define ICMD_ON		2
-#define ICMD_OFF	4
-#define ICMD_CLEAR	8
-#define ICMD_CHECK	16
-#define ICMD_DROOM	32
-#define ICMD_IROOM	64
-#define ICMD_CROOM	128
-#define ICMD_LROOM      256
-#define ICMD_LALLROOM   512
-#define	KILL_KILL	1	/* gives victim insurance */
-#define	KILL_SLAY	2	/* no insurance */
-#define	LOOK_LOOK	1	/* list desc (and succ/fail if room) */
-#define	LOOK_EXAM	2	/* full listing of object */
-#define	LOOK_DEXAM	3	/* debug listing of object */
-#define	LOOK_INVENTORY	4	/* list inventory of object */
-#define	LOOK_SCORE	5	/* list score (# coins) */
-#define	LOOK_OUTSIDE    8       /* look for object in container of player */
-#define	MARK_SET	0	/* Set mark bits */
-#define	MARK_CLEAR	1	/* Clear mark bits */
-#define	MOTD_ALL	0	/* login message for all */
-#define	MOTD_WIZ	1	/* login message for wizards */
-#define	MOTD_DOWN	2	/* login message when logins disabled */
-#define	MOTD_FULL	4	/* login message when too many players on */
-#define	MOTD_LIST	8	/* Display current login messages */
-#define	MOTD_BRIEF	16	/* Suppress motd file display for wizards */
-#define	MOVE_QUIET	1	/* Dont do osucc/ofail/asucc/afail if ctrl */
-
-#define NEWS_DEFAULT      0x00000000
-#define NEWS_POST         0x00000001
-#define NEWS_POSTLIST     0x00000002
-#define NEWS_REPOST       0x00000004
-#define NEWS_READ         0x00000008
-#define NEWS_JUMP         0x00000010
-#define NEWS_CHECK        0x00000020
-#define NEWS_VERBOSE      0x00000040
-#define NEWS_LOGIN        0x00000080
-#define NEWS_YANK         0x00000100 
-#define NEWS_EXTEND       0x00000200
-#define NEWS_SUBSCRIBE    0x00000400
-#define NEWS_UNSUBSCRIBE  0x00000800
-#define NEWS_GROUPADD     0x00001000
-#define NEWS_GROUPDEL     0x00002000
-#define NEWS_GROUPINFO    0x00004000
-#define NEWS_GROUPLIST    0x00008000
-#define NEWS_GROUPMEM     0x00010000
-#define NEWS_ADMINLOCK    0x00020000
-#define NEWS_GROUPLIMIT   0x00040000
-#define NEWS_USERLIMIT    0x00080000
-#define NEWS_USERINFO     0x00100000
-#define NEWS_READLOCK     0x00200000
-#define NEWS_POSTLOCK     0x00400000
-#define NEWS_EXPIRE       0x00800000
-#define NEWS_ON           0x01000000
-#define NEWS_OFF          0x02000000
-#define NEWS_USERMEM      0x04000000
-#define NEWS_STATUS       0x08000000
-#define NEWS_MAILTO       0x10000000
-#define NEWS_READALL      0x20000000
-#define NEWS_ARTICLELIFE  0x40000000
-
-#define HELP_SEARCH       0x00000040
-
-#define NEWSDB_DEFAULT      0x00000000
-#define NEWSDB_UNLOAD       0x00000001
-#define NEWSDB_LOAD         0x00000002
-#define NEWSDB_DBINFO       0x00000004
-#define NEWSDB_DBCK         0x00000008
-#define NUKE_PURGE	2	/* This is *NOT* 1 on purpose */
-
-#define ZONE_ADD	0	/* add a zone master to an object's list */
-#define ZONE_DELETE	1	/* delete a zone master from an object's list */
-#define ZONE_PURGE	2	/* purge an object's zone list (zmo too) */
-#define	NFY_NFY		0	/* Notify first waiting command */
-#define	NFY_NFYALL	1	/* Notify all waiting commands */
-#define	NFY_DRAIN	2	/* Delete waiting commands */
-#define NFY_QUIET       4	/* Do not notify player if happening */
-#define NFY_PID		8	/* Notify or Drain based on PID */
-#define	OPEN_LOCATION	0	/* Open exit in my location */
-#define	OPEN_INVENTORY	1	/* Open exit in me */
-#define PCREATE_REG     2	/* Register on @pcreate */
-#define PAGE_LAST	1
-#define PAGE_RET	2
-#define PAGE_PORT	4
-#define PAGE_RETMULTI	8	/* Respond but to multi players */
-#define PAGE_LOC        16      /* (muxpage) page/loc notifies a plyr of your loc */
-#define PAGE_NOEVAL     32      /* Don't evaluate text prior to sending */
-#define PAGE_NOANSI	64	/* Don't ansifi the page */
-#define	PASS_ANY	1	/* name=newpass */
-#define	PASS_MINE	2	/* oldpass=newpass */
-#define	PCRE_PLAYER	1	/* create new player */
-#define	PCRE_ROBOT	2	/* create robot player */
-#define	PEMIT_PEMIT	1	/* emit to named player */
-#define	PEMIT_OEMIT	2	/* emit to all in current room except named */
-#define	PEMIT_WHISPER	4	/* whisper to player in current room */
-#define	PEMIT_FSAY	8	/* force controlled obj to say */
-#define	PEMIT_FEMIT	16	/* force controlled obj to emit */
-#define	PEMIT_FPOSE	32	/* force controlled obj to pose */
-#define	PEMIT_FPOSE_NS	64	/* force controlled obj to pose w/o space */
-#define	PEMIT_CONTENTS	128	/* Send to contents (additive) */
-#define	PEMIT_HERE	256	/* Send to location (@femit, additive) */
-#define	PEMIT_ROOM	512	/* Send to containing rm (@femit, additive) */
-#define PEMIT_LIST	1024
-#define PEMIT_PORT	2048
-#define PEMIT_WPORT	4096
-#define PEMIT_NOISY	8192
-#define PEMIT_NOEVAL    16384
-#define PEMIT_ZONE      65536	/* SIDEEFFECT define is 32768 */
-#define PEMIT_NOSUB	131072	/* Don't substitute '##' for @pemit/list */
-#define PEMIT_NOANSI    262144  /* Don't print ANSI */
-#define PEMIT_REALITY   524288  /* Follow Reality Level Permissions */
-#define PEMIT_TOREALITY 1048576 /* Pemit to specic realities */
-#define PEMIT_ONEEVAL	2097152 /* One eval for @pemit/list */
-#define	PS_BRIEF	0	/* Short PS report */
-#define	PS_LONG		1	/* Long PS report */
-#define	PS_SUMM		2	/* Queue counts only */
-#define	PS_ALL		4	/* List entire queue */
-#define PS_FREEZE	8	/* List frozen queue entries */
-#define PURGE_ALL	1
-#define PURGE_TIME	2
-#define PURGE_TYPE	4
-#define PURGE_OWNER	8
-#define PROTECT_LIST	1
-#define PROTECT_ADD	2
-#define PROTECT_DEL	4
-#define PROTECT_BYPLAYER	8
-#define PROTECT_SUMMARY		16
-#define PROTECT_ALIAS	32
-#define PROTECT_UNALIAS	64
-#define	QUEUE_KICK	1	/* Process commands from queue */
-#define	QUEUE_WARP	2	/* Advance or set back wait queue clock */
-#define QUEUE_KICK_PID	4
-#define QUOTA_SET	0
-#define QUOTA_MAX	1
-#define QUOTA_FIX	2
-#define QUOTA_TAKE	4
-#define QUOTA_XFER	8
-#define QUOTA_REDO	16
-#define QUOTA_LOCK	32
-#define QUOTA_UNLOCK	64
-#define QUOTA_CLEAR	128
-#define QUOTA_GEN	256
-#define QUOTA_THING	512
-#define QUOTA_PLAYER	1024
-#define QUOTA_EXIT	2048
-#define QUOTA_ROOM	4096
-#define QUOTA_ALL	8192
-#define REBOOT_PORT	1
-#define REC_TYPE	1
-#define REC_OWNER	2
-#define REC_COUNT	4
-#define REC_AGE		8
-#define REC_DEST	16
-#define REC_FREE	32
-#define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
-#define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
-#define	SAY_SAY		1	/* say in current room */
-#define	SAY_NOSPACE	1	/* OR with xx_EMIT to get nospace form */
-#define	SAY_POSE	2	/* pose in current room */
-#define	SAY_POSE_NOSPC	3	/* pose w/o space in current room */
-#define	SAY_PREFIX	4	/* first char indicates foratting */
-#define	SAY_EMIT	5	/* emit in current room */
-#define	SAY_SHOUT	8	/* shout to all logged-in players */
-#define	SAY_WALLPOSE	9	/* Pose to all logged-in players */
-#define	SAY_WALLEMIT	10	/* Emit to all logged-in players */
-#define	SAY_WIZSHOUT	12	/* shout to all logged-in wizards */
-#define	SAY_WIZPOSE	13	/* Pose to all logged-in wizards */
-#define	SAY_WIZEMIT	14	/* Emit to all logged-in wizards */
-#define	SAY_GRIPE	16	/* Complain to management */
-#define	SAY_NOTE	17	/* Comment to log for wizards */
-#define	SAY_NOTAG	32	/* Don't put Broadcast: in front (additive) */
-#define	SAY_HERE	64	/* Output to current location */
-#define	SAY_ROOM	128	/* Output to containing room */
-#define SAY_NOEVAL      256     /* Don't parse message */
-#define SAY_PNOEVAL     512     /* Don't parse pose message */
-#define SAY_SUBSTITUTE 1024     /* Substitute ## for player dbref# */
-#define SAY_NOANSI     2048	/* No Ansi on messages */
-#define	SET_QUIET	1	/* Don't display 'Set.' message. */
-#define SET_NOISY	2
-#define SET_RSET	4	/* set() is really rset() */
-#define	SHUTDN_NORMAL	0	/* Normal shutdown */
-#define	SHUTDN_PANIC	1	/* Write a panic dump file */
-#define	SHUTDN_EXIT	2	/* Exit from shutdown code */
-#define	SHUTDN_COREDUMP	4	/* Produce a coredump */
-#define SIDEEFFECT	32768	/* Check if side-effect function */
-#define SIDE_SET        1       /* Side-effect set() */
-#define SIDE_CREATE     2       /* Side-effect create() */
-#define SIDE_LINK	4	/* Side-effect link() */
-#define SIDE_PEMIT	8	/* Side-effect pemit() */
-#define SIDE_TEL	16	/* Side-effect tel() */
-#define SIDE_LIST	32	/* Side-effect list() */
-#define SIDE_DIG	64	/* Side-effect dig() */
-#define SIDE_OPEN	128	/* Side-effect open() */
-#define SIDE_EMIT	256	/* Side-effect emit() */
-#define SIDE_OEMIT	512	/* Side-effect oemit() */
-#define SIDE_CLONE	1024	/* Side-effect clone() */
-#define SIDE_PARENT	2048	/* Side-effect parent() */
-#define SIDE_LOCK	4096	/* Side-effect lock() */
-#define SIDE_LEMIT      8192    /* Side-effect lemit() */
-#define SIDE_REMIT      16384   /* Side-effect remit() */
-#define SIDE_WIPE       32768   /* Side-effect wipe() */
-#define SIDE_DESTROY    65536   /* Side-effect destroy() */
-#define SIDE_ZEMIT      131072  /* Side-effect zemit() */
-#define SIDE_NAME       262144  /* Side-effect name() */
-#define SIDE_TOGGLE	524288	/* Side-effect toggle() */
-#define SIDE_TXLEVEL    1048576 /* Side-effect txlevel() */
-#define SIDE_RXLEVEL    2097152 /* Side-effect rxlevel() */
-#define SIDE_RSET       4194304 /* Side-effect rset() */
-#define SIDE_MOVE       8388608 /* Side-effect move() */       
-#define SIDE_CLUSTER_ADD 16777216 /* Side-effect cluster_add() */
-#define	SNAPSHOT_NOOPT	0	/* No option specified */
-#define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
-#define SNAPSHOT_UNLOAD	2	/* Unload a snapshot from the db */
-#define SNAPSHOT_DEL	4	/* Delete a snapshot */
-#define SNAPSHOT_LOAD	8	/* Load a snapshot into the db */
-#define SNAPSHOT_VERIFY 16	/* Verify and sanity check snapshot file */
-#define SITE_REG	1
-#define SITE_FOR	2
-#define SITE_SUS	4
-#define SITE_NOG	8
-#define SITE_NOAR	16
-#define SITE_NOAUTH	32
-#define SITE_NODNS	64
-#define SITE_ALL	128
-#define SITE_PER	256
-#define SITE_TRU	512
-#define SNOOP_ON	1	/* Start snooping */
-#define SNOOP_OFF	2	/* Stop snooping */
-#define SNOOP_STAT	4	/* show status */
-#define SNOOP_LOG	8
-#define	SRCH_SEARCH	1	/* Do a normal search */
-#define	SRCH_MARK	2	/* Set mark bit for matches */
-#define	SRCH_UNMARK	3	/* Clear mark bit for matches */
-#define SEARCH_NOGARBAGE 256	/* Garbage collector */
-#define	STAT_PLAYER	0	/* Display stats for one player or tot objs */
-#define	STAT_ALL	1	/* Display global stats */
-#define	STAT_ME		2	/* Display stats for me */
-#define	SWITCH_DEFAULT	0	/* Use the configured default for switch */
-#define	SWITCH_ANY	1	/* Execute all cases that match */
-#define	SWITCH_ONE	2	/* Execute only first case that matches */
-#define SWITCH_REGANY   4	/* Same as all but regexp */
-#define SWITCH_REGONE	8	/* Same as one but regexp */
-#define SWITCH_CASE	16	/* Case sensitive switch to well, @switch */
-#define	SWITCH_NOTIFY	32	/* Do a @notify at the end */
-#define	SWEEP_ME	1	/* Check my inventory */
-#define	SWEEP_HERE	2	/* Check my location */
-#define	SWEEP_COMMANDS	4	/* Check for $-commands */
-#define	SWEEP_LISTEN	8	/* Check for @listen-ers */
-#define	SWEEP_PLAYER	16	/* Check for players and puppets */
-#define	SWEEP_CONNECT	32	/* Search for connected players/puppets */
-#define	SWEEP_EXITS	64	/* Search the exits for audible flags */
-#define	SWEEP_SCAN	128	/* Scan for pattern matching */
-#define	SWEEP_VERBOSE	256	/* Display what pattern matches */
-#define WIPE_PRESERVE	1	/* Reverse effect of @wipe */
-#define TEL_GRAB	1
-#define TEL_JOIN	2
-#define TEL_LIST	4
-#define TEL_QUIET	8
-#define	TOAD_NO_CHOWN	1	/* Don't change ownership */
-#define	TOAD_UNIQUE	2	/* Unique Rename Object */
-#define TOGGLE_CHECK	1
-#define TOGGLE_CLEAR	2	/* Clear the toggle list */
-#define	TRIG_QUIET	1	/* Don't display 'Triggered.' message. */
-#define TRIG_PROGRAM    2       /* Trigger is actually a @program */
-#define TRIG_COMMAND    4       /* Can Trigger $commands */
-#define INCLUDE_COMMAND	1	/* Can @insert trigger $commands */
-#define INCLUDE_LOCAL	2	/* Localize all the @included foo */
-#define INCLUDE_CLEAR	4	/* Clear the attributes locally */
-#define SUDO_GLOBAL	1	/* Reverse of localized */
-#define SUDO_CLEAR	2	/* Clear registers */
-#define	TWARP_QUEUE	1	/* Warp the wait and sem queues */
-#define	TWARP_DUMP	2	/* Warp the dump interval */
-#define	TWARP_CLEAN	4	/* Warp the cleaning interval */
-#define	TWARP_IDLE	8	/* Warp the idle check interval */
-#define	TWARP_RWHO	16	/* Warp the RWHO dump interval */
-#define MLOG_MANUAL     1       /* Define manual log switch */
-#define MLOG_STATS      2       /* Log Statistics */
-#define MLOG_READ       4       /* Read log page by page (page = 10 lines) */
-#define MLOG_FILE	8	/* Specify file name for manual log (128 chars max) */
-#define MLOG_ROOM	16	/* Log Room's output */
-#define LOGROTATE_STATUS 1	/* Status of current log */
-#define BLACKLIST_LIST	1	/* List blacklist */
-#define BLACKLIST_CLEAR	2	/* Clear blacklist */
-#define BLACKLIST_LOAD	4	/* Load blacklist.txt file */
-#define WAIT_PID        1       /* Re-wait a PID process */
-#define WAIT_UNTIL	2	/* Wait until specified time */
-#define WAIT_RECPID	4	/* Record PID of wait to specified setq register */
-#define THAW_DEL	1	/* Drop the frozen FTIME pid process */
-#define DYN_PARSE       1	/* Parse the help */
-#define DYN_SEARCH	2	/* Issue a contextual search of help */
-#define EDIT_CHECK	1	/* Just check @edit, don't set */
-#define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
-#define CLUSTER_NEW	1	/* create a new cluster */
-#define CLUSTER_ADD	2	/* add a dbref to a cluster */
-#define CLUSTER_DEL	4	/* delete a dbref from a cluster */
-#define CLUSTER_CLEAR	8	/* Purge the cluster */
-#define CLUSTER_LIST	16	/* List out the specifics of the cluster */
-#define CLUSTER_THRESHOLD 32	/* Set the treshold for the cluster */
-#define CLUSTER_ACTION	64	/* Specify the action for the cluster */
-#define CLUSTER_EDIT	128	/* Edit the cluster's action */
-#define CLUSTER_REPAIR  256	/* Fix the cluster smartly */
-#define CLUSTER_SET	512	/* @set for the cluster */
-#define CLUSTER_WIPE	1024	/* @wipe for the cluster */
-#define CLUSTER_CUT	2048	/* Forcefully remove a cluster item */
-#define CLUSTER_GREP	4096	/* Grep for a cluster */
-#define CLUSTER_REACTION 8192	/* Edit action for a cluster */
-#define CLUSTER_TRIGGER 16384	/* Trigger attribute on cluster */
-#define CLUSTER_FUNC    32768	/* Trigger function action instead of command action */
-
-/* Hush codes for movement messages */
-
-#define	HUSH_ENTER	1	/* xENTER/xEFAIL */
-#define	HUSH_LEAVE	2	/* xLEAVE/xLFAIL */
-#define	HUSH_EXIT	4	/* xSUCC/xDROP/xFAIL from exits */
-#define HUSH_QUIET	8
-#define HUSH_BLIND        16      /* Exit/Destination has BLIND flag */
-
-/* Evaluation directives */
-
-#define	EV_FMASK	0x00000300	/* Mask for function type check */
-#define	EV_FIGNORE	0x00000000	/* Don't look for func if () found */
-#define	EV_FMAND	0x00000100	/* Text before () must be func name */
-#define	EV_FCHECK	0x00000200	/* Check text before () for function */
-#define	EV_STRIP	0x00000400	/* Strip one level of brackets */
-#define	EV_EVAL		0x00000800	/* Evaluate results before returning */
-#define	EV_STRIP_TS	0x00001000	/* Strip trailing spaces */
-#define	EV_STRIP_LS	0x00002000	/* Strip leading spaces */
-#define	EV_STRIP_ESC	0x00004000	/* Strip one level of \ characters */
-#define	EV_STRIP_AROUND	0x00008000	/* Strip {} only at ends of string */
-#define	EV_TOP		0x00010000	/* This is a toplevel call to eval() */
-#define	EV_NOTRACE	0x00020000	/* Don't trace this call to eval */
-#define EV_PARSE_ANSI   0x00040000 	/* Parse the ansi in EXEC */
-
-/* %-SUB overriding */
-#define SUB_N           0x00000001
-#define SUB_NUM         0x00000002
-#define SUB_BANG        0x00000004
-#define SUB_AT          0x00000008
-#define SUB_L           0x00000010
-#define SUB_S           0x00000020
-#define SUB_O           0x00000040
-#define SUB_P           0x00000080
-#define SUB_A           0x00000100
-#define SUB_R           0x00000200
-#define SUB_T           0x00000400
-#define SUB_C           0x00000800
-#define SUB_X           0x00001000
-#define SUB_F		0x00002000
-
-/* Message forwarding directives */
-
-#define	MSG_PUP_ALWAYS	1	/* Always forward msg to puppet own */
-#define	MSG_INV		2	/* Forward msg to contents */
-#define	MSG_INV_L	4	/* ... only if msg passes my @listen */
-#define	MSG_INV_EXITS	8	/* Forward through my audible exits */
-#define	MSG_NBR		16	/* Forward msg to neighbors */
-#define	MSG_NBR_A	32	/* ... only if I am audible */
-#define	MSG_NBR_EXITS	64	/* Also forward to neighbor exits */
-#define	MSG_NBR_EXITS_A	128	/* ... only if I am audible */
-#define	MSG_LOC		256	/* Send to my location */
-#define	MSG_LOC_A	512	/* ... only if I am audible */
-#define	MSG_FWDLIST	1024	/* Forward to my fwdlist members if aud */
-#define	MSG_ME		2048	/* Send to me */
-#define	MSG_S_INSIDE	4096	/* Originator is inside target */
-#define	MSG_S_OUTSIDE	8192	/* Originator is outside target */
-#define MSG_SILENT     16384    /* Output is silent and non-redirected */
-#define MSG_NO_ANSI    32768    /* Output shouldn't be parsed for ansi */
-#define	MSG_ME_ALL	(MSG_ME|MSG_INV_EXITS|MSG_FWDLIST)
-#define	MSG_F_CONTENTS	(MSG_INV)
-#define	MSG_F_UP	(MSG_NBR_A|MSG_LOC_A)
-#define	MSG_F_DOWN	(MSG_INV_L)
-
-/* Look primitive directives */
-
-#define	LK_IDESC	0x0001
-#define	LK_OBEYTERSE	0x0002
-#define	LK_SHOWATTR	0x0004
-#define	LK_SHOWEXIT	0x0008
-
-/* Exit visibility precalculation codes */
-
-#define	VE_LOC_XAM	0x01	/* Location is examinable */
-#define	VE_LOC_DARK	0x02	/* Location is dark */
-#define	VE_LOC_LIGHT	0x04	/* Location is light */
-#define	VE_BASE_XAM	0x08	/* Base location (pre-parent) is examinable */
-#define	VE_BASE_DARK	0x10	/* Base location (pre-parent) is dark */
-#define	VE_BASE_LIGHT	0x20	/* Base location (pre-parent) is light */
-#define VE_ACK		0x40
-
-/* Signal handling directives */
-
-#define	SA_RESIG	1	/* Re-signal from withing signal handler */
-#define	SA_RETRY	2	/* Disable sigs, return to point-of-failure */
-#define	SA_DFLT		3	/* Don't catch fatal signals */
-
-#define	STARTLOG(key,p,s) \
-	if ((((key) & mudconf.log_options) != 0) && start_log(p, s)) {
-#define	ENDLOG \
-	end_log(); }
-#define	LOG_SIMPLE(key,p,s,m) \
-	STARTLOG(key,p,s) \
-		log_text(m); \
-	ENDLOG
-
-#define	test_top()		((mudstate.qfirst != NULL) ? 1 : 0)
-#define	controls(p,x)		Controls(p,x)
-
-#define atr_get(w,x,y,z)	atr_get_ash(w,x,y,z,__LINE__,__FILE__)
-#define atr_pget(w,x,y,z)	atr_pget_ash(w,x,y,z,__LINE__,__FILE__)
-/* Define this to value other than 30 for total args pass to a function
- * like switch().  The number of arguments will always be (MAX_ARGS / 2)
- * This is just used in 'eval.c' and 'command.c'
- * For MUX 2.0 compatibility, you may wish to put this to 100
- */
-#define MAX_ARGS        30
-
-#ifndef PCRE_EXEC
-#define regexp_wild_match(v,w,x,y,z) (0)
-#define grep_internal_regexp(v,w,x,y,z) ("")
-#define load_regexp_functions(x) (0)
-#define PCRE_EXEC 	0
+	int	errornum;
+	int	attr_next;	/* Next attr to alloc when freelist is empty */
+	BQUE	*qfirst;	/* Head of player queue */
+	BQUE	*qlast;		/* Tail of player queue */
+	BQUE	*qlfirst;	/* Head of object queue */
+	BQUE	*qllast;	/* Tail of object queue */
+	BQUE	*qwait;		/* Head of wait queue */
+	BQUE	*qsemfirst;	/* Head of semaphore queue */
+	BQUE	*qsemlast;	/* Tail of semaphore queue */
+	BQUE	*fqwait;	/* Head of freeze wait queue */
+	BQUE	*fqsemfirst;	/* Head of freeze semaphore queue */
+	BQUE	*fqsemlast;	/* Tail of freeze semaphore queue */
+	BADNAME	*badname_head;	/* List of disallowed names */
+	PROTECTNAME	*protectname_head;	/* List of protected names */
+	int	mstat_ixrss[2];	/* Summed shared size */
+	int	mstat_idrss[2];	/* Summed private data size */
+	int	mstat_isrss[2];	/* Summed private stack size */
+	int	mstat_secs[2];	/* Time of samples */
+	int	mstat_curr;	/* Which sample is latest */
+	ALIST	iter_alist;	/* Attribute list for iterations */
+	char	*mod_alist;	/* Attribute list for modifying */
+	int	mod_size;	/* Length of modified buffer */
+	dbref	mod_al_id;	/* Where did mod_alist come from? */
+	dbref	freelist;	/* Head of object freelist */
+	int	min_size;	/* Minimum db size (from file header) */
+	int	db_top;		/* Number of items in the db */
+	int	db_size;	/* Allocated size of db structure */
+	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
+	int	func_nest_lev;	/* Current nesting of functions */
+	int	func_invk_ctr;	/* Functions invoked so far by this command */
+	int	ntfy_nest_lev;	/* Current nesting of notifys */
+	int	lock_nest_lev;	/* Current nesting of lock evals */
+        int     ufunc_nest_lev; /* Current nesting of USER functions */
+	char	*global_regs[MAX_GLOBAL_REGS];	/* Global registers */
+	char	*global_regsname[MAX_GLOBAL_REGS];	/* Global register names */
+        char    *global_regs_backup[MAX_GLOBAL_REGS];
+#ifdef EXPANDED_QREGS
+        char    nameofqreg[37]; /* Buffer to hold qregs */
 #endif
-#endif	/* __EXTERNS_H */
+        int	global_regs_wipe;	/* Toggle to wipe localized regs */
+	int	mail_state;
+	int	whisper_state;
+	int	eval_rec;
+	int	guest_num;
+	int	guest_status;
+	dbref	free_num;
+	dbref	recoverlist;
+	char	nuke_status;
+	char	write_status;
+	int	nowall_over;
+	int	evalnum;
+	int	evalresult;
+	int	evalstate[MAXEVLEVEL];
+	int	evaldb[MAXEVLEVEL];
+	dbref	vlplay;
+	int	exitcheck;
+	dbref	pageref;
+	int	droveride;
+	int	scheck;
+	int	autoreg;
+	int	curr_cpu_cycle;/* Current CPU slam count per dbref# */
+	int	curr_cpu_user;  /* Current CPU slam count per dbref# */
+        int     last_cpu_user;  /* Last user to CPU-slam and be punished with ceiling */
+        int     new_vattr;	/* New Vattr Defined */
+	int	max_logins_allowed; /* Total logins allowed based on free OS descriptors */
+	int	last_cmd_timestamp;
+	int	heavy_cpu_recurse;	/* functions with heavy CPU usage */
+        time_t	heavy_cpu_tmark1;	/* Time maker */
+        time_t	heavy_cpu_tmark2;	/* Time maker */
+        int	heavy_cpu_lockdown;	/* Lock down a function if heavilly abused */
+	int	cmp_lastsite;    	/* Last site that connected */
+	int	cmp_lastsite_cnt; 	/* Number of times last site connected */
+	int	last_con_attempt;
+        int     last_pcreate_cnt;
+        int     last_pcreate_time;
+	int	reverse_wild;	/* @wipe and such have wildmatches REVERSED */
+	int	stack_val;	/* Current Stack Value of command */
+	int	stack_toggle;	/* Toggle to show if stack was hit or not */
+	int	stack_cntr;	/* Counter of how many consecutive stack overflows there were */
+        int     train_cntr;     /* Counter for train nest limit */
+        int     sudo_cntr;      /* Counter for sudo nest limit */
+        int     sidefx_currcalls; /* Current sidefx calls */
+        int     sidefx_toggle;  /* Toggle to show sidefx ceiling was hit */
+	int     emit_substitute;  /* Toggle @emit substitutions */
+        int     inside_locks;	/* Enable/disable 'inside locks' */
+	int	nolookie;	/* Don't look into the vattr table at this point */
+	int	reality_notify;	/* Reality level check inside notify */
+	int	password_nochk;	/* Don't allow @hooks to pass/execute %x/%c to find password */
+	int	curr_percentsubs;	/* Current percent sub tree */
+	int	tog_percentsubs;	/* Ok, you hit the max percent sub ceiling.  Bad boy */
+	int	cntr_percentsubs;	/* Counter to kill the little pecker */
+        time_t  cntr_reset;	/* Reset the basic counters after 60 seconds */
+	int	recurse_rlevel;	/* Allow recurse limit for reality levels */
+	int	sub_overridestate; /* state information for sub_overrides */
+	int	sub_includestate; /* state information for sub_overrides */
+	int	log_maximum;	/* State to count logtotext() calls per command */
+	int	trainmode;	/* ] enabled */
+        int     outputflushed;  /* Is output flushed on command? */
+	int     allowbypass;	/* Is bypass() allowed?  Ergo, in @function? */
+	int	shifted;	/* Is 0-9 registers shifted? */
+	int	clust_time;	/* Time for cluster */
+	dbref	last_network_owner;	/* The last network owner who had network issues */	
+	FILE	*f_logfile_name;
+        int	log_chk_reboot;
+	int	blacklist_cnt;
+	int	wipe_state;	/* do_wipe state counter */
+	int	includecnt;	/* @include count */
+	int	includenest;	/* @include nest count */
+	int	nocodeoverride;	/* Override NO_CODE flag for objeval() */
+	int	notrace;	/* Do not trace */
+        BLACKLIST *bl_list; 	/* The black list */
+#else
+	int	logging;	/* Are we in the middle of logging? */
+	char	buffer[256];	/* A buffer for holding temp stuff */
+        char    *lbuf_buffer;	/* An lbuf buffer we can globally use */
+	int	attr_next;	/* Next attr to alloc when freelist is empty */
+	ALIST	iter_alist;	/* Attribute list for iterations */
+	char	*mod_alist;	/* Attribute list for modifying */
+	int	mod_size;	/* Length of modified buffer */
+	dbref	mod_al_id;	/* Where did mod_alist come from? */
+	int	min_size;	/* Minimum db size (from file header) */
+	int	db_top;		/* Number of items in the db */
+	int	db_size;	/* Allocated size of db structure */
+        int     new_vattr;	/* New Vattr Defined */
+	int	nolookie;	/* Don't look into the vattr table at this point */
+	dbref	freelist;	/* Head of object freelist */
+	dbref	recoverlist;
+	dbref	vlplay;
+	FILE	*f_logfile_name;
+        int	log_chk_reboot;
+	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
+#endif	/* STANDALONE */
+};
+
+extern STATEDATA mudstate;
+
+/* Configuration parameter handler definition */
+
+#define CF_HAND(proc)	int proc (int *vp, char *str, long extra, long extra2, \
+ 			          dbref player, char *cmd)
+#define CF_HDCL(proc)	int FDECL(proc, (int *, char *, long, long, dbref, char *))
+
+/* Global flags */
+
+/* Game control flags in mudconf.control_flags */
+
+#define	CF_LOGIN	0x0001		/* Allow nonwiz logins to the mush */
+#define CF_BUILD	0x0002		/* Allow building commands */
+#define CF_INTERP	0x0004		/* Allow object triggering */
+#define CF_CHECKPOINT	0x0008		/* Perform auto-checkpointing */
+#define	CF_DBCHECK	0x0010		/* Periodically check/clean the DB */
+#define CF_IDLECHECK	0x0020		/* Periodically check for idle users */
+#define CF_RWHO_XMIT	0x0040		/* Update remote RWHO data */
+#define CF_ALLOW_RWHO	0x0080		/* Allow the RWHO command */
+#define CF_DEQUEUE	0x0100		/* Remove entries from the queue */
+
+/* Host information codes */
+
+#define H_REGISTRATION	0x0001	/* Registration ALWAYS on */
+#define H_FORBIDDEN	0x0002	/* Reject all connects */
+#define H_SUSPECT	0x0004	/* Notify wizards of connects/disconnects */
+#define H_NOGUEST	0x0008
+#define H_NOAUTOREG	0x0010
+#define H_NOAUTH	0x0020  /* Don't use AUTH protocol - Thorin 5/00 */
+#define H_NODNS		0x0040  /* Don't do reverse DNS lookups - Thorin 5/00 */
+#define H_AUTOSITE	0x0080  /* Site was automatically updated */
+
+/* Logging options */
+
+#define LOG_ALLCOMMANDS	0x00000001	/* Log all commands */
+#define LOG_ACCOUNTING	0x00000002	/* Write accounting info on logout */
+#define LOG_BADCOMMANDS	0x00000004	/* Log bad commands */
+#define LOG_BUGS	0x00000008	/* Log program bugs found */
+#define LOG_DBSAVES	0x00000010	/* Log database dumps */
+#define LOG_CONFIGMODS	0x00000020	/* Log changes to configuration */
+#define LOG_PCREATES	0x00000040	/* Log character creations */
+#define LOG_KILLS	0x00000080	/* Log KILLs */
+#define LOG_LOGIN	0x00000100	/* Log logins and logouts */
+#define LOG_NET		0x00000200	/* Log net connects and disconnects */
+#define LOG_SECURITY	0x00000400	/* Log security-related events */
+#define LOG_SHOUTS	0x00000800	/* Log shouts */
+#define LOG_STARTUP	0x00001000	/* Log nonfatal errors in startup */
+#define LOG_WIZARD	0x00002000	/* Log dangerous things */
+#define LOG_ALLOCATE	0x00004000	/* Log alloc/free from buffer pools */
+#define LOG_PROBLEMS	0x00008000	/* Log runtime problems */
+#define LOG_MAIL	0x00010000      /* Log mail problems/wizard stuff */
+#define LOG_SUSPECT     0x00020000      /* Log SUSPECT players */
+#define LOG_WANDERER    0x00040000      /* Log WANDERER players */
+#define LOG_GUEST       0x00080000      /* Log GUEST players */
+#define LOG_CONNECT     0x00100000      /* Log everything on the connect screen */
+#define LOG_GHOD        0x00200000
+#define LOG_DOOR        0x00400000      /* Log all internal door activity */
+#define LOG_ALWAYS	0x80000000	/* Always log it */
+
+#define LOGOPT_FLAGS		0x01	/* Report flags on object */
+#define LOGOPT_LOC		0x02	/* Report loc of obj when requested */
+#define LOGOPT_OWNER		0x04	/* Report owner of obj if not obj */
+#define LOGOPT_TIMESTAMP	0x08	/* Timestamp log entries */
+
+#endif
