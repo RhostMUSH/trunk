@@ -7420,6 +7420,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
        fmtbuff++;
        currwidth++;
     } 
+#ifdef ZENTY_ANSI
     while ( *fmtbuff ) {
        if ( !fm->leftjust && fm->breakonreturn && shold ) {
           if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == 'f') && isprint(*(fmtbuff+2))) ) {
@@ -7453,6 +7454,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
           break;
        }
     }
+#endif
     if ( fm->breakonreturn && shold ) {
        if ( *fmtbuff && !i_breakhappen ) {
           while ( *fmtbuff && (*fmtbuff != '\n') ) 
