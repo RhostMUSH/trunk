@@ -6924,7 +6924,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, 
        *s_special, *s_normal, *s_accent, s_padstring[LBUF_SIZE];
   int idx, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
-      center_width, spares, i_breakhappen, i_usepadding;
+      center_width, spares, i_breakhappen, i_usepadding, i_savejust;
 
   i_breakhappen = i_usepadding = 0;
   if( fm->lastval ) {
@@ -6939,6 +6939,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
   s_accent = alloc_mbuf("printf_mbuf_3");
   memset(s_padstring, '\0', sizeof(s_padstring));
   i_chk = 0;
+  i_savejust = -1;
 
   if( !fm->fieldwidth ) {
     safe_str_fm( fmtbuff, buff, bufcx, fm );
@@ -7008,6 +7009,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
         } else {
            gapwidth = spares = 0;
            fm->leftjust = 2;
+           i_savejust = 3;
         }
     }
     if( !fm->leftjust ) {
@@ -7696,6 +7698,8 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
   free_mbuf(s_special);
   free_mbuf(s_normal);
   free_mbuf(s_accent);
+  if ( i_savejust != -1 )
+     fm->leftjust = i_savejust;
 }
 
 FUNCTION(fun_printf)
