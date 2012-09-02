@@ -7227,7 +7227,7 @@
   the ANSI and ANSICOLOR flags, this will allow 256 ansi color support using
   the XTERM color pallet to be sent to the player's terminal.
   
-  You need all three flags:  ANSI, ANSICOLOR, and XTEMRCOLOR to see extended.
+  You need all three flags:  ANSI, ANSICOLOR, and XTERMCOLOR to see extended.
   
   See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
 
@@ -8285,9 +8285,9 @@
  CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
  CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()   
  CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
- CLUSTER_XGET()       CMDS()             COLORS()           COLUMNS()        
- COMP()               CON()              CONFIG()           CONN()           
- CONTROLS()           CONVSECS()    
+ CLUSTER_XGET()       CMDS()             CNAME()            COLORS()         
+ COLUMNS()            COMP()             CON()              CONFIG()         
+ CONN()               CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -8476,13 +8476,13 @@
   Logical:            AND() MASK() NAND() NOR() OR() XOR() XNOR() CAND() COR()
             See Also: help logical functions
   
-  Miscellaneous:      ASC() CHR() ERROR() LOCALIZE() MOON() NAMEQ() NULL() 
-                      PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() SETQ()
-                      SETQ_OLD() SETQMATCH() SETR() SETR_OLD() SOUNDEX() 
-                      SOUNDLIKE() TRACE()
+  Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCALIZE() MOON() NAMEQ() 
+                      NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
+                      SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD() 
+                      SOUNDEX() SOUNDLIKE() TRACE()
             See Also: help miscellaneous functions
   
-  Object Information: APOSS() ART() ATTRCNT() CONTROLS() DEFAULT() 
+  Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
                       EDEFAULT() ELOCK() FULLNAME() GET() GET_EVAL() 
                       GRAB() GRABALL() GREP() GUILD() HASATTR() HASATTRP() 
                       HASFLAG() HASTOGGLE() HASTYPE() HOME() LASTCREATE() 
@@ -8882,6 +8882,7 @@
     %p, %P  = Name's, his, her, its, their.   (possessive)
     %a, %A  = Name's, his, hers, its, theirs. (absolute possessive)
     %n, %N  = the player's name.
+    %K, %K  = the player's colorized/accented name.
     %r      = carriage return.
     %t      = tab character.
     %b      = space character.
@@ -12714,9 +12715,22 @@ See Also: timefmt()
   
   See Also: @chown
   
+& CNAME()
+  cname(<dbref>)
+   
+  This function returns the name of the indicated object with any special
+  colorization or accents that they may have.  When called with an exit 
+  it returns the only the first alias.
+  
+  Example:
+    > say cname(me)
+    You say "TinyPlayer"  (this would be colorized and/or accented)
+   
+  See Also: fullname(), @alias, @name, name()
+
 & NAME()
   name(<dbref>[,<newname>])
- 
+   
   This function returns the name of the indicated object.  When called with
   an exit it returns the only the first alias.
   
@@ -12729,7 +12743,7 @@ See Also: timefmt()
     > say name(me)
     You say "TinyPlayer"
    
-  See Also: fullname(), @alias, @name
+  See Also: fullname(), @alias, @name, cname()
   
 & FULLNAME()
   Function: fullname(<dbref>)
@@ -12751,7 +12765,7 @@ See Also: timefmt()
     > say fullname(#123)
     You say "An Exit <AE>;ae;an exit;exit"
   
-  See Also: name(), @alias, @name
+  See Also: name(), @alias, @name, cname()
   
 & NEXT()
   next(<thing>)
@@ -23374,6 +23388,7 @@ Mail: Done
   aposs()       - Returns the absolute possessive pronoun of an object.
   art()         - Returns the article proper for the word.
   attrcnt()     - Returns the number of attributes on an object.
+  cname()       - Returns the colorized/accented name of the target.
   controls()    - Returns true if object2 controls object1
   default()     - Returns the value of obj/attr if readable, or a default.
   edefault()    - Like default(), but evaluates like get_eval()
@@ -23965,6 +23980,8 @@ New Features
 ------------
 * ansi() engine totally rewritten to better utilize and optimize [ASH]
 * NOTRACE switch to @function to disabling tracing of global functions [ASH]
+* cname() for colorized/accented names [ASH]
+* %k (works like %n but the colorized/accented name) [ASH]
   
 Changes
 -------
@@ -23980,6 +23997,7 @@ Changes
 Bug Fixes
 ---------
 * printf() had a color clobbering affect in certain circumstances [ASH]
+* printf() had an off by one alignment issue with justification [ASH]
 * fixed up some library lookup code in the asksource.sh script [ASH]
 * fixed the random dissapearing backslash issue [ASH]
 * secured @sudo for registers. [ASH]

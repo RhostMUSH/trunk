@@ -1313,6 +1313,7 @@ extern double mktime64(struct tm *);
 extern struct tm *gmtime64_r(const double *, struct tm *);
 extern struct tm *localtime64_r(const double *, struct tm *);
 extern int internal_logstatus(void);
+extern char * parse_ansi_name(dbref, char *);
 
 
 /* pom.c definitions */
@@ -14095,6 +14096,68 @@ FUNCTION(fun_name)
 #endif
 }
 
+FUNCTION(fun_cname)
+{
+    dbref it, aname;
+    int i_extansi, aflags;
+    char *s;
+    char *namebuff, *namebufcx, *ansibuf, *ansiparse;
+
+    it = match_thing(player, fargs[0]);
+    if (it == NOTHING) {
+       return;
+    }
+    if (!mudconf.read_rem_name) {
+       if (!nearby_exam_or_control(player, it) && !isPlayer(it)) {
+           safe_str("#-1 TOO FAR AWAY TO SEE", buff, bufcx);
+           return;
+       }
+    }
+    ansibuf = atr_pget(it, A_ANSINAME, &aname, &aflags);
+    i_extansi = 0;
+
+    namebuff  = namebufcx = alloc_lbuf("fun_name.namebuff");
+    safe_str(Name(it), namebuff, &namebufcx);
+    *namebufcx = '\0';
+    if (isExit(it)) {
+       for (s = namebuff; *s && (*s != ';'); s++);
+       *s = '\0';
+    }
+    if ( ExtAnsi(it) && (strcmp(namebuff, strip_all_special(ansibuf)) == 0) )
+       i_extansi = 1;
+
+    if (Cloak(it) && !Wizard(player)) {
+       safe_str("#-1", buff, bufcx);
+       free_lbuf(namebuff);
+       free_lbuf(ansibuf);
+       return;
+    }
+    if (SCloak(it) && Cloak(it) && !Immortal(player)) {
+       safe_str("#-1", buff, bufcx);
+       free_lbuf(namebuff);
+       free_lbuf(ansibuf);
+       return;
+    }
+    if ( i_extansi ) {
+       safe_str(ansibuf, buff, bufcx);
+    } else if ( !ExtAnsi(it) ) {
+       ansiparse =  parse_ansi_name(cause, ansibuf);
+       safe_str(ansiparse, buff, bufcx);
+       free_lbuf(ansiparse);
+       safe_str(namebuff, buff, bufcx);
+#ifdef ZENTY_ANSI
+       safe_str(SAFE_CHRST, buff, bufcx);
+#else
+       safe_str(ANSI_NORMAL, buff, bufcx);
+#endif
+    } else {
+       safe_str(namebuff, buff, bufcx);
+    }
+
+    free_lbuf(namebuff);
+    free_lbuf(ansibuf);
+}
+
 /* ---------------------------------------------------------------------------
  * fun_listmatch
  * returns values in argument of what matched.  1-10 args.
@@ -25980,6 +26043,7 @@ FUN flist[] =
     {"CLUSTER_WIPE", fun_cluster_wipe, 1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"CLUSTER_XGET", fun_cluster_xget, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CMDS", fun_cmds, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"CNAME", fun_cname, 1, 0, CA_PUBLIC, 0},
     {"COLORS", fun_colors, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"COLUMNS", fun_columns, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"COMP", fun_comp, 2, 0, CA_PUBLIC, CA_NO_CODE},

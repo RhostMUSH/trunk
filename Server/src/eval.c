@@ -23,6 +23,7 @@ char *index(const char *, int);
 #define FILENUM EVAL_C
 
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
+extern char * parse_ansi_name(dbref, char *);
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -859,7 +860,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr;
-    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb;
+    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
     static char tfunbuff[33];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags;
@@ -1638,6 +1639,77 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
             }
             break;
+	    case 'K':		/* Invoker name */
+	    case 'k':
+                /* We don't use sub_aowner or sub_aflags here so we don't care if they get clobbered  */
+                t_bufa = atr_pget(cause, A_ANSINAME, &sub_aowner, &sub_aflags);
+                t_bufb = NULL;
+                if ( !ExtAnsi(cause) ) {
+                   t_bufb = parse_ansi_name(cause, t_bufa);
+                }
+                if ( strcmp(Name(cause), strip_all_special(t_bufa)) != 0 ) {
+                   free_lbuf(t_bufa);
+                   t_bufa = alloc_lbuf("normal name here");
+                   strcpy(t_bufa, Name(cause));
+                }
+                t_bufc = alloc_sbuf("ansi_normal");
+#ifdef ZENTY_ANSI
+                strcpy(t_bufc, SAFE_CHRST);
+#else
+                strcpy(t_bufc, ANSI_NORMAL);
+#endif
+                if ( (mudconf.sub_override & SUB_K) && !(mudstate.sub_overridestate & SUB_K) && Good_obj(mudconf.hook_obj) ) {
+                   sub_ap = atr_str("SUB_K");
+                   if (!sub_ap) {
+                      if ( t_bufb ) {
+                         safe_str(t_bufb, buff, &bufc);
+                         safe_str(Name(cause), buff, &bufc);
+                         safe_str(t_bufc, buff, &bufc);
+                      } else {
+                         safe_str(t_bufa, buff, &bufc);
+                      }
+                   } else {
+                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
+                      if ( !sub_txt ) {
+                         if ( t_bufb ) {
+                            safe_str(t_bufb, buff, &bufc);
+                            safe_str(Name(cause), buff, &bufc);
+                            safe_str(t_bufc, buff, &bufc);
+                         } else {
+                            safe_str(t_bufa, buff, &bufc);
+                         }
+                      } else {
+                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_K;
+		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         if ( !*sub_buf ) {
+                            if ( t_bufb ) {
+                               safe_str(t_bufb, buff, &bufc);
+                               safe_str(Name(cause), buff, &bufc);
+                               safe_str(t_bufc, buff, &bufc);
+                            } else {
+                               safe_str(t_bufa, buff, &bufc);
+                            }
+                         } else
+                            safe_str(sub_buf, buff, &bufc);
+                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_K;
+                         free_lbuf(sub_txt);
+                         free_lbuf(sub_buf);
+                      }
+                   }
+                } else {
+                   if ( t_bufb ) {
+                      safe_str(t_bufb, buff, &bufc);
+                      safe_str(Name(cause), buff, &bufc);
+                      safe_str(t_bufc, buff, &bufc);
+                   } else {
+                      safe_str(t_bufa, buff, &bufc);
+                   }
+                }
+                free_lbuf(t_bufa);
+                free_sbuf(t_bufc);
+                if ( t_bufb )
+                   free_lbuf(t_bufb);
+		break;
 	    case 'N':		/* Invoker name */
 	    case 'n':
                 if ( (mudconf.sub_override & SUB_N) && !(mudstate.sub_overridestate & SUB_N) && Good_obj(mudconf.hook_obj) ) {

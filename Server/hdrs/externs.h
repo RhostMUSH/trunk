@@ -953,6 +953,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SUB_C           0x00000800
 #define SUB_X           0x00001000
 #define SUB_F		0x00002000
+#define SUB_K		0x00004000
 
 /* Message forwarding directives */
 
