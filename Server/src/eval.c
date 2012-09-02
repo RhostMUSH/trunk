@@ -566,17 +566,20 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
-            if(*string != '%') {
-                safe_chr('\\', buff, &bufc);
-                safe_chr('\\', buff2, &bufc2);
-            }
-            if(*string && (*string != '\\')) {
-                safe_chr(*string, buff, &bufc);
-                safe_chr(*string, buff2, &bufc2);
-            }
+            safe_chr('\\', buff, &bufc);
+            safe_chr('\\', buff2, &bufc2);
+            safe_chr(*string, buff, &bufc);
+            safe_chr(*string, buff2, &bufc2);
         } else if(*string == '%') {
             string++;
             if(*string == '\\') {
+                safe_chr('%', buff, &bufc);
+                safe_chr('%', buff2, &bufc2);
+                safe_chr(*string, buff, &bufc);
+                safe_chr(*string, buff2, &bufc2);
+            } else if ( *string == '%') {
+                safe_chr('%', buff, &bufc);
+                safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff, &bufc);
                 safe_chr(*string, buff2, &bufc2);
             } else if ((*string == '%') && (*(string+1) == SAFE_CHR )) {
@@ -604,19 +607,15 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       i_extendnum = atoi(s_intbuf);
                       if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
-                         safe_chr(' ', buff, &bufc);
                       } else {
                          switch(i_extendnum) {
                             case 251:
                             case 252: safe_chr('u', buff2, &bufc2);
-                                      safe_chr(' ', buff, &bufc);
                                       break;
                             case 253:
                             case 255: safe_chr('y', buff2, &bufc2);
-                                      safe_chr(' ', buff, &bufc);
                                       break;
                             case 254: safe_chr('p', buff2, &bufc2);
-                                      safe_chr(' ', buff, &bufc);
                                       break;
                          }
                       }
@@ -646,7 +645,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       }
                    }
                 }
-            } else {
+            } else if ( (ToLower(*string) == 'c') ) {
                 switch (*++string) {
                 case '\0':
                     safe_chr(*string, buff, &bufc);
@@ -983,12 +982,6 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
 	    at_space = 0;
 	    dstr++;
-#ifdef ZENTY_ANSI
-            // If the caracter after the \ is a commenting char, keep it
-/*          if (*dstr == '\\') */
-            if((*dstr == '\\') || (*dstr == '%')) 
-               safe_chr('\\', buff, &bufc);
-#endif
 	    if (*dstr)
                safe_chr(*dstr, buff, &bufc);
 	    else
@@ -1073,20 +1066,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    case '\0':		/* Null - all done */
 		dstr--;
 		break;
-#ifdef ZENTY_ANSI            
-            case '\\':
-            safe_str("%\\", buff, &bufc);
-            break;
-#endif
 	    case '%':		/* Percent - a literal % */
-#ifdef ZENTY_ANSI            
-               if(*(dstr + 1) == SAFE_CHR)
-                  safe_str("%%", buff, &bufc);
-               else if ( *(dstr + 1) == 'f' )
-                  safe_str("%%", buff, &bufc);
-               else
-#endif                
-                  safe_str("\\%", buff, &bufc);            
+                  safe_chr('%', buff, &bufc);            
 		  break;
 #ifndef NOEXTSUBS
 #ifdef TINY_SUB
@@ -1117,14 +1098,6 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       }
                    }
                 } 
-#ifdef ZENTY_ANSI
-                // Leave the ansi code intact
-                if(!(eval & EV_PARSE_ANSI)) {        
-                    safe_chr('%', buff, &bufc);
-                    safe_chr(SAFE_CHR, buff, &bufc);
-                    break;
-                }
-#endif
 		dstr++;
 		if (mudstate.eval_rec != 1) {
 		    if (!*dstr)
