@@ -2531,7 +2531,6 @@ parse_ansi_name(dbref target, char *ansibuf)
    char *buf2, *buf2ptr;
 
    buf2ptr = buf2 = alloc_lbuf("ansi_exitname");
-   safe_str(ansibuf, buf2, &buf2ptr);
    return buf2;
 }
 #endif
