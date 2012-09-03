@@ -11419,6 +11419,10 @@ See Also: timefmt()
   > say chr(97)
   You say "a"
   
+  Note:  Using chr() on 37, 92, and any character between 160 and 255
+         will padd out any padding you have by an additional 5 characters
+         per use.  Please plan accordingly.
+    
   See Also: ASC()
   
 & ASC()
