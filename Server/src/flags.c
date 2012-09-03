@@ -2528,9 +2528,101 @@ parse_ansi_name(dbref target, char *ansibuf)
 char *
 parse_ansi_name(dbref target, char *ansibuf)
 {
-   char *buf2, *buf2ptr;
+   int i_cntr;
+   char *buf2, *s;
 
-   buf2ptr = buf2 = alloc_lbuf("ansi_exitname");
+   buf2 = alloc_lbuf("parse_ansi_name");
+   memset(buf2, '\0', LBUF_SIZE);
+
+   s = ansibuf;
+   i_cntr=0;
+   while (*s) {
+      i_cntr++;
+      if ( i_cntr > 30 )
+         break;
+      switch (*s) {
+         case 'h':		/* hilite */
+            if ( mudconf.global_ansimask & MASK_HILITE )
+               strcat(buf2, ANSI_HILITE);
+            break;
+         case 'i':		/* inverse */
+            if ( mudconf.global_ansimask & MASK_INVERSE )
+               strcat(buf2, ANSI_INVERSE);
+            break;
+         case 'f':		/* flash */
+            if ( mudconf.global_ansimask & MASK_BLINK )
+                strcat(buf2, ANSI_BLINK);
+            break;
+         case 'n':		/* normal */
+            strcat(buf2, ANSI_NORMAL);
+            break;
+         case 'x':		/* black fg */
+            if ( mudconf.global_ansimask & MASK_BLACK )
+               strcat(buf2, ANSI_BLACK);
+            break;
+         case 'r':		/* red fg */
+            if ( mudconf.global_ansimask & MASK_RED )
+               strcat(buf2, ANSI_RED);
+            break;
+         case 'g':		/* green fg */
+            if ( mudconf.global_ansimask & MASK_GREEN )
+              strcat(buf2, ANSI_GREEN);
+            break;
+         case 'y':		/* yellow fg */
+            if ( mudconf.global_ansimask & MASK_YELLOW )
+               strcat(buf2, ANSI_YELLOW);
+            break;
+         case 'b':		/* blue fg */
+            if ( mudconf.global_ansimask & MASK_BLUE )
+               strcat(buf2, ANSI_BLUE);
+            break;
+         case 'm':		/* magenta fg */
+            if ( mudconf.global_ansimask & MASK_MAGENTA )
+               strcat(buf2, ANSI_MAGENTA);
+            break;
+         case 'c':		/* cyan fg */
+            if ( mudconf.global_ansimask & MASK_CYAN )
+               strcat(buf2, ANSI_CYAN);
+            break;
+         case 'w':		/* white fg */
+            if ( mudconf.global_ansimask & MASK_WHITE )
+               strcat(buf2, ANSI_WHITE);
+            break;
+         case 'X':		/* black bg */
+            if ( mudconf.global_ansimask & MASK_BBLACK )
+               strcat(buf2, ANSI_BBLACK);
+            break;
+         case 'R':		/* red bg */
+            if ( mudconf.global_ansimask & MASK_BRED )
+               strcat(buf2, ANSI_BRED);
+            break;
+         case 'G':		/* green bg */
+            if ( mudconf.global_ansimask & MASK_BGREEN )
+               strcat(buf2, ANSI_BGREEN);
+            break;
+         case 'Y':		/* yellow bg */
+            if ( mudconf.global_ansimask & MASK_BYELLOW )
+               strcat(buf2, ANSI_BYELLOW);
+            break;
+         case 'B':		/* blue bg */
+            if ( mudconf.global_ansimask & MASK_BBLUE )
+               strcat(buf2, ANSI_BBLUE);
+            break;
+         case 'M':		/* magenta bg */
+            if ( mudconf.global_ansimask & MASK_BMAGENTA )
+               strcat(buf2, ANSI_BMAGENTA);
+            break;
+         case 'C':		/* cyan bg */
+            if ( mudconf.global_ansimask & MASK_BCYAN )
+               strcat(buf2, ANSI_BCYAN);
+            break;
+         case 'W':		/* white bg */
+            if ( mudconf.global_ansimask & MASK_BWHITE )
+               strcat(buf2, ANSI_BWHITE);
+            break;
+      } /* Switch */
+      s++;
+   } /* While */
    return buf2;
 }
 #endif
