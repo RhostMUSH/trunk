@@ -1654,7 +1654,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
                 t_bufc = alloc_sbuf("ansi_normal");
 #ifdef ZENTY_ANSI
-                strcpy(t_bufc, SAFE_CHRST);
+                strcpy(t_bufc, SAFE_ANSI_NORMAL);
 #else
                 strcpy(t_bufc, ANSI_NORMAL);
 #endif

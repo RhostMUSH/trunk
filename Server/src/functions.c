@@ -14146,7 +14146,7 @@ FUNCTION(fun_cname)
        free_lbuf(ansiparse);
        safe_str(namebuff, buff, bufcx);
 #ifdef ZENTY_ANSI
-       safe_str(SAFE_CHRST, buff, bufcx);
+       safe_str(SAFE_ANSI_NORMAL, buff, bufcx);
 #else
        safe_str(ANSI_NORMAL, buff, bufcx);
 #endif
