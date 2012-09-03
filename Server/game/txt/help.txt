@@ -19136,6 +19136,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   happens when it's at the very end of the string you are trying to colorize 
   or accent.  
   
+  Also, any use of chr() will padd out any alignment by 5 characters.  So any
+  that you use, make sure to padd out by the additional 5 per use.
+  
   Examples:
     > say ansi(hr,\\)
     You say "\%cn"                             (the \%cn is highlight red)
