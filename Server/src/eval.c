@@ -606,7 +606,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       s_intbuf[1] = *(string+1);
                       s_intbuf[2] = *(string+2);
                       i_extendnum = atoi(s_intbuf);
-                      if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
+                      if ( (i_extendnum == 37) || (i_extendnum == 92) || ((i_extendnum >= 160) && (i_extendnum <= 250)) ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
                       } else {
                          switch(i_extendnum) {
@@ -965,7 +965,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     if (index(dstr, ESC_CHAR)) {
 	strcpy(dstr, strip_ansi(dstr));
     }
-// fprintf(stderr, "EXECValue: %s\n", dstr);
+//fprintf(stderr, "EXECValue: %s\n", dstr);
 
     while (*dstr && !alldone) {
       if ( mudstate.curr_percentsubs < mudconf.max_percentsubs )
@@ -990,6 +990,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 //          if((*dstr == '\\') || (*dstr == '%'))
 //             safe_chr('\\', buff, &bufc);
 #endif
+//          if ((*dstr == '%') && (*(dstr+1) == SAFE_CHR))
+//             safe_chr('\\', buff, &bufc);
 	    if (*dstr)
                safe_chr(*dstr, buff, &bufc);
 	    else

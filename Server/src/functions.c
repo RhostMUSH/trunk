@@ -23694,8 +23694,8 @@ FUNCTION(fun_chr)
          safe_str("#-1 ARGUMENT NOT A NUMBER", buff, bufcx);
     } else {
          i = atoi(fargs[0]);
-         if ((i < 32) || (i > 126)) {
-             if ( (i >= 160) && (i <= 255) ) {
+         if ( (i == 37) || (i == 92) || (i < 32) || (i > 126)) {
+             if ( (i == 37) || (i == 92) || ((i >= 160) && (i <= 255)) ) {
                 sprintf(s_buff, "%%<%03d>", i); 
                 safe_str(s_buff, buff, bufcx);
              } else

@@ -19017,6 +19017,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See 'XTERMCOLOR LIST' for the 256 color list.
   
 { 'help ansi2' for more -- The 256 Color Support}
+{ 'help ansi quirks' for work arounds on weird ansi problems}
 
 & ANSI2
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -19056,6 +19057,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   0x## is foreground, and 0X## is background when using percent substitutions.
      
 { 'help ansi3' for more -- about XTERMCOLOR and ANSI examples }
+{ 'help ansi quirks' for work arounds on weird ansi problems}
   
 & ANSI3
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -19094,6 +19096,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   code is entered (the %cn).
    
 { 'help ansi4' for more -- Flags required and information }
+{ 'help ansi quirks' for work arounds on weird ansi problems}
 
 & ANSI4
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -19109,9 +19112,43 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Check '@list options' on the server you are on to see if this has
   been reversed or not.
   
-  See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, SUBSTITUTIONS,
-            XTERMCOLOR LIST, COLORS()
+  See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+
+{ 'help ansi quirks' for work arounds on weird ansi problems}
   
+& ANSI QUIRKS
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
+  
+  Ansi, since all special characters (including those accented!) are passed 
+  around the parser as % codes (%c/%x/%f), and the parser USES %'s and \'s 
+  as escape codes, this means that when you try to ansi backslashes (\) or 
+  percents (%) the parser and ansi-translater could misinterprete your 
+  intention as escaping out that ansi and not actually mean colorize my 
+  escape character. 
+  
+  Don't worry!  Not all is lost!  You may specify the percent(%) character 
+  as chr(37) and the backslash(\) as chr(92) and these will be passed 
+  through the parser as 'special' substitutions, meaning once it hits the 
+  ansi-translater, you get to see your percent and/or backslash in the nice 
+  pretty color you wanted.  The percent and backslash issue usually only 
+  happens when it's at the very end of the string you are trying to colorize 
+  or accent.  
+  
+  Examples:
+    > say ansi(hr,\\)
+    You say "\%cn"                             (the \%cn is highlight red)
+    > say ansi(hr,chr(92))
+    You say "\"                                (the \ is highlight red)
+    > say ansi(hr,%%)
+    You say "%cn"                              (the %cn is highlight red)
+    > say ansi(hr,chr(37))                     
+    You say "%"                                (the % is highlight red)
+    
+  See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+
 & STRIPANSI()
   Function: stripansi(<string>)
   
@@ -24001,3 +24038,5 @@ Bug Fixes
 * fixed up some library lookup code in the asksource.sh script [ASH]
 * fixed the random dissapearing backslash issue [ASH]
 * secured @sudo for registers. [ASH]
+* % or \ at the end of an ansified string could escape out ansi [ASH]
+  fix for this is allowing % and \ as special chr() input.
