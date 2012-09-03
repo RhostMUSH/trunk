@@ -583,6 +583,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff, &bufc);
                 safe_chr(*string, buff2, &bufc2);
+                string++;
             } else if ((*string == '%') && (*(string+1) == SAFE_CHR )) {
                 safe_str((char*)SAFE_CHRST, buff, &bufc);
                 safe_str((char*)SAFE_CHRST, buff2, &bufc2);
@@ -596,6 +597,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff, &bufc);
                 safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff2, &bufc2);
+                string++;
 /*          } else if ( (*string == '%') && (*(string+1) == '<') ) { 
                 string+=2; */
             } else if ( (*string == '<') ) {
