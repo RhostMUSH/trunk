@@ -24047,3 +24047,4 @@ Bug Fixes
 * secured @sudo for registers. [ASH]
 * % or \ at the end of an ansified string could escape out ansi [ASH]
   fix for this is allowing % and \ as special chr() input.
+* \\ for emits didn't work properly [ASH]

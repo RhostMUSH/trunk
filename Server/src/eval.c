@@ -863,7 +863,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
     static char tfunbuff[33];
     dbref aowner, twhere, sub_aowner;
-    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags;
+    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
     FUN *fp;
     UFUN *ufp;
@@ -887,7 +887,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     DPUSH; /* #67 */
 		
-    feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
+    i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
     w = 0;
     mudstate.evalcount++;
 
@@ -992,6 +992,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 //          if ((*dstr == '%') && (*(dstr+1) == SAFE_CHR))
 //             safe_chr('\\', buff, &bufc);
+            if ( !i_start && (*dstr == '\\') )
+               safe_chr('\\', buff, &bufc);
 	    if (*dstr)
                safe_chr(*dstr, buff, &bufc);
 	    else
@@ -2331,6 +2333,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    safe_chr(*dstr, buff, &bufc);
 	}
 	dstr++;
+        i_start++;
     }
 
     /* If we're eating spaces, and the last thing was a space,
