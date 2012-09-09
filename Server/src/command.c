@@ -2428,6 +2428,7 @@ process_command(dbref player, dbref cause, int interactive,
     mudstate.func_bypass = 0;
     mudstate.shifted = 0;
     mudstate.notrace = 0;
+    mudstate.start_of_cmds = 0;
     succ = i_fndexit = 0;
     s_logroom = NULL;
     cache_reset(0);
@@ -2836,6 +2837,10 @@ process_command(dbref player, dbref cause, int interactive,
        cval2 =  zigcheck(player, prefix_cmds[i]->perms);
     else
        cval2 = 0;
+
+    if (command[0] == '\\')
+       mudstate.start_of_cmds=1;
+
     if ( !cval && !cval2 && (prefix_cmds[i] != NULL) && (prefix_cmds[i]->hookmask & (HOOK_IGNORE|HOOK_PERMIT)) && 
          Good_obj(mudconf.hook_obj) && !Recover(mudconf.hook_obj) && 
          !Going(mudconf.hook_obj) ) {

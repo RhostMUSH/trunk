@@ -992,12 +992,15 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 //          if ((*dstr == '%') && (*(dstr+1) == SAFE_CHR))
 //             safe_chr('\\', buff, &bufc);
-            if ( !i_start && (*dstr == '\\') )
+            if ( !i_start && mudstate.start_of_cmds && (*dstr == '\\') ) {
                safe_chr('\\', buff, &bufc);
+               mudstate.start_of_cmds = 0;
+            }
 	    if (*dstr)
                safe_chr(*dstr, buff, &bufc);
 	    else
                dstr--;
+            mudstate.start_of_cmds = 1;
 	    break;
 	case '[':
             mudstate.stack_val++;
