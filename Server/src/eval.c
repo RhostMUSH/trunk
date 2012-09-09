@@ -993,7 +993,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 //          if ((*dstr == '%') && (*(dstr+1) == SAFE_CHR))
 //             safe_chr('\\', buff, &bufc);
             if ( !i_start && mudstate.start_of_cmds && (*dstr == '\\') ) {
+#ifdef ZENTY_ANSI
                safe_chr('\\', buff, &bufc);
+#endif
                mudstate.start_of_cmds = 0;
             }
 	    if (*dstr)
