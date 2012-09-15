@@ -23,6 +23,7 @@ char *index(const char *, int);
 #define FILENUM EVAL_C
 
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
+extern char * parse_ansi_name(dbref, char *);
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -544,144 +545,112 @@ static const int mux_isprint[256] =
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1   // F
 };
 
-void parse_accents(char *string, char *buff, char **bufptr)
-{
-   char *bufc, s_intbuf[4];
-   unsigned char ch1, ch2, ch;
-   int accent_toggle;
-   int i_extendallow, i_extendcnt, i_extendnum;
-   bufc = *bufptr;
-   accent_toggle = 0;
-   i_extendallow = 3;
-   i_extendcnt = 0;
-   s_intbuf[3] = '\0';
-   while ( *string && ((bufc - buff) < (LBUF_SIZE-10)) ) {
-      if (*string == '\\') {
-         string++;
-         if (*string != '%') {
-            safe_chr('\\', buff, &bufc);
-         }
-         if (*string && (*string != '\\'))
-            safe_chr(*string, buff, &bufc);
-      } else if (*string == '%') {
-         string++;
-         if (*string == '\\') {
-            safe_chr(*string, buff, &bufc);
-         } else if ( (*string == '%') && (*(string+1) == 'f') ) {
-            safe_str("%f", buff, &bufc);
-            string++;
-         } else if ( (*string == '%') && (*(string+1) == '<') ) { 
-            string+=2;
-/*          while ( *string && (i_extendcnt < i_extendallow) ) { */
-            while ( *string ) {
-               if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
-                  s_intbuf[0] = *(string);
-                  s_intbuf[1] = *(string+1);
-                  s_intbuf[2] = *(string+2);
-                  i_extendnum = atoi(s_intbuf);
-                  if ( (i_extendnum >= 160) && (i_extendnum <= 250) )
-                     safe_chr((char) i_extendnum, buff, &bufc);
-                  else {
-                     switch(i_extendnum) {
-                        case 251:
-                        case 252: safe_chr('u', buff, &bufc);
-                                  break;
-                        case 253:
-                        case 255: safe_chr('y', buff, &bufc);
-                                  break;
-                        case 254: safe_chr('p', buff, &bufc);
-                                  break;
-                     }
-                  }
-                  i_extendcnt+=3;
-                  string+=3;
-                  if (*string == '>' ) {
-                     break;
-                  }
-               } else {
-                  safe_chr(*string, buff, &bufc);
-                  break;
-               }
-            }
-         } else if (*string != 'f') { 
-            safe_chr('%', buff, &bufc);
-            safe_chr(*string, buff, &bufc);
-         } else {
-            ch = (unsigned char)*(++string);
-            if ( ch == 'n' ) {
-               accent_toggle = 0;
-            } else {
-               ch2 = AccentCombo2[(int)ch];
-               if ( ch2 > 0 ) {
-                  accent_toggle = 1;
-               } else {
-                  if ( !isprint(*string) )
-                     safe_chr(*string, buff, &bufc);
-               }
-            }
-         }
-      } else {
-         if ( accent_toggle ) {
-            ch1 = AccentCombo1[(int)*string];
-            if ( ch1 > 0 ) {
-               ch = AccentCombo3[(int)(ch1 - 1)][(int)ch2];
-               if ( !mux_isprint[(int)ch] ) 
-                  safe_chr(*string, buff, &bufc);
-               else
-                  safe_chr(ch, buff, &bufc);
-            } else {
-               safe_chr(*string, buff, &bufc);
-            }
-         } else {
-            safe_chr(*string, buff, &bufc);
-         }
-      }
-      if ( *string )
-        string++;
-   }
-   *bufptr = bufc;
-}
-
+// This handles accents as well!
+// buff/bufptr is the ansi
+// buff2/buf2ptr is the accents + ansi
 // Change %c/%x substitutions into real ansi now.
-void parse_ansi(char *string, char *buff, char **bufptr)
+void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr)
 {
-    char *bufc, s_twochar[3], s_final[80];
-    int i_tohex;
+    char *bufc, *bufc2, s_twochar[3], s_final[80], s_intbuf[4];
+    unsigned char ch1, ch2, ch;
+    int i_tohex, accent_toggle, i_extendallow, i_extendcnt, i_extendnum;
 
+
+//fprintf(stderr, "Value: %s\n", string);
     memset(s_twochar, '\0', sizeof(s_twochar));
     memset(s_final, '\0', sizeof(s_final));
     bufc = *bufptr;
-    while(*string && ((bufc - buff) < (LBUF_SIZE-10))) {
+    bufc2 = *buf2ptr;
+    accent_toggle = 0;
+    i_extendallow = 3;
+    i_extendcnt = 0;
+    s_intbuf[3] = '\0';
+    while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
-            if(*string != '%') {
+//          if(*string != '%') {
                 safe_chr('\\', buff, &bufc);
-            }
-            if(*string && (*string != '\\'))
+                safe_chr('\\', buff2, &bufc2);
+//          }
+//          if(*string && (*string != '\\')) {
                 safe_chr(*string, buff, &bufc);
+                safe_chr(*string, buff2, &bufc2);
+//          }
         } else if(*string == '%') {
             string++;
             if(*string == '\\') {
+                safe_chr('%', buff, &bufc);
+                safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff, &bufc);
-#ifdef TINY_SUB
-            } else if((*string == '%') && (*(string+1) == 'x')) {
-                safe_str("%x", buff, &bufc);
-#else
-            } else if((*string == '%') && (*(string+1) == 'c')) {
-                safe_str("%c", buff, &bufc);
-#endif
+                safe_chr(*string, buff2, &bufc2);
+            } else if ((*string == '%') && (*(string+1) == SAFE_CHR )) {
+                safe_str((char*)SAFE_CHRST, buff, &bufc);
+                safe_str((char*)SAFE_CHRST, buff2, &bufc2);
                 string++;
-#ifdef TINY_SUB
-            } else if(*string != 'x') {
-#else
-            } else if(*string != 'c') {
-#endif
+            } else if ((*string == '%') && (*(string+1) == 'f')) {
+                safe_str("%f", buff, &bufc);
+                safe_str("%f", buff2, &bufc2);
+                string++;
+            } else if ( (*string != SAFE_CHR) && (*string != 'f') && (*string != '<') ) {
                 safe_chr('%', buff, &bufc);
                 safe_chr(*string, buff, &bufc);
+                safe_chr('%', buff2, &bufc2);
+                safe_chr(*string, buff2, &bufc2);
+/*          } else if ( (*string == '%') && (*(string+1) == '<') ) { 
+                string+=2; */
+            } else if ( (*string == '<') ) {
+                string++;
+                while ( *string ) {
+                   if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
+                      s_intbuf[0] = *(string);
+                      s_intbuf[1] = *(string+1);
+                      s_intbuf[2] = *(string+2);
+                      i_extendnum = atoi(s_intbuf);
+                      if ( (i_extendnum == 37) || (i_extendnum == 92) || ((i_extendnum >= 160) && (i_extendnum <= 250)) ) {
+                         safe_chr((char) i_extendnum, buff2, &bufc2);
+                      } else {
+                         switch(i_extendnum) {
+                            case 251:
+                            case 252: safe_chr('u', buff2, &bufc2);
+                                      break;
+                            case 253:
+                            case 255: safe_chr('y', buff2, &bufc2);
+                                      break;
+                            case 254: safe_chr('p', buff2, &bufc2);
+                                      break;
+                         }
+                      }
+                      i_extendcnt+=3;
+                      string+=3;
+                      if (*string == '>' ) {
+                         break;
+                      }
+                   } else {
+                      safe_chr(*string, buff, &bufc);
+                      safe_chr(*string, buff2, &bufc2);
+                      break;
+                   }
+                }
+            } else if ( (*string == 'f') ) {
+                ch = (unsigned char)*(++string);
+                if ( ch == 'n' ) {
+                   accent_toggle = 0;
+                } else {
+                   ch2 = AccentCombo2[(int)ch];
+                   if ( ch2 > 0 ) {
+                      accent_toggle = 1;
+                   } else {
+                      if ( !isprint(*string) ) {
+                         safe_chr(*string, buff, &bufc);
+                         safe_chr(*string, buff2, &bufc2);
+                      }
+                   }
+                }
             } else {
                 switch (*++string) {
                 case '\0':
                     safe_chr(*string, buff, &bufc);
+                    safe_chr(*string, buff2, &bufc2);
                     break;
                 case '0': /* Do XTERM color here */
                     switch ( *(string+1) ) {
@@ -693,6 +662,7 @@ void parse_ansi(char *string, char *buff, char **bufptr)
                              string+=3;
                              sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
                              safe_str(s_final, buff, &bufc);
+                             safe_str(s_final, buff2, &bufc2);
                              sprintf(s_final, "%dm", i_tohex);
                           }
                           break;
@@ -704,113 +674,165 @@ void parse_ansi(char *string, char *buff, char **bufptr)
                              sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
                              string+=3;
                              safe_str(s_final, buff, &bufc);
+                             safe_str(s_final, buff2, &bufc2);
                              sprintf(s_final, "%dm", i_tohex);
                           }
                           break;
                        default:
-#ifdef TINY_SUB
-                          safe_str("%x", buff, &bufc);
-#else
-                          safe_str("%c", buff, &bufc);
-#endif
+                          safe_str((char *)SAFE_CHRST, buff, &bufc);
                           safe_chr(*string, buff, &bufc);
+                          safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                          safe_chr(*string, buff2, &bufc2);
                           break;
                     }  
                     break;
                 case 'n':
                     safe_str((char *) ANSI_NORMAL, buff, &bufc);
+                    safe_str((char *) ANSI_NORMAL, buff2, &bufc2);
                     break;
                 case 'f':
-                    if ( mudconf.global_ansimask & MASK_BLINK )
+                    if ( mudconf.global_ansimask & MASK_BLINK ) {
                         safe_str((char *) ANSI_BLINK, buff, &bufc);
+                        safe_str((char *) ANSI_BLINK, buff2, &bufc2);
+                    }
                     break;
                 case 'u':
-                    if ( mudconf.global_ansimask & MASK_UNDERSCORE )
+                    if ( mudconf.global_ansimask & MASK_UNDERSCORE ) {
                         safe_str((char *) ANSI_UNDERSCORE, buff, &bufc);
+                        safe_str((char *) ANSI_UNDERSCORE, buff2, &bufc2);
+                    }
                     break;
                 case 'i':
-                    if ( mudconf.global_ansimask & MASK_INVERSE )
+                    if ( mudconf.global_ansimask & MASK_INVERSE ) {
                         safe_str((char *) ANSI_INVERSE, buff, &bufc);
+                        safe_str((char *) ANSI_INVERSE, buff2, &bufc2);
+                    }
                     break;
                 case 'h':
-                    if ( mudconf.global_ansimask & MASK_HILITE )
+                    if ( mudconf.global_ansimask & MASK_HILITE ) {
                         safe_str((char *) ANSI_HILITE, buff, &bufc);
+                        safe_str((char *) ANSI_HILITE, buff2, &bufc2);
+                    }
                     break;
                 case 'x':
-                    if ( mudconf.global_ansimask & MASK_BLACK )
+                    if ( mudconf.global_ansimask & MASK_BLACK ) {
                         safe_str((char *) ANSI_BLACK, buff, &bufc);
+                        safe_str((char *) ANSI_BLACK, buff2, &bufc2);
+                    }
                     break;
                 case 'X':
-                    if ( mudconf.global_ansimask & MASK_BBLACK )
+                    if ( mudconf.global_ansimask & MASK_BBLACK ) {
                         safe_str((char *) ANSI_BBLACK, buff, &bufc);
+                        safe_str((char *) ANSI_BBLACK, buff2, &bufc2);
+                    }
                     break;
                 case 'r':
-                    if ( mudconf.global_ansimask & MASK_RED )
+                    if ( mudconf.global_ansimask & MASK_RED ) {
                         safe_str((char *) ANSI_RED, buff, &bufc);
+                        safe_str((char *) ANSI_RED, buff2, &bufc2);
+                    }
                     break;
                 case 'R':
-                    if ( mudconf.global_ansimask & MASK_BRED )
+                    if ( mudconf.global_ansimask & MASK_BRED ) {
                         safe_str((char *) ANSI_BRED, buff, &bufc);
+                        safe_str((char *) ANSI_BRED, buff2, &bufc2);
+                    }
                     break;
                 case 'g':
-                    if ( mudconf.global_ansimask & MASK_GREEN )
+                    if ( mudconf.global_ansimask & MASK_GREEN ) {
                         safe_str((char *) ANSI_GREEN, buff, &bufc);
+                        safe_str((char *) ANSI_GREEN, buff2, &bufc2);
+                    }
                     break;
                 case 'G':
-                    if ( mudconf.global_ansimask & MASK_BGREEN )
+                    if ( mudconf.global_ansimask & MASK_BGREEN ) {
                         safe_str((char *) ANSI_BGREEN, buff, &bufc);
+                        safe_str((char *) ANSI_BGREEN, buff2, &bufc2);
+                    }
                     break;
                 case 'y':
-                    if ( mudconf.global_ansimask & MASK_YELLOW )
+                    if ( mudconf.global_ansimask & MASK_YELLOW ) {
                         safe_str((char *) ANSI_YELLOW, buff, &bufc);
+                        safe_str((char *) ANSI_YELLOW, buff2, &bufc2);
+                    }
                     break;
                 case 'Y':
-                    if ( mudconf.global_ansimask & MASK_BYELLOW )
+                    if ( mudconf.global_ansimask & MASK_BYELLOW ) {
                         safe_str((char *) ANSI_BYELLOW, buff, &bufc);
+                        safe_str((char *) ANSI_BYELLOW, buff2, &bufc2);
+                    }
                     break;
                 case 'b':
-                    if ( mudconf.global_ansimask & MASK_BLUE )
+                    if ( mudconf.global_ansimask & MASK_BLUE ) {
                         safe_str((char *) ANSI_BLUE, buff, &bufc);
+                        safe_str((char *) ANSI_BLUE, buff2, &bufc2);
+                    }
                     break;
                 case 'B':
-                    if ( mudconf.global_ansimask & MASK_BBLUE )
+                    if ( mudconf.global_ansimask & MASK_BBLUE ) {
                         safe_str((char *) ANSI_BBLUE, buff, &bufc);
+                        safe_str((char *) ANSI_BBLUE, buff2, &bufc2);
+                    }
                     break;
                 case 'm':
-                    if ( mudconf.global_ansimask & MASK_MAGENTA )
+                    if ( mudconf.global_ansimask & MASK_MAGENTA ) {
                         safe_str((char *) ANSI_MAGENTA, buff, &bufc);
+                        safe_str((char *) ANSI_MAGENTA, buff2, &bufc2);
+                    }
                     break;
                 case 'M':
-                    if ( mudconf.global_ansimask & MASK_BMAGENTA )
+                    if ( mudconf.global_ansimask & MASK_BMAGENTA ) {
                         safe_str((char *) ANSI_BMAGENTA, buff, &bufc);
+                        safe_str((char *) ANSI_BMAGENTA, buff2, &bufc2);
+                    }
                     break;
                 case 'c':
-                    if ( mudconf.global_ansimask & MASK_CYAN )
+                    if ( mudconf.global_ansimask & MASK_CYAN ) {
                         safe_str((char *) ANSI_CYAN, buff, &bufc);
+                        safe_str((char *) ANSI_CYAN, buff2, &bufc2);
+                    }
                     break;
                 case 'C':
-                    if ( mudconf.global_ansimask & MASK_BCYAN )
+                    if ( mudconf.global_ansimask & MASK_BCYAN ) {
                         safe_str((char *) ANSI_BCYAN, buff, &bufc);
+                        safe_str((char *) ANSI_BCYAN, buff2, &bufc2);
+                    }
                     break;
                 case 'w':
-                    if ( mudconf.global_ansimask & MASK_WHITE )
+                    if ( mudconf.global_ansimask & MASK_WHITE ) {
                         safe_str((char *) ANSI_WHITE, buff, &bufc);
+                        safe_str((char *) ANSI_WHITE, buff2, &bufc2);
+                    }
                     break;
                 case 'W':
-                    if ( mudconf.global_ansimask & MASK_BWHITE )
+                    if ( mudconf.global_ansimask & MASK_BWHITE ) {
                         safe_str((char *) ANSI_BWHITE, buff, &bufc);
+                        safe_str((char *) ANSI_BWHITE, buff2, &bufc2);
+                    }
                     break;
                 default:
-#ifdef TINY_SUB
-                    safe_str("%x", buff, &bufc);
-#else
-                    safe_str("%c", buff, &bufc);
-#endif
+                    safe_str((char *)SAFE_CHRST, buff, &bufc);
                     safe_chr(*string, buff, &bufc);
+                    safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                    safe_chr(*string, buff2, &bufc2);
                     break;
                 }
             }
         } else {
+            if ( accent_toggle ) {
+               ch1 = AccentCombo1[(int)*string];
+               if ( ch1 > 0 ) {
+                  ch = AccentCombo3[(int)(ch1 - 1)][(int)ch2];
+                  if ( !mux_isprint[(int)ch] ) 
+                     safe_chr(*string, buff2, &bufc2);
+                  else
+                     safe_chr(ch, buff2, &bufc2);
+               } else {
+                  safe_chr(*string, buff2, &bufc2);
+               }
+            } else {
+               safe_chr(*string, buff2, &bufc2);
+            }
             safe_chr(*string, buff, &bufc);
         }
         if ( *string )
@@ -818,7 +840,9 @@ void parse_ansi(char *string, char *buff, char **bufptr)
     }
     // toss in the normal
     safe_str(ANSI_NORMAL, buff, &bufc); 
+    safe_str(ANSI_NORMAL, buff2, &bufc2); 
     *bufptr = bufc;
+    *buf2ptr = bufc2;
 }
 
 #endif
@@ -836,11 +860,11 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr;
-    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb;
+    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
     static char tfunbuff[33];
     dbref aowner, twhere, sub_aowner;
-    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags;
-    int is_trace, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
+    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start;
+    int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
     FUN *fp;
     UFUN *ufp;
     ATTR *sub_ap;
@@ -863,7 +887,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     DPUSH; /* #67 */
 		
-    feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
+    i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
     w = 0;
     mudstate.evalcount++;
 
@@ -925,6 +949,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     gender = -1;
     alldone = 0;
     is_trace = Trace(player) && !(eval & EV_NOTRACE);
+    if ( mudstate.notrace )
+       is_trace = 0;
     is_top = 0;
     mudstate.eval_rec++;
 
@@ -939,6 +965,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     if (index(dstr, ESC_CHAR)) {
 	strcpy(dstr, strip_ansi(dstr));
     }
+//fprintf(stderr, "EXECValue: %s\n", dstr);
+
     while (*dstr && !alldone) {
       if ( mudstate.curr_percentsubs < mudconf.max_percentsubs )
 	switch (*dstr) {
@@ -959,13 +987,22 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    dstr++;
 #ifdef ZENTY_ANSI
             // If the caracter after the \ is a commenting char, keep it
-            if((*dstr == '\\') || (*dstr == '%'))
+//          if((*dstr == '\\') || (*dstr == '%'))
+//             safe_chr('\\', buff, &bufc);
+#endif
+//          if ((*dstr == '%') && (*(dstr+1) == SAFE_CHR))
+//             safe_chr('\\', buff, &bufc);
+            if ( !i_start && mudstate.start_of_cmds && (*dstr == '\\') ) {
+#ifdef ZENTY_ANSI
                safe_chr('\\', buff, &bufc);
 #endif
+               mudstate.start_of_cmds = 0;
+            }
 	    if (*dstr)
                safe_chr(*dstr, buff, &bufc);
 	    else
                dstr--;
+            mudstate.start_of_cmds = 1;
 	    break;
 	case '[':
             mudstate.stack_val++;
@@ -1048,16 +1085,13 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		break;
 #ifdef ZENTY_ANSI            
             case '\\':
-            safe_str("%\\", buff, &bufc);
+/*          safe_str("%\\", buff, &bufc); */
+            safe_chr('\\', buff, &bufc);
             break;
 #endif
 	    case '%':		/* Percent - a literal % */
 #ifdef ZENTY_ANSI            
-#ifdef TINY_SUB
-               if(*(dstr + 1) == 'x')
-#else
-               if(*(dstr + 1) == 'c')
-#endif
+               if(*(dstr + 1) == SAFE_CHR)
                   safe_str("%%", buff, &bufc);
                else if ( *(dstr + 1) == 'f' )
                   safe_str("%%", buff, &bufc);
@@ -1098,11 +1132,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 // Leave the ansi code intact
                 if(!(eval & EV_PARSE_ANSI)) {        
                     safe_chr('%', buff, &bufc);
-#ifdef TINY_SUB
-                    safe_chr('x', buff, &bufc);
-#else
-                    safe_chr('c', buff, &bufc);
-#endif
+                    safe_chr(SAFE_CHR, buff, &bufc);
                     break;
                 }
 #endif
@@ -1204,7 +1234,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		}
 		break;
             case '<':		/* High-Bit/UTF8 characters */
-                safe_str("%%<", buff, &bufc);
+                safe_str("%<", buff, &bufc);
                 break;
             case 'f':		/* Accents */
             case 'F':	
@@ -1618,6 +1648,77 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
             }
             break;
+	    case 'K':		/* Invoker name */
+	    case 'k':
+                /* We don't use sub_aowner or sub_aflags here so we don't care if they get clobbered  */
+                t_bufa = atr_pget(cause, A_ANSINAME, &sub_aowner, &sub_aflags);
+                t_bufb = NULL;
+                if ( !ExtAnsi(cause) ) {
+                   t_bufb = parse_ansi_name(cause, t_bufa);
+                }
+                if ( strcmp(Name(cause), strip_all_special(t_bufa)) != 0 ) {
+                   free_lbuf(t_bufa);
+                   t_bufa = alloc_lbuf("normal name here");
+                   strcpy(t_bufa, Name(cause));
+                }
+                t_bufc = alloc_sbuf("ansi_normal");
+#ifdef ZENTY_ANSI
+                strcpy(t_bufc, SAFE_ANSI_NORMAL);
+#else
+                strcpy(t_bufc, ANSI_NORMAL);
+#endif
+                if ( (mudconf.sub_override & SUB_K) && !(mudstate.sub_overridestate & SUB_K) && Good_obj(mudconf.hook_obj) ) {
+                   sub_ap = atr_str("SUB_K");
+                   if (!sub_ap) {
+                      if ( t_bufb ) {
+                         safe_str(t_bufb, buff, &bufc);
+                         safe_str(Name(cause), buff, &bufc);
+                         safe_str(t_bufc, buff, &bufc);
+                      } else {
+                         safe_str(t_bufa, buff, &bufc);
+                      }
+                   } else {
+                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
+                      if ( !sub_txt ) {
+                         if ( t_bufb ) {
+                            safe_str(t_bufb, buff, &bufc);
+                            safe_str(Name(cause), buff, &bufc);
+                            safe_str(t_bufc, buff, &bufc);
+                         } else {
+                            safe_str(t_bufa, buff, &bufc);
+                         }
+                      } else {
+                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_K;
+		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         if ( !*sub_buf ) {
+                            if ( t_bufb ) {
+                               safe_str(t_bufb, buff, &bufc);
+                               safe_str(Name(cause), buff, &bufc);
+                               safe_str(t_bufc, buff, &bufc);
+                            } else {
+                               safe_str(t_bufa, buff, &bufc);
+                            }
+                         } else
+                            safe_str(sub_buf, buff, &bufc);
+                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_K;
+                         free_lbuf(sub_txt);
+                         free_lbuf(sub_buf);
+                      }
+                   }
+                } else {
+                   if ( t_bufb ) {
+                      safe_str(t_bufb, buff, &bufc);
+                      safe_str(Name(cause), buff, &bufc);
+                      safe_str(t_bufc, buff, &bufc);
+                   } else {
+                      safe_str(t_bufa, buff, &bufc);
+                   }
+                }
+                free_lbuf(t_bufa);
+                free_sbuf(t_bufc);
+                if ( t_bufb )
+                   free_lbuf(t_bufb);
+		break;
 	    case 'N':		/* Invoker name */
 	    case 'n':
                 if ( (mudconf.sub_override & SUB_N) && !(mudstate.sub_overridestate & SUB_N) && Good_obj(mudconf.hook_obj) ) {
@@ -1950,6 +2051,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             if ( ufp && (ufp->perms & CA_EVAL) ) {
                 feval = (feval | EV_EVAL | EV_STRIP);
             }
+            if ( ufp && (ufp->flags & FN_NOTRACE) ) {
+                feval = (feval | EV_NOTRACE);
+            }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
 				 ')', feval, fargs, nfargs,
 				 cargs, ncargs);
@@ -2062,8 +2166,14 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        }
                     }
 		    mudstate.allowbypass = 1;
-		    tbuf = exec(i, cause, player, feval,
-				tstr, fargs, nfargs);
+                    if ( ufp->flags & FN_NOTRACE ) {
+                       is_trace_bkup = mudstate.notrace;
+                       mudstate.notrace = 1;
+                    }
+		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs);
+                    if ( ufp->flags & FN_NOTRACE ) {
+                       mudstate.notrace = is_trace_bkup;
+                    }
 		    mudstate.allowbypass = 0;
                     if ( ufp->flags & FN_PRES ) {
                        for (z = 0; z < MAX_GLOBAL_REGS; z++) {
@@ -2228,6 +2338,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    safe_chr(*dstr, buff, &bufc);
 	}
 	dstr++;
+        i_start++;
     }
 
     /* If we're eating spaces, and the last thing was a space,

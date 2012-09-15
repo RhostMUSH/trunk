@@ -364,6 +364,7 @@ NAMETAB function_sw[] =
     {(char *) "display", 2, CA_WIZARD, 0, FN_DISPLAY},
     {(char *) "minimum", 2, CA_WIZARD, 0, FN_MIN},
     {(char *) "maximum", 2, CA_WIZARD, 0, FN_MAX},
+    {(char *) "notrace", 2, CA_WIZARD, 0, FN_NOTRACE|SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB genhelp_sw[] =
@@ -645,9 +646,17 @@ NAMETAB drain_sw[] =
     {NULL, 0, 0, 0, 0}};
 
 
+NAMETAB sudo_sw[] =
+{
+    {(char *) "globalize", 2, CA_PUBLIC, 0, SUDO_GLOBAL},
+    {(char *) "clearregs", 2, CA_PUBLIC, 0, SUDO_CLEAR},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB include_sw[] =
 {
-    {(char *) "command", 1, CA_PUBLIC, 0, INCLUDE_COMMAND},
+    {(char *) "command", 2, CA_PUBLIC, 0, INCLUDE_COMMAND},
+    {(char *) "localize", 2, CA_PUBLIC, 0, INCLUDE_LOCAL | SW_MULTIPLE},
+    {(char *) "clearregs", 2, CA_PUBLIC, 0, INCLUDE_CLEAR | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB notify_sw[] =
@@ -1217,7 +1226,7 @@ CMDENT command_table[] =
 #endif
     {(char *) "@stats", stats_sw, 0, CA_NO_CODE,
      0, CS_ONE_ARG | CS_INTERP, 0, do_stats},
-    {(char *) "@sudo", NULL, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
+    {(char *) "@sudo", sudo_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
     {(char *) "@sweep", sweep_sw, 0, 0,
      0, CS_ONE_ARG, 0, do_sweep},
     {(char *) "@switch", switch_sw, CA_GBL_INTERP, CA_NO_CODE,
@@ -2396,7 +2405,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, boot_cnt, i_loc;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, boot_cnt, i_loc, i_trace;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *s_logroom, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -2418,6 +2427,8 @@ process_command(dbref player, dbref cause, int interactive,
     cval = cval2 = 0;
     mudstate.func_bypass = 0;
     mudstate.shifted = 0;
+    mudstate.notrace = 0;
+    mudstate.start_of_cmds = 0;
     succ = i_fndexit = 0;
     s_logroom = NULL;
     cache_reset(0);
@@ -2826,6 +2837,10 @@ process_command(dbref player, dbref cause, int interactive,
        cval2 =  zigcheck(player, prefix_cmds[i]->perms);
     else
        cval2 = 0;
+
+    if (command[0] == '\\')
+       mudstate.start_of_cmds=1;
+
     if ( !cval && !cval2 && (prefix_cmds[i] != NULL) && (prefix_cmds[i]->hookmask & (HOOK_IGNORE|HOOK_PERMIT)) && 
          Good_obj(mudconf.hook_obj) && !Recover(mudconf.hook_obj) && 
          !Going(mudconf.hook_obj) ) {
@@ -4073,9 +4088,13 @@ process_command(dbref player, dbref cause, int interactive,
                }
                lcbuf = atr_get(mudconf.global_error_obj, A_VA, &aowner2, &aflags2);
                mudstate.nocodeoverride = 1;
+               i_trace = 0;
+               i_trace = mudstate.notrace;
+               mudstate.notrace = 1;
                lcbuf_temp = exec(mudconf.global_error_obj, cause, cause, 
                                  EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, lcbuf,
                                  arr_prog, narg_prog );
+               mudstate.notrace = i_trace;
                mudstate.nocodeoverride = 0;
                notify(player, lcbuf_temp);
                free_lbuf(lcbuf);
@@ -8406,8 +8425,8 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_comman
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
-   char *retbuff, *cp;
-   int old_trainmode;
+   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
+   int old_trainmode, x;
 
    if ( mudstate.sudo_cntr >= 1 ) {
       notify(player, "You can't nest @sudo.");
@@ -8428,17 +8447,36 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       notify(player, "Permission denied.");
       return;
    }
+
    mudstate.sudo_cntr++;
    old_trainmode=mudstate.trainmode;
-// if ( desc_in_use == NULL ) {
-//    mudstate.trainmode = 1;
-// }
+
+   if ( !(key & SUDO_GLOBAL) || (key & INCLUDE_CLEAR) ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         savereg[x] = alloc_lbuf("ulocal_reg");
+         pt = savereg[x];
+         safe_str(mudstate.global_regs[x],savereg[x],&pt);
+         if ( key & SUDO_CLEAR ) {
+            *mudstate.global_regs[x] = '\0';
+         }
+      }
+   }
+
    while (s_command) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
          process_command(target, target, 1, cp, args, nargs, 0);
       }
    }
+
+   if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         pt = mudstate.global_regs[x];
+         safe_str(savereg[x],mudstate.global_regs[x],&pt);
+         free_lbuf(savereg[x]);
+      }
+   }
+
    /* process_command(target, target, 1, s_command, args, nargs, 0); */
    mudstate.trainmode = old_trainmode;
    mudstate.sudo_cntr--;
@@ -10199,7 +10237,7 @@ internal_logstatus( void )
 void
 do_blacklist(dbref player, dbref cause, int key, char *name) 
 {
-   char *s_buff, *s_buffptr;
+   char *s_buff, *s_buffptr, *tmpbuff;
    int i_loop_chk, i_page, i_page_val, i_invalid;
    struct in_addr in_tempaddr, in_tempaddr2;
    FILE *f_in;
@@ -10227,6 +10265,8 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             break;
          }
          s_buffptr = s_buff = alloc_lbuf("do_blacklistLBUF");
+         tmpbuff = alloc_lbuf("do_blacklistLBUF2");
+         memset(tmpbuff, '\0', LBUF_SIZE);
          i_loop_chk=0;
          b_lst_ptr = mudstate.bl_list;
          notify(player, "==============================================================================");
@@ -10244,15 +10284,18 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                if ( !*s_buff ) {
                   sprintf(s_buff, "   %-18s", (char *)inet_ntoa(b_lst_ptr->site_addr));
                } else {
-                  sprintf(s_buff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                }
             } else {
-               sprintf(s_buff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+               sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+               memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                notify(player, s_buff);
                memset(s_buff, '\0', LBUF_SIZE);
             }
             b_lst_ptr = b_lst_ptr->next;
          } 
+         free_lbuf(tmpbuff);
          if ( (i_loop_chk % 4) != 0 ) {
             notify(player, s_buff);
          }

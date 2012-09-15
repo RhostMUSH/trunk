@@ -169,6 +169,8 @@
 #ifdef ZENTY_ANSI
 #ifdef TINY_SUB
 /* Begin %x subs */
+#define SAFE_CHR	'x'
+#define SAFE_CHRST	"%x"
 #define SAFE_ANSI_NORMAL  "%xn"
 
 #define SAFE_ANSI_HILITE   "%xh"
@@ -205,6 +207,8 @@
 #define SAFE_ANSI_BWHITE	"%xW"
 #else
 /* Begin %c subs */
+#define SAFE_CHR	'c'
+#define SAFE_CHRST	"%c"
 #define SAFE_ANSI_NORMAL  "%cn"
 
 #define SAFE_ANSI_HILITE   "%ch"
@@ -266,6 +270,7 @@ static char isAnsi[256] =
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0  // F
 };
 #endif
+
 
 #endif
 #endif

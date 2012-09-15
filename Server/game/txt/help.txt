@@ -5364,7 +5364,7 @@
   See Also: @away, @reject, page
   
 & @sudo
-  Command: @sudo <target>=<command>
+  Command: @sudo[</switch>] <target>=<command>
   
   The @sudo allows you to execute a command through the target.  This is done
   through the normal command processor and while similiar permissions to
@@ -5372,7 +5372,12 @@
   can you @sudo to something you have no control over.  @sudo performs the
   action according to the target's viewpoint, including location.  @sudo
   only works on a single command.  If you wish to @sudo multiple commands,
-  use in junction with @include.
+  use in junction with @include.  By default, all registers altered during
+  the @sudo are considered local.
+  
+  Available switches:
+    /globalize -- treat registers to target as non-localized.  Dangerous.
+    /clearregs -- clear the registers of the default localized registers.
   
   Examples:
     > @sudo *player=say boo
@@ -5427,7 +5432,10 @@
   can only nest to 3 levels deep.
   
   The following switches exist for @include:
-    /command - bypass the $command/^listen portion of the attribute.
+    /command   - bypass the $command/^listen portion of the attribute.
+    /clearregs - clear the registers prior to calling included attribute.
+                 Note: this automatically sets the localize option.
+    /localize  - localizes the registers for the include duration.
     
   {see @include2 for examples}
 
@@ -7219,7 +7227,7 @@
   the ANSI and ANSICOLOR flags, this will allow 256 ansi color support using
   the XTERM color pallet to be sent to the player's terminal.
   
-  You need all three flags:  ANSI, ANSICOLOR, and XTEMRCOLOR to see extended.
+  You need all three flags:  ANSI, ANSICOLOR, and XTERMCOLOR to see extended.
   
   See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
 
@@ -8277,9 +8285,9 @@
  CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
  CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()   
  CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
- CLUSTER_XGET()       CMDS()             COLORS()           COLUMNS()        
- COMP()               CON()              CONFIG()           CONN()           
- CONTROLS()           CONVSECS()    
+ CLUSTER_XGET()       CMDS()             CNAME()            COLORS()         
+ COLUMNS()            COMP()             CON()              CONFIG()         
+ CONN()               CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -8468,13 +8476,13 @@
   Logical:            AND() MASK() NAND() NOR() OR() XOR() XNOR() CAND() COR()
             See Also: help logical functions
   
-  Miscellaneous:      ASC() CHR() ERROR() LOCALIZE() MOON() NAMEQ() NULL() 
-                      PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() SETQ()
-                      SETQ_OLD() SETQMATCH() SETR() SETR_OLD() SOUNDEX() 
-                      SOUNDLIKE() TRACE()
+  Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCALIZE() MOON() NAMEQ() 
+                      NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
+                      SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD() 
+                      SOUNDEX() SOUNDLIKE() TRACE()
             See Also: help miscellaneous functions
   
-  Object Information: APOSS() ART() ATTRCNT() CONTROLS() DEFAULT() 
+  Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
                       EDEFAULT() ELOCK() FULLNAME() GET() GET_EVAL() 
                       GRAB() GRABALL() GREP() GUILD() HASATTR() HASATTRP() 
                       HASFLAG() HASTOGGLE() HASTYPE() HOME() LASTCREATE() 
@@ -8874,6 +8882,7 @@
     %p, %P  = Name's, his, her, its, their.   (possessive)
     %a, %A  = Name's, his, hers, its, theirs. (absolute possessive)
     %n, %N  = the player's name.
+    %K, %K  = the player's colorized/accented name.
     %r      = carriage return.
     %t      = tab character.
     %b      = space character.
@@ -9702,8 +9711,12 @@
          & - process carrage returns and keep in same column field.  This
              will break up lines based on carrage returns (%r) and keep
              formatted into the same column specified in the format.
-         : - will specify filler character for what is between the ::'s.
-             example: :.:
+         : - will specify filler characters for what is between the ::'s.
+             If the string starts with '!', any blank lines will have a
+             space filler.  You must specify two ':'s for begining/end tags.
+               examples: :.:  -- fill with a single '.'
+                         :!.: -- fill with a single '.' on non-blank lines.
+                         :[ansi(hg,.,hb,.)]: -- fill with multi-color.
       Value fields:
          1-3000 - format value to padd
          0 - if prepending a number, tells it to padd 0's.
@@ -9747,6 +9760,44 @@
                                            |11 12 13 14 |
                                            |15 16 17 18 |
                                            |19          |
+  
+{ 'help printf examples2' for more examples }
+
+& PRINTF EXAMPLES2
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Examples: (continued)
+    > &dropcap me=%b_______%r|__%b%b%b__|%r%b%b%b|%b|%r%b%b%b|_|
+    > &story me=%r'was the night before Christmas, when all through the house%r
+                Not a creature was stirring, not even a mouse.%r
+                The stockings were hung by the chimney with care,%r
+                In hopes that St Nicholas soon would be there.
+    > @emit printf($&-9s $&-68s,ansi(ch,u(dropcap)),u(story))
+     _______                                                                      
+    |__   __| 'was the night before Christmas, when all through the house         
+       | |    Not a creature was stirring, not even a mouse.                      
+       |_|    The stockings were hung by the chimney with care,                   
+              In hopes that St Nicholas soon would be there.    
+    
+    Note: The large 'T' will be in highlighted cyan.
+  
+    > @emit printf($1&s$:[ansi(+purple,+,hb,.,g,-,+orange,`,+indianred,~)]:&_50s
+                   $1&s,ansi(+pink,@%r@%r@),ansi(hu+red,A B C 1 2 3%r1),
+                   ansi(+pink,@%r@%r@))
+  
+    @A.-`~+.-`~B.-`~+.-`~C.-`~+.-`~1.-`~+.-`~2.-`~+.-`3@
+    @+.-`~+.-`~+.-`~+.-`~+.-`1+.-`~+.-`~+.-`~+.-`~+.-`~@
+    @+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~+.-`~@
+  
+    Note: The '@' on the outside are pink.
+          The '+' are purple.
+          The '.' are blue highlight.
+          The '-' are green.
+          The '`' are orange.
+          The '~' are indian red.
+          The 'A B C 1 2 3' and the '1' are justified across 50 characters.
+              -- They are also underscored and highlighted red.
+              -- Padding is aligned properly.
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
@@ -11368,6 +11419,10 @@ See Also: timefmt()
   > say chr(97)
   You say "a"
   
+  Note:  Using chr() on 37, 92, and any character between 160 and 255
+         will padd out any padding you have by an additional 5 characters
+         per use.  Please plan accordingly.
+    
   See Also: ASC()
   
 & ASC()
@@ -12664,9 +12719,22 @@ See Also: timefmt()
   
   See Also: @chown
   
+& CNAME()
+  cname(<dbref>)
+   
+  This function returns the name of the indicated object with any special
+  colorization or accents that they may have.  When called with an exit 
+  it returns the only the first alias.
+  
+  Example:
+    > say cname(me)
+    You say "TinyPlayer"  (this would be colorized and/or accented)
+   
+  See Also: fullname(), @alias, @name, name()
+
 & NAME()
   name(<dbref>[,<newname>])
- 
+   
   This function returns the name of the indicated object.  When called with
   an exit it returns the only the first alias.
   
@@ -12679,7 +12747,7 @@ See Also: timefmt()
     > say name(me)
     You say "TinyPlayer"
    
-  See Also: fullname(), @alias, @name
+  See Also: fullname(), @alias, @name, cname()
   
 & FULLNAME()
   Function: fullname(<dbref>)
@@ -12701,7 +12769,7 @@ See Also: timefmt()
     > say fullname(#123)
     You say "An Exit <AE>;ae;an exit;exit"
   
-  See Also: name(), @alias, @name
+  See Also: name(), @alias, @name, cname()
   
 & NEXT()
   next(<thing>)
@@ -14671,7 +14739,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   is similar to that of iter(), except it takes it as a character by 
   character basis instead of a word by word basis.  The special substitution
   of '##' is used for the current item of the list.  #@ is used for the
-  positional match of that item in that list.
+  positional match of that item in that list.  This is similar to 
+  the explode function found on other mushes or in PHP.
   
   Examples:
     > say citer(boo!,##)
@@ -18952,6 +19021,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See 'XTERMCOLOR LIST' for the 256 color list.
   
 { 'help ansi2' for more -- The 256 Color Support}
+{ 'help ansi quirks' for work arounds on weird ansi problems}
 
 & ANSI2
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -18991,6 +19061,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   0x## is foreground, and 0X## is background when using percent substitutions.
      
 { 'help ansi3' for more -- about XTERMCOLOR and ANSI examples }
+{ 'help ansi quirks' for work arounds on weird ansi problems}
   
 & ANSI3
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -19029,6 +19100,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   code is entered (the %cn).
    
 { 'help ansi4' for more -- Flags required and information }
+{ 'help ansi quirks' for work arounds on weird ansi problems}
 
 & ANSI4
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -19044,9 +19116,46 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Check '@list options' on the server you are on to see if this has
   been reversed or not.
   
-  See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, SUBSTITUTIONS,
-            XTERMCOLOR LIST, COLORS()
+  See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+
+{ 'help ansi quirks' for work arounds on weird ansi problems}
   
+& ANSI QUIRKS
+  Function: ansi(<codes>,<string>)   -- CONTINUED
+            ansi(<FG>/<BG>,<string>) -- CONTINUED
+  
+  Ansi, since all special characters (including those accented!) are passed 
+  around the parser as % codes (%c/%x/%f), and the parser USES %'s and \'s 
+  as escape codes, this means that when you try to ansi backslashes (\) or 
+  percents (%) the parser and ansi-translater could misinterprete your 
+  intention as escaping out that ansi and not actually mean colorize my 
+  escape character. 
+  
+  Don't worry!  Not all is lost!  You may specify the percent(%) character 
+  as chr(37) and the backslash(\) as chr(92) and these will be passed 
+  through the parser as 'special' substitutions, meaning once it hits the 
+  ansi-translater, you get to see your percent and/or backslash in the nice 
+  pretty color you wanted.  The percent and backslash issue usually only 
+  happens when it's at the very end of the string you are trying to colorize 
+  or accent.  
+  
+  Also, any use of chr() will padd out any alignment by 5 characters.  So any
+  that you use, make sure to padd out by the additional 5 per use.
+  
+  Examples:
+    > say ansi(hr,\\)
+    You say "\%cn"                             (the \%cn is highlight red)
+    > say ansi(hr,chr(92))
+    You say "\"                                (the \ is highlight red)
+    > say ansi(hr,%%)
+    You say "%cn"                              (the %cn is highlight red)
+    > say ansi(hr,chr(37))                     
+    You say "%"                                (the % is highlight red)
+    
+  See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+
 & STRIPANSI()
   Function: stripansi(<string>)
   
@@ -23323,6 +23432,7 @@ Mail: Done
   aposs()       - Returns the absolute possessive pronoun of an object.
   art()         - Returns the article proper for the word.
   attrcnt()     - Returns the number of attributes on an object.
+  cname()       - Returns the colorized/accented name of the target.
   controls()    - Returns true if object2 controls object1
   default()     - Returns the value of obj/attr if readable, or a default.
   edefault()    - Like default(), but evaluates like get_eval()
@@ -23677,7 +23787,7 @@ Current Revision: 3.9.3p0
 Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
-  3.9.3: 3.9.3p0, 3.9.3p1
+  3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -23875,7 +23985,7 @@ Bug Fixes
 & 3.9.3p1
 Release Date: 06/20/12
 Status: Alpha
-
+  
 New Features
 ------------
 * added nslookup() for immortals with proper CPU/delay protection [ASH]
@@ -23900,7 +24010,41 @@ Changes
 * colors() has the 'x' option to display #FFFFFF format [ASH]
 * colors() has the 'r' option to display R G B format [ASH]
 * @sudo, @skip handle multiple arguments now [ASH]
-
+  
 Bug Fixes
 ---------
 * the asksource.sh script broke on ubuntu because it didn't have slocate
+
+& 3.9.3p2
+
+Release Date: 08/10/12
+Status: Alpha
+  
+New Features
+------------
+* ansi() engine totally rewritten to better utilize and optimize [ASH]
+* NOTRACE switch to @function to disabling tracing of global functions [ASH]
+* cname() for colorized/accented names [ASH]
+* %k (works like %n but the colorized/accented name) [ASH]
+  
+Changes
+-------
+* printf() handles multi-character filler and filler is ANSI-aware [ASH]
+* printf() for :: padding optionally put spaces for 'blank lines' [ASH]
+* enabled QDBM database support right out of the config script [ASH]
+* @funciton/list and /display displays functions tagged NOTRACE [ASH]
+* global errors can no longer be traced [ASH]
+* Rewrote ansi and accent parser to be faster and single-parsed [ASH]
+* added /localize and /clearregs to @include for Penn compat. [ASH]
+* added /globalize and /clearregs to @sudo. [ASH]
+  
+Bug Fixes
+---------
+* printf() had a color clobbering affect in certain circumstances [ASH]
+* printf() had an off by one alignment issue with justification [ASH]
+* fixed up some library lookup code in the asksource.sh script [ASH]
+* fixed the random dissapearing backslash issue [ASH]
+* secured @sudo for registers. [ASH]
+* % or \ at the end of an ansified string could escape out ansi [ASH]
+  fix for this is allowing % and \ as special chr() input.
+* \\ for emits didn't work properly [ASH]

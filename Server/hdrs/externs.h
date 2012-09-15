@@ -93,8 +93,7 @@ extern char *	FDECL(parse_arglist, (dbref, dbref, dbref, char *, char, int,
 			char *[], int, char*[], int));
 extern int	FDECL(get_gender, (dbref));
 #ifdef ZENTY_ANSI
-extern void     FDECL(parse_ansi, (char *, char *, char **));
-extern void     FDECL(parse_accents, (char *, char *, char **));
+extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **));
 extern int      FDECL(parse_comments, (char *, char *, char **));
 #endif
 extern char *	FDECL(exec, (dbref, dbref, dbref, int, char *, char *[], int));
@@ -872,6 +871,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define TRIG_PROGRAM    2       /* Trigger is actually a @program */
 #define TRIG_COMMAND    4       /* Can Trigger $commands */
 #define INCLUDE_COMMAND	1	/* Can @insert trigger $commands */
+#define INCLUDE_LOCAL	2	/* Localize all the @included foo */
+#define INCLUDE_CLEAR	4	/* Clear the attributes locally */
+#define SUDO_GLOBAL	1	/* Reverse of localized */
+#define SUDO_CLEAR	2	/* Clear registers */
 #define	TWARP_QUEUE	1	/* Warp the wait and sem queues */
 #define	TWARP_DUMP	2	/* Warp the dump interval */
 #define	TWARP_CLEAN	4	/* Warp the cleaning interval */
@@ -950,6 +953,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SUB_C           0x00000800
 #define SUB_X           0x00001000
 #define SUB_F		0x00002000
+#define SUB_K		0x00004000
 
 /* Message forwarding directives */
 

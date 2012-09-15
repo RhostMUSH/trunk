@@ -45,6 +45,7 @@ typedef struct ufun {
 #define FN_PROTECT    256	/* Private the variables - assumes FN_PRES */
 #define FN_MIN        512	/* Min value */
 #define FN_MAX       1024       /* Max value */
+#define FN_NOTRACE   2048	/* Do not trace @function */
 
 extern void	NDECL(init_functab);
 extern void	FDECL(list_functable, (dbref));

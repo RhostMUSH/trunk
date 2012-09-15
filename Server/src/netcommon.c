@@ -137,11 +137,7 @@ strip_safe_ansi(const char *raw)
            ((*(p+1) == '\\') || (*(p+1) == '%')))
             p++;
 
-#ifdef TINY_SUB
-        if( (*p == '%') && (*(p+1) == 'x') ) {
-#else
-        if( (*p == '%') && (*(p+1) == 'c') ) { 
-#endif 
+        if( (*p == '%') && (*(p+1) == SAFE_CHR) ) {
            if ( isAnsi[(int) *(p+2)] ) {
               p+=3;
               continue;
@@ -171,11 +167,7 @@ strip_all_special(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-#ifdef TINY_SUB
-        if ( (*p == '%') && (*(p+1) == 'x') ) { 
-#else
-        if(  (*p == '%') && (*(p+1) == 'c') ) {
-#endif
+        if ( (*p == '%') && (*(p+1) == SAFE_CHR) ) { 
            if ( isAnsi[(int) *(p+2)]) {
               p+=3; // strip safe ansi
               continue;
@@ -211,11 +203,7 @@ strip_all_ansi(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-#ifdef TINY_SUB
-        if( (*p == '%') && (*(p+1) == 'x') ) { 
-#else
-        if( (*p == '%') && (*(p+1) == 'c') ) {
-#endif 
+        if( (*p == '%') && (*(p+1) == SAFE_CHR) ) { 
            if ( isAnsi[(int) *(p+2)] ) {
               p+=3; // strip safe ansi
               continue;
@@ -1470,9 +1458,9 @@ raw_broadcast(va_alist)
 
 #ifdef ZENTY_ANSI   
     mptr = message = alloc_lbuf("raw_broadcast_message");
-    parse_ansi( (char *) buff, message, &mptr);
     mp_ns2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-    parse_accents((char *) message, msg_ns2, &mp_ns2);
+    parse_ansi( (char *) buff, message, &mptr, msg_ns2, &mp_ns2);
+    *mp_ns2 = '\0';
 #endif   
     strcpy(antemp, ANSI_NORMAL);
     DESC_ITER_CONN(d) {
@@ -2743,15 +2731,15 @@ dump_users(DESC * e, char *match, int key)
 	if (mudconf.who_default) {
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
-	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp);
+           mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
+	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+           *mp2 = '\0';
            if ( Accents(e->player) ) {
-              mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-              parse_accents((char *) abuf, msg_ns2, &mp2);
 	      queue_string(e, msg_ns2);
-              free_lbuf(msg_ns2);
            } else {
 	      queue_string(e, strip_safe_accents(abuf));
            }
+           free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
 	   queue_string(e, mudstate.ng_doing_hdr);
@@ -2760,17 +2748,17 @@ dump_users(DESC * e, char *match, int key)
            tprp_buff = tpr_buff;
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
-	   parse_ansi(mudstate.doing_hdr, abuf, &abufp);
+           mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
+	   parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+           *mp2 = '\0';
            if ( Accents(e->player) ) {
-              mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-              parse_accents((char *) abuf, msg_ns2, &mp2);
 	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                            mudstate.guild_hdr, msg_ns2));
-              free_lbuf(msg_ns2);
            } else {
 	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                            mudstate.guild_hdr, strip_safe_accents(abuf)));
            }
+           free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
 	   queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
@@ -2785,15 +2773,12 @@ dump_users(DESC * e, char *match, int key)
 
 #ifdef ZENTY_ANSI
 	doingAnsiBufp = doingAnsiBuf;
-	parse_ansi(d->doing, doingAnsiBuf, &doingAnsiBufp);
-        if ( Accents(e->player) ) {
-           doingAccentBufp = doingAccentBuf;
-           parse_accents((char *) doingAnsiBuf, doingAccentBuf, &doingAccentBufp);
-	   pDoing = doingAccentBuf;
-        } else {
+	doingAccentBufp = doingAccentBuf;
+	parse_ansi(d->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp);
+        if ( !Accents(e->player) ) {
            strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
-	   pDoing = doingAccentBuf;
         }
+	pDoing = doingAccentBuf;
 #else
 	pDoing = d->doing;
 #endif
