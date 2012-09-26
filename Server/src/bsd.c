@@ -190,7 +190,7 @@ shovechars(int port)
     DESC *d, *dnext, *newd;
     CMDENT *cmdp = NULL;
     int avail_descriptors, maxfds, active_auths, aflags2, temp1, temp2;
-    int sitecntr, i_oldlasttime, i_oldlastcnt;
+    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep;
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6];
 
@@ -210,7 +210,7 @@ shovechars(int port)
     sock = make_socket(port);
     maxd = sock + 1;
     get_tod(&last_slice);
-    i_oldlasttime = i_oldlastcnt = 0;
+    flagkeep = i_oldlasttime = i_oldlastcnt = 0;
 
 
     /* we may be rebooting, so recalc maxd */
@@ -525,6 +525,7 @@ shovechars(int port)
 		/* Undo autodark */
 
                 i_oldlasttime = d->last_time;
+                flagkeep = d->flags;
                 if ( Good_obj(d->player) && !TogHideIdle(d->player) ) {
                    d->last_time = mudstate.now;
                    if (d->flags & DS_AUTODARK) {
@@ -557,6 +558,11 @@ shovechars(int port)
                       if ( cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
                          if ( !(CmdCheck(d->player) && cmdtest(d->player, "idle")) ) {
                             d->last_time = i_oldlasttime;
+                            d->flags = d->flags | flagkeep;
+                            if ( d->flags & DS_AUTOUNF ) 
+                               s_Flags2(d->player, Flags2(d->player) | UNFINDABLE);
+                            if ( d->flags & DS_AUTODARK ) 
+                               s_Flags(d->player, Flags(d->player) | DARK);
                          }
                       }
                    }

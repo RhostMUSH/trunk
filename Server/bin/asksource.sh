@@ -21,11 +21,24 @@ fi
 # Environments
 ###################################################################
 LDCONFIG=""
+MYGCC=""
 if [ -f /sbin/ldconfig ]
 then
    LDCONFIG="/sbin/ldconfig"
 else
    for i in $(slocate ldconfig)
+   do
+      if [ $(file "$i"|grep -c ELF) -gt 0 ]
+      then
+        LDCONFIG="$i"
+      fi
+   done
+fi
+if [ -f /usr/bin/gcc ]
+then
+   MYGCC=/usr/bin/gcc
+else
+   for i in $(slocate gcc)
    do
       if [ $(file "$i"|grep -c ELF) -gt 0 ]
       then

@@ -9711,6 +9711,17 @@
          & - process carrage returns and keep in same column field.  This
              will break up lines based on carrage returns (%r) and keep
              formatted into the same column specified in the format.
+         | - automatically format the text and insert carrage returns
+             at the specified padding field.  This does auto wrapping
+             like the '&' option without the need for carrage returns.
+         " - When used in junction with '|' it will try to split columns
+             on the first whitespace instead of always at width.
+         ' - If specified on a field, and that column is empty, the 
+             column to the RIGHT is shifted to the LEFT.  All formatting
+             remains the same for the original columns.
+         ` - If specified on a field, and that column is empty, the
+             column to the LEFT is shifted to the RIGHT.  All formatting
+             remains the same for the original columns.
          : - will specify filler characters for what is between the ::'s.
              If the string starts with '!', any blank lines will have a
              space filler.  You must specify two ':'s for begining/end tags.
@@ -9720,6 +9731,8 @@
       Value fields:
          1-3000 - format value to padd
          0 - if prepending a number, tells it to padd 0's.
+  
+  Note: The ` and ' code fields won't work on single line columns.
    
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
   
@@ -11421,7 +11434,8 @@ See Also: timefmt()
   
   Note:  Using chr() on 37, 92, and any character between 160 and 255
          will padd out any padding you have by an additional 5 characters
-         per use.  Please plan accordingly.
+         per use.  While the padding functions take this into account
+         automatically, it's something to keep in mind.
     
   See Also: ASC()
   
@@ -24048,3 +24062,21 @@ Bug Fixes
 * % or \ at the end of an ansified string could escape out ansi [ASH]
   fix for this is allowing % and \ as special chr() input.
 * \\ for emits didn't work properly [ASH]
+
+& 3.9.3p3
+
+Release Date: 09/20/12
+Status: Alpha
+  
+New Features
+-------
+  
+Changes
+-------
+* made ljust/rjust/center/ljc/rjc/printf natively handle chr() [ASH]
+* added '|', ', and ` format options to printf [ASH]
+* added '"' to printf to allow word-wrapping with the '|' option [ASH]
+  
+Bug Fixes
+---------
+* IDLE would uncloak/undark a wizard that was auto-dark/cloaked [ASH]
