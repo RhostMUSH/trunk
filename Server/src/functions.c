@@ -8289,7 +8289,8 @@ FUNCTION(fun_printf)
          safe_str("\r\n", buff, bufcx);
          for ( i = 0; i < i_arrayval; i++ ) {
             morepadd = 0;
-            if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1] && *s_strarray[i] ) {
+//          if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1] && *s_strarray[i] ) {
+            if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1]  ) {
                if ( !fmtdone ) 
                   morepadd += fm_array[i-1].fieldwidth;
                fmtdone = 0;
