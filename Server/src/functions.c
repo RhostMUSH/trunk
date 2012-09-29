@@ -8293,14 +8293,21 @@ FUNCTION(fun_printf)
                if ( !fmtdone ) 
                   morepadd += fm_array[i-1].fieldwidth;
                fmtdone = 0;
-            } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] && ((i+1) < i_arrayval) && *s_strarray[i+1]) {
+//          } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] && ((i+1) < i_arrayval) && *s_strarray[i+1]) {
+            } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] ) {
+//             if ( (!((fm_array[i].morepadd & 2) && (i == 0))) ||
+//                  !((fm_array[i].morepadd & 2) && ((i+1) > i_arrayval)) ) {
+               if ( !(((fm_array[i].morepadd & 2) && (i == 0)) ||
+                     ((fm_array[i].morepadd & 1) && ((i+1) >= i_arrayval))) ) {
                   formatpass = i_breakarray[i];
                   fmterror = 1;
 //                i_breakarray[i] = 0;
-               if ( ((i > 1) && !((fm_array[i-2].morepadd & 1) && !*s_strarray[i-2])) || (i <= 1)) {
-                  morepadd -= fm_array[i].fieldwidth;
+                  if ( ((i > 1) && !((fm_array[i-2].morepadd & 1) && !*s_strarray[i-2])) || (i <= 1)) {
+                     morepadd -= fm_array[i].fieldwidth;
+                  }
                }
-            } else if ( ((i+1) < i_arrayval) && (fm_array[i+1].morepadd & 2) && !*s_strarray[i+1] && *s_strarray[i] ) {
+//          } else if ( ((i+1) < i_arrayval) && (fm_array[i+1].morepadd & 2) && !*s_strarray[i+1] && *s_strarray[i] ) {
+            } else if ( ((i+1) < i_arrayval) && (fm_array[i+1].morepadd & 2) && !*s_strarray[i+1]  ) {
 //             if ( (i > 1) && !(fm_array[i-2].morepadd & 1) ) {
                   formatpass = i_breakarray[i];
                   fmterror = 1;
@@ -8323,9 +8330,11 @@ FUNCTION(fun_printf)
                i_totwidth = 0;
             } else {
                showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, (char *)NULL, (char **)NULL, morepadd);
+               fmtdone = 0;
                if ( *s_strarray[i] )
                   fmtdone = 1;
                memset(s_strarray[i], '\0', LBUF_SIZE);
+               fm_array[i].morepadd |= 256;
                if ( !fm_array[i].supressing  )
                   i_totwidth = i_widtharray[i];
             }
