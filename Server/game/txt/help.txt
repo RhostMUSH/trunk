@@ -1689,6 +1689,8 @@
   Warning: This command does not work in command lists run from an attribute
   because the ';' is treated as the command separator.  Use pose/nospace
   instead.
+  
+  If you have a space after the ';' it will use the ':' format instead.
  
   See Also: page, pose, say, whisper, :, "
   
@@ -1697,6 +1699,8 @@
   Displays <message> to everyone in your current room, preceded by your name
   and a space.  Example: the command ':jumps for joy' produces
   '<yourname> jumps for joy'.
+  
+  If you have a space after the ':' it will use the ';' format instead.
   
   See Also: page, pose, say, whisper, ;, "
   
@@ -8692,7 +8696,7 @@
   can be used to see if you are looping.  Beware!  A looping machine that
   isn't @halt'ed will drain your money supply while you are away!
   
-  See Also: @halt, @ps, @notify, @drain
+  See Also: @dolist, @halt, @ps, @notify, @drain, @wait, @trigger
   
 & ME
   Topic: ME
@@ -9483,6 +9487,7 @@
   
   See Also: match(), totmatch(), nummatch(), randpos(), randextract()
   
+& pickrand()
 & randextract()
   Function: randextract(<string>[, <numwords>, <delim>, <type>, <output sep>])
   
@@ -9652,7 +9657,7 @@
   See Also: @lock, lock()
   
 & LWHO()
-  Function: lwho([<value>])
+  Function: lwho([[<value>], [<target>]])
   Returns a list of the db numbers of connected players.  This returns what
   a 'WHO' or 'DOING' would return.  This takes an optional type value.
   '0' is the default, and '1' returns the player list in the form dbref:port.
@@ -9660,6 +9665,9 @@
   
   Note: You can only see your own port(s) unless you're a wizard.  Any other
         port will return '-1'.
+  
+  An optional target is allowed if you control (are a higher bitlevel) than
+  the target to specify how lwho() would look per the target's viewpoint.
    
   Example:
     > WHO
@@ -16705,6 +16713,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   The destroy() function will destroy the targetted object.  You can not
   destroy anything set SAFE or INDESTRUCTABLE with the destroy() function.
   You have to use @destroy for these.  This is for security percautions.
+  This will immediately halt anything that the object may be evaluating.
   
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
@@ -16813,12 +16822,17 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: emit(), pemit(), oemit(), @emit, SIDEEFFECTS
   
 & CLONE()
-  Function: clone(<object>[,<new name>)
+  Function: clone(<object>[[,<new name>][,<key>])
   
   The clone() function will clone <object> with the optional new name of
   <new name>.  It follows all permissions and restrictions that the @clone
   command requires.  The SIDEFX flag is required to be able to use this
   function.
+  
+  The following keys are available for clone():
+      1 - issue a PARENT clone                (normal rules apply)
+      2 - issue a PRESERVE clone              (wizard only)
+      3 - issue a PARENT and PRESERVE clone   (wizard only)
   
   Type @list options to see if this side-effect function is enabled.
   
@@ -19011,6 +19025,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             ansi(FG/BG,<string>[,<codes>,string>,...,FG/BG,<string>])
    
   *NOTE* : You MUST have both the ANSI and ANSICOLOR flags set to see color!
+           ANSI-NORMAL (n) has priority in any ansi string!
   
   This allows you to highlight a string using ANSI terminal effects. The
   string is terminated with a "return to normal" code, and the codes are
@@ -19032,7 +19047,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   For example, "ansi(fc, Test)" would hilight "Test" in flashing cyan.
   
-  See 'XTERMCOLOR LIST' for the 256 color list.
+  See: 'XTERMCOLOR LIST' for the 256 color list.
   
 { 'help ansi2' for more -- The 256 Color Support}
 { 'help ansi quirks' for work arounds on weird ansi problems}
@@ -24076,6 +24091,10 @@ Changes
 * made ljust/rjust/center/ljc/rjc/printf natively handle chr() [ASH]
 * added '|', ', and ` format options to printf [ASH]
 * added '"' to printf to allow word-wrapping with the '|' option [ASH]
+* allowed clone() to handle PRESERVE and PARENT tags [ASH]
+* @nuke, @toad, and @turtle follow @limits now [ASH]
+* @halt/pid will report the PID that was halted [ASH]
+* increased the buffer alloc field in @list alloc [ASH]
   
 Bug Fixes
 ---------

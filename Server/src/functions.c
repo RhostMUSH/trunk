@@ -7023,6 +7023,33 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
        t = s_padstring;
        idx = i_chk = 0;
        while ( *s ) {
+          if ( (*s == '\n') || (*s == '\r')) {
+             i_chk = 0;
+             i_lastspace = 0;
+          }
+          if ( idx > (LBUF_SIZE - 12) )
+             break;
+          if ( ((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd))) {
+             if ( i_lastspace > 0 ) { 
+                t = s_padstring + i_lastspace;
+                if ( *t ) 
+                   t++;
+                i_chk = strlen(t);
+                memcpy(s_padstring2, t, LBUF_SIZE-10);
+                *t++ = '\n';
+                *t++ = '\r';
+                u = s_padstring2;
+                while ( *u ) {
+                   *t++ = *u++;
+                }
+             } else {
+                *t++ = '\n';
+                *t++ = '\r';
+                i_chk = 0;
+             }
+             idx+=2;
+             i_lastspace = 0;
+          }
           if( (*s == '%') && ((*(s+1) == 'f') && isprint(*(s+2))) ) {
              *t++ = *s++;
              *t++ = *s++;
@@ -7052,33 +7079,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
           }
           if ( isspace(*s) && (fm->morepadd & 4) ) {
              i_lastspace = idx;
-          }
-          if ( (*s == '\n') || (*s == '\r')) {
-             i_chk = 0;
-             i_lastspace = 0;
-          }
-          if ( idx > (LBUF_SIZE - 12) )
-             break;
-          if ( ((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd))) {
-             if ( i_lastspace > 0 ) { 
-                t = s_padstring + i_lastspace;
-                if ( *t ) 
-                   t++;
-                i_chk = strlen(t);
-                memcpy(s_padstring2, t, LBUF_SIZE-10);
-                *t++ = '\n';
-                *t++ = '\r';
-                u = s_padstring2;
-                while ( *u ) {
-                   *t++ = *u++;
-                }
-             } else {
-                *t++ = '\n';
-                *t++ = '\r';
-                i_chk = 0;
-             }
-             idx+=2;
-             i_lastspace = 0;
           }
           idx++;
           i_chk++;
@@ -17926,7 +17926,7 @@ FUNCTION(fun_lwho)
     }
 
     if ( (nfargs == 2) && Wizard(player) ) {
-      victim = match_thing(player, fargs[1]);
+      victim = match_thing_quiet(player, fargs[1]);
     } else {
       victim = NOTHING;
     }
@@ -25054,6 +25054,7 @@ FUNCTION(fun_emit)
 FUNCTION(fun_clone)
 {
    CMDENT *cmdp;
+   int i_key;
 
    if ( !(mudconf.sideeffects & SIDE_CLONE) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -25070,10 +25071,31 @@ FUNCTION(fun_clone)
       notify(player, "Permission denied.");
       return;
    }
-   if (!fn_range_check("CLONE", nfargs, 1, 2, buff, bufcx))
+   if (!fn_range_check("CLONE", nfargs, 1, 3, buff, bufcx))
       return;
+
+   i_key = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_key = atoi(fargs[2]);
+      if ( i_key < 0 )
+         i_key = 0;
+      if ( Wizard(player) )
+         i_key &= 3;
+      else
+         i_key &= 1;
+   }
+   switch (i_key ) {
+      case 3: i_key = CLONE_PARENT | CLONE_PRESERVE;
+              break;
+      case 2: i_key = CLONE_PRESERVE;
+              break;
+      case 1: i_key = CLONE_PARENT;
+              break;
+      default: i_key = 0;
+              break;
+   }
    mudstate.store_lastcr = -1;
-   do_clone(player, cause, SIDEEFFECT, fargs[0], fargs[1]);
+   do_clone(player, cause, SIDEEFFECT | i_key, fargs[0], fargs[1]);
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
 }

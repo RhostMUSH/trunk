@@ -2332,7 +2332,7 @@
   restarting the RhostMUSH, but they may be redefined so that they point to an
   unused attribute.  This command may normally only be invoked by player #1.
   
-  {see 'help @function2' for examples}
+  {see 'wizhelp @function2' for examples}
 
 & @function2
   Command: @function[/<switches>] [<function>] [=<object>/<attr>]
