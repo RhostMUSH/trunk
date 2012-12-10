@@ -3053,6 +3053,7 @@
     /byplayer - Specify /list by a specific player.  Argument
                 required for this option.
     /summary  - Show a full summary list of protections per player.
+    /all      - When used with /list shows all player's @protects.
   
   Wizards who /list see all protected names.  Wizards may delete
   names that they do not own.  Immortals bypass all protected names.
@@ -4444,25 +4445,26 @@
   
   hostnames                idle_interval            idle_message            
   idle_timeout             idle_wiz_dark            idle_wiz_cloak          
-  imm_nomod                include                  initial_size            
-  input_database           internal_compress_string inventory_name         
-  kill_guarantee_cost      kill_max_cost            kill_min_cost          
-  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark
-  list_access              link_cost                lnum_compat            
-  lock_recursion_limit     log                      log_command_list       
-  log_maximum              log_network_errors       log_options            
-  login_to_prog            logout_cmd_access        logout_cmd_alias       
-  look_moreflags           look_obey_terse          machine_command_cost   
-  mail_anonymous           mail_autodeltime         mail_default           
-  mail_def_object          mail_hidden              mail_tolist            
-  mail_verbosity           mailbox_size             maildelete             
-  mailinclude_file         mailprog                 mailsub                
-  mailmax_send             master_room              match_own_commands     
-  manlog_file              map_delim_space          max_cpu_cycles         
-  max_dest_limit           max_folders              max_lastsite_cnt       
-  max_name_protect         max_pcreate_lim          max_pcreate_time       
-  max_percentsubs          max_players              max_sitecons           
-  max_vattr_limit          maximum_size             min_con_attempt        
+  imm_nomod                include                  includecnt
+  includenest              initial_size             input_database         
+  internal_compress_string inventory_name           kill_guarantee_cost    
+  kill_max_cost            kill_min_cost            lastsite_paranoia      
+  lattr_default_oldstyle   lcon_checks_dark         list_access            
+  link_cost                lnum_compat              lock_recursion_limit   
+  log                      log_command_list         log_maximum            
+  log_network_errors       log_options              login_to_prog          
+  logout_cmd_access        logout_cmd_alias         look_moreflags         
+  look_obey_terse          machine_command_cost     mail_anonymous         
+  mail_autodeltime         mail_default             mail_def_object        
+  mail_hidden              mail_tolist              mail_verbosity         
+  mailbox_size             maildelete               mailinclude_file       
+  mailprog                 mailsub                  mailmax_send           
+  master_room              match_own_commands       manlog_file            
+  map_delim_space          max_cpu_cycles           max_dest_limit         
+  max_folders              max_lastsite_cnt         max_name_protect       
+  max_pcreate_lim          max_pcreate_time         max_percentsubs        
+  max_players              max_sitecons             max_vattr_limit        
+  maximum_size             min_con_attempt        
   
 { 'wizhelp config parameters4' for more }
 
@@ -5860,6 +5862,21 @@
   Config parameter: include <path>.  Default: none
   Reads and processes configuration directives from the named file.
   This directive is only valid during startup.
+
+& includecnt
+  Config parameter: includecnt <value>.  Default: 10
+  Specifies the total number of times @include can be called within a single
+  set of input.  A $command on an attribute is considered a single set of 
+  input.  Try to keep this relatively low to avoid DoS attacks.
+  
+  See Also: includenest
+
+& includenest
+  Config parameter: includenest <value>.  Default: 3
+  Specifies the total number of times @include can be nested within itself.
+  Please try to keep this value somewhat low to avoid attacks on your mush.
+  
+  See Also: includecnt
 
 & initial_size
   Config parameter: initial_size <value>.  Default: 1000

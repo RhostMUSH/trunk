@@ -386,6 +386,8 @@ struct confdata {
 	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
+	int	includenest;	/* Max number of nesting of @include */
+	int	includecnt;	/* Total number of @includes in the command caller */
 #ifdef REALITY_LEVELS
         int no_levels;          /* # of reality levels */
         struct rlevel_def {

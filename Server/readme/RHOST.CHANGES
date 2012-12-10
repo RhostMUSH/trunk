@@ -1,3 +1,7 @@
+		         RhostMUSH 3.9.3 Update File
+@include -- Idea Copied from Penn 
+				- Thanks Jules (and PennMUSH)
+
                          RhostMUSH 3.9.2 Update File
 @assert/@break didn't handle {} correctly.
 				- Thanks Wyrd

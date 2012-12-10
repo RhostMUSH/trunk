@@ -1863,11 +1863,11 @@ void do_include(dbref player, dbref cause, int key, char *string,
       notify_quiet(player, "You can not use @include at command line.");
       return;
    }
-   if ( mudstate.includenest >= 3 ) {
+   if ( mudstate.includenest >= mudconf.includenest ) {
       notify_quiet(player, "Exceeded @include nest limit.");
       return;
    }
-   if ( mudstate.includecnt >= 10 ) {
+   if ( mudstate.includecnt >= mudconf.includecnt ) {
       notify_quiet(player, "Exceeded total number of @includes allowed.");
       return;
    }

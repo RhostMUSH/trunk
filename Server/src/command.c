@@ -717,8 +717,9 @@ NAMETAB protect_sw[] =
     {(char *) "list", 1, CA_PUBLIC, 0, PROTECT_LIST},
     {(char *) "byplayer", 1, CA_WIZARD, 0, PROTECT_BYPLAYER},
     {(char *) "summary", 1, CA_WIZARD, 0, PROTECT_SUMMARY},
-    {(char *) "alias", 2, CA_PUBLIC, 0, PROTECT_ALIAS},
+    {(char *) "alias", 3, CA_PUBLIC, 0, PROTECT_ALIAS},
     {(char *) "unalias", 1, CA_PUBLIC, 0, PROTECT_UNALIAS},
+    {(char *) "all", 3, CA_WIZARD, 0, PROTECT_LISTALL | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB power_sw[] =
@@ -8586,13 +8587,23 @@ void show_hook(char *bf, char *bfptr, int key)
 
 void do_protect(dbref player, dbref cause, int key, char *name)
 {
-   int i_first;
+   int i_first, i_listall;
    dbref i_return, target, p_lookup;
    char *s_protect_buff, *s_protect_ptr;
    PROTECTNAME *bp;
 
    if ( !key )
       key=PROTECT_LIST;
+
+   i_listall = 0;
+   if ( key & PROTECT_LISTALL ) {
+      key &= ~PROTECT_LISTALL;
+      i_listall = 4;
+      if ( !(key & PROTECT_LIST) ) {
+         notify(player, "Illegal combination of switches.");
+         return;
+      }
+   }
 
    if ( (key & PROTECT_DEL) && (!*name || !ok_player_name(name)) ) {
       notify(player, "@protect with /del or /add requires valid name");
@@ -8713,7 +8724,7 @@ void do_protect(dbref player, dbref cause, int key, char *name)
          }
          break;
       case PROTECT_LIST:
-         protectname_list(player, 0, NOTHING);
+         protectname_list(player, i_listall, NOTHING);
          break;
       case PROTECT_BYPLAYER:
          if ( *name )
