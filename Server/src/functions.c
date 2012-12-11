@@ -8797,9 +8797,9 @@ FUNCTION(fun_timefmt)
                 break;
               case 'Z': /* elapsed years (365 day year) */
                 fm.lastval = (int) (secs2 / 60 / 60 / 24 / 365);
-                if ( (int)secs2 < 0 )
-                   sprintf(fmtbuff, "%.0f", 0.0 - floor(fabs(secs2) / 60 / 60 / 24 / 365));
-                else
+//              if ( (int)secs2 < 0 )
+//                 sprintf(fmtbuff, "%.0f", 0.0 - floor(fabs(secs2) / 60 / 60 / 24 / 365));
+//              else
                    sprintf(fmtbuff, "%.0f", floor(secs2 / 60 / 60 / 24 / 365));
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
