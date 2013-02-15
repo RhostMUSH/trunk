@@ -3103,6 +3103,14 @@
   halt.  Everything will be restored except parents, links, contents,
   and exits in rooms.  This command can only be used by super-royalty.
   
+  Items to be restored will be added to the recovery list after the
+  next internal dbck (or a manual @dbck can force it) after the item
+  has been @destroyed (or @nuked).  Players who are @toaded or
+  @turtled can not be @recovered in this way as they were not essentially
+  destroyed, but were converted from a player type to a thing type.
+  
+  Items @purged are gone for good.
+  
   Example:  @recover #123
   
   See Also: @purge, @reclist
@@ -4445,32 +4453,32 @@
   
   hostnames                idle_interval            idle_message            
   idle_timeout             idle_wiz_dark            idle_wiz_cloak          
-  imm_nomod                include                  includecnt
-  includenest              initial_size             input_database         
-  internal_compress_string inventory_name           kill_guarantee_cost    
-  kill_max_cost            kill_min_cost            lastsite_paranoia      
-  lattr_default_oldstyle   lcon_checks_dark         list_access            
-  link_cost                lnum_compat              lock_recursion_limit   
-  log                      log_command_list         log_maximum            
-  log_network_errors       log_options              login_to_prog          
-  logout_cmd_access        logout_cmd_alias         look_moreflags         
-  look_obey_terse          machine_command_cost     mail_anonymous         
-  mail_autodeltime         mail_default             mail_def_object        
-  mail_hidden              mail_tolist              mail_verbosity         
-  mailbox_size             maildelete               mailinclude_file       
-  mailprog                 mailsub                  mailmax_send           
-  master_room              match_own_commands       manlog_file            
-  map_delim_space          max_cpu_cycles           max_dest_limit         
-  max_folders              max_lastsite_cnt         max_name_protect       
-  max_pcreate_lim          max_pcreate_time         max_percentsubs        
-  max_players              max_sitecons             max_vattr_limit        
-  maximum_size             min_con_attempt        
+  ifelse_substitution      imm_nomod                include                
+  includecnt               includenest              initial_size           
+  input_database           internal_compress_string inventory_name         
+  kill_guarantee_cost      kill_max_cost            kill_min_cost          
+  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
+  list_access              link_cost                lnum_compat            
+  lock_recursion_limit     log                      log_command_list       
+  log_maximum              log_network_errors       log_options            
+  login_to_prog            logout_cmd_access        logout_cmd_alias       
+  look_moreflags           look_obey_terse          machine_command_cost   
+  mail_anonymous           mail_autodeltime         mail_default           
+  mail_def_object          mail_hidden              mail_tolist            
+  mail_verbosity           mailbox_size             maildelete             
+  mailinclude_file         mailprog                 mailsub                
+  mailmax_send             master_room              match_own_commands     
+  manlog_file              map_delim_space          max_cpu_cycles         
+  max_dest_limit           max_folders              max_lastsite_cnt       
+  max_name_protect         max_pcreate_lim          max_pcreate_time       
+  max_percentsubs          max_players              max_sitecons           
   
 { 'wizhelp config parameters4' for more }
 
 & CONFIG PARAMETERS4
   Topic: CONFIG PARAMETERS (continued)
   
+  max_vattr_limit          maximum_size             min_con_attempt        
   money_lim_off            money_lim_gm             money_lim_arch         
   money_lim_counc          money_name_plural        money_name_singular    
   motd_file                motd_message             mud_name               
@@ -5849,6 +5857,15 @@
   type in their next command.  Wizards already set DARK are not automatically
   unDARKed.
   See Also: idle_wiz_cloak
+
+& ifelse_substitutions
+  Config parameter: ifelse_substitutions <yes/no>.  Default: no
+  Specifies if ifelse() allows #$ substitutions.
+  By default, this is disabled as it firstly breaks compatibility with
+  older versions of RhostMUSH, and secondly, because it is a security
+  risk if you do not code switch safely.
+  
+  See Also: switch_substitutions
 
 & imm_nomod
   Config parameter: imm_nomod <yes/no>.  Default: no
@@ -7635,6 +7652,8 @@
   By default, this is disabled as it firstly breaks compatibility with
   older versions of RhostMUSH, and secondly, because it is a security
   risk if you do not code switch safely.
+  
+  See Also: ifelse_substitutions
 
 & terse_shows_contents
   Config parameter: terse_shows_contents <yes/no>.  Default yes

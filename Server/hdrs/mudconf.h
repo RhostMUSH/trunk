@@ -360,6 +360,7 @@ struct confdata {
 	int	ahear_maxcount;		/* Maximum loop with ahear counts */
 	int	ahear_maxtime;		/* Max time in seconds between ahears */
 	int	switch_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	ifelse_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
 	int	examine_restrictive;	/* Is examine restrictive  */
 	int	queue_compatible;	/* Is the QUEUE mush compatible */
         int     max_percentsubs;	/* Maximum %-subs per command */
@@ -437,6 +438,7 @@ struct confdata {
         int     safer_passwords; /* Taken from TinyMUSH - requires harder passwords */
 	int	vattr_limit_checkwiz;	/* Is wizard checking enabled? */
 	int	switch_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	ifelse_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
 	int	enforce_unfindable;	/* Enforce unfindable on target */
 	int	power_objects;		/* Objects can have powers */
 	char	sub_include[200];

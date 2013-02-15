@@ -88,25 +88,26 @@
 & topics
   Help available on the following Topics:
  
-  ARBITRARY COMMANDS  ATTRIBUTE OWNERSHIP BEING KILLED        BOGUS COMMANDS
-  BOOLEAN VALUES      COMMAND EVALUATION  CONTROL             COSTS
-  CREDITS             DROP-TO             ENACTOR             EXITS
-  FAILURE             FLAG LIST           FLAGS               FUNCTION LIST
-  FUNCTIONS           GENDER              GOALS               HERE
-  HOMES               LINKING             LISTENING           LISTS
-  LOOPING             ME                  MONEY               MOVING
-  OBJECT TYPES        PARENT OBJECTS      PUPPETS             ROBBERY
-  SEARCH CLASSES      SEMAPHORES          SPOOFING            STACK
-  SUBSTITUTIONS       SUCCESS             SWITCHES            TOGGLES
-  VERBS               ROYALTY             COLORS              CHANGES
-  ZONES               $-COMMANDS          QUICKREFERENCE      VATOVZ 
-  ZATOZZ              ATTRIBUTE FLAGS     WANDERER            COPYRIGHT
-  SENSES              ANSINAMES           ALT INVENTORIES     ALTNAMES
-  SIDEEFFECTS         MAIL                CHANNEL             USEFUL
-  FUNCTION ALIASES    REALITY LEVELS      ATTRIBUTE USELOCKS  VARIABLE EXITS
-  BANG NOTATION       FLAG ALIAS          SINGLETHREADING     REGEXPS
-  REGEXP SYNTAX       REGEXP CLASSES      REGEXP EXAMPLES     #LAMBDA
-  SETQ_TEMPLATES      FUNCTION TYPES      CLUSTERS
+  ALT INVENTORIES     ALTNAMES          ANSINAMES            ARBITRARY COMMANDS
+  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS   ATTRIBUTE OWNERSHIP  BANG NOTATION    
+  BEING KILLED        BOGUS COMMANDS    BOOLEAN VALUES       CHANGES           
+  CHANNEL             COLORS            COMMAND EVALUATION   CONTROL           
+  COPYRIGHT COSTS     CREDITS           CLUSTERS             DROP-TO  
+  ENACTOR             EXITS             FAILURE              FLAG ALIAS        
+  FLAG LIST           FLAGS             FUNCTION ALIASES     FUNCTION LIST 
+  FUNCTION TYPES      FUNCTIONS         GENDER               GOALS             
+  HERE                HOMES             LINKING              LISTENING         
+  LISTS               LOOPING           MAIL                 ME                
+  MONEY               MOVING            OBJECT TYPES         PARENT OBJECTS   
+  PUPPETS             QUICKREFERENCE    REALITY LEVELS       REGEXPS 
+  REGEXP SYNTAX       REGEXP CLASSES    REGEXP EXAMPLES      ROBBERY
+  ROYALTY             SEARCH CLASSES    SEMAPHORES           SENSES            
+  SETQ_TEMPLATES      SIDEEFFECTS       SINGLETHREADING      SPOOFING          
+  STACK               SUBSTITUTIONS     SUCCESS              SWITCHES          
+  TOGGLES             USEFUL            VARIABLE EXITS       VATOVZ            
+  VERBS               WANDERER          ZATOZZ               ZONES             
+  $-COMMANDS          #LAMBDA
+  
   
 & CLUSTERS
   Clusters are a method to have 1 or more real dbref#'s defined as a single
@@ -386,7 +387,11 @@
   
   You may also set a ZONEMASTER, ZONECONTENTS.  This flag will enable
   searching the contents of the Zone Master for matching $commands.
-   
+  
+  You may also set a ZONEMASTER, ZONEPARENT.  This allows the zonemaster
+  to allow its children to inherit attributes off the ZONEMASTER.  An object
+  @toggled NOZONEPARENT will not inherit attributes from any zonemaster.
+     
   { Type 'help zones2' for more info. }
   
 & zones2
@@ -406,7 +411,7 @@
   zone master's ZoneToLock) may begin to add objects to your zone.
   To do this, use the @zone/add, @zone/del, and @zone/purge commands.
  
-  See Also: @zone, @lock, lzone(), ZONEMASTER, ZONECONTENTS
+  See Also: @zone, @lock, lzone(), ZONEMASTER, ZONECONTENTS, ZONEPARENT
   
 & @zone
  Usage:
@@ -3595,6 +3600,7 @@
  
 { 'help parent2' for more }
   
+& ANCESTORS
 & PARENT2 
   Topic: PARENT OBJECTS (continued)
  
@@ -3604,6 +3610,31 @@
   is inherited.  IE: if the parent is uselocked against you, you can not
   use it's functionality.  You may not create parent loops.
  
+  The parent system inheritance in RhostMUSH is rather robust.  When 
+  attributes are looked up it follows a chain of inheritance rules.
+  Lookups are in the following order for attribute lookups:
+  
+    1.  Does attribute exist on object?
+    2.  Does attribute exist in physical parent?
+        A.  If attribute is set NOINHERIT this is ignored.
+        B.  See: help @parent
+    3.  Does attribute exist in any of the zones it belongs to?
+        A.  If attribute is set NOINHERIT this is ignored.
+        B.  The zonemaster must be set ZONEPARENT for inheritance.
+        C.  If object is toggled NOZONEPARENT this is ignored.
+        D.  See: help zones and help zoneparent
+    4.  Does attribute exist on any by-type global parents (virtual).
+        A.  If attribute is set NOINHERIT this is ignored.
+        B.  If object is toggled NOGLOBPARENT this is ignored.
+        C.  See: wizhelp global_parent_<type> (room|thing|player|exit).
+    5.  Does attribute exist on the generic global parent (virtual).
+        A.  If attribute is set NOINHERIT this is ignored.
+        B.  If object is toggled NOGLOBPARENT this is ignored.
+        C.  See: wizhelp global_parent_obj
+  
+  All attribute fetches take normal rules regarding normal attribute
+  permissions in addition to the rules previously mentioned.
+  
   See Also: @parent, parent(). parents(), children()
   
 & @password
@@ -8138,16 +8169,16 @@
   
     NOPROG($)       (this shows up when you set an attribute NO_COMMAND)
     VISUAL(V)       (this shows up when you set an attribute VISUAL)
-    NO_INHERIT(P)   (this shows up when you set an attribute NO_INHERIT)
+    NO_INHERIT(I)   (this shows up when you set an attribute NO_INHERIT)
     LOCK(+)         (this shows when an attribute is @locked)
     GUILDMASTER(g)  (this shows when an attribute is set GUILDMASTER)
     ARCHITECT(A)    (this shows when an attribute is set ARCHITECT)
     COUNCILOR(C)    (this shows when an attribute is set COUNCILOR)
-    ROYALTY(R)      (this shows when an attribute is set WIZARD)    
-    IMMORTAL(I)     (this shows when an attribute is set IMMORTAL)
+    ROYALTY(W)      (this shows when an attribute is set WIZARD)    
+    IMMORTAL(i)     (this shows when an attribute is set IMMORTAL)
     GOD(G)          (this shows when an attribute is set GOD)
     MDARK(M)        (this shows when an attribute is set HIDDEN)
-    PRIVATE(O)      (this shows when an attribute is set PRIVATE)
+    PRIVATE         (this shows when an attribute is set PRIVATE)
     NO_CLONE(N)     (this shows when an attribute is set NO_CLONE)
     NO_PARSE(n)     (this shows when an attribute is set NO_PARSE)
     SAFE(s)         (this shows when an attribute is set SAFE)
@@ -8194,6 +8225,171 @@
     
   See Also: FLAG LIST
  
+& ATTRIBUTE FLAG NO_COMMAND
+& ATTRIBUTE FLAG NOPROG
+  Attribute Flag: NOPROG($)       [NO_COMMAND]
+  Set by: @set #obj/attr=no_command
+  
+  When set on an attribute that attribute will not evaluate listens or commands.
+ 
+& ATTRIBUTE FLAG VISUAL
+  Attribute Flag: VISUAL(V)
+  Set by: @set #obj/attr=visual
+  
+  When set on an attribute, that attribute will be visible to anything or anyone.
+  
+  Exceptions:  
+  Anyone depowered from examine may not be able to see this.
+  
+
+& ATTRIBUTE FLAG NO_INHERIT
+  Attribute Flag: NO_INHERIT(I)
+  Set by: @set #obj/attr=no_inherit
+  
+  The attribute will not inherit attributes to the children.
+  
+& ATTRIBUTE FLAG LOCK
+  Attribute Flag: LOCK(+)
+  Set by: @lock #obj/attr
+  
+  The attribute has been locked.  Locked attributes by default can not be modified.
+  
+  Exeptions:  
+  wizards/immortals by default override this limitation on anything they control.
+
+& ATTRIBUTE FLAG GUILDMASTER
+  Attribute Flag: GUILDMASTER(g)
+  Set by: @set #obj/attr=guildmaster (only by guildmaster+)
+  
+  Only guildmaster or higher may modify the attribute.
+
+& ATTRIBUTE FLAG ARCHITECT
+  Attribute Flag: ARCHITECT(A)
+  Set by: @set #obj/attr=architect (only by architect+)
+  
+  Only architect or higher may modify the attribute.
+
+& ATTRIBUTE FLAG COUNCILOR
+  Attribute Flag: COUNCILOR(C)
+  Set by: @set #obj/attr=councilor (only by councilor+)
+  
+  Only councilor or higher may modify the attribute.
+
+& ATTRIBUTE FLAG WIZARD
+& ATTRIBUTE FLAG ROYALTY
+  Attribute Flag: ROYALTY(W)      [WIZARD]
+  Set by: @set #obj/attr=royalty (or wizard) (only by wizard+)
+  
+  Only wizard (royalty) or higher may modify the attribute.
+
+& ATTRIBUTE FLAG IMMORTAL
+  Attribute Flag: IMMORTAL(i)
+  Set by: @set #obj/attr=immortal (only by immortal+)
+
+  Only immortal or #1 may modify the attribute.
+
+& ATTRIBUTE FLAG GOD
+  Attribute Flag: GOD(G)
+  Set by: @set #obj/attr=god (only by #1)
+  
+  Only #1 may modify the attribute.
+
+& ATTRIBUTE FLAG HIDDEN
+& ATTRIBUTE FLAG MDARK
+  Attribute Flag: MDARK(M)       [HIDDEN]
+  Set by: @set #obj/attr=hidden
+
+  This attribute will be hidden.  If used in junction with the bitlevel flags,
+  then it will be hidden to anyone below that bitlevel.
+
+& ATTRIBUTE FLAG PRIVATE
+  Attribute Flag: PRIVATE(null)
+  This is automatically added and can not be set individually.
+  
+  The attribute is private and can only be seen by the owner or anyone who 
+  controls that attribute and/or object.
+
+& ATTRIBUTE FLAG NO_CLONE
+  Attribute Flag: NO_CLONE(N)
+  Set by: @set #obj/attr=no_clone
+  
+  The attribute is not copied over when the object is @cloned.
+
+& ATTRIBUTE FLAG NO_PARSE
+  Attribute Flag: NO_PARSE(n)
+  Set by: @set #obj/attr=no_parse
+  
+  The attribute does not parse input the player types.  All %0-%9 attributes
+  are taken 'as-is' from the player.  This is useful to $command and ^listen
+  attributes.
+  
+& ATTRIBUTE FLAG SAFE
+  Attribute Flag: SAFE(s)
+  Set by: @set #obj/attr=safe
+  
+  The attribute is set safe and by default can not be touched when @wiped or
+  removed or modified in any way.
+
+& ATTRIBUTE FLAG PINVISIBLE
+  Attribute Flag: PINVISIBLE(p)
+  Set by: @set #obj/attr=pinvisible
+  
+  The attribute is cloaked, meaning that it can not be seen through examine,
+  lattr, or any method of listing attributes on an object, but can still
+  be called directly with a get() or u() if you know the attribute name.
+
+& ATTRIBUTE FLAG DARK
+  Attribute Flag: DARK(D)
+  Set by: @set #obj/attr=dark (only by #1)
+  
+  The attribute is system-hidden.  This is intended as an internal flag only.
+
+& ATTRIBUTE FLAG USELOCK
+  Attribute Flag: USELOCK(u)
+  Set by: @set #obj/attr=uselock
+  
+  The attribute will be checked against attribute uselocks.  Please see
+  the section on ATTRIBUTE USELOCk for more information.
+
+& ATTRIBUTE FLAG SINGLETHREAD
+  Attribute Flag: SINGLETHREAD(S)
+  Set by: @set #obj/attr=singlethread
+  
+  If set on an attribute with a $command or ^listen, that attribute will be
+  single-thread evaluated.  Essentially, it automatically sets the attribute
+  NO_COMMAND upon execution of the command/listen, and will remain set
+  NO_COMMAND until you manually unset the attribute flag.
+
+& ATTRIBUTE FLAG DEFAULT
+  Attribute Flag: DEFAULT(F)
+  Set by: @set #obj/attr=default
+  
+  The attribute will inherit formatting from the global format parents.
+  See wizhelp on ATTRIB FORMATTING for more information.
+
+& ATTRIBUTE FLAG ATRLOCK
+  Attribute Flag: ATRLOCK(l)
+  Set by: @set #obj/attr=atrlock
+  
+  This specifies that the attribute has a content lock.  Content locks mean
+  that you must match specific patterns to set or clear that attribute.
+  See wizhelp on ATTRIB CONTLOCKS for more information.
+
+& ATTRIBUTE FLAG LOGGED
+  Attribute Flag: LOGGED(m)
+  Set by: @set #obj/attr=logged
+  
+  This attribute is logged.  Any and all changes to this attribute are system
+  logged with relevant information.
+
+& ATTRIBUTE FLAG REGEXP
+  Attribute Flag: REGEXP(R)
+  Set by: @set #obj/attr=regexp
+  
+  This is only useful for listens or commands.  It stipulates that wildcard
+  matching is done through regular expression matching instead of the default
+  of glob pattern matching.
+
 & TOGGLES
   Topic: TOGGLES
   
@@ -24107,6 +24303,7 @@ Changes
 * increased the buffer alloc field in @list alloc [ASH]
 * Added includecnt and includenest config parameters for @include [ASH]
 * @protect for wizzes split full listing with the /all switch [ASH]
+* Made ifelse()'s $# be handled with ifelse_substitution param [ASH]
   
 Bug Fixes
 ---------

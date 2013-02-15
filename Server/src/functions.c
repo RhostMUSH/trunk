@@ -21445,7 +21445,7 @@ FUNCTION(fun_ifelse)
                  fargs[0], cargs, ncargs);
     retbuff = NULL;
     if (atoi(mbuff)) {
-        if ( mudconf.switch_substitutions ) {
+        if ( mudconf.ifelse_substitutions ) {
            retbuff = replace_tokens(fargs[1], NULL, NULL, mbuff);
            tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                         retbuff, cargs, ncargs);
@@ -21457,7 +21457,7 @@ FUNCTION(fun_ifelse)
         safe_str(tbuff, buff, bufcx);
         free_lbuf(tbuff);
     } else if (nfargs == 3) {
-        if ( mudconf.switch_substitutions ) {
+        if ( mudconf.ifelse_substitutions ) {
            retbuff = replace_tokens(fargs[2], NULL, NULL, mbuff);
            tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                         retbuff, cargs, ncargs);

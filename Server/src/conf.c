@@ -237,6 +237,7 @@ NDECL(cf_init)
     mudconf.default_home = -1;
     mudconf.master_room = -1;
     mudconf.switch_substitutions = 0;
+    mudconf.ifelse_substitutions = 0;
     mudconf.sideeffects = 32;  /* Enable only list() by default */
     mudconf.sidefx_returnval = 0; /* sideeffects that create return dbref# if enabled */
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
@@ -2853,6 +2854,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.idle_timeout, 0, 0, CA_WIZARD,
      (char *) "Value in seconds before someone idles out.\r\n"\
               "                             Default: 3600   Value: %d"},
+    {(char *) "ifelse_substitutions",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_substitutions, 0, 0, CA_PUBLIC,
+     (char *) "Does @switch/switch()/switchall() allow #$?"},
     {(char *) "image_dir",
      cf_string, CA_DISABLED, (int *) mudconf.image_dir, 128, 0, CA_WIZARD,
      (char *) "Location of dbref# image files."},
