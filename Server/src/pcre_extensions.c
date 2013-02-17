@@ -643,7 +643,7 @@ do_reswitch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   if ( key & 2 )
     first = 0;
 
-  if ( !(key & 1) )
+  if ( (key & 1) )
     cs = 0;
 
   mstr = exec(player, cause, caller,

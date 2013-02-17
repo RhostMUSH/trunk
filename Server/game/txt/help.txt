@@ -24309,3 +24309,4 @@ Bug Fixes
 ---------
 * IDLE would uncloak/undark a wizard that was auto-dark/cloaked [ASH]
 * $Z in timefmt() would show negative values in > 32 bit math [ASH]
+* case sensitivity was reversed for reswitch/reswitchi cases [ASH]
