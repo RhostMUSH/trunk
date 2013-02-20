@@ -13256,15 +13256,6 @@ FUNCTION(fun_v)
 
     tbuf = fargs[0];
 
-    if ( (tbuf[0] == '#') && (tbuf[1] == '\0') ) {
-       sbuf = alloc_sbuf("fun_v");
-       sprintf(sbuf, "%c#", '%');
-       tbuf = exec(player, cause, caller, EV_FIGNORE, sbuf, cargs, ncargs);
-       safe_str(tbuf, buff, bufcx);
-       free_lbuf(tbuf);
-       free_sbuf(sbuf);
-       return;
-    }
 #ifdef ATTR_HACK
     if ((isalpha((int)(tbuf[0])) || (tbuf[0] == '_') || (tbuf[0] == '~')) && tbuf[1]) {
 #else
@@ -13294,17 +13285,21 @@ FUNCTION(fun_v)
     sbuf = alloc_sbuf("fun_v");
     sbufc = sbuf;
     safe_sb_chr('%', sbuf, &sbufc);
-    i_shifted = atoi(fargs[0]) / 10;
-    if ( i_shifted < 0 )
-       i_shifted = 0;
-    if ( i_shifted > (MAX_ARGS/10) )
-       i_shifted = (MAX_ARGS/10);
-    sprintf(s_field, "%d", atoi(fargs[0]) % 10);
-    safe_sb_str(s_field, sbuf, &sbufc);
-    *sbufc = '\0';
-    if ( i_shifted ) {
-       i_oldshift = mudstate.shifted;
-       mudstate.shifted = i_shifted;
+    if ( isdigit(*fargs[0]) ) {
+       i_shifted = atoi(fargs[0]) / 10;
+       if ( i_shifted < 0 )
+          i_shifted = 0;
+       if ( i_shifted > (MAX_ARGS/10) )
+          i_shifted = (MAX_ARGS/10);
+       sprintf(s_field, "%d", atoi(fargs[0]) % 10);
+       safe_sb_str(s_field, sbuf, &sbufc);
+       *sbufc = '\0';
+       if ( i_shifted ) {
+          i_oldshift = mudstate.shifted;
+          mudstate.shifted = i_shifted;
+       }
+    } else {
+       safe_sb_str(fargs[0], sbuf, &sbufc);
     }
     tbuf = exec(player, cause, caller, EV_FIGNORE, sbuf, cargs, ncargs);
     if ( i_shifted ) {
