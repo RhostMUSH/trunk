@@ -1504,7 +1504,10 @@ double safe_atof(char *input)
    int i_vert, i_vert2;
 
    memset(safe_buff, 0, sizeof(safe_buff));
-   if ( (safe_buffptr = strchr(input, 'e')) != NULL ) {
+   safe_buffptr = strchr(input, 'e');
+   if ( safe_buffptr == NULL )
+      safe_buffptr = strchr(input, 'E');
+   if ( safe_buffptr != NULL ) {
       i_vert = i_vert2 = 0;
       i_vert2 = strlen(input) - strlen(safe_buffptr+1);
       if ( i_vert2 > 90 )
