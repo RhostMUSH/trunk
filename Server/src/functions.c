@@ -13255,6 +13255,16 @@ FUNCTION(fun_v)
     ATTR *ap;
 
     tbuf = fargs[0];
+
+    if ( (tbuf[0] == '#') && (tbuf[1] == '\0') ) {
+       sbuf = alloc_sbuf("fun_v");
+       sprintf(sbuf, "%c#", '%');
+       tbuf = exec(player, cause, caller, EV_FIGNORE, sbuf, cargs, ncargs);
+       safe_str(tbuf, buff, bufcx);
+       free_lbuf(tbuf);
+       free_sbuf(sbuf);
+       return;
+    }
 #ifdef ATTR_HACK
     if ((isalpha((int)(tbuf[0])) || (tbuf[0] == '_') || (tbuf[0] == '~')) && tbuf[1]) {
 #else
