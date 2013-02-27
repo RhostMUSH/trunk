@@ -16,6 +16,8 @@ aliased rjust to rj and ljust to lj and updated help files appropiately.
 glibc for MAX_INT/MIN_INT had issues with math functions - wrapper fixes this.
 parser issue with regexp, parenthesis, and backslashes -- Fixed
 				- Thanks Chime
+Idea for @titlecaption	
+				- Thanks Zero@NewJediOrder
 
                          RhostMUSH 3.9.1 Update File
 Credits for any features should go here.  All changes should go into the main help.txt file
