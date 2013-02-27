@@ -81,7 +81,7 @@
   @race        @slisten     @salisten  @solisten    @staste      @sataste
   @sotaste     @stouch      @satouch   @sotouch     @ssmell      @sasmell
   @sosmell     @ansiname    @caption   @conformat   @exitformat  @saystring
-  @nameformat
+  @nameformat  @titlecaption
   
   See Also: @list
   
@@ -3514,7 +3514,7 @@
   spaces.  The default for RhostMUSH is to disallow spaces in player names.
   
   See Also: name(), @protect, @list options, @alias, @ansiname, @extansi, 
-            @caption
+            @caption, @titlecaption
   
 & @notify
   Command: @notify[/<switches>] <object>[=<count|pid>]
@@ -4604,7 +4604,8 @@
   Note:  If the object is @toggled with EXTANSI, then ansiname can hold
          literal ansicodes.  Check help on @extansi for this.  
   
-  See Also: @name, @extansi, @caption, ANSINAME, ansi(), EXTANSI TOGGLE
+  See Also: @name, @extansi, @caption, ANSINAME, ansi(), EXTANSI TOGGLE, 
+            @titlecaption
   
 & @extansi
   Command: @extansi[/<switch>] <object> = <string>
@@ -4915,8 +4916,29 @@
     Tinyplayer, the silly one.
     You see nothing special.
   
-  See Also: @ansiname, @extansi, @name
+  See Also: @ansiname, @extansi, @name, @titlecaption
+
+& @titlecaption
+  Command: @titlecaption[/<switch>] <object> = <string>
+  Attribute: Title_Name
   
+  This attribute sets up a title (prefix) for the target player when
+  they are looked at or looked at in a given location.  You may set
+  a large title, but only the first 40 characters will be displayed.
+  No carrage returns are allowed in this string and it is only useful
+  for players.
+  
+  Example:
+    > lo me
+    Tinyplayer(#123Pc)
+    You see nothing special.
+    > @titlecaption me=Doctor
+    > lo me
+    Doctor Tinyplayer(#123Pc)
+    You see nothing special.
+  
+  See Also: @ansiname, @extansi, @name, @caption
+
 & @charges
   Command: @charges[/<switch>] <object> = <count>
   Attribute: Charges
@@ -24291,6 +24313,7 @@ Status: Alpha
   
 New Features
 -------
+* @titlecaption added for player prefix labels [ASH]
   
 Changes
 -------

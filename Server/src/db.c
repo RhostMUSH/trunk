@@ -527,6 +527,7 @@ ATTR attr[] =
     {"TeloutLock", A_LTELOUT, AF_ODARK | AF_NOPROG | AF_NOCMD | AF_IS_LOCK,
      NULL},
     {"TempBuffer", A_TEMPBUFFER, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
+    {"TitleCaption", A_TITLE, AF_ODARK | AF_NOPROG | AF_NORETURN, NULL},
     {"Tfail", A_TFAIL, AF_ODARK | AF_NOPROG, NULL},
     {"Timeout", A_TIMEOUT, AF_MDARK | AF_NOPROG | AF_WIZARD, NULL},
     {"Tofail", A_TOFAIL, AF_ODARK | AF_NOPROG, NULL},
@@ -2498,7 +2499,9 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 	buff = atr_get_raw(gbl_parent, atr);
         if ( buff && *buff ) {
 	    atr_decode(buff, s, thing, owner, flags, atr);
-            return s;
+            if ( !(*flags * AF_PRIVATE)) {
+               return s;
+            }
         }
     }
 #endif

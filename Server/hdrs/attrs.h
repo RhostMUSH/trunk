@@ -247,6 +247,7 @@ typedef struct afstruct {
 #define A_SPAMPROTECT	247	/* Spam protection attribute */
 #define A_EXITTO	248	/* Variable Exits */
 #define A_PROTECTNAME	249	/* Protect Name and/or other foo */
+#define A_TITLE		250	/* Title of player */
 
 #define	A_VLIST		252
 #define	A_LIST		253
