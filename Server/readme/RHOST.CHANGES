@@ -18,6 +18,8 @@ parser issue with regexp, parenthesis, and backslashes -- Fixed
 				- Thanks Chime
 Idea for @titlecaption	
 				- Thanks Zero@NewJediOrder
+IDLE had a missmatch on \r and \n parsing -- Fixed
+				- Thanks Mike@M*U*S*H
 
                          RhostMUSH 3.9.1 Update File
 Credits for any features should go here.  All changes should go into the main help.txt file

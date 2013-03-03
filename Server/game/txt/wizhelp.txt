@@ -7799,6 +7799,16 @@
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
              suspect_host, goodmail_host, @site
 
+& vattr_limit_checkwiz
+  Config parameter: vattr_limit_checkwiz <boolean>.  Default: 0
+  
+  Specifies if @limit is enforced to wizards/immortals as well as normal
+  players.  Without this set, wizards and immortals ignore @limit 
+  restritions.
+  
+  See Also: @limit, wizmax_dest_limit, max_vattr_limit, wizmax_vattr_limit,
+            max_vattr_limit
+ 
 & vlimit
   Config parameter: vlimit <ammount>.  Default 750
   Sets the total user-defined attributes that a dbref# can have.  Any

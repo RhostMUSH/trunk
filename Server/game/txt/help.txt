@@ -24334,3 +24334,4 @@ Bug Fixes
 * $Z in timefmt() would show negative values in > 32 bit math [ASH]
 * case sensitivity was reversed for reswitch/reswitchi cases [ASH]
 * backward compatibility with v(#) was broke. [ASH]
+* IDLE mis-aligned carrage return and line feeds [ASH]
