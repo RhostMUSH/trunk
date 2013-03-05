@@ -11043,6 +11043,63 @@ FUNCTION(fun_zfuneval)
     }
 }
 
+FUNCTION(fun_streval)
+{
+    int tlev;
+    char *result;
+
+    /* We need at least one argument */
+
+    if (nfargs < 2) {
+       safe_str("#-1 FUNCTION (streval) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+
+    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
+    if (mudstate.evalnum < MAXEVLEVEL) {
+       tlev = search_nametab(player, evaltab_sw, result);
+       if (God(player)) {
+           if (tlev > 5)
+              tlev = -1;
+       } else if (Immortal(player)) {
+           if (tlev > 4)
+              tlev = -1;
+       } else if (Wizard(player)) {
+           if (tlev > 3)
+              tlev = -1;
+       } else if (Admin(player)) {
+           if (tlev > 2)
+              tlev = -1;
+       } else if (Builder(player)) {
+           if (tlev > 1)
+              tlev = -1;
+       } else if (Guildmaster(player)) {
+           if (tlev > 0)
+              tlev = -1;
+       } else
+           tlev = -1;
+       if (tlev != -1) {
+           mudstate.evalstate[mudstate.evalnum] = tlev;
+           mudstate.evaldb[mudstate.evalnum++] = player;
+       }
+    } else {
+       tlev = -1;
+    }
+    free_lbuf(result);
+
+    /* Evaluate it using the rest of the passed function args */
+
+    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[0],
+                  &(fargs[2]), nfargs - 2);
+    safe_str(result, buff, bufcx);
+    free_lbuf(result);
+    if (tlev != -1) {
+       mudstate.evalnum--;
+    }
+}
+
 void
 do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
              char *fargs[], int nfargs, char *cargs[], int ncargs, int i_type)
@@ -26999,6 +27056,7 @@ FUN flist[] =
     {"STR", fun_str, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRDISTANCE", fun_strdistance, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STREQ", fun_streq, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"STREVAL", fun_streval, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"STRIP", fun_strip, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRIPACCENTS", fun_stripaccents, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRIPANSI", fun_stripansi, 1, 0, CA_PUBLIC, CA_NO_CODE},

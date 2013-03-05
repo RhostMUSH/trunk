@@ -8588,13 +8588,13 @@
   SORTBY()        SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
   SPELLNUM()      SPLICE()        SQLITE_QUERY() SQRT()         SQUISH()     
   STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
-  STRCAT()        STRDISTANCE()   STREQ()        STRFUNC()      STRIP()      
-  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()    
-  SUB()           SUBJ()          SWITCH()       SWITCHALL()    T()          
-  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()      
-  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()    
-  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()         
-  TRACE()         TRANSLATE() 
+  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
+  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
+  STRMATH()       SUB()           SUBJ()         SWITCH()       SWITCHALL()  
+  T()             TAN()           TEL()          TIME()         TIMEFMT()    
+  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()      
+  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
+  TR()            TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -8756,10 +8756,10 @@
                        PEDIT() POS() PRINTF() RANDPOS() REPEAT() REPLACE() 
                        RIGHT() RJC() RJUST() ROTL() ROTR() S() SCRAMBLE() 
                        SECURE() SECUREX() SHL() SHR() SHUFFLE() SPACE() 
-                       SPLICE() SQUISH() STR() STRDISTANCE() STREQ() STRIP() 
-                       STRIPACCENTS() STRLEN() STRMATCH() SWITCH() SWITCHALL()
-                       T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() WORDPOS() 
-                       WORDS() WRAP() WRAPCOLUMNS() XORCHR()
+                       SPLICE() SQUISH() STR() STRDISTANCE() STREQ() STREVAL()
+                       STRIP() STRIPACCENTS() STRLEN() STRMATCH() SWITCH() 
+                       SWITCHALL() T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() 
+                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -15477,7 +15477,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say ueval(va/citizen)
     You say "#-1"
   
-  See Also: u(), u2(), objeval(), ulocal(), u2local()
+  See Also: u(), u2(), objeval(), ulocal(), u2local(), streval()
   
 & U()
   Function: u([<obj>/]<attr>[,<arg>]...)
@@ -15505,6 +15505,37 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   See Also: s(), v(), get(), get_eval(), map(), ueval(), objeval()
   
+& STREVAL()
+  Function: streval(<string>, <evaluation level> [,<arg>,<arg2>,...,<argN>])
+  
+  This function works similar to u() or eval() where it takes the <string>
+  then evaluates it according to the permission of <evaluation level>.  You
+  must be equal to or less than the bitlevel specified or it assumes your
+  own level.  By default, none of the arguments passed will be evaluated.
+  
+  Evaluation Levels allowed:
+      CIT[IZEN]     -- Mortal (bit level 1)
+      GUILD[MASTER] -- Staff (bit level 2)
+      ARCH[ITECT]   -- Staff (bit level 3)
+      COUN[CILOR]   -- Staff (bit level 4)
+      ROY[ALTY]     -- Staff (bit level 5) -- This is a full Wizard
+      IMM[ORTAL]    -- Staff (bit level 6) -- This is essentially #1
+      GOD           -- Staff (bit level 7) -- Can only be ran as #1
+  
+  Examples: (assuming your a full wizard (royalty))
+    > say streval(My bitlevel: [bittype(me)],immortal)
+    You say "5"                  (immortal is above your lvl, so ignores)
+    > say streval(My bitlevel: [bittype(me)],councilor)
+    You say "4"
+    > say streval(My bitlevel: [bittype(me)] -- Arg %0,citizen,foo!)]
+    You say "1 -- Arg foo!"
+    > say streval(NoEval: %0 ... Eval: [s(%0)],citizen,[add(1,1)])
+    You say "Noeval: [add(1,1)] ... Eval: 2"
+    > say streval(Test: [s(%0)],citizen,[bittype(me)])
+    You say "Test: 1"
+  
+  See Also: ueval(), u(), default()
+    
 & U2()
   Function: u2([<obj>/]<attr>[,<arg>]...)
   
@@ -23877,6 +23908,7 @@ Mail: Done
   str()         - Like after(), and similar to C strstr().
   strdistance() - Calculates the levenshtein distance between two strings.
   streq()       - Compares two strings, returning true if they match.
+  streval()     - Evaluates the string based on the permission level specified.
   strip()       - Strips out every occurrence of a character in a string.
   stripaccents()- Strip accents from specified string.
   strlen()      - Returns the length of a string.
@@ -24314,6 +24346,7 @@ Status: Alpha
 New Features
 -------
 * @titlecaption added for player prefix labels [ASH]
+* streval() [ASH]
   
 Changes
 -------
