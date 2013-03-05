@@ -20,6 +20,8 @@ Idea for @titlecaption
 				- Thanks Zero@NewJediOrder
 IDLE had a missmatch on \r and \n parsing -- Fixed
 				- Thanks Mike@M*U*S*H
+Discussion/Ideas for strdistance() function.
+				- Thanks Sketch@M*U*S*H
 
                          RhostMUSH 3.9.1 Update File
 Credits for any features should go here.  All changes should go into the main help.txt file
@@ -239,7 +241,7 @@ ibreak()        - for iter() and list() [SVN 109]
 shift()         - and additional arguments to dice() [SVN 110]
 fbound()        - like bound but for floating point [SVN 137]
 fbetween()      - like between but for floating point [SVN 137]
-strdistance()   - Levenshtein Distance between two strings [SVN 146]
+strdistance()   - Levenshtein Distance between two strings [SVN 146] 
 tr()            - Transform string based on find/replace [SVN 156]
 digest()        - SSL algorithm encryptions.  Yay is life. [SVN 158]
 roman()         - Number to Roman Numeral converter [SVN 160]
