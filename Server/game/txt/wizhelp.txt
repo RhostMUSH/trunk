@@ -2332,7 +2332,7 @@
   restarting the RhostMUSH, but they may be redefined so that they point to an
   unused attribute.  This command may normally only be invoked by player #1.
   
-  {see 'help @function2' for examples}
+  {see 'wizhelp @function2' for examples}
 
 & @function2
   Command: @function[/<switches>] [<function>] [=<object>/<attr>]
@@ -3053,6 +3053,7 @@
     /byplayer - Specify /list by a specific player.  Argument
                 required for this option.
     /summary  - Show a full summary list of protections per player.
+    /all      - When used with /list shows all player's @protects.
   
   Wizards who /list see all protected names.  Wizards may delete
   names that they do not own.  Immortals bypass all protected names.
@@ -3101,6 +3102,14 @@
   Do note, anything recovered will be owned by you and automatically set
   halt.  Everything will be restored except parents, links, contents,
   and exits in rooms.  This command can only be used by super-royalty.
+  
+  Items to be restored will be added to the recovery list after the
+  next internal dbck (or a manual @dbck can force it) after the item
+  has been @destroyed (or @nuked).  Players who are @toaded or
+  @turtled can not be @recovered in this way as they were not essentially
+  destroyed, but were converted from a player type to a thing type.
+  
+  Items @purged are gone for good.
   
   Example:  @recover #123
   
@@ -4444,10 +4453,11 @@
   
   hostnames                idle_interval            idle_message            
   idle_timeout             idle_wiz_dark            idle_wiz_cloak          
-  imm_nomod                include                  initial_size            
+  ifelse_substitution      imm_nomod                include                
+  includecnt               includenest              initial_size           
   input_database           internal_compress_string inventory_name         
   kill_guarantee_cost      kill_max_cost            kill_min_cost          
-  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark
+  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
   list_access              link_cost                lnum_compat            
   lock_recursion_limit     log                      log_command_list       
   log_maximum              log_network_errors       log_options            
@@ -4462,13 +4472,13 @@
   max_dest_limit           max_folders              max_lastsite_cnt       
   max_name_protect         max_pcreate_lim          max_pcreate_time       
   max_percentsubs          max_players              max_sitecons           
-  max_vattr_limit          maximum_size             min_con_attempt        
   
 { 'wizhelp config parameters4' for more }
 
 & CONFIG PARAMETERS4
   Topic: CONFIG PARAMETERS (continued)
   
+  max_vattr_limit          maximum_size             min_con_attempt        
   money_lim_off            money_lim_gm             money_lim_arch         
   money_lim_counc          money_name_plural        money_name_singular    
   motd_file                motd_message             mud_name               
@@ -5848,6 +5858,15 @@
   unDARKed.
   See Also: idle_wiz_cloak
 
+& ifelse_substitutions
+  Config parameter: ifelse_substitutions <yes/no>.  Default: no
+  Specifies if ifelse() allows #$ substitutions.
+  By default, this is disabled as it firstly breaks compatibility with
+  older versions of RhostMUSH, and secondly, because it is a security
+  risk if you do not code switch safely.
+  
+  See Also: switch_substitutions
+
 & imm_nomod
   Config parameter: imm_nomod <yes/no>.  Default: no
   Indicates whether or not the NOMODIFY flag is accessable to immortals only
@@ -5860,6 +5879,21 @@
   Config parameter: include <path>.  Default: none
   Reads and processes configuration directives from the named file.
   This directive is only valid during startup.
+
+& includecnt
+  Config parameter: includecnt <value>.  Default: 10
+  Specifies the total number of times @include can be called within a single
+  set of input.  A $command on an attribute is considered a single set of 
+  input.  Try to keep this relatively low to avoid DoS attacks.
+  
+  See Also: includenest
+
+& includenest
+  Config parameter: includenest <value>.  Default: 3
+  Specifies the total number of times @include can be nested within itself.
+  Please try to keep this value somewhat low to avoid attacks on your mush.
+  
+  See Also: includecnt
 
 & initial_size
   Config parameter: initial_size <value>.  Default: 1000
@@ -7618,6 +7652,8 @@
   By default, this is disabled as it firstly breaks compatibility with
   older versions of RhostMUSH, and secondly, because it is a security
   risk if you do not code switch safely.
+  
+  See Also: ifelse_substitutions
 
 & terse_shows_contents
   Config parameter: terse_shows_contents <yes/no>.  Default yes
@@ -7763,6 +7799,16 @@
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
              suspect_host, goodmail_host, @site
 
+& vattr_limit_checkwiz
+  Config parameter: vattr_limit_checkwiz <boolean>.  Default: 0
+  
+  Specifies if @limit is enforced to wizards/immortals as well as normal
+  players.  Without this set, wizards and immortals ignore @limit 
+  restritions.
+  
+  See Also: @limit, wizmax_dest_limit, max_vattr_limit, wizmax_vattr_limit,
+            max_vattr_limit
+ 
 & vlimit
   Config parameter: vlimit <ammount>.  Default 750
   Sets the total user-defined attributes that a dbref# can have.  Any

@@ -734,6 +734,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PROTECT_SUMMARY		16
 #define PROTECT_ALIAS	32
 #define PROTECT_UNALIAS	64
+#define PROTECT_LISTALL 128
 #define	QUEUE_KICK	1	/* Process commands from queue */
 #define	QUEUE_WARP	2	/* Advance or set back wait queue clock */
 #define QUEUE_KICK_PID	4

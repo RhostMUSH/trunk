@@ -1314,6 +1314,7 @@ extern struct tm *gmtime64_r(const double *, struct tm *);
 extern struct tm *localtime64_r(const double *, struct tm *);
 extern int internal_logstatus(void);
 extern char * parse_ansi_name(dbref, char *);
+extern int count_extended(char *);
 
 
 /* pom.c definitions */
@@ -1503,7 +1504,10 @@ double safe_atof(char *input)
    int i_vert, i_vert2;
 
    memset(safe_buff, 0, sizeof(safe_buff));
-   if ( (safe_buffptr = strchr(input, 'e')) != NULL ) {
+   safe_buffptr = strchr(input, 'e');
+   if ( safe_buffptr == NULL )
+      safe_buffptr = strchr(input, 'E');
+   if ( safe_buffptr != NULL ) {
       i_vert = i_vert2 = 0;
       i_vert2 = strlen(input) - strlen(safe_buffptr+1);
       if ( i_vert2 > 90 )
@@ -2955,6 +2959,12 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
                        continue;
                     }
                  }
+              }
+              if ( (*pp == '%') && (*(pp+1) == '<') && *(pp+2) && *(pp+3) && *(pp+4) &&
+                   isdigit(*(pp+2)) && isdigit(*(pp+3)) && isdigit(*(pp+4)) &&
+                   (*(pp+5) == '>') ) {
+                 
+                 pp+=5;
               }
               // This should let us grab any future %c codes.
 
@@ -6768,20 +6778,45 @@ struct timefmt_format {
   char format_padst[LBUF_SIZE]; /* String for padding -- ansi aware */
   int format_padstsize;
   int formatting;
+  int forcebreakonreturn;
+  int morepadd;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
                   struct timefmt_format* fm )
 {
+  char t_buff[8];
+
+  memset(t_buff, '\0', sizeof(t_buff));
+  if ( ((unsigned int)ch >= 160) || 
+       ((unsigned int)ch == 28) ||
+       ((unsigned int)ch == 29) ) {
+     switch( (unsigned int)ch % 256 ) {
+        case 28: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)92);
+                 break;
+        case 29: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)37);
+                 break;
+        default: sprintf(t_buff, "%c<%03u>", '%', ((unsigned int)ch) % 256);
+                 break;
+     }
+  }
   if( !fm->fieldsupress1 &&
       !fm->fieldsupress2 &&
       !fm->fieldsupress3 &&
       !fm->fieldsupress4 ) {
-    safe_chr( ch, buff, bufcx );
+    if ( *t_buff ) {
+       safe_str( t_buff, buff, bufcx );
+    } else {
+       safe_chr( ch, buff, bufcx );
+    }
   }
   else if( fm->fieldsupress1 ) {
     if( fm->lastval ) {
-      safe_chr( ch, buff, bufcx );
+      if ( *t_buff ) {
+         safe_str( t_buff, buff, bufcx );
+      } else {
+         safe_chr( ch, buff, bufcx );
+      }
     }
     else {
       fm->supressing = 1;
@@ -6789,7 +6824,11 @@ void safe_chr_fm( char ch, char* buff, char** bufcx,
   }
   else if( fm->fieldsupress3 ) {
     if( fm->sawnonzeroval ) {
-      safe_chr( ch, buff, bufcx );
+      if ( *t_buff ) {
+         safe_str( t_buff, buff, bufcx );
+      } else {
+         safe_chr( ch, buff, bufcx );
+      }
     }
     else {
       fm->supressing = 1;
@@ -6797,7 +6836,11 @@ void safe_chr_fm( char ch, char* buff, char** bufcx,
   }
   else if( fm->fieldsupress2 ) {
     if( fm->lastval ) {
-      safe_chr( ch, buff, bufcx );
+      if ( *t_buff ) {
+         safe_str( t_buff, buff, bufcx );
+      } else {
+         safe_chr( ch, buff, bufcx );
+      }
     }
     else {
       fm->supressing = 1;
@@ -6806,7 +6849,11 @@ void safe_chr_fm( char ch, char* buff, char** bufcx,
   }
   else if( fm->fieldsupress4 ) {
     if( fm->sawnonzeroval ) {
-      safe_chr( ch, buff, bufcx );
+      if ( *t_buff ) {
+         safe_str( t_buff, buff, bufcx );
+      } else {
+         safe_chr( ch, buff, bufcx );
+      }
     }
     else {
       fm->supressing = 1;
@@ -6918,28 +6965,29 @@ void showfield(char* fmtbuff, char* buff, char** bufcx,
 }
 
 void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
-                      struct timefmt_format* fm, int numeric, char *shold, char **sholdptr)
+                      struct timefmt_format* fm, int numeric, char *shold, char **sholdptr, int morepadd)
 {
   int padwidth = 0;
   int currwidth = 0;
-  char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, 
-       *s_special, *s_normal, *s_accent, s_padstring[LBUF_SIZE];
+  char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
+       *s_special, *s_normal, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
-      center_width, spares, i_breakhappen, i_usepadding, i_savejust;
+      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace;
 
   i_breakhappen = i_usepadding = 0;
   if( fm->lastval ) {
     fm->sawnonzeroval = 1;
   }
 
-  x1 = x2 = '\0';
+
+  x1 = x2 = x3 = x4 = '\0';
   i_stripansi = i_nostripansi = i_inansi = 0;
   s_padbuf = s_padbufptr = alloc_lbuf("printf_buffering_crap");
   s_special = alloc_mbuf("printf_mbuf_1");
   s_normal = alloc_mbuf("printf_mbuf_2");
   s_accent = alloc_mbuf("printf_mbuf_3");
   memset(s_padstring, '\0', sizeof(s_padstring));
-  i_chk = 0;
+  i_chk = i_lastspace = 0;
   i_savejust = -1;
 
   if( !fm->fieldwidth ) {
@@ -6949,23 +6997,119 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
 /*
 #ifdef ZENTY_ANSI
 */
+    i_stripansi = strlen(strip_all_special(fmtbuff)) - count_extended(fmtbuff);
+    s = fmtbuff;
+    t = s_padstring;
+    idx = i_chk = 0;
+    while ( *s ) {
+       if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+            isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+            (*(s+5) == '>') ) {
+          switch ( atoi(s+2) ) {
+             case 92: *t++ = (char) 28;
+                      break;
+             case 37: *t++ = (char) 29;
+                      break;
+             default: *t++ = (char) atoi(s+2);
+                      break;
+          }
+          idx+=6;
+          s+=6;
+          continue;
+       }
+       *t++ = *s++;
+    }
+    strcpy(fmtbuff, s_padstring);
+    memset(s_padstring, '\0', sizeof(s_padstring));
+    if ( fm->forcebreakonreturn ) {
+       s = fmtbuff;
+       t = s_padstring;
+       idx = i_chk = 0;
+       while ( *s ) {
+          if ( (*s == '\n') || (*s == '\r')) {
+             i_chk = 0;
+             i_lastspace = 0;
+          }
+          if ( idx > (LBUF_SIZE - 12) )
+             break;
+          if ( ((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd))) {
+             if ( i_lastspace > 0 ) { 
+                t = s_padstring + i_lastspace;
+                if ( *t ) 
+                   t++;
+                i_chk = strlen(t);
+                memcpy(s_padstring2, t, LBUF_SIZE-10);
+                *t++ = '\n';
+                *t++ = '\r';
+                u = s_padstring2;
+                while ( *u ) {
+                   *t++ = *u++;
+                }
+             } else {
+                *t++ = '\n';
+                *t++ = '\r';
+                i_chk = 0;
+             }
+             idx+=2;
+             i_lastspace = 0;
+          }
+          if( (*s == '%') && ((*(s+1) == 'f') && isprint(*(s+2))) ) {
+             *t++ = *s++;
+             *t++ = *s++;
+             *t++ = *s++;
+             idx+=3;
+             continue;
+          }
+          if( (*s == '%') && (*(s+1) == SAFE_CHR) ) {
+             if ( isAnsi[(int) *(s+2)] ) {
+                *t++ = *s++;
+                *t++ = *s++;
+                *t++ = *s++;
+                idx+=3;
+                continue;
+             }
+             if ( (*(s+2) == '0') && ((*(s+3) == 'x') || (*(s+3) == 'X')) &&
+                  *(s+4) && *(s+5) && isxdigit(*(s+4)) && isxdigit(*(s+5)) ) {
+                *t++ = *s++;
+                *t++ = *s++;
+                *t++ = *s++;
+                *t++ = *s++;
+                *t++ = *s++;
+                *t++ = *s++;
+                idx+=6;
+                continue;
+             }
+          }
+          if ( isspace(*s) && (fm->morepadd & 4) ) {
+             i_lastspace = idx;
+          }
+          idx++;
+          i_chk++;
+          *t++ = *s++;
+          if ( idx > (LBUF_SIZE - 10) )
+             break;
+       }
+       strcpy(fmtbuff, s_padstring);
+       memset(s_padstring, '\0', sizeof(s_padstring));
+    } 
+    x1 = x2 = '\0';
+    i_stripansi = i_chk = idx = 0;
     if ( fm->breakonreturn ) {
        s_justbuff = strip_all_special(fmtbuff);
        i_nostripansi=0;
+       s = s_padstring;
        while ( *s_justbuff && *s_justbuff != '\n' ) {
           if ( *s_justbuff != '\r' )
              i_nostripansi++;
+          *s = *s_justbuff;
           s_justbuff++;
+          s++;
        } 
-       i_stripansi = i_nostripansi;
+       i_stripansi = i_nostripansi - count_extended(s_padstring);
+       memset(s_padstring, '\0', sizeof(s_padstring));
     } else {
-       i_stripansi = strlen(strip_all_special(fmtbuff));
+       i_stripansi = strlen(strip_all_special(fmtbuff)) - count_extended(fmtbuff);
     }
-/*
-#else
-    i_stripansi = strlen(strip_ansi(fmtbuff));
-#endif
-*/
     if ( (i_stripansi == 0) && (*(fm->format_padst) == '!') ) {
        fm->format_padstsize = 0;
        fm->format_padch = ' ';
@@ -6978,9 +7122,9 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
        strcpy(s_padstring, fm->format_padst);
     }
     i_nostripansi = strlen(fmtbuff);
-    if ( fm->nocutval && *fmtbuff && (fm->fieldwidth < i_stripansi) )
+    if ( fm->nocutval && *fmtbuff && ((fm->fieldwidth + morepadd) < i_stripansi) )
        fm->fieldwidth = i_stripansi;
-    padwidth = fm->fieldwidth - i_stripansi;
+    padwidth = (fm->fieldwidth + morepadd) - i_stripansi;
     if ( fm->format_padch )
        padch = fm->format_padch;
     if ( (fm->format_padstsize == 0) && (*(s_padstring) == '%') ) {
@@ -6998,11 +7142,13 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
               i_spacecnt++;
            if ( fm->breakonreturn && (*s_justbuff == '\n') )
               break;
+           if ( fm->forcebreakonreturn && ((int)(s_justbuff - fmtbuff) >= i_stripansi) )
+              break;
            s_justbuff++;
         }
         if ( i_spacecnt > 0 ) {
-           gapwidth = (fm->fieldwidth - (i_stripansi - i_spacecnt)) / i_spacecnt;
-           spares = (fm->fieldwidth - (i_stripansi - i_spacecnt)) % i_spacecnt;
+           gapwidth = ((fm->fieldwidth + morepadd) - (i_stripansi - i_spacecnt)) / i_spacecnt;
+           spares = ((fm->fieldwidth + morepadd) - (i_stripansi - i_spacecnt)) % i_spacecnt;
            if( gapwidth < 1 ) {
              gapwidth = 1;
              spares = 0;
@@ -7153,7 +7299,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
     i_padmenow = 0;
     if ( (i_stripansi == 0) && (i_nostripansi > 0) )
        currwidth--;
-    while ( *fmtbuff && (currwidth < fm->fieldwidth) ) {
+    while ( *fmtbuff && (currwidth < (fm->fieldwidth + morepadd)) ) {
 #ifdef ZENTY_ANSI
          if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == 'f') && isprint(*(fmtbuff+2))) ) {
             safe_chr( *fmtbuff, buff, bufcx );
@@ -7216,6 +7362,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                }
             }
          }
+
 #endif
        if ( fm->breakonreturn && (*fmtbuff == '\n') && (*(fmtbuff+1) != '\0') ) {
           safe_str(fmtbuff+1, shold, sholdptr);
@@ -7712,6 +7859,7 @@ FUNCTION(fun_printf)
    int fmtcurrarg = 1;
    int i_arrayval, i_totwidth, i, j, i_loopydo;
    int i_breakarray[30], i_widtharray[30];
+   int morepadd = 0;
    char *s_strarray[30], *s_strptr, *s_tmpbuff;
    struct timefmt_format fm, fm_array[30];
 
@@ -7913,6 +8061,18 @@ FUNCTION(fun_printf)
                         fm.fieldsupress1 = 1;
                         formatpass = 1;
                         break;
+                     case '\'': /* padd to left if left string empty */
+                        fm.morepadd = (fm.morepadd | 1);
+                        formatpass = 1;
+                        break;
+                     case '`': /* padd to right if right string empty */
+                        fm.morepadd = (fm.morepadd | 2);
+                        formatpass = 1;
+                        break;
+                     case '"': /* Enforce word separation with '|' usage */
+                        fm.morepadd = (fm.morepadd | 4);
+                        formatpass = 1;
+                        break;
                      case '@': /* fieldsuppress type 3 */
                         if( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
@@ -7970,7 +8130,7 @@ FUNCTION(fun_printf)
                         formatpass = 1;
                         break;
                      case '&': /* breakonreturn */
-                        if( fm.breakonreturn ) {
+                        if( fm.breakonreturn || fm.forcebreakonreturn ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
                            fmterror = 1;
                            break;
@@ -7980,6 +8140,21 @@ FUNCTION(fun_printf)
                            fmterror = 1;
                            break;
                         }
+                        fm.breakonreturn = 1;
+                        formatpass = 1;
+                        break;
+                     case '|': /* Force break on return */
+                        if( fm.forcebreakonreturn || fm.breakonreturn ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           fmterror = 1;
+                           break;
+                        }
+                        if ( i_arrayval > 30 ) {
+                           safe_str("#-1 EXCEEDED MAXIMUM BUFFERING FOR RETURN BREAKS", buff, bufcx);
+                           fmterror = 1;
+                           break;
+                        }
+                        fm.forcebreakonreturn = 1;
                         fm.breakonreturn = 1;
                         formatpass = 1;
                         break;
@@ -8030,10 +8205,12 @@ FUNCTION(fun_printf)
                      case 'S': /* The string */
                      case 's':
                         fm.lastval = 0;
+                        morepadd = 0;
                         if ( fmtcurrarg < nfargs ) {
                            if ( *fargs[fmtcurrarg] )
                               fm.lastval = 1;
-                           if ( fm.breakonreturn && (strchr(fargs[fmtcurrarg], '\n') != NULL) ) {
+                           if ( (fm.forcebreakonreturn && ((strlen(strip_all_ansi(fargs[fmtcurrarg])) - count_extended(fargs[fmtcurrarg])) > fm.fieldwidth)) || 
+                                (fm.breakonreturn && (strchr(fargs[fmtcurrarg], '\n') != NULL)) ) {
                               s_strptr = s_strarray[i_arrayval] = alloc_lbuf("showfield_printf_cr");
                               if ( i_totwidth > 0 )
                                  i_breakarray[i_arrayval] = i_totwidth - fm.fieldwidth;
@@ -8041,12 +8218,13 @@ FUNCTION(fun_printf)
                                  i_breakarray[i_arrayval] = 0;
                               i_widtharray[i_arrayval] = fm.fieldwidth;
                               i_totwidth = 0;
+                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, s_strarray[i_arrayval], &s_strptr, morepadd);
+                              fm.forcebreakonreturn = 0;
                               fm_array[i_arrayval] = fm;
-                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, s_strarray[i_arrayval], &s_strptr);
                               i_arrayval++;
                               i_loopydo = 1;
                            } else {
-                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, (char *)NULL, (char **)NULL);
+                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, (char *)NULL, (char **)NULL, morepadd);
                               if ( fm.supressing )
                                  i_totwidth -= fm.fieldwidth;
                            }
@@ -8059,6 +8237,8 @@ FUNCTION(fun_printf)
                         fmtcurrarg++;
                         fm.nocutval = 0;
                         fm.breakonreturn = 0;
+                        fm.forcebreakonreturn = 0;
+                        fm.morepadd = 0;
                         break;
                   } /* Case */
                   if( !formatpass ) {
@@ -8070,7 +8250,9 @@ FUNCTION(fun_printf)
                      fm.zeropad = 0;
                      fm.leftjust = 0;
                      fm.nocutval = 0;
+                     fm.forcebreakonreturn = 0;
                      fm.breakonreturn = 0;
+                     fm.morepadd = 0;
                   }
                } /* For */
                pp--;
@@ -8104,21 +8286,60 @@ FUNCTION(fun_printf)
       while ( i_loopydo ) {
          i_loopydo = 0;
          i_totwidth = 0;
+         fmtdone = 0;
+         fmterror = 0;
+         formatpass = 0;
          safe_str("\r\n", buff, bufcx);
          for ( i = 0; i < i_arrayval; i++ ) {
+            morepadd = 0;
+//          if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1] && *s_strarray[i] ) {
+            if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1]  ) {
+               if ( !fmtdone ) 
+                  morepadd += fm_array[i-1].fieldwidth;
+               fmtdone = 0;
+//          } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] && ((i+1) < i_arrayval) && *s_strarray[i+1]) {
+            } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] ) {
+//             if ( (!((fm_array[i].morepadd & 2) && (i == 0))) ||
+//                  !((fm_array[i].morepadd & 2) && ((i+1) > i_arrayval)) ) {
+               if ( !(((fm_array[i].morepadd & 2) && (i == 0)) ||
+                     ((fm_array[i].morepadd & 1) && ((i+1) >= i_arrayval))) ) {
+                  formatpass = i_breakarray[i];
+                  fmterror = 1;
+//                i_breakarray[i] = 0;
+                  if ( ((i > 1) && !((fm_array[i-2].morepadd & 1) && !*s_strarray[i-2])) || (i <= 1)) {
+                     morepadd -= fm_array[i].fieldwidth;
+                  }
+               }
+//          } else if ( ((i+1) < i_arrayval) && (fm_array[i+1].morepadd & 2) && !*s_strarray[i+1] && *s_strarray[i] ) {
+            } else if ( ((i+1) < i_arrayval) && (fm_array[i+1].morepadd & 2) && !*s_strarray[i+1]  ) {
+//             if ( (i > 1) && !(fm_array[i-2].morepadd & 1) ) {
+                  formatpass = i_breakarray[i];
+                  fmterror = 1;
+                  i_breakarray[i] += fm_array[i].fieldwidth;
+                  morepadd = fm_array[i+1].fieldwidth - fm_array[i].fieldwidth;
+//             }
+            }
             for ( j = 0; j < i_breakarray[i]; j++ )
                safe_chr(' ', buff, bufcx);
+            if ( fmterror ) {
+               i_breakarray[i] = formatpass;
+               formatpass = fmterror = 0;
+            }
             if ( strchr(s_strarray[i], '\n') != NULL ) {
                s_strptr = s_tmpbuff;
-               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, s_tmpbuff, &s_strptr);
+               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, s_tmpbuff, &s_strptr, morepadd);
                strcpy(s_strarray[i], s_tmpbuff);
                i_loopydo = 1;
                i_widtharray[i] = i_widtharray[i] + i_totwidth;
                i_totwidth = 0;
             } else {
-               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, (char *)NULL, (char **)NULL);
+               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, (char *)NULL, (char **)NULL, morepadd);
+               fmtdone = 0;
+               if ( *s_strarray[i] )
+                  fmtdone = 1;
                memset(s_strarray[i], '\0', LBUF_SIZE);
-               if ( !fm_array[i].supressing )
+               fm_array[i].morepadd |= 256;
+               if ( !fm_array[i].supressing  )
                   i_totwidth = i_widtharray[i];
             }
          }
@@ -8579,9 +8800,9 @@ FUNCTION(fun_timefmt)
                 break;
               case 'Z': /* elapsed years (365 day year) */
                 fm.lastval = (int) (secs2 / 60 / 60 / 24 / 365);
-                if ( (int)secs2 < 0 )
-                   sprintf(fmtbuff, "%.0f", 0.0 - floor(fabs(secs2) / 60 / 60 / 24 / 365));
-                else
+//              if ( (int)secs2 < 0 )
+//                 sprintf(fmtbuff, "%.0f", 0.0 - floor(fabs(secs2) / 60 / 60 / 24 / 365));
+//              else
                    sprintf(fmtbuff, "%.0f", floor(secs2 / 60 / 60 / 24 / 365));
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
@@ -10822,6 +11043,63 @@ FUNCTION(fun_zfuneval)
     }
 }
 
+FUNCTION(fun_streval)
+{
+    int tlev;
+    char *result;
+
+    /* We need at least one argument */
+
+    if (nfargs < 2) {
+       safe_str("#-1 FUNCTION (streval) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+
+    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
+    if (mudstate.evalnum < MAXEVLEVEL) {
+       tlev = search_nametab(player, evaltab_sw, result);
+       if (God(player)) {
+           if (tlev > 5)
+              tlev = -1;
+       } else if (Immortal(player)) {
+           if (tlev > 4)
+              tlev = -1;
+       } else if (Wizard(player)) {
+           if (tlev > 3)
+              tlev = -1;
+       } else if (Admin(player)) {
+           if (tlev > 2)
+              tlev = -1;
+       } else if (Builder(player)) {
+           if (tlev > 1)
+              tlev = -1;
+       } else if (Guildmaster(player)) {
+           if (tlev > 0)
+              tlev = -1;
+       } else
+           tlev = -1;
+       if (tlev != -1) {
+           mudstate.evalstate[mudstate.evalnum] = tlev;
+           mudstate.evaldb[mudstate.evalnum++] = player;
+       }
+    } else {
+       tlev = -1;
+    }
+    free_lbuf(result);
+
+    /* Evaluate it using the rest of the passed function args */
+
+    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[0],
+                  &(fargs[2]), nfargs - 2);
+    safe_str(result, buff, bufcx);
+    free_lbuf(result);
+    if (tlev != -1) {
+       mudstate.evalnum--;
+    }
+}
+
 void
 do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
              char *fargs[], int nfargs, char *cargs[], int ncargs, int i_type)
@@ -13037,6 +13315,7 @@ FUNCTION(fun_v)
     ATTR *ap;
 
     tbuf = fargs[0];
+
 #ifdef ATTR_HACK
     if ((isalpha((int)(tbuf[0])) || (tbuf[0] == '_') || (tbuf[0] == '~')) && tbuf[1]) {
 #else
@@ -13066,17 +13345,21 @@ FUNCTION(fun_v)
     sbuf = alloc_sbuf("fun_v");
     sbufc = sbuf;
     safe_sb_chr('%', sbuf, &sbufc);
-    i_shifted = atoi(fargs[0]) / 10;
-    if ( i_shifted < 0 )
-       i_shifted = 0;
-    if ( i_shifted > (MAX_ARGS/10) )
-       i_shifted = (MAX_ARGS/10);
-    sprintf(s_field, "%d", atoi(fargs[0]) % 10);
-    safe_sb_str(s_field, sbuf, &sbufc);
-    *sbufc = '\0';
-    if ( i_shifted ) {
-       i_oldshift = mudstate.shifted;
-       mudstate.shifted = i_shifted;
+    if ( isdigit(*fargs[0]) ) {
+       i_shifted = atoi(fargs[0]) / 10;
+       if ( i_shifted < 0 )
+          i_shifted = 0;
+       if ( i_shifted > (MAX_ARGS/10) )
+          i_shifted = (MAX_ARGS/10);
+       sprintf(s_field, "%d", atoi(fargs[0]) % 10);
+       safe_sb_str(s_field, sbuf, &sbufc);
+       *sbufc = '\0';
+       if ( i_shifted ) {
+          i_oldshift = mudstate.shifted;
+          mudstate.shifted = i_shifted;
+       }
+    } else {
+       safe_sb_str(fargs[0], sbuf, &sbufc);
     }
     tbuf = exec(player, cause, caller, EV_FIGNORE, sbuf, cargs, ncargs);
     if ( i_shifted ) {
@@ -17708,7 +17991,7 @@ FUNCTION(fun_lwho)
     }
 
     if ( (nfargs == 2) && Wizard(player) ) {
-      victim = match_thing(player, fargs[1]);
+      victim = match_thing_quiet(player, fargs[1]);
     } else {
       victim = NOTHING;
     }
@@ -21227,7 +21510,7 @@ FUNCTION(fun_ifelse)
                  fargs[0], cargs, ncargs);
     retbuff = NULL;
     if (atoi(mbuff)) {
-        if ( mudconf.switch_substitutions ) {
+        if ( mudconf.ifelse_substitutions ) {
            retbuff = replace_tokens(fargs[1], NULL, NULL, mbuff);
            tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                         retbuff, cargs, ncargs);
@@ -21239,7 +21522,7 @@ FUNCTION(fun_ifelse)
         safe_str(tbuff, buff, bufcx);
         free_lbuf(tbuff);
     } else if (nfargs == 3) {
-        if ( mudconf.switch_substitutions ) {
+        if ( mudconf.ifelse_substitutions ) {
            retbuff = replace_tokens(fargs[2], NULL, NULL, mbuff);
            tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                         retbuff, cargs, ncargs);
@@ -22702,20 +22985,49 @@ FUNCTION(fun_setinter)
 
 FUNCTION(fun_ljust)
 {
-    int spaces, i, filllen;
-    char filler[LBUF_SIZE];
+    int spaces, i, i_len, filllen;
+    char filler[LBUF_SIZE], *s, *t, t_buff[8];
 
     if ( !fn_range_check("LJUST", nfargs, 2, 3, buff, bufcx))
        return;
 
+    memset(t_buff, '\0', sizeof(t_buff));
+    memset(filler, '\0', sizeof(filler));
     spaces = atoi(fargs[1]);
+    s = t = NULL;
+    i_len = 0;
 
     filllen = 1;
     if ( (nfargs > 2) && *fargs[2] ) {
        if ( strlen(strip_all_special(fargs[2])) < 1 )
           sprintf(filler, " ");
-       else
+       else {
+#ifdef ZENTY_ANSI
+          s = strip_all_special(fargs[2]);          
+          t = filler;
+          while ( *s ) {
+             if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+                   isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+                   (*(s+5) == '>') ) {
+                switch ( atoi(s+2) ) {
+                   case 92: *t = (char) 28;
+                            break;
+                   case 37: *t = (char) 29;
+                            break;
+                   default: *t = (char) atoi(s+2);
+                            break;
+                }
+                s+=5;
+             } else {
+                *t = *s;
+             }
+             s++;
+             t++;
+          }
+#else
           sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+#endif
+       }
     } else {
        sprintf(filler, " ");
     }
@@ -22725,42 +23037,103 @@ FUNCTION(fun_ljust)
     if ( spaces > LBUF_SIZE) 
        spaces = LBUF_SIZE;
     safe_str(fargs[0], buff, bufcx);
-    for (i = strlen(strip_all_special(fargs[0])); i < spaces; i++)
-       safe_chr(filler[i % filllen], buff, bufcx);
+    i_len = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
+    for (i = i_len; i < spaces; i++) {
+       if ( ((unsigned int)filler[i % filllen] >= 160) || 
+            ((unsigned int)filler[i % filllen] == 28) ||
+            ((unsigned int)filler[i % filllen] == 29) ) {
+          switch( (unsigned int)filler[i % filllen] % 256 ) {
+             case 28: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)92);
+                      break;
+             case 29: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)37);
+                      break;
+             default: sprintf(t_buff, "%c<%03u>", '%', ((unsigned int)filler[i % filllen]) % 256);
+                      break;
+          }
+          safe_str(t_buff, buff, bufcx);
+       } else {
+          safe_chr(filler[i % filllen], buff, bufcx);
+       }
+    }
 }
 
 FUNCTION(fun_rjust)
 {
     int spaces, i, filllen;
-    char filler[LBUF_SIZE];
+    char filler[LBUF_SIZE], t_buff[8], *s, *t;
 
     if ( !fn_range_check("RJUST", nfargs, 2, 3, buff, bufcx))
        return;
 
     filllen = 1;
+    memset(t_buff, '\0', sizeof(t_buff));
+    memset(filler, '\0', sizeof(filler));
+    s = t = NULL;
+
     if ( (nfargs > 2) && *fargs[2] ) {
-       if ( strlen(strip_all_special(fargs[2])) < 1 )
+       if ( strlen(strip_all_special(fargs[2])) < 1 ) {
           sprintf(filler, " ");
-       else
+       } else {
+#ifdef ZENTY_ANSI
+          s = strip_all_special(fargs[2]);          
+          t = filler;
+          while ( *s ) {
+             if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+                   isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+                   (*(s+5) == '>') ) {
+                switch ( atoi(s+2) ) {
+                   case 92: *t = (char) 28;
+                            break;
+                   case 37: *t = (char) 29;
+                            break;
+                   default: *t = (char) atoi(s+2);
+                            break;
+                }
+                s+=5;
+             } else {
+                *t = *s;
+             }
+             s++;
+             t++;
+          }
+#else
           sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+#endif
+      }
     } else {
        sprintf(filler, " ");
     }
     filllen = strlen(filler);
 
-    spaces = atoi(fargs[1]) - strlen(strip_all_special(fargs[0]));
+    spaces = atoi(fargs[1]) - (strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]));
 
     /* Sanitize number of spaces */
     if ( spaces > LBUF_SIZE )
        spaces = LBUF_SIZE;
-    for (i = 0; i < spaces; i++)
-       safe_chr(filler[i % filllen], buff, bufcx);
+
+    for (i = 0; i < spaces; i++) {
+       if ( ((unsigned int)filler[i % filllen] >= 160) || 
+            ((unsigned int)filler[i % filllen] == 28) ||
+            ((unsigned int)filler[i % filllen] == 29) ) {
+          switch( (unsigned int)filler[i % filllen] % 256 ) {
+             case 28: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)92);
+                      break;
+             case 29: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)37);
+                      break;
+             default: sprintf(t_buff, "%c<%03u>", '%', ((unsigned int)filler[i % filllen]) % 256);
+                      break;
+          }
+          safe_str(t_buff, buff, bufcx);
+       } else {
+          safe_chr(filler[i % filllen], buff, bufcx);
+       }
+    }
     safe_str(fargs[0], buff, bufcx);
 }
 
 FUNCTION(fun_center)
 {
-    char filler[LBUF_SIZE];
+    char filler[LBUF_SIZE], t_buff[8], *s, *t;
 
     int i, q, len, lead_chrs, trail_chrs, width, filllen;
 
@@ -22768,30 +23141,88 @@ FUNCTION(fun_center)
       return;
 
     width = atoi(fargs[1]);
-    len = strlen(strip_all_special(fargs[0]));
+    len = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
     if ( (len >= width) || (width > (LBUF_SIZE -2)) ) {
        safe_str(fargs[0], buff, bufcx);
        return;
     }
 
     filllen = 1;
+    memset(t_buff, '\0', sizeof(t_buff));
+    memset(filler, '\0', sizeof(filler));
+    s = t = NULL;
+   
     if ( (nfargs > 2) && *fargs[2] ) {
-       if ( strlen(strip_all_special(fargs[2])) < 1 )
+       if ( strlen(strip_all_special(fargs[2])) < 1 ) {
           sprintf(filler, " ");
-       else
+       } else {
+#ifdef ZENTY_ANSI
+          s = strip_all_special(fargs[2]);          
+          t = filler;
+          while ( *s ) {
+             if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+                   isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+                   (*(s+5) == '>') ) {
+                switch ( atoi(s+2) ) {
+                   case 92: *t = (char) 28;
+                            break;
+                   case 37: *t = (char) 29;
+                            break;
+                   default: *t = (char) atoi(s+2);
+                            break;
+                }
+                s+=5;
+             } else {
+                *t = *s;
+             }
+             s++;
+             t++;
+          }
+#else
           sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+#endif
+       }
     } else
        sprintf(filler, " ");
     filllen = strlen(filler);
 
     lead_chrs = (width / 2) - (len / 2) + .5;
-    for (i = 0; i < lead_chrs; i++)
-       safe_chr(filler[i % filllen], buff, bufcx);
+    for (i = 0; i < lead_chrs; i++) {
+       if ( ((unsigned int)filler[i % filllen] >= 160) || 
+            ((unsigned int)filler[i % filllen] == 28) ||
+            ((unsigned int)filler[i % filllen] == 29) ) {
+          switch( (unsigned int)filler[i % filllen] % 256 ) {
+             case 28: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)92);
+                      break;
+             case 29: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)37);
+                      break;
+             default: sprintf(t_buff, "%c<%03u>", '%', ((unsigned int)filler[i % filllen]) % 256);
+                      break;
+          }
+          safe_str(t_buff, buff, bufcx);
+       } else {
+          safe_chr(filler[i % filllen], buff, bufcx);
+       }
+    }
     safe_str(fargs[0], buff, bufcx);
     trail_chrs = width - lead_chrs - len;
-    q = i + strlen(strip_all_special(fargs[0]));
+    q = i + (strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]));
     for (i = 0; i < trail_chrs; i++) {
-       safe_chr(filler[q % filllen], buff, bufcx);
+       if ( ((unsigned int)filler[q % filllen] >= 160) || 
+            ((unsigned int)filler[q % filllen] == 28) ||
+            ((unsigned int)filler[q % filllen] == 29) ) {
+          switch( (unsigned int)filler[q % filllen] % 256 ) {
+             case 28: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)92);
+                      break;
+             case 29: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)37);
+                      break;
+             default: sprintf(t_buff, "%c<%03u>", '%', ((unsigned int)filler[q % filllen]) % 256);
+                      break;
+          }
+          safe_str(t_buff, buff, bufcx);
+       } else {
+          safe_chr(filler[q % filllen], buff, bufcx);
+       }
        q++;
     }
 }
@@ -23731,22 +24162,49 @@ FUNCTION(fun_trace)
 FUNCTION(fun_ljc)
 {
   int len, inlen, idx, filllen;
-  char *tptr, filler[LBUF_SIZE];
+  char *tptr, filler[LBUF_SIZE], t_buff[8], *s, *t;
 
   if (!fn_range_check("LJC", nfargs, 2, 3, buff, bufcx)) {
      return;
   }
 
-  inlen = strlen(strip_all_special(fargs[0]));
+  inlen = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
   len = atoi(fargs[1]);
 
   /* seperator */
   filllen = 1;
+  memset(filler, '\0', sizeof(filler));
+  memset(t_buff, '\0', sizeof(t_buff));
+  s = t = NULL;
   if ( (nfargs > 2) && *fargs[2] ) {
      if ( strlen(strip_all_special(fargs[2])) < 1 )
         sprintf(filler, " ");
      else
+#ifdef ZENTY_ANSI
+        s = strip_all_special(fargs[2]);          
+        t = filler;
+        while ( *s ) {
+           if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+                 isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+                 (*(s+5) == '>') ) {
+              switch ( atoi(s+2) ) {
+                 case 92: *t = (char) 28;
+                          break;
+                 case 37: *t = (char) 29;
+                          break;
+                 default: *t = (char) atoi(s+2);
+                          break;
+              }
+              s+=5;
+           } else {
+              *t = *s;
+           }
+           s++;
+           t++;
+        }
+#else
         sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+#endif
   } else {
      sprintf(filler, " ");
   }
@@ -23785,13 +24243,40 @@ FUNCTION(fun_ljc)
             continue;
          }
       }
-      if(idx < len)
-          safe_chr(*tptr, buff, bufcx);
+      if(idx < len) {
+         if ( (*tptr == '%') && (*(tptr+1) == '<') && *(tptr+2) && *(tptr+3) && *(tptr+3) &&
+              isdigit(*(tptr+2)) && isdigit(*(tptr+3)) && isdigit(*(tptr+4)) &&
+              (*(tptr+5) == '>') ) {
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+         }
+         safe_chr(*tptr, buff, bufcx);
+      }
       idx++;
   }
 /* Second, add trailing spaces.   */
+//if ( idx < len ) {
+//   idx -= count_extended(fargs[0]);
+//}
   while(idx < len) {
-      safe_chr(filler[idx % filllen], buff, bufcx);
+       if ( ((unsigned int)filler[idx % filllen] >= 160) || 
+            ((unsigned int)filler[idx % filllen] == 28) ||
+            ((unsigned int)filler[idx % filllen] == 29) ) {
+          switch( (unsigned int)filler[idx % filllen] % 256 ) {
+             case 28: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)92);
+                      break;
+             case 29: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)37);
+                      break;
+             default: sprintf(t_buff, "%c<%03u>", '%', ((unsigned int)filler[idx % filllen]) % 256);
+                      break;
+          }
+          safe_str(t_buff, buff, bufcx);
+       } else {
+          safe_chr(filler[idx % filllen], buff, bufcx);
+       }
       idx++;
   }
 #else
@@ -23814,10 +24299,51 @@ FUNCTION(fun_ljc)
  * Thorin 11/14/95
  */
 
+FUNCTION(fun_countspecial)
+{
+  int i_key, i_val;
+  char *s;
+
+  if (!fn_range_check("COUNTSPECIAL", nfargs, 1, 2, buff, bufcx)) {
+     return;
+  }
+
+  i_val = 0;
+  
+  if ( !*fargs[0] ) {
+     ival(buff, bufcx, i_val);
+     return;
+  }
+
+  if ( (nfargs > 1) && *fargs[1] )
+     i_key = atoi(fargs[1]);
+  
+  if ( (i_key < 0) || (i_key > 2) )
+     i_key = 0;
+  
+  s = fargs[0];
+  while ( *s ) {
+     if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) && 
+          isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+          (*(s+5) == '>') ) {
+        if ( i_key > 0 ) {
+           i_val += 5;
+        } else {
+           i_val++;
+        }
+        s+=5;
+     }
+     if ( i_key == 2 )
+        i_val++;
+     s++;
+  }
+  ival(buff, bufcx, i_val);
+}
+
 FUNCTION(fun_rjc)
 {
   int len, inlen, idx, spaces, filllen;
-  char *tptr, filler[LBUF_SIZE];
+  char *tptr, filler[LBUF_SIZE], t_buff[8], *s, *t;
 
   if (!fn_range_check("RJC", nfargs, 2, 3, buff, bufcx)) {
      return;
@@ -23825,12 +24351,41 @@ FUNCTION(fun_rjc)
   inlen = strlen(strip_all_special(fargs[0]));
   len = atoi(fargs[1]);
 
+  memset(filler, '\0', sizeof(filler));
+  memset(t_buff, '\0', sizeof(t_buff));
+  s = t = NULL;
   filllen = 1;
+
   if ( (nfargs > 2) && *fargs[2] ) {
-     if ( strlen(strip_all_special(fargs[2])) < 1 )
+     if ( strlen(strip_all_special(fargs[2])) < 1 ) {
         sprintf(filler, " ");
-     else
+     } else {
+#ifdef ZENTY_ANSI
+        s = strip_all_special(fargs[2]);          
+        t = filler;
+        while ( *s ) {
+           if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+                 isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+                 (*(s+5) == '>') ) {
+              switch ( atoi(s+2) ) {
+                 case 92: *t = (char) 28;
+                          break;
+                 case 37: *t = (char) 29;
+                          break;
+                 default: *t = (char) atoi(s+2);
+                          break;
+              }
+              s+=5;
+           } else {
+              *t = *s;
+           }
+           s++;
+           t++;
+        }
+#else
         sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
+#endif
+     }
   } else {
      sprintf(filler, " ");
   }
@@ -23843,6 +24398,7 @@ FUNCTION(fun_rjc)
     len = LBUF_SIZE - 1;
   }
 
+  inlen -= count_extended(fargs[0]);
   if( inlen > len ) {
     spaces = 0;
   }
@@ -23851,7 +24407,21 @@ FUNCTION(fun_rjc)
   }
 
   for( idx = 0; idx < spaces; idx++ ) {
-    safe_chr(filler[idx % filllen], buff, bufcx);
+    if ( ((unsigned int)filler[idx % filllen] >= 160) || 
+         ((unsigned int)filler[idx % filllen] == 28) ||
+         ((unsigned int)filler[idx % filllen] == 29) ) {
+       switch( (unsigned int)filler[idx % filllen] % 256 ) {
+          case 28: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)92);
+                   break;
+          case 29: sprintf(t_buff, "%c<%03u>", '%', (unsigned int)37);
+                   break;
+          default: sprintf(t_buff, "%c<%03u>", '%', ((unsigned int)filler[idx % filllen]) % 256);
+                   break;
+       }
+       safe_str(t_buff, buff, bufcx);
+    } else {
+       safe_chr(filler[idx % filllen], buff, bufcx);
+    }
   }
 #ifdef ZENTY_ANSI
   // Traverse the entire string.
@@ -23880,8 +24450,18 @@ FUNCTION(fun_rjc)
             continue;
          }
       }
-      if (idx < len)
-          safe_chr(*tptr, buff, bufcx);
+      if (idx < len) {
+         if ( (*tptr == '%') && (*(tptr+1) == '<') && *(tptr+2) && *(tptr+3) && *(tptr+3) &&
+              isdigit(*(tptr+2)) && isdigit(*(tptr+3)) && isdigit(*(tptr+4)) &&
+              (*(tptr+5) == '>') ) {
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+            safe_chr(*tptr++, buff, bufcx);
+         }
+         safe_chr(*tptr, buff, bufcx);
+      }
       idx++;
   }
 #else
@@ -24145,7 +24725,7 @@ FUNCTION(fun_lastcreate)
         break;
       case 'E':
       case 'e':
-        obj_type = 1;;
+        obj_type = 1;
         break;
       case 'T':
       case 't':
@@ -24539,6 +25119,7 @@ FUNCTION(fun_emit)
 FUNCTION(fun_clone)
 {
    CMDENT *cmdp;
+   int i_key;
 
    if ( !(mudconf.sideeffects & SIDE_CLONE) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -24555,10 +25136,31 @@ FUNCTION(fun_clone)
       notify(player, "Permission denied.");
       return;
    }
-   if (!fn_range_check("CLONE", nfargs, 1, 2, buff, bufcx))
+   if (!fn_range_check("CLONE", nfargs, 1, 3, buff, bufcx))
       return;
+
+   i_key = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_key = atoi(fargs[2]);
+      if ( i_key < 0 )
+         i_key = 0;
+      if ( Wizard(player) )
+         i_key &= 3;
+      else
+         i_key &= 1;
+   }
+   switch (i_key ) {
+      case 3: i_key = CLONE_PARENT | CLONE_PRESERVE;
+              break;
+      case 2: i_key = CLONE_PRESERVE;
+              break;
+      case 1: i_key = CLONE_PARENT;
+              break;
+      default: i_key = 0;
+              break;
+   }
    mudstate.store_lastcr = -1;
-   do_clone(player, cause, SIDEEFFECT, fargs[0], fargs[1]);
+   do_clone(player, cause, SIDEEFFECT | i_key, fargs[0], fargs[1]);
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
 }
@@ -26055,6 +26657,7 @@ FUN flist[] =
     {"CONVTIME", fun_convtime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"COR", fun_cor, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"COS", fun_cos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"COUNTSPECIAL", fun_countspecial, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CRC32", fun_crc32, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CREPLACE", fun_creplace, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
@@ -26453,6 +27056,7 @@ FUN flist[] =
     {"STR", fun_str, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRDISTANCE", fun_strdistance, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STREQ", fun_streq, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"STREVAL", fun_streval, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"STRIP", fun_strip, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRIPACCENTS", fun_stripaccents, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRIPANSI", fun_stripansi, 1, 0, CA_PUBLIC, CA_NO_CODE},

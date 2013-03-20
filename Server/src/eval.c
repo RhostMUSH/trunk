@@ -606,8 +606,12 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       s_intbuf[1] = *(string+1);
                       s_intbuf[2] = *(string+2);
                       i_extendnum = atoi(s_intbuf);
-                      if ( (i_extendnum == 37) || (i_extendnum == 92) || ((i_extendnum >= 160) && (i_extendnum <= 250)) ) {
+                      if ( (i_extendnum >= 32) && (i_extendnum <= 126) ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
+                         safe_chr((char) i_extendnum, buff, &bufc);
+                      } else if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
+                         safe_chr((char) i_extendnum, buff2, &bufc2);
+                         safe_chr(' ', buff, &bufc);                         
                       } else {
                          switch(i_extendnum) {
                             case 251:

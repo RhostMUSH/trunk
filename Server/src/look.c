@@ -238,7 +238,7 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
     dbref thing;
     dbref can_see_loc;
     dbref aowner;
-    char *buff, *pbuf, *tbuff, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *tbuff, *tpr_buff, *tprp_buff;
     int aflags, i_cntr=0;
 
     /* check to see if he can see the location */
@@ -296,26 +296,47 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
                     if ( ((NoName(thing) && *buff) || !NoName(thing)) ) {
                        tprp_buff = tpr_buff;
                        if(isPlayer(thing)) {
+                           pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
                            pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
-                           if(*pbuf)
-                              if ( !*tbuff )
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s, %.40s", buff, pbuf));
-                              else
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s, %s", tbuff, buff, pbuf));
-                           else
-                              if ( !*tbuff )
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s", buff));
-                              else
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s", tbuff, buff));
+                           if(*pbuf) {
+                              if ( !*tbuff ) {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s, %.40s", buff, pbuf));
+                                 }
+                              } else {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.40s %s%s, %s", tbuff, pbuf2, ANSI_NORMAL, buff, pbuf));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s, %s", tbuff, buff, pbuf));
+                                 }
+                              }
+                           } else {
+                              if ( !*tbuff ) {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s", buff));
+                                 }
+                              } else {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.40s %s%s", tbuff, pbuf2, ANSI_NORMAL, buff));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s", tbuff, buff));
+                                 }
+                              }
+                           }
                            free_lbuf(pbuf);
+                           free_lbuf(pbuf2);
                        } else {
-                           if ( !*tbuff )
+                           if ( !*tbuff ) {
 		              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s", buff));
-                           else
+                           } else {
 		              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s", tbuff, buff));
+                           }
                        }
                     }
-
 		    free_lbuf(buff);
                     free_lbuf(tbuff);
 		}
@@ -332,7 +353,7 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
     dbref thing;
     dbref can_see_loc;
     dbref aowner;
-    char *buff, *pbuf, *buf2, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
     int aflags, i_cont=0;
 
     /* check to see if he can see the location */
@@ -397,12 +418,23 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                     if ( ((NoName(thing) && *buff) || !NoName(thing)) ) {
                        if(isPlayer(thing)) {
                            pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+                           pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
+                           tprp_buff = tpr_buff;
                            if(*pbuf) {
-                              tprp_buff = tpr_buff;
-                              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
-                           } else
-                              notify(player, buff);
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                              } else {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
+                              }
+                           } else {
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+                              } else {
+                                 notify(player, buff);
+                              }
+                           }
                            free_lbuf(pbuf);
+                           free_lbuf(pbuf2);
                        } else
                            notify(player, buff);
                     }
@@ -422,7 +454,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
     dbref thing;
     dbref can_see_loc;
     dbref aowner;
-    char *buff, *pbuf, *buf2, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
     int aflags;
 
     /* check to see if he can see the location */
@@ -486,12 +518,23 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                     if ( ((NoName(thing) && *buff) || !NoName(thing)) ) {
                        if(isPlayer(thing)) {
                            pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+                           pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
+                           tprp_buff = tpr_buff;
                            if(*pbuf) {
-                              tprp_buff = tpr_buff;
-                              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
-                           } else
-                              notify(player, buff);
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                              } else {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
+                              }
+                           } else {
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+                              } else {
+                                 notify(player, buff);
+                              }
+                           }
                            free_lbuf(pbuf);
+                           free_lbuf(pbuf2);
                        } else
                            notify(player, buff);
                     }
@@ -1160,7 +1203,7 @@ count_atrs(dbref thing)
 static void 
 look_simple(dbref player, dbref thing, int obey_terse)
 {
-    char *buff, *pbuf, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *tpr_buff, *tprp_buff;
     dbref aowner;
     int pattr, aflags;
 
@@ -1191,16 +1234,28 @@ look_simple(dbref player, dbref thing, int obey_terse)
 
         if ( Good_obj(thing) && ((NoName(thing) && *buff) || !NoName(thing)) ) {
            if(Good_obj(thing) && isPlayer(thing)) {
+              pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
               pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+              tprp_buff = tpr_buff = alloc_lbuf("look_simple");
               if(*pbuf) {
-                 tprp_buff = tpr_buff = alloc_lbuf("look_simple");
-                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
-                 free_lbuf(tpr_buff);
-              } else
-                 notify(player, buff);
+                 if ( *pbuf2 ) {
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                 } else {
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
+                 }
+              } else {
+                 if ( *pbuf2 ) {
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+                 } else {
+                    notify(player, buff);
+                 }
+              }
+              free_lbuf(tpr_buff);
               free_lbuf(pbuf);
-           } else
+              free_lbuf(pbuf2);
+           } else {
               notify(player, buff);
+           }
         }
 
 	free_lbuf(buff);

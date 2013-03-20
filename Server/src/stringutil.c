@@ -321,6 +321,26 @@ int count_chars(const char *str, const char c)
   return out;
 }
 
+int count_extended(char *str) {
+   char *s;
+   int i_val;
+
+   s = str;
+   i_val = 0;
+#ifdef ZENTY_ANSI
+   while ( *s ) {
+      if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+           isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+           (*(s+5) == '>') ) {
+         i_val += 5;
+         s+=5;
+      }
+      s++;
+   }
+#endif
+   return i_val;
+}
+
 /*
  * Returns an allocated, null-terminated array of strings, broken on SEP. The
  * array returned points into the original, >> modified << string. - mnp 7

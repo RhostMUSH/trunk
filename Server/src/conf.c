@@ -237,6 +237,7 @@ NDECL(cf_init)
     mudconf.default_home = -1;
     mudconf.master_room = -1;
     mudconf.switch_substitutions = 0;
+    mudconf.ifelse_substitutions = 0;
     mudconf.sideeffects = 32;  /* Enable only list() by default */
     mudconf.sidefx_returnval = 0; /* sideeffects that create return dbref# if enabled */
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
@@ -265,6 +266,8 @@ NDECL(cf_init)
     mudconf.signal_crontab = 0;		/* USR1 signals crontab file reading */
     mudconf.max_name_protect = 0;
     mudconf.map_delim_space = 1;      /* output delim is input delim by default */
+    mudconf.includenest = 3;		/* Default nesting of @include */
+    mudconf.includecnt = 10;		/* Maximum count of @includes per command session */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -2851,6 +2854,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.idle_timeout, 0, 0, CA_WIZARD,
      (char *) "Value in seconds before someone idles out.\r\n"\
               "                             Default: 3600   Value: %d"},
+    {(char *) "ifelse_substitutions",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_substitutions, 0, 0, CA_PUBLIC,
+     (char *) "Does @switch/switch()/switchall() allow #$?"},
     {(char *) "image_dir",
      cf_string, CA_DISABLED, (int *) mudconf.image_dir, 128, 0, CA_WIZARD,
      (char *) "Location of dbref# image files."},
@@ -2860,6 +2866,14 @@ CONF conftable[] =
     {(char *) "include",
      cf_include, CA_DISABLED, NULL, 0, 0, CA_WIZARD,
      (char *) "Process config params by filename on startup."},
+    {(char *) "includecnt",
+     cf_int, CA_DISABLED, &mudconf.includecnt, 0, 0, CA_WIZARD,
+     (char *) "Include count iterations per command set.\r\n"\
+              "                             Default: 10   Value: %d"},
+    {(char *) "includenest",
+     cf_int, CA_DISABLED, &mudconf.includenest, 0, 0, CA_WIZARD,
+     (char *) "Include recursion iterations per command set.\r\n"\
+              "                             Default: 3   Value: %d"},
     {(char *) "initial_size",
      cf_int, CA_DISABLED, &mudconf.init_size, 0, 0, CA_WIZARD,
      (char *) "Initial database size.\r\n"\

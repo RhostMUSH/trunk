@@ -1325,6 +1325,7 @@ do_halt(dbref player, dbref cause, int key, char *target)
     /* Figure out what to halt */
 
     i_keytype = 0;
+    pid = -1;
     if ( key & HALT_PIDSTOP ) {
        i_keytype = 1;
        key = key & ~HALT_PIDSTOP;
@@ -1402,11 +1403,17 @@ do_halt(dbref player, dbref cause, int key, char *target)
 
     if (Quiet(player))
 	return;
-    if (numhalted == 1)
-	notify(Owner(player), "1 queue entries removed.");
-    else
+    if (numhalted == 1) {
+        if ( pid != -1 ) {
+	   notify(Owner(player),
+	       unsafe_tprintf("1 queue entry removed [PID %d].", pid));
+        } else {
+	   notify(Owner(player), "1 queue entry removed.");
+        }
+    } else {
 	notify(Owner(player),
 	       unsafe_tprintf("%d queue entries removed.", numhalted));
+    }
 }
 
 /* ---------------------------------------------------------------------------

@@ -3940,7 +3940,7 @@ extern int igcheck(dbref, int);
 int 
 do_command(DESC * d, char *command)
 {
-    char *arg, *cmdsave;
+    char *arg, *cmdsave, *time_str;
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
     NAMETAB *cp;
@@ -3948,6 +3948,7 @@ do_command(DESC * d, char *command)
 
     DPUSH; /* #147 */
 
+    time_str = NULL;
     chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< do_command >";
@@ -4146,9 +4147,11 @@ do_command(DESC * d, char *command)
                 continue;
              gotone += 1;
           }
+          time_str = ctime(&mudstate.start_time);
+          time_str[strlen(time_str) - 1] = '\0';
           queue_string(d, unsafe_tprintf("### Begin INFO %s\r\n", INFO_VERSION));
           queue_string(d, unsafe_tprintf("Name: %s\r\n", mudconf.mud_name));
-          queue_string(d, unsafe_tprintf("Uptime: %s\r", ctime(&mudstate.start_time)));
+          queue_string(d, unsafe_tprintf("Uptime: %s\r\n", time_str));
           queue_string(d, unsafe_tprintf("Connected: %d\r\n", gotone));
           queue_string(d, unsafe_tprintf("Size: %d\r\n", mudstate.db_top));
           queue_string(d, unsafe_tprintf("Version: %s\r\n", mudstate.short_ver));
