@@ -35,7 +35,9 @@
 &FUNPR_NAMEGRAB soft=[setq(0,)][iter(%0,ifelse(strmatch(name(##),%1),##[setq(0,)][ibreak(0)],ifelse(and(!$r(0),strmatch(name(##),*%1*)),setq(0,##))),,)]%q0
 &FUN_NAMEGRABALL soft=[trim(squish(iter(%0,ifelse(strmatch(name(##),*%1*),##))))]
 &FUNPR_NAMELIST soft=[iter(%0,ifelse(!match(setr(0,pmatch(##)),#-1*),%q0,#-1[objeval(%#,u(%1,##,#-1))]))]
-&FUN_STRINGSECS soft=[ladd(iter(secure(regeditall(%0,(h|m|s),$1%b)),switch(%i0,*y,mul(%i0,31471200),*d,mul(%i0,86400),*h,mul(%i0,3600),*m,mul(%i0,60),*s,add(%i0,0))) 0)]
+&FUN_STRINGSECS soft=[ladd(iter(secure(regeditall(%0,(h|m|s),$1%b)),switch(%i0,*ML,mul(%i0,31536000000),*y,mul(%i0,31471200),*C,mul(%i0,3153600000),*Mo,mul(%i0,2628000),*w,mul(%i0,604800),*d,mul(%i0,86400),*h,mul(%i0,3600),*m,mul(%i0,60),*s,add(%i0,0))) 0)]
+&FUN_ETIME soft=[trim(timefmt($!mML $!2UC $!2uy $!2EMo $!2ww $!2dd $!2Xh $!2Fm $!2Gs,%0))]
+
 @fo softfunc=&DB me=num(softfunc)
 @startup softfunc=@dolist lattr([v(db)]/fun_*)=@function [after(##,_)]=[v(db)]/##;@dolist lattr([v(db)]/funp_*)=@function/priv/pres [after(##,_)]=[v(db)]/##;@dolist lattr([v(DB)]/funpr_*)=@function/pres [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpv_*)=@function/priv [after(##,_)]=[v(DB)]/##;@wait 10={@dolist lattr([v(db)]/funflag_*)=@admin function_access=[after(##,_)] [get([v(db)]/##)]}
 @@ think Issue this command:  @dolist search\(flags=P\)=@swi \[words\(get\(##/race\)\)\]=0,@cpattr/clear ##/RACE=##/race

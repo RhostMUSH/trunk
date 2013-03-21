@@ -6,6 +6,13 @@
 #
 #Standard defines
 
+ 
+if ! which dialog > /dev/null
+then
+   echo "There's no 'dialog' on your system, please install it!"
+   exit 1
+fi
+
 TEMP=/tmp/answer$$
 RHOST_USER=member
 RHOST_SITE=ftp.rhostmush.org
