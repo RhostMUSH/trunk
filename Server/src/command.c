@@ -83,6 +83,7 @@ NAMETAB evaltab_sw[] =
 {
     {(char *) "immortal", 1, CA_IMMORTAL, 0, 5},
     {(char *) "royalty", 1, CA_WIZARD, 0, 4},
+    {(char *) "wizard", 1, CA_WIZARD, 0, 4},
     {(char *) "councilor", 2, CA_ADMIN, 0, 3},
     {(char *) "architect", 1, CA_BUILDER, 0, 2},
     {(char *) "guildmaster", 1, CA_GUILDMASTER, 0, 1},

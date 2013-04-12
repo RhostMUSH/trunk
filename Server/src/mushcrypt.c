@@ -11,8 +11,15 @@
 #include "autoconf.h"
 #include "config.h"
 #include "externs.h"
+#ifdef HAS_OPENSSL
+#include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#endif
 #include "debug.h"
 #include "sha1.h"
+
 #define FILENUM MUSHCRYPT_C
 
 #ifdef SHS_REVERSE
@@ -52,15 +59,12 @@ int reverse_shs = 0;
 char *crypt(const char *key, const char *salt);
 #endif
 #ifdef MUXCRYPT
-const char *mux_crypt(const char *, const char *, int *);
+int check_mux_password(const char *, const char *);
 #endif
 
 int mush_crypt_validate(dbref player, 
 			const char *pUnencrypted, const char *pEncrypted,
 			int flag) {
-#ifdef MUXCRYPT
-  int i_type;
-#endif
 #ifdef CRYPT_ENCRYPT_SHS
   SHS_INFO shsInfo;
   static char crypt_buff[70];
@@ -96,7 +100,7 @@ int mush_crypt_validate(dbref player,
 
 /* At this stage, let's see if we're doing MUX encryption */
 #ifdef MUXCRYPT
-  if ( strcmp(pEncrypted, mux_crypt(pUnencrypted, pEncrypted, &i_type)) == 0) {
+  if ( check_mux_password(pEncrypted, pUnencrypted) ) {
      RETURN(1); /* #95 */
   }
 #endif
@@ -135,54 +139,6 @@ const char Base64Table[65] =
 #define UINT8 unsigned short int
 #endif
 
-static void EncodeBase64(size_t nIn, const char *pIn, char *pOut)
-{
-    size_t nTriples  = nIn/3;
-    size_t nLeftover = nIn%3;
-    UINT32 stage;
-
-    const UINT8 *p = (const UINT8 *)pIn;
-          UINT8 *q = (      UINT8 *)pOut;
-
-    while (nTriples--)
-    {
-        stage = (p[0] << 16) | (p[1] << 8) | p[2];
-
-        q[0] = Base64Table[(stage >> 18)       ];
-        q[1] = Base64Table[(stage >> 12) & 0x3F];
-        q[2] = Base64Table[(stage >>  6) & 0x3F];
-        q[3] = Base64Table[(stage      ) & 0x3F];
-
-        q += 4;
-        p += 3;
-    }
-
-    switch (nLeftover)
-    {
-    case 1:
-        stage = p[0] << 16;
-
-        q[0] = Base64Table[(stage >> 18)       ];
-        q[1] = Base64Table[(stage >> 12) & 0x3F];
-        q[2] = '=';
-        q[3] = '=';
-
-        q += 4;
-        break;
-
-    case 2:
-        stage = (p[0] << 16) | (p[1] << 8);
-
-        q[0] = Base64Table[(stage >> 18)       ];
-        q[1] = Base64Table[(stage >> 12) & 0x3F];
-        q[2] = Base64Table[(stage >>  6) & 0x3F];
-        q[3] = '=';
-
-        q += 4;
-        break;
-    }
-    q[0] = '\0';
-}
 
 #define SHA1_PREFIX_LENGTH 6
 const char szSHA1Prefix[SHA1_PREFIX_LENGTH+1] = "$SHA1$";
@@ -206,158 +162,166 @@ const char szBlowfishPrefix[BLOWFISH_PREFIX_LENGTH+1] = "$2a$";
 #define CRYPT_CLEARTEXT   6
 #define CRYPT_OTHER       7
 
-const char szFail[] = "$FAIL$$";
+/* saved is the enrypted password, password is what is entered */
+#ifdef HAS_OPENSSL
 
-// REMOVE: After 2006-JUL-23, remove support for DES-encrypted passwords on
-// Win32 build.  This should allow support for DES-encrypted passwords to
-// strattle three distinct versions of MUX.  After that, to convert the older
-// passwords automatically would require going through one of these three
-// older versions of the server.  Alternatively, since crypt and DES-encrypted
-// passwords should be supported on Unix for even longer, converting the
-// flatfile on a Unix box remains an option.
-//
-const char *mux_crypt(const char *szPassword, const char *szSetting, int *piType)
+
+int
+encode_base64(const char *input, int len, char *buff, char **bp)
 {
-    static char buf[SHA1_PREFIX_LENGTH + ENCODED_SALT_LENGTH + 1 + ENCODED_HASH_LENGTH + 1 + 16];
-    const char *pSaltField = NULL;
-    size_t nSaltField = 0, nAlgo, nSetting;
-    char *p;
-    SHA1_CONTEXT shac;
-    char szHashRaw[21];
-    int i;
+  BIO *bio, *b64, *bmem;
+  char *membuf;
 
-    memset(szHashRaw, '\0', sizeof(szHashRaw));
-    *piType = CRYPT_FAIL;
+  b64 = BIO_new(BIO_f_base64());
+  if (!b64) {
+    safe_str((char *)"#-1 ALLOCATION ERROR", buff, bp);
+    return 0;
+  }
 
-    if (szSetting[0] == '$')
-    {
-        p = strchr(szSetting+1, '$');
-        if (p)
-        {
-            p++;
-            nAlgo = (size_t) (p - szSetting);
-            if (  nAlgo == SHA1_PREFIX_LENGTH
-               && memcmp(szSetting, szSHA1Prefix, SHA1_PREFIX_LENGTH) == 0)
-            {
-                // SHA-1
-                //
-                pSaltField = p;
-                p = strchr(pSaltField, '$');
-                if (p)
-                {
-                    nSaltField = p - pSaltField;
-                }
-                else
-                {
-                    nSaltField = strlen(pSaltField);
-                }
-                if (nSaltField <= ENCODED_SALT_LENGTH)
-                {
-                    *piType = CRYPT_SHA1;
-                }
-            }
-            else if (  nAlgo == MD5_PREFIX_LENGTH
-                    && memcmp(szSetting, szMD5Prefix, MD5_PREFIX_LENGTH) == 0)
-            {
-                *piType = CRYPT_MD5;
-            }
-            else if (  nAlgo == BLOWFISH_PREFIX_LENGTH
-                    && memcmp(szSetting, szBlowfishPrefix, BLOWFISH_PREFIX_LENGTH) == 0)
-            {
-                *piType = CRYPT_BLOWFISH;
-            }
-            else
-            {
-                *piType = CRYPT_OTHER;
-            }
-        }
-    }
-    else if (szSetting[0] == '_')
-    {
-        *piType = CRYPT_DES_EXT;
-    }
-    else
-    {
-#if 0
-        // Strictly speaking, we can say the algorithm is DES.
-        //
-        *piType = CRYPT_DES;
-#else
-        // However, in order to support clear-text passwords, we restrict
-        // ourselves to only verifying an existing DES-encrypted password and
-        // we assume a fixed salt of 'XX'.  If you have been using a different
-        // salt, or if you need to generate a DES-encrypted password, the
-        // following code won't work.
-        //
-        nSetting = strlen(szSetting);
-        if (  nSetting == 13
-           && memcmp(szSetting, "XX", 2) == 0)
-        {
-            *piType = CRYPT_DES;
-        }
-        else
-        {
-            *piType = CRYPT_CLEARTEXT;
-        }
-#endif
-    }
+  BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 
-    switch (*piType)
-    {
-    case CRYPT_FAIL:
-        return szFail;
+  bmem = BIO_new(BIO_s_mem());
+  if (!bmem) {
+    safe_str((char *)"#-1 ALLOCATION ERROR", buff, bp);
+    BIO_free(b64);
+    return 0;
+  }
 
-    case CRYPT_CLEARTEXT:
-        return szPassword;
+  bio = BIO_push(b64, bmem);
 
-    case CRYPT_MD5:
-    case CRYPT_BLOWFISH:
-    case CRYPT_OTHER:
-    case CRYPT_DES_EXT:
-#ifdef WIN32
-        // The WIN32 release only supports SHA1 and clear-text.
-        //
-        return szFail;
-#endif // WIN32
+  if (BIO_write(bio, input, len) < 0) {
+    safe_str((char *)"#-1 CONVERSION ERROR", buff, bp);
+    BIO_free_all(bio);
+    return 0;
+  }
 
-    case CRYPT_DES:
-#if defined(HAVE_LIBCRYPT) \
- || defined(HAVE_CRYPT)
-        return crypt(szPassword, szSetting);
-#else
-        return szFail;
-#endif
-    }
+  (void) BIO_flush(bio);
 
-    // Calculate SHA-1 Hash.
+  len = BIO_get_mem_data(bmem, &membuf);
 
-    SHA1_Init(&shac);
-    SHA1_Compute(&shac, nSaltField, pSaltField);
-    SHA1_Compute(&shac, strlen(szPassword), szPassword);
-    SHA1_Final(&shac);
+  if ( len >= 0 )
+     membuf[len]='\0';
+  safe_str(membuf, buff, bp);
 
-    // Serialize 5 UINT32 words into big-endian.
-    //
+  BIO_free_all(bio);
 
-    p = szHashRaw;
-    for (i = 0; i <= 4; i++)
-    {
-        *p++ = (UINT8)(shac.H[i] >> 24);
-        *p++ = (UINT8)(shac.H[i] >> 16);
-        *p++ = (UINT8)(shac.H[i] >>  8);
-        *p++ = (UINT8)(shac.H[i]      );
-    }
-    *p = '\0';
-
-    //          1         2         3         4
-    // 12345678901234567890123456789012345678901234567
-    // $SHA1$ssssssssssss$hhhhhhhhhhhhhhhhhhhhhhhhhhhh
-    //
-    memset(buf, '\0', sizeof(buf));
-    strncpy(buf, szSHA1Prefix, SHA1_PREFIX_LENGTH);
-    memcpy(buf + SHA1_PREFIX_LENGTH, pSaltField, nSaltField);
-    buf[SHA1_PREFIX_LENGTH + nSaltField] = '$';
-    EncodeBase64(20, szHashRaw, buf + SHA1_PREFIX_LENGTH + nSaltField + 1);
-    return buf;
+  return 1;
 }
+
+int
+decode_base64(char *encoded, int len, char *buff, char **bp)
+{
+  BIO *bio, *b64, *bmem;
+  char *sbp, decoded[LBUF_SIZE];
+  int dlen;
+
+  memset(decoded, '\0', LBUF_SIZE);
+  b64 = BIO_new(BIO_f_base64());
+  if (!b64) {
+    safe_str((char *)"#-1 ALLOCATION ERROR", buff, bp);
+    return 0;
+  }
+  BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+
+  bmem = BIO_new_mem_buf(encoded, len);
+  if (!bmem) {
+    safe_str((char *)"#-1 ALLOCATION ERROR", buff, bp);
+    BIO_free(b64);
+    return 0;
+  }
+  //  len = BIO_set_close(bmem, BIO_NOCLOSE); This makes valgrind report a memory leak.
+
+  bio = BIO_push(b64, bmem);
+
+  sbp = *bp;
+  dlen = BIO_read(bio, decoded, LBUF_SIZE -1);
+  if ( dlen >= 0 )
+     decoded[dlen]='\0';
+  safe_str(decoded, buff, bp);
+
+  BIO_free_all(bio);
+
+  return 1;
+}
+
+int
+check_mux_password(const char *saved, const char *password)
+{
+   EVP_MD_CTX ctx;
+   const EVP_MD *md;
+   uint8_t hash[EVP_MAX_MD_SIZE];
+   unsigned int rlen = EVP_MAX_MD_SIZE;
+   char *decoded, *dp;
+   char *start, *end;
+   int return_chk;
+
+   start = (char *) saved;
+
+   /* MUX passwords start with a '$' */
+   if (*start != '$')
+      return 0;
+
+   start++;
+   /* The next '$' marks the end of the encryption algo */
+   end = strchr(start, '$');
+   if (end == NULL)
+      return 0;
+
+   *end++ = '\0';
+
+   md = EVP_get_digestbyname(start);
+   if (!md)
+      return 0;
+
+   start = end;
+   /* Up until the next '$' is the salt. After that is the password */
+   end = strchr(start, '$');
+   if (end == NULL)
+      return 0;
+
+   *end++ = '\0';
+
+   /* 'start' now holds the salt, 'end' the password.
+   * Both are base64-encoded. */
+
+   dp = decoded = alloc_lbuf("decode_buffer");
+   /* decode the salt */
+   decode_base64(start, strlen(start), decoded, &dp);
+
+   /* Double-hash the password */
+   EVP_DigestInit(&ctx, md);
+   EVP_DigestUpdate(&ctx, start, strlen(start));
+   EVP_DigestUpdate(&ctx, password, strlen(password));
+   EVP_DigestFinal(&ctx, hash, &rlen);
+
+   /* Decode the stored password */
+   dp = decoded;
+   decode_base64(end, strlen(end), decoded, &dp);
+
+   /* Compare stored to hashed */
+   return_chk = (memcmp(decoded, hash, rlen) == 0);
+   free_lbuf(decoded);
+   return (return_chk);
+}
+#else
+int
+encode_base64(const char *input, int len, char *buff, char **bp)
+{
+   safe_str((char *)"#-1 BASE64 disabled without openssl support.", buff, bp);
+   return 0;
+}
+
+int
+decode_base64(const char *input, int len, char *buff, char **bp)
+{
+   safe_str((char *)"#-1 BASE64 disabled without openssl support.", buff, bp);
+   return 0;
+}
+
+int
+check_mux_password(const char *saved, const char *password) 
+{
+   return 0;
+}
+#endif
 

@@ -42,6 +42,8 @@
 /* Edit this if needed */
 #define MYSQL_RETRY_TIMES 3
 
+extern int NDECL(next_timer);
+
 /************* DON'T EDIT ANYTHING BELOW HERE **********/
 
 static MYSQL *mysql_struct = NULL;
@@ -420,25 +422,28 @@ static int sql_query(dbref player,
   if (buff) {
     for (i = 0; i < got_rows; i++) {
       if (i > 0) {
-        if ( row_delim != '\0' )
+        if ( row_delim != '\0' ) {
 	   print_sep(row_delim, buff, bp);
-        else
+        } else {
 	   print_sep(' ', buff, bp);
+        }
       }
       row_p = mysql_fetch_row(qres);
       if (row_p) {
 	got_fields = mysql_num_fields(qres);
 	for (j = 0; j < got_fields; j++) {
 	  if (j > 0) {
-             if ( field_delim != '\0' )
+             if ( field_delim != '\0' ) {
 	       print_sep(field_delim, buff, bp);
-             else
+             } else {
 	       print_sep(' ', buff, bp);
+             }
 	  }
-	  if (row_p[j] && *row_p[j])
+	  if (row_p[j] && *row_p[j]) {
 	    safe_str(row_p[j], buff, bp);
-          else if ( !row_p[j] )
+          } else if ( !row_p[j] ) {
             break;
+          }
 	}
       }
     }

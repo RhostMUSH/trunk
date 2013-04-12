@@ -8515,30 +8515,30 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()     COR()           COS()         CRC32()         CREATE() 
-  CREATETIME()   CREPLACE()      CTU()         DEC()           DECRYPT()
-  DEFAULT()      DELETE()        DELEXTRACT()  DESTROY()       DICE()      
-  DIG()          DIGEST()        DIST2D()      DIST3D()        DIV()       
-  E()            EDEFAULT()      EDIT()        EE()            ELIST()       
-  ELEMENTS()     ELEMENTSMUX()   ELOCK()       EMIT()          ENCRYPT()     
-  ENTRANCES()    EQ()            ERROR()       ESCAPE()        ESCAPEX()     
-  EVAL()         EXIT()          EXP()         EXTRACT()       FBETWEEN()    
-  FBOUND()       FDIV()          FILTER()      FINDABLE()      FIRST()       
-  FLAGS()        FLOOR()         FLOORDIV()    FOLD()          FOLDERCURRENT()
-  FOLDERLIST()   FOREACH()       FULLNAME()    GARBLE()        GET()         
-  GET_EVAL()     GLOBALROOM()    GRAB()        GRABALL()       GREP()        
-  GT()           GTE()           GUILD()       HASATTR()       HASATTRP()    
-  HASFLAG()      HASTOGGLE()     HASTYPE()     HASQUOTA()      HASRXLEVEL()  
-  HASTXLEVEL()   HOME()          IBREAK()      IDLE()          IFELSE()      
-  IINDEX()       ILEV()          INC()         INDEX()         INPROGRAM()   
-  INSERT()       INUM()          INZONE()      ISALNUM()       ISALPHA()     
-  ISCLUSTER()    ISDBREF()       ISDIGIT()     ISHIDDEN()      ISNUM()       
-  ISPUNCT()      ISSPACE()       ISWORD()      ISXDIGIT()      ITER()        
-  ITEXT()        KEEPFLAGS()     KEEPTYPE()    LADD()          LAND()        
-  LAST()         LASTCREATE()    LATTR()       LAVG()          LCMDS()       
-  LCON()         LCSTR()         LDELETE()     LDIV()          LEMIT()       
-  LEFT()         LEXITS()        LFLAGS()      LINK()          LIST()        
-  LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS() 
+  CONVTIME()    COR()           COS()          CRC32()         CREATE() 
+  CREATETIME()  CREPLACE()      CTU()          DEC()           DECODE64()
+  DECRYPT()     DEFAULT()       DELETE()       DELEXTRACT()    DESTROY()     
+  DICE()        DIG()           DIGEST()       DIST2D()        DIST3D()      
+  DIV()         E()             EDEFAULT()     EDIT()          EE()          
+  ELIST()       ELEMENTS()      ELEMENTSMUX()  ELOCK()         EMIT()        
+  ENCODE64()    ENCRYPT()       ENTRANCES()    EQ()            ERROR()       
+  ESCAPE()      ESCAPEX()       EVAL()         EXIT()          EXP()         
+  EXTRACT()     FBETWEEN()      FBOUND()       FDIV()          FILTER()      
+  FINDABLE()    FIRST()         FLAGS()        FLOOR()         FLOORDIV()    
+  FOLD()        FOLDERCURRENT() FOLDERLIST()   FOREACH()       FULLNAME()    
+  GARBLE()      GET()           GET_EVAL()     GLOBALROOM()    GRAB()        
+  GRABALL()     GREP()          GT()           GTE()           GUILD()       
+  HASATTR()     HASATTRP()      HASFLAG()      HASTOGGLE()     HASTYPE()     
+  HASQUOTA()    HASRXLEVEL()    HASTXLEVEL()   HOME()          IBREAK()      
+  IDLE()        IFELSE()        IINDEX()       ILEV()          INC()         
+  INDEX()       INPROGRAM()     INSERT()       INUM()          INZONE()      
+  ISALNUM()     ISALPHA()       ISCLUSTER()    ISDBREF()       ISDIGIT()     
+  ISHIDDEN()    ISNUM()         ISPUNCT()      ISSPACE()       ISWORD()      
+  ISXDIGIT()    ITER()          ITEXT()        KEEPFLAGS()     KEEPTYPE()    
+  LADD()        LAND()          LAST()         LASTCREATE()    LATTR()       
+  LAVG()        LCMDS()         LCON()         LCSTR()         LDELETE()     
+  LDIV()        LEMIT()         LEFT()         LEXITS()        LFLAGS()      
+  LINK()        LIST()          LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS() 
   
 { 'help function list3' for more }
   
@@ -8748,18 +8748,19 @@
   
   Strings:             ACCENT() AFTER() ANDCHR() BEFORE() BRACKETS() CAPSTR() 
                        CASE() CASEALL() CAT() CENTER() CHOMP() COLUMNS() 
-                       COMP() CREPLACE() DELETE() EDIT() ESCAPE() ESCAPEX() 
-                       EVAL() GARBLE() IFELSE() ISALNUM() ISALPHA() ISDBREF()
-                       ISDIGIT() ISNUM() ISPUNCT() ISSPACE() ISWORD() 
-                       ISXDIGIT() LCSTR() LEFT() LIT() LJC() LJUST() MERGE()
-                       MID() NOSTR() NOTCHR() NUMPOS() ORCHR() PARSESTR() 
-                       PEDIT() POS() PRINTF() RANDPOS() REPEAT() REPLACE() 
-                       RIGHT() RJC() RJUST() ROTL() ROTR() S() SCRAMBLE() 
-                       SECURE() SECUREX() SHL() SHR() SHUFFLE() SPACE() 
-                       SPLICE() SQUISH() STR() STRDISTANCE() STREQ() STREVAL()
-                       STRIP() STRIPACCENTS() STRLEN() STRMATCH() SWITCH() 
-                       SWITCHALL() T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() 
-                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
+                       COMP() CREPLACE() DECODE64() DECRYPT() DELETE() EDIT() 
+                       ENCODE64() ENCRYPT() ESCAPE() ESCAPEX() EVAL() GARBLE()
+                       IFELSE() ISALNUM() ISALPHA() ISDBREF() ISDIGIT() ISNUM()
+                       ISPUNCT() ISSPACE() ISWORD() ISXDIGIT() LCSTR() LEFT() 
+                       LIT() LJC() LJUST() MERGE() MID() NOSTR() NOTCHR() 
+                       NUMPOS() ORCHR() PARSESTR() PEDIT() POS() PRINTF() 
+                       RANDPOS() REPEAT() REPLACE() RIGHT() RJC() RJUST() 
+                       ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
+                       SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
+                       STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
+                       STRLEN() STRMATCH() SWITCH() SWITCHALL() T() TOTPOS() 
+                       TR() TRANSLATE() TRIM() UCSTR() WORDPOS() WORDS() WRAP()
+                       WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -11285,6 +11286,26 @@ See Also: timefmt()
   
   See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel()
   
+& ENCODE64()
+& DECODE64()
+  Function: encode64(<string>)
+            decode64(<string>)
+  
+  encode64() returns <string> encoded using base-64 format.
+  
+  decode64() converts a base-64 encoded <string> back to its original form.
+  
+  Any invalid characters fed to the string will cause the entire string to be
+  ignored.
+  
+  Examples:
+    > say encode64(test 1 2 3)
+    You say "dGVzdCAxIDIgMw=="
+    > say decode64(dGVzdCAxIDIgMw==)
+    You say "test 1 2 3"
+  
+  See Also: encrypt(), decrypt(), pack(), digest()
+  
 & ENCRYPT()
   Function: encrypt(<string>,<seed>)
   
@@ -11298,7 +11319,7 @@ See Also: timefmt()
     > say encrypt(this is a test,a)
     You say "VJKUaKUaCaVGUV"
   
-  See Also: decrypt()
+  See Also: decrypt(), encode64(), decode64(), digest()
   
 & DECRYPT()
   Function: decrypt(<string>,<seed>)
@@ -11314,7 +11335,7 @@ See Also: timefmt()
     > say encrypt(VJKUaKUaCaVGUV,a)
     You say "this is a test"
   
-  See Also: encrypt()
+  See Also: encrypt(), encode64(), decode64(), digest()
   
 & PUSHREGS()
   Function: pushregs(<toggle>)
@@ -16892,7 +16913,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say digest(sha, test123)
     You say "3a589de6214fd40ae461313fd81dfd1edb7eae70"
    
-  See also: crc32(), pack(), roman()
+  See also: crc32(), pack(), roman(), encrypt(), decrypt(), encode64(),
+            decode64()
 
 & DIG()
   Function: dig(<room>[[,<in exit>][,<out exit>][,<location>][,<type>]])
@@ -23844,8 +23866,12 @@ Mail: Done
   columns()     - Powerful column formatting tool.
   comp()        - Compares two strings. 
   creplace()    - Like replace(), but works on characters instead of words.
+  decode64()    - Decode a 64 compressed string.
+  decrypt()     - Decrypt a string based on an offset.
   delete()      - Deletes characters from a string.
   edit()        - Edits a string, replacing, prepending or appending text.
+  encode64()    - Encode a string to compressed 64.
+  encrypt()     - Encrypt a string based on an offset.
   escape()      - Adds escape characters to some special characters.
   escapex()     - Like escape(), but allows you to specify characters not to escape.
   eval()        - Evaluates code.
@@ -24368,3 +24394,26 @@ Bug Fixes
 * case sensitivity was reversed for reswitch/reswitchi cases [ASH]
 * backward compatibility with v(#) was broke. [ASH]
 * IDLE mis-aligned carrage return and line feeds [ASH]
+
+& 3.9.4p0
+Release Date: 04/08/13
+Status: Alpha
+  
+New Features
+-------
+* encode64() from PennMUSH.  Requires OpenSSL. [ASH]
+* decode64() from PennMUSH.  Requires OpenSSL. [ASH]
+  
+Changes
+-------
+* Finally got the native MUX password reader working with input rom Mike [ASH]
+* @caption and @titlecaption allow larger buffers for players [ASH]
+* internal sha1 code had to have variables redefined for conflict [ASH]
+  
+Bug Fixes
+---------
+* strfunc() could call itself.  Just a cosmetic fix that made no sense [ASH]
+* strfunc() could cut off buffers on certain function calls [ASH]
+* printf() had CR/LF reversed [ASH]
+* mysql had compile issues on later compilers [ASH]
+* door code had a warning under latest compilers with realloc [ASH]

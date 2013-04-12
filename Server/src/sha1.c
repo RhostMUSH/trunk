@@ -4,7 +4,7 @@
 #include "externs.h"
 #include "sha1.h"
 
-void SHA1_Init(SHA1_CONTEXT *p)
+void MUSH_SHA1_Init(MUSH_SHA1_CONTEXT *p)
 {
     p->H[0] = 0x67452301;
     p->H[1] = 0xEFCDAB89;
@@ -25,7 +25,7 @@ void SHA1_Init(SHA1_CONTEXT *p)
 #define Parity(x,y,z)  ((x) ^ (y) ^ (z))
 #define Maj(x,y,z)     (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
 
-static void SHA1_HashBlock(SHA1_CONTEXT *p)
+static void MUSH_SHA1_HashBlock(MUSH_SHA1_CONTEXT *p)
 {
     int t, j;
     UINT32 W[80], a, b, c, d, e, T;
@@ -94,7 +94,7 @@ static void SHA1_HashBlock(SHA1_CONTEXT *p)
     p->H[4] += e;
 }
 
-void SHA1_Compute(SHA1_CONTEXT *p, size_t n, const char *buf)
+void MUSH_SHA1_Compute(MUSH_SHA1_CONTEXT *p, size_t n, const char *buf)
 {
     size_t m;
     while (n)
@@ -112,19 +112,19 @@ void SHA1_Compute(SHA1_CONTEXT *p, size_t n, const char *buf)
 
         if (p->nblock == sizeof(p->block))
         {
-            SHA1_HashBlock(p);
+            MUSH_SHA1_HashBlock(p);
             p->nblock = 0;
         }
     }
 }
 
-void SHA1_Final(SHA1_CONTEXT *p)
+void MUSH_SHA1_Final(MUSH_SHA1_CONTEXT *p)
 {
     p->block[p->nblock++] = 0x80;
     if (sizeof(p->block) - sizeof(UINT64) < p->nblock)
     {
         memset(p->block + p->nblock, 0, sizeof(p->block) - p->nblock);
-        SHA1_HashBlock(p);
+        MUSH_SHA1_HashBlock(p);
         memset(p->block, 0, sizeof(p->block) - sizeof(UINT64));
     }
     else
@@ -141,7 +141,7 @@ void SHA1_Final(SHA1_CONTEXT *p)
     p->block[sizeof(p->block) - 3] = (UINT8)((p->nTotal >> 16) & 0xFF);
     p->block[sizeof(p->block) - 2] = (UINT8)((p->nTotal >>  8) & 0xFF);
     p->block[sizeof(p->block) - 1] = (UINT8)((p->nTotal      ) & 0xFF);
-    SHA1_HashBlock(p);
+    MUSH_SHA1_HashBlock(p);
 }
 
 #if 0
@@ -153,10 +153,10 @@ int main(int argc, char *argv[])
     char buffer[] = TEST_STRING;
     int i;
 
-    SHA1_CONTEXT shac;
-    SHA1_Init(&shac);
-    SHA1_Compute(&shac, strlen(TEST_STRING), buffer);
-    SHA1_Final(&shac);
+    MUSH_SHA1_CONTEXT shac;
+    MUSH_SHA1_Init(&shac);
+    MUSH_SHA1_Compute(&shac, strlen(TEST_STRING), buffer);
+    MUSH_SHA1_Final(&shac);
 
     for (i = 0; i < 5; i++)
     {

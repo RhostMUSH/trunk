@@ -1315,6 +1315,8 @@ extern struct tm *localtime64_r(const double *, struct tm *);
 extern int internal_logstatus(void);
 extern char * parse_ansi_name(dbref, char *);
 extern int count_extended(char *);
+extern int decode_base64(const char *, int, char *, char **);
+extern int encode_base64(const char *, int, char *, char **);
 
 
 /* pom.c definitions */
@@ -4311,6 +4313,29 @@ FUNCTION(fun_logtofile)
 }
 
 
+/* Encode/Decode require OpenSSL or will return an error */
+FUNCTION(fun_encode64)
+{
+   int len;
+
+   len = strlen(strip_all_special(fargs[0]));
+   if ( len <= 0) 
+      return;
+
+   encode_base64((const char*)strip_all_special(fargs[0]), len, buff, bufcx);
+}
+
+FUNCTION(fun_decode64)
+{
+   int len;
+
+   len = strlen(strip_all_special(fargs[0]));
+   if ( len <= 0) 
+      return;
+
+   decode_base64((const char*)strip_all_special(fargs[0]), len, buff, bufcx);
+}
+
 /* --------------------------------------------------------
  * Entrances() works like @entrances but just returns
  * the list of dbref#'s.  You may specify type
@@ -7039,15 +7064,15 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                    t++;
                 i_chk = strlen(t);
                 memcpy(s_padstring2, t, LBUF_SIZE-10);
-                *t++ = '\n';
                 *t++ = '\r';
+                *t++ = '\n';
                 u = s_padstring2;
                 while ( *u ) {
                    *t++ = *u++;
                 }
              } else {
-                *t++ = '\n';
                 *t++ = '\r';
+                *t++ = '\n';
                 i_chk = 0;
              }
              idx+=2;
@@ -13519,8 +13544,8 @@ FUNCTION(fun_con)
 FUNCTION(fun_strfunc)
 {
    FUN *fp;
-   char *ptrs[LBUF_SIZE / 2], *list, sep, *tpr_buff, *tprp_buff;
-   int nitems, tst;
+   char *ptrs[LBUF_SIZE / 2], *list, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, mysep[2];
+   int nitems, tst, i;
 
    varargs_preamble("STRFUNC", 3);
 
@@ -13544,18 +13569,44 @@ FUNCTION(fun_strfunc)
       }
    }
 
+   if ( !stricmp((char *)fp->name, "strfunc") ) {
+      safe_str("#-1 CAN NOT STRFUNC ITSELF", buff, bufcx);
+      return;
+   }
+
    list = alloc_lbuf("fun_strfunc");
 
    /* These will always be the same list and null terminated */
    strcpy(list, fargs[1]);
 
-   nitems = list2arr(ptrs, LBUF_SIZE / 2, list, sep);
+   nitems = 0;
+   if ( *fargs[1]) {
+      mysep[0] = sep;
+      mysep[1] = '\0';
+      strtok = strtok_r(list, mysep, &strtokptr);
+      while ( strtok ) {
+         ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
+         strcpy(ptrs[nitems], strtok);
+         nitems++;
+         if ( nitems >= (LBUF_SIZE / 2) )
+            break;
+         strtok = strtok_r(NULL, mysep, &strtokptr);
+      }
+   } else {
+      ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
+      nitems++;
+   }
+
+// nitems = list2arr(ptrs, LBUF_SIZE / 2, list, sep);
 
    if ( (nitems == fp->nargs) || (nitems == -fp->nargs) ||
         (fp->flags & FN_VARARGS) ) {
       fp->fun(buff, bufcx, player, cause, caller, ptrs, nitems, cargs, ncargs);
+      for ( i = 0; i < nitems; i++ ) {
+         free_lbuf(ptrs[i]);
+      }
    } else {
-      tprp_buff = tpr_buff = alloc_lbuf("fun_strfunc");
+      tprp_buff = tpr_buff = alloc_lbuf("strfunc_tprbuff");
       safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#-1 FUNCTION (%s) EXPECTS %d ARGUMENTS [RECEIVED %d]",
                             fp->name, fp->nargs, nitems), buff, bufcx);
       free_lbuf(tpr_buff);
@@ -26670,6 +26721,7 @@ FUN flist[] =
 #else
     {"DEC", fun_dec, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"DECODE64", fun_decode64, -1, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USECRYPT
     {"DECRYPT", fun_decrypt, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
@@ -26700,6 +26752,7 @@ FUN flist[] =
 #ifdef USE_SIDEEFFECT
     {"EMIT", fun_emit, 1, 0, CA_PUBLIC, 0},
 #endif
+    {"ENCODE64", fun_encode64, -1, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USECRYPT
     {"ENCRYPT", fun_encrypt, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif

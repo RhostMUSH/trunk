@@ -301,13 +301,13 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
                            if(*pbuf) {
                               if ( !*tbuff ) {
                                  if ( *pbuf2 ) {
-		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
                                  } else {
-		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s, %.40s", buff, pbuf));
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s, %.90s", buff, pbuf));
                                  }
                               } else {
                                  if ( *pbuf2 ) {
-		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.40s %s%s, %s", tbuff, pbuf2, ANSI_NORMAL, buff, pbuf));
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.90s %s%s, %s", tbuff, pbuf2, ANSI_NORMAL, buff, pbuf));
                                  } else {
 		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s, %s", tbuff, buff, pbuf));
                                  }
@@ -315,13 +315,13 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
                            } else {
                               if ( !*tbuff ) {
                                  if ( *pbuf2 ) {
-		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.90s %s%s", pbuf2, ANSI_NORMAL, buff));
                                  } else {
 		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s", buff));
                                  }
                               } else {
                                  if ( *pbuf2 ) {
-		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.40s %s%s", tbuff, pbuf2, ANSI_NORMAL, buff));
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.90s %s%s", tbuff, pbuf2, ANSI_NORMAL, buff));
                                  } else {
 		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s", tbuff, buff));
                                  }
@@ -422,13 +422,13 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                            tprp_buff = tpr_buff;
                            if(*pbuf) {
                               if ( *pbuf2 ) {
-                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
                               } else {
-                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
                               }
                            } else {
                               if ( *pbuf2 ) {
-                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
                               } else {
                                  notify(player, buff);
                               }
@@ -522,13 +522,13 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                            tprp_buff = tpr_buff;
                            if(*pbuf) {
                               if ( *pbuf2 ) {
-                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
                               } else {
-                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
                               }
                            } else {
                               if ( *pbuf2 ) {
-                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
                               } else {
                                  notify(player, buff);
                               }
@@ -1239,13 +1239,13 @@ look_simple(dbref player, dbref thing, int obey_terse)
               tprp_buff = tpr_buff = alloc_lbuf("look_simple");
               if(*pbuf) {
                  if ( *pbuf2 ) {
-                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s, %.40s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
                  } else {
-                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
                  }
               } else {
                  if ( *pbuf2 ) {
-                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.40s %s%s", pbuf2, ANSI_NORMAL, buff));
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
                  } else {
                     notify(player, buff);
                  }
