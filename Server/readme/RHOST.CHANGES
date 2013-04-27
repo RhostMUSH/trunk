@@ -65,7 +65,8 @@ cluster_wipe added for clusters
 				- Thanks Cary
 NO_CODE broke global_error_obj as it's executed by enactor.
 				- Thanks Matrix
-
+Help file typos for various cluster commands.
+				- Thanks Mike@M*U*S*H
 
 --------------------------------------------------------------------------------
 

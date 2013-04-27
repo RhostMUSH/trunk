@@ -1927,8 +1927,18 @@
   < -_.@#$^&*~?=+| >, and must start with a letter.  The names of user-named
   attributes may not be abbreviated (an attempt to get the value of the
   attribute will fail, and an attempt to set will create a new attribute).
+  
+  The object that is chosen will be either the object in the cluster that
+  already contains the attribute, or the object in the cluster with the
+  least number of attributes currently on it.
+  
+  Specifying an object not in the cluster will return an error.
+  
+  Example:
+    >myattr ClusterObj=This is my data on attribute 'myattr'
+    Set.
    
-  See Also: @set, VATOVZ, ZATOZZ
+  See Also: @set, @cluster set, VATOVZ, ZATOZZ, &
 
 & &
   Command: &<attribute> <object>[=<value>]
@@ -1943,8 +1953,12 @@
   attribute will fail, and an attempt to set will create a new attribute).
   The & command may be used to set predefined attributes (in this instance,
   '&<attr> <object>=<value>' is equivalent to '@<attr> <object>=<value>').
+  
+  Example:
+    &myattr Object=This is my data on attribute 'myattr'
+    Set.
    
-  See Also: @set, VATOVZ, ZATOZZ
+  See Also: @set, @cluster set, VATOVZ, ZATOZZ, >
   
 & @@
   Command: @@ <args>
@@ -2106,7 +2120,7 @@
 & @cluster new
   Command: @cluster/new <object>
   
-  The new switch, takes the specified object and asigns it as a cluster object.
+  The new switch, takes the specified object and assigns it as a cluster object.
   Once defined as a cluster, new objects may be /added to the cluster or
   /deleted to the cluster.  A cluster should never become corrupted, but if
   there is some inconsistancy, you may /repair it without worry of data loss.
@@ -2254,6 +2268,7 @@
            @cluster/set <cluster object>=<attribute>:<value>
            @cluster/set <cluster object>=<attribute>:_<fromobj>/<fromattr>
            @cluster/set <cluster object>/<attr>=[!]<attrflag>
+  Synonym: ><attribute> <object in cluster>[=<value>]
   
   This works like @set except with the entire cluster.  It automatically 
   identifies what object in the cluster contains the attribute and modifies
@@ -3883,6 +3898,7 @@
            @set[/<switches>] <object>=<attribute>:<value>
            @set[/<switches>] <object>=<attribute>:_<fromobj>/<fromattr>
            @set[/<switches>] <object>/<attr>=[!]<attrflag>
+  Synonym: &<attribute> <object>[=<value>]
  
   The available switches are:
         /QUIET - sets/removes the target without the 'Set.' or 'Cleared.' 
@@ -15131,13 +15147,22 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
 & MASK()
   Function: mask(<value>,<value>[,<masktype>])
+            mask(<value>,<value>,...,<value>,<masktype>)
   
   This function will apply a specified mask to a value.  This can be
   useful for bitwise anding/oring values together. (for those mathheads)
-  The values available for masktype are AND(&), OR(|), XOR(^), 
-  AND-1's COMP(~), 1'S COMP(1), 2'S COMP(2) .
+  The values available for masktype are:
+     & -- Bitwise AND 
+     | -- Bitwise OR
+     ^ -- Bitwise XOR
+     ~ -- Bitwise NAND (AND 1's compliment)
+     1 -- Bitwise BNOT (1's Compliment)
+     2 --              (2's Compliment)
   
-  The default masktype is the bitwise AND (&).
+  The default masktype is the bitwise AND (&) (but only with 2 arguments).
+  
+  Please note, if you use more than 2 values, you must specify the masktype,
+  otherwise it'll assume the last argument is always the masktype.
   
   Examples:
     > say mask(3,4)
@@ -16721,11 +16746,17 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You say ""
   
 & PEMIT()
-  Function: pemit(<object> [<object2> ...],<string>)
+  Function: pemit(<object> [<object2> ...],<string> [,<key>])
   
   The pemit() function is a side-effect for the @pemit/list command.  All
   restrictions and permissions of that command follow this function.  The
   SIDEFX flag is required to use pemit().
+  
+  You may specify an optional <key> of '1' if you wish to have ##
+  substituted for every target object in the list.  Keep in mind the '##'
+  is pre-processed like iter's ## would be and could be a security risk
+  if used improperly.  I'd strongly suggest filtering the target list
+  as dbref#'s to keep it safe.
   
   Type @list options to see if this side-effect is enabled.
   
@@ -16737,6 +16768,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   test
   test
   You say ""
+  > @eval pemit(#123,test ##)		(assuming your dbref# is #123)
+  test #123
   
   See Also: @pemit, npemit(), SIDEEFFECTS
   
@@ -18834,7 +18867,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   the existing label (if one exists) for that register.
   
   If you specify a key of 1, <new label> MUST be null/empty, and this
-  will return the register (0-9 or a-z) asigned to the specified label.
+  will return the register (0-9 or a-z) assigned to the specified label.
   
   Example:
     > say [setq(0,Test 1 2 3)][r(0)]
@@ -18876,7 +18909,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first  unnamed AND
   unused register.  '!' just uses the first unnamed register.
    
@@ -18906,7 +18939,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
 
@@ -18931,7 +18964,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
    
@@ -18959,7 +18992,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
   
@@ -24097,12 +24130,13 @@ ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
 SEA - Seawolf
  
-Current Revision: 3.9.3p0
+Current Revision: 3.9.4p0
 
 Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
+  3.9.4: 3.9.4p0
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -24409,6 +24443,8 @@ Changes
 * Finally got the native MUX password reader working with input rom Mike [ASH]
 * @caption and @titlecaption allow larger buffers for players [ASH]
 * internal sha1 code had to have variables redefined for conflict [ASH]
+* pemit() has an optional third argument for ## substitutions [ASH]
+* mask() now accepts maximum arguments [ASH]
   
 Bug Fixes
 ---------
@@ -24417,3 +24453,5 @@ Bug Fixes
 * printf() had CR/LF reversed [ASH]
 * mysql had compile issues on later compilers [ASH]
 * door code had a warning under latest compilers with realloc [ASH]
+* typos in help in various places with clustering [ASH]
+* 256 color mapping with RGB could be off by one on conditions [AMB]

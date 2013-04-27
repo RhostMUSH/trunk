@@ -15291,50 +15291,87 @@ FUNCTION(fun_neq)
 FUNCTION(fun_mask)
 {
   char t;
-  int x, y;
+  int x, y, i, i_maxargs;
 
-  if ((nfargs < 2) || (nfargs > 3))
-    safe_str("#-1 INCORRECT NUMBER OF ARGUMENTS",buff,bufcx);
-  else {
-    if (!is_number(fargs[0]) || !is_number(fargs[1]))
-      safe_str("#-1",buff,bufcx);
-    else {
-      x = atoi(fargs[0]);
-      y = atoi(fargs[1]);
-      if ((x < 0) || (y < 0))
-         safe_str("#-1",buff,bufcx);
-      else {
-        t = '&';
-        if (nfargs == 3) {
-          if (!strcmp("|",fargs[2]))
-             t = '|';
-          else if (!strcmp("^",fargs[2]))
-             t = '^';
-          else if (!strcmp("~",fargs[2]))
-            t = '~';
-          else if (!strcmp("1",fargs[2]))
-            t = '1';
-          else if (!strcmp("2",fargs[2]))
-            t = '2';
+  if (nfargs < 2) {
+       safe_str("#-1 FUNCTION (MASK) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+  }
+  if ( nfargs == 2 ) {
+     i_maxargs = 2;
+     t = '&';
+  } else {
+     i_maxargs = nfargs - 1;
+     t = '&';
+     if ( *fargs[nfargs-1] ) {
+        t = *fargs[nfargs-1];
+     }
+     switch (t) {
+        case '|' : break;
+        case '^' : break;
+        case '~' : break;
+        case '1' : break;
+        case '2' : break;
+        default  : t = '&'; break;
+     }
+  }
+
+  for ( i = 0; i < i_maxargs; i++ ) {
+     if ( !is_number(fargs[i]) ) {
+       i_maxargs = -1;
+       break;
+     }
+  }
+  if ( i_maxargs == -1 ) {
+     safe_str("#-1",buff,bufcx);
+     return;
+  }
+
+  x = atoi(fargs[0]);
+  if ( x < 0 ) {
+     safe_str("#-1",buff,bufcx);
+     return;
+  }
+  if ( (t == '1') || (t == '2') ) {
+     switch (t) {
+        case '1': /* 1's Compliment */
+           x = ~x;
+           break;
+        case '2': /* 2's Compliment */
+           x = ~x+1;
+           break;
+      }
+  } else {
+     for ( i = 1; i < i_maxargs; i++ ) {
+        y = atoi(fargs[i]);
+        if ( y < 0 ) {
+          i_maxargs = -1;
+          break;
         }
         switch (t) {
-          case '&': x &= y;
-            break;
-          case '|': x |= y;
-            break;
-          case '^': x ^= y;
-            break;
-          case '~': x = x & ~y;
-            break;
-          case '1': x = ~x;
-            break;
-          case '2': x = ~x+1;
-            break;
+           case '&': /* Bitwise And */
+              x &= y;
+              break;
+           case '|': /* Bitwise Or */
+              x |= y;
+              break;
+           case '^': /* Bitwise Xor */
+              x ^= y;
+              break;
+           case '~': /* And 1's Comp (nand) */
+              x &= ~y;
+              break;
         }
-        ival(buff,bufcx,x);
-      }
-    }
+     }
   }
+
+  if ( i_maxargs == -1 ) {
+     safe_str("#-1",buff,bufcx);
+     return;
+  }
+  uival(buff,bufcx,x);
 }
 
 FUNCTION(fun_andchr)
@@ -21889,6 +21926,8 @@ FUNCTION(fun_ansi)
                     sscanf(s+1, "%2x%2x%2x", &r1, &g1, &b1);
                     rgb_diff = rgb_diff2 = 1000;
                     for (cx = mux_namecolors; cx->s_hex; cx++) {
+                       if(cx->i_dec < 16) 
+                          continue;
                        sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
                        rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
                        if ( rgb_diff < rgb_diff2 ) {
@@ -21913,6 +21952,8 @@ FUNCTION(fun_ansi)
                     sscanf(s+2, "%2x%2x%2x", &r1, &g1, &b1);
                     rgb_diff = rgb_diff2 = 1000;
                     for (cx = mux_namecolors; cx->s_hex; cx++) {
+                       if(cx->i_dec < 16) 
+                          continue;
                        sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
                        rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
                        if ( rgb_diff < rgb_diff2 ) {
@@ -21938,6 +21979,8 @@ FUNCTION(fun_ansi)
                              b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
                              rgb_diff = rgb_diff2 = 1000;
                              for (cx = mux_namecolors; cx->s_hex; cx++) {
+                                if(cx->i_dec < 16) 
+                                   continue;
                                 sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
                                 rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
                                 if ( rgb_diff < rgb_diff2 ) {
@@ -22052,7 +22095,7 @@ FUNCTION(fun_ansi)
          s++;
       }
       if ( i_xterm_ansi ) {
-         if ( i_fgcolor > 0 ) {
+         if ( i_fgcolor >= 0 && i_fgcolor <= 255 ) {
             t_buff2 = alloc_lbuf("fun_ansi");
 #ifdef TINY_SUB
             sprintf(t_buff2, "%%x0x%02x", i_fgcolor);
@@ -22064,7 +22107,7 @@ FUNCTION(fun_ansi)
          } else {
             safe_str(ansi_normalfg, buff, bufcx);
          }
-         if ( i_bgcolor > 0 ) {
+         if ( i_bgcolor >= 0 && i_bgcolor <= 255) {
             t_buff2 = alloc_lbuf("fun_ansi");
 #ifdef TINY_SUB
             sprintf(t_buff2, "%%x0X%02x", i_bgcolor);
@@ -25241,11 +25284,16 @@ FUNCTION(fun_oemit)
 FUNCTION(fun_pemit)
 {
    CMDENT *cmdp;
+   int i_key;
 
    if ( !(mudconf.sideeffects & SIDE_PEMIT) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
    }
+
+   if (!fn_range_check("PEMIT", nfargs, 2, 3, buff, bufcx))
+      return;
+
    if ( !SideFX(player) || Fubar(player) || return_bit(player) < mudconf.restrict_sidefx ) {
       notify(player, "Permission denied.");
       return;
@@ -25257,7 +25305,14 @@ FUNCTION(fun_pemit)
       notify(player, "Permission denied.");
       return;
    }
-   do_pemit( player, cause, (SIDEEFFECT|PEMIT_PEMIT|PEMIT_LIST|PEMIT_NOSUB), fargs[0], fargs[1], cargs, ncargs);
+   if ( nfargs > 2 && *fargs[2] ) {
+      i_key = atoi(fargs[2]);
+   }
+   if (i_key == 1 ) {
+      do_pemit( player, cause, (SIDEEFFECT|PEMIT_PEMIT|PEMIT_LIST), fargs[0], fargs[1], cargs, ncargs);
+   } else {
+      do_pemit( player, cause, (SIDEEFFECT|PEMIT_PEMIT|PEMIT_LIST|PEMIT_NOSUB), fargs[0], fargs[1], cargs, ncargs);
+   }
 }
 
 FUNCTION(fun_remit)
@@ -26990,9 +27045,9 @@ FUN flist[] =
     {"PEDIT", fun_pedit, 3, FN_VARARGS, CA_PUBLIC, 0},
 #ifdef USE_SIDEEFFECT
 #ifdef SECURE_SIDEEFFECT
-    {"PEMIT", fun_pemit, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"PEMIT", fun_pemit, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
-    {"PEMIT", fun_pemit, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"PEMIT", fun_pemit, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
 #endif
     {"PGREP", fun_pgrep, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
