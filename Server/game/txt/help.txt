@@ -51,37 +51,39 @@
   @destroy     @dig         @doing       @dolist      @drain       @edit 
   @emit        @entrances   @eval        @extansi     @femit       @find      
   @force       @fpose       @fsay        @halt        @hide        @include
-  @last        @link        @list        @listmotd    @lock        @mvattr    
-  @name        @notify      @oemit       @open        @parent      @password  
-  @pemit       @program     @protect     @ps          @quitprogram @quota     
-  @register    @robot       @search      @set         @skip        @stats     
-  @sudo        @sweep       @switch      @teleport    @trigger     @unlink    
-  @unlock      @verb        @wait        @wipe        @mailsig     @wall       
+  @last        @link        @list        @listmotd    @lfunction   @lock      
+  @mailsig     @mvattr      @name        @notify      @oemit       @open      
+  @parent      @password    @pemit       @program     @protect     @ps        
+  @quitprogram @quota       @register    @robot       @search      @set       
+  @skip        @stats       @sudo        @sweep       @switch      @teleport  
+  @trigger     @unlink      @unlock      @verb        @wait        @wall      
+  @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 & commands2
   Help available for RhostMUSH Commands (continued):
  
-  @aahear      @aclone      @aconnect  @adescribe   @adfail      @adisconnect
-  @adrop       @aefail      @aenter    @afail       @agfail      @ahear
-  @akill       @aleave      @alfail    @alias       @amhear      @amove
-  @apay        @arfail      @asuccess  @atfail      @atport      @aufail
-  @ause        @away        @charges   @cost        @describe    @dfail
-  @drop        @ealias      @efail     @enter       @fail        @filter
-  @forwardlist @gfail       @idesc     @idle        @infilter    @inprefix
-  @kill        @lalias      @leave     @lfail       @listen      @move
-  @odescribe   @odfail      @odrop     @oefail      @oenter      @ofail
-  @ogfail      @okill       @oleave    @olfail      @omove       @opay
-  @orfail      @osuccess    @otfail    @otport      @oufail      @ouse
-  @oxenter     @oxleave     @oxtport   @pay         @prefix      @reject
-  @rfail       @runout      @sex       @startup     @success     @tfail
-  @toggle      @tport       @ufail     @use         @whereall    @whereis     
-  +uptime      @cpattr      @grep      @selfboot    @zone        @tofail
-  @otofail     @atofail     @door      @sfail       @asfail      @guild
-  @race        @slisten     @salisten  @solisten    @staste      @sataste
-  @sotaste     @stouch      @satouch   @sotouch     @ssmell      @sasmell
-  @sosmell     @ansiname    @caption   @conformat   @exitformat  @saystring
-  @nameformat  @titlecaption
+  @aahear    @aclone      @aconnect    @adescribe  @adfail       @adisconnect
+  @adrop     @aefail      @aenter      @afail      @agfail       @ahear
+  @akill     @aleave      @alfail      @alias      @amhear       @amove
+  @ansiname  @apay        @arfail      @asfail     @asuccess     @atfail    
+  @atofail   @atport      @aufail      @ause       @away         @caption 
+  @charges   @conformat   @cost        @cpattr     @describe     @dfail
+  @door      @drop        @ealias      @efail      @enter        @exitformat
+  @fail      @filter      @forwardlist @gfail      @grep         @guild 
+  @idesc     @idle        @infilter    @inprefix   @kill         @lalias    
+  @leave     @lfail       @listen      @move       @nameformat   @odescribe 
+  @odfail    @odrop       @oefail      @oenter     @ofail        @ogfail    
+  @okill     @oleave      @olfail      @omove      @opay         @orfail    
+  @osuccess  @otfail      @otofail     @otport     @oufail       @ouse
+  @oxenter   @oxleave     @oxtport     @pay        @prefix       @race      
+  @reject    @rfail       @runout      @salisten   @sasmell      @sataste
+  @satouch   @saystring   @selfboot    @sex        @sfail        @slisten     
+  @solisten  @sosmell     @sotaste     @sotouch    @ssmell       @startup   
+  @staste    @stouch      @success     @tfail      @titlecaption @tofail
+  @toggle    @tport       @ufail       +uptime     @use          @whereall  
+  @whereis   @zone        
+  
   
   See Also: @list
   
@@ -2482,10 +2484,16 @@
   is processed.  Great for timed events.
    
   If present, <switch> can be any of:
-    /space   - (Default) List elements are separated by spaces.
-    /delimit - List elements are separated by <delimiter>.
-    /notify  - Issues a @notify me after the end of the @dolist
-    /pid     - Issues a @notify/pid me=<pid> after the end of the @dolist.
+    /space     - (Default) List elements are separated by spaces.
+    /delimit   - List elements are separated by <delimiter>.
+    /notify    - Issues a @notify me after the end of the @dolist
+    /pid       - Issues a @notify/pid me=<pid> after the end of the @dolist.
+    /inline    - Execute @dolist 'in-line' and do not queue.
+    /clearregs - Clear the registers before going inside @dolist.  This 
+                 assumes local registers. (/inline required)
+    /localize  - Make any changes to registers local (/inline required)
+    /nobreak   - All @break/@assert in @dolist ignored in outside processing.
+                 (/inline required)
   
 { help @dolist2 for examples}
   
@@ -5509,6 +5517,9 @@
     /clearregs - clear the registers prior to calling included attribute.
                  Note: this automatically sets the localize option.
     /localize  - localizes the registers for the include duration.
+    /nobreak   - disregard @break/@assert inside the includes from outside.
+    /target    - Use the target as executor instead of executor of @include
+                 Note: You must control target to use this.
     
   {see @include2 for examples}
 
@@ -5675,6 +5686,82 @@
   
   See Also: @aleave, @alfail, @lalias, @leave, @oleave, @olfail, leave
   
+& @lfunction
+  Command: @lfunction[/<switches>] [<function>] [=<object>/<attr> | <value>]
+   
+  This command creates a localized function named <function>.  A localized
+  function is only seen by the owner of the target and all things owned by
+  that target.  Function existance is checked by the object doing the 
+  execution of the code, thereby allowing owners the ability to use their
+  own functions in their own code without worry of cross-funtion evaluation.
+
+  When invoked, the arguments to the function are loaded into %0-%9, 
+  the <attr> attribute from <object> is fetched, and substitution is 
+  performed on the resulting text.  The result of that substitution is 
+  returned as the function result.
+  
+  You may only have 20 localized functions defined.
+  
+  The following switches exist:
+    /privilege  - the function is evaluated as if the evaluation were being 
+                  performed by the object on which it is stored, instead of 
+                  as if it were being performed by the invoker of the function.
+    /list       - list all current softcoded functions (with dbref#/attr's)
+    /preserve   - the function preserves setq registers (r(0)-r(9)).
+    /delete     - delete the specified user-defined function.
+    /display    - displays the details of the specified function.
+    /protect    - all setq registers called in a localized function are nulled.
+    /notrace    - the specified function when defined can't be TRACEed.
+    /max        - Set the maximum number of arguments for the function.
+                  The default is '-1' or unlimited.
+    /min        - Set the minimum number of arguments for the function.
+                  The default is '-1' or 0.
+  
+  {see 'help @lfunction2' to continue}
+
+& @lfunction2
+  Command: @lfunction[/<switches>] [<function>] [=<object>/<attr>]
+  
+  The function definitions created by @lfunction are not stored in the database
+  so they need to be re-created each time the RhostMUSH is started.  It is
+  recommended that the Startup attribute for the target include code to set up
+  all global functions.  The privalaged and preserved, protect, and notrace 
+  switches may be combined.
+   
+  All global functions have precedence over local functions.  All built-in
+  functions have priority over all other functions (unless overridden).
+  Listing local functions will only display the functions that you have
+  control over, meaning wizards will see all local functions defined and
+  the owners of those functions.
+  
+  Examples:  @lfunction myfunction=#123/myattribute
+             @lfunction/priv/pres myfunction=#123/myattribute
+             @lfunction/priv/pres/prot myfunction=#123/myattribute
+             @lfunction/priv/pres/prot/notrace myfunction=#123/myattribute
+             @lfunction/list
+             @lfunction/display myfunction
+             @lfunction/delete myfunction
+             @lfunction/delete #12_myfunction (delete myfunction of user #12)
+             @lfunction/max myfunction=5
+             @lfunction/min myfunction=3
+  
+  Note: With the /list switch, the following letters represent the following:
+             W - privalaged
+             p - preserved
+             + - protected
+             t - notrace
+  
+  You will see the MAX and MIN fields only if they are outside the defaults. 
+  
+  When deleting functions, if you wish to specify a local function that is
+  by a specific user, you may use the form:
+     @lfunction/del <dbref>_<function>
+  
+  Example:
+     > @function/del #12345_myfunction
+  
+  See Also: u(), streval(), eval()
+ 
 & @listen
   Command: @listen[/<switch>] <object> = <string>
   Attribute: Listen
@@ -15549,7 +15636,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say u(me/va,6,Foobar)
     You say "Word is u, arg2 is Foobar."
   
-  See Also: s(), v(), get(), get_eval(), map(), ueval(), objeval()
+  See Also: s(), v(), get(), get_eval(), map(), ueval(), streval(),
+            objeval(), @lfunction
   
 & STREVAL()
   Function: streval(<string>, <evaluation level> [,<arg>,<arg2>,...,<argN>])
@@ -15580,7 +15668,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say streval(Test: [s(%0)],citizen,[bittype(me)])
     You say "Test: 1"
   
-  See Also: ueval(), u(), default()
+  See Also: ueval(), u(), default(), @lfunction
     
 & U2()
   Function: u2([<obj>/]<attr>[,<arg>]...)
@@ -15597,7 +15685,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
    
   For examples or more information, look at u()
   
-  See Also: u(), u2local(), u2ldefault()
+  See Also: u(), u2local(), u2ldefault(), @lfunction
   
 & ZFUN2LOCAL()
   Function:  zfun2local([<zone>/]<attr>[,<arg>]...)
@@ -15641,6 +15729,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   value of %q0 to its original "are delicious!"
  
   See Also:  ulocal(), u(), u2(), uldefault(), u2ldefault(), setq(), r()
+
 & U2LOCAL()
   Function:  u2local([<obj>/]<attr>[,<arg>]...)
  
@@ -15767,7 +15856,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   %q0, this is what was printed. In the first example, ulocal() reset the
   value of %q0 to its original "are delicious!"
    
-  See Also:  ulocal2(), u(), u2(), uldefault(), u2ldefault(), setq(), r()
+  See Also:  ulocal2(), u(), u2(), uldefault(), u2ldefault(), setq(), r(),
+             @lfunction
   
 & PRIVATIZE()
   Function: privatize(<value>)
@@ -15786,7 +15876,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say [privatize(1)][setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--(before R0: ) My R0:internal--external"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize()
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), @lfunction
 
 & LOCALIZE()
   Function: localize(<string>)
@@ -15803,7 +15893,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say [setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--My R0:internal--external"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize()
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), @lfunction
   
 & LOCALFUNC()
   Function: localfunc(<function-name>, <args>...)
@@ -15816,7 +15906,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > localfunc(test,This is a test)
     You say "This was a test. Function: 'test' First Arg: 'This is a test'"
   
-  See Also: strfunc()
+  See Also: strfunc(), @lfunction
   
 & LAVG()
   Function: lavg(<list of numbers>[,<delim>])
@@ -24437,6 +24527,8 @@ New Features
 -------
 * encode64() from PennMUSH.  Requires OpenSSL. [ASH]
 * decode64() from PennMUSH.  Requires OpenSSL. [ASH]
+* @lfunction to allow players to define localized functions [ASH]
+* global parameter to specify global @lfunction limit per player [ASH]
   
 Changes
 -------
@@ -24445,6 +24537,10 @@ Changes
 * internal sha1 code had to have variables redefined for conflict [ASH]
 * pemit() has an optional third argument for ## substitutions [ASH]
 * mask() now accepts maximum arguments [ASH]
+* Added /inline, /nobreak, /localize, /clearreg to @dolist [ASH]
+* Added /nobreak to @include [ASH]
+* @limit to allow /lfun switch to specify individual @lfunction overrides [ASH]
+* Added /target switch to @include [ASH]
   
 Bug Fixes
 ---------

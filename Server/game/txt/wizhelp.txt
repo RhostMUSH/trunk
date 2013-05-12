@@ -3762,18 +3762,19 @@
     /list  - This lists the current values for the target player (default)
     /vmod  - This defines the new user variable maximum
     /dmod  - This defines the new @destroy maximum
+    /lfun  - Defines the maximum allowed @lfunction definitions 
     /reset - This resets the maximums to the global default.
   
   The global defaults are defined by max_dest_limit and max_vattr_limit
   accordingly.  The special values of '-1' mean unlimited, and '-2' mean
-  to use the global setting.
+  to use the global setting.  Unlimited (-1) is not allowed for /lfun.
   
   Seperate wizard attributews are available that are defined by the params
   wizmax_dest_limit and wizmax_vattr_limit.  By default wizards are not
   checked, and must be enabled with the param 'vattr_limit_checkwiz'
   
   See Also: max_vattr_limit, max_dest_limit, wizmax_vattr_limit, 
-            wizmax_dest_limit, vattr_limit_checkwiz
+            wizmax_dest_limit, vattr_limit_checkwiz, lfunction_max
 
 & @dynhelp
   Command: @dynhelp[/<switch>] <helpfile>[/<topic>] [=<target player>]
@@ -4458,20 +4459,21 @@
   input_database           internal_compress_string inventory_name         
   kill_guarantee_cost      kill_max_cost            kill_min_cost          
   lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
-  list_access              link_cost                lnum_compat            
-  lock_recursion_limit     log                      log_command_list       
-  log_maximum              log_network_errors       log_options            
-  login_to_prog            logout_cmd_access        logout_cmd_alias       
-  look_moreflags           look_obey_terse          machine_command_cost   
-  mail_anonymous           mail_autodeltime         mail_default           
-  mail_def_object          mail_hidden              mail_tolist            
-  mail_verbosity           mailbox_size             maildelete             
-  mailinclude_file         mailprog                 mailsub                
-  mailmax_send             master_room              match_own_commands     
-  manlog_file              map_delim_space          max_cpu_cycles         
-  max_dest_limit           max_folders              max_lastsite_cnt       
-  max_name_protect         max_pcreate_lim          max_pcreate_time       
-  max_percentsubs          max_players              max_sitecons           
+  lfunction_max            list_access              link_cost              
+  lnum_compat              lock_recursion_limit     log                    
+  log_command_list         log_maximum              log_network_errors     
+  log_options              login_to_prog            logout_cmd_access      
+  logout_cmd_alias         look_moreflags           look_obey_terse        
+  machine_command_cost     mail_anonymous           mail_autodeltime       
+  mail_default             mail_def_object          mail_hidden            
+  mail_tolist              mail_verbosity           mailbox_size           
+  maildelete               mailinclude_file         mailprog               
+  mailsub                  mailmax_send             master_room           
+  match_own_commands       manlog_file              map_delim_space        
+  max_cpu_cycles           max_dest_limit           max_folders            
+  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
+  max_pcreate_time         max_percentsubs          max_players            
+  max_sitecons           
   
 { 'wizhelp config parameters4' for more }
 
@@ -5976,6 +5978,16 @@
   If enabled, enforces dark/unfindable checks on lcon()/xcon() that
   would be applied to lwho().
   
+& lfunction_max
+  Config parameter: lfunction_max <num>.  Default: 20
+  
+  Specifies the maximum @lfunctions a player may define for their own
+  local function pool.  This may be individually tweaked through the
+  @limit command.
+  
+  See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
+            vattr_limit_checkwiz, max_dest_limit
+
 & list_access
   Config parameter: list_access <param> [!]<privilege> [[!]<privilege>]...
   Changes the access needed to the <param> option of the @list command.
@@ -6211,7 +6223,7 @@
   set to '-1' it will default to infinite.
   
   See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
-            vattr_limit_checkwiz
+            vattr_limit_checkwiz, lfunction_max
 
 & max_folders
   Config parameter: max_folders <value>.   Default: 20
@@ -6294,7 +6306,7 @@
   Specifying the value to '-1' makes it infinite.
   
   See Also: @limit, max_dest_limit, wizmax_dest_limit, wizmax_vattr_limit,
-            vattr_limit_checkwiz
+            vattr_limit_checkwiz, lfunction_max
 
 & maximum_size
   Config parameter: maximum_size <value>.    Default: -1
@@ -7807,7 +7819,7 @@
   restritions.
   
   See Also: @limit, wizmax_dest_limit, max_vattr_limit, wizmax_vattr_limit,
-            max_vattr_limit
+            max_vattr_limit, lfunction_max
  
 & vlimit
   Config parameter: vlimit <ammount>.  Default 750
@@ -7945,7 +7957,7 @@
   Specifying the value to '-1' makes it infinite.
   
   See Also: @limit, wizmax_dest_limit, max_vattr_limit, vattr_limit_checkwiz,
-            max_vattr_limit
+            max_vattr_limit, lfunction_max
 
 & wizmax_dest_limit
   Config parameter: wizmax_dest_limit <num>.  Default: 100000
@@ -7956,7 +7968,7 @@
   set to '-1' it will default to infinite.
   
   See Also: @limit, wizmax_vattr_limit, max_dest_limit, vattr_limit_checkwiz,
-            max_vattr_limit
+            max_vattr_limit, lfunction_max
 
 & zone_parents
   Config parameter: zone_parents (yes/no).  Default: YES
