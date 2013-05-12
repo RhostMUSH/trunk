@@ -162,7 +162,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    } else {
@@ -180,7 +180,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -200,7 +200,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    } else {
@@ -218,7 +218,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -1380,11 +1380,15 @@ void do_pemit (dbref player, dbref cause, int key, char *recipient,
 		char *message, char *cargs[], int ncargs)
 {
 dbref	target, loc, aowner;
-char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2, *pt3, *r_bufr;
-char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff, *reality_buff, *s_ptr;
+char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
+char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff;
+#ifdef REALITY_LEVELS
+char    *reality_buff, *s_ptr, *r_bufr, *pt3;
+#endif
 int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr, side_effect; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;
 int     xxx_x, xxx_y, xxx_z, i_oneeval;
+
 ZLISTNODE *z_ptr, *y_ptr;
 
    port = 0;
@@ -1805,7 +1809,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_OEMIT:
                   if (loc != NOTHING) {
-                     notify_except(loc, player, target, result);
+                     notify_except(loc, player, target, result, 0);
                      if (Flags3(target) & SEE_OEMIT) {
                         tell = alloc_lbuf("see_omit");
                         tx = tell;
@@ -1877,10 +1881,10 @@ ZLISTNODE *z_ptr, *y_ptr;
                      tprp_buff = tpr_buff;
                      if ( pbuf && *pbuf )
                         notify_except(loc, player, target,
-                                      safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(target), pbuf, result));
+                                      safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(target), pbuf, result), 0);
                      else
                         notify_except(loc, player, target,
-                                      safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(target), result));
+                                      safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(target), result), 0);
                   }
                   free_lbuf(pbuf);
                   free_lbuf(tpr_buff);

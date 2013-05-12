@@ -1,3 +1,7 @@
+		         RhostMUSH 3.9.4 Update File
+REALITY_LEVELS wouldn't compile because of undeclared function.
+				- Thanks Dahan
+
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 
 				- Thanks Jules (and PennMUSH)

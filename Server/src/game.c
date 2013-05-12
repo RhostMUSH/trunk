@@ -1055,7 +1055,7 @@ notify_except_someone(dbref loc, dbref player, dbref exception, const char *msg,
 }
 
 void 
-notify_except(dbref loc, dbref player, dbref exception, const char *msg)
+notify_except(dbref loc, dbref player, dbref exception, const char *msg, int key)
 {
     dbref first;
 
@@ -1063,11 +1063,11 @@ notify_except(dbref loc, dbref player, dbref exception, const char *msg)
 
       if (loc != exception)
 	notify_check(loc, player, msg, 0,
-		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A), 0);
+		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
       DOLIST(first, Contents(loc)) {
 	if (first != exception) {
 	    notify_check(first, player, msg, 0,
-			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE), 0);
+			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
 	}
       }
     VOIDRETURN; /* #77 */

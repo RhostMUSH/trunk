@@ -155,8 +155,9 @@ extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
 						MSG_ME_ALL|MSG_NBR_EXITS|MSG_F_UP|MSG_F_CONTENTS|MSG_S_OUTSIDE, 0)
 #define	notify_all_from_inside_quiet(p,c,m)	notify_check(p,c,m,0, \
 						MSG_ME|MSG_F_CONTENTS|MSG_SILENT, 0)
+#define noansi_notify_except(p,c,m,x)	notify_except(p,c,m,x,MSG_NO_ANSI)
 extern void	FDECL(notify_except, (dbref, dbref, dbref,
-			const char *));
+			const char *, int));
 extern void	FDECL(notify_except2, (dbref, dbref, dbref, dbref,
 			 const char *));
 extern void	FDECL(notify_except3, (dbref, dbref, dbref, dbref, int,
