@@ -389,6 +389,7 @@ struct confdata {
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
+	int	lfunction_max;	/* Maximum lfunctions allowed */
 #ifdef REALITY_LEVELS
         int no_levels;          /* # of reality levels */
         struct rlevel_def {
@@ -441,6 +442,7 @@ struct confdata {
 	int	ifelse_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
 	int	enforce_unfindable;	/* Enforce unfindable on target */
 	int	power_objects;		/* Objects can have powers */
+	int	lfunction_max;	/* Maximum lfunctions allowed */
 	char	sub_include[200];
 	int	old_elist;		/* Old elist processing */
 #endif	/* STANDALONE */
@@ -566,6 +568,7 @@ struct statedata {
 	HASHTAB	logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
 	HASHTAB func_htab;	/* Functions hashtable */
 	HASHTAB ufunc_htab;	/* Local functions hashtable */
+	HASHTAB ulfunc_htab;	/* User-Defiend Local functions hashtable */
 	HASHTAB flags_htab;	/* Flags hashtable */
 	HASHTAB toggles_htab;	/* Toggles hashtable */
 	HASHTAB powers_htab;

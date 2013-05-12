@@ -25,6 +25,7 @@ typedef struct fun {
 typedef struct ufun {
 	const char *name;	/* function name */
 	dbref	obj;		/* Object ID */
+	dbref 	owner;		/* NOT USED except for local functions */
 	int	atr;		/* Attribute ID */
 	int	flags;		/* Function flags */
 	int	perms;		/* Access to function */
@@ -46,6 +47,7 @@ typedef struct ufun {
 #define FN_MIN        512	/* Min value */
 #define FN_MAX       1024       /* Max value */
 #define FN_NOTRACE   2048	/* Do not trace @function */
+#define FN_LOCAL     4096       /* @function is a local user function */
 
 extern void	NDECL(init_functab);
 extern void	FDECL(list_functable, (dbref));

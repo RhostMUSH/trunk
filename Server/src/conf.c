@@ -268,6 +268,7 @@ NDECL(cf_init)
     mudconf.map_delim_space = 1;      /* output delim is input delim by default */
     mudconf.includenest = 3;		/* Default nesting of @include */
     mudconf.includecnt = 10;		/* Maximum count of @includes per command session */
+    mudconf.lfunction_max = 20;		/* Maximum lfunctions allowed per user */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -2507,6 +2508,10 @@ CONF conftable[] =
     {(char *) "lcon_checks_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.lcon_checks_dark, 0, 0, CA_PUBLIC,
      (char *) "Lcon/Xcon checks dark/unfindable?"},
+    {(char *) "lfunction_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.lfunction_max, 0, 0, CA_WIZARD,
+     (char *) "Max local functions (@lfunctions) per user.\r\n"\
+              "                             Default: 20  Value: %d"},
     {(char *) "map_delim_space",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.map_delim_space, 0, 0, CA_PUBLIC,
      (char *) "MAP() uses space/seperator?"},

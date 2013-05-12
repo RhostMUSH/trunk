@@ -1855,8 +1855,8 @@ void do_wipe(dbref player, dbref cause, int key, char *it)
 void do_include(dbref player, dbref cause, int key, char *string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {
-   dbref thing, owner;
-   int attrib, flags, i, x;
+   dbref thing, owner, target;
+   int attrib, flags, i, x, i_savebreak;
    char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS];
 
    if ( desc_in_use != NULL ) {
@@ -1879,6 +1879,10 @@ void do_include(dbref player, dbref cause, int key, char *string,
        !could_doit(player,thing,A_LTWINK,0)) ) {
        notify_quiet(player, "Permission denied.");
        return;
+   }
+   target = player;
+   if ( (key & INCLUDE_TARGET) && controls(player, thing) ) {
+      target = thing;
    }
    mudstate.includecnt++;
    mudstate.includenest++;
@@ -1906,10 +1910,13 @@ void do_include(dbref player, dbref cause, int key, char *string,
          }
       }
    }
+   i_savebreak = mudstate.breakst;
    while (buff1ptr && !mudstate.breakst) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
-         process_command(player, cause, 0, cp, s_buff, 10, InProgram(player));
+         process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing));
+         if ( key & INCLUDE_NOBREAK )
+            mudstate.breakst = i_savebreak;
       }
    }
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {

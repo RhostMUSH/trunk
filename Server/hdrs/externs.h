@@ -541,6 +541,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DOLIST_DELIMIT  1       /* expect custom delimiter */
 #define DOLIST_NOTIFY   2	/* queue a '@notify me' at end */
 #define DOLIST_PID	4	/* Queue a '@notify/pid me=<pid>' at end */
+#define DOLIST_CLEARREG 8	/* Clear local registers */
+#define DOLIST_LOCALIZE 16	/* Localize the registers */
+#define DOLIST_INLINE	32	/* @dolist inline and not queued */
+#define DOLIST_NOBREAK  64	/* Only do breaking for the @dolist portion */
 #define	DOING_MESSAGE	0	/* Set my DOING message */
 #define	DOING_HEADER	1	/* Set the DOING header */
 #define	DOING_POLL	2	/* List DOING header */
@@ -600,10 +604,12 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	HELP_NEWS	2	/* get data from news file */
 #define	HELP_WIZHELP	3	/* get data from wizard help file */
 #define HELP_PLUSHELP   4       /* get data from plus help file */
+#define LIMIT_MAX	5	/* Max arguments in @limit variable */
 #define LIMIT_LIST	1	/* Set global @limits */
 #define LIMIT_VADD	2	/* VAttr limit */
 #define LIMIT_DADD	4	/* @destroy limit */
 #define LIMIT_RESET	8	/* Reset limits to global defaults */
+#define LIMIT_LFUN	16	/* Maximum @lfunctions per player */
 #define ICMD_DISABLE	0
 #define ICMD_IGNORE	1
 #define ICMD_ON		2
@@ -874,6 +880,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define INCLUDE_COMMAND	1	/* Can @insert trigger $commands */
 #define INCLUDE_LOCAL	2	/* Localize all the @included foo */
 #define INCLUDE_CLEAR	4	/* Clear the attributes locally */
+#define INCLUDE_NOBREAK 8	/* Do not @break other than inside @include */
+#define INCLUDE_TARGET	16	/* Allow the target item (if you control it) to be executor */
 #define SUDO_GLOBAL	1	/* Reverse of localized */
 #define SUDO_CLEAR	2	/* Clear registers */
 #define	TWARP_QUEUE	1	/* Warp the wait and sem queues */

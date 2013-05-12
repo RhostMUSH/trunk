@@ -374,7 +374,7 @@ void do_turtle(dbref player, dbref cause, int key, char *turtle, char *newowner)
 {
 dbref	victim, recipient, loc, aowner, aowner2, newplayer;
 char	*buf, *s_retval, *s_retplayer, *s_retvalbuff, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf;
-int	count, aflags, aflags2, i, i_array[4];
+int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 
 	init_match(player, turtle, TYPE_PLAYER);
 	match_neighbor();
@@ -406,9 +406,9 @@ int	count, aflags, aflags2, i, i_array[4];
            s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
-              i_array[1] = i_array[3] = -2;
+              i_array[4] = i_array[1] = i_array[3] = -2;
               for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                   s_buffptr && (i < 4);
+                   s_buffptr && (i < LIMIT_MAX);
                    s_buffptr = (char *) strtok(NULL, " "), i++) {
                   i_array[i] = atoi(s_buffptr);
               }
@@ -428,12 +428,12 @@ int	count, aflags, aflags2, i, i_array[4];
                  }
               }
               s_mbuf = alloc_mbuf("vattr_check");
-              sprintf(s_mbuf, "%d %d %d %d", i_array[0], i_array[1],
-                                             i_array[2]+1, i_array[3]);
+              sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
+                                             i_array[2]+1, i_array[3], i_array[4]);
               atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2");
+              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }
@@ -549,7 +549,7 @@ void do_toad(dbref player, dbref cause, int key, char *toad, char *newowner)
 {
 dbref	victim, recipient, loc, aowner, aowner2, newplayer;
 char	*buf, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf;
-int	count, aflags, i, i_array[4], aflags2;
+int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 
 	init_match(player, toad, TYPE_PLAYER);
 	match_neighbor();
@@ -592,9 +592,9 @@ int	count, aflags, i, i_array[4], aflags2;
            s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
-              i_array[1] = i_array[3] = -2;
+              i_array[4] = i_array[1] = i_array[3] = -2;
               for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                   s_buffptr && (i < 4);
+                   s_buffptr && (i < LIMIT_MAX);
                    s_buffptr = (char *) strtok(NULL, " "), i++) {
                   i_array[i] = atoi(s_buffptr);
               }
@@ -614,12 +614,12 @@ int	count, aflags, i, i_array[4], aflags2;
                  }
               }
               s_mbuf = alloc_mbuf("vattr_check");
-              sprintf(s_mbuf, "%d %d %d %d", i_array[0], i_array[1],
-                                             i_array[2]+1, i_array[3]);
+              sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
+                                             i_array[2]+1, i_array[3], i_array[4]);
               atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2");
+              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }

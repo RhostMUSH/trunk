@@ -1808,7 +1808,7 @@ al_add(dbref thing, int attrnum)
 #ifndef STANDALONE
     ATTR *attr;
     dbref aowner2;
-    int i, i_array[4], aflags2;
+    int i, i_array[LIMIT_MAX], aflags2;
     char *s_chkattr, *s_buffptr;
 #endif
     /* If trying to modify List attrib, return.  Otherwise, get the
@@ -1882,9 +1882,9 @@ al_add(dbref thing, int attrnum)
           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
-             i_array[1] = i_array[3] = -2;
+             i_array[4] = i_array[1] = i_array[3] = -2;
              for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                  s_buffptr && (i < 4);
+                  s_buffptr && (i < LIMIT_MAX);
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
@@ -1920,12 +1920,12 @@ al_add(dbref thing, int attrnum)
                 }
              }
              s_mbuf = alloc_mbuf("vattr_check");
-             sprintf(s_mbuf, "%d %d %d %d", i_array[0]+1, i_array[1], 
-                                                  i_array[2], i_array[3]);
+             sprintf(s_mbuf, "%d %d %d %d %d", i_array[0]+1, i_array[1], 
+                                                  i_array[2], i_array[3], i_array[4]);
              do_limit_add = 1;
           } else {
              s_mbuf = alloc_mbuf("vattr_check");
-             strcpy(s_mbuf, "1 -2 0 -2");
+             sprintf(s_mbuf, "1 -2 0 -2 %d", -2);
              do_limit_add = 1;
           }
           free_lbuf(s_chkattr);
@@ -1990,7 +1990,7 @@ al_delete(dbref thing, int attrnum)
     ATTR *attr;
     char *s_chkattr, *s_buffptr, *s_mbuf;
     dbref aowner2, player;
-    int aflags2, i_array[4], i;
+    int aflags2, i_array[LIMIT_MAX], i;
 #endif
     /* If trying to modify List attrib, return.  Otherwise, get the
      * attribute list. */
@@ -2037,9 +2037,9 @@ al_delete(dbref thing, int attrnum)
           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
-             i_array[1] = i_array[3] = -2;
+             i_array[4] = i_array[1] = i_array[3] = -2;
              for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                  s_buffptr && (i < 4);
+                  s_buffptr && (i < LIMIT_MAX);
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
@@ -2075,12 +2075,15 @@ al_delete(dbref thing, int attrnum)
                 }
              }
              s_mbuf = alloc_mbuf("vattr_check");
-             sprintf(s_mbuf, "%d %d %d %d", i_array[0]+1, i_array[1], 
-                                                  i_array[2], i_array[3]);
+             sprintf(s_mbuf, "%d %d %d %d %d", i_array[0]+1, i_array[1], 
+                                                  i_array[2], i_array[3], i_array[4]);
              atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
              free_mbuf(s_mbuf);
           } else {
-             atr_add_raw(player, A_DESTVATTRMAX, (char *)"1 -2 0 -2");
+             s_mbuf = alloc_mbuf("vattr_check");
+             sprintf(s_mbuf, "1 -2 0 -2 %d", -2);
+             atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+             free_mbuf(s_mbuf);
           }
           free_lbuf(s_chkattr);
        }

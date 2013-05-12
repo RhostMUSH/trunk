@@ -245,8 +245,12 @@ NAMETAB dolist_sw[] =
 {
     {(char *) "delimit", 1, CA_PUBLIC, 0, DOLIST_DELIMIT},
     {(char *) "space", 1, CA_PUBLIC, 0, DOLIST_SPACE},
-    {(char *) "notify", 1, CA_PUBLIC, 0, DOLIST_NOTIFY | SW_MULTIPLE},
+    {(char *) "notify", 3, CA_PUBLIC, 0, DOLIST_NOTIFY | SW_MULTIPLE},
     {(char *) "pid", 1, CA_PUBLIC, 0, DOLIST_PID},
+    {(char *) "nobreak", 3, CA_PUBLIC, 0, DOLIST_NOBREAK | SW_MULTIPLE},
+    {(char *) "clearreg", 1, CA_PUBLIC, 0, DOLIST_CLEARREG | SW_MULTIPLE},
+    {(char *) "inline", 1, CA_PUBLIC, 0, DOLIST_INLINE | SW_MULTIPLE},
+    {(char *) "localize", 1, CA_PUBLIC, 0, DOLIST_LOCALIZE | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB drop_sw[] =
@@ -355,6 +359,19 @@ NAMETAB fpose_sw[] =
     {(char *) "nospace", 1, CA_PUBLIC, 0, SAY_NOSPACE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB lfunction_sw[] =
+{
+    {(char *) "privileged", 3, CA_PUBLIC, 0, FN_PRIV|FN_LOCAL},
+    {(char *) "protected", 3, CA_PUBLIC, 0, FN_PROTECT|SW_MULTIPLE|FN_LOCAL},
+    {(char *) "list", 1, CA_PUBLIC, 0, FN_LIST|FN_LOCAL},
+    {(char *) "preserve", 3, CA_PUBLIC, 0, FN_PRES|SW_MULTIPLE|FN_LOCAL},
+    {(char *) "delete", 2, CA_PUBLIC, 0, FN_DEL|FN_LOCAL},
+    {(char *) "display", 2, CA_PUBLIC, 0, FN_DISPLAY|FN_LOCAL},
+    {(char *) "minimum", 2, CA_PUBLIC, 0, FN_MIN|FN_LOCAL},
+    {(char *) "maximum", 2, CA_PUBLIC, 0, FN_MAX|FN_LOCAL},
+    {(char *) "notrace", 2, CA_PUBLIC, 0, FN_NOTRACE|SW_MULTIPLE|FN_LOCAL},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB function_sw[] =
 {
     {(char *) "privileged", 3, CA_WIZARD, 0, FN_PRIV},
@@ -435,10 +452,11 @@ NAMETAB leave_sw[] =
 
 NAMETAB limit_sw[] =
 {
-    {(char *) "list", 1, CA_WIZARD, 0, LIMIT_LIST},
+    {(char *) "list", 2, CA_WIZARD, 0, LIMIT_LIST},
     {(char *) "vmod", 1, CA_WIZARD, 0, LIMIT_VADD},
     {(char *) "dmod", 1, CA_WIZARD, 0, LIMIT_DADD},
     {(char *) "reset", 1, CA_WIZARD, 0, LIMIT_RESET},
+    {(char *) "lfunction", 2, CA_WIZARD, 0, LIMIT_LFUN},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB listmotd_sw[] =
@@ -658,6 +676,8 @@ NAMETAB include_sw[] =
     {(char *) "command", 2, CA_PUBLIC, 0, INCLUDE_COMMAND},
     {(char *) "localize", 2, CA_PUBLIC, 0, INCLUDE_LOCAL | SW_MULTIPLE},
     {(char *) "clearregs", 2, CA_PUBLIC, 0, INCLUDE_CLEAR | SW_MULTIPLE},
+    {(char *) "nobreak", 2, CA_PUBLIC, 0, INCLUDE_NOBREAK | SW_MULTIPLE},
+    {(char *) "target", 2, CA_PUBLIC, 0, INCLUDE_TARGET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB notify_sw[] =
@@ -1117,6 +1137,8 @@ CMDENT command_table[] =
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
     {(char *) "@last", NULL, CA_NO_GUEST, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_last},
+    {(char *) "@lfunction", lfunction_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,
+     FN_LOCAL, CS_TWO_ARG | CS_INTERP, 0, do_function},
     {(char *) "@limit", limit_sw, CA_WIZARD,  0,
      0, CS_TWO_ARG | CS_INTERP | CS_ARGV, 0, do_limit},
     {(char *) "@link", NULL,
@@ -6690,6 +6712,8 @@ list_hashstats(dbref player)
     list_hashstat(player, "Alias", &mudstate.cmd_alias_htab);
     list_hashstat(player, "Logged-out Cmds", &mudstate.logout_cmd_htab);
     list_hashstat(player, "Functions", &mudstate.func_htab);
+    list_hashstat(player, "User-Functions", &mudstate.ufunc_htab);
+    list_hashstat(player, "Local-Functions", &mudstate.ulfunc_htab);
     list_hashstat(player, "Flags", &mudstate.flags_htab);
     list_hashstat(player, "Attr names", &mudstate.attr_name_htab);
     list_nhashstat(player, "Attr numbers", &mudstate.attr_num_htab);
@@ -6756,7 +6780,8 @@ static void
 list_functionperms(dbref player, char *s_mask, int key)
 {
    FUN *fp = NULL;
-   UFUN *ufp = NULL;
+   UFUN *ufp = NULL,
+       *ulfp = NULL;
    char *s_buf;
    int chk_tog = 0;
 
@@ -6765,8 +6790,9 @@ list_functionperms(dbref player, char *s_mask, int key)
 
    if ( key ) {
        notify(player, "--- Function Permissions (wildmatched) ---");
-    } else
+   } else {
        notify(player, "--- Function Permissions ---");
+   }
    s_buf = alloc_sbuf("list_functionperms");
    for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
         fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
@@ -6779,14 +6805,29 @@ list_functionperms(dbref player, char *s_mask, int key)
    }
    if ( key ) {
        notify(player, "--- User-Function Permissions (wildmatched) ---");
-    } else
+   } else {
        notify(player, "--- User-Function Permissions ---");
+   }
    for (ufp = (UFUN *) hash_firstentry2(&mudstate.ufunc_htab, 1); ufp;
         ufp = (UFUN *) hash_nextentry(&mudstate.ufunc_htab)) {
       if ( chk_tog || check_access(player, ufp->perms, ufp->perms2, 0)) {
          if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)ufp->name)) ) {
             sprintf(s_buf, "%-.31s:", ufp->name);
             listset_nametab(player, access_nametab, access_nametab2, ufp->perms, ufp->perms2, s_buf, 1);
+         }
+      }
+   }
+   if ( key ) {
+       notify(player, "--- LOCAL User-Function Permissions (wildmatched) ---");
+   } else {
+       notify(player, "--- LOCAL User-Function Permissions ---");
+   }
+   for (ulfp = (UFUN *) hash_firstentry2(&mudstate.ulfunc_htab, 1); ulfp;
+        ulfp = (UFUN *) hash_nextentry(&mudstate.ulfunc_htab)) {
+      if ( chk_tog || check_access(player, ulfp->perms, ulfp->perms2, 0)) {
+         if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)ulfp->name)) ) {
+            sprintf(s_buf, "%-.31s:[#%10d]", ulfp->name, ulfp->owner);
+            listset_nametab(player, access_nametab, access_nametab2, ulfp->perms, ulfp->perms2, s_buf, 1);
          }
       }
    }
@@ -7386,7 +7427,7 @@ void do_limit(dbref player, dbref cause, int key, char *name,
                 char *args[], int nargs)
 {
    char *s_chkattr, *s_buffptr, *s_newmbuff;
-   int aflags, i_array[4], i, i_newval, i_d_default, i_v_default, i_wizcheck;
+   int aflags, i_array[LIMIT_MAX], i, i_newval, i_d_default, i_v_default, i_wizcheck;
    dbref aowner, target;
 
    target = lookup_player(player, name, 0);
@@ -7400,9 +7441,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
       if ( *s_chkattr ) {
          i_array[0] = i_array[2] = 0;
-         i_array[1] = i_array[3] = -2;
+         i_array[4] = i_array[1] = i_array[3] = -2;
          for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-              s_buffptr && (i < 4);
+              s_buffptr && (i < LIMIT_MAX);
               s_buffptr = (char *) strtok(NULL, " "), i++) {
              i_array[i] = atoi(s_buffptr);
          }
@@ -7413,6 +7454,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
          if ( i_array[1] == -2 ) {
             i_array[1] = (i_wizcheck ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit);
             i_v_default = 1;
+         }
+         if ( i_array[4] == -2 ) {
+            i_array[4] = mudconf.lfunction_max;
          }
          notify(player, unsafe_tprintf("Limitations for player %s(#%d):", Name(target), target));
          if ( i_wizcheck || (i_array[3] == -1) ) {
@@ -7429,10 +7473,13 @@ void do_limit(dbref player, dbref cause, int key, char *name,
                            i_array[0], i_array[1],
                            (i_v_default ? "(Default)" : " ")));
          }
+         notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d%s", i_array[4], (i_array[4] == mudconf.lfunction_max ? " (Default)" : " ")));
          notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
          notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
+         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+                           mudconf.lfunction_max));
       } else {
          notify(player, unsafe_tprintf("Limitations for player %s(#%d):", Name(target), target));
          if ( i_wizcheck ) {
@@ -7444,15 +7491,18 @@ void do_limit(dbref player, dbref cause, int key, char *name,
             notify(player, unsafe_tprintf("   VLimit---=>   Current: 0          Maximum: %d (Default)",
                            mudconf.max_vattr_limit));
          }
+         notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d (Default)", mudconf.lfunction_max));
          notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
          notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
+         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+                           mudconf.lfunction_max));
       }
       free_lbuf(s_chkattr);
       return;
    }
-   if ( (key & LIMIT_VADD) || (key & LIMIT_DADD) ) {
+   if ( (key & LIMIT_VADD) || (key & LIMIT_DADD) || (key & LIMIT_LFUN) ) {
       if ( nargs != 1 ) {
          notify(player, "@limit: Incorrect number of arguments.  Only one argument allowed.");
          return;
@@ -7463,10 +7513,10 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       }
       s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
       i_array[0] = i_array[2] = 0;
-      i_array[1] = i_array[3] = -2;
+      i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
          for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-            s_buffptr && (i < 4);
+            s_buffptr && (i < LIMIT_MAX);
             s_buffptr = (char *) strtok(NULL, " "), i++) {
             i_array[i] = atoi(s_buffptr);
          }
@@ -7477,17 +7527,31 @@ void do_limit(dbref player, dbref cause, int key, char *name,
          notify(player, "@limit: Value must be -2, -1, 0 or greater.");
          return;
       }
+      if ( (key & LIMIT_LFUN) ) {
+         if ( i_newval == -1 ) {
+            notify(player, "@limit: Warning -- No unlimited for @lfunction.  Set to global default.");
+            i_newval = -2;
+         }
+      }
       if ( key & LIMIT_VADD ) {
          s_newmbuff = alloc_mbuf("@limit.vadd");
-         sprintf(s_newmbuff, "%d %d %d %d", i_array[0], i_newval, i_array[2], i_array[3]);
+         sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_newval, i_array[2], i_array[3], i_array[4]);
          atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
          free_mbuf(s_newmbuff);
          notify(player, unsafe_tprintf("@limit: New VLimit maximum for %s(#%d) set from %d to %d", 
                         Name(target), target, i_array[1], i_newval));
          return;
+      } else if ( key & LIMIT_LFUN ) {
+         s_newmbuff = alloc_mbuf("@limit.lfun");
+         sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_array[3], i_newval);
+         atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
+         free_mbuf(s_newmbuff);
+         notify(player, unsafe_tprintf("@limit: New @lfunction maximum for %s(#%d) set from %d to %d", 
+                        Name(target), target, i_array[4], i_newval));
+         return;
       } else {
          s_newmbuff = alloc_mbuf("@limit.dadd");
-         sprintf(s_newmbuff, "%d %d %d %d", i_array[0], i_array[1], i_array[2], i_newval);
+         sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_newval, i_array[4]);
          atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
          free_mbuf(s_newmbuff);
          notify(player, unsafe_tprintf("@limit: New @destroy maximum for %s(#%d) set from %d to %d", 
@@ -7502,25 +7566,26 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       }
       s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
       i_array[0] = i_array[2] = 0;
-      i_array[1] = i_array[3] = -2;
+      i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
          for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-            s_buffptr && (i < 4);
+            s_buffptr && (i < LIMIT_MAX);
             s_buffptr = (char *) strtok(NULL, " "), i++) {
             i_array[i] = atoi(s_buffptr);
          }
       }
       free_lbuf(s_chkattr);
       s_newmbuff = alloc_mbuf("@limit.reset");
-      sprintf(s_newmbuff, "%d %d %d %d", i_array[0], -2, i_array[2], -2);
+      sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], -2, i_array[2], -2, -2);
       atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
       free_mbuf(s_newmbuff);
       notify(player, unsafe_tprintf("@limit: Maximum values for %s(#%d) reset to global defaults.",
                      Name(target), target));
-      notify(player, unsafe_tprintf("        @destroy: %d    VLimit: %d", 
-                     mudconf.max_dest_limit, mudconf.max_vattr_limit));
+      notify(player, unsafe_tprintf("        @destroy: %d    VLimit: %d   LFunction: %d", 
+                     mudconf.max_dest_limit, mudconf.max_vattr_limit, mudconf.lfunction_max));
       return;
    }
+   notify(player, "@limit: unrecognized error occurred.  Please report this as a bug report.");
    return;
 }
 

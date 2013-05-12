@@ -865,12 +865,12 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
-    static char tfunbuff[33];
+    static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
     FUN *fp;
-    UFUN *ufp;
+    UFUN *ufp, *ulfp;
     ATTR *sub_ap;
     time_t starttme, endtme;
     struct itimerval cpuchk;
@@ -971,6 +971,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     }
 //fprintf(stderr, "EXECValue: %s\n", dstr);
 
+    memset(tfunlocal, '\0', sizeof(tfunlocal));
     while (*dstr && !alldone) {
       if ( mudstate.curr_percentsubs < mudconf.max_percentsubs )
 	switch (*dstr) {
@@ -1979,24 +1980,48 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    if (bang_not || bang_yes) {
 		fp = (FUN *) hashfind(tbangc, &mudstate.func_htab);
 		ufp = NULL;
+                ulfp = NULL;
                 if ( fp == NULL ) {
 		   ufp = (UFUN *) hashfind(tbangc, &mudstate.ufunc_htab);
 		}
+                if ( ufp == NULL ) {
+                   sprintf(tfunlocal, "%d_%s", Owner(player), tbangc);
+		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
+                   if ( ulfp && ulfp->owner != Owner(player) ) {
+                      ulfp = NULL;
+                   }
+                }
             } else {
 		fp = (FUN *) hashfind(tbuf, &mudstate.func_htab);
     		ufp = NULL;
+                ulfp = NULL;
                 if ( fp == NULL ) {
 		   ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
 		}
+                if ( ufp == NULL ) {
+                   sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
+		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
+                   if ( ulfp && ulfp->owner != Owner(player) ) {
+                      ulfp = NULL;
+                   }
+                }
             }
 #else
 	    fp = (FUN *) hashfind(tbuf, &mudstate.func_htab);
 	    /* If not a builtin func, check for global func */
 
 	    ufp = NULL;
+            ulfp = NULL;
 	    if (fp == NULL) {
 		ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
 	    }
+            if ( ufp == NULL ) {
+                sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
+		ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
+                if ( ulfp && ulfp->owner != Owner(player) ) {
+                   ulfp = NULL;
+                }
+            }
 #endif
             /* Compare to see if it has an IGNORE mask */
             if ( fp && (fp->perms & 0x00007F00) ) {
@@ -2010,11 +2035,18 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                   }
 	          ufp = (UFUN *) hashfind((char *)tfunbuff,
 					   &mudstate.ufunc_htab);
+                  if ( ufp == NULL ) {
+                      sprintf(tfunlocal, "%d_%s", Owner(player), tfunbuff);
+		      ulfp = (UFUN *) hashfind((char *)tfunlocal, &mudstate.ulfunc_htab);
+                      if ( ulfp && ulfp->owner != Owner(player) ) {
+                         ulfp = NULL;
+                      }
+                  }
                }
             }
 	    /* Do the right thing if it doesn't exist */
 
-	    if (!fp && !ufp) {
+	    if (!fp && !ufp && !ulfp) {
 		if (eval & EV_FMAND) {
 		    bufc = buff;
 		    safe_str((char *) "#-1 FUNCTION (",
@@ -2036,7 +2068,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	     * Neg # of args means catenate subsequent args
 	     */
 
-	    if (ufp)
+	    if (ufp || ulfp)
 		nfargs = NFARGS;
 	    else if (fp->nargs < 0)
 		nfargs = -fp->nargs;
@@ -2044,18 +2076,21 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		nfargs = NFARGS;
 	    tstr = dstr;
             if ( ((fp && ((fp->flags & FN_NO_EVAL) || (fp->perms2 & CA_NO_EVAL)) && !(fp->perms2 & CA_EVAL)) ||
-                  (ufp && (ufp->perms2 & CA_NO_EVAL))) &&
-                 !(ufp && (ufp->perms2 & CA_EVAL)) ) {
+                  (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
+                  (ulfp && (ulfp->perms2 & CA_NO_EVAL))) &&
+                 (!(ufp && (ufp->perms2 & CA_EVAL)) || !(ulfp && (ulfp->perms2 & CA_EVAL))) ) {
                 if ( mudconf.brace_compatibility )
                    feval = (eval & ~EV_EVAL & ~EV_STRIP) | EV_STRIP_ESC;
                 else
                    feval = (eval & ~EV_EVAL) | EV_STRIP_ESC;
             } else
                 feval = eval;
-            if ( ufp && (ufp->perms & CA_EVAL) ) {
+            if ( (ufp && (ufp->perms & CA_EVAL)) ||
+                 (ulfp && (ulfp->perms & CA_EVAL)) ) {
                 feval = (feval | EV_EVAL | EV_STRIP);
             }
-            if ( ufp && (ufp->flags & FN_NOTRACE) ) {
+            if ( (ufp && (ufp->flags & FN_NOTRACE)) ||
+                 (ulfp && (ulfp->perms & CA_EVAL)) ) {
                 feval = (feval | EV_NOTRACE);
             }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
@@ -2094,6 +2129,10 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    nfargs = j;
 
 	    /* If it's a user-defined function, perform it now. */
+
+
+            if ( !ufp )
+               ufp = ulfp;
 
 	    if (ufp) {
 		mudstate.func_nest_lev++;

@@ -1292,7 +1292,7 @@ static struct PENN_COLORMAP penn_namecolors[]= {
    {NULL, 0},
 };
 
-UFUN *ufun_head;
+UFUN *ufun_head, *ulfun_head;
 extern NAMETAB lock_sw[];
 extern NAMETAB access_nametab[];
 extern NAMETAB access_nametab2[];
@@ -27345,7 +27345,9 @@ NDECL(init_functab)
     free_sbuf(buff);
 
     ufun_head = NULL;
+    ulfun_head = NULL;
     hashinit(&mudstate.ufunc_htab, 131);
+    hashinit(&mudstate.ulfunc_htab, 131);
 }
 
 void
@@ -27353,10 +27355,17 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
 {
     UFUN *ufp, *ufp2, *ufp3;
     ATTR *ap;
-    char *np, *bp, *tpr_buff, *tprp_buff, *atext, *tpr2_buff, *tprp2_buff, s_minargs[4], s_maxargs[4];
-    int atr, aflags, count, i_tcount;
-    dbref obj, aowner;
+    char *np, *bp, *tpr_buff, *tprp_buff, *atext, *tpr2_buff, *tprp2_buff, 
+         s_funlocal[100], s_minargs[4], s_maxargs[4], *s_chkattr, *s_chkattrptr,
+         *s_buffptr;
+    int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2;
+    dbref obj, aowner, aowner2;
 
+    i_local = 0;
+    if ( key & FN_LOCAL ) {
+       i_local = 1;
+       key &= ~FN_LOCAL;
+    }
     /* Make a local uppercase copy of the function name */
     if ( (key & (FN_LIST|FN_DEL)) && (key & (FN_PRES|FN_PROTECT)) ) {
        notify(player, "Illegal combination of switches.");
@@ -27367,6 +27376,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        notify(player, "Delete what function?");
        return;
     }
+    memset(s_funlocal, '\0', sizeof(s_funlocal));
     if ( (key & (FN_MAX|FN_MIN)) ) {
        tprp_buff = tpr_buff = alloc_lbuf("do_function");
        bp = np = alloc_sbuf("add_user_func");
@@ -27374,7 +27384,14 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        *bp = '\0';
        for (bp = np; *bp; bp++)
           *bp = ToLower((int)*bp);
-       ufp = (UFUN *) hashfind(np, &mudstate.ufunc_htab);
+       if ( i_local ) {
+          sprintf(s_funlocal, "%d_%s", Owner(player), np);
+          ufp = (UFUN *) hashfind(s_funlocal, &mudstate.ulfunc_htab);
+          if ( !ufp || ((ufp->owner != Owner(player)) && !controls(player, ufp->owner)) )
+             ufp = NULL;
+       } else {
+          ufp = (UFUN *) hashfind(np, &mudstate.ufunc_htab);
+       }
        if ( !ufp ) {
           notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Function %s not found.", fname));
        } else {
@@ -27396,7 +27413,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        free_lbuf(tpr_buff);
        return;
     }
-    if ( (key & FN_DISPLAY) && Wizard(player) ) {
+    if ( (key & FN_DISPLAY) && (Wizard(player) || i_local) ) {
        if ( !*fname ) {
           notify(player, "Display details on what function?");
           return;
@@ -27406,44 +27423,58 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
           *bp = '\0';
           for (bp = np; *bp; bp++)
               *bp = ToLower((int)*bp);
-          if ( !(ufp = (UFUN *) hashfind(np, &mudstate.ufunc_htab)) ) {
+          if ( i_local ) {
+             if ( Immortal(player) && (*np == '#') ) {
+                sprintf(s_funlocal, "%s", np+1);
+             } else {
+                sprintf(s_funlocal, "%d_%s", Owner(player), np);
+             }
+          }
+          if ( !(i_local && (ufp = (UFUN *) hashfind(s_funlocal, &mudstate.ulfunc_htab))) &&
+               !(!i_local && (ufp = (UFUN *) hashfind(np, &mudstate.ufunc_htab))) ) {
              notify(player, "No matching user-defined function.");
           } else {
-             notify(player, "---------------------------------------"\
-                            "---------------------------------------");
-             ap = atr_num(ufp->atr);
-             tprp_buff = tpr_buff = alloc_lbuf("do_function");
-             tprp2_buff = tpr2_buff = alloc_lbuf("do_function");
-             notify(player, safe_tprintf(tpr_buff, &tprp_buff,
-                                         "Function Name: %s\n"\
-                                         "Target Object: #%d\n"\
-                                         "Attribute Name: %s\n"\
-                                         "Arguments: min %d, max %d\n"\
-                                         "Permissions:%s%s%s%s",
-                                         ufp->name, 
-                                         ufp->obj, 
-                                         ((ap != NULL) ? ap->name : "(DELETED)"),
-                                         ufp->minargs, ufp->maxargs,
-                                         ((ufp->flags & FN_PRIV) ? " WIZARD " : " "),
-                                         ((ufp->flags & FN_PRES) ? "PRESERVED " : " "),
-                                         ((ufp->flags & FN_NOTRACE) ? "NOTRACE " : " "),
-                                         ((ufp->flags & FN_PROTECT) ? "PROTECTED" : " ")) );
-             listset_nametab(player, access_nametab, access_nametab2, ufp->perms, ufp->perms2, "Flags:", 1);
-             tprp_buff = tpr_buff;
-             atext = NULL;
-             if ( Good_chk(ufp->obj) ) {
-                atext = alloc_lbuf("do_function_display");
-                sprintf(atext, "#%d/%s", ufp->obj, ((ap != NULL ? ap->name : "#-1")));
-                fun_parenmatch(tpr2_buff, &tprp2_buff, player, cause, cause, &atext, 1, (char **)NULL, 0);
-                free_lbuf(atext);
+             if ( i_local && (!ufp || ((ufp->owner != Owner(player)) && !controls(player, ufp->owner))) ) {
+                notify(player, "No matching user-defined function.");
+             } else {
+                notify(player, "---------------------------------------"\
+                               "---------------------------------------");
+                ap = atr_num(ufp->atr);
+                tprp_buff = tpr_buff = alloc_lbuf("do_function");
+                tprp2_buff = tpr2_buff = alloc_lbuf("do_function");
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff,
+                                            "Function Name: %s\n"\
+                                            "Target Object: #%d\n"\
+                                            "Attribute Name: %s\n"\
+                                            "Arguments: min %d, max %d\n"\
+                                            "Permissions:%s%s%s%s\n"\
+                                            "Owner: #%d", 
+                                            ufp->name, 
+                                            ufp->obj, 
+                                            ((ap != NULL) ? ap->name : "(DELETED)"),
+                                            ufp->minargs, ufp->maxargs,
+                                            ((ufp->flags & FN_PRIV) ? " WIZARD " : " "),
+                                            ((ufp->flags & FN_PRES) ? "PRESERVED " : " "),
+                                            ((ufp->flags & FN_NOTRACE) ? "NOTRACE " : " "),
+                                            ((ufp->flags & FN_PROTECT) ? "PROTECTED" : " "), 
+                                            ufp->owner) );
+                listset_nametab(player, access_nametab, access_nametab2, ufp->perms, ufp->perms2, "Flags:", 1);
+                tprp_buff = tpr_buff;
+                atext = NULL;
+                if ( Good_chk(ufp->obj) ) {
+                   atext = alloc_lbuf("do_function_display");
+                   sprintf(atext, "#%d/%s", ufp->obj, ((ap != NULL ? ap->name : "#-1")));
+                   fun_parenmatch(tpr2_buff, &tprp2_buff, player, cause, cause, &atext, 1, (char **)NULL, 0);
+                   free_lbuf(atext);
+                }
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff,
+                                            "Attribute Contents: %s",
+                                            (*tpr2_buff ? tpr2_buff : "(EMPTY)")) );
+                notify(player, "---------------------------------------"\
+                               "---------------------------------------");
+                free_lbuf(tpr_buff);
+                free_lbuf(tpr2_buff);
              }
-             notify(player, safe_tprintf(tpr_buff, &tprp_buff,
-                                         "Attribute Contents: %s",
-                                         (*tpr2_buff ? tpr2_buff : "(EMPTY)")) );
-             notify(player, "---------------------------------------"\
-                            "---------------------------------------");
-             free_lbuf(tpr_buff);
-             free_lbuf(tpr2_buff);
           }
           free_sbuf(np);
        }
@@ -27454,18 +27485,32 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
     }
     if ( (key & FN_LIST) || !*fname || !fname ) {
        tprp_buff = tpr_buff = alloc_lbuf("do_function");
-       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24s   %-8s  %-26s Min/Max Flgs",
-              "Function Name", "DBref#", "Attribute"));
-       tprp_buff = tpr_buff;
-       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %3s %3s %-4s",
-              "------------------------", "--------",
-              "--------------------------", "---", "---", "----"));
-       i_tcount = count = 0;
+       if ( i_local ) {
+          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24s   %-8s  %-26s %-10s%-22s Min/Max Flgs",
+                 "Function Name", "DBref#", "Attribute", "#dbref", "[Owner]"));
+          tprp_buff = tpr_buff;
+          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %10s %3s %3s %-4s",
+                 "------------------------", "--------",
+                 "--------------------------", "--------------------------------", "---", "---", "----"));
+       } else {
+          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24s   %-8s  %-26s Min/Max Flgs",
+                 "Function Name", "DBref#", "Attribute"));
+          tprp_buff = tpr_buff;
+          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %3s %3s %-4s",
+                 "------------------------", "--------",
+                 "--------------------------", "---", "---", "----"));
+       }
+       i_tcount = count = count_owner = 0;
        memset(s_minargs, '\0', sizeof(s_minargs));
        memset(s_maxargs, '\0', sizeof(s_maxargs));
-       for (ufp2 = ufun_head; ufp2; ufp2 = ufp2->next) {
+       for (ufp2 = (i_local ? ulfun_head : ufun_head); ufp2; ufp2 = ufp2->next) {
+          if ( (ufp2->owner != Owner(player)) && !controls(player, ufp2->owner) ) 
+             continue;
           ap = atr_num(ufp2->atr);
           if (ap) {
+             if ( ufp2->owner == Owner(player) )
+                count_owner++;
+
              i_tcount++;
              if ( fname && *fname ) {
                 if ( !(fname && *fname && wild_match(fname, (char *)ufp2->name, (char **)NULL, 0, 1)) )
@@ -27490,27 +27535,78 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
              } else {
                 sprintf(s_minargs, "%-3d", ufp2->minargs);
              }
-             if (!(ufp2->flags & FN_PRIV) || Wizard(player)) {
-                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
-                       ufp2->name, ufp2->obj, ap->name, s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                       ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+             if ( i_local ) {
+                if (!(ufp2->flags & FN_PRIV) || Wizard(player)) {
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-10d[%-20.20s] %-3s %-3s %c%c%c%c",
+                          ufp2->name, ufp2->obj, ap->name, ufp2->owner, (Good_chk(ufp2->owner) ? Name(ufp2->owner) : "(invalid)"),
+                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
+                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+                } else {
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-10d[%-20.20s] %-3s %-3s %c%c%c%c",
+                          ufp2->name, ufp2->obj, "(INVALID ATTRIBUTE)", ufp2->owner, (Good_chk(ufp2->owner) ? Name(ufp2->owner) : "(invalid)"),
+                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
+                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+                }
              } else {
-                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
-                       ufp2->name, ufp2->obj, "(INVALID ATTRIBUTE)", s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                       ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+                if (!(ufp2->flags & FN_PRIV) || Wizard(player)) {
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
+                          ufp2->name, ufp2->obj, ap->name, 
+                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
+                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+                } else {
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
+                          ufp2->name, ufp2->obj, "(INVALID ATTRIBUTE)", 
+                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
+                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+                }
              }
              count++;
           }
        }
        tprp_buff = tpr_buff;
-       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %3s %3s %-4s",
-              "------------------------", "--------",
-              "--------------------------", "---", "---", "----"));
+       if ( i_local ) {
+          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %10s %3s %3s %-4s",
+                 "------------------------", "--------",
+                 "--------------------------", "--------------------------------", "---", "---", "----"));
+       } else {
+          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%24s   %8s  %26s %3s %3s %-4s",
+                 "------------------------", "--------",
+                 "--------------------------", "---", "---", "----"));
+       }
+       s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+       i_array[0] = i_array[2] = 0;
+       i_array[4] = i_array[1] = i_array[3] = -2;
+       if ( *s_chkattr ) {
+          for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &s_chkattrptr), i = 0;
+               s_buffptr && (i < LIMIT_MAX);
+               s_buffptr = (char *) strtok_r(NULL, " ", &s_chkattrptr), i++) {
+               i_array[i] = atoi(s_buffptr);
+          }
+          if ( i_array[4] == -2 ) {
+             i_array[4] = mudconf.lfunction_max;
+          }
+       } else {
+          i_array[4] = mudconf.lfunction_max;
+       }
+       free_lbuf(s_chkattr);
        tprp_buff = tpr_buff;
-       if ( i_tcount != count )
-          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d matched]", i_tcount, count));
-       else
-          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d", count));
+       if ( i_tcount != count ) {
+          if ( i_local ) {
+             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total LOCAL User-Defined Functions: %d [%d matched] [%d defined of %d max allowed]", 
+                    i_tcount, count, count_owner, i_array[4]));
+          } else {
+             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d matched] [%d max allowed]", 
+                    i_tcount, count, i_array[4]));
+          }
+       } else {
+          if ( i_local ) {
+             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total LOCAL User-Defined Functions: %d [%d defined of %d max allowed]", 
+                    count, count_owner, i_array[4]));
+          } else {
+             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d max allowed]", 
+                    count, i_array[4]));
+          }
+       }
        free_lbuf(tpr_buff);
        return;
     }
@@ -27535,31 +27631,69 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
 
     if ( (key & FN_DEL) ) {
        count = 0;
-       if ( !(ufp = (UFUN *) hashfind(np, &mudstate.ufunc_htab)) ) {
+       if ( i_local ) {
+          if ( (*np == '#') && Builder(player) )
+             sprintf(s_funlocal, "%s", np+1);
+          else
+             sprintf(s_funlocal, "%d_%s", Owner(player), np);
+          ufp = (UFUN *)hashfind(s_funlocal, &mudstate.ulfunc_htab);
+       } else {
+          ufp = (UFUN *)hashfind(np, &mudstate.ufunc_htab);
+       }
+       
+       if ( !ufp ) {
+          tprp_buff = tpr_buff = alloc_lbuf("do_function");
+          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Function %s not found.", fname));
+          free_lbuf(tpr_buff);
+       } else if ( i_local && ufp && !((ufp->owner == Owner(player)) || controls(player, ufp->owner) || Immortal(player)) ) {
           tprp_buff = tpr_buff = alloc_lbuf("do_function");
           notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Function %s not found.", fname));
           free_lbuf(tpr_buff);
        } else {
-          ufp3 = ufun_head;
-          for (ufp2 = ufun_head; ufp2; ufp2 = ufp2->next) {
-             if ( strcmp(ufp->name, ufp2->name) == 0 ) {
-                if ( strcmp(ufp->name, ufun_head->name) == 0 ) {
-                   ufun_head = ufun_head->next;
-                } else {
-                   ufp3->next = ufp2->next;
+          if ( i_local ) {
+             ufp3 = ulfun_head;
+             for (ufp2 = ulfun_head; ufp2; ufp2 = ufp2->next) {
+                if ( (strcmp(ufp->name, ufp2->name) == 0) && (ufp->owner == ufp2->owner) ) {
+                   if ( (strcmp(ufp->name, ulfun_head->name) == 0) && (ufp->owner == ulfun_head->owner) ) {
+                      ulfun_head = ulfun_head->next;
+                   } else {
+                      ufp3->next = ufp2->next;
+                   }
+                   count = 1;
+                   break;
                 }
-                count = 1;
-                break;
+                ufp3 = ufp2;
              }
-             ufp3 = ufp2;
+          } else {
+             ufp3 = ufun_head;
+             for (ufp2 = ufun_head; ufp2; ufp2 = ufp2->next) {
+                if ( strcmp(ufp->name, ufp2->name) == 0 ) {
+                   if ( strcmp(ufp->name, ufun_head->name) == 0 ) {
+                      ufun_head = ufun_head->next;
+                   } else {
+                      ufp3->next = ufp2->next;
+                   }
+                   count = 1;
+                   break;
+                }
+                ufp3 = ufp2;
+             }
           }
           tprp_buff = tpr_buff = alloc_lbuf("do_function");
           if ( count ) {
-             notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Function %s deleted.", ufp2->name));
+             if ( i_local && (*np == '#') && (s_buffptr = strchr(fname, '_')) ) {
+                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%sunction %s deleted (owned by #%d).", (i_local ? "LOCAL F" : "F"), ufp2->name, ufp2->owner));
+             } else {
+                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%sunction %s deleted.", (i_local ? "LOCAL F" : "F"), ufp2->name));
+             }
              if ( ufp2->name )
                 free((void *)ufp2->name);
              free(ufp2);
-             hashdelete(np, &mudstate.ufunc_htab);
+             if ( i_local ) {
+                hashdelete(s_funlocal, &mudstate.ulfunc_htab);
+             } else {
+                hashdelete(np, &mudstate.ufunc_htab);
+             }
           } else {
              notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Warning: Error freeing function %s.", fname));
           }
@@ -27574,6 +27708,15 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        notify_quiet(player, "I don't see that here.");
        free_sbuf(np);
        return;
+    }
+
+    /* If local, make sure you control the target object */
+    if ( i_local ) {
+       if ( !Good_chk(obj) || !(Immortal(player) || Controls(player, obj)) ) {
+          notify_quiet(player, "Permission denied.");
+          free_sbuf(np);
+          return;
+       }
     }
 
     /* Make sure the attribute exists */
@@ -27606,8 +27749,73 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        return;
     }
 
+    /* Privalaged functions require printable characters -- no ansi */
+    if (i_local) {
+       s_buffptr = np;
+       while ( *s_buffptr ) {
+          if ( !isprint(*s_buffptr) || isspace(*s_buffptr) ) {
+             free_sbuf(np);
+             notify_quiet(player, "LOCAL functions require non white-space printable characters.");
+             return;
+          }
+          s_buffptr++;
+       }
+    }
+
    /* See if function already exists.  If so, redefine it */
-   ufp = (UFUN *) hashfind(np, &mudstate.ufunc_htab);
+   if ( i_local ) {
+       if ( (*np == '#') && Builder(player) ) {
+          sprintf(s_funlocal, "%s", np+1);
+          ufp = (UFUN *) hashfind(s_funlocal, &mudstate.ulfunc_htab);
+          if ( ufp && !(Immortal(player) || (Builder(player) && Controls(player, ufp->owner))) ) {
+             ufp = NULL;
+          }
+       } else {
+          sprintf(s_funlocal, "%d_%s", Owner(player), np);
+       }
+   }
+   if ( i_local ) {
+      ufp = (UFUN *) hashfind(s_funlocal, &mudstate.ulfunc_htab);
+      if ( !ufp && (*np == '#') ) {
+         notify_quiet(player, "You can not start local functions with a '#' character.");
+         free_sbuf(np);
+         return;
+      }
+   } else {
+      ufp = (UFUN *) hashfind(np, &mudstate.ufunc_htab);
+   }
+   count = 0;
+   if ( i_local && !ufp ) {
+      /* You're only allowed 20 local functions total */
+      for (ufp3 = ulfun_head; ufp3; ufp3 = ufp3->next) {
+         if ( ufp3->owner == Owner(player) ) {
+            count++;
+         }
+      }
+   }
+
+   s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+   i_array[0] = i_array[2] = 0;
+   i_array[4] = i_array[1] = i_array[3] = -2;
+   if ( *s_chkattr ) {
+      for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &s_chkattrptr), i = 0;
+           s_buffptr && (i < LIMIT_MAX);
+           s_buffptr = (char *) strtok_r(NULL, " ", &s_chkattrptr), i++) {
+           i_array[i] = atoi(s_buffptr);
+      }
+      if ( i_array[4] == -2 ) {
+         i_array[4] = mudconf.lfunction_max;
+      }
+   } else {
+      i_array[4] = mudconf.lfunction_max;
+   }
+   free_lbuf(s_chkattr);
+
+   if ( count >= i_array[4] ) {
+      notify(player, unsafe_tprintf("Maximum number of LOCAL functions have been defined for your userid [%d].", i_array[4]));
+      free_sbuf(np);
+      return;
+   }
    count = 0;
    if (!ufp) {
       count = 1;
@@ -27622,24 +27830,48 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
       ufp->perms = CA_PUBLIC;
       ufp->perms2 = 0;
       ufp->next = NULL;
-      if (!ufun_head) {
-         ufun_head = ufp;
+      ufp->owner = Owner(player);
+      if ( i_local ) {
+         if (!ulfun_head) {
+            ulfun_head = ufp;
+         } else {
+            for (ufp2 = ulfun_head; ufp2->next; ufp2 = ufp2->next);
+            ufp2->next = ufp;
+         }
+         hashadd2(s_funlocal, (int *) ufp, &mudstate.ulfunc_htab,1);
       } else {
-         for (ufp2 = ufun_head; ufp2->next; ufp2 = ufp2->next);
-         ufp2->next = ufp;
+         if (!ufun_head) {
+            ufun_head = ufp;
+         } else {
+            for (ufp2 = ufun_head; ufp2->next; ufp2 = ufp2->next);
+            ufp2->next = ufp;
+         }
+         hashadd2(np, (int *) ufp, &mudstate.ufunc_htab,1);
       }
-      hashadd2(np, (int *) ufp, &mudstate.ufunc_htab,1);
    }
    ufp->obj = obj;
    ufp->atr = atr;
    ufp->flags = key;
-   free_sbuf(np);
+   if ( i_local && (!controls(ufp->owner, ufp->obj)) ) {
+      notify_quiet(player, unsafe_tprintf("Warning: SECURITY RISK -- Assigned function %s to object #%d which player #%d does not control!", ufp->name, ufp->obj, ufp->owner));
+   }
    if (!Quiet(player)) {
        tprp_buff = tpr_buff = alloc_lbuf("do_function");
-       notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Function %s %sefined.",
-                                         fname, (count ? "d" : "re-d")));
+       if ( i_local && (*np == '#') ) {
+          if ( !count && (s_buffptr = strchr(fname, '_')) ) {
+             notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%sunction %s %sefined (owned by #%d).",
+                                               (i_local ? "LOCAL F":"F"), s_buffptr+1, (count ? "d" : "re-d"), ufp->owner));
+          } else {
+             notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%sunction %s %sefined.",
+                                               (i_local ? "LOCAL F":"F"), fname, (count ? "d" : "re-d")));
+          }
+       } else {
+          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%sunction %s %sefined.",
+                                            (i_local ? "LOCAL F":"F"), fname, (count ? "d" : "re-d")));
+       }
        free_lbuf(tpr_buff);
    }
+   free_sbuf(np);
 }
 
 /* ---------------------------------------------------------------------------
@@ -27651,9 +27883,11 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
 {
     FUN *fp;
     UFUN *ufp;
-    const char *ptrs[LBUF_SIZE/2], *ptrs2[LBUF_SIZE/2];
-    int f_int, i, nptrs, nptrs2;
+    const char *ptrs[LBUF_SIZE/2], *ptrs2[LBUF_SIZE/2], *ptrs3[LBUF_SIZE/2]; 
+    char *tbuff[LBUF_SIZE/2];
+    int f_int, i, j, nptrs, nptrs2, nptrs3;
 
+    memset(tbuff, '\0', sizeof(tbuff));
     if ( !key || (key == 1) ) {
        nptrs = 0;
        for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
@@ -27689,15 +27923,44 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
          safe_str((char *) ptrs2[i], buff, bufcx);
        }
     }
+    if ( !key || (key == 4) ) {
+       j = nptrs3 = 0;
+       for (ufp = ulfun_head; ufp; ufp = ufp->next) {
+         if (check_access(player, ufp->perms, ufp->perms2, 0)) {
+            if ( ufp->owner == player ) {
+               ptrs3[nptrs3] = ufp->name;
+               nptrs3++;
+            } else if ( controls(player, ufp->owner) ) {
+               tbuff[j] = alloc_mbuf("listing functions");
+               sprintf(tbuff[j], "%s[#%d]", ufp->name, ufp->owner);
+               ptrs3[nptrs3] = tbuff[j];
+               nptrs3++;
+               j++;
+            }
+         }
+       }
+       qsort(ptrs3, nptrs3, sizeof(char *), s_comp);
+       f_int = 0;
+       for (i = 0 ; i < nptrs3 ; i++) {
+         if ( f_int )
+            safe_chr(' ', buff, bufcx);
+         f_int = 1;
+         safe_str((char *) ptrs3[i], buff, bufcx);
+       }
+       for ( i = 0; i < j; i++ ) {
+          free_mbuf(tbuff[i]);
+       }
+    }
 }
 
 void
 list_functable(dbref player)
 {
-    char *buf, *bp, *buf2, *bp2;
+    char *buf, *bp, *buf2, *bp2, *buf3, *bp3;
 
     bp = buf = alloc_lbuf("list_functable");
     bp2 = buf2 = alloc_lbuf("list_functable2");
+    bp3 = buf3 = alloc_lbuf("list_functable3");
     safe_str((char *) "Functions : ", buf, &bp);
     list_functable2(player, buf, &bp, 1);
     notify(player, buf);
@@ -27706,6 +27969,10 @@ list_functable(dbref player)
     list_functable2(player, buf2, &bp2, 2);
     notify(player, buf2);
     free_lbuf(buf2);
+    safe_str((char *) "Local-Functions: ", buf3, &bp3);
+    list_functable2(player, buf3, &bp3, 4);
+    notify(player, buf3);
+    free_lbuf(buf3);
 }
 
 /* ---------------------------------------------------------------------------
@@ -27730,6 +27997,12 @@ CF_HAND(cf_func_access)
        }
     }
     for (ufp = ufun_head; ufp; ufp = ufp->next) {
+       if (!string_compare(ufp->name, str)) {
+           return (cf_modify_multibits(&ufp->perms, &ufp->perms2, ap, extra, extra2,
+                     player, cmd));
+       }
+    }
+    for (ufp = ulfun_head; ufp; ufp = ufp->next) {
        if (!string_compare(ufp->name, str)) {
            return (cf_modify_multibits(&ufp->perms, &ufp->perms2, ap, extra, extra2,
                      player, cmd));
