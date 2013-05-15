@@ -6920,7 +6920,7 @@ void safe_str_fm( char* str, char* buff, char** bufcx,
     }
     else {
       fm->supressing = 1;
-      for( idx = strlen(strip_ansi(str)); idx > 0; idx-- ) {
+      for( idx = strlen(strip_all_special(str)); idx > 0; idx-- ) {
         safe_chr( ' ', buff, bufcx );
       }
     }
@@ -6931,7 +6931,7 @@ void safe_str_fm( char* str, char* buff, char** bufcx,
     }
     else {
       fm->supressing = 1;
-      for( idx = strlen(strip_ansi(str)); idx > 0; idx-- ) {
+      for( idx = strlen(strip_all_special(str)); idx > 0; idx-- ) {
         safe_chr( ' ', buff, bufcx );
       }
     }
@@ -8234,7 +8234,7 @@ FUNCTION(fun_printf)
                         if ( fmtcurrarg < nfargs ) {
                            if ( *fargs[fmtcurrarg] )
                               fm.lastval = 1;
-                           if ( (fm.forcebreakonreturn && ((strlen(strip_all_ansi(fargs[fmtcurrarg])) - count_extended(fargs[fmtcurrarg])) > fm.fieldwidth)) || 
+                           if ( (fm.forcebreakonreturn && ((strlen(strip_all_special(fargs[fmtcurrarg])) - count_extended(fargs[fmtcurrarg])) > fm.fieldwidth)) || 
                                 (fm.breakonreturn && (strchr(fargs[fmtcurrarg], '\n') != NULL)) ) {
                               s_strptr = s_strarray[i_arrayval] = alloc_lbuf("showfield_printf_cr");
                               if ( i_totwidth > 0 )
