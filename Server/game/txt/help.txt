@@ -6820,6 +6820,9 @@
   or left messages.  Again, this flag is only useful for locations
   or exits.  
   
+  If the config blind_snuffs_cons is enabled, this will also snuff
+  the connect and disconnect messages.
+  
   Note:  If the RhostMUSH is configured to make the BLIND flag 
          always in effect, then the BLIND flag will do the reverse
          of it's normal behavior, and make exit movement visible.
@@ -24541,6 +24544,7 @@ Changes
 * Added /nobreak to @include [ASH]
 * @limit to allow /lfun switch to specify individual @lfunction overrides [ASH]
 * Added /target switch to @include [ASH]
+* BLIND (when configured to do so) snuffs connect/disconnect messages [ASH]
   
 Bug Fixes
 ---------

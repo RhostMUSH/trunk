@@ -4402,22 +4402,23 @@
   always_blind             areg_file                areg_lim               
   aregh_file               attr_access              attr_alias             
   attr_cmd_access          authenticate             bad_name               
-  badsite_file             bcc_hidden               brace_compatibility
-  break_compatability      cache_depth              cache_steal_dirty      
-  cache_trim               cache_width              cap_articles
-  cap_conjunctions         cap_preposition          check_interval         
-  check_offset             clone_copies_cost        cluster_cap
-  clusterfunc_cap          comcost                  command_dark           
-  command_quota_increment  command_quota_max        compress_program       
-  compression              config_access            conn_timeout           
-  connect_file             connect_reg_file         cpu_secure_lvl         
-  cpuintervalchk           cputimechk               crash_database         
-  create_max_cost          create_min_cost          dark_sleepers          
-  descs_are_local          default_home             dig_cost               
-  door_file                door_index               down_file              
-  down_motd_message        dump_interval            dump_message           
-  dump_offset              earn_limit               empower_fulltel        
-  enable_tstamps           enforce_unfindable       error_file
+  badsite_file             bcc_hidden               blind_snuffs_cons
+  brace_compatibility      break_compatability      cache_depth            
+  cache_steal_dirty        cache_trim               cache_width            
+  cap_articles             cap_conjunctions         cap_preposition        
+  check_interval           check_offset             clone_copies_cost      
+  cluster_cap              clusterfunc_cap          comcost                
+  command_dark             command_quota_increment  command_quota_max      
+  compress_program         compression              config_access          
+  conn_timeout             connect_file             connect_reg_file       
+  cpu_secure_lvl           cpuintervalchk           cputimechk             
+  crash_database           create_max_cost          create_min_cost        
+  dark_sleepers            descs_are_local          default_home           
+  dig_cost                 door_file                door_index             
+  down_file                down_motd_message        dump_interval          
+  dump_message             dump_offset              earn_limit             
+  empower_fulltel          enable_tstamps           enforce_unfindable     
+  error_file
   
 { 'wizhelp config parameters2' for more }
 
@@ -4760,6 +4761,13 @@
   in the +bcc list not be able to see the 'To:' list in mail being sent.
   If this is disabled, then the reverse is in effect, where the only ones
   who can see the 'To:' list are those who are in the +bcc list.
+
+& blind_snuffs_cons
+  Config parameter: blind_snuffs_cons <ON(1)/OFF(0)>  Default: OFF
+  Specifies if the BLIND flag will snuff (surpress) the connected/disconnected
+  messages when players connect/disconnect.  This applies if the room is
+  set BLIND as well.  As always, (Blind) messages will show for wizards
+  regardless.
 
 & brace_compatibility
   Config parameter: brace_compatibility <yes/no>.  Default: NO

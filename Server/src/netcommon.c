@@ -2095,8 +2095,9 @@ announce_connect(dbref player, DESC * d, int dc)
     }
     temp = mudstate.curr_enactor;
     mudstate.curr_enactor = player;
-    if ((!dc && !Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player))) ||
-	DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA))
+    if ( (!dc && !Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player)) &&
+         !(mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc)))) ) ||
+	DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)) {
 #ifdef REALITY_LEVELS
         if (loc == NOTHING)
            notify_check(player, player, buf, 0, key, 0);
@@ -2105,12 +2106,15 @@ announce_connect(dbref player, DESC * d, int dc)
 #else
         notify_check(player, player, buf, 0, key, 0);
 #endif /* REALITY_LEVELS */
-    else {
+    } else {
 	if (!Wizard(player)) {
 	    if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
+	    } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else if (!Immortal(player)) {
 	    if (Cloak(player)) {
 		notify_except3(loc, player, player, player, 0,
@@ -2118,15 +2122,16 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
-	    else if (dc) {
+	    } else if (dc) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark Connect)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else {
 	    if (Cloak(player)) {
 		if (SCloak(player)) {
@@ -2139,15 +2144,16 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
-	    else if (dc) {
+	    } else if (dc) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark Connect)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	}
     }
     free_lbuf(buf);
@@ -2297,7 +2303,8 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	key = MSG_INV;
 	if ((loc != NOTHING) && !(Dark(player) && Wizard(player)))
 	    key |= (MSG_NBR | MSG_NBR_EXITS | MSG_LOC | MSG_FWDLIST);
-	if ((!Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player))) ||
+	if ( (!Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player)) &&
+              !(mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc)))) ) ||
 	    DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA))
 #ifdef REALITY_LEVELS
             if (loc == NOTHING)
@@ -2312,7 +2319,10 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 		if (NCloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				   strcat(buf, " (Cloaked)"));
-		}
+		} else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+                }
 	    } else if (!Immortal(player)) {
 		if (Cloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
@@ -2320,11 +2330,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 		} else if (NCloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				   strcat(buf, " (Cloaked)"));
-		}
-		else if (Dark(player)) {
+		} else if (Dark(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-		}
+		} else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+                }
 	    } else {
 		if (Cloak(player)) {
 		    if (SCloak(player)) {
@@ -2337,11 +2349,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 		} else if (NCloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				   strcat(buf, " (Cloaked)"));
-		}
-		else if (Dark(player)) {
+		} else if (Dark(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-		}
+		} else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+                }
 	    }
 	}
 	free_mbuf(buf);
@@ -2405,7 +2419,9 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	  key |= (MSG_NBR | MSG_NBR_EXITS | MSG_LOC | MSG_FWDLIST);
 	}
 
-	if (!Cloak(player) && !NCloak(player)) {
+	if ( (!Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player)) &&
+              !(mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc)))) ) ||
+	    DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)) {
 #ifdef REALITY_LEVELS
 	  if (loc == NOTHING) {
 	    notify_check(player, player, buf, 0, key, 0);
@@ -2421,7 +2437,10 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	    if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
+	    } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else if (!Immortal(player)) {
 	    if (Cloak(player)) {
 		notify_except3(loc, player, player, player, 0,
@@ -2429,11 +2448,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+                notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else {
 	    if (Cloak(player)) {
 		if (SCloak(player)) {
@@ -2446,11 +2467,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+                notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	}
 
 	free_mbuf(buf);

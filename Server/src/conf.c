@@ -269,6 +269,7 @@ NDECL(cf_init)
     mudconf.includenest = 3;		/* Default nesting of @include */
     mudconf.includecnt = 10;		/* Maximum count of @includes per command session */
     mudconf.lfunction_max = 20;		/* Maximum lfunctions allowed per user */
+    mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -2397,6 +2398,9 @@ CONF conftable[] =
     {(char *) "bcc_hidden",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.bcc_hidden, 0, 0, CA_WIZARD,
      (char *) "Does +bcc in mail hide who mail from in target?"},
+    {(char *) "blind_snuffs_cons",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.blind_snuffs_cons, 0, 0, CA_PUBLIC,
+     (char *) "BLIND flag snuff aconnect/adisconnect?"},
     {(char *) "brace_compatibility",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.brace_compatibility, 0, 0, CA_WIZARD,
      (char *) "Are braces MUX/TM3 compatible?"},
