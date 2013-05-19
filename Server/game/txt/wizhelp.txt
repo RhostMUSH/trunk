@@ -486,11 +486,13 @@
   NO_OVERRIDE([V])   NO_USELOCK([U])       DR_PURGE([x])    NO_ANSINAME([n])
         SPOOF([S])       NO_WHO([W])          LOGIN([L])      BACKSTAGE([b])
  NO_BACKSTAGE([d])    ANONYMOUS([Y])         NONAME([m])    SPAMMONITOR([w])
-      NO_CODE([j])
+      NO_CODE([j])      IMMORTAL(i)
   
   The following attribute flags exist in addition to the normal:
   
     PINVISIBLE(v)        ATRLOCK(l)           LOGGED(m)
+  
+  Note:  ROYALTY in RhostMUSH is the same as WIZARD everywhere else. 
   
 & global inheritance
   There is the possibility to set up global inheritance for object types.
@@ -3931,34 +3933,121 @@
   then all connects and disconnects of suspect players are individually
   marked.  This flag is only visible and settable by wizards.
 
+& SUPER-ROYALTY
+& IMMORTAL
+  Flag: IMMORTAL(i) (players)
+  A player that is set IMMORTAL is essentially #1.  They can do absolutely
+  anything in the game except directly affect #1 and what #1 owns.  They
+  should be set only when you require an administrator to have full access
+  to the game, database, and code.  Head Coders or Game Owners are two
+  examples of who will likely be immortal.
+  
+  Absolutely every command, feature, and function within RhostMUSH that
+  is available to #1 is available to IMMORTAL with few exceptions.
+  
+  A breakdown of abilities is as follows:
+        - The only thing this bitlevel can not do is directly effect #1,
+          anything #1 owns (like garbage), set/unset some internal 
+          flags/attributes (which #1 can't either), and set/unset the
+          immortal flag.  These players can do EVERYTHING else.  Treat
+          this bit as you would treat #1.  Only give it to those you know
+          without a doubt you can trust.
+        + Can do everything except set some internal flags, effect #1,
+          and set/remove the immortal flag.
+
+& WIZARD
 & ROYALTY
-  Flag: ROYALTY(W) (all types)
-  A player or object that is set ROYALTY controls all of the objects in the
-  database (except for player #1), regardless of their ownership or flags.
-  In general, ROYALTY can do anything using #<number> or *<player>.
+  Flag: ROYALTY(W) (players)
+  A player that is set ROYALTY controls all of the objects in the
+  database (except for player #1 and immortal), regardless of their 
+  ownership or flags.  In general, ROYALTY can do anything using 
+  #<number> or *<player>.
+  
   Wizards can also use many additional commands that are useful for game
   administration and maintenance.
+  
   Only player #1 (and immortals) can set or clear this flag.  An object 
   owned by a Wizard has wizard privileges only if its ROYALTY or INHERIT 
   flag is set, or if the owning Wizard has his INHERIT flag set.
+  
+  A breakdown of abilities is as follows:
+        - This is your standard wizard.  They can do everything you're
+          used to on other mushes that wizards can do.  In addition, they
+          also override all locks by default (this can be disabled), and
+          they have an enhanced wizcloaking ability (which also can be
+          disabled).  They can also set all the lower bitlevels.
+        + All things of Level 4 and lower (Councilor)
+        + Ability to set more flags: STOP, NOSTOP, FUBAR
+        + Ability to @attribute,
+        + Ability to WIZCLOAK
+        + Ability to do some internal configurations.
+
+  
   See Also: CONTROL, INHERIT.
 
 & COUNCILOR
-  Flag: COUNCILOR(a) (players)
+  Flag: COUNCILOR(a) (players) [bitlevel 4]
   A player set COUNCILOR controls all objects in the database of equal
   level or less regardless of ownership or flags.  In general, a
   COUNCILOR can do anything a ROYALTY can except mess with ROYALTY or
   higher and some various commands/functions listed in wizhelp. If
   an object is set INHERIT, it will inherit all powers of a
   COUNCILOR if owned by that COUNCILOR.
+  
+  A breakdown of abilities is as follows:
+        - This is your almost-but-not-quite wizard.  They have access to
+          about 80% of the wizard commands.  This includes @nuke, @toad,
+          @newpassword and the like.  The only things they can't do that
+          wizards can is wizcloak, override locks, and use some of the
+          database manipulation tools in wizhelp.  All player-modifying
+          abilities are unlocked for them at this level.
+        + All things of Level 3 and lower (Architect)
+        + Ability to set more flags: NOCONNECT, WANDERER, FREE
+        + Ability to @nuke, @toad, @boot, @chownall, @dbck, @poor,
+                     @newpassword, @pcreate, slay, and directly affect
+                     players their level and lower.
+
 
 & ARCHITECT
-  Flag: ARCHITECT(B) (players)
+  Flag: ARCHITECT(B) (players) [bitlevel 3]
   A player set ARCHITECT controls all objects in the database of equal
   level or less regardless of ownership or flags.  In general, an
   ARCHITECT is a low-powered ROYALTY with various wizard commands
   available to the user.  Any object owned by an ARCHITECT inherits
   all of his/her abilities and powers if set INHERIT.
+  
+  A breakdown of abilities is as follows:
+        - This is your sub-wizard.  They still have the ability to control
+          anything their bitlevel and lower (including @chown, @destroy, etc)
+          but do not have any control of other players (like @nuke, @toad, etc)
+          but they can set the slave flag.  Otherwise, all things their level
+          and lower they can treat as if they owned it.
+        + All things of Level 2 (Guildmaster)
+        + Ability to fully control and modify anything their level and
+          lower (including @cloning, @destroying, etc)
+        + Ability to use @tel on anything their level and lower.
+        + Ability to bypass jump_ok rooms on anything their level & lower.
+        + Ability to set some restricted flags: SLAVE, NO_YELL
+        + Has infinite quota and money
+        + Able to give negative money (Steal)
+        + Able to @toggle the MONITOR
+
+& GUILDMASTER
+  Flag: GUILDMASTER(g) (players) [bitlevel 2]
+  A player set GUILDMASTER is able to see/view other players and
+  anything their level and lower.  They can grant/remove quota,
+  and anything they run in the queue is considered free.
+  
+  A breakdown of abilities is as follows:
+        - This is the lowest wiz bit.  They only have moderate abilities.
+          They can examine/decompile anything their level and lower, they can
+          @guild/@quota people, and they have a few other minor abilities.
+          They don't have free money however.
+        + Ability to access things remotely (long_fingers)
+        + Things are FREE for them in the queue.
+        + Can see dbref#'s of things their level and lower
+        + Can examine/decompile things their level and lower.
+        + Can set @quota/@guild on their level and lower.
 
 & SLAVE
   Flag: SLAVE(s) (players)

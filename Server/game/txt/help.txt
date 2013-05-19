@@ -24532,10 +24532,11 @@ New Features
 * decode64() from PennMUSH.  Requires OpenSSL. [ASH]
 * @lfunction to allow players to define localized functions [ASH]
 * global parameter to specify global @lfunction limit per player [ASH]
+* global parameter to enable/disable BLIND snuffing connect/disconnect [ASH]
   
 Changes
 -------
-* Finally got the native MUX password reader working with input rom Mike [ASH]
+* Finally got the native MUX password reader working with input from Mike [ASH]
 * @caption and @titlecaption allow larger buffers for players [ASH]
 * internal sha1 code had to have variables redefined for conflict [ASH]
 * pemit() has an optional third argument for ## substitutions [ASH]
