@@ -19540,8 +19540,10 @@ FUNCTION(fun_nsiter)
  */
 FUNCTION(fun_strmath)
 {
-   char *curr, *cp, *objstring, sep, osep, tempbuff[LBUF_SIZE], *tcurr, *tmp;
-   int  i_val, i_base, i_number, first, i_start, i_cnt, i_currcnt, i_applycnt;
+   char *curr, *cp, *objstring, sep, osep, tempbuff[LBUF_SIZE], *tcurr, *tmp,
+        *s_str, *s_strtok;
+   static char mybuff[LBUF_SIZE];
+   int  i_val, i_base, i_number, first, first2, i_start, i_cnt, i_currcnt, i_applycnt;
 
    if (!fn_range_check("STRMATH", nfargs, 3, 7, buff, bufcx))
       return;
@@ -19587,40 +19589,50 @@ FUNCTION(fun_strmath)
    i_applycnt = 0;
    while (cp) {
       objstring = split_token(&cp, sep);
+      memset(mybuff, '\0', sizeof(mybuff));
+      memcpy(mybuff, objstring, LBUF_SIZE - 1);
+      s_str = strtok_r(mybuff, " \t", &s_strtok);
       if ( !first )
          safe_chr(osep, buff, bufcx);
-      if ( is_integer(objstring) ) {
-         i_number = atoi(objstring);
-         if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
-            switch( *fargs[2] ) {
-               case '+': i_val = i_number + i_base;
-                         break;
-               case '-': i_val = i_number - i_base;
-                         break;
-               case '/': if ( i_base == 0 )
-                            i_val = i_number;
-                         else {
-                            if ( i_number < -(INT_MAX) )
+      first2 = 1;
+      while ( s_str ) {   
+         if ( !first2 )
+            safe_chr(' ', buff, bufcx);
+         if ( is_integer(s_str) ) {
+            i_number = atoi(s_str);
+            if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
+               switch( *fargs[2] ) {
+                  case '+': i_val = i_number + i_base;
+                            break;
+                  case '-': i_val = i_number - i_base;
+                            break;
+                  case '/': if ( i_base == 0 )
+                                  i_val = i_number;
+                            else {
+                               if ( i_number < -(INT_MAX) )
+                                  i_number = -(INT_MAX);
+                               i_val = i_number / i_base;
+                            }
+                            break;
+                  case '*': i_val = i_number * i_base;
+                            break;
+                  case '%': if ( i_number < -(INT_MAX) )
                                i_number = -(INT_MAX);
-                            i_val = i_number / i_base;
-                         }
-                         break;
-               case '*': i_val = i_number * i_base;
-                         break;
-               case '%': if ( i_number < -(INT_MAX) )
-                            i_number = -(INT_MAX);
-                         i_val = i_number % i_base;
-                         break;
-               default : i_val = i_number + i_base;
-                         break;
+                            i_val = i_number % i_base;
+                            break;
+                  default : i_val = i_number + i_base;
+                            break;
+               }
+            } else {
+               i_val = i_number;
             }
+            sprintf(tempbuff, "%d", i_val);
+            safe_str(tempbuff, buff, bufcx);
          } else {
-            i_val = i_number;
+            safe_str(s_str, buff, bufcx);
          }
-         sprintf(tempbuff, "%d", i_val);
-         safe_str(tempbuff, buff, bufcx);
-      } else {
-         safe_str(objstring, buff, bufcx);
+         s_str = strtok_r(NULL, " \t", &s_strtok);
+         first2 = 0;
       }
       if ( i_currcnt >= i_start )
          i_applycnt++;

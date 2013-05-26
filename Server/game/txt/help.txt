@@ -24546,6 +24546,7 @@ Changes
 * @limit to allow /lfun switch to specify individual @lfunction overrides [ASH]
 * Added /target switch to @include [ASH]
 * BLIND (when configured to do so) snuffs connect/disconnect messages [ASH]
+* strmath() handles multi-word args in a mixed math/nonmath for delims [ASH]
   
 Bug Fixes
 ---------
