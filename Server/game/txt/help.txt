@@ -24559,3 +24559,5 @@ Bug Fixes
 * 256 color mapping with RGB could be off by one on conditions [AMB]
 * Source had undeclared function when REALITY_LEVELS not defined [ASH]
 * printf() didn't handle accents properly in some conditions [ASH]
+* reality level lock type 3 and 5 broke with userlock checks [AMB]
+* strfunc() was case sensitive.  It shouldn't be. [ASH]

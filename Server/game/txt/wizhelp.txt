@@ -9375,7 +9375,6 @@ try to keep all information on a 20x78 screen.
   a reality lock.  If enabled, the target must be @toggled CHKREALITY so
   that the target knows that any UserLock that is on it will be used as
   a reality level lock enhancement.  Otherwise, without this toggle, the
-  USER lock behaves as expected.
   
   See Also: reality_level, @list rlevel, rxlevel(), txlevel(), reality_locktype
   Normal Help: chkreality()
@@ -9395,11 +9394,11 @@ try to keep all information on a 20x78 screen.
                lock on them.
            2 - This specifies that it should pass the reality if the enactor
                belongs to the target's reality _AND_ they pass the lock on
-               the target as well.  
+               the target as well.  The lock must exist or auto-fails.
                Requires CHKREALITY toggle.
            3 - This specifies that it should pass the reality if the enactor
                belongs to the target's reality _AND_ the target passes the
-               lock on them as well.  
+               lock on them as well.  The lock must exist or auto-fails.
                Requires CHKREALITY toggle.
            4 - This specifies that it should pass the reality if the enactor
                belongs to the target's reality _AND_ they pass the lock on

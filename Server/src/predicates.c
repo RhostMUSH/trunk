@@ -2398,7 +2398,7 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
                return 1;
             } else if ( (((mudconf.reality_locktype == 3) && ChkReality(player)) || 
                          (mudconf.reality_locktype == 5)) &&
-                          could_doit(player, thing, A_LUSER, 1) ) {
+                          could_doit(thing, player, A_LUSER, ((mudconf.reality_locktype == 3) ? 1 : 0)) ) {
                mudstate.recurse_rlevel--;
                return 1;
             }

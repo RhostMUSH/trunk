@@ -13544,7 +13544,7 @@ FUNCTION(fun_con)
 FUNCTION(fun_strfunc)
 {
    FUN *fp;
-   char *ptrs[LBUF_SIZE / 2], *list, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, mysep[2];
+   char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, mysep[2];
    int nitems, tst, i;
 
    varargs_preamble("STRFUNC", 3);
@@ -13554,11 +13554,23 @@ FUNCTION(fun_strfunc)
       safe_str("#-1 INVALID FUNCTION", buff, bufcx);
       return;
    }
-   fp = (FUN *) hashfind(fargs[0], &mudstate.func_htab);
+   p = list = alloc_lbuf("fun_strfunc2");
+   memset(list, '\0', LBUF_SIZE);
+   q = fargs[0];
+   while ( q && *q ) {
+      *p = tolower(*q);
+      q++;
+      p++;
+   }
+
+   fp = (FUN *) hashfind(list, &mudstate.func_htab);
    if ( !fp ) {
       safe_str("#-1 INVALID FUNCTION", buff, bufcx);
+      free_lbuf(list);
       return;
    }
+
+   free_lbuf(list);
    if (!check_access(player, fp->perms, fp->perms2, 0)) {
       if ( mudstate.func_ignore && !mudstate.func_bypass ) {
          safe_str("#-1 INVALID FUNCTION", buff, bufcx);
