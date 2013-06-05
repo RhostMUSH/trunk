@@ -1317,6 +1317,8 @@ extern char * parse_ansi_name(dbref, char *);
 extern int count_extended(char *);
 extern int decode_base64(const char *, int, char *, char **);
 extern int encode_base64(const char *, int, char *, char **);
+extern void mail_quota(dbref, char *, int, int *, int *, int *, int *, int *, int *);
+
 
 
 /* pom.c definitions */
@@ -10823,6 +10825,47 @@ FUNCTION(fun_mailalias)
    retval = (char *)mail_alias_function(player, keyval, fargs[0], NULL);
    safe_str(retval, buff, bufcx);
    free_lbuf(retval);
+}
+
+FUNCTION(fun_mailquota)
+{
+   dbref target;
+   int i_key, i_user, i_umax, i_saved, i_samax, i_sent, i_semax;
+   char *m_buff;
+
+   if (!fn_range_check("MAILQUOTA", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] ) {
+      safe_str((char *)"-1 -1 -1 -1 -1 -1", buff, bufcx); 
+      return;
+   }
+   target = lookup_player(player, fargs[0], 0);
+   if ( !Good_chk(target) ) {
+      safe_str((char *)"-1 -1 -1 -1 -1 -1", buff, bufcx); 
+      return;
+   }
+   i_key = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_key = atoi(fargs[1]);
+   }
+   i_user = i_umax = i_saved = i_samax = i_sent = i_semax = -1;
+   mail_quota(player, fargs[0], 1, &i_user, &i_saved, &i_sent, &i_umax, &i_samax, &i_semax);
+   m_buff = alloc_mbuf("fun_mailquota");
+   switch (i_key) {
+      case 0: sprintf(m_buff, "%d %d %d %d %d %d", i_user, i_umax, i_saved, i_samax, i_sent, i_semax);
+              break;
+      case 1: sprintf(m_buff, "%d %d", i_user, i_umax);
+              break;
+      case 2: sprintf(m_buff, "%d %d", i_saved, i_samax);
+              break;
+      case 3: sprintf(m_buff, "%d %d", i_sent, i_semax);
+              break;
+      default: strcpy(m_buff, (char *)"-1 -1 -1 -1 -1 -1");
+              break;
+   }
+   safe_str(m_buff, buff, bufcx);
+   free_mbuf(m_buff);
 }
 
 FUNCTION(fun_mailquick)
@@ -26993,6 +27036,7 @@ FUN flist[] =
     {"MAILALIAS", fun_mailalias, 0, FN_VARARGS, CA_WIZARD, 0},
     {"MAILSIZE", fun_mailsize, 2, 0, CA_WIZARD, 0},
     {"MAILQUICK", fun_mailquick, 0, FN_VARARGS, CA_WIZARD, 0},
+    {"MAILQUOTA", fun_mailquota, 1, FN_VARARGS, CA_WIZARD, 0},
     {"MAILSTATUS", fun_mailstatus, 1, FN_VARARGS, CA_WIZARD, 0},
     {"MAP", fun_map, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MASK", fun_mask, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

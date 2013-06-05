@@ -8294,16 +8294,33 @@
  
   See Also: @admin, @list site_information, forbid_site, permit_site,
             register_site, suspect_site, trust_site, noguest_site.
+& function list
 & functions
-  Help is available for the following RhostMUSH functions:
+  Help is available for the following RhostMUSH wizard only functions:
   
-  BEEP()        MAILSIZE()    SIZE()        LPOWERS()       LDEPOWERS()
-  LTOGGLES()    MSIZETOT()    AFLAGS()      QUOTA()         ISHIDDEN()
-  CLOAK()       HASPOWER()    HASDEPOWER()  HASTOGGLE()     DOING()
-  MAILQUICK()   MAILALIAS()   DYNHELP()     CANSEE()        TEXTFILE()
-  LATTRP()      MAILSTATUS()  BYPASS()      LOGTOFILE()     LOGSTATUS()
-  CHECKPASS()   CHKGARBAGE()  LOOKUP_SITE() NSLOOKUP()
+  AFLAGS()      BEEP()        BYPASS()      CANSEE()        CHECKPASS()
+  CHKGARBAGE()  CLOAK()       DOING()       DYNHELP()       HASDEPOWER()
+  HASPOWER()    HASTOGGLE()   ISHIDDEN()    LATTRP()        LDEPOWERS()
+  LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE() LPOWERS()       LTOGGLES()
+  MAILALIAS()   MAILQUICK()   MAILQUOTA()   MAILSIZE()      MAILSTATUS()
+  MSIZETOT()    NSLOOKUP()    QUOTA()       SIZE()          TEXTFILE()
 
+& MAILQUOTA()
+  Function: mailquota(<target> [,<key>])
+  
+  This function will return the results of mail/quota but in functional
+  form.  The default key (0) will return all stats of the target player.
+  
+  The values for each of the keys is as follows:
+    0 -- <receive> <receive-max> <save> <save-max> <sent> <sent-max> (default)
+    1 -- <receive> <receive-max>
+    2 -- <save> <save-max>
+    3 -- <sent> <sent-max>
+  
+  Anything other key, or an invalid target player returns '-1 -1 -1 -1 -1 -1'
+  
+  See Also: mailquick(), mailstatus()
+  
 & NSLOOKUP()
   Function: nslookup(<target>)
   
@@ -8386,6 +8403,8 @@
   X    - List out status of message #X
   
   Refer to the normal help on 'mail status' for additional help.
+  
+  See Also: mailquota(), mailquick()
 
 & LATTRP()
   Function: lattrp(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
@@ -9118,6 +9137,8 @@ Default: 100
 
 & MAILQUICK()
   Please refer to the normal help on this function for it's features.
+  
+  See Also: mailquota(), mailstatus()
 
 & MAILALIAS()
   Function: mailalias(<global alias>[,<type>])

@@ -24533,6 +24533,7 @@ New Features
 * @lfunction to allow players to define localized functions [ASH]
 * global parameter to specify global @lfunction limit per player [ASH]
 * global parameter to enable/disable BLIND snuffing connect/disconnect [ASH]
+* Wizard accessable mailquota() function to mimic mail/quota results [ASH]
   
 Changes
 -------
