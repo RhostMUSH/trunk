@@ -10157,7 +10157,32 @@
           The 'A B C 1 2 3' and the '1' are justified across 50 characters.
               -- They are also underscored and highlighted red.
               -- Padding is aligned properly.
+
+{ 'help printf examples3' for more examples }
   
+& PRINTF EXAMPLES3
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Examples: (continued)
+    # Testing line wrap split on spacing
+    > @emit printf($":.:-30|s,testing padding testing padding testing 
+                   padding testing padding)
+
+    testing padding testing ......
+    padding testing padding ......
+    testing padding...............
+  
+    # Testing raw line wrapping
+    > @emit printf($:.:-30|s,testing padding testing padding testing 
+                   padding testing padding)
+
+    testing padding testing paddin
+    g testing padding testing padd
+    ing...........................
+  
+  Note: Notice that it keeps track of all padding in the original
+        string and will not remove the spaces (as intended).  
+
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
