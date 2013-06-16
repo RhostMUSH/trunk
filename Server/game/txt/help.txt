@@ -10076,10 +10076,23 @@
   of a formatted string with a '$' and the end of a formatted string with
   an 's' that tells printf that it will substitute that with an argument.
   
+  Note: The syntax always must start with a '$' and end with a 's'.
+  
+  The order of all the various formatting fields (including the number
+  used for padding) may be in any order.
+  
   Syntax examples:
-      printf($10s $10s $10s,arg1,arg2,arg3)
-      printf($10s,arg1)
-      printf($10s boo $10s, arg1, arg2) 
+      printf($10s $10s $10s,arg1,arg2,arg3) # padd 10, right just
+      printf($10s,arg1)                     # padd 10, right just
+      printf($10s boo $10s, arg1, arg2)     # padd 10, right just
+      printf($-10s boo $10s, arg1, arg2)    # padd 10, left just
+      printf($10^s boo $10s, arg1, arg2)    # padd 10, center just
+      printf($10&-s boo $10s, arg1, arg2)   # padd 10, left just, CR wrap
+      printf($|10-s boo $10s, arg1, arg2)   # padd 10, left just, LN wrap
+      printf($|10-"s boo $10s, arg1, arg2)  # padd 10, left just, SP LN wrap
+      printf($10:+:s, arg1, arg2)           # padd 10, right just, padd with +
+  
+  CR -- Carrage Return, LN - Line, SP - Space
    
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
 
