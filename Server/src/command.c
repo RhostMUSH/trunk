@@ -8465,11 +8465,12 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
 void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_command, char *args[], int nargs)
 {
    char *retbuff, *cp;
-   int old_trainmode;
+   int old_trainmode, i_breakst;
 
    if ( !s_boolian || !*s_boolian || !s_command || !*s_command ) {
       return;
    }
+   i_breakst = mudstate.breakst;
    retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, NULL, 0);
    old_trainmode=mudstate.trainmode;
    if ( *retbuff && (atoi(retbuff) == 0) ) {
@@ -8486,14 +8487,16 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_comman
       mudstate.trainmode = old_trainmode;
    }
    free_lbuf(retbuff);
-
+   if ( desc_in_use != NULL ) {
+      mudstate.breakst = i_breakst;
+   }
 }
 
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
    char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
-   int old_trainmode, x;
+   int old_trainmode, x, i_breakst;
 
    if ( mudstate.sudo_cntr >= 1 ) {
       notify(player, "You can't nest @sudo.");
@@ -8529,11 +8532,15 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       }
    }
 
+   i_breakst = mudstate.breakst;
    while (s_command) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
          process_command(target, target, 1, cp, args, nargs, 0);
       }
+   }
+   if ( desc_in_use != NULL ) {
+      mudstate.breakst = i_breakst;
    }
 
    if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {

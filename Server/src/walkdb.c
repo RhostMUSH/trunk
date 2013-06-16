@@ -95,19 +95,14 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
       pid_val = atoi(tempstr);
    }
 
-   if ( i_clearreg || i_localize ) {
-      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
-         savereg[x] = alloc_lbuf("ulocal_reg");
-         pt = savereg[x];
-         safe_str(mudstate.global_regs[x],savereg[x],&pt);
-         if ( i_clearreg ) {
-            *mudstate.global_regs[x] = '\0';
-         }
-      }
-   }
    x = 0;
    cntr=1;
    tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
+   if ( i_clearreg || i_localize ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         savereg[x] = alloc_lbuf("ulocal_reg");
+      }
+   }
    while (curr && *curr) {
       if ((x % 25) == 0)
          cache_reset(0);
@@ -121,9 +116,26 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
          if ( i_inline ) {
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3ptr = strtok_r(buff3, ";", &buff3tok);
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  *savereg[x] = '\0';
+                  pt = savereg[x];
+                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                  if ( i_clearreg ) {
+                     *mudstate.global_regs[x] = '\0';
+                  }
+               }
+            }
             while ( buff3ptr && !mudstate.breakst ) {
                process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
                buff3ptr = strtok_r(NULL, ";", &buff3tok);
+            }
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  pt = mudstate.global_regs[x];
+                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                  *savereg[x] = '\0';
+               }
             }
             free_lbuf(buff3);
             if ( i_nobreak ) {
@@ -136,10 +148,13 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
       }
       cntr++;
    }
+   if ( i_inline ) {
+      if ( desc_in_use != NULL ) {
+         mudstate.breakst = i_storebreak;
+      }
+   }
    if ( i_clearreg || i_localize ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
-         pt = mudstate.global_regs[x];
-         safe_str(savereg[x],mudstate.global_regs[x],&pt);
          free_lbuf(savereg[x]);
       }
    }

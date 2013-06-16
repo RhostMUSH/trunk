@@ -3975,6 +3975,7 @@ do_command(DESC * d, char *command)
     chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< do_command >";
+    mudstate.breakst = 0;
     
     /* snoop on player input -Thorin */
     if (d->snooplist) {
