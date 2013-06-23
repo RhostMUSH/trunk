@@ -2462,6 +2462,12 @@ int	aflags, tog_val,
     return 1;
 
   key = atr_get(thing, locknum, &aowner, &aflags);
+  /* TWINKLOCK is an inheritable lock -- why you need to be careful of player setting!!! */
+  if ( (locknum == A_LTWINK) && !isPlayer(thing) && !*key && Good_chk(Owner(thing)) ) {
+     free_lbuf(key);
+     thing = Owner(thing);
+     key = atr_get(thing, locknum, &aowner, &aflags);
+  }
   doit = eval_boolexp_atr(player, thing, thing, key, def);
   free_lbuf(key);
   return doit;

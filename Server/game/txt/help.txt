@@ -2988,7 +2988,8 @@
                                    in MUSH programming where a user-defined
                                    lock is needed.  This can also be used as
                                    a REALITY_LEVEL Lock if enabled to do so.
-     TwinkLock:    All:            Allows people to alter your object.
+     TwinkLock:    All:            Allows people to alter your object.  If
+                                   set on a player, all they own is affected.
      ZoneWizLock:  ZoneMaster:     Allows people control and modify
                                    ability in a zone. *CAREFUL*  See type
                                     help for details.
@@ -3024,7 +3025,7 @@
   Lock Type: TwinkLock
   Syntax   : @lock/twink <target>=<key>
   
-  Rooms, Objects, Exits, Players:
+  Rooms, Objects, Exits:
      The twinklock is a unique lock in that it will allow anyone who passes
      the lock control over that object.  THIS CAN BE A SECURITY RISK SO BE
      CAREFUL!  The user who passes the lock will ONLY be able to modify/set
@@ -3033,6 +3034,13 @@
      twinklocked be !INHERIT so that abuse will be limited.  If the lock
      does not exist, then NO ONE other than the owner will be able to modify
      that target.
+  
+  Players:
+     Players are special in that just like Rooms, Objects, and Exits, it
+     allows direct modification of them as a player, but also in the case
+     of player, the TwinkLock is special in that it's an inheritable lock.
+     This means if you pass the twinklock of a player, you automatically
+     pass that lock on everything that player owns.
   
   Special note:  You can set the item NOMODIFY if you want it to just have
                  examine privalages and not modify privalages.
@@ -19615,7 +19623,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   or accent.  
   
   Also, any use of chr() will padd out any alignment by 5 characters.  So any
-  that you use, make sure to padd out by the additional 5 per use.
+  that you use, make sure to keep this in mind.  All the formatting functions
+  take this into account automatically so should be invisible to you, but
+  the overhead does exist.
   
   Examples:
     > say ansi(hr,\\)
@@ -24586,6 +24596,7 @@ Changes
 * Added /target switch to @include [ASH]
 * BLIND (when configured to do so) snuffs connect/disconnect messages [ASH]
 * strmath() handles multi-word args in a mixed math/nonmath for delims [ASH]
+* TwinkLock when set on a player is now inheritable to all they own [ASH]
   
 Bug Fixes
 ---------
