@@ -3933,9 +3933,26 @@
   then all connects and disconnects of suspect players are individually
   marked.  This flag is only visible and settable by wizards.
 
+& GOD
+& GHOD
+& #1
+  Database owner. [bitlevel 7]
+  
+  This is auto-flagged immortal internally and considered the game owner.
+  They can do everything within the game, short of some internal flags
+  which are locked away from anything.
+  
+  This player is the only player that can set/remove the immortal flag.
+  
+  Please refer to 'immortal' in the wizhelp file for anything else they
+  can do.  It's basically everything in the wizhelp/help files.
+  
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), COUNCILOR,
+            IMMORTAL, CONTROL, INHERIT
+
 & SUPER-ROYALTY
 & IMMORTAL
-  Flag: IMMORTAL(i) (players)
+  Flag: IMMORTAL(i) (players) [bitlevel 6]
   A player that is set IMMORTAL is essentially #1.  They can do absolutely
   anything in the game except directly affect #1 and what #1 owns.  They
   should be set only when you require an administrator to have full access
@@ -3954,10 +3971,13 @@
           without a doubt you can trust.
         + Can do everything except set some internal flags, effect #1,
           and set/remove the immortal flag.
+  
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), COUNCILOR,
+            CONTROL, INHERIT
 
 & WIZARD
 & ROYALTY
-  Flag: ROYALTY(W) (players)
+  Flag: ROYALTY(W) (players) [bitlevel 5]
   A player that is set ROYALTY controls all of the objects in the
   database (except for player #1 and immortal), regardless of their 
   ownership or flags.  In general, ROYALTY can do anything using 
@@ -3981,9 +4001,9 @@
         + Ability to @attribute,
         + Ability to WIZCLOAK
         + Ability to do some internal configurations.
-
   
-  See Also: CONTROL, INHERIT.
+  See Also: GUILDMASTER, ARCHITECT, COUNCILOR, IMMORTAL,
+            CONTROL, INHERIT
 
 & COUNCILOR
   Flag: COUNCILOR(a) (players) [bitlevel 4]
@@ -4006,7 +4026,8 @@
         + Ability to @nuke, @toad, @boot, @chownall, @dbck, @poor,
                      @newpassword, @pcreate, slay, and directly affect
                      players their level and lower.
-
+  
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), IMMORTAL
 
 & ARCHITECT
   Flag: ARCHITECT(B) (players) [bitlevel 3]
@@ -4031,6 +4052,8 @@
         + Has infinite quota and money
         + Able to give negative money (Steal)
         + Able to @toggle the MONITOR
+  
+  See Also: GUILDMASTER, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL
 
 & GUILDMASTER
   Flag: GUILDMASTER(g) (players) [bitlevel 2]
@@ -4048,6 +4071,8 @@
         + Can see dbref#'s of things their level and lower
         + Can examine/decompile things their level and lower.
         + Can set @quota/@guild on their level and lower.
+  
+  See Also: ARCHITECT, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL
 
 & SLAVE
   Flag: SLAVE(s) (players)
@@ -7656,13 +7681,15 @@
   infinite loops.  The following substitutions exist:
   
   - Sub --- Value --- HEX ------------+- Sub --- Value --- HEX ---------------
-    %n ----     1     (0x00000001)    |  %p ----   128     (0x00000080)
-    %# ----     2     (0x00000002)    |  %a ----   256     (0x00000100)
-    %! ----     4     (0x00000004)    |  %r ----   512     (0x00000200)
-    %@ ----     8     (0x00000008)    |  %t ----  1024     (0x00000400)
-    %l ----    16     (0x00000010)    |  %c ----  2048     (0x00000800)
-    %s ----    32     (0x00000020)    |  %x ----  4096     (0x00001000)
-    %o ----    64     (0x00000040)    |
+    %n ----     1     (0x00000001)    |  %r ----   512     (0x00000200)
+    %# ----     2     (0x00000002)    |  %t ----  1024     (0x00000400)
+    %! ----     4     (0x00000004)    |  %c ----  2048     (0x00000800)
+    %@ ----     8     (0x00000008)    |  %x ----  4096     (0x00001000)
+    %l ----    16     (0x00000010)    |  %f ----  8192     (0x00002000)
+    %s ----    32     (0x00000020)    |  %k ---- 16384     (0x00004000)
+    %o ----    64     (0x00000040)    |  %w ---- 32768     (0x00008000)
+    %p ----   128     (0x00000080)    |  
+    %a ----   256     (0x00000100)    |
   ----------------------------------------------------------------------------
   
   You would add the values together and apply to the sub_override 'bitmask'
@@ -7678,13 +7705,15 @@
   substitutions.
   
   - Sub ------------- Attribute ------+- Sub ------------- Attribute ---------
-    %n ----           SUB_N           |  %p ----           SUB_P       
-    %# ----           SUB_NUM         |  %a ----           SUB_A       
-    %! ----           SUB_BANG        |  %r ----           SUB_R       
-    %@ ----           SUB_AT          |  %t ----           SUB_T         
-    %l ----           SUB_L           |  %c ----           SUB_C         
-    %s ----           SUB_S           |  %x ----           SUB_X         
-    %o ----           SUB_O           |
+    %n ----           SUB_N           |  %r ----           SUB_R       
+    %# ----           SUB_NUM         |  %t ----           SUB_T         
+    %! ----           SUB_BANG        |  %c ----           SUB_C         
+    %@ ----           SUB_AT          |  %x ----           SUB_X         
+    %l ----           SUB_L           |  %f ----           SUB_F
+    %s ----           SUB_S           |  %k ----           SUB_K
+    %o ----           SUB_O           |  %w ----           SUB_W
+    %p ----           SUB_P           |  
+    %a ----           SUB_A           |
   ----------------------------------------------------------------------------
   
   If the hook object (@admin hook_obj) is NOT defined, or if the attribute 

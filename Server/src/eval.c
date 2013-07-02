@@ -1639,20 +1639,45 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  safe_str(tbuf, buff, &bufc);
                  free_sbuf(tbuf);
                  break;
-        case 'I':       /* itext */
-        case 'i':
-            dstr++;
-            int inum_val;
-            inum_val = atoi(dstr);
-            if( inum_val < 0 || ( inum_val > mudstate.iter_inum ) )
-            {   
-                safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
-            }
-            else
-            {   
-                safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
-            }
-            break;
+             case 'I':       /* itext */
+             case 'i':
+                 dstr++;
+                 int inum_val;
+                 inum_val = atoi(dstr);
+                 if( inum_val < 0 || ( inum_val > mudstate.iter_inum ) ) {   
+                     safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
+                 } else {   
+                     safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
+                 }
+                 break;
+            case 'w':
+            case 'W':		/* TwinkLock enactor */
+		tbuf = alloc_sbuf("exec.twink");
+		sprintf(tbuf, "#%d", mudstate.twinknum);
+                if ( (mudconf.sub_override & SUB_W) && !(mudstate.sub_overridestate & SUB_W) && Good_obj(mudconf.hook_obj) ) {
+                   sub_ap = atr_str("SUB_W");
+                   if (!sub_ap)
+		      safe_str(tbuf, buff, &bufc);
+                   else {
+                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
+                      if ( !sub_txt )
+		         safe_str(tbuf, buff, &bufc);
+                      else {
+                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_W;
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         if ( !*sub_buf )
+		            safe_str(tbuf, buff, &bufc);
+                         else
+                            safe_str(sub_buf, buff, &bufc);
+                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_W;
+                         free_lbuf(sub_txt);
+                         free_lbuf(sub_buf);
+                      }
+                   }
+                } else
+		   safe_str(tbuf, buff, &bufc);
+		free_sbuf(tbuf);
+                break;
 	    case 'K':		/* Invoker name */
 	    case 'k':
                 /* We don't use sub_aowner or sub_aflags here so we don't care if they get clobbered  */

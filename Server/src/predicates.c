@@ -2417,7 +2417,7 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
 int could_doit(dbref player, dbref thing, int locknum, int def)
 {
 char	*key;
-dbref	aowner;
+dbref	aowner, thing_bak;
 int	aflags, tog_val,
         doit = 0;
 
@@ -2463,12 +2463,15 @@ int	aflags, tog_val,
 
   key = atr_get(thing, locknum, &aowner, &aflags);
   /* TWINKLOCK is an inheritable lock -- why you need to be careful of player setting!!! */
+  thing_bak = mudstate.twinknum;
   if ( (locknum == A_LTWINK) && !isPlayer(thing) && !*key && Good_chk(Owner(thing)) ) {
      free_lbuf(key);
+     mudstate.twinknum = thing;
      thing = Owner(thing);
      key = atr_get(thing, locknum, &aowner, &aflags);
   }
   doit = eval_boolexp_atr(player, thing, thing, key, def);
+  mudstate.twinknum = thing_bak;
   free_lbuf(key);
   return doit;
 }

@@ -9219,7 +9219,8 @@
     %p, %P  = Name's, his, her, its, their.   (possessive)
     %a, %A  = Name's, his, hers, its, theirs. (absolute possessive)
     %n, %N  = the player's name.
-    %K, %K  = the player's colorized/accented name.
+    %k, %K  = the player's colorized/accented name.
+    %w, %W  = the target dbref# of the twinklock (if applicable)
     %r      = carriage return.
     %t      = tab character.
     %b      = space character.
@@ -24582,6 +24583,7 @@ New Features
 * global parameter to specify global @lfunction limit per player [ASH]
 * global parameter to enable/disable BLIND snuffing connect/disconnect [ASH]
 * Wizard accessable mailquota() function to mimic mail/quota results [ASH]
+* %W to return target item if inside a twinklock [ASH]
   
 Changes
 -------
