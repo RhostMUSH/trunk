@@ -1936,6 +1936,8 @@
   
   Specifying an object not in the cluster will return an error.
   
+  Attributes must start with an alpha character, or in special cases a ~ or _.
+  
   Example:
     >myattr ClusterObj=This is my data on attribute 'myattr'
     Set.
@@ -1955,6 +1957,8 @@
   attribute will fail, and an attempt to set will create a new attribute).
   The & command may be used to set predefined attributes (in this instance,
   '&<attr> <object>=<value>' is equivalent to '@<attr> <object>=<value>').
+  
+  Attributes must start with an alpha character, or in special cases a ~ or _.
   
   Example:
     &myattr Object=This is my data on attribute 'myattr'
@@ -3933,6 +3937,8 @@
   to set either predefined attributes or user-named attributes.  Either of
   these is equivalent to the second form of the @set command.
   
+  Attributes must start with an alpha character, or in special cases a ~ or _.
+  
 { 'help @set2' for more }
 & @set2
   The following flags may be set using the fourth form of the @set command:
@@ -5478,14 +5484,21 @@
   
   See Also: @include, @force, @trigger, @skip 
   
+& @if
+& @ifelse
 & @skip
   Command: @skip <boolean expression>=<command>
+           @skip/ifelse <boolean expression>=<true command>[,<false command>]
   
   The @skip command 'skips' the command from being executed if the boolean 
   logic presented to @skip is true.  The command will be processed in the
   normal queue and not executed out of order.  Any value other than '0'
   is considered 'true' and not a true boolean.  This only processes a single
   command.  If multiple commands are required, please use @include.
+  
+  Notice if you specify the /ifelse switch the condition is reversed to match
+  how a normal if-else statement would work.  @skip/ifelse is aliased to
+  @if and @ifelse.
   
   Examples:
     > @wait 0={think 1;think 2;@skip 0=think 3;think 4}
@@ -11360,7 +11373,11 @@ See Also: timefmt()
   See Also: cat()
   
 & STRLEN()
+& STRLENVIS()
+& STRLENRAW()
   Function: strlen(<string>)
+            strlenvis(<string>)
+            strlenraw(<string>)
  
   Returns the number of characters in <string>.
  
@@ -11370,6 +11387,15 @@ See Also: timefmt()
     > say strlen(Would you like coffee, or perhaps tea)
     You say "37"
   
+  The strlenvis() function adjusts the string to the VISUAL size of
+  the string when using chr() codes (which are normally 6 characters each).
+  This is so you can specially padd when using special chr() values.
+  
+  The strlenraw() function displays the raw length of the string, including
+  any 'markup' codes that are generally used for accents and raw ansi.  This
+  is mostly intended when you need to see the absolute length of a string
+  for length checks or the like.
+    
   See Also: words(), wordpos()
   
 & MID()
@@ -14440,7 +14466,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   the type of display you wish.  A type of '1' (the default) displays all
   rooms.  A type of '0' will display only the rooms matching the directly
   specified iteration level, and none before.  Keep in mind that type '0'
-  is not always guarenteed to be absolutely accurate as rooms could be
+  is not always guaranteed to be absolutely accurate as rooms could be
   linked differently based on the order it's checked.
   
   Examples:
@@ -24113,6 +24139,8 @@ Mail: Done
   strip()       - Strips out every occurrence of a character in a string.
   stripaccents()- Strip accents from specified string.
   strlen()      - Returns the length of a string.
+  strlenraw()   - Returns the length of the RAW string.
+  strlenvis()   - Returns the length of the VISUAL string.
   strmatch()    - Returns true if a pattern is found in a string.
   switch()      - Powerful string-pattern conditional.
   switchall()   - Like switch(), but matches all occurrences of a pattern.
@@ -24584,6 +24612,7 @@ New Features
 * global parameter to enable/disable BLIND snuffing connect/disconnect [ASH]
 * Wizard accessable mailquota() function to mimic mail/quota results [ASH]
 * %W to return target item if inside a twinklock [ASH]
+* strlenvis() to correctly count 'special' chars via chr() [ASH]
   
 Changes
 -------
@@ -24599,6 +24628,7 @@ Changes
 * BLIND (when configured to do so) snuffs connect/disconnect messages [ASH]
 * strmath() handles multi-word args in a mixed math/nonmath for delims [ASH]
 * TwinkLock when set on a player is now inheritable to all they own [ASH]
+* Laxed restrictions on sub_include for %-sub definitions [ASH]
   
 Bug Fixes
 ---------
