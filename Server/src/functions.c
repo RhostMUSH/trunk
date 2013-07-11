@@ -15297,8 +15297,8 @@ FUNCTION(fun_strlenvis)
 {
    int i_count;
    
-   i_count = count_extended(strip_all_special(fargs[0]));
-   ival(buff, bufcx, (int) strlen(fargs[0]) - i_count);
+   i_count = count_extended(fargs[0]);
+   ival(buff, bufcx, (int) strlen(strip_all_special(fargs[0])) - i_count);
 }
 
 FUNCTION(fun_strlenraw)
