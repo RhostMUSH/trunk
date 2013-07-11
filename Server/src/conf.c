@@ -1550,7 +1550,7 @@ CF_HAND(cf_string)
 CF_HAND(cf_string_sub)
 {
     int retval;
-    char *buff, *s_sublist="abcflnopqrstvx", *ptr;
+    char *buff, *s_sublist="abcfiklnopqrstvwx#!@0123456789+?<", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 
@@ -1571,13 +1571,14 @@ CF_HAND(cf_string_sub)
     }
     for (ptr = str; *ptr; ptr++) {
        *ptr = ToLower(*ptr);
-       if ( !(isalpha(*ptr) || (*ptr == '=')) || (strchr(s_sublist, *ptr) != NULL) ) {
+//     if ( !(isalpha(*ptr) || (*ptr == '=')) || (strchr(s_sublist, *ptr) != NULL) ) {
+       if ( strchr(s_sublist, *ptr) != NULL ) {
           if ( !mudstate.initializing ) {
-            notify(player, "String invalid.  Either non-alpha or contained reserved percent-sub character.");
+            notify(player, "String invalid.  Contained reserved percent-sub character.");
           } else {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String invalid.  Either non-alpha or contained one of '%s'.", cmd, s_sublist);
+	    sprintf(buff, "%.3900s: String invalid.  Contained one of '%s'.", cmd, s_sublist);
 	    log_text(buff);
 	    free_lbuf(buff);
 	    ENDLOG

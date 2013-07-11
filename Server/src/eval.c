@@ -1868,12 +1868,18 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                      Good_obj(mudconf.hook_obj) && (strchr(mudconf.sub_include, ToLower(*dstr)) != NULL) ) {
                    t_bufa = alloc_sbuf("sub_include");
                    sprintf(t_bufa, "SUB_%c", *dstr);
+                   if ( !ok_attr_name(t_bufa) ) {
+                      sprintf(t_bufa, "SUB_%03d", (int)*dstr);
+                   }
                    sub_ap = atr_str(t_bufa);
                    sub_delim = sub_value = 0;
                    if (sub_ap) {
                       mudstate.sub_includestate = 1;
                       sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
                       sprintf(t_bufa, "CHR_%c", *dstr);
+                      if ( !ok_attr_name(t_bufa) ) {
+                         sprintf(t_bufa, "CHR_%03d", (int)*dstr);
+                      }
                       sub_ap = atr_str(t_bufa);
                       if ( sub_ap ) {
                          sub_txt2 = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);

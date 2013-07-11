@@ -7653,6 +7653,13 @@
   for example.  If the delimeter is a numerical value, it will use that
   value to specify how many spaces to take after the %-substitution.
   
+  NOTE:  If <character> is an invalid character for an attribute name,
+         then specify the ordinal of that character.  [asc(<character>)]
+         You then use the 3 digit representation of that number for the
+         attribute.  Example:  '*' would be '042'.  So SUB_042/CHR_042.
+  
+  You may use valid() to verify if the character is a valid for attributes.
+  
   Examples:  (assume hook_obj is set up to be dbref #456)
     > &SUB_Y #456=[add(1,1)]                  (just return '2')
     > &SUB_M #456=%x                          (this makes '%m' be '%x')

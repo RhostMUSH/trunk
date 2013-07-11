@@ -839,6 +839,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SITE_ALL	128
 #define SITE_PER	256
 #define SITE_TRU	512
+#define SKIP_IFELSE	1	/* @ifelse conversion for @skip */
 #define SNOOP_ON	1	/* Start snooping */
 #define SNOOP_OFF	2	/* Stop snooping */
 #define SNOOP_STAT	4	/* show status */

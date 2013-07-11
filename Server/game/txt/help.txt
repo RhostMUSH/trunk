@@ -11918,13 +11918,18 @@ See Also: timefmt()
   See Also: extract(), index(), insert(), ldelete(), replace(), randextract()
   
 & elist()
-  Function: elist(<str>[,<phrase>[,<delim>[,<seperator>[,<punctuation]]]])
+  Function: elist(<str>[,<phrase>[,<delim>[,<sep>[,<punctuation>[,<munge>]]]]])
   
   The elist function is used to return a list of words into an english
   recognizable format.  You may specify an output delimiter to use if
   you wish but it makes the format rather unique.  You may specify a seperate
   punctuation instead of the default comma (,).  The punctuation may be
-  more than one character.
+  more than one character.  You may specify the seperator if not a space as well.
+  
+  You can also supply a munging function to apply for each argument passed to
+  elist.  So that if you passed in dbref#'s, you can munge to the name()
+  function.  All arguments are passed as %0.  The order number of how they're
+  passed is %1.
   
   Examples:
     > say elist(test)
@@ -24629,6 +24634,7 @@ Changes
 * strmath() handles multi-word args in a mixed math/nonmath for delims [ASH]
 * TwinkLock when set on a player is now inheritable to all they own [ASH]
 * Laxed restrictions on sub_include for %-sub definitions [ASH]
+* elist() takes a 'munge' argument to apply to each element optionally [ASH]
   
 Bug Fixes
 ---------

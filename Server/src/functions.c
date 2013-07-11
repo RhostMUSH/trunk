@@ -4498,11 +4498,11 @@ FUNCTION(fun_entrances)
  */
 FUNCTION(fun_elist)
 {
-    char *sep_buf, *curr, *objstring, *result, *cp,
+    char *sep_buf, *curr, *objstring, *result, *cp, *r_munge, *r_store, *s_array[3],
          *curr_buf, sep, sop[LBUF_SIZE+1], sepfil, *sep_buf2, *sepptr;
-    int first, t_words, t_last, cntr, commsep;
+    int first, t_words, t_last, cntr, commsep, i_munge;
 
-    if (!fn_range_check("ELIST", nfargs, 1, 5, buff, bufcx))
+    if (!fn_range_check("ELIST", nfargs, 1, 6, buff, bufcx))
        return;
 
     commsep = 0;
@@ -4548,6 +4548,14 @@ FUNCTION(fun_elist)
        free_lbuf(sep_buf);
        commsep = 1;
     }
+    i_munge = 0;
+    if ( nfargs > 5 && *fargs[5] ) {
+       r_store = alloc_lbuf("munge_elist");
+       s_array[0] = alloc_lbuf("munge_elist_num");
+       s_array[1] = alloc_lbuf("munge_elist_num2");
+       s_array[2] = NULL;
+       i_munge = 1;
+    }
 
     curr = alloc_lbuf("fun_elist");
     cp = curr;
@@ -4576,10 +4584,32 @@ FUNCTION(fun_elist)
        if ( mudconf.old_elist == 1 ) {
           result = exec(player, cause, caller,
                         EV_STRIP | EV_FCHECK | EV_EVAL, objstring, cargs, ncargs);
-          safe_str(result, buff, bufcx);
+          if ( i_munge ) {
+             memcpy(r_store, fargs[5], LBUF_SIZE-2);
+             memcpy(s_array[0], result, LBUF_SIZE-2);
+             sprintf(s_array[1], "%d", cntr);
+             r_munge = exec(player, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, r_store, s_array, 2);
+             
+             safe_str(r_munge, buff, bufcx);
+             free_lbuf(r_munge);
+          } else {
+             safe_str(result, buff, bufcx);
+          }
           free_lbuf(result);
        } else {
-          safe_str(objstring, buff, bufcx);
+          if ( i_munge ) {
+             memcpy(r_store, fargs[5], LBUF_SIZE-2);
+             memcpy(s_array[0], objstring, LBUF_SIZE-2);
+             sprintf(s_array[1], "%d", cntr);
+             r_munge = exec(player, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, r_store, s_array, 2);
+             
+             safe_str(r_munge, buff, bufcx);
+             free_lbuf(r_munge);
+          } else {
+             safe_str(objstring, buff, bufcx);
+          }
        }
        first = 0;
        if ( cntr <= t_last ) {
@@ -4598,6 +4628,11 @@ FUNCTION(fun_elist)
           safe_str(sop, buff, bufcx);
        }
        cntr++;
+    }
+    if ( i_munge ) {
+       free_lbuf(s_array[0]);
+       free_lbuf(s_array[1]);
+       free_lbuf(r_store);
     }
     free_lbuf(curr);
     if ( commsep )
@@ -15256,6 +15291,14 @@ FUNCTION(fun_version)
            MUSH_BUILD_DATE), buff, bufcx);
       free_lbuf(tpr_buff);
   }
+}
+
+FUNCTION(fun_strlenvis)
+{
+   int i_count;
+   
+   i_count = count_extended(fargs[0]);
+   ival(buff, bufcx, (int) strlen(fargs[0]) - i_count);
 }
 
 FUNCTION(fun_strlenraw)
@@ -27240,6 +27283,7 @@ FUN flist[] =
     {"STRFUNC", fun_strfunc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRLEN", fun_strlen, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRLENRAW", fun_strlenraw, -1, 0, CA_IMMORTAL, CA_NO_CODE},
+    {"STRLENVIS", fun_strlenvis, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRMATCH", fun_strmatch, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRMATH", fun_strmath, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUB", fun_sub, 2, 0, CA_PUBLIC, CA_NO_CODE},

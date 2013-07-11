@@ -158,7 +158,8 @@ CMD_TWO_ARG(do_setvattr);		/* Set variable attribute */
 CMD_TWO_ARG(do_setvattr_cluster);	/* Set variable attribute on cluster */
 CMD_ONE_ARG(do_shutdown);		/* Stop the game */
 CMD_TWO_ARG(do_site);
-CMD_TWO_ARG_CMDARG(do_skip);		/* @skip command if boolean true */
+//CMD_TWO_ARG_CMDARG(do_skip);		/* @skip command if boolean true */
+CMD_TWO_ARG_ARGV_CMDARG(do_skip);	/* @skip command if boolean true */
 CMD_TWO_ARG(do_snapshot);
 CMD_ONE_ARG(do_stats);			/* Display object type breakdown */
 CMD_TWO_ARG_CMDARG(do_sudo);		/* @sudo someone to do something */
