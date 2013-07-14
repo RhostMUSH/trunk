@@ -1857,6 +1857,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
 {
    dbref thing, owner, target;
    int attrib, flags, i, x, i_savebreak;
+   time_t  i_now;
    char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS];
 
    if ( desc_in_use != NULL ) {
@@ -1911,12 +1912,18 @@ void do_include(dbref player, dbref cause, int key, char *string,
       }
    }
    i_savebreak = mudstate.breakst;
+   i_now = mudstate.now;
    while (buff1ptr && !mudstate.breakst) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
          process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing));
          if ( key & INCLUDE_NOBREAK )
             mudstate.breakst = i_savebreak;
+      }
+      if ( time(NULL) > (i_now + 5) ) {
+         notify(player, "@include:  Aborted for high utilization.");
+         mudstate.breakst=1;
+         break;
       }
    }
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {

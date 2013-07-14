@@ -45,6 +45,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
 {
    char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
         *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS];
+   time_t i_now;
    int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak;
 
    pid_val = 0;
@@ -126,9 +127,17 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                   }
                }
             }
+            i_now = mudstate.now;
             while ( buff3ptr && !mudstate.breakst ) {
                process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
                buff3ptr = strtok_r(NULL, ";", &buff3tok);
+               if ( time(NULL) > (i_now + 5) ) {
+                   notify(player, "@dolist/inline:  Aborted for high utilization.");
+                   i_nobreak=0;
+                   mudstate.breakst=1;
+                   mudstate.chkcpu_toggle = 1;
+                   break;
+               }
             }
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
