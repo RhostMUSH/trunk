@@ -507,6 +507,8 @@ struct statedata {
         /* command profiling */
         int     objevalst;
 	int	breakst;
+	int	breakdolist;
+	int	dolistnest;
         int     shell_program;  /* Shelled out of @program */
         dbref   store_lastcr;   /* Store the last created dbref# for functions */
 	dbref	store_lastx1;	/* Store the last created exit# for dig */

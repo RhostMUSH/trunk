@@ -99,6 +99,7 @@ void execute_entry(BQUE *queue)
 
 		command = queue->comm;
 		mudstate.breakst = 0;
+                mudstate.breakdolist = 0;
                 mudstate.includecnt = 0;
                 mudstate.force_halt =0;
 		while (command && !mudstate.breakst) {

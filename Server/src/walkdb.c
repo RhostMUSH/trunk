@@ -115,6 +115,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
          tprp_buff = tpr_buff;
          buff2 = replace_string(NUMERIC_VAR, safe_tprintf(tpr_buff, &tprp_buff, "%d", cntr), command, 0);
          if ( i_inline ) {
+            mudstate.dolistnest++;
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3ptr = strtok_r(buff3, ";", &buff3tok);
             if ( i_clearreg || i_localize ) {
@@ -128,16 +129,17 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                }
             }
             i_now = mudstate.now;
-            while ( buff3ptr && !mudstate.breakst ) {
+            while ( !mudstate.breakdolist && buff3ptr && !mudstate.breakst ) {
                process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
-               buff3ptr = strtok_r(NULL, ";", &buff3tok);
-               if ( time(NULL) > (i_now + 5) ) {
-                   notify(player, "@dolist/inline:  Aborted for high utilization.");
+               if ( time(NULL) > (i_now + 3) ) {
+                   if ( !mudstate.breakdolist ) {
+                      notify(player, unsafe_tprintf("@dolist/inline:  Aborted for high utilization [nest level %d].", mudstate.dolistnest));
+                   }
                    i_nobreak=0;
-                   mudstate.breakst=1;
-                   mudstate.chkcpu_toggle = 1;
+                   mudstate.breakdolist=1;
                    break;
                }
+               buff3ptr = strtok_r(NULL, ";", &buff3tok);
             }
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
@@ -150,6 +152,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             if ( i_nobreak ) {
                mudstate.breakst = i_storebreak;
             }
+            mudstate.dolistnest--;
          } else {
             bind_and_queue (player, cause, buff2, objstring, cargs, ncargs);
          }
@@ -181,6 +184,9 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    }
    if ( cntr == 1 )
       notify (player, "That's terrific, but what should I do with the list?");
+   if ( (mudstate.dolistnest == 0) && mudstate.breakdolist ) {
+      mudstate.chkcpu_toggle = 1;
+   }
 }
 
 /* Regular @find command */

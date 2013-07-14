@@ -274,6 +274,9 @@ NDECL(cf_init)
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
+    mudstate.breakst = 0;
+    mudstate.breakdolist = 0;
+    mudstate.dolistnest = 0;
     mudstate.twinknum = -1;		/* Dbref of originator if inside a twinklock */
     mudstate.start_of_cmds = 0;		/* hack around zenty ansi parsing */
     mudstate.notrace = 0;		/* Do not trace */
