@@ -24651,4 +24651,4 @@ Bug Fixes
 * printf() didn't handle accents properly in some conditions [ASH]
 * reality level lock type 3 and 5 broke with userlock checks [AMB]
 * strfunc() was case sensitive.  It shouldn't be. [ASH]
-* @break/@assert in some cases would keep stable results [ASH]
+* @break/@assert in some cases would keep stale results [ASH]
