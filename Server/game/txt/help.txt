@@ -24635,6 +24635,8 @@ Changes
 * TwinkLock when set on a player is now inheritable to all they own [ASH]
 * Laxed restrictions on sub_include for %-sub definitions [ASH]
 * elist() takes a 'munge' argument to apply to each element optionally [ASH]
+* converted tprintf buffering for better allocation in some commands [ASH]
+* enriched CPU protection for some /inline switches to be more paranoid [ASH]
   
 Bug Fixes
 ---------

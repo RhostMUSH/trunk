@@ -47,11 +47,14 @@ static const char *broadcast_msg = "Broadcast: ";
 
 void do_think (dbref player, dbref cause, int key, char *message)
 {
+   char *s_buff, *s_buffptr;
+   s_buffptr = s_buff = alloc_lbuf("do_think");
    if ( key == SAY_NOANSI ) {
-      noansi_notify(player, unsafe_tprintf("%s",message));
+      noansi_notify(player, safe_tprintf(s_buff, &s_buffptr, "%s",message));
    } else {
-      notify(player, unsafe_tprintf("%s",message));
+      notify(player, safe_tprintf(s_buff, &s_buffptr, "%s",message));
    }
+   free_lbuf(s_buff);
 }
 
 void do_say (dbref player, dbref cause, int key, char *message)
@@ -1350,28 +1353,30 @@ void do_page_one(dbref player, dbref cause, int key, char *arg)
 
 void whisper_pose (dbref player, dbref target, char *message)
 {
-char	*buff;
+   char *buff, *s_buff, *s_buffptr;
 
-	buff=alloc_lbuf("do_pemit.whisper.pose");
-	strcpy (buff, Name(player));
-	if (mudstate.pageref == NOTHING) {
-	  if ((SCloak(target) && Cloak(target) && !Immortal(player)) ||
-	    (Cloak(target) && !Wizard(player))) {
-	  }
-	  else
-	    notify(player,
-		unsafe_tprintf("%s senses \"%s%s\"", Name(target), buff, message));
-	  notify_with_cause(target, player,
-		unsafe_tprintf("You sense %s%s", buff, message));
-	}
-	else {
-	  notify_with_cause2((int)target, player, unsafe_tprintf("You sense %s%s", buff, message));
-	  if (mudstate.pageref != NOTHING)
-	    notify(player, unsafe_tprintf("Port %d senses \"%s%s\"", target, buff, message));
-	  else
-	    notify(player, "Bad Port.");
-	}
-	free_lbuf(buff);
+   buff=alloc_lbuf("do_pemit.whisper.pose");
+   s_buffptr = s_buff = alloc_lbuf("whisper_pose");
+   strcpy (buff, Name(player));
+   if (mudstate.pageref == NOTHING) {
+      if ((SCloak(target) && Cloak(target) && !Immortal(player)) ||
+          (Cloak(target) && !Wizard(player))) {
+      } else {
+         notify(player, safe_tprintf(s_buff, &s_buffptr, "%s senses \"%s%s\"", Name(target), buff, message));
+      }
+      s_buffptr = s_buff;
+      notify_with_cause(target, player, safe_tprintf(s_buff, &s_buffptr, "You sense %s%s", buff, message));
+   } else {
+      notify_with_cause2((int)target, player, safe_tprintf(s_buff, &s_buffptr, "You sense %s%s", buff, message));
+      if (mudstate.pageref != NOTHING) {
+         s_buffptr = s_buff;
+         notify(player, safe_tprintf(s_buff, &s_buffptr, "Port %d senses \"%s%s\"", target, buff, message));
+      } else {
+         notify(player, "Bad Port.");
+      }
+   }
+   free_lbuf(buff);
+   free_lbuf(s_buff);
 }
 
 

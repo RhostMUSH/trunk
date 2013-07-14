@@ -8469,6 +8469,7 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
 void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], int nargs, char *cargs[], int ncargs)
 {
    char *retbuff, *cp, *mys, *s_buildptr, *s_build;
+   time_t i_now;
    int old_trainmode, i_breakst, i_joiner;
 
    if ( !s_boolian || !*s_boolian || !nargs || !args[0] || !*args[0] ) {
@@ -8489,29 +8490,47 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             safe_chr(',', mys, &s_buildptr);
             safe_str(args[i_joiner], mys, &s_buildptr);
          }
+         i_now = mudstate.now;
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
-            if (cp && *cp) {
+            if (cp && *cp && !mudstate.breakst) {
                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+               if ( time(NULL) > (i_now + 5) ) {
+                   notify(player, "@skip:  Aborted for high utilization.");
+                   mudstate.breakst=1;
+                   break;
+               }
             }
          }
          free_lbuf(s_build);
       } else {
          mys = args[0];
+         i_now = mudstate.now;
          while (mys) {
             cp = parse_to(&mys, ';', 0);
-            if (cp && *cp) {
+            if (cp && *cp && !mudstate.breakst) {
                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+               if ( time(NULL) > (i_now + 5) ) {
+                   notify(player, "@skip:  Aborted for high utilization.");
+                   mudstate.breakst=1;
+                   break;
+               }
             }
          }
       }
       mudstate.trainmode = old_trainmode;
    } else if ( *retbuff && (atoi(retbuff) == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
       mys = args[1];
+      i_now = mudstate.now;
       while (mys) {
          cp = parse_to(&mys, ';', 0);
-         if (cp && *cp) {
+         if (cp && *cp && !mudstate.breakst) {
             process_command(player, cause, 1, cp, cargs, ncargs, 0);
+            if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@skip:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                break;
+            }
          }
       }
    }
