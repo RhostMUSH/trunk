@@ -4680,6 +4680,7 @@
   def_exit_tx               def_room_rx               def_room_tx             
   def_player_rx             def_player_tx             def_thing_rx            
   def_thing_tx              reality_locks             reality_locktype
+  reality_compare
 
 & abort_on_bug
   Config parameter: abort_on_bug <yes/no>.  Default: no
@@ -9414,6 +9415,22 @@ try to keep all information on a 20x78 screen.
   does not take into account the location of the objects or other flags like
   DARK.
 
+& reality_compare
+  Config parameter: reality_compare <value>   Default: 0
+  
+  This option will optionally display the description in a given order or
+  optionally stop upon the first matching reality and/or description.  The
+  following options exist:
+  
+    0 - default.  Show all descs in ascending reality order.
+    1 - reverse display of description from high bit reality down
+    2 - normal order but stop after first existing desc found
+    3 - reverse order but stop after first existing desc found
+    4 - normal order and stop after first reality, regardless of desc
+    5 - reverse order and stop after first reality, regardless of desc
+  
+  See Also: reality_level
+
 & reality_level
   Config parameter: reality_level <name> <value> [<desc attribute>]
   Default: none
@@ -9424,6 +9441,8 @@ try to keep all information on a 20x78 screen.
   configuration file.  When a reality_level is defined, it automatically
   keeps a tally of those defined.  You can currently only have 32 total
   reality levels defined.
+  
+  See Also: reality_compare
 
 & reality_locks
   Config parameter: reality_locks <yes/no>.   Default: no

@@ -585,6 +585,7 @@ NDECL(cf_init)
     mudconf.def_exit_tx = 1;
     mudconf.def_thing_rx = 1;
     mudconf.def_thing_tx = 1;
+    mudconf.reality_compare = 0;	/* Change how descs are displayed */
 #endif /* REALITY_LEVELS */
 #ifdef SQLITE
     mudconf.sqlite_query_limit = 5;
@@ -3694,6 +3695,10 @@ CONF conftable[] =
      (char *) "Path to the directory to store SQLite database files, relative to game/" },
 #endif /*SQLITE*/
 #ifdef REALITY_LEVELS
+    {(char *) "reality_compare",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.reality_compare, 0, 0, CA_WIZARD,
+     (char *) "Change how descs are displayed in reality levels.\r\n"\
+              "                             Default: 0   Value: %d"},
     {(char *) "reality_level",
      cf_rlevel, CA_DISABLED, (int *)&mudconf, 0, 0, CA_WIZARD,
      (char *) "Defined realitylevels."},

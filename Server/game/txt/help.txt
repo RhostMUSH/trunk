@@ -24294,6 +24294,9 @@ Mail: Done
   die()         - Rolls a set of dice for random number generation.
 
 & revisions
+All credits to players, codebases, or other is presented in the RHOST.CHANGES
+file in the readme directory in the source distribution.  
+  
 Beginning with Rhost 3.9.1, the Development team has tracked all changes to
 the Rhost system in the helpfiles, so that users may see what changes have
 been made with each revision.  Each change is detailed in bullet-point format
@@ -24311,7 +24314,7 @@ Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
-  3.9.4: 3.9.4p0
+  3.9.4: 3.9.4p0, 3.9.4p1
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -24652,3 +24655,17 @@ Bug Fixes
 * reality level lock type 3 and 5 broke with userlock checks [AMB]
 * strfunc() was case sensitive.  It shouldn't be. [ASH]
 * @break/@assert in some cases would keep stale results [ASH]
+
+& 3.9.4p1
+Release Date: 07/17/13
+Status: Alpha
+  
+New Features
+-------
+* config parameter reality_compare for optional methods of desc displaying [ASH]
+  
+Changes
+-------
+  
+Bug Fixes
+---------

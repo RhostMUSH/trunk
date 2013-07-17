@@ -392,6 +392,7 @@ struct confdata {
 	int	lfunction_max;	/* Maximum lfunctions allowed */
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 #ifdef REALITY_LEVELS
+        int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
         struct rlevel_def {
             char name[9];	/* name of level */
