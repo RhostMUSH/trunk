@@ -9,6 +9,8 @@ HELP spelling fixes
 				- Thanks Jules (and PennMUSH)
 Fix for $Z in timefmt()
 				- Thanks Chime/Loki (Haunted)
+reality_compare -- option to alter how descs are seen
+				- Thanks Derek (from SVN site)
 
                          RhostMUSH 3.9.2 Update File
 @assert/@break didn't handle {} correctly.
