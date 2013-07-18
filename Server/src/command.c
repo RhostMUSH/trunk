@@ -7113,6 +7113,23 @@ list_rlevels(dbref player)
        notify(player, unsafe_tprintf("\r\n    Enhancement: @lock/user works as a Reality Lock (type %d).", 
                       mudconf.reality_locktype));
     }
+    if ( !mudconf.reality_locks && mudconf.reality_compare) {
+       notify(player, "  ");
+    }
+    switch (mudconf.reality_compare) {
+       case 0: /* Do nothing */
+               break;
+       case 1: notify(player, "    Enhancement: Descs linearly in reverse, all shown.");
+               break;
+       case 2: notify(player, "    Enhancement: Descs linearly in order, first existing desc shown.");
+               break;
+       case 3: notify(player, "    Enhancement: Descs linearly in reverse, first existing desc shown.");
+               break;
+       case 4: notify(player, "    Enhancement: Descs linearly in order, first reality shown.");
+               break;
+       case 5: notify(player, "    Enhancement: Descs linearly in reverse, first reality shown.");
+               break;
+    }
     notify(player, "---------------------------------------"\
                    "---------------------------------------");
     DPOP; /* #56 */
