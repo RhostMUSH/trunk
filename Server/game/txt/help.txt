@@ -24666,6 +24666,9 @@ New Features
   
 Changes
 -------
+* asksource.sh (for the menu configurator) now optionally allows disabling OpenSSL 
+  by force as some 3rd party openssl programs would barf on compatibility [ASH]
   
 Bug Fixes
 ---------
+* compiling issue when not using the enhanced ansi option [ASH]

@@ -271,6 +271,11 @@ static char isAnsi[256] =
 };
 #endif
 
-
+#else
+#ifdef TINY_SUB
+#define SAFE_CHR	'x'
+#else
+#define SAFE_CHR	'c'
+#endif
 #endif
 #endif

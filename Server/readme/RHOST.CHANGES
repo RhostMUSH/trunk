@@ -3,6 +3,10 @@ REALITY_LEVELS wouldn't compile because of undeclared function.
 				- Thanks Dahan
 HELP spelling fixes
 				- Thanks Sketch
+compile time issue when enhanced ansi is deselected.
+				- Thanks Wisdom
+if you have an ssl library that conflicts with openssl dev libs, openssl support is confused
+				- Thanks Wisdom
 
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 

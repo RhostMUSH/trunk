@@ -7115,6 +7115,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
              idx+=2;
              i_lastspace = 0;
           }
+#ifdef ZENTY_ANSI
           if( (*s == '%') && ((*(s+1) == 'f') && isprint(*(s+2))) ) {
              *t++ = *s++;
              *t++ = *s++;
@@ -7142,6 +7143,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                 continue;
              }
           }
+#endif
           if ( isspace(*s) && (fm->morepadd & 4) ) {
              i_lastspace = idx;
           }
