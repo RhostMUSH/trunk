@@ -6,6 +6,27 @@
 #
 #Standard defines
 
+echo "This will pull the latest SVN distribution from the primary trunk."
+echo "This script will also autorun the make confsource to compile the code"
+echo "and issue ./Startmush to start up your mush."
+echo ""
+echo "Please be aware, this is the PRIMARY TRUNK.  If you are using an SVN"
+echo "branch from a personal trunk (like Ambrosia's or Ashen-Shugar's) then"
+echo "do NOT USE this script to download updates.  If your goal is just"
+echo "to compile Rhost, please go to the Server directory and type:"
+echo "                   make confsource"
+echo ""
+echo "After compiling, you would then go into the game directory and type:"
+echo "                   ./Startmush"
+echo ""
+echo "Do you wish to continue on with this script? (Y/n): " |tr -d '\012'
+read ANS
+ANS2=`echo ${ANS}|tr '[:upper:]' '[:lower:]'`
+if [ "${ANS2}" = "n" -o "${ANS2}" = "no" ]
+then
+   echo "Aborted by user."
+   exit 0
+fi
  
 if ! which dialog > /dev/null
 then
