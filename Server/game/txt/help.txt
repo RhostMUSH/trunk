@@ -10134,9 +10134,9 @@
                      2
                      3
   
-    >@emit printf(|$-12s|$12s|$^12s$&14s$_12s|,a b c, a b c, a b c, 
-           wrap(lnum(20),12, l, |, |), a b c)
-    |a b c       |       a b c|   a b c    |0 1 2 3 4 5 |a     b    c|
+    >@emit printf(|$-12s|$12s|$^12s$&14s$_12s|,a b c, d e f, g h i, 
+           wrap(lnum(20),12, l, |, |), j k l)
+    |a b c       |       d e f|   g h i    |0 1 2 3 4 5 |j     k    l|
                                            |6 7 8 9 10  |
                                            |11 12 13 14 |
                                            |15 16 17 18 |
