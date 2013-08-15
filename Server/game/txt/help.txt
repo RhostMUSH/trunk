@@ -9541,11 +9541,11 @@
     > say elements(Foof|Ack|Beep|Moo,3 1,|)
     You say "Beep|Foof"
     > say elements(this is a test,2 4 2 2 2 2)
-    You say "this test this this this"
+    You say "is test is is is is"
     > say elements(this@is@a@test,2 4 2 2 2 2,@)
-    You say "this@test@this@this@this"
+    You say "is@test@is@is@is@is"
     > say elements(this@is@a@test,2 4 2 2 2 2,@,)
-    You say "this test this this this"
+    You say "is test is is is is"
  
   See Also: extract(), elementsmux()
   
@@ -9563,11 +9563,11 @@
     > say elementsmux(Foof|Ack|Beep|Moo,3 1,|)
     You say "Beep|Foof"
     > say elementsmux(this is a test,2 4 2 2 2 2)
-    You say "this test this this this"
+    You say "is test is is is is"
     > say elementsmux(this@is@a@test,2 4 2 2 2 2,@)
-    You say "this@test@this@this@this"
+    You say "is@test@is@is@is@is"
     > say elementsmux(this@is@a@test,2 4 2 2 2 2,@,)
-    You say "this test this this this"
+    You say "is test is is is is"
  
   See Also: extract(), elements()
   
