@@ -10409,7 +10409,7 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          }
          if ( name && *name )
             i_page_val = atoi(name);
-         if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 30) + 1)) ) {
+         if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 80) + 1)) ) {
             notify(player, "@blacklist: Value specified must be a valid page value.");
             break;
          }
@@ -10419,11 +10419,17 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          i_loop_chk=0;
          b_lst_ptr = mudstate.bl_list;
          notify(player, "==============================================================================");
-         notify(player, "=                                 Black List                                 =");
+         if ( i_page_val > 0 ) {
+            sprintf(tmpbuff, "= (Paged List)                    Black List                  %3d/%3d        =", i_page_val, (mudstate.blacklist_cnt/80)+1);
+         } else {
+            sprintf(tmpbuff, "= (Full List)                     Black List                                 =");
+         }
+         notify(player, tmpbuff);
+//       notify(player, "=                                 Black List                                 =");
          notify(player, "==============================================================================");
          while ( b_lst_ptr ) {
             i_loop_chk++;
-            if ( i_loop_chk % 40 )
+            if ( (i_loop_chk % 80) == 1 )
                i_page++;
             if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
                b_lst_ptr = b_lst_ptr->next;

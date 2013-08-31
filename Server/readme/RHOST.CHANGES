@@ -9,6 +9,8 @@ if you have an ssl library that conflicts with openssl dev libs, openssl support
 				- Thanks Wisdom
 reality_compare -- option to alter how descs are seen
 				- Thanks Derek (from SVN site)
+Crash bug in @blacklist/list fixed
+				- Thanks Distraida
 
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 
