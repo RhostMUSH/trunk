@@ -24672,3 +24672,4 @@ Changes
 Bug Fixes
 ---------
 * compiling issue when not using the enhanced ansi option [ASH]
+* crashbug in @blacklist/list in some conditions [ASH]
