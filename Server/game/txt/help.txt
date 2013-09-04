@@ -11980,13 +11980,20 @@ See Also: timefmt()
   See Also: replace(), lreplace()
   
 & strmath()
-  Function: strmath(<str>,<num>,<math>[,<delim>[,<sep>[,<start>[,<amt>]]]])
+  Function: strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>)
   
   The strmath function is used to apply math to the entire string.  Numbers
   in the string are modified based on the math chosen applied to the number.
   You may specify optional input and output seperators.  You may also specify
-  the word to start (<start>) the math on and how many words (<amt>) after
-  the start you wish to use. If no math is specified, '+' is used as a default.
+  the word to start (<st>) the math on and how many words (<amt>) after the 
+  start you wish to use. If no math is specified, '+' is used as a default.
+  The <idlm> and <isep> are inner delimiter and seperator to use for the 
+  normal delimited string.  This is so you can separate values such as:
+                    To hit:5|To Damage:10|Base AC:15
+  
+    Key:  str  -- input string    num  -- value to apply  math -- math to use
+          dlm  -- delimiter       sep  -- seperator       st   -- start value
+          amt  -- word count      idlm -- inner delim     isep -- inner sep
   
   Valid math arguments are:
         + - apply addition to all numbers in the string.
@@ -12002,6 +12009,8 @@ See Also: timefmt()
     You say "10 fish 20 fish green fish blue fish"
     > strmath(1 fish 2 fish 3 shoe 4 shoe,10,+,,,3,2)
     You say "1 fish 12 fish 13 shoe 4 shoe"
+    >  strmath(To hit:5|To Damage:10|Base AC:15,150,+,|,|,1,0,:,:)
+    You say "To hit:150|To Damage:10|Base AC:15"
   
   See Also: add(), sub(), mul(), div(), mod(), strfunc(), spellnum()
   
@@ -24668,8 +24677,12 @@ Changes
 -------
 * asksource.sh (for the menu configurator) now optionally allows disabling OpenSSL 
   by force as some 3rd party openssl programs would barf on compatibility [ASH]
+* strmath() improved with inner delimitation (2 new arguments) [ASH]
+* a bit of cleanup with @pemit on cloaked players [ASH]
+* @aflags will now show _ prefix permissions on attributes (where existing) [ASH]
   
 Bug Fixes
 ---------
 * compiling issue when not using the enhanced ansi option [ASH]
 * crashbug in @blacklist/list in some conditions [ASH]
+* paging was broken in @blacklist/list, non-crash bug. [ASH]

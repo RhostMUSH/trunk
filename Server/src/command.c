@@ -7435,9 +7435,23 @@ void do_aflags(dbref player, dbref cause, int key, char *fname)
            }
         }
         free_lbuf(s_chkattr);
-        notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s", atrnum, atrcnt, buff));
+        if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s [%s%s%s]", atrnum, atrcnt, buff,
+                  (char *)(!mudconf.hackattr_see ? "hidden" : ""), 
+                  (char *)((!mudconf.hackattr_see && !mudconf.hackattr_nowiz) ? " " : ""),
+                  (char *)(!mudconf.hackattr_nowiz ? "wizard" : "") ));
+        } else {
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s", atrnum, atrcnt, buff));
+        }
      } else {
-        notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s", atrnum, buff));
+        if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s [%s%s%s]", atrnum, buff,
+                  (char *)(!mudconf.hackattr_see ? "hidden" : ""), 
+                  (char *)((!mudconf.hackattr_see && !mudconf.hackattr_nowiz) ? " " : ""),
+                  (char *)(!mudconf.hackattr_nowiz ? "wizard" : "") ));
+        } else {
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s", atrnum, buff));
+        }
      }
   } else {
      notify(player,unsafe_tprintf("Bad flag name '%s'", fname));

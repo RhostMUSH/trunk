@@ -3947,6 +3947,12 @@
   Please refer to 'immortal' in the wizhelp file for anything else they
   can do.  It's basically everything in the wizhelp/help files.
   
+  #1 should be considered an administrative account only.  Used only
+  in the most dire of situations or when you need to set/remove the
+  immortal flag.  You should NOT have anything owned as #1, since
+  only #1 can directly affect/edit/alter what #1 owns.  For master 
+  room ownership, please use an IMMORTAL player.
+  
   See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), COUNCILOR,
             IMMORTAL, CONTROL, INHERIT
 
@@ -9303,14 +9309,14 @@ try to keep all information on a 20x78 screen.
   Hooks are set up by following the shown methods.
   1)  You must first create and setup a hook object to store the data.
       Once you have @created the object, the object needs to be defined
-      with the 'HOOK_CMD' admin parameter.  This may be placed in the 
-      .conf file or done via @admin.
+      with the 'HOOK_OBJ' admin parameter.  This may be placed in the 
+      .conf file or done via @admin.  See wizhelp on hook_obj for more.
   
   2)  You must set up hooks for the commands/attributes you wish to use.
       The hooks are 'permit', 'ignore', 'before', 'after', and 'igswitch'.
       See wizhelp on 'hook_cmd' on more info of these switchtypes.
-      You may use the @hook command, or use the hook_cmd admin parameter
-      to place in a .conf file.
+      You may use the @hook command, or use the HOOK_CMD admin parameter
+      to place in a .conf file.  
   
   3)  The PERMIT and IGNORE config params are 'enabled' if they return 
       anything but a 'NULL' or a '1'.
@@ -9334,6 +9340,7 @@ try to keep all information on a 20x78 screen.
 & hook setup2
   > @create HookObject
   HookObject created as object #1234
+  > @admin hook_obj=1234             (and/or in netrhost.conf: hook_obj 1234)
   > &a_look #1234=[pemit(%#,-- After The Look --)]
   > &b_look #1234=[pemit(%#,-- Before The Look --)]
   > &i_look #1234=[gt(match(v(is-ignored),%#),0)]
@@ -9343,12 +9350,13 @@ try to keep all information on a 20x78 screen.
   > @set #1234=sidefx                (needed to use side-effects like pemit())
   
   Now you can do one of two things:
-  > @hook/before look
-  > @hook/after look
-  > @hook/ignore look
-  > @hook/permit look
+  > @hook/before look                (netrhost.conf:  hook_cmd look before)
+  > @hook/after look                 (netrhost.conf:  hook_cmd look after)
+  > @hook/ignore look                (netrhost.conf:  hook_cmd look ignore)
+  > @hook/permit look                (netrhost.conf:  hook_cmd look permit)
   OR...
   > @admin hook_cmd look before after ignore permit
+    (netrhost.conf:  hook_cmd look before after ignore permit)
   
   There, your hook object is all set up.  If you want it to last through
   reboots, you need to either put the @hook's in a @startup, or add the 
@@ -9368,8 +9376,19 @@ try to keep all information on a 20x78 screen.
      V - This is the same as '&' and looks for <char>_@set on HOOK_OBJ.
      M - This is the same as '-' and looks for <char>_mail on HOOK_OBJ.
   
+  Example:
+    > &A_POSE #1234=<function-executed-after-:/;/pose> 
+  
   You must use the letter representation instead of the special char when
   issuing '@hook' or 'hook_cmd'.
+  
+  Example:
+    > @hook/before pose          (the 'pose' command)
+    > @hook/before P             (handles ':' and ';')
+    > @hook/before mail          (handles the 'mail' command)
+    > @hook/before M             (handles the '-' input for mail)
+  
+  See Also: hook_obj, hook_cmd, hook setup
 
 & huh setup
   The error.txt file is used to define what a player can see when they

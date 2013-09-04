@@ -1392,13 +1392,13 @@ char    *reality_buff, *s_ptr, *r_bufr, *pt3;
 #endif
 int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr, side_effect; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;
-int     xxx_x, xxx_y, xxx_z, i_oneeval;
+int     xxx_x, xxx_y, xxx_z, i_oneeval, i_snufftoofar;
 
 ZLISTNODE *z_ptr, *y_ptr;
 
    port = 0;
    rcpt = NULL;
-   is_rlevelon = i_realitybit = i_oneeval = 0;
+   i_snufftoofar = is_rlevelon = i_realitybit = i_oneeval = 0;
    xxx_x = xxx_y = xxx_z = 0;
 
    if ((Flags3(player) & NO_PESTER) && (key & (PEMIT_PEMIT|PEMIT_LIST|PEMIT_WHISPER|PEMIT_CONTENTS))) {
@@ -1617,6 +1617,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_PEMIT:
                   notify(player, "Emit to whom?");
+                  i_snufftoofar = 1;
                   break;
                case PEMIT_OEMIT:
                   target = NOTHING;
@@ -1662,6 +1663,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_PEMIT:
                   notify(player, "Emit to whom?");
+                  i_snufftoofar = 1;
                   break;
                case PEMIT_OEMIT:
                   notify(player, "Emit except to whom?");
@@ -1693,7 +1695,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                ok_to_do = 1;
             }
             if (!ok_to_do && (cstuff != 1) && (!mudconf.pemit_any || (key != PEMIT_PEMIT))) {
-               if (!cstuff)
+               if (!cstuff && !i_snufftoofar)
                   notify(player, "You are too far away to do that.");
                break;
             }

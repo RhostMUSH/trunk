@@ -19641,30 +19641,83 @@ FUNCTION(fun_nsiter)
 FUNCTION(fun_strmath)
 {
    char *curr, *cp, *objstring, sep, osep, tempbuff[LBUF_SIZE], *tcurr, *tmp,
-        *s_str, *s_strtok;
+        *s_str, *s_strtok, sep2, osep2, osep_str[3];
    static char mybuff[LBUF_SIZE];
    int  i_val, i_base, i_number, first, first2, i_start, i_cnt, i_currcnt, i_applycnt;
 
-   if (!fn_range_check("STRMATH", nfargs, 3, 7, buff, bufcx))
+   if (!fn_range_check("STRMATH", nfargs, 3, 9, buff, bufcx))
       return;
-   if ((nfargs > 3) && *fargs[3])
-      sep = *fargs[3];
-   else
+   if ((nfargs > 3) && *fargs[3]) {
+      tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3],
+                 cargs, ncargs);
+      if ( *tmp ) {
+         sep = *tmp;
+      } else {
+         sep = ' ';
+      }
+      free_lbuf(tmp);
+   } else {
       sep = ' ';
-   if ((nfargs > 4) && *fargs[4])
-      osep = *fargs[4];
-   else
+   }
+   if ((nfargs > 4) && *fargs[4]) {
+      tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[4],
+                 cargs, ncargs);
+      if ( *tmp ) {
+         osep = *tmp;
+      } else {
+         osep = sep;
+      }
+      free_lbuf(tmp);
+   } else {
       osep = sep;
-   if ((nfargs > 5) && *fargs[5])
-      i_start = atoi(fargs[5]);
-   else
+   }
+   if ((nfargs > 5) && *fargs[5]) {
+      tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[5],
+                 cargs, ncargs);
+      i_start = atoi(tmp);
+      free_lbuf(tmp);
+   } else {
       i_start = 1;
+   }
    if (i_start < 1)
       i_start = 1;
-   if ((nfargs > 6) && *fargs[6])
-      i_cnt = atoi(fargs[6]);
-   else
+   if ((nfargs > 6) && *fargs[6]) {
+      tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[6],
+                 cargs, ncargs);
+      i_cnt = atoi(tmp);
+      free_lbuf(tmp);
+   } else {
       i_cnt = 4000;
+   }
+   memset(osep_str, '\0', sizeof(osep_str));
+   if ((nfargs > 7) && *fargs[7]) {
+      tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[7],
+                 cargs, ncargs);
+      if ( *tmp ) {
+         sep2 = *fargs[7];
+         sprintf(osep_str, "%c", sep2);
+      } else {
+         sep2 = ' ';
+         sprintf(osep_str, "%c\t", sep2);
+      }
+      free_lbuf(tmp);
+   } else {
+      sep2 = ' ';
+      sprintf(osep_str, "%c\t", sep2);
+   }
+   if ((nfargs > 8) && *fargs[8] ) {
+      tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[8],
+                 cargs, ncargs);
+      if ( *tmp ) {
+         osep2 = *tmp;
+      } else {
+         osep2 = sep2;
+      }
+      free_lbuf(tmp);
+   } else {
+      osep2 = sep2;
+   }
+
    tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
                     cargs, ncargs);
    curr = alloc_lbuf("fun_strmath");
@@ -19691,13 +19744,18 @@ FUNCTION(fun_strmath)
       objstring = split_token(&cp, sep);
       memset(mybuff, '\0', sizeof(mybuff));
       memcpy(mybuff, objstring, LBUF_SIZE - 1);
-      s_str = strtok_r(mybuff, " \t", &s_strtok);
+      s_str = strtok_r(mybuff, osep_str, &s_strtok);
       if ( !first )
          safe_chr(osep, buff, bufcx);
       first2 = 1;
       while ( s_str ) {   
-         if ( !first2 )
-            safe_chr(' ', buff, bufcx);
+         if ( !first2 ) {
+            if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
+               safe_chr(osep2, buff, bufcx);
+            } else {
+               safe_chr(sep2, buff, bufcx);
+            }
+         }
          if ( is_integer(s_str) ) {
             i_number = atoi(s_str);
             if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
@@ -19731,7 +19789,7 @@ FUNCTION(fun_strmath)
          } else {
             safe_str(s_str, buff, bufcx);
          }
-         s_str = strtok_r(NULL, " \t", &s_strtok);
+         s_str = strtok_r(NULL, osep_str, &s_strtok);
          first2 = 0;
       }
       if ( i_currcnt >= i_start )
