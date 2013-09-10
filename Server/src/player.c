@@ -1109,8 +1109,10 @@ int reg_internal(char *name, char *email, char *dum, int key)
     if ( !key )
        broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
     code = 1;
-  }
-  else {
+  } else {
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
     move_object(player, mudconf.start_room);
     time(&now);
     sprintf(buff,"Email: %.1000s, Site: %.1000s, Id: %.1000s, Time: %s",email,d->addr,d->userid,ctime(&now));

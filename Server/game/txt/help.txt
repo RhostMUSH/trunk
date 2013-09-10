@@ -3679,6 +3679,14 @@
    
   See Also: @name
   
+& @remit
+  Command: @remit <location>=<message>
+           @pemit/contents <location>=<message>
+ 
+  Please see help on @pemit.
+  
+  See Also: @pemit
+ 
 & @pemit
   Command: @pemit[/switches] <what>=<message>
            @pemit/toreality/contents[/list] <realities>/<what>=<message>
@@ -10189,7 +10197,6 @@
     # Testing line wrap split on spacing
     > @emit printf($":.:-30|s,testing padding testing padding testing 
                    padding testing padding)
-
     testing padding testing ......
     padding testing padding ......
     testing padding...............
@@ -10197,14 +10204,26 @@
     # Testing raw line wrapping
     > @emit printf($:.:-30|s,testing padding testing padding testing 
                    padding testing padding)
-
     testing padding testing paddin
     g testing padding testing padd
     ing...........................
   
+    # Testing borders around wrapped input
+    > @emit printf($&:+:1s$-20|"s$&:+:1s,%r,this is a test a b c. 
+                   this is a test a b c.  this is a test a b c.,%r)
+    +this is a test a b  +
+    +c. this is a test a +
+    +b c. this is a test +
+    +a b c.              +
+  
+  
   Note: Notice that it keeps track of all padding in the original
         string and will not remove the spaces (as intended).  
-
+  
+        Also notice how with the borders, it automatically keeps expanding 
+        out as long as there's other columns expanding.  This behavior can 
+        be omitted with a '!' as first filler char. 
+  
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
@@ -24686,3 +24705,4 @@ Bug Fixes
 * compiling issue when not using the enhanced ansi option [ASH]
 * crashbug in @blacklist/list in some conditions [ASH]
 * paging was broken in @blacklist/list, non-crash bug. [ASH]
+* possible erraneous cpu alert on new player creation on first connect [ASH]

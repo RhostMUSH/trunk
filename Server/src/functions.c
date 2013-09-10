@@ -2002,7 +2002,7 @@ FUNCTION(fun_safebuff)
 
 
 #ifdef ZENTY_ANSI
-  if ( (strlen(fargs[0]) < (LBUF_SIZE - 10)) ) {
+  if ( (strlen(fargs[0]) < (LBUF_SIZE - 24)) ) {
 #else
   if ( (strlen(fargs[0]) < (LBUF_SIZE - 2)) ) {
 #endif
@@ -2022,7 +2022,7 @@ FUNCTION(fun_safebuff)
 
 #ifdef ZENTY_ANSI
   i_cntr = 0;
-  while( ((s_ptr >= s_tmp) && (*s_ptr != sep)) || i_cntr < 10 ) {
+  while( ((s_ptr >= s_tmp) && (*s_ptr != sep)) || i_cntr < 24 ) {
      s_ptr--;
      i_cntr++;
   }

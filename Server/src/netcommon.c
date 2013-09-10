@@ -3884,7 +3884,12 @@ check_connect(DESC * d, const char *msg)
 		log_name(player);
 		free_mbuf(buff);
 		ENDLOG
-		    move_object(player, mudconf.start_room);
+
+                mudstate.chkcpu_stopper = time(NULL);
+                mudstate.chkcpu_toggle = 0;
+                mudstate.chkcpu_locktog = 0;
+
+		move_object(player, mudconf.start_room);
 		d->flags |= DS_CONNECTED;
 		d->connected_at = time(0);
 		d->player = player;
