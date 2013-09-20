@@ -387,6 +387,8 @@ struct confdata {
 	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
+        char    atrperms[LBUF_SIZE];
+        int	atrperms_max;
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
 	int	lfunction_max;	/* Maximum lfunctions allowed */

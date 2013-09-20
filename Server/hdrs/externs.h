@@ -25,6 +25,21 @@
 #define DOING_SIZE 32	/* @doing and @doing/header size */
 #define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#'))
 
+#define atrpCit(s) (s == 1)
+#define atrpGuild(s) (s == 2)
+#define atrpArch(s) (s == 3)
+#define atrpCounc(s) (s == 4)
+#define atrpWiz(s) (s == 5)
+#define atrpImm(s) (s == 6)
+#define atrpGod(s) (s == 7)
+
+typedef struct atrp {
+        char   *name;       /* function name */
+        int     flag_set;       /* who can set/clear attrib */
+        int     flag_see;       /* who can see attrib */
+        struct atrp *next;      /* Next ufun in chain */
+} ATRP;
+
 extern long	FDECL(count_player,(dbref, int));
 /* From conf.c */
 extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
@@ -482,6 +497,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 /* Command handler keys */
 
 #define AFLAGS_FULL	1
+#define AFLAGS_PERM	2
 #define AREG_LOAD	1
 #define AREG_UNLOAD	2
 #define AREG_LIST	4
@@ -858,6 +874,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SWITCH_REGONE	8	/* Same as one but regexp */
 #define SWITCH_CASE	16	/* Case sensitive switch to well, @switch */
 #define	SWITCH_NOTIFY	32	/* Do a @notify at the end */
+#define SWITCH_INLINE	64	/* inline switches -- yayy */
+#define SWITCH_LOCALIZE 128	/* Localize registers if inline */
+#define SWITCH_CLEARREG 256	/* Clear registers if inline */
+#define SWITCH_NOBREAK	512	/* Don't break out from local @break */
 #define	SWEEP_ME	1	/* Check my inventory */
 #define	SWEEP_HERE	2	/* Check my location */
 #define	SWEEP_COMMANDS	4	/* Check for $-commands */

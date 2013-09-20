@@ -33,6 +33,8 @@ char *index(const char *, int);
 #include "debug.h"
 #define FILENUM COMMAND_C
 
+extern char * attrib_show(char *);
+extern void display_perms(dbref);
 extern void FDECL(list_cf_access, (dbref, char *, int));
 extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
@@ -43,6 +45,7 @@ extern CF_HAND(cf_site);
 extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
+extern ATRP *atrp_head;
 
 
 #ifdef CACHE_OBJS
@@ -114,6 +117,7 @@ NAMETAB hook_sw[] =
 NAMETAB aflags_sw[] =
 {
     {(char *) "full", 2, CA_WIZARD, 0, AFLAGS_FULL},
+    {(char *) "perms", 2, CA_WIZARD, 0, AFLAGS_PERM},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB areg_sw[] =
@@ -909,6 +913,10 @@ NAMETAB switch_sw[] =
     {(char *) "regfirst", 4, CA_PUBLIC, 0, SWITCH_REGONE},
     {(char *) "case", 1, CA_PUBLIC, 0, SWITCH_CASE | SW_MULTIPLE},
     {(char *) "notify", 1, CA_PUBLIC, 0, SWITCH_NOTIFY | SW_MULTIPLE},
+    {(char *) "inline", 1, CA_PUBLIC, 0, SWITCH_INLINE | SW_MULTIPLE},
+    {(char *) "nobreak", 1, CA_PUBLIC, 0, SWITCH_NOBREAK | SW_MULTIPLE},
+    {(char *) "clearreg", 1, CA_PUBLIC, 0, SWITCH_CLEARREG | SW_MULTIPLE},
+    {(char *) "localize", 1, CA_PUBLIC, 0, SWITCH_LOCALIZE | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB tel_sw[] =
@@ -7417,15 +7425,26 @@ int flagcheck(char *fname, char *rbuff)
 
 void do_aflags(dbref player, dbref cause, int key, char *fname)
 {
-  char *buff, *s_chkattr;
+  char *buff, *s_buff, *s_chkattr, *s_format;
   int atrnum, aflags, atrcnt;
   dbref i, aowner;
 
+  if ( key & AFLAGS_PERM ) {
+     display_perms(player);
+     return;
+  }
   buff = alloc_lbuf("do_flags");
   atrnum = flagcheck(fname, buff);
   s_chkattr = NULL;
   atrcnt = 0;
+  s_buff = attrib_show(fname);
+  s_format = alloc_sbuf("do_aflags");
   if (*buff != '1') {
+     if ( (fname[0] == '_') && (!mudconf.hackattr_see || !mudconf.hackattr_nowiz) ) {
+        sprintf(s_format, " [%s%s%s]",(!mudconf.hackattr_see ? "hidden" : ""),
+                                      ((!mudconf.hackattr_see && !mudconf.hackattr_nowiz) ? " " : ""),
+                                      (!mudconf.hackattr_nowiz ? "wizard" : "") );
+     }
      if ( key & AFLAGS_FULL ) {
         s_chkattr = alloc_lbuf("attribute_delete");
         DO_WHOLE_DB(i) {
@@ -7436,27 +7455,27 @@ void do_aflags(dbref player, dbref cause, int key, char *fname)
         }
         free_lbuf(s_chkattr);
         if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
-           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s [%s%s%s]", atrnum, atrcnt, buff,
-                  (char *)(!mudconf.hackattr_see ? "hidden" : ""), 
-                  (char *)((!mudconf.hackattr_see && !mudconf.hackattr_nowiz) ? " " : ""),
-                  (char *)(!mudconf.hackattr_nowiz ? "wizard" : "") ));
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s%s %s", 
+                                        atrnum, atrcnt, buff, s_format, s_buff));
         } else {
-           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s", atrnum, atrcnt, buff));
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s %s", 
+                                        atrnum, atrcnt, buff, s_buff));
         }
      } else {
         if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
-           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s [%s%s%s]", atrnum, buff,
-                  (char *)(!mudconf.hackattr_see ? "hidden" : ""), 
-                  (char *)((!mudconf.hackattr_see && !mudconf.hackattr_nowiz) ? " " : ""),
-                  (char *)(!mudconf.hackattr_nowiz ? "wizard" : "") ));
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s%s %s", 
+                                        atrnum, buff, s_format, s_buff));
         } else {
-           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s", atrnum, buff));
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s %s", 
+                                        atrnum, buff, s_buff));
         }
      }
   } else {
      notify(player,unsafe_tprintf("Bad flag name '%s'", fname));
   }
   free_lbuf(buff);
+  free_lbuf(s_buff);
+  free_sbuf(s_format);
 }
 
 void do_limit(dbref player, dbref cause, int key, char *name,

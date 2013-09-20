@@ -1045,6 +1045,7 @@ int     ibf = -1;
                 /* always make SBUF_SIZE a null */
                 if ( strlen(flag) >= SBUF_SIZE )
                    *(flag+SBUF_SIZE-1) = '\0';
+
 		atr = mkattr(flag);
 
 		if (atr <= 0) {

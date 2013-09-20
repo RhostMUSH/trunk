@@ -27353,7 +27353,7 @@ FUN flist[] =
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},
     {"TAN", fun_tan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"TEL", fun_tel, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TEL", fun_tel, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"TEXTFILE", fun_textfile, 1, FN_VARARGS, CA_WIZARD, 0},
     {"TIME", fun_time, 0, 0, CA_PUBLIC, CA_NO_CODE},
@@ -27622,7 +27622,8 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                                             "Permissions:%s%s%s%s\n"\
                                             "Owner: #%d", 
                                             ufp->name, 
-                                            ufp->obj, 
+                                            ((!i_local || (i_local && (Good_chk(ufp->obj) && (Owner(ufp->obj) == ufp->orig_owner)))) 
+                                                ? ufp->obj : -1), 
                                             ((ap != NULL) ? ap->name : "(DELETED)"),
                                             ufp->minargs, ufp->maxargs,
                                             ((ufp->flags & FN_PRIV) ? " WIZARD " : " "),
@@ -27708,29 +27709,29 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                 sprintf(s_minargs, "%-3d", ufp2->minargs);
              }
              if ( i_local ) {
-                if (!(ufp2->flags & FN_PRIV) || Wizard(player)) {
-                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-10d[%-20.20s] %-3s %-3s %c%c%c%c",
-                          ufp2->name, ufp2->obj, ap->name, ufp2->owner, (Good_chk(ufp2->owner) ? Name(ufp2->owner) : "(invalid)"),
-                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
-                } else {
-                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-10d[%-20.20s] %-3s %-3s %c%c%c%c",
-                          ufp2->name, ufp2->obj, "(INVALID ATTRIBUTE)", ufp2->owner, (Good_chk(ufp2->owner) ? Name(ufp2->owner) : "(invalid)"),
-                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
-                }
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-10d[%-20.20s] %-3s %-3s %c%c%c%c",
+                                  ufp2->name, 
+                                  ((Good_chk(ufp2->obj) && (Owner(ufp2->obj) == ufp2->orig_owner)) ? ufp2->obj : -1), 
+                                  ((ap != NULL) ? ap->name : "(INVALID ATRIBUTE)"),
+                                  ufp2->owner, 
+                                  (Good_chk(ufp2->owner) ? Name(ufp2->owner) : "(invalid)"),
+                                  s_minargs, 
+                                  s_maxargs, 
+                                  ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
+                                  ((ufp2->flags & FN_PRES) ? 'p' : '-'), 
+                                  ((ufp2->flags & FN_PROTECT) ? '+' : '-'), 
+                                  ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
              } else {
-                if (!(ufp2->flags & FN_PRIV) || Wizard(player)) {
-                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
-                          ufp2->name, ufp2->obj, ap->name, 
-                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
-                } else {
-                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
-                          ufp2->name, ufp2->obj, "(INVALID ATTRIBUTE)", 
-                          s_minargs, s_maxargs, ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
-                          ((ufp2->flags & FN_PRES) ? 'p' : '-'), ((ufp2->flags & FN_PROTECT) ? '+' : '-'), ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
-                }
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
+                                  ufp2->name, 
+                                  ufp2->obj,
+                                  ((ap != NULL) ? ap->name : "(INVALID ATRIBUTE)"),
+                                  s_minargs, 
+                                  s_maxargs, 
+                                  ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
+                                  ((ufp2->flags & FN_PRES) ? 'p' : '-'), 
+                                  ((ufp2->flags & FN_PROTECT) ? '+' : '-'), 
+                                  ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
              }
              count++;
           }
@@ -27854,9 +27855,11 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
           tprp_buff = tpr_buff = alloc_lbuf("do_function");
           if ( count ) {
              if ( i_local && (*np == '#') && (s_buffptr = strchr(fname, '_')) ) {
-                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%sunction %s deleted (owned by #%d).", (i_local ? "LOCAL F" : "F"), ufp2->name, ufp2->owner));
+                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                "%sunction %s deleted (owned by #%d).", (i_local ? "LOCAL F" : "F"), ufp2->name, ufp2->owner));
              } else {
-                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%sunction %s deleted.", (i_local ? "LOCAL F" : "F"), ufp2->name));
+                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                "%sunction %s deleted.", (i_local ? "LOCAL F" : "F"), ufp2->name));
              }
              if ( ufp2->name )
                 free((void *)ufp2->name);
@@ -28003,6 +28006,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
       ufp->perms2 = 0;
       ufp->next = NULL;
       ufp->owner = Owner(player);
+      ufp->orig_owner = Owner(obj);
       if ( i_local ) {
          if (!ulfun_head) {
             ulfun_head = ufp;
@@ -28024,6 +28028,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
    ufp->obj = obj;
    ufp->atr = atr;
    ufp->flags = key;
+   ufp->orig_owner = Owner(obj);
    if ( i_local && (!controls(ufp->owner, ufp->obj)) ) {
       notify_quiet(player, unsafe_tprintf("Warning: SECURITY RISK -- Assigned function %s to object #%d which player #%d does not control!", ufp->name, ufp->obj, ufp->owner));
    }

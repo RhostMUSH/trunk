@@ -26,6 +26,7 @@ typedef struct ufun {
 	const char *name;	/* function name */
 	dbref	obj;		/* Object ID */
 	dbref 	owner;		/* NOT USED except for local functions */
+        dbref   orig_owner;	/* NOT USED except for local functions */
 	int	atr;		/* Attribute ID */
 	int	flags;		/* Function flags */
 	int	perms;		/* Access to function */

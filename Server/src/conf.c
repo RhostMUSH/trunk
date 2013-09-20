@@ -41,6 +41,7 @@ CONFDATA mudconf;
 STATEDATA mudstate;
 
 #ifndef STANDALONE
+extern int FDECL(pstricmp, (char *, char *, int));
 extern NAMETAB logdata_nametab[];
 extern NAMETAB logoptions_nametab[];
 extern NAMETAB access_nametab[];
@@ -270,10 +271,12 @@ NDECL(cf_init)
     mudconf.includecnt = 10;		/* Maximum count of @includes per command session */
     mudconf.lfunction_max = 20;		/* Maximum lfunctions allowed per user */
     mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
+    mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
+    memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     mudstate.breakst = 0;
     mudstate.breakdolist = 0;
     mudstate.dolistnest = 0;
@@ -1420,7 +1423,8 @@ CF_HAND(cf_dynstring)
 
    chkval = retval = addval = 0;
    if ( strcmp( str, "!ALL" ) == 0 ) {
-      notify(player, "Entry purged.");
+      if ( Good_obj(player) )
+         notify(player, "Entry purged.");
       strcpy((char *) vp, "");
       chkval = 1;
    } else {
@@ -1489,14 +1493,18 @@ CF_HAND(cf_dynstring)
       free_lbuf(abuf1);
       free_lbuf(buff);
       if ( first != second ) {
-         if ( chkval && first )
-            notify(player, unsafe_tprintf("String exceeded maximum length.  %d removed, %d added, %d ignored.",
-                   chkval, first, second - first));
-         else if ( chkval )
-            notify(player, "String exceeded maximum length.");
-         else
-            notify(player, unsafe_tprintf("String exceeded maximum length.  %d added, %d ignored.",
+         if ( chkval && first ) {
+            if ( Good_obj(player) )
+               notify(player, unsafe_tprintf("String exceeded maximum length.  %d removed, %d added, %d ignored.",
+                      chkval, first, second - first));
+         } else if ( chkval ) {
+            if ( Good_obj(player) )
+               notify(player, "String exceeded maximum length.");
+         } else {
+            if ( Good_obj(player) )
+               notify(player, unsafe_tprintf("String exceeded maximum length.  %d added, %d ignored.",
                    first, second - first));
+         }
 	 STARTLOG(LOG_STARTUP, "CNF", "NFND")
             buff = alloc_lbuf("cf_string.LOG");
 	    sprintf(buff, "%s: String buffer exceeded - truncated", cmd);
@@ -1505,19 +1513,285 @@ CF_HAND(cf_dynstring)
 	 ENDLOG
          retval = 1;
       } else {
-         if ( !chkval && !addval )
-            notify(player, "Entry not changed.");
-         else
-            if ( chkval && first )
-               notify(player, unsafe_tprintf("Entry updated.  %d removed, %d added.", chkval, first));
-            else if ( chkval )
-               notify(player, unsafe_tprintf("Entry updated.  %d removed.", chkval));
-            else
-               notify(player, unsafe_tprintf("Entry updated.  %d added.", first));
+         if ( !chkval && !addval ) {
+            if ( Good_obj(player) )
+               notify(player, "Entry not changed.");
+         } else {
+            if ( chkval && first ) {
+               if ( Good_obj(player) )
+                  notify(player, unsafe_tprintf("Entry updated.  %d removed, %d added.", chkval, first));
+            } else if ( chkval ) {
+               if ( Good_obj(player) )
+                  notify(player, unsafe_tprintf("Entry updated.  %d removed.", chkval));
+            } else {
+               if ( Good_obj(player) )
+                  notify(player, unsafe_tprintf("Entry updated.  %d added.", first));
+            }
+         }
       }
    }
    if ( !chkval && !addval  )
       retval = -1;
+   return retval;
+}
+
+/* ---------------------------------------------------------------------------
+ * cf_attriblock
+ */
+ATRP *atrp_head = NULL;
+
+int
+attrib_cansee(dbref player, const char *name)
+{
+   ATRP *atrp;
+
+   for (atrp = atrp_head; atrp; atrp = atrp->next) {
+      if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
+         if ( (God(player) && atrpGod(atrp->flag_see)) ||
+              (Immortal(player) && atrpImm(atrp->flag_see)) ||
+              (Wizard(player) && atrpWiz(atrp->flag_see)) ||
+              (Admin(player) && atrpCounc(atrp->flag_see)) ||
+              (Builder(player) && atrpArch(atrp->flag_see)) ||
+              (Guildmaster(player) && atrpGuild(atrp->flag_see)) ||
+               atrpCit(atrp->flag_see) )
+              
+            return 1;
+         return 0;
+      }
+   }
+   return 1;
+}
+
+int
+attrib_canset(dbref player, const char *name)
+{
+   ATRP *atrp;
+
+   for (atrp = atrp_head; atrp; atrp = atrp->next) {
+      if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
+         if ( (God(player) && atrpGod(atrp->flag_set)) ||
+              (Immortal(player) && atrpImm(atrp->flag_set)) ||
+              (Wizard(player) && atrpWiz(atrp->flag_set)) ||
+              (Admin(player) && atrpCounc(atrp->flag_set)) ||
+              (Builder(player) && atrpArch(atrp->flag_set)) ||
+              (Guildmaster(player) && atrpGuild(atrp->flag_set)) ||
+               atrpCit(atrp->flag_set) )
+            return 1;
+         return 0;
+      }
+   }
+   return 1;
+}
+
+char *
+attrib_show(char *name)
+{
+   ATRP *atrp;
+   char *n_perms[]={"NULL", "citizen" , "guildmaster", "architect", "councilor", "wizard", "immortal", "god", "Error"};
+   char *s_buff;
+
+   s_buff = alloc_lbuf("attrib_show");
+   if ( name && *name ) {
+      for (atrp = atrp_head; atrp; atrp = atrp->next) {
+         if ( pstricmp(name, atrp->name, strlen(atrp->name)) == 0 ) {
+            sprintf(s_buff, "{CanSee: %-s, CanSet: %-s}", n_perms[atrp->flag_see], n_perms[atrp->flag_set]);
+            break;
+         }
+      }
+   }
+   return s_buff;
+}
+
+void 
+display_perms(dbref player)
+{
+    char *n_perms[]={"NULL", "Cit", "Guild", "Arch", "Counc", "Wiz", "Imm", "God", "Error"};
+    char *tprbuff, *tprpbuff;
+    int i_cnt;
+    ATRP *atrp;
+
+    tprpbuff = tprbuff = alloc_lbuf("display_perm");
+    notify(player, "------------------------------------------------------------------------------");
+    notify(player, safe_tprintf(tprbuff, &tprpbuff, "%-64s %-7s %-7s", (char *)"Attribute Prefix", (char *)"Set", (char *)"See"));
+    notify(player, "------------------------------------------------------------------------------");
+    i_cnt = 0;
+    if ( atrp_head ) {
+       for ( atrp = atrp_head; atrp; atrp = atrp->next ) {
+          i_cnt++;
+          tprpbuff = tprbuff;
+          notify(player, safe_tprintf(tprbuff, &tprpbuff, "%-64s %-7s %-7s", atrp->name, n_perms[atrp->flag_set], n_perms[atrp->flag_see]));
+       }
+    }
+    tprpbuff = tprbuff;
+    notify(player, safe_tprintf(tprbuff, &tprpbuff, 
+                                "----------------------------[%6d/%6d max]-------------------------------", 
+                                i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max)));
+    notify(player, "Note: Immortals are treated as god with regards to seeing attributes.");
+    free_lbuf(tprbuff);
+}
+
+CF_HAND(cf_atrperms)
+{
+   int retval, i_see, i_set, first1, first2, first3, i_atrperms_cnt, i_warn;
+   char *s_strtok, *s_strtokptr, *t_strtok, *t_strtokptr, *s_chr, *s_buff;
+   char *sbuff1, *sbuff2, *sbuff3, *sbuff1ptr, *sbuff2ptr, *sbuff3ptr;
+   /* Guildmaster, Architect, Councilor, Wizard, Immortal, #1 */
+   ATRP *atrp, *atrp2;
+
+   if ( mudconf.atrperms_max < 0 )
+      mudconf.atrperms_max = 0;
+   if ( mudconf.atrperms_max > 10000 )
+      mudconf.atrperms_max = 10000;
+
+   /* Let's count the total attrib prefix masks */
+   i_atrperms_cnt = i_warn = 0;
+   if ( atrp_head ) {
+      for (atrp = atrp_head; atrp; atrp = atrp->next)
+         i_atrperms_cnt++;
+   }
+
+   retval = i_set = i_see = first1 = first2 = first3 = 0;
+   s_strtokptr = strtok_r(str, "\t ", &s_strtok);
+   s_buff = alloc_lbuf("cf_atrperms");
+   sbuff1ptr = sbuff1 = alloc_lbuf("cf_atrperms2");
+   sbuff2ptr = sbuff2 = alloc_lbuf("cf_atrperms3");
+   sbuff3ptr = sbuff3 = alloc_lbuf("cf_atrperms3");
+   while ( s_strtokptr ) {
+      memset(s_buff, '\0', LBUF_SIZE);
+      strcpy(s_buff, s_strtokptr);
+      t_strtokptr = strtok_r(s_buff, ":", &t_strtok);
+      if ( t_strtokptr && *t_strtokptr ) {
+         s_chr = t_strtokptr;
+         while ( s_chr && *s_chr ) {
+            *s_chr = ToUpper(*s_chr);
+            s_chr++;
+         }
+         if ( *t_strtokptr == '!' ) {
+            atrp = atrp_head;
+            for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+               if ( strcmp(atrp2->name, t_strtokptr+1) == 0 ) {
+                  if ( strcmp(t_strtokptr+1, atrp_head->name) == 0) {
+                     atrp_head = atrp_head->next;
+                  } else {
+                     atrp->next = atrp2->next;
+                  }
+                  if ( first3 )
+                     safe_chr(' ', sbuff3, &sbuff3ptr);
+                  first3 = 1;
+                  safe_str(atrp2->name, sbuff3, &sbuff3ptr);
+                  free_sbuf(atrp2->name);
+                  atrp2->name = NULL;
+                  free(atrp2);
+                  atrp2 = NULL;
+                  retval = 1;
+                  break;
+               }
+               atrp = atrp2;
+            }
+         } else {
+            if ( atrp_head ) {
+               atrp = atrp_head;
+               for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+                  if (stricmp(atrp2->name, t_strtokptr) == 0 ) {
+                     t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                     if ( t_strtokptr ) {
+                        i_set = atoi(t_strtokptr);
+                        t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                        if ( t_strtokptr ) {
+                           i_see = atoi(t_strtokptr);
+                        }
+                     }
+                     if ( (i_set < 1) || (i_set > 7) )
+                        i_set = 1;
+         
+                     if ( (i_see < 1) || (i_see > 7) )
+                        i_see = 1;
+
+                     atrp2->flag_set = i_set;
+                     atrp2->flag_see = i_see;
+                     retval = 1;
+                     if ( first2 )
+                        safe_chr(' ', sbuff2, &sbuff2ptr);
+                     first2 = 1;
+                     safe_str(atrp2->name, sbuff2, &sbuff2ptr);
+                        break;
+                  }
+               }
+               atrp_head = atrp;
+               if ( retval == 1 ) {
+                  retval = 0;
+                  s_strtokptr = strtok_r(NULL, "\t ", &s_strtok);
+                  continue;
+               }
+            }
+            if ( i_atrperms_cnt >= mudconf.atrperms_max ) {
+               if ( Good_obj(player) ) {
+                  if ( !i_warn ) 
+                     notify(player, "Ceiling reached on attribute prefix masking.");
+                  i_warn = 1;
+               }
+               s_strtokptr = strtok_r(NULL, "\t ", &s_strtok);
+               continue;
+            }
+            i_atrperms_cnt++;
+            atrp  = (ATRP *) malloc(sizeof(ATRP));       
+            atrp->name = alloc_sbuf("attribute_perm_array");
+            memset(atrp->name, '\0', SBUF_SIZE);
+            strncpy(atrp->name, t_strtokptr, SBUF_SIZE - 2);
+            atrp->next = NULL;
+            t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+            if ( t_strtokptr ) {
+               i_set = atoi(t_strtokptr);
+               t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+               if ( t_strtokptr ) {
+                  i_see = atoi(t_strtokptr);
+               }
+            }
+            if ( (i_set < 1) || (i_set > 7) )
+               i_set = 1;
+
+            if ( (i_see < 1) || (i_see > 7) )
+               i_see = 1;
+
+            atrp->flag_set = i_set;
+            atrp->flag_see = i_see;
+            if (!atrp_head) {
+               atrp_head = atrp;
+            } else {
+               for (atrp2 = atrp_head; atrp2->next; atrp2 = atrp2->next);
+               atrp2->next = atrp;
+            }
+            if ( atrp && atrp->name ) {
+               if ( first1 )
+                  safe_chr(' ', sbuff1, &sbuff1ptr);
+               first1 = 1;
+               safe_str(atrp->name, sbuff1, &sbuff1ptr);
+            }
+            retval = 5;
+         }
+      }
+      s_strtokptr = strtok_r(NULL, "\t ", &s_strtok);
+   }
+   free_lbuf(s_buff);
+   if ( Good_chk(player) && *sbuff1 ) {
+      notify(player, unsafe_tprintf("Added.....: %s", sbuff1));
+   }
+   if ( Good_chk(player) && *sbuff2 ) {
+      notify(player, unsafe_tprintf("Modified..: %s", sbuff2));
+   }
+   if ( Good_chk(player) && *sbuff3 ) {
+      notify(player, unsafe_tprintf("deleted...: %s", sbuff3));
+   }
+   if ( Good_chk(player) ) {
+      if ( i_atrperms_cnt < mudconf.atrperms_max ) {
+         notify(player, unsafe_tprintf("You can add %d more prefixes", mudconf.atrperms_max - i_atrperms_cnt));
+      } else {
+         notify(player, unsafe_tprintf("You are at the maximum number of prefixes [%d].", mudconf.atrperms_max));
+      }
+   }
+   free_lbuf(sbuff1);
+   free_lbuf(sbuff2);
+   free_lbuf(sbuff3);
    return retval;
 }
 
@@ -2433,6 +2707,13 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.cache_width, 0, 0, CA_WIZARD,
      (char *) "What is the current cache width?\r\n"
               "                             Default: 541   Value: %d"},
+    {(char *) "atrperms",
+     cf_atrperms, CA_GOD | CA_IMMORTAL, (int *) mudconf.atrperms, LBUF_SIZE - 2, 0, CA_WIZARD,
+     (char *) "Prefix permission masks for attributes."},
+    {(char *) "atrperms_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.atrperms_max, 0, 0, CA_WIZARD,
+     (char *) "Max Attribute Prefix Permissions?\r\n"
+              "     (range: 0-10000)        Default: 100   Value: %d"},
     {(char *) "cap_conjunctions",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.cap_conjunctions, LBUF_SIZE - 2, 0, CA_WIZARD,
      (char *) "Exceptions for caplist -- conjunctions."},
@@ -4038,6 +4319,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                    safe_str(tempbuff, buff, bufc);
                    return;
                } else if ( (tp->interpreter == cf_string) ||
+                         (tp->interpreter == cf_atrperms) ||
                          (tp->interpreter == cf_string_sub) ||
                          (tp->interpreter == cf_dynstring) ||
                          (tp->interpreter == cf_dynguest) ||

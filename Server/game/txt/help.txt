@@ -4030,6 +4030,10 @@
      /regall   - Same as /all but use regular expression matching. 
      /regfirst - Same as /first but use regular expression matching.
      /notify   - This issues a @notify on the object after the @switch executes.
+     /inline   - process command 'inline' and don't queue it.
+     /clearreg - if inline, clear registers for each arguement
+     /localize - if inline, localize registers for each argument
+     /nobreak  - if inline, keep breaks localized per argument
   
   If configured, you may use #$ as a substition.   #$ is substituted with 
   the value of <string>. In this way, the commands in <c1>..<cN>..<cD> 
@@ -10947,9 +10951,11 @@ See Also: timefmt()
  
   Rand returns an integer between 0 and num-1.
   
-  You may optionally specify a min/max pair of where the random number will range between.
+  You may optionally specify a min/max pair of where the random number 
+  will range between.
   
-  If you specify the boolean, it will return the value as a double.  Max double is 100 digits.
+  If you specify the boolean, it will return the value as a double.  
+  Max double is 100 digits.
  
   Example:
     > say rand(10)
@@ -20265,7 +20271,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Example of cluster_u2local():
     > &FRUIT cluster#1=apples bananas oranges pears
     > &SUB-FUNCTION cluster#2=[setq(0,v(FRUIT))][extract(%q0,match(%q0,%0),1)]
-    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)][cluster_u2local(SUB-FUNCTION,%0)] %q0
+    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)]
+                              [cluster_u2local(SUB-FUNCTION,%0)] %q0
     > say cluster_u2(cluster#1/TOP-FUNCTION,b*)
     You say "bananas are delicious!"
    
@@ -20396,7 +20403,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Example of cluster_ulocal():
     > &FRUIT cluster#1=apples bananas oranges pears
     > &SUB-FUNCTION cluster#2=[setq(0,v(FRUIT))][extract(%q0,match(%q0,%0),1)]
-    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)][cluster_ulocal(SUB-FUNCTION,%0)] %q0
+    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)]
+                              [cluster_ulocal(SUB-FUNCTION,%0)] %q0
     > say cluster_u(TOP-FUNCTION,b*)
     You say "bananas are delicious!"
    
@@ -24691,6 +24699,8 @@ Status: Alpha
 New Features
 -------
 * config parameter reality_compare for optional methods of desc displaying [ASH]
+* config parameter atrperms to set up attribute prefix permissions [ASH]
+* config parameter atrperms_max for ceiling on prefixes defined [ASH]
   
 Changes
 -------
@@ -24699,6 +24709,10 @@ Changes
 * strmath() improved with inner delimitation (2 new arguments) [ASH]
 * a bit of cleanup with @pemit on cloaked players [ASH]
 * @aflags will now show _ prefix permissions on attributes (where existing) [ASH]
+* @switch handles /inline, /clearregs, /nobreak, and /localize options [ASH]
+* Cleaned up help.txt to no longer give line longer than X with mkindx [ASH]
+* Improved validation for @Lfunction [ASH]
+* @aflags/perm to show attribute prefix permissions in use [ASH]
   
 Bug Fixes
 ---------
@@ -24706,3 +24720,5 @@ Bug Fixes
 * crashbug in @blacklist/list in some conditions [ASH]
 * paging was broken in @blacklist/list, non-crash bug. [ASH]
 * possible erraneous cpu alert on new player creation on first connect [ASH]
+* @dynhelp didn't evaluate optional player target properly [ASH]
+* @lfunction was too restrictive on ownership [ASH]

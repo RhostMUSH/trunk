@@ -3242,12 +3242,19 @@
   See Also: page, @pemit
 
 & @aflags
-  Command: @aflags <attribute>
+  Command: @aflags[</switch>] <attribute>
   
   This command will return all the toggled flags of that
-  given attribute.
+  given attribute.  This will also show prefix based permissions from
+  '_' attributes as well as those with the atrperms @admin parameter.
+  
+  Following switches exist:
+    /full -- give full statistics of the attribute, like count in use.
+    /perm -- list all current attribute based prefix permissions.
   
   Example:  @aflags comment
+  
+  See Also: atrperms, atrperms_max
 
 & @icmd
   Command: @icmd</switch> <player [= arguments]>
@@ -4520,25 +4527,25 @@
   ahear_maxtime            alias                    allow_ansinames        
   allow_whodark            alt_inventories          altover_inv            
   always_blind             areg_file                areg_lim               
-  aregh_file               attr_access              attr_alias             
-  attr_cmd_access          authenticate             bad_name               
-  badsite_file             bcc_hidden               blind_snuffs_cons
-  brace_compatibility      break_compatability      cache_depth            
-  cache_steal_dirty        cache_trim               cache_width            
-  cap_articles             cap_conjunctions         cap_preposition        
-  check_interval           check_offset             clone_copies_cost      
-  cluster_cap              clusterfunc_cap          comcost                
-  command_dark             command_quota_increment  command_quota_max      
-  compress_program         compression              config_access          
-  conn_timeout             connect_file             connect_reg_file       
-  cpu_secure_lvl           cpuintervalchk           cputimechk             
-  crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            descs_are_local          default_home           
-  dig_cost                 door_file                door_index             
-  down_file                down_motd_message        dump_interval          
-  dump_message             dump_offset              earn_limit             
-  empower_fulltel          enable_tstamps           enforce_unfindable     
-  error_file
+  aregh_file               atrperms                 atrperms_max
+  attr_access              attr_alias               attr_cmd_access        
+  authenticate             bad_name                 badsite_file           
+  bcc_hidden               blind_snuffs_cons        brace_compatibility    
+  break_compatability      cache_depth              cache_steal_dirty      
+  cache_trim               cache_width              cap_articles           
+  cap_conjunctions         cap_preposition          check_interval         
+  check_offset             clone_copies_cost        cluster_cap            
+  clusterfunc_cap          comcost                  command_dark           
+  command_quota_increment  command_quota_max        compress_program       
+  compression              config_access            conn_timeout           
+  connect_file             connect_reg_file         cpu_secure_lvl         
+  cpuintervalchk           cputimechk               crash_database         
+  create_max_cost          create_min_cost          dark_sleepers          
+  descs_are_local          default_home             dig_cost               
+  door_file                door_index               down_file              
+  down_motd_message        dump_interval            dump_message           
+  dump_offset              earn_limit               empower_fulltel        
+  enable_tstamps           enforce_unfindable       error_file
   
 { 'wizhelp config parameters2' for more }
 
@@ -4801,6 +4808,74 @@
   Specifies the file seen when AUTOREGISTRATION is enabled at the connect
   screen and a player who is able to autoregister AND able to create
   connects to the mush.
+
+& atrperms
+  Config parameter: atrperms <field1> <field2> ... <fieldX>
+  
+  This parameter is used to set up attribute prefix masks.  The syntax for
+  these masks are in the following form:
+  
+      ATTRIBUTENAME:SETPERMISSION:SEEPERMISSION
+     !ATTRIBUTENAME
+  
+  In the above, the descriptions are as followed:
+      ATTRIBUTENAME -- The name of the attribute prefix you wish to use.
+                       A '!' before the attribute tells it to delete it.
+      SETPERMISSION -- The bittype() that is allowed to SET the masked attr.
+      SEEPERMISSION -- The bittype() that is allowed to SEE the masked attr.
+  
+  Please note the permission is a bittype from 1 to 7.  It uses the same
+  numerical values that the bittype() function uses.  These values are:
+      God (#1)        7
+      Super-Royalty   6
+      Royalty         5
+      Councilor       4
+      Architect       3
+      Guildmaster     2
+      Citizen         1
+  
+  See Also: atrperms_max, @aflags
+  
+{see atrperms2 for examples and explainations}
+& atrperms2
+  (CONTINUED)
+  
+  You may string multiple attribute permissions together in a single line.
+  Examples:
+    #1 > atrperms prefix1:3:4 bad:7:7 good:1:3 
+    #2 > atrperms oog:3:5 bad:6:6 !prefix  
+  
+  Example #1 does the following:
+     set the prefix 'prefix' with Architect settable, Councilor seeable.
+     set the bad 'prefix' with God settable, God seeable.
+     set the good 'prefix' with Citizen settable, architect seeable.
+  
+  Example #2
+     set the oog 'prefix' with Architect settable, Wizard seeable.
+     re-set the bad 'prefix' with Immortal settable, Immortal seeable.
+     delete the prefix 'prefix'.
+  
+  All attributes starting with the given prefix will auto-inherit all of
+  the given permissions.  The exception are '_' attributes that are always
+  at LEAST Wizard if configured that way.  The other exception is that
+  Immortals can always see God owned attributes.  That is intentional since
+  Immortal is mostly God anyway for permissions.
+  
+  Note #1: Attribute with the God bit are only settable by God.
+  Note #2: _ permissions have precidence over these. 
+  Note #3: WHen you delete an attribute, you do not need to specify bitmasks.
+  
+  See Also: atrperms_max, @aflags
+
+& atrperms_max
+  Config Parameter: atrperms_max <value>    Default: 100
+  
+  Specify the total number of attribute prefixes you can define before it 
+  will stop the creation of new prefixes.  
+  
+  The valid value for this is 0-10000.  
+  
+  See Also: atrperms, @aflags
 
 & attr_access
   Config parameter: attr_access <attr> [!]<privilege> [[!]<privilege>]...

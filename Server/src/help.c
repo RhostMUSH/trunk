@@ -550,11 +550,14 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
    if ( !*msg || !msg ) {
       it = player;
    } else {
-      it = lookup_player(player, msg, 1);
+      line = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL, msg, (char **) NULL, 0);
+      it = lookup_player(player, line, 1);
       if (it == NOTHING || !Good_obj(it) || !isPlayer(it) || Going(it) || Recover(it) ) {
-         notify_quiet(player, unsafe_tprintf("Unknown player '%s'.", msg));
+         notify_quiet(player, unsafe_tprintf("Unknown player '%s'.", line));
+         free_lbuf(line);
          return;
       }
+      free_lbuf(line);
    }
   
    p_in_topic = in_topic = alloc_lbuf("in_topic.dynhelp");
