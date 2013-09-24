@@ -20905,10 +20905,12 @@ FUNCTION(fun_filter)
 
 FUNCTION(fun_parsestr)
 {
-   int first, i_type, i_cntr;
-   char *atext, *atextptr, *result, *objstring, *cp, *atextbuf, sep, *osep, *tbuff;
+   int first, i_type, i_cntr, i_pass, aflags;
+   dbref aname, target;
+   char *atext, *atextptr, *result, *objstring, *cp, *atextbuf, sep, *osep, *osep_pre, *osep_post, *tbuff;
+   char *savebuff[5], *ansibuf, *target_result, *c_transform, *p_transform;
 
-   if (!fn_range_check("PARSESTR", nfargs, 2, 5, buff, bufcx))
+   if (!fn_range_check("PARSESTR", nfargs, 2, 10, buff, bufcx))
      return;
 
    if ( !*fargs[0] )
@@ -20938,12 +20940,32 @@ FUNCTION(fun_parsestr)
      sep = ' ';
    }
 
+   osep_pre = alloc_lbuf("osep_pre");
+   osep_post = alloc_lbuf("osep_post");
    if ( (nfargs >= 4) && *fargs[3] ) {
      osep = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[3], cargs, ncargs);
+     if ( (*osep != ' ') && (strchr(osep, ' ') != NULL) )  {
+        tbuff = osep;
+        result = osep_pre;
+        while ( *tbuff && (*tbuff != ' ')) {
+           *result = *tbuff;
+           tbuff++;
+           result++;
+        }  
+        if ( *tbuff ) 
+           tbuff++;
+        if ( *tbuff ) 
+           strcpy(osep_post, tbuff);
+     } else {
+        strcpy(osep_pre, osep);
+        strcpy(osep_post, osep);
+     }
    } else {
      osep = alloc_lbuf("osep_buff");
      sprintf(osep, "%c", sep);
+     strcpy(osep_pre, osep);
+     strcpy(osep_post, osep);
    }
 
    if ( (nfargs >= 5) && *fargs[4] ) {
@@ -20954,9 +20976,138 @@ FUNCTION(fun_parsestr)
      i_type = (i_type > 0 ? 1 : 0);
    } else
      i_type = 0;
-   atextbuf = alloc_lbuf("fun_parsestr");
-   i_cntr = 0;
+
+   target = NOTHING;
+   target_result = NULL;
+   if ( (nfargs >= 6) && *fargs[5] ) {
+      target_result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                  fargs[5], cargs, ncargs);
+      if ( *target_result != '&' ) {
+         target = match_thing(player, target_result);
+         free_lbuf(target_result);
+         if ( !Good_chk(target) ) {
+            notify(player, "Permission denied.");
+            free_lbuf(atext);
+            free_lbuf(osep);
+            free_lbuf(osep_pre);
+            free_lbuf(osep_post);
+            return;
+         }
+         ansibuf = atr_pget(target, A_ANSINAME, &aname, &aflags);
+         if ( ExtAnsi(target) ) {
+            target_result = alloc_lbuf("target_result");
+            memset(target_result, '\0', LBUF_SIZE);
+            if ( ansibuf && *ansibuf ) {
+               memcpy(target_result, ansibuf, LBUF_SIZE - 2);
+            } else {
+               sprintf(target_result, "%s", Name(target));
+            }
+         } else {
+            if ( ansibuf && *ansibuf ) {
+               target_result = parse_ansi_name(target, ansibuf);
+            } else {
+               target_result = alloc_lbuf("target_result");
+               sprintf(target_result, "%s", Name(target));
+            }
+         }
+         free_lbuf(ansibuf);
+      }
+   }
+   
+   c_transform = NULL;
+   p_transform = NULL;
+
+   if ( (nfargs >= 7) && *fargs[6] ) {
+      c_transform = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                  fargs[6], cargs, ncargs);
+   }
+   if ( (nfargs >= 8) && *fargs[7] ) {
+      p_transform = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                  fargs[7], cargs, ncargs);
+   }
+   
+   if ( !((nfargs >=9) && *fargs[8]) ) {
+      if ( c_transform && *c_transform ) {
+         free_lbuf(c_transform);
+         c_transform = NULL;
+      }
+      if ( p_transform && *p_transform ) {
+         free_lbuf(p_transform);
+         p_transform = NULL;
+      }
+   }
+   savebuff[0] = alloc_lbuf("fun_parsestr_savebuff0");
+   savebuff[1] = alloc_lbuf("fun_parsestr_savebuff1");
+   savebuff[2] = alloc_lbuf("fun_parsestr_savebuff2");
+   savebuff[3] = alloc_lbuf("fun_parsestr_savebuff3");
+   savebuff[4] = alloc_lbuf("fun_parsestr_savebuff4");
+   if ( target_result && *target_result ) {
+      memset(savebuff[1], '\0', LBUF_SIZE);
+      if ( *target_result == '&' )
+         memcpy(savebuff[1], target_result+1, LBUF_SIZE-2);
+      else
+         memcpy(savebuff[1], target_result, LBUF_SIZE-2);
+   }
+   if ( target_result )
+      free_lbuf(target_result);
+
+   tbuff = atextbuf = alloc_lbuf("fun_parsestr");
+   if ( *savebuff[1] ) {
+     memset(savebuff[4], '\0', LBUF_SIZE);
+     if ( c_transform && *c_transform && (strchr(c_transform, *atext) != NULL) ) {
+        *savebuff[4]=*atext;
+     } else if ( p_transform && *p_transform && (strchr(p_transform, *(atext+(strlen(atext)-1))) != NULL) ) {
+        *savebuff[4]=*(atext+(strlen(atext)-1));
+     }
+     if ( *atext == '"' ) {
+        safe_str(savebuff[1], atextbuf, &tbuff);
+        safe_chr(' ', atextbuf, &tbuff);
+        if ( (nfargs >=10) && *fargs[9] ) 
+           safe_str(fargs[9], atextbuf, &tbuff);
+        else
+           safe_str("says", atextbuf, &tbuff);
+        safe_str(", ", atextbuf, &tbuff);
+        safe_str(atext, atextbuf, &tbuff);
+        /* Let's count the '"' chars, if it's odd, add one to the end if last char is not a '"' and not escaped out */
+        cp = atext;
+        first = 0;
+        i_pass = 0;
+        while ( *cp ) {
+           if ( (*cp == '\\') || (*cp == '%') ) {
+              if ( !i_pass )
+                 i_pass = 1;
+              else
+                 i_pass = 0;
+           }
+           if ( (*cp == '"') && !i_pass )
+              first++;
+           cp++;
+        }     
+        if ( (first % 2) == 1)
+           safe_chr('"', atextbuf, &tbuff);
+     } else if ( (*atext == ':') || ((*atext == ';') && (*(atext+1) == ' ')) ) {
+        safe_str(savebuff[1], atextbuf, &tbuff);
+        safe_chr(' ', atextbuf, &tbuff);
+        safe_str(atext+1, atextbuf, &tbuff);
+     } else if ( (*atext == ';') || ((*atext == ':') && (*(atext+1) == ' ')) ) {
+        safe_str(savebuff[1], atextbuf, &tbuff);
+        safe_str(atext+1, atextbuf, &tbuff);
+     } else {
+        safe_str(savebuff[1], atextbuf, &tbuff);
+        safe_chr(' ', atextbuf, &tbuff);
+        if ( (nfargs >=10) && *fargs[9] ) 
+           safe_str(fargs[9], atextbuf, &tbuff);
+        else
+           safe_str("says", atextbuf, &tbuff);
+        safe_str(", \"", atextbuf, &tbuff);
+        safe_str(atext, atextbuf, &tbuff);
+        safe_chr('"', atextbuf, &tbuff);
+     }
+     strcpy(atext, atextbuf);  
+   }
+   i_cntr = i_pass = 0;
    first = 0;
+   memset(atextbuf, '\0', LBUF_SIZE);
    cp = trim_space_sep(atext, sep);
    while ( cp ) {
      i_cntr++;
@@ -20964,24 +21115,61 @@ FUNCTION(fun_parsestr)
      if ( (!i_type && ((i_cntr % 2) != 0)) ||
           ( i_type && ((i_cntr % 2) == 0)) ) {
        if ( first )
-         safe_str(osep, buff, bufcx);
+         safe_str(osep_post, buff, bufcx);
+       if ( !first ) {
+          memset(savebuff[0], '\0', LBUF_SIZE);
+          sprintf(savebuff[2], "%d", i_pass - 1);
+          sprintf(savebuff[3], "%d", i_cntr - 1);
+          strncpy(atextbuf, objstring, (LBUF_SIZE-1));
+          result = exec(player, cause, caller,
+                        EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);
+          safe_str(result, buff, bufcx);
+          safe_chr(' ', buff, bufcx);
+          free_lbuf(result);
+       } else {
+          safe_str(objstring, buff, bufcx);
+       }
        first = 1;
-       safe_str(objstring, buff, bufcx);
        continue;
      }
-     strncpy(atextbuf, fargs[1], (LBUF_SIZE-1));
+     i_pass++;
+     memset(savebuff[0], '\0', LBUF_SIZE);
+     memset(savebuff[4], '\0', LBUF_SIZE);
+     memcpy(savebuff[0], objstring, LBUF_SIZE-2);
+     sprintf(savebuff[2], "%d", i_pass - 1);
+     sprintf(savebuff[3], "%d", i_cntr - 1);
+     if ( c_transform && *c_transform && (strchr(c_transform, *objstring) != NULL) ) {
+        strncpy(atextbuf, fargs[8], (LBUF_SIZE-1));
+        *savebuff[4]=*objstring;
+     } else if ( p_transform && *p_transform && (strchr(p_transform, *(objstring+(strlen(objstring)-1))) != NULL) ) {
+        strncpy(atextbuf, fargs[8], (LBUF_SIZE-1));
+        *savebuff[4]=*(objstring+(strlen(objstring)-1));
+     } else {
+        strncpy(atextbuf, fargs[1], (LBUF_SIZE-1));
+     }
      *(atextbuf + LBUF_SIZE - 1) = '\0';
      result = exec(player, cause, caller,
-                   EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, &objstring, 1);
+                   EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);
      if ( first )
-       safe_str(osep, buff, bufcx);
+       safe_str(osep_pre, buff, bufcx);
      first = 1;
      safe_str(result, buff, bufcx);
      free_lbuf(result);
    }
+   if ( c_transform )
+      free_lbuf(c_transform);
+   if ( p_transform )
+      free_lbuf(p_transform);
+   free_lbuf(savebuff[0]);
+   free_lbuf(savebuff[1]);
+   free_lbuf(savebuff[2]);
+   free_lbuf(savebuff[3]);
+   free_lbuf(savebuff[4]);
    free_lbuf(atextbuf);
    free_lbuf(atext);
    free_lbuf(osep);
+   free_lbuf(osep_pre);
+   free_lbuf(osep_post);
 }
 
 /* ---------------------------------------------------------------------------

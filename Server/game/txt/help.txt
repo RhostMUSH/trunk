@@ -18717,15 +18717,49 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @dolist, iter(), map(), citer(), nsiter(), list()
   
 & PARSESTR()
-  Function: parsestr(<string>, <eval>[,<delim> [.<output> [,<type>]]])
+  Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
+                       [,<prefix>]]]]])
   
   This function takes an input string and parses it, based on the 
   delimiters, in a 'staggered' method, and passes each substring to
   the 'eval' as %0.  This is handy for parsing speech for example.
-  The following types exist:
-      0 - (default) - Take even arguments between delimiters.
-      1 - Take odd arguments between delimiters.
   
+  Arguments are:
+    <String>    -- input string that you wish to parse & translate
+    <eval>      -- how you wish to parse each segment of the string
+    <delim>     -- the optional input delimiter of the string
+    <output>    -- the optional output delimiter of the string.
+                   Note: if you have a space-separated argument, then
+                         the first part is prefix, the rest is suffix.
+    <type>      -- Take arguments between delimiters as even (default) or odd.
+    <target>    -- The target you wish to have if initializer specified.
+                   Note: a '&' prefix takes the string 'as-is'.  You must
+                         control the target for the target to work.
+    <transchar> -- The translation character after the 'delimiter' you wish
+                   to identify the string for special processing.
+    <endchar>   -- The last character in the field you wish to do special
+                   processing on. (good for punctuation)
+    <transeval> -- How you wish to parse the special processing string.
+    <prefix>    -- The optional prefix you wish to use for the 'say' string.
+  
+  All arguments passed will be as in the <eval> and <transeval>.
+            %0  -- The string being passed for evaluation.      
+  (prefix)  %1  -- The player name specified in target          (or &string).
+  (prefix)  %2  -- The current parameter number being processed (-1 for prefix)
+  (prefix)  %3  -- The absolute parameter being processed       (0 for prefix)
+  (prefix)  %4  -- The transchar OR endchar being processed     (if any)
+  
+  Note:  Only the values with '(prefix)' are valid for the prefix evaluation.
+  
+{ see 'help parsestr2' for examples }
+
+& PARSESTR2
+(CONTINUED)
+  Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
+                       [,<prefix>]]]]])
+
   Examples:
     > @va me=You say "Hello! Hello?" *sigh* "Hello?!?"
     Set.
@@ -18737,6 +18771,45 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "------ ------" *sigh* "--------"
     > think parsestr(v(va),garble(%0,1,,-,,2),")
     You say "-----! -----?" *sigh* "-----?!?"
+  
+  Avanced Examples:
+    > think parsestr("to die" is a mighty adventure "+snarf", --%0 %[%2/%3%]--,
+        ",",,%#,+,, X: %0 <%2/%3>, [ansi(+purple,bob)])
+    YourName bob, "--to die [0/1]--" is a mighty adventure "X: +snarf <1/3>"
+    > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--,
+        ",^~ ~^,,%#,,!,%0 <%2/%3>, [ansi(+purple,bob)])
+    YourName bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+    > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--
+        ,",^~ ~^,,&[ansi(+orange,McDonald)],,!,%0 <%2/%3>,[ansi(+purple,bob)])
+    McDonald bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+  
+{ see 'help prsestr3' for examples on how to use this for an OOC command}
+
+& PARSESTR3
+(CONTINUED)
+  Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
+                       [,<prefix>]]]]])
+  
+  Avanced Examples for OOC:
+    > &OOC me=$ooc *:think [parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
+    > ooc :tests.
+    <OOC> YourName tests.
+    > ooc ;test.
+    <OOC> YourName's test.
+    > ooc "testing
+    <OOC> YourName says, "Testing"
+    > ooc testing
+    <OOC> YourName says, "Testing"
+    > ooc "I am testing" *thinks vigeriously*
+    <OOC> YourName says, "I am testing" *thinks vigeriously*
+    > ooc "I am testing" .. thinks.. "At least I believe so"
+    <OOC> YourName says, "I am testing" .. thinks.. "At least I believe so"
+    > ooc "I am testing" .. thinks.. "At least I believe so
+    <OOC> YourName says, "I am testing" .. thinks.. "At least I believe so"
+   
+  Note: It will auto-close double quotes if it detects a non-escaped odd count.
+        Also note the colorizations will be displayed appropiately.
   
   See Also: garble(), parse(), iter(), strmath(), spellnum()
   
@@ -24713,6 +24786,7 @@ Changes
 * Cleaned up help.txt to no longer give line longer than X with mkindx [ASH]
 * Improved validation for @Lfunction [ASH]
 * @aflags/perm to show attribute prefix permissions in use [ASH]
+* greatly improved feature set for parsestr() for added speaking [ASH]
   
 Bug Fixes
 ---------
