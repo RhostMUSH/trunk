@@ -6842,6 +6842,7 @@ struct timefmt_format {
   int formatting;
   int forcebreakonreturn;
   int morepadd;
+  int cutatlength;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -7033,7 +7034,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
   int currwidth = 0;
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
        *s_special, *s_normal, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
-  int idx, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
+  int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
       center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace;
 
   i_breakhappen = i_usepadding = 0;
@@ -7062,7 +7063,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
     i_stripansi = strlen(strip_all_special(fmtbuff)) - count_extended(fmtbuff);
     s = fmtbuff;
     t = s_padstring;
-    idx = i_chk = 0;
+    idy = idx = i_chk = 0;
     while ( *s ) {
        if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
             isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
@@ -7086,13 +7087,15 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
     if ( fm->forcebreakonreturn ) {
        s = fmtbuff;
        t = s_padstring;
-       idx = i_chk = 0;
+       idy = idx = i_chk = 0;
        while ( *s ) {
           if ( (*s == '\n') || (*s == '\r')) {
              i_chk = 0;
              i_lastspace = 0;
           }
           if ( idx > (LBUF_SIZE - 12) )
+             break;
+          if ( (fm->cutatlength != 0) && (idy >= fm->cutatlength) )
              break;
           if ( ((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd))) {
              if ( i_lastspace > 0 ) { 
@@ -7148,6 +7151,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
              i_lastspace = idx;
           }
           idx++;
+          idy++;
           i_chk++;
           *t++ = *s++;
           if ( idx > (LBUF_SIZE - 10) )
@@ -7945,6 +7949,7 @@ FUNCTION(fun_printf)
    memset(fm.format_padst, '\0', sizeof(fm.format_padst));
    fm.format_padstsize = 0;
    fm.formatting = 0;
+   fm.cutatlength = 0;
    for( pp = fargs[0]; !fmterror && pp && *pp; pp++ ) {
       switch( *pp ) {
          case '!': /* end of fieldsuppress1 */
@@ -8071,6 +8076,25 @@ FUNCTION(fun_printf)
                for( fmtdone = 0, pp++; !fmterror && !fmtdone && *pp; pp++ ) {
                   formatpass = 0;
                   switch( *pp ) {
+                     case '/': /* Cut-off value if using '|' option */
+                        if ( (strchr(pp+1, '/') != NULL ) ) {
+                           if( fm.formatting ) {
+                              safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                              fmterror = 1;
+                              break;
+                           }
+                           fm.formatting = 1;
+                           fm.cutatlength = atoi(pp+1);
+                           if ( fm.cutatlength < 0 )
+                              fm.cutatlength = 0;
+                           if ( fm.cutatlength > (LBUF_SIZE - 2) )
+                              fm.cutatlength = (LBUF_SIZE - 2);
+                           pp++;
+                           while ( *pp && (*pp != '/') )
+                              pp++;
+                        }
+                        formatpass = 1;
+                        break;
                      case ':': /* Filler Character */
                         if ( *(pp+1) && (*(pp+2) == ':') ) {
                            if( fm.formatting ) {

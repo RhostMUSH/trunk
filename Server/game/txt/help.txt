@@ -10095,6 +10095,10 @@
                examples: :.:  -- fill with a single '.'
                          :!.: -- fill with a single '.' on non-blank lines.
                          :[ansi(hg,.,hb,.)]: -- fill with multi-color.
+         / - The numerical value specified between /<number>/ will be used
+             as a cut-off value when using the '|' wrap option.  
+               examples: /10/ -- when using '|' cut off after 10 characters.
+             Valid values: 0-3998 (0 is unlimited)
       Value fields:
          1-3000 - format value to padd
          0 - if prepending a number, tells it to padd 0's.
@@ -24423,7 +24427,7 @@ Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
-  3.9.4: 3.9.4p0, 3.9.4p1
+  3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -24796,3 +24800,17 @@ Bug Fixes
 * possible erraneous cpu alert on new player creation on first connect [ASH]
 * @dynhelp didn't evaluate optional player target properly [ASH]
 * @lfunction was too restrictive on ownership [ASH]
+
+& 3.9.4p2
+Release Date: 10/01/13
+Status: Alpha
+  
+New Features
+-------
+  
+Changes
+-------
+* printf() handles the '/' option to specify cutoff value for '|' wrap option [ASH]
+  
+Bug Fixes
+---------
