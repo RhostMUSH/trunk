@@ -21062,11 +21062,13 @@ FUNCTION(fun_parsestr)
      if ( *atext == '"' ) {
         safe_str(savebuff[1], atextbuf, &tbuff);
         safe_chr(' ', atextbuf, &tbuff);
-        if ( (nfargs >=10) && *fargs[9] ) 
+        if ( (nfargs >=10) && *fargs[9] ) {
            safe_str(fargs[9], atextbuf, &tbuff);
-        else
+           safe_chr(' ', atextbuf, &tbuff);
+        } else {
            safe_str("says", atextbuf, &tbuff);
-        safe_str(", ", atextbuf, &tbuff);
+           safe_str(", ", atextbuf, &tbuff);
+        }
         safe_str(atext, atextbuf, &tbuff);
         /* Let's count the '"' chars, if it's odd, add one to the end if last char is not a '"' and not escaped out */
         cp = atext;
@@ -21085,21 +21087,27 @@ FUNCTION(fun_parsestr)
         }     
         if ( (first % 2) == 1)
            safe_chr('"', atextbuf, &tbuff);
-     } else if ( (*atext == ':') || ((*atext == ';') && (*(atext+1) == ' ')) ) {
+     } else if ( ((*atext == ':') && (*(atext+1) != ' ')) || ((*atext == ';') && (*(atext+1) == ' ')) ) {
         safe_str(savebuff[1], atextbuf, &tbuff);
         safe_chr(' ', atextbuf, &tbuff);
         safe_str(atext+1, atextbuf, &tbuff);
      } else if ( (*atext == ';') || ((*atext == ':') && (*(atext+1) == ' ')) ) {
         safe_str(savebuff[1], atextbuf, &tbuff);
-        safe_str(atext+1, atextbuf, &tbuff);
+        if ( *(atext) == ':')
+           safe_str(atext+2, atextbuf, &tbuff);
+        else
+           safe_str(atext+1, atextbuf, &tbuff);
      } else {
         safe_str(savebuff[1], atextbuf, &tbuff);
         safe_chr(' ', atextbuf, &tbuff);
-        if ( (nfargs >=10) && *fargs[9] ) 
+        if ( (nfargs >=10) && *fargs[9] ) {
            safe_str(fargs[9], atextbuf, &tbuff);
-        else
+           safe_chr(' ', atextbuf, &tbuff);
+        } else {
            safe_str("says", atextbuf, &tbuff);
-        safe_str(", \"", atextbuf, &tbuff);
+           safe_str(", ", atextbuf, &tbuff);
+        }
+        safe_chr('"', atextbuf, &tbuff);
         safe_str(atext, atextbuf, &tbuff);
         safe_chr('"', atextbuf, &tbuff);
      }
