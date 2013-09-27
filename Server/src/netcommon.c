@@ -2204,6 +2204,12 @@ announce_connect(dbref player, DESC * d, int dc)
 	   }
        }
     }
+
+    /* Initialize cpu for connected players */
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
+
     look_in(player, Location(player), (LK_SHOWEXIT | LK_OBEYTERSE));
     if ( InProgram(player) ) {
        if ( (mudconf.login_to_prog && !(ProgCon(player))) || 

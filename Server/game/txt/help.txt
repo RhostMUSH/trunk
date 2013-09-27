@@ -24814,3 +24814,4 @@ Changes
   
 Bug Fixes
 ---------
+* fixed CPU issue with bogus checks on connecting players in rare conditions [ASH]
