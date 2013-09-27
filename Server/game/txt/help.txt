@@ -24815,3 +24815,4 @@ Changes
 Bug Fixes
 ---------
 * fixed CPU issue with bogus checks on connecting players in rare conditions [ASH]
+* @function/list erraneously had a limit displayed from local functions [ASH]
