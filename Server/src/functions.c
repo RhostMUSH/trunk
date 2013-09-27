@@ -27988,16 +27988,16 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total LOCAL User-Defined Functions: %d [%d matched] [%d defined of %d max allowed]", 
                     i_tcount, count, count_owner, i_array[4]));
           } else {
-             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d matched] [%d max allowed]", 
-                    i_tcount, count, i_array[4]));
+             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d matched]", 
+                    i_tcount, count));
           }
        } else {
           if ( i_local ) {
              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total LOCAL User-Defined Functions: %d [%d defined of %d max allowed]", 
                     count, count_owner, i_array[4]));
           } else {
-             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d max allowed]", 
-                    count, i_array[4]));
+             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d", 
+                    count));
           }
        }
        free_lbuf(tpr_buff);
