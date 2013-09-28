@@ -10223,8 +10223,7 @@
     +c. this is a test a +
     +b c. this is a test +
     +a b c.              +
-  
-  
+ 
   Note: Notice that it keeps track of all padding in the original
         string and will not remove the spaces (as intended).  
   
@@ -10232,6 +10231,36 @@
         out as long as there's other columns expanding.  This behavior can 
         be omitted with a '!' as first filler char. 
   
+{ 'help printf examples4' for a multi-border multi-line complex example } 
+ 
+& PRINTF EXAMPLES4
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Advanced Example: 
+    >  @emit [ansi(hr,+[repeat(-,20)]+)]%b[ansi(hb,+[repeat(-,20)]+)]%b
+             [ansi(hg,+[repeat(-,20)]+)]%r[printf(
+              $&:[ansi(hr,|)]:1s$-20|"s $&:[ansi(hr,|)]:1s%b
+              $&:[ansi(hb,|)]:1s$-20|"s$&:[ansi(hb,|)]:1s%b
+              $&:[ansi(hg,|)]:1s$-20|"s$&:[ansi(hg,|)]:1s,
+              %r,testing testing testing [ansi(hy, yellow code here)] 
+              testing,%r,%r,more testing yet again yup yup with a very 
+              very very very very long line. So very long of a line. Yes 
+              it is very long.,%r,%r,final test,%r)]%r
+              [ansi(hr,+[repeat(-,20)]+)]%b[ansi(hb,+[repeat(-,20)]+)]%b
+              [ansi(hg,+[repeat(-,20)]+)]
+   
+  +--------------------+ +--------------------+ +--------------------+
+  |testing testing     | |more testing yet    | |final test          |
+  |testing yellow code | |again yup yup with  | |                    |
+  |here testing        | |a very very very    | |                    |
+  |                    | |very very long      | |                    |
+  |                    | |line. So very long  | |                    |
+  |                    | |of a line. Yes it   | |                    |
+  |                    | |is very long.       | |                    |
+  +--------------------+ +--------------------+ +--------------------+
+  
+  Note:  The first box is red, the second is blue, the third is green.
+   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
@@ -24816,3 +24845,4 @@ Bug Fixes
 ---------
 * fixed CPU issue with bogus checks on connecting players in rare conditions [ASH]
 * @function/list erraneously had a limit displayed from local functions [ASH]
+* when compiling without BANGS support, there was an undeclared variable [ASH]

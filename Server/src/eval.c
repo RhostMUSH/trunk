@@ -2059,8 +2059,13 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	       check_access(player, fp->perms, fp->perms2, 0);
                if ( mudstate.func_ignore && !mudstate.func_bypass) {
                   memset(tfunbuff, 0, sizeof(tfunbuff));
+#ifdef BANGS
                   if ( bang_not || bang_yes ) {
                      sprintf(tfunbuff, "_%.31s", tbangc);
+#else
+                  if ( 0 ) {
+                     sprintf(tfunbuff, "_%.31s", tbuf);
+#endif
                   } else {
                      sprintf(tfunbuff, "_%.31s", tbuf);
                   }
