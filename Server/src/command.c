@@ -4514,6 +4514,7 @@ NAMETAB attraccess_nametab[] =
     {(char *) "atrlock", 3, CA_WIZARD, 0, AF_ATRLOCK},
     {(char *) "logged", 3, CA_WIZARD, 0, AF_LOGGED},
     {(char *) "regexp", 3, CA_PUBLIC, 0, AF_REGEXP},
+    {(char *) "unsafe", 3, CA_WIZARD, 0, AF_UNSAFE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB indiv_attraccess_nametab[] =
@@ -4542,6 +4543,7 @@ NAMETAB indiv_attraccess_nametab[] =
     {(char *) "atrlock", 3, CA_WIZARD, 0, AF_ATRLOCK},
     {(char *) "logged", 3, CA_WIZARD, 0, AF_LOGGED},
     {(char *) "regexp", 3, CA_PUBLIC, 0, AF_REGEXP},
+    {(char *) "unsafe", 3, CA_WIZARD, 0, AF_UNSAFE},
     {NULL, 0, 0, 0, 0}};
 
 static void 

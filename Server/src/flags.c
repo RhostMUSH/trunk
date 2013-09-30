@@ -686,6 +686,7 @@ TOGENT tog_table[] =
   {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, th_player},
   {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL, th_noset},
   {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, th_player},
+  {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, th_wiz},
   {NULL, 0, ' ', 0, 0, NULL}
 };
 

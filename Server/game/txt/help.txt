@@ -8351,6 +8351,7 @@
     ATRLOCK(l)      (this shows when an attribute is set ATRLOCK)
     LOGGED(m)       (this shows when an attribute is set LOGGED)
     REGEXP(R)       (this shows when REGEXP are enabled on attributes)
+    UNSAFE(U)	    (this shows when attributes bypass safer_ufun)
    
 {See 'help attribute flags2' for meanings of the attribute flags}
   
@@ -8383,6 +8384,8 @@
     ATRLOCK             - The attribute has a format lock.
     LOGGED              - The attribute is logged for sets/edits/clears.
     REGEXP              - The attribute $/^ command/listen use regexp parsing
+    UNSAFE              - The attribute evaluates at object's permission level.
+                          (this is the default behavior w/o safer_ufun set)
     
   See Also: FLAG LIST
  
@@ -24836,6 +24839,10 @@ Status: Alpha
   
 New Features
 -------
+* safer_ufun -- enforces attributes on objects you don't control is taken at
+  permission level of the object OR the player, whatever is LOWER. [ASH]
+* SNUFFDARK  -- @toggle (for wizards) to hide the normal dark exit display. [ASH]
+* UNSAFE     -- attribute flag to override safer_ufun permissions [ASH]
   
 Changes
 -------

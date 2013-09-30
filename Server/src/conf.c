@@ -272,6 +272,7 @@ NDECL(cf_init)
     mudconf.lfunction_max = 20;		/* Maximum lfunctions allowed per user */
     mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
     mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
+    mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3693,6 +3694,9 @@ CONF conftable[] =
     {(char *) "safe_wipe",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safe_wipe, 0, 0, CA_PUBLIC,
      (char *) "@wiping SAFE/INDESTRUCTABLE things blocked?"},
+    {(char *) "safer_ufun",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safer_ufun, 0, 0, CA_PUBLIC,
+     (char *) "Enforcement of protected u-evals?"},
     {(char *) "safer_passwords",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safer_passwords, 0, 0, CA_PUBLIC,
      (char *) "Enforcement of harder passwords?"},

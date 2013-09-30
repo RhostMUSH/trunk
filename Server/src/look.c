@@ -119,14 +119,17 @@ look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
                    ANSIEX(ANSI_HILITE), exit_name, ANSIEX(ANSI_NORMAL)));
             free_lbuf(tpr_buff);
 	} else {
-            tprp_buff = tpr_buff = alloc_lbuf("look_exits");
-            if ( keytype )
-	       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Global Exits:%s", 
-                      ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
-            else
-	       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Exits:%s", 
-                      ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
-            free_lbuf(tpr_buff);
+           if ( SnuffDark(player) ) {
+              continue;
+           }
+           tprp_buff = tpr_buff = alloc_lbuf("look_exits");
+           if ( keytype )
+	      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Global Exits:%s", 
+                     ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
+           else
+	      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Exits:%s", 
+                     ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
+           free_lbuf(tpr_buff);
         }
 	e = buff = alloc_lbuf("look_exits");
 	oldparent = -1;

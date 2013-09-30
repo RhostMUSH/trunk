@@ -768,10 +768,16 @@
   PAGELOCK            MAIL_LOCKDOWN       ATRUSE
   NOGLOBPARENT        LOGROOM             EXFULLWIZATTR
   NODEFAULT           CHKREALITY          HIDEIDLE
-  MORTALREALITY
+  MORTALREALITY       SNUFFDARK
  
   Specify 'TOGGLE' after each toggle in help.
   Example: wizhelp monitor_site toggle 
+
+& SNUFFDARK TOGGLE
+  Toggle: SNUFFDARK (Wizard and higher only)
+  
+  This toggle, when set, will hide the Dark Exits that wizards normally
+  see by default.
 
 & MORTALREALITY TOGGLE
   Toggle: MORTALREALITY (Wizard and higher only)
@@ -4653,14 +4659,14 @@
   rwho_data_port            rwho_dump_interval        rwho_host
   rwho_info_port            rwho_password             rwho_transmit
   sacrifice_adjust          sacrifice_factor          safe_wipe
-  safer_passwords           search_cost               secure_atruselock
-  secure_dark               secure_functions          secure_jumpok
-  see_owned_dark            showother_altname         shs_reverse             
-  sidefx_maxcalls           sidefx_returnval          sideeffects             
-  signal_action             signal_cron               signal_object           
-  signal_object_type        space_compress            spam_limit              
-  spam_msg                  spam_objmsg               sqlite_db_path
-  sqlite_query_limit        stack_limit
+  safer_passwords           safer_ufun                search_cost             
+  secure_atruselock         secure_dark               secure_functions        
+  secure_jumpok             see_owned_dark            showother_altname       
+  shs_reverse               sidefx_maxcalls           sidefx_returnval        
+  sideeffects               signal_action             signal_cron             
+  signal_object             signal_object_type        space_compress          
+  spam_limit                spam_msg                  spam_objmsg             
+  sqlite_db_path            sqlite_query_limit        stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -7404,6 +7410,19 @@
   Config parameter: safe_wipe <yes/no>.  Default: no
   This parameter specifies if the SAFE and INDESTRUCTABLE flags will stop
   @wipe from working on that specific target that has either of those flags.
+
+& safer_ufun
+  Config parameter: safer_ufun <yes/no>.  Default: o
+  
+  If this is enabled, then any attribute that is evaluated on something that
+  you do not control will be evaluated either at your level or the object
+  level, whatever level is the LOWER level.  This only impacts items that
+  are inherit.
+  
+  See Also: unsafe (attribute flag)
+
+& unsafe
+  See: 'help attribute flag'
 
 & safer_passwords
   Config parameter: safer_passwords <yes/no>.  Default: no

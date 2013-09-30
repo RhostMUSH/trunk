@@ -326,6 +326,7 @@ AFLAGENT attrflag[] =
 /* These two add dynamically when turned into a hash */
 /* Check look.c for the attrib lookup stuff as well */
   {"REGEXP", 3, AF_REGEXP, 'R'},
+  {"UNSAFE", 3, AF_UNSAFE, 'U'},
   {NULL, 0, 0}};
 
 /* list of attributes */

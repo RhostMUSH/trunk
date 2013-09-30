@@ -1370,6 +1370,80 @@ safe_sha0(const char *text, size_t len, char *buff, char **bufcx)
 }
 #endif
 
+void safer_unufun(int tval)
+{
+   if ( (tval != -1) && (tval != -2) ) {
+       mudstate.evalnum--;
+   }
+}
+
+int
+safer_ufun(dbref player, dbref thing, dbref target, int aflags1, int aflags2)
+{
+    int tlev, tlev2;
+    dbref owner;
+
+    if ( !Good_chk(target) ) {
+       return -1;
+    }
+    if ( !mudconf.safer_ufun || !Good_chk(thing) || !Inherits(thing) ) {
+       return -1;
+    }
+   
+    if ( (aflags1 & AF_UNSAFE) || (aflags2 & AF_UNSAFE) ) {
+       return -1;
+    }
+   
+    owner = Owner(thing);
+
+    if ( God(owner) ) {
+       tlev = 6;
+    } else if ( Immortal(owner) ) {
+       tlev = 5;
+    } else if ( Wizard(owner) ) {
+       tlev = 4;
+    } else if ( Admin(owner) ) {
+       tlev = 3;
+    } else if ( Builder(owner) ) {
+       tlev = 2;
+    } else if ( Guildmaster(owner) ) {
+       tlev = 1;
+    } else {
+       tlev = 0;
+    }
+
+    tlev2 = -1;
+    if ( God(player) || Immortal(player) ) {
+       tlev2 = -1;
+    } else if (Wizard(player)) {
+        if (tlev > 4)
+            tlev2 = 4;
+    } else if (Admin(player)) {
+        if (tlev > 3)
+           tlev2 = 3;
+    } else if (Builder(player)) {
+        if (tlev > 2)
+           tlev2 = 2;
+    } else if (Guildmaster(player)) {
+        if (tlev > 1)
+           tlev2 = 1;
+    } else {
+        if ( tlev > 0 )
+           tlev2 = 0;
+    }
+    if (mudstate.evalnum < MAXEVLEVEL) {
+       if (tlev2 != -1) {
+           mudstate.evalstate[mudstate.evalnum] = tlev2;
+           mudstate.evaldb[mudstate.evalnum++] = target;
+       }
+    } else {
+       if ( tlev2 != -1 ) {
+          tlev2 = -2;
+       }
+    }
+    return tlev2;
+}
+
 static int s_comp(const void *s1, const void *s2)
 {
   return strcmp(*(char **) s1, *(char **) s2);
@@ -2565,9 +2639,9 @@ FUNCTION(fun_while)
 {
     char sep, osep;
     dbref aowner1, thing1, aowner2, thing2;
-    int aflags1, aflags2, anum1, anum2;
+    int aflags1, aflags2, anum1, anum2, tval;
     int is_same;
-    ATTR *ap;
+    ATTR *ap, *ap2;
     char *atext1, *atext2, *atextbuf, *condbuf, *retval;
     char *objstring, *cp, *str, *dp, *savep, *bb_p;
 
@@ -2607,22 +2681,22 @@ FUNCTION(fun_while)
 
     if (parse_attrib(player, fargs[1], &thing2, &anum2)) {
         if ((anum2 == NOTHING) || !Good_obj(thing2) || Recover(thing2) || Going(thing2))
-            ap = NULL;
+            ap2 = NULL;
         else
-            ap = atr_num(anum2);
+            ap2 = atr_num(anum2);
     } else {
         thing2 = player;
-        ap = atr_str(fargs[1]);
+        ap2 = atr_str(fargs[1]);
     }
-    if (!ap) {
+    if (!ap2) {
         free_lbuf(atext1);      /* we allocated this, remember? */
         return;
     }
-    atext2 = atr_pget(thing2, ap->number, &aowner2, &aflags2);
+    atext2 = atr_pget(thing2, ap2->number, &aowner2, &aflags2);
     if (!atext2) {
         free_lbuf(atext1);
         return;
-    } else if (!*atext2 || !See_attr(player, thing2, ap, aowner2, aflags2, 0)) {
+    } else if (!*atext2 || !See_attr(player, thing2, ap2, aowner2, aflags2, 0)) {
         free_lbuf(atext1);
         free_lbuf(atext2);
         return;
@@ -2651,12 +2725,27 @@ FUNCTION(fun_while)
         strcpy(atextbuf, atext1);
         str = atextbuf;
         savep = *bufcx;
-        if ( (mudconf.secure_functions & 2) )
-           retval = exec(thing1, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                str, &objstring, 1);
-        else
-           retval = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                str, &objstring, 1);
+        if ( (mudconf.secure_functions & 2) ) {
+           tval = safer_ufun(player, thing1, thing1, ap->flags, aflags1);
+           if ( tval == -2 ) {
+              retval = alloc_lbuf("edefault_buff");
+              sprintf(retval ,"#-1 PERMISSION DENIED");
+           } else {
+              retval = exec(thing1, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            str, &objstring, 1);
+           }
+           safer_unufun(tval);
+        } else {
+           tval = safer_ufun(player, thing1, player, ap->flags, aflags1);
+           if ( tval == -2 ) {
+              retval = alloc_lbuf("edefault_buff");
+              sprintf(retval ,"#-1 PERMISSION DENIED");
+           } else {
+              retval = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            str, &objstring, 1);
+           }
+           safer_unufun(tval);
+        }
         safe_str(retval, buff, bufcx);
         free_lbuf(retval);
         if (is_same) {
@@ -2665,12 +2754,27 @@ FUNCTION(fun_while)
         } else {
             strcpy(condbuf, atext2);
             dp = str = savep = condbuf;
-            if ( (mudconf.secure_functions & 2) )
-               retval = exec(thing2, cause, caller,
-                    EV_STRIP | EV_FCHECK | EV_EVAL, str, &objstring, 1);
-            else
-               retval = exec(player, cause, caller,
-                    EV_STRIP | EV_FCHECK | EV_EVAL, str, &objstring, 1);
+            if ( (mudconf.secure_functions & 2) ) {
+               tval = safer_ufun(player, thing2, thing2, ap2->flags, aflags2);
+               if ( tval == -2 ) {
+                  retval = alloc_lbuf("edefault_buff");
+                  sprintf(retval ,"#-1 PERMISSION DENIED");
+               } else {
+                   retval = exec(thing2, cause, caller,
+                                 EV_STRIP | EV_FCHECK | EV_EVAL, str, &objstring, 1);
+               }
+               safer_unufun(tval);
+            } else {
+               tval = safer_ufun(player, thing2, player, ap2->flags, aflags2);
+               if ( tval == -2 ) {
+                  retval = alloc_lbuf("edefault_buff");
+                  sprintf(retval ,"#-1 PERMISSION DENIED");
+               } else {
+                  retval = exec(player, cause, caller,
+                                EV_STRIP | EV_FCHECK | EV_EVAL, str, &objstring, 1);
+               }
+               safer_unufun(tval);
+            }
             safe_str(retval, condbuf, &dp);
             free_lbuf(retval);
             if (!strcmp(savep, fargs[3]))
@@ -6343,7 +6447,7 @@ FUNCTION(fun_remflags)
 FUNCTION(fun_foreach)
 {
     dbref aowner, thing;
-    int aflags, anum, flag = 0;
+    int aflags, anum, tval, flag = 0;
     ATTR *ap;
     char *atext, *atextbuf, *str, *cp, *bp, *result;
     char cbuf[2], prev = '\0';
@@ -6400,10 +6504,24 @@ FUNCTION(fun_foreach)
 
             strcpy(atextbuf, atext);
             str = atextbuf;
-            if ( (mudconf.secure_functions & 1) )
-               result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
-            else
-               result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+            if ( (mudconf.secure_functions & 1) ) {
+               tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+               if ( tval == -2 ) {
+                  result = alloc_lbuf("edefault_buff");
+                  sprintf(result ,"#-1 PERMISSION DENIED");
+               } else {
+                  result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+               }
+            } else {
+               tval = safer_ufun(player, thing, player, ap->flags, aflags);
+               if ( tval == -2 ) {
+                  result = alloc_lbuf("edefault_buff");
+                  sprintf(result ,"#-1 PERMISSION DENIED");
+               } else {
+                  result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+               }
+            }
+            safer_unufun(tval);
             safe_str(result, buff, bufcx);
             free_lbuf(result);
             prev = cbuf[0];
@@ -6414,10 +6532,24 @@ FUNCTION(fun_foreach)
 
             strcpy(atextbuf, atext);
             str = atextbuf;
-            if ( (mudconf.secure_functions & 1) )
-               result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
-            else
-               result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+            if ( (mudconf.secure_functions & 1) ) {
+               tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+               if ( tval == -2 ) {
+                  result = alloc_lbuf("edefault_buff");
+                  sprintf(result ,"#-1 PERMISSION DENIED");
+               } else {
+                  result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+               }
+            } else {
+               tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+               if ( tval == -2 ) {
+                  result = alloc_lbuf("edefault_buff");
+                  sprintf(result ,"#-1 PERMISSION DENIED");
+               } else {
+                  result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+               }
+            }
+            safer_unufun(tval);
             safe_str(result, buff, bufcx);
             free_lbuf(result);
         }
@@ -10276,7 +10408,7 @@ FUNCTION(fun_lrooms)
 FUNCTION(fun_edefault)
 {
     dbref thing, aowner;
-    int attrib, free_buffer, aflags, eval_it;
+    int attrib, free_buffer, aflags, eval_it, tval;
     ATTR *attr;
     char *atr_gotten, *atr_gotten2, *s_fargs0, *s_fargs1;
     struct boolexp *bool;
@@ -10339,8 +10471,15 @@ FUNCTION(fun_edefault)
        return;
     }
     if (eval_it) {
-       atr_gotten2 = exec(thing, player, player, EV_FIGNORE | EV_EVAL, atr_gotten,
-                          (char **) NULL, 0);
+       tval = safer_ufun(player, thing, thing, attr->flags, aflags);
+       if ( tval == -2 ) {
+          atr_gotten2 = alloc_lbuf("edefault_buff");
+          sprintf(atr_gotten2 ,"#-1 PERMISSION DENIED");
+       } else {
+          atr_gotten2 = exec(thing, player, player, EV_FIGNORE | EV_EVAL, atr_gotten,
+                             (char **) NULL, 0);
+       }
+       safer_unufun(tval);
        if (*atr_gotten2)
           safe_str(atr_gotten2, buff, bufcx);
        else {
@@ -10366,7 +10505,7 @@ FUNCTION(fun_edefault)
 FUNCTION(fun_get_eval)
 {
     dbref thing, aowner;
-    int attrib, free_buffer, aflags, eval_it;
+    int attrib, free_buffer, aflags, eval_it, tval;
     ATTR *attr;
     char *atr_gotten;
     char *atr_gotten2;
@@ -10415,10 +10554,17 @@ FUNCTION(fun_get_eval)
        return;
     }
     if (eval_it) {
-       atr_gotten2 = exec(thing, player, player, EV_FIGNORE | EV_EVAL, atr_gotten,
-                          (char **) NULL, 0);
+       tval = safer_ufun(player, thing, thing, attr->flags, aflags);
+       if ( tval == -2 ) {
+          atr_gotten2 = alloc_lbuf("edefault_buff");
+          sprintf(atr_gotten2 ,"#-1 PERMISSION DENIED");
+       } else {
+          atr_gotten2 = exec(thing, player, player, EV_FIGNORE | EV_EVAL, atr_gotten,
+                             (char **) NULL, 0);
+       }
        safe_str(atr_gotten2, buff, bufcx);
        free_lbuf(atr_gotten2);
+       safer_unufun(tval);
     } else {
        safe_str(atr_gotten, buff, bufcx);
     }
@@ -11032,7 +11178,7 @@ FUNCTION(fun_mailstatus)
 FUNCTION(fun_zfuneval)
 {
     dbref aowner, thing;
-    int aflags, anum, tlev, goodzone;
+    int aflags, anum, tlev, goodzone, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pt1, *pt2, *lbuf;
@@ -11162,8 +11308,13 @@ FUNCTION(fun_zfuneval)
     }
     /* Evaluate it using the rest of the passed function args */
 
+    tval = -1;
+    if ( tlev == -1 ) {
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+    }
     result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
                   &(fargs[1]), nfargs - 1);
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -11234,7 +11385,7 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
              char *fargs[], int nfargs, char *cargs[], int ncargs, int i_type)
 {
     dbref aowner, thing;
-    int aflags, anum, tlev;
+    int aflags, anum, tlev, tval;
     ATTR *ap;
     char *atext, *result, *pt1, *pt2, *lbuf;
 
@@ -11349,8 +11500,14 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     }
     /* Evaluate it using the rest of the passed function args */
 
+    tval = -1;
+    if ( tlev == -1 ) {
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+    }
     result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
                   &(fargs[1]), nfargs - 1);
+
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -11627,7 +11784,7 @@ FUNCTION(fun_parenmatch)
 FUNCTION(fun_u)
 {
     dbref aowner, thing;
-    int aflags, anum;
+    int aflags, anum, tval;
     ATTR *ap;
     char *atext, *result;
 
@@ -11682,17 +11839,23 @@ FUNCTION(fun_u)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, player, ap->flags, aflags);
+    if ( tval == -2 ) {
+       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+    } else {
+       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
+    safer_unufun(tval);
 }
 
 FUNCTION(fun_zfun)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone;
+    int aflags, anum, goodzone, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result;
@@ -11771,8 +11934,15 @@ FUNCTION(fun_zfun)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, player, ap->flags, aflags);
+    if ( tval == -2 ) {
+       result = alloc_lbuf("edefault_buff");
+       sprintf(result ,"#-1 PERMISSION DENIED");
+    } else {
+       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -11781,7 +11951,7 @@ FUNCTION(fun_zfun)
 FUNCTION(fun_zfun2)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone;
+    int aflags, anum, goodzone, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result;
@@ -11860,8 +12030,15 @@ FUNCTION(fun_zfun2)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+    if ( tval == -2 ) {
+       result = alloc_lbuf("edefault_buff");
+       sprintf(result ,"#-1 PERMISSION DENIED");
+    } else {
+       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -11870,7 +12047,7 @@ FUNCTION(fun_zfun2)
 FUNCTION(fun_zfunlocal)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone, x;
+    int aflags, anum, goodzone, x, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
@@ -11957,8 +12134,15 @@ FUNCTION(fun_zfunlocal)
          *mudstate.global_regs[x] = '\0';
       }
     }
-    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, player, ap->flags, aflags);
+    if ( tval == -2 ) {
+       result = alloc_lbuf("edefault_buff");
+       sprintf(result ,"#-1 PERMISSION DENIED");
+    } else {
+       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -11972,7 +12156,7 @@ FUNCTION(fun_zfunlocal)
 FUNCTION(fun_zfunldefault)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone, x, chkpass, i;
+    int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
@@ -12056,12 +12240,26 @@ FUNCTION(fun_zfunldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
     if (atext)
        free_lbuf(atext);
@@ -12079,7 +12277,7 @@ FUNCTION(fun_zfunldefault)
 FUNCTION(fun_zfun2ldefault)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone, x, chkpass, i;
+    int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
@@ -12168,12 +12366,26 @@ FUNCTION(fun_zfun2ldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
     if (atext)
        free_lbuf(atext);
@@ -12190,7 +12402,7 @@ FUNCTION(fun_zfun2ldefault)
 FUNCTION(fun_zfundefault)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone, chkpass, i;
+    int aflags, anum, goodzone, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
@@ -12271,12 +12483,26 @@ FUNCTION(fun_zfundefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
     if (atext)
        free_lbuf(atext);
@@ -12289,7 +12515,7 @@ FUNCTION(fun_zfundefault)
 FUNCTION(fun_udefault)
 {
     dbref aowner, thing;
-    int aflags, anum, chkpass, i;
+    int aflags, anum, chkpass, i, tval;
     ATTR *ap;
     char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
 
@@ -12348,12 +12574,26 @@ FUNCTION(fun_udefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
     if (atext)
        free_lbuf(atext);
@@ -12366,7 +12606,7 @@ FUNCTION(fun_udefault)
 FUNCTION(fun_u2)
 {
     dbref aowner, thing;
-    int aflags, anum;
+    int aflags, anum, tval;
     ATTR *ap;
     char *atext, *result;
 
@@ -12421,17 +12661,23 @@ FUNCTION(fun_u2)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+    if ( tval == -2 ) {
+       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+    } else {
+       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
+    safer_unufun(tval);
 }
 
 FUNCTION(fun_zfun2default)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone, chkpass, i;
+    int aflags, anum, goodzone, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
@@ -12512,12 +12758,26 @@ FUNCTION(fun_zfun2default)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
     if (atext)
       free_lbuf(atext);
@@ -12528,7 +12788,7 @@ FUNCTION(fun_zfun2default)
 FUNCTION(fun_u2default)
 {
     dbref aowner, thing;
-    int aflags, anum, chkpass, i;
+    int aflags, anum, chkpass, i, tval;
     ATTR *ap;
     char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
 
@@ -12590,12 +12850,26 @@ FUNCTION(fun_u2default)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
     if (atext)
        free_lbuf(atext);
@@ -12608,7 +12882,7 @@ FUNCTION(fun_u2default)
 FUNCTION(fun_ulocal)
 {
     dbref aowner, thing;
-    int aflags, anum, x;
+    int aflags, anum, x, tval;
     ATTR *ap;
     char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
 
@@ -12671,9 +12945,15 @@ FUNCTION(fun_ulocal)
          *mudstate.global_regs[x] = '\0';
       }
     }
-
-    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, player, ap->flags, aflags);
+    if ( tval == -2 ) {
+       result = alloc_lbuf("edefault_buff");
+       sprintf(result ,"#-1 PERMISSION DENIED");
+    } else {
+       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -12688,7 +12968,7 @@ FUNCTION(fun_ulocal)
 FUNCTION(fun_uldefault)
 {
     dbref aowner, thing;
-    int aflags, anum, x, chkpass, i;
+    int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
     char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
 
@@ -12759,12 +13039,26 @@ FUNCTION(fun_uldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, player, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(player, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
     if (atext)
        free_lbuf(atext);
@@ -12783,7 +13077,7 @@ FUNCTION(fun_uldefault)
 FUNCTION(fun_u2local)
 {
     dbref aowner, thing;
-    int aflags, anum, x;
+    int aflags, anum, x, tval;
     ATTR *ap;
     char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
 
@@ -12846,9 +13140,15 @@ FUNCTION(fun_u2local)
          *mudstate.global_regs[x] = '\0';
       }
     }
-
-    result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+    if ( tval == -2 ) {
+       result = alloc_lbuf("edefault_buff");
+       sprintf(result ,"#-1 PERMISSION DENIED");
+    } else {
+       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -12863,7 +13163,7 @@ FUNCTION(fun_u2local)
 FUNCTION(fun_zfun2local)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone, x;
+    int aflags, anum, goodzone, x, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
@@ -12950,8 +13250,15 @@ FUNCTION(fun_zfun2local)
          *mudstate.global_regs[x] = '\0';
       }
     }
-    result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
-                  &(fargs[1]), nfargs - 1);
+    tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+    if ( tval == -2 ) {
+       result = alloc_lbuf("edefault_buff");
+       sprintf(result ,"#-1 PERMISSION DENIED");
+    } else {
+       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
+                     &(fargs[1]), nfargs - 1);
+    }
+    safer_unufun(tval);
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -12965,7 +13272,7 @@ FUNCTION(fun_zfun2local)
 FUNCTION(fun_u2ldefault)
 {
     dbref aowner, thing;
-    int aflags, anum, x, chkpass, i;
+    int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
     char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
 
@@ -13036,12 +13343,26 @@ FUNCTION(fun_u2ldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           s_xargs[i] = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[2+i], cargs, ncargs);
        }
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, s_xargs, nfargs - 2);
+       }
+       safer_unufun(tval);
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
     } else {
-       result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+       if ( tval == -2 ) {
+          result = alloc_lbuf("edefault_buff");
+          sprintf(result ,"#-1 PERMISSION DENIED");
+       } else {
+          result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, pass, &(fargs[2]), nfargs - 2);
+       }
+       safer_unufun(tval);
     }
 
     if (atext)
@@ -13737,7 +14058,7 @@ FUNCTION(fun_strfunc)
 FUNCTION(fun_eval)
 {
    dbref thing, aowner;
-   int attrib, aflags, free_buffer, eval_it;
+   int attrib, aflags, free_buffer, eval_it, tval;
    char *tbuf, *atr_gotten, *atr_gotten2, *tpr_buff, *tprp_buff;
    struct boolexp *bool;
    ATTR *attr;
@@ -13803,10 +14124,17 @@ FUNCTION(fun_eval)
          return;
       }
       if (eval_it) {
-         atr_gotten2 = exec(thing, player, player, EV_FIGNORE | EV_EVAL, atr_gotten,
-                            (char **) NULL, 0);
+         tval = safer_ufun(player, thing, thing, attr->flags, aflags);
+         if ( tval == -2 ) {
+            atr_gotten2 = alloc_lbuf("edefault_buff");
+            sprintf(atr_gotten2 ,"#-1 PERMISSION DENIED");
+         } else {
+            atr_gotten2 = exec(thing, player, player, EV_FIGNORE | EV_EVAL, atr_gotten,
+                               (char **) NULL, 0);
+         }
          safe_str(atr_gotten2, buff, bufcx);
          free_lbuf(atr_gotten2);
+         safer_unufun(tval);
       } else {
          safe_str(atr_gotten, buff, bufcx);
       }
@@ -20361,7 +20689,7 @@ FUNCTION(fun_lreplace)
 FUNCTION(fun_munge)
 {
     dbref thing, aowner;
-    int attrib, aflags, numorig, numsubs, *posorig, *possub, x, min, ind;
+    int attrib, aflags, numorig, numsubs, *posorig, *possub, x, min, ind, tval;
     ATTR *attr;
     char *atr_gotten, *atr_gotten2, *clist[2], *sv1, *sv2, sep, osep;
 
@@ -20427,7 +20755,14 @@ FUNCTION(fun_munge)
     *(sv2 + 1) = '\0';
     clist[0] = sv1;
     clist[1] = sv2;
-    atr_gotten2 = exec(thing, player, caller, EV_STRIP | EV_FCHECK | EV_EVAL, atr_gotten, clist, 2);
+    tval = safer_ufun(player, thing, thing, attr->flags, aflags);
+    if ( tval == -2 ) {
+       atr_gotten2 = alloc_lbuf("edefault_buff");
+       sprintf(atr_gotten2 ,"#-1 PERMISSION DENIED");
+    } else {
+       atr_gotten2 = exec(thing, player, caller, EV_STRIP | EV_FCHECK | EV_EVAL, atr_gotten, clist, 2);
+    }
+    safer_unufun(tval);
     free_lbuf(sv1);
     free_lbuf(sv2);
 
@@ -20493,7 +20828,7 @@ FUNCTION(fun_munge)
 FUNCTION(fun_fold)
 {
     dbref aowner, thing;
-    int aflags, anum;
+    int aflags, anum, tval;
     ATTR *ap;
     char *atext, *result, *curr, *cp, *atextbuf, *clist[2], *rstore, sep;
 
@@ -20538,21 +20873,49 @@ FUNCTION(fun_fold)
     if ((nfargs >= 3) && (*fargs[2])) {
         clist[0] = fargs[2];
         clist[1] = split_token(&cp, sep);
-        if ( (mudconf.secure_functions & 4) )
-            result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                           atextbuf, clist, 2);
-        else
-             result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                           atextbuf, clist, 2);
+        if ( (mudconf.secure_functions & 4) ) {
+           tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            atextbuf, clist, 2);
+           }
+        } else {
+           tval = safer_ufun(player, thing, player, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            atextbuf, clist, 2);
+           }
+        }
+        safer_unufun(tval);
     } else {
         clist[0] = split_token(&cp, sep);
         clist[1] = split_token(&cp, sep);
-        if ( (mudconf.secure_functions & 4) )
+        if ( (mudconf.secure_functions & 4) ) {
+           tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
               result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                             atextbuf, clist, 2);
-        else
+           }
+        } else {
+           tval = safer_ufun(player, thing, player, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
               result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                             atextbuf, clist, 2);
+           }
+        }
+        safer_unufun(tval);
     }
 
     rstore = result;
@@ -20562,12 +20925,26 @@ FUNCTION(fun_fold)
         clist[0] = rstore;
         clist[1] = split_token(&cp, sep);
         strcpy(atextbuf, atext);
-        if ( (mudconf.secure_functions & 4) )
-           result = exec(thing, cause, caller,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, clist, 2);
-        else
-           result = exec(player, cause, caller,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, clist, 2);
+        if ( (mudconf.secure_functions & 4) ) {
+           tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(thing, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, clist, 2);
+           }
+        } else {
+           tval = safer_ufun(player, thing, player, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(player, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, clist, 2);
+           }
+        }
+        safer_unufun(tval);
         strcpy(rstore, result);
         free_lbuf(result);
     }
@@ -20845,7 +21222,7 @@ FUNCTION(fun_lmin)
 FUNCTION(fun_filter)
 {
     dbref aowner, thing;
-    int aflags, anum, first, dynargs, i;
+    int aflags, anum, first, dynargs, i, tval;
     ATTR *ap;
     char *atext, *result, *curr, *cp, *atextbuf, sep, osep;
     char *s_dynargs[MAX_ARGS+1];
@@ -20909,12 +21286,26 @@ FUNCTION(fun_filter)
     while (cp) {
         s_dynargs[0] = split_token(&cp, sep);
         strcpy(atextbuf, atext);
-        if ( (mudconf.secure_functions & 8) )
-           result = exec(thing, cause, caller,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
-        else
-           result = exec(player, cause, caller,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
+        if ( (mudconf.secure_functions & 8) ) {
+           tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(thing, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
+           }
+        } else {
+           tval = safer_ufun(player, thing, player, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(player, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
+           }
+        }
+        safer_unufun(tval);
         if ( !first && ((*result == '1') && (strlen(result) < 2)) )
             safe_chr(osep, buff, bufcx);
         if ( ((*result == '1') && (strlen(result) < 2)) ) {
@@ -21218,7 +21609,7 @@ FUNCTION(fun_parsestr)
 FUNCTION(fun_map)
 {
     dbref aowner, thing;
-    int aflags, anum, first, i, dynargs;
+    int aflags, anum, first, i, dynargs, tval;
     ATTR *ap;
     char *atext, *result, *cp, *atextbuf, sep, *osep;
     char *s_dynargs[MAX_ARGS+1];
@@ -21293,12 +21684,26 @@ FUNCTION(fun_map)
     while (cp) {
         s_dynargs[0] = split_token(&cp, sep);
         strcpy(atextbuf, atext);
-        if ( (mudconf.secure_functions & 16) )
-           result = exec(thing, cause, caller,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
-        else
-           result = exec(player, cause, caller,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
+        if ( (mudconf.secure_functions & 16) ) {
+           tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(thing, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
+           }
+        } else {
+           tval = safer_ufun(player, thing, player, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(player, cause, caller,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, s_dynargs, dynargs);
+           }
+        }
+        safer_unufun(tval);
         if (!first && *osep)
            safe_str(osep, buff, bufcx);
         first = 0;
@@ -21414,10 +21819,9 @@ FUNCTION(fun_step)
 {
     ATTR *ap;
     dbref aowner, thing;
-    int aflags, anum;
-    char *atext, *str, *cp, *atextbuf, *bb_p, *os[10], *result;
-    char sep, osep, *tpr_buff, *tprp_buff;
-    int step_size, i;
+    int aflags, anum, step_size, i, tval;
+    char *atext, *str, *cp, *atextbuf, *bb_p, *os[10], *result,
+         sep, osep, *tpr_buff, *tprp_buff;
 
     svarargs_preamble("STEP", 5);
 
@@ -21463,12 +21867,26 @@ FUNCTION(fun_step)
             os[i] = split_token(&cp, sep);
         strcpy(atextbuf, atext);
         str = atextbuf;
-        if ( (mudconf.secure_functions & 32) )
-           result = exec(thing, cause, caller,EV_STRIP | EV_FCHECK | EV_EVAL,
-                str, &(os[0]), i);
-        else
-           result = exec(player, cause, caller,EV_STRIP | EV_FCHECK | EV_EVAL,
-                str, &(os[0]), i);
+        if ( (mudconf.secure_functions & 32) ) {
+           tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            str, &(os[0]), i);
+           }
+        } else {
+           tval = safer_ufun(player, thing, player, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            str, &(os[0]), i);
+           }
+        }
+        safer_unufun(tval);
         safe_str(result, buff, bufcx);
         free_lbuf(result);
     }
@@ -21484,7 +21902,7 @@ FUNCTION(fun_step)
 FUNCTION(fun_mix)
 {
     dbref aowner, thing;
-    int aflags, anum, i, lastn, nwords, twords, wc, first;
+    int aflags, anum, i, lastn, nwords, twords, wc, first, tval;
     ATTR *ap;
     char *atext, *result, *os[10], *atextbuf, sep;
     char *cp[10];
@@ -21555,12 +21973,26 @@ FUNCTION(fun_mix)
             os[i - 1] = split_token(&cp[i], sep);
         }
         strcpy(atextbuf, atext);
-        if ( (mudconf.secure_functions & 64) )
-           result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                         atextbuf, &(os[0]), lastn);
-        else
-           result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                         atextbuf, &(os[0]), lastn);
+        if ( (mudconf.secure_functions & 64) ) {
+           tval = safer_ufun(player, thing, thing, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            atextbuf, &(os[0]), lastn);
+           }
+        } else {
+           tval = safer_ufun(player, thing, player, ap->flags, aflags);
+           if ( tval == -2 ) {
+              result = alloc_lbuf("edefault_buff");
+              sprintf(result ,"#-1 PERMISSION DENIED");
+           } else {
+              result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            atextbuf, &(os[0]), lastn);
+           }
+        }
+        safer_unufun(tval);
         if (first)
             safe_chr(sep, buff, bufcx);
         safe_str(result, buff, bufcx);
@@ -23110,7 +23542,7 @@ loop:
 FUNCTION(fun_sortby)
 {
     char osep, sep, *atext, *list, *ptrs[LBUF_SIZE / 2];
-    int anum, nptrs;
+    int anum, nptrs, tval;
     dbref thing, atrowner;
     ATTR *ap;
 
@@ -23152,7 +23584,17 @@ FUNCTION(fun_sortby)
 
     if (nptrs > 1)
     {
-        sane_qsort((void **)ptrs, 0, nptrs - 1, u_comp);
+       tval = safer_ufun(player, thing, thing, ap->flags, anum);
+       if ( tval == -2 ) {
+          safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+          free_lbuf(list);
+          free_lbuf(atext);
+          safer_unufun(tval);
+          return;
+       } else {
+          sane_qsort((void **)ptrs, 0, nptrs - 1, u_comp);
+       }
+       safer_unufun(tval);
     }
 
     arr2list(ptrs, nptrs, buff, bufcx, osep);
