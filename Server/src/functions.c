@@ -1383,10 +1383,13 @@ safer_ufun(dbref player, dbref thing, dbref target, int aflags1, int aflags2)
     int tlev, tlev2;
     dbref owner;
 
+    if ( !mudconf.safer_ufun) {
+       return -1;
+    }
     if ( !Good_chk(target) || !Good_chk(thing) || !Good_chk(player) ) {
        return -1;
     }
-    if ( !mudconf.safer_ufun || !Inherits(thing) ) {
+    if ( !Inherits(thing) ) {
        return -1;
     }
    
@@ -27670,7 +27673,7 @@ FUN flist[] =
     {"GARBLE", fun_garble, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GET", fun_get, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"GET_EVAL", fun_get_eval, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"GLOBALROOM", fun_globalroom, 0, 0, CA_PUBLIC, 0},
+    {"GLOBALROOM", fun_globalroom, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GRABALL", fun_graball, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GREP", fun_grep, 3, 0, CA_PUBLIC, CA_NO_CODE},
