@@ -24843,13 +24843,21 @@ New Features
   permission level of the object OR the player, whatever is LOWER. [ASH]
 * SNUFFDARK  -- @toggle (for wizards) to hide the normal dark exit display. [ASH]
 * UNSAFE     -- attribute flag to override safer_ufun permissions [ASH]
+* @progreset -- allows you to reset the prompt of the target [ASH]
   
 Changes
 -------
 * printf() handles the '/' option to specify cutoff value for '|' wrap option [ASH]
+* you can enter extended ASCII in input and it auto-translates to markup [ASH]
+* @snapshot/list takes optional wildcard searching for files [ASH]
   
 Bug Fixes
 ---------
 * fixed CPU issue with bogus checks on connecting players in rare conditions [ASH]
 * @function/list erraneously had a limit displayed from local functions [ASH]
 * when compiling without BANGS support, there was an undeclared variable [ASH]
+* strmath() started at 0 when it should start a 1 [ASH]
+* some clients don't handle normalizing prompts properly, so we now
+  fix this behavior forcefully [ASH]
+* printf() couldn't combine '/' and ':' options previously [ASH]
+* some extended ascii characters wouldn't display proplery [ASH]

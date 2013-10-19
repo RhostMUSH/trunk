@@ -2230,6 +2230,11 @@ announce_connect(dbref player, DESC * d, int dc)
        } else {
           notify(player, "Your @program was aborted from disconnecting.");
           s_Flags4(player, (Flags4(player) & (~INPROGRAM)));
+          DESC_ITER_CONN(d) {
+             if ( d->player == player ) {
+                queue_string(d, "\377\371");
+             }
+          }
           mudstate.shell_program = 0;
           atr_clr(player, A_PROGBUFFER);
           atr_clr(player, A_PROGPROMPTBUF);

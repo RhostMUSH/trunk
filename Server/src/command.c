@@ -1214,6 +1214,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_protect},
     {(char *) "@program", NULL, CA_PUBLIC, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP, 0, do_program},
+    {(char *) "@progreset", NULL, CA_LOCATION, 0, 0, CS_ONE_ARG | CS_INTERP, CA_NO_CODE, do_progreset},
     {(char *) "@ps", ps_sw, 0, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_ps},
     {(char *) "@purge", purge_sw, CA_IMMORTAL, 0,
@@ -2841,6 +2842,11 @@ process_command(dbref player, dbref cause, int interactive,
           free_lbuf(lcbuf);
           atr_clr(player, A_PROGBUFFER);
           s_Flags4(player, (Flags4(player) & (~INPROGRAM)));
+          DESC_ITER_CONN(d) {
+             if ( d->player == player ) {
+                queue_string(d, "\377\371");
+             }
+          }
 	  mudstate.debug_cmd = cmdsave;
           getitimer(ITIMER_PROF, &itimer);
           reportcputime(player, &itimer);
@@ -8418,6 +8424,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 void do_quitprogram(dbref player, dbref cause, int key, char *name)
 {
    dbref thing;
+   DESC *d;
 
    if ( *name )
       thing = match_thing(player, name);
@@ -8446,6 +8453,11 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
       return;
    }
    s_Flags4(thing, (Flags4(thing) & (~INPROGRAM)));
+   DESC_ITER_CONN(d) {
+      if ( d->player == thing ) {
+         queue_string(d, "\377\371");
+      }
+   }
    mudstate.shell_program = 0;
    notify(player, "@program cleared.");
    if ( thing == player )
@@ -10416,6 +10428,33 @@ internal_logstatus( void )
       return(-1);
    else
       return((int) f_sb.st_size);
+}
+
+void
+do_progreset(dbref player, dbref cause, int key, char *name)
+{
+   dbref target;
+   DESC *d;
+
+   if ( !name && !*name ) {
+      target = player;
+   } else {
+      target = lookup_player(player, name, 0);
+   }
+   if ( !Good_chk(target) || !Controls(player, target) ) {
+      notify(player, "No matching target found.");
+      return;
+   }
+   if ( !InProgram(target) ) {
+      DESC_ITER_CONN(d) {
+         if ( d->player == target ) {
+            queue_string(d, "\377\371");
+         }
+      }
+      notify_quiet(player, "Program prompt reset.");
+   } else {
+      notify_quiet(player, "Player is in a program, can not reset.");
+   }
 }
 
 void

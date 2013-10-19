@@ -39,6 +39,7 @@ CMD_ONE_ARG(do_blacklist);		/* Load/Clear/List blacklist.txt file */
 CMD_ONE_ARG(do_boot);			/* Force-disconnect a player */
 CMD_TWO_ARG_CMDARG(do_break);
 CMD_TWO_ARG_CMDARG(do_assert);
+CMD_ONE_ARG(do_progreset);		/* Force reset of the program prompt */
 CMD_NO_ARG(do_buff_free);
 CMD_ONE_ARG(do_channel);
 CMD_NO_ARG(do_conncheck);

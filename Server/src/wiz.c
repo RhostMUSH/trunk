@@ -2253,6 +2253,8 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "No files found in image directory %s.", mudconf.image_dir));
             }
             while(i_dirnums--) {
+               if ( *buff1 && !quick_wild(buff1, namelist[i_dirnums]->d_name) )
+                  continue;
                tprp_buff = tpr_buff;
                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s",
                                            namelist[i_dirnums]->d_name));

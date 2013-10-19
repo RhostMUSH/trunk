@@ -829,8 +829,12 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                   ch = AccentCombo3[(int)(ch1 - 1)][(int)ch2];
                   if ( !mux_isprint[(int)ch] ) 
                      safe_chr(*string, buff2, &bufc2);
-                  else
-                     safe_chr(ch, buff2, &bufc2);
+                  else {
+                     if ( ((int)ch == 253) || ((int)ch == 255))
+                        safe_chr('y', buff2, &bufc2);
+                     else
+                        safe_chr(ch, buff2, &bufc2);
+                  }
                } else {
                   safe_chr(*string, buff2, &bufc2);
                }

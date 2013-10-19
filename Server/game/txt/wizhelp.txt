@@ -431,10 +431,11 @@
   @kick           @limit          @list          @list_file      @listmotd
   @lock           @log            @logrotate     @mark           @mark_all
   @money          @motd           @newpassword   @nuke           @pcreate
-  @poor           @power          @protect       @ps             @purge
-  @quota          @readcache      @reboot        @recover        @reclist
-  @rwho           @site           @shutdown      @snapshot       @thaw 
-  @timewarp       @toad           @turtle        @wall           +players
+  @poor           @power          @progreset     @protect        @ps           
+  @purge          @quota          @readcache     @reboot         @recover      
+  @reclist        @rwho           @site          @shutdown       @snapshot     
+  @thaw           @timewarp       @toad          @turtle         @wall         
+  +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -3051,6 +3052,17 @@
   
   Example:  @poor 1000
 
+& @progreset
+  Command: @progreset <playername>
+  
+  This command, only useful on players, will target the player 
+  for a @program prompt reset.  This in effect nulls out their
+  prog-prompt that would display on their client.  As this can
+  only be done on players who are NOT in a program, it is 
+  obviously intended as a forced method to reset a bad prompt.
+  
+  See Also: IMMPROG
+  
 & @protect
   Command: @protect[/<switch>] [<playername>]
   

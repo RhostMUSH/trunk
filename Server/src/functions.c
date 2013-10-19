@@ -8213,12 +8213,6 @@ FUNCTION(fun_printf)
                   switch( *pp ) {
                      case '/': /* Cut-off value if using '|' option */
                         if ( (strchr(pp+1, '/') != NULL ) ) {
-                           if( fm.formatting ) {
-                              safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
-                              fmterror = 1;
-                              break;
-                           }
-                           fm.formatting = 1;
                            fm.cutatlength = atoi(pp+1);
                            if ( fm.cutatlength < 0 )
                               fm.cutatlength = 0;
@@ -20035,7 +20029,7 @@ FUNCTION(fun_strmath)
       i_start = 1;
    }
    if (i_start < 1)
-      i_start = 1;
+      i_start = 0;
    if ((nfargs > 6) && *fargs[6]) {
       tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[6],
                  cargs, ncargs);
@@ -20043,6 +20037,13 @@ FUNCTION(fun_strmath)
       free_lbuf(tmp);
    } else {
       i_cnt = 4000;
+   }
+   if ( !i_start ) {
+      tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
+                 cargs, ncargs);
+      safe_str(tmp, buff, bufcx);
+      free_lbuf(tmp);
+      return;
    }
    memset(osep_str, '\0', sizeof(osep_str));
    if ((nfargs > 7) && *fargs[7]) {
