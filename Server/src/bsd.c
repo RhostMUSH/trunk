@@ -1635,7 +1635,7 @@ process_input(DESC * d)
 		(d->raw_input_at)--;
   	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
-        } else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 253) && ((p+10) < pend) ) {
+        } else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 250) && ((p+10) < pend) ) {
             sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
             qf = qfind;
             in+=5;

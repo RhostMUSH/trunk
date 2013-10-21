@@ -1175,6 +1175,7 @@ void
 flag_set(dbref target, dbref player, char *flag, int key)
 {
     FLAGENT *fp;
+    TOGENT *tp;
     int negate, result, perm, i_ovperm, i_uovperm, i_chkflags;
     char *pt1, *pt2, st, *tbuff, *tpr_buff, *tprp_buff, *tpr_buff2, *tprp_buff2;
 
@@ -1215,7 +1216,13 @@ flag_set(dbref target, dbref player, char *flag, int key)
 
 	    fp = find_flag(target, pt1);
 	    if (fp == NULL) {
-		notify(player, "I don't understand that flag.");
+                tp = find_toggle(target, pt1);
+                if ( tp == NULL ) {
+		   notify(player, "I don't understand that flag.");
+                } else {
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @toggle me=%s?]", pt1));
+                   tprp_buff = tpr_buff;
+                }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
@@ -1419,9 +1426,11 @@ flag_set(dbref target, dbref player, char *flag, int key)
 void 
 toggle_set(dbref target, dbref player, char *toggle, int key)
 {
+    FLAGENT *fp;
     TOGENT *tp;
-    int negate, result;
-    char *pt1, *pt2, st;
+    FLAG i_flag;
+    int negate, result, i_flagchk;
+    char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
 
     /* Trim spaces, and handle the negation character */
 
@@ -1456,11 +1465,17 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 		notify(player, "You must specify a toggle or toggles to set.");
             }
 	} else {
-
 	    tp = find_toggle(target, pt1);
 	    if (tp == NULL) {
               if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) )
-		notify(player, "I don't understand that toggle.");
+                fp = find_flag(target, pt1);
+                if ( fp == NULL ) {
+		   notify(player, "I don't understand that toggle.");
+                } else {
+                   tprp_buff = tpr_buff = alloc_lbuf("toggle_message");
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @set me=%s?]", pt1));
+                   free_lbuf(tpr_buff);
+                }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
@@ -1471,12 +1486,33 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 
 		/* Invoke the toggle handler, and print feedback */
 
+                  if ( tp->toggleflag & TOGGLE2 ) {
+                     i_flag = Toggles2(target);
+                  } else {
+                     i_flag = Toggles(target);
+                  }
+                  i_flagchk = !(tp->togglevalue & i_flag);
 		  result = tp->handler(target, player, tp->togglevalue,
 				     tp->toggleflag, negate);
 		  if (!result)
 		    notify(player, "Permission denied.");
-		  else if (!(key & (SET_QUIET|SIDEEFFECT)) && !Quiet(player))
-		    notify(player, (negate ? "Cleared." : "Set."));
+		  else if (!(key & (SET_QUIET|SIDEEFFECT)) && !Quiet(player)) {
+                    if ( (key & SET_NOISY) || TogNoisy(player) ) {
+                       tprp_buff = tpr_buff = alloc_lbuf("do_set");
+                       if ( negate ) {
+                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (cleared toggle%s%s).",
+                                       Name(target), (!i_flagchk ? " " : " [again] "),
+                                       tp->togglename) );
+                       } else {
+                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (set toggle%s%s).",
+                                       Name(target), (i_flagchk ? " " : " [again] "),
+                                       tp->togglename) );
+                       }
+                       free_lbuf(tpr_buff);
+                    } else {
+		       notify(player, (negate ? "Cleared." : "Set."));
+                    }
+                  }
 		}
 	    }
 	}

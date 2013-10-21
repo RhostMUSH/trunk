@@ -24850,6 +24850,8 @@ Changes
 * printf() handles the '/' option to specify cutoff value for '|' wrap option [ASH]
 * you can enter extended ASCII in input and it auto-translates to markup [ASH]
 * @snapshot/list takes optional wildcard searching for files [ASH]
+* added nag notice if you use @set with a toggle or a @toggle with a set [ASH]
+* verbosity now shows more information with setting/removing @toggles [ASH]
   
 Bug Fixes
 ---------
