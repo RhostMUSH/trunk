@@ -2659,6 +2659,7 @@ NDECL(check_idle)
             if ( KeepAlive(d->player) ) {
                /* Send NOP code to players to keep NAT/routers/firewalls happy */
                queue_string(d, "\377\361");
+	       process_output(d);
             }
             if ( d->last_time > mudstate.now )
 	       idletime = 0;

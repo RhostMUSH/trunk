@@ -6575,7 +6575,7 @@ FUNCTION(fun_flags)
     OBLOCKMASTER master;
 
     olist_init(&master);
-    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0)) {
+    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0, 0)) {
        if ((it != NOTHING) && (it != AMBIGUOUS) && (!Cloak(it) || (Cloak(it) && Examinable(player, it))) &&
                  (mudconf.pub_flags || Examinable(player, it) || (it == cause))) {
           parse_aflags(player, it, olist_first(&master), buff, bufcx, 0);
@@ -8615,7 +8615,8 @@ FUNCTION(fun_timefmt)
      }
      if ( tzmush->mush_tzone ) {
         secs = secs + timezone + tzmush->mush_offset;
-        secs2 = secs2 + timezone + tzmush->mush_offset;
+/*      secs2 = secs2 + timezone + tzmush->mush_offset; */
+        secs2 = secs2 + (double)(int)timezone + (double)(tzmush->mush_offset);
         i_frell = mudstate.now + timezone + tzmush->mush_offset;
         tms2 = localtime(&i_frell);
      }
@@ -8623,7 +8624,8 @@ FUNCTION(fun_timefmt)
  
   if ( !tzmush ) {
      for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
-        if ( tzmush->mush_offset == -(timezone) ) {
+/*      if ( tzmush->mush_offset == -(timezone) ) { */
+        if ( (int)(tzmush->mush_offset) == -((int)timezone) ) {
            break;
         }
      }
@@ -18065,7 +18067,7 @@ FUNCTION(fun_hasflag)
     OBLOCKMASTER master;
 
     olist_init(&master);
-    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0)) {
+    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0, 0)) {
        if ((it != NOTHING) && (it != AMBIGUOUS) && (!Cloak(it) || (Cloak(it) && (Examinable(player, it) || Wizard(player)))) &&
             (!(SCloak(it) && Cloak(it)) || (SCloak(it) && Cloak(it) && Immortal(player))) &&
             (mudconf.pub_flags || Examinable(player, it) || (it == cause)))  {
@@ -18225,7 +18227,7 @@ FUNCTION(fun_lflags)
     OBLOCKMASTER master;
 
     olist_init(&master);
-    if ( parse_attrib_wild(player, fargs[0], &target, 0, 1, 0, &master, 0) ) {
+    if ( parse_attrib_wild(player, fargs[0], &target, 0, 1, 0, &master, 0, 0) ) {
        if ( (target != NOTHING) && (target != AMBIGUOUS) && (!Cloak(target) || (Cloak(target) &&
             (Examinable(player, target) || Wizard(player)))) &&
             (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
@@ -19039,8 +19041,10 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
             int i_is_parent, int i_is_cluster)
 {
     dbref thing, target, aowner;
-    int ca, first, chk_cmd, aflags, i_pageval, i_currcnt, i_dispcnt, i_retpage, i_allattrs, i_ntfnd, i_min, i_max;
-    char *s_shoveattr, c_lookup, *s_tmpbuff, *s_tmpbuffptr, *s_ptr, *tpr_buff, *tprp_buff, *s_storname[3];
+    int ca, first, chk_cmd, aflags, i_pageval, i_currcnt, i_dispcnt, i_retpage, 
+        i_allattrs, i_ntfnd, i_min, i_max, i_regexp;
+    char *s_shoveattr, c_lookup, *s_tmpbuff, *s_tmpbuffptr, *s_ptr, *tpr_buff, 
+        *tprp_buff, *s_storname[3];
     ATTR *attr;
     OBLOCKMASTER master;
 
@@ -19049,7 +19053,7 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
      * if it is missing.
      */
 
-    if (!fn_range_check(s_name, nfargs, 1, 4, buff, bufcx))
+    if (!fn_range_check(s_name, nfargs, 1, 5, buff, bufcx))
        return;
 
     if (nfargs >= 2) {
@@ -19068,10 +19072,17 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     if ((nfargs >= 3) && (*fargs[2])) {
        c_lookup = *fargs[2];
     }
+    if ((nfargs >= 4) && (*fargs[3])) {
+       i_regexp = atoi(fargs[3]);
+    } else {
+       i_regexp = 0;
+    }
+    
     if ( (c_lookup == '$') || (c_lookup == '^') ) {
        chk_cmd = 1;
-    } else
+    } else {
        chk_cmd = 0;
+    }
     if ( c_lookup == 'l' )
        i_retpage = 1;
     if ( isdigit((int)c_lookup) ) {
@@ -19098,7 +19109,7 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     }
     first = 1;
     olist_init(&master);
-    if (parse_attrib_wild(target, fargs[0], &thing, i_is_parent, i_allattrs, 1, &master, i_is_cluster)) {
+    if (parse_attrib_wild(target, fargs[0], &thing, i_is_parent, i_allattrs, 1, &master, i_is_cluster, i_regexp)) {
         if ( (SCloak(thing) && Cloak(thing) && Immortal(thing) && !(Immortal(target))) ||
              (Cloak(thing) && Wizard(thing) && !(Wizard(target))) ||
              (!(Immortal(target)) && (Going(thing) || Recover(thing))) ) {
@@ -19302,7 +19313,7 @@ FUNCTION(fun_lcmds)
     }
     first = 1;
     olist_init(&master);
-    if (parse_attrib_wild(player, fargs[0], &thing, 0, 0, 1, &master, 0)) {
+    if (parse_attrib_wild(player, fargs[0], &thing, 0, 0, 1, &master, 0, 0)) {
         if ( (SCloak(thing) && Cloak(thing) && Immortal(thing) && !(Immortal(player))) ||
              (Cloak(thing) && Wizard(thing) && !(Wizard(player))) ||
              (!(Immortal(player)) && (Going(thing) || Recover(thing))) ) {
@@ -25842,7 +25853,7 @@ FUNCTION(fun_link)
 
 FUNCTION(fun_create)
 {
-   char *ptrs[LBUF_SIZE / 2], sep;
+   char *ptrs[LBUF_SIZE / 2], sep, *myfargs;
    int nitems;
    CMDENT *cmdp;
 
@@ -25850,7 +25861,12 @@ FUNCTION(fun_create)
       notify(player, "#-1 FUNCTION DISABLED");
       return;
    }
+
+   if (!fn_range_check("CREATE", nfargs, 1, 3, buff, bufcx))
+      return;
+
    mudstate.store_lastcr = -1;
+
    if ( !SideFX(player) || Fubar(player) || Slave(player) ||
         return_bit(player) < mudconf.restrict_sidefx ) {
       notify(player, "Permission denied.");
@@ -25858,9 +25874,22 @@ FUNCTION(fun_create)
          dbval(buff, bufcx, mudstate.store_lastcr);
       return;
    }
+
+   myfargs = alloc_lbuf("fun_create");
+
+   if ( nfargs < 2 ) {
+      sprintf(myfargs, "%d", mudconf.createmin);
+   } else {
+      strcpy(myfargs, fargs[1]);
+   }
+
+   if ( (nfargs > 2) && *fargs[2] ) {
+      sep = *fargs[2];
+   } else {
+      sep = ' ';
+   }
    mudstate.sidefx_currcalls++;
-   varargs_preamble("CREATE", 3);
-   nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
+
    switch (sep) {
       case 't' : cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
@@ -25868,7 +25897,7 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
-                 do_create(player, cause, (SIDEEFFECT), fargs[0], fargs[1]);
+                 do_create(player, cause, (SIDEEFFECT), fargs[0], myfargs);
                  break;
       case 'r' : cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
@@ -25876,6 +25905,7 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
+                 nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_dig(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
                  break;
       case 'e' : cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate.command_htab);
@@ -25884,6 +25914,7 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
+                 nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_open(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
                  break;
       default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
@@ -25892,9 +25923,11 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
-                 do_create(player, cause, (SIDEEFFECT), fargs[0], fargs[1]);
+                 do_create(player, cause, (SIDEEFFECT), fargs[0], myfargs);
                  break;
    }
+   free_lbuf(myfargs);
+
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
 }
@@ -26249,11 +26282,21 @@ FUNCTION(fun_cluster_wipe)
    CMDENT *cmdp;
    ATTR *attr;
    char *s_buff, *s_buff2, *s_buffptr, *s_return, *s_strtok, *s_strtokptr;
-   int target, aflags, i_nomatch, i_nowipe, i_wipecnt, i_totobjs;
+   int target, aflags, i_nomatch, i_nowipe, i_wipecnt, i_totobjs, i_togregexp;
    dbref aowner;
    time_t starttme, endtme;
    double timechk;
 
+   if (!fn_range_check("CLUSTER_WIPE", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   i_togregexp = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      s_return = exec(player, cause, caller,  EV_FCHECK | EV_EVAL | EV_STRIP, fargs[1], cargs, ncargs);
+      if ( atoi(s_return) == 1 )
+         i_togregexp = WIPE_REGEXP;
+      free_lbuf(s_return);
+   }
    i_totobjs = i_nomatch = i_nowipe = i_wipecnt = 0;
    if ( !(mudconf.sideeffects & SIDE_WIPE) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -26325,7 +26368,7 @@ FUNCTION(fun_cluster_wipe)
          sprintf(s_buff, "%s", s_strtok);
       }
       i_totobjs++;
-      do_wipe(player, cause, (SIDEEFFECT), s_buff);
+      do_wipe(player, cause, (SIDEEFFECT|i_togregexp), s_buff);
       switch ( mudstate.wipe_state ) {
          case -1: i_nomatch++;
                   break;
@@ -26351,6 +26394,9 @@ FUNCTION(fun_wipe)
    CMDENT *cmdp;
    char *s_buff;
 
+   if (!fn_range_check("WIPE", nfargs, 1, 2, buff, bufcx))
+      return;
+
    if ( !(mudconf.sideeffects & SIDE_WIPE) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
@@ -26366,7 +26412,12 @@ FUNCTION(fun_wipe)
       notify(player, "Permission denied.");
       return;
    }
-   do_wipe(player, cause, (SIDEEFFECT), fargs[0]);
+
+   if ( (nfargs > 1) && *fargs[1] && (atoi(fargs[1]) == 1) ) {
+      do_wipe(player, cause, (SIDEEFFECT|WIPE_REGEXP), fargs[0]);
+   } else {
+      do_wipe(player, cause, (SIDEEFFECT), fargs[0]);
+   }
    if ( TogNoisy(player) ) {
       switch( mudstate.wipe_state ) {
          case -1: notify(player, "Wipe: no match");
@@ -27584,7 +27635,7 @@ FUN flist[] =
 #endif
     {"CLUSTER_UEVAL", fun_cluster_ueval, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CLUSTER_VATTRCNT", fun_cluster_vattrcnt, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"CLUSTER_WIPE", fun_cluster_wipe, 1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"CLUSTER_WIPE", fun_cluster_wipe, 1, FN_NO_EVAL | FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CLUSTER_XGET", fun_cluster_xget, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CMDS", fun_cmds, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CNAME", fun_cname, 1, 0, CA_PUBLIC, 0},
@@ -27603,7 +27654,7 @@ FUN flist[] =
     {"CRC32", fun_crc32, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CREPLACE", fun_creplace, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"CREATE", fun_create, 2, FN_VARARGS, CA_PUBLIC, 0},
+    {"CREATE", fun_create, 1, FN_VARARGS, CA_PUBLIC, 0},
 #endif
     {"CREATETIME", fun_createtime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CTU", fun_ctu, 3, 0, CA_PUBLIC, CA_NO_CODE},
@@ -28093,7 +28144,7 @@ FUN flist[] =
     {"VUNIT", fun_vunit, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WILDMATCH", fun_wildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"WIPE", fun_wipe, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"WIPE", fun_wipe, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"WHERE", fun_where, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"WHILE", fun_while, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

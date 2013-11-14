@@ -1,0 +1,9 @@
+Rhostmush has many ways to shut down the game cleanly.
+1. Log into the mush and issue @shutdown
+2. Issue a kill -USR2 to the mush which issues an emergency @shutdown
+3. Issue a kill -TERM to the mush which issues an emergency abort and clean shutdown.
+
+Under NO CIRCUMSTANCES should you kill -9 your mush unless you don't care for the 
+database.  The reason is if the mush happens to be saving, in any method, to the 
+database, especially a QDBM database, you will likely have just corrupted your
+database, so pull out a flatfile to recover.

@@ -82,6 +82,14 @@ struct SNOOPLISTNODE {
  *    - Thorin 01/1997
 */
 
+/* OK, let's make a temporary player desc data descriptor here */
+typedef struct descriptor_data_online DESC_ONLINE;
+struct descriptor_data_online {
+  int version;
+  int width;
+  int height;
+};
+
 typedef struct descriptor_data DESC;
 struct descriptor_data {
   int descriptor;

@@ -1776,7 +1776,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
     } else {
 	/* Check for obj/attr first. */
 	olist_init(&master);
-	if (parse_attrib_wild(player, name, &thing, do_parent, 1, 0, &master, 0)) {
+	if (parse_attrib_wild(player, name, &thing, do_parent, 1, 0, &master, 0, 0)) {
     	  if (Cloak(thing)) {
 	    if (Immortal(thing) && SCloak(thing) && !(Immortal(cause))) {
 	      notify(player, "I don't see that here.");
@@ -2958,7 +2958,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
     if (!name || !*name)
       return;
     olist_init(&master);
-    if (parse_attrib_wild(player, name, &thing, 0, 1, 0, &master, 0)) {
+    if (parse_attrib_wild(player, name, &thing, 0, 1, 0, &master, 0, 0)) {
       if (!Examinable(player, thing)) {
 	notify_quiet(player, "You can only decompile things you can examine.");
 	olist_cleanup(&master);

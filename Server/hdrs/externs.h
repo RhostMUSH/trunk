@@ -334,7 +334,7 @@ extern void	FDECL(list_buftrace, (dbref));
 extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
-			int, int, OBLOCKMASTER *, int));
+			int, int, OBLOCKMASTER *, int, int));
 extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int));
 extern dbref	FDECL(match_controlled, (dbref, const char *));
 extern dbref	FDECL(match_controlled_or_twinked, (dbref, const char *));
@@ -888,6 +888,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	SWEEP_SCAN	128	/* Scan for pattern matching */
 #define	SWEEP_VERBOSE	256	/* Display what pattern matches */
 #define WIPE_PRESERVE	1	/* Reverse effect of @wipe */
+#define WIPE_REGEXP	2	/* Wipe using regexp */
 #define TEL_GRAB	1
 #define TEL_JOIN	2
 #define TEL_LIST	4
@@ -944,6 +945,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define CLUSTER_REACTION 8192	/* Edit action for a cluster */
 #define CLUSTER_TRIGGER 16384	/* Trigger attribute on cluster */
 #define CLUSTER_FUNC    32768	/* Trigger function action instead of command action */
+#define CLUSTER_REGEXP  65536	/* Allow regexp matching where applicable */
 
 /* Hush codes for movement messages */
 
@@ -1056,7 +1058,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #ifndef PCRE_EXEC
 #define regexp_wild_match(v,w,x,y,z) (0)
-#define grep_internal_regexp(v,w,x,y,z) ("")
+#define grep_internal_regexp(v,w,x,y,z) alloc_lbuf("grep_internal_regexp")
 #define load_regexp_functions(x) (0)
 #define PCRE_EXEC 	0
 #endif

@@ -9,7 +9,12 @@ srcdir = .
 bindir = ../bin
 incdir = ../hdrs
 
-CC = gcc
+ERR = $(shell which gcc >/dev/null; echo $$?)
+ifeq "$(ERR)" "0"
+   CC = gcc
+else
+   CC = cc
+endif
 # CPP = gcc -E	# This is broken in autoconf.  Sigh.
 CPP = $(CC) -E
 # Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.

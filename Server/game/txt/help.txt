@@ -2114,14 +2114,31 @@
   ---------   -------------------------- -----------   -----------------------
     /new    - start new cluster          /add        - add dbref# to a cluster
     /del    - delete dbref# from cluster /clear      - purge cluster
-    /list   - list cluster specifics     /threshhold - set threshold limit
+    /list   - list cluster specifics     /threshold  - set threshold limit
     /action - set threshold action       /edit       - edit attr on cluster
     /set    - set/unset attr on cluster  /repair     - repair cluster
     /grep   - grep cluster for match     /reaction   - edit action on cluster
     /cut    - 'cut' dbref# from cluster  /trigger    - trigger attr in cluster
-    /func   - Specify function action
-  
+    /func   - Specify function action    /regexp     - use regexp pattern match
+    /wipe   - Wipe attrib(s) in cluster
+   
   See Also:  clusters, cluster functions, cluster commands, >
+
+& @cluster wipe
+  Command: @cluster/wipe <object>[/<wildattr>]
+           @cluster/wipe/regexp <object>[/<wildattr>]
+  
+  The wipe switch, with an optional regexp switch addon, will wipe all matching
+  attributes from every item in the cluster.  This works exactly like @wipe
+  except is performed on the entirity of the cluster.
+  
+  Example:
+    > @cluster/wipe #1234/va*
+    Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
+    > @cluster/wipe/regexp #1234/^..$
+    Cluster wipe: 24 total objects, 0 no-match, 0 safe, 22 attributes wiped.
+  
+  See Also: clusters, cluster functinos, cluster commands, >
 
 & @cluster new
   Command: @cluster/new <object>
@@ -2307,10 +2324,14 @@
 
 & @cluster grep
   Command: @cluster/grep <cluster object>=<attribute(s)>,<string>
+           @cluster/grep/regexp <cluster object>=<attribute(s)>,<string>
   
   This works like @grep but is intended for the entirety of the cluster.
   This essentially searches for any match (partial or wildcarded) on 
   any attribute on the cluster.
+  
+  You may specify the optional regexp switch to use regular expression 
+  matching instead of the default matching.
   
   Example: 
     > @cluster/grep #3683=*,*foo*
@@ -4282,7 +4303,16 @@
   The following switches exist:
     /preserve    - wipe everything EXCEPT the wild-attr matches.  This in 
                    effect does the reverse of normal @wipe.
+    /regexp      - use regular expression instead of standard glob-matching
   
+  Example:
+    > @wipe me/va*
+    Wiped - 1 attributes.
+    > @wipe/reg me/^.a$
+    Wiped - 4 attributes.
+  
+  See Also: wipe(), @edit, @grep  
+
 & @whereis
   Command: @whereis <player>
   
@@ -6873,6 +6903,9 @@
 & BOUNCE
 & BOUNCEFORWARD
   Flag: BOUNCE([o])  
+  Attribute: BOUNCEFORWARD
+  
+  Note:  The attribute is set with @set or &.
   
   This flag redirects the output that the target receives
   and sends it to all of it's contents.  This is handy if you don't want
@@ -6886,6 +6919,12 @@
   and valid player objects.  Be aware that the source forwarding
   notifies the targets in the BOUNCEFORWARD where the text is
   originating from, so no abusing it :)
+  
+  Examples:
+    > @set thing=bounce
+    Set.
+    > &bounceforward thing=#12 #34 #4567
+    Set.
   
 & MARKER0
   Flag: MARKER0([0])  
@@ -9254,6 +9293,7 @@
     %b      = space character.
     %%      = literal '%' character.
     %0-%9   = Value of positional parameter/stack location 0 through 9.
+    %-      = Stack 10+ that are comma delimited
     %i0-%i9 = Equivalent to itext(0) through itext(9).
     %q0-%q9 = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
     %qa-%qz = Extended value of registers.
@@ -12071,7 +12111,7 @@ See Also: timefmt()
     > strmath(1 fish 2 fish 3 shoe 4 shoe,10,+,,,3,2)
     You say "1 fish 12 fish 13 shoe 4 shoe"
     >  strmath(To hit:5|To Damage:10|Base AC:15,150,+,|,|,1,0,:,:)
-    You say "To hit:150|To Damage:10|Base AC:15"
+    You say "To hit:155|To Damage:10|Base AC:15"
   
   See Also: add(), sub(), mul(), div(), mod(), strfunc(), spellnum()
   
@@ -12410,6 +12450,7 @@ See Also: timefmt()
   
   See Also: regrep(), grep(), pgrep()
 
+& REGEDITLIT()
 & REGEDIT()
   Function: regedit(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
             regeditlit(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
@@ -12434,6 +12475,7 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regediti(), regeditall(), regeditalli()
 
+& REGEDITALLLIT()
 & REGEDITALL()
   Function: regeditall(<str>, <regexp>, <repl>[,..., <regexpN>, <replaceN>])
             regeditalllit(<str>, <regexp>, <repl>[,..., <regexpN>, <replaceN>])
@@ -12457,6 +12499,7 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regedit(), regediti(), regeditalli()
 
+& REGEDITILIT()
 & REGEDITI()
   Function: regediti(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
   Function: regeditilit(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
@@ -12481,6 +12524,7 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regedit(), regeditall(), regeditalli()
 
+& REGEDITALLILIT()
 & REGEDITALLI()
   Function: regeditalli(<str>, <regexp>, <repl>[,...,<regexpN>,<replaceN>])
             regeditallilit(<str>, <regexp>, <repl>[,...,<regexpN>,<replaceN>])
@@ -12505,17 +12549,6 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regedit(), regediti(), regeditall() 
 
-& REGEDITLIT()
-  See regedit()
-
-& REGEDITILIT()
-  See regediti()
-
-& REGEDITALLLIT()
-  See regeditall()
-
-& REGEDITALLILIT()
-  See regeditalli()
 
 & REGMATCH()
   Function: regmatch(<string>,<regexp>[,<register list>])
@@ -14800,10 +14833,11 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: lattr()
   
 & LATTR()
-  Function: lattr(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattr(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
  
-  Returns a list of the attributes set on <object>.  If <wild-pattern> is
-  given, only attributes matching it are returned.  You may specify the 
+  Returns a list of the attributes set on <object>.  If <wild> is given, only
+  attributes matching it are returned.  If you specify <regexp> as true (1)
+  then the wildcard pattern may be regular expressions.  You may specify the 
   optional target if you wish to return attributes that only the target
   could see.  If you do not have control over target, it defaults to yours.
   You may specify a type to check against.  The following types exist:
@@ -14822,13 +14856,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & LATTR2   
   CONTINUED
-  Function: lattr(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattr(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
   
   Example:
     > @va me=$whee:@pemit %#=you did a whee.
     > @vb me=^*wow*:@pemit %#=You're hearing a wow.
     > say lattr(me)
-    You say "Desc VA VB VC VE Last VV Domain"
+    You say "Desc VA VB VC VE Last VV Domain XX"
     > say lattr(me/v*)
     You say "VA VB VC VE VV"
     > say lattr(me/v*,*TinyPlayer)
@@ -14837,6 +14871,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "VA"
     > say lattr(me/v*,,^)
     You say "VB"
+    > say lattr(me/^..$,,,1)
+    You say "VA VB VC VE VV XX"
  
   See Also: @dolist, attrcnt(), vattrcnt(), cluster_lattr()
   
@@ -17048,13 +17084,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @link, SIDEEFFECTS
   
 & CREATE()
-  Function: create(<name>,<arguments>[,<type>])
+  Function: create(<name>, [<arguments> [,<type>]])
   
   @create:  create(<name>,<value>,t) (default)
     This will create an object with name <name> of value <value>.  The 't'
     <type> is optional for this as it is the default.  For more help on
     creating objects, please refer to 'help @create'.  If <value> is null
     it assumes the default.  All objects made are sent to enactor's location.
+  
+    If no arguments are given, the default money value is taken for this 
+    option only.
   
   @dig:     create(<name>,<[exit-in],[exit-out]>,r)
     This will dig a room with name <name> and OPTIONAL in-exit 'exit-in' and
@@ -17071,6 +17110,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   Example:
   > say create(An Object,10)   (this will create 'An Object' with value of '10')
+  > say create(An Object)      (this will create 'An Object' with default cost)
   
   See Also: @create, @dig, @open, dig(), open(), SIDEEFFECTS
   
@@ -17270,21 +17310,26 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @destroy, wipe(), create()
   
 & WIPE()
-  Function: wipe(<obj>[/wildattr])
+  Function: wipe(<obj>[/wildattr] [,<regexp>])
   
   The wipe() function will remove all matching attributes specified by
   a wildcard, or, if no attribute is specified, remove all attributes of
   the specified object.  This function works like @wipe and follows all
   permissions and restrictions of the matching command.
   
+  If <regexp> is specified as '1', then <wildattr> is evaluated as a
+  regular expresion instead of the default expresion.
+  
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
   
   Examples:
-    > say wipe(#123)
-    You say ""
     > say wipe(#123/*foo*)
-    You say ""
+    You say "Wipe: 8 attributes wiped."
+    > say wipe(#123/^.*ab$,1)
+    You say "Wipe: 2 attributes wiped."
+    > say wipe(#123)
+    You say "Wipe: 218 attributes wiped."
   
   See Also: @wipe, @set, &, set()
   
@@ -18957,6 +19002,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say =[rjust(bar,5,.)]=
     You say "=..bar="
   
+  Alternate:
+    > say =[printf($:.:5s,bar)]=       (The default justification is right)
+    You say "=..bar="
+  
   See Also: rjc(), ljust(), ljc(), strlen(), printf(), wrap()
   
 & RJC()
@@ -19036,6 +19085,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     0foo   7
     01234567"
     > say =[ljust(bar,5,.)]=
+    You say "=bar..="
+  
+  Alternate:
+    > say =[printf($:.:-5s,bar)]=      (the '-' specifies left justifies)
     You say "=bar..="
   
   See Also: ljc(), rjust(), rjc(), strlen(), printf(), wrap()
@@ -19351,6 +19404,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "--a--"
     > say center(*BAMF*,15)
     You say "    *BAMF*     "
+  
+  Alternate:
+    > say printf($:-:^5s,a)            (the '^' specifies center justify)
+    You say "--a--"
   
   See Also: ljust(), rjust(), ljc(), rjc(), printf()
   
@@ -20079,10 +20136,12 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_LATTR()
-  Function: cluster_lattr(<obj>[/<wild>][,<target> [,<type>][,<flags>]])
+  Function: cluster_lattr(<obj>[/<wild>][,<target>[,<type>][,<flags>][,<rexp>])
  
-  Returns a list of the attributes set on cluster <object>.  If <wild-pattern>
-  is given, only attributes matching it are returned.  You may specify the 
+  Returns a list of the attributes set on cluster <obj>ect.  If <wild>pattern
+  is given, only attributes matching it are returned.  If you have the regexp
+  toggle <rexp> as true (1), the matching <wild> is evaluated as a regular
+  expression instead of the default matching algorithem.  You may specify the 
   optional target if you wish to return attributes that only the target
   could see.  If you do not have control over target, it defaults to yours.
   This searches all objects that are contained in the cluster.
@@ -20103,13 +20162,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & CLUSTER_LATTR2   
   CONTINUED
-  Function: cluster_lattr(<obj>[/<wild>][,<target> [,<type>][,<flags>]])
+  Function: cluster_lattr(<obj>[/<wild>][,<target>[,<type>][,<flags>][,<rexp>])
   
   Example:
     > @va cluster#1=$whee:@pemit %#=you did a whee.
     > @vb cluster#1=^*wow*:@pemit %#=You're hearing a wow.
     > say cluster_lattr(cluster#1)
-    You say "Desc VA VB VC VE Last VV Domain"
+    You say "Desc VA VB VC VE Last VV Domain XX"
     > say cluster_lattr(cluster#1/v*)
     You say "VA VB VC VE VV"
     > say cluster_lattr(cluster#1/v*,*TinyPlayer)
@@ -20118,6 +20177,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "VA"
     > say cluster_lattr(cluster#1/v*,,^)
     You say "VB"
+    > say cluster_lattr(cluster#1/^..$,,,1)
+    You say "VA VB VC VE VV XX"
   
   See Also: @cluster, cluster_attrcnt(), cluster_default(), cluster_edefault(), 
             cluster_get(), cluster_get_eval(), cluster_grep(), cluster_hasattr(),
@@ -20564,13 +20625,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_WIPE()
-  Function: cluster_wipe(<object>[/wildattr])
+  Function: cluster_wipe(<object>[/wildattr] [,<regxp>])
   
   The cluster_wipe() function will remove all matching attributes 
   specified by a wildcard, or, if no attribute is specified, 
   remove all attributes of the specified cluster.  This function 
   works like @cluster/wipe and follows all permissions and 
   restrictions of the matching command.
+  
+  If <regexp> is specified as '1', then <wildattr> is evaluated as a
+  regular expresion instead of the default expresion.
   
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
@@ -24852,6 +24916,11 @@ Changes
 * @snapshot/list takes optional wildcard searching for files [ASH]
 * added nag notice if you use @set with a toggle or a @toggle with a set [ASH]
 * verbosity now shows more information with setting/removing @toggles [ASH]
+* create() takes one argument now for Penn compatibility [ASH]
+* all *lattr() functions now handle regexp optionally [ASH]
+* @cluster/wipe and @cluster/grep now optionally handle /regexp [ASH]
+* @wipe optionally handles /regexp [ASH]
+* wipe() and cluster_wipe() optionally handle regexp [ASH]
   
 Bug Fixes
 ---------
@@ -24863,3 +24932,5 @@ Bug Fixes
   fix this behavior forcefully [ASH]
 * printf() couldn't combine '/' and ':' options previously [ASH]
 * some extended ascii characters wouldn't display proplery [ASH]
+* documentation was missing for @cluster/wipe [ASH]
+* functions.c did not compile under CLANG [ASH]

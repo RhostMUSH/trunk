@@ -5063,7 +5063,7 @@ mail_acheck(dbref player)
        olist_init(&master);
        if (parse_attrib_wild(mudconf.mail_def_object, 
                              unsafe_tprintf("#%d/alias.*", mudconf.mail_def_object),
-                             &tmpdbnum, 0, 0, 1, &master, 0)) {
+                             &tmpdbnum, 0, 0, 1, &master, 0, 0)) {
           s_shoveattr = alloc_lbuf("mail_alias_lbuf");
           tprp_buff = tpr_buff = alloc_lbuf("mail_acheck");
           for (ca = olist_first(&master); ca != NOTHING; ca = olist_next(&master)) {

@@ -1829,7 +1829,7 @@ CF_HAND(cf_string)
 CF_HAND(cf_string_sub)
 {
     int retval;
-    char *buff, *s_sublist="abcfiklnopqrstvwx#!@0123456789+?<", *ptr;
+    char *buff, *s_sublist="abcfiklnopqrstvwx#!@0123456789+?<-", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 

@@ -1405,7 +1405,7 @@ int	aflags;
 
 static void find_wild_attrs (dbref player, dbref thing, char *str, 
 		int check_exclude, int hash_insert,
-		int get_locks,OBLOCKMASTER *master)
+		int get_locks,OBLOCKMASTER *master, int i_regexp)
 {
 ATTR	*attr;
 char	*as;
@@ -1451,7 +1451,8 @@ int	ca, ok, aflags;
 			ok = 0;
 
                 if ( mudstate.reverse_wild == 1 ) {
-		   if (ok && !quick_wild(str, (char *)attr->name)) {
+		   if (ok && ((!i_regexp && !quick_wild(str, (char *)attr->name)) ||
+                              ( i_regexp && !quick_regexp_match(str, (char *)attr->name, 0))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,
@@ -1459,7 +1460,8 @@ int	ca, ok, aflags;
 			   }
 		   }
                 } else {
-		   if (ok && quick_wild(str, (char *)attr->name)) {
+		   if (ok && ((!i_regexp && quick_wild(str, (char *)attr->name)) ||
+                              ( i_regexp && quick_regexp_match(str, (char *)attr->name, 0))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,
@@ -1472,7 +1474,7 @@ int	ca, ok, aflags;
 }
 
 int parse_attrib_wild(dbref player, char *str, dbref *thing, 
-		int check_parents, int get_locks, int df_star, OBLOCKMASTER *master, int check_cluster)
+		int check_parents, int get_locks, int df_star, OBLOCKMASTER *master, int check_cluster, int i_regexp)
 {
 char	*buff, *s_text, *s_strtok, *s_strtokptr;
 dbref	parent, aflags;
@@ -1521,7 +1523,7 @@ ATTR	*attr;
                       while ( s_strtok ) {
                          parent = match_thing(player, s_strtok);
                          if ( Good_chk(parent) && Cluster(parent) ) {  
-		            find_wild_attrs(player, parent, str, check_exclude, 0, get_locks, master);
+		            find_wild_attrs(player, parent, str, check_exclude, 0, get_locks, master, i_regexp);
                          }
                          s_strtok = strtok_r(NULL, " ", &s_strtokptr);
                       }
@@ -1536,11 +1538,11 @@ ATTR	*attr;
 			if (!Good_obj(Parent(parent)))
 				hash_insert = 0;
 			find_wild_attrs(player, parent, str, check_exclude,
-				hash_insert, get_locks,master);
+				hash_insert, get_locks,master, i_regexp);
 			check_exclude = 1;
 		}
 	} else {
-		find_wild_attrs(player, *thing, str, 0, 0, get_locks,master);
+		find_wild_attrs(player, *thing, str, 0, 0, get_locks,master, i_regexp);
 	}
 	free_lbuf(buff);
 	return 1;
@@ -1640,7 +1642,7 @@ OBLOCKMASTER master;
 	/* Look for the object and get the attribute (possibly wildcarded) */
 
         olist_init(&master);
-	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0)) {
+	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0, 0)) {
 	        olist_cleanup(&master);
 		notify_quiet(player, "No match.");
 		return;
@@ -1770,17 +1772,21 @@ OBLOCKMASTER master;
 void do_wipe(dbref player, dbref cause, int key, char *it)
 {
    dbref thing, aowner;
-   int attr, got_one, aflags, orig_revwild;
+   int attr, got_one, aflags, orig_revwild, i_regexp;
    ATTR *ap;
    char *atext, *buff2ret, *tpr_buff, *tprp_buff;
    OBLOCKMASTER master;
 
-   mudstate.wipe_state = 0;
+   i_regexp = mudstate.wipe_state = 0;
    olist_init(&master);
    orig_revwild = mudstate.reverse_wild;
    if ( key & WIPE_PRESERVE )
       mudstate.reverse_wild = 1;
-   if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0)) {
+
+   if ( key & WIPE_REGEXP )
+      i_regexp = 1;
+   
+   if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp)) {
       if ( !(key & SIDEEFFECT) )
          notify_quiet(player, "No match.");
       olist_cleanup(&master);

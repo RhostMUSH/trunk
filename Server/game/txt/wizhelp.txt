@@ -214,6 +214,7 @@
   Example:  news/userlimit 100
   
   See Also: wizhelp news grouplimit, wizhelp news expire
+
 & news subscribe
   Command: news/subscribe <player>=<group>
   
@@ -639,8 +640,6 @@
   automatically checked.
 
 & NONAME
-  See NO_NAME
-
 & NO_NAME
   Flag: NO_NAME([m]) (wizard and higher only)
   
@@ -650,8 +649,6 @@
   This is aliased to 'NONAME' for compatibility.
 
 & NOWHO
-  See NO_WHO
-
 & NO_WHO
   Flag: NO_WHO([W]) (internal flag)
   
@@ -668,8 +665,6 @@
   over anything set NOBACKSTAGE.  This may include things they own.
 
 & NOBACKSTAGE
-  See NO_BACKSTAGE
-
 & NO_BACKSTAGE
   Flag: NO_BACKSTAGE([d]) (immortal only)
   
@@ -4174,8 +4169,6 @@
   and should not be manually set or unset on anything.
 
 & NOCONNECT
-  See NO_CONNECT
-
 & NO_CONNECT
   Flag: NO_CONNECT([A]) (councilor and higher)
   This flag when set on a player stops them from being able to connect to
@@ -4187,8 +4180,6 @@
   See Also: FUBAR SLAVE
 
 & NOCODE
-  see NO_CODE
-
 & NO_CODE
   Flag: NO_CODE([j])
   
@@ -4209,6 +4200,7 @@
 
   { 'wizhelp no_code2' for more }
 
+& nocode2
 & no_code2
   Commands not blocked by the NO_CODE flag:
   @@ @alias @chown @clone @create @decompile @destroy @dig @doing @edit @emit
@@ -4228,8 +4220,6 @@
   trim wrap wrapcolumns
 
 & NOMODIFY
-  See NO_MODIFY
-
 & NO_MODIFY
   Flag: NO_MODIFY([M]) (royalty and higher)
   This flag when set on anything makes it so that object can not be
@@ -4246,8 +4236,6 @@
   See Also: NOEXAMINE
 
 & NOEXAMINE
-  See NO_EXAMINE
-
 & NO_EXAMINE
   Flag: NO_EXAMINE([E]) (royalty and higher)
   This flag when set on anything makes it so the object can not be
@@ -4271,8 +4259,6 @@
   for guildobjects to allow an easy method to search for them.
 
 & NOPOSSESS
-  See NO_POSSESS
-
 & NO_POSSESS
   Flag: NO_POSSESS([C]) (royalty and higher)
   This flag when set on a player makes it so that player can not be
@@ -4293,8 +4279,6 @@
   See Also: @recover, @reclist, @purge
 
 & NOMOVE
-  See NO_MOVE
-
 & NO_MOVE
   Flag: NO_MOVE([N])
   This flag is settable only by royalty and higher.  It in effect stops that
@@ -4314,8 +4298,6 @@
   See Also: NOSTOP
 
 & NOSTOP
-  See NO_STOP
-
 & NO_STOP
   Flag: NO_STOP([F])
   This flag when finding a matching $command on an object that has the NOSTOP
@@ -4334,8 +4316,6 @@
   by ROYALTY and higher.
 
 & NOANSINAME
-  See NO_ANSINAME
-
 & NO_ANSINAME
   Flag: NO_ANSINAME([n])
   This flag when set on a non-player, will disable that target from 
@@ -4344,8 +4324,6 @@
   so will everything that belongs to that player.  It is inherited.
 
 & NOGOBJ
-  See NO_GOBJ
-
 & NO_GOBJ
   Flag: NO_GOBJ([G])
   This flag when set disables the target from executing any commands on
@@ -4353,8 +4331,6 @@
   and higher only.
 
 & NOPESTER
-  See NO_PESTER
-
 & NO_PESTER
   Flag: NO_PESTER([p])
   This flag when set disables the target from being able to whisper or @pemit
@@ -4362,8 +4338,6 @@
   and higher only.
 
 & NOOVERRIDE
-  See NO_OVERRIDE
-
 & NO_OVERRIDE
   Flag: NO_OVERRIDE([V])
   This flag when set disables the target from overriding locks.  This allows
@@ -4374,8 +4348,6 @@
   See Also: no_uselock
 
 & NOUSELOCK
-  See NO_USELOCK
-
 & NO_USELOCK
   Flag: NO_USELOCK([U])
   This flag when set disables the target from overriding uselocks.  This 
@@ -8248,6 +8220,7 @@
   in here so they can contact one another when the game is down.
 
 & DEBUG FEATURES
+  There is currently no information for this topic.
 
 & FILES
   Topic: FILES
@@ -8556,11 +8529,13 @@
   See Also: mailquota(), mailquick()
 
 & LATTRP()
-  Function: lattrp(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattrp(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
    
   Returns a list of the attributes set on <object> and all parents OF
-  <object>.  If <wild-pattern> is given, only attributes matching it 
-  are returned.  You may specify the optional target if you wish to 
+  <object>.  If <wild>pattern is given, only attributes matching it 
+  are returned.  You may specify the <regexp> option to true (1) to turn the
+  wild matching algo into regular expression matching instead of the default
+  matching algorithem.  You may specify the optional target if you wish to 
   return attributes that only the target could see.  If you do not have
   control over target, it defaults to yours.  You may specify a type to 
   check against.  The following types exist:
@@ -8578,21 +8553,23 @@
   { see help lattrp2 for examples }
 
 & LATTRP2 
-  Function: lattrp(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattrp(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
    
   Example:
     > @va me=$whee:@pemit %#=you did a whee.
     > @vb me=^*wow*:@pemit %#=You're hearing a wow.
-    > say lattr(me)
-    You say "Desc VA VB VC VE Last VV Domain"
-    > say lattr(me/v*)
+    > say lattrp(me)
+    You say "Desc VA VB VC VE Last VV Domain XX"
+    > say lattrp(me/v*)
     You say "VA VB VC VE VV"
-    > say lattr(me/v*,*TinyPlayer)
+    > say lattrp(me/v*,*TinyPlayer)
     You say "VC VE VV"
-    > say lattr(me/v*,,$)
+    > say lattrp(me/v*,,$)
     You say "VA"
-    > say lattr(me/v*,,^)
+    > say lattrp(me/v*,,^)
     You say "VB"
+    > say lattrp(me/^..$,,,1)
+    You say "VA VB VC VE VV XX"
   
   This is wizard only as it could be computationally expensive. 
   

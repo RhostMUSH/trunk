@@ -17,6 +17,8 @@ Bug with compiling without BANG support with undeclared variables.
 				- Thanks Darren@Nightlife
 You can now input extended ASCII right into the mush (and it converts to markup)
 				- Thanks mindboosternoori
+functions.c bombed with the clang compiler because of restrictive type-casting comparisons.
+				- Thanks Fraibert
 
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 

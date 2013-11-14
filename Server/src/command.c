@@ -111,6 +111,7 @@ NAMETAB hook_sw[] =
     {(char *) "clear", 3, CA_IMMORTAL, 0, HOOK_CLEAR|SW_MULTIPLE},
     {(char *) "list", 3, CA_IMMORTAL, 0, HOOK_LIST},
     {(char *) "igswitch", 3, CA_IMMORTAL, 0, HOOK_IGSWITCH},
+    {(char *) "extend", 3, CA_IMMORTAL, 0, HOOK_IGSWITCH},
     {(char *) "fail", 3, CA_IMMORTAL, 0, HOOK_FAIL},
     {NULL, 0, 0, 0, 0}};
 
@@ -177,6 +178,7 @@ NAMETAB cluster_sw[] = {
   {(char *) "reaction", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REACTION},
   {(char *) "trigger", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_TRIGGER},
   {(char *) "function", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_FUNC | SW_MULTIPLE},
+  {(char *) "regexp", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REGEXP | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}
 };
 
@@ -955,7 +957,8 @@ NAMETAB thaw_sw[] =
 
 NAMETAB wipe_sw[] =
 {
-    {(char *) "preserve", 1, CA_PUBLIC, 0, WIPE_PRESERVE},
+    {(char *) "preserve", 1, CA_PUBLIC, 0, WIPE_PRESERVE | SW_MULTIPLE},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, WIPE_REGEXP},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB wait_sw[] =
@@ -8338,7 +8341,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 {
    dbref thing, it, aowner;
    int aflags, atr;
-   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[41], *tpr_buff, *tprp_buff;
+   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[80], *tpr_buff, *tprp_buff;
    DESC *d;
 
    if (!*name || !name) {
@@ -9195,7 +9198,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
         *s_strtok, *s_strtokptr, *s_return, *s_tmpstr, *xargs[MAX_ARG], *s_foo;
    int anum, anum2, anum3, aflags, i_isequal, i_corrupted, i_temp, i_temp2, i_lowball, 
         i_highball, i_first, nxargs, i, i_clusterfunc, anum4, i_sideeffect,
-        i_nomatch, i_nowipe, i_wipecnt, i_totobjs;
+        i_nomatch, i_nowipe, i_wipecnt, i_totobjs, i_regexp;
    ATTR *attr;
    time_t starttme, endtme;
    double timechk;
@@ -9222,6 +9225,12 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
       notify(player, "@cluster requires an argument.");
       free_lbuf(s_return);
       return;
+   }
+
+   i_regexp = 0;
+   if ( key & CLUSTER_REGEXP ) {
+      i_regexp = 1;
+      key &= ~CLUSTER_REGEXP;
    }
    free_lbuf(s_instr);
    if ( strchr(s_return, '=') ==  NULL ) {
@@ -9699,7 +9708,11 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                      while ( s_strtok && !mudstate.chkcpu_toggle ) {
                         thing3 = match_thing(player, s_strtok);
                         if ( Good_chk(thing3) && Cluster(thing3) ) {
-                           s_tmpptr = grep_internal(player, thing3, xargs[1], xargs[0], 0);
+                           if ( i_regexp ) {
+                              s_tmpptr = grep_internal_regexp(player, thing3, xargs[1], xargs[0], 0);
+                           } else {
+                              s_tmpptr = grep_internal(player, thing3, xargs[1], xargs[0], 0);
+                           }
                            if ( *s_tmpptr ) {
                               notify(player, safe_tprintf(tpr_buff, &tprp_buff, "====[Grep]---> %s", s_strtok));
                               notify(player, s_tmpptr);
@@ -10374,6 +10387,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                else
                   timechk = mudconf.cputimechk;
                i_totobjs = 0;
+               if ( i_regexp ) 
+                  i_regexp = WIPE_REGEXP;
                while ( s_strtok ) {
                   endtme = time(NULL);
                   if ( mudstate.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
@@ -10389,9 +10404,9 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                   if ( Good_chk(thing3) && Cluster(thing3) ) {
                      if ( *s_return && (strchr(s_return, '/') != NULL) ) {
                         sprintf(s_instr, "%s%s", s_strtok, strchr(s_return, '/'));
-                        do_wipe(thing3, thing3, (SIDEEFFECT), s_instr);
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_instr);
                      } else
-                        do_wipe(thing3, thing3, (SIDEEFFECT), s_strtok);
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_strtok);
                   }
                   switch (mudstate.wipe_state) {
                      case -1: i_nomatch++;
