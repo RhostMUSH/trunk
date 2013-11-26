@@ -1311,7 +1311,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0);
                   }
                }
                free_lbuf(s_buff);
@@ -1350,7 +1350,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0);
                   }
                }
                free_lbuf(s_buff);
@@ -1399,7 +1399,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0);
                }
             }
             free_lbuf(s_buff);
@@ -1438,7 +1438,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0);
                }
             }
             free_lbuf(s_buff);
@@ -2467,7 +2467,7 @@ char	*xargs[10];
 
 	if (nargs >= 7) {
 		parse_arglist(victim, actor, actor, args[6], '\0',
-			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0);
+			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0, 0);
 		for (nxargs=0; (nxargs<10) && xargs[nxargs]; nxargs++) ;
 	}
 

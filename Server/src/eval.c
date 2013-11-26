@@ -217,9 +217,9 @@ char *
 parse_arglist(dbref player, dbref cause, dbref caller, char *dstr, 
               char delim, dbref eval,
 	      char *fargs[], dbref nfargs, char *cargs[],
-	      dbref ncargs)
+	      dbref ncargs, int i_type)
 {
-    char *rstr, *tstr;
+    char *rstr, *tstr, *mychar, *mycharptr, *s;
     int arg, peval;
     DPUSH; /* #61 */
 
@@ -248,6 +248,9 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 	peval = eval;
     }
 
+    if ( i_type ) {
+       peval = peval | EV_EVAL | ~EV_STRIP_ESC;
+    }
     while ((arg < nfargs) && rstr) {
 	if (arg < (nfargs - 1))
 	    tstr = parse_to(&rstr, ',', peval);
@@ -257,8 +260,34 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 	    fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK, tstr,
 			      cargs, ncargs);
 	} else {
-	    fargs[arg] = alloc_lbuf("parse_arglist");
-	    strcpy(fargs[arg], tstr);
+            if (  i_type  ) {
+               mychar = mycharptr = alloc_lbuf("no_eval_parse_arglist");
+               s = tstr;
+               while (*s) {
+                  switch (*s) {
+                     case '%':
+                     case '\\':
+                     case '[':
+                     case ']':
+                     case '{':
+                     case '}':
+                     case '(':   /* Added 7/00 Ash */
+                     case ')':   /* Added 7/00 Ash */
+                     case ',':   /* Added 7/00 Ash */
+                         if ( (*s != '%') || ((*s == '%') && !isdigit(*(s+1))) )
+                            safe_chr('\\', mychar, &mycharptr);
+                     default:
+                         safe_chr(*s, mychar, &mycharptr);
+                  }
+                  s++;
+               }
+	       fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK | EV_EVAL | ~EV_STRIP_ESC, mychar,
+			         cargs, ncargs);
+               free_lbuf(mychar);
+            } else {
+	       fargs[arg] = alloc_lbuf("parse_arglist");
+	       strcpy(fargs[arg], tstr);
+            }
 	}
 	arg++;
     }
@@ -871,7 +900,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
-    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start;
+    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
     FUN *fp;
     UFUN *ufp, *ulfp;
@@ -2115,6 +2144,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    else
 		nfargs = NFARGS;
 	    tstr = dstr;
+            i_type = 0;
             if ( ((fp && ((fp->flags & FN_NO_EVAL) || (fp->perms2 & CA_NO_EVAL)) && !(fp->perms2 & CA_EVAL)) ||
                   (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
                   (ulfp && (ulfp->perms2 & CA_NO_EVAL))) &&
@@ -2125,9 +2155,15 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    feval = (eval & ~EV_EVAL) | EV_STRIP_ESC;
             } else
                 feval = eval;
+            if ( (fp && (fp->perms2 & CA_NO_EVAL)) ||
+                 (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
+                 (ulfp && (ulfp->perms2 & CA_NO_EVAL)) ) {
+                i_type = 1;
+            }
             if ( (ufp && (ufp->perms & CA_EVAL)) ||
                  (ulfp && (ulfp->perms & CA_EVAL)) ) {
-                feval = (feval | EV_EVAL | EV_STRIP);
+                feval = (feval | EV_EVAL | EV_STRIP | ~EV_STRIP_ESC);
+                i_type = 0;
             }
             if ( (ufp && (ufp->flags & FN_NOTRACE)) ||
                  (ulfp && (ulfp->perms & CA_EVAL)) ) {
@@ -2135,11 +2171,13 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
 				 ')', feval, fargs, nfargs,
-				 cargs, ncargs);
-
+				 cargs, ncargs, i_type);
 	    /* If no closing delim, just insert the '(' and
 	     * continue normally */
 
+            if ( i_type ) { 
+               feval = (feval | EV_EVAL | EV_STRIP | ~EV_STRIP_ESC);
+            }
 	    if (!dstr) {
 		dstr = tstr;
 		safe_chr(*dstr, buff, &bufc);

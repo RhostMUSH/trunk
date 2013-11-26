@@ -1447,6 +1447,10 @@ int	ca, ok, aflags;
 		    !Examinable(player, thing) && !nearby(player, thing))
 			ok = 0;
 
+                else if (!God(player) && ((attr->flags & AF_GOD) || (aflags & AF_GOD)) &&
+                                         ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS))) 
+			ok = 0;
+
 		else if (!Wizard(player) && ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
 			ok = 0;
 
@@ -1903,10 +1907,15 @@ void do_include(dbref player, dbref cause, int key, char *string,
 
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
-      if ( (i <= ncargs) && cargs[i] && *cargs[i] )
+      if ( (i < ncargs) && cargs[i] && *cargs[i] )
          memcpy(s_buff[i], cargs[i], LBUF_SIZE);
-      if ( (i <= nargs) && argv[i] && *argv[i] )
-         memcpy(s_buff[i], argv[i], LBUF_SIZE);
+      if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
+         if ( !argv[i] || !*argv[i] ) {
+            memset(s_buff[i], '\0', LBUF_SIZE);
+         } else {
+            memcpy(s_buff[i], argv[i], LBUF_SIZE);
+         }
+      }
    }
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {

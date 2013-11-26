@@ -424,7 +424,7 @@ ATTR attr[] =
      NULL},
     {"Kill", A_KILL, AF_ODARK, NULL},
     {"Lalias", A_LALIAS, AF_ODARK | AF_NOPROG, NULL},
-    {"lambda_internal_foo", A_LAMBDA, AF_PINVIS | AF_NOPROG | AF_GOD | AF_NOCMD | AF_PRIVATE, NULL},
+    {"lambda_internal_foo", A_LAMBDA, AF_PINVIS | AF_NOCLONE | AF_NOPROG | AF_GOD | AF_NOCMD | AF_PRIVATE, NULL},
     {"Last", A_LAST, AF_WIZARD | AF_NOCMD | AF_NOPROG, NULL},
     {"LastCreate", A_LASTCREATE, AF_DARK | AF_INTERNAL | AF_NOPROG | AF_NOCMD, NULL},
     {"LastIP", A_LASTIP, AF_MDARK | AF_NOPROG | AF_NOCMD | AF_GOD, NULL},

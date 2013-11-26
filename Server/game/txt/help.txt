@@ -10212,12 +10212,12 @@
                 Not a creature was stirring, not even a mouse.%r
                 The stockings were hung by the chimney with care,%r
                 In hopes that St Nicholas soon would be there.
-    > @emit printf($&-9s $&-68s,ansi(ch,u(dropcap)),u(story))
+    > @emit printf($&-9's$&-68s,ansi(ch,u(dropcap)),u(story))
      _______                                                                      
-    |__   __| 'was the night before Christmas, when all through the house         
-       | |    Not a creature was stirring, not even a mouse.                      
-       |_|    The stockings were hung by the chimney with care,                   
-              In hopes that St Nicholas soon would be there.    
+    |__   __|'was the night before Christmas, when all through the house         
+       | |   Not a creature was stirring, not even a mouse.                      
+       |_|   The stockings were hung by the chimney with care,                   
+    In hopes that St Nicholas soon would be there.    
     
     Note: The large 'T' will be in highlighted cyan.
   
@@ -11618,19 +11618,36 @@ See Also: timefmt()
   See Also: encrypt(), encode64(), decode64(), digest()
   
 & PUSHREGS()
-  Function: pushregs(<toggle>)
+  Function: pushregs(<value(s)>)
   
   This function will preserve then restore setq() registers for the life
   of the command in question.  Keep in mind, if you attempt to restore
   the registers before saving them, you will overwrite all the registers
-  with blanks (or nulls).  Toggle of '1' saves the registers, while a
-  toggle of '0' restores the registers.
+  with blanks (or nulls).  There are two options you can use:
+
+  Option #1:
+    Toggle of '1' saves ALL the registers, while a toggle of '0' restores 
+    ALL the registers.
   
-  Examples:
+  Option #2:
+    +<register> will save the specified register (letter/number only).
+    -<register> will restore the specified register (letter/number only).
+    Note: you may specify any number of registers and use +/- together.
+  
+  Examples: (Option #1)
     > say [setq(0,one)]-[r(0)]-[setq(0,two)]-[r(0)]-
     You say "-one--two-"
     > say [setq(0,one)]-[r(0)]-[pushregs(1)][setq(0,two)]-[pushregs(0)][r(0)]-
     You say "-one--one-"
+  
+  Examples: (Option #2)
+    > say [setq(0,one)][setq(1,two)]-%q0%q1-[pushregs(+0)][setq(0,xxx)]
+          [setq(1,abc)]-%q0%q1-[pushregs(-0)]--%q0%q1--
+    You say "-onetwo--xxxabc--oneabc-
+  
+  Note:  You may use nameq() to get the letter/number of a label.
+  
+  See Also: setq(), setr(), nameq(), r(), substitutions
   
 & LISTFLAGS()
   Function: listflags()
@@ -12405,7 +12422,7 @@ See Also: timefmt()
   See Also: grep(), regrep(), regrepi(), grab(), match(), lattr(), @grep
  
 & REGREP()
-  Function: regrep(<object>,<attrs>,<regexp>)
+  Function: regrep(<object>,<attrs>,<regexp> [,<key>])
   
   This function returns a list of attributes on <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -12413,6 +12430,9 @@ See Also: timefmt()
   
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out. 
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?). 
   
   This function is case-sensitive. 
   
@@ -12428,7 +12448,7 @@ See Also: timefmt()
   See Also: regrepi(), grep(), pgrep()
   
 & REGREPI()
-  regrepi(<object>,<attrs>,<regexp>)
+  regrepi(<object>,<attrs>,<regexp> [,<key>])
 
   This function returns a list of attributes on <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -12436,6 +12456,9 @@ See Also: timefmt()
   
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out. 
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?).
   
   This function is case-insensitive.
   
@@ -12904,7 +12927,15 @@ See Also: timefmt()
      attrname   - returns '1' if the string is a valid attribute name
      playername - returns '1' if the string is a valid player name.  This 
                   also checks if the player already exists.
-     password   - returns '1' if the string is a valid password
+     password   - returns '1' if the string is a valid password.
+     command    - returns '1' if string is a valid command (or alias).
+     function   - returns '1' if string is a valid function.
+     ufunction  - returns '1' if string is valid @function/@lfunction.
+     flag       - returns '1' if string is a valid flag.
+     toggle     - returns '1' if string is a valid toggle.
+     qreg       - returns '1' if string is valid qreg label.
+     colorname  - returns '1' if string is a valid +name for ansi.
+     ansicodes  - always returns '1'.  Meant for Penn compatibility.
   
   If a valid option is not specified, this function returns #-1.
   
@@ -17640,7 +17671,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: listunion(), listinter(), setdiff()
 
 & SETDIFF()
-  Function: setdiff(<list1>, <list2>[, <delim> [, <sep>]])
+  Function: setdiff(<list1>, <list2>[, <delim> [, <sep> [, <sorttype>]]])
    
   This function returns the difference of two sets -- i.e., the elements in
   <list1> that aren't in <list2>. The list that is returned is sorted.
@@ -17650,6 +17681,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   If <sep> is specified, it will be used (rather than a space) for the output
   seperator for the list.
+  
+  If <sorttype> is specified, you may have a different sort than the default
+  alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
    
   Example:
     > say setdiff(foo baz gleep bar, bar moof gleep)
@@ -17681,7 +17715,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 
 & SETINTER()
-  Function: setinter(<list1>, <list2>[, <delim> [, <sep>]])
+  Function: setinter(<list1>, <list2>[, <delim> [, <sep> [, <sorttype>]]])
    
   This function returns the intersection of two sets -- i.e., the elements
   that are in both <list1> and <list2>. The list that is returned is sorted.
@@ -17691,7 +17725,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
    
   If <sep> is specified, it will be used (rather than a space) for the output
   seperator for the list.
-   
+  
+  If <sorttype> is specified, you may have a different sort than the default
+  alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
+  
   Example:
     > say setinter(foo baz gleep bar, bar moof gleep)
     You say, "bar gleep"
@@ -17721,7 +17758,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: listinter(), listdiff(), setunion()
 
 & SETUNION()
-  Function: setunion(<list1>, <list2>[, <delim> [, <sep>]])
+  Function: setunion(<list1>, <list2>[, <delim> [, <sep> [, <sorttype>]]])
    
   This function returns the union of two sets -- i.e., all the elements of
   both <list1> and <list2>, minus any duplicate elements. Think of it as
@@ -17732,6 +17769,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
    
   If <sep> is specified, it will be used (rather than a space) for the output
   seperator for the list.
+  
+  If <sorttype> is specified, you may have a different sort than the default
+  alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
    
   Example:
     > say setunion(foo baz gleep bar, bar moof gleep)
@@ -20190,7 +20230,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_REGREP()
-  Function: cluster_regrep(<object>,<attrs>,<regexp>)
+  Function: cluster_regrep(<object>, <attrs>, <regexp> [,<key>])
   
   This function returns a list of attributes on cluster <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -20199,6 +20239,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out.   This searches all
   objects contained in the specified cluster.
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?).
   
   This function is case-sensitive. 
   
@@ -20219,7 +20262,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_REGREPI()
-  Function: cluster_regrepi(<object>,<attrs>,<regexp>)
+  Function: cluster_regrepi(<object>, <attrs>, <regexp> [,<key>])
   
   This function returns a list of attributes on cluster <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -20228,6 +20271,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out.  This searches all
   objects contained in the cluster.
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?).
   
   This function is case-insensitive.
   
@@ -24921,6 +24967,10 @@ Changes
 * @cluster/wipe and @cluster/grep now optionally handle /regexp [ASH]
 * @wipe optionally handles /regexp [ASH]
 * wipe() and cluster_wipe() optionally handle regexp [ASH]
+* added many more options to valid() [ASH]
+* all *regrep*() functions optionally handle regexp attribute matching [ASH]
+* pushregs now optionally allow you to specify registers to push/pop [ASH]
+* setdiff/setunion/setinter functions now optionally handle sorttype [ASH]
   
 Bug Fixes
 ---------
@@ -24934,3 +24984,7 @@ Bug Fixes
 * some extended ascii characters wouldn't display proplery [ASH]
 * documentation was missing for @cluster/wipe [ASH]
 * functions.c did not compile under CLANG [ASH]
+* @include didn't properly null arguments forcefully set [ASH]
+* @switch, @skip, @sudo did not evaluate in some situations [ASH]
+* no_eval works properly for @functions now by not-evaling input. [ASH]
+* pack/unpack for penn compat on radixes >=16 & <= 36 was broke [ASH]

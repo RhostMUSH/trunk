@@ -1124,6 +1124,34 @@ display_toggletab(dbref player)
 }
 
 FLAGENT *
+find_flag_perm(dbref thing, char *flagname, dbref player)
+{
+    char *cp;
+    FLAGENT *fp;
+
+    /* Make sure the flag name is valid */
+
+    for (cp = flagname; *cp; cp++)
+	*cp = ToLower((int)*cp);
+
+    fp = (FLAGENT *)hashfind(flagname, &mudstate.flags_htab);
+    if ( fp ) {
+       if ((fp->listperm & CA_BUILDER) && !Builder(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_ADMIN) && !Admin(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_WIZARD) && !Wizard(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_IMMORTAL) && !Immortal(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_GOD) && !God(player))
+          fp = (FLAGENT*)NULL;
+    }
+
+    return fp;
+}
+
+FLAGENT *
 find_flag(dbref thing, char *flagname)
 {
     char *cp;
@@ -1133,6 +1161,37 @@ find_flag(dbref thing, char *flagname)
     for (cp = flagname; *cp; cp++)
 	*cp = ToLower((int)*cp);
     return (FLAGENT *) hashfind(flagname, &mudstate.flags_htab);
+}
+
+TOGENT *
+find_toggle_perm(dbref thing, char *togglename, dbref player)
+{
+    char *cp;
+    TOGENT *tp;
+
+    /* Make sure the flag name is valid */
+
+    for (cp = togglename; *cp; cp++)
+	*cp = ToLower((int)*cp);
+
+    tp = (TOGENT *)hashfind(togglename, &mudstate.toggles_htab);
+
+    if ( tp ) {
+       if ((tp->listperm & CA_GUILDMASTER) && !Guildmaster(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_BUILDER) && !Builder(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_ADMIN) && !Admin(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_WIZARD) && !Wizard(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_IMMORTAL) && !Immortal(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_GOD) && !God(player))
+          tp = (TOGENT *)NULL;
+    }
+
+    return tp;
 }
 
 TOGENT *
@@ -1216,7 +1275,7 @@ flag_set(dbref target, dbref player, char *flag, int key)
 
 	    fp = find_flag(target, pt1);
 	    if (fp == NULL) {
-                tp = find_toggle(target, pt1);
+                tp = find_toggle_perm(target, pt1, player);
                 if ( tp == NULL ) {
 		   notify(player, "I don't understand that flag.");
                 } else {
@@ -1468,7 +1527,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 	    tp = find_toggle(target, pt1);
 	    if (tp == NULL) {
               if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) )
-                fp = find_flag(target, pt1);
+                fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
 		   notify(player, "I don't understand that toggle.");
                 } else {

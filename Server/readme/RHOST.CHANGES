@@ -19,6 +19,10 @@ You can now input extended ASCII right into the mush (and it converts to markup)
 				- Thanks mindboosternoori
 functions.c bombed with the clang compiler because of restrictive type-casting comparisons.
 				- Thanks Fraibert
+@include didn't properly null out args if forcefully specified null.
+				- Thanks Volund
+@skip/@ifelse, @switch, and @sudo didn't evaluate substitutions properly.
+				- Thanks Volund
 
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 

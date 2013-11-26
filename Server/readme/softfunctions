@@ -1,3 +1,5 @@
+@@ Use the min/max one, trust me, it's nicer.
+@@
 @@ The following softfunctions can be quoted in to mimic MUX/PENN missing functionality
 @@ Note: you'll need to rename existing muxdb columns() to column().  The script should
 @@ take care of this automatically.

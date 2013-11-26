@@ -2173,7 +2173,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	    parse_arglist(player, cause, cause, arg, '\0',
 			  interp | EV_STRIP_LS | EV_STRIP_TS,
-			  args, MAX_ARG, cargs, ncargs);
+			  args, MAX_ARG, cargs, ncargs, 0);
 	    for (nargs = 0; (nargs < MAX_ARG) && args[nargs]; nargs++);
 
 	    /* Call the correct command handler */
@@ -8561,7 +8561,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
-               process_command(player, cause, 1, cp, cargs, ncargs, 0);
+               process_command(player, cause, 0, cp, cargs, ncargs, 0);
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
@@ -8651,7 +8651,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    while (s_command) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
-         process_command(target, target, 1, cp, args, nargs, 0);
+         process_command(target, target, 0, cp, args, nargs, 0);
       }
    }
    if ( desc_in_use != NULL ) {
@@ -9696,7 +9696,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             } else {
                parse_arglist(player, cause, cause, s_tmpptr, '\0',
                              EV_STRIP_LS | EV_STRIP_TS,
-                             xargs, MAX_ARG, (char **)NULL, 0);
+                             xargs, MAX_ARG, (char **)NULL, 0, 0);
                for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
@@ -9709,7 +9709,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                         thing3 = match_thing(player, s_strtok);
                         if ( Good_chk(thing3) && Cluster(thing3) ) {
                            if ( i_regexp ) {
-                              s_tmpptr = grep_internal_regexp(player, thing3, xargs[1], xargs[0], 0);
+                              s_tmpptr = grep_internal_regexp(player, thing3, xargs[1], xargs[0], 0, 0);
                            } else {
                               s_tmpptr = grep_internal(player, thing3, xargs[1], xargs[0], 0);
                            }
@@ -9759,7 +9759,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                } else {
                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
                                 EV_STRIP_LS | EV_STRIP_TS,
-                                xargs, MAX_ARG, (char **)NULL, 0);
+                                xargs, MAX_ARG, (char **)NULL, 0, 0);
                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                   if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                      s_instr = atr_get(thing, anum2, &aowner, &aflags);
@@ -9884,7 +9884,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                         if ( *s_strtok ) {
 	                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                 EV_STRIP_LS | EV_STRIP_TS,
-			                 xargs, MAX_ARG, (char **)NULL, 0);
+			                 xargs, MAX_ARG, (char **)NULL, 0, 0);
 	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                            s_strtok = alloc_lbuf("cluster_trigger_build");
                            sprintf(s_strtok, "%.32s/%.3900s", s_tmpstr, s_strtokptr);
@@ -9953,7 +9953,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                                 (strchr(s_strtokptr, '?') != NULL) ) {
 	                      parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                    EV_STRIP_LS | EV_STRIP_TS,
-			                    xargs, MAX_ARG, (char **)NULL, 0);
+			                    xargs, MAX_ARG, (char **)NULL, 0, 0);
 	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                               if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                  s_strtok = alloc_lbuf("cluster_set_build");
@@ -9985,7 +9985,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                               } else {
 	                         parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                       EV_STRIP_LS | EV_STRIP_TS,
-			                       xargs, MAX_ARG, (char **)NULL, 0);
+			                       xargs, MAX_ARG, (char **)NULL, 0, 0);
 	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                                  if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                     s_tmpstr = find_cluster(thing, player, anum3);

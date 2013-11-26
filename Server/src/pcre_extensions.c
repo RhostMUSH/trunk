@@ -499,7 +499,7 @@ FUNCTION(fun_regraballi)
 }
 
 char *
-grep_internal_regexp(dbref player, dbref thing, char *wcheck, char *watr, int flags)
+grep_internal_regexp(dbref player, dbref thing, char *wcheck, char *watr, int flags, int i_atrreg)
 {
     dbref aowner, othing;
     int ca, aflags, go2;
@@ -519,14 +519,23 @@ grep_internal_regexp(dbref player, dbref thing, char *wcheck, char *watr, int fl
         if (!attr)
             continue;
         strcpy(tbuf, attr->name);
-        if (go1)
-            go2 = quick_wild(watr, tbuf);
-        else
+        if (go1) {
+            if ( i_atrreg ) {
+               go2 = quick_regexp_match(watr, tbuf, (flags ? 0 : 1));
+            } else {
+               go2 = quick_wild(watr, tbuf);
+            }
+        } else
             go2 = !stricmp(watr, tbuf);
         if (go2) {
             buf = atr_get(thing, ca, &aowner, &aflags);
-            if ((Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) &&
-                (Read_attr(player, othing, attr, aowner, aflags, 0))) {
+            if ( (God(player) || !( ((attr->flags & AF_GOD) || (aflags & AF_GOD)) &&
+                                    ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))) &&
+                 (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) &&
+                 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
+
+//          if ((Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) &&
+//              (Read_attr(player, othing, attr, aowner, aflags, 0))) {
                 if ( quick_regexp_match(wcheck, buf, (flags ? 0 : 1)) ) {
                     safe_str(tbuf, retbuff, &bp);
                     safe_chr(' ', retbuff, &bp);
@@ -547,12 +556,22 @@ grep_internal_regexp(dbref player, dbref thing, char *wcheck, char *watr, int fl
 
 void
 do_regrep(char *buff, char **bufcx, dbref player, dbref cause, dbref caller, 
-          char *fargs[], int nfargs, char *cargs[], int ncargs, int key, int i_cluster)
+          char *fargs[], int nfargs, char *cargs[], int ncargs, int key, int i_cluster, char *name)
 {
    dbref object, aowner;
-   int aflags, first, last_ret;
+   int aflags, first, last_ret, i_atrreg;
    char *ret, *s_text, *s_strtok, *s_strtokptr;
    ATTR *attr;
+
+   if (!fn_range_check(name, nfargs, 3, 4, buff, bufcx))
+        return;
+
+   i_atrreg = 0;
+   if ( (nfargs > 3) && *fargs[3] )
+      i_atrreg = atoi(fargs[3]);
+
+   if ( i_atrreg != 0 )
+      i_atrreg = 1;
 
    init_match(player, fargs[0], NOTYPE);
    match_everything(MAT_EXIT_PARENTS);
@@ -571,7 +590,7 @@ do_regrep(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
             while (s_strtok) {
                aowner = match_thing(player, s_strtok);
                if ( !mudstate.chkcpu_toggle && Good_chk(aowner) && Cluster(aowner) ) {
-                  ret = grep_internal_regexp(player, aowner, fargs[2], fargs[1], key);
+                  ret = grep_internal_regexp(player, aowner, fargs[2], fargs[1], key, i_atrreg);
                   if ( first && last_ret )
                      safe_chr(' ', buff, bufcx);
                   safe_str(ret, buff, bufcx);
@@ -592,7 +611,7 @@ do_regrep(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
          safe_str("#-1 NO SUCH CLUSTER", buff, bufcx);
       }
    } else if ( !i_cluster ) {
-      ret = grep_internal_regexp(player, object, fargs[2], fargs[1], key);
+      ret = grep_internal_regexp(player, object, fargs[2], fargs[1], key, i_atrreg);
       safe_str(ret, buff, bufcx);
       free_lbuf(ret);
    } else {
@@ -603,25 +622,25 @@ do_regrep(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
 FUNCTION(fun_regrep)
 {
    do_regrep(buff, bufcx, player, cause, caller, fargs, nfargs, 
-             cargs, ncargs, 0, 0);
+             cargs, ncargs, 0, 0, (char *)"REGREP");
 }
 
 FUNCTION(fun_regrepi)
 {
    do_regrep(buff, bufcx, player, cause, caller, fargs, nfargs, 
-             cargs, ncargs, 1, 0);
+             cargs, ncargs, 1, 0, (char *)"REGREPI");
 }
 
 FUNCTION(fun_cluster_regrep)
 {
    do_regrep(buff, bufcx, player, cause, caller, fargs, nfargs, 
-             cargs, ncargs, 0, 1);
+             cargs, ncargs, 0, 1, (char *)"CLUSTER_REGREP");
 }
 
 FUNCTION(fun_cluster_regrepi)
 {
    do_regrep(buff, bufcx, player, cause, caller, fargs, nfargs, 
-             cargs, ncargs, 1, 1);
+             cargs, ncargs, 1, 1, (char *)"CLUSTER_REGREPI");
 }
 
 void
@@ -725,8 +744,8 @@ FUNCTION(fun_reswitchalli)
 
 FUN flist_regexp[] =
 {
-    {"CLUSTER_REGREP", fun_cluster_regrep, 3, 0, CA_PUBLIC, CA_NO_CODE},
-    {"CLUSTER_REGREPI", fun_cluster_regrepi, 3, 0, CA_PUBLIC, CA_NO_CODE},
+    {"CLUSTER_REGREP", fun_cluster_regrep, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"CLUSTER_REGREPI", fun_cluster_regrepi, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGMATCH", fun_regmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGMATCHI", fun_regmatchi, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGEDIT", fun_regedit, 3, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, 0},
@@ -741,8 +760,8 @@ FUN flist_regexp[] =
     {"REGRABI", fun_regrabi, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGRABALL", fun_regraball, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGRABALLI", fun_regraballi, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"REGREP", fun_regrep, 3, 0, CA_PUBLIC, 0},
-    {"REGREPI", fun_regrepi, 3, 0, CA_PUBLIC, 0},
+    {"REGREP", fun_regrep, 3, FN_VARARGS, CA_PUBLIC, 0},
+    {"REGREPI", fun_regrepi, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"RESWITCH", fun_reswitch, 0, FN_VARARGS|FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"RESWITCHI", fun_reswitchi, 0, FN_VARARGS|FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"RESWITCHALL", fun_reswitchall, 0, FN_VARARGS|FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},

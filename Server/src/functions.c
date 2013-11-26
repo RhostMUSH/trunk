@@ -1318,7 +1318,7 @@ extern int count_extended(char *);
 extern int decode_base64(const char *, int, char *, char **);
 extern int encode_base64(const char *, int, char *, char **);
 extern void mail_quota(dbref, char *, int, int *, int *, int *, int *, int *, int *);
-
+extern CMDENT * lookup_command(char *);
 
 
 /* pom.c definitions */
@@ -1823,6 +1823,21 @@ autodetect_list(char *ptrs[], int nitems)
         }
     }
     return sort_type;
+}
+
+static int
+get_list_type_basic(char c_char) {
+   switch (ToLower((int)c_char)) {
+      case 'd':
+               return DBREF_LIST;
+      case 'n':
+               return NUMERIC_LIST;
+      case 'f':
+               return FLOAT_LIST;
+      default:
+               return ALPHANUM_LIST;
+   }
+   
 }
 
 static int
@@ -5009,8 +5024,6 @@ FUNCTION(fun_vunit)
  * End of vector math additions
  */
 
-
-
 FUNCTION(fun_valid)
 {
 /*
@@ -5018,19 +5031,103 @@ FUNCTION(fun_valid)
  * * given type (such as an object name).
  */
 
-  if (!fargs[0] || !*fargs[0] || !fargs[1] || !*fargs[1])
+   char *mbuf;
+   CMDENT *cmdp;
+   FLAGENT *flgp;
+   FUN *fp;
+   UFUN *ufp;
+   PENNANSI *cm;
+   TOGENT *tp;
+
+  if (!fargs[0] || !*fargs[0]) {
+      safe_str("#-1", buff, bufcx);
+  } else if (!fargs[1] || !*fargs[1]) {
       ival(buff, bufcx, 0);
-  else if (!stricmp(fargs[0], "name"))
+  } else if (!stricmp(fargs[0], "name")) {
       ival(buff, bufcx, ok_name(fargs[1]));
-  else if (!stricmp(fargs[0], "attrname"))
+  } else if (!stricmp(fargs[0], "attrname")) {
       ival(buff, bufcx, ok_attr_name(fargs[1]));
-  else if (!stricmp(fargs[0], "playername"))
+  } else if (!stricmp(fargs[0], "playername")) {
       ival(buff, bufcx, (ok_player_name(fargs[1]) &&
                         (lookup_player(NOTHING, fargs[1], 0) == NOTHING)));
-  else if (!stricmp(fargs[0], "password"))
+  } else if (!stricmp(fargs[0], "password")) {
       ival(buff, bufcx, ok_password(fargs[1], player, 1));
-  else
-      safe_str("#-1", buff, bufcx);
+  } else if (!stricmp(fargs[0], "command")) {
+     cmdp = lookup_command(fargs[1]);
+     if ( cmdp && (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&
+           check_access(player, cmdp->perms, cmdp->perms2, 0)) {
+       if ( (!strcmp(cmdp->cmdname, "@snoop") || !strcmp(cmdp->cmdname, "@depower")) &&
+             !Immortal(player)) {
+          cmdp = NULL;
+       }
+     } else {
+        cmdp = NULL;
+     }
+     ival(buff, bufcx, ((cmdp != NULL) ? 1 : 0));
+  } else if (!stricmp(fargs[0], "function")) {
+     fp = (FUN *) hashfind(fargs[1], &mudstate.func_htab);
+     if ( !fp ) {
+        ival(buff, bufcx, 0);
+     } else {
+        ival(buff, bufcx, check_access(player, fp->perms, fp->perms2, 0));
+     }
+  } else if (!stricmp(fargs[0], "ufunction")) {
+     ufp = (UFUN *) hashfind(fargs[1], &mudstate.ufunc_htab);
+     if ( !ufp ) {
+        mbuf = alloc_mbuf("valid");
+        sprintf(mbuf, "%d_%.100s", Owner(player), fargs[1]);
+        ufp = (UFUN *) hashfind(mbuf, &mudstate.ulfunc_htab);
+        if ( ufp && (!Good_chk(ufp->obj) || (ufp->orig_owner != Owner(ufp->obj))) ) {
+           ufp = NULL;
+        }
+        free_mbuf(mbuf);
+     }
+     if ( !ufp ) {
+        ival(buff, bufcx, 0);
+     } else {
+        ival(buff, bufcx, check_access(player, ufp->perms, ufp->perms2, 0));
+     }
+  } else if (!stricmp(fargs[0], "flag")) {
+     flgp = find_flag(player, fargs[1]);
+     if ( flgp ) {
+        if ((flgp->listperm & CA_BUILDER) && !Builder(player))
+            flgp = NULL;
+        else if ((flgp->listperm & CA_ADMIN) && !Admin(player))
+            flgp = NULL;
+        else if ((flgp->listperm & CA_WIZARD) && !Wizard(player))
+            flgp = NULL;
+        else if ((flgp->listperm & CA_IMMORTAL) && !Immortal(player))
+            flgp = NULL;
+        else if ((flgp->listperm & CA_GOD) && !God(player))
+            flgp = NULL;
+     }
+     ival(buff, bufcx, ((flgp != NULL) ? 1 : 0));
+  } else if (!stricmp(fargs[0], "toggle")) {
+     tp = find_toggle(player, fargs[1]);
+     if ( tp ) {
+        if ((tp->listperm & CA_BUILDER) && !Builder(player))
+            tp = NULL;
+        else if ((tp->listperm & CA_ADMIN) && !Admin(player))
+            tp = NULL;
+        else if ((tp->listperm & CA_WIZARD) && !Wizard(player))
+            tp = NULL;
+        else if ((tp->listperm & CA_IMMORTAL) && !Immortal(player))
+            tp = NULL;
+        else if ((tp->listperm & CA_GOD) && !God(player))
+            tp = NULL;
+     }
+     ival(buff, bufcx, ((tp != NULL) ? 1 : 0));
+  } else if (!stricmp(fargs[0], "qreg")) {
+     ival(buff, bufcx, (((strlen(fargs[1]) < SBUF_SIZE) && (strlen(fargs[1]) > 0)) ? 1 : 0));
+  } else if (!stricmp(fargs[0], "colorname")) {
+     cm = (PENNANSI *)hashfind(fargs[1], &mudstate.ansi_htab);
+     ival(buff, bufcx, ((cm != NULL) ? 1 : 0));
+  } else if (!stricmp(fargs[0], "ansicodes")) {
+     ival(buff, bufcx, 1);
+  } else {
+     safe_str("#-1", buff, bufcx);
+  }
+
 }
 
 FUNCTION(fun_visible)
@@ -5740,6 +5837,7 @@ FUNCTION(fun_moon)
  ************************************************************************************/
 static char aRadixTable[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@$";
 static char aRadixTablePenn[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+static char aRadixTablePenn32[]="0123456789abcdefghijklmnopqrstuvwxyz";
 FUNCTION(fun_unpack)
 {
    int iRadix, c, LeadingCharacter, iValue, i, i_penn;
@@ -5770,8 +5868,14 @@ FUNCTION(fun_unpack)
 
    memset(MatchTable, 0, sizeof(MatchTable));
    if ( i_penn ) {
-      for (i = 0; i < iRadix; i++) {
-         MatchTable[(unsigned int) aRadixTablePenn[i]] = i+1;
+      if ( iRadix <= 36 ) {
+         for (i = 0; i < iRadix; i++) {
+            MatchTable[(unsigned int) aRadixTablePenn32[i]] = i+1;
+         }
+      } else {
+         for (i = 0; i < iRadix; i++) {
+            MatchTable[(unsigned int) aRadixTablePenn[i]] = i+1;
+         }
       }
    } else {
       for (i = 0; i < iRadix; i++) {
@@ -5853,8 +5957,11 @@ FUNCTION(fun_pack)
          iTerm = iRadix - 1;
       if ( iTerm < 0 )
          iTerm = 0;
-      if ( i_penn == 2 ) {
-         *p++ = aRadixTablePenn[(int)iTerm];
+      if ( i_penn >= 1 ) {
+         if ( iRadix <= 36 ) 
+            *p++ = aRadixTablePenn32[(int)iTerm];
+         else
+            *p++ = aRadixTablePenn[(int)iTerm];
       } else {
          *p++ = aRadixTable[(int)iTerm];
       }
@@ -23627,7 +23734,7 @@ FUNCTION(fun_sortby)
 #define SET_DIFF        3
 
 static void
-handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char osep)
+handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char osep, int sort_type)
 {
     char *list1, *list2, *oldp;
     char *ptrs1[LBUF_SIZE], *ptrs2[LBUF_SIZE];
@@ -23637,12 +23744,12 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
     list1 = alloc_lbuf("fun_setunion.1");
     strcpy(list1, fargs[0]);
     n1 = list2arr(ptrs1, LBUF_SIZE, list1, sep);
-    do_asort(ptrs1, n1, ALPHANUM_LIST);
+    do_asort(ptrs1, n1, sort_type);
 
     list2 = alloc_lbuf("fun_setunion.2");
     strcpy(list2, fargs[1]);
     n2 = list2arr(ptrs2, LBUF_SIZE, list2, sep);
-    do_asort(ptrs2, n2, ALPHANUM_LIST);
+    do_asort(ptrs2, n2, sort_type);
 
     i1 = i2 = 0;
     first = 1;
@@ -23896,27 +24003,75 @@ FUNCTION(fun_listinter)
 FUNCTION(fun_setunion)
 {
     char sep, osep;
+    int sort_type;
 
-    svarargs_preamble("SETUNION", 4);
-    handle_sets(fargs, buff, bufcx, SET_UNION, sep, osep);
+    if (!fn_range_check("SETUNION", nfargs, 2, 5, buff, bufcx))
+       return;
+
+    sep = ' ';
+    if ( (nfargs > 2) && *fargs[2] )
+       sep = *fargs[2];
+
+    osep = sep;
+    if ( (nfargs > 3) && *fargs[3] )
+       osep = *fargs[3];
+
+    if ( (nfargs > 4) && *fargs[4] )
+       sort_type = get_list_type_basic(*fargs[4]);
+    else
+       sort_type = ALPHANUM_LIST;
+
+    handle_sets(fargs, buff, bufcx, SET_UNION, sep, osep, sort_type);
     return;
 }
 
 FUNCTION(fun_setdiff)
 {
     char sep, osep;
+    int sort_type;
 
-    svarargs_preamble("SETDIFF", 4);
-    handle_sets(fargs, buff, bufcx, SET_DIFF, sep, osep);
+    if (!fn_range_check("SETDIFF", nfargs, 2, 5, buff, bufcx))
+       return;
+
+    sep = ' ';
+    if ( (nfargs > 2) && *fargs[2] )
+       sep = *fargs[2];
+
+    osep = sep;
+    if ( (nfargs > 3) && *fargs[3] )
+       osep = *fargs[3];
+
+    if ( (nfargs > 4) && *fargs[4] )
+       sort_type = get_list_type_basic(*fargs[4]);
+    else
+       sort_type = ALPHANUM_LIST;
+
+    handle_sets(fargs, buff, bufcx, SET_DIFF, sep, osep, sort_type);
     return;
 }
 
 FUNCTION(fun_setinter)
 {
     char sep, osep;
+    int sort_type;
 
-    svarargs_preamble("SETINTER", 4);
-    handle_sets(fargs, buff, bufcx, SET_INTERSECT, sep, osep);
+    if (!fn_range_check("SETINTER", nfargs, 2, 5, buff, bufcx))
+       return;
+
+    sep = ' ';
+    if ( (nfargs > 2) && *fargs[2] )
+       sep = *fargs[2];
+
+    osep = sep;
+    if ( (nfargs > 3) && *fargs[3] )
+       osep = *fargs[3];
+
+    if ( (nfargs > 4) && *fargs[4] )
+       sort_type = get_list_type_basic(*fargs[4]);
+    else
+       sort_type = ALPHANUM_LIST;
+
+    handle_sets(fargs, buff, bufcx, SET_INTERSECT, sep, osep, sort_type);
     return;
 }
 
@@ -24301,34 +24456,72 @@ FUNCTION(fun_inc)
 FUNCTION(fun_pushregs)
 {
     int regnum, cntr;
+    char *strtok, *strtokptr;
 
     if ( !fargs[0] || !*fargs[0] ) {
        safe_str("#-1 FUNCTION (PUSHREGS) EXPECTS 1 ARGUMENT [RECEIVED 0]", buff, bufcx);
        return;
     }
 
-    regnum = atoi(fargs[0]);
-    if ( regnum < 0 || regnum > 0 )
-       regnum = 1;
+    if ( is_number(fargs[0]) && (strchr(fargs[0], '-') == NULL)) {
+       regnum = atoi(fargs[0]);
+       if ( regnum < 0 || regnum > 0 )
+          regnum = 1;
 
-    if ( regnum == 0 ) {
-       for ( cntr = 0; cntr < MAX_GLOBAL_REGS; cntr++ ) {
-          if ( !mudstate.global_regs_backup[cntr] )
-             continue;
-          if ( !mudstate.global_regs[cntr] )
-             mudstate.global_regs[cntr] = alloc_lbuf("fun_pushregs");
-          strcpy(mudstate.global_regs[cntr],
-                 mudstate.global_regs_backup[cntr]);
-          *mudstate.global_regs_backup[cntr]='\0';
+       if ( regnum == 0 ) {
+          for ( cntr = 0; cntr < MAX_GLOBAL_REGS; cntr++ ) {
+             if ( !mudstate.global_regs_backup[cntr] )
+                continue;
+             if ( !mudstate.global_regs[cntr] )
+                mudstate.global_regs[cntr] = alloc_lbuf("fun_pushregs");
+             strcpy(mudstate.global_regs[cntr],
+                    mudstate.global_regs_backup[cntr]);
+             *mudstate.global_regs_backup[cntr]='\0';
+          }
+       } else {
+          for ( cntr = 0; cntr < MAX_GLOBAL_REGS; cntr++ ) {
+             if ( !mudstate.global_regs[cntr] )
+                continue;
+             if ( !mudstate.global_regs_backup[cntr] )
+                mudstate.global_regs_backup[cntr] = alloc_lbuf("fun_pushregs");
+             strcpy(mudstate.global_regs_backup[cntr],
+                    mudstate.global_regs[cntr]);
+          }
        }
     } else {
-       for ( cntr = 0; cntr < MAX_GLOBAL_REGS; cntr++ ) {
-          if ( !mudstate.global_regs[cntr] )
-             continue;
-          if ( !mudstate.global_regs_backup[cntr] )
-             mudstate.global_regs_backup[cntr] = alloc_lbuf("fun_pushregs");
-          strcpy(mudstate.global_regs_backup[cntr],
-                 mudstate.global_regs[cntr]);
+       strtok = strtok_r(fargs[0], " \t", &strtokptr);
+       while ( strtok ) {
+          regnum = -1;
+          if ( (*strtok == '+') && *(strtok+1) && !*(strtok+2) ) {
+             if (isdigit(*(strtok+1))) {
+                regnum = atoi(strtok+1);
+             } else if (isalpha(*(strtok+1))) {
+                regnum = 10 + (int)ToLower(*(strtok+1)) - (int)'a';
+             }
+             if ( (regnum >= 0) && (regnum < MAX_GLOBAL_REGS) ) {
+                if ( mudstate.global_regs[regnum] ) {
+                   if ( !mudstate.global_regs_backup[regnum] )
+                      mudstate.global_regs_backup[regnum] = alloc_lbuf("fun_pushregs");
+                   strcpy(mudstate.global_regs_backup[regnum],
+                          mudstate.global_regs[regnum]);
+                }
+             }
+          } else if ( (*strtok == '-') && *(strtok+1) && !*(strtok+2) ) {
+             if (isdigit(*(strtok+1))) {
+                regnum = atoi(strtok+1);
+             } else if (isalpha(*(strtok+1))) {
+                regnum = 10 + (int)ToLower(*(strtok+1)) - (int)'a';
+             }
+             if ( (regnum >= 0) && (regnum < MAX_GLOBAL_REGS) ) {
+                if ( mudstate.global_regs_backup[regnum] ) {
+                   if ( !mudstate.global_regs[regnum] )
+                      mudstate.global_regs[regnum] = alloc_lbuf("fun_pushregs");
+                   strcpy(mudstate.global_regs[regnum],
+                          mudstate.global_regs_backup[regnum]);
+                }
+             }
+          }
+          strtok = strtok_r(NULL, " \t", &strtokptr);
        }
     }
 }
@@ -28130,7 +28323,7 @@ FUN flist[] =
     {"UNPACK", fun_unpack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"V", fun_v, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"VADD", fun_vadd, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"VALID", fun_valid, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"VALID", fun_valid, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"VATTRCNT", fun_vattrcnt, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"VCROSS", fun_vcross, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"VDIM", fun_vdim, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

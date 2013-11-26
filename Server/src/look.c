@@ -612,6 +612,10 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
          *ybufp = NULL;
     BOOLEXP *bool;
 
+    if (!God(player) && ((ap->flags & AF_GOD) || (aflags & AF_GOD)) && 
+           ((ap->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
+	return;
+
     if (!Wizard(player) && ((ap->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
 	return;
 
@@ -740,8 +744,13 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 	    go2 = !stricmp(watr, tbuf);
 	if (go2) {
 	    buf = atr_get(thing, ca, &aowner, &aflags);
-	    if ((Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
-		(Read_attr(player, othing, attr, aowner, aflags, 0))) {
+            if ( (God(player) || !( ((attr->flags & AF_GOD) || (aflags & AF_GOD)) && 
+                                    ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))) &&
+  	         (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
+  		 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
+
+//	    if ((Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
+//		(Read_attr(player, othing, attr, aowner, aflags, 0))) {
 		if (quick_wild(buf2, buf)) {
                     if ( i_key ) {
                        sprintf(tbuf2, "#%d/", othing);
@@ -783,7 +792,7 @@ do_grep(dbref player, dbref cause, int key, char *source,
 	notify(player, "Bad object specified.");
     else {
         if ( PCRE_EXEC && (key & GREP_REGEXP) )
-           pt1 = grep_internal_regexp(player, thing, wildch[1], wildch[0], 1);
+           pt1 = grep_internal_regexp(player, thing, wildch[1], wildch[0], 1, 0);
         else
 	   pt1 = grep_internal(player, thing, wildch[1], wildch[0], 0);
 	notify(player, pt1);
@@ -3053,6 +3062,11 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
    
 	   got = atr_get(thing, ca, &aowner, &aflags);
 	   if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
+               if (!God(player) && ((attr->flags & AF_GOD) || (aflags & AF_GOD)) && 
+                                   ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS))) {
+	         free_lbuf(got);
+	         continue;
+               }
 	       if (!Wizard(player) && ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS))) {
 	         free_lbuf(got);
 	         continue;

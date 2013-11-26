@@ -105,7 +105,7 @@ extern void	NDECL(recover_queue_deposits);
 extern void	NDECL(tcache_init);
 extern char *	FDECL(parse_to, (char **, char, int));
 extern char *	FDECL(parse_arglist, (dbref, dbref, dbref, char *, char, int,
-			char *[], int, char*[], int));
+			char *[], int, char*[], int, int));
 extern int	FDECL(get_gender, (dbref));
 #ifdef ZENTY_ANSI
 extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **));
@@ -1058,7 +1058,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #ifndef PCRE_EXEC
 #define regexp_wild_match(v,w,x,y,z) (0)
-#define grep_internal_regexp(v,w,x,y,z) alloc_lbuf("grep_internal_regexp")
+#define grep_internal_regexp(v,w,x,y,z,a) alloc_lbuf("grep_internal_regexp")
 #define load_regexp_functions(x) (0)
 #define PCRE_EXEC 	0
 #endif
