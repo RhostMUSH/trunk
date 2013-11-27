@@ -20396,25 +20396,57 @@ FUNCTION(fun_iter)
 
 FUNCTION(fun_itext)
 {
-   int inum_val;
+   int inum_val, i_key;
+
+   if (!fn_range_check("ITEXT", nfargs, 1, 2, buff, bufcx))
+       return;
+
+   i_key = 0;
+   if ( (nfargs > 1) && *fargs[1] )
+      i_key = atoi(fargs[1]);
 
    inum_val = atoi(fargs[0]);
-   if ( (inum_val < 0) || (inum_val > mudstate.iter_inum) ) {
-      safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
+
+   if ( i_key ) {
+      if ( (inum_val < 0) || (inum_val > (mudstate.dolistnest - 1)) ) {
+         safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
+      } else {
+         safe_str(mudstate.dol_arr[(mudstate.dolistnest - 1) - inum_val], buff, bufcx);
+      }
    } else {
-      safe_str(mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, bufcx);
+      if ( (inum_val < 0) || (inum_val > mudstate.iter_inum) ) {
+         safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
+      } else {
+         safe_str(mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, bufcx);
+      }
    }
 }
 
 FUNCTION(fun_inum)
 {
-   int inum_val;
+   int inum_val, i_key;
+
+   if (!fn_range_check("INUM", nfargs, 1, 2, buff, bufcx))
+       return;
+
+   i_key = 0;
+   if ( (nfargs > 1) && *fargs[1] )
+      i_key = atoi(fargs[1]);
 
    inum_val = atoi(fargs[0]);
-   if ( (inum_val < 0) || (inum_val > mudstate.iter_inum) ) {
-      safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
+ 
+   if ( i_key ) {
+      if ( (inum_val < 0) || (inum_val > (mudstate.dolistnest - 1)) ) {
+         safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
+      } else {
+         ival(buff, bufcx, mudstate.dol_inumarr[(mudstate.dolistnest - 1) - inum_val]);
+      }
    } else {
-      ival(buff, bufcx, mudstate.iter_inumarr[mudstate.iter_inum - inum_val]);
+      if ( (inum_val < 0) || (inum_val > mudstate.iter_inum) ) {
+         safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
+      } else {
+         ival(buff, bufcx, mudstate.iter_inumarr[mudstate.iter_inum - inum_val]);
+      }
    }
 }
 
@@ -27953,7 +27985,7 @@ FUN flist[] =
     {"INDEX", fun_index, 4, 0, CA_PUBLIC, CA_NO_CODE},
     {"INPROGRAM", fun_inprogram, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"INSERT", fun_insert, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"INUM", fun_inum, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"INUM", fun_inum, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INZONE", fun_inzone, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISCLUSTER", fun_iscluster, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISDBREF", fun_isdbref, 1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -27970,7 +28002,7 @@ FUN flist[] =
     {"ISUPPER", fun_isupper, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISWORD", fun_isword, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ITER", fun_iter, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
-    {"ITEXT", fun_itext, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ITEXT", fun_itext, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"KEEPFLAGS", fun_keepflags, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"KEEPTYPE", fun_keeptype, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LADD", fun_ladd, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

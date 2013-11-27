@@ -535,6 +535,8 @@ struct statedata {
         int     iter_inumarr[50];/* Iter recursive memory - number*/
         int     iter_inumbrk[50];/* Iter recursive memory - break*/
         int     iter_inum;      /* Iter inum value */
+	int	dol_inumarr[50];/* Dolist array */
+	char	*dol_arr[50];	/* Dolist Array */
 	int	alarm_triggered;/* Has periodic alarm signal occurred? */
 	time_t	now;		/* What time is it now? */
 	time_t	lastnow;	/* What time was it last? */

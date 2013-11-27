@@ -9295,6 +9295,7 @@
     %0-%9   = Value of positional parameter/stack location 0 through 9.
     %-      = Stack 10+ that are comma delimited
     %i0-%i9 = Equivalent to itext(0) through itext(9).
+    %d0-%d9 = Equivalent to dtext(0) through dtext(9).  Only for /inline.
     %q0-%q9 = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
     %qa-%qz = Extended value of registers.
     %va-%vz = Contents of attribute va through vz.
@@ -15111,8 +15112,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @stats, @search, search(), searchng()
   
 & ITEXT()
-  Function: itext(<n>)
-  Related:  inum(<n>)
+  Function: itext(<n> [,<key>])
+  Related:  inum(<n> [,<key>])
             ibreak(<n>)
             ilev()
    
@@ -15120,6 +15121,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   of ## (itext) or #@ (inum), with reference to the nth more outermost
   iter(), where n=0 refers to the current iter(), n=1 to an iter()
   in which the current iter() is nested, etc.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
    
   Examples:
   > say [iter(red blue green,iter(fish shoe, #@:##))]
@@ -15138,13 +15143,17 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
 & ILEV()
   Function: ilev()
-  Related:  inum(<n>)
+  Related:  inum(<n> [,<key>])
             ibreak(<n>)
-            itext(<n>)
+            itext(<n> [,<key>])
   
   This function goes along with inum() and itext() and will return the
   level of recursion you are currently in an iter.  The first level is 
   '0', and deeper levels are 1 and more.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
   
   Example:
     > say iter(a b c,iter(1 2 3,iter(! @ #,ilev())))
@@ -15156,8 +15165,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: inum(), itext(), iter(), ibreak(), list()
   
 & INUM()
-  Function: inum(<n>)
-  Related:  itext(<n>)
+  Function: inum(<n> [,<key>])
+  Related:  itext(<n> [,<key>])
             ibreak(<n>)
             ilev()
    
@@ -15165,6 +15174,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   of ## (itext) or #@ (inum), with reference to the nth more outermost
   iter(), where n=0 refers to the current iter(), n=1 to an iter()
   in which the current iter() is nested, etc.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
    
   Examples:
   > say [iter(red blue green,iter(fish shoe, #@:##))] 
@@ -15183,8 +15196,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & IBREAK()
   Function: ibreak(<n>)
-  Related:  itext(<n>)
-            inum(<n>)
+  Related:  itext(<n> [,<key>])
+            inum(<n> [,<key>])
             ilev()
   
   These functions, when called with an iter(), return the equivalent
@@ -15196,6 +15209,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   It will finish processing of what it currently is executing then abort
   any further iterations of that given iter loop.  You can specify the nth
   argument to specify which iter() you wish to break out of.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
   
   Examples:
   > say [iter(red blue green,iter(fish shoe, [inum(1)]:[itext(1)]))]
@@ -24971,6 +24988,8 @@ Changes
 * all *regrep*() functions optionally handle regexp attribute matching [ASH]
 * pushregs now optionally allow you to specify registers to push/pop [ASH]
 * setdiff/setunion/setinter functions now optionally handle sorttype [ASH]
+* %d<num> for @dolist/inline [ASH]
+* itext()/inum() take optional key value (2nd arg) for @dolist/inline [ASH]
   
 Bug Fixes
 ---------

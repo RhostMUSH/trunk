@@ -900,7 +900,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
-    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type;
+    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
     FUN *fp;
     UFUN *ufp, *ulfp;
@@ -1675,12 +1675,25 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
              case 'I':       /* itext */
              case 'i':
                  dstr++;
-                 int inum_val;
                  inum_val = atoi(dstr);
                  if( inum_val < 0 || ( inum_val > mudstate.iter_inum ) ) {   
                      safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
                  } else {   
                      safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
+                 }
+                 break;
+            case 'd':		/* dtext */
+            case 'D':
+                 dstr++;
+                 if ( dstr && *dstr ) {
+                    inum_val = atoi(dstr);
+                    if( inum_val < 0 || ( inum_val > (mudstate.dolistnest-1) ) ) {   
+                        safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
+                    } else {   
+                        safe_str( mudstate.dol_arr[(mudstate.dolistnest - 1) - inum_val], buff, &bufc );
+                    }
+                 } else {
+                    dstr--;
                  }
                  break;
             case 'w':

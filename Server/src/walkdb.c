@@ -44,7 +44,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
 		char *command, char *cargs[], int ncargs)
 {
    char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
-        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS];
+        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr;
    time_t i_now;
    int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak;
 
@@ -115,6 +115,13 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
          tprp_buff = tpr_buff;
          buff2 = replace_string(NUMERIC_VAR, safe_tprintf(tpr_buff, &tprp_buff, "%d", cntr), command, 0);
          if ( i_inline ) {
+            if ( (mudstate.dolistnest >= 0) && (mudstate.dolistnest < 50) ) {
+               if ( !mudstate.dol_arr[mudstate.dolistnest] )
+                  mudstate.dol_arr[mudstate.dolistnest] = alloc_lbuf("dolist_nesting");
+               dbfr = mudstate.dol_arr[mudstate.dolistnest];
+               safe_str(objstring, mudstate.dol_arr[mudstate.dolistnest], &dbfr);
+               mudstate.dol_inumarr[mudstate.dolistnest] = cntr;
+            }
             mudstate.dolistnest++;
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3ptr = strtok_r(buff3, ";", &buff3tok);
@@ -153,6 +160,10 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                mudstate.breakst = i_storebreak;
             }
             mudstate.dolistnest--;
+            if ( mudstate.dolistnest >= 0 ) {
+               free_lbuf(mudstate.dol_arr[mudstate.dolistnest]);
+               mudstate.dol_arr[mudstate.dolistnest] = NULL;
+            }
          } else {
             bind_and_queue (player, cause, buff2, objstring, cargs, ncargs);
          }
