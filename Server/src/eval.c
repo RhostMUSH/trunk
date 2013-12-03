@@ -1679,7 +1679,11 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  if( inum_val < 0 || ( inum_val > mudstate.iter_inum ) ) {   
                      safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
                  } else {   
-                     safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
+                     if ( (*dstr == 'l') || (*dstr == 'L') ) {
+                        safe_str( mudstate.iter_arr[0], buff, &bufc );
+                     } else {
+                        safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
+                     }
                  }
                  break;
             case 'd':		/* dtext */
@@ -1688,9 +1692,13 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  if ( dstr && *dstr ) {
                     inum_val = atoi(dstr);
                     if( inum_val < 0 || ( inum_val > (mudstate.dolistnest-1) ) ) {   
-                        safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
+                       safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
                     } else {   
-                        safe_str( mudstate.dol_arr[(mudstate.dolistnest - 1) - inum_val], buff, &bufc );
+                       if ( (*dstr == 'l') || (*dstr == 'L') ) {
+                          safe_str( mudstate.dol_arr[0], buff, &bufc );
+                       } else {
+                          safe_str( mudstate.dol_arr[(mudstate.dolistnest - 1) - inum_val], buff, &bufc );
+                       }
                     }
                  } else {
                     dstr--;

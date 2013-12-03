@@ -20411,13 +20411,21 @@ FUNCTION(fun_itext)
       if ( (inum_val < 0) || (inum_val > (mudstate.dolistnest - 1)) ) {
          safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
       } else {
-         safe_str(mudstate.dol_arr[(mudstate.dolistnest - 1) - inum_val], buff, bufcx);
+         if ( (*fargs[0] == 'l') || (*fargs[0] == 'L') ) {
+            safe_str(mudstate.dol_arr[0], buff, bufcx);
+         } else {
+            safe_str(mudstate.dol_arr[(mudstate.dolistnest - 1) - inum_val], buff, bufcx);
+         }
       }
    } else {
       if ( (inum_val < 0) || (inum_val > mudstate.iter_inum) ) {
          safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
       } else {
-         safe_str(mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, bufcx);
+         if ( (*fargs[0] == 'l') || (*fargs[0] == 'L') ) {
+            safe_str(mudstate.iter_arr[0], buff, bufcx);
+         } else {
+            safe_str(mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, bufcx);
+         }
       }
    }
 }
@@ -20439,13 +20447,21 @@ FUNCTION(fun_inum)
       if ( (inum_val < 0) || (inum_val > (mudstate.dolistnest - 1)) ) {
          safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
       } else {
-         ival(buff, bufcx, mudstate.dol_inumarr[(mudstate.dolistnest - 1) - inum_val]);
+         if ( (*fargs[0] == 'l') || (*fargs[0] == 'L') ) {
+            ival(buff, bufcx, mudstate.dol_inumarr[mudstate.dolistnest - 1]);
+         } else {
+            ival(buff, bufcx, mudstate.dol_inumarr[(mudstate.dolistnest - 1) - inum_val]);
+         }
       }
    } else {
       if ( (inum_val < 0) || (inum_val > mudstate.iter_inum) ) {
          safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
       } else {
-         ival(buff, bufcx, mudstate.iter_inumarr[mudstate.iter_inum - inum_val]);
+         if ( (*fargs[0] == 'l') || (*fargs[0] == 'L') ) {
+            ival(buff, bufcx, mudstate.iter_inumarr[mudstate.iter_inum]);
+         } else {
+            ival(buff, bufcx, mudstate.iter_inumarr[mudstate.iter_inum - inum_val]);
+         }
       }
    }
 }
