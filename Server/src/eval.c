@@ -1687,6 +1687,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                         }
                     }
                  } else {
+                    if ( mudstate.iter_inum < 0 )
+                        safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
                     dstr--;
                  }
                  break;
@@ -1705,6 +1707,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        }
                     }
                  } else {
+                    if ( (mudstate.dolistnest - 1) < 0)
+                       safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
                     dstr--;
                  }
                  break;
