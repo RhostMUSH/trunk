@@ -1,0 +1,10 @@
+This is the following layout:
+
+DevTools/  		-- currently unused
+Plugins/  		-- currently unused 
+rhost_installer.sh*	-- The installsetup script.  Not needed
+                           if you have actually grabbed the tarball.
+Contrib/  		-- currently unused
+Mushcode/  		-- currently unused
+Server/			-- the main RhostMUSH directory.  To configure you
+                           would issue 'make confsource' from this directory
