@@ -65,3 +65,16 @@ Now... things you need to do.
    f.  Any master room code you load in from your immholder character (or @chown/preserve to it)
 
 7) Set up any other characters you want.  Anyone immortal can issue @function, @admin, or anything #1 can do.
+
+8) Make SURE YOU RUN DAILY Backups.  Rhost is very stable, but things outside the mush can damage the game.
+   paranoia is fine, especially when they really are out to get you.  TO make the backups, do the following:
+
+   @dump/flat      -- This makes a flatfile dump of the main database.  You want to run this daily.
+   wmail/unload    -- This makes a flatfile dump of the mail database.  You want to run this daily.
+   @areg/unload    -- Only worry about this if you are using auto-registration emailing.  Few do.
+   newsdb/unload   -- Only worry if you use the hardcoded bbs system.  Most don't use it.
+
+   The backup_flat.sh script (that launches automatically with Startmush) will archive all the above files
+   if they exist.  It moves these flatfiles into the 'prevflat' directory, then tarballs those and dumps
+   consecutive backups in the 'oldflat' directory.  By default it keeps 7 consecutive backups.  You may
+   alter this in the backup_flat.sh script itself.

@@ -1,0 +1,54 @@
+Ok.
+
+It says when you try to access mail that mail is disabled and/or off.
+
+Nothing you do can bring it on line.  Well, this is bad, but not horrible.
+
+The mail db is totally separate from the main game database.  This means
+that it in no way damaged or corrupted your main mush database.
+
+The bad news?  Yes.  Your mail database is corrupt.  To bring it back,
+is it hopes that you read ahead of time about how to backup your mush,
+which would include the mail database.
+
+wmail/unload -- this flatfile dumps your mail db.  You should run it daily.
+
+To recover your mail, you need to delete your mail databases, reboot, then
+reload your mail flatfiles.  If you have no mail flatfiles, well, you're 
+going to have to start over with the mail database.  Sorry.
+
+First, go into the 'game' subdirectory.  Inside that directory is a 'data'
+directory.
+
+You will be deleting all the files with the following names:
+
+RhostMUSH.mail.*		(like RhostMUSH.mail.dir/RhostMUSH.mail.pag)
+RhostMUSH.folder.*              (like RhostMUSH.folder.dir/RhostMUSH.folder.pag)
+
+DO NOT DELETE OTHER NAMED FILES!!!
+
+Once these files are deleted, you may issue a @reboot to restart the mush.
+This will unlock the mail system and load in a fresh db.
+
+Now, if you have flatfiles of the old mail database, you will see in either
+the 'data' directory or the 'prevflat' directory files that are called:
+
+RhostMUSH.dump.folder
+RhostMUSH.dump.mail
+
+Make sure these two files are in the 'data' subdirectory.  Copy them in
+if they exist in your 'prevflat' directory.
+
+Once they are in the 'data' directory, within the mush type: wmail/load
+
+This loads in the flatfile and recover the mail database.
+
+Now, at this point the mail db may not be 100% in-sync with the game db.
+
+So let's fix it.
+
+wmail/fix   -- this will run a fix on the mail db and repair any issues.
+
+wmail/lfix  -- this will load the fixed flatfile back into the mush.
+
+At this point you should be good to go.
