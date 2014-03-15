@@ -6682,7 +6682,7 @@ FUNCTION(fun_flags)
     OBLOCKMASTER master;
 
     olist_init(&master);
-    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0, 0)) {
+    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0, 0, 0)) {
        if ((it != NOTHING) && (it != AMBIGUOUS) && (!Cloak(it) || (Cloak(it) && Examinable(player, it))) &&
                  (mudconf.pub_flags || Examinable(player, it) || (it == cause))) {
           parse_aflags(player, it, olist_first(&master), buff, bufcx, 0);
@@ -14126,6 +14126,17 @@ FUNCTION(fun_strfunc)
    if ( *fargs[1]) {
       mysep[0] = sep;
       mysep[1] = '\0';
+      strtokptr = trim_space_sep(list, sep);
+      strtok = split_token(&strtokptr, sep);
+      while ( strtokptr ) {
+         ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
+         strcpy(ptrs[nitems], strtok);
+         nitems++;
+         if ( nitems >= (LBUF_SIZE / 2) )
+            break;
+         strtok = split_token(&strtokptr, sep);
+      }
+/*
       strtok = strtok_r(list, mysep, &strtokptr);
       while ( strtok ) {
          ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
@@ -14135,6 +14146,7 @@ FUNCTION(fun_strfunc)
             break;
          strtok = strtok_r(NULL, mysep, &strtokptr);
       }
+*/
    } else {
       ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
       nitems++;
@@ -16971,24 +16983,50 @@ FUNCTION(fun_xcon)
                   buff2 = alloc_lbuf("lcon");
                 else
                   buff2 = NULL;
-                for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
-                  if (attr == A_LISTEN) {
-                    canhear = 1;
-                    break;
-                  }
-                  if (Monitor(thing)) {
-                    ap = atr_num(attr);
-                    if (!ap || (ap->flags & AF_NOPROG))
-                      continue;
-                    atr_get_str(buff2, thing, attr, &aowner, &aflags);
-                    if ((buff2[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
-                      continue;
-                    for (s = buff2 + 1; *s && (*s != ':'); s++);
-                    if (s) {
-                      canhear = 1;
-                      break;
-                    }
-                  }
+                if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
+                   for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
+                     if (attr == A_LISTEN) {
+                       canhear = 1;
+                       break;
+                     }
+                     if (Monitor(thing)) {
+                       ap = atr_num(attr);
+                       if (!ap || (ap->flags & AF_NOPROG))
+                         continue;
+                       atr_get_str(buff2, thing, attr, &aowner, &aflags);
+                       if ((buff2[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+                         continue;
+                       for (s = buff2 + 1; *s && (*s != ':'); s++);
+                       if (s) {
+                         canhear = 1;
+                         break;
+                       }
+                     }
+                   }
+                } else {
+                   ITER_PARENTS(thing, parent, loop) {
+                      for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+                        if ((thing == parent) && (attr == A_LISTEN)) {
+                          canhear = 1;
+                          break;
+                        }
+                        if (Monitor(thing)) {
+                          ap = atr_num(attr);
+                          if (!ap || (ap->flags & AF_NOPROG))
+                            continue;
+                          atr_get_str(buff2, parent, attr, &aowner, &aflags);
+                          if ( (thing != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                            continue;
+                          if ((buff2[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+                            continue;
+                          for (s = buff2 + 1; *s && (*s != ':'); s++);
+                          if (s) {
+                            canhear = 1;
+                            break;
+                          }
+                        }
+                      }
+                   }
                 }
                 if (buff2)
                   free_lbuf(buff2);
@@ -17160,22 +17198,48 @@ FUNCTION(fun_lcon)
                       buff2 = alloc_lbuf("lcon");
                    else
                       buff2 = NULL;
-                   for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
-                      if (attr == A_LISTEN) {
-                      canhear = 1;
-                      break;
-                   }
-                   if (Monitor(thing)) {
-                      ap = atr_num(attr);
-                      if (!ap || (ap->flags & AF_NOPROG))
-                         continue;
-                      atr_get_str(buff2, thing, attr, &aowner, &aflags);
-                      if ((buff2[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
-                         continue;
-                      for (s = buff2 + 1; *s && (*s != ':'); s++);
-                         if (s) {
+                   if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
+                      for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
+                         if (attr == A_LISTEN) {
                             canhear = 1;
                             break;
+                         }
+                         if (Monitor(thing)) {
+                            ap = atr_num(attr);
+                            if (!ap || (ap->flags & AF_NOPROG))
+                               continue;
+                            atr_get_str(buff2, thing, attr, &aowner, &aflags);
+                            if ((buff2[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+                               continue;
+                            for (s = buff2 + 1; *s && (*s != ':'); s++);
+                            if (s) {
+                               canhear = 1;
+                               break;
+                            }
+                         }
+                      }
+                   } else {
+                      ITER_PARENTS(thing, parent, loop) {
+                         for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+                            if ((parent == thing) && (attr == A_LISTEN)) {
+                               canhear = 1;
+                               break;
+                            }
+                            if (Monitor(thing)) {
+                               ap = atr_num(attr);
+                               if (!ap || (ap->flags & AF_NOPROG))
+                                  continue;
+                               atr_get_str(buff2, parent, attr, &aowner, &aflags);
+                               if ( (thing != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                                  continue;
+                               if ((buff2[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+                                  continue;
+                               for (s = buff2 + 1; *s && (*s != ':'); s++);
+                               if (s) {
+                                  canhear = 1;
+                                  break;
+                               }
+                            }
                          }
                       }
                    }
@@ -18174,7 +18238,7 @@ FUNCTION(fun_hasflag)
     OBLOCKMASTER master;
 
     olist_init(&master);
-    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0, 0)) {
+    if (parse_attrib_wild(player, fargs[0], &it, 0, 1, 0, &master, 0, 0, 0)) {
        if ((it != NOTHING) && (it != AMBIGUOUS) && (!Cloak(it) || (Cloak(it) && (Examinable(player, it) || Wizard(player)))) &&
             (!(SCloak(it) && Cloak(it)) || (SCloak(it) && Cloak(it) && Immortal(player))) &&
             (mudconf.pub_flags || Examinable(player, it) || (it == cause)))  {
@@ -18334,7 +18398,7 @@ FUNCTION(fun_lflags)
     OBLOCKMASTER master;
 
     olist_init(&master);
-    if ( parse_attrib_wild(player, fargs[0], &target, 0, 1, 0, &master, 0, 0) ) {
+    if ( parse_attrib_wild(player, fargs[0], &target, 0, 1, 0, &master, 0, 0, 0) ) {
        if ( (target != NOTHING) && (target != AMBIGUOUS) && (!Cloak(target) || (Cloak(target) &&
             (Examinable(player, target) || Wizard(player)))) &&
             (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
@@ -19149,7 +19213,7 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
 {
     dbref thing, target, aowner;
     int ca, first, chk_cmd, aflags, i_pageval, i_currcnt, i_dispcnt, i_retpage, 
-        i_allattrs, i_ntfnd, i_min, i_max, i_regexp;
+        i_allattrs, i_ntfnd, i_min, i_max, i_regexp, i_tree;
     char *s_shoveattr, c_lookup, *s_tmpbuff, *s_tmpbuffptr, *s_ptr, *tpr_buff, 
         *tprp_buff, *s_storname[3];
     ATTR *attr;
@@ -19160,7 +19224,7 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
      * if it is missing.
      */
 
-    if (!fn_range_check(s_name, nfargs, 1, 5, buff, bufcx))
+    if (!fn_range_check(s_name, nfargs, 1, 6, buff, bufcx))
        return;
 
     if (nfargs >= 2) {
@@ -19179,10 +19243,17 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     if ((nfargs >= 3) && (*fargs[2])) {
        c_lookup = *fargs[2];
     }
-    if ((nfargs >= 4) && (*fargs[3])) {
-       i_regexp = atoi(fargs[3]);
+    if ((nfargs > 4) && (*fargs[4])) {
+       i_regexp = atoi(fargs[4]);
     } else {
        i_regexp = 0;
+    }
+    if ((nfargs > 5) && (*fargs[5])) {
+       i_tree = atoi(fargs[5]);
+       if ( i_tree != 0 )
+          i_tree = 1;
+    } else {
+       i_tree = 0;
     }
     
     if ( (c_lookup == '$') || (c_lookup == '^') ) {
@@ -19216,7 +19287,7 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     }
     first = 1;
     olist_init(&master);
-    if (parse_attrib_wild(target, fargs[0], &thing, i_is_parent, i_allattrs, 1, &master, i_is_cluster, i_regexp)) {
+    if (parse_attrib_wild(target, fargs[0], &thing, i_is_parent, i_allattrs, 1, &master, i_is_cluster, i_regexp, i_tree)) {
         if ( (SCloak(thing) && Cloak(thing) && Immortal(thing) && !(Immortal(target))) ||
              (Cloak(thing) && Wizard(thing) && !(Wizard(target))) ||
              (!(Immortal(target)) && (Going(thing) || Recover(thing))) ) {
@@ -19420,7 +19491,7 @@ FUNCTION(fun_lcmds)
     }
     first = 1;
     olist_init(&master);
-    if (parse_attrib_wild(player, fargs[0], &thing, 0, 0, 1, &master, 0, 0)) {
+    if (parse_attrib_wild(player, fargs[0], &thing, 0, 0, 1, &master, 0, 0, 0)) {
         if ( (SCloak(thing) && Cloak(thing) && Immortal(thing) && !(Immortal(player))) ||
              (Cloak(thing) && Wizard(thing) && !(Wizard(player))) ||
              (!(Immortal(player)) && (Going(thing) || Recover(thing))) ) {
@@ -26372,6 +26443,7 @@ FUNCTION(fun_clone)
 FUNCTION(fun_oemit)
 {
    CMDENT *cmdp;
+   int i_key;
 
    if ( !(mudconf.sideeffects & SIDE_OEMIT) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -26381,6 +26453,14 @@ FUNCTION(fun_oemit)
       notify(player, "Permission denied.");
       return;
    }
+
+   if (!fn_range_check("OEMIT", nfargs, 2, 3, buff, bufcx))
+      return;
+
+   i_key = 0;
+   if ( (nfargs > 2) && fargs[2] && *fargs[2] )
+      i_key = atoi(fargs[2]);
+      
    mudstate.sidefx_currcalls++;
    cmdp = (CMDENT *)hashfind((char *)"@oemit", &mudstate.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@oemit") ||
@@ -26388,7 +26468,10 @@ FUNCTION(fun_oemit)
       notify(player, "Permission denied.");
       return;
    }
-   do_pemit( player, cause, (SIDEEFFECT|PEMIT_OEMIT), fargs[0], fargs[1], cargs, ncargs);
+   if ( !i_key ) 
+      do_pemit( player, cause, (SIDEEFFECT|PEMIT_OEMIT), fargs[0], fargs[1], cargs, ncargs);
+   else
+      do_pemit( player, cause, (SIDEEFFECT|PEMIT_OEMIT|PEMIT_OSTR), fargs[0], fargs[1], cargs, ncargs);
 }
 
 FUNCTION(fun_pemit)
@@ -28149,7 +28232,7 @@ FUN flist[] =
     {"OBJ", fun_obj, 1, 0, CA_PUBLIC, 0},
     {"OBJEVAL", fun_objeval, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"OEMIT", fun_oemit, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"OEMIT", fun_oemit, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"OPEN", fun_open, 1, FN_VARARGS, CA_PUBLIC, 0},
 #endif
     {"OR", fun_or, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -28635,7 +28718,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        memset(s_minargs, '\0', sizeof(s_minargs));
        memset(s_maxargs, '\0', sizeof(s_maxargs));
        for (ufp2 = (i_local ? ulfun_head : ufun_head); ufp2; ufp2 = ufp2->next) {
-          if ( (ufp2->owner != Owner(player)) && !controls(player, ufp2->owner) ) 
+          if ( i_local && ((ufp2->owner != Owner(player)) && !controls(player, ufp2->owner)) ) 
              continue;
           ap = atr_num(ufp2->atr);
           if (ap) {

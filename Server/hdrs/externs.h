@@ -37,6 +37,9 @@ typedef struct atrp {
         char   *name;       /* function name */
         int     flag_set;       /* who can set/clear attrib */
         int     flag_see;       /* who can see attrib */
+        dbref	owner;		/* Owner of who set it (if not global which is -1) */
+        dbref   controller;	/* Who controlls the attribute setting */
+        dbref   target;		/* The actual target object */
         struct atrp *next;      /* Next ufun in chain */
 } ATRP;
 
@@ -171,6 +174,8 @@ extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
 #define	notify_all_from_inside_quiet(p,c,m)	notify_check(p,c,m,0, \
 						MSG_ME|MSG_F_CONTENTS|MSG_SILENT, 0)
 #define noansi_notify_except(p,c,m,x)	notify_except(p,c,m,x,MSG_NO_ANSI)
+extern void	FDECL(notify_except_str, (dbref, dbref, dbref [LBUF_SIZE/2], int, 
+			const char *, int));
 extern void	FDECL(notify_except, (dbref, dbref, dbref,
 			const char *, int));
 extern void	FDECL(notify_except2, (dbref, dbref, dbref, dbref,
@@ -334,7 +339,7 @@ extern void	FDECL(list_buftrace, (dbref));
 extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
-			int, int, OBLOCKMASTER *, int, int));
+			int, int, OBLOCKMASTER *, int, int, int));
 extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int));
 extern dbref	FDECL(match_controlled, (dbref, const char *));
 extern dbref	FDECL(match_controlled_or_twinked, (dbref, const char *));
@@ -536,6 +541,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DECOMP_ALL	0	/* Decompile everything - default */
 #define DECOMP_FLAGS    1	/* Decompile flags */
 #define DECOMP_ATTRS	2	/* Decompile Attrs */
+#define DECOMP_TREE	4	/* Decompile Penn Trees */
+#define DECOMP_REGEXP	8	/* Decompile by Regexp */
 #define	DBCK_DEFAULT	1	/* Get default tests too */
 #define	DBCK_REPORT	2	/* Report info to invoker */
 #define	DBCK_FULL	4	/* Do all tests */
@@ -581,6 +588,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	EXAM_DEBUG	4	/* Display more info for finding db problems */
 #define	EXAM_PARENT	8	/* Get attr from parent when exam obj/attr */
 #define EXAM_QUICK      16      /* Nonowner sees just owner */
+#define EXAM_TREE	32	/* Examine Tree like Penn */
+#define EXAM_REGEXP	64	/* Examine by Regexp */
 #define	FIXDB_OWNER	1	/* Fix OWNER field */
 #define	FIXDB_LOC	2	/* Fix LOCATION field */
 #define	FIXDB_CON	4	/* Fix CONTENTS field */
@@ -741,6 +750,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PEMIT_REALITY   524288  /* Follow Reality Level Permissions */
 #define PEMIT_TOREALITY 1048576 /* Pemit to specic realities */
 #define PEMIT_ONEEVAL	2097152 /* One eval for @pemit/list */
+#define PEMIT_OSTR	4194304 /* @oemit uses multi-parameters */
 #define	PS_BRIEF	0	/* Short PS report */
 #define	PS_LONG		1	/* Long PS report */
 #define	PS_SUMM		2	/* Queue counts only */

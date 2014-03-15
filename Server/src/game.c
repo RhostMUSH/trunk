@@ -798,7 +798,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	if ((key & MSG_ME) && pass_uselock && (sender != target) &&
 	    Monitor(target)) {
 	    (void) atr_match(target, sender,
-			     AMATCH_LISTEN, (char *) msg, 0, 0);
+			     AMATCH_LISTEN, (char *) msg, mudconf.listen_parents, 0);
 	}
 	/* Deliver message to forwardlist members */
 
@@ -1052,6 +1052,34 @@ notify_except_someone(dbref loc, dbref player, dbref exception, const char *msg,
 	}
       }
     VOIDRETURN; /* #76 */
+}
+
+void 
+notify_except_str(dbref loc, dbref player, dbref darray[LBUF_SIZE/2], int dcnt, const char *msg, int key)
+{
+    dbref first;
+    int i, exception;
+
+    DPUSH; /* #77 */
+
+    exception = 0;
+    if (loc != exception)
+       notify_check(loc, player, msg, 0, (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
+
+    DOLIST(first, Contents(loc)) {
+       exception = 0;
+       for ( i = 0; i < dcnt; i++) {
+          if ( first == darray[i] ) {
+             exception = 1;
+             break;
+          } 
+       }
+       if (!exception) {
+          notify_check(first, player, msg, 0, (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
+       }
+    }
+
+    VOIDRETURN; /* #77 */
 }
 
 void 
@@ -1613,8 +1641,8 @@ int
 Hearer(dbref thing)
 {
     char *as, *buff, *s;
-    dbref aowner;
-    int attr, aflags;
+    dbref aowner, parent;
+    int attr, aflags, lev;
     ATTR *ap;
 
     DPUSH; /* #88 */
@@ -1628,35 +1656,73 @@ Hearer(dbref thing)
     else
 	buff = NULL;
     atr_push();
-    for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
-	if (attr == A_LISTEN) {
-	    if (buff)
-		free_lbuf(buff);
-	    atr_pop();
-	    RETURN(1); /* #88 */
-	}
-	if (Monitor(thing)) {
-	    ap = atr_num(attr);
-	    if (!ap || (ap->flags & AF_NOPROG))
-		continue;
+    if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
+       for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
+	   if (attr == A_LISTEN) {
+	       if (buff)
+		   free_lbuf(buff);
+	       atr_pop();
+	       RETURN(1); /* #88 */
+	   }
+	   if (Monitor(thing)) {
+	       ap = atr_num(attr);
+	       if (!ap || (ap->flags & AF_NOPROG))
+		   continue;
+   
+	       atr_get_str(buff, thing, attr, &aowner, &aflags);
+   
+	       /* Make sure we can execute it */
+   
+	       if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+		   continue;
+   
+	       /* Make sure there's a : in it */
+   
+               for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
+            /* for (s = buff + 1; *s && (*s != ':'); s++); */
+	       if (s) {
+		   free_lbuf(buff);
+		   atr_pop();
+		   RETURN(1); /* #88 */
+	       }
+	   }
+       }
+    } else {
+       ITER_PARENTS(thing, parent, lev) {
+          for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+	      if ((thing == parent) && (attr == A_LISTEN)) {
+	          if (buff)
+		      free_lbuf(buff);
+	          atr_pop();
+	          RETURN(1); /* #88 */
+	      }
+	      if (Monitor(thing)) {
+	          ap = atr_num(attr);
+	          if (!ap || (ap->flags & AF_NOPROG))
+		      continue;
+      
+	          atr_get_str(buff, parent, attr, &aowner, &aflags);
+      
+	          /* Make sure we can execute it */
 
-	    atr_get_str(buff, thing, attr, &aowner, &aflags);
-
-	    /* Make sure we can execute it */
-
-	    if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
-		continue;
-
-	    /* Make sure there's a : in it */
-
-            for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
-/*	    for (s = buff + 1; *s && (*s != ':'); s++); */
-	    if (s) {
-		free_lbuf(buff);
-		atr_pop();
-		RETURN(1); /* #88 */
-	    }
-	}
+                  if ( (thing != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                      continue;
+      
+	          if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+		      continue;
+      
+	          /* Make sure there's a : in it */
+      
+                  for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
+               /* for (s = buff + 1; *s && (*s != ':'); s++); */
+	          if (s) {
+		      free_lbuf(buff);
+		      atr_pop();
+		      RETURN(1); /* #88 */
+	          }
+	      }
+          }
+       }
     }
     if (buff)
 	free_lbuf(buff);

@@ -210,6 +210,8 @@ NAMETAB decomp_sw[] =
     {(char *) "all", 2, CA_PUBLIC, 0, DECOMP_ALL},
     {(char *) "flags", 1, CA_PUBLIC, 0, DECOMP_FLAGS},
     {(char *) "attribs", 2, CA_PUBLIC, 0, DECOMP_ATTRS},
+    {(char *) "tree", 1, CA_PUBLIC, 0, DECOMP_TREE},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, DECOMP_REGEXP},
     {NULL, 0, 0, 0, 0}};
    
 NAMETAB dbck_sw[] =
@@ -304,6 +306,8 @@ NAMETAB examine_sw[] =
     {(char *) "full", 1, CA_PUBLIC, 0, EXAM_LONG},
     {(char *) "parent", 1, CA_PUBLIC, 0, EXAM_PARENT},
     {(char *) "quick", 1, CA_PUBLIC, 0, EXAM_QUICK},
+    {(char *) "tree", 1, CA_PUBLIC, 0, EXAM_TREE | SW_MULTIPLE},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, EXAM_REGEXP | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB femit_sw[] =
@@ -344,7 +348,9 @@ NAMETAB flagdef_sw[] =
 NAMETAB oemit_sw[] =
 {
     {(char *) "noansi", 1, CA_PUBLIC, 0, PEMIT_NOANSI | SW_MULTIPLE},
+    {(char *) "multi", 1, CA_PUBLIC, 0, PEMIT_OSTR},
     {NULL, 0, 0, 0, 0}};
+
 NAMETAB say_sw[] =
 {
     {(char *) "noansi", 1, CA_PUBLIC, 0, SAY_NOANSI | SW_MULTIPLE},

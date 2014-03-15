@@ -23,6 +23,8 @@ char *index(const char *, int);
 #include "levels.h"
 #endif /* REALITY_LEVELS */
 
+extern int count_chars(const char *, const char c);
+
 static void 
 look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
 {
@@ -1120,7 +1122,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 
 static void 
 look_atrs1(dbref player, dbref thing, dbref othing,
-	   int check_exclude, int hash_insert)
+	   int check_exclude, int hash_insert, int i_tree)
 {
     dbref aowner;
     int ca, aflags;
@@ -1143,27 +1145,27 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 
 	buf = atr_get(thing, ca, &aowner, &aflags);
 	if (Read_attr(player, othing, attr, aowner, aflags, 0)) {
-
-	    if (!(check_exclude && (aflags & AF_PRIVATE))) {
-		if (hash_insert)
-		    nhashadd(ca, (int *) attr,
-			     &mudstate.parent_htab);
-		view_atr(player, thing, attr, buf,
-			 aowner, aflags, 0, (thing != othing ? thing : -1));
-	    }
+           if ( !i_tree || (i_tree && !count_chars(attr->name, '`')) ) {
+	      if (!(check_exclude && (aflags & AF_PRIVATE))) {
+		 if (hash_insert)
+		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);
+		 view_atr(player, thing, attr, buf,
+			  aowner, aflags, 0, (thing != othing ? thing : -1));
+	      }
+           }
 	}
 	free_lbuf(buf);
     }
 }
 
 static void 
-look_atrs(dbref player, dbref thing, int check_parents)
+look_atrs(dbref player, dbref thing, int check_parents, int i_tree)
 {
     dbref parent;
     int lev, check_exclude, hash_insert;
 
     if (!check_parents) {
-	look_atrs1(player, thing, thing, 0, 0);
+	look_atrs1(player, thing, thing, 0, 0, i_tree);
     } else {
 	hash_insert = 1;
 	check_exclude = 0;
@@ -1172,7 +1174,7 @@ look_atrs(dbref player, dbref thing, int check_parents)
 	    if (!Good_obj(Parent(parent)))
 		hash_insert = 0;
 	    look_atrs1(player, parent, thing,
-		       check_exclude, hash_insert);
+		       check_exclude, hash_insert, i_tree);
 	    check_exclude = 1;
             if ( Good_obj(Parent(parent)) ) {
              if ( NoEx(Parent(parent)) && !Wizard(player) )
@@ -1285,7 +1287,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
 #endif /* REALITY_LEVELS */
 
     if (!mudconf.quiet_look && (!Terse(player) || !(isRoom(thing) && Terse(thing)) || mudconf.terse_look)) {
-	look_atrs(player, thing, 0);
+	look_atrs(player, thing, 0, 0);
     }
 }
 
@@ -1432,7 +1434,7 @@ look_in(dbref player, dbref loc, int key)
     /* tell him the attributes, contents and exits */
 
     if ((key & LK_SHOWATTR) && !mudconf.quiet_look && !is_terse)
-	look_atrs(player, loc, 0);
+	look_atrs(player, loc, 0, 0);
     if (!is_terse || mudconf.terse_contents)
 	look_contents(player, loc, "Contents:");
     if ((key & LK_SHOWEXIT) && (!is_terse || mudconf.terse_exits)) {
@@ -1766,7 +1768,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
     BOOLEXP *bool;
     int control, aflags, do_parent, echeck, aflags2, keyfound;
     OBLOCKMASTER master;
-    int cntr=0;
+    int cntr=0, i_tree=0, i_regexp=0;
     ATTR *a_chk;
 
     /* This command is pointless if the player can't hear. */
@@ -1774,6 +1776,14 @@ do_examine(dbref player, dbref cause, int key, char *name)
     if (!Hearer(player))
 	return;
 
+    if ( key & EXAM_REGEXP ) {
+       i_regexp = 1;
+       key &= ~EXAM_REGEXP;
+    }
+    if ( key & EXAM_TREE ) {
+       i_tree = 1;
+       key &= ~EXAM_TREE;
+    }
     mudstate.outputflushed = 0;
     do_parent = key & EXAM_PARENT;
     thing = NOTHING;
@@ -1785,7 +1795,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
     } else {
 	/* Check for obj/attr first. */
 	olist_init(&master);
-	if (parse_attrib_wild(player, name, &thing, do_parent, 1, 0, &master, 0, 0)) {
+	if (parse_attrib_wild(player, name, &thing, do_parent, 1, 0, &master, 0, i_regexp, i_tree)) {
     	  if (Cloak(thing)) {
 	    if (Immortal(thing) && SCloak(thing) && !(Immortal(cause))) {
 	      notify(player, "I don't see that here.");
@@ -2056,7 +2066,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
        free_lbuf(modbuf);
     }
     if ( key != EXAM_BRIEF ) {
-       look_atrs(player, thing, do_parent);
+       look_atrs(player, thing, do_parent, i_tree);
     }
 
     /* show him interesting stuff */
@@ -2605,35 +2615,70 @@ sweep_check(dbref player, dbref what, int key, int is_loc)
 	    buff = alloc_lbuf("Hearer");
 	else
 	    buff = NULL;
+        if ( (mudconf.listen_parents == 0) || !Monitor(what) ) {
+	   for (attr = atr_head(what, &as); attr; attr = atr_next(&as)) {
+	       if (attr == A_LISTEN) {
+		   canhear = 1;
+		   break;
+	       }
+	       if (Monitor(what)) {
+		   ap = atr_num(attr);
+		   if (!ap || (ap->flags & AF_NOPROG))
+		       continue;
+   
+		   atr_get_str(buff, what, attr, &aowner,
+			       &aflags);
+   
+		   /* Make sure we can execute it */
+   
+		   if ((buff[0] != AMATCH_LISTEN) ||
+		       (aflags & AF_NOPROG))
+		       continue;
+   
+		   /* Make sure there's a : in it */
+   
+		   for (s = buff + 1; *s && (*s != ':'); s++);
+		   if (s) {
+		       canhear = 1;
+		       break;
+		   }
+	       }
+	   }
+        } else {
+	   ITER_PARENTS(what, parent, lev) {
+	      for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+	          if ((parent == what) && (attr == A_LISTEN)) {
+		      canhear = 1;
+		      break;
+	          }
+	          if (Monitor(what)) {
+		      ap = atr_num(attr);
+		      if (!ap || (ap->flags & AF_NOPROG))
+		          continue;
+      
+		      atr_get_str(buff, parent, attr, &aowner,
+			          &aflags);
+      
+		      /* Make sure we can execute it */
+      
+		      if ((buff[0] != AMATCH_LISTEN) ||
+		          (aflags & AF_NOPROG))
+		          continue;
+      
+                      if ( (what != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                          continue;
 
-	for (attr = atr_head(what, &as); attr; attr = atr_next(&as)) {
-	    if (attr == A_LISTEN) {
-		canhear = 1;
-		break;
-	    }
-	    if (Monitor(what)) {
-		ap = atr_num(attr);
-		if (!ap || (ap->flags & AF_NOPROG))
-		    continue;
-
-		atr_get_str(buff, what, attr, &aowner,
-			    &aflags);
-
-		/* Make sure we can execute it */
-
-		if ((buff[0] != AMATCH_LISTEN) ||
-		    (aflags & AF_NOPROG))
-		    continue;
-
-		/* Make sure there's a : in it */
-
-		for (s = buff + 1; *s && (*s != ':'); s++);
-		if (s) {
-		    canhear = 1;
-		    break;
-		}
-	    }
-	}
+		      /* Make sure there's a : in it */
+      
+		      for (s = buff + 1; *s && (*s != ':'); s++);
+		      if (s) {
+		          canhear = 1;
+		          break;
+		      }
+	          }
+              }
+           }
+        }
 	if (buff)
 	    free_lbuf(buff);
     }
@@ -2955,11 +3000,20 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
     BOOLEXP *bool;
     char *got, *thingname, *as, *ltext, *buff, *tpr_buff, *tprp_buff;
     dbref aowner, thing;
-    int val, aflags, ca, key_buff;
+    int val, aflags, ca, key_buff, i_regexp, i_tree;
     ATTR *attr;
     NAMETAB *np;
     OBLOCKMASTER master;
 
+    i_regexp = i_tree = 0;
+    if ( key & DECOMP_REGEXP ) {
+       i_regexp = 1;
+       key &= ~DECOMP_REGEXP;
+    }
+    if ( key & DECOMP_TREE ) {
+       i_tree = 1;
+       key &= ~DECOMP_TREE;
+    }
     key_buff = key;
     key = 0;
     mudstate.outputflushed = 0;
@@ -2967,7 +3021,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
     if (!name || !*name)
       return;
     olist_init(&master);
-    if (parse_attrib_wild(player, name, &thing, 0, 1, 0, &master, 0, 0)) {
+    if (parse_attrib_wild(player, name, &thing, 0, 1, 0, &master, 0, i_regexp, i_tree)) {
       if (!Examinable(player, thing)) {
 	notify_quiet(player, "You can only decompile things you can examine.");
 	olist_cleanup(&master);

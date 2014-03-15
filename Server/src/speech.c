@@ -1384,21 +1384,21 @@ void whisper_pose (dbref player, dbref target, char *message)
 void do_pemit (dbref player, dbref cause, int key, char *recipient, 
 		char *message, char *cargs[], int ncargs)
 {
-dbref	target, loc, aowner;
+dbref	target, loc, aowner, darray[LBUF_SIZE/2];
 char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
 char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff;
 #ifdef REALITY_LEVELS
-char    *reality_buff, *s_ptr, *r_bufr, *pt3;
+char    *reality_buff, *s_ptr, *r_bufr, *pt3, *strtok, *strtokr, *strtokbuf;
 #endif
 int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr, side_effect; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;
-int     xxx_x, xxx_y, xxx_z, i_oneeval, i_snufftoofar;
+int     xxx_x, xxx_y, xxx_z, i_oneeval, i_snufftoofar, i_oemitstr, dcntr, dcntrtmp;
 
 ZLISTNODE *z_ptr, *y_ptr;
 
    port = 0;
    rcpt = NULL;
-   i_snufftoofar = is_rlevelon = i_realitybit = i_oneeval = 0;
+   i_snufftoofar = is_rlevelon = i_realitybit = i_oneeval = i_oemitstr = dcntr = 0;
    xxx_x = xxx_y = xxx_z = 0;
 
    if ((Flags3(player) & NO_PESTER) && (key & (PEMIT_PEMIT|PEMIT_LIST|PEMIT_WHISPER|PEMIT_CONTENTS))) {
@@ -1421,6 +1421,10 @@ ZLISTNODE *z_ptr, *y_ptr;
    } else {
       noansi = 0;
    }        
+   if ( key & PEMIT_OSTR ) {
+      key &= ~PEMIT_OSTR;
+      i_oemitstr = 1;
+   }
    recipient_buff = recipient;
 #ifdef REALITY_LEVELS
    if (  ((key & PEMIT_TOREALITY) && !(key & PEMIT_CONTENTS)) ) {
@@ -1598,9 +1602,43 @@ ZLISTNODE *z_ptr, *y_ptr;
             mudstate.pageref = player;
             break;
          default:
-            init_match_real(player, recip2, TYPE_PLAYER, i_realitybit);
-            match_everything(0);
-            target = match_result();
+            if ( i_oemitstr ) {
+               strtokbuf = alloc_lbuf("oemit_multi");
+               memcpy(strtokbuf, recip2, LBUF_SIZE - 1);
+               strtok = strtok_r(strtokbuf, " \t", &strtokr);
+               while ( strtok ) {
+                  init_match_real(player, strtok, TYPE_PLAYER, i_realitybit);
+                  match_everything(0);
+                  target = match_result();
+                  if ( Good_chk(target) ) {
+                     if ((SCloak(target) && Cloak(target) && !Immortal(player)) ||
+                         (Cloak(target) && !Wizard(player))) {
+                        target = NOTHING;
+                     } else {
+                        for ( dcntrtmp = 0; dcntrtmp < dcntr; dcntrtmp++ ) {
+                           if ( darray[dcntrtmp] == target ) {
+                              dcntrtmp = -1;
+                              break;
+                           }
+                        }
+                        if ( dcntrtmp >= 0 ) {
+                           darray[dcntr] = target;
+                           dcntr++;
+                        }
+                     }
+                  }
+                  strtok = strtok_r(NULL, " \t", &strtokr);
+               }
+               free_lbuf(strtokbuf);
+               if ( dcntr > 0 )
+                  target = darray[0];
+               else
+                  target = NOTHING;
+            } else {
+               init_match_real(player, recip2, TYPE_PLAYER, i_realitybit);
+               match_everything(0);
+               target = match_result();
+            }
       }
       mudstate.whisper_state = 0;
       if ( (target != NOTHING) && (target != AMBIGUOUS) ) {
@@ -1666,7 +1704,8 @@ ZLISTNODE *z_ptr, *y_ptr;
                   i_snufftoofar = 1;
                   break;
                case PEMIT_OEMIT:
-                  notify(player, "Emit except to whom?");
+                  if ( !i_oemitstr || (i_oemitstr && (dcntr == 0)) )
+                     notify(player, "Emit except to whom?");
                   break;
                case PEMIT_PORT:
                   notify_with_cause2(port, player, result);
@@ -1816,18 +1855,38 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_OEMIT:
                   if (loc != NOTHING) {
-                     notify_except(loc, player, target, result, 0);
-                     if (Flags3(target) & SEE_OEMIT) {
+                     if ( i_oemitstr ) 
+                        notify_except_str(loc, player, darray, dcntr, result, 0);
+                     else
+                        notify_except(loc, player, target, result, 0);
+                     if ( i_oemitstr && (dcntr > 0) ) {
                         tell = alloc_lbuf("see_omit");
                         tx = tell;
                         safe_str("[oemit] ",tell,&tx);
                         safe_str(result,tell,&tx);
-                        if ( noansi ) {
-                           noansi_notify_with_cause(target,player,tell);
-                        } else {
-                           notify_with_cause(target,player,tell);
+                        for (dcntrtmp = 0; dcntrtmp < dcntr; dcntrtmp++) {
+                           if ( Flags3(darray[dcntrtmp]) & SEE_OEMIT ) {
+                              if ( noansi ) {
+                                 noansi_notify_with_cause(darray[dcntrtmp],player,tell);
+                              } else {
+                                 notify_with_cause(darray[dcntrtmp],player,tell);
+                              }
+                           }
                         }
                         free_lbuf(tell);
+                     } else {
+                        if (Flags3(target) & SEE_OEMIT) {
+                           tell = alloc_lbuf("see_omit");
+                           tx = tell;
+                           safe_str("[oemit] ",tell,&tx);
+                           safe_str(result,tell,&tx);
+                           if ( noansi ) {
+                              noansi_notify_with_cause(target,player,tell);
+                           } else {
+                              notify_with_cause(target,player,tell);
+                           }
+                           free_lbuf(tell);
+                        }
                      }
                   }
                   break;

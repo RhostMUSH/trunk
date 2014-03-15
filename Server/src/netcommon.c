@@ -1962,14 +1962,19 @@ time_format_1(time_t dt)
 {
     register struct tm *delta;
     static char buf[64];
+    int i_syear;
 
     DPUSH; /* #128 */
 
     if (dt < 0)
 	dt = 0;
 
+    i_syear = ((int)dt / 31536000);
     delta = gmtime(&dt);
-    if (delta->tm_yday > 0) {
+    if ( i_syear > 0 ) {
+	sprintf(buf, "%dy %02d:%02d",
+		i_syear, delta->tm_hour, delta->tm_min);
+    } else if (delta->tm_yday > 0) {
 	sprintf(buf, "%dd %02d:%02d",
 		delta->tm_yday, delta->tm_hour, delta->tm_min);
     } else {
@@ -1984,6 +1989,7 @@ time_format_2(time_t dt)
 {
     register struct tm *delta;
     static char buf[64];
+    int i_syear;
 
     DPUSH; /* #129 */
 
@@ -1991,7 +1997,10 @@ time_format_2(time_t dt)
 	dt = 0;
 
     delta = gmtime(&dt);
-    if (delta->tm_yday > 0) {
+    i_syear = ((int)dt / 31536000);
+    if ( i_syear > 0 ) {
+	sprintf(buf, "%dy", i_syear);
+    } else if (delta->tm_yday > 0) {
 	sprintf(buf, "%dd", delta->tm_yday);
     } else if (delta->tm_hour > 0) {
 	sprintf(buf, "%dh", delta->tm_hour);

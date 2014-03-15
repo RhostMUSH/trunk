@@ -29,7 +29,11 @@ else
    echo "I'm sorry, I did not find a src.tbz at '$(pwd)'.  Please copy that file in and try again."
    exit 1
 fi
-echo "Copying your binary ... just in case."
+echo "Making a backup of all your files, please wait..."|tr -d '\012'
+lc_date=$(date +%m%d%y%H%M%S)
+tar -czf src_backup_${lc_date}.tgz src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
+echo "... completed.  Filename is src_backup_${lc_date}.tgz"
+echo "Copying your binary ... just in case.  Backup will be src/netrhost.automate"
 cp -f src/netrhost src/netrhost.automate
 bunzip -cd src.tbz|tar -xvf -
 cd src
@@ -38,4 +42,5 @@ cd ../game/txt
 ../mkindx help.txt help.indx
 ../mkindx wizhelp.txt wizhelp.indx
 echo "Ok, we're done.  Ignore any warnings.  If you had errors, please report it to the developers."
+echo "Once you @reboot the mush, please issue @readcache to read in the new help files."
 exit 0

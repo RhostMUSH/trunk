@@ -394,6 +394,7 @@ struct confdata {
 	int	includecnt;	/* Total number of @includes in the command caller */
 	int	lfunction_max;	/* Maximum lfunctions allowed */
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
+	int	listen_parents;	/* ^listens handle parents */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */

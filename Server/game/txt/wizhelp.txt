@@ -8529,21 +8529,23 @@
   See Also: mailquota(), mailquick()
 
 & LATTRP()
-  Function: lattrp(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
+  Function: lattrp(<obj>[/<wld>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
    
-  Returns a list of the attributes set on <object> and all parents OF
-  <object>.  If <wild>pattern is given, only attributes matching it 
+  Returns a list of the attributes set on <object> and all parents of
+  <obj>ect.  If <wld>pattern is given, only attributes matching it 
   are returned.  You may specify the <regexp> option to true (1) to turn the
   wild matching algo into regular expression matching instead of the default
-  matching algorithem.  You may specify the optional target if you wish to 
-  return attributes that only the target could see.  If you do not have
+  matching algorithem.  You may specify the optional target <targ> if you wish 
+  to return attributes that only the target could see.  If you do not have
   control over target, it defaults to yours.  You may specify a type to 
-  check against.  The following types exist:
+  check against.  You may specify <tree> to simulate viewing attribute tres.
+  
+  The following types exist:
     + - List existing lock attributes on player.
     $ - list all attributes that are $commands.
     ^ - list all attributes that are ^listens.
-    & - list all attributes that contain all attribute flags <flags>.
-    | - list all attributes that contain any attribute flags <flags>.
+    & - list all attributes that contain all attribute flags <flg>.
+    | - list all attributes that contain any attribute flags <flg>.
     l - list total attributes and pages of attributes.
     # - page (1, 2, etc) for attribute listing.  118 for 32byte attrs.
     > - find the alphanumerical largest attribute name.
@@ -8553,7 +8555,7 @@
   { see help lattrp2 for examples }
 
 & LATTRP2 
-  Function: lattrp(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
+  Function: lattrp(<obj>[/<wld>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
    
   Example:
     > @va me=$whee:@pemit %#=you did a whee.

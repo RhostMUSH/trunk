@@ -23,6 +23,7 @@ extern POWENT depow_table[];
 extern void depower_set(dbref, dbref, char *, int);
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int));
+extern int count_chars(const char *, const char c);
 
 dbref match_controlled(dbref player, const char *name)
 {
@@ -1403,9 +1404,8 @@ int	aflags;
 	return 1;
 }
 
-static void find_wild_attrs (dbref player, dbref thing, char *str, 
-		int check_exclude, int hash_insert,
-		int get_locks,OBLOCKMASTER *master, int i_regexp)
+static void find_wild_attrs (dbref player, dbref thing, char *str, int check_exclude, int hash_insert,
+		int get_locks,OBLOCKMASTER *master, int i_regexp, int i_tree)
 {
 ATTR	*attr;
 char	*as;
@@ -1457,28 +1457,32 @@ int	ca, ok, aflags;
                 if ( mudstate.reverse_wild == 1 ) {
 		   if (ok && ((!i_regexp && !quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && !quick_regexp_match(str, (char *)attr->name, 0))) ) {
+                      if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,
 					   &mudstate.parent_htab);
 			   }
+                      }
 		   }
                 } else {
 		   if (ok && ((!i_regexp && quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && quick_regexp_match(str, (char *)attr->name, 0))) ) {
+                      if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,
 					   &mudstate.parent_htab);
 			   }
+                      }
 		   }
                 }
 	}
 	atr_pop();
 }
 
-int parse_attrib_wild(dbref player, char *str, dbref *thing, 
-		int check_parents, int get_locks, int df_star, OBLOCKMASTER *master, int check_cluster, int i_regexp)
+int parse_attrib_wild(dbref player, char *str, dbref *thing, int check_parents, int get_locks, 
+                      int df_star, OBLOCKMASTER *master, int check_cluster, int i_regexp, int i_tree)
 {
 char	*buff, *s_text, *s_strtok, *s_strtokptr;
 dbref	parent, aflags;
@@ -1527,7 +1531,7 @@ ATTR	*attr;
                       while ( s_strtok ) {
                          parent = match_thing(player, s_strtok);
                          if ( Good_chk(parent) && Cluster(parent) ) {  
-		            find_wild_attrs(player, parent, str, check_exclude, 0, get_locks, master, i_regexp);
+		            find_wild_attrs(player, parent, str, check_exclude, 0, get_locks, master, i_regexp, i_tree);
                          }
                          s_strtok = strtok_r(NULL, " ", &s_strtokptr);
                       }
@@ -1541,12 +1545,11 @@ ATTR	*attr;
 		ITER_PARENTS(*thing, parent, lev) {
 			if (!Good_obj(Parent(parent)))
 				hash_insert = 0;
-			find_wild_attrs(player, parent, str, check_exclude,
-				hash_insert, get_locks,master, i_regexp);
+			find_wild_attrs(player, parent, str, check_exclude, hash_insert, get_locks,master, i_regexp, i_tree);
 			check_exclude = 1;
 		}
 	} else {
-		find_wild_attrs(player, *thing, str, 0, 0, get_locks,master, i_regexp);
+		find_wild_attrs(player, *thing, str, 0, 0, get_locks,master, i_regexp, i_tree);
 	}
 	free_lbuf(buff);
 	return 1;
@@ -1646,7 +1649,7 @@ OBLOCKMASTER master;
 	/* Look for the object and get the attribute (possibly wildcarded) */
 
         olist_init(&master);
-	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0, 0)) {
+	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0, 0, 0)) {
 	        olist_cleanup(&master);
 		notify_quiet(player, "No match.");
 		return;
@@ -1790,7 +1793,7 @@ void do_wipe(dbref player, dbref cause, int key, char *it)
    if ( key & WIPE_REGEXP )
       i_regexp = 1;
    
-   if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp)) {
+   if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp, 0)) {
       if ( !(key & SIDEEFFECT) )
          notify_quiet(player, "No match.");
       olist_cleanup(&master);
@@ -1908,7 +1911,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
       if ( (i < ncargs) && cargs[i] && *cargs[i] )
-         memcpy(s_buff[i], cargs[i], LBUF_SIZE);
+         memcpy(s_buff[i], cargs[i], LBUF_SIZE - 1);
       if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
          if ( !argv[i] || !*argv[i] ) {
             memset(s_buff[i], '\0', LBUF_SIZE);

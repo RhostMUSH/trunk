@@ -65,6 +65,7 @@ extern char *t_errlist[];
 #endif
 
 extern void NDECL(dispatch);
+void NDECL(pcache_sync);
 
 static int sock;
 int ndescriptors = 0;
@@ -2119,6 +2120,10 @@ sighandler(int sig)
         ENDLOG
         raw_broadcast(0, 0, "Game: Emergency dump complete, exiting...");
         DPOP;
+        /* QDBM was giving some weird-ass corruption, this should hopefully fix it */
+        pcache_sync();
+        SYNC;
+        CLOSE;
         exit(1); /* Brutal. But daddy said I had to go to bed now. */
         break; 
     case SIGQUIT:		/* Normal shutdown */

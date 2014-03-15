@@ -436,6 +436,8 @@
   See Also: @lock, ZONES, lzone(), ZONEMASTER, ZONECONTENTS
   
 & changes
+  For a list of actual changes, see 'help revis'.
+  
   RhostMUSH, first originating in 1989/1990, was founded as a TinyMUD.
   Though the current code runs a MUSH compatible kernal, we still use
   the exact same database from that period.  You will find RhostMUSH
@@ -578,6 +580,9 @@
      /parent - Includes attributes that are not present on the object itself
                but which are inherited from the object's parent.  This only
                works if you have permission to see it.
+     /tree   - Examine per Penn-Tree output separating trees with '`'.
+               Only useful with using #obj/attr format.
+     /regexp - Use regular expression for wildcard matches.
   
   See Also: look, @decompile, VISUAL, ATTRIBUTE OWNERSHIP, FLAG LIST,
             ATTRIBUTE FLAGs
@@ -2414,6 +2419,8 @@
       /all     - Show everything (this is the default)
       /attrib  - Show just attributes
       /flags   - Show just flags
+      /regexp  - use regular expression matching
+      /tree    - Examine based on Penn trees using '`' as a separator.
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
@@ -3596,8 +3603,12 @@
   See Also: @drain, @ps, @wait, SEMAPHORES, @halt
   
 & @oemit
-  Command: @oemit <player>=<message>
+  Command: @oemit[/<switch>] <player>=<message>
   Emits <message> to everyone in your current location except for <player>.
+  
+  The following switches are available:
+     /noansi -- Show unevaluated ansi codes.
+     /multi  -- take <player> as a multi-target argument.
   
   See Also:  @emit, @pemit, SPOOFING
   
@@ -12576,6 +12587,42 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regedit(), regediti(), regeditall() 
 
+& REGNUMMATCHI()
+& REGNUMMATCH()
+  Function: regnummatch(<string>, <regexp>, [,<delimiter>])
+            regnummatchi(<string>, <regexp>, [,<delimiter>])
+  
+  This function returns the total matches of any word in the string
+  that matches the specified regular expression.  This works exactly
+  like nummatch() except it uses regular expressions.
+  
+  Example:
+  > say regnummatch(one two three four five fourteen,.*ou.*)
+  You say "2"
+  
+  See Also: nummatch(), regmatch(), regmatchall(), regmatchalli()
+  
+  'help regexp syntax' for an explanation of regular expressions.
+
+& REGMATCHALLI()
+& REGMATCHALL()
+  Function: regmatchall(<string>, <regexp> [,<delimiter>])
+            regmatchalli(<string>, <regexp> [,<delimiter>])
+  
+  This function returns the positional matches of every word in the
+  string that matches the specified regular expression.  This is
+  exactly like the totmatch() function except uses regular 
+  expression matching.  This function is case sensitive.
+  
+  The regmatchalli() function ignores case.
+  
+  Example:
+  > say regmatchall(one two three four five fourteen,.*ou.*)
+  You say "4 6"
+  
+  See Also: totmatch(), regmatch(), regnummatch(), nummatch()
+  
+  'help regexp syntax' for an explanation of regular expressions.
 
 & REGMATCH()
   Function: regmatch(<string>,<regexp>[,<register list>])
@@ -12603,7 +12650,7 @@ See Also: timefmt()
   See Also: 'help regexp syntax' for an explanation of regular expressions.
   
 & REGMATCHI()
-  regmatchi(<string>,<regexp>[,<register list>])
+  Function: regmatchi(<string>,<regexp>[,<register list>])
   
   This function matches the regular expression <regexp> against the
   entirety of <string>, returning 1 if it matches and 0 if it does not.
@@ -14605,12 +14652,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   the total number of rooms contained on the MUSH.  You can only get rooms
   from visible exits or that you control, are set ABODE, JUMP_OK, LINK_OK, or
   VISIBLE.  Unfortunately, the list of rooms are not in order of iteration,
-  or any particular order.  The iteration defaults to 1.  You may specify
-  the type of display you wish.  A type of '1' (the default) displays all
-  rooms.  A type of '0' will display only the rooms matching the directly
-  specified iteration level, and none before.  Keep in mind that type '0'
-  is not always guaranteed to be absolutely accurate as rooms could be
-  linked differently based on the order it's checked.
+  or any particular order.  
+  
+  The iteration defaults to 1.  '0' specifies 'MAXIMUM'.
+  
+  You may specify the type of display you wish.  A type of '1' (the default) 
+  displays all rooms.  A type of '0' will display only the rooms matching 
+  the directly specified iteration level, and none before.  Keep in mind 
+  that type '0' is not always guaranteed to be absolutely accurate as rooms 
+  could be linked differently based on the order it's checked.
   
   Examples:
     > say lrooms(here,1)
@@ -14868,13 +14918,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: lattr()
   
 & LATTR()
-  Function: lattr(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
+  Function: lattr(<obj>[/<wild>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
  
-  Returns a list of the attributes set on <object>.  If <wild> is given, only
+  Returns a list of the attributes set on <obj>.  If <wild> is given, only
   attributes matching it are returned.  If you specify <regexp> as true (1)
   then the wildcard pattern may be regular expressions.  You may specify the 
   optional target if you wish to return attributes that only the target
   could see.  If you do not have control over target, it defaults to yours.
+  If the <tree> option is set to '1', it returns attributes based on Penn's
+  trees. 
+   
   You may specify a type to check against.  The following types exist:
     + - List existing lock attributes on player.
     $ - list all attributes that are $commands.
@@ -14891,7 +14944,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & LATTR2   
   CONTINUED
-  Function: lattr(<object>[/<wild>][,<target> [,<type>][,<flags>][,<regexp>])
+  Function: lattr(<obj>[/<wild>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
   
   Example:
     > @va me=$whee:@pemit %#=you did a whee.
@@ -17441,13 +17494,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: lemit(), pemit(), oemit(), @emit, SIDEEFFECTS
     
 & OEMIT()
-  Function: oemit(<target>,<text>)
+  Function: oemit(<target>, <text> [,<key>])
   
   The oemit() function returns 'text' at location of 'target' without letting
   'target' know what was emitted.  This works identical to the @oemit command
   and follows all permissions and restrictions.  The SIDEFX flag is required
   to be able to use the oemit() function.
   
+  An optional key of <key> may be specified to toggle the affect of having
+  <target> be multiple arguments.  A <key> of '1' enables multi-targetting.
+   
   Type @list options to see if this side-effect function is enabled.
   
   Examples:
@@ -17455,6 +17511,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     boo!
     You say ""
     > say oemit(me,boo!)
+    You say ""
+    > say oemit(me you them,boo!,1)
     You say ""
   
   See Also: lemit(), pemit(), emit(), @oemit, SIDEEFFECTS
@@ -23819,22 +23877,23 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_LATTR()
-  Function: cluster_lattr(<obj>[/<wild>][,<target>[,<type>][,<flags>][,<rexp>])
+  Function: cluster_lattr(<obj>[/<wild>][,<tgt>[,<tp>][,<flg>][,<rexp>][,<tr>])
  
   Returns a list of the attributes set on cluster <obj>ect.  If <wild>pattern
   is given, only attributes matching it are returned.  If you have the regexp
   toggle <rexp> as true (1), the matching <wild> is evaluated as a regular
   expression instead of the default matching algorithem.  You may specify the 
-  optional target if you wish to return attributes that only the target
+  optional target <tgt> if you wish to return attributes that only the target
   could see.  If you do not have control over target, it defaults to yours.
   This searches all objects that are contained in the cluster.
+  You may specify tree <tr> viewing if you set it to '1'.
   
-  You may specify a type to check against.  The following types exist:
+  You may specify a type <tp> to check against.  The following types exist:
     + - List existing lock attributes on player.
     $ - list all attributes that are $commands.
     ^ - list all attributes that are ^listens.
-    & - list all attributes that contain all attribute flags <flags>.
-    | - list all attributes that contain any attribute flags <flags>.
+    & - list all attributes that contain all attribute flags <flg>.
+    | - list all attributes that contain any attribute flags <flg>.
     l - list total attributes and pages of attributes.
     # - page (1, 2, etc) for attribute listing.  118 for 32byte attrs.
     > - find the alphanumerical largest attribute name.
@@ -23845,7 +23904,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & CLUSTER_LATTR2   
   CONTINUED
-  Function: cluster_lattr(<obj>[/<wild>][,<target>[,<type>][,<flags>][,<rexp>])
+  Function: cluster_lattr(<obj>[/<wild>][,<tgt>[,<tp>][,<flg>][,<rexp>][,<tr>])
   
   Example:
     > @va cluster#1=$whee:@pemit %#=you did a whee.
@@ -28212,7 +28271,7 @@ Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
-  3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2
+  3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -28634,3 +28693,31 @@ Bug Fixes
 * @switch, @skip, @sudo did not evaluate in some situations [ASH]
 * no_eval works properly for @functions now by not-evaling input. [ASH]
 * pack/unpack for penn compat on radixes >=16 & <= 36 was broke [ASH]
+
+& 3.9.4p3
+Release Date: 01/01/14
+Status: Alpha
+  
+New Features
+-------
+* regmatchall()/regmatchalli() -- returns match values (like matchall())
+* regnummatch()/regnummatchi() -- returns count of matches (like nummatch())
+  
+Changes
+-------
+* /tree added to @decompile, examine, and *lattr*() functions for 
+  Penn-tree viewing [ASH]
+* /regexp added to @decompile and examine for regexp wildcard matching [ASH]
+* ^listens optionally handle parented arguments with @admin listen_parents enabled [ASH]
+* /multi switch added to @oemit to optionally allow multiple targets [ASH]
+* oemit() optionally handles multiple targets [ASH]
+* lattr() and family handles TREE viewing optionally [ASH]
+* lexits() honors dark locks [ASH]
+  
+Bug Fixes
+---------
+* @function/list would not display all listings if you were not immortal [ASH]
+* memcpy() bug with GCC 4.x with aggressive compiler optimization could crash [ASH]
+* WHO/DOING would not properly show 'year' if you've been on over a year [ASH]
+* strfunc() wouldn't handle null arguments properly [ASH]
+* QDBM on a panic SIGTERM dump could occasinally corrupt the db (but flafile fine) [ASH]

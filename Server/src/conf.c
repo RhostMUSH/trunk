@@ -273,6 +273,7 @@ NDECL(cf_init)
     mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
     mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
     mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
+    mudconf.listen_parents = 0;		/* ^listens do parents */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -1542,43 +1543,49 @@ CF_HAND(cf_dynstring)
 ATRP *atrp_head = NULL;
 
 int
-attrib_cansee(dbref player, const char *name)
+attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
-      if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
-         if ( (God(player) && atrpGod(atrp->flag_see)) ||
-              (Immortal(player) && atrpImm(atrp->flag_see)) ||
-              (Wizard(player) && atrpWiz(atrp->flag_see)) ||
-              (Admin(player) && atrpCounc(atrp->flag_see)) ||
-              (Builder(player) && atrpArch(atrp->flag_see)) ||
-              (Guildmaster(player) && atrpGuild(atrp->flag_see)) ||
-               atrpCit(atrp->flag_see) )
-              
-            return 1;
-         return 0;
+      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && ((atrp->target == target) || (atrp->target == -1)) ) {
+         if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
+            if ( (God(player) && atrpGod(atrp->flag_see)) ||
+                 (Immortal(player) && atrpImm(atrp->flag_see)) ||
+                 (Wizard(player) && atrpWiz(atrp->flag_see)) ||
+                 (Admin(player) && atrpCounc(atrp->flag_see)) ||
+                 (Builder(player) && atrpArch(atrp->flag_see)) ||
+                 (Guildmaster(player) && atrpGuild(atrp->flag_see)) ||
+                  atrpCit(atrp->flag_see) ) {
+                 
+               return 1;
+            }
+            return 0;
+         }
       }
    }
    return 1;
 }
 
 int
-attrib_canset(dbref player, const char *name)
+attrib_canset(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
-      if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
-         if ( (God(player) && atrpGod(atrp->flag_set)) ||
-              (Immortal(player) && atrpImm(atrp->flag_set)) ||
-              (Wizard(player) && atrpWiz(atrp->flag_set)) ||
-              (Admin(player) && atrpCounc(atrp->flag_set)) ||
-              (Builder(player) && atrpArch(atrp->flag_set)) ||
-              (Guildmaster(player) && atrpGuild(atrp->flag_set)) ||
-               atrpCit(atrp->flag_set) )
-            return 1;
-         return 0;
+      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && ((atrp->target == target) || (atrp->target == -1)) ) {
+         if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
+            if ( (God(player) && atrpGod(atrp->flag_set)) ||
+                 (Immortal(player) && atrpImm(atrp->flag_set)) ||
+                 (Wizard(player) && atrpWiz(atrp->flag_set)) ||
+                 (Admin(player) && atrpCounc(atrp->flag_set)) ||
+                 (Builder(player) && atrpArch(atrp->flag_set)) ||
+                 (Guildmaster(player) && atrpGuild(atrp->flag_set)) ||
+                  atrpCit(atrp->flag_set) ) {
+               return 1;
+            }
+            return 0;
+         }
       }
    }
    return 1;
@@ -1594,6 +1601,8 @@ attrib_show(char *name)
    s_buff = alloc_lbuf("attrib_show");
    if ( name && *name ) {
       for (atrp = atrp_head; atrp; atrp = atrp->next) {
+         if ( atrp->owner != -1 )
+            continue;
          if ( pstricmp(name, atrp->name, strlen(atrp->name)) == 0 ) {
             sprintf(s_buff, "{CanSee: %-s, CanSet: %-s}", n_perms[atrp->flag_see], n_perms[atrp->flag_set]);
             break;
@@ -1621,6 +1630,11 @@ display_perms(dbref player)
           i_cnt++;
           tprpbuff = tprbuff;
           notify(player, safe_tprintf(tprbuff, &tprpbuff, "%-64s %-7s %-7s", atrp->name, n_perms[atrp->flag_set], n_perms[atrp->flag_see]));
+          if ( (atrp->owner != -1) || (atrp->target != -1) ) {
+             tprpbuff = tprbuff;
+             notify(player, safe_tprintf(tprbuff, &tprpbuff, "     +--------------- Owner: #%d,  Object: #%d,  Modifier: #%d", 
+                                         atrp->owner, atrp->target, atrp->controller));
+          }
        }
     }
     tprpbuff = tprbuff;
@@ -1633,8 +1647,8 @@ display_perms(dbref player)
 
 CF_HAND(cf_atrperms)
 {
-   int retval, i_see, i_set, first1, first2, first3, i_atrperms_cnt, i_warn;
-   char *s_strtok, *s_strtokptr, *t_strtok, *t_strtokptr, *s_chr, *s_buff;
+   int retval, i_del, i_see, i_set, first1, first2, first3, i_atrperms_cnt, i_warn, i_owner, i_target;
+   char *s_strtok, *s_strtokptr, *t_strtok, *t_strtokptr, *t_strtokbuf, *s_chr, *s_buff;
    char *sbuff1, *sbuff2, *sbuff3, *sbuff1ptr, *sbuff2ptr, *sbuff3ptr;
    /* Guildmaster, Architect, Councilor, Wizard, Immortal, #1 */
    ATRP *atrp, *atrp2;
@@ -1645,13 +1659,14 @@ CF_HAND(cf_atrperms)
       mudconf.atrperms_max = 10000;
 
    /* Let's count the total attrib prefix masks */
-   i_atrperms_cnt = i_warn = 0;
+   i_atrperms_cnt = i_del = i_warn = 0;
    if ( atrp_head ) {
       for (atrp = atrp_head; atrp; atrp = atrp->next)
          i_atrperms_cnt++;
    }
 
    retval = i_set = i_see = first1 = first2 = first3 = 0;
+   i_owner = i_target = -1;
    s_strtokptr = strtok_r(str, "\t ", &s_strtok);
    s_buff = alloc_lbuf("cf_atrperms");
    sbuff1ptr = sbuff1 = alloc_lbuf("cf_atrperms2");
@@ -1670,7 +1685,17 @@ CF_HAND(cf_atrperms)
          if ( *t_strtokptr == '!' ) {
             atrp = atrp_head;
             for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
-               if ( strcmp(atrp2->name, t_strtokptr+1) == 0 ) {
+               t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+               if ( t_strtokbuf ) {
+                  i_owner = atoi(t_strtokbuf);
+                  t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                  if ( t_strtokbuf ) {
+                     i_target = atoi(t_strtokbuf);
+                  }
+               }
+               if ( ((i_owner == -1) || (i_owner == atrp2->owner)) &&
+                    ((i_target == -1) || (i_target == atrp2->target)) &&
+                    (strcmp(atrp2->name, t_strtokptr+1) == 0) ) {
                   if ( strcmp(t_strtokptr+1, atrp_head->name) == 0) {
                      atrp_head = atrp_head->next;
                   } else {
@@ -1685,6 +1710,7 @@ CF_HAND(cf_atrperms)
                   free(atrp2);
                   atrp2 = NULL;
                   retval = 1;
+                  i_del++;
                   break;
                }
                atrp = atrp2;
@@ -1693,15 +1719,25 @@ CF_HAND(cf_atrperms)
             if ( atrp_head ) {
                atrp = atrp_head;
                for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
-                  if (stricmp(atrp2->name, t_strtokptr) == 0 ) {
-                     t_strtokptr = strtok_r(NULL, ":", &t_strtok);
-                     if ( t_strtokptr ) {
-                        i_set = atoi(t_strtokptr);
-                        t_strtokptr = strtok_r(NULL, ":", &t_strtok);
-                        if ( t_strtokptr ) {
-                           i_see = atoi(t_strtokptr);
+                  t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                  if ( t_strtokbuf ) {
+                     i_set = atoi(t_strtokbuf);
+                     t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                     if ( t_strtokbuf ) {
+                        i_see = atoi(t_strtokbuf);
+                        t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                        if ( t_strtokbuf ) {
+                           i_owner = atoi(t_strtokbuf);
+                           t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                           if ( t_strtokbuf ) {
+                              i_target = atoi(t_strtokbuf);
+                           }
                         }
                      }
+                  }
+                  if ( ((i_owner == -1) || (i_owner == atrp2->owner)) &&
+                       ((i_target == -1) || (i_target == atrp2->target)) &&
+                       (stricmp(atrp2->name, t_strtokptr) == 0) ) {
                      if ( (i_set < 1) || (i_set > 7) )
                         i_set = 1;
          
@@ -1710,6 +1746,15 @@ CF_HAND(cf_atrperms)
 
                      atrp2->flag_set = i_set;
                      atrp2->flag_see = i_see;
+                     atrp2->owner = i_owner;
+                     if ( (i_owner != -1) || (i_target != -1) ) {
+                        if ( mudstate.initializing ) 
+                           atrp2->controller = 1;
+                        else
+                           atrp2->controller = player;
+                     } else
+                        atrp2->controller = -1;
+                     atrp2->target = i_target;
                      retval = 1;
                      if ( first2 )
                         safe_chr(' ', sbuff2, &sbuff2ptr);
@@ -1746,6 +1791,14 @@ CF_HAND(cf_atrperms)
                t_strtokptr = strtok_r(NULL, ":", &t_strtok);
                if ( t_strtokptr ) {
                   i_see = atoi(t_strtokptr);
+                  t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                  if ( t_strtokptr ) {
+                     i_owner = atoi(t_strtokptr);
+                     t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                     if ( t_strtokptr ) {
+                        i_target = atoi(t_strtokptr);
+                     }
+                  }
                }
             }
             if ( (i_set < 1) || (i_set > 7) )
@@ -1756,6 +1809,15 @@ CF_HAND(cf_atrperms)
 
             atrp->flag_set = i_set;
             atrp->flag_see = i_see;
+            atrp->owner = i_owner;
+            if ( (i_target != -1) || (i_owner != -1) ) {
+               if ( mudstate.initializing ) 
+                  atrp->controller = 1;
+               else
+                  atrp->controller = player;
+            } else
+               atrp->controller = -1;
+            atrp->target = i_target;
             if (!atrp_head) {
                atrp_head = atrp;
             } else {
@@ -1774,18 +1836,25 @@ CF_HAND(cf_atrperms)
       s_strtokptr = strtok_r(NULL, "\t ", &s_strtok);
    }
    free_lbuf(s_buff);
+   first1 = 0;
    if ( Good_chk(player) && *sbuff1 ) {
       notify(player, unsafe_tprintf("Added.....: %s", sbuff1));
+      first1++;
    }
    if ( Good_chk(player) && *sbuff2 ) {
       notify(player, unsafe_tprintf("Modified..: %s", sbuff2));
+      first1++;
    }
    if ( Good_chk(player) && *sbuff3 ) {
       notify(player, unsafe_tprintf("deleted...: %s", sbuff3));
+      first1++;
+   }
+   if ( !first1 ) {
+      notify(player, "Unchanged.");
    }
    if ( Good_chk(player) ) {
       if ( i_atrperms_cnt < mudconf.atrperms_max ) {
-         notify(player, unsafe_tprintf("You can add %d more prefixes", mudconf.atrperms_max - i_atrperms_cnt));
+         notify(player, unsafe_tprintf("You can add %d more prefixes [%d total]", mudconf.atrperms_max - i_atrperms_cnt + i_del, mudconf.atrperms_max));
       } else {
          notify(player, unsafe_tprintf("You are at the maximum number of prefixes [%d].", mudconf.atrperms_max));
       }
@@ -3210,6 +3279,9 @@ CONF conftable[] =
      cf_ntab_access, CA_GOD | CA_IMMORTAL, (int *) list_names,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Change permissions of options with @list."},
+    {(char *) "listen_parents",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.listen_parents, 0, 0, CA_PUBLIC,
+     (char *) "Do ^listens follow @parent trees?"},
     {(char *) "lock_recursion_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.lock_nest_lim, 0, 0, CA_WIZARD,
      (char *) "Current recursion limit on @locks.\r\n"\
