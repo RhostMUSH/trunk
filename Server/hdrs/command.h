@@ -31,7 +31,7 @@
 /* Command function handlers */
 CMD_ONE_ARG_CMDARG(do_apply_marked);	/* Apply command to marked objects */
 CMD_TWO_ARG(do_admin);			/* Change config parameters */
-CMD_ONE_ARG(do_aflags);
+CMD_TWO_ARG_CMDARG(do_aflags);
 CMD_TWO_ARG(do_alias);			/* Change the alias of something */
 CMD_TWO_ARG(do_areg);
 CMD_TWO_ARG(do_attribute);		/* Manage user-named attributes */

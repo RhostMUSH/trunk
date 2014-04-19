@@ -3255,7 +3255,7 @@
   See Also: page, @pemit
 
 & @aflags
-  Command: @aflags[</switch>] <attribute>
+  Command: @aflags[</switch>] <attribute or value> [=<argument>]
   
   This command will return all the toggled flags of that
   given attribute.  This will also show prefix based permissions from
@@ -3264,10 +3264,181 @@
   Following switches exist:
     /full -- give full statistics of the attribute, like count in use.
     /perm -- list all current attribute based prefix permissions.
+    /add  -- add a prefix attribute mask.
+    /del  -- delete a prefix attribute mask.
+    /mod  -- modify a prefix attribute mask.
   
-  Example:  @aflags comment
+  The @aflags without the switches display the permissions of the
+  specified attribute name.  Using the /full switch returns the count
+  of how many attributes are in active use by that name.  Be aware, the
+  /full switch walks the database so may take a few seconds to process.
+  
+  Examples:  
+    > @aflags comment
+    (Attribute 44) Flags are: hidden no_command royalty wizard 
+    > @aflags/full comment
+    (Attribute 44, Total Used: 36) Flags are: hidden no_command royalty wizard 
+ 
+  For the more advanced feature of @aflags with regards for attribute
+  prefix permission modification, see:  'wizhelp @aflags2'
+ 
+& @aflags2 
+  (CONTINUED)
+  Command: @aflags[</switch>] <attribute or value> [=<argument>]
+  
+  The /perm, /add, /del, and /mod switches are used to maintain and display
+  the attribute prefix permission masking.  Attribute masking is the ability
+  to set a prefix on an attribute based on what permission you want it to 
+  have.  This can be based on who can SET it, who can SEE it, as well as
+  lock that specific mask by owner or by individual object.  Owner and
+  object are specified by their dbref#'s.
+   
+  Individual help and examples are available on each attribute prefix switch:
+     'wizhelp @aflags perm'    -- help on displaying prefix permissions.
+     'wizhelp @aflags add'     -- help on adding new prefixes.
+     'wizhelp @aflags del'     -- help on deleting existing prefixes.
+     'wizhelp @aflags mod'     -- help on modifying existing prefixes.
+     'wizhelp @aflags args'    -- explains the arguments to @aflags
   
   See Also: atrperms, atrperms_max
+
+& @aflags args
+  Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
+  
+  The arguments are the following:
+    <prefix>   --  The prefix is the attribute prefix that the permissions 
+                   masking is applied.  Any attribute that starts with the
+                   prefix will inherit the permission based on the parameters
+                   assigned to this specific prefix.
+  
+    <own>      --  The target owner where the attribute will be set.  Any 
+                   object owned by <own> will have the prefix permission 
+                   applied against anything (or anyone) attempting to set
+                   that attribute.
+  
+    <tgt>      --  The target object where the attribute will be set.  This
+                   is the exact dbref# that the attribute prefix will be 
+                   applied.
+  
+    <enact>    --  The enactor that is trying to set the attribute with the
+                   specified prefix.  If enactor is a player, then it will
+                   affect their entire ownership.
+  
+    <set>      --  The SET/UNSET permission you wish to apply to the specified
+                   attribute prefix.  You can set from '1' to '7' as defined
+                   by bitlevel permissions. (help bittype())
+  
+    <see>      --  The SEE/VIEW/READ permissions you wish to apply to the
+                   specified attribute prefix.  YOu can set from '1' to '7'
+                   as defined by bitlevel permissions. (help bittype())
+  
+& @aflags mod
+  Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
+  
+  This modifies an existing attribute <prefix> that matches optional
+  owner <own>, target <tgt>, and enactor <enact> with the new 
+  <set> and <see> permissions.
+  
+  You may use this to change every aspect of the prefix.  The owner, target,
+  enactor, see, and set permissions are all changeable.  If you wish to remove
+  the owner, target, or enactor, set the value to '#-1' which means 'global' 
+  or 'all'.
+  
+  Example:  @aflags/mod boogie=6 3
+            @aflags/mod boogie #1234 #9876=5 5 #-1 #9876 #-1
+  
+  The first example modifies prefix BOOGIE with Immortal settable and
+  Architect seeable.  This will not change ownership or target if modified.
+  
+  The second example modifies prefix BOOGIE with Wizard settable and seeable.
+  It also resets the owner to global (#-1) but leaves the target alone.
+  
+  You can not modify a prefix that would duplicate an existing prefix
+  already in the listing.
+  
+  If you fail to find a matching prefix to modify, it will notify you.
+  
+  See Also: @aflags, @aflags add, @aflags del, @aflags perm
+
+& @aflags del
+  Command: @aflags/del <prefix> [<owner> <target> <enactor>]
+  
+  This deletes an existing attribute <prefix> with optional <owner>,
+  <target> and <enactor> specified.  If you choose not to specify an owner,
+  target, or enactor, both values default to '#-1' which means global or all.
+  
+  Only entries that match prefix, owner, and target will be deleted.
+  
+  Example: @aflags/del boogie
+           @aflags/del boogie #1234 #9876 #123
+  
+  The first will delete the BOOGIE attribute prefix that has a global
+  owner and target (both set to #-1).
+  
+  The second will delete the BOOGIE attribute prefix that has a specified
+  owner of #1234,target of #9876, and enactor of #123.
+  
+  If there are no matching prefixes, it'll alert you of that fact.
+   
+  See Also: @aflags, @aflags add, @aflags mod, @aflags perm
+
+& @aflags add
+  Command: @aflags/add <prefix>=<set> <see> [<owner>] [<target>] [<enactor>]
+  
+  This adds a new attribute <prefix> with the permissions of who
+  can <set> the attribute as well as who can <see> the attribute.
+  You may optionally specify the target <owner> and/or <target> and/or
+  <enactor> for the item in question.  Target has precidence over Owner.
+  Enactor has precidence over target.
+  
+  Any duplicate entries will not allow to be added.  Duplicate entries
+  are defined by any entry that matches the prefix, the owner, and 
+  the target.  If you wish to modify an entry, use @aflags/mod.
+  
+  Example:  @aflags/add boogie=7 6
+            @aflags/add boogie=7 6 #1234 #9876 #123
+  
+  The first sets a prefix 'BOOGIE' with God settable and Immortal seeable.
+  The second would do the same but also adds owner #1234, target #9876, and
+  enactor #123.
+  
+  See Also: @aflags, @aflags del, @aflags mod, @aflags perm
+  
+& @aflags perm
+  Command: @aflags/perm [<value>]
+  
+  This lists all the various prefix permission masks of all the global 
+  attributes in the mush.  You may specify a <value> optionally to page
+  the results (20 lines per page).  Otherwise it will display all
+  the results without page breaks (default).
+  
+  Example:  @aflags/perm
+            @aflags/perm 2
+
+------------------------------------------------------------------------------
+Attribute Prefix                                                 Set     See
+------------------------------------------------------------------------------
+TESTEST                                                          Arch    Cit
+WASWAS                                                           Cit     Wiz
+WEREWERE                                                         God     Arch
+SNOOPY                                                           God     Wiz
+   +----- Owner: #-1,  Object: #-1,  Enactor: #1234,  Modifier: #1234
+
+----------------------------[     4/   100 max]-------------------------------
+  
+  In the above, the prefixes are TESTEST, WASWAS, WEREWERE, and SNOOPY.
+  As shown, SNOOPY has special permissions.  The owner is #-1 (the default)
+  meaning all owners are affected.  The reason the additional information,
+  however, is the Object.  The Object is defined as #3723, meaning only object
+  #3723 will be assigned the specific prefix of SNOOPY for attribute masking.
+  The mask for SNOOPY means that only God (The #1 user) can set attributes
+  that begin with 'SNOOPY' on object #3723, but wizards can view them.
+  
+  The modifier is the last person who actually set up (configured) the prefix
+  in question.  The default value for this is #1.  This value will only show
+  if the owner or object are not the default values (#-1).
+    
+  See Also: @aflags, @aflags add, @aflags del, @aflags mod, @aflags args
 
 & @icmd
   Command: @icmd</switch> <player [= arguments]>
@@ -4805,14 +4976,21 @@
   This parameter is used to set up attribute prefix masks.  The syntax for
   these masks are in the following form:
   
+  For Setting/Modifying:
       ATTRIBUTENAME:SETPERMISSION:SEEPERMISSION
+      ATTRIBUTENAME:SETPERMISSION:SEEPERMISSION:OWNER:TARGET
+  
+  For Deleting:
      !ATTRIBUTENAME
+     !ATTRIBUTENAME:OWNER:TARGET
   
   In the above, the descriptions are as followed:
       ATTRIBUTENAME -- The name of the attribute prefix you wish to use.
                        A '!' before the attribute tells it to delete it.
       SETPERMISSION -- The bittype() that is allowed to SET the masked attr.
       SEEPERMISSION -- The bittype() that is allowed to SEE the masked attr.
+      OWNER         -- Optional.  The owner that the prefix will affect.
+      TARGET        -- Optional.  The specific dbref# the prefix will affect.
   
   Please note the permission is a bittype from 1 to 7.  It uses the same
   numerical values that the bittype() function uses.  These values are:
@@ -4823,7 +5001,10 @@
       Architect       3
       Guildmaster     2
       Citizen         1
-  
+   
+  Owner can be anything, but defaults to '-1' to mean global.
+  Target can be anything, but defaults to '-1' to mean global.
+   
   See Also: atrperms_max, @aflags
   
 {see atrperms2 for examples and explainations}
@@ -4832,18 +5013,19 @@
   
   You may string multiple attribute permissions together in a single line.
   Examples:
-    #1 > atrperms prefix1:3:4 bad:7:7 good:1:3 
+    #1 > atrperms prefix1:3:4 bad:7:7 good:1:3 snoopy:2:2:#1234:#-1
     #2 > atrperms oog:3:5 bad:6:6 !prefix  
   
   Example #1 does the following:
      set the prefix 'prefix' with Architect settable, Councilor seeable.
      set the bad 'prefix' with God settable, God seeable.
      set the good 'prefix' with Citizen settable, architect seeable.
+     set the snoopy 'prefix' with Guild sttable, seeable and owner #1234
   
   Example #2
      set the oog 'prefix' with Architect settable, Wizard seeable.
      re-set the bad 'prefix' with Immortal settable, Immortal seeable.
-     delete the prefix 'prefix'.
+     delete the prefix 'prefix'. (this deletes first match)
   
   All attributes starting with the given prefix will auto-inherit all of
   the given permissions.  The exception are '_' attributes that are always
@@ -4853,7 +5035,8 @@
   
   Note #1: Attribute with the God bit are only settable by God.
   Note #2: _ permissions have precidence over these. 
-  Note #3: WHen you delete an attribute, you do not need to specify bitmasks.
+  Note #3: When you delete an attribute, you do not need to specify bitmasks.
+  Note #4: Specify owner and/or target if you want a specific duplicate prefix.
   
   See Also: atrperms_max, @aflags
 

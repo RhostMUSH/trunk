@@ -1546,9 +1546,17 @@ int
 attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
+   dbref i_player;
+
+   i_player = player;
+   if ( Typeof(player) != TYPE_PLAYER )
+      i_player = Owner(player);
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
-      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && ((atrp->target == target) || (atrp->target == -1)) ) {
+      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
+           (((atrp->enactor == -1) || (atrp->enactor == i_player)) ||
+            ((atrp->enactor == -1) || (atrp->enactor == player))) &&
+           ((atrp->target == -1) || (atrp->target == target)) ) {
          if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
             if ( (God(player) && atrpGod(atrp->flag_see)) ||
                  (Immortal(player) && atrpImm(atrp->flag_see)) ||
@@ -1571,9 +1579,17 @@ int
 attrib_canset(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
+   dbref i_player;
+
+   i_player = player;
+   if ( Typeof(player) != TYPE_PLAYER )
+      i_player = Owner(player);
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
-      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && ((atrp->target == target) || (atrp->target == -1)) ) {
+      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
+           (((atrp->enactor == -1) || (atrp->enactor == i_player)) ||
+            ((atrp->enactor == -1) || (atrp->enactor == player))) &&
+           ((atrp->target == -1) || (atrp->target == target)) ) {
          if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
             if ( (God(player) && atrpGod(atrp->flag_set)) ||
                  (Immortal(player) && atrpImm(atrp->flag_set)) ||
@@ -1592,62 +1608,423 @@ attrib_canset(dbref player, const char *name, dbref owner, dbref target)
 }
 
 char *
-attrib_show(char *name)
+attrib_show(char *name, int i_type)
 {
    ATRP *atrp;
    char *n_perms[]={"NULL", "citizen" , "guildmaster", "architect", "councilor", "wizard", "immortal", "god", "Error"};
-   char *s_buff;
+   char *s_buff, *s_my, *s_myptr;
 
    s_buff = alloc_lbuf("attrib_show");
+   s_myptr = s_my = alloc_lbuf("attrib_show2");
    if ( name && *name ) {
-      for (atrp = atrp_head; atrp; atrp = atrp->next) {
-         if ( atrp->owner != -1 )
-            continue;
-         if ( pstricmp(name, atrp->name, strlen(atrp->name)) == 0 ) {
-            sprintf(s_buff, "{CanSee: %-s, CanSet: %-s}", n_perms[atrp->flag_see], n_perms[atrp->flag_set]);
-            break;
+      if ( i_type ) {
+         for (atrp = atrp_head; atrp; atrp = atrp->next) {
+            if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) ) {
+               if ( pstricmp(name, atrp->name, strlen(atrp->name)) == 0 ) {
+                  sprintf(s_buff, "\r\n   ---+ Owner: #%-8d  Target: #%-8d  Enactor: #%-8d CanSee: %-s, CanSet: %-s", 
+                                  atrp->owner, atrp->target, atrp->enactor, n_perms[atrp->flag_see], n_perms[atrp->flag_set]);
+                  safe_str(s_buff, s_my, &s_myptr);
+               }
+            }
+         }
+         free_lbuf(s_buff);
+      } else {
+         for (atrp = atrp_head; atrp; atrp = atrp->next) {
+            if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) )
+               continue;
+            if ( pstricmp(name, atrp->name, strlen(atrp->name)) == 0 ) {
+               sprintf(s_buff, "{CanSee: %-s, CanSet: %-s}", n_perms[atrp->flag_see], n_perms[atrp->flag_set]);
+               break;
+            }
+         }
+         strcpy(s_my, s_buff);
+         free_lbuf(s_buff);
+      }
+   }
+   return s_my;
+}
+
+void
+add_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
+{
+   ATRP *atrp, *atrp2;
+   char *t_strtok, *t_strtokptr, *s_chr;
+   int i_owner, i_target, i_enactor, i_see, i_set, i_atrperms_cnt;
+
+   if ( !*s_input || !*s_output ) {
+      notify(player, "Require format: @aperms/add prefix=<set> <see> [<owner> <target> <enactor>]");
+      return;
+   }
+
+   s_chr = s_output;
+   i_set = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_set++;
+      }
+      s_chr++;
+   }
+   if ( (i_set < 1) || (i_set > 4) ) {
+      notify(player, "Require format: @aperms/add prefix=<set> <see> [<owner> <target> <enactor>]");
+      return;
+   }
+
+   i_atrperms_cnt = 0;
+   if ( atrp_head ) {
+      for (atrp = atrp_head; atrp; atrp = atrp->next)
+         i_atrperms_cnt++;
+   }
+
+   if ( i_atrperms_cnt >= mudconf.atrperms_max ) {
+      notify(player, "Ceiling reached on attribute prefix masking.");
+      return;
+   }
+
+   i_see = i_set = i_owner = i_target = i_enactor = -1; 
+   t_strtok = strtok_r(s_output, " \t", &t_strtokptr);
+   if ( t_strtok ) {
+      i_see = atoi(t_strtok);
+      t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+      if ( t_strtok ) {
+         i_set = atoi(t_strtok);
+         t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+         if ( t_strtok ) {
+            if ( *t_strtok == '#' )
+               i_owner = atoi(t_strtok+1);
+            else
+               i_owner = atoi(t_strtok);
+            t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+            if ( t_strtok ) {
+               if ( *t_strtok == '#' )
+                  i_target = atoi(t_strtok+1);
+               else
+                  i_target = atoi(t_strtok);
+               t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+               if ( t_strtok ) {
+                  if ( *t_strtok == '#' )
+                     i_enactor = atoi(t_strtok+1);
+                  else
+                     i_enactor = atoi(t_strtok);
+               }
+            }
          }
       }
    }
-   return s_buff;
+   s_chr = s_input;
+   while ( s_chr && *s_chr ) {
+      *s_chr = ToUpper(*s_chr);
+      if ( isspace(*s_chr) ) {
+         notify(player, "Invalid character in prefix.  Non-space string required.");
+         return;
+      }
+      s_chr++;
+   }
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, s_input) == 0) &&
+           (((i_owner == atrp2->owner) &&
+             (i_target == atrp2->target)) &&
+            (i_enactor == atrp2->enactor)) ) {
+         notify(player, "Entry already in prefix list.  Use @aflags/mod to modify it.");
+         return;
+      }
+   }
+   notify(player, unsafe_tprintf("Entry added [%d of %d used].", i_atrperms_cnt, mudconf.atrperms_max));
+   atrp  = (ATRP *) malloc(sizeof(ATRP));
+   atrp->name = alloc_sbuf("attribute_perm_array");
+   memset(atrp->name, '\0', SBUF_SIZE);
+   strncpy(atrp->name, s_input, SBUF_SIZE - 2);
+   atrp->next = NULL;
+   if ( (i_set < 1) || (i_set > 7) )
+      i_set = 1;
+
+   if ( (i_see < 1) || (i_see > 7) )
+      i_see = 1;
+
+   atrp->flag_set = i_set;
+   atrp->flag_see = i_see;
+   atrp->owner = i_owner;
+   atrp->target = i_target;
+   atrp->controller = player;
+   atrp->enactor = i_enactor;
+
+   if ( atrp_head ) {
+      for (atrp2 = atrp_head; atrp2->next; atrp2 = atrp2->next);
+      atrp2->next = atrp;
+   } else {
+      atrp_head = atrp;
+   }
+}
+
+void
+del_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
+{
+   ATRP *atrp, *atrp2;
+   char *t_strtok, *t_strtokptr, *s_chr;
+   int i_owner, i_target, i_enactor;
+
+   if ( !*s_input ) {
+      notify(player, "Require format: @aperms/del prefix [=<owner> <target> <enactor>]");
+      return;
+   }
+
+   s_chr = s_output;
+   i_owner = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_owner++;
+      }
+      s_chr++;
+   }
+   if ( i_owner > 2 ) {
+      notify(player, "Require format: @aperms/del prefix [=<owner> <target> <enactor>]");
+      return;
+   }
+
+   i_owner = i_target = i_enactor = -1; 
+   if ( s_output && *s_output) {
+      t_strtok = strtok_r(s_output, " \t", &t_strtokptr);
+      if ( t_strtok ) {
+         if ( *t_strtok == '#' )
+            i_owner = atoi(t_strtok+1);
+         else
+            i_owner = atoi(t_strtok);
+         t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+         if ( t_strtok ) {
+            if ( *t_strtok == '#' )
+               i_target = atoi(t_strtok+1);
+            else
+               i_target = atoi(t_strtok);
+            t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+            if ( t_strtok ) {
+               if ( *t_strtok == '#' )
+                  i_enactor = atoi(t_strtok+1);
+               else
+                  i_enactor = atoi(t_strtok);
+            }
+         }
+      }
+   }
+   s_chr = s_input;
+   while ( s_chr && *s_chr ) {
+      *s_chr = ToUpper(*s_chr);
+      if ( isspace(*s_chr) ) {
+         notify(player, "Invalid character in prefix.  Non-space string required.");
+         return;
+      }
+      s_chr++;
+   }
+   atrp = atrp_head;
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, s_input) == 0) &&
+           (i_owner == atrp2->owner) &&
+           (i_enactor == atrp2->enactor) &&
+           (i_target == atrp2->target) ) {
+         if ( (strcmp(atrp_head->name, s_input) == 0) &&
+              (i_owner == atrp2->owner) &&
+              (i_target == atrp2->target) ) {
+            atrp_head = atrp_head->next;
+         } else {
+            atrp->next = atrp2->next;
+         }
+         notify(player, "Entry has been deleted.");
+         free_sbuf(atrp2->name);
+         atrp2->name = NULL;
+         free(atrp2);
+         atrp2 = NULL;
+         return;
+      }
+      atrp = atrp2;
+   }
+   notify(player, "Entry not found.");
+}
+
+void
+mod_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
+{
+   ATRP *atrp, *atrp2;
+   char *t_strtok, *t_strtok2, *t_strtokptr, *s_chr, *s_strtok, *s_strtokptr;
+   int i_owner, i_target, i_enactor, i_newowner, i_newtarget, i_newenactor, i_newset, i_newsee;
+
+   if ( !*s_input || !*s_output ) {
+      notify(player, "Require format: @aperms/mod prefix [<owner> <target> <enactor>]=<set perm> <see perm> [<owner> <target> <enactor>]");
+      return;
+   }
+
+   s_chr = s_input;
+   i_owner = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_owner++;
+      }
+      s_chr++;
+   }
+   if ( i_owner > 3 ) {
+      notify(player, "Require format: @aperms/mod prefix [<owner> <target> <enactor>]=<set perm> <see perm> [<owner> <target> <enactor>]");
+      return;
+   }
+   s_chr = s_output;
+   i_owner = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_owner++;
+      }
+      s_chr++;
+   }
+   if ( i_owner > 4 ) {
+      notify(player, "Require format: @aperms/mod prefix [<owner> <target> <enactor>]=<set perm> <see perm> [<owner> <target> <enactor>]");
+      return;
+   }
+   i_owner = i_target = i_enactor = i_newowner = i_newtarget = i_newenactor = i_newset = i_newsee = -1; 
+   t_strtok = strtok_r(s_input, " \t", &t_strtokptr);
+   if ( t_strtok ) {
+      t_strtok2 = strtok_r(NULL, " \t", &t_strtokptr);
+      if ( t_strtok2 ) {
+         if ( *t_strtok2 == '#' )
+            i_owner = atoi(t_strtok2+1);
+         else
+            i_owner = atoi(t_strtok2);
+         t_strtok2 = strtok_r(NULL, " \t", &t_strtokptr);
+         if ( t_strtok2 ) {
+            if ( *t_strtok2 == '#' )
+               i_target = atoi(t_strtok2+1);
+            else
+               i_target = atoi(t_strtok2);
+            t_strtok2 = strtok_r(NULL, " \t", &t_strtokptr);
+            if ( t_strtok2 ) {
+               if ( *t_strtok2 == '#' )
+                  i_enactor = atoi(t_strtok2+1);
+               else
+                  i_enactor = atoi(t_strtok2);
+            }
+         }
+      }
+   }
+   i_newowner = i_owner;
+   i_newtarget = i_target;
+   i_newenactor = i_enactor;
+   s_strtok = strtok_r(s_output, " \t", &s_strtokptr);
+   if ( s_strtok ) {
+      i_newset = atoi(s_strtok);
+      s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+      if ( s_strtok ) {
+         i_newsee = atoi(s_strtok);
+         s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+         if ( s_strtok ) {
+            if ( *s_strtok == '#' )
+               i_newowner = atoi(s_strtok+1);
+            else
+               i_newowner = atoi(s_strtok);
+            s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+            if ( s_strtok ) {
+               if ( *s_strtok == '#' )
+                  i_newtarget = atoi(s_strtok+1);
+               else
+                  i_newtarget = atoi(s_strtok);
+               s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+               if ( s_strtok ) {
+                  if ( *s_strtok == '#' )
+                     i_newenactor = atoi(s_strtok+1);
+                  else
+                     i_newenactor = atoi(s_strtok);
+               }
+            }
+         }
+      }
+   }
+   if ( (i_newset < 1) || (i_newset > 7) )
+      i_newset = 1;
+   if ( (i_newsee < 1) || (i_newsee > 7) )
+      i_newsee = 1;
+   s_chr = t_strtok;
+   while ( s_chr && *s_chr ) {
+      *s_chr = ToUpper(*s_chr);
+      if ( isspace(*s_chr) ) {
+         notify(player, "Invalid character in prefix.  Non-space string required.");
+         return;
+      }
+      s_chr++;
+   }
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, t_strtok) == 0) &&
+           ((i_newowner == atrp2->owner) &&
+            (i_newenactor == atrp2->enactor) &&
+            (i_newtarget == atrp2->target)) &&
+           ((i_newowner != i_owner) &&
+            (i_newtarget != i_target) &&
+            (i_newenactor != i_enactor)) ) {
+         notify(player, "Matching destination attribute with matching owner/target.");
+         return;
+      }
+   }
+   atrp = atrp_head;
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, t_strtok) == 0) &&
+           (i_owner == atrp2->owner) &&
+           (i_target == atrp2->target) ) {
+         notify(player, "Entry has been modified.");
+         atrp2->owner = i_newowner;
+         atrp2->target = i_newtarget;
+         atrp2->enactor = i_newenactor;
+         atrp2->controller = player;
+         atrp2->flag_set = i_newset;
+         atrp2->flag_see = i_newsee;
+         return;
+      }
+      atrp = atrp2;
+   }
+   notify(player, "Entry not found.");
 }
 
 void 
-display_perms(dbref player)
+display_perms(dbref player, int i_page, int i_key, char *fname)
 {
     char *n_perms[]={"NULL", "Cit", "Guild", "Arch", "Counc", "Wiz", "Imm", "God", "Error"};
     char *tprbuff, *tprpbuff;
-    int i_cnt;
+    int i_cnt, i_pagecnt;
     ATRP *atrp;
 
     tprpbuff = tprbuff = alloc_lbuf("display_perm");
     notify(player, "------------------------------------------------------------------------------");
     notify(player, safe_tprintf(tprbuff, &tprpbuff, "%-64s %-7s %-7s", (char *)"Attribute Prefix", (char *)"Set", (char *)"See"));
     notify(player, "------------------------------------------------------------------------------");
-    i_cnt = 0;
+    i_cnt = i_pagecnt = 0;
     if ( atrp_head ) {
        for ( atrp = atrp_head; atrp; atrp = atrp->next ) {
           i_cnt++;
+          i_pagecnt++;
+          if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) )
+             i_pagecnt++;
+          if ( (i_page != 0) && (i_pagecnt < ((i_page - 1) * 20)) )
+             continue;
+          if ( (i_page != 0) && (i_pagecnt >= (i_page * 20)) )
+             continue;
+          if ( (i_page == 0) && i_key && fname && *fname && !quick_wild(fname, atrp->name))
+             continue;
           tprpbuff = tprbuff;
           notify(player, safe_tprintf(tprbuff, &tprpbuff, "%-64s %-7s %-7s", atrp->name, n_perms[atrp->flag_set], n_perms[atrp->flag_see]));
-          if ( (atrp->owner != -1) || (atrp->target != -1) ) {
+          if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) ) {
              tprpbuff = tprbuff;
-             notify(player, safe_tprintf(tprbuff, &tprpbuff, "     +--------------- Owner: #%d,  Object: #%d,  Modifier: #%d", 
-                                         atrp->owner, atrp->target, atrp->controller));
+             notify(player, safe_tprintf(tprbuff, &tprpbuff, "   +----- Owner: #%d,  Object: #%d,  Enactor: #%d,  Modifier: #%d", 
+                                         atrp->owner, atrp->target, atrp->enactor, atrp->controller));
           }
        }
     }
     tprpbuff = tprbuff;
-    notify(player, safe_tprintf(tprbuff, &tprpbuff, 
-                                "----------------------------[%6d/%6d max]-------------------------------", 
-                                i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max)));
+    if ( i_page != 0 )
+       notify(player, safe_tprintf(tprbuff, &tprpbuff, 
+                                   "----------------------------[%6d/%6d max]---------- Page %-3d of %-3d ----", 
+                                   i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max), i_page, (i_pagecnt / 20) + 1));
+    else
+       notify(player, safe_tprintf(tprbuff, &tprpbuff, 
+                                   "----------------------------[%6d/%6d max]-------------------------------", 
+                                   i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max)));
     notify(player, "Note: Immortals are treated as god with regards to seeing attributes.");
     free_lbuf(tprbuff);
 }
 
 CF_HAND(cf_atrperms)
 {
-   int retval, i_del, i_see, i_set, first1, first2, first3, i_atrperms_cnt, i_warn, i_owner, i_target;
+   int retval, i_del, i_see, i_set, first1, first2, first3, i_atrperms_cnt, i_warn, i_owner, i_target, i_enactor;
    char *s_strtok, *s_strtokptr, *t_strtok, *t_strtokptr, *t_strtokbuf, *s_chr, *s_buff;
    char *sbuff1, *sbuff2, *sbuff3, *sbuff1ptr, *sbuff2ptr, *sbuff3ptr;
    /* Guildmaster, Architect, Councilor, Wizard, Immortal, #1 */
@@ -1666,13 +2043,14 @@ CF_HAND(cf_atrperms)
    }
 
    retval = i_set = i_see = first1 = first2 = first3 = 0;
-   i_owner = i_target = -1;
+   i_owner = i_target = i_enactor = -1;
    s_strtokptr = strtok_r(str, "\t ", &s_strtok);
    s_buff = alloc_lbuf("cf_atrperms");
    sbuff1ptr = sbuff1 = alloc_lbuf("cf_atrperms2");
    sbuff2ptr = sbuff2 = alloc_lbuf("cf_atrperms3");
    sbuff3ptr = sbuff3 = alloc_lbuf("cf_atrperms3");
    while ( s_strtokptr ) {
+      i_owner = i_target = -1;
       memset(s_buff, '\0', LBUF_SIZE);
       strcpy(s_buff, s_strtokptr);
       t_strtokptr = strtok_r(s_buff, ":", &t_strtok);
@@ -1691,9 +2069,14 @@ CF_HAND(cf_atrperms)
                   t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
                   if ( t_strtokbuf ) {
                      i_target = atoi(t_strtokbuf);
+                     t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                     if ( t_strtokbuf ) {
+                        i_enactor = atoi(t_strtokbuf);
+                     }
                   }
                }
                if ( ((i_owner == -1) || (i_owner == atrp2->owner)) &&
+                    ((i_enactor == -1) || (i_enactor == atrp2->enactor)) &&
                     ((i_target == -1) || (i_target == atrp2->target)) &&
                     (strcmp(atrp2->name, t_strtokptr+1) == 0) ) {
                   if ( strcmp(t_strtokptr+1, atrp_head->name) == 0) {
@@ -1717,25 +2100,30 @@ CF_HAND(cf_atrperms)
             }
          } else {
             if ( atrp_head ) {
-               atrp = atrp_head;
-               for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+               t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+               if ( t_strtokbuf ) {
+                  i_set = atoi(t_strtokbuf);
                   t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
                   if ( t_strtokbuf ) {
-                     i_set = atoi(t_strtokbuf);
+                     i_see = atoi(t_strtokbuf);
                      t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
                      if ( t_strtokbuf ) {
-                        i_see = atoi(t_strtokbuf);
+                        i_owner = atoi(t_strtokbuf);
                         t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
                         if ( t_strtokbuf ) {
-                           i_owner = atoi(t_strtokbuf);
+                           i_target = atoi(t_strtokbuf);
                            t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
                            if ( t_strtokbuf ) {
-                              i_target = atoi(t_strtokbuf);
+                              i_enactor = atoi(t_strtokbuf);
                            }
                         }
                      }
                   }
+               }
+               atrp = atrp_head;
+               for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
                   if ( ((i_owner == -1) || (i_owner == atrp2->owner)) &&
+                       ((i_enactor == -1) || (i_enactor == atrp2->enactor)) &&
                        ((i_target == -1) || (i_target == atrp2->target)) &&
                        (stricmp(atrp2->name, t_strtokptr) == 0) ) {
                      if ( (i_set < 1) || (i_set > 7) )
@@ -1747,6 +2135,8 @@ CF_HAND(cf_atrperms)
                      atrp2->flag_set = i_set;
                      atrp2->flag_see = i_see;
                      atrp2->owner = i_owner;
+                     atrp2->target = i_target;
+                     atrp2->enactor = i_enactor;
                      if ( (i_owner != -1) || (i_target != -1) ) {
                         if ( mudstate.initializing ) 
                            atrp2->controller = 1;
@@ -1754,7 +2144,6 @@ CF_HAND(cf_atrperms)
                            atrp2->controller = player;
                      } else
                         atrp2->controller = -1;
-                     atrp2->target = i_target;
                      retval = 1;
                      if ( first2 )
                         safe_chr(' ', sbuff2, &sbuff2ptr);
@@ -1797,6 +2186,10 @@ CF_HAND(cf_atrperms)
                      t_strtokptr = strtok_r(NULL, ":", &t_strtok);
                      if ( t_strtokptr ) {
                         i_target = atoi(t_strtokptr);
+                        t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                        if ( t_strtokptr ) {
+                           i_enactor = atoi(t_strtokptr);
+                        }
                      }
                   }
                }
@@ -1810,6 +2203,8 @@ CF_HAND(cf_atrperms)
             atrp->flag_set = i_set;
             atrp->flag_see = i_see;
             atrp->owner = i_owner;
+            atrp->target = i_target;
+            atrp->enactor = i_enactor;
             if ( (i_target != -1) || (i_owner != -1) ) {
                if ( mudstate.initializing ) 
                   atrp->controller = 1;
@@ -1817,7 +2212,6 @@ CF_HAND(cf_atrperms)
                   atrp->controller = player;
             } else
                atrp->controller = -1;
-            atrp->target = i_target;
             if (!atrp_head) {
                atrp_head = atrp;
             } else {

@@ -744,7 +744,8 @@ FUNCTION(fun_reswitchalli)
 
 void
 do_remultimatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller, 
-                char *fargs[], int nfargs, char *cargs[], int ncargs, int key, int i_count, char *name)
+                char *fargs[], int nfargs, char *cargs[], int ncargs, int key, int i_count, 
+                char *name, int i_onlyone)
 {
     int wcount, pcount, gotone = 0;
     char *r, *s, sep, *working, *tbuf;
@@ -785,6 +786,8 @@ do_remultimatch(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
            }
            wcount++;
        } while (s);
+       if ( gotone && i_onlyone )
+          break;
        if (!s)
            break;
        if ( !i_count )
@@ -798,28 +801,40 @@ do_remultimatch(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
        safe_str("0", buff, bufcx);
 }
 
-FUNCTION(fun_regmatchall)
+FUNCTION(fun_reglmatch)
 {
    do_remultimatch(buff, bufcx, player, cause, caller, fargs, nfargs, 
-                   cargs, ncargs, 0, 0, (char *)"REMATCHALL");
+                   cargs, ncargs, 0, 0, (char *)"REGLMATCHALL", 1);
 }
 
-FUNCTION(fun_regmatchalli)
+FUNCTION(fun_reglmatchi)
 {
    do_remultimatch(buff, bufcx, player, cause, caller, fargs, nfargs, 
-                   cargs, ncargs, 1, 0, (char *)"REMATCHALLI");
+                   cargs, ncargs, 1, 0, (char *)"REGLMATCHALLI", 1);
+}
+
+FUNCTION(fun_reglmatchall)
+{
+   do_remultimatch(buff, bufcx, player, cause, caller, fargs, nfargs, 
+                   cargs, ncargs, 0, 0, (char *)"REGLMATCHALL", 0);
+}
+
+FUNCTION(fun_reglmatchalli)
+{
+   do_remultimatch(buff, bufcx, player, cause, caller, fargs, nfargs, 
+                   cargs, ncargs, 1, 0, (char *)"REGLMATCHALLI", 0);
 }
 
 FUNCTION(fun_regnummatch)
 {
    do_remultimatch(buff, bufcx, player, cause, caller, fargs, nfargs, 
-                   cargs, ncargs, 0, 1, (char *)"RENUMMATCH");
+                   cargs, ncargs, 0, 1, (char *)"RENUMMATCH", 0);
 }
 
 FUNCTION(fun_regnummatchi)
 {
    do_remultimatch(buff, bufcx, player, cause, caller, fargs, nfargs, 
-                   cargs, ncargs, 1, 1, (char *)"RENUMMATCHI");
+                   cargs, ncargs, 1, 1, (char *)"RENUMMATCHI", 0);
 }
 
 
@@ -829,8 +844,10 @@ FUN flist_regexp[] =
     {"CLUSTER_REGREPI", fun_cluster_regrepi, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGMATCH", fun_regmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGMATCHI", fun_regmatchi, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"REGMATCHALL", fun_regmatchall, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"REGMATCHALLI", fun_regmatchalli, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"REGLMATCH", fun_reglmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"REGLMATCHI", fun_reglmatchi, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"REGLMATCHALL", fun_reglmatchall, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"REGLMATCHALLI", fun_reglmatchalli, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGNUMMATCH", fun_regnummatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGNUMMATCHI", fun_regnummatchi, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REGEDIT", fun_regedit, 3, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, 0},

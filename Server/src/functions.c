@@ -1377,6 +1377,22 @@ void safer_unufun(int tval)
    }
 }
 
+void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
+   int i;
+   ANSISPLIT *p_bp;
+
+   p_bp = a_split;
+   for ( i=0; i < i_size; i++) {
+      memset(p_bp->s_fghex, '\0', 5);
+      memset(p_bp->s_bghex, '\0', 5);
+      p_bp->i_special = 0;
+      p_bp->c_accent = '\0';
+      p_bp->c_fgansi = '\0';
+      p_bp->c_bgansi = '\0';
+      p_bp++;
+   }
+}
+
 int
 safer_ufun(dbref player, dbref thing, dbref target, int aflags1, int aflags2)
 {
@@ -2530,6 +2546,278 @@ void safe_pad2( char *padch, int numchars, char *buff, char **bufcx )
   }
 }
 
+void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
+                    char *buff, char **bufcx, char *space_sep, int keyval,
+                    ANSISPLIT *srcarray, ANSISPLIT *buffarray )
+{
+  int idx;
+  int spares = 0;
+  int spacecount = 0;
+  int gapwidth = 0;
+  int justout = 0;
+  int prntchrs= 0;
+  ANSISPLIT *p_sp, *p_bp, *p_sp2;
+  int i;
+  char *cp;
+
+  p_sp = srcarray;
+  p_bp = buffarray + (*bufcx - buff);
+
+  if( !wp->first_line && wp->hanging ) {
+     safe_pad2( space_sep, wp->hanging, buff, bufcx );
+     for (i = 0; i< wp->hanging; i++) {
+        if ( !p_bp )
+           break;
+        memset(p_bp->s_fghex, '\0', 5);
+        memset(p_bp->s_bghex, '\0', 5);
+        p_bp->i_special = 0;
+        p_bp->c_accent = '\0';
+        p_bp->c_fgansi = '\0';
+        p_bp->c_bgansi = '\0';
+        p_bp++;
+     }
+  }
+  wp->first_line = 0;
+
+  if( wp->left ) {
+     safe_str( wp->left, buff, bufcx );
+     cp = wp->left;
+     while ( cp && *cp ) { 
+        if ( !p_bp )
+           break;
+        memset(p_bp->s_fghex, '\0', 5);
+        memset(p_bp->s_bghex, '\0', 5);
+        p_bp->i_special = 0;
+        p_bp->c_accent = '\0';
+        p_bp->c_fgansi = '\0';
+        p_bp->c_bgansi = '\0';
+        p_bp++;
+        cp++;
+     }
+  }
+
+#ifdef ZENTY_ANSI
+  prntchrs = string_count(src, numchars);
+#else
+  if ( keyval )
+     prntchrs = strlen(src);
+  else
+     prntchrs = numchars;
+#endif
+
+  switch( wp->just ) {
+    case JUST_IGNORE:
+      safe_substr(src, numchars, buff, bufcx);
+      for ( i = 0; i < numchars; i++ ) {
+         if ( !p_bp || !p_sp )
+            break;
+         strcpy(p_bp->s_fghex, p_sp->s_fghex);
+         strcpy(p_bp->s_bghex, p_sp->s_fghex);
+         p_bp->i_special = p_sp->i_special;
+         p_bp->c_accent = p_sp->c_accent;
+         p_bp->c_fgansi = p_sp->c_fgansi;
+         p_bp->c_bgansi = p_sp->c_bgansi;
+         p_bp++;
+         p_sp++;
+      }
+      break;
+    case JUST_LEFT:
+      safe_substr(src, numchars, buff, bufcx);
+      for ( i = 0; i < numchars; i++ ) {
+         if ( !p_bp || !p_sp )
+            break;
+         strcpy(p_bp->s_fghex, p_sp->s_fghex);
+         strcpy(p_bp->s_bghex, p_sp->s_fghex);
+         p_bp->i_special = p_sp->i_special;
+         p_bp->c_accent = p_sp->c_accent;
+         p_bp->c_fgansi = p_sp->c_fgansi;
+         p_bp->c_bgansi = p_sp->c_bgansi;
+         p_bp++;
+         p_sp++;
+      }
+      safe_pad2(space_sep, wp->width - prntchrs, buff, bufcx);
+      for (i = 0; i < (wp->width - prntchrs); i++) {
+         if ( !p_bp )
+            break;
+         memset(p_bp->s_fghex, '\0', 5);
+         memset(p_bp->s_bghex, '\0', 5);
+         p_bp->i_special = 0;
+         p_bp->c_accent = '\0';
+         p_bp->c_fgansi = '\0';
+         p_bp->c_bgansi = '\0';
+         p_bp++;
+      }
+      break;
+    case JUST_RIGHT:
+      safe_pad2(space_sep, wp->width - prntchrs, buff, bufcx);
+      for (i = 0; i < (wp->width - prntchrs); i++) {
+         if ( !p_bp )
+            break;
+         memset(p_bp->s_fghex, '\0', 5);
+         memset(p_bp->s_bghex, '\0', 5);
+         p_bp->i_special = 0;
+         p_bp->c_accent = '\0';
+         p_bp->c_fgansi = '\0';
+         p_bp->c_bgansi = '\0';
+         p_bp++;
+      }
+      safe_substr(src, numchars, buff, bufcx);
+      for ( i = 0; i < numchars; i++ ) {
+         if ( !p_bp || !p_sp )
+            break;
+         strcpy(p_bp->s_fghex, p_sp->s_fghex);
+         strcpy(p_bp->s_bghex, p_sp->s_fghex);
+         p_bp->i_special = p_sp->i_special;
+         p_bp->c_accent = p_sp->c_accent;
+         p_bp->c_fgansi = p_sp->c_fgansi;
+         p_bp->c_bgansi = p_sp->c_bgansi;
+         p_bp++;
+         p_sp++;
+      }
+      break;
+    case JUST_CENTER:
+      safe_pad2(space_sep, (wp->width - prntchrs) / 2, buff, bufcx);
+      for (i = 0; i < ((wp->width - prntchrs) / 2); i++) {
+         if ( !p_bp )
+            break;
+         memset(p_bp->s_fghex, '\0', 5);
+         memset(p_bp->s_bghex, '\0', 5);
+         p_bp->i_special = 0;
+         p_bp->c_accent = '\0';
+         p_bp->c_fgansi = '\0';
+         p_bp->c_bgansi = '\0';
+         p_bp++;
+      }
+      safe_substr(src, numchars, buff, bufcx);
+      for ( i = 0; i < numchars; i++ ) {
+         if ( !p_bp || !p_sp )
+            break;
+         strcpy(p_bp->s_fghex, p_sp->s_fghex);
+         strcpy(p_bp->s_bghex, p_sp->s_fghex);
+         p_bp->i_special = p_sp->i_special;
+         p_bp->c_accent = p_sp->c_accent;
+         p_bp->c_fgansi = p_sp->c_fgansi;
+         p_bp->c_bgansi = p_sp->c_bgansi;
+         p_bp++;
+         p_sp++;
+      }
+      /* might need to add one due to roundoff error */
+      safe_pad2(space_sep, (wp->width - prntchrs) / 2 +
+                    ((wp->width - prntchrs) % 2), buff, bufcx);
+      for (i = 0; i < ( ((wp->width - prntchrs) / 2) + ((wp->width - prntchrs) % 2) ); i++) {
+         if ( !p_bp )
+            break;
+         memset(p_bp->s_fghex, '\0', 5);
+         memset(p_bp->s_bghex, '\0', 5);
+         p_bp->i_special = 0;
+         p_bp->c_accent = '\0';
+         p_bp->c_fgansi = '\0';
+         p_bp->c_bgansi = '\0';
+         p_bp++;
+      }
+      break;
+    case JUST_JUST:
+      /* count spaces */
+      for( idx = 0; (idx < numchars) && src[idx]; idx++ ) {
+        if ( !src[idx] )
+           break;
+        if( src[idx] == ' ' ) {
+          spacecount++;
+        }
+      }
+      /* compute added spaces per original space */
+      if( spacecount ) {
+        gapwidth = (wp->width - (prntchrs - spacecount)) / spacecount;
+        spares = (wp->width - (prntchrs - spacecount)) % spacecount;
+
+        if( gapwidth < 1 ) {
+          gapwidth = 1;
+          spares = 0;
+        }
+      }
+      else {
+        gapwidth = 0;
+        spares = 0;
+      }
+      /* now print out text with widened gaps */
+      for( idx = 0; (idx < numchars) && src[idx]; idx++ ) {
+        if( src[idx] == ' ' ) {
+          safe_pad2(space_sep, gapwidth, buff, bufcx);
+          for (i = 0; i < gapwidth; i++) {
+             if ( !p_bp )
+                break;
+             memset(p_bp->s_fghex, '\0', 5);
+             memset(p_bp->s_bghex, '\0', 5);
+             p_bp->i_special = 0;
+             p_bp->c_accent = '\0';
+             p_bp->c_fgansi = '\0';
+             p_bp->c_bgansi = '\0';
+             p_bp++;
+          }
+          justout += gapwidth;
+          if( spares > 0 ) {
+            safe_pad2(space_sep, 1, buff, bufcx);
+            if ( p_bp ) {
+               memset(p_bp->s_fghex, '\0', 5);
+               memset(p_bp->s_bghex, '\0', 5);
+               p_bp->i_special = 0;
+               p_bp->c_accent = '\0';
+               p_bp->c_fgansi = '\0';
+               p_bp->c_bgansi = '\0';
+               p_bp++;
+            }
+            justout++;
+            spares--;
+          }
+        }
+        else {
+          safe_chr(src[idx], buff, bufcx);
+          if ( p_bp ) {
+             p_sp2 = srcarray + idx;
+             strcpy(p_bp->s_fghex, p_sp2->s_fghex);
+             strcpy(p_bp->s_bghex, p_sp2->s_fghex);
+             p_bp->i_special = p_sp2->i_special;
+             p_bp->c_accent = p_sp2->c_accent;
+             p_bp->c_fgansi = p_sp2->c_fgansi;
+             p_bp->c_bgansi = p_sp2->c_bgansi;
+             p_bp++;
+          }
+          justout++;
+        }
+      }
+      safe_pad2(space_sep, wp->width - justout, buff, bufcx);
+      for (i = 0; i < (wp->width - justout); i++) {
+         if ( !p_bp )
+            break;
+         memset(p_bp->s_fghex, '\0', 5);
+         memset(p_bp->s_bghex, '\0', 5);
+         p_bp->i_special = 0;
+         p_bp->c_accent = '\0';
+         p_bp->c_fgansi = '\0';
+         p_bp->c_bgansi = '\0';
+         p_bp++;
+      }
+      break;
+  }
+
+  if( wp->right ) {
+    safe_str( wp->right, buff, bufcx );
+    cp = wp->right;
+    while ( cp && *cp ) { 
+       if ( !p_bp )
+          break;
+       memset(p_bp->s_fghex, '\0', 5);
+       memset(p_bp->s_bghex, '\0', 5);
+       p_bp->i_special = 0;
+       p_bp->c_accent = '\0';
+       p_bp->c_fgansi = '\0';
+       p_bp->c_bgansi = '\0';
+       p_bp++;
+       cp++;
+    }
+  }
+}
+
 void wrap_out( char* src, int numchars, struct wrapinfo *wp,
                char *buff, char **bufcx, char *space_sep, int keyval )
 {
@@ -3173,16 +3461,13 @@ FUNCTION(fun_columns)
   struct wrapinfo winfo;
   int buffleft, pos, maxw, wtype, cut, cut2, rnorem, bufstr;
   int count, ncols, remorig, rows, x, y, z, scount, bufcols;
-  char* leftstart;
-  char *pp;
-  char *holdbuff, *hbpt, *pt2, *between;
-  char delim;
-  char *spacer_sep;
-  char *string;
+  char *leftstart, *pp, *holdbuff, *hbpt, *pt2, *between;
+  char delim, *spacer_sep, *string;
+  ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_bp, *p_sp, *p_leftstart; 
 
-  string=strip_all_special(fargs[0]);
   if (!fn_range_check("COLUMNS", nfargs, 3, 13, buff, bufcx))
     return;
+
 
   count = 0;
   delim = '\0';
@@ -3194,271 +3479,343 @@ FUNCTION(fun_columns)
   maxw = atoi( fargs[1] );
 
   if( maxw < 1 ) {
-    safe_str( "#-1 WIDTH MUST BE >= 1", buff, bufcx );
-    return;
+     safe_str( "#-1 WIDTH MUST BE >= 1", buff, bufcx );
+     return;
   }
 
   if( maxw > (LBUF_SIZE - 1) ) {
-    safe_str( "#-1 WIDTH ARGUMENT OUT OF BOUNDS", buff, bufcx );
-    return;
+     safe_str( "#-1 WIDTH ARGUMENT OUT OF BOUNDS", buff, bufcx );
+     return;
   }
   ncols = atoi(fargs[2]);
   if ((ncols < 1) || (ncols > (LBUF_SIZE-1))) {
-    safe_str( "#-1 COLUMNS ARGUMENT OUT OF BOUNDS", buff, bufcx );
-    return;
+     safe_str( "#-1 COLUMNS ARGUMENT OUT OF BOUNDS", buff, bufcx );
+     return;
   }
   if( nfargs >= 4 ) {
-    switch( toupper(*fargs[3]) ) {
-      case 'L':
-        winfo.just = JUST_LEFT;
-        break;
-      case 'R':
-        winfo.just = JUST_RIGHT;
-        break;
-      case 'J':
-        winfo.just = JUST_JUST;
-        break;
-      case 'C':
-        winfo.just = JUST_CENTER;
-        break;
-      default:
-        safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
-        return;
-    }
+     switch( toupper(*fargs[3]) ) {
+        case 'L': /* Left Justification */
+           winfo.just = JUST_LEFT;
+           break;
+        case 'R': /* Right Justification */
+           winfo.just = JUST_RIGHT;
+           break;
+        case 'J': /* Spread Justification */
+           winfo.just = JUST_JUST;
+           break;
+        case 'C': /* Center Justification */
+           winfo.just = JUST_CENTER;
+           break;
+        default:
+           safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
+           return;
+           break;
+     }
   }
   if (nfargs >= 5) {
-    cut = atoi(fargs[4]);
-    if (cut != 1)
-      cut = 0;
+     cut = atoi(fargs[4]);
+     if (cut != 1)
+        cut = 0;
+  } else {
+     cut = 0;
   }
-  else
-    cut = 0;
   if (nfargs >= 6) {
-    cut2 = atoi(fargs[5]);
-    if (cut2 != 1)
-      cut2 = 0;
+     cut2 = atoi(fargs[5]);
+     if (cut2 != 1)
+        cut2 = 0;
+  } else {
+     cut2 = 0;
   }
-  else
-    cut2 = 0;
   if (nfargs >= 10) {
-    wtype = atoi(fargs[9]);
-    if (wtype != 1)
-      wtype = 0;
+     wtype = atoi(fargs[9]);
+     if (wtype != 1)
+        wtype = 0;
+  } else {
+     wtype = 0;
   }
-  else
-    wtype = 0;
   if (nfargs >= 11) {
-    delim = *fargs[10];
+     delim = *fargs[10];
   }
   spacer_sep = (char *)" ";
   if (nfargs >= 12) {
-    if ( strlen(fargs[11]) > 0 ) {
-       spacer_sep = (char *)strip_returntab(fargs[11],3);
-    }
+     if ( strlen(fargs[11]) > 0 ) {
+        spacer_sep = (char *)strip_returntab(fargs[11],3);
+     }
   }
+
+//string=strip_all_special(fargs[0]);
+
+  initialize_ansisplitter(outsplit, LBUF_SIZE);
+  initialize_ansisplitter(outsplit2, LBUF_SIZE);
+  string = alloc_lbuf("fun_columns_String");
+  memset(string, '\0', LBUF_SIZE);
+  split_ansi(fargs[0], string, outsplit);
+
   /* setup phase done */
 
   holdbuff = alloc_lbuf("fun_columns");
-  *holdbuff = '\0';
+  memset(holdbuff, '\0', LBUF_SIZE);
   hbpt = holdbuff;
 
   if (cut) {
-    winfo.width = 0;
-    for( buffleft = strlen(string), leftstart = string; buffleft > 0; ) {
-      pp = leftstart;
-      if (delim) {
-        while (*pp && (*pp == delim))
-          pp++;
-      }
-      else {
-        while (*pp && isspace((int)*pp))
-          pp++;
-      }
-      if (!*pp)
-        break;
-      leftstart = pp++;
-      if (delim) {
-        while (*pp && (*pp != delim) && ((pp - leftstart) < maxw))
-          pp++;
-      }
-      else {
-        while (*pp && !isspace((int)*pp) && ((pp - leftstart) < maxw))
-          pp++;
-      }
-      if ((pp-leftstart) > winfo.width)
-        winfo.width = pp-leftstart;
-      if (cut2) {
+     winfo.width = 0;
+     for( buffleft = strlen(string), leftstart = string; buffleft > 0; ) {
+        pp = leftstart;
         if (delim) {
-          while (*pp && (*pp != delim))
-        pp++;
-      } else {
-        while (*pp && !isspace((int)*pp))
-        pp++;
-      }
-    }
-    buffleft -= (pp - leftstart);
-    leftstart = pp;
-  }
-  scount = (LBUF_SIZE - 2) / (winfo.width+1);
-  if ((LBUF_SIZE - 2) % (winfo.width+1))
-    scount++;
+           while (*pp && (*pp == delim))
+              pp++;
+        } else {
+           while (*pp && isspace((int)*pp))
+              pp++;
+        }
+        if (!*pp)
+           break;
+        leftstart = pp++;
+        if (delim) {
+           while (*pp && (*pp != delim) && ((pp - leftstart) < maxw))
+              pp++;
+        } else {
+           while (*pp && !isspace((int)*pp) && ((pp - leftstart) < maxw))
+              pp++;
+        }
+        if ((pp-leftstart) > winfo.width)
+           winfo.width = pp-leftstart;
+        if (cut2) {
+           if (delim) {
+              while (*pp && (*pp != delim))
+                 pp++;
+           } else {
+              while (*pp && !isspace((int)*pp))
+                 pp++;
+           }
+        }
+        buffleft -= (pp - leftstart);
+        leftstart = pp;
+     }
+     scount = (LBUF_SIZE - 2) / (winfo.width+1);
+     if ((LBUF_SIZE - 2) % (winfo.width+1))
+        scount++;
   } else {
-    winfo.width = maxw;
-    scount = (LBUF_SIZE - 2) / (winfo.width+1);
-    if ((LBUF_SIZE - 2) % (winfo.width+1))
-      scount++;
+     winfo.width = maxw;
+     scount = (LBUF_SIZE - 2) / (winfo.width+1);
+     if ((LBUF_SIZE - 2) % (winfo.width+1))
+        scount++;
   }
-  for( buffleft = strlen(string), leftstart = string; buffleft > 0; ) {
-    pp = leftstart;
-    if (delim) {
-      while (*pp && (*pp == delim))
-        pp++;
-    } else {
-      while (*pp && isspace((int)*pp))
-        pp++;
-    }
-    if (!*pp)
-      break;
-    leftstart = pp++;
-    if (delim) {
-      while (*pp && (*pp != delim) && ((pp - leftstart) < maxw))
-        pp++;
-    }
-    else {
-      while (*pp && !isspace((int)*pp) && ((pp - leftstart) < maxw))
-        pp++;
-    }
-    count++;
-    wrap_out(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, spacer_sep, 0);
-    if (cut2) {
-      if (delim) {
-        while (*pp && (*pp != delim))
-          pp++;
-      } else {
-        while (*pp && !isspace((int)*pp))
-          pp++;
-      }
-    }
-    buffleft -= (pp - leftstart);
-    leftstart = pp;
-    if (*pp)
-      safe_str("\n",holdbuff,&hbpt);
+  for( buffleft = strlen(string), leftstart = string, p_leftstart = outsplit; buffleft > 0; ) {
+     pp = leftstart;
+     p_sp = p_leftstart;
+     if (delim) {
+        while (*pp && (*pp == delim)) {
+           pp++;
+           p_sp++;
+        }
+     } else {
+        while (*pp && isspace((int)*pp)) {
+           pp++;
+           p_sp++;
+        }
+     }
+     if (!*pp)
+        break;
+     leftstart = pp++;
+     p_leftstart = p_sp++;
+     if (delim) {
+        while (*pp && (*pp != delim) && ((pp - leftstart) < maxw)) {
+           pp++;
+           p_sp++;
+        }
+     } else {
+        while (*pp && !isspace((int)*pp) && ((pp - leftstart) < maxw)) {
+           pp++;
+           p_sp++;
+        }
+     }
+     count++;
+//   wrap_out(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, spacer_sep, 0);
+
+     wrap_out_ansi(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, spacer_sep, 0,
+                   p_leftstart, outsplit2);
+//   wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
+//                  char *buff, char **bufcx, char *space_sep, int keyval,
+//                  ANSISPLIT *srcarray, ANSISPLIT *buffarray )
+     if (cut2) {
+        if (delim) {
+           while (*pp && (*pp != delim)) {
+              pp++;
+              p_sp++;
+           }
+        } else {
+           while (*pp && !isspace((int)*pp)) {
+              pp++;
+              p_sp++;
+           }
+        }
+     }
+     buffleft -= (pp - leftstart);
+     leftstart = pp;
+     p_leftstart = p_sp;
+     if (*pp) {
+        safe_str("\n",holdbuff,&hbpt);
+        p_bp = outsplit2 + (hbpt - holdbuff);
+        memset(p_bp->s_fghex, '\0', 5);
+        memset(p_bp->s_bghex, '\0', 5);
+        p_bp->i_special = 0;
+        p_bp->c_accent = '\0';
+        p_bp->c_fgansi = '\0';
+        p_bp->c_bgansi = '\0';
+        p_bp = outsplit2 + (hbpt - holdbuff) + 1;
+        memset(p_bp->s_fghex, '\0', 5);
+        memset(p_bp->s_bghex, '\0', 5);
+        p_bp->i_special = 0;
+        p_bp->c_accent = '\0';
+        p_bp->c_fgansi = '\0';
+        p_bp->c_bgansi = '\0';
+     }
   }
   if (count > scount)
-    count = scount;
+     count = scount;
   if( nfargs >= 7 ) {
-    winfo.left = fargs[6];
+     winfo.left = fargs[6];
   }
   if (nfargs >= 8) {
-    between = fargs[7];
+     between = fargs[7];
   } else {
-    between = NULL;
+     between = NULL;
   }
   if( nfargs >= 9 ) {
-    winfo.right = fargs[8];
+     winfo.right = fargs[8];
   }
+  free_lbuf(string);
+  string = rebuild_ansi(holdbuff, outsplit2);
   if (wtype) {
-    hbpt = holdbuff;
-    while (count > 0) {
-      if (winfo.left)
-        safe_str(winfo.left, buff, bufcx);
-      for (x = 0; x < ncols; x++) {
-        count--;
-        pt2 = strchr(hbpt,'\n');
-        if (pt2)
-          *pt2 = '\0';
-        safe_str(hbpt, buff, bufcx);
-        if (pt2)
-          hbpt = pt2+1;
-        if (!count)
-          break;
-        if (x < (ncols - 1)) {
-          if (between)
-            safe_str(between, buff, bufcx);
+//   hbpt = holdbuff;
+     hbpt = string;
+     while (count > 0) {
+        if (winfo.left) {
+#ifdef ZENTY_ANSI
+           safe_chr('%', buff, bufcx);
+           safe_chr(SAFE_CHR, buff, bufcx);
+           safe_chr('n', buff, bufcx);
+#endif
+           safe_str(winfo.left, buff, bufcx);
         }
-      }
-      bufcols = x + 1;
-      if ( bufcols > ncols )
-         bufcols = ncols;
-      bufstr = 0;
-      if ( nfargs >= 13 )
-         bufstr = atoi(fargs[12]);
-      if ( (bufstr > 0) && (bufcols > 0) ) {
-         while ( bufcols < ncols ) {
-            if ( bufcols < ncols ) {
-               if ( *between )
-                  safe_str(between, buff, bufcx);
-               safe_pad2(spacer_sep, winfo.width, buff, bufcx);
-            }
-            bufcols++;
-         }
-      }
-      if (winfo.right)
-        safe_str(winfo.right, buff, bufcx);
-      if (count)
-        safe_str("\r\n", buff, bufcx);
-    }
+        for (x = 0; x < ncols; x++) {
+           count--;
+           pt2 = strchr(hbpt,'\n');
+           if (pt2)
+              *pt2 = '\0';
+           safe_str(hbpt, buff, bufcx);
+           if (pt2)
+              hbpt = pt2+1;
+           if (!count)
+              break;
+           if (x < (ncols - 1)) {
+              if (between) {
+#ifdef ZENTY_ANSI
+                 safe_chr('%', buff, bufcx);
+                 safe_chr(SAFE_CHR, buff, bufcx);
+                 safe_chr('n', buff, bufcx);
+#endif
+                 safe_str(between, buff, bufcx);
+              }
+           }
+        }
+        bufcols = x + 1;
+        if ( bufcols > ncols )
+           bufcols = ncols;
+        bufstr = 0;
+        if ( nfargs >= 13 )
+           bufstr = atoi(fargs[12]);
+        if ( (bufstr > 0) && (bufcols > 0) ) {
+           while ( bufcols < ncols ) {
+              if ( bufcols < ncols ) {
+                 if ( *between ) {
+#ifdef ZENTY_ANSI
+                    safe_chr('%', buff, bufcx);
+                    safe_chr(SAFE_CHR, buff, bufcx);
+                    safe_chr('n', buff, bufcx);
+#endif
+                    safe_str(between, buff, bufcx);
+                 }
+                 safe_pad2(spacer_sep, winfo.width, buff, bufcx);
+              }
+              bufcols++;
+           }
+        }
+        if (winfo.right) {
+#ifdef ZENTY_ANSI
+           safe_chr('%', buff, bufcx);
+           safe_chr(SAFE_CHR, buff, bufcx);
+           safe_chr('n', buff, bufcx);
+#endif
+           safe_str(winfo.right, buff, bufcx);
+        }
+        if (count)
+           safe_str("\r\n", buff, bufcx);
+     }
   } else {
-    rows = count / ncols;
-    rnorem = rows;
-    remorig = count % ncols;
-    if (remorig)
-      rows++;
-    for (x = 0; x < rows; x++) {
-      if (winfo.left)
-        safe_str(winfo.left, buff, bufcx);
-      for (y = 0; y < ncols; y++) {
-        pos = x;
-        for (z = 0; z < y; z++) {
-          pos += rnorem;
-          if ((remorig - z) > 0)
-            pos++;
+     rows = count / ncols;
+     rnorem = rows;
+     remorig = count % ncols;
+     if (remorig)
+        rows++;
+     for (x = 0; x < rows; x++) {
+        if (winfo.left)
+           safe_str(winfo.left, buff, bufcx);
+        for (y = 0; y < ncols; y++) {
+           pos = x;
+           for (z = 0; z < y; z++) {
+              pos += rnorem;
+              if ((remorig - z) > 0)
+                 pos++;
+           }
+//         hbpt = holdbuff;
+           hbpt = string;
+           for (z = 0; z < pos; z++) {
+              pt2 = strchr(hbpt,'\n');
+              hbpt = pt2+1;
+           }
+           pt2 = strchr(hbpt,'\n');
+           if (pt2)
+              *pt2 = '\0';
+           safe_str(hbpt, buff, bufcx);
+           if (pt2)
+              *pt2 = '\n';
+           if ((x == (rows - 1)) && remorig) {
+              if ((remorig - y) == 1) {
+                 break;
+              } else if (between) {
+                 safe_str(between, buff, bufcx);
+              }
+           } else if (y < (ncols - 1)) {
+              if (between)
+                 safe_str(between, buff, bufcx);
+           }
         }
-        hbpt = holdbuff;
-        for (z = 0; z < pos; z++) {
-          pt2 = strchr(hbpt,'\n');
-          hbpt = pt2+1;
+        bufcols = y + 1;
+        if ( bufcols > ncols )
+           bufcols = ncols;
+        bufstr = 0;
+        if ( nfargs >= 13 )
+           bufstr = atoi(fargs[12]);
+        if ( (bufstr > 0) && (bufcols > 0) ) {
+           while ( bufcols < ncols ) {
+              if ( bufcols < ncols ) {
+                 if ( *between )
+                    safe_str(between, buff, bufcx);
+                 safe_pad2(spacer_sep, winfo.width, buff, bufcx);
+              }
+              bufcols++;
+           }
         }
-        pt2 = strchr(hbpt,'\n');
-        if (pt2)
-          *pt2 = '\0';
-        safe_str(hbpt, buff, bufcx);
-        if (pt2)
-          *pt2 = '\n';
-        if ((x == (rows - 1)) && remorig) {
-          if ((remorig - y) == 1) {
-            break;
-          } else if (between) {
-            safe_str(between, buff, bufcx);
-          }
-        } else if (y < (ncols - 1)) {
-          if (between)
-            safe_str(between, buff, bufcx);
-        }
-      }
-      bufcols = y + 1;
-      if ( bufcols > ncols )
-         bufcols = ncols;
-      bufstr = 0;
-      if ( nfargs >= 13 )
-         bufstr = atoi(fargs[12]);
-      if ( (bufstr > 0) && (bufcols > 0) ) {
-         while ( bufcols < ncols ) {
-            if ( bufcols < ncols ) {
-               if ( *between )
-                  safe_str(between, buff, bufcx);
-               safe_pad2(spacer_sep, winfo.width, buff, bufcx);
-            }
-            bufcols++;
-         }
-      }
-      if (winfo.right)
-        safe_str(winfo.right, buff, bufcx);
-      if (x < (rows - 1))
-        safe_str("\r\n", buff, bufcx);
-    }
+        if (winfo.right)
+           safe_str(winfo.right, buff, bufcx);
+        if (x < (rows - 1))
+           safe_str("\r\n", buff, bufcx);
+     }
   }
   free_lbuf(holdbuff);
+  free_lbuf(string);
 }
 
 FUNCTION(fun_wrapcolumns)
@@ -3466,11 +3823,9 @@ FUNCTION(fun_wrapcolumns)
   struct wrapinfo winfo;
   int buffleft, pos, wtype, cut, cut2, maxw, scount;
   int count, ncols, remorig, rnorem, rows, x, y, z;
-  char* leftstart;
-  char *crp;
-  char *pp;
-  char *expandbuff;
+  char *leftstart, *crp, *pp, *expandbuff, *string;
   char *holdbuff, *hbpt, *pt2, *between;
+  ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_bp, *p_sp, *p_leftstart; 
 
   if (!fn_range_check("WRAPCOLUMNS", nfargs, 3, 10, buff, bufcx))
      return;
@@ -3535,15 +3890,23 @@ FUNCTION(fun_wrapcolumns)
 
   /* setup phase done */
 
-  expandbuff = alloc_lbuf("fun_wrapcolumns");
-  *expandbuff = '\0';
+  initialize_ansisplitter(outsplit, LBUF_SIZE);
+  initialize_ansisplitter(outsplit2, LBUF_SIZE);
+
+  string = alloc_lbuf("fun_wrapcolumns");
+  memset(string, '\0', LBUF_SIZE);
   holdbuff = alloc_lbuf("fun_wrapcolumns");
-  *holdbuff = '\0';
+  memset(holdbuff, '\0', LBUF_SIZE);
   hbpt = holdbuff;
 
-  tab_expand( expandbuff, strip_all_special(fargs[0]) );
+//tab_expand( expandbuff, strip_all_special(fargs[0]) );
 
-
+  tab_expand( string, fargs[0] );
+  expandbuff = alloc_lbuf("fun_columns_String");
+  memset(expandbuff, '\0', LBUF_SIZE);
+  split_ansi(string, expandbuff, outsplit);
+  free_lbuf(string);
+  
   if (cut) {
      winfo.width = 0;
      for( buffleft = strlen(expandbuff), leftstart = expandbuff; buffleft > 0; ) {
@@ -3601,52 +3964,112 @@ FUNCTION(fun_wrapcolumns)
      if ((LBUF_SIZE - 2) % (winfo.width+1))
         scount++;
   }
-  for( buffleft = strlen(expandbuff), leftstart = expandbuff; buffleft > 0; ) {
+  for( buffleft = strlen(expandbuff), leftstart = expandbuff, p_leftstart = outsplit; buffleft > 0; ) {
      crp = strchr(leftstart, '\r');
      if( crp && crp <= leftstart + maxw ) { /* split here and start over */
-        wrap_out( leftstart, crp - leftstart, &winfo, holdbuff, &hbpt, " ", 0 );
+//      wrap_out( leftstart, crp - leftstart, &winfo, holdbuff, &hbpt, " ", 0 );
+        wrap_out_ansi(leftstart, crp - leftstart, &winfo, holdbuff, &hbpt, " ", 0,
+                      p_leftstart, outsplit2);
         count++;
         safe_str( "\r\n", holdbuff, &hbpt );
+        p_bp = outsplit2 + (hbpt - holdbuff);
+        memset(p_bp->s_fghex, '\0', 5);
+        memset(p_bp->s_bghex, '\0', 5);
+        p_bp->i_special = 0;
+        p_bp->c_accent = '\0';
+        p_bp->c_fgansi = '\0';
+        p_bp->c_bgansi = '\0';
+        p_bp = outsplit2 + (hbpt - holdbuff) + 1;
+        memset(p_bp->s_fghex, '\0', 5);
+        memset(p_bp->s_bghex, '\0', 5);
+        p_bp->i_special = 0;
+        p_bp->c_accent = '\0';
+        p_bp->c_fgansi = '\0';
+        p_bp->c_bgansi = '\0';
         buffleft -= (crp - leftstart) + 2;
         leftstart = crp + 2;
+        p_leftstart = p_leftstart + (crp - leftstart + 2);
      } else { /* no \r\n in interesting proximity */
         if( buffleft <= maxw ) { /* last line of output */
-           wrap_out( leftstart, buffleft, &winfo, holdbuff, &hbpt, " ", 0 );
+//         wrap_out( leftstart, buffleft, &winfo, holdbuff, &hbpt, " ", 0 );
+           wrap_out_ansi(leftstart, buffleft, &winfo, holdbuff, &hbpt, " ", 0,
+                         p_leftstart, outsplit2);
            count++;
            leftstart += buffleft;
+           p_leftstart += buffleft;
            buffleft = 0;
         } else {
            /* start at leftstart + width and backtrack to find where to split the line
               two cases could happen here, either we find a space, then we break
               there, or we hit the front of the buffer and we have to split
               the line at exactly 'width' characters thereby breaking a word */
-           for( pp = leftstart + maxw; pp > leftstart; pp-- ) {
+           for( pp = leftstart + maxw, p_sp = p_leftstart + maxw; pp > leftstart; pp--, p_sp-- ) {
               if( *pp == ' ' ) { /* got a space, split here */
                  break;
               }
            }
            if( pp == leftstart ) { /* we hit the front of the buffer */
-              wrap_out( leftstart, maxw, &winfo, holdbuff, &hbpt, " ", 0 );
+//            wrap_out( leftstart, maxw, &winfo, holdbuff, &hbpt, " ", 0 );
+              wrap_out_ansi(leftstart, maxw, &winfo, holdbuff, &hbpt, " ", 0,
+                            p_leftstart, outsplit2);
               count++;
               safe_str( "\r\n", holdbuff, &hbpt );
+              p_bp = outsplit2 + (hbpt - holdbuff);
+              memset(p_bp->s_fghex, '\0', 5);
+              memset(p_bp->s_bghex, '\0', 5);
+              p_bp->i_special = 0;
+              p_bp->c_accent = '\0';
+              p_bp->c_fgansi = '\0';
+              p_bp->c_bgansi = '\0';
+              p_bp = outsplit2 + (hbpt - holdbuff) + 1;
+              memset(p_bp->s_fghex, '\0', 5);
+              memset(p_bp->s_bghex, '\0', 5);
+              p_bp->i_special = 0;
+              p_bp->c_accent = '\0';
+              p_bp->c_fgansi = '\0';
+              p_bp->c_bgansi = '\0';
               if (cut2) {
                  pp = leftstart + maxw;
-                 while (*pp && !isspace((int)*pp))
+                 p_sp = p_leftstart + maxw;
+                 while (*pp && !isspace((int)*pp)) {
                     pp++;
-                 if (*pp)
+                    p_sp++;
+                 }
+                 if (*pp) {
                     pp++;
+                    p_sp++;
+                 }
                  buffleft -= pp - leftstart;
                  leftstart += pp - leftstart;
+                 p_leftstart += p_sp - p_leftstart;
               } else {
                  leftstart += maxw;
+                 p_leftstart += maxw;
                  buffleft -= maxw;
               }
            } else { /* we hit a space, chop it there */
-              wrap_out( leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, " ", 0 );
+//            wrap_out( leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, " ", 0 );
+              wrap_out_ansi(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, " ", 0,
+                            p_leftstart, outsplit2);
               count++;
               safe_str( "\r\n", holdbuff, &hbpt );
+              p_bp = outsplit2 + (hbpt - holdbuff);
+              memset(p_bp->s_fghex, '\0', 5);
+              memset(p_bp->s_bghex, '\0', 5);
+              p_bp->i_special = 0;
+              p_bp->c_accent = '\0';
+              p_bp->c_fgansi = '\0';
+              p_bp->c_bgansi = '\0';
+              p_bp = outsplit2 + (hbpt - holdbuff) + 1;
+              memset(p_bp->s_fghex, '\0', 5);
+              memset(p_bp->s_bghex, '\0', 5);
+              p_bp->i_special = 0;
+              p_bp->c_accent = '\0';
+              p_bp->c_fgansi = '\0';
+              p_bp->c_bgansi = '\0';
               buffleft -= pp - leftstart + 1;
               leftstart += pp - leftstart + 1; /* eat the space */
+              p_leftstart += p_sp - p_leftstart + 1;
            }
         }
      }
@@ -3666,11 +4089,21 @@ FUNCTION(fun_wrapcolumns)
      winfo.right = fargs[8];
   } else
      winfo.right = NULL;
+
+  string = rebuild_ansi(holdbuff, outsplit2);
+
   if (wtype) {
-     hbpt = holdbuff;
+//   hbpt = holdbuff;
+     hbpt = string;
      while (count > 0) {
-        if (winfo.left)
+        if (winfo.left) {
+#ifdef ZENTY_ANSI
+           safe_chr('%', buff, bufcx);
+           safe_chr(SAFE_CHR, buff, bufcx);
+           safe_chr('n', buff, bufcx);
+#endif
            safe_str(winfo.left, buff, bufcx);
+        }
         for (x = 0; x < ncols; x++) {
            count--;
            pt2 = strchr(hbpt,'\n');
@@ -3682,12 +4115,24 @@ FUNCTION(fun_wrapcolumns)
            if (!count)
               break;
            if (x < (ncols - 1)) {
-              if (between)
+              if (between) {
+#ifdef ZENTY_ANSI
+                 safe_chr('%', buff, bufcx);
+                 safe_chr(SAFE_CHR, buff, bufcx);
+                 safe_chr('n', buff, bufcx);
+#endif
                  safe_str(between, buff, bufcx);
+              }
            }
         }
-        if (winfo.right)
+        if (winfo.right) {
+#ifdef ZENTY_ANSI
+           safe_chr('%', buff, bufcx);
+           safe_chr(SAFE_CHR, buff, bufcx);
+           safe_chr('n', buff, bufcx);
+#endif
            safe_str(winfo.right, buff, bufcx);
+        }
         if (count)
            safe_str("\r\n", buff, bufcx);
      }
@@ -3698,8 +4143,14 @@ FUNCTION(fun_wrapcolumns)
      if (remorig)
         rows++;
      for (x = 0; x < rows; x++) {
-        if (winfo.left)
+        if (winfo.left) {
+#ifdef ZENTY_ANSI
+           safe_chr('%', buff, bufcx);
+           safe_chr(SAFE_CHR, buff, bufcx);
+           safe_chr('n', buff, bufcx);
+#endif
            safe_str(winfo.left, buff, bufcx);
+        }
         for (y = 0; y < ncols; y++) {
            pos = x;
            for (z = 0; z < y; z++) {
@@ -3707,7 +4158,8 @@ FUNCTION(fun_wrapcolumns)
               if ((remorig - z) > 0)
                  pos++;
            }
-           hbpt = holdbuff;
+//         hbpt = holdbuff;
+           hbpt = string;
            for (z = 0; z < pos; z++) {
               pt2 = strchr(hbpt,'\n');
               if ( pt2 )
@@ -3727,21 +4179,40 @@ FUNCTION(fun_wrapcolumns)
            if ((x == (rows - 1)) && remorig) {
               if ((remorig - y) == 1)
                  break;
-              else if (between)
+              else if (between) {
+#ifdef ZENTY_ANSI
+                 safe_chr('%', buff, bufcx);
+                 safe_chr(SAFE_CHR, buff, bufcx);
+                 safe_chr('n', buff, bufcx);
+#endif
                  safe_str(between, buff, bufcx);
+              }
            } else if (y < (ncols - 1)) {
-              if (between)
+              if (between) {
+#ifdef ZENTY_ANSI
+                 safe_chr('%', buff, bufcx);
+                 safe_chr(SAFE_CHR, buff, bufcx);
+                 safe_chr('n', buff, bufcx);
+#endif
                  safe_str(between, buff, bufcx);
+              }
            }
         }
-        if (winfo.right)
+        if (winfo.right) {
+#ifdef ZENTY_ANSI
+           safe_chr('%', buff, bufcx);
+           safe_chr(SAFE_CHR, buff, bufcx);
+           safe_chr('n', buff, bufcx);
+#endif
            safe_str(winfo.right, buff, bufcx);
+        }
         if (x < (rows - 1))
            safe_str("\r\n", buff, bufcx);
      }
   }
   free_lbuf(expandbuff);
   free_lbuf(holdbuff);
+  free_lbuf(string);
 }
 
 /*FUNCTION(fun_columns)
@@ -4323,31 +4794,61 @@ FUNCTION(fun_shuffle)
 FUNCTION(fun_scramble)
 {
     int x, pic, num, numleft;
-    char *numpt;
+    char *numpt, *outbuff, *s_output, *mybuff, *pmybuff;
+    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp;
 
-    num = strlen(fargs[0]);
-    if (!num)
-       return;
-    if (num == 1) {
-       safe_chr(*fargs[0], buff, bufcx);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    initialize_ansisplitter(outsplit2, LBUF_SIZE);
+    outbuff = alloc_lbuf("fun_scramble");
+    split_ansi(fargs[0], outbuff, outsplit);
+
+    num = strlen(outbuff);
+    if (!num) {
        return;
     }
+    if (num == 1) {
+       safe_str(fargs[0], buff, bufcx);
+       free_lbuf(outbuff);
+       return;
+    }
+
+    pmybuff = mybuff = alloc_lbuf("fun_scramble2");
+
     numleft = num;
     numpt = (char *) malloc(num);
     for (x = 0; x < num; x++)
        *(numpt + x) = 0;
+    p_sp = outsplit2;
     while (numleft > 1) {
        do {
           pic = random() % num;
        } while (*(numpt + pic));
        *(numpt + pic) = 1;
-       safe_chr(*(fargs[0] + pic), buff, bufcx);
+       safe_chr(*(outbuff + pic), mybuff, &pmybuff);
+       strcpy(p_sp->s_fghex, outsplit[pic].s_fghex);
+       strcpy(p_sp->s_bghex, outsplit[pic].s_bghex);
+       p_sp->i_special = outsplit[pic].i_special;
+       p_sp->c_accent = outsplit[pic].c_accent;
+       p_sp->c_fgansi = outsplit[pic].c_fgansi;
+       p_sp->c_bgansi = outsplit[pic].c_bgansi;
+       p_sp++;
        numleft--;
     }
     pic = 0;
     while (*(numpt + pic) && (pic < num))
        pic++;
-    safe_chr(*(fargs[0] + pic), buff, bufcx);
+    safe_chr(*(outbuff + pic), mybuff, &pmybuff);
+    strcpy(p_sp->s_fghex, outsplit[pic].s_fghex);
+    strcpy(p_sp->s_bghex, outsplit[pic].s_bghex);
+    p_sp->i_special = outsplit[pic].i_special;
+    p_sp->c_accent = outsplit[pic].c_accent;
+    p_sp->c_fgansi = outsplit[pic].c_fgansi;
+    p_sp->c_bgansi = outsplit[pic].c_bgansi;
+    s_output = rebuild_ansi(mybuff, outsplit2);
+    safe_str(s_output, buff, bufcx);
+    free_lbuf(mybuff);
+    free_lbuf(s_output);
+    free_lbuf(outbuff);
     free(numpt);
 }
 
@@ -18807,6 +19308,37 @@ FUNCTION(fun_lcstr)
 
     ap = fargs[0];
     while (*ap) {
+#ifdef ZENTY_ANSI
+        if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+           if ( isAnsi[(int) *(ap+2)] ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              safe_chr(*(ap+2), buff, bufcx);
+              ap+=3;
+              continue;
+           }
+           if ( (*(ap+2) == '0') && ((*(ap+3) == 'x') || (*(ap+3) == 'X')) &&
+                *(ap+4) && *(ap+5) && isxdigit(*(ap+4)) && isxdigit(*(ap+5)) ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              safe_chr(*(ap+2), buff, bufcx);
+              safe_chr(*(ap+3), buff, bufcx);
+              safe_chr(*(ap+4), buff, bufcx);
+              safe_chr(*(ap+5), buff, bufcx);
+              ap+=6;
+              continue;
+           }
+        }
+        if ( (*ap == '%') && (*(ap+1) == 'f') ) {
+           if ( isprint(*(ap+2)) ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              safe_chr(*(ap+2), buff, bufcx);
+              ap+=3;
+              continue;
+           }
+        }
+#endif
        safe_chr(ToLower((int)*ap), buff, bufcx);
        ap++;
     }
@@ -18818,6 +19350,37 @@ FUNCTION(fun_ucstr)
 
     ap = fargs[0];
     while (*ap) {
+#ifdef ZENTY_ANSI
+        if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+           if ( isAnsi[(int) *(ap+2)] ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              safe_chr(*(ap+2), buff, bufcx);
+              ap+=3;
+              continue;
+           }
+           if ( (*(ap+2) == '0') && ((*(ap+3) == 'x') || (*(ap+3) == 'X')) &&
+                *(ap+4) && *(ap+5) && isxdigit(*(ap+4)) && isxdigit(*(ap+5)) ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              safe_chr(*(ap+2), buff, bufcx);
+              safe_chr(*(ap+3), buff, bufcx);
+              safe_chr(*(ap+4), buff, bufcx);
+              safe_chr(*(ap+5), buff, bufcx);
+              ap+=6;
+              continue;
+           }
+        }
+        if ( (*ap == '%') && (*(ap+1) == 'f') ) {
+           if ( isprint(*(ap+2)) ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              safe_chr(*(ap+2), buff, bufcx);
+              ap+=3;
+              continue;
+           }
+        }
+#endif
        safe_chr(ToUpper((int)*ap), buff, bufcx);
        ap++;
     }
@@ -18825,9 +19388,47 @@ FUNCTION(fun_ucstr)
 
 FUNCTION(fun_capstr)
 {
-    if( *fargs[0]  ) {
-      safe_chr( ToUpper((int)*fargs[0]), buff, bufcx);
-      safe_str( fargs[0] + 1, buff, bufcx);
+   char *ap = fargs[0];
+
+   if( *fargs[0]  ) {
+#ifdef ZENTY_ANSI
+       while ( *ap ) {
+          if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+             if ( isAnsi[(int) *(ap+2)] ) {
+                safe_chr(*ap, buff, bufcx);
+                safe_chr(*(ap+1), buff, bufcx);
+                safe_chr(*(ap+2), buff, bufcx);
+                ap+=3;
+                continue;
+             }
+             if ( (*(ap+2) == '0') && ((*(ap+3) == 'x') || (*(ap+3) == 'X')) &&
+                  *(ap+4) && *(ap+5) && isxdigit(*(ap+4)) && isxdigit(*(ap+5)) ) {
+                safe_chr(*ap, buff, bufcx);
+                safe_chr(*(ap+1), buff, bufcx);
+                safe_chr(*(ap+2), buff, bufcx);
+                safe_chr(*(ap+3), buff, bufcx);
+                safe_chr(*(ap+4), buff, bufcx);
+                safe_chr(*(ap+5), buff, bufcx);
+                ap+=6;
+                continue;
+             }
+          }
+          if ( (*ap == '%') && (*(ap+1) == 'f') ) {
+             if ( isprint(*(ap+2)) ) {
+                safe_chr(*ap, buff, bufcx);
+                safe_chr(*(ap+1), buff, bufcx);
+                safe_chr(*(ap+2), buff, bufcx);
+                ap+=3;
+                continue;
+             }
+          }
+          break;
+      }
+#endif
+      if ( *ap ) {
+         safe_chr( ToUpper((int)*ap), buff, bufcx);
+         safe_str( ap + 1, buff, bufcx);
+      }
     }
 }
 
@@ -18847,8 +19448,8 @@ FUNCTION(fun_capstr)
  **/
 FUNCTION(fun_caplist)
 {
-    char *curr, *osep, *sep, style, *wordlist, *t_str, *s_tok, *s_tokr;
-    int bFirst, len, pos, i_found, i_last, i_first, i_lastchk;
+    char *curr, *osep, *sep, style, *wordlist, *t_str, *s_tok, *s_tokr, *ap;
+    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap;
     
     // We aren't allowed more than 4 args here.
     if( !fn_range_check( "CAPLIST", nfargs, 1, 4, buff, bufcx ) )
@@ -18861,10 +19462,10 @@ FUNCTION(fun_caplist)
     // Set up our arguments.
     sep = ( fargs[1] && *fargs[1] ) ? fargs[1] : (char *)" ";
     osep = ( fargs[2] && *fargs[2] ) ? fargs[2] : sep;
-    style = ( fargs[3] && *fargs[3] ) ? *fargs[3] : 'N';
+    style = ( fargs[3] && *fargs[3] ) ? ToUpper(*fargs[3]) : 'N';
     wordlist = trim_space_sep( fargs[0], *sep );
     i_last = countwords( fargs[0], *sep );
-    i_first = i_found = 0;
+    i_first = i_found = i_cap = 0;
 
     if ( !*wordlist ) {
        return;
@@ -18873,99 +19474,204 @@ FUNCTION(fun_caplist)
     t_str = alloc_lbuf("caplist");
 
     bFirst = i_lastchk = 1;
-    do
-    {
-      // Set the current word.
-      curr = split_token( &wordlist, *sep );
+    do {
+       // Set the current word.
+       curr = split_token( &wordlist, *sep );
 
-      // If we're not on the first word, put our osep in.
-      if( !bFirst )
-        safe_chr( *osep, buff, bufcx );
-      bFirst = 0;
+       // If we're not on the first word, put our osep in.
+       if( !bFirst )
+          safe_chr( *osep, buff, bufcx );
+       bFirst = 0;
 
-      if ( !*curr )
-         continue;
+       if ( !*curr )
+          continue;
 
-      switch( style )
-      {
-        // Capitalize the first letter of every word
-	// Lowercase the rest of each word.
-        case 'L':
-          safe_chr( ToUpper( *curr ), buff, bufcx );
-	  len = strlen( curr );
-	  pos = 0;
-	  while( pos < len )
-	  {
-	    if( *curr && *( curr + 1 ) && pos > 0 )
-	      safe_chr( ToLower( curr[pos] ), buff, bufcx );
-	    pos++;
-	  }
-	  break;
+       switch( style ) {
+          // Capitalize the first letter of every word
+  	  // Lowercase the rest of each word.
+          case 'L': /* Enforce Lower Case */
+             i_cap = 0;
+             ap = curr;
+             while ( *ap ) {
+#ifdef ZENTY_ANSI
+                if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+                   if ( isAnsi[(int) *(ap+2)] ) {
+                      safe_chr(*ap, buff, bufcx);
+                      safe_chr(*(ap+1), buff, bufcx);
+                      safe_chr(*(ap+2), buff, bufcx);
+                      ap+=3;
+                      continue;
+                   }
+                   if ( (*(ap+2) == '0') && ((*(ap+3) == 'x') || (*(ap+3) == 'X')) &&
+                        *(ap+4) && *(ap+5) && isxdigit(*(ap+4)) && isxdigit(*(ap+5)) ) {
+                      safe_chr(*ap, buff, bufcx);
+                      safe_chr(*(ap+1), buff, bufcx);
+                      safe_chr(*(ap+2), buff, bufcx);
+                      safe_chr(*(ap+3), buff, bufcx);
+                      safe_chr(*(ap+4), buff, bufcx);
+                      safe_chr(*(ap+5), buff, bufcx);
+                      ap+=6;
+                      continue;
+                   }
+                }
+                if ( (*ap == '%') && (*(ap+1) == 'f') ) {
+                   if ( isprint(*(ap+2)) ) {
+                      safe_chr(*ap, buff, bufcx);
+                      safe_chr(*(ap+1), buff, bufcx);
+                      safe_chr(*(ap+2), buff, bufcx);
+                      ap+=3;
+                      continue;
+                   }
+                }
+#endif
+                if ( !i_cap ) {
+  	           safe_chr( ToUpper( *ap ), buff, bufcx );
+                   i_cap = 1;
+                } else {
+  	           safe_chr( ToLower( *ap ), buff, bufcx );
+                }
+                ap++;
+	    }
+	    break;
 
         // True capitilization -- Title NIVA standards
-        case 'T':
-          i_found = 0;
-          if ( i_first && (i_last != i_lastchk) && *(mudconf.cap_conjunctions) ) {
-             memcpy(t_str, mudconf.cap_conjunctions, LBUF_SIZE-2);
-             s_tok = strtok_r(t_str, " ", &s_tokr);
-             while ( s_tok ) {
-                if ( stricmp(s_tok, curr) == 0 ) {
-                   i_found = 1;
-                   break;
+        case 'T': /* True capitalization */
+           i_found = 0;
+           if ( i_first && (i_last != i_lastchk) && *(mudconf.cap_conjunctions) ) {
+              memcpy(t_str, mudconf.cap_conjunctions, LBUF_SIZE-2);
+              s_tok = strtok_r(t_str, " ", &s_tokr);
+              while ( s_tok ) {
+                 if ( stricmp(s_tok, strip_all_special(curr)) == 0 ) {
+                    i_found = 1;
+                    break;
+                 }
+                 s_tok = strtok_r(NULL, " ", &s_tokr);
+              }
+           }
+           if ( i_first && (i_last != i_lastchk) && !i_found && *(mudconf.cap_articles) ) {
+              memcpy(t_str, mudconf.cap_articles, LBUF_SIZE-2);
+              s_tok = strtok_r(t_str, " ", &s_tokr);
+              while ( s_tok ) {
+                 if ( stricmp(s_tok, strip_all_special(curr)) == 0 ) {
+                    i_found = 1;
+                    break;
+                 }
+                 s_tok = strtok_r(NULL, " ", &s_tokr);
+              }
+           }
+           if ( i_first && (i_last != i_lastchk) && !i_found && *(mudconf.cap_preposition) ) {
+              memcpy(t_str, mudconf.cap_preposition, LBUF_SIZE-2);
+              s_tok = strtok_r(t_str, " ", &s_tokr);
+              while ( s_tok ) {
+                 if ( stricmp(s_tok, strip_all_special(curr)) == 0 ) {
+                    i_found = 1;
+                    break;
+                 }
+                 s_tok = strtok_r(NULL, " ", &s_tokr);
+              }
+          }
+          i_cap = 0;
+          ap = curr;
+	  while( *ap ) {
+#ifdef ZENTY_ANSI
+             if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+                if ( isAnsi[(int) *(ap+2)] ) {
+                   safe_chr(*ap, buff, bufcx);
+                   safe_chr(*(ap+1), buff, bufcx);
+                   safe_chr(*(ap+2), buff, bufcx);
+                   ap+=3;
+                   continue;
                 }
-                s_tok = strtok_r(NULL, " ", &s_tokr);
-             }
-          }
-          if ( i_first && (i_last != i_lastchk) && !i_found && *(mudconf.cap_articles) ) {
-             memcpy(t_str, mudconf.cap_articles, LBUF_SIZE-2);
-             s_tok = strtok_r(t_str, " ", &s_tokr);
-             while ( s_tok ) {
-                if ( stricmp(s_tok, curr) == 0 ) {
-                   i_found = 1;
-                   break;
+                if ( (*(ap+2) == '0') && ((*(ap+3) == 'x') || (*(ap+3) == 'X')) &&
+                      *(ap+4) && *(ap+5) && isxdigit(*(ap+4)) && isxdigit(*(ap+5)) ) {
+                   safe_chr(*ap, buff, bufcx);
+                   safe_chr(*(ap+1), buff, bufcx);
+                   safe_chr(*(ap+2), buff, bufcx);
+                   safe_chr(*(ap+3), buff, bufcx);
+                   safe_chr(*(ap+4), buff, bufcx);
+                   safe_chr(*(ap+5), buff, bufcx);
+                   ap+=6;
+                   continue;
                 }
-                s_tok = strtok_r(NULL, " ", &s_tokr);
              }
-          }
-          if ( i_first && (i_last != i_lastchk) && !i_found && *(mudconf.cap_preposition) ) {
-             memcpy(t_str, mudconf.cap_preposition, LBUF_SIZE-2);
-             s_tok = strtok_r(t_str, " ", &s_tokr);
-             while ( s_tok ) {
-                if ( stricmp(s_tok, curr) == 0 ) {
-                   i_found = 1;
-                   break;
+             if ( (*ap == '%') && (*(ap+1) == 'f') ) {
+                if ( isprint(*(ap+2)) ) {
+                   safe_chr(*ap, buff, bufcx);
+                   safe_chr(*(ap+1), buff, bufcx);
+                   safe_chr(*(ap+2), buff, bufcx);
+                   ap+=3;
+                   continue;
                 }
-                s_tok = strtok_r(NULL, " ", &s_tokr);
              }
-          }
-          if ( !i_found || !i_first || (i_lastchk == i_last) ) {
-             safe_chr( ToUpper( *curr ), buff, bufcx );
-          } else {
-             safe_chr( ToLower( *curr ), buff, bufcx );
-          }
-          i_first = 1;
-	  len = strlen( curr );
-	  pos = 0;
-	  while( pos < len )
-	  {
-	    if( *curr && *( curr + 1 ) && pos > 0 )
-	      safe_chr( ToLower( curr[pos] ), buff, bufcx );
-	    pos++;
+#endif
+             if ( !i_cap ) {
+                if ( !i_found || !i_first || (i_lastchk == i_last) ) {
+                   safe_chr( ToUpper( *ap ), buff, bufcx );
+                   i_first = 1;
+                } else {
+                   safe_chr( ToLower( *ap ), buff, bufcx );
+                   i_first = 1;
+                }
+                i_cap = 1;
+             } else {
+	        if( *ap ) {
+	           safe_chr( ToLower( *ap ), buff, bufcx );
+                }
+             }
+             ap++;
 	  }
           i_lastchk++;
           break;
 
 	// Capitalize the first letter of every word
 	// Leave the rest of each word as natural.
-        case 'N':
+        case 'N': /* Normalized caplist */
         default:
-          safe_chr( ToUpper( *curr ), buff, bufcx );
-	  if( *curr && *( curr + 1 ) )
-            safe_str( curr + 1, buff, bufcx );
-	  break;
-      }
-    }
-    while( wordlist );
+           ap = curr;
+           i_cap = 0;
+           while ( *ap ) {
+#ifdef ZENTY_ANSI
+              if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+                 if ( isAnsi[(int) *(ap+2)] ) {
+                    safe_chr(*ap, buff, bufcx);
+                    safe_chr(*(ap+1), buff, bufcx);
+                    safe_chr(*(ap+2), buff, bufcx);
+                    ap+=3;
+                    continue;
+                 }
+                 if ( (*(ap+2) == '0') && ((*(ap+3) == 'x') || (*(ap+3) == 'X')) &&
+                       *(ap+4) && *(ap+5) && isxdigit(*(ap+4)) && isxdigit(*(ap+5)) ) {
+                    safe_chr(*ap, buff, bufcx);
+                    safe_chr(*(ap+1), buff, bufcx);
+                    safe_chr(*(ap+2), buff, bufcx);
+                    safe_chr(*(ap+3), buff, bufcx);
+                    safe_chr(*(ap+4), buff, bufcx);
+                    safe_chr(*(ap+5), buff, bufcx);
+                    ap+=6;
+                    continue;
+                 }
+              }
+              if ( (*ap == '%') && (*(ap+1) == 'f') ) {
+                 if ( isprint(*(ap+2)) ) {
+                    safe_chr(*ap, buff, bufcx);
+                    safe_chr(*(ap+1), buff, bufcx);
+                    safe_chr(*(ap+2), buff, bufcx);
+                    ap+=3;
+                    continue;
+                 }
+              }
+#endif
+              if ( !i_cap ) {
+                 safe_chr( ToUpper( *ap ), buff, bufcx );
+                 i_cap = 1;
+              } else {
+                 safe_chr( *ap, buff, bufcx );
+              }
+              ap++;
+           }
+	   break;
+       }
+    } while( wordlist );
     free_lbuf(t_str);
     return;
 }
@@ -19546,7 +20252,33 @@ FUNCTION(fun_lcmds)
 
 FUNCTION(fun_reverse)
 {
-    do_reverse(fargs[0], buff, bufcx);
+    char *s_output, *mybuff, *pmybuff;
+    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE];
+    int i_icntr, i_max;
+
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    initialize_ansisplitter(outsplit2, LBUF_SIZE);
+
+    s_output = alloc_lbuf("fun_reverse");
+    split_ansi(fargs[0], s_output, outsplit);
+    i_icntr = 0;
+    i_max = strlen(s_output);
+    while ( i_icntr < i_max ) {
+       strcpy(outsplit2[i_icntr].s_fghex, outsplit[i_max - 1 - i_icntr].s_fghex);
+       strcpy(outsplit2[i_icntr].s_bghex, outsplit[i_max - 1 - i_icntr].s_bghex);
+       outsplit2[i_icntr].i_special = outsplit[i_max - 1 - i_icntr].i_special;
+       outsplit2[i_icntr].c_accent = outsplit[i_max - 1 - i_icntr].c_accent;
+       outsplit2[i_icntr].c_fgansi = outsplit[i_max - 1 - i_icntr].c_fgansi;
+       outsplit2[i_icntr].c_bgansi = outsplit[i_max - 1 - i_icntr].c_bgansi;
+       i_icntr++;
+    }
+    pmybuff = mybuff = alloc_lbuf("fun_reverse");
+    do_reverse(s_output, mybuff, &pmybuff);
+    free_lbuf(s_output);
+    s_output = rebuild_ansi(mybuff, outsplit2);
+    free_lbuf(mybuff);
+    safe_str(s_output, buff, bufcx);
+    free_lbuf(s_output);
 }
 
 FUNCTION(fun_revwords)

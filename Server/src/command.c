@@ -33,8 +33,11 @@ char *index(const char *, int);
 #include "debug.h"
 #define FILENUM COMMAND_C
 
-extern char * attrib_show(char *);
-extern void display_perms(dbref);
+extern char * attrib_show(char *, int);
+extern void display_perms(dbref, int, int, char *);
+extern void del_perms(dbref, char *, char *, char **, int);
+extern void add_perms(dbref, char *, char *, char **, int);
+extern void mod_perms(dbref, char *, char *, char **, int);
 extern void FDECL(list_cf_access, (dbref, char *, int));
 extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
@@ -119,6 +122,10 @@ NAMETAB aflags_sw[] =
 {
     {(char *) "full", 2, CA_WIZARD, 0, AFLAGS_FULL},
     {(char *) "perms", 2, CA_WIZARD, 0, AFLAGS_PERM},
+    {(char *) "search", 2, CA_WIZARD, 0, AFLAGS_SEARCH|SW_MULTIPLE},
+    {(char *) "add", 2, CA_WIZARD, 0, AFLAGS_ADD},
+    {(char *) "del", 2, CA_WIZARD, 0, AFLAGS_DEL},
+    {(char *) "mod", 2, CA_WIZARD, 0, AFLAGS_MOD},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB areg_sw[] =
@@ -1032,7 +1039,7 @@ CMDENT command_table[] =
     {(char *) "@admin", NULL, CA_GOD | CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_admin},
     {(char *) "@aflags", aflags_sw, CA_IMMORTAL, 0,
-     0, CS_ONE_ARG | CS_INTERP, 0, do_aflags},
+     0, CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_aflags},
     {(char *) "@alias", NULL, CA_NO_GUEST | CA_NO_SLAVE, 0,
      0, CS_TWO_ARG, 0, do_alias},
     {(char *) "@apply_marked", NULL, CA_WIZARD | CA_GBL_INTERP, 0,
@@ -7440,21 +7447,52 @@ int flagcheck(char *fname, char *rbuff)
   return atrnum;
 }
 
-void do_aflags(dbref player, dbref cause, int key, char *fname)
+void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char *cargs[], int ncargs) 
 {
-  char *buff, *s_buff, *s_chkattr, *s_format;
-  int atrnum, aflags, atrcnt;
+  char *buff, *s_buff, *t_buff, *s_chkattr, *s_format;
+  int atrnum, aflags, atrcnt, i_page, i_key;
   dbref i, aowner;
 
+  i_page = i_key = 0;
   if ( key & AFLAGS_PERM ) {
-     display_perms(player);
+     if ( fname && *fname ) {
+        i_page = atoi(fname);
+        if ( i_page <= 0 ) 
+           i_page = 0;
+     }
+     if ( key & AFLAGS_SEARCH ) {
+        i_key = 1;
+        i_page = 0;
+     }
+     display_perms(player, i_page, i_key, fname);
      return;
   }
+  if ( key & AFLAGS_SEARCH ) {
+     notify(player, "Invalid switch combination.");
+     return;
+  }
+
+  if ( key & AFLAGS_ADD ) {
+     add_perms(player, fname, args, cargs, ncargs);
+     return;
+  }
+
+  if ( key & AFLAGS_MOD ) {
+     mod_perms(player, fname, args, cargs, ncargs);
+     return;
+  }
+
+  if ( key & AFLAGS_DEL ) {
+     del_perms(player, fname, args, cargs, ncargs);
+     return;
+  }
+
   buff = alloc_lbuf("do_flags");
   atrnum = flagcheck(fname, buff);
   s_chkattr = NULL;
   atrcnt = 0;
-  s_buff = attrib_show(fname);
+  s_buff = attrib_show(fname, 0);
+  t_buff = attrib_show(fname, 1);
   s_format = alloc_sbuf("do_aflags");
   if (*buff != '1') {
      if ( (fname[0] == '_') && (!mudconf.hackattr_see || !mudconf.hackattr_nowiz) ) {
@@ -7472,26 +7510,30 @@ void do_aflags(dbref player, dbref cause, int key, char *fname)
         }
         free_lbuf(s_chkattr);
         if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
-           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s%s %s", 
-                                        atrnum, atrcnt, buff, s_format, s_buff));
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s%s %s%s", 
+                                        atrnum, atrcnt, buff, s_format, s_buff, t_buff));
         } else {
-           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s %s", 
-                                        atrnum, atrcnt, buff, s_buff));
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s %s%s", 
+                                        atrnum, atrcnt, buff, s_buff, t_buff));
         }
      } else {
         if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
-           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s%s %s", 
-                                        atrnum, buff, s_format, s_buff));
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s%s %s%s", 
+                                        atrnum, buff, s_format, s_buff, t_buff));
         } else {
-           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s %s", 
-                                        atrnum, buff, s_buff));
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s %s%s", 
+                                        atrnum, buff, s_buff, t_buff));
         }
      }
   } else {
-     notify(player,unsafe_tprintf("Bad flag name '%s'", fname));
+     if ( !*fname )
+        notify(player,"@aflags requires an argument.");
+     else
+        notify(player,unsafe_tprintf("Bad attribute name '%s'", fname));
   }
   free_lbuf(buff);
   free_lbuf(s_buff);
+  free_lbuf(t_buff);
   free_sbuf(s_format);
 }
 

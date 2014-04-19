@@ -33,6 +33,21 @@
 #define atrpImm(s) (s == 6)
 #define atrpGod(s) (s == 7)
 
+#define SPLIT_NORMAL		0x00
+#define SPLIT_HILITE		0x01
+#define SPLIT_FLASH		0x02
+#define SPLIT_UNDERSCORE	0x04
+#define SPLIT_INVERSE		0x08
+
+typedef struct ansisplit {
+	char	s_fghex[5];	/* Hex representation - foreground */
+	char	s_bghex[5];	/* Hex representation - background */
+	char	c_fgansi;	/* Normal foreground ansi */
+	char	c_bgansi;	/* Normal background ansi */
+	int	i_special;	/* Special ansi characters */
+	char	c_accent;	/* Various accent characters */
+} ANSISPLIT;
+
 typedef struct atrp {
         char   *name;       /* function name */
         int     flag_set;       /* who can set/clear attrib */
@@ -40,6 +55,7 @@ typedef struct atrp {
         dbref	owner;		/* Owner of who set it (if not global which is -1) */
         dbref   controller;	/* Who controlls the attribute setting */
         dbref   target;		/* The actual target object */
+	dbref	enactor;	/* The actual enactor of the command itself */
         struct atrp *next;      /* Next ufun in chain */
 } ATRP;
 
@@ -357,6 +373,9 @@ extern char *	FDECL(dollar_to_space, (const char *));
 extern char *	FDECL(replace_string, (const char *, const char *,
 			const char *, int));
 extern char *	FDECL(replace_tokens, (const char *, const char *, const char *, const char *));
+extern void     FDECL(split_ansi, (char *, char *, ANSISPLIT *));
+extern char *   FDECL(rebuild_ansi, (char *, ANSISPLIT *));
+
 extern char *	FDECL(replace_string_inplace, (const char *,  const char *,
 			char *));
 extern char *	FDECL(skip_space, (const char *));
@@ -503,6 +522,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define AFLAGS_FULL	1
 #define AFLAGS_PERM	2
+#define AFLAGS_ADD	4
+#define AFLAGS_MOD	8
+#define AFLAGS_DEL	16
+#define AFLAGS_SEARCH	32
 #define AREG_LOAD	1
 #define AREG_UNLOAD	2
 #define AREG_LIST	4

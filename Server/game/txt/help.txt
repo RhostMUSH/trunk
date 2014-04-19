@@ -8656,7 +8656,7 @@
   'help function class'                      - listing of functions in classes
   'help function type'                       - sub-types of each function
    
-  See Also: @list functions, FUNCTION CLASSES, FUNCTION LIST
+  See Also: @list functions, FUNCTION CLASSES, FUNCTION LIST, FUNCTION TYPES
   
 & FUNCTION TYPES
   Topic: FUNCTION TYPES
@@ -8673,6 +8673,7 @@
   relational functions                      side effect functions
   string functions                          time functions
   trigonometry functions                    zone functions
+  regular expression functions              functions utilizing regexp
   
   
   In addition:   You may specify 'function classes' to see each class.
@@ -8767,28 +8768,29 @@
 & FUNCTION LIST4
   
   REBOOTSECS()    REBOOTTIME()    REGEDIT()      REGEDITI()     REGEDITALL()
-  REGEDITALLI()   REGMATCH()      REGMATCHI()    REGRAB()       REGRABI()     
-  REGREP()        REGREPI()       RESWITCH()     RESWITCHI()    RESWITCHALL()
-  RESWITCHALLI()  REMAINDER()     REMIT()        REMFLAGS()     REMOVE()      
-  REMTYPE()       REPEAT()        REPLACE()      REST()         REVERSE()     
-  REVWORDS()      RIGHT()         RINDEX()       RJC()          RJUST()       
-  RLOC()          RNUM()          ROMAN()        ROOM()         ROTL()        
-  ROTR()          ROUND()         RSET()         RXLEVEL()      S()           
-  SAFEBUFF()      SCRAMBLE()      SEARCH()       SEARCHNG()     SECS()       
-  SECURE()        SECUREX()       SEES()         SET()          SETDIFF()    
-  SETINTER()      SETQ()          SETQ_OLD()     SETQMATCH()    SETR()       
-  SETR_OLD()      SETUNION()      SHIFT()        SHL()          SHR()        
-  SHUFFLE()       SIGN()          SIN()          SINGLETIME()   SORT()       
-  SORTBY()        SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
-  SPELLNUM()      SPLICE()        SQLITE_QUERY() SQRT()         SQUISH()     
-  STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
-  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
-  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
-  STRMATH()       SUB()           SUBJ()         SWITCH()       SWITCHALL()  
-  T()             TAN()           TEL()          TIME()         TIMEFMT()    
-  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()      
-  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
-  TR()            TRACE()         TRANSLATE() 
+  REGEDITALLI()   REGMATCH()      REGMATCHI()    REGLMATCH()    REGLMATCHI()
+  REGLMATCHALL()  REGLMATCHALLI() REGRAB()       REGRABI()      REGREP()      
+  REGREPI()       RESWITCH()      RESWITCHI()    RESWITCHALL()  RESWITCHALLI()
+  REMAINDER()     REMIT()         REMFLAGS()     REMOVE()       REMTYPE()     
+  REPEAT()        REPLACE()       REST()         REVERSE()      REVWORDS()    
+  RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
+  RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
+  ROUND()         RSET()          RXLEVEL()      S()            SAFEBUFF()    
+  SCRAMBLE()      SEARCH()        SEARCHNG()     SECS()         SECURE()      
+  SECUREX()       SEES()          SET()          SETDIFF()      SETINTER()     
+  SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()    
+  SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()     
+  SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()      
+  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()    
+  SPLICE()        SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()   
+  STARTSECS()     STATS()         STEP()         STR()          STRCAT()      
+  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()       
+  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()     
+  SUB()           SUBJ()          SWITCH()       SWITCHALL()    T()           
+  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()       
+  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()     
+  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()          
+  TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -8822,6 +8824,7 @@
  LNORBOOL() > lnor()      ANDBOOL() ---> and()       ORBOOL() -----> or()
  NOTBOOL() -> not()       XORBOOL() ---> xor()       LOOP() -------> parse()
  MEAN()    -> avg()       ENUMERATE() -> elist()     MOD() --------> remainder()
+ LMATH()   -> strfunc()
   
   To see the help on the aliased function, please check the help of the 
   function that it aliases.
@@ -8930,9 +8933,10 @@
              See Also: help relational functions
   
   Regular Expression:  REGEDIT() REGEDITI() REGEDITALL() REGEDITALLI() 
-                       REGMATCH() REGMATCHI() REGRAB() REGRABI() REGRABALL()
-                       REGRABALLI() REGREP() REGREPI() RESWITCH() RESWITCHI()
-                       RESWITCHALL() RESWITCHALLI()
+                       REGMATCH() REGMATCHI() REGLMATCH() REGLMATCHI() 
+                       REGLMATCHALL() REGLMATCHALLI() REGRAB() REGRABI() 
+                       REGRABALL() REGRABALLI() REGREP() REGREPI() RESWITCH() 
+                       RESWITCHI() RESWITCHALL() RESWITCHALLI()
              See Also: help regular expression functions
   
   { 'help function classes5' for more }
@@ -12147,7 +12151,10 @@ See Also: timefmt()
   
   See Also: add(), sub(), mul(), div(), mod(), strfunc(), spellnum()
   
-& strfunc()
+& LMATH()
+  See strfunc()
+
+& STRFUNC()
   Function: strfunc(<function>, <list of arguments>[,<delim>])
   
   The strfunc function is used to transform a string of arguments
@@ -12604,21 +12611,30 @@ See Also: timefmt()
   
   'help regexp syntax' for an explanation of regular expressions.
 
-& REGMATCHALLI()
-& REGMATCHALL()
-  Function: regmatchall(<string>, <regexp> [,<delimiter>])
-            regmatchalli(<string>, <regexp> [,<delimiter>])
+& REGLMATCHALLI()
+& REGLMATCHALL()
+& REGLMATCHI()
+& REGLMATCH()
+  Function: reglmatchalli(<string>, <regexp> [,<delimiter>])
+            reglmatchall(<string>, <regexp> [,<delimiter>])
+            reglmatchi(<string>, <regexp> [,<delimiter>])
+            reglmatch(<string>, <regexp> [,<delimiter>])
   
   This function returns the positional matches of every word in the
   string that matches the specified regular expression.  This is
   exactly like the totmatch() function except uses regular 
   expression matching.  This function is case sensitive.
   
-  The regmatchalli() function ignores case.
+  The non 'all' functions will only return the position of the first
+  match, or in other words functions like match() would.
+   
+  The reglmatchi() and reglmatchalli() functions ignores case.
   
   Example:
-  > say regmatchall(one two three four five fourteen,.*ou.*)
-  You say "4 6"
+    > say reglmatchall(one two three four five fourteen,.*ou.*)
+    You say "4 6"
+    > say reglmatch(one two three four five fourteen,.*ou.*)
+    You say "4"
   
   See Also: totmatch(), regmatch(), regnummatch(), nummatch()
   
@@ -12629,7 +12645,7 @@ See Also: timefmt()
   
   This function matches the regular expression <regexp> against the
   entirety of <string>, returning 1 if it matches and 0 if it does not.
-  This function is case sensitive.
+  This function is case sensitive.  It behaves like strmatch().
   
   If <register list> is specified, there is a side-effect: any
   parenthesized substrings within the regular expression will be set
@@ -22732,7 +22748,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   if no fill character is given) ("right-justifies") so it is <length> long.
   If <string> is longer than <length>, the <string> is returned; it is not
   truncated. <fill> may be a string of over one character.
- 
+  
+  If you wish to use ansified filler, use printf() instead.
+   
   Examples:
     > say -[rjust(foo,6)]-
     You say "-   foo-"
@@ -22757,6 +22775,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   than <length> it will be cut to fit within a field of <length> characters.
   You may specify an optional fill character.
   
+  If you wish to use ansified filler, use printf() instead.
+   
   Examples:
     > say -[rjc(foo,6)]-
     You say "-   foo-"
@@ -22799,6 +22819,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   <string> within a field of <length> characters. If <string> is longer 
   than <length> it will be cut to fit within a field of <length> characters.
   You may specify an optional fill character.
+  
+  If you wish to use ansified filler, use printf() instead.
    
   Examples:
     > say -[ljc(foo,6)]-
@@ -22817,7 +22839,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   if no fill character is given) ("left-justifies") so it is <length> long.
   If <string> is longer than <length>, the <string> is returned; it is not
   truncated.  <fill> may be a string of more than one character.
- 
+  
+  If you wish to use ansified filler, use printf() instead.
+   
   Examples:
     > say -[ljust(foo,6)]-
     You say "-foo   -"
@@ -23139,7 +23163,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   centering.  If no fill character is specified then a space is used.
   If <string> is longer than <width> characters, the string is returned
   unmodified.  The <fill> may contain more than one character.
- 
+  
+  If you wish to use ansified filler, use printf() instead.
+   
   Example:
     > say center(a,5,-)
     You say "--a--"
@@ -27652,6 +27678,43 @@ Mail: Done
   
   See Also: regexp syntax, regexp classes
 
+& regular expression functions
+  Function lists: Regular Expressions
+  
+  regedit()          -- Edits first case match based on regexp
+  regeditall()       -- Edits all case matches based on regexp
+  regeditalli()      -- Edits first non-case match based on regexp 
+  regeditallilit()   -- Edits first non-case match based on escaped regexp
+  regeditalllit()    -- Edits first case match based on escaped regexp
+  regediti()         -- Edits first non-case match based on regexp
+  regeditilit()      -- Edits first non-case match based on escaped regexp
+  regeditlit()       -- Edits first case match based on escaped regexp
+  reglmatch()        -- Returns first case position of regexp match
+  reglmatchall()     -- Returns all case positions of regexp matches
+  reglmatchalli()    -- Returns all non-case positions of regexp matches
+  reglmatchi()       -- Returns first non-case position of regexp match
+  regmatch()         -- Returns true(1) or false(0) on a case regexp match
+  regmatchi()        -- Returns true(1) or false(0) on a non-case regexp match
+  regnummatch()      -- Returns count of all case regexp matches
+  regnummatchi()     -- Returns count of all non-case regexp matches
+  regrab()           -- Returns string of first case regexp match
+  regrabi()          -- Returns string of first non-case regexp match
+  regraball()        -- Returns strings of all case regexp matches
+  regraballi()       -- Returns strings of all non-case regexp matches
+  regrep()           -- Returns attribs that contain string of case regexp
+  regrepi()          -- Returns attribs that contain string of non-case regexp
+  reswitch()         -- Switch based on case regexp match
+  reswitchall()      -- Switch all based on case regexp match
+  reswitchalli()     -- Switch all based on non-case regexp match
+  reswitchi()        -- Switch based on non-case regexp match
+  cluster_lattr()    -- Regexp capable attribute listing for clusters
+  cluster_regrepi()  -- Returns attrs in cluster that contain non-case regexp
+  cluster_regrep()   -- Returns attrs in cluster that contain case regexp
+  cluster_wipe()     -- Regexp capable attribute cluster wiper     
+  lattr()            -- Regexp capable attribute listing
+  lattrp()           -- Regexp capable parent attribute listing
+  wipe()             -- Regexp capable attribute wiper
+
 & arithmetic functions
   Function lists: Arithmetic Functions
   
@@ -28700,7 +28763,8 @@ Status: Alpha
   
 New Features
 -------
-* regmatchall()/regmatchalli() -- returns match values (like matchall())
+* reglmatch()/reglmatchi() -- returns match positions (like match())
+* reglmatchall()/reglmatchalli() -- returns all match positions (like matchall())
 * regnummatch()/regnummatchi() -- returns count of matches (like nummatch())
   
 Changes
@@ -28708,11 +28772,18 @@ Changes
 * /tree added to @decompile, examine, and *lattr*() functions for 
   Penn-tree viewing [ASH]
 * /regexp added to @decompile and examine for regexp wildcard matching [ASH]
-* ^listens optionally handle parented arguments with @admin listen_parents enabled [ASH]
+* ^listens optionally handle parented arguments with @admin listen_parents 
+  enabled [ASH]
 * /multi switch added to @oemit to optionally allow multiple targets [ASH]
 * oemit() optionally handles multiple targets [ASH]
 * lattr() and family handles TREE viewing optionally [ASH]
 * lexits() honors dark locks [ASH]
+* @aflags modified to allow online adding, modifying, deleting attrib 
+  prefixes [ASH]
+* reverse(), scramble(), capstr(), lcstr(), ucstr(), and caplist() are now 
+  ansi-aware [ASH]
+* columns() is now ansi aware, and it was a pain in the arse. [ASH]
+* wrapcolumns() is now ansi aware, and was a bigger pain in the arse. [ASH]
   
 Bug Fixes
 ---------
@@ -28721,3 +28792,4 @@ Bug Fixes
 * WHO/DOING would not properly show 'year' if you've been on over a year [ASH]
 * strfunc() wouldn't handle null arguments properly [ASH]
 * QDBM on a panic SIGTERM dump could occasinally corrupt the db (but flafile fine) [ASH]
+* @door function definition change in later versions of GCC caused a conflict [ASH]

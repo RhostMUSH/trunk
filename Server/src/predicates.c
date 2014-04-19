@@ -22,8 +22,8 @@ char *index(const char *, int);
 
 extern dbref	FDECL(match_thing, (dbref, char *));
 #ifndef STANDALONE
-extern int attrib_cansee(dbref, const char *);
-extern int attrib_canset(dbref, const char *);
+extern int attrib_cansee(dbref, const char *, dbref, dbref);
+extern int attrib_canset(dbref, const char *, dbref, dbref);
 #endif
 
 /* ---------------------------------------------------------------------------
@@ -204,7 +204,7 @@ int See_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key)
       ((a)->name[0] == '_') ) 
      return 0;
 #endif
-  if ( !(attrib_cansee(p, (a)->name)) )
+  if ( !(attrib_cansee(p, (a)->name, Owner(x), x)) )
      return 0;
 #endif
 
@@ -266,7 +266,7 @@ int Read_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key )
       ((a)->name[0] == '_') ) 
     return 0;
 #endif
-  if ( !(attrib_cansee(p, (a)->name)) )
+  if ( !(attrib_cansee(p, (a)->name, Owner(x), x)) )
     return 0;
 #endif
   if ((((a)->flags & AF_IMMORTAL) || 
@@ -548,7 +548,7 @@ int Controlsforattr(dbref p, dbref x, ATTR *a, int f)
         !(mudconf.hackattr_nowiz) )
     return 0;
 #endif
-  if ( !(attrib_canset(p, (a)->name)) )
+  if ( !(attrib_canset(p, (a)->name, Owner(x), x)) )
     return 0;
 
 #endif
@@ -602,24 +602,50 @@ int can_listen(dbref thing)
       buff = alloc_lbuf("can_listen");
     else
       buff = NULL;
-    for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
-      if (attr == A_LISTEN) {
-        canhear = 1;
-        break;
-      }
-      if (Monitor(thing)) {
-        ap = atr_num(attr);
-        if (!ap || (ap->flags & AF_NOPROG))
-	  continue;
-        atr_get_str(buff, thing, attr, &aowner, &aflags);
-        if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
-	  continue;
-        for (s = buff + 1; *s && (*s != ':'); s++);
-        if (s) {
-	  canhear = 1;
-	  break;
-        }
-      }
+    if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
+       for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
+         if (attr == A_LISTEN) {
+           canhear = 1;
+           break;
+         }
+         if (Monitor(thing)) {
+           ap = atr_num(attr);
+           if (!ap || (ap->flags & AF_NOPROG))
+	     continue;
+           atr_get_str(buff, thing, attr, &aowner, &aflags);
+           if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+	     continue;
+           for (s = buff + 1; *s && (*s != ':'); s++);
+           if (s) {
+	     canhear = 1;
+	     break;
+           }
+         }
+       }
+    } else {
+       ITER_PARENTS(thing, parent, loop) {
+          for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+            if ((parent == thing) && (attr == A_LISTEN)) {
+              canhear = 1;
+              break;
+            }
+            if (Monitor(thing)) {
+              ap = atr_num(attr);
+              if (!ap || (ap->flags & AF_NOPROG))
+	        continue;
+              atr_get_str(buff, parent, attr, &aowner, &aflags);
+              if ( (thing != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                continue;
+              if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+	        continue;
+              for (s = buff + 1; *s && (*s != ':'); s++);
+              if (s) {
+	        canhear = 1;
+	        break;
+              }
+            }
+          }
+       }
     }
     if (buff)
       free_lbuf(buff);
@@ -1847,8 +1873,9 @@ int nearby (dbref player, dbref thing)
 
 int exit_visible(dbref exit, dbref player, int key)	/* exit visible to lexits() */
 {
-	if (Unfindable(exit) && Hidden(exit) && Wizard(Owner(exit)) && !Controls(player,Owner(exit)))
-		return 0;
+	if (Unfindable(exit) && Hidden(exit) && Wizard(Owner(exit)) && !Controls(player,Owner(exit))) {
+              return 0;
+        }
 #ifndef STANDALONE
 #ifdef REALITY_LEVELS
         if (!IsReal(player, exit))
@@ -1860,7 +1887,12 @@ int exit_visible(dbref exit, dbref player, int key)	/* exit visible to lexits() 
 	if (Light(exit))		return 1;	/* Exit is light */
 	if (key & (VE_LOC_DARK|VE_BASE_DARK))
 					return 0;	/* Dark Loc or base */
-	if (Dark(exit))			return 0;	/* Dark exit */
+	if (Dark(exit)) {
+#ifndef STANDALONE
+           if ( !could_doit(player, exit, A_LDARK, 0) )
+#endif
+              return 0;	/* Dark exit */
+        }
 	return 1;					/* Default */
 }
 
