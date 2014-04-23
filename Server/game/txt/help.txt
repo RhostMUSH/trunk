@@ -28784,6 +28784,7 @@ Changes
   ansi-aware [ASH]
 * columns() is now ansi aware, and it was a pain in the arse. [ASH]
 * wrapcolumns() is now ansi aware, and was a bigger pain in the arse. [ASH]
+* mid(), before() and after() are now ansi aware [ASH]
   
 Bug Fixes
 ---------
@@ -28793,3 +28794,4 @@ Bug Fixes
 * strfunc() wouldn't handle null arguments properly [ASH]
 * QDBM on a panic SIGTERM dump could occasinally corrupt the db (but flafile fine) [ASH]
 * @door function definition change in later versions of GCC caused a conflict [ASH]
+* bug introduced with the ansi handler to columns() in an off by one bug [ASH]
