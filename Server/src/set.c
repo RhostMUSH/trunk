@@ -1352,7 +1352,7 @@ int	aflags;
 int parse_attrib(dbref player, char *str, dbref *thing, int *atr)
 {
 ATTR	*attr;
-char    *buff, *str_tmp, *tok, *stok, *tbuf;
+char    *buff, *str_tmp, *stok, *tbuf;
 dbref	aowner;
 int	aflags;
 
@@ -1367,11 +1367,7 @@ int	aflags;
         if ( strstr(str, "#lambda/") != NULL ) {
            tbuf = alloc_lbuf("parse_attrib_lambda");
            strcpy(tbuf, str);
-           stok = (char *)strtok_r(tbuf, "/", &tok);
-           if ( stok && *stok )
-              stok = (char *)strtok_r(NULL, "/", &tok);
-           else
-              stok = (char *)"";
+           stok = strchr(tbuf, '/')+1;
            memset(str_tmp, '\0', LBUF_SIZE);
            sprintf(str_tmp, "#%d/%s", player, (char *)"Lambda_internal_foo");
            atr_add_raw(player, A_LAMBDA, (char *)stok);

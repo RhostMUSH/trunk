@@ -14591,7 +14591,7 @@ FUNCTION(fun_con)
 FUNCTION(fun_strfunc)
 {
    FUN *fp;
-   char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, mysep[2];
+   char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr;
    int nitems, tst, i;
 
    varargs_preamble("STRFUNC", 3);
@@ -14639,36 +14639,22 @@ FUNCTION(fun_strfunc)
    strcpy(list, fargs[1]);
 
    nitems = 0;
-   if ( *fargs[1]) {
-      mysep[0] = sep;
-      mysep[1] = '\0';
+   if ( strchr(fargs[1], sep) != NULL ) {
       strtokptr = trim_space_sep(list, sep);
       strtok = split_token(&strtokptr, sep);
-      while ( strtokptr ) {
-         ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
-         strcpy(ptrs[nitems], strtok);
-         nitems++;
-         if ( nitems >= (LBUF_SIZE / 2) )
-            break;
-         strtok = split_token(&strtokptr, sep);
-      }
-/*
-      strtok = strtok_r(list, mysep, &strtokptr);
       while ( strtok ) {
          ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
          strcpy(ptrs[nitems], strtok);
-         nitems++;
          if ( nitems >= (LBUF_SIZE / 2) )
             break;
-         strtok = strtok_r(NULL, mysep, &strtokptr);
+         strtok = split_token(&strtokptr, sep);
+         nitems++;
       }
-*/
    } else {
       ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
+      strcpy(ptrs[nitems], fargs[1]);
       nitems++;
    }
-
-// nitems = list2arr(ptrs, LBUF_SIZE / 2, list, sep);
 
    if ( (nitems == fp->nargs) || (nitems == -fp->nargs) ||
         (fp->flags & FN_VARARGS) ) {

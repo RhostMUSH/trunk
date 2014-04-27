@@ -8037,13 +8037,12 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
   } else
      arg1_eval = arg1;
   if (is_number(arg1_eval) && (atoi(arg1_eval) == 0)) {
-    mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                process_command(player, cause, 0, cp, cargs, ncargs, 0);
              }
           }
           /* process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
@@ -8051,6 +8050,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
     }
+    mudstate.breakst = 1;
   }
   if ( i_evaled )
      free_lbuf(arg1_eval);
@@ -8066,13 +8066,12 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
   } else
      arg1_eval = arg1;
   if (is_number(arg1_eval) && (atoi(arg1_eval) != 0)) {
-    mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                process_command(player, cause, 0, cp, cargs, ncargs, 0);
              }
           }
 /*        process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
@@ -8080,6 +8079,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
     }
+    mudstate.breakst = 1;
   }
   if ( i_evaled )
      free_lbuf(arg1_eval);
@@ -8624,7 +8624,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          while (mys) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
-               process_command(player, cause, 1, cp, cargs, ncargs, 0);
+               process_command(player, cause, 0, cp, cargs, ncargs, 0);
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
@@ -8640,7 +8640,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       while (mys) {
          cp = parse_to(&mys, ';', 0);
          if (cp && *cp && !mudstate.breakst) {
-            process_command(player, cause, 1, cp, cargs, ncargs, 0);
+            process_command(player, cause, 0, cp, cargs, ncargs, 0);
             if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@skip:  Aborted for high utilization.");
                 mudstate.breakst=1;

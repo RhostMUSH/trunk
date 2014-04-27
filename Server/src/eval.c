@@ -910,7 +910,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     double timechk, intervalchk;
     static unsigned long tstart, tend, tinterval;
 #ifdef BANGS
-    int bang_not, bang_string, bang_yes;
+    int bang_not, bang_string, bang_truebool, bang_yes;
     char *tbangc;
 #endif
     static const char *subj[5] =
@@ -2047,7 +2047,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #ifdef BANGS
 	    /* C++ Inspired Bangs
 	     * 
-	     * Possible combinations are: ! !! !$ !!$
+	     * Possible combinations are: ! !! !$ !!$ !^ !!^
 	     * Stepping past the possible combinations at the beginning of
 	     * the function's name, pushing a pointer up as we go. The
 	     * modified pointer will be used to search the hash table
@@ -2057,6 +2057,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    bang_not = 0;
 	    bang_yes = 0;
 	    bang_string = 0;
+            bang_truebool = 0;
 	    if (*tbangc == '!') {
 		bang_not = 1;
 		tbangc++;
@@ -2069,7 +2070,11 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    if ((bang_not || bang_yes) && *tbangc == '$') {
 		bang_string = 1;
 		tbangc++;
-		}
+	    } else if ((bang_not || bang_yes) && *tbangc == '^') {
+		bang_string = 1;
+                bang_truebool = 1;
+		tbangc++;
+            }
 	    if (bang_not || bang_yes) {
 		fp = (FUN *) hashfind(tbangc, &mudstate.func_htab);
 		ufp = NULL;
@@ -2340,24 +2345,39 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		     * strings first, then negate or yes-gate it.
 		     */
 		    if (bang_string && *tbuf) {
-			tbuf[0] = '1';
+                        if ( bang_truebool ) {
+                           if (*tbuf == '#' && *(tbuf+1) == '-') {
+                              tbuf[0] = '0';
+                           } else if ( (*tbuf == '0') && !*(tbuf+1)) {
+                              tbuf[0] = '0';
+                           } else {
+                              while (isspace(*tbuf) && *tbuf)
+                                 tbuf++;
+                              if (*tbuf)
+                                 tbuf[0] = '1';
+                              else
+                                 tbuf[0] = '0';
+                           }
+                        } else {
+			   tbuf[0] = '1';
+                        }
 			tbuf[1] = '\0';
-			} else if (bang_string) {
+		    } else if (bang_string) {
 			tbuf[0] = '0';
 			tbuf[1] = '\0';
-			}
+		    }
 		    if (bang_not && atoi(tbuf)) {
 			tbuf[0] = '0';
-			} else if (bang_not && !atoi(tbuf)) {
+		    } else if (bang_not && !atoi(tbuf)) {
 			tbuf[0] = '1';
-			} else if (bang_yes && atoi(tbuf)) {
+		    } else if (bang_yes && atoi(tbuf)) {
 			tbuf[0] = '1';
-			} else if (bang_yes && !atoi(tbuf)) {
+		    } else if (bang_yes && !atoi(tbuf)) {
 			tbuf[0] = '0';
-			}
+		    }
 		    if (bang_not || bang_yes) {
 			tbuf[1] = '\0';
-			}
+		    }
 #endif
 		    safe_str(tbuf, buff, &bufc);
 		    free_lbuf(tstr);
@@ -2435,24 +2455,39 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		     * if the result was null. I don't want to consider
 		     * what would happen otherwise.
 		     */
-		    if (bang_string && (buff != bufc)) {
-			buff[0] = '1';
-			buff[1] = '\0';
-			} else if (bang_string) {
-			safe_str("0", buff, &bufc);
-			}
+                    if (bang_string && (buff != bufc)) {
+                        if ( bang_truebool ) {
+                           if (*tbuf == '#' && *(tbuf+1) == '-') {
+                              tbuf[0] = '0';
+                           } else if ( (*tbuf == '0') && !*(tbuf+1)) {
+                              tbuf[0] = '0';
+                           } else {
+                              while (isspace(*tbuf) && *tbuf)
+                                 tbuf++;
+                              if (*tbuf)
+                                 tbuf[0] = '1';
+                              else
+                                 tbuf[0] = '0';
+                           }
+                        } else {
+                           buff[0] = '1';
+                        }
+                        buff[1] = '\0';
+                    } else if (bang_string) {
+                        safe_str("0", buff, &bufc);
+                    }
 		    if (bang_not && atoi(buff)) {
-			buff[0] = '0';
-			} else if (bang_not && !atoi(buff)) {
-			buff[0] = '1';
-			} else if (bang_yes && atoi(buff)) {
-			buff[0] = '1';
-			} else if (bang_yes && !atoi(buff)) {
-			buff[0] = '0';
-			}
+                       buff[0] = '0';
+                    } else if (bang_not && !atoi(buff)) {
+                       buff[0] = '1';
+                    } else if (bang_yes && atoi(buff)) {
+                       buff[0] = '1';
+                    } else if (bang_yes && !atoi(buff)) {
+                       buff[0] = '0';
+                    }
 		    if (bang_not || bang_yes) {
-			buff[1] = '\0';
-			}
+                       buff[1] = '\0';
+                    }
 #endif
 
 		}

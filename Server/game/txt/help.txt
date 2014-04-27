@@ -186,7 +186,10 @@
   Bang notation allows you to use '!' and '!!' in functions for 'not' and
   'not-not' functionality.  This works similiarilly to the C equivelant of
   using 'bangs'.  You may also specify '!$' and '!!$' for FALSE or TRUE
-  conditions on functions that return string values.
+  conditions on functions that return string values.  Finally, you may
+  specify '!^' and '!!^' for true-boolean FALSE or TRUE conditions on
+  functions that return true-boolean based on the function t()'.
+  
   
   Example:
     > say match(one two three four five,four)
@@ -199,6 +202,10 @@
     You say "0"
     > say !!$grab(this is a test,this)
     You say "1"
+    > say !!^space(1000)                  (spaces are non-boolean strings)
+    You say "0"
+    > say !!$space(1000)                  (spaces are not-null strings)
+    You say "1" 
   
   Bang notation may or may not be enabled based on the RhostMUSH that you are
   on.  Please check @list options to see if it is currently enabled.
@@ -3713,11 +3720,27 @@
    
   See Also: @name
   
+& @lemit
+  Command: @lemit <message>
+           @emit/room <message>
+  
+  Please see help on @emit.
+  
+  This is an alias for @emit/room.
+  
+  See Also: @emit
+
 & @remit
   Command: @remit <location>=<message>
            @pemit/contents <location>=<message>
  
   Please see help on @pemit.
+  
+  This is an alias for @pemit/contents
+  
+  This function relies on the config parameter 'pemit_any_object' to
+  be enabled to allow remitting to any room, otherwise, it will only
+  work on rooms you control.
   
   See Also: @pemit
  
@@ -11438,6 +11461,10 @@ See Also: timefmt()
   location specified in the <list of locations>.
   
   This works similarilly to @pemit/list/contents.
+  
+  This function relies on the config parameter 'pemit_any_object' to
+  be enabled to allow remitting to any room, otherwise, it will only
+  work on rooms you control.
   
   This side-effect must be enabled (@list options to see if it is) before it
   can be used.  Anything using it must have the SIDEFX flag set.
@@ -28784,7 +28811,6 @@ Changes
   ansi-aware [ASH]
 * columns() is now ansi aware, and it was a pain in the arse. [ASH]
 * wrapcolumns() is now ansi aware, and was a bigger pain in the arse. [ASH]
-* mid(), before() and after() are now ansi aware [ASH]
   
 Bug Fixes
 ---------
@@ -28794,4 +28820,23 @@ Bug Fixes
 * strfunc() wouldn't handle null arguments properly [ASH]
 * QDBM on a panic SIGTERM dump could occasinally corrupt the db (but flafile fine) [ASH]
 * @door function definition change in later versions of GCC caused a conflict [ASH]
+
+& 3.9.4p4
+Release Date: 05/01/14
+Status: Alpha
+  
+New Features
+-------
+!^ and !!^ for true-boolean comparisons for functions for BANG notation.
+  
+Changes
+-------
+* mid(), before() and after() are now ansi aware [ASH]
+  
+Bug Fixes
+---------
+* strfunc() was broke for single argument entries [ASH]
 * bug introduced with the ansi handler to columns() in an off by one bug [ASH]
+* @skip/ifelse wouldn't evaluate arguments properly [ASH]
+* @assert/inline and @break/inline wouldn't eval args properly [ASH]
+* #lambda erraneously stripped extra /'s at times [ASH]
