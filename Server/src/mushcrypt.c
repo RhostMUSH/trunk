@@ -19,6 +19,7 @@
 #endif
 #include "debug.h"
 #include "sha1.h"
+#include "ansi.h"
 
 #define FILENUM MUSHCRYPT_C
 
@@ -199,9 +200,7 @@ encode_base64(const char *input, int len, char *buff, char **bp)
 
   len = BIO_get_mem_data(bmem, &membuf);
 
-  if ( len >= 0 )
-     membuf[len]='\0';
-  safe_str(membuf, buff, bp);
+  safe_copy_str(membuf, buff, bp, ((len > (LBUF_SIZE - 2)) ? (LBUF_SIZE - 2) : len));
 
   BIO_free_all(bio);
 
@@ -212,7 +211,7 @@ int
 decode_base64(char *encoded, int len, char *buff, char **bp)
 {
   BIO *bio, *b64, *bmem;
-  char *sbp, decoded[LBUF_SIZE];
+  char *sbp, decoded[LBUF_SIZE], *pdec;
   int dlen;
 
   memset(decoded, '\0', LBUF_SIZE);
@@ -237,6 +236,14 @@ decode_base64(char *encoded, int len, char *buff, char **bp)
   dlen = BIO_read(bio, decoded, LBUF_SIZE -1);
   if ( dlen >= 0 )
      decoded[dlen]='\0';
+  pdec = decoded;
+  while ( pdec && *pdec ) {
+     if ( !((*pdec == BEEP_CHAR) || isprint(*pdec) || isascii(*pdec)) ) 
+        *pdec = ' ';
+     if ( !(*pdec == BEEP_CHAR) && (((int)*pdec > 255) || ((int)*pdec < 32)) )
+        *pdec = '?';
+     pdec++;
+  }
   safe_str(decoded, buff, bp);
 
   BIO_free_all(bio);

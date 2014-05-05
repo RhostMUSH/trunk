@@ -330,6 +330,24 @@ char	*s;
 
 
 char *
+clone_ansi(char *s_input, ANSISPLIT *s_insplit, char *s_inputptr, ANSISPLIT *s_insplitptr,
+           char *s_output, char *s_outputptr, ANSISPLIT *s_outsplit, 
+           ANSISPLIT *s_outsplitptr, int i_amount)
+{
+   int i_cnt;
+
+#ifdef ZENTY_ANSI
+#else
+   for (i_cnt = 0; i_cnt < i_amount; i_cnt++) {
+      if ( !s_inputptr ) 
+         break;
+      safe_chr(*s_inputptr, s_output, &s_outputptr);
+      s_inputptr++;
+   }
+#endif
+}
+
+char *
 rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
    char *s_buffer;
 #ifdef ZENTY_ANSI

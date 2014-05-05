@@ -4390,7 +4390,7 @@ countwords(char *str, char sep)
 
 FUNCTION(fun_art)
 {
-    switch (tolower(*fargs[0])) {
+    switch (tolower(*strip_all_special(fargs[0]))) {
     case 'a':
     case 'e':
     case 'i':
@@ -4725,12 +4725,17 @@ FUNCTION(fun_digest)
 FUNCTION(fun_shuffle)
 {
     int x, pic, num, numleft;
-    char *pt1, *numpt, sep, osep;
+    char *pt1, *numpt, sep, osep, *outbuff, *s_output;
+    ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
     if (!fn_range_check("SHUFFLE", nfargs, 1, 3, buff, bufcx))
        return;
 
-    pt1 = fargs[0];
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    outbuff = alloc_lbuf("fun_scramble");
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+    pt1 = outbuff;
+    p_sp = outsplit;
     if ( (nfargs > 1) && *fargs[1] )
        sep = *fargs[1];
     else
@@ -4754,6 +4759,7 @@ FUNCTION(fun_shuffle)
        return;
     if (num == 1) {
        safe_str(fargs[0], buff, bufcx);
+       free_lbuf(outbuff);
        return;
     }
     numleft = num;
@@ -4765,30 +4771,45 @@ FUNCTION(fun_shuffle)
           pic = random() % num;
        } while (*(numpt + pic));
        *(numpt + pic) = 1;
-       pt1 = fargs[0];
+       pt1 = outbuff;
+       p_sp = outsplit;
        while (pic) {
-          while (*pt1)
+          while (*pt1) {
              pt1++;
-          while (!*pt1)
+             p_sp++;
+          }
+          while (!*pt1) {
              pt1++;
+             p_sp++;
+          }
           pic--;
        }
-       safe_str(pt1, buff, bufcx);
+       s_output = rebuild_ansi(pt1, p_sp);
+       safe_str(s_output, buff, bufcx);
+       free_lbuf(s_output);
        safe_chr(osep, buff, bufcx);
        numleft--;
     }
     pic = 0;
     while (*(numpt + pic) && (pic < num))
        pic++;
-    pt1 = fargs[0];
+    pt1 = outbuff;
+    p_sp = outsplit;
     while (pic) {
-       while (*pt1)
+       while (*pt1) {
           pt1++;
-       while (!*pt1)
+          p_sp++;
+       }
+       while (!*pt1) {
           pt1++;
+          p_sp++;
+       }
        pic--;
     }
-    safe_str(pt1, buff, bufcx);
+    s_output = rebuild_ansi(pt1, p_sp);
+    safe_str(s_output, buff, bufcx);
+    free_lbuf(s_output);
+    free_lbuf(outbuff);
     free(numpt);
 }
 
@@ -4805,6 +4826,7 @@ FUNCTION(fun_scramble)
 
     num = strlen(outbuff);
     if (!num) {
+       free_lbuf(outbuff);
        return;
     }
     if (num == 1) {
@@ -4938,6 +4960,91 @@ FUNCTION(fun_logtofile)
     free_mbuf(s_logroom);
 }
 
+
+FUNCTION(fun_lockencode)
+{
+   struct boolexp *okey;
+   char *s_instr;
+   int len;
+
+   if ( !fargs[0] || !*fargs[0] ) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+      return;
+   }
+   okey = parse_boolexp(player, strip_returntab(fargs[0],3), 0);
+   if (okey == TRUE_BOOLEXP) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+   } else {
+      s_instr = alloc_lbuf("fun_lockencode");
+      memset(s_instr, '\0', LBUF_SIZE);
+      sprintf(s_instr, "%s", unparse_boolexp_quiet(player, okey));
+      len = strlen(s_instr);
+      encode_base64((const char*)s_instr, len, buff, bufcx);
+      free_lbuf(s_instr);
+   }
+   free_boolexp(okey);
+}
+
+FUNCTION(fun_lockdecode)
+{
+   struct boolexp *okey;
+   char *s_instr, *s_instrptr, *tbuf;
+   int len;
+
+   if ( !fargs[0] || !*fargs[0] ) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+      return;
+   }
+   s_instrptr = s_instr = alloc_lbuf("fun_lockdecode");
+   memset(s_instr, '\0', LBUF_SIZE);
+   len = strlen(fargs[0]);
+   decode_base64((const char*)strip_all_special(fargs[0]), len, s_instr, &s_instrptr);
+   okey = parse_boolexp(player, s_instr, 1);
+   if (okey == TRUE_BOOLEXP) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+   } else {
+      tbuf = (char *) unparse_boolexp_function(player, okey);
+      safe_str(tbuf, buff, bufcx);
+   }
+   free_boolexp(okey);
+   free_lbuf(s_instr);
+}
+
+FUNCTION(fun_lockcheck)
+{
+   struct boolexp *okey;
+   char *s_instr, *s_instrptr;
+   int len;
+   dbref victim;
+
+   if ( !fargs[0] || !*fargs[0] ) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+      return;
+   }
+   if ( !fargs[1] || !*fargs[1] ) {
+      safe_str("#-1 UNDEFINED TARGET", buff, bufcx);
+      return;
+   }
+   victim = match_thing(player, fargs[1]);
+   if (!Good_chk(victim)) {
+      safe_str("#-1 UNDEFINED TARGET", buff, bufcx);
+      return;
+   }
+
+   s_instrptr = s_instr = alloc_lbuf("fun_lockdecode");
+   memset(s_instr, '\0', LBUF_SIZE);
+   len = strlen(fargs[0]);
+   decode_base64((const char*)strip_all_special(fargs[0]), len, s_instr, &s_instrptr);
+   okey = parse_boolexp(player, s_instr, 1);
+   if (okey == TRUE_BOOLEXP) {
+      notify_quiet(player, "Warning: UNDEFINED KEY");
+      ival(buff, bufcx, 0);
+   } else {
+      ival(buff, bufcx, eval_boolexp(victim, victim, victim, okey));
+   }
+   free_boolexp(okey);
+   free_lbuf(s_instr);
+}
 
 /* Encode/Decode require OpenSSL or will return an error */
 FUNCTION(fun_encode64)
@@ -18117,11 +18224,11 @@ FUNCTION(fun_randpos)
 
     if (!*fargs[1])
       return;
-    tlist = (int *)malloc(sizeof(int) * strlen(fargs[1]));
+    tlist = (int *)malloc(sizeof(int) * strlen(strip_all_special(fargs[1])));
     if (tlist == NULL)
       return;
     i = 1;
-    s = fargs[1];
+    s = strip_all_special(fargs[1]);
     while (*s) {
       u = s;
       t = fargs[0];
@@ -21318,19 +21425,25 @@ FUNCTION(fun_ilev)
 
 FUNCTION(fun_citer)
 {
-    char *curr, objstring[SBUF_SIZE], *buff3, *result, *cp, sep, *t1, *tpr_buff, *tprp_buff;
+    char *curr, objstring[SBUF_SIZE], *buff3, *result, *cp, sep, *tpr_buff, *tprp_buff, *outbuff, *s_output;
     int first, cntr;
+    ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
+
 
     evarargs_preamble("CITER", 3);
     if ( (nfargs >= 3) && !*fargs[2] )
        sep = *fargs[2];
-    t1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
+    outbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
          cargs, ncargs);
-    curr = alloc_lbuf("fun_citer");
+
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    curr = alloc_lbuf("fun_scramble");
+
+    split_ansi(strip_ansi(outbuff), curr, outsplit);
+    free_lbuf(outbuff);
+
     cp = curr;
-    safe_str(strip_ansi(t1),curr,&cp);
-    free_lbuf(t1);
-    cp = curr;
+    p_sp = outsplit;
     if (!*cp) {
        free_lbuf(curr);
        return;
@@ -21342,20 +21455,25 @@ FUNCTION(fun_citer)
        if (*cp == '\r') {
          if (*(cp + 1) == '\n')
            cp++;
+           p_sp++;
        }
        *objstring = *cp;
        *(objstring+1) = '\0';
+       s_output = rebuild_ansi(objstring, p_sp);
        cp++;
+       p_sp++;
        tprp_buff = tpr_buff;
-       buff3 = replace_tokens(fargs[1], objstring, safe_tprintf(tpr_buff, &tprp_buff, "%d",cntr), NULL);
+       buff3 = replace_tokens(fargs[1], s_output, safe_tprintf(tpr_buff, &tprp_buff, "%d",cntr), NULL);
        result = exec(player, cause, caller,
                      EV_STRIP | EV_FCHECK | EV_EVAL, buff3, cargs, ncargs);
        free_lbuf(buff3);
+       free_lbuf(s_output);
        if (!first && sep)
           safe_chr(sep, buff, bufcx);
        first = 0;
-       if ( result && *result != '\0')
+       if ( result && *result != '\0') {
           safe_str(result, buff, bufcx);
+       }
        else if ( !sep )
           safe_chr(' ', buff, bufcx);
        free_lbuf(result);
@@ -28922,6 +29040,9 @@ FUN flist[] =
 #else
     {"LOCK", fun_lock, 1, 0, CA_PUBLIC, 0},
 #endif
+    {"LOCKDECODE", fun_lockdecode, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LOCKCHECK", fun_lockcheck, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LOCKENCODE", fun_lockencode, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LOG", fun_log, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOGTOFILE", fun_logtofile, 2, 0, CA_IMMORTAL, 0},
     {"LOGSTATUS", fun_logstatus, 0, 0, CA_IMMORTAL, 0},

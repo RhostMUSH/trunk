@@ -896,7 +896,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
-    char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr;
+    char *buff, *bufc, *bufc2, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
@@ -2346,17 +2346,19 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		     */
 		    if (bang_string && *tbuf) {
                         if ( bang_truebool ) {
-                           if (*tbuf == '#' && *(tbuf+1) == '-') {
+                           if ( (*tbuf == '#') && (*(tbuf+1) == '-') ) {
                               tbuf[0] = '0';
                            } else if ( (*tbuf == '0') && !*(tbuf+1)) {
                               tbuf[0] = '0';
                            } else {
                               while (isspace(*tbuf) && *tbuf)
                                  tbuf++;
-                              if (*tbuf)
+                              if (*tbuf) {
                                  tbuf[0] = '1';
-                              else
+                              } else {
+                                 tbuf[0] = '1';
                                  tbuf[0] = '0';
+                              }
                            }
                         } else {
 			   tbuf[0] = '1';
@@ -2457,17 +2459,19 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		     */
                     if (bang_string && (buff != bufc)) {
                         if ( bang_truebool ) {
-                           if (*tbuf == '#' && *(tbuf+1) == '-') {
-                              tbuf[0] = '0';
-                           } else if ( (*tbuf == '0') && !*(tbuf+1)) {
-                              tbuf[0] = '0';
+                           bufc2 = buff;
+                           if ( (*bufc2 == '#') && (*(bufc2+1) == '-') ) {
+                              buff[0] = '0';
+                           } else if ( (*bufc2 == '0') && !*(bufc2+1)) {
+                              buff[0] = '0';
                            } else {
-                              while (isspace(*tbuf) && *tbuf)
-                                 tbuf++;
-                              if (*tbuf)
-                                 tbuf[0] = '1';
-                              else
-                                 tbuf[0] = '0';
+                              while (*bufc2 && isspace(*bufc2))
+                                 bufc2++;
+                              if (*bufc2) {
+                                 buff[0] = '1';
+                              } else {
+                                 buff[0] = '0';
+                              }
                            }
                         } else {
                            buff[0] = '1';

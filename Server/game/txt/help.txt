@@ -8762,29 +8762,30 @@
   
 & FUNCTION LIST3
     
-  LISTFLAGS()   LISTINTER()     LISTMATCH()   LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS() LISTTOGGLES()   LISTUNION()   LIT()            LJC()          
-  LJUST()       LLOC()          LMAX()        LMIN()           LMUL()         
-  LN()          LNOR()          LNUM()        LNUM2()          LOC()          
-  LOCALFUNC()   LOCALIZE()      LOCATE()      LOCK()           LOG()          
-  LOR()         LRAND()         LREPLACE()    LROOMS()         LSUB()         
-  LT()          LTE()           LTOGGLES()    LWHO()           LXNOR()        
-  LXOR()        LZONE()         MAILQUICK()   MAP()            MATCH()        
-  MASK()        MAX()           MEMBER()      MERGE()          MID()          
-  MIN()         MIX()           MOD()         MODULO()         MODIFYTIME()   
-  MONEY()       MONEYNAME()     MOON()        MUDNAME()        MUL()          
-  MUNGE()       NAME()          NAMEQ()       NAND()           NCOMP()        
-  NEARBY()      NEQ()           NEXT()        NOR()            NOSTR()        
-  NOT()         NOTCHR()        NPEMIT()      NSITER()         NUM()          
-  NUMMATCH()    NULL()          NUMMEMBER()   NUMPOS()         NUMWILDMATCH() 
-  OBJ()         OBJEVAL()       OEMIT()       OPEN()           OR()           
-  ORCHR()       ORFLAG()        ORFLAGS()     OWNER()          PACK()         
-  PARENMATCH()  PARENT()        PARSE()       PARSESTR()       PEDIT()        
-  PEMIT()       PFIND()         PGREP()       PI()             PID()          
-  PMATCH()      PORT()          POS()         POSS()           POWER()        
-  POWER10()     PRINTF()        PRIVATIZE()   PROGRAMMER()     PTIMEFMT()   
-  PUSHREGS()    QUOTA()         R()           RACE()           RAND()  
-  RANDPOS()     RANDMATCH()     RANDEXTRACT() 
+  LISTFLAGS()   LISTINTER()    LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
+  LISTRLEVELS() LISTTOGGLES()  LISTUNION()    LIT()            LJC()          
+  LJUST()       LLOC()         LMAX()         LMIN()           LMUL()         
+  LN()          LNOR()         LNUM()         LNUM2()          LOC()          
+  LOCALFUNC()   LOCALIZE()     LOCATE()       LOCK()           LOCKCHECK()
+  LOCKDECODE()  LOCKENCODE()   LOG()          LOR()            LRAND()       
+  LREPLACE()    LROOMS()       LSUB()         LT()             LTE()         
+  LTOGGLES()    LWHO()         LXNOR()        LXOR()           LZONE()       
+  MAILQUICK()   MAP()          MATCH()        MASK()           MAX()         
+  MEMBER()      MERGE()        MID()          MIN()            MIX()         
+  MOD()         MODULO()       MODIFYTIME()   MONEY()          MONEYNAME()   
+  MOON()        MUDNAME()      MUL()          MUNGE()          NAME()        
+  NAMEQ()       NAND()         NCOMP()        NEARBY()         NEQ()         
+  NEXT()        NOR()          NOSTR()        NOT()            NOTCHR()      
+  NPEMIT()      NSITER()       NUM()          NUMMATCH()       NULL()        
+  NUMMEMBER()   NUMPOS()       NUMWILDMATCH() OBJ()            OBJEVAL()     
+  OEMIT()       OPEN()         OR()           ORCHR()          ORFLAG()      
+  ORFLAGS()     OWNER()        PACK()         PARENMATCH()     PARENT()      
+  PARSE()       PARSESTR()     PEDIT()        PEMIT()          PFIND()       
+  PGREP()       PI()           PID()          PMATCH()         PORT()        
+  POS()         POSS()         POWER()        POWER10()        PRINTF()      
+  PRIVATIZE()   PROGRAMMER()   PTIMEFMT()     PUSHREGS()       QUOTA()       
+  R()           RACE()         RAND()         RANDPOS()        RANDMATCH()   
+  RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -8918,8 +8919,9 @@
   Logical:            AND() MASK() NAND() NOR() OR() XOR() XNOR() CAND() COR()
             See Also: help logical functions
   
-  Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCALIZE() MOON() NAMEQ() 
-                      NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
+  Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCKCHECK() LOCKDECODE()
+                      LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
+                      PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
                       SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD() 
                       SOUNDEX() SOUNDLIKE() TRACE()
             See Also: help miscellaneous functions
@@ -10065,6 +10067,39 @@
   
   See Also: ldelete(), mid(), replace(), remove()
   
+& lockencode()
+& lockdecode()
+& lockcheck()
+  Function: lockencode(<string>)
+            lockdecode(<string>)
+            lockcheck(<string>,<target>)
+  
+  lockencode() returns an encoded string of a boolean lock evaluation.
+   
+  lockdecode() returns the decoded string of the encoded boolean.
+  
+  lockcheck() returns boolean true(1)/false(0) based on the encoded boolean.
+  
+  This is the same value (though encoded) that would be set when you issue
+  a @Lock on something.  This is useful if you wish to enbed lock values
+  in any string or value that you wish to then decrypt at any given time.
+  
+  lockcheck() follows the same rules that elock() would return.
+  
+  Example:
+    > say name(me)
+    You say "Bob"
+    > say lockencode(me&*tester)
+    You say "KCMxMjM0KSYoIzkwMSk="
+    > say lockdecode(KCMxMjM0KSYoIzkwMSk=)
+    You say "*Bob&*Tester
+    > say lockcheck(KCMxMjM0KSYoIzkwMSk=,me)
+    You say "1"
+    > say lockcheck(KCMxMjM0KSYoIzkwMSk=,*Guest)
+    You say "0"
+  
+  See Also: lockdecode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+
 & lock()
   Function: lock(<object>[/<whichlock>][,<key>][,<attribute>])
  
@@ -28827,11 +28862,15 @@ Status: Alpha
   
 New Features
 -------
-!^ and !!^ for true-boolean comparisons for functions for BANG notation.
+* !^ and !!^ for true-boolean comparisons for functions for BANG notation.
+* lockencode(), lockdecode(), lockcheck() for variable lock checking
   
 Changes
 -------
 * mid(), before() and after() are now ansi aware [ASH]
+* citer() is now ansi aware [ASH]
+* pos(), randpos() and totpos() are ansi aware [ASH]
+* shuffle() is now ansi aware [ASH]
   
 Bug Fixes
 ---------
@@ -28840,3 +28879,5 @@ Bug Fixes
 * @skip/ifelse wouldn't evaluate arguments properly [ASH]
 * @assert/inline and @break/inline wouldn't eval args properly [ASH]
 * #lambda erraneously stripped extra /'s at times [ASH]
+* art() handles non-printables [ASH]
+* possible crashbug in encode64/decode64 due to glibc memory mapping changes [ASH]
