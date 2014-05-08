@@ -13965,14 +13965,14 @@ See Also: ljust(), rjust(), center(), columns(), wrapcolumns(), printf()
   
 & WRAPCOLUMNS()
 Function: wrapcolumns()  Syntax follows:
-wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
+wrapcolumns(<txt>,<wd>,<col>,<jus>,<crp>,<cut>,<lbd>,<mbd>,<rbd>,<disp>,<ext>)
   
 This function has a huge number of uses, and all help will be given to show
 examples for what this function can do.  Unlike the columns() function, this
 one will wrap as many words as possible into a columns.  Like a newspaper.
 The arguments to this function are as follows.
   <txt>    - The text that you will be passing into columns.
-  <wid>    - The maximum column size you desire.
+  <wd>     - The maximum column size you desire.
   <col>    - The total number of columns you wish per line.
 * <jus>    - The justification of text in the columns (default left) 
              Arguments: (l)eft, (c)enter, (r)ight, or (j)ustified
@@ -13981,18 +13981,22 @@ The arguments to this function are as follows.
              Arguments: 1 to crop, 0 for no cropping (default).
 * <cut>    - Specifies that the word be cut off if over maximum columns size.
              Arguments: 1 to cut, 0 for no cutting (default).
-* <lbdr>   - What text you want displayed as the left border of the line.
-* <mbdr>   - What text you want as the seperator between columns on the line.
-* <rbdr>   - What text you want displayed as the right border of the line.
+* <lbd>    - What text you want displayed as the left border of the line.
+* <mbd>    - What text you want as the seperator between columns on the line.
+* <rbd>    - What text you want displayed as the right border of the line.
 * <disp>   - What display type you want.  Down then over or over then down.
              Arguments: 1 for over then down, 0 for down then over (default)
+* <ext>    - Extension argument.  When toggled to '1' will extend a partial
+             row to the maximum column width by padding it with spaces.
+             This will use the column separator if the padding requires 
+             multiple columns.
   
 Anything with an '*' are optional *only* if the first three arguments are used.
 { Type 'help wrapcolumns2' for examples }
   
 & WRAPCOLUMNS2
 Function: wrapcolumns()  (CONTINUED)
-wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
+wrapcolumns(<txt>,<wd>,<col>,<jus>,<crp>,<cut>,<lbd>,<mbd>,<rbd>,<disp>,<ext>)
  
 There are various syntax possibilities for this command.  
 Examples:
@@ -14016,7 +14020,7 @@ Examples:
   
 & WRAPCOLUMNS3
 Function: wrapcolumns()  (CONTINUED)
-wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
+wrapcolumns(<txt>,<wd>,<col>,<jus>,<crp>,<cut>,<lbd>,<mbd>,<rbd>,<disp>,<ext>)
   
     > @emit wrapcolumns(this is a test of wrapcolumns,3,3,R,0,0)
       thitespco
@@ -28871,6 +28875,7 @@ Changes
 * citer() is now ansi aware [ASH]
 * pos(), randpos() and totpos() are ansi aware [ASH]
 * shuffle() is now ansi aware [ASH]
+* wrapcolumns() has EOL padding optionally [ASH]
   
 Bug Fixes
 ---------

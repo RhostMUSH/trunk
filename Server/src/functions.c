@@ -3814,18 +3814,19 @@ FUNCTION(fun_columns)
 FUNCTION(fun_wrapcolumns)
 {
   struct wrapinfo winfo;
-  int buffleft, pos, wtype, cut, cut2, maxw, scount;
+  int buffleft, pos, wtype, cut, cut2, maxw, scount, bufstr, bufcols;
   int count, ncols, remorig, rnorem, rows, x, y, z;
   char *leftstart, *crp, *pp, *expandbuff, *string;
   char *holdbuff, *hbpt, *pt2, *between;
   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_bp, *p_sp, *p_leftstart; 
 
-  if (!fn_range_check("WRAPCOLUMNS", nfargs, 3, 10, buff, bufcx))
+  if (!fn_range_check("WRAPCOLUMNS", nfargs, 3, 11, buff, bufcx))
      return;
 
   count = 0;
   memset(&winfo, 0, sizeof(winfo));
   winfo.first_line = 1;
+  bufcols = bufstr = 0;
 
   maxw = atoi( fargs[1] );
 
@@ -4111,6 +4112,24 @@ FUNCTION(fun_wrapcolumns)
               }
            }
         }
+        bufcols = x + 1;
+        if ( bufcols > ncols )
+           bufcols = ncols;
+        bufstr = 0;
+
+        if ( nfargs >= 11 )
+           bufstr = atoi(fargs[10]);
+        if ( (bufstr > 0) && (bufcols > 0) ) {
+           while ( bufcols < ncols ) {
+              if ( bufcols < ncols ) {
+                 if ( *between )
+                    safe_str(between, buff, bufcx);
+                 safe_pad2((char *)" ", winfo.width, buff, bufcx);
+              }
+              bufcols++;
+           }
+        }
+
         if (winfo.right) {
 #ifdef ZENTY_ANSI
            safe_chr('%', buff, bufcx);
@@ -4183,6 +4202,24 @@ FUNCTION(fun_wrapcolumns)
               }
            }
         }
+        bufcols = y + 1;
+        if ( bufcols > ncols )
+           bufcols = ncols;
+        bufstr = 0;
+
+        if ( nfargs >= 11 )
+           bufstr = atoi(fargs[10]);
+        if ( (bufstr > 0) && (bufcols > 0) ) {
+           while ( bufcols < ncols ) {
+              if ( bufcols < ncols ) {
+                 if ( *between )
+                    safe_str(between, buff, bufcx);
+                 safe_pad2((char *)" ", winfo.width, buff, bufcx);
+              }
+              bufcols++;
+           }
+        }
+
         if (winfo.right) {
 #ifdef ZENTY_ANSI
            safe_chr('%', buff, bufcx);
