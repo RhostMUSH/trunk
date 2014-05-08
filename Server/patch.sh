@@ -20,7 +20,7 @@ then
    read ANS
    if [ "${ANS}" = "Y" -o "${ANS}" = "y" ]
    then
-      echo "Ok, I'm rebuilding of that source file.  Hold on to your hat..."
+      echo "Ok, I'm rebuilding off that source file.  Hold on to your hat..."
    else
       echo "Verywell.  Please move/copy in the src.tbz file you wish to use in your $(pwd) directory."
       exit 1

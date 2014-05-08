@@ -3543,8 +3543,6 @@ FUNCTION(fun_columns)
      }
   }
 
-//string=strip_all_special(fargs[0]);
-
   initialize_ansisplitter(outsplit, LBUF_SIZE);
   initialize_ansisplitter(outsplit2, LBUF_SIZE);
   string = alloc_lbuf("fun_columns_String");
@@ -3631,13 +3629,9 @@ FUNCTION(fun_columns)
         }
      }
      count++;
-//   wrap_out(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, spacer_sep, 0);
 
      wrap_out_ansi(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, spacer_sep, 0,
                    p_leftstart, outsplit2);
-//   wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
-//                  char *buff, char **bufcx, char *space_sep, int keyval,
-//                  ANSISPLIT *srcarray, ANSISPLIT *buffarray )
      if (cut2) {
         if (delim) {
            while (*pp && (*pp != delim)) {
@@ -3688,7 +3682,6 @@ FUNCTION(fun_columns)
   free_lbuf(string);
   string = rebuild_ansi(holdbuff, outsplit2);
   if (wtype) {
-//   hbpt = holdbuff;
      hbpt = string;
      while (count > 0) {
         if (winfo.left) {
@@ -3769,7 +3762,6 @@ FUNCTION(fun_columns)
               if ((remorig - z) > 0)
                  pos++;
            }
-//         hbpt = holdbuff;
            hbpt = string;
            for (z = 0; z < pos; z++) {
               pt2 = strchr(hbpt,'\n');
@@ -3900,8 +3892,6 @@ FUNCTION(fun_wrapcolumns)
   memset(holdbuff, '\0', LBUF_SIZE);
   hbpt = holdbuff;
 
-//tab_expand( expandbuff, strip_all_special(fargs[0]) );
-
   tab_expand( string, strip_ansi(fargs[0]) );
   expandbuff = alloc_lbuf("fun_wrapcolumns_String");
   memset(expandbuff, '\0', LBUF_SIZE);
@@ -3968,7 +3958,6 @@ FUNCTION(fun_wrapcolumns)
   for( buffleft = strlen(expandbuff), leftstart = expandbuff, p_leftstart = outsplit; buffleft > 0; ) {
      crp = strchr(leftstart, '\r');
      if( crp && crp <= leftstart + maxw ) { /* split here and start over */
-//      wrap_out( leftstart, crp - leftstart, &winfo, holdbuff, &hbpt, " ", 0 );
         wrap_out_ansi(leftstart, crp - leftstart, &winfo, holdbuff, &hbpt, " ", 0,
                       p_leftstart, outsplit2);
         count++;
@@ -3992,7 +3981,6 @@ FUNCTION(fun_wrapcolumns)
         p_leftstart = p_leftstart + (crp - leftstart + 2);
      } else { /* no \r\n in interesting proximity */
         if( buffleft <= maxw ) { /* last line of output */
-//         wrap_out( leftstart, buffleft, &winfo, holdbuff, &hbpt, " ", 0 );
            wrap_out_ansi(leftstart, buffleft, &winfo, holdbuff, &hbpt, " ", 0,
                          p_leftstart, outsplit2);
            count++;
@@ -4010,7 +3998,6 @@ FUNCTION(fun_wrapcolumns)
               }
            }
            if( pp == leftstart ) { /* we hit the front of the buffer */
-//            wrap_out( leftstart, maxw, &winfo, holdbuff, &hbpt, " ", 0 );
               wrap_out_ansi(leftstart, maxw, &winfo, holdbuff, &hbpt, " ", 0,
                             p_leftstart, outsplit2);
               count++;
@@ -4049,7 +4036,6 @@ FUNCTION(fun_wrapcolumns)
                  buffleft -= maxw;
               }
            } else { /* we hit a space, chop it there */
-//            wrap_out( leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, " ", 0 );
               wrap_out_ansi(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, " ", 0,
                             p_leftstart, outsplit2);
               count++;
@@ -4094,7 +4080,6 @@ FUNCTION(fun_wrapcolumns)
   string = rebuild_ansi(holdbuff, outsplit2);
 
   if (wtype) {
-//   hbpt = holdbuff;
      hbpt = string;
      while (count > 0) {
         if (winfo.left) {
@@ -4159,7 +4144,6 @@ FUNCTION(fun_wrapcolumns)
               if ((remorig - z) > 0)
                  pos++;
            }
-//         hbpt = holdbuff;
            hbpt = string;
            for (z = 0; z < pos; z++) {
               pt2 = strchr(hbpt,'\n');
@@ -9225,32 +9209,24 @@ FUNCTION(fun_printf)
          safe_str("\r\n", buff, bufcx);
          for ( i = 0; i < i_arrayval; i++ ) {
             morepadd = 0;
-//          if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1] && *s_strarray[i] ) {
             if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1]  ) {
                if ( !fmtdone ) 
                   morepadd += fm_array[i-1].fieldwidth;
                fmtdone = 0;
-//          } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] && ((i+1) < i_arrayval) && *s_strarray[i+1]) {
             } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] ) {
-//             if ( (!((fm_array[i].morepadd & 2) && (i == 0))) ||
-//                  !((fm_array[i].morepadd & 2) && ((i+1) > i_arrayval)) ) {
                if ( !(((fm_array[i].morepadd & 2) && (i == 0)) ||
                      ((fm_array[i].morepadd & 1) && ((i+1) >= i_arrayval))) ) {
                   formatpass = i_breakarray[i];
                   fmterror = 1;
-//                i_breakarray[i] = 0;
                   if ( ((i > 1) && !((fm_array[i-2].morepadd & 1) && !*s_strarray[i-2])) || (i <= 1)) {
                      morepadd -= fm_array[i].fieldwidth;
                   }
                }
-//          } else if ( ((i+1) < i_arrayval) && (fm_array[i+1].morepadd & 2) && !*s_strarray[i+1] && *s_strarray[i] ) {
             } else if ( ((i+1) < i_arrayval) && (fm_array[i+1].morepadd & 2) && !*s_strarray[i+1]  ) {
-//             if ( (i > 1) && !(fm_array[i-2].morepadd & 1) ) {
                   formatpass = i_breakarray[i];
                   fmterror = 1;
                   i_breakarray[i] += fm_array[i].fieldwidth;
                   morepadd = fm_array[i+1].fieldwidth - fm_array[i].fieldwidth;
-//             }
             }
             for ( j = 0; j < i_breakarray[i]; j++ )
                safe_chr(' ', buff, bufcx);
@@ -9735,10 +9711,7 @@ FUNCTION(fun_timefmt)
                 break;
               case 'Z': /* elapsed years (365 day year) */
                 fm.lastval = (int) (secs2 / 60 / 60 / 24 / 365);
-//              if ( (int)secs2 < 0 )
-//                 sprintf(fmtbuff, "%.0f", 0.0 - floor(fabs(secs2) / 60 / 60 / 24 / 365));
-//              else
-                   sprintf(fmtbuff, "%.0f", floor(secs2 / 60 / 60 / 24 / 365));
+                sprintf(fmtbuff, "%.0f", floor(secs2 / 60 / 60 / 24 / 365));
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
                 break;
@@ -14410,7 +14383,6 @@ FUNCTION(fun_right)
 
 FUNCTION(fun_mid)
 {
-//  int idx, l, len;
     int l, len;
     char *outbuff, *s_output;
     ANSISPLIT outsplit[LBUF_SIZE];
@@ -14427,11 +14399,6 @@ FUNCTION(fun_mid)
     outbuff = alloc_lbuf("fun_scramble");
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
-//  if (l < strlen(outbuff)) {
-//      for( idx = l; idx < l + len && fargs[0][idx]; idx++ ) {
-//         safe_chr(fargs[0][idx], buff, bufcx);
-//      }
-//  }
     *(outbuff + l + len) = '\0';
     s_output = rebuild_ansi(outbuff+l, outsplit+l);
     safe_str(s_output, buff, bufcx);
@@ -23597,8 +23564,8 @@ FUNCTION(fun_beep)
 
 static const unsigned char AccentCombo2[256] =
 {   
-//  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-//  
+/*  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F   */
+
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 1
     0, 0, 9, 0, 0, 0,13, 2, 0, 0, 0, 0, 7,12, 0, 0,  // 2
@@ -26391,9 +26358,6 @@ FUNCTION(fun_ljc)
       idx++;
   }
 /* Second, add trailing spaces.   */
-//if ( idx < len ) {
-//   idx -= count_extended(fargs[0]);
-//}
   while(idx < len) {
        if ( ((unsigned int)filler[idx % filllen] >= 160) || 
             ((unsigned int)filler[idx % filllen] == 28) ||

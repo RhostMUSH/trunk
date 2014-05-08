@@ -2288,7 +2288,6 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
          if ( i_pid <= 0 )
             i_pid = -1;
       } else {
-//       player_targ = Owner(player);
          player_targ = player;
          init_match(player, target, NOTYPE);
          match_everything(MAT_EXIT_PARENTS);

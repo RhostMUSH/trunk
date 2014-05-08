@@ -472,8 +472,8 @@ tcache_finish(void)
 
 static const unsigned char AccentCombo1[256] =
 {   
-//  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-//  
+/*  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F     */
+
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 1
     0,18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 2
@@ -493,12 +493,11 @@ static const unsigned char AccentCombo1[256] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0   // F
 };  
         
-// Accent:      `'^~:o,u"B|-&Ee
-//
+/* Accent:      `'^~:o,u"B|-&Ee                       */
 static const unsigned char AccentCombo2[256] =
 {
-//  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-//
+/*  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    */
+
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 1
     0, 0, 9, 0, 0, 0,13, 2, 0, 0, 0, 0, 7,12, 0, 0,  // 2
@@ -553,8 +552,8 @@ static const unsigned char AccentCombo3[24][16] =
 
 static const int mux_isprint[256] =
 {
-//  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-//
+/*  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    */
+
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 1
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 2
@@ -574,10 +573,12 @@ static const int mux_isprint[256] =
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1   // F
 };
 
-// This handles accents as well!
-// buff/bufptr is the ansi
-// buff2/buf2ptr is the accents + ansi
-// Change %c/%x substitutions into real ansi now.
+/******************************************************
+ * This handles accents as well!
+ * buff/bufptr is the ansi
+ * buff2/buf2ptr is the accents + ansi
+ * Change %c/%x substitutions into real ansi now.
+ ******************************************************/
 void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr)
 {
     char *bufc, *bufc2, s_twochar[3], s_final[80], s_intbuf[4];
@@ -585,7 +586,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     int i_tohex, accent_toggle, i_extendallow, i_extendcnt, i_extendnum;
 
 
-//fprintf(stderr, "Value: %s\n", string);
+/* Debugging only
+    fprintf(stderr, "Value: %s\n", string);
+ */
+
     memset(s_twochar, '\0', sizeof(s_twochar));
     memset(s_final, '\0', sizeof(s_final));
     bufc = *bufptr;
@@ -597,14 +601,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
-//          if(*string != '%') {
-                safe_chr('\\', buff, &bufc);
-                safe_chr('\\', buff2, &bufc2);
-//          }
-//          if(*string && (*string != '\\')) {
-                safe_chr(*string, buff, &bufc);
-                safe_chr(*string, buff2, &bufc2);
-//          }
+            safe_chr('\\', buff, &bufc);
+            safe_chr('\\', buff2, &bufc2);
+            safe_chr(*string, buff, &bufc);
+            safe_chr(*string, buff2, &bufc2);
         } else if(*string == '%') {
             string++;
             if(*string == '\\') {
@@ -1002,7 +1002,10 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     if (index(dstr, ESC_CHAR)) {
 	strcpy(dstr, strip_ansi(dstr));
     }
-//fprintf(stderr, "EXECValue: %s\n", dstr);
+
+/* Debugging only
+   fprintf(stderr, "EXECValue: %s\n", dstr);
+*/
 
     memset(tfunlocal, '\0', sizeof(tfunlocal));
     while (*dstr && !alldone) {
@@ -1023,15 +1026,10 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
 	    at_space = 0;
 	    dstr++;
-#ifdef ZENTY_ANSI
-            // If the caracter after the \ is a commenting char, keep it
-//          if((*dstr == '\\') || (*dstr == '%'))
-//             safe_chr('\\', buff, &bufc);
-#endif
-//          if ((*dstr == '%') && (*(dstr+1) == SAFE_CHR))
-//             safe_chr('\\', buff, &bufc);
+
             if ( !i_start && mudstate.start_of_cmds && (*dstr == '\\') ) {
 #ifdef ZENTY_ANSI
+               /* With zenty ansi add an additional escape here */
                safe_chr('\\', buff, &bufc);
 #endif
                mudstate.start_of_cmds = 0;

@@ -8595,9 +8595,11 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
    old_trainmode=mudstate.trainmode;
    if ( *retbuff && (((atoi(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
                      ((atoi(retbuff) != 0) &&  (key & SKIP_IFELSE))) ) {
-//    if ( desc_in_use == NULL ) {
-//       mudstate.trainmode = 1;
-//    }
+    /* I have no idea why this is here, but I left it in incase I need 
+      if ( desc_in_use == NULL ) {
+         mudstate.trainmode = 1;
+      }
+     */
       if ( !(key & SKIP_IFELSE) && (nargs > 1) ) {
          s_buildptr = mys = s_build = alloc_lbuf("do_skip_joiner");
          safe_str(args[0], mys, &s_buildptr);
@@ -10562,7 +10564,6 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             sprintf(tmpbuff, "= (Full List)                     Black List                                 =");
          }
          notify(player, tmpbuff);
-//       notify(player, "=                                 Black List                                 =");
          notify(player, "==============================================================================");
          while ( b_lst_ptr ) {
             i_loop_chk++;

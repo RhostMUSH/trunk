@@ -2313,7 +2313,6 @@ CF_HAND(cf_string_sub)
     }
     for (ptr = str; *ptr; ptr++) {
        *ptr = ToLower(*ptr);
-//     if ( !(isalpha(*ptr) || (*ptr == '=')) || (strchr(s_sublist, *ptr) != NULL) ) {
        if ( strchr(s_sublist, *ptr) != NULL ) {
           if ( !mudstate.initializing ) {
             notify(player, "String invalid.  Contained reserved percent-sub character.");

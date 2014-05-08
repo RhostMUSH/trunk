@@ -751,8 +751,6 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
   	         (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
   		 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
 
-//	    if ((Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
-//		(Read_attr(player, othing, attr, aowner, aflags, 0))) {
 		if (quick_wild(buf2, buf)) {
                     if ( i_key ) {
                        sprintf(tbuf2, "#%d/", othing);

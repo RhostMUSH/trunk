@@ -146,7 +146,6 @@ void MUSH_SHA1_Final(MUSH_SHA1_CONTEXT *p)
 
 #if 0
 
-//#define TEST_STRING "abc"
 #define TEST_STRING "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
 int main(int argc, char *argv[])
 {

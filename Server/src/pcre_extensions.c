@@ -534,8 +534,6 @@ grep_internal_regexp(dbref player, dbref thing, char *wcheck, char *watr, int fl
                  (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) &&
                  (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
 
-//          if ((Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) &&
-//              (Read_attr(player, othing, attr, aowner, aflags, 0))) {
                 if ( quick_regexp_match(wcheck, buf, (flags ? 0 : 1)) ) {
                     safe_str(tbuf, retbuff, &bp);
                     safe_chr(' ', retbuff, &bp);
