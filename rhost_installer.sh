@@ -6,6 +6,56 @@
 #
 #Standard defines
 
+echo "This will pull the latest SVN distribution from the primary trunk."
+echo "This script will also autorun the make confsource to compile the code"
+echo "and issue ./Startmush to start up your mush."
+echo ""
+echo "This can now grab any optional branch as well.  Good news!"
+echo "If you already have the latest code, you probably don't want to run this."
+echo ""
+echo "After compiling, you would then go into the game directory and type:"
+echo "                   ./Startmush"
+echo ""
+echo "Do you wish to continue on with this script? (Y/n): " |tr -d '\012'
+read ANS
+if [ -n "${LINES}" ]
+then
+   gl_rows=${LINES}
+fi
+if [ -n "${COLUNNS}" ]
+then
+   gl_cols=${COLUNNS}
+fi
+if [ -z "${gl_rows}" ]
+then
+   gl_rows=$(stty -a|grep col|cut -f2 -d";"|awk '{print $2}')
+fi
+if [ -z "${gl_cols}" ]
+then
+   gl_rows=$(stty -a|grep col|cut -f3 -d";"|awk '{print $2}')
+fi
+if [ -z "${gl_rows}" ]
+then
+   gl_rows=24
+fi
+if [ -z "${gl_cols}" ]
+then
+   gl_cols=80
+fi
+
+ANS2=`echo ${ANS}|tr '[:upper:]' '[:lower:]'`
+if [ "${ANS2}" = "n" -o "${ANS2}" = "no" ]
+then
+   echo "Aborted by user."
+   exit 0
+fi
+ 
+if ! which dialog > /dev/null
+then
+   echo "There's no 'dialog' on your system, please install it!"
+   exit 1
+fi
+
 TEMP=/tmp/answer$$
 RHOST_USER=member
 RHOST_SITE=ftp.rhostmush.org
@@ -18,7 +68,10 @@ cleanup() {
 	clear
 	rm -f $TEMP
 	rm -f $RHOSTDIST
-	exit
+        if [ "$1" != "noexit" ]
+        then
+	   exit
+        fi
 }
 
 	dialog --title "RhostMUSH installer" --msgbox "Welcome to the Rhostmush installation script.\\n\\n We will now connect to the RhostMUSH repository on Google Code. To be able to do this, you must have subversion installed.\\n\\nIf you do not wish to download and install RhostMUSH at this time, press esc now. Otherwise, press enter to continue." 30 80
@@ -38,10 +91,59 @@ cleanup() {
 		esac
 	fi
 
-	dialog --infobox "Downloading $RHOSTDIST from Google Code, please wait..." 10 30 ; sleep 4
+        dialog --backtitle "Which branch do you wish to use?" \
+               --radiolist "The following exist:" 10 40 5 \
+                                      1 "The Main Trunc" 'on' \
+                                      2 "Ashen-Shugar's personal branch" 'off' \
+                                      3 "Ambrosia's personal branch" 'off' \
+                                      4 "Odin's personal branch" 'off' \
+                                      5 "Kage's personal branch" 'off' 2>$TEMP
+        
+	choice=`cat $TEMP`
+        mydist="trunk"
+        case "${choice}" in
+           1) mydist="trunk"
+              ;;
+           2) mydist="branches/ashen-shugar"
+              ;;
+           3) mydist="branches/ambrosia"
+              ;;
+           4) mydist="branches/odin"
+              ;;
+           5) mydist="branches/kage"
+              ;;
+           *) mydist="trunk"
+              ;;
+        esac
+    	svn checkout http://rhostmush.googlecode.com/svn/${mydist}/ rhostmush-read-only > /dev/null 2>&1 &
+        ret=$!
+        ps -p ${ret} > /dev/null 2>&1
+        xxx=$?
+        export percent=0
+        ((myrow=${gl_rows}/2-16))
+        ((mycol=${gl_cols}/2-15))
+#clear
+#echo "Columns: $mycol [${gl_cols}], $myrow [${gl_rows}]"
+#exit 1
+        while [ $xxx -eq 0 ]
+        do
+           sleep 5
+           ps -p ${ret} > /dev/null 2>&1
+           xxx=$?
+           full=31236
+           test=$(du -sk rhostmush-read-only 2>/dev/null|awk '{print $1}')
+           if [ -z "$test" ]
+           then
+              test=0
+           fi
+           ((percent=${test}*100/${full}))
+           echo ${percent}
+        done| dialog --gauge "Downloading $RHOSTDIST from Google Code, please wait..." 10 30 
+#       done| dialog --infobox "Downloading $RHOSTDIST from Google Code, please wait..." 10 30   \
+#	     --and-widget --no-lines --begin ${mycol} ${myrow} --gauge "" 6 30
+        ret=0
 	#wget --http-user=member --http-passwd=`cat $TEMP` http://192.168.0.104/$RHOSTDIST 2>$TEMP
-	svn checkout http://rhostmush.googlecode.com/svn/trunk/ rhostmush-read-only
-if [ "$?" != "0" ]
+if [ "$ret" != "0" ]
 then
 	dialog --title "RhostMUSH installer" --msgbox "Subversion returned an error, and the download failed. Press enter to see the log of Subversion's attempt to download. Afterwards, the installer will exit." 10 30
 	dialog --title "Subversion error log" --textbox $TEMP 13 65 2>/dev/null
@@ -77,13 +179,14 @@ else
                                       1 "Yes, start Rhost" 'on' \
                                       2 "No, do not start Rhost" 'off' 2>$TEMP
                  if [ "$?" != "0" ] ; then return; fi
-            choice=`cat $TEMP`
-   	 if [ "$CHOICE" = 1 ]
+
+         choice=`cat $TEMP`
+   	 if [ "$choice" -eq 1 ]
    	 then
 		dialog --title "Starting Rhost" --msgbox "Rhost will now (hopefully) start. The installer will now exit, and you can try to connect to your game." 10 30
-	 	cleanup
+	 	cleanup noexit
 		cd game
-		Startmush
+		./Startmush
 	else
 		dialog --title "Installer exiting" --msgbox "The Rhost installer will now exit. You can start your game with ./Startmush in the game directory." 10 30
 	fi

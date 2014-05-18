@@ -1,9 +1,9 @@
-Welcome to OpenSource Rhostmush!
+Welcome to opensource Rhostmush!
 
 If you have syntax issues running 'make config', 'make confsource' 
 or 'make bugreport' please run the script: ./bin/script_setup.sh
 
-Now... Two things you need to do.
+Now... things you need to do.
 
 1) run ./dirsetup.sh
 
@@ -11,7 +11,16 @@ Now... Two things you need to do.
 	and directory permissions to properly protect RhostMUSH.
 
 2) Make and run the RhostMUSH source
+   Type:  make confsource
+
+   If you get an error running the script itself, 
+   type: ./bin/script_setup.sh
+
+   Then type: make confsource
      
+
+3) To do manual configuration (skip if #2 worked for you)
+
         You need the following definitions defined to make this
         work:  TINY_U, USE_SIDEEFFECTS, MUX_INCDEC, ATTR_HACK
                (u()/u2() switched)
@@ -30,6 +39,8 @@ Now... Two things you need to do.
 
 	--------------
 
+4) Go into the game directory and modify the netrhost.conf file
+  
 	The next step is configuring the mush to your config standards.
 	There is a file in the game subdirectory called 'netrhost.conf'.
 	You hand-edit this file and just follow what it says each 
@@ -37,3 +48,33 @@ Now... Two things you need to do.
 	great details on what to edit.  For most things, you can
 	feel comfortable to stick with the defaults unless you wish
 	to change them.  The port and debug_id need to be changed.
+
+5) From the game diretory issue: ./Startmush 
+
+   To login:  co Wizard Nyctasia
+
+6) Things to do once you have connected.
+   a.  @dig your master room
+   b.  Create an immortal holder charater (@pcreate then @set immortal)
+   c.  @chown/preserve the master room and #0 to the immortal holder character.
+   d.  Log into the immortal character
+   e.  @pcreate all your guest characters and set them up properly.  My suggestion:
+       @dolist lnum(1,10)={@pcreate Guest##=guest;@set *Guest##=guest;@desc *Guest##=A guest player.;@adisconnect *Guest##=home;@lock *Guest##=*Guest##}
+       
+       @list guest will show your guest characters and if they're set up properly.
+   f.  Any master room code you load in from your immholder character (or @chown/preserve to it)
+
+7) Set up any other characters you want.  Anyone immortal can issue @function, @admin, or anything #1 can do.
+
+8) Make SURE YOU RUN DAILY Backups.  Rhost is very stable, but things outside the mush can damage the game.
+   paranoia is fine, especially when they really are out to get you.  TO make the backups, do the following:
+
+   @dump/flat      -- This makes a flatfile dump of the main database.  You want to run this daily.
+   wmail/unload    -- This makes a flatfile dump of the mail database.  You want to run this daily.
+   @areg/unload    -- Only worry about this if you are using auto-registration emailing.  Few do.
+   newsdb/unload   -- Only worry if you use the hardcoded bbs system.  Most don't use it.
+
+   The backup_flat.sh script (that launches automatically with Startmush) will archive all the above files
+   if they exist.  It moves these flatfiles into the 'prevflat' directory, then tarballs those and dumps
+   consecutive backups in the 'oldflat' directory.  By default it keeps 7 consecutive backups.  You may
+   alter this in the backup_flat.sh script itself.

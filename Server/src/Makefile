@@ -19,7 +19,7 @@ endif
 CPP = $(CC) -E
 # Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.
 # If using CYGWIN, comment out the whole line.
-LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm
+LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm 
 #LIBS = -L./qdbm/ -lqdbm
 LIBOBJS = 
 # for compiling on lowmem systems use this
@@ -156,7 +156,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # SYS_MALLOC - Used if malloc.h is in a borked spot.
 ###########################################################################################################
 
-DEFS = -DBROKEN_NDBM -DHAVE_ERRNO_H -DBIT64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL
+DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL 
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).
@@ -242,7 +242,7 @@ DEFS = -DBROKEN_NDBM -DHAVE_ERRNO_H -DBIT64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBAN
 ################################################################  #5
 #MORELIBS  = -lm -L/usr/local/lib -lcygipc
 
-MORELIBS = -lm -lnsl -lresolv -lcrypt  -lcrypto -lssl
+MORELIBS = -lm -lnsl -lresolv -lcrypt -lssl
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
