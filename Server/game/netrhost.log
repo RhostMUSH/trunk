@@ -1,103 +1,12 @@
-Master IPC Debugging stack created w/ key = 42015 [shared memory id: 1802240]
+Master IPC Debugging stack created w/ key = 32005 [shared memory id: 2064395]
 ./netrhost.debugmon: initiating ./netrhost
-050830.015427 RhostMUSH INI/START: Starting: RhostMUSH Alpha version 3.9.0RL(A) patchlevel 2 #17
-050830.015427 RhostMUSH INI/START: Build date: tir aug 30 01:52:12 CEST 2005
-050830.015427 RhostMUSH CNF/INCL : Conf including: netrhost.conf
-050830.015427 RhostMUSH CNF/NFND : Set: Config directive secure_atruselocks not found
-050830.015427 RhostMUSH CNF/INCL : Conf including: alias.conf
-050830.015427 RhostMUSH CNF/NFND : alias: Command +channel not found
-050830.015427 RhostMUSH CNF/NFND : alias: Command +channel not found
-050830.015427 RhostMUSH CNF/SYNTX: flag_alias: Warning: Redefining alias 'command'
-050830.015427 RhostMUSH CNF/SYNTX: function_alias: Error: 'squish' is not an alias, cannot redefine.
-050830.015427 RhostMUSH CNF/NFND : Set: Config directive  not found
-050830.015427 RhostMUSH HLP/RINDX: Can't open plushelp.indx for reading.
-Slave IPC Debugging stack connected w/ key = 42015
-050830.015427 RhostMUSH INI/LOAD : Using gdbm file: ./data/netrhost.gdbm
-050830.015427 RhostMUSH INI/LOAD : Loading: ./data/netrhost.db
-050830.015427 RhostMUSH INI/LOAD : Load complete.
-050830.015428 RhostMUSH INI/START: News System started.
-050830.015428 RhostMUSH INI/BSD  : RhostMUSH is now listening on port <4201>
-050830.015428 RhostMUSH INI/BSD  : Max Descriptors: 988
-050830.015430 RhostMUSH NET/DNS  : 127.0.0.1 = localhost
-050830.015430 RhostMUSH NET/CONN : [10/localhost] Connection opened (remote port 4965)
-050830.015430 RhostMUSH NET/AUTH : [10/localhost] Starting AUTH connection
-050830.015430 RhostMUSH NET/AUTH : [10/localhost] AUTH connect: Connection refused
-050830.015432 RhostMUSH CON/LOGIN: [10/localhost] Connected to Wizard(#1) in Limbo(#0)
-
-./netrhost.debugmon: caught SIGUSR1
-./netrhost.debugmon: debug stack depth = 2
-./netrhost.debugmon: stackframe 0 = game.c, line 1765
-./netrhost.debugmon: stackframe 1 = bsd.c, line 202
-
-./netrhost.debugmon: last db fetch was for #1
-050830.015449 RhostMUSH SIG/CATCH: Caught signal SIGBUS
-050830.015449 RhostMUSH WIZ/RBT  : Reboot due to signal SIGUSR1.
-050830.015449 RhostMUSH DMP/DUMP : Dumping: ./data/netrhost.db.new.#1#
-050830.015449 RhostMUSH DMP/DONE : Dump complete: ./data/netrhost.db.new.#1#
-050830.015449 RhostMUSH WIZ/SHTDN: News System shutdown.
-050830.015449 RhostMUSH RBT/DUMP : Dumping reboot data...
-050830.015449 RhostMUSH RBT/DUMP : Dump complete.
-050830.015449 RhostMUSH INI/START: Starting: RhostMUSH Alpha version 3.9.0RL(A) patchlevel 2 #17
-050830.015449 RhostMUSH INI/START: Build date: tir aug 30 01:52:12 CEST 2005
-050830.015449 RhostMUSH INI/ARG  : Rebooting...
-050830.015449 RhostMUSH CNF/INCL : Conf including: netrhost.conf
-050830.015449 RhostMUSH CNF/NFND : Set: Config directive secure_atruselocks not found
-050830.015449 RhostMUSH CNF/INCL : Conf including: alias.conf
-050830.015449 RhostMUSH CNF/NFND : alias: Command +channel not found
-050830.015449 RhostMUSH CNF/NFND : alias: Command +channel not found
-050830.015449 RhostMUSH CNF/SYNTX: flag_alias: Warning: Redefining alias 'command'
-050830.015449 RhostMUSH CNF/SYNTX: function_alias: Error: 'squish' is not an alias, cannot redefine.
-050830.015449 RhostMUSH CNF/NFND : Set: Config directive  not found
-050830.015449 RhostMUSH HLP/RINDX: Can't open plushelp.indx for reading.
-Slave IPC Debugging stack connected w/ key = 42015
-050830.015449 RhostMUSH INI/LOAD : Using gdbm file: ./data/netrhost.gdbm
-050830.015449 RhostMUSH RBT/MOV  : New db dump moved to input db.
-050830.015449 RhostMUSH INI/LOAD : Loading: ./data/netrhost.db
-050830.015449 RhostMUSH INI/LOAD : Load complete.
-050830.015449 RhostMUSH INI/START: News System started.
-050830.015449 RhostMUSH RBT/LOAD : Loading reboot data...
-050830.015449 RhostMUSH RBT/LOAD : Reconnecting: Wizard(#1)
-050830.015449 RhostMUSH RBT/LOAD : Load complete.
-050830.015449 RhostMUSH INI/BSD  : RhostMUSH is now listening on port <4201>
-050830.015449 RhostMUSH INI/BSD  : Max Descriptors: 988
-050830.015452 RhostMUSH SIG/CATCH: Caught signal SIGBUS
-050830.015452 RhostMUSH WIZ/RBT  : Reboot due to signal SIGUSR1.
-050830.015452 RhostMUSH DMP/DUMP : Dumping: ./data/netrhost.db.new.#1#
-050830.015452 RhostMUSH DMP/DONE : Dump complete: ./data/netrhost.db.new.#1#
-050830.015452 RhostMUSH WIZ/SHTDN: News System shutdown.
-050830.015452 RhostMUSH RBT/DUMP : Dumping reboot data...
-050830.015452 RhostMUSH RBT/DUMP : Dump complete.
-050830.015452 RhostMUSH INI/START: Starting: RhostMUSH Alpha version 3.9.0RL(A) patchlevel 2 #17
-050830.015452 RhostMUSH INI/START: Build date: tir aug 30 01:52:12 CEST 2005
-050830.015452 RhostMUSH INI/ARG  : Rebooting...
-050830.015452 RhostMUSH CNF/INCL : Conf including: netrhost.conf
-050830.015452 RhostMUSH CNF/NFND : Set: Config directive secure_atruselocks not found
-050830.015452 RhostMUSH CNF/INCL : Conf including: alias.conf
-050830.015452 RhostMUSH CNF/NFND : alias: Command +channel not found
-050830.015452 RhostMUSH CNF/NFND : alias: Command +channel not found
-050830.015452 RhostMUSH CNF/SYNTX: flag_alias: Warning: Redefining alias 'command'
-050830.015452 RhostMUSH CNF/SYNTX: function_alias: Error: 'squish' is not an alias, cannot redefine.
-050830.015452 RhostMUSH CNF/NFND : Set: Config directive  not found
-050830.015452 RhostMUSH HLP/RINDX: Can't open plushelp.indx for reading.
-Slave IPC Debugging stack connected w/ key = 42015
-050830.015452 RhostMUSH INI/LOAD : Using gdbm file: ./data/netrhost.gdbm
-050830.015452 RhostMUSH RBT/MOV  : New db dump moved to input db.
-050830.015452 RhostMUSH INI/LOAD : Loading: ./data/netrhost.db
-050830.015452 RhostMUSH INI/LOAD : Load complete.
-050830.015452 RhostMUSH INI/START: News System started.
-050830.015452 RhostMUSH RBT/LOAD : Loading reboot data...
-050830.015452 RhostMUSH RBT/LOAD : Reconnecting: Wizard(#1)
-050830.015452 RhostMUSH RBT/LOAD : Load complete.
-050830.015452 RhostMUSH INI/BSD  : RhostMUSH is now listening on port <4201>
-050830.015452 RhostMUSH INI/BSD  : Max Descriptors: 988
-050830.015501 RhostMUSH SIG/CATCH: Caught signal SIGSYS
-050830.015501 RhostMUSH WIZ/SHTDN: Shutting down due to signal SIGUSR2.
-050830.015501 RhostMUSH NET/DISC : [10/localhost] Logout by Wizard(#1) <Reason: Game Shutdown>
-050830.015501 RhostMUSH DMP/DUMP : Dumping: ./data/netrhost.db.new.#1#
-050830.015501 RhostMUSH DMP/DONE : Dump complete: ./data/netrhost.db.new.#1#
-050830.015501 RhostMUSH WIZ/SHTDN: News System shutdown.
-./netrhost.debugmon: ./netrhost exited with status 0
-./netrhost.debugmon: debug stack depth = 0
-
-./netrhost.debugmon: last db fetch was for #1
-./netrhost.debugmon: exiting
+140518.123248 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+3BYTE UTF8 Detected
+3BYTE UTF8 Detected
+3BYTE UTF8 Detected
+140518.124105 RhostMUSH RBT/DUMP : Dumping reboot data...
+140518.124105 RhostMUSH RBT/DUMP : Dump complete.
+140518.124105 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+3BYTE UTF8 Detected

@@ -1593,7 +1593,7 @@ process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost;
-    char *p, *pend, *q, *qend, qfind[8], *qf;
+    char *p, *pend, *q, *qend, qfind[12], *qf;
     char *cmdsave;
 
     DPUSH; /* #16 */
@@ -1637,14 +1637,44 @@ process_input(DESC * d)
 		(d->raw_input_at)--;
   	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
-        } else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 250) && ((p+10) < pend) ) {
-            sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-            qf = qfind;
-            in+=5;
-            got+=5;
-            while ( *qf ) {
-               *p++ = *qf++;
-            }
+	} else if (p < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+		fprintf(stderr, "4BYTE UTF8 Detected\n");
+		sprintf(qfind, "%c<u%02x%02x%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(++q), (int)(unsigned char)*(++q), (int)(unsigned char)*(++q));
+		q+=3;
+		in+=12;
+		got+=12;
+		qf = qfind;
+		while (*qf) {
+			*p++ = *qf++;
+		}
+	} else if (p < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+		fprintf(stderr, "3BYTE UTF8 Detected\n");
+		sprintf(qfind, "%c<u%02x%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+		q+=2;
+		in+=10;
+		got+=10;
+		qf = qfind;
+		while (*qf) {
+			*p++ = *qf++;
+		}	
+	} else if (p < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+		fprintf(stderr, "2BYTE UTF8 Detected\n");
+		sprintf(qfind, "%c<u%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+		q+=1;
+		in+=8;
+		got+=8;
+		qf = qfind;
+		while (*qf) {
+			*p++ = *qf++;
+		}
+	} else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 250) && ((p+10) < pend) ) {
+		sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
+		qf = qfind;
+		in+=5;
+		got+=5;
+		while ( *qf ) {
+		   *p++ = *qf++;
+		}
 	} else {
 		in--;
 		if (p >= pend)
