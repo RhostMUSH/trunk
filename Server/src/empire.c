@@ -132,7 +132,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
   } 
   country = args[0];
   password = args[1];
-  sprintf(buf2, "%s %s", "localhost", "7777");
+  sprintf(buf2, "%s %s", "localhost", "1665");
 
 /*pt = doorparm("empire"); */
   pt = buf2;

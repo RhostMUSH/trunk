@@ -754,7 +754,7 @@ do_move(dbref player, dbref cause, int key, char *direction)
                                    safe_tprintf(tpr_buff, &tprp_buff, "%s goes home.", Name(player)), 0);
 #else
               notify_except(loc, player, player,
-                            safe_tprintf(tpr_buff, &tprp_buff, "%s goes home.", Name(player)));
+                            safe_tprintf(tpr_buff, &tprp_buff, "%s goes home.", Name(player)), 0);
 #endif
               free_lbuf(tpr_buff);
 	    }

@@ -23,6 +23,8 @@ char *index(const char *, int);
 #include "levels.h"
 #endif /* REALITY_LEVELS */
 
+extern int count_chars(const char *, const char c);
+
 static void 
 look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
 {
@@ -119,14 +121,17 @@ look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
                    ANSIEX(ANSI_HILITE), exit_name, ANSIEX(ANSI_NORMAL)));
             free_lbuf(tpr_buff);
 	} else {
-            tprp_buff = tpr_buff = alloc_lbuf("look_exits");
-            if ( keytype )
-	       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Global Exits:%s", 
-                      ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
-            else
-	       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Exits:%s", 
-                      ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
-            free_lbuf(tpr_buff);
+           if ( SnuffDark(player) ) {
+              continue;
+           }
+           tprp_buff = tpr_buff = alloc_lbuf("look_exits");
+           if ( keytype )
+	      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Global Exits:%s", 
+                     ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
+           else
+	      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%sDark Exits:%s", 
+                     ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)));
+           free_lbuf(tpr_buff);
         }
 	e = buff = alloc_lbuf("look_exits");
 	oldparent = -1;
@@ -238,7 +243,7 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
     dbref thing;
     dbref can_see_loc;
     dbref aowner;
-    char *buff, *pbuf, *tbuff, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *tbuff, *tpr_buff, *tprp_buff;
     int aflags, i_cntr=0;
 
     /* check to see if he can see the location */
@@ -296,26 +301,47 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
                     if ( ((NoName(thing) && *buff) || !NoName(thing)) ) {
                        tprp_buff = tpr_buff;
                        if(isPlayer(thing)) {
+                           pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
                            pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
-                           if(*pbuf)
-                              if ( !*tbuff )
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s, %.40s", buff, pbuf));
-                              else
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s, %s", tbuff, buff, pbuf));
-                           else
-                              if ( !*tbuff )
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s", buff));
-                              else
-		                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s", tbuff, buff));
+                           if(*pbuf) {
+                              if ( !*tbuff ) {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s, %.90s", buff, pbuf));
+                                 }
+                              } else {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.90s %s%s, %s", tbuff, pbuf2, ANSI_NORMAL, buff, pbuf));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s, %s", tbuff, buff, pbuf));
+                                 }
+                              }
+                           } else {
+                              if ( !*tbuff ) {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %.90s %s%s", pbuf2, ANSI_NORMAL, buff));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s", buff));
+                                 }
+                              } else {
+                                 if ( *pbuf2 ) {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %.90s %s%s", tbuff, pbuf2, ANSI_NORMAL, buff));
+                                 } else {
+		                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s", tbuff, buff));
+                                 }
+                              }
+                           }
                            free_lbuf(pbuf);
+                           free_lbuf(pbuf2);
                        } else {
-                           if ( !*tbuff )
+                           if ( !*tbuff ) {
 		              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Miscellaneous: %s", buff));
-                           else
+                           } else {
 		              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.30s: %s", tbuff, buff));
+                           }
                        }
                     }
-
 		    free_lbuf(buff);
                     free_lbuf(tbuff);
 		}
@@ -332,7 +358,7 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
     dbref thing;
     dbref can_see_loc;
     dbref aowner;
-    char *buff, *pbuf, *buf2, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
     int aflags, i_cont=0;
 
     /* check to see if he can see the location */
@@ -397,12 +423,23 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                     if ( ((NoName(thing) && *buff) || !NoName(thing)) ) {
                        if(isPlayer(thing)) {
                            pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+                           pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
+                           tprp_buff = tpr_buff;
                            if(*pbuf) {
-                              tprp_buff = tpr_buff;
-                              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
-                           } else
-                              notify(player, buff);
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                              } else {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
+                              }
+                           } else {
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
+                              } else {
+                                 notify(player, buff);
+                              }
+                           }
                            free_lbuf(pbuf);
+                           free_lbuf(pbuf2);
                        } else
                            notify(player, buff);
                     }
@@ -422,7 +459,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
     dbref thing;
     dbref can_see_loc;
     dbref aowner;
-    char *buff, *pbuf, *buf2, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
     int aflags;
 
     /* check to see if he can see the location */
@@ -486,12 +523,23 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                     if ( ((NoName(thing) && *buff) || !NoName(thing)) ) {
                        if(isPlayer(thing)) {
                            pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+                           pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
+                           tprp_buff = tpr_buff;
                            if(*pbuf) {
-                              tprp_buff = tpr_buff;
-                              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
-                           } else
-                              notify(player, buff);
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                              } else {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
+                              }
+                           } else {
+                              if ( *pbuf2 ) {
+                                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
+                              } else {
+                                 notify(player, buff);
+                              }
+                           }
                            free_lbuf(pbuf);
+                           free_lbuf(pbuf2);
                        } else
                            notify(player, buff);
                     }
@@ -565,6 +613,10 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
     char *xbufp = NULL, 
          *ybufp = NULL;
     BOOLEXP *bool;
+
+    if (!God(player) && ((ap->flags & AF_GOD) || (aflags & AF_GOD)) && 
+           ((ap->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
+	return;
 
     if (!Wizard(player) && ((ap->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
 	return;
@@ -694,8 +746,11 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 	    go2 = !stricmp(watr, tbuf);
 	if (go2) {
 	    buf = atr_get(thing, ca, &aowner, &aflags);
-	    if ((Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
-		(Read_attr(player, othing, attr, aowner, aflags, 0))) {
+            if ( (God(player) || !( ((attr->flags & AF_GOD) || (aflags & AF_GOD)) && 
+                                    ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))) &&
+  	         (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
+  		 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
+
 		if (quick_wild(buf2, buf)) {
                     if ( i_key ) {
                        sprintf(tbuf2, "#%d/", othing);
@@ -737,7 +792,7 @@ do_grep(dbref player, dbref cause, int key, char *source,
 	notify(player, "Bad object specified.");
     else {
         if ( PCRE_EXEC && (key & GREP_REGEXP) )
-           pt1 = grep_internal_regexp(player, thing, wildch[1], wildch[0], 1);
+           pt1 = grep_internal_regexp(player, thing, wildch[1], wildch[0], 1, 0);
         else
 	   pt1 = grep_internal(player, thing, wildch[1], wildch[0], 0);
 	notify(player, pt1);
@@ -1065,7 +1120,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 
 static void 
 look_atrs1(dbref player, dbref thing, dbref othing,
-	   int check_exclude, int hash_insert)
+	   int check_exclude, int hash_insert, int i_tree)
 {
     dbref aowner;
     int ca, aflags;
@@ -1088,27 +1143,27 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 
 	buf = atr_get(thing, ca, &aowner, &aflags);
 	if (Read_attr(player, othing, attr, aowner, aflags, 0)) {
-
-	    if (!(check_exclude && (aflags & AF_PRIVATE))) {
-		if (hash_insert)
-		    nhashadd(ca, (int *) attr,
-			     &mudstate.parent_htab);
-		view_atr(player, thing, attr, buf,
-			 aowner, aflags, 0, (thing != othing ? thing : -1));
-	    }
+           if ( !i_tree || (i_tree && !count_chars(attr->name, '`')) ) {
+	      if (!(check_exclude && (aflags & AF_PRIVATE))) {
+		 if (hash_insert)
+		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);
+		 view_atr(player, thing, attr, buf,
+			  aowner, aflags, 0, (thing != othing ? thing : -1));
+	      }
+           }
 	}
 	free_lbuf(buf);
     }
 }
 
 static void 
-look_atrs(dbref player, dbref thing, int check_parents)
+look_atrs(dbref player, dbref thing, int check_parents, int i_tree)
 {
     dbref parent;
     int lev, check_exclude, hash_insert;
 
     if (!check_parents) {
-	look_atrs1(player, thing, thing, 0, 0);
+	look_atrs1(player, thing, thing, 0, 0, i_tree);
     } else {
 	hash_insert = 1;
 	check_exclude = 0;
@@ -1117,7 +1172,7 @@ look_atrs(dbref player, dbref thing, int check_parents)
 	    if (!Good_obj(Parent(parent)))
 		hash_insert = 0;
 	    look_atrs1(player, parent, thing,
-		       check_exclude, hash_insert);
+		       check_exclude, hash_insert, i_tree);
 	    check_exclude = 1;
             if ( Good_obj(Parent(parent)) ) {
              if ( NoEx(Parent(parent)) && !Wizard(player) )
@@ -1160,7 +1215,7 @@ count_atrs(dbref thing)
 static void 
 look_simple(dbref player, dbref thing, int obey_terse)
 {
-    char *buff, *pbuf, *tpr_buff, *tprp_buff;
+    char *buff, *pbuf, *pbuf2, *tpr_buff, *tprp_buff;
     dbref aowner;
     int pattr, aflags;
 
@@ -1191,16 +1246,28 @@ look_simple(dbref player, dbref thing, int obey_terse)
 
         if ( Good_obj(thing) && ((NoName(thing) && *buff) || !NoName(thing)) ) {
            if(Good_obj(thing) && isPlayer(thing)) {
+              pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
               pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+              tprp_buff = tpr_buff = alloc_lbuf("look_simple");
               if(*pbuf) {
-                 tprp_buff = tpr_buff = alloc_lbuf("look_simple");
-                 notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.40s", buff, pbuf));
-                 free_lbuf(tpr_buff);
-              } else
-                 notify(player, buff);
+                 if ( *pbuf2 ) {
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
+                 } else {
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
+                 }
+              } else {
+                 if ( *pbuf2 ) {
+                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
+                 } else {
+                    notify(player, buff);
+                 }
+              }
+              free_lbuf(tpr_buff);
               free_lbuf(pbuf);
-           } else
+              free_lbuf(pbuf2);
+           } else {
               notify(player, buff);
+           }
         }
 
 	free_lbuf(buff);
@@ -1218,7 +1285,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
 #endif /* REALITY_LEVELS */
 
     if (!mudconf.quiet_look && (!Terse(player) || !(isRoom(thing) && Terse(thing)) || mudconf.terse_look)) {
-	look_atrs(player, thing, 0);
+	look_atrs(player, thing, 0, 0);
     }
 }
 
@@ -1365,7 +1432,7 @@ look_in(dbref player, dbref loc, int key)
     /* tell him the attributes, contents and exits */
 
     if ((key & LK_SHOWATTR) && !mudconf.quiet_look && !is_terse)
-	look_atrs(player, loc, 0);
+	look_atrs(player, loc, 0, 0);
     if (!is_terse || mudconf.terse_contents)
 	look_contents(player, loc, "Contents:");
     if ((key & LK_SHOWEXIT) && (!is_terse || mudconf.terse_exits)) {
@@ -1699,7 +1766,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
     BOOLEXP *bool;
     int control, aflags, do_parent, echeck, aflags2, keyfound;
     OBLOCKMASTER master;
-    int cntr=0;
+    int cntr=0, i_tree=0, i_regexp=0;
     ATTR *a_chk;
 
     /* This command is pointless if the player can't hear. */
@@ -1707,6 +1774,14 @@ do_examine(dbref player, dbref cause, int key, char *name)
     if (!Hearer(player))
 	return;
 
+    if ( key & EXAM_REGEXP ) {
+       i_regexp = 1;
+       key &= ~EXAM_REGEXP;
+    }
+    if ( key & EXAM_TREE ) {
+       i_tree = 1;
+       key &= ~EXAM_TREE;
+    }
     mudstate.outputflushed = 0;
     do_parent = key & EXAM_PARENT;
     thing = NOTHING;
@@ -1718,7 +1793,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
     } else {
 	/* Check for obj/attr first. */
 	olist_init(&master);
-	if (parse_attrib_wild(player, name, &thing, do_parent, 1, 0, &master, 0)) {
+	if (parse_attrib_wild(player, name, &thing, do_parent, 1, 0, &master, 0, i_regexp, i_tree)) {
     	  if (Cloak(thing)) {
 	    if (Immortal(thing) && SCloak(thing) && !(Immortal(cause))) {
 	      notify(player, "I don't see that here.");
@@ -1989,7 +2064,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
        free_lbuf(modbuf);
     }
     if ( key != EXAM_BRIEF ) {
-       look_atrs(player, thing, do_parent);
+       look_atrs(player, thing, do_parent, i_tree);
     }
 
     /* show him interesting stuff */
@@ -2538,35 +2613,70 @@ sweep_check(dbref player, dbref what, int key, int is_loc)
 	    buff = alloc_lbuf("Hearer");
 	else
 	    buff = NULL;
+        if ( (mudconf.listen_parents == 0) || !Monitor(what) ) {
+	   for (attr = atr_head(what, &as); attr; attr = atr_next(&as)) {
+	       if (attr == A_LISTEN) {
+		   canhear = 1;
+		   break;
+	       }
+	       if (Monitor(what)) {
+		   ap = atr_num(attr);
+		   if (!ap || (ap->flags & AF_NOPROG))
+		       continue;
+   
+		   atr_get_str(buff, what, attr, &aowner,
+			       &aflags);
+   
+		   /* Make sure we can execute it */
+   
+		   if ((buff[0] != AMATCH_LISTEN) ||
+		       (aflags & AF_NOPROG))
+		       continue;
+   
+		   /* Make sure there's a : in it */
+   
+		   for (s = buff + 1; *s && (*s != ':'); s++);
+		   if (s) {
+		       canhear = 1;
+		       break;
+		   }
+	       }
+	   }
+        } else {
+	   ITER_PARENTS(what, parent, lev) {
+	      for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+	          if ((parent == what) && (attr == A_LISTEN)) {
+		      canhear = 1;
+		      break;
+	          }
+	          if (Monitor(what)) {
+		      ap = atr_num(attr);
+		      if (!ap || (ap->flags & AF_NOPROG))
+		          continue;
+      
+		      atr_get_str(buff, parent, attr, &aowner,
+			          &aflags);
+      
+		      /* Make sure we can execute it */
+      
+		      if ((buff[0] != AMATCH_LISTEN) ||
+		          (aflags & AF_NOPROG))
+		          continue;
+      
+                      if ( (what != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                          continue;
 
-	for (attr = atr_head(what, &as); attr; attr = atr_next(&as)) {
-	    if (attr == A_LISTEN) {
-		canhear = 1;
-		break;
-	    }
-	    if (Monitor(what)) {
-		ap = atr_num(attr);
-		if (!ap || (ap->flags & AF_NOPROG))
-		    continue;
-
-		atr_get_str(buff, what, attr, &aowner,
-			    &aflags);
-
-		/* Make sure we can execute it */
-
-		if ((buff[0] != AMATCH_LISTEN) ||
-		    (aflags & AF_NOPROG))
-		    continue;
-
-		/* Make sure there's a : in it */
-
-		for (s = buff + 1; *s && (*s != ':'); s++);
-		if (s) {
-		    canhear = 1;
-		    break;
-		}
-	    }
-	}
+		      /* Make sure there's a : in it */
+      
+		      for (s = buff + 1; *s && (*s != ':'); s++);
+		      if (s) {
+		          canhear = 1;
+		          break;
+		      }
+	          }
+              }
+           }
+        }
 	if (buff)
 	    free_lbuf(buff);
     }
@@ -2888,11 +2998,20 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
     BOOLEXP *bool;
     char *got, *thingname, *as, *ltext, *buff, *tpr_buff, *tprp_buff;
     dbref aowner, thing;
-    int val, aflags, ca, key_buff;
+    int val, aflags, ca, key_buff, i_regexp, i_tree;
     ATTR *attr;
     NAMETAB *np;
     OBLOCKMASTER master;
 
+    i_regexp = i_tree = 0;
+    if ( key & DECOMP_REGEXP ) {
+       i_regexp = 1;
+       key &= ~DECOMP_REGEXP;
+    }
+    if ( key & DECOMP_TREE ) {
+       i_tree = 1;
+       key &= ~DECOMP_TREE;
+    }
     key_buff = key;
     key = 0;
     mudstate.outputflushed = 0;
@@ -2900,7 +3019,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
     if (!name || !*name)
       return;
     olist_init(&master);
-    if (parse_attrib_wild(player, name, &thing, 0, 1, 0, &master, 0)) {
+    if (parse_attrib_wild(player, name, &thing, 0, 1, 0, &master, 0, i_regexp, i_tree)) {
       if (!Examinable(player, thing)) {
 	notify_quiet(player, "You can only decompile things you can examine.");
 	olist_cleanup(&master);
@@ -2995,6 +3114,11 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
    
 	   got = atr_get(thing, ca, &aowner, &aflags);
 	   if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
+               if (!God(player) && ((attr->flags & AF_GOD) || (aflags & AF_GOD)) && 
+                                   ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS))) {
+	         free_lbuf(got);
+	         continue;
+               }
 	       if (!Wizard(player) && ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS))) {
 	         free_lbuf(got);
 	         continue;

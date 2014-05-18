@@ -9,7 +9,12 @@ srcdir = .
 bindir = ../bin
 incdir = ../hdrs
 
-CC = gcc
+ERR = $(shell which gcc >/dev/null; echo $$?)
+ifeq "$(ERR)" "0"
+   CC = gcc
+else
+   CC = cc
+endif
 # CPP = gcc -E	# This is broken in autoconf.  Sigh.
 CPP = $(CC) -E
 # Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.
@@ -151,7 +156,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # SYS_MALLOC - Used if malloc.h is in a borked spot.
 ###########################################################################################################
 
-DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DOLD_REALITIES -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall
+DEFS = -DBROKEN_NDBM -DHAVE_ERRNO_H -DBIT64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).
@@ -237,7 +242,7 @@ DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DOLD_REALITIES -DSECURE_SIDEEFFECT -DOL
 ################################################################  #5
 #MORELIBS  = -lm -L/usr/local/lib -lcygipc
 
-MORELIBS = -lm -lnsl -lresolv -lcrypt 
+MORELIBS = -lm -lnsl -lresolv -lcrypt  -lcrypto -lssl
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much

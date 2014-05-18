@@ -199,7 +199,7 @@
 #define TOG_MONITOR_AREG	0x00001000
 #define TOG_MONITOR_TIME        0x00002000
 #define TOG_CLUSTER		0x00004000	/* Object is part of a cluster */
-/* 0x00008000 free */
+#define TOG_SNUFFDARK           0x00008000	/* Snuff Dark Exit Viewing */
 #define TOG_NOANSI_PLAYER       0x00010000      /* Do not show ansi player names */
 #define TOG_NOANSI_THING        0x00020000      /* ... things */
 #define TOG_NOANSI_ROOM         0x00040000      /* ... rooms */
@@ -244,7 +244,7 @@
 #define TOG_ACCENTS		0x00400000	/* Accents being displayed */
 #define TOG_PREMAILVALIDATE	0x00800000	/* Pre-Validate the mail send list before sending mail */
 #define TOG_SAFELOG             0x01000000	/* Allow 'clean logging' by the player */
-/* 0x02000000 free */
+#define TOG_UTF8			0x02000000	/* UTF8 being displayed */
 /* 0x04000000 free */
 #define TOG_NODEFAULT		0x08000000	/* Allow target to inherit default attribs */
 #define TOG_EXFULLWIZATTR	0x10000000	/* Examine Wiz attribs */
@@ -596,6 +596,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define No_Ansi_Ex(x)	((Toggles(x) & TOG_NO_ANSI_EX) != 0)
 #define CpuTime(x)	((Toggles(x) & TOG_CPUTIME) != 0)
 #define Cluster(x)	((Toggles(x) & TOG_CLUSTER) != 0)
+#define SnuffDark(x)	((Toggles(x) & TOG_SNUFFDARK) != 0)
 #define NoAnsiPlayer(x) ((Toggles(x) & TOG_NOANSI_PLAYER) != 0)
 #define NoAnsiThing(x)  ((Toggles(x) & TOG_NOANSI_THING) != 0)
 #define NoAnsiRoom(x)   ((Toggles(x) & TOG_NOANSI_ROOM) != 0)
@@ -634,6 +635,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define TogHideIdle(x)	((Toggles2(x) & TOG_HIDEIDLE) != 0)
 #define TogMortReal(x)	((Toggles2(x) & TOG_MORTALREALITY) != 0)
 #define Accents(x)	((Toggles2(x) & TOG_ACCENTS) != 0)
+#define UTF8(x)		((Toggles2(x) & TOG_UTF8) != 0)
 #define MailValid(x)	((Toggles2(x) & TOG_PREMAILVALIDATE) != 0)
 #define KeepAlive(x)	((Toggles2(x) & TOG_KEEPALIVE) != 0)
 #define ChkReality(x)	((Toggles2(x) & TOG_CHKREALITY) != 0)

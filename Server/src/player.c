@@ -833,6 +833,7 @@ BADNAME *bp;
 #define PROT_LIST 0
 #define PROT_SUMM 1
 #define PROT_BYPLAYER 2
+#define PROT_LISTALL 4
 void protectname_list (dbref player, int key, dbref target) 
 {
    PROTECTNAME *bp;
@@ -850,13 +851,14 @@ void protectname_list (dbref player, int key, dbref target)
    /* we can have significantly more than LBUF names here */
    switch (key ) {
       case PROT_LIST:
+      case PROT_LISTALL:
          notify(player, "                                 FULL LISTING                                ");
          notify(player, "+------------------------------+------------------------------------+-------+");
          notify(player, "| Player Name Protected        | Dbref#   [ Player Name           ] | Alias |");
          notify(player, "+------------------------------+------------------------------------+-------+");
          i_cntr=0;
          for ( bp=mudstate.protectname_head; bp; bp=bp->next) {
-            if ( Wizard(player) || (player == bp->i_name) ) {
+            if ( (Wizard(player) && (key & PROT_LISTALL)) || (player == bp->i_name) ) {
                if ( player == bp->i_name ) {
                   i_cntr++;
                }
@@ -1107,8 +1109,10 @@ int reg_internal(char *name, char *email, char *dum, int key)
     if ( !key )
        broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
     code = 1;
-  }
-  else {
+  } else {
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
     move_object(player, mudconf.start_room);
     time(&now);
     sprintf(buff,"Email: %.1000s, Site: %.1000s, Id: %.1000s, Time: %s",email,d->addr,d->userid,ctime(&now));

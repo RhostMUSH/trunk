@@ -326,6 +326,7 @@ AFLAGENT attrflag[] =
 /* These two add dynamically when turned into a hash */
 /* Check look.c for the attrib lookup stuff as well */
   {"REGEXP", 3, AF_REGEXP, 'R'},
+  {"UNSAFE", 3, AF_UNSAFE, 'U'},
   {NULL, 0, 0}};
 
 /* list of attributes */
@@ -423,7 +424,7 @@ ATTR attr[] =
      NULL},
     {"Kill", A_KILL, AF_ODARK, NULL},
     {"Lalias", A_LALIAS, AF_ODARK | AF_NOPROG, NULL},
-    {"lambda_internal_foo", A_LAMBDA, AF_PINVIS | AF_NOPROG | AF_GOD | AF_NOCMD | AF_PRIVATE, NULL},
+    {"lambda_internal_foo", A_LAMBDA, AF_PINVIS | AF_NOCLONE | AF_NOPROG | AF_GOD | AF_NOCMD | AF_PRIVATE, NULL},
     {"Last", A_LAST, AF_WIZARD | AF_NOCMD | AF_NOPROG, NULL},
     {"LastCreate", A_LASTCREATE, AF_DARK | AF_INTERNAL | AF_NOPROG | AF_NOCMD, NULL},
     {"LastIP", A_LASTIP, AF_MDARK | AF_NOPROG | AF_NOCMD | AF_GOD, NULL},
@@ -527,6 +528,7 @@ ATTR attr[] =
     {"TeloutLock", A_LTELOUT, AF_ODARK | AF_NOPROG | AF_NOCMD | AF_IS_LOCK,
      NULL},
     {"TempBuffer", A_TEMPBUFFER, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
+    {"TitleCaption", A_TITLE, AF_ODARK | AF_NOPROG | AF_NORETURN, NULL},
     {"Tfail", A_TFAIL, AF_ODARK | AF_NOPROG, NULL},
     {"Timeout", A_TIMEOUT, AF_MDARK | AF_NOPROG | AF_WIZARD, NULL},
     {"Tofail", A_TOFAIL, AF_ODARK | AF_NOPROG, NULL},
@@ -1807,7 +1809,7 @@ al_add(dbref thing, int attrnum)
 #ifndef STANDALONE
     ATTR *attr;
     dbref aowner2;
-    int i, i_array[4], aflags2;
+    int i, i_array[LIMIT_MAX], aflags2;
     char *s_chkattr, *s_buffptr;
 #endif
     /* If trying to modify List attrib, return.  Otherwise, get the
@@ -1881,9 +1883,9 @@ al_add(dbref thing, int attrnum)
           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
-             i_array[1] = i_array[3] = -2;
+             i_array[4] = i_array[1] = i_array[3] = -2;
              for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                  s_buffptr && (i < 4);
+                  s_buffptr && (i < LIMIT_MAX);
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
@@ -1919,12 +1921,12 @@ al_add(dbref thing, int attrnum)
                 }
              }
              s_mbuf = alloc_mbuf("vattr_check");
-             sprintf(s_mbuf, "%d %d %d %d", i_array[0]+1, i_array[1], 
-                                                  i_array[2], i_array[3]);
+             sprintf(s_mbuf, "%d %d %d %d %d", i_array[0]+1, i_array[1], 
+                                                  i_array[2], i_array[3], i_array[4]);
              do_limit_add = 1;
           } else {
              s_mbuf = alloc_mbuf("vattr_check");
-             strcpy(s_mbuf, "1 -2 0 -2");
+             sprintf(s_mbuf, "1 -2 0 -2 %d", -2);
              do_limit_add = 1;
           }
           free_lbuf(s_chkattr);
@@ -1989,7 +1991,7 @@ al_delete(dbref thing, int attrnum)
     ATTR *attr;
     char *s_chkattr, *s_buffptr, *s_mbuf;
     dbref aowner2, player;
-    int aflags2, i_array[4], i;
+    int aflags2, i_array[LIMIT_MAX], i;
 #endif
     /* If trying to modify List attrib, return.  Otherwise, get the
      * attribute list. */
@@ -2036,9 +2038,9 @@ al_delete(dbref thing, int attrnum)
           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
-             i_array[1] = i_array[3] = -2;
+             i_array[4] = i_array[1] = i_array[3] = -2;
              for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                  s_buffptr && (i < 4);
+                  s_buffptr && (i < LIMIT_MAX);
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
@@ -2074,12 +2076,15 @@ al_delete(dbref thing, int attrnum)
                 }
              }
              s_mbuf = alloc_mbuf("vattr_check");
-             sprintf(s_mbuf, "%d %d %d %d", i_array[0]+1, i_array[1], 
-                                                  i_array[2], i_array[3]);
+             sprintf(s_mbuf, "%d %d %d %d %d", i_array[0]+1, i_array[1], 
+                                                  i_array[2], i_array[3], i_array[4]);
              atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
              free_mbuf(s_mbuf);
           } else {
-             atr_add_raw(player, A_DESTVATTRMAX, (char *)"1 -2 0 -2");
+             s_mbuf = alloc_mbuf("vattr_check");
+             sprintf(s_mbuf, "1 -2 0 -2 %d", -2);
+             atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+             free_mbuf(s_mbuf);
           }
           free_lbuf(s_chkattr);
        }
@@ -2498,7 +2503,9 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 	buff = atr_get_raw(gbl_parent, atr);
         if ( buff && *buff ) {
 	    atr_decode(buff, s, thing, owner, flags, atr);
-            return s;
+            if ( !(*flags * AF_PRIVATE)) {
+               return s;
+            }
         }
     }
 #endif

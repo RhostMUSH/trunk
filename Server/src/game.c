@@ -583,7 +583,7 @@ dflt_from_msg(dbref sender, dbref sendloc)
 void 
 notify_check(dbref target, dbref sender, const char *msg, int port, int key, int i_type)
 {
-    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
+    char *msg_ns, *mp, *msg_ns2, *mp2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *msg_utf, *mp_utf;
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0;
@@ -620,6 +620,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     if (key & MSG_ME) {
 	mp = msg_ns = alloc_lbuf("notify_check");
+	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
+	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
 	if (!port && Nospoof(target) &&
 	    (target != sender) &&
 	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&
@@ -652,28 +654,24 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	    free_sbuf(tbuff);
 	}
 #ifdef ZENTY_ANSI       
-       if(!(key & MSG_NO_ANSI))
-           parse_ansi((char *) msg, msg_ns, &mp);
-       else
+       if(!(key & MSG_NO_ANSI)) {
+           parse_ansi((char *) msg, msg_ns, &mp, msg_ns2, &mp2, msg_utf, &mp_utf);
+           *mp = '\0';
+           *mp2 = '\0';
+		   *mp_utf = '\0';
+		   if ( UTF8(target) ) {
+			  memcpy(msg_ns, msg_utf, LBUF_SIZE);
+           } else if ( Accents(target) ) {
+              memcpy(msg_ns, msg_ns2, LBUF_SIZE);
+           } 
+       } else
 #endif
            safe_str((char *) msg, msg_ns, &mp);
     
-       *mp = '\0';
 #ifdef ZENTY_ANSI       
-        if ( Accents(target) && !(key & MSG_NO_ANSI) ) {
-	   msg_ns2 = alloc_lbuf("notify_check_accents");
-           memcpy(msg_ns2, msg_ns, LBUF_SIZE);
-           mp = msg_ns;
-           parse_accents((char *) msg_ns2, msg_ns, &mp);
-           *mp = '\0';
-           free_lbuf(msg_ns2);
-        } else if ( !(key & MSG_NO_ANSI) ) {
-	   msg_ns2 = alloc_lbuf("notify_check_accents");
-           strcpy(msg_ns2, strip_safe_accents(msg_ns));
-           strcpy(msg_ns, msg_ns2);
-           free_lbuf(msg_ns2);
-        }
 #endif
+        free_lbuf(msg_ns2);
+		free_lbuf(msg_utf);
     } else {
 	msg_ns = NULL;
     }
@@ -805,7 +803,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	if ((key & MSG_ME) && pass_uselock && (sender != target) &&
 	    Monitor(target)) {
 	    (void) atr_match(target, sender,
-			     AMATCH_LISTEN, (char *) msg, 0, 0);
+			     AMATCH_LISTEN, (char *) msg, mudconf.listen_parents, 0);
 	}
 	/* Deliver message to forwardlist members */
 
@@ -1062,7 +1060,35 @@ notify_except_someone(dbref loc, dbref player, dbref exception, const char *msg,
 }
 
 void 
-notify_except(dbref loc, dbref player, dbref exception, const char *msg)
+notify_except_str(dbref loc, dbref player, dbref darray[LBUF_SIZE/2], int dcnt, const char *msg, int key)
+{
+    dbref first;
+    int i, exception;
+
+    DPUSH; /* #77 */
+
+    exception = 0;
+    if (loc != exception)
+       notify_check(loc, player, msg, 0, (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
+
+    DOLIST(first, Contents(loc)) {
+       exception = 0;
+       for ( i = 0; i < dcnt; i++) {
+          if ( first == darray[i] ) {
+             exception = 1;
+             break;
+          } 
+       }
+       if (!exception) {
+          notify_check(first, player, msg, 0, (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
+       }
+    }
+
+    VOIDRETURN; /* #77 */
+}
+
+void 
+notify_except(dbref loc, dbref player, dbref exception, const char *msg, int key)
 {
     dbref first;
 
@@ -1070,11 +1096,11 @@ notify_except(dbref loc, dbref player, dbref exception, const char *msg)
 
       if (loc != exception)
 	notify_check(loc, player, msg, 0,
-		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A), 0);
+		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
       DOLIST(first, Contents(loc)) {
 	if (first != exception) {
 	    notify_check(first, player, msg, 0,
-			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE), 0);
+			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
 	}
       }
     VOIDRETURN; /* #77 */
@@ -1620,8 +1646,8 @@ int
 Hearer(dbref thing)
 {
     char *as, *buff, *s;
-    dbref aowner;
-    int attr, aflags;
+    dbref aowner, parent;
+    int attr, aflags, lev;
     ATTR *ap;
 
     DPUSH; /* #88 */
@@ -1635,35 +1661,73 @@ Hearer(dbref thing)
     else
 	buff = NULL;
     atr_push();
-    for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
-	if (attr == A_LISTEN) {
-	    if (buff)
-		free_lbuf(buff);
-	    atr_pop();
-	    RETURN(1); /* #88 */
-	}
-	if (Monitor(thing)) {
-	    ap = atr_num(attr);
-	    if (!ap || (ap->flags & AF_NOPROG))
-		continue;
+    if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
+       for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
+	   if (attr == A_LISTEN) {
+	       if (buff)
+		   free_lbuf(buff);
+	       atr_pop();
+	       RETURN(1); /* #88 */
+	   }
+	   if (Monitor(thing)) {
+	       ap = atr_num(attr);
+	       if (!ap || (ap->flags & AF_NOPROG))
+		   continue;
+   
+	       atr_get_str(buff, thing, attr, &aowner, &aflags);
+   
+	       /* Make sure we can execute it */
+   
+	       if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+		   continue;
+   
+	       /* Make sure there's a : in it */
+   
+               for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
+            /* for (s = buff + 1; *s && (*s != ':'); s++); */
+	       if (s) {
+		   free_lbuf(buff);
+		   atr_pop();
+		   RETURN(1); /* #88 */
+	       }
+	   }
+       }
+    } else {
+       ITER_PARENTS(thing, parent, lev) {
+          for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+	      if ((thing == parent) && (attr == A_LISTEN)) {
+	          if (buff)
+		      free_lbuf(buff);
+	          atr_pop();
+	          RETURN(1); /* #88 */
+	      }
+	      if (Monitor(thing)) {
+	          ap = atr_num(attr);
+	          if (!ap || (ap->flags & AF_NOPROG))
+		      continue;
+      
+	          atr_get_str(buff, parent, attr, &aowner, &aflags);
+      
+	          /* Make sure we can execute it */
 
-	    atr_get_str(buff, thing, attr, &aowner, &aflags);
-
-	    /* Make sure we can execute it */
-
-	    if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
-		continue;
-
-	    /* Make sure there's a : in it */
-
-            for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
-/*	    for (s = buff + 1; *s && (*s != ':'); s++); */
-	    if (s) {
-		free_lbuf(buff);
-		atr_pop();
-		RETURN(1); /* #88 */
-	    }
-	}
+                  if ( (thing != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                      continue;
+      
+	          if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+		      continue;
+      
+	          /* Make sure there's a : in it */
+      
+                  for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
+               /* for (s = buff + 1; *s && (*s != ':'); s++); */
+	          if (s) {
+		      free_lbuf(buff);
+		      atr_pop();
+		      RETURN(1); /* #88 */
+	          }
+	      }
+          }
+       }
     }
     if (buff)
 	free_lbuf(buff);

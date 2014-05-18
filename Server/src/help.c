@@ -550,11 +550,14 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
    if ( !*msg || !msg ) {
       it = player;
    } else {
-      it = lookup_player(player, msg, 1);
+      line = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL, msg, (char **) NULL, 0);
+      it = lookup_player(player, line, 1);
       if (it == NOTHING || !Good_obj(it) || !isPlayer(it) || Going(it) || Recover(it) ) {
-         notify_quiet(player, unsafe_tprintf("Unknown player '%s'.", msg));
+         notify_quiet(player, unsafe_tprintf("Unknown player '%s'.", line));
+         free_lbuf(line);
          return;
       }
+      free_lbuf(line);
    }
   
    p_in_topic = in_topic = alloc_lbuf("in_topic.dynhelp");
@@ -621,7 +624,7 @@ errmsg(dbref player)
 {
     FILE *fp;
     char *p, *line;
-    int offset, first;
+    int offset, first, i_trace;
     struct help_entry *htab_entry;
     char matched;
     char *topic_list, *buffp, filename[129 + 32];
@@ -633,6 +636,7 @@ errmsg(dbref player)
       strcpy(errbuf,dmsg);
       return errbuf;
     }
+    i_trace = 0;
     htab = &mudstate.error_htab;
     strcpy(errbuf,myitoa(random() % (mudstate.errornum)));
     htab_entry = (struct help_entry *) hashfind(errbuf, htab);
@@ -704,9 +708,12 @@ errmsg(dbref player)
     free_lbuf(line);
     tf_fclose(fp);
     if ( *errbuf == '!' ) {
+       i_trace = mudstate.notrace;
+       mudstate.notrace = 1;
        buffp = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, errbuf+1, (char **) NULL, 0);
        strcpy(errbuf, buffp);
        free_lbuf(buffp);
+       mudstate.notrace = i_trace;
     }
     return errbuf;
 }

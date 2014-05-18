@@ -41,6 +41,7 @@ void bzero(void *, int);
 #include "attrs.h"
 #include "mail.h"
 #include "rhost_ansi.h"
+#include "rhost_utf8.h"
 #include "local.h"
 #include "door.h"
 
@@ -65,6 +66,7 @@ extern char *t_errlist[];
 #endif
 
 extern void NDECL(dispatch);
+void NDECL(pcache_sync);
 
 static int sock;
 int ndescriptors = 0;
@@ -190,7 +192,7 @@ shovechars(int port)
     DESC *d, *dnext, *newd;
     CMDENT *cmdp = NULL;
     int avail_descriptors, maxfds, active_auths, aflags2, temp1, temp2;
-    int sitecntr, i_oldlasttime, i_oldlastcnt;
+    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep;
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6];
 
@@ -210,7 +212,7 @@ shovechars(int port)
     sock = make_socket(port);
     maxd = sock + 1;
     get_tod(&last_slice);
-    i_oldlasttime = i_oldlastcnt = 0;
+    flagkeep = i_oldlasttime = i_oldlastcnt = 0;
 
 
     /* we may be rebooting, so recalc maxd */
@@ -264,6 +266,7 @@ shovechars(int port)
          } else {
             queue_string(d, "Your @program was aborted from the @reboot.\r\n");
             s_Flags4(d->player, (Flags4(d->player) & (~INPROGRAM)));
+            queue_string(d, "\377\371");
             mudstate.shell_program = 0;
             atr_clr(d->player, A_PROGBUFFER);
             atr_clr(d->player, A_PROGPROMPTBUF);
@@ -525,6 +528,7 @@ shovechars(int port)
 		/* Undo autodark */
 
                 i_oldlasttime = d->last_time;
+                flagkeep = d->flags;
                 if ( Good_obj(d->player) && !TogHideIdle(d->player) ) {
                    d->last_time = mudstate.now;
                    if (d->flags & DS_AUTODARK) {
@@ -557,6 +561,11 @@ shovechars(int port)
                       if ( cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
                          if ( !(CmdCheck(d->player) && cmdtest(d->player, "idle")) ) {
                             d->last_time = i_oldlasttime;
+                            d->flags = d->flags | flagkeep;
+                            if ( d->flags & DS_AUTOUNF ) 
+                               s_Flags2(d->player, Flags2(d->player) | UNFINDABLE);
+                            if ( d->flags & DS_AUTODARK ) 
+                               s_Flags(d->player, Flags(d->player) | DARK);
                          }
                       }
                    }
@@ -1579,19 +1588,19 @@ process_output(DESC * d)
     RETURN(1); /* #12 */
 }
 
-
 int 
 process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost;
-    char *p, *pend, *q, *qend;
+    char *p, *pend, *q, *qend, qfind[12], *qf;
     char *cmdsave;
 
     DPUSH; /* #16 */
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_input >";
 
+    memset(qfind, '\0', sizeof(qfind));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
 	mudstate.debug_cmd = cmdsave;
@@ -1626,11 +1635,49 @@ process_input(DESC * d)
 		p--;
 	    if (p < d->raw_input_at)
 		(d->raw_input_at)--;
-	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
+  	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
+	} else if (p < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+		fprintf(stderr, "4BYTE UTF8 Detected\n");
+		sprintf(qfind, "%c<u%02x%02x%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(++q), (int)(unsigned char)*(++q), (int)(unsigned char)*(++q));
+		q+=3;
+		in+=12;
+		got+=12;
+		qf = qfind;
+		while (*qf) {
+			*p++ = *qf++;
+		}
+	} else if (p < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+		fprintf(stderr, "3BYTE UTF8 Detected\n");
+		sprintf(qfind, "%c<u%02x%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+		q+=2;
+		in+=10;
+		got+=10;
+		qf = qfind;
+		while (*qf) {
+			*p++ = *qf++;
+		}	
+	} else if (p < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+		fprintf(stderr, "2BYTE UTF8 Detected\n");
+		sprintf(qfind, "%c<u%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+		q+=1;
+		in+=8;
+		got+=8;
+		qf = qfind;
+		while (*qf) {
+			*p++ = *qf++;
+		}
+	} else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 250) && ((p+10) < pend) ) {
+		sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
+		qf = qfind;
+		in+=5;
+		got+=5;
+		while ( *qf ) {
+		   *p++ = *qf++;
+		}
 	} else {
-	    in--;
-	    if (p >= pend)
+		in--;
+		if (p >= pend)
 		lost++;
 	}
     }
@@ -2104,6 +2151,10 @@ sighandler(int sig)
         ENDLOG
         raw_broadcast(0, 0, "Game: Emergency dump complete, exiting...");
         DPOP;
+        /* QDBM was giving some weird-ass corruption, this should hopefully fix it */
+        pcache_sync();
+        SYNC;
+        CLOSE;
         exit(1); /* Brutal. But daddy said I had to go to bed now. */
         break; 
     case SIGQUIT:		/* Normal shutdown */
