@@ -1,16 +1,34 @@
-Master IPC Debugging stack created w/ key = 32005 [shared memory id: 2981899]
+Master IPC Debugging stack created w/ key = 32005 [shared memory id: 3014667]
 ./netrhost.debugmon: initiating ./netrhost
-140519.015425 RhostMUSH: Game log file opened as netrhost.gamelog.
+140519.015820 RhostMUSH: Game log file opened as netrhost.gamelog.
 Slave IPC Debugging stack connected w/ key = 32005
-./netrhost.debugmon: ./netrhost exited with status 139
-./netrhost.debugmon: debug stack depth = 7
-./netrhost.debugmon: stackframe 0 = game.c, line 2025
-./netrhost.debugmon: stackframe 1 = bsd.c, line 210
-./netrhost.debugmon: stackframe 2 = netcommon.c, line 4263
-./netrhost.debugmon: stackframe 3 = netcommon.c, line 4017
-./netrhost.debugmon: stackframe 4 = command.c, line 2476
-./netrhost.debugmon: stackframe 5 = command.c, line 1968
-./netrhost.debugmon: stackframe 6 = game.c, line 594
+140519.020937 RhostMUSH RBT/DUMP : Dumping reboot data...
+140519.020937 RhostMUSH RBT/DUMP : Dump complete.
+140519.020937 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+140519.021039 RhostMUSH RBT/DUMP : Dumping reboot data...
+140519.021039 RhostMUSH RBT/DUMP : Dump complete.
+140519.021039 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+3 Byte UTF8 Detected
+140519.024446 RhostMUSH RBT/DUMP : Dumping reboot data...
+140519.024446 RhostMUSH RBT/DUMP : Dump complete.
+140519.024446 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+140519.024455 RhostMUSH RBT/DUMP : Dumping reboot data...
+140519.024455 RhostMUSH RBT/DUMP : Dump complete.
+140519.024455 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+140519.024646 RhostMUSH RBT/DUMP : Dumping reboot data...
+140519.024646 RhostMUSH RBT/DUMP : Dump complete.
+140519.024646 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+140519.024650 RhostMUSH RBT/DUMP : Dumping reboot data...
+140519.024650 RhostMUSH RBT/DUMP : Dump complete.
+140519.024650 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+./netrhost.debugmon: ./netrhost exited with status 0
+./netrhost.debugmon: debug stack depth = 0
 
 ./netrhost.debugmon: last db fetch was for #2
 ./netrhost.debugmon: exiting
