@@ -392,6 +392,9 @@ extern char *   FDECL(translate_string, (const char *, int));
 extern char *	FDECL(find_cluster, (dbref, dbref, int));
 extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
 
+extern char * 	FDECL(utf8toucp, (char *));
+extern char * 	FDECL(ucptoutf8, (char *));
+
 /* From boolexp.c */
 extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *));
 extern BOOLEXP *FDECL(parse_boolexp, (dbref,const char *, int));

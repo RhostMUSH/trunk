@@ -7,6 +7,9 @@ PATH=/usr/local/bin:/usr/ucb:/bin:/usr/bin:.; export PATH
 # LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/gdbm-1.8.3:../src/gdbm-1.8.3/.libs
 # export LD_LIBRARY_PATH
 #
+rm -rf core
+ulimit -c unlimited
+
 awk '{ if ( match($0,"\r")) exit 1 }' < mush.config > /dev/null 2>&1
 if [ $? -gt 0 ]
 then

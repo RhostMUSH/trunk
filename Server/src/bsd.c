@@ -1593,13 +1593,15 @@ process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost;
-    char *p, *pend, *q, *qend, qfind[12], *qf;
+    char *p, *pend, *q, *qend, qfind[12], *qf, *tmp;
     char *cmdsave;
 
     DPUSH; /* #16 */
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_input >";
 
+	tmp = (char *)malloc(9);
+	
     memset(qfind, '\0', sizeof(qfind));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
@@ -1639,7 +1641,8 @@ process_input(DESC * d)
 	    *p++ = *q;
 	} else if (p < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
 		fprintf(stderr, "4BYTE UTF8 Detected\n");
-		sprintf(qfind, "%c<u%02x%02x%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(++q), (int)(unsigned char)*(++q), (int)(unsigned char)*(++q));
+		sprintf(tmp, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
+		sprintf(qfind, "%c<u%s>", '%', utf8toucp(tmp));
 		q+=3;
 		in+=12;
 		got+=12;
@@ -1648,8 +1651,9 @@ process_input(DESC * d)
 			*p++ = *qf++;
 		}
 	} else if (p < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
-		fprintf(stderr, "3BYTE UTF8 Detected\n");
-		sprintf(qfind, "%c<u%02x%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+		fprintf(stderr, "3 Byte UTF8 Detected\n");
+		sprintf(tmp, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+		sprintf(qfind, "%c<u%s>", '%', utf8toucp(tmp));
 		q+=2;
 		in+=10;
 		got+=10;
@@ -1659,7 +1663,8 @@ process_input(DESC * d)
 		}	
 	} else if (p < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
 		fprintf(stderr, "2BYTE UTF8 Detected\n");
-		sprintf(qfind, "%c<u%02x%02x>", '%', (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+		sprintf(tmp, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+		sprintf(qfind, "%c<u%s>", '%', utf8toucp(tmp));
 		q+=1;
 		in+=8;
 		got+=8;

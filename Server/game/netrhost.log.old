@@ -1,9 +1,28 @@
-Master IPC Debugging stack created w/ key = 32005 [shared memory id: 2031627]
+Master IPC Debugging stack created w/ key = 32005 [shared memory id: 2916363]
 ./netrhost.debugmon: initiating ./netrhost
-140518.123155 RhostMUSH: Game log file opened as netrhost.gamelog.
+140518.172010 RhostMUSH: Game log file opened as netrhost.gamelog.
 Slave IPC Debugging stack connected w/ key = 32005
-./netrhost.debugmon: ./netrhost exited with status 0
-./netrhost.debugmon: debug stack depth = 0
+3 Byte UTF8 Detected
+3BYTE UTF8 Detected, ut8: e3818a cp: 304a
+140518.172505 RhostMUSH RBT/DUMP : Dumping reboot data...
+140518.172505 RhostMUSH RBT/DUMP : Dump complete.
+140518.172505 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+3 Byte UTF8 Detected
+3BYTE UTF8 Detected, ut8: e3818a cp: 304a
+Received UTF8 code: e3818a
+Received UCP: 304a, Converted to int: 304a (12362)
+Converted to Code Point: 304a, Converted back to UTF8: e3818a
+140518.173244 RhostMUSH RBT/DUMP : Dumping reboot data...
+140518.173244 RhostMUSH RBT/DUMP : Dump complete.
+140518.173244 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+3 Byte UTF8 Detected
+./netrhost.debugmon: ./netrhost exited with status 139
+./netrhost.debugmon: debug stack depth = 3
+./netrhost.debugmon: stackframe 0 = game.c, line 2025
+./netrhost.debugmon: stackframe 1 = bsd.c, line 210
+./netrhost.debugmon: stackframe 2 = bsd.c, line 1599
 
 ./netrhost.debugmon: last db fetch was for #2
 ./netrhost.debugmon: exiting

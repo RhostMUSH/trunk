@@ -1,12 +1,23 @@
-Master IPC Debugging stack created w/ key = 32005 [shared memory id: 2064395]
+Master IPC Debugging stack created w/ key = 32005 [shared memory id: 2949131]
 ./netrhost.debugmon: initiating ./netrhost
-140518.123248 RhostMUSH: Game log file opened as netrhost.gamelog.
+140518.173504 RhostMUSH: Game log file opened as netrhost.gamelog.
 Slave IPC Debugging stack connected w/ key = 32005
-3BYTE UTF8 Detected
-3BYTE UTF8 Detected
-3BYTE UTF8 Detected
-140518.124105 RhostMUSH RBT/DUMP : Dumping reboot data...
-140518.124105 RhostMUSH RBT/DUMP : Dump complete.
-140518.124105 RhostMUSH: Game log file opened as netrhost.gamelog.
+3 Byte UTF8 Detected
+Received Code Point: e3818a
+Converted to:  
+140518.173805 RhostMUSH RBT/DUMP : Dumping reboot data...
+140518.173805 RhostMUSH RBT/DUMP : Dump complete.
+140518.173805 RhostMUSH: Game log file opened as netrhost.gamelog.
 Slave IPC Debugging stack connected w/ key = 32005
-3BYTE UTF8 Detected
+3 Byte UTF8 Detected
+Received Code Point: 304a
+Converted to: e3818a
+140518.203237 RhostMUSH RBT/DUMP : Dumping reboot data...
+140518.203237 RhostMUSH RBT/DUMP : Dump complete.
+140518.203237 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+3 Byte UTF8 Detected
+3 Byte UTF8 Detected
+3 Byte UTF8 Detected
+3 Byte UTF8 Detected
+3 Byte UTF8 Detected

@@ -11,7 +11,7 @@
 #include "externs.h"
 #include "alloc.h"
 #include "rhost_ansi.h"
-
+#include "rhost_utf8.h"
 
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
 extern dbref    FDECL(match_thing, (dbref, char *));
@@ -1243,5 +1243,95 @@ trigger_cluster_action(dbref thing, dbref player)
          }
       }
    }
+}
+
+/***
+ * Convert the UTF-8 bytes represented as a string
+ * of hex values to a string of hex values representing
+ * the unicode code point.
+ ***/
+char *
+utf8toucp(char *utf) 
+{
+	char *ucp, *ptr, *tmp;
+	int i_b1, i_b2, i_b3, i_b4, i_bytecnt, i_ucp;
+	
+	tmp = (char*)malloc(3);
+	ucp = (char*)malloc(7);
+	
+	i_bytecnt = strlen(utf) / 2;
+	
+	if (i_bytecnt == 1) {
+		return utf;
+	} else if (i_bytecnt == 2) {
+		strncpy(tmp, utf, 2);
+		i_b1 = strtol(tmp, &ptr, 16);
+		strncpy(tmp, utf+2, 2);
+		i_b2 = strtol(tmp, &ptr, 16);		
+		i_ucp = ((i_b1 - 192) * 64) + (i_b2 - 128);
+		sprintf(ucp, "%04x", i_ucp);
+	} else if (i_bytecnt == 3) {
+		strncpy(tmp, utf, 2);
+		i_b1 = strtol(tmp, &ptr, 16);
+		strncpy(tmp, utf+2, 2);
+		i_b2 = strtol(tmp, &ptr, 16);
+		strncpy(tmp, utf+4, 2);
+		i_b3 = strtol(tmp, &ptr, 16);
+		i_ucp = ((i_b1 - 224) * 4096) + ((i_b2 - 128) * 64) + (i_b3 - 128);
+		sprintf(ucp, "%04x", i_ucp);
+	} else if (i_bytecnt == 4) {
+		strncpy(tmp, utf, 2);
+		i_b1 = strtol(tmp, &ptr, 16);
+		strncpy(tmp, utf+2, 2);
+		i_b2 = strtol(tmp, &ptr, 16);
+		strncpy(tmp, utf+4, 2);
+		i_b3 = strtol(tmp, &ptr, 16);
+		strncpy(tmp, utf+6, 2);
+		i_b4 = strtol(tmp, &ptr, 16);
+		i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
+		sprintf(ucp, "%04x", i_ucp);
+	} else {
+		return " ";
+	}
+	
+	return	ucp;
+}
+
+/***
+ * Convert string representation of unicode code point hex values
+ * to string representation of UTF8 byte hex values
+ */
+char *
+ucptoutf8(char *ucp)
+{
+	char *ptr, *utf;
+	int i_ucp, i_b1, i_b2, i_b3, i_b4;
+	
+	utf = (char *)malloc(9);
+	
+	i_ucp = strtol(ucp, &ptr, 16);
+	
+	if (i_ucp <= 127) {	// Single byte, return value
+		return ucp;
+	} else if (i_ucp <= 2047) { // 2 byte
+		i_b1 = (i_ucp / 64) + 192;
+		i_b2 = (i_ucp % 64) + 128;		
+		sprintf(utf, "%02x%02x", i_b1, i_b2);
+	} else if (i_ucp <= 65535) { // 3 byte
+		i_b1 = (i_ucp / 4096) + 224;
+		i_b2 = ((i_ucp % 4096) / 64) + 128;
+		i_b3 = (i_ucp % 64) + 128;
+		sprintf(utf, "%02x%02x%02x", i_b1, i_b2, i_b3);
+	} else if (i_ucp <= 1114111) { // 4 byte
+		i_b1 = (i_ucp / 262144) + 240;
+		i_b2 = ((i_ucp % 262144) / 4096) + 128;
+		i_b3 = ((i_ucp % 4096) / 64) + 128;
+		i_b4 = (i_ucp % 64) + 128;
+		sprintf(utf, "%02x%02x%02x%02x", i_b1, i_b2, i_b3, i_b4);
+	} else { // Invalid, return space
+		return " ";
+	}
+	
+	return utf;
 }
 #endif
