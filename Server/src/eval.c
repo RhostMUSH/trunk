@@ -687,7 +687,22 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 						  } else if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
 							 safe_chr((char) i_extendnum, buff2, &bufc2);
 							 safe_chr(' ', buff, &bufc);                         
-							 safe_chr(' ', buff_utf, &bufc_utf);
+							 //safe_chr(' ', buff_utf, &bufc_utf);
+							 
+							 sprintf(tmp, "%04x", i_extendnum);
+							 tmp = ucptoutf8(tmp);
+							 
+							 i_utfcnt = 0;
+							 while (*tmp) {
+								s_utfbuf[i_utfcnt % 2] = *tmp;						
+								if (i_utfcnt % 2) {
+									i_utfnum = strtol(s_utfbuf, &ptr, 16);
+									safe_chr((char)i_utfnum, buff_utf, &bufc_utf);
+								}
+								
+								i_utfcnt++;
+								tmp++;
+							 }
 						  } else {
 							 switch(i_extendnum) {
 								case 251:
@@ -937,10 +952,28 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                   if ( !mux_isprint[(int)ch] ) 
                      safe_chr(*string, buff2, &bufc2);
                   else {
-                     if ( ((int)ch == 253) || ((int)ch == 255))
+                    if ( ((int)ch == 253) || ((int)ch == 255))
                         safe_chr('y', buff2, &bufc2);
-                     else
+                    else {
                         safe_chr(ch, buff2, &bufc2);
+						
+						sprintf(tmp, "%04x", (int)ch);
+						fprintf("Accent character code point: %s\n", tmp);
+						tmp = ucptoutf8(tmp);
+						fprintf("Accent character utf bytes: %s\n", tmp);
+						 
+						i_utfcnt = 0;
+						while (*tmp) {
+							s_utfbuf[i_utfcnt % 2] = *tmp;						
+							if (i_utfcnt % 2) {
+								i_utfnum = strtol(s_utfbuf, &ptr, 16);
+								safe_chr((char)i_utfnum, buff_utf, &bufc_utf);
+							}
+							
+							i_utfcnt++;
+							tmp++;
+						}
+					}
                   }
                } else {
                   safe_chr(*string, buff2, &bufc2);
@@ -949,7 +982,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                safe_chr(*string, buff2, &bufc2);
             }
             safe_chr(*string, buff, &bufc);
-			safe_chr(*string, buff_utf, &bufc_utf);
+			//safe_chr(*string, buff_utf, &bufc_utf);
         }
         if ( *string )
            string++;
