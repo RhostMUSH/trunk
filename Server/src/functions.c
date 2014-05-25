@@ -26257,8 +26257,13 @@ FUNCTION(fun_chr)
 {
     int i;
     char s_buff[8];
-
-    if (!is_number(fargs[0])) {
+	char utf_buf[12];
+	char* arg = fargs[0];
+	
+	if ((strlen(arg) == 7 || strlen(arg) == 5) && *arg == 'u') {
+		sprintf(utf_buf, "%%<%05s>", arg);
+		safe_str(utf_buf, buff, bufcx);
+    } else if (!is_number(fargs[0])) {
          safe_str("#-1 ARGUMENT NOT A NUMBER", buff, bufcx);
     } else {
          i = atoi(fargs[0]);
