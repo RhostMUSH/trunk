@@ -3508,7 +3508,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 {
     char *p1, *p2, *p3, *p4, *atrxxx, *atryyy, *tcim, *tcimptr, *tcimptr2, msubj[SUBJLIM+1];
     char just, *atrtmp, *atrtmpptr, *mailfunkvar, *ztmp, *ztmpptr, *time_tmp;
-    char *bcctmp, *bcctmpptr, *bccatr, *tpr_buff, *tprp_buff;
+    char *bcctmp, *bcctmpptr, *bccatr, *savesend, *tpr_buff, *tprp_buff;
     short int line, count, index, min, max, gdcount;
     dbref aowner3, aowner2, owner;
     int aflags2, chk_dash, flags, i_type, valid_flag, type_two, type_three, is_first, i_addkey;
@@ -3869,6 +3869,49 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
                              (totcharinmail - LBUF_SIZE + 10)));
 	    }
 	}
+    } else if (stricmp(buf1, "+validate") == 0 ) {
+/*
+       bccatr = atr_get(player, A_BCCMAIL, &aowner3, &aflags3);
+       savesend = atr_get(player, A_SAVESENDMAIL, &aowner3, &aflags3);
+//     tprp_buff = tpr_buff = alloc_lbuf("mail_send");
+       strcpy(tpr_buff, lbuf3);
+       pt1 = tpr_buff;
+       while ( !term && *pt1 ) {
+          while (isspace((int)*pt1) && *pt1) pt1++;
+          if (!*pt1) {
+             if ( i_nogood != 2 )
+                i_nogood = 1;
+             break;
+          }
+          pt2 = pt1+1;
+          if ((sepchar == '\0') || (*pt1 == '#')) {
+             if ( comma_exists )
+                while (*pt2 && (*pt2 != ',')) pt2++;
+             else
+                while (*pt2 && !isspace((int)*pt2) && (*pt2 != ',')) pt2++;
+          } else {
+             while (*pt2 && (*pt2 != sepchar) && (*pt2 != ',')) pt2++;
+          }
+          if (*pt2 && !sepchar) {
+             sepchar = *pt2;
+             term = 0;
+          } else if (*pt2) {
+             term = 0;
+          } else
+             term = 1;
+          *pt2 = '\0';
+          toplay = lookup_player(player,pt1,0);
+          if (toplay == NOTHING) {
+             i_nogood = 1;
+             break;
+          } else {
+             if ( !i_nogood )
+                i_nogood = 2;
+          }
+          pt1 = pt2+1;
+       }
+       free_lbuf(tpr_buff);
+*/
     } else if (stricmp(buf1, "+proof") == 0) {
 	if (p3 != NULL) {
 	    notify_quiet(player, "Mail: Extra characters ignored.");

@@ -1377,6 +1377,20 @@ void safer_unufun(int tval)
    }
 }
 
+void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
+   ANSISPLIT *p_ap, *p_bp;
+
+   p_ap = a_split;
+   p_bp = b_split;
+
+   strcpy(p_ap->s_fghex, p_bp->s_fghex);   
+   strcpy(p_ap->s_bghex, p_bp->s_bghex);   
+   p_ap->i_special = p_bp->i_special;
+   p_ap->c_accent  = p_bp->c_accent;
+   p_ap->c_fgansi  = p_bp->c_fgansi;
+   p_ap->c_bgansi  = p_bp->c_bgansi;
+}
+
 void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
    int i;
    ANSISPLIT *p_bp;
@@ -2556,9 +2570,13 @@ void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
   int gapwidth = 0;
   int justout = 0;
   int prntchrs= 0;
+  int left = LBUF_SIZE - (*bufcx - buff) - 1;
   ANSISPLIT *p_sp, *p_bp, *p_sp2;
   int i;
   char *cp;
+
+  if ( left < 0 )
+     left = 0;
 
   p_sp = srcarray;
   p_bp = buffarray + (*bufcx - buff);
@@ -2566,15 +2584,11 @@ void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
   if( !wp->first_line && wp->hanging ) {
      safe_pad2( space_sep, wp->hanging, buff, bufcx );
      for (i = 0; i< wp->hanging; i++) {
-        if ( !p_bp )
+        if ( !left || !p_bp )
            break;
-        memset(p_bp->s_fghex, '\0', 5);
-        memset(p_bp->s_bghex, '\0', 5);
-        p_bp->i_special = 0;
-        p_bp->c_accent = '\0';
-        p_bp->c_fgansi = '\0';
-        p_bp->c_bgansi = '\0';
+        initialize_ansisplitter(p_bp, 1);
         p_bp++;
+        left--;
      }
   }
   wp->first_line = 0;
@@ -2583,16 +2597,12 @@ void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
      safe_str( wp->left, buff, bufcx );
      cp = wp->left;
      while ( cp && *cp ) { 
-        if ( !p_bp )
+        if ( !left || !p_bp )
            break;
-        memset(p_bp->s_fghex, '\0', 5);
-        memset(p_bp->s_bghex, '\0', 5);
-        p_bp->i_special = 0;
-        p_bp->c_accent = '\0';
-        p_bp->c_fgansi = '\0';
-        p_bp->c_bgansi = '\0';
+        initialize_ansisplitter(p_bp, 1);
         p_bp++;
         cp++;
+        left--;
      }
   }
 
@@ -2609,111 +2619,79 @@ void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
     case JUST_IGNORE:
       safe_substr(src, numchars, buff, bufcx);
       for ( i = 0; i < numchars; i++ ) {
-         if ( !p_bp || !p_sp )
+         if ( !left || !p_bp || !p_sp )
             break;
-         strcpy(p_bp->s_fghex, p_sp->s_fghex);
-         strcpy(p_bp->s_bghex, p_sp->s_fghex);
-         p_bp->i_special = p_sp->i_special;
-         p_bp->c_accent = p_sp->c_accent;
-         p_bp->c_fgansi = p_sp->c_fgansi;
-         p_bp->c_bgansi = p_sp->c_bgansi;
+         clone_ansisplitter(p_bp, p_sp);
          p_bp++;
          p_sp++;
+         left--;
       }
       break;
     case JUST_LEFT:
       safe_substr(src, numchars, buff, bufcx);
       for ( i = 0; i < numchars; i++ ) {
-         if ( !p_bp || !p_sp )
+         if ( !left || !p_bp || !p_sp )
             break;
-         strcpy(p_bp->s_fghex, p_sp->s_fghex);
-         strcpy(p_bp->s_bghex, p_sp->s_fghex);
-         p_bp->i_special = p_sp->i_special;
-         p_bp->c_accent = p_sp->c_accent;
-         p_bp->c_fgansi = p_sp->c_fgansi;
-         p_bp->c_bgansi = p_sp->c_bgansi;
+         clone_ansisplitter(p_bp, p_sp);
          p_bp++;
          p_sp++;
+         left--;
       }
       safe_pad2(space_sep, wp->width - prntchrs, buff, bufcx);
       for (i = 0; i < (wp->width - prntchrs); i++) {
-         if ( !p_bp )
+         if ( !left || !p_bp )
             break;
-         memset(p_bp->s_fghex, '\0', 5);
-         memset(p_bp->s_bghex, '\0', 5);
-         p_bp->i_special = 0;
-         p_bp->c_accent = '\0';
-         p_bp->c_fgansi = '\0';
-         p_bp->c_bgansi = '\0';
+         initialize_ansisplitter(p_bp, 1);
          p_bp++;
+         left--;
       }
       break;
     case JUST_RIGHT:
       safe_pad2(space_sep, wp->width - prntchrs, buff, bufcx);
       for (i = 0; i < (wp->width - prntchrs); i++) {
-         if ( !p_bp )
+         if ( !left || !p_bp )
             break;
-         memset(p_bp->s_fghex, '\0', 5);
-         memset(p_bp->s_bghex, '\0', 5);
-         p_bp->i_special = 0;
-         p_bp->c_accent = '\0';
-         p_bp->c_fgansi = '\0';
-         p_bp->c_bgansi = '\0';
+         initialize_ansisplitter(p_bp, 1);
          p_bp++;
+         left--;
       }
       safe_substr(src, numchars, buff, bufcx);
       for ( i = 0; i < numchars; i++ ) {
-         if ( !p_bp || !p_sp )
+         if ( !left || !p_bp || !p_sp )
             break;
-         strcpy(p_bp->s_fghex, p_sp->s_fghex);
-         strcpy(p_bp->s_bghex, p_sp->s_fghex);
-         p_bp->i_special = p_sp->i_special;
-         p_bp->c_accent = p_sp->c_accent;
-         p_bp->c_fgansi = p_sp->c_fgansi;
-         p_bp->c_bgansi = p_sp->c_bgansi;
+         clone_ansisplitter(p_bp, p_sp);
          p_bp++;
          p_sp++;
+         left--;
       }
       break;
     case JUST_CENTER:
       safe_pad2(space_sep, (wp->width - prntchrs) / 2, buff, bufcx);
       for (i = 0; i < ((wp->width - prntchrs) / 2); i++) {
-         if ( !p_bp )
+         if ( !left || !p_bp )
             break;
-         memset(p_bp->s_fghex, '\0', 5);
-         memset(p_bp->s_bghex, '\0', 5);
-         p_bp->i_special = 0;
-         p_bp->c_accent = '\0';
-         p_bp->c_fgansi = '\0';
-         p_bp->c_bgansi = '\0';
+         initialize_ansisplitter(p_bp, 1);
          p_bp++;
+         left--;
       }
       safe_substr(src, numchars, buff, bufcx);
       for ( i = 0; i < numchars; i++ ) {
-         if ( !p_bp || !p_sp )
+         if ( !left || !p_bp || !p_sp )
             break;
-         strcpy(p_bp->s_fghex, p_sp->s_fghex);
-         strcpy(p_bp->s_bghex, p_sp->s_fghex);
-         p_bp->i_special = p_sp->i_special;
-         p_bp->c_accent = p_sp->c_accent;
-         p_bp->c_fgansi = p_sp->c_fgansi;
-         p_bp->c_bgansi = p_sp->c_bgansi;
+         clone_ansisplitter(p_bp, p_sp);
          p_bp++;
          p_sp++;
+         left--;
       }
       /* might need to add one due to roundoff error */
       safe_pad2(space_sep, (wp->width - prntchrs) / 2 +
                     ((wp->width - prntchrs) % 2), buff, bufcx);
       for (i = 0; i < ( ((wp->width - prntchrs) / 2) + ((wp->width - prntchrs) % 2) ); i++) {
-         if ( !p_bp )
+         if ( !left || !p_bp )
             break;
-         memset(p_bp->s_fghex, '\0', 5);
-         memset(p_bp->s_bghex, '\0', 5);
-         p_bp->i_special = 0;
-         p_bp->c_accent = '\0';
-         p_bp->c_fgansi = '\0';
-         p_bp->c_bgansi = '\0';
+         initialize_ansisplitter(p_bp, 1);
          p_bp++;
+         left--;
       }
       break;
     case JUST_JUST:
@@ -2744,27 +2722,19 @@ void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
         if( src[idx] == ' ' ) {
           safe_pad2(space_sep, gapwidth, buff, bufcx);
           for (i = 0; i < gapwidth; i++) {
-             if ( !p_bp )
+             if ( !left || !p_bp )
                 break;
-             memset(p_bp->s_fghex, '\0', 5);
-             memset(p_bp->s_bghex, '\0', 5);
-             p_bp->i_special = 0;
-             p_bp->c_accent = '\0';
-             p_bp->c_fgansi = '\0';
-             p_bp->c_bgansi = '\0';
+             initialize_ansisplitter(p_bp, 1);
              p_bp++;
+             left--;
           }
           justout += gapwidth;
           if( spares > 0 ) {
             safe_pad2(space_sep, 1, buff, bufcx);
-            if ( p_bp ) {
-               memset(p_bp->s_fghex, '\0', 5);
-               memset(p_bp->s_bghex, '\0', 5);
-               p_bp->i_special = 0;
-               p_bp->c_accent = '\0';
-               p_bp->c_fgansi = '\0';
-               p_bp->c_bgansi = '\0';
+            if ( !left || p_bp ) {
+               initialize_ansisplitter(p_bp, 1);
                p_bp++;
+               left--;
             }
             justout++;
             spares--;
@@ -2772,30 +2742,22 @@ void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
         }
         else {
           safe_chr(src[idx], buff, bufcx);
-          if ( p_bp ) {
+          if ( !left || p_bp ) {
              p_sp2 = srcarray + idx;
-             strcpy(p_bp->s_fghex, p_sp2->s_fghex);
-             strcpy(p_bp->s_bghex, p_sp2->s_fghex);
-             p_bp->i_special = p_sp2->i_special;
-             p_bp->c_accent = p_sp2->c_accent;
-             p_bp->c_fgansi = p_sp2->c_fgansi;
-             p_bp->c_bgansi = p_sp2->c_bgansi;
+             clone_ansisplitter(p_bp, p_sp2);
              p_bp++;
+             left--;
           }
           justout++;
         }
       }
       safe_pad2(space_sep, wp->width - justout, buff, bufcx);
       for (i = 0; i < (wp->width - justout); i++) {
-         if ( !p_bp )
+         if ( !left || !p_bp )
             break;
-         memset(p_bp->s_fghex, '\0', 5);
-         memset(p_bp->s_bghex, '\0', 5);
-         p_bp->i_special = 0;
-         p_bp->c_accent = '\0';
-         p_bp->c_fgansi = '\0';
-         p_bp->c_bgansi = '\0';
+         initialize_ansisplitter(p_bp, 1);
          p_bp++;
+         left--;
       }
       break;
   }
@@ -2804,16 +2766,12 @@ void wrap_out_ansi( char* src, int numchars, struct wrapinfo *wp,
     safe_str( wp->right, buff, bufcx );
     cp = wp->right;
     while ( cp && *cp ) { 
-       if ( !p_bp )
+       if ( !left || !p_bp )
           break;
-       memset(p_bp->s_fghex, '\0', 5);
-       memset(p_bp->s_bghex, '\0', 5);
-       p_bp->i_special = 0;
-       p_bp->c_accent = '\0';
-       p_bp->c_fgansi = '\0';
-       p_bp->c_bgansi = '\0';
+       initialize_ansisplitter(p_bp, 1);
        p_bp++;
        cp++;
+       left--;
     }
   }
 }
@@ -3456,13 +3414,14 @@ FUNCTION(fun_config)
    }
 }
 
+
 FUNCTION(fun_columns)
 {
   struct wrapinfo winfo;
   int buffleft, pos, maxw, wtype, cut, cut2, rnorem, bufstr;
   int count, ncols, remorig, rows, x, y, z, scount, bufcols;
   char *leftstart, *pp, *holdbuff, *hbpt, *pt2, *between;
-  char delim, *spacer_sep, *string;
+  char delim, *spacer_sep, *string, *string2;
   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_bp, *p_sp, *p_leftstart; 
 
   if (!fn_range_check("COLUMNS", nfargs, 3, 13, buff, bufcx))
@@ -3548,6 +3507,7 @@ FUNCTION(fun_columns)
   string = alloc_lbuf("fun_columns_String");
   memset(string, '\0', LBUF_SIZE);
   split_ansi(strip_ansi(fargs[0]), string, outsplit);
+  string2 = strip_ansi(fargs[0]);
 
   /* setup phase done */
 
@@ -3629,9 +3589,10 @@ FUNCTION(fun_columns)
         }
      }
      count++;
-
      wrap_out_ansi(leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, spacer_sep, 0,
                    p_leftstart, outsplit2);
+  
+/*   wrap_out( leftstart, pp - leftstart, &winfo, holdbuff, &hbpt, spacer_sep, 0 ); */
      if (cut2) {
         if (delim) {
            while (*pp && (*pp != delim)) {
@@ -3649,21 +3610,9 @@ FUNCTION(fun_columns)
      leftstart = pp;
      p_leftstart = p_sp;
      if (*pp) {
-        safe_str("\n",holdbuff,&hbpt);
+        safe_str("\n", holdbuff, &hbpt);
         p_bp = outsplit2 + (hbpt - holdbuff);
-        memset(p_bp->s_fghex, '\0', 5);
-        memset(p_bp->s_bghex, '\0', 5);
-        p_bp->i_special = 0;
-        p_bp->c_accent = '\0';
-        p_bp->c_fgansi = '\0';
-        p_bp->c_bgansi = '\0';
-        p_bp = outsplit2 + (hbpt - holdbuff) + 1;
-        memset(p_bp->s_fghex, '\0', 5);
-        memset(p_bp->s_bghex, '\0', 5);
-        p_bp->i_special = 0;
-        p_bp->c_accent = '\0';
-        p_bp->c_fgansi = '\0';
-        p_bp->c_bgansi = '\0';
+        initialize_ansisplitter(p_bp, 1);
      }
   }
   if (count > scount)
@@ -3753,8 +3702,9 @@ FUNCTION(fun_columns)
      if (remorig)
         rows++;
      for (x = 0; x < rows; x++) {
-        if (winfo.left)
+        if (winfo.left) {
            safe_str(winfo.left, buff, bufcx);
+        }
         for (y = 0; y < ncols; y++) {
            pos = x;
            for (z = 0; z < y; z++) {
@@ -3767,11 +3717,17 @@ FUNCTION(fun_columns)
               pt2 = strchr(hbpt,'\n');
               if ( pt2 ) 
                  hbpt = pt2+1;
+              else
+                 hbpt = string + LBUF_SIZE - 1; 
            }
            pt2 = strchr(hbpt,'\n');
            if (pt2)
               *pt2 = '\0';
-           safe_str(hbpt, buff, bufcx);
+           if ( *hbpt && (strlen(hbpt) >= (winfo.width-1))) {
+              safe_str(hbpt, buff, bufcx);
+           } else {
+              safe_pad2(spacer_sep, winfo.width, buff, bufcx);
+           }
            if (pt2)
               *pt2 = '\n';
            if ((x == (rows - 1)) && remorig) {
@@ -3964,19 +3920,7 @@ FUNCTION(fun_wrapcolumns)
         count++;
         safe_str( "\r\n", holdbuff, &hbpt );
         p_bp = outsplit2 + (hbpt - holdbuff);
-        memset(p_bp->s_fghex, '\0', 5);
-        memset(p_bp->s_bghex, '\0', 5);
-        p_bp->i_special = 0;
-        p_bp->c_accent = '\0';
-        p_bp->c_fgansi = '\0';
-        p_bp->c_bgansi = '\0';
-        p_bp = outsplit2 + (hbpt - holdbuff) + 1;
-        memset(p_bp->s_fghex, '\0', 5);
-        memset(p_bp->s_bghex, '\0', 5);
-        p_bp->i_special = 0;
-        p_bp->c_accent = '\0';
-        p_bp->c_fgansi = '\0';
-        p_bp->c_bgansi = '\0';
+        initialize_ansisplitter(p_bp, 2);
         buffleft -= (crp - leftstart) + 2;
         leftstart = crp + 2;
         p_leftstart = p_leftstart + (crp - leftstart + 2);
@@ -4004,19 +3948,7 @@ FUNCTION(fun_wrapcolumns)
               count++;
               safe_str( "\r\n", holdbuff, &hbpt );
               p_bp = outsplit2 + (hbpt - holdbuff);
-              memset(p_bp->s_fghex, '\0', 5);
-              memset(p_bp->s_bghex, '\0', 5);
-              p_bp->i_special = 0;
-              p_bp->c_accent = '\0';
-              p_bp->c_fgansi = '\0';
-              p_bp->c_bgansi = '\0';
-              p_bp = outsplit2 + (hbpt - holdbuff) + 1;
-              memset(p_bp->s_fghex, '\0', 5);
-              memset(p_bp->s_bghex, '\0', 5);
-              p_bp->i_special = 0;
-              p_bp->c_accent = '\0';
-              p_bp->c_fgansi = '\0';
-              p_bp->c_bgansi = '\0';
+              initialize_ansisplitter(p_bp, 2);
               if (cut2) {
                  pp = leftstart + maxw;
                  p_sp = p_leftstart + maxw;
@@ -4042,19 +3974,7 @@ FUNCTION(fun_wrapcolumns)
               count++;
               safe_str( "\r\n", holdbuff, &hbpt );
               p_bp = outsplit2 + (hbpt - holdbuff);
-              memset(p_bp->s_fghex, '\0', 5);
-              memset(p_bp->s_bghex, '\0', 5);
-              p_bp->i_special = 0;
-              p_bp->c_accent = '\0';
-              p_bp->c_fgansi = '\0';
-              p_bp->c_bgansi = '\0';
-              p_bp = outsplit2 + (hbpt - holdbuff) + 1;
-              memset(p_bp->s_fghex, '\0', 5);
-              memset(p_bp->s_bghex, '\0', 5);
-              p_bp->i_special = 0;
-              p_bp->c_accent = '\0';
-              p_bp->c_fgansi = '\0';
-              p_bp->c_bgansi = '\0';
+              initialize_ansisplitter(p_bp, 2);
               buffleft -= pp - leftstart + 1;
               leftstart += pp - leftstart + 1; /* eat the space */
               p_leftstart += p_sp - p_leftstart + 1;
@@ -4236,98 +4156,6 @@ FUNCTION(fun_wrapcolumns)
   free_lbuf(holdbuff);
   free_lbuf(string);
 }
-
-/*FUNCTION(fun_columns)
-{
-  char *lm, *rm, *bm, *ap, *tbuff, *tbufcx;
-  int just, i, j, width, cols, lines, lpc;
-
-  if (!fn_range_check("COLUMNS", nfargs, 3, 7, buff, bufcx))
-    return;
-
-  width = atoi( fargs[1] );
-  cols = atoi( fargs[2] );
-  if ( cols < 1 ) {
-    safe_str( "#-1 COLUMNS LESS THAN 1", buff, bufcx );
-    return;
-  }
-
-  ap = lm = alloc_lbuf( "columns.leftmargin" );
-  if ( nfargs >= 4 )
-    safe_str( fargs[3], lm, &ap );
-  else
-    lm[0] = '\0';
-
-  ap = bm = alloc_lbuf( "columns.betweenmargin" );
-  if ( nfargs >= 5 )
-    safe_str( fargs[4], bm, &ap );
-  else
-    bm[0] = '\0';
-
-  ap = rm = alloc_lbuf( "columns.rightmargin" );
-  if ( nfargs >= 6 )
-    safe_str( fargs[5], rm, &ap );
-  else
-    rm[0] = '\0';
-
-  if ( nfargs >= 7 ) {
-    switch ( ToUpper((int)fargs[6][0]) ) {
-    case 'R':
-      just = 1;
-      break;
-    case 'C':
-      just = 2;
-      break;
-    case 'J':
-      just = 3;
-      break;
-    case 'F':
-      just = 4;
-      break;
-    default:
-      just = 0;
-    }
-  } else
-    just = 0;
-
-  width -= strlen(lm) + strlen(rm) + (cols - 1) * strlen(bm);
-  width = width / cols;
-  if ( width < 1 ) {
-    safe_str( "#-1 WIDTH LESS THAN 1", buff, bufcx );
-    return;
-  }
-
-  tbufcx = tbuff = alloc_lbuf( "columns.tbuff" );
-  wrap_internal( tbuff, &tbufcx, fargs[0], width, NULL, NULL, just );
-
-  lines = strlen(tbuff)/(width + 2);
-  for ( i = 1; i <= lines; ++i )
-    tbuff[i*(width+2) - 2] = '\0';
-
-  lpc = ceil( (double) lines / (double) cols );
-  for (i = 0; i < lpc; ++i) {
-    for (j = 0; j < cols; ++j) {
-      if (j == 0)
-        safe_str(lm, buff, bufcx);
-      else
-        safe_str(bm, buff, bufcx);
-      if ((lpc * j + i) < lines)
-        safe_str(col_lineget(lpc * j + i), buff, bufcx);
-      else
-        for (just = 0; just < width; ++just)
-          safe_chr(' ', buff, bufcx);
-      if (j == cols - 1) {
-        safe_str(rm, buff, bufcx);
-        safe_str("\r\n", buff, bufcx);
-      }
-    }
-  }
-  free_lbuf(bm);
-  free_lbuf(lm);
-  free_lbuf(rm);
-  free_lbuf(tbuff);
-}*/
-
 
 /* ---------------------------------------------------------------------------
  * fun_bitlevel: Returns a level number for a player based on what bit
@@ -4869,12 +4697,7 @@ FUNCTION(fun_scramble)
        } while (*(numpt + pic));
        *(numpt + pic) = 1;
        safe_chr(*(outbuff + pic), mybuff, &pmybuff);
-       strcpy(p_sp->s_fghex, outsplit[pic].s_fghex);
-       strcpy(p_sp->s_bghex, outsplit[pic].s_bghex);
-       p_sp->i_special = outsplit[pic].i_special;
-       p_sp->c_accent = outsplit[pic].c_accent;
-       p_sp->c_fgansi = outsplit[pic].c_fgansi;
-       p_sp->c_bgansi = outsplit[pic].c_bgansi;
+       clone_ansisplitter(p_sp, outsplit+pic);
        p_sp++;
        numleft--;
     }
@@ -4882,12 +4705,7 @@ FUNCTION(fun_scramble)
     while (*(numpt + pic) && (pic < num))
        pic++;
     safe_chr(*(outbuff + pic), mybuff, &pmybuff);
-    strcpy(p_sp->s_fghex, outsplit[pic].s_fghex);
-    strcpy(p_sp->s_bghex, outsplit[pic].s_bghex);
-    p_sp->i_special = outsplit[pic].i_special;
-    p_sp->c_accent = outsplit[pic].c_accent;
-    p_sp->c_fgansi = outsplit[pic].c_fgansi;
-    p_sp->c_bgansi = outsplit[pic].c_bgansi;
+    clone_ansisplitter(p_sp, outsplit+pic);
     s_output = rebuild_ansi(mybuff, outsplit2);
     safe_str(s_output, buff, bufcx);
     free_lbuf(mybuff);
@@ -20362,6 +20180,228 @@ FUNCTION(fun_lcmds)
     return;
 }
 
+/* array(string, regcount, length [[,delim][,type]]) */
+FUNCTION(fun_array)
+{
+   char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep;
+   int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS];
+   time_t it_now;
+   ANSISPLIT insplit[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in, *p_out;
+
+   if (!fn_range_check("ARRAY", nfargs, 3, 5, buff, bufcx))
+      return;
+
+   /* insanely dangerous function -- only allow 10 per command */
+   it_now = time(NULL);
+   if (it_now > (mudstate.now + 5)) {
+      mudstate.chkcpu_toggle = 1;
+      safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+      return;
+   }
+
+   i_width = i_regs = i_regcurr = i_type = 0;
+   memset(i_counter, '\0', sizeof(i_counter));
+
+   if ( *fargs[1] ) {
+      i_regs = atoi(fargs[1]);
+   }
+   if ( (i_regs < 1) || (i_regs > MAX_GLOBAL_REGS) ) {
+      safe_str("#-1 ARRAY REQUIRES BETWEEN 1 AND ", buff, bufcx);
+      ival(buff, bufcx, MAX_GLOBAL_REGS);
+      safe_str(" FOR REGISTER COUNT", buff, bufcx);
+      return;
+   }
+   if ( *fargs[2] ) {
+      i_width = atoi(fargs[2]);
+   }
+   sep = '\0';
+   if ( (nfargs > 3) && *fargs[3] ) {
+      sep = *fargs[3];
+   }
+   if ( !sep && ((i_width <= 0) || (i_width > LBUF_SIZE)) ) {
+      safe_str("#-1 ARRAY REQUIRES WIDTH > 1 AND WIDTH < 4000", buff, bufcx);
+      return;
+   }
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_type = atoi(fargs[4]);
+      if ( i_type != 0 )
+         i_type = 1;
+   }
+   initialize_ansisplitter(insplit, LBUF_SIZE);
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+
+   s_input = alloc_lbuf("fun_array");
+   s_output = alloc_lbuf("fun_array2");
+   split_ansi(strip_ansi(fargs[0]), s_input, insplit);
+
+
+   for ( i = 0; i < i_regs; i++ ) {
+      if ( !mudstate.global_regs[i] )
+         mudstate.global_regs[i] = alloc_lbuf("fun_setq");
+      *mudstate.global_regs[i] = '\0';
+   }
+   s_inptr = s_input;
+   p_in = insplit;
+   p_out = outsplit;
+
+   /* Over then down */
+   if ( !i_type ) {
+      i = 0;
+      memset(s_output, '\0', LBUF_SIZE);
+      s_outptr = s_output;
+      i_kill = 0;
+      while ( s_inptr && *s_inptr) {
+         *s_outptr = *s_inptr;
+         clone_ansisplitter(p_out, p_in);
+         i_kill++;
+         if ( i_kill > 4000 ) {
+            notify(player, unsafe_tprintf("Artificially aborted: %d / :%s: / %s", i, s_output, s_inptr));
+            break;
+         }
+         s_outptr++;
+         p_out++;
+         i++;
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || (i == i_width)) ) {
+            i = 0;
+            if ( !sep ) {
+               s_ptr2 = s_inptr;
+               i = strlen(s_output);
+               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                  s_ptr2--;
+                  i--;
+               }
+               if ( i > 0 ) {
+                  p_in = p_in - (s_inptr - s_ptr2);
+                  *(s_output + i) = '\0';
+                  s_inptr = s_ptr2;
+               }
+               i = 0;
+            } else {
+               *s_outptr = '\0';
+            }
+            s_tmpbuff = rebuild_ansi(s_output, outsplit);
+            s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
+            if ( *mudstate.global_regs[i_regcurr] )
+               safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+            free_lbuf(s_tmpbuff);
+            initialize_ansisplitter(outsplit, LBUF_SIZE);
+            memset(s_output, '\0', LBUF_SIZE);
+            s_outptr = s_output;
+            p_out = outsplit;
+            i_regcurr = ((i_regcurr + 1) % i_regs);
+            *s_outptr = *s_inptr;
+            clone_ansisplitter(p_out, p_in);
+         }
+         p_in++;
+         s_inptr++;
+      }   
+      if ( *s_output && i ) {
+         s_tmpbuff = rebuild_ansi(s_output, outsplit);
+         s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
+         if ( *mudstate.global_regs[i_regcurr] )
+            safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+         safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+         free_lbuf(s_tmpbuff);
+      }
+   /* Down then over */
+   } else {
+      i = i_regcurr = 0;
+      s_inptr = s_input;
+      while ( s_inptr && *s_inptr) {
+         i++;
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || (i == i_width)) ) {
+            if ( !sep ) {
+               s_ptr2 = s_inptr;
+               i = i_width;
+               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                  s_ptr2--;
+                  i--;
+               }
+               if ( i > 0 ) {
+                  s_inptr = s_ptr2;
+               }
+               i = 0;
+            } 
+            i_counter[i_regcurr]++;
+            i_regcurr = ((i_regcurr + 1) % i_regs);
+            i = 0;
+         }
+         s_inptr++;
+      }
+      s_inptr = s_input;
+      i_regcurr = i = 0;
+      memset(s_output, '\0', LBUF_SIZE);
+      s_outptr = s_output;
+      i_kill = 0;
+      while ( s_inptr && *s_inptr) {
+         *s_outptr = *s_inptr;
+         clone_ansisplitter(p_out, p_in);
+         i_kill++;
+         if ( i_kill > 4000 ) {
+            notify(player, unsafe_tprintf("Artificially aborted: %d / :%s: / %s", i, s_output, s_inptr));
+            break;
+         }
+         s_outptr++;
+         p_out++;
+         i++;
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || (i == i_width)) ) {
+            i = 0;
+            if ( !sep ) {
+               s_ptr2 = s_inptr;
+               i = strlen(s_output);
+               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                  s_ptr2--;
+                  i--;
+               }
+               if ( i > 0 ) {
+                  p_in = p_in - (s_inptr - s_ptr2);
+                  *(s_output + i) = '\0';
+                  s_inptr = s_ptr2;
+               }
+               i = 0;
+            } else {
+               *s_outptr = '\0';
+            }
+            s_tmpbuff = rebuild_ansi(s_output, outsplit);
+
+            if ( !i_counter[i_regcurr] )
+               i_regcurr++;
+            else
+               i_counter[i_regcurr]--;
+
+            if ( i_regcurr > i_regs ) { /* Something bad happened, break out here */
+               i_regcurr = 0;
+               break;
+            }
+            s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
+            if ( *mudstate.global_regs[i_regcurr] )
+               safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+            free_lbuf(s_tmpbuff);
+            initialize_ansisplitter(outsplit, LBUF_SIZE);
+            memset(s_output, '\0', LBUF_SIZE);
+            s_outptr = s_output;
+            p_out = outsplit;
+            *s_outptr = *s_inptr;
+            clone_ansisplitter(p_out, p_in);
+         }
+         p_in++;
+         s_inptr++;
+      }   
+      if ( *s_output && i ) {
+         s_tmpbuff = rebuild_ansi(s_output, outsplit);
+         s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
+         if ( *mudstate.global_regs[i_regcurr] )
+            safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+         safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+         free_lbuf(s_tmpbuff);
+      }
+   }
+   free_lbuf(s_input);
+   free_lbuf(s_output);
+}
+
 FUNCTION(fun_reverse)
 {
     char *s_output, *mybuff, *pmybuff;
@@ -20376,12 +20416,7 @@ FUNCTION(fun_reverse)
     i_icntr = 0;
     i_max = strlen(s_output);
     while ( i_icntr < i_max ) {
-       strcpy(outsplit2[i_icntr].s_fghex, outsplit[i_max - 1 - i_icntr].s_fghex);
-       strcpy(outsplit2[i_icntr].s_bghex, outsplit[i_max - 1 - i_icntr].s_bghex);
-       outsplit2[i_icntr].i_special = outsplit[i_max - 1 - i_icntr].i_special;
-       outsplit2[i_icntr].c_accent = outsplit[i_max - 1 - i_icntr].c_accent;
-       outsplit2[i_icntr].c_fgansi = outsplit[i_max - 1 - i_icntr].c_fgansi;
-       outsplit2[i_icntr].c_bgansi = outsplit[i_max - 1 - i_icntr].c_bgansi;
+       clone_ansisplitter(outsplit2+i_icntr, outsplit+(i_max - 1 - i_icntr));
        i_icntr++;
     }
     pmybuff = mybuff = alloc_lbuf("fun_reverse");
@@ -28764,6 +28799,7 @@ FUN flist[] =
     {"ANDFLAGS", fun_andflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ANSI", fun_ansi, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
+    {"ARRAY", fun_array, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ART", fun_art, 1, 0, CA_PUBLIC, 0},
     {"ASC", fun_asc, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ASIN", fun_asin, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

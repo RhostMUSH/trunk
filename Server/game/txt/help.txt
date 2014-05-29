@@ -2875,6 +2875,7 @@
          help @lock keys  - list of valid keys you can use in @locking.
          help @lock locks - list of available locks you can @lock.
          help @lock type <lock> - give detailed help on the specific lock.
+         help userlocks   - a special way to define user-defined locking.
   
   See Also: @chown, @unlock
   
@@ -8708,26 +8709,26 @@
  
   Help is available for the following functions:
  
- @@()                 ABS()              ACCENT()           ACOS()        
- ADD()                AFTER()            AINDEX()           AIINDEX()         
- ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
- ANDFLAG()            ANDFLAGS()         ANSI()             APOSS()     
- ART()                ASC()              ASIN()             ATAN()   
- ATTRCNT()            AVG()              BEFORE()           BETWEEN()   
- BITTYPE()            BOUND()            BRACKETS()         CAND()          
- CAPSTR()             CASE()             CASEALL()          CAT()           
- CEIL()               CENTER()           CHARIN()           CHAROUT()   
- CHKREALITY()         CHKTRACE()         CHOMP()            CHR()             
- CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT() 
- CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()     
- CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG() 
- CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()     
- CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
- CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()   
- CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
- CLUSTER_XGET()       CMDS()             CNAME()            COLORS()         
- COLUMNS()            COMP()             CON()              CONFIG()         
- CONN()               CONTROLS()         CONVSECS()    
+ @@()                ABS()                ACCENT()           ACOS()        
+ ADD()               AFTER()              AINDEX()           AIINDEX()         
+ ALPHAMAX()          ALPHAMIN()           AND()              ANDCHR()        
+ ANDFLAG()           ANDFLAGS()           ANSI()             APOSS()     
+ ARRAY()             ART()                ASC()              ASIN()           
+ ATAN()              ATTRCNT()            AVG()              BEFORE()         
+ BETWEEN()           BITTYPE()            BOUND()            BRACKETS()       
+ CAND()              CAPSTR()             CASE()             CASEALL()        
+ CAT()               CEIL()               CENTER()           CHARIN()          
+ CHAROUT()           CHKREALITY()         CHKTRACE()         CHOMP()          
+ CHR()               CITER()              CLONE()            CLUSTER_ADD()     
+ CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()   
+ CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR() 
+ CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI() 
+ CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()      
+ CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT()
+ CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT()
+ CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()             CNAME()           
+ COLORS()            COLUMNS()            COMP()             CON()             
+ CONFIG()            CONN()               CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -10067,6 +10068,27 @@
   
   See Also: ldelete(), mid(), replace(), remove()
   
+& userlocks
+  Userlocks are created, viewed, and checked by utilizing three functions.
+  
+    lockencode(<string>) --------- this will encode the lock key 
+                                   (any valid key) into a 64 byte encoding 
+                                   (like mime encapsulation) that you can 
+                                   then store pretty much anywhere that you 
+                                   want.
+  
+    lockdecode(<string>) --------- this will decode the specified encoded key
+                                   value into the human-readable lock format. 
+                                   The output will be the same as if you did 
+                                   a lock() on a @lock.
+  
+    lockcheck(<string>,target>) -- this will compare the 64 byte encoded lock
+                                   against the specified target.  It returns
+                                   a '1' for success or a '0' for failure. 
+                                   This works like elock() on a @lock.
+  
+  See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+
 & lockencode()
 & lockdecode()
 & lockcheck()
@@ -10126,14 +10148,24 @@
     > say lock(me,yes,va)
     You say "Attribute locked."
   
-  See Also: @lock, elock()
+  See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck()
   
 & elock()
   Function: elock(<object>[/<whichlock>],<victim>)
   Checks if <victim> would pass the named lock on <object>.  Only the object's
   owner may test locks other than the default lock.
   
-  See Also: @lock, lock()
+  Example:
+    > @lock me/page=!*Twinklock
+      Set.
+    > say elock(me/pagelock,*twink)
+      You say "0"
+    > @unlock me/page
+      Set.
+    > say elock(me/pagelock,*twink)
+      You say "1"
+  
+  See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck()
   
 & LWHO()
   Function: lwho([[<value>], [<target>]])
@@ -10175,7 +10207,8 @@
   FORMAT SYNTAX:        help printf syntax
   EXAMPLES:             help printf examples
   
-  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
+  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
+            wrapcolumns(), array()
 
 & PRINTF CODELIST
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -10520,6 +10553,43 @@
     
   See Also: SUBSTITUTIONS, obj(), subj(), aposs()
   
+& ARRAY()
+  Function: array(<string>, <register count>, <width> [[,<delim> [,<type>]])
+  
+  This function will take an input string and split it out, based on width,
+  rounding to the first viable word (if possible) and spit it out into setq
+  registers based on the number of registers you wish to split it in based
+  on <register count>.  Registers start from 0-9 then go to a-z.  Registers
+  are cleared automatically before being utilized.
+  
+  You may specify an optional delimiter.  By default, it takes any white
+  space.  You may optionally specify the type.  A type of '1' will take
+  the virtual register count down then over.  The default '0' does it
+  in a normal sequential order.
+  
+  This function is ansi aware. 
+  
+  Examples:
+    > think array(abcdefghij,2,2)%q0
+    ab
+    ef
+    ij
+
+    > think array(abcdefgh,2,2)%q1
+    cd
+    eh
+
+    > think array(abcdefghij,2,2,,1)%q0
+    ab
+    cd
+    ef
+
+    > think array(abcdefghij,2,2,,1)%q1
+    gh
+    ij
+  
+  See Also: printf(), setq(), setr(), r(), substitutions
+
 & APOSS()
   Function: aposs(<object>)
  
@@ -13961,7 +14031,8 @@ Examples:
   
   The width can not be above 4000 characters.
   
-See Also: ljust(), rjust(), center(), columns(), wrapcolumns(), printf()
+See Also: ljust(), rjust(), center(), columns(), wrapcolumns(), printf(),
+          array()
   
 & WRAPCOLUMNS()
 Function: wrapcolumns()  Syntax follows:
@@ -14039,7 +14110,7 @@ wrapcolumns(<txt>,<wd>,<col>,<jus>,<crp>,<cut>,<lbd>,<mbd>,<rbd>,<disp>,<ext>)
     > @emit wrapcolumns(this is a test of wrapcolumns,10,3,R,0,1,<*,|,*>,1)
       <* this is a|   test of|wrapcolumn*>
   
-  See Also: columns(), wrap()
+  See Also: columns(), wrap(), printf(), array()
   
 & COLORS()
 Function: colors([[<value>], [<key>]])
@@ -14149,7 +14220,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
       <*-=*=--this|-=*=--=*is|-=*=--=*=a*>
       <*-=*=--test|-=*=--=*of|-=*columns*>
   
-  See Also: wrapcolumns(), wrap()
+  See Also: wrapcolumns(), wrap(), array(), printf()
   
 & PTIMEFMT()
   ptimefmt(<format>[, <secs>])
@@ -16926,6 +16997,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "E"
   
   See Also: @switch, match(), ifelse(), switch()
+  
+& SPEAK()
+  See 'help parsestr()'
   
 & SPACE()
   Function: space(<count>)
@@ -28886,3 +28960,20 @@ Bug Fixes
 * #lambda erraneously stripped extra /'s at times [ASH]
 * art() handles non-printables [ASH]
 * possible crashbug in encode64/decode64 due to glibc memory mapping changes [ASH]
+
+& 3.9.4p5
+Release Date: 05/24/14
+Status: Alpha
+  
+New Features
+---------
+* array() will wrap out text based on column width into setq registers [ASH]
+  
+Changes
+-------
+* massive cleanup and helper tools for ansi for ease of modification [ASH]
+  
+Bug Fixes
+---------
+* columns() and wrapcolumns() had a crashbug with the handler (3.9.4p4) [ASH]
+* formatting with inverse ansi wasn't recognized properly [ASH]
