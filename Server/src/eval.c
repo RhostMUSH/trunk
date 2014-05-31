@@ -582,7 +582,8 @@ static const int mux_isprint[256] =
  ******************************************************/
 void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr, char *buff_utf, char **bufuptr)
 {
-    char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], s_utfbuf[3], s_ucpbuf[7], *ptr, *tmp, *tmp2;
+    char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4];
+	char s_utfbuf[3], s_ucpbuf[7], *ptr, tmpbuf[10], *tmpptr = NULL, *tmp;
     unsigned char ch1, ch2, ch;
     int i_tohex, accent_toggle, i_extendallow, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt;
 
@@ -590,13 +591,12 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 /* Debugging only
     fprintf(stderr, "Value: %s\n", string);
  */
-
-	tmp = (char *)malloc(9);
  
     memset(s_twochar, '\0', sizeof(s_twochar));
     memset(s_final, '\0', sizeof(s_final));
 	memset(s_utfbuf, '\0', sizeof(s_utfbuf));
 	memset(s_ucpbuf, '\0', sizeof(s_ucpbuf));
+	memset(tmpbuf, '\0', sizeof(tmpbuf));
     bufc = *bufptr;
     bufc2 = *buf2ptr;
 	bufc_utf = *bufuptr;
@@ -658,9 +658,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 						string++;
 					}
 
-					tmp = ucptoutf8(s_ucpbuf);
+					tmpptr = ucptoutf8(s_ucpbuf);
 
 					i_utfcnt = 0;
+					tmp = tmpptr;
 					while (*tmp) {
 						s_utfbuf[i_utfcnt % 2] = *tmp;						
 						if (i_utfcnt % 2) {
@@ -687,12 +688,12 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 						  } else if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
 							 safe_chr((char) i_extendnum, buff2, &bufc2);
 							 safe_chr(' ', buff, &bufc);                         
-							 //safe_chr(' ', buff_utf, &bufc_utf);
 							 
-							 sprintf(tmp, "%04x", i_extendnum);
-							 tmp = ucptoutf8(tmp);
+							 sprintf(tmpbuf, "%04x", i_extendnum);
+							 tmpptr = ucptoutf8(tmpbuf);
 							 
 							 i_utfcnt = 0;
+							 tmp = tmpptr;
 							 while (*tmp) {
 								s_utfbuf[i_utfcnt % 2] = *tmp;						
 								if (i_utfcnt % 2) {
@@ -959,12 +960,11 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     } else {
                         safe_chr(ch, buff2, &bufc2);
 						
-						sprintf(tmp, "%04x", (int)ch);
-						fprintf("Accent character code point: %s\n", tmp);
-						tmp = ucptoutf8(tmp);
-						fprintf("Accent character utf bytes: %s\n", tmp);
+						sprintf(tmpbuf, "%04x", (int)ch);
+						tmpptr = ucptoutf8(tmp);
 						 
 						i_utfcnt = 0;
+						tmp = tmpptr;
 						while (*tmp) {
 							s_utfbuf[i_utfcnt % 2] = *tmp;						
 							if (i_utfcnt % 2) {
@@ -986,7 +986,6 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 			   safe_chr(*string, buff_utf, &bufc_utf);
             }
             safe_chr(*string, buff, &bufc);
-			//safe_chr(*string, buff_utf, &bufc_utf);
         }
         if ( *string )
            string++;
@@ -998,6 +997,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     *bufptr = bufc;
     *buf2ptr = bufc2;
 	*bufuptr = bufc_utf;
+	
+	if (tmpptr) {
+		free(tmpptr);
+	}
 }
 
 #endif

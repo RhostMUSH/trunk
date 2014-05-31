@@ -1593,16 +1593,15 @@ process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost;
-    char *p, *pend, *q, *qend, qfind[12], *qf, *tmp;
+    char *p, *pend, *q, *qend, qfind[12], *qf, *tmpptr = NULL, tmpbuf[12];
     char *cmdsave;
 
     DPUSH; /* #16 */
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_input >";
-
-	tmp = (char *)malloc(9);
 	
     memset(qfind, '\0', sizeof(qfind));
+	memset(tmpbuf, '\0', sizeof(tmpbuf));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
 	mudstate.debug_cmd = cmdsave;
@@ -1640,9 +1639,9 @@ process_input(DESC * d)
   	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
 	} else if (p < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
-		fprintf(stderr, "4BYTE UTF8 Detected\n");
-		sprintf(tmp, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
-		sprintf(qfind, "%c<u%s>", '%', utf8toucp(tmp));
+		sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
+		tmpptr = utf8toucp(tmpbuf);
+		sprintf(qfind, "%c<u%s>", '%', tmpptr);
 		q+=3;
 		in+=12;
 		got+=12;
@@ -1651,9 +1650,9 @@ process_input(DESC * d)
 			*p++ = *qf++;
 		}
 	} else if (p < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
-		fprintf(stderr, "3 Byte UTF8 Detected\n");
-		sprintf(tmp, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
-		sprintf(qfind, "%c<u%s>", '%', utf8toucp(tmp));
+		sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+		tmpptr = utf8toucp(tmpbuf);
+		sprintf(qfind, "%c<u%s>", '%', tmpptr);
 		q+=2;
 		in+=10;
 		got+=10;
@@ -1662,9 +1661,9 @@ process_input(DESC * d)
 			*p++ = *qf++;
 		}	
 	} else if (p < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
-		fprintf(stderr, "2BYTE UTF8 Detected\n");
-		sprintf(tmp, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
-		sprintf(qfind, "%c<u%s>", '%', utf8toucp(tmp));
+		sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+		tmpptr = utf8toucp(tmpbuf);
+		sprintf(qfind, "%c<u%s>", '%', tmpptr);
 		q+=1;
 		in+=8;
 		got+=8;
@@ -1699,6 +1698,11 @@ process_input(DESC * d)
        d->input_size += in;
     if ( lost > 0 )
        d->input_lost += lost;
+	
+	if (tmpptr) {
+		free(tmpptr);
+	}
+	
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #16 */
 }

@@ -1291,8 +1291,10 @@ utf8toucp(char *utf)
 		i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
 		sprintf(ucp, "%04x", i_ucp);
 	} else {
-		return " ";
+		sprintf(ucp, " ");
 	}
+	
+	free(tmp);
 	
 	return	ucp;
 }
@@ -1307,7 +1309,8 @@ ucptoutf8(char *ucp)
 	char *ptr, *utf;
 	int i_ucp, i_b1, i_b2, i_b3, i_b4;
 	
-	utf = (char *)malloc(9);
+	utf = (char *)malloc(10);
+	memset(utf, '\0', 10);
 	
 	i_ucp = strtol(ucp, &ptr, 16);
 	
@@ -1329,7 +1332,7 @@ ucptoutf8(char *ucp)
 		i_b4 = (i_ucp % 64) + 128;
 		sprintf(utf, "%02x%02x%02x%02x", i_b1, i_b2, i_b3, i_b4);
 	} else { // Invalid, return space
-		return " ";
+		sprintf(utf, " ");
 	}
 	
 	return utf;
