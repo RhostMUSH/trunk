@@ -657,23 +657,27 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 						i_utfcnt++;
 						string++;
 					}
+					
+					i_utfnum = atoi(s_ucpbuf);
+					
+					if (i_utfnum > 31) {
+						tmpptr = ucptoutf8(s_ucpbuf);
 
-					tmpptr = ucptoutf8(s_ucpbuf);
-
-					i_utfcnt = 0;
-					tmp = tmpptr;
-					while (*tmp) {
-						s_utfbuf[i_utfcnt % 2] = *tmp;						
-						if (i_utfcnt % 2) {
-							i_utfnum = strtol(s_utfbuf, &ptr, 16);
-							safe_chr((char)i_utfnum, buff_utf, &bufc_utf);
+						i_utfcnt = 0;
+						tmp = tmpptr;
+						while (*tmp) {
+							s_utfbuf[i_utfcnt % 2] = *tmp;						
+							if (i_utfcnt % 2) {
+								i_utfnum = strtol(s_utfbuf, &ptr, 16);
+								safe_chr((char)i_utfnum, buff_utf, &bufc_utf);
+							}
+							
+							i_utfcnt++;
+							tmp++;
 						}
-						
-						i_utfcnt++;
-						tmp++;
+						safe_chr(' ', buff2, &bufc2);
+						safe_chr(' ', buff, &bufc);
 					}
-					safe_chr(' ', buff2, &bufc2);
-					safe_chr(' ', buff, &bufc);
 				} else {
 					while ( *string ) {
 					   if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
