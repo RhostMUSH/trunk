@@ -311,32 +311,51 @@ char	*s;
 }
 
 /* Counts occurances of C in STR. - mnp 7 feb 91 */
+/**************************************************************************** 
+ * This is for reference only                                               * 
+ ****************************************************************************
+ * #define SPLIT_NORMAL            0x00
+ * #define SPLIT_HILITE            0x01
+ * #define SPLIT_FLASH             0x02
+ * #define SPLIT_UNDERSCORE        0x04
+ * #define SPLIT_INVERSE           0x08
+ *
+ * typedef struct ansisplit {
+ *         char    s_fghex[5];     // Hex representation - foreground
+ *         char    s_bghex[5];     // Hex representation - background 
+ *         char    c_fgansi;       // Normal foreground ansi
+ *         char    c_bgansi;       // Normal background ansi 
+ *         int     i_special;      // Special ansi characters 
+ *         char    c_accent;       // Various accent characters 
+ * } ANSISPLIT;
+ ****************************************************************************/
 
-
-// #define SPLIT_NORMAL            0x00
-// #define SPLIT_HILITE            0x01
-// #define SPLIT_FLASH             0x02
-// #define SPLIT_UNDERSCORE        0x04
-// #define SPLIT_INVERSE           0x08
-
-// typedef struct ansisplit {
-//         char    s_fghex[5];        /* Hex representation - foreground */
-//         char    s_bghex[5];        /* Hex representation - background */
-//         char    c_fgansi;       /* Normal foreground ansi */
-//         char    c_bgansi;       /* Normal background ansi */
-//         int     i_special;      /* Special ansi characters */
-//         char    c_accent;       /* Various accent characters */
-// } ANSISPLIT;
-
-
-char *
-clone_ansi(char *s_input, ANSISPLIT *s_insplit, char *s_inputptr, ANSISPLIT *s_insplitptr,
-           char *s_output, char *s_outputptr, ANSISPLIT *s_outsplit, 
-           ANSISPLIT *s_outsplitptr, int i_amount)
+void 
+clone_ansi(char *s_input, char *s_inputptr, 
+           ANSISPLIT *s_insplit, ANSISPLIT *s_insplitptr,
+           char *s_output, char *s_outputptr, 
+           ANSISPLIT *s_outsplit, ANSISPLIT *s_outsplitptr, int i_amount)
 {
    int i_cnt;
 
 #ifdef ZENTY_ANSI
+   for (i_cnt = 0; i_cnt < i_amount; i_cnt++) {
+      if ( !s_inputptr || !s_insplitptr ) 
+         break;
+      if ( !s_outputptr || !s_outsplitptr )
+         break;
+      *s_outputptr = *s_inputptr;
+      strcpy(s_outsplitptr->s_bghex, s_insplitptr->s_bghex);
+      strcpy(s_outsplitptr->s_fghex, s_insplitptr->s_fghex);
+      s_outsplitptr->c_fgansi = s_insplitptr->c_fgansi;
+      s_outsplitptr->c_bgansi = s_insplitptr->c_bgansi;
+      s_outsplitptr->c_accent = s_insplitptr->c_accent;
+      s_outsplitptr->i_special = s_insplitptr->i_special;
+      s_inputptr++;
+      s_insplitptr++;
+      s_outputptr++;
+      s_outsplitptr++;
+   }
 #else
    for (i_cnt = 0; i_cnt < i_amount; i_cnt++) {
       if ( !s_inputptr ) 
@@ -393,25 +412,29 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
             safe_chr('%', s_buffer, &s_buffptr);
             safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
             safe_chr('h', s_buffer, &s_buffptr);
+            i_normalize = 1;
          }
          if ( s_ptr->i_special & SPLIT_FLASH ) {
             safe_chr('%', s_buffer, &s_buffptr);
             safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
             safe_chr('f', s_buffer, &s_buffptr);
+            i_normalize = 1;
          }
          if ( s_ptr->i_special & SPLIT_UNDERSCORE ) {
             safe_chr('%', s_buffer, &s_buffptr);
             safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
             safe_chr('u', s_buffer, &s_buffptr);
+            i_normalize = 1;
          }
          if ( s_ptr->i_special & SPLIT_INVERSE ) {
             safe_chr('%', s_buffer, &s_buffptr);
             safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
             safe_chr('i', s_buffer, &s_buffptr);
+            i_normalize = 1;
          }
-         i_normalize = 1;
       }
-      if ( s_ptr->s_fghex[0] && (ToUpper(s_ptr->s_fghex[1]) == 'X') && 
+      if ( (s_ptr->s_fghex[0] == '0') && (ToUpper(s_ptr->s_fghex[1]) == 'X') && 
+           isxdigit(s_ptr->s_fghex[2]) && isxdigit(s_ptr->s_fghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_fghex, s_last.s_fghex)) ) {
          i_ansi = 1;
          safe_chr('%', s_buffer, &s_buffptr);
@@ -419,7 +442,8 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
          safe_str(s_ptr->s_fghex, s_buffer, &s_buffptr);
          i_normalize = 1;
       }
-      if ( s_ptr->s_bghex[0] && (ToUpper(s_ptr->s_bghex[1]) == 'X') && 
+      if ( (s_ptr->s_bghex[0] == '0') && (ToUpper(s_ptr->s_bghex[1]) == 'X') && 
+           isxdigit(s_ptr->s_bghex[2]) && isxdigit(s_ptr->s_bghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_bghex, s_last.s_bghex)) ) {
          i_ansi = 1;
          safe_chr('%', s_buffer, &s_buffptr);
@@ -429,16 +453,20 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       }
       if ( i_ansi != 1 ) {
          if ( s_ptr->c_fgansi && ((i_ansi == -1) || (s_ptr->c_fgansi != s_last.c_fgansi)) ) {
-            safe_chr('%', s_buffer, &s_buffptr);
-            safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
-            safe_chr(s_ptr->c_fgansi, s_buffer, &s_buffptr);
-            i_normalize = 1;
+            if ( isAnsi[(int) (s_ptr->c_fgansi)] ) {
+               safe_chr('%', s_buffer, &s_buffptr);
+               safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+               safe_chr(s_ptr->c_fgansi, s_buffer, &s_buffptr);
+               i_normalize = 1;
+            }
          }
          if ( s_ptr->c_bgansi && ((i_ansi == -1) || (s_ptr->c_bgansi != s_last.c_bgansi)) ) {
-            safe_chr('%', s_buffer, &s_buffptr);
-            safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
-            safe_chr(s_ptr->c_bgansi, s_buffer, &s_buffptr);
-            i_normalize = 1;
+            if ( isAnsi[(int) (s_ptr->c_bgansi)] ) {
+               safe_chr('%', s_buffer, &s_buffptr);
+               safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+               safe_chr(s_ptr->c_bgansi, s_buffer, &s_buffptr);
+               i_normalize = 1;
+            }
          }
       }
       if ( s_ptr->c_accent && ((s_ptr->c_accent != s_last.c_accent)) ) {
@@ -601,7 +629,6 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
       *s_outptr = *s_inptr;
       s_outptr++;
       s_inptr++;
-//    i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
    }
    *s_outptr = '\0';
 
