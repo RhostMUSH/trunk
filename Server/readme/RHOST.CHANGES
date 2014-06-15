@@ -23,6 +23,8 @@ functions.c bombed with the clang compiler because of restrictive type-casting c
 				- Thanks Volund
 @skip/@ifelse, @switch, and @sudo didn't evaluate substitutions properly.
 				- Thanks Volund
+Compiletime bug in speech.c with REALITY_LEVELS not defined.
+				- Thanks psc943
 
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 

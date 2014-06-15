@@ -1387,8 +1387,9 @@ void do_pemit (dbref player, dbref cause, int key, char *recipient,
 dbref	target, loc, aowner, darray[LBUF_SIZE/2];
 char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
 char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff;
+char    *strtok, *strtokr, *strtokbuf;
 #ifdef REALITY_LEVELS
-char    *reality_buff, *s_ptr, *r_bufr, *pt3, *strtok, *strtokr, *strtokbuf;
+char    *pt3, *r_bufr, *s_ptr, *reality_buff;
 #endif
 int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr, side_effect; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;

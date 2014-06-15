@@ -28977,3 +28977,4 @@ Bug Fixes
 ---------
 * columns() and wrapcolumns() had a crashbug with the handler (3.9.4p4) [ASH]
 * formatting with inverse ansi wasn't recognized properly [ASH]
+* speech.c broke when REALITY_LEVELS was no longer defined [ASH]
