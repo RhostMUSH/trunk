@@ -1,20 +1,9 @@
-Master IPC Debugging stack created w/ key = 32005 [shared memory id: 3211275]
+Master IPC Debugging stack created w/ key = 32005 [shared memory id: 360458]
 ./netrhost.debugmon: initiating ./netrhost
-140601.011913 RhostMUSH: Game log file opened as netrhost.gamelog.
+140610.173934 RhostMUSH: Game log file opened as netrhost.gamelog.
 Slave IPC Debugging stack connected w/ key = 32005
-140601.014352 RhostMUSH RBT/DUMP : Dumping reboot data...
-140601.014352 RhostMUSH RBT/DUMP : Dump complete.
-140601.014352 RhostMUSH: Game log file opened as netrhost.gamelog.
-Slave IPC Debugging stack connected w/ key = 32005
-./netrhost.debugmon: ./netrhost exited with status 134
-./netrhost.debugmon: debug stack depth = 7
-./netrhost.debugmon: stackframe 0 = game.c, line 2025
-./netrhost.debugmon: stackframe 1 = bsd.c, line 210
-./netrhost.debugmon: stackframe 2 = netcommon.c, line 4263
-./netrhost.debugmon: stackframe 3 = netcommon.c, line 4017
-./netrhost.debugmon: stackframe 4 = command.c, line 2476
-./netrhost.debugmon: stackframe 5 = command.c, line 1968
-./netrhost.debugmon: stackframe 6 = game.c, line 594
+./netrhost.debugmon: ./netrhost exited with status 0
+./netrhost.debugmon: debug stack depth = 0
 
-./netrhost.debugmon: last db fetch was for #3
+./netrhost.debugmon: last db fetch was for #10
 ./netrhost.debugmon: exiting

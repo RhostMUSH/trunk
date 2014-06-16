@@ -1341,7 +1341,7 @@ ucptoutf8(char *ucp)
 	
 	i_ucp = strtol(ucp, &ptr, 16);
 	
-	if (i_ucp <= 127) {	// Single byte, return value
+	if ( i_ucp > 31 && i_ucp <= 127) {	// Single byte, return value and not return code
 		return ucp;
 	} else if (i_ucp <= 2047) { // 2 byte
 		i_b1 = (i_ucp / 64) + 192;

@@ -660,7 +660,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 					
 					i_utfnum = atoi(s_ucpbuf);
 					
-					if (i_utfnum > 31) {
+                   
+					//if (i_utfnum > 31) {
 						tmpptr = ucptoutf8(s_ucpbuf);
 
 						i_utfcnt = 0;
@@ -677,7 +678,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 						}
 						safe_chr(' ', buff2, &bufc2);
 						safe_chr(' ', buff, &bufc);
-					}
+					//}
 				} else {
 					while ( *string ) {
 					   if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
