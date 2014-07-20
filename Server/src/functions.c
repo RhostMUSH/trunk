@@ -7792,7 +7792,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                 t = s_padstring + i_lastspace;
                 if ( *t ) 
                    t++;
-                i_chk = strlen(t);
+                i_chk = strlen(strip_all_special(t));
                 memcpy(s_padstring2, t, LBUF_SIZE-10);
                 *t++ = '\r';
                 *t++ = '\n';
