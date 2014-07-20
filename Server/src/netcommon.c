@@ -4531,7 +4531,7 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
     DESC_ITER_CONN(d) {
 	if (!Wizard(target) && Cloak(d->player))
 	    continue;
-        if (!Wizard(target) && !(mudconf.who_unfindable) && Dark(d->player) && 
+        if (!Admin(target) && !(mudconf.who_unfindable) && Dark(d->player) && 
             !(mudconf.player_dark) && mudconf.allow_whodark )
             continue;
 	if (Immortal(d->player) && Cloak(d->player) && SCloak(d->player) && !Immortal(target))
