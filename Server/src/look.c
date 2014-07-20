@@ -1327,7 +1327,7 @@ show_desc(dbref player, dbref loc, int key)
                (char **) NULL, 0);
 #endif /* REALITY_LEVELS */
     }
-    if ( Good_obj(player) && LogRoom(loc) && (Location(player) == loc) ) {
+    if ( Good_obj(player) && LogRoom(loc) && !Quiet(loc) && (Location(player) == loc) ) {
        notify_quiet(player, "This room is currently logging what it hears.");
     }
 }

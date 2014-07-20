@@ -10567,6 +10567,12 @@
   the virtual register count down then over.  The default '0' does it
   in a normal sequential order.
   
+  If you specify width of '0' and specify a delimeter, then it will ignore
+  width of the values and split the array based on the delimiter only.
+  
+  If you wish to store the setq registers prior to this function, please
+  utilize the pushregs() function to back-up your registers.
+  
   This function is ansi aware. 
   
   Examples:
@@ -28972,9 +28978,13 @@ New Features
 Changes
 -------
 * massive cleanup and helper tools for ansi for ease of modification [ASH]
+* better error control with failed player creation with safer_passwords [ASH]
+* Rooms set QUIET that are @toggled LOGROOM no longer notify of logging [ASH]
   
 Bug Fixes
 ---------
 * columns() and wrapcolumns() had a crashbug with the handler (3.9.4p4) [ASH]
 * formatting with inverse ansi wasn't recognized properly [ASH]
 * speech.c broke when REALITY_LEVELS was no longer defined [ASH]
+* The initial db creation could bomb on creating #1 with safer_passwords [ASH]
+* lwho() didn't properly check wiz when specifying optional target [ASH]

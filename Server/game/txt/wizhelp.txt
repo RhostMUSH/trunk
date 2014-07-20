@@ -1958,7 +1958,13 @@
   are permanent and do not need to be performed each time the RhostMUSH is
   restarted.
   
+  For built-in attributes (like @desc) you will need to use the @admin
+  parameter attr_access and this will require it to be in the netrhost.conf
+  file to be 'permanent' through reboots.
+  
   Example:  @attribute/access wiz_only_attribute=royalty pinvisible
+  
+  See Also: attr_access
  
 & @conncheck
   Command: @conncheck
@@ -5076,6 +5082,7 @@ SNOOPY                                                           God     Wiz
   ignore      - The attribute is not decompiled.
   hidden      - The attribute is visible only to wizards.
   pinvisible  - The attribute is examinable by royalty+ only.
+  default     - The attribute 'inherits' attribute formatting.
 * no_inherit  - The attribute is not inheritable by children.
 * visual      - The attribute is visual by everyone.
 * no_ansi     - The attribute does not hold ansi.
@@ -5086,6 +5093,16 @@ SNOOPY                                                           God     Wiz
   with no args you will be shown the current privilages for that attribute.
   
   Permissions with a '*' require @attribute/access
+  
+  For user-defined attributes, please use the @attribute/access command.
+  This will also be 'permanent' and won't have to be re-issued.
+
+  For built-in attributes (like @desc) please use the @admin parameter
+  attr_access.  If you do this via @admin, they must be reissued on
+  every startup.  It is suggested you put this in the netrhost.conf
+  file instead:  (such as:  attr_access desc default)
+  
+  See Also: @attribute
  
 & attr_alias
   Config parameter: attr_alias <new alias> <attr>
@@ -9955,6 +9972,9 @@ try to keep all information on a 20x78 screen.
   This toggle, when set on a target container (room/object/player),
   will log everything that resides INSIDE that container for
   the duration of the toggle.  
+  
+  If the room is also set QUIET, notifications to the players will no
+  longer occur.
   
   Note: You may specify a LOGNAME attribute on the room toggled to log
         to force the name of the logfile being logged instead of

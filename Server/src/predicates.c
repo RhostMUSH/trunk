@@ -1167,25 +1167,25 @@ int ok_password(const char *password, dbref player, int key)
 /* Some of the following borrowed from TinyMUSH 2.2.4 */
 /* Key is a toggle to say if you want the return or not to the player */
 #ifndef STANDALONE
-  if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) ) {
+  if ( mudconf.safer_passwords && ((strcmp(password, "guest") != 0) || (strcmp(password, "Nyctasia") != 0)) ) {
      /* length must be 5 or more */
      if ( strlen(password) < 5 ) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must be at least 5 characters long.");
         return 0;
      }
      if (num_upper < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must contain at least one capital letter.");
         return 0;
      }
      if (num_lower < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must contain at least one lowercase letter.");
         return 0;
      }
      if (num_special < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player,
            "The password must contain at least one number or a symbol other than an apostrophe or dash.");
         return 0;

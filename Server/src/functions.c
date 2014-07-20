@@ -7035,18 +7035,18 @@ FUNCTION(fun_foreach)
         return;
     }
     atextbuf = alloc_lbuf("fun_foreach");
-    cp = trim_space_sep(fargs[1], ' ');
+    cp = trim_space_sep(strip_all_special(fargs[1]), ' ');
 
     bp = cbuf;
 
     cbuf[1] = '\0';
 
-    if (nfargs == 4) {
+    if (nfargs >= 3) {
         while (cp && *cp) {
             cbuf[0] = *cp++;
 
             if (flag) {
-                if ((cbuf[0] == *fargs[3]) && (prev != '\\') && (prev != '%')) {
+                if ( (nfargs >= 4) && (cbuf[0] == *fargs[3]) && (prev != '\\') && (prev != '%')) {
                     flag = 0;
                     continue;
                 }
@@ -20199,7 +20199,8 @@ FUNCTION(fun_array)
       return;
    }
 
-   i_width = i_regs = i_regcurr = i_type = 0;
+   i_width = -1;
+   i_regs = i_regcurr = i_type = 0;
    memset(i_counter, '\0', sizeof(i_counter));
 
    if ( *fargs[1] ) {
@@ -20218,8 +20219,8 @@ FUNCTION(fun_array)
    if ( (nfargs > 3) && *fargs[3] ) {
       sep = *fargs[3];
    }
-   if ( !sep && ((i_width <= 0) || (i_width > LBUF_SIZE)) ) {
-      safe_str("#-1 ARRAY REQUIRES WIDTH > 1 AND WIDTH < 4000", buff, bufcx);
+   if ( !sep && ((i_width < 0 ) || (i_width > LBUF_SIZE)) ) {
+      safe_str("#-1 ARRAY REQUIRES WIDTH >= 0 AND WIDTH < 4000", buff, bufcx);
       return;
    }
    if ( (nfargs > 4) && *fargs[4] ) {
@@ -20227,6 +20228,9 @@ FUNCTION(fun_array)
       if ( i_type != 0 )
          i_type = 1;
    }
+   if ( (i_width == 0) && !sep )
+      sep = ' ';
+
    initialize_ansisplitter(insplit, LBUF_SIZE);
    initialize_ansisplitter(outsplit, LBUF_SIZE);
 
@@ -20261,7 +20265,7 @@ FUNCTION(fun_array)
          s_outptr++;
          p_out++;
          i++;
-         if ( *s_inptr && ((sep && (*s_inptr == sep)) || (i == i_width)) ) {
+         if ( *s_inptr && ( (sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0)) ) ) {
             i = 0;
             if ( !sep ) {
                s_ptr2 = s_inptr;
@@ -20277,7 +20281,7 @@ FUNCTION(fun_array)
                }
                i = 0;
             } else {
-               *s_outptr = '\0';
+               *(s_outptr-1) = '\0';
             }
             s_tmpbuff = rebuild_ansi(s_output, outsplit);
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
@@ -20310,7 +20314,7 @@ FUNCTION(fun_array)
       s_inptr = s_input;
       while ( s_inptr && *s_inptr) {
          i++;
-         if ( *s_inptr && ((sep && (*s_inptr == sep)) || (i == i_width)) ) {
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0))) ) {
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = i_width;
@@ -20329,6 +20333,9 @@ FUNCTION(fun_array)
          }
          s_inptr++;
       }
+      if ( i > 0 ) 
+         i_counter[i_regcurr]++;
+    
       s_inptr = s_input;
       i_regcurr = i = 0;
       memset(s_output, '\0', LBUF_SIZE);
@@ -20345,7 +20352,7 @@ FUNCTION(fun_array)
          s_outptr++;
          p_out++;
          i++;
-         if ( *s_inptr && ((sep && (*s_inptr == sep)) || (i == i_width)) ) {
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0))) ) {
             i = 0;
             if ( !sep ) {
                s_ptr2 = s_inptr;
@@ -20361,19 +20368,21 @@ FUNCTION(fun_array)
                }
                i = 0;
             } else {
-               *s_outptr = '\0';
+               *(s_outptr-1) = '\0';
             }
             s_tmpbuff = rebuild_ansi(s_output, outsplit);
 
-            if ( !i_counter[i_regcurr] )
+
+            if ( !i_counter[i_regcurr] ) {
                i_regcurr++;
-            else
-               i_counter[i_regcurr]--;
+            }
+            i_counter[i_regcurr]--;
 
             if ( i_regcurr > i_regs ) { /* Something bad happened, break out here */
                i_regcurr = 0;
                break;
             }
+
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
             if ( *mudstate.global_regs[i_regcurr] )
                safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);

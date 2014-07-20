@@ -3885,6 +3885,12 @@ check_connect(DESC * d, const char *msg)
 	} else {
 	    player = create_player(user, password, NOTHING, 0);
 	    if (player == NOTHING) {
+                if ( !ok_password(password, NOTHING, 0) ) {
+                   queue_string(d, (char *)"Invalid password specified.\r\n");
+                   if ( mudconf.safer_passwords ) {
+                      queue_string(d, (char *)"Passwords must have 1 upper, 1 lower, and 1 non-alpha and be 5+ chars long.\r\n");
+                   }
+                } 
 		broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CREATE)", d->userid, 
                                   d->addr, 0, 0, 0, user);
 		queue_string(d, create_fail);
@@ -4539,14 +4545,14 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
 	if (gotone)
 	    safe_chr(' ', buff, bufcx);
         if ( i_type == 2 ) {
-           if ( (target == d->player) || Wizard(player) ) 
+           if ( (target == d->player) || Wizard(target) ) 
               i_port = d->descriptor;
            else
               i_port = -1;
            tprp_buff = tpr_buff;
 	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", i_port), buff, bufcx);
         } else if ( i_type == 1 ) {
-           if ( (target == d->player) || Wizard(player) ) 
+           if ( (target == d->player) || Wizard(target) ) 
               i_port = d->descriptor;
            else
               i_port = -1;
