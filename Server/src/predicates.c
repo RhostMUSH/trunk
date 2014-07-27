@@ -1167,7 +1167,7 @@ int ok_password(const char *password, dbref player, int key)
 /* Some of the following borrowed from TinyMUSH 2.2.4 */
 /* Key is a toggle to say if you want the return or not to the player */
 #ifndef STANDALONE
-  if ( mudconf.safer_passwords && ((strcmp(password, "guest") != 0) || (strcmp(password, "Nyctasia") != 0)) ) {
+  if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) && (strcmp(password, "Nyctasia") != 0) ) {
      /* length must be 5 or more */
      if ( strlen(password) < 5 ) {
         if ( (key == 0) && Good_chk(player) )

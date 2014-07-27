@@ -28989,3 +28989,4 @@ Bug Fixes
 * The initial db creation could bomb on creating #1 with safer_passwords [ASH]
 * lwho() didn't properly check wiz when specifying optional target [ASH]
 * printf() with |" options had an alignment issue with ansi [ASH]
+* bug with 'guest' in safer_passwords [ASH]
