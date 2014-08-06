@@ -4581,7 +4581,7 @@ FUNCTION(fun_shuffle)
        return;
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
-    outbuff = alloc_lbuf("fun_scramble");
+    outbuff = alloc_lbuf("fun_shuffle");
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
     pt1 = outbuff;
     p_sp = outsplit;
@@ -14251,7 +14251,7 @@ FUNCTION(fun_mid)
     }
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
-    outbuff = alloc_lbuf("fun_scramble");
+    outbuff = alloc_lbuf("fun_mid");
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
     *(outbuff + l + len) = '\0';
@@ -21481,11 +21481,11 @@ FUNCTION(fun_citer)
     evarargs_preamble("CITER", 3);
     if ( (nfargs >= 3) && !*fargs[2] )
        sep = *fargs[2];
-    outbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
-         cargs, ncargs);
+
+    outbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], cargs, ncargs);
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
-    curr = alloc_lbuf("fun_scramble");
+    curr = alloc_lbuf("fun_citer2");
 
     split_ansi(strip_ansi(outbuff), curr, outsplit);
     free_lbuf(outbuff);
