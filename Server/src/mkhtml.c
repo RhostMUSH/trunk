@@ -186,11 +186,20 @@ int main(int argc, char *argv[])
         exit(-1);
       }
      
+/*
       fread(bigtextbuff, alltopics[topicidx].len, 1, tfp);
 
       bigtextbuff[alltopics[topicidx].len] = '\0';
 
       outputstring(hfp, bigtextbuff);
+*/
+      for (;;) {
+         if ( fgets(bigtextbuff, (MAXTEXTLEN - 1), tfp) == NULL )
+            break;
+         if (bigtextbuff[0] == '&')
+            break;
+         outputstring(hfp, bigtextbuff);
+      }
 
       fprintf(hfp, "</PRE>\n"/*, entry.topic ??? */);
       if( topicidx ) {

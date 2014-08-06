@@ -3508,7 +3508,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 {
     char *p1, *p2, *p3, *p4, *atrxxx, *atryyy, *tcim, *tcimptr, *tcimptr2, msubj[SUBJLIM+1];
     char just, *atrtmp, *atrtmpptr, *mailfunkvar, *ztmp, *ztmpptr, *time_tmp;
-    char *bcctmp, *bcctmpptr, *bccatr, *tpr_buff, *tprp_buff;
+    char *bcctmp, *bcctmpptr, *bccatr, *savesend, *tpr_buff, *tprp_buff;
     short int line, count, index, min, max, gdcount;
     dbref aowner3, aowner2, owner;
     int aflags2, chk_dash, flags, i_type, valid_flag, type_two, type_three, is_first, i_addkey;
@@ -3869,6 +3869,49 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
                              (totcharinmail - LBUF_SIZE + 10)));
 	    }
 	}
+    } else if (stricmp(buf1, "+validate") == 0 ) {
+/*
+       bccatr = atr_get(player, A_BCCMAIL, &aowner3, &aflags3);
+       savesend = atr_get(player, A_SAVESENDMAIL, &aowner3, &aflags3);
+//     tprp_buff = tpr_buff = alloc_lbuf("mail_send");
+       strcpy(tpr_buff, lbuf3);
+       pt1 = tpr_buff;
+       while ( !term && *pt1 ) {
+          while (isspace((int)*pt1) && *pt1) pt1++;
+          if (!*pt1) {
+             if ( i_nogood != 2 )
+                i_nogood = 1;
+             break;
+          }
+          pt2 = pt1+1;
+          if ((sepchar == '\0') || (*pt1 == '#')) {
+             if ( comma_exists )
+                while (*pt2 && (*pt2 != ',')) pt2++;
+             else
+                while (*pt2 && !isspace((int)*pt2) && (*pt2 != ',')) pt2++;
+          } else {
+             while (*pt2 && (*pt2 != sepchar) && (*pt2 != ',')) pt2++;
+          }
+          if (*pt2 && !sepchar) {
+             sepchar = *pt2;
+             term = 0;
+          } else if (*pt2) {
+             term = 0;
+          } else
+             term = 1;
+          *pt2 = '\0';
+          toplay = lookup_player(player,pt1,0);
+          if (toplay == NOTHING) {
+             i_nogood = 1;
+             break;
+          } else {
+             if ( !i_nogood )
+                i_nogood = 2;
+          }
+          pt1 = pt2+1;
+       }
+       free_lbuf(tpr_buff);
+*/
     } else if (stricmp(buf1, "+proof") == 0) {
 	if (p3 != NULL) {
 	    notify_quiet(player, "Mail: Extra characters ignored.");
@@ -5063,7 +5106,7 @@ mail_acheck(dbref player)
        olist_init(&master);
        if (parse_attrib_wild(mudconf.mail_def_object, 
                              unsafe_tprintf("#%d/alias.*", mudconf.mail_def_object),
-                             &tmpdbnum, 0, 0, 1, &master, 0)) {
+                             &tmpdbnum, 0, 0, 1, &master, 0, 0, 0)) {
           s_shoveattr = alloc_lbuf("mail_alias_lbuf");
           tprp_buff = tpr_buff = alloc_lbuf("mail_acheck");
           for (ca = olist_first(&master); ca != NOTHING; ca = olist_next(&master)) {
@@ -5922,23 +5965,29 @@ mail_size(dbref player, char *buf1, char *buf2)
 }
 
 void 
-mail_quota(dbref player, char *buf1)
+mail_quota(dbref player, char *buf1, int key, int *i_used, int *i_saved, int *i_sent, int *i_umax, int *i_samax, int *i_semax)
 {
     dbref pcheck;
-    int count, smax, dummy1, dummy2;
+    int count, smax, dummy1, dummy2, i_pcheck;
     short int *pt1;
     char *pt2;
 
     count = smax = 0;
     if (*buf1) {
       if (!Wizard(player)) {
-	notify_quiet(player,"MAIL ERROR: Improper quota format");
+        if ( !key )
+	   notify_quiet(player,"MAIL ERROR: Improper quota format");
+        *i_used = *i_saved = *i_sent = -1;
+        *i_umax = *i_samax = *i_semax = -1;
 	return;
       }
       else {
 	pcheck = lookup_player(player, buf1, 0);
 	if ((pcheck == NOTHING) || (!Controls(player,pcheck))) {
-	  notify_quiet(player,"MAIL ERROR: Bad player or not allowed");
+           if ( !key )
+	      notify_quiet(player,"MAIL ERROR: Bad player or not allowed");
+           *i_used = *i_saved = *i_sent = -1;
+           *i_umax = *i_samax = *i_semax = -1;
 	  return;
 	}
       }
@@ -5951,8 +6000,12 @@ mail_quota(dbref player, char *buf1)
     }
     else
 	count = 0;
-    notify_quiet(player, unsafe_tprintf("Mail: %d of %d mail quota used.", count,
-				 get_box_size(pcheck)));
+    i_pcheck = (int)get_box_size(pcheck);
+    *i_umax = i_pcheck;
+    *i_used = count;
+    if ( !key )
+       notify_quiet(player, unsafe_tprintf("Mail: %d of %d mail quota used.", count,
+                    *i_umax));
     if (!Wizard(pcheck)) {
       pt2 = atr_get(pcheck, A_MSAVEMAX, &dummy1, &dummy2);
       if (*pt2)
@@ -5972,7 +6025,10 @@ mail_quota(dbref player, char *buf1)
       free_lbuf(pt2);
       pt2 = atr_get(pcheck, A_MSAVECUR, &dummy1, &dummy2);
       count = atoi(pt2);
-      notify_quiet(player, unsafe_tprintf("Mail: %d of %d saved messages.", count, smax));
+      *i_saved = count;
+      *i_samax = smax;
+      if ( !key )
+         notify_quiet(player, unsafe_tprintf("Mail: %d of %d saved messages.", count, smax));
       free_lbuf(pt2);
     }
     if (Wizard(player)) {
@@ -5982,7 +6038,10 @@ mail_quota(dbref player, char *buf1)
       }
       else
 	count = 0;
-      notify_quiet(player, unsafe_tprintf("Mail: %d of %d sent messages.", count, absmaxinx));
+      *i_sent = count;
+      *i_semax = absmaxinx;
+      if ( !key )
+         notify_quiet(player, unsafe_tprintf("Mail: %d of %d sent messages.", count, absmaxinx));
     }
 }
 
@@ -7783,11 +7842,14 @@ do_single_mail(dbref player, dbref cause, int key, char *string)
 void 
 do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 {
-    int key2, flags, flags2, forcesend;
+    int key2, flags, flags2, forcesend, i_fill1, i_fill2, i_fill3,
+        i_fill4, i_fill5, i_fill6;
     char *p1, *p2, *atrxxx;
     dbref owner, owner2;
 
     recblock = 0;
+    i_fill1 = i_fill2 = i_fill3 = 0;
+    i_fill4 = i_fill5 = i_fill6 = 0;
     if (key & M_FSEND) {
 	key &= ~M_FSEND;
 	override = 1;
@@ -8007,7 +8069,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	if (*buf2 != '\0') {
 	    notify_quiet(player, "MAIL ERROR: Improper quota format.");
 	} else {
-	    mail_quota(player, buf1);
+	    mail_quota(player, buf1, 0, &i_fill1, &i_fill2, &i_fill3, &i_fill4, &i_fill5, &i_fill6);
 	}
 	break;
     case M_ZAP:

@@ -172,7 +172,7 @@
 #define BLIND           0x00100000      /* Exits and locations snuff arrived/left */
 #define NOCODE		0x00200000	/* Players may not code */
 #define HAS_PROTECT	0x00400000	/* Player target has protect name data */
-/* 0x00800000 free */
+#define XTERMCOLOR      0x00800000      /* Extended AnSI Xterm colors */
 /* 0x01000000 free */
 /* 0x02000000 free */
 /* 0x04000000 free */
@@ -199,7 +199,7 @@
 #define TOG_MONITOR_AREG	0x00001000
 #define TOG_MONITOR_TIME        0x00002000
 #define TOG_CLUSTER		0x00004000	/* Object is part of a cluster */
-/* 0x00008000 free */
+#define TOG_SNUFFDARK           0x00008000	/* Snuff Dark Exit Viewing */
 #define TOG_NOANSI_PLAYER       0x00010000      /* Do not show ansi player names */
 #define TOG_NOANSI_THING        0x00020000      /* ... things */
 #define TOG_NOANSI_ROOM         0x00040000      /* ... rooms */
@@ -486,8 +486,8 @@ extern void     FDECL(display_toggletab2, (dbref, char *, char **));
 extern void     FDECL(flag_set, (dbref, dbref, char *, int));
 extern void     FDECL(toggle_set, (dbref, dbref, char *, int));
 extern void     FDECL(power_set, (dbref, dbref, char *, int));
-extern char *   FDECL(flag_description, (dbref, dbref, int));
-extern char *   FDECL(toggle_description, (dbref, dbref, int, int));
+extern char *   FDECL(flag_description, (dbref, dbref, int, int *, int));
+extern char *   FDECL(toggle_description, (dbref, dbref, int, int, int *));
 extern char *   FDECL(power_description, (dbref, dbref, int, int));
 extern char *   FDECL(depower_description, (dbref, dbref, int, int));
 extern FLAGENT *FDECL(find_flag, (dbref, char *));
@@ -596,6 +596,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define No_Ansi_Ex(x)	((Toggles(x) & TOG_NO_ANSI_EX) != 0)
 #define CpuTime(x)	((Toggles(x) & TOG_CPUTIME) != 0)
 #define Cluster(x)	((Toggles(x) & TOG_CLUSTER) != 0)
+#define SnuffDark(x)	((Toggles(x) & TOG_SNUFFDARK) != 0)
 #define NoAnsiPlayer(x) ((Toggles(x) & TOG_NOANSI_PLAYER) != 0)
 #define NoAnsiThing(x)  ((Toggles(x) & TOG_NOANSI_THING) != 0)
 #define NoAnsiRoom(x)   ((Toggles(x) & TOG_NOANSI_ROOM) != 0)
@@ -795,6 +796,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Indestructable(x)	((Flags2(x) & INDESTRUCTABLE) != 0)
 #define ShowAnsi(x)	((Flags2(x) & ANSI) != 0)
 #define ShowAnsiColor(x)	((Flags2(x) & ANSICOLOR) != 0)
+#define ShowAnsiXterm(x)	((Flags4(x) & XTERMCOLOR) != 0)
 #define NoFlash(x)	((Flags2(x) & NOFLASH) != 0)
 #define NoUnderline(x)	((Flags4(x) & NOUNDERLINE) != 0)
 #define NoName(x)	((Flags4(x) & NONAME) != 0)

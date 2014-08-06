@@ -1,5 +1,7 @@
 /* stringutil.c -- string utilities */
 
+#define INCLUDE_ASCII_TABLE
+
 #include "copyright.h"
 #include "autoconf.h"
 
@@ -309,6 +311,331 @@ char	*s;
 }
 
 /* Counts occurances of C in STR. - mnp 7 feb 91 */
+/**************************************************************************** 
+ * This is for reference only                                               * 
+ ****************************************************************************
+ * #define SPLIT_NORMAL            0x00
+ * #define SPLIT_HILITE            0x01
+ * #define SPLIT_FLASH             0x02
+ * #define SPLIT_UNDERSCORE        0x04
+ * #define SPLIT_INVERSE           0x08
+ *
+ * typedef struct ansisplit {
+ *         char    s_fghex[5];     // Hex representation - foreground
+ *         char    s_bghex[5];     // Hex representation - background 
+ *         char    c_fgansi;       // Normal foreground ansi
+ *         char    c_bgansi;       // Normal background ansi 
+ *         int     i_special;      // Special ansi characters 
+ *         char    c_accent;       // Various accent characters 
+ * } ANSISPLIT;
+ ****************************************************************************/
+
+void 
+clone_ansi(char *s_input, char *s_inputptr, 
+           ANSISPLIT *s_insplit, ANSISPLIT *s_insplitptr,
+           char *s_output, char *s_outputptr, 
+           ANSISPLIT *s_outsplit, ANSISPLIT *s_outsplitptr, int i_amount)
+{
+   int i_cnt;
+
+#ifdef ZENTY_ANSI
+   for (i_cnt = 0; i_cnt < i_amount; i_cnt++) {
+      if ( !s_inputptr || !s_insplitptr ) 
+         break;
+      if ( !s_outputptr || !s_outsplitptr )
+         break;
+      *s_outputptr = *s_inputptr;
+      strcpy(s_outsplitptr->s_bghex, s_insplitptr->s_bghex);
+      strcpy(s_outsplitptr->s_fghex, s_insplitptr->s_fghex);
+      s_outsplitptr->c_fgansi = s_insplitptr->c_fgansi;
+      s_outsplitptr->c_bgansi = s_insplitptr->c_bgansi;
+      s_outsplitptr->c_accent = s_insplitptr->c_accent;
+      s_outsplitptr->i_special = s_insplitptr->i_special;
+      s_inputptr++;
+      s_insplitptr++;
+      s_outputptr++;
+      s_outsplitptr++;
+   }
+#else
+   for (i_cnt = 0; i_cnt < i_amount; i_cnt++) {
+      if ( !s_inputptr ) 
+         break;
+      safe_chr(*s_inputptr, s_output, &s_outputptr);
+      s_inputptr++;
+   }
+#endif
+}
+
+char *
+rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
+   char *s_buffer;
+#ifdef ZENTY_ANSI
+   char *s_inptr, *s_buffptr;
+   int i_ansi, i_normalize, i_normalize2;
+   ANSISPLIT *s_ptr, s_last;
+
+   memset(s_last.s_bghex, '\0', 5);
+   memset(s_last.s_fghex, '\0', 5);
+   s_last.c_fgansi = '\0';
+   s_last.c_bgansi = '\0';
+   s_last.c_accent = '\0';
+   s_last.i_special = 0;
+
+   s_buffptr = s_buffer = alloc_lbuf("rebuild_ansi");
+
+   s_inptr = s_input;
+   s_ptr = s_split;
+   i_normalize = i_normalize2 = 0;
+   while ( s_inptr && *s_inptr ) {
+      i_ansi = 0;
+      if ( !s_ptr )
+         break;
+      if ( i_normalize && ((s_ptr->c_bgansi != s_last.c_bgansi) ||
+                           (s_ptr->c_fgansi != s_last.c_fgansi) ||
+                           strcmp(s_ptr->s_fghex, s_last.s_fghex) ||
+                           strcmp(s_ptr->s_bghex, s_last.s_bghex) ||
+                           (s_ptr->i_special != s_last.i_special) )) {
+         i_ansi = -1;
+         safe_chr('%', s_buffer, &s_buffptr);
+         safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+         safe_chr('n', s_buffer, &s_buffptr);
+         i_normalize = 0;
+      }
+      if ( i_normalize2 && (s_ptr->c_accent != s_last.c_accent) ) {
+         safe_chr('%', s_buffer, &s_buffptr);
+         safe_str("fn", s_buffer, &s_buffptr);
+         i_normalize2 = 0;
+      }
+                           
+      if ( s_ptr->i_special && ((i_ansi == -1) || (s_ptr->i_special != s_last.i_special)) ) {
+         if ( s_ptr->i_special & SPLIT_HILITE ) {
+            safe_chr('%', s_buffer, &s_buffptr);
+            safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+            safe_chr('h', s_buffer, &s_buffptr);
+            i_normalize = 1;
+         }
+         if ( s_ptr->i_special & SPLIT_FLASH ) {
+            safe_chr('%', s_buffer, &s_buffptr);
+            safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+            safe_chr('f', s_buffer, &s_buffptr);
+            i_normalize = 1;
+         }
+         if ( s_ptr->i_special & SPLIT_UNDERSCORE ) {
+            safe_chr('%', s_buffer, &s_buffptr);
+            safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+            safe_chr('u', s_buffer, &s_buffptr);
+            i_normalize = 1;
+         }
+         if ( s_ptr->i_special & SPLIT_INVERSE ) {
+            safe_chr('%', s_buffer, &s_buffptr);
+            safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+            safe_chr('i', s_buffer, &s_buffptr);
+            i_normalize = 1;
+         }
+      }
+      if ( (s_ptr->s_fghex[0] == '0') && (ToUpper(s_ptr->s_fghex[1]) == 'X') && 
+           isxdigit(s_ptr->s_fghex[2]) && isxdigit(s_ptr->s_fghex[3]) && 
+           ((i_ansi == -1) || strcmp(s_ptr->s_fghex, s_last.s_fghex)) ) {
+         i_ansi = 1;
+         safe_chr('%', s_buffer, &s_buffptr);
+         safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+         safe_str(s_ptr->s_fghex, s_buffer, &s_buffptr);
+         i_normalize = 1;
+      }
+      if ( (s_ptr->s_bghex[0] == '0') && (ToUpper(s_ptr->s_bghex[1]) == 'X') && 
+           isxdigit(s_ptr->s_bghex[2]) && isxdigit(s_ptr->s_bghex[3]) && 
+           ((i_ansi == -1) || strcmp(s_ptr->s_bghex, s_last.s_bghex)) ) {
+         i_ansi = 1;
+         safe_chr('%', s_buffer, &s_buffptr);
+         safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+         safe_str(s_ptr->s_bghex, s_buffer, &s_buffptr);
+         i_normalize = 1;
+      }
+      if ( i_ansi != 1 ) {
+         if ( s_ptr->c_fgansi && ((i_ansi == -1) || (s_ptr->c_fgansi != s_last.c_fgansi)) ) {
+            if ( isAnsi[(int) (s_ptr->c_fgansi)] ) {
+               safe_chr('%', s_buffer, &s_buffptr);
+               safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+               safe_chr(s_ptr->c_fgansi, s_buffer, &s_buffptr);
+               i_normalize = 1;
+            }
+         }
+         if ( s_ptr->c_bgansi && ((i_ansi == -1) || (s_ptr->c_bgansi != s_last.c_bgansi)) ) {
+            if ( isAnsi[(int) (s_ptr->c_bgansi)] ) {
+               safe_chr('%', s_buffer, &s_buffptr);
+               safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+               safe_chr(s_ptr->c_bgansi, s_buffer, &s_buffptr);
+               i_normalize = 1;
+            }
+         }
+      }
+      if ( s_ptr->c_accent && ((s_ptr->c_accent != s_last.c_accent)) ) {
+         safe_chr('%', s_buffer, &s_buffptr);
+         safe_chr('f', s_buffer, &s_buffptr);
+         safe_chr(s_ptr->c_accent, s_buffer, &s_buffptr);
+         i_normalize2 = 1;
+      }
+      if ( !s_ptr->c_accent && ((s_ptr->c_accent != s_last.c_accent)) ) {
+         safe_chr('%', s_buffer, &s_buffptr);
+         safe_str("fn", s_buffer, &s_buffptr);
+         i_normalize2 = 0;
+      }
+      strcpy(s_last.s_bghex, s_ptr->s_bghex);
+      strcpy(s_last.s_fghex, s_ptr->s_fghex);
+      s_last.c_fgansi = s_ptr->c_fgansi;
+      s_last.c_bgansi = s_ptr->c_bgansi;
+      s_last.c_accent = s_ptr->c_accent;
+      s_last.i_special = s_ptr->i_special;
+      safe_chr(*s_inptr, s_buffer, &s_buffptr);
+      s_inptr++;
+      s_ptr++;
+   }
+   if ( i_normalize ) {
+      safe_chr('%', s_buffer, &s_buffptr);
+      safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+      safe_chr('n', s_buffer, &s_buffptr);
+   }
+   if ( i_normalize2 ) {
+      safe_chr('%', s_buffer, &s_buffptr);
+      safe_str("fn", s_buffer, &s_buffptr);
+   }
+#else
+   s_buffer = alloc_lbuf("rebuild_ansi");
+   strcpy(s_buffer, s_input);
+#endif
+
+   return s_buffer;
+}
+
+void
+split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
+#ifdef ZENTY_ANSI
+
+   ANSISPLIT *s_ptr;
+   char *s_inptr, *s_outptr;
+   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent;
+
+   i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
+   if ( !s_input || !*s_input || !s_output || !s_split ) {
+      *s_output = '\0';
+      return;
+   }
+
+   s_inptr = s_input;
+   s_outptr = s_output;
+   s_ptr = s_split;
+
+   memset(s_ptr->s_fghex, '\0', 5);
+   memset(s_ptr->s_bghex, '\0', 5);
+   s_ptr->c_fgansi = '\0';
+   s_ptr->c_bgansi = '\0';
+   s_ptr->c_accent = '\0';
+   s_ptr->i_special = 0;
+   while ( s_inptr && *s_inptr ) {
+      if ( (*s_inptr == '%') && (*(s_inptr+1) == SAFE_CHR) ) {
+         if ( isAnsi[(int) *(s_inptr+2)] ) {
+            switch (*(s_inptr+2)) {
+               case 'f':
+               case 'F': s_ptr->i_special |= SPLIT_FLASH;
+                         i_special = 1;
+                         break;
+               case 'h':
+               case 'H': s_ptr->i_special |= SPLIT_HILITE;
+                         i_special = 1;
+                         break;
+               case 'u':
+               case 'U': s_ptr->i_special |= SPLIT_UNDERSCORE;
+                         i_special = 1;
+                         break;
+               case 'i':
+               case 'I': s_ptr->i_special |= SPLIT_INVERSE;
+                         i_special = 1;
+                         break;
+               case 'n':
+               case 'N': s_ptr->i_special = 0;
+                         memset(s_ptr->s_fghex, '\0', 5);
+                         memset(s_ptr->s_bghex, '\0', 5);
+                         s_ptr->c_fgansi ='\0';
+                         s_ptr->c_bgansi ='\0';
+                         i_special = i_ansi1 = i_ansi2 = i_hex1 = i_hex2 = 0;
+                         break;
+               default:  if ( ToUpper(*(s_inptr+2)) == *(s_inptr+2) ) {
+                            i_ansi2 = 1;
+                            s_ptr->c_bgansi = *(s_inptr+2);
+                         } else {
+                            i_ansi1 = 1;
+                            s_ptr->c_fgansi = *(s_inptr+2);
+                         }
+                         break;
+            }
+            s_inptr+=3;
+            continue;
+         }
+         if ( (*(s_inptr+2) == '0') && ((*(s_inptr+3) == 'x') || (*(s_inptr+3) == 'X')) &&
+              *(s_inptr+4) && *(s_inptr+5) && isxdigit(*(s_inptr+4)) && isxdigit(*(s_inptr+5)) ) {
+            if ( *(s_inptr+3) == 'X' ) {
+               i_hex2 = 1;
+               sprintf(s_ptr->s_bghex, "0%c%c%c", *(s_inptr+3), *(s_inptr+4), *(s_inptr+5));
+            } else {
+               i_hex1 = 1;
+               sprintf(s_ptr->s_fghex, "0%c%c%c", *(s_inptr+3), *(s_inptr+4), *(s_inptr+5));
+            }
+            s_inptr+=6;
+            continue;
+         }
+      }
+      if ( (*s_inptr == '%') && (*(s_inptr+1) == 'f') ) {
+         if ( isprint(*(s_inptr+2)) ) {
+            switch ( *(s_inptr+2) ) {
+               case 'n':
+               case 'N': s_ptr->c_accent = '\0';
+                         i_accent = 0;
+                         break;
+               default:  s_ptr->c_accent = *(s_inptr+2);
+                         i_accent = 1;
+                         break;
+            }
+            s_inptr+=3;
+            continue;
+         }
+      }
+      s_ptr++;
+      if ( !s_ptr || !s_outptr ) 
+         break;
+      if ( i_hex1 ) 
+         strcpy(s_ptr->s_fghex, (s_ptr-1)->s_fghex);
+      else
+         memset((s_ptr-1)->s_fghex, '\0', 5);
+      if ( i_hex2 )
+         strcpy(s_ptr->s_bghex, (s_ptr-1)->s_bghex);
+      else
+         memset((s_ptr-1)->s_bghex, '\0', 5);
+      if ( i_ansi1 )
+         s_ptr->c_fgansi = (s_ptr-1)->c_fgansi;
+      else
+         (s_ptr-1)->c_fgansi = '\0';
+      if ( i_ansi2 )
+         s_ptr->c_bgansi = (s_ptr-1)->c_bgansi;
+      else
+         (s_ptr-1)->c_bgansi = '\0';
+      if ( i_special )
+         s_ptr->i_special = (s_ptr-1)->i_special;
+      else
+         (s_ptr-1)->i_special = 0;
+      if ( i_accent )
+         s_ptr->c_accent = (s_ptr-1)->c_accent;
+      else
+         (s_ptr-1)->c_accent = '\0';
+      *s_outptr = *s_inptr;
+      s_outptr++;
+      s_inptr++;
+   }
+   *s_outptr = '\0';
+
+#else
+   strcpy(s_output, s_input);
+#endif
+}
 
 int count_chars(const char *str, const char c)
 {
@@ -319,6 +646,26 @@ int count_chars(const char *str, const char c)
       if (*p++ == c)
 	out++;
   return out;
+}
+
+int count_extended(char *str) {
+   char *s;
+   int i_val;
+
+   s = str;
+   i_val = 0;
+#ifdef ZENTY_ANSI
+   while ( *s ) {
+      if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
+           isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+           (*(s+5) == '>') ) {
+         i_val += 5;
+         s+=5;
+      }
+      s++;
+   }
+#endif
+   return i_val;
 }
 
 /*

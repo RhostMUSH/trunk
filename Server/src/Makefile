@@ -9,12 +9,17 @@ srcdir = .
 bindir = ../bin
 incdir = ../hdrs
 
-CC = gcc
+ERR = $(shell which gcc >/dev/null; echo $$?)
+ifeq "$(ERR)" "0"
+   CC = gcc
+else
+   CC = cc
+endif
 # CPP = gcc -E	# This is broken in autoconf.  Sigh.
 CPP = $(CC) -E
 # Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.
 # If using CYGWIN, comment out the whole line.
-LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm
+LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm 
 #LIBS = -L./qdbm/ -lqdbm
 LIBOBJS = 
 # for compiling on lowmem systems use this
@@ -72,7 +77,8 @@ D_SRC	= door.c shs.c mushcrypt.c news.c mail.c mailfix.c debug.c senses.c \
 	  unparse.c eval.c command.c wild.c netcommon.c functions.c vattr.c \
 	  db.c db_rw.c compress.c stringutil.c object.c conf.c flags.c htab.c \
 	  compat.c file_c.c player_c.c bsd.c alloc.c autoreg.c levels.c \
-          local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c $(DR_SRC)
+          local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c \
+          sqlite.c $(DR_SRC)
 
 D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  create.o game.o help.o look.o match.o move.o player.o predicates.o \
@@ -80,7 +86,8 @@ D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  unparse.o eval.o command.o wild.o netcommon.o functions.o vattr.o \
 	  db.o db_rw.o compress.o stringutil.o object.o conf.o flags.o htab.o \
           compat.o file_c.o player_c.o bsd.o alloc.o autoreg.o levels.o \
-          local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o $(DR_OBJ)
+          local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o \
+          sqlite.o $(DR_OBJ)
 
 D_INC	= door.h shs.h news.h mail.h debug.h \
 	  copyright.h flags.h help.h htab.h interface.h match.h functions.h \
@@ -149,7 +156,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # SYS_MALLOC - Used if malloc.h is in a borked spot.
 ###########################################################################################################
 
-DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DOLD_REALITIES -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall
+DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL 
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).
@@ -235,7 +242,7 @@ DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DOLD_REALITIES -DSECURE_SIDEEFFECT -DOL
 ################################################################  #5
 #MORELIBS  = -lm -L/usr/local/lib -lcygipc
 
-MORELIBS = -lm -lnsl -lresolv -lcrypt 
+MORELIBS = -lm -lnsl -lresolv -lcrypt -lssl
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much

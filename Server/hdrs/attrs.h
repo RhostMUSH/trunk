@@ -36,6 +36,8 @@
 #define AF_DEFAULT	0x04000000	/* TM3 Default Compatibility */
 #define AF_ATRLOCK	0x08000000	/* Attribute has to pass global attribute lock */
 #define AF_LOGGED	0x10000000	/* The attribute is logged for sets/removes */
+/* AF_REGEXP is 0x2000000 */
+#define AF_UNSAFE	0x40000000	/* Attribute is 'unsafe' and is u()'d at obj lvl */
 
 typedef struct afstruct {
   const char *flagname;
@@ -247,6 +249,7 @@ typedef struct afstruct {
 #define A_SPAMPROTECT	247	/* Spam protection attribute */
 #define A_EXITTO	248	/* Variable Exits */
 #define A_PROTECTNAME	249	/* Protect Name and/or other foo */
+#define A_TITLE		250	/* Title of player */
 
 #define	A_VLIST		252
 #define	A_LIST		253

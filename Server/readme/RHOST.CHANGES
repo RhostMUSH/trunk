@@ -1,3 +1,37 @@
+		         RhostMUSH 3.9.4 Update File
+REALITY_LEVELS wouldn't compile because of undeclared function.
+				- Thanks Dahan
+HELP spelling fixes
+				- Thanks Sketch
+compile time issue when enhanced ansi is deselected.
+				- Thanks Wisdom
+if you have an ssl library that conflicts with openssl dev libs, openssl support is confused
+				- Thanks Wisdom
+reality_compare -- option to alter how descs are seen
+				- Thanks Derek (from SVN site)
+Crash bug in @blacklist/list fixed
+				- Thanks Distraida
+Bug in CPU alerting with new player creation on their first connect.
+				- Thanks Darren@Nightlife
+Bug with compiling without BANG support with undeclared variables.
+				- Thanks Darren@Nightlife
+You can now input extended ASCII right into the mush (and it converts to markup)
+				- Thanks mindboosternoori
+functions.c bombed with the clang compiler because of restrictive type-casting comparisons.
+				- Thanks Fraibert
+@include didn't properly null out args if forcefully specified null.
+				- Thanks Volund
+@skip/@ifelse, @switch, and @sudo didn't evaluate substitutions properly.
+				- Thanks Volund
+Compiletime bug in speech.c with REALITY_LEVELS not defined.
+				- Thanks psc943
+
+		         RhostMUSH 3.9.3 Update File
+@include -- Idea Copied from Penn 
+				- Thanks Jules (and PennMUSH)
+Fix for $Z in timefmt()
+				- Thanks Chime/Loki (Haunted)
+
                          RhostMUSH 3.9.2 Update File
 @assert/@break didn't handle {} correctly.
 				- Thanks Wyrd
@@ -8,6 +42,14 @@ crash bug in command.c with regards to mail handler
 aliased rjust to rj and ljust to lj and updated help files appropiately.
 				- Thanks Montague
 glibc for MAX_INT/MIN_INT had issues with math functions - wrapper fixes this.
+parser issue with regexp, parenthesis, and backslashes -- Fixed
+				- Thanks Chime
+Idea for @titlecaption	
+				- Thanks Zero@NewJediOrder
+IDLE had a missmatch on \r and \n parsing -- Fixed
+				- Thanks Mike@M*U*S*H
+Discussion/Ideas for strdistance() function.
+				- Thanks Sketch@M*U*S*H
 
                          RhostMUSH 3.9.1 Update File
 Credits for any features should go here.  All changes should go into the main help.txt file
@@ -51,7 +93,8 @@ cluster_wipe added for clusters
 				- Thanks Cary
 NO_CODE broke global_error_obj as it's executed by enactor.
 				- Thanks Matrix
-
+Help file typos for various cluster commands.
+				- Thanks Mike@M*U*S*H
 
 --------------------------------------------------------------------------------
 
@@ -227,7 +270,7 @@ ibreak()        - for iter() and list() [SVN 109]
 shift()         - and additional arguments to dice() [SVN 110]
 fbound()        - like bound but for floating point [SVN 137]
 fbetween()      - like between but for floating point [SVN 137]
-strdistance()   - Levenshtein Distance between two strings [SVN 146]
+strdistance()   - Levenshtein Distance between two strings [SVN 146] 
 tr()            - Transform string based on find/replace [SVN 156]
 digest()        - SSL algorithm encryptions.  Yay is life. [SVN 158]
 roman()         - Number to Roman Numeral converter [SVN 160]

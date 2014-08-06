@@ -19,11 +19,11 @@ int main(int argc, char *argv[])
 	exit(-1);
     }
     if ((rfp = fopen(argv[1], "r")) == NULL) {
-	fprintf(stderr, "can't open %s for reading\n", argv[1]);
+	fprintf(stderr, "ERROR: can't open %s for reading\n", argv[1]);
 	exit(-1);
     }
     if ((wfp = fopen(argv[2], "w")) == NULL) {
-	fprintf(stderr, "can't open %s for writing\n", argv[2]);
+	fprintf(stderr, "ERROR: can't open %s for writing\n", argv[2]);
 	exit(-1);
     }
     pos = 0L;
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
 	n = strlen(line);
 	if (line[n - 1] != '\n') {
-	    fprintf(stderr, "line %d: line too long\n", lineno);
+	    fprintf(stderr, "WARNING: line %d: line too long [%d over]\n", lineno, n - 78);
 	}
 	if (line[0] == '&') {
 	    for (topic = &line[1];
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	    entry[topic_indx].topic[++i] = '\0';
             topic_indx++;
             if ( topic_indx >= 1000 ) {
-               fprintf(stderr, "Maximum indexed aliases of 1000 reached.");
+               fprintf(stderr, "ERROR: Maximum indexed aliases of 1000 for a single topic reached.");
                fclose(rfp);
                fclose(wfp);
             }
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
            for ( i = 0; i < topic_indx; i++ ) {
               entry[i].pos = pos;
               if (fwrite(&entry[i], sizeof(help_indx), 1, wfp) < 1) {
-                 fprintf(stderr, "error writing %s\n", argv[2]);
+                 fprintf(stderr, "ERROR: error writing %s\n", argv[2]);
                  exit(-1);
               }
            }
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     for ( i = 0; i < topic_indx; i++ ) {
        entry[i].pos = pos;
        if (fwrite(&entry[i], sizeof(help_indx), 1, wfp) < 1) {
-          fprintf(stderr, "error writing %s\n", argv[2]);
+          fprintf(stderr, "ERROR: error writing %s\n", argv[2]);
           exit(-1);
        }
     }

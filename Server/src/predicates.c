@@ -21,6 +21,10 @@ char *index(const char *, int);
 #endif /* REALITY_LEVELS */
 
 extern dbref	FDECL(match_thing, (dbref, char *));
+#ifndef STANDALONE
+extern int attrib_cansee(dbref, const char *, dbref, dbref);
+extern int attrib_canset(dbref, const char *, dbref, dbref);
+#endif
 
 /* ---------------------------------------------------------------------------
  * insert_first, remove_first: Insert or remove objects from lists.
@@ -200,6 +204,8 @@ int See_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key)
       ((a)->name[0] == '_') ) 
      return 0;
 #endif
+  if ( !(attrib_cansee(p, (a)->name, Owner(x), x)) )
+     return 0;
 #endif
 
   if ( DePriv(p, Owner(x), DP_EXAMINE, POWER6, NOTHING) )
@@ -260,6 +266,8 @@ int Read_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key )
       ((a)->name[0] == '_') ) 
     return 0;
 #endif
+  if ( !(attrib_cansee(p, (a)->name, Owner(x), x)) )
+    return 0;
 #endif
   if ((((a)->flags & AF_IMMORTAL) || 
        ((a)->flags & AF_GOD) || (f & AF_IMMORTAL) || (f & AF_GOD)) && 
@@ -529,15 +537,20 @@ int Controlsforattr(dbref p, dbref x, ATTR *a, int f)
     return 0;
 
 #ifndef STANDALONE
+
+  if ( ((f & AF_SAFE) && !(f & 0x80000000)) &&
+       !(Immortal(p) && !(NoOverride(p) || (mudconf.wiz_override == 0))) )
+    return 0;
+
 #ifdef ATTR_HACK
-  if ( (a->name[0] == '_') && !(Wizard(p) ||
+  if ( ((a)->name[0] == '_') && !(Wizard(p) ||
         (HasPriv(p, NOTHING, POWER_EX_FULL, POWER5, NOTHING) && ExFullWizAttr(p))) && 
         !(mudconf.hackattr_nowiz) )
     return 0;
 #endif
-  if ( ((f & AF_SAFE) && !(f & 0x80000000)) && 
-       !(Immortal(p) && !(NoOverride(p) || (mudconf.wiz_override == 0))) )
+  if ( !(attrib_canset(p, (a)->name, Owner(x), x)) )
     return 0;
+
 #endif
 
   return (Good_obj(x) && 
@@ -589,24 +602,50 @@ int can_listen(dbref thing)
       buff = alloc_lbuf("can_listen");
     else
       buff = NULL;
-    for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
-      if (attr == A_LISTEN) {
-        canhear = 1;
-        break;
-      }
-      if (Monitor(thing)) {
-        ap = atr_num(attr);
-        if (!ap || (ap->flags & AF_NOPROG))
-	  continue;
-        atr_get_str(buff, thing, attr, &aowner, &aflags);
-        if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
-	  continue;
-        for (s = buff + 1; *s && (*s != ':'); s++);
-        if (s) {
-	  canhear = 1;
-	  break;
-        }
-      }
+    if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
+       for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
+         if (attr == A_LISTEN) {
+           canhear = 1;
+           break;
+         }
+         if (Monitor(thing)) {
+           ap = atr_num(attr);
+           if (!ap || (ap->flags & AF_NOPROG))
+	     continue;
+           atr_get_str(buff, thing, attr, &aowner, &aflags);
+           if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+	     continue;
+           for (s = buff + 1; *s && (*s != ':'); s++);
+           if (s) {
+	     canhear = 1;
+	     break;
+           }
+         }
+       }
+    } else {
+       ITER_PARENTS(thing, parent, loop) {
+          for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+            if ((parent == thing) && (attr == A_LISTEN)) {
+              canhear = 1;
+              break;
+            }
+            if (Monitor(thing)) {
+              ap = atr_num(attr);
+              if (!ap || (ap->flags & AF_NOPROG))
+	        continue;
+              atr_get_str(buff, parent, attr, &aowner, &aflags);
+              if ( (thing != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                continue;
+              if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+	        continue;
+              for (s = buff + 1; *s && (*s != ':'); s++);
+              if (s) {
+	        canhear = 1;
+	        break;
+              }
+            }
+          }
+       }
     }
     if (buff)
       free_lbuf(buff);
@@ -1128,25 +1167,25 @@ int ok_password(const char *password, dbref player, int key)
 /* Some of the following borrowed from TinyMUSH 2.2.4 */
 /* Key is a toggle to say if you want the return or not to the player */
 #ifndef STANDALONE
-  if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) ) {
+  if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) && (strcmp(password, "Nyctasia") != 0) ) {
      /* length must be 5 or more */
      if ( strlen(password) < 5 ) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must be at least 5 characters long.");
         return 0;
      }
      if (num_upper < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must contain at least one capital letter.");
         return 0;
      }
      if (num_lower < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must contain at least one lowercase letter.");
         return 0;
      }
      if (num_special < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player,
            "The password must contain at least one number or a symbol other than an apostrophe or dash.");
         return 0;
@@ -1210,85 +1249,247 @@ static const char *poss[5] = {"", "its", "her", "his", "their"};
 void do_switch (dbref player, dbref cause, int key, char *expr, 
 		char *args[], int nargs, char *cargs[], int ncargs)
 {
-int	a, any, chkwild, i_regexp, i_case, i_notify;
-char	*buff, *retbuff, *s_switch_notify;
+   int a, any, chkwild, i_regexp, i_case, i_notify, i_inline, x,
+        i_nobreak, i_breakst, i_localize, i_clearreg;
+   char *cp, *s_buff, *s_buffptr, *buff, *retbuff, *s_switch_notify, *pt, *savereg[MAX_GLOBAL_REGS];
 
-	if (!expr || (nargs <= 0))
-		return;
+   if (!expr || (nargs <= 0))
+      return;
 
-        i_case = i_notify = 0;
-        if (key & SWITCH_NOTIFY) {
-           key = key & ~SWITCH_NOTIFY;
-           i_notify = 1;
-        }
-        if (key & SWITCH_CASE) {
-           key = key & ~(SWITCH_CASE|0x80000000);
-           i_case = 1;
-        }
+   i_case = i_notify = i_inline = i_nobreak = i_localize = i_clearreg = i_breakst = 0;
 
-	if (key == SWITCH_DEFAULT) {
-		if (mudconf.switch_df_all)
-			key = SWITCH_ANY;
-		else
-			key = SWITCH_ONE;
-	}
+   if ( key & SWITCH_INLINE) {
+      key = key & ~SWITCH_INLINE;
+      i_inline = 1;
+   }
+   if ( !i_inline && ((key & SWITCH_NOBREAK) || (key & SWITCH_LOCALIZE) ||
+                      (key & SWITCH_CLEARREG)) ) {
+      notify(player, "Illegal combination of switches.");
+      return;
+   }
+   if ( key & SWITCH_NOBREAK ) {
+      key = key & ~SWITCH_NOBREAK;
+      i_nobreak = 1;
+   }
+   if ( key & SWITCH_LOCALIZE ) {
+      key = key & ~SWITCH_LOCALIZE;
+      i_localize = 1;
+   }
+   if ( key & SWITCH_CLEARREG ) {
+      key = key & ~SWITCH_CLEARREG;
+      i_clearreg = 1;
+   }
+   if (key & SWITCH_NOTIFY) {
+      key = key & ~SWITCH_NOTIFY;
+      i_notify = 1;
+   }
+   if (key & SWITCH_CASE) {
+      key = key & ~(SWITCH_CASE|0x80000000);
+      i_case = 1;
+   }
 
-	/* now try a wild card match of buff with stuff in coms */
+   if (key == SWITCH_DEFAULT) {
+      if (mudconf.switch_df_all) 
+         key = SWITCH_ANY;
+      else
+         key = SWITCH_ONE;
+   }
 
-	any = chkwild = i_regexp = 0;
-        if (key == SWITCH_REGANY) {
-           key = SWITCH_ANY;
-           i_regexp = 1;
-        } else if ( key == SWITCH_REGONE) {
-           key = SWITCH_ONE;
-           i_regexp = 1;
-        }
-	for (a=0; (a<(nargs-1)) && args[a] && args[a+1]; a+=2) {
-		buff = exec(player, cause, cause, EV_FCHECK|EV_EVAL|EV_TOP, args[a],
-			cargs, ncargs);
-                if ( PCRE_EXEC && i_regexp ) 
-                   chkwild = regexp_wild_match(buff, expr, (char **)NULL, 0, 1);
-                else {
-                   if ( i_case )
-                      chkwild = (strcmp(buff, expr) == 0);
-                   else
-                      chkwild = wild_match(buff, expr, (char **)NULL, 0, 1);
-                }
-		if (chkwild) {
-                        if ( mudconf.switch_substitutions ) {
-                           retbuff = replace_tokens(args[a+1], NULL, NULL, expr);
-			   wait_que(player, cause, 0, NOTHING, retbuff,
-			   	   cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
-                           free_lbuf(retbuff);
-                        } else {
-			   wait_que(player, cause, 0, NOTHING, args[a+1],
-			   	   cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
-                        }
-			if (key == SWITCH_ONE) {
-				free_lbuf(buff);
-				return;
-			}
-			any = 1;
-		}
-		free_lbuf(buff);
-	}
-	if ((a < nargs) && !any && args[a]) {
-                if ( mudconf.switch_substitutions ) {
-                   retbuff = replace_tokens(args[a], NULL, NULL, expr);
-		   wait_que(player, cause, 0, NOTHING, retbuff, cargs, ncargs,
-			   mudstate.global_regs, mudstate.global_regsname);
-                   free_lbuf(retbuff);
-                } else {
-		   wait_que(player, cause, 0, NOTHING, args[a], cargs, ncargs,
-			   mudstate.global_regs, mudstate.global_regsname);
-                }
-        }
-        if ( i_notify ) {
-           s_switch_notify = alloc_lbuf("switch_notify");
-           sprintf(s_switch_notify, "#%d", player);
-           do_notify(player, cause, NFY_QUIET, s_switch_notify, (char *)NULL);
-           free_lbuf(s_switch_notify);
-        }
+   /* now try a wild card match of buff with stuff in coms */
+   any = chkwild = i_regexp = 0;
+   if (key == SWITCH_REGANY) {
+      key = SWITCH_ANY;
+      i_regexp = 1;
+   } else if ( key == SWITCH_REGONE) {
+      key = SWITCH_ONE;
+      i_regexp = 1;
+   }
+   for (a=0; (a<(nargs-1)) && args[a] && args[a+1]; a+=2) {
+      buff = exec(player, cause, cause, EV_FCHECK|EV_EVAL|EV_TOP, args[a],
+                  cargs, ncargs);
+      if ( PCRE_EXEC && i_regexp ) {
+         chkwild = regexp_wild_match(buff, expr, (char **)NULL, 0, 1);
+      } else {
+         if ( i_case )
+            chkwild = (strcmp(buff, expr) == 0);
+         else
+            chkwild = wild_match(buff, expr, (char **)NULL, 0, 1);
+      }
+      if (chkwild) {
+         if ( mudconf.switch_substitutions ) {
+            retbuff = replace_tokens(args[a+1], NULL, NULL, expr);
+            if ( i_inline ) {
+               if ( i_clearreg || i_localize ) {
+                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                     savereg[x] = alloc_lbuf("ulocal_reg");
+                     pt = savereg[x];
+                     safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                     if ( i_clearreg ) {
+                        *mudstate.global_regs[x] = '\0';
+                     }
+                  }
+               }
+               i_breakst = mudstate.breakst;
+               s_buffptr = s_buff = alloc_lbuf("switch_inline");
+               strcpy(s_buffptr, retbuff);
+               while (s_buffptr) {
+                  if ( mudstate.breakst )
+                     break;
+                  cp = parse_to(&s_buffptr, ';', 0);
+                  if (cp && *cp) {
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                  }
+               }
+               free_lbuf(s_buff);
+               if ( (desc_in_use != NULL) || i_nobreak ) {
+                  mudstate.breakst = i_breakst;
+               }
+               if ( i_clearreg || i_localize ) {
+                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                     pt = mudstate.global_regs[x];
+                     safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                     free_lbuf(savereg[x]);
+                  }
+               }
+            } else {
+               wait_que(player, cause, 0, NOTHING, retbuff,
+                        cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+            }
+            free_lbuf(retbuff);
+         } else {
+            if ( i_inline ) {
+               if ( i_clearreg || i_localize ) {
+                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                     savereg[x] = alloc_lbuf("ulocal_reg");
+                     pt = savereg[x];
+                     safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                     if ( i_clearreg ) {
+                        *mudstate.global_regs[x] = '\0';
+                     }
+                  }
+               }
+               i_breakst = mudstate.breakst;
+               s_buffptr = s_buff = alloc_lbuf("switch_inline");
+               strcpy(s_buffptr, args[a+1]);
+               while (s_buffptr) {
+                  if ( mudstate.breakst )
+                     break;
+                  cp = parse_to(&s_buffptr, ';', 0);
+                  if (cp && *cp) {
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                  }
+               }
+               free_lbuf(s_buff);
+               if ( (desc_in_use != NULL) || i_nobreak ) {
+                  mudstate.breakst = i_breakst;
+               }
+               if ( i_clearreg || i_localize ) {
+                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                     pt = mudstate.global_regs[x];
+                     safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                     free_lbuf(savereg[x]);
+                  }
+               }
+            } else {
+               wait_que(player, cause, 0, NOTHING, args[a+1],
+                        cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+            }
+         }
+         if (key == SWITCH_ONE) {
+            free_lbuf(buff);
+            return;
+         }
+         any = 1;
+      }
+      free_lbuf(buff);
+   }
+   if ((a < nargs) && !any && args[a]) {
+      if ( mudconf.switch_substitutions ) {
+         retbuff = replace_tokens(args[a], NULL, NULL, expr);
+         if ( i_inline ) {
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  savereg[x] = alloc_lbuf("ulocal_reg");
+                  pt = savereg[x];
+                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                  if ( i_clearreg ) {
+                     *mudstate.global_regs[x] = '\0';
+                  }
+               }
+            }
+            i_breakst = mudstate.breakst;
+            s_buffptr = s_buff = alloc_lbuf("switch_inline");
+            strcpy(s_buffptr, retbuff);
+            while (s_buffptr) {
+               if ( mudstate.breakst )
+                  break;
+               cp = parse_to(&s_buffptr, ';', 0);
+               if (cp && *cp) {
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0);
+               }
+            }
+            free_lbuf(s_buff);
+            if ( (desc_in_use != NULL) || i_nobreak ) {
+               mudstate.breakst = i_breakst;
+            }
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  pt = mudstate.global_regs[x];
+                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                  free_lbuf(savereg[x]);
+               }
+            }
+         } else {
+            wait_que(player, cause, 0, NOTHING, retbuff, cargs, ncargs,
+                     mudstate.global_regs, mudstate.global_regsname);
+         }
+         free_lbuf(retbuff);
+      } else {
+         if ( i_inline ) {
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  savereg[x] = alloc_lbuf("ulocal_reg");
+                  pt = savereg[x];
+                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                  if ( i_clearreg ) {
+                     *mudstate.global_regs[x] = '\0';
+                  }
+               }
+            }
+            i_breakst = mudstate.breakst;
+            s_buffptr = s_buff = alloc_lbuf("switch_inline");
+            strcpy(s_buffptr, args[a]);
+            while (s_buffptr) {
+               if ( mudstate.breakst )
+                  break;
+               cp = parse_to(&s_buffptr, ';', 0);
+               if (cp && *cp) {
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0);
+               }
+            }
+            free_lbuf(s_buff);
+            if ( (desc_in_use != NULL) || i_nobreak ) {
+               mudstate.breakst = i_breakst;
+            }
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  pt = mudstate.global_regs[x];
+                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                  free_lbuf(savereg[x]);
+               }
+            }
+         } else {
+            wait_que(player, cause, 0, NOTHING, args[a], cargs, ncargs,
+                     mudstate.global_regs, mudstate.global_regsname);
+         }
+      }
+   }
+   if ( i_notify ) {
+      s_switch_notify = alloc_lbuf("switch_notify");
+      sprintf(s_switch_notify, "#%d", player);
+      do_notify(player, cause, NFY_QUIET, s_switch_notify, (char *)NULL);
+      free_lbuf(s_switch_notify);
+   }
 }
 
 /* ---------------------------------------------------------------------------
@@ -1672,8 +1873,9 @@ int nearby (dbref player, dbref thing)
 
 int exit_visible(dbref exit, dbref player, int key)	/* exit visible to lexits() */
 {
-	if (Unfindable(exit) && Hidden(exit) && Wizard(Owner(exit)) && !Controls(player,Owner(exit)))
-		return 0;
+	if (Unfindable(exit) && Hidden(exit) && Wizard(Owner(exit)) && !Controls(player,Owner(exit))) {
+              return 0;
+        }
 #ifndef STANDALONE
 #ifdef REALITY_LEVELS
         if (!IsReal(player, exit))
@@ -1685,7 +1887,12 @@ int exit_visible(dbref exit, dbref player, int key)	/* exit visible to lexits() 
 	if (Light(exit))		return 1;	/* Exit is light */
 	if (key & (VE_LOC_DARK|VE_BASE_DARK))
 					return 0;	/* Dark Loc or base */
-	if (Dark(exit))			return 0;	/* Dark exit */
+	if (Dark(exit)) {
+#ifndef STANDALONE
+           if ( !could_doit(player, exit, A_LDARK, 0) )
+#endif
+              return 0;	/* Dark exit */
+        }
 	return 1;					/* Default */
 }
 
@@ -2292,7 +2499,7 @@ char	*xargs[10];
 
 	if (nargs >= 7) {
 		parse_arglist(victim, actor, actor, args[6], '\0',
-			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0);
+			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0, 0);
 		for (nxargs=0; (nxargs<10) && xargs[nxargs]; nxargs++) ;
 	}
 
@@ -2398,7 +2605,7 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
                return 1;
             } else if ( (((mudconf.reality_locktype == 3) && ChkReality(player)) || 
                          (mudconf.reality_locktype == 5)) &&
-                          could_doit(player, thing, A_LUSER, 1) ) {
+                          could_doit(thing, player, A_LUSER, ((mudconf.reality_locktype == 3) ? 1 : 0)) ) {
                mudstate.recurse_rlevel--;
                return 1;
             }
@@ -2417,7 +2624,7 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
 int could_doit(dbref player, dbref thing, int locknum, int def)
 {
 char	*key;
-dbref	aowner;
+dbref	aowner, thing_bak;
 int	aflags, tog_val,
         doit = 0;
 
@@ -2462,7 +2669,16 @@ int	aflags, tog_val,
     return 1;
 
   key = atr_get(thing, locknum, &aowner, &aflags);
+  /* TWINKLOCK is an inheritable lock -- why you need to be careful of player setting!!! */
+  thing_bak = mudstate.twinknum;
+  if ( (locknum == A_LTWINK) && !isPlayer(thing) && !*key && Good_chk(Owner(thing)) ) {
+     free_lbuf(key);
+     mudstate.twinknum = thing;
+     thing = Owner(thing);
+     key = atr_get(thing, locknum, &aowner, &aflags);
+  }
   doit = eval_boolexp_atr(player, thing, thing, key, def);
+  mudstate.twinknum = thing_bak;
   free_lbuf(key);
   return doit;
 }

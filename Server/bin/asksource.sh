@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ###################################################################
 # Test shell capabilities
 ###################################################################
@@ -20,13 +20,39 @@ fi
 ###################################################################
 # Environments
 ###################################################################
+LDCONFIG=""
+MYGCC=""
+if [ -f /sbin/ldconfig ]
+then
+   LDCONFIG="/sbin/ldconfig"
+else
+   for i in $(slocate ldconfig)
+   do
+      if [ $(file "$i"|grep -c ELF) -gt 0 ]
+      then
+        LDCONFIG="$i"
+      fi
+   done
+fi
+if [ -f /usr/bin/gcc ]
+then
+   MYGCC=/usr/bin/gcc
+else
+   for i in $(slocate gcc)
+   do
+      if [ $(file "$i"|grep -c ELF) -gt 0 ]
+      then
+        LDCONFIG="$i"
+      fi
+   done
+fi
 BETAOPT=0
 DEFS="-Wall"
 DATE="$(date +"%m%d%y")"
 MORELIBS=""
-OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23"
+OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
 C_OPTIONS=$(echo $OPTIONS|wc -w)
-BOPTIONS="1 2 3"
+BOPTIONS="1 2 3 4 5"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
 DOPTIONS="1 2 3"
 C_DOPTIONS=$(echo $DOPTIONS|wc -w)
@@ -70,9 +96,14 @@ DEF[19]="-DNODEBUGMONITOR"
 DEF[20]="-DIGNORE_SIGNALS"
 DEF[21]="-DOLD_REALITIES"
 DEF[22]="-DMUXCRYPT"
+DEF[23]=""
+DEF[24]=""
 DEFB[1]="\$(MYSQL_DEFS)"
 DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
+DEFB[4]="-DSQLITE"
+DEFB[5]="-DQDBM"
+
 DEFD[1]="-DMUSH_DOORS"
 DEFD[2]="-DEMPIRE_DOORS"
 DEFD[3]="-DPOP3_DOORS"
@@ -108,9 +139,10 @@ echo "[${X[10]}] 10. ~/_ attributes     [${X[11]}] 11. Reality Levels     [${X[1
 echo "[${X[13]}] 13. Enhanced ANSI      [${X[14]}] 14. Marker Flags       [${X[15]}] 15. Bang support"
 echo "[${X[16]}] 16. Alternate WHO      [${X[17]}] 17. Old SETQ/SETR      [${X[18]}] 18. Secured Sideeffects"
 echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[21]}] 21. Old Reality Lvls" 
-echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile"
+echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
 echo "--------------------------- Beta/Unsupported Additions -----------------------"
 echo "[${XB[1]}] B1. 3rd Party MySQL    [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
+echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
@@ -151,13 +183,14 @@ echo "--------------------------------------------------------------------------
 # INFO <arg> - Information for all the toggle options available
 ###################################################################
 info() {
+   [ -z "$RUNBETA" ] && RUNBETA=0
    if [ $BETAOPT -eq 1 ]
    then
       CNTCHK=$(expr $1 + 0 2>/dev/null)
       if [ -z "$CNTCHK" -o -z "$1" ]
       then
          INFOARG=0
-      elif [ "$CNTCHK" -lt 1 -o "$CNTCHK" -gt 4 ]
+      elif [ "$CNTCHK" -lt 1 -o "$CNTCHK" -gt 5 ]
       then
          INFOARG=0
       else
@@ -199,7 +232,8 @@ info() {
             echo "RhostMUSH, by default, have u(), ufun(), and zfun() functions parse by"
             echo "relation of the enactor instead of by relation of the target.  This is"
             echo "more MUSE compatable than MUSH.  If you wish to have it more compatable"
-            echo "to MUX/TinyMUSH/Penn, then you need this enabled."
+            echo "to MUX/TinyMUSH/Penn, then you need this enabled.  Keep in mind, turning"
+            echo "off this compatibility WILL BREAK MUX/PENN/MUSH COMPATIBILITY!"
          fi
          ;;
       3) if [ $BETAOPT -eq 1 ]
@@ -219,12 +253,32 @@ info() {
             echo "functionality of inc() and dec() to be like MUX/Penn/TinyMUSH."
          fi
          ;;
-      4) echo "RhostMUSH has a very archiac and obtuse comsystem.  It does work, and"
-         echo "is very secure and solid, but it lacks significant functionality."
-         echo "You probably want to toggle this on and use a softcoded comsystem."
+      4) if [ $RUNBETA -eq 1 ]
+         then
+            echo "This enables the SQLite library bindings. SQLite is a zero-config"
+            echo "file-based SQL relational database system, similar to MySQL or"
+            echo "PostgreSQL, but without the complexity (or fragility) of running a"
+            echo "server."
+         else
+            echo "RhostMUSH has a very archiac and obtuse comsystem.  It does work, and"
+            echo "is very secure and solid, but it lacks significant functionality."
+            echo "You probably want to toggle this on and use a softcoded comsystem."
+         fi
          ;;
-      5) echo "RhostMUSH by default allows %c to be ansi.  However, on TinyMUSH3,"
-         echo "%x is used for ANSI.  Use this to switch how %c and %x is used."
+      5) if [ $RUNBETA -eq 1 ]
+         then
+            echo "This enables the QDBM database manager instead of the default GDBM"
+            echo "database manager.  This may be the preferred database eventhough"
+            echo "it is considered 'beta' as this is not hampered by the attribute"
+            echo "cap per dbref# (750 default) and is generally a faster and more"
+            echo "robust database engine.  Be warned, however, that QDBM is NOT"
+            echo "binary compatible with GDBM, so any existing databases"
+            echo "WILL NOT LOAD.  You have to flatfile dump the database then"
+            echo "db_load the flatfile into the database once qdbm is compiled."
+         else
+            echo "RhostMUSH by default allows %c to be ansi.  However, on TinyMUSH3,"
+            echo "%x is used for ANSI.  Use this to switch how %c and %x is used."
+         fi
          ;;
       6) echo "RhostMUSH supports crypt() and decrypt() functions.  Toggle this"
          echo "if you wish to use them."
@@ -309,6 +363,10 @@ info() {
          echo "Virtual Machine, or have low available memory, the compile may"
          echo "error out saying out of memory, unable to allocate memory, or"
          echo "similiar messages.  Enabling this option should bypass this."
+         ;;
+     24) echo "Sometimes, you may have a third party SSL package that is"
+         echo "incompatible with the development library for OpenSSL.  In such"
+         echo "a case, select this option to disable OpenSSL from compiling."
          ;;
      B*|b*) RUNBETA=1
          info $(echo $1|cut -c2-)
@@ -880,7 +938,7 @@ saveopts() {
       do
          echo "XB[$i]=\"${XB[$i]}\"" >> ${DUMPFILE}
       done
-      for i in ${DOPTIONS}
+      for i in ${BOPTIONS}
       do
          echo "XD[$i]=\"${XD[$i]}\"" >> ${DUMPFILE}
       done
@@ -958,6 +1016,9 @@ setdefaults() {
        echo "   # It may not work.  If it doesn't, Remove -DBROKEN_ERRNO from the DEFS line."
      fi
      DEFS="-DBROKEN_ERRNO ${DEFS}"
+  elif [ -f /usr/include/errno.h ]
+  then
+     DEFS="-DHAVE_ERRNO_H ${DEFS}"
   fi
   DEFS="-DBROKEN_NDBM ${DEFS}"
   if [ ! -f /usr/include/wait.h ]
@@ -975,6 +1036,29 @@ setdefaults() {
      echo "BSD identified.  Configuring..."
      DEFS="-DBSD_LIKE ${DEFS}"
   fi
+  if [ "${XB[4]}" = "X" ]
+  then
+     Z1=0
+     Z2=0
+     Z3=0
+     if [ -n "${LDCONFIG}" ]
+     then
+        Z4=$(${LDCONFIG} -p|grep -c libsqlite3.so)
+     else
+        Z4=0
+     fi
+     if [ "$Z4" -eq 0 ]
+     then
+        Z1=$(ls /lib/libsqlite3.* 2>/dev/null|wc -l)
+        Z2=$(ls /usr/lib/libsqlite3.* 2>/dev/null|wc -l)
+        Z3=$(ls /usr/local/lib/libsqlite3.* 2>/dev/null|wc -l)
+     fi
+     if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
+     then
+        echo "Patching -lsqlite3..."
+        MORELIBS="-lsqlite3 ${MORELIBS}"
+     fi
+  fi
   BOB1=$(uname -r|cut -f1 -d".")
   BOB2=$(uname -s)
   if [ -d /usr/ucbinclude -a "${BOB2}" = "SunOS" ]
@@ -988,10 +1072,23 @@ setdefaults() {
         DEFS="${DEFS} -DSOLARIS"
      fi
   fi
-  if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h ]
+  if [ -n "${LDCONFIG}" ]
   then
-     echo "OpenSSL identified.  Configuring..."
-     DEFS="${DEFS} -DHAS_OPENSSL"
+     Z1=$(${LDCONFIG} -p|grep -c openssl.so)
+  else
+     Z1=0
+  fi
+  if [ "${X[24]}" != "X" ]
+  then
+     if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h ]
+     then
+        echo "OpenSSL identified.  Configuring..."
+        DEFS="${DEFS} -DHAS_OPENSSL"
+     elif [ $Z1 -gt 0 ]
+     then
+        echo "OpenSSL identified.  Configuring..."
+        DEFS="${DEFS} -DHAS_OPENSSL"
+     fi
   fi
   DEFS="DEFS = ${DEFS}"
 }
@@ -1001,42 +1098,102 @@ setdefaults() {
 ###################################################################
 setlibs() {
    echo "Configuring default libraries..."
-   Z1=$(ls /lib/libcrypt.* 2>/dev/null|wc -l)
-   Z2=$(ls /usr/lib/libcrypt.* 2>/dev/null|wc -l)
-   Z3=$(ls /usr/local/lib/libcrypt.* 2>/dev/null|wc -l)
-   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 ]
+   Z1=0
+   Z2=0
+   Z3=0
+   if [ -n "${LDCONFIG}" ]
+   then
+      Z4=$(${LDCONFIG} -p|grep -c libcrypt.so)
+   else
+      Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z1=$(ls /lib/libcrypt.* 2>/dev/null|wc -l)
+      Z2=$(ls /usr/lib/libcrypt.* 2>/dev/null|wc -l)
+      Z3=$(ls /usr/local/lib/libcrypt.* 2>/dev/null|wc -l)
+   fi
+   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
    then
       echo "Patching -lcrypt..."
       MORELIBS="-lcrypt ${MORELIBS}"
    fi
-   Z1=$(ls /lib/libsocket.* 2>/dev/null|wc -l)
-   Z2=$(ls /usr/lib/libsocket.* 2>/dev/null|wc -l)
-   Z3=$(ls /usr/local/lib/libsocket.* 2>/dev/null|wc -l)
-   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 ]
+   Z1=0
+   Z2=0
+   Z3=0
+   if [ -n "${LDCONFIG}" ]
+   then
+      Z4=$(${LDCONFIG} -p|grep -c libsocket.so)
+   else
+      Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z1=$(ls /lib/libsocket.* 2>/dev/null|wc -l)
+      Z2=$(ls /usr/lib/libsocket.* 2>/dev/null|wc -l)
+      Z3=$(ls /usr/local/lib/libsocket.* 2>/dev/null|wc -l)
+   fi
+   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
    then
       echo "Patching -lsocket..."
       MORELIBS="-lsocket ${MORELIBS}"
    fi
-   Z1=$(ls /lib/libresolv.* 2>/dev/null|wc -l)
-   Z2=$(ls /usr/lib/libresolv.* 2>/dev/null|wc -l)
-   Z3=$(ls /usr/local/lib/libresolv.* 2>/dev/null|wc -l)
-   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 ]
+   Z1=0
+   Z2=0
+   Z3=0
+   if [ -n "${LDCONFIG}" ]
+   then
+      Z4=$(${LDCONFIG} -p|grep -c libresolv.so)
+   else
+      Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z1=$(ls /lib/libresolv.* 2>/dev/null|wc -l)
+      Z2=$(ls /usr/lib/libresolv.* 2>/dev/null|wc -l)
+      Z3=$(ls /usr/local/lib/libresolv.* 2>/dev/null|wc -l)
+   fi
+   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
    then
       echo "Patching -lresolv..."
       MORELIBS="-lresolv ${MORELIBS}"
    fi
-   Z1=$(ls /lib/libnsl.* 2>/dev/null|wc -l)
-   Z2=$(ls /usr/lib/libnsl.* 2>/dev/null|wc -l)
-   Z3=$(ls /usr/local/lib/libnsl.* 2>/dev/null|wc -l)
-   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 ]
+   Z1=0
+   Z2=0
+   Z3=0
+   if [ -n "${LDCONFIG}" ]
+   then
+      Z4=$(${LDCONFIG} -p|grep -c libnsl.so)
+   else
+      Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z1=$(ls /lib/libnsl.* 2>/dev/null|wc -l)
+      Z2=$(ls /usr/lib/libnsl.* 2>/dev/null|wc -l)
+      Z3=$(ls /usr/local/lib/libnsl.* 2>/dev/null|wc -l)
+   fi
+   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
    then
       echo "Patching -lnsl..."
       MORELIBS="-lnsl ${MORELIBS}"
    fi
-   Z1=$(ls /lib/libm.* 2>/dev/null|wc -l)
-   Z2=$(ls /usr/lib/libm* 2>/dev/null|wc -l)
-   Z3=$(ls /usr/local/lib/libm* 2>/dev/null|wc -l)
-   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 ]
+   Z1=0
+   Z2=0
+   Z3=0
+   if [ -n "${LDCONFIG}" ]
+   then
+      Z4=$(${LDCONFIG} -p|grep -c libm.so)
+   else
+      Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z1=$(ls /lib/libm.* 2>/dev/null|wc -l)
+      Z2=$(ls /usr/lib/libm* 2>/dev/null|wc -l)
+      Z3=$(ls /usr/local/lib/libm* 2>/dev/null|wc -l)
+   fi
+   if [ "$Z1" -gt 0 -o "$Z2" -gt 0 -o "$Z3" -gt 0 -o "$Z4" -gt 0 ]
    then
       echo "Patching -lm..."
       MORELIBS="-lm ${MORELIBS}"
@@ -1048,17 +1205,55 @@ setlibs() {
       echo "MIPS SunOS 4.x identified.  Configuring..."
       MORELIBS="${MORELIBS} -L\/usr\/ucblib -l ucb"
    fi
-   if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h ]
+   if [ -n "${LDCONFIG}" ]
    then
-      ls /usr/lib/libcrypto* >/dev/null 2>&1
-      errchk=$?
-      if [ ${errchk} -eq 0 ]
+      Z1=$(${LDCONFIG} -p|grep -c openssl.so)
+   else
+      Z1=0
+   fi
+   if [ "${X[24]}" != "X" ]
+   then
+      if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h ]
       then
-         echo "Configuring libcrypto..."
-         MORELIBS="${MORELIBS} -lcrypto"
-      fi
+         Z1=0
+         if [ -n "${LDCONFIG}" ]
+         then
+            Z2=$(${LDCONFIG} -p|grep -c libcrypto.so)
+         else
+            Z2=0
+         fi
+         if [ "$Z2" -eq 0 ]
+         then
+            Z1=$(ls /usr/lib/libcrypto* 2>/dev/null|wc -l)
+         fi
+         if [ "$Z1" -gt 0 -o "$Z2" -gt 0 ]
+         then
+            echo "Configuring libcrypto..."
+            MORELIBS="${MORELIBS} -lcrypto"
+         fi
       echo "Configuring libssl..."
       MORELIBS="${MORELIBS} -lssl"
+      elif [ "$Z1" -gt 0 ]
+      then
+         Z1=0
+         if [ -n "${LDCONFIG}" ]
+         then
+            Z2=$(${LDCONFIG} -p|grep -c libcrypto.so)
+         else
+            Z2=0
+         fi
+         if [ "$Z2" -eq 0 ]
+         then
+            Z1=$(ls /usr/lib/libcrypto* 2>/dev/null|wc -l)
+         fi
+         if [ "$Z1" -gt 0 -o "$Z2" -gt 0 ]
+         then
+            echo "Configuring libcrypto..."
+            MORELIBS="${MORELIBS} -lcrypto"
+         fi
+         echo "Configuring libssl..."
+         MORELIBS="${MORELIBS} -lssl"
+      fi
    fi
    MORELIBS="MORELIBS = ${MORELIBS}"
 }
@@ -1073,7 +1268,7 @@ updatemakefile() {
    mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
    rm -f /tmp/$$CONF$$ 2>/dev/null
 
-#  Let's do the door/compiletime additions here
+#  Let's do the door additions here
    if [ "${XB[2]}" = "X" ]
    then
       cat ../src/Makefile|sed "s/^#DR_DEF/DR_DEF/g" > /tmp/$$CONF$$
@@ -1109,7 +1304,26 @@ updatemakefile() {
       mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
       rm -f /tmp/$$CONF$$ 2>/dev/null
    fi
-   echo "...completed."
+   if [ "${XB[5]}" = "X" ]
+   then
+      echo "Compiling to QDBM database."
+      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./qdbm/ -lqdbm~g" ../src/Makefile > /tmp/$$CONF$$
+      mv -f /tmp/$$CONF$$ ../src/Makefile
+      rm -f /tmp/$$CONF$$
+      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=qdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
+      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
+      chmod 755 ../src/do_compile.sh
+      rm -f /tmp/$$CONF$$
+   else
+      echo "Compiling to GDBM database (default)."
+      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm~g" ../src/Makefile > /tmp/$$CONF$$
+      mv -f /tmp/$$CONF$$ ../src/Makefile
+      rm -f /tmp/$$CONF$$
+      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=gdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
+      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
+      chmod 755 ../src/do_compile.sh
+      rm -f /tmp/$$CONF$$
+   fi
    # add CFLAGS for low memory
    if [ "${X[23]}" = "X" ]
    then
@@ -1120,6 +1334,7 @@ updatemakefile() {
    fi
    mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
    rm -f /tmp/$$CONF$$ 2>/dev/null
+   echo "...completed."
    echo "Updating the MORELIBS section of the Makefile now.  Please wait..."
    cat ../src/Makefile|sed "s/$(grep ^MORELIBS ../src/Makefile| \
        sed "s/\//\\\\\//g")/${MORELIBS}/g" > /tmp/$$CONF$$

@@ -1,0 +1,17 @@
+To load in a previous database, you run the db_load script.
+
+From the game directory you would type:
+
+./db_load data/netrhost.gdbm yourflatfilehere data/netrhost.db.new
+
+The caveat is that you must not have any netrhost.db* or netrhost.gdbm* files
+in your data directory prior to loading it in.  It'll error out if previous
+files exist.  So you will need to move all files that start with netrhost.db*
+and all files that start with netrhost.gdbm* to another directory.
+
+Your flatfile tends to be named 'netrhost.db.flat' which is in your data 
+directory.  You can, however, name your flatfile anything you want and have
+it in any directory you want.
+
+To make a flatfile in game, you just issue @dump/flat.  You can specify
+a filename after it, otherwise it assumes the name 'netrhost.db.flat'.

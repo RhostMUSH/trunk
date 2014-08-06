@@ -21,6 +21,9 @@
 #define BEEP_CHAR     '\a'
 #define ESC_CHAR      '\x1B'
 
+#define ANSI_XTERM_BG	"\x1B[48;5;"
+#define ANSI_XTERM_FG	"\x1B[38;5;"
+
 #define ANSI_NORMAL   "\x1B[0m"
 #define ANSI_NORMAL2	"0"
 #define ANSI_PREFIX	"\x1B["
@@ -66,13 +69,21 @@
 /* Foreground colors */
 
 #define ANSI_BLACK	"\x1B[30m"
+#define ANSI_BLACK_H	"\x1B[30;1m"
 #define ANSI_RED	"\x1B[31m"
+#define ANSI_RED_H	"\x1B[31;1m"
 #define ANSI_GREEN	"\x1B[32m"
+#define ANSI_GREEN_H	"\x1B[32;1m"
 #define ANSI_YELLOW	"\x1B[33m"
+#define ANSI_YELLOW_H	"\x1B[33;1m"
 #define ANSI_BLUE	"\x1B[34m"
+#define ANSI_BLUE_H	"\x1B[34;1m"
 #define ANSI_MAGENTA	"\x1B[35m"
+#define ANSI_MAGENTA_H	"\x1B[35;1m"
 #define ANSI_CYAN	"\x1B[36m"
+#define ANSI_CYAN_H	"\x1B[36;1m"
 #define ANSI_WHITE	"\x1B[37m"
+#define ANSI_WHITE_H	"\x1B[37;1m"
 #define ANSI_BLACK2	"30"
 #define ANSI_RED2	"31"
 #define ANSI_GREEN2	"32"
@@ -106,6 +117,9 @@
 #define BEEP_CHAR     '\07'
 #define ESC_CHAR      '\033'
 
+#define ANSI_XTERM_BG	"\033[48;5;"
+#define ANSI_XTERM_FG	"\033[38;5;"
+
 #define ANSI_NORMAL   "\033[0m"
 
 #define ANSI_HILITE   "\033[1m"
@@ -121,13 +135,21 @@
 /* Foreground colors */
 
 #define ANSI_BLACK	"\033[30m"
+#define ANSI_BLACK_H	"\033[30;1m"
 #define ANSI_RED	"\033[31m"
+#define ANSI_RED_H	"\033[31;1m"
 #define ANSI_GREEN	"\033[32m"
+#define ANSI_GREEN_H	"\033[32;1m"
 #define ANSI_YELLOW	"\033[33m"
+#define ANSI_YELLOW_H	"\033[33;1m"
 #define ANSI_BLUE	"\033[34m"
+#define ANSI_BLUE_H	"\033[34;1m"
 #define ANSI_MAGENTA	"\033[35m"
+#define ANSI_MAGENTA_H	"\033[35;1m"
 #define ANSI_CYAN	"\033[36m"
+#define ANSI_CYAN_H	"\033[36;1m"
 #define ANSI_WHITE	"\033[37m"
+#define ANSI_WHITE_H	"\033[37;1m"
 
 /* Background colors */
 
@@ -147,6 +169,8 @@
 #ifdef ZENTY_ANSI
 #ifdef TINY_SUB
 /* Begin %x subs */
+#define SAFE_CHR	'x'
+#define SAFE_CHRST	"%x"
 #define SAFE_ANSI_NORMAL  "%xn"
 
 #define SAFE_ANSI_HILITE   "%xh"
@@ -183,6 +207,8 @@
 #define SAFE_ANSI_BWHITE	"%xW"
 #else
 /* Begin %c subs */
+#define SAFE_CHR	'c'
+#define SAFE_CHRST	"%c"
 #define SAFE_ANSI_NORMAL  "%cn"
 
 #define SAFE_ANSI_HILITE   "%ch"
@@ -232,7 +258,7 @@ static char isAnsi[256] =
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, // 3
     0, 0, 1, 1, 0, 0, 0, 1,  0, 0, 0, 0, 0, 1, 0, 0, // 4
     0, 0, 1, 0, 0, 0, 0, 1,  1, 1, 0, 0, 0, 0, 0, 0, // 5
-    0, 0, 1, 1, 0, 0, 1, 1,  1, 0, 0, 0, 0, 1, 1, 0, // 6
+    0, 0, 1, 1, 0, 0, 1, 1,  1, 1, 0, 0, 0, 1, 1, 0, // 6
     0, 0, 1, 0, 0, 1, 0, 1,  1, 1, 0, 0, 0, 0, 0, 0, // 7
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, // 8
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, // 9
@@ -245,5 +271,11 @@ static char isAnsi[256] =
 };
 #endif
 
+#else
+#ifdef TINY_SUB
+#define SAFE_CHR	'x'
+#else
+#define SAFE_CHR	'c'
+#endif
 #endif
 #endif

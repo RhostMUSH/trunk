@@ -1170,7 +1170,7 @@ void
 do_destroy(dbref player, dbref cause, int key, char *what)
 {
     dbref thing, newplayer, aowner2;
-    int aflags2, i_array[4], i;
+    int aflags2, i_array[LIMIT_MAX], i;
     char *s_chkattr, *s_buffptr, *s_mbuf, *tpr_buff, *tprp_buff;
 
 
@@ -1254,9 +1254,9 @@ do_destroy(dbref player, dbref cause, int key, char *what)
           s_chkattr = atr_get(newplayer, A_DESTVATTRMAX, &aowner2, &aflags2);
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
-             i_array[1] = i_array[3] = -2;
+             i_array[4] = i_array[1] = i_array[3] = -2;
              for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                  s_buffptr && (i < 4);
+                  s_buffptr && (i < LIMIT_MAX);
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
@@ -1276,12 +1276,15 @@ do_destroy(dbref player, dbref cause, int key, char *what)
                 }
              }
              s_mbuf = alloc_mbuf("vattr_check");
-             sprintf(s_mbuf, "%d %d %d %d", i_array[0], i_array[1], 
-                                            i_array[2]+1, i_array[3]);
+             sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1], 
+                                            i_array[2]+1, i_array[3], i_array[4]);
              atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
              free_mbuf(s_mbuf);
           } else {
-             atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2");
+             s_mbuf = alloc_mbuf("vattr_check");
+             sprintf(s_mbuf, "0 -2 1 -2 %d", -2);
+             atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+             free_mbuf(s_mbuf);
           }
           free_lbuf(s_chkattr);
        }
@@ -1339,7 +1342,9 @@ do_destroy(dbref player, dbref cause, int key, char *what)
 void 
 do_nuke(dbref player, dbref cause, int key, char *name)
 {
-    dbref thing;
+    dbref thing, aowner2, newplayer;
+    int aflags2,  i_array[LIMIT_MAX], i;
+    char *s_chkattr, *s_buffptr, *s_mbuf;
 
     /* XXX This is different from Pern. */
 
@@ -1370,8 +1375,55 @@ do_nuke(dbref player, dbref cause, int key, char *name)
 	    if (Going(thing) || Recover(thing)) {
 		notify_quiet(player, "You don't @nuke objects, you @destroy them.");
 		return;
-	    } else
-		destroy_player(player, thing, key & NUKE_PURGE);
+	    } else {
+               newplayer = NOTHING;
+               if ( isPlayer(player) ) {
+                  newplayer = player;
+               } else {
+                  newplayer = Owner(player);
+                  if ( !(Good_obj(newplayer) && isPlayer(newplayer)) )
+                     newplayer = NOTHING;
+               }
+               if ( Good_chk(newplayer) ) {
+                  s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+                  if ( *s_chkattr ) {
+                     i_array[0] = i_array[2] = 0;
+                     i_array[4] = i_array[1] = i_array[3] = -2;
+                     for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+                          s_buffptr && (i < LIMIT_MAX);
+                          s_buffptr = (char *) strtok(NULL, " "), i++) {
+                         i_array[i] = atoi(s_buffptr);
+                     }
+                     if ( i_array[3] != -1 ) {
+                        if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
+                           notify_quiet(player,"@destruction limit maximum reached.");
+                           STARTLOG(LOG_SECURITY, "SEC", "NUKE")
+                             log_text("@destruction limit maximum reached -> Player: ");
+                             log_name(player);
+                             log_text(" Object: ");
+                             log_name(thing);
+                           ENDLOG
+                           broadcast_monitor(player,MF_VLIMIT,"[NUKE] DESTROY MAXIMUM",
+                                   NULL, NULL, thing, 0, 0, NULL);
+                           free_lbuf(s_chkattr);
+                           return;
+                        }
+                     }
+                     s_mbuf = alloc_mbuf("vattr_check");
+                     sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
+                                                    i_array[2]+1, i_array[3], i_array[4]);
+                     atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+                     free_mbuf(s_mbuf);
+                  } else {
+                     s_mbuf = alloc_mbuf("vattr_check");
+                     sprintf(s_mbuf, "0 -2 1 -2 %d", -2);
+                     atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+                     free_mbuf(s_mbuf);
+                  }
+                  free_lbuf(s_chkattr);
+               }
+               destroy_player(player, thing, key & NUKE_PURGE);
+            }
 	} else
 	    notify(player, "You don't @nuke objects, you @destroy them.");
     } else

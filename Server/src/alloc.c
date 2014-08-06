@@ -325,14 +325,14 @@ pool_stats(int poolnum, const char *text)
        strcat(format_str, " %9.4g");
     else
        strcat(format_str, " %9.9g");
-    if ( pools[poolnum].tot_alloc > 9.99999e11 )
-       strcat(format_str, " %12.7g");
+    if ( pools[poolnum].tot_alloc > 9.99999e13 )
+       strcat(format_str, " %15.7g");
     else
-       strcat(format_str, " %12.12g");
-    if ( pools[poolnum].num_lost > 999999999)
-       strcat(format_str, " %9.4g");
+       strcat(format_str, " %15.15g");
+    if ( pools[poolnum].num_lost > 999999)
+       strcat(format_str, " %6.4g");
     else
-       strcat(format_str, " %9.9g");
+       strcat(format_str, " %6.6g");
     if ( (pools[poolnum].max_alloc * pools[poolnum].pool_size) > 9.99999e13 )
        strcat(format_str, " %14.9g");
     else
@@ -425,7 +425,7 @@ list_bufstats(dbref player)
 {
     int i;
 
-    notify(player, "Buffer Stats    Size     InUse     Total       Allocs      Lost      Total Mem");
+    notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
     for (i = 0; i < NUM_POOLS; i++)
 	list_bufstat(player, i, poolnames[i]);
 

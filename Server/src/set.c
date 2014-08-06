@@ -23,6 +23,7 @@ extern POWENT depow_table[];
 extern void depower_set(dbref, dbref, char *, int);
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int));
+extern int count_chars(const char *, const char c);
 
 dbref match_controlled(dbref player, const char *name)
 {
@@ -770,7 +771,7 @@ void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
 	if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
 		return;
 	if (key == TOGGLE_CHECK || (!key && !(*toggle))) {
-	  pt1 = toggle_description(player, thing, 1, 0);
+	  pt1 = toggle_description(player, thing, 1, 0, (int *)NULL);
 	  notify(player,pt1);
 	  free_lbuf(pt1);
 	} else {
@@ -778,7 +779,7 @@ void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
              notify_quiet(player, "Permission denied.");
           } else { 
              if (key == TOGGLE_CLEAR) {
-	        pt1 = toggle_description(player, thing, 1, 1);
+	        pt1 = toggle_description(player, thing, 1, 1, (int *)NULL);
                 if ( *pt1 ) 
 	           toggle_set(thing, player, pt1, (key | SET_QUIET | SIDEEFFECT));
 	        free_lbuf(pt1);
@@ -1045,6 +1046,7 @@ int     ibf = -1;
                 /* always make SBUF_SIZE a null */
                 if ( strlen(flag) >= SBUF_SIZE )
                    *(flag+SBUF_SIZE-1) = '\0';
+
 		atr = mkattr(flag);
 
 		if (atr <= 0) {
@@ -1350,7 +1352,7 @@ int	aflags;
 int parse_attrib(dbref player, char *str, dbref *thing, int *atr)
 {
 ATTR	*attr;
-char    *buff, *str_tmp, *tok, *stok, *tbuf;
+char    *buff, *str_tmp, *stok, *tbuf;
 dbref	aowner;
 int	aflags;
 
@@ -1365,11 +1367,7 @@ int	aflags;
         if ( strstr(str, "#lambda/") != NULL ) {
            tbuf = alloc_lbuf("parse_attrib_lambda");
            strcpy(tbuf, str);
-           stok = (char *)strtok_r(tbuf, "/", &tok);
-           if ( stok && *stok )
-              stok = (char *)strtok_r(NULL, "/", &tok);
-           else
-              stok = (char *)"";
+           stok = strchr(tbuf, '/')+1;
            memset(str_tmp, '\0', LBUF_SIZE);
            sprintf(str_tmp, "#%d/%s", player, (char *)"Lambda_internal_foo");
            atr_add_raw(player, A_LAMBDA, (char *)stok);
@@ -1402,9 +1400,8 @@ int	aflags;
 	return 1;
 }
 
-static void find_wild_attrs (dbref player, dbref thing, char *str, 
-		int check_exclude, int hash_insert,
-		int get_locks,OBLOCKMASTER *master)
+static void find_wild_attrs (dbref player, dbref thing, char *str, int check_exclude, int hash_insert,
+		int get_locks,OBLOCKMASTER *master, int i_regexp, int i_tree)
 {
 ATTR	*attr;
 char	*as;
@@ -1446,32 +1443,42 @@ int	ca, ok, aflags;
 		    !Examinable(player, thing) && !nearby(player, thing))
 			ok = 0;
 
+                else if (!God(player) && ((attr->flags & AF_GOD) || (aflags & AF_GOD)) &&
+                                         ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS))) 
+			ok = 0;
+
 		else if (!Wizard(player) && ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
 			ok = 0;
 
                 if ( mudstate.reverse_wild == 1 ) {
-		   if (ok && !quick_wild(str, (char *)attr->name)) {
+		   if (ok && ((!i_regexp && !quick_wild(str, (char *)attr->name)) ||
+                              ( i_regexp && !quick_regexp_match(str, (char *)attr->name, 0))) ) {
+                      if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,
 					   &mudstate.parent_htab);
 			   }
+                      }
 		   }
                 } else {
-		   if (ok && quick_wild(str, (char *)attr->name)) {
+		   if (ok && ((!i_regexp && quick_wild(str, (char *)attr->name)) ||
+                              ( i_regexp && quick_regexp_match(str, (char *)attr->name, 0))) ) {
+                      if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,
 					   &mudstate.parent_htab);
 			   }
+                      }
 		   }
                 }
 	}
 	atr_pop();
 }
 
-int parse_attrib_wild(dbref player, char *str, dbref *thing, 
-		int check_parents, int get_locks, int df_star, OBLOCKMASTER *master, int check_cluster)
+int parse_attrib_wild(dbref player, char *str, dbref *thing, int check_parents, int get_locks, 
+                      int df_star, OBLOCKMASTER *master, int check_cluster, int i_regexp, int i_tree)
 {
 char	*buff, *s_text, *s_strtok, *s_strtokptr;
 dbref	parent, aflags;
@@ -1520,7 +1527,7 @@ ATTR	*attr;
                       while ( s_strtok ) {
                          parent = match_thing(player, s_strtok);
                          if ( Good_chk(parent) && Cluster(parent) ) {  
-		            find_wild_attrs(player, parent, str, check_exclude, 0, get_locks, master);
+		            find_wild_attrs(player, parent, str, check_exclude, 0, get_locks, master, i_regexp, i_tree);
                          }
                          s_strtok = strtok_r(NULL, " ", &s_strtokptr);
                       }
@@ -1534,12 +1541,11 @@ ATTR	*attr;
 		ITER_PARENTS(*thing, parent, lev) {
 			if (!Good_obj(Parent(parent)))
 				hash_insert = 0;
-			find_wild_attrs(player, parent, str, check_exclude,
-				hash_insert, get_locks,master);
+			find_wild_attrs(player, parent, str, check_exclude, hash_insert, get_locks,master, i_regexp, i_tree);
 			check_exclude = 1;
 		}
 	} else {
-		find_wild_attrs(player, *thing, str, 0, 0, get_locks,master);
+		find_wild_attrs(player, *thing, str, 0, 0, get_locks,master, i_regexp, i_tree);
 	}
 	free_lbuf(buff);
 	return 1;
@@ -1639,7 +1645,7 @@ OBLOCKMASTER master;
 	/* Look for the object and get the attribute (possibly wildcarded) */
 
         olist_init(&master);
-	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0)) {
+	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0, 0, 0)) {
 	        olist_cleanup(&master);
 		notify_quiet(player, "No match.");
 		return;
@@ -1769,17 +1775,21 @@ OBLOCKMASTER master;
 void do_wipe(dbref player, dbref cause, int key, char *it)
 {
    dbref thing, aowner;
-   int attr, got_one, aflags, orig_revwild;
+   int attr, got_one, aflags, orig_revwild, i_regexp;
    ATTR *ap;
    char *atext, *buff2ret, *tpr_buff, *tprp_buff;
    OBLOCKMASTER master;
 
-   mudstate.wipe_state = 0;
+   i_regexp = mudstate.wipe_state = 0;
    olist_init(&master);
    orig_revwild = mudstate.reverse_wild;
    if ( key & WIPE_PRESERVE )
       mudstate.reverse_wild = 1;
-   if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0)) {
+
+   if ( key & WIPE_REGEXP )
+      i_regexp = 1;
+   
+   if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp, 0)) {
       if ( !(key & SIDEEFFECT) )
          notify_quiet(player, "No match.");
       olist_cleanup(&master);
@@ -1855,19 +1865,20 @@ void do_wipe(dbref player, dbref cause, int key, char *it)
 void do_include(dbref player, dbref cause, int key, char *string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {
-   dbref thing, owner;
-   int attrib, flags, i;
-   char *buff1, *buff1ptr, *cp, *s_buff[10];
+   dbref thing, owner, target;
+   int attrib, flags, i, x, i_savebreak;
+   time_t  i_now;
+   char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS];
 
    if ( desc_in_use != NULL ) {
       notify_quiet(player, "You can not use @include at command line.");
       return;
    }
-   if ( mudstate.includenest >= 3 ) {
+   if ( mudstate.includenest >= mudconf.includenest ) {
       notify_quiet(player, "Exceeded @include nest limit.");
       return;
    }
-   if ( mudstate.includecnt >= 10 ) {
+   if ( mudstate.includecnt >= mudconf.includecnt ) {
       notify_quiet(player, "Exceeded total number of @includes allowed.");
       return;
    }
@@ -1880,6 +1891,10 @@ void do_include(dbref player, dbref cause, int key, char *string,
        notify_quiet(player, "Permission denied.");
        return;
    }
+   target = player;
+   if ( (key & INCLUDE_TARGET) && controls(player, thing) ) {
+      target = thing;
+   }
    mudstate.includecnt++;
    mudstate.includenest++;
    buff1ptr = buff1 = atr_pget(thing, attrib, &owner, &flags);
@@ -1891,15 +1906,46 @@ void do_include(dbref player, dbref cause, int key, char *string,
 
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
-      if ( (i <= ncargs) && cargs[i] && *cargs[i] )
-         memcpy(s_buff[i], cargs[i], LBUF_SIZE);
-      if ( (i <= nargs) && argv[i] && *argv[i] )
-         memcpy(s_buff[i], argv[i], LBUF_SIZE);
+      if ( (i < ncargs) && cargs[i] && *cargs[i] )
+         memcpy(s_buff[i], cargs[i], LBUF_SIZE - 1);
+      if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
+         if ( !argv[i] || !*argv[i] ) {
+            memset(s_buff[i], '\0', LBUF_SIZE);
+         } else {
+            memcpy(s_buff[i], argv[i], LBUF_SIZE);
+         }
+      }
    }
+   if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         savereg[x] = alloc_lbuf("ulocal_reg");
+         pt = savereg[x];
+         safe_str(mudstate.global_regs[x],savereg[x],&pt);
+         if ( key & INCLUDE_CLEAR ) {
+            *mudstate.global_regs[x] = '\0';
+         }
+      }
+   }
+   i_savebreak = mudstate.breakst;
+   i_now = mudstate.now;
    while (buff1ptr && !mudstate.breakst) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
-         process_command(player, cause, 1, cp, s_buff, 10, InProgram(player));
+         process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing));
+         if ( key & INCLUDE_NOBREAK )
+            mudstate.breakst = i_savebreak;
+      }
+      if ( time(NULL) > (i_now + 5) ) {
+         notify(player, "@include:  Aborted for high utilization.");
+         mudstate.breakst=1;
+         break;
+      }
+   }
+   if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         pt = mudstate.global_regs[x];
+         safe_str(savereg[x],mudstate.global_regs[x],&pt);
+         free_lbuf(savereg[x]);
       }
    }
    free_lbuf(buff1);

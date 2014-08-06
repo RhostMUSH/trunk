@@ -364,7 +364,7 @@ char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_G
 char	*tmpformat_buff, *tpr_buff, *tprp_buff;
 dbref	loc, aowner, aowner3, master;
 int	num, aflags, cpustopper, nocandoforyou, aflags3, tst_attr, chkoldstate;
-int     i, *desclist, found_a_desc, x, i_didsave, i_currattr, did_allocate_buff;
+int     i, i_rlvl, *desclist, found_a_desc, x, i_didsave, i_currattr, did_allocate_buff;
 ATTR 	*tst_glb, *format_atr;
 
 	nocandoforyou = !(!(Toggles2(thing) & TOG_SILENTEFFECTS));
@@ -411,13 +411,17 @@ ATTR 	*tst_glb, *format_atr;
           }
 	  for(i = 1; i < desclist[0]; ++i)
 	  {
+                i_rlvl = i;
+                if ( (mudconf.reality_compare == 1) || (mudconf.reality_compare == 3) || (mudconf.reality_compare == 5) )
+                   i_rlvl = desclist[0] - i;
+
                 /* Ok, if it's A_DESC, we need to check against A_IDESC */
-                if ( (what == A_IDESC) && ((desclist[i] == A_DESC) || (stricmp(mudconf.reality_level[i].name, "Real") == 0)) ) {
+                if ( (what == A_IDESC) && ((desclist[i_rlvl] == A_DESC) || (stricmp(mudconf.reality_level[i_rlvl].name, "Real") == 0)) ) {
 		   d = atr_pget(thing, A_IDESC, &aowner, &aflags);
                    i_currattr = A_IDESC;
                 } else {
-		   d = atr_pget(thing, desclist[i], &aowner, &aflags);
-                   i_currattr = desclist[i];
+		   d = atr_pget(thing, desclist[i_rlvl], &aowner, &aflags);
+                   i_currattr = desclist[i_rlvl];
                 }
                 tst_glb = atr_num(i_currattr);
                 tst_attr = ((tst_glb && (tst_glb->flags & AF_DEFAULT)) || (aflags & AF_DEFAULT)) ? 1 : 0;
@@ -471,6 +475,19 @@ ATTR 	*tst_glb, *format_atr;
                 if ( tst_attr )
                    free_lbuf(master_str);
 		free_lbuf(d);
+                /* reality_compare is:
+                 * 0 - behave normally
+                 * 1 - reverse display of descs
+                 * 2 - behave normally but stop after first reality desc seen
+                 * 3 - reverse display but stop after first reality desc seen
+                 * 4 - behave normally but stop after first reality regardless of desc existance
+                 * 5 - reverse display but stop after first reality regarldess of desc existance
+                 */
+                if ( ((mudconf.reality_compare > 1) && found_a_desc) ||
+                      (mudconf.reality_compare > 3)  ) {
+                   found_a_desc = 1;
+                   break;
+                }
 	  }
 	  if(!found_a_desc) {
 	      /* Nothing matched. Try the default desc (again)
@@ -758,17 +775,17 @@ ATTR 	*tst_glb, *format_atr;
 }
 
 void 
-notify_except_rlevel(dbref loc, dbref player, dbref exception, const char *msg)
+notify_except_rlevel(dbref loc, dbref player, dbref exception, const char *msg, int key)
 {
     dbref first;
 
       if (loc != exception && IsReal(loc, player))
 	notify_check(loc, player, msg, 0,
-		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A), 0);
+		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
       DOLIST(first, Contents(loc)) {
 	if (first != exception && IsReal(first, player)) {
 	    notify_check(first, player, msg, 0,
-			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE), 0);
+			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
 	}
       }
 }

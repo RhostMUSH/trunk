@@ -42,6 +42,8 @@
 /* Edit this if needed */
 #define MYSQL_RETRY_TIMES 3
 
+extern int NDECL(next_timer);
+
 /************* DON'T EDIT ANYTHING BELOW HERE **********/
 
 static MYSQL *mysql_struct = NULL;
@@ -151,7 +153,6 @@ FUNCTION(local_fun_sql_disconnect) {
 }
 
 FUNCTION(local_fun_sql_escape) {
-  MYSQL *mysql;
   int retries;
   static char bigbuff[LBUF_SIZE * 2 + 1], *s_localchr;
 
@@ -160,28 +161,26 @@ FUNCTION(local_fun_sql_escape) {
 
   memset(bigbuff, '\0', sizeof(bigbuff));
 
-  mysql = mysql_struct;
-  if (!mysql) {
+  if (!mysql_struct) {
     /* Try to reconnect. */
     retries = 0;
-    while ((retries < MYSQL_RETRY_TIMES) && !mysql) {
+    while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
       sleep(1);
       sql_init(cause);
-      mysql = mysql_struct;
       retries++;
     }
   }
 
-  if (!mysql || (mysql_ping(mysql) != 0)) {
+  if (!mysql_struct || (mysql_ping(mysql_struct) != 0)) {
     safe_str("#-1 NO CONNECTION", buff, bufcx);
-    mysql = NULL;
+    mysql_struct = NULL;
     return;
   }
   
   s_localchr = alloc_lbuf("local_fun_sql_escape");
   memset(s_localchr, '\0', LBUF_SIZE);
   strncpy(s_localchr, fargs[0], LBUF_SIZE-2);
-  if (mysql_real_escape_string(mysql, bigbuff, s_localchr, strlen(s_localchr)) < LBUF_SIZE) {
+  if (mysql_real_escape_string(mysql_struct, bigbuff, s_localchr, strlen(s_localchr)) < LBUF_SIZE) {
     bigbuff[LBUF_SIZE - 1] = '\0';
     bigbuff[LBUF_SIZE - 2] = '\0';
     safe_str(bigbuff, buff, bufcx);
@@ -238,20 +237,17 @@ void local_mysql_init(void) {
 
 
 int sql_shutdown(dbref player) {
-  MYSQL *mysql;
 
   if (!mysql_struct)
     return -1;
-  mysql = mysql_struct;
 
-  mysql_close(mysql);
-  free(mysql);
+  mysql_close(mysql_struct);
   mysql_struct = NULL;
   return 0;
 }
  
 static int sql_init(dbref player) {
-  MYSQL *mysql, *result;
+  MYSQL *result;
   
   /* If we are already connected, drop and retry the connection, in
    * case for some reason the server went away.
@@ -263,17 +259,10 @@ static int sql_init(dbref player) {
   /* Try to connect to the database host. If we have specified
    * localhost, use the Unix domain socket instead.
    */
-  mysql = (MYSQL *) malloc(sizeof(MYSQL));
-  if (!mysql) {
-    STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
-    log_text("Out of memory - bringing down the game.");
-    ENDLOG
-    exit(2);
-  }
   
-  mysql_init(mysql);
+  mysql_init(mysql_struct);
   
-  result = mysql_real_connect(mysql, DB_HOST, DB_USER, DB_PASS, DB_BASE,
+  result = mysql_real_connect(mysql_struct, DB_HOST, DB_USER, DB_PASS, DB_BASE,
  			      3306, DB_SOCKET, 0);
   
   if (!result) {
@@ -292,7 +281,6 @@ static int sql_init(dbref player) {
   numConnectionsMade++;
   lastConnectMadeBy = player;
   numRowsRetrieved = queryCount = 0;
-  mysql_struct = mysql;
   return 1;
 }
 
@@ -309,7 +297,6 @@ static int sql_query(dbref player,
 		     char *q_string, char row_delim, char field_delim, char *buff, char **bp) {
   MYSQL_RES *qres;
   MYSQL_ROW row_p;
-  MYSQL *mysql;
   int num_rows, got_rows, got_fields;
   int i, j;
   int retries;
@@ -320,22 +307,20 @@ static int sql_query(dbref player,
    * generating a #-1. Notify the player, too, and set the return code.
    */
   
-  mysql = mysql_struct;
-  if (!mysql) {
+  if (!mysql_struct) {
     /* Try to reconnect. */
     retries = 0;
-    while ((retries < MYSQL_RETRY_TIMES) && !mysql) {
+    while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
       sleep(1);
       sql_init(player);
-      mysql = mysql_struct;
       retries++;
     }
   }
-  if (!mysql || (mysql_ping(mysql) != 0)) {
+  if (!mysql_struct || (mysql_ping(mysql_struct) != 0)) {
     notify(player, "No SQL database connection.");
     if (buff)
       safe_str("#-1", buff, bp);
-    mysql = NULL;
+    sql_shutdown(player);
     return -1;
   }
 
@@ -348,7 +333,7 @@ static int sql_query(dbref player,
   s_qstr = alloc_lbuf("tmp_q_string");
   memset(s_qstr, '\0', LBUF_SIZE);
   strncpy(s_qstr, q_string, LBUF_SIZE - 2);
-  got_rows = mysql_real_query(mysql, s_qstr, strlen(s_qstr));
+  got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
   if ( mudstate.alarm_triggered ) {
      notify(player, "The SQL engine forced a failure on a timeout.");
      sql_shutdown(player);
@@ -362,7 +347,7 @@ static int sql_query(dbref player,
   alarm(next_timer());
 
 
-  if ((got_rows) && (mysql_errno(mysql) == CR_SERVER_GONE_ERROR)) {
+  if ((got_rows) && (mysql_errno(mysql_struct) == CR_SERVER_GONE_ERROR)) {
     
     /* We got this error because the server died unexpectedly
      * and it shouldn't have. Try repeatedly to reconnect before
@@ -374,19 +359,18 @@ static int sql_query(dbref player,
     retries = 0;
     sql_shutdown(player);
     
-    while ((retries < MYSQL_RETRY_TIMES) && (!mysql)) {
+    while ((retries < MYSQL_RETRY_TIMES) && (!mysql_struct)) {
       sleep(1);
       sql_init(player);
-      mysql = mysql_struct;
       retries++;
     }
     
-    if (mysql) {
+    if (mysql_struct) {
       alarm(5);
       s_qstr = alloc_lbuf("tmp_q_string");
       memset(s_qstr, '\0', LBUF_SIZE);
       strncpy(s_qstr, q_string, LBUF_SIZE - 2);
-      got_rows = mysql_real_query(mysql, s_qstr, strlen(s_qstr));
+      got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
       if ( mudstate.alarm_triggered ) {
          notify(player, "The SQL engine forced a failure on a timeout.");
          sql_shutdown(player);
@@ -401,7 +385,7 @@ static int sql_query(dbref player,
     }
   }
   if (got_rows) {
-    notify(player, mysql_error(mysql));
+    notify(player, mysql_error(mysql_struct));
     if (buff)
       safe_str("#-1", buff, bp);
     return -1;
@@ -411,7 +395,7 @@ static int sql_query(dbref player,
   
   tprp_buff = tpr_buff = alloc_lbuf("sql_query");
 
-  num_rows = mysql_affected_rows(mysql);
+  num_rows = mysql_affected_rows(mysql_struct);
   if (num_rows > 0) {
     tprp_buff = tpr_buff;
     notify(player, safe_tprintf(tpr_buff, &tprp_buff, "SQL query touched %d %s.",
@@ -425,7 +409,7 @@ static int sql_query(dbref player,
   
   /* Check to make sure we got rows back. */
   
-  qres = mysql_store_result(mysql);
+  qres = mysql_store_result(mysql_struct);
   got_rows = mysql_num_rows(qres);
   if (got_rows == 0) {
     mysql_free_result(qres);
@@ -438,25 +422,28 @@ static int sql_query(dbref player,
   if (buff) {
     for (i = 0; i < got_rows; i++) {
       if (i > 0) {
-        if ( row_delim != '\0' )
+        if ( row_delim != '\0' ) {
 	   print_sep(row_delim, buff, bp);
-        else
+        } else {
 	   print_sep(' ', buff, bp);
+        }
       }
       row_p = mysql_fetch_row(qres);
       if (row_p) {
 	got_fields = mysql_num_fields(qres);
 	for (j = 0; j < got_fields; j++) {
 	  if (j > 0) {
-             if ( field_delim != '\0' )
+             if ( field_delim != '\0' ) {
 	       print_sep(field_delim, buff, bp);
-             else
+             } else {
 	       print_sep(' ', buff, bp);
+             }
 	  }
-	  if (row_p[j] && *row_p[j])
+	  if (row_p[j] && *row_p[j]) {
 	    safe_str(row_p[j], buff, bp);
-          else if ( !row_p[j] )
+          } else if ( !row_p[j] ) {
             break;
+          }
 	}
       }
     }

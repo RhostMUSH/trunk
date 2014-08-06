@@ -56,6 +56,9 @@ process_leave_loc(dbref thing, dbref dest, dbref cause,
     oattr = quiet ? 0 : A_OLEAVE;
     aattr = quiet ? 0 : A_ALEAVE;
     pattr = (!mudconf.terse_movemsg && Terse(thing)) ? 0 : A_LEAVE;
+    if ( pattr ) {
+       pattr = (!mudconf.terse_movemsg && (Good_chk(dest) && Terse(dest) && isRoom(dest))) ? 0 : A_LEAVE;
+    }
     did_it(thing, loc, pattr, NULL, oattr, NULL, aattr,
 	   (char **) NULL, 0);
 
@@ -207,6 +210,9 @@ process_enter_loc(dbref thing, dbref src, dbref cause,
     oattr = quiet ? 0 : A_OENTER;
     aattr = quiet ? 0 : A_AENTER;
     pattr = (!mudconf.terse_movemsg && Terse(thing)) ? 0 : A_ENTER;
+    if ( pattr ) {
+       pattr = (!mudconf.terse_movemsg && (Good_chk(src) && Terse(src) && isRoom(src))) ? 0 : A_ENTER;
+    }
     did_it(thing, loc, pattr, NULL, oattr, NULL, aattr,
 	   (char **) NULL, 0);
 
@@ -484,6 +490,9 @@ move_via_exit(dbref thing, dbref dest, dbref cause, dbref exit, int hush)
     oattr = quiet ? 0 : A_OSUCC;
     aattr = quiet ? 0 : A_ASUCC;
     pattr = (!mudconf.terse_movemsg && Terse(thing)) ? 0 : A_SUCC;
+    if ( pattr ) {
+       pattr = (!mudconf.terse_movemsg && (Good_chk(dest) && Terse(dest) && isRoom(dest))) ? 0 : A_SUCC;
+    }
     if ( Good_obj(exit) && ((Blind(exit) && !mudconf.always_blind) || (!Blind(exit) && mudconf.always_blind)) )
        hush = (hush | HUSH_QUIET | HUSH_BLIND);
     did_it(thing, exit, pattr, NULL, oattr, NULL, aattr,
@@ -496,6 +505,9 @@ move_via_exit(dbref thing, dbref dest, dbref cause, dbref exit, int hush)
     oattr = quiet ? 0 : A_ODROP;
     aattr = quiet ? 0 : A_ADROP;
     pattr = (!mudconf.terse_movemsg && Terse(thing)) ? 0 : A_DROP;
+    if ( pattr ) {
+       pattr = (!mudconf.terse_movemsg && (Good_chk(dest) && Terse(dest) && isRoom(dest))) ? 0 : A_DROP;
+    }
     did_it(thing, exit, pattr, NULL, oattr, NULL, aattr,
 	   (char **) NULL, 0);
 
@@ -739,10 +751,10 @@ do_move(dbref player, dbref cause, int key, char *direction)
               tprp_buff = tpr_buff = alloc_lbuf("do_move");
 #ifdef REALITY_LEVELS
               notify_except_rlevel(loc, player, player,
-                                   safe_tprintf(tpr_buff, &tprp_buff, "%s goes home.", Name(player)));
+                                   safe_tprintf(tpr_buff, &tprp_buff, "%s goes home.", Name(player)), 0);
 #else
               notify_except(loc, player, player,
-                            safe_tprintf(tpr_buff, &tprp_buff, "%s goes home.", Name(player)));
+                            safe_tprintf(tpr_buff, &tprp_buff, "%s goes home.", Name(player)), 0);
 #endif
               free_lbuf(tpr_buff);
 	    }

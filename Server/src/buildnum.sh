@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 #
 #	Shell script to update the build number
 #

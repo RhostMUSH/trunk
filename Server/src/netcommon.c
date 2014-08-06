@@ -137,14 +137,20 @@ strip_safe_ansi(const char *raw)
            ((*(p+1) == '\\') || (*(p+1) == '%')))
             p++;
 
-#ifdef TINY_SUB
-        if((*p == '%') && (*(p+1) == 'x') && isAnsi[(int) *(p+2)])
-#else
-        if((*p == '%') && (*(p+1) == 'c') && isAnsi[(int) *(p+2)])
-#endif
-            p+=3;
-        else
+        if( (*p == '%') && (*(p+1) == SAFE_CHR) ) {
+           if ( isAnsi[(int) *(p+2)] ) {
+              p+=3;
+              continue;
+           }
+           if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
+                (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           *q++ = *p++;
+        } else {
             *q++ = *p++;
+        }
     }
     *q = '\0';
     RETURN(buf); /* #99 */
@@ -161,12 +167,17 @@ strip_all_special(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-#ifdef TINY_SUB
-        if((*p == '%') && (*(p+1) == 'x') && isAnsi[(int) *(p+2)]) {
-#else
-        if((*p == '%') && (*(p+1) == 'c') && isAnsi[(int) *(p+2)]) {
-#endif
-            p+=3; // strip safe ansi
+        if ( (*p == '%') && (*(p+1) == SAFE_CHR) ) { 
+           if ( isAnsi[(int) *(p+2)]) {
+              p+=3; // strip safe ansi
+              continue;
+           }
+           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           *q++ = *p++;
         } else if (*p == ESC_CHAR) {
             // Strip normal ansi
             while (*p && !isalpha((int)*p))
@@ -175,8 +186,9 @@ strip_all_special(const char *raw)
                 p++;
         } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
            p+=3;
-        } else
+        } else {
             *q++ = *p++;
+        }
     }
     *q = '\0';
     RETURN(buf); /* #100 */
@@ -191,20 +203,26 @@ strip_all_ansi(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-#ifdef TINY_SUB
-        if((*p == '%') && (*(p+1) == 'x') && isAnsi[(int) *(p+2)]) {
-#else
-        if((*p == '%') && (*(p+1) == 'c') && isAnsi[(int) *(p+2)]) {
-#endif
-            p+=3; // strip safe ansi
+        if( (*p == '%') && (*(p+1) == SAFE_CHR) ) { 
+           if ( isAnsi[(int) *(p+2)] ) {
+              p+=3; // strip safe ansi
+              continue;
+           }
+           if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
+                (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           *q++ = *p++;
         } else if (*p == ESC_CHAR) {
             // Strip normal ansi
             while (*p && !isalpha((int)*p))
                 p++;
             if (*p)
                 p++;
-        } else
+        } else {
             *q++ = *p++;
+        }
     }
     *q = '\0';
     RETURN(buf); /* #100 */
@@ -293,19 +311,146 @@ strip_ansi_color(const char *raw)
     while (p && *p) {
 	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
-	} else
-	    /* We've got an ANSI code here */
-	    if (*(p + 1) && *(p + 2) && *(p + 3) && (*(p + 1) == '[') &&
-		(*(p + 3) == 'm')) {
-	    /* This code is ok to pass */
+	} else {
+	   /* We've got an ANSI code here */
+	   if (*(p + 1) && *(p + 2) && *(p + 3) && (*(p + 1) == '[') && (*(p + 3) == 'm')) {
+	       /* This code is ok to pass */
+	       *q++ = *p++;
+	   } else {
+	      /* Skip to end. */
+	      while (*p && !isalpha((int)*p))
+                 p++;
+                 if (*p)
+                    p++;
+           }
+        }
+    }
+    *q = '\0';
+    RETURN(buf); /* #104 */
+}
+
+char *ansi_translate_bg[257]={
+   ANSI_BBLACK, ANSI_BRED, ANSI_BGREEN, ANSI_BYELLOW, ANSI_BBLUE, ANSI_BMAGENTA, ANSI_BCYAN, ANSI_BWHITE,
+   ANSI_BBLACK, ANSI_BRED, ANSI_BGREEN, ANSI_BYELLOW, ANSI_BBLUE, ANSI_BMAGENTA, ANSI_BCYAN, ANSI_BWHITE,
+   ANSI_BBLACK, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BCYAN,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BBLUE,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BBLUE, ANSI_BBLUE,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN,
+   ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BBLUE, ANSI_BBLUE, ANSI_BBLUE,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN,
+   ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN,
+   ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN,
+   ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BGREEN, ANSI_BCYAN,
+   ANSI_BBLUE, ANSI_BBLUE, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BCYAN,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BGREEN, ANSI_BCYAN, ANSI_BCYAN, ANSI_BGREEN, ANSI_BGREEN,
+   ANSI_BGREEN, ANSI_BGREEN, ANSI_BWHITE, ANSI_BWHITE, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW,
+   ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BGREEN, ANSI_BWHITE,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE,
+   ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED,
+   ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW,
+   ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BRED, ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA,
+   ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
+   ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE,
+   ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK, ANSI_BBLACK,
+   ANSI_BBLACK, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE,
+   ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, ANSI_BWHITE, (char *)NULL,
+};
+
+char *ansi_translate_fg[257]={
+   ANSI_BLACK, ANSI_RED, ANSI_GREEN, ANSI_YELLOW, ANSI_BLUE, ANSI_MAGENTA, ANSI_CYAN, ANSI_WHITE,
+   ANSI_BLACK_H, ANSI_RED_H, ANSI_GREEN_H, ANSI_YELLOW_H, ANSI_BLUE_H, ANSI_MAGENTA_H, ANSI_CYAN_H, ANSI_WHITE_H,
+   ANSI_BLACK, ANSI_BLUE, ANSI_BLUE, ANSI_BLUE, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN, ANSI_CYAN,
+   ANSI_BLUE, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN_H, ANSI_GREEN, ANSI_CYAN, ANSI_BLUE_H,
+   ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_BLUE_H, ANSI_BLUE_H,
+   ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H,
+   ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_RED, ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H,
+   ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN, ANSI_GREEN, ANSI_CYAN, ANSI_BLUE_H, ANSI_BLUE_H, ANSI_BLUE_H,
+   ANSI_GREEN, ANSI_GREEN, ANSI_GREEN, ANSI_CYAN, ANSI_CYAN, ANSI_BLUE_H, ANSI_GREEN_H, ANSI_GREEN,
+   ANSI_GREEN, ANSI_CYAN, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H,
+   ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H,
+   ANSI_RED, ANSI_RED, ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED, ANSI_RED,
+   ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW, ANSI_GREEN, ANSI_CYAN,
+   ANSI_BLUE_H, ANSI_BLUE_H, ANSI_GREEN, ANSI_GREEN, ANSI_GREEN, ANSI_CYAN, ANSI_CYAN_H, ANSI_CYAN_H,
+   ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_GREEN_H, ANSI_CYAN_H, ANSI_CYAN_H, ANSI_GREEN_H, ANSI_GREEN_H,
+   ANSI_GREEN_H, ANSI_GREEN_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_RED, ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H,
+   ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H,
+   ANSI_YELLOW, ANSI_YELLOW, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW,
+   ANSI_YELLOW, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_GREEN_H, ANSI_WHITE_H,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H,
+   ANSI_RED, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H,
+   ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW, ANSI_YELLOW, ANSI_MAGENTA_H,
+   ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW, ANSI_YELLOW_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H,
+   ANSI_YELLOW, ANSI_YELLOW, ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H,
+   ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_RED_H, ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H,
+   ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H,
+   ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW_H, ANSI_YELLOW_H,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H,
+   ANSI_BLACK, ANSI_BLACK, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H, ANSI_BLACK_H,
+   ANSI_BLACK_H, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE, ANSI_WHITE,
+   ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, (char *)NULL,
+};
+
+static char *
+strip_ansi_xterm(const char *raw)
+{
+    static char buf[LBUF_SIZE];
+    char *p = (char *) raw;
+    char *q = buf;
+    char *r;
+    int i_val, i_chk, i_type, i_chk2;
+
+    DPUSH; /* #104 */
+
+    i_val = i_chk = i_type = 0;
+    r = NULL;
+
+    while (p && *p) {
+	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
 	} else {
-	    /* Skip to end. */
-	    while (*p && !isalpha((int)*p))
-		p++;
-	    if (*p)
-		p++;
-	}
+	    /* We've got an ANSI code here -- verify it's XTERM codes */
+            if ( (*(p+1) && (*(p+1) == '[')) && (*(p+2) && ((*(p+2) == '4') || (*(p+2) == '3'))) && (*(p+3) && (*(p+3) == '8')) ) {
+               if ( *(p+2) == '3' ) {
+                  i_type = 0;
+               } else {
+                  i_type = 1;
+               }
+               i_chk = 0;
+	       while (*p && !isalpha((int)*p)) {
+                  if ( *p == ';' )
+                     i_chk++;
+                  if ( i_chk == 2 ) {
+                     i_chk2 = -1;
+                     sscanf( p+1, "%d", &i_chk2);
+                     if ( (i_chk2 >= 0) && (i_chk2 < 256) ) {
+                        if ( i_type ) {
+                           r = ansi_translate_bg[i_chk2];
+                        } else {
+                           r = ansi_translate_fg[i_chk2];
+                        }
+                        while ( r && *r ) {
+	                   *q++ = *r++;
+                        }
+                     }
+                     i_chk++;
+                  }
+		  p++;
+               }
+               if ( *p )
+                  p++;
+            } else {
+	       *q++ = *p++;
+            }
+        }
     }
     *q = '\0';
     RETURN(buf); /* #104 */
@@ -1313,9 +1458,9 @@ raw_broadcast(va_alist)
 
 #ifdef ZENTY_ANSI   
     mptr = message = alloc_lbuf("raw_broadcast_message");
-    parse_ansi( (char *) buff, message, &mptr);
     mp_ns2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-    parse_accents((char *) message, msg_ns2, &mp_ns2);
+    parse_ansi( (char *) buff, message, &mptr, msg_ns2, &mp_ns2);
+    *mp_ns2 = '\0';
 #endif   
     strcpy(antemp, ANSI_NORMAL);
     DESC_ITER_CONN(d) {
@@ -1556,6 +1701,8 @@ queue_string(DESC * d, const char *s)
 	new = strip_ansi(s);
     else if (!ShowAnsiColor(d->player) && index(s, ESC_CHAR))
 	new = strip_ansi_color(s);
+    else if (!ShowAnsiXterm(d->player) && index(s, ESC_CHAR))
+        new = strip_ansi_xterm(s);
     else
 	new = (char *) s;
     if (NoFlash(d->player) && index(new, ESC_CHAR))
@@ -1815,14 +1962,19 @@ time_format_1(time_t dt)
 {
     register struct tm *delta;
     static char buf[64];
+    int i_syear;
 
     DPUSH; /* #128 */
 
     if (dt < 0)
 	dt = 0;
 
+    i_syear = ((int)dt / 31536000);
     delta = gmtime(&dt);
-    if (delta->tm_yday > 0) {
+    if ( i_syear > 0 ) {
+	sprintf(buf, "%dy %02d:%02d",
+		i_syear, delta->tm_hour, delta->tm_min);
+    } else if (delta->tm_yday > 0) {
 	sprintf(buf, "%dd %02d:%02d",
 		delta->tm_yday, delta->tm_hour, delta->tm_min);
     } else {
@@ -1837,6 +1989,7 @@ time_format_2(time_t dt)
 {
     register struct tm *delta;
     static char buf[64];
+    int i_syear;
 
     DPUSH; /* #129 */
 
@@ -1844,7 +1997,10 @@ time_format_2(time_t dt)
 	dt = 0;
 
     delta = gmtime(&dt);
-    if (delta->tm_yday > 0) {
+    i_syear = ((int)dt / 31536000);
+    if ( i_syear > 0 ) {
+	sprintf(buf, "%dy", i_syear);
+    } else if (delta->tm_yday > 0) {
 	sprintf(buf, "%dd", delta->tm_yday);
     } else if (delta->tm_hour > 0) {
 	sprintf(buf, "%dh", delta->tm_hour);
@@ -1948,22 +2104,26 @@ announce_connect(dbref player, DESC * d, int dc)
     }
     temp = mudstate.curr_enactor;
     mudstate.curr_enactor = player;
-    if ((!dc && !Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player))) ||
-	DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA))
+    if ( (!dc && !Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player)) &&
+         !(mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc)))) ) ||
+	DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)) {
 #ifdef REALITY_LEVELS
         if (loc == NOTHING)
            notify_check(player, player, buf, 0, key, 0);
         else
-           notify_except_rlevel(loc, player, player, buf);
+           notify_except_rlevel(loc, player, player, buf, 0);
 #else
         notify_check(player, player, buf, 0, key, 0);
 #endif /* REALITY_LEVELS */
-    else {
+    } else {
 	if (!Wizard(player)) {
 	    if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
+	    } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else if (!Immortal(player)) {
 	    if (Cloak(player)) {
 		notify_except3(loc, player, player, player, 0,
@@ -1971,15 +2131,16 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
-	    else if (dc) {
+	    } else if (dc) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark Connect)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else {
 	    if (Cloak(player)) {
 		if (SCloak(player)) {
@@ -1992,15 +2153,16 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
-	    else if (dc) {
+	    } else if (dc) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark Connect)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	}
     }
     free_lbuf(buf);
@@ -2051,6 +2213,12 @@ announce_connect(dbref player, DESC * d, int dc)
 	   }
        }
     }
+
+    /* Initialize cpu for connected players */
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
+
     look_in(player, Location(player), (LK_SHOWEXIT | LK_OBEYTERSE));
     if ( InProgram(player) ) {
        if ( (mudconf.login_to_prog && !(ProgCon(player))) || 
@@ -2071,6 +2239,11 @@ announce_connect(dbref player, DESC * d, int dc)
        } else {
           notify(player, "Your @program was aborted from disconnecting.");
           s_Flags4(player, (Flags4(player) & (~INPROGRAM)));
+          DESC_ITER_CONN(d) {
+             if ( d->player == player ) {
+                queue_string(d, "\377\371");
+             }
+          }
           mudstate.shell_program = 0;
           atr_clr(player, A_PROGBUFFER);
           atr_clr(player, A_PROGPROMPTBUF);
@@ -2150,13 +2323,14 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	key = MSG_INV;
 	if ((loc != NOTHING) && !(Dark(player) && Wizard(player)))
 	    key |= (MSG_NBR | MSG_NBR_EXITS | MSG_LOC | MSG_FWDLIST);
-	if ((!Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player))) ||
+	if ( (!Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player)) &&
+              !(mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc)))) ) ||
 	    DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA))
 #ifdef REALITY_LEVELS
             if (loc == NOTHING)
                notify_check(player, player, buf, 0, key, 0);
             else
-               notify_except_rlevel(loc, player, player, buf);
+               notify_except_rlevel(loc, player, player, buf, 0);
 #else
             notify_check(player, player, buf, 0, key, 0);
 #endif /* REALITY_LEVELS */
@@ -2165,7 +2339,10 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 		if (NCloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				   strcat(buf, " (Cloaked)"));
-		}
+		} else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+                }
 	    } else if (!Immortal(player)) {
 		if (Cloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
@@ -2173,11 +2350,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 		} else if (NCloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				   strcat(buf, " (Cloaked)"));
-		}
-		else if (Dark(player)) {
+		} else if (Dark(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-		}
+		} else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+                }
 	    } else {
 		if (Cloak(player)) {
 		    if (SCloak(player)) {
@@ -2190,11 +2369,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 		} else if (NCloak(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				   strcat(buf, " (Cloaked)"));
-		}
-		else if (Dark(player)) {
+		} else if (Dark(player)) {
 		    notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-		}
+		} else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+                }
 	    }
 	}
 	free_mbuf(buf);
@@ -2258,12 +2439,14 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	  key |= (MSG_NBR | MSG_NBR_EXITS | MSG_LOC | MSG_FWDLIST);
 	}
 
-	if (!Cloak(player) && !NCloak(player)) {
+	if ( (!Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player)) &&
+              !(mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc)))) ) ||
+	    DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)) {
 #ifdef REALITY_LEVELS
 	  if (loc == NOTHING) {
 	    notify_check(player, player, buf, 0, key, 0);
 	  } else {
-	    notify_except_rlevel(loc, player, player, buf);
+	    notify_except_rlevel(loc, player, player, buf, 0);
 	  }
 #else
             notify_check(player, player, buf, 0, key, 0);
@@ -2274,7 +2457,10 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	    if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
+	    } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+		    notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else if (!Immortal(player)) {
 	    if (Cloak(player)) {
 		notify_except3(loc, player, player, player, 0,
@@ -2282,11 +2468,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+                notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	} else {
 	    if (Cloak(player)) {
 		if (SCloak(player)) {
@@ -2299,11 +2487,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
-	    }
-	    else if (Dark(player)) {
+	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
-	    }
+            } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
+                notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (Blind)"));
+            }
 	}
 
 	free_mbuf(buf);
@@ -2478,6 +2668,7 @@ NDECL(check_idle)
             if ( KeepAlive(d->player) ) {
                /* Send NOP code to players to keep NAT/routers/firewalls happy */
                queue_string(d, "\377\361");
+	       process_output(d);
             }
             if ( d->last_time > mudstate.now )
 	       idletime = 0;
@@ -2584,15 +2775,15 @@ dump_users(DESC * e, char *match, int key)
 	if (mudconf.who_default) {
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
-	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp);
+           mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
+	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+           *mp2 = '\0';
            if ( Accents(e->player) ) {
-              mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-              parse_accents((char *) abuf, msg_ns2, &mp2);
 	      queue_string(e, msg_ns2);
-              free_lbuf(msg_ns2);
            } else {
 	      queue_string(e, strip_safe_accents(abuf));
            }
+           free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
 	   queue_string(e, mudstate.ng_doing_hdr);
@@ -2601,17 +2792,17 @@ dump_users(DESC * e, char *match, int key)
            tprp_buff = tpr_buff;
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
-	   parse_ansi(mudstate.doing_hdr, abuf, &abufp);
+           mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
+	   parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+           *mp2 = '\0';
            if ( Accents(e->player) ) {
-              mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-              parse_accents((char *) abuf, msg_ns2, &mp2);
 	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                            mudstate.guild_hdr, msg_ns2));
-              free_lbuf(msg_ns2);
            } else {
 	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                            mudstate.guild_hdr, strip_safe_accents(abuf)));
            }
+           free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
 	   queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
@@ -2626,15 +2817,12 @@ dump_users(DESC * e, char *match, int key)
 
 #ifdef ZENTY_ANSI
 	doingAnsiBufp = doingAnsiBuf;
-	parse_ansi(d->doing, doingAnsiBuf, &doingAnsiBufp);
-        if ( Accents(e->player) ) {
-           doingAccentBufp = doingAccentBuf;
-           parse_accents((char *) doingAnsiBuf, doingAccentBuf, &doingAccentBufp);
-	   pDoing = doingAccentBuf;
-        } else {
+	doingAccentBufp = doingAccentBuf;
+	parse_ansi(d->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp);
+        if ( !Accents(e->player) ) {
            strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
-	   pDoing = doingAccentBuf;
         }
+	pDoing = doingAccentBuf;
 #else
 	pDoing = d->doing;
 #endif
@@ -3697,6 +3885,12 @@ check_connect(DESC * d, const char *msg)
 	} else {
 	    player = create_player(user, password, NOTHING, 0);
 	    if (player == NOTHING) {
+                if ( !ok_password(password, NOTHING, 0) ) {
+                   queue_string(d, (char *)"Invalid password specified.\r\n");
+                   if ( mudconf.safer_passwords ) {
+                      queue_string(d, (char *)"Passwords must have 1 upper, 1 lower, and 1 non-alpha and be 5+ chars long.\r\n");
+                   }
+                } 
 		broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CREATE)", d->userid, 
                                   d->addr, 0, 0, 0, user);
 		queue_string(d, create_fail);
@@ -3717,7 +3911,12 @@ check_connect(DESC * d, const char *msg)
 		log_name(player);
 		free_mbuf(buff);
 		ENDLOG
-		    move_object(player, mudconf.start_room);
+
+                mudstate.chkcpu_stopper = time(NULL);
+                mudstate.chkcpu_toggle = 0;
+                mudstate.chkcpu_locktog = 0;
+
+		move_object(player, mudconf.start_room);
 		d->flags |= DS_CONNECTED;
 		d->connected_at = time(0);
 		d->player = player;
@@ -3796,7 +3995,7 @@ extern int igcheck(dbref, int);
 int 
 do_command(DESC * d, char *command)
 {
-    char *arg, *cmdsave;
+    char *arg, *cmdsave, *time_str;
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
     NAMETAB *cp;
@@ -3804,9 +4003,12 @@ do_command(DESC * d, char *command)
 
     DPUSH; /* #147 */
 
+    time_str = NULL;
     chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< do_command >";
+    mudstate.breakst = 0;
+    mudstate.breakdolist = 0;
     
     /* snoop on player input -Thorin */
     if (d->snooplist) {
@@ -4002,9 +4204,11 @@ do_command(DESC * d, char *command)
                 continue;
              gotone += 1;
           }
+          time_str = ctime(&mudstate.start_time);
+          time_str[strlen(time_str) - 1] = '\0';
           queue_string(d, unsafe_tprintf("### Begin INFO %s\r\n", INFO_VERSION));
           queue_string(d, unsafe_tprintf("Name: %s\r\n", mudconf.mud_name));
-          queue_string(d, unsafe_tprintf("Uptime: %s\r", ctime(&mudstate.start_time)));
+          queue_string(d, unsafe_tprintf("Uptime: %s\r\n", time_str));
           queue_string(d, unsafe_tprintf("Connected: %d\r\n", gotone));
           queue_string(d, unsafe_tprintf("Size: %d\r\n", mudstate.db_top));
           queue_string(d, unsafe_tprintf("Version: %s\r\n", mudstate.short_ver));
@@ -4327,7 +4531,7 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
     DESC_ITER_CONN(d) {
 	if (!Wizard(target) && Cloak(d->player))
 	    continue;
-        if (!Wizard(target) && !(mudconf.who_unfindable) && Dark(d->player) && 
+        if (!Admin(target) && !(mudconf.who_unfindable) && Dark(d->player) && 
             !(mudconf.player_dark) && mudconf.allow_whodark )
             continue;
 	if (Immortal(d->player) && Cloak(d->player) && SCloak(d->player) && !Immortal(target))
@@ -4341,14 +4545,14 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
 	if (gotone)
 	    safe_chr(' ', buff, bufcx);
         if ( i_type == 2 ) {
-           if ( (target == d->player) || Wizard(player) ) 
+           if ( (target == d->player) || Wizard(target) ) 
               i_port = d->descriptor;
            else
               i_port = -1;
            tprp_buff = tpr_buff;
 	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", i_port), buff, bufcx);
         } else if ( i_type == 1 ) {
-           if ( (target == d->player) || Wizard(player) ) 
+           if ( (target == d->player) || Wizard(target) ) 
               i_port = d->descriptor;
            else
               i_port = -1;

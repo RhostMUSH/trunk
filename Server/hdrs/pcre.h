@@ -134,7 +134,7 @@ without modification. */
 		       const char *, int, int, int, int *, int);
   extern const unsigned char *pcre_maketables(void);
   extern pcre_extra *pcre_study(const pcre *, int, const char **);
-  extern char *grep_internal_regexp(dbref, dbref, char *, char *, int);
+  extern char *grep_internal_regexp(dbref, dbref, char *, char *, int, int);
 
 #ifdef __cplusplus
 }				/* extern "C" */
