@@ -4604,8 +4604,10 @@ FUNCTION(fun_shuffle)
            pt1++;
         }
     }
-    if (!num)
+    if (!num) {
+       free_lbuf(outbuff);
        return;
+    }
     if (num == 1) {
        safe_str(fargs[0], buff, bufcx);
        free_lbuf(outbuff);

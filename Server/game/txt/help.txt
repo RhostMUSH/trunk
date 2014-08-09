@@ -28991,3 +28991,4 @@ Bug Fixes
 * lwho() didn't properly check wiz when specifying optional target [ASH]
 * printf() with |" options had an alignment issue with ansi [ASH]
 * bug with 'guest' in safer_passwords [ASH]
+* memory leak in shuffle() [ASH]
