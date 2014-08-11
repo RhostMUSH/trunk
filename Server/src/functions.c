@@ -6592,7 +6592,7 @@ FUNCTION(fun_pmatch)
       arg_ptr = fargs[0];
    }
    if (!((thing = lookup_player(player, arg_ptr, 1)) == NOTHING)) {
-      if ( !Good_obj(thing) || (thing == AMBIGUOUS || thing == NOTHING) || Recover(thing) ||
+      if ( !Good_obj(thing) || (thing == AMBIGUOUS || thing == NOTHING) || Recover(thing) || !isPlayer(thing) ||
           (!Immortal(player) && Cloak(thing) && SCloak(thing)) ||
            (!Wizard(player) && Cloak(thing)) ) {
           safe_str("#-1 NO MATCH", buff, bufcx);
