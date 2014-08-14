@@ -25,7 +25,7 @@ extern void		FDECL(fork_and_dump, (int key, char *msg));
 extern void		NDECL(pcache_trim);
 
 /* Version of alarm() that works with floating point numbers, and
- * values larger than one second, combining functionality of alarm_msec()
+ * values larger than one second, combining functionality of alarm()
  * and ualarm() into one.
  * --Ambrosia
 */
