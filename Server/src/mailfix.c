@@ -47,7 +47,7 @@ typedef struct ptrlst2 {
   char *ptr;
   int player;
   short int index;
-  short int len;
+  int len;
   struct ptrlst2 *next;
 } PTRLST2;
 

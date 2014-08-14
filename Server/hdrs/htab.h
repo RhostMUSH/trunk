@@ -80,7 +80,7 @@ struct bque {
 	dbref	player;		/* player who will do command */
 	dbref	cause;		/* player causing command (for %N) */
 	dbref	sem;		/* blocking semaphore */
-	int	waittime;	/* time to run command */
+	double	waittime;	/* time to run command */
 	char	*text;		/* buffer for comm, env, and scr text */
 	char	*comm;		/* command */
 	char	*env[NUM_ENV_VARS];	/* environment vars */
@@ -89,7 +89,7 @@ struct bque {
 	int	nargs;		/* How many args I have */
 	int	pid;
 	int	stop_bool;	/* Boolean if we are to stop the process */
-	int	stop_bool_val;	/* time in seconds it was stopped */
+	double	stop_bool_val;	/* time in seconds.milliseconds it was stopped */
         int     shellprg;        /* Did you shell from the program */
 	int	plr_type;	/* Type of player - used only in freeze/thaw */
         int     text_len;       /* Size of text length */

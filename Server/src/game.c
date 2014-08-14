@@ -40,6 +40,8 @@
 #include "rhost_ansi.h"
 #include "door.h"
 
+#include <math.h>
+
 extern void NDECL(init_attrtab);
 extern void NDECL(init_cmdtab);
 extern void NDECL(cf_init);
@@ -72,6 +74,9 @@ void NDECL(dump_database);
 void NDECL(pcache_sync);
 static void FDECL(dump_database_internal, (int));
 static void NDECL(init_rlimit);
+
+extern double FDECL(time_ng, (double*));
+extern int FDECL(alarm_msec, (double));
 
 int reserved;
 
@@ -1171,7 +1176,7 @@ do_reboot(dbref player, dbref cause, int key)
         return;
      }
   }
-  alarm(0);
+  alarm_msec(0);
   ignore_signals();
   port = mudconf.port;
   raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
@@ -2075,7 +2080,9 @@ main(int argc, char *argv[])
     hashreset(&mudstate.error_htab);
     nhashreset(&mudstate.desc_htab);
 
-    mudstate.now = time(NULL);
+    mudstate.nowmsec = time_ng(NULL);
+    mudstate.now = (time_t) floor(mudstate.nowmsec);
+    mudstate.lastnowmsec = mudstate.nowmsec;
     mudstate.lastnow = mudstate.now;
     mudstate.evalnum = 0;
     mudstate.guest_num = 0;
@@ -2095,7 +2102,9 @@ main(int argc, char *argv[])
 
     /* go do it */
 
-    mudstate.now = time(NULL);
+    mudstate.nowmsec = time_ng(NULL);
+    mudstate.now = (time_t) floor(mudstate.nowmsec);
+    mudstate.lastnowmsec = mudstate.nowmsec;
     mudstate.lastnow = mudstate.now;
     init_timer();
 

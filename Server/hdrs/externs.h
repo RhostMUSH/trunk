@@ -114,9 +114,9 @@ extern int	FDECL(nfy_que, (dbref, int, int, int));
 extern int	FDECL(halt_que, (dbref, dbref));
 extern int	FDECL(halt_que_pid, (dbref, int, int));
 extern int	FDECL(halt_que_all, (void));
-extern void	FDECL(wait_que, (dbref, dbref, int, dbref, char *, char *[],
+extern void	FDECL(wait_que, (dbref, dbref, double, dbref, char *, char *[],
 			int, char *[], char *[]));
-extern int	NDECL(que_next);
+extern double	NDECL(que_next);
 extern int	FDECL(do_top, (int ncmds));
 extern void	NDECL(recover_queue_deposits);
 

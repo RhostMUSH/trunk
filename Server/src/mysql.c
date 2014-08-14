@@ -43,6 +43,7 @@
 #define MYSQL_RETRY_TIMES 3
 
 extern int NDECL(next_timer);
+extern int FDECL(alarm_msec, (double));
 
 /************* DON'T EDIT ANYTHING BELOW HERE **********/
 
@@ -329,7 +330,7 @@ static int sql_query(dbref player,
   
   /* Send the query. */
   
-  alarm(5);
+  alarm_msec(5);
   s_qstr = alloc_lbuf("tmp_q_string");
   memset(s_qstr, '\0', LBUF_SIZE);
   strncpy(s_qstr, q_string, LBUF_SIZE - 2);
@@ -338,13 +339,13 @@ static int sql_query(dbref player,
      notify(player, "The SQL engine forced a failure on a timeout.");
      sql_shutdown(player);
      mudstate.alarm_triggered = 0;
-     alarm(next_timer());
+     alarm_msec(next_timer());
      free_lbuf(s_qstr);
      return 0;
   }
   free_lbuf(s_qstr);
   mudstate.alarm_triggered = 0;
-  alarm(next_timer());
+  alarm_msec(next_timer());
 
 
   if ((got_rows) && (mysql_errno(mysql_struct) == CR_SERVER_GONE_ERROR)) {
@@ -366,7 +367,7 @@ static int sql_query(dbref player,
     }
     
     if (mysql_struct) {
-      alarm(5);
+      alarm_msec(5);
       s_qstr = alloc_lbuf("tmp_q_string");
       memset(s_qstr, '\0', LBUF_SIZE);
       strncpy(s_qstr, q_string, LBUF_SIZE - 2);
@@ -375,13 +376,13 @@ static int sql_query(dbref player,
          notify(player, "The SQL engine forced a failure on a timeout.");
          sql_shutdown(player);
          mudstate.alarm_triggered = 0;
-         alarm(next_timer());
+         alarm_msec(next_timer());
          free_lbuf(s_qstr);
          return 0;
       }
       free_lbuf(s_qstr);
       mudstate.alarm_triggered = 0;
-      alarm(next_timer());
+      alarm_msec(next_timer());
     }
   }
   if (got_rows) {

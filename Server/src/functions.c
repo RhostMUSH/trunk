@@ -25270,6 +25270,7 @@ FUNCTION(fun_rjust)
        } else {
           safe_chr(filler[i % filllen], buff, bufcx);
        }
+    }
     safe_str(fargs[0], buff, bufcx);
 }
 

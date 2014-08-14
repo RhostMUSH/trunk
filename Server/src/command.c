@@ -50,6 +50,7 @@ extern void cf_log_syntax(dbref, char *, const char *, char *);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern ATRP *atrp_head;
 
+extern double FDECL(time_ng, (double*));
 
 #ifdef CACHE_OBJS
 #define CACHING "object"
@@ -3183,9 +3184,9 @@ process_command(dbref player, dbref cause, int interactive,
            log_text(cpulbuf);
            ENDLOG
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.stack_cntr = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.stack_cntr++;
            if ( mudstate.stack_cntr >= 3 ) {
@@ -3235,9 +3236,9 @@ process_command(dbref player, dbref cause, int interactive,
            ENDLOG
            mudstate.breakst = 1;
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.cntr_percentsubs = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.cntr_percentsubs++;
            if ( mudstate.cntr_percentsubs >= 3 ) {
@@ -3865,9 +3866,9 @@ process_command(dbref player, dbref cause, int interactive,
            log_text(cpulbuf);
            ENDLOG
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.stack_cntr = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.stack_cntr++;
            if ( mudstate.stack_cntr >= 3 ) {
@@ -3916,9 +3917,9 @@ process_command(dbref player, dbref cause, int interactive,
            ENDLOG
            mudstate.breakst = 1;
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.cntr_percentsubs = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.cntr_percentsubs++;
            if ( mudstate.cntr_percentsubs >= 3 ) {
@@ -5278,11 +5279,11 @@ list_options_config(dbref player)
 {
     char *buff, *strbuff, *strptr, *tbuff1ptr, *tbuff1, *tbuff2ptr, *tbuff2, *buff3;
     int b1, b2, b3, b4, b5;
-    time_t now;
+    double now;
 
     DPUSH; /* #46 */
     b1 = b2 = b3 = b4 = b5 = 0;
-    now = time(NULL);
+    now = time_ng(NULL);
     buff = alloc_mbuf("list_options");
     memset(buff, 0, MBUF_SIZE);
 #ifdef HAS_OPENSSL
@@ -5580,7 +5581,7 @@ list_options_config(dbref player)
                mudconf.dump_interval, mudconf.check_interval,
                mudconf.idle_interval, mudconf.rwho_interval);
        notify(player, buff);
-       sprintf(buff, "Timers: Dump...%ld  Clean...%ld  Idlecheck...%ld  Rwho...%ld",
+       sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f",
                mudstate.dump_counter - now, mudstate.check_counter - now,
                mudstate.idle_counter - now, mudstate.rwho_counter - now);
        notify(player, buff);
@@ -5711,14 +5712,14 @@ list_options(dbref player)
 {
     char *buff, *strbuff, *strptr, newstime[30], mailtime[30], mushtime[30], aregtime[30];
     char *tbuff1, *tbuff1ptr, *tbuff2, *tbuff2ptr, *buff3;
-    time_t now;
+    double now;
     int itog_val, b1, b2, b3, b4, b5;
 
     DPUSH; /* #47 */
 
     itog_val = 0;
     b1 = b2 = b3 = b4 = b5 = 0;
-    now = time(NULL);
+    now = time_ng(NULL);
     if (mudconf.quotas)
 	notify(player, "Building quotas are enforced.");
     else
@@ -6483,8 +6484,7 @@ list_options(dbref player)
 	    mudconf.dump_interval, mudconf.check_interval,
 	    mudconf.idle_interval, mudconf.rwho_interval);
     notify(player, buff);
-
-    sprintf(buff, "Timers: Dump...%ld  Clean...%ld  Idlecheck...%ld  Rwho...%ld",
+    sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f",
 	    mudstate.dump_counter - now, mudstate.check_counter - now,
 	    mudstate.idle_counter - now, mudstate.rwho_counter - now);
     notify(player, buff);

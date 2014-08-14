@@ -55,6 +55,8 @@ extern int	FDECL(flagstuff_internal, (char *, char *));
 CF_HAND(cf_dynstring);
 #endif
 
+extern double FDECL(time_ng, (double*));
+
 
 /* ---------------------------------------------------------------------------
  * cf_init: Initialize mudconf to default values.
@@ -318,7 +320,7 @@ NDECL(cf_init)
     mudstate.chkcpu_locktog = 0;
     mudstate.sidefx_currcalls = 0; /* Counter for sideeffects called */
     mudstate.curr_percentsubs = 0; /* Counter for substitutions called */
-    mudstate.cntr_reset = time(NULL);
+    mudstate.cntr_reset = time_ng(NULL);
     mudstate.tog_percentsubs = 0; /* Toggle disabler */
     mudstate.cntr_percentsubs = 0; /* Counter of 3, and then you die */
     mudstate.sidefx_toggle = 0; /* Toggle to show sidefx ceiling reached */

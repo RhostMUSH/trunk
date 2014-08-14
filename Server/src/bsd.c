@@ -47,6 +47,8 @@ void bzero(void *, int);
 #include "debug.h"
 #define FILENUM BSD_C
 
+#include <math.h>
+
 #ifdef TLI
 #include <sys/stream.h>
 #include <sys/tiuser.h>
@@ -81,6 +83,9 @@ extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, i
 extern int FDECL(lookup, (char *, char *));
 extern CF_HAND(cf_site);
 extern int NDECL(next_timer);
+
+extern int FDECL(alarm_msec, (double));
+
 int signal_depth;
 
 int make_socket(int port, char* address)
@@ -319,8 +324,9 @@ shovechars(int port,char* address)
 
 	/* any queued robot commands waiting? */
 
-	timeout.tv_sec = que_next();
-	timeout.tv_usec = 0;
+  double next = roundf(que_next() * 10) / 10;
+	timeout.tv_sec = floor(next);
+	timeout.tv_usec = floor(1000000 * fmod(next,1.0)); ;
 	next_slice = msec_add(last_slice, mudconf.timeslice);
 	slice_timeout = timeval_sub(next_slice, current_time);
 
@@ -1235,7 +1241,7 @@ start_auth(DESC * d)
       free_lbuf(logbuff);
     ENDLOG
 
-    alarm(3);
+    alarm_msec(3);
 
     if( connect(d->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
@@ -1261,7 +1267,7 @@ start_auth(DESC * d)
     /* recalibrate the mush timers */
 
     mudstate.alarm_triggered = 0;
-    alarm(next_timer());
+    alarm_msec(next_timer());
 
     d->flags |= DS_AUTH_CONNECTING;
     DPOP; /* #8 */
@@ -1815,9 +1821,9 @@ void reset_signals(){
 									 									*/
 	if(signal_depth == 0) 
 		set_signals();
-        /* If signals were ignored, the alarm() will have been as well */
+        /* If signals were ignored, the alarm_msec() will have been as well */
         mudstate.alarm_triggered = 0;
-        alarm (next_timer());
+        alarm_msec (next_timer());
 }
 
 static void 
@@ -2059,7 +2065,7 @@ sighandler(int sig)
                 }
              }
           }
-          alarm(0); 
+          alarm_msec(0); 
           ignore_signals();
           raw_broadcast(0, 0, "Game: Restarting due to signal SIGUSR1.");
           raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected.");

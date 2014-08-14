@@ -541,12 +541,14 @@ struct statedata {
 	char	*dol_arr[50];	/* Dolist Array */
 	int	alarm_triggered;/* Has periodic alarm signal occurred? */
 	time_t	now;		/* What time is it now? */
+	double  nowmsec; /* What time is it now, with msecs */
 	time_t	lastnow;	/* What time was it last? */
-	time_t	dump_counter;	/* Countdown to next db dump */
-	time_t	check_counter;	/* Countdown to next db check */
-	time_t	idle_counter;	/* Countdown to next idle check */
-	time_t	rwho_counter;	/* Countdown to next RWHO dump */
-	time_t	mstats_counter;	/* Countdown to next mstats snapshot */
+	double  lastnowmsec; /* What time was it last, with msecs */
+	double	dump_counter;	/* Countdown to next db dump */
+	double	check_counter;	/* Countdown to next db check */
+	double	idle_counter;	/* Countdown to next idle check */
+	double	rwho_counter;	/* Countdown to next RWHO dump */
+	double	mstats_counter;	/* Countdown to next mstats snapshot */
 	time_t  chkcpu_stopper; /* What time was it when command started */
 	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
 	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
@@ -690,7 +692,7 @@ struct statedata {
 	int	curr_percentsubs;	/* Current percent sub tree */
 	int	tog_percentsubs;	/* Ok, you hit the max percent sub ceiling.  Bad boy */
 	int	cntr_percentsubs;	/* Counter to kill the little pecker */
-        time_t  cntr_reset;	/* Reset the basic counters after 60 seconds */
+        double  cntr_reset;	/* Reset the basic counters after 60 seconds */
 	int	recurse_rlevel;	/* Allow recurse limit for reality levels */
 	int	sub_overridestate; /* state information for sub_overrides */
 	int	sub_includestate; /* state information for sub_overrides */
