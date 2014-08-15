@@ -318,6 +318,11 @@ NAMETAB examine_sw[] =
     {(char *) "regexp", 1, CA_PUBLIC, 0, EXAM_REGEXP | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB extansi_sw[] =
+{
+    {(char *) "quiet", 1, CA_PUBLIC, 0, SET_QUIET},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB femit_sw[] =
 {
     {(char *) "here", 1, CA_PUBLIC, 0, PEMIT_HERE | SW_MULTIPLE},
@@ -1124,7 +1129,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_entrances},
     {(char *) "@eval", NULL, 0, CA_NO_CODE,
      0, CS_ONE_ARG | CS_INTERP, 0, do_eval},
-    {(char *) "@extansi", NULL, CA_NO_SLAVE,  0,
+    {(char *) "@extansi", extansi_sw, CA_NO_SLAVE,  0,
      0, CS_TWO_ARG, 0, do_extansi},
     {(char *) "@femit", femit_sw,
      CA_LOCATION | CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
@@ -8770,7 +8775,9 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       return;
    }
    if ( !*instr || !instr ) {
-      notify(player, "Ansi string cleared.");
+      if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+          notify(player, "Ansi string cleared.");
+      }
       atr_clr(thing, A_ANSINAME);
    } else {
      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, instr, NULL, 0);
@@ -8796,8 +8803,10 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
          return;
 #undef extansi_strip
       } else {
-         notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
+         if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+                notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
                 strip_returntab(retbuff,3)));
+         }
          atr_add_raw(thing, A_ANSINAME, 
                      unsafe_tprintf("%.3900s%s", strip_returntab(retbuff,3), ANSI_NORMAL));
       }

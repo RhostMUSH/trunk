@@ -4738,8 +4738,7 @@
   
   Note:  Target must be @toggled EXTANSI to use this command.
   
-  Optional switches are /quiet to suppress output or /noisy to give
-  verbose output.
+  The optional switch /quiet suppresses output unless an error is thrown.
   
   Examlple:  @name object=99 Red Balloons
              > Name set.
