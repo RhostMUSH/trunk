@@ -31,11 +31,7 @@ fi
 #wget -q -O - "https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=YOUR.IP.ADDRESS.HERE" -U NoSuchBrowser/1.0 > bulk.txt
 #cat bulk.txt |fgrep -v '#' > bulk2.txt
 
-# grab a normal free proxy list
-wget http://www.freeproxy.ch/proxy.txt
-grep ^[0-9] proxy.txt|cut -f1 -d":"|sort -u > blacklist.tmp2
-
 # combine them
-cat static_proxies.txt blacklist.tmp blacklist.tmp2 Tor_ip_list_EXIT.csv bulk2.txt 2>/dev/null|sort -u > blacklist.txt
+cat blacklist.tmp blacklist.tmp2 Tor_ip_list_EXIT.csv bulk2.txt 2>/dev/null|sort -u > blacklist.txt
 
 rm -f blacklist.tmp blacklist.tmp2 proxy.txt Tor_ip_list_EXIT.csv bulk.txt bulk2.txt
