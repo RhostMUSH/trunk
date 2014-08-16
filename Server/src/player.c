@@ -538,6 +538,12 @@ char	*temp, *tp;
 	if (!string_compare(name, "me"))
 		return doer;
 
+  if (!string_compare(name, "here")) {
+     p = Location(doer);
+     if ( Good_chk(p) && isPlayer(p) )
+        return p;
+  }
+
 	if (*name == NUMBER_TOKEN) {
 		name++;
 		if (!is_number(name))
