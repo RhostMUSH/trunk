@@ -17001,6 +17001,49 @@ FUNCTION(fun_tan)
     fval(buff, bufcx, tan(d));
 }
 
+FUNCTION(fun_sinh)
+{
+    double d;
+
+    if (!fn_range_check("SINH", nfargs, 1, 2, buff, bufcx)) {
+       return;
+    }
+    d = safe_atof(fargs[0]);
+    if (nfargs == 2) {
+        d = ConvertRDG2R(d, fargs[1]);
+    }
+    fval(buff, bufcx, sinh(d));
+}
+
+FUNCTION(fun_cosh)
+{
+    double d;
+
+    if (!fn_range_check("COSH", nfargs, 1, 2, buff, bufcx)) {
+       return;
+    }
+    d = safe_atof(fargs[0]);
+    if (nfargs == 2) {
+        d = ConvertRDG2R(d, fargs[1]);
+    }
+    fval(buff, bufcx, cosh(d));
+}
+
+FUNCTION(fun_tanh)
+{
+    double d;
+
+    if (!fn_range_check("TANH", nfargs, 1, 2, buff, bufcx)) {
+       return;
+    }
+    d = safe_atof(fargs[0]);
+    if (nfargs == 2) {
+        d = ConvertRDG2R(d, fargs[1]);
+    }
+    fval(buff, bufcx, tanh(d));
+}
+
+
 FUNCTION(fun_exp)
 {
     fval(buff, bufcx, exp(safe_atof(fargs[0])));
@@ -28900,6 +28943,7 @@ FUN flist[] =
     {"CONVTIME", fun_convtime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"COR", fun_cor, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"COS", fun_cos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"COSH", fun_cosh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"COUNTSPECIAL", fun_countspecial, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CRC32", fun_crc32, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CREPLACE", fun_creplace, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
@@ -29287,6 +29331,7 @@ FUN flist[] =
     {"SHUFFLE", fun_shuffle, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SIGN", fun_sign, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SIN", fun_sin, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"SINH", fun_sinh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SINGLETIME", fun_singletime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SIZE", fun_size, 1, FN_VARARGS, CA_WIZARD, 0},
     {"SORT", fun_sort, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -29322,6 +29367,7 @@ FUN flist[] =
     {"SWITCHALL", fun_switchall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},
     {"TAN", fun_tan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"TANH", fun_tanh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"TEL", fun_tel, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
