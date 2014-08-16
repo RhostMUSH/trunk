@@ -16906,6 +16906,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   does not have the ability to examine the object, #-1 will be returned.
  
   Use hasattr() to check for attributes without checking parents.
+  If the config option hasattrp_compat is set, it will check the target
+  object for the attribute as well.
   
   Examples:
     > say hasattrp(me/desc)

@@ -6140,8 +6140,8 @@ SNOOPY                                                           God     Wiz
 & hasattrp_compat
   Config parameter: hasattrp_compat <value>.  Default: 0
   This config parameter enables MUX/TM3 'compatibility' of the hasattrp()
-  function so that it will _not_ check the target object but just the parent-
-  chain for matching attributes.  By default, it will check the target as well.
+  function so that it _will_ check the target object as well as the parent-
+  chain for matching attributes.  By default, it will not check the target.
 
 & heavy_cpu_max
   Config parameter: heavy_cpu_max <value>.  Default: 50
