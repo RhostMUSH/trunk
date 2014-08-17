@@ -2375,7 +2375,7 @@ atr_get_raw(dbref thing, int atr)
     if(a != NULL)
     {
       log_text(unsafe_tprintf("Length: %d\n", strlen(a)));
-      if(strlen(a) > (LBUF_SIZE))
+      if(strlen(a) > (LBUF_SIZE-1))
       {
          *(a+LBUF_SIZE-2)='\0';
          Attr* safebuff=malloc(LBUF_SIZE); 
