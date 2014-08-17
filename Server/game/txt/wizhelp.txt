@@ -2822,9 +2822,6 @@
   Command: @list toggles
   Lists all the toggles available at your level.
 
-& @list mail_globals
-  Lists the current mail configuration settings.
-
 & @list guest_names
   Lists all the guest chars and information about each.
 
@@ -8090,15 +8087,6 @@ SNOOPY                                                           God     Wiz
   risk if you do not code switch safely.
   
   See Also: ifelse_substitutions
-
-& terse_shows_contents
-  Config parameter: terse_shows_contents <yes/no>.  Default yes
- 
-  Indicates whether or not to suppress the listing of a location's contents
-  when producing TERSE output (whether from an automatic look or a 'real'
-  look if look_obey_terse is turned on.
- 
-  See Also: look_obey_terse, terse_shows_exits, terse_shows_move_messages.
 
 & terse_shows_contents
   Config parameter: terse_shows_contents <yes/no>.  Default yes
