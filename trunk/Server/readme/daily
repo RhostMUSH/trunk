@@ -1,5 +1,0 @@
-@@ This is daily code.  This will emulate MUX/TM3's @daily
-@create Daily Emulator <DE>
-@set Daily Emulator <DE>=safe ind inh !halt
-@startup Daily Emulator <DE>=@wait 300=@tr/quiet me/do_daily
-&DO_DAILY Daily Emulator <DE>=@wait/until [convtime([extract(time(),1,3)] 23:59:59 [extract(time(),5,1)])]={@dolist [search(eval=[lit([hasattr(##,daily)])])]=@tr/quiet ##/daily;@wait 300=@tr/quiet me/do_daily}

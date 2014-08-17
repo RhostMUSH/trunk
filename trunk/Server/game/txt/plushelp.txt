@@ -1,3 +1,0 @@
-& help
-This is a sample +help file.
-Enter topics like you would normal help/news files.
