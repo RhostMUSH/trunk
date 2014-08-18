@@ -2374,7 +2374,6 @@ atr_get_raw(dbref thing, int atr)
     a = FETCH(&okey);
     if(a != NULL)
     {
-      log_text(unsafe_tprintf("Length: %d\n", strlen(a)));
       if(strlen(a) > (LBUF_SIZE-1))
       {
          *(a+LBUF_SIZE-2)='\0';
