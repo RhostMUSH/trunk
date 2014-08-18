@@ -231,18 +231,18 @@ DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -D
 #
 # #5 - This is for cygwin using the cgyipc library.
 ################################################################  #1
-#MORELIBS  = -lm
+#MORELIBS  = -lm -lrt
 ################################################################  #2
-#MORELIBS = -lm -lnsl -lresolv -lcrypt 
+#MORELIBS = -lm -lrt -lnsl -lresolv -lcrypt 
 #-L/usr/lib -lc -lm
 ################################################################  #3
-#MORELIBS  = -lm -lnsl -lsocket -L/usr/ucblib -lucb
+#MORELIBS  = -lm -lrt -lnsl -lsocket -L/usr/ucblib -lucb
 ################################################################  #4
-#MORELIBS  = -lresolv -lsocket -lnsl -lm
+#MORELIBS  = -lresolv -lsocket -lnsl -lm -lrt
 ################################################################  #5
-#MORELIBS  = -lm -L/usr/local/lib -lcygipc
+#MORELIBS  = -lm -lrt -L/usr/local/lib -lcygipc
 
-MORELIBS = -lm -lnsl -lresolv -lcrypt -lssl
+MORELIBS = -lm -lrt -lnsl -lresolv -lcrypt -lssl
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
