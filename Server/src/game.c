@@ -139,6 +139,10 @@ do_dump(dbref player, dbref cause, int key, char *msg)
     char *ptr, prv_ptr;
     int i_valid;
 
+    if ( mudstate.forceusr2 ) {
+       notify(player, "In the middle of a SIGUSR2, unable to dump.");
+       return;
+    }
     DPUSH; /* #68 */
     i_valid = 1;
     prv_ptr = '\0';
@@ -918,7 +922,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
             }
         }
 
-        if ( LogRoom(target) ) {
+        if ( LogRoom(target) && ( isRoom(target) || (!isRoom(target) && (Location(sender) == target)) ) ) {
            s_logroom = alloc_mbuf("log_room");
            memset(s_logroom, '\0', MBUF_SIZE);
            ap_log = atr_str("LOGNAME");
@@ -1177,6 +1181,7 @@ do_reboot(dbref player, dbref cause, int key)
      }
   }
   alarm_msec(0);
+  mudstate.dumpstatechk=1;
   ignore_signals();
   port = mudconf.port;
   raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
@@ -1250,6 +1255,7 @@ do_shutdown(dbref player, dbref cause, int key, char *message)
 	
 	/* Stop handling signals. */
 	
+        mudstate.dumpstatechk=1;
 	ignore_signals();
 	
 	/* Close the attribute text db and dump the header db */
@@ -1309,6 +1315,9 @@ dump_database_internal(int panic_dump)
 		       mudconf.crashdb);
 	}
         reset_signals(); 	/* Resume normal signal handling. */
+        if ( mudstate.shutdown_flag ) {
+           do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+        }
 	VOIDRETURN; /* #82 */
     }
 
@@ -1330,6 +1339,9 @@ dump_database_internal(int panic_dump)
 			   "Renaming output file to DB file",
 			   tmpfile);
             reset_signals(); 	/* Resume normal signal handling. */
+            if ( mudstate.shutdown_flag ) {
+               do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+            }
 	    VOIDRETURN; /* #82 */
 	} else {
 	    log_perror("SAV", "FAIL", "Opening", tmpfile);
@@ -1357,6 +1369,10 @@ dump_database_internal(int panic_dump)
     local_dump(panic_dump);
 
     reset_signals(); 	/* Resume normal signal handling. */
+
+    if ( mudstate.shutdown_flag ) {
+       do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+    }
     
     VOIDRETURN; /* #82 */
 }
@@ -1366,6 +1382,7 @@ NDECL(dump_database)
 {
     char *buff;
 
+    mudstate.dumpstatechk=1;
     DPUSH; /* #83 */
 
     mudstate.epoch++;
@@ -1387,6 +1404,7 @@ NDECL(dump_database)
     log_text(buff);
     ENDLOG
     free_mbuf(buff);
+    mudstate.dumpstatechk=0;
     VOIDRETURN; /* #83 */
 }
 
@@ -1398,6 +1416,11 @@ fork_and_dump(int key, char *msg)
   char *flatfilename;
   FILE *f;
 
+  /* If we're in the middle of a kill -USR2 don't dump -- the shutdown will take care of it */
+  if ( mudstate.forceusr2 )
+     return;
+
+  mudstate.dumpstatechk=1;
   DPUSH; /* #84 */
   /* always sync up working files before dumping a flatfile database */
   if( key & DUMP_FLAT ) {
@@ -1496,6 +1519,10 @@ fork_and_dump(int key, char *msg)
       log_perror("DMP", "FORK", NULL, "fork()");
     }
   }
+  if ( mudstate.shutdown_flag ) {
+     do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+  }
+  mudstate.dumpstatechk=0;
 }
 
 

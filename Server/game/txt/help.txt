@@ -25463,6 +25463,7 @@ Changes
 * massive cleanup and helper tools for ansi for ease of modification [ASH]
 * better error control with failed player creation with safer_passwords [ASH]
 * Rooms set QUIET that are @toggled LOGROOM no longer notify of logging [ASH]
+* printf() is more vigerous in reusing ansi for filler [ASH]
   
 Bug Fixes
 ---------
@@ -25473,3 +25474,4 @@ Bug Fixes
 * lwho() didn't properly check wiz when specifying optional target [ASH]
 * printf() with |" options had an alignment issue with ansi [ASH]
 * bug with 'guest' in safer_passwords [ASH]
+* memory leak in shuffle() [ASH]

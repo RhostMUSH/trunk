@@ -4604,8 +4604,10 @@ FUNCTION(fun_shuffle)
            pt1++;
         }
     }
-    if (!num)
+    if (!num) {
+       free_lbuf(outbuff);
        return;
+    }
     if (num == 1) {
        safe_str(fargs[0], buff, bufcx);
        free_lbuf(outbuff);
@@ -8618,7 +8620,9 @@ FUNCTION(fun_printf)
    int i_arrayval, i_totwidth, i, j, i_loopydo;
    int i_breakarray[30], i_widtharray[30];
    int morepadd = 0;
-   char *s_strarray[30], *s_strptr, *s_tmpbuff;
+   int i_outbuff = 0;
+   char *s_strarray[30], *s_strptr, *s_tmpbuff, *outbuff, *outbuff2, *o_p1, *o_p2;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
    struct timefmt_format fm, fm_array[30];
 
    if ( (nfargs < 2) || (nfargs > 28) ) {
@@ -8819,6 +8823,31 @@ FUNCTION(fun_printf)
 #endif
                            fm.format_padstsize = strlen(strip_all_special(fm.format_padst));
                            fm.format_padch=(char)*(fm.format_padst);
+                           initialize_ansisplitter(outsplit, LBUF_SIZE);
+                           initialize_ansisplitter(outsplit2, LBUF_SIZE);
+                           outbuff = alloc_lbuf("fun_printf_ansi");
+                           outbuff2 = alloc_lbuf("fun_printf_ansi2");
+                           memset(outbuff2, '\0', LBUF_SIZE);
+                           split_ansi(fm.format_padst, outbuff, outsplit);
+                           o_p1 = outbuff;
+                           o_p2 = outbuff2;
+                           p_sp = outsplit;
+                           p_sp2 = outsplit2;
+                           for (i_outbuff = 0; i_outbuff < LBUF_SIZE - 10; i_outbuff++) {
+                             *o_p2++ = *o_p1++;
+                              clone_ansisplitter(p_sp2, p_sp);
+                              p_sp++;
+                              p_sp2++;
+                              if ( !*o_p1 ) {
+                                 o_p1 = outbuff;
+                                 p_sp = outsplit;
+                              }
+                           }
+                           free_lbuf(outbuff);
+                           outbuff = rebuild_ansi(outbuff2, outsplit2);
+                           free_lbuf(outbuff2);
+                           strcpy(fm.format_padst, outbuff);
+                           free_lbuf(outbuff);
                            fm.formatting = 1;
                         }
                         formatpass = 1;
