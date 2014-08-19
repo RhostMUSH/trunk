@@ -279,6 +279,8 @@ NDECL(cf_init)
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
+    mudstate.dumpstatechk = 0;		/* State of the dump state */
+    mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
     mudstate.breakdolist = 0;
     mudstate.dolistnest = 0;

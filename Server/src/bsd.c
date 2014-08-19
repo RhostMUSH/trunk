@@ -1794,8 +1794,10 @@ void ignore_signals(){
      return;
 
   signal_depth = signal_depth + 1; /* Increase our 'signal unset level' */
-  for (i = 0; i < NSIG; i++)
-      signal(i, SIG_IGN);
+  for (i = 0; i < NSIG; i++) {
+      if ( i != SIGUSR2 )
+         signal(i, SIG_IGN);
+  }
 }
 
 /* Called to reset signal handling after db operations. */
@@ -2074,14 +2076,22 @@ sighandler(int sig)
 	log_signal(signames[sig], sig);
 	break;
     case SIGUSR2:		/* Perform clean shutdown. */
+        mudstate.forceusr2 = 1;
         log_signal(signames[sig], sig);
         raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGUSR2!");
         sprintf(buff, "Caught signal %s", signames[sig]);
         STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
            log_text((char*) "Shutting down due to signal SIGUSR2.");
+           if ( mudstate.dumpstatechk ) {
+              log_text((char *)"  Waiting for dump to finish.  Passively triggering shutdown.");
+              mudstate.shutdown_flag = 1;
+           }
         ENDLOG
-        do_shutdown(NOTHING, NOTHING, 0, buff);
-        mudstate.shutdown_flag = 1;
+        if ( !mudstate.shutdown_flag ) {
+           mudstate.forceusr2 = 0;
+           do_shutdown(NOTHING, NOTHING, 0, buff);
+           mudstate.shutdown_flag = 1;
+        }
         break;
     case SIGTERM:		/* Attempt flatfile dump before shutdown. */
         log_signal(signames[sig], sig);

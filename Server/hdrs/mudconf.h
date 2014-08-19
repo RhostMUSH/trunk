@@ -710,6 +710,8 @@ struct statedata {
 	int	notrace;	/* Do not trace */
 	int	start_of_cmds;	/* Start of command -- hack around zenty ansi */
         int	twinknum;	/* Dbref of twink object if inside twinklock */
+	int	dumpstatechk;	/* Dump state check */
+	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
 #else
 	int	logging;	/* Are we in the middle of logging? */
