@@ -89,8 +89,28 @@ static char *err_verb[]={"Header Receive Record",
 			 "Index Send Record",
 			 "Mail Database"};
 
-#define NDBMBUFSZ	4092	/* Actaully 4095 or 4096, 4 less to be safe */
-
+/* 4 less to be safe */
+#ifdef QDBM
+  #ifdef LBUF64
+    #define NDBMBUFSZ 65532
+  #else
+    #ifdef LBUF32
+      #define NDBMBUFSZ 32764
+    #else
+      #ifdef LBUF16
+        #define NDBMBUFSZ 16380
+      #else
+        #ifdef LBUF8
+          #define NDBMBUFSZ 8188
+        #else
+          #define NDBMBUFSZ 4092
+        #endif
+      #endif
+    #endif
+  #endif
+#else
+#define NDBMBUFSZ 4092
+#endif
 static char *bufmaster;
 static char *sbuf1;
 static char *sbuf2;
@@ -5666,8 +5686,28 @@ void mail_load(dbref player)
   char input, *pt1, *pt2, *pt3;
   short int gen, gen2, *spt1;
   int *ipt1;
-  char hbuf1[12000];	/* needed due to possibly large input lines */
-
+/* needed due to possibly large input lines */
+#ifdef QDBM
+  #ifdef LBUF64
+    char hbuf1[192000];
+  #else
+    #ifdef LBUF32
+      char hbuf1[96000];
+    #else
+      #ifdef LBUF16
+        char hbuf1[48000];
+      #else
+        #ifdef LBUF8
+        	char hbuf1[24000];
+        #else
+	        char hbuf1[12000];
+        #endif
+      #endif
+    #endif
+  #endif
+#else
+  char hbuf1[12000];
+#endif
   dump1 = fopen(dumpname, "r");
   dump2 = fopen(fdumpname, "r");
   if (!dump1 || !dump2) {

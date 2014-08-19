@@ -2377,10 +2377,8 @@ atr_get_raw(dbref thing, int atr)
       if(strlen(a) > (LBUF_SIZE-1))
       {
          *(a+LBUF_SIZE-2)='\0';
-         Attr* safebuff=malloc(LBUF_SIZE); 
+         Attr *safebuff=malloc(LBUF_SIZE); 
          strcpy(safebuff,a);
-         free(a);
-         a = NULL;
          return safebuff;
       }
     }
