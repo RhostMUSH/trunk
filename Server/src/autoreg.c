@@ -17,7 +17,29 @@
 #include "externs.h"
 #include "alloc.h"
 
+
+/* 4 less to be safe */
+#ifdef QDBM
+  #ifdef LBUF64
+    #define NDBMBUFSZ 65532
+  #else
+    #ifdef LBUF32
+      #define NDBMBUFSZ 32764
+    #else
+      #ifdef LBUF16
+        #define NDBMBUFSZ 16380
+      #else
+        #ifdef LBUF8
+          #define NDBMBUFSZ 8188
+        #else
+          #define NDBMBUFSZ 4092
+        #endif
+      #endif
+    #endif
+  #endif
+#else
 #define NDBMBUFSZ 4092
+#endif
 
 static char aregname[129 + 64];
 static char dumpname[129 + 64];
