@@ -29,7 +29,28 @@ void bzero(void *, int);
 #include "debug.h"
 #endif
 
-#define NDBMBUFSZ	4092
+/* 4 less to be safe */
+#ifdef QDBM
+  #ifdef LBUF64
+    #define NDBMBUFSZ 65532
+  #else
+    #ifdef LBUF32
+      #define NDBMBUFSZ 32764
+    #else
+      #ifdef LBUF16
+        #define NDBMBUFSZ 16380
+      #else
+        #ifdef LBUF8
+          #define NDBMBUFSZ 8188
+        #else
+          #define NDBMBUFSZ 4092
+        #endif
+      #endif
+    #endif
+  #endif
+#else
+#define NDBMBUFSZ 4092
+#endif
 #define MAXNUKEPLY	-10
 #define PMNUKEPLY	10
 #define MAXWRTLN	1000
@@ -959,7 +980,7 @@ int ptrlst2_sch(PTRLST2 *pass1, short int chk)
   return 0;
 }
 
-short int verlen(char *st1, short int tlen)
+int verlen(char *st1, int tlen)
 {
   char *t1, *t2;
 
@@ -968,14 +989,14 @@ short int verlen(char *st1, short int tlen)
   if (t2 == st1)
     return 0;
   else
-    return ((short int)(t2 - st1 + 1));
+    return ((int)(t2 - st1 + 1));
 }
 
 PTRLST2 *fixmsg1(PTRLST2 *pass1)
 {
   PTRLST2 *pt1, *pt3, *pt4, *pt5, *pt6;
   PLYST *pt2;
-  short int lcheck;
+  int lcheck;
 
   pt2 = allplay;
   while (pt2) {
