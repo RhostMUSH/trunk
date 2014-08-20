@@ -112,10 +112,10 @@ typedef struct plyst {
   short int bsize;
   char *rejm;
   short int rejlen;
-  short int wrtm;
+  int wrtm;
   PTRLST2 *wrtl;
   char *wrts;
-  short int wrtlen;
+  int wrtlen;
   short int page;
   int afor;
   char *flist;
@@ -1903,7 +1903,7 @@ void fixwrt()
 {
   PLYST *pt1;
   PTRLST2 *pt2, *pt3, *pt4;
-  short int count, x, lcheck, imax;
+  int count, x, lcheck, imax;
   short int ilst[MAXWRTLN];
 
   pt1 = allplay;
@@ -2027,7 +2027,7 @@ void fixwrt()
 void fixother()
 {
   PLYST *pt1;
-  short int lcheck;
+  int lcheck;
 
   pt1 = allplay;
   while (pt1) {
