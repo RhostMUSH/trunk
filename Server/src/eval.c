@@ -945,15 +945,17 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     endtme = time(NULL);
     starttme = mudstate.chkcpu_stopper;
 
-    if ( mudconf.cputimechk < 10 )
-       timechk = 10;
-    else if ( mudconf.cputimechk > 3600 )
+    //if ( mudconf.cputimechk < 10 )
+    //   timechk = 10;
+    //else if ( mudconf.cputimechk > 3600 )
+    if ( mudconf.cputimechk > 3600 )
        timechk = 3600;
     else
        timechk = mudconf.cputimechk;
-    if ( mudconf.cpuintervalchk < 10 )
-       intervalchk = 10;
-    else if ( mudconf.cpuintervalchk > 100 )
+    //if ( mudconf.cpuintervalchk < 10 )
+    //   intervalchk = 10;
+    //else if ( mudconf.cpuintervalchk > 100 )
+    if ( mudconf.cpuintervalchk > 100 )
        intervalchk = 100;
     else
        intervalchk = mudconf.cpuintervalchk;

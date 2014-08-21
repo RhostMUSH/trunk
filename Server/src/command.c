@@ -5591,8 +5591,11 @@ list_options_config(dbref player)
                mudstate.idle_counter - now, mudstate.rwho_counter - now);
        notify(player, buff);
        sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds",
-             (mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
-             (mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+             //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
+             (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk),
+             //(mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+             (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk) );
+
        notify(player, buff);
        sprintf(buff, "                Security...Level %d  Max Sequential Slams...%d",
              (((mudconf.cpu_secure_lvl < 0) || (mudconf.cpu_secure_lvl > 5)) ? 0 : mudconf.cpu_secure_lvl),
@@ -6495,8 +6498,10 @@ list_options(dbref player)
     notify(player, buff);
     memset(buff, 0, sizeof(buff));
     sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds", 
-           (mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
-           (mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+           //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
+           //(mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+           (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk),
+           (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk) );
     notify(player, buff);
     sprintf(buff, "                Security...Level %d  Max Sequential Slams...%d",
           (((mudconf.cpu_secure_lvl < 0) || (mudconf.cpu_secure_lvl > 5)) ? 0 : mudconf.cpu_secure_lvl),
