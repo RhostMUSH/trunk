@@ -4336,6 +4336,9 @@
   <wild-attr> (or all attributes, if <wild-attr> is not specified) are removed
   from <object>.  Attributes that you do not have permission to modify (such
   as read-only or locked attributes) are not removed.
+
+  This only works on objects set SAFE if the config options safe_wipe is set
+  to 0.
   
   The following switches exist:
     /preserve    - wipe everything EXCEPT the wild-attr matches.  This in 
