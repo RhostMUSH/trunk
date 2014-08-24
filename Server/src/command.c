@@ -2540,6 +2540,7 @@ process_command(dbref player, dbref cause, int interactive,
     }
     /* Make sure player isn't going or halted */
 
+  if (!( (player == cause) && (mudstate.force_halt == player))) {
     if (Going(player) || Recover(player) ||
 	(Halted(player) &&
 	 !((Typeof(player) == TYPE_PLAYER) && interactive) && !ForceHalted(cause))) {
@@ -2552,7 +2553,7 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
 	return;
     }
-
+    }
 
     /* Spam protection time */
     if ( NoSpam(player) || (Good_obj(Owner(player)) && NoSpam(Owner(player))) ) {
@@ -8671,12 +8672,12 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
 {
    dbref target;
    char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
-   int old_trainmode, x, i_breakst;
+   int old_trainmode, x, i_breakst, forcehalted_state;
 
-   if ( mudstate.sudo_cntr >= 1 ) {
-      notify(player, "You can't nest @sudo.");
-      return;
-   }
+   //if ( mudstate.sudo_cntr >= 1 ) {
+   //   notify(player, "You can't nest @sudo.");
+   //   return;
+   //}
    if ( !s_command || !*s_command ) {
       return;
    }
@@ -8692,6 +8693,12 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       notify(player, "Permission denied.");
       return;
    }
+
+   forcehalted_state = mudstate.force_halt;
+   if ( Halted(target) && ForceHalted(player) ) {
+      mudstate.force_halt = target;
+   } else
+      mudstate.force_halt = 0;
 
    mudstate.sudo_cntr++;
    old_trainmode=mudstate.trainmode;
@@ -8729,6 +8736,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    /* process_command(target, target, 1, s_command, args, nargs, 0); */
    mudstate.trainmode = old_trainmode;
    mudstate.sudo_cntr--;
+   mudstate.force_halt = forcehalted_state;
 }
 
 void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[], int nargs)

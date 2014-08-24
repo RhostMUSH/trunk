@@ -5542,14 +5542,14 @@
 & @sudo
   Command: @sudo[</switch>] <target>=<command>
   
-  The @sudo allows you to execute a command through the target.  This is done
-  through the normal command processor and while similiar permissions to
-  @force, does not suffer from the queue delay.  You can not nest @sudo nor
-  can you @sudo to something you have no control over.  @sudo performs the
-  action according to the target's viewpoint, including location.  @sudo
-  only works on a single command.  If you wish to @sudo multiple commands,
-  use in junction with @include.  By default, all registers altered during
-  the @sudo are considered local.
+  The @sudo allows you to execute a command through the target. This is
+  done through the normal command processor and while similiar permissions
+  to @force, does not suffer from the queue delay.  You can not @sudo to
+  something you have no control over.  @sudo performs the action according
+  to the target's viewpoint, including location. @sudo only works on a single
+  command.  If you wish to @sudo multiple commands, use in junction with
+  @include.  By default, all registers altered during the @sudo are considered
+  local.
   
   Available switches:
     /globalize -- treat registers to target as non-localized.  Dangerous.
