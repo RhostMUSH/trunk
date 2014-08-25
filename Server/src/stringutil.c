@@ -532,7 +532,14 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->c_accent = '\0';
    s_ptr->i_special = 0;
    while ( s_inptr && *s_inptr ) {
-      if ( (*s_inptr == '%') && (*(s_inptr+1) == SAFE_CHR) ) {
+      if ( (*s_inptr == '%') && ((*(s_inptr+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                        || (*(s_inptr+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                        || (*(s_inptr+1) == SAFE_CHR3)
+#endif
+)) {
          if ( isAnsi[(int) *(s_inptr+2)] ) {
             switch (*(s_inptr+2)) {
                case 'f':

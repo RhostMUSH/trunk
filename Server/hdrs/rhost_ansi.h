@@ -166,6 +166,14 @@
 
 #define ANSIEX(x)	(No_Ansi_Ex(player) ? "" : (x))
 
+#ifndef TINY_SUB
+  #ifndef C_SUB
+    #ifndef M_SUB
+      #define C_SUB
+    #endif
+  #endif
+#endif
+
 #ifdef ZENTY_ANSI
 #ifdef TINY_SUB
 /* Begin %x subs */
@@ -211,7 +219,10 @@
 
 #ifdef C_SUB
 /* Begin %c subs */
-#define SAFE_CHR	'c'
+#ifdef SAFE_CHR
+#define SAFE_CHR2	'c'
+#else
+#define SAFE_CHR 'c'
 #define SAFE_CHRST	"%c"
 #define SAFE_ANSI_NORMAL  "%cn"
 
@@ -247,13 +258,21 @@
 #define SAFE_ANSI_BMAGENTA	"%cM"
 #define SAFE_ANSI_BCYAN	"%cC"
 #define SAFE_ANSI_BWHITE	"%cW"
+#endif
 
 /* End of %c subs */
 #endif
 
 #ifdef M_SUB
 /* Begin %m subs */
-#define SAFE_CHR	'm'
+#ifdef SAFE_CHR
+  #ifdef SAFE_CHR2
+    #define SAFE_CHR3	'm'
+  #else
+    #define SAFE_CHR2 'm'
+  #endif
+#else
+#define SAFE_CHR 'm'
 #define SAFE_CHRST	"%m"
 #define SAFE_ANSI_NORMAL  "%mn"
 
@@ -290,6 +309,7 @@
 #define SAFE_ANSI_BCYAN	"%mC"
 #define SAFE_ANSI_BWHITE	"%mW"
 
+#endif
 /* End of %m subs */
 #endif
 
@@ -323,10 +343,22 @@ static char isAnsi[256] =
 #define SAFE_CHR	'x'
 #endif
 #ifdef C_SUB
-#define SAFE_CHR	'c'
+  #ifdef SAFE_CHR
+    #define SAFE_CHR2	'c'
+  #else
+    #define SAFE_CHR	'c'
+  #endif
 #endif
 #ifdef M_SUB
-#define SAFE_CHR	'm'
+  #ifdef SAFE_CHR
+    #ifdef SAFE_CHR2
+      #define SAFE_CHR3	'm'
+    #else
+      #define SAFE_CHR2 'm'
+    #endif
+  #else
+    #define SAFE_CHR 'm'
+  #endif
 #endif
 #endif
 #endif

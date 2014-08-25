@@ -137,7 +137,14 @@ strip_safe_ansi(const char *raw)
            ((*(p+1) == '\\') || (*(p+1) == '%')))
             p++;
 
-        if( (*p == '%') && (*(p+1) == SAFE_CHR) ) {
+        if( (*p == '%') && ((*(p+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                        || (*(p+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                        || (*(p+1) == SAFE_CHR3)
+#endif
+)) {
            if ( isAnsi[(int) *(p+2)] ) {
               p+=3;
               continue;
@@ -167,7 +174,14 @@ strip_all_special(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-        if ( (*p == '%') && (*(p+1) == SAFE_CHR) ) { 
+        if ( (*p == '%') && ((*(p+1) == SAFE_CHR) 
+#ifdef SAFE_CHR2
+                         || (*(p+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                         || (*(p+1) == SAFE_CHR3)
+#endif
+)) {
            if ( isAnsi[(int) *(p+2)]) {
               p+=3; // strip safe ansi
               continue;
@@ -203,7 +217,14 @@ strip_all_ansi(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-        if( (*p == '%') && (*(p+1) == SAFE_CHR) ) { 
+        if( (*p == '%') && ((*(p+1) == SAFE_CHR) 
+#ifdef SAFE_CHR2
+                        || (*(p+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                        || (*(p+1) == SAFE_CHR3)
+#endif
+)) {
            if ( isAnsi[(int) *(p+2)] ) {
               p+=3; // strip safe ansi
               continue;

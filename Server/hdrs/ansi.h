@@ -144,6 +144,14 @@
 
 #define ANSIEX(x)	(No_Ansi_Ex(player) ? "" : (x))
 
+#ifndef TINY_SUB
+  #ifndef C_SUB
+    #ifndef M_SUB
+      #define C_SUB
+    #endif
+  #endif
+#endif
+
 #ifdef ZENTY_ANSI
 #ifdef TINY_SUB
 /* The %x codes */
@@ -185,6 +193,7 @@
 /* End of TINY_SUB definitions */
 #endif
 
+#ifndef TINY_SUB
 #ifdef C_SUB
 /* The %c codes */
 #define SAFE_ANSI_NORMAL  "%cn"
@@ -224,7 +233,10 @@
 
 /* End of C_SUB definitions */
 #endif
+#endif
 
+#ifndef TINY_SUB
+#ifndef C_SUB
 #ifdef M_SUB
 /* The %m codes */
 #define SAFE_ANSI_NORMAL  "%mn"
@@ -263,6 +275,8 @@
 #define SAFE_ANSI_BWHITE	"%mW"
 
 /* End of M_SUB definitions */
+#endif
+#endif
 #endif
 
 #ifdef INCLUDE_ASCII_TABLE

@@ -577,7 +577,7 @@ static const int mux_isprint[256] =
  * This handles accents as well!
  * buff/bufptr is the ansi
  * buff2/buf2ptr is the accents + ansi
- * Change %c/%x substitutions into real ansi now.
+ * Change %c/%x/%m substitutions into real ansi now.
  ******************************************************/
 void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr)
 {
@@ -612,7 +612,14 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff, &bufc);
                 safe_chr(*string, buff2, &bufc2);
-            } else if ((*string == '%') && (*(string+1) == SAFE_CHR )) {
+            } else if ((*string == '%') && ((*(string+1) == SAFE_CHR )
+#ifdef SAFE_CHR2
+                                        || (*(string+1) == SAFE_CHR2 )
+#endif
+#ifdef SAFE_CHR3
+                                        || (*(string+1) == SAFE_CHR3 )
+#endif
+)) {
                 safe_str((char*)SAFE_CHRST, buff, &bufc);
                 safe_str((char*)SAFE_CHRST, buff2, &bufc2);
                 string++;
@@ -1129,7 +1136,14 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 	    case '%':		/* Percent - a literal % */
 #ifdef ZENTY_ANSI            
-               if(*(dstr + 1) == SAFE_CHR)
+               if((*(dstr + 1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                        || (*(dstr + 1) == SAFE_CHR2 )
+#endif
+#ifdef SAFE_CHR3
+                                        || (*(dstr + 1) == SAFE_CHR3 )
+#endif
+)
                   safe_str("%%", buff, &bufc);
                else if ( *(dstr + 1) == 'f' )
                   safe_str("%%", buff, &bufc);

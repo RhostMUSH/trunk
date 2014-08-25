@@ -139,6 +139,7 @@ echo "             RhostMUSH ANSI / LAST COMMAND Configuration Utility"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo " ** IF NOT ENABLED, THE SUBSTITUTION ACTS AS A 'LAST COMMAND' SUBSTITUTION **"
+echo "             ** ONE OF THESE SUBSTITUTIONS MUST BE SET TO ANSI **"
 echo ""
 echo "[${XA[1]}]   1. %x is ANSI sub     [${XA[2]}]  2. %c is ANSI sub     [${XA[3]}]  3. %m is ANSI sub"
 echo ""
@@ -651,6 +652,10 @@ parse() {
                XA[$1]=" "
             else
                XA[$1]="X"
+            fi
+            if [ "${XA[1]}" != "X" -a "${XA[2]}" != "X" -a "${XA[3]}" != "X" ]
+            then
+               XA[2]="X"
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  

@@ -2489,7 +2489,14 @@ int string_count(char* src, int numchars)
            idx+=2;
            continue;
         }
-        if ( (src[idx] == '%') && (src[idx+1] == SAFE_CHR) ) {
+        if ( (src[idx] == '%') && ((src[idx+1] == SAFE_CHR)
+#ifdef SAFE_CHR2
+                               || (src[idx+1] == SAFE_CHR2 )
+#endif
+#ifdef SAFE_CHR3
+                               || (src[idx+1] == SAFE_CHR3 )
+#endif
+)) {
            if ( isAnsi[(int) src[idx+2]] ) {
               idx+=2;
               continue;
@@ -3315,7 +3322,14 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
                  continue;
               }
               // Skip over ansi
-              if( (*pp == '%') && (*(pp+1) == SAFE_CHR) ) {
+              if( (*pp == '%') && ((*(pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                               || (*(pp+1) == SAFE_CHR2 )
+#endif
+#ifdef SAFE_CHR3
+                               || (*(pp+1) == SAFE_CHR3 )
+#endif
+)) {
                  if ( isAnsi[(int) *(pp+2)] ) {
                     i_haveansi=1;
                     i_inansi=1;
@@ -7818,7 +7832,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
              idx+=3;
              continue;
           }
-          if( (*s == '%') && (*(s+1) == SAFE_CHR) ) {
+          if( (*s == '%') && ((*(s+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                          || (*(s+1) == SAFE_CHR2 )
+#endif
+#ifdef SAFE_CHR3
+                          || (*(s+1) == SAFE_CHR3 )
+#endif
+)) {
              if ( isAnsi[(int) *(s+2)] ) {
                 *t++ = *s++;
                 *t++ = *s++;
@@ -7928,14 +7949,28 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && isAnsi[(int) *(s_pp+2)]) ||
+              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                   || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                   || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  safe_chr(*s_pp, buff, bufcx);
                  safe_chr(*(s_pp+1), buff, bufcx);
                  safe_chr(*(s_pp+2), buff, bufcx);
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && (*(s_pp+2) == '0') && 
+              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                         || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                         || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                            *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                  safe_chr(*s_pp, buff, bufcx);
@@ -7995,7 +8030,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && isAnsi[(int) *(s_pp+2)]) ||
+              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                   || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                   || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  
                  safe_chr(*s_pp, buff, bufcx);
@@ -8003,7 +8045,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                  safe_chr(*(s_pp+2), buff, bufcx);
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && (*(s_pp+2) == '0') && 
+              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                         || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                         || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                            *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                  safe_chr(*s_pp, buff, bufcx);
@@ -8077,7 +8126,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
             i_inansi=1;
             continue;
          }
-         if ( (*fmtbuff == '%') && (*(fmtbuff+1) == SAFE_CHR) ) {
+         if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                || (*(fmtbuff+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                || (*(fmtbuff+1) == SAFE_CHR3)
+#endif
+)) {
             if ( isAnsi[(int) *(fmtbuff+2)] ) {
                safe_chr( *fmtbuff, buff, bufcx );
                safe_chr( *(fmtbuff+1), buff, bufcx );
@@ -8149,7 +8205,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
 #ifdef ZENTY_ANSI
                x1 = x2 = '\0';
                while ( *s_pp ) {
-                  if ( ((*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && isAnsi[(int) *(s_pp+2)]) ||
+                  if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                       || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                       || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && isAnsi[(int) *(s_pp+2)]) ||
                        ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                      if ( *(s_pp+1) == 'f' ) {
                         memset(s_accent, '\0', MBUF_SIZE);
@@ -8176,7 +8239,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                      }
                      s_pp+=3;
                      i_usepadding = 1;
-                  } else if ( (*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && (*(s_pp+2) == '0') && 
+                  } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                             || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                             || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && (*(s_pp+2) == '0') && 
                               ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                                *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                      memset(s_normal, '\0', MBUF_SIZE);
@@ -8338,7 +8408,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
              safe_chr( *(fmtbuff+1), shold, sholdptr );
              safe_chr( *(fmtbuff+2), shold, sholdptr );
              fmtbuff+=3;
-          } else if ( (*fmtbuff == '%') && (*(fmtbuff+1) == SAFE_CHR) ) {
+          } else if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                        || (*(fmtbuff+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                        || (*(fmtbuff+1) == SAFE_CHR3)
+#endif
+)) {
              if ( isAnsi[(int) *(fmtbuff+2)] ) {
                 safe_chr( *fmtbuff, shold, sholdptr );
                 safe_chr( *(fmtbuff+1), shold, sholdptr );
@@ -8394,7 +8471,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && isAnsi[(int) *(s_pp+2)]) ||
+              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                   || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                   || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  if ( *(s_pp+1) == 'f' ) {
                     memset(s_accent, '\0', MBUF_SIZE);
@@ -8421,7 +8505,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                  }
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && (*(s_pp+2) == '0') && 
+              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                         || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                         || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                            *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                  memset(s_normal, '\0', MBUF_SIZE);
@@ -8502,7 +8593,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && isAnsi[(int) *(s_pp+2)]) ||
+              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                   || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                   || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  if ( *(s_pp+1) == 'f' ) {
                     memset(s_accent, '\0', MBUF_SIZE);
@@ -8529,7 +8627,14 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                  }
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && (*(s_pp+1) == SAFE_CHR) && (*(s_pp+2) == '0') && 
+              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                         || (*(s_pp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                         || (*(s_pp+1) == SAFE_CHR3)
+#endif
+) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                            *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                  memset(s_normal, '\0', MBUF_SIZE);
@@ -19311,7 +19416,14 @@ FUNCTION(fun_lcstr)
     ap = fargs[0];
     while (*ap) {
 #ifdef ZENTY_ANSI
-        if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+        if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                          || (*(ap+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                          || (*(ap+1) == SAFE_CHR3)
+#endif
+)) {
            if ( isAnsi[(int) *(ap+2)] ) {
               safe_chr(*ap, buff, bufcx);
               safe_chr(*(ap+1), buff, bufcx);
@@ -19353,7 +19465,14 @@ FUNCTION(fun_ucstr)
     ap = fargs[0];
     while (*ap) {
 #ifdef ZENTY_ANSI
-        if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+        if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                          || (*(ap+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                          || (*(ap+1) == SAFE_CHR3)
+#endif
+)) {
            if ( isAnsi[(int) *(ap+2)] ) {
               safe_chr(*ap, buff, bufcx);
               safe_chr(*(ap+1), buff, bufcx);
@@ -19395,7 +19514,14 @@ FUNCTION(fun_capstr)
    if( *fargs[0]  ) {
 #ifdef ZENTY_ANSI
        while ( *ap ) {
-          if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+          if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                            || (*(ap+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                            || (*(ap+1) == SAFE_CHR3)
+#endif
+)) {
              if ( isAnsi[(int) *(ap+2)] ) {
                 safe_chr(*ap, buff, bufcx);
                 safe_chr(*(ap+1), buff, bufcx);
@@ -19496,7 +19622,14 @@ FUNCTION(fun_caplist)
              ap = curr;
              while ( *ap ) {
 #ifdef ZENTY_ANSI
-                if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+                if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                                   || (*(ap+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                                   || (*(ap+1) == SAFE_CHR3)
+#endif
+)) {
                    if ( isAnsi[(int) *(ap+2)] ) {
                       safe_chr(*ap, buff, bufcx);
                       safe_chr(*(ap+1), buff, bufcx);
@@ -19576,7 +19709,14 @@ FUNCTION(fun_caplist)
           ap = curr;
 	  while( *ap ) {
 #ifdef ZENTY_ANSI
-             if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+             if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                               || (*(ap+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                               || (*(ap+1) == SAFE_CHR3)
+#endif
+)) {
                 if ( isAnsi[(int) *(ap+2)] ) {
                    safe_chr(*ap, buff, bufcx);
                    safe_chr(*(ap+1), buff, bufcx);
@@ -19633,7 +19773,14 @@ FUNCTION(fun_caplist)
            i_cap = 0;
            while ( *ap ) {
 #ifdef ZENTY_ANSI
-              if ( (*ap == '%') && (*(ap+1) == SAFE_CHR) ) {
+              if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                               || (*(ap+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                               || (*(ap+1) == SAFE_CHR3)
+#endif
+)) {
                  if ( isAnsi[(int) *(ap+2)] ) {
                     safe_chr(*ap, buff, bufcx);
                     safe_chr(*(ap+1), buff, bufcx);
@@ -24331,7 +24478,14 @@ FUNCTION(fun_stripansi)
 
     while (*cp) {
 #ifdef ZENTY_ANSI
-        if ( (*cp == '%') && (*(cp+1) == SAFE_CHR) ) {
+        if ( (*cp == '%') && ((*(cp+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                          || (*(cp+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                          || (*(cp+1) == SAFE_CHR3)
+#endif
+)) {
            if ( isAnsi[(int) *(cp+2)] ) {
               cp+=3;
               continue;
@@ -26478,7 +26632,14 @@ FUNCTION(fun_ljc)
          safe_chr(*tptr, buff, bufcx);
          continue;
       }
-      if( (*tptr == '%') && (*(tptr+1) == SAFE_CHR) ) {
+      if( (*tptr == '%') && ((*(tptr+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                         || (*(tptr+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                         || (*(tptr+1) == SAFE_CHR3)
+#endif
+)) {
          if ( isAnsi[(int) *(tptr+2)] ) {
             safe_chr(*tptr++, buff, bufcx);
             safe_chr(*tptr++, buff, bufcx);
@@ -26682,7 +26843,14 @@ FUNCTION(fun_rjc)
          safe_chr(*tptr, buff, bufcx);
          continue;
       }
-      if( (*tptr == '%') && (*(tptr+1) == SAFE_CHR) ) {
+      if( (*tptr == '%') && ((*(tptr+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+                         || (*(tptr+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                         || (*(tptr+1) == SAFE_CHR3)
+#endif
+)) {
          if ( isAnsi[(int) *(tptr+2)] ) {
             safe_chr(*tptr++, buff, bufcx);
             safe_chr(*tptr++, buff, bufcx);
