@@ -16,14 +16,10 @@ then
 else
    cp -f blacklist.txt blacklist.tmp
 fi
-wget http://torstatus.kgprog.com/ip_list_exit.php/Tor_ip_list_EXIT.csv
+wget http://torstatus.blutmagie.de/ip_list_exit.php/Tor_ip_list_EXIT.csv
 if [ $? -ne 0 ]
 then
-   wget http://torstatus.blutmagie.de/ip_list_exit.php/Tor_ip_list_EXIT.csv
-   if [ $? -ne 0 ]
-   then
-      wget http://torstatus.blutmagie.de/ip_list_exit.php/Tor_ip_list_EXIT.csv
-   fi
+   wget http://torstatus.rueckgr.at/ip_list_exit.php/Tor_ip_list_EXIT.csv
 fi
 
 # Additional TorProject list. Needs you to specify your IP before uncommenting!
