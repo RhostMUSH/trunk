@@ -58,6 +58,8 @@ DOPTIONS="1 2 3"
 C_DOPTIONS=$(echo $DOPTIONS|wc -w)
 LOPTIONS="1 2 3 4 5"
 C_LOPTIONS=$(echo $LOPTIONS|wc -w)
+AOPTIONS="1 2 3"
+C_AOPTIONS=$(echo $AOPTIONS|wc -w)
 REPEAT=1
 for i in ${OPTIONS}
 do
@@ -76,6 +78,11 @@ do
    XL[${i}]=" "
 done
    XL[1]="X"
+for i in ${AOPTIONS}
+do
+   XA[${i}]=" "
+done
+   XA[2]="X"
 # Load default options
 if [ -f ./asksource.default ]
 then
@@ -85,7 +92,7 @@ DEF[1]="-DUSE_SIDEEFFECT"
 DEF[2]="-DTINY_U"
 DEF[3]="-DMUX_INCDEC"
 DEF[4]="-DSOFTCOM"
-DEF[5]="-DTINY_SUB"
+DEF[5]=""
 DEF[6]="-DUSECRYPT"
 DEF[7]="-DPLUSHELP"
 DEF[8]="-DPROG_LIKEMUX"
@@ -119,10 +126,32 @@ DEFL[2]="-DLBUF8"
 DEFL[3]="-DLBUF16"
 DEFL[4]="-DLBUF32"
 DEFL[5]="-DLBUF64"
+DEFA[1]="-DTINY_SUB"
+DEFA[2]="-DC_SUB"
+DEFA[3]="-DM_SUB"
 
 ###################################################################
 # MENU - Main Menu for RhostMUSH Configuration Utility
 ###################################################################
+ansimenu() {
+clear
+echo "             RhostMUSH ANSI / LAST COMMAND Configuration Utility"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo " ** IF NOT ENABLED, THE SUBSTITUTION ACTS AS A 'LAST COMMAND' SUBSTITUTION **"
+echo ""
+echo "[${XA[1]}]   1. %x is ANSI sub     [${XA[2]}]  2. %c is ANSI sub     [${XA[3]}]  3. %m is ANSI sub"
+echo ""
+echo ""
+echo "------------------------------------------------------------------------------"
+echo "[Q]   Go Back to Previous Menu"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "Keys: [h]elp [i]nfo"
+echo "      Or, you may select a number to toggle"
+echo ""
+echo "Please Enter selection: "|tr -d '\012'
+}
 lbufmenu() {
 clear
 echo "                      RhostMUSH LBUFFER Configuration Utility"
@@ -165,7 +194,7 @@ echo "                       RhostMUSH Source Configuration Utility"
 echo ""
 echo "------------------------------------------------------------------------------"
 echo "[${X[1]}]  1. Sideeffects        [${X[2]}]  2. MUSH/MUX u()/zfun  [${X[3]}]  3. MUX inc()/dec()"
-echo "[${X[4]}]  4. Disabled Comsys    [${X[5]}]  5. ansi %x not %c     [${X[6]}]  6. crypt()/decrypt()"
+echo "[${X[4]}]  4. Disabled Comsys    [#]  5. ANSI SUBS (menu)   [${X[6]}]  6. crypt()/decrypt()"
 echo "[${X[7]}]  7. +help hardcoded    [${X[8]}]  8. MUX @program       [${X[9]}]  9. COMMAND flag"
 echo "[${X[10]}] 10. ~/_ attributes     [${X[11]}] 11. Reality Levels     [${X[12]}] 12. a-z setq support"
 echo "[${X[13]}] 13. Enhanced ANSI      [${X[14]}] 14. Marker Flags       [${X[15]}] 15. Bang support"
@@ -323,8 +352,11 @@ info() {
          then
             echo ""
          else
-            echo "RhostMUSH by default allows %c to be ansi.  However, on TinyMUSH3,"
-            echo "%x is used for ANSI.  Use this to switch how %c and %x is used."
+            echo "This submenu allows you to choose, which substitution act as ANSI"
+            echo "code substitutions. These are the settings to mimic other codebases:"
+            echo "       MUX: %x and %c are ANSI, %m is last command."
+            echo "      PENN: %c is last command. There are no ANSI substutions."
+            echo "TinyMUSH 3: %x is ANSI sub, %m is last command. %x depends on config."
          fi
          ;;
       6) if [ $RUNBETA -eq 1 ]
@@ -469,6 +501,32 @@ parse() {
          fi
       fi
    fi
+   if [ $BETAOPT -eq 2 ]
+   then
+      if [ "$ARG" != "q" -a "$ARG" != "h" ]
+      then
+         if [ -z "$ARGNUM" ]
+         then
+            ARG="NULL"
+         elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 6 ]
+         then
+            ARG="NULL"
+         fi
+      fi
+   fi
+   if [ $BETAOPT -eq 3 ]
+   then
+      if [ "$ARG" != "q" -a "$ARG" != "h" ]
+      then
+         if [ -z "$ARGNUM" ]
+         then
+            ARG="NULL"
+         elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 3 ]
+         then
+            ARG="NULL"
+         fi
+      fi
+   fi
    case ${ARG} in
       x) xtraopts
          echo "< HIT RETURN KEY TO CONTINUE >"
@@ -564,6 +622,9 @@ parse() {
             echo "ERROR: Invalid option '$1'"
             echo "< HIT RETURN KEY TO CONTINUE >"
             read ANS
+         elif [ ${BETAOPT} -eq 0 -a "$TST" -eq 5 ]
+         then
+            BETAOPT=3
          elif [ ${BETAOPT} -eq 1 -a "$TST" -gt 0 -a "$TST" -le ${C_DOPTIONS} ]
          then
             if [ "${XD[$1]}" = "X" ]
@@ -582,6 +643,14 @@ parse() {
             if [ ${i} -ne 1 ]
             then
               XB[5]="X"
+            fi
+         elif [ ${BETAOPT} -eq 3 -a "$TST" -gt 0 -a "$TST" -le ${C_AOPTIONS} ]
+         then
+            if [ "${XA[$1]}" = "X" ]
+            then
+               XA[$1]=" "
+            else
+               XA[$1]="X"
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  
@@ -621,6 +690,11 @@ clearopts() {
       XL[${i}]=" "
    done
       XL[1]="X"
+   for i in ${AOPTIONS}
+   do
+      XA[${i}]=" "
+   done
+      XA[2]="X"
    echo "Options have been cleared."
 }
 
@@ -1038,6 +1112,10 @@ saveopts() {
       do
          echo "XL[$i]=\"${XL[$i]}\"" >> ${DUMPFILE}
       done
+      for i in ${AOPTIONS}
+      do
+         echo "XA[$i]=\"${XA[$i]}\"" >> ${DUMPFILE}
+      done
       if [ -f "${DUMPFILE}.mark" ]
       then
          MARKER=$(cat ${DUMPFILE}.mark)
@@ -1078,6 +1156,13 @@ setopts() {
       if [ "${XL[$i]}" = "X" ]
       then
          DEFS="${DEFL[$i]} ${DEFS}"
+      fi
+   done
+   for i in ${AOPTIONS}
+   do
+      if [ "${XA[$i]}" = "X" ]
+      then
+         DEFS="${DEFA[$i]} ${DEFS}"
       fi
    done
 }
@@ -1484,6 +1569,18 @@ main() {
           done
           BETAOPT=0
       fi
+      if [ ${BETAOPT} -eq 3 ]
+      then
+          BETACONTINUE=3
+          while [ $BETACONTINUE -eq 3 ]
+          do
+             ansimenu
+             read ANS
+             parse $ANS
+          done
+          BETAOPT=0
+      fi
+
    done
    setopts
    setdefaults

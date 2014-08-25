@@ -9361,11 +9361,20 @@
               u()-type functions, zones, and @function.
     %+      = Show the total arguments a function received.
     %?      = Show current function invocation as well as current nest levels.
-    %c      = ANSI substitution.  It takes the next character as the ansi
+    %c      = ANSI substitution or Last Command Executed.
+    %x      = ANSI substitution or Last Command Executed.
+    %m      = ANSI substitution or Last Command Executed.
+
+              The functionality of above subs depends on compile options:
+
+            * ANSI substitution: It takes the next character as the ansi
               sequence and continues with that sequence till the next one
               or end of the line.  You may also specify 0x## (ie: 0x20)
               to use extended 256 colors.
-    %x      = Substitution for last command executed.
+
+            * Last Command Executed: The substitution contains the whole,
+              unevaluated code of the last command executed.
+
     %f      = Specify template for accent handler for strings.  To see a list
               of templates, see help on the accent() function.
     %<      = Used for UNICODE (ASCII 160 through 255).  Syntax: %<###>

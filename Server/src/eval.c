@@ -1141,9 +1141,14 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #ifdef TINY_SUB
 	    case 'x':
 	    case 'X':		/* ansi subs */
-#else
+#endif
+#ifdef C_SUB
 	    case 'c':
 	    case 'C':		/* ansi subs */
+#endif
+#ifdef M_SUB
+      case 'm':
+      case 'M':   /* ansi subs */
 #endif
 #endif
                 if ( (mudconf.sub_override & SUB_C) && 
@@ -1875,12 +1880,17 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		free_sbuf(tbuf);
 		break;
 #ifndef NOEXTSUBS
-#ifdef TINY_SUB
+#ifndef C_SUB
             case 'C':		/* Command substitution */
             case 'c':
-#else
+#endif
+#ifndef TINY_SUB
             case 'X':		/* Command substitution */
             case 'x':
+#endif
+#ifndef M_SUB
+            case 'M':		/* Command substitution */
+            case 'm':
 #endif
 #endif
                 if ( (mudconf.sub_override & SUB_X) && 
