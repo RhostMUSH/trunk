@@ -17,6 +17,8 @@ Now... things you need to do.
    type: ./bin/script_setup.sh
 
    Then type: make confsource
+
+   After the compile process is done, type 'make links'!
      
 
 3) To do manual configuration (skip if #2 worked for you)
@@ -36,6 +38,8 @@ Now... things you need to do.
 	just want to quickly hand edit the Makefile, it is in the
 	directory src (full path src/Makefile).  Then you may just
 	run 'make source', if you so choose to hand-edit the Makefile.
+
+  After the compile process is done, type 'make links'!
 
 	--------------
 
