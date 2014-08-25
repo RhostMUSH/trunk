@@ -14713,6 +14713,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
   If the optional last argument is set to 1, lcon will display the object
   names instead of the #dbrefs.
+
+  By default, Rhost returns '#-1' if lcon() returns no objects. If the
+  config option mux_lcon_compat is set to '1', lcon() will return an empty
+  string instead, for MUX compatibility.
   
   Example:
     > inv
