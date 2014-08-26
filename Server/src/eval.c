@@ -1858,14 +1858,14 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    case 'L':		/* Invoker location db# */
 	    case 'l':
 		twhere = where_is(cause);
-		if (Immortal(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && SCloak(twhere) && !Immortal(cause))
+		if (Immortal(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && SCloak(twhere) && !Immortal(cause) && (twhere != cause))
 		  twhere = -1;
-		else if (Wizard(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && !Wizard(cause))
+		else if (Wizard(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && !Wizard(cause) && (twhere != cause))
 		  twhere = -1;
-                else if (mudconf.enforce_unfindable &&
+                else if (mudconf.enforce_unfindable && (twhere != cause) &&
                          ((Immortal(Owner(cause)) && Dark(cause) && Unfindable(cause) && SCloak(cause) && !Immortal(player)) ||
                           (Wizard(Owner(cause)) && Dark(cause) && Unfindable(cause) && !Wizard(player)) ||
-                          ((Unfindable(twhere) || Unfindable(cause)) && !Admin(player))) )
+                          (Unfindable(cause) && !Controls(player,cause) && (cause != player)) || (Unfindable(twhere) && !Controls(cause,twhere) && (Owner(twhere) != cause))))
 		  twhere = -1;
 		tbuf = alloc_sbuf("exec.exloc");
 		sprintf(tbuf, "#%d", twhere);
@@ -1927,27 +1927,26 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       }
                    }
                 } 
-#ifdef TINY_SUB                                                            
                 if ( mudstate.password_nochk == 0 ) {
-                   t_bufa = replace_string("%C", "  ", mudstate.curr_cmd, 0);
-                   t_bufb = replace_string("%c", "  ", t_bufa, 0);
-                   safe_str(t_bufb, buff, &bufc);
-                   free_lbuf(t_bufa);
-                   free_lbuf(t_bufb);
-                } else {
-                   safe_str("XXX", buff, &bufc);
-                }
-#else                                                                      
-                if ( mudstate.password_nochk == 0 ) {
-                   t_bufa = replace_string("%X", "  ", mudstate.curr_cmd, 0);
+                   t_bufb = mudstate.curr_cmd;
+#ifndef TINY_SUB                                                           
+                   t_bufa = replace_string("%X", "  ", t_bufb, 0);
                    t_bufb = replace_string("%x", "  ", t_bufa, 0);
+#endif
+#ifndef C_SUB                                                           
+                   t_bufa = replace_string("%C", "  ", t_bufb, 0);
+                   t_bufb = replace_string("%c", "  ", t_bufa, 0);
+#endif
+#ifndef M_SUB                                                           
+                   t_bufa = replace_string("%M", "  ", t_bufb, 0);
+                   t_bufb = replace_string("%m", "  ", t_bufa, 0);
+#endif
                    safe_str(t_bufb, buff, &bufc);
                    free_lbuf(t_bufa);
                    free_lbuf(t_bufb);
                 } else {
                    safe_str("XXX", buff, &bufc);
                 }
-#endif                                                                     
                 break;
 	    default:		/* Just copy */
                 if ( !mudstate.sub_includestate && *mudconf.sub_include && 
