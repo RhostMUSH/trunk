@@ -1865,7 +1865,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 else if (mudconf.enforce_unfindable && (twhere != cause) &&
                          ((Immortal(Owner(cause)) && Dark(cause) && Unfindable(cause) && SCloak(cause) && !Immortal(player)) ||
                           (Wizard(Owner(cause)) && Dark(cause) && Unfindable(cause) && !Wizard(player)) ||
-                          (Unfindable(cause) && !Controls(player,cause) && (cause != player)) || (Unfindable(twhere) && !Controls(cause,twhere) && (Owner(twhere) != cause))))
+                          (Unfindable(cause) && !Controls(caller,cause) && (cause != caller)) || (Unfindable(twhere) && !Controls(cause,twhere) && (Owner(twhere) != cause))))
 		  twhere = -1;
 		tbuf = alloc_sbuf("exec.exloc");
 		sprintf(tbuf, "#%d", twhere);
