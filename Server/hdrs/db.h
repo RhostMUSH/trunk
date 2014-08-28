@@ -168,7 +168,7 @@ extern NAME *names;
 
 #define SYSTEM -1
 
-#define	Location(t)		db[t].location
+//#define	Location(t)		db[t].location
 #define	Zone(t)			NOTHING
 #define	Contents(t)		db[t].contents
 #define	Exits(t)		db[t].exits

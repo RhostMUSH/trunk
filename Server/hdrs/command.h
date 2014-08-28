@@ -146,6 +146,7 @@ CMD_TWO_ARG_ARGV(do_quota);		/* Set or display quotas */
 CMD_NO_ARG(do_readcache);		/* Reread text file cache */
 CMD_NO_ARG(do_reboot);
 CMD_TWO_ARG(do_register);
+CMD_TWO_ARG_CMDARG(do_remote); /* Run commands at remote location */
 CMD_NO_ARG(do_rwho);			/* Open or close conn to rem RWHO */
 CMD_ONE_ARG(do_say);			/* Messages to all */
 CMD_NO_ARG(do_score);			/* Display my wealth */

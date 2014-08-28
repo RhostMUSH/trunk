@@ -124,6 +124,17 @@ int is_integer (char *str)
 
 #define MAXABSLOCDEPTH 20
 
+dbref Location(dbref target)
+{
+  return Location_safe(target,0);
+}
+dbref Location_safe(dbref target, int override)
+{
+  if((mudstate.remote < 0) || (override != 0))
+    return db[target].location;
+  else
+    return mudstate.remote;
+}
 dbref absloc(dbref player)
 {
   dbref prev, curr;

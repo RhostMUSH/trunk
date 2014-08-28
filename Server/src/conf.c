@@ -689,6 +689,7 @@ NDECL(cf_init)
 	mudstate.global_regs[i] = NULL;
 	mudstate.global_regsname[i] = NULL;
     }
+    mudstate.remote = -1;
 #ifdef EXPANDED_QREGS
     strcpy(mudstate.nameofqreg, "0123456789abcdefghijklmnopqrstuvwxyz");
     mudstate.nameofqreg[36]='\0';

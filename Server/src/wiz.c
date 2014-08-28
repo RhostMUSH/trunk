@@ -367,6 +367,35 @@ dbref	victim;
 }
 
 /* ---------------------------------------------------------------------------
+ * do_remote: Run a command from a different location.
+ */
+
+void do_remote(dbref player, dbref cause, int key, char *loc,
+    char *command, char *args[], int nargs)
+{
+dbref target;
+char *retbuff;
+
+   if ( !command || !*command ) {
+      return;
+   }
+   if ( !loc || !*loc ) {
+      target = NOTHING;
+   } else {
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, loc, NULL, 0);
+      target = match_thing(player, retbuff);
+      free_lbuf(retbuff);
+   }
+
+  if(!Good_obj(target) ||Recover(target) || Going(target) || !Controls(player,target)) {
+    notify(player,"Permission denied.");
+  }
+  mudstate.remote = target;
+  process_command(player, player, 0, command, args, nargs, 0);
+  mudstate.remote = -1;
+}
+
+/* ---------------------------------------------------------------------------
  * do_turtle: Turn a player into an object with specified name.
  */
 

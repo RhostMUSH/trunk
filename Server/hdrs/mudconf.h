@@ -514,6 +514,7 @@ struct statedata {
         int     objevalst;
 	int	breakst;
 	int	breakdolist;
+  dbref remote; /* Remote location for @remote */
 	int	dolistnest;
         int     shell_program;  /* Shelled out of @program */
         dbref   store_lastcr;   /* Store the last created dbref# for functions */
@@ -717,6 +718,7 @@ struct statedata {
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
 #else
+  dbref remote; /* Remote location for @remote */
 	int	logging;	/* Are we in the middle of logging? */
 	char	buffer[256];	/* A buffer for holding temp stuff */
         char    *lbuf_buffer;	/* An lbuf buffer we can globally use */

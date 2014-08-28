@@ -309,6 +309,8 @@ extern int      FDECL(See_attr, (dbref, dbref, ATTR*, dbref, int, int));
 extern int	FDECL(Controls, (dbref, dbref));
 extern int	FDECL(Examinable, (dbref, dbref));
 extern int	FDECL(Controlsforattr, (dbref, dbref, ATTR*, int));
+extern dbref	FDECL(Location, (dbref));
+extern dbref	FDECL(Location_safe, (dbref, int));
 extern dbref	FDECL(absloc, (dbref));
 extern int	FDECL(evlevchk, (dbref, int));
 extern dbref	FDECL(insert_first, (dbref, dbref));
