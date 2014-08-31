@@ -270,6 +270,9 @@ then
    ./convm2 < $1.noquote > $2 2>err.log
 elif [ "$TYPE" = "MUX2NEW" ]
 then
+   cp $1.noquote $1.backup
+echo "Hit return"
+read foo
    ./convm2new < $1.noquote > $2 2>err.log
 elif [ "$TYPE" = "TinyMUSH 3.0" ]
 then

@@ -77,7 +77,7 @@ int main(void) {
 			gets(q); printf("%s\n",q); /* Exits */
 			gets(q); printf("%s\n",q); /* Link */
 			gets(q); printf("%s\n",q); /* Next */
-                        gets(q); printf("%s\n",1); /* Owner */
+                        gets(q); printf("%s\n",q); /* Owner */
 			gets(q); printf("%s\n",q); /* Parent */
 			gets(q); printf("%s\n",q); /* Pennies */
 			/* flag conv */
