@@ -30,7 +30,8 @@ do
    echo "4)  TinyMUX 1.X"
    echo "5)  PennMUSH 1.7.2 (all patches) - ALPHA converter"
    echo "6)  PennMUSH 1.7.5-1.7.7 (MIGHT work with 1.8) (all patches) - BETA converter."
-   echo "7)  TinyMUX 2.X"
+   echo "7)  TinyMUX 2.0-2.8"
+   echo "8)  TinyMUX 2.9+"
    echo "------------------------------------------------------------------------------"
    echo "Q)  Quit"
    echo ""
@@ -47,9 +48,9 @@ do
       echo "Value must be numeric."
       continue
    fi
-   if [ "$ANS" -lt 1 -o "$ANS" -gt 8 ]
+   if [ "$ANS" -lt 1 -o "$ANS" -gt 9 ]
    then
-      echo "Value must be between 1 and 7."
+      echo "Value must be between 1 and 8."
       continue
    else
       if [ "$ANS" -eq 1 ]
@@ -73,11 +74,14 @@ do
       elif [ "$ANS" -eq 7 ]
       then
          TYPE="MUX2"
+      elif [ "$ANS" -eq 8 ]
+      then
+         TYPE="MUX2NEW"
       fi
       CONT=1
    fi
 done
-if [ -f "./quote2" -a -f "./conv" -a -f "./tinyquote" -a -f "./tinyconv" -a -f "./pennconv" -a -f "./convm2" -a -f "./convtm3" -a -f "./convtm31" -a -f "./quote2tm31" ]
+if [ -f "./quote2" -a -f "./conv" -a -f "./tinyquote" -a -f "./tinyconv" -a -f "./pennconv" -a -f "./convm2" -a -f "./convm2new" -a -f "./convtm3" -a -f "./convtm31" -a -f "./quote2tm31" ]
 then
    echo  "Binaries detected. Continuing..."
 else
@@ -145,6 +149,13 @@ else
       echo "Failed on compile.  Aborted."
       exit 1
    fi
+   $CC convm2new.c -o convm2new 2> /dev/null
+   if [ $? -ne 0 ]
+   then
+      echo "(convm2new.c -> error)"
+      echo "Failed on compile.  Aborted."
+      exit 1
+   fi
    $CC convtm3.c -o convtm3 2> /dev/null
    if [ $? -ne 0 ]
    then
@@ -178,12 +189,12 @@ then
 else
    echo "...validated."
 fi
-if [ "$TYPE" = "MUX" -o "$TYPE" = "TinyMUSH 3.0" -o "$TYPE" = "TinyMUSH 3.1" -o "$TYPE" = "MUX2" ]
+if [ "$TYPE" = "MUX2NEW" -o "$TYPE" = "MUX" -o "$TYPE" = "TinyMUSH 3.0" -o "$TYPE" = "TinyMUSH 3.1" -o "$TYPE" = "MUX2" ]
 then
    echo "Converting COLUMNS() to COLUMN()..."|tr -d '\012'
    sed "s/columns(/column(/g" $1 > $1.sed2 2>/dev/null
    echo "...Finished."
-   if [ "${TYPE}" = "MUX2" -o "${TYPE}" = "TinyMUSH 3.1" ]
+   if [ "${TYPE}" = "MUX2NEW" -o "${TYPE}" = "MUX2" -o "${TYPE}" = "TinyMUSH 3.1" ]
    then
       echo "Converting ELEMENTS() to ELEMENTSMUX()..."|tr -d '\012'
       sed "s/elements(/elementsmux(/g" $1.sed2 > $1.sed 2>/dev/null
@@ -200,7 +211,7 @@ then
       mv -f $1.sed2 $1.sed 2>/dev/null
       echo "...Finished."
    fi
-   echo "MUX 2.4 uses %m for the last command.  By default this is %x for Rhost."
+   echo "MUX 2.4 and later uses %m for the last command.  By default this is %x for Rhost."
    echo "You should only answer yes to this for MUX 2.4 or later versions."
    echo "Do you wish to convert MUX2.4's %m last-command? (Y/N) :"|tr -d '\012'
    read ANS
@@ -257,6 +268,9 @@ then
 elif [ "$TYPE" = "MUX2" ]
 then
    ./convm2 < $1.noquote > $2 2>err.log
+elif [ "$TYPE" = "MUX2NEW" ]
+then
+   ./convm2new < $1.noquote > $2 2>err.log
 elif [ "$TYPE" = "TinyMUSH 3.0" ]
 then
    ./convtm3 < $1.noquote > $2 2>err.log
