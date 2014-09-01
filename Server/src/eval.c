@@ -1928,7 +1928,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }
                 } 
                 if ( mudstate.password_nochk == 0 ) {
-                   t_bufb = mudstate.curr_cmd;
+                   t_bufb = alloc_lbuf("password_nochk");
+                   strcpy(t_bufb, mudstate.curr_cmd);
 #ifndef TINY_SUB                                                           
                    t_bufa = replace_string("%X", "  ", t_bufb, 0);
                    free_lbuf(t_bufb);
