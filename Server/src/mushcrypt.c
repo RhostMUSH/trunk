@@ -208,7 +208,7 @@ notify(1234, "Crypting Check...");
 }
 
 int
-decode_base64(char *encoded, int len, char *buff, char **bp)
+decode_base64(char *encoded, int len, char *buff, char **bp, int key)
 {
   BIO *bio, *b64, *bmem;
   char *sbp, decoded[LBUF_SIZE], *pdec;
@@ -237,12 +237,14 @@ decode_base64(char *encoded, int len, char *buff, char **bp)
   if ( dlen >= 0 )
      decoded[dlen]='\0';
   pdec = decoded;
-  while ( pdec && *pdec ) {
-     if ( !((*pdec == BEEP_CHAR) || isprint(*pdec) || isascii(*pdec)) ) 
-        *pdec = ' ';
-     if ( !(*pdec == BEEP_CHAR) && (((int)*pdec > 255) || ((int)*pdec < 32)) )
-        *pdec = '?';
-     pdec++;
+  if ( !key ) {
+     while ( pdec && *pdec ) {
+        if ( !((*pdec == BEEP_CHAR) || isprint(*pdec) || isascii(*pdec)) )
+           *pdec = '?';
+        if ( !(*pdec == BEEP_CHAR) && (((int)*pdec > 255) || ((int)*pdec < 32)) )
+           *pdec = '?';
+        pdec++;
+     }
   }
   safe_str(decoded, buff, bp);
 
@@ -293,7 +295,7 @@ check_mux_password(const char *saved, const char *password)
 
    dp = decoded = alloc_lbuf("decode_buffer");
    /* decode the salt */
-   decode_base64(start, strlen(start), decoded, &dp);
+   decode_base64(start, strlen(start), decoded, &dp, 1);
 
    /* Double-hash the password */
    EVP_DigestInit(&ctx, md);
@@ -303,7 +305,7 @@ check_mux_password(const char *saved, const char *password)
 
    /* Decode the stored password */
    dp = decoded;
-   decode_base64(end, strlen(end), decoded, &dp);
+   decode_base64(end, strlen(end), decoded, &dp, 1);
 
    /* Compare stored to hashed */
    return_chk = (memcmp(decoded, hash, rlen) == 0);
@@ -319,7 +321,7 @@ encode_base64(const char *input, int len, char *buff, char **bp)
 }
 
 int
-decode_base64(const char *input, int len, char *buff, char **bp)
+decode_base64(const char *input, int len, char *buff, char **bp, int key)
 {
    safe_str((char *)"#-1 BASE64 disabled without openssl support.", buff, bp);
    return 0;

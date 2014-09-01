@@ -1315,7 +1315,7 @@ extern struct tm *localtime64_r(const double *, struct tm *);
 extern int internal_logstatus(void);
 extern char * parse_ansi_name(dbref, char *);
 extern int count_extended(char *);
-extern int decode_base64(const char *, int, char *, char **);
+extern int decode_base64(const char *, int, char *, char **, int);
 extern int encode_base64(const char *, int, char *, char **);
 extern void mail_quota(dbref, char *, int, int *, int *, int *, int *, int *, int *);
 extern CMDENT * lookup_command(char *);
@@ -4853,7 +4853,7 @@ FUNCTION(fun_lockdecode)
    s_instrptr = s_instr = alloc_lbuf("fun_lockdecode");
    memset(s_instr, '\0', LBUF_SIZE);
    len = strlen(fargs[0]);
-   decode_base64((const char*)strip_all_special(fargs[0]), len, s_instr, &s_instrptr);
+   decode_base64((const char*)strip_all_special(fargs[0]), len, s_instr, &s_instrptr, 0);
    okey = parse_boolexp(player, s_instr, 1);
    if (okey == TRUE_BOOLEXP) {
       safe_str("#-1 UNDEFINED KEY", buff, bufcx);
@@ -4889,7 +4889,7 @@ FUNCTION(fun_lockcheck)
    s_instrptr = s_instr = alloc_lbuf("fun_lockdecode");
    memset(s_instr, '\0', LBUF_SIZE);
    len = strlen(fargs[0]);
-   decode_base64((const char*)strip_all_special(fargs[0]), len, s_instr, &s_instrptr);
+   decode_base64((const char*)strip_all_special(fargs[0]), len, s_instr, &s_instrptr, 0);
    okey = parse_boolexp(player, s_instr, 1);
    if (okey == TRUE_BOOLEXP) {
       notify_quiet(player, "Warning: UNDEFINED KEY");
@@ -4921,7 +4921,7 @@ FUNCTION(fun_decode64)
    if ( len <= 0) 
       return;
 
-   decode_base64((const char*)strip_all_special(fargs[0]), len, buff, bufcx);
+   decode_base64((const char*)strip_all_special(fargs[0]), len, buff, bufcx, 0);
 }
 
 /* --------------------------------------------------------
