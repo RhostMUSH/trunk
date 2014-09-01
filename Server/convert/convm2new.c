@@ -53,15 +53,27 @@
 
 int main(void) {
 	int val, flag1, flag2, flag3, nflag1, nflag2, nflag3, nflag4, tog2,obj;
-	int mage, royalty, staff, ansi, immortal, atrcnt;
-	char f[16384], *q, *f1, *f2;
+	int mage, royalty, staff, ansi, immortal, atrcnt, i_dbref;
+	char f[16384], *q, *f1, *f2, fstr[60];
+        FILE *fpin;
 
 	memset(f,'\0', sizeof(f));
+        memset(fstr, '\0', sizeof(fstr));
 	q = f;
 	f1 = f+1;
 	f2 = f+2;
 	atrcnt = 0;
 
+        if ( (fpin = fopen("muxlock.chk", "r")) == NULL ) {
+           fprintf(stderr, "ERROR: Unable to open the MUX lock check muxlock.chk file.\n");
+           exit(1);
+        }
+        if ( !feof(fpin) ) {
+           fgets(fstr, 59, fpin);
+           i_dbref = atoi(fstr);
+        } else {
+           i_dbref = -1;
+        }
 	gets(q);
 	while(q != NULL && !feof(stdin) ) {
 		if(f[0] == '!') {
@@ -79,7 +91,15 @@ int main(void) {
 			gets(q); printf("%s\n",q); /* Exits */
 			gets(q); printf("%s\n",q); /* Link */
 			gets(q); printf("%s\n",q); /* Next */
-                        printf("%d\n", obj);       /* Lock -- Mux removed LOCK from structure, rhost needs it populated */
+                        if ( i_dbref == obj ) {
+                           printf("%d\n", obj);/* UNLock -- Mux removed LOCK from structure, rhost needs it populated */
+                           if ( !feof(fpin) ) {
+                              fgets(fstr, 59, fpin);
+                              i_dbref = atoi(fstr);
+                           } 
+                        } else {
+                           printf("%s\n", (char *)"");/* UNLock -- Mux removed LOCK from structure, rhost needs it populated */
+                        }
                         gets(q); printf("%s\n",q); /* Owner */
 			gets(q); printf("%s\n",q); /* Parent */
 			gets(q); printf("%s\n",q); /* Pennies */
@@ -348,8 +368,10 @@ int main(void) {
 			  printf("***END OF DUMP***\n");
 			  fflush(stdout);
 			  q = NULL;
+                          fclose(fpin);
 			  return(0);
 		  }
 	} /* while */
+        fclose(fpin);
 	return(0);	
 }

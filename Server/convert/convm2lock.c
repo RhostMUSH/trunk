@@ -3,7 +3,7 @@
 #include <string.h>
 
 int main(int argc, char **argv) {
-FILE *fpin, *fpout;
+FILE *fpin, *fpout, *fpout2;
 char *s_in, s_buf[100000];
 int  i_dbref;
    
@@ -25,6 +25,13 @@ int  i_dbref;
       fprintf(stderr, "Syntax: %s <flatfile> <outfile>\n", argv[0]);
       exit(1);
    }
+   if ( (fpout2 = fopen("muxlock.chk", "w")) == NULL ) {
+      fclose(fpin);
+      fclose(fpout);
+      fprintf(stderr, "Error opening outfile for writing.\n");
+      fprintf(stderr, "Syntax: %s <flatfile> <outfile>\n", argv[0]);
+      exit(1);
+   }
    
    while ( !feof(fpin) ) {
       fgets( s_buf, 99999, fpin );
@@ -35,10 +42,12 @@ int  i_dbref;
       if ( (*s_buf == '>') && (atoi(s_buf+1) == 42) ) {
          fgets( s_buf, 99999, fpin );
          fprintf(fpout, "@lock #%d=%s", i_dbref, s_buf);
+         fprintf(fpout2, "%d\n", i_dbref);
          continue;
       }
    }
 
    fclose(fpin);
    fclose(fpout);
+   fclose(fpout2);
 }
