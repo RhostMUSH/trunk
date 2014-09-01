@@ -81,7 +81,7 @@ do
       CONT=1
    fi
 done
-if [ -f "./quote2" -a -f "./conv" -a -f "./tinyquote" -a -f "./tinyconv" -a -f "./pennconv" -a -f "./convm2" -a -f "./convm2new" -a -f "./convtm3" -a -f "./convtm31" -a -f "./quote2tm31" ]
+if [ -f "./convm2lock" -a -f "./quote2" -a -f "./conv" -a -f "./tinyquote" -a -f "./tinyconv" -a -f "./pennconv" -a -f "./convm2" -a -f "./convm2new" -a -f "./convtm3" -a -f "./convtm31" -a -f "./quote2tm31" ]
 then
    echo  "Binaries detected. Continuing..."
 else
@@ -177,6 +177,14 @@ else
       echo "Failed on compile.  Aborted."
       exit 1
    fi
+   $CC convm2lock.c -o convm2lock
+   if [ $? -eq 0 ]
+   then
+      echo "Compiling MUX 2.8+ lock identification tool..."
+   else
+      echo "(convm2lock.c -> error) failed to compile mux 2.8+ lock identification tool..."
+      exit 1
+   fi
    echo "...finished."
 fi
 echo "Checking for valid flatfile..."|tr -d '\012'
@@ -270,7 +278,15 @@ then
    ./convm2 < $1.noquote > $2 2>err.log
 elif [ "$TYPE" = "MUX2NEW" ]
 then
+   ./convm2lock $1.noquote muxlocks.out
    ./convm2new < $1.noquote > $2 2>err.log
+   chk=$(wc -l muxlocks.out|cut -f1 -d" ")
+   if [ ${chk} -gt 0 ]
+   then
+      echo ""
+      echo "There are unconverted MUX @locks you need to manually load."
+      echo "When loaded, please load in muxlocks.out into the mush."
+   fi
 elif [ "$TYPE" = "TinyMUSH 3.0" ]
 then
    ./convtm3 < $1.noquote > $2 2>err.log
@@ -379,4 +395,8 @@ then
    echo "        'more err.log' : $(wc -l err.log|cut -f1 -d" ") attributes were cut off for length limitations."
    echo "        'more missing.log' : $(wc -l missing.log|cut -f1 -d" ") attributes are unused by RhostMUSH."
    echo "        'more over.log' : $(wc -l over.log|cut -f1 -d" ") objects had over 750 attributes."
+   if [ -s muxlocks.out ]
+   then
+      echo "        'more muxlocks.out' : $(wc -l muxlocks.out|cut -f1 -d" ") locks need to be manually loaded into RhostMUSH."
+   fi
 fi
