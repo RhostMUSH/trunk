@@ -1931,18 +1931,23 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    t_bufb = mudstate.curr_cmd;
 #ifndef TINY_SUB                                                           
                    t_bufa = replace_string("%X", "  ", t_bufb, 0);
+                   free_lbuf(t_bufb);
                    t_bufb = replace_string("%x", "  ", t_bufa, 0);
+                   free_lbuf(t_bufa);
 #endif
 #ifndef C_SUB                                                           
                    t_bufa = replace_string("%C", "  ", t_bufb, 0);
+                   free_lbuf(t_bufb);
                    t_bufb = replace_string("%c", "  ", t_bufa, 0);
+                   free_lbuf(t_bufa);
 #endif
 #ifndef M_SUB                                                           
                    t_bufa = replace_string("%M", "  ", t_bufb, 0);
+                   free_lbuf(t_bufb);
                    t_bufb = replace_string("%m", "  ", t_bufa, 0);
+                   free_lbuf(t_bufa);
 #endif
                    safe_str(t_bufb, buff, &bufc);
-                   free_lbuf(t_bufa);
                    free_lbuf(t_bufb);
                 } else {
                    safe_str("XXX", buff, &bufc);
