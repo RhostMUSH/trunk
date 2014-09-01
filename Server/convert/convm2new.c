@@ -3,6 +3,7 @@
  * (c) 1999, All rights reserved
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 /* 1st word */
 #define IMMORTAL  0x00200000
@@ -54,12 +55,13 @@ int main(void) {
 	int val, flag1, flag2, flag3, nflag1, nflag2, nflag3, nflag4, tog2,obj;
 	int mage, royalty, staff, ansi, immortal, atrcnt;
 	char f[16384], *q, *f1, *f2;
+
 	memset(f,'\0', sizeof(f));
 	q = f;
 	f1 = f+1;
 	f2 = f+2;
 	atrcnt = 0;
-	
+
 	gets(q);
 	while(q != NULL && !feof(stdin) ) {
 		if(f[0] == '!') {
@@ -77,6 +79,7 @@ int main(void) {
 			gets(q); printf("%s\n",q); /* Exits */
 			gets(q); printf("%s\n",q); /* Link */
 			gets(q); printf("%s\n",q); /* Next */
+                        printf("%d\n", obj);       /* Lock -- Mux removed LOCK from structure, rhost needs it populated */
                         gets(q); printf("%s\n",q); /* Owner */
 			gets(q); printf("%s\n",q); /* Parent */
 			gets(q); printf("%s\n",q); /* Pennies */
