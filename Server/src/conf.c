@@ -742,6 +742,7 @@ NDECL(cf_init)
     mudstate.db_size = 0;
     mudstate.freelist = NOTHING;
     mudstate.markbits = NULL;
+    mudstate.remote = -1;
 #endif /* STANDALONE */
 }
 
