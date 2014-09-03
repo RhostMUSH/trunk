@@ -52,8 +52,8 @@
 #define LBUF_SIZE 3998
 
 int main(void) {
-	int val, flag1, flag2, flag3, nflag1, nflag2, nflag3, nflag4, tog2,obj;
-	int mage, royalty, staff, ansi, immortal, atrcnt, i_dbref;
+	unsigned long flag1, flag2, flag3, nflag1, nflag2, nflag3, nflag4;
+	int val, tog2, obj, mage, royalty, staff, ansi, immortal, atrcnt, i_dbref;
 	char f[16384], *q, *f1, *f2, fstr[60];
         FILE *fpin;
 
@@ -104,9 +104,9 @@ int main(void) {
 			gets(q); printf("%s\n",q); /* Parent */
 			gets(q); printf("%s\n",q); /* Pennies */
 			/* flag conv */
-			gets(q); flag1 = atoi(q);  /* Flag Word 1 */
-			gets(q); flag2 = atoi(q);  /* Flag Word 2 */
-			gets(q); flag3 = atoi(q);  /* Flag Word 3 */
+			gets(q); flag1 = atol(q);  /* Flag Word 1 */
+			gets(q); flag2 = atol(q);  /* Flag Word 2 */
+			gets(q); flag3 = atol(q);  /* Flag Word 3 */
 			nflag1 = (flag1 & 0xDFDFFFFF); /* Convert/Strip Flag 1 */
                         nflag2 = (flag2 & 0xD00000FF); /* Convert/Strip Flag 2 */
 			nflag3 = nflag4 = tog2 = 0;    /* Nullify Flag 3 , initialize flag 4 */
@@ -147,15 +147,15 @@ int main(void) {
 
 			if((obj == 1) && !(nflag1 & IMMORTAL))
 			  nflag1 |= IMMORTAL; /* This should not happen. */
-			printf("%u\n",nflag1); /* flags1 */
-			printf("%u\n",nflag2); /* flags2 */
-			printf("%u\n",nflag3); /* flags3 */
+			printf("%d\n",nflag1); /* flags1 */
+			printf("%d\n",nflag2); /* flags2 */
+			printf("%d\n",nflag3); /* flags3 */
 			fflush(stdout);
 			gets(q); /* power 1 */
 			gets(q); /* power 2 */
-			printf("%u\n",nflag4); /* Flags4 */
+			printf("%d\n",nflag4); /* Flags4 */
 			printf("0\n"); /* toggles1 */
-                        printf("%u\n", tog2); /* toggles2 */
+                        printf("%d\n", tog2); /* toggles2 */
 			printf("0\n"); /* powers1 */
 			printf("0\n"); /* powers2 */
 			printf("0\n"); /* powers3 */
@@ -196,6 +196,10 @@ int main(void) {
                                   printf("XXXXFe7xx3Zo2\n"); /* set password for #1 to Nyctasia */
                                } else
                                   printf("%s\n",q); /* Just store the password as is */
+                               gets(q);
+                            } else if (val == 42 ) {
+                              /* Eat it */
+                               gets(q);
                                gets(q);
                             } else if ((val >= 129) && (val <= 142)) {
 			       printf(">%d\n",val+30);
