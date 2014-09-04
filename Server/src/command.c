@@ -7149,7 +7149,7 @@ list_rlevels(dbref player)
        tprp_buff = tpr_buff = alloc_lbuf("list_rlevels");
        for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
            tprp_buff = tpr_buff;
-           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-12s Value: 0x%08x   Desc: %s",
+           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
                mudconf.reality_level[i].name, mudconf.reality_level[i].value,
                mudconf.reality_level[i].attr));
        }

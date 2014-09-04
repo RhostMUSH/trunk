@@ -863,7 +863,7 @@ CF_HAND(cf_rlevel)
 {
     CONFDATA *mc = (CONFDATA *)vp;
     int i, j, k, cmp_x, cmp_y, cmp_z;
-    char dup1[9], dup2[9], *nptr, tbufit[20];
+    char dup1[17], dup2[17], *nptr, tbufit[20];
 
     cmp_z = countwordsnew(str);
     if ( (cmp_z < 2) || (cmp_z > 3) ) {
@@ -883,8 +883,8 @@ CF_HAND(cf_rlevel)
         return 1;
     }
 
-    for(i=0; *str && ((*str != ' ') && (*str != '\t')) && (i < 8); ++str) {
-        if(i < 8) {
+    for(i=0; *str && ((*str != ' ') && (*str != '\t')) && (i < 16); ++str) {
+        if(i < 16) {
             dup1[i] = tolower(*str);
             mc->reality_level[mc->no_levels].name[i++] = *str;
         }
@@ -915,7 +915,7 @@ CF_HAND(cf_rlevel)
       }
     }
 
-    /* If name is over 8 chars, trim off the rest */
+    /* If name is over 16 chars, trim off the rest */
     if ( *str && ((*str != ' ') && (*str != '\t')) )
        for(; *str && ((*str != ' ') && (*str != '\t')); ++str);
 

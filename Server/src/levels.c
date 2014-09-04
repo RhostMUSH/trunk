@@ -186,7 +186,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
     dbref thing;
     int negate, i;
     RLEVEL result, ormask, andmask;
-    char lname[9], *buff;
+    char lname[17], *buff;
 
     /* find thing */
     if ((thing = match_controlled(player, object)) == NOTHING)
@@ -209,7 +209,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
             ++arg;
         }
         for(i=0; *arg && !isspace((int)*arg); ++arg)
-            if(i < 8)
+            if(i < 16)
                 lname[i++] = *arg;
         lname[i] = '\0';
         if(!lname[0])
@@ -249,7 +249,7 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     dbref thing;
     int negate, i;
     RLEVEL result, ormask, andmask;
-    char lname[9], *buff;
+    char lname[17], *buff;
 
     /* find thing */
     if ((thing = match_controlled(player, object)) == NOTHING)
@@ -272,7 +272,7 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
             ++arg;
         }
         for(i=0; *arg && !isspace((int)*arg); ++arg)
-            if(i < 8)
+            if(i < 16)
                 lname[i++] = *arg;
         lname[i] = '\0';
         if(!lname[0])

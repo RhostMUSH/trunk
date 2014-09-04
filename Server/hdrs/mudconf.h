@@ -400,7 +400,7 @@ struct confdata {
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
         struct rlevel_def {
-            char name[9];	/* name of level */
+            char name[17];	/* name of level */
             RLEVEL value;	/* bitmask for level */
             char attr[33];	/* RLevel desc attribute */
         } reality_level[32];	/* Reality levels */
