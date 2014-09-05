@@ -5083,7 +5083,10 @@ FUNCTION(fun_elist)
     if (nfargs > 1 && *fargs[1] ) {
        sep_buf = exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
-       strcpy(sop, sep_buf);
+       if ( *sep_buf )
+          strcpy(sop, sep_buf);
+       else
+          strcpy(sop, "and");
        free_lbuf(sep_buf);
     } else {
        strcpy(sop, "and");
@@ -5091,7 +5094,10 @@ FUNCTION(fun_elist)
     if (nfargs > 2 && *fargs[2] ) {
        sep_buf = exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[2], cargs, ncargs);
-       sep = *sep_buf;
+       if ( *sep_buf )
+          sep = *sep_buf;
+       else
+          sep = ' ';
        free_lbuf(sep_buf);
     } else {
        sep = ' ';
@@ -5493,7 +5499,11 @@ FUNCTION(fun_valid)
       safe_str("#-1", buff, bufcx);
   } else if (!fargs[1] || !*fargs[1]) {
       ival(buff, bufcx, 0);
-  } else if (!stricmp(fargs[0], "name")) {
+  } else if ( !stricmp(fargs[0], "name") ||
+              !stricmp(fargs[0], "thingname") ||
+              !stricmp(fargs[0], "roomname") ||
+              !stricmp(fargs[0], "exitname") ||
+              !stricmp(fargs[0], "zonename") ) {
       ival(buff, bufcx, ok_name(fargs[1]));
   } else if (!stricmp(fargs[0], "attrname")) {
       ival(buff, bufcx, ok_attr_name(fargs[1]));
@@ -6595,7 +6605,7 @@ FUNCTION(fun_pmatch)
    }
    if (!((thing = lookup_player(player, arg_ptr, 1)) == NOTHING)) {
       if ( !Good_obj(thing) || (thing == AMBIGUOUS || thing == NOTHING) || Recover(thing) ||
-          (!Immortal(player) && Cloak(thing) && SCloak(thing)) ||
+          !isPlayer(thing) || (!Immortal(player) && Cloak(thing) && SCloak(thing)) ||
            (!Wizard(player) && Cloak(thing)) ) {
           safe_str("#-1 NO MATCH", buff, bufcx);
           return;
