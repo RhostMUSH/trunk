@@ -5121,10 +5121,12 @@ FUNCTION(fun_elist)
     if (nfargs > 4 && *fargs[4] ) {
        sep_buf = exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[4], cargs, ncargs);
-       sepptr = sep_buf2 = alloc_lbuf("fun_elist3");
-       safe_str(strip_ansi(sep_buf),sep_buf2,&sepptr);
+       if ( *sep_buf ) {
+          sepptr = sep_buf2 = alloc_lbuf("fun_elist3");
+          safe_str(strip_ansi(sep_buf),sep_buf2,&sepptr);
+          commsep = 1;
+       }
        free_lbuf(sep_buf);
-       commsep = 1;
     }
     i_munge = 0;
     if ( nfargs > 5 && *fargs[5] ) {
