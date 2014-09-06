@@ -2376,12 +2376,13 @@ atr_get_raw(dbref thing, int atr)
 
     makekey(thing, atr, &okey);
     a = FETCH(&okey);
-    if(strlen(a) > (LBUF_SIZE-1))
-    {
-      memset(tmp_lbuf, '\0', LBUF_SIZE);
-      strncpy(tmp_lbuf,a,LBUF_SIZE-1);
-      return tmp_lbuf;
-    }
+    if(a != NULL)
+      if(strlen(a) > (LBUF_SIZE-1))
+      {
+        memset(tmp_lbuf, '\0', LBUF_SIZE);
+        strncpy(tmp_lbuf,a,LBUF_SIZE-1);
+        return tmp_lbuf;
+      }
     return a;
 }
 
