@@ -5687,6 +5687,7 @@ void mail_load(dbref player)
   short int gen, gen2, *spt1;
   int *ipt1;
 /* needed due to possibly large input lines */
+#if 0
 #ifdef QDBM
   #ifdef LBUF64
     char hbuf1[192000];
@@ -5708,6 +5709,8 @@ void mail_load(dbref player)
 #else
   char hbuf1[12000];
 #endif
+#endif
+  char hbuf1[192000];
   dump1 = fopen(dumpname, "r");
   dump2 = fopen(fdumpname, "r");
   if (!dump1 || !dump2) {
@@ -5871,7 +5874,7 @@ void mail_load(dbref player)
 		*(lbuf2+2+hstoff) = *(pt2+2);
 		pt2 += 3;
 		if (*pt2) {
-		  strcpy(lbuf2+hsuboff,pt2);
+		  strncpy(lbuf2+hsuboff,pt2,LBUF_SIZE - hsuboff - 2);
 		  infodata.dsize = hsuboff + strlen(pt2) + 1;
 		}
 		else
