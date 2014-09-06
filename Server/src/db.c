@@ -2361,6 +2361,9 @@ atr_set_flags(dbref thing, int atr, dbref flags)
  * atr_get_raw, atr_get_str, atr_get: Get an attribute from the database.
  */
 
+// Global LBUF size static buffer for large LBUF -> small LBUF conversion.
+Attr tmp_lbuf[LBUF_SIZE];
+//
 char *
 atr_get_raw(dbref thing, int atr)
 {
@@ -2373,6 +2376,12 @@ atr_get_raw(dbref thing, int atr)
 
     makekey(thing, atr, &okey);
     a = FETCH(&okey);
+    if(strlen(a) > (LBUF_SIZE-1))
+    {
+      memset(tmp_lbuf, '\0', LBUF_SIZE);
+      strncpy(tmp_lbuf,a,LBUF_SIZE-1);
+      return tmp_lbuf;
+    }
     return a;
 }
 
