@@ -1403,13 +1403,20 @@ int	aflags;
 static void find_wild_attrs (dbref player, dbref thing, char *str, int check_exclude, int hash_insert,
 		int get_locks,OBLOCKMASTER *master, int i_regexp, int i_tree)
 {
-ATTR	*attr;
+ATTR	*attr, *atr2;
 char	*as;
 dbref	aowner;
-int	ca, ok, aflags;
+int	ca, ok, aflags, i_nowild;
 
 	/* Walk the attribute list of the object */
 
+        i_nowild = 0;
+        if ( *str && (!strchr(str, '*') && !strchr(str, '?')) ) {
+           i_nowild = 1;
+           atr2 = (ATTR *) hashfind(str, &mudstate.attr_name_htab);
+           if ( !atr2 )
+              i_nowild = 0;
+        }
 	atr_push();
 	for (ca=atr_head(thing, &as); ca; ca=atr_next(&as)) {
 		attr = atr_num(ca);
@@ -1451,7 +1458,8 @@ int	ca, ok, aflags;
 			ok = 0;
 
                 if ( mudstate.reverse_wild == 1 ) {
-		   if (ok && ((!i_regexp && !quick_wild(str, (char *)attr->name)) ||
+		   if (ok && ((i_nowild && (strcmp(atr2->name, attr->name) == 0)) ||
+                              (!i_regexp && !quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && !quick_regexp_match(str, (char *)attr->name, 0))) ) {
                       if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
@@ -1462,7 +1470,8 @@ int	ca, ok, aflags;
                       }
 		   }
                 } else {
-		   if (ok && ((!i_regexp && quick_wild(str, (char *)attr->name)) ||
+		   if (ok && ((i_nowild && (strcmp(atr2->name, attr->name) == 0)) ||
+                              (!i_regexp && quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && quick_regexp_match(str, (char *)attr->name, 0))) ) {
                       if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
