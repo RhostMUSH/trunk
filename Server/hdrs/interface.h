@@ -82,6 +82,14 @@ struct SNOOPLISTNODE {
  *    - Thorin 01/1997
 */
 
+/* OK, let's make a temporary player desc data descriptor here */
+typedef struct descriptor_data_online DESC_ONLINE;
+struct descriptor_data_online {
+  int version;
+  int width;
+  int height;
+};
+
 typedef struct descriptor_data DESC;
 struct descriptor_data {
   int descriptor;
@@ -152,7 +160,7 @@ extern DESC *desc_in_use;
 
 extern void	NDECL(emergency_shutdown);
 extern void	FDECL(shutdownsock, (DESC *, int));
-extern void	FDECL(shovechars, (int));
+extern void	FDECL(shovechars, (int, char*));
 extern void	NDECL(set_signals);
 extern void	FDECL(start_auth, (DESC *));
 extern void 	FDECL(check_auth_connect, (DESC *));

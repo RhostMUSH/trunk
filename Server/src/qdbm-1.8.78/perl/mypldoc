@@ -1,0 +1,226 @@
+#! /usr/bin/perl -w
+
+#================================================================
+# mypldoc
+# Document generator for Perl sources
+#================================================================
+
+
+use strict;
+use warnings;
+
+
+# main routine
+sub main {
+    my($i, $err, $destdir, $ptitle, $afile, @files, $file);
+    $err = 0;
+    $ptitle = "Perl API";
+    for($i = 0; $i < scalar(@ARGV); $i++){
+        if($ARGV[$i] =~ m/^-d/){
+            $destdir = $ARGV[++$i];
+        } elsif($ARGV[$i] =~ m/^-t/){
+            $ptitle = $ARGV[++$i];
+        } elsif($ARGV[$i] =~ m/^-a/){
+            $afile = $ARGV[++$i];
+        } else {
+            push(@files, $ARGV[$i]);
+        }
+    }
+    (scalar(@files) > 0) || usage();
+    (defined($destdir)) || ($destdir = ".");
+    (-d $destdir) || (mkdir($destdir)) || die "$1: $!\n";
+    foreach $file (@files){
+        (makedoc($destdir, $ptitle, $file)) || ($err = 1);
+    }
+    (makeindex($destdir, $ptitle, $afile, \@files)) || ($err = 1);
+    return $err ? 1 : 0;
+}
+
+
+# print the usage and exit
+sub usage {
+    printf(STDERR "$0: usage: $0 [-d dir] [-t str] [-a file] file ...\n");
+    exit(1);
+}
+
+
+# generate a document
+sub makedoc {
+    my($destdir) = shift;
+    my($ptitle) = shift;
+    my($source) = shift;
+    my($dest, $in, $out, $line, @group, $kbd, $i);
+    if(!(-r $source)){
+        printf(STDERR "$0: $source: no such file\n");
+        return 0;
+    }
+    if(!open(IN, $source)){
+        printf(STDERR "$0: $source: cannot open\n");
+        return 0;
+    }
+    $in = *IN;
+    $source =~ s/.*\///;
+    $dest = ">$destdir/$source.html";
+    if(!open(OUT, $dest)){
+        printf(STDERR "$0: $dest: cannot open\n");
+        return 0;
+    }
+    $out = *OUT;
+    writehead($out, $ptitle, $source);
+    while(defined($line = <$in>)){
+        chomp($line);
+        if($line =~ m/^\x23\x23/){
+            @group = ();
+            while(defined($line = <$in>)){
+                chomp($line);
+                ($line =~ m/^\x23/) || last;
+                (length($line) > 1) || next;
+                push(@group, $line);
+            }
+            if(scalar(@group) > 0){
+                printf($out "<dl>\n");
+                $kbd = $group[0] =~ m/^\x23:/;
+                for($i = 0; $i < scalar(@group); $i++){
+                    $group[$i] =~ s/^\x23[ :]*//;
+                    $group[$i] =~ s/&/&amp;/;
+                    $group[$i] =~ s/</&lt;/;
+                    $group[$i] =~ s/>/&gt;/;
+                    $group[$i] =~ s/\x22/&quot;/;
+                }
+                if($kbd){
+                    printf($out "<dt><em>%s</em></dt>\n", $group[0]);
+                } else {
+                    printf($out "<dt><kbd>%s</kbd></dt>\n", $group[0]);
+                }
+                if(scalar(@group) > 1){
+                    printf($out "<dd>\n");
+                    for($i = 1; $i < scalar(@group); $i++){
+                        printf($out "%s\n", $group[$i]);
+                    }
+                    printf($out "</dd>\n");
+                }
+                printf($out "</dl>\n");
+            }
+        }
+    }
+    printf($out "<hr />\n");
+    writetail($out);
+    close($out);
+    close($in);
+    return 1;
+}
+
+
+# generate the index file
+sub makeindex {
+    my($destdir) = shift;
+    my($ptitle) = shift;
+    my($afile) = shift;
+    my($filesref) = shift;
+    my($line, @files, $dest, $in, $out, $file, $name);
+    @files = @$filesref;
+    $dest = ">$destdir/index.html";
+    if(!open(OUT, $dest)){
+        printf(STDERR "$0: $dest: cannot open\n");
+        return 0;
+    }
+    $out = *OUT;
+    writehead($out, $ptitle);
+    if(defined($afile)){
+        if(open(IN, $afile)){
+            while(defined($line = <IN>)){
+                chomp($line);
+                printf(OUT "%s\n", $line);
+            }
+            close(IN);
+        } else {
+            printf(STDERR "$0: $afile: cannot open\n");
+        }
+        printf($out "<hr />\n");
+    }
+    printf($out "<h2>API</h2>\n");
+    printf($out "<ul>\n");
+    foreach $file (@files){
+        $file =~ s/.*\///;
+        $name = $file;
+        $name =~ s/\..*//;
+        printf($out "<li><a href=\"$file.html\">$name</a></li>\n");
+    }
+    printf($out "</ul>\n");
+    printf($out "<hr />\n");
+    writetail($out);
+    close($out);
+    return 1;
+}
+
+
+# write header
+sub writehead {
+my($out) = shift;
+my($ptitle) = shift;
+my($name) = shift;
+my($title, $head, $navi);
+if(defined($name)){
+    $name =~ s/\..*//;
+    $title = "$name ($ptitle)";
+    $head = "API of $name";
+    $navi = "<div class=\"note\">[<a href=\"index.html\">Back</a>]</div>";
+} else {
+    $title = "INDEX ($ptitle)";
+    $head = "$ptitle";
+    $navi = "<div class=\"note\">Perl Source Documents</div>";
+}
+print $out <<__MYEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link rel="contents" href="./" />
+<link rev="made" href="mailto:mikio\@fallabs.com" />
+<title>$title</title>
+<style type="text/css">html { margin: 0em 0em; padding 0em 0em; background: #eeeeee none; }
+body { background-color: #eeeeee; color: #111111; padding: 1.5em 2em; margin: 0em 0em;
+  border-left: double 3.0em #ddeedd; border-right: solid 1.0em #ddeedd;
+  font-style: normal; font-weight: normal; font-family: serif; }
+h1 { margin-top: 0.8em; margin-bottom: 1.3em; font-weight: bold; font-family: sans-serif; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold; font-family: sans-serif; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; font-family: sans-serif; }
+p,ul,ol,dl { line-height: 140%; }
+em { color: #111111; font-style: italic; font-weight: normal; font-family: serif; }
+kbd { color: #111111; font-style: normal; font-weight: bold; font-family: monospace; }
+a { color: #0022aa; text-decoration: none; }
+a:hover { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+.note { text-align: right; }
+</style>
+</head>
+<body>
+$navi
+<h1>$head</h1>
+<hr />
+__MYEOF
+}
+
+
+# write tail
+sub writetail {
+my($out) = shift;
+my($sec,$min,$hour,$mday,$mon,$year) = localtime();
+my($datestr) = sprintf("%04d/%02d/%02d", $year + 1900, $mon + 1, $mday);
+print $out <<__MYEOF
+<div class="note">Generated by $0, $datestr.</div>
+</body>
+</html>
+__MYEOF
+}
+
+
+# execute main
+$0 =~ s/.*\///;
+exit(main());
+
+
+
+# END OF FILE

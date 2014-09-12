@@ -16,6 +16,8 @@
 extern int do_command(DESC *, char *);
 extern int NDECL(next_timer);
 
+extern int FDECL(alarm_msec, (double));
+
 static struct fn fnlist[] = {
 	{ NULL,	"user",	USER,},
 	{ NULL,	"coun",	COUN,},
@@ -41,12 +43,12 @@ expect(int s, int match, char *buf)
 	int	cc;
 
 	size = 1024;
-	alarm(30);
+	alarm_msec(30);
 	ptr = buf;
 	n = recv(s, ptr, size, MSG_PEEK);
 	if (n <= 0) {
 		mudstate.alarm_triggered = 0;
-		alarm(next_timer());
+		alarm_msec(next_timer());
 		return 0;
 	}
 	size -= n;
@@ -55,16 +57,16 @@ expect(int s, int match, char *buf)
 		do {
 			cc = read(s, ptr, n);
 			if (cc < 0) {
-				alarm(next_timer());
+				alarm_msec(next_timer());
 				return 0;
 			}
 			if (cc != n) {
-				alarm(next_timer());
+				alarm_msec(next_timer());
 				return 0;
 			}
 			ptr += n;
 			if ((n = recv(s, ptr, size, MSG_PEEK)) <= 0) {
-				alarm(next_timer());
+				alarm_msec(next_timer());
 				return 0;
 			}
 			size -= n;
@@ -76,16 +78,16 @@ expect(int s, int match, char *buf)
 		newline = 1 + p - ptr;
 	cc = read(s, buf, newline);
 	if (cc < 0) {
-		alarm(next_timer());
+		alarm_msec(next_timer());
 		return 0;
 	}
 	if (cc != newline) {
-		alarm(next_timer());
+		alarm_msec(next_timer());
 		return 0;
 	}
 	buf[newline] = '\0';
 	mudstate.alarm_triggered = 0;
-	alarm(next_timer());
+	alarm_msec(next_timer());
 	if (!isxdigit((int)*buf)) {
 		return 0;
 	}
@@ -132,7 +134,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
   } 
   country = args[0];
   password = args[1];
-  sprintf(buf2, "%s %s", "localhost", "7777");
+  sprintf(buf2, "%s %s", "localhost", "1665");
 
 /*pt = doorparm("empire"); */
   pt = buf2;

@@ -33,6 +33,11 @@ char *index(const char *, int);
 #include "debug.h"
 #define FILENUM COMMAND_C
 
+extern char * attrib_show(char *, int);
+extern void display_perms(dbref, int, int, char *);
+extern void del_perms(dbref, char *, char *, char **, int);
+extern void add_perms(dbref, char *, char *, char **, int);
+extern void mod_perms(dbref, char *, char *, char **, int);
 extern void FDECL(list_cf_access, (dbref, char *, int));
 extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
@@ -43,7 +48,9 @@ extern CF_HAND(cf_site);
 extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
+extern ATRP *atrp_head;
 
+extern double FDECL(time_ng, (double*));
 
 #ifdef CACHE_OBJS
 #define CACHING "object"
@@ -83,6 +90,7 @@ NAMETAB evaltab_sw[] =
 {
     {(char *) "immortal", 1, CA_IMMORTAL, 0, 5},
     {(char *) "royalty", 1, CA_WIZARD, 0, 4},
+    {(char *) "wizard", 1, CA_WIZARD, 0, 4},
     {(char *) "councilor", 2, CA_ADMIN, 0, 3},
     {(char *) "architect", 1, CA_BUILDER, 0, 2},
     {(char *) "guildmaster", 1, CA_GUILDMASTER, 0, 1},
@@ -107,12 +115,18 @@ NAMETAB hook_sw[] =
     {(char *) "clear", 3, CA_IMMORTAL, 0, HOOK_CLEAR|SW_MULTIPLE},
     {(char *) "list", 3, CA_IMMORTAL, 0, HOOK_LIST},
     {(char *) "igswitch", 3, CA_IMMORTAL, 0, HOOK_IGSWITCH},
+    {(char *) "extend", 3, CA_IMMORTAL, 0, HOOK_IGSWITCH},
     {(char *) "fail", 3, CA_IMMORTAL, 0, HOOK_FAIL},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB aflags_sw[] =
 {
     {(char *) "full", 2, CA_WIZARD, 0, AFLAGS_FULL},
+    {(char *) "perms", 2, CA_WIZARD, 0, AFLAGS_PERM},
+    {(char *) "search", 2, CA_WIZARD, 0, AFLAGS_SEARCH|SW_MULTIPLE},
+    {(char *) "add", 2, CA_WIZARD, 0, AFLAGS_ADD},
+    {(char *) "del", 2, CA_WIZARD, 0, AFLAGS_DEL},
+    {(char *) "mod", 2, CA_WIZARD, 0, AFLAGS_MOD},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB areg_sw[] =
@@ -172,6 +186,7 @@ NAMETAB cluster_sw[] = {
   {(char *) "reaction", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REACTION},
   {(char *) "trigger", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_TRIGGER},
   {(char *) "function", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_FUNC | SW_MULTIPLE},
+  {(char *) "regexp", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REGEXP | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}
 };
 
@@ -203,6 +218,8 @@ NAMETAB decomp_sw[] =
     {(char *) "all", 2, CA_PUBLIC, 0, DECOMP_ALL},
     {(char *) "flags", 1, CA_PUBLIC, 0, DECOMP_FLAGS},
     {(char *) "attribs", 2, CA_PUBLIC, 0, DECOMP_ATTRS},
+    {(char *) "tree", 1, CA_PUBLIC, 0, DECOMP_TREE},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, DECOMP_REGEXP},
     {NULL, 0, 0, 0, 0}};
    
 NAMETAB dbck_sw[] =
@@ -244,8 +261,12 @@ NAMETAB dolist_sw[] =
 {
     {(char *) "delimit", 1, CA_PUBLIC, 0, DOLIST_DELIMIT},
     {(char *) "space", 1, CA_PUBLIC, 0, DOLIST_SPACE},
-    {(char *) "notify", 1, CA_PUBLIC, 0, DOLIST_NOTIFY | SW_MULTIPLE},
+    {(char *) "notify", 3, CA_PUBLIC, 0, DOLIST_NOTIFY | SW_MULTIPLE},
     {(char *) "pid", 1, CA_PUBLIC, 0, DOLIST_PID},
+    {(char *) "nobreak", 3, CA_PUBLIC, 0, DOLIST_NOBREAK | SW_MULTIPLE},
+    {(char *) "clearreg", 1, CA_PUBLIC, 0, DOLIST_CLEARREG | SW_MULTIPLE},
+    {(char *) "inline", 1, CA_PUBLIC, 0, DOLIST_INLINE | SW_MULTIPLE},
+    {(char *) "localize", 1, CA_PUBLIC, 0, DOLIST_LOCALIZE | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB drop_sw[] =
@@ -293,6 +314,13 @@ NAMETAB examine_sw[] =
     {(char *) "full", 1, CA_PUBLIC, 0, EXAM_LONG},
     {(char *) "parent", 1, CA_PUBLIC, 0, EXAM_PARENT},
     {(char *) "quick", 1, CA_PUBLIC, 0, EXAM_QUICK},
+    {(char *) "tree", 1, CA_PUBLIC, 0, EXAM_TREE | SW_MULTIPLE},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, EXAM_REGEXP | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB extansi_sw[] =
+{
+    {(char *) "quiet", 1, CA_PUBLIC, 0, SET_QUIET},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB femit_sw[] =
@@ -333,7 +361,9 @@ NAMETAB flagdef_sw[] =
 NAMETAB oemit_sw[] =
 {
     {(char *) "noansi", 1, CA_PUBLIC, 0, PEMIT_NOANSI | SW_MULTIPLE},
+    {(char *) "multi", 1, CA_PUBLIC, 0, PEMIT_OSTR},
     {NULL, 0, 0, 0, 0}};
+
 NAMETAB say_sw[] =
 {
     {(char *) "noansi", 1, CA_PUBLIC, 0, SAY_NOANSI | SW_MULTIPLE},
@@ -352,6 +382,19 @@ NAMETAB fpose_sw[] =
 {
     {(char *) "default", 1, CA_PUBLIC, 0, 0},
     {(char *) "nospace", 1, CA_PUBLIC, 0, SAY_NOSPACE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB lfunction_sw[] =
+{
+    {(char *) "privileged", 3, CA_PUBLIC, 0, FN_PRIV|FN_LOCAL},
+    {(char *) "protected", 3, CA_PUBLIC, 0, FN_PROTECT|SW_MULTIPLE|FN_LOCAL},
+    {(char *) "list", 1, CA_PUBLIC, 0, FN_LIST|FN_LOCAL},
+    {(char *) "preserve", 3, CA_PUBLIC, 0, FN_PRES|SW_MULTIPLE|FN_LOCAL},
+    {(char *) "delete", 2, CA_PUBLIC, 0, FN_DEL|FN_LOCAL},
+    {(char *) "display", 2, CA_PUBLIC, 0, FN_DISPLAY|FN_LOCAL},
+    {(char *) "minimum", 2, CA_PUBLIC, 0, FN_MIN|FN_LOCAL},
+    {(char *) "maximum", 2, CA_PUBLIC, 0, FN_MAX|FN_LOCAL},
+    {(char *) "notrace", 2, CA_PUBLIC, 0, FN_NOTRACE|SW_MULTIPLE|FN_LOCAL},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB function_sw[] =
@@ -434,10 +477,11 @@ NAMETAB leave_sw[] =
 
 NAMETAB limit_sw[] =
 {
-    {(char *) "list", 1, CA_WIZARD, 0, LIMIT_LIST},
+    {(char *) "list", 2, CA_WIZARD, 0, LIMIT_LIST},
     {(char *) "vmod", 1, CA_WIZARD, 0, LIMIT_VADD},
     {(char *) "dmod", 1, CA_WIZARD, 0, LIMIT_DADD},
     {(char *) "reset", 1, CA_WIZARD, 0, LIMIT_RESET},
+    {(char *) "lfunction", 2, CA_WIZARD, 0, LIMIT_LFUN},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB listmotd_sw[] =
@@ -657,6 +701,8 @@ NAMETAB include_sw[] =
     {(char *) "command", 2, CA_PUBLIC, 0, INCLUDE_COMMAND},
     {(char *) "localize", 2, CA_PUBLIC, 0, INCLUDE_LOCAL | SW_MULTIPLE},
     {(char *) "clearregs", 2, CA_PUBLIC, 0, INCLUDE_CLEAR | SW_MULTIPLE},
+    {(char *) "nobreak", 2, CA_PUBLIC, 0, INCLUDE_NOBREAK | SW_MULTIPLE},
+    {(char *) "target", 2, CA_PUBLIC, 0, INCLUDE_TARGET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB notify_sw[] =
@@ -824,6 +870,11 @@ NAMETAB set_sw[] =
     {(char *) "noisy", 1, CA_PUBLIC, 0, SET_NOISY},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB skip_sw[] =
+{ 
+    {(char *) "ifelse", 1, CA_PUBLIC, 0, SKIP_IFELSE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB site_sw[] =
 {
   {(char *) "register", 1, CA_IMMORTAL, 0, SITE_REG},
@@ -883,6 +934,10 @@ NAMETAB switch_sw[] =
     {(char *) "regfirst", 4, CA_PUBLIC, 0, SWITCH_REGONE},
     {(char *) "case", 1, CA_PUBLIC, 0, SWITCH_CASE | SW_MULTIPLE},
     {(char *) "notify", 1, CA_PUBLIC, 0, SWITCH_NOTIFY | SW_MULTIPLE},
+    {(char *) "inline", 1, CA_PUBLIC, 0, SWITCH_INLINE | SW_MULTIPLE},
+    {(char *) "nobreak", 1, CA_PUBLIC, 0, SWITCH_NOBREAK | SW_MULTIPLE},
+    {(char *) "clearreg", 1, CA_PUBLIC, 0, SWITCH_CLEARREG | SW_MULTIPLE},
+    {(char *) "localize", 1, CA_PUBLIC, 0, SWITCH_LOCALIZE | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB tel_sw[] =
@@ -921,7 +976,8 @@ NAMETAB thaw_sw[] =
 
 NAMETAB wipe_sw[] =
 {
-    {(char *) "preserve", 1, CA_PUBLIC, 0, WIPE_PRESERVE},
+    {(char *) "preserve", 1, CA_PUBLIC, 0, WIPE_PRESERVE | SW_MULTIPLE},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, WIPE_REGEXP},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB wait_sw[] =
@@ -989,7 +1045,7 @@ CMDENT command_table[] =
     {(char *) "@admin", NULL, CA_GOD | CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_admin},
     {(char *) "@aflags", aflags_sw, CA_IMMORTAL, 0,
-     0, CS_ONE_ARG | CS_INTERP, 0, do_aflags},
+     0, CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_aflags},
     {(char *) "@alias", NULL, CA_NO_GUEST | CA_NO_SLAVE, 0,
      0, CS_TWO_ARG, 0, do_alias},
     {(char *) "@apply_marked", NULL, CA_WIZARD | CA_GBL_INTERP, 0,
@@ -1001,7 +1057,7 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_assert},
     {(char *) "@attribute", attrib_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_attribute},
-    {(char *) "@blacklist", blacklist_sw, CA_LOCATION | CA_IMMORTAL, 0, 0, CS_NO_ARGS | CS_INTERP, 0, do_blacklist},
+    {(char *) "@blacklist", blacklist_sw, CA_LOCATION | CA_IMMORTAL, 0, 0, CS_ONE_ARG | CS_INTERP, 0, do_blacklist},
     {(char *) "@boot", boot_sw, CA_NO_GUEST | CA_NO_SLAVE | CA_NO_WANDER, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_boot},
     {(char *) "@bfree", NULL, CA_GOD | CA_IMMORTAL, 0,
@@ -1073,7 +1129,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_entrances},
     {(char *) "@eval", NULL, 0, CA_NO_CODE,
      0, CS_ONE_ARG | CS_INTERP, 0, do_eval},
-    {(char *) "@extansi", NULL, CA_NO_SLAVE,  0,
+    {(char *) "@extansi", extansi_sw, CA_NO_SLAVE,  0,
      0, CS_TWO_ARG, 0, do_extansi},
     {(char *) "@femit", femit_sw,
      CA_LOCATION | CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
@@ -1116,6 +1172,8 @@ CMDENT command_table[] =
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
     {(char *) "@last", NULL, CA_NO_GUEST, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_last},
+    {(char *) "@lfunction", lfunction_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,
+     FN_LOCAL, CS_TWO_ARG | CS_INTERP, 0, do_function},
     {(char *) "@limit", limit_sw, CA_WIZARD,  0,
      0, CS_TWO_ARG | CS_INTERP | CS_ARGV, 0, do_limit},
     {(char *) "@link", NULL,
@@ -1178,6 +1236,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_protect},
     {(char *) "@program", NULL, CA_PUBLIC, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP, 0, do_program},
+    {(char *) "@progreset", NULL, CA_LOCATION, 0, 0, CS_ONE_ARG | CS_INTERP, CA_NO_CODE, do_progreset},
     {(char *) "@ps", ps_sw, 0, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_ps},
     {(char *) "@purge", purge_sw, CA_IMMORTAL, 0,
@@ -1196,6 +1255,9 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_recover},
     {(char *) "@register", NULL, CA_PUBLIC, 0,
      0, CS_TWO_ARG, 0, do_register},
+    {(char *) "@remote", NULL,
+     CA_GBL_INTERP | CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+     0, CS_TWO_ARG | CS_INTERP | CS_CMDARG, 0, do_remote},
     {(char *) "@robot", NULL,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_NO_GUEST | CA_PLAYER | CA_NO_WANDER, CA_NO_CODE,
      PCRE_ROBOT, CS_TWO_ARG, 0, do_pcreate},
@@ -1219,7 +1281,7 @@ CMDENT command_table[] =
 #endif
     {(char *) "@shutdown", NULL, CA_PUBLIC, 0, 0, CS_ONE_ARG, 0, do_shutdown},
     {(char *) "@site", site_sw, CA_IMMORTAL, 0, 0, CS_TWO_ARG, 0, do_site},
-    {(char *) "@skip", NULL, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_skip},
+    {(char *) "@skip", skip_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_skip},
     {(char *) "@snapshot", snapshot_sw, CA_IMMORTAL, 0, 0, CS_TWO_ARG | CS_INTERP, 0, do_snapshot},
 #ifndef NO_SNOOP
     {(char *) "@snoop", snoop_sw, CA_PUBLIC | CA_IGNORE_ROYAL, 0,
@@ -2133,7 +2195,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	    parse_arglist(player, cause, cause, arg, '\0',
 			  interp | EV_STRIP_LS | EV_STRIP_TS,
-			  args, MAX_ARG, cargs, ncargs);
+			  args, MAX_ARG, cargs, ncargs, 0);
 	    for (nargs = 0; (nargs < MAX_ARG) && args[nargs]; nargs++);
 
 	    /* Call the correct command handler */
@@ -2481,6 +2543,7 @@ process_command(dbref player, dbref cause, int interactive,
     }
     /* Make sure player isn't going or halted */
 
+  if (!( (player == cause) && (mudstate.force_halt == player))) {
     if (Going(player) || Recover(player) ||
 	(Halted(player) &&
 	 !((Typeof(player) == TYPE_PLAYER) && interactive) && !ForceHalted(cause))) {
@@ -2493,7 +2556,7 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
 	return;
     }
-
+    }
 
     /* Spam protection time */
     if ( NoSpam(player) || (Good_obj(Owner(player)) && NoSpam(Owner(player))) ) {
@@ -2805,6 +2868,11 @@ process_command(dbref player, dbref cause, int interactive,
           free_lbuf(lcbuf);
           atr_clr(player, A_PROGBUFFER);
           s_Flags4(player, (Flags4(player) & (~INPROGRAM)));
+          DESC_ITER_CONN(d) {
+             if ( d->player == player ) {
+                queue_string(d, "\377\371");
+             }
+          }
 	  mudstate.debug_cmd = cmdsave;
           getitimer(ITIMER_PROF, &itimer);
           reportcputime(player, &itimer);
@@ -3125,9 +3193,9 @@ process_command(dbref player, dbref cause, int interactive,
            log_text(cpulbuf);
            ENDLOG
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.stack_cntr = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.stack_cntr++;
            if ( mudstate.stack_cntr >= 3 ) {
@@ -3177,9 +3245,9 @@ process_command(dbref player, dbref cause, int interactive,
            ENDLOG
            mudstate.breakst = 1;
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.cntr_percentsubs = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.cntr_percentsubs++;
            if ( mudstate.cntr_percentsubs >= 3 ) {
@@ -3807,9 +3875,9 @@ process_command(dbref player, dbref cause, int interactive,
            log_text(cpulbuf);
            ENDLOG
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.stack_cntr = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.stack_cntr++;
            if ( mudstate.stack_cntr >= 3 ) {
@@ -3858,9 +3926,9 @@ process_command(dbref player, dbref cause, int interactive,
            ENDLOG
            mudstate.breakst = 1;
            free_lbuf(cpulbuf);
-           if ( time(NULL) > mudstate.cntr_reset ) {
+           if ( time_ng(NULL) > mudstate.cntr_reset ) {
               mudstate.cntr_percentsubs = 0;
-              mudstate.cntr_reset = (time(NULL) + 60);
+              mudstate.cntr_reset = (time_ng(NULL) + 60);
            }
            mudstate.cntr_percentsubs++;
            if ( mudstate.cntr_percentsubs >= 3 ) {
@@ -4478,6 +4546,7 @@ NAMETAB attraccess_nametab[] =
     {(char *) "atrlock", 3, CA_WIZARD, 0, AF_ATRLOCK},
     {(char *) "logged", 3, CA_WIZARD, 0, AF_LOGGED},
     {(char *) "regexp", 3, CA_PUBLIC, 0, AF_REGEXP},
+    {(char *) "unsafe", 3, CA_WIZARD, 0, AF_UNSAFE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB indiv_attraccess_nametab[] =
@@ -4506,6 +4575,7 @@ NAMETAB indiv_attraccess_nametab[] =
     {(char *) "atrlock", 3, CA_WIZARD, 0, AF_ATRLOCK},
     {(char *) "logged", 3, CA_WIZARD, 0, AF_LOGGED},
     {(char *) "regexp", 3, CA_PUBLIC, 0, AF_REGEXP},
+    {(char *) "unsafe", 3, CA_WIZARD, 0, AF_UNSAFE},
     {NULL, 0, 0, 0, 0}};
 
 static void 
@@ -5218,11 +5288,11 @@ list_options_config(dbref player)
 {
     char *buff, *strbuff, *strptr, *tbuff1ptr, *tbuff1, *tbuff2ptr, *tbuff2, *buff3;
     int b1, b2, b3, b4, b5;
-    time_t now;
+    double now;
 
     DPUSH; /* #46 */
     b1 = b2 = b3 = b4 = b5 = 0;
-    now = time(NULL);
+    now = time_ng(NULL);
     buff = alloc_mbuf("list_options");
     memset(buff, 0, MBUF_SIZE);
 #ifdef HAS_OPENSSL
@@ -5520,13 +5590,16 @@ list_options_config(dbref player)
                mudconf.dump_interval, mudconf.check_interval,
                mudconf.idle_interval, mudconf.rwho_interval);
        notify(player, buff);
-       sprintf(buff, "Timers: Dump...%ld  Clean...%ld  Idlecheck...%ld  Rwho...%ld",
+       sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f",
                mudstate.dump_counter - now, mudstate.check_counter - now,
                mudstate.idle_counter - now, mudstate.rwho_counter - now);
        notify(player, buff);
        sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds",
-             (mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
-             (mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+             //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
+             (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk),
+             //(mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+             (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk) );
+
        notify(player, buff);
        sprintf(buff, "                Security...Level %d  Max Sequential Slams...%d",
              (((mudconf.cpu_secure_lvl < 0) || (mudconf.cpu_secure_lvl > 5)) ? 0 : mudconf.cpu_secure_lvl),
@@ -5651,14 +5724,14 @@ list_options(dbref player)
 {
     char *buff, *strbuff, *strptr, newstime[30], mailtime[30], mushtime[30], aregtime[30];
     char *tbuff1, *tbuff1ptr, *tbuff2, *tbuff2ptr, *buff3;
-    time_t now;
+    double now;
     int itog_val, b1, b2, b3, b4, b5;
 
     DPUSH; /* #47 */
 
     itog_val = 0;
     b1 = b2 = b3 = b4 = b5 = 0;
-    now = time(NULL);
+    now = time_ng(NULL);
     if (mudconf.quotas)
 	notify(player, "Building quotas are enforced.");
     else
@@ -6423,15 +6496,16 @@ list_options(dbref player)
 	    mudconf.dump_interval, mudconf.check_interval,
 	    mudconf.idle_interval, mudconf.rwho_interval);
     notify(player, buff);
-
-    sprintf(buff, "Timers: Dump...%ld  Clean...%ld  Idlecheck...%ld  Rwho...%ld",
+    sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f",
 	    mudstate.dump_counter - now, mudstate.check_counter - now,
 	    mudstate.idle_counter - now, mudstate.rwho_counter - now);
     notify(player, buff);
     memset(buff, 0, sizeof(buff));
     sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds", 
-           (mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
-           (mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+           //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
+           //(mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
+           (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk),
+           (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk) );
     notify(player, buff);
     sprintf(buff, "                Security...Level %d  Max Sequential Slams...%d",
           (((mudconf.cpu_secure_lvl < 0) || (mudconf.cpu_secure_lvl > 5)) ? 0 : mudconf.cpu_secure_lvl),
@@ -6689,6 +6763,8 @@ list_hashstats(dbref player)
     list_hashstat(player, "Alias", &mudstate.cmd_alias_htab);
     list_hashstat(player, "Logged-out Cmds", &mudstate.logout_cmd_htab);
     list_hashstat(player, "Functions", &mudstate.func_htab);
+    list_hashstat(player, "User-Functions", &mudstate.ufunc_htab);
+    list_hashstat(player, "Local-Functions", &mudstate.ulfunc_htab);
     list_hashstat(player, "Flags", &mudstate.flags_htab);
     list_hashstat(player, "Attr names", &mudstate.attr_name_htab);
     list_nhashstat(player, "Attr numbers", &mudstate.attr_num_htab);
@@ -6755,7 +6831,8 @@ static void
 list_functionperms(dbref player, char *s_mask, int key)
 {
    FUN *fp = NULL;
-   UFUN *ufp = NULL;
+   UFUN *ufp = NULL,
+       *ulfp = NULL;
    char *s_buf;
    int chk_tog = 0;
 
@@ -6764,8 +6841,9 @@ list_functionperms(dbref player, char *s_mask, int key)
 
    if ( key ) {
        notify(player, "--- Function Permissions (wildmatched) ---");
-    } else
+   } else {
        notify(player, "--- Function Permissions ---");
+   }
    s_buf = alloc_sbuf("list_functionperms");
    for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
         fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
@@ -6778,14 +6856,29 @@ list_functionperms(dbref player, char *s_mask, int key)
    }
    if ( key ) {
        notify(player, "--- User-Function Permissions (wildmatched) ---");
-    } else
+   } else {
        notify(player, "--- User-Function Permissions ---");
+   }
    for (ufp = (UFUN *) hash_firstentry2(&mudstate.ufunc_htab, 1); ufp;
         ufp = (UFUN *) hash_nextentry(&mudstate.ufunc_htab)) {
       if ( chk_tog || check_access(player, ufp->perms, ufp->perms2, 0)) {
          if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)ufp->name)) ) {
             sprintf(s_buf, "%-.31s:", ufp->name);
             listset_nametab(player, access_nametab, access_nametab2, ufp->perms, ufp->perms2, s_buf, 1);
+         }
+      }
+   }
+   if ( key ) {
+       notify(player, "--- LOCAL User-Function Permissions (wildmatched) ---");
+   } else {
+       notify(player, "--- LOCAL User-Function Permissions ---");
+   }
+   for (ulfp = (UFUN *) hash_firstentry2(&mudstate.ulfunc_htab, 1); ulfp;
+        ulfp = (UFUN *) hash_nextentry(&mudstate.ulfunc_htab)) {
+      if ( chk_tog || check_access(player, ulfp->perms, ulfp->perms2, 0)) {
+         if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)ulfp->name)) ) {
+            sprintf(s_buf, "%-.31s:[#%10d]", ulfp->name, ulfp->owner);
+            listset_nametab(player, access_nametab, access_nametab2, ulfp->perms, ulfp->perms2, s_buf, 1);
          }
       }
    }
@@ -7056,7 +7149,7 @@ list_rlevels(dbref player)
        tprp_buff = tpr_buff = alloc_lbuf("list_rlevels");
        for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
            tprp_buff = tpr_buff;
-           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-12s Value: 0x%08x   Desc: %s",
+           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
                mudconf.reality_level[i].name, mudconf.reality_level[i].value,
                mudconf.reality_level[i].attr));
        }
@@ -7065,6 +7158,23 @@ list_rlevels(dbref player)
     if ( mudconf.reality_locks ) {
        notify(player, unsafe_tprintf("\r\n    Enhancement: @lock/user works as a Reality Lock (type %d).", 
                       mudconf.reality_locktype));
+    }
+    if ( !mudconf.reality_locks && mudconf.reality_compare) {
+       notify(player, "  ");
+    }
+    switch (mudconf.reality_compare) {
+       case 0: /* Do nothing */
+               break;
+       case 1: notify(player, "    Enhancement: Descs linearly in reverse, all shown.");
+               break;
+       case 2: notify(player, "    Enhancement: Descs linearly in order, first existing desc shown.");
+               break;
+       case 3: notify(player, "    Enhancement: Descs linearly in reverse, first existing desc shown.");
+               break;
+       case 4: notify(player, "    Enhancement: Descs linearly in order, first reality shown.");
+               break;
+       case 5: notify(player, "    Enhancement: Descs linearly in reverse, first reality shown.");
+               break;
     }
     notify(player, "---------------------------------------"\
                    "---------------------------------------");
@@ -7351,17 +7461,59 @@ int flagcheck(char *fname, char *rbuff)
   return atrnum;
 }
 
-void do_aflags(dbref player, dbref cause, int key, char *fname)
+void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char *cargs[], int ncargs) 
 {
-  char *buff, *s_chkattr;
-  int atrnum, aflags, atrcnt;
+  char *buff, *s_buff, *t_buff, *s_chkattr, *s_format;
+  int atrnum, aflags, atrcnt, i_page, i_key;
   dbref i, aowner;
+
+  i_page = i_key = 0;
+  if ( key & AFLAGS_PERM ) {
+     if ( fname && *fname ) {
+        i_page = atoi(fname);
+        if ( i_page <= 0 ) 
+           i_page = 0;
+     }
+     if ( key & AFLAGS_SEARCH ) {
+        i_key = 1;
+        i_page = 0;
+     }
+     display_perms(player, i_page, i_key, fname);
+     return;
+  }
+  if ( key & AFLAGS_SEARCH ) {
+     notify(player, "Invalid switch combination.");
+     return;
+  }
+
+  if ( key & AFLAGS_ADD ) {
+     add_perms(player, fname, args, cargs, ncargs);
+     return;
+  }
+
+  if ( key & AFLAGS_MOD ) {
+     mod_perms(player, fname, args, cargs, ncargs);
+     return;
+  }
+
+  if ( key & AFLAGS_DEL ) {
+     del_perms(player, fname, args, cargs, ncargs);
+     return;
+  }
 
   buff = alloc_lbuf("do_flags");
   atrnum = flagcheck(fname, buff);
   s_chkattr = NULL;
   atrcnt = 0;
+  s_buff = attrib_show(fname, 0);
+  t_buff = attrib_show(fname, 1);
+  s_format = alloc_sbuf("do_aflags");
   if (*buff != '1') {
+     if ( (fname[0] == '_') && (!mudconf.hackattr_see || !mudconf.hackattr_nowiz) ) {
+        sprintf(s_format, " [%s%s%s]",(!mudconf.hackattr_see ? "hidden" : ""),
+                                      ((!mudconf.hackattr_see && !mudconf.hackattr_nowiz) ? " " : ""),
+                                      (!mudconf.hackattr_nowiz ? "wizard" : "") );
+     }
      if ( key & AFLAGS_FULL ) {
         s_chkattr = alloc_lbuf("attribute_delete");
         DO_WHOLE_DB(i) {
@@ -7371,21 +7523,39 @@ void do_aflags(dbref player, dbref cause, int key, char *fname)
            }
         }
         free_lbuf(s_chkattr);
-        notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s", atrnum, atrcnt, buff));
+        if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s%s %s%s", 
+                                        atrnum, atrcnt, buff, s_format, s_buff, t_buff));
+        } else {
+           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s %s%s", 
+                                        atrnum, atrcnt, buff, s_buff, t_buff));
+        }
      } else {
-        notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s", atrnum, buff));
+        if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s%s %s%s", 
+                                        atrnum, buff, s_format, s_buff, t_buff));
+        } else {
+           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s %s%s", 
+                                        atrnum, buff, s_buff, t_buff));
+        }
      }
   } else {
-     notify(player,unsafe_tprintf("Bad flag name '%s'", fname));
+     if ( !*fname )
+        notify(player,"@aflags requires an argument.");
+     else
+        notify(player,unsafe_tprintf("Bad attribute name '%s'", fname));
   }
   free_lbuf(buff);
+  free_lbuf(s_buff);
+  free_lbuf(t_buff);
+  free_sbuf(s_format);
 }
 
 void do_limit(dbref player, dbref cause, int key, char *name,
                 char *args[], int nargs)
 {
    char *s_chkattr, *s_buffptr, *s_newmbuff;
-   int aflags, i_array[4], i, i_newval, i_d_default, i_v_default, i_wizcheck;
+   int aflags, i_array[LIMIT_MAX], i, i_newval, i_d_default, i_v_default, i_wizcheck;
    dbref aowner, target;
 
    target = lookup_player(player, name, 0);
@@ -7399,9 +7569,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
       if ( *s_chkattr ) {
          i_array[0] = i_array[2] = 0;
-         i_array[1] = i_array[3] = -2;
+         i_array[4] = i_array[1] = i_array[3] = -2;
          for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-              s_buffptr && (i < 4);
+              s_buffptr && (i < LIMIT_MAX);
               s_buffptr = (char *) strtok(NULL, " "), i++) {
              i_array[i] = atoi(s_buffptr);
          }
@@ -7412,6 +7582,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
          if ( i_array[1] == -2 ) {
             i_array[1] = (i_wizcheck ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit);
             i_v_default = 1;
+         }
+         if ( i_array[4] == -2 ) {
+            i_array[4] = mudconf.lfunction_max;
          }
          notify(player, unsafe_tprintf("Limitations for player %s(#%d):", Name(target), target));
          if ( i_wizcheck || (i_array[3] == -1) ) {
@@ -7428,10 +7601,13 @@ void do_limit(dbref player, dbref cause, int key, char *name,
                            i_array[0], i_array[1],
                            (i_v_default ? "(Default)" : " ")));
          }
+         notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d%s", i_array[4], (i_array[4] == mudconf.lfunction_max ? " (Default)" : " ")));
          notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
          notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
+         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+                           mudconf.lfunction_max));
       } else {
          notify(player, unsafe_tprintf("Limitations for player %s(#%d):", Name(target), target));
          if ( i_wizcheck ) {
@@ -7443,15 +7619,18 @@ void do_limit(dbref player, dbref cause, int key, char *name,
             notify(player, unsafe_tprintf("   VLimit---=>   Current: 0          Maximum: %d (Default)",
                            mudconf.max_vattr_limit));
          }
+         notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d (Default)", mudconf.lfunction_max));
          notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
          notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
+         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+                           mudconf.lfunction_max));
       }
       free_lbuf(s_chkattr);
       return;
    }
-   if ( (key & LIMIT_VADD) || (key & LIMIT_DADD) ) {
+   if ( (key & LIMIT_VADD) || (key & LIMIT_DADD) || (key & LIMIT_LFUN) ) {
       if ( nargs != 1 ) {
          notify(player, "@limit: Incorrect number of arguments.  Only one argument allowed.");
          return;
@@ -7462,10 +7641,10 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       }
       s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
       i_array[0] = i_array[2] = 0;
-      i_array[1] = i_array[3] = -2;
+      i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
          for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-            s_buffptr && (i < 4);
+            s_buffptr && (i < LIMIT_MAX);
             s_buffptr = (char *) strtok(NULL, " "), i++) {
             i_array[i] = atoi(s_buffptr);
          }
@@ -7476,17 +7655,31 @@ void do_limit(dbref player, dbref cause, int key, char *name,
          notify(player, "@limit: Value must be -2, -1, 0 or greater.");
          return;
       }
+      if ( (key & LIMIT_LFUN) ) {
+         if ( i_newval == -1 ) {
+            notify(player, "@limit: Warning -- No unlimited for @lfunction.  Set to global default.");
+            i_newval = -2;
+         }
+      }
       if ( key & LIMIT_VADD ) {
          s_newmbuff = alloc_mbuf("@limit.vadd");
-         sprintf(s_newmbuff, "%d %d %d %d", i_array[0], i_newval, i_array[2], i_array[3]);
+         sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_newval, i_array[2], i_array[3], i_array[4]);
          atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
          free_mbuf(s_newmbuff);
          notify(player, unsafe_tprintf("@limit: New VLimit maximum for %s(#%d) set from %d to %d", 
                         Name(target), target, i_array[1], i_newval));
          return;
+      } else if ( key & LIMIT_LFUN ) {
+         s_newmbuff = alloc_mbuf("@limit.lfun");
+         sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_array[3], i_newval);
+         atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
+         free_mbuf(s_newmbuff);
+         notify(player, unsafe_tprintf("@limit: New @lfunction maximum for %s(#%d) set from %d to %d", 
+                        Name(target), target, i_array[4], i_newval));
+         return;
       } else {
          s_newmbuff = alloc_mbuf("@limit.dadd");
-         sprintf(s_newmbuff, "%d %d %d %d", i_array[0], i_array[1], i_array[2], i_newval);
+         sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_newval, i_array[4]);
          atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
          free_mbuf(s_newmbuff);
          notify(player, unsafe_tprintf("@limit: New @destroy maximum for %s(#%d) set from %d to %d", 
@@ -7501,25 +7694,26 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       }
       s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
       i_array[0] = i_array[2] = 0;
-      i_array[1] = i_array[3] = -2;
+      i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
          for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-            s_buffptr && (i < 4);
+            s_buffptr && (i < LIMIT_MAX);
             s_buffptr = (char *) strtok(NULL, " "), i++) {
             i_array[i] = atoi(s_buffptr);
          }
       }
       free_lbuf(s_chkattr);
       s_newmbuff = alloc_mbuf("@limit.reset");
-      sprintf(s_newmbuff, "%d %d %d %d", i_array[0], -2, i_array[2], -2);
+      sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], -2, i_array[2], -2, -2);
       atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
       free_mbuf(s_newmbuff);
       notify(player, unsafe_tprintf("@limit: Maximum values for %s(#%d) reset to global defaults.",
                      Name(target), target));
-      notify(player, unsafe_tprintf("        @destroy: %d    VLimit: %d", 
-                     mudconf.max_dest_limit, mudconf.max_vattr_limit));
+      notify(player, unsafe_tprintf("        @destroy: %d    VLimit: %d   LFunction: %d", 
+                     mudconf.max_dest_limit, mudconf.max_vattr_limit, mudconf.lfunction_max));
       return;
    }
+   notify(player, "@limit: unrecognized error occurred.  Please report this as a bug report.");
    return;
 }
 
@@ -7857,13 +8051,12 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
   } else
      arg1_eval = arg1;
   if (is_number(arg1_eval) && (atoi(arg1_eval) == 0)) {
-    mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                process_command(player, cause, 0, cp, cargs, ncargs, 0);
              }
           }
           /* process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
@@ -7871,6 +8064,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
     }
+    mudstate.breakst = 1;
   }
   if ( i_evaled )
      free_lbuf(arg1_eval);
@@ -7886,13 +8080,12 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
   } else
      arg1_eval = arg1;
   if (is_number(arg1_eval) && (atoi(arg1_eval) != 0)) {
-    mudstate.breakst = 1;
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 1, cp, cargs, ncargs, 0);
+                process_command(player, cause, 0, cp, cargs, ncargs, 0);
              }
           }
 /*        process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
@@ -7900,6 +8093,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
     }
+    mudstate.breakst = 1;
   }
   if ( i_evaled )
      free_lbuf(arg1_eval);
@@ -8209,7 +8403,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 {
    dbref thing, it, aowner;
    int aflags, atr;
-   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[41], *tpr_buff, *tprp_buff;
+   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[80], *tpr_buff, *tprp_buff;
    DESC *d;
 
    if (!*name || !name) {
@@ -8295,6 +8489,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 void do_quitprogram(dbref player, dbref cause, int key, char *name)
 {
    dbref thing;
+   DESC *d;
 
    if ( *name )
       thing = match_thing(player, name);
@@ -8323,6 +8518,11 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
       return;
    }
    s_Flags4(thing, (Flags4(thing) & (~INPROGRAM)));
+   DESC_ITER_CONN(d) {
+      if ( d->player == thing ) {
+         queue_string(d, "\377\371");
+      }
+   }
    mudstate.shell_program = 0;
    notify(player, "@program cleared.");
    if ( thing == player )
@@ -8395,44 +8595,92 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
    setitimer(ITIMER_PROF, &itimer, NULL); 
    mudstate.train_cntr--;
 }
-
-void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *s_command, char *args[], int nargs)
+void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], int nargs, char *cargs[], int ncargs)
 {
-   char *retbuff, *cp;
-   int old_trainmode;
+   char *retbuff, *cp, *mys, *s_buildptr, *s_build;
+   time_t i_now;
+   int old_trainmode, i_breakst, i_joiner;
 
-   if ( !s_boolian || !*s_boolian || !s_command || !*s_command ) {
+   if ( !s_boolian || !*s_boolian || !nargs || !args[0] || !*args[0] ) {
       return;
    }
+   i_breakst = mudstate.breakst;
    retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, NULL, 0);
    old_trainmode=mudstate.trainmode;
-   if ( *retbuff && (atoi(retbuff) == 0) ) {
-//    if ( desc_in_use == NULL ) {
-//       mudstate.trainmode = 1;
-//    }
-      while (s_command) {
-         cp = parse_to(&s_command, ';', 0);
-         if (cp && *cp) {
-            process_command(player, cause, 1, cp, args, nargs, 0);
+   if ( *retbuff && (((atoi(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
+                     ((atoi(retbuff) != 0) &&  (key & SKIP_IFELSE))) ) {
+    /* I have no idea why this is here, but I left it in incase I need 
+      if ( desc_in_use == NULL ) {
+         mudstate.trainmode = 1;
+      }
+     */
+      if ( !(key & SKIP_IFELSE) && (nargs > 1) ) {
+         s_buildptr = mys = s_build = alloc_lbuf("do_skip_joiner");
+         safe_str(args[0], mys, &s_buildptr);
+         for (i_joiner = 1; i_joiner < nargs; i_joiner++) {
+            safe_chr(',', mys, &s_buildptr);
+            safe_str(args[i_joiner], mys, &s_buildptr);
+         }
+         i_now = mudstate.now;
+         while ( mys ) {
+            cp = parse_to(&mys, ';', 0);
+            if (cp && *cp && !mudstate.breakst) {
+               process_command(player, cause, 0, cp, cargs, ncargs, 0);
+               if ( time(NULL) > (i_now + 5) ) {
+                   notify(player, "@skip:  Aborted for high utilization.");
+                   mudstate.breakst=1;
+                   break;
+               }
+            }
+         }
+         free_lbuf(s_build);
+      } else {
+         mys = args[0];
+         i_now = mudstate.now;
+         while (mys) {
+            cp = parse_to(&mys, ';', 0);
+            if (cp && *cp && !mudstate.breakst) {
+               process_command(player, cause, 0, cp, cargs, ncargs, 0);
+               if ( time(NULL) > (i_now + 5) ) {
+                   notify(player, "@skip:  Aborted for high utilization.");
+                   mudstate.breakst=1;
+                   break;
+               }
+            }
          }
       }
-      /* process_command(player, cause, 1, s_command, args, nargs, 0); */
       mudstate.trainmode = old_trainmode;
+   } else if ( *retbuff && (atoi(retbuff) == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
+      mys = args[1];
+      i_now = mudstate.now;
+      while (mys) {
+         cp = parse_to(&mys, ';', 0);
+         if (cp && *cp && !mudstate.breakst) {
+            process_command(player, cause, 0, cp, cargs, ncargs, 0);
+            if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@skip:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                break;
+            }
+         }
+      }
    }
    free_lbuf(retbuff);
-
+   if ( desc_in_use != NULL ) {
+      mudstate.breakst = i_breakst;
+   }
 }
 
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
    char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
-   int old_trainmode, x;
+   int old_trainmode, x, i_breakst, forcehalted_state;
 
-   if ( mudstate.sudo_cntr >= 1 ) {
-      notify(player, "You can't nest @sudo.");
-      return;
-   }
+   //if ( mudstate.sudo_cntr >= 1 ) {
+   //   notify(player, "You can't nest @sudo.");
+   //   return;
+   //}
    if ( !s_command || !*s_command ) {
       return;
    }
@@ -8449,6 +8697,12 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       return;
    }
 
+   forcehalted_state = mudstate.force_halt;
+   if ( Halted(target) && ForceHalted(player) ) {
+      mudstate.force_halt = target;
+   } else
+      mudstate.force_halt = 0;
+
    mudstate.sudo_cntr++;
    old_trainmode=mudstate.trainmode;
 
@@ -8463,11 +8717,15 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       }
    }
 
+   i_breakst = mudstate.breakst;
    while (s_command) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
-         process_command(target, target, 1, cp, args, nargs, 0);
+         process_command(target, target, 0, cp, args, nargs, 0);
       }
+   }
+   if ( desc_in_use != NULL ) {
+      mudstate.breakst = i_breakst;
    }
 
    if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
@@ -8481,6 +8739,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    /* process_command(target, target, 1, s_command, args, nargs, 0); */
    mudstate.trainmode = old_trainmode;
    mudstate.sudo_cntr--;
+   mudstate.force_halt = forcehalted_state;
 }
 
 void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
@@ -8532,7 +8791,9 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       return;
    }
    if ( !*instr || !instr ) {
-      notify(player, "Ansi string cleared.");
+      if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+          notify(player, "Ansi string cleared.");
+      }
       atr_clr(thing, A_ANSINAME);
    } else {
      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, instr, NULL, 0);
@@ -8558,8 +8819,10 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
          return;
 #undef extansi_strip
       } else {
-         notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
+         if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+                notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
                 strip_returntab(retbuff,3)));
+         }
          atr_add_raw(thing, A_ANSINAME, 
                      unsafe_tprintf("%.3900s%s", strip_returntab(retbuff,3), ANSI_NORMAL));
       }
@@ -9010,7 +9273,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
         *s_strtok, *s_strtokptr, *s_return, *s_tmpstr, *xargs[MAX_ARG], *s_foo;
    int anum, anum2, anum3, aflags, i_isequal, i_corrupted, i_temp, i_temp2, i_lowball, 
         i_highball, i_first, nxargs, i, i_clusterfunc, anum4, i_sideeffect,
-        i_nomatch, i_nowipe, i_wipecnt, i_totobjs;
+        i_nomatch, i_nowipe, i_wipecnt, i_totobjs, i_regexp;
    ATTR *attr;
    time_t starttme, endtme;
    double timechk;
@@ -9037,6 +9300,12 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
       notify(player, "@cluster requires an argument.");
       free_lbuf(s_return);
       return;
+   }
+
+   i_regexp = 0;
+   if ( key & CLUSTER_REGEXP ) {
+      i_regexp = 1;
+      key &= ~CLUSTER_REGEXP;
    }
    free_lbuf(s_instr);
    if ( strchr(s_return, '=') ==  NULL ) {
@@ -9502,7 +9771,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             } else {
                parse_arglist(player, cause, cause, s_tmpptr, '\0',
                              EV_STRIP_LS | EV_STRIP_TS,
-                             xargs, MAX_ARG, (char **)NULL, 0);
+                             xargs, MAX_ARG, (char **)NULL, 0, 0);
                for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
@@ -9514,7 +9783,11 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                      while ( s_strtok && !mudstate.chkcpu_toggle ) {
                         thing3 = match_thing(player, s_strtok);
                         if ( Good_chk(thing3) && Cluster(thing3) ) {
-                           s_tmpptr = grep_internal(player, thing3, xargs[1], xargs[0], 0);
+                           if ( i_regexp ) {
+                              s_tmpptr = grep_internal_regexp(player, thing3, xargs[1], xargs[0], 0, 0);
+                           } else {
+                              s_tmpptr = grep_internal(player, thing3, xargs[1], xargs[0], 0);
+                           }
                            if ( *s_tmpptr ) {
                               notify(player, safe_tprintf(tpr_buff, &tprp_buff, "====[Grep]---> %s", s_strtok));
                               notify(player, s_tmpptr);
@@ -9561,7 +9834,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                } else {
                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
                                 EV_STRIP_LS | EV_STRIP_TS,
-                                xargs, MAX_ARG, (char **)NULL, 0);
+                                xargs, MAX_ARG, (char **)NULL, 0, 0);
                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                   if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                      s_instr = atr_get(thing, anum2, &aowner, &aflags);
@@ -9686,7 +9959,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                         if ( *s_strtok ) {
 	                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                 EV_STRIP_LS | EV_STRIP_TS,
-			                 xargs, MAX_ARG, (char **)NULL, 0);
+			                 xargs, MAX_ARG, (char **)NULL, 0, 0);
 	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                            s_strtok = alloc_lbuf("cluster_trigger_build");
                            sprintf(s_strtok, "%.32s/%.3900s", s_tmpstr, s_strtokptr);
@@ -9755,7 +10028,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                                 (strchr(s_strtokptr, '?') != NULL) ) {
 	                      parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                    EV_STRIP_LS | EV_STRIP_TS,
-			                    xargs, MAX_ARG, (char **)NULL, 0);
+			                    xargs, MAX_ARG, (char **)NULL, 0, 0);
 	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                               if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                  s_strtok = alloc_lbuf("cluster_set_build");
@@ -9787,7 +10060,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                               } else {
 	                         parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                       EV_STRIP_LS | EV_STRIP_TS,
-			                       xargs, MAX_ARG, (char **)NULL, 0);
+			                       xargs, MAX_ARG, (char **)NULL, 0, 0);
 	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                                  if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                     s_tmpstr = find_cluster(thing, player, anum3);
@@ -10189,6 +10462,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                else
                   timechk = mudconf.cputimechk;
                i_totobjs = 0;
+               if ( i_regexp ) 
+                  i_regexp = WIPE_REGEXP;
                while ( s_strtok ) {
                   endtme = time(NULL);
                   if ( mudstate.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
@@ -10204,9 +10479,9 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                   if ( Good_chk(thing3) && Cluster(thing3) ) {
                      if ( *s_return && (strchr(s_return, '/') != NULL) ) {
                         sprintf(s_instr, "%s%s", s_strtok, strchr(s_return, '/'));
-                        do_wipe(thing3, thing3, (SIDEEFFECT), s_instr);
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_instr);
                      } else
-                        do_wipe(thing3, thing3, (SIDEEFFECT), s_strtok);
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_strtok);
                   }
                   switch (mudstate.wipe_state) {
                      case -1: i_nomatch++;
@@ -10246,6 +10521,33 @@ internal_logstatus( void )
 }
 
 void
+do_progreset(dbref player, dbref cause, int key, char *name)
+{
+   dbref target;
+   DESC *d;
+
+   if ( !name && !*name ) {
+      target = player;
+   } else {
+      target = lookup_player(player, name, 0);
+   }
+   if ( !Good_chk(target) || !Controls(player, target) ) {
+      notify(player, "No matching target found.");
+      return;
+   }
+   if ( !InProgram(target) ) {
+      DESC_ITER_CONN(d) {
+         if ( d->player == target ) {
+            queue_string(d, "\377\371");
+         }
+      }
+      notify_quiet(player, "Program prompt reset.");
+   } else {
+      notify_quiet(player, "Player is in a program, can not reset.");
+   }
+}
+
+void
 do_blacklist(dbref player, dbref cause, int key, char *name) 
 {
    char *s_buff, *s_buffptr, *tmpbuff;
@@ -10271,7 +10573,7 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          }
          if ( name && *name )
             i_page_val = atoi(name);
-         if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 30) + 1)) ) {
+         if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 80) + 1)) ) {
             notify(player, "@blacklist: Value specified must be a valid page value.");
             break;
          }
@@ -10281,11 +10583,16 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          i_loop_chk=0;
          b_lst_ptr = mudstate.bl_list;
          notify(player, "==============================================================================");
-         notify(player, "=                                 Black List                                 =");
+         if ( i_page_val > 0 ) {
+            sprintf(tmpbuff, "= (Paged List)                    Black List                  %3d/%3d        =", i_page_val, (mudstate.blacklist_cnt/80)+1);
+         } else {
+            sprintf(tmpbuff, "= (Full List)                     Black List                                 =");
+         }
+         notify(player, tmpbuff);
          notify(player, "==============================================================================");
          while ( b_lst_ptr ) {
             i_loop_chk++;
-            if ( i_loop_chk % 40 )
+            if ( (i_loop_chk % 80) == 1 )
                i_page++;
             if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
                b_lst_ptr = b_lst_ptr->next;

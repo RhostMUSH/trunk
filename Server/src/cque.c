@@ -5,6 +5,8 @@
 
 #include <signal.h>
 
+#include <math.h>
+
 #include "mudconf.h"
 #include "config.h"
 #include "db.h"
@@ -20,6 +22,8 @@ extern int FDECL(a_Queue, (dbref, int));
 extern void FDECL(s_Queue, (dbref, int));
 extern int FDECL(QueueMax, (dbref));
 extern int NDECL(next_timer);
+extern double FDECL(time_ng, (double*));
+extern int FDECL(alarm_msec, (double));
 
 #define MUMAXPID	32767
 #ifdef MAXINT
@@ -99,6 +103,7 @@ void execute_entry(BQUE *queue)
 
 		command = queue->comm;
 		mudstate.breakst = 0;
+                mudstate.breakdolist = 0;
                 mudstate.includecnt = 0;
                 mudstate.force_halt =0;
 		while (command && !mudstate.breakst) {
@@ -613,7 +618,7 @@ thaw_pid(dbref player, int pid, int key)
                } else {
                   freezepid->comm = NULL;
                }
-               freezepid->waittime = point->waittime - point->pid + time(NULL);
+               freezepid->waittime = point->waittime - point->pid + time_ng(NULL);
                for (a = 0; a < NUM_ENV_VARS; a++) {
                    if ( point->env[a] )
                       freezepid->env[a] = freezepid->text + (point->env[a] - point->text);
@@ -690,7 +695,7 @@ thaw_pid(dbref player, int pid, int key)
                   freezepid->comm = NULL;
                }
                if ( point->waittime  != 0 )
-                  freezepid->waittime = point->waittime - point->pid + time(NULL);
+                  freezepid->waittime = point->waittime - point->pid + time_ng(NULL);
                else
                   freezepid->waittime = 0;
                for (a = 0; a < NUM_ENV_VARS; a++) {
@@ -811,7 +816,7 @@ thaw_pid(dbref player, int pid, int key)
 }
 
 int
-wait_que_pidnew(dbref player, int pid, int newwait, int key)
+wait_que_pidnew(dbref player, int pid, double newwait, int key)
 {
    BQUE *point;
    int found;
@@ -823,21 +828,21 @@ wait_que_pidnew(dbref player, int pid, int newwait, int key)
              HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             point->stop_bool_val = newwait;
             if ( key == -1 ) {
-               if ( (point->waittime - newwait) < (time(NULL) + 10) ) 
+               if ( (point->waittime - newwait) < (time_ng(NULL) + 10) ) 
                   return -1;
                point->waittime -= newwait;
-               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %d",
-                              pid, (point->waittime - time(NULL))));
+               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
+                              pid, (point->waittime - time_ng(NULL))));
                found = 2;
             } else if ( key == 1 ) {
                if ( (point->waittime + newwait) < (time(NULL) + 10) ) 
                   return -1;
                point->waittime += newwait;
-               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %d",
-                              pid, (point->waittime - time(NULL))));
+               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
+                              pid, (point->waittime - time_ng(NULL))));
                found = 2;
             } else {
-               point->waittime = time(NULL) + newwait;
+               point->waittime = time_ng(NULL) + newwait;
                found = 1;
             }
             break;
@@ -851,21 +856,21 @@ wait_que_pidnew(dbref player, int pid, int newwait, int key)
                 HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
                point->stop_bool_val = newwait;
                if ( key == -1 ) {
-                  if ( (point->waittime - newwait) < (time(NULL) + 10) ) 
+                  if ( (point->waittime - newwait) < (time_ng(NULL) + 10) ) 
                      return -1;
                   point->waittime -= newwait;
-                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %d",
-                                 pid, (point->waittime - time(NULL))));
+                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
+                                 pid, (point->waittime - time_ng(NULL))));
                   found = 2;
                } else if ( key == 1 ) {
-                  if ( (point->waittime + newwait) < (time(NULL) + 10) ) 
+                  if ( (point->waittime + newwait) < (time_ng(NULL) + 10) ) 
                      return -1;
                   point->waittime += newwait;
-                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %d",
-                                 pid, (point->waittime - time(NULL))));
+                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
+                                 pid, (point->waittime - time_ng(NULL))));
                   found = 2;
                } else {
-                  point->waittime = time(NULL) + newwait;
+                  point->waittime = time_ng(NULL) + newwait;
                   found = 1;
                }
                break;
@@ -1133,7 +1138,7 @@ halt_que_pid(dbref player, int pid, int key)
                if ( (key == 1) && (point->stop_bool == 0) ) {
                   point->stop_bool = 1;
                   if ( point->waittime != 0 )
-                     point->stop_bool_val = point->waittime - (int)mudstate.now;
+                     point->stop_bool_val = point->waittime - mudstate.nowmsec;
                   else
                      point->stop_bool_val = 0;
                   numhalted++;
@@ -1179,7 +1184,7 @@ halt_que_pid(dbref player, int pid, int key)
                if ( (key == 1) && (point->stop_bool == 0) ) {
                   point->stop_bool = 1;
                   if ( point->waittime != 0 )
-                     point->stop_bool_val = point->waittime - (int)mudstate.now;
+                     point->stop_bool_val = point->waittime - mudstate.nowmsec;
                   else
                      point->stop_bool_val = 0;
                   numhalted++;
@@ -1725,7 +1730,7 @@ setup_que(dbref player, dbref cause, char *command,
  */
 
 void 
-wait_que(dbref player, dbref cause, int wait, dbref sem,
+wait_que(dbref player, dbref cause, double wait, dbref sem,
 	 char *command, char *args[], int nargs, char *sargs[], char *sargsname[])
 {
     BQUE *tmp, *point, *trail;
@@ -1738,7 +1743,7 @@ wait_que(dbref player, dbref cause, int wait, dbref sem,
 	return;
     }
     if (wait != 0)
-	tmp->waittime = time(NULL) + wait;
+	tmp->waittime = time_ng(NULL) + wait;
     tmp->sem = sem;
     if (sem == NOTHING) {
 
@@ -1822,8 +1827,9 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
 	char *cmd, char *cargs[], int ncargs)
 {
     dbref thing;
-    int howlong, num, newwait, retval, recpid, recpidval, numwords, i_shiftoffset;
+    int num, pid, retval, recpid, recpidval, numwords, i_shiftoffset;
     char *what, *event, *eventtok, *pt, *numval;
+    double howlong, newwait;
 
     i_shiftoffset = 0;
 
@@ -1866,9 +1872,9 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
 
        if (is_number(event)) {
            if ( key & WAIT_UNTIL )
-              howlong = atoi(event) - time(NULL);
+              howlong = atof(event) - time_ng(NULL);
            else
-	      howlong = atoi(event);
+	      howlong = atof(event);
 	   wait_que(player, cause, howlong, NOTHING, cmd,
 		    cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
            if ( recpid ) {
@@ -1898,9 +1904,9 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
    
 	   if (event && *event) {
                if ( key & WAIT_UNTIL )
-	          howlong = atoi(event) - time(NULL);
+	          howlong = atof(event) - time_ng(NULL);
                else
-	          howlong = atoi(event);
+	          howlong = atof(event);
 	   } else
 	       howlong = 0;
    
@@ -1926,42 +1932,42 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
        }
     } else {
        if (is_number(event)) {
-	   howlong = atoi(event);
+	   pid = atoi(event);
            if ( key & WAIT_UNTIL ) {
-              newwait = atoi(cmd) - time(NULL);
+              newwait = atof(cmd) - time_ng(NULL);
            } else {
               if ( *cmd == '+' ) {
-                 newwait = atoi(cmd+1);
+                 newwait = atof(cmd+1);
                  i_shiftoffset = 1;
               } else if ( *cmd == '-' ) {
-                 newwait = atoi(cmd+1);
+                 newwait = atof(cmd+1);
                  i_shiftoffset = -1;
               } else {
-                 newwait = atoi(cmd);
+                 newwait = atof(cmd);
                  i_shiftoffset = 0;
               }
            }
-           if ( howlong < 0 || howlong > MUMAXPID )
+           if ( pid < 0 || pid > MUMAXPID )
 	      notify(player,"PID not found/Permission denied.");
            else if ( newwait < 10 ) {
               if ( key & WAIT_UNTIL )
                  notify(player, "New wait time must be more than 10 seconds from now.");
               else
                  notify(player, "New wait time must be greater than 10 seconds.");
-	   } else if ( (newwait + time(NULL)) > (MYMAXINT - 1) ||
-		       (newwait + time(NULL)) < 0 ) {
+	   } else if ( (newwait + time_ng(NULL)) > (MYMAXINT - 1) ||
+		       (newwait + time_ng(NULL)) < 0 ) {
               if ( key & WAIT_UNTIL )
                  notify(player, unsafe_tprintf("New wait time exceeds maximum value of %d.", MYMAXINT - 60));
               else
-	         notify(player, unsafe_tprintf("New wait time must be less than %d seconds.", MYMAXINT - time(NULL) - 60));
+	         notify(player, unsafe_tprintf("New wait time must be less than %.1f seconds.", MYMAXINT - time_ng(NULL) - 60));
            } else {
-              retval = wait_que_pidnew(player, howlong, newwait, i_shiftoffset);
+              retval = wait_que_pidnew(player, pid, newwait, i_shiftoffset);
               if ( retval == -1 )
                  notify(player, "PID value had wait of less than 10 seconds.");
               else if ( retval ) {
                  if (i_shiftoffset == 0) 
-                    notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %d",
-                                   howlong, newwait));
+                    notify(player, unsafe_tprintf("PID %d has been re-waited with new time of .1f",
+                                   pid, newwait));
               } else 
 	         notify(player,"PID not found/Permission denied.");
            }
@@ -1976,7 +1982,7 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
  * run from the queue.
  */
 
-int 
+double 
 NDECL(que_next)
 {
     int min, this;
@@ -1994,7 +2000,7 @@ NDECL(que_next)
      */
 
     if (mudstate.qlfirst != NULL)
-	return 1;
+	return 0.1;
 
     /* Walk the wait and semaphore queues, looking for the smallest
      * wait value.  Return the smallest value - 1, because the command
@@ -2003,9 +2009,9 @@ NDECL(que_next)
 
     min = 1000;
     for (point = mudstate.qwait; point; point = point->next) {
-	this = point->waittime - mudstate.now;
-	if (this <= 2)
-	    return 1;
+	this = point->waittime - mudstate.nowmsec;
+	if (this <= 0.2)
+	    return 0.1;
 	if (this < min)
 	    min = this;
     }
@@ -2013,13 +2019,13 @@ NDECL(que_next)
     for (point = mudstate.qsemfirst; point; point = point->next) {
 	if (point->waittime == 0)	/* Skip if no timeout */
 	    continue;
-	this = point->waittime - mudstate.now;
-	if (this <= 2)
-	    return 1;
+	this = point->waittime - mudstate.nowmsec;
+	if (this <= 0.2)
+	    return 0.1;
 	if (this < min)
 	    min = this;
     }
-    return min - 1;
+    return min - 0.1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2032,7 +2038,8 @@ NDECL(do_second)
     BQUE *trail, *point, *next;
     DESC *d, *dnext;
     char *cmdsave, *cpulbuf;
-    int i_timediff, i_offset;
+    int i_offset;
+    double d_timediff;
 
     /* move contents of low priority queue onto end of normal one
      * this helps to keep objects from getting out of control since
@@ -2061,16 +2068,16 @@ NDECL(do_second)
     /* Do the wait queue */
 
     i_offset = 0;
-    i_timediff = (int)mudstate.now - (int)mudstate.lastnow;
+    d_timediff = (int)mudstate.nowmsec - (int)mudstate.lastnowmsec;
     for (point = mudstate.qwait, trail = NULL; point ; point = next) {
-        if ( (i_timediff > 120) || (i_timediff < -120) ) {
-           point->waittime = point->waittime + i_timediff;
+        if ( (d_timediff > 120) || (d_timediff < -120) ) {
+           point->waittime = point->waittime + d_timediff;
            i_offset = 1;
         } 
         if ( point->stop_bool ) {
-           point->waittime = mudstate.now + point->stop_bool_val;
+           point->waittime = mudstate.nowmsec + point->stop_bool_val;
         }
-        if ( point->waittime <= mudstate.now ) {
+        if ( point->waittime <= mudstate.nowmsec ) {
            if (trail != NULL)
               trail->next = next = point->next;
            else
@@ -2087,14 +2094,14 @@ NDECL(do_second)
 	    next = (trail = point)->next;
 	    continue;		/* Skip if not timed-wait */
 	}
-        if ( (i_timediff > 120) || (i_timediff < -120) ) {
-           point->waittime = point->waittime + i_timediff;
+        if ( (d_timediff > 120) || (d_timediff < -120) ) {
+           point->waittime = point->waittime + d_timediff;
            i_offset = 1;
         }
         if ( point->stop_bool ) {
-           point->waittime = mudstate.now + point->stop_bool_val;
+           point->waittime = mudstate.nowmsec + point->stop_bool_val;
         }
-	if (point->waittime <= mudstate.now) {
+	if (point->waittime <= mudstate.nowmsec) {
 	    if (trail != NULL)
 		trail->next = next = point->next;
 	    else
@@ -2111,8 +2118,8 @@ NDECL(do_second)
     if ( i_offset ) {
        STARTLOG(LOG_ALWAYS, "WIZ", "CLK");
           cpulbuf = alloc_lbuf("do_second.clockskew");
-          sprintf(cpulbuf, "Clock Skew Detected: Skew was %d seconds. Queue compensated.", 
-                  i_timediff);
+          sprintf(cpulbuf, "Clock Skew Detected: Skew was %.1f seconds. Queue compensated.", 
+                  d_timediff);
           log_text(cpulbuf);
           free_lbuf(cpulbuf);
        ENDLOG
@@ -2120,23 +2127,23 @@ NDECL(do_second)
        DESC_SAFEITER_ALL(d, dnext) {
          
           if (d->flags & DS_CONNECTED) {
-             d->last_time = d->last_time + i_timediff;
-             d->connected_at = d->connected_at + i_timediff;
+             d->last_time = d->last_time + floor(d_timediff);
+             d->connected_at = d->connected_at + floor(d_timediff);
           } else {
-             d->connected_at = d->connected_at + i_timediff;
+             d->connected_at = d->connected_at + floor(d_timediff);
           }
        }
        /* Let's update the internal counters with the new time */
-       mudstate.dump_counter = mudstate.dump_counter + i_timediff;
-       mudstate.idle_counter = mudstate.idle_counter + i_timediff;
-       mudstate.check_counter = mudstate.check_counter + i_timediff;
-       mudstate.mstats_counter = mudstate.mstats_counter + i_timediff;
-       mudstate.rwho_counter = mudstate.rwho_counter + i_timediff;
-       mudstate.cntr_reset = mudstate.cntr_reset + i_timediff;
+       mudstate.dump_counter = mudstate.dump_counter + d_timediff;
+       mudstate.idle_counter = mudstate.idle_counter + d_timediff;
+       mudstate.check_counter = mudstate.check_counter + d_timediff;
+       mudstate.mstats_counter = mudstate.mstats_counter + d_timediff;
+       mudstate.rwho_counter = mudstate.rwho_counter + d_timediff;
+       mudstate.cntr_reset = mudstate.cntr_reset + d_timediff;
 
        /* Reset Alarm Timer */
        mudstate.alarm_triggered = 0;
-       alarm (next_timer());
+       alarm_msec (next_timer());
     }
     mudstate.debug_cmd = cmdsave;
     return;
@@ -2250,7 +2257,7 @@ fun_do_display(BQUE *tmp, dbref player, dbref player_targ, dbref obj_targ, int k
       if ( do_sep )
          safe_chr('|', buff, bufcx);
       if ( tmp->waittime )
-         sprintf(i_buffering, "%d", (int)(tmp->waittime - mudstate.now));
+         sprintf(i_buffering, "%.1f", (tmp->waittime - mudstate.nowmsec));
       else
          sprintf(i_buffering, "%d", 0);
       safe_str(i_buffering, buff, bufcx);
@@ -2287,7 +2294,6 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
          if ( i_pid <= 0 )
             i_pid = -1;
       } else {
-//       player_targ = Owner(player);
          player_targ = player;
          init_match(player, target, NOTYPE);
          match_everything(MAT_EXIT_PARENTS);
@@ -2391,18 +2397,18 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                stop_chr = ' ';
 	    if ((tmp->waittime > 0) && (Good_obj(tmp->sem)))
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d/%d]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d/%.1f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
 			       tmp->sem,
-			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.now,
+			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
 			       bufp, tmp->comm));
 	    else if (tmp->waittime > 0)
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [%d]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [%.1f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
-			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.now,
+			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
 			       bufp, tmp->comm));
 	    else if (Good_obj(tmp->sem))
 		notify(player,

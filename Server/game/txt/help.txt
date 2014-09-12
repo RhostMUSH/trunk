@@ -51,37 +51,39 @@
   @destroy     @dig         @doing       @dolist      @drain       @edit 
   @emit        @entrances   @eval        @extansi     @femit       @find      
   @force       @fpose       @fsay        @halt        @hide        @include
-  @last        @link        @list        @listmotd    @lock        @mvattr    
-  @name        @notify      @oemit       @open        @parent      @password  
-  @pemit       @program     @protect     @ps          @quitprogram @quota     
-  @register    @robot       @search      @set         @skip        @stats     
-  @sudo        @sweep       @switch      @teleport    @trigger     @unlink    
-  @unlock      @verb        @wait        @wipe        @mailsig     @wall       
+  @last        @link        @list        @listmotd    @lfunction   @lock      
+  @mailsig     @mvattr      @name        @notify      @oemit       @open      
+  @parent      @password    @pemit       @program     @protect     @ps        
+  @quitprogram @quota       @register    @robot       @search      @set       
+  @skip        @stats       @sudo        @sweep       @switch      @teleport  
+  @trigger     @unlink      @unlock      @verb        @wait        @wall      
+  @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 & commands2
   Help available for RhostMUSH Commands (continued):
  
-  @aahear      @aclone      @aconnect  @adescribe   @adfail      @adisconnect
-  @adrop       @aefail      @aenter    @afail       @agfail      @ahear
-  @akill       @aleave      @alfail    @alias       @amhear      @amove
-  @apay        @arfail      @asuccess  @atfail      @atport      @aufail
-  @ause        @away        @charges   @cost        @describe    @dfail
-  @drop        @ealias      @efail     @enter       @fail        @filter
-  @forwardlist @gfail       @idesc     @idle        @infilter    @inprefix
-  @kill        @lalias      @leave     @lfail       @listen      @move
-  @odescribe   @odfail      @odrop     @oefail      @oenter      @ofail
-  @ogfail      @okill       @oleave    @olfail      @omove       @opay
-  @orfail      @osuccess    @otfail    @otport      @oufail      @ouse
-  @oxenter     @oxleave     @oxtport   @pay         @prefix      @reject
-  @rfail       @runout      @sex       @startup     @success     @tfail
-  @toggle      @tport       @ufail     @use         @whereall    @whereis     
-  +uptime      @cpattr      @grep      @selfboot    @zone        @tofail
-  @otofail     @atofail     @door      @sfail       @asfail      @guild
-  @race        @slisten     @salisten  @solisten    @staste      @sataste
-  @sotaste     @stouch      @satouch   @sotouch     @ssmell      @sasmell
-  @sosmell     @ansiname    @caption   @conformat   @exitformat  @saystring
-  @nameformat  @titlecaption
+  @aahear    @aclone      @aconnect    @adescribe  @adfail       @adisconnect
+  @adrop     @aefail      @aenter      @afail      @agfail       @ahear
+  @akill     @aleave      @alfail      @alias      @amhear       @amove
+  @ansiname  @apay        @arfail      @asfail     @asuccess     @atfail    
+  @atofail   @atport      @aufail      @ause       @away         @caption 
+  @charges   @conformat   @cost        @cpattr     @describe     @dfail
+  @door      @drop        @ealias      @efail      @enter        @exitformat
+  @fail      @filter      @forwardlist @gfail      @grep         @guild 
+  @idesc     @idle        @infilter    @inprefix   @kill         @lalias    
+  @leave     @lfail       @listen      @move       @nameformat   @odescribe 
+  @odfail    @odrop       @oefail      @oenter     @ofail        @ogfail    
+  @okill     @oleave      @olfail      @omove      @opay         @orfail    
+  @osuccess  @otfail      @otofail     @otport     @oufail       @ouse
+  @oxenter   @oxleave     @oxtport     @pay        @prefix       @race      
+  @reject    @rfail       @runout      @salisten   @sasmell      @sataste
+  @satouch   @saystring   @selfboot    @sex        @sfail        @slisten     
+  @solisten  @sosmell     @sotaste     @sotouch    @ssmell       @startup   
+  @staste    @stouch      @success     @tfail      @titlecaption @tofail
+  @toggle    @tport       @ufail       +uptime     @use          @whereall  
+  @whereis   @zone        
+  
   
   See Also: @list
   
@@ -184,7 +186,10 @@
   Bang notation allows you to use '!' and '!!' in functions for 'not' and
   'not-not' functionality.  This works similiarilly to the C equivelant of
   using 'bangs'.  You may also specify '!$' and '!!$' for FALSE or TRUE
-  conditions on functions that return string values.
+  conditions on functions that return string values.  Finally, you may
+  specify '!^' and '!!^' for true-boolean FALSE or TRUE conditions on
+  functions that return true-boolean based on the function t()'.
+  
   
   Example:
     > say match(one two three four five,four)
@@ -197,6 +202,10 @@
     You say "0"
     > say !!$grab(this is a test,this)
     You say "1"
+    > say !!^space(1000)                  (spaces are non-boolean strings)
+    You say "0"
+    > say !!$space(1000)                  (spaces are not-null strings)
+    You say "1" 
   
   Bang notation may or may not be enabled based on the RhostMUSH that you are
   on.  Please check @list options to see if it is currently enabled.
@@ -434,6 +443,8 @@
   See Also: @lock, ZONES, lzone(), ZONEMASTER, ZONECONTENTS
   
 & changes
+  For a list of actual changes, see 'help revis'.
+  
   RhostMUSH, first originating in 1989/1990, was founded as a TinyMUD.
   Though the current code runs a MUSH compatible kernal, we still use
   the exact same database from that period.  You will find RhostMUSH
@@ -576,6 +587,9 @@
      /parent - Includes attributes that are not present on the object itself
                but which are inherited from the object's parent.  This only
                works if you have permission to see it.
+     /tree   - Examine per Penn-Tree output separating trees with '`'.
+               Only useful with using #obj/attr format.
+     /regexp - Use regular expression for wildcard matches.
   
   See Also: look, @decompile, VISUAL, ATTRIBUTE OWNERSHIP, FLAG LIST,
             ATTRIBUTE FLAGs
@@ -1927,8 +1941,20 @@
   < -_.@#$^&*~?=+| >, and must start with a letter.  The names of user-named
   attributes may not be abbreviated (an attempt to get the value of the
   attribute will fail, and an attempt to set will create a new attribute).
+  
+  The object that is chosen will be either the object in the cluster that
+  already contains the attribute, or the object in the cluster with the
+  least number of attributes currently on it.
+  
+  Specifying an object not in the cluster will return an error.
+  
+  Attributes must start with an alpha character, or in special cases a ~ or _.
+  
+  Example:
+    >myattr ClusterObj=This is my data on attribute 'myattr'
+    Set.
    
-  See Also: @set, VATOVZ, ZATOZZ
+  See Also: @set, @cluster set, VATOVZ, ZATOZZ, &
 
 & &
   Command: &<attribute> <object>[=<value>]
@@ -1943,8 +1969,14 @@
   attribute will fail, and an attempt to set will create a new attribute).
   The & command may be used to set predefined attributes (in this instance,
   '&<attr> <object>=<value>' is equivalent to '@<attr> <object>=<value>').
+  
+  Attributes must start with an alpha character, or in special cases a ~ or _.
+  
+  Example:
+    &myattr Object=This is my data on attribute 'myattr'
+    Set.
    
-  See Also: @set, VATOVZ, ZATOZZ
+  See Also: @set, @cluster set, VATOVZ, ZATOZZ, >
   
 & @@
   Command: @@ <args>
@@ -2094,19 +2126,36 @@
   ---------   -------------------------- -----------   -----------------------
     /new    - start new cluster          /add        - add dbref# to a cluster
     /del    - delete dbref# from cluster /clear      - purge cluster
-    /list   - list cluster specifics     /threshhold - set threshold limit
+    /list   - list cluster specifics     /threshold  - set threshold limit
     /action - set threshold action       /edit       - edit attr on cluster
     /set    - set/unset attr on cluster  /repair     - repair cluster
     /grep   - grep cluster for match     /reaction   - edit action on cluster
     /cut    - 'cut' dbref# from cluster  /trigger    - trigger attr in cluster
-    /func   - Specify function action
-  
+    /func   - Specify function action    /regexp     - use regexp pattern match
+    /wipe   - Wipe attrib(s) in cluster
+   
   See Also:  clusters, cluster functions, cluster commands, >
+
+& @cluster wipe
+  Command: @cluster/wipe <object>[/<wildattr>]
+           @cluster/wipe/regexp <object>[/<wildattr>]
+  
+  The wipe switch, with an optional regexp switch addon, will wipe all matching
+  attributes from every item in the cluster.  This works exactly like @wipe
+  except is performed on the entirity of the cluster.
+  
+  Example:
+    > @cluster/wipe #1234/va*
+    Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
+    > @cluster/wipe/regexp #1234/^..$
+    Cluster wipe: 24 total objects, 0 no-match, 0 safe, 22 attributes wiped.
+  
+  See Also: clusters, cluster functinos, cluster commands, >
 
 & @cluster new
   Command: @cluster/new <object>
   
-  The new switch, takes the specified object and asigns it as a cluster object.
+  The new switch, takes the specified object and assigns it as a cluster object.
   Once defined as a cluster, new objects may be /added to the cluster or
   /deleted to the cluster.  A cluster should never become corrupted, but if
   there is some inconsistancy, you may /repair it without worry of data loss.
@@ -2254,6 +2303,7 @@
            @cluster/set <cluster object>=<attribute>:<value>
            @cluster/set <cluster object>=<attribute>:_<fromobj>/<fromattr>
            @cluster/set <cluster object>/<attr>=[!]<attrflag>
+  Synonym: ><attribute> <object in cluster>[=<value>]
   
   This works like @set except with the entire cluster.  It automatically 
   identifies what object in the cluster contains the attribute and modifies
@@ -2286,10 +2336,14 @@
 
 & @cluster grep
   Command: @cluster/grep <cluster object>=<attribute(s)>,<string>
+           @cluster/grep/regexp <cluster object>=<attribute(s)>,<string>
   
   This works like @grep but is intended for the entirety of the cluster.
   This essentially searches for any match (partial or wildcarded) on 
   any attribute on the cluster.
+  
+  You may specify the optional regexp switch to use regular expression 
+  matching instead of the default matching.
   
   Example: 
     > @cluster/grep #3683=*,*foo*
@@ -2372,6 +2426,8 @@
       /all     - Show everything (this is the default)
       /attrib  - Show just attributes
       /flags   - Show just flags
+      /regexp  - use regular expression matching
+      /tree    - Examine based on Penn trees using '`' as a separator.
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
@@ -2465,12 +2521,20 @@
   match of the argument currently being processed.  The /notify switch is
   used to automatically notify the object after the last item in the @dolist
   is processed.  Great for timed events.
-   
+  
+  The /inline switch may use %d0 to %d9 for ## substitution.  %dL for outer.   
+  
   If present, <switch> can be any of:
-    /space   - (Default) List elements are separated by spaces.
-    /delimit - List elements are separated by <delimiter>.
-    /notify  - Issues a @notify me after the end of the @dolist
-    /pid     - Issues a @notify/pid me=<pid> after the end of the @dolist.
+    /space     - (Default) List elements are separated by spaces.
+    /delimit   - List elements are separated by <delimiter>.
+    /notify    - Issues a @notify me after the end of the @dolist
+    /pid       - Issues a @notify/pid me=<pid> after the end of the @dolist.
+    /inline    - Execute @dolist 'in-line' and do not queue.
+    /clearregs - Clear the registers before going inside @dolist.  This 
+                 assumes local registers. (/inline required)
+    /localize  - Make any changes to registers local (/inline required)
+    /nobreak   - All @break/@assert in @dolist ignored in outside processing.
+                 (/inline required)
   
 { help @dolist2 for examples}
   
@@ -2811,6 +2875,7 @@
          help @lock keys  - list of valid keys you can use in @locking.
          help @lock locks - list of available locks you can @lock.
          help @lock type <lock> - give detailed help on the specific lock.
+         help userlocks   - a special way to define user-defined locking.
   
   See Also: @chown, @unlock
   
@@ -2965,7 +3030,8 @@
                                    in MUSH programming where a user-defined
                                    lock is needed.  This can also be used as
                                    a REALITY_LEVEL Lock if enabled to do so.
-     TwinkLock:    All:            Allows people to alter your object.
+     TwinkLock:    All:            Allows people to alter your object.  If
+                                   set on a player, all they own is affected.
      ZoneWizLock:  ZoneMaster:     Allows people control and modify
                                    ability in a zone. *CAREFUL*  See type
                                     help for details.
@@ -3001,7 +3067,7 @@
   Lock Type: TwinkLock
   Syntax   : @lock/twink <target>=<key>
   
-  Rooms, Objects, Exits, Players:
+  Rooms, Objects, Exits:
      The twinklock is a unique lock in that it will allow anyone who passes
      the lock control over that object.  THIS CAN BE A SECURITY RISK SO BE
      CAREFUL!  The user who passes the lock will ONLY be able to modify/set
@@ -3010,6 +3076,13 @@
      twinklocked be !INHERIT so that abuse will be limited.  If the lock
      does not exist, then NO ONE other than the owner will be able to modify
      that target.
+  
+  Players:
+     Players are special in that just like Rooms, Objects, and Exits, it
+     allows direct modification of them as a player, but also in the case
+     of player, the TwinkLock is special in that it's an inheritable lock.
+     This means if you pass the twinklock of a player, you automatically
+     pass that lock on everything that player owns.
   
   Special note:  You can set the item NOMODIFY if you want it to just have
                  examine privalages and not modify privalages.
@@ -3538,8 +3611,12 @@
   See Also: @drain, @ps, @wait, SEMAPHORES, @halt
   
 & @oemit
-  Command: @oemit <player>=<message>
+  Command: @oemit[/<switch>] <player>=<message>
   Emits <message> to everyone in your current location except for <player>.
+  
+  The following switches are available:
+     /noansi -- Show unevaluated ansi codes.
+     /multi  -- take <player> as a multi-target argument.
   
   See Also:  @emit, @pemit, SPOOFING
   
@@ -3644,6 +3721,30 @@
    
   See Also: @name
   
+& @lemit
+  Command: @lemit <message>
+           @emit/room <message>
+  
+  Please see help on @emit.
+  
+  This is an alias for @emit/room.
+  
+  See Also: @emit
+
+& @remit
+  Command: @remit <location>=<message>
+           @pemit/contents <location>=<message>
+ 
+  Please see help on @pemit.
+  
+  This is an alias for @pemit/contents
+  
+  This function relies on the config parameter 'pemit_any_object' to
+  be enabled to allow remitting to any room, otherwise, it will only
+  work on rooms you control.
+  
+  See Also: @pemit
+ 
 & @pemit
   Command: @pemit[/switches] <what>=<message>
            @pemit/toreality/contents[/list] <realities>/<what>=<message>
@@ -3883,6 +3984,7 @@
            @set[/<switches>] <object>=<attribute>:<value>
            @set[/<switches>] <object>=<attribute>:_<fromobj>/<fromattr>
            @set[/<switches>] <object>/<attr>=[!]<attrflag>
+  Synonym: &<attribute> <object>[=<value>]
  
   The available switches are:
         /QUIET - sets/removes the target without the 'Set.' or 'Cleared.' 
@@ -3900,6 +4002,8 @@
   attribute.  You may also use the command '&<attribute> <object> = <value>'
   to set either predefined attributes or user-named attributes.  Either of
   these is equivalent to the second form of the @set command.
+  
+  Attributes must start with an alpha character, or in special cases a ~ or _.
   
 { 'help @set2' for more }
 & @set2
@@ -3984,6 +4088,10 @@
      /regall   - Same as /all but use regular expression matching. 
      /regfirst - Same as /first but use regular expression matching.
      /notify   - This issues a @notify on the object after the @switch executes.
+     /inline   - process command 'inline' and don't queue it.
+     /clearreg - if inline, clear registers for each arguement
+     /localize - if inline, localize registers for each argument
+     /nobreak  - if inline, keep breaks localized per argument
   
   If configured, you may use #$ as a substition.   #$ is substituted with 
   the value of <string>. In this way, the commands in <c1>..<cN>..<cD> 
@@ -4228,11 +4336,23 @@
   <wild-attr> (or all attributes, if <wild-attr> is not specified) are removed
   from <object>.  Attributes that you do not have permission to modify (such
   as read-only or locked attributes) are not removed.
+
+  This only works on objects set SAFE if the config options safe_wipe is set
+  to 0.
   
   The following switches exist:
     /preserve    - wipe everything EXCEPT the wild-attr matches.  This in 
                    effect does the reverse of normal @wipe.
+    /regexp      - use regular expression instead of standard glob-matching
   
+  Example:
+    > @wipe me/va*
+    Wiped - 1 attributes.
+    > @wipe/reg me/^.a$
+    Wiped - 4 attributes.
+  
+  See Also: wipe(), @edit, @grep  
+
 & @whereis
   Command: @whereis <player>
   
@@ -4621,8 +4741,7 @@
   
   Note:  Target must be @toggled EXTANSI to use this command.
   
-  Optional switches are /quiet to suppress output or /noisy to give
-  verbose output.
+  The optional switch /quiet suppresses output unless an error is thrown.
   
   Examlple:  @name object=99 Red Balloons
              > Name set.
@@ -5423,14 +5542,14 @@
 & @sudo
   Command: @sudo[</switch>] <target>=<command>
   
-  The @sudo allows you to execute a command through the target.  This is done
-  through the normal command processor and while similiar permissions to
-  @force, does not suffer from the queue delay.  You can not nest @sudo nor
-  can you @sudo to something you have no control over.  @sudo performs the
-  action according to the target's viewpoint, including location.  @sudo
-  only works on a single command.  If you wish to @sudo multiple commands,
-  use in junction with @include.  By default, all registers altered during
-  the @sudo are considered local.
+  The @sudo allows you to execute a command through the target. This is
+  done through the normal command processor and while similiar permissions
+  to @force, does not suffer from the queue delay.  You can not @sudo to
+  something you have no control over.  @sudo performs the action according
+  to the target's viewpoint, including location. @sudo only works on a single
+  command.  If you wish to @sudo multiple commands, use in junction with
+  @include.  By default, all registers altered during the @sudo are considered
+  local.
   
   Available switches:
     /globalize -- treat registers to target as non-localized.  Dangerous.
@@ -5446,14 +5565,21 @@
   
   See Also: @include, @force, @trigger, @skip 
   
+& @if
+& @ifelse
 & @skip
   Command: @skip <boolean expression>=<command>
+           @skip/ifelse <boolean expression>=<true command>[,<false command>]
   
   The @skip command 'skips' the command from being executed if the boolean 
   logic presented to @skip is true.  The command will be processed in the
   normal queue and not executed out of order.  Any value other than '0'
   is considered 'true' and not a true boolean.  This only processes a single
   command.  If multiple commands are required, please use @include.
+  
+  Notice if you specify the /ifelse switch the condition is reversed to match
+  how a normal if-else statement would work.  @skip/ifelse is aliased to
+  @if and @ifelse.
   
   Examples:
     > @wait 0={think 1;think 2;@skip 0=think 3;think 4}
@@ -5493,6 +5619,9 @@
     /clearregs - clear the registers prior to calling included attribute.
                  Note: this automatically sets the localize option.
     /localize  - localizes the registers for the include duration.
+    /nobreak   - disregard @break/@assert inside the includes from outside.
+    /target    - Use the target as executor instead of executor of @include
+                 Note: You must control target to use this.
     
   {see @include2 for examples}
 
@@ -5659,6 +5788,82 @@
   
   See Also: @aleave, @alfail, @lalias, @leave, @oleave, @olfail, leave
   
+& @lfunction
+  Command: @lfunction[/<switches>] [<function>] [=<object>/<attr> | <value>]
+   
+  This command creates a localized function named <function>.  A localized
+  function is only seen by the owner of the target and all things owned by
+  that target.  Function existance is checked by the object doing the 
+  execution of the code, thereby allowing owners the ability to use their
+  own functions in their own code without worry of cross-funtion evaluation.
+
+  When invoked, the arguments to the function are loaded into %0-%9, 
+  the <attr> attribute from <object> is fetched, and substitution is 
+  performed on the resulting text.  The result of that substitution is 
+  returned as the function result.
+  
+  You may only have 20 localized functions defined.
+  
+  The following switches exist:
+    /privilege  - the function is evaluated as if the evaluation were being 
+                  performed by the object on which it is stored, instead of 
+                  as if it were being performed by the invoker of the function.
+    /list       - list all current softcoded functions (with dbref#/attr's)
+    /preserve   - the function preserves setq registers (r(0)-r(9)).
+    /delete     - delete the specified user-defined function.
+    /display    - displays the details of the specified function.
+    /protect    - all setq registers called in a localized function are nulled.
+    /notrace    - the specified function when defined can't be TRACEed.
+    /max        - Set the maximum number of arguments for the function.
+                  The default is '-1' or unlimited.
+    /min        - Set the minimum number of arguments for the function.
+                  The default is '-1' or 0.
+  
+  {see 'help @lfunction2' to continue}
+
+& @lfunction2
+  Command: @lfunction[/<switches>] [<function>] [=<object>/<attr>]
+  
+  The function definitions created by @lfunction are not stored in the database
+  so they need to be re-created each time the RhostMUSH is started.  It is
+  recommended that the Startup attribute for the target include code to set up
+  all global functions.  The privalaged and preserved, protect, and notrace 
+  switches may be combined.
+   
+  All global functions have precedence over local functions.  All built-in
+  functions have priority over all other functions (unless overridden).
+  Listing local functions will only display the functions that you have
+  control over, meaning wizards will see all local functions defined and
+  the owners of those functions.
+  
+  Examples:  @lfunction myfunction=#123/myattribute
+             @lfunction/priv/pres myfunction=#123/myattribute
+             @lfunction/priv/pres/prot myfunction=#123/myattribute
+             @lfunction/priv/pres/prot/notrace myfunction=#123/myattribute
+             @lfunction/list
+             @lfunction/display myfunction
+             @lfunction/delete myfunction
+             @lfunction/delete #12_myfunction (delete myfunction of user #12)
+             @lfunction/max myfunction=5
+             @lfunction/min myfunction=3
+  
+  Note: With the /list switch, the following letters represent the following:
+             W - privalaged
+             p - preserved
+             + - protected
+             t - notrace
+  
+  You will see the MAX and MIN fields only if they are outside the defaults. 
+  
+  When deleting functions, if you wish to specify a local function that is
+  by a specific user, you may use the form:
+     @lfunction/del <dbref>_<function>
+  
+  Example:
+     > @function/del #12345_myfunction
+  
+  See Also: u(), streval(), eval()
+ 
 & @listen
   Command: @listen[/<switch>] <object> = <string>
   Attribute: Listen
@@ -6717,6 +6922,9 @@
   or left messages.  Again, this flag is only useful for locations
   or exits.  
   
+  If the config blind_snuffs_cons is enabled, this will also snuff
+  the connect and disconnect messages.
+  
   Note:  If the RhostMUSH is configured to make the BLIND flag 
          always in effect, then the BLIND flag will do the reverse
          of it's normal behavior, and make exit movement visible.
@@ -6734,6 +6942,9 @@
 & BOUNCE
 & BOUNCEFORWARD
   Flag: BOUNCE([o])  
+  Attribute: BOUNCEFORWARD
+  
+  Note:  The attribute is set with @set or &.
   
   This flag redirects the output that the target receives
   and sends it to all of it's contents.  This is handy if you don't want
@@ -6747,6 +6958,12 @@
   and valid player objects.  Be aware that the source forwarding
   notifies the targets in the BOUNCEFORWARD where the text is
   originating from, so no abusing it :)
+  
+  Examples:
+    > @set thing=bounce
+    Set.
+    > &bounceforward thing=#12 #34 #4567
+    Set.
   
 & MARKER0
   Flag: MARKER0([0])  
@@ -8212,6 +8429,7 @@
     ATRLOCK(l)      (this shows when an attribute is set ATRLOCK)
     LOGGED(m)       (this shows when an attribute is set LOGGED)
     REGEXP(R)       (this shows when REGEXP are enabled on attributes)
+    UNSAFE(U)	    (this shows when attributes bypass safer_ufun)
    
 {See 'help attribute flags2' for meanings of the attribute flags}
   
@@ -8244,6 +8462,8 @@
     ATRLOCK             - The attribute has a format lock.
     LOGGED              - The attribute is logged for sets/edits/clears.
     REGEXP              - The attribute $/^ command/listen use regexp parsing
+    UNSAFE              - The attribute evaluates at object's permission level.
+                          (this is the default behavior w/o safer_ufun set)
     
   See Also: FLAG LIST
  
@@ -8462,7 +8682,7 @@
   'help function class'                      - listing of functions in classes
   'help function type'                       - sub-types of each function
    
-  See Also: @list functions, FUNCTION CLASSES, FUNCTION LIST
+  See Also: @list functions, FUNCTION CLASSES, FUNCTION LIST, FUNCTION TYPES
   
 & FUNCTION TYPES
   Topic: FUNCTION TYPES
@@ -8479,6 +8699,7 @@
   relational functions                      side effect functions
   string functions                          time functions
   trigonometry functions                    zone functions
+  regular expression functions              functions utilizing regexp
   
   
   In addition:   You may specify 'function classes' to see each class.
@@ -8490,111 +8711,113 @@
  
   Help is available for the following functions:
  
- @@()                 ABS()              ACCENT()           ACOS()        
- ADD()                AFTER()            AINDEX()           AIINDEX()         
- ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
- ANDFLAG()            ANDFLAGS()         ANSI()             APOSS()     
- ART()                ASC()              ASIN()             ATAN()   
- ATTRCNT()            AVG()              BEFORE()           BETWEEN()   
- BITTYPE()            BOUND()            BRACKETS()         CAND()          
- CAPSTR()             CASE()             CASEALL()          CAT()           
- CEIL()               CENTER()           CHARIN()           CHAROUT()   
- CHKREALITY()         CHKTRACE()         CHOMP()            CHR()             
- CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT() 
- CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()     
- CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG() 
- CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()     
- CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
- CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()   
- CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
- CLUSTER_XGET()       CMDS()             CNAME()            COLORS()         
- COLUMNS()            COMP()             CON()              CONFIG()         
- CONN()               CONTROLS()         CONVSECS()    
+ @@()                ABS()                ACCENT()           ACOS()        
+ ADD()               AFTER()              AINDEX()           AIINDEX()         
+ ALPHAMAX()          ALPHAMIN()           AND()              ANDCHR()        
+ ANDFLAG()           ANDFLAGS()           ANSI()             APOSS()     
+ ARRAY()             ART()                ASC()              ASIN()           
+ ATAN()              ATTRCNT()            AVG()              BEFORE()         
+ BETWEEN()           BITTYPE()            BOUND()            BRACKETS()       
+ CAND()              CAPSTR()             CASE()             CASEALL()        
+ CAT()               CEIL()               CENTER()           CHARIN()          
+ CHAROUT()           CHKREALITY()         CHKTRACE()         CHOMP()          
+ CHR()               CITER()              CLONE()            CLUSTER_ADD()     
+ CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()   
+ CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR() 
+ CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI() 
+ CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()      
+ CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT()
+ CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT()
+ CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()             CNAME()           
+ COLORS()            COLUMNS()            COMP()             CON()             
+ CONFIG()            CONN()               CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
 & FUNCTION LIST2
 
-  CONVTIME()     COR()           COS()         CRC32()         CREATE() 
-  CREATETIME()   CREPLACE()      CTU()         DEC()           DECRYPT()
-  DEFAULT()      DELETE()        DELEXTRACT()  DESTROY()       DICE()      
-  DIG()          DIGEST()        DIST2D()      DIST3D()        DIV()       
-  E()            EDEFAULT()      EDIT()        EE()            ELIST()       
-  ELEMENTS()     ELEMENTSMUX()   ELOCK()       EMIT()          ENCRYPT()     
-  ENTRANCES()    EQ()            ERROR()       ESCAPE()        ESCAPEX()     
-  EVAL()         EXIT()          EXP()         EXTRACT()       FBETWEEN()    
-  FBOUND()       FDIV()          FILTER()      FINDABLE()      FIRST()       
-  FLAGS()        FLOOR()         FLOORDIV()    FOLD()          FOLDERCURRENT()
-  FOLDERLIST()   FOREACH()       FULLNAME()    GARBLE()        GET()         
-  GET_EVAL()     GLOBALROOM()    GRAB()        GRABALL()       GREP()        
-  GT()           GTE()           GUILD()       HASATTR()       HASATTRP()    
-  HASFLAG()      HASTOGGLE()     HASTYPE()     HASQUOTA()      HASRXLEVEL()  
-  HASTXLEVEL()   HOME()          IBREAK()      IDLE()          IFELSE()      
-  IINDEX()       ILEV()          INC()         INDEX()         INPROGRAM()   
-  INSERT()       INUM()          INZONE()      ISALNUM()       ISALPHA()     
-  ISCLUSTER()    ISDBREF()       ISDIGIT()     ISHIDDEN()      ISNUM()       
-  ISPUNCT()      ISSPACE()       ISWORD()      ISXDIGIT()      ITER()        
-  ITEXT()        KEEPFLAGS()     KEEPTYPE()    LADD()          LAND()        
-  LAST()         LASTCREATE()    LATTR()       LAVG()          LCMDS()       
-  LCON()         LCSTR()         LDELETE()     LDIV()          LEMIT()       
-  LEFT()         LEXITS()        LFLAGS()      LINK()          LIST()        
-  LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS() 
+  CONVTIME()    COR()           COS()          CRC32()         CREATE() 
+  CREATETIME()  CREPLACE()      CTU()          DEC()           DECODE64()
+  DECRYPT()     DEFAULT()       DELETE()       DELEXTRACT()    DESTROY()     
+  DICE()        DIG()           DIGEST()       DIST2D()        DIST3D()      
+  DIV()         E()             EDEFAULT()     EDIT()          EE()          
+  ELIST()       ELEMENTS()      ELEMENTSMUX()  ELOCK()         EMIT()        
+  ENCODE64()    ENCRYPT()       ENTRANCES()    EQ()            ERROR()       
+  ESCAPE()      ESCAPEX()       EVAL()         EXIT()          EXP()         
+  EXTRACT()     FBETWEEN()      FBOUND()       FDIV()          FILTER()      
+  FINDABLE()    FIRST()         FLAGS()        FLOOR()         FLOORDIV()    
+  FOLD()        FOLDERCURRENT() FOLDERLIST()   FOREACH()       FULLNAME()    
+  GARBLE()      GET()           GET_EVAL()     GLOBALROOM()    GRAB()        
+  GRABALL()     GREP()          GT()           GTE()           GUILD()       
+  HASATTR()     HASATTRP()      HASFLAG()      HASTOGGLE()     HASTYPE()     
+  HASQUOTA()    HASRXLEVEL()    HASTXLEVEL()   HOME()          IBREAK()      
+  IDLE()        IFELSE()        IINDEX()       ILEV()          INC()         
+  INDEX()       INPROGRAM()     INSERT()       INUM()          INZONE()      
+  ISALNUM()     ISALPHA()       ISCLUSTER()    ISDBREF()       ISDIGIT()     
+  ISHIDDEN()    ISNUM()         ISPUNCT()      ISSPACE()       ISWORD()      
+  ISXDIGIT()    ITER()          ITEXT()        KEEPFLAGS()     KEEPTYPE()    
+  LADD()        LAND()          LAST()         LASTCREATE()    LATTR()       
+  LAVG()        LCMDS()         LCON()         LCSTR()         LDELETE()     
+  LDIV()        LEMIT()         LEFT()         LEXITS()        LFLAGS()      
+  LINK()        LIST()          LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS() 
   
 { 'help function list3' for more }
   
 & FUNCTION LIST3
     
-  LISTFLAGS()   LISTINTER()     LISTMATCH()   LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS() LISTTOGGLES()   LISTUNION()   LIT()            LJC()          
-  LJUST()       LLOC()          LMAX()        LMIN()           LMUL()         
-  LN()          LNOR()          LNUM()        LNUM2()          LOC()          
-  LOCALFUNC()   LOCALIZE()      LOCATE()      LOCK()           LOG()          
-  LOR()         LRAND()         LREPLACE()    LROOMS()         LSUB()         
-  LT()          LTE()           LTOGGLES()    LWHO()           LXNOR()        
-  LXOR()        LZONE()         MAILQUICK()   MAP()            MATCH()        
-  MASK()        MAX()           MEMBER()      MERGE()          MID()          
-  MIN()         MIX()           MOD()         MODULO()         MODIFYTIME()   
-  MONEY()       MONEYNAME()     MOON()        MUDNAME()        MUL()          
-  MUNGE()       NAME()          NAMEQ()       NAND()           NCOMP()        
-  NEARBY()      NEQ()           NEXT()        NOR()            NOSTR()        
-  NOT()         NOTCHR()        NPEMIT()      NSITER()         NUM()          
-  NUMMATCH()    NULL()          NUMMEMBER()   NUMPOS()         NUMWILDMATCH() 
-  OBJ()         OBJEVAL()       OEMIT()       OPEN()           OR()           
-  ORCHR()       ORFLAG()        ORFLAGS()     OWNER()          PACK()         
-  PARENMATCH()  PARENT()        PARSE()       PARSESTR()       PEDIT()        
-  PEMIT()       PFIND()         PGREP()       PI()             PID()          
-  PMATCH()      PORT()          POS()         POSS()           POWER()        
-  POWER10()     PRINTF()        PRIVATIZE()   PROGRAMMER()     PTIMEFMT()   
-  PUSHREGS()    QUOTA()         R()           RACE()           RAND()  
-  RANDPOS()     RANDMATCH()     RANDEXTRACT() 
+  LISTFLAGS()   LISTINTER()    LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
+  LISTRLEVELS() LISTTOGGLES()  LISTUNION()    LIT()            LJC()          
+  LJUST()       LLOC()         LMAX()         LMIN()           LMUL()         
+  LN()          LNOR()         LNUM()         LNUM2()          LOC()          
+  LOCALFUNC()   LOCALIZE()     LOCATE()       LOCK()           LOCKCHECK()
+  LOCKDECODE()  LOCKENCODE()   LOG()          LOR()            LRAND()       
+  LREPLACE()    LROOMS()       LSUB()         LT()             LTE()         
+  LTOGGLES()    LWHO()         LXNOR()        LXOR()           LZONE()       
+  MAILQUICK()   MAP()          MATCH()        MASK()           MAX()         
+  MEMBER()      MERGE()        MID()          MIN()            MIX()         
+  MOD()         MODULO()       MODIFYTIME()   MONEY()          MONEYNAME()   
+  MOON()        MUDNAME()      MUL()          MUNGE()          NAME()        
+  NAMEQ()       NAND()         NCOMP()        NEARBY()         NEQ()         
+  NEXT()        NOR()          NOSTR()        NOT()            NOTCHR()      
+  NPEMIT()      NSITER()       NUM()          NUMMATCH()       NULL()        
+  NUMMEMBER()   NUMPOS()       NUMWILDMATCH() OBJ()            OBJEVAL()     
+  OEMIT()       OPEN()         OR()           ORCHR()          ORFLAG()      
+  ORFLAGS()     OWNER()        PACK()         PARENMATCH()     PARENT()      
+  PARSE()       PARSESTR()     PEDIT()        PEMIT()          PFIND()       
+  PGREP()       PI()           PID()          PMATCH()         PORT()        
+  POS()         POSS()         POWER()        POWER10()        PRINTF()      
+  PRIVATIZE()   PROGRAMMER()   PTIMEFMT()     PUSHREGS()       QUOTA()       
+  R()           RACE()         RAND()         RANDPOS()        RANDMATCH()   
+  RANDEXTRACT() 
     
 { 'help function list4' for more }
  
 & FUNCTION LIST4
   
   REBOOTSECS()    REBOOTTIME()    REGEDIT()      REGEDITI()     REGEDITALL()
-  REGEDITALLI()   REGMATCH()      REGMATCHI()    REGRAB()       REGRABI()     
-  REGREP()        REGREPI()       RESWITCH()     RESWITCHI()    RESWITCHALL()
-  RESWITCHALLI()  REMAINDER()     REMIT()        REMFLAGS()     REMOVE()      
-  REMTYPE()       REPEAT()        REPLACE()      REST()         REVERSE()     
-  REVWORDS()      RIGHT()         RINDEX()       RJC()          RJUST()       
-  RLOC()          RNUM()          ROMAN()        ROOM()         ROTL()        
-  ROTR()          ROUND()         RSET()         RXLEVEL()      S()           
-  SAFEBUFF()      SCRAMBLE()      SEARCH()       SEARCHNG()     SECS()       
-  SECURE()        SECUREX()       SEES()         SET()          SETDIFF()    
-  SETINTER()      SETQ()          SETQ_OLD()     SETQMATCH()    SETR()       
-  SETR_OLD()      SETUNION()      SHIFT()        SHL()          SHR()        
-  SHUFFLE()       SIGN()          SIN()          SINGLETIME()   SORT()       
-  SORTBY()        SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
-  SPELLNUM()      SPLICE()        SQLITE_QUERY() SQRT()         SQUISH()     
-  STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
-  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
-  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
-  STRMATH()       SUB()           SUBJ()         SWITCH()       SWITCHALL()  
-  T()             TAN()           TEL()          TIME()         TIMEFMT()    
-  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()      
-  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
-  TR()            TRACE()         TRANSLATE() 
+  REGEDITALLI()   REGMATCH()      REGMATCHI()    REGLMATCH()    REGLMATCHI()
+  REGLMATCHALL()  REGLMATCHALLI() REGRAB()       REGRABI()      REGREP()      
+  REGREPI()       RESWITCH()      RESWITCHI()    RESWITCHALL()  RESWITCHALLI()
+  REMAINDER()     REMIT()         REMFLAGS()     REMOVE()       REMTYPE()     
+  REPEAT()        REPLACE()       REST()         REVERSE()      REVWORDS()    
+  RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
+  RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
+  ROUND()         RSET()          RXLEVEL()      S()            SAFEBUFF()    
+  SCRAMBLE()      SEARCH()        SEARCHNG()     SECS()         SECURE()      
+  SECUREX()       SEES()          SET()          SETDIFF()      SETINTER()     
+  SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()    
+  SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()     
+  SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()      
+  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()    
+  SPLICE()        SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()   
+  STARTSECS()     STATS()         STEP()         STR()          STRCAT()      
+  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()       
+  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()     
+  SUB()           SUBJ()          SWITCH()       SWITCHALL()    T()           
+  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()       
+  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()     
+  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()          
+  TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -8628,6 +8851,7 @@
  LNORBOOL() > lnor()      ANDBOOL() ---> and()       ORBOOL() -----> or()
  NOTBOOL() -> not()       XORBOOL() ---> xor()       LOOP() -------> parse()
  MEAN()    -> avg()       ENUMERATE() -> elist()     MOD() --------> remainder()
+ LMATH()   -> strfunc()
   
   To see the help on the aliased function, please check the help of the 
   function that it aliases.
@@ -8698,8 +8922,9 @@
   Logical:            AND() MASK() NAND() NOR() OR() XOR() XNOR() CAND() COR()
             See Also: help logical functions
   
-  Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCALIZE() MOON() NAMEQ() 
-                      NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
+  Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCKCHECK() LOCKDECODE()
+                      LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
+                      PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
                       SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD() 
                       SOUNDEX() SOUNDLIKE() TRACE()
             See Also: help miscellaneous functions
@@ -8736,9 +8961,10 @@
              See Also: help relational functions
   
   Regular Expression:  REGEDIT() REGEDITI() REGEDITALL() REGEDITALLI() 
-                       REGMATCH() REGMATCHI() REGRAB() REGRABI() REGRABALL()
-                       REGRABALLI() REGREP() REGREPI() RESWITCH() RESWITCHI()
-                       RESWITCHALL() RESWITCHALLI()
+                       REGMATCH() REGMATCHI() REGLMATCH() REGLMATCHI() 
+                       REGLMATCHALL() REGLMATCHALLI() REGRAB() REGRABI() 
+                       REGRABALL() REGRABALLI() REGREP() REGREPI() RESWITCH() 
+                       RESWITCHI() RESWITCHALL() RESWITCHALLI()
              See Also: help regular expression functions
   
   { 'help function classes5' for more }
@@ -8748,18 +8974,19 @@
   
   Strings:             ACCENT() AFTER() ANDCHR() BEFORE() BRACKETS() CAPSTR() 
                        CASE() CASEALL() CAT() CENTER() CHOMP() COLUMNS() 
-                       COMP() CREPLACE() DELETE() EDIT() ESCAPE() ESCAPEX() 
-                       EVAL() GARBLE() IFELSE() ISALNUM() ISALPHA() ISDBREF()
-                       ISDIGIT() ISNUM() ISPUNCT() ISSPACE() ISWORD() 
-                       ISXDIGIT() LCSTR() LEFT() LIT() LJC() LJUST() MERGE()
-                       MID() NOSTR() NOTCHR() NUMPOS() ORCHR() PARSESTR() 
-                       PEDIT() POS() PRINTF() RANDPOS() REPEAT() REPLACE() 
-                       RIGHT() RJC() RJUST() ROTL() ROTR() S() SCRAMBLE() 
-                       SECURE() SECUREX() SHL() SHR() SHUFFLE() SPACE() 
-                       SPLICE() SQUISH() STR() STRDISTANCE() STREQ() STREVAL()
-                       STRIP() STRIPACCENTS() STRLEN() STRMATCH() SWITCH() 
-                       SWITCHALL() T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() 
-                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
+                       COMP() CREPLACE() DECODE64() DECRYPT() DELETE() EDIT() 
+                       ENCODE64() ENCRYPT() ESCAPE() ESCAPEX() EVAL() GARBLE()
+                       IFELSE() ISALNUM() ISALPHA() ISDBREF() ISDIGIT() ISNUM()
+                       ISPUNCT() ISSPACE() ISWORD() ISXDIGIT() LCSTR() LEFT() 
+                       LIT() LJC() LJUST() MERGE() MID() NOSTR() NOTCHR() 
+                       NUMPOS() ORCHR() PARSESTR() PEDIT() POS() PRINTF() 
+                       RANDPOS() REPEAT() REPLACE() RIGHT() RJC() RJUST() 
+                       ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
+                       SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
+                       STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
+                       STRLEN() STRMATCH() SWITCH() SWITCHALL() T() TOTPOS() 
+                       TR() TRANSLATE() TRIM() UCSTR() WORDPOS() WORDS() WRAP()
+                       WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -9104,13 +9331,17 @@
     %p, %P  = Name's, his, her, its, their.   (possessive)
     %a, %A  = Name's, his, hers, its, theirs. (absolute possessive)
     %n, %N  = the player's name.
-    %K, %K  = the player's colorized/accented name.
+    %k, %K  = the player's colorized/accented name.
+    %w, %W  = the target dbref# of the twinklock (if applicable)
     %r      = carriage return.
     %t      = tab character.
     %b      = space character.
     %%      = literal '%' character.
     %0-%9   = Value of positional parameter/stack location 0 through 9.
-    %i0-%i9 = Equivalent to itext(0) through itext(9).
+    %-      = Stack 10+ that are comma delimited
+    %i0-%i9 = Equivalent to itext(0) through itext(9). [%il for outer]
+    %d0-%d9 = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
+              Only useable with /inline only.
     %q0-%q9 = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
     %qa-%qz = Extended value of registers.
     %va-%vz = Contents of attribute va through vz.
@@ -9130,11 +9361,20 @@
               u()-type functions, zones, and @function.
     %+      = Show the total arguments a function received.
     %?      = Show current function invocation as well as current nest levels.
-    %c      = ANSI substitution.  It takes the next character as the ansi
+    %c      = ANSI substitution or Last Command Executed.
+    %x      = ANSI substitution or Last Command Executed.
+    %m      = ANSI substitution or Last Command Executed.
+
+              The functionality of above subs depends on compile options:
+
+            * ANSI substitution: It takes the next character as the ansi
               sequence and continues with that sequence till the next one
               or end of the line.  You may also specify 0x## (ie: 0x20)
               to use extended 256 colors.
-    %x      = Substitution for last command executed.
+
+            * Last Command Executed: The substitution contains the whole,
+              unevaluated code of the last command executed.
+
     %f      = Specify template for accent handler for strings.  To see a list
               of templates, see help on the accent() function.
     %<      = Used for UNICODE (ASCII 160 through 255).  Syntax: %<###>
@@ -9412,11 +9652,11 @@
     > say elements(Foof|Ack|Beep|Moo,3 1,|)
     You say "Beep|Foof"
     > say elements(this is a test,2 4 2 2 2 2)
-    You say "this test this this this"
+    You say "is test is is is is"
     > say elements(this@is@a@test,2 4 2 2 2 2,@)
-    You say "this@test@this@this@this"
+    You say "is@test@is@is@is@is"
     > say elements(this@is@a@test,2 4 2 2 2 2,@,)
-    You say "this test this this this"
+    You say "is test is is is is"
  
   See Also: extract(), elementsmux()
   
@@ -9434,11 +9674,11 @@
     > say elementsmux(Foof|Ack|Beep|Moo,3 1,|)
     You say "Beep|Foof"
     > say elementsmux(this is a test,2 4 2 2 2 2)
-    You say "this test this this this"
+    You say "is test is is is is"
     > say elementsmux(this@is@a@test,2 4 2 2 2 2,@)
-    You say "this@test@this@this@this"
+    You say "is@test@is@is@is@is"
     > say elementsmux(this@is@a@test,2 4 2 2 2 2,@,)
-    You say "this test this this this"
+    You say "is test is is is is"
  
   See Also: extract(), elements()
   
@@ -9839,6 +10079,60 @@
   
   See Also: ldelete(), mid(), replace(), remove()
   
+& userlocks
+  Userlocks are created, viewed, and checked by utilizing three functions.
+  
+    lockencode(<string>) --------- this will encode the lock key 
+                                   (any valid key) into a 64 byte encoding 
+                                   (like mime encapsulation) that you can 
+                                   then store pretty much anywhere that you 
+                                   want.
+  
+    lockdecode(<string>) --------- this will decode the specified encoded key
+                                   value into the human-readable lock format. 
+                                   The output will be the same as if you did 
+                                   a lock() on a @lock.
+  
+    lockcheck(<string>,target>) -- this will compare the 64 byte encoded lock
+                                   against the specified target.  It returns
+                                   a '1' for success or a '0' for failure. 
+                                   This works like elock() on a @lock.
+  
+  See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+
+& lockencode()
+& lockdecode()
+& lockcheck()
+  Function: lockencode(<string>)
+            lockdecode(<string>)
+            lockcheck(<string>,<target>)
+  
+  lockencode() returns an encoded string of a boolean lock evaluation.
+   
+  lockdecode() returns the decoded string of the encoded boolean.
+  
+  lockcheck() returns boolean true(1)/false(0) based on the encoded boolean.
+  
+  This is the same value (though encoded) that would be set when you issue
+  a @Lock on something.  This is useful if you wish to enbed lock values
+  in any string or value that you wish to then decrypt at any given time.
+  
+  lockcheck() follows the same rules that elock() would return.
+  
+  Example:
+    > say name(me)
+    You say "Bob"
+    > say lockencode(me&*tester)
+    You say "KCMxMjM0KSYoIzkwMSk="
+    > say lockdecode(KCMxMjM0KSYoIzkwMSk=)
+    You say "*Bob&*Tester
+    > say lockcheck(KCMxMjM0KSYoIzkwMSk=,me)
+    You say "1"
+    > say lockcheck(KCMxMjM0KSYoIzkwMSk=,*Guest)
+    You say "0"
+  
+  See Also: lockdecode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+
 & lock()
   Function: lock(<object>[/<whichlock>][,<key>][,<attribute>])
  
@@ -9865,14 +10159,24 @@
     > say lock(me,yes,va)
     You say "Attribute locked."
   
-  See Also: @lock, elock()
+  See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck()
   
 & elock()
   Function: elock(<object>[/<whichlock>],<victim>)
   Checks if <victim> would pass the named lock on <object>.  Only the object's
   owner may test locks other than the default lock.
   
-  See Also: @lock, lock()
+  Example:
+    > @lock me/page=!*Twinklock
+      Set.
+    > say elock(me/pagelock,*twink)
+      You say "0"
+    > @unlock me/page
+      Set.
+    > say elock(me/pagelock,*twink)
+      You say "1"
+  
+  See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck()
   
 & LWHO()
   Function: lwho([[<value>], [<target>]])
@@ -9914,7 +10218,8 @@
   FORMAT SYNTAX:        help printf syntax
   EXAMPLES:             help printf examples
   
-  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
+  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
+            wrapcolumns(), array()
 
 & PRINTF CODELIST
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -9954,6 +10259,10 @@
                examples: :.:  -- fill with a single '.'
                          :!.: -- fill with a single '.' on non-blank lines.
                          :[ansi(hg,.,hb,.)]: -- fill with multi-color.
+         / - The numerical value specified between /<number>/ will be used
+             as a cut-off value when using the '|' wrap option.  
+               examples: /10/ -- when using '|' cut off after 10 characters.
+             Valid values: 0-3998 (0 is unlimited)
       Value fields:
          1-3000 - format value to padd
          0 - if prepending a number, tells it to padd 0's.
@@ -9969,10 +10278,23 @@
   of a formatted string with a '$' and the end of a formatted string with
   an 's' that tells printf that it will substitute that with an argument.
   
+  Note: The syntax always must start with a '$' and end with a 's'.
+  
+  The order of all the various formatting fields (including the number
+  used for padding) may be in any order.
+  
   Syntax examples:
-      printf($10s $10s $10s,arg1,arg2,arg3)
-      printf($10s,arg1)
-      printf($10s boo $10s, arg1, arg2) 
+      printf($10s $10s $10s,arg1,arg2,arg3) # padd 10, right just
+      printf($10s,arg1)                     # padd 10, right just
+      printf($10s boo $10s, arg1, arg2)     # padd 10, right just
+      printf($-10s boo $10s, arg1, arg2)    # padd 10, left just
+      printf($10^s boo $10s, arg1, arg2)    # padd 10, center just
+      printf($10&-s boo $10s, arg1, arg2)   # padd 10, left just, CR wrap
+      printf($|10-s boo $10s, arg1, arg2)   # padd 10, left just, LN wrap
+      printf($|10-"s boo $10s, arg1, arg2)  # padd 10, left just, SP LN wrap
+      printf($10:+:s, arg1, arg2)           # padd 10, right just, padd with +
+  
+  CR -- Carrage Return, LN - Line, SP - Space
    
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
 
@@ -9992,9 +10314,9 @@
                      2
                      3
   
-    >@emit printf(|$-12s|$12s|$^12s$&14s$_12s|,a b c, a b c, a b c, 
-           wrap(lnum(20),12, l, |, |), a b c)
-    |a b c       |       a b c|   a b c    |0 1 2 3 4 5 |a     b    c|
+    >@emit printf(|$-12s|$12s|$^12s$&14s$_12s|,a b c, d e f, g h i, 
+           wrap(lnum(20),12, l, |, |), j k l)
+    |a b c       |       d e f|   g h i    |0 1 2 3 4 5 |j     k    l|
                                            |6 7 8 9 10  |
                                            |11 12 13 14 |
                                            |15 16 17 18 |
@@ -10011,12 +10333,12 @@
                 Not a creature was stirring, not even a mouse.%r
                 The stockings were hung by the chimney with care,%r
                 In hopes that St Nicholas soon would be there.
-    > @emit printf($&-9s $&-68s,ansi(ch,u(dropcap)),u(story))
+    > @emit printf($&-9's$&-68s,ansi(ch,u(dropcap)),u(story))
      _______                                                                      
-    |__   __| 'was the night before Christmas, when all through the house         
-       | |    Not a creature was stirring, not even a mouse.                      
-       |_|    The stockings were hung by the chimney with care,                   
-              In hopes that St Nicholas soon would be there.    
+    |__   __|'was the night before Christmas, when all through the house         
+       | |   Not a creature was stirring, not even a mouse.                      
+       |_|   The stockings were hung by the chimney with care,                   
+    In hopes that St Nicholas soon would be there.    
     
     Note: The large 'T' will be in highlighted cyan.
   
@@ -10037,7 +10359,72 @@
           The 'A B C 1 2 3' and the '1' are justified across 50 characters.
               -- They are also underscored and highlighted red.
               -- Padding is aligned properly.
+
+{ 'help printf examples3' for more examples }
   
+& PRINTF EXAMPLES3
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Examples: (continued)
+    # Testing line wrap split on spacing
+    > @emit printf($":.:-30|s,testing padding testing padding testing 
+                   padding testing padding)
+    testing padding testing ......
+    padding testing padding ......
+    testing padding...............
+  
+    # Testing raw line wrapping
+    > @emit printf($:.:-30|s,testing padding testing padding testing 
+                   padding testing padding)
+    testing padding testing paddin
+    g testing padding testing padd
+    ing...........................
+  
+    # Testing borders around wrapped input
+    > @emit printf($&:+:1s$-20|"s$&:+:1s,%r,this is a test a b c. 
+                   this is a test a b c.  this is a test a b c.,%r)
+    +this is a test a b  +
+    +c. this is a test a +
+    +b c. this is a test +
+    +a b c.              +
+ 
+  Note: Notice that it keeps track of all padding in the original
+        string and will not remove the spaces (as intended).  
+  
+        Also notice how with the borders, it automatically keeps expanding 
+        out as long as there's other columns expanding.  This behavior can 
+        be omitted with a '!' as first filler char. 
+  
+{ 'help printf examples4' for a multi-border multi-line complex example } 
+ 
+& PRINTF EXAMPLES4
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Advanced Example: 
+    >  @emit [ansi(hr,+[repeat(-,20)]+)]%b[ansi(hb,+[repeat(-,20)]+)]%b
+             [ansi(hg,+[repeat(-,20)]+)]%r[printf(
+              $&:[ansi(hr,|)]:1s$-20|"s $&:[ansi(hr,|)]:1s%b
+              $&:[ansi(hb,|)]:1s$-20|"s$&:[ansi(hb,|)]:1s%b
+              $&:[ansi(hg,|)]:1s$-20|"s$&:[ansi(hg,|)]:1s,
+              %r,testing testing testing [ansi(hy, yellow code here)] 
+              testing,%r,%r,more testing yet again yup yup with a very 
+              very very very very long line. So very long of a line. Yes 
+              it is very long.,%r,%r,final test,%r)]%r
+              [ansi(hr,+[repeat(-,20)]+)]%b[ansi(hb,+[repeat(-,20)]+)]%b
+              [ansi(hg,+[repeat(-,20)]+)]
+   
+  +--------------------+ +--------------------+ +--------------------+
+  |testing testing     | |more testing yet    | |final test          |
+  |testing yellow code | |again yup yup with  | |                    |
+  |here testing        | |a very very very    | |                    |
+  |                    | |very very long      | |                    |
+  |                    | |line. So very long  | |                    |
+  |                    | |of a line. Yes it   | |                    |
+  |                    | |is very long.       | |                    |
+  +--------------------+ +--------------------+ +--------------------+
+  
+  Note:  The first box is red, the second is blue, the third is green.
+   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
@@ -10177,6 +10564,49 @@
     
   See Also: SUBSTITUTIONS, obj(), subj(), aposs()
   
+& ARRAY()
+  Function: array(<string>, <register count>, <width> [[,<delim> [,<type>]])
+  
+  This function will take an input string and split it out, based on width,
+  rounding to the first viable word (if possible) and spit it out into setq
+  registers based on the number of registers you wish to split it in based
+  on <register count>.  Registers start from 0-9 then go to a-z.  Registers
+  are cleared automatically before being utilized.
+  
+  You may specify an optional delimiter.  By default, it takes any white
+  space.  You may optionally specify the type.  A type of '1' will take
+  the virtual register count down then over.  The default '0' does it
+  in a normal sequential order.
+  
+  If you specify width of '0' and specify a delimeter, then it will ignore
+  width of the values and split the array based on the delimiter only.
+  
+  If you wish to store the setq registers prior to this function, please
+  utilize the pushregs() function to back-up your registers.
+  
+  This function is ansi aware. 
+  
+  Examples:
+    > think array(abcdefghij,2,2)%q0
+    ab
+    ef
+    ij
+
+    > think array(abcdefgh,2,2)%q1
+    cd
+    eh
+
+    > think array(abcdefghij,2,2,,1)%q0
+    ab
+    cd
+    ef
+
+    > think array(abcdefghij,2,2,,1)%q1
+    gh
+    ij
+  
+  See Also: printf(), setq(), setr(), r(), substitutions
+
 & APOSS()
   Function: aposs(<object>)
  
@@ -10761,9 +11191,11 @@ See Also: timefmt()
  
   Rand returns an integer between 0 and num-1.
   
-  You may optionally specify a min/max pair of where the random number will range between.
+  You may optionally specify a min/max pair of where the random number 
+  will range between.
   
-  If you specify the boolean, it will return the value as a double.  Max double is 100 digits.
+  If you specify the boolean, it will return the value as a double.  
+  Max double is 100 digits.
  
   Example:
     > say rand(10)
@@ -11152,6 +11584,10 @@ See Also: timefmt()
   
   This works similarilly to @pemit/list/contents.
   
+  This function relies on the config parameter 'pemit_any_object' to
+  be enabled to allow remitting to any room, otherwise, it will only
+  work on rooms you control.
+  
   This side-effect must be enabled (@list options to see if it is) before it
   can be used.  Anything using it must have the SIDEFX flag set.
    
@@ -11206,7 +11642,11 @@ See Also: timefmt()
   See Also: cat()
   
 & STRLEN()
+& STRLENVIS()
+& STRLENRAW()
   Function: strlen(<string>)
+            strlenvis(<string>)
+            strlenraw(<string>)
  
   Returns the number of characters in <string>.
  
@@ -11216,6 +11656,15 @@ See Also: timefmt()
     > say strlen(Would you like coffee, or perhaps tea)
     You say "37"
   
+  The strlenvis() function adjusts the string to the VISUAL size of
+  the string when using chr() codes (which are normally 6 characters each).
+  This is so you can specially padd when using special chr() values.
+  
+  The strlenraw() function displays the raw length of the string, including
+  any 'markup' codes that are generally used for accents and raw ansi.  This
+  is mostly intended when you need to see the absolute length of a string
+  for length checks or the like.
+    
   See Also: words(), wordpos()
   
 & MID()
@@ -11285,6 +11734,26 @@ See Also: timefmt()
   
   See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel()
   
+& ENCODE64()
+& DECODE64()
+  Function: encode64(<string>)
+            decode64(<string>)
+  
+  encode64() returns <string> encoded using base-64 format.
+  
+  decode64() converts a base-64 encoded <string> back to its original form.
+  
+  Any invalid characters fed to the string will cause the entire string to be
+  ignored.
+  
+  Examples:
+    > say encode64(test 1 2 3)
+    You say "dGVzdCAxIDIgMw=="
+    > say decode64(dGVzdCAxIDIgMw==)
+    You say "test 1 2 3"
+  
+  See Also: encrypt(), decrypt(), pack(), digest()
+  
 & ENCRYPT()
   Function: encrypt(<string>,<seed>)
   
@@ -11298,7 +11767,7 @@ See Also: timefmt()
     > say encrypt(this is a test,a)
     You say "VJKUaKUaCaVGUV"
   
-  See Also: decrypt()
+  See Also: decrypt(), encode64(), decode64(), digest()
   
 & DECRYPT()
   Function: decrypt(<string>,<seed>)
@@ -11314,22 +11783,39 @@ See Also: timefmt()
     > say encrypt(VJKUaKUaCaVGUV,a)
     You say "this is a test"
   
-  See Also: encrypt()
+  See Also: encrypt(), encode64(), decode64(), digest()
   
 & PUSHREGS()
-  Function: pushregs(<toggle>)
+  Function: pushregs(<value(s)>)
   
   This function will preserve then restore setq() registers for the life
   of the command in question.  Keep in mind, if you attempt to restore
   the registers before saving them, you will overwrite all the registers
-  with blanks (or nulls).  Toggle of '1' saves the registers, while a
-  toggle of '0' restores the registers.
+  with blanks (or nulls).  There are two options you can use:
+
+  Option #1:
+    Toggle of '1' saves ALL the registers, while a toggle of '0' restores 
+    ALL the registers.
   
-  Examples:
+  Option #2:
+    +<register> will save the specified register (letter/number only).
+    -<register> will restore the specified register (letter/number only).
+    Note: you may specify any number of registers and use +/- together.
+  
+  Examples: (Option #1)
     > say [setq(0,one)]-[r(0)]-[setq(0,two)]-[r(0)]-
     You say "-one--two-"
     > say [setq(0,one)]-[r(0)]-[pushregs(1)][setq(0,two)]-[pushregs(0)][r(0)]-
     You say "-one--one-"
+  
+  Examples: (Option #2)
+    > say [setq(0,one)][setq(1,two)]-%q0%q1-[pushregs(+0)][setq(0,xxx)]
+          [setq(1,abc)]-%q0%q1-[pushregs(-0)]--%q0%q1--
+    You say "-onetwo--xxxabc--oneabc-
+  
+  Note:  You may use nameq() to get the letter/number of a label.
+  
+  See Also: setq(), setr(), nameq(), r(), substitutions
   
 & LISTFLAGS()
   Function: listflags()
@@ -11718,13 +12204,18 @@ See Also: timefmt()
   See Also: extract(), index(), insert(), ldelete(), replace(), randextract()
   
 & elist()
-  Function: elist(<str>[,<phrase>[,<delim>[,<seperator>[,<punctuation]]]])
+  Function: elist(<str>[,<phrase>[,<delim>[,<sep>[,<punctuation>[,<munge>]]]]])
   
   The elist function is used to return a list of words into an english
   recognizable format.  You may specify an output delimiter to use if
   you wish but it makes the format rather unique.  You may specify a seperate
   punctuation instead of the default comma (,).  The punctuation may be
-  more than one character.
+  more than one character.  You may specify the seperator if not a space as well.
+  
+  You can also supply a munging function to apply for each argument passed to
+  elist.  So that if you passed in dbref#'s, you can munge to the name()
+  function.  All arguments are passed as %0.  The order number of how they're
+  passed is %1.
   
   Examples:
     > say elist(test)
@@ -11775,13 +12266,20 @@ See Also: timefmt()
   See Also: replace(), lreplace()
   
 & strmath()
-  Function: strmath(<str>,<num>,<math>[,<delim>[,<sep>[,<start>[,<amt>]]]])
+  Function: strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>)
   
   The strmath function is used to apply math to the entire string.  Numbers
   in the string are modified based on the math chosen applied to the number.
   You may specify optional input and output seperators.  You may also specify
-  the word to start (<start>) the math on and how many words (<amt>) after
-  the start you wish to use. If no math is specified, '+' is used as a default.
+  the word to start (<st>) the math on and how many words (<amt>) after the 
+  start you wish to use. If no math is specified, '+' is used as a default.
+  The <idlm> and <isep> are inner delimiter and seperator to use for the 
+  normal delimited string.  This is so you can separate values such as:
+                    To hit:5|To Damage:10|Base AC:15
+  
+    Key:  str  -- input string    num  -- value to apply  math -- math to use
+          dlm  -- delimiter       sep  -- seperator       st   -- start value
+          amt  -- word count      idlm -- inner delim     isep -- inner sep
   
   Valid math arguments are:
         + - apply addition to all numbers in the string.
@@ -11797,10 +12295,15 @@ See Also: timefmt()
     You say "10 fish 20 fish green fish blue fish"
     > strmath(1 fish 2 fish 3 shoe 4 shoe,10,+,,,3,2)
     You say "1 fish 12 fish 13 shoe 4 shoe"
+    >  strmath(To hit:5|To Damage:10|Base AC:15,150,+,|,|,1,0,:,:)
+    You say "To hit:155|To Damage:10|Base AC:15"
   
   See Also: add(), sub(), mul(), div(), mod(), strfunc(), spellnum()
   
-& strfunc()
+& LMATH()
+  See strfunc()
+
+& STRFUNC()
   Function: strfunc(<function>, <list of arguments>[,<delim>])
   
   The strfunc function is used to transform a string of arguments
@@ -12090,7 +12593,7 @@ See Also: timefmt()
   See Also: grep(), regrep(), regrepi(), grab(), match(), lattr(), @grep
  
 & REGREP()
-  Function: regrep(<object>,<attrs>,<regexp>)
+  Function: regrep(<object>,<attrs>,<regexp> [,<key>])
   
   This function returns a list of attributes on <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -12098,6 +12601,9 @@ See Also: timefmt()
   
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out. 
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?). 
   
   This function is case-sensitive. 
   
@@ -12113,7 +12619,7 @@ See Also: timefmt()
   See Also: regrepi(), grep(), pgrep()
   
 & REGREPI()
-  regrepi(<object>,<attrs>,<regexp>)
+  regrepi(<object>,<attrs>,<regexp> [,<key>])
 
   This function returns a list of attributes on <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -12121,6 +12627,9 @@ See Also: timefmt()
   
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out. 
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?).
   
   This function is case-insensitive.
   
@@ -12135,6 +12644,7 @@ See Also: timefmt()
   
   See Also: regrep(), grep(), pgrep()
 
+& REGEDITLIT()
 & REGEDIT()
   Function: regedit(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
             regeditlit(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
@@ -12159,6 +12669,7 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regediti(), regeditall(), regeditalli()
 
+& REGEDITALLLIT()
 & REGEDITALL()
   Function: regeditall(<str>, <regexp>, <repl>[,..., <regexpN>, <replaceN>])
             regeditalllit(<str>, <regexp>, <repl>[,..., <regexpN>, <replaceN>])
@@ -12182,6 +12693,7 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regedit(), regediti(), regeditalli()
 
+& REGEDITILIT()
 & REGEDITI()
   Function: regediti(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
   Function: regeditilit(<str>, <regexp>, <repl>[, ... , <regexpN>, <replaceN>])
@@ -12206,6 +12718,7 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regedit(), regeditall(), regeditalli()
 
+& REGEDITALLILIT()
 & REGEDITALLI()
   Function: regeditalli(<str>, <regexp>, <repl>[,...,<regexpN>,<replaceN>])
             regeditallilit(<str>, <regexp>, <repl>[,...,<regexpN>,<replaceN>])
@@ -12230,24 +12743,58 @@ See Also: timefmt()
   
   See also: edit(), regmatch(), regedit(), regediti(), regeditall() 
 
-& REGEDITLIT()
-  See regedit()
+& REGNUMMATCHI()
+& REGNUMMATCH()
+  Function: regnummatch(<string>, <regexp>, [,<delimiter>])
+            regnummatchi(<string>, <regexp>, [,<delimiter>])
+  
+  This function returns the total matches of any word in the string
+  that matches the specified regular expression.  This works exactly
+  like nummatch() except it uses regular expressions.
+  
+  Example:
+  > say regnummatch(one two three four five fourteen,.*ou.*)
+  You say "2"
+  
+  See Also: nummatch(), regmatch(), regmatchall(), regmatchalli()
+  
+  'help regexp syntax' for an explanation of regular expressions.
 
-& REGEDITILIT()
-  See regediti()
-
-& REGEDITALLLIT()
-  See regeditall()
-
-& REGEDITALLILIT()
-  See regeditalli()
+& REGLMATCHALLI()
+& REGLMATCHALL()
+& REGLMATCHI()
+& REGLMATCH()
+  Function: reglmatchalli(<string>, <regexp> [,<delimiter>])
+            reglmatchall(<string>, <regexp> [,<delimiter>])
+            reglmatchi(<string>, <regexp> [,<delimiter>])
+            reglmatch(<string>, <regexp> [,<delimiter>])
+  
+  This function returns the positional matches of every word in the
+  string that matches the specified regular expression.  This is
+  exactly like the totmatch() function except uses regular 
+  expression matching.  This function is case sensitive.
+  
+  The non 'all' functions will only return the position of the first
+  match, or in other words functions like match() would.
+   
+  The reglmatchi() and reglmatchalli() functions ignores case.
+  
+  Example:
+    > say reglmatchall(one two three four five fourteen,.*ou.*)
+    You say "4 6"
+    > say reglmatch(one two three four five fourteen,.*ou.*)
+    You say "4"
+  
+  See Also: totmatch(), regmatch(), regnummatch(), nummatch()
+  
+  'help regexp syntax' for an explanation of regular expressions.
 
 & REGMATCH()
   Function: regmatch(<string>,<regexp>[,<register list>])
   
   This function matches the regular expression <regexp> against the
   entirety of <string>, returning 1 if it matches and 0 if it does not.
-  This function is case sensitive.
+  This function is case sensitive.  It behaves like strmatch().
   
   If <register list> is specified, there is a side-effect: any
   parenthesized substrings within the regular expression will be set
@@ -12268,7 +12815,7 @@ See Also: timefmt()
   See Also: 'help regexp syntax' for an explanation of regular expressions.
   
 & REGMATCHI()
-  regmatchi(<string>,<regexp>[,<register list>])
+  Function: regmatchi(<string>,<regexp>[,<register list>])
   
   This function matches the regular expression <regexp> against the
   entirety of <string>, returning 1 if it matches and 0 if it does not.
@@ -12596,7 +13143,15 @@ See Also: timefmt()
      attrname   - returns '1' if the string is a valid attribute name
      playername - returns '1' if the string is a valid player name.  This 
                   also checks if the player already exists.
-     password   - returns '1' if the string is a valid password
+     password   - returns '1' if the string is a valid password.
+     command    - returns '1' if string is a valid command (or alias).
+     function   - returns '1' if string is a valid function.
+     ufunction  - returns '1' if string is valid @function/@lfunction.
+     flag       - returns '1' if string is a valid flag.
+     toggle     - returns '1' if string is a valid toggle.
+     qreg       - returns '1' if string is valid qreg label.
+     colorname  - returns '1' if string is a valid +name for ansi.
+     ansicodes  - always returns '1'.  Meant for Penn compatibility.
   
   If a valid option is not specified, this function returns #-1.
   
@@ -13493,18 +14048,19 @@ Examples:
   
   The width can not be above 4000 characters.
   
-See Also: ljust(), rjust(), center(), columns(), wrapcolumns(), printf()
+See Also: ljust(), rjust(), center(), columns(), wrapcolumns(), printf(),
+          array()
   
 & WRAPCOLUMNS()
 Function: wrapcolumns()  Syntax follows:
-wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
+wrapcolumns(<txt>,<wd>,<col>,<jus>,<crp>,<cut>,<lbd>,<mbd>,<rbd>,<disp>,<ext>)
   
 This function has a huge number of uses, and all help will be given to show
 examples for what this function can do.  Unlike the columns() function, this
 one will wrap as many words as possible into a columns.  Like a newspaper.
 The arguments to this function are as follows.
   <txt>    - The text that you will be passing into columns.
-  <wid>    - The maximum column size you desire.
+  <wd>     - The maximum column size you desire.
   <col>    - The total number of columns you wish per line.
 * <jus>    - The justification of text in the columns (default left) 
              Arguments: (l)eft, (c)enter, (r)ight, or (j)ustified
@@ -13513,18 +14069,22 @@ The arguments to this function are as follows.
              Arguments: 1 to crop, 0 for no cropping (default).
 * <cut>    - Specifies that the word be cut off if over maximum columns size.
              Arguments: 1 to cut, 0 for no cutting (default).
-* <lbdr>   - What text you want displayed as the left border of the line.
-* <mbdr>   - What text you want as the seperator between columns on the line.
-* <rbdr>   - What text you want displayed as the right border of the line.
+* <lbd>    - What text you want displayed as the left border of the line.
+* <mbd>    - What text you want as the seperator between columns on the line.
+* <rbd>    - What text you want displayed as the right border of the line.
 * <disp>   - What display type you want.  Down then over or over then down.
              Arguments: 1 for over then down, 0 for down then over (default)
+* <ext>    - Extension argument.  When toggled to '1' will extend a partial
+             row to the maximum column width by padding it with spaces.
+             This will use the column separator if the padding requires 
+             multiple columns.
   
 Anything with an '*' are optional *only* if the first three arguments are used.
 { Type 'help wrapcolumns2' for examples }
   
 & WRAPCOLUMNS2
 Function: wrapcolumns()  (CONTINUED)
-wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
+wrapcolumns(<txt>,<wd>,<col>,<jus>,<crp>,<cut>,<lbd>,<mbd>,<rbd>,<disp>,<ext>)
  
 There are various syntax possibilities for this command.  
 Examples:
@@ -13548,7 +14108,7 @@ Examples:
   
 & WRAPCOLUMNS3
 Function: wrapcolumns()  (CONTINUED)
-wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
+wrapcolumns(<txt>,<wd>,<col>,<jus>,<crp>,<cut>,<lbd>,<mbd>,<rbd>,<disp>,<ext>)
   
     > @emit wrapcolumns(this is a test of wrapcolumns,3,3,R,0,0)
       thitespco
@@ -13567,7 +14127,7 @@ wrapcolumns(<txt>,<wid>,<col>,<jus>,<crp>,<cut>,<lbdr>,<mbdr>,<rbdr>,<disp>)
     > @emit wrapcolumns(this is a test of wrapcolumns,10,3,R,0,1,<*,|,*>,1)
       <* this is a|   test of|wrapcolumn*>
   
-  See Also: columns(), wrap()
+  See Also: columns(), wrap(), printf(), array()
   
 & COLORS()
 Function: colors([[<value>], [<key>]])
@@ -13677,7 +14237,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
       <*-=*=--this|-=*=--=*is|-=*=--=*=a*>
       <*-=*=--test|-=*=--=*of|-=*columns*>
   
-  See Also: wrapcolumns(), wrap()
+  See Also: wrapcolumns(), wrap(), array(), printf()
   
 & PTIMEFMT()
   ptimefmt(<format>[, <secs>])
@@ -14153,6 +14713,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
   If the optional last argument is set to 1, lcon will display the object
   names instead of the #dbrefs.
+
+  By default, Rhost returns '#-1' if lcon() returns no objects. If the
+  config option mux_lcon_compat is set to '1', lcon() will return an empty
+  string instead, for MUX compatibility.
   
   Example:
     > inv
@@ -14262,12 +14826,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   the total number of rooms contained on the MUSH.  You can only get rooms
   from visible exits or that you control, are set ABODE, JUMP_OK, LINK_OK, or
   VISIBLE.  Unfortunately, the list of rooms are not in order of iteration,
-  or any particular order.  The iteration defaults to 1.  You may specify
-  the type of display you wish.  A type of '1' (the default) displays all
-  rooms.  A type of '0' will display only the rooms matching the directly
-  specified iteration level, and none before.  Keep in mind that type '0'
-  is not always guarenteed to be absolutely accurate as rooms could be
-  linked differently based on the order it's checked.
+  or any particular order.  
+  
+  The iteration defaults to 1.  '0' specifies 'MAXIMUM'.
+  
+  You may specify the type of display you wish.  A type of '1' (the default) 
+  displays all rooms.  A type of '0' will display only the rooms matching 
+  the directly specified iteration level, and none before.  Keep in mind 
+  that type '0' is not always guaranteed to be absolutely accurate as rooms 
+  could be linked differently based on the order it's checked.
   
   Examples:
     > say lrooms(here,1)
@@ -14525,12 +15092,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: lattr()
   
 & LATTR()
-  Function: lattr(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattr(<obj>[/<wild>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
  
-  Returns a list of the attributes set on <object>.  If <wild-pattern> is
-  given, only attributes matching it are returned.  You may specify the 
+  Returns a list of the attributes set on <obj>.  If <wild> is given, only
+  attributes matching it are returned.  If you specify <regexp> as true (1)
+  then the wildcard pattern may be regular expressions.  You may specify the 
   optional target if you wish to return attributes that only the target
   could see.  If you do not have control over target, it defaults to yours.
+  If the <tree> option is set to '1', it returns attributes based on Penn's
+  trees. 
+   
   You may specify a type to check against.  The following types exist:
     + - List existing lock attributes on player.
     $ - list all attributes that are $commands.
@@ -14547,13 +15118,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & LATTR2   
   CONTINUED
-  Function: lattr(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattr(<obj>[/<wild>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
   
   Example:
     > @va me=$whee:@pemit %#=you did a whee.
     > @vb me=^*wow*:@pemit %#=You're hearing a wow.
     > say lattr(me)
-    You say "Desc VA VB VC VE Last VV Domain"
+    You say "Desc VA VB VC VE Last VV Domain XX"
     > say lattr(me/v*)
     You say "VA VB VC VE VV"
     > say lattr(me/v*,*TinyPlayer)
@@ -14562,6 +15133,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "VA"
     > say lattr(me/v*,,^)
     You say "VB"
+    > say lattr(me/^..$,,,1)
+    You say "VA VB VC VE VV XX"
  
   See Also: @dolist, attrcnt(), vattrcnt(), cluster_lattr()
   
@@ -14769,8 +15342,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @stats, @search, search(), searchng()
   
 & ITEXT()
-  Function: itext(<n>)
-  Related:  inum(<n>)
+  Function: itext(<n> [,<key>])
+  Related:  inum(<n> [,<key>])
             ibreak(<n>)
             ilev()
    
@@ -14778,6 +15351,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   of ## (itext) or #@ (inum), with reference to the nth more outermost
   iter(), where n=0 refers to the current iter(), n=1 to an iter()
   in which the current iter() is nested, etc.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
    
   Examples:
   > say [iter(red blue green,iter(fish shoe, #@:##))]
@@ -14796,13 +15373,17 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
 & ILEV()
   Function: ilev()
-  Related:  inum(<n>)
+  Related:  inum(<n> [,<key>])
             ibreak(<n>)
-            itext(<n>)
+            itext(<n> [,<key>])
   
   This function goes along with inum() and itext() and will return the
   level of recursion you are currently in an iter.  The first level is 
   '0', and deeper levels are 1 and more.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
   
   Example:
     > say iter(a b c,iter(1 2 3,iter(! @ #,ilev())))
@@ -14814,8 +15395,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: inum(), itext(), iter(), ibreak(), list()
   
 & INUM()
-  Function: inum(<n>)
-  Related:  itext(<n>)
+  Function: inum(<n> [,<key>])
+  Related:  itext(<n> [,<key>])
             ibreak(<n>)
             ilev()
    
@@ -14823,6 +15404,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   of ## (itext) or #@ (inum), with reference to the nth more outermost
   iter(), where n=0 refers to the current iter(), n=1 to an iter()
   in which the current iter() is nested, etc.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
    
   Examples:
   > say [iter(red blue green,iter(fish shoe, #@:##))] 
@@ -14841,8 +15426,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & IBREAK()
   Function: ibreak(<n>)
-  Related:  itext(<n>)
-            inum(<n>)
+  Related:  itext(<n> [,<key>])
+            inum(<n> [,<key>])
             ilev()
   
   These functions, when called with an iter(), return the equivalent
@@ -14854,6 +15439,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   It will finish processing of what it currently is executing then abort
   any further iterations of that given iter loop.  You can specify the nth
   argument to specify which iter() you wish to break out of.
+  
+  itext() and inum() can specify a key of '1' to substitute the 
+  @dolist/inline value instead of the iter() value essentially duplicating
+  '%d<n>' instead of the default '%i<n>'.
   
   Examples:
   > say [iter(red blue green,iter(fish shoe, [inum(1)]:[itext(1)]))]
@@ -14879,7 +15468,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   to @dolist, except that the results are made into a list and returned, not
   executed.  The special symbol #@ can be used to return the positional match
   of the current item of the list.  You may specify a filler for the string.
- 
+  
+  You may use %i0-%i9 for itext(0) to itext(9).  
+  You may use %il for the outermost layer, equiv to itext(ilev())
+   
   Examples:
     > say iter(This is a test,-## #@-)
     You say "-This 1- -is 2- -a 3- -test 4-"
@@ -14906,7 +15498,12 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   similar to @dolist, except that the results are made into a list and 
   returned, not executed.  The special symbol #@ can be used to return the
   positional match of the current item of the list.
- 
+  
+  This function can be reproduced with iter(<list>,<eval>,<delim>,) and as 
+  such is considered depreciated but left for compatibility.
+  
+  This function does not handle itext/inum/%i.  Use iter() for this.
+   
   Examples:
     > say nsiter(lnum(3),--+#@)
     You say "--+1--+2--+3--+4"
@@ -14982,6 +15579,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   positional match of that item in that list.  This is similar to 
   the explode function found on other mushes or in PHP.
   
+  This function does not handle itext/inum/%i.  
+   
   Examples:
     > say citer(boo!,##)
     You say "b o o !"
@@ -14992,7 +15591,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say citer(bob,## WHEE ##,@)
     You say "b WHEE b@o WHEE o@b WHEE b"
   
-  See Also: iter(), nsiter(), list(), @dolist
+  See Also: iter(), nsiter(), list(), @dolist, creplace(), foreach()
   
 & LOCATE()
   Function: locate(<looker>,<string>,<where>)
@@ -15110,13 +15709,22 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
 & MASK()
   Function: mask(<value>,<value>[,<masktype>])
+            mask(<value>,<value>,...,<value>,<masktype>)
   
   This function will apply a specified mask to a value.  This can be
   useful for bitwise anding/oring values together. (for those mathheads)
-  The values available for masktype are AND(&), OR(|), XOR(^), 
-  AND-1's COMP(~), 1'S COMP(1), 2'S COMP(2) .
+  The values available for masktype are:
+     & -- Bitwise AND 
+     | -- Bitwise OR
+     ^ -- Bitwise XOR
+     ~ -- Bitwise NAND (AND 1's compliment)
+     1 -- Bitwise BNOT (1's Compliment)
+     2 --              (2's Compliment)
   
-  The default masktype is the bitwise AND (&).
+  The default masktype is the bitwise AND (&) (but only with 2 arguments).
+  
+  Please note, if you use more than 2 values, you must specify the masktype,
+  otherwise it'll assume the last argument is always the masktype.
   
   Examples:
     > say mask(3,4)
@@ -15503,7 +16111,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say u(me/va,6,Foobar)
     You say "Word is u, arg2 is Foobar."
   
-  See Also: s(), v(), get(), get_eval(), map(), ueval(), objeval()
+  See Also: s(), v(), get(), get_eval(), map(), ueval(), streval(),
+            objeval(), @lfunction
   
 & STREVAL()
   Function: streval(<string>, <evaluation level> [,<arg>,<arg2>,...,<argN>])
@@ -15534,7 +16143,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say streval(Test: [s(%0)],citizen,[bittype(me)])
     You say "Test: 1"
   
-  See Also: ueval(), u(), default()
+  See Also: ueval(), u(), default(), @lfunction
     
 & U2()
   Function: u2([<obj>/]<attr>[,<arg>]...)
@@ -15551,7 +16160,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
    
   For examples or more information, look at u()
   
-  See Also: u(), u2local(), u2ldefault()
+  See Also: u(), u2local(), u2ldefault(), @lfunction
   
 & ZFUN2LOCAL()
   Function:  zfun2local([<zone>/]<attr>[,<arg>]...)
@@ -15595,6 +16204,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   value of %q0 to its original "are delicious!"
  
   See Also:  ulocal(), u(), u2(), uldefault(), u2ldefault(), setq(), r()
+
 & U2LOCAL()
   Function:  u2local([<obj>/]<attr>[,<arg>]...)
  
@@ -15721,7 +16331,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   %q0, this is what was printed. In the first example, ulocal() reset the
   value of %q0 to its original "are delicious!"
    
-  See Also:  ulocal2(), u(), u2(), uldefault(), u2ldefault(), setq(), r()
+  See Also:  ulocal2(), u(), u2(), uldefault(), u2ldefault(), setq(), r(),
+             @lfunction
   
 & PRIVATIZE()
   Function: privatize(<value>)
@@ -15740,7 +16351,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say [privatize(1)][setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--(before R0: ) My R0:internal--external"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize()
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), @lfunction
 
 & LOCALIZE()
   Function: localize(<string>)
@@ -15757,7 +16368,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say [setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--My R0:internal--external"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize()
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), @lfunction
   
 & LOCALFUNC()
   Function: localfunc(<function-name>, <args>...)
@@ -15770,7 +16381,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > localfunc(test,This is a test)
     You say "This was a test. Function: 'test' First Arg: 'This is a test'"
   
-  See Also: strfunc()
+  See Also: strfunc(), @lfunction
   
 & LAVG()
   Function: lavg(<list of numbers>[,<delim>])
@@ -16311,6 +16922,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   does not have the ability to examine the object, #-1 will be returned.
  
   Use hasattr() to check for attributes without checking parents.
+  If the config option hasattrp_compat is set, it will check the target
+  object for the attribute as well.
   
   Examples:
     > say hasattrp(me/desc)
@@ -16407,6 +17020,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "E"
   
   See Also: @switch, match(), ifelse(), switch()
+  
+& SPEAK()
+  See 'help parsestr()'
   
 & SPACE()
   Function: space(<count>)
@@ -16700,11 +17316,17 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You say ""
   
 & PEMIT()
-  Function: pemit(<object> [<object2> ...],<string>)
+  Function: pemit(<object> [<object2> ...],<string> [,<key>])
   
   The pemit() function is a side-effect for the @pemit/list command.  All
   restrictions and permissions of that command follow this function.  The
   SIDEFX flag is required to use pemit().
+  
+  You may specify an optional <key> of '1' if you wish to have ##
+  substituted for every target object in the list.  Keep in mind the '##'
+  is pre-processed like iter's ## would be and could be a security risk
+  if used improperly.  I'd strongly suggest filtering the target list
+  as dbref#'s to keep it safe.
   
   Type @list options to see if this side-effect is enabled.
   
@@ -16716,6 +17338,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   test
   test
   You say ""
+  > @eval pemit(#123,test ##)		(assuming your dbref# is #123)
+  test #123
   
   See Also: @pemit, npemit(), SIDEEFFECTS
   
@@ -16753,13 +17377,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @link, SIDEEFFECTS
   
 & CREATE()
-  Function: create(<name>,<arguments>[,<type>])
+  Function: create(<name>, [<arguments> [,<type>]])
   
   @create:  create(<name>,<value>,t) (default)
     This will create an object with name <name> of value <value>.  The 't'
     <type> is optional for this as it is the default.  For more help on
     creating objects, please refer to 'help @create'.  If <value> is null
     it assumes the default.  All objects made are sent to enactor's location.
+  
+    If no arguments are given, the default money value is taken for this 
+    option only.
   
   @dig:     create(<name>,<[exit-in],[exit-out]>,r)
     This will dig a room with name <name> and OPTIONAL in-exit 'exit-in' and
@@ -16776,6 +17403,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   Example:
   > say create(An Object,10)   (this will create 'An Object' with value of '10')
+  > say create(An Object)      (this will create 'An Object' with default cost)
   
   See Also: @create, @dig, @open, dig(), open(), SIDEEFFECTS
   
@@ -16847,6 +17475,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   <target> optionally sends output to the target player.  You must control
   the target or it will default to the enactor.
   
+  You may use %i0-%i9 for itext(0) to itext(9).  
+  You may use %il for the outermost layer, equiv to itext(ilev())
+   
   {See 'help list2' for examples}
 
 & LIST2
@@ -16892,7 +17523,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say digest(sha, test123)
     You say "3a589de6214fd40ae461313fd81dfd1edb7eae70"
    
-  See also: crc32(), pack(), roman()
+  See also: crc32(), pack(), roman(), encrypt(), decrypt(), encode64(),
+            decode64()
 
 & DIG()
   Function: dig(<room>[[,<in exit>][,<out exit>][,<location>][,<type>]])
@@ -16974,21 +17606,26 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @destroy, wipe(), create()
   
 & WIPE()
-  Function: wipe(<obj>[/wildattr])
+  Function: wipe(<obj>[/wildattr] [,<regexp>])
   
   The wipe() function will remove all matching attributes specified by
   a wildcard, or, if no attribute is specified, remove all attributes of
   the specified object.  This function works like @wipe and follows all
   permissions and restrictions of the matching command.
   
+  If <regexp> is specified as '1', then <wildattr> is evaluated as a
+  regular expresion instead of the default expresion.
+  
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
   
   Examples:
-    > say wipe(#123)
-    You say ""
     > say wipe(#123/*foo*)
-    You say ""
+    You say "Wipe: 8 attributes wiped."
+    > say wipe(#123/^.*ab$,1)
+    You say "Wipe: 2 attributes wiped."
+    > say wipe(#123)
+    You say "Wipe: 218 attributes wiped."
   
   See Also: @wipe, @set, &, set()
   
@@ -17036,13 +17673,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: lemit(), pemit(), oemit(), @emit, SIDEEFFECTS
     
 & OEMIT()
-  Function: oemit(<target>,<text>)
+  Function: oemit(<target>, <text> [,<key>])
   
   The oemit() function returns 'text' at location of 'target' without letting
   'target' know what was emitted.  This works identical to the @oemit command
   and follows all permissions and restrictions.  The SIDEFX flag is required
   to be able to use the oemit() function.
   
+  An optional key of <key> may be specified to toggle the affect of having
+  <target> be multiple arguments.  A <key> of '1' enables multi-targetting.
+   
   Type @list options to see if this side-effect function is enabled.
   
   Examples:
@@ -17050,6 +17690,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     boo!
     You say ""
     > say oemit(me,boo!)
+    You say ""
+    > say oemit(me you them,boo!,1)
     You say ""
   
   See Also: lemit(), pemit(), emit(), @oemit, SIDEEFFECTS
@@ -17299,7 +17941,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: listunion(), listinter(), setdiff()
 
 & SETDIFF()
-  Function: setdiff(<list1>, <list2>[, <delim> [, <sep>]])
+  Function: setdiff(<list1>, <list2>[, <delim> [, <sep> [, <sorttype>]]])
    
   This function returns the difference of two sets -- i.e., the elements in
   <list1> that aren't in <list2>. The list that is returned is sorted.
@@ -17309,6 +17951,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   If <sep> is specified, it will be used (rather than a space) for the output
   seperator for the list.
+  
+  If <sorttype> is specified, you may have a different sort than the default
+  alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
    
   Example:
     > say setdiff(foo baz gleep bar, bar moof gleep)
@@ -17340,7 +17985,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 
 & SETINTER()
-  Function: setinter(<list1>, <list2>[, <delim> [, <sep>]])
+  Function: setinter(<list1>, <list2>[, <delim> [, <sep> [, <sorttype>]]])
    
   This function returns the intersection of two sets -- i.e., the elements
   that are in both <list1> and <list2>. The list that is returned is sorted.
@@ -17350,7 +17995,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
    
   If <sep> is specified, it will be used (rather than a space) for the output
   seperator for the list.
-   
+  
+  If <sorttype> is specified, you may have a different sort than the default
+  alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
+  
   Example:
     > say setinter(foo baz gleep bar, bar moof gleep)
     You say, "bar gleep"
@@ -17380,7 +18028,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: listinter(), listdiff(), setunion()
 
 & SETUNION()
-  Function: setunion(<list1>, <list2>[, <delim> [, <sep>]])
+  Function: setunion(<list1>, <list2>[, <delim> [, <sep> [, <sorttype>]]])
    
   This function returns the union of two sets -- i.e., all the elements of
   both <list1> and <list2>, minus any duplicate elements. Think of it as
@@ -17391,6 +18039,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
    
   If <sep> is specified, it will be used (rather than a space) for the output
   seperator for the list.
+  
+  If <sorttype> is specified, you may have a different sort than the default
+  alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
    
   Example:
     > say setunion(foo baz gleep bar, bar moof gleep)
@@ -17829,7 +18480,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say pi()
     You say "3.141562654"
   
-  See Also: acos(), asin(), atan(), cos(), sin(), tan()
+  See Also: acos(), asin(), atan(), cos(), sin(), tan(), ctu(), cosh(), sinh(),
+            tanh()
   
 & PID()
   Function: pid([<display> [,<seperator> [,<type> [,<target>]]])
@@ -17919,8 +18571,29 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say sin(fdiv(pi(),6))
     You say "0.5"
   
-  See Also: acos(), asin(), atan(), cos(), pi(), tan(), ctu()
+  See Also: acos(), asin(), atan(), cos(), pi(), tan(), ctu(), sinh(), cosh(),
+            tanh()
   
+& SINH()
+  Function: sinh(<number> [,<units>])
+   
+  Returns the hyperbolic sine of <number>, expressed in radians.
+  
+  You may specify <units> which are either (r)adians,
+  (g)radians, or (d)egrees.  (r)adians are the default.
+   
+  Examples:
+    > say sinh(0)
+    You say "0"
+    > say sinh(fdiv(pi(),2))
+    You say "2.301298"
+    > say sinh(fdiv(pi(),4))
+    You say "0.868671"
+    > say sinh(fdiv(pi(),6))
+    You say "0.547854"
+  
+  See Also: acos(), asin(), atan(), cos(), pi(), tan(), ctu(), cosh(), tanh()
+
 & SINGLETIME()
   Function: singletime(<seconds>)
  
@@ -17952,7 +18625,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say ctu(180,d,r)
     You say "3.141593"
   
-  See Also: sin(), cos(), tan(), asin(), acos(), atan(), pi()
+  See Also: sin(), cos(), tan(), asin(), acos(), atan(), pi(), cosh(), sinh(),
+            tanh()
   
 & COS()
   Function: cos(<number> [,<units>])
@@ -17972,8 +18646,29 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say cos(fdiv(pi(),6))
     You say "0.866025"
   
-  See Also: acos(), asin(), atan(), pi(), sin(), tan(), ctu()
+  See Also: acos(), asin(), atan(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
+            tanh()
   
+& COSH()
+  Function: cosh(<number> [,<units>])
+   
+  Returns the hyperbolic cosine of <number>, expressed in radians.
+  
+  You may specify <units> which are either (r)adians,
+  (g)radians, or (d)egrees.  (r)adians are the default.
+   
+  Examples:
+    > say cosh(0)
+    You say "1"
+    > say cosh(fdiv(pi(),2))
+    You say "2.509178"
+    > say cosh(fdiv(pi(),4))
+    You say "1.324609"
+    > say cosh(fdiv(pi(),6))
+    You say "1.140238"
+  
+  See Also: acos(), asin(), atan(), pi(), sin(), tan(), ctu(), sinh(), tanh()
+
 & TAN()
   Function: tan(<number> [,<units>])
    
@@ -17990,8 +18685,27 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say tan(fdiv(pi(),4))
     You say "1"
   
-  See Also: acos(), asin(), atan(), cos(), pi(), sin(), ctu()
+  See Also: acos(), asin(), atan(), cos(), pi(), sin(), ctu(), cosh(), sinh(),
+            tanh()
   
+& TANH()
+  Function: tanh(<number> [,<units>])
+  
+  Returns the hyperbolic tangent of <number>, expressed in radians.
+ 
+  You may specify <units> which are either (r)adians,
+  (g)radians, or (d)egrees.  (r)adians are the default.
+  
+  Examples:  
+    > say tanh(0)
+    You say "0"
+    > say tanh(1)
+    You say "0.761594"
+    > say tanh(fdiv(pi(),4))
+    You say "1.324609"
+
+  See Also: acos(), asin(), atan(), cos(), pi(), sin(), ctu(), cosh(), sinh()
+
 & ASIN()
   Function: asin(<number> [,<units>])
    
@@ -18010,7 +18724,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say asin(0.5)
     You say "0.523599"
   
-  See Also: acos(), atan(), cos(), pi(), sin(), tan(), ctu()
+  See Also: acos(), atan(), cos(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
+            tanh()
   
 & ACCENT()
   Function: accent(<string>,<template>)
@@ -18131,7 +18846,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say acos(0.866025)
     You say "0.5236"
   
-  See Also: asin(), atan(), cos(), pi(), sin(), tan(), ctu()
+  See Also: asin(), atan(), cos(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
+            tanh()
   
 & ATAN()
   Function: atan(<number> [,<units>])
@@ -18149,7 +18865,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say atan(1.557408)
     You say "1"
   
-  See Also: acos(), asin(), cos(), pi(), sin(), tan(), ctu()
+  See Also: acos(), asin(), cos(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
+            tanh()
   
 & FLOOR()
   Function: floor(<number>)
@@ -18444,6 +19161,69 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   results.  The special substitution of #@ can be used for the position
   of the current item in the list.  You may specify an output seperator.
   
+  This function can be reproduced with the iter function and as
+  such is considered depreciated but left for compatibility.
+  
+  This function does not handle itext/inum/%i.  Use iter() for this.
+   
+  Examples:
+    > say nsiter(lnum(3),--+#@)
+    You say "--+1--+2--+3--+4"
+    > say nsiter(lnum(4),--+)
+    You say "--+--+--+--+"
+    > say nsiter(This is a test,strlen(##))
+    You say "4214"
+    > say nsiter(This is a test,{strlen(##)})
+    You say "4214"
+    > say nsiter(lnum(10),mul(mul(##,##),10))
+    You say "0104090160250360490640810"
+    > say nsiter(lcon(me),[name(##)]..[money(##)])
+    You say "test..1t1..1radio..1The Wizard's Pointy Hat..1"
+    > say nsiter(Was it a cat I saw,words(##),s)
+    You say "141"
+  
+  See Also: iter(), citer(), @dolist, parse(), list()
+  
+  
+& PARSESTR()
+  Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
+                       [,<prefix>]]]]])
+  
+  This function takes an input string and parses it, based on the 
+  delimiters, in a 'staggered' method, and passes each substring to
+  the 'eval' as %0.  This is handy for parsing speech for example.
+  
+  Arguments are:
+    <String>    -- input string that you wish to parse & translate
+    <eval>      -- how you wish to parse each segment of the string
+    <delim>     -- the optional input delimiter of the string
+    <output>    -- the optional output delimiter of the string.
+                   Note: if you have a space-separated argument, then
+                         the first part is prefix, the rest is suffix.
+    <type>      -- Take arguments between delimiters as even (default) or odd.
+    <target>    -- The target you wish to have if initializer specified.
+                   Note: a '&' prefix takes the string 'as-is'.  You must
+                         control the target for the target to work.
+    <transchar> -- The translation character after the 'delimiter' you wish
+                   to identify the string for special processing.
+    <endchar>   -- The last character in the field you wish to do special
+                   processing on. (good for punctuation)
+    <transeval> -- How you wish to parse the special processing string.
+    <prefix>    -- The optional prefix you wish to use for the 'say' string.
+  
+  All arguments passed will be as in the <eval> and <transeval>.
+            %0  -- The string being passed for evaluation.      
+  (prefix)  %1  -- The player name specified in target          (or &string).
+  (prefix)  %2  -- The current parameter number being processed (-1 for prefix)
+  (prefix)  %3  -- The absolute parameter being processed       (0 for prefix)
+  (prefix)  %4  -- The transchar OR endchar being processed     (if any)
+  
+  Note:  Only the values with '(prefix)' are valid for the prefix evaluation.
+  
+{ see 'help parsestr2' for examples }
+
+  
   Examples:
     > say parse(1 2 3 4 5,add(##,1))
     You say "2 3 4 5 6"
@@ -18456,16 +19236,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   See Also: @dolist, iter(), map(), citer(), nsiter(), list()
   
-& PARSESTR()
-  Function: parsestr(<string>, <eval>[,<delim> [.<output> [,<type>]]])
-  
-  This function takes an input string and parses it, based on the 
-  delimiters, in a 'staggered' method, and passes each substring to
-  the 'eval' as %0.  This is handy for parsing speech for example.
-  The following types exist:
-      0 - (default) - Take even arguments between delimiters.
-      1 - Take odd arguments between delimiters.
-  
+
+& PARSESTR2
+(CONTINUED)
+  Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
+                       [,<prefix>]]]]])
+
   Examples:
     > @va me=You say "Hello! Hello?" *sigh* "Hello?!?"
     Set.
@@ -18477,6 +19254,45 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "------ ------" *sigh* "--------"
     > think parsestr(v(va),garble(%0,1,,-,,2),")
     You say "-----! -----?" *sigh* "-----?!?"
+  
+  Avanced Examples:
+    > think parsestr("to die" is a mighty adventure "+snarf", --%0 %[%2/%3%]--,
+        ",",,%#,+,, X: %0 <%2/%3>, [ansi(+purple,bob)])
+    YourName bob, "--to die [0/1]--" is a mighty adventure "X: +snarf <1/3>"
+    > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--,
+        ",^~ ~^,,%#,,!,%0 <%2/%3>, [ansi(+purple,bob)])
+    YourName bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+    > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--
+        ,",^~ ~^,,&[ansi(+orange,McDonald)],,!,%0 <%2/%3>,[ansi(+purple,bob)])
+    McDonald bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+  
+{ see 'help prsestr3' for examples on how to use this for an OOC command}
+
+& PARSESTR3
+(CONTINUED)
+  Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
+                       [,<prefix>]]]]])
+  
+  Avanced Examples for OOC:
+    > &OOC me=$ooc *:think [parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
+    > ooc :tests.
+    <OOC> YourName tests.
+    > ooc ;test.
+    <OOC> YourName's test.
+    > ooc "testing
+    <OOC> YourName says, "Testing"
+    > ooc testing
+    <OOC> YourName says, "Testing"
+    > ooc "I am testing" *thinks vigeriously*
+    <OOC> YourName says, "I am testing" *thinks vigeriously*
+    > ooc "I am testing" .. thinks.. "At least I believe so"
+    <OOC> YourName says, "I am testing" .. thinks.. "At least I believe so"
+    > ooc "I am testing" .. thinks.. "At least I believe so
+    <OOC> YourName says, "I am testing" .. thinks.. "At least I believe so"
+   
+  Note: It will auto-close double quotes if it detects a non-escaped odd count.
+        Also note the colorizations will be displayed appropiately.
   
   See Also: garble(), parse(), iter(), strmath(), spellnum()
   
@@ -18577,7 +19393,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   if no fill character is given) ("right-justifies") so it is <length> long.
   If <string> is longer than <length>, the <string> is returned; it is not
   truncated. <fill> may be a string of over one character.
- 
+  
+  If you wish to use ansified filler, use printf() instead.
+   
   Examples:
     > say -[rjust(foo,6)]-
     You say "-   foo-"
@@ -18586,6 +19404,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     0   foo7
     01234567"
     > say =[rjust(bar,5,.)]=
+    You say "=..bar="
+  
+  Alternate:
+    > say =[printf($:.:5s,bar)]=       (The default justification is right)
     You say "=..bar="
   
   See Also: rjc(), ljust(), ljc(), strlen(), printf(), wrap()
@@ -18598,6 +19420,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   than <length> it will be cut to fit within a field of <length> characters.
   You may specify an optional fill character.
   
+  If you wish to use ansified filler, use printf() instead.
+   
   Examples:
     > say -[rjc(foo,6)]-
     You say "-   foo-"
@@ -18640,6 +19464,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   <string> within a field of <length> characters. If <string> is longer 
   than <length> it will be cut to fit within a field of <length> characters.
   You may specify an optional fill character.
+  
+  If you wish to use ansified filler, use printf() instead.
    
   Examples:
     > say -[ljc(foo,6)]-
@@ -18658,7 +19484,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   if no fill character is given) ("left-justifies") so it is <length> long.
   If <string> is longer than <length>, the <string> is returned; it is not
   truncated.  <fill> may be a string of more than one character.
- 
+  
+  If you wish to use ansified filler, use printf() instead.
+   
   Examples:
     > say -[ljust(foo,6)]-
     You say "-foo   -"
@@ -18667,6 +19495,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     0foo   7
     01234567"
     > say =[ljust(bar,5,.)]=
+    You say "=bar..="
+  
+  Alternate:
+    > say =[printf($:.:-5s,bar)]=      (the '-' specifies left justifies)
     You say "=bar..="
   
   See Also: ljc(), rjust(), rjc(), strlen(), printf(), wrap()
@@ -18812,7 +19644,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   the existing label (if one exists) for that register.
   
   If you specify a key of 1, <new label> MUST be null/empty, and this
-  will return the register (0-9 or a-z) asigned to the specified label.
+  will return the register (0-9 or a-z) assigned to the specified label.
   
   Example:
     > say [setq(0,Test 1 2 3)][r(0)]
@@ -18854,7 +19686,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first  unnamed AND
   unused register.  '!' just uses the first unnamed register.
    
@@ -18884,7 +19716,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
 
@@ -18909,7 +19741,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
    
@@ -18937,7 +19769,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   You may specify an optional label to assign the register to later call
   with r().  Labels can contain any character and must be 31 chars or less.
   You may then specify the label instead of the <number>.  Using '!' for the
-  number/label specifies to reuse the label OR asign a label to the next
+  number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
   
@@ -18976,12 +19808,18 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   centering.  If no fill character is specified then a space is used.
   If <string> is longer than <width> characters, the string is returned
   unmodified.  The <fill> may contain more than one character.
- 
+  
+  If you wish to use ansified filler, use printf() instead.
+   
   Example:
     > say center(a,5,-)
     You say "--a--"
     > say center(*BAMF*,15)
     You say "    *BAMF*     "
+  
+  Alternate:
+    > say printf($:-:^5s,a)            (the '^' specifies center justify)
+    You say "--a--"
   
   See Also: ljust(), rjust(), ljc(), rjc(), printf()
   
@@ -19429,7 +20267,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   or accent.  
   
   Also, any use of chr() will padd out any alignment by 5 characters.  So any
-  that you use, make sure to padd out by the additional 5 per use.
+  that you use, make sure to keep this in mind.  All the formatting functions
+  take this into account automatically so should be invisible to you, but
+  the overhead does exist.
   
   Examples:
     > say ansi(hr,\\)
@@ -19708,20 +20548,23 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_LATTR()
-  Function: cluster_lattr(<obj>[/<wild>][,<target> [,<type>][,<flags>]])
+  Function: cluster_lattr(<obj>[/<wild>][,<tgt>[,<tp>][,<flg>][,<rexp>][,<tr>])
  
-  Returns a list of the attributes set on cluster <object>.  If <wild-pattern>
-  is given, only attributes matching it are returned.  You may specify the 
-  optional target if you wish to return attributes that only the target
+  Returns a list of the attributes set on cluster <obj>ect.  If <wild>pattern
+  is given, only attributes matching it are returned.  If you have the regexp
+  toggle <rexp> as true (1), the matching <wild> is evaluated as a regular
+  expression instead of the default matching algorithem.  You may specify the 
+  optional target <tgt> if you wish to return attributes that only the target
   could see.  If you do not have control over target, it defaults to yours.
   This searches all objects that are contained in the cluster.
+  You may specify tree <tr> viewing if you set it to '1'.
   
-  You may specify a type to check against.  The following types exist:
+  You may specify a type <tp> to check against.  The following types exist:
     + - List existing lock attributes on player.
     $ - list all attributes that are $commands.
     ^ - list all attributes that are ^listens.
-    & - list all attributes that contain all attribute flags <flags>.
-    | - list all attributes that contain any attribute flags <flags>.
+    & - list all attributes that contain all attribute flags <flg>.
+    | - list all attributes that contain any attribute flags <flg>.
     l - list total attributes and pages of attributes.
     # - page (1, 2, etc) for attribute listing.  118 for 32byte attrs.
     > - find the alphanumerical largest attribute name.
@@ -19732,13 +20575,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 
 & CLUSTER_LATTR2   
   CONTINUED
-  Function: cluster_lattr(<obj>[/<wild>][,<target> [,<type>][,<flags>]])
+  Function: cluster_lattr(<obj>[/<wild>][,<tgt>[,<tp>][,<flg>][,<rexp>][,<tr>])
   
   Example:
     > @va cluster#1=$whee:@pemit %#=you did a whee.
     > @vb cluster#1=^*wow*:@pemit %#=You're hearing a wow.
     > say cluster_lattr(cluster#1)
-    You say "Desc VA VB VC VE Last VV Domain"
+    You say "Desc VA VB VC VE Last VV Domain XX"
     > say cluster_lattr(cluster#1/v*)
     You say "VA VB VC VE VV"
     > say cluster_lattr(cluster#1/v*,*TinyPlayer)
@@ -19747,6 +20590,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "VA"
     > say cluster_lattr(cluster#1/v*,,^)
     You say "VB"
+    > say cluster_lattr(cluster#1/^..$,,,1)
+    You say "VA VB VC VE VV XX"
   
   See Also: @cluster, cluster_attrcnt(), cluster_default(), cluster_edefault(), 
             cluster_get(), cluster_get_eval(), cluster_grep(), cluster_hasattr(),
@@ -19758,7 +20603,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_REGREP()
-  Function: cluster_regrep(<object>,<attrs>,<regexp>)
+  Function: cluster_regrep(<object>, <attrs>, <regexp> [,<key>])
   
   This function returns a list of attributes on cluster <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -19767,6 +20612,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out.   This searches all
   objects contained in the specified cluster.
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?).
   
   This function is case-sensitive. 
   
@@ -19787,7 +20635,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_REGREPI()
-  Function: cluster_regrepi(<object>,<attrs>,<regexp>)
+  Function: cluster_regrepi(<object>, <attrs>, <regexp> [,<key>])
   
   This function returns a list of attributes on cluster <object> containing
   <pattern> (or matching <regexp>).  <attrs> is a wildcard pattern for
@@ -19796,6 +20644,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Parsing _does_ occur before this function is invoked. Therefore,
   "special" characters will need to be escaped out.  This searches all
   objects contained in the cluster.
+  
+  If <key> is specified as '1', attribute wildcards are done with
+  regular expression matching.  The default is globbing (* and ?).
   
   This function is case-insensitive.
   
@@ -20009,7 +20860,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Example of cluster_u2local():
     > &FRUIT cluster#1=apples bananas oranges pears
     > &SUB-FUNCTION cluster#2=[setq(0,v(FRUIT))][extract(%q0,match(%q0,%0),1)]
-    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)][cluster_u2local(SUB-FUNCTION,%0)] %q0
+    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)]
+                              [cluster_u2local(SUB-FUNCTION,%0)] %q0
     > say cluster_u2(cluster#1/TOP-FUNCTION,b*)
     You say "bananas are delicious!"
    
@@ -20140,7 +20992,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Example of cluster_ulocal():
     > &FRUIT cluster#1=apples bananas oranges pears
     > &SUB-FUNCTION cluster#2=[setq(0,v(FRUIT))][extract(%q0,match(%q0,%0),1)]
-    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)][cluster_ulocal(SUB-FUNCTION,%0)] %q0
+    > &TOP-FUNCTION cluster#3=[setq(0,are delicious!)]
+                              [cluster_ulocal(SUB-FUNCTION,%0)] %q0
     > say cluster_u(TOP-FUNCTION,b*)
     You say "bananas are delicious!"
    
@@ -20191,13 +21044,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_WIPE()
-  Function: cluster_wipe(<object>[/wildattr])
+  Function: cluster_wipe(<object>[/wildattr] [,<regxp>])
   
   The cluster_wipe() function will remove all matching attributes 
   specified by a wildcard, or, if no attribute is specified, 
   remove all attributes of the specified cluster.  This function 
   works like @cluster/wipe and follows all permissions and 
   restrictions of the matching command.
+  
+  If <regexp> is specified as '1', then <wildattr> is evaluated as a
+  regular expresion instead of the default expresion.
   
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
@@ -23467,6 +24323,43 @@ Mail: Done
   
   See Also: regexp syntax, regexp classes
 
+& regular expression functions
+  Function lists: Regular Expressions
+  
+  regedit()          -- Edits first case match based on regexp
+  regeditall()       -- Edits all case matches based on regexp
+  regeditalli()      -- Edits first non-case match based on regexp 
+  regeditallilit()   -- Edits first non-case match based on escaped regexp
+  regeditalllit()    -- Edits first case match based on escaped regexp
+  regediti()         -- Edits first non-case match based on regexp
+  regeditilit()      -- Edits first non-case match based on escaped regexp
+  regeditlit()       -- Edits first case match based on escaped regexp
+  reglmatch()        -- Returns first case position of regexp match
+  reglmatchall()     -- Returns all case positions of regexp matches
+  reglmatchalli()    -- Returns all non-case positions of regexp matches
+  reglmatchi()       -- Returns first non-case position of regexp match
+  regmatch()         -- Returns true(1) or false(0) on a case regexp match
+  regmatchi()        -- Returns true(1) or false(0) on a non-case regexp match
+  regnummatch()      -- Returns count of all case regexp matches
+  regnummatchi()     -- Returns count of all non-case regexp matches
+  regrab()           -- Returns string of first case regexp match
+  regrabi()          -- Returns string of first non-case regexp match
+  regraball()        -- Returns strings of all case regexp matches
+  regraballi()       -- Returns strings of all non-case regexp matches
+  regrep()           -- Returns attribs that contain string of case regexp
+  regrepi()          -- Returns attribs that contain string of non-case regexp
+  reswitch()         -- Switch based on case regexp match
+  reswitchall()      -- Switch all based on case regexp match
+  reswitchalli()     -- Switch all based on non-case regexp match
+  reswitchi()        -- Switch based on non-case regexp match
+  cluster_lattr()    -- Regexp capable attribute listing for clusters
+  cluster_regrepi()  -- Returns attrs in cluster that contain non-case regexp
+  cluster_regrep()   -- Returns attrs in cluster that contain case regexp
+  cluster_wipe()     -- Regexp capable attribute cluster wiper     
+  lattr()            -- Regexp capable attribute listing
+  lattrp()           -- Regexp capable parent attribute listing
+  wipe()             -- Regexp capable attribute wiper
+
 & arithmetic functions
   Function lists: Arithmetic Functions
   
@@ -23844,8 +24737,12 @@ Mail: Done
   columns()     - Powerful column formatting tool.
   comp()        - Compares two strings. 
   creplace()    - Like replace(), but works on characters instead of words.
+  decode64()    - Decode a 64 compressed string.
+  decrypt()     - Decrypt a string based on an offset.
   delete()      - Deletes characters from a string.
   edit()        - Edits a string, replacing, prepending or appending text.
+  encode64()    - Encode a string to compressed 64.
+  encrypt()     - Encrypt a string based on an offset.
   escape()      - Adds escape characters to some special characters.
   escapex()     - Like escape(), but allows you to specify characters not to escape.
   eval()        - Evaluates code.
@@ -23912,6 +24809,8 @@ Mail: Done
   strip()       - Strips out every occurrence of a character in a string.
   stripaccents()- Strip accents from specified string.
   strlen()      - Returns the length of a string.
+  strlenraw()   - Returns the length of the RAW string.
+  strlenvis()   - Returns the length of the VISUAL string.
   strmatch()    - Returns true if a pattern is found in a string.
   switch()      - Powerful string-pattern conditional.
   switchall()   - Like switch(), but matches all occurrences of a pattern.
@@ -24060,6 +24959,9 @@ Mail: Done
   die()         - Rolls a set of dice for random number generation.
 
 & revisions
+All credits to players, codebases, or other is presented in the RHOST.CHANGES
+file in the readme directory in the source distribution.  
+  
 Beginning with Rhost 3.9.1, the Development team has tracked all changes to
 the Rhost system in the helpfiles, so that users may see what changes have
 been made with each revision.  Each change is detailed in bullet-point format
@@ -24071,12 +24973,13 @@ ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
 SEA - Seawolf
  
-Current Revision: 3.9.3p0
+Current Revision: 3.9.4p0
 
 Available Revisions:
   3.9.1: 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
+  3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4
 
 & 3.9.1p1
 Release Date: 20 Jun 2008
@@ -24368,3 +25271,223 @@ Bug Fixes
 * case sensitivity was reversed for reswitch/reswitchi cases [ASH]
 * backward compatibility with v(#) was broke. [ASH]
 * IDLE mis-aligned carrage return and line feeds [ASH]
+
+& 3.9.4p0
+Release Date: 04/08/13
+Status: Alpha
+  
+New Features
+-------
+* encode64() from PennMUSH.  Requires OpenSSL. [ASH]
+* decode64() from PennMUSH.  Requires OpenSSL. [ASH]
+* @lfunction to allow players to define localized functions [ASH]
+* global parameter to specify global @lfunction limit per player [ASH]
+* global parameter to enable/disable BLIND snuffing connect/disconnect [ASH]
+* Wizard accessable mailquota() function to mimic mail/quota results [ASH]
+* %W to return target item if inside a twinklock [ASH]
+* strlenvis() to correctly count 'special' chars via chr() [ASH]
+  
+Changes
+-------
+* Finally got the native MUX password reader working with input from Mike [ASH]
+* @caption and @titlecaption allow larger buffers for players [ASH]
+* internal sha1 code had to have variables redefined for conflict [ASH]
+* pemit() has an optional third argument for ## substitutions [ASH]
+* mask() now accepts maximum arguments [ASH]
+* Added /inline, /nobreak, /localize, /clearreg to @dolist [ASH]
+* Added /nobreak to @include [ASH]
+* @limit to allow /lfun switch to specify individual @lfunction overrides [ASH]
+* Added /target switch to @include [ASH]
+* BLIND (when configured to do so) snuffs connect/disconnect messages [ASH]
+* strmath() handles multi-word args in a mixed math/nonmath for delims [ASH]
+* TwinkLock when set on a player is now inheritable to all they own [ASH]
+* Laxed restrictions on sub_include for %-sub definitions [ASH]
+* elist() takes a 'munge' argument to apply to each element optionally [ASH]
+* converted tprintf buffering for better allocation in some commands [ASH]
+* enriched CPU protection for some /inline switches to be more paranoid [ASH]
+  
+Bug Fixes
+---------
+* strfunc() could call itself.  Just a cosmetic fix that made no sense [ASH]
+* strfunc() could cut off buffers on certain function calls [ASH]
+* printf() had CR/LF reversed [ASH]
+* mysql had compile issues on later compilers [ASH]
+* door code had a warning under latest compilers with realloc [ASH]
+* typos in help in various places with clustering [ASH]
+* 256 color mapping with RGB could be off by one on conditions [AMB]
+* Source had undeclared function when REALITY_LEVELS not defined [ASH]
+* printf() didn't handle accents properly in some conditions [ASH]
+* reality level lock type 3 and 5 broke with userlock checks [AMB]
+* strfunc() was case sensitive.  It shouldn't be. [ASH]
+* @break/@assert in some cases would keep stale results [ASH]
+
+& 3.9.4p1
+Release Date: 07/17/13
+Status: Alpha
+  
+New Features
+-------
+* config parameter reality_compare for optional methods of desc displaying [ASH]
+* config parameter atrperms to set up attribute prefix permissions [ASH]
+* config parameter atrperms_max for ceiling on prefixes defined [ASH]
+  
+Changes
+-------
+* asksource.sh (for the menu configurator) now optionally allows disabling OpenSSL 
+  by force as some 3rd party openssl programs would barf on compatibility [ASH]
+* strmath() improved with inner delimitation (2 new arguments) [ASH]
+* a bit of cleanup with @pemit on cloaked players [ASH]
+* @aflags will now show _ prefix permissions on attributes (where existing) [ASH]
+* @switch handles /inline, /clearregs, /nobreak, and /localize options [ASH]
+* Cleaned up help.txt to no longer give line longer than X with mkindx [ASH]
+* Improved validation for @Lfunction [ASH]
+* @aflags/perm to show attribute prefix permissions in use [ASH]
+* greatly improved feature set for parsestr() for added speaking [ASH]
+  
+Bug Fixes
+---------
+* compiling issue when not using the enhanced ansi option [ASH]
+* crashbug in @blacklist/list in some conditions [ASH]
+* paging was broken in @blacklist/list, non-crash bug. [ASH]
+* possible erraneous cpu alert on new player creation on first connect [ASH]
+* @dynhelp didn't evaluate optional player target properly [ASH]
+* @lfunction was too restrictive on ownership [ASH]
+
+& 3.9.4p2
+Release Date: 10/01/13
+Status: Alpha
+  
+New Features
+-------
+* safer_ufun -- enforces attributes on objects you don't control is taken at
+  permission level of the object OR the player, whatever is LOWER. [ASH]
+* SNUFFDARK  -- @toggle (for wizards) to hide the normal dark exit display. [ASH]
+* UNSAFE     -- attribute flag to override safer_ufun permissions [ASH]
+* @progreset -- allows you to reset the prompt of the target [ASH]
+  
+Changes
+-------
+* printf() handles the '/' option to specify cutoff value for '|' wrap option [ASH]
+* you can enter extended ASCII in input and it auto-translates to markup [ASH]
+* @snapshot/list takes optional wildcard searching for files [ASH]
+* added nag notice if you use @set with a toggle or a @toggle with a set [ASH]
+* verbosity now shows more information with setting/removing @toggles [ASH]
+* create() takes one argument now for Penn compatibility [ASH]
+* all *lattr() functions now handle regexp optionally [ASH]
+* @cluster/wipe and @cluster/grep now optionally handle /regexp [ASH]
+* @wipe optionally handles /regexp [ASH]
+* wipe() and cluster_wipe() optionally handle regexp [ASH]
+* added many more options to valid() [ASH]
+* all *regrep*() functions optionally handle regexp attribute matching [ASH]
+* pushregs now optionally allow you to specify registers to push/pop [ASH]
+* setdiff/setunion/setinter functions now optionally handle sorttype [ASH]
+* %d<num> for @dolist/inline [ASH]
+* itext()/inum() take optional key value (2nd arg) for @dolist/inline [ASH]
+* 'L' option added to %i and %d for Penn compatibility [ASH]
+  
+Bug Fixes
+---------
+* fixed CPU issue with bogus checks on connecting players in rare conditions [ASH]
+* @function/list erraneously had a limit displayed from local functions [ASH]
+* when compiling without BANGS support, there was an undeclared variable [ASH]
+* strmath() started at 0 when it should start a 1 [ASH]
+* some clients don't handle normalizing prompts properly, so we now
+  fix this behavior forcefully [ASH]
+* printf() couldn't combine '/' and ':' options previously [ASH]
+* some extended ascii characters wouldn't display proplery [ASH]
+* documentation was missing for @cluster/wipe [ASH]
+* functions.c did not compile under CLANG [ASH]
+* @include didn't properly null arguments forcefully set [ASH]
+* @switch, @skip, @sudo did not evaluate in some situations [ASH]
+* no_eval works properly for @functions now by not-evaling input. [ASH]
+* pack/unpack for penn compat on radixes >=16 & <= 36 was broke [ASH]
+
+& 3.9.4p3
+Release Date: 01/01/14
+Status: Alpha
+  
+New Features
+-------
+* reglmatch()/reglmatchi() -- returns match positions (like match())
+* reglmatchall()/reglmatchalli() -- returns all match positions (like matchall())
+* regnummatch()/regnummatchi() -- returns count of matches (like nummatch())
+  
+Changes
+-------
+* /tree added to @decompile, examine, and *lattr*() functions for 
+  Penn-tree viewing [ASH]
+* /regexp added to @decompile and examine for regexp wildcard matching [ASH]
+* ^listens optionally handle parented arguments with @admin listen_parents 
+  enabled [ASH]
+* /multi switch added to @oemit to optionally allow multiple targets [ASH]
+* oemit() optionally handles multiple targets [ASH]
+* lattr() and family handles TREE viewing optionally [ASH]
+* lexits() honors dark locks [ASH]
+* @aflags modified to allow online adding, modifying, deleting attrib 
+  prefixes [ASH]
+* reverse(), scramble(), capstr(), lcstr(), ucstr(), and caplist() are now 
+  ansi-aware [ASH]
+* columns() is now ansi aware, and it was a pain in the arse. [ASH]
+* wrapcolumns() is now ansi aware, and was a bigger pain in the arse. [ASH]
+  
+Bug Fixes
+---------
+* @function/list would not display all listings if you were not immortal [ASH]
+* memcpy() bug with GCC 4.x with aggressive compiler optimization could crash [ASH]
+* WHO/DOING would not properly show 'year' if you've been on over a year [ASH]
+* strfunc() wouldn't handle null arguments properly [ASH]
+* QDBM on a panic SIGTERM dump could occasinally corrupt the db (but flafile fine) [ASH]
+* @door function definition change in later versions of GCC caused a conflict [ASH]
+
+& 3.9.4p4
+Release Date: 05/01/14
+Status: Alpha
+  
+New Features
+-------
+* !^ and !!^ for true-boolean comparisons for functions for BANG notation.
+* lockencode(), lockdecode(), lockcheck() for variable lock checking
+  
+Changes
+-------
+* mid(), before() and after() are now ansi aware [ASH]
+* citer() is now ansi aware [ASH]
+* pos(), randpos() and totpos() are ansi aware [ASH]
+* shuffle() is now ansi aware [ASH]
+* wrapcolumns() has EOL padding optionally [ASH]
+  
+Bug Fixes
+---------
+* strfunc() was broke for single argument entries [ASH]
+* bug introduced with the ansi handler to columns() in an off by one bug [ASH]
+* @skip/ifelse wouldn't evaluate arguments properly [ASH]
+* @assert/inline and @break/inline wouldn't eval args properly [ASH]
+* #lambda erraneously stripped extra /'s at times [ASH]
+* art() handles non-printables [ASH]
+* possible crashbug in encode64/decode64 due to glibc memory mapping changes [ASH]
+
+& 3.9.4p5
+Release Date: 05/24/14
+Status: Alpha
+  
+New Features
+---------
+* array() will wrap out text based on column width into setq registers [ASH]
+  
+Changes
+-------
+* massive cleanup and helper tools for ansi for ease of modification [ASH]
+* better error control with failed player creation with safer_passwords [ASH]
+* Rooms set QUIET that are @toggled LOGROOM no longer notify of logging [ASH]
+* printf() is more vigerous in reusing ansi for filler [ASH]
+  
+Bug Fixes
+---------
+* columns() and wrapcolumns() had a crashbug with the handler (3.9.4p4) [ASH]
+* formatting with inverse ansi wasn't recognized properly [ASH]
+* speech.c broke when REALITY_LEVELS was no longer defined [ASH]
+* The initial db creation could bomb on creating #1 with safer_passwords [ASH]
+* lwho() didn't properly check wiz when specifying optional target [ASH]
+* printf() with |" options had an alignment issue with ansi [ASH]
+* bug with 'guest' in safer_passwords [ASH]
+* memory leak in shuffle() [ASH]

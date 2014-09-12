@@ -214,6 +214,7 @@
   Example:  news/userlimit 100
   
   See Also: wizhelp news grouplimit, wizhelp news expire
+
 & news subscribe
   Command: news/subscribe <player>=<group>
   
@@ -431,10 +432,11 @@
   @kick           @limit          @list          @list_file      @listmotd
   @lock           @log            @logrotate     @mark           @mark_all
   @money          @motd           @newpassword   @nuke           @pcreate
-  @poor           @power          @protect       @ps             @purge
-  @quota          @readcache      @reboot        @recover        @reclist
-  @rwho           @site           @shutdown      @snapshot       @thaw 
-  @timewarp       @toad           @turtle        @wall           +players
+  @poor           @power          @progreset     @protect        @ps           
+  @purge          @quota          @readcache     @reboot         @recover      
+  @reclist        @rwho           @site          @shutdown       @snapshot     
+  @thaw           @timewarp       @toad          @turtle         @wall         
+  +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -486,11 +488,13 @@
   NO_OVERRIDE([V])   NO_USELOCK([U])       DR_PURGE([x])    NO_ANSINAME([n])
         SPOOF([S])       NO_WHO([W])          LOGIN([L])      BACKSTAGE([b])
  NO_BACKSTAGE([d])    ANONYMOUS([Y])         NONAME([m])    SPAMMONITOR([w])
-      NO_CODE([j])
+      NO_CODE([j])      IMMORTAL(i)
   
   The following attribute flags exist in addition to the normal:
   
     PINVISIBLE(v)        ATRLOCK(l)           LOGGED(m)
+  
+  Note:  ROYALTY in RhostMUSH is the same as WIZARD everywhere else. 
   
 & global inheritance
   There is the possibility to set up global inheritance for object types.
@@ -595,8 +599,9 @@
 & attrib formatting
   Attribute formatting can be accomplished multiple ways.  First, there is
   a generic local 'format' for most @-attributes.  To process this format,
-  you need to set an attribute of the name 'format<attr>' on the target
-  (or parent, global parent, zone of the target).  if this attribute is
+  you need to set an attribute of the name '<attr>format' on the target
+  (or parent, global parent, zone of the target. Use format<attr> if the
+  config parameter format_compatibility is enabled). If this attribute is
   not found, it will then look at the global default parents for matching
   attribute inheritance.  Any attribute that you wish to inherit default
   pattern formatting must be set DEFAULT (attribute flag).  The desc is
@@ -636,8 +641,6 @@
   automatically checked.
 
 & NONAME
-  See NO_NAME
-
 & NO_NAME
   Flag: NO_NAME([m]) (wizard and higher only)
   
@@ -647,8 +650,6 @@
   This is aliased to 'NONAME' for compatibility.
 
 & NOWHO
-  See NO_WHO
-
 & NO_WHO
   Flag: NO_WHO([W]) (internal flag)
   
@@ -665,8 +666,6 @@
   over anything set NOBACKSTAGE.  This may include things they own.
 
 & NOBACKSTAGE
-  See NO_BACKSTAGE
-
 & NO_BACKSTAGE
   Flag: NO_BACKSTAGE([d]) (immortal only)
   
@@ -766,10 +765,16 @@
   PAGELOCK            MAIL_LOCKDOWN       ATRUSE
   NOGLOBPARENT        LOGROOM             EXFULLWIZATTR
   NODEFAULT           CHKREALITY          HIDEIDLE
-  MORTALREALITY
+  MORTALREALITY       SNUFFDARK
  
   Specify 'TOGGLE' after each toggle in help.
   Example: wizhelp monitor_site toggle 
+
+& SNUFFDARK TOGGLE
+  Toggle: SNUFFDARK (Wizard and higher only)
+  
+  This toggle, when set, will hide the Dark Exits that wizards normally
+  see by default.
 
 & MORTALREALITY TOGGLE
   Toggle: MORTALREALITY (Wizard and higher only)
@@ -1954,7 +1959,13 @@
   are permanent and do not need to be performed each time the RhostMUSH is
   restarted.
   
+  For built-in attributes (like @desc) you will need to use the @admin
+  parameter attr_access and this will require it to be in the netrhost.conf
+  file to be 'permanent' through reboots.
+  
   Example:  @attribute/access wiz_only_attribute=royalty pinvisible
+  
+  See Also: attr_access
  
 & @conncheck
   Command: @conncheck
@@ -2812,9 +2823,6 @@
   Command: @list toggles
   Lists all the toggles available at your level.
 
-& @list mail_globals
-  Lists the current mail configuration settings.
-
 & @list guest_names
   Lists all the guest chars and information about each.
 
@@ -3043,6 +3051,17 @@
   
   Example:  @poor 1000
 
+& @progreset
+  Command: @progreset <playername>
+  
+  This command, only useful on players, will target the player 
+  for a @program prompt reset.  This in effect nulls out their
+  prog-prompt that would display on their client.  As this can
+  only be done on players who are NOT in a program, it is 
+  obviously intended as a forced method to reset a bad prompt.
+  
+  See Also: IMMPROG
+  
 & @protect
   Command: @protect[/<switch>] [<playername>]
   
@@ -3240,12 +3259,190 @@
   See Also: page, @pemit
 
 & @aflags
-  Command: @aflags <attribute>
+  Command: @aflags[</switch>] <attribute or value> [=<argument>]
   
   This command will return all the toggled flags of that
-  given attribute.
+  given attribute.  This will also show prefix based permissions from
+  '_' attributes as well as those with the atrperms @admin parameter.
   
-  Example:  @aflags comment
+  Following switches exist:
+    /full -- give full statistics of the attribute, like count in use.
+    /perm -- list all current attribute based prefix permissions.
+    /add  -- add a prefix attribute mask.
+    /del  -- delete a prefix attribute mask.
+    /mod  -- modify a prefix attribute mask.
+  
+  The @aflags without the switches display the permissions of the
+  specified attribute name.  Using the /full switch returns the count
+  of how many attributes are in active use by that name.  Be aware, the
+  /full switch walks the database so may take a few seconds to process.
+  
+  Examples:  
+    > @aflags comment
+    (Attribute 44) Flags are: hidden no_command royalty wizard 
+    > @aflags/full comment
+    (Attribute 44, Total Used: 36) Flags are: hidden no_command royalty wizard 
+ 
+  For the more advanced feature of @aflags with regards for attribute
+  prefix permission modification, see:  'wizhelp @aflags2'
+ 
+& @aflags2 
+  (CONTINUED)
+  Command: @aflags[</switch>] <attribute or value> [=<argument>]
+  
+  The /perm, /add, /del, and /mod switches are used to maintain and display
+  the attribute prefix permission masking.  Attribute masking is the ability
+  to set a prefix on an attribute based on what permission you want it to 
+  have.  This can be based on who can SET it, who can SEE it, as well as
+  lock that specific mask by owner or by individual object.  Owner and
+  object are specified by their dbref#'s.
+   
+  Individual help and examples are available on each attribute prefix switch:
+     'wizhelp @aflags perm'    -- help on displaying prefix permissions.
+     'wizhelp @aflags add'     -- help on adding new prefixes.
+     'wizhelp @aflags del'     -- help on deleting existing prefixes.
+     'wizhelp @aflags mod'     -- help on modifying existing prefixes.
+     'wizhelp @aflags args'    -- explains the arguments to @aflags
+  
+  See Also: atrperms, atrperms_max
+
+& @aflags args
+  Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
+  
+  The arguments are the following:
+    <prefix>   --  The prefix is the attribute prefix that the permissions 
+                   masking is applied.  Any attribute that starts with the
+                   prefix will inherit the permission based on the parameters
+                   assigned to this specific prefix.
+  
+    <own>      --  The target owner where the attribute will be set.  Any 
+                   object owned by <own> will have the prefix permission 
+                   applied against anything (or anyone) attempting to set
+                   that attribute.
+  
+    <tgt>      --  The target object where the attribute will be set.  This
+                   is the exact dbref# that the attribute prefix will be 
+                   applied.
+  
+    <enact>    --  The enactor that is trying to set the attribute with the
+                   specified prefix.  If enactor is a player, then it will
+                   affect their entire ownership.
+  
+    <set>      --  The SET/UNSET permission you wish to apply to the specified
+                   attribute prefix.  You can set from '1' to '7' as defined
+                   by bitlevel permissions. (help bittype())
+  
+    <see>      --  The SEE/VIEW/READ permissions you wish to apply to the
+                   specified attribute prefix.  YOu can set from '1' to '7'
+                   as defined by bitlevel permissions. (help bittype())
+  
+& @aflags mod
+  Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
+  
+  This modifies an existing attribute <prefix> that matches optional
+  owner <own>, target <tgt>, and enactor <enact> with the new 
+  <set> and <see> permissions.
+  
+  You may use this to change every aspect of the prefix.  The owner, target,
+  enactor, see, and set permissions are all changeable.  If you wish to remove
+  the owner, target, or enactor, set the value to '#-1' which means 'global' 
+  or 'all'.
+  
+  Example:  @aflags/mod boogie=6 3
+            @aflags/mod boogie #1234 #9876=5 5 #-1 #9876 #-1
+  
+  The first example modifies prefix BOOGIE with Immortal settable and
+  Architect seeable.  This will not change ownership or target if modified.
+  
+  The second example modifies prefix BOOGIE with Wizard settable and seeable.
+  It also resets the owner to global (#-1) but leaves the target alone.
+  
+  You can not modify a prefix that would duplicate an existing prefix
+  already in the listing.
+  
+  If you fail to find a matching prefix to modify, it will notify you.
+  
+  See Also: @aflags, @aflags add, @aflags del, @aflags perm
+
+& @aflags del
+  Command: @aflags/del <prefix> [<owner> <target> <enactor>]
+  
+  This deletes an existing attribute <prefix> with optional <owner>,
+  <target> and <enactor> specified.  If you choose not to specify an owner,
+  target, or enactor, both values default to '#-1' which means global or all.
+  
+  Only entries that match prefix, owner, and target will be deleted.
+  
+  Example: @aflags/del boogie
+           @aflags/del boogie #1234 #9876 #123
+  
+  The first will delete the BOOGIE attribute prefix that has a global
+  owner and target (both set to #-1).
+  
+  The second will delete the BOOGIE attribute prefix that has a specified
+  owner of #1234,target of #9876, and enactor of #123.
+  
+  If there are no matching prefixes, it'll alert you of that fact.
+   
+  See Also: @aflags, @aflags add, @aflags mod, @aflags perm
+
+& @aflags add
+  Command: @aflags/add <prefix>=<set> <see> [<owner>] [<target>] [<enactor>]
+  
+  This adds a new attribute <prefix> with the permissions of who
+  can <set> the attribute as well as who can <see> the attribute.
+  You may optionally specify the target <owner> and/or <target> and/or
+  <enactor> for the item in question.  Target has precidence over Owner.
+  Enactor has precidence over target.
+  
+  Any duplicate entries will not allow to be added.  Duplicate entries
+  are defined by any entry that matches the prefix, the owner, and 
+  the target.  If you wish to modify an entry, use @aflags/mod.
+  
+  Example:  @aflags/add boogie=7 6
+            @aflags/add boogie=7 6 #1234 #9876 #123
+  
+  The first sets a prefix 'BOOGIE' with God settable and Immortal seeable.
+  The second would do the same but also adds owner #1234, target #9876, and
+  enactor #123.
+  
+  See Also: @aflags, @aflags del, @aflags mod, @aflags perm
+  
+& @aflags perm
+  Command: @aflags/perm [<value>]
+  
+  This lists all the various prefix permission masks of all the global 
+  attributes in the mush.  You may specify a <value> optionally to page
+  the results (20 lines per page).  Otherwise it will display all
+  the results without page breaks (default).
+  
+  Example:  @aflags/perm
+            @aflags/perm 2
+
+------------------------------------------------------------------------------
+Attribute Prefix                                                 Set     See
+------------------------------------------------------------------------------
+TESTEST                                                          Arch    Cit
+WASWAS                                                           Cit     Wiz
+WEREWERE                                                         God     Arch
+SNOOPY                                                           God     Wiz
+   +----- Owner: #-1,  Object: #-1,  Enactor: #1234,  Modifier: #1234
+
+----------------------------[     4/   100 max]-------------------------------
+  
+  In the above, the prefixes are TESTEST, WASWAS, WEREWERE, and SNOOPY.
+  As shown, SNOOPY has special permissions.  The owner is #-1 (the default)
+  meaning all owners are affected.  The reason the additional information,
+  however, is the Object.  The Object is defined as #3723, meaning only object
+  #3723 will be assigned the specific prefix of SNOOPY for attribute masking.
+  The mask for SNOOPY means that only God (The #1 user) can set attributes
+  that begin with 'SNOOPY' on object #3723, but wizards can view them.
+  
+  The modifier is the last person who actually set up (configured) the prefix
+  in question.  The default value for this is #1.  This value will only show
+  if the owner or object are not the default values (#-1).
+    
+  See Also: @aflags, @aflags add, @aflags del, @aflags mod, @aflags args
 
 & @icmd
   Command: @icmd</switch> <player [= arguments]>
@@ -3762,18 +3959,19 @@
     /list  - This lists the current values for the target player (default)
     /vmod  - This defines the new user variable maximum
     /dmod  - This defines the new @destroy maximum
+    /lfun  - Defines the maximum allowed @lfunction definitions 
     /reset - This resets the maximums to the global default.
   
   The global defaults are defined by max_dest_limit and max_vattr_limit
   accordingly.  The special values of '-1' mean unlimited, and '-2' mean
-  to use the global setting.
+  to use the global setting.  Unlimited (-1) is not allowed for /lfun.
   
   Seperate wizard attributews are available that are defined by the params
   wizmax_dest_limit and wizmax_vattr_limit.  By default wizards are not
   checked, and must be enabled with the param 'vattr_limit_checkwiz'
   
   See Also: max_vattr_limit, max_dest_limit, wizmax_vattr_limit, 
-            wizmax_dest_limit, vattr_limit_checkwiz
+            wizmax_dest_limit, vattr_limit_checkwiz, lfunction_max
 
 & @dynhelp
   Command: @dynhelp[/<switch>] <helpfile>[/<topic>] [=<target player>]
@@ -3930,34 +4128,152 @@
   then all connects and disconnects of suspect players are individually
   marked.  This flag is only visible and settable by wizards.
 
+& GOD
+& GHOD
+& #1
+  Database owner. [bitlevel 7]
+  
+  This is auto-flagged immortal internally and considered the game owner.
+  They can do everything within the game, short of some internal flags
+  which are locked away from anything.
+  
+  This player is the only player that can set/remove the immortal flag.
+  
+  Please refer to 'immortal' in the wizhelp file for anything else they
+  can do.  It's basically everything in the wizhelp/help files.
+  
+  #1 should be considered an administrative account only.  Used only
+  in the most dire of situations or when you need to set/remove the
+  immortal flag.  You should NOT have anything owned as #1, since
+  only #1 can directly affect/edit/alter what #1 owns.  For master 
+  room ownership, please use an IMMORTAL player.
+  
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), COUNCILOR,
+            IMMORTAL, CONTROL, INHERIT
+
+& SUPER-ROYALTY
+& IMMORTAL
+  Flag: IMMORTAL(i) (players) [bitlevel 6]
+  A player that is set IMMORTAL is essentially #1.  They can do absolutely
+  anything in the game except directly affect #1 and what #1 owns.  They
+  should be set only when you require an administrator to have full access
+  to the game, database, and code.  Head Coders or Game Owners are two
+  examples of who will likely be immortal.
+  
+  Absolutely every command, feature, and function within RhostMUSH that
+  is available to #1 is available to IMMORTAL with few exceptions.
+  
+  A breakdown of abilities is as follows:
+        - The only thing this bitlevel can not do is directly effect #1,
+          anything #1 owns (like garbage), set/unset some internal 
+          flags/attributes (which #1 can't either), and set/unset the
+          immortal flag.  These players can do EVERYTHING else.  Treat
+          this bit as you would treat #1.  Only give it to those you know
+          without a doubt you can trust.
+        + Can do everything except set some internal flags, effect #1,
+          and set/remove the immortal flag.
+  
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), COUNCILOR,
+            CONTROL, INHERIT
+
+& WIZARD
 & ROYALTY
-  Flag: ROYALTY(W) (all types)
-  A player or object that is set ROYALTY controls all of the objects in the
-  database (except for player #1), regardless of their ownership or flags.
-  In general, ROYALTY can do anything using #<number> or *<player>.
+  Flag: ROYALTY(W) (players) [bitlevel 5]
+  A player that is set ROYALTY controls all of the objects in the
+  database (except for player #1 and immortal), regardless of their 
+  ownership or flags.  In general, ROYALTY can do anything using 
+  #<number> or *<player>.
+  
   Wizards can also use many additional commands that are useful for game
   administration and maintenance.
+  
   Only player #1 (and immortals) can set or clear this flag.  An object 
   owned by a Wizard has wizard privileges only if its ROYALTY or INHERIT 
   flag is set, or if the owning Wizard has his INHERIT flag set.
-  See Also: CONTROL, INHERIT.
+  
+  A breakdown of abilities is as follows:
+        - This is your standard wizard.  They can do everything you're
+          used to on other mushes that wizards can do.  In addition, they
+          also override all locks by default (this can be disabled), and
+          they have an enhanced wizcloaking ability (which also can be
+          disabled).  They can also set all the lower bitlevels.
+        + All things of Level 4 and lower (Councilor)
+        + Ability to set more flags: STOP, NOSTOP, FUBAR
+        + Ability to @attribute,
+        + Ability to WIZCLOAK
+        + Ability to do some internal configurations.
+  
+  See Also: GUILDMASTER, ARCHITECT, COUNCILOR, IMMORTAL,
+            CONTROL, INHERIT
 
 & COUNCILOR
-  Flag: COUNCILOR(a) (players)
+  Flag: COUNCILOR(a) (players) [bitlevel 4]
   A player set COUNCILOR controls all objects in the database of equal
   level or less regardless of ownership or flags.  In general, a
   COUNCILOR can do anything a ROYALTY can except mess with ROYALTY or
   higher and some various commands/functions listed in wizhelp. If
   an object is set INHERIT, it will inherit all powers of a
   COUNCILOR if owned by that COUNCILOR.
+  
+  A breakdown of abilities is as follows:
+        - This is your almost-but-not-quite wizard.  They have access to
+          about 80% of the wizard commands.  This includes @nuke, @toad,
+          @newpassword and the like.  The only things they can't do that
+          wizards can is wizcloak, override locks, and use some of the
+          database manipulation tools in wizhelp.  All player-modifying
+          abilities are unlocked for them at this level.
+        + All things of Level 3 and lower (Architect)
+        + Ability to set more flags: NOCONNECT, WANDERER, FREE
+        + Ability to @nuke, @toad, @boot, @chownall, @dbck, @poor,
+                     @newpassword, @pcreate, slay, and directly affect
+                     players their level and lower.
+  
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), IMMORTAL
 
 & ARCHITECT
-  Flag: ARCHITECT(B) (players)
+  Flag: ARCHITECT(B) (players) [bitlevel 3]
   A player set ARCHITECT controls all objects in the database of equal
   level or less regardless of ownership or flags.  In general, an
   ARCHITECT is a low-powered ROYALTY with various wizard commands
   available to the user.  Any object owned by an ARCHITECT inherits
   all of his/her abilities and powers if set INHERIT.
+  
+  A breakdown of abilities is as follows:
+        - This is your sub-wizard.  They still have the ability to control
+          anything their bitlevel and lower (including @chown, @destroy, etc)
+          but do not have any control of other players (like @nuke, @toad, etc)
+          but they can set the slave flag.  Otherwise, all things their level
+          and lower they can treat as if they owned it.
+        + All things of Level 2 (Guildmaster)
+        + Ability to fully control and modify anything their level and
+          lower (including @cloning, @destroying, etc)
+        + Ability to use @tel on anything their level and lower.
+        + Ability to bypass jump_ok rooms on anything their level & lower.
+        + Ability to set some restricted flags: SLAVE, NO_YELL
+        + Has infinite quota and money
+        + Able to give negative money (Steal)
+        + Able to @toggle the MONITOR
+  
+  See Also: GUILDMASTER, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL
+
+& GUILDMASTER
+  Flag: GUILDMASTER(g) (players) [bitlevel 2]
+  A player set GUILDMASTER is able to see/view other players and
+  anything their level and lower.  They can grant/remove quota,
+  and anything they run in the queue is considered free.
+  
+  A breakdown of abilities is as follows:
+        - This is the lowest wiz bit.  They only have moderate abilities.
+          They can examine/decompile anything their level and lower, they can
+          @guild/@quota people, and they have a few other minor abilities.
+          They don't have free money however.
+        + Ability to access things remotely (long_fingers)
+        + Things are FREE for them in the queue.
+        + Can see dbref#'s of things their level and lower
+        + Can examine/decompile things their level and lower.
+        + Can set @quota/@guild on their level and lower.
+  
+  See Also: ARCHITECT, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL
 
 & SLAVE
   Flag: SLAVE(s) (players)
@@ -4028,8 +4344,6 @@
   and should not be manually set or unset on anything.
 
 & NOCONNECT
-  See NO_CONNECT
-
 & NO_CONNECT
   Flag: NO_CONNECT([A]) (councilor and higher)
   This flag when set on a player stops them from being able to connect to
@@ -4041,8 +4355,6 @@
   See Also: FUBAR SLAVE
 
 & NOCODE
-  see NO_CODE
-
 & NO_CODE
   Flag: NO_CODE([j])
   
@@ -4063,6 +4375,7 @@
 
   { 'wizhelp no_code2' for more }
 
+& nocode2
 & no_code2
   Commands not blocked by the NO_CODE flag:
   @@ @alias @chown @clone @create @decompile @destroy @dig @doing @edit @emit
@@ -4082,8 +4395,6 @@
   trim wrap wrapcolumns
 
 & NOMODIFY
-  See NO_MODIFY
-
 & NO_MODIFY
   Flag: NO_MODIFY([M]) (royalty and higher)
   This flag when set on anything makes it so that object can not be
@@ -4100,8 +4411,6 @@
   See Also: NOEXAMINE
 
 & NOEXAMINE
-  See NO_EXAMINE
-
 & NO_EXAMINE
   Flag: NO_EXAMINE([E]) (royalty and higher)
   This flag when set on anything makes it so the object can not be
@@ -4125,8 +4434,6 @@
   for guildobjects to allow an easy method to search for them.
 
 & NOPOSSESS
-  See NO_POSSESS
-
 & NO_POSSESS
   Flag: NO_POSSESS([C]) (royalty and higher)
   This flag when set on a player makes it so that player can not be
@@ -4147,8 +4454,6 @@
   See Also: @recover, @reclist, @purge
 
 & NOMOVE
-  See NO_MOVE
-
 & NO_MOVE
   Flag: NO_MOVE([N])
   This flag is settable only by royalty and higher.  It in effect stops that
@@ -4168,8 +4473,6 @@
   See Also: NOSTOP
 
 & NOSTOP
-  See NO_STOP
-
 & NO_STOP
   Flag: NO_STOP([F])
   This flag when finding a matching $command on an object that has the NOSTOP
@@ -4188,8 +4491,6 @@
   by ROYALTY and higher.
 
 & NOANSINAME
-  See NO_ANSINAME
-
 & NO_ANSINAME
   Flag: NO_ANSINAME([n])
   This flag when set on a non-player, will disable that target from 
@@ -4198,8 +4499,6 @@
   so will everything that belongs to that player.  It is inherited.
 
 & NOGOBJ
-  See NO_GOBJ
-
 & NO_GOBJ
   Flag: NO_GOBJ([G])
   This flag when set disables the target from executing any commands on
@@ -4207,8 +4506,6 @@
   and higher only.
 
 & NOPESTER
-  See NO_PESTER
-
 & NO_PESTER
   Flag: NO_PESTER([p])
   This flag when set disables the target from being able to whisper or @pemit
@@ -4216,8 +4513,6 @@
   and higher only.
 
 & NOOVERRIDE
-  See NO_OVERRIDE
-
 & NO_OVERRIDE
   Flag: NO_OVERRIDE([V])
   This flag when set disables the target from overriding locks.  This allows
@@ -4228,8 +4523,6 @@
   See Also: no_uselock
 
 & NOUSELOCK
-  See NO_USELOCK
-
 & NO_USELOCK
   Flag: NO_USELOCK([U])
   This flag when set disables the target from overriding uselocks.  This 
@@ -4399,13 +4692,14 @@
   ahear_maxtime            alias                    allow_ansinames        
   allow_whodark            alt_inventories          altover_inv            
   always_blind             areg_file                areg_lim               
-  aregh_file               attr_access              attr_alias             
-  attr_cmd_access          authenticate             bad_name               
-  badsite_file             bcc_hidden               brace_compatibility
+  aregh_file               atrperms                 atrperms_max
+  attr_access              attr_alias               attr_cmd_access        
+  authenticate             bad_name                 badsite_file           
+  bcc_hidden               blind_snuffs_cons        brace_compatibility    
   break_compatability      cache_depth              cache_steal_dirty      
-  cache_trim               cache_width              cap_articles
+  cache_trim               cache_width              cap_articles           
   cap_conjunctions         cap_preposition          check_interval         
-  check_offset             clone_copies_cost        cluster_cap
+  check_offset             clone_copies_cost        cluster_cap            
   clusterfunc_cap          comcost                  command_dark           
   command_quota_increment  command_quota_max        compress_program       
   compression              config_access            conn_timeout           
@@ -4458,20 +4752,21 @@
   input_database           internal_compress_string inventory_name         
   kill_guarantee_cost      kill_max_cost            kill_min_cost          
   lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
-  list_access              link_cost                lnum_compat            
-  lock_recursion_limit     log                      log_command_list       
-  log_maximum              log_network_errors       log_options            
-  login_to_prog            logout_cmd_access        logout_cmd_alias       
-  look_moreflags           look_obey_terse          machine_command_cost   
-  mail_anonymous           mail_autodeltime         mail_default           
-  mail_def_object          mail_hidden              mail_tolist            
-  mail_verbosity           mailbox_size             maildelete             
-  mailinclude_file         mailprog                 mailsub                
-  mailmax_send             master_room              match_own_commands     
-  manlog_file              map_delim_space          max_cpu_cycles         
-  max_dest_limit           max_folders              max_lastsite_cnt       
-  max_name_protect         max_pcreate_lim          max_pcreate_time       
-  max_percentsubs          max_players              max_sitecons           
+  lfunction_max            list_access              link_cost              
+  lnum_compat              lock_recursion_limit     log                    
+  log_command_list         log_maximum              log_network_errors     
+  log_options              login_to_prog            logout_cmd_access      
+  logout_cmd_alias         look_moreflags           look_obey_terse        
+  machine_command_cost     mail_anonymous           mail_autodeltime       
+  mail_default             mail_def_object          mail_hidden            
+  mail_tolist              mail_verbosity           mailbox_size           
+  maildelete               mailinclude_file         mailprog               
+  mailsub                  mailmax_send             master_room           
+  match_own_commands       manlog_file              map_delim_space        
+  max_cpu_cycles           max_dest_limit           max_folders            
+  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
+  max_pcreate_time         max_percentsubs          max_players            
+  max_sitecons           
   
 { 'wizhelp config parameters4' for more }
 
@@ -4523,14 +4818,14 @@
   rwho_data_port            rwho_dump_interval        rwho_host
   rwho_info_port            rwho_password             rwho_transmit
   sacrifice_adjust          sacrifice_factor          safe_wipe
-  safer_passwords           search_cost               secure_atruselock
-  secure_dark               secure_functions          secure_jumpok
-  see_owned_dark            showother_altname         shs_reverse             
-  sidefx_maxcalls           sidefx_returnval          sideeffects             
-  signal_action             signal_cron               signal_object           
-  signal_object_type        space_compress            spam_limit              
-  spam_msg                  spam_objmsg               sqlite_db_path
-  sqlite_query_limit        stack_limit
+  safer_passwords           safer_ufun                search_cost             
+  secure_atruselock         secure_dark               secure_functions        
+  secure_jumpok             see_owned_dark            showother_altname       
+  shs_reverse               sidefx_maxcalls           sidefx_returnval        
+  sideeffects               signal_action             signal_cron             
+  signal_object             signal_object_type        space_compress          
+  spam_limit                spam_msg                  spam_objmsg             
+  sqlite_db_path            sqlite_query_limit        stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -4563,6 +4858,7 @@
   def_exit_tx               def_room_rx               def_room_tx             
   def_player_rx             def_player_tx             def_thing_rx            
   def_thing_tx              reality_locks             reality_locktype
+  reality_compare
 
 & abort_on_bug
   Config parameter: abort_on_bug <yes/no>.  Default: no
@@ -4678,6 +4974,86 @@
   screen and a player who is able to autoregister AND able to create
   connects to the mush.
 
+& atrperms
+  Config parameter: atrperms <field1> <field2> ... <fieldX>
+  
+  This parameter is used to set up attribute prefix masks.  The syntax for
+  these masks are in the following form:
+  
+  For Setting/Modifying:
+      ATTRIBUTENAME:SETPERMISSION:SEEPERMISSION
+      ATTRIBUTENAME:SETPERMISSION:SEEPERMISSION:OWNER:TARGET
+  
+  For Deleting:
+     !ATTRIBUTENAME
+     !ATTRIBUTENAME:OWNER:TARGET
+  
+  In the above, the descriptions are as followed:
+      ATTRIBUTENAME -- The name of the attribute prefix you wish to use.
+                       A '!' before the attribute tells it to delete it.
+      SETPERMISSION -- The bittype() that is allowed to SET the masked attr.
+      SEEPERMISSION -- The bittype() that is allowed to SEE the masked attr.
+      OWNER         -- Optional.  The owner that the prefix will affect.
+      TARGET        -- Optional.  The specific dbref# the prefix will affect.
+  
+  Please note the permission is a bittype from 1 to 7.  It uses the same
+  numerical values that the bittype() function uses.  These values are:
+      God (#1)        7
+      Super-Royalty   6
+      Royalty         5
+      Councilor       4
+      Architect       3
+      Guildmaster     2
+      Citizen         1
+   
+  Owner can be anything, but defaults to '-1' to mean global.
+  Target can be anything, but defaults to '-1' to mean global.
+   
+  See Also: atrperms_max, @aflags
+  
+{see atrperms2 for examples and explainations}
+& atrperms2
+  (CONTINUED)
+  
+  You may string multiple attribute permissions together in a single line.
+  Examples:
+    #1 > atrperms prefix1:3:4 bad:7:7 good:1:3 snoopy:2:2:#1234:#-1
+    #2 > atrperms oog:3:5 bad:6:6 !prefix  
+  
+  Example #1 does the following:
+     set the prefix 'prefix' with Architect settable, Councilor seeable.
+     set the bad 'prefix' with God settable, God seeable.
+     set the good 'prefix' with Citizen settable, architect seeable.
+     set the snoopy 'prefix' with Guild sttable, seeable and owner #1234
+  
+  Example #2
+     set the oog 'prefix' with Architect settable, Wizard seeable.
+     re-set the bad 'prefix' with Immortal settable, Immortal seeable.
+     delete the prefix 'prefix'. (this deletes first match)
+  
+  All attributes starting with the given prefix will auto-inherit all of
+  the given permissions.  The exception are '_' attributes that are always
+  at LEAST Wizard if configured that way.  The other exception is that
+  Immortals can always see God owned attributes.  That is intentional since
+  Immortal is mostly God anyway for permissions.
+  
+  Note #1: Attribute with the God bit are only settable by God.
+  Note #2: _ permissions have precidence over these. 
+  Note #3: When you delete an attribute, you do not need to specify bitmasks.
+  Note #4: Specify owner and/or target if you want a specific duplicate prefix.
+  
+  See Also: atrperms_max, @aflags
+
+& atrperms_max
+  Config Parameter: atrperms_max <value>    Default: 100
+  
+  Specify the total number of attribute prefixes you can define before it 
+  will stop the creation of new prefixes.  
+  
+  The valid value for this is 0-10000.  
+  
+  See Also: atrperms, @aflags
+
 & attr_access
   Config parameter: attr_access <attr> [!]<privilege> [[!]<privilege>]...
   Changes the access rights to the named attribute.
@@ -4704,6 +5080,7 @@
   ignore      - The attribute is not decompiled.
   hidden      - The attribute is visible only to wizards.
   pinvisible  - The attribute is examinable by royalty+ only.
+  default     - The attribute 'inherits' attribute formatting.
 * no_inherit  - The attribute is not inheritable by children.
 * visual      - The attribute is visual by everyone.
 * no_ansi     - The attribute does not hold ansi.
@@ -4714,6 +5091,16 @@
   with no args you will be shown the current privilages for that attribute.
   
   Permissions with a '*' require @attribute/access
+  
+  For user-defined attributes, please use the @attribute/access command.
+  This will also be 'permanent' and won't have to be re-issued.
+
+  For built-in attributes (like @desc) please use the @admin parameter
+  attr_access.  If you do this via @admin, they must be reissued on
+  every startup.  It is suggested you put this in the netrhost.conf
+  file instead:  (such as:  attr_access desc default)
+  
+  See Also: @attribute
  
 & attr_alias
   Config parameter: attr_alias <new alias> <attr>
@@ -4758,6 +5145,13 @@
   in the +bcc list not be able to see the 'To:' list in mail being sent.
   If this is disabled, then the reverse is in effect, where the only ones
   who can see the 'To:' list are those who are in the +bcc list.
+
+& blind_snuffs_cons
+  Config parameter: blind_snuffs_cons <ON(1)/OFF(0)>  Default: OFF
+  Specifies if the BLIND flag will snuff (surpress) the connected/disconnected
+  messages when players connect/disconnect.  This applies if the room is
+  set BLIND as well.  As always, (Blind) messages will show for wizards
+  regardless.
 
 & brace_compatibility
   Config parameter: brace_compatibility <yes/no>.  Default: NO
@@ -5744,8 +6138,8 @@
 & hasattrp_compat
   Config parameter: hasattrp_compat <value>.  Default: 0
   This config parameter enables MUX/TM3 'compatibility' of the hasattrp()
-  function so that it will _not_ check the target object but just the parent-
-  chain for matching attributes.  By default, it will check the target as well.
+  function so that it _will_ check the target object as well as the parent-
+  chain for matching attributes.  By default, it will not check the target.
 
 & heavy_cpu_max
   Config parameter: heavy_cpu_max <value>.  Default: 50
@@ -5922,6 +6316,11 @@
   when ALT_INVENTORIES are enabled.  If no string is specified, the default
   of 'backpack' is used.  Ansi, tabs, and carriage returns are stripped.
 
+& ip_address
+  Config parameter: ip_address <address>.  Default: 0.0.0.0
+  Specifies the IP address on which the game listens for new connections.
+  See Also: port.
+
 & kill_guarantee_cost
   Config parameter: kill_guarantee_cost <amount>.  Default: 100
   Specifies the amount of money you have to spend (ie. kill target = <amount>)
@@ -5976,6 +6375,16 @@
   If enabled, enforces dark/unfindable checks on lcon()/xcon() that
   would be applied to lwho().
   
+& lfunction_max
+  Config parameter: lfunction_max <num>.  Default: 20
+  
+  Specifies the maximum @lfunctions a player may define for their own
+  local function pool.  This may be individually tweaked through the
+  @limit command.
+  
+  See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
+            vattr_limit_checkwiz, max_dest_limit
+
 & list_access
   Config parameter: list_access <param> [!]<privilege> [[!]<privilege>]...
   Changes the access needed to the <param> option of the @list command.
@@ -6211,7 +6620,7 @@
   set to '-1' it will default to infinite.
   
   See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
-            vattr_limit_checkwiz
+            vattr_limit_checkwiz, lfunction_max
 
 & max_folders
   Config parameter: max_folders <value>.   Default: 20
@@ -6294,7 +6703,7 @@
   Specifying the value to '-1' makes it infinite.
   
   See Also: @limit, max_dest_limit, wizmax_dest_limit, wizmax_vattr_limit,
-            vattr_limit_checkwiz
+            vattr_limit_checkwiz, lfunction_max
 
 & maximum_size
   Config parameter: maximum_size <value>.    Default: -1
@@ -6823,6 +7232,7 @@
 & port
   Config parameter: port <port>.  Default: 6250
   Specifies the IP port on which the game listens for new connections.
+  See Also: ip_address.
 
 & postdump_message
   Config parameter: postdump_message <message>.  Default: blank
@@ -7189,6 +7599,19 @@
   This parameter specifies if the SAFE and INDESTRUCTABLE flags will stop
   @wipe from working on that specific target that has either of those flags.
 
+& safer_ufun
+  Config parameter: safer_ufun <yes/no>.  Default: o
+  
+  If this is enabled, then any attribute that is evaluated on something that
+  you do not control will be evaluated either at your level or the object
+  level, whatever level is the LOWER level.  This only impacts items that
+  are inherit.
+  
+  See Also: unsafe (attribute flag)
+
+& unsafe
+  See: 'help attribute flag'
+
 & safer_passwords
   Config parameter: safer_passwords <yes/no>.  Default: no
   
@@ -7519,6 +7942,13 @@
   for example.  If the delimeter is a numerical value, it will use that
   value to specify how many spaces to take after the %-substitution.
   
+  NOTE:  If <character> is an invalid character for an attribute name,
+         then specify the ordinal of that character.  [asc(<character>)]
+         You then use the 3 digit representation of that number for the
+         attribute.  Example:  '*' would be '042'.  So SUB_042/CHR_042.
+  
+  You may use valid() to verify if the character is a valid for attributes.
+  
   Examples:  (assume hook_obj is set up to be dbref #456)
     > &SUB_Y #456=[add(1,1)]                  (just return '2')
     > &SUB_M #456=%x                          (this makes '%m' be '%x')
@@ -7547,13 +7977,15 @@
   infinite loops.  The following substitutions exist:
   
   - Sub --- Value --- HEX ------------+- Sub --- Value --- HEX ---------------
-    %n ----     1     (0x00000001)    |  %p ----   128     (0x00000080)
-    %# ----     2     (0x00000002)    |  %a ----   256     (0x00000100)
-    %! ----     4     (0x00000004)    |  %r ----   512     (0x00000200)
-    %@ ----     8     (0x00000008)    |  %t ----  1024     (0x00000400)
-    %l ----    16     (0x00000010)    |  %c ----  2048     (0x00000800)
-    %s ----    32     (0x00000020)    |  %x ----  4096     (0x00001000)
-    %o ----    64     (0x00000040)    |
+    %n ----     1     (0x00000001)    |  %r ----   512     (0x00000200)
+    %# ----     2     (0x00000002)    |  %t ----  1024     (0x00000400)
+    %! ----     4     (0x00000004)    |  %c ----  2048     (0x00000800)
+    %@ ----     8     (0x00000008)    |  %x ----  4096     (0x00001000)
+    %l ----    16     (0x00000010)    |  %f ----  8192     (0x00002000)
+    %s ----    32     (0x00000020)    |  %k ---- 16384     (0x00004000)
+    %o ----    64     (0x00000040)    |  %w ---- 32768     (0x00008000)
+    %p ----   128     (0x00000080)    |  
+    %a ----   256     (0x00000100)    |
   ----------------------------------------------------------------------------
   
   You would add the values together and apply to the sub_override 'bitmask'
@@ -7569,13 +8001,15 @@
   substitutions.
   
   - Sub ------------- Attribute ------+- Sub ------------- Attribute ---------
-    %n ----           SUB_N           |  %p ----           SUB_P       
-    %# ----           SUB_NUM         |  %a ----           SUB_A       
-    %! ----           SUB_BANG        |  %r ----           SUB_R       
-    %@ ----           SUB_AT          |  %t ----           SUB_T         
-    %l ----           SUB_L           |  %c ----           SUB_C         
-    %s ----           SUB_S           |  %x ----           SUB_X         
-    %o ----           SUB_O           |
+    %n ----           SUB_N           |  %r ----           SUB_R       
+    %# ----           SUB_NUM         |  %t ----           SUB_T         
+    %! ----           SUB_BANG        |  %c ----           SUB_C         
+    %@ ----           SUB_AT          |  %x ----           SUB_X         
+    %l ----           SUB_L           |  %f ----           SUB_F
+    %s ----           SUB_S           |  %k ----           SUB_K
+    %o ----           SUB_O           |  %w ----           SUB_W
+    %p ----           SUB_P           |  
+    %a ----           SUB_A           |
   ----------------------------------------------------------------------------
   
   If the hook object (@admin hook_obj) is NOT defined, or if the attribute 
@@ -7654,15 +8088,6 @@
   risk if you do not code switch safely.
   
   See Also: ifelse_substitutions
-
-& terse_shows_contents
-  Config parameter: terse_shows_contents <yes/no>.  Default yes
- 
-  Indicates whether or not to suppress the listing of a location's contents
-  when producing TERSE output (whether from an automatic look or a 'real'
-  look if look_obey_terse is turned on.
- 
-  See Also: look_obey_terse, terse_shows_exits, terse_shows_move_messages.
 
 & terse_shows_contents
   Config parameter: terse_shows_contents <yes/no>.  Default yes
@@ -7807,7 +8232,7 @@
   restritions.
   
   See Also: @limit, wizmax_dest_limit, max_vattr_limit, wizmax_vattr_limit,
-            max_vattr_limit
+            max_vattr_limit, lfunction_max
  
 & vlimit
   Config parameter: vlimit <ammount>.  Default 750
@@ -7945,7 +8370,7 @@
   Specifying the value to '-1' makes it infinite.
   
   See Also: @limit, wizmax_dest_limit, max_vattr_limit, vattr_limit_checkwiz,
-            max_vattr_limit
+            max_vattr_limit, lfunction_max
 
 & wizmax_dest_limit
   Config parameter: wizmax_dest_limit <num>.  Default: 100000
@@ -7956,7 +8381,7 @@
   set to '-1' it will default to infinite.
   
   See Also: @limit, wizmax_vattr_limit, max_dest_limit, vattr_limit_checkwiz,
-            max_vattr_limit
+            max_vattr_limit, lfunction_max
 
 & zone_parents
   Config parameter: zone_parents (yes/no).  Default: YES
@@ -7990,6 +8415,7 @@
   in here so they can contact one another when the game is down.
 
 & DEBUG FEATURES
+  There is currently no information for this topic.
 
 & FILES
   Topic: FILES
@@ -8185,16 +8611,33 @@
  
   See Also: @admin, @list site_information, forbid_site, permit_site,
             register_site, suspect_site, trust_site, noguest_site.
+& function list
 & functions
-  Help is available for the following RhostMUSH functions:
+  Help is available for the following RhostMUSH wizard only functions:
   
-  BEEP()        MAILSIZE()    SIZE()        LPOWERS()       LDEPOWERS()
-  LTOGGLES()    MSIZETOT()    AFLAGS()      QUOTA()         ISHIDDEN()
-  CLOAK()       HASPOWER()    HASDEPOWER()  HASTOGGLE()     DOING()
-  MAILQUICK()   MAILALIAS()   DYNHELP()     CANSEE()        TEXTFILE()
-  LATTRP()      MAILSTATUS()  BYPASS()      LOGTOFILE()     LOGSTATUS()
-  CHECKPASS()   CHKGARBAGE()  LOOKUP_SITE() NSLOOKUP()
+  AFLAGS()      BEEP()        BYPASS()      CANSEE()        CHECKPASS()
+  CHKGARBAGE()  CLOAK()       DOING()       DYNHELP()       HASDEPOWER()
+  HASPOWER()    HASTOGGLE()   ISHIDDEN()    LATTRP()        LDEPOWERS()
+  LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE() LPOWERS()       LTOGGLES()
+  MAILALIAS()   MAILQUICK()   MAILQUOTA()   MAILSIZE()      MAILSTATUS()
+  MSIZETOT()    NSLOOKUP()    QUOTA()       SIZE()          TEXTFILE()
 
+& MAILQUOTA()
+  Function: mailquota(<target> [,<key>])
+  
+  This function will return the results of mail/quota but in functional
+  form.  The default key (0) will return all stats of the target player.
+  
+  The values for each of the keys is as follows:
+    0 -- <receive> <receive-max> <save> <save-max> <sent> <sent-max> (default)
+    1 -- <receive> <receive-max>
+    2 -- <save> <save-max>
+    3 -- <sent> <sent-max>
+  
+  Anything other key, or an invalid target player returns '-1 -1 -1 -1 -1 -1'
+  
+  See Also: mailquick(), mailstatus()
+  
 & NSLOOKUP()
   Function: nslookup(<target>)
   
@@ -8277,21 +8720,27 @@
   X    - List out status of message #X
   
   Refer to the normal help on 'mail status' for additional help.
+  
+  See Also: mailquota(), mailquick()
 
 & LATTRP()
-  Function: lattrp(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattrp(<obj>[/<wld>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
    
-  Returns a list of the attributes set on <object> and all parents OF
-  <object>.  If <wild-pattern> is given, only attributes matching it 
-  are returned.  You may specify the optional target if you wish to 
-  return attributes that only the target could see.  If you do not have
+  Returns a list of the attributes set on <object> and all parents of
+  <obj>ect.  If <wld>pattern is given, only attributes matching it 
+  are returned.  You may specify the <regexp> option to true (1) to turn the
+  wild matching algo into regular expression matching instead of the default
+  matching algorithem.  You may specify the optional target <targ> if you wish 
+  to return attributes that only the target could see.  If you do not have
   control over target, it defaults to yours.  You may specify a type to 
-  check against.  The following types exist:
+  check against.  You may specify <tree> to simulate viewing attribute tres.
+  
+  The following types exist:
     + - List existing lock attributes on player.
     $ - list all attributes that are $commands.
     ^ - list all attributes that are ^listens.
-    & - list all attributes that contain all attribute flags <flags>.
-    | - list all attributes that contain any attribute flags <flags>.
+    & - list all attributes that contain all attribute flags <flg>.
+    | - list all attributes that contain any attribute flags <flg>.
     l - list total attributes and pages of attributes.
     # - page (1, 2, etc) for attribute listing.  118 for 32byte attrs.
     > - find the alphanumerical largest attribute name.
@@ -8301,21 +8750,23 @@
   { see help lattrp2 for examples }
 
 & LATTRP2 
-  Function: lattrp(<object>[/<wild-pattern>][,<target> [,<type>][,<flags>]])
+  Function: lattrp(<obj>[/<wld>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
    
   Example:
     > @va me=$whee:@pemit %#=you did a whee.
     > @vb me=^*wow*:@pemit %#=You're hearing a wow.
-    > say lattr(me)
-    You say "Desc VA VB VC VE Last VV Domain"
-    > say lattr(me/v*)
+    > say lattrp(me)
+    You say "Desc VA VB VC VE Last VV Domain XX"
+    > say lattrp(me/v*)
     You say "VA VB VC VE VV"
-    > say lattr(me/v*,*TinyPlayer)
+    > say lattrp(me/v*,*TinyPlayer)
     You say "VC VE VV"
-    > say lattr(me/v*,,$)
+    > say lattrp(me/v*,,$)
     You say "VA"
-    > say lattr(me/v*,,^)
+    > say lattrp(me/v*,,^)
     You say "VB"
+    > say lattrp(me/^..$,,,1)
+    You say "VA VB VC VE VV XX"
   
   This is wizard only as it could be computationally expensive. 
   
@@ -9009,6 +9460,8 @@ Default: 100
 
 & MAILQUICK()
   Please refer to the normal help on this function for it's features.
+  
+  See Also: mailquota(), mailstatus()
 
 & MAILALIAS()
   Function: mailalias(<global alias>[,<type>])
@@ -9136,14 +9589,14 @@ try to keep all information on a 20x78 screen.
   Hooks are set up by following the shown methods.
   1)  You must first create and setup a hook object to store the data.
       Once you have @created the object, the object needs to be defined
-      with the 'HOOK_CMD' admin parameter.  This may be placed in the 
-      .conf file or done via @admin.
+      with the 'HOOK_OBJ' admin parameter.  This may be placed in the 
+      .conf file or done via @admin.  See wizhelp on hook_obj for more.
   
   2)  You must set up hooks for the commands/attributes you wish to use.
       The hooks are 'permit', 'ignore', 'before', 'after', and 'igswitch'.
       See wizhelp on 'hook_cmd' on more info of these switchtypes.
-      You may use the @hook command, or use the hook_cmd admin parameter
-      to place in a .conf file.
+      You may use the @hook command, or use the HOOK_CMD admin parameter
+      to place in a .conf file.  
   
   3)  The PERMIT and IGNORE config params are 'enabled' if they return 
       anything but a 'NULL' or a '1'.
@@ -9167,6 +9620,7 @@ try to keep all information on a 20x78 screen.
 & hook setup2
   > @create HookObject
   HookObject created as object #1234
+  > @admin hook_obj=1234             (and/or in netrhost.conf: hook_obj 1234)
   > &a_look #1234=[pemit(%#,-- After The Look --)]
   > &b_look #1234=[pemit(%#,-- Before The Look --)]
   > &i_look #1234=[gt(match(v(is-ignored),%#),0)]
@@ -9176,12 +9630,13 @@ try to keep all information on a 20x78 screen.
   > @set #1234=sidefx                (needed to use side-effects like pemit())
   
   Now you can do one of two things:
-  > @hook/before look
-  > @hook/after look
-  > @hook/ignore look
-  > @hook/permit look
+  > @hook/before look                (netrhost.conf:  hook_cmd look before)
+  > @hook/after look                 (netrhost.conf:  hook_cmd look after)
+  > @hook/ignore look                (netrhost.conf:  hook_cmd look ignore)
+  > @hook/permit look                (netrhost.conf:  hook_cmd look permit)
   OR...
   > @admin hook_cmd look before after ignore permit
+    (netrhost.conf:  hook_cmd look before after ignore permit)
   
   There, your hook object is all set up.  If you want it to last through
   reboots, you need to either put the @hook's in a @startup, or add the 
@@ -9201,8 +9656,19 @@ try to keep all information on a 20x78 screen.
      V - This is the same as '&' and looks for <char>_@set on HOOK_OBJ.
      M - This is the same as '-' and looks for <char>_mail on HOOK_OBJ.
   
+  Example:
+    > &A_POSE #1234=<function-executed-after-:/;/pose> 
+  
   You must use the letter representation instead of the special char when
   issuing '@hook' or 'hook_cmd'.
+  
+  Example:
+    > @hook/before pose          (the 'pose' command)
+    > @hook/before P             (handles ':' and ';')
+    > @hook/before mail          (handles the 'mail' command)
+    > @hook/before M             (handles the '-' input for mail)
+  
+  See Also: hook_obj, hook_cmd, hook setup
 
 & huh setup
   The error.txt file is used to define what a player can see when they
@@ -9248,6 +9714,22 @@ try to keep all information on a 20x78 screen.
   does not take into account the location of the objects or other flags like
   DARK.
 
+& reality_compare
+  Config parameter: reality_compare <value>   Default: 0
+  
+  This option will optionally display the description in a given order or
+  optionally stop upon the first matching reality and/or description.  The
+  following options exist:
+  
+    0 - default.  Show all descs in ascending reality order.
+    1 - reverse display of description from high bit reality down
+    2 - normal order but stop after first existing desc found
+    3 - reverse order but stop after first existing desc found
+    4 - normal order and stop after first reality, regardless of desc
+    5 - reverse order and stop after first reality, regardless of desc
+  
+  See Also: reality_level
+
 & reality_level
   Config parameter: reality_level <name> <value> [<desc attribute>]
   Default: none
@@ -9258,6 +9740,8 @@ try to keep all information on a 20x78 screen.
   configuration file.  When a reality_level is defined, it automatically
   keeps a tally of those defined.  You can currently only have 32 total
   reality levels defined.
+  
+  See Also: reality_compare
 
 & reality_locks
   Config parameter: reality_locks <yes/no>.   Default: no
@@ -9266,7 +9750,6 @@ try to keep all information on a 20x78 screen.
   a reality lock.  If enabled, the target must be @toggled CHKREALITY so
   that the target knows that any UserLock that is on it will be used as
   a reality level lock enhancement.  Otherwise, without this toggle, the
-  USER lock behaves as expected.
   
   See Also: reality_level, @list rlevel, rxlevel(), txlevel(), reality_locktype
   Normal Help: chkreality()
@@ -9286,11 +9769,11 @@ try to keep all information on a 20x78 screen.
                lock on them.
            2 - This specifies that it should pass the reality if the enactor
                belongs to the target's reality _AND_ they pass the lock on
-               the target as well.  
+               the target as well.  The lock must exist or auto-fails.
                Requires CHKREALITY toggle.
            3 - This specifies that it should pass the reality if the enactor
                belongs to the target's reality _AND_ the target passes the
-               lock on them as well.  
+               lock on them as well.  The lock must exist or auto-fails.
                Requires CHKREALITY toggle.
            4 - This specifies that it should pass the reality if the enactor
                belongs to the target's reality _AND_ they pass the lock on
@@ -9484,6 +9967,9 @@ try to keep all information on a 20x78 screen.
   This toggle, when set on a target container (room/object/player),
   will log everything that resides INSIDE that container for
   the duration of the toggle.  
+  
+  If the room is also set QUIET, notifications to the players will no
+  longer occur.
   
   Note: You may specify a LOGNAME attribute on the room toggled to log
         to force the name of the logfile being logged instead of

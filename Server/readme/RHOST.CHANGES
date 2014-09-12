@@ -1,3 +1,31 @@
+		         RhostMUSH 3.9.4 Update File
+REALITY_LEVELS wouldn't compile because of undeclared function.
+				- Thanks Dahan
+HELP spelling fixes
+				- Thanks Sketch
+compile time issue when enhanced ansi is deselected.
+				- Thanks Wisdom
+if you have an ssl library that conflicts with openssl dev libs, openssl support is confused
+				- Thanks Wisdom
+reality_compare -- option to alter how descs are seen
+				- Thanks Derek (from SVN site)
+Crash bug in @blacklist/list fixed
+				- Thanks Distraida
+Bug in CPU alerting with new player creation on their first connect.
+				- Thanks Darren@Nightlife
+Bug with compiling without BANG support with undeclared variables.
+				- Thanks Darren@Nightlife
+You can now input extended ASCII right into the mush (and it converts to markup)
+				- Thanks mindboosternoori
+functions.c bombed with the clang compiler because of restrictive type-casting comparisons.
+				- Thanks Fraibert
+@include didn't properly null out args if forcefully specified null.
+				- Thanks Volund
+@skip/@ifelse, @switch, and @sudo didn't evaluate substitutions properly.
+				- Thanks Volund
+Compiletime bug in speech.c with REALITY_LEVELS not defined.
+				- Thanks psc943
+
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 
 				- Thanks Jules (and PennMUSH)
@@ -65,7 +93,8 @@ cluster_wipe added for clusters
 				- Thanks Cary
 NO_CODE broke global_error_obj as it's executed by enactor.
 				- Thanks Matrix
-
+Help file typos for various cluster commands.
+				- Thanks Mike@M*U*S*H
 
 --------------------------------------------------------------------------------
 

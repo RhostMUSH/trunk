@@ -686,6 +686,7 @@ TOGENT tog_table[] =
   {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, th_player},
   {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL, th_noset},
   {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, th_player},
+  {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, th_wiz},
   {NULL, 0, ' ', 0, 0, NULL}
 };
 
@@ -1123,6 +1124,34 @@ display_toggletab(dbref player)
 }
 
 FLAGENT *
+find_flag_perm(dbref thing, char *flagname, dbref player)
+{
+    char *cp;
+    FLAGENT *fp;
+
+    /* Make sure the flag name is valid */
+
+    for (cp = flagname; *cp; cp++)
+	*cp = ToLower((int)*cp);
+
+    fp = (FLAGENT *)hashfind(flagname, &mudstate.flags_htab);
+    if ( fp ) {
+       if ((fp->listperm & CA_BUILDER) && !Builder(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_ADMIN) && !Admin(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_WIZARD) && !Wizard(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_IMMORTAL) && !Immortal(player))
+          fp = (FLAGENT*)NULL;
+       else if ((fp->listperm & CA_GOD) && !God(player))
+          fp = (FLAGENT*)NULL;
+    }
+
+    return fp;
+}
+
+FLAGENT *
 find_flag(dbref thing, char *flagname)
 {
     char *cp;
@@ -1132,6 +1161,37 @@ find_flag(dbref thing, char *flagname)
     for (cp = flagname; *cp; cp++)
 	*cp = ToLower((int)*cp);
     return (FLAGENT *) hashfind(flagname, &mudstate.flags_htab);
+}
+
+TOGENT *
+find_toggle_perm(dbref thing, char *togglename, dbref player)
+{
+    char *cp;
+    TOGENT *tp;
+
+    /* Make sure the flag name is valid */
+
+    for (cp = togglename; *cp; cp++)
+	*cp = ToLower((int)*cp);
+
+    tp = (TOGENT *)hashfind(togglename, &mudstate.toggles_htab);
+
+    if ( tp ) {
+       if ((tp->listperm & CA_GUILDMASTER) && !Guildmaster(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_BUILDER) && !Builder(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_ADMIN) && !Admin(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_WIZARD) && !Wizard(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_IMMORTAL) && !Immortal(player))
+          tp = (TOGENT *)NULL;
+       else if ((tp->listperm & CA_GOD) && !God(player))
+          tp = (TOGENT *)NULL;
+    }
+
+    return tp;
 }
 
 TOGENT *
@@ -1174,6 +1234,7 @@ void
 flag_set(dbref target, dbref player, char *flag, int key)
 {
     FLAGENT *fp;
+    TOGENT *tp;
     int negate, result, perm, i_ovperm, i_uovperm, i_chkflags;
     char *pt1, *pt2, st, *tbuff, *tpr_buff, *tprp_buff, *tpr_buff2, *tprp_buff2;
 
@@ -1214,7 +1275,13 @@ flag_set(dbref target, dbref player, char *flag, int key)
 
 	    fp = find_flag(target, pt1);
 	    if (fp == NULL) {
-		notify(player, "I don't understand that flag.");
+                tp = find_toggle_perm(target, pt1, player);
+                if ( tp == NULL ) {
+		   notify(player, "I don't understand that flag.");
+                } else {
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @toggle me=%s?]", pt1));
+                   tprp_buff = tpr_buff;
+                }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
@@ -1418,9 +1485,11 @@ flag_set(dbref target, dbref player, char *flag, int key)
 void 
 toggle_set(dbref target, dbref player, char *toggle, int key)
 {
+    FLAGENT *fp;
     TOGENT *tp;
-    int negate, result;
-    char *pt1, *pt2, st;
+    FLAG i_flag;
+    int negate, result, i_flagchk;
+    char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
 
     /* Trim spaces, and handle the negation character */
 
@@ -1455,11 +1524,17 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 		notify(player, "You must specify a toggle or toggles to set.");
             }
 	} else {
-
 	    tp = find_toggle(target, pt1);
 	    if (tp == NULL) {
               if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) )
-		notify(player, "I don't understand that toggle.");
+                fp = find_flag_perm(target, pt1, player);
+                if ( fp == NULL ) {
+		   notify(player, "I don't understand that toggle.");
+                } else {
+                   tprp_buff = tpr_buff = alloc_lbuf("toggle_message");
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @set me=%s?]", pt1));
+                   free_lbuf(tpr_buff);
+                }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
@@ -1470,12 +1545,33 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 
 		/* Invoke the toggle handler, and print feedback */
 
+                  if ( tp->toggleflag & TOGGLE2 ) {
+                     i_flag = Toggles2(target);
+                  } else {
+                     i_flag = Toggles(target);
+                  }
+                  i_flagchk = !(tp->togglevalue & i_flag);
 		  result = tp->handler(target, player, tp->togglevalue,
 				     tp->toggleflag, negate);
 		  if (!result)
 		    notify(player, "Permission denied.");
-		  else if (!(key & (SET_QUIET|SIDEEFFECT)) && !Quiet(player))
-		    notify(player, (negate ? "Cleared." : "Set."));
+		  else if (!(key & (SET_QUIET|SIDEEFFECT)) && !Quiet(player)) {
+                    if ( (key & SET_NOISY) || TogNoisy(player) ) {
+                       tprp_buff = tpr_buff = alloc_lbuf("do_set");
+                       if ( negate ) {
+                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (cleared toggle%s%s).",
+                                       Name(target), (!i_flagchk ? " " : " [again] "),
+                                       tp->togglename) );
+                       } else {
+                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (set toggle%s%s).",
+                                       Name(target), (i_flagchk ? " " : " [again] "),
+                                       tp->togglename) );
+                       }
+                       free_lbuf(tpr_buff);
+                    } else {
+		       notify(player, (negate ? "Cleared." : "Set."));
+                    }
+                  }
 		}
 	    }
 	}

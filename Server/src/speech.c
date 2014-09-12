@@ -47,11 +47,14 @@ static const char *broadcast_msg = "Broadcast: ";
 
 void do_think (dbref player, dbref cause, int key, char *message)
 {
+   char *s_buff, *s_buffptr;
+   s_buffptr = s_buff = alloc_lbuf("do_think");
    if ( key == SAY_NOANSI ) {
-      noansi_notify(player, unsafe_tprintf("%s",message));
+      noansi_notify(player, safe_tprintf(s_buff, &s_buffptr, "%s",message));
    } else {
-      notify(player, unsafe_tprintf("%s",message));
+      notify(player, safe_tprintf(s_buff, &s_buffptr, "%s",message));
    }
+   free_lbuf(s_buff);
 }
 
 void do_say (dbref player, dbref cause, int key, char *message)
@@ -162,7 +165,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    } else {
@@ -180,7 +183,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -200,7 +203,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    } else {
@@ -218,7 +221,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -1350,28 +1353,30 @@ void do_page_one(dbref player, dbref cause, int key, char *arg)
 
 void whisper_pose (dbref player, dbref target, char *message)
 {
-char	*buff;
+   char *buff, *s_buff, *s_buffptr;
 
-	buff=alloc_lbuf("do_pemit.whisper.pose");
-	strcpy (buff, Name(player));
-	if (mudstate.pageref == NOTHING) {
-	  if ((SCloak(target) && Cloak(target) && !Immortal(player)) ||
-	    (Cloak(target) && !Wizard(player))) {
-	  }
-	  else
-	    notify(player,
-		unsafe_tprintf("%s senses \"%s%s\"", Name(target), buff, message));
-	  notify_with_cause(target, player,
-		unsafe_tprintf("You sense %s%s", buff, message));
-	}
-	else {
-	  notify_with_cause2((int)target, player, unsafe_tprintf("You sense %s%s", buff, message));
-	  if (mudstate.pageref != NOTHING)
-	    notify(player, unsafe_tprintf("Port %d senses \"%s%s\"", target, buff, message));
-	  else
-	    notify(player, "Bad Port.");
-	}
-	free_lbuf(buff);
+   buff=alloc_lbuf("do_pemit.whisper.pose");
+   s_buffptr = s_buff = alloc_lbuf("whisper_pose");
+   strcpy (buff, Name(player));
+   if (mudstate.pageref == NOTHING) {
+      if ((SCloak(target) && Cloak(target) && !Immortal(player)) ||
+          (Cloak(target) && !Wizard(player))) {
+      } else {
+         notify(player, safe_tprintf(s_buff, &s_buffptr, "%s senses \"%s%s\"", Name(target), buff, message));
+      }
+      s_buffptr = s_buff;
+      notify_with_cause(target, player, safe_tprintf(s_buff, &s_buffptr, "You sense %s%s", buff, message));
+   } else {
+      notify_with_cause2((int)target, player, safe_tprintf(s_buff, &s_buffptr, "You sense %s%s", buff, message));
+      if (mudstate.pageref != NOTHING) {
+         s_buffptr = s_buff;
+         notify(player, safe_tprintf(s_buff, &s_buffptr, "Port %d senses \"%s%s\"", target, buff, message));
+      } else {
+         notify(player, "Bad Port.");
+      }
+   }
+   free_lbuf(buff);
+   free_lbuf(s_buff);
 }
 
 
@@ -1379,17 +1384,22 @@ char	*buff;
 void do_pemit (dbref player, dbref cause, int key, char *recipient, 
 		char *message, char *cargs[], int ncargs)
 {
-dbref	target, loc, aowner;
-char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2, *pt3, *r_bufr;
-char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff, *reality_buff, *s_ptr;
+dbref	target, loc, aowner, darray[LBUF_SIZE/2];
+char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
+char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff;
+char    *strtok, *strtokr, *strtokbuf;
+#ifdef REALITY_LEVELS
+char    *pt3, *r_bufr, *s_ptr, *reality_buff;
+#endif
 int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr, side_effect; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;
-int     xxx_x, xxx_y, xxx_z, i_oneeval;
+int     xxx_x, xxx_y, xxx_z, i_oneeval, i_snufftoofar, i_oemitstr, dcntr, dcntrtmp;
+
 ZLISTNODE *z_ptr, *y_ptr;
 
    port = 0;
    rcpt = NULL;
-   is_rlevelon = i_realitybit = i_oneeval = 0;
+   i_snufftoofar = is_rlevelon = i_realitybit = i_oneeval = i_oemitstr = dcntr = 0;
    xxx_x = xxx_y = xxx_z = 0;
 
    if ((Flags3(player) & NO_PESTER) && (key & (PEMIT_PEMIT|PEMIT_LIST|PEMIT_WHISPER|PEMIT_CONTENTS))) {
@@ -1412,6 +1422,10 @@ ZLISTNODE *z_ptr, *y_ptr;
    } else {
       noansi = 0;
    }        
+   if ( key & PEMIT_OSTR ) {
+      key &= ~PEMIT_OSTR;
+      i_oemitstr = 1;
+   }
    recipient_buff = recipient;
 #ifdef REALITY_LEVELS
    if (  ((key & PEMIT_TOREALITY) && !(key & PEMIT_CONTENTS)) ) {
@@ -1589,9 +1603,43 @@ ZLISTNODE *z_ptr, *y_ptr;
             mudstate.pageref = player;
             break;
          default:
-            init_match_real(player, recip2, TYPE_PLAYER, i_realitybit);
-            match_everything(0);
-            target = match_result();
+            if ( i_oemitstr ) {
+               strtokbuf = alloc_lbuf("oemit_multi");
+               memcpy(strtokbuf, recip2, LBUF_SIZE - 1);
+               strtok = strtok_r(strtokbuf, " \t", &strtokr);
+               while ( strtok ) {
+                  init_match_real(player, strtok, TYPE_PLAYER, i_realitybit);
+                  match_everything(0);
+                  target = match_result();
+                  if ( Good_chk(target) ) {
+                     if ((SCloak(target) && Cloak(target) && !Immortal(player)) ||
+                         (Cloak(target) && !Wizard(player))) {
+                        target = NOTHING;
+                     } else {
+                        for ( dcntrtmp = 0; dcntrtmp < dcntr; dcntrtmp++ ) {
+                           if ( darray[dcntrtmp] == target ) {
+                              dcntrtmp = -1;
+                              break;
+                           }
+                        }
+                        if ( dcntrtmp >= 0 ) {
+                           darray[dcntr] = target;
+                           dcntr++;
+                        }
+                     }
+                  }
+                  strtok = strtok_r(NULL, " \t", &strtokr);
+               }
+               free_lbuf(strtokbuf);
+               if ( dcntr > 0 )
+                  target = darray[0];
+               else
+                  target = NOTHING;
+            } else {
+               init_match_real(player, recip2, TYPE_PLAYER, i_realitybit);
+               match_everything(0);
+               target = match_result();
+            }
       }
       mudstate.whisper_state = 0;
       if ( (target != NOTHING) && (target != AMBIGUOUS) ) {
@@ -1608,6 +1656,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_PEMIT:
                   notify(player, "Emit to whom?");
+                  i_snufftoofar = 1;
                   break;
                case PEMIT_OEMIT:
                   target = NOTHING;
@@ -1653,9 +1702,11 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_PEMIT:
                   notify(player, "Emit to whom?");
+                  i_snufftoofar = 1;
                   break;
                case PEMIT_OEMIT:
-                  notify(player, "Emit except to whom?");
+                  if ( !i_oemitstr || (i_oemitstr && (dcntr == 0)) )
+                     notify(player, "Emit except to whom?");
                   break;
                case PEMIT_PORT:
                   notify_with_cause2(port, player, result);
@@ -1684,7 +1735,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                ok_to_do = 1;
             }
             if (!ok_to_do && (cstuff != 1) && (!mudconf.pemit_any || (key != PEMIT_PEMIT))) {
-               if (!cstuff)
+               if (!cstuff && !i_snufftoofar)
                   notify(player, "You are too far away to do that.");
                break;
             }
@@ -1805,18 +1856,38 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_OEMIT:
                   if (loc != NOTHING) {
-                     notify_except(loc, player, target, result);
-                     if (Flags3(target) & SEE_OEMIT) {
+                     if ( i_oemitstr ) 
+                        notify_except_str(loc, player, darray, dcntr, result, 0);
+                     else
+                        notify_except(loc, player, target, result, 0);
+                     if ( i_oemitstr && (dcntr > 0) ) {
                         tell = alloc_lbuf("see_omit");
                         tx = tell;
                         safe_str("[oemit] ",tell,&tx);
                         safe_str(result,tell,&tx);
-                        if ( noansi ) {
-                           noansi_notify_with_cause(target,player,tell);
-                        } else {
-                           notify_with_cause(target,player,tell);
+                        for (dcntrtmp = 0; dcntrtmp < dcntr; dcntrtmp++) {
+                           if ( Flags3(darray[dcntrtmp]) & SEE_OEMIT ) {
+                              if ( noansi ) {
+                                 noansi_notify_with_cause(darray[dcntrtmp],player,tell);
+                              } else {
+                                 notify_with_cause(darray[dcntrtmp],player,tell);
+                              }
+                           }
                         }
                         free_lbuf(tell);
+                     } else {
+                        if (Flags3(target) & SEE_OEMIT) {
+                           tell = alloc_lbuf("see_omit");
+                           tx = tell;
+                           safe_str("[oemit] ",tell,&tx);
+                           safe_str(result,tell,&tx);
+                           if ( noansi ) {
+                              noansi_notify_with_cause(target,player,tell);
+                           } else {
+                              notify_with_cause(target,player,tell);
+                           }
+                           free_lbuf(tell);
+                        }
                      }
                   }
                   break;
@@ -1877,10 +1948,10 @@ ZLISTNODE *z_ptr, *y_ptr;
                      tprp_buff = tpr_buff;
                      if ( pbuf && *pbuf )
                         notify_except(loc, player, target,
-                                      safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(target), pbuf, result));
+                                      safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(target), pbuf, result), 0);
                      else
                         notify_except(loc, player, target,
-                                      safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(target), result));
+                                      safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(target), result), 0);
                   }
                   free_lbuf(pbuf);
                   free_lbuf(tpr_buff);

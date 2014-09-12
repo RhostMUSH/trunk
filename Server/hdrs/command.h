@@ -31,7 +31,7 @@
 /* Command function handlers */
 CMD_ONE_ARG_CMDARG(do_apply_marked);	/* Apply command to marked objects */
 CMD_TWO_ARG(do_admin);			/* Change config parameters */
-CMD_ONE_ARG(do_aflags);
+CMD_TWO_ARG_CMDARG(do_aflags);
 CMD_TWO_ARG(do_alias);			/* Change the alias of something */
 CMD_TWO_ARG(do_areg);
 CMD_TWO_ARG(do_attribute);		/* Manage user-named attributes */
@@ -39,6 +39,7 @@ CMD_ONE_ARG(do_blacklist);		/* Load/Clear/List blacklist.txt file */
 CMD_ONE_ARG(do_boot);			/* Force-disconnect a player */
 CMD_TWO_ARG_CMDARG(do_break);
 CMD_TWO_ARG_CMDARG(do_assert);
+CMD_ONE_ARG(do_progreset);		/* Force reset of the program prompt */
 CMD_NO_ARG(do_buff_free);
 CMD_ONE_ARG(do_channel);
 CMD_NO_ARG(do_conncheck);
@@ -145,6 +146,7 @@ CMD_TWO_ARG_ARGV(do_quota);		/* Set or display quotas */
 CMD_NO_ARG(do_readcache);		/* Reread text file cache */
 CMD_NO_ARG(do_reboot);
 CMD_TWO_ARG(do_register);
+CMD_TWO_ARG_CMDARG(do_remote); /* Run commands at remote location */
 CMD_NO_ARG(do_rwho);			/* Open or close conn to rem RWHO */
 CMD_ONE_ARG(do_say);			/* Messages to all */
 CMD_NO_ARG(do_score);			/* Display my wealth */
@@ -158,7 +160,8 @@ CMD_TWO_ARG(do_setvattr);		/* Set variable attribute */
 CMD_TWO_ARG(do_setvattr_cluster);	/* Set variable attribute on cluster */
 CMD_ONE_ARG(do_shutdown);		/* Stop the game */
 CMD_TWO_ARG(do_site);
-CMD_TWO_ARG_CMDARG(do_skip);		/* @skip command if boolean true */
+//CMD_TWO_ARG_CMDARG(do_skip);		/* @skip command if boolean true */
+CMD_TWO_ARG_ARGV_CMDARG(do_skip);	/* @skip command if boolean true */
 CMD_TWO_ARG(do_snapshot);
 CMD_ONE_ARG(do_stats);			/* Display object type breakdown */
 CMD_TWO_ARG_CMDARG(do_sudo);		/* @sudo someone to do something */

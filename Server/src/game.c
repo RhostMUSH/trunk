@@ -40,6 +40,8 @@
 #include "rhost_ansi.h"
 #include "door.h"
 
+#include <math.h>
+
 extern void NDECL(init_attrtab);
 extern void NDECL(init_cmdtab);
 extern void NDECL(cf_init);
@@ -72,6 +74,9 @@ void NDECL(dump_database);
 void NDECL(pcache_sync);
 static void FDECL(dump_database_internal, (int));
 static void NDECL(init_rlimit);
+
+extern double FDECL(time_ng, (double*));
+extern int FDECL(alarm_msec, (double));
 
 int reserved;
 
@@ -134,6 +139,10 @@ do_dump(dbref player, dbref cause, int key, char *msg)
     char *ptr, prv_ptr;
     int i_valid;
 
+    if ( mudstate.forceusr2 ) {
+       notify(player, "In the middle of a SIGUSR2, unable to dump.");
+       return;
+    }
     DPUSH; /* #68 */
     i_valid = 1;
     prv_ptr = '\0';
@@ -798,7 +807,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	if ((key & MSG_ME) && pass_uselock && (sender != target) &&
 	    Monitor(target)) {
 	    (void) atr_match(target, sender,
-			     AMATCH_LISTEN, (char *) msg, 0, 0);
+			     AMATCH_LISTEN, (char *) msg, mudconf.listen_parents, 0);
 	}
 	/* Deliver message to forwardlist members */
 
@@ -913,7 +922,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
             }
         }
 
-        if ( LogRoom(target) ) {
+        if ( LogRoom(target) && ( isRoom(target) || (!isRoom(target) && (Location(sender) == target)) ) ) {
            s_logroom = alloc_mbuf("log_room");
            memset(s_logroom, '\0', MBUF_SIZE);
            ap_log = atr_str("LOGNAME");
@@ -1055,7 +1064,35 @@ notify_except_someone(dbref loc, dbref player, dbref exception, const char *msg,
 }
 
 void 
-notify_except(dbref loc, dbref player, dbref exception, const char *msg)
+notify_except_str(dbref loc, dbref player, dbref darray[LBUF_SIZE/2], int dcnt, const char *msg, int key)
+{
+    dbref first;
+    int i, exception;
+
+    DPUSH; /* #77 */
+
+    exception = 0;
+    if (loc != exception)
+       notify_check(loc, player, msg, 0, (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
+
+    DOLIST(first, Contents(loc)) {
+       exception = 0;
+       for ( i = 0; i < dcnt; i++) {
+          if ( first == darray[i] ) {
+             exception = 1;
+             break;
+          } 
+       }
+       if (!exception) {
+          notify_check(first, player, msg, 0, (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
+       }
+    }
+
+    VOIDRETURN; /* #77 */
+}
+
+void 
+notify_except(dbref loc, dbref player, dbref exception, const char *msg, int key)
 {
     dbref first;
 
@@ -1063,11 +1100,11 @@ notify_except(dbref loc, dbref player, dbref exception, const char *msg)
 
       if (loc != exception)
 	notify_check(loc, player, msg, 0,
-		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A), 0);
+		  (MSG_ME_ALL | MSG_F_UP | MSG_S_INSIDE | MSG_NBR_EXITS_A | key), 0);
       DOLIST(first, Contents(loc)) {
 	if (first != exception) {
 	    notify_check(first, player, msg, 0,
-			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE), 0);
+			 (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | key), 0);
 	}
       }
     VOIDRETURN; /* #77 */
@@ -1143,7 +1180,8 @@ do_reboot(dbref player, dbref cause, int key)
         return;
      }
   }
-  alarm(0);
+  alarm_msec(0);
+  mudstate.dumpstatechk=1;
   ignore_signals();
   port = mudconf.port;
   raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
@@ -1217,6 +1255,7 @@ do_shutdown(dbref player, dbref cause, int key, char *message)
 	
 	/* Stop handling signals. */
 	
+        mudstate.dumpstatechk=1;
 	ignore_signals();
 	
 	/* Close the attribute text db and dump the header db */
@@ -1276,6 +1315,9 @@ dump_database_internal(int panic_dump)
 		       mudconf.crashdb);
 	}
         reset_signals(); 	/* Resume normal signal handling. */
+        if ( mudstate.shutdown_flag ) {
+           do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+        }
 	VOIDRETURN; /* #82 */
     }
 
@@ -1297,6 +1339,9 @@ dump_database_internal(int panic_dump)
 			   "Renaming output file to DB file",
 			   tmpfile);
             reset_signals(); 	/* Resume normal signal handling. */
+            if ( mudstate.shutdown_flag ) {
+               do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+            }
 	    VOIDRETURN; /* #82 */
 	} else {
 	    log_perror("SAV", "FAIL", "Opening", tmpfile);
@@ -1324,6 +1369,10 @@ dump_database_internal(int panic_dump)
     local_dump(panic_dump);
 
     reset_signals(); 	/* Resume normal signal handling. */
+
+    if ( mudstate.shutdown_flag ) {
+       do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+    }
     
     VOIDRETURN; /* #82 */
 }
@@ -1333,6 +1382,7 @@ NDECL(dump_database)
 {
     char *buff;
 
+    mudstate.dumpstatechk=1;
     DPUSH; /* #83 */
 
     mudstate.epoch++;
@@ -1354,6 +1404,7 @@ NDECL(dump_database)
     log_text(buff);
     ENDLOG
     free_mbuf(buff);
+    mudstate.dumpstatechk=0;
     VOIDRETURN; /* #83 */
 }
 
@@ -1365,6 +1416,11 @@ fork_and_dump(int key, char *msg)
   char *flatfilename;
   FILE *f;
 
+  /* If we're in the middle of a kill -USR2 don't dump -- the shutdown will take care of it */
+  if ( mudstate.forceusr2 )
+     return;
+
+  mudstate.dumpstatechk=1;
   DPUSH; /* #84 */
   /* always sync up working files before dumping a flatfile database */
   if( key & DUMP_FLAT ) {
@@ -1463,6 +1519,10 @@ fork_and_dump(int key, char *msg)
       log_perror("DMP", "FORK", NULL, "fork()");
     }
   }
+  if ( mudstate.shutdown_flag ) {
+     do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+  }
+  mudstate.dumpstatechk=0;
 }
 
 
@@ -1613,8 +1673,8 @@ int
 Hearer(dbref thing)
 {
     char *as, *buff, *s;
-    dbref aowner;
-    int attr, aflags;
+    dbref aowner, parent;
+    int attr, aflags, lev;
     ATTR *ap;
 
     DPUSH; /* #88 */
@@ -1628,35 +1688,73 @@ Hearer(dbref thing)
     else
 	buff = NULL;
     atr_push();
-    for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
-	if (attr == A_LISTEN) {
-	    if (buff)
-		free_lbuf(buff);
-	    atr_pop();
-	    RETURN(1); /* #88 */
-	}
-	if (Monitor(thing)) {
-	    ap = atr_num(attr);
-	    if (!ap || (ap->flags & AF_NOPROG))
-		continue;
+    if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
+       for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
+	   if (attr == A_LISTEN) {
+	       if (buff)
+		   free_lbuf(buff);
+	       atr_pop();
+	       RETURN(1); /* #88 */
+	   }
+	   if (Monitor(thing)) {
+	       ap = atr_num(attr);
+	       if (!ap || (ap->flags & AF_NOPROG))
+		   continue;
+   
+	       atr_get_str(buff, thing, attr, &aowner, &aflags);
+   
+	       /* Make sure we can execute it */
+   
+	       if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+		   continue;
+   
+	       /* Make sure there's a : in it */
+   
+               for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
+            /* for (s = buff + 1; *s && (*s != ':'); s++); */
+	       if (s) {
+		   free_lbuf(buff);
+		   atr_pop();
+		   RETURN(1); /* #88 */
+	       }
+	   }
+       }
+    } else {
+       ITER_PARENTS(thing, parent, lev) {
+          for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+	      if ((thing == parent) && (attr == A_LISTEN)) {
+	          if (buff)
+		      free_lbuf(buff);
+	          atr_pop();
+	          RETURN(1); /* #88 */
+	      }
+	      if (Monitor(thing)) {
+	          ap = atr_num(attr);
+	          if (!ap || (ap->flags & AF_NOPROG))
+		      continue;
+      
+	          atr_get_str(buff, parent, attr, &aowner, &aflags);
+      
+	          /* Make sure we can execute it */
 
-	    atr_get_str(buff, thing, attr, &aowner, &aflags);
-
-	    /* Make sure we can execute it */
-
-	    if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
-		continue;
-
-	    /* Make sure there's a : in it */
-
-            for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
-/*	    for (s = buff + 1; *s && (*s != ':'); s++); */
-	    if (s) {
-		free_lbuf(buff);
-		atr_pop();
-		RETURN(1); /* #88 */
-	    }
-	}
+                  if ( (thing != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                      continue;
+      
+	          if ((buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+		      continue;
+      
+	          /* Make sure there's a : in it */
+      
+                  for (s = buff + 1; *s && (*s != ':' || (*(s-1) == '\\' && *(s-2) != '\\')); s++);
+               /* for (s = buff + 1; *s && (*s != ':'); s++); */
+	          if (s) {
+		      free_lbuf(buff);
+		      atr_pop();
+		      RETURN(1); /* #88 */
+	          }
+	      }
+          }
+       }
     }
     if (buff)
 	free_lbuf(buff);
@@ -2009,7 +2107,9 @@ main(int argc, char *argv[])
     hashreset(&mudstate.error_htab);
     nhashreset(&mudstate.desc_htab);
 
-    mudstate.now = time(NULL);
+    mudstate.nowmsec = time_ng(NULL);
+    mudstate.now = (time_t) floor(mudstate.nowmsec);
+    mudstate.lastnowmsec = mudstate.nowmsec;
     mudstate.lastnow = mudstate.now;
     mudstate.evalnum = 0;
     mudstate.guest_num = 0;
@@ -2029,7 +2129,9 @@ main(int argc, char *argv[])
 
     /* go do it */
 
-    mudstate.now = time(NULL);
+    mudstate.nowmsec = time_ng(NULL);
+    mudstate.now = (time_t) floor(mudstate.nowmsec);
+    mudstate.lastnowmsec = mudstate.nowmsec;
     mudstate.lastnow = mudstate.now;
     init_timer();
 
@@ -2041,7 +2143,7 @@ main(int argc, char *argv[])
     }
     local_startup();
     /* --- main mush loop --- */
-    shovechars(mudconf.port);
+    shovechars(mudconf.port, mudconf.ip_address);
     /* --- end main mush loop --- */
     local_shutdown();
     rebooting = mudstate.reboot_flag;

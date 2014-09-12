@@ -166,6 +166,14 @@
 
 #define ANSIEX(x)	(No_Ansi_Ex(player) ? "" : (x))
 
+#ifndef TINY_SUB
+  #ifndef C_SUB
+    #ifndef M_SUB
+      #define C_SUB
+    #endif
+  #endif
+#endif
+
 #ifdef ZENTY_ANSI
 #ifdef TINY_SUB
 /* Begin %x subs */
@@ -205,9 +213,16 @@
 #define SAFE_ANSI_BMAGENTA	"%xM"
 #define SAFE_ANSI_BCYAN	"%xC"
 #define SAFE_ANSI_BWHITE	"%xW"
-#else
+
+/* End of %x subs */
+#endif
+
+#ifdef C_SUB
 /* Begin %c subs */
-#define SAFE_CHR	'c'
+#ifdef SAFE_CHR
+#define SAFE_CHR2	'c'
+#else
+#define SAFE_CHR 'c'
 #define SAFE_CHRST	"%c"
 #define SAFE_ANSI_NORMAL  "%cn"
 
@@ -243,9 +258,61 @@
 #define SAFE_ANSI_BMAGENTA	"%cM"
 #define SAFE_ANSI_BCYAN	"%cC"
 #define SAFE_ANSI_BWHITE	"%cW"
+#endif
 
 /* End of %c subs */
 #endif
+
+#ifdef M_SUB
+/* Begin %m subs */
+#ifdef SAFE_CHR
+  #ifdef SAFE_CHR2
+    #define SAFE_CHR3	'm'
+  #else
+    #define SAFE_CHR2 'm'
+  #endif
+#else
+#define SAFE_CHR 'm'
+#define SAFE_CHRST	"%m"
+#define SAFE_ANSI_NORMAL  "%mn"
+
+#define SAFE_ANSI_HILITE   "%mh"
+#define SAFE_ANSI_INVERSE  "%mi"
+#define SAFE_ANSI_BLINK    "%mf"
+#define SAFE_ANSI_UNDERSCORE "%mu"
+
+
+//#define SAFE_ANSI_INV_BLINK         "%c"
+//#define SAFE_ANSI_INV_HILITE        "%c"
+//#define SAFE_ANSI_BLINK_HILITE      "%c"
+//#define SAFE_ANSI_INV_BLINK_HILITE  "%c"
+
+/* Foreground colors */
+
+#define SAFE_ANSI_BLACK	"%mx"
+#define SAFE_ANSI_RED	"%mr"
+#define SAFE_ANSI_GREEN	"%mg"
+#define SAFE_ANSI_YELLOW	"%my"
+#define SAFE_ANSI_BLUE	"%mb"
+#define SAFE_ANSI_MAGENTA	"%mm"
+#define SAFE_ANSI_CYAN	"%mc"
+#define SAFE_ANSI_WHITE	"%mw"
+
+/* Background colors */
+
+#define SAFE_ANSI_BBLACK	"%mX"
+#define SAFE_ANSI_BRED	"%mR"
+#define SAFE_ANSI_BGREEN	"%mG"
+#define SAFE_ANSI_BYELLOW	"%mY"
+#define SAFE_ANSI_BBLUE	"%mB"
+#define SAFE_ANSI_BMAGENTA	"%mM"
+#define SAFE_ANSI_BCYAN	"%mC"
+#define SAFE_ANSI_BWHITE	"%mW"
+
+#endif
+/* End of %m subs */
+#endif
+
 
 #ifdef INCLUDE_ASCII_TABLE
 // Is the %c/%x code ansi?
@@ -258,7 +325,7 @@ static char isAnsi[256] =
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, // 3
     0, 0, 1, 1, 0, 0, 0, 1,  0, 0, 0, 0, 0, 1, 0, 0, // 4
     0, 0, 1, 0, 0, 0, 0, 1,  1, 1, 0, 0, 0, 0, 0, 0, // 5
-    0, 0, 1, 1, 0, 0, 1, 1,  1, 0, 0, 0, 0, 1, 1, 0, // 6
+    0, 0, 1, 1, 0, 0, 1, 1,  1, 1, 0, 0, 0, 1, 1, 0, // 6
     0, 0, 1, 0, 0, 1, 0, 1,  1, 1, 0, 0, 0, 0, 0, 0, // 7
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, // 8
     0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, // 9
@@ -271,6 +338,27 @@ static char isAnsi[256] =
 };
 #endif
 
-
+#else
+#ifdef TINY_SUB
+#define SAFE_CHR	'x'
+#endif
+#ifdef C_SUB
+  #ifdef SAFE_CHR
+    #define SAFE_CHR2	'c'
+  #else
+    #define SAFE_CHR	'c'
+  #endif
+#endif
+#ifdef M_SUB
+  #ifdef SAFE_CHR
+    #ifdef SAFE_CHR2
+      #define SAFE_CHR3	'm'
+    #else
+      #define SAFE_CHR2 'm'
+    #endif
+  #else
+    #define SAFE_CHR 'm'
+  #endif
+#endif
 #endif
 #endif

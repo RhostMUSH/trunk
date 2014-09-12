@@ -47,6 +47,8 @@ void bzero(void *, int);
 #include "debug.h"
 #define FILENUM BSD_C
 
+#include <math.h>
+
 #ifdef TLI
 #include <sys/stream.h>
 #include <sys/tiuser.h>
@@ -65,6 +67,7 @@ extern char *t_errlist[];
 #endif
 
 extern void NDECL(dispatch);
+void NDECL(pcache_sync);
 
 static int sock;
 int ndescriptors = 0;
@@ -80,9 +83,12 @@ extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, i
 extern int FDECL(lookup, (char *, char *));
 extern CF_HAND(cf_site);
 extern int NDECL(next_timer);
+
+extern int FDECL(alarm_msec, (double));
+
 int signal_depth;
 
-int make_socket(int port)
+int make_socket(int port, char* address)
 {
     int s, opt;
     FILE *f_fptr;
@@ -124,7 +130,10 @@ int make_socket(int port)
     }
     serverreq = (struct sockaddr_in *) bindreq->addr.buf;
     serverreq->sin_family = AF_INET;
-    serverreq->sin_addr.s_addr = INADDR_ANY;
+    if(inet_addr((const char*)address) != -1)
+        serverreq->sin_addr.s_addr = inet_addr((const char*)address);
+    else
+        serverreq->sin_addr.s_addr = INADDR_ANY;
     serverreq->sin_port = htons(port);
     bindreq->addr.len = sizeof(struct sockaddr_in);
     bindret->addr.maxlen = sizeof(struct sockaddr_in);
@@ -151,7 +160,10 @@ int make_socket(int port)
 	log_perror("NET", "FAIL", NULL, "setsockopt");
     }
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
+    if(inet_addr((const char*)address) != -1)
+        server.sin_addr.s_addr = inet_addr((const char*)address);
+    else
+        server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
 	log_perror("NET", "FAIL", NULL, "bind");
@@ -182,7 +194,7 @@ int maxd;
 
 
 void 
-shovechars(int port)
+shovechars(int port,char* address)
 {
     fd_set input_set, output_set;
     struct timeval last_slice, current_time, next_slice, timeout, slice_timeout;
@@ -207,7 +219,7 @@ shovechars(int port)
 
     DPUSH; /* #2 */
     mudstate.debug_cmd = (char *) "< shovechars >";
-    sock = make_socket(port);
+    sock = make_socket(port, address);
     maxd = sock + 1;
     get_tod(&last_slice);
     flagkeep = i_oldlasttime = i_oldlastcnt = 0;
@@ -264,6 +276,7 @@ shovechars(int port)
          } else {
             queue_string(d, "Your @program was aborted from the @reboot.\r\n");
             s_Flags4(d->player, (Flags4(d->player) & (~INPROGRAM)));
+            queue_string(d, "\377\371");
             mudstate.shell_program = 0;
             atr_clr(d->player, A_PROGBUFFER);
             atr_clr(d->player, A_PROGPROMPTBUF);
@@ -311,8 +324,9 @@ shovechars(int port)
 
 	/* any queued robot commands waiting? */
 
-	timeout.tv_sec = que_next();
-	timeout.tv_usec = 0;
+  double next = roundf(que_next() * 10) / 10;
+	timeout.tv_sec = floor(next);
+	timeout.tv_usec = floor(1000000 * fmod(next,1.0)); ;
 	next_slice = msec_add(last_slice, mudconf.timeslice);
 	slice_timeout = timeval_sub(next_slice, current_time);
 
@@ -1227,7 +1241,7 @@ start_auth(DESC * d)
       free_lbuf(logbuff);
     ENDLOG
 
-    alarm(3);
+    alarm_msec(3);
 
     if( connect(d->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
@@ -1253,7 +1267,7 @@ start_auth(DESC * d)
     /* recalibrate the mush timers */
 
     mudstate.alarm_triggered = 0;
-    alarm(next_timer());
+    alarm_msec(next_timer());
 
     d->flags |= DS_AUTH_CONNECTING;
     DPOP; /* #8 */
@@ -1585,19 +1599,19 @@ process_output(DESC * d)
     RETURN(1); /* #12 */
 }
 
-
 int 
 process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost;
-    char *p, *pend, *q, *qend;
+    char *p, *pend, *q, *qend, qfind[8], *qf;
     char *cmdsave;
 
     DPUSH; /* #16 */
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_input >";
 
+    memset(qfind, '\0', sizeof(qfind));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
 	mudstate.debug_cmd = cmdsave;
@@ -1632,8 +1646,16 @@ process_input(DESC * d)
 		p--;
 	    if (p < d->raw_input_at)
 		(d->raw_input_at)--;
-	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
+  	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
+        } else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 250) && ((p+10) < pend) ) {
+            sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
+            qf = qfind;
+            in+=5;
+            got+=5;
+            while ( *qf ) {
+               *p++ = *qf++;
+            }
 	} else {
 	    in--;
 	    if (p >= pend)
@@ -1784,8 +1806,10 @@ void ignore_signals(){
      return;
 
   signal_depth = signal_depth + 1; /* Increase our 'signal unset level' */
-  for (i = 0; i < NSIG; i++)
-      signal(i, SIG_IGN);
+  for (i = 0; i < NSIG; i++) {
+      if ( i != SIGUSR2 )
+         signal(i, SIG_IGN);
+  }
 }
 
 /* Called to reset signal handling after db operations. */
@@ -1799,9 +1823,9 @@ void reset_signals(){
 									 									*/
 	if(signal_depth == 0) 
 		set_signals();
-        /* If signals were ignored, the alarm() will have been as well */
+        /* If signals were ignored, the alarm_msec() will have been as well */
         mudstate.alarm_triggered = 0;
-        alarm (next_timer());
+        alarm_msec (next_timer());
 }
 
 static void 
@@ -2043,7 +2067,7 @@ sighandler(int sig)
                 }
              }
           }
-          alarm(0); 
+          alarm_msec(0); 
           ignore_signals();
           raw_broadcast(0, 0, "Game: Restarting due to signal SIGUSR1.");
           raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected.");
@@ -2064,14 +2088,22 @@ sighandler(int sig)
 	log_signal(signames[sig], sig);
 	break;
     case SIGUSR2:		/* Perform clean shutdown. */
+        mudstate.forceusr2 = 1;
         log_signal(signames[sig], sig);
         raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGUSR2!");
         sprintf(buff, "Caught signal %s", signames[sig]);
         STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
            log_text((char*) "Shutting down due to signal SIGUSR2.");
+           if ( mudstate.dumpstatechk ) {
+              log_text((char *)"  Waiting for dump to finish.  Passively triggering shutdown.");
+              mudstate.shutdown_flag = 1;
+           }
         ENDLOG
-        do_shutdown(NOTHING, NOTHING, 0, buff);
-        mudstate.shutdown_flag = 1;
+        if ( !mudstate.shutdown_flag ) {
+           mudstate.forceusr2 = 0;
+           do_shutdown(NOTHING, NOTHING, 0, buff);
+           mudstate.shutdown_flag = 1;
+        }
         break;
     case SIGTERM:		/* Attempt flatfile dump before shutdown. */
         log_signal(signames[sig], sig);
@@ -2110,6 +2142,10 @@ sighandler(int sig)
         ENDLOG
         raw_broadcast(0, 0, "Game: Emergency dump complete, exiting...");
         DPOP;
+        /* QDBM was giving some weird-ass corruption, this should hopefully fix it */
+        pcache_sync();
+        SYNC;
+        CLOSE;
         exit(1); /* Brutal. But daddy said I had to go to bed now. */
         break; 
     case SIGQUIT:		/* Normal shutdown */

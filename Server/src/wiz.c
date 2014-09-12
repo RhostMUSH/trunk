@@ -367,6 +367,35 @@ dbref	victim;
 }
 
 /* ---------------------------------------------------------------------------
+ * do_remote: Run a command from a different location.
+ */
+
+void do_remote(dbref player, dbref cause, int key, char *loc,
+    char *command, char *args[], int nargs)
+{
+dbref target;
+char *retbuff;
+
+   if ( !command || !*command ) {
+      return;
+   }
+   if ( !loc || !*loc ) {
+      target = NOTHING;
+   } else {
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, loc, NULL, 0);
+      target = match_thing(player, retbuff);
+      free_lbuf(retbuff);
+   }
+
+  if(!Good_obj(target) ||Recover(target) || Going(target) || !Controls(player,target)) {
+    notify(player,"Permission denied.");
+  }
+  mudstate.remote = target;
+  process_command(player, player, 0, command, args, nargs, 0);
+  mudstate.remote = -1;
+}
+
+/* ---------------------------------------------------------------------------
  * do_turtle: Turn a player into an object with specified name.
  */
 
@@ -374,7 +403,7 @@ void do_turtle(dbref player, dbref cause, int key, char *turtle, char *newowner)
 {
 dbref	victim, recipient, loc, aowner, aowner2, newplayer;
 char	*buf, *s_retval, *s_retplayer, *s_retvalbuff, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf;
-int	count, aflags, aflags2, i, i_array[4];
+int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 
 	init_match(player, turtle, TYPE_PLAYER);
 	match_neighbor();
@@ -406,9 +435,9 @@ int	count, aflags, aflags2, i, i_array[4];
            s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
-              i_array[1] = i_array[3] = -2;
+              i_array[4] = i_array[1] = i_array[3] = -2;
               for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                   s_buffptr && (i < 4);
+                   s_buffptr && (i < LIMIT_MAX);
                    s_buffptr = (char *) strtok(NULL, " "), i++) {
                   i_array[i] = atoi(s_buffptr);
               }
@@ -428,12 +457,12 @@ int	count, aflags, aflags2, i, i_array[4];
                  }
               }
               s_mbuf = alloc_mbuf("vattr_check");
-              sprintf(s_mbuf, "%d %d %d %d", i_array[0], i_array[1],
-                                             i_array[2]+1, i_array[3]);
+              sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
+                                             i_array[2]+1, i_array[3], i_array[4]);
               atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2");
+              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }
@@ -549,7 +578,7 @@ void do_toad(dbref player, dbref cause, int key, char *toad, char *newowner)
 {
 dbref	victim, recipient, loc, aowner, aowner2, newplayer;
 char	*buf, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf;
-int	count, aflags, i, i_array[4], aflags2;
+int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 
 	init_match(player, toad, TYPE_PLAYER);
 	match_neighbor();
@@ -592,9 +621,9 @@ int	count, aflags, i, i_array[4], aflags2;
            s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
-              i_array[1] = i_array[3] = -2;
+              i_array[4] = i_array[1] = i_array[3] = -2;
               for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
-                   s_buffptr && (i < 4);
+                   s_buffptr && (i < LIMIT_MAX);
                    s_buffptr = (char *) strtok(NULL, " "), i++) {
                   i_array[i] = atoi(s_buffptr);
               }
@@ -614,12 +643,12 @@ int	count, aflags, i, i_array[4], aflags2;
                  }
               }
               s_mbuf = alloc_mbuf("vattr_check");
-              sprintf(s_mbuf, "%d %d %d %d", i_array[0], i_array[1],
-                                             i_array[2]+1, i_array[3]);
+              sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
+                                             i_array[2]+1, i_array[3], i_array[4]);
               atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2");
+              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }
@@ -2253,6 +2282,8 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "No files found in image directory %s.", mudconf.image_dir));
             }
             while(i_dirnums--) {
+               if ( *buff1 && !quick_wild(buff1, namelist[i_dirnums]->d_name) )
+                  continue;
                tprp_buff = tpr_buff;
                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s",
                                            namelist[i_dirnums]->d_name));

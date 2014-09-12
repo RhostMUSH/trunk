@@ -20,6 +20,8 @@
 
 extern int NDECL(next_timer);
 
+extern int FDECL(alarm_msec, (double));
+
 static int check_type;
 
 #ifdef STANDALONE
@@ -2068,7 +2070,7 @@ do_dbck(dbref player, dbref cause, int key)
     check_floating();
 #ifndef STANDALONE
     if (player != NOTHING) {
-	alarm(next_timer());
+	alarm_msec(next_timer());
 	if (!Quiet(player))
 	    notify(player, "Done.");
     }

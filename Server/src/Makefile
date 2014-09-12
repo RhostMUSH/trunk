@@ -9,12 +9,17 @@ srcdir = .
 bindir = ../bin
 incdir = ../hdrs
 
-CC = gcc
+ERR = $(shell which gcc >/dev/null; echo $$?)
+ifeq "$(ERR)" "0"
+   CC = gcc
+else
+   CC = cc
+endif
 # CPP = gcc -E	# This is broken in autoconf.  Sigh.
 CPP = $(CC) -E
 # Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.
 # If using CYGWIN, comment out the whole line.
-LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm -lssl
+LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm 
 #LIBS = -L./qdbm/ -lqdbm
 LIBOBJS = 
 # for compiling on lowmem systems use this
@@ -151,7 +156,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # SYS_MALLOC - Used if malloc.h is in a borked spot.
 ###########################################################################################################
 
-DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL
+DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL 
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).
@@ -226,18 +231,18 @@ DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -D
 #
 # #5 - This is for cygwin using the cgyipc library.
 ################################################################  #1
-#MORELIBS  = -lm
+#MORELIBS  = -lm -lrt
 ################################################################  #2
-#MORELIBS = -lm -lnsl -lresolv -lcrypt 
+#MORELIBS = -lm -lrt -lnsl -lresolv -lcrypt 
 #-L/usr/lib -lc -lm
 ################################################################  #3
-#MORELIBS  = -lm -lnsl -lsocket -L/usr/ucblib -lucb
+#MORELIBS  = -lm -lrt -lnsl -lsocket -L/usr/ucblib -lucb
 ################################################################  #4
-#MORELIBS  = -lresolv -lsocket -lnsl -lm
+#MORELIBS  = -lresolv -lsocket -lnsl -lm -lrt
 ################################################################  #5
-#MORELIBS  = -lm -L/usr/local/lib -lcygipc
+#MORELIBS  = -lm -lrt -L/usr/local/lib -lcygipc
 
-MORELIBS = -lm -lnsl -lresolv -lcrypt 
+MORELIBS = -lm -lrt -lnsl -lresolv -lcrypt -lssl
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much

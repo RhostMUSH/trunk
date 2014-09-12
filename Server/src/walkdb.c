@@ -43,70 +43,161 @@ char	*command;		/* allocated by replace_string  */
 void do_dolist (dbref player, dbref cause, int key, char *list, 
 		char *command, char *cargs[], int ncargs)
 {
-  char	*tbuf, *curr, *objstring, *buff2, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff;
-  int x, cntr, pid_val;
+   char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
+        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr;
+   time_t i_now;
+   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak;
 
-        pid_val = 0;
-        if ( (key & DOLIST_PID) && (key & DOLIST_NOTIFY) ) {
-           notify(player, "Illegal combination of switches.");
-           return;
-        }
+   pid_val = 0;
+   i_storebreak = mudstate.breakst;
 
-	if (!list || *list == '\0') {
-		notify (player,
-			"That's terrific, but what should I do with the list?");
-		return;
-	}
+   if ( ((key & DOLIST_PID) && (key & DOLIST_NOTIFY)) ||
+        (((key & DOLIST_CLEARREG) || (key & DOLIST_NOBREAK) || (key & DOLIST_LOCALIZE)) && !(key & DOLIST_INLINE)) ) {
+      notify(player, "Illegal combination of switches.");
+      return;
+   }
 
-	curr = list;
-        tempstr = NULL;
+   if (!list || *list == '\0') {
+      notify (player, "That's terrific, but what should I do with the list?");
+      return;
+   }
 
-        if( key & DOLIST_DELIMIT ) {
-		if(strlen(( tempstr = parse_to(&curr, ' ', EV_STRIP))) > 1) {
-			notify (player, "The delimiter must be a single character!");
-			return;
-		}
+   i_localize = i_clearreg = i_nobreak = i_inline = 0;
+   if ( key & DOLIST_LOCALIZE ) {
+      key &= ~DOLIST_LOCALIZE;
+      i_localize = 1;
+   }
+   if ( key & DOLIST_CLEARREG ) {
+      key &= ~DOLIST_CLEARREG;
+      i_clearreg = 1;
+   }
+   if ( key & DOLIST_NOBREAK ) {
+      key &= ~DOLIST_NOBREAK;
+      i_nobreak = 1;
+   }
+   if ( key & DOLIST_INLINE ) {
+      key &= ~DOLIST_INLINE;
+      i_inline = 1;
+   }
+   curr = list;
+   tempstr = NULL;
 
-		delimiter = *tempstr;
-	}
+   if( key & DOLIST_DELIMIT ) {
+      if(strlen(( tempstr = parse_to(&curr, ' ', EV_STRIP))) > 1) {
+         notify (player, "The delimiter must be a single character!");
+         return;
+      }
 
-        if (key & DOLIST_PID ) {
-           tempstr = parse_to(&curr, ' ', EV_STRIP);
-           pid_val = atoi(tempstr);
-        }
+      delimiter = *tempstr;
+   }
 
-	x = 0;
-        cntr=1;
-        tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
-	while (curr && *curr) {
-		if ((x % 25) == 0)
-			cache_reset(0);
-		x++;
-		while (*curr==delimiter) curr++;
-		if (*curr) {
-			objstring = parse_to(&curr, delimiter, EV_STRIP);
-                        tprp_buff = tpr_buff;
-			buff2 = replace_string(NUMERIC_VAR, safe_tprintf(tpr_buff, &tprp_buff, "%d", cntr), command, 0);
-			bind_and_queue (player, cause, buff2, objstring,
-				cargs, ncargs);
-			free_lbuf(buff2);
-		}
-                cntr++;
-	}
-        free_lbuf(tpr_buff);
-        if (key & (DOLIST_NOTIFY|DOLIST_PID)) {
-            tbuf = alloc_lbuf("dolist.notify_cmd");
-            if ( key & DOLIST_PID ) {
-               strcpy(tbuf, unsafe_tprintf("@notify/pid me=%d", pid_val));
-            } else {
-               strcpy(tbuf, (char *) "@notify me");
+   if (key & DOLIST_PID ) {
+      tempstr = parse_to(&curr, ' ', EV_STRIP);
+      pid_val = atoi(tempstr);
+   }
+
+   x = 0;
+   cntr=1;
+   tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
+   if ( i_clearreg || i_localize ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         savereg[x] = alloc_lbuf("ulocal_reg");
+      }
+   }
+   while (curr && *curr) {
+      if ((x % 25) == 0)
+         cache_reset(0);
+      x++;
+      while (*curr==delimiter) 
+         curr++;
+      if (*curr) {
+         objstring = parse_to(&curr, delimiter, EV_STRIP);
+         tprp_buff = tpr_buff;
+         buff2 = replace_string(NUMERIC_VAR, safe_tprintf(tpr_buff, &tprp_buff, "%d", cntr), command, 0);
+         if ( i_inline ) {
+            if ( (mudstate.dolistnest >= 0) && (mudstate.dolistnest < 50) ) {
+               if ( !mudstate.dol_arr[mudstate.dolistnest] )
+                  mudstate.dol_arr[mudstate.dolistnest] = alloc_lbuf("dolist_nesting");
+               dbfr = mudstate.dol_arr[mudstate.dolistnest];
+               safe_str(objstring, mudstate.dol_arr[mudstate.dolistnest], &dbfr);
+               mudstate.dol_inumarr[mudstate.dolistnest] = cntr;
             }
-            wait_que(player, cause, 0, NOTHING, tbuf, cargs, ncargs,
-                     mudstate.global_regs, mudstate.global_regsname);
-            free_lbuf(tbuf);
-        }
-        if ( cntr == 1 )
-            notify (player, "That's terrific, but what should I do with the list?");
+            mudstate.dolistnest++;
+            buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
+            buff3ptr = strtok_r(buff3, ";", &buff3tok);
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  *savereg[x] = '\0';
+                  pt = savereg[x];
+                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                  if ( i_clearreg ) {
+                     *mudstate.global_regs[x] = '\0';
+                  }
+               }
+            }
+            i_now = mudstate.now;
+            while ( !mudstate.breakdolist && buff3ptr && !mudstate.breakst ) {
+               process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
+               if ( time(NULL) > (i_now + 3) ) {
+                   if ( !mudstate.breakdolist ) {
+                      notify(player, unsafe_tprintf("@dolist/inline:  Aborted for high utilization [nest level %d].", mudstate.dolistnest));
+                   }
+                   i_nobreak=0;
+                   mudstate.breakdolist=1;
+                   break;
+               }
+               buff3ptr = strtok_r(NULL, ";", &buff3tok);
+            }
+            if ( i_clearreg || i_localize ) {
+               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  pt = mudstate.global_regs[x];
+                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                  *savereg[x] = '\0';
+               }
+            }
+            free_lbuf(buff3);
+            if ( i_nobreak ) {
+               mudstate.breakst = i_storebreak;
+            }
+            mudstate.dolistnest--;
+            if ( mudstate.dolistnest >= 0 ) {
+               free_lbuf(mudstate.dol_arr[mudstate.dolistnest]);
+               mudstate.dol_arr[mudstate.dolistnest] = NULL;
+            }
+         } else {
+            bind_and_queue (player, cause, buff2, objstring, cargs, ncargs);
+         }
+         free_lbuf(buff2);
+      }
+      cntr++;
+   }
+   if ( i_inline ) {
+      if ( desc_in_use != NULL ) {
+         mudstate.breakst = i_storebreak;
+      }
+   }
+   if ( i_clearreg || i_localize ) {
+      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         free_lbuf(savereg[x]);
+      }
+   }
+   free_lbuf(tpr_buff);
+   if (key & (DOLIST_NOTIFY|DOLIST_PID)) {
+      tbuf = alloc_lbuf("dolist.notify_cmd");
+      if ( key & DOLIST_PID ) {
+         strcpy(tbuf, unsafe_tprintf("@notify/pid me=%d", pid_val));
+      } else {
+         strcpy(tbuf, (char *) "@notify me");
+      }
+      wait_que(player, cause, 0, NOTHING, tbuf, cargs, ncargs,
+               mudstate.global_regs, mudstate.global_regsname);
+      free_lbuf(tbuf);
+   }
+   if ( cntr == 1 )
+      notify (player, "That's terrific, but what should I do with the list?");
+   if ( (mudstate.dolistnest == 0) && mudstate.breakdolist ) {
+      mudstate.chkcpu_toggle = 1;
+   }
 }
 
 /* Regular @find command */

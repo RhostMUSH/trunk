@@ -41,6 +41,7 @@ CONFDATA mudconf;
 STATEDATA mudstate;
 
 #ifndef STANDALONE
+extern int FDECL(pstricmp, (char *, char *, int));
 extern NAMETAB logdata_nametab[];
 extern NAMETAB logoptions_nametab[];
 extern NAMETAB access_nametab[];
@@ -53,6 +54,8 @@ extern int	FDECL(flagstuff_internal, (char *, char *));
 /* Lensy: Not external, but a forward declaration is needed */
 CF_HAND(cf_dynstring);
 #endif
+
+extern double FDECL(time_ng, (double*));
 
 
 /* ---------------------------------------------------------------------------
@@ -80,6 +83,7 @@ NDECL(cf_init)
     strcpy(mudconf.compress, "/usr/ucb/compress");
     strcpy(mudconf.uncompress, "/usr/ucb/zcat -c");
     strcpy(mudconf.status_file, "shutdown.status");
+	strcpy(mudconf.ip_address, "0.0.0.0");
     mudconf.port = 6250;
     mudconf.html_port = 6251;
     mudconf.debug_id = 44660;
@@ -268,10 +272,22 @@ NDECL(cf_init)
     mudconf.map_delim_space = 1;      /* output delim is input delim by default */
     mudconf.includenest = 3;		/* Default nesting of @include */
     mudconf.includecnt = 10;		/* Maximum count of @includes per command session */
+    mudconf.lfunction_max = 20;		/* Maximum lfunctions allowed per user */
+    mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
+    mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
+    mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
+    mudconf.listen_parents = 0;		/* ^listens do parents */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
+    memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
+    mudstate.dumpstatechk = 0;		/* State of the dump state */
+    mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
+    mudstate.breakst = 0;
+    mudstate.breakdolist = 0;
+    mudstate.dolistnest = 0;
+    mudstate.twinknum = -1;		/* Dbref of originator if inside a twinklock */
     mudstate.start_of_cmds = 0;		/* hack around zenty ansi parsing */
     mudstate.notrace = 0;		/* Do not trace */
     mudstate.nocodeoverride = 0;	/* Override nocode */
@@ -306,7 +322,7 @@ NDECL(cf_init)
     mudstate.chkcpu_locktog = 0;
     mudstate.sidefx_currcalls = 0; /* Counter for sideeffects called */
     mudstate.curr_percentsubs = 0; /* Counter for substitutions called */
-    mudstate.cntr_reset = time(NULL);
+    mudstate.cntr_reset = time_ng(NULL);
     mudstate.tog_percentsubs = 0; /* Toggle disabler */
     mudstate.cntr_percentsubs = 0; /* Counter of 3, and then you die */
     mudstate.sidefx_toggle = 0; /* Toggle to show sidefx ceiling reached */
@@ -579,6 +595,7 @@ NDECL(cf_init)
     mudconf.def_exit_tx = 1;
     mudconf.def_thing_rx = 1;
     mudconf.def_thing_tx = 1;
+    mudconf.reality_compare = 0;	/* Change how descs are displayed */
 #endif /* REALITY_LEVELS */
 #ifdef SQLITE
     mudconf.sqlite_query_limit = 5;
@@ -672,6 +689,7 @@ NDECL(cf_init)
 	mudstate.global_regs[i] = NULL;
 	mudstate.global_regsname[i] = NULL;
     }
+    mudstate.remote = -1;
 #ifdef EXPANDED_QREGS
     strcpy(mudstate.nameofqreg, "0123456789abcdefghijklmnopqrstuvwxyz");
     mudstate.nameofqreg[36]='\0';
@@ -724,6 +742,7 @@ NDECL(cf_init)
     mudstate.db_size = 0;
     mudstate.freelist = NOTHING;
     mudstate.markbits = NULL;
+    mudstate.remote = -1;
 #endif /* STANDALONE */
 }
 
@@ -844,7 +863,7 @@ CF_HAND(cf_rlevel)
 {
     CONFDATA *mc = (CONFDATA *)vp;
     int i, j, k, cmp_x, cmp_y, cmp_z;
-    char dup1[9], dup2[9], *nptr, tbufit[20];
+    char dup1[17], dup2[17], *nptr, tbufit[20];
 
     cmp_z = countwordsnew(str);
     if ( (cmp_z < 2) || (cmp_z > 3) ) {
@@ -864,8 +883,8 @@ CF_HAND(cf_rlevel)
         return 1;
     }
 
-    for(i=0; *str && ((*str != ' ') && (*str != '\t')) && (i < 8); ++str) {
-        if(i < 8) {
+    for(i=0; *str && ((*str != ' ') && (*str != '\t')) && (i < 16); ++str) {
+        if(i < 16) {
             dup1[i] = tolower(*str);
             mc->reality_level[mc->no_levels].name[i++] = *str;
         }
@@ -896,7 +915,7 @@ CF_HAND(cf_rlevel)
       }
     }
 
-    /* If name is over 8 chars, trim off the rest */
+    /* If name is over 16 chars, trim off the rest */
     if ( *str && ((*str != ' ') && (*str != '\t')) )
        for(; *str && ((*str != ' ') && (*str != '\t')); ++str);
 
@@ -1413,7 +1432,8 @@ CF_HAND(cf_dynstring)
 
    chkval = retval = addval = 0;
    if ( strcmp( str, "!ALL" ) == 0 ) {
-      notify(player, "Entry purged.");
+      if ( Good_obj(player) )
+         notify(player, "Entry purged.");
       strcpy((char *) vp, "");
       chkval = 1;
    } else {
@@ -1482,14 +1502,18 @@ CF_HAND(cf_dynstring)
       free_lbuf(abuf1);
       free_lbuf(buff);
       if ( first != second ) {
-         if ( chkval && first )
-            notify(player, unsafe_tprintf("String exceeded maximum length.  %d removed, %d added, %d ignored.",
-                   chkval, first, second - first));
-         else if ( chkval )
-            notify(player, "String exceeded maximum length.");
-         else
-            notify(player, unsafe_tprintf("String exceeded maximum length.  %d added, %d ignored.",
+         if ( chkval && first ) {
+            if ( Good_obj(player) )
+               notify(player, unsafe_tprintf("String exceeded maximum length.  %d removed, %d added, %d ignored.",
+                      chkval, first, second - first));
+         } else if ( chkval ) {
+            if ( Good_obj(player) )
+               notify(player, "String exceeded maximum length.");
+         } else {
+            if ( Good_obj(player) )
+               notify(player, unsafe_tprintf("String exceeded maximum length.  %d added, %d ignored.",
                    first, second - first));
+         }
 	 STARTLOG(LOG_STARTUP, "CNF", "NFND")
             buff = alloc_lbuf("cf_string.LOG");
 	    sprintf(buff, "%s: String buffer exceeded - truncated", cmd);
@@ -1498,19 +1522,747 @@ CF_HAND(cf_dynstring)
 	 ENDLOG
          retval = 1;
       } else {
-         if ( !chkval && !addval )
-            notify(player, "Entry not changed.");
-         else
-            if ( chkval && first )
-               notify(player, unsafe_tprintf("Entry updated.  %d removed, %d added.", chkval, first));
-            else if ( chkval )
-               notify(player, unsafe_tprintf("Entry updated.  %d removed.", chkval));
-            else
-               notify(player, unsafe_tprintf("Entry updated.  %d added.", first));
+         if ( !chkval && !addval ) {
+            if ( Good_obj(player) )
+               notify(player, "Entry not changed.");
+         } else {
+            if ( chkval && first ) {
+               if ( Good_obj(player) )
+                  notify(player, unsafe_tprintf("Entry updated.  %d removed, %d added.", chkval, first));
+            } else if ( chkval ) {
+               if ( Good_obj(player) )
+                  notify(player, unsafe_tprintf("Entry updated.  %d removed.", chkval));
+            } else {
+               if ( Good_obj(player) )
+                  notify(player, unsafe_tprintf("Entry updated.  %d added.", first));
+            }
+         }
       }
    }
    if ( !chkval && !addval  )
       retval = -1;
+   return retval;
+}
+
+/* ---------------------------------------------------------------------------
+ * cf_attriblock
+ */
+ATRP *atrp_head = NULL;
+
+int
+attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
+{
+   ATRP *atrp;
+   dbref i_player;
+
+   i_player = player;
+   if ( Typeof(player) != TYPE_PLAYER )
+      i_player = Owner(player);
+
+   for (atrp = atrp_head; atrp; atrp = atrp->next) {
+      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
+           (((atrp->enactor == -1) || (atrp->enactor == i_player)) ||
+            ((atrp->enactor == -1) || (atrp->enactor == player))) &&
+           ((atrp->target == -1) || (atrp->target == target)) ) {
+         if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
+            if ( (God(player) && atrpGod(atrp->flag_see)) ||
+                 (Immortal(player) && atrpImm(atrp->flag_see)) ||
+                 (Wizard(player) && atrpWiz(atrp->flag_see)) ||
+                 (Admin(player) && atrpCounc(atrp->flag_see)) ||
+                 (Builder(player) && atrpArch(atrp->flag_see)) ||
+                 (Guildmaster(player) && atrpGuild(atrp->flag_see)) ||
+                  atrpCit(atrp->flag_see) ) {
+                 
+               return 1;
+            }
+            return 0;
+         }
+      }
+   }
+   return 1;
+}
+
+int
+attrib_canset(dbref player, const char *name, dbref owner, dbref target)
+{
+   ATRP *atrp;
+   dbref i_player;
+
+   i_player = player;
+   if ( Typeof(player) != TYPE_PLAYER )
+      i_player = Owner(player);
+
+   for (atrp = atrp_head; atrp; atrp = atrp->next) {
+      if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
+           (((atrp->enactor == -1) || (atrp->enactor == i_player)) ||
+            ((atrp->enactor == -1) || (atrp->enactor == player))) &&
+           ((atrp->target == -1) || (atrp->target == target)) ) {
+         if ( pstricmp((char *)name, atrp->name, strlen(atrp->name)) == 0 ) {
+            if ( (God(player) && atrpGod(atrp->flag_set)) ||
+                 (Immortal(player) && atrpImm(atrp->flag_set)) ||
+                 (Wizard(player) && atrpWiz(atrp->flag_set)) ||
+                 (Admin(player) && atrpCounc(atrp->flag_set)) ||
+                 (Builder(player) && atrpArch(atrp->flag_set)) ||
+                 (Guildmaster(player) && atrpGuild(atrp->flag_set)) ||
+                  atrpCit(atrp->flag_set) ) {
+               return 1;
+            }
+            return 0;
+         }
+      }
+   }
+   return 1;
+}
+
+char *
+attrib_show(char *name, int i_type)
+{
+   ATRP *atrp;
+   char *n_perms[]={"NULL", "citizen" , "guildmaster", "architect", "councilor", "wizard", "immortal", "god", "Error"};
+   char *s_buff, *s_my, *s_myptr;
+
+   s_buff = alloc_lbuf("attrib_show");
+   s_myptr = s_my = alloc_lbuf("attrib_show2");
+   if ( name && *name ) {
+      if ( i_type ) {
+         for (atrp = atrp_head; atrp; atrp = atrp->next) {
+            if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) ) {
+               if ( pstricmp(name, atrp->name, strlen(atrp->name)) == 0 ) {
+                  sprintf(s_buff, "\r\n   ---+ Owner: #%-8d  Target: #%-8d  Enactor: #%-8d CanSee: %-s, CanSet: %-s", 
+                                  atrp->owner, atrp->target, atrp->enactor, n_perms[atrp->flag_see], n_perms[atrp->flag_set]);
+                  safe_str(s_buff, s_my, &s_myptr);
+               }
+            }
+         }
+         free_lbuf(s_buff);
+      } else {
+         for (atrp = atrp_head; atrp; atrp = atrp->next) {
+            if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) )
+               continue;
+            if ( pstricmp(name, atrp->name, strlen(atrp->name)) == 0 ) {
+               sprintf(s_buff, "{CanSee: %-s, CanSet: %-s}", n_perms[atrp->flag_see], n_perms[atrp->flag_set]);
+               break;
+            }
+         }
+         strcpy(s_my, s_buff);
+         free_lbuf(s_buff);
+      }
+   }
+   return s_my;
+}
+
+void
+add_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
+{
+   ATRP *atrp, *atrp2;
+   char *t_strtok, *t_strtokptr, *s_chr;
+   int i_owner, i_target, i_enactor, i_see, i_set, i_atrperms_cnt;
+
+   if ( !*s_input || !*s_output ) {
+      notify(player, "Require format: @aperms/add prefix=<set> <see> [<owner> <target> <enactor>]");
+      return;
+   }
+
+   s_chr = s_output;
+   i_set = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_set++;
+      }
+      s_chr++;
+   }
+   if ( (i_set < 1) || (i_set > 4) ) {
+      notify(player, "Require format: @aperms/add prefix=<set> <see> [<owner> <target> <enactor>]");
+      return;
+   }
+
+   i_atrperms_cnt = 0;
+   if ( atrp_head ) {
+      for (atrp = atrp_head; atrp; atrp = atrp->next)
+         i_atrperms_cnt++;
+   }
+
+   if ( i_atrperms_cnt >= mudconf.atrperms_max ) {
+      notify(player, "Ceiling reached on attribute prefix masking.");
+      return;
+   }
+
+   i_see = i_set = i_owner = i_target = i_enactor = -1; 
+   t_strtok = strtok_r(s_output, " \t", &t_strtokptr);
+   if ( t_strtok ) {
+      i_see = atoi(t_strtok);
+      t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+      if ( t_strtok ) {
+         i_set = atoi(t_strtok);
+         t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+         if ( t_strtok ) {
+            if ( *t_strtok == '#' )
+               i_owner = atoi(t_strtok+1);
+            else
+               i_owner = atoi(t_strtok);
+            t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+            if ( t_strtok ) {
+               if ( *t_strtok == '#' )
+                  i_target = atoi(t_strtok+1);
+               else
+                  i_target = atoi(t_strtok);
+               t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+               if ( t_strtok ) {
+                  if ( *t_strtok == '#' )
+                     i_enactor = atoi(t_strtok+1);
+                  else
+                     i_enactor = atoi(t_strtok);
+               }
+            }
+         }
+      }
+   }
+   s_chr = s_input;
+   while ( s_chr && *s_chr ) {
+      *s_chr = ToUpper(*s_chr);
+      if ( isspace(*s_chr) ) {
+         notify(player, "Invalid character in prefix.  Non-space string required.");
+         return;
+      }
+      s_chr++;
+   }
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, s_input) == 0) &&
+           (((i_owner == atrp2->owner) &&
+             (i_target == atrp2->target)) &&
+            (i_enactor == atrp2->enactor)) ) {
+         notify(player, "Entry already in prefix list.  Use @aflags/mod to modify it.");
+         return;
+      }
+   }
+   notify(player, unsafe_tprintf("Entry added [%d of %d used].", i_atrperms_cnt, mudconf.atrperms_max));
+   atrp  = (ATRP *) malloc(sizeof(ATRP));
+   atrp->name = alloc_sbuf("attribute_perm_array");
+   memset(atrp->name, '\0', SBUF_SIZE);
+   strncpy(atrp->name, s_input, SBUF_SIZE - 2);
+   atrp->next = NULL;
+   if ( (i_set < 1) || (i_set > 7) )
+      i_set = 1;
+
+   if ( (i_see < 1) || (i_see > 7) )
+      i_see = 1;
+
+   atrp->flag_set = i_set;
+   atrp->flag_see = i_see;
+   atrp->owner = i_owner;
+   atrp->target = i_target;
+   atrp->controller = player;
+   atrp->enactor = i_enactor;
+
+   if ( atrp_head ) {
+      for (atrp2 = atrp_head; atrp2->next; atrp2 = atrp2->next);
+      atrp2->next = atrp;
+   } else {
+      atrp_head = atrp;
+   }
+}
+
+void
+del_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
+{
+   ATRP *atrp, *atrp2;
+   char *t_strtok, *t_strtokptr, *s_chr;
+   int i_owner, i_target, i_enactor;
+
+   if ( !*s_input ) {
+      notify(player, "Require format: @aperms/del prefix [=<owner> <target> <enactor>]");
+      return;
+   }
+
+   s_chr = s_output;
+   i_owner = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_owner++;
+      }
+      s_chr++;
+   }
+   if ( i_owner > 2 ) {
+      notify(player, "Require format: @aperms/del prefix [=<owner> <target> <enactor>]");
+      return;
+   }
+
+   i_owner = i_target = i_enactor = -1; 
+   if ( s_output && *s_output) {
+      t_strtok = strtok_r(s_output, " \t", &t_strtokptr);
+      if ( t_strtok ) {
+         if ( *t_strtok == '#' )
+            i_owner = atoi(t_strtok+1);
+         else
+            i_owner = atoi(t_strtok);
+         t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+         if ( t_strtok ) {
+            if ( *t_strtok == '#' )
+               i_target = atoi(t_strtok+1);
+            else
+               i_target = atoi(t_strtok);
+            t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
+            if ( t_strtok ) {
+               if ( *t_strtok == '#' )
+                  i_enactor = atoi(t_strtok+1);
+               else
+                  i_enactor = atoi(t_strtok);
+            }
+         }
+      }
+   }
+   s_chr = s_input;
+   while ( s_chr && *s_chr ) {
+      *s_chr = ToUpper(*s_chr);
+      if ( isspace(*s_chr) ) {
+         notify(player, "Invalid character in prefix.  Non-space string required.");
+         return;
+      }
+      s_chr++;
+   }
+   atrp = atrp_head;
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, s_input) == 0) &&
+           (i_owner == atrp2->owner) &&
+           (i_enactor == atrp2->enactor) &&
+           (i_target == atrp2->target) ) {
+         if ( (strcmp(atrp_head->name, s_input) == 0) &&
+              (i_owner == atrp2->owner) &&
+              (i_target == atrp2->target) ) {
+            atrp_head = atrp_head->next;
+         } else {
+            atrp->next = atrp2->next;
+         }
+         notify(player, "Entry has been deleted.");
+         free_sbuf(atrp2->name);
+         atrp2->name = NULL;
+         free(atrp2);
+         atrp2 = NULL;
+         return;
+      }
+      atrp = atrp2;
+   }
+   notify(player, "Entry not found.");
+}
+
+void
+mod_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
+{
+   ATRP *atrp, *atrp2;
+   char *t_strtok, *t_strtok2, *t_strtokptr, *s_chr, *s_strtok, *s_strtokptr;
+   int i_owner, i_target, i_enactor, i_newowner, i_newtarget, i_newenactor, i_newset, i_newsee;
+
+   if ( !*s_input || !*s_output ) {
+      notify(player, "Require format: @aperms/mod prefix [<owner> <target> <enactor>]=<set perm> <see perm> [<owner> <target> <enactor>]");
+      return;
+   }
+
+   s_chr = s_input;
+   i_owner = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_owner++;
+      }
+      s_chr++;
+   }
+   if ( i_owner > 3 ) {
+      notify(player, "Require format: @aperms/mod prefix [<owner> <target> <enactor>]=<set perm> <see perm> [<owner> <target> <enactor>]");
+      return;
+   }
+   s_chr = s_output;
+   i_owner = 0;
+   while ( s_chr && *s_chr ) {
+      if ( isspace(*s_chr) ) {
+         i_owner++;
+      }
+      s_chr++;
+   }
+   if ( i_owner > 4 ) {
+      notify(player, "Require format: @aperms/mod prefix [<owner> <target> <enactor>]=<set perm> <see perm> [<owner> <target> <enactor>]");
+      return;
+   }
+   i_owner = i_target = i_enactor = i_newowner = i_newtarget = i_newenactor = i_newset = i_newsee = -1; 
+   t_strtok = strtok_r(s_input, " \t", &t_strtokptr);
+   if ( t_strtok ) {
+      t_strtok2 = strtok_r(NULL, " \t", &t_strtokptr);
+      if ( t_strtok2 ) {
+         if ( *t_strtok2 == '#' )
+            i_owner = atoi(t_strtok2+1);
+         else
+            i_owner = atoi(t_strtok2);
+         t_strtok2 = strtok_r(NULL, " \t", &t_strtokptr);
+         if ( t_strtok2 ) {
+            if ( *t_strtok2 == '#' )
+               i_target = atoi(t_strtok2+1);
+            else
+               i_target = atoi(t_strtok2);
+            t_strtok2 = strtok_r(NULL, " \t", &t_strtokptr);
+            if ( t_strtok2 ) {
+               if ( *t_strtok2 == '#' )
+                  i_enactor = atoi(t_strtok2+1);
+               else
+                  i_enactor = atoi(t_strtok2);
+            }
+         }
+      }
+   }
+   i_newowner = i_owner;
+   i_newtarget = i_target;
+   i_newenactor = i_enactor;
+   s_strtok = strtok_r(s_output, " \t", &s_strtokptr);
+   if ( s_strtok ) {
+      i_newset = atoi(s_strtok);
+      s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+      if ( s_strtok ) {
+         i_newsee = atoi(s_strtok);
+         s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+         if ( s_strtok ) {
+            if ( *s_strtok == '#' )
+               i_newowner = atoi(s_strtok+1);
+            else
+               i_newowner = atoi(s_strtok);
+            s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+            if ( s_strtok ) {
+               if ( *s_strtok == '#' )
+                  i_newtarget = atoi(s_strtok+1);
+               else
+                  i_newtarget = atoi(s_strtok);
+               s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+               if ( s_strtok ) {
+                  if ( *s_strtok == '#' )
+                     i_newenactor = atoi(s_strtok+1);
+                  else
+                     i_newenactor = atoi(s_strtok);
+               }
+            }
+         }
+      }
+   }
+   if ( (i_newset < 1) || (i_newset > 7) )
+      i_newset = 1;
+   if ( (i_newsee < 1) || (i_newsee > 7) )
+      i_newsee = 1;
+   s_chr = t_strtok;
+   while ( s_chr && *s_chr ) {
+      *s_chr = ToUpper(*s_chr);
+      if ( isspace(*s_chr) ) {
+         notify(player, "Invalid character in prefix.  Non-space string required.");
+         return;
+      }
+      s_chr++;
+   }
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, t_strtok) == 0) &&
+           ((i_newowner == atrp2->owner) &&
+            (i_newenactor == atrp2->enactor) &&
+            (i_newtarget == atrp2->target)) &&
+           ((i_newowner != i_owner) &&
+            (i_newtarget != i_target) &&
+            (i_newenactor != i_enactor)) ) {
+         notify(player, "Matching destination attribute with matching owner/target.");
+         return;
+      }
+   }
+   atrp = atrp_head;
+   for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+      if ( (strcmp(atrp2->name, t_strtok) == 0) &&
+           (i_owner == atrp2->owner) &&
+           (i_target == atrp2->target) ) {
+         notify(player, "Entry has been modified.");
+         atrp2->owner = i_newowner;
+         atrp2->target = i_newtarget;
+         atrp2->enactor = i_newenactor;
+         atrp2->controller = player;
+         atrp2->flag_set = i_newset;
+         atrp2->flag_see = i_newsee;
+         return;
+      }
+      atrp = atrp2;
+   }
+   notify(player, "Entry not found.");
+}
+
+void 
+display_perms(dbref player, int i_page, int i_key, char *fname)
+{
+    char *n_perms[]={"NULL", "Cit", "Guild", "Arch", "Counc", "Wiz", "Imm", "God", "Error"};
+    char *tprbuff, *tprpbuff;
+    int i_cnt, i_pagecnt;
+    ATRP *atrp;
+
+    tprpbuff = tprbuff = alloc_lbuf("display_perm");
+    notify(player, "------------------------------------------------------------------------------");
+    notify(player, safe_tprintf(tprbuff, &tprpbuff, "%-64s %-7s %-7s", (char *)"Attribute Prefix", (char *)"Set", (char *)"See"));
+    notify(player, "------------------------------------------------------------------------------");
+    i_cnt = i_pagecnt = 0;
+    if ( atrp_head ) {
+       for ( atrp = atrp_head; atrp; atrp = atrp->next ) {
+          i_cnt++;
+          i_pagecnt++;
+          if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) )
+             i_pagecnt++;
+          if ( (i_page != 0) && (i_pagecnt < ((i_page - 1) * 20)) )
+             continue;
+          if ( (i_page != 0) && (i_pagecnt >= (i_page * 20)) )
+             continue;
+          if ( (i_page == 0) && i_key && fname && *fname && !quick_wild(fname, atrp->name))
+             continue;
+          tprpbuff = tprbuff;
+          notify(player, safe_tprintf(tprbuff, &tprpbuff, "%-64s %-7s %-7s", atrp->name, n_perms[atrp->flag_set], n_perms[atrp->flag_see]));
+          if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) ) {
+             tprpbuff = tprbuff;
+             notify(player, safe_tprintf(tprbuff, &tprpbuff, "   +----- Owner: #%d,  Object: #%d,  Enactor: #%d,  Modifier: #%d", 
+                                         atrp->owner, atrp->target, atrp->enactor, atrp->controller));
+          }
+       }
+    }
+    tprpbuff = tprbuff;
+    if ( i_page != 0 )
+       notify(player, safe_tprintf(tprbuff, &tprpbuff, 
+                                   "----------------------------[%6d/%6d max]---------- Page %-3d of %-3d ----", 
+                                   i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max), i_page, (i_pagecnt / 20) + 1));
+    else
+       notify(player, safe_tprintf(tprbuff, &tprpbuff, 
+                                   "----------------------------[%6d/%6d max]-------------------------------", 
+                                   i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max)));
+    notify(player, "Note: Immortals are treated as god with regards to seeing attributes.");
+    free_lbuf(tprbuff);
+}
+
+CF_HAND(cf_atrperms)
+{
+   int retval, i_del, i_see, i_set, first1, first2, first3, i_atrperms_cnt, i_warn, i_owner, i_target, i_enactor;
+   char *s_strtok, *s_strtokptr, *t_strtok, *t_strtokptr, *t_strtokbuf, *s_chr, *s_buff;
+   char *sbuff1, *sbuff2, *sbuff3, *sbuff1ptr, *sbuff2ptr, *sbuff3ptr;
+   /* Guildmaster, Architect, Councilor, Wizard, Immortal, #1 */
+   ATRP *atrp, *atrp2;
+
+   if ( mudconf.atrperms_max < 0 )
+      mudconf.atrperms_max = 0;
+   if ( mudconf.atrperms_max > 10000 )
+      mudconf.atrperms_max = 10000;
+
+   /* Let's count the total attrib prefix masks */
+   i_atrperms_cnt = i_del = i_warn = 0;
+   if ( atrp_head ) {
+      for (atrp = atrp_head; atrp; atrp = atrp->next)
+         i_atrperms_cnt++;
+   }
+
+   retval = i_set = i_see = first1 = first2 = first3 = 0;
+   i_owner = i_target = i_enactor = -1;
+   s_strtokptr = strtok_r(str, "\t ", &s_strtok);
+   s_buff = alloc_lbuf("cf_atrperms");
+   sbuff1ptr = sbuff1 = alloc_lbuf("cf_atrperms2");
+   sbuff2ptr = sbuff2 = alloc_lbuf("cf_atrperms3");
+   sbuff3ptr = sbuff3 = alloc_lbuf("cf_atrperms3");
+   while ( s_strtokptr ) {
+      i_owner = i_target = -1;
+      memset(s_buff, '\0', LBUF_SIZE);
+      strcpy(s_buff, s_strtokptr);
+      t_strtokptr = strtok_r(s_buff, ":", &t_strtok);
+      if ( t_strtokptr && *t_strtokptr ) {
+         s_chr = t_strtokptr;
+         while ( s_chr && *s_chr ) {
+            *s_chr = ToUpper(*s_chr);
+            s_chr++;
+         }
+         if ( *t_strtokptr == '!' ) {
+            atrp = atrp_head;
+            for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+               t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+               if ( t_strtokbuf ) {
+                  i_owner = atoi(t_strtokbuf);
+                  t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                  if ( t_strtokbuf ) {
+                     i_target = atoi(t_strtokbuf);
+                     t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                     if ( t_strtokbuf ) {
+                        i_enactor = atoi(t_strtokbuf);
+                     }
+                  }
+               }
+               if ( ((i_owner == -1) || (i_owner == atrp2->owner)) &&
+                    ((i_enactor == -1) || (i_enactor == atrp2->enactor)) &&
+                    ((i_target == -1) || (i_target == atrp2->target)) &&
+                    (strcmp(atrp2->name, t_strtokptr+1) == 0) ) {
+                  if ( strcmp(t_strtokptr+1, atrp_head->name) == 0) {
+                     atrp_head = atrp_head->next;
+                  } else {
+                     atrp->next = atrp2->next;
+                  }
+                  if ( first3 )
+                     safe_chr(' ', sbuff3, &sbuff3ptr);
+                  first3 = 1;
+                  safe_str(atrp2->name, sbuff3, &sbuff3ptr);
+                  free_sbuf(atrp2->name);
+                  atrp2->name = NULL;
+                  free(atrp2);
+                  atrp2 = NULL;
+                  retval = 1;
+                  i_del++;
+                  break;
+               }
+               atrp = atrp2;
+            }
+         } else {
+            if ( atrp_head ) {
+               t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+               if ( t_strtokbuf ) {
+                  i_set = atoi(t_strtokbuf);
+                  t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                  if ( t_strtokbuf ) {
+                     i_see = atoi(t_strtokbuf);
+                     t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                     if ( t_strtokbuf ) {
+                        i_owner = atoi(t_strtokbuf);
+                        t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                        if ( t_strtokbuf ) {
+                           i_target = atoi(t_strtokbuf);
+                           t_strtokbuf = strtok_r(NULL, ":", &t_strtok);
+                           if ( t_strtokbuf ) {
+                              i_enactor = atoi(t_strtokbuf);
+                           }
+                        }
+                     }
+                  }
+               }
+               atrp = atrp_head;
+               for (atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
+                  if ( ((i_owner == -1) || (i_owner == atrp2->owner)) &&
+                       ((i_enactor == -1) || (i_enactor == atrp2->enactor)) &&
+                       ((i_target == -1) || (i_target == atrp2->target)) &&
+                       (stricmp(atrp2->name, t_strtokptr) == 0) ) {
+                     if ( (i_set < 1) || (i_set > 7) )
+                        i_set = 1;
+         
+                     if ( (i_see < 1) || (i_see > 7) )
+                        i_see = 1;
+
+                     atrp2->flag_set = i_set;
+                     atrp2->flag_see = i_see;
+                     atrp2->owner = i_owner;
+                     atrp2->target = i_target;
+                     atrp2->enactor = i_enactor;
+                     if ( (i_owner != -1) || (i_target != -1) ) {
+                        if ( mudstate.initializing ) 
+                           atrp2->controller = 1;
+                        else
+                           atrp2->controller = player;
+                     } else
+                        atrp2->controller = -1;
+                     retval = 1;
+                     if ( first2 )
+                        safe_chr(' ', sbuff2, &sbuff2ptr);
+                     first2 = 1;
+                     safe_str(atrp2->name, sbuff2, &sbuff2ptr);
+                        break;
+                  }
+               }
+               atrp_head = atrp;
+               if ( retval == 1 ) {
+                  retval = 0;
+                  s_strtokptr = strtok_r(NULL, "\t ", &s_strtok);
+                  continue;
+               }
+            }
+            if ( i_atrperms_cnt >= mudconf.atrperms_max ) {
+               if ( Good_obj(player) ) {
+                  if ( !i_warn ) 
+                     notify(player, "Ceiling reached on attribute prefix masking.");
+                  i_warn = 1;
+               }
+               s_strtokptr = strtok_r(NULL, "\t ", &s_strtok);
+               continue;
+            }
+            i_atrperms_cnt++;
+            atrp  = (ATRP *) malloc(sizeof(ATRP));       
+            atrp->name = alloc_sbuf("attribute_perm_array");
+            memset(atrp->name, '\0', SBUF_SIZE);
+            strncpy(atrp->name, t_strtokptr, SBUF_SIZE - 2);
+            atrp->next = NULL;
+            t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+            if ( t_strtokptr ) {
+               i_set = atoi(t_strtokptr);
+               t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+               if ( t_strtokptr ) {
+                  i_see = atoi(t_strtokptr);
+                  t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                  if ( t_strtokptr ) {
+                     i_owner = atoi(t_strtokptr);
+                     t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                     if ( t_strtokptr ) {
+                        i_target = atoi(t_strtokptr);
+                        t_strtokptr = strtok_r(NULL, ":", &t_strtok);
+                        if ( t_strtokptr ) {
+                           i_enactor = atoi(t_strtokptr);
+                        }
+                     }
+                  }
+               }
+            }
+            if ( (i_set < 1) || (i_set > 7) )
+               i_set = 1;
+
+            if ( (i_see < 1) || (i_see > 7) )
+               i_see = 1;
+
+            atrp->flag_set = i_set;
+            atrp->flag_see = i_see;
+            atrp->owner = i_owner;
+            atrp->target = i_target;
+            atrp->enactor = i_enactor;
+            if ( (i_target != -1) || (i_owner != -1) ) {
+               if ( mudstate.initializing ) 
+                  atrp->controller = 1;
+               else
+                  atrp->controller = player;
+            } else
+               atrp->controller = -1;
+            if (!atrp_head) {
+               atrp_head = atrp;
+            } else {
+               for (atrp2 = atrp_head; atrp2->next; atrp2 = atrp2->next);
+               atrp2->next = atrp;
+            }
+            if ( atrp && atrp->name ) {
+               if ( first1 )
+                  safe_chr(' ', sbuff1, &sbuff1ptr);
+               first1 = 1;
+               safe_str(atrp->name, sbuff1, &sbuff1ptr);
+            }
+            retval = 5;
+         }
+      }
+      s_strtokptr = strtok_r(NULL, "\t ", &s_strtok);
+   }
+   free_lbuf(s_buff);
+   first1 = 0;
+   if ( Good_chk(player) && *sbuff1 ) {
+      notify(player, unsafe_tprintf("Added.....: %s", sbuff1));
+      first1++;
+   }
+   if ( Good_chk(player) && *sbuff2 ) {
+      notify(player, unsafe_tprintf("Modified..: %s", sbuff2));
+      first1++;
+   }
+   if ( Good_chk(player) && *sbuff3 ) {
+      notify(player, unsafe_tprintf("deleted...: %s", sbuff3));
+      first1++;
+   }
+   if ( !first1 ) {
+      notify(player, "Unchanged.");
+   }
+   if ( Good_chk(player) ) {
+      if ( i_atrperms_cnt < mudconf.atrperms_max ) {
+         notify(player, unsafe_tprintf("You can add %d more prefixes [%d total]", mudconf.atrperms_max - i_atrperms_cnt + i_del, mudconf.atrperms_max));
+      } else {
+         notify(player, unsafe_tprintf("You are at the maximum number of prefixes [%d].", mudconf.atrperms_max));
+      }
+   }
+   free_lbuf(sbuff1);
+   free_lbuf(sbuff2);
+   free_lbuf(sbuff3);
    return retval;
 }
 
@@ -1547,7 +2299,7 @@ CF_HAND(cf_string)
 CF_HAND(cf_string_sub)
 {
     int retval;
-    char *buff, *s_sublist="abcflnopqrstvx", *ptr;
+    char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 
@@ -1568,13 +2320,13 @@ CF_HAND(cf_string_sub)
     }
     for (ptr = str; *ptr; ptr++) {
        *ptr = ToLower(*ptr);
-       if ( !(isalpha(*ptr) || (*ptr == '=')) || (strchr(s_sublist, *ptr) != NULL) ) {
+       if ( strchr(s_sublist, *ptr) != NULL ) {
           if ( !mudstate.initializing ) {
-            notify(player, "String invalid.  Either non-alpha or contained reserved percent-sub character.");
+            notify(player, "String invalid.  Contained reserved percent-sub character.");
           } else {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String invalid.  Either non-alpha or contained one of '%s'.", cmd, s_sublist);
+	    sprintf(buff, "%.3900s: String invalid.  Contained one of '%s'.", cmd, s_sublist);
 	    log_text(buff);
 	    free_lbuf(buff);
 	    ENDLOG
@@ -2396,6 +3148,9 @@ CONF conftable[] =
     {(char *) "bcc_hidden",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.bcc_hidden, 0, 0, CA_WIZARD,
      (char *) "Does +bcc in mail hide who mail from in target?"},
+    {(char *) "blind_snuffs_cons",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.blind_snuffs_cons, 0, 0, CA_PUBLIC,
+     (char *) "BLIND flag snuff aconnect/adisconnect?"},
     {(char *) "brace_compatibility",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.brace_compatibility, 0, 0, CA_WIZARD,
      (char *) "Are braces MUX/TM3 compatible?"},
@@ -2422,6 +3177,13 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.cache_width, 0, 0, CA_WIZARD,
      (char *) "What is the current cache width?\r\n"
               "                             Default: 541   Value: %d"},
+    {(char *) "atrperms",
+     cf_atrperms, CA_GOD | CA_IMMORTAL, (int *) mudconf.atrperms, LBUF_SIZE - 2, 0, CA_WIZARD,
+     (char *) "Prefix permission masks for attributes."},
+    {(char *) "atrperms_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.atrperms_max, 0, 0, CA_WIZARD,
+     (char *) "Max Attribute Prefix Permissions?\r\n"
+              "     (range: 0-10000)        Default: 100   Value: %d"},
     {(char *) "cap_conjunctions",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.cap_conjunctions, LBUF_SIZE - 2, 0, CA_WIZARD,
      (char *) "Exceptions for caplist -- conjunctions."},
@@ -2507,6 +3269,10 @@ CONF conftable[] =
     {(char *) "lcon_checks_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.lcon_checks_dark, 0, 0, CA_PUBLIC,
      (char *) "Lcon/Xcon checks dark/unfindable?"},
+    {(char *) "lfunction_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.lfunction_max, 0, 0, CA_WIZARD,
+     (char *) "Max local functions (@lfunctions) per user.\r\n"\
+              "                             Default: 20  Value: %d"},
     {(char *) "map_delim_space",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.map_delim_space, 0, 0, CA_PUBLIC,
      (char *) "MAP() uses space/seperator?"},
@@ -2893,6 +3659,9 @@ CONF conftable[] =
     {(char *) "inventory_name",
      cf_string, CA_IMMORTAL, (int *) mudconf.invname, 79, 0, CA_PUBLIC,
      (char *) "What is the inventory name for alt inventory?"},
+    {(char *) "ip_address",
+     cf_string, CA_DISABLED, (int *) mudconf.ip_address, 15, 0, CA_WIZARD,
+     (char *) "IP address for the MUSH to listen on."},
     {(char *) "kill_guarantee_cost",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.killguarantee, 0, 0, CA_PUBLIC,
      (char *) "How much money to guarentee a kill?\r\n"\
@@ -2913,6 +3682,9 @@ CONF conftable[] =
      cf_ntab_access, CA_GOD | CA_IMMORTAL, (int *) list_names,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Change permissions of options with @list."},
+    {(char *) "listen_parents",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.listen_parents, 0, 0, CA_PUBLIC,
+     (char *) "Do ^listens follow @parent trees?"},
     {(char *) "lock_recursion_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.lock_nest_lim, 0, 0, CA_WIZARD,
      (char *) "Current recursion limit on @locks.\r\n"\
@@ -3397,6 +4169,9 @@ CONF conftable[] =
     {(char *) "safe_wipe",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safe_wipe, 0, 0, CA_PUBLIC,
      (char *) "@wiping SAFE/INDESTRUCTABLE things blocked?"},
+    {(char *) "safer_ufun",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safer_ufun, 0, 0, CA_PUBLIC,
+     (char *) "Enforcement of protected u-evals?"},
     {(char *) "safer_passwords",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safer_passwords, 0, 0, CA_PUBLIC,
      (char *) "Enforcement of harder passwords?"},
@@ -3680,6 +4455,10 @@ CONF conftable[] =
      (char *) "Path to the directory to store SQLite database files, relative to game/" },
 #endif /*SQLITE*/
 #ifdef REALITY_LEVELS
+    {(char *) "reality_compare",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.reality_compare, 0, 0, CA_WIZARD,
+     (char *) "Change how descs are displayed in reality levels.\r\n"\
+              "                             Default: 0   Value: %d"},
     {(char *) "reality_level",
      cf_rlevel, CA_DISABLED, (int *)&mudconf, 0, 0, CA_WIZARD,
      (char *) "Defined realitylevels."},
@@ -4019,6 +4798,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                    safe_str(tempbuff, buff, bufc);
                    return;
                } else if ( (tp->interpreter == cf_string) ||
+                         (tp->interpreter == cf_atrperms) ||
                          (tp->interpreter == cf_string_sub) ||
                          (tp->interpreter == cf_dynstring) ||
                          (tp->interpreter == cf_dynguest) ||

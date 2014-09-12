@@ -41,6 +41,7 @@ struct confdata {
 	char	roomlog_path[128]; /* Path where LOGROOM and LOGROOMENH is sent */
         char	logdb_name[128];/* Name of log db */
 	int	round_kludge; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */
+	char ip_address[15];
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
         int     debug_id;       /* shared memory key for debug monitor */
@@ -387,12 +388,19 @@ struct confdata {
 	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
+        char    atrperms[LBUF_SIZE];
+        int	atrperms_max;
+        int	safer_ufun;
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
+	int	lfunction_max;	/* Maximum lfunctions allowed */
+        int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
+	int	listen_parents;	/* ^listens handle parents */
 #ifdef REALITY_LEVELS
+        int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
         struct rlevel_def {
-            char name[9];	/* name of level */
+            char name[17];	/* name of level */
             RLEVEL value;	/* bitmask for level */
             char attr[33];	/* RLevel desc attribute */
         } reality_level[32];	/* Reality levels */
@@ -441,6 +449,8 @@ struct confdata {
 	int	ifelse_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
 	int	enforce_unfindable;	/* Enforce unfindable on target */
 	int	power_objects;		/* Objects can have powers */
+	int	lfunction_max;	/* Maximum lfunctions allowed */
+        int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 	char	sub_include[200];
 	int	old_elist;		/* Old elist processing */
 #endif	/* STANDALONE */
@@ -503,6 +513,9 @@ struct statedata {
         /* command profiling */
         int     objevalst;
 	int	breakst;
+	int	breakdolist;
+  dbref remote; /* Remote location for @remote */
+	int	dolistnest;
         int     shell_program;  /* Shelled out of @program */
         dbref   store_lastcr;   /* Store the last created dbref# for functions */
 	dbref	store_lastx1;	/* Store the last created exit# for dig */
@@ -525,14 +538,18 @@ struct statedata {
         int     iter_inumarr[50];/* Iter recursive memory - number*/
         int     iter_inumbrk[50];/* Iter recursive memory - break*/
         int     iter_inum;      /* Iter inum value */
+	int	dol_inumarr[50];/* Dolist array */
+	char	*dol_arr[50];	/* Dolist Array */
 	int	alarm_triggered;/* Has periodic alarm signal occurred? */
 	time_t	now;		/* What time is it now? */
+	double  nowmsec; /* What time is it now, with msecs */
 	time_t	lastnow;	/* What time was it last? */
-	time_t	dump_counter;	/* Countdown to next db dump */
-	time_t	check_counter;	/* Countdown to next db check */
-	time_t	idle_counter;	/* Countdown to next idle check */
-	time_t	rwho_counter;	/* Countdown to next RWHO dump */
-	time_t	mstats_counter;	/* Countdown to next mstats snapshot */
+	double  lastnowmsec; /* What time was it last, with msecs */
+	double	dump_counter;	/* Countdown to next db dump */
+	double	check_counter;	/* Countdown to next db check */
+	double	idle_counter;	/* Countdown to next idle check */
+	double	rwho_counter;	/* Countdown to next RWHO dump */
+	double	mstats_counter;	/* Countdown to next mstats snapshot */
 	time_t  chkcpu_stopper; /* What time was it when command started */
 	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
 	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
@@ -566,6 +583,7 @@ struct statedata {
 	HASHTAB	logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
 	HASHTAB func_htab;	/* Functions hashtable */
 	HASHTAB ufunc_htab;	/* Local functions hashtable */
+	HASHTAB ulfunc_htab;	/* User-Defiend Local functions hashtable */
 	HASHTAB flags_htab;	/* Flags hashtable */
 	HASHTAB toggles_htab;	/* Toggles hashtable */
 	HASHTAB powers_htab;
@@ -675,7 +693,7 @@ struct statedata {
 	int	curr_percentsubs;	/* Current percent sub tree */
 	int	tog_percentsubs;	/* Ok, you hit the max percent sub ceiling.  Bad boy */
 	int	cntr_percentsubs;	/* Counter to kill the little pecker */
-        time_t  cntr_reset;	/* Reset the basic counters after 60 seconds */
+        double  cntr_reset;	/* Reset the basic counters after 60 seconds */
 	int	recurse_rlevel;	/* Allow recurse limit for reality levels */
 	int	sub_overridestate; /* state information for sub_overrides */
 	int	sub_includestate; /* state information for sub_overrides */
@@ -695,8 +713,12 @@ struct statedata {
 	int	nocodeoverride;	/* Override NO_CODE flag for objeval() */
 	int	notrace;	/* Do not trace */
 	int	start_of_cmds;	/* Start of command -- hack around zenty ansi */
+        int	twinknum;	/* Dbref of twink object if inside twinklock */
+	int	dumpstatechk;	/* Dump state check */
+	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
 #else
+  dbref remote; /* Remote location for @remote */
 	int	logging;	/* Are we in the middle of logging? */
 	char	buffer[256];	/* A buffer for holding temp stuff */
         char    *lbuf_buffer;	/* An lbuf buffer we can globally use */
