@@ -282,6 +282,7 @@ NDECL(cf_init)
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
+    mudstate.insideaflags = 0;		/* inside @aflags eval check */
     mudstate.dumpstatechk = 0;		/* State of the dump state */
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
@@ -1547,6 +1548,58 @@ CF_HAND(cf_dynstring)
 /* ---------------------------------------------------------------------------
  * cf_attriblock
  */
+int
+atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
+{
+   int aflags, result;
+   dbref aowner;
+   char *retval, *atext, *mybuff[4];
+   ATTR *ap;
+
+   if ( key != 8 ) {
+      return 0;
+   }
+
+   if ( !Good_chk(mudconf.hook_obj) || mudstate.insideaflags ) {
+      return 1;
+   }
+
+   ap = atr_str((char *)"AFLAG_EVAL");
+   if ( !ap ) {
+      return 1;
+   }
+
+   atext = atr_pget(mudconf.hook_obj, ap->number, &aowner, &aflags);
+
+   if ( !atext ) {
+      return 1;
+   }
+
+
+   mybuff[0] = alloc_sbuf("atrpEval");
+   mybuff[1] = alloc_sbuf("atrpEval2");
+   mybuff[2] = alloc_sbuf("atrpEval3");
+   mybuff[3] = NULL;
+   strncpy(mybuff[0], s_attr, SBUF_SIZE);
+   sprintf(mybuff[1], "#%d", target);
+   sprintf(mybuff[2], "%d", i_type);
+   mudstate.insideaflags = 1;
+   retval = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL,
+                            atext, mybuff, 3);
+   mudstate.insideaflags = 0;
+   free_sbuf(mybuff[0]);
+   free_sbuf(mybuff[1]);
+   free_sbuf(mybuff[2]);
+   free_lbuf(atext);
+   if ( *retval ) {
+      result = atoi(retval);
+   } else {
+      result = 1;
+   }
+   free_lbuf(retval);
+   return (result ? 1 : 0);
+}
+
 ATRP *atrp_head = NULL;
 
 int
@@ -1571,8 +1624,9 @@ attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
                  (Admin(player) && atrpCounc(atrp->flag_see)) ||
                  (Builder(player) && atrpArch(atrp->flag_see)) ||
                  (Guildmaster(player) && atrpGuild(atrp->flag_see)) ||
+                 (!(Wanderer(player) || Guest(player)) && atrpPreReg(atrp->flag_see)) ||
+                  atrpEval(atrp->flag_see, (char *)name, player, target, 0) ||
                   atrpCit(atrp->flag_see) ) {
-                 
                return 1;
             }
             return 0;
@@ -1604,6 +1658,8 @@ attrib_canset(dbref player, const char *name, dbref owner, dbref target)
                  (Admin(player) && atrpCounc(atrp->flag_set)) ||
                  (Builder(player) && atrpArch(atrp->flag_set)) ||
                  (Guildmaster(player) && atrpGuild(atrp->flag_set)) ||
+                 (!(Wanderer(player) || Guest(player)) && atrpPreReg(atrp->flag_set)) ||
+                  atrpEval(atrp->flag_set, (char *)name, player, target, 1) ||
                   atrpCit(atrp->flag_set) ) {
                return 1;
             }
@@ -1618,7 +1674,7 @@ char *
 attrib_show(char *name, int i_type)
 {
    ATRP *atrp;
-   char *n_perms[]={"NULL", "citizen" , "guildmaster", "architect", "councilor", "wizard", "immortal", "god", "Error"};
+   char *n_perms[]={"PreReg", "citizen" , "guildmaster", "architect", "councilor", "wizard", "immortal", "god", "Eval", "Error"};
    char *s_buff, *s_my, *s_myptr;
 
    s_buff = alloc_lbuf("attrib_show");
@@ -1741,10 +1797,10 @@ add_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
    memset(atrp->name, '\0', SBUF_SIZE);
    strncpy(atrp->name, s_input, SBUF_SIZE - 2);
    atrp->next = NULL;
-   if ( (i_set < 1) || (i_set > 7) )
+   if ( (i_set < 0) || (i_set > 8) )
       i_set = 1;
 
-   if ( (i_see < 1) || (i_see > 7) )
+   if ( (i_see < 0) || (i_see > 8) )
       i_see = 1;
 
    atrp->flag_set = i_set;
@@ -1938,9 +1994,9 @@ mod_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
          }
       }
    }
-   if ( (i_newset < 1) || (i_newset > 7) )
+   if ( (i_newset < 0) || (i_newset > 8) )
       i_newset = 1;
-   if ( (i_newsee < 1) || (i_newsee > 7) )
+   if ( (i_newsee < 0) || (i_newsee > 8) )
       i_newsee = 1;
    s_chr = t_strtok;
    while ( s_chr && *s_chr ) {
@@ -1985,7 +2041,7 @@ mod_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
 void 
 display_perms(dbref player, int i_page, int i_key, char *fname)
 {
-    char *n_perms[]={"NULL", "Cit", "Guild", "Arch", "Counc", "Wiz", "Imm", "God", "Error"};
+    char *n_perms[]={"PreReg", "Cit", "Guild", "Arch", "Counc", "Wiz", "Imm", "God", "Eval", "Error"};
     char *tprbuff, *tprpbuff;
     int i_cnt, i_pagecnt;
     ATRP *atrp;
@@ -2133,10 +2189,10 @@ CF_HAND(cf_atrperms)
                        ((i_enactor == -1) || (i_enactor == atrp2->enactor)) &&
                        ((i_target == -1) || (i_target == atrp2->target)) &&
                        (stricmp(atrp2->name, t_strtokptr) == 0) ) {
-                     if ( (i_set < 1) || (i_set > 7) )
+                     if ( (i_set < 0) || (i_set > 8) )
                         i_set = 1;
          
-                     if ( (i_see < 1) || (i_see > 7) )
+                     if ( (i_see < 0) || (i_see > 8) )
                         i_see = 1;
 
                      atrp2->flag_set = i_set;
@@ -2201,10 +2257,10 @@ CF_HAND(cf_atrperms)
                   }
                }
             }
-            if ( (i_set < 1) || (i_set > 7) )
+            if ( (i_set < 0) || (i_set > 8) )
                i_set = 1;
 
-            if ( (i_see < 1) || (i_see > 7) )
+            if ( (i_see < 0) || (i_see > 8) )
                i_see = 1;
 
             atrp->flag_set = i_set;

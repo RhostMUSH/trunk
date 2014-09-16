@@ -2935,8 +2935,8 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
   got_any = 0;
   buff2 = alloc_mbuf("do_decomp.attr_name");
   tname = alloc_lbuf("decomp_wild");
-  memset(tname, 0, sizeof(tname));
-  memset(buff2, 0, sizeof(buff2));
+  memset(tname, 0, LBUF_SIZE);
+  memset(buff2, 0, MBUF_SIZE);
   if (newname && *newname)
     strncpy(tname, newname, (LBUF_SIZE - 1));
   else

@@ -2457,7 +2457,8 @@ unparse_object(dbref player, dbref target, int obey_myopic)
 	}
     }
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
-       memset(buf, 0, sizeof(buf));
+       memset(buf, 0, LBUF_SIZE);
+
     return buf;
 }
 char *
@@ -2512,7 +2513,8 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
 	}
     }
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
-       memset(buf, 0, sizeof(buf));
+       memset(buf, 0, LBUF_SIZE);
+
     return buf;
 }
 
@@ -2907,7 +2909,8 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
     free_lbuf(ansibuf);
     }
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
-       memset(buf, 0, sizeof(buf));
+       memset(buf, 0, LBUF_SIZE);
+
     free_lbuf(buf2);    
     return buf;
 }
@@ -3069,7 +3072,8 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
     free_lbuf(ansibuf);
     }
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
-       memset(buf, 0, sizeof(buf));
+       memset(buf, 0, LBUF_SIZE);
+
     free_lbuf(buf2);    
     return buf;
 }

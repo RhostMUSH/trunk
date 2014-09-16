@@ -32,6 +32,8 @@
 #define atrpWiz(s) (s == 5)
 #define atrpImm(s) (s == 6)
 #define atrpGod(s) (s == 7)
+#define atrpPreReg(s) (s == 0)
+
 
 #define SPLIT_NORMAL		0x00
 #define SPLIT_HILITE		0x01

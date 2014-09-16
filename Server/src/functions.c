@@ -9920,8 +9920,8 @@ FUNCTION(fun_ptimefmt)
      len = LBUF_SIZE;
   s_buff = alloc_lbuf("fun_ptimefmt");
   s = alloc_lbuf("fun_ptimefmt2");
-  memset(s_buff, 0, sizeof(s_buff));
-  memset(s, 0, sizeof(s));
+  memset(s_buff, 0, LBUF_SIZE);
+  memset(s, 0, LBUF_SIZE);
   strncpy(s_buff, fargs[0], LBUF_SIZE-1);
   for (n = 0; n < len; n++) {
     if (s_buff[n] == '%')
@@ -14093,7 +14093,7 @@ FUNCTION(fun_elements)
   mybuff = alloc_lbuf("fun_element");
   if (mybuff == NULL)
     return;
-  memset(mybuff, 0, sizeof(mybuff));
+  memset(mybuff, 0, LBUF_SIZE);
   while (*pos1) {
     pos2 = pos1 + 1;
     while (*pos2 && !isspace((int)*pos2))

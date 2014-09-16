@@ -123,6 +123,7 @@ NAMETAB aflags_sw[] =
 {
     {(char *) "full", 2, CA_WIZARD, 0, AFLAGS_FULL},
     {(char *) "perms", 2, CA_WIZARD, 0, AFLAGS_PERM},
+    {(char *) "list", 2, CA_WIZARD, 0, AFLAGS_PERM},
     {(char *) "search", 2, CA_WIZARD, 0, AFLAGS_SEARCH|SW_MULTIPLE},
     {(char *) "add", 2, CA_WIZARD, 0, AFLAGS_ADD},
     {(char *) "del", 2, CA_WIZARD, 0, AFLAGS_DEL},
@@ -6500,7 +6501,7 @@ list_options(dbref player)
 	    mudstate.dump_counter - now, mudstate.check_counter - now,
 	    mudstate.idle_counter - now, mudstate.rwho_counter - now);
     notify(player, buff);
-    memset(buff, 0, sizeof(buff));
+    memset(buff, 0, MBUF_SIZE);
     sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds", 
            //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
            //(mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );

@@ -344,7 +344,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                   /* Is the attribute SBUF-2 chars or less in size? */
                   if ( strlen(ap->name) < (SBUF_SIZE - 2) ) {
                      s_uselock = alloc_sbuf("attr_uselock");
-                     memset(s_uselock, 0, sizeof(s_uselock));
+                     memset(s_uselock, 0, SBUF_SIZE);
                      sprintf(s_uselock, "~%.30s", ap->name);
                      ap2 = atr_str(s_uselock);
                      if ( ap2 ) {
@@ -364,7 +364,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                               if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
                                  i_cpuslam = 1;
                                  cpuslam = alloc_lbuf("uselock_cpuslam");
-                                 memset(cpuslam, 0, sizeof(cpuslam));
+                                 memset(cpuslam, 0, LBUF_SIZE);
                                  sprintf(cpuslam, "(ATTR:%.32s):%.3900s", s_uselock, cputext);
                                  broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (ATRULCK)",
                                                    (char *)cpuslam, NULL, parent, 0, 0, NULL);
@@ -1161,6 +1161,12 @@ do_reboot(dbref player, dbref cause, int key)
 
   DPUSH; /* #80 */
 
+  if ( mudstate.forceusr2 ) {
+      notify(player, "In the middle of a SIGUSR2, unable to @reboot.");
+      DPOP; /* #80 */
+      return;
+  }
+
   if ((!Wizard(player) &&
       !HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA))) {
       notify(player, "Permission denied.");
@@ -1186,6 +1192,10 @@ do_reboot(dbref player, dbref cause, int key)
   port = mudconf.port;
   raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
   raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
+  if ( mudstate.shutdown_flag ) {
+     raw_broadcast(0, 0, "Game: Signal USR2 caught in middle of reboot.  Shutting down the game.");
+     do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+  }
   STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
     log_text((char *) "Reboot by ");
     log_name(player);
