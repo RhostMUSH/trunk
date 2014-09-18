@@ -315,7 +315,7 @@ pool_stats(int poolnum, const char *text)
     char format_str[80];
 
     buf = alloc_mbuf("pool_stats");
-    memset(format_str, 0, sizeof(format_str));
+    memset(format_str, '\0', sizeof(format_str));
     strcpy(format_str, "%-14.14s %5d");
     if ( pools[poolnum].num_alloc > 999999999 )
        strcat(format_str, " %9.4g");
