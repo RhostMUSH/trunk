@@ -24556,6 +24556,76 @@ Mail: Done
   wildmatch()   - Matches a pattern against a string.
   
 & logarithmic functions
+  Function Lists: Logarithmic Functions
+
+  e() - Returns the numeric constant e.
+  exp() - Returns the result of raising e to a power.
+  ln() - Returns the natural logarithm of a value.
+  log() - Returns the common logarithm of a value.
+  pi() - Returns the numeric constant pi.
+  power() - Raises a value to the nth power.
+  power10() - Raises 10 to the factor of a value.
+  shl() - Performs a leftwards bit-shift on a value.
+  shr() - Performs a rightwards bit-shift on a value.
+  sqrt() - Returns the square root of a value.
+
+& logical functions
+  Function Lists: Logical Functions
+ 
+  and() - Returns the value of And'ing booleans together.
+  mask() - Applies a specified mask to a value.
+  nand() - Returns the inverse of an And on booleans.
+  nor() - Returns the inverse of an Or on booleans.
+  or() - Returns the value of Or'ing booleans together.
+  xor() - Returns the exclusive Or of booleans.
+  xnor() - Returns the exclusive inverse of an And of values.
+  cand() - Like and, except stops after the first non-true value.
+  cor() - Like or, except stops after the first non-true value.
+
+& miscellaneous functions
+  Function Lists: Miscellaneous Functions
+ 
+  @@() - Eats all output from <string> (doesn't evaluate).
+  asc() - Returns the ASCII numerical value of a character.
+  chr() - Returns the character of an ASCII numerical value.
+  error() - Returns one of the random error messages in standard format.
+  localize() - Evaluates code while preserving all setq() registers.
+  moon() - Returns the phase of the moon for the specified time.
+  nameq() - (Re)names setq variables with a new label.
+  null() - Eats all output from <string> (evaluates).
+  parenmatch() - Returns an ansified match of (), {} and []s.
+  pid() - Return a list of process id's
+  privatize() - All localized variables are initialized to null
+  pushregs() - Preserves, and restores setq() registers.
+  r() - Accesses local registers.
+  setq() - Copies a string into a local register.
+  setq_old() - Like setq(), but uses old MUSH style evaluation.
+  setqmatch() - Sets a register if a pattern matches <string>.
+  setr() - Like setq(), but returns its string argument.
+  setr_old() - Like setr(), but uses old MUSH style evaluation.
+  soundex() - Returns the soundex pattern of a word.
+  soundlike() - Compares the soundex of two words.
+  trace() - Controls the trace flag on an object.
+
+& object information functions
+  Function Lists: Object Information Functions
+ 
+  aposs() - Returns the absolute possessive pronoun of an object.
+  art() - Returns the article proper for the word.
+  attrcnt() - Returns the number of attributes on an object.
+  cname() - Returns the colorized/accented name of the target.
+  controls() - Returns true if object2 controls object1
+  default() - Returns the value of obj/attr if readable, or a default.
+  edefault() - Like default(), but evaluates like get_eval()
+  elock() - Checks if <victim> would pass the named lock on <object>.
+  fullname() - Returns the full name of the indicated object.
+  get() - Retrieves the contents of an attribute on an object.
+  get_eval() - Same as get(), but evaluates the contents.
+  grab() - Matches a pattern against each word of <string>.
+  graball() - Like grab(), but returns all matches.
+  grep() - Returns a list of matching attributes.
+  guild() - Returns the guild of a specified user.
+  hasattr() - Returns true if an object has the specified attribute.
   hasattrp()    - Like hasattr(), but also checks parents.
   hasflag()     - Returns true if an object has the specified flag set.
   hastoggle()   - Returns true if an object has the specified toggle set.
