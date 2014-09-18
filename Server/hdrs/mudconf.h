@@ -717,6 +717,7 @@ struct statedata {
 	int	dumpstatechk;	/* Dump state check */
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
+  int insideaflags; /* Inside @aflag eval check */
 #else
   dbref remote; /* Remote location for @remote */
 	int	logging;	/* Are we in the middle of logging? */
