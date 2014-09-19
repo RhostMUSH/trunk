@@ -22912,6 +22912,8 @@ FUNCTION(fun_parsestr)
            safe_str(atext+2, atextbuf, &tbuff);
         else
            safe_str(atext+1, atextbuf, &tbuff);
+     } else if ( *atext == '|' ) {
+        safe_str(atext+1, atextbuf, &tbuff);
      } else {
         safe_str(savebuff[1], atextbuf, &tbuff);
         safe_chr(' ', atextbuf, &tbuff);
