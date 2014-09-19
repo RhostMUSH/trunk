@@ -434,9 +434,9 @@
   @money          @motd           @newpassword   @nuke           @pcreate
   @poor           @power          @progreset     @protect        @ps           
   @purge          @quota          @readcache     @reboot         @recover      
-  @reclist        @rwho           @site          @shutdown       @snapshot     
-  @thaw           @timewarp       @toad          @turtle         @wall         
-  +players
+  @reclist        @remote         @rwho          @site           @shutdown     
+  @snapshot       @thaw           @timewarp      @toad           @turtle       
+  @wall           +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -1973,6 +1973,18 @@
   This is only useable by Super-Royalty (Immortals).  This command also
   shows what DOORS (help @door) that people are currently using.
 
+& @remote
+  Command: @remote <location>=<command>
+  This will execute <command> at a remote location <location>.  The location
+  must be valid and controlled by you otherwise it will give a permission 
+  denied and execute the command at your current location as normal.
+  
+  Example: 
+    > @remote #0=@emit boo!
+    (At Room #0) boo!
+  
+  See Also: (normal help) @sudo, @force 
+
 & @reboot
   Command: @reboot
   This command will reboot the server loading in any new source code changes
@@ -3268,6 +3280,7 @@
   Following switches exist:
     /full -- give full statistics of the attribute, like count in use.
     /perm -- list all current attribute based prefix permissions.
+    /list -- alias for /perm
     /add  -- add a prefix attribute mask.
     /del  -- delete a prefix attribute mask.
     /mod  -- modify a prefix attribute mask.
@@ -3303,6 +3316,33 @@
      'wizhelp @aflags del'     -- help on deleting existing prefixes.
      'wizhelp @aflags mod'     -- help on modifying existing prefixes.
      'wizhelp @aflags args'    -- explains the arguments to @aflags
+     'wizhelp @aflags bits'    -- help on the level bits for see/set perms
+  
+  See Also: atrperms, atrperms_max
+
+& @aflags bits
+  Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
+   
+  Please be aware, <set> and <see> are different arguments, please substitute
+  below where <set/see> are defined depending if you plan to set <see> permissions
+  or <set> permissions.  <set> permissions handles setting and UN-setting.
+  
+  The following bits exist for the <set> and <see> parameters:
+      0 - Unable to <set/see> if target is a guest or wanderer
+      1 - Normal mortal or higher may <set/see>
+      2 - Guildmaster or higher may <set/see>
+      3 - Architect or higher may <set/see>
+      4 - Councilor(Admin) or higher may <set/see>
+      5 - Royalty(Wizard) or higher may <set/see>
+      6 - Immortal or higher may <set/see>
+      7 - Only #1 can <set> but immortal and higher may <see>
+      8 - Must pass evaluation check for <set/see>
+          Evaluation is as:
+          -- A valid hook_obj must be defined.
+          -- The attribute 'AFLAG_EVAL' is used for FUNCTION evaluation on hook_obj.
+          -- %0 is the attribute name attempting to be set.
+          -- %1 is the enactor attempting to set the attribute.
+          -- %2 is the type.  <set> is '0' and <see> is '1'.
   
   See Also: atrperms, atrperms_max
 
@@ -3329,11 +3369,11 @@
                    affect their entire ownership.
   
     <set>      --  The SET/UNSET permission you wish to apply to the specified
-                   attribute prefix.  You can set from '1' to '7' as defined
+                   attribute prefix.  You can set from '0' to '8' as defined
                    by bitlevel permissions. (help bittype())
   
     <see>      --  The SEE/VIEW/READ permissions you wish to apply to the
-                   specified attribute prefix.  YOu can set from '1' to '7'
+                   specified attribute prefix.  YOu can set from '0' to '8'
                    as defined by bitlevel permissions. (help bittype())
   
 & @aflags mod
