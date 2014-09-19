@@ -19197,8 +19197,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   the 'eval' as %0.  This is handy for parsing speech for example.
   
   Arguments are:
-    <String>    -- input string that you wish to parse & translate
-    <eval>      -- how you wish to parse each segment of the string
+    <string>    -- input string that you wish to parse & translate
+    <eval>      -- how you wish to parse each segment of the string. 
     <delim>     -- the optional input delimiter of the string
     <output>    -- the optional output delimiter of the string.
                    Note: if you have a space-separated argument, then
@@ -19212,9 +19212,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     <endchar>   -- The last character in the field you wish to do special
                    processing on. (good for punctuation)
     <transeval> -- How you wish to parse the special processing string.
-    <prefix>    -- The optional prefix you wish to use for the 'say' string.
+    <prefix>    -- The optional eval'd prefix to use for the 'say' string.
   
-  All arguments passed will be as in the <eval> and <transeval>.
+  Note on <eval>: All arguments passed will be as in the <eval> and <transeval>
             %0  -- The string being passed for evaluation.      
   (prefix)  %1  -- The player name specified in target          (or &string).
   (prefix)  %2  -- The current parameter number being processed (-1 for prefix)
@@ -19223,23 +19223,30 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   Note:  Only the values with '(prefix)' are valid for the prefix evaluation.
   
-{ see 'help parsestr2' for examples }
-
-  
-  Examples:
-    > say parse(1 2 3 4 5,add(##,1))
-    You say "2 3 4 5 6"
-    > say parse(a b c,##-#@)
-    You say "a-1 b-2 c-3"
-    > say parse(This|is|a|string|length|test,strlen(##),|)
-    You say "4 2 1 6 6 4"
-    > say parse(this|is|a|test,##,|,***)
-    You say "this***is***a***test"
-  
-  See Also: @dolist, iter(), map(), citer(), nsiter(), list()
-  
+{ see 'help parsestr2' for options for <string> }
 
 & PARSESTR2
+(CONTINUED)
+  Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
+                       [,<prefix>]]]]])
+  
+  The <string> argument handles the following syntax prefixes:
+    " - This is a 'say' string.  If no prefix is specified this is the default
+        case that is used.  When in 'say' format, it auto-closes all 
+        double-quotes.
+    : - This is a 'pose' string.  It follows standard pose/: syntax formatting.
+    ; - This is the 'possessive-pose' string.  Follows ';' formatting.
+    | - This is an '@emit' string.  Follow standard @emit formatting.
+  
+  If no prefix is identified as the 4 above, it assumes a say string.
+  
+  These prefixes are only used if the <prefix> option is specified in parsestr.
+  If you do not specify a <prefix> then all prefix args are considered part
+  of a normal string and ignored for special consideration.
+  
+{ see 'help prsestr3' for examples }
+& PARSESTR3
 (CONTINUED)
   Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
                        [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
@@ -19268,9 +19275,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
         ,",^~ ~^,,&[ansi(+orange,McDonald)],,!,%0 <%2/%3>,[ansi(+purple,bob)])
     McDonald bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
   
-{ see 'help prsestr3' for examples on how to use this for an OOC command}
+{ see 'help prsestr4' for examples on how to use this for an OOC command}
 
-& PARSESTR3
+& PARSESTR4
 (CONTINUED)
   Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
                        [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
