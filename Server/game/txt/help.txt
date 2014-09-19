@@ -19241,6 +19241,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   If no prefix is identified as the 4 above, it assumes a say string.
   
+  These prefixes are only used if the <prefix> option is specified in parsestr.
+  If you do not specify a <prefix> then all prefix args are considered part
+  of a normal string and ignored for special consideration.
+  
 { see 'help prsestr3' for examples }
 & PARSESTR3
 (CONTINUED)
