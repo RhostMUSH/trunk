@@ -5329,6 +5329,89 @@ list_options_values_parse(dbref player, int p_val)
 }
 
 static void
+list_options_system(dbref player)
+{
+   char dbdumptime[25], dbchktime[25], playerchktime[25];
+
+   memset(dbdumptime, '\0', 25);
+   memset(dbchktime, '\0', 25);
+#ifdef TINY_SUB
+   sprintf(playerchktime, "%cx is ANSI.", '%');
+   notify(player, playerchktime);
+#else
+   sprintf(playerchktime, "%cx is last command.", '%');
+   notify(player, playerchktime);
+#endif
+#ifdef C_SUB
+   sprintf(playerchktime, "%cc is ANSI.", '%');
+   notify(player, playerchktime);
+#else
+   sprintf(playerchktime, "%cc is last command.", '%');
+   notify(player, playerchktime);
+#endif
+#ifdef M_SUB
+   sprintf(playerchktime, "%cm is ANSI.", '%');
+   notify(player, playerchktime);
+#else
+   sprintf(playerchktime, "%cm is last command.", '%');
+   notify(player, playerchktime);
+#endif
+   memset(playerchktime, '\0', 25);
+#ifdef TINY_U
+    notify(player, "u()/zfun() uses TinyMUSH compatibility.");
+#else
+    notify(player, "u()/zfun() uses RhostMUSH/MUSE native mode.");
+#endif
+#ifdef MUX_INCDEC
+    notify(player, "inc() and dec() follows Penn/MUX2/TM3 compatibility.");
+    notify(player, "xinc() and xdec() increments registers ala RhostMUSH.");
+#else
+    notify(player, "xinc() and xdec() must be used for inc() and dec() compatibility");
+    notify(player, "inc() and dec() increments registers using default RhostMUSH.");
+#endif
+#ifdef USE_SIDEEFFECT
+    notify(player, "Sideeffects are in use.  SIDEFX flag is needed to use them.");
+#else
+    notify(player, "Sideeffects are disabled.");
+#endif
+#ifdef ENABLE_COMMAND_FLAG
+    notify(player, "The COMMAND flag is required to use $commands on items.");
+#endif
+#ifdef EXPANDED_QREGS
+    notify(player, "A-Z setq registers are enabled.");
+#endif
+#ifdef ATTR_HACK
+    notify(player, "Attributes starting with _ and ~ are allowed.");
+    if ( mudconf.hackattr_see == 0 ) {
+       notify(player, "     -- _ attribs are only settable/seeable by wizards");
+    }
+#endif
+#ifdef BANGS
+    notify(player, "Bang notation (!/!!, !$/!!$, !^/!!^) is allowed.");
+#endif
+#ifdef QDBM
+    notify(player, "The database engine being used is QDBM.");
+#else
+    notify(player, "The database engine being used is GDBM.");
+#endif
+#ifdef SQLITE
+    notify(player, "SQLite has been enabled.");
+#endif
+#ifdef MYSQL_VERSION
+    notify(player, "Third party MySQL has been enabled.");
+#endif
+    notify(player, unsafe_tprintf("The current BUFFER sizes in use are:\r\n     -- SBUF: %d\r\n     -- LBUF: %d", 
+                              SBUF_SIZE, LBUF_SIZE));
+    strncpy(dbchktime,(char *) ctime((time_t *)&mudstate.check_counter), 24);
+    strncpy(dbdumptime,(char *) ctime((time_t *)&mudstate.dump_counter), 24);
+    strncpy(playerchktime,(char *) ctime((time_t *)&mudstate.idle_counter), 24);
+//  if ( Guildmaster(player) ) {
+//     notify(player, unsafe_tprintf("\r\nSystem Timers:\r\n--> Next DB Dump: %s\r\n--> Next DB Check: %s\r\n-->Next Idle User Check: %s\r\n",
+//                    dbchktime, dbdumptime, playerchktime));
+//  }
+}
+
+static void
 list_options_config(dbref player)
 {
     char *buff, *strbuff, *strptr, *tbuff1ptr, *tbuff1, *tbuff2ptr, *tbuff2, *buff3;
@@ -6246,7 +6329,10 @@ list_options(dbref player)
     notify(player, "OpenSSL was not found.  SHA digest supported only.");
 #endif
 #ifdef ATTR_HACK
-       notify(player, "You may use ~ATTRS for uselocks and the USELOCK attribute flag.");
+    notify(player, "You may use ~ATTRS for uselocks and the USELOCK attribute flag.");
+    if ( mudconf.hackattr_see ) {
+       notify(player, "_ attributes are wizard only settable and viewable");     
+    }
 #else
        notify(player, "You can not use ~ATTRS or the USELOCK attribute flag.");
 #endif
@@ -7359,6 +7445,8 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_mail(player);
            else if ( (stricmp(s_ptr2, "config") == 0) )
               list_options_config(player);
+           else if ( (stricmp(s_ptr2, "system") == 0) )
+              list_options_system(player);
            else if ( stricmp(s_ptr2, "boolean") == 0 ) {
               s_ptr = strtok(NULL, " ");
               if ( s_ptr )
@@ -7375,7 +7463,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_values_parse(player, p_val);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
-                                   " mail, values, boolean, config");
+                                   " mail, values, boolean, config, system");
         } else {
 	   list_options(player);
         }

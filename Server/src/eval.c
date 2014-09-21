@@ -1161,8 +1161,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    case 'C':		/* ansi subs */
 #endif
 #ifdef M_SUB
-      case 'm':
-      case 'M':   /* ansi subs */
+	    case 'm':
+	    case 'M':   	/* ansi subs */
 #endif
 #endif
                 if ( (mudconf.sub_override & SUB_C) && 

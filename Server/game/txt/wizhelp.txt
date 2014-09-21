@@ -2659,6 +2659,7 @@
     values         - list numerical value params
     config         - list config information
     mail           - list current mail configuration
+    system         - list system configuration parameters
   
   You may page the value by applying a number (from 1 to max-pages) after the
   parameter.  For example:
