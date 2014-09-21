@@ -277,6 +277,7 @@ NDECL(cf_init)
     mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
     mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
     mudconf.listen_parents = 0;		/* ^listens do parents */
+    mudconf.icmdobj = -1;		/* @icmd eval object */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -1548,6 +1549,8 @@ CF_HAND(cf_dynstring)
 /* ---------------------------------------------------------------------------
  * cf_attriblock
  */
+ATRP *atrp_head = NULL;
+
 int
 atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
 {
@@ -1599,8 +1602,6 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
    free_lbuf(retval);
    return (result ? 1 : 0);
 }
-
-ATRP *atrp_head = NULL;
 
 int
 attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
@@ -3659,6 +3660,10 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.html_port, 0, 0, CA_WIZARD,
      (char *) "Specifies what the HTML port is.\r\n"\
               "                             Default: 6251   Value: %d"},
+    {(char *) "icmdobj",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.icmdobj, 0, 0, CA_PUBLIC,
+     (char *) "The dbref# of the @icmd object.\r\n"\
+              "                             Default: -1    Value: %d"},
     {(char *) "idle_message",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.idle_message, 0, 0, CA_WIZARD,
      (char *) "Do wizards receive message when idled out?"},

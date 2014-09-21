@@ -3528,7 +3528,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 {
     char *p1, *p2, *p3, *p4, *atrxxx, *atryyy, *tcim, *tcimptr, *tcimptr2, msubj[SUBJLIM+1];
     char just, *atrtmp, *atrtmpptr, *mailfunkvar, *ztmp, *ztmpptr, *time_tmp;
-    char *bcctmp, *bcctmpptr, *bccatr, *savesend, *tpr_buff, *tprp_buff;
+    char *bcctmp, *bcctmpptr, *bccatr, *tpr_buff, *tprp_buff;
+//  char *savesend;
     short int line, count, index, min, max, gdcount;
     dbref aowner3, aowner2, owner;
     int aflags2, chk_dash, flags, i_type, valid_flag, type_two, type_three, is_first, i_addkey;

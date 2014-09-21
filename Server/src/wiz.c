@@ -26,6 +26,7 @@ char *strtok_r(char *, const char *, char **);
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*);
 extern int remote_read_sanitize(FILE *, dbref, int, int);
+extern dbref FDECL(match_thing, (dbref, char *));
 
 void do_teleport(dbref player, dbref cause, int key, char *slist, 
 		 char *dlist[], int nargs)

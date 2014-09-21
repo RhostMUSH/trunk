@@ -201,7 +201,7 @@ void areg_unload(dbref player)
     do {
       infodata = dbm_fetch(aregfile,keydata);
       if (infodata.dptr) {
-	fprintf(dump1,"%s\n",keydata.dptr);
+	fprintf(dump1,"%s\n",(char *)keydata.dptr);
 	memcpy(nbuffer,infodata.dptr,infodata.dsize);
 	intpt = (int *)nbuffer;
 	for (x = 0; x < (*(intpt + 1) + 2); x++) {

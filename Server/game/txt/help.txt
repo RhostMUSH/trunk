@@ -25512,6 +25512,7 @@ New Features
 * ip_address param to specify ip address for mush to listen (default all) [AMB]
 * %m handles optionally last command or ANSI on compile time [AMB]
 * sinh(), cosh(), tanh() added [AMB]
+* icmdobj @admin param to specify optional @icmd eval checks [ASH]
   
 Changes
 -------
@@ -25525,6 +25526,7 @@ Changes
 * @aflags handles evaluation checks for prefixes [ASH]
 * Reality level names are increased to 16 characters [AMB]
 * NO_CODE made more lax on functions/commands [AMB]
+* @icmd allows /eval and /eroom evaluation checks [ASH]
   
 Bug Fixes
 ---------

@@ -674,6 +674,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define ICMD_CROOM	128
 #define ICMD_LROOM      256
 #define ICMD_LALLROOM   512
+#define ICMD_EVAL       1024
+#define ICMD_EROOM      2048
 #define	KILL_KILL	1	/* gives victim insurance */
 #define	KILL_SLAY	2	/* no insurance */
 #define	LOOK_LOOK	1	/* list desc (and succ/fail if room) */

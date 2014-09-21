@@ -454,8 +454,9 @@ NAMETAB hide_sw[] =
 NAMETAB icmd_sw[] =
 {
     {(char *) "check", 2, CA_IMMORTAL, 0, ICMD_CHECK},
-    {(char *) "disable", 1, CA_IMMORTAL, 0, ICMD_DISABLE},
-    {(char *) "ignore", 1, CA_IMMORTAL, 0, ICMD_IGNORE},
+    {(char *) "disable", 2, CA_IMMORTAL, 0, ICMD_DISABLE},
+    {(char *) "ignore", 2, CA_IMMORTAL, 0, ICMD_IGNORE},
+    {(char *) "eval", 2, CA_IMMORTAL, 0, ICMD_IGNORE},
     {(char *) "on", 2, CA_IMMORTAL, 0, ICMD_ON},
     {(char *) "off", 2, CA_IMMORTAL, 0, ICMD_OFF},
     {(char *) "clear", 2, CA_IMMORTAL, 0, ICMD_CLEAR},
@@ -2368,9 +2369,10 @@ int zonecmdtest(dbref player, char *cmd)
 
 int cmdtest(dbref player, char *cmd)
 {
-  char *buff1, *pt1, *pt2;
-  dbref aowner;
-  int aflags, rval;
+  char *buff1, *buff2, *mbuf, *pt1, *pt2;
+  dbref aowner, aowner2;
+  int aflags, aflags2, rval;
+  ATTR *atr, *atr2;
 
   rval = 0;
   buff1 = atr_get(player, A_CMDCHECK, &aowner, &aflags);
@@ -2380,10 +2382,52 @@ int cmdtest(dbref player, char *cmd)
     if (!pt2 || (pt2 == pt1))
       break;
     if (!(strncmp(pt2+1,cmd,strlen(cmd)))) {
-      if (*(pt2-1) == '1')
+      if (*(pt2-1) == '1') {
 	rval = 1;
-      else
+      } else if ( *(pt2-1) == '3') {
+         if ( Good_chk(mudconf.icmdobj) ) {
+            mbuf = alloc_mbuf("cmdtest_eval");
+            sprintf(mbuf, "#%d_%.*s", player, MBUF_SIZE-20, cmd);
+            atr = atr_str(mbuf);
+            sprintf(mbuf, "_%.*s", MBUF_SIZE-20, cmd);
+            atr2 = atr_str2(mbuf);
+            free_mbuf(mbuf);
+            if ( !atr && !atr2 ) {
+               rval = 0;
+            } else {
+               if ( atr2 ) {
+                  buff2 = atr_get(mudconf.icmdobj, atr2->number, &aowner2, &aflags2);
+                  if ( !*buff2 && atr ) {
+                     free_lbuf(buff2);
+                     buff2 = atr_get(mudconf.icmdobj, atr->number, &aowner2, &aflags2);
+                  }
+               } else if ( atr ) {
+                  buff2 = atr_get(mudconf.icmdobj, atr->number, &aowner2, &aflags2);
+               }
+               if ( *buff2 ) {
+                  mbuf = exec(mudconf.icmdobj, player, player, EV_EVAL | EV_FCHECK, buff2, (char **)NULL, 0);
+                  if ( *mbuf ) {
+                     if ( atoi(mbuf) == 2 )
+                        rval = 2;
+                     else if ( atoi(mbuf) == 1 )
+                        rval = 1;
+                     else
+                        rval = 0;
+                  } else {
+                     rval = 0;
+                  }
+                  free_lbuf(mbuf);
+               } else {
+                  rval = 0;
+               }
+               free_lbuf(buff2);
+            }
+         } else {
+            rval = 0;
+         }
+      } else {
 	rval = 2;
+      }
       break;
     }
     pt1 = strchr(pt2+1,' ');
@@ -7731,7 +7775,7 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
   target = 0;
   loc_set = -1;
   if ((key == ICMD_IROOM) || (key == ICMD_DROOM) || (key == ICMD_CROOM) ||
-      (key == ICMD_LROOM) || (key == ICMD_LALLROOM)) {
+      (key == ICMD_LROOM) || (key == ICMD_EROOM) || (key == ICMD_LALLROOM)) {
     if ( key != ICMD_LALLROOM )
        target = match_thing(player, name);
     else
@@ -7766,8 +7810,8 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
        found = 0;
        atrpt = atr_get(target,A_CMDCHECK,&aowner,&aflags);
        if (*atrpt) {
-         notify(player,unsafe_tprintf("%c     --- At %s(#%d) :", 
-                       (IgnoreZone(target) ? '*' : ' '), Name(target), target));
+         notify(player,unsafe_tprintf("%c     --- At %s(#%d) : %s",
+                       (IgnoreZone(target) ? '*' : ' '), Name(target), target, (char *)"Location"));
          notify(player,atrpt);
          found = 1;
        }
@@ -7781,9 +7825,9 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
                 atrpt = atr_get(z_ptr->object,A_CMDCHECK,&aowner,&aflags);
                 if (*atrpt) {
                    tprp_buff = tpr_buff;
-                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%c     --- At %s(#%d) :", 
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%c     --- At %s(#%d) : %s",
                                          (IgnoreZone(z_ptr->object) ? '*' : ' '),
-                                         Name(z_ptr->object), z_ptr->object));
+                                         Name(z_ptr->object), z_ptr->object, (char *)"Zone"));
                    notify(player,atrpt);
                    found = 1;
                 }
@@ -7796,6 +7840,8 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
           notify(player, "Icmd: Location - No icmd's found at current location");
        notify(player, "Icmd: Done");
        return;
+    } else if (key == ICMD_EROOM) {
+       loc_set = 2;
     } else if (key == ICMD_IROOM) {
        loc_set = 1;
     } else if (key == ICMD_DROOM) {
@@ -7837,6 +7883,9 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
        free_lbuf(atrpt);
        notify(player,"Icmd: Done");
        return;
+     }
+     if ( key == ICMD_EVAL ) {
+        key = 2;
      }
   } else {
      key = loc_set;

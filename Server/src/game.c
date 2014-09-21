@@ -1154,56 +1154,6 @@ notify_except3(dbref loc, dbref player, dbref exc1, dbref exc2, int level,
     VOIDRETURN; /* #79 */
 }
 
-void
-do_reboot(dbref player, dbref cause, int key)
-{
-  int port;
-
-  DPUSH; /* #80 */
-
-  if ( mudstate.forceusr2 ) {
-      notify(player, "In the middle of a SIGUSR2, unable to @reboot.");
-      DPOP; /* #80 */
-      return;
-  }
-
-  if ((!Wizard(player) &&
-      !HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA))) {
-      notify(player, "Permission denied.");
-      DPOP; /* #80 */
-      return;
-  }
-  if (HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA)) {
-     if ( (player != cause) && !Immortal(player)) {
-         notify(cause, "Permission denied.");
-         notify(player, unsafe_tprintf("%s tried to make you @reboot.", Name(cause)));
-         DPOP; /* #80 */
-         return;
-     }
-     else if (desc_in_use == NULL) {
-        notify(player, "You can not queue a reboot with the power shutdown.");
-        DPOP; /* #80 */
-        return;
-     }
-  }
-  alarm_msec(0);
-  mudstate.dumpstatechk=1;
-  ignore_signals();
-  port = mudconf.port;
-  raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
-  raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
-  if ( mudstate.shutdown_flag ) {
-     raw_broadcast(0, 0, "Game: Signal USR2 caught in middle of reboot.  Shutting down the game.");
-     do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
-  }
-  STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
-    log_text((char *) "Reboot by ");
-    log_name(player);
-  ENDLOG
-  mudstate.reboot_flag = port;
-  VOIDRETURN; /* #80 */
-}
-
 void 
 do_shutdown(dbref player, dbref cause, int key, char *message)
 {
@@ -1287,6 +1237,56 @@ do_shutdown(dbref player, dbref cause, int key, char *message)
 
     mudstate.shutdown_flag = 1;
     VOIDRETURN; /* #81 */
+}
+
+void
+do_reboot(dbref player, dbref cause, int key)
+{
+  int port;
+
+  DPUSH; /* #80 */
+
+  if ( mudstate.forceusr2 ) {
+      notify(player, "In the middle of a SIGUSR2, unable to @reboot.");
+      DPOP; /* #80 */
+      return;
+  }
+
+  if ((!Wizard(player) &&
+      !HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA))) {
+      notify(player, "Permission denied.");
+      DPOP; /* #80 */
+      return;
+  }
+  if (HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA)) {
+     if ( (player != cause) && !Immortal(player)) {
+         notify(cause, "Permission denied.");
+         notify(player, unsafe_tprintf("%s tried to make you @reboot.", Name(cause)));
+         DPOP; /* #80 */
+         return;
+     }
+     else if (desc_in_use == NULL) {
+        notify(player, "You can not queue a reboot with the power shutdown.");
+        DPOP; /* #80 */
+        return;
+     }
+  }
+  alarm_msec(0);
+  mudstate.dumpstatechk=1;
+  ignore_signals();
+  port = mudconf.port;
+  raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
+  raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
+  if ( mudstate.shutdown_flag ) {
+     raw_broadcast(0, 0, "Game: Signal USR2 caught in middle of reboot.  Shutting down the game.");
+     do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+  }
+  STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
+    log_text((char *) "Reboot by ");
+    log_name(player);
+  ENDLOG
+  mudstate.reboot_flag = port;
+  VOIDRETURN; /* #80 */
 }
 
 static void 

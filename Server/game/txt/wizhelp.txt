@@ -3492,7 +3492,8 @@ SNOOPY                                                           God     Wiz
   This command is available only to immortals.
   Possible switches are:
     /ON       - Turn on personal command parsing so that it checks
-                against invalid commands for the player. (Default)
+                against invalid commands for the player. This option
+                returns 'Permission Denied' to the end user (Default).
     /OFF      - Turn off personal command parsing so that commands
                 by player parses normally.
     /DISABLE  - Disables the given command so it returns a
@@ -3500,6 +3501,9 @@ SNOOPY                                                           God     Wiz
     /IGNORE   - This command actually removes from existance the
                 specified commands from the user's standpoint so
                 that it is skipped upon command execution checks.
+                Use this option for $command overrides.
+    /EVAL     - Use this to set up evaluation checks.
+                See: 'wizhelp @icmd eval' for more.
     /CHECK    - Displays a list of the specified players current
                 disabled commands and at what level.
                 1=disabled   2=ignored
@@ -3510,9 +3514,14 @@ SNOOPY                                                           God     Wiz
 & @icmd2
   Command: @icmd</switch> <player [= arguments]>  (CONTINUED)
   Continued Switches:
-    /IROOM    - This sets commands ignored on the location.
-                This is a NON-PLAYER.
     /DROOM    - This sets commands disabled on the location.
+                This returns the 'Permission Denied'.
+                This is a NON-PLAYER.
+    /IROOM    - This sets commands ignored on the location.
+                This allowed $command overrides.
+                This is a NON-PLAYER.
+    /EROOM    - This sets an evaluation for checks on location.
+                See: 'wizhelp @icmd eval' for more.
                 This is a NON-PLAYER.
     /CROOM    - Clears disabled/ignored commands on target location.
                 This is a NON-PLAYER.
@@ -3567,7 +3576,41 @@ SNOOPY                                                           God     Wiz
 
   Note:  Locations (and zones) require the IGNOREZONE @toggle
   
-  See Also: access
+  See Also: @icmd eval, access, @admin
+
+& @icmd eval
+  Command: @icmd</switch> <player [= arguments]> (CONTINUED)
+  
+  Evaluation is set up through an evaluation object that you must
+  define with an @admin parameter.  The admin parameter is
+  'icmdobj'.  Once that is done, you set up attributes that will
+  be function evaluated on that object.
+  
+  Evaluation is looked up in attribute based in the form:
+    _<command>       -- The global default evaluation.
+   <dbref>_<command> -- Per enactor evaluation.
+  
+  The return codes and evaluations are:
+    0  -- Pass the evaluation and allow the command to work normally.
+    1  -- Return 'Permission Denied' to the enactor.
+    2  -- Ignore the command and allow $command evaluation overrides.
+    %# -- Enactor executing the command
+    %! -- The dbref# of the icmdobject.
+    %x -- The command typed (or %c if configured for that)
+  
+  To set up an eval @icmd check do the following:
+    1.  @create IcmdObj  (record the dbref#.  We'll assume #123 for examples)
+    2.  @admin icmdobj=123  [icmdobj 123 in netrhost.conf]
+    3.  &_THINK #123=1
+    4.  &#12345_THINK #123=2
+
+  The above would make the 'think' command return 'Permission Denied' for
+  everyone EXCEPT player #12345 which would override (ignore) the object
+  in return for $command evaluation instead.
+  
+  This is handy as you can now lock @icmd based on environmental changes.
+  
+  See Also: @icmd, @admin, icmdobj, ignore, @hook
 
 & @createdstamp
   Attribute: @createdstamp <target>=<value> (immortal only)
@@ -4785,28 +4828,28 @@ SNOOPY                                                           God     Wiz
 & CONFIG PARAMETERS3
   Topic: CONFIG PARAMETERS (continued)
   
-  hostnames                idle_interval            idle_message            
-  idle_timeout             idle_wiz_dark            idle_wiz_cloak          
-  ifelse_substitution      imm_nomod                include                
-  includecnt               includenest              initial_size           
-  input_database           internal_compress_string inventory_name         
-  kill_guarantee_cost      kill_max_cost            kill_min_cost          
-  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
-  lfunction_max            list_access              link_cost              
-  lnum_compat              lock_recursion_limit     log                    
-  log_command_list         log_maximum              log_network_errors     
-  log_options              login_to_prog            logout_cmd_access      
-  logout_cmd_alias         look_moreflags           look_obey_terse        
-  machine_command_cost     mail_anonymous           mail_autodeltime       
-  mail_default             mail_def_object          mail_hidden            
-  mail_tolist              mail_verbosity           mailbox_size           
-  maildelete               mailinclude_file         mailprog               
-  mailsub                  mailmax_send             master_room           
-  match_own_commands       manlog_file              map_delim_space        
-  max_cpu_cycles           max_dest_limit           max_folders            
-  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
-  max_pcreate_time         max_percentsubs          max_players            
-  max_sitecons           
+  hostnames                icmdobj                  idle_interval          
+  idle_message             idle_timeout             idle_wiz_dark          
+  idle_wiz_cloak           ifelse_substitution      imm_nomod              
+  include                  includecnt               includenest            
+  initial_size             input_database           internal_compress_string
+  inventory_name           kill_guarantee_cost      kill_max_cost          
+  kill_min_cost            lastsite_paranoia        lattr_default_oldstyle 
+  lcon_checks_dark         lfunction_max            list_access            
+  link_cost                lnum_compat              lock_recursion_limit   
+  log                      log_command_list         log_maximum            
+  log_network_errors       log_options              login_to_prog          
+  logout_cmd_access        logout_cmd_alias         look_moreflags         
+  look_obey_terse          machine_command_cost     mail_anonymous         
+  mail_autodeltime         mail_default             mail_def_object        
+  mail_hidden              mail_tolist              mail_verbosity         
+  mailbox_size             maildelete               mailinclude_file       
+  mailprog                 mailsub                  mailmax_send           
+  master_room              match_own_commands       manlog_file            
+  map_delim_space          max_cpu_cycles           max_dest_limit         
+  max_folders              max_lastsite_cnt         max_name_protect       
+  max_pcreate_lim          max_pcreate_time         max_percentsubs        
+  max_players              max_sitecons           
   
 { 'wizhelp config parameters4' for more }
 
