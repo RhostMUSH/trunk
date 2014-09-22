@@ -3584,7 +3584,7 @@ SNOOPY                                                           God     Wiz
   
   Evaluation is set up through an evaluation object that you must
   define with an @admin parameter.  The admin parameter is
-  'icmdobj'.  Once that is done, you set up attributes that will
+  'icmd_obj'.  Once that is done, you set up attributes that will
   be function evaluated on that object.
   
   Evaluation is looked up in attribute based in the form:
@@ -3596,12 +3596,12 @@ SNOOPY                                                           God     Wiz
     1  -- Return 'Permission Denied' to the enactor.
     2  -- Ignore the command and allow $command evaluation overrides.
     %# -- Enactor executing the command
-    %! -- The dbref# of the icmdobject.
+    %! -- The dbref# of the icmd object.
     %x -- The command typed (or %c if configured for that)
   
   To set up an eval @icmd check do the following:
     1.  @create IcmdObj  (record the dbref#.  We'll assume #123 for examples)
-    2.  @admin icmdobj=123  [icmdobj 123 in netrhost.conf]
+    2.  @admin icmd_obj=123  [icmd_obj 123 in netrhost.conf]
     3.  &_THINK #123=1
     4.  &#12345_THINK #123=2
 
@@ -3611,7 +3611,7 @@ SNOOPY                                                           God     Wiz
   
   This is handy as you can now lock @icmd based on environmental changes.
   
-  See Also: @icmd, @admin, icmdobj, ignore, @hook
+  See Also: @icmd, @admin, icmd_obj, ignore, @hook
 
 & @createdstamp
   Attribute: @createdstamp <target>=<value> (immortal only)
@@ -4829,7 +4829,7 @@ SNOOPY                                                           God     Wiz
 & CONFIG PARAMETERS3
   Topic: CONFIG PARAMETERS (continued)
   
-  hostnames                icmdobj                  idle_interval          
+  hostnames                icmd_obj                 idle_interval          
   idle_message             idle_timeout             idle_wiz_dark          
   idle_wiz_cloak           ifelse_substitution      imm_nomod              
   include                  includecnt               includenest            
@@ -6298,6 +6298,11 @@ SNOOPY                                                           God     Wiz
   Config parameter: hostnames <yes/no>.  Default: yes
   Indicates whether or not IP addresses should be replaced with host names
   where possible in the log file and wizard WHO report.
+
+& icmd_obj
+  Config parameter: icmd_obj <dbref>. Default: -1
+  Sets the dbref of the ICMD Object, usable with @icmd/eval.
+  See 'help @icmd'
 
 & idle_interval
   Config parameter: idle_interval <secs>.  Default: 60
