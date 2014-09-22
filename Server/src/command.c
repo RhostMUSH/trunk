@@ -843,6 +843,7 @@ NAMETAB quota_sw[] =
 NAMETAB reboot_sw[] =
 {
     {(char *) "port", 1, CA_IMMORTAL, 0, REBOOT_PORT},
+    {(char *) "silent", 1, CA_IMMORTAL, 0, REBOOT_SILENT},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB reclist_sw[] =

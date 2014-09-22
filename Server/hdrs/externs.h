@@ -822,6 +822,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define REC_AGE		8
 #define REC_DEST	16
 #define REC_FREE	32
+#define REBOOT_SILENT 0x00000001  /* @reboot silently */
 #define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
 #define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
 #define	SAY_SAY		1	/* say in current room */

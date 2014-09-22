@@ -1243,6 +1243,7 @@ void
 do_reboot(dbref player, dbref cause, int key)
 {
   int port;
+  FILE *f;
 
   DPUSH; /* #80 */
 
@@ -1275,8 +1276,21 @@ do_reboot(dbref player, dbref cause, int key)
   mudstate.dumpstatechk=1;
   ignore_signals();
   port = mudconf.port;
-  raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
-  raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
+  if(key == REBOOT_SILENT) {
+    f = fopen("reboot.silent", "w+");
+    if(f == NULL) {
+      notify(player,"Cannot write silent reboot file. Final message will not be snuffed.");
+    }
+    else
+    {
+      fclose(f);
+      notify(player,"Rebooting Silently.");
+    }
+  }
+  else {
+    raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
+    raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
+  }
   if ( mudstate.shutdown_flag ) {
      raw_broadcast(0, 0, "Game: Signal USR2 caught in middle of reboot.  Shutting down the game.");
      do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
