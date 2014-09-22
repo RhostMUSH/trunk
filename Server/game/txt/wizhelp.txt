@@ -1986,11 +1986,14 @@
   See Also: (normal help) @sudo, @force 
 
 & @reboot
-  Command: @reboot
+  Command: @reboot[/silent]
   This command will reboot the server loading in any new source code changes
   and successfully unloading and reloading the database to insure database
   integrity. Network socket connections and the log file will remain
   undisturbed across the reboot.
+
+  Immortals can use the /silent switch to trigger silent reboots that will
+  not notify anybody else on the game.
 
 & @site
   Command: @site[/switch] <site>=<mask>
