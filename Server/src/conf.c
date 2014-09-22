@@ -3660,8 +3660,8 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.html_port, 0, 0, CA_WIZARD,
      (char *) "Specifies what the HTML port is.\r\n"\
               "                             Default: 6251   Value: %d"},
-    {(char *) "icmdobj",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.icmdobj, 0, 0, CA_PUBLIC,
+    {(char *) "icmd_obj",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.icmd_obj, 0, 0, CA_PUBLIC,
      (char *) "The dbref# of the @icmd object.\r\n"\
               "                             Default: -1    Value: %d"},
     {(char *) "idle_message",
