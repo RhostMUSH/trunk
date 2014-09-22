@@ -2385,7 +2385,7 @@ int cmdtest(dbref player, char *cmd)
       if (*(pt2-1) == '1') {
 	rval = 1;
       } else if ( *(pt2-1) == '3') {
-         if ( Good_chk(mudconf.icmdobj) ) {
+         if ( Good_chk(mudconf.icmd_obj) ) {
             mbuf = alloc_mbuf("cmdtest_eval");
             sprintf(mbuf, "#%d_%.*s", player, MBUF_SIZE-20, cmd);
             atr = atr_str(mbuf);
@@ -2396,16 +2396,16 @@ int cmdtest(dbref player, char *cmd)
                rval = 0;
             } else {
                if ( atr2 ) {
-                  buff2 = atr_get(mudconf.icmdobj, atr2->number, &aowner2, &aflags2);
+                  buff2 = atr_get(mudconf.icmd_obj, atr2->number, &aowner2, &aflags2);
                   if ( !*buff2 && atr ) {
                      free_lbuf(buff2);
-                     buff2 = atr_get(mudconf.icmdobj, atr->number, &aowner2, &aflags2);
+                     buff2 = atr_get(mudconf.icmd_obj, atr->number, &aowner2, &aflags2);
                   }
                } else if ( atr ) {
-                  buff2 = atr_get(mudconf.icmdobj, atr->number, &aowner2, &aflags2);
+                  buff2 = atr_get(mudconf.icmd_obj, atr->number, &aowner2, &aflags2);
                }
                if ( *buff2 ) {
-                  mbuf = exec(mudconf.icmdobj, player, player, EV_EVAL | EV_FCHECK, buff2, (char **)NULL, 0);
+                  mbuf = exec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, (char **)NULL, 0);
                   if ( *mbuf ) {
                      if ( atoi(mbuf) == 2 )
                         rval = 2;
