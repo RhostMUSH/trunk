@@ -277,7 +277,7 @@ NDECL(cf_init)
     mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
     mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
     mudconf.listen_parents = 0;		/* ^listens do parents */
-    mudconf.icmdobj = -1;		/* @icmd eval object */
+    mudconf.icmd_obj = -1;		/* @icmd eval object */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
