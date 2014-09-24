@@ -1244,6 +1244,7 @@ do_reboot(dbref player, dbref cause, int key)
 {
   int port;
   FILE *f;
+  DESC *d, *p;
 
   DPUSH; /* #80 */
 
@@ -1277,15 +1278,25 @@ do_reboot(dbref player, dbref cause, int key)
   ignore_signals();
   port = mudconf.port;
   if(key == REBOOT_SILENT) {
+    DESC_ITER_CONN(d) {
+      if (d->player == player) 
+        p = d;
+    }
+
     f = fopen("reboot.silent", "w+");
     if(f == NULL) {
-      notify(player,"Cannot write silent reboot file. Final message will not be snuffed.");
+      if(p)
+        queue_string(p,"Cannot write silent reboot file. Final message will not be snuffed.");
     }
     else
     {
       fclose(f);
-      notify(player,"Rebooting Silently.");
+      if(p)
+        queue_string(p,"Rebooting Silently.");
     }
+    if(p)
+      queue_write(p, "\r\n", 2);
+    process_output(p);
   }
   else {
     raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
