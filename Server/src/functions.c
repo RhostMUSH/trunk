@@ -16726,12 +16726,15 @@ FUNCTION(fun_nor)
     val = 0;
     for (i = 0, got_one = 0; i < nfargs; i++) {
         tval = atoi(fargs[i]);
-        if (i > 0) {
-            got_one = 1;
-            val = !(val || atoi(fargs[i]));
-        } else {
-            val = tval;
-        }
+        if (i > 0)
+          got_one = 1;
+        if(val || !got_one)
+          val = !tval;
+          //else
+          //{
+          //  got_one = 1;
+          //  val = !(val || tval);
+          //}
     }
     if (!got_one) {
         safe_str("#-1 FUNCTION (NOR) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
