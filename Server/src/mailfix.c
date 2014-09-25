@@ -55,7 +55,7 @@ void bzero(void *, int);
 #define PMNUKEPLY	10
 #define MAXWRTLN	1000
 #define BSMIN		10
-#define BSMAX		9999
+#define BSMAX		((NDBMBUFSZ > 4092) ? ((NDBMBUFSZ / sizeof(short int)) - 3) : 9999)
 
 #define Useg_obj(x)	(Good_obj(x) && !Going(x) && !Recover(x))
 
