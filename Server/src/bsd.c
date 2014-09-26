@@ -226,6 +226,7 @@ shovechars(int port,char* address)
     get_tod(&last_slice);
     flagkeep = i_oldlasttime = i_oldlastcnt = 0;
     f = fopen("reboot.silent","r");
+    silent=0;
     if(f != NULL) {
       silent=1;
       fclose(f);

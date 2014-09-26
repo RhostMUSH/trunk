@@ -787,7 +787,8 @@ short int get_box_size(dbref target)
   }
   else
     rval = mudconf.mailbox_size;
-  if ((rval < 10) || (rval > 9999)) rval = mudconf.mailbox_size;
+//if ((rval < 10) || (rval > 9999)) rval = mudconf.mailbox_size;
+  if (rval < 10) rval = mudconf.mailbox_size;
   if (rval > absmaxinx) rval = absmaxinx;
   return rval;
 }
@@ -1489,7 +1490,8 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     }
     acheck = atoi(pt1);
     acheck = get_msg_index(player,acheck,1,NOTHING,1);
-    if ((acheck < 1) || (acheck > 9999)) {
+//  if ((acheck < 1) || (acheck > 9999)) {
+    if (acheck < 1) {
       notify_quiet(p2,"MAIL ERROR: Bad message number specified");
       return 1;
     }
@@ -2371,7 +2373,8 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
         pt2 = pt1 + *(pt1+1) + 3;
       if (msize < 100) w1 = 2;
       else if (msize < 1000) w1 = 3;
-      else w1 = 4;
+      else if (msize < 10000) w1 = 4;
+      else w1 = 5;
       for (x = 0; x < 78; x++)
 	*(mbuf1+x) = '-';
       *(mbuf1+x) = '\0';
@@ -4102,11 +4105,13 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
             if ( i_type == 1 ) {
                notify_quiet(player, "----------------------------------------"\
                                     "--------------------------------------");
-               if ( (i_typeval < 1) || (i_typeval > 9999) )
+//             if ( (i_typeval < 1) || (i_typeval > 9999) )
+               if ( i_typeval < 1 )
                   no_writie = 0;
                if ( no_writie ) 
                   index = get_msg_index(player, i_typeval, 1, NOTHING, 1);
-               if ( no_writie && (i_typeval > 0) && (index > 0) && (index < 9999) && get_hd_rcv_rec(player,index,mbuf1,0,0)) {
+//             if ( no_writie && (i_typeval > 0) && (index > 0) && (index < 9999) && get_hd_rcv_rec(player,index,mbuf1,0,0)) {
+               if ( no_writie && (i_typeval > 0) && (index > 0) && get_hd_rcv_rec(player,index,mbuf1,0,0)) {
                   acheck = *(short int *)(mbuf1 + hindoff);
                   if ( acheck & tomask )
                      acheck &= ~tomask;
@@ -4127,13 +4132,15 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
             if ( i_type == 2 ) {
                notify_quiet(player, "----------------------------------------"\
                                     "--------------------------------------");
-               if ( (i_typeval > 0) && (i_typeval < 9999) ) { 
+//             if ( (i_typeval > 0) && (i_typeval < 9999) ) { 
+               if ( i_typeval > 0 ) {
                   index = get_msg_index(player, i_typeval, 1, NOTHING, 1);
                   no_writie = 1;
                } else {
                   no_writie = 0;
                } 
-               if ( no_writie && (index > 0) && (index < 9999) && get_hd_rcv_rec(player,index,mbuf1,0,0)) {
+//             if ( no_writie && (index > 0) && (index < 9999) && get_hd_rcv_rec(player,index,mbuf1,0,0)) {
+               if ( no_writie && (index > 0) && get_hd_rcv_rec(player,index,mbuf1,0,0)) {
                   acheck = *(short int *)(mbuf1 + hindoff);
                   if ( acheck & tomask )
                      acheck &= ~tomask;
@@ -5987,8 +5994,10 @@ mail_size(dbref player, char *buf1, char *buf2)
 	notify_quiet(player, "MAIL ERROR: Invalid player name specified in size command.");
     } else if (!Controls(player, target)) {
 	notify_quiet(player, "MAIL ERROR: Permission denied.");
-    } else if ((*pt1 != '\0') || ((mod < 10) && (mod)) || (mod > 9999) || (mod > absmaxinx)) {
-	notify_quiet(player, "MAIL ERROR: Invalid size modifier given.");
+//  } else if ((*pt1 != '\0') || ((mod < 10) && (mod)) || (mod > 9999) || (mod > absmaxinx)) {
+    } else if ((*pt1 != '\0') || ((mod < 10) && (mod)) || (mod > absmaxinx)) {
+//	notify_quiet(player, "MAIL ERROR: Invalid size modifier given.");
+        notify_quiet(player, unsafe_tprintf("MAIL ERROR: Invalid size modifier given. [Must be between %d and %d]", 10, absmaxinx));
     } else {
 	*(int *)sbuf1 = MIND_BSIZE;
 	*(int *)(sbuf1 + sizeof(int)) = target;
