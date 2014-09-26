@@ -15695,6 +15695,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
         4 - takes 'eval' and parses it for each word in <str> (passed as %0)
         5-8 (same as 1-4 but return character count instead of word itself)
   
+  Note: If you plan to <eval>, you need to escape out (or use lit()) on the
+        argument as it passes the evaluated argument into the value.
+   
   Examples:
     > say garble(this is a test!?,2)
     You say "this Z& a ^pN0w)"
