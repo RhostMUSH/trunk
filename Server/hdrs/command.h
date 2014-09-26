@@ -298,7 +298,6 @@ typedef struct aliasentry {
 #define HOOK_LIST	0x00000080	/* LIST hooks */
 #define HOOK_FAIL       0x00000100      /* FAIL hooks */
 
-
 extern int	FDECL(check_access, (dbref, int, int, int));
 extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int));
 

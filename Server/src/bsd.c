@@ -205,6 +205,8 @@ shovechars(int port,char* address)
     int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep;
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6];
+    FILE *f;
+    int silent;
 
 #ifdef TLI
     struct pollfd *fds;
@@ -223,7 +225,12 @@ shovechars(int port,char* address)
     maxd = sock + 1;
     get_tod(&last_slice);
     flagkeep = i_oldlasttime = i_oldlastcnt = 0;
-
+    f = fopen("reboot.silent","r");
+    if(f != NULL) {
+      silent=1;
+      fclose(f);
+      remove("reboot.silent");
+    }
 
     /* we may be rebooting, so recalc maxd */
     DESC_ITER_ALL(d) {
@@ -234,7 +241,8 @@ shovechars(int port,char* address)
 	maxd = d->door_desc + 1;
       }
       if( d->flags & DS_CONNECTED ) {
-        queue_string(d, "Game: New server image successfully loaded.\r\n");
+        if(!silent)
+          queue_string(d, "Game: New server image successfully loaded.\r\n");
         strncpy(all, Name(d->player), 5);
         *(all + 5) = '\0';
         if (!stricmp(all, "guest")) {
