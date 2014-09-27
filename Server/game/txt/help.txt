@@ -8815,11 +8815,11 @@
   STARTSECS()     STATS()         STEP()         STR()          STRCAT()      
   STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()       
   STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()     
-  SUB()           SUBJ()          SWITCH()       SWITCHALL()    T()           
-  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()       
-  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()     
-  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()          
-  TRACE()         TRANSLATE() 
+  SUB()           SUBJ()          SUBNETMATCH()  SWITCH()       SWITCHALL()
+  T()             TAN()           TEL()          TIME()         TIMEFMT()
+  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
+  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
+  TR()            TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -8986,9 +8986,9 @@
                        ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
                        SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
                        STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
-                       STRLEN() STRMATCH() SWITCH() SWITCHALL() T() TOTPOS() 
-                       TR() TRANSLATE() TRIM() UCSTR() WORDPOS() WORDS() WRAP()
-                       WRAPCOLUMNS() XORCHR()
+                       STRLEN() STRMATCH() SUBNETMATCH() SWITCH() SWITCHALL()
+                       T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() WORDPOS()
+                       WORDS() WRAP() WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -12356,7 +12356,8 @@ See Also: timefmt()
     > say wildmatch(This is a test, is a)
     You say "0"
   
-  See Also: member(), strmatch(), numwildmatch(), totwildmatch(), match()
+  See Also: member(), strmatch(), subnetmatch(), numwildmatch(), totwildmatch(),
+            match()
   
 & numwildmatch()
   Function: numwildmatch(<string>, <pattern>[, <delim>]) 
@@ -12982,7 +12983,7 @@ See Also: timefmt()
     > say match(This is a test, is a)
     You say "0"
   
-  See Also: LISTS, member(), strmatch(), nummatch(), totmatch()
+  See Also: LISTS, member(), strmatch(), subnetmatch(), nummatch(), totmatch()
   
 & STRMATCH()
   Function: strmatch(<string>,<pattern>)
@@ -13005,7 +13006,23 @@ See Also: timefmt()
     You say "1"
   
   See Also: match(), member(), nummatch(), nummember(), totmatch(), totmember()
-  
+
+& SUBNETMATCH()
+  Function: subnetmatch(<ip>,<netstart>,<netmask>)
+  Function: subnetmatch(<ip>,<netstart>/<CIDR>)
+
+  This function allows you to check wether an IP falls into a certain subnet
+  or not. The function allows you to use either a format specifying the
+  subnet address and netmask, or the common CIDR format.
+
+  It returns 1 if the IP address is part of the subnet, 0 if it is not.
+
+  Example:
+  subnetmatch(123.123.123.123, 123.0.0.0, 255.0.0.0) -> 1
+  subnetmatch(123.123.123.123, 123.0.0.0, 255.255.0.0) -> 0
+  subnetmatch(123.123.123.123, 123.0.0.0/8) -> 1
+  subnetmatch(123.123.123.123, 123.0.0.0/16) -> 0
+
 & EXTRACT()
   extract(<string>, <first>, <length>[, <delim>])
  
@@ -13895,7 +13912,7 @@ See Also: timefmt()
     > say member(This is a member test, is a)
     You say "#-1 CAN ONLY TEST ONE ELEMENT"
    
-  See Also: LISTS, match(), strmatch(), nummember(), totmember()
+  See Also: LISTS, match(), strmatch(), subnetmatch(), nummember(), totmember()
   
 & NUMMEMBER()
   Function: nummember(<list>, <word>[, <delim>])
@@ -24824,6 +24841,7 @@ Mail: Done
   strlenraw()   - Returns the length of the RAW string.
   strlenvis()   - Returns the length of the VISUAL string.
   strmatch()    - Returns true if a pattern is found in a string.
+  subnetmatch() - Returns true if an IP address is part of a subnet.
   switch()      - Powerful string-pattern conditional.
   switchall()   - Like switch(), but matches all occurrences of a pattern.
   t()           - Unifies MUSH responses of 0, null or #-* to return 0.

@@ -23551,6 +23551,80 @@ FUNCTION(fun_squish)
 }
 
 /* ---------------------------------------------------------------------------
+ * fun_subnetmatch: Return value based on wether specified ip address is part
+ * of the specified ip/CIDR or ip and netmask combination.
+ */
+
+FUNCTION(fun_subnetmatch)
+{
+    int range;
+		struct in_addr ip_addr, ip_addr2, netmask;
+    uint32_t maskval;
+    char *ptr;
+    int do_cidr;
+    do_cidr=0;
+
+    if((nfargs < 2) || (nfargs > 3))
+    {
+       safe_str("#-1 FUNCTION (SUBNETMATCH) EXPECTS 2 OR 3 ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    if(nfargs == 2) /* subnetmatch(ip,ip/CIDR) */
+      do_cidr = 1;
+
+    if(!inet_pton(AF_INET,fargs[0], &(ip_addr.s_addr))) /* First arg to IP */
+    {
+       safe_str("#-1 FIRST ARGUMENT NEEDS TO BE A PROPER IP ADDRESS", buff, bufcx);
+       return;
+    }
+
+    if(do_cidr) /* Pick second arg apart, get IP, calculate netmask */
+    {
+      ptr = strtok(fargs[1],"/");
+      if(!inet_pton(AF_INET,ptr, &(ip_addr2.s_addr)))
+      {
+        safe_str("#-1 SECOND ARGUMENT NEEDS TO BE 'IPADDRESS/BITS'", buff, bufcx);
+        return;
+      }
+      ptr = strtok(NULL,"/");
+      if(!ptr)
+      {
+        safe_str("#-1 SECOND ARGUMENT NEEDS TO BE 'IPADDRESS/BITS'", buff, bufcx);
+        return;
+      }
+      range = atoi(ptr);
+      if((range < 1) || (range > 32))
+      {
+        safe_str("#-1 CIDR BITS NEED TO BE A VALUE BETWEEN 1 AND 32", buff, bufcx); 
+        return;
+      }
+      maskval = (0xFFFFFFFFUL << (32 - range));
+      netmask.s_addr = htonl(maskval); 
+    }
+    else /* Just straight up get second arg IP and third arg netmask */
+    {
+      if(!inet_pton(AF_INET,fargs[1], &(ip_addr2.s_addr)))
+      {
+        safe_str("#-1 SECOND ARGUMENT NEEDS TO BE A PROPER IP ADDRESS", buff, bufcx);
+        return;
+      }
+      if(!inet_pton(AF_INET,fargs[2], &(netmask.s_addr)))
+      {
+        safe_str("#-1 THIRD ARGUMENT NEEDS TO BE A PROPER IP ADDRESS", buff, bufcx);
+        return;
+      }
+    }
+    // We have two IPs, we have the netmask. Let's match.
+       if((ip_addr.s_addr & netmask.s_addr) == ip_addr2.s_addr)
+         safe_str("1", buff, bufcx);
+       else
+         safe_str("0", buff, bufcx);
+       return;
+}
+
+/* ---------------------------------------------------------------------------
  * fun_switchall: Return value based on pattern matching (ala @switch/all)
  * NOTE: This function expects that its arguments have not been evaluated.
  */
@@ -29577,6 +29651,7 @@ FUN flist[] =
     {"STRMATH", fun_strmath, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUB", fun_sub, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"SUBJ", fun_subj, 1, 0, CA_PUBLIC, 0},
+    {"SUBNETMATCH", fun_subnetmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SWITCHALL", fun_switchall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},
