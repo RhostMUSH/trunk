@@ -13009,20 +13009,20 @@ See Also: timefmt()
 
 & SUBNETMATCH()
   Function: subnetmatch(<ip>,<netstart>,<netmask>)
-  Function: subnetmatch(<ip>,<netstart>/<CIDR>)
-
+            subnetmatch(<ip>,<netstart>/<CIDR>)
+  
   This function allows you to check wether an IP falls into a certain subnet
   or not. The function allows you to use either a format specifying the
   subnet address and netmask, or the common CIDR format.
-
+  
   It returns 1 if the IP address is part of the subnet, 0 if it is not.
-
-  Example:
-  subnetmatch(123.123.123.123, 123.0.0.0, 255.0.0.0) -> 1
-  subnetmatch(123.123.123.123, 123.0.0.0, 255.255.0.0) -> 0
-  subnetmatch(123.123.123.123, 123.0.0.0/8) -> 1
-  subnetmatch(123.123.123.123, 123.0.0.0/16) -> 0
-
+  
+  Examples:
+    subnetmatch(123.123.123.123, 123.0.0.0, 255.0.0.0) -> 1
+    subnetmatch(123.123.123.123, 123.0.0.0, 255.255.0.0) -> 0
+    subnetmatch(123.123.123.123, 123.0.0.0/8) -> 1
+    subnetmatch(123.123.123.123, 123.0.0.0/16) -> 0
+  
 & EXTRACT()
   extract(<string>, <first>, <length>[, <delim>])
  
