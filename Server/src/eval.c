@@ -627,7 +627,14 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_str("%f", buff, &bufc);
                 safe_str("%f", buff2, &bufc2);
                 string++;
-            } else if ( (*string != SAFE_CHR) && (*string != 'f') && (*string != '<') ) {
+            } else if ( ((*string != SAFE_CHR)
+#ifdef SAFE_CHR2
+                           && (*string != SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                           && (*string != SAFE_CHR3)
+#endif
+                           ) && (*string != 'f') && (*string != '<') ) {
                 safe_chr('%', buff, &bufc);
                 safe_chr(*string, buff, &bufc);
                 safe_chr('%', buff2, &bufc2);
