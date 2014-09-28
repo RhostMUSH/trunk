@@ -1036,7 +1036,11 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
       f_int = 1;
       safe_str((char *) ptrs[i]->flagname, buf, &bp);
       safe_chr('(', buf, &bp);
+      if ( (ptrs[i]->flagflag & FLAG3) || (ptrs[i]->flagflag & FLAG4) )
+         safe_chr('[', buf, &bp);
       safe_chr(ptrs[i]->flaglett, buf, &bp);
+      if ( (ptrs[i]->flagflag & FLAG3) || (ptrs[i]->flagflag & FLAG4) )
+         safe_chr(']', buf, &bp);
       safe_chr(')', buf, &bp);
     }
 
