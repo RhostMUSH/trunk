@@ -9319,6 +9319,33 @@
   
   See Also: setq(), r(), setr(), nameq(), SUBSTITUTIONS
   
+& %
+& %%
+& %s
+& %o
+& %p
+& %a
+& %n
+& %k
+& %w
+& %r
+& %t
+& %b
+& %-
+& %i
+& %d
+& %q
+& %v
+& %0
+& %1
+& %2
+& %3
+& %4
+& %5
+& %6
+& %7
+& %8
+& %9
 & SUBSTITUTIONS
   Topic: SUBSTITUTIONS
  
@@ -9351,6 +9378,18 @@
   Note: %q<label> works for setq labels.  ie.  [setq(0,foo,bar)]%q<bar>
   
 { 'help substitutions2' for more }
+
+& %#
+& %l
+& %!
+& %@
+& %+
+& %?
+& %c
+& %x
+& %m
+& %f
+& %<
 & substitutions2
     %#      = Database number of the object that caused the message to be
               displayed or the action list to be run.
