@@ -620,8 +620,26 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                                         || (*(string+1) == SAFE_CHR3 )
 #endif
 )) {
-                safe_str((char*)SAFE_CHRST, buff, &bufc);
-                safe_str((char*)SAFE_CHRST, buff2, &bufc2);
+                if(*(string+1) == SAFE_CHR) {
+                  safe_str((char*)SAFE_CHRST, buff, &bufc);
+                  safe_str((char*)SAFE_CHRST, buff2, &bufc2);
+                }
+#ifdef SAFE_CHR2
+                else if(*(string+1) == SAFE_CHR2) {
+                  safe_str((char*)SAFE_CHRST2, buff, &bufc);
+                  safe_str((char*)SAFE_CHRST2, buff2, &bufc2);
+                }
+#endif
+#ifdef SAFE_CHR3
+                else if(*(string+1) == SAFE_CHR3) {
+                  safe_str((char*)SAFE_CHRST3, buff, &bufc);
+                  safe_str((char*)SAFE_CHRST3, buff2, &bufc2);
+                }
+#endif
+                else {
+                  safe_str((char*)SAFE_CHRST, buff, &bufc);
+                  safe_str((char*)SAFE_CHRST, buff2, &bufc2);
+                }
                 string++;
             } else if ((*string == '%') && (*(string+1) == 'f')) {
                 safe_str("%f", buff, &bufc);
@@ -726,10 +744,34 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                           }
                           break;
                        default:
-                          safe_str((char *)SAFE_CHRST, buff, &bufc);
-                          safe_chr(*string, buff, &bufc);
-                          safe_str((char *)SAFE_CHRST, buff2, &bufc2);
-                          safe_chr(*string, buff2, &bufc2);
+                          if(*(string-1) == SAFE_CHR) {
+                            safe_str((char *)SAFE_CHRST, buff, &bufc);
+                            safe_chr(*string, buff, &bufc);
+                            safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                            safe_chr(*string, buff2, &bufc2);
+                          }
+#ifdef SAFE_CHR2
+                          else if(*(string-1) == SAFE_CHR2) {
+                            safe_str((char *)SAFE_CHRST2, buff, &bufc);
+                            safe_chr(*string, buff, &bufc);
+                            safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
+                            safe_chr(*string, buff2, &bufc2);
+                          }
+#endif
+#ifdef SAFE_CHR3
+                          else if(*(string-1) == SAFE_CHR3) {
+                            safe_str((char *)SAFE_CHRST3, buff, &bufc);
+                            safe_chr(*string, buff, &bufc);
+                            safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
+                            safe_chr(*string, buff2, &bufc2);
+                          }
+#endif
+                          else {
+                            safe_str((char *)SAFE_CHRST, buff, &bufc);
+                            safe_chr(*string, buff, &bufc);
+                            safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                            safe_chr(*string, buff2, &bufc2);
+                          }
                           break;
                     }  
                     break;
@@ -858,10 +900,34 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     }
                     break;
                 default:
-                    safe_str((char *)SAFE_CHRST, buff, &bufc);
-                    safe_chr(*string, buff, &bufc);
-                    safe_str((char *)SAFE_CHRST, buff2, &bufc2);
-                    safe_chr(*string, buff2, &bufc2);
+                    if(*(string-1) == SAFE_CHR) {
+                      safe_str((char *)SAFE_CHRST, buff, &bufc);
+                      safe_chr(*string, buff, &bufc);
+                      safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                      safe_chr(*string, buff2, &bufc2);
+                    }
+#ifdef SAFE_CHR2
+                    else if(*(string-1) == SAFE_CHR2) {
+                      safe_str((char *)SAFE_CHRST2, buff, &bufc);
+                      safe_chr(*string, buff, &bufc);
+                      safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
+                      safe_chr(*string, buff2, &bufc2);
+                    }
+#endif
+#ifdef SAFE_CHR3
+                    else if(*(string-1) == SAFE_CHR3) {
+                      safe_str((char *)SAFE_CHRST3, buff, &bufc);
+                      safe_chr(*string, buff, &bufc);
+                      safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
+                      safe_chr(*string, buff2, &bufc2);
+                    }
+#endif
+                    else {
+                      safe_str((char *)SAFE_CHRST, buff, &bufc);
+                      safe_chr(*string, buff, &bufc);
+                      safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                      safe_chr(*string, buff2, &bufc2);
+                    }
                     break;
                 }
             }
@@ -1196,7 +1262,18 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 // Leave the ansi code intact
                 if(!(eval & EV_PARSE_ANSI)) {        
                     safe_chr('%', buff, &bufc);
-                    safe_chr(SAFE_CHR, buff, &bufc);
+                    if(*dstr == SAFE_CHR)
+                      safe_chr(SAFE_CHR, buff, &bufc);
+#ifdef SAFE_CHR2
+                    else if(*dstr == SAFE_CHR2)
+                      safe_chr(SAFE_CHR2, buff, &bufc);
+#endif
+#ifdef SAFE_CHR3
+                    else if(*dstr == SAFE_CHR3)
+                      safe_chr(SAFE_CHR3, buff, &bufc);
+#endif
+                    else
+                      safe_chr(SAFE_CHR, buff, &bufc);
                     break;
                 }
 #endif
