@@ -9319,6 +9319,33 @@
   
   See Also: setq(), r(), setr(), nameq(), SUBSTITUTIONS
   
+& %
+& %%
+& %s
+& %o
+& %p
+& %a
+& %n
+& %k
+& %w
+& %r
+& %t
+& %b
+& %-
+& %i
+& %d
+& %q
+& %v
+& %0
+& %1
+& %2
+& %3
+& %4
+& %5
+& %6
+& %7
+& %8
+& %9
 & SUBSTITUTIONS
   Topic: SUBSTITUTIONS
  
@@ -9351,6 +9378,18 @@
   Note: %q<label> works for setq labels.  ie.  [setq(0,foo,bar)]%q<bar>
   
 { 'help substitutions2' for more }
+
+& %#
+& %l
+& %!
+& %@
+& %+
+& %?
+& %c
+& %x
+& %m
+& %f
+& %<
 & substitutions2
     %#      = Database number of the object that caused the message to be
               displayed or the action list to be run.
@@ -14620,10 +14659,14 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: wordpos(), strlen()
   
 & VERSION()
-  Function: version()
+  Function: version(<arg>)
  
   Returns a string which contains various version information for the MUSH
   you're on.
+  
+  Optional arguments are:
+    0 - Show the version of RhostMUSH running (default)
+    1 - Show the build date of RhostMUSH
  
   Example:
      > version
@@ -21324,6 +21367,8 @@ See Also: mail main, mail topics
   incoming mail into pre-existing folders.  The following are passed:
               %0  - the dbref# of the player (or #-1 if anonymous)
               %1  - the subject of the message
+              %2  - the body of the message
+              %3  - the date/time of the message
   Examples:
     > folder/list
       Mail: You have the following folders ->
@@ -24990,28 +25035,1130 @@ Mail: Done
 
 & revisions
 All credits to players, codebases, or other is presented in the RHOST.CHANGES
-file in the readme directory in the source distribution.  
+file in the readme directory in the source distribution.  The credits are too
+diverse and well too detailed to be sufficient as a small snippit in online
+help.
   
 Beginning with Rhost 3.9.1, the Development team has tracked all changes to
 the Rhost system in the helpfiles, so that users may see what changes have
 been made with each revision.  Each change is detailed in bullet-point format
 in a helpfile specific to its revision, along with the alias for the developer
 who completed the change. 
-
+  
+Do note, effort was done to backport help as much as possible all the way
+back to the initial 3.2.4 rewrite that started Rhost for what it is today.
+  
+Any versioning of Rhost version 1.0 through 3.0 was sadly lost to time.
+  
 The developers who may appear in these files are:
 ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
-SEA - Seawolf
+SEA - Seawolf             THO - Thorin
  
 Current Revision: 3.9.4p0
 
 Available Revisions:
-  3.9.1: 3.9.1p1, 3.9.1p2
+  3.2.4: 3.2.4p1,  3.2.4p2,  3.2.4p3,  3.2.4p4,  3.2.4p5,  3.2.4p6,  3.2.4p7, 
+         3.2.4p8,  3.2.4p9,  3.2.4p10, 3.2.4p11, 3.2.4p12, 3.2.4p13, 3.2.4p14,
+         3.2.4p15, 3.2.4p16, 3.2.4p17, 3.2.4p18
+  3.9.0: 3.9.0p0, 3.9.0p1, 3.9.0p2
+  3.9.1: 3.9.1p0, 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
-  3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4
+  3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
   3.9.5: 3.9.5p0
 
+& 3.2.4p0
+Release Date: 1 Jan 1992
+Status: Beta
+  
+New Features
+------------
+* PID values to processes [SEA]
+* hardcoded mail system [SEA]
+  
+Changes
+-------
+  
+Bug Fixes
+---------
+
+& 3.2.4p1
+Release Date: 1 Jul 1992
+Status: Beta
+  
+New Features
+------------
+* hardcoded BBS system [THO]
+  
+Changes
+-------
+  
+Bug Fixes
+---------
+* @hook/igswitch wouldn't work with multiple switches [ASH]
+
+& 3.2.4p2
+Release Date: 1 Jan 1993
+Status: Beta
+  
+New Features
+------------
+* several mail enhancements for auto repair [SEA]
+* mail folders [SEA]
+* various mail config parameters for stability/config [SEA]
+* VLIMIT to control max attributes
+  
+Changes
+-------
+* massive mail malloc for fast delivery [SEA]
+  
+Bug Fixes
+---------
+* unfindable didn't work right with loc() and others [ASH]
+* GDBM/NDBM fix for corruption with vlimit fix [SEA]
+
+& 3.2.4p3
+Release Date: 1 Jul 1993
+Status: Beta
+  
+New Features
+------------
+* remtype() to remove a list based on type [ASH]
+* mailquick() for quick mail review [SEA]
+* eval() for string/attribute evaluation [ASH]
+* translate() for deparsing strings [SEA]
+* valid() to validate types [ASH]
+* entrances() to return entrances to target [SEA]
+* graball() like grab() but grabs all [SEA]
+* remit() to remite to a room [ASH]
+* rnum() to parse rooms [SEA]
+* wipe() for wiping [ASH]
+* destroy() for destroying [ASH]
+* step() to step parse based on stepping [ASH]
+* localize() to localize registers from eval [ASH]
+* null() to snuff output of string [SEA]
+* ladd(), lsub(), lmul(), ldiv(), land(), lavg(), lmax(),
+  lmin(), lor(), lxor(), lnor(), lxnor(), ncomp(), streq(),
+  xcon(), inzone(), zemit(), zwho(), zfun(), zfun2(),
+  zfunlocal(), zfun2local(), zfundefault(), zfun2default(),
+  zfuneval(), zfunldefault(), zfunl2default() [SEA]
+* lastcreate(), while(), modifystamp(), createdstamp() [ASH]
+* @hide[/on/off] - For PENN compatibility [ASH]
+* @saystring define what is substituted instead of 'says' [ASH]
+* NOWHO (internal) - mark who is @hidden [ASH]
+* LOGIN bypass @disable logins [SEA]
+* ZONECONTENTS makes zonemaster behave like master room [THO]
+* BACKSTAGE check to see if auto-inherited to ownership [SEA]
+* NOBACKSTAGE marker for backstage checks [SEA]
+* ANONYMOUS return 'Someone' when cloaked when talk/say [SEA]
+* NOWHO specify who can @hide [SEA]
+* EXAMINE_FULL examine anything but #1, cloaked, and noex [SEA]
+* FULLTEL teleport anywhere but #1 and cloaked locations [SEA]
+* BRANDY_MAIL send mail with 'mail user-list=3Dsubject' methodology [ASH]
+* FORCEHALTED force someone who is halted [ASH]
+* mail_tolist enable/disable To: <players> in mail automatically [ASH]
+* mail_default change 'mail' from mail/quick to mail/status [ASH]
+  
+Changes
+-------
+* name() optionally handles setting via sideeffect [ASH]
+* examine/quick aliased to /brief [ASH]
+* examine/brief modified output to mimic other codebases [ASH]
+* @function/list for penn compatibility [ASH]
+* /zone to @pemit for pemit to zones [THO]
+* @dolist/notify to trigger semaphores [SEA]
+* mail/next and mail/zap modifications [SEA]
+  
+Bug Fixes
+---------
+* %l and loc() didn't work right in trace output [ASH]
+* depower tel_anywhere didn't work [SEA]
+* look could see cloaked things if given long-finger ability [SEA]
+* recover objects could be examined to find names of them and owner [ASH]
+* grab() crashed server if given only one argument [SEA]
+* go couldn't use 'go' through parent exits before [SEA]
+* ueval() fixed missing LBUF free [ASH]
+* mail/write +list gave erraneous results [SEA]
+* lexits() won't show exits set PRIVATE at the 'home' of those exits [SEA]
+* min() value shoved a double in an int [ASH]
+* max() value shoved a double in an int [ASH]
+* wmail/size tried to free null pointer [SEA]
+* host sites over 50 characters would not null terminate [SEA]
+* @open could clobber the return exit from how tprintf() buffers [SEA]
+* andflags() and orflags() didn't escape out '2' or '1' right [SEA]
+
+& 3.2.4p4
+Release Date: 1 Jan 1994
+Status: Beta
+  
+New Features
+------------
+* localized formatting allowed with &format<blah> [ASH]
+* listmatch() for matching wildcard values [SEA]
+* setqmatch() for matching wildcard and storing in setq [SEA]
+* listnewsgroups() to list newsgroups [THO]
+* inprogram() to show if in program [ASH]
+* PROG to specify if target can issue @program [ASH]
+* NOSHPROG to specify if you can shell out of a program [ASH]
+* IMMPROG to enforce staying in a @program until completion [ASH]
+* @program to put someone into an interactive program [ASH]
+* @quitprogram to abort the program [ASH]
+* @progprompt to specify the prompt to program [ASH]
+* @extansi to specify a multi-ansified name on a target [ASH]
+* train to 'teach' someone what you type [ASH]
+* +help (hardcode) to call plushelp.txt/.indx [ASH]
+* login_to_prog to enable logging into a running @program [ASH]
+* noshell_prog to disable shelling out of a @program [ASH]
+* sidefx_returnval for sideeffects to return dbref#'s (like set) [ASH]
+* nospam_connect to snuff bot spammage on connects [ASH]
+* noregist_onwho to disable 'R' on WHO/DOING when register sites [ASH]
+* lnum_compat to enable lnum compatibility mode [ASH]
+* mailinclude_file to specify the text file included in registering [ASH]
+* must_unlquota requires unlocking quota to modify quota [SEA]
+  
+Changes
+-------
+* @prog aliased to @program [ASH]
+* filter() now supports an output seperator [ASH]
+* lnum() and lnum2() optionally return NULL if given a '0' [ASH]
+* mask() now takes '~' for adding 1's comp, '1' for 1's and '2' for 2's [ASH]
+* mailquick() takes 3rd argument for MUX mail() compatibility [ASH]
+* news/articlelife takes 'forever' as a valid argument [THO]
+* mail/status takes /subject, (U)nread, (N)ew, (B)oth new/unread, (S)aved,
+  (M)arked, and (O)ld mail as optional search params [ASH]
+* mail/number takes same new args as mail/status [ASH]
+* news/read now marks messages as 'read' [ASH]
+* @ansiname now allows raw ansi [ASH]
+* dig(), create(), open(), clone() all optionally return dbref#'s [ASH]
+* @list options now shows more (and valuable) information [ASH]
+* @function/list now shows flags for privalaged/preserved functions [ASH]
+* mail/status and mail/read now show connected players [ASH]
+* mail/write and - now show how many characters you have written [ASH]
+* mail/forward and mail/reply now recognize the BRANDY_MAIL @toggle [ASH]
+* @function/preserve to preserve registers from being modified [ASH]
+  
+Bug Fixes
+---------
+* attribute formatting broke for what/owhat [ASH]
+* filter() did not correctly parse arguments in some instances [ASH]
+* @set thing/attr=_thing/attr would on rare occurances not work [ASH]
+* lock() would not parse the second argument in some occurances [ASH]
+* mail/reply didn't function right when BRANDY_MAIL toggled [ASH]
+* setunion() would not parse 3rd/4th args correctly on rare occurances [ASH]
+* news/articlelife wouldn't reset articlelife with '-1' [THO]
+
+
+& 3.2.4p5
+Release Date: 1 Jul 1994
+Status: Beta
+  
+New Features
+------------
+* noauth_site specifies site and mask that AUTH lookups are skipped [ASH]
+* nodns_site specifies site and mask that DNS lookups are skipped [ASH]
+
+  
+Changes
+-------
+* all help entries allow /search content searching [ASH]
+* /noauth and /nodns switches for @site [THO]
+* better timeout conditions for site lookups [THO]
+* @list site_information now shows additional information [ASH]
+  
+Bug Fixes
+---------
+* AUTH hung if remote server was configured wrong. Rewrote [THO]
+* Command substitution (%c/%x) could cause a SIGSEGV at random times [ASH]
+
+
+& 3.2.4p6
+Release Date: 1 Jan 1995
+Status: Beta
+  
+New Features
+------------
+* forbid_host, register_host, autoreg_host, noguest_host, suspect_host site
+  restrictions for DNS host matches [ASH]
+
+  
+Changes
+-------
+* @break accepts optional arguments [ASH]
+* @list site_information now shows DNS blocking [ASH]
+
+  
+Bug Fixes
+---------
+* mail didn't mark folders properly for deletion [ASH]
+* ansi() didn't recognize 'u' for underline [ASH]
+* @program had small issue with prompt storage [ASH]
+* autoreg file inclusion didn't count total lines right [ASH]
+* hastoggles(), haspowers(), and hasdepowers() didn't work [ASH]
+
+& 3.2.4p7
+Release Date: 1 Jul 1995
+Status: Beta
+  
+New Features
+------------
+  
+Changes
+-------
+* @set handles attrib flags: GOD, IMMORTAL, WIZARD/ROYALTY, COUNCILOR, 
+  ARCHITECT, GUILDMASTER, HIDDEN, DARK [ASH]
+
+  
+Bug Fixes
+---------
+* reality locks didn't evaluate properly [ASH]
+* @list options did not show RESTRICT_HOME config setting
+
+& 3.2.4p8
+Release Date: 1 Jan 1996
+Status: Beta
+  
+New Features
+------------
+* Attributes starting with _ allowed and wiz only [ASH]
+* mail recognizes +editall, +feditall, +fedit, +cc, and +bcc args [ASH]
+* mailalias() returns the dbref# list of players global mail alias [ASH]
+* programmer() returns the dbref# of thing that put target in @program [ASH]
+* vcross() for MUX2 compatibility [ASH]
+* switchall() like switch() but matches all [ASH]
+* brackets() return bracket matches [ASH]
+* @@() works like null() but does not evaluate [ASH]
+* @flagdef define flag permission levels (/set, /unset, /see) [ASH]
+* @dynhelp dynamically read a specified <file>.txt/.indx file [ASH]
+* COMMANDS optional flag to define what uses commands [ASH]
+* NO_CLONE attribute flag to stop attributes from copying when @cloned [ASH]
+* MARKER0 through MARKER9 marker flags [ASH]
+* BOUNCE allows players to pass what they hear to their contents [ASH]
+* MONITOR_BAD monitor failed connects/creations to non-existant players [ASH]
+* PROG_ON_CONNECT reverses the current logic of program and connecting [ASH]
+* imm_nomod specifies that only immortal can set/unset the NOMODIFY flag [ASH]
+* paranoid_exit_linking when enabled, you MUST control exit to link [ASH]
+* notonerr_return when DISABLED not() returns a '0' for returning #-1 [ASH]
+* safer_passwords passwords require 5+ chars, one upper, lower, special [ASH]
+* max_sitecons specifies the maximum # of port connections [ASH]
+  
+Changes
+-------
+* lnum()/lnum2() handles negative numbers [ASH]
+* NOMODIFY optionally set to immortal only [ASH]
+* all vector functions recognize output seperator [ASH]
+* mail +justify, +insert, +edit, +editall handles line numbers [ASH]
+* dice has more arguments for offset values [ASH]
+* modified/created is examinable now [ASH]
+  
+Bug Fixes
+---------
+* internal vprintf allocation memory leak [ASH]
+* NOMODIFY wasn't strict enough [ASH]
+* BACKSTAGE/NOBACKSTAGE didn't handle @zones [ASH]
+* create() didn't check permissions for @dig, @open, and @pcreate [ASH]
+
+& 3.2.4p9
+Release Date: 1 Jul 1996
+Status: Beta
+  
+New Features
+------------
+* @assert for Penn compatibility [ASH]
+* @toggle ZONECMDCHECK for zones to execute commands [ASH]
+* +acc added to append the cc to mail [ASH]
+* @flagdef for flag definition [ASH]
+* caseall() works like switchall() but for case [ASH]
+* cand() works like and() but stops processing on first 'FALSE' [ASH]
+* cor() works like or() but stops processing on first 'TRUE' [ASH]
+* moon() based on the POM code from berkley [ASH]
+* isword() returns 'TRUE' if entire string is all alpha/hyphon [ASH]
+* itext() returns nth arg (text '##') of an iter() [ASH]
+* inum() returns nth arg (num '#@') of an iter() [ASH]
+* modulo() returns the modulus of the numbers [ASH]
+* NO_PARSE attribute flag that stops /evaluation of %0-%9 in $commands [ASH]
+* SAFE attribute flag that stops modification of attribute [ASH]
+* SHOWFAILCMD show any matching failed $cmd uses the @ufail suite [ASH]
+* MAIL_STRIPRETURN when combining lines uses spaces not carrage returns [ASH]
+* PENN_MAIL when sending mail, use PENN like style [ASH]
+* guest_namelist specifies a dynamic namelist for guests [ASH]
+* hackattr_nowiz defines if '_attr' is wiz only or follows normal rules [ASH]
+* hackattr_see defines if '_attr' is viewable by wizard only [ASH]
+* penn_playercmds $commands on player work only for that player/inv [ASH]
+  
+Changes
+-------
+* @break is now PennMUSH compatible [ASH]
+* player argument to mail/recall for by-player recalling [ASH]
+* valid() has more cases [ASH]
+* columns() has filler argument [ASH]
+  
+Bug Fixes
+---------
+* CONNECT flag didn't show in some situations [ASH]
+* Bug with dynhelp().  Player (3rd arg) never resolved correctly [ASH]
+* Possible (and very rare) overflow conditions with certain wiz commands [ASH]
+* SIGSEGV bug with recursive @functions [ASH]
+* When @toggled MONITOR_BAD, MONITOR_FAIL doubled up failed connections [ASH]
+* Malaligned pointer in command.c.  Non-crash issue  [ASH]
+* setq() registers wern't cleared for extreamly fast command input [ASH]
+* ex thing/*sta* returns 'no attribs found' if tstamps enabled [ASH]
+* enhanced security for .txt file reading/verification (possible DoS) [ASH]
+* attrib flag DARK could not be unset by non-god.  Only #1 can set it now [ASH]
+* encrypt/decrypt really mangled with how it passed key [ASH]
+
+& 3.2.4p10
+Release Date: 1 Jan 1997
+Status: Beta
+  
+New Features
+------------
+* strfunc() for passing lists to any function [ASH]
+* max_cpu_cycles admin param (default 3) for cpu alarms [ASH]
+* cpu_secure_lvl admin param (default 0) for cpu alarms [ASH]
+  
+Changes
+-------
+* lattr() optionally shows locks [ASH]
+  
+Bug Fixes
+---------
+* you could still get into a garbage object [ASH]
+* forwardlists were not cleared on @wipe [ASH]
+
+& 3.2.4p11
+Release Date: 1 Jul 1997
+Status: Beta
+  
+New Features
+------------
+* @icmd has new switches to handle location/zone overriding:
+  /droom, /iroom, /croom, /lroom, /lallroom [ASH]
+* foreach() added for compatibility [ASH]
+* ilev() Returns nest level of an iter() [ASH]
+* @limit [/vmod /dmod /list /reset] limits @destroy/vattr [ASH]
+* IGNOREZONE toggle enables zone/location command disable/ignore [ASH]
+* VPAGE toggles aliases to show/not show in pages you receive [ASH]
+* PAGELOCK toggles pages to normal when wizard lock overriding [KRK]
+* MAIL_NOPARSE toggle to switch %r's and %t's in mail viewing [ASH]
+* ignore_zone globally specify zone ignoring for a command [ASH]
+* disable_zone globally specify zone disabling for a command [ASH]
+* global_ansimask globally define what ansi codes to allow/deny [ASH]
+* expand_goto force exit movement to use a 'goto' [ASH]
+* max_dest_limit specify maximum @destroys allowed per player [ASH]
+* max_vattr_limit specify maximum _NEW_ vattrs allowed per player [ASH]
+* hide_nospoof if '1' you have to control target to see NOSPOOF flag [KRK]
+  
+Changes
+-------
+* lattr() optionally handles attribute locks [ASH]
+* examine/parent shows dbref#'s of parent objects [ASH]
+* elist() has 5th argument for penn compatibility [ASH]
+* /until switch to @wait for exact time [ASH]
+* strmath() has new args for better flexability [ASH]
+* mail uses ~ to evaluate attributes on player targets [ASH]
+* better context for mail autoregistration [ASH]
+* wizards now override page locks [ASH]
+* +list to mail improved for output [ASH]
+* @pemit has /silent switch for penn compat [ASH]
+  
+Bug Fixes
+---------
+* DoS protection lacking for attribute sets [ASH]
+* buffer issue with @decompile [ASH]
+* mail showed cloaked wizzes being connected [ASH]
+* moon() didn't handle full moons properly [KRK]
+* isdbref() thought '#' was a valid dbref [ASH]
+* Attribute setting issue introduced with P11 [KRK]
+* Logging options were a bit skewered with on/off settings [ASH]
+* Attempted to free mbufs in @disable login area twice [ASH]
+* Parenting fix with possible recursion [ASH]
+* @lock/chown required on CHOWN_OK object.  Shouldn't be [ASH]
+* @icmd for players broke with room/location addition [KRK]
+* Cloaked items didn't trigger @startup [ASH]
+
+& 3.2.4p12
+Release Date: 1 Jan 1998
+Status: Beta
+  
+New Features
+------------
+* REALITY LEVELS [ASH]
+* +proof for mail proofing [ASH]
+* lastip now handles lastip of the person logging in [KRK]
+* rxlevel()/txlevel() - return RX/TX reality level [ASH]
+* listrlevels() list all levels [ASH]
+* hasrxlevel()/ hastxlevel() check target RX/TX levels [ASH]
+* cansee() check if target can see source (reality level based only) [ASH]
+* @rxlevel - set/remove reality level source check [ASH]
+* @txlevel - set/remove reality level target check [ASH]
+* mrpage (mrp) respond to the player list that you received in a page [ASH]
+* NONAME if set on a target, the name is not displayed [ASH]
+* reality_level define new reality level(s).  32 max [ASH]
+* wiz_always_real a wizard is always seeing everything as 'real' [ASH]
+* def_exit_rx, def_exit_tx, def_room_rx, def_room_tx, def_player_rx,
+  def_player_tx, def_thing_rx, def_thing_tx for default realities [ASH]
+* validate_host Specify invalid site-masks for autoregistration emails [ASH]
+* log_command_list Specify commands to individually log [ASH]
+* partial_conn, partial_deconn @aconnect/@adisconnects on partial [ASH]
+* secure_functions  Enable/disable security on listed functions [ASH]
+* max_logins_allowed (mudstate) absolute ceiling of connections allowed [ASH]
+* penn_switches switch() and switchall() will accept < and > [ASH]
+   
+Changes
+-------
+* double eval removed to mimic penn functionality [ASH]
+* randextract() handles 5th arg for output [ASH]
+* @conncheck shows total commands [ASH]
+* @aconnect/adisconnect handle various options now [ASH]
+* @list has several new options for listing/displaying [ASH]
+* puppet output is now highlighted [ASH]
+  
+Bug Fixes
+---------
+* autoreg validation and cleanup [ASH]
+* filter() would accept '1<blah>' as well as '1' [ASH]
+* possible pointer-misalignment with internal messaging with MONITOR [ASH]
+* Rare occurance of getting inside a garbage object (non-crash-bug) [ASH]
+* @mvattr had small bug with copying over itself & keeping copy [ASH]
+* Semaphores didn't do wait time correctly [ASH]
+* Time/Create stamps visible by anyone [ASH]
+* LBUF not freed in mail/quota [ASH]
+* @dynhelp not able to parse subdirectories (using a '^') [ASH]
+* @icmd not inherited in all instances [ASH]
+* Some side effects had wrong security/permission checks [ASH]
+* Side effects did not check inheritance for permission [ASH]
+* Iter()/list() and suite did not handle ansi properly [ASH]
+
+& 3.2.4p13
+Release Date: 1 Jul 1998
+Status: Beta
+  
+New Features
+------------
+* isint() for MUX/Penn compatibility [ASH] 
+* FLAGDEF attrib flag for logging (added to @flagdef) [ASH]
+* safebuff() cuts buffer off before LBUF is reached [ASH]
+* floordiv() return the 'floor' (rounded down) of result of division [ASH]
+* last() return last word specified by delimiter [ASH]
+* singletime() return time rounded to lowest element (s, m, h, d, etc) [ASH]
+* parenmatch() ansifies all bracket/paren/brace matches & RED's nonmatch [ASH]
+* lrand() returns random numbers between two points [ASH]
+* keeptype() does reverse of remtype() [ASH]
+* lcmds() List all commands '$' or listens '^' on object [ASH]
+* pack() convert a number to base 2-64 [ASH]
+* unpack() convert a pack()'d number back to base 10 [ASH]
+* crc32() return a crc32 code for the specified string [ASH]
+* toggle() works like the @toggle command.  Follows SIDEFX restrictions [ASH]
+* moneyname() returns the singular/plural name based on argument [ASH]
+* config() if no argument, displays all params otherwise value of param [ASH]
+* @eval force evaluation of functionality [ASH]
+* mortal_examine if set, target always examines like a mortal [ASH]
+* mail_lockdown @toggle target is restricted in mail 'monitoring' [ASH]
+* muxpage @toggle allows 'p <blah>' to work like in MUX/TM3/PENN [ASH]
+* heavy_cpu_max param  ceilings heavilly used cpu-intensive functions [ASH]
+* lastsite_paranoia param enable auto-reg/auto-forbid of spamming site [ASH]
+* max_lastsite_cnt param specify # of connects in period of time [ASH]
+* min_con_attempt specify the wait between 'first' connect and subquent [ASH]
+* lattr_default_oldstyle (default 0) snuffs the '#-1 NO MATCH' [ASH]
+* formats_are_local localize @nameformat, @conformat, @exitformat [ASH]
+* mail_def_object default object for global aliases [ASH]
+* wizard_queue_limit distinguish between wizard and mortals for queues [ASH]
+* max_pcreate_time time range allowed before max_pcreates reached [ASH]
+* max_pcreate_lim number of pcreates allowed in given timeframe [ASH]
+* pcreate_paranoia level of action to take against infidels (0-2) [ASH]
+* global_parent_obj global parent that attributes are inherited off of [ASH]
+  
+Changes
+-------
+* log god @admin param log all activity of #1
+* /quiet to @notify and @drain [ASH]
+* @cpattr assumes enactor if no source given [ASH]
+* lattr() has 3rd arg for listen/command matches [ASH]
+* /clear to @toggle to clear toggles [ASH]
+* if more than 20 zones on a target, switch to dbref# listing [ASH]
+* @admin and @site handle /## CIDR notation [ASH]
+* @edit highlights changes now [ASH]
+* remtype(), keeptype() handles multiple types [ASH]
+* internal buffering issues now lists line number and file [ASH]
+* @list options does sub-options now [ASH]
+* @name field changed from 16 to 22 characters [ASH]
+* /instant switch added for compatibility [ASH]
+* mail/recall enhancements for immortals/#1 [ASH]
+* lrooms() has a third argument to show level [ASH]
+* @dump/flat allows optional filename [ASH]
+* enhanced options to mail reading [ASH]
+* ports added to lwho(), idle(), conn(), cmds() [ASH]
+* lattr() handles optional target player [ASH]
+  
+Bug Fixes
+---------
+* conversion script for TM3 broke in some conditions [ASH]
+* @lock/getfrom didn't check enactors location [ASH]
+* convtime() used daylight savings now no longer uses [ASH]
+* IDESC wouldn't work with Reality Levels [ASH]
+* Bad memory could corrupt command parsing with sockets [ASH}
+* @list alloc would scroll values negative [ASH]
+* @teleport and movement could 'hide' from wizards in inventories [ASH]
+* home, if @icmd'd, wouldn't allow the command to be overridden [ASH]
+* The CLOAK flag would give 'has left' messages [ASH]
+* The lookup_player() code now handles '*' as well as not [ASH]
+* If recycling was not enabled, you could still @destroy [ASH]
+* Trace output was broke with how it displayed enactor/target [ASH]
+* NOSTOP flag on objects in the master room could cause an infinite loop [ASH]
+* QueueMax attribute would not work unless owned by the target [ASH]
+* DNS/AUTH lookups could have unforseen behavior with non-printable chars [ASH]
+* setqmatch() does not work like the help dictated it should [ASH]
+* hastoggle() was wizard-only for no reason  [ASH]
+* atof() could have buffer issues if string greater than 100 characters [ASH]
+* Counts for input, output, and lost fields were not accurate [ASH]
+* @conncheck could have unpredicatable results with the name of the door [ASH]
+* MONITOR information had some uninitialized values that could crash [ASH]
+* DARK flags with wizards so it won't show wiz as being connected [ASH]
+* mid() didn't work like it did in MUX2/PENN.  It's now an alias [ASH]
+* type() could bypass cloaked targets [ASH]
+* quick_wild() could cause some SIGSEGV's if not accurately verified [ASH]
+* inventory doesn't handle Reality Levles corrected [ASH]
+* lcon(), next(), con(), lexits(), lcon(), xcon(), and sees() with
+  reguards to handling Reality Levles were broke [ASH]
+
+& 3.2.4p14
+Release Date: 1 Jan 1999
+Status: Beta
+  
+New Features
+------------
+* optional restrictions on people who CPU slam your mush [ASH]
+* Attributes can start with ~ [ASH]
+* A-Z are now available for setq registers [ASH]
+* Penn compatible SHS encryption [LNS]
+* txlevel()/rxlevel() for set/display realities [ASH]
+* rset() sideeffect for set() that sets attribute and returns value [ASH]
+* pedit() to mimic Penn's edit() functionality [ASH]
+* ptimefmt() to mimic Penn/Mux's timefmt() functionality [ASH]
+* textfile() works like dynhelp() but pushes onto buffer [ASH]
+* lattrp() lattr() for parent checks [ASH]
+* ctu() function that does deg/rad/grad conversion [ASH]
+* visiblemux() for mux's visible() compatibility [ASH]
+* @hook to show/display/change individual hooks.  
+  Switches are: /permit, /ignore, /before, /after, /igswitch [ASH]
+* uselock attrib flag checks matching ~<attribute> for uselock [ASH]
+* SPAMMONITOR flag check target for spam (60 cmds/sec) [ASH]
+* ZONEINHERIT allows zonemasters to have attribs inherited to children [ASH]
+* muddb_name admin param for db names to seperate from 'mud_name' [ASH]
+* global_error_obj evaluate the VA attribute on the object for huh? [ASH]
+* mail_autodeltime specifies when mail is globally purged (def 21 days) [ASH]
+* global_parent_room globally inherit attributes to room w/o @parent [ASH]
+* global_parent_thing globally inherit attributes to thing w/o @parent [ASH]
+* global_parent_player globally inherit attributes to player w/o @parent [ASH]
+* global_parent_exit globally inherit attributes to exit w/o @parent [ASH]
+* hook_obj globally define the 'hook' object [ASH]
+* hook_cmd process 'hooks' on specified commands [ASH]
+* look_moreflags will show global flags on things with examine [ASH]
+* stack_limit nest check for 'stack' to throttle back a given amount [ASH]
+  
+Changes
+-------
+* round() handles negative arguments [ASH]
+* the SPOOF flag is inheritable [ASH]
+* /nosub switch to @pemit to leave ## and #@ un-evaled [ASH]
+* /preserve to @wipe and wipe() to reverse effect [ASH]
+* all @o* messages no longer display on null [ASH]
+* set(), setr(), setq(), and r() handle ansi [ASH]
+* if owner is FLOATING they won't receive float messages [ASH]
+* /basic switch to @lock for Penn compatibility [ASH]
+* @list user_attributes handle wildcard matching [ASH]
+* @list alloc shows better buffer stats [ASH]
+* better replace_token call for all ##/#@ subs [ASH]
+* citer() has optional seperator [ASH]
+* lwho() has argument to list just ports [ASH]
+* modified MONITOR site monitoring to show remote port [ASH]
+* sin(), tan(), etc modified for MUX compatibility [ASH]
+  
+Bug Fixes
+---------
+* double free in elist() [ASH]
+* EXTANSI could bleed [ASH]
+* Helpfile errors fixed [ASH]
+* SESSION didn't cut the name off at 16 chars (formatting issue) [ASH]
+* mailquick()'s arg didn't totally mirror MUX's mail() [ASH]
+* if who_unfindable disabled, player_dark disabled, and allow_whodark enabled
+  you'd never get the connect flag of a wizard. [ASH]
+* Linux and other weird unix systems tended to hang on AUTH lookups still [THO]
+* v() wouldn't handle special chars as first char if enabled ATTR_HACK [ASH]
+* parent() when used to set a new parent did not return the dbref# [ASH]
+* Fixed legacy bug in QUEUE which effected a-z setq() regs [ASH]
+* 'home' check was broke if set disabled and ignore at the same time [ASH]
+* @thaw didn't handle semaphores properly [ASH]
+* Zone-ignores didn't work for QUIT, LOGOUT, and it's ilk [ASH]
+* Debug Monitor stack had a conditional off-by-one state on @reboots [AMB]
+* @extansi was broke when ZENTY_ANSI not defined [AMB]/[LNS]
+* wildcard matching could become problematic and loop endlessly [ASH]
+
+& 3.2.4p15
+Release Date: 1 Jul 1999
+Status: Beta
+  
+New Features
+------------
+* local.c plugin support [LNS]
+* BANG support (!, !!, etc) [KRK]
+* +bcc for blind carbon copies for mail [ASH]
+* mailstatus() function to mimic mail/status [ASH]
+* elementsmux() for MUX elements() compatibility [ASH]
+* parsestr() for help with speech formatting [ASH]
+* chomp() strip returns before, after, or both sides of string [ASH]
+* escapex() like escape() but choose what chars to _not_ escape [ASH]
+* securex() like escapex() but for secure()'s counterpart [ASH]
+* BLIND flag to make target arrival/leaving 'snuffed' [ASH]
+* DEFAULT attribute flag for handling default global attrib [ASH]
+* SINGLETHREAD attribute flag to handle single-threading $commands [ASH]
+* ATRLOCK attribute flag to handle global attribute locking [ASH]
+* MUXPAGE toggle to allow mux-like paging for compatibility [ASH]
+* NOGLOBPARENT toggle to disable inheritance of global inheret parents [ASH]
+* NODEFAULT toggle to disable global default handling [ASH]
+* mail_verbosity will add Subj: to sent mail [ASH]
+* mail_anonymous set name for anonymous mail (Default: *Anonymous*) [ASH]
+* sidefx_maxcalls (1000 default) for max sideffects allowed/command [ASH]
+* oattr_enable_altname enable/disable alt name usage in odrop/ofail/osucc [ASH]
+* oattr_uses_altname for alt names sent to odrop/ofail/osucc [ASH]
+* empower_fulltel - Offer two methods for FULLTEL [ASH]
+* spam_msg message sent to spammers [AMB]
+* spam_objmsg message sent to spammers of objects [AMB]
+* room_aconnect aconnects on individual rooms work (cloak checked) [LNS]
+* room_adisconnect adisconnects on individual rooms work (cloak checked) [LNS]
+* player_attr_default default @<attrib> handler for did_it() attribs [ASH]
+* thing_attr_default default @<attrib> handler for did_it() attribs [ASH]
+* exit_attr_default default @<attrib> handler for did_it() attribs [ASH]
+* room_attr_default default @<attrib> handler for did_it() attribs [ASH]
+* global_clone_obj default dbref# for cloning attributes [ASH]
+* global_clone_player default debref# for cloning attributes [ASH]
+* global_clone_thing default debref# for cloning attributes [ASH]
+* global_clone_room default debref# for cloning attributes [ASH]
+* global_clone_exit default debref# for cloning attributes [ASH]
+* global_attrdefault global locker for attribute sets/clears [ASH]
+* nobroadcast_host defines what sites will be 'snuffed' from MONITOR [ASH]
+  
+Changes
+-------
+* Total rewrite of all hash tables for dynamic loading [LNS]
+* alias system overhaul for better feature set [LNS]
+* /anon switch to mail systems [ASH]
+* timestamps added for forward/replied mail [ASH]
+* lit() accepts commas as part of its input string [ASH]
+* hastype() follows type() for permissions [ASH]
+* config(sideeffects_txt) return the string of sideeffects enabled [LNS]
+* /preserve to @chown and @chownall to preserve flags [LNS]
+* @list stack shows filenames properly now [LNS]
+* PID processing added to @notify, @wait for pid handling [ASH]
+* @function/delete for deleting @functions [ASH]
+* lzone() offers optional paging [ASH]
+* @doors are no longer preserved through reboots [LNS]
+* columns() optionally (13th arg) handles filler on short args [ASH]
+* inc()/dec() now take strings as a '0' value like normal [ASH]
+* @pcreate/reg for emailing register email based on @areg [ASH]
+* @pemit handles reality_levels with all arguments [ASH]
+* @admin can be used to delete aliases as well as add [LNS]
+  
+Bug Fixes
+---------
+* permission with NO_EXAMINE and attribute fetches [ASH]
+* array out of bounds with BACKSTAGE flag [ASH]
+* wildmatch() broke on some matches [ASH]
+* Bug with @mvattr and QUIET flag [ASH]
+* Objects could use the brandy toggle to send mail [ASH]
+* Security issue with autoregistration [ASH]
+* goto didn't have hooks before/after right [ASH]
+* SIGSEGV on autozone add if player didn't belong to zone [ASH]
+* Bug with teleporting and permissions [ASH]
+* NASTY bug that could corrupt registries with @freeze/@thaw/@wait [ASH]
+* Fix help entry with @convert/@quota cross-matching [ASH]
+* Fix alloc corruption with 'page' from liberal nulls [ASH]
+* Fix issue in @program string sent to global_error_obj incorrect [ASH]
+* Fix for orflags()/andflags() with flag rewrite [ASH]
+* Fix for @uptime to show time up longer than a year [ASH]
+* Fix for legacy bug in @list functions for blowing a buffer [ASH]
+* Fix for ZENTY_ANSI compiletime with a possible buffer overrun [ASH]
+* Fix for two rhosts running same debugmon debug_id [ASH]
+* Fix for mis-matched DPUSH/RETURN for DPOP in door.c [ASH]
+* Fix for pemit()/npemit() with argument evaluation [ASH]
+* Fix for legacy bug with vattr initialization [ASH]
+* Fix for library overflow issues regarding system call on ptimefmt() [ASH]
+* Fix for default() and edefault() for invalid dbref# [ASH]
+* lock(), rxlevel(), txlevel(), and parent() sidefx counter count issue [ASH]
+* Possible overrun on the stack with iter() during certain config opts [ASH]
+
+
+& 3.2.4p16
+Release Date: 1 Jan 2000
+Status: Beta
+  
+New Features
+------------
+* ZoneWizLock gives full wiz-like permissions of your zone [ASH]
+* aiindex() - works like iindex() except will append to a null list [ASH]
+* sortby() - Added for MUX2 compatibility [ASH]
+* wizmax_vattr_limit for wizard attrib @limits [ASH]
+* wizmax_dest_limit for wizard @destroy @limits [ASH]
+* vattr_limit_checkwiz to enable/disable @limits for wizards [ASH]
+* guild_attrname to change the Guild field in WHO/DOING [ASH]
+* exits_connect_rooms to disable floating for any linking exit [ASH] 
+* switch_substitutions allows #$ substitutions in switches  [ASH]
+* examine_restrictive [1-5 (0 disables)] to restrict examine on 'level' [ASH]
+     
+Changes
+-------
+* wrap() has 7th argument for left justification [ASH]
+* +proof for mail enhanced for characters used [ASH]
+* @cpattr, @mvattr, and @edit now follows attribute content locking [ASH]
+* /noisy for @set does 'loud' setting like PennMUSH [ASH]
+* @dynhelp/dynhelp()/textfile() does partial matching [ASH]
+* @decompile has /all(default) /flags and /attribs switches [ASH]
+* - mail writing allows '=' without escaping now [ASH]
+* wizards optionally checked for @limits if configured [ASH]
+* funceval added to @list [ASH]
+* @doing, @doing/header and @poll given larger strings [ASH]
+* switch(), switchall(), and @switch now optionally take #$ [ASH]
+* lattr() takes page values [ASH]
+* room checks hardened against corrupted db's [ASH]
+  
+Bug Fixes
+---------
+* wrap() had optional run-off and didn't cut properly [ASH]
+* @door didn't handle mangled ports right [ASH]
+* caseall() double free [ASH]
+* crashbug with broadcast_host [ASH]
+* +proof for mail could cause a crash [ASH]
+* strmath() broke on ammount argument [ASH]
+* BOUNCE was not cleared on RECOVER objects [ASH]
+* debug stack (trace) had a memory leak [ASH]
+* wizard objects not inherit incorrectly triggered @limit [ASH]
+* passing only one argument to @admin params could cause a crash [AMB]
+* BLIND broke on some situations [ASH]
+* the internal hash tables had an off-by-one bug [ASH]
+* @flag/remove didn't return an error if it failed [ASH]
+
+
+& 3.2.4p17
+Release Date: 1 Jul 2000
+Status: Beta
+  
+New Features
+------------
+* fmod() for Penn compatibility [ASH]
+* seperate .conf file for most commonly used params [AMB]
+* @admin roomlog_path to specify different path for LOGROOM [ASH]
+* new minimal_db imported [ASH]
+  
+Changes
+-------
+* LOGROOM @toggle logs to roomlogs directory [ASH]
+* attrcnt() can repair objects [ASH]
+* @aflags gives detailed information on attributes [ASH]
+* @admin garbage_chunk, precmd_obj wasn't used [AMB]
+* @attribute/delete now does sanity checking [ASH]
+  
+Bug Fixes
+---------
+* moon() had a huge margin of error on waxing/waning [KRK]
+* asksource.sh fix for (l)oad issue [ASH]
+* news/verbose broke functionality [AMB]
+* bunch of help file fixes [AMB]
+* ZENTY_ANSI broke if TINY_SUB enabled [ASH]
+* function aliases could override hardcode [ASH]
+* @pcreate/reg crashed in rare circumstances [ASH]
+
+& 3.2.4p18
+Release Date: 1 Jan 2001
+Status: Beta
+  
+New Features
+------------
+* %@ support for compatibility with other codebases. [ASH]
+* queue_compatible to allow negative semaphores [ASH]
+* Allowed large WHO listing for compatibility [ASH]
+* OLD_SETQ config parameter for pre-TM2 compatibility [ASH]
+* percent subsitution ceiling per command [ASH]
+* lcon_checks_dark for dark lock checking enforcement [ASH]
+* mail/anon and 'both' options added to mail [ASH]
+* KEEPALIVE @toggle for network keepalives [ASH]
+* CHKREALITY @toggle/chkreality() for reality comparison matches [ASH]
+* reality_locks @admin param for global lock checking [ASH]
+* reality_locktype for reality lock typemethods [ASH]
+* LOGGED attribute flag to log all changes to attribute [ASH]
+* NOISY @toggle to mimic 'noisy' sets ala PennMUSH [ASH]
+  
+Changes
+-------
+* @aflags/full to count atttributes in use with that name [ASH]
+* mail/recall shows more statistics [ASH]
+* FUBAR flag stops functions from executing [ASH]
+* @hook/fail for fail checks [AMB]
+* backup_flat.sh recognizes -s for single-runs for crontabs [ASH]
+* CPU protection improved, especially with TRACE output [ASH]
+  
+Bug Fixes
+---------
+* soundex buffering issue gave garbled output [KRK]
+* sideeffects could double evaluate [AMB]
+* WHO/DOING with dark broke [AMB]
+* help files broke with escapes with zenty ansi [ASH]
+* mail/recall didn't display multiple messages properly [ASH]
+* crash bug with mail dynamic $-aliases [ASH]
+* @dynhelp/parse broke parsing ansi properly [ASH]
+* mail/recall had off-by-one in month display [ASH]
+* logf() conflicted with newer compilers [ASH]
+* @hook/igswitch didn't evaluate properly [ASH]
+* tons of Solaris/SunOS compatibility [ASH]
+* player cache and reality levels could clobber match-state data [ASH]
+
+& 3.9.0p0
+Release Date: 1 Jan 2002
+Status: Experimental to Alpha
+  
+New Features
+------------
+* log_maximum for maximum calls of logtofile() per command [ASH]
+* power_objects if toggled on allows objects to have direct @powers [ASH]
+* rooms_can_open allows rooms to open exits inside themselves [ASH]
+* sub_override/sub_include for %-sub customization [AMB]
+* signal_object for signaling objects [ODN]
+* break_compatibility to allow double eval for compatibility [ASH]
+* signal_object_type to handle function or command execution [ASH]
+* log_network_errors enables/disables network error logging [ASH]
+* SIGNAL handling is now recognized [ASH]
+* SIGUSR1 optionally handles object evaluation [ASH]
+* ZONE_LIKE_PARENTS for @parent like handling for @zones [ASH]
+* ZONECMDCHECK @toggle for zone parent checks [ASH]
+* Added %+, and %? for compatibility [ASH]
+* Added NO_CODE flag for code restriction [AMB]
+* Added Penn's regexp package: regmatch(), regmatchi(), regedit(), regediti(),
+  regeditall(), regeditalli(), reswitch(), reswitchi(), reswitchall(),
+  reswitchalli(), regrab(), regrabi(), regraball(), regraballi(), regrep(),
+  regrepi()  [ASH]
+* bypass() for function overloading [ASH]
+* logtofile() for logging [ASH]
+* searchng() for search with nogarbage [ASH]
+* keepflags()/remflags() for flag filtering [ASH]
+* foldercurrent()/folderlist() for mail folder manipulation [ASH]
+* Added default options for MUX/Penn/TM3 buildouts [LNS]
+* Total rewrite of tprintf() buffering [LNS]
+* ] for pre-processing commands (Penn compat) [ASH]
+* Rewrite of permission handler for second word of permissions [ASH]
+* round_kludge @admin param for 'cleaner' rounding [KRK]
+* idle for non-idle time issued commands [ASH]
+* HIDEIDLE @toggle to appear idle when you're not [ASH]
+* MORTALREALITY @toggle for wizzes to handle realities like a mortal [ASH]
+* MAILVALIDATE to validate mail before sending (only with brandy mailer) [ASH]
+* (d)elete option in asksource.sh [ASH]
+  
+Changes
+-------
+* Makefile addition to optionally ignore signals [ASH]
+* Makefile uses date -r [ASH]
+* version() optionally handles an argument for compile date [ASH]
+* Improved bounds checking in various functions for security [ASH]
+* tel() now recognizes the QUIET switch [ASH]
+* Laxed useable characters for attributes [ASH]
+* added stepping argument to lnum()/lnum2() [ASH]
+* Relaxed permissions of reality locktype 2 & 3 [ASH]
+* Added locktype 4 & 5 for reverse of 2 & 3 [ASH]
+* @log can now write to subdirectories up to 5 deep [ASH]
+* @edit has /check for checking output w/o editing (Penn compat) [ASH]
+* @search has /nogarbage switch for ignoring going/recover [ASH]
+* moon() takes optional argument for moon phase percentage [ASH]
+* @grep takes /regexp option for regular expression matching [ASH]
+* /single switch to @edit for limiting editing to one arg [ASH]
+* edit() has 4th argument to specify single edit only [ASH]
+* WANDERER and GUEST check owner as well as target [ASH]
+* Good_chk() internal macro to handle better good object detection [ASH]
+* added eval/noval permissions for commands/functions [ASH]
+* list() given 4th argument for header [ASH]
+* Added /toreality to @pemit for reality pemitting [ASH]
+* TM3 Conversion capabilities vastly increased [ASH]
+* @hook now shows sub-overrides and sub-includes [ASH]
+* User-defined %-subs can be passed arguments [ASH]
+  
+Bug Fixes
+---------
+* sortby() mangling enactor [ASH]
+* signals were not handled properly and could cause a shutdown [ASH]
+* @idesc, @rsrvdesc2, home had issues with reality levels [ASH]
+* double-free in globals fixed [ASH]
+* asksource.sh fix for option 9 & 15 [ODN]
+* bug in mail when mail index is maxed won't send mail [ASH]
+* crash bug in @dbck [ASH]
+* read_remote_name didn't function properly [AMB]
+* /fail switch broke in @hook [ASH]
+* mail/news issue when nuking players [ASH]
+* @quota bug where buffer freed before display [AMB]
+* MUXPAGE @toggle issue with /port switch [LNS]
+* Bunch of missing help file entries fixed [AMB]
+* BSD compiling mail/cque warnings and issues [ODN]
+* examine with lock display errors in certain conditions [ASH]
+* ] was stripping {} when it shouldn't [AMB]/[ODN]
+
+& 3.9.0p1
+Release Date: 1 Jan 2003
+Status: Experimental to Alpha
+  
+New Features
+------------
+* labels for setq/setr/r [ASH]
+* SETQ_TEMPLATES for objects [ASH]
+  
+Changes
+-------
+* extra protection to garble() [ASH] 
+* center() allows multi-character filler [ASH] 
+* lexit()/lcon() take optional output arguments [AMB] 
+* added /notify to @switch [ASH] 
+* Improved dice() with multiple arguments [ASH] 
+* v() handles arguments above 9 [ASH] 
+* strfunc() is bypass() aware [ASH]
+* mail shows 'm' for messages marked for auto-delete [ASH] 
+* map() takes arguments now [ASH] 
+* chomp() handles %r much cleaner [ASH]
+  
+Bug Fixes
+---------
+* idle timeout could be off on lagging servers (servers under load) [ASH]
+* @kick could crash the game [ASH] 
+* lloc() could crash the game [ASH]
+* command pathing with GOTO broke with ignore [ASH] 
+* 'N' command (]) showed up as 'N' and not ']' [ASH]
+* wrapcolumns() could crash [ASH] 
+* flag_name had possible issues with duplicated entries [ASH]
+* sub_include had uninitialized arguments [KRK]
+* lcon()/lexits() had a crash bug [ASH]
+* random times output was snuffed based on CPU alerm issues [ASH]
+* setq/setr didn't evaluate first argument [ASH]
+* internal tprintf off-by-one bug [ASH]
+* crash bug in ATRLOCK [ASH]
+* bug in clock skew protection for AMD processors [ASH]
+  
+& 3.9.0p2
+Release Date: 1 Jan 2004
+Status: Experimental to Alpha
+  
+New Features
+------------
+* time skew protection for drifting time [ASH] 
+* network flood protection [ASH] 
+* MUX2 password compatibility added to Rhost [ASH] 
+* 64 char attribs, optional Mysql, and Doors added to compiletime [ASH]
+* 64 bit platforms are now auto-detected [ASH]
+* MAILFILTER attribute for mail to auto-sort incoming mail [ASH]
+* QDBM support now available [AMB]
+* nameq() to rename registers [ASH] 
+* spellnum() for Penn compatibility [ASH]
+* ibreak() for breaking out of iter() [ASH]
+* shift() to shift up/down %0-%9 parsing [ASH]
+* fbetween()/fbound() for floating points [ASH]
+* accents are now available via markup language (%f) [ASH]
+* printf() for line processing [ASH] 
+* STOP and CONT switches to @halt for queue processing [ASH]
+* %q<label> for TM3/Penn compatibility [ASH]
+* netrhost.pid now holds the process id of the running mush [ASH]
+* Action lists added to @cluster sets [ASH]
+* BOUNCEFORWARD for BOUNCE flag [ASH]
+* strdistance() for Levenshtein distance of strings [ASH]
+* tr() for find/replace for Penn compatibility [ASH]
+* digest() SSL algos [ASH]
+* roman() roman number converter [ASH]
+  
+Changes
+-------
+* open() and dig() take optional argument for destionation [ASH]
+* asksource.sh improved with new args [ASH]
+* case() and caseall() support $# like switch() [KRK]
+* error() handles optional target argument [ASH]
+* %-subs take character limiter [ASH]
+* Minimal_db removed until updated [KRK]
+* timefmt(), convsecs(), convtime() and moon() now handle 64 bit time [ASH]
+* list() handles optional target player [ASH]
+* garble() optionally handles char count instead of string [ASH]
+* remit() optionally handles to-reality like @pemit [ASH]
+* /display to @function to handle function displaying [ASH]
+* /LIST to @function handles wildcarding [ASH]
+* Output to @list buffers cleaned up [ASH]
+* Allow keyword negation to @admin [LNS]
+  
+Bug Fixes
+---------
+* fixed @door code to be useable [ASH] 
+* Unitialized variables in view_attr (internal) [KRK] 
+* Mail wouldn't compile under AIX [ASH] 
+* @assert not behaving like @break [KRK]
+* sha1 compiling issues with  new compiler [ASH] 
+* null commands deidled player when it shouldn't [ASH]
+* 64 bit compiling issues on new compilers [ASH] 
+* signal handling could break alarm triggering [ASH]
+* spellnum() had an issue with 10's argument [ASH]
+* randmatch() had a crash bug [ASH]
+* caseall() had a missing LBUF [ASH]
+* QDBM corrupted the mail db in some instances [ASH]
+* default*() functions always evaluated second arg [ASH]
+* ptimefmt() had a missing structure argument [ASH]
+* hardcoded news system had a missing free [ASH]
+  
+& 3.9.1p0
+Release Date: 1 Jan 2006
+Status: Alpha
+  
+New Features
+------------
+* accent()/stripaccents() for accent characters [ASH]
+* pid() for process ID returns [ASH]
+* pgrep() for parent grepping [ASH]
+* @clusters have been added.  Available switches are:
+  /new, /add, /del, /clear, /list, /threshold, /action, /edit, /set, /repair,
+  /grep, /reaction, /cut, /trigger [ASH] 
+* cluster_u(), cluster_u2(), cluster_ulocal(), cluster_u2local(), 
+  cluster_uldefault(), cluster_u2ldefault(), cluster_udefault(),
+  cluster_u2default(), cluster_grep(), cluster_regrep(), cluster_regrepi()
+  cluster_hasattr(), cluster_lattr(), cluster_attrcnt(), cluster_vattrcnt()
+  cluster_get(), cluster_xget(), cluster_set(), cluster_default(),
+  cluster_edefault(), cluster_stats(), cluster_get_eval(), 
+  cluster_ueval() [ASH]
+  
+Changes
+-------
+* strip() takes optional 3rd arg for allowing chars and not denying [ASH]
+* filter() can now take multiple arguments [ASH] 
+* @wait/pid recoded to be nicer on the queue [ASH]
+* chr() allows handling markups [ASH]
+* LOGROOM toggle uses LOGNAME on the room as an override [ASH]
+* setr()/setq() handle ! and + argument for next available reg [ASH] 
+* SIG USR1/USR2 has better handling [ASH] 
+* /oneeval switch to @pemit to enforce single evaluation [ASH] 
+* lexits() allows page listing [ASH] 
+* @function/display shows flags now [ASH] 
+* all *lattr*() functions reworked to fall under a single evaluater [ASH] 
+* all *u*() functions reworked to fall under a single evaluater [ASH] 
+* lock() with optional 3rd argument to set/clear attribute locks [ASH]
+* @wait handles +/- values for Penn compatibility [ASH]
+* vattrcnt() has a method to fix broken attribute counts [ASH] 
+* pgrep() has option for outputting matches [ASH] 
+* @mvattr/@cpattr with cleaner display of attributes [ASH] 
+* OUTPUTPREFIX/OUTPUTSUFFIX are now stored through reboots [ASH] 
+  
+Bug Fixes
+---------
+* lrooms() had a bug with proper room listing [ASH]
+* creplace() didn't evaluate second argument right [ASH] 
+* fixed up internal buffering for better allocation [ASH]
+* mail/reply didn't work with players with spaces [ASH] 
+* translate() didn't handle %0-%9 properly [ASH]
+* citer() had a double buffer allocation [ASH] 
+* @whereis/@whereall didn't hide dark players [ASH]
+* %q<label> broke TRACE [ASH]
+* BANG support didn't work on overloaded functions [ASH]
+* possible crash bug in signal and command processing [ASH] 
+* map()/filter() didn't parse arguments properly [ASH] 
+* connecting didn't honor @hide/dark/cloak properly [ASH]
+
+  
 & 3.9.1p1
 Release Date: 20 Jun 2008
 Status: Alpha
@@ -25024,7 +26171,7 @@ New Features
 * Added caplist() [KRK]
 * Added listdiff(), listunion(), listinter() [ASH]
 * Added iscluster() [ASH]
-
+  
 Changes
 -------
 * Cleanup for cluster documentation [KRK]
@@ -25032,7 +26179,7 @@ Changes
 * Updated switch recognization for commands to be user friendly [ASH]
 * Center no longer has an 80 character limitation [ASH]
 * all *lattr() funcs take type > and < to show largest/smallest attrib [ASH]
-
+  
 Bug Fixes
 ---------
 * Fixed a missing declaration for clusters. [KRK]
@@ -25043,7 +26190,7 @@ Bug Fixes
 & 3.9.1p2
 Release Date: 12/01/10
 Status: Alpha
-
+  
 New Features
 ------------
 * Added cluster_hasflag() [ASH]
@@ -25062,7 +26209,7 @@ New Features
 * cluster_wipe() added to mimic @cluster/wipe [ASH]
 * chktrace() to check what stage of tracing the parser is at [ASH]
 * privatize() for making local functions (ulocal/localize/etc) null regs [ASH]
-
+  
 Changes
 -------
 * sees() has optional third argument to handle exits [ASH]
@@ -25089,7 +26236,7 @@ Changes
 * Error entries (in error.txt) starting with '!' are evaluated [ASH]
 * map() handles multicharacter output delimiter [ASH]
 * switch_search admin param to switch search and searchng [ASH]
-
+  
 Bug Fixes
 ---------
 * cluster_lattr() returned #-1 instead of 0 for unrecognized attribs [ASH]
@@ -25120,7 +26267,7 @@ New Features
 * @include for content inclusion ala PennMUSH [ASH]
 * @sudo for command processing [ASH]
 * @skip for command processing [ASH]
-
+  
 Changes
 -------
 * printf() has : for filler character [ASH]
@@ -25129,7 +26276,7 @@ Changes
 * /PROTECT switch to @function for tagging of deleting regs [ASH]
 * map() delimiter is controlled by a config param map_space_delim [ASH]
 * @function now allows /min and /max for user-defined functions [ASH]
-
+  
 Bug Fixes
 ---------
 * MySQL 3rd party patch corrupted the LBUF stack.  While we do not officially
@@ -25142,7 +26289,7 @@ Bug Fixes
 & 3.9.2p1
 Release 10/30/2011
 Status: Alpha
-
+  
 New Features
 ------------
 * checkpass() function for royalty and higher. [KRK]
@@ -25150,7 +26297,7 @@ New Features
 * chkgarbage() function to check if target is GOING [ASH]
 * lookup_site() to see the real in-use SITE of a port [ASH]
 * ee() for engineering notation of floating points [ASH]
-  
+    
 Changes
 -------
 * singletime() now handles (w)eeks, (M)onths, and (y)ears like MUX [ASH]
@@ -25548,6 +26695,7 @@ Changes
 * Reality level names are increased to 16 characters [AMB]
 * NO_CODE made more lax on functions/commands [AMB]
 * @icmd allows /eval and /eroom evaluation checks [ASH]
+* MAILFILTER handles arguments for body and time/date [ASH]
   
 Bug Fixes
 ---------
