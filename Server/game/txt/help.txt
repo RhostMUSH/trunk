@@ -21367,6 +21367,8 @@ See Also: mail main, mail topics
   incoming mail into pre-existing folders.  The following are passed:
               %0  - the dbref# of the player (or #-1 if anonymous)
               %1  - the subject of the message
+              %2  - the body of the message
+              %3  - the date/time of the message
   Examples:
     > folder/list
       Mail: You have the following folders ->

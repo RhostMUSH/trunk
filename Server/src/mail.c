@@ -1061,13 +1061,14 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
   dbref s_aowner;
   short int index, *pt2;
   time_t *pt3;
-  char fc, *pt4, *tprp_buff, *tpr_buff, *s_tmparry[3], *s_mailfilter, *s_returnfilter;
+  char fc, *pt4, *tprp_buff, *tpr_buff, *s_tmparry[5], *s_mailfilter, *s_returnfilter;
   static char s_plrbuff[35];
   ATTR *s_atr;
 
   save = -1;
   chk_anon2 = i_foundfolder = 0;
-  s_mailfilter = tprp_buff = tpr_buff = s_tmparry[0] = s_tmparry[1] = s_tmparry[2] = NULL;
+  s_mailfilter = tprp_buff = tpr_buff = NULL;
+  s_tmparry[0] = s_tmparry[1] = s_tmparry[2] = s_tmparry[3] = s_tmparry[4] = NULL;
   if ( chk_anon && Wizard(*toplay) ) {
      chk_anon2 = 1;
   }
@@ -1200,13 +1201,20 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
      if ( s_mailfilter && *s_mailfilter ) {
         s_tmparry[0] = alloc_lbuf("s_tmparry_0");
         s_tmparry[1] = alloc_lbuf("s_tmparry_1");
+        s_tmparry[2] = alloc_lbuf("s_tmparry_1");
+        s_tmparry[3] = alloc_lbuf("s_tmparry_1");
         sprintf(s_tmparry[0], "#%d", ((chk_anon && !chk_anon2) ? -1 : player));
         if ( subj && *subj )
            sprintf(s_tmparry[1], "%s", subj);
+        strcpy(s_tmparry[2], msg);
+	strcat(s_tmparry[3], ctime((time_t *)pt3));
+ 	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
         s_returnfilter = exec(*toplay, *toplay, *toplay, EV_FCHECK | EV_EVAL, s_mailfilter,
-                              s_tmparry, 2);
+                              s_tmparry, 4);
         free_lbuf(s_tmparry[0]);
         free_lbuf(s_tmparry[1]);
+        free_lbuf(s_tmparry[2]);
+        free_lbuf(s_tmparry[3]);
         if ( *s_returnfilter && fname_check(*toplay, s_returnfilter, 0) ) {
            *(int *)sbuf1 = FIND_LST;
            *(int *)(sbuf1 + sizeof(int)) = *toplay;
