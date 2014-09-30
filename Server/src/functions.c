@@ -14720,8 +14720,10 @@ FUNCTION(fun_strfunc)
       while ( strtok ) {
          ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
          strcpy(ptrs[nitems], strtok);
-         if ( nitems >= (LBUF_SIZE / 2) )
+         if ( nitems >= (LBUF_SIZE / 2) ) {
+            nitems++;
             break;
+         }
          strtok = split_token(&strtokptr, sep);
          nitems++;
       }
@@ -14734,14 +14736,14 @@ FUNCTION(fun_strfunc)
    if ( (nitems == fp->nargs) || (nitems == -fp->nargs) ||
         (fp->flags & FN_VARARGS) ) {
       fp->fun(buff, bufcx, player, cause, caller, ptrs, nitems, cargs, ncargs);
-      for ( i = 0; i < nitems; i++ ) {
-         free_lbuf(ptrs[i]);
-      }
    } else {
       tprp_buff = tpr_buff = alloc_lbuf("strfunc_tprbuff");
       safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#-1 FUNCTION (%s) EXPECTS %d ARGUMENTS [RECEIVED %d]",
                             fp->name, fp->nargs, nitems), buff, bufcx);
       free_lbuf(tpr_buff);
+   }
+   for ( i = 0; i < nitems; i++ ) {
+      free_lbuf(ptrs[i]);
    }
    free_lbuf(list);
 }
