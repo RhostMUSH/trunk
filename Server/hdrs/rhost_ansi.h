@@ -221,6 +221,7 @@
 /* Begin %c subs */
 #ifdef SAFE_CHR
 #define SAFE_CHR2	'c'
+#define SAFE_CHRST2	"%c"
 #else
 #define SAFE_CHR 'c'
 #define SAFE_CHRST	"%c"
@@ -268,8 +269,10 @@
 #ifdef SAFE_CHR
   #ifdef SAFE_CHR2
     #define SAFE_CHR3	'm'
+    #define SAFE_CHRST3	"%m"
   #else
     #define SAFE_CHR2 'm'
+    #define SAFE_CHRST3	"%m"
   #endif
 #else
 #define SAFE_CHR 'm'
