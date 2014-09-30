@@ -26706,3 +26706,4 @@ Bug Fixes
 * kill -USR2 could corrupt QDBM databases on rare occasions [ASH]
 * MUX passwords broke with previous security fix to encoding [ASH]
 * ex/parent wouldn't identify desc in certain circumstances [ASH]
+* strfunc() had a memoryleak with a non-free LBUF [ASH]
