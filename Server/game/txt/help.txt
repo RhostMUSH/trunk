@@ -25055,7 +25055,7 @@ ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
 SEA - Seawolf             THO - Thorin
  
-Current Revision: 3.9.4p0
+Current Revision: 3.9.5p0
 
 Available Revisions:
   3.2.4: 3.2.4p1,  3.2.4p2,  3.2.4p3,  3.2.4p4,  3.2.4p5,  3.2.4p6,  3.2.4p7, 
@@ -26678,7 +26678,9 @@ New Features
 ---------
 * @remote -- allows to execute as if location was at remote [AMB]
 * ip_address param to specify ip address for mush to listen (default all) [AMB]
-* %m handles optionally last command or ANSI on compile time [AMB]
+* %c, %x and %m are freely configurable as either ANSI or last-command sub [AMB]
+* subnetmatch() function to compare a specified IP against a subnet [AMB]
+* %2 (body) and %3 (date/time) subs for MAILFILTER [ASH]
 * sinh(), cosh(), tanh() added [AMB]
 * icmdobj @admin param to specify optional @icmd eval checks [ASH]
 * ansi_txtfiles optionally allows %c/%x/%m ansi substitutions in .txt files [ASH]
@@ -26694,7 +26696,7 @@ Changes
 * @aflags handled conditions for wanderer/guest (unregistered) for prefixes [ASH]
 * @aflags handles evaluation checks for prefixes [ASH]
 * Reality level names are increased to 16 characters [AMB]
-* NO_CODE made more lax on functions/commands [AMB]
+* NO_CODE made more lax on some functions/commands [AMB]
 * @icmd allows /eval and /eroom evaluation checks [ASH]
 * MAILFILTER handles arguments for body and time/date [ASH]
   
