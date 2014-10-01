@@ -102,8 +102,9 @@ fcache_fill(FBLOCK * fp, char ch)
 static int 
 fcache_read(FBLOCK ** cp, char *filename)
 {
-    int n, nmax, tchars, fd;
+    int n, nmax, nmax2, tchars, fd;
     char *buff, *buff2;
+    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr;
     FBLOCK *fp, *tfp;
     int max_lines, tot_lines;
 
@@ -146,10 +147,24 @@ fcache_read(FBLOCK ** cp, char *filename)
 
     max_lines = mudconf.nonindxtxt_maxlines;
     tot_lines = 0;
-    nmax = read(fd, buff, LBUF_SIZE);
-    while (nmax > 0) {
+    lbuf1 = alloc_lbuf("Testing");
+    lbuf2 = alloc_lbuf("Testing2");
+    if ( mudconf.ansi_txtfiles ) {
+       memset(lbuf1, '\0', LBUF_SIZE);
+       memset(lbuf2, '\0', LBUF_SIZE);
+       lbuf1ptr = lbuf1;
+       lbuf2ptr = lbuf2;
+       nmax2 = read(fd, buff, LBUF_SIZE);
+       if ( nmax2 > 0 ) {
+          parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+       }
+       nmax = strlen(lbuf1);
+    } else {
+       nmax = nmax2 = read(fd, lbuf1, LBUF_SIZE);
+    }
+    while ( (nmax > 0) && (nmax2 > 0) ) {
 	for (n = 0; n < nmax; n++) {
-	    switch (buff[n]) {
+	    switch (lbuf1[n]) {
 	    case '\n':
 		fp = fcache_fill(fp, '\r');
 		fp = fcache_fill(fp, '\n');
@@ -158,11 +173,23 @@ fcache_read(FBLOCK ** cp, char *filename)
 	    case '\r':
 		break;
 	    default:
-		fp = fcache_fill(fp, buff[n]);
+		fp = fcache_fill(fp, lbuf1[n]);
 		tchars++;
 	    }
 	}
-	nmax = read(fd, buff, LBUF_SIZE);
+        if ( mudconf.ansi_txtfiles ) {
+	   nmax2 = read(fd, buff, LBUF_SIZE);
+           memset(lbuf1, '\0', LBUF_SIZE);
+           memset(lbuf2, '\0', LBUF_SIZE);
+           lbuf1ptr = lbuf1;
+           lbuf2ptr = lbuf2;
+           if ( nmax2 > 0 ) {
+              parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+           }
+           nmax = strlen(lbuf1);
+        } else {
+	   nmax = nmax2 = read(fd, lbuf1, LBUF_SIZE);
+        }
         tot_lines++;
         if ( tot_lines > max_lines ) {
 	   STARTLOG(LOG_PROBLEMS, "FIL", "OPEN")
@@ -175,6 +202,8 @@ fcache_read(FBLOCK ** cp, char *filename)
         }
     }
     free_lbuf(buff);
+    free_lbuf(lbuf1);
+    free_lbuf(lbuf2);
     tf_close(fd);
 
     /* If we didn't read anything in, toss the initial buffer */
@@ -223,7 +252,7 @@ fcache_dump(DESC * d, int num)
     fp = fcache[num].fileblock;
 
     while (fp != NULL) {
-	queue_write(d, fp->data, fp->hdr.nchars);
+  	queue_write(d, fp->data, fp->hdr.nchars);
 	fp = fp->hdr.nxt;
     }
 }

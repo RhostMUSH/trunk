@@ -4778,26 +4778,27 @@ SNOOPY                                                           God     Wiz
   abort_on_bug             access                   ahear_maxcount
   ahear_maxtime            alias                    allow_ansinames        
   allow_whodark            alt_inventories          altover_inv            
-  always_blind             areg_file                areg_lim               
-  aregh_file               atrperms                 atrperms_max
-  attr_access              attr_alias               attr_cmd_access        
-  authenticate             bad_name                 badsite_file           
-  bcc_hidden               blind_snuffs_cons        brace_compatibility    
-  break_compatability      cache_depth              cache_steal_dirty      
-  cache_trim               cache_width              cap_articles           
-  cap_conjunctions         cap_preposition          check_interval         
-  check_offset             clone_copies_cost        cluster_cap            
-  clusterfunc_cap          comcost                  command_dark           
-  command_quota_increment  command_quota_max        compress_program       
-  compression              config_access            conn_timeout           
-  connect_file             connect_reg_file         cpu_secure_lvl         
-  cpuintervalchk           cputimechk               crash_database         
-  create_max_cost          create_min_cost          dark_sleepers          
-  descs_are_local          default_home             dig_cost               
-  door_file                door_index               down_file              
-  down_motd_message        dump_interval            dump_message           
-  dump_offset              earn_limit               empower_fulltel        
-  enable_tstamps           enforce_unfindable       error_file
+  always_blind             ansi_textfiles           areg_file              
+  areg_lim                 aregh_file               atrperms               
+  atrperms_max             attr_access              attr_alias             
+  attr_cmd_access          authenticate             bad_name               
+  badsite_file             bcc_hidden               blind_snuffs_cons      
+  brace_compatibility      break_compatability      cache_depth            
+  cache_steal_dirty        cache_trim               cache_width            
+  cap_articles             cap_conjunctions         cap_preposition        
+  check_interval           check_offset             clone_copies_cost      
+  cluster_cap              clusterfunc_cap          comcost                
+  command_dark             command_quota_increment  command_quota_max      
+  compress_program         compression              config_access          
+  conn_timeout             connect_file             connect_reg_file       
+  cpu_secure_lvl           cpuintervalchk           cputimechk             
+  crash_database           create_max_cost          create_min_cost        
+  dark_sleepers            descs_are_local          default_home           
+  dig_cost                 door_file                door_index             
+  down_file                down_motd_message        dump_interval          
+  dump_message             dump_offset              earn_limit             
+  empower_fulltel          enable_tstamps           enforce_unfindable     
+  error_file
   
 { 'wizhelp config parameters2' for more }
 
@@ -5040,6 +5041,17 @@ SNOOPY                                                           God     Wiz
   effect.'.  If this is enabled, then the BLIND flag on exits and rooms
   will do the REVERSE effect and make exit movement visible.  See the
   normal help on 'BLIND' for how the BLIND flag works.
+
+& ansi_txtfiles
+  Config parameter: ansi_textfiles <boolean>   Default: 0
+  
+  Specifies if all CACHED txt files (like connect.txt) can optionally 
+  translate %c/%m/%x (however defined) ansi codes for ansi. 
+  
+  Please note that you must issue a @readcache after toggling this parameter
+  in order to change the formatting appropiately.
+  
+  See Also: @list_file, @readcache
 
 & areg_file
   Config parameter: areg_file <file>   Default:  autoreg.txt

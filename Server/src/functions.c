@@ -15700,6 +15700,15 @@ FUNCTION(fun_nummatch)
     char *r, *s, sep, *working;
 
     varargs_preamble("NUMMATCH", 3);
+
+    if (mudstate.last_cmd_timestamp == mudstate.now) {
+       mudstate.heavy_cpu_recurse += 1;
+    }
+    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+       return;
+    }
+
     pcount = mcount = 0;
     working = alloc_lbuf("tot_match2");
     strcpy(working, fargs[0]);
@@ -15731,6 +15740,15 @@ FUNCTION(fun_totmatch)
     char *r, *s, sep, *working, *tbuf;
 
     varargs_preamble("TOTMATCH", 3);
+
+    if (mudstate.last_cmd_timestamp == mudstate.now) {
+       mudstate.heavy_cpu_recurse += 1;
+    }
+    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+       return;
+    }
+
     pcount = 0;
     working = alloc_lbuf("tot_match2");
     strcpy(working, fargs[0]);

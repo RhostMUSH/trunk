@@ -751,6 +751,14 @@ do_remultimatch(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
     if (!fn_range_check(name, nfargs, 2, 3, buff, bufcx))
         return;
 
+    if (mudstate.last_cmd_timestamp == mudstate.now) {
+       mudstate.heavy_cpu_recurse += 1;
+    }
+    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+       return;
+    }
+
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
     else

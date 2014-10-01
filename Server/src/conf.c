@@ -278,6 +278,7 @@ NDECL(cf_init)
     mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
     mudconf.listen_parents = 0;		/* ^listens do parents */
     mudconf.icmd_obj = -1;		/* @icmd eval object */
+    mudconf.ansi_txtfiles = 0;		/* ANSI textfile support */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3391,6 +3392,9 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.debug_id, 0, 0, CA_WIZARD,
      (char *) "Unique key for debug monitor.\r\n"\
               "                             Default: 42010   Value: %d"},
+    {(char *) "ansi_txtfiles",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ansi_txtfiles, 0, 0, CA_WIZARD,
+     (char *) "Are .txt files processed for ansi?"},
     {(char *) "authenticate",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.authenticate, 0, 0, CA_WIZARD,
      (char *) "Are site AUTH/IDENT lookups done?"},

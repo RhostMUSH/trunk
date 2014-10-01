@@ -26681,6 +26681,7 @@ New Features
 * %m handles optionally last command or ANSI on compile time [AMB]
 * sinh(), cosh(), tanh() added [AMB]
 * icmdobj @admin param to specify optional @icmd eval checks [ASH]
+* ansi_txtfiles optionally allows %c/%x/%m ansi substitutions in .txt files [ASH]
   
 Changes
 -------
