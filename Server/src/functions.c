@@ -5165,6 +5165,11 @@ FUNCTION(fun_elist)
        free_lbuf(curr);
        if ( commsep )
           free_lbuf(sep_buf2);
+       if ( i_munge ) {
+          free_lbuf(r_store);
+          free_lbuf(s_array[0]);
+          free_lbuf(s_array[1]);
+       }
        return;
     }
     first = 1;

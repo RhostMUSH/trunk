@@ -2178,6 +2178,9 @@ sighandler(int sig)
 #ifdef SIGBUS
     case SIGBUS:
 #endif
+        /* Hopefully this saves corruption on SIGSEGV's and butt-hurt crashes */
+        pcache_sync();
+        SYNC;
 	check_panicking(sig);
 	log_signal(signames[sig], sig);
 	report();
