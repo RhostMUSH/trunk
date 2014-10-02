@@ -5403,9 +5403,9 @@ list_options_system(dbref player)
 #endif
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are:\r\n     -- SBUF: %d\r\n     -- LBUF: %d", 
                               SBUF_SIZE, LBUF_SIZE));
-    strncpy(dbchktime,(char *) ctime((time_t *)&mudstate.check_counter), 24);
-    strncpy(dbdumptime,(char *) ctime((time_t *)&mudstate.dump_counter), 24);
-    strncpy(playerchktime,(char *) ctime((time_t *)&mudstate.idle_counter), 24);
+//  strncpy(dbchktime,(char *) ctime((time_t *)&mudstate.check_counter), 24);
+//  strncpy(dbdumptime,(char *) ctime((time_t *)&mudstate.dump_counter), 24);
+//  strncpy(playerchktime,(char *) ctime((time_t *)&mudstate.idle_counter), 24);
 //  if ( Guildmaster(player) ) {
 //     notify(player, unsafe_tprintf("\r\nSystem Timers:\r\n--> Next DB Dump: %s\r\n--> Next DB Check: %s\r\n-->Next Idle User Check: %s\r\n",
 //                    dbchktime, dbdumptime, playerchktime));
