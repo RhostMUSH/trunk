@@ -26686,7 +26686,7 @@ New Features
 * ansi_txtfiles optionally allows %c/%x/%m ansi substitutions in .txt files [ASH]
 * /silent switch for @reboot. Immortal-only by default [AMB]
 * parsestr() has new option '|' for @emits [ASH]
-* @list system -- Compile-time arameters [ASH]
+* @list system -- Compile-time parameters [ASH]
   
 Changes
 -------
@@ -26711,7 +26711,7 @@ Changes
 * Added checks in Startmush that look for presence of actual binary first. [AMB]
 * Examine/@decompile now works on attribute aliases [ASH]
 * Internal ceiling for maximum number of mails removed. Depends on LBUFs [ASH]
-* @list flags differentiates better between normal and extende flags [ASH]
+* @list flags differentiates better between normal and extended flags [ASH]
 * A lot of Rhost history added to helpfiles [ASH]
 * nummatch, totmatch and multi-regmatch functions have strict CPU checks [ASH]
   
@@ -26730,7 +26730,7 @@ Bug Fixes
 * Fixed %l being too restrictive if enforce_unfindable is enabled [AMB]
 * Fixed reverse-logic'd helpfile entry for hasattrp_compat [AMB]
 * fixed format<attr> -> <attr>format in attrib formatting help [AMB]
-* DB COnverter now handles MUX 2.9+ properly again. [ASH]
+* DB Converter now handles MUX 2.9+ properly again. [ASH]
 * Off-by-one fix for ansi stringlength detection. [ASH]
 * nor() would not properly work its logic past 2 arguments [AMB]
 * ANSI internals handle multiple enabled ANSI subs [AMB/ASH]
