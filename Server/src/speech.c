@@ -1391,7 +1391,7 @@ char    *strtok, *strtokr, *strtokbuf;
 #ifdef REALITY_LEVELS
 char    *pt3, *r_bufr, *s_ptr, *reality_buff;
 #endif
-int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr, side_effect; 
+int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;
 int     xxx_x, xxx_y, xxx_z, i_oneeval, i_snufftoofar, i_oemitstr, dcntr, dcntrtmp;
 
@@ -1407,7 +1407,6 @@ ZLISTNODE *z_ptr, *y_ptr;
       return;
    }
    if ( key & SIDEEFFECT ) {
-      side_effect=1;
       key &=~SIDEEFFECT;
    }
    if ( key & PEMIT_NOSUB ) {

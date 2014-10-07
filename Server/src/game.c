@@ -1846,7 +1846,7 @@ static void
 NDECL(process_preload)
 {
     dbref thing, parent, aowner;
-    int aflags, lev, i, i_matchint;
+    int aflags, lev, i_matchint;
     char *tstr, *tstr2, *s_strtok, *s_strtokr, *s_matchstr;
     FWDLIST *fp;
 
@@ -1855,7 +1855,6 @@ NDECL(process_preload)
     fp = (FWDLIST *) alloc_lbuf("process_preload.fwdlist");
     tstr = alloc_lbuf("process_preload.string");
     tstr2 = alloc_lbuf("process_preload.string");
-    i = 0;
     DO_WHOLE_DB(thing) {
 
 	/* Ignore GOING objects */

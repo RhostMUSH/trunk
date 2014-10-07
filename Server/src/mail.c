@@ -2105,7 +2105,7 @@ char *
 mail_quick_function(dbref player, char *fname, int keyval)
 {
   int new, old, mark, unread, saved, count, c2;
-  short int *step, nmsg, bsize;
+  short int *step;
   char *ret_buff, *ret_ptr, *tpr_buff, *tprp_buff;
 
   if (mudstate.mail_state != 1) {
@@ -2120,8 +2120,6 @@ mail_quick_function(dbref player, char *fname, int keyval)
     fname_conv(fname,quickfolder);
   else
     notify_quiet(player,"MAIL ERROR: Bad folder in quick function");
-  bsize = get_box_size(player);
-  nmsg = count_all_msg(player, lbuf1, NOTHING, 1);
   *(int *)sbuf1 = MIND_WRTM;
   *(int *)(sbuf1 + sizeof(int)) = player;
   keydata.dptr = sbuf1;

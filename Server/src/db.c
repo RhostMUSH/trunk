@@ -882,7 +882,7 @@ fwdlist_get(dbref thing)
 #ifdef STANDALONE
 
     dbref aowner;
-    int aflags, errors;
+    int aflags;
     char *tp;
 
     static FWDLIST *fp = NULL;
@@ -890,7 +890,7 @@ fwdlist_get(dbref thing)
     if (!fp)
 	fp = (FWDLIST *) alloc_lbuf("fwdlist_get");
     tp = atr_get(thing, A_FORWARDLIST, &aowner, &aflags);
-    errors = fwdlist_load(fp, GOD, tp);
+    fwdlist_load(fp, GOD, tp);
     free_lbuf(tp);
 #else
     FWDLIST *fp;

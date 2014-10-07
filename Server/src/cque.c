@@ -196,10 +196,8 @@ halt_que(dbref player, dbref object)
 {
     BQUE *trail, *point, *next;
     int numhalted;
-    int flagged;
 
     numhalted = 0;
-    flagged = 0;
 
     /* Player queue */
 
@@ -380,11 +378,10 @@ int
 freeze_pid(dbref player, int pid, int key)
 {
     BQUE *trail, *point, *next, *freezepid, *pntr;
-    int numhalted, flagged, found, a;
+    int numhalted, found, a;
     dbref psave;
     
     numhalted = 0;
-    flagged = 0;
     found = 0;
     psave = NOTHING;
     freezepid = NULL;
@@ -579,13 +576,11 @@ thaw_pid(dbref player, int pid, int key)
 {
     BQUE *trail, *point, *next, *freezepid, *pntr;
     int numhalted, a;
-    int flagged;
     int found;
     int tpid, badpid;
     dbref psave;
     
     numhalted = 0;
-    flagged = 0;
     found = 0;
     badpid = 0;
     psave = NOTHING;
@@ -887,13 +882,11 @@ wait_que_pid(dbref player, int pid, int newwait)
 {
     BQUE *trail, *point, *next, *rewait, *pntr;
     int numhalted, a;
-    int flagged;
     int found;
     dbref psave;
     
     rewait = NULL;
     numhalted = 0;
-    flagged = 0;
     found = 0;
     psave = NOTHING;
 
@@ -1078,12 +1071,10 @@ halt_que_pid(dbref player, int pid, int key)
 {
     BQUE *trail, *point, *next;
     int numhalted;
-    int flagged;
     int found;
     dbref psave;
 
     numhalted = 0;
-    flagged = 0;
     found = 0;
     psave = NOTHING;
 

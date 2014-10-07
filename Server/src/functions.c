@@ -2303,7 +2303,7 @@ FUNCTION(fun_spellnum)
       "ten-billionth", "hundred-billionth", "trillionth",
       "ten-trillionth", "hundred-trillionth", NULL
    };
-   char *num, *number, *pnumber, *pnum1, *pnum2,
+   char *num, *pnumber, *pnum1, *pnum2,
         *s_numtoken, *tpr_buff, *tprp_buff;
    unsigned int len, m, minus, dot, len1, len2;
 
@@ -2313,7 +2313,6 @@ FUNCTION(fun_spellnum)
       return;
    }
 
-   number = NULL;
    pnum1 = NULL;
    pnum2 = NULL;
    len = m = minus = dot = len1 = len2 = 0;
@@ -3435,7 +3434,7 @@ FUNCTION(fun_columns)
   int buffleft, pos, maxw, wtype, cut, cut2, rnorem, bufstr;
   int count, ncols, remorig, rows, x, y, z, scount, bufcols;
   char *leftstart, *pp, *holdbuff, *hbpt, *pt2, *between;
-  char delim, *spacer_sep, *string, *string2;
+  char delim, *spacer_sep, *string;
   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_bp, *p_sp, *p_leftstart; 
 
   if (!fn_range_check("COLUMNS", nfargs, 3, 13, buff, bufcx))
@@ -3521,7 +3520,6 @@ FUNCTION(fun_columns)
   string = alloc_lbuf("fun_columns_String");
   memset(string, '\0', LBUF_SIZE);
   split_ansi(strip_ansi(fargs[0]), string, outsplit);
-  string2 = strip_ansi(fargs[0]);
 
   /* setup phase done */
 
@@ -4269,7 +4267,7 @@ FUNCTION(fun_art)
 
 FUNCTION(fun_textfile)
 {
-   int retval, t_val;
+   int t_val;
    dbref it;
    char *t_buff, *t_bufptr;
    CMDENT *cmdp;
@@ -4298,7 +4296,7 @@ FUNCTION(fun_textfile)
       t_val = (((t_val < 0) || (t_val > 2)) ? 0 : t_val);
    }
    t_bufptr = t_buff = alloc_lbuf("fun_textfile");
-   retval = parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], t_buff, t_bufptr, 1);
+   parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], t_buff, t_bufptr, 1);
 
    safe_str(t_buff, buff, bufcx);
    free_lbuf(t_buff);
@@ -9983,13 +9981,13 @@ FUNCTION(fun_convsecs)
     char *s_format;
     double tt2;
     long l_offset;
-    struct tm *ttm, *ttm2;
+    struct tm *ttm2;
 
     tt2 = safe_atof(fargs[0]);
     ttm2 = localtime(&mudstate.now);
     l_offset = (long) mktime(ttm2) - (long) mktime64(ttm2);
     tt2 -= l_offset;
-    ttm = gmtime64_r(&tt2, ttm2);
+    gmtime64_r(&tt2, ttm2);
     ttm2->tm_year += 1900;
     s_format = alloc_mbuf("convsecs");
     sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
@@ -12392,7 +12390,7 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type)
 FUNCTION(fun_parenmatch)
 {
     dbref aowner, thing;
-    int aflags, anum, tcnt, i_err, i_type;
+    int aflags, anum, tcnt, i_type;
     ATTR *ap;
     char *atext, *atextptr, *revatext, *revatextptr;
     char *tbuff, *tbuffptr;
@@ -12453,7 +12451,7 @@ FUNCTION(fun_parenmatch)
        free_lbuf(atext);
        return;
     }
-    i_err = tcnt = 0;
+    tcnt = 0;
     tbuffptr = tbuff = alloc_lbuf("fun_parenmatch");
     tcnt = paren_match(atext, tbuff, &tbuffptr, -1, i_type);
     if ( tcnt > 0 ) {
@@ -13371,7 +13369,7 @@ FUNCTION(fun_u2)
 FUNCTION(fun_zfun2default)
 {
     dbref aowner, thing;
-    int aflags, anum, goodzone, chkpass, i, tval;
+    int aflags, anum, goodzone, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
@@ -13416,7 +13414,6 @@ FUNCTION(fun_zfun2default)
     /* Make sure we got a good attribute */
 
     atext = NULL;
-    chkpass = 1;
     if (!ap) {
        pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
     }
@@ -13440,7 +13437,6 @@ FUNCTION(fun_zfun2default)
       }
       else {
          pass = atext;
-         chkpass = 0;
       }
     }
     /* Evaluate it using the rest of the passed function args */
@@ -14440,7 +14436,7 @@ FUNCTION(fun_first)
 
 FUNCTION(fun_rest)
 {
-    char *s, *first, sep;
+    char *s, sep;
 
     /* If we are passed an empty arglist return a null string */
 
@@ -14449,7 +14445,7 @@ FUNCTION(fun_rest)
     }
     varargs_preamble("REST", 2);
     s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
-    first = split_token(&s, sep);
+    split_token(&s, sep);
     if (s) {
         safe_str(s, buff, bufcx);
     }
@@ -16149,7 +16145,7 @@ FUNCTION(fun_randextract)
 FUNCTION(fun_extract)
 {
     int start, len;
-    char *r, *s, *t, sep;
+    char *r, *s, sep;
 
     varargs_preamble("EXTRACT", 4);
 
@@ -16186,7 +16182,7 @@ FUNCTION(fun_extract)
     /* Chop off the rest of the string, if needed */
 
     if (s && *s)
-         t = split_token(&s, sep);
+         split_token(&s, sep);
     safe_str(r, buff, bufcx);
 }
 
@@ -17531,7 +17527,7 @@ FUNCTION(fun_xcon)
     char *tbuf, *pt1, *buff2, *as, *s, *pt2;
     int i, j, t, loop, can_prnt, did_prnt;
     int gotone = 0;
-    int canhear, cancom, isplayer, ispuppet, isparent;
+    int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
     int first, how_many;
     ATTR *ap;
@@ -17544,7 +17540,6 @@ FUNCTION(fun_xcon)
     cancom = 0;
     isplayer = 0;
     ispuppet = 0;
-    isparent = 0;
     first = atoi(fargs[1]);
     how_many = atoi(fargs[2]);
     if ( first <= 0 || how_many <= 0 ) {
@@ -17756,7 +17751,7 @@ FUNCTION(fun_lcon)
     char *tbuf, *pt1, *buff2, *as, *s, *pt2, *namebuff, *namebufcx;
     int i, j, t, loop;
     int gotone = 0;
-    int canhear, cancom, isplayer, ispuppet, isparent;
+    int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
     ATTR *ap;
 
@@ -17772,7 +17767,6 @@ FUNCTION(fun_lcon)
     cancom = 0;
     isplayer = 0;
     ispuppet = 0;
-    isparent = 0;
     pt2 = NULL;
     pt1 = NULL;
     if ( (nfargs > 1) && *fargs[1] ) {
@@ -18320,7 +18314,6 @@ do_itemfuns(char *buff, char **bufcx, char *str, int el, char *word,
 {
     int ct, overrun;
     char *sptr, *iptr, *eptr;
-    char nullb;
 
     /* If passed a null string return an empty string, except that we
      * are allowed to append to a null string.
@@ -18356,7 +18349,6 @@ do_itemfuns(char *buff, char **bufcx, char *str, int el, char *word,
      * pointed to by sptr, iptr, and eptr respectively.
      */
 
-    nullb = '\0';
     /* No 'before' portion, just split off element 1 */
     if (el == 1) {
         sptr = NULL;
@@ -26684,14 +26676,19 @@ FUNCTION(fun_trace)
 
 FUNCTION(fun_ljc)
 {
-  int len, inlen, idx, filllen;
+  int len, idx, filllen;
+#ifndef ZENTY_ANSI
+  int inlen;
+#endif
   char *tptr, filler[LBUF_SIZE], t_buff[8], *s, *t;
 
   if (!fn_range_check("LJC", nfargs, 2, 3, buff, bufcx)) {
      return;
   }
 
+#ifndef ZENTY_ANSI
   inlen = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
+#endif
   len = atoi(fargs[1]);
 
   /* seperator */
@@ -27071,10 +27068,9 @@ FUNCTION(fun_attrcnt)
 FUNCTION(fun_aflags)
 {
   char *abuff;
-  int atrnum;
 
   abuff = alloc_lbuf("fun_aflags");
-  atrnum = flagcheck(fargs[0], abuff);
+  flagcheck(fargs[0], abuff);
   if (*abuff == '1')
     safe_str("#-1 BAD ATTRIBUTE", buff, bufcx);
   else

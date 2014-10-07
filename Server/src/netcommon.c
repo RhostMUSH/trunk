@@ -427,11 +427,11 @@ strip_ansi_xterm(const char *raw)
     char *p = (char *) raw;
     char *q = buf;
     char *r;
-    int i_val, i_chk, i_type, i_chk2;
+    int i_chk, i_type, i_chk2;
 
     DPUSH; /* #104 */
 
-    i_val = i_chk = i_type = 0;
+    i_chk = i_type = 0;
     r = NULL;
 
     while (p && *p) {

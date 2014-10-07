@@ -191,7 +191,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   pcre *re;
   pcre_extra *study = NULL;
   const char *errptr;
-  char *start, *abuf, *prebuf, *prep, *postbuf, *postp, *str, *obuf, *obufptr,
+  char *start, *abuf, *prebuf, *prep, *postbuf, *postp, *str, *obuf,
        *mybuff, *mybuffptr, tmp;
   int subpatterns, offsets[99], erroffset, flags, all,
       match_offset, len, i, p, loop;
@@ -266,7 +266,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       re_subpatterns = subpatterns;
 
       str = fargs[i+1];
-      obufptr = obuf = alloc_lbuf("regedit_sub_dollars");
+      obuf = alloc_lbuf("regedit_sub_dollars");
       mybuffptr = mybuff = alloc_lbuf("regedit_sub_dollars");
       while (*str) {
          if ( *str == '$' )

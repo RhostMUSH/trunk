@@ -1906,7 +1906,7 @@ del_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
 void
 mod_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
 {
-   ATRP *atrp, *atrp2;
+   ATRP *atrp2;
    char *t_strtok, *t_strtok2, *t_strtokptr, *s_chr, *s_strtok, *s_strtokptr;
    int i_owner, i_target, i_enactor, i_newowner, i_newtarget, i_newenactor, i_newset, i_newsee;
 
@@ -2021,7 +2021,6 @@ mod_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
          return;
       }
    }
-   atrp = atrp_head;
    for ( atrp2 = atrp_head; atrp2; atrp2 = atrp2->next) {
       if ( (strcmp(atrp2->name, t_strtok) == 0) &&
            (i_owner == atrp2->owner) &&
@@ -2035,7 +2034,6 @@ mod_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
          atrp2->flag_see = i_newsee;
          return;
       }
-      atrp = atrp2;
    }
    notify(player, "Entry not found.");
 }

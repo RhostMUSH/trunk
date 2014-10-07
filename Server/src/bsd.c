@@ -197,7 +197,7 @@ void
 shovechars(int port,char* address)
 {
     fd_set input_set, output_set;
-    struct timeval last_slice, current_time, next_slice, timeout, slice_timeout;
+    struct timeval last_slice, current_time, next_slice, timeout;
     int found, check, new_connection_error_count = 0;
     DESC *d, *dnext, *newd;
     CMDENT *cmdp = NULL;
@@ -337,7 +337,7 @@ shovechars(int port,char* address)
 	timeout.tv_sec = floor(next);
 	timeout.tv_usec = floor(1000000 * fmod(next,1.0)); ;
 	next_slice = msec_add(last_slice, mudconf.timeslice);
-	slice_timeout = timeval_sub(next_slice, current_time);
+	timeval_sub(next_slice, current_time);
 
 #ifdef TLI
 	for (i = 0; i < maxfds; i++)
