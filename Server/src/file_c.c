@@ -156,7 +156,11 @@ fcache_read(FBLOCK ** cp, char *filename)
        lbuf2ptr = lbuf2;
        nmax2 = read(fd, buff, LBUF_SIZE);
        if ( nmax2 > 0 ) {
+#ifdef ZENTY_ANSI
           parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+#else
+          strcpy(lbuf1, buff);
+#endif
        }
        nmax = strlen(lbuf1);
     } else {
@@ -184,7 +188,11 @@ fcache_read(FBLOCK ** cp, char *filename)
            lbuf1ptr = lbuf1;
            lbuf2ptr = lbuf2;
            if ( nmax2 > 0 ) {
+#ifdef ZENTY_ANSI
               parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+#else
+              strcpy(lbuf1, buff);
+#endif
            }
            nmax = strlen(lbuf1);
         } else {
