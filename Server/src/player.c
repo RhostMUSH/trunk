@@ -691,13 +691,12 @@ dbref protectname_remove (char *protect_name, dbref player)
 
 dbref protectname_unalias (char *protect_name, dbref player)
 {
-   PROTECTNAME *bp, *backp;
+   PROTECTNAME *bp;
    dbref target, aowner, p;
    int aflags;
    char *s_alias, *tp, *temp;
 
-   backp = NULL;
-   for ( bp=mudstate.protectname_head; bp; backp=bp, bp=bp->next ) {
+   for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
       if ( Wizard(player) || (bp->i_name == player) ) {
          if ( !string_compare( protect_name, Name(bp->i_name) ) ) {
             return -3;
@@ -735,13 +734,12 @@ dbref protectname_unalias (char *protect_name, dbref player)
 
 dbref protectname_alias (char *protect_name, dbref player)
 {
-   PROTECTNAME *bp, *backp;
+   PROTECTNAME *bp;
    dbref target, aowner, p;
    int aflags;
    char *s_alias, *tp, *temp;
 
-   backp = NULL;
-   for ( bp=mudstate.protectname_head; bp; backp=bp, bp=bp->next ) {
+   for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
       if ( Wizard(player) || (bp->i_name == player) ) {
          if ( !string_compare( protect_name, bp->name ) ) {
             target = bp->i_name;

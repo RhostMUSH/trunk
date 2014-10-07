@@ -2925,14 +2925,13 @@ extern NAMETAB indiv_attraccess_nametab[];
 static void
 decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname)
 {
-  int atr, aflags, got_any;
+  int atr, aflags;
   char *buf, *ltext, *buff2, *tname, *tpr_buff, *tprp_buff;
   dbref aowner;
   ATTR *ap;
   BOOLEXP *bool;
   NAMETAB *np;
 
-  got_any = 0;
   buff2 = alloc_mbuf("do_decomp.attr_name");
   tname = alloc_lbuf("decomp_wild");
   memset(tname, 0, LBUF_SIZE);

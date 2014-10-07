@@ -1913,7 +1913,7 @@ void
 process_error_control(dbref player, CMDENT *cmdp)
 {
     char *s_uselock, *dx_tmp;
-    int chk_stop, chk_tog, hk_retval;
+    int chk_stop, chk_tog;
     ATTR *hk_ap2;
 
     if ( (cmdp && (cmdp->hookmask & HOOK_FAIL)) && 
@@ -1954,7 +1954,7 @@ process_error_control(dbref player, CMDENT *cmdp)
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        mudstate.chkcpu_locktog = 0;
-       hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
        mudstate.chkcpu_toggle = chk_tog;
        mudstate.chkcpu_stopper = chk_stop;
        free_sbuf(s_uselock);
@@ -1973,7 +1973,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 {
     char *buf1, *buf2, tchar, *s_uselock, *dx_tmp;
     char *args[MAX_ARG], *tpr_buff, *tprp_buff;
-    int nargs, i, fail, interp, key, xkey, chk_tog, hk_retval;
+    int nargs, i, fail, interp, key, xkey, chk_tog;
     ATTR *hk_ap2;
     time_t chk_stop;
 
@@ -2110,7 +2110,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        mudstate.chkcpu_locktog = 0;
-       hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
        mudstate.chkcpu_toggle = chk_tog;
        mudstate.chkcpu_stopper = chk_stop;
        free_sbuf(s_uselock);
@@ -2292,7 +2292,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        mudstate.chkcpu_locktog = 0;
-       hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
        mudstate.chkcpu_toggle = chk_tog;
        mudstate.chkcpu_stopper = chk_stop;
        free_sbuf(s_uselock);
@@ -2514,9 +2514,9 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, boot_cnt, i_loc, i_trace;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
-    char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *s_logroom, *swichk_ptr, swichk_buff[80], *swichk_tok;
+    char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
     char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff;
     dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, targetlist[LBUF_SIZE], i_apowner;
@@ -2527,6 +2527,11 @@ process_command(dbref player, dbref cause, int interactive,
     DESC *d;
     ATTR *hk_ap2, *ap_log;
     time_t chk_stop;
+#ifdef ENH_LOGROOM
+    char *s_logroom;
+    int i_loc;
+    s_logroom = NULL;
+#endif
 
     DPUSH; /* #29 */
 
@@ -2539,7 +2544,6 @@ process_command(dbref player, dbref cause, int interactive,
     mudstate.notrace = 0;
     mudstate.start_of_cmds = 0;
     succ = i_fndexit = 0;
-    s_logroom = NULL;
     cache_reset(0);
     memset(lst_cmd, 0, sizeof(lst_cmd));
     memset(mudstate.last_command, 0, sizeof(mudstate.last_command));
@@ -2689,11 +2693,11 @@ process_command(dbref player, dbref cause, int interactive,
        ENDLOG
     }
 
+#ifdef ENH_LOGROOM
     if ( Good_obj(player) )
        i_loc = Location(player);
     else
        i_loc = NOTHING;
-#ifdef ENH_LOGROOM
     if ( Good_obj(i_loc) && !Recover(i_loc) && !Going(i_loc) && LogRoomEnh(i_loc) ) {
        s_logroom = alloc_mbuf("log_room");
        memset(s_logroom, '\0', MBUF_SIZE);
@@ -3135,7 +3139,7 @@ process_command(dbref player, dbref cause, int interactive,
                     s_Flags2(boot_plr, (Flags2(boot_plr) | FUBAR));
                     s_Flags3(boot_plr, (Flags3(boot_plr) | NOCONNECT));
                     if ( isPlayer(boot_plr) )
-                       boot_cnt = boot_off(boot_plr, NULL);
+                       boot_off(boot_plr, NULL);
                     sprintf(cpulbuf, 
                            "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, and @booted #%d]",
                             mudconf.max_cpu_cycles,
@@ -3184,7 +3188,7 @@ process_command(dbref player, dbref cause, int interactive,
                             }
                           }
                        }
-                       boot_cnt = boot_off(boot_plr, NULL);
+                       boot_off(boot_plr, NULL);
                        free_mbuf(tchbuff);
                     }
                     if ( mudconf.cpu_secure_lvl == 4 )
@@ -3817,7 +3821,7 @@ process_command(dbref player, dbref cause, int interactive,
                     s_Flags2(boot_plr, (Flags2(boot_plr) | FUBAR));
                     s_Flags3(boot_plr, (Flags3(boot_plr) | NOCONNECT));
                     if ( isPlayer(boot_plr) )
-                       boot_cnt = boot_off(boot_plr, NULL);
+                       boot_off(boot_plr, NULL);
                     sprintf(cpulbuf, 
                            "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, and @booted #%d]",
                             mudconf.max_cpu_cycles, 
@@ -3866,7 +3870,7 @@ process_command(dbref player, dbref cause, int interactive,
                             }
                           }
                        }
-                       boot_cnt = boot_off(boot_plr, NULL);
+                       boot_off(boot_plr, NULL);
                        free_mbuf(tchbuff);
                     }
                     if ( mudconf.cpu_secure_lvl == 4 )
@@ -7185,28 +7189,12 @@ list_process(dbref player)
 
 #ifdef HAVE_GETRUSAGE
     struct rusage usage;
-    int ixrss, idrss, isrss, curr, last, dur;
 
     DPUSH; /* #54 */
 
     getrusage(RUSAGE_SELF, &usage);
     /* Calculate memory use from the aggregate totals */
 
-    curr = mudstate.mstat_curr;
-    last = 1 - curr;
-    dur = mudstate.mstat_secs[curr] - mudstate.mstat_secs[last];
-    if (dur > 0) {
-	ixrss = (mudstate.mstat_ixrss[curr] -
-		 mudstate.mstat_ixrss[last]) / dur;
-	idrss = (mudstate.mstat_idrss[curr] -
-		 mudstate.mstat_idrss[last]) / dur;
-	isrss = (mudstate.mstat_isrss[curr] -
-		 mudstate.mstat_isrss[last]) / dur;
-    } else {
-	ixrss = 0;
-	idrss = 0;
-	isrss = 0;
-    }
     DPOP; /* #54 */
 #endif
 
@@ -8268,13 +8256,12 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
    char max_file[160], *chk_valid_str, *tpr_buff, *tprp_buff;
    FILE *f_ptr;
    int t_lines=0, t_pages=0, t_chars=0, page_num=0, chk_prnt=0, 
-       i_slashcnt=0, overflow=0, i_logroom=0;
+       i_slashcnt=0, overflow=0;
    dbref t_player;
    struct tm *tp;
    time_t tt;
 
    if ( key & MLOG_ROOM ) {
-      i_logroom = 1;
       key = key & ~MLOG_ROOM;
       t_player = 1;     /* Set 'player' as #1 */
    } else {

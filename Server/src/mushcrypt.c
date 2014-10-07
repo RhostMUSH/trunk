@@ -211,7 +211,7 @@ int
 decode_base64(char *encoded, int len, char *buff, char **bp, int key)
 {
   BIO *bio, *b64, *bmem;
-  char *sbp, decoded[LBUF_SIZE], *pdec;
+  char decoded[LBUF_SIZE], *pdec;
   int dlen;
 
   memset(decoded, '\0', LBUF_SIZE);
@@ -232,7 +232,6 @@ decode_base64(char *encoded, int len, char *buff, char **bp, int key)
 
   bio = BIO_push(b64, bmem);
 
-  sbp = *bp;
   dlen = BIO_read(bio, decoded, LBUF_SIZE -1);
   if ( dlen >= 0 )
      decoded[dlen]='\0';

@@ -1795,7 +1795,7 @@ decode_flags(dbref player, dbref target, FLAG flagword, FLAG flag2word,
 {
     char *buf, *bp, *buf2, *bp2;
     FLAGENT *fp;
-    int flagtype, check;
+    int flagtype;
     FLAG fv;
 
     buf = bp = alloc_mbuf("decode_flags");
@@ -1806,7 +1806,6 @@ decode_flags(dbref player, dbref target, FLAG flagword, FLAG flag2word,
 	strcpy(buf, "#-2 ERROR");
 	return buf;
     }
-    check = 0;
     flagtype = (flagword & TYPE_MASK);
     if (object_types[flagtype].lett != ' ')
 	safe_mb_chr(object_types[flagtype].lett, buf, &bp);

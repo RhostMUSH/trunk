@@ -583,7 +583,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 {
     char *bufc, *bufc2, s_twochar[3], s_final[80], s_intbuf[4];
     unsigned char ch1, ch2, ch;
-    int i_tohex, accent_toggle, i_extendallow, i_extendcnt, i_extendnum;
+    int i_tohex, accent_toggle, i_extendcnt, i_extendnum;
 
 
 /* Debugging only
@@ -595,7 +595,6 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     bufc = *bufptr;
     bufc2 = *buf2ptr;
     accent_toggle = 0;
-    i_extendallow = 3;
     i_extendcnt = 0;
     s_intbuf[3] = '\0';
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
