@@ -500,10 +500,10 @@ char	*temp, *tp;
 
 		/* It's an alias (or an incorrect entry).  Clobber it */
 
-		stat = hashrepl(temp, (int *)player, &mudstate.player_htab);
+		stat = hashrepl(temp, (int *)(pmath2)player, &mudstate.player_htab);
 		free_lbuf(temp);
 	} else {
-		stat = hashadd(temp, (int *)player, &mudstate.player_htab);
+		stat = hashadd(temp, (int *)(pmath2)player, &mudstate.player_htab);
 		free_lbuf(temp);
 		stat = (stat < 0) ? 0 : 1;
 	}
