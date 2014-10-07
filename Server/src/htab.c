@@ -903,7 +903,7 @@ void hashwalk_dump(HASHTAB *pHtab, char *ref) {
       fprintf(pFile, "{target = \"%s\", data = %x, bIsOriginal = %d}\n",
 #endif
 	      hEntPtr->target,
-	      (pmath1) hEntPtr->data,
+	      (pmath2) hEntPtr->data,
 	      hEntPtr->bIsOriginal);
     }
   }
