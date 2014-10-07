@@ -260,7 +260,11 @@ char	*buff;
                 "%d page faults in lookups.\r\n", sizeof(VATTR),
                 vstats_count, vstats_freecnt, vstats_lookups, page_faults);
 #else
-	sprintf(buff, "Vattr stats:  %d size, %d alloc, %d free, %d name lookups\r\n",
+#ifdef BIT64
+	sprintf(buff, "Vattr stats:  %lu size, %d alloc, %d free, %d name lookups\r\n",
+#else
+	sprintf(buff, "Vattr stats:  %u size, %d alloc, %d free, %d name lookups\r\n",
+#endif
 		sizeof(VATTR), vstats_count, vstats_freecnt, vstats_lookups);
 #endif
 

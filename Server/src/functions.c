@@ -6893,28 +6893,28 @@ static int handle_flaglists(dbref player, dbref cause, char *name, char *fstr, i
         if ( type ) {
            if ( negate ) {
               if ( high_bit )
-                 ret = !((int)strchr(flag_high, *s));
+                 ret = !((pmath2)strchr(flag_high, *s));
               else
-                 ret = !((int)strchr(flag_low, *s));
+                 ret = !((pmath2)strchr(flag_low, *s));
             } else {
               if ( high_bit )
-                 ret = (int)strchr(flag_high, *s);
+                 ret = (pmath2)strchr(flag_high, *s);
               else
-                 ret = (int)strchr(flag_low, *s);
+                 ret = (pmath2)strchr(flag_low, *s);
             }
             if ( !ret )
                return 0;
         } else {
            if ( negate ) {
               if ( high_bit )
-                 ret = !((int)strchr(flag_high, *s));
+                 ret = !((pmath2)strchr(flag_high, *s));
               else
-                 ret = !((int)strchr(flag_low, *s));
+                 ret = !((pmath2)strchr(flag_low, *s));
             } else {
               if ( high_bit )
-                 ret = (int)strchr(flag_high, *s);
+                 ret = (pmath2)strchr(flag_high, *s);
               else
-                 ret = (int)strchr(flag_low, *s);
+                 ret = (pmath2)strchr(flag_low, *s);
             }
             if ( ret )
                return 1;

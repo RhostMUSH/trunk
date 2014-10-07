@@ -3028,14 +3028,14 @@ CF_HAND(cf_site)
 
     if (mudstate.initializing) {
 	if (head == NULL) {
-	    *vp = (int) site;
+	    *vp = (pmath2) site;
 	} else {
 	    for (last = head; last->next; last = last->next);
 	    last->next = site;
 	}
     } else {
 	site->next = head;
-	*vp = (int) site;
+	*vp = (pmath2) site;
     }
     if ( site->key == 1 )
        return 777;

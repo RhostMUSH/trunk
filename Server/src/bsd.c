@@ -908,7 +908,7 @@ new_connection(int sock)
 	d = NULL;
     } else {
 	buff = alloc_mbuf("new_connection.sitename");
-        memset(buff, 0, sizeof(buff));
+        memset(buff, 0, MBUF_SIZE);
   	strncpy(buff, strip_nonprint(addroutbuf), MBUF_SIZE - 1);
 	STARTLOG(LOG_NET, "NET", "CONN")
 	    buff1 = alloc_mbuf("new_connection.LOG.open");

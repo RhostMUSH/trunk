@@ -9048,7 +9048,7 @@ void do_protect(dbref player, dbref cause, int key, char *name)
          } else if ( i_return == -5 ) {
             notify(player, unsafe_tprintf("The name '%s' is their current active name.  Can not alias.", name));
          } else if ( i_return == -4 ) {
-            p_lookup = (int)hashfind(name, &mudstate.player_htab);
+            p_lookup = (pmath2)hashfind(name, &mudstate.player_htab);
             if ( p_lookup == player ) {
                notify(player, unsafe_tprintf("Somehow, the name '%s' has been aliased but is not marked as such.  Fixing.", name, p_lookup));
                delete_player_name(player, name);

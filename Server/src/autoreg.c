@@ -54,7 +54,7 @@ int areg_init()
 {
   int rtemp;
 
-  rtemp =((int) bigbuffer) % 4;
+  rtemp =((pmath2) bigbuffer) % 4;
   if (rtemp)
     nbuffer = bigbuffer + 4 - rtemp;
   else

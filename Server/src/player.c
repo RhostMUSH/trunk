@@ -475,7 +475,7 @@ char	*temp, *tp;
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
 
-	p = (int)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate.player_htab);
 	if (p) {
 
 		/* Entry found in the hashtable.  If a player, succeed if the
@@ -520,7 +520,7 @@ char	*temp, *tp;
 	*tp = '\0';
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
-	p = (int)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate.player_htab);
 	if (!p || (p == NOTHING) || ((player != NOTHING) && (p != player))) {
 		free_lbuf(temp);
 		return 0;
@@ -563,7 +563,7 @@ char	*temp, *tp;
 	*tp = '\0';
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
-	p = (int)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate.player_htab);
 	free_lbuf(temp);
 	if (!p) {
 		if (check_who)
@@ -718,7 +718,7 @@ dbref protectname_unalias (char *protect_name, dbref player)
                safe_str(bp->name, temp, &tp);
 	       for (tp=temp; *tp; tp++)
 		   *tp = ToLower((int)*tp);
-	       p = (int)hashfind(temp, &mudstate.player_htab);
+	       p = (pmath2)hashfind(temp, &mudstate.player_htab);
                free_lbuf(temp);
                if ( p == target ) {
                   delete_player_name(target, bp->name);
@@ -757,7 +757,7 @@ dbref protectname_alias (char *protect_name, dbref player)
                safe_str(bp->name, temp, &tp);
 	       for (tp=temp; *tp; tp++)
 		   *tp = ToLower((int)*tp);
-	       p = (int)hashfind(temp, &mudstate.player_htab);
+	       p = (pmath2)hashfind(temp, &mudstate.player_htab);
                free_lbuf(temp);
                if ( !p ) {
                   add_player_name(target, bp->name);

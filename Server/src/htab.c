@@ -897,9 +897,13 @@ void hashwalk_dump(HASHTAB *pHtab, char *ref) {
     for (hEntPtr = pHtab->entry->element[i];
 	 hEntPtr != NULL;
 	 hEntPtr = hEntPtr->next) {
+#ifdef BIT64
+      fprintf(pFile, "{target = \"%s\", data = %lx, bIsOriginal = %d}\n",
+#else
       fprintf(pFile, "{target = \"%s\", data = %x, bIsOriginal = %d}\n",
+#endif
 	      hEntPtr->target,
-	      (int) hEntPtr->data,
+	      (pmath1) hEntPtr->data,
 	      hEntPtr->bIsOriginal);
     }
   }

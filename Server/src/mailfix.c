@@ -325,10 +325,10 @@ void *myapush(int len)
   pt1 = malloc(len + 3);
   pt3 = (PTRLST *)malloc(sizeof(PTRLST));
   if (!pt1 || !pt3) return NULL;
-  if (!((unsigned int)pt1 % 4))
+  if (!((pmath1)pt1 % 4))
     pt2 = pt1;
   else
-    pt2 = pt1 + 4 - ((unsigned int)pt1 % 4);
+    pt2 = pt1 + 4 - ((pmath1)pt1 % 4);
   pt3->ptr = pt1;
   pt3->next = allptr;
   allptr = pt3;
