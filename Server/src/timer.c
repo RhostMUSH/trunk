@@ -74,7 +74,7 @@ double	result;
 		result = mudstate.rwho_counter;
 	if (mudstate.mstats_counter < result)
 		result = mudstate.mstats_counter;
-	result =- mudstate.nowmsec;
+	result -= mudstate.nowmsec;
 	if (result <= 0)
 		result = 0.1;
 	return result;
