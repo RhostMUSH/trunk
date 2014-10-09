@@ -7,6 +7,7 @@ Server/game/data/*
 Server/src/Makefile.*
 Server/src/intsize
 Server/src/netrhost~
+Server/src/date.txt
 Server/game/old*/*.gz
 Server/game/prev*/*.flat
 Server/game/prev*/*dump*
