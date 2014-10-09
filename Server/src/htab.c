@@ -137,6 +137,11 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
       return NULL;
     }
 
+    if (htab->entry == NULL ) {
+      LOGTEXT("ERR", "hashfind2 was passed a NULL htab->entry");
+      return NULL;
+    }
+
     numchecks = 0;
     htab->scans++;
     hval = hashval(str, htab->mask);

@@ -644,6 +644,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_str("%f", buff, &bufc);
                 safe_str("%f", buff2, &bufc2);
                 string++;
+            } else if ( (*string == '%') && (*(string+1) == '<') ) { 
+                safe_str("%<", buff, &bufc);
+                safe_str("%<", buff2, &bufc2);
+                string++;
             } else if ( ((*string != SAFE_CHR)
 #ifdef SAFE_CHR2
                            && (*string != SAFE_CHR2)
@@ -656,8 +660,6 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff, &bufc);
                 safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff2, &bufc2);
-/*          } else if ( (*string == '%') && (*(string+1) == '<') ) { 
-                string+=2; */
             } else if ( (*string == '<') ) {
                 string++;
                 while ( *string ) {
@@ -1218,6 +1220,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 )
                   safe_str("%%", buff, &bufc);
                else if ( *(dstr + 1) == 'f' )
+                  safe_str("%%", buff, &bufc);
+               else if ( *(dstr + 1) == '<' )
                   safe_str("%%", buff, &bufc);
                else
 #endif                

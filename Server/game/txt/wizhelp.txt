@@ -7811,9 +7811,9 @@ SNOOPY                                                           God     Wiz
   
   The following is a list of keywords and their bitmask equivalents:
   
-  none    - 0    OPEN    - 128    WIPE     - 32768    MOVE   - 8388608
-  SET     - 1    EMIT    - 256    DESTROY  - 65536
-  CREATE  - 2    OEMIT   - 512    ZEMIT    - 131072
+  none    - 0    OPEN    - 128    WIPE     - 32768    MOVE       - 8388608
+  SET     - 1    EMIT    - 256    DESTROY  - 65536    CLUSER_ADD - 16777216
+  CREATE  - 2    OEMIT   - 512    ZEMIT    - 131072   MAILSEND   - 33554432
   LINK    - 4    CLONE   - 1024   NAME     - 262144
   PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288
   TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576
@@ -8725,7 +8725,66 @@ SNOOPY                                                           God     Wiz
   LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE() LPOWERS()       LTOGGLES()
   MAILALIAS()   MAILQUICK()   MAILQUOTA()   MAILSIZE()      MAILSTATUS()
   MSIZETOT()    NSLOOKUP()    QUOTA()       SIZE()          TEXTFILE()
+  MAILREAD()    MAILSEND()
 
+& MAILSEND()
+  Function: mailsend(<player>, <subject>, <body> [,<key>])
+  
+  This will send a <player> a mail message with the specified subject
+  of <subject> (which may be empty) and body <body> which must not
+  be empty.
+  
+  If you specify a <key> of 1, the mail is sent anonymously.
+  
+  Note: This function requires the SIDEFX flag to run.
+    
+  Example:
+    > say mailsend(test, Hey!, This is a mail)
+    Mail: Message sent to -> Test
+    Mail: Done
+  
+  See Also: mailread(), mailquick(), mailsize(), mailstatus(), mailquota()
+  
+& MAILREAD()
+  Function: mailread(<player>, <index>, <type> [,<key>])
+  
+  This will read individual mail segments from the target player.  You
+  must control the target player to read the mail.  If you specify a
+  key of '1' then the message will be updated, if set NEW or UNREAD
+  to 'OLD' as if the player has read the message.
+  
+  The following <type>'s exist:
+    H - Help (default)
+    I - Message Number/Index
+    S - Subject
+    F - From Name
+    T - To Name List
+    D - Date/Time
+    C - Connection State (1 connect, 0 disconnect)
+    G - Message Status
+    ? - Message Type
+    K - Message Size (in bytes)
+    B - Message Body
+    U - Return nothing (for key type 1 updating status)
+  
+  {See 'help mailread2' for examples}
+
+& MAILREAD2
+  Example:
+    > mail me=This is a test message//A test
+    > say mailread(me,1,s)
+    You say "This is a test messsage"
+    > say mailread(me,1,b)
+    You say "A test"
+    > say mailread(me,1,g)
+    You say "NEW"
+    > say mailread(me,1,u,1)
+    You say ""
+    > say mailread(me,1,g)
+    You say "OLD"
+  
+  See Also: mailsend(), mailquick(), mailsize(), mailstatus(), mailquota()
+    
 & MAILQUOTA()
   Function: mailquota(<target> [,<key>])
   

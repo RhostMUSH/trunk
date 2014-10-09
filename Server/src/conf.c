@@ -1011,7 +1011,7 @@ CF_HAND(cf_verifyint)
 /* The value of MUX/PENN/ALL are taken from 'wizhelp sideeffects' */
 #define MUXMASK         131135
 #define PENNMASK        458719
-#define ALLMASK         33554431   /* 2147483647 would be 'really all', i.e. 32 1s */
+#define ALLMASK         67108863   /* 2147483647 would be 'really all', i.e. 32 1s */
 #define NO_FLAG_FOUND   -1
 
 /* The conversion function relies on the position of words in this array to match
@@ -1019,7 +1019,7 @@ CF_HAND(cf_verifyint)
 const char * sideEffects[] = {
   "SET" , "CREATE", "LINK", "PEMIT", "TEL", "LIST", "DIG", "OPEN", "EMIT",
   "OEMIT", "CLONE", "PARENT", "LOCK", "LEMIT", "REMIT", "WIPE", "DESTROY",
-  "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", NULL
+  "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", "MAILSEND", NULL
 };
 
 /* This function takes an integer mask and converts it to a string list
@@ -1104,10 +1104,16 @@ CF_HAND(cf_sidefx) {
 
     if (strcmp("PENN", &ptr[bNegate]) == 0) {
       flag = PENNMASK;
+      if (player > 0) 
+        notify(player, "Sideeffects set to Penn's");
     } else if (strcmp("MUX", &ptr[bNegate]) == 0) {
       flag = MUXMASK;
+      if (player > 0)
+        notify(player, "Sideeffects set to MUX's");
     } else if (strcmp("ALL", &ptr[bNegate]) == 0) {
       flag = ALLMASK;
+      if (player > 0)
+        notify(player, "Sideeffects set to All Enabled");
     } else if (strcmp("NONE", &ptr[bNegate]) == 0) {
       flag = 0;
     } else {
@@ -3002,7 +3008,7 @@ CF_HAND(cf_site)
 	cf_log_syntax(player, cmd, "Bad host address: %s", addr_txt);
 	return -1;
     }
-    head = (SITE *)(pmath2) * vp;
+    head = (SITE *) * vp;
     /* Parse the access entry and allocate space for it */
 
     site = (SITE *) malloc(sizeof(SITE));

@@ -575,6 +575,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ShowFailCmd(x)  ((Flags4(x) & SHOWFAILCMD) != 0)
 #define Backstage(x)    (((Flags3(x) & BACKSTAGE) != 0) || ((Flags3(Owner(x)) & BACKSTAGE) != 0))
 #define NoBackstage(x)  ((Flags4(x) & NOBACKSTAGE) != 0)
+#define Private(x)	((Flags3(x) & PRIVATE) != 0)
 #define Anonymous(x)    ((Flags3(x) & ANONYMOUS) != 0)
 #define s_Lrused(x)	s_Flags3((x), Flags3(x) | LRFLAG)
 #define c_Lrused(x)	s_Flags3((x), Flags3(x) & ~LRFLAG)

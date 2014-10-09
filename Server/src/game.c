@@ -209,7 +209,7 @@ NDECL(report)
 static int 
 atr_match1(dbref thing, dbref parent, dbref player, char type,
 	   char *str, int check_exclude,
-	   int hash_insert, int dpcheck, int cmast)
+	   int hash_insert, int dpcheck, int cmast, int *i_lock)
 {
     dbref aowner, thing2;
     int match, attr, aflags, i, ck, ck2, ck3, loc, attrib2, x, i_cpuslam, 
@@ -237,12 +237,14 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
            ENDLOG
         }
         if ( Good_obj(thing) && ShowFailCmd(thing) ) {
+          *i_lock = 1;
           ck3 = 1;
         } else {
 	  RETURN(-1); /* #70 */
         }
     }
-
+    if ( *i_lock )
+       ck3 = 1;
     /* Mimic PENN's ability to only have players access $cmds on themselves/invent */
     if ( mudconf.penn_playercmds && (Good_obj(thing) && isPlayer(thing)) ) {
        if ( Good_obj(player) )
@@ -400,7 +402,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
 	       match = 1;
 	       if (!cmast && (Flags3(thing) & NOSTOP) && (thing != mudconf.master_room) &&
                    (Location(thing) != mudconf.master_room)) {
-	         ck = atr_match1(mudconf.master_room, mudconf.master_room, player, type, str, 0, 0, dpcheck, 1);
+	         ck = atr_match1(mudconf.master_room, mudconf.master_room, player, type, str, 0, 0, dpcheck, 1, i_lock);
 	         if (ck < 2) {
 	           ck2 = list_check(Contents(mudconf.master_room), player, AMATCH_CMD, str, 0, 0, 0);
 	         }
@@ -446,7 +448,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
        did_it(player, thing, A_UFAIL,
              "You can not use $-commands on that.",
               A_OUFAIL, NULL, A_AUFAIL, (char **)NULL, 0);
-       RETURN(1); /* #70 */
+       RETURN(-1); /* #70 */
     } else {
        RETURN(match); /* #70 */
     }
@@ -458,7 +460,7 @@ int
 atr_match(dbref thing, dbref player, char type, char *str, int check_parents, int dpcheck)
 {
     int match, lev, result, exclude, insert;
-    int retval;
+    int retval, i_lock;
     dbref parent;
 
     DPUSH; /* #71 */
@@ -477,9 +479,9 @@ atr_match(dbref thing, dbref player, char type, char *str, int check_parents, in
 
     /* If not checking parents, just check the thing */
 
-    match = 0;
+    match = i_lock = 0;
     if (!check_parents) {
-        retval = atr_match1(thing, thing, player, type, str, 0, 0, dpcheck, 0);
+        retval = atr_match1(thing, thing, player, type, str, 0, 0, dpcheck, 0, &i_lock);
         RETURN(retval); /* #71 */
     }
 
@@ -492,7 +494,7 @@ atr_match(dbref thing, dbref player, char type, char *str, int check_parents, in
 	if (!Good_obj(Parent(parent)))
 	    insert = 0;
 	result = atr_match1(thing, parent, player, type, str,
-			    exclude, insert, dpcheck, 0);
+			    exclude, insert, dpcheck, 0, &i_lock);
 	if ((result == 3) || (result == 2)) {
 	  match = 2;
 	  break;
@@ -1142,13 +1144,13 @@ notify_except3(dbref loc, dbref player, dbref exc1, dbref exc2, int level,
 
       DOLIST(first, Contents(loc)) {
 	if (first != exc1 && first != exc2) {
-	    if ((level && Immortal(first)) || (!level && Wizard(first)))
+	    if ( !Private(first) && ((level && Immortal(first)) || (!level && Wizard(first))) )
 		notify_check(first, player, msg, 0,
 			     (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE), 0);
 	}
       }
       if ( isPlayer(loc) || isThing(loc) ) {
-	 if ((level && Immortal(loc)) || (!level && Wizard(loc)))
+	 if ( !Private(loc) && ((level && Immortal(loc)) || (!level && Wizard(loc))) )
              notify_quiet(loc, msg);
       }
     VOIDRETURN; /* #79 */

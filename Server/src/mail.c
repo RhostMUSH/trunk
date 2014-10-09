@@ -1562,10 +1562,15 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	  for (x = 0; x < 78; x++)
 	    *pt2++ = '-';
 	  strcpy(pt2,"\r\nReply: (");
-	  if ( chk_anon )
-	    strncat(pt2,mudconf.mail_anonymous,22);
-	  else
+	  if ( chk_anon ) {
+            if ( strlen(mudconf.mail_anonymous) ) {
+               strncat(pt2, mudconf.mail_anonymous, 22);
+            } else {
+               strcat(pt2, (char *)"*Anonymous*");
+            } 
+	  } else {
 	    strncat(pt2,Name(player),22);
+          }
  	  strcat(pt2,") [");
 	  strcat(pt2, ctime((time_t *)(mbuf1+htimeoff)));
  	  *(pt2 + strlen(pt2) - 1) = ']';
@@ -2640,6 +2645,291 @@ void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type)
       notify_quiet(player,"Mail: You have no new/unread mail");
 
    free_lbuf(retval);
+}
+
+void mail_read_func(dbref player, char *buf, dbref wiz, char *s_type, int key, char *buff, char **bufcx)
+{
+  int mesg, len, send, x, i_type, chk_anon, chk_anon2;
+  short int index, size, *spt1, ind2;
+  char *pt1, test, *tpr_buff, *tprp_buff;
+  dbref player2, plrdb;
+  static char anon_player[17], s_status[10];
+
+  if ((!stricmp(buf,"nall") || !stricmp(buf,"uall") ||
+       !stricmp(buf,"ball"))) {
+     safe_str("#-1 FEATURE NOT SUPPORTED IN FUNCTION FORMAT", buff, bufcx);
+     return;
+  }
+
+  mesg = len = send = x = i_type = chk_anon = chk_anon2 = 0;
+  memset(anon_player, 0, sizeof(anon_player));
+  memset(s_status, 0, sizeof(s_status));
+
+  player2 = player;
+  if ( !stricmp(buf,"new") || !stricmp(buf,"unread") || !stricmp(buf, "both")) {
+    if (toupper(*buf) == 'N')
+      test = 'N';
+    else if (toupper(*buf) == 'U')
+      test = 'U';
+    else
+      test = 'B';
+    if (get_ind_rec(player,MIND_IRCV,lbuf1,1,wiz,key)) {
+      spt1 = (short int *)lbuf1;
+      if (foldmast) {
+	size = *spt1;
+	spt1++;
+      }
+      else {
+        size = *(spt1+2);
+        spt1 += 3 + *(spt1+1);
+      }
+      for (index = 0; index < size; index++,spt1++) {
+	if (get_hd_rcv_rec(player,*spt1,mbuf1,wiz,key)) {
+          if ( test == 'B' ) {
+             if ( (*(mbuf1+hstoff) == 'N') || (*(mbuf1+hstoff) == 'U') ) {
+               break;
+             }
+          } else {
+	     if (*(mbuf1+hstoff) == test) {
+	       break;
+             }
+          }
+	}
+      }
+      if (index == size)
+	index = 0;
+      else {
+	mesg = index+1;
+	index = *spt1;
+      }
+    }
+    else
+      index = 0;
+    if (!index) {
+      if (test == 'N') 
+	safe_str("#-1 YOU HAVE NO NEW MAIL", buff, bufcx);
+      else if ( test == 'U')
+	safe_str("#-1 YOU HAVE NO UNREAD MAIL", buff, bufcx);
+      else
+	safe_str("#-1 YOU HAVE NO NEW OR UNREAD MAIL", buff, bufcx);
+      return;
+    }
+  }
+  else {
+    mesg = atoi(buf);
+    if (mesg > 0)
+      index = get_msg_index(player,mesg,1, NOTHING, 1);
+    if ((mesg < 1) || (!index)) {
+      safe_str("#-1 BAD MESSAGE NUMBER SPECIFIED", buff, bufcx);
+      return;
+    }
+  }
+  if ((len = get_hd_rcv_rec(player,index,mbuf1,wiz,key))) {
+    ind2 = *(short int *)(mbuf1+hindoff);
+    if (ind2 & tomask) {
+      toall = 1;
+      ind2 &= ~tomask;
+    }
+    else {
+      toall = 0;
+    }
+    if (key)
+      atr_add_raw(player, A_MCURR, myitoa(mesg));
+    send = *(int *)mbuf1;
+    *(int *)sbuf1 = MIND_MSG;
+    *(int *)(sbuf1 + sizeof(int)) = send;
+    *(short int *)(sbuf1 + (sizeof(int) << 1)) = ind2;
+    keydata.dptr = sbuf1;
+    keydata.dsize = (sizeof(int) << 1) + sizeof(short int);
+    infodata = dbm_fetch(mailfile,keydata);
+    chk_anon2 = 0;
+    if ( (*(mbuf1 + 1 +hstoff) == 'a') ||
+         (*(mbuf1 + 1 +hstoff) == 'r') ||
+         (*(mbuf1 + 1 +hstoff) == 'f') ||
+         (*(mbuf1 + 1 +hstoff) == 'o') ||
+         (*(mbuf1 + 1 +hstoff) == 'n') ) {
+       if ( Wizard(player2) ) {
+          chk_anon2 = 1;
+       } else {
+          chk_anon = 1;
+       }
+       if ( strlen(mudconf.mail_anonymous) )
+          strncpy(anon_player, mudconf.mail_anonymous, 16);
+       else
+          strcpy(anon_player, "*Anonymous*");
+    } else {
+       chk_anon = 0;
+    }
+    if (infodata.dptr) {
+      strcpy(lbuf8,infodata.dptr);
+      for (x = 0; x < 78; x++)
+	*(mbuf2 + x) = '-';
+      *(mbuf2 + x) = '\0';
+      switch (*(mbuf1+hstoff)) {
+        case 'n':
+	case 'N': strcpy(s_status,"NEW"); 
+		  *(mbuf1+hstoff) = 'O';
+                  if ( chk_anon )
+		     *(mbuf1+1+hstoff) = 'o';
+                  else
+		     *(mbuf1+1+hstoff) = 'O';
+		  break;
+        case 'u':
+	case 'U': strcpy(s_status,"UNREAD"); 
+		  *(mbuf1+hstoff) = 'O';
+                  if ( chk_anon )
+		     *(mbuf1+1+hstoff) = 'o';
+                  else
+		     *(mbuf1+1+hstoff) = 'O';
+		  break;
+        case 'o':
+	case 'O': strcpy(s_status,"OLD"); 
+                  if ( chk_anon )
+		     *(mbuf1+1+hstoff) = 'o';
+                  break;
+        case 'm':
+	case 'M': strcpy(s_status,"MARKED"); 
+		  if ((*(mbuf1+1) == 'N') || (*(mbuf1+1) == 'U'))
+		    *(mbuf1+1+hstoff) = 'O';
+                  if (*(mbuf1+1) == 'n')
+		    *(mbuf1+1+hstoff) = 'O';
+                  if ( chk_anon )
+		     *(mbuf1+1+hstoff) = 'o';
+		  break;
+        case 's':
+	case 'S': strcpy(s_status,"SAVED");
+		  if ((*(mbuf1+1) == 'N') || (*(mbuf1+1) == 'U'))
+		    *(mbuf1+1+hstoff) = 'O';
+                  if (*(mbuf1+1) == 'n')
+		    *(mbuf1+1+hstoff) = 'O';
+                  if ( chk_anon )
+		     *(mbuf1+1+hstoff) = 'o';
+		  break;
+      }
+      chk_anon2 = 0;
+      if ( (*(mbuf1 + 2 +hstoff) == 'a') ||
+           (*(mbuf1 + 2 +hstoff) == 'r') ||
+           (*(mbuf1 + 2 +hstoff) == 'f') ||
+           (*(mbuf1 + 2 +hstoff) == 'n') ) {
+         if ( Wizard(player2) ) {
+            chk_anon2 = 1;
+            chk_anon = 0;
+         } else {
+            chk_anon = 1;
+         }
+         if ( strlen(mudconf.mail_anonymous) )
+            strncpy(anon_player, mudconf.mail_anonymous, 16);
+         else
+            strcpy(anon_player, "*Anonymous*");
+      } else {
+         chk_anon = 0;
+      }
+
+      if (toupper(*(mbuf1 + 2 + hstoff)) == 'A')
+	strcpy(sbuf2,"AUTO_FORWARD");
+      else if (toupper(*(mbuf1 + 2 + hstoff)) == 'F')
+	strcpy(sbuf2,"FORWARD");
+      else if (toupper(*(mbuf1 + 2 + hstoff)) == 'R')
+	strcpy(sbuf2,"REPLY");
+      else
+	*sbuf2='\0';
+
+      size = *(short int *)(mbuf1+hsizeoff);
+      if (size == 1)
+	strcpy(sbuf3,"Byte");
+      else
+	strcpy(sbuf3,"Bytes");
+      strcpy(sbuf4,ctime((time_t *)(mbuf1+htimeoff)));
+      *(sbuf4 + strlen(sbuf4) - 1) = '\0';
+      if (len == hsuboff)
+	pt1 = NULL;
+      else
+	pt1 = mbuf1+hsuboff;
+      if (Good_obj(send) && !Recover(send) && !Going(send))
+	strncpy(sbuf7,Name(send),22);
+      else
+	strcpy(sbuf7,"(NONE)");
+      tprp_buff = tpr_buff = alloc_lbuf("mail_read");
+
+      if ( key )
+         *s_type = 'U';
+
+      unparse_to(send,ind2,lbuf7, &plrdb);
+      switch ( ToUpper(*s_type) ) {
+        case 'B':  /* Body of Message */
+                   safe_str(lbuf8, buff, bufcx);
+                   break;
+        case 'I':  /* Messsage Index */
+                   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", mesg), buff, bufcx);
+                   break;
+        case 'S':  /* Subject */
+                   if ( pt1 ) 
+                      safe_str(pt1, buff, bufcx);
+                   break;
+        case 'F':  /* From Name */
+                   if ( chk_anon2 ) {
+                      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s [Anonymous]", sbuf7), buff, bufcx);
+                   } else if ( chk_anon ) {
+                      safe_str(anon_player, buff, bufcx);
+                   } else {
+                      safe_str(sbuf7, buff, bufcx);
+                   }
+                   break;
+        case 'T':  /* To Name(s) */
+                   safe_str(lbuf7, buff, bufcx);
+                   break;
+        case 'D':  /* Date/Time */
+                   safe_str(sbuf4, buff, bufcx);
+                   break;
+        case 'C':  /* Connect State */
+                   if ( Good_obj(send) && !chk_anon && (Connected(send) && Chk_Cloak(send,player2) && !Chk_Dark(send,player2)) )
+                      safe_chr('1', buff, bufcx);
+                   else
+                      safe_chr('0', buff, bufcx);
+                   break;
+        case 'G':  /* Status Flag */
+                   safe_str(s_status, buff, bufcx);
+                   break;
+        case '?':  /* Message Type (forward/reply/normal) */
+                   safe_str(sbuf2, buff, bufcx);
+                   break;
+        case 'K':  /* Message Size */
+                   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", size), buff, bufcx);
+                   break;
+        case 'U':  /* Do an update and mark as read -- no output */
+                   break;
+         default:  /* Help File */
+                   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s%s%s%s%s%s%s%s%s%s", 
+                                         "H - This Page\r\n",
+                                         "I - Message Number/Index\r\n",
+                                         "S - Subject\r\n",
+                                         "F - From Name\r\n",
+                                         "T - To Name List\r\n",
+                                         "D - Date/Time\r\n",
+                                         "C - Connection State (1 connect, 0 disconnect)\r\n",
+                                         "G - Message Status\r\n",
+                                         "? - Message Type\r\n",
+                                         "K - Message Size (in bytes)\r\n",
+                                         "B - Message Body\r\n",
+                                         "U - Return nothing (for key type 1 updating status)"), 
+                            buff, bufcx);
+                   break;
+      }
+      free_lbuf(tpr_buff);
+      if (key) {
+        *(int *)sbuf1 = MIND_HRCV;
+        *(int *)(sbuf1 + sizeof(int)) = player;
+        *(short int *)(sbuf1 + (sizeof(int) << 1)) = index;
+        keydata.dptr = sbuf1;
+        keydata.dsize = (sizeof(int) << 1) + sizeof(short int);
+        infodata.dptr = mbuf1;
+        infodata.dsize = len;
+        dbm_store(mailfile,keydata,infodata,DBM_REPLACE);
+      }
+    } else {
+      safe_str("#-1 THE MAIL DATABASE HAD AN ERROR", buff, bufcx);
+    }
+  }
 }
 
 void mail_read(dbref player, char *buf, dbref wiz, int key)

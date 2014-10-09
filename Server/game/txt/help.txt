@@ -3124,6 +3124,8 @@
      pass the lock, you will be unable to use that object.  If the lock does
      not exist, then anyone will be able to use that object.
   
+  See Also: SHOWFAILCMD
+ 
 & @lock type TportLock
   Lock Type: TportLock
   Syntax   : @lock/tport <target>=<key>
@@ -6851,7 +6853,8 @@
  
   Sets the message that someone sees when they try to use object but fail
   the object's use lock.  Note that the other functions controlled by the use
-  lock (paying, listening, and $-commands) do not trigger Oufail.
+  lock (paying, listening, and $-commands) do not trigger Oufail.  This
+  behavior is overridden with the SHOWFAILCMD flag.
  
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
@@ -7278,6 +7281,9 @@
   to another room, but didn't want a given exit to be inherited with
   the room and it's code, you would set the exit PRIVATE and it no longer
   would be inherited to the room's children.
+  
+  This flag, when set on a wizard, will snuff the special output of
+  non-listening items arriving and leaving around them.
    
   See Also: @parent, @open
   
@@ -13155,15 +13161,19 @@ See Also: timefmt()
   See Also: index(), aindex, iindex()
   
 & ART()
-  Function: art(<string>)
+  Function: art(<string> [,<key>])
   This returns the string prefixed with an 'a' or an 'an' article depending
   if the first letter in the string is a consonant or a vowel.
+  
+  If you specify a <key> of '1', then only the article will be displayed. 
   
   Examples:
     > say art(apple)
     You say "an apple"
     > say art(bear)
     You say "a bear"
+    > say art(bear,1)
+    You say "a"
  
   See Also: poss(), subj(), obj()
   
@@ -26687,6 +26697,8 @@ New Features
 * /silent switch for @reboot. Immortal-only by default [AMB]
 * parsestr() has new option '|' for @emits [ASH]
 * @list system -- Compile-time parameters [ASH]
+* mailread() function added to provide wizards individual mail message segments [ASH]
+* mailsend() sideeffect function to allow wizards to send mail [ASH]
   
 Changes
 -------
@@ -26714,6 +26726,8 @@ Changes
 * @list flags differentiates better between normal and extended flags [ASH]
 * A lot of Rhost history added to helpfiles [ASH]
 * nummatch, totmatch and multi-regmatch functions have strict CPU checks [ASH]
+* art() has an optional second argument for just displaying article [ASH]
+* PRIVATE flag will now snuff non-listening messages from wizards [ASH]
   
 Bug Fixes
 ---------
@@ -26734,3 +26748,4 @@ Bug Fixes
 * Off-by-one fix for ansi stringlength detection. [ASH]
 * nor() would not properly work its logic past 2 arguments [AMB]
 * ANSI internals handle multiple enabled ANSI subs [AMB/ASH]
+* SHOWFAILCMD wouldn't work for parent command lookups [ASH]

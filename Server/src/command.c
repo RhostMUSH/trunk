@@ -1500,6 +1500,48 @@ dbref TopLocation(dbref num) {
    return cur_loc;
 }
 
+char *
+time_format_2(time_t dt2, char *buf2)
+{
+    struct tm *delta;
+    time_t dt;
+    char buf[64];
+
+    dt = dt2;
+    if (dt < 0)
+        dt = 0;
+
+    delta = gmtime(&dt);
+    memset(buf2, '\0', 64);
+    if ((int)dt >= 31556926 ) {
+        sprintf(buf, "%dy", (int)dt / 31556926);
+        strcat(buf2, buf);
+    }
+    if ((int)dt >= 2629743 ) {
+        sprintf(buf, "%dM", (int)dt / 2629743);
+        strcat(buf2, buf);
+    }
+    if ((int)dt >= 604800) {
+        sprintf(buf, "%dw", (int)dt / 604800);
+        strcat(buf2, buf);
+    }
+    if (delta->tm_yday > 0) {
+        sprintf(buf, "%dd", delta->tm_yday);
+        strcat(buf2, buf);
+    }
+    if (delta->tm_hour > 0) {
+        sprintf(buf, "%dh", delta->tm_hour);
+        strcat(buf2, buf);
+    }
+    if (delta->tm_min > 0) {
+        sprintf(buf, "%dm", delta->tm_min);
+        strcat(buf2, buf);
+    }
+    sprintf(buf, "%ds", delta->tm_sec);
+    strcat(buf2, buf);
+    return(buf2);
+}
+
 int chkforcommand(char *command) {
    int retval = 0;
    if (lookup_orig_command(command)) {
@@ -5336,10 +5378,11 @@ list_options_values_parse(dbref player, int p_val)
 static void
 list_options_system(dbref player)
 {
-   char dbdumptime[25], dbchktime[25], playerchktime[25];
+   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[25],
+        newstime[25], mailtime[25], aregtime[25], mushtime[25];
+   time_t c_count, d_count, i_count;
 
-   memset(dbdumptime, '\0', 25);
-   memset(dbchktime, '\0', 25);
+   memset(playerchktime, '\0', 25);
 #ifdef TINY_SUB
    sprintf(playerchktime, "%cx is ANSI.", '%');
    notify(player, playerchktime);
@@ -5407,13 +5450,38 @@ list_options_system(dbref player)
 #endif
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are:\r\n     -- SBUF: %d\r\n     -- LBUF: %d", 
                               SBUF_SIZE, LBUF_SIZE));
-//  strncpy(dbchktime,(char *) ctime((time_t *)&mudstate.check_counter), 24);
-//  strncpy(dbdumptime,(char *) ctime((time_t *)&mudstate.dump_counter), 24);
-//  strncpy(playerchktime,(char *) ctime((time_t *)&mudstate.idle_counter), 24);
-//  if ( Guildmaster(player) ) {
-//     notify(player, unsafe_tprintf("\r\nSystem Timers:\r\n--> Next DB Dump: %s\r\n--> Next DB Check: %s\r\n-->Next Idle User Check: %s\r\n",
-//                    dbchktime, dbdumptime, playerchktime));
-//  }
+    if ( Guildmaster(player) ) {
+       c_count = (time_t)floor(mudstate.check_counter);
+       d_count = (time_t)floor(mudstate.dump_counter);
+       i_count = (time_t)floor(mudstate.idle_counter);
+       memset(dbdumptime, '\0', 25);
+       memset(dbchktime, '\0', 25);
+       strncpy(dbchktime,(char *) ctime(&c_count), 24);
+       strncpy(dbdumptime,(char *) ctime(&d_count), 24);
+       strncpy(playerchktime,(char *) ctime(&i_count), 24);
+       notify(player, unsafe_tprintf("\r\nSystem Timers:\r\n--> Next DB Check: %s [%s to trigger]\r\n--> Next DB Dump: %s [%s to trigger]\r\n--> Next Idle User Check: %s [%s to trigger]\r\n",
+                      dbchktime, time_format_2(c_count - mudstate.now, buf2),
+                      dbdumptime, time_format_2(d_count - mudstate.now, buf3),
+                      playerchktime, time_format_2(i_count - mudstate.now, buf4)));
+
+       memset(newstime, 0, sizeof(newstime));
+       memset(mailtime, 0, sizeof(mailtime));
+       memset(aregtime, 0, sizeof(aregtime));
+       memset(mushtime, 0, sizeof(mushtime));
+       strncpy(newstime,(char *) ctime(&mudstate.newsflat_time), 24);
+       strncpy(mailtime,(char *) ctime(&mudstate.mailflat_time), 24);
+       strncpy(aregtime,(char *) ctime(&mudstate.aregflat_time), 24);
+       strncpy(mushtime,(char *) ctime(&mudstate.mushflat_time), 24);
+       notify(player, unsafe_tprintf("Last Dumps:\r\n--> Mush: %s\r\n--> Mail: %s\r\n--> News: %s\r\n--> Areg: %s",
+                      (mudstate.start_time == mudstate.mushflat_time  ? "[No Previous Dump]      " :
+                            (char *) mushtime ),
+                      (mudstate.mail_state == 2 ? "[Mail system disabled]  " :
+                            (mudstate.start_time == mudstate.mailflat_time  ? "[No Previous Dump]      " : (char *) mailtime )),
+                      (news_system_active == 0 ? "[News system disabled]  " :
+                            (mudstate.start_time == mudstate.newsflat_time ? "[No Previous Dump]      " : (char *) newstime )),
+                      (mudstate.start_time == mudstate.aregflat_time ? "[No Previous Dump]      " :
+                            (char *) aregtime )));
+    }
 }
 
 static void
