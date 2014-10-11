@@ -56,6 +56,18 @@ then
    exit 1
 fi
 
+if ! which svn > /dev/null
+then
+   echo "There's no 'svn' on your system, please install it!"
+   exit 1
+fi
+
+if ! which git > /dev/null
+then
+   echo "There's no 'git' on your system, please install it!"
+   exit 1
+fi
+
 TEMP=/tmp/answer$$
 RHOST_USER=member
 RHOST_SITE=ftp.rhostmush.org
@@ -80,24 +92,36 @@ cleanup() {
 		dialog --title "RhostMUSH installer" --msgbox "Installation was cancelled by user." 10 50
 	else
 		dialog --backtitle "Choose distribution" \
-			--radiolist "Select distribution" 10 40 2 \
-			1 "RhostMUSH 3.9 (Latest SVN)" 'on' \
-			2 "RhostMUSH 3.9 (Last stable release)" 'off' 2>$TEMP
-		if [ "$?" != "0" ] ; then return; fi
+			--radiolist "Select distribution" 10 50 3 \
+                        1 "RhostMUSH 3.9.5 (Latest GIT Hub)" 'on' \
+			2 "RhostMUSH 3.9.4 (Last SVN available)" 'off' \
+			3 "RhostMUSH 3.9.4 (Last stable release)" 'off' 2>$TEMP
+		if [ "$?" != "0" ] ; then exit 1; fi
+
 		choice=`cat $TEMP`
 		case $choice in
-			1) RHOSTDIST=SVN-release;;
-			2) RHOSTDIST=stable-release;;
+                        1) RHOSTDIST=git-hub;;
+			2) RHOSTDIST=SVN-release;;
+			3) RHOSTDIST=stable-release;;
 		esac
 	fi
 
-        dialog --backtitle "Which branch do you wish to use?" \
-               --radiolist "The following exist:" 10 40 5 \
-                                      1 "The Main Trunc" 'on' \
-                                      2 "Ashen-Shugar's personal branch" 'off' \
-                                      3 "Ambrosia's personal branch" 'off' \
-                                      4 "Odin's personal branch" 'off' \
-                                      5 "Kage's personal branch" 'off' 2>$TEMP
+        if [ "${RHOSTDIST}" = "git-hub" ]
+        then
+           dialog --backtitle "Which branch do you wish to use?" \
+                  --radiolist "The following exist:" 10 40 1 \
+                                         1 "The Main Trunc" 'on' 2>$TEMP
+	   if [ "$?" != "0" ] ; then exit 1; fi
+        else
+           dialog --backtitle "Which branch do you wish to use?" \
+                  --radiolist "The following exist:" 10 40 5 \
+                                         1 "The Main Trunc" 'on' \
+                                         2 "Ashen-Shugar's personal branch" 'off' \
+                                         3 "Ambrosia's personal branch" 'off' \
+                                         4 "Odin's personal branch" 'off' \
+                                         5 "Kage's personal branch" 'off' 2>$TEMP
+	   if [ "$?" != "0" ] ; then exit 1; fi
+        fi
         
 	choice=`cat $TEMP`
         mydist="trunk"
@@ -115,8 +139,15 @@ cleanup() {
            *) mydist="trunk"
               ;;
         esac
-    	svn checkout http://rhostmush.googlecode.com/svn/${mydist}/ rhostmush-read-only > /dev/null 2>&1 &
-        ret=$!
+        if [ "${RHOSTDIST}" = "git-hub" ]
+        then
+           git clone https://github.com/RhostMUSH/${mydist} rhostmush-read-only > /dev/null 2>&1 &
+           ret=$!
+        else
+    	   svn checkout http://rhostmush.googlecode.com/svn/${mydist}/ rhostmush-read-only > /dev/null 2>&1 &
+           ret=$!
+        fi
+        ln -s rhostmush-read-only Rhost
         ps -p ${ret} > /dev/null 2>&1
         xxx=$?
         export percent=0
@@ -127,10 +158,10 @@ cleanup() {
 #exit 1
         while [ $xxx -eq 0 ]
         do
-           sleep 5
+           sleep 1
            ps -p ${ret} > /dev/null 2>&1
            xxx=$?
-           full=31236
+           full=38528
            test=$(du -sk rhostmush-read-only 2>/dev/null|awk '{print $1}')
            if [ -z "$test" ]
            then
