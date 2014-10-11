@@ -43,6 +43,9 @@ then
    gl_cols=80
 fi
 
+# this should be the size of the trunk repository
+full=19564
+
 ANS2=`echo ${ANS}|tr '[:upper:]' '[:lower:]'`
 if [ "${ANS2}" = "n" -o "${ANS2}" = "no" ]
 then
@@ -161,7 +164,6 @@ cleanup() {
            sleep 1
            ps -p ${ret} > /dev/null 2>&1
            xxx=$?
-           full=38528
            test=$(du -sk rhostmush-read-only 2>/dev/null|awk '{print $1}')
            if [ -z "$test" ]
            then
