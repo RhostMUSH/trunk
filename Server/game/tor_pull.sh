@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-rm blacklist.txt
 if [ -f Tor_ip_list_EXIT.csv ]
 then
    cat /dev/null > blacklist.tmp
@@ -29,6 +28,6 @@ fi
 #cat bulk.txt |fgrep -v '#' > bulk2.txt
 
 # combine them
-cat blacklist.tmp blacklist.tmp2 Tor_ip_list_EXIT.csv bulk2.txt 2>/dev/null|sort -u > blacklist.txt
+cat blacklist.tmp blacklist.tmp2 Tor_ip_list_EXIT.csv bulk2.txt hidemyass_static.txt 2>/dev/null|sort -u > blacklist.txt
 
 rm -f blacklist.tmp blacklist.tmp2 proxy.txt Tor_ip_list_EXIT.csv bulk.txt bulk2.txt
