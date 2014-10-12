@@ -1,5 +1,6 @@
 #!/bin/sh
 #
+rm blacklist.txt
 if [ -f Tor_ip_list_EXIT.csv ]
 then
    cat /dev/null > blacklist.tmp
