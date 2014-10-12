@@ -11,10 +11,10 @@ then
   cat Tor_ip_list_EXIT.csv > blacklist.txt
 fi
 
-# Additional TorProject list. Needs you to specify your IP before uncommenting!
+# Additional TorProject list.
 # Checks which nodes can reach your IP. Accepts an optional &port=<port> param.
 
-#wget -q -O - "https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=YOUR.IP.ADDRESS.HERE" -U NoSuchBrowser/1.0 > bulk.txt
+wget -q -O - "https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip=`hostname -i|cut -f1 -d" "`" -U NoSuchBrowser/1.0 > bulk.txt
 if [ -f bulk.txt ]
 then
     cat bulk.txt |fgrep -v '#' > bulk2.txt
