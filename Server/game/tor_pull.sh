@@ -27,7 +27,7 @@ then
     fi
 fi
 
-cat hidemyass_static.txt > blacklist.txt
+cat hidemyass_static.txt >> blacklist.txt
 
 cat blacklist.txt | sort -u > blacklist.tmp
 cat blacklist.tmp > blacklist.txt
