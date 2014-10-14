@@ -4566,14 +4566,16 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
 	if (gotone)
 	    safe_chr(' ', buff, bufcx);
         if ( i_type == 2 ) {
-           if ( (target == d->player) || Wizard(target) ) 
+           /* This is player and not target as it needs the immediate enactor, not 'target' */
+           if ( (target == d->player) || Wizard(player) ) 
               i_port = d->descriptor;
            else
               i_port = -1;
            tprp_buff = tpr_buff;
 	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", i_port), buff, bufcx);
         } else if ( i_type == 1 ) {
-           if ( (target == d->player) || Wizard(target) ) 
+           /* This is player and not target as it needs the immediate enactor, not 'target' */
+           if ( (target == d->player) || Wizard(player) ) 
               i_port = d->descriptor;
            else
               i_port = -1;
