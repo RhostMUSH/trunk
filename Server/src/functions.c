@@ -1,4 +1,3 @@
-/* functions.c - mush function handlers */
 
 /* NEW FUNCTION PARAMETER PROTOCOL 11/14/1995 (implemented by Thorin)
  *
@@ -1374,62 +1373,6 @@ void safer_unufun(int tval)
 {
    if ( (tval != -1) && (tval != -2) ) {
        mudstate.evalnum--;
-   }
-}
-
-void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c_split) {
-   ANSISPLIT *p_ap, *p_bp, *p_cp;
-
-   p_ap = a_split;
-   p_bp = b_split;
-   p_cp = c_split;
-
-   if ( !*(p_bp->s_fghex) && !*(p_bp->s_bghex) &&
-        !(p_bp->i_special) && !(p_bp->c_accent) &&
-        !(p_bp->c_fgansi) && !(p_bp->c_bgansi) ) {
-      strcpy(p_ap->s_fghex, p_cp->s_fghex);   
-      strcpy(p_ap->s_bghex, p_cp->s_bghex);   
-      p_ap->i_special = p_cp->i_special;
-      p_ap->c_accent  = p_cp->c_accent;
-      p_ap->c_fgansi  = p_cp->c_fgansi;
-      p_ap->c_bgansi  = p_cp->c_bgansi;
-   } else {
-      strcpy(p_ap->s_fghex, p_bp->s_fghex);   
-      strcpy(p_ap->s_bghex, p_bp->s_bghex);   
-      p_ap->i_special = p_bp->i_special;
-      p_ap->c_accent  = p_bp->c_accent;
-      p_ap->c_fgansi  = p_bp->c_fgansi;
-      p_ap->c_bgansi  = p_bp->c_bgansi;
-   }
-}
-
-void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
-   ANSISPLIT *p_ap, *p_bp;
-
-   p_ap = a_split;
-   p_bp = b_split;
-
-   strcpy(p_ap->s_fghex, p_bp->s_fghex);   
-   strcpy(p_ap->s_bghex, p_bp->s_bghex);   
-   p_ap->i_special = p_bp->i_special;
-   p_ap->c_accent  = p_bp->c_accent;
-   p_ap->c_fgansi  = p_bp->c_fgansi;
-   p_ap->c_bgansi  = p_bp->c_bgansi;
-}
-
-void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
-   int i;
-   ANSISPLIT *p_bp;
-
-   p_bp = a_split;
-   for ( i=0; i < i_size; i++) {
-      memset(p_bp->s_fghex, '\0', 5);
-      memset(p_bp->s_bghex, '\0', 5);
-      p_bp->i_special = 0;
-      p_bp->c_accent = '\0';
-      p_bp->c_fgansi = '\0';
-      p_bp->c_bgansi = '\0';
-      p_bp++;
    }
 }
 
@@ -7774,6 +7717,31 @@ void showfield(char* fmtbuff, char* buff, char** bufcx,
   }
 }
 
+void snarfle_special_characters(char *s_instring, char *s_outstring)
+{
+    char *s, *t;
+
+    s = s_instring;
+    t = s_outstring;
+    while ( *s ) {
+       if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+4) &&
+            isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
+            (*(s+5) == '>') ) {
+          switch ( atoi(s+2) ) {
+             case 92: *t++ = (char) 28;
+                      break;
+             case 37: *t++ = (char) 29;
+                      break;
+             default: *t++ = (char) atoi(s+2);
+                      break;
+          }
+          s+=6;
+          continue;
+       }
+       *t++ = *s++;
+    }
+}
+
 void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                       struct timefmt_format* fm, int numeric, char *shold, char **sholdptr, int morepadd)
 {
@@ -7808,27 +7776,8 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
 #ifdef ZENTY_ANSI
 */
     i_stripansi = strlen(strip_all_special(fmtbuff)) - count_extended(fmtbuff);
-    s = fmtbuff;
-    t = s_padstring;
     idy = idx = i_chk = 0;
-    while ( *s ) {
-       if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
-            isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&
-            (*(s+5) == '>') ) {
-          switch ( atoi(s+2) ) {
-             case 92: *t++ = (char) 28;
-                      break;
-             case 37: *t++ = (char) 29;
-                      break;
-             default: *t++ = (char) atoi(s+2);
-                      break;
-          }
-          idx+=6;
-          s+=6;
-          continue;
-       }
-       *t++ = *s++;
-    }
+    snarfle_special_characters(fmtbuff, s_padstring);
     strcpy(fmtbuff, s_padstring);
     memset(s_padstring, '\0', sizeof(s_padstring));
     if ( fm->forcebreakonreturn ) {
@@ -7936,12 +7885,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
        fm->format_padstsize = 0;
        fm->format_padch = ' ';
     } else if ( *(fm->format_padst) == '!') {
-       fm->format_padstsize = strlen(strip_all_special(fm->format_padst));
-       for ( idx = 0; idx < (LBUF_SIZE - 1); idx++ ) {
-          s_padstring[idx] = fm->format_padst[idx+1];
-       }
+/*     fm->format_padstsize = strlen(strip_all_special(fm->format_padst)); */
+       snarfle_special_characters(fm->format_padst+1, s_padstring);
+       fm->format_padstsize = strlen(strip_all_special(s_padstring));
     } else {
-       strcpy(s_padstring, fm->format_padst);
+       snarfle_special_characters(fm->format_padst, s_padstring);
     }
     i_nostripansi = strlen(fmtbuff);
     if ( fm->nocutval && *fmtbuff && ((fm->fieldwidth + morepadd) < i_stripansi) )
@@ -8985,8 +8933,13 @@ FUNCTION(fun_printf)
                               p_sp++;
                               p_sp2++;
                               if ( !*o_p1 ) {
-                                 o_p1 = outbuff;
-                                 p_sp = outsplit;
+                                 if ( *outbuff == '!' ) {
+                                    o_p1 = outbuff+1;
+                                    p_sp = outsplit+1;
+                                 } else {
+                                    o_p1 = outbuff;
+                                    p_sp = outsplit;
+                                 }
                               }
                            }
                            free_lbuf(outbuff);
