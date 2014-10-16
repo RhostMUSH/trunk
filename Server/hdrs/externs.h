@@ -981,7 +981,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
-#define EDIT_COMPAT	4	/* MUX/PENN ANSI Editing compatibility */
+#define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
+#define EDIT_RAW	8	/* Raw ANSI editor for strings (old edit method) */
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */
 #define CLUSTER_DEL	4	/* delete a dbref from a cluster */

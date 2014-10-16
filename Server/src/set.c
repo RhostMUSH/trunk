@@ -1625,15 +1625,29 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
 		    ((from[1] == '$') || (from[1] == '^')) &&
 		    (from[2] == '\0'))
 			from++;
-		*dst = replace_string_ansi(from, to, src, i_type, i_compat);
+                if ( i_compat == 2 ) {
+		   *dst = replace_string(from, to, src, i_type);
+                } else {
+		   *dst = replace_string_ansi(from, to, src, i_type, i_compat);
+                }
                 if ( key == 0 ) {
                    tprp_buff = tpr_buff = alloc_lbuf("edit_string");
 #ifdef ZENTY_ANSI
-                   *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
-                                          strip_all_ansi(to), SAFE_ANSI_NORMAL), src, i_type, i_compat);
+                   if ( i_compat == 2 ) {
+                      *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
+                                             to, SAFE_ANSI_NORMAL), src, i_type);
+                   } else {
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
+                                             strip_all_ansi(to), SAFE_ANSI_NORMAL), src, i_type, i_compat);
+                   }
 #else
-                   *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
-                                          strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);
+                   if ( i_compat == 2 ) {
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
+                                             to, ANSI_NORMAL), src, i_type);
+                   } else {
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
+                                             strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);
+                   }
 #endif
                    free_lbuf(tpr_buff);
                 }
@@ -1651,11 +1665,14 @@ OBLOCKMASTER master;
 
 	/* Make sure we have something to do. */
 
+	if ( (key & EDIT_STRICT) && (key & EDIT_RAW) ) {
+		notify_quiet(player, "Incompible switches to edit");
+		return;
+	}
 	if ((nargs < 1) || !*args[0]) {
 		notify_quiet(player, "Nothing to do.");
 		return;
 	}
-
 	i_compat = editchk = editsingle = 0;
 	if ( key & EDIT_CHECK ) {
 	   editchk = 1;
@@ -1665,10 +1682,15 @@ OBLOCKMASTER master;
 	   editsingle = 1;
 	   key = key & ~EDIT_SINGLE;
         }
-	if ( key & EDIT_COMPAT ) {
-	   i_compat = 1;
-	   key = key & ~EDIT_COMPAT;
+	if ( key & EDIT_STRICT ) {
+	   i_compat |= 1;
+	   key = key & ~EDIT_STRICT;
         }
+        if ( key & EDIT_RAW ) {
+	   i_compat |= 2;
+	   key = key & ~EDIT_RAW;
+        }
+        
 	from = args[0];
 	to = (nargs >= 2) ? args[1] : (char *)"";
 

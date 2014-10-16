@@ -23182,7 +23182,7 @@ FUNCTION(fun_edit)
        i_compat = atoi(fargs[4]);
     if ( i_editkey != 0 )
        i_editkey = 1;
-    if ( i_compat != 0 )
+    if ( (i_compat < 0) || (i_compat > 2) )
        i_compat = 1;
 
     /* The '1' specifies not to alloc second pointer so not needed
