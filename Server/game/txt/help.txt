@@ -26741,6 +26741,8 @@ Changes
 * art() has an optional second argument for just displaying article [ASH]
 * PRIVATE flag will now snuff non-listening messages from wizards [ASH]
 * @edit and edit() now cleanly handle ANSI [ASH]
+* moved all of the ansi handler voodoo into stringutil.c [ASH]
+* printf() and the backend ansi handler natively handle ASCII-8 encoding [ASH]
   
 Bug Fixes
 ---------
@@ -26762,3 +26764,4 @@ Bug Fixes
 * nor() would not properly work its logic past 2 arguments [AMB]
 * ANSI internals handle multiple enabled ANSI subs [AMB/ASH]
 * SHOWFAILCMD wouldn't work for parent command lookups [ASH]
+* ! syntax to printf filler was broken from ansi rewrite [ASH]

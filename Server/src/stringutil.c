@@ -421,6 +421,7 @@ char	*s;
  *         char    c_bgansi;       // Normal background ansi 
  *         int     i_special;      // Special ansi characters 
  *         char    c_accent;       // Various accent characters 
+ *         int     i_ascii8;       // Extended ASCII-8 encoding %<###> foo
  * } ANSISPLIT;
  ****************************************************************************/
 
@@ -445,6 +446,7 @@ clone_ansi(char *s_input, char *s_inputptr,
       s_outsplitptr->c_bgansi = s_insplitptr->c_bgansi;
       s_outsplitptr->c_accent = s_insplitptr->c_accent;
       s_outsplitptr->i_special = s_insplitptr->i_special;
+      s_outsplitptr->i_ascii8 = s_insplitptr->i_ascii8;
       s_inputptr++;
       s_insplitptr++;
       s_outputptr++;
@@ -460,11 +462,71 @@ clone_ansi(char *s_input, char *s_inputptr,
 #endif
 }
 
+void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c_split) {
+   ANSISPLIT *p_ap, *p_bp, *p_cp;
+
+   p_ap = a_split;
+   p_bp = b_split;
+   p_cp = c_split;
+
+   if ( !*(p_bp->s_fghex) && !*(p_bp->s_bghex) &&
+        !(p_bp->i_special) && !(p_bp->c_accent) &&
+        !(p_bp->c_fgansi) && !(p_bp->c_bgansi) ) {
+      strcpy(p_ap->s_fghex, p_cp->s_fghex);
+      strcpy(p_ap->s_bghex, p_cp->s_bghex);
+      p_ap->i_special = p_cp->i_special;
+      p_ap->c_accent  = p_cp->c_accent;
+      p_ap->c_fgansi  = p_cp->c_fgansi;
+      p_ap->c_bgansi  = p_cp->c_bgansi;
+      p_ap->i_ascii8  = p_cp->i_ascii8;
+   } else {
+      strcpy(p_ap->s_fghex, p_bp->s_fghex);
+      strcpy(p_ap->s_bghex, p_bp->s_bghex);
+      p_ap->i_special = p_bp->i_special;
+      p_ap->c_accent  = p_bp->c_accent;
+      p_ap->c_fgansi  = p_bp->c_fgansi;
+      p_ap->c_bgansi  = p_bp->c_bgansi;
+      p_ap->i_ascii8  = p_bp->i_ascii8;
+   }
+}
+
+void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
+   ANSISPLIT *p_ap, *p_bp;
+
+   p_ap = a_split;
+   p_bp = b_split;
+
+   strcpy(p_ap->s_fghex, p_bp->s_fghex);
+   strcpy(p_ap->s_bghex, p_bp->s_bghex);
+   p_ap->i_special = p_bp->i_special;
+   p_ap->c_accent  = p_bp->c_accent;
+   p_ap->c_fgansi  = p_bp->c_fgansi;
+   p_ap->c_bgansi  = p_bp->c_bgansi;
+   p_ap->i_ascii8  = p_bp->i_ascii8;
+}
+
+void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
+   int i;
+   ANSISPLIT *p_bp;
+
+   p_bp = a_split;
+   for ( i=0; i < i_size; i++) {
+      memset(p_bp->s_fghex, '\0', 5);
+      memset(p_bp->s_bghex, '\0', 5);
+      p_bp->i_special = 0;
+      p_bp->i_ascii8 = 0;
+      p_bp->c_accent = '\0';
+      p_bp->c_fgansi = '\0';
+      p_bp->c_bgansi = '\0';
+      p_bp++;
+   }
+}
+
 char *
 rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
    char *s_buffer;
 #ifdef ZENTY_ANSI
-   char *s_inptr, *s_buffptr;
+   char *s_inptr, *s_buffptr, *s_format;
    int i_ansi, i_normalize, i_normalize2;
    ANSISPLIT *s_ptr, s_last;
 
@@ -474,8 +536,10 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
    s_last.c_bgansi = '\0';
    s_last.c_accent = '\0';
    s_last.i_special = 0;
+   s_last.i_ascii8 = 0;
 
    s_buffptr = s_buffer = alloc_lbuf("rebuild_ansi");
+   s_format = alloc_sbuf("rebuild_ansi");
 
    s_inptr = s_input;
    s_ptr = s_split;
@@ -580,7 +644,15 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       s_last.c_bgansi = s_ptr->c_bgansi;
       s_last.c_accent = s_ptr->c_accent;
       s_last.i_special = s_ptr->i_special;
-      safe_chr(*s_inptr, s_buffer, &s_buffptr);
+      /* no need for s_last duplicating i_ascii8 */
+      /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
+      if ( (*s_inptr == '?') && (s_ptr->i_ascii8 >= 160) ) {
+         safe_chr('%', s_buffer, &s_buffptr);
+         sprintf(s_format, "<%03d>", s_ptr->i_ascii8);
+         safe_str(s_format, s_buffer, &s_buffptr);
+      } else {
+         safe_chr(*s_inptr, s_buffer, &s_buffptr);
+      }
       s_inptr++;
       s_ptr++;
    }
@@ -593,6 +665,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       safe_chr('%', s_buffer, &s_buffptr);
       safe_str("fn", s_buffer, &s_buffptr);
    }
+   free_sbuf(s_format);
 #else
    s_buffer = alloc_lbuf("rebuild_ansi");
    strcpy(s_buffer, s_input);
@@ -625,6 +698,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->c_bgansi = '\0';
    s_ptr->c_accent = '\0';
    s_ptr->i_special = 0;
+   s_ptr->i_ascii8 = 0;
    while ( s_inptr && *s_inptr ) {
       if ( (*s_inptr == '%') && ((*(s_inptr+1) == SAFE_CHR)
 #ifdef SAFE_CHR2
@@ -727,9 +801,17 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
          s_ptr->c_accent = (s_ptr-1)->c_accent;
       else
          (s_ptr-1)->c_accent = '\0';
-      *s_outptr = *s_inptr;
-      s_outptr++;
+      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
+           isdigit(*(s_inptr+3)) && isdigit(*(s_inptr+4)) && (*(s_inptr+5) == '>') ) {
+         *s_outptr = '?';
+         s_ptr->i_ascii8 = atoi(s_inptr+3);
+         s_inptr+=5;
+      } else {
+         *s_outptr = *s_inptr;
+         s_ptr->i_ascii8 = 0;
+      }
       s_inptr++;
+      s_outptr++;
    }
    *s_outptr = '\0';
 
