@@ -205,6 +205,9 @@ char *replace_string_ansi(const char *s_old, const char *new,
    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
              insplit[LBUF_SIZE], *p_ip, *p_sptmp;
 
+   if (string == NULL) 
+      return NULL;
+
    initialize_ansisplitter(outsplit, LBUF_SIZE);
    initialize_ansisplitter(outsplit2, LBUF_SIZE);
    initialize_ansisplitter(insplit, LBUF_SIZE);
@@ -218,8 +221,6 @@ char *replace_string_ansi(const char *s_old, const char *new,
    split_ansi(strip_ansi(string), outbuff, outsplit);
    split_ansi(strip_ansi(new), inbuff, insplit);
 
-   if (string == NULL) 
-      return NULL;
 
    s = (char *)outbuff;
    r = (char *)outbuff2;
@@ -229,8 +230,8 @@ char *replace_string_ansi(const char *s_old, const char *new,
    olen = strlen(old);
    i_once = i_count = 0;
 
-   while (*s) { /* Copy up to the next occurrence of the first char of OLD */
-      while (*s && (*s!=*old) && (i_count < (LBUF_SIZE - 2)) ) {
+   while (*s && (i_count < (LBUF_SIZE - 20)) ) { /* Copy up to the next occurrence of the first char of OLD */
+      while (*s && (*s!=*old) && (i_count < (LBUF_SIZE - 20)) ) {
          *r++ = *s++;         
          clone_ansisplitter(p_sp2, p_sp);
          p_sp++;
@@ -242,20 +243,20 @@ char *replace_string_ansi(const char *s_old, const char *new,
        * bump the input string past the occurrence of OLD.
        * Otherwise, copy the char and try again.
        */
-      if (*s && (i_count < (LBUF_SIZE - 2) )) {
+      if (*s && (i_count < (LBUF_SIZE - 20) )) {
          if (!i_once && !strncmp(old, s, olen)) {
             i = (char *)inbuff;
             p_ip = insplit;
             p_sptmp = p_sp;
             i_olen = 0;
-            while ( *i && (i_count < LBUF_SIZE - 2) ) {
+            while ( *i && (i_count < (LBUF_SIZE - 20)) ) {
                *r++ = *i++;
                if ( i_olen < olen ) {
                   clone_ansisplitter_two(p_sp2, p_ip, p_sp);
                   p_sp++; 
                } else {
-                  if ( i_flag == 0 ) {
-                     clone_ansisplitter_two(p_sp2, p_ip, p_sp);
+                  if ( (i_flag == 0) ) {
+                     clone_ansisplitter_two(p_sp2, p_ip, p_sptmp + olen - 1);
                   } else {
                      clone_ansisplitter(p_sp2, p_ip);
                   }
@@ -265,7 +266,9 @@ char *replace_string_ansi(const char *s_old, const char *new,
                i_count++;
                i_olen++;
             }
-            s += olen;
+            i_olen = 0;
+            p_sp = p_sptmp;
+            s += olen; 
             p_sp = p_sptmp + olen;
             if ( i_value ) {
                i_once = 1;
@@ -297,7 +300,9 @@ char *replace_string(const char *old, const char *new,
 char	*result, *r, *s;
 int	olen, i_once;
 
-	if (string == NULL) return NULL;
+	if (string == NULL) {
+           return NULL;
+        } 
 	s=(char *)string;
 	olen = strlen(old);
 	r = result = alloc_lbuf("replace_string");
