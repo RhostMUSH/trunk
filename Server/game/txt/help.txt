@@ -2598,6 +2598,7 @@
         /single    - perform edit on first match, but not rest.
         /strict    - enforces ansi alignment for each char in original
                      string and leaves unansified anything outside that.
+        /raw       - raw mode of the string.  Allows to edit ansi markup.
    
   If <wild-attr> contains wildcard characters, then all attributes that
   match are edited.
@@ -15969,11 +15970,14 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   <from> with the string <to>.  If <from> is '$', then <to> is appended to
   <string>, while if <from> is '^', then it is prepended.
   
-  <type> may specify a '1' for a single edit (where it edits the first match
-  no no sequent matches).
+  <type> has the following values that are allowed:
+    1 - enable single edit (where it edits the first match no sequent matches)
   
-  <strict> may specify a '1' to keep ansi alignment exactly to how the
-  original string had for ansi for each character.
+  <strict> has the following values that are allowed:
+    1 - strict mode will keep ansi alignment to original strings values.
+    2 - raw mode will allow you to edit ansi markup in a string.
+  
+  Note: option 2 (raw mode) was the original method ansi worked.
    
   Examples:
     > say edit(This is a test,is,x)   
@@ -26698,13 +26702,15 @@ New Features
 * %2 (body) and %3 (date/time) subs for MAILFILTER [ASH]
 * sinh(), cosh(), tanh() added [AMB]
 * icmdobj @admin param to specify optional @icmd eval checks [ASH]
-* ansi_txtfiles optionally allows %c/%x/%m ansi substitutions in .txt files [ASH]
+* ansi_txtfiles optionally allow %c/%x/%m ansi subs in .txt files [ASH]
 * /silent switch for @reboot. Immortal-only by default [AMB]
 * parsestr() has new option '|' for @emits [ASH]
 * @list system -- Compile-time parameters [ASH]
-* mailread() function added to provide wizards individual mail message segments [ASH]
+* mailread() function added to provide wizards individual mail 
+  message segments [ASH]
 * mailsend() sideeffect function to allow wizards to send mail [ASH]
 * /STRICT options to @edit and edit() for strict-ansi alignment [ASH]
+* /RAW for @edit and edit() for raw editing ansi markup (orig behavior) [ASH]
   
 Changes
 -------
@@ -26714,8 +26720,8 @@ Changes
 * Large amounts of cleanup in help files [AMB]
 * @sudo can now be nested [AMB]
 * @aflags /list aliased to /perms [ASH]
-* @aflags handled conditions for wanderer/guest (unregistered) for prefixes [ASH]
-* @aflags handles evaluation checks for prefixes [ASH]
+* @aflags conditions for wanderer/guest (unregistered) for prefixes [ASH]
+* @aflags evaluation checks for prefixes [ASH]
 * Reality level names are increased to 16 characters [AMB]
 * NO_CODE made more lax on some functions/commands [AMB]
 * @icmd allows /eval and /eroom evaluation checks [ASH]

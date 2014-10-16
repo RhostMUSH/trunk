@@ -254,7 +254,7 @@ char *replace_string_ansi(const char *s_old, const char *new,
                   clone_ansisplitter_two(p_sp2, p_ip, p_sp);
                   p_sp++; 
                } else {
-                  if ( !i_flag ) {
+                  if ( i_flag == 0 ) {
                      clone_ansisplitter_two(p_sp2, p_ip, p_sp);
                   } else {
                      clone_ansisplitter(p_sp2, p_ip);
