@@ -360,7 +360,7 @@ extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
 			int, int, OBLOCKMASTER *, int, int, int));
-extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int));
+extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int, int));
 extern dbref	FDECL(match_controlled, (dbref, const char *));
 extern dbref	FDECL(match_controlled_or_twinked, (dbref, const char *));
 extern dbref	FDECL(match_affected, (dbref, const char *));
@@ -376,6 +376,8 @@ extern const char *	FDECL(string_match, (const char * ,const char *));
 extern char *	FDECL(dollar_to_space, (const char *));
 extern char *	FDECL(replace_string, (const char *, const char *,
 			const char *, int));
+extern char *	FDECL(replace_string_ansi, (const char *, const char *,
+			const char *, int, int));
 extern char *	FDECL(replace_tokens, (const char *, const char *, const char *, const char *));
 extern void     FDECL(split_ansi, (char *, char *, ANSISPLIT *));
 extern char *   FDECL(rebuild_ansi, (char *, ANSISPLIT *));
@@ -402,6 +404,15 @@ extern BOOLEXP *FDECL(parse_boolexp, (dbref,const char *, int));
 extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int));
 
 /* From functions.c */
+#ifndef SINGLETHREAD
+extern void 	FDECL(initialize_ansisplitter, (ANSISPLIT *, int));
+extern void 	FDECL(clone_ansisplitter, (ANSISPLIT *, ANSISPLIT *));
+extern void 	FDECL(clone_ansisplitter_two, (ANSISPLIT *, ANSISPLIT *, ANSISPLIT *));
+#else
+#define		initialize_ansisplitter(x, y) (0)
+#define		clone_ansisplitter(x, y) (0)
+#define		clone_ansisplitter_two(x, y) (0)
+#endif
 extern int	FDECL(xlate, (char *));
 
 /* From unparse.c */
@@ -970,6 +981,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
+#define EDIT_COMPAT	4	/* MUX/PENN ANSI Editing compatibility */
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */
 #define CLUSTER_DEL	4	/* delete a dbref from a cluster */

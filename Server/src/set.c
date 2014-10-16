@@ -1564,7 +1564,7 @@ ATTR	*attr;
  * edit_string, do_edit: Modify attributes.
  */
 
-void edit_string (char *src, char **dst, char **rdst, char *from, char *to, int key, int i_type)
+void edit_string (char *src, char **dst, char **rdst, char *from, char *to, int key, int i_type, int i_compat)
 {
 char	*cp, *rcp, *tpr_buff, *tprp_buff;
 
@@ -1580,10 +1580,16 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                 if ( key == 0 ) {
 	           *rdst = alloc_lbuf("edit_string_2.^");
                    rcp = *rdst;
+#ifdef ZENTY_ANSI
+                   safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
+                   safe_str(SAFE_ANSI_NORMAL, *rdst, &rcp);
+#else
                    safe_str(ANSI_HILITE, *rdst, &rcp);
-		   safe_str(to, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(ANSI_NORMAL, *rdst, &rcp);
-		   safe_str(src, *rdst, &rcp);
+#endif
+		   safe_str(strip_all_ansi(src), *rdst, &rcp);
                    *rcp = '\0';
                 }
 		*cp = '\0';
@@ -1597,10 +1603,16 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                 if ( key == 0 ) {
 	           *rdst = alloc_lbuf("edit_string_2.$");
                    rcp = *rdst;
-                   safe_str(src, *rdst, &rcp);
+                   safe_str(strip_all_ansi(src), *rdst, &rcp);
+#ifdef ZENTY_ANSI
+                   safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
+                   safe_str(SAFE_ANSI_NORMAL, *rdst, &rcp);
+#else
                    safe_str(ANSI_HILITE, *rdst, &rcp);
-		   safe_str(to, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(ANSI_NORMAL, *rdst, &rcp);
+#endif
                    *rcp = '\0';
                 }
 		*cp = '\0';
@@ -1613,11 +1625,16 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
 		    ((from[1] == '$') || (from[1] == '^')) &&
 		    (from[2] == '\0'))
 			from++;
-		*dst = replace_string(from, to, src, i_type);
+		*dst = replace_string_ansi(from, to, src, i_type, i_compat);
                 if ( key == 0 ) {
                    tprp_buff = tpr_buff = alloc_lbuf("edit_string");
-                   *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
-                                          to, ANSI_NORMAL), src, i_type);
+#ifdef ZENTY_ANSI
+                   *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
+                                          strip_all_ansi(to), SAFE_ANSI_NORMAL), src, i_type, i_compat);
+#else
+                   *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
+                                          strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);
+#endif
                    free_lbuf(tpr_buff);
                 }
 	}
@@ -1627,7 +1644,7 @@ void do_edit(dbref player, dbref cause, int key, char *it,
 		char *args[], int nargs)
 {
 dbref	thing, aowner, aowner2;
-int	attr, got_one, aflags, doit, aflags2, editchk, editsingle;
+int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat;
 char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff;
 ATTR	*ap;
 OBLOCKMASTER master;
@@ -1639,7 +1656,7 @@ OBLOCKMASTER master;
 		return;
 	}
 
-	editchk = editsingle = 0;
+	i_compat = editchk = editsingle = 0;
 	if ( key & EDIT_CHECK ) {
 	   editchk = 1;
 	   key = key & ~EDIT_CHECK;
@@ -1647,6 +1664,10 @@ OBLOCKMASTER master;
         if ( key & EDIT_SINGLE ) {
 	   editsingle = 1;
 	   key = key & ~EDIT_SINGLE;
+        }
+	if ( key & EDIT_COMPAT ) {
+	   i_compat = 1;
+	   key = key & ~EDIT_COMPAT;
         }
 	from = args[0];
 	to = (nargs >= 2) ? args[1] : (char *)"";
@@ -1692,7 +1713,7 @@ OBLOCKMASTER master;
 				/* Do the edit and save the result */
 
 				got_one = 1;
-				edit_string(atext, &result, &retresult, from, to, 0, editsingle);
+				edit_string(atext, &result, &retresult, from, to, 0, editsingle, i_compat);
 				if (ap->check != NULL) {
 					doit = (*ap->check)(0, player, thing,
 						ap->number, result);
