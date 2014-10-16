@@ -12,7 +12,6 @@
 #include "alloc.h"
 #include "rhost_ansi.h"
 
-
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
 extern dbref    FDECL(match_thing, (dbref, char *));
 
@@ -196,6 +195,101 @@ const char *string_match(const char *src, const char *sub)
  * of OLD replaced by NEW. OLD and NEW may be different lengths.
  * (mitch 1 feb 91)
  */
+
+#ifndef STANDALONE
+char *replace_string_ansi(const char *s_old, const char *new, 
+                          const char *string, int i_value, int i_flag)
+{
+   char	*i, *r, *s, *outbuff, *outbuff2, *inbuff, *result, *old;
+   int	olen, i_once, i_count, i_olen;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
+             insplit[LBUF_SIZE], *p_ip, *p_sptmp;
+
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   initialize_ansisplitter(outsplit2, LBUF_SIZE);
+   initialize_ansisplitter(insplit, LBUF_SIZE);
+   outbuff = alloc_lbuf("replace_string_ansi");
+   outbuff2 = alloc_lbuf("replace_string_ansi2");
+   inbuff = alloc_lbuf("replace_string_ansi3");
+   old = alloc_lbuf("replace_string_ansi4");
+   memset(outbuff, '\0', LBUF_SIZE);
+   memset(outbuff2, '\0', LBUF_SIZE);
+   memset(inbuff, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(string), outbuff, outsplit);
+   split_ansi(strip_ansi(new), inbuff, insplit);
+
+   if (string == NULL) 
+      return NULL;
+
+   s = (char *)outbuff;
+   r = (char *)outbuff2;
+   strcpy(old, strip_all_ansi(s_old));
+   p_sp = outsplit;
+   p_sp2 = outsplit2;
+   olen = strlen(old);
+   i_once = i_count = 0;
+
+   while (*s) { /* Copy up to the next occurrence of the first char of OLD */
+      while (*s && (*s!=*old) && (i_count < (LBUF_SIZE - 2)) ) {
+         *r++ = *s++;         
+         clone_ansisplitter(p_sp2, p_sp);
+         p_sp++;
+         p_sp2++;
+         i_count++;
+      }
+
+      /* If we are really at an OLD, append NEW to the result and
+       * bump the input string past the occurrence of OLD.
+       * Otherwise, copy the char and try again.
+       */
+      if (*s && (i_count < (LBUF_SIZE - 2) )) {
+         if (!i_once && !strncmp(old, s, olen)) {
+            i = (char *)inbuff;
+            p_ip = insplit;
+            p_sptmp = p_sp;
+            i_olen = 0;
+            while ( *i && (i_count < LBUF_SIZE - 2) ) {
+               *r++ = *i++;
+               if ( i_olen < olen ) {
+                  clone_ansisplitter_two(p_sp2, p_ip, p_sp);
+                  p_sp++; 
+               } else {
+                  if ( !i_flag ) {
+                     clone_ansisplitter_two(p_sp2, p_ip, p_sp);
+                  } else {
+                     clone_ansisplitter(p_sp2, p_ip);
+                  }
+               }
+               p_ip++;
+               p_sp2++;
+               i_count++;
+               i_olen++;
+            }
+            s += olen;
+            p_sp = p_sptmp + olen;
+            if ( i_value ) {
+               i_once = 1;
+            }
+         } else {
+            *r = *s;
+            clone_ansisplitter(p_sp2, p_sp);
+            s++;
+            r++;
+            p_sp++;
+            p_sp2++;
+            i_count++;
+         }
+      }
+   }
+   result = rebuild_ansi(outbuff2, outsplit2);
+   free_lbuf(outbuff);
+   free_lbuf(outbuff2);
+   free_lbuf(inbuff);
+   free_lbuf(old);
+
+   return result;
+}
+#endif
 
 char *replace_string(const char *old, const char *new, 
 		const char *string, int i_value)

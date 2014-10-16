@@ -106,10 +106,13 @@ while(defined($file = &$files)) {
 
 # Now read the config file and replace the mud_name, port and debug_port.
 
-system("rm ./$dir/netrhost.conf");
+system("rm -f ./$dir/netrhost.conf 2>/dev/null");
+system("rm -f ./$dir/netrhost.pid 2>/dev/null");
 
+#die "Unable to open ./game/netrhost.conf and ./$dir/netrhost.conf!\n"
+#  unless (open(FIN, './game/netrhost.conf') && open(FOUT, ">./$dir/$dir.conf"));
 die "Unable to open ./game/netrhost.conf and ./$dir/netrhost.conf!\n"
-  unless (open(FIN, './game/netrhost.conf') && open(FOUT, ">./$dir/$dir.conf"));
+  unless (open(FIN, './game/netrhost.conf') && open(FOUT, ">./$dir/netrhost.conf"));
 
 while(<FIN>) {
   if(/^mud_name/) {
@@ -121,18 +124,6 @@ while(<FIN>) {
   elsif(/^debug_id/) {
     print FOUT "debug_id\t$port", "0\n";
   }
-  elsif(/^input_database/) {
-    print FOUT "input_database\t$dir.db\n";
-  }
-  elsif(/^output_database/) {
-    print FOUT "output_database\t$dir.db.new\n";
-  }
-  elsif(/^crash_database/) {
-    print FOUT "crash_database\t$dir.db.CRASH\n";
-  }
-  elsif(/^gdbm_database/) {
-    print FOUT "gdbm_database\t$dir.gdbm\n";
-  }
   else
   {
     print FOUT $_;
@@ -142,19 +133,19 @@ while(<FIN>) {
 close FIN;
 close FOUT;
 
-die "Unable to open ./game/mush.config and ./$dir/mush.config!\n"
-  unless (open(FIN, './game/mush.config') && open(FOUT, ">./$dir/mush.config"));
+#die "Unable to open ./game/mush.config and ./$dir/mush.config!\n"
+#  unless (open(FIN, './game/mush.config') && open(FOUT, ">./$dir/mush.config"));
 
-while(<FIN>) {
-  if(/^GAMENAME/) {
-    print FOUT "GAMENAME=$dir\n";
-  }
-  else {
-    print FOUT $_;
-  }
-}
+#while(<FIN>) {
+#  if(/^GAMENAME/) {
+#    print FOUT "GAMENAME=$dir\n";
+#  }
+#  else {
+#    print FOUT $_;
+#  }
+#}
 
-close FIN;
-close FOUT;
+#close FIN;
+#close FOUT;
 
 print "\nCustomization completed for $mud_name, see ./$dir!\n";

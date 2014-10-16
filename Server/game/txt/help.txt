@@ -2596,6 +2596,8 @@
   The following switches exist for @edit:
         /check     - perform 'check' of what @edit will do w/o editing.
         /single    - perform edit on first match, but not rest.
+        /strict    - enforces ansi alignment for each char in original
+                     string and leaves unansified anything outside that.
    
   If <wild-attr> contains wildcard characters, then all attributes that
   match are edited.
@@ -15961,7 +15963,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: andchr(), orchr(), xorchr()
   
 & EDIT()
-  Function: edit(<string>,<from>,<to>[,<type>])
+  Function: edit(<string>, <from>, <to> [[,<type>] [,<strict>]])
  
   This function edits <string>, replacing all occurrences of the substring
   <from> with the string <to>.  If <from> is '$', then <to> is appended to
@@ -15969,7 +15971,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   <type> may specify a '1' for a single edit (where it edits the first match
   no no sequent matches).
- 
+  
+  <strict> may specify a '1' to keep ansi alignment exactly to how the
+  original string had for ansi for each character.
+   
   Examples:
     > say edit(This is a test,is,x)   
     You say "Thx x a test"
@@ -26699,6 +26704,7 @@ New Features
 * @list system -- Compile-time parameters [ASH]
 * mailread() function added to provide wizards individual mail message segments [ASH]
 * mailsend() sideeffect function to allow wizards to send mail [ASH]
+* /STRICT options to @edit and edit() for strict-ansi alignment [ASH]
   
 Changes
 -------
@@ -26728,6 +26734,7 @@ Changes
 * nummatch, totmatch and multi-regmatch functions have strict CPU checks [ASH]
 * art() has an optional second argument for just displaying article [ASH]
 * PRIVATE flag will now snuff non-listening messages from wizards [ASH]
+* @edit and edit() now cleanly handle ANSI [ASH]
   
 Bug Fixes
 ---------

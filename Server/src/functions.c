@@ -1377,6 +1377,32 @@ void safer_unufun(int tval)
    }
 }
 
+void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c_split) {
+   ANSISPLIT *p_ap, *p_bp, *p_cp;
+
+   p_ap = a_split;
+   p_bp = b_split;
+   p_cp = c_split;
+
+   if ( !*(p_bp->s_fghex) && !*(p_bp->s_bghex) &&
+        !(p_bp->i_special) && !(p_bp->c_accent) &&
+        !(p_bp->c_fgansi) && !(p_bp->c_bgansi) ) {
+      strcpy(p_ap->s_fghex, p_cp->s_fghex);   
+      strcpy(p_ap->s_bghex, p_cp->s_bghex);   
+      p_ap->i_special = p_cp->i_special;
+      p_ap->c_accent  = p_cp->c_accent;
+      p_ap->c_fgansi  = p_cp->c_fgansi;
+      p_ap->c_bgansi  = p_cp->c_bgansi;
+   } else {
+      strcpy(p_ap->s_fghex, p_bp->s_fghex);   
+      strcpy(p_ap->s_bghex, p_bp->s_bghex);   
+      p_ap->i_special = p_bp->i_special;
+      p_ap->c_accent  = p_bp->c_accent;
+      p_ap->c_fgansi  = p_bp->c_fgansi;
+      p_ap->c_bgansi  = p_bp->c_bgansi;
+   }
+}
+
 void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
    ANSISPLIT *p_ap, *p_bp;
 
@@ -23144,21 +23170,25 @@ FUNCTION(fun_map)
 FUNCTION(fun_edit)
 {
     char *tstr;
-    int i_editkey;
+    int i_editkey, i_compat;
 
-    if (!fn_range_check("EDIT", nfargs, 3, 4, buff, bufcx))
+    if (!fn_range_check("EDIT", nfargs, 3, 5, buff, bufcx))
        return;
 
-    i_editkey = 0;
+    i_editkey = i_compat = 0;
     if ( (nfargs > 3) && *fargs[3] )
        i_editkey = atoi(fargs[3]);
+    if ( (nfargs > 4) && *fargs[4] )
+       i_compat = atoi(fargs[4]);
     if ( i_editkey != 0 )
        i_editkey = 1;
+    if ( i_compat != 0 )
+       i_compat = 1;
 
     /* The '1' specifies not to alloc second pointer so not needed
      * If you use '0' you need to alloc and define another char pointer
      */
-    edit_string(fargs[0], &tstr, (char **)NULL, fargs[1], fargs[2], 1, i_editkey);
+    edit_string(fargs[0], &tstr, (char **)NULL, fargs[1], fargs[2], 1, i_editkey, i_compat);
     safe_str(tstr, buff, bufcx);
     free_lbuf(tstr);
 }

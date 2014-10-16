@@ -291,7 +291,8 @@ NAMETAB dynhelp_sw[] =
 NAMETAB edit_sw[] =
 {
     {(char *) "check", 1, CA_PUBLIC, 0, EDIT_CHECK | SW_MULTIPLE},
-    {(char *) "single", 1, CA_PUBLIC, 0, EDIT_SINGLE},
+    {(char *) "single", 2, CA_PUBLIC, 0, EDIT_SINGLE},
+    {(char *) "strict", 2, CA_PUBLIC, 0, EDIT_COMPAT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB emit_sw[] =
@@ -7598,7 +7599,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
         break;
 #endif /* REALITY_LEVELS */
     case LIST_STACKS:
-        notify(player, unsafe_tprintf("Debug stack depth = %d", debugmem->stacktop));
+        notify(player, unsafe_tprintf("Debug stack depth = %d [highest %d/%d]", debugmem->stacktop, debugmem->stackval, STACKMAX));
         tprp_buff = tpr_buff = alloc_lbuf("do_list");
         for( i = 0; i < debugmem->stacktop; i++ ) {
            tprp_buff = tpr_buff;
@@ -10035,7 +10036,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                      if ( !*s_instr ) {
                         notify(player, "No action set for cluster.  Use @cluster/action instead.");
                      } else {
-                        edit_string(s_instr, &s_inbufptr, &s_tmpstr, xargs[0], xargs[1], 0, 0);
+                        edit_string(s_instr, &s_inbufptr, &s_tmpstr, xargs[0], xargs[1], 0, 0, 0);
                         s_strtok = strtok_r(s_text, " ", &s_strtokptr);
                         while ( s_strtok ) {
                            thing3 = match_thing(player, s_strtok);
