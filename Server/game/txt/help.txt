@@ -2434,6 +2434,13 @@
            @decompile MyObject/attr*=NewName
            @decompile MyObject=Newname
   
+  Note:  For clients that require a /tf switch, there are two options.
+         1. As an admin, @hook/igswitch @decompile then you can set a command:
+            $@decompile/tf */*:@pemit/noansi %#=FugueEdit > &[setr(0,ucstr(%1))] 
+               [setr(1,switch(%1,me,%#,here,%l,num(%1)))]=[get(%q0/%q1)]
+         2. Make the above command something else and link your client's /grab
+            to that command.
+  
   See Also: examine, look
   
 & @destroy
