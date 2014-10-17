@@ -398,6 +398,7 @@ struct confdata {
 	int	listen_parents;	/* ^listens handle parents */
 	int     icmd_obj;        /* The object for the icmd evaluation */
 	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
+	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */

@@ -279,6 +279,7 @@ NDECL(cf_init)
     mudconf.listen_parents = 0;		/* ^listens do parents */
     mudconf.icmd_obj = -1;		/* @icmd eval object */
     mudconf.ansi_txtfiles = 0;		/* ANSI textfile support */
+    mudconf.list_max_chars = 1000000;	/* Let's allow 1 million characters */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3751,6 +3752,10 @@ CONF conftable[] =
      cf_ntab_access, CA_GOD | CA_IMMORTAL, (int *) list_names,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Change permissions of options with @list."},
+    {(char *) "list_max_chars",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.list_max_chars, 0, 0, CA_PUBLIC,
+     (char *) "Maximum characters allowed in single list() output.\r\n"\
+              "                             Default: 1000000   Value: %d"},
     {(char *) "listen_parents",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.listen_parents, 0, 0, CA_PUBLIC,
      (char *) "Do ^listens follow @parent trees?"},

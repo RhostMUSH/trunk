@@ -4841,20 +4841,20 @@ SNOOPY                                                           God     Wiz
   inventory_name           kill_guarantee_cost      kill_max_cost          
   kill_min_cost            lastsite_paranoia        lattr_default_oldstyle 
   lcon_checks_dark         lfunction_max            list_access            
-  link_cost                lnum_compat              lock_recursion_limit   
-  log                      log_command_list         log_maximum            
-  log_network_errors       log_options              login_to_prog          
-  logout_cmd_access        logout_cmd_alias         look_moreflags         
-  look_obey_terse          machine_command_cost     mail_anonymous         
-  mail_autodeltime         mail_default             mail_def_object        
-  mail_hidden              mail_tolist              mail_verbosity         
-  mailbox_size             maildelete               mailinclude_file       
-  mailprog                 mailsub                  mailmax_send           
-  master_room              match_own_commands       manlog_file            
-  map_delim_space          max_cpu_cycles           max_dest_limit         
-  max_folders              max_lastsite_cnt         max_name_protect       
-  max_pcreate_lim          max_pcreate_time         max_percentsubs        
-  max_players              max_sitecons           
+  list_max_chars           link_cost                lnum_compat            
+  lock_recursion_limit     log                      log_command_list       
+  log_maximum              log_network_errors       log_options            
+  login_to_prog            logout_cmd_access        logout_cmd_alias       
+  look_moreflags           look_obey_terse          machine_command_cost   
+  mail_anonymous           mail_autodeltime         mail_default           
+  mail_def_object          mail_hidden              mail_tolist            
+  mail_verbosity           mailbox_size             maildelete             
+  mailinclude_file         mailprog                 mailsub                
+  mailmax_send             master_room              match_own_commands     
+  manlog_file              map_delim_space          max_cpu_cycles         
+  max_dest_limit           max_folders              max_lastsite_cnt       
+  max_name_protect         max_pcreate_lim          max_pcreate_time       
+  max_percentsubs          max_players              max_sitecons           
   
 { 'wizhelp config parameters4' for more }
 
@@ -6494,6 +6494,17 @@ SNOOPY                                                           God     Wiz
   Changes the access needed to the <param> option of the @list command.
   See Also: @list, PERMISSIONS.
 
+& list_max_chars
+  Config parameter: list_max_chars <value>.  Default: 1000000
+  
+  Specifies the maximum output in characters that the list() function can
+  pump out.  This will effectively kill off every iteration of iter() and
+  list still in progress as well.
+  
+  With the avent of larger LBUF's, there was a need to limit the output.
+  Especially since with 64K lbufs, it was potentially possible to output
+  BILLIONS of characters in a single command.  Rather... insane.
+  
 & link_cost
   Config parameter: link_cost <amount>.  Default: 1.
   Specifies the cost of using the @link command to establish or change the

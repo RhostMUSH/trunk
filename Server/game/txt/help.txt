@@ -26711,6 +26711,7 @@ New Features
 * mailsend() sideeffect function to allow wizards to send mail [ASH]
 * /STRICT options to @edit and edit() for strict-ansi alignment [ASH]
 * /RAW for @edit and edit() for raw editing ansi markup (orig behavior) [ASH]
+* list_max_chars parameter to limit number of characters list can output [ASH]
   
 Changes
 -------
@@ -26743,6 +26744,7 @@ Changes
 * @edit and edit() now cleanly handle ANSI [ASH]
 * moved all of the ansi handler voodoo into stringutil.c [ASH]
 * printf() and the backend ansi handler natively handle ASCII-8 encoding [ASH]
+* list() is now throttled on how much output it can have [ASH]
   
 Bug Fixes
 ---------

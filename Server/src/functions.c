@@ -21774,7 +21774,7 @@ FUNCTION(fun_list)
     char *sep_buf, *curr, *objstring, *buff3, *result, *cp, sep, *st_buff, *bptr,
          *tpr_buff, *tprp_buff, *hdr_buff;
     dbref target_cause;
-    int cntr;
+    int cntr, i_maxchars;
 
     if (!fn_range_check("LIST", nfargs, 2, 5, buff, bufcx))
        return;
@@ -21834,7 +21834,10 @@ FUNCTION(fun_list)
        }
        free_lbuf(hdr_buff);
     }
+    i_maxchars = 0;
     while (cp) {
+        if ( mudstate.iter_inumbrk[mudstate.iter_inum] == 2 )
+           break;
         objstring = split_token(&cp, sep);
         bptr = mudstate.iter_arr[mudstate.iter_inum];
         safe_str(objstring, mudstate.iter_arr[mudstate.iter_inum], &bptr);
@@ -21844,6 +21847,16 @@ FUNCTION(fun_list)
         result = exec(player, cause, caller,
                       EV_STRIP | EV_FCHECK | EV_EVAL, buff3, cargs, ncargs);
         free_lbuf(buff3);
+        i_maxchars += strlen(result);
+        if ( i_maxchars > mudconf.list_max_chars ) {
+           for (i_maxchars = 0; i_maxchars <= mudstate.iter_inum; i_maxchars++)
+              mudstate.iter_inumbrk[i_maxchars] = 2;
+           sprintf(result, "%d %s killed.  %d char ceiling.", 
+                   (mudstate.iter_inum + 1), ((mudstate.iter_inum + 1) > 1 ? "stacks" : "stack"), mudconf.list_max_chars);
+           broadcast_monitor(player, MF_CPUEXT, "LIST() OUTPUT OVERFLOW", result, NULL, cause, 0, 0, NULL);
+           free_lbuf(result);
+           break;
+        }
         notify(target_cause, result);
         free_lbuf(result);
         if ( mudstate.iter_inumbrk[mudstate.iter_inum] )
