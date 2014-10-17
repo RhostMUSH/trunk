@@ -1666,7 +1666,7 @@ OBLOCKMASTER master;
 	/* Make sure we have something to do. */
 
 	if ( (key & EDIT_STRICT) && (key & EDIT_RAW) ) {
-		notify_quiet(player, "Incompible switches to edit");
+		notify_quiet(player, "Incompatible switches to edit");
 		return;
 	}
 	if ((nargs < 1) || !*args[0]) {
