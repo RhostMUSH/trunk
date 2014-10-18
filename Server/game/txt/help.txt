@@ -2415,6 +2415,8 @@
   
 & @decompile
   Command: @decompile[/<switch>] <thing>[/<wild-attrib>] [=<newname>]
+           @decompile/tf[/<switch>] <thing>[/wild-attrib>] [=<new prefix>]
+  
   Dumps the sequence of commands you would have to type to clone <thing>.
   This is handy for saving your objects in a text file in case the MUSH dies
   a horrible death, or for moving your pride-and-joy creation from one MUSH
@@ -2428,18 +2430,22 @@
       /flags   - Show just flags
       /regexp  - use regular expression matching
       /tree    - Examine based on Penn trees using '`' as a separator.
+      /tf      - allows prefix formatting for clients.
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
            @decompile MyObject/attr*=NewName
            @decompile MyObject=Newname
   
-  Note:  For clients that require a /tf switch, there are two options.
-         1. As an admin, @hook/igswitch @decompile then you can set a command:
-            $@decompile/tf */*:@pemit/noansi %#=FugueEdit > &[setr(0,ucstr(%1))] 
-               [setr(1,switch(%1,me,%#,here,%l,num(%1)))]=[get(%q0/%q1)]
-         2. Make the above command something else and link your client's /grab
-            to that command.
+  Note:  The /tf switch changes the syntax slightly.
+         1. When in use, the /tf switch changes what is normally <newname> after
+            the '=' into a new prefix for formatting.
+         2. When in use, the /tf switch will ALWAYS display the dbref# of the
+            target object.  There is no way to override this value when using
+            the /tf switch.
+         3. If the TFPREFIX attribute exists on the ENACTOR of the @decompile,
+            it will use that value (unevaluated) instead of the default.
+         4. The default prefix for the /tf switch is: 'FugueEdit > '
   
   See Also: examine, look
   
@@ -26719,6 +26725,7 @@ New Features
 * /STRICT options to @edit and edit() for strict-ansi alignment [ASH]
 * /RAW for @edit and edit() for raw editing ansi markup (orig behavior) [ASH]
 * list_max_chars parameter to limit number of characters list can output [ASH]
+* /TF switch to @decomile for Penn compatibility.  Now people can stop whining [ASH]
   
 Changes
 -------

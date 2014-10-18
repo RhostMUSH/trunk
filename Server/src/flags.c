@@ -3333,7 +3333,7 @@ convert_flags(dbref player, char *flaglist, FLAGSET * fset, FLAG * p_type, int w
  */
 
 void 
-decompile_flags(dbref player, dbref thing, char *thingname)
+decompile_flags(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
 {
     char *tpr_buff, *tprp_buff;
     FLAG f1, f2, f3, f4;
@@ -3393,7 +3393,8 @@ decompile_flags(dbref player, dbref thing, char *thingname)
 	/* We made it this far, report this flag */
 
         tprp_buff = tpr_buff = alloc_lbuf("decompile_flags");
-	noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@set %s=%s", thingname, fp->flagname));
+	noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s=%s", 
+                                           (i_tf ? qualout : (char *)""), thingname, fp->flagname));
         free_lbuf(tpr_buff);
     }
 }

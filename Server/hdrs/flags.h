@@ -503,7 +503,7 @@ extern char *   FDECL(unparse_object2, (dbref, dbref, int));
 extern char *   FDECL(unparse_object_numonly, (dbref));
 extern char *   FDECL(ansi_exitname, (dbref));
 extern int      FDECL(convert_flags, (dbref, char *, FLAGSET *, FLAG *, int));
-extern void     FDECL(decompile_flags, (dbref, dbref, char *));
+extern void     FDECL(decompile_flags, (dbref, dbref, char *, char *, int));
 extern int	FDECL(HasPriv, (dbref, dbref, int, int, int));
 
 extern int	FDECL(parse_aflags, (dbref, dbref, int, char *, char **, int));

@@ -219,8 +219,9 @@ NAMETAB decomp_sw[] =
     {(char *) "all", 2, CA_PUBLIC, 0, DECOMP_ALL},
     {(char *) "flags", 1, CA_PUBLIC, 0, DECOMP_FLAGS},
     {(char *) "attribs", 2, CA_PUBLIC, 0, DECOMP_ATTRS},
-    {(char *) "tree", 1, CA_PUBLIC, 0, DECOMP_TREE},
+    {(char *) "tree", 2, CA_PUBLIC, 0, DECOMP_TREE},
     {(char *) "regexp", 1, CA_PUBLIC, 0, DECOMP_REGEXP},
+    {(char *) "tf", 2, CA_PUBLIC, 0, DECOMP_TF | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
    
 NAMETAB dbck_sw[] =
