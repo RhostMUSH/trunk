@@ -26760,6 +26760,7 @@ Changes
 * printf() and the backend ansi handler natively handle ASCII-8 encoding [ASH]
 * list() is now throttled on how much output it can have [ASH]
 * page relaxes syntax slightly allowing 'p =blah' to work with MUXPAGE [ASH]
+* optionally compiles in system pcre libraries and not source derived [ASH]
   
 Bug Fixes
 ---------

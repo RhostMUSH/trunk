@@ -11,7 +11,11 @@
 #include <setjmp.h>
 #include "mudconf.h"
 #include "config.h"
+#ifdef PCRE_BUILTIN
+#include <pcre.h>
+#else
 #include "pcre.h"
+#endif
 #include "externs.h"
 #include "match.h"
 #include "flags.h"

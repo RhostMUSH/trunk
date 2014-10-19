@@ -1,3 +1,4 @@
+#ifndef PCRE_BUILDIN
 /*************************************************
 *      Perl-Compatible Regular Expressions       *
 *************************************************/
@@ -7771,3 +7772,4 @@ the loop runs just once. */
 }
 
 /* End of pcre.c */
+#endif
