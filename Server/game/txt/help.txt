@@ -26759,6 +26759,7 @@ Changes
 * moved all of the ansi handler voodoo into stringutil.c [ASH]
 * printf() and the backend ansi handler natively handle ASCII-8 encoding [ASH]
 * list() is now throttled on how much output it can have [ASH]
+* page relaxes syntax slightly allowing 'p =blah' to work with MUXPAGE [ASH]
   
 Bug Fixes
 ---------

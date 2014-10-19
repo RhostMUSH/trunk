@@ -677,7 +677,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
            ansikey = PAGE_NOANSI;
         }
         key = (key &~ PAGE_NOANSI);
-        if (((!tname && !message) || (*tname == '\0' && *message == '\0'))
+        if ((((!tname || !*tname) && !message) || (*tname == '\0' && *message == '\0'))
               && MuxPage(player) && !(key & PAGE_LOC)) {
           // get last page attr
 	  if ( key & PAGE_PORT) {
@@ -716,15 +716,18 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
           return;
         }
  
-        if ( MuxPage(player) && !(key & (PAGE_RET | PAGE_LAST | PAGE_RETMULTI)) && !*message ) {
+        if ( MuxPage(player) && !(key & (PAGE_RET | PAGE_LAST | PAGE_RETMULTI)) && 
+             ((!*message && tname && *tname) || (*message && (!tname || !*tname))) ) {
            if ( key & PAGE_PORT ) {
 	     notify(player, "Last page/return page not avaiable to ports switch.");
 	     return;
 	   }
 	   dbuff = sbuff = alloc_lbuf("do_page");
-           safe_str(tname, sbuff, &dbuff);
+           if ( tname && *tname )
+              safe_str(tname, sbuff, &dbuff);
            if ( *message ) {
-              safe_chr('=', sbuff, &dbuff);
+              if ( tname && *tname )
+                 safe_chr('=', sbuff, &dbuff);
               safe_str(message, sbuff, &dbuff);
            }
 	   nkey = PAGE_LAST;
