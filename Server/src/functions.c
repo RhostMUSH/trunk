@@ -3994,12 +3994,12 @@ FUNCTION(fun_wrapcolumns)
         }
         for (x = 0; x < ncols; x++) {
            count--;
-           pt2 = strchr(hbpt,'\n');
+           pt2 = strchr(hbpt,'\r');
            if (pt2)
               *pt2 = '\0';
            safe_str(hbpt, buff, bufcx);
-           if (pt2)
-              hbpt = pt2+1;
+           if (pt2 && (pt2+1))
+              hbpt = pt2+2;
            if (!count)
               break;
            if (x < (ncols - 1)) {
@@ -4066,21 +4066,21 @@ FUNCTION(fun_wrapcolumns)
            }
            hbpt = string;
            for (z = 0; z < pos; z++) {
-              pt2 = strchr(hbpt,'\n');
-              if ( pt2 )
-                 hbpt = pt2+1;
+              pt2 = strchr(hbpt,'\r');
+              if ( pt2 && (pt2+1))
+                 hbpt = pt2+2;
               else if ( *hbpt ) {
                  pt2 = strchr(hbpt,'\0');
                  if ( pt2 )
                     hbpt = pt2;
               }
            }
-           pt2 = strchr(hbpt,'\n');
+           pt2 = strchr(hbpt,'\r');
            if (pt2)
               *pt2 = '\0';
            safe_str(hbpt, buff, bufcx);
            if (pt2)
-              *pt2 = '\n';
+              *pt2 = '\r';
            if ((x == (rows - 1)) && remorig) {
               if ((remorig - y) == 1)
                  break;

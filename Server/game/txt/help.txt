@@ -26783,3 +26783,4 @@ Bug Fixes
 * ANSI internals handle multiple enabled ANSI subs [AMB/ASH]
 * SHOWFAILCMD wouldn't work for parent command lookups [ASH]
 * ! syntax to printf filler was broken from ansi rewrite [ASH]
+* wrapcolumns() didn't handle CR/LF correctly for potatoe clients (only) [ASH]
