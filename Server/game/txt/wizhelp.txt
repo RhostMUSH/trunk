@@ -2261,7 +2261,7 @@
   Note: the previous naming conventions are referenced automatically as
         aliases for the flag unless specifically removed.
   
-  See Also: @flagdef
+  See Also: @flagdef, @toggledef
 
 & @freeze
   Command: @freeze <pid>       
@@ -3917,8 +3917,10 @@ SNOOPY                                                           God     Wiz
   
   See the normal help on this command.
 
+& @toggledef
 & @flagdef
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]
+           @toggledef[/<switches>] [<togglename>=<permission(s)>]
   
   This command defines ONLINE all the permissions for who can set, unset,
   and see a given flag.  The only flags that you can NOT define by this
@@ -3926,10 +3928,16 @@ SNOOPY                                                           God     Wiz
   changes override the current default settings and are only good for
   the current boot of the machine (i.e.  Cleared on @shutdowns and @reboots).
   
+  The @toggledef handles all TOGGLES.
+  The @flagdef handlds all FLAGS. 
+  
   The following switches exist for this command.
     /set    - This sets permissions of who can SET the flag.
     /unset  - This sets permissions of who can UNSET (remove) the flag.
     /see    - This sets permissions of who can SEE the flag.  (see below)
+    /letter - This sets the specific letter defined for the flag.
+    /index  - This gives an index of flags and their hex representation and
+              associated letter.
     /list   - This lists the flags, settings, and permissions. (default)
               Columns are:
                  'Set'   - defines who can set the flag.
@@ -3944,9 +3952,12 @@ SNOOPY                                                           God     Wiz
   can truly see the flag.
   
   {see 'wizhelp @flagdef2' for a list of available permissions}
+  {see 'wizhelp @flagdef3' for a list of all @admin related parameters}
 
+& @toggledef2
 & @flagdef2
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
+           @toggledef[/<switches>] [<togglename>=<permission(s)>]
   
   The permissions available for the /set, /unset, and /see switches are:
   G   god - only #1 has access
@@ -3971,9 +3982,37 @@ SNOOPY                                                           God     Wiz
   If you wish to remove a permission, you can use '!permission' to unset a
   given permission.  You may specify multiple permissions to set and remove at
   the same time.  (i.e.  @flagdef/set marker0=god immortal !royalty mortal)
-  
-  See Also: @flag
 
+  {see 'wizhelp @flagdef3' for a list of all @admin related parameters}
+  
+  See Also: @flag, @flagdef, @toggledef
+
+& @toggledef3
+& @flagdef3
+  Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
+           @toggledef[/<switches>] [<togglename>=<permission(s)>]
+  
+  You may use @admin parameters and/or the netrhost.conf file to set the
+  override permissions for flags and toggles.  The following exist.
+  
+  @admin parameters for FLAG based perissions:
+  flag_override_set     - [@flagdef/set] Sets override permission on 'set'.
+  flag_override_unset   - [@flagdef/unset] Sets override permission on 'unset'.
+  flag_override_see     - [@flagdef/see] Sets override permission on 'see'.
+  
+  @admin parameters for TOGGLE based permissions.
+  toggle_override_set   - [@flagdef/set] Sets override permission on 'set'.
+  toggle_override_unset - [@flagdef/unset] Sets override permission on 'unset'.
+  toggle_override_see   - [@flagdef/see] Sets override permission on 'see'.
+  
+  These parameters allow them to be 'permanent' in so much that they're 
+  applied at the booting of the mush.  Be aware that if you use flag_name
+  you must specify the flag that flag_name has renamed it to if put after
+  the flag_name renaming.
+  
+  See Also: flag_override_set, flag_override_unset, flag_override_see,
+            toggle_override_set, toggle_override_unset, toggle_override_see,
+            @flagdef, @toggledef
 & @hook
   Command: @hook[/<switch(s)>] [<command/attribute>]
   
@@ -4810,6 +4849,7 @@ SNOOPY                                                           God     Wiz
   exit_parent               exit_quota                exit_toggles
   exits_connect_rooms       expand_goto               fascist_teleport        
   find_money_chance         flag_alias                flag_name               
+  flag_override_see         flag_override_set         flag_override_unset
   forbid_host               forbid_site               fork_dump               
   format_compatbility       fork_vfork                format_contents         
   format_exits              format_name               formats_are_local       
@@ -4926,6 +4966,7 @@ SNOOPY                                                           God     Wiz
   terse_shows_contents      terse_shows_exits         terse_shows_move_messages
   thing_attr_default        thing_flags               thing_parent            
   thing_quota               thing_toggles             timeslice               
+  toggle_override_set       toggle_override_see       toggle_override_unset
   trace_output_limit        trace_topdown             trust_site              
   uncompress_program        unowned_safe              user_attr_flags         
   validate_host             vattr_limit_checkwiz      vlimit                  
@@ -5732,6 +5773,30 @@ SNOOPY                                                           God     Wiz
   
   Redefines what the given FLAG is called.  This config parameter is only
   useable with the mushname.conf file.  Use @flag to change them online.
+
+& flag_override_set
+  Config parameter: flag_override_set <flagname> <permission(s)>
+  
+  Sets an override for set permissions for the specified flag.  This is
+  similiar to issuing @flagdef/set on the specified flag.
+  
+  See Also: flag_override_unset, flag_override_see, @flagdef
+
+& flag_override_unset
+  Config parameter: flag_override_unset <flagname> <permission(s)>
+  
+  Sets an override for unset permissions for the specified flag.  This is
+  similiar to issuing @flagdef/unset on the specified flag.
+  
+  See Also: flag_override_set, flag_override_see, @flagdef
+
+& flag_override_see
+  Config parameter: flag_override_set <flagname> <permission(s)>
+  
+  Sets an override for see permissions for the specified flag.  This is
+  similiar to issuing @flagdef/see on the specified flag.
+  
+  See Also: flag_override_unset, flag_override_set, @flagdef
 
 & nand_compat
   Config parameter: nand_compat <yes/no>.    Default: no
@@ -8278,6 +8343,30 @@ SNOOPY                                                           God     Wiz
   not count) decreases that user's quota by 1, and the user's commands are
   only executed if the quota is greater than zero.
   See Also: command_quota_incr, command_quota_max.
+
+& toggle_override_set
+  Config parameter: toggle_override_set <togglename> <permission(s)>
+  
+  Sets an override for set permissions for the specified toggle.  This is
+  similiar to issuing @toggledef/set on the specified toggle.
+  
+  See Also: toggle_override_unset, toggle_override_see, @toggledef
+
+& toggle_override_unset
+  Config parameter: toggle_override_unset <togglename> <permission(s)>
+  
+  Sets an override for unset permissions for the specified toggle.  This is
+  similiar to issuing @toggledef/unset on the specified toggle.
+  
+  See Also: toggle_override_set, toggle_override_see, @toggledef
+
+& toggle_override_see
+  Config parameter: toggle_override_set <togglename> <permission(s)>
+  
+  Sets an override for see permissions for the specified toggle.  This is
+  similiar to issuing @toggledef/see on the specified toggle.
+  
+  See Also: toggle_override_unset, toggle_override_set, @toggledef
 
 & trace_output_limit
   Config parameter: trace_output_limit <amount>.  Default: 200

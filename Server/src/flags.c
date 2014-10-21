@@ -623,71 +623,71 @@ int fh_none(dbref target, dbref player, int flag, int fflags, int reset)
  */
 TOGENT tog_table[] =
 {
-  {"MONITOR", TOG_MONITOR, 'M', 0, CA_BUILDER, th_monitor},
-  {"MONITOR_USERID", TOG_MONITOR_USERID, 'U', 0, CA_WIZARD, th_wiz},
-  {"MONITOR_SITE", TOG_MONITOR_SITE, 'S', 0, CA_IMMORTAL, th_immortal},
-  {"MONITOR_STATS", TOG_MONITOR_STATS, 'T', 0, CA_WIZARD, th_wiz},
-  {"MONITOR_FAIL", TOG_MONITOR_FAIL, 'F', 0, CA_WIZARD, th_wiz},
-  {"MONITOR_CONN", TOG_MONITOR_CONN, 'C', 0, CA_IMMORTAL, th_immortal},
-  {"MONITOR_TIME", TOG_MONITOR_TIME, 'I', 0, CA_BUILDER, th_monitor},
-  {"MONITOR_DISREASON", TOG_MONITOR_DISREASON, 'R', 0, CA_WIZARD, th_wiz},
-  {"MONITOR_VLIMIT", TOG_MONITOR_VLIMIT, 'L', 0, CA_IMMORTAL, th_immortal},
-  {"MONITOR_CPU", TOG_MONITOR_CPU, 'c', 0, CA_IMMORTAL, th_immortal},
-  {"VANILLA_ERRORS", TOG_VANILLA_ERRORS, 'V', 0, 0, th_any},
-  {"NO_ANSI_EX", TOG_NO_ANSI_EX, 'E', 0, 0, th_any},
-  {"CPUTIME", TOG_CPUTIME, 'P', 0, 0, th_any},
-  {"NOTIFY_LINK", TOG_NOTIFY_LINK, 'l', 0, 0, th_any},
-  {"MONITOR_AREG", TOG_MONITOR_AREG, 'A', 0, CA_IMMORTAL, th_immortal},
-  {"NO_ANSI_PLAYER", TOG_NOANSI_PLAYER, 'p', 0, 0, th_any},
-  {"NO_ANSI_THING", TOG_NOANSI_THING, 't', 0, 0, th_any},
-  {"NO_ANSI_EXIT", TOG_NOANSI_EXIT, 'e', 0, 0, th_any},
-  {"NO_ANSI_ROOM", TOG_NOANSI_ROOM, 'r', 0, 0, th_any},
-  {"NO_FORMAT", TOG_NO_FORMAT, 'f', 0, CA_IMMORTAL, th_immortal},
-  {"NO_TIMESTAMP", TOG_NO_TIMESTAMP, 's', 0, CA_IMMORTAL, th_immortal},
-  {"ZONE_AUTOADD", TOG_ZONE_AUTOADD, 'z', 0, 0, th_any},
-  {"ZONE_AUTOADDALL", TOG_ZONE_AUTOADDALL, 'Z', 0, 0, th_any},
-  {"WIELDED", TOG_WIELDABLE, 'W', 0, CA_WIZARD, th_wiz},
-  {"WORN", TOG_WEARABLE, 'w', 0, CA_WIZARD, th_wiz},
-  {"SEE_SUSPECT", TOG_SEE_SUSPECT, '+', 0, CA_WIZARD, th_wiz},
-  {"BRANDY_MAIL", TOG_BRANDY_MAIL, 'b', 0, 0, th_any},
-  {"FORCEHALTED", TOG_FORCEHALTED, 'h', 0, 0, th_immortal},
-  {"PROG", TOG_PROG, 'g', 0, 0, th_wiz},
-  {"NOSHPROG", TOG_NOSHELLPROG, 'o', 0, CA_WIZARD, th_wiz},
-  {"EXTANSI", TOG_EXTANSI, 'E', 1, 0, th_extansi},
-  {"IMMPROG", TOG_IMMPROG, 'I', 1, CA_IMMORTAL, th_immortal},
-  {"MONITOR_BAD", TOG_MONITOR_BFAIL, 'B', 1, CA_IMMORTAL, th_immortal},
-  {"PROG_ON_CONNECT", TOG_PROG_ON_CONNECT, 'O', 1, CA_WIZARD, th_wiz},
-  {"MAIL_STRIPRETURN", TOG_MAIL_STRIPRETURN, 'm', 1, 0, th_any},
-  {"PENN_MAIL", TOG_PENN_MAIL, '@', 1, 0, th_any},
-  {"SILENTEFFECT", TOG_SILENTEFFECTS, 'q', 1, CA_WIZARD, th_wiz},
-  {"IGNOREZONE", TOG_IGNOREZONE, 'i', 1, CA_WIZARD, th_immortal},
-  {"VPAGE", TOG_VPAGE, 'v', 1, 0, th_any},
-  {"PAGELOCK", TOG_PAGELOCK, 'P', 1, 0, th_wiz},
-  {"MAIL_NOPARSE", TOG_MAIL_NOPARSE, 'n', 1, 0, th_any},
-  {"MAIL_LOCKDOWN", TOG_MAIL_LOCKDOWN, 'd', 1, CA_IMMORTAL, th_immortal},
-  {"MUXPAGE", TOG_MUXPAGE, 'p', 1, 0, th_any},
-  {"NOZONEPARENT", TOG_NOZONEPARENT, 'y', 1, 0, th_any},
-  {"ATRUSE", TOG_ATRUSE, 'a', 1, 0, th_wiz},
-  {"NOGLOBPARENT", TOG_NOGLOBPARENT, 'G', 1, 0, th_wiz},
-  {"LOGROOM", TOG_LOGROOM, '!', 1, CA_WIZARD, th_wiz},
-  {"VARIABLE", TOG_VARIABLE, '~', 1, 0, th_any},
+  {"MONITOR", TOG_MONITOR, 'M', 0, CA_BUILDER, 0, 0, th_monitor},
+  {"MONITOR_USERID", TOG_MONITOR_USERID, 'U', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"MONITOR_SITE", TOG_MONITOR_SITE, 'S', 0, CA_IMMORTAL, 0, 0, th_immortal},
+  {"MONITOR_STATS", TOG_MONITOR_STATS, 'T', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"MONITOR_FAIL", TOG_MONITOR_FAIL, 'F', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"MONITOR_CONN", TOG_MONITOR_CONN, 'C', 0, CA_IMMORTAL, 0, 0, th_immortal},
+  {"MONITOR_TIME", TOG_MONITOR_TIME, 'I', 0, CA_BUILDER, 0, 0, th_monitor},
+  {"MONITOR_DISREASON", TOG_MONITOR_DISREASON, 'R', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"MONITOR_VLIMIT", TOG_MONITOR_VLIMIT, 'L', 0, CA_IMMORTAL, 0, 0, th_immortal},
+  {"MONITOR_CPU", TOG_MONITOR_CPU, 'c', 0, CA_IMMORTAL, 0, 0, th_immortal},
+  {"VANILLA_ERRORS", TOG_VANILLA_ERRORS, 'V', 0, 0, 0, 0, th_any},
+  {"NO_ANSI_EX", TOG_NO_ANSI_EX, 'E', 0, 0, 0, 0, th_any},
+  {"CPUTIME", TOG_CPUTIME, 'P', 0, 0, 0, 0, th_any},
+  {"NOTIFY_LINK", TOG_NOTIFY_LINK, 'l', 0, 0, 0, 0, th_any},
+  {"MONITOR_AREG", TOG_MONITOR_AREG, 'A', 0, CA_IMMORTAL, 0, 0, th_immortal},
+  {"NO_ANSI_PLAYER", TOG_NOANSI_PLAYER, 'p', 0, 0, 0, 0, th_any},
+  {"NO_ANSI_THING", TOG_NOANSI_THING, 't', 0, 0, 0, 0, th_any},
+  {"NO_ANSI_EXIT", TOG_NOANSI_EXIT, 'e', 0, 0, 0, 0, th_any},
+  {"NO_ANSI_ROOM", TOG_NOANSI_ROOM, 'r', 0, 0, 0, 0, th_any},
+  {"NO_FORMAT", TOG_NO_FORMAT, 'f', 0, CA_IMMORTAL, 0, 0, th_immortal},
+  {"NO_TIMESTAMP", TOG_NO_TIMESTAMP, 's', 0, CA_IMMORTAL, 0, 0, th_immortal},
+  {"ZONE_AUTOADD", TOG_ZONE_AUTOADD, 'z', 0, 0, 0, 0, th_any},
+  {"ZONE_AUTOADDALL", TOG_ZONE_AUTOADDALL, 'Z', 0, 0, 0, 0, th_any},
+  {"WIELDED", TOG_WIELDABLE, 'W', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"WORN", TOG_WEARABLE, 'w', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"SEE_SUSPECT", TOG_SEE_SUSPECT, '+', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"BRANDY_MAIL", TOG_BRANDY_MAIL, 'b', 0, 0, 0, 0, th_any},
+  {"FORCEHALTED", TOG_FORCEHALTED, 'h', 0, 0, 0, 0, th_immortal},
+  {"PROG", TOG_PROG, 'g', 0, 0, 0, 0, th_wiz},
+  {"NOSHPROG", TOG_NOSHELLPROG, 'o', 0, CA_WIZARD, 0, 0, th_wiz},
+  {"EXTANSI", TOG_EXTANSI, 'E', 1, 0, 0, 0, th_extansi},
+  {"IMMPROG", TOG_IMMPROG, 'I', 1, CA_IMMORTAL, 0, 0, th_immortal},
+  {"MONITOR_BAD", TOG_MONITOR_BFAIL, 'B', 1, CA_IMMORTAL, 0, 0, th_immortal},
+  {"PROG_ON_CONNECT", TOG_PROG_ON_CONNECT, 'O', 1, CA_WIZARD, 0, 0, th_wiz},
+  {"MAIL_STRIPRETURN", TOG_MAIL_STRIPRETURN, 'm', 1, 0, 0, 0, th_any},
+  {"PENN_MAIL", TOG_PENN_MAIL, '@', 1, 0, 0, 0, th_any},
+  {"SILENTEFFECT", TOG_SILENTEFFECTS, 'q', 1, CA_WIZARD, 0, 0, th_wiz},
+  {"IGNOREZONE", TOG_IGNOREZONE, 'i', 1, CA_WIZARD, 0, 0, th_immortal},
+  {"VPAGE", TOG_VPAGE, 'v', 1, 0, 0, 0, th_any},
+  {"PAGELOCK", TOG_PAGELOCK, 'P', 1, 0, 0, 0, th_wiz},
+  {"MAIL_NOPARSE", TOG_MAIL_NOPARSE, 'n', 1, 0, 0, 0, th_any},
+  {"MAIL_LOCKDOWN", TOG_MAIL_LOCKDOWN, 'd', 1, CA_IMMORTAL, 0, 0, th_immortal},
+  {"MUXPAGE", TOG_MUXPAGE, 'p', 1, 0, 0, 0, th_any},
+  {"NOZONEPARENT", TOG_NOZONEPARENT, 'y', 1, 0, 0, 0, th_any},
+  {"ATRUSE", TOG_ATRUSE, 'a', 1, 0, 0, 0, th_wiz},
+  {"NOGLOBPARENT", TOG_NOGLOBPARENT, 'G', 1, 0, 0, 0, th_wiz},
+  {"LOGROOM", TOG_LOGROOM, '!', 1, CA_WIZARD, 0, 0, th_wiz},
+  {"VARIABLE", TOG_VARIABLE, '~', 1, 0, 0, 0, th_any},
 #ifdef ENH_LOGROOM
-  {"LOGROOMENH", TOG_LOGROOMENH, '^', 1, CA_IMMORTAL, th_immortal},
+  {"LOGROOMENH", TOG_LOGROOMENH, '^', 1, CA_IMMORTAL, 0, 0, th_immortal},
 #endif
-  {"EXFULLWIZATTR", TOG_EXFULLWIZATTR, 'x', 1, CA_IMMORTAL, th_immortal},
-  {"NODEFAULT", TOG_NODEFAULT, 'D', 1, CA_WIZARD, th_wiz},
-  {"KEEPALIVE", TOG_KEEPALIVE, 'K', 1, 0, th_player},
-  {"CHKREALITY", TOG_CHKREALITY, 'C', 1, 0, th_wiz},
-  {"NOISY", TOG_NOISY, 'N', 1, 0, th_player},
-  {"ZONECMDCHK", TOG_ZONECMDCHK, 'k', 1, 0, th_player},
-  {"HIDEIDLE", TOG_HIDEIDLE, 'h', 1, 0, th_wiz},
-  {"MORTALREALITY", TOG_MORTALREALITY, 'M', 1, 0, th_wiz},
-  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, th_player},
-  {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, th_player},
-  {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL, th_noset},
-  {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, th_player},
-  {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, th_wiz},
-  {NULL, 0, ' ', 0, 0, NULL}
+  {"EXFULLWIZATTR", TOG_EXFULLWIZATTR, 'x', 1, CA_IMMORTAL, 0, 0, th_immortal},
+  {"NODEFAULT", TOG_NODEFAULT, 'D', 1, CA_WIZARD, 0, 0, th_wiz},
+  {"KEEPALIVE", TOG_KEEPALIVE, 'K', 1, 0, 0, 0, th_player},
+  {"CHKREALITY", TOG_CHKREALITY, 'C', 1, 0, 0, 0, th_wiz},
+  {"NOISY", TOG_NOISY, 'N', 1, 0, 0, 0, th_player},
+  {"ZONECMDCHK", TOG_ZONECMDCHK, 'k', 1, 0, 0, 0, th_player},
+  {"HIDEIDLE", TOG_HIDEIDLE, 'h', 1, 0, 0, 0, th_wiz},
+  {"MORTALREALITY", TOG_MORTALREALITY, 'M', 1, 0, 0, 0, th_wiz},
+  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, 0, 0, th_player},
+  {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, 0, 0, th_player},
+  {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, th_noset},
+  {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, 0, 0, th_player},
+  {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, 0, 0, th_wiz},
+  {NULL, 0, ' ', 0, 0, 0, 0, NULL}
 };
 
 POWENT pow_table[] =
@@ -1492,7 +1492,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
     FLAGENT *fp;
     TOGENT *tp;
     FLAG i_flag;
-    int negate, result, i_flagchk;
+    int negate, result, i_flagchk, i_ovperm, i_uovperm;
     char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
 
     /* Trim spaces, and handle the negation character */
@@ -1555,8 +1555,25 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
                      i_flag = Toggles(target);
                   }
                   i_flagchk = !(tp->togglevalue & i_flag);
-		  result = tp->handler(target, player, tp->togglevalue,
-				     tp->toggleflag, negate);
+                  i_ovperm = (tp->setovperm &~ CA_LOGFLAG);
+                  i_uovperm = (tp->usetovperm &~ CA_LOGFLAG);
+                  if (((i_ovperm > 0) && !negate) || 
+                      ((i_uovperm > 0) && negate)) {
+                     if ((i_ovperm > 0) && !negate) 
+                        result = check_access(player, i_ovperm, 0, 0);
+                     else if ((i_uovperm > 0) && negate)
+                        result = check_access(player, i_uovperm, 0, 0);
+                       /* Some things you just can *not* override */
+                     if ( result && ((tp->handler == th_player) ||
+                                     (tp->handler == th_noset) ||
+                                     (tp->handler == th_extansi)) ) {
+		          result = tp->handler(target, player, tp->togglevalue,
+				               tp->toggleflag, negate);
+                     }
+                  } else {
+		     result = tp->handler(target, player, tp->togglevalue,
+		   		     tp->toggleflag, negate);
+                  }
 		  if (!result)
 		    notify(player, "Permission denied.");
 		  else if (!(key & (SET_QUIET|SIDEEFFECT)) && !Quiet(player)) {
@@ -3605,12 +3622,21 @@ int flagstuff_internal(char *alias, char *newname)
 #endif
   return -1;
 }
-void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
+
+void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 {
 #ifndef STANDALONE
-   FLAGENT *fp;
+   TOGENT *tp;
    char listpermary[33], setovpermary[33], usetovpermary[33], *lp_ptr, *sop_ptr, *usop_ptr;
-   char static_list[33], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char static_list[33], static_list2[19], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
+                        "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
+                        "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
+                        "LOGFLAG", NULL };
+   int static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
+                       0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
+                       0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
+                       0x00008000, 0x00000000 };
    int  cntr, nodecomp, stripmask, srch_return, mask_add, mask_del, wild_mtch, fnd;
 
    /* Copy 32 characters */
@@ -3619,6 +3645,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
     * g -!Ghod, m -!mortal, s -!guildmaster, a - !architect, c - !councilor, w - !wizard
     * i -!immortal, + -!suspect, ! -!guest, ^ -!wanderer, M - mortal, L - LOGFLAG */
    strcpy(static_list, "GWAI CS gmsacwiL   +!^        M ");
+   strcpy(static_list2, "GIWCASM+!^giwcasmL ");
    static_list[32]='\0';
    stripmask=0xBFCB0090;
    c_bef = ' ';
@@ -3629,6 +3656,368 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
    else
       wild_mtch = 0;
 
+   if ( (key & FLAGDEF_INDEX) ) {
+      tmp_ptr = alloc_lbuf("do_toggledef");
+      sprintf(tmp_ptr, "%-20s %-3s %s", (char *)"Flag Permission", "Flg", (char *)"Hex Value");
+      notify_quiet(player, tmp_ptr);
+      notify_quiet(player, "-------------------- --- ----------");
+      for ( cntr = 0; cntr < 18; cntr++ ) {
+         sprintf(tmp_ptr, "%-20s [%c] 0x%08x", static_names[cntr], static_list2[cntr], static_masks[cntr]);
+         notify_quiet(player, tmp_ptr);
+      }
+      notify_quiet(player, "-------------------- --- ----------");
+      free_lbuf(tmp_ptr);
+      return;
+   }
+   if ( (key & FLAGDEF_LIST) || key == 0 ) {
+      notify_quiet(player, "|Flagname           |Flg|Set            |Unset" \
+                           "          |See            |NoM|");
+      notify_quiet(player, "+-------------------+---+---------------+" \
+                           "---------------+---------------+---+");
+      fnd = 0;
+      tprp_buff = tpr_buff = alloc_lbuf("do_toggledef");
+      for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
+           tp;
+	   tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+         if ( wild_mtch ) {
+            if (!quick_wild(flag1, (char *)tp->togglename))
+               continue;
+         }
+         fnd = 1;
+         memset(listpermary, 0, sizeof(listpermary));
+         memset(setovpermary, 0, sizeof(listpermary));
+         memset(usetovpermary, 0, sizeof(listpermary));
+         lp_ptr = listpermary;
+         sop_ptr = setovpermary;
+         usop_ptr = usetovpermary;
+         cntr = 0;
+         nodecomp = (tp->handler == th_noset);
+
+         while ( cntr < 32 ) {
+            if ( (tp->listperm &~ stripmask) & (1 << cntr) ) {
+               *lp_ptr = static_list[cntr];
+                lp_ptr++;
+            }
+            if ( (tp->setovperm &~ stripmask) & (1 << cntr) ) {
+               *sop_ptr = static_list[cntr];
+                sop_ptr++;
+            }
+            if ( (tp->usetovperm &~ stripmask) & (1 << cntr) ) {
+               *usop_ptr = static_list[cntr];
+                usop_ptr++;
+            }
+            cntr++;
+         }
+         if (tp->toggleflag & (FLAG3 | FLAG4)) {
+            c_bef = '[';
+            c_aft = ']';
+         } else {
+            c_bef = ' ';
+            c_aft = ' ';
+         }
+         tprp_buff = tpr_buff;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-19s|%c%c%c|%-15s|%-15s|%-15s| %c |", 
+                                           tp->togglename, c_bef, tp->togglelett, c_aft, setovpermary, 
+                                           usetovpermary, listpermary, (nodecomp ? 'Y' : ' ')));
+      }
+      free_lbuf(tpr_buff);
+      if ( !fnd )
+         notify_quiet(player, "                        *** NO MATCHING FLAGS FOUND ***");
+
+      notify_quiet(player, "+-------------------+---+---------------+" \
+                           "---------------+---------------+---+");
+   } else { 
+      for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
+           tp;
+	   tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+         if (minmatch(flag1, (char *)tp->togglename, strlen(tp->togglename))) 
+            break;
+      }
+      if ( !tp || !(tp->togglename)) {
+         notify_quiet(player, "Bad toggle given to @toggledef");
+         return;
+      }
+      if ( (tp->listperm & CA_NO_DECOMP) | 
+                  ((tp->togglevalue & IMMORTAL) &&
+                   (tp->toggleflag == 0)) ) {
+         notify_quiet(player, "Sorry, you can not modify that toggle.");
+         return;
+      }
+      if ( key & FLAGDEF_CHAR ) {
+         if ( (strlen(flag2) != 1) || !*flag2 || isspace(*flag2) || !isprint(*flag2)) {
+            notify_quiet(player, "Flag letter must be a single character.");
+         } else {
+            tprp_buff = tpr_buff = alloc_lbuf("do_toggledef");
+            notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'toggleletter' for toggle %s.  Old letter '%c', new letter '%c'",
+                                           tp->togglename, tp->togglelett, *flag2));
+            tp->togglelett = *flag2;
+            free_lbuf(tpr_buff);
+         }
+         return;
+      }
+      tmp_ptr = strtok(flag2, " \t");
+      nodecomp = 0;
+      mask_add = mask_del = 0;
+      while (tmp_ptr != NULL) {
+         if ( *tmp_ptr == '!' ) {
+            nodecomp = 1;
+            tmp_ptr++;
+         } else
+            nodecomp = 0;
+         
+         srch_return = search_nametab(GOD, access_nametab, tmp_ptr);
+         if ( srch_return != -1 ) {
+            if (nodecomp)
+               mask_del |= srch_return;
+            else
+               mask_add |= srch_return;
+         } else {
+            if (minmatch(tmp_ptr, "mortal", strlen(tmp_ptr))) {
+               if ( nodecomp )
+                  mask_del |= 0x40000000;
+               else
+                  mask_add |= 0x40000000;
+            } 
+         }
+         tmp_ptr = strtok(NULL, " \t");
+      }
+      if ( !(mask_add & ~stripmask) && !(mask_del & ~stripmask) ) {
+         notify_quiet(player, "Nothing for @toggledef to do.");
+         return;
+      }
+      tprp_buff = tpr_buff = alloc_lbuf("do_toggledef");
+      if ( key & FLAGDEF_SET ) {
+         tp->setovperm &= ~mask_del;
+         tp->setovperm |= mask_add;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'set' permissions for toggle %s",
+                                           tp->togglename));
+         sprintf(tpr_buff, "   ->   Set: %s", (char *)((tp->setovperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, tp->setovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
+      } else if ( key & FLAGDEF_UNSET ) {
+         tp->usetovperm &= ~mask_del;
+         tp->usetovperm |= mask_add;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'unset' permissions for toggle %s",
+                                           tp->togglename));
+         sprintf(tpr_buff, "   -> UnSet: %s", (char *)((tp->usetovperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, tp->usetovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
+      } else if ( key & FLAGDEF_SEE ) {
+         tp->listperm &= ~mask_del;
+         tp->listperm |= mask_add;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'see' permissions for toggle %s",
+                                           tp->togglename));
+         sprintf(tpr_buff, "   ->   See: %s", (char *)((tp->listperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, tp->listperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
+      } else {
+         notify_quiet(player, "Invalid switch/argument to @toggledef");
+      }
+      free_lbuf(tpr_buff);
+   }
+#endif
+}
+
+/*
+#define CF_HAND(proc)   int proc (int *vp, char *str, long extra, long extra2, \
+                                  dbref player, char *cmd)
+*/
+#define IS_TYPE_FLAG	1
+#define IS_TYPE_TOGGLE	2
+
+int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int i_type ) {
+#ifdef STANDALONE
+   return 0;
+#else
+   int mask_add, mask_del, negate, srch_return, stripmask, i_mask1, i_mask2, i_mask3;
+   char *strtok, *strtok2, *strtokptr, *buff;
+   FLAGENT *fp;
+   TOGENT *tp;
+   
+   stripmask=0xBFCB0090;
+   strtok = strtok_r(str, " \t", &strtokptr);
+   strtok2 = NULL;
+   if ( strtok && *strtok ) {
+      strtok2 = strtok_r(NULL, " \t", &strtokptr);
+   }
+   if ( !strtok || !*strtok || !strtok2 || !*strtok2 ) {
+      if ( !mudstate.initializing ) {
+         if ( !strtok || !*strtok )
+            notify(player, "Nothing specified.  Please enter a valid flag.");
+         else
+            notify(player, "Flag override parameter requires a permission to set.");
+      } else {
+         STARTLOG(LOG_STARTUP, "CNF", "NFND")
+            buff = alloc_lbuf("do_flag_and_toggle_def_conf");
+            if ( !strtok || !*strtok )
+               sprintf(buff, "%.3900s: Empty argument.  No flag specified.", cmd);
+            else
+               sprintf(buff, "%.3900s: Empty permission to flag '%s'.  No flag specified.", cmd, strtok);
+            log_text(buff);
+            free_lbuf(buff);
+         ENDLOG
+      }
+      return -1;
+   }
+   i_mask1 = i_mask2 = i_mask3 = srch_return = mask_add = mask_del = negate = 0;
+   fp = (FLAGENT *)NULL;
+   tp = (TOGENT *)NULL;
+   if ( i_type == IS_TYPE_FLAG ) {
+      fp = (FLAGENT *)hashfind(strtok, &mudstate.flags_htab);
+   }
+   if ( i_type == IS_TYPE_TOGGLE ) {
+      tp = (TOGENT *)hashfind(strtok, &mudstate.toggles_htab);
+   }
+   if ( ((i_type == IS_TYPE_FLAG) && !fp) || ((i_type == IS_TYPE_TOGGLE) && !tp) ) {
+      buff = alloc_lbuf("do_flag_and_toggle_def_conf");
+      if ( !mudstate.initializing ) {
+         sprintf(buff, "Invalid %s '%s' specified.  Please enter a valid argument.", ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+         notify_quiet(player, buff);
+      } else {
+         STARTLOG(LOG_STARTUP, "CNF", "NFND")
+            sprintf(buff, "%.3900s: Invalid %s '%s' specified.", cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+            log_text(buff);
+         ENDLOG
+      }
+      free_lbuf(buff);
+      return -1;
+   }
+   
+   while ( strtok2 != NULL ) {
+      if ( *strtok2 == '!' ) {
+         negate = 1;
+         strtok2++;
+      } else
+         negate = 0;
+         
+      srch_return = search_nametab(GOD, access_nametab, strtok2);
+      if ( srch_return != -1 ) {
+         if (negate)
+            mask_del |= srch_return;
+         else
+            mask_add |= srch_return;
+      } else {
+         if (minmatch(strtok2, "mortal", strlen(strtok2))) {
+            if ( negate )
+               mask_del |= 0x40000000;
+            else
+               mask_add |= 0x40000000;
+         } 
+      }
+      strtok2 = strtok_r(NULL, " \t", &strtokptr);
+   }
+   if ( !mask_del && !mask_add ) {
+      buff = alloc_lbuf("do_flag_and_toggle_def_conf");
+      if ( !mudstate.initializing ) {
+         sprintf(buff, "No valid permissions for %s '%s' specified.  Please enter a valid permissions.", ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+         notify_quiet(player, buff);
+      } else {
+         STARTLOG(LOG_STARTUP, "CNF", "NFND")
+            sprintf(buff, "%.3900s: No valid permissions for %s '%s' specified.", cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+            log_text(buff);
+         ENDLOG
+      }
+      free_lbuf(buff);
+      return -1;
+   }
+   switch (i_type) {
+      case IS_TYPE_FLAG: /* Set variables to type flag */      
+           if ( !stricmp(cmd, "flag_override_set") ) {
+              fp->setovperm &= ~mask_del;
+              fp->setovperm |= mask_add;
+           } else if ( !stricmp(cmd, "flag_override_unset") ) {
+              fp->usetovperm &= ~mask_del;
+              fp->usetovperm |= mask_add;
+           } else if ( !stricmp(cmd, "flag_override_see") ) {
+              fp->listperm &= ~mask_del;
+              fp->listperm |= mask_add;
+           }
+           i_mask1 = fp->setovperm;
+           i_mask2 = fp->usetovperm;
+           i_mask3 = fp->listperm;
+           break;
+      case IS_TYPE_TOGGLE: /* Set variables to type toggle */
+           if ( !stricmp(cmd, "toggle_override_set") ) {
+              tp->setovperm &= ~mask_del;
+              tp->setovperm |= mask_add;
+           } else if ( !stricmp(cmd, "toggle_override_unset") ) {
+              tp->usetovperm &= ~mask_del;
+              tp->usetovperm |= mask_add;
+           } else if ( !stricmp(cmd, "toggle_override_see") ) {
+              tp->listperm &= ~mask_del;
+              tp->listperm |= mask_add;
+           }
+           i_mask1 = tp->setovperm;
+           i_mask2 = tp->usetovperm;
+           i_mask3 = tp->listperm;
+           break;
+   } 
+   buff = alloc_lbuf("do_flag_and_toggle_def_conf");
+   if ( !mudstate.initializing ) {
+      sprintf(buff, "%s: permission set for %s '%s' [added: %08x, removed: %08x].", 
+              cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok, mask_add, mask_del);
+      notify_quiet(player, buff);
+      sprintf(buff, "   ->   Set: %s", (char *)((i_mask1 & 0x40000000) ? "mortal" : ""));
+      listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->setovperm : tp->setovperm) & ~(stripmask|0x40000000), 0, buff, 1);
+      sprintf(buff, "   -> UnSet: %s", (char *)((i_mask2 & 0x40000000) ? "mortal" : ""));
+      listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->usetovperm : tp->usetovperm) & ~(stripmask|0x40000000), 0, buff, 1);
+      sprintf(buff, "   ->   See: %s", (char *)((i_mask3 & 0x40000000) ? "mortal" : ""));
+      listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->listperm : tp->listperm) & ~(stripmask|0x40000000), 0, buff, 1);
+   } else {
+      STARTLOG(LOG_STARTUP, "CNF", "NFND")
+         sprintf(buff, "%.3900s: permissions set for %s '%s' [added: %08x, removed: %08x].", 
+                 cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok, mask_add, mask_del);
+         log_text(buff);
+      ENDLOG
+   }
+   free_lbuf(buff);
+   return 1;
+#endif
+}
+
+void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
+{
+#ifndef STANDALONE
+   FLAGENT *fp;
+   char listpermary[33], setovpermary[33], usetovpermary[33], *lp_ptr, *sop_ptr, *usop_ptr;
+   char static_list[33], static_list2[19], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
+                        "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
+                        "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
+                        "LOGFLAG", NULL };
+   int static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
+                       0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
+                       0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
+                       0x00008000, 0x00000000 };
+   int  cntr, nodecomp, stripmask, srch_return, mask_add, mask_del, wild_mtch, fnd;
+
+   /* Copy 32 characters */
+   /* Note: 'M' (0x40000000) is not a valid flag - tagged for MORTAL use */
+   /* G - Ghod, W - Wizard, A - Architect, I - Immortal, C - Councilor, S - Guildmaster 
+    * g -!Ghod, m -!mortal, s -!guildmaster, a - !architect, c - !councilor, w - !wizard
+    * i -!immortal, + -!suspect, ! -!guest, ^ -!wanderer, M - mortal, L - LOGFLAG */
+   strcpy(static_list, "GWAI CS gmsacwiL   +!^        M ");
+   strcpy(static_list2, "GIWCASM+!^giwcasmL ");
+   static_list[32]='\0';
+   stripmask=0xBFCB0090;
+   c_bef = ' ';
+   c_aft = ' ';
+
+   if ( strlen(flag1) > 0 )
+      wild_mtch = 1;
+   else
+      wild_mtch = 0;
+
+   if ( (key & FLAGDEF_INDEX) ) {
+      tmp_ptr = alloc_lbuf("do_flagdef");
+      sprintf(tmp_ptr, "%-20s %-3s %s", (char *)"Flag Permission", "Flg", (char *)"Hex Value");
+      notify_quiet(player, tmp_ptr);
+      notify_quiet(player, "-------------------- --- ----------");
+      for ( cntr = 0; cntr < 18; cntr++ ) {
+         sprintf(tmp_ptr, "%-20s [%c] 0x%08x", static_names[cntr], static_list2[cntr], static_masks[cntr]);
+         notify_quiet(player, tmp_ptr);
+      }
+      notify_quiet(player, "-------------------- --- ----------");
+      free_lbuf(tmp_ptr);
+      return;
+   }
    if ( (key & FLAGDEF_LIST) || key == 0 ) {
       notify_quiet(player, "|Flagname        |Flg|Set             |Unset" \
                            "           |See             |NoM|");
@@ -3752,16 +4141,22 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          fp->setovperm |= mask_add;
          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'set' permissions for flag %s",
                                            fp->flagname));
+         sprintf(tpr_buff, "   ->   Set: %s", (char *)((fp->setovperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, fp->setovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
       } else if ( key & FLAGDEF_UNSET ) {
          fp->usetovperm &= ~mask_del;
          fp->usetovperm |= mask_add;
          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'unset' permissions for flag %s",
                                            fp->flagname));
+         sprintf(tpr_buff, "   -> UnSet: %s", (char *)((fp->usetovperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, fp->usetovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
       } else if ( key & FLAGDEF_SEE ) {
          fp->listperm &= ~mask_del;
          fp->listperm |= mask_add;
          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'see' permissions for flag %s",
                                            fp->flagname));
+         sprintf(tpr_buff, "   ->   See: %s", (char *)((fp->listperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, fp->listperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
       } else {
          notify_quiet(player, "Invalid switch/argument to @flagdef");
       }

@@ -56,6 +56,7 @@ CF_HAND(cf_dynstring);
 #endif
 
 extern double FDECL(time_ng, (double*));
+extern int FDECL(do_flag_and_toggle_def_conf, (dbref, char *, char *, int *, int));
 
 
 /* ---------------------------------------------------------------------------
@@ -2473,6 +2474,24 @@ CF_HAND(cf_alias)
 }
 
 /* ---------------------------------------------------------------------------
+ * The @flagdef and @toggledef command line foo
+ */
+CF_HAND(cf_flag_override)
+{
+   int retval;
+
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, vp, 1);
+   return retval;
+}
+
+CF_HAND(cf_toggle_override) 
+{
+   int retval;
+
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, vp, 2);
+   return retval;
+}
+/* ---------------------------------------------------------------------------
  * cf_flagalias: define a flag alias.
  */
 
@@ -3495,6 +3514,24 @@ CONF conftable[] =
     {(char *) "flag_name",
      cf_flagname, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Rename flags (in .conf file ONLY!)."},
+    {(char *) "flag_override_set",
+     cf_flag_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Flag SET Permissions ala @flagdef"},
+    {(char *) "flag_override_see",
+     cf_flag_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Flag SEE Permissions ala @flagdef"},
+    {(char *) "flag_override_unset",
+     cf_flag_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Flag UNSET Permissions ala @flagdef"},
+    {(char *) "toggle_override_set",
+     cf_toggle_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Toggle SET Permissions ala @flagdef"},
+    {(char *) "toggle_override_see",
+     cf_toggle_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Toggle SEE Permissions ala @flagdef"},
+    {(char *) "toggle_override_unset",
+     cf_toggle_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Toggle UNSET Permissions ala @flagdef"},
     {(char *) "forbid_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
      H_FORBIDDEN, 0, CA_WIZARD,

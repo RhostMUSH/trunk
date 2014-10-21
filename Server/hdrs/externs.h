@@ -649,6 +649,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define FLAGDEF_SEE     4	/* Set flag 'see' permissions */
 #define FLAGDEF_LIST	8	/* List current flags and permissions (default) */
 #define FLAGDEF_CHAR  	16	/* Redefine the character for the flag */
+#define FLAGDEF_INDEX	32	/* Show the permission index allowed */
 #define	FRC_PREFIX	0	/* #num command */
 #define	FRC_COMMAND	1	/* what=command */
 #define	GET_QUIET	1	/* Don't do osucc/asucc if control */

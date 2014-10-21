@@ -26725,7 +26725,14 @@ New Features
 * /STRICT options to @edit and edit() for strict-ansi alignment [ASH]
 * /RAW for @edit and edit() for raw editing ansi markup (orig behavior) [ASH]
 * list_max_chars parameter to limit number of characters list can output [ASH]
-* /TF switch to @decomile for Penn compatibility.  Now people can stop whining [ASH]
+* /TF switch to @decomile for Penn compatibility.  Now people can stop 
+  whining [ASH]
+* @toggledef for TOGGLES as @flagdef was for FLAGS [ASH]
+* /index feature to @flagdef and @toggledef [ASH]
+* flag_override_set, flag_override_unset, flag_override_see params 
+  for @flagdef [ASH]
+* toggle_override_set, toggle_override_unset, toggle_override_see params 
+  for @toggledef [ASH]
   
 Changes
 -------
@@ -26761,6 +26768,7 @@ Changes
 * list() is now throttled on how much output it can have [ASH]
 * page relaxes syntax slightly allowing 'p =blah' to work with MUXPAGE [ASH]
 * optionally compiles in system pcre libraries and not source derived [ASH]
+* @flagdef now will give you the resulting flags that are assigned on set [ASH]
   
 Bug Fixes
 ---------

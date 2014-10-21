@@ -360,6 +360,7 @@ NAMETAB flagdef_sw[] =
     {(char *) "see", 2, CA_IMMORTAL, 0, FLAGDEF_SEE},
     {(char *) "list", 2, CA_IMMORTAL, 0, FLAGDEF_LIST},
     {(char *) "letter", 2, CA_IMMORTAL, 0, FLAGDEF_CHAR},
+    {(char *) "index", 2, CA_IMMORTAL, 0, FLAGDEF_INDEX},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB oemit_sw[] =
@@ -1295,6 +1296,8 @@ CMDENT command_table[] =
 #endif
     {(char *) "@stats", stats_sw, 0, CA_NO_CODE,
      0, CS_ONE_ARG | CS_INTERP, 0, do_stats},
+    {(char *) "@toggledef", flagdef_sw, CA_IMMORTAL, 0,
+     0, CS_TWO_ARG | CS_INTERP, 0, do_toggledef},
     {(char *) "@sudo", sudo_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
     {(char *) "@sweep", sweep_sw, 0, 0,
      0, CS_ONE_ARG, 0, do_sweep},
@@ -4485,7 +4488,7 @@ NAMETAB access_nametab[] =
     {(char *) "royalty", 3, CA_IMMORTAL, 0, CA_WIZARD},
     {(char *) "wizard", 3, CA_IMMORTAL, 0, CA_WIZARD},
     {(char *) "councilor", 4, CA_WIZARD, 0, CA_ADMIN},
-    {(char *) "architect", 6, CA_WIZARD, 0, CA_BUILDER},
+    {(char *) "architect", 4, CA_WIZARD, 0, CA_BUILDER},
     {(char *) "guildmaster", 5, CA_WIZARD, 0, CA_GUILDMASTER},
     {(char *) "robot", 2, CA_WIZARD, 0, CA_ROBOT},
     {(char *) "no_haven", 4, CA_PUBLIC, 0, CA_NO_HAVEN},
@@ -4507,7 +4510,7 @@ NAMETAB access_nametab[] =
     {(char *) "ignore_arch", 8, CA_IMMORTAL, 0, CA_IGNORE_ARCH},
     {(char *) "ignore_counc", 8, CA_IMMORTAL, 0, CA_IGNORE_COUNC},
     {(char *) "ignore_royal", 8, CA_IMMORTAL, 0, CA_IGNORE_ROYAL},
-    {(char *) "ignore_im", 8, CA_GOD, 0, CA_IGNORE_IM},
+    {(char *) "ignore_immortal", 8, CA_GOD, 0, CA_IGNORE_IM},
     {(char *) "ignore_zone", 8, CA_IMMORTAL, 0, CA_IGNORE_ZONE},
     {(char *) "disable_zone", 8, CA_IMMORTAL, 0, CA_DISABLE_ZONE},
     {(char *) "logflag", 3, CA_IMMORTAL, 0, CA_LOGFLAG},

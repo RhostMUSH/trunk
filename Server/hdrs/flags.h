@@ -432,6 +432,8 @@ typedef struct toggle_entry {
 	char    togglelett;       /* Flag letter for listing */
 	int     toggleflag;       /* Ctrl flags for this flag (recursive? :-) */
 	int     listperm;       /* Who sees this flag when set */
+	int	setovperm;	/* Override who can set the toggle */
+	int	usetovperm;	/* Override who can unset the toggle */
 	int     (*handler)();   /* Handler for setting/clearing this flag */
 } TOGENT;
 

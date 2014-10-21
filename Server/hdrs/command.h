@@ -172,6 +172,7 @@ CMD_ONE_ARG(do_thaw);			/* THAW out a frozen queue entry */
 CMD_ONE_ARG(do_think);			/* Think command (ie: @pemit me=message) */
 CMD_ONE_ARG(do_timewarp);		/* Warp various timers */
 CMD_TWO_ARG(do_toad);			/* Turn a tinyjerk into a tinytoad */
+CMD_TWO_ARG(do_toggledef);              /* Set/unset/see/list paramaters for toggles */
 CMD_TWO_ARG(do_turtle);			/* Turn a tinyjerk into a tinyturtle */
 CMD_ONE_ARG_CMDARG(do_train);		/* Train the player */
 CMD_ONE_ARG_CMDARG(do_noparsecmd);      /* noparse the command */

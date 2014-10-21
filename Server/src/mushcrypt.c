@@ -199,7 +199,6 @@ encode_base64(const char *input, int len, char *buff, char **bp)
   (void) BIO_flush(bio);
 
   len = BIO_get_mem_data(bmem, &membuf);
-notify(1234, "Crypting Check...");
   safe_copy_str(membuf, buff, bp, ((len > (LBUF_SIZE - 2)) ? (LBUF_SIZE - 2) : len));
 
   BIO_free_all(bio);
