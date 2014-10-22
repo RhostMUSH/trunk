@@ -3919,13 +3919,13 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
    }
    switch (i_type) {
       case IS_TYPE_FLAG: /* Set variables to type flag */      
-           if ( !stricmp(cmd, "flag_override_set") ) {
+           if ( !stricmp(cmd, "flag_access_set") ) {
               fp->setovperm &= ~mask_del;
               fp->setovperm |= mask_add;
-           } else if ( !stricmp(cmd, "flag_override_unset") ) {
+           } else if ( !stricmp(cmd, "flag_access_unset") ) {
               fp->usetovperm &= ~mask_del;
               fp->usetovperm |= mask_add;
-           } else if ( !stricmp(cmd, "flag_override_see") ) {
+           } else if ( !stricmp(cmd, "flag_access_see") ) {
               fp->listperm &= ~mask_del;
               fp->listperm |= mask_add;
            }
@@ -3934,13 +3934,13 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
            i_mask3 = fp->listperm;
            break;
       case IS_TYPE_TOGGLE: /* Set variables to type toggle */
-           if ( !stricmp(cmd, "toggle_override_set") ) {
+           if ( !stricmp(cmd, "toggle_access_set") ) {
               tp->setovperm &= ~mask_del;
               tp->setovperm |= mask_add;
-           } else if ( !stricmp(cmd, "toggle_override_unset") ) {
+           } else if ( !stricmp(cmd, "toggle_access_unset") ) {
               tp->usetovperm &= ~mask_del;
               tp->usetovperm |= mask_add;
-           } else if ( !stricmp(cmd, "toggle_override_see") ) {
+           } else if ( !stricmp(cmd, "toggle_access_see") ) {
               tp->listperm &= ~mask_del;
               tp->listperm |= mask_add;
            }

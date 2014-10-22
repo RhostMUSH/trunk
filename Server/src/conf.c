@@ -2476,7 +2476,7 @@ CF_HAND(cf_alias)
 /* ---------------------------------------------------------------------------
  * The @flagdef and @toggledef command line foo
  */
-CF_HAND(cf_flag_override)
+CF_HAND(cf_flag_access)
 {
    int retval;
 
@@ -2484,7 +2484,7 @@ CF_HAND(cf_flag_override)
    return retval;
 }
 
-CF_HAND(cf_toggle_override) 
+CF_HAND(cf_toggle_access) 
 {
    int retval;
 
@@ -3514,23 +3514,23 @@ CONF conftable[] =
     {(char *) "flag_name",
      cf_flagname, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Rename flags (in .conf file ONLY!)."},
-    {(char *) "flag_override_set",
-     cf_flag_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+    {(char *) "flag_access_set",
+     cf_flag_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Flag SET Permissions ala @flagdef"},
-    {(char *) "flag_override_see",
-     cf_flag_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+    {(char *) "flag_access_see",
+     cf_flag_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Flag SEE Permissions ala @flagdef"},
-    {(char *) "flag_override_unset",
-     cf_flag_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+    {(char *) "flag_access_unset",
+     cf_flag_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Flag UNSET Permissions ala @flagdef"},
-    {(char *) "toggle_override_set",
-     cf_toggle_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+    {(char *) "toggle_access_set",
+     cf_toggle_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Toggle SET Permissions ala @flagdef"},
-    {(char *) "toggle_override_see",
-     cf_toggle_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+    {(char *) "toggle_access_see",
+     cf_toggle_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Toggle SEE Permissions ala @flagdef"},
-    {(char *) "toggle_override_unset",
-     cf_toggle_override, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+    {(char *) "toggle_access_unset",
+     cf_toggle_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Toggle UNSET Permissions ala @flagdef"},
     {(char *) "forbid_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
