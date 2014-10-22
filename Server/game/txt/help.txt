@@ -26729,9 +26729,9 @@ New Features
   whining [ASH]
 * @toggledef for TOGGLES as @flagdef was for FLAGS [ASH]
 * /index feature to @flagdef and @toggledef [ASH]
-* flag_override_set, flag_override_unset, flag_override_see params 
+* flag_access_set, flag_access_unset, flag_access_see params 
   for @flagdef [ASH]
-* toggle_override_set, toggle_override_unset, toggle_override_see params 
+* toggle_access_set, toggle_access_unset, toggle_access_see params 
   for @toggledef [ASH]
   
 Changes
