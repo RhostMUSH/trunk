@@ -25085,20 +25085,129 @@ Any versioning of Rhost version 1.0 through 3.0 was sadly lost to time.
 The developers who may appear in these files are:
 ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
-SEA - Seawolf             THO - Thorin
+SEA - Seawolf             THO - Thorin              NYS - Nyctasia
  
 Current Revision: 3.9.5p0
 
 Available Revisions:
-  3.2.4: 3.2.4p1,  3.2.4p2,  3.2.4p3,  3.2.4p4,  3.2.4p5,  3.2.4p6,  3.2.4p7, 
-         3.2.4p8,  3.2.4p9,  3.2.4p10, 3.2.4p11, 3.2.4p12, 3.2.4p13, 3.2.4p14,
-         3.2.4p15, 3.2.4p16, 3.2.4p17, 3.2.4p18
+  1.0.0: 1.0.0p0 (NycMUD)
+  1.5.0: 1.5.0p0 (NycMUSE
+  2.0.0: 2.0.0p0 (SeawolfMUSE)
+  3.0.0: 3.0.0p0 (alpha - led to 3.2.0)
+  3.2.0: 3.2.0p0 (beta -- led to 3.2.4)
+  3.2.4: 3.2.4p0, 3.2.4p1,  3.2.4p2,  3.2.4p3,  3.2.4p4,  3.2.4p5,  3.2.4p6,
+         3.2.4p7, 3.2.4p8,  3.2.4p9,  3.2.4p10, 3.2.4p11, 3.2.4p12, 3.2.4p13,
+         3.2.4p14, 3.2.4p15, 3.2.4p16, 3.2.4p17, 3.2.4p18
   3.9.0: 3.9.0p0, 3.9.0p1, 3.9.0p2
   3.9.1: 3.9.1p0, 3.9.1p1, 3.9.1p2
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
   3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
   3.9.5: 3.9.5p0
+
+& 1.0.0p0
+Release Date: Aug 1 1989
+Status: Experimental
+Note: A lot of these changes were lost to time.
+  
+New Features
+------------
+* COUNCILOR flag for lower bitlevel inheritance [NYS]
+* ARCHITECT flag for lower bitlevel inheritance [NYS]
+* GUILDMASTER flag for lower bitlevel inheritance [NYS]
+* @trigger and new functionality importing [NYS]
+* MUSE compatible comsystem [NYS]
+* @race/@guild fields [NYS]
+* RWHO multi-mud connector [NYS]
+  
+Changes
+-------
+* Permission system revamped for more than just wizard [NYS]
+* DARK granted more power to hide [NYS]
+  
+Bug Fixes
+---------
+* Memory leak in db engine [NYS]
+
+& 1.5.0p0
+Release Date: Mar 1 1990
+Status: Experimental
+Note: A lot of these changes were lost to time.
+  
+New Features
+------------
+* Convert game engine for MUSE compatibility [NYS]
+* Enable multi-tier power system [NYS]
+  
+Changes
+-------
+* System code handles bitlevel inheritance [NYS]
+  
+Bug Fixes
+---------
+* Infinite loop in @dolist [NYS]
+
+& 2.0.0p0
+Release Date: Sep 1 1990
+Status: Pre-Release
+Note: A lot of these changes were lost to time.
+  
+New Features
+------------
+* Convert game engine for MUSH compatibility [SEA]
+* Hardcoded Mail System [SEA]
+* Better ComSystem Support [ASH]
+* Hardcoded BBS System [THO]
+* @power/@depower system to mimic MUSE inheritance [SEA]
+* @toggle system for bitwise flags [THO]
+  
+Changes
+-------
+* Multi-tier subsystem incorporating MUSE engine [SEA]
+* Multi-bit system with full tier inheritance [ASH]
+* Permission system rewritten to make more sense [THO]
+  
+Bug Fixes
+---------
+* Tons of compatibility issues [THO/SEA/ASH]
+
+& 3.0.0p0
+Release Date: Mar 1 1991
+Status: Pre-Alpha
+Note: A lot of these changes were lost to time.
+  
+New Features
+------------
+* Mail system modularized to be ported to other systems [SEA]
+* Zone system - multi-tier [THO]
+* Experimental byte-compiled language (NaILS) [THO]
+  
+Changes
+-------
+* GDBM limitations to avoid hard DB corruption [SEA]
+  
+Bug Fixes
+---------
+* Permission system was totally borked [SEA]
+
+& 3.2.0p0
+Release Date: Nov 1 1991
+Status: Experimental
+  
+New Features
+------------
+* Rewrite of parser to be more sane [SEA]
+* Socket protection against DoS/DDoS [THO]
+* Built-in IDENT address lookups [THO]
+* Built-in DNS address lookups [THO]
+  
+Changes
+-------
+* Byte-compiler removed -- Too many bugs [THO]
+  
+Bug Fixes
+---------
+* Tons of memory leaks fixed in functions [SEA/THO/ASH]
 
 & 3.2.4p0
 Release Date: 1 Jan 1992
@@ -25107,7 +25216,7 @@ Status: Beta
 New Features
 ------------
 * PID values to processes [SEA]
-* hardcoded mail system [SEA]
+* hardcoded mail system (Version 2) [SEA]
   
 Changes
 -------
@@ -25121,7 +25230,7 @@ Status: Beta
   
 New Features
 ------------
-* hardcoded BBS system [THO]
+* hardcoded BBS system (Version 2) [THO]
   
 Changes
 -------
@@ -25334,6 +25443,7 @@ Status: Beta
   
 New Features
 ------------
+* ZENTY-ANSI ANSI markup handler (Thanks Zenty)
   
 Changes
 -------
