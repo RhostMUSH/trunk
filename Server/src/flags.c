@@ -3648,7 +3648,6 @@ int flagstuff_internal(char *alias, char *newname)
       return 0;
     }
   }
-#endif
   if (mudstate.initializing) {
      STARTLOG(LOG_STARTUP, "FLG", "ERROR")
         sbuff = alloc_lbuf("flagstuff_internal.LOG");
@@ -3660,6 +3659,7 @@ int flagstuff_internal(char *alias, char *newname)
         free_lbuf(sbuff);
      ENDLOG
   }
+#endif
   return -1;
 }
 
