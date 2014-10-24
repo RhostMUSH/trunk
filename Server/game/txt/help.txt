@@ -26879,6 +26879,8 @@ Changes
 * page relaxes syntax slightly allowing 'p =blah' to work with MUXPAGE [ASH]
 * optionally compiles in system pcre libraries and not source derived [ASH]
 * @flagdef now will give you the resulting flags that are assigned on set [ASH]
+* reality levels read 0x00000000 notation to mirror @list rlevel in conf 
+  file for those who find the math of hexidecimal to decimal difficult [ASH]
   
 Bug Fixes
 ---------
