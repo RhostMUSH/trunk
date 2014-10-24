@@ -3588,22 +3588,43 @@ int flagstuff_internal(char *alias, char *newname)
 {
 #ifndef STANDALONE
   FLAGENT *flag1, *flag2;
-  char buff1[16], buff2[16], buff3[16], *pt1, *pt2, *pt3;
+  char buff1[SBUF_SIZE], buff2[SBUF_SIZE], buff3[SBUF_SIZE], *pt1, *pt2, *pt3, *pt4, *sbuff;
 
-  if (!good_flag(newname))
+  if ( !newname || !*newname || !alias || !*alias ) {
+    if (mudstate.initializing) {
+       STARTLOG(LOG_STARTUP, "FLG", "ERROR")
+          log_text((char *)"flag_name: Missing arguments. Expects syntax: flag_name NEWNAME OLDNAME");
+       ENDLOG
+    }
     return -1;
-  if (!good_flag(alias))
+  }
+  if ( !good_flag(newname) || !good_flag(alias) ) {
+    if (mudstate.initializing) {
+       STARTLOG(LOG_STARTUP, "FLG", "ERROR")
+          sbuff = alloc_lbuf("flagstuff_internal.LOG");
+          sprintf(sbuff, "flag_name: invalid arguments. Flag: %s, Rename: %s", alias, newname);
+          log_text(sbuff);
+          free_lbuf(sbuff);
+       ENDLOG
+    }
     return -1;
+  }
   pt1 = alias;
   pt2 = buff1;
+  pt3 = newname;
+  pt4 = buff2;
   while (*pt1)
     *pt2++ = tolower(*pt1++);
+  while (*pt3)
+    *pt4++ = tolower(*pt3++);
   *pt2 = '\0';
+  *pt4 = '\0';
   strcpy(buff3, buff1);
   flag1 = (FLAGENT *)hashfind(buff1, &mudstate.flags_htab);
   if (flag1 != NULL) {
-    flag2 = (FLAGENT *)hashfind(newname, &mudstate.flags_htab);
+    flag2 = (FLAGENT *)hashfind(buff2, &mudstate.flags_htab);
     if (flag2 == NULL) {
+      memset(buff2, '\0', SBUF_SIZE);
       pt1 = newname;
       pt2 = buff1;
       pt3 = buff2;
@@ -3616,10 +3637,29 @@ int flagstuff_internal(char *alias, char *newname)
       hashrepl2(buff3, (int *) flag1, &mudstate.flags_htab, 0);
       strcpy(flag1->flagname,buff2);
       hashadd2(buff1, (int *) flag1, &mudstate.flags_htab, 1);
+      if (mudstate.initializing) {
+         STARTLOG(LOG_STARTUP, "FLG", "RNAME")
+            sbuff = alloc_lbuf("flagstuff_internal.LOG");
+	    sprintf(sbuff, "flag_name: renamed %s to %s", alias, newname);
+	    log_text(sbuff);
+	    free_lbuf(sbuff);
+	 ENDLOG
+      }
       return 0;
     }
   }
 #endif
+  if (mudstate.initializing) {
+     STARTLOG(LOG_STARTUP, "FLG", "ERROR")
+        sbuff = alloc_lbuf("flagstuff_internal.LOG");
+        if ( flag1 == NULL )
+           sprintf(sbuff, "flag_name: Flag not found: %s", alias);
+        else
+           sprintf(sbuff, "flag_name: Flag rename of %s already in use: %s", alias, newname);
+        log_text(sbuff);
+        free_lbuf(sbuff);
+     ENDLOG
+  }
   return -1;
 }
 

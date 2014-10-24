@@ -26904,3 +26904,4 @@ Bug Fixes
 * SHOWFAILCMD wouldn't work for parent command lookups [ASH]
 * ! syntax to printf filler was broken from ansi rewrite [ASH]
 * wrapcolumns() didn't handle CR/LF correctly for potatoe clients (only) [ASH]
+* flag_name could crash the mush if fed invalid arg in the .conf file [ASH]
