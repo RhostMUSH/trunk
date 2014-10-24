@@ -935,12 +935,10 @@ CF_HAND(cf_rlevel)
     memset(strbuff, '\0', LBUF_SIZE);
     pst = strbuff;
     while ( *str && (isxdigit((int)*str) || (ToLower(*str) == 'x')) ) {
-       if ( ToLower(*str) == 'x' )
-          str++;
-       else
-          *pst++ = *str++;
+       *pst++ = *str++;
     }
-    i = atoi(strbuff);
+    i = (int)atof(strbuff);
+    
     free_lbuf(strbuff);
     if(i)
         mc->reality_level[mc->no_levels].value = (RLEVEL) i;
