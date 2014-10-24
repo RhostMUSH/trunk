@@ -868,12 +868,15 @@ CF_HAND(cf_rlevel)
 {
     CONFDATA *mc = (CONFDATA *)vp;
     int i, j, k, cmp_x, cmp_y, cmp_z;
-    char dup1[17], dup2[17], *nptr, tbufit[20];
+    char dup1[17], dup2[17], *nptr, tbufit[20], *strbuff, *pst;
 
     cmp_z = countwordsnew(str);
     if ( (cmp_z < 2) || (cmp_z > 3) ) {
 	STARTLOG(LOG_STARTUP, "CNF", "LEVEL")
-        log_text("Too many arguments for reality_level. 2 to 3 expected, ");
+        if ( cmp_z < 2 )
+           log_text("Too few arguments for reality_level. 2 to 3 expected, ");
+        else
+           log_text("Too many arguments for reality_level. 2 to 3 expected, ");
         sprintf(tbufit, "%d", cmp_z);
         log_text(tbufit);
         log_text(" found.\r\n              -->String in question: ");
@@ -928,8 +931,17 @@ CF_HAND(cf_rlevel)
     mc->reality_level[mc->no_levels].value = 1;
     strcpy(mc->reality_level[mc->no_levels].attr, "DESC");
     for(; *str && (*str == ' ' || *str == '\t'); ++str);
-    for(i=0; *str && isdigit((int)*str); ++str)
-        i = i * 10 + (*str - '0');
+    strbuff = alloc_lbuf("reality_loader");
+    memset(strbuff, '\0', LBUF_SIZE);
+    pst = strbuff;
+    while ( *str && (isxdigit((int)*str) || (ToLower(*str) == 'x')) ) {
+       if ( ToLower(*str) == 'x' )
+          str++;
+       else
+          *pst++ = *str++;
+    }
+    i = atoi(strbuff);
+    free_lbuf(strbuff);
     if(i)
         mc->reality_level[mc->no_levels].value = (RLEVEL) i;
     for(; *str && ((*str == ' ') || (*str == '\t')); ++str);
