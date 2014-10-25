@@ -1,0 +1,75 @@
+@@ The following softfunctions can be quoted in to mimic MUX/PENN missing functionality
+@@ Note: you'll need to rename existing muxdb columns() to column().  The script should
+@@ take care of this automatically.
+@create SoftFunctions
+@create SFSideFX
+@set SFSideFX=!no_command !halt inh safe indestructable sidefx
+@set SoftFunctions=!no_command !halt inh safe indestructable
+@fo me=&SIDEFX SoftFunctions=[num(SFSideFX)]
+&FUN_COLUMN Soft=[columns(%0,min(sub(79,ifelse(gt(%3,78),1,%3)),%1),div(sub(79,ifelse(gt(%3,78),1,%3)),%1),l,,,ifelse(gt(words(%3),0),space(%3)),,,1,%2)]
+&MINMAX_COLUMN Soft=2 4
+&FUN_TABLE SoftFunctions=[columns(%0,switch([gt(words(%1),0)][gt(words(%2),0)],11,min(%1,%2),01,max(10,%2),*,10),switch([gt(words(%1),0)][gt(words(%2),0)],11,max(1,div(%2,%1)),10,max(1,div(78,%1)),01,max(1,div(%2,10)),*,7),L,0,1,,ifelse(strlen(%4),%4,%b),,1,%3)]
+&MINMAX_TABLE Soft=1 5
+&FUNPR_LSEARCH Soft=[setq(0,ifelse(match(%0,all),,%0))][ifelse(words(%4),search(%q0 %1=%2,%3,%4),search(%q0 %1=%2))]
+&FUN_LPOS soft=[setdiff(totpos(%1,%0),#-1)]
+&MINMAX_LPOS Soft=2 2
+&FUN_MAIL SoftFunctions=[ifelse(or(gt(%0,0),gt(strlen(%1),0)),[#-1 FEATURE NOT AVAILABLE],mailquick(ifelse(or(eq(strlen(%0),0),match(%0,me)),me,*%0),,ifelse(eq(strlen(%0),0),2,1)))]
+&MINMAX_MAIL Soft=1 2
+&FUN_POLL soft=[doing()]
+&MINMAX_POLL Soft=1 1 
+&FUN_BAND soft=[mask(%0,%1,&)]
+&MINMAX_BAND Soft=2 2
+&FUN_BOR  soft=[mask(%0,%1,|)]
+&MINMAX_BOR Soft=2 2
+&FUN_BNAND soft=[mask(mask(%0,power(2,31),^),&)]
+&MINMAX_BNAND Soft=1 1
+&FUN_OBJMEM soft=[size(%0,3)]
+&MINMAX_OBJMEM Soft=1 1
+&FUN_STRINSERT soft=[creplace(%0,add(%1,1),%2,i)]
+&MINMAX_STRINSERT Soft=3 3
+&FUN_TIMESTRING soft=[switch(1,and(isnum(%1),eq(2,%1)),timefmt($02cd $02Xh $02Fm $02Gs,%0),isnum(%1),timefmt($cd $2Xh $2Fm $2Gs,%0),eq(words(%1),0),timefmt($!cd $!2Xh $!2Fm $2Gs,%0),or(not(isnum(%0)),not(isnum(%1))),[#-1 ARGUMENTS MUST BE INTEGERS])]
+&MINMAX_TIMESTRING soft=1 2
+&FUN_ITEMIZE soft=[elist(%0,%2,%1,%4,%3)]
+&MINMAX_ITEMIZE soft=1 4
+&FUN_LPARENT soft=[localize([setr(0,num(%0))] [setdiff(parents(r(0)),#-1 #-2)])]
+&MINMAX_LPARENT soft=1 1
+&FUN_EXPTIME soft=[timefmt($!Zy $!EM $!Cd $!Xh $!Fm $Gs,%0)]
+&MINMAX_EXPTIME soft=1 1
+&FUN_WRITETIME soft=[timefmt($!Z years $!e months $!C days $!X hours $!F minutes $!G seconds,%0)]
+&MINMAX_WRITETIME soft=1 1
+&FUN_DIGITTIME soft=[timefmt($!cd $02X:$02F,v(0))]
+&MINMAX_DIGITTIME soft=1 1
+&FUN_PICKRAND soft=[randextract(%0,1,%1)]
+&MINMAX_PICKRAND soft=1 2
+&FUN_GET_RAW soft=[edit(get(%0),%c,\%c)]
+&FUN_V_RAW soft=[edit(v(%0),%c,\%c)]
+&FUN_STRTRUNC soft=[trim(ljc(%0,%1))]
+&MINMAX_STRTRUNC soft=1 2
+&FUN_NONZERO soft=[ifelse(t(%0),%1,%2)]
+&MINMAX_NONZERO soft=2 3
+&FUN_FN soft=[bypass(1)][strfunc(%0,%1 %2 %3 %4 %5 %6 %7 %8 %9)][bypass(0)]
+&FUNPR_NAMEGRAB soft=[setq(0,)][iter(%0,ifelse(strmatch(name(##),%1),##[setq(0,)][ibreak(0)],ifelse(and(!$r(0),strmatch(name(##),*%1*)),setq(0,##))),,)]%q0
+&FUNPR_SPEAK soft=[setq(z,%2)][setq(y,%3)][setq(x,%1)][parsestr(%1,[ifelse(words(%qy),u(%#/%qy,%0,%1,ifelse(pos(mid(%qx,0,1),; :),add(%2,1),%2),%3,%4),%0)],",ifelse(words(%6%7),%6 %7,"),0,%0,,,,[ifelse(words(%qz),%qz,says%,)])]
+&MINMAX_SPEAK soft=2 7
+&MINMAX_NAMEGRAB soft=1 2
+&FUN_NAMEGRABALL soft=[trim(squish(iter(%0,ifelse(strmatch(name(##),*%1*),##))))]
+&MINMAX_NAMEGRABALL soft=1 2
+&FUNPR_NAMELIST soft=[iter(%0,ifelse(!match(setr(0,pmatch(##)),#-1*),%q0,#-1[objeval(%#,u(%1,##,#-1))]))]
+&MINMAX_NAMELIST soft=1 2
+&FUN_STRINGSECS soft=[ladd(iter(secure(regeditall(%0,(h|m|s),$1%b)),switch(%i0,*ML,mul(%i0,31536000000),*y,mul(%i0,31471200),*C,mul(%i0,3153600000),*Mo,mul(%i0,2628000),*w,mul(%i0,604800),*d,mul(%i0,86400),*h,mul(%i0,3600),*m,mul(%i0,60),*s,add(%i0,0))) 0)]
+&MINMAX_STRINGSECS soft=1 1
+&FUN_ETIME soft=[trim(timefmt($!mML $!2UC $!2uy $!2EMo $!2ww $!2dd $!2Xh $!2Fm $!2Gs,%0))][ifelse(!t(%0),0s)]
+&MINMAX_ETIME soft=1 1
+&FUN_ATTRIB_SET soft=[ifelse(!!pos(/,%0),set(before(%0,/),after(%0,/):%1),#-1 BAD ARGUMENT FORMAT TO ATTRIB_SET)]
+&MINMAX_ATTRIB_SET soft=2 2
+&SET sfsidefx=[streval([set([before(%0,/)],[trim(after(%0,/))]:%1)],extract(cit guild arch coun roy imm god,bittype(%2)),%0,%1,%2)]
+&FUN_LETQ soft=[pushregs(+z)][setq(z,[ifelse(!$nameq(%0),%0,nameq(nameq(%0),,1))])][ifelse(match(%qz,z),,pushregs(+%qz))][setq([r(z)],%1)][eval(%2)][pushregs(-%qz -z)]
+&MINMAX_LETQ soft=3 3
+&FUNFLAG_LETQ soft=no_eval
+&FUN_SORTKEY soft=[munge(#lambda/%[sort%(%%0%,%2%,%3%)%],iter(%1,edit(u(%0,itext(0)),%b,),ifelse(!$v(3),%b,%3),ifelse(!$v(3),%b,%3)),%1,ifelse(!$v(3),%b,%3),ifelse(!$v(4),ifelse(!$v(3),%b,%3),%4))]
+&MINMAX_SORTKEY soft=2 5
+&FUN_ALIGN soft=[printf([iter(%0,$[case(mid(%i0,0,1),<,-[delete(%i0,0,1)],>,[delete(%i0,0,1)],_,_[delete(%i0,0,1)],-,^[delete(%i0,0,1)],=,_[delete(%i0,0,1)],-%i0)]|"s)],%1,%2,%3,%4,%5,%6,%7,%8,%9)]
+@fo softfunc=&DB me=num(softfunc)
+@tel SFSideFX=softfunctions
+@startup softfunc=@dolist lattr([v(db)]/fun_*)=@function [after(##,_)]=[v(db)]/##;@dolist lattr([v(db)]/funp_*)=@function/priv/pres [after(##,_)]=[v(db)]/##;@dolist lattr([v(DB)]/funpr_*)=@function/pres [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpv_*)=@function/priv [after(##,_)]=[v(DB)]/##;@wait 10={@dolist lattr([v(db)]/funflag_*)=@admin function_access=[after(##,_)] [get([v(db)]/##)]};@wait 10=@dolist lattr([v(db)]/minmax_*)={@function/min [after(##,_)]=[first(get([v(db)]/##))];@function/max [after(##,_)]=[rest(get([v(db)]/##))]}
+@@ think Issue this command:  @dolist search\(flags=P\)=@swi \[words\(get\(##/race\)\)\]=0,@cpattr/clear ##/RACE=##/race
