@@ -51,6 +51,7 @@ extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern ATRP *atrp_head;
 
 extern double FDECL(time_ng, (double*));
+extern void FDECL(populate_tor_seed, (void));
 
 #ifdef CACHE_OBJS
 #define CACHING "object"
@@ -970,6 +971,12 @@ NAMETAB toggle_sw[] =
     {(char *) "clear", 2, CA_PUBLIC, 0, TOGGLE_CLEAR},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB tor_sw[] =
+{
+    {(char *) "list", 2, CA_IMMORTAL, 0, TOR_LIST},
+    {(char *) "cache", 2, CA_IMMORTAL, 0, TOR_CACHE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB trig_sw[] =
 {
     {(char *) "command", 1, CA_PUBLIC, 0, TRIG_COMMAND},
@@ -1298,6 +1305,8 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_stats},
     {(char *) "@toggledef", flagdef_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_toggledef},
+    {(char *) "@tor", tor_sw, CA_IMMORTAL, 0,
+     0, CS_NO_ARGS, 0, do_tor},
     {(char *) "@sudo", sudo_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
     {(char *) "@sweep", sweep_sw, 0, 0,
      0, CS_ONE_ARG, 0, do_sweep},
@@ -8649,7 +8658,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
       return;
    }
    if (!controls(player, it) &&
-       !could_doit(player,it,A_LTWINK,0)) {
+       !could_doit(player,it,A_LTWINK,0,0)) {
       notify_quiet(player, "Permission denied.");
       return;
    }
@@ -10884,6 +10893,26 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          free_lbuf(s_buff);
          mudstate.blacklist_cnt=0;
          break;
+   }
+}
+
+void
+do_tor(dbref player, dbref cause, int key) {
+   switch (key) {
+      case TOR_CACHE: /* Rebuild the hostname cache */
+           notify_quiet(player, "Tor: Rebuilding hostname cache.");
+           populate_tor_seed();
+           notify_quiet(player, "Tor: Rebuilding complete.");
+           break;
+      case TOR_LIST: /* List the tor */
+           default:  /* Default case is list */
+           notify_quiet(player, unsafe_tprintf("Tor: Protection is currently %s.  The current settings are:", 
+                                (mudconf.tor_paranoid ? (char *)"ENABLED" : (char *)"DISABLED") ));
+           notify_quiet(player, unsafe_tprintf("TOR host DNS: %s", 
+                                (*(mudconf.tor_localhost) ? mudconf.tor_localhost : (char *)"(Empty)")));
+           notify_quiet(player, unsafe_tprintf("TOR host CACHE: %s", 
+                                (*(mudstate.tor_localcache) ? mudstate.tor_localcache : (char *)"(Empty)")));
+           break;
    }
 }
 

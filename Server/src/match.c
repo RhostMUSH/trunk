@@ -147,8 +147,8 @@ choose_thing(thing1, thing2)
 	}
     }
     if (check_keys) {
-	has1 = could_doit(match_who, thing1, A_LOCK,1);
-	has2 = could_doit(match_who, thing2, A_LOCK,1);
+	has1 = could_doit(match_who, thing1, A_LOCK,1,0);
+	has2 = could_doit(match_who, thing2, A_LOCK,1,0);
 
 	if (has1 && !has2) {
 	    return thing1;

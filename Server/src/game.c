@@ -224,7 +224,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
 
     ck3 = ck2 = chkwild = i_inparen = 0;
     oldchk = mudstate.chkcpu_toggle;
-    if (!could_doit(player, parent, A_LUSE,1)) {
+    if (!could_doit(player, parent, A_LUSE, 1, 1)) {
         if ( mudstate.chkcpu_toggle && !oldchk ) {
            broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (USELOCK)",
                              (char *)"(internal-attribute)", NULL, parent, 0, 0, NULL);
@@ -765,7 +765,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	pass_uselock = 0;
 	if ((key & MSG_ME) && check_listens &&
 	    (pass_listen || Monitor(target)))
-	    pass_uselock = could_doit(sender, target, A_LUSE,1);
+	    pass_uselock = could_doit(sender, target, A_LUSE, 1, 2);
 
 	/* Process AxHEAR if we pass LISTEN, USElock and it's for me */
 
@@ -1246,7 +1246,7 @@ do_reboot(dbref player, dbref cause, int key)
 {
   int port;
   FILE *f;
-  DESC *d, *p;
+  DESC *d;
 
   DPUSH; /* #80 */
 
@@ -1275,32 +1275,31 @@ do_reboot(dbref player, dbref cause, int key)
         return;
      }
   }
+
   alarm_msec(0);
   mudstate.dumpstatechk=1;
   ignore_signals();
   port = mudconf.port;
-  if(key == REBOOT_SILENT) {
-    DESC_ITER_CONN(d) {
-      if (d->player == player) 
-        p = d;
-    }
 
-    f = fopen("reboot.silent", "w+");
-    if(f == NULL) {
-      if(p)
-        queue_string(p,"Cannot write silent reboot file. Final message will not be snuffed.");
-    }
-    else
-    {
-      fclose(f);
-      if(p)
-        queue_string(p,"Rebooting Silently.");
-    }
-    if(p)
-      queue_write(p, "\r\n", 2);
-    process_output(p);
-  }
-  else {
+  if (key == REBOOT_SILENT) {
+     f = fopen("reboot.silent", "w+");
+
+     DESC_ITER_CONN(d) {
+        if ( (d->player == player) ) {
+           if (f == NULL) {
+              queue_string(d,"Cannot write silent reboot file. Final message will not be snuffed.");
+           } else {
+              queue_string(d,"Game: Rebooting Silently.");
+           }
+           queue_write(d, "\r\n", 2);
+           process_output(d);
+        }
+     }
+     if ( f ) {
+        fprintf(f, "%d\n", player);
+        fclose(f);
+     }
+  } else {
     raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
     raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
   }

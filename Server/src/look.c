@@ -76,14 +76,14 @@ look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
 	 key = 0;
 #ifdef REALITY_LEVELS
         if ((Dark(loc) && !IsReal(player, loc))
-                && !could_doit( player, loc, A_LDARK, 0 ))
+                && !could_doit( player, loc, A_LDARK, 0, 0))
 #else
-        if (Dark(loc) && !could_doit( player, loc, A_LDARK, 0 ))
+        if (Dark(loc) && !could_doit( player, loc, A_LDARK, 0, 0))
 #endif /* REALITY_LEVELS */
 	    key |= VE_BASE_DARK;
 	ITER_PARENTS(loc, parent, lev) {
 	    key &= ~VE_LOC_DARK;
-	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0 ))
+	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0, 0))
 		key |= VE_LOC_DARK;
 	    DOLIST(thing, Exits(parent)) {
                 if ( ((parent != pcheck) && (Flags3(thing) & PRIVATE)) || 
@@ -144,7 +144,7 @@ look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
 	      continue;
 	    }
             key &= ~VE_LOC_DARK;
-	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0 ))
+	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0, 0))
 		key |= VE_LOC_DARK;
 	    DOLIST(thing, Exits(parent)) {
                 if ( ((parent != pcheck) && (Flags3(thing) & PRIVATE)) || 
@@ -248,7 +248,7 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
 
     /* check to see if he can see the location */
 
-    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0)) || 
+    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0, 0)) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc)));
 /*  can_see_loc = (!Dark(loc) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); */
@@ -375,7 +375,7 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
         }
     }
 
-    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0)) ||
+    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0, 0)) ||
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); 
 /*  can_see_loc = (!Dark(loc) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); */
@@ -476,7 +476,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
         }
     }
 
-    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0)) ||
+    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0, 0)) ||
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); 
 /*  can_see_loc = (!Dark(loc) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); */
@@ -894,7 +894,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
     thing1 = noisy_match_result();
     if (thing1 != NOTHING) {
       ex1 = Examinable(player, thing1);
-      twk1 = could_doit(player,thing1,A_LTWINK,0);
+      twk1 = could_doit(player,thing1,A_LTWINK,0,0);
     }
     if ((thing1 == NOTHING) || (!ex1 && !twk1)) {
 	notify(player, "Bad source object.");
@@ -948,7 +948,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	init_match(player, dest, NOTYPE);
 	match_everything(MAT_EXIT_PARENTS);
 	thing2 = noisy_match_result();
-        twk1 = could_doit(player,thing2,A_LTWINK,0);
+        twk1 = could_doit(player,thing2,A_LTWINK,0,0);
 	if ((thing2 == NOTHING) || (!Controls(player, thing2) && !twk1 && !chkv1)) {
             tprp_buff = tpr_buff;
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Bad destination object -> %s", dest));
@@ -1415,7 +1415,7 @@ look_in(dbref player, dbref loc, int key)
     /* tell him the appropriate messages if he has the key */
 
     if (Typeof(loc) == TYPE_ROOM) {
-	if (could_doit(player, loc, A_LOCK,1)) {
+	if (could_doit(player, loc, A_LOCK,1,0)) {
 	    pattr = A_SUCC;
 	    oattr = A_OSUCC;
 	    aattr = A_ASUCC;

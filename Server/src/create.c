@@ -62,7 +62,7 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key)
     if (!direction || !*direction) {
 	notify_quiet(player, "Open where?");
 	return;
-    } else if (!controls(player, loc) && !could_doit(player, loc, A_LOPEN, 0)) {
+    } else if (!controls(player, loc) && !could_doit(player, loc, A_LOPEN, 0, 0)) {
 	notify_quiet(player, "Permission denied.");
 	return;
     }
@@ -91,7 +91,7 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key)
 
 	/* Make sure the player passes the link lock */
 
-	if ((loc != HOME) && !could_doit(player, loc, A_LLINK,1)) {
+	if ((loc != HOME) && !could_doit(player, loc, A_LLINK, 1, 0)) {
 	    notify_quiet(player, "You can't link to there.");
 	    return;
 	}
@@ -204,7 +204,7 @@ link_exit(dbref player, dbref exit, dbref dest, int key)
 
     if ((dest != HOME) &&
 	((!controls(player, dest) && !Link_ok(dest)) ||
-	 !could_doit(player, dest, A_LLINK,1))) {
+	 !could_doit(player, dest, A_LLINK, 1, 0))) {
 	notify_quiet(player, "Permission denied.");
 	return;
     }
@@ -313,7 +313,7 @@ do_link(dbref player, dbref cause, int key, char *what, char *where)
 	    break;
 	}
 	if (!can_set_home(player, thing, room) ||
-	    !could_doit(player, room, A_LLINK,1)) {
+	    !could_doit(player, room, A_LLINK, 1, 0)) {
 	    notify_quiet(player, "Permission denied.");
 	} else if (room == HOME) {
 	    notify_quiet(player, "Can't set home to home.");
@@ -341,7 +341,7 @@ do_link(dbref player, dbref cause, int key, char *what, char *where)
 	    notify_quiet(player, "That is not a room!");
 	} else if ((room != HOME) &&
 		   ((!controls(player, room) && !Link_ok(room)) ||
-		    !could_doit(player, room, A_LLINK,1))) {
+		    !could_doit(player, room, A_LLINK, 1, 0))) {
 	    notify_quiet(player, "Permission denied.");
 	} else {
 	    s_Dropto(thing, room);
@@ -426,8 +426,8 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       }
 
       if(!Controls(player, zonemaster) && 
-        !could_doit(player, zonemaster, A_LZONETO,0) &&
-        !could_doit(player, zonemaster, A_LZONEWIZ,0)) {
+        !could_doit(player, zonemaster, A_LZONETO, 0, 0) &&
+        !could_doit(player, zonemaster, A_LZONEWIZ, 0, 0)) {
         notify_quiet(player, "Permission denied.");
         return;
       }
@@ -471,7 +471,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
 
       if(!Controls(player, thing) &&
          !Controls(player, zonemaster) && 
-         !could_doit(player, zonemaster, A_LZONEWIZ,0)
+         !could_doit(player, zonemaster, A_LZONEWIZ, 0, 0)
          ) {
         notify_quiet(player, "Permission denied.");
         return;
@@ -503,7 +503,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
 
       if( ZoneMaster(thing) ) {
         if(!Controls(player, thing) && 
-          !could_doit(player, thing, A_LZONEWIZ,0)) {
+          !could_doit(player, thing, A_LZONEWIZ, 0, 0)) {
           notify_quiet(player, "Permission denied.");
           return;
         }
@@ -568,7 +568,7 @@ do_parent(dbref player, dbref cause, int key, char *tname, char *pname)
 	return;
     }
     if (!Controls(player, thing) &&
-        !could_doit(player,thing,A_LTWINK,0)) {
+        !could_doit(player,thing,A_LTWINK, 0, 0)) {
 	notify_quiet(player, "Permission denied.");
 	return;
     }

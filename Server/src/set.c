@@ -48,7 +48,7 @@ dbref	mat;
 	match_everything(MAT_EXIT_PARENTS);
 	mat = noisy_match_result();
 	if (Good_obj(mat) && !Controls(player, mat) &&
-            !could_doit(player,mat,A_LTWINK,0)) {
+            !could_doit(player,mat,A_LTWINK,0,0)) {
 		notify_quiet(player, "Permission denied.");
 		return NOTHING;
 	} else {
@@ -199,7 +199,7 @@ char	*oldalias, *trimalias;
                 if ( NoMod(thing) && !WizMod(player) ) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!Controls(player, thing) &&
-                    !could_doit(player,thing,A_LTWINK,0)) {
+                    !could_doit(player,thing,A_LTWINK,0,0)) {
 
 			/* Make sure we have rights to do it.  We can't do
 			 * the normal Set_attr check because ALIAS is only
@@ -450,7 +450,7 @@ dbref	exit;
                 if ( NoMod(exit) && !WizMod(player) ) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!controls(player, exit) &&
-                    !could_doit(player,exit,A_LTWINK,0)) {
+                    !could_doit(player,exit,A_LTWINK,0,0)) {
 			notify_quiet(player, "Permission denied.");
 		} else {
 			switch (Typeof(exit)) {
@@ -631,7 +631,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
 	     (isPlayer(thing) && Immortal(thing) && !God(player))) {
     notify_quiet(player, "Players always own themselves.");
   } else if (((!controls(player, thing) && 
-	       !(Chown_ok(thing) && could_doit(player, thing, A_LCHOWN,1)) &&
+	       !(Chown_ok(thing) && could_doit(player, thing, A_LCHOWN,1,0)) &&
 	       !(HasPriv(player,thing,POWER_CHOWN_OTHER,POWER3,NOTHING)) &&
 	       !((owner==Owner(player)) && HasPriv(player,thing,POWER_CHOWN_ME,POWER3,NOTHING)) ) ||
 	      (isThing(thing) && (Location(thing) != player) &&
@@ -1151,7 +1151,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
     return;
   
   con1 = Controls(player,thing);
-  twk1 = could_doit(player,thing,A_LTWINK,0);
+  twk1 = could_doit(player,thing,A_LTWINK,0,0);
   /* Look up the source attribute.  If it either doesn't exist or isn't
    * readable, use an empty string.
    */
@@ -1340,7 +1340,7 @@ int	aflags;
 	} else {
 		atr_pget_info(*thing, attr->number, &aowner, &aflags);
 		if (!See_attr(player, *thing, attr, aowner, aflags, 1) &&
-                    !could_doit(Owner(player), *thing, A_LZONEWIZ, 0)) {
+                    !could_doit(Owner(player), *thing, A_LZONEWIZ, 0, 0)) {
 			*atr = NOTHING;
 		} else {
 			*atr = attr->number;
@@ -1851,7 +1851,7 @@ void do_wipe(dbref player, dbref cause, int key, char *it)
    }
    mudstate.reverse_wild = orig_revwild;
    if ( (( Flags(thing) & SAFE ) || Indestructable(thing)) && mudconf.safe_wipe > 0 ) {
-      if ( !(Controls( player, thing ) || could_doit(player,thing,A_LTWINK,0)) ) {
+      if ( !(Controls( player, thing ) || could_doit(player,thing,A_LTWINK,0,0)) ) {
          if ( !(key & SIDEEFFECT) ) {
             notify_quiet(player, "No matching attributes.");
          }
@@ -1939,7 +1939,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
       return;
    }
    if (!Good_chk(thing) || (!controls(player, thing) &&
-       !could_doit(player,thing,A_LTWINK,0)) ) {
+       !could_doit(player,thing,A_LTWINK,0,0)) ) {
        notify_quiet(player, "Permission denied.");
        return;
    }
@@ -2031,7 +2031,7 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
         return;
      }
      if (!controls(it, thing) &&
-         !could_doit(it,thing,A_LTWINK,0)) {
+         !could_doit(it,thing,A_LTWINK,0,0)) {
          notify_quiet(it, "Permission denied.");
          return;
      }
@@ -2041,7 +2041,7 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
         return;
      }
      if (!controls(player, thing) &&
-         !could_doit(player,thing,A_LTWINK,0)) {
+         !could_doit(player,thing,A_LTWINK,0,0)) {
          notify_quiet(player, "Permission denied.");
          return;
      }
@@ -2118,7 +2118,7 @@ int	ibf = -1;
 
 	/* Make sure player can use it */
 
-	if (!could_doit(player, thing, A_LUSE,1)) {
+	if (!could_doit(player, thing, A_LUSE,1,1)) {
 		did_it(player, thing, A_UFAIL,
 			"You can't figure out how to use that.",
 			A_OUFAIL, NULL, A_AUFAIL, (char **)NULL, 0);

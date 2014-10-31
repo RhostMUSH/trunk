@@ -155,14 +155,14 @@ fh_any_sec(dbref target, dbref player, FLAG flag, int fflags, int reset)
     int priv;
 
     priv = HasPriv(player,target,POWER_SECURITY,POWER4,NOTHING);
-    if (!priv && !Controls(player,target) && !could_doit(player,target,A_LTWINK,0))
+    if (!priv && !Controls(player,target) && !could_doit(player,target,A_LTWINK,0,0))
 	return 0;
     return (fh_any(target, player, flag, fflags, reset));
 }
 int
 fh_controls(dbref target, dbref player, FLAG flag, int fflags, int reset)
 {
-    if (!Controls(player,target) && !could_doit(player,target,A_LTWINK,0))
+    if (!Controls(player,target) && !could_doit(player,target,A_LTWINK,0,0))
 	return 0;
     return (fh_any(target, player, flag, fflags, reset));
 }
@@ -184,7 +184,7 @@ fh_wiz_sec(dbref target, dbref player, FLAG flag, int fflags, int reset)
     int priv;
 
     priv = HasPriv(player,target,POWER_SECURITY,POWER4,NOTHING);
-    if (!priv && !Controls(player,target) && !could_doit(player,target,A_LTWINK,0))
+    if (!priv && !Controls(player,target) && !could_doit(player,target,A_LTWINK,0,0))
 	return 0;
     if (!Wizard(player) && !God(player) && !priv)
 	return 0;
@@ -304,7 +304,7 @@ fh_builder_sec(dbref target, dbref player, int flag, int fflags, int reset)
     int priv;
 
     priv = HasPriv(player,target,POWER_SECURITY,POWER4,NOTHING);
-    if (!priv && !Controls(player,target) && !could_doit(player,target,A_LTWINK,0))
+    if (!priv && !Controls(player,target) && !could_doit(player,target,A_LTWINK,0,0))
 	return 0;
     if (!God(player) &&
 	!Builder(player) && !priv) 
@@ -2514,7 +2514,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
 	    /* show everything */
 	    fp = unparse_flags(player, target);
             if ( !Wizard(player) && name_str[0] != '\0' &&
-                 !could_doit(player,target,A_LALTNAME,0) )
+                 !could_doit(player,target,A_LALTNAME,0,0) )
 	       sprintf(buf, "%s(#%d%s)", name_str, target, fp);
             else if ( name_str[0] == '\0' )
 	       sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp );
@@ -2524,7 +2524,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
 	} else {
 	    /* show only the name. */
             if ( !Wizard(player) && name_str[0] != '\0' &&
-                 !could_doit(player,target,A_LALTNAME,0) )
+                 !could_doit(player,target,A_LALTNAME,0,0) )
                strcpy(buf, name_str);
             else if ( name_str[0] == '\0' )
                sprintf(buf, "%.3900s", Name(target));
@@ -2882,7 +2882,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 	    /* show everything */
 	    fp = unparse_flags(player, target);
             if ( !Wizard(player) && name_str[0] != '\0' &&
-                 !could_doit(player,target,A_LALTNAME,0) )
+                 !could_doit(player,target,A_LALTNAME,0,0) )
 	       sprintf(buf, "%s%s%s(#%d%s)", buf2, name_str,  ANSI_NORMAL, target, fp);
             else if ( name_str[0] == '\0' ) {
                if ( ExtAnsi(target) ) {
@@ -2906,7 +2906,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 	} else {
 	    /* show only the name. */
             if ( !Wizard(player) && name_str[0] != '\0' &&
-                 !could_doit(player,target,A_LALTNAME,0) )
+                 !could_doit(player,target,A_LALTNAME,0,0) )
                sprintf(buf, "%.100s%.3800s%s", buf2, name_str,  ANSI_NORMAL);
             else if ( name_str[0] == '\0' ) {
                if ( ExtAnsi(target) ) {

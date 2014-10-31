@@ -819,7 +819,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define c_Connected(x)  s_Flags2((x), Flags2(x) & ~CONNECTED)
 
 #define Parentable(p,x) (Controls(p,x) || \
-			 (Parent_ok(x) && could_doit(p,x,A_LPARENT,1)))
+			 (Parent_ok(x) && could_doit(p,x,A_LPARENT,1,0)))
 
 #define MyopicExam(p,x) (((Flags(x) & VISUAL) != 0) || \
 			 (!Myopic(p) && Examinable(p,x)))
@@ -874,7 +874,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \
 			     (Inherits(p) || !Inherits(x))) || \
-                             could_doit(p,x,A_LTWINK,0)) && \
+                             could_doit(p,x,A_LTWINK,0,0)) && \
 			   ((Immortal(p) && !(((a)->flags & (AF_GOD)) || \
                                               (f & (AF_GOD)))) || \
 			    (Wizard(p) && \

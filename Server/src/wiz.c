@@ -284,7 +284,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 			DePriv(player,Owner(destination),DP_TEL_ANYWHERE,POWER7,NOTHING) ||
 			DePriv(player,Owner(destination),DP_LOCKS,POWER6,NOTHING)) &&
 		    (!Jump_ok(destination) ||
-		     !could_doit(player, destination, A_LTPORT,1))) {
+		     !could_doit(player, destination, A_LTPORT,1,0))) {
 
 			/* Nope, report failure */
 

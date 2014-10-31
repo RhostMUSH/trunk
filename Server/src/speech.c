@@ -101,7 +101,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 	case SAY_EMIT:
 		if (!Good_obj(loc)) return;
 		if (!sp_ok(player)) return;
-		if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH, 1)) {
+		if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH, 1, 0)) {
 		  did_it(player,loc,A_SFAIL, "You are not allowed to speak in this location.",
 			0, NULL, A_ASFAIL, (char **)NULL, 0);
 		  return;
@@ -632,14 +632,14 @@ static int page_check (dbref player, dbref target, int num, int length)
 		page_return(player, target, "Away", A_AWAY, buff, NULL);
 	} else if (DePriv(player, target, DP_PAGE, POWER6, NOTHING)) {
 		notify(player, "Permission denied.");
-	} else if (!could_doit(player, target, A_LPAGE,1)) {
+	} else if (!could_doit(player, target, A_LPAGE,1,0)) {
 		if (Wizard(target) && Cloak(target))
 			page_return(player, target, "Away", A_AWAY, buff, NULL);
 		else {
 			sprintf(buff,"Sorry, %s is not accepting pages.", Name(target));
 			page_return(player, target, "Reject", A_REJECT, buff, NULL);
 		}
-	} else if (!could_doit(target, player, A_LPAGE,3)) {
+	} else if (!could_doit(target, player, A_LPAGE,3,0)) {
                 tprp_buff = tpr_buff = alloc_lbuf("page_check");
 		if (Wizard(player)) {
 			notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Warning: %s can't return your page.",Name(target)));
@@ -1768,7 +1768,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                   ok_to_do = 0;
                   break;
                }
-               if ( (!Controls(player,target) && !could_doit(player,target,A_LZONEWIZ,0)) ) {
+               if ( (!Controls(player,target) && !could_doit(player,target,A_LZONEWIZ,0,0)) ) {
                   notify(player, "Invalid zone.");
                   ok_to_do = 0;
                   break;
@@ -1776,7 +1776,7 @@ ZLISTNODE *z_ptr, *y_ptr;
             }
             loc = where_is(target);
             if ((key == PEMIT_PEMIT) && (Flags3(target) & AUDIT) && !Admin(player) &&
-                !could_doit(player,target,A_LSPEECH,1)) {
+                !could_doit(player,target,A_LSPEECH,1,0)) {
                did_it(player,target,A_SFAIL, "You are not allowed to speak to that location.",
                       0, NULL, A_ASFAIL, (char **)NULL, 0);
                break;
@@ -1784,7 +1784,7 @@ ZLISTNODE *z_ptr, *y_ptr;
             dobreak = 0;
             switch (key) {
                case PEMIT_OEMIT:
-                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1)) {
+                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1,0)) {
                      did_it(player,loc,A_SFAIL, "You are not allowed to speak to that location.",
                             0, NULL, A_ASFAIL, (char **)NULL, 0);
                      dobreak = 1;
@@ -1794,7 +1794,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                case PEMIT_FPOSE:
                case PEMIT_FPOSE_NS:
                case PEMIT_FEMIT:
-                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1)) {
+                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1,0)) {
                      did_it(player,target,A_SFAIL, "You are not allowed to speak to that location.",
                             0, NULL, A_ASFAIL, (char **)NULL, 0);
                      dobreak = 1;
@@ -1992,7 +1992,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                      }
                      if (Typeof(loc) == TYPE_ROOM) {
                         if ((Flags3(loc) & AUDIT) && !Admin(player) &&
-                            !could_doit(player,loc,A_LSPEECH,1)) {
+                            !could_doit(player,loc,A_LSPEECH,1,0)) {
                            did_it(player,target,A_SFAIL, "You are not allowed to speak to that location.",
                                   0, NULL, A_ASFAIL, (char **)NULL, 0);
                            break;

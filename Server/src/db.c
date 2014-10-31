@@ -778,7 +778,7 @@ fwdlist_load(FWDLIST * fp, dbref player, char *atext)
 		    (!God(player) &&
 		     !controls(player, target) &&
 		     (!Link_ok(target) ||
-		      !could_doit(player, target, A_LLINK,1))));
+		      !could_doit(player, target, A_LLINK, 1, 0))));
 #else
 	    fail = !Good_obj(target);
 #endif

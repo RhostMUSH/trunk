@@ -290,6 +290,8 @@ struct confdata {
         char    goodmail_host[1000]; /* Good hosts to allow to autoregister ALWAYS */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[1000]; /* Don't broadcast to sites in this host */
+        char    tor_localhost[1000];	/* Localhost name for TOR lookup */
+        int	tor_paranoid;	/* Paranoid option for TOR enable Checkig */
         int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
         int     paranoid_exit_linking; /* unlinked exits can't be linked unless controlled */
         int     notonerr_return; /* If function returns '#-1' not() returns '0' if disabled */
@@ -734,6 +736,7 @@ struct statedata {
 	int	dumpstatechk;	/* Dump state check */
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
+	char	tor_localcache[1000]; /* Cache for the tor local host */
   int insideaflags; /* Inside @aflag eval check */
 #else
   dbref remote; /* Remote location for @remote */

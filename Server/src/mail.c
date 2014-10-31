@@ -1072,7 +1072,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
   if ( chk_anon && Wizard(*toplay) ) {
      chk_anon2 = 1;
   }
-  if (!could_doit(player,*toplay,A_LMAIL,1)) {
+  if (!could_doit(player,*toplay,A_LMAIL,1,0)) {
     *(int *)sbuf1 = MIND_REJM;
     *(int *)(sbuf1+sizeof(int)) = *toplay;
     keydata.dptr = sbuf1;
@@ -1101,7 +1101,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
     memcpy(sbuf7,infodata.dptr,sizeof(int));
     dest = *(int *)sbuf7;
     if ( Good_obj(dest) && !Recover(dest) && !Going(dest) ) {
-       if (could_doit(*toplay,dest,A_LMAIL,1)) {
+       if (could_doit(*toplay,dest,A_LMAIL,1,0)) {
          save = *toplay;
          *aft = 1;
          *toplay = dest;
@@ -1794,7 +1794,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	    keydata.dsize = strlen(pt1) + 1 + sizeof(int);
 	    infodata = dbm_fetch(mailfile,keydata);
 	    if (infodata.dptr) 
-	      atest = eval_boolexp_atr(player,player,player,infodata.dptr,1);
+	      atest = eval_boolexp_atr(player,player,player,infodata.dptr,1, 0);
 	    else
 	      atest = 1;
 	    if (atest || Wizard(player)) {
@@ -5399,7 +5399,7 @@ mail_acheck(dbref player)
 	    keydata.dsize = strlen(pt1->akey) + 1 + sizeof(int);
 	    infodata = dbm_fetch(mailfile, keydata);
 	    if (infodata.dptr)
-		atest = eval_boolexp_atr(player, player, player, infodata.dptr,1);
+		atest = eval_boolexp_atr(player, player, player, infodata.dptr,1, 0);
 	    else
 		atest = 1;
 	}
@@ -6674,7 +6674,7 @@ mail_check(dbref player, char *buf1, char *buf2)
 	if ( (*p1 == '\0') && ((!Wizard(player) || !Controls(player, dest)) ||
              MailLockDown(player)) ) {
 	    notify_quiet(player, "Mail: Permission denied.");
-	} else if (!could_doit(player, dest, A_LSHARE,1) && (!Immortal(player) || !Controls(player, dest))) {
+	} else if (!could_doit(player, dest, A_LSHARE,1,0) && (!Immortal(player) || !Controls(player, dest))) {
 	    notify_quiet(player, "Mail: Permission denied.");
 	} else {
 	    mail_read(dest, buf2, player, 0);
@@ -6698,7 +6698,7 @@ mail_number(dbref player, char *buf1, char *buf2)
 	if ( (*p1 == '\0') && ((!Wizard(player) || !Controls(player, dest)) ||
              MailLockDown(player)) ) {
 	    notify_quiet(player, "Mail: Permission denied.");
-	} else if (!could_doit(player, dest, A_LSHARE,1) && (!Wizard(player) || !Controls(player, dest))) {
+	} else if (!could_doit(player, dest, A_LSHARE,1,0) && (!Wizard(player) || !Controls(player, dest))) {
 	    notify_quiet(player, "Mail: Permission denied.");
 	} else {
 	    mail_status(dest, buf2, player, 0, 1, (char *)NULL, (char *)NULL);
@@ -6957,7 +6957,7 @@ mail_autofor(dbref player, char *buf1)
 	    notify_quiet(player, "MAIL ERROR: Bad player name in autoforward.");
 	} else if (dest == player) {
 	    notify_quiet(player, "MAIL ERROR: You can't autoforward to yourself.");
-	} else if (!could_doit(player, dest, A_LMAIL,1)) {
+	} else if (!could_doit(player, dest, A_LMAIL,1,0)) {
 	    notify_quiet(player, "MAIL ERROR: Permission denied.");
 	} else {
 	    *(int *)sbuf2 = dest;
@@ -7601,7 +7601,7 @@ folder_plist_function(dbref player, char *buf1, char *buff, char *bufcx)
       p1 = atr_get(dest, A_LSHARE, &owner, &flags);
       if ((*p1 == '\0') && (!Wizard(player) || (!Immortal(player) && !Controls(player, dest)))) {
           safe_str("#-1 PERMISSION DENIED", buff, &bufcx);
-      } else if (!could_doit(player, dest, A_LSHARE,1) &&
+      } else if (!could_doit(player, dest, A_LSHARE,1,0) &&
                    (!Wizard(player) || (!Immortal(player) && !Controls(player, dest)))) {
           safe_str("#-1 PERMISSION DENIED", buff, &bufcx);
       } else {
@@ -7903,7 +7903,7 @@ folder_plist(dbref player, char *buf1)
 	p1 = atr_get(dest, A_LSHARE, &owner, &flags);
 	if ((*p1 == '\0') && (!Wizard(player) || !Controls(player, dest))) {
 	    notify_quiet(player, "MAIL ERROR: Permission denied.");
-	} else if (!could_doit(player, dest, A_LSHARE,1) && (!Wizard(player) || !Controls(player, dest))) {
+	} else if (!could_doit(player, dest, A_LSHARE,1,0) && (!Wizard(player) || !Controls(player, dest))) {
 	    notify_quiet(player, "MAIL ERROR: Permission denied.");
 	} else {
 	    folder_list(dest, player, 0);

@@ -323,7 +323,7 @@ extern int	FDECL(member, (dbref, dbref));
 extern int	FDECL(is_integer, (char *));
 extern int	FDECL(is_number, (char *));
 extern int	FDECL(is_rhointeger, (char *));
-extern int	FDECL(could_doit, (dbref, dbref, int, int));
+extern int	FDECL(could_doit, (dbref, dbref, int, int, int));
 extern int	FDECL(can_see, (dbref, dbref, int));
 extern int	FDECL(can_see2, (dbref, dbref, int));
 extern void	FDECL(add_quota, (dbref, int, int));
@@ -400,9 +400,9 @@ extern char *	FDECL(find_cluster, (dbref, dbref, int));
 extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
 
 /* From boolexp.c */
-extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *));
+extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *, int));
 extern BOOLEXP *FDECL(parse_boolexp, (dbref,const char *, int));
-extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int));
+extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int, int));
 
 /* From functions.c */
 #ifndef SINGLETHREAD
@@ -952,6 +952,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	TOAD_UNIQUE	2	/* Unique Rename Object */
 #define TOGGLE_CHECK	1
 #define TOGGLE_CLEAR	2	/* Clear the toggle list */
+#define TOR_LIST	1	/* List the TOR information */
+#define TOR_CACHE	2	/* Recache the TOR information */
 #define	TRIG_QUIET	1	/* Don't display 'Triggered.' message. */
 #define TRIG_PROGRAM    2       /* Trigger is actually a @program */
 #define TRIG_COMMAND    4       /* Can Trigger $commands */

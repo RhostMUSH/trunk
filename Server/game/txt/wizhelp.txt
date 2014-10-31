@@ -435,8 +435,8 @@
   @poor           @power          @progreset     @protect        @ps           
   @purge          @quota          @readcache     @reboot         @recover      
   @reclist        @remote         @rwho          @site           @shutdown     
-  @snapshot       @thaw           @timewarp      @toad           @turtle       
-  @wall           +players
+  @snapshot       @thaw           @timewarp      @toad           @tor
+  @turtle         @wall           +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -457,7 +457,34 @@
   HELP SETUP         PLUSHELP SETUP     HUH SETUP          ELSEFILE SETUP
   REALITY LEVELS     MAIL ALIASES       HOOK SETUP         FUNCTION OVERLOADING
   FLAG ALIAS         ATTRIB CONTLOCKS   GLOBAL INHERITANCE ATTRIB FORMATTING
-  SIGNALS
+  SIGNALS            TOR
+
+& TOR 
+  RhostMUSH has some fairly advanced features for proxy and masquarding
+  to get by bans or hiding identities.  First, we have @blacklist which
+  allows you to load in a static list of current TOR exit points, hidemyass
+  proxy points, and all current public proxies from several sites.
+  
+  When that isn't good enough, as TOR tends to be highly dynamic, you can
+  turn on advanced dynamic TOR checking.  This will in effect check every
+  connection for a TOR exit point and if one matches will deny access
+  to your mush.  Keep in mind, this is slightly expensive as it requires
+  an additional DNS lookup for every single site that connects.
+  
+  To enable TOR protection you need to do three things.
+    1.  tor_paranoid must be enabled.   From the mush you may type
+        @admin tor_paranoid=1 or from the netrhost.conf you may type
+        tor_paranoid 1
+    2.  tor_localsite must be defined as the external IP or hostname
+        that you use to connect to your mush.  Either is fine.  You
+        can use @admin tor_localsite=<site> online or from the conf file
+        tor_localsite <site>.  You may specify more than one IP or site
+        if there are several IPs that are used to connect to your mush.
+    3.  @tor/cache must be issued each and every time you change your
+        tor_localsite.  This caches the site information to avoid a 
+        lookup and breakdown for every connection that occurs.
+  
+  See Also: @tor, tor_paranoid, tor_localsite, @blacklist
 
 & signals
   Topic: SIGNALS
@@ -4195,6 +4222,20 @@ SNOOPY                                                           God     Wiz
   
   See Also: @boot, @chownall, @destroy.
 
+& @tor
+  Command: @tor[/<switch>]
+  
+  This command will display or re-cache the local host site information for
+  use with dynamic live TOR protection.  If you change the host site 
+  you will need to recache the entry for TOR to correctly recognize the
+  change that is applied.
+  
+  The following switches exist:
+    /list  -- Default.  Lists the current TOR parameters.
+    /cache -- re-cache the host name data into TOR data.
+  
+  See Also: tor_paranoid, tor_localhost
+  
 & @wall
   Command: @wall[/<switches>] <message>
   With no switches, shouts <message> to every connected player or to every
@@ -4967,16 +5008,16 @@ SNOOPY                                                           God     Wiz
   thing_attr_default        thing_flags               thing_parent            
   thing_quota               thing_toggles             timeslice               
   toggle_access_set         toggle_access_see         toggle_access_unset
-  trace_output_limit        trace_topdown             trust_site              
-  uncompress_program        unowned_safe              user_attr_flags         
-  validate_host             vattr_limit_checkwiz      vlimit                  
-  wait_cost                 wall_cost                 whereis_notify          
-  wizmax_dest_limit         wizmax_vattr_limit        who_default             
-  who_unfindable            who_showwiz               who_wizlevel            
-  who_whowiztype            whohost_size              wiz_override            
-  wiz_uselock               wizard_help_file          wizard_help_index       
-  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
-  zone_parents
+  tor_localhost             tor_paranoid              trace_output_limit      
+  trace_topdown             trust_site                uncompress_program      
+  unowned_safe              user_attr_flags           validate_host           
+  vattr_limit_checkwiz      vlimit                    wait_cost               
+  wall_cost                 whereis_notify            wizmax_dest_limit       
+  wizmax_vattr_limit        who_default               who_unfindable          
+  who_showwiz               who_wizlevel              who_whowiztype          
+  whohost_size              wiz_override              wiz_uselock             
+  wizard_help_file          wizard_help_index         wizard_motd_file        
+  wizard_motd_message       wizard_queue_limit        zone_parents
 
 { 'wizhelp config parameters7' for more (reality levels) }
 
@@ -8367,6 +8408,28 @@ SNOOPY                                                           God     Wiz
   similiar to issuing @toggledef/see on the specified toggle.
   
   See Also: toggle_access_unset, toggle_access_set, @toggledef
+
+& tor_localhost
+  Config parameter: tor_localhost <host1> [<host2>... <hostX>]  Default: null
+  
+  This specifies the hostname of the server HOSTING THE MUSH.  This is
+  required to handle NAT and firewall masquarding and redirection.  This 
+  should be the hostname (or IP) that you are using to get to your mush 
+  FROM THE OUTSIDE.  This is required to allow dynamic TOR protection.
+  
+  See Also: tor_paranoid, @tor
+
+& tor_paranoid
+  Config parameter: tor_paranoid <boolean>    Default: off (0)
+  
+  This tells the mush that you wish to use paranoid lookups on every single
+  connection to the mush to validate a non-TOR connection.  This will
+  obviously have some additional overhead and cause minor amounts
+  of lag on each player's connection.  You should only need to use
+  this in a situation where you have some total twinks attempting
+  to harass, hack, or bypass bans.
+  
+  See Also: tor_localhost, @tor
 
 & trace_output_limit
   Config parameter: trace_output_limit <amount>.  Default: 200

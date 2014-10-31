@@ -4836,8 +4836,11 @@ FUNCTION(fun_lockcheck)
 {
    struct boolexp *okey;
    char *s_instr, *s_instrptr;
-   int len;
+   int len, i_locktype;
    dbref victim;
+
+   if (!fn_range_check("LOCKCHECK", nfargs, 2, 3, buff, bufcx)) 
+      return;
 
    if ( !fargs[0] || !*fargs[0] ) {
       safe_str("#-1 UNDEFINED KEY", buff, bufcx);
@@ -4846,6 +4849,12 @@ FUNCTION(fun_lockcheck)
    if ( !fargs[1] || !*fargs[1] ) {
       safe_str("#-1 UNDEFINED TARGET", buff, bufcx);
       return;
+   }
+   i_locktype = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_locktype = atoi(fargs[2]);
+      if ( (i_locktype < 0) || (i_locktype > 2) )
+         i_locktype = 0;
    }
    victim = match_thing(player, fargs[1]);
    if (!Good_chk(victim)) {
@@ -4862,7 +4871,7 @@ FUNCTION(fun_lockcheck)
       notify_quiet(player, "Warning: UNDEFINED KEY");
       ival(buff, bufcx, 0);
    } else {
-      ival(buff, bufcx, eval_boolexp(victim, victim, victim, okey));
+      ival(buff, bufcx, eval_boolexp(victim, victim, victim, okey, i_locktype));
    }
    free_boolexp(okey);
    free_lbuf(s_instr);
@@ -11940,7 +11949,7 @@ FUNCTION(fun_zfuneval)
        return;
     }
     if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-        !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+        !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
        safe_str("#-1 NO SUCH USER FUNCTION", buff, bufcx);
        free_lbuf(atext);
        free_lbuf(lbuf);
@@ -12598,7 +12607,7 @@ FUNCTION(fun_zfun)
        return;
     }
     if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-        !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+        !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
        safe_str("#-1 NO SUCH USER FUNCTION", buff, bufcx);
        free_lbuf(atext);
        return;
@@ -12694,7 +12703,7 @@ FUNCTION(fun_zfun2)
        return;
     }
     if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-        !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+        !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
        safe_str("#-1 NO SUCH USER FUNCTION", buff, bufcx);
        free_lbuf(atext);
        return;
@@ -12790,7 +12799,7 @@ FUNCTION(fun_zfunlocal)
        return;
     }
     if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-        !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+        !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
        safe_str("#-1 NO SUCH USER FUNCTION", buff, bufcx);
        free_lbuf(atext);
        return;
@@ -12887,7 +12896,7 @@ FUNCTION(fun_zfunldefault)
       } else if (!*atext) {
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       } else if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-                 !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+                 !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       } else {
          pass = atext;
@@ -13012,7 +13021,7 @@ FUNCTION(fun_zfun2ldefault)
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       }
       else if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-               !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+               !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       }
       else {
@@ -13137,7 +13146,7 @@ FUNCTION(fun_zfundefault)
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       }
       else if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-               !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+               !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       }
       else {
@@ -13411,7 +13420,7 @@ FUNCTION(fun_zfun2default)
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       }
       else if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-               !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+               !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
          pass = exec(player, cause, caller, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       }
       else {
@@ -13904,7 +13913,7 @@ FUNCTION(fun_zfun2local)
        return;
     }
     if (!check_read_perms2(player, thing, ap, aowner, aflags) &&
-        !could_doit(Owner(player), thing, A_LZONEWIZ, 0) ) {
+        !could_doit(Owner(player), thing, A_LZONEWIZ, 0, 0) ) {
        safe_str("#-1 NO SUCH USER FUNCTION", buff, bufcx);
        free_lbuf(atext);
        return;
@@ -14835,7 +14844,7 @@ FUNCTION(fun_exit)
         key = 0;
         if (Examinable(player, it))
             key |= VE_LOC_XAM;
-        if (Dark(it) && !(!SCloak(it) && could_doit(player, it, A_LDARK, 0)))
+        if (Dark(it) && !(!SCloak(it) && could_doit(player, it, A_LDARK, 0, 0)))
             key |= VE_LOC_DARK;
         DOLIST(exit, Exits(it)) {
             if (exit_visible(exit, player, key)) {
@@ -15328,7 +15337,7 @@ FUNCTION(fun_sees)
           } else {
              if (Examinable(it, i_loc))
                  key |= VE_LOC_XAM;
-             if (Dark(i_loc) && !(!Cloak(i_loc) && could_doit( it, i_loc, A_LDARK, 0 )))
+             if (Dark(i_loc) && !(!Cloak(i_loc) && could_doit( it, i_loc, A_LDARK, 0, 0)))
                  key |= VE_LOC_DARK;
              if (exit_visible(thingexit, it, key)) {
                 if ( !(Flags3(thingexit) & PRIVATE) || (where_is(thingexit) == it) ) {
@@ -15350,7 +15359,7 @@ FUNCTION(fun_sees)
            return;
        }
        can_see_loc = (!Dark(Location(thing)) || (Dark(Location(thing)) &&
-                       could_doit(it, Location(thing), A_LDARK, 0)) ||
+                       could_doit(it, Location(thing), A_LDARK, 0, 0)) ||
                       (mudconf.see_own_dark && MyopicExam(player, Location(thing))));
        if ((can_see(it, thing, can_see_loc) && mudconf.player_dark) ||
            (can_see2(it, thing, can_see_loc) && !mudconf.player_dark)) {
@@ -18025,9 +18034,9 @@ FUNCTION(fun_lexits)
        key = 0;
        if (Examinable(player, parent))
            key |= VE_LOC_XAM;
-       if (Dark(parent) && !(!Cloak(parent) && could_doit( player, parent, A_LDARK, 0 )))
+       if (Dark(parent) && !(!Cloak(parent) && could_doit( player, parent, A_LDARK, 0, 0)))
            key |= VE_LOC_DARK;
-       if (Dark(it) && !(!Cloak(it) && could_doit( player, it, A_LDARK, 0 )))
+       if (Dark(it) && !(!Cloak(it) && could_doit( player, it, A_LDARK, 0 ,0)))
            key |= VE_BASE_DARK;
        DOLIST(thing, Exits(parent)) {
            if (exit_visible(thing, player, key)) {
@@ -19263,13 +19272,16 @@ FUNCTION(fun_lock)
 
 FUNCTION(fun_elock)
 {
-    dbref it, victim, aowner;
+    dbref it, victim, aowner, i_locktype;
     int aflags;
     char *tbuf;
     ATTR *attr;
     struct boolexp *bool;
 
     /* Parse lock supplier into obj + lock */
+
+    if (!fn_range_check("ELOCK", nfargs, 2, 3, buff, bufcx))
+        return;
 
     if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx))
         return;
@@ -19280,6 +19292,12 @@ FUNCTION(fun_elock)
         return;
     }
     /* Get the victim and ensure we can do it */
+    i_locktype = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_locktype = atoi(fargs[2]);
+       if ( (i_locktype < 0) || (i_locktype > 2) )
+          i_locktype = 0;
+    }
 
     victim = match_thing(player, fargs[1]);
     if (!Good_obj(victim)) {
@@ -19292,8 +19310,7 @@ FUNCTION(fun_elock)
         if ((attr->number == A_LOCK) ||
             Read_attr(player, it, attr, aowner, aflags, 0)) {
             bool = parse_boolexp(player, tbuf, 1);
-            ival(buff, bufcx, eval_boolexp(victim, it, it,
-                     bool));
+            ival(buff, bufcx, eval_boolexp(victim, it, it, bool, i_locktype));
             free_boolexp(bool);
         } else {
             safe_str("0", buff, bufcx);
@@ -29289,7 +29306,7 @@ FUN flist[] =
     {"ELEMENTS", fun_elements, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTSMUX", fun_elementsmux, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELIST", fun_elist, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
-    {"ELOCK", fun_elock, 2, 0, CA_PUBLIC, 0},
+    {"ELOCK", fun_elock, 2, FN_VARARGS, CA_PUBLIC, 0},
 #ifdef USE_SIDEEFFECT
     {"EMIT", fun_emit, 1, 0, CA_PUBLIC, 0},
 #endif
@@ -29436,7 +29453,7 @@ FUN flist[] =
     {"LOCK", fun_lock, 1, 0, CA_PUBLIC, 0},
 #endif
     {"LOCKDECODE", fun_lockdecode, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"LOCKCHECK", fun_lockcheck, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LOCKCHECK", fun_lockcheck, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOCKENCODE", fun_lockencode, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LOG", fun_log, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOGTOFILE", fun_logtofile, 2, 0, CA_IMMORTAL, 0},
