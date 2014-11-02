@@ -26920,3 +26920,4 @@ Bug Fixes
 * wrapcolumns() didn't handle CR/LF correctly for potatoe clients (only) [ASH]
 * flag_name could crash the mush if fed invalid arg in the .conf file [ASH]
 * small chance of crash with player undefined for @reboot/silent [ASH]
+* crash bug in tel() due to a typo fixed [ASH]

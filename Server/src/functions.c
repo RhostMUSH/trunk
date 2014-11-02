@@ -27872,7 +27872,6 @@ FUNCTION(fun_tel)
       notify(player, "Permission denied.");
       return;
    }
-   nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ' ');
 
    /* Lensy: Add the quiet switch to tel() */
    if (!fn_range_check("TEL", nfargs, 2, 3, buff, bufcx))
