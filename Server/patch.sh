@@ -44,10 +44,13 @@ if [ ${type} -eq 0 ]
 then
    bunzip -cd src.tbz|tar -xvf -
 else
-   cp rhost_tmp/Server/src/*.c src
-   cp rhost_tmp/Server/hdrs/*.h hdrs
-   cp rhost_tmp/Server/game/txt/help.txt game/txt/help.txt
-   cp rhost_tmp/Server/game/txt/wizhelp.txt game/txt/wizhelp.txt
+   mv -f src/local.c src/local.c.backup
+   cp -f rhost_tmp/Server/src/*.c src
+   cp -f src/local.c.backup src/local.c
+   cp -f rhost_tmp/Server/hdrs/*.h hdrs
+   cp -f rhost_tmp/Server/bin/asksource* bin
+   cp -f rhost_tmp/Server/game/txt/help.txt game/txt/help.txt
+   cp -f rhost_tmp/Server/game/txt/wizhelp.txt game/txt/wizhelp.txt
    rm -rf ./rhost_tmp
 fi
 cd src
