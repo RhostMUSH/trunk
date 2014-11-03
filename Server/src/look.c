@@ -704,23 +704,30 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 {
     time_t endtme;
     dbref aowner, othing;
-    int ca, aflags, go2, go3, timechk;
+    int ca, aflags, go2, go3, timechk, i_chk, i_chkflag;
     ATTR *attr;
-    char *as, *buf, *bp, *retbuff, *go1, *buf2;
+    char *as, *buf, *bp, *retbuff, *go1, *buf2, *buf3;
     char tbuf[80], tbuf2[80];
 
     retbuff = alloc_lbuf("grep_int");
     othing = thing;
     go1 = strpbrk(watr, "?\\*");
+    i_chkflag = 0;
     if (strpbrk(wcheck, "?\\*")) {
 	go3 = 0;
 	buf2 = wcheck;
     } else {
 	buf2 = alloc_lbuf("grep_int2");
 	bp = buf2;
-	safe_chr('*', buf2, &bp);
-	safe_str(wcheck, buf2, &bp);
-	safe_chr('*', buf2, &bp);
+        if ( i_key & 2 ) {
+	   safe_str(wcheck, buf2, &bp);
+           i_key &= ~2;
+           i_chkflag = 1;
+        } else {
+  	   safe_chr('*', buf2, &bp);
+	   safe_str(wcheck, buf2, &bp);
+  	   safe_chr('*', buf2, &bp);
+        }
 	*bp = '\0';
 	go3 = 1;
     }
@@ -750,8 +757,35 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
                                     ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))) &&
   	         (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
   		 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
-
-		if (quick_wild(buf2, buf)) {
+                i_chk = 0;
+                i_chk = quick_wild(buf2, buf);
+                if ( i_chkflag && !i_chk ) {
+                   buf3 = alloc_lbuf("enhanced_grep");
+                   sprintf(buf3, "* %s *", buf2);
+                   i_chk = quick_wild(buf3, buf);
+                   if ( !i_chk ) {
+                      sprintf(buf3, "%s *", buf2);
+                      i_chk = quick_wild(buf3, buf);
+                      if ( !i_chk ) {
+                         sprintf(buf3, "* %s", buf2);
+                         i_chk = quick_wild(buf3, buf);
+                      }
+                   }
+                   if ( !i_chk ) {
+                      sprintf(buf3, "*\t%s\t*", buf2);
+                      i_chk = quick_wild(buf3, buf);
+                      if ( !i_chk ) {
+                         sprintf(buf3, "%s\t*", buf2);
+                         i_chk = quick_wild(buf3, buf);
+                         if ( !i_chk ) {
+                            sprintf(buf3, "*\t%s", buf2);
+                            i_chk = quick_wild(buf3, buf);
+                         }
+                      }
+                   }
+                   free_lbuf(buf3);
+                }
+		if (i_chk) {
                     if ( i_key ) {
                        sprintf(tbuf2, "#%d/", othing);
                        safe_str(tbuf2, retbuff, &bp);

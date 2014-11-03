@@ -12615,18 +12615,23 @@ See Also: timefmt()
   See also: match(), matchall(), grab(), regmatch()
 
 & GREP()
-  Function: grep(<object>, <attribute(s)>, <pattern>)
+  Function: grep(<object>, <attribute(s)>, <pattern> [,<key>])
    
   This returns a list of any matching attribute that matches the
   <attribute(s)> that contain <pattern>.  The <attribute> may be wildcarded
   with a '*' or a '?' for multiple character matches and single character
   matches respectively.  In addition, the pattern may also be wildcarded.
    
+  If <key> is specified as '1', it will no longer assume a wildcard match
+  unless explicitly given.
+   
   Examples:
     > @va me=This is a test
     > @vb me=This is another test.
     > @vc me=Test Test Test whisooo!
     > say grep(me,v*,is)
+    You say "VA VB VC"
+    > say grep(me,v*,is,1)
     You say "VA VB"
     > say grep(me,v*,*is*)
     You say "VA VB VC"
@@ -12638,24 +12643,30 @@ See Also: timefmt()
   See Also: pgrep(), regrep(), regrepi(), grab(), match(), lattr(), @grep
   
 & PGREP()
-  Function: pgrep(<object>, <attribute(s)>, <pattern> [,<type> [,<delim>]])
+  Function: pgrep(<object>, <attr(s)>, <pattern> [,<type> [,<delim> [,<key>]]])
   
   This function behaves just like the normal grep() function except it 
   transverses all parents for the grep that returns a list of any matching 
-  attribute that matches the <attribute(s)> that contain <pattern>.  The 
-  <attribute> may be wildcarded with a '*' or a '?' for multiple character 
-  matches and single character matches respectively.  In addition, the 
-  pattern may also be wildcarded.  You may specify an optional output
-  delimiter.  The valid types are:
+  attribute that matches the <attr(s)> that contain <pattern>.  The <attr> 
+  may be wildcarded with a '*' or a '?' for multiple character matches and 
+  single character matches respectively.  In addition, the pattern may also 
+  be wildcarded.  You may specify an optional output delimiter.  
+  The valid types are:
       0 - show just matched attributes (default)
       1 - show the dbref# then matching attributes after it in sets
       2 - show the attributes in a dbref#/attribute pattern.
-   
+  
+  By default, grep assumes the pattern is always wildcarded.  You may specify
+  the key of '1' to disable assumped wildcarding and enforce literal wildcard
+  placement.
+    
   Examples:
     > @va me=This is a test
     > @vb me=This is another test.
     > @vc me=Test Test Test whisooo!
     > say pgrep(me,v*,is)
+    You say "VA VB VC"
+    > say pgrep(me,v*,is,,,1)
     You say "VA VB"
     > say pgrep(me,v*,*is*)
     You say "VA VB VC"
@@ -20585,7 +20596,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
             cluster_flags(), cluster_hasflag(), cluster_add()
 
 & CLUSTER_GREP()
-  Function: cluster_grep(<object>, <attribute(s)>, <pattern> [,<type>])
+  Function: cluster_grep(<object>, <attribute(s)>, <pattern> [,<type> [,<key>]])
    
   This returns a list of any matching attribute in a cluster that matches the
   <attribute(s)> that contain <pattern>.  The <attribute> may be wildcarded
@@ -20595,12 +20606,17 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     0 - show attributes matching pattern (default)
     1 - show the dbref# then all matching attributes after it
     2 - show the attributes in the form dbref#/pattern
+  
+  You may specify 'key' to '1' to remove assumed wildcard matches and require
+  literal wildcard placements.
    
   Examples:
     > @va cluster#1=This is a test
     > @vb cluster#2=This is another test.
     > @vc cluster#3=Test Test Test whisooo!
     > say cluster_grep(cluster#1,v*,is)
+    You say "VA VB VC"
+    > say cluster_grep(cluster#1,v*,is,,1)
     You say "VA VB"
     > say cluster_grep(cluster#2,v*,*is*)
     You say "VA VB VC"
@@ -26895,6 +26911,8 @@ Changes
 * uselock evaluation locks pass '0' for default, '1' for command and
   '2' for listens for @lock/use only [ASH]
 * @reboot/silent is more verbose to the player initiating it [ASH]
+* The help entry was wrong for grep() and associated functions with
+  it handling non-wild args.  This is now allowed with optional arg [ASH]
   
 Bug Fixes
 ---------

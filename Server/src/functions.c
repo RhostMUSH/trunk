@@ -5663,6 +5663,10 @@ FUNCTION(fun_grep)
 {
     dbref object;
     char *ret;
+    int i_key;
+
+    if (!fn_range_check("GREP", nfargs, 3, 4, buff, bufcx))
+       return;
 
     init_match(player, fargs[0], NOTYPE);
     match_everything(MAT_EXIT_PARENTS);
@@ -5672,7 +5676,14 @@ FUNCTION(fun_grep)
     else if (!Examinable(player, object))
        safe_str("#-1", buff, bufcx);
     else {
-       ret = grep_internal(player, object, fargs[2], fargs[1], 0);
+       if ( (nfargs > 3) && *fargs[3] ) {
+          i_key = atoi(fargs[3]);
+          if ( i_key ) 
+             i_key = 2;
+       } else {
+          i_key = 0;
+       }
+       ret = grep_internal(player, object, fargs[2], fargs[1], i_key);
        safe_str(ret, buff, bufcx);
        free_lbuf(ret);
     }
@@ -5681,10 +5692,10 @@ FUNCTION(fun_grep)
 FUNCTION(fun_pgrep)
 {
     dbref object, parent;
-    int i_first, loop, i_showdbref;
+    int i_first, loop, i_showdbref, i_key;
     char *ret, *s_tmpbuf, *sep;
 
-    if (!fn_range_check("PGREP", nfargs, 3, 5, buff, bufcx))
+    if (!fn_range_check("PGREP", nfargs, 3, 6, buff, bufcx))
        return;
 
     if ( (nfargs > 3) && *fargs[3] ) {
@@ -5701,6 +5712,13 @@ FUNCTION(fun_pgrep)
     } else {
        sep = NULL;
     }
+    if ( (nfargs > 5) && *fargs[5] ) {
+       i_key = atoi(fargs[5]);
+       if ( i_key )
+          i_key = 2;
+    } else {
+       i_key = 0;
+    }
     init_match(player, fargs[0], NOTYPE);
     match_everything(MAT_EXIT_PARENTS);
     object = noisy_match_result();
@@ -5712,7 +5730,7 @@ FUNCTION(fun_pgrep)
        i_first = 0;
        ITER_PARENTS(object, parent, loop) {
           if ( !mudstate.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
-             ret = grep_internal(player, parent, fargs[2], fargs[1], ((i_showdbref == 2) ? 1 : 0) );
+             ret = grep_internal(player, parent, fargs[2], fargs[1], (i_key | ((i_showdbref == 2) ? 1 : 0)) );
              if ( *ret ) {
                 if ( i_showdbref == 1 ) {
                    if ( i_first )
@@ -28508,17 +28526,21 @@ FUNCTION(fun_cluster_attrcnt)
 FUNCTION(fun_cluster_grep)
 {
    dbref object, parent, aowner;
-   int i_first, aflags, i_type;
+   int i_first, aflags, i_type, i_key;
    char *ret, *s_text, *s_strtok, *s_strtokptr, *s_tmpbuff;
    ATTR *attr;
 
-   if (!fn_range_check("CLUSTER_GREP", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("CLUSTER_GREP", nfargs, 3, 5, buff, bufcx))
       return;
 
-   i_type = 0;
+   i_key = i_type = 0;
    if ( (nfargs > 3) && *fargs[3] )
       i_type = atoi(fargs[3]);
-
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_key = atoi(fargs[4]);
+      if ( i_key )
+         i_key = 2;
+   }
    object = match_thing(player, fargs[0]);
    if ( !Good_chk(object) || !Cluster(object) )
       safe_str("#-1 NO SUCH CLUSTER", buff, bufcx);
@@ -28539,7 +28561,7 @@ FUNCTION(fun_cluster_grep)
             while ( s_strtok ) {
                parent = match_thing(player, s_strtok);
                if ( !mudstate.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
-                  ret = grep_internal(player, parent, fargs[2], fargs[1], ((i_type == 2) ? 1 : 0) );
+                  ret = grep_internal(player, parent, fargs[2], fargs[1], (i_key | ((i_type == 2) ? 1 : 0)) );
                   if ( *ret ) {
                      if ( i_first )
                         safe_chr(' ', buff, bufcx);
@@ -29442,7 +29464,7 @@ FUN flist[] =
     {"GLOBALROOM", fun_globalroom, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GRABALL", fun_graball, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"GREP", fun_grep, 3, 0, CA_PUBLIC, CA_NO_CODE},
+    {"GREP", fun_grep, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GT", fun_gt, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"GTE", fun_gte, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"GUILD", fun_guild, 1, 0, CA_PUBLIC, CA_NO_CODE},
