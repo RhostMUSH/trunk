@@ -52,6 +52,7 @@ char *rindex(const char *, int);
 #include "misc.h"
 #include "alloc.h"
 #include "patchlevel.h"
+#include "mail.h"
 
 #define PAGE_VAL ((LBUF_SIZE - (LBUF_SIZE/20)) / SBUF_SIZE)
 #define INCLUDE_ASCII_TABLE
@@ -1318,9 +1319,9 @@ extern int decode_base64(const char *, int, char *, char **, int);
 extern int encode_base64(const char *, int, char *, char **);
 extern void mail_quota(dbref, char *, int, int *, int *, int *, int *, int *, int *);
 extern CMDENT * lookup_command(char *);
+extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
 
-
-/* pom.c definitions */
+/* pom.c nefinitions */
 #define PI_MUSH        3.14159265358
 #define EPOCH_MUSH     85
 #define EPSILONg  279.611371    /* solar ecliptic long at EPOCH */
@@ -4220,18 +4221,30 @@ countwords(char *str, char sep)
 
 FUNCTION(fun_art)
 {
+    int i_key;
+
+    if (!fn_range_check("ART", nfargs, 1, 2, buff, bufcx))
+       return;
+
+    i_key = 0;
+    if ( (nfargs > 1) && *fargs[1] )
+       i_key = atoi(fargs[1]);
+
     switch (tolower(*strip_all_special(fargs[0]))) {
-    case 'a':
-    case 'e':
-    case 'i':
-    case 'o':
-    case 'u':
-  safe_str("an ", buff, bufcx);
-  break;
-    default:
-  safe_str("a ", buff, bufcx);
+       case 'a':
+       case 'e':
+       case 'i':
+       case 'o':
+       case 'u':
+           safe_str("an", buff, bufcx);
+           break;
+       default:
+           safe_chr('a', buff, bufcx);
     }
-    safe_str(fargs[0], buff, bufcx);
+    if ( i_key == 0 ) {
+       safe_chr(' ', buff, bufcx);
+       safe_str(fargs[0], buff, bufcx);
+    }
 }
 
 FUNCTION(fun_textfile)
@@ -27681,6 +27694,92 @@ FUNCTION(fun_emit)
    do_say(player, cause, SAY_EMIT, fargs[0]);
 }
 
+FUNCTION(fun_mailread)
+{
+   dbref target;
+   int i_key;
+   CMDENT *cmdp;
+
+   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate.command_htab);
+   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
+         cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   if (!fn_range_check("MAILREAD", nfargs, 3, 4, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] ) {
+      safe_str("#-1 INVALID ARGUMENTS TO MAILREAD", buff, bufcx);
+      return;
+   }
+   target = lookup_player(player, fargs[0], 1);
+   if ( !Good_chk(target) || !Controls(player, target) ) {
+      safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+
+   i_key = 0;
+   if ( (nfargs > 3) && *fargs[3] )
+      i_key = atoi(fargs[3]);
+
+   if ( i_key )
+      i_key = 1;
+
+   mail_read_func(target, fargs[1], player, fargs[2], i_key, buff, bufcx);
+}
+
+FUNCTION(fun_mailsend)
+{
+   CMDENT *cmdp;
+   char *s_body, *s_bodyptr;
+   int i_key;
+
+   if ( !(mudconf.sideeffects & SIDE_MAIL) ) {
+      notify(player, "#-1 FUNCTION DISABLED");
+      return;
+   }
+   if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx) {
+      notify(player, "Permission denied.");
+      return;
+   }
+   mudstate.sidefx_currcalls++;
+   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate.command_htab);
+   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
+         cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   if (!fn_range_check("MAILSEND", nfargs, 3, 4, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] ) {
+      safe_str("#-1 EMPTY PLAYER LIST", buff, bufcx);
+      return;
+   }
+   if ( !*fargs[2] ) {
+      safe_str("#-1 EMPTY MESSAGE BODY", buff, bufcx);
+      return;
+   }
+   i_key = 0;
+   if ( (nfargs > 3) && *fargs[3] ) {
+      i_key = atoi(fargs[3]);
+      if ( i_key )
+         i_key = M_ANON;
+   }
+   i_key |= M_SEND;
+   s_bodyptr = s_body = alloc_lbuf("fun_mailsend");
+   if ( *fargs[1] ) {
+     safe_str(fargs[1], s_body, &s_bodyptr);
+     safe_str("//", s_body, &s_bodyptr);
+   }
+   safe_str(fargs[2], s_body, &s_bodyptr);
+   do_mail(player, cause, i_key, fargs[0], s_body);
+   free_lbuf(s_body);
+}
+
 FUNCTION(fun_clone)
 {
    CMDENT *cmdp;
@@ -29173,7 +29272,7 @@ FUN flist[] =
     {"ANSI", fun_ansi, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
     {"ARRAY", fun_array, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"ART", fun_art, 1, 0, CA_PUBLIC, 0},
+    {"ART", fun_art, 1, FN_VARARGS, CA_PUBLIC, 0},
     {"ASC", fun_asc, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ASIN", fun_asin, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN", fun_atan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -29473,6 +29572,10 @@ FUN flist[] =
     {"LZONE", fun_lzone, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MAILALIAS", fun_mailalias, 0, FN_VARARGS, CA_WIZARD, 0},
     {"MAILSIZE", fun_mailsize, 2, 0, CA_WIZARD, 0},
+    {"MAILREAD", fun_mailread, 3, FN_VARARGS, CA_WIZARD, CA_NO_CODE},
+#ifdef USE_SIDEEFFECT
+    {"MAILSEND", fun_mailsend, 3, FN_VARARGS, CA_WIZARD, CA_NO_CODE},
+#endif
     {"MAILQUICK", fun_mailquick, 0, FN_VARARGS, CA_WIZARD, 0},
     {"MAILQUOTA", fun_mailquota, 1, FN_VARARGS, CA_WIZARD, 0},
     {"MAILSTATUS", fun_mailstatus, 1, FN_VARARGS, CA_WIZARD, 0},
