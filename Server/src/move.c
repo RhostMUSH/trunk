@@ -865,21 +865,24 @@ do_get(dbref player, dbref cause, int key, char *what)
 	if (thing == player) {
 	    notify(player, "You cannot get yourself!");
 	} else if (!could_doit(player, playerloc, A_LGETFROM, 1, 0)) {
-		notify(player, "You can not get anything at your location.");
+            failmsg = (char *) "You can not get anything at your location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, playerloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
         } else if (!could_doit(player, thingloc, A_LGETFROM, 1, 0)) {
-		notify(player, "You can not get anything from that location.");
+            failmsg = (char *) "You can not get anything from that location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, thingloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
 	} else if (could_doit(player, thing, A_LOCK, 1, 0)) {
 	    if (thingloc != Location(player)) {
-		notify(thingloc,
-		       unsafe_tprintf("%s was taken from you.",
-			       Name(thing)));
+		notify(thingloc, unsafe_tprintf("%s was taken from you.", Name(thing)));
 	    }
 	    move_via_generic(thing, player, player, 0);
 	    notify(thing, "Taken.");
 	    oattr = quiet ? 0 : A_OSUCC;
 	    aattr = quiet ? 0 : A_ASUCC;
-	    did_it(player, thing, A_SUCC, "Taken.", oattr, NULL,
-		   aattr, (char **) NULL, 0);
+	    did_it(player, thing, A_SUCC, "Taken.", oattr, NULL, aattr, (char **) NULL, 0);
 	} else {
 	    oattr = quiet ? 0 : A_OFAIL;
 	    aattr = quiet ? 0 : A_AFAIL;
@@ -887,9 +890,7 @@ do_get(dbref player, dbref cause, int key, char *what)
 		failmsg = (char *) "You can't take that from there.";
 	    else
 		failmsg = (char *) "You can't pick that up.";
-	    did_it(player, thing,
-		   A_FAIL, failmsg,
-		   oattr, NULL, aattr, (char **) NULL, 0);
+	    did_it(player, thing, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
 	}
 	break;
     case TYPE_EXIT:
@@ -911,10 +912,16 @@ do_get(dbref player, dbref cause, int key, char *what)
 	    notify(player, "Permission denied.");
 	    break;
 	} else if (!could_doit(player, playerloc, A_LGETFROM, 1, 0)) {
-	    notify(player, "You can not get anything at your location.");
+            failmsg = (char *) "You can not get anything at your location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, playerloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
 	    break;
         } else if (!could_doit(player, thingloc, A_LGETFROM, 1, 0)) {
-	    notify(player, "You can not get anything from that location.");
+            failmsg = (char *) "You can not get anything from that location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, thingloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
 	    break;
         }
 	/* Do it */

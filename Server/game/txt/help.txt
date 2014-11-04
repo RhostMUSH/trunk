@@ -26913,6 +26913,7 @@ Changes
 * @reboot/silent is more verbose to the player initiating it [ASH]
 * The help entry was wrong for grep() and associated functions with
   it handling non-wild args.  This is now allowed with optional arg [ASH]
+* getfrom lock now properly handles @fail/@ofail/@afail messages [ASH]
   
 Bug Fixes
 ---------
