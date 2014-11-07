@@ -7432,6 +7432,8 @@
   switch (ROYALTY and SUPER-ROYALTY only) will go through the NO_WALLS
   flag.
   
+  This flag will also muffle @dump messages.
+  
   See Also: NO_YELL, @wall
   
 & CLOAK
@@ -26914,6 +26916,7 @@ Changes
 * The help entry was wrong for grep() and associated functions with
   it handling non-wild args.  This is now allowed with optional arg [ASH]
 * getfrom lock now properly handles @fail/@ofail/@afail messages [ASH]
+* NO_WALLS properly muffles @dump messages [ASH]
   
 Bug Fixes
 ---------

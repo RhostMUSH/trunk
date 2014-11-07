@@ -1464,7 +1464,7 @@ fork_and_dump(int key, char *msg)
   }
 
   if (*mudconf.dump_msg)
-    raw_broadcast(0, 0, "%s", mudconf.dump_msg);
+    raw_broadcast(0, NO_WALLS, "%s", mudconf.dump_msg);
 
   mudstate.epoch++;
   buff = alloc_mbuf("fork_and_dump");
@@ -1549,7 +1549,7 @@ fork_and_dump(int key, char *msg)
         }
       }
       if (*mudconf.postdump_msg)
-        raw_broadcast(0, 0, "%s", mudconf.postdump_msg);
+        raw_broadcast(0, NO_WALLS, "%s", mudconf.postdump_msg);
 
     } else if (child < 0) {
       log_perror("DMP", "FORK", NULL, "fork()");

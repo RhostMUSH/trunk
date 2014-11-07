@@ -1454,6 +1454,7 @@ raw_broadcast(va_alist)
 #endif
     DESC *d;
     va_list ap;
+    int i_nowalls;
 
     DPUSH; /* #114 */
 
@@ -1474,6 +1475,11 @@ raw_broadcast(va_alist)
 	VOIDRETURN; /* #114 */
     }
 
+    i_nowalls = 0;
+    if ( inflags & NO_WALLS ) {
+       i_nowalls = 1;
+       inflags &= ~NO_WALLS;
+    }
     buff = alloc_lbuf("raw_broadcast");
     vsprintf(buff, template, ap);
 
@@ -1493,6 +1499,8 @@ raw_broadcast(va_alist)
 	     ((inflags & ADMIN) && Admin(d->player)) ||
 	     ((inflags & WIZARD) && Wizard(d->player)) ||
 	     ((inflags & IMMORTAL) && Immortal(d->player)))) {
+           if ( i_nowalls && (Flags2(d->player) & NO_WALLS) ) 
+              continue;
 #ifdef ZENTY_ANSI	   
            if ( Accents(d->player ) )
               queue_string(d, msg_ns2);
