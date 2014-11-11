@@ -281,11 +281,14 @@ NDECL(cf_init)
     mudconf.icmd_obj = -1;		/* @icmd eval object */
     mudconf.ansi_txtfiles = 0;		/* ANSI textfile support */
     mudconf.list_max_chars = 1000000;	/* Let's allow 1 million characters */
+    mudconf.tor_paranoid = 0;
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
+    memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
+    memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
     mudstate.dumpstatechk = 0;		/* State of the dump state */
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
@@ -3964,6 +3967,12 @@ CONF conftable[] =
     {(char *) "mux_lcon_compat",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.mux_lcon_compat, 0, 0, CA_WIZARD,
      (char *) "Does children() behave like MUX's?"},
+    {(char *) "tor_localhost",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.tor_localhost, 1000, 0, CA_WIZARD,
+     (char *) "This specifies local DNS sites by NAME to do TOR comparisons."},
+    {(char *) "tor_paranoid",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.tor_paranoid, 0, 0, CA_WIZARD,
+     (char *) "Are TOR Sites aggressively verified on reverse DNS?"},
     {(char *) "news_file",
      cf_string, CA_DISABLED, (int *) mudconf.news_file, 32, 0, CA_WIZARD,
      (char *) "File used for news."},
