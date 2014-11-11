@@ -26943,3 +26943,4 @@ Bug Fixes
 * flag_name could crash the mush if fed invalid arg in the .conf file [ASH]
 * small chance of crash with player undefined for @reboot/silent [ASH]
 * crash bug in tel() due to a typo fixed [ASH]
+* mid() had an unitialized field when fetching outside of length (non-crash) [ASH]
