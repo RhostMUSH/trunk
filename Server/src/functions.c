@@ -14416,6 +14416,9 @@ FUNCTION(fun_mid)
        return;
     }
 
+    if ( strlen(strip_all_special(fargs[0])) < l )
+       return;
+
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     outbuff = alloc_lbuf("fun_mid");
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
