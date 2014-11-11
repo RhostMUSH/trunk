@@ -651,7 +651,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       s_last.i_special = s_ptr->i_special;
       /* no need for s_last duplicating i_ascii8 */
       /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
-      if ( (*s_inptr == '?') && (s_ptr->i_ascii8 >= 160) ) {
+      if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
          safe_chr('%', s_buffer, &s_buffptr);
          sprintf(s_format, "<%03d>", s_ptr->i_ascii8);
          safe_str(s_format, s_buffer, &s_buffptr);
@@ -779,6 +779,15 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             continue;
          }
       }
+      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
+           isdigit(*(s_inptr+3)) && isdigit(*(s_inptr+4)) && (*(s_inptr+5) == '>') ) {
+         *s_outptr = '?';
+         s_ptr->i_ascii8 = atoi(s_inptr+2);
+         s_inptr+=5;
+      } else {
+         *s_outptr = *s_inptr;
+         s_ptr->i_ascii8 = 0;
+      }
       s_ptr++;
       if ( !s_ptr || !s_outptr ) 
          break;
@@ -806,15 +815,6 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
          s_ptr->c_accent = (s_ptr-1)->c_accent;
       else
          (s_ptr-1)->c_accent = '\0';
-      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
-           isdigit(*(s_inptr+3)) && isdigit(*(s_inptr+4)) && (*(s_inptr+5) == '>') ) {
-         *s_outptr = '?';
-         s_ptr->i_ascii8 = atoi(s_inptr+3);
-         s_inptr+=5;
-      } else {
-         *s_outptr = *s_inptr;
-         s_ptr->i_ascii8 = 0;
-      }
       s_inptr++;
       s_outptr++;
    }

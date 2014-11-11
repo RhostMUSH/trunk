@@ -26944,3 +26944,4 @@ Bug Fixes
 * small chance of crash with player undefined for @reboot/silent [ASH]
 * crash bug in tel() due to a typo fixed [ASH]
 * mid() had an unitialized field when fetching outside of length (non-crash) [ASH]
+* off by one bug for handling accented characters in ansi translator backcode [ASH]
