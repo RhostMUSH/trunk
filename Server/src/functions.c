@@ -14416,14 +14416,15 @@ FUNCTION(fun_mid)
        return;
     }
 
-    if ( strlen(strip_all_special(fargs[0])) < l )
-       return;
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     outbuff = alloc_lbuf("fun_mid");
+    memset(outbuff, '\0', LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
-    *(outbuff + l + len) = '\0';
+    if ( (l + len) < LBUF_SIZE )
+       *(outbuff + l + len) = '\0';
+
     s_output = rebuild_ansi(outbuff+l, outsplit+l);
     safe_str(s_output, buff, bufcx);
     free_lbuf(outbuff);
