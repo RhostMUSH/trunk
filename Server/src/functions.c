@@ -1970,7 +1970,7 @@ fval(char *buff, char **bufcx, double result)
     char *p;
     static char tempbuff[LBUF_SIZE/2];
 
-    sprintf(tempbuff, "%.6f", result);  /* get double val into buffer */
+    sprintf(tempbuff, "%.*f", mudconf.float_precision, result);  /* get double val into buffer */
     p = (char *)rindex(tempbuff, '0');
     if (p == NULL) {    /* remove useless trailing 0's */
        safe_str(tempbuff, buff, bufcx);

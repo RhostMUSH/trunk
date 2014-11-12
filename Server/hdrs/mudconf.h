@@ -401,6 +401,7 @@ struct confdata {
 	int     icmd_obj;        /* The object for the icmd evaluation */
 	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
 	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
+	int	float_precision;	/* Float percision for math functions() -- default 6 */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */

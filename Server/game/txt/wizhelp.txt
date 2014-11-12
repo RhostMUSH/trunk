@@ -4891,23 +4891,23 @@ SNOOPY                                                           God     Wiz
   exits_connect_rooms       expand_goto               fascist_teleport        
   find_money_chance         flag_alias                flag_name               
   flag_access_see           flag_access_set           flag_access_unset
-  forbid_host               forbid_site               fork_dump               
-  format_compatbility       fork_vfork                format_contents         
-  format_exits              format_name               formats_are_local       
-  full_file                 full_motd_message         function_access         
-  function_alias            function_invocation_limit function_recursion_limit
-  gdbm_cache_size           gdbm_database             global_aconnect         
-  global_adisconnect        global_ansimask           global_attrdefault      
-  global_clone_exit         global_clone_obj          global_clone_player     
-  global_clone_room         global_clone_thing        global_error_obj        
-  global_parent_exit        global_parent_obj         global_parent_player    
-  global_parent_room        global_parent_thing       good_name               
-  goodmail_host             gconf_file                guest_char_num          
-  guest_file                guest_namelist            guild_attrname          
-  guild_default             guild_hdr                 hackattr_nowiz          
-  hackattr_see              hasattrp_compat           heavy_cpu_max           
-  help_file                 help_index                hide_nospoof            
-  hook_cmd                  hook_obj                
+  float_precision           forbid_host               forbid_site             
+  fork_dump                 format_compatbility       fork_vfork              
+  format_contents           format_exits              format_name             
+  formats_are_local         full_file                 full_motd_message       
+  function_access           function_alias            function_invocation_limit
+  function_recursion_limit  gdbm_cache_size           gdbm_database           
+  global_aconnect           global_adisconnect        global_ansimask         
+  global_attrdefault        global_clone_exit         global_clone_obj        
+  global_clone_player       global_clone_room         global_clone_thing      
+  global_error_obj          global_parent_exit        global_parent_obj       
+  global_parent_player      global_parent_room        global_parent_thing     
+  good_name                 goodmail_host             gconf_file              
+  guest_char_num            guest_file                guest_namelist          
+  guild_attrname            guild_default             guild_hdr               
+  hackattr_nowiz            hackattr_see              hasattrp_compat         
+  heavy_cpu_max             help_file                 help_index              
+  hide_nospoof              hook_cmd                  hook_obj                
   
 { 'wizhelp config parameters3' for more }
 
@@ -5839,6 +5839,14 @@ SNOOPY                                                           God     Wiz
   
   See Also: flag_access_unset, flag_access_set, @flagdef
 
+& float_precision
+  Config parameter: float_precision <value>   Default: 6
+  
+  Specifies the floating point precision for decimal points in all math
+  based floating point notation (like mul, fdiv, etc).  The range that
+  is allowed is 1-48.  Anything over 48 is meaningless anyway due to
+  limitations on floating point notation precision.
+  
 & nand_compat
   Config parameter: nand_compat <yes/no>.    Default: no
   This config defines if the nand() function should be compatible with a

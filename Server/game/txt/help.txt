@@ -26872,6 +26872,7 @@ New Features
 * toggle_access_set, toggle_access_unset, toggle_access_see params 
   for @toggledef [ASH]
 * tor_localhost, tor_paranoid for dynamic live TOR proxy protection [ASH]
+* float_precision for floating point decimal precision (default 6) [ASH]
 
 Changes
 -------
