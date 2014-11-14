@@ -26946,3 +26946,4 @@ Bug Fixes
 * crash bug in tel() due to a typo fixed [ASH]
 * mid() had an unitialized field when fetching outside of length (non-crash) [ASH]
 * off by one bug for handling accented characters in ansi translator backcode [ASH]
+* MONITOR_SITE was not handled by master toggle MONITOR [ASH]

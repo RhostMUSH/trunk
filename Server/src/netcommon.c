@@ -1266,7 +1266,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
 	if (inflags & MF_DCONN)
 	    inflags &= ~MF_DCONN;
 	if (inflags & MF_CONN) {
-	    if (Toggles(d->player) & TOG_MONITOR_CONN) {
+	    if ( (Toggles(d->player) & TOG_MONITOR_CONN) && (Toggles(d->player) & TOG_MONITOR) ) {
 		if( ShowAnsi(d->player) ) 
                   queue_string(d, ANSI_HILITE);
 		queue_string(d, "[MONITOR] ");
@@ -1306,7 +1306,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
 	    continue;
 	}
 	if (inflags & MF_AREG) {
-	  if (Toggles(d->player) & TOG_MONITOR_AREG) {
+	  if ( (Toggles(d->player) & TOG_MONITOR_AREG) && (Toggles(d->player) & TOG_MONITOR) )  {
 		if( ShowAnsi(d->player) ) 
                   queue_string(d, ANSI_HILITE);
 		queue_string(d, "[MONITOR] ");
