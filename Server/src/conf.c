@@ -3042,7 +3042,7 @@ CF_HAND(cf_site)
 	cf_log_syntax(player, cmd, "Bad host address: %s", addr_txt);
 	return -1;
     }
-    head = (SITE *)(pmath2) *vp;
+    head = (SITE *) (pmath2)*vp;
     /* Parse the access entry and allocate space for it */
 
     site = (SITE *) malloc(sizeof(SITE));

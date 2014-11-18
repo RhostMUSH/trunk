@@ -748,8 +748,10 @@ shovechars(int port,char* address)
                       }
                    }
                 }
+
                 /* Ignore Null Input */
-                if (d->input_tot == (i_oldlastcnt + 2)) {
+                if ( (d->input_tot <= (i_oldlastcnt + 2)) && d->input_head && d->input_head->cmd &&
+                     ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
                    d->last_time = i_oldlasttime;
                 }
 	    }
