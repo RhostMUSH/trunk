@@ -738,7 +738,8 @@ struct statedata {
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
 	char	tor_localcache[1000]; /* Cache for the tor local host */
-  int insideaflags; /* Inside @aflag eval check */
+	int 	insideaflags; 	/* Inside @aflag eval check */
+	int	insideicmds;	/* Inside ICMD evaluation */
 #else
   dbref remote; /* Remote location for @remote */
 	int	logging;	/* Are we in the middle of logging? */

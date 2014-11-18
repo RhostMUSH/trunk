@@ -291,6 +291,7 @@ NDECL(cf_init)
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
+    mudstate.insideicmds = 0;		/* inside @icmd eval check */
     mudstate.dumpstatechk = 0;		/* State of the dump state */
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
