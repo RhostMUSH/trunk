@@ -26918,6 +26918,7 @@ Changes
   it handling non-wild args.  This is now allowed with optional arg [ASH]
 * getfrom lock now properly handles @fail/@ofail/@afail messages [ASH]
 * NO_WALLS properly muffles @dump messages [ASH]
+* clients that did not do CRLF didn't handle null entries correctly [ASH]
   
 Bug Fixes
 ---------
