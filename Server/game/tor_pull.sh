@@ -29,6 +29,11 @@ fi
 
 cat hidemyass_static.txt >> blacklist.txt
 
+wget -q -O - http://proxy-ip-list.com/download/free-proxy-list.txt|tr '\015' '\012'|egrep -v "(^$|^#)"|cut -f1 -d ":" >> blacklist.txt
+
+# This is massive, and will grab a ton of sites
+wget -q -O - http://www.shallalist.de/Downloads/shallalist.tar.gz|tar -zxvOf - BL/anonvpn/domains 2>/dev/null|grep -v "[A-Za-z]" >> blacklist.txt
+
 cat blacklist.txt | sort -u > blacklist.tmp
 cat blacklist.tmp > blacklist.txt
 
