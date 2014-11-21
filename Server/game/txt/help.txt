@@ -10282,6 +10282,11 @@
   
   See Also: WHO, DOING, conn(), idle()
  
+& ALIGN()
+  RhostMUSH has no built in align(). 
+  
+  See 'help printf()'
+
 & PRINTF()
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
   
