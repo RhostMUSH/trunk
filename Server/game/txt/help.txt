@@ -10292,6 +10292,7 @@
   ALL AVAILABLE CODES:  help printf codelist  (very handy!)
   FORMAT SYNTAX:        help printf syntax
   EXAMPLES:             help printf examples
+                        help printf penn      (for penn align-like examples)
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
             wrapcolumns(), array()
@@ -10397,26 +10398,70 @@
                                            |15 16 17 18 |
                                            |19          |
   
-{ 'help printf examples2' for more examples }
+{ 'help printf examples2' for more examples (that mimic penn's align) }
 
+& PRINTF PENN
 & PRINTF EXAMPLES2
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
   
   Examples: (continued)
+    > &line me=[printf(\($1s\) $-10|s $s,get(%0/sex),name(%0),name(loc(%0)))]
+    > th iter(lwho(),u(line,##),%b,%r)
+      (M) Walker     Tree
+      (M) Ashen-Shug Apartment 306
+          ar
+      (F) Jane Doe   Nowhere
+  
+    > &line me=[printf(\($1s\) $-10s $s,get(%0/sex),name(%0),name(loc(%0)))]
+    > th iter(lwho(),u(line,##),%b,%r)
+      (M) Walker     Tree
+      (M) Ashen-Shug Apartment 306
+      (F) Jane Doe   Nowhere
+
+    > think printf($15:x:sx$-60:x:s,Walker,Staff & Developer)
+    xxxxxxxxxWalkerxStaff & Developerxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  
+    > think printf($15:x:sx$s,Walker,Staff & Developer)
+    xxxxxxxxxWalkerxStaff & Developer
+  
+{ 'help printf examples3' for more examples (that mimic penn's align) }
+  'help printf penn2' will show the same file
+
+& PRINTF PENN2
+& PRINTF EXAMPLES3
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Examples: (continued)
+    > &haiku me = Alignment function,%rIt justifies your writing,%rBut the
+                  words still suck.%rLuke
+    > think printf($&1:+:s$&^40s$1&:+:s,%r,
+                   [repeat(-,40)]%r[u(haiku)]%r[repeat(-,40)],%r)
+    +----------------------------------------+
+    +          Alignment function,           +
+    +       It justifies your writing,       +
+    +       But the words still suck.        +
+    +                  Luke                  +
+    +----------------------------------------+
+
     > &dropcap me=%b_______%r|__%b%b%b__|%r%b%b%b|%b|%r%b%b%b|_|
     > &story me=%r'was the night before Christmas, when all through the house%r
                 Not a creature was stirring, not even a mouse.%r
                 The stockings were hung by the chimney with care,%r
                 In hopes that St Nicholas soon would be there.
     > @emit printf($&-9's$&-68s,ansi(ch,u(dropcap)),u(story))
+    Note: The large 'T' will be in highlighted cyan.
      _______                                                                      
     |__   __|'was the night before Christmas, when all through the house         
        | |   Not a creature was stirring, not even a mouse.                      
        |_|   The stockings were hung by the chimney with care,                   
     In hopes that St Nicholas soon would be there.    
-    
-    Note: The large 'T' will be in highlighted cyan.
   
+{ 'help printf examples4' for more examples }
+  
+& PRINTF EXAMPLES4
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Examples: (continued)
     > @emit printf($1&s$:[ansi(+purple,+,hb,.,g,-,+orange,`,+indianred,~)]:&_50s
                    $1&s,ansi(+pink,@%r@%r@),ansi(hu+red,A B C 1 2 3%r1),
                    ansi(+pink,@%r@%r@))
@@ -10435,9 +10480,9 @@
               -- They are also underscored and highlighted red.
               -- Padding is aligned properly.
 
-{ 'help printf examples3' for more examples }
+{ 'help printf examples5' for more examples }
   
-& PRINTF EXAMPLES3
+& PRINTF EXAMPLES5
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
   
   Examples: (continued)
@@ -10470,9 +10515,9 @@
         out as long as there's other columns expanding.  This behavior can 
         be omitted with a '!' as first filler char. 
   
-{ 'help printf examples4' for a multi-border multi-line complex example } 
+{ 'help printf examples6' for a multi-border multi-line complex example } 
  
-& PRINTF EXAMPLES4
+& PRINTF EXAMPLES6
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
   
   Advanced Example: 
