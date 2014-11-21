@@ -10417,7 +10417,7 @@
       (M) Walker     Tree
       (M) Ashen-Shug Apartment 306
       (F) Jane Doe   Nowhere
-
+  
     > think printf($15:x:sx$-60:x:s,Walker,Staff & Developer)
     xxxxxxxxxWalkerxStaff & Developerxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   
@@ -10442,7 +10442,7 @@
     +       But the words still suck.        +
     +                  Luke                  +
     +----------------------------------------+
-
+  
     > &dropcap me=%b_______%r|__%b%b%b__|%r%b%b%b|%b|%r%b%b%b|_|
     > &story me=%r'was the night before Christmas, when all through the house%r
                 Not a creature was stirring, not even a mouse.%r
@@ -10479,7 +10479,7 @@
           The 'A B C 1 2 3' and the '1' are justified across 50 characters.
               -- They are also underscored and highlighted red.
               -- Padding is aligned properly.
-
+  
 { 'help printf examples5' for more examples }
   
 & PRINTF EXAMPLES5
@@ -10507,7 +10507,7 @@
     +c. this is a test a +
     +b c. this is a test +
     +a b c.              +
- 
+   
   Note: Notice that it keeps track of all padding in the original
         string and will not remove the spaces (as intended).  
   
