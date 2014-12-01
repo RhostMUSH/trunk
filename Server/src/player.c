@@ -655,6 +655,33 @@ BADNAME	*bp;
 	strcpy(bp->name, bad_name);
 }
 
+dbref protectname_clear (dbref player)
+{
+   PROTECTNAME *bp, *backp;
+   dbref target;
+
+   if ( !Good_chk(player) )
+      return -1;
+
+   backp = NULL;
+   for ( bp=mudstate.protectname_head; bp; backp=bp, bp=backp->next ) {
+      if ( bp->i_name == player ) {
+         target = bp->i_name;
+         if ( backp ) {
+            backp->next = bp->next;
+         } else {
+            mudstate.protectname_head = bp->next;
+         }
+      }
+      if ( bp->i_key ) {
+         delete_player_name(target, bp->name);
+      }
+      XFREE(bp->name, "protectname.name");
+      XFREE(bp, "protectname.struc");
+   }
+   return player;
+}
+
 dbref protectname_remove (char *protect_name, dbref player)
 {
    PROTECTNAME *bp, *backp;

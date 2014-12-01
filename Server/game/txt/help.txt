@@ -26923,6 +26923,7 @@ New Features
   for @toggledef [ASH]
 * tor_localhost, tor_paranoid for dynamic live TOR proxy protection [ASH]
 * float_precision for floating point decimal precision (default 6) [ASH]
+* file_object parameter to specify dynamic override for connect.txt and friends [ASH]
 
 Changes
 -------
@@ -26969,6 +26970,7 @@ Changes
 * getfrom lock now properly handles @fail/@ofail/@afail messages [ASH]
 * NO_WALLS properly muffles @dump messages [ASH]
 * clients that did not do CRLF didn't handle null entries correctly [ASH]
+* *_site admin params raised from 1000 chars to LBUF_SIZE [ASH]
   
 Bug Fixes
 ---------

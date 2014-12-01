@@ -970,7 +970,7 @@ new_connection(int sock)
           }
           free_mbuf(buff);
        ENDLOG
-       fcache_rawdump(newsock, FC_CONN_SITE);
+       fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
        shutdown(newsock, 2);
        close(newsock);
        errno = 0;
@@ -1070,7 +1070,7 @@ new_connection(int sock)
   	   broadcast_monitor(NOTHING, MF_CONN, "PORT REJECT", NULL, 
                              inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
         }
- 	fcache_rawdump(newsock, FC_CONN_SITE);
+ 	fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
 	shutdown(newsock, 2);
 	close(newsock);
 	errno = 0;

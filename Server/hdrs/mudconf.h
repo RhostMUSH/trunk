@@ -281,15 +281,15 @@ struct confdata {
         int     nand_compat;    /* Old (BROKEN) pre-p15 Rhost nand compatibility */
         int     hasattrp_compat; /* Boolean: does hasattrp only check parents */
         int     must_unlquota;  /* Forces you to @quota/unlock before you give @quota */
-        char    forbid_host[1000]; /* forbid host names */
-        char    suspect_host[1000]; /* suspect host names */
-        char    register_host[1000]; /* register host names */
-        char    noguest_host[1000]; /* noguest host names */
-        char    autoreg_host[1000]; /* noguest host names */
-        char    validate_host[1000]; /* Invalidate autoregister email masks */
-        char    goodmail_host[1000]; /* Good hosts to allow to autoregister ALWAYS */
+        char    forbid_host[LBUF_SIZE]; /* forbid host names */
+        char    suspect_host[LBUF_SIZE]; /* suspect host names */
+        char    register_host[LBUF_SIZE]; /* register host names */
+        char    noguest_host[LBUF_SIZE]; /* noguest host names */
+        char    autoreg_host[LBUF_SIZE]; /* noguest host names */
+        char    validate_host[LBUF_SIZE]; /* Invalidate autoregister email masks */
+        char    goodmail_host[LBUF_SIZE]; /* Good hosts to allow to autoregister ALWAYS */
         char    log_command_list[1000]; /* List of commands to log */
-        char    nobroadcast_host[1000]; /* Don't broadcast to sites in this host */
+        char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
         int	tor_paranoid;	/* Paranoid option for TOR enable Checkig */
         int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
@@ -402,6 +402,7 @@ struct confdata {
 	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
 	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
 	int	float_precision;	/* Float percision for math functions() -- default 6 */
+	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */

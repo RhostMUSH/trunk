@@ -4889,25 +4889,26 @@ SNOOPY                                                           God     Wiz
   examine_restrictive       exit_attr_default         exit_flags              
   exit_parent               exit_quota                exit_toggles
   exits_connect_rooms       expand_goto               fascist_teleport        
-  find_money_chance         flag_alias                flag_name               
-  flag_access_see           flag_access_set           flag_access_unset
-  float_precision           forbid_host               forbid_site             
-  fork_dump                 format_compatbility       fork_vfork              
-  format_contents           format_exits              format_name             
-  formats_are_local         full_file                 full_motd_message       
-  function_access           function_alias            function_invocation_limit
-  function_recursion_limit  gdbm_cache_size           gdbm_database           
-  global_aconnect           global_adisconnect        global_ansimask         
-  global_attrdefault        global_clone_exit         global_clone_obj        
-  global_clone_player       global_clone_room         global_clone_thing      
-  global_error_obj          global_parent_exit        global_parent_obj       
-  global_parent_player      global_parent_room        global_parent_thing     
-  good_name                 goodmail_host             gconf_file              
-  guest_char_num            guest_file                guest_namelist          
-  guild_attrname            guild_default             guild_hdr               
-  hackattr_nowiz            hackattr_see              hasattrp_compat         
-  heavy_cpu_max             help_file                 help_index              
-  hide_nospoof              hook_cmd                  hook_obj                
+  file_object               find_money_chance         flag_alias              
+  flag_name                 flag_access_see           flag_access_set         
+  flag_access_unset         float_precision           forbid_host             
+  forbid_site               fork_dump                 format_compatbility     
+  fork_vfork                format_contents           format_exits            
+  format_name               formats_are_local         full_file               
+  full_motd_message         function_access           function_alias          
+  function_invocation_limit function_recursion_limit  gdbm_cache_size         
+  gdbm_database             global_aconnect           global_adisconnect      
+  global_ansimask           global_attrdefault        global_clone_exit       
+  global_clone_obj          global_clone_player       global_clone_room       
+  global_clone_thing        global_error_obj          global_parent_exit      
+  global_parent_obj         global_parent_player      global_parent_room      
+  global_parent_thing       good_name                 goodmail_host           
+  gconf_file                guest_char_num            guest_file              
+  guest_namelist            guild_attrname            guild_default           
+  guild_hdr                 hackattr_nowiz            hackattr_see            
+  hasattrp_compat           heavy_cpu_max             help_file               
+  help_index                hide_nospoof              hook_cmd                
+  hook_obj                
   
 { 'wizhelp config parameters3' for more }
 
@@ -5792,6 +5793,43 @@ SNOOPY                                                           God     Wiz
   teleport out of locations that they do not control or which are not set
   JUMP_OK.  If the teleporting player is inside an object, the room that
   ultimately contains the object is checked.  Going home is unaffected.
+
+& file_object
+  Config parameter: file_object <dbref>.  Default: -1
+  
+  Specifies the dbref# (without the leading #) of the object that will 
+  evaluate the code (based on file_object's permissions/flags/etc), that
+  will be displayed instead of the default txt files.  The following
+  txt files are allowed to be overwritten by using the specified 
+  attribute name on the file_object object.
+  
+    ATTRIBUTE     FILENAME        FUNCTION
+    ------------- --------------- -------------------------------------------
+    connect       connect.txt     What a user sees when initially connecting
+    badsite       badsite.txt     What a user sees from a sitebanned site
+    down          down.txt        What a user sees with logins disabled
+    full          full.txt        What a user sees when the mush is full
+    guest         guest.txt       What a guest sees upon connecting
+    register      register.txt    What a user sees when site is register
+    newuser       newuser.txt     What a new user sees upon first connecting
+    regfail       create_reg.txt  What a user sees when register locked
+    motd          motd.txt        What a user sees for the motd message
+    wizmotd       wizmotd.txt     What a wizard sees for the motd message
+    quit          quit.txt        What a user sees when they quit
+    guestfail     noguest.txt     What a user sees when guest not allowed
+    autoreg       autoreg.txt     What a user sees when autoreg is enabled
+    autoreghost   areghost.txt    What a user sees when host is autoreg
+  
+  An empty evaluated attribute or a missing attribute will call the default
+  txt file instead of the evaluation.  The following arguments are passed
+  into the evaluation:
+    %0 -- The numerical site host of the incomming connection.
+    %1 -- The dns host entry (if availabe, else ip) of incoming connection.
+    %2 -- The port that they're connected to on the mush
+  
+  All ansi and such will process normally.
+  
+  See Also: @list_file
 
 & find_money_chance
   Config parameter: find_money_chance <amount>.  Default: 0
