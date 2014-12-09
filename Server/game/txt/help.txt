@@ -27000,3 +27000,5 @@ Bug Fixes
 * mid() had an unitialized field when fetching outside of length (non-crash) [ASH]
 * off by one bug for handling accented characters in ansi translator backcode [ASH]
 * MONITOR_SITE was not handled by master toggle MONITOR [ASH]
+* creplace() was hardcoded with LBUF of 4000 chars [ASH]
+* some better cleanup of other functions for LBUF sizing [ASH]

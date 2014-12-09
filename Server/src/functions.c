@@ -19903,8 +19903,11 @@ FUNCTION(fun_creplace)
                     EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
    i_val = atoi(curr_temp);
    free_lbuf(curr_temp);
-   if ( i_val < 1 || i_val > 3999 ) {
-      safe_str("#-1 VALUE MUST BE > 0 < 4000", buff, bufcx);
+   if ( i_val < 1 || i_val > (LBUF_SIZE-1) ) {
+      curr_temp = alloc_mbuf("creplace");
+      sprintf(curr_temp, "#-1 VALUE MUST BE > 0 < %d", LBUF_SIZE);
+      safe_str(curr_temp, buff, bufcx);
+      free_mbuf(curr_temp);
       return;
    }
 
@@ -20502,7 +20505,10 @@ FUNCTION(fun_array)
       sep = *fargs[3];
    }
    if ( !sep && ((i_width < 0 ) || (i_width > LBUF_SIZE)) ) {
-      safe_str("#-1 ARRAY REQUIRES WIDTH >= 0 AND WIDTH < 4000", buff, bufcx);
+      s_input = alloc_mbuf("fun_array");
+      sprintf(s_input, "#-1 ARRAY REQUIRES WIDTH >= 0 AND WIDTH < %d", LBUF_SIZE);
+      safe_str(s_input, buff, bufcx);
+      free_mbuf(s_input);
       return;
    }
    if ( (nfargs > 4) && *fargs[4] ) {
@@ -20540,7 +20546,7 @@ FUNCTION(fun_array)
          *s_outptr = *s_inptr;
          clone_ansisplitter(p_out, p_in);
          i_kill++;
-         if ( i_kill > 4000 ) {
+         if ( i_kill > LBUF_SIZE ) {
             notify(player, unsafe_tprintf("Artificially aborted: %d / :%s: / %s", i, s_output, s_inptr));
             break;
          }
@@ -20627,7 +20633,7 @@ FUNCTION(fun_array)
          *s_outptr = *s_inptr;
          clone_ansisplitter(p_out, p_in);
          i_kill++;
-         if ( i_kill > 4000 ) {
+         if ( i_kill > LBUF_SIZE ) {
             notify(player, unsafe_tprintf("Artificially aborted: %d / :%s: / %s", i, s_output, s_inptr));
             break;
          }
@@ -21424,7 +21430,7 @@ FUNCTION(fun_strmath)
       i_cnt = atoi(tmp);
       free_lbuf(tmp);
    } else {
-      i_cnt = 4000;
+      i_cnt = LBUF_SIZE;
    }
    if ( !i_start ) {
       tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
@@ -25358,7 +25364,7 @@ do_listsets(int nfargs, char *fargs[], char *buff, char **bufcx, int i_type)
    s_tmpptr = strtok_r(s_tmpbuff1, s_sep, &s_strtokstr);
    i_first = 0;
    while ( s_tmpptr ) {
-      sprintf(s_compare," %.3990s ", s_tmpptr);
+      sprintf(s_compare," %.*s ", (LBUF_SIZE - 10), s_tmpptr);
       if ( ((i_type == SET_INTERSECT) && strstr(s_sc2, s_compare) == NULL) ||
            ((i_type == SET_DIFF) && strstr(s_sc2, s_compare) != NULL) ) {
          s_tmpptr = strtok_r(NULL, s_sep, &s_strtokstr);
@@ -25387,7 +25393,7 @@ do_listsets(int nfargs, char *fargs[], char *buff, char **bufcx, int i_type)
       strcpy(s_tmpbuff1, fargs[1]);
       s_tmpptr = strtok_r(s_tmpbuff1, s_sep, &s_strtokstr);
       while ( s_tmpptr ) {
-         sprintf(s_compare," %.3990s ", s_tmpptr);
+         sprintf(s_compare," %.*s ", (LBUF_SIZE - 10), s_tmpptr);
          if ( strstr(s_scratch, s_compare) == NULL ) {
             if ( i_first )
                safe_chr(osep, buff, bufcx);
@@ -27595,10 +27601,10 @@ FUNCTION(fun_dig)
    if (!fn_range_check("DIG", nfargs, 1, 5, buff, bufcx))
       return;
    if ( nfargs > 2 ) {
-      sprintf(fillbuf, "%.1999s,%.1999s", fargs[1], fargs[2]);
+      sprintf(fillbuf, "%.*s,%.*s", ((LBUF_SIZE / 2) - 1), fargs[1], ((LBUF_SIZE / 2) - 1), fargs[2]);
    }
    else if (nfargs > 1) {
-      sprintf(fillbuf, "%.3999s", fargs[1]);
+      sprintf(fillbuf, "%.*s", (LBUF_SIZE - 10), fargs[1]);
    }
    nitems = list2arr(ptrs, LBUF_SIZE / 2, fillbuf, ',');
    i_sanitizedbref = -1;
