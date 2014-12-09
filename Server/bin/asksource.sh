@@ -1293,7 +1293,6 @@ setdefaults() {
         DEFS="${DEFS} -DHAS_OPENSSL"
      fi
   fi
-  DEFS="DEFS = ${DEFS}"
 }
 
 ###################################################################
@@ -1463,92 +1462,60 @@ setlibs() {
       echo "Compiling with system pcre library..."
       MORELIBS="${MORELIBS} -lpcre"
    fi
-   MORELIBS="MORELIBS = ${MORELIBS}"
 }
 
 ###################################################################
 # UPDATEMAKEFILE - Update the makefile with the changes
 ###################################################################
 updatemakefile() {
-   echo "Updating the DEFS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^DEF ../src/Makefile|sed "s/\//\\\\\//g")/${DEFS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
+   echo 'Updating the DEFS section of the Makefile now.  Please wait...'
+   echo "DEFS = ${DEFS}" > ../src/make.defs
 
-#  Let's do the door additions here
-   if [ "${XB[2]}" = "X" ]
+   echo '# Begin Door Configurations' >> ../src/make.defs
+   if [ "${XB[2]}" = 'X' ]
    then
-      cat ../src/Makefile|sed "s/^#DR_DEF/DR_DEF/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
+      echo 'DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE' >> ../src/make.defs
       if [ "${XD[1]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMUSH/DRMUSH/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMUSH/#DRMUSH/g" > /tmp/$$CONF$$
+         echo 'DRMUSHSRC = door_mush.c' >> ../src/make.defs
+         echo 'DRMUSHOBJ = door_mush.o' >> ../src/make.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[2]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DREMPIRE/DREMPIRE/g"|sed "s/^#DR_HDR/DR_HDR/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DR_HDR/#DR_HDR/g" > /tmp/$$CONF$$
+         echo 'DREMPIRESRC = empire.c' >> ../src/make.defs
+         echo 'DREMPIREOBJ = empire.o' >> ../src/make.defs
+         echo 'DREMPIREHDR = empire.h' >> ../src/make.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[3]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMAIL/DRMAIL/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
+         echo 'DRMAILSRC = door_mail.c' >> ../src/make.defs
+         echo 'DRMAILOBJ = door_mail.o' >> ../src/make.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
-   else
-      cat ../src/Makefile|sed "s/^DR_DEF/#DR_DEF/g"|sed "s/^DRMUSH/#DRMUSH/g"| \
-         sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
    fi
+   echo '# End Door Configurations' >> ../src/make.defs
+
    if [ "${XB[5]}" = "X" ]
    then
       echo "Compiling to QDBM database."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./qdbm/ -lqdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=qdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo '# Use QDBM. See also do_compile.defs' >> ../src/make.defs
+      echo 'LIBS = -L./qdbm/ -lqdbm' >> ../src/make.defs
+      echo 'COMP=qdbm' > ../src/do_compile.defs
    else
       echo "Compiling to GDBM database (default)."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=gdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo '# Use (default) GDBM. See also do_compile.defs' >> ../src/make.defs
+      echo 'LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm' >> ../src/make.defs
+      echo 'COMP=gdbm' > ../src/do_compile.defs
    fi
    # add CFLAGS for low memory
    if [ "${X[23]}" = "X" ]
    then
       echo "Adding CFLAG option for low memory compile..."
-      cat ../src/Makefile|sed "s/^#CFLAG/CFLAG/g" > /tmp/$$CONF$$
-   else
-      cat ../src/Makefile|sed "s/^CFLAG/#CFLAG/g" > /tmp/$$CONF$$
+      echo '# Low-memory compile' >> ../src/make.defs
+      echo 'CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192' >> ../src/make.defs
    fi
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
    echo "...completed."
    echo "Updating the MORELIBS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^MORELIBS ../src/Makefile| \
-       sed "s/\//\\\\\//g")/${MORELIBS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
+   echo "MORELIBS = ${MORELIBS}" >> ../src/make.defs
    echo "...completed."
 }
 

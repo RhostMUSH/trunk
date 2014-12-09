@@ -1,7 +1,11 @@
 #!/bin/sh
 #
-COMP=gdbm
-case ${COMP} in
+
+[ -f ../src/do_compile.defs ] && . ../src/do_compile.defs
+
+# ${COMP:=gdbm} uses COMP or, if COMP is unset, sets COMP to gdbm and uses gdbm
+
+case ${COMP:=gdbm} in
    gdbm) gdbmdir=./gdbm-1.8.3
          ;;
    qdbm) gdbmdir=./qdbm
