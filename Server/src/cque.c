@@ -1957,7 +1957,7 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
                  notify(player, "PID value had wait of less than 10 seconds.");
               else if ( retval ) {
                  if (i_shiftoffset == 0) 
-                    notify(player, unsafe_tprintf("PID %d has been re-waited with new time of .1f",
+                    notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
                                    pid, newwait));
               } else 
 	         notify(player,"PID not found/Permission denied.");

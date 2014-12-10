@@ -27002,3 +27002,4 @@ Bug Fixes
 * MONITOR_SITE was not handled by master toggle MONITOR [ASH]
 * creplace() was hardcoded with LBUF of 4000 chars [ASH]
 * some better cleanup of other functions for LBUF sizing [ASH]
+* typo with message when you re-wait a @wait by pid [ASH]
