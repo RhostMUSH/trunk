@@ -27004,3 +27004,4 @@ Bug Fixes
 * some better cleanup of other functions for LBUF sizing [ASH]
 * typo with message when you re-wait a @wait by pid [ASH]
 * memory leak in @aflags without arguments [ASH]
+* bad things happened with @remote when issuer of @remote moved while in @remote [ASH]
