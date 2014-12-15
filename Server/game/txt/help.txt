@@ -27003,3 +27003,4 @@ Bug Fixes
 * creplace() was hardcoded with LBUF of 4000 chars [ASH]
 * some better cleanup of other functions for LBUF sizing [ASH]
 * typo with message when you re-wait a @wait by pid [ASH]
+* memory leak in @aflags without arguments [ASH]
