@@ -1716,7 +1716,6 @@ attrib_show(char *name, int i_type)
                }
             }
          }
-         free_lbuf(s_buff);
       } else {
          for (atrp = atrp_head; atrp; atrp = atrp->next) {
             if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) )
@@ -1727,9 +1726,9 @@ attrib_show(char *name, int i_type)
             }
          }
          strcpy(s_my, s_buff);
-         free_lbuf(s_buff);
       }
    }
+   free_lbuf(s_buff);
    return s_my;
 }
 
