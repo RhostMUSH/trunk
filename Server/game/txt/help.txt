@@ -26971,6 +26971,8 @@ Changes
 * NO_WALLS properly muffles @dump messages [ASH]
 * clients that did not do CRLF didn't handle null entries correctly [ASH]
 * *_site admin params raised from 1000 chars to LBUF_SIZE [ASH]
+* Backed out signal handling on db writes for protection.  It was causing
+  some timer issues and I'm not sure why yet. [ASH]
   
 Bug Fixes
 ---------
