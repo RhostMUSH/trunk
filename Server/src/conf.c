@@ -875,6 +875,7 @@ CF_HAND(cf_rlevel)
 {
     CONFDATA *mc = (CONFDATA *)vp;
     int i, j, k, cmp_x, cmp_y, cmp_z;
+    unsigned int q;
     char dup1[17], dup2[17], *nptr, tbufit[20], *strbuff, *pst;
 
     cmp_z = countwordsnew(str);
@@ -944,11 +945,11 @@ CF_HAND(cf_rlevel)
     while ( *str && (isxdigit((int)*str) || (ToLower(*str) == 'x')) ) {
        *pst++ = *str++;
     }
-    i = (int)atof(strbuff);
+    q = (unsigned int)atof(strbuff);
     
     free_lbuf(strbuff);
-    if(i)
-        mc->reality_level[mc->no_levels].value = (RLEVEL) i;
+    if(q)
+        mc->reality_level[mc->no_levels].value = (RLEVEL) q;
     for(; *str && ((*str == ' ') || (*str == '\t')); ++str);
     if(*str) {
         strncpy(mc->reality_level[mc->no_levels].attr, str, 32);
