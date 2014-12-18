@@ -1324,7 +1324,7 @@ dump_database_internal(int panic_dump)
     DPUSH; /* #82 */
     
     /* This is broke with timers, I don't know why yet */
-    /* ignore_signals(); */ 	 /* Stop handling signals. */
+    ignore_signals(); 	 /* Stop handling signals. */
  
     dmpfile = alloc_mbuf("dump_database_internal");
     outdbfile = alloc_mbuf("dump_database_internal");
@@ -1352,7 +1352,7 @@ dump_database_internal(int panic_dump)
 		       mudconf.crashdb);
 	}
         /* This is broke, I don't know why yet */
-        /* reset_signals(); */	/* Resume normal signal handling. */
+        reset_signals(); /* Resume normal signal handling. */
         if ( mudstate.shutdown_flag ) {
            do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
         }
@@ -1377,7 +1377,7 @@ dump_database_internal(int panic_dump)
 			   "Renaming output file to DB file",
 			   tmpfile);
             /* This is broke, I don't know why yet */
-            /* reset_signals(); */ 	/* Resume normal signal handling. */
+            reset_signals(); 	/* Resume normal signal handling. */
             if ( mudstate.shutdown_flag ) {
                do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
             }
@@ -1408,7 +1408,7 @@ dump_database_internal(int panic_dump)
     local_dump(panic_dump);
 
     /* This is broke, I don't know why yet */
-    /* reset_signals(); */ 	/* Resume normal signal handling. */
+    reset_signals();  	/* Resume normal signal handling. */
 
     if ( mudstate.shutdown_flag ) {
        do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
@@ -1535,7 +1535,7 @@ fork_and_dump(int key, char *msg)
 
         if (f) {
           /* This is broke with timers, I don't know why yet */
-          /* ignore_signals(); */ /* Ignore signals while dumping. */
+          ignore_signals(); /* Ignore signals while dumping. */
           STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
             log_text((char*)"Dumping db to flatfile...");
           ENDLOG
@@ -1546,7 +1546,7 @@ fork_and_dump(int key, char *msg)
           fclose(f);
           time(&mudstate.mushflat_time);
           /* This is broke, I don't know why yet */
-          /* reset_signals(); */ /* All done, resume signal handling. */
+           reset_signals(); /* All done, resume signal handling. */
         }
         else {
           STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")
