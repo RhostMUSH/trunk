@@ -4156,15 +4156,23 @@ FUNCTION(fun_bittype)
                           "5",      /* Royalty */
                           "6",      /* Super-royalty */
                           "7" };    /* God */
-  int got = 0;
+  int got   = 0,
+      i_chk = 0;
+
+  if (!fn_range_check("BITTYPE", nfargs, 1, 2, buff, bufcx))
+     return;
 
   target = match_thing(player, fargs[0]);
 
+  if ( (nfargs > 1) && *fargs[1] )
+     i_chk = atoi(fargs[1]);
+
   if( !Good_obj(target) ) {
     got = 0;
-  }
-  else {
-    target = Owner(target);
+  } else {
+    if ( i_chk == 0 ) {
+       target = Owner(target);
+    }
     if( God(target) ) {
       got = 8;
     }
@@ -29313,7 +29321,7 @@ FUN flist[] =
     {"BEEP", fun_beep, 1, 0, CA_WIZARD, 0},
     {"BEFORE", fun_before, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"BETWEEN", fun_between, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"BITTYPE", fun_bittype, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"BITTYPE", fun_bittype, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BOUND", fun_bound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BRACKETS", fun_brackets, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"BYPASS", fun_bypass, -1, 0, CA_PUBLIC, CA_NO_CODE},

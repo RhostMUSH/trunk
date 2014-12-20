@@ -19681,10 +19681,14 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: ljc(), rjust(), rjc(), strlen(), printf(), wrap()
   
 & BITTYPE()
-  Function: bittype(<object>)
+  Function: bittype(<object> [,<type>])
  
   Returns a number from the following table based on the owner of <object>.
- 
+  You may specify a <type> of '1' to enforce wiz-inheritance checks on
+  the target <object> otherwise the default of '0' is applied which just
+  checks ownership.
+  
+  The following permission levels are shown:
     God (#1)        7
     Super-Royalty   6
     Royalty         5
@@ -26971,6 +26975,7 @@ Changes
 * NO_WALLS properly muffles @dump messages [ASH]
 * clients that did not do CRLF didn't handle null entries correctly [ASH]
 * *_site admin params raised from 1000 chars to LBUF_SIZE [ASH]
+* bittype() optionally handles true staff inheritance checks [ASH]
   
 Bug Fixes
 ---------
