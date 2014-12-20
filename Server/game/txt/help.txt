@@ -26978,6 +26978,7 @@ Changes
 * clients that did not do CRLF didn't handle null entries correctly [ASH]
 * *_site admin params raised from 1000 chars to LBUF_SIZE [ASH]
 * bittype() optionally handles true staff inheritance checks [ASH]
+* strmath() now handles floating point notation [ASH]
   
 Bug Fixes
 ---------
