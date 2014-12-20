@@ -12402,6 +12402,8 @@ See Also: timefmt()
   normal delimited string.  This is so you can separate values such as:
                     To hit:5|To Damage:10|Base AC:15
   
+  Note:  It handles floating point notation, so values with decimals are seen.
+   
     Key:  str  -- input string    num  -- value to apply  math -- math to use
           dlm  -- delimiter       sep  -- seperator       st   -- start value
           amt  -- word count      idlm -- inner delim     isep -- inner sep
@@ -12414,13 +12416,13 @@ See Also: timefmt()
        %% - return remainder of division. (you need to use two %%'s)
   
   Examples:
-    > strmath(1 fish 2 fish green fish blue fish,10,+)   (default)
+    > say strmath(1 fish 2 fish green fish blue fish,10,+)   (default)
     You say "11 fish 12 fish green fish blue fish"
-    > strmath(1 fish 2 fish green fish blue fish,10,*)
+    > say strmath(1 fish 2 fish green fish blue fish,10,*)
     You say "10 fish 20 fish green fish blue fish"
-    > strmath(1 fish 2 fish 3 shoe 4 shoe,10,+,,,3,2)
+    > say strmath(1 fish 2 fish 3 shoe 4 shoe,10,+,,,3,2)
     You say "1 fish 12 fish 13 shoe 4 shoe"
-    >  strmath(To hit:5|To Damage:10|Base AC:15,150,+,|,|,1,0,:,:)
+    > say strmath(To hit:5|To Damage:10|Base AC:15,150,+,|,|,1,0,:,:)
     You say "To hit:155|To Damage:10|Base AC:15"
   
   See Also: add(), sub(), mul(), div(), mod(), strfunc(), spellnum()
