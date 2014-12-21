@@ -16173,6 +16173,89 @@ FUNCTION(fun_randextract)
     free(used);
 }
 
+FUNCTION(fun_extractword)
+{
+   int start, len, i_cntr, i_cntr2, first;
+   char *sep, *osep, *pos, *prevpos, *fargbuff, *outbuff;
+   ANSISPLIT outsplit[LBUF_SIZE], *optr, *prevoptr;
+
+   if (!fn_range_check("WORDEXTRACT", nfargs, 3, 5, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] )
+      return;
+
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   fargbuff = alloc_lbuf("fun_extractword_fargbuff");
+   memset(fargbuff, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(fargs[0]), fargbuff, outsplit);
+
+   start = atoi(fargs[1]);
+   len = atoi(fargs[2]);
+   if ((start < 1) || (len < 1)) {
+      return;
+   }
+
+   sep  = alloc_lbuf("fun_extractword_sep");
+   osep = alloc_lbuf("fun_extractword_osep");
+   if ( (nfargs > 3) && *fargs[3] ) {
+      strcpy(sep, strip_all_ansi(fargs[3]));
+   } else {
+      strcpy(sep, (char *)" ");
+   }
+   if ( (nfargs > 4) && *fargs[4] ) {
+      strcpy(osep, fargs[4]);
+   } else {
+      strcpy(osep, sep);
+   }
+   pos = fargbuff;
+   optr = outsplit;
+   i_cntr = 1;
+   first = i_cntr2 = 0;
+   while ( pos && *pos ) {
+      prevpos = strstr(pos, sep);
+      prevoptr = optr + (prevpos - pos);
+      if ( !prevpos || !*prevpos )
+         break;
+      if ( i_cntr < start ) {
+         i_cntr++;
+         *(prevpos)='\0';
+         pos = prevpos + strlen(sep);
+         optr = prevoptr + strlen(sep);
+         if ( !pos || !*pos ) 
+            break;
+         *(pos-1) = '\0';
+         continue;
+      }
+      *(prevpos)='\0';
+      if ( first )
+         safe_str(osep, buff, bufcx);
+      first = 1;
+      outbuff = rebuild_ansi(pos, optr);
+      safe_str(outbuff, buff, bufcx);
+      free_lbuf(outbuff);
+      pos = prevpos + strlen(sep);
+      optr = prevoptr + strlen(sep);
+      if ( !pos || !*pos ) 
+         break;
+      *(pos-1) = '\0';
+      i_cntr++;
+      i_cntr2++;
+      if ( i_cntr2 >= len )
+         break;
+   }
+   if ( pos && *pos && (i_cntr2 < len) && (start <= i_cntr) ) {
+      if ( first )
+         safe_str(osep, buff, bufcx);
+      outbuff = rebuild_ansi(pos, optr);
+      safe_str(outbuff, buff, bufcx);
+      free_lbuf(outbuff);
+   }
+   free_lbuf(sep);
+   free_lbuf(osep);
+   free_lbuf(fargbuff);
+}
+
 FUNCTION(fun_extract)
 {
     int start, len;
@@ -29458,6 +29541,7 @@ FUN flist[] =
     {"EVAL", fun_eval, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXIT", fun_exit, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EXP", fun_exp, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"EXTRACTWORD", fun_extractword, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXTRACT", fun_extract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBETWEEN", fun_fbetween, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBOUND", fun_fbound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

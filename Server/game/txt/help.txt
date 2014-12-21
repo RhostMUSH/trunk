@@ -8772,30 +8772,31 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()    COR()           COS()          CRC32()         CREATE() 
-  CREATETIME()  CREPLACE()      CTU()          DEC()           DECODE64()
-  DECRYPT()     DEFAULT()       DELETE()       DELEXTRACT()    DESTROY()     
-  DICE()        DIG()           DIGEST()       DIST2D()        DIST3D()      
-  DIV()         E()             EDEFAULT()     EDIT()          EE()          
-  ELIST()       ELEMENTS()      ELEMENTSMUX()  ELOCK()         EMIT()        
-  ENCODE64()    ENCRYPT()       ENTRANCES()    EQ()            ERROR()       
-  ESCAPE()      ESCAPEX()       EVAL()         EXIT()          EXP()         
-  EXTRACT()     FBETWEEN()      FBOUND()       FDIV()          FILTER()      
-  FINDABLE()    FIRST()         FLAGS()        FLOOR()         FLOORDIV()    
-  FOLD()        FOLDERCURRENT() FOLDERLIST()   FOREACH()       FULLNAME()    
-  GARBLE()      GET()           GET_EVAL()     GLOBALROOM()    GRAB()        
-  GRABALL()     GREP()          GT()           GTE()           GUILD()       
-  HASATTR()     HASATTRP()      HASFLAG()      HASTOGGLE()     HASTYPE()     
-  HASQUOTA()    HASRXLEVEL()    HASTXLEVEL()   HOME()          IBREAK()      
-  IDLE()        IFELSE()        IINDEX()       ILEV()          INC()         
-  INDEX()       INPROGRAM()     INSERT()       INUM()          INZONE()      
-  ISALNUM()     ISALPHA()       ISCLUSTER()    ISDBREF()       ISDIGIT()     
-  ISHIDDEN()    ISNUM()         ISPUNCT()      ISSPACE()       ISWORD()      
-  ISXDIGIT()    ITER()          ITEXT()        KEEPFLAGS()     KEEPTYPE()    
-  LADD()        LAND()          LAST()         LASTCREATE()    LATTR()       
-  LAVG()        LCMDS()         LCON()         LCSTR()         LDELETE()     
-  LDIV()        LEMIT()         LEFT()         LEXITS()        LFLAGS()      
-  LINK()        LIST()          LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS() 
+  CONVTIME()      COR()         COS()           CRC32()        CREATE() 
+  CREATETIME()    CREPLACE()    CTU()           DEC()          DECODE64()
+  DECRYPT()       DEFAULT()     DELETE()        DELEXTRACT()   DESTROY()     
+  DICE()          DIG()         DIGEST()        DIST2D()       DIST3D()      
+  DIV()           E()           EDEFAULT()      EDIT()         EE()          
+  ELIST()         ELEMENTS()    ELEMENTSMUX()   ELOCK()        EMIT()        
+  ENCODE64()      ENCRYPT()     ENTRANCES()     EQ()           ERROR()       
+  ESCAPE()        ESCAPEX()     EVAL()          EXIT()         EXP()         
+  EXTRACT()       EXTRACTWORD() FBETWEEN()      FBOUND()       FDIV()        
+  FILTER()        FINDABLE()    FIRST()         FLAGS()        FLOOR()       
+  FLOORDIV()      FOLD()        FOLDERCURRENT() FOLDERLIST()   FOREACH()     
+  FULLNAME()      GARBLE()      GET()           GET_EVAL()     GLOBALROOM()  
+  GRAB()          GRABALL()     GREP()          GT()           GTE()         
+  GUILD()         HASATTR()     HASATTRP()      HASFLAG()      HASTOGGLE()   
+  HASTYPE()       HASQUOTA()    HASRXLEVEL()    HASTXLEVEL()   HOME()        
+  IBREAK()        IDLE()        IFELSE()        IINDEX()       ILEV()        
+  INC()           INDEX()       INPROGRAM()     INSERT()       INUM()        
+  INZONE()        ISALNUM()     ISALPHA()       ISCLUSTER()    ISDBREF()     
+  ISDIGIT()       ISHIDDEN()    ISNUM()         ISPUNCT()      ISSPACE()     
+  ISWORD()        ISXDIGIT()    ITER()          ITEXT()        KEEPFLAGS()   
+  KEEPTYPE()      LADD()        LAND()          LAST()         LASTCREATE()  
+  LATTR()         LAVG()        LCMDS()         LCON()         LCSTR()       
+  LDELETE()       LDIV()        LEMIT()         LEFT()         LEXITS()      
+  LFLAGS()        LINK()        LIST()          LISTCOMMANDS() LISTDIFF()    
+  LISTFUNCTIONS() 
   
 { 'help function list3' for more }
   
@@ -8931,11 +8932,11 @@
   
   Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() CITER() 
                       DELEXTRACT() ELEMENTS() ELEMENTSMUX() ELIST() EXTRACT()
-                      FILTER() FIRST() FLAGS() FOLD() FOREACH() IBREAK()
-                      IINDEX() ILEV() INDEX() INSERT() INUM() ITER() ITEXT() 
-                      KEEPFLAGS() KEEPTYPE() LADD() LAND() LAST() LAVG() 
-                      LDELETE() LDIV() LISTDIFF() LISTINTER() LISTMATCH() 
-                      LISTUNION() LMAX() LMIN() LMUL() LNOR()
+                      EXTRACTWORD() FILTER() FIRST() FLAGS() FOLD() FOREACH()
+                      IBREAK() IINDEX() ILEV() INDEX() INSERT() INUM() ITER()
+                      ITEXT() KEEPFLAGS() KEEPTYPE() LADD() LAND() LAST() 
+                      LAVG() LDELETE() LDIV() LISTDIFF() LISTINTER() 
+                      LISTMATCH() LISTUNION() LMAX() LMIN() LMUL() LNOR()
                       LNUM() LNUM2() LOR() LRAND() LREPLACE() LSUB() LXNOR() 
                       LXOR() MAP() MATCH() MEMBER() MIX() MUNGE() NSITER() 
                       NUMMATCH() NUMMEMBER() NUMWILDMATCH() PARSE() RANDMATCH()
@@ -13160,7 +13161,7 @@ See Also: timefmt()
     subnetmatch(123.123.123.123, 123.0.0.0/16) -> 0
   
 & EXTRACT()
-  extract(<string>, <first>, <length>[, <delim>])
+  Function: extract(<string>, <first>, <length>[, <delim>])
  
   Extract returns a string of length words, starting with the first 
   word. Unlike letters, the first word in a string is number 1, 
@@ -13174,7 +13175,31 @@ See Also: timefmt()
     > say extract(Another@funky@test@for@extract, 3, 3, @)
     You say "test@for@extract" 
   
-  See Also: index(), insert(), ldelete(), replace(), randextract()
+  See Also: extractword(), index(), insert(), ldelete(), replace(), 
+            randextract()
+  
+& EXTRACTWORD()
+  Function: extractword(<string>, <first>, <length>[, <delim>], <sep>]])
+  
+  Extractword returns a string of length words, starting with the first
+  word.  This works effectively like extract(), however, the deliminiter 
+  <delim> and seperator <sep> can be multi-character.  In addition, the
+  seperator may also contain ansi or special characters.
+  
+  Unlike extract(), extractword() is also ansi-aware.
+  
+  The default <delim> is a space.  The default <sep> is whatever <delim>
+  is defined as.
+  
+  Examples:
+    > say extractword(This is a really neat example, 4, 2)
+    You say "really neat"
+    > say extractword(a@@@multi@@@char@@@delimiter, 2, 2, @@@)
+    You say "multi@@@char"
+    > say extractword(a@@@multi@@@char@@@delimiter, 2, 2, @@@,%b)
+    You say "multi char"
+  
+  See Also: extract(), index(), insert(), ldelete(), replace(), randextract() 
   
 & INDEX()
   Function: index(<list>,<character>,<first>,<length>)
@@ -26930,6 +26955,7 @@ New Features
 * tor_localhost, tor_paranoid for dynamic live TOR proxy protection [ASH]
 * float_precision for floating point decimal precision (default 6) [ASH]
 * file_object parameter to specify dynamic override for connect.txt and friends [ASH]
+* extractword() is a multi-char delimeter/seperator/ansi-aware extract [ASH]
 
 Changes
 -------
