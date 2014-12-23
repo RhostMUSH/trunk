@@ -8813,19 +8813,19 @@
   MAILQUICK()   MAP()          MATCH()        MASK()           MAX()         
   MEMBER()      MERGE()        MID()          MIN()            MIX()         
   MOD()         MODULO()       MODIFYTIME()   MONEY()          MONEYNAME()   
-  MOON()        MUDNAME()      MUL()          MUNGE()          NAME()        
-  NAMEQ()       NAND()         NCOMP()        NEARBY()         NEQ()         
-  NEXT()        NOR()          NOSTR()        NOT()            NOTCHR()      
-  NPEMIT()      NSITER()       NUM()          NUMMATCH()       NULL()        
-  NUMMEMBER()   NUMPOS()       NUMWILDMATCH() OBJ()            OBJEVAL()     
-  OEMIT()       OPEN()         OR()           ORCHR()          ORFLAG()      
-  ORFLAGS()     OWNER()        PACK()         PARENMATCH()     PARENT()      
-  PARSE()       PARSESTR()     PEDIT()        PEMIT()          PFIND()       
-  PGREP()       PI()           PID()          PMATCH()         PORT()        
-  POS()         POSS()         POWER()        POWER10()        PRINTF()      
-  PRIVATIZE()   PROGRAMMER()   PTIMEFMT()     PUSHREGS()       QUOTA()       
-  R()           RACE()         RAND()         RANDPOS()        RANDMATCH()   
-  RANDEXTRACT() 
+  MOON()        MUDNAME()      MUL()          MUNGE()          MWORDS()
+  NAME()        NAMEQ()        NAND()         NCOMP()          NEARBY()       
+  NEQ()         NEXT()         NOR()          NOSTR()          NOT()          
+  NOTCHR()      NPEMIT()       NSITER()       NUM()            NUMMATCH()     
+  NULL()        NUMMEMBER()    NUMPOS()       NUMWILDMATCH()   OBJ()          
+  OBJEVAL()     OEMIT()        OPEN()         OR()             ORCHR()        
+  ORFLAG()      ORFLAGS()      OWNER()        PACK()           PARENMATCH()   
+  PARENT()      PARSE()        PARSESTR()     PEDIT()          PEMIT()        
+  PFIND()       PGREP()        PI()           PID()            PMATCH()       
+  PORT()        POS()          POSS()         POWER()          POWER10()      
+  PRINTF()      PRIVATIZE()    PROGRAMMER()   PTIMEFMT()       PUSHREGS()     
+  QUOTA()       R()            RACE()         RAND()           RANDPOS()      
+  RANDMATCH()   RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -9734,7 +9734,7 @@
     > say elements(this@is@a@test,2 4 2 2 2 2,@,)
     You say "is test is is is is"
  
-  See Also: extract(), elementsmux()
+  See Also: extract(), extractword(), elementsmux()
   
 & elementsmux()
   Function: elementsmux(<list of words>,<list of numbers>[[,<delim>][,<sep>]])
@@ -9756,7 +9756,7 @@
     > say elementsmux(this@is@a@test,2 4 2 2 2 2,@,)
     You say "is test is is is is"
  
-  See Also: extract(), elements()
+  See Also: extract(), extractword(), elements()
   
   
 & ZFUN()
@@ -10048,7 +10048,7 @@
     > say randextract(this is a test,3,,D)
     You say "this a this"
   
-  See Also: randpos(), randmatch(), extract(), index(), rand()
+  See Also: randpos(), randmatch(), extract(), extractword(), index(), rand()
   
 & quota()
   Function: quota(<player>)
@@ -11700,7 +11700,7 @@ See Also: timefmt()
     > say first(List&with&nonstandard&delimiters,&)
     You say "List"
   
-  See Also: rest(), before(), after(), extract()
+  See Also: rest(), before(), after(), extract(), extractword()
   
 & REMIT()
   Function: remit(<list of locations>,<string> [,<to-reality-toggle>])
@@ -11752,7 +11752,7 @@ See Also: timefmt()
     > say rest(List!with!different!delimiters,!)
     You say "with!different!delimiters"
   
-  See Also: first(), before(), after(), extract()
+  See Also: first(), before(), after(), extract(), extractword()
   
 & STRCAT()
   Function: strcat(<string>[,<string2>,...,<stringx>])
@@ -12327,7 +12327,8 @@ See Also: timefmt()
     > say extract(Another@funky@test@for@extract, 3, 3, @)
     You say "Another@funky"
   
-  See Also: extract(), index(), insert(), ldelete(), replace(), randextract()
+  See Also: extract(), extractword(), index(), insert(), ldelete(), replace(),
+            randextract()
   
 & elist()
   Function: elist(<str>[,<phrase>[,<delim>[,<sep>[,<punctuation>[,<munge>]]]]])
@@ -13199,7 +13200,8 @@ See Also: timefmt()
     > say extractword(a@@@multi@@@char@@@delimiter, 2, 2, @@@,%b)
     You say "multi char"
   
-  See Also: extract(), index(), insert(), ldelete(), replace(), randextract() 
+  See Also: extract(), extractword(), index(), insert(), ldelete(), replace(),
+            randextract() 
   
 & INDEX()
   Function: index(<list>,<character>,<first>,<length>)
@@ -13214,7 +13216,7 @@ See Also: timefmt()
     > say [index(Cup of Tea | Mug of Beer | Glass of Wine, |, 2, 1)]
     You say, "Mug of Beer"
   
-  See Also: extract(), aindex(), iindex(), rindex()
+  See Also: extract(), extractword(), aindex(), iindex(), rindex()
   
 & AIINDEX()
   Function: aiindex(<list>, <string>, <position>, <delimiter>)
@@ -14769,11 +14771,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: convsecs(), convtime(), time(), timefmt()
   
 & WORDS()
-  words(<string>[, <delim>])
- 
+  Function:  words(<string>[, <delim>])
+            mwords(<string>[, <multi-character-delim>])
+   
   Returns the number of words in <string>.  <delim> may be used to specify
-  a delimiter other than a space.
- 
+  a delimiter other than a space.  mwords() works just like words, except
+  that ignores ansi and allows a multi-character delimiter.
+   
   Example:
     > say words(This is a test)
     You say "4"
@@ -14782,7 +14786,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     say words(This:is:a:colon:separated:list,:)
     > You say "6"
   
-  See Also: wordpos(), strlen()
+  See Also: wordpos(), strlen(), extract(), extractword()
   
 & VERSION()
   Function: version(<arg>)
@@ -15251,7 +15255,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say last(one@two@three,@)
     You say "three"
   
-  See Also: first(), extract(), randextract(), elements()
+  See Also: first(), extract(), extractword(), randextract(), elements()
   
 & LCMDS()
   Function: lcmds(<object> [,<output delim> [,<type>]])
@@ -20051,7 +20055,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say insert(Yet@Another@List, 3, Funky, @)
     You say "Yet@Another@Funky@List"
   
-  See Also: extract(), ldelete(), replace(), iindex(), aindex(), rindex()
+  See Also: extract(), extractword(), ldelete(), replace(), iindex(), aindex(),
+            rindex()
   
 & LREPLACE()
   Function: lreplace(<list>, <pos>, <string>[, <delim>])
@@ -20092,7 +20097,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say replace(Yet@Another@Mundane@List, 3, Funky, @)
     You say "Yet@Another@Funky@List"
   
-  See Also: extract(), insert(), ldelete(), delete(), rindex()
+  See Also: extract(), extractword(), insert(), ldelete(), delete(), rindex()
   
 & LDELETE()
   Function: ldelete(<list>, <pos> [<pos2>...<posN>] [, <sep>])
@@ -20110,7 +20115,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say ldelete(Yet@Another@Mundane@List, 3, @)
     You say "Yet@Another@List"
   
-  See Also: extract(), insert(), replace(), rindex()
+  See Also: extract(), extractword(), insert(), replace(), rindex()
   
 & ISALPHA()
   Function: isalpha(<string>)
@@ -24684,6 +24689,7 @@ Mail: Done
   elementsmux() - Same as elements(), but null arguments are valid here.
   elist()       - Generates English-readable text from a list
   extract()     - Returns a string of <length> words.
+  extractword() - Returns a string of <length> words (multi-delim).
   filter()      - Filters a list through an attribute evaluation
   first()       - Returns the first element of a list.
   flags()       - Returns a flag list for a specified object.
@@ -24985,6 +24991,7 @@ Mail: Done
   ljust()       - Pads a string with trailing fill characters.
   merge()       - Merges two strings together.
   mid()         - Extracts X characters from a string, from anywhere inside it.
+  mwords()      - Returns the number of words in a string (with multi-delim).
   nostr()       - The exact opposite of str().
   notchr()      - Returns true if NONE of the specified characters are in string.
   numpos()      - Returns the total number of matches of a character in a string.
@@ -26956,6 +26963,7 @@ New Features
 * float_precision for floating point decimal precision (default 6) [ASH]
 * file_object parameter to specify dynamic override for connect.txt and friends [ASH]
 * extractword() is a multi-char delimeter/seperator/ansi-aware extract [ASH]
+* mwords() is a multi-char delimiter/ansi-ignore words [ASH]
 
 Changes
 -------

@@ -5986,6 +5986,37 @@ FUNCTION(fun_translate)
     }
 }
 
+FUNCTION(fun_mwords)
+{
+   char *sep, *pos, *poschk;
+   int i_count = 0;
+
+   if (!fn_range_check("MWORDS", nfargs, 0, 2, buff, bufcx))
+      return;
+   
+   if ( (nfargs < 1) || !*fargs[0] ) {
+      ival(buff, bufcx, i_count);
+      return;
+   } 
+
+   if ( (nfargs > 1) && *fargs[1] ) {
+      sep = fargs[1];
+   } else {
+      sep = (char *)" ";
+   }
+
+   pos = strip_all_ansi(fargs[0]);
+   i_count++;
+   while ( (poschk = strstr(pos, sep)) != NULL ) {
+      pos = poschk + strlen(sep);
+      i_count++;
+      if ( !pos || !*pos )
+         break;
+   }
+
+   ival(buff, bufcx, i_count);
+}
+
 FUNCTION(fun_words)
 {
     char sep;
@@ -29722,6 +29753,7 @@ FUN flist[] =
     {"MUDNAME", fun_mudname, 0, 0, CA_PUBLIC, 0},
     {"MUL", fun_mul, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MUNGE", fun_munge, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"MWORDS", fun_mwords, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"NAME", fun_name, 1, FN_VARARGS, CA_PUBLIC, 0},
 #else
