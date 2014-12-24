@@ -13180,13 +13180,16 @@ See Also: timefmt()
             randextract()
   
 & EXTRACTWORD()
-  Function: extractword(<string>, <first>, <length>[, <delim>], <sep>]])
+  Function: extractword(<string>, <first>, <length>[, <delim>], <sep>] ,<del>])
   
   Extractword returns a string of length words, starting with the first
   word.  This works effectively like extract(), however, the deliminiter 
   <delim> and seperator <sep> can be multi-character.  In addition, the
   seperator may also contain ansi or special characters.
   
+  If you specify the <del> toggle to '1' it assumes delextract() compatibility
+  where the words choosen are all the words EXCEPT the range specified.
+   
   Unlike extract(), extractword() is also ansi-aware.
   
   The default <delim> is a space.  The default <sep> is whatever <delim>
@@ -26962,7 +26965,7 @@ New Features
 * tor_localhost, tor_paranoid for dynamic live TOR proxy protection [ASH]
 * float_precision for floating point decimal precision (default 6) [ASH]
 * file_object parameter to specify dynamic override for connect.txt and friends [ASH]
-* extractword() is a multi-char delimeter/seperator/ansi-aware extract [ASH]
+* extractword() is a multi-char delimeter/seperator/ansi-aware extract/delextract [ASH]
 * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
 
 Changes
