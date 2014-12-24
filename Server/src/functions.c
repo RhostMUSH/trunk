@@ -16206,11 +16206,11 @@ FUNCTION(fun_randextract)
 
 FUNCTION(fun_extractword)
 {
-   int start, len, i_cntr, i_cntr2, first;
+   int start, len, i_cntr, i_cntr2, first, i_del;
    char *sep, *osep, *pos, *prevpos, *fargbuff, *outbuff;
    ANSISPLIT outsplit[LBUF_SIZE], *optr, *prevoptr;
 
-   if (!fn_range_check("WORDEXTRACT", nfargs, 3, 5, buff, bufcx))
+   if (!fn_range_check("WORDEXTRACT", nfargs, 3, 6, buff, bufcx))
       return;
 
    if ( !*fargs[0] )
@@ -16239,6 +16239,12 @@ FUNCTION(fun_extractword)
    } else {
       strcpy(osep, sep);
    }
+   
+   if ( (nfargs > 5) && *fargs[5] ) {
+      i_del = atoi(fargs[5]);
+   } else {
+      i_del = 0;
+   }
    pos = fargbuff;
    optr = outsplit;
    i_cntr = 1;
@@ -16248,7 +16254,8 @@ FUNCTION(fun_extractword)
       prevoptr = optr + (prevpos - pos);
       if ( !prevpos || !*prevpos )
          break;
-      if ( i_cntr < start ) {
+      if ( ((i_cntr < start) && !i_del) ||
+           ( ((i_cntr >= start) && (i_cntr < (start + len))) && i_del) ) {
          i_cntr++;
          *(prevpos)='\0';
          pos = prevpos + strlen(sep);
@@ -16272,10 +16279,12 @@ FUNCTION(fun_extractword)
       *(pos-1) = '\0';
       i_cntr++;
       i_cntr2++;
-      if ( i_cntr2 >= len )
+      if ( (i_cntr2 >= len) && !i_del )
          break;
    }
-   if ( pos && *pos && (i_cntr2 < len) && (start <= i_cntr) ) {
+   if ( pos && *pos && ( 
+        ((i_cntr2 < len) && (start <= i_cntr) && !i_del) || 
+        (((i_cntr < start) || (i_cntr >= (start + len))) && i_del) )) {
       if ( first )
          safe_str(osep, buff, bufcx);
       outbuff = rebuild_ansi(pos, optr);
