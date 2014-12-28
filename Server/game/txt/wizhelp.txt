@@ -512,7 +512,9 @@
   The general flow of control is as follows.  If a target is TwinkLocked,
   assume examine/modify based on the given Lock.  Owner/Bitlevel still 
   has control regardless of passing the lock or not.  Note that zone
-  control is also handled with twinklock and zone locks.
+  control is also handled with twinklock and zone locks.  Any bitlevel
+  owned items MUST BE SET INHERIT to inherit ownership.  Please do NOT SET
+  THE BIT ON THE NON-PLAYER.  This is a PennMUSH-ism ONLY!
 
   #1 ---+
      Immortal ---+
