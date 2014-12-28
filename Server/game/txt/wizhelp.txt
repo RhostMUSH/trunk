@@ -519,29 +519,35 @@
      Power(Toggled/Special)
      @hook
      NO_MODIFY (with @admin params imm_nomod enabled)
+     Immortal Owned thing set INHERIT
               Wizard ---+
               Power(Toggled/Special)
               @hook
               NO_MODIFY/NO_EXAMINE (without @admin params imm_nomod enabled)
+              Wizard Owned thing set INHERIT
                      Councilor ---+
                      Depower(Councilor)
                      Power(Councilor)
                      Toggles(some)
                      @hook
+                     Councilor Owned thing set INHERIT
                                Architect ---+
                                Depower(Architect)
                                Power(Architect)
                                @hook
+                               Architect Owned thing set INHERIT
                                          Guildmaster ---+
                                          Depower(Guildmaster)
                                          Power(Guildmaster)
                                          @hook
+                                         Guildmaster Owned thing set INHERIT
                                                      Citizen ---+
                                                      Wanderer
                                                      Guest
                                                      Toggles(some)
                                                      Flags(some)
                                                      @hook
+                                                     ANY BIT-THING NOT INHERIT
                                                              Screwed. ---+
                                                              Depower(off)
                                                              @icmd
