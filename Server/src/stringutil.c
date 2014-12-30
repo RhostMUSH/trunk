@@ -218,6 +218,7 @@ char *replace_string_ansi(const char *s_old, const char *new,
    memset(outbuff, '\0', LBUF_SIZE);
    memset(outbuff2, '\0', LBUF_SIZE);
    memset(inbuff, '\0', LBUF_SIZE);
+   memset(old, '\0', LBUF_SIZE);
    split_ansi(strip_ansi(string), outbuff, outsplit);
    split_ansi(strip_ansi(new), inbuff, insplit);
 

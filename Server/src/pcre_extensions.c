@@ -375,14 +375,14 @@ FUNCTION(fun_regediti)
 
 FUNCTION(fun_regeditall)
 {
-   if (!fn_range_check("REGEDITALL", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALL", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 2);
 }
 
 FUNCTION(fun_regeditalli)
 {
-   if (!fn_range_check("REGEDITALLI", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALLI", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 3);
 }
@@ -398,14 +398,14 @@ FUNCTION(fun_regeditilit)
 
 FUNCTION(fun_regeditalllit)
 {
-   if (!fn_range_check("REGEDITALL", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALL", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 6);
 }
 
 FUNCTION(fun_regeditallilit)
 {
-   if (!fn_range_check("REGEDITALLI", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALLI", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 7);
 }
