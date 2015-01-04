@@ -1101,6 +1101,8 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_cut},
     {(char *) "@dbck", dbck_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_NO_ARGS, 0, do_dbck},
+    {(char *) "@dbclean", NULL, CA_GOD | CA_IMMORTAL, 0, 0,
+     CS_NO_ARGS, 0, do_dbclean},
     {(char *) "@decompile", decomp_sw, 0, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_decomp},
     {(char *) "@depower", depower_sw, CA_PUBLIC, 0,
@@ -4651,7 +4653,7 @@ NAMETAB attraccess_nametab[] =
     {(char *) "guildmaster", 2, CA_GUILDMASTER, 0, AF_GUILDMASTER},
     {(char *) "visual", 1, CA_PUBLIC, 0, AF_VISUAL},
     {(char *) "no_ansi", 4, CA_WIZARD, 0, AF_NOANSI},
-    {(char *) "nonblocking", 3, CA_IMMORTAL, 0, AF_NONBLOCKING},
+    {(char *) "nonblocking", 3, CA_GOD, 0, AF_NONBLOCKING},
     {(char *) "pinvisible", 2, CA_WIZARD, 0, AF_PINVIS},
     {(char *) "no_clone", 4, CA_PUBLIC, 0, AF_NOCLONE},
 #ifdef ATTR_HACK
