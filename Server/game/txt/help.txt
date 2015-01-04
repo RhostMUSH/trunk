@@ -26967,6 +26967,7 @@ New Features
 * file_object parameter to specify dynamic override for connect.txt and friends [ASH]
 * extractword() is a multi-char delimeter/seperator/ansi-aware extract/delextract [ASH]
 * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
+* @dbclean to purge unused attributes from the db [ASH]
 
 Changes
 -------

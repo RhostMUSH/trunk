@@ -23,7 +23,8 @@
 #define AF_IMMORTAL 	0x00004000	/* immortal modifyable */
 #define	AF_PRIVATE	0x00008000	/* Not inherited by children */
 #define AF_NONBLOCKING	0x00010000	/* command doesn't keep parent and
-					   globals from being checked if matched */
+					   globals from being checked if matched 
+                                           NOT USED -- Used now for @dbclean marking */
 #define AF_VISUAL	0x00020000
 #define AF_NOANSI	0x00040000
 #define AF_PINVIS	0x00080000

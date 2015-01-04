@@ -21,6 +21,7 @@ void bzero(void *, int);
 #include "vattr.h"
 #include "match.h"
 #include "alloc.h"
+#include "interface.h"
 
 #ifndef O_ACCMODE
 #define O_ACCMODE	(O_RDONLY|O_WRONLY|O_RDWR)
@@ -292,6 +293,9 @@ extern int FDECL(ansiname_ck, (int, dbref, dbref, int, char *));
 extern void FDECL(pcache_reload, (dbref));
 extern void FDECL(desc_reload, (dbref));
 extern void FDECL(do_reboot, (dbref, dbref, int));
+extern int FDECL(process_output, (DESC * d));
+extern int FDECL(list_vcount, ());
+
 
 AFLAGENT attrflag[] =
 {
@@ -1122,7 +1126,6 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
     free_sbuf(buff);
     return;
 }
-
 /* ---------------------------------------------------------------------------
  * do_fixdb: Directly edit database fields
  */
@@ -3382,3 +3385,96 @@ init_gdbm_db(char *gdbmfile)
     vattr_init();
     return (0);
 }
+
+#ifndef STANDALONE
+void do_dbclean(dbref player, dbref cause, int key)
+{
+   char *s_chkattr, *s_buff, *cs;
+   int ca, i, i_walkie, i_cntr, i_max, i_del;
+   VATTR *va, *va2;
+   ATTR *atr;
+   DESC *d;
+
+   DESC_ITER_CONN(d) {
+      if ( (d->player == player) ) {
+         queue_string(d,"Purging dabase of empty attributes.  Please wait...");
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+   s_buff = alloc_sbuf("do_dbclean");
+   s_chkattr = alloc_lbuf("attribute_delete");
+
+   DESC_ITER_CONN(d) {
+      if ( (d->player == player) ) {
+         queue_string(d, "---> Hashing values...");
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+   DO_WHOLE_DB(i) {
+      for (ca=atr_head(i, &cs); ca; ca=atr_next(&cs)) {
+         if ( ca > A_USER_START ) {
+            atr = atr_num2(ca);
+            va = (VATTR *) vattr_find((char *)atr->name);
+            if ( va && !(va->flags & AF_DELETED) ) {
+               if ( !(va->flags & AF_NONBLOCKING) ) {
+                  va->flags |= AF_NONBLOCKING;
+               }
+            }
+         }
+      }
+   }
+   DESC_ITER_CONN(d) {
+      if ( (d->player == player) ) {
+         queue_string(d, "---> Initializing purge routines...");
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+
+   
+   va = vattr_first();
+   i_max = list_vcount();
+   i_walkie = i_del = i_cntr = 0;
+
+   for (va = vattr_first(); va; va = va2) {
+       if ( va )
+          va2 = vattr_next(va);
+       if ( va && !(va->flags & AF_DELETED)) {
+          if ( !(va->flags & AF_NONBLOCKING) && va->name ) {
+             strcpy(s_buff, va->name);
+	     vattr_delete(s_buff);
+             i_del++;
+             i_cntr++;
+          } else {
+             va->flags &= ~AF_NONBLOCKING;
+          }
+       }
+       i_walkie++;
+       if ( !(i_walkie % 5000) ) {
+          sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d deleted]", i_walkie, i_max, i_del);
+          i_del = 0;
+          DESC_ITER_CONN(d) {
+             if ( (d->player == player) ) {
+                queue_string(d, s_chkattr);
+                queue_write(d, "\r\n", 2);
+                process_output(d);
+             }
+          }
+       }
+   }
+   DESC_ITER_CONN(d) {
+      sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d deleted]\r\n---> Completed!  %d total attributes have been purged.", 
+                          i_walkie, i_max, i_del, i_cntr);
+      if ( (d->player == player) ) {
+         queue_string(d, s_chkattr);
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+   free_lbuf(s_chkattr);
+   free_sbuf(s_buff);
+}
+
+#endif

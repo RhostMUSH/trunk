@@ -425,18 +425,18 @@
  
   @admin          @aflags         @apply_marked  @areg           @attribute 
   @blacklist      @boot           @chown         @chownall       @clone     
-  @conncheck      @convert        @cut           @dbck           @depower  
-  @destroy        @disable        @doing         @dump           @dynhelp
-  @enable         @fixdb          @flag          @flagdef        @freeze
-  @function       @halt           @hide          @hook           @icmd 
-  @kick           @limit          @list          @list_file      @listmotd
-  @lock           @log            @logrotate     @mark           @mark_all
-  @money          @motd           @newpassword   @nuke           @pcreate
-  @poor           @power          @progreset     @protect        @ps           
-  @purge          @quota          @readcache     @reboot         @recover      
-  @reclist        @remote         @rwho          @site           @shutdown     
-  @snapshot       @thaw           @timewarp      @toad           @tor
-  @turtle         @wall           +players
+  @conncheck      @convert        @cut           @dbck           @dbclean
+  @depower        @destroy        @disable       @doing          @dump       
+  @dynhelp        @enable         @fixdb         @flag           @flagdef    
+  @freeze         @function       @halt          @hide           @hook       
+  @icmd           @kick           @limit         @list           @list_file  
+  @listmotd       @lock           @log           @logrotate      @mark       
+  @mark_all       @money          @motd          @newpassword    @nuke       
+  @pcreate        @poor           @power         @progreset      @protect    
+  @ps             @purge          @quota         @readcache      @reboot     
+  @recover        @reclist        @remote        @rwho           @site       
+  @shutdown       @snapshot       @thaw          @timewarp       @toad       
+  @tor            @turtle         @wall          +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -2297,6 +2297,39 @@
   
   Example:  @cut #12345
 
+& @dbclean
+  Command: @dbclean
+  This command will perform an attribute purge of the database of any
+  unused attributes in the hash tables.  Unused is defined as an attribute
+  that is not currently defined (set) on ANY database object in the database.
+  
+  Cleaning unused attributes is handy as that will reduce, in some instances,
+  greatly reduce, the memory overhead of the mush.  Remember, the more 
+  attributes you have in your hash tables (@list hash -- Check Vattr line),
+  the more memory your mush will be using.
+   
+  Please be aware this only deletes the attributes, it does not renumber 
+  them.  It was decided to forgoe renumbering the attributes on-line for
+  a few reasons which are as follows:
+    1.  Renumbering the attributes requires a massive overhead of allocated
+        memory to keep track of the attributes on both side of the tree.
+    2.  For large databases with large numbers of attributes, this can
+        become next to impossible, especially if you resources are tight.
+    3.  There's several more checks in RhostMUSH with attributes than there
+        is in MUX, thereby requiring more overhead to renumberate.
+    4.  The number of the attribute, regardless of gap, causes no additional
+        overhead in the mush itself.
+    5.  If someone needs to write (or manages to write) over 2 billion 
+        attributes in a mush, without intending to do so, I want to shake
+        their hand.  
+  
+  If there ever is a need to renumber attributes, please let the core devs
+  know and we'll look to make a stand-alone program that re-numbers 
+  attributes in a flatfile for your use.  In 25 years as of this writing, 
+  there currently has not been a need.
+  
+  See Also: @dbck, @dump, @reclist, @recover, @purge
+
 & @dbck
   Command: @dbck
   Performs a scan of the database looking for inconsistencies in the object
@@ -2306,7 +2339,7 @@
   credited for rooms destroyed.  Database checks are automatically run
   periodically, so there is usually no need to use this command.
   
-  See Also: @admin, @disable, @enable, @list, @purge.
+  See Also: @admin, @disable, @enable, @list, @purge, @dbclean.
 
 & @destroy
   Command: @destroy[/<switches>] <object>
@@ -3308,7 +3341,7 @@
   
   Example:  @purge/type room
   
-  See Also: @dbck, @recover, @reclist
+  See Also: @dbck, @recover, @reclist, @dbclean
 
 & @recover
   Command: @recover <#dbref>
