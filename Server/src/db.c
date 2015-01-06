@@ -3397,7 +3397,10 @@ void do_dbclean(dbref player, dbref cause, int key)
 
    DESC_ITER_CONN(d) {
       if ( (d->player == player) ) {
-         queue_string(d,"Purging dabase of empty attributes.  Please wait...");
+         if ( key & DBCLEAN_CHECK )
+            queue_string(d,"Checking dabase of empty attributes.  Please wait...");
+         else
+            queue_string(d,"Purging dabase of empty attributes.  Please wait...");
          queue_write(d, "\r\n", 2);
          process_output(d);
       }
@@ -3427,7 +3430,10 @@ void do_dbclean(dbref player, dbref cause, int key)
    }
    DESC_ITER_CONN(d) {
       if ( (d->player == player) ) {
-         queue_string(d, "---> Initializing purge routines...");
+         if ( key & DBCLEAN_CHECK )
+            queue_string(d, "---> Initializing check routines...");
+         else
+            queue_string(d, "---> Initializing purge routines...");
          queue_write(d, "\r\n", 2);
          process_output(d);
       }
@@ -3444,7 +3450,10 @@ void do_dbclean(dbref player, dbref cause, int key)
        if ( va && !(va->flags & AF_DELETED)) {
           if ( !(va->flags & AF_NONBLOCKING) && va->name ) {
              strcpy(s_buff, va->name);
-	     vattr_delete(s_buff);
+             if ( key & DBCLEAN_CHECK )
+                va->flags &= ~AF_NONBLOCKING;
+             else
+	        vattr_delete(s_buff);
              i_del++;
              i_cntr++;
           } else {
@@ -3453,7 +3462,8 @@ void do_dbclean(dbref player, dbref cause, int key)
        }
        i_walkie++;
        if ( !(i_walkie % 5000) ) {
-          sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d deleted]", i_walkie, i_max, i_del);
+          sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d %s]", 
+                  i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted") );
           i_del = 0;
           DESC_ITER_CONN(d) {
              if ( (d->player == player) ) {
@@ -3465,8 +3475,9 @@ void do_dbclean(dbref player, dbref cause, int key)
        }
    }
    DESC_ITER_CONN(d) {
-      sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d deleted]\r\n---> Completed!  %d total attributes have been purged.", 
-                          i_walkie, i_max, i_del, i_cntr);
+      sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d %s]\r\n---> Completed!  %d total attributes have been %s.", 
+                          i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted"),
+                          i_cntr, ((key & DBCLEAN_CHECK) ? "verified deleteable" : "deleted") );
       if ( (d->player == player) ) {
          queue_string(d, s_chkattr);
          queue_write(d, "\r\n", 2);
