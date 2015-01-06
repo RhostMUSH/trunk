@@ -16558,7 +16558,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), @lfunction
 
 & LOCALIZE()
-  Function: localize(<string> [,<register-list>])
+  Function: localize(<string> [,<register-list>, [<key>]])
   
   This function will evaluate <string> while preserving all setq() registers
   outside of the function.  This is handy for calling global code or other
@@ -16570,6 +16570,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Accepted register values are:
     0-9 -- Standard Q registers.
     a-z -- Extended Q registers.
+  
+  If the <key> is set to 1, the behavior is reversed and any register that
+  you specify will be omitted from localization.  The default is '0'.
    
   Example:
     > @va me=[setq(0,internal)]--My R0:[r(0)]--

@@ -14657,12 +14657,18 @@ FUNCTION(fun_privatize)
 FUNCTION(fun_localize)
 {
     char *result, *pt, *savereg[MAX_GLOBAL_REGS], *resbuff;
-    int x, i_flagreg[MAX_GLOBAL_REGS];
+    int x, i_flagreg[MAX_GLOBAL_REGS], i_reverse;
 
-    if (!fn_range_check("LOCALIZE", nfargs, 1, 2, buff, bufcx)) {
+    if (!fn_range_check("LOCALIZE", nfargs, 1, 3, buff, bufcx)) {
        return;
     }
 
+    i_reverse = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       resbuff = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[2], cargs, ncargs);
+       i_reverse = atoi(resbuff);
+       free_lbuf(resbuff);
+    }
     if ( (nfargs > 1) && *fargs[1] ) {
        resbuff = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs);
        if ( *resbuff ) {
@@ -14672,10 +14678,10 @@ FUNCTION(fun_localize)
              pt++;
           }
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
-             if ( strchr(resbuff, mudstate.nameofqreg[x]) != NULL)
-                i_flagreg[x] = 1;
+             if ( strchr(resbuff, mudstate.nameofqreg[x]) != NULL )
+                i_flagreg[x] = (i_reverse ? 0 : 1);
              else
-                i_flagreg[x] = 0;
+                i_flagreg[x] = (i_reverse ? 1 : 0);
           }
        } else {
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
