@@ -16558,12 +16558,19 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), @lfunction
 
 & LOCALIZE()
-  Function: localize(<string>)
+  Function: localize(<string> [,<register-list>])
   
   This function will evaluate <string> while preserving all setq() registers
   outside of the function.  This is handy for calling global code or other
   functionality without it effecting your own functions and commands.
   
+  You may specify a register list if you want only specific registers to be
+  localized.  Otherwise, by default it assumes all registers.
+  
+  Accepted register values are:
+    0-9 -- Standard Q registers.
+    a-z -- Extended Q registers.
+   
   Example:
     > @va me=[setq(0,internal)]--My R0:[r(0)]--
     Set.
@@ -16571,6 +16578,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "external--My R0:internal--internal"
     > say [setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--My R0:internal--external"
+    > say [setq(0,external)][r(0)][localize(u(va),12345)][r(0)]
+    You say "external--My R0:internal--internal"
+  
+  Note: In the last example, we allowed '12345' to be localized, but not '0'.
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), @lfunction
   
@@ -27017,6 +27028,7 @@ Changes
 * *_site admin params raised from 1000 chars to LBUF_SIZE [ASH]
 * bittype() optionally handles true staff inheritance checks [ASH]
 * strmath() now handles floating point notation [ASH]
+* localize() optionally has 2nd argument to specify specific regs to localize [ASH]
   
 Bug Fixes
 ---------

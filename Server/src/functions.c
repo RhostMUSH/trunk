@@ -14656,10 +14656,41 @@ FUNCTION(fun_privatize)
  */
 FUNCTION(fun_localize)
 {
-    char *result, *pt, *savereg[MAX_GLOBAL_REGS];
-    int x;
+    char *result, *pt, *savereg[MAX_GLOBAL_REGS], *resbuff;
+    int x, i_flagreg[MAX_GLOBAL_REGS];
 
+    if (!fn_range_check("LOCALIZE", nfargs, 1, 2, buff, bufcx)) {
+       return;
+    }
+
+    if ( (nfargs > 1) && *fargs[1] ) {
+       resbuff = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs);
+       if ( *resbuff ) {
+          pt = resbuff;
+          while ( *pt ) {
+             *pt = ToLower(*pt);
+             pt++;
+          }
+          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+             if ( strchr(resbuff, mudstate.nameofqreg[x]) != NULL)
+                i_flagreg[x] = 0;
+             else
+                i_flagreg[x] = 1;
+          }
+       } else {
+          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+             i_flagreg[x] = 1;
+          }
+       }
+       free_lbuf(resbuff);
+    } else {
+       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          i_flagreg[x] = 1;
+       }
+    }
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      if ( !i_flagreg[x] )
+         continue;
       savereg[x] = alloc_lbuf("ulocal_reg");
       pt = savereg[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
@@ -14670,6 +14701,8 @@ FUNCTION(fun_localize)
     result = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0],
     cargs, ncargs);
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      if ( !i_flagreg[x] )
+         continue;
       pt = mudstate.global_regs[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
       free_lbuf(savereg[x]);
@@ -29704,7 +29737,7 @@ FUN flist[] =
     {"LNUM", fun_lnum, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LNUM2", fun_lnum2, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOC", fun_loc, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"LOCALIZE", fun_localize, 1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"LOCALIZE", fun_localize, 1, FN_NO_EVAL | FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOCALFUNC", fun_localfunc, 1, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOCATE", fun_locate, 3, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
