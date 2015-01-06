@@ -14673,9 +14673,9 @@ FUNCTION(fun_localize)
           }
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
              if ( strchr(resbuff, mudstate.nameofqreg[x]) != NULL)
-                i_flagreg[x] = 0;
-             else
                 i_flagreg[x] = 1;
+             else
+                i_flagreg[x] = 0;
           }
        } else {
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
