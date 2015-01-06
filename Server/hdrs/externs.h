@@ -597,6 +597,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	DBCK_TYPES	1024	/* Check for valid & appropriate types */
 #define	DBCK_SPARE	2048	/* Make sure spare header fields are NOTHING */
 #define	DBCK_HOMES	4096	/* Make sure homes and droptos are valid */
+#define DBCLEAN_CHECK	1	/* Just run a test run on what dbclean would show */
 #define	DEST_ONE	1	/* object */
 #define	DEST_ALL	2	/* owner */
 #define	DEST_OVERRIDE	4	/* override Safe() */

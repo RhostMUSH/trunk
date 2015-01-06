@@ -225,6 +225,11 @@ NAMETAB decomp_sw[] =
     {(char *) "tf", 2, CA_PUBLIC, 0, DECOMP_TF | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
    
+NAMETAB dbclean_sw[] =
+{
+    {(char *) "check", 1, CA_IMMORTAL, 0, DBCLEAN_CHECK},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB dbck_sw[] =
 {
     {(char *) "full", 1, CA_IMMORTAL, 0, DBCK_FULL},
@@ -1101,7 +1106,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_cut},
     {(char *) "@dbck", dbck_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_NO_ARGS, 0, do_dbck},
-    {(char *) "@dbclean", NULL, CA_GOD | CA_IMMORTAL, 0, 0,
+    {(char *) "@dbclean", dbclean_sw, CA_GOD | CA_IMMORTAL, 0, 0,
      CS_NO_ARGS, 0, do_dbclean},
     {(char *) "@decompile", decomp_sw, 0, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_decomp},

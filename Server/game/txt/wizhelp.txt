@@ -2298,10 +2298,13 @@
   Example:  @cut #12345
 
 & @dbclean
-  Command: @dbclean
+  Command: @dbclean[/<switch>]
   This command will perform an attribute purge of the database of any
   unused attributes in the hash tables.  Unused is defined as an attribute
   that is not currently defined (set) on ANY database object in the database.
+  
+  The optional switchs are available:
+      /check  -- Do not actually purge but just show would would have been.
   
   Cleaning unused attributes is handy as that will reduce, in some instances,
   greatly reduce, the memory overhead of the mush.  Remember, the more 
