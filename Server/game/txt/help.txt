@@ -8237,6 +8237,8 @@
   
   - Thanks to Shade@Mediteranian for the Reality Levels Patch
   
+  - Thanks to Exaurdon for endless braincells fried helping Lensman with bugs.
+  
   - Thanks to several people and organizations that are too numerous to mention
   
 & DROP-TOS
