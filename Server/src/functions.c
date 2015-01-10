@@ -5843,9 +5843,10 @@ process_tr(char *s_instr, char *s_outstr, char *s_outptr)
 FUNCTION(fun_tr)
 {
    char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], 
-        *s_inptr, *outbuff, *s_output;
-   int i_cntr, i, i_noansi;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
+        *s_inptr, *outbuff, *outarg2, *s_output;
+   int i_cntr, i, i_noansi, i_chrmap[256];
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
+             s_splitmap[256], s_splitarg2[LBUF_SIZE];
 
    if (!fn_range_check("TR", nfargs, 3, 4, buff, bufcx)) {
       return;
@@ -5859,8 +5860,10 @@ FUNCTION(fun_tr)
       return;
    }
 
-   for ( i = 0; i < 256; i++ )
+   for ( i = 0; i < 256; i++ ) {
       s_chrmap[i] = (char)i;
+      i_chrmap[i] = 0;
+   }
 
    i_cntr = 0;
    /* Sanitize the lists */
@@ -5879,12 +5882,6 @@ FUNCTION(fun_tr)
       safe_str("#-1 OUTPUT REPLACE LIST TOO LARGE.", buff, bufcx);
       return;
    }
-   if ( strlen(s_instr1) != strlen(s_instr2) ) {
-      free_lbuf(s_instr1);
-      free_lbuf(s_instr2);
-      safe_str("#-1 FIND AND REPLACE LISTS MUST BE OF SAME LENGTH.", buff, bufcx);
-      return;
-   }
 
    i_noansi = 0;
    if ( (nfargs > 3) && *fargs[3] )
@@ -5893,21 +5890,45 @@ FUNCTION(fun_tr)
    if ( i_noansi != 0 ) 
       i_noansi = 1;
 
-   if ( !i_noansi ) {
-      initialize_ansisplitter(outsplit, LBUF_SIZE);
-      initialize_ansisplitter(outsplit2, LBUF_SIZE);
-      outbuff = alloc_lbuf("fun_scramble");
-      memset(outbuff, '\0', LBUF_SIZE);
-      split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+   if ( (!i_noansi && (strlen(s_instr1) != strlen(strip_all_special(s_instr2)))) ||
+        ( i_noansi && (strlen(s_instr1) != strlen(s_instr2))) ) {
+      free_lbuf(s_instr1);
+      free_lbuf(s_instr2);
+      safe_str("#-1 FIND AND REPLACE LISTS MUST BE OF SAME LENGTH.", buff, bufcx);
+      return;
    }
 
    s_ptr = s_instr1;
-   s_inptr = s_instr2;
-   while ( *s_ptr ) {
-      s_chrmap[(int)*s_ptr]=*s_inptr;
-      s_ptr++;
-      s_inptr++;
+   if ( !i_noansi ) {
+      initialize_ansisplitter(outsplit, LBUF_SIZE);
+      initialize_ansisplitter(outsplit2, LBUF_SIZE);
+      initialize_ansisplitter(s_splitarg2, LBUF_SIZE);
+      initialize_ansisplitter(s_splitmap, 256);
+      outbuff = alloc_lbuf("fun_tr");
+      outarg2 = alloc_lbuf("fun_tr2");
+      memset(outbuff, '\0', LBUF_SIZE);
+      split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+      split_ansi(strip_ansi(s_instr2), outarg2, s_splitarg2);
+      s_inptr = outarg2;
+      p_sp = s_splitarg2;
+      while ( *s_ptr ) {
+         s_chrmap[(int)*s_ptr]=*s_inptr;
+         i_chrmap[(int)*s_ptr]=1;
+         clone_ansisplitter(&(s_splitmap[(int)*s_ptr]), p_sp);
+         s_ptr++;
+         s_inptr++;
+         p_sp++;
+      }
+      free_lbuf(outarg2);
+   } else {
+      s_inptr = s_instr2;
+      while ( *s_ptr ) {
+         s_chrmap[(int)*s_ptr]=*s_inptr;
+         s_ptr++;
+         s_inptr++;
+      }
    }
+
    if ( i_noansi ) {
       s_ptr = fargs[0];
    } else {
@@ -5919,12 +5940,13 @@ FUNCTION(fun_tr)
    while ( *s_ptr ) {
       if ( s_chrmap[(int)*s_ptr] == '\n' ) {
          safe_chr('\r', s_holdstr, &s_inptr);
-         if ( !i_noansi )
-            clone_ansisplitter(p_sp2, p_sp);
+         if ( !i_noansi ) {
+            clone_ansisplitter_two(p_sp2, &(s_splitmap[(int)*s_ptr]), p_sp);
+         }
          p_sp2++;
       }
       if ( !i_noansi )
-         clone_ansisplitter(p_sp2, p_sp);
+         clone_ansisplitter_two(p_sp2, &(s_splitmap[(int)*s_ptr]), p_sp);
       safe_chr(s_chrmap[(int)*s_ptr], s_holdstr, &s_inptr);
       s_ptr++;
       p_sp++;
