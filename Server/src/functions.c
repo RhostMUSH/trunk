@@ -5842,13 +5842,18 @@ process_tr(char *s_instr, char *s_outstr, char *s_outptr)
 
 FUNCTION(fun_tr)
 {
-   char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], *s_inptr;
-   int i_cntr, i;
+   char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], 
+        *s_inptr, *outbuff, *s_output;
+   int i_cntr, i, i_noansi;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
 
-   i_cntr = 0;
-
-   if ( !*fargs[0] )
+   if (!fn_range_check("TR", nfargs, 3, 4, buff, bufcx)) {
       return;
+   }
+
+   if ( !*fargs[0] ) {
+      return;
+   }
    if ( !*fargs[1] || !*fargs[2] ) {
       safe_str(fargs[0], buff, bufcx);
       return;
@@ -5857,6 +5862,7 @@ FUNCTION(fun_tr)
    for ( i = 0; i < 256; i++ )
       s_chrmap[i] = (char)i;
 
+   i_cntr = 0;
    /* Sanitize the lists */
    s_inptr = s_instr1 = alloc_lbuf("fun_tr_str1");
    i_cntr = process_tr(fargs[1], s_instr1, s_inptr);
@@ -5879,6 +5885,22 @@ FUNCTION(fun_tr)
       safe_str("#-1 FIND AND REPLACE LISTS MUST BE OF SAME LENGTH.", buff, bufcx);
       return;
    }
+
+   i_noansi = 0;
+   if ( (nfargs > 3) && *fargs[3] )
+      i_noansi = atoi(fargs[3]);
+
+   if ( i_noansi != 0 ) 
+      i_noansi = 1;
+
+   if ( !i_noansi ) {
+      initialize_ansisplitter(outsplit, LBUF_SIZE);
+      initialize_ansisplitter(outsplit2, LBUF_SIZE);
+      outbuff = alloc_lbuf("fun_scramble");
+      memset(outbuff, '\0', LBUF_SIZE);
+      split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+   }
+
    s_ptr = s_instr1;
    s_inptr = s_instr2;
    while ( *s_ptr ) {
@@ -5886,15 +5908,36 @@ FUNCTION(fun_tr)
       s_ptr++;
       s_inptr++;
    }
-   s_ptr = fargs[0];
+   if ( i_noansi ) {
+      s_ptr = fargs[0];
+   } else {
+      s_ptr = outbuff;
+   }
+   p_sp  = outsplit;
+   p_sp2 = outsplit2;   
    s_inptr = s_holdstr = alloc_lbuf("fun_tr_str3");
    while ( *s_ptr ) {
-      if ( s_chrmap[(int)*s_ptr] == '\n' )
+      if ( s_chrmap[(int)*s_ptr] == '\n' ) {
          safe_chr('\r', s_holdstr, &s_inptr);
+         if ( !i_noansi )
+            clone_ansisplitter(p_sp2, p_sp);
+         p_sp2++;
+      }
+      if ( !i_noansi )
+         clone_ansisplitter(p_sp2, p_sp);
       safe_chr(s_chrmap[(int)*s_ptr], s_holdstr, &s_inptr);
       s_ptr++;
+      p_sp++;
+      p_sp2++;
    }
-   safe_str(s_holdstr, buff, bufcx);
+   if ( !i_noansi ) {
+      s_output = rebuild_ansi(s_holdstr, outsplit2);
+      safe_str(s_output, buff, bufcx);
+      free_lbuf(s_output);
+      free_lbuf(outbuff);
+   } else {
+      safe_str(s_holdstr, buff, bufcx);
+   }
    free_lbuf(s_holdstr);
    free_lbuf(s_instr1);
    free_lbuf(s_instr2);
@@ -30013,7 +30056,7 @@ FUN flist[] =
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTPOS", fun_totpos, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"TR", fun_tr, 3, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TR", fun_tr, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TRACE", fun_trace, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRANSLATE", fun_translate, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"TRIM", fun_trim, 0, FN_VARARGS, CA_PUBLIC, 0},

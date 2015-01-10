@@ -19156,11 +19156,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: div(), floor(), mod(), round(), trunc()
   
 & TR()
-  Function: tr(<string>, <find>, <replace>)
+  Function: tr(<string>, <find>, <replace> [,<type>])
 
   This function translates every character in <string> that exists in
   <find> to the character at an identical position in <replace>. 
   
+  If you specify the <type> of '1', then tr by default will not be made 
+  ansi-aware and also process strings faster without the ansi overhead.
+  The default value is '0' which allows tr() to be fully ansi-aware.
+   
   Ranges of characters seperated by -'s are accepted. <find> and <replace> 
   must be the same length after expansion of ranges. If a character exists 
   more than once in <find>, only the last instance will be counted. The example
@@ -27034,6 +27038,7 @@ Changes
 * bittype() optionally handles true staff inheritance checks [ASH]
 * strmath() now handles floating point notation [ASH]
 * localize() optionally has 2nd argument to specify specific regs to localize [ASH]
+* tr() is now ANSI-aware, and optionally allows previous behavior [ASH]
   
 Bug Fixes
 ---------
