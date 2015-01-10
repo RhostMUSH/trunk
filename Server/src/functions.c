@@ -5844,7 +5844,7 @@ FUNCTION(fun_tr)
 {
    char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], 
         *s_inptr, *outbuff, *outarg2, *s_output;
-   int i_cntr, i, i_noansi, i_chrmap[256];
+   int i_cntr, i, i_noansi;
    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
              s_splitmap[256], s_splitarg2[LBUF_SIZE];
 
@@ -5858,11 +5858,6 @@ FUNCTION(fun_tr)
    if ( !*fargs[1] || !*fargs[2] ) {
       safe_str(fargs[0], buff, bufcx);
       return;
-   }
-
-   for ( i = 0; i < 256; i++ ) {
-      s_chrmap[i] = (char)i;
-      i_chrmap[i] = 0;
    }
 
    i_cntr = 0;
@@ -5899,6 +5894,11 @@ FUNCTION(fun_tr)
    }
 
    s_ptr = s_instr1;
+
+   for ( i = 0; i < 256; i++ ) {
+      s_chrmap[i] = (char)i;
+   }
+
    if ( !i_noansi ) {
       initialize_ansisplitter(outsplit, LBUF_SIZE);
       initialize_ansisplitter(outsplit2, LBUF_SIZE);
@@ -5913,7 +5913,6 @@ FUNCTION(fun_tr)
       p_sp = s_splitarg2;
       while ( *s_ptr ) {
          s_chrmap[(int)*s_ptr]=*s_inptr;
-         i_chrmap[(int)*s_ptr]=1;
          clone_ansisplitter(&(s_splitmap[(int)*s_ptr]), p_sp);
          s_ptr++;
          s_inptr++;
