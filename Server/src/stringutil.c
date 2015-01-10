@@ -478,7 +478,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
           a_pt->c_bgansi = r_pt->c_bgansi;
           a_pt->i_special = r_pt->i_special;
       /* Just match if ANSI fg hex : fg to fg */
-      } else if ( (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0) &&
+      } else if ( (*(s_pt->s_fghex) && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0)) &&
                   !*(s_pt->s_bghex) &&
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
@@ -489,7 +489,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
           }
       /* Just match if ANSI bg hex : bg to bg */
       } else if ( !*(s_pt->s_fghex) &&
-                  (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0) &&
+                  (*(s_pt->s_bghex) && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0)) &&
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
                   !(s_pt->i_special) ) {
@@ -500,7 +500,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
       /* Just match if ANSI fg normal : fg to fg */
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
-                  (s_pt->c_fgansi == a_pt->c_fgansi) &&
+                  (s_pt->c_fgansi && (s_pt->c_fgansi == a_pt->c_fgansi)) &&
                   !(s_pt->c_bgansi) &&
                   !(s_pt->i_special) ) {
           if ( *(r_pt->s_fghex) ) {
@@ -511,7 +511,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
                   !(s_pt->c_fgansi) &&
-                  (s_pt->c_bgansi == a_pt->c_bgansi) &&
+                  (s_pt->c_bgansi && (s_pt->c_bgansi == a_pt->c_bgansi)) &&
                   !(s_pt->i_special) ) {
           if ( *(r_pt->s_bghex) ) {
              strcpy(a_pt->s_bghex, r_pt->s_bghex); 
