@@ -413,7 +413,7 @@ extern void 	FDECL(clone_ansisplitter_two, (ANSISPLIT *, ANSISPLIT *, ANSISPLIT 
 #else
 #define		initialize_ansisplitter(x, y) (0)
 #define		clone_ansisplitter(x, y) (0)
-#define		clone_ansisplitter_two(x, y) (0)
+#define		clone_ansisplitter_two(x, y, z) (0)
 #endif
 extern int	FDECL(xlate, (char *));
 
