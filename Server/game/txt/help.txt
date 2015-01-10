@@ -2622,7 +2622,7 @@
     > @edit me/va=are,is
       Set - VA: This is a test
   
-  See Also: edit(), @mvattr, @cpattr
+  See Also: edit(), editansi(), @mvattr, @cpattr
   
 & @emit
   Command: @emit[/<switches>] <message>
@@ -8774,31 +8774,31 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()         COS()           CRC32()        CREATE() 
-  CREATETIME()    CREPLACE()    CTU()           DEC()          DECODE64()
-  DECRYPT()       DEFAULT()     DELETE()        DELEXTRACT()   DESTROY()     
-  DICE()          DIG()         DIGEST()        DIST2D()       DIST3D()      
-  DIV()           E()           EDEFAULT()      EDIT()         EE()          
-  ELIST()         ELEMENTS()    ELEMENTSMUX()   ELOCK()        EMIT()        
-  ENCODE64()      ENCRYPT()     ENTRANCES()     EQ()           ERROR()       
-  ESCAPE()        ESCAPEX()     EVAL()          EXIT()         EXP()         
-  EXTRACT()       EXTRACTWORD() FBETWEEN()      FBOUND()       FDIV()        
-  FILTER()        FINDABLE()    FIRST()         FLAGS()        FLOOR()       
-  FLOORDIV()      FOLD()        FOLDERCURRENT() FOLDERLIST()   FOREACH()     
-  FULLNAME()      GARBLE()      GET()           GET_EVAL()     GLOBALROOM()  
-  GRAB()          GRABALL()     GREP()          GT()           GTE()         
-  GUILD()         HASATTR()     HASATTRP()      HASFLAG()      HASTOGGLE()   
-  HASTYPE()       HASQUOTA()    HASRXLEVEL()    HASTXLEVEL()   HOME()        
-  IBREAK()        IDLE()        IFELSE()        IINDEX()       ILEV()        
-  INC()           INDEX()       INPROGRAM()     INSERT()       INUM()        
-  INZONE()        ISALNUM()     ISALPHA()       ISCLUSTER()    ISDBREF()     
-  ISDIGIT()       ISHIDDEN()    ISNUM()         ISPUNCT()      ISSPACE()     
-  ISWORD()        ISXDIGIT()    ITER()          ITEXT()        KEEPFLAGS()   
-  KEEPTYPE()      LADD()        LAND()          LAST()         LASTCREATE()  
-  LATTR()         LAVG()        LCMDS()         LCON()         LCSTR()       
-  LDELETE()       LDIV()        LEMIT()         LEFT()         LEXITS()      
-  LFLAGS()        LINK()        LIST()          LISTCOMMANDS() LISTDIFF()    
-  LISTFUNCTIONS() 
+  CONVTIME()    COR()           COS()         CRC32()         CREATE() 
+  CREATETIME()  CREPLACE()      CTU()         DEC()           DECODE64()
+  DECRYPT()     DEFAULT()       DELETE()      DELEXTRACT()    DESTROY()     
+  DICE()        DIG()           DIGEST()      DIST2D()        DIST3D()      
+  DIV()         E()             EDEFAULT()    EDIT()          EDITANSI() 
+  EE()          ELIST()         ELEMENTS()    ELEMENTSMUX()   ELOCK()      
+  EMIT()        ENCODE64()      ENCRYPT()     ENTRANCES()     EQ()         
+  ERROR()       ESCAPE()        ESCAPEX()     EVAL()          EXIT()       
+  EXP()         EXTRACT()       EXTRACTWORD() FBETWEEN()      FBOUND()     
+  FDIV()        FILTER()        FINDABLE()    FIRST()         FLAGS()      
+  FLOOR()       FLOORDIV()      FOLD()        FOLDERCURRENT() FOLDERLIST() 
+  FOREACH()     FULLNAME()      GARBLE()      GET()           GET_EVAL()   
+  GLOBALROOM()  GRAB()          GRABALL()     GREP()          GT()         
+  GTE()         GUILD()         HASATTR()     HASATTRP()      HASFLAG()    
+  HASTOGGLE()   HASTYPE()       HASQUOTA()    HASRXLEVEL()    HASTXLEVEL() 
+  HOME()        IBREAK()        IDLE()        IFELSE()        IINDEX()     
+  ILEV()        INC()           INDEX()       INPROGRAM()     INSERT()     
+  INUM()        INZONE()        ISALNUM()     ISALPHA()       ISCLUSTER()  
+  ISDBREF()     ISDIGIT()       ISHIDDEN()    ISNUM()         ISPUNCT()    
+  ISSPACE()     ISWORD()        ISXDIGIT()    ITER()          ITEXT()      
+  KEEPFLAGS()   KEEPTYPE()      LADD()        LAND()          LAST()       
+  LASTCREATE()  LATTR()         LAVG()        LCMDS()         LCON()       
+  LCSTR()       LDELETE()       LDIV()        LEMIT()         LEFT()       
+  LEXITS()      LFLAGS()        LINK()        LIST()          LISTCOMMANDS()
+  LISTDIFF()    LISTFUNCTIONS() 
   
 { 'help function list3' for more }
   
@@ -9014,18 +9014,19 @@
   Strings:             ACCENT() AFTER() ANDCHR() BEFORE() BRACKETS() CAPSTR() 
                        CASE() CASEALL() CAT() CENTER() CHOMP() COLUMNS() 
                        COMP() CREPLACE() DECODE64() DECRYPT() DELETE() EDIT() 
-                       ENCODE64() ENCRYPT() ESCAPE() ESCAPEX() EVAL() GARBLE()
-                       IFELSE() ISALNUM() ISALPHA() ISDBREF() ISDIGIT() ISNUM()
-                       ISPUNCT() ISSPACE() ISWORD() ISXDIGIT() LCSTR() LEFT() 
-                       LIT() LJC() LJUST() MERGE() MID() NOSTR() NOTCHR() 
-                       NUMPOS() ORCHR() PARSESTR() PEDIT() POS() PRINTF() 
-                       RANDPOS() REPEAT() REPLACE() RIGHT() RJC() RJUST() 
-                       ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
-                       SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
-                       STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
-                       STRLEN() STRMATCH() SUBNETMATCH() SWITCH() SWITCHALL()
-                       T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() WORDPOS()
-                       WORDS() WRAP() WRAPCOLUMNS() XORCHR()
+                       EDITANSI() ENCODE64() ENCRYPT() ESCAPE() ESCAPEX() 
+                       EVAL() GARBLE() IFELSE() ISALNUM() ISALPHA() ISDBREF()
+                       ISDIGIT() ISNUM() ISPUNCT() ISSPACE() ISWORD() 
+                       ISXDIGIT() LCSTR() LEFT() LIT() LJC() LJUST() MERGE() 
+                       MID() NOSTR() NOTCHR() NUMPOS() ORCHR() PARSESTR() 
+                       PEDIT() POS() PRINTF() RANDPOS() REPEAT() REPLACE() 
+                       RIGHT() RJC() RJUST() ROTL() ROTR() S() SCRAMBLE() 
+                       SECURE() SECUREX() SHL() SHR() SHUFFLE() SPACE() 
+                       SPLICE() SQUISH() STR() STRDISTANCE() STREQ() STREVAL()
+                       STRIP() STRIPACCENTS() STRLEN() STRMATCH() SUBNETMATCH()
+                       SWITCH() SWITCHALL() T() TOTPOS() TR() TRANSLATE() 
+                       TRIM() UCSTR() WORDPOS() WORDS() WRAP() WRAPCOLUMNS() 
+                       XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -12104,7 +12105,7 @@ See Also: timefmt()
     > say translate(v(va),s)
     You say "this  is atest"
   
-  See Also: strip(), edit(), s(), eval(), regedit()
+  See Also: strip(), edit(), editansi(), s(), eval(), regedit()
   
 & TOTCMDS()
   Function: totcmds(<player>)
@@ -12259,7 +12260,7 @@ See Also: timefmt()
   You say "
   this is a test"
   
-  See Also: strip(), edit(), pedit(), regedit()
+  See Also: strip(), edit(), editansi(), pedit(), regedit()
   
 & CHR()
   Function: chr(<number>)
@@ -12810,7 +12811,7 @@ See Also: timefmt()
   > say regedit(this test is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the best string"
   
-  See also: edit(), regmatch(), regediti(), regeditall(), regeditalli()
+  See also: edit(), editansi(), regmatch(), regediti(), regeditall(), regeditalli()
 
 & REGEDITALLLIT()
 & REGEDITALL()
@@ -12834,7 +12835,7 @@ See Also: timefmt()
   > say regeditall(this test is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the Brash string"
   
-  See also: edit(), regmatch(), regedit(), regediti(), regeditalli()
+  See also: edit(), editansi() regmatch(), regedit(), regediti(), regeditalli()
 
 & REGEDITILIT()
 & REGEDITI()
@@ -12859,7 +12860,8 @@ See Also: timefmt()
   > say regediti(this teSt is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the best string"
   
-  See also: edit(), regmatch(), regedit(), regeditall(), regeditalli()
+  See also: edit(), editansi(), regmatch(), regedit(), regeditall(), 
+            regeditalli()
 
 & REGEDITALLILIT()
 & REGEDITALLI()
@@ -12884,7 +12886,8 @@ See Also: timefmt()
   > say regeditalli(this test is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the Brash string"
   
-  See also: edit(), regmatch(), regedit(), regediti(), regeditall() 
+  See also: edit(), editansi(), regmatch(), regedit(), regediti(), 
+            regeditall() 
 
 & REGNUMMATCHI()
 & REGNUMMATCH()
@@ -15872,7 +15875,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say strip(This is a test,is,1)
     You say "isiss"
   
-  See Also: @edit, edit(), garble(), chomp(), regedit()
+  See Also: @edit, edit(), editansi(), garble(), chomp(), regedit()
   
 & GARBLE()
   Function: garble(<str>,<value>[[,<sep>][,<fill>][,<type>][,<key>][,<eval>]])
@@ -15905,7 +15908,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say garble(this is a test!?,50,,-,1,1) (50 percent, no garble punct.)
     You say "---- is a ----!?"
   
-  See Also: strip(), edit(), mask(), regedit()
+  See Also: strip(), edit(), editansi(), mask(), regedit()
   
 & MASK()
   Function: mask(<value>,<value>[,<masktype>])
@@ -15934,7 +15937,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say mask(3,4,^)
     You say "7"
   
-  See Also: strip(), edit(), garble(), regedit()
+  See Also: strip(), edit(), editansi(), garble(), regedit()
   
 & ANDFLAG()
   Function: andflag(<target>,<flag1>[,<flag2>,...,<flagN>])
@@ -16107,8 +16110,34 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say edit(Atlantic,^,Trans)
     You say "TransAtlantic"
   
-  See Also: @edit, strip(), garble(), pedit(), chomp(), regedit()
+  See Also: @edit, editansi(), strip(), garble(), pedit(), chomp(), regedit()
   
+& EDITANSI()
+  Function: editansi(<string>, <search color-codes>, <replace color-codes>)
+  
+  This function will take a string, and replace all searched for ansi codes
+  and replace them with the specified ansi codes.  The following logic
+  works for the search and replace in order of priority:
+    1.  If <search> is just ansi-normal (n), then it assumes you want an
+        exact match on any character that has no previous encoding, and will
+        replace with <replace> ALL encoding specified.
+    2.  If <search> is an exact match, it substitutes <replace> overwriting
+        all previous encoding.
+    3.  If <search> is a FG color match only, it substitutes <replace> FG
+        color only (FG - foreground).  HEX encoding has priority.
+    4.  If <search> is a BG color match only, it substitutes <replace> BG
+        color only (BG - background).  HEX encoding has priority.
+    5.  If <search> is a special encoding (flash, normal, etc) it will
+        replace only the special encoding in <replace>
+  
+  Examples:
+    > say editansi([ansi(hb,abc,n,def)],n,hr)
+    You say "abcdef"    (abc is hilight blue, def is hilight red)
+    > say editansi([ansi(hb,abc,n,def)],hb,hy)
+    You say "abcdef"    (abc is hilight yellow, def is non-ansified)
+  
+  See Also: accents(), edit(), regedit(), pemit(), @edit
+
 & PEDIT()
   Function: pedit(<string>,<from>,<to>[,<from>,<to>,...])
  
@@ -16126,7 +16155,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say pedit(This is a test,is,was,was,were)
     You say "This were a test"
   
-  See Also: @edit, strip(), garble(), edit(), chomp(), regedit()
+  See Also: @edit, strip(), garble(), edit(), editansi(), chomp(), regedit()
   
 & STREQ()
   Function: streq(<string1>,<string2>)
@@ -19179,7 +19208,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say tr(uryyb, a-z, n-za-m)
       You say, "hello"
  
-  See also: merge(), foreach(), garble(), creplace(), edit()
+  See also: merge(), foreach(), garble(), creplace(), edit(), editansi()
 
 & TRUNC()
   Function: trunc(<number>)
@@ -24985,6 +25014,7 @@ Mail: Done
   decrypt()     - Decrypt a string based on an offset.
   delete()      - Deletes characters from a string.
   edit()        - Edits a string, replacing, prepending or appending text.
+  editansi()    - Edits the ansi encoding of a string.
   encode64()    - Encode a string to compressed 64.
   encrypt()     - Encrypt a string based on an offset.
   escape()      - Adds escape characters to some special characters.
@@ -26988,6 +27018,7 @@ New Features
 * extractword() is a multi-char delimeter/seperator/ansi-aware extract/delextract [ASH]
 * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
 * @dbclean to purge unused attributes from the db [ASH]
+* editansi() allows you to edit ansi encoding in a string [ASH]
 
 Changes
 -------

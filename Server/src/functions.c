@@ -24862,6 +24862,59 @@ FUNCTION(fun_ansi)
 }
 #endif
 
+/* editansi -- edit the color/accent markup in a string */
+FUNCTION(fun_editansi)
+{
+   ANSISPLIT search_val[LBUF_SIZE], replace_val[LBUF_SIZE], a_input[LBUF_SIZE];
+   char *s_input, *s_combine, *s_buff, *s_buffptr, *s_array[3];
+
+#ifndef ZENTY_ANSI
+   safe_str((char *)"#-1 ZENTY ANSI REQUIRED FOR THIS FUNCTION.", buff, bufcx);
+   return;
+#endif
+   if ( !*fargs[0] )
+      return;
+
+   if ( !*fargs[1] || !*fargs[2] ) {
+      safe_str(fargs[0], buff, bufcx);
+      return;
+   }
+
+   initialize_ansisplitter(a_input, LBUF_SIZE);
+   initialize_ansisplitter(search_val, LBUF_SIZE);
+   initialize_ansisplitter(replace_val, LBUF_SIZE);
+   s_input = alloc_lbuf("fun_editansi_orig");
+   s_combine = alloc_lbuf("fun_editansi_combine");
+   memset(s_input, '\0', LBUF_SIZE);
+   memset(s_combine, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(fargs[0]), s_input, a_input);
+   s_buffptr = s_buff = alloc_lbuf("fun_editansi");
+   s_array[0] = alloc_lbuf("fun_editansi1");
+   s_array[1] = alloc_lbuf("fun_editansi2");
+   s_array[2] = NULL;
+   sprintf(s_array[1], "%c", 'X');
+   sprintf(s_array[0], "%s", fargs[1]);
+   fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+   split_ansi(s_buff, s_combine, search_val);
+   memset(s_combine, '\0', LBUF_SIZE);
+   memset(s_buff, '\0', LBUF_SIZE);
+   s_buffptr = s_buff;
+   sprintf(s_array[1], "%c", 'X');
+   sprintf(s_array[0], "%s", fargs[2]);
+   fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+   split_ansi(s_buff, s_combine, replace_val);
+   free_lbuf(s_combine);
+
+   search_and_replace_ansi(s_input, a_input, search_val, replace_val);
+   s_combine = rebuild_ansi(s_input, a_input);
+   safe_str(s_combine, buff, bufcx);
+
+   free_lbuf(s_input);
+   free_lbuf(s_combine);
+   free_lbuf(s_buff);
+   free_lbuf(s_array[0]);
+   free_lbuf(s_array[1]);
+}
 FUNCTION(fun_stripansi)
 {
     /* Strips ANSI codes away from a given string of text. Starts by
@@ -29665,6 +29718,7 @@ FUN flist[] =
     {"EE", fun_ee, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EDEFAULT", fun_edefault, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"EDIT", fun_edit, 3, FN_VARARGS, CA_PUBLIC, 0},
+    {"EDITANSI", fun_editansi, 3, 0, CA_PUBLIC, 0},
     {"ELEMENTS", fun_elements, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTSMUX", fun_elementsmux, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELIST", fun_elist, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
