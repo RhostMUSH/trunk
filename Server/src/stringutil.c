@@ -516,11 +516,9 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
                   (a_pt->i_special & s_pt->i_special) &&
                   !(s_pt->c_accent) ) {
           a_pt->i_special = r_pt->i_special;
-notify(1234, "7");
       /* Just match if ANSI accent : accent to accent -- not implemented yet */
       } else if ( s_pt->c_accent == a_pt->c_accent ) {
           a_pt->c_accent = r_pt->c_accent;
-notify(1234, "8");
       }
       /* Else just return the value */
       s_iptr++;
