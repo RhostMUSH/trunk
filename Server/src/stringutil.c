@@ -485,6 +485,8 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
           if ( *(r_pt->s_fghex) ) {
              strcpy(a_pt->s_fghex, r_pt->s_fghex); 
              a_pt->c_fgansi = r_pt->c_fgansi;
+          } else {
+             a_pt->c_fgansi = r_pt->c_fgansi;
           }
       /* Just match if ANSI bg hex : bg to bg */
       } else if ( !*(s_pt->s_fghex) &&
@@ -494,6 +496,8 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
                   !(s_pt->i_special) ) {
           if ( *(r_pt->s_bghex) ) {
              strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+             a_pt->c_bgansi = r_pt->c_bgansi;
+          } else {
              a_pt->c_bgansi = r_pt->c_bgansi;
           }
       /* Just match if ANSI fg normal : fg to fg */
@@ -505,6 +509,8 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
           if ( *(r_pt->s_fghex) ) {
              strcpy(a_pt->s_fghex, r_pt->s_fghex); 
              a_pt->c_fgansi = r_pt->c_fgansi;
+          } else {
+             a_pt->c_fgansi = r_pt->c_fgansi;
           }
       /* Just match if ANSI bg normal : bg to bg */
       } else if ( !*(s_pt->s_fghex) &&
@@ -514,6 +520,8 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
                   !(s_pt->i_special) ) {
           if ( *(r_pt->s_bghex) ) {
              strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+             a_pt->c_bgansi = r_pt->c_bgansi;
+          } else {
              a_pt->c_bgansi = r_pt->c_bgansi;
           }
       /* Just match if ANSI special : special to special, even if ansi-normal */
