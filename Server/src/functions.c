@@ -3169,12 +3169,12 @@ FUNCTION(fun_nslookup)
 FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 {
   struct wrapinfo winfo;
-  int buffleft, i_justifylast, i_firstrun, i_haveansi, i_inansi;
+  int buffleft, i_justifylast, i_inansi, i_firstrun;
   char* leftstart;
   char *crp;
   char *pp;
 #ifdef ZENTY_ANSI
-  int pchr;
+  int pchr, i_haveansi = 0;
   char *lstspc;
 #endif
   char *expandbuff;
@@ -3185,7 +3185,8 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
   memset(&winfo, 0, sizeof(winfo));
   winfo.first_line = 1;
   i_justifylast = 0;
-  i_haveansi = i_inansi = 0;
+  i_inansi = 0;
+  i_firstrun = 0;
 
   winfo.width = atoi( fargs[1] );
 
@@ -3253,7 +3254,6 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
       buffleft = 0;
   }
 
-  i_firstrun = 0;
   for(leftstart = expandbuff; buffleft > 0; ) {
     crp = strchr(leftstart, '\r');
     if( crp && 
@@ -3265,6 +3265,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 #else
       wrap_out( leftstart, crp - leftstart, &winfo, buff, bufcx, " ", 0 );
       safe_str( "\r\n", buff, bufcx );
+      if ( i_firstrun && i_inansi );
 #endif
       buffleft -= (crp - leftstart) + 2;
       leftstart = crp + 2;
@@ -24282,16 +24283,18 @@ static const unsigned char AccentCombo2[256] =
 
 FUNCTION(fun_accent)
 {
+#ifdef ZENTY_ANSI
    char *p_ptr, p_oldptr, p_oldptr2, *p_ptr2;
    int i_inaccent;
+#endif
 
+#ifndef ZENTY_ANSI
+   safe_str(fargs[0], buff, bufcx);
+#else
    p_ptr2 = fargs[0];
    p_ptr = fargs[1];
    p_oldptr2 = p_oldptr = '\0';
    i_inaccent = 0;
-#ifndef ZENTY_ANSI
-   safe_str(fargs[0], buff, bufcx);
-#else
    if ( strlen(fargs[0]) != strlen(fargs[1]) ) {
       safe_str("#-1 ARGUMENTS MUST BE OF SAME LENGTH", buff, bufcx);
       return;
@@ -24957,10 +24960,10 @@ FUNCTION(fun_stripansi)
 }
 
 FUNCTION(fun_stripaccents) {
+#ifdef ZENTY_ANSI
    char *cp;
 
    cp = fargs[0];
-#ifdef ZENTY_ANSI
    while ( *cp ) {
       if ( (*cp == '%') && (*(cp + 1) == 'f') && isprint(*(cp + 2)) )
          cp+=3;
@@ -25812,6 +25815,9 @@ FUNCTION(fun_ljust)
     spaces = atoi(fargs[1]);
     s = t = NULL;
     i_len = 0;
+#ifndef ZENTY_ANSI
+    if ( s );
+#endif
 
     filllen = 1;
     if ( (nfargs > 2) && *fargs[2] ) {
@@ -25885,6 +25891,9 @@ FUNCTION(fun_rjust)
     memset(t_buff, '\0', sizeof(t_buff));
     memset(filler, '\0', sizeof(filler));
     s = t = NULL;
+#ifndef ZENTY_ANSI
+    if ( s );
+#endif
 
     if ( (nfargs > 2) && *fargs[2] ) {
        if ( strlen(strip_all_special(fargs[2])) < 1 ) {
@@ -25967,6 +25976,10 @@ FUNCTION(fun_center)
     memset(t_buff, '\0', sizeof(t_buff));
     memset(filler, '\0', sizeof(filler));
     s = t = NULL;
+
+#ifndef ZENTY_ANSI
+    if ( s );
+#endif
    
     if ( (nfargs > 2) && *fargs[2] ) {
        if ( strlen(strip_all_special(fargs[2])) < 1 ) {
@@ -27027,6 +27040,7 @@ FUNCTION(fun_ljc)
 
 #ifndef ZENTY_ANSI
   inlen = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
+  if ( s );
 #endif
   len = atoi(fargs[1]);
 
@@ -27218,6 +27232,10 @@ FUNCTION(fun_rjc)
   memset(t_buff, '\0', sizeof(t_buff));
   s = t = NULL;
   filllen = 1;
+
+#ifndef ZENTY_ANSI
+  if ( s );
+#endif
 
   if ( (nfargs > 2) && *fargs[2] ) {
      if ( strlen(strip_all_special(fargs[2])) < 1 ) {

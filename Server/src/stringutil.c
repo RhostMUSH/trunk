@@ -445,7 +445,6 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
    char *s_iptr;
 
 #ifndef ZENTY_ANSI
-   strcpy(s_combine, s_input);
    return;
 #endif
 
@@ -942,12 +941,14 @@ int count_chars(const char *str, const char c)
 }
 
 int count_extended(char *str) {
+#ifdef ZENTY_ANSI
    char *s;
+#endif
    int i_val;
 
-   s = str;
    i_val = 0;
 #ifdef ZENTY_ANSI
+   s = str;
    while ( *s ) {
       if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
            isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&

@@ -594,7 +594,10 @@ dflt_from_msg(dbref sender, dbref sendloc)
 void 
 notify_check(dbref target, dbref sender, const char *msg, int port, int key, int i_type)
 {
-    char *msg_ns, *mp, *msg_ns2, *mp2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
+#ifdef ZENTY_ANSI
+    char *mp2;
+#endif
+    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0;
@@ -631,7 +634,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     if (key & MSG_ME) {
 	mp = msg_ns = alloc_lbuf("notify_check");
+#ifdef ZENTY_ANSI
 	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
+#endif
 	if (!port && Nospoof(target) &&
 	    (target != sender) &&
 	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&

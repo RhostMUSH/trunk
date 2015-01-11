@@ -104,7 +104,10 @@ fcache_read(FBLOCK ** cp, char *filename)
 {
     int n, nmax, nmax2, tchars, fd;
     char *buff, *buff2;
-    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr;
+    char *lbuf1, *lbuf2;
+#ifdef ZENTY_ANSI
+    char *lbuf1ptr, *lbuf2ptr;
+#endif
     FBLOCK *fp, *tfp;
     int max_lines, tot_lines;
 
@@ -152,11 +155,11 @@ fcache_read(FBLOCK ** cp, char *filename)
     if ( mudconf.ansi_txtfiles ) {
        memset(lbuf1, '\0', LBUF_SIZE);
        memset(lbuf2, '\0', LBUF_SIZE);
-       lbuf1ptr = lbuf1;
-       lbuf2ptr = lbuf2;
        nmax2 = read(fd, buff, LBUF_SIZE);
        if ( nmax2 > 0 ) {
 #ifdef ZENTY_ANSI
+          lbuf1ptr = lbuf1;
+          lbuf2ptr = lbuf2;
           parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
 #else
           strcpy(lbuf1, buff);
@@ -185,10 +188,10 @@ fcache_read(FBLOCK ** cp, char *filename)
 	   nmax2 = read(fd, buff, LBUF_SIZE);
            memset(lbuf1, '\0', LBUF_SIZE);
            memset(lbuf2, '\0', LBUF_SIZE);
-           lbuf1ptr = lbuf1;
-           lbuf2ptr = lbuf2;
            if ( nmax2 > 0 ) {
 #ifdef ZENTY_ANSI
+              lbuf1ptr = lbuf1;
+              lbuf2ptr = lbuf2;
               parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
 #else
               strcpy(lbuf1, buff);
@@ -229,7 +232,10 @@ fcache_rawdump(int fd, int num, struct in_addr host)
     int cnt, remaining;
     char *start;
     FBLOCK *fp;
-    char *atext, *retbuff, *sarray[4], *lbuf1, *lbuf2, *lbuf1ptr, *lbuf2ptr;
+    char *atext, *retbuff, *sarray[4], *lbuf1, *lbuf2;
+#ifdef ZENTY_ANSI
+    char *lbuf1ptr, *lbuf2ptr;
+#endif
     int aflags, nomatch;
     dbref aowner;
     ATTR *atr;
@@ -264,9 +270,15 @@ fcache_rawdump(int fd, int num, struct in_addr host)
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
-                lbuf1ptr = lbuf1 = alloc_lbuf("fcache_dump3");
-                lbuf2ptr = lbuf2 = alloc_lbuf("fcache_dump4");
+                lbuf1 = alloc_lbuf("fcache_dump3");
+                lbuf2 = alloc_lbuf("fcache_dump4");
+#ifdef ZENTY_ANSI
+                lbuf1ptr = lbuf1;
+                lbuf2ptr = lbuf2;
                 parse_ansi(retbuff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+#else
+                strcpy(lbuf1, retbuff);
+#endif
                 start = lbuf1;
                 remaining = strlen(lbuf1);
 	        while (remaining > 0) {
@@ -323,7 +335,10 @@ void
 fcache_dump(DESC * d, int num)
 {
     FBLOCK *fp;
-    char *atext, *retbuff, *sarray[4], *lbuf1, *lbuf2, *lbuf1ptr, *lbuf2ptr;
+    char *atext, *retbuff, *sarray[4], *lbuf1, *lbuf2; 
+#ifdef ZENTY_ANSI
+    char *lbuf1ptr, *lbuf2ptr;
+#endif
     int aflags, nomatch, i_length;
     dbref aowner;
     ATTR *atr;
@@ -357,9 +372,15 @@ fcache_dump(DESC * d, int num)
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
-                lbuf1ptr = lbuf1 = alloc_lbuf("fcache_dump3");
-                lbuf2ptr = lbuf2 = alloc_lbuf("fcache_dump4");
+                lbuf1 = alloc_lbuf("fcache_dump3");
+                lbuf2 = alloc_lbuf("fcache_dump4");
+#ifdef ZENTY_ANSI
+                lbuf1ptr = lbuf1;
+                lbuf2ptr = lbuf2;
                 parse_ansi(retbuff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+#else
+                strcpy(lbuf1, retbuff);
+#endif
                 i_length = strlen(lbuf1);
                 queue_write(d, lbuf1, i_length);
                 queue_write(d, "\r\n", 2);
