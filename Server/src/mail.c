@@ -4460,11 +4460,11 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
             free_lbuf(ztmp);
             notify_quiet(player, "----------------------------------------"\
                                  "--------------------------------------");
-            if ( type_two > 3990 )
-               notify_quiet(player, unsafe_tprintf("Mail: WARNING - Mail %d bytes over maximum.", (type_two-3990)));
+            if ( type_two > (LBUF_SIZE-20) )
+               notify_quiet(player, unsafe_tprintf("Mail: WARNING - Mail %d bytes over maximum.", (type_two-(LBUF_SIZE-20))));
             if ( type_three > 0 )
                notify_quiet(player, unsafe_tprintf("Mail: ERROR - %d missing line numbers detected.", type_three));
-            if ( (type_three > 0) || (type_two > 3990) )
+            if ( (type_three > 0) || (type_two > (LBUF_SIZE-20)) )
                notify_quiet(player, "      Please check 'mail/write +list' for details.");
         }
     } else if (stricmp(buf1, "+list") == 0) {

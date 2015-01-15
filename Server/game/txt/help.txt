@@ -27107,3 +27107,4 @@ Bug Fixes
 * timers would not reset properly without a forced alarm call on signal breaks [ASH]
 * regedit()'s suite of functions were erraneously locked at 4 args [ASH]
 * compile time warnings with some new additions when ZENTY_ANSI not specified [ASH]
+* mail.c had in the write editor erraneous warnings hardcoded to 4K buffers [ASH]
