@@ -410,13 +410,13 @@ extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int, int));
 extern void 	FDECL(initialize_ansisplitter, (ANSISPLIT *, int));
 extern void 	FDECL(clone_ansisplitter, (ANSISPLIT *, ANSISPLIT *));
 extern void 	FDECL(clone_ansisplitter_two, (ANSISPLIT *, ANSISPLIT *, ANSISPLIT *));
-extern void     FDECL(search_and_replace_ansi, (char *, ANSISPLIT *, ANSISPLIT *, ANSISPLIT *));
+extern void     FDECL(search_and_replace_ansi, (char *, ANSISPLIT *, ANSISPLIT *, ANSISPLIT *, int, int));
 
 #else
 #define		initialize_ansisplitter(x, y) (0)
 #define		clone_ansisplitter(x, y) (0)
 #define		clone_ansisplitter_two(x, y, z) (0)
-#define		search_and_replace_ansi(w, x, y, z) (0)
+#define		search_and_replace_ansi(w, x, y, z, a, b) (0)
 #endif
 extern int	FDECL(xlate, (char *));
 

@@ -16130,6 +16130,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     5.  If <search> is a special encoding (flash, normal, etc) it will
         replace only the special encoding in <replace>
   
+  The following ansi exclusions are allowed for search and replaces.
+    H - anything NOT set hilite.
+    I - anything NOT set inverse.
+    U - anything NOT set underscore.
+    F - anything NOT set flash.
+  
+  If these are specified in replace, it will strip those specified ansi
+  special encodings. 
+    
   Examples:
     > say editansi([ansi(hb,abc,n,def)],n,hr)
     You say "abcdef"    (abc is hilight blue, def is hilight red)

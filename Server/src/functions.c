@@ -24417,6 +24417,8 @@ FUNCTION(fun_colors)
     }
 }
 
+int ansi_omitter = 0;
+
 FUNCTION(fun_ansi)
 {
     PENNANSI *cm;
@@ -24442,7 +24444,8 @@ FUNCTION(fun_ansi)
     ansi_normalfg = alloc_mbuf("fun_ansi2");
     ansi_normalbg = alloc_mbuf("fun_ansi3");
 
-    
+    ansi_omitter = 0; 
+
     for (i = 0; i < j; i++) {
         q = trim_spaces(fargs[i * 2]);
         memset(t_buff, 0, sizeof(t_buff));
@@ -24614,20 +24617,28 @@ FUNCTION(fun_ansi)
                     safe_str(SAFE_ANSI_UNDERSCORE, ansi_special, &ansi_specialptr);
                  i_allow[0] = 1;
                  break;
+              case 'U': ansi_omitter |= SPLIT_UNDERSCORE;
+                 break;
               case 'h': 
                  if ( !i_allow[1] && (mudconf.global_ansimask & MASK_HILITE) )
                     safe_str(SAFE_ANSI_HILITE, ansi_special, &ansi_specialptr);
                  i_allow[1] = 1;
+                 break;
+              case 'H': ansi_omitter |= SPLIT_HILITE;
                  break;
               case 'i': 
                  if ( !i_allow[2] && (mudconf.global_ansimask & MASK_INVERSE) )
                     safe_str(SAFE_ANSI_INVERSE, ansi_special, &ansi_specialptr);
                  i_allow[2] = 1;
                  break;
+              case 'I': ansi_omitter |= SPLIT_INVERSE;
+                 break;
               case 'f': 
                  if ( !i_allow[3] && (mudconf.global_ansimask & MASK_BLINK) )
                     safe_str(SAFE_ANSI_BLINK, ansi_special, &ansi_specialptr);
                  i_allow[3] = 1;
+                 break;
+              case 'F': ansi_omitter |= SPLIT_FLASH;
                  break;
               case 'n': 
                  if ( !i_allow[4] )
@@ -24870,6 +24881,7 @@ FUNCTION(fun_editansi)
 {
    ANSISPLIT search_val[LBUF_SIZE], replace_val[LBUF_SIZE], a_input[LBUF_SIZE];
    char *s_input, *s_combine, *s_buff, *s_buffptr, *s_array[3];
+   int i_omit1, i_omit2;
 
 #ifndef ZENTY_ANSI
    safe_str((char *)"#-1 ZENTY ANSI REQUIRED FOR THIS FUNCTION.", buff, bufcx);
@@ -24898,6 +24910,7 @@ FUNCTION(fun_editansi)
    sprintf(s_array[1], "%c", 'X');
    sprintf(s_array[0], "%s", fargs[1]);
    fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+   i_omit1 = ansi_omitter;
    split_ansi(s_buff, s_combine, search_val);
    memset(s_combine, '\0', LBUF_SIZE);
    memset(s_buff, '\0', LBUF_SIZE);
@@ -24905,10 +24918,11 @@ FUNCTION(fun_editansi)
    sprintf(s_array[1], "%c", 'X');
    sprintf(s_array[0], "%s", fargs[2]);
    fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+   i_omit2 = ansi_omitter;
    split_ansi(s_buff, s_combine, replace_val);
    free_lbuf(s_combine);
 
-   search_and_replace_ansi(s_input, a_input, search_val, replace_val);
+   search_and_replace_ansi(s_input, a_input, search_val, replace_val, i_omit1, i_omit2);
    s_combine = rebuild_ansi(s_input, a_input);
    safe_str(s_combine, buff, bufcx);
 
