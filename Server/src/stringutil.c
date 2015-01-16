@@ -583,9 +583,10 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special &= ~i_replace;
              a_pt->i_special |= r_pt->i_special;
           } else {
-             if ( !i_mark || !s_pt->i_special )
-                a_pt->i_special = r_pt->i_special;
-             else
+             if ( !i_mark || !s_pt->i_special ) {
+                if ( (!a_pt->i_special) || (a_pt->i_special & s_pt->i_special) )
+                   a_pt->i_special = r_pt->i_special;
+             } else
                 a_pt->i_special |= r_pt->i_special;
           }
       /* Just match if ANSI accent : accent to accent -- not implemented yet */
