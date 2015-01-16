@@ -460,7 +460,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
            !*(s_pt->s_bghex) && !*(a_pt->s_bghex) &&
            !(s_pt->c_fgansi) && !(a_pt->c_fgansi) &&
            !(s_pt->c_bgansi) && !(a_pt->c_bgansi) &&
-           !(i_search && (a_pt->i_special & i_search)) &&
+//         !(i_search && (a_pt->i_special & i_search)) &&
            !(s_pt->i_special) && !(a_pt->i_special) ) {
           strcpy(a_pt->s_fghex, r_pt->s_fghex); 
           strcpy(a_pt->s_bghex, r_pt->s_bghex); 
@@ -557,20 +557,23 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
                   !(i_search && (a_pt->i_special & i_search)) &&
                   ((a_pt->i_special & s_pt->i_special) == s_pt->i_special) &&
                   !(s_pt->c_accent) ) {
-          i_mark = 0;
-          if ( *(r_pt->s_fghex) ) {
+          if ( !s_pt->i_special )
+             i_mark = 0;
+          else
+             i_mark = 1;
+          if ( i_mark && *(r_pt->s_fghex) ) {
              strcpy(a_pt->s_fghex, r_pt->s_fghex); 
              i_mark++;
           }
-          if ( *(r_pt->s_bghex) ) {
+          if ( i_mark && *(r_pt->s_bghex) ) {
              strcpy(a_pt->s_bghex, r_pt->s_bghex); 
              i_mark++;
           }
-          if ( r_pt->c_bgansi ) {
+          if ( i_mark && r_pt->c_bgansi ) {
              a_pt->c_bgansi = r_pt->c_bgansi;
              i_mark++;
           }
-          if ( r_pt->c_fgansi ) {
+          if ( i_mark && r_pt->c_fgansi ) {
              a_pt->c_fgansi = r_pt->c_fgansi;
              i_mark++;
           }
@@ -578,7 +581,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special &= ~i_replace;
              a_pt->i_special |= r_pt->i_special;
           } else {
-             if ( !i_mark )
+             if ( !i_mark || !s_pt->i_special )
                 a_pt->i_special = r_pt->i_special;
              else
                 a_pt->i_special |= r_pt->i_special;
