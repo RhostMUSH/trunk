@@ -472,7 +472,6 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
           } else {
              a_pt->i_special = r_pt->i_special;
           }
-notify(1234, "Ping1");
       /* Exact match searching here : exact match and replace */
       } else if ( (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0) &&
                   (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0) &&
@@ -490,7 +489,6 @@ notify(1234, "Ping1");
           } else {
              a_pt->i_special = r_pt->i_special;
           }
-notify(1234, "Ping2");
       /* Just match if ANSI fg hex : fg to fg */
       } else if ( (*(s_pt->s_fghex) && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0)) &&
                   !*(s_pt->s_bghex) &&
@@ -510,7 +508,6 @@ notify(1234, "Ping2");
           } else {
              a_pt->i_special |= r_pt->i_special;
           }
-notify(1234, "Ping3");
       /* Just match if ANSI bg hex : bg to bg */
       } else if ( !*(s_pt->s_fghex) &&
                   (*(s_pt->s_bghex) && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0)) &&
@@ -530,7 +527,6 @@ notify(1234, "Ping3");
           } else {
              a_pt->i_special |= r_pt->i_special;
           }
-notify(1234, "Ping4");
       /* Just match if ANSI fg normal : fg to fg */
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
@@ -550,7 +546,6 @@ notify(1234, "Ping4");
           } else {
              a_pt->i_special |= r_pt->i_special;
           }
-notify(1234, "Ping5");
       /* Just match if ANSI bg normal : bg to bg */
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
@@ -570,7 +565,6 @@ notify(1234, "Ping5");
           } else {
              a_pt->i_special |= r_pt->i_special;
           }
-notify(1234, "Ping6");
       /* Match negative checks here */
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
@@ -594,7 +588,6 @@ notify(1234, "Ping6");
           } else {
              a_pt->i_special |= r_pt->i_special;
           }
-notify(1234, "Ping8");
       /* Just match if ANSI special : special to special, even if ansi-normal */
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
@@ -629,11 +622,9 @@ notify(1234, "Ping8");
              } else
                 a_pt->i_special |= r_pt->i_special;
           }
-notify(1234, "Ping7");
       /* Just match if ANSI accent : accent to accent -- not implemented yet */
       } else if ( s_pt->c_accent == a_pt->c_accent ) {
           a_pt->c_accent = r_pt->c_accent;
-notify(1234, "Ping9");
       }
       /* Else just return the value */
       s_iptr++;

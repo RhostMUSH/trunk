@@ -16124,11 +16124,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     2.  If <search> is an exact match, it substitutes <replace> overwriting
         all previous encoding.
     3.  If <search> is a FG color match only, it substitutes <replace> FG
-        color only (FG - foreground).  HEX encoding has priority.
+        color and anything else in replacement encoding.
     4.  If <search> is a BG color match only, it substitutes <replace> BG
-        color only (BG - background).  HEX encoding has priority.
+        color and anything else in replacement encoding.
     5.  If <search> is a special encoding (flash, normal, etc) it will
-        replace only the special encoding in <replace>
+        replace anything in replacement encoding.
+    6.  Specifying 'n' for any special encoding replacement will nullify 
+        the special but will NOT nullify the color.  
+    7.  Specifying 'n' for any color encoding replacement will nullify
+        the color encoding but will NOT nullify the special encoding.
   
   The following ansi exclusions are allowed for search and replaces.
     H - anything NOT set hilite.
