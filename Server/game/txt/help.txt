@@ -27079,6 +27079,7 @@ Changes
 * strmath() now handles floating point notation [ASH]
 * localize() optionally has 2nd argument to specify specific regs to localize [ASH]
 * tr() is now ANSI-aware, and optionally allows previous behavior [ASH]
+* editansi() enhanced to allow negation of special ansi encoding [ASH]
   
 Bug Fixes
 ---------

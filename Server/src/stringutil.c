@@ -577,6 +577,8 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->c_fgansi = r_pt->c_fgansi;
              i_mark++;
           }
+          if ( i_mark == 1 )
+             i_mark = 0;
           if ( i_replace ) {
              a_pt->i_special &= ~i_replace;
              a_pt->i_special |= r_pt->i_special;
