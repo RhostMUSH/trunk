@@ -23240,7 +23240,7 @@ FUNCTION(fun_parsestr)
    tprp_buff = tpr_buff = alloc_lbuf("parestr_escape_out");
    tprstack[0] = alloc_lbuf("parsestr_stack");
    tprstack[1] = alloc_lbuf("parsestr_stack2");
-   sprintf(tprstack[1], "%s", "f%%");
+   sprintf(tprstack[1], "%s", "f");
    tprstack[2] = NULL;
    while ( cp ) {
      i_cntr++;
