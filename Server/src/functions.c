@@ -23026,7 +23026,7 @@ FUNCTION(fun_parsestr)
    int first, i_type, i_cntr, i_pass, aflags;
    dbref aname, target;
    char *atext, *atextptr, *result, *objstring, *cp, *atextbuf, sep, *osep, *osep_pre, *osep_post, *tbuff;
-   char *savebuff[5], *ansibuf, *target_result, *c_transform, *p_transform;
+   char *savebuff[5], *ansibuf, *target_result, *c_transform, *p_transform, *tpr_buff, *tprp_buff, *tprstack[3];
 
    if (!fn_range_check("PARSESTR", nfargs, 2, 10, buff, bufcx))
      return;
@@ -23237,6 +23237,11 @@ FUNCTION(fun_parsestr)
    first = 0;
    memset(atextbuf, '\0', LBUF_SIZE);
    cp = trim_space_sep(atext, sep);
+   tprp_buff = tpr_buff = alloc_lbuf("parestr_escape_out");
+   tprstack[0] = alloc_lbuf("parsestr_stack");
+   tprstack[1] = alloc_lbuf("parsestr_stack2");
+   sprintf(tprstack[1], "%s", "f");
+   tprstack[2] = NULL;
    while ( cp ) {
      i_cntr++;
      objstring = split_token(&cp, sep);
@@ -23248,9 +23253,16 @@ FUNCTION(fun_parsestr)
           memset(savebuff[0], '\0', LBUF_SIZE);
           sprintf(savebuff[2], "%d", i_pass - 1);
           sprintf(savebuff[3], "%d", i_cntr - 1);
-          strncpy(atextbuf, objstring, (LBUF_SIZE-1));
+/*        strncpy(atextbuf, objstring, (LBUF_SIZE-1)); */
+
+          strncpy(tprstack[0], objstring, (LBUF_SIZE-1));
+          tprp_buff = tpr_buff;
+          fun_escape(tpr_buff, &tprp_buff, player, cause, cause, tprstack, 2, (char **)NULL, 0);
           result = exec(player, cause, caller,
-                        EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);
+                        EV_STRIP | EV_FCHECK | EV_EVAL, tpr_buff, savebuff, 5); 
+
+/*        result = exec(player, cause, caller,
+                        EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);  */
           safe_str(result, buff, bufcx);
           safe_chr(' ', buff, bufcx);
           free_lbuf(result);
@@ -23284,6 +23296,9 @@ FUNCTION(fun_parsestr)
      safe_str(result, buff, bufcx);
      free_lbuf(result);
    }
+   free_lbuf(tpr_buff);
+   free_lbuf(tprstack[0]);
+   free_lbuf(tprstack[1]);
    if ( c_transform )
       free_lbuf(c_transform);
    if ( p_transform )
