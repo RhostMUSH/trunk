@@ -19522,7 +19522,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > think parsestr(v(va), X,")
     You say "X" *sigh* "X"
     > think parsestr(v(va), X,",,1)
-    X"Hello! Hello?"X"Hello?!?" (notice no spaces as spaces are part of args)
+    X"Hello! Hello?"X"Hello?!?"X (notice no spaces as spaces are part of args)
     > think parsestr(v(va),garble(%0,1,,-),")
     You say "------ ------" *sigh* "--------"
     > think parsestr(v(va),garble(%0,1,,-,,2),")
@@ -19531,13 +19531,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Avanced Examples:
     > think parsestr("to die" is a mighty adventure "+snarf", --%0 %[%2/%3%]--,
         ",",,%#,+,, X: %0 <%2/%3>, [ansi(+purple,bob)])
-    YourName bob, "--to die [0/1]--" is a mighty adventure "X: +snarf <1/3>"
+    YourName bob "--to die [0/1]--" is a mighty adventure "X: +snarf <1/3>"
     > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--,
         ",^~ ~^,,%#,,!,%0 <%2/%3>, [ansi(+purple,bob)])
-    YourName bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+    YourName bob ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
     > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--
         ,",^~ ~^,,&[ansi(+orange,McDonald)],,!,%0 <%2/%3>,[ansi(+purple,bob)])
-    McDonald bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+    McDonald bob ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
   
 { see 'help prsestr4' for examples on how to use this for an OOC command}
 
@@ -19551,7 +19551,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > &OOC me=$ooc *:think [parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
     > ooc :tests.
     <OOC> YourName tests.
-    > ooc ;test.
+    > ooc ;'s test.
     <OOC> YourName's test.
     > ooc "testing
     <OOC> YourName says, "Testing"
