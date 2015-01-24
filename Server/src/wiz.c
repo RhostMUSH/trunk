@@ -160,7 +160,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  continue;
 		}
 	}
-	if (No_tel(victim) && !Wizard(player)) {
+	if ( (mudstate.remotep == victim) || (No_tel(victim) && !Wizard(player)) ) {
 		if( victim == player )
 			notify_quiet(player,"You aren't allowed to @tel.");
 		else
@@ -377,6 +377,10 @@ void do_remote(dbref player, dbref cause, int key, char *loc,
 dbref target;
 char *retbuff;
 
+   if ( mudstate.remote != -1 ) {
+      notify(player, "You can not nest @remote.");
+      return;
+   }
    if ( !command || !*command ) {
       return;
    }
@@ -392,8 +396,10 @@ char *retbuff;
     notify(player,"Permission denied.");
   }
   mudstate.remote = target;
+  mudstate.remotep = player;
   process_command(player, player, 0, command, args, nargs, 0);
   mudstate.remote = -1;
+  mudstate.remotep = -1;
 }
 
 /* ---------------------------------------------------------------------------

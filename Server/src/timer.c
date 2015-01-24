@@ -38,6 +38,12 @@ double time_rounded;
   it_val.it_value.tv_usec = floor(1000000 * fmod(time_rounded,1.0)); // Decimal
   it_val.it_interval.tv_sec = 0; // both set to '0' so the timer is one-shot
   it_val.it_interval.tv_usec = 0;
+/* Debugging
+  fprintf(stderr, "Timer Triggered");
+ */
+  /* we actually need to trigger the alarm() signal to reset states, since setitimer doesn't do it */
+  alarm(1);
+  mudstate.alarm_triggered = 0;
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }
 
@@ -82,10 +88,10 @@ double	result;
 
 void NDECL(init_timer)
 {
-  mudstate.now = (time_t) floor(mudstate.nowmsec);
-  mudstate.lastnowmsec = mudstate.nowmsec;
-	mudstate.lastnow = mudstate.now;
 	mudstate.nowmsec = time_ng(NULL);
+	mudstate.now = (time_t) floor(mudstate.nowmsec);
+	mudstate.lastnowmsec = mudstate.nowmsec;
+	mudstate.lastnow = mudstate.now;
 	mudstate.dump_counter = ((mudconf.dump_offset == 0) ? 
 		mudconf.dump_interval : mudconf.dump_offset) + mudstate.nowmsec;
 	mudstate.check_counter = ((mudconf.check_offset == 0) ?

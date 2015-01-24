@@ -594,7 +594,10 @@ dflt_from_msg(dbref sender, dbref sendloc)
 void 
 notify_check(dbref target, dbref sender, const char *msg, int port, int key, int i_type)
 {
-    char *msg_ns, *mp, *msg_ns2, *mp2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
+#ifdef ZENTY_ANSI
+    char *mp2;
+#endif
+    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0;
@@ -631,7 +634,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     if (key & MSG_ME) {
 	mp = msg_ns = alloc_lbuf("notify_check");
+#ifdef ZENTY_ANSI
 	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
+#endif
 	if (!port && Nospoof(target) &&
 	    (target != sender) &&
 	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&
@@ -1323,7 +1328,8 @@ dump_database_internal(int panic_dump)
 
     DPUSH; /* #82 */
     
-    ignore_signals();  	 /* Stop handling signals. */
+    /* This is broke with timers, I don't know why yet */
+    ignore_signals(); 	 /* Stop handling signals. */
  
     dmpfile = alloc_mbuf("dump_database_internal");
     outdbfile = alloc_mbuf("dump_database_internal");
@@ -1350,7 +1356,8 @@ dump_database_internal(int panic_dump)
 	    log_perror("DMP", "FAIL", "Opening crash file",
 		       mudconf.crashdb);
 	}
-        reset_signals(); 	/* Resume normal signal handling. */
+        /* This is broke, I don't know why yet */
+        reset_signals(); /* Resume normal signal handling. */
         if ( mudstate.shutdown_flag ) {
            do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
         }
@@ -1374,6 +1381,7 @@ dump_database_internal(int panic_dump)
 		log_perror("SAV", "FAIL",
 			   "Renaming output file to DB file",
 			   tmpfile);
+            /* This is broke, I don't know why yet */
             reset_signals(); 	/* Resume normal signal handling. */
             if ( mudstate.shutdown_flag ) {
                do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
@@ -1404,7 +1412,8 @@ dump_database_internal(int panic_dump)
     free_mbuf(prevfile);
     local_dump(panic_dump);
 
-    reset_signals(); 	/* Resume normal signal handling. */
+    /* This is broke, I don't know why yet */
+    reset_signals();  	/* Resume normal signal handling. */
 
     if ( mudstate.shutdown_flag ) {
        do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
@@ -1530,6 +1539,7 @@ fork_and_dump(int key, char *msg)
         free_mbuf(flatfilename);
 
         if (f) {
+          /* This is broke with timers, I don't know why yet */
           ignore_signals(); /* Ignore signals while dumping. */
           STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
             log_text((char*)"Dumping db to flatfile...");
@@ -1540,7 +1550,8 @@ fork_and_dump(int key, char *msg)
           ENDLOG
           fclose(f);
           time(&mudstate.mushflat_time);
-          reset_signals(); /* All done, resume signal handling. */
+          /* This is broke, I don't know why yet */
+           reset_signals(); /* All done, resume signal handling. */
         }
         else {
           STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")

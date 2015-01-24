@@ -122,6 +122,33 @@ int is_integer (char *str)
 	return (*str ? 0 : 1);
 }
 
+int is_float (char *str)
+{
+   int i_dot = 0;
+   while (*str && isspace((int)*str)) str++;	/* Leading spaces */
+   if (*str == '-') {			/* Leading minus */
+      str++;
+      if (!*str) 
+         return 0;		/* but not if just a minus */
+   }
+   if (*str == '.') {
+      str++;
+      if ( !*str )
+         return 0;
+      i_dot = 1;
+   }
+   if (!isdigit((int)*str))			/* Need at least 1 integer */
+      return 0;
+   while (*str && (isdigit((int)*str) || ((*str == '.') && !i_dot)) ) { 
+      if ( *str == '.' )
+         i_dot = 1;
+      str++;	/* The number (int) */
+   }
+   while (*str && isspace((int)*str))
+       str++;	/* Trailing spaces */
+   return (*str ? 0 : 1);
+}
+
 #define MAXABSLOCDEPTH 20
 
 dbref Location(dbref target)

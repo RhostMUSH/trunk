@@ -218,6 +218,7 @@ char *replace_string_ansi(const char *s_old, const char *new,
    memset(outbuff, '\0', LBUF_SIZE);
    memset(outbuff2, '\0', LBUF_SIZE);
    memset(inbuff, '\0', LBUF_SIZE);
+   memset(old, '\0', LBUF_SIZE);
    split_ansi(strip_ansi(string), outbuff, outsplit);
    split_ansi(strip_ansi(new), inbuff, insplit);
 
@@ -429,6 +430,207 @@ char	*s;
  *         int     i_ascii8;       // Extended ASCII-8 encoding %<###> foo
  * } ANSISPLIT;
  ****************************************************************************/
+
+ /* What we want:
+  * EXACT match replacment
+  * JUST ansi replacement
+  * JUST accent replacement
+  * JUST special replacement
+  * ABSCENSE OF ALL replacement
+  */
+void
+search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val, ANSISPLIT *replace_val, int i_search, int i_replace) 
+{
+   ANSISPLIT *s_pt, *r_pt, *a_pt;
+   char *s_iptr;
+   int i_mark;
+
+#ifndef ZENTY_ANSI
+   return;
+#endif
+
+   s_iptr = s_input;
+   a_pt = a_input;
+   r_pt = replace_val;
+   s_pt = search_val;
+
+   while ( s_iptr && *s_iptr ) {
+      /* No Special Char Searching Here : exact match and replace */
+      if ( !*(s_pt->s_fghex) && !*(a_pt->s_fghex) &&
+           !*(s_pt->s_bghex) && !*(a_pt->s_bghex) &&
+           !(s_pt->c_fgansi) && !(a_pt->c_fgansi) &&
+           !(s_pt->c_bgansi) && !(a_pt->c_bgansi) &&
+           !(i_search && (a_pt->i_special & i_search)) &&
+           !(s_pt->i_special) && !(a_pt->i_special) ) {
+          strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+          strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+          a_pt->c_fgansi = r_pt->c_fgansi;
+          a_pt->c_bgansi = r_pt->c_bgansi;
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             a_pt->i_special = r_pt->i_special;
+          }
+      /* Exact match searching here : exact match and replace */
+      } else if ( (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0) &&
+                  (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0) &&
+                  (s_pt->c_fgansi == a_pt->c_fgansi) &&
+                  (s_pt->c_bgansi == a_pt->c_bgansi) &&
+                 !(i_search && (a_pt->i_special & i_search)) &&
+                  (s_pt->i_special == a_pt->i_special) ) {
+          strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+          strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+          a_pt->c_fgansi = r_pt->c_fgansi;
+          a_pt->c_bgansi = r_pt->c_bgansi;
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             a_pt->i_special = r_pt->i_special;
+          }
+      /* Just match if ANSI fg hex : fg to fg */
+      } else if ( (*(s_pt->s_fghex) && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0)) &&
+                  !*(s_pt->s_bghex) &&
+                  !(s_pt->c_fgansi) &&
+                  !(s_pt->c_bgansi) &&
+                  !(i_search && (a_pt->i_special & i_search)) &&
+                  !(s_pt->i_special) ) {
+          strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+          a_pt->c_fgansi = r_pt->c_fgansi;
+          if ((*(r_pt->s_bghex) || r_pt->c_bgansi) ) {
+             strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+             a_pt->c_bgansi = r_pt->c_bgansi;
+          }
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             a_pt->i_special |= r_pt->i_special;
+          }
+      /* Just match if ANSI bg hex : bg to bg */
+      } else if ( !*(s_pt->s_fghex) &&
+                  (*(s_pt->s_bghex) && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0)) &&
+                  !(s_pt->c_fgansi) &&
+                  !(s_pt->c_bgansi) &&
+                  !(i_search && (a_pt->i_special & i_search)) &&
+                  !(s_pt->i_special) ) {
+          strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+          a_pt->c_bgansi = r_pt->c_bgansi;
+          if ( (*(r_pt->s_fghex) || r_pt->c_fgansi) ) {
+             strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+             a_pt->c_fgansi = r_pt->c_fgansi;
+          }
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             a_pt->i_special |= r_pt->i_special;
+          }
+      /* Just match if ANSI fg normal : fg to fg */
+      } else if ( !*(s_pt->s_fghex) &&
+                  !*(s_pt->s_bghex) &&
+                  (s_pt->c_fgansi && (s_pt->c_fgansi == a_pt->c_fgansi)) &&
+                  !(s_pt->c_bgansi) &&
+                  !(i_search && (a_pt->i_special & i_search)) &&
+                  !(s_pt->i_special) ) {
+          strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+          a_pt->c_fgansi = r_pt->c_fgansi;
+          if ( (*(r_pt->s_bghex) || r_pt->c_bgansi) ) {
+             strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+             a_pt->c_bgansi = r_pt->c_bgansi;
+          }
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             a_pt->i_special |= r_pt->i_special;
+          }
+      /* Just match if ANSI bg normal : bg to bg */
+      } else if ( !*(s_pt->s_fghex) &&
+                  !*(s_pt->s_bghex) &&
+                  !(s_pt->c_fgansi) &&
+                  (s_pt->c_bgansi && (s_pt->c_bgansi == a_pt->c_bgansi)) &&
+                  !(i_search && (a_pt->i_special & i_search)) &&
+                  !(s_pt->i_special) ) {
+          strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+          a_pt->c_bgansi = r_pt->c_bgansi;
+          if ( (*(r_pt->s_fghex) || r_pt->c_fgansi) ) {
+             strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+             a_pt->c_fgansi = r_pt->c_fgansi;
+          }
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             a_pt->i_special |= r_pt->i_special;
+          }
+      /* Match negative checks here */
+      } else if ( !*(s_pt->s_fghex) &&
+                  !*(s_pt->s_bghex) &&
+                  !(s_pt->c_fgansi) &&
+                  !(s_pt->c_bgansi) &&
+                  !(i_search && (a_pt->i_special & i_search)) &&
+                  i_search &&
+                  !(s_pt->i_special) &&
+                  !(s_pt->c_accent) ) {
+          if ( (*(r_pt->s_fghex) || r_pt->c_fgansi) ) {
+             strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+             a_pt->c_fgansi = r_pt->c_fgansi;
+          }
+          if ( (*(r_pt->s_bghex) || r_pt->c_bgansi) ) {
+             strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+             a_pt->c_bgansi = r_pt->c_bgansi;
+          }
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             a_pt->i_special |= r_pt->i_special;
+          }
+      /* Just match if ANSI special : special to special, even if ansi-normal */
+      } else if ( !*(s_pt->s_fghex) &&
+                  !*(s_pt->s_bghex) &&
+                  !(s_pt->c_fgansi) &&
+                  !(s_pt->c_bgansi) &&
+                  !(i_search && (a_pt->i_special & i_search)) &&
+                  ((a_pt->i_special & s_pt->i_special) == s_pt->i_special) &&
+                  !(s_pt->c_accent) ) {
+          if ( !s_pt->i_special )
+             i_mark = 0;
+          else
+             i_mark = 1;
+          if ( i_mark && (*(r_pt->s_fghex) || r_pt->c_fgansi) ) {
+             strcpy(a_pt->s_fghex, r_pt->s_fghex); 
+             a_pt->c_fgansi = r_pt->c_fgansi;
+             i_mark++;
+          }
+          if ( i_mark && (*(r_pt->s_bghex) || r_pt->c_bgansi) ) {
+             strcpy(a_pt->s_bghex, r_pt->s_bghex); 
+             a_pt->c_bgansi = r_pt->c_bgansi;
+             i_mark++;
+          }
+          if ( i_mark == 1 )
+             i_mark = 0;
+          if ( i_replace ) {
+             a_pt->i_special &= ~i_replace;
+             a_pt->i_special |= r_pt->i_special;
+          } else {
+             if ( !i_mark || !s_pt->i_special ) {
+                if ( (!a_pt->i_special) || (a_pt->i_special & s_pt->i_special) )
+                   a_pt->i_special = r_pt->i_special;
+             } else
+                a_pt->i_special |= r_pt->i_special;
+          }
+      /* Just match if ANSI accent : accent to accent -- not implemented yet */
+      } else if ( s_pt->c_accent == a_pt->c_accent ) {
+          a_pt->c_accent = r_pt->c_accent;
+      }
+      /* Else just return the value */
+      s_iptr++;
+      a_pt++;
+   }   
+}
 
 void 
 clone_ansi(char *s_input, char *s_inputptr, 
@@ -837,12 +1039,14 @@ int count_chars(const char *str, const char c)
 }
 
 int count_extended(char *str) {
+#ifdef ZENTY_ANSI
    char *s;
+#endif
    int i_val;
 
-   s = str;
    i_val = 0;
 #ifdef ZENTY_ANSI
+   s = str;
    while ( *s ) {
       if ( (*s == '%') && (*(s+1) == '<') && *(s+2) && *(s+3) && *(s+3) &&
            isdigit(*(s+2)) && isdigit(*(s+3)) && isdigit(*(s+4)) &&

@@ -146,6 +146,8 @@ FUNCTION(local_fun_sqlite_query)
       return;
    }
 
+   sqlite3_exec(sqlite_db, (char *)"PRAGMA foreign_keys = on", 0, (void *)NULL, (char **)NULL);
+
 #ifdef DEBUG_SQLITE
    printf( "Done\n" );
    printf( "Prepare statement..\n" );

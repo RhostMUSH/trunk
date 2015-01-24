@@ -425,18 +425,18 @@
  
   @admin          @aflags         @apply_marked  @areg           @attribute 
   @blacklist      @boot           @chown         @chownall       @clone     
-  @conncheck      @convert        @cut           @dbck           @depower  
-  @destroy        @disable        @doing         @dump           @dynhelp
-  @enable         @fixdb          @flag          @flagdef        @freeze
-  @function       @halt           @hide          @hook           @icmd 
-  @kick           @limit          @list          @list_file      @listmotd
-  @lock           @log            @logrotate     @mark           @mark_all
-  @money          @motd           @newpassword   @nuke           @pcreate
-  @poor           @power          @progreset     @protect        @ps           
-  @purge          @quota          @readcache     @reboot         @recover      
-  @reclist        @remote         @rwho          @site           @shutdown     
-  @snapshot       @thaw           @timewarp      @toad           @tor
-  @turtle         @wall           +players
+  @conncheck      @convert        @cut           @dbck           @dbclean
+  @depower        @destroy        @disable       @doing          @dump       
+  @dynhelp        @enable         @fixdb         @flag           @flagdef    
+  @freeze         @function       @halt          @hide           @hook       
+  @icmd           @kick           @limit         @list           @list_file  
+  @listmotd       @lock           @log           @logrotate      @mark       
+  @mark_all       @money          @motd          @newpassword    @nuke       
+  @pcreate        @poor           @power         @progreset      @protect    
+  @ps             @purge          @quota         @readcache      @reboot     
+  @recover        @reclist        @remote        @rwho           @site       
+  @shutdown       @snapshot       @thaw          @timewarp       @toad       
+  @tor            @turtle         @wall          +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -457,7 +457,160 @@
   HELP SETUP         PLUSHELP SETUP     HUH SETUP          ELSEFILE SETUP
   REALITY LEVELS     MAIL ALIASES       HOOK SETUP         FUNCTION OVERLOADING
   FLAG ALIAS         ATTRIB CONTLOCKS   GLOBAL INHERITANCE ATTRIB FORMATTING
-  SIGNALS            TOR
+  SIGNALS            TOR                CONTROL
+
+& CONTROL
+  RhostMUSH has multiple levels and tiers for control.  In addition, it has
+  a wide variety of flags, toggles, @powers, and @depowers as well as other
+  features to tweak this control how you want.  It even has the ability to
+  override the existing control/permission levels globally.  This can
+  obviously become quite complex, but we'll touch on the majority of them.
+  The bits are all absolute to their level and lower.  Thus, lower level
+  bits can NOT MODIFY higher level bits, short of specail privs which will
+  be discussed later.
+  
+  First, the main control is handled by a bitlevel tier as follows.
+    #1    [Bitlevel 7] - This is the db owner and highest control authority
+                         in the game.  All garbage/recycled information is
+                         owned by this player, and because of this, this 
+                         player should not own anything.  Let me re-iterate.
+                         This player should not own anything.  If you need
+                         #1 style power, use the immortal flag for an 
+                         immortal player.
+   Immortal    [Bit 6] - This is essentially your 'leader' bit.  it can do
+                         pretty much anything within the game with few
+                         exceptions.  They override all locks by default
+                         unless they set the no_override/no_uselock flags.
+   Wizard      [Bit 5] - This is your normal MUX/Penn Wizard bitlevel.  It
+                         can do all your normal wizardly goodness.
+                         They override all locks their level and lower
+                         unless set no_override/no_uselock.  Yes, this
+                         also includes pagelocks.
+   Councilor   [Bit 4] - This is the 'admin' bit.  It has most of the wiz
+                         privs, but lacks some of the higher level db
+                         control.
+   Architect   [Bit 3] - This is the first staff bit that can control 
+                         things outside of its own ownership.  This does
+                         including, attribute/flags/toggles and player
+                         modification, but not player destruction.
+   Guildmaster [Bit 2] - This is the first admin bit.  It has small 
+                         amounts of control including examining stuff
+                         outside of ownership, but lacks modify power.
+   Citizen     [Bit 1] - Yup, this is just your normal player bit.
+   Wanderer    [Bit 0] - Consider this an unregistered player.  This is
+                         a Citizen with the WANDERER flag.  It stops 
+                         them from all building commands.
+   Guest       [Bit 0] - This is a guest player, as a guest they have
+                         very little power or control.  They lack any
+                         and all db modification abilities, including
+                         but not limited to editing, creating, etc.
+  
+  {wizhelp control2 for exceptions}
+  {wizhelp control flow for the general flow of permissions}
+
+& CONTROL FLOW
+  The general flow of control is as follows.  If a target is TwinkLocked,
+  assume examine/modify based on the given Lock.  Owner/Bitlevel still 
+  has control regardless of passing the lock or not.  Note that zone
+  control is also handled with twinklock and zone locks.  Any bitlevel
+  owned items MUST BE SET INHERIT to inherit ownership.  Please do NOT SET
+  THE BIT ON THE NON-PLAYER.  This is a PennMUSH-ism ONLY!
+
+  #1 ---+
+     Immortal ---+
+     Power(Toggled/Special)
+     @hook
+     NO_MODIFY (with @admin params imm_nomod enabled)
+     Immortal Owned thing set INHERIT
+              Wizard ---+
+              Power(Toggled/Special)
+              @hook
+              NO_MODIFY/NO_EXAMINE (without @admin params imm_nomod enabled)
+              Wizard Owned thing set INHERIT
+                     Councilor ---+
+                     Depower(Councilor)
+                     Power(Councilor)
+                     Toggles(some)
+                     @hook
+                     Councilor Owned thing set INHERIT
+                               Architect ---+
+                               Depower(Architect)
+                               Power(Architect)
+                               @hook
+                               Architect Owned thing set INHERIT
+                                         Guildmaster ---+
+                                         Depower(Guildmaster)
+                                         Power(Guildmaster)
+                                         @hook
+                                         Guildmaster Owned thing set INHERIT
+                                                     Citizen ---+
+                                                     Wanderer
+                                                     Guest
+                                                     Toggles(some)
+                                                     Flags(some)
+                                                     @hook
+                                                     ANY BIT-THING NOT INHERIT
+                                                             Screwed. ---+
+                                                             Depower(off)
+                                                             @icmd
+                                                             FUBAR/SLAVE
+                                                             Flags(others)
+                                                             Toggles(some)
+                                                             @hook
+  
+  As shown, @powers and @depowers can grant up and down the chain permissions.
+  Also, some flags and toggles may grant and/or remove some of these very
+  same abilities.  The TwinkLock also allows some complexity.
+  
+  See Also: CONTROL
+  
+& CONTROL2
+  There are exceptions to every rule, and RhostMUSH is no exception (sic).
+  While Immortal and #1 are basically immune from exceptions, being
+  too high in the chain to warrent effecting them, the rest of the bits
+  can be modified (yes, including full wizard).  
+  
+  They can be controlled as follows.
+    @power    -- This is a method to tier-level up a bitlevel to higher
+                 methods of control.  You can grant abilities from
+                 guildmaster up to Councilor for tier-level control.
+                 There also are powers that are toggle-able that 
+                 you can set (by specifying any bitlevel with it) that
+                 will toggle on or off a given effect.  This effect
+                 can (and likely does) grant abilities up to wizard
+                 or even immortal level (like examine and teleport).
+   @depower   -- This is a method to tier-level DOWN a bitlevel to a
+                 lower method of control.  This always has precidence
+                 over any other method of control and essentially 
+                 ham-strings authority.  You can use this to remove
+                 abilities from a full wizard (like cloaking, editing,
+                 teleporting, etc), which can be handy for non-coding
+                 staff.  Keep in mind, as stated, you can not @depower
+                 an Immortal or #1.
+   TwinkLock  -- @lock/twink is a special lock that grants editing, and
+                 by extension, examining ability of anything that they
+                 pass the lock on.  Obviously, it can be abused, thus
+                 why it's called a TWINK lock.
+   NO_MODIFY  -- This is a flag that can optionaly be tagged to be 
+                 tiered-up to immortal.  It in essence makes any target
+                 (including twinklocked items) non-modifiable.
+   NO_EXAMINE -- This is a flag that can optionaly be tagged to be
+                 tiered-up to immortal.  It in essence makes any target
+                 (including twinklocked items) non-examinable.
+   PINVISIBLE -- An attribute modifier that when in junction with the
+                 VISIBLE flag (either per object or attribute) will 
+                 make the attribute private/invisible, except for any
+                 direct-fetch via u(), get(), or hasattr().
+   @icmd      -- This is a method to disable, individually, any given
+                 command by player, location, or zone.  You have the
+                 option to set the command to ignore to effectively
+                 cause the command to be 'unfound' by the target.
+   @hook      -- This allows a wide variety of control over a command.
+  
+  There's obviously a lot more that can be tweaked or modified, but this
+  gives the general control flow.
+  
+  See Also: CONTROL FLOW
 
 & TOR 
   RhostMUSH has some fairly advanced features for proxy and masquarding
@@ -2144,6 +2297,42 @@
   
   Example:  @cut #12345
 
+& @dbclean
+  Command: @dbclean[/<switch>]
+  This command will perform an attribute purge of the database of any
+  unused attributes in the hash tables.  Unused is defined as an attribute
+  that is not currently defined (set) on ANY database object in the database.
+  
+  The optional switchs are available:
+      /check  -- Do not actually purge but just show would would have been.
+  
+  Cleaning unused attributes is handy as that will reduce, in some instances,
+  greatly reduce, the memory overhead of the mush.  Remember, the more 
+  attributes you have in your hash tables (@list hash -- Check Vattr line),
+  the more memory your mush will be using.
+   
+  Please be aware this only deletes the attributes, it does not renumber 
+  them.  It was decided to forgoe renumbering the attributes on-line for
+  a few reasons which are as follows:
+    1.  Renumbering the attributes requires a massive overhead of allocated
+        memory to keep track of the attributes on both side of the tree.
+    2.  For large databases with large numbers of attributes, this can
+        become next to impossible, especially if you resources are tight.
+    3.  There's several more checks in RhostMUSH with attributes than there
+        is in MUX, thereby requiring more overhead to renumberate.
+    4.  The number of the attribute, regardless of gap, causes no additional
+        overhead in the mush itself.
+    5.  If someone needs to write (or manages to write) over 2 billion 
+        attributes in a mush, without intending to do so, I want to shake
+        their hand.  
+  
+  If there ever is a need to renumber attributes, please let the core devs
+  know and we'll look to make a stand-alone program that re-numbers 
+  attributes in a flatfile for your use.  In 25 years as of this writing, 
+  there currently has not been a need.
+  
+  See Also: @dbck, @dump, @reclist, @recover, @purge
+
 & @dbck
   Command: @dbck
   Performs a scan of the database looking for inconsistencies in the object
@@ -2153,7 +2342,7 @@
   credited for rooms destroyed.  Database checks are automatically run
   periodically, so there is usually no need to use this command.
   
-  See Also: @admin, @disable, @enable, @list, @purge.
+  See Also: @admin, @disable, @enable, @list, @purge, @dbclean.
 
 & @destroy
   Command: @destroy[/<switches>] <object>
@@ -3155,7 +3344,7 @@
   
   Example:  @purge/type room
   
-  See Also: @dbck, @recover, @reclist
+  See Also: @dbck, @recover, @reclist, @dbclean
 
 & @recover
   Command: @recover <#dbref>

@@ -225,6 +225,11 @@ NAMETAB decomp_sw[] =
     {(char *) "tf", 2, CA_PUBLIC, 0, DECOMP_TF | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
    
+NAMETAB dbclean_sw[] =
+{
+    {(char *) "check", 1, CA_IMMORTAL, 0, DBCLEAN_CHECK},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB dbck_sw[] =
 {
     {(char *) "full", 1, CA_IMMORTAL, 0, DBCK_FULL},
@@ -1101,6 +1106,8 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_cut},
     {(char *) "@dbck", dbck_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_NO_ARGS, 0, do_dbck},
+    {(char *) "@dbclean", dbclean_sw, CA_GOD | CA_IMMORTAL, 0, 0,
+     CS_NO_ARGS, 0, do_dbclean},
     {(char *) "@decompile", decomp_sw, 0, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_decomp},
     {(char *) "@depower", depower_sw, CA_PUBLIC, 0,
@@ -3412,6 +3419,7 @@ process_command(dbref player, dbref cause, int interactive,
       cval2 = 1;
 
     if ((string_compare(command, "home") == 0) && !Fubar(player) && !cval && cval2 &&
+        (mudstate.remotep != player) &&
 	!No_tel(player)) {
 	do_move(player, cause, 0, "home");
 	mudstate.debug_cmd = cmdsave;
@@ -3422,9 +3430,9 @@ process_command(dbref player, dbref cause, int interactive,
         setitimer(ITIMER_PROF, &itimer, NULL);
         DPOP; /* #29 */
 	return;
-    } else if ((string_compare(command, "home") == 0) && (Fubar(player) || (cval == 1) ||
-                                                         ((cval2 == 0) && (cval != 2)) || 
-                                                         (No_tel(player) && cval != 2)) && 
+    } else if ((string_compare(command, "home") == 0) && ( Fubar(player) || (cval == 1) ||
+                                                           ((cval2 == 0) && (cval != 2)) || 
+                                                           ((No_tel(player) || (mudstate.remotep == player)) && cval != 2) ) && 
                                                          !mudstate.func_ignore) {
 	notify_quiet(player, "Permission denied.");
 	mudstate.debug_cmd = cmdsave;
@@ -3491,7 +3499,9 @@ process_command(dbref player, dbref cause, int interactive,
                       } else
                          cval = !hk_retval;
                    } 
-		   if ( ((Flags3(player) & NOMOVE) || cval || cval2) && !do_ignore_exit ) {
+                   if ( mudstate.remotep == player ) {
+		      notify(player, "Permission denied.");
+		   } else if ( ((Flags3(player) & NOMOVE) || cval || cval2) && !do_ignore_exit ) {
 		      notify(player, "Permission denied.");
                    } else if ( !do_ignore_exit && !cval ) {
 		      if ( (goto_cmdp->hookmask & HOOK_BEFORE) && Good_obj(mudconf.hook_obj) &&
@@ -3577,7 +3587,7 @@ process_command(dbref player, dbref cause, int interactive,
                       } else
                          cval = !hk_retval;
                   }
-                  if (!(Flags3(player) & NOMOVE) && !cval && !cval2) {
+                  if (!((mudstate.remotep == player) || (Flags3(player) & NOMOVE)) && !cval && !cval2) {
 		    if ( (goto_cmdp->hookmask & HOOK_BEFORE) && Good_obj(mudconf.hook_obj) &&
 			 !Recover(mudconf.hook_obj) && !Going(mudconf.hook_obj) ) {
 		      s_uselock = alloc_sbuf("command_hook_process");
@@ -4099,6 +4109,8 @@ process_command(dbref player, dbref cause, int interactive,
 		free_lbuf(p);
 		if (Flags3(player) & NOMOVE)
 		  notify(player, "Permission denied.");
+                else if (mudstate.remotep == player)
+		  notify(player, "Permission denied.");
 		else
 		  do_leave(player, player, 0);
                 getitimer(ITIMER_PROF, &itimer);
@@ -4121,6 +4133,8 @@ process_command(dbref player, dbref cause, int interactive,
 		    free_lbuf(lcbuf);
 		    free_lbuf(p);
 		    if (Flags3(player) & NOMOVE)
+		      notify(player, "Permission denied.");
+                    else if (mudstate.remotep == player)
 		      notify(player, "Permission denied.");
 		    else
 		      do_enter_internal(player, pcexit, 0);
@@ -4644,7 +4658,7 @@ NAMETAB attraccess_nametab[] =
     {(char *) "guildmaster", 2, CA_GUILDMASTER, 0, AF_GUILDMASTER},
     {(char *) "visual", 1, CA_PUBLIC, 0, AF_VISUAL},
     {(char *) "no_ansi", 4, CA_WIZARD, 0, AF_NOANSI},
-    {(char *) "nonblocking", 3, CA_IMMORTAL, 0, AF_NONBLOCKING},
+    {(char *) "nonblocking", 3, CA_GOD, 0, AF_NONBLOCKING},
     {(char *) "pinvisible", 2, CA_WIZARD, 0, AF_PINVIS},
     {(char *) "no_clone", 4, CA_PUBLIC, 0, AF_NOCLONE},
 #ifdef ATTR_HACK

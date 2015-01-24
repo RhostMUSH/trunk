@@ -1643,7 +1643,7 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
 #else
                    if ( i_compat == 2 ) {
                       *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
-                                             to, ANSI_NORMAL), src, i_type);
+                                             to, ANSI_NORMAL), src, i_type, i_compat);
                    } else {
                       *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
                                              strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);

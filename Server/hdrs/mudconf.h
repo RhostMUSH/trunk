@@ -536,6 +536,7 @@ struct statedata {
 	int	breakst;
 	int	breakdolist;
   dbref remote; /* Remote location for @remote */
+  dbref remotep;/* Remote location for @remote player*/
 	int	dolistnest;
         int     shell_program;  /* Shelled out of @program */
         dbref   store_lastcr;   /* Store the last created dbref# for functions */
@@ -743,6 +744,7 @@ struct statedata {
 	int	insideicmds;	/* Inside ICMD evaluation */
 #else
   dbref remote; /* Remote location for @remote */
+  dbref remotep;/* Remote location for @remote player */
 	int	logging;	/* Are we in the middle of logging? */
 	char	buffer[256];	/* A buffer for holding temp stuff */
         char    *lbuf_buffer;	/* An lbuf buffer we can globally use */

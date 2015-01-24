@@ -1,3 +1,16 @@
+                         RhostMUSH 3.9.5 Update File
+Softcode overrides for connect files
+				- Thanks Matrix
+Bug in the milisecond timers with regards to dumps
+				- Thanks Matrix
+Ansi auto-recognized in connect.txt (optionally)
+				- Thanks Rook
+floating point can dynamically be increased for precision.
+				- Thanks Stephen
+Ansi compression and optimization encoding
+				- Thanks Exaurdon
+
+
 		         RhostMUSH 3.9.4 Update File
 REALITY_LEVELS wouldn't compile because of undeclared function.
 				- Thanks Dahan

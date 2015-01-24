@@ -323,6 +323,7 @@ extern int	FDECL(member, (dbref, dbref));
 extern int	FDECL(is_integer, (char *));
 extern int	FDECL(is_number, (char *));
 extern int	FDECL(is_rhointeger, (char *));
+extern int	FDECL(is_float, (char *));
 extern int	FDECL(could_doit, (dbref, dbref, int, int, int));
 extern int	FDECL(can_see, (dbref, dbref, int));
 extern int	FDECL(can_see2, (dbref, dbref, int));
@@ -409,10 +410,13 @@ extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int, int));
 extern void 	FDECL(initialize_ansisplitter, (ANSISPLIT *, int));
 extern void 	FDECL(clone_ansisplitter, (ANSISPLIT *, ANSISPLIT *));
 extern void 	FDECL(clone_ansisplitter_two, (ANSISPLIT *, ANSISPLIT *, ANSISPLIT *));
+extern void     FDECL(search_and_replace_ansi, (char *, ANSISPLIT *, ANSISPLIT *, ANSISPLIT *, int, int));
+
 #else
 #define		initialize_ansisplitter(x, y) (0)
 #define		clone_ansisplitter(x, y) (0)
-#define		clone_ansisplitter_two(x, y) (0)
+#define		clone_ansisplitter_two(x, y, z) (0)
+#define		search_and_replace_ansi(w, x, y, z, a, b) (0)
 #endif
 extern int	FDECL(xlate, (char *));
 
@@ -596,6 +600,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	DBCK_TYPES	1024	/* Check for valid & appropriate types */
 #define	DBCK_SPARE	2048	/* Make sure spare header fields are NOTHING */
 #define	DBCK_HOMES	4096	/* Make sure homes and droptos are valid */
+#define DBCLEAN_CHECK	1	/* Just run a test run on what dbclean would show */
 #define	DEST_ONE	1	/* object */
 #define	DEST_ALL	2	/* owner */
 #define	DEST_OVERRIDE	4	/* override Safe() */

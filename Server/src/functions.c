@@ -3169,12 +3169,12 @@ FUNCTION(fun_nslookup)
 FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 {
   struct wrapinfo winfo;
-  int buffleft, i_justifylast, i_firstrun, i_haveansi, i_inansi;
+  int buffleft, i_justifylast, i_inansi, i_firstrun;
   char* leftstart;
   char *crp;
   char *pp;
 #ifdef ZENTY_ANSI
-  int pchr;
+  int pchr, i_haveansi = 0;
   char *lstspc;
 #endif
   char *expandbuff;
@@ -3185,7 +3185,8 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
   memset(&winfo, 0, sizeof(winfo));
   winfo.first_line = 1;
   i_justifylast = 0;
-  i_haveansi = i_inansi = 0;
+  i_inansi = 0;
+  i_firstrun = 0;
 
   winfo.width = atoi( fargs[1] );
 
@@ -3253,7 +3254,6 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
       buffleft = 0;
   }
 
-  i_firstrun = 0;
   for(leftstart = expandbuff; buffleft > 0; ) {
     crp = strchr(leftstart, '\r');
     if( crp && 
@@ -3265,6 +3265,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 #else
       wrap_out( leftstart, crp - leftstart, &winfo, buff, bufcx, " ", 0 );
       safe_str( "\r\n", buff, bufcx );
+      if ( i_firstrun && i_inansi );
 #endif
       buffleft -= (crp - leftstart) + 2;
       leftstart = crp + 2;
@@ -4156,15 +4157,23 @@ FUNCTION(fun_bittype)
                           "5",      /* Royalty */
                           "6",      /* Super-royalty */
                           "7" };    /* God */
-  int got = 0;
+  int got   = 0,
+      i_chk = 0;
+
+  if (!fn_range_check("BITTYPE", nfargs, 1, 2, buff, bufcx))
+     return;
 
   target = match_thing(player, fargs[0]);
 
+  if ( (nfargs > 1) && *fargs[1] )
+     i_chk = atoi(fargs[1]);
+
   if( !Good_obj(target) ) {
     got = 0;
-  }
-  else {
-    target = Owner(target);
+  } else {
+    if ( i_chk == 0 ) {
+       target = Owner(target);
+    }
     if( God(target) ) {
       got = 8;
     }
@@ -5834,21 +5843,25 @@ process_tr(char *s_instr, char *s_outstr, char *s_outptr)
 
 FUNCTION(fun_tr)
 {
-   char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], *s_inptr;
-   int i_cntr, i;
+   char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], 
+        *s_inptr, *outbuff, *outarg2, *s_output;
+   int i_cntr, i, i_noansi;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
+             s_splitmap[256], s_splitarg2[LBUF_SIZE];
 
-   i_cntr = 0;
-
-   if ( !*fargs[0] )
+   if (!fn_range_check("TR", nfargs, 3, 4, buff, bufcx)) {
       return;
+   }
+
+   if ( !*fargs[0] ) {
+      return;
+   }
    if ( !*fargs[1] || !*fargs[2] ) {
       safe_str(fargs[0], buff, bufcx);
       return;
    }
 
-   for ( i = 0; i < 256; i++ )
-      s_chrmap[i] = (char)i;
-
+   i_cntr = 0;
    /* Sanitize the lists */
    s_inptr = s_instr1 = alloc_lbuf("fun_tr_str1");
    i_cntr = process_tr(fargs[1], s_instr1, s_inptr);
@@ -5865,28 +5878,88 @@ FUNCTION(fun_tr)
       safe_str("#-1 OUTPUT REPLACE LIST TOO LARGE.", buff, bufcx);
       return;
    }
-   if ( strlen(s_instr1) != strlen(s_instr2) ) {
+
+   i_noansi = 0;
+   if ( (nfargs > 3) && *fargs[3] )
+      i_noansi = atoi(fargs[3]);
+
+   if ( i_noansi != 0 ) 
+      i_noansi = 1;
+
+   if ( (!i_noansi && (strlen(s_instr1) != strlen(strip_all_special(s_instr2)))) ||
+        ( i_noansi && (strlen(s_instr1) != strlen(s_instr2))) ) {
       free_lbuf(s_instr1);
       free_lbuf(s_instr2);
       safe_str("#-1 FIND AND REPLACE LISTS MUST BE OF SAME LENGTH.", buff, bufcx);
       return;
    }
+
    s_ptr = s_instr1;
-   s_inptr = s_instr2;
-   while ( *s_ptr ) {
-      s_chrmap[(int)*s_ptr]=*s_inptr;
-      s_ptr++;
-      s_inptr++;
+
+   for ( i = 0; i < 256; i++ ) {
+      s_chrmap[i] = (char)i;
    }
-   s_ptr = fargs[0];
+
+   if ( !i_noansi ) {
+      initialize_ansisplitter(outsplit, LBUF_SIZE);
+      initialize_ansisplitter(outsplit2, LBUF_SIZE);
+      initialize_ansisplitter(s_splitarg2, LBUF_SIZE);
+      initialize_ansisplitter(s_splitmap, 256);
+      outbuff = alloc_lbuf("fun_tr");
+      outarg2 = alloc_lbuf("fun_tr2");
+      memset(outbuff, '\0', LBUF_SIZE);
+      split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+      split_ansi(strip_ansi(s_instr2), outarg2, s_splitarg2);
+      s_inptr = outarg2;
+      p_sp = s_splitarg2;
+      while ( *s_ptr ) {
+         s_chrmap[(int)*s_ptr]=*s_inptr;
+         clone_ansisplitter(&(s_splitmap[(int)*s_ptr]), p_sp);
+         s_ptr++;
+         s_inptr++;
+         p_sp++;
+      }
+      free_lbuf(outarg2);
+   } else {
+      s_inptr = s_instr2;
+      while ( *s_ptr ) {
+         s_chrmap[(int)*s_ptr]=*s_inptr;
+         s_ptr++;
+         s_inptr++;
+      }
+   }
+
+   if ( i_noansi ) {
+      s_ptr = fargs[0];
+   } else {
+      s_ptr = outbuff;
+   }
+   p_sp  = outsplit;
+   p_sp2 = outsplit2;   
    s_inptr = s_holdstr = alloc_lbuf("fun_tr_str3");
    while ( *s_ptr ) {
-      if ( s_chrmap[(int)*s_ptr] == '\n' )
+      if ( s_chrmap[(int)*s_ptr] == '\n' ) {
          safe_chr('\r', s_holdstr, &s_inptr);
+         if ( !i_noansi ) {
+            clone_ansisplitter_two(p_sp2, &(s_splitmap[(int)*s_ptr]), p_sp);
+         }
+         p_sp2++;
+      }
+      if ( !i_noansi )
+         clone_ansisplitter_two(p_sp2, &(s_splitmap[(int)*s_ptr]), p_sp);
       safe_chr(s_chrmap[(int)*s_ptr], s_holdstr, &s_inptr);
       s_ptr++;
+      p_sp++;
+      p_sp2++;
    }
-   safe_str(s_holdstr, buff, bufcx);
+   if ( !i_noansi ) {
+      s_output = rebuild_ansi(s_holdstr, outsplit2);
+      safe_str(s_output, buff, bufcx);
+      free_lbuf(s_output);
+      free_lbuf(outbuff);
+   } else {
+      safe_str(s_holdstr, buff, bufcx);
+   }
    free_lbuf(s_holdstr);
    free_lbuf(s_instr1);
    free_lbuf(s_instr2);
@@ -5976,6 +6049,37 @@ FUNCTION(fun_translate)
         safe_str(translate_string(result, type), buff, bufcx);
         free_lbuf(result);
     }
+}
+
+FUNCTION(fun_mwords)
+{
+   char *sep, *pos, *poschk;
+   int i_count = 0;
+
+   if (!fn_range_check("MWORDS", nfargs, 0, 2, buff, bufcx))
+      return;
+   
+   if ( (nfargs < 1) || !*fargs[0] ) {
+      ival(buff, bufcx, i_count);
+      return;
+   } 
+
+   if ( (nfargs > 1) && *fargs[1] ) {
+      sep = fargs[1];
+   } else {
+      sep = (char *)" ";
+   }
+
+   pos = strip_all_ansi(fargs[0]);
+   i_count++;
+   while ( (poschk = strstr(pos, sep)) != NULL ) {
+      pos = poschk + strlen(sep);
+      i_count++;
+      if ( !pos || !*pos )
+         break;
+   }
+
+   ival(buff, bufcx, i_count);
 }
 
 FUNCTION(fun_words)
@@ -14617,10 +14721,47 @@ FUNCTION(fun_privatize)
  */
 FUNCTION(fun_localize)
 {
-    char *result, *pt, *savereg[MAX_GLOBAL_REGS];
-    int x;
+    char *result, *pt, *savereg[MAX_GLOBAL_REGS], *resbuff;
+    int x, i_flagreg[MAX_GLOBAL_REGS], i_reverse;
 
+    if (!fn_range_check("LOCALIZE", nfargs, 1, 3, buff, bufcx)) {
+       return;
+    }
+
+    i_reverse = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       resbuff = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[2], cargs, ncargs);
+       i_reverse = atoi(resbuff);
+       free_lbuf(resbuff);
+    }
+    if ( (nfargs > 1) && *fargs[1] ) {
+       resbuff = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs);
+       if ( *resbuff ) {
+          pt = resbuff;
+          while ( *pt ) {
+             *pt = ToLower(*pt);
+             pt++;
+          }
+          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+             if ( strchr(resbuff, mudstate.nameofqreg[x]) != NULL )
+                i_flagreg[x] = (i_reverse ? 0 : 1);
+             else
+                i_flagreg[x] = (i_reverse ? 1 : 0);
+          }
+       } else {
+          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+             i_flagreg[x] = 1;
+          }
+       }
+       free_lbuf(resbuff);
+    } else {
+       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          i_flagreg[x] = 1;
+       }
+    }
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      if ( !i_flagreg[x] )
+         continue;
       savereg[x] = alloc_lbuf("ulocal_reg");
       pt = savereg[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
@@ -14631,6 +14772,8 @@ FUNCTION(fun_localize)
     result = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0],
     cargs, ncargs);
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      if ( !i_flagreg[x] )
+         continue;
       pt = mudstate.global_regs[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
       free_lbuf(savereg[x]);
@@ -16163,6 +16306,98 @@ FUNCTION(fun_randextract)
   }
   if (used)
     free(used);
+}
+
+FUNCTION(fun_extractword)
+{
+   int start, len, i_cntr, i_cntr2, first, i_del;
+   char *sep, *osep, *pos, *prevpos, *fargbuff, *outbuff;
+   ANSISPLIT outsplit[LBUF_SIZE], *optr, *prevoptr;
+
+   if (!fn_range_check("WORDEXTRACT", nfargs, 3, 6, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] )
+      return;
+
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   fargbuff = alloc_lbuf("fun_extractword_fargbuff");
+   memset(fargbuff, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(fargs[0]), fargbuff, outsplit);
+
+   start = atoi(fargs[1]);
+   len = atoi(fargs[2]);
+   if ((start < 1) || (len < 1)) {
+      return;
+   }
+
+   sep  = alloc_lbuf("fun_extractword_sep");
+   osep = alloc_lbuf("fun_extractword_osep");
+   if ( (nfargs > 3) && *fargs[3] ) {
+      strcpy(sep, strip_all_ansi(fargs[3]));
+   } else {
+      strcpy(sep, (char *)" ");
+   }
+   if ( (nfargs > 4) && *fargs[4] ) {
+      strcpy(osep, fargs[4]);
+   } else {
+      strcpy(osep, sep);
+   }
+   
+   if ( (nfargs > 5) && *fargs[5] ) {
+      i_del = atoi(fargs[5]);
+   } else {
+      i_del = 0;
+   }
+   pos = fargbuff;
+   optr = outsplit;
+   i_cntr = 1;
+   first = i_cntr2 = 0;
+   while ( pos && *pos ) {
+      prevpos = strstr(pos, sep);
+      prevoptr = optr + (prevpos - pos);
+      if ( !prevpos || !*prevpos )
+         break;
+      if ( ((i_cntr < start) && !i_del) ||
+           ( ((i_cntr >= start) && (i_cntr < (start + len))) && i_del) ) {
+         i_cntr++;
+         *(prevpos)='\0';
+         pos = prevpos + strlen(sep);
+         optr = prevoptr + strlen(sep);
+         if ( !pos || !*pos ) 
+            break;
+         *(pos-1) = '\0';
+         continue;
+      }
+      *(prevpos)='\0';
+      if ( first )
+         safe_str(osep, buff, bufcx);
+      first = 1;
+      outbuff = rebuild_ansi(pos, optr);
+      safe_str(outbuff, buff, bufcx);
+      free_lbuf(outbuff);
+      pos = prevpos + strlen(sep);
+      optr = prevoptr + strlen(sep);
+      if ( !pos || !*pos ) 
+         break;
+      *(pos-1) = '\0';
+      i_cntr++;
+      i_cntr2++;
+      if ( (i_cntr2 >= len) && !i_del )
+         break;
+   }
+   if ( pos && *pos && ( 
+        ((i_cntr2 < len) && (start <= i_cntr) && !i_del) || 
+        (((i_cntr < start) || (i_cntr >= (start + len))) && i_del) )) {
+      if ( first )
+         safe_str(osep, buff, bufcx);
+      outbuff = rebuild_ansi(pos, optr);
+      safe_str(outbuff, buff, bufcx);
+      free_lbuf(outbuff);
+   }
+   free_lbuf(sep);
+   free_lbuf(osep);
+   free_lbuf(fargbuff);
 }
 
 FUNCTION(fun_extract)
@@ -21383,10 +21618,11 @@ FUNCTION(fun_nsiter)
  */
 FUNCTION(fun_strmath)
 {
-   char *curr, *cp, *objstring, sep, osep, tempbuff[LBUF_SIZE], *tcurr, *tmp,
+   char *curr, *cp, *objstring, sep, osep, *tcurr, *tmp,
         *s_str, *s_strtok, sep2, osep2, osep_str[3];
    static char mybuff[LBUF_SIZE];
-   int  i_val, i_base, i_number, first, first2, i_start, i_cnt, i_currcnt, i_applycnt;
+   int  first, first2, i_start, i_cnt, i_currcnt, i_applycnt;
+   double f_val, f_base, f_number;
 
    if (!fn_range_check("STRMATH", nfargs, 3, 9, buff, bufcx))
       return;
@@ -21483,9 +21719,9 @@ FUNCTION(fun_strmath)
    tcurr = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1],
                     cargs, ncargs);
    if ( !*tcurr || !tcurr )
-      i_base = 0;
+      f_base = 0.0;
    else
-      i_base = atoi(tcurr);
+      f_base = safe_atof(tcurr);
    free_lbuf(tcurr);
    first = 1;
    i_currcnt = 1;
@@ -21506,36 +21742,33 @@ FUNCTION(fun_strmath)
                safe_chr(sep2, buff, bufcx);
             }
          }
-         if ( is_integer(s_str) ) {
-            i_number = atoi(s_str);
+         if ( is_float(s_str) ) {
+            f_number = safe_atof(s_str);
             if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
                switch( *fargs[2] ) {
-                  case '+': i_val = i_number + i_base;
+                  case '+': f_val = f_number + f_base;
                             break;
-                  case '-': i_val = i_number - i_base;
+                  case '-': f_val = f_number - f_base;
                             break;
-                  case '/': if ( i_base == 0 )
-                                  i_val = i_number;
+                  case '/': if ( f_base == 0 )
+                                  f_val = f_number;
                             else {
-                               if ( i_number < -(INT_MAX) )
-                                  i_number = -(INT_MAX);
-                               i_val = i_number / i_base;
+                               f_val = f_number / f_base;
                             }
                             break;
-                  case '*': i_val = i_number * i_base;
+                  case '*': f_val = f_number * f_base;
                             break;
-                  case '%': if ( i_number < -(INT_MAX) )
-                               i_number = -(INT_MAX);
-                            i_val = i_number % i_base;
+                  case '%': if ( f_base == 0)
+                               f_base = 1;
+                            f_val = fmod(f_number, f_base);
                             break;
-                  default : i_val = i_number + i_base;
+                  default : f_val = f_number + f_base;
                             break;
                }
             } else {
-               i_val = i_number;
+               f_val = f_number;
             }
-            sprintf(tempbuff, "%d", i_val);
-            safe_str(tempbuff, buff, bufcx);
+            fval(buff, bufcx, f_val);
          } else {
             safe_str(s_str, buff, bufcx);
          }
@@ -22793,7 +23026,7 @@ FUNCTION(fun_parsestr)
    int first, i_type, i_cntr, i_pass, aflags;
    dbref aname, target;
    char *atext, *atextptr, *result, *objstring, *cp, *atextbuf, sep, *osep, *osep_pre, *osep_post, *tbuff;
-   char *savebuff[5], *ansibuf, *target_result, *c_transform, *p_transform;
+   char *savebuff[5], *ansibuf, *target_result, *c_transform, *p_transform, *tpr_buff, *tprp_buff, *tprstack[3];
 
    if (!fn_range_check("PARSESTR", nfargs, 2, 10, buff, bufcx))
      return;
@@ -23004,6 +23237,11 @@ FUNCTION(fun_parsestr)
    first = 0;
    memset(atextbuf, '\0', LBUF_SIZE);
    cp = trim_space_sep(atext, sep);
+   tprp_buff = tpr_buff = alloc_lbuf("parestr_escape_out");
+   tprstack[0] = alloc_lbuf("parsestr_stack");
+   tprstack[1] = alloc_lbuf("parsestr_stack2");
+   sprintf(tprstack[1], "%s", "f");
+   tprstack[2] = NULL;
    while ( cp ) {
      i_cntr++;
      objstring = split_token(&cp, sep);
@@ -23015,9 +23253,16 @@ FUNCTION(fun_parsestr)
           memset(savebuff[0], '\0', LBUF_SIZE);
           sprintf(savebuff[2], "%d", i_pass - 1);
           sprintf(savebuff[3], "%d", i_cntr - 1);
-          strncpy(atextbuf, objstring, (LBUF_SIZE-1));
+/*        strncpy(atextbuf, objstring, (LBUF_SIZE-1)); */
+
+          strncpy(tprstack[0], objstring, (LBUF_SIZE-1));
+          tprp_buff = tpr_buff;
+          fun_escape(tpr_buff, &tprp_buff, player, cause, cause, tprstack, 2, (char **)NULL, 0);
           result = exec(player, cause, caller,
-                        EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);
+                        EV_STRIP | EV_FCHECK | EV_EVAL, tpr_buff, savebuff, 5); 
+
+/*        result = exec(player, cause, caller,
+                        EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);  */
           safe_str(result, buff, bufcx);
           safe_chr(' ', buff, bufcx);
           free_lbuf(result);
@@ -23051,6 +23296,9 @@ FUNCTION(fun_parsestr)
      safe_str(result, buff, bufcx);
      free_lbuf(result);
    }
+   free_lbuf(tpr_buff);
+   free_lbuf(tprstack[0]);
+   free_lbuf(tprstack[1]);
    if ( c_transform )
       free_lbuf(c_transform);
    if ( p_transform )
@@ -24050,16 +24298,18 @@ static const unsigned char AccentCombo2[256] =
 
 FUNCTION(fun_accent)
 {
+#ifdef ZENTY_ANSI
    char *p_ptr, p_oldptr, p_oldptr2, *p_ptr2;
    int i_inaccent;
+#endif
 
+#ifndef ZENTY_ANSI
+   safe_str(fargs[0], buff, bufcx);
+#else
    p_ptr2 = fargs[0];
    p_ptr = fargs[1];
    p_oldptr2 = p_oldptr = '\0';
    i_inaccent = 0;
-#ifndef ZENTY_ANSI
-   safe_str(fargs[0], buff, bufcx);
-#else
    if ( strlen(fargs[0]) != strlen(fargs[1]) ) {
       safe_str("#-1 ARGUMENTS MUST BE OF SAME LENGTH", buff, bufcx);
       return;
@@ -24182,6 +24432,8 @@ FUNCTION(fun_colors)
     }
 }
 
+int ansi_omitter = 0;
+
 FUNCTION(fun_ansi)
 {
     PENNANSI *cm;
@@ -24207,7 +24459,8 @@ FUNCTION(fun_ansi)
     ansi_normalfg = alloc_mbuf("fun_ansi2");
     ansi_normalbg = alloc_mbuf("fun_ansi3");
 
-    
+    ansi_omitter = 0; 
+
     for (i = 0; i < j; i++) {
         q = trim_spaces(fargs[i * 2]);
         memset(t_buff, 0, sizeof(t_buff));
@@ -24379,20 +24632,28 @@ FUNCTION(fun_ansi)
                     safe_str(SAFE_ANSI_UNDERSCORE, ansi_special, &ansi_specialptr);
                  i_allow[0] = 1;
                  break;
+              case 'U': ansi_omitter |= SPLIT_UNDERSCORE;
+                 break;
               case 'h': 
                  if ( !i_allow[1] && (mudconf.global_ansimask & MASK_HILITE) )
                     safe_str(SAFE_ANSI_HILITE, ansi_special, &ansi_specialptr);
                  i_allow[1] = 1;
+                 break;
+              case 'H': ansi_omitter |= SPLIT_HILITE;
                  break;
               case 'i': 
                  if ( !i_allow[2] && (mudconf.global_ansimask & MASK_INVERSE) )
                     safe_str(SAFE_ANSI_INVERSE, ansi_special, &ansi_specialptr);
                  i_allow[2] = 1;
                  break;
+              case 'I': ansi_omitter |= SPLIT_INVERSE;
+                 break;
               case 'f': 
                  if ( !i_allow[3] && (mudconf.global_ansimask & MASK_BLINK) )
                     safe_str(SAFE_ANSI_BLINK, ansi_special, &ansi_specialptr);
                  i_allow[3] = 1;
+                 break;
+              case 'F': ansi_omitter |= SPLIT_FLASH;
                  break;
               case 'n': 
                  if ( !i_allow[4] )
@@ -24630,6 +24891,62 @@ FUNCTION(fun_ansi)
 }
 #endif
 
+/* editansi -- edit the color/accent markup in a string */
+FUNCTION(fun_editansi)
+{
+   ANSISPLIT search_val[LBUF_SIZE], replace_val[LBUF_SIZE], a_input[LBUF_SIZE];
+   char *s_input, *s_combine, *s_buff, *s_buffptr, *s_array[3];
+   int i_omit1, i_omit2;
+
+#ifndef ZENTY_ANSI
+   safe_str((char *)"#-1 ZENTY ANSI REQUIRED FOR THIS FUNCTION.", buff, bufcx);
+   return;
+#endif
+   if ( !*fargs[0] )
+      return;
+
+   if ( !*fargs[1] || !*fargs[2] ) {
+      safe_str(fargs[0], buff, bufcx);
+      return;
+   }
+
+   initialize_ansisplitter(a_input, LBUF_SIZE);
+   initialize_ansisplitter(search_val, LBUF_SIZE);
+   initialize_ansisplitter(replace_val, LBUF_SIZE);
+   s_input = alloc_lbuf("fun_editansi_orig");
+   s_combine = alloc_lbuf("fun_editansi_combine");
+   memset(s_input, '\0', LBUF_SIZE);
+   memset(s_combine, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(fargs[0]), s_input, a_input);
+   s_buffptr = s_buff = alloc_lbuf("fun_editansi");
+   s_array[0] = alloc_lbuf("fun_editansi1");
+   s_array[1] = alloc_lbuf("fun_editansi2");
+   s_array[2] = NULL;
+   sprintf(s_array[1], "%c", 'X');
+   sprintf(s_array[0], "%s", fargs[1]);
+   fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+   i_omit1 = ansi_omitter;
+   split_ansi(s_buff, s_combine, search_val);
+   memset(s_combine, '\0', LBUF_SIZE);
+   memset(s_buff, '\0', LBUF_SIZE);
+   s_buffptr = s_buff;
+   sprintf(s_array[1], "%c", 'X');
+   sprintf(s_array[0], "%s", fargs[2]);
+   fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+   i_omit2 = ansi_omitter;
+   split_ansi(s_buff, s_combine, replace_val);
+   free_lbuf(s_combine);
+
+   search_and_replace_ansi(s_input, a_input, search_val, replace_val, i_omit1, i_omit2);
+   s_combine = rebuild_ansi(s_input, a_input);
+   safe_str(s_combine, buff, bufcx);
+
+   free_lbuf(s_input);
+   free_lbuf(s_combine);
+   free_lbuf(s_buff);
+   free_lbuf(s_array[0]);
+   free_lbuf(s_array[1]);
+}
 FUNCTION(fun_stripansi)
 {
     /* Strips ANSI codes away from a given string of text. Starts by
@@ -24672,10 +24989,10 @@ FUNCTION(fun_stripansi)
 }
 
 FUNCTION(fun_stripaccents) {
+#ifdef ZENTY_ANSI
    char *cp;
 
    cp = fargs[0];
-#ifdef ZENTY_ANSI
    while ( *cp ) {
       if ( (*cp == '%') && (*(cp + 1) == 'f') && isprint(*(cp + 2)) )
          cp+=3;
@@ -25527,6 +25844,9 @@ FUNCTION(fun_ljust)
     spaces = atoi(fargs[1]);
     s = t = NULL;
     i_len = 0;
+#ifndef ZENTY_ANSI
+    if ( s );
+#endif
 
     filllen = 1;
     if ( (nfargs > 2) && *fargs[2] ) {
@@ -25600,6 +25920,9 @@ FUNCTION(fun_rjust)
     memset(t_buff, '\0', sizeof(t_buff));
     memset(filler, '\0', sizeof(filler));
     s = t = NULL;
+#ifndef ZENTY_ANSI
+    if ( s );
+#endif
 
     if ( (nfargs > 2) && *fargs[2] ) {
        if ( strlen(strip_all_special(fargs[2])) < 1 ) {
@@ -25682,6 +26005,10 @@ FUNCTION(fun_center)
     memset(t_buff, '\0', sizeof(t_buff));
     memset(filler, '\0', sizeof(filler));
     s = t = NULL;
+
+#ifndef ZENTY_ANSI
+    if ( s );
+#endif
    
     if ( (nfargs > 2) && *fargs[2] ) {
        if ( strlen(strip_all_special(fargs[2])) < 1 ) {
@@ -26742,6 +27069,7 @@ FUNCTION(fun_ljc)
 
 #ifndef ZENTY_ANSI
   inlen = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
+  if ( s );
 #endif
   len = atoi(fargs[1]);
 
@@ -26933,6 +27261,10 @@ FUNCTION(fun_rjc)
   memset(t_buff, '\0', sizeof(t_buff));
   s = t = NULL;
   filllen = 1;
+
+#ifndef ZENTY_ANSI
+  if ( s );
+#endif
 
   if ( (nfargs > 2) && *fargs[2] ) {
      if ( strlen(strip_all_special(fargs[2])) < 1 ) {
@@ -29313,7 +29645,7 @@ FUN flist[] =
     {"BEEP", fun_beep, 1, 0, CA_WIZARD, 0},
     {"BEFORE", fun_before, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"BETWEEN", fun_between, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"BITTYPE", fun_bittype, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"BITTYPE", fun_bittype, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BOUND", fun_bound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BRACKETS", fun_brackets, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"BYPASS", fun_bypass, -1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -29433,6 +29765,7 @@ FUN flist[] =
     {"EE", fun_ee, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EDEFAULT", fun_edefault, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"EDIT", fun_edit, 3, FN_VARARGS, CA_PUBLIC, 0},
+    {"EDITANSI", fun_editansi, 3, 0, CA_PUBLIC, 0},
     {"ELEMENTS", fun_elements, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTSMUX", fun_elementsmux, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELIST", fun_elist, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
@@ -29452,6 +29785,7 @@ FUN flist[] =
     {"EVAL", fun_eval, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXIT", fun_exit, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EXP", fun_exp, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"EXTRACTWORD", fun_extractword, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXTRACT", fun_extract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBETWEEN", fun_fbetween, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBOUND", fun_fbound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -29574,7 +29908,7 @@ FUN flist[] =
     {"LNUM", fun_lnum, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LNUM2", fun_lnum2, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOC", fun_loc, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"LOCALIZE", fun_localize, 1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"LOCALIZE", fun_localize, 1, FN_NO_EVAL | FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOCALFUNC", fun_localfunc, 1, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LOCATE", fun_locate, 3, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
@@ -29632,6 +29966,7 @@ FUN flist[] =
     {"MUDNAME", fun_mudname, 0, 0, CA_PUBLIC, 0},
     {"MUL", fun_mul, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MUNGE", fun_munge, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"MWORDS", fun_mwords, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"NAME", fun_name, 1, FN_VARARGS, CA_PUBLIC, 0},
 #else
@@ -29843,7 +30178,7 @@ FUN flist[] =
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTPOS", fun_totpos, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"TR", fun_tr, 3, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TR", fun_tr, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TRACE", fun_trace, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRANSLATE", fun_translate, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"TRIM", fun_trim, 0, FN_VARARGS, CA_PUBLIC, 0},

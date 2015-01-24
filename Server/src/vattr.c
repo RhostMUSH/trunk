@@ -250,6 +250,11 @@ VATTR *vattr_next(VATTR *vp)
 }
 
 #ifndef STANDALONE
+int list_vcount()
+{
+   return vstats_count;
+}
+
 void list_vhashstats(dbref player)
 {
 char	*buff;

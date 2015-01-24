@@ -701,6 +701,7 @@ NDECL(cf_init)
 	mudstate.global_regsname[i] = NULL;
     }
     mudstate.remote = -1;
+    mudstate.remotep = -1;
 #ifdef EXPANDED_QREGS
     strcpy(mudstate.nameofqreg, "0123456789abcdefghijklmnopqrstuvwxyz");
     mudstate.nameofqreg[36]='\0';
@@ -874,6 +875,7 @@ CF_HAND(cf_rlevel)
 {
     CONFDATA *mc = (CONFDATA *)vp;
     int i, j, k, cmp_x, cmp_y, cmp_z;
+    unsigned int q;
     char dup1[17], dup2[17], *nptr, tbufit[20], *strbuff, *pst;
 
     cmp_z = countwordsnew(str);
@@ -943,11 +945,11 @@ CF_HAND(cf_rlevel)
     while ( *str && (isxdigit((int)*str) || (ToLower(*str) == 'x')) ) {
        *pst++ = *str++;
     }
-    i = (int)atof(strbuff);
+    q = (unsigned int)atof(strbuff);
     
     free_lbuf(strbuff);
-    if(i)
-        mc->reality_level[mc->no_levels].value = (RLEVEL) i;
+    if(q)
+        mc->reality_level[mc->no_levels].value = (RLEVEL) q;
     for(; *str && ((*str == ' ') || (*str == '\t')); ++str);
     if(*str) {
         strncpy(mc->reality_level[mc->no_levels].attr, str, 32);
@@ -1716,7 +1718,6 @@ attrib_show(char *name, int i_type)
                }
             }
          }
-         free_lbuf(s_buff);
       } else {
          for (atrp = atrp_head; atrp; atrp = atrp->next) {
             if ( (atrp->owner != -1) || (atrp->target != -1) || (atrp->enactor != -1) )
@@ -1727,9 +1728,9 @@ attrib_show(char *name, int i_type)
             }
          }
          strcpy(s_my, s_buff);
-         free_lbuf(s_buff);
       }
    }
+   free_lbuf(s_buff);
    return s_my;
 }
 
