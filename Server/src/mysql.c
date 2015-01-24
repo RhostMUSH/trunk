@@ -261,7 +261,7 @@ static int sql_init(dbref player) {
    * localhost, use the Unix domain socket instead.
    */
   
-  mysql_init(mysql_struct);
+  mysql_struct = mysql_init(mysql_struct);
   
   result = mysql_real_connect(mysql_struct, DB_HOST, DB_USER, DB_PASS, DB_BASE,
  			      3306, DB_SOCKET, 0);

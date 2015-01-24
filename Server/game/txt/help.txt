@@ -27124,3 +27124,5 @@ Bug Fixes
 * compile time warnings with some new additions when ZENTY_ANSI not specified [ASH]
 * mail.c had in the write editor erraneous warnings hardcoded to 4K buffers [ASH]
 * double eval fix in parsestr() [ASH]
+* third party mysql.c had a segsetv fix [ASH]
+* timers had a bug in mysql.c and mis-defined in timer.c [ASH]

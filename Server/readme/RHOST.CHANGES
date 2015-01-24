@@ -9,6 +9,10 @@ floating point can dynamically be increased for precision.
 				- Thanks Stephen
 Ansi compression and optimization encoding
 				- Thanks Exaurdon
+Fix for timers with milisecond and alarms
+				- Thanks Ol'Sarge
+Fix for Mysql.c issue in a sigfault
+				- THanks Ol'Sarge
 
 
 		         RhostMUSH 3.9.4 Update File

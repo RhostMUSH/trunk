@@ -77,6 +77,7 @@ static void NDECL(init_rlimit);
 
 extern double FDECL(time_ng, (double*));
 extern int FDECL(alarm_msec, (double));
+extern int NDECL(alarm_stop);
 
 int reserved;
 
@@ -1282,6 +1283,7 @@ do_reboot(dbref player, dbref cause, int key)
   }
 
   alarm_msec(0);
+  alarm_stop();
   mudstate.dumpstatechk=1;
   ignore_signals();
   port = mudconf.port;
