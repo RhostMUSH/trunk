@@ -82,7 +82,7 @@ int FDECL(process_input, (DESC *));
 extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, int, int, char *));
 extern int FDECL(lookup, (char *, char *));
 extern CF_HAND(cf_site);
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
 
 extern int FDECL(alarm_msec, (double));
 
