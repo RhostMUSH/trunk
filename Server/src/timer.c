@@ -31,6 +31,8 @@ extern void		NDECL(pcache_trim);
 */
 int alarm_msec(double time)
 {
+  // This function will _never_ stop the timer; use alarm_stop() for that.
+  time = (time <= 0 ? 0.1 : time );
 struct itimerval it_val;
 double time_rounded;
   time_rounded = roundf(time * 10) / 10; // Round to one decimal place
@@ -41,8 +43,18 @@ double time_rounded;
 /* Debugging
   fprintf(stderr, "Timer Triggered");
  */
-  /* we actually need to trigger the alarm() signal to reset states, since setitimer doesn't do it */
-  alarm(1);
+  mudstate.alarm_triggered = 0;
+  return setitimer(ITIMER_REAL,&it_val,NULL);
+}
+
+int alarm_stop()
+{
+struct itimerval it_val;
+  it_val.it_value.tv_sec = 0;
+  it_val.it_value.tv_usec = 0;
+  it_val.it_interval.tv_sec = 0; // both set to '0' so the timer is one-shot
+  it_val.it_interval.tv_usec = 0;
+
   mudstate.alarm_triggered = 0;
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }

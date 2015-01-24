@@ -85,6 +85,7 @@ extern CF_HAND(cf_site);
 extern double NDECL(next_timer);
 
 extern int FDECL(alarm_msec, (double));
+extern int NDECL(alarm_stop);
 
 int signal_depth;
 
@@ -2245,7 +2246,7 @@ sighandler(int sig)
                 }
              }
           }
-          alarm_msec(0); 
+          alarm_stop();
           ignore_signals();
           raw_broadcast(0, 0, "Game: Restarting due to signal SIGUSR1.");
           raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected.");
