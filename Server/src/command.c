@@ -177,7 +177,7 @@ NAMETAB cluster_sw[] = {
   {(char *) "delete", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_DEL},
   {(char *) "clear", 2, CA_WIZARD, CA_CLUSTER, CLUSTER_CLEAR},
   {(char *) "list", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_LIST},
-  {(char *) "threshold", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_THRESHOLD},
+  {(char *) "threshold", 2, CA_WIZARD, CA_CLUSTER, CLUSTER_THRESHOLD},
   {(char *) "action", 2, CA_WIZARD, CA_CLUSTER, CLUSTER_ACTION},
   {(char *) "edit", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_EDIT},
   {(char *) "repair", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REPAIR},
@@ -186,7 +186,7 @@ NAMETAB cluster_sw[] = {
   {(char *) "wipe", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_WIPE},
   {(char *) "grep", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_GREP},
   {(char *) "reaction", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REACTION},
-  {(char *) "trigger", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_TRIGGER},
+  {(char *) "trigger", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_TRIGGER},
   {(char *) "function", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_FUNC | SW_MULTIPLE},
   {(char *) "regexp", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REGEXP | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}
@@ -881,6 +881,7 @@ NAMETAB set_sw[] =
 {
     {(char *) "quiet", 1, CA_PUBLIC, 0, SET_QUIET},
     {(char *) "noisy", 1, CA_PUBLIC, 0, SET_NOISY},
+    {(char *) "tree", 1, CA_PUBLIC, 0, SET_TREE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB skip_sw[] =

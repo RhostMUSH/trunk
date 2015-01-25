@@ -27715,13 +27715,18 @@ FUNCTION(fun_cluster_add)
 
 FUNCTION(fun_set)
 {
-   char *s_buf1, *s_buf2;
+   char *s_buf1, *s_buf2, *s_tmp;
+   int i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_SET) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
    }
+
+   if (!fn_range_check("SET", nfargs, 2, 3, buff, bufcx))
+      return;
+
    if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
       notify(player, "Permission denied.");
       return;
@@ -27733,24 +27738,37 @@ FUNCTION(fun_set)
       notify(player, "Permission denied.");
       return;
    }
+
+   i_key = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+       s_tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                     fargs[2], cargs, ncargs);
+       if ( *s_tmp ) 
+          i_key = (atoi(s_tmp) ? SET_TREE : 0);
+       free_lbuf(s_tmp);
+   }
    s_buf1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[0], cargs, ncargs);
    s_buf2 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[1], cargs, ncargs);
-   do_set(player, cause, (SET_QUIET|SIDEEFFECT), s_buf1, s_buf2);
+   do_set(player, cause, (SET_QUIET|SIDEEFFECT|i_key), s_buf1, s_buf2);
    free_lbuf(s_buf1);
    free_lbuf(s_buf2);
 }
 
 FUNCTION(fun_rset)
 {
-   char *s_buf1, *s_buf2;
+   char *s_buf1, *s_buf2, *s_tmp;
+   int i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_RSET) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
    }
+   if (!fn_range_check("RSET", nfargs, 2, 3, buff, bufcx))
+      return;
+
    if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
       notify(player, "Permission denied.");
       return;
@@ -27762,12 +27780,20 @@ FUNCTION(fun_rset)
       notify(player, "Permission denied.");
       return;
    }
+   i_key = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+       s_tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                     fargs[2], cargs, ncargs);
+       if ( *s_tmp ) 
+          i_key = (atoi(s_tmp) ? SET_TREE : 0);
+       free_lbuf(s_tmp);
+   }
    s_buf1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[0], cargs, ncargs);
    s_buf2 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[1], cargs, ncargs);
    mudstate.lbuf_buffer = alloc_lbuf("lbuf_rset");
-   do_set(player, cause, (SET_QUIET|SIDEEFFECT|SET_RSET), s_buf1, s_buf2);
+   do_set(player, cause, (SET_QUIET|SIDEEFFECT|SET_RSET|i_key), s_buf1, s_buf2);
    safe_str(mudstate.lbuf_buffer, buff, bufcx);
    free_lbuf(mudstate.lbuf_buffer);
    mudstate.lbuf_buffer = NULL;
@@ -30070,7 +30096,7 @@ FUN flist[] =
     {"ROTR", fun_rotr, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ROUND", fun_round, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"RSET", fun_rset, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"RSET", fun_rset, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #endif
 #ifdef REALITY_LEVELS
 #ifdef USE_SIDEEFFECT
@@ -30089,7 +30115,7 @@ FUN flist[] =
     {"SECUREX", fun_secure, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SEES", fun_sees, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"SET", fun_set, 2, FN_NO_EVAL, CA_PUBLIC, 0},
+    {"SET", fun_set, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, 0},
 #endif
     {"SETDIFF", fun_setdiff, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SETINTER", fun_setinter, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

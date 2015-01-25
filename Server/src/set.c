@@ -24,6 +24,7 @@ extern void depower_set(dbref, dbref, char *, int);
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int));
 extern int count_chars(const char *, const char c);
+static void set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
 
 dbref match_controlled(dbref player, const char *name)
 {
@@ -673,94 +674,239 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
  * do_set: Set flags or attributes on objects, or flags on attributes.
  */
 
+int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
+{
+   char *s_name, *s_ptr, *s_ptr2, *s_tmp, *s_string;
+   int atr, val, i_attrcnts, aflags, i_cntr;
+   dbref aowner;
+   ATTR *a_name;
+
+   s_tmp = NULL;
+   i_cntr = val = i_attrcnts = 0;
+
+   if ( strchr(attr_name, '`') == NULL )
+      return 1;
+
+   s_ptr2 = s_ptr = attr_name;
+   s_ptr2++;
+   while ( s_ptr2 && s_ptr && *s_ptr && *s_ptr2) {
+      if ( (*s_ptr == *s_ptr2) && (*s_ptr == '`') )
+         return 2;
+      s_ptr++;
+      s_ptr2++;
+   }
+
+   i_attrcnts = atrcint(1, thing, 0);
+   if ( ((i_attrcnts + 1) >= mudconf.vlimit) || (i_attrcnts < 0) ) 
+      return 1;
+
+   s_name = alloc_sbuf("set_trees");   
+   memset(s_name, '\0', SBUF_SIZE);
+   sprintf(s_name, "%.*s", SBUF_SIZE - 1, attr_name);
+
+   s_ptr = strchr(s_name, '`');
+   s_ptr2 = s_name;
+   s_string = alloc_lbuf("set_trees2");
+   sprintf(s_string, "%s", (char *) "@@ - Tree Trunk");
+
+   /* Do attribute checking */
+   s_tmp = alloc_lbuf("set_trees_contents");
+   while ( s_ptr ) {
+      i_cntr++;
+      *s_ptr = '\0';
+      atr = mkattr(s_name);
+      *s_ptr = '`';
+      if ( atr < 0 ) {
+         val = 1;
+         break;
+      }
+      a_name = atr_num3(atr);
+      if ( a_name ) {
+         set_attr_internal(owner, thing, a_name->number, s_string, SET_TREECHK, owner, &val, 1);   
+         if ( val ) 
+            break;
+         atr_get_str(s_tmp, thing, a_name->number, &aowner, &aflags);
+         if ( *s_tmp ) {
+            i_attrcnts--;
+         }
+         if ( i_attrcnts >= mudconf.vlimit ) {
+            val = 1;
+         }
+      } else {
+         val = 1;
+      }
+      if ( val ) {
+         break;
+      }
+      s_ptr++;
+      s_ptr2 = s_ptr;
+      if ( !s_ptr2 )
+         break;
+      s_ptr = strchr(s_ptr2, '`');
+   }
+   if ( (i_attrcnts + 1 + i_cntr) >= mudconf.vlimit )
+      val=1;
+
+   /* Ok, trees good, let's set them */
+   if ( !val ) {
+      memset(s_name, '\0', SBUF_SIZE);
+      sprintf(s_name, "%.*s", SBUF_SIZE - 1, attr_name);
+      s_ptr = strchr(s_name, '`');
+      s_ptr2 = s_name;
+      while ( s_ptr ) {
+         *s_ptr = '\0';
+         atr = mkattr(s_name);
+         *s_ptr = '`';
+         if ( atr < 0 ) {
+            val = 1;
+            break;
+         }
+         a_name = atr_num3(atr);
+         if ( a_name ) {
+            atr_get_str(s_tmp, thing, a_name->number, &aowner, &aflags);
+            if ( !*s_tmp ) {
+               set_attr_internal(owner, thing, a_name->number, s_string, SET_QUIET, owner, &val, 1);   
+            }
+         }
+         s_ptr++;
+         s_ptr2 = s_ptr;
+         if ( !s_ptr2 )
+            break;
+         s_ptr = strchr(s_ptr2, '`');
+      }
+   }
+   free_lbuf(s_tmp);
+   free_lbuf(s_string);
+   free_sbuf(s_name);
+   return val;
+}
+
 static void set_attr_internal (dbref player, dbref thing, int attrnum, 
-			char *attrtext, int key, dbref cause)
+			char *attrtext, int key, dbref cause, int *val, int i_chk)
 {
 dbref	aowner, aowner2;
 int	aflags, could_hear, aflags2;
 char    *buff2, *buff2ret, *tpr_buff, *tprp_buff;
 ATTR	*attr;
 
-	attr = atr_num2(attrnum);
-	if ( !attr || ((attr->flags) & AF_IS_LOCK) ) {
-	  notify_quiet(player,"Permission denied.");
-	  return;
-	}
-	atr_pget_info(thing, attrnum, &aowner, &aflags);
-	if (attr && Set_attr(player, thing, attr, aflags)) { 
-		if ((attr->check != NULL) &&
-		    (!(*attr->check)(0, player, thing, attrnum, attrtext)))
-			return;
-                if ( Good_obj(mudconf.global_attrdefault) &&
-                     !Recover(mudconf.global_attrdefault) &&
-                     !Going(mudconf.global_attrdefault) &&
-                     ((attr->flags & AF_ATRLOCK) || (aflags & AF_ATRLOCK)) &&
-                     (thing != mudconf.global_attrdefault) ) {
-                   buff2 = alloc_lbuf("global_attr_chk");
-                   atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
-                   if ( *buff2 ) {
-                      buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1);
-                      if ( atoi(buff2ret) == 0 ) {
-                         free_lbuf(buff2);
-                         free_lbuf(buff2ret);
-                         notify_quiet(player, "Permission denied: String does not match unique attribute lock.");
-                         return;
-                      }
-                      free_lbuf(buff2ret);
-                   }
-                   free_lbuf(buff2);
-                } 
-		if (((attr->flags) & AF_NOANSI) && index(attrtext,ESC_CHAR)) {
-                  if ( !((attrnum == 220) && Good_obj(thing) && (thing != NOTHING) && ExtAnsi(thing)) ) {
-		     notify_quiet(player,"Ansi codes not allowed on this attribute.");
-		     return;
-                  }
-		}
-		if (((attr->flags) & AF_NORETURN) && (index(attrtext,'\n') || index(attrtext, '\r'))) {
-		  notify_quiet(player,"Return codes not allowed on this attribute.");
-		  return;
-                }
-		could_hear = Hearer(thing);
-		mudstate.vlplay = player;
-                if ( attrnum == A_QUEUEMAX ) 
-		   atr_add(thing, attrnum, attrtext, thing, aflags);
-                else
-		   atr_add(thing, attrnum, attrtext, Owner(player), aflags);
-                if ( (attr->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
-                    STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
-                    log_name_and_loc(player);
-                    buff2ret = alloc_lbuf("log_attribute");
-                    if ( *attrtext )
-                       sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                                          cause, attr->name, thing, attrtext);
-                    else
-                       sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to an empty string",
-                                          cause, attr->name, thing);
-                    log_text(buff2ret);
-                    free_lbuf(buff2ret);
-                    ENDLOG
-                }
+   if ( i_chk )
+      attr = atr_num4(attrnum);
+   else
+      attr = atr_num2(attrnum);
+   if ( !attr || ((attr->flags) & AF_IS_LOCK) ) {
+      if ( !(key & SET_TREECHK) )
+         notify_quiet(player,"Permission denied.");
+      *val = 1;
+      return;
+   }
 
-		handle_ears(thing, could_hear, Hearer(thing));
-		if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
-		    if (mudstate.vlplay != NOTHING) {
-		      if ( (key & SET_NOISY) || TogNoisy(player) ) {
-                        tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
-                        if ( *attrtext )
-			   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s.",Name(thing),attr->name));
-                        else
-			   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared).",Name(thing),attr->name));
-                        free_lbuf(tpr_buff);
-		      } else
-			notify_quiet(player, "Set.");
-		    }
-		    else
-			notify_quiet(player, "Permission denied.");
-		}
-	} else {
-		notify_quiet(player, "Permission denied.");
-	}
+   atr_pget_info(thing, attrnum, &aowner, &aflags);
+   if (attr && Set_attr(player, thing, attr, aflags)) { 
+      if ( (attr->check != NULL) &&
+           (!(*attr->check)(0, player, thing, attrnum, attrtext))) {
+         *val = 1;
+         return;
+      }
+      if ( Good_obj(mudconf.global_attrdefault) &&
+           !Recover(mudconf.global_attrdefault) &&
+           !Going(mudconf.global_attrdefault) &&
+           ((attr->flags & AF_ATRLOCK) || (aflags & AF_ATRLOCK)) &&
+           (thing != mudconf.global_attrdefault) ) {
+         buff2 = alloc_lbuf("global_attr_chk");
+         atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
+         if ( *buff2 ) {
+            buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1);
+            if ( atoi(buff2ret) == 0 ) {
+               free_lbuf(buff2);
+               free_lbuf(buff2ret);
+               if ( !(key & SET_TREECHK) )
+                  notify_quiet(player, "Permission denied: String does not match unique attribute lock.");
+               *val = 1;
+               return;
+            }
+            free_lbuf(buff2ret);
+         }
+         free_lbuf(buff2);
+      } 
+      if (((attr->flags) & AF_NOANSI) && index(attrtext,ESC_CHAR)) {
+         if ( !((attrnum == 220) && Good_obj(thing) && (thing != NOTHING) && ExtAnsi(thing)) ) {
+            if ( !(key & SET_TREECHK) )
+               notify_quiet(player,"Ansi codes not allowed on this attribute.");
+            *val = 1;
+            return;
+         }
+      }
+      if (((attr->flags) & AF_NORETURN) && (index(attrtext,'\n') || index(attrtext, '\r'))) {
+         if ( !(key & SET_TREECHK) )
+            notify_quiet(player,"Return codes not allowed on this attribute.");
+         *val = 1;
+         return;
+      }
+      *val = 0;
+      if ( key & SET_TREECHK ) {
+         return;
+      }
+      could_hear = Hearer(thing);
+      mudstate.vlplay = player;
+
+      if ( key & SET_TREE ) {
+         *val = set_trees(thing, (char *)attr->name, Owner(player), aflags);
+         if ( *val != 0 ) {
+            if ( !Quiet(player) && !Quiet(thing) ) {
+               buff2ret = alloc_lbuf("error_msg_set_internal");
+               if ( *val == 2 )
+                  sprintf(buff2ret, "Empty/Null branches defined in target tree '%s'.", attr->name);
+               else
+                  sprintf(buff2ret, "Unable to set attribute branches for target tree '%s'.", attr->name);
+               notify_quiet(player, buff2ret);
+               free_lbuf(buff2ret);
+            }
+            return;
+         }
+      }
+      if ( attrnum == A_QUEUEMAX ) 
+         atr_add(thing, attrnum, attrtext, thing, aflags);
+      else
+         atr_add(thing, attrnum, attrtext, Owner(player), aflags);
+
+      if ( (attr->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
+         STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
+            log_name_and_loc(player);
+            buff2ret = alloc_lbuf("log_attribute");
+            if ( *attrtext )
+               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
+                       cause, attr->name, thing, attrtext);
+            else
+               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to an empty string",
+                       cause, attr->name, thing);
+            log_text(buff2ret);
+            free_lbuf(buff2ret);
+         ENDLOG
+      }
+
+      handle_ears(thing, could_hear, Hearer(thing));
+      if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+         if (mudstate.vlplay != NOTHING) {
+            if ( (key & SET_NOISY) || TogNoisy(player) ) {
+               tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
+               if ( *attrtext )
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s.",Name(thing),attr->name));
+               else
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared).",Name(thing),attr->name));
+               free_lbuf(tpr_buff);
+            } else
+               notify_quiet(player, "Set.");
+         } else {
+            notify_quiet(player, "Permission denied.");
+            *val = 1;
+         }
+      }
+   } else {
+      if ( !(key & SET_TREECHK ) )
+         notify_quiet(player, "Permission denied.");
+      *val = 1;
+   }
 }
 
 void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
@@ -928,14 +1074,14 @@ void do_set(dbref player, dbref cause, int key, char *name, char *flag)
 {
 dbref	thing, thing2, aowner;
 char	*p, *buff, *tpr_buff, *tprp_buff;
-int	atr, atr2, aflags, clear, flagvalue, could_hear, i_flagchk;
+int	atr, atr2, aflags, clear, flagvalue, could_hear, i_flagchk, val;
 ATTR	*attr, *attr2;
 int     ibf = -1;
 
 	/* See if we have the <obj>/<attr> form, which is how you set attribute
 	 * flags.
 	 */
-        i_flagchk = 0;
+        i_flagchk = val = 0;
 	if (parse_attrib (player, name, &thing, &atr)) {
 		if (atr != NOTHING) {
 
@@ -1095,7 +1241,7 @@ int     ibf = -1;
 
 		/* Go set it */
 
-		set_attr_internal(player, thing, atr, p, key, cause);
+		set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
                 if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
                    strcpy(mudstate.lbuf_buffer, p);
 		free_lbuf(buff);
@@ -1119,14 +1265,16 @@ void do_setattr(dbref player, dbref cause, int attrnum, int key,
 		char *name, char *attrtext)
 {
 dbref	thing;
+int	val;
 
 	init_match(player, name, NOTYPE);
 	match_everything(MAT_EXIT_PARENTS);
 	thing = noisy_match_result();
 
+        val = 0;
 	if (thing == NOTHING)
 		return;
-	set_attr_internal(player, thing, attrnum, attrtext, key, cause);
+	set_attr_internal(player, thing, attrnum, attrtext, key, cause, &val, 0);
 }
 
 void do_mvattr (dbref player, dbref cause, int key, char *what, 
@@ -2156,9 +2304,14 @@ int	ibf = -1;
 void do_setvattr(dbref player, dbref cause, int key, char *arg1, char *arg2)
 {
 char	*s;
-int	anum;
+int	anum, i_tree;
 
 	arg1++;					/* skip the '&' */
+        i_tree = 0;
+        if ( *arg1 == '`' ) {
+           i_tree = SET_TREE;
+           arg1++;
+        }
 	for (s=arg1; *s&&!isspace((int)*s); s++) ;	/* take to the space */
 	if (*s) *s++='\0';			/* split it */
 
@@ -2172,7 +2325,7 @@ int	anum;
 			"That's not a good name for an attribute.");
 		return;
 	}
-	do_setattr(player, cause, anum, key, s, arg2);
+	do_setattr(player, cause, anum, (key | i_tree), s, arg2);
 }
 
 
