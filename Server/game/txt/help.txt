@@ -8114,6 +8114,7 @@
              @decompile the specified branch level itself.  If you want the
              tree and all branches, specify @decomile without the /tree switch.
            > Example: @decompile/tree MyObj/A`TREE*
+  
     lattr -- lattr() as well as lattrp() has a key option that lets you specify
              if it should only give you trees per wildcarding.  This works like
              ex and @dec.
@@ -8131,12 +8132,16 @@
              to the branch, you won't have permission to the entire tree.
              All it takes is one branch of the tree to block the entire thing.
            > Example: @lock MyObj/A`TREE=me
+  
     @aflag-- The @aflags wiz command allows you to set up attribute prefixes
              globally, individually, per owner, per object, or per enactor.
              Trees would check for these locks as well.
+           > Example: See: wizhelp @aflags
+   
     VLIMIT-- If you hit the maximum number of attributes or will hit the
              maximum number by setting all the trunks before the attribute,
              it will not set the attribute.
+           > Example: See: wizhelp @admin, wizhelp vlimit
   
   See Also: @set, &, set(), rset(), lattr()
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
@@ -27207,6 +27212,7 @@ Changes
 * tr() is now ANSI-aware, and optionally allows previous behavior [ASH]
 * editansi() enhanced to allow negation of special ansi encoding [ASH]
 * sqlite now recognizes foreign keys [ASH]
+* @set, &, set(), and setr() are now PennMUSH style TREE aware optionally [ASH]
   
 Bug Fixes
 ---------
