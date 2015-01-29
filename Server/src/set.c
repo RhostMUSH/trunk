@@ -2099,20 +2099,25 @@ void do_include(dbref player, dbref cause, int key, char *string,
    mudstate.includenest++;
    buff1ptr = buff1 = atr_pget(thing, attrib, &owner, &flags);
    if ( key & INCLUDE_COMMAND ) {
-      if ( ((*buff1 == '$') || (*buff1 == '^')) && (strchr(buff1, ':') != NULL) ) {
+      if ( *buff1 && (((*buff1 == '$') || (*buff1 == '^')) && (strchr(buff1, ':') != NULL)) ) {
          buff1ptr = strchr(buff1, ':') + 1;
       }
    }
-
+   if ( !*buff1 || !*buff1ptr ) {
+      free_lbuf(buff1);
+      return;
+   }
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
       if ( (i < ncargs) && cargs[i] && *cargs[i] )
-         memcpy(s_buff[i], cargs[i], LBUF_SIZE - 1);
+      /* strncpy(s_buff[i], cargs[i], LBUF_SIZE - 1); */
+         sprintf(s_buff[i], "%s", cargs[i]);
       if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
          if ( !argv[i] || !*argv[i] ) {
             memset(s_buff[i], '\0', LBUF_SIZE);
          } else {
-            memcpy(s_buff[i], argv[i], LBUF_SIZE);
+         /* strncpy(s_buff[i], argv[i], LBUF_SIZE); */
+            sprintf(s_buff[i], "%s", argv[i]);      
          }
       }
    }
