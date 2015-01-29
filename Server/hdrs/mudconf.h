@@ -597,6 +597,7 @@ struct statedata {
 	char	ng_doing_hdr[81];
 	char	guild_hdr[12];
         char    last_command[LBUF_SIZE]; /* Easy buffer of last command */
+        dbref	last_player;	/* Last player to issue command */
 	SITE	*access_list;	/* Access states for sites */
 	SITE	*suspect_list;	/* Sites that are suspect */
 	SITE	*special_list;	/* Sites that have special requirements */

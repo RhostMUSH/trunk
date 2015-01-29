@@ -27213,6 +27213,7 @@ Changes
 * editansi() enhanced to allow negation of special ansi encoding [ASH]
 * sqlite now recognizes foreign keys [ASH]
 * @set, &, set(), and setr() are now PennMUSH style TREE aware optionally [ASH]
+* Enabled signal catch debugging information [ASH]
   
 Bug Fixes
 ---------

@@ -1737,7 +1737,8 @@ process_output(DESC * d)
                 if ( !retry_success ) {
                    if ( errno == 11 ) {
                    /* It's a timeout, let's wait for a few milliseconds and try again */
-                      usleep(10);
+/*                    usleep(10); */
+                      nanosleep((struct timespec[]){{0, 100000000}}, NULL);
 	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
                    }
                    if ( cnt < 0 ) {
@@ -1935,6 +1936,9 @@ NDECL(set_signals)
     signal(SIGINT, sighandler);
     signal(SIGQUIT, sighandler);
     signal(SIGTERM, sighandler);
+    signal(SIGILL, sighandler);
+    signal(SIGFPE, sighandler);
+    signal(SIGSEGV, sighandler);
     signal(SIGPIPE, SIG_IGN);
     signal(SIGPROF, SIG_IGN);
 #ifdef SIGXCPU
@@ -1942,10 +1946,10 @@ NDECL(set_signals)
 #endif
 
     if (mudconf.sig_action != SA_DFLT) {
-	signal(SIGILL, sighandler);
+/*	signal(SIGILL, sighandler); */
 	signal(SIGTRAP, sighandler);
-	signal(SIGFPE, sighandler);
-	signal(SIGSEGV, sighandler);
+/*	signal(SIGFPE, sighandler); */
+/*	signal(SIGSEGV, sighandler); */
 	signal(SIGABRT, sighandler);
 #ifdef SIGFSZ
 	signal(SIGXFSZ, sighandler);
@@ -2261,7 +2265,6 @@ sighandler(int sig)
 	mudstate.dump_counter = 0;
 	break;
     case SIGINT:		/* Log + ignore */
-    case SIGFPE:
 #ifdef SIGSYS
     case SIGSYS:
 #endif
@@ -2337,9 +2340,16 @@ sighandler(int sig)
 	sprintf(buff, "Caught signal %s - shutting down.", signames[sig]);
 	do_shutdown(NOTHING, NOTHING, 0, buff);
 	break;
+    case SIGSEGV:               /* SEGV/BUS, we have no idea on the state engine - just drop hard */
     case SIGILL:		/* Panic save + coredump */
+    case SIGFPE:
+	sprintf(buff, "Caught signal %s - ouch.  Last command: (By: #%d) %.*s", 
+                signames[sig], mudstate.last_player, (LBUF_SIZE - 50), mudstate.last_command);
+        STARTLOG(LOG_PROBLEMS, "SIG", "ERR")
+           log_text(buff);
+        ENDLOG
+        break;
     case SIGTRAP:
-    case SIGSEGV:
 #ifdef SIGXFSZ
     case SIGXFSZ:
 #endif
@@ -2355,7 +2365,7 @@ sighandler(int sig)
 	check_panicking(sig);
 	log_signal(signames[sig], sig);
 	report();
-	sprintf(buff, "Caught signal %s - shutting down.", signames[sig]);
+	sprintf(buff, "Caught signal %s - shutting down.  Last command: %.*s", signames[sig], (LBUF_SIZE - 50), mudstate.last_command);
 	do_shutdown(NOTHING, NOTHING, SHUTDN_PANIC, buff);
 
 	/* Either resignal, or clear signal handling and retry the
@@ -2378,6 +2388,11 @@ sighandler(int sig)
 	exit(1);
 
     case SIGABRT:		/* Coredump. */
+	sprintf(buff, "Caught signal %s - crashing hard.  Last command: (By: #%d) %.*s", 
+                signames[sig], mudstate.last_player, (LBUF_SIZE - 50), mudstate.last_command);
+        STARTLOG(LOG_PROBLEMS, "SIG", "SEGV")
+           log_text(buff);
+        ENDLOG
 	check_panicking(sig);
 	log_signal(signames[sig], sig);
 	report();
