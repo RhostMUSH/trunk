@@ -1936,9 +1936,11 @@ NDECL(set_signals)
     signal(SIGINT, sighandler);
     signal(SIGQUIT, sighandler);
     signal(SIGTERM, sighandler);
+/*
     signal(SIGILL, sighandler);
     signal(SIGFPE, sighandler);
     signal(SIGSEGV, sighandler);
+*/
     signal(SIGPIPE, SIG_IGN);
     signal(SIGPROF, SIG_IGN);
 #ifdef SIGXCPU
