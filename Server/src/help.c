@@ -365,6 +365,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          return(1);
       }
       line = alloc_lbuf("help_write");
+      memset(line, '\0', LBUF_SIZE);
       while ( fread((char *)&entry, sizeof(help_indx), 1, fp_indx) == 1 ) { 
          for (p = entry.topic; *p; p++)
              *p = ToLower((int)*p);
