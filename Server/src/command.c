@@ -2614,6 +2614,9 @@ process_command(dbref player, dbref cause, int interactive,
     cache_reset(0);
     memset(lst_cmd, 0, sizeof(lst_cmd));
     memset(mudstate.last_command, 0, sizeof(mudstate.last_command));
+#ifndef NODEBUGMONITOR
+    memset(debugmem->last_command, 0, sizeof(debugmem->last_command));
+#endif
     *(check2 + 1) = '\0';
 
     /* Robustify player */
@@ -2926,6 +2929,10 @@ process_command(dbref player, dbref cause, int interactive,
 	command++;
     strncpy(lst_cmd, command, LBUF_SIZE - 1);
     strncpy(mudstate.last_command, command, LBUF_SIZE - 1);
+#ifndef NODEBUGMONITOR
+    strncpy(debugmem->last_command, command, LBUF_SIZE - 1);
+    debugmem->last_player = player;
+#endif
     mudstate.debug_cmd = command;
     mudstate.curr_cmd  = lst_cmd;
 
@@ -7630,6 +7637,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
         break;
 #endif /* REALITY_LEVELS */
     case LIST_STACKS:
+#ifndef NODEBUGMONITOR
         notify(player, unsafe_tprintf("Debug stack depth = %d [highest %d/%d]", debugmem->stacktop, debugmem->stackval, STACKMAX));
         tprp_buff = tpr_buff = alloc_lbuf("do_list");
         for( i = 0; i < debugmem->stacktop; i++ ) {
@@ -7640,6 +7648,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
         }
         free_lbuf(tpr_buff);
         notify(player, unsafe_tprintf("Last db fetch was for #%d", debugmem->lastdbfetch));
+#else
+        notify(player, "Debug stack is currently disabled.");
+#endif
         break;
     case LIST_LOGCOMMANDS:
         list_logcommands(player);

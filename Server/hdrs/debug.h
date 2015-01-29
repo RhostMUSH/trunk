@@ -13,6 +13,8 @@ struct Debugmem {
   int lastdbfetch;
   int stacktop;
   int stackval;
+  char last_command[70000];
+  int last_player;
   struct {
     int filenum;
     int linenum;
@@ -23,7 +25,7 @@ extern Debugmem *debugmem;
 
 Debugmem * shmConnect(int debug_id, int create, int *pShmid);
 
-#define INITDEBUG(x) { x->lastdbfetch = -1; x->stacktop = 0; x->stackval = 0; }
+#define INITDEBUG(x) { x->lastdbfetch = -1; x->stacktop = 0; x->stackval = 0; memset(x->last_command, '\0', 70000); }
 
 #ifndef NODEBUGMONITOR
 #define DPUSH   {if(debugmem && debugmem->stacktop < STACKMAX) { \
