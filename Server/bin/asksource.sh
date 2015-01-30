@@ -421,11 +421,11 @@ info() {
          echo "flags, are essentially 'markers' that you can rename at leasure."
          echo "If you have a desire for marker flags, enable this option."
          ;;
-     15) echo "Bang support.  Very cool stuff.  It allows you to use ! for false"
-         echo "and !! for true.  An example would be [!match(this,that)].  It"
-         echo "also allows $! for 'not a string' and $!! for 'is a string'."
-         echo "Such an example would be [$!get(me/blah)].  If you like this"
-         echo "feature, enable this option.  You want it.  Really."
+     15) echo 'Bang support.  Very cool stuff.  It allows you to use ! for false'
+         echo 'and !! for true.  An example would be [!match(this,that)].  It'
+         echo 'also allows $! for "not a string" and $!! for "is a string".'
+         echo 'Such an example would be [$!get(me/blah)].  If you like this'
+         echo 'feature, enable this option.  You want it.  Really.'
          ;;
      16) echo "This is an alternate WHO listing.  It's a tad longer for the"
          echo "display and will switch ports to Total Cmds on the WHO listings."
