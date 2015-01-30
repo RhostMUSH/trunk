@@ -4,6 +4,8 @@
 # Search for the text 'CONFIGURATION SECTION' and make any changes needed
 # there.
 
+include make.defs
+
 SHELL=/bin/sh
 srcdir = .
 bindir = ../bin
@@ -17,13 +19,12 @@ else
 endif
 # CPP = gcc -E	# This is broken in autoconf.  Sigh.
 CPP = $(CC) -E
-# Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.
-# If using CYGWIN, comment out the whole line.
-LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm 
-#LIBS = -L./qdbm/ -lqdbm
+
+# LIBS is now written to make.defs by asksource.sh
+
 LIBOBJS = 
-# for compiling on lowmem systems use this
-#CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192
+
+# CFLAGS (used only to enable low-mem compile) is now written to make.defs by asksource.sh
 
 # If you wish to debug the code, run under this
 OPTIM = -g
@@ -47,18 +48,10 @@ UDB_INC	= udb.h udb_defs.h
 COM_SRC	=
 COM_OBJ	=
 
-# Door Configurations
-#DRMUSHSRC = door_mush.c
-#DRMUSHOBJ = door_mush.o
-#DREMPIRESRC = empire.c
-#DREMPIREOBJ = empire.o
-#DREMPIREHDR = empire.h
-#DRMAILSRC = door_mail.c
-#DRMAILOBJ = door_mail.o
+# Door Configurations -- "Options" now written to make.defs by asksource.sh
 DR_SRC = $(DRMUSHSRC) $(DREMPIRESRC) $(DRMAILSRC)
 DR_OBJ = $(DRMUSHOBJ) $(DREMPIREOBJ) $(DRMAILOBJ)
 DR_HDR = $(DREMPIREHDR)
-#DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE
 
 # Everything needed to use the database in standalone mode.
 SA_SRC	= sa-db.c sa-db_rw.c sa-boolexp.c sa-unparse.c sa-compress.c \
@@ -156,7 +149,6 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # SYS_MALLOC - Used if malloc.h is in a borked spot.
 ###########################################################################################################
 
-DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL 
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).
@@ -212,7 +204,8 @@ DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -D
 #
 #CYGWIN = -I/usr/local/include -DCYGWIN -DBROKEN_ERRNO_SYS -DBROKEN_NDBM\
 #         -DSYSWAIT -DNODEBUGMONITOR -g 
- 
+
+# IMPORTANT: MORELIBS is now written to make.defs by asksource.sh
 # Libraries.  
 # The following extra libraries are required based on what system you have.
 # #1 - This is used for most libc5 distributions.  This includes Slackware 7.0
@@ -241,8 +234,6 @@ DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DSQLITE -DSBUF64 -DSECURE_SIDEEFFECT -D
 #MORELIBS  = -lresolv -lsocket -lnsl -lm -lrt
 ################################################################  #5
 #MORELIBS  = -lm -lrt -L/usr/local/lib -lcygipc
-
-MORELIBS = -lm -lrt -lnsl -lresolv -lcrypt -lssl
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
