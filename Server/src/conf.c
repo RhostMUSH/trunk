@@ -612,7 +612,9 @@ NDECL(cf_init)
     mudconf.sqlite_query_limit = 5;
     strcpy( mudconf.sqlite_db_path, "sqlite" );
 #endif /* SQLITE */
-
+#ifdef RHOST_CURL
+    mudconf.curl_request_limit = 5;
+#endif /* RHOST_CURL */
     /* maximum logs allowed per command */
     mudconf.log_maximum = 1;
     mudconf.cluster_cap = 10;	/* Cap of cluster wait in seconds for action */
@@ -4586,6 +4588,12 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.round_kludge, 0, 0, CA_PUBLIC,
      (char *) "Kludgy fix for rounding even numbers.\r\n"\
               "                             Default: 0   Value: %d"}, /* [Loki] */
+#ifdef RHOST_CURL
+    {(char *) "curl_request_limit",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.curl_request_limit, 0, 0, CA_WIZARD,
+     (char *) "Maximum time in seconds that a libcurl request may run.\r\n"\
+              "                             Default: 5   Value: %d"},
+#endif /*RHOST_CURL*/
 #ifdef SQLITE
     {(char *) "sqlite_query_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.sqlite_query_limit, 0, 0, CA_WIZARD,

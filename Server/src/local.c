@@ -26,11 +26,17 @@
 #ifdef SQLITE
        extern void local_sqlite_init(void);
 #endif /* SQLITE */
+#ifdef RHOST_CURL
+       extern void local_curl_init(void);
+#endif /* RHOST_CURL */
 
 void local_startup(void) {
 #ifdef SQLITE
    local_sqlite_init();
 #endif /* SQLITE */
+#ifdef RHOST_CURL
+   local_curl_init();
+#endif /* RHOST_CURL */
    load_regexp_functions();
 }
 
