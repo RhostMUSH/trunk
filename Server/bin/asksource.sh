@@ -1468,54 +1468,67 @@ setlibs() {
 # UPDATEMAKEFILE - Update the makefile with the changes
 ###################################################################
 updatemakefile() {
+   makedefs_path=""
+   for p in src/ ../src ../../src; do
+      if [ -d $p -a -e $p/Makefile ]; then
+         makedefs_path=$p/make.defs
+         compiledefs_path=$p/do_compile.defs
+         break
+      fi
+   done
+   if [ "z$makedefs_path" = "z" ]
+   then
+      echo '$0: error: could not locate Makefile, cannot determine where to generate make.defs' >&2
+      exit 1
+   fi
    echo 'Updating the DEFS section of the Makefile now.  Please wait...'
-   echo "DEFS = ${DEFS}" > ../src/make.defs
+   echo "DEFS = ${DEFS}" > $makedefs_path
 
-   echo '# Begin Door Configurations' >> ../src/make.defs
+   echo '# Begin Door Configurations' >> $makedefs_path
    if [ "${XB[2]}" = 'X' ]
    then
-      echo 'DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE' >> ../src/make.defs
+      echo 'DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE' >> $makedefs_path
       if [ "${XD[1]}" = "X" ]
       then
-         echo 'DRMUSHSRC = door_mush.c' >> ../src/make.defs
-         echo 'DRMUSHOBJ = door_mush.o' >> ../src/make.defs
+         echo 'DRMUSHSRC = door_mush.c' >> $makedefs_path
+         echo 'DRMUSHOBJ = door_mush.o' >> $makedefs_path
       fi
       if [ "${XD[2]}" = "X" ]
       then
-         echo 'DREMPIRESRC = empire.c' >> ../src/make.defs
-         echo 'DREMPIREOBJ = empire.o' >> ../src/make.defs
-         echo 'DREMPIREHDR = empire.h' >> ../src/make.defs
+         echo 'DREMPIRESRC = empire.c' >> $makedefs_path
+         echo 'DREMPIREOBJ = empire.o' >> $makedefs_path
+         echo 'DREMPIREHDR = empire.h' >> $makedefs_path
       fi
       if [ "${XD[3]}" = "X" ]
       then
-         echo 'DRMAILSRC = door_mail.c' >> ../src/make.defs
-         echo 'DRMAILOBJ = door_mail.o' >> ../src/make.defs
+         echo 'DRMAILSRC = door_mail.c' >> $makedefs_path
+         echo 'DRMAILOBJ = door_mail.o' >> $makedefs_path
       fi
    fi
-   echo '# End Door Configurations' >> ../src/make.defs
+   echo '# End Door Configurations' >> $makedefs_path
 
    if [ "${XB[5]}" = "X" ]
    then
       echo "Compiling to QDBM database."
-      echo '# Use QDBM. See also do_compile.defs' >> ../src/make.defs
-      echo 'LIBS = -L./qdbm/ -lqdbm' >> ../src/make.defs
-      echo 'COMP=qdbm' > ../src/do_compile.defs
+      echo '# Use QDBM. See also do_compile.defs' >> $makedefs_path
+      echo 'LIBS = -L./qdbm/ -lqdbm' >> $makedefs_path
+      echo 'COMP=qdbm' > $compiledefs_path
    else
       echo "Compiling to GDBM database (default)."
-      echo '# Use (default) GDBM. See also do_compile.defs' >> ../src/make.defs
-      echo 'LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm' >> ../src/make.defs
-      echo 'COMP=gdbm' > ../src/do_compile.defs
+      echo '# Use (default) GDBM. See also do_compile.defs' >> $makedefs_path
+      echo 'LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm' >> $makedefs_path
+      echo 'COMP=gdbm' > $compiledefs_path
    fi
    # add CFLAGS for low memory
    if [ "${X[23]}" = "X" ]
    then
       echo "Adding CFLAG option for low memory compile..."
-      echo '# Low-memory compile' >> ../src/make.defs
-      echo 'CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192' >> ../src/make.defs
+      echo '# Low-memory compile' >> $makedefs_path
+      echo 'CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192' >> $makedefs_path
    fi
    echo "...completed."
    echo "Updating the MORELIBS section of the Makefile now.  Please wait..."
-   echo "MORELIBS = ${MORELIBS}" >> ../src/make.defs
+   echo "MORELIBS = ${MORELIBS}" >> $makedefs_path
    echo "...completed."
 }
 
