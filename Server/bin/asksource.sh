@@ -52,7 +52,7 @@ DATE="$(date +"%m%d%y")"
 MORELIBS="-lrt"
 OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25"
 C_OPTIONS=$(echo $OPTIONS|wc -w)
-BOPTIONS="1 2 3 4 5 6"
+BOPTIONS="1 2 3 4 5 6 7"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
 DOPTIONS="1 2 3"
 C_DOPTIONS=$(echo $DOPTIONS|wc -w)
@@ -122,6 +122,7 @@ DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
 DEFB[4]="-DSQLITE"
 DEFB[5]="-DQDBM"
+DEFB[7]="-DCURL"
 
 DEFD[1]="-DMUSH_DOORS"
 DEFD[2]="-DEMPIRE_DOORS"
@@ -211,6 +212,7 @@ echo "[${X[25]}] 25. Pcre System Libs"
 echo "--------------------------- Beta/Unsupported Additions -----------------------"
 echo "[${XB[1]}] B1. 3rd Party MySQL    [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
+echo "[${XB[7]}] B7. libcurl Support"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
@@ -384,9 +386,15 @@ info() {
             echo "if you wish to use them."
          fi
          ;;
-      7) echo "RhostMUSH allows you to use a plushelp.txt file for +help.  This"
-         echo "supports MUX/TinyMUSH3 in how +help is hardcoded to a text file."
-         echo "Enable this if you wish to have a plushelp.txt file be used."
+      7) if [ $RUNBETA -eq 1 ]
+         then
+            echo "Enable libcurl support, to allow the use of http_get, http_post,"
+            echo "and http_request from within RhostMUSH"
+         else
+            echo "RhostMUSH allows you to use a plushelp.txt file for +help.  This"
+            echo "supports MUX/TinyMUSH3 in how +help is hardcoded to a text file."
+            echo "Enable this if you wish to have a plushelp.txt file be used."
+         fi
          ;;
       8) echo "RhostMUSH, by default, allows multiple arguments to be passed"
          echo "to @program.  This, unfortunately, is not how MUX does it, so"
@@ -1262,6 +1270,14 @@ setdefaults() {
         MORELIBS="-lsqlite3 ${MORELIBS}"
      fi
   fi
+
+  # Add definitions for libcurl
+  if [ "${XB[7]}" = "X" ]
+  then
+    echo "Patching curl libs with curl-config..."
+    MORELIBS="$(curl-config --libs) ${MORELIBS}"
+  fi
+
   BOB1=$(uname -r|cut -f1 -d".")
   BOB2=$(uname -s)
   if [ -d /usr/ucbinclude -a "${BOB2}" = "SunOS" ]
