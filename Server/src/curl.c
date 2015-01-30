@@ -115,7 +115,9 @@ FUNCTION(local_fun_curl_get)
    tempbuff2[0] = '\0';
    overflow = 0;
    result = curl_easy_perform( curl );
-   if( result != CURLE_OK ) {
+   if( result == CURLE_OK ) {
+      safe_str( tempbuff2, buff, bufcx );
+   } else {
       if( overflow == 1 ) {
          strncpy( tempbuff, tempbuff2, LBUF_SIZE );
       } else {
