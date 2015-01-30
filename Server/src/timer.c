@@ -35,14 +35,17 @@ int alarm_msec(double time)
   time = (time <= 0 ? 0.1 : time );
 struct itimerval it_val;
 double time_rounded;
+
   time_rounded = roundf(time * 10) / 10; // Round to one decimal place
   it_val.it_value.tv_sec = floor(time_rounded); // Second
   it_val.it_value.tv_usec = floor(1000000 * fmod(time_rounded,1.0)); // Decimal
   it_val.it_interval.tv_sec = 0; // both set to '0' so the timer is one-shot
   it_val.it_interval.tv_usec = 0;
-/* Debugging
-  fprintf(stderr, "Timer Triggered");
- */
+
+  // This function will _never_ stop the timer; use alarm_stop() for that.
+  if( it_val.it_value.tv_sec == 0 && it_val.it_value.tv_usec == 0 )
+    return;
+
   mudstate.alarm_triggered = 0;
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }
@@ -93,7 +96,7 @@ double	result;
 	if (mudstate.mstats_counter < result)
 		result = mudstate.mstats_counter;
   	result = result-(mudstate.nowmsec);
-	if (result <= 0)
+	if (result <= 0.0)
 		result = 0.1;
 	return result;
 }

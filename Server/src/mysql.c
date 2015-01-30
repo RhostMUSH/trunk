@@ -166,7 +166,7 @@ FUNCTION(local_fun_sql_escape) {
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      sleep(1);
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
       sql_init(cause);
       retries++;
     }
@@ -261,7 +261,7 @@ static int sql_init(dbref player) {
    * localhost, use the Unix domain socket instead.
    */
   
-  mysql_init(mysql_struct);
+  mysql_struct = mysql_init(mysql_struct);
   
   result = mysql_real_connect(mysql_struct, DB_HOST, DB_USER, DB_PASS, DB_BASE,
  			      3306, DB_SOCKET, 0);
@@ -312,7 +312,7 @@ static int sql_query(dbref player,
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      sleep(1);
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
       sql_init(player);
       retries++;
     }
@@ -361,7 +361,7 @@ static int sql_query(dbref player,
     sql_shutdown(player);
     
     while ((retries < MYSQL_RETRY_TIMES) && (!mysql_struct)) {
-      sleep(1);
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
       sql_init(player);
       retries++;
     }

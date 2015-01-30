@@ -29,6 +29,8 @@ void printdebug( void )
               idx, aDebugFilenameArray[debugmem->callstack[idx].filenum], 
               debugmem->callstack[idx].linenum);
   }
+  fprintf(stderr, "%s: last caller was #%d, last command: %s\n", programname,
+          debugmem->last_player, debugmem->last_command);
 
   fprintf(stderr, "\n%s: last db fetch was for #%d\n", programname,
           debugmem->lastdbfetch);

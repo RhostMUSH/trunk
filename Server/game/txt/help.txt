@@ -91,24 +91,24 @@
   Help available on the following Topics:
  
   ALT INVENTORIES     ALTNAMES          ANSINAMES            ARBITRARY COMMANDS
-  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS   ATTRIBUTE OWNERSHIP  BANG NOTATION    
-  BEING KILLED        BOGUS COMMANDS    BOOLEAN VALUES       CHANGES           
-  CHANNEL             COLORS            COMMAND EVALUATION   CONTROL           
-  COPYRIGHT COSTS     CREDITS           CLUSTERS             DROP-TO  
-  ENACTOR             EXITS             FAILURE              FLAG ALIAS        
-  FLAG LIST           FLAGS             FUNCTION ALIASES     FUNCTION LIST 
-  FUNCTION TYPES      FUNCTIONS         GENDER               GOALS             
-  HERE                HOMES             LINKING              LISTENING         
-  LISTS               LOOPING           MAIL                 ME                
-  MONEY               MOVING            OBJECT TYPES         PARENT OBJECTS   
-  PUPPETS             QUICKREFERENCE    REALITY LEVELS       REGEXPS 
-  REGEXP SYNTAX       REGEXP CLASSES    REGEXP EXAMPLES      ROBBERY
-  ROYALTY             SEARCH CLASSES    SEMAPHORES           SENSES            
-  SETQ_TEMPLATES      SIDEEFFECTS       SINGLETHREADING      SPOOFING          
-  STACK               SUBSTITUTIONS     SUCCESS              SWITCHES          
-  TOGGLES             USEFUL            VARIABLE EXITS       VATOVZ            
-  VERBS               WANDERER          ZATOZZ               ZONES             
-  $-COMMANDS          #LAMBDA
+  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS   ATTRIBUTE OWNERSHIP  ATTRIBUTE TREES
+  BANG NOTATION       BEING KILLED      BOGUS COMMANDS       BOOLEAN VALUES    
+  CHANGES             CHANNEL           COLORS               COMMAND EVALUATION
+  CONTROL             COPYRIGHT         COSTS                CREDITS         
+  CLUSTERS            DROP-TO           ENACTOR              EXITS           
+  FAILURE             FLAG ALIAS        FLAG LIST            FLAGS           
+  FUNCTION ALIASES    FUNCTION LIST     FUNCTION TYPES       FUNCTIONS       
+  GENDER              GOALS             HERE                 HOMES           
+  LINKING             LISTENING         LISTS                LOOPING         
+  MAIL                ME                MONEY                MOVING          
+  OBJECT TYPES        PARENT OBJECTS    PUPPETS              QUICKREFERENCE  
+  REALITY LEVELS      REGEXPS           REGEXP SYNTAX        REGEXP CLASSES  
+  REGEXP EXAMPLES     ROBBERY           ROYALTY              SEARCH CLASSES  
+  SEMAPHORES          SENSES            SETQ_TEMPLATES       SIDEEFFECTS     
+  SINGLETHREADING     SPOOFING          STACK                SUBSTITUTIONS   
+  SUCCESS             SWITCHES          TOGGLES              USEFUL          
+  VARIABLE EXITS      VATOVZ            VERBS                WANDERER        
+  ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
   
   
 & CLUSTERS
@@ -1958,6 +1958,7 @@
 
 & &
   Command: &<attribute> <object>[=<value>]
+           &`<tree-attribute> <object>[=<value>]
   Synonym: @set <object> = <attribute>:[<value>]
    
   Sets the attribute named <attribute> on <object> to <value>.  If
@@ -1972,11 +1973,15 @@
   
   Attributes must start with an alpha character, or in special cases a ~ or _.
   
+  Starting with a '`' will tell it to use the TREE method for setting 
+  attributes which will attempt to set/validate all branches to the tree
+  prior to setting it.
+  
   Example:
     &myattr Object=This is my data on attribute 'myattr'
     Set.
    
-  See Also: @set, @cluster set, VATOVZ, ZATOZZ, >
+  See Also: @set, @cluster set, VATOVZ, ZATOZZ, >, ATTRIBUTE TREES
   
 & @@
   Command: @@ <args>
@@ -4017,6 +4022,7 @@
   The available switches are:
         /QUIET - sets/removes the target without the 'Set.' or 'Cleared.' 
         /NOISY - sets/removes the target with a verbose SET message.
+        /TREE  - sets a TREE (with branches) of a given attribute.
    
   The first form sets (or clears) the indicated flag(s) on <object>, It 
   accepts multiple flags for arguments if so desired. the second form sets 
@@ -4024,7 +4030,7 @@
   attribute if there is no attribute named <attribute>.  The third form 
   copies an attribute from another object, and the fourth form sets 
   (or clears) an attribute flag on the <attr> attribute of <object>.
- 
+   
   When setting attributes on an object, you may also use the command
   '@<attribute> <object> = <value>' if the attribute is a predefined
   attribute.  You may also use the command '&<attribute> <object> = <value>'
@@ -4032,6 +4038,10 @@
   these is equivalent to the second form of the @set command.
   
   Attributes must start with an alpha character, or in special cases a ~ or _.
+  
+  The /tree switch is ignored on anything not regarding setting or clearing
+  attributes.  If any branch in the specified defined tree-attribute is 
+  not allowed to be set, the entire attribute itself will not be set either. 
   
 { 'help @set2' for more }
 & @set2
@@ -4061,7 +4071,8 @@
   Please note, you can not set multiple attributes or flags at once this way.
   Reference: ATTRIBUTE FLAGS
   
-  See Also: @lock, examine, FLAGS, &, @guild, @race, ATTRIBUTE FLAGS
+  See Also: @lock, examine, FLAGS, &, @guild, @race, ATTRIBUTE FLAGS,
+            ATTRIBUTE TREES
   
 & @stats
   Command: @stats[/all] [<player>]
@@ -8037,6 +8048,104 @@
   Depending on the configuration of the rhostmush in question, uselocks may
   be disabled or you may need a wizard to set one up for you.
   
+& ATTRIBUTE TREES
+  Topic: Attribute trees
+  
+  Attribute trees are defined by attributes that contain ` to break up each
+  branch in a tree.  Example:  THIS`IS`A`TREE`ATTRIBUTE
+  
+  @clusters are not tree aware.  This is intentional, and will not be worth
+  the effort to make them so.  Please do not ask for it to happen.
+   
+  RhostMUSH does not, specifically, have attribute trees as you would define
+  them as.  Rhost does, however, allow you to mimic the feature set with
+  some relative ease to allow some compatibility to PennMUSH (and any other
+  codebase that may pick up that option in the future).  It does that by
+  the following ways:
+  
+  Please be aware while /tree will follow permissions on attribute branches,
+  directly @setting it without the /tree will bypass a branch check.  This
+  is, again, intentional, as this is just a method to allow trees in an
+  environment that is not designed around, nor intended to, fully implement
+  PennMUSH style trees.
+  
+  For detailed information on what support RhostMUSH has for trees:
+     ATTRIBUTE TREE SETTING    -- Help on attribute tree setting. 
+     ATTRIBUTE TREE VIEWING    -- Help on attribute tree viewing.
+     ATTRIBUTE TREE PERMISSION -- Help on attribute tree locking/perms.
+  
+  See Also: @set, &, set(), rset(), lattr()
+{ wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
+
+& ATTRIBUTE TREE SETTING
+  
+  The following ways allow you to set trees and follow branching.
+  Please be aware, @clusters ARE NOT TREE AWARE!!!
+  
+  Setting Attributes:
+    @set  -- @set has a /tree switch, that when used with attribute setting,
+             will set the entire branch list included in the attribute.  The
+             /tree switch is ignored for anything not involving setting or
+             clearing attributes.
+           > Example:  @set/tree MyObj=A`TREE`ATTRIB:Boo!
+  
+    &     -- &, when using ` as the first char, will tell & to set the attrib
+             as if it was setting the tree.  
+           > Example:  &`A`TREE`ATTRIB MyObj=Boo!
+  
+    set() -- set() has a third optional argument to tell it it's to set a
+             tree.  The rset() function has this option as well.
+           > Example:  set(MyObj,A`TREE`ATTRIB:Boo!,1)
+  
+  See Also: @set, &, set(), rset(), lattr()
+{ wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
+  
+& ATTRIBUTE TREE VIEWING
+  The following ways allow you to view/examine trees and follow branching.
+  Please be aware, @clusters ARE NOT TREE AWARE!!!
+  
+  Viewing Attributes:
+    ex    -- The examine command has a /tree option that lets you examine just
+             the specified branch level itself.  If you want the tree and all
+             branches, specify ex without the /tree switch.
+           > Example: ex/tree MyObj/A`TREE*
+  
+    @dec  -- The @decompile command has a /tree option that lets you 
+             @decompile the specified branch level itself.  If you want the
+             tree and all branches, specify @decomile without the /tree switch.
+           > Example: @decompile/tree MyObj/A`TREE*
+  
+    lattr -- lattr() as well as lattrp() has a key option that lets you specify
+             if it should only give you trees per wildcarding.  This works like
+             ex and @dec.
+           > Example: lattr(MyObj/A`TREE*,,,,,1)
+  
+  See Also: @set, &, set(), rset(), lattr()
+{ wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
+
+& ATTRIBUTE TREE PERMISSION
+  The following ways allows you to set permissions on various tree branches.
+  Please be aware, @clusters ARE NOT TREE AWARE!!!
+  
+  Locking Attributes:
+    @lock -- Yup.  You can @lock an attribute and if it won't have permission
+             to the branch, you won't have permission to the entire tree.
+             All it takes is one branch of the tree to block the entire thing.
+           > Example: @lock MyObj/A`TREE=me
+  
+    @aflag-- The @aflags wiz command allows you to set up attribute prefixes
+             globally, individually, per owner, per object, or per enactor.
+             Trees would check for these locks as well.
+           > Example: See: wizhelp @aflags
+   
+    VLIMIT-- If you hit the maximum number of attributes or will hit the
+             maximum number by setting all the trunks before the attribute,
+             it will not set the attribute.
+           > Example: See: wizhelp @admin, wizhelp vlimit
+  
+  See Also: @set, &, set(), rset(), lattr()
+{ wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
+
 & BEING KILLED
   Topic: BEING KILLED  
  
@@ -17519,14 +17628,23 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
 & SET()
   Function: set(<object>,<[!]<flag> [[!]<flag> [!]<flag> ...]>)
-            set(<object>,<<attribute>:<value>>)
-            set(<object>,<<attribute>:_<fromobj>/<fromattr>>)
+            set(<object>,<<attribute>:<value>> [,<tree>])
+            set(<object>,<<attribute>:_<fromobj>/<fromattr>> [,<tree>])
             set(<object>/<attr>,[!]<attrflag>)
   
   The set() function is a side-effect for the @set command.  Everything that
   worked with @set will work with set().  It follows the same permissions and
   restrictions of the command.  The SIDEFX flag is required to use set().
   
+  You may specify the optional <tree> of '1' to specifically set a TREE with
+  all branches filled (that do not exist) on the target.  A TREE set will
+  also verify permission on every branch of that tree prior to setting.  
+  Failure to set any of the branches, for any reason, will disallow 
+  setting the attribute as well.
+  
+  The <tree> toggle is ignored on any method of set() that does not 
+  set or clear attributes.
+   
   Type @list options to see if this side-effect is enabled.
   
   Example:
@@ -17535,12 +17653,12 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   > say set(me,safe)
   You say ""
   
-  See Also: rset(), writable(), @set, SIDEEFFECTS
+  See Also: rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
   
 & RSET()
   Function: rset(<object>,<[!]<flag> [[!]<flag> [!]<flag> ...]>)
-            rset(<object>,<<attribute>:<value>>)
-            rset(<object>,<<attribute>:_<fromobj>/<fromattr>>)
+            rset(<object>,<<attribute>:<value>> [,<tree>])
+            rset(<object>,<<attribute>:_<fromobj>/<fromattr>> [,<tree>])
             rset(<object>/<attr>,[!]<attrflag>)
   
   The rset() function is a side-effect for the @set command.  It works nearly
@@ -17549,6 +17667,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   same permissions and restrictions of the command.  The SIDEFX flag is 
   required to use rset().
   
+  You may specify the optional <tree> of '1' to specifically set a TREE with
+  all branches filled (that do not exist) on the target.  A TREE set will
+  also verify permission on every branch of that tree prior to setting.  
+  Failure to set any of the branches, for any reason, will disallow 
+  setting the attribute as well.
+  
+  The <tree> toggle is ignored on any method of rset() that does not 
+  set or clear attributes.
+   
   Type @list options to see if this side-effect is enabled.
   
   Example:
@@ -17559,7 +17686,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   > say rset(me,safe)
   You say "safe"
   
-  See Also: set(), writable(), @set, SIDEEFFECTS
+  See Also: set(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
   
 & toggle()
   Function: toggle(<object>,[!]<toggle>)
@@ -19522,7 +19649,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > think parsestr(v(va), X,")
     You say "X" *sigh* "X"
     > think parsestr(v(va), X,",,1)
-    X"Hello! Hello?"X"Hello?!?" (notice no spaces as spaces are part of args)
+    X"Hello! Hello?"X"Hello?!?"X (notice no spaces as spaces are part of args)
     > think parsestr(v(va),garble(%0,1,,-),")
     You say "------ ------" *sigh* "--------"
     > think parsestr(v(va),garble(%0,1,,-,,2),")
@@ -19531,13 +19658,13 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Avanced Examples:
     > think parsestr("to die" is a mighty adventure "+snarf", --%0 %[%2/%3%]--,
         ",",,%#,+,, X: %0 <%2/%3>, [ansi(+purple,bob)])
-    YourName bob, "--to die [0/1]--" is a mighty adventure "X: +snarf <1/3>"
+    YourName bob "--to die [0/1]--" is a mighty adventure "X: +snarf <1/3>"
     > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--,
         ",^~ ~^,,%#,,!,%0 <%2/%3>, [ansi(+purple,bob)])
-    YourName bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+    YourName bob ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
     > think parsestr("to die" is a mighty adventure "snarf!", --%0 %[%2/%3%]--
         ,",^~ ~^,,&[ansi(+orange,McDonald)],,!,%0 <%2/%3>,[ansi(+purple,bob)])
-    McDonald bob, ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
+    McDonald bob ^~--to die [0/1]--~^ is a mighty adventure ^~snarf! <1/3>~^
   
 { see 'help prsestr4' for examples on how to use this for an OOC command}
 
@@ -19551,7 +19678,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > &OOC me=$ooc *:think [parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
     > ooc :tests.
     <OOC> YourName tests.
-    > ooc ;test.
+    > ooc ;'s test.
     <OOC> YourName's test.
     > ooc "testing
     <OOC> YourName says, "Testing"
@@ -27085,6 +27212,8 @@ Changes
 * tr() is now ANSI-aware, and optionally allows previous behavior [ASH]
 * editansi() enhanced to allow negation of special ansi encoding [ASH]
 * sqlite now recognizes foreign keys [ASH]
+* @set, &, set(), and setr() are now PennMUSH style TREE aware optionally [ASH]
+* Enabled signal catch debugging information [ASH]
   
 Bug Fixes
 ---------
@@ -27124,3 +27253,5 @@ Bug Fixes
 * compile time warnings with some new additions when ZENTY_ANSI not specified [ASH]
 * mail.c had in the write editor erraneous warnings hardcoded to 4K buffers [ASH]
 * double eval fix in parsestr() [ASH]
+* third party mysql.c had a segsetv fix [ASH]
+* timers had a bug in mysql.c and mis-defined in timer.c [ASH]

@@ -23023,10 +23023,11 @@ FUNCTION(fun_filter)
 
 FUNCTION(fun_parsestr)
 {
-   int first, i_type, i_cntr, i_pass, aflags;
+   char sep;
+   char *s_tmpbuff, *s_fargs0, *s_fargs9, *args_ptr, *osep_pre, *osep_post, *savebuff[6],
+        *cp, *atextbuf, *atextbufptr, *c_transform, *p_transform, *target_result, *objstring, *result;
+   int aflags, i_cntr, first, i_pass, i_type;
    dbref aname, target;
-   char *atext, *atextptr, *result, *objstring, *cp, *atextbuf, sep, *osep, *osep_pre, *osep_post, *tbuff;
-   char *savebuff[5], *ansibuf, *target_result, *c_transform, *p_transform, *tpr_buff, *tprp_buff, *tprstack[3];
 
    if (!fn_range_check("PARSESTR", nfargs, 2, 10, buff, bufcx))
      return;
@@ -23039,159 +23040,162 @@ FUNCTION(fun_parsestr)
      return;
    }
 
-   atextbuf = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+   /* Handle FARGS0 -- Morgify input string */
+   s_tmpbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                    fargs[0], cargs, ncargs);
-   if ( !*atextbuf ) {
-     free_lbuf(atextbuf);
+   if ( !*s_tmpbuff ) {
+     free_lbuf(s_tmpbuff);
      return;
    }
-   atextptr = atext = alloc_lbuf("parsestr_buffer");
-   safe_str(strip_ansi(atextbuf), atext, &atextptr);
-   free_lbuf(atextbuf);
+   args_ptr = s_fargs0 = alloc_lbuf("parsestr_buffer");
+   safe_str(strip_ansi(s_tmpbuff), s_fargs0, &args_ptr);
+   free_lbuf(s_tmpbuff);
 
-   if ( (nfargs >= 3) && *fargs[2] ) {
-     tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                  fargs[2], cargs, ncargs);
-     sep = *tbuff;
-     free_lbuf(tbuff);
+   /* Handle FARGS2 -- seperator */
+   if ( (nfargs > 2) && *fargs[2] ) {
+      s_tmpbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                       fargs[2], cargs, ncargs);
+      sep = *s_tmpbuff;
+      free_lbuf(s_tmpbuff);
    } else {
-     sep = ' ';
+      sep = ' ';
    }
 
+   /* Handle FARGS3 -- Prefix and Suffix for say strings */
    osep_pre = alloc_lbuf("osep_pre");
    osep_post = alloc_lbuf("osep_post");
-   if ( (nfargs >= 4) && *fargs[3] ) {
-     osep = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                 fargs[3], cargs, ncargs);
-     if ( (*osep != ' ') && (strchr(osep, ' ') != NULL) )  {
-        tbuff = osep;
-        result = osep_pre;
-        while ( *tbuff && (*tbuff != ' ')) {
-           *result = *tbuff;
-           tbuff++;
-           result++;
-        }  
-        if ( *tbuff ) 
-           tbuff++;
-        if ( *tbuff ) 
-           strcpy(osep_post, tbuff);
-     } else {
-        strcpy(osep_pre, osep);
-        strcpy(osep_post, osep);
-     }
+   if ( (nfargs > 3) && *fargs[3] ) {
+      s_tmpbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                       fargs[3], cargs, ncargs);
+      if ( (*s_tmpbuff != ' ') && (strchr(s_tmpbuff, ' ') != NULL) )  {
+         args_ptr = strchr(s_tmpbuff, ' '); 
+         *(args_ptr) = '\0';
+         sprintf(osep_pre, "%s", s_tmpbuff);
+         sprintf(osep_post, "%s", args_ptr+1);
+      } else {
+         sprintf(osep_pre, "%s", s_tmpbuff);
+         sprintf(osep_post, "%s", s_tmpbuff);
+      }
+      free_lbuf(s_tmpbuff);
    } else {
-     osep = alloc_lbuf("osep_buff");
-     sprintf(osep, "%c", sep);
-     strcpy(osep_pre, osep);
-     strcpy(osep_post, osep);
+      sprintf(osep_pre, "%c", sep);
+      sprintf(osep_post, "%c", sep);
    }
 
-   if ( (nfargs >= 5) && *fargs[4] ) {
-     tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                  fargs[4], cargs, ncargs);
-     i_type = atoi(tbuff);
-     free_lbuf(tbuff);
-     i_type = (i_type > 0 ? 1 : 0);
-   } else
-     i_type = 0;
+   /* Handle FARGS4 -- Type argument */
+   i_type = 0;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      s_tmpbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                       fargs[4], cargs, ncargs);
+      i_type = ( (atoi(s_tmpbuff) > 0) ? 1 : 0);
+      free_lbuf(s_tmpbuff);
+   } 
 
+   /* Handle FARGS5 -- Target Player */
    target = NOTHING;
    target_result = NULL;
-   if ( (nfargs >= 6) && *fargs[5] ) {
+   if ( (nfargs > 5) && *fargs[5] ) {
       target_result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                  fargs[5], cargs, ncargs);
+                           fargs[5], cargs, ncargs);
       if ( *target_result != '&' ) {
          target = match_thing(player, target_result);
          free_lbuf(target_result);
          if ( !Good_chk(target) ) {
             notify(player, "Permission denied.");
-            free_lbuf(atext);
-            free_lbuf(osep);
+            free_lbuf(s_fargs0);
             free_lbuf(osep_pre);
             free_lbuf(osep_post);
             return;
          }
-         ansibuf = atr_pget(target, A_ANSINAME, &aname, &aflags);
+         s_tmpbuff = atr_pget(target, A_ANSINAME, &aname, &aflags);
          if ( ExtAnsi(target) ) {
             target_result = alloc_lbuf("target_result");
             memset(target_result, '\0', LBUF_SIZE);
-            if ( ansibuf && *ansibuf ) {
-               memcpy(target_result, ansibuf, LBUF_SIZE - 2);
+            if ( s_tmpbuff && *s_tmpbuff ) {
+               memcpy(target_result, s_tmpbuff, LBUF_SIZE - 2);
             } else {
                sprintf(target_result, "%s", Name(target));
             }
          } else {
-            if ( ansibuf && *ansibuf ) {
-               target_result = parse_ansi_name(target, ansibuf);
+            if ( s_tmpbuff && *s_tmpbuff ) {
+               target_result = parse_ansi_name(target, s_tmpbuff);
             } else {
                target_result = alloc_lbuf("target_result");
                sprintf(target_result, "%s", Name(target));
             }
          }
-         free_lbuf(ansibuf);
+         free_lbuf(s_tmpbuff);
       }
    }
-   
+
+   /* Handle FARGS8 -- Over-handler to check for transform evaluation */
    c_transform = NULL;
    p_transform = NULL;
+   if ( ((nfargs > 8) && *fargs[8]) ) {
+      /* Handle FARGS6 -- Transformation key -- Allow Null */
+      if ( (nfargs > 6) && *fargs[6] ) {
+         c_transform = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                       fargs[6], cargs, ncargs);
+      }
 
-   if ( (nfargs >= 7) && *fargs[6] ) {
-      c_transform = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                  fargs[6], cargs, ncargs);
-   }
-   if ( (nfargs >= 8) && *fargs[7] ) {
-      p_transform = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
-                  fargs[7], cargs, ncargs);
-   }
-   
-   if ( !((nfargs >=9) && *fargs[8]) ) {
-      if ( c_transform && *c_transform ) {
-         free_lbuf(c_transform);
-         c_transform = NULL;
+      /* Handle FARGS7 --  */
+      if ( (nfargs > 7) && *fargs[7] ) {
+         p_transform = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                       fargs[7], cargs, ncargs);
       }
-      if ( p_transform && *p_transform ) {
-         free_lbuf(p_transform);
-         p_transform = NULL;
-      }
+
    }
-   savebuff[0] = alloc_lbuf("fun_parsestr_savebuff0");
-   savebuff[1] = alloc_lbuf("fun_parsestr_savebuff1");
+
+   /* Handle FARGS9 -- This is the 'say' substitution */
+   if ( (nfargs > 9) && *fargs[9] ) {
+      s_fargs9 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                      fargs[9], cargs, ncargs);
+   } else {
+      s_fargs9 = alloc_lbuf("parestr_arg9");
+      sprintf(s_fargs9, "%s", (char *) "says,");
+   }
+
+   /* Initialize all 5 arguments */
+   savebuff[0] = alloc_lbuf("fun_parsestr_savebuff0");  /* Argument inputted */
+   savebuff[1] = alloc_lbuf("fun_parsestr_savebuff1");  /* Optional Target Player */
    savebuff[2] = alloc_lbuf("fun_parsestr_savebuff2");
    savebuff[3] = alloc_lbuf("fun_parsestr_savebuff3");
-   savebuff[4] = alloc_lbuf("fun_parsestr_savebuff4");
+   savebuff[4] = alloc_lbuf("fun_parsestr_savebuff4");  /* Transofmration character */
+   savebuff[5] = NULL;
+
+   /* Set up target */
    if ( target_result && *target_result ) {
       memset(savebuff[1], '\0', LBUF_SIZE);
-      if ( *target_result == '&' )
-         memcpy(savebuff[1], target_result+1, LBUF_SIZE-2);
-      else
-         memcpy(savebuff[1], target_result, LBUF_SIZE-2);
+      if ( *target_result == '&' ) {
+         memcpy(savebuff[1], target_result+1, LBUF_SIZE - 2);
+      } else {
+         memcpy(savebuff[1], target_result, LBUF_SIZE - 2);
+      }
    }
    if ( target_result )
       free_lbuf(target_result);
 
-   tbuff = atextbuf = alloc_lbuf("fun_parsestr");
+   /* Ok, let's handle the transformation here -- Rebuild fargs0 is transformation exists */
+   atextbufptr = atextbuf = alloc_lbuf("fun_parsestr");
    if ( *savebuff[1] ) {
+      /* Safe transform character */
      memset(savebuff[4], '\0', LBUF_SIZE);
-     if ( c_transform && *c_transform && (strchr(c_transform, *atext) != NULL) ) {
-        *savebuff[4]=*atext;
-     } else if ( p_transform && *p_transform && (strchr(p_transform, *(atext+(strlen(atext)-1))) != NULL) ) {
-        *savebuff[4]=*(atext+(strlen(atext)-1));
+     if ( c_transform && *c_transform && (strchr(c_transform, *s_fargs0) != NULL) ) {
+        *savebuff[4]=*s_fargs0;
+     } else if ( p_transform && *p_transform && (strchr(p_transform, *(s_fargs0+(strlen(s_fargs0)-1))) != NULL) ) {
+        *savebuff[4]=*(s_fargs0+(strlen(s_fargs0)-1));
      }
-     if ( *atext == '"' ) {
-        safe_str(savebuff[1], atextbuf, &tbuff);
-        safe_chr(' ', atextbuf, &tbuff);
-        if ( (nfargs >=10) && *fargs[9] ) {
-           safe_str(fargs[9], atextbuf, &tbuff);
-           safe_chr(' ', atextbuf, &tbuff);
-        } else {
-           safe_str("says", atextbuf, &tbuff);
-           safe_str(", ", atextbuf, &tbuff);
-        }
-        safe_str(atext, atextbuf, &tbuff);
+
+     /* Handle Say */
+     if ( *s_fargs0 == '"' ) {
+        safe_str(savebuff[1], atextbuf, &atextbufptr);
+        safe_chr(' ', atextbuf, &atextbufptr);
+        safe_str(s_fargs9, atextbuf, &atextbufptr);
+        safe_chr(' ', atextbuf, &atextbufptr);
+        safe_str(s_fargs0, atextbuf, &atextbufptr);
         /* Let's count the '"' chars, if it's odd, add one to the end if last char is not a '"' and not escaped out */
-        cp = atext;
-        first = 0;
-        i_pass = 0;
+        cp = s_fargs0;
+        first = i_pass = 0;
         while ( *cp ) {
            if ( (*cp == '\\') || (*cp == '%') ) {
               if ( !i_pass )
@@ -23204,80 +23208,73 @@ FUNCTION(fun_parsestr)
            cp++;
         }     
         if ( (first % 2) == 1)
-           safe_chr('"', atextbuf, &tbuff);
-     } else if ( ((*atext == ':') && (*(atext+1) != ' ')) || ((*atext == ';') && (*(atext+1) == ' ')) ) {
-        safe_str(savebuff[1], atextbuf, &tbuff);
-        safe_chr(' ', atextbuf, &tbuff);
-        safe_str(atext+1, atextbuf, &tbuff);
-     } else if ( (*atext == ';') || ((*atext == ':') && (*(atext+1) == ' ')) ) {
-        safe_str(savebuff[1], atextbuf, &tbuff);
-        if ( *(atext) == ':')
-           safe_str(atext+2, atextbuf, &tbuff);
+           safe_chr('"', atextbuf, &atextbufptr);
+     /* Handle Pose */
+     } else if ( ((*s_fargs0 == ':') && (*(s_fargs0+1) != ' ')) || ((*s_fargs0 == ';') && (*(s_fargs0+1) == ' ')) ) {
+        safe_str(savebuff[1], atextbuf, &atextbufptr);
+        safe_chr(' ', atextbuf, &atextbufptr);
+        if ( *(s_fargs0) == ';')
+           safe_str(s_fargs0+2, atextbuf, &atextbufptr);
         else
-           safe_str(atext+1, atextbuf, &tbuff);
-     } else if ( *atext == '|' ) {
-        safe_str(atext+1, atextbuf, &tbuff);
+           safe_str(s_fargs0+1, atextbuf, &atextbufptr);
+     /* Handle Possessive Pose */
+     } else if ( (*s_fargs0 == ';') || ((*s_fargs0 == ':') && (*(s_fargs0+1) == ' ')) ) {
+        safe_str(savebuff[1], atextbuf, &atextbufptr);
+        if ( *(s_fargs0) == ':')
+           safe_str(s_fargs0+2, atextbuf, &atextbufptr);
+        else
+           safe_str(s_fargs0+1, atextbuf, &atextbufptr);
+     /* Handle emotes/emits */
+     } else if ( *s_fargs0 == '|' ) {
+        safe_str(s_fargs0+1, atextbuf, &atextbufptr);
      } else {
-        safe_str(savebuff[1], atextbuf, &tbuff);
-        safe_chr(' ', atextbuf, &tbuff);
-        if ( (nfargs >=10) && *fargs[9] ) {
-           safe_str(fargs[9], atextbuf, &tbuff);
-           safe_chr(' ', atextbuf, &tbuff);
-        } else {
-           safe_str("says", atextbuf, &tbuff);
-           safe_str(", ", atextbuf, &tbuff);
-        }
-        safe_chr('"', atextbuf, &tbuff);
-        safe_str(atext, atextbuf, &tbuff);
-        safe_chr('"', atextbuf, &tbuff);
+        safe_str(savebuff[1], atextbuf, &atextbufptr);
+        safe_chr(' ', atextbuf, &atextbufptr);
+        safe_str(s_fargs9, atextbuf, &atextbufptr);
+        safe_chr(' ', atextbuf, &atextbufptr);
+        safe_chr('"', atextbuf, &atextbufptr);
+        safe_str(s_fargs0, atextbuf, &atextbufptr);
+        safe_chr('"', atextbuf, &atextbufptr);
      }
-     strcpy(atext, atextbuf);  
+     strcpy(s_fargs0, atextbuf);  
    }
-   i_cntr = i_pass = 0;
-   first = 0;
-   memset(atextbuf, '\0', LBUF_SIZE);
-   cp = trim_space_sep(atext, sep);
-   tprp_buff = tpr_buff = alloc_lbuf("parestr_escape_out");
-   tprstack[0] = alloc_lbuf("parsestr_stack");
-   tprstack[1] = alloc_lbuf("parsestr_stack2");
-   sprintf(tprstack[1], "%s", "f");
-   tprstack[2] = NULL;
+
+   /* Let's do the mojo we do so well */
+   first = i_cntr = i_pass = 0;
+   cp = trim_space_sep(s_fargs0, sep);
+
    while ( cp ) {
      i_cntr++;
      objstring = split_token(&cp, sep);
+     memset(savebuff[0], '\0', LBUF_SIZE);
+     sprintf(savebuff[0], "%s", objstring); 
+     sprintf(savebuff[3], "%d", i_cntr - 1);
      if ( (!i_type && ((i_cntr % 2) != 0)) ||
           ( i_type && ((i_cntr % 2) == 0)) ) {
        if ( first )
          safe_str(osep_post, buff, bufcx);
+       /* Evaluate the header information here */
        if ( !first ) {
-          memset(savebuff[0], '\0', LBUF_SIZE);
-          sprintf(savebuff[2], "%d", i_pass - 1);
-          sprintf(savebuff[3], "%d", i_cntr - 1);
-/*        strncpy(atextbuf, objstring, (LBUF_SIZE-1)); */
-
-          strncpy(tprstack[0], objstring, (LBUF_SIZE-1));
-          tprp_buff = tpr_buff;
-          fun_escape(tpr_buff, &tprp_buff, player, cause, cause, tprstack, 2, (char **)NULL, 0);
-          result = exec(player, cause, caller,
-                        EV_STRIP | EV_FCHECK | EV_EVAL, tpr_buff, savebuff, 5); 
-
-/*        result = exec(player, cause, caller,
-                        EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);  */
+          sprintf(savebuff[2], "%d", i_pass - 1); /* The argument passed to say */
+          sprintf(savebuff[3], "%d", i_cntr - 1); /* The literal argument */
+          memset(atextbuf, '\0', LBUF_SIZE);
+          sprintf(atextbuf, "%c0", '%');
+          result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                        atextbuf, savebuff, 5);
           safe_str(result, buff, bufcx);
-          safe_chr(' ', buff, bufcx);
+/*        safe_chr(' ', buff, bufcx); */
           free_lbuf(result);
        } else {
-          safe_str(objstring, buff, bufcx);
+       /* Parse everything else here */
+          safe_str(objstring, buff, bufcx); 
        }
        first = 1;
        continue;
      }
      i_pass++;
-     memset(savebuff[0], '\0', LBUF_SIZE);
-     memset(savebuff[4], '\0', LBUF_SIZE);
-     memcpy(savebuff[0], objstring, LBUF_SIZE-2);
      sprintf(savebuff[2], "%d", i_pass - 1);
-     sprintf(savebuff[3], "%d", i_cntr - 1);
+     memset(savebuff[4], '\0', LBUF_SIZE);
+     memset(atextbuf, '\0', LBUF_SIZE);
      if ( c_transform && *c_transform && (strchr(c_transform, *objstring) != NULL) ) {
         strncpy(atextbuf, fargs[8], (LBUF_SIZE-1));
         *savebuff[4]=*objstring;
@@ -23287,18 +23284,15 @@ FUNCTION(fun_parsestr)
      } else {
         strncpy(atextbuf, fargs[1], (LBUF_SIZE-1));
      }
-     *(atextbuf + LBUF_SIZE - 1) = '\0';
-     result = exec(player, cause, caller,
-                   EV_STRIP | EV_FCHECK | EV_EVAL, atextbuf, savebuff, 5);
+     result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, 
+                   atextbuf, savebuff, 5);
      if ( first )
        safe_str(osep_pre, buff, bufcx);
      first = 1;
      safe_str(result, buff, bufcx);
      free_lbuf(result);
    }
-   free_lbuf(tpr_buff);
-   free_lbuf(tprstack[0]);
-   free_lbuf(tprstack[1]);
+   free_lbuf(atextbuf);
    if ( c_transform )
       free_lbuf(c_transform);
    if ( p_transform )
@@ -23308,11 +23302,10 @@ FUNCTION(fun_parsestr)
    free_lbuf(savebuff[2]);
    free_lbuf(savebuff[3]);
    free_lbuf(savebuff[4]);
-   free_lbuf(atextbuf);
-   free_lbuf(atext);
-   free_lbuf(osep);
    free_lbuf(osep_pre);
    free_lbuf(osep_post);
+   free_lbuf(s_fargs0);
+   free_lbuf(s_fargs9);
 }
 
 /* ---------------------------------------------------------------------------
@@ -27722,13 +27715,18 @@ FUNCTION(fun_cluster_add)
 
 FUNCTION(fun_set)
 {
-   char *s_buf1, *s_buf2;
+   char *s_buf1, *s_buf2, *s_tmp;
+   int i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_SET) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
    }
+
+   if (!fn_range_check("SET", nfargs, 2, 3, buff, bufcx))
+      return;
+
    if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
       notify(player, "Permission denied.");
       return;
@@ -27740,24 +27738,37 @@ FUNCTION(fun_set)
       notify(player, "Permission denied.");
       return;
    }
+
+   i_key = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+       s_tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                     fargs[2], cargs, ncargs);
+       if ( *s_tmp ) 
+          i_key = (atoi(s_tmp) ? SET_TREE : 0);
+       free_lbuf(s_tmp);
+   }
    s_buf1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[0], cargs, ncargs);
    s_buf2 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[1], cargs, ncargs);
-   do_set(player, cause, (SET_QUIET|SIDEEFFECT), s_buf1, s_buf2);
+   do_set(player, cause, (SET_QUIET|SIDEEFFECT|i_key), s_buf1, s_buf2);
    free_lbuf(s_buf1);
    free_lbuf(s_buf2);
 }
 
 FUNCTION(fun_rset)
 {
-   char *s_buf1, *s_buf2;
+   char *s_buf1, *s_buf2, *s_tmp;
+   int i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_RSET) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
    }
+   if (!fn_range_check("RSET", nfargs, 2, 3, buff, bufcx))
+      return;
+
    if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
       notify(player, "Permission denied.");
       return;
@@ -27769,12 +27780,20 @@ FUNCTION(fun_rset)
       notify(player, "Permission denied.");
       return;
    }
+   i_key = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+       s_tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                     fargs[2], cargs, ncargs);
+       if ( *s_tmp ) 
+          i_key = (atoi(s_tmp) ? SET_TREE : 0);
+       free_lbuf(s_tmp);
+   }
    s_buf1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[0], cargs, ncargs);
    s_buf2 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[1], cargs, ncargs);
    mudstate.lbuf_buffer = alloc_lbuf("lbuf_rset");
-   do_set(player, cause, (SET_QUIET|SIDEEFFECT|SET_RSET), s_buf1, s_buf2);
+   do_set(player, cause, (SET_QUIET|SIDEEFFECT|SET_RSET|i_key), s_buf1, s_buf2);
    safe_str(mudstate.lbuf_buffer, buff, bufcx);
    free_lbuf(mudstate.lbuf_buffer);
    mudstate.lbuf_buffer = NULL;
@@ -30077,7 +30096,7 @@ FUN flist[] =
     {"ROTR", fun_rotr, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ROUND", fun_round, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"RSET", fun_rset, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"RSET", fun_rset, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #endif
 #ifdef REALITY_LEVELS
 #ifdef USE_SIDEEFFECT
@@ -30096,7 +30115,7 @@ FUN flist[] =
     {"SECUREX", fun_secure, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SEES", fun_sees, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"SET", fun_set, 2, FN_NO_EVAL, CA_PUBLIC, 0},
+    {"SET", fun_set, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, 0},
 #endif
     {"SETDIFF", fun_setdiff, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SETINTER", fun_setinter, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
