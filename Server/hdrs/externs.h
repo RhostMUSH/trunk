@@ -969,6 +969,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define INCLUDE_CLEAR	4	/* Clear the attributes locally */
 #define INCLUDE_NOBREAK 8	/* Do not @break other than inside @include */
 #define INCLUDE_TARGET	16	/* Allow the target item (if you control it) to be executor */
+#define INCLUDE_OVERRIDE 32	/* Trigger include like well trigger */
 #define SUDO_GLOBAL	1	/* Reverse of localized */
 #define SUDO_CLEAR	2	/* Clear registers */
 #define	TWARP_QUEUE	1	/* Warp the wait and sem queues */

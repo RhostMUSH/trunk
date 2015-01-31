@@ -2109,15 +2109,25 @@ void do_include(dbref player, dbref cause, int key, char *string,
    }
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
-      if ( (i < ncargs) && cargs[i] && *cargs[i] )
-      /* strncpy(s_buff[i], cargs[i], LBUF_SIZE - 1); */
-         sprintf(s_buff[i], "%s", cargs[i]);
-      if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
-         if ( !argv[i] || !*argv[i] ) {
-            memset(s_buff[i], '\0', LBUF_SIZE);
+      if ( key & INCLUDE_OVERRIDE ) {
+         if ( nargs > 0 ) {
+            if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
+               if ( argv[i] && *argv[i] )
+                  sprintf(s_buff[i], "%s", argv[i]);      
+            }
          } else {
-         /* strncpy(s_buff[i], argv[i], LBUF_SIZE); */
-            sprintf(s_buff[i], "%s", argv[i]);      
+            if ( (i < ncargs) && cargs[i] && *cargs[i] )
+               sprintf(s_buff[i], "%s", cargs[i]);
+         }
+      } else {
+         if ( (i < ncargs) && cargs[i] && *cargs[i] )
+            sprintf(s_buff[i], "%s", cargs[i]);
+         if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
+            if ( !argv[i] || !*argv[i] ) {
+               memset(s_buff[i], '\0', LBUF_SIZE);
+            } else {
+               sprintf(s_buff[i], "%s", argv[i]);      
+            }
          }
       }
    }

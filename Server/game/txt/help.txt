@@ -5655,6 +5655,8 @@
   @include honors @break/@assert.  You can have at most 10 @includes.  You
   can only nest to 3 levels deep.
   
+  @admin params includecnt and includenest handle @include's flexibility.
+  
   The following switches exist for @include:
     /command   - bypass the $command/^listen portion of the attribute.
     /clearregs - clear the registers prior to calling included attribute.
@@ -5663,6 +5665,8 @@
     /nobreak   - disregard @break/@assert inside the includes from outside.
     /target    - Use the target as executor instead of executor of @include
                  Note: You must control target to use this.
+    /override  - If any arguments are passed to @include to override the
+                 default, this will disable all default arguments.
     
   {see @include2 for examples}
 
@@ -27214,6 +27218,7 @@ Changes
 * sqlite now recognizes foreign keys [ASH]
 * @set, &, set(), and setr() are now PennMUSH style TREE aware optionally [ASH]
 * Enabled signal catch debugging information [ASH]
+* @include has /override switch that will mimic how arguments are assigned like Penn [ASH]
   
 Bug Fixes
 ---------
@@ -27255,3 +27260,4 @@ Bug Fixes
 * double eval fix in parsestr() [ASH]
 * third party mysql.c had a segsetv fix [ASH]
 * timers had a bug in mysql.c and mis-defined in timer.c [ASH]
+* memory corruption with argument passing in @include could cause a crash [ASH]
