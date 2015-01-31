@@ -421,11 +421,11 @@ info() {
          echo "flags, are essentially 'markers' that you can rename at leasure."
          echo "If you have a desire for marker flags, enable this option."
          ;;
-     15) echo "Bang support.  Very cool stuff.  It allows you to use ! for false"
-         echo "and !! for true.  An example would be [!match(this,that)].  It"
-         echo "also allows $! for 'not a string' and $!! for 'is a string'."
-         echo "Such an example would be [$!get(me/blah)].  If you like this"
-         echo "feature, enable this option.  You want it.  Really."
+     15) echo 'Bang support.  Very cool stuff.  It allows you to use ! for false'
+         echo 'and !! for true.  An example would be [!match(this,that)].  It'
+         echo 'also allows $! for "not a string" and $!! for "is a string".'
+         echo 'Such an example would be [$!get(me/blah)].  If you like this'
+         echo 'feature, enable this option.  You want it.  Really.'
          ;;
      16) echo "This is an alternate WHO listing.  It's a tad longer for the"
          echo "display and will switch ports to Total Cmds on the WHO listings."
@@ -1293,7 +1293,6 @@ setdefaults() {
         DEFS="${DEFS} -DHAS_OPENSSL"
      fi
   fi
-  DEFS="DEFS = ${DEFS}"
 }
 
 ###################################################################
@@ -1463,92 +1462,73 @@ setlibs() {
       echo "Compiling with system pcre library..."
       MORELIBS="${MORELIBS} -lpcre"
    fi
-   MORELIBS="MORELIBS = ${MORELIBS}"
 }
 
 ###################################################################
 # UPDATEMAKEFILE - Update the makefile with the changes
 ###################################################################
 updatemakefile() {
-   echo "Updating the DEFS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^DEF ../src/Makefile|sed "s/\//\\\\\//g")/${DEFS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
-
-#  Let's do the door additions here
-   if [ "${XB[2]}" = "X" ]
+   makedefs_path=""
+   for p in src/ ../src ../../src; do
+      if [ -d $p -a -e $p/Makefile ]; then
+         makedefs_path=$p/make.defs
+         compiledefs_path=$p/do_compile.defs
+         break
+      fi
+   done
+   if [ "z$makedefs_path" = "z" ]
    then
-      cat ../src/Makefile|sed "s/^#DR_DEF/DR_DEF/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
+      echo '$0: error: could not locate Makefile, cannot determine where to generate make.defs' >&2
+      exit 1
+   fi
+   echo 'Updating the DEFS section of the Makefile now.  Please wait...'
+   echo "DEFS = ${DEFS}" > $makedefs_path
+
+   echo '# Begin Door Configurations' >> $makedefs_path
+   if [ "${XB[2]}" = 'X' ]
+   then
+      echo 'DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE' >> $makedefs_path
       if [ "${XD[1]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMUSH/DRMUSH/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMUSH/#DRMUSH/g" > /tmp/$$CONF$$
+         echo 'DRMUSHSRC = door_mush.c' >> $makedefs_path
+         echo 'DRMUSHOBJ = door_mush.o' >> $makedefs_path
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[2]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DREMPIRE/DREMPIRE/g"|sed "s/^#DR_HDR/DR_HDR/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DR_HDR/#DR_HDR/g" > /tmp/$$CONF$$
+         echo 'DREMPIRESRC = empire.c' >> $makedefs_path
+         echo 'DREMPIREOBJ = empire.o' >> $makedefs_path
+         echo 'DREMPIREHDR = empire.h' >> $makedefs_path
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[3]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMAIL/DRMAIL/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
+         echo 'DRMAILSRC = door_mail.c' >> $makedefs_path
+         echo 'DRMAILOBJ = door_mail.o' >> $makedefs_path
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
-   else
-      cat ../src/Makefile|sed "s/^DR_DEF/#DR_DEF/g"|sed "s/^DRMUSH/#DRMUSH/g"| \
-         sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
    fi
+   echo '# End Door Configurations' >> $makedefs_path
+
    if [ "${XB[5]}" = "X" ]
    then
       echo "Compiling to QDBM database."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./qdbm/ -lqdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=qdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo '# Use QDBM. See also do_compile.defs' >> $makedefs_path
+      echo 'LIBS = -L./qdbm/ -lqdbm' >> $makedefs_path
+      echo 'COMP=qdbm' > $compiledefs_path
    else
       echo "Compiling to GDBM database (default)."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=gdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo '# Use (default) GDBM. See also do_compile.defs' >> $makedefs_path
+      echo 'LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm' >> $makedefs_path
+      echo 'COMP=gdbm' > $compiledefs_path
    fi
    # add CFLAGS for low memory
    if [ "${X[23]}" = "X" ]
    then
       echo "Adding CFLAG option for low memory compile..."
-      cat ../src/Makefile|sed "s/^#CFLAG/CFLAG/g" > /tmp/$$CONF$$
-   else
-      cat ../src/Makefile|sed "s/^CFLAG/#CFLAG/g" > /tmp/$$CONF$$
+      echo '# Low-memory compile' >> $makedefs_path
+      echo 'CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192' >> $makedefs_path
    fi
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
    echo "...completed."
    echo "Updating the MORELIBS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^MORELIBS ../src/Makefile| \
-       sed "s/\//\\\\\//g")/${MORELIBS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
+   echo "MORELIBS = ${MORELIBS}" >> $makedefs_path
    echo "...completed."
 }
 
