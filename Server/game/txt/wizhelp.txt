@@ -5062,12 +5062,12 @@ SNOOPY                                                           God     Wiz
   conn_timeout             connect_file             connect_reg_file       
   cpu_secure_lvl           cpuintervalchk           cputimechk             
   crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            descs_are_local          default_home           
-  dig_cost                 door_file                door_index             
-  down_file                down_motd_message        dump_interval          
-  dump_message             dump_offset              earn_limit             
-  empower_fulltel          enable_tstamps           enforce_unfindable     
-  error_file
+  curl_request_limit       dark_sleepers            descs_are_local
+  default_home             dig_cost                 door_file
+  door_index               down_file                down_motd_message
+  dump_interval            dump_message             dump_offset
+  earn_limit               empower_fulltel          enable_tstamps
+  enforce_unfindable       error_file
   
 { 'wizhelp config parameters2' for more }
 
@@ -5772,6 +5772,12 @@ SNOOPY                                                           God     Wiz
   Config directive: create_min_cost <amount>.  Default: 10
   Specifies the minimum (and default) cost for creating an object.
   See Also: create_max_cost, sacrifice_adjust, sacrifice_factor.
+
+& curl_request_limit
+  Config Parameter: curl_request_limit <value>. Default: 5
+  
+  This specifies the maximum number of seconds for which a cURL request may
+  run before it's cancelled.
 
 & dark_sleepers
   Config directive: dark_sleepers <yes/no>.  Default: yes
