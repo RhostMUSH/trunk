@@ -28,6 +28,7 @@
 
 FUNCTION(local_fun_curl_get);
 static size_t write_callback( void * contents, size_t size, size_t nmemb, void *userp );
+void curl_normalize_line_endings( char * buf, size_t buffer_length );
 
 char tempbuff[LBUF_SIZE];
 char tempbuff2[LBUF_SIZE];
@@ -116,9 +117,11 @@ FUNCTION(local_fun_curl_get)
    overflow = 0;
    result = curl_easy_perform( curl );
    if( result == CURLE_OK ) {
+      curl_normalize_line_endings( tempbuff2, LBUF_SIZE );
       safe_str( tempbuff2, buff, bufcx );
    } else {
       if( overflow == 1 ) {
+         curl_normalize_line_endings( tempbuff2, LBUF_SIZE );
          strncpy( tempbuff, tempbuff2, LBUF_SIZE );
       } else {
          snprintf( tempbuff, LBUF_SIZE, "#-2 GET FAILED: %s", curl_easy_strerror( result ) );
@@ -127,6 +130,24 @@ FUNCTION(local_fun_curl_get)
    }
 
    curl_easy_cleanup( curl );
+}
+
+void curl_normalize_line_endings( char * buf, size_t buffer_length ) {
+   size_t pos = 0, dpos=0;
+   char normalized[LBUF_SIZE];
+   size_t len = strlen( buf );
+   for( pos = 0; pos < (len < LBUF_SIZE-1 ? len : LBUF_SIZE-1); pos++ ) {
+      // Basically, discard all \r, replace with \n with \r\n.
+      if( buf[pos] == '\r' )
+         continue;
+      if( buf[pos] == '\n' ) {
+         normalized[dpos++] = '\r';
+      }
+      normalized[dpos++] = buf[pos];
+      normalized[dpos] = '\0';
+   }
+   strncpy( buf, normalized, LBUF_SIZE );
+   return;
 }
 
 static size_t write_callback( void * contents, size_t size, size_t nmemb, void *userp ) {
