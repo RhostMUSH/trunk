@@ -21,7 +21,7 @@
 extern int FDECL(a_Queue, (dbref, int));
 extern void FDECL(s_Queue, (dbref, int));
 extern int FDECL(QueueMax, (dbref));
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
 extern double FDECL(time_ng, (double*));
 extern int FDECL(alarm_msec, (double));
 

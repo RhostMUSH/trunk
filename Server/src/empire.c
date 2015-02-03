@@ -14,7 +14,7 @@
 #include <sys/socket.h>
 
 extern int do_command(DESC *, char *);
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
 
 extern int FDECL(alarm_msec, (double));
 

@@ -42,7 +42,7 @@
 /* Edit this if needed */
 #define MYSQL_RETRY_TIMES 3
 
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
 extern int FDECL(alarm_msec, (double));
 
 /************* DON'T EDIT ANYTHING BELOW HERE **********/

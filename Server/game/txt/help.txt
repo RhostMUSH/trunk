@@ -27261,3 +27261,5 @@ Bug Fixes
 * third party mysql.c had a segsetv fix [ASH]
 * timers had a bug in mysql.c and mis-defined in timer.c [ASH]
 * memory corruption with argument passing in @include could cause a crash [ASH]
+* wrong definition for next_timer with the milisecond timer [ASH]
+* double-alloc in destroy code (non-crash) [ASH]

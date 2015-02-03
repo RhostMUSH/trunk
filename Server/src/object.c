@@ -18,7 +18,7 @@
 
 #define ZAP_LOC(i)	{ s_Location(i, NOTHING); s_Next(i, NOTHING); }
 
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
 
 extern int FDECL(alarm_msec, (double));
 
@@ -903,8 +903,7 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
     else
       i = mudstate.recoverlist;
 #ifndef STANDALONE
-    tpr_buff = alloc_lbuf("destroy_obj");
-    tprp_buff = alloc_lbuf("destroy_obj");
+    tprp_buff = tpr_buff = alloc_lbuf("destroy_obj");
 #endif
     while (i != NOTHING) {
 	if ((typecomp > -1) && (Typeof(i) != typecomp)) {
