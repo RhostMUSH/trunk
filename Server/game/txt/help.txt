@@ -25378,6 +25378,23 @@ Mail: Done
   lparent()     - Returns all the parents of an object.
   die()         - Rolls a set of dice for random number generation.
 
+& CURL_GET()
+  Function: curl_get(<url>)
+
+  This is a minimal implementation of libcURL bindings for RhostMUSH. This 
+  function allows you to retrieve the result of an HTTP GET from the given URL.
+
+  The implementation is currently quite bare. In particular, you cannot set 
+  headers or cookies, nor can you access response headers. Expect this
+  implementation to improve with time.
+  
+  Example:
+  
+    th >> [curl_get(example.com)]
+    >> <!doctype html>
+    <html>
+    ...
+
 & revisions
 All credits to players, codebases, or other is presented in the RHOST.CHANGES
 file in the readme directory in the source distribution.  The credits are too

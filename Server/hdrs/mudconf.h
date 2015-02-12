@@ -427,7 +427,10 @@ struct confdata {
         int     sqlite_query_limit;
         char    sqlite_db_path[128];
 #endif /* SQLITE */
-#else
+#ifdef RHOST_CURL
+        int     curl_request_limit;
+#endif /* RHOST_CURL */
+#else /* STANDALONE */
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */
 	int	opencost;	/* cost of @open command */
