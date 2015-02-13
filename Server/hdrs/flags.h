@@ -696,7 +696,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 /* Who did this dark thing? and why? it broke stuff... */
 /*#define Dark(x)         (((Flags(x) & DARK) != 0) && (Wizard(x) || !Alive(x)))*/
 #define Altq(x)		((Flags3(x) & ALTQUOTA) != 0)
-#define Dark(x)		( (!DePriv(Owner(x), Owner(x), DP_DARK, POWER8, NOTHING) && ((Flags(x) & DARK) != 0)) || \
+#define Dark(x)		( (!DePriv(x, NOTHING, DP_DARK, POWER8, POWER_LEVEL_NA) && ((Flags(x) & DARK) != 0)) || \
                           ((Flags2(x) & RECOVER) != 0) || ((Flags(x) & GOING) != 0) )
 #define Jump_ok(x)      (((Flags(x) & JUMP_OK) != 0) && Has_contents(x))
 #define Sticky(x)       ((Flags(x) & STICKY) != 0)
@@ -785,7 +785,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Hidden(x)       (((Flags(x) & DARK) != 0) || ((Flags2(x) & RECOVER) != 0) || \
                          ((Flags(x) & GOING) != 0))
 */
-#define Hidden(x)	( (!DePriv(Owner(x), Owner(x), DP_DARK, POWER8, NOTHING) && ((Flags(x) & DARK) != 0)) || \
+#define Hidden(x)	( (!DePriv(x, NOTHING, DP_DARK, POWER8, POWER_LEVEL_NA) && ((Flags(x) & DARK) != 0)) || \
                           ((Flags2(x) & RECOVER) != 0) || ((Flags(x) & GOING) != 0) )
 #ifndef STANDALONE
 #define Cloak(x)	(Unfindable(x) && Hidden(x) && (Immortal(x) || \
