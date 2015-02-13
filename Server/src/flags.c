@@ -3537,8 +3537,9 @@ DePriv(dbref thing, dbref target, int powerpos, int powerword, int check)
               pwrs3 = Toggles8(thing2);
           pwrs3 >>= powerpos;
           pwrs3 &= POWER_LEVEL_COUNC;
-          if ( pwrs3 && (pwrs > pwrs3) )
+          if ( pwrs3 && (pwrs3 > pwrs) )
              pwrs = pwrs3;
+  
        }
        if (!pwrs && !pwrs3 )
            return 0;

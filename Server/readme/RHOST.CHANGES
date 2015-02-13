@@ -12,7 +12,9 @@ Ansi compression and optimization encoding
 Fix for timers with milisecond and alarms
 				- Thanks Ol'Sarge
 Fix for Mysql.c issue in a sigfault
-				- THanks Ol'Sarge
+				- Thanks Ol'Sarge
+@depower didn't work right for inheritance on power_objects
+				- Thanks Sunder
 
 
 		         RhostMUSH 3.9.4 Update File

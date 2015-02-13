@@ -27269,3 +27269,4 @@ Bug Fixes
 * memory corruption with argument passing in @include could cause a crash [ASH]
 * wrong definition for next_timer with the milisecond timer [ASH]
 * double-alloc in destroy code (non-crash) [ASH]
+* @depowers wouldn't work properly on inheritance when power_objects was enabled [ASH]
