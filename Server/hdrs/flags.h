@@ -351,6 +351,7 @@
 #define DP_PASSWORD		0
 #define DP_MORTAL_EXAMINE	2
 #define DP_PERSONAL_COMMANDS	4
+#define DP_DARK			8
 
 /* Flags from prior versions of MUSH */
 #define PERN_SLAVE      0x00000080
@@ -695,8 +696,8 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 /* Who did this dark thing? and why? it broke stuff... */
 /*#define Dark(x)         (((Flags(x) & DARK) != 0) && (Wizard(x) || !Alive(x)))*/
 #define Altq(x)		((Flags3(x) & ALTQUOTA) != 0)
-#define Dark(x)		(((Flags(x) & DARK) != 0) || ((Flags2(x) & RECOVER) != 0) || \
-                         ((Flags(x) & GOING) != 0))
+#define Dark(x)		( (!DePriv(Owner(x), Owner(x), DP_DARK, POWER8, NOTHING) && ((Flags(x) & DARK) != 0)) || \
+                          ((Flags2(x) & RECOVER) != 0) || ((Flags(x) & GOING) != 0) )
 #define Jump_ok(x)      (((Flags(x) & JUMP_OK) != 0) && Has_contents(x))
 #define Sticky(x)       ((Flags(x) & STICKY) != 0)
 #define Destroy_ok(x)   ((Flags(x) & DESTROY_OK) != 0)
@@ -780,8 +781,12 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			 (Typeof(x) == TYPE_PLAYER))
 #define Slave(x)        ((Flags2(Owner(x)) & SLAVE) != 0)
 #define Fubar(x)	((Flags2(Owner(x)) & FUBAR) != 0)
+/*
 #define Hidden(x)       (((Flags(x) & DARK) != 0) || ((Flags2(x) & RECOVER) != 0) || \
                          ((Flags(x) & GOING) != 0))
+*/
+#define Hidden(x)	( (!DePriv(Owner(x), Owner(x), DP_DARK, POWER8, NOTHING) && ((Flags(x) & DARK) != 0)) || \
+                          ((Flags2(x) & RECOVER) != 0) || ((Flags(x) & GOING) != 0) )
 #ifndef STANDALONE
 #define Cloak(x)	(Unfindable(x) && Hidden(x) && (Immortal(x) || \
 			 Immortal(Owner(x)) || ((Wizard(x) || \

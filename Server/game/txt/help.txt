@@ -24189,6 +24189,11 @@ Mail: Done
   timed connections alive for their full duration.  Especially handy
   for broken routers, NATs, firewalls, or other issues.
   
+  Note: Some rare clients, depending on version, does not handle the
+        KEEPALIVE toggle cleanly, and will garble input randomly
+        from its use.  If you run into commands seemingly not working,
+        then you may need to remove this toggle.
+  
 & VARIABLE TOGGLE
   Toggle: VARIABLE
   
@@ -27163,6 +27168,7 @@ New Features
 * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
 * @dbclean to purge unused attributes from the db [ASH]
 * editansi() allows you to edit ansi encoding in a string [ASH]
+* @depower DARK that will disable all DARK capabilities of the target (and belongings) [ASH]
 
 Changes
 -------

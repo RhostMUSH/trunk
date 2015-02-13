@@ -1299,7 +1299,7 @@
  *QUOTA            MODIFY              *ABUSE             CHOWN_ME
   CHOWN_OTHER     *UNL_QUOTA            SEARCH_ANY        GIVE
   RECEIVE         *PASSWORD             NOGOLD            NOSTEAL
- *POWER           *MORTAL_EXAMINE      *PERSONAL_COMMAND
+ *POWER           *MORTAL_EXAMINE      *PERSONAL_COMMAND *DARK
   
   
   Any depower with a '*' specified a toggle and will be turned on or off
@@ -1307,6 +1307,17 @@
   
   Listing on individual depowers are available by typing:
     wizhelp depower <power>
+
+& DEPOWER DARK
+  Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] dark
+  
+  This depower, like its cousin CLOAK will disable the given abilities from
+  the target.  However, unlike CLOAK which just stops the wizard's ability
+  to wizcloak from a target, the DARK flag disables ALL CAPABILITIES of the
+  dark flag in every situation.  This has the side-effect of disabling the
+  wizard cloak ability as it depends on the DARK flag to make it happen.
+  
+  See Also: DEPOWER CLOAK
 
 & DEPOWER PERSONAL_COMMAND
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] personal_command
@@ -1567,8 +1578,10 @@
 & DEPOWER CLOAK
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] cloak
  
-  This nastly toggle disables the wizards ability to cloak and disables
+  This nasty toggle disables the wizards ability to cloak and disables
   all effects of the standard 'cloak' flag.
+  
+  See Also: DEPOWER DARK
 
 & @POWER
   Command: @power[[/switch] <user>=[!|@o|@g|@a|@c] arg [!|@o|@g|@a|@c] arg2]
