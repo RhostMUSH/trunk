@@ -7886,15 +7886,16 @@ void snarfle_special_characters(char *s_instring, char *s_outstring)
     }
 }
 
-void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
-                      struct timefmt_format* fm, int numeric, char *shold, char **sholdptr, int morepadd)
+void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_format* fm, 
+                      int numeric, char *shold, char **sholdptr, int morepadd,
+                      int *adjust_padd, int *start_line)
 {
   int padwidth = 0;
   int currwidth = 0;
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
        *s_special, *s_normal, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
-      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace;
+      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt;
 
   i_breakhappen = i_usepadding = 0;
   if( fm->lastval ) {
@@ -7909,7 +7910,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
   s_normal = alloc_mbuf("printf_mbuf_2");
   s_accent = alloc_mbuf("printf_mbuf_3");
   memset(s_padstring, '\0', sizeof(s_padstring));
-  i_chk = i_lastspace = 0;
+  i_linecnt = i_chk = i_lastspace = 0;
   i_savejust = -1;
 
   if( !fm->fieldwidth ) {
@@ -7932,12 +7933,16 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
           if ( (*s == '\n') || (*s == '\r')) {
              i_chk = 0;
              i_lastspace = 0;
+             i_linecnt++;
           }
           if ( idx > (LBUF_SIZE - 12) )
              break;
           if ( (fm->cutatlength != 0) && (idy >= fm->cutatlength) )
              break;
-          if ( ((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd))) {
+          if ( ((!*start_line || (i_linecnt <= *start_line)) && 
+                 (((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd)))) ||
+               ((*start_line && (i_linecnt > *start_line )) && 
+                 (((i_chk+1) > (fm->fieldwidth + morepadd + *adjust_padd)) && (i_stripansi > (fm->fieldwidth + morepadd + *adjust_padd)))) ) {
              if ( i_lastspace > 0 ) { 
                 t = s_padstring + i_lastspace;
                 if ( *t ) 
@@ -7955,6 +7960,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
                 *t++ = '\n';
                 i_chk = 0;
              }
+             i_linecnt++;
              idx+=2;
              i_lastspace = 0;
           }
@@ -8007,6 +8013,20 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx,
        strcpy(fmtbuff, s_padstring);
        memset(s_padstring, '\0', sizeof(s_padstring));
     } 
+    i_linecnt = 0;
+    if ( !(fm->morepadd & 1) ) {
+       *adjust_padd = 0;
+       *start_line = 0;
+    } else {
+       s = fmtbuff;
+       while ( *s ) {
+          if ( *s == '\n' )
+             i_linecnt++;
+          s++;
+       }
+       *adjust_padd = fm->fieldwidth;
+       *start_line = i_linecnt;
+    }
     x1 = x2 = '\0';
     i_stripansi = i_chk = idx = 0;
     if ( fm->breakonreturn ) {
@@ -8859,10 +8879,12 @@ FUNCTION(fun_printf)
    int i_breakarray[30], i_widtharray[30];
    int morepadd = 0;
    int i_outbuff = 0;
+   int adjust_padd, start_line;
    char *s_strarray[30], *s_strptr, *s_tmpbuff, *outbuff, *outbuff2, *o_p1, *o_p2;
    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
    struct timefmt_format fm, fm_array[30];
 
+   adjust_padd = start_line = 0;
    if ( (nfargs < 2) || (nfargs > 28) ) {
       safe_str("#-1 FUNCTION (PRINTF) EXPECTS BETWEEN 2 AND 28 ARGUMENTS [RECEIVED ", buff, bufcx);
       ival(buff, bufcx, nfargs);
@@ -9262,13 +9284,13 @@ FUNCTION(fun_printf)
                                  i_breakarray[i_arrayval] = 0;
                               i_widtharray[i_arrayval] = fm.fieldwidth;
                               i_totwidth = 0;
-                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, s_strarray[i_arrayval], &s_strptr, morepadd);
+                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, s_strarray[i_arrayval], &s_strptr, morepadd, &adjust_padd, &start_line);
                               fm.forcebreakonreturn = 0;
                               fm_array[i_arrayval] = fm;
                               i_arrayval++;
                               i_loopydo = 1;
                            } else {
-                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, (char *)NULL, (char **)NULL, morepadd);
+                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, (char *)NULL, (char **)NULL, morepadd, &adjust_padd, &start_line);
                               if ( fm.supressing )
                                  i_totwidth -= fm.fieldwidth;
                            }
@@ -9325,6 +9347,7 @@ FUNCTION(fun_printf)
             break;
       } /* Case */
    } /* For */
+   start_line = adjust_padd = 0;
    if ( i_arrayval > 0 ) {
       s_tmpbuff = alloc_lbuf("fun_printf_tempbuff");
       while ( i_loopydo ) {
@@ -9363,13 +9386,13 @@ FUNCTION(fun_printf)
             }
             if ( strchr(s_strarray[i], '\n') != NULL ) {
                s_strptr = s_tmpbuff;
-               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, s_tmpbuff, &s_strptr, morepadd);
+               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, s_tmpbuff, &s_strptr, morepadd, &adjust_padd, &start_line);
                strcpy(s_strarray[i], s_tmpbuff);
                i_loopydo = 1;
                i_widtharray[i] = i_widtharray[i] + i_totwidth;
                i_totwidth = 0;
             } else {
-               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, (char *)NULL, (char **)NULL, morepadd);
+               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, (char *)NULL, (char **)NULL, morepadd, &adjust_padd, &start_line);
                fmtdone = 0;
                if ( *s_strarray[i] )
                   fmtdone = 1;
