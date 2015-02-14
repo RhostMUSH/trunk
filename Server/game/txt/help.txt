@@ -27225,6 +27225,7 @@ Changes
 * @set, &, set(), and setr() are now PennMUSH style TREE aware optionally [ASH]
 * Enabled signal catch debugging information [ASH]
 * @include has /override switch that will mimic how arguments are assigned like Penn [ASH]
+* ' option to printf() is now more useful with how it padds [ASH]
   
 Bug Fixes
 ---------
