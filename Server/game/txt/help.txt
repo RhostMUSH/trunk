@@ -15499,13 +15499,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: reverse()
   
 & BEFORE()
-  Function: before(<string1>, <string2>)
+  Function: before(<string1>, <string2> [,<key>])
  
   Returns the portion of <string1> that occurs before <string2>.  If <string2>
   does not occur in <string1>, the entire string is returned.
   If you want to return the portion of the string after the first space,
   use the first() function instead.  This function is case sensitive.
- 
+  
+  You may specify a <key> of 1 to disable ansi handling which will speed
+  this function up.  The default is '0' which allows ansi handling.
+   
   Examples:
     > say before(This is a test,a)
     You say "This is "
@@ -15554,13 +15557,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: idle(), conn(), lwho(), @selfboot
   
 & AFTER()
-  Function: after(<string1>, <string2>)
+  Function: after(<string1>, <string2> [,<key>])
  
   Returns the portion of <string1> that occurs after <string2>.  If <string2>
   does not occur in <string1>, a null string is returned.
   If you want to return the portion of the string after the first space,
   use the rest() function instead.  This function is case sensitive.
- 
+  
+  You may specify a <key> of 1 to disable ansi handling which will speed
+  this function up.  The default is '0' which allows ansi handling.
+   
   Examples:
     > say after(This is a test,a)
     You say " test"
@@ -27226,6 +27232,7 @@ Changes
 * Enabled signal catch debugging information [ASH]
 * @include has /override switch that will mimic how arguments are assigned like Penn [ASH]
 * ' option to printf() is now more useful with how it padds [ASH]
+* before() and after() have a switch to disable ansi-awareness for speed [ASH]
   
 Bug Fixes
 ---------

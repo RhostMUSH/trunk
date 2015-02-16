@@ -21026,19 +21026,23 @@ FUNCTION(fun_revwords)
 FUNCTION(fun_after)
 {
     char *bp, *cp, *mp, *string, *s_output;
-    int mlen;
+    int mlen, i_noansi;
     ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
     if (nfargs == 0) {
         return;
     }
-    if (!fn_range_check("AFTER", nfargs, 1, 2, buff, bufcx))
+    if (!fn_range_check("AFTER", nfargs, 1, 3, buff, bufcx))
         return;
     bp = fargs[0];
     mp = fargs[1];
 
     /* Sanity-check arg1 and arg2 */
 
+    i_noansi = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_noansi = ( atoi(fargs[2]) ? 1 : 0);
+    }
     if (bp == NULL)
         bp = "";
     if (mp == NULL)
@@ -21049,9 +21053,13 @@ FUNCTION(fun_after)
     if ((mlen == 1) && (*mp == ' '))
         bp = trim_space_sep(bp, ' ');
 
-    initialize_ansisplitter(outsplit, LBUF_SIZE);
     string = alloc_lbuf("fun_after");
-    split_ansi(strip_ansi(bp), string, outsplit);
+    if ( i_noansi ) {
+       sprintf(string, "%s", bp);
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       split_ansi(strip_ansi(bp), string, outsplit);
+    }
     bp = string;
     p_sp = outsplit;
 
@@ -21072,10 +21080,14 @@ FUNCTION(fun_after)
             /* Yup, return what follows */
             p_sp = p_sp + (cp - bp) + mlen;
             bp = cp + mlen;
-            s_output = rebuild_ansi(bp, p_sp);
-            safe_str(s_output, buff, bufcx);
+            if ( i_noansi ) {
+               safe_str(bp, buff, bufcx);
+            } else {
+               s_output = rebuild_ansi(bp, p_sp);
+               safe_str(s_output, buff, bufcx);
+               free_lbuf(s_output);
+            }
             free_lbuf(string);
-            free_lbuf(s_output);
             return;
          }
          /* Continue search after found first character */
@@ -21092,13 +21104,13 @@ FUNCTION(fun_after)
 FUNCTION(fun_before)
 {
     char *bp, *cp, *mp, *ip, *string, *s_output;
-    int mlen;
+    int mlen, i_noansi;
     ANSISPLIT outsplit[LBUF_SIZE];
 
     if (nfargs == 0) {
        return;
     }
-    if (!fn_range_check("BEFORE", nfargs, 1, 2, buff, bufcx))
+    if (!fn_range_check("BEFORE", nfargs, 1, 3, buff, bufcx))
        return;
 
     bp = fargs[0];
@@ -21106,6 +21118,10 @@ FUNCTION(fun_before)
 
     /* Sanity-check arg1 and arg2 */
 
+    i_noansi = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_noansi = ( atoi(fargs[2]) ? 1 : 0);
+    }
     if (bp == NULL)
        bp = "";
     if (mp == NULL)
@@ -21116,9 +21132,13 @@ FUNCTION(fun_before)
     if ((mlen == 1) && (*mp == ' '))
        bp = trim_space_sep(bp, ' ');
 
-    initialize_ansisplitter(outsplit, LBUF_SIZE);
     string = alloc_lbuf("fun_before");
-    split_ansi(strip_ansi(bp), string, outsplit);
+    if ( !i_noansi ) {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       split_ansi(strip_ansi(bp), string, outsplit);
+    } else {
+       sprintf(string, "%s", bp);
+    }
 
     bp = ip = string;
 
@@ -21133,10 +21153,14 @@ FUNCTION(fun_before)
 
            /* Not found, return entire string */
 
-           s_output = rebuild_ansi(ip, outsplit);
-           safe_str(s_output, buff, bufcx);
+           if ( i_noansi ) {
+              safe_str(ip, buff, bufcx);
+           } else {
+              s_output = rebuild_ansi(ip, outsplit);
+              safe_str(s_output, buff, bufcx);
+              free_lbuf(s_output);
+           }
            free_lbuf(string);
-           free_lbuf(s_output);
            return;
        }
        /* See if what follows is what we are looking for */
@@ -21146,10 +21170,14 @@ FUNCTION(fun_before)
            /* Yup, return what follows */
 
            *cp = '\0';
-           s_output = rebuild_ansi(ip, outsplit);
-           safe_str(s_output, buff, bufcx);
+           if ( i_noansi ) { 
+              safe_str(ip, buff, bufcx);
+           } else {
+              s_output = rebuild_ansi(ip, outsplit);
+              safe_str(s_output, buff, bufcx);
+              free_lbuf(s_output);
+           }
            free_lbuf(string);
-           free_lbuf(s_output);
            return;
        }
        /* Continue search after found first character */
@@ -21159,10 +21187,14 @@ FUNCTION(fun_before)
 
     /* Ran off the end without finding it */
 
-    s_output = rebuild_ansi(ip, outsplit);
-    safe_str(s_output, buff, bufcx);
+    if ( i_noansi ) {
+       safe_str(ip, buff, bufcx);
+    } else {
+       s_output = rebuild_ansi(ip, outsplit);
+       safe_str(s_output, buff, bufcx);
+       free_lbuf(s_output);
+    }
     free_lbuf(string);
-    free_lbuf(s_output);
     return;
 }
 
