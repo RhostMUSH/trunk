@@ -14531,10 +14531,18 @@ FUNCTION(fun_right)
 
 FUNCTION(fun_mid)
 {
-    int l, len;
+    int l, len, i_noansi;
     char *outbuff, *s_output;
     ANSISPLIT outsplit[LBUF_SIZE];
 
+
+    if (!fn_range_check("MID", nfargs, 3, 4, buff, bufcx))
+       return;
+
+    i_noansi = 0;
+    if ( (nfargs > 3) && *fargs[3] ) {
+       i_noansi = (atoi(fargs[3]) ? 1 : 0);
+    }
 
     l = atoi(fargs[1]);
     len = atoi(fargs[2]);
@@ -14544,18 +14552,26 @@ FUNCTION(fun_mid)
     }
 
 
-    initialize_ansisplitter(outsplit, LBUF_SIZE);
     outbuff = alloc_lbuf("fun_mid");
     memset(outbuff, '\0', LBUF_SIZE);
-    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+    if ( i_noansi ) {
+       sprintf(outbuff, "%s", fargs[0]);
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+    }
 
     if ( (l + len) < LBUF_SIZE )
        *(outbuff + l + len) = '\0';
 
-    s_output = rebuild_ansi(outbuff+l, outsplit+l);
-    safe_str(s_output, buff, bufcx);
+    if ( i_noansi ) {
+       safe_str(outbuff+l, buff, bufcx);
+    } else {
+       s_output = rebuild_ansi(outbuff+l, outsplit+l);
+       safe_str(s_output, buff, bufcx);
+       free_lbuf(s_output);
+    }
     free_lbuf(outbuff);
-    free_lbuf(s_output);
 }
 
 /* ---------------------------------------------------------------------------
@@ -30025,7 +30041,7 @@ FUN flist[] =
     {"MAX", fun_max, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MEMBER", fun_member, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MERGE", fun_merge, 3, 0, CA_PUBLIC, CA_NO_CODE},
-    {"MID", fun_mid, 3, 0, CA_PUBLIC, 0},
+    {"MID", fun_mid, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"MIN", fun_min, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MIX", fun_mix, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MODIFYTIME", fun_modifytime, 1, 0, CA_PUBLIC, CA_NO_CODE},

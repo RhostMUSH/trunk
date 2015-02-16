@@ -11910,12 +11910,16 @@ See Also: timefmt()
   See Also: words(), wordpos()
   
 & MID()
-  Function: mid(<string>, <first>, <length>)
+  Function: mid(<string>, <first>, <length> [,<key>])
  
   Mid returns a segment of the string, the <length> characters to the
   right of the <first> character.  Note that the first character in a
   string is numbered zero, and not one.
   
+  You may specify a <key> of 1 to tell mid() to take the string raw and
+  not do ansi-aware processing.  This will speed up the function.
+  The default is '0' which does ansi processing.
+   
   Example:
     > say mid(this is a test,3,6)
     You say "s is a"
@@ -27232,7 +27236,7 @@ Changes
 * Enabled signal catch debugging information [ASH]
 * @include has /override switch that will mimic how arguments are assigned like Penn [ASH]
 * ' option to printf() is now more useful with how it padds [ASH]
-* before() and after() have a switch to disable ansi-awareness for speed [ASH]
+* before(), after(), and mid() have a switch to disable ansi-awareness for speed [ASH]
   
 Bug Fixes
 ---------
