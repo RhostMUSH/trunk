@@ -3782,6 +3782,9 @@ check_connect(DESC * d, const char *msg)
 	      if ((!Immortal(player) && !Wizard(player)) || (Wizard(player) && DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)))
 		dc = 0;
 	    }
+            mudstate.chkcpu_stopper = time(NULL);
+            mudstate.chkcpu_toggle = 0;
+            mudstate.chkcpu_locktog = 0;
 	    announce_connect(player, d, dc);
 
             if ( (Wizard(player) || God(player)) && (nplayers >= mudstate.max_logins_allowed) ) {
