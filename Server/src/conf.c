@@ -285,6 +285,7 @@ NDECL(cf_init)
     mudconf.float_precision = 6;		/* Precision of math functions */
     mudconf.file_object = -1;		/* File object for @list_file overloading */
     mudconf.ansi_default = 0;		/* Allow ansi aware functions ansi default */
+    mudconf.accent_extend = 0;		/* Can we extend accents from 251-255? */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3434,6 +3435,9 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.debug_id, 0, 0, CA_WIZARD,
      (char *) "Unique key for debug monitor.\r\n"\
               "                             Default: 42010   Value: %d"},
+    {(char *) "accent_extend",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.accent_extend, 0, 0, CA_WIZARD,
+     (char *) "Are accents extended past 250 to 255??"},
     {(char *) "ansi_default",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ansi_default, 0, 0, CA_WIZARD,
      (char *) "Are functions that are ansi aware made ansi-aware by default?"},

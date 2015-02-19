@@ -671,7 +671,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       if ( (i_extendnum >= 32) && (i_extendnum <= 126) ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
                          safe_chr((char) i_extendnum, buff, &bufc);
-                      } else if ( (i_extendnum >= 160) && (i_extendnum <= 250) ) {
+                      } else if ( (i_extendnum >= 160) && 
+                              ((!mudconf.accent_extend && (i_extendnum <= 250)) || (mudconf.accent_extend && (i_extendnum <=255))) ) {
+                         if ( i_extendnum == 255 )
+                            safe_chr((char) i_extendnum, buff2, &bufc2);
                          safe_chr((char) i_extendnum, buff2, &bufc2);
                          safe_chr(' ', buff, &bufc);                         
                       } else {

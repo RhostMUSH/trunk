@@ -27192,6 +27192,7 @@ New Features
 * editansi() allows you to edit ansi encoding in a string [ASH]
 * @depower DARK that will disable all DARK capabilities of the target (and belongings) [ASH]
 * @admin param ansi_default handles high-utilized functions to specify ansi aware default [ASH]
+* @admin accent_extend to allow ASCII 251-255 characters.  Use at your own risk :) [ASH]
 
 Changes
 -------
