@@ -5886,6 +5886,9 @@ FUNCTION(fun_tr)
    if ( i_noansi != 0 ) 
       i_noansi = 1;
 
+   if ( !mudconf.ansi_default )
+      i_noansi = !i_noansi;
+
    if ( (!i_noansi && (strlen(s_instr1) != strlen(strip_all_special(s_instr2)))) ||
         ( i_noansi && (strlen(s_instr1) != strlen(s_instr2))) ) {
       free_lbuf(s_instr1);
@@ -14544,6 +14547,9 @@ FUNCTION(fun_mid)
        i_noansi = (atoi(fargs[3]) ? 1 : 0);
     }
 
+    if ( !mudconf.ansi_default )
+       i_noansi = !i_noansi;
+
     l = atoi(fargs[1]);
     len = atoi(fargs[2]);
     if ((l < 0) || (len < 0) || (len > LBUF_SIZE-1) || (l > LBUF_SIZE-1)) {
@@ -21059,6 +21065,9 @@ FUNCTION(fun_after)
     if ( (nfargs > 2) && *fargs[2] ) {
        i_noansi = ( atoi(fargs[2]) ? 1 : 0);
     }
+    if ( !mudconf.ansi_default )
+       i_noansi = !i_noansi;
+
     if (bp == NULL)
         bp = "";
     if (mp == NULL)
@@ -21138,6 +21147,9 @@ FUNCTION(fun_before)
     if ( (nfargs > 2) && *fargs[2] ) {
        i_noansi = ( atoi(fargs[2]) ? 1 : 0);
     }
+    if ( !mudconf.ansi_default )
+       i_noansi = !i_noansi;
+
     if (bp == NULL)
        bp = "";
     if (mp == NULL)

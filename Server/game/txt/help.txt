@@ -11919,6 +11919,9 @@ See Also: timefmt()
   You may specify a <key> of 1 to tell mid() to take the string raw and
   not do ansi-aware processing.  This will speed up the function.
   The default is '0' which does ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
    
   Example:
     > say mid(this is a test,3,6)
@@ -15512,6 +15515,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   You may specify a <key> of 1 to disable ansi handling which will speed
   this function up.  The default is '0' which allows ansi handling.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
    
   Examples:
     > say before(This is a test,a)
@@ -15570,6 +15576,9 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   You may specify a <key> of 1 to disable ansi handling which will speed
   this function up.  The default is '0' which allows ansi handling.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
    
   Examples:
     > say after(This is a test,a)
@@ -19355,7 +19364,10 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   with every letter explicitly listed, and with the equivalent but briefer 
   character ranges. Literal -'s can be in <find> and <replace> if they are the
   first or last characters in the arguments.
- 
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'type' is reversed.
+   
   Examples:
     > say tr(hello,abcdefghijklmnopqrstuvwxyz,nopqrstuvwxyzabcdefghijklm)
       You say, "uryyb"
@@ -27179,6 +27191,7 @@ New Features
 * @dbclean to purge unused attributes from the db [ASH]
 * editansi() allows you to edit ansi encoding in a string [ASH]
 * @depower DARK that will disable all DARK capabilities of the target (and belongings) [ASH]
+* @admin param ansi_default handles high-utilized functions to specify ansi aware default [ASH]
 
 Changes
 -------

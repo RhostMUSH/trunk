@@ -383,6 +383,7 @@ struct confdata {
 	int	clusterfunc_cap;	/* Cluster cap for processing (function) */
 	int	mux_child_compat;	/* Is it MUX/TM3 compatable for children() */
 	int	mux_lcon_compat;	/* Is it MUX/TM3 compatable for children() */
+	int	ansi_default;		/* Allow functions to be ansi-default aware that can do so */
 	int	switch_search;		/* Switch search() and searchng() */
 	int	signal_crontab;		/* Signal the crontab via USR1 */
         int 	max_name_protect;	/* Maximum name protects allowed */
