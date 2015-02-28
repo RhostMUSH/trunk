@@ -7680,6 +7680,7 @@ struct timefmt_format {
   int forcebreakonreturn;
   int morepadd;
   int cutatlength;
+  int specialpadder;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -7936,7 +7937,8 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
           if ( (*s == '\n') || (*s == '\r')) {
              i_chk = 0;
              i_lastspace = 0;
-             i_linecnt++;
+             if ( *s == '\n' )
+                i_linecnt++;
           }
           if ( idx > (LBUF_SIZE - 12) )
              break;
@@ -8029,6 +8031,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
        }
        *adjust_padd = fm->fieldwidth;
        *start_line = i_linecnt;
+       fm->specialpadder = i_linecnt;
     }
     x1 = x2 = '\0';
     i_stripansi = i_chk = idx = 0;
@@ -8907,6 +8910,7 @@ FUNCTION(fun_printf)
    fm.format_padstsize = 0;
    fm.formatting = 0;
    fm.cutatlength = 0;
+   fm.specialpadder = 0;
    for( pp = fargs[0]; !fmterror && pp && *pp; pp++ ) {
       switch( *pp ) {
          case '!': /* end of fieldsuppress1 */
@@ -9353,7 +9357,9 @@ FUNCTION(fun_printf)
    start_line = adjust_padd = 0;
    if ( i_arrayval > 0 ) {
       s_tmpbuff = alloc_lbuf("fun_printf_tempbuff");
+      i_outbuff = 0;
       while ( i_loopydo ) {
+         i_outbuff++;
          i_loopydo = 0;
          i_totwidth = 0;
          fmtdone = 0;
@@ -9363,8 +9369,10 @@ FUNCTION(fun_printf)
          for ( i = 0; i < i_arrayval; i++ ) {
             morepadd = 0;
             if ( (i > 0) && (fm_array[i-1].morepadd & 1) && !*s_strarray[i-1]  ) {
-               if ( !fmtdone ) 
-                  morepadd += fm_array[i-1].fieldwidth;
+               if ( !fmtdone ) {
+                  if ( i_outbuff >= fm_array[i].specialpadder )
+                     morepadd += fm_array[i-1].fieldwidth;
+               }
                fmtdone = 0;
             } else if ( ((fm_array[i].morepadd & 1) || (fm_array[i].morepadd & 2)) && !*s_strarray[i] ) {
                if ( !(((fm_array[i].morepadd & 2) && (i == 0)) ||
