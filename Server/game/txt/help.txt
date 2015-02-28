@@ -27185,14 +27185,19 @@ New Features
   for @toggledef [ASH]
 * tor_localhost, tor_paranoid for dynamic live TOR proxy protection [ASH]
 * float_precision for floating point decimal precision (default 6) [ASH]
-* file_object parameter to specify dynamic override for connect.txt and friends [ASH]
-* extractword() is a multi-char delimeter/seperator/ansi-aware extract/delextract [ASH]
+* file_object parameter to specify dynamic override for connect.txt and 
+  friends [ASH]
+* extractword() is a multi-char delimeter/seperator/ansi-aware 
+  extract/delextract [ASH]
 * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
 * @dbclean to purge unused attributes from the db [ASH]
 * editansi() allows you to edit ansi encoding in a string [ASH]
-* @depower DARK that will disable all DARK capabilities of the target (and belongings) [ASH]
-* @admin param ansi_default handles high-utilized functions to specify ansi aware default [ASH]
-* @admin accent_extend to allow ASCII 251-255 characters.  Use at your own risk :) [ASH]
+* @depower DARK that will disable all DARK capabilities of the target 
+  (and belongings) [ASH]
+* @admin param ansi_default handles high-utilized functions to specify ansi 
+  aware default [ASH]
+* @admin accent_extend to allow ASCII 251-255 characters.  Use at your own 
+  risk :) [ASH]
 
 Changes
 -------
@@ -27242,15 +27247,18 @@ Changes
 * *_site admin params raised from 1000 chars to LBUF_SIZE [ASH]
 * bittype() optionally handles true staff inheritance checks [ASH]
 * strmath() now handles floating point notation [ASH]
-* localize() optionally has 2nd argument to specify specific regs to localize [ASH]
+* localize() optionally has 2nd argument to specify specific regs to 
+  localize [ASH]
 * tr() is now ANSI-aware, and optionally allows previous behavior [ASH]
 * editansi() enhanced to allow negation of special ansi encoding [ASH]
 * sqlite now recognizes foreign keys [ASH]
 * @set, &, set(), and setr() are now PennMUSH style TREE aware optionally [ASH]
 * Enabled signal catch debugging information [ASH]
-* @include has /override switch that will mimic how arguments are assigned like Penn [ASH]
+* @include has /override switch that will mimic how arguments are assigned 
+  like Penn [ASH]
 * ' option to printf() is now more useful with how it padds [ASH]
-* before(), after(), and mid() have a switch to disable ansi-awareness for speed [ASH]
+* before(), after(), and mid() have a switch to disable ansi-awareness for 
+  speed [ASH]
   
 Bug Fixes
 ---------
@@ -27277,22 +27285,30 @@ Bug Fixes
 * flag_name could crash the mush if fed invalid arg in the .conf file [ASH]
 * small chance of crash with player undefined for @reboot/silent [ASH]
 * crash bug in tel() due to a typo fixed [ASH]
-* mid() had an unitialized field when fetching outside of length (non-crash) [ASH]
-* off by one bug for handling accented characters in ansi translator backcode [ASH]
+* mid() had an unitialized field when fetching outside of length 
+  (non-crash) [ASH]
+* off by one bug for handling accented characters in ansi translator 
+  backcode [ASH]
 * MONITOR_SITE was not handled by master toggle MONITOR [ASH]
 * creplace() was hardcoded with LBUF of 4000 chars [ASH]
 * some better cleanup of other functions for LBUF sizing [ASH]
 * typo with message when you re-wait a @wait by pid [ASH]
 * memory leak in @aflags without arguments [ASH]
-* bad things happened with @remote when issuer of @remote moved while in @remote [ASH]
-* timers would not reset properly without a forced alarm call on signal breaks [ASH]
+* bad things happened with @remote when issuer of @remote moved while in 
+  @remote [ASH]
+* timers would not reset properly without a forced alarm call on signal 
+  breaks [ASH]
 * regedit()'s suite of functions were erraneously locked at 4 args [ASH]
-* compile time warnings with some new additions when ZENTY_ANSI not specified [ASH]
-* mail.c had in the write editor erraneous warnings hardcoded to 4K buffers [ASH]
+* compile time warnings with some new additions when ZENTY_ANSI not 
+  specified [ASH]
+* mail.c had in the write editor erraneous warnings hardcoded to 4K 
+  buffers [ASH]
 * double eval fix in parsestr() [ASH]
 * third party mysql.c had a segsetv fix [ASH]
 * timers had a bug in mysql.c and mis-defined in timer.c [ASH]
 * memory corruption with argument passing in @include could cause a crash [ASH]
 * wrong definition for next_timer with the milisecond timer [ASH]
 * double-alloc in destroy code (non-crash) [ASH]
-* @depowers wouldn't work properly on inheritance when power_objects was enabled [ASH]
+* @depowers wouldn't work properly on inheritance when power_objects was 
+  enabled [ASH]
+* printf() had a one by off padding issue with extra spaces with ' option [ASH]
