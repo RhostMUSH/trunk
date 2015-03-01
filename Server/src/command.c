@@ -5423,73 +5423,114 @@ list_options_system(dbref player)
    time_t c_count, d_count, i_count;
 
    memset(playerchktime, '\0', 25);
+/* "------------------------------------------------------------------" */
+   notify(player, "--- System Player Config Parameters ------------------------------------------");
 #ifdef TINY_SUB
-   sprintf(playerchktime, "%cx is ANSI.", '%');
-   notify(player, playerchktime);
+   sprintf(playerchktime, 
+           "%cx --------------------------------------------------------------- %s",
+           '%', "ANSI");
 #else
-   sprintf(playerchktime, "%cx is last command.", '%');
-   notify(player, playerchktime);
+   sprintf(playerchktime, 
+           "%cx --------------------------------------------------------------- %s",
+           '%', "LASTCMD");
 #endif
+   notify(player, playerchktime);
 #ifdef C_SUB
-   sprintf(playerchktime, "%cc is ANSI.", '%');
-   notify(player, playerchktime);
+   sprintf(playerchktime, 
+           "%cc --------------------------------------------------------------- %s",
+           '%', "ANSI");
 #else
-   sprintf(playerchktime, "%cc is last command.", '%');
-   notify(player, playerchktime);
+   sprintf(playerchktime, 
+           "%cc --------------------------------------------------------------- %s",
+           '%', "LASTCMD");
 #endif
+   notify(player, playerchktime);
 #ifdef M_SUB
-   sprintf(playerchktime, "%cm is ANSI.", '%');
-   notify(player, playerchktime);
+   sprintf(playerchktime, 
+           "%cm --------------------------------------------------------------- %s",
+           '%', "ANSI");
 #else
-   sprintf(playerchktime, "%cm is last command.", '%');
-   notify(player, playerchktime);
+   sprintf(playerchktime, 
+           "%cm --------------------------------------------------------------- %s",
+           '%', "LASTCMD");
 #endif
+   notify(player, playerchktime);
+
    memset(playerchktime, '\0', 25);
 #ifdef TINY_U
-    notify(player, "u()/zfun() uses TinyMUSH compatibility.");
+    notify(player, "u()/zfun() ------------------------------------------------------- PENN/MUX/TM3");
 #else
-    notify(player, "u()/zfun() uses RhostMUSH/MUSE native mode.");
+    notify(player, "u()/zfun() ------------------------------------------------------- RHOST NATIVE");
 #endif
 #ifdef MUX_INCDEC
-    notify(player, "inc() and dec() follows Penn/MUX2/TM3 compatibility.");
-    notify(player, "xinc() and xdec() increments registers ala RhostMUSH.");
+    notify(player, "inc()/dec() ------------------------------------------------------ NUMERIC");
+    notify(player, "xinc()/xdec() ---------------------------------------------------- REGISTERS");
 #else
-    notify(player, "xinc() and xdec() must be used for inc() and dec() compatibility");
-    notify(player, "inc() and dec() increments registers using default RhostMUSH.");
+    notify(player, "inc()/dec() ------------------------------------------------------ REGISTERS");
+    notify(player, "xinc()/xdec() ---------------------------------------------------- NUMERIC");
 #endif
 #ifdef USE_SIDEEFFECT
-    notify(player, "Sideeffects are in use.  SIDEFX flag is needed to use them.");
+    notify(player, "Sideeffects [SIDEFX required] ------------------------------------ ENABLED");
 #else
-    notify(player, "Sideeffects are disabled.");
+    notify(player, "Sideeffects [SIDEFX required] ------------------------------------ DISABLED");
 #endif
 #ifdef ENABLE_COMMAND_FLAG
-    notify(player, "The COMMAND flag is required to use $commands on items.");
+    notify(player, "The COMMAND flag ------------------------------------------------- ENABLED");
+#else
+    notify(player, "The COMMAND flag ------------------------------------------------- DISABLED");
 #endif
 #ifdef EXPANDED_QREGS
-    notify(player, "A-Z setq registers are enabled.");
+    notify(player, "A-Z setq registers ----------------------------------------------- ENABLED");
+#else
+    notify(player, "A-Z setq registers ----------------------------------------------- DISABLED");
 #endif
 #ifdef ATTR_HACK
-    notify(player, "Attributes starting with _ and ~ are allowed.");
     if ( mudconf.hackattr_see == 0 ) {
-       notify(player, "     -- _ attribs are only settable/seeable by wizards");
+       notify(player, "Attributes starting with _ and ~ --------------------------------- WIZARD ONLY");
+    } else {
+       notify(player, "Attributes starting with _ and ~ --------------------------------- ENABLED");
     }
+#else
+    notify(player, "Attributes starting with _ and ~ --------------------------------- DISABLED");
 #endif
 #ifdef BANGS
-    notify(player, "Bang notation (!/!!, !$/!!$, !^/!!^) is allowed.");
+    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] ----------------------------- ENABLED");
+#else
+    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] ----------------------------- DISABLED");
 #endif
 #ifdef QDBM
-    notify(player, "The database engine being used is QDBM.");
+    notify(player, "Database Engine -------------------------------------------------- QDBM");
 #else
-    notify(player, "The database engine being used is GDBM.");
+    notify(player, "Database Engine -------------------------------------------------- GDBM");
 #endif
 #ifdef SQLITE
-    notify(player, "SQLite has been enabled.");
+    notify(player, "SQLite ----------------------------------------------------------- ENABLED");
+#else
+    notify(player, "SQLite ----------------------------------------------------------- DISABLED");
 #endif
 #ifdef MYSQL_VERSION
-    notify(player, "Third party MySQL has been enabled.");
+    notify(player, "Third party MySQL ------------------------------------------------ ENABLED");
+#else
+    notify(player, "Third party MySQL ------------------------------------------------ DISABLED");
 #endif
-    notify(player, unsafe_tprintf("The current BUFFER sizes in use are:\r\n     -- SBUF: %d\r\n     -- LBUF: %d", 
-                              SBUF_SIZE, LBUF_SIZE));
+    if ( mudconf.ansi_default ) {
+       notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
+       notify(player, "     Functions Affected: TR(), BEFORE(), AFTER(), MID()");
+    } else {
+       notify(player, "ANSI handler for functions() ------------------------------------- DISABLED");
+    }
+    notify(player, unsafe_tprintf(
+                       "Floating point precision ----------------------------------------- %d DECIMALS",
+                       mudconf.float_precision));
+    if ( mudconf.accent_extend ) {
+       notify(player, "ASCII 250-255 encoding ------------------------------------------- ENABLED");
+    } else {
+       notify(player, "ASCII 250-255 encoding ------------------------------------------- DISABLED");
+    }
+    notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
+    notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
+                              SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
+    notify(player, unsafe_tprintf("Maximum attribs per object is: %d", mudconf.vlimit));
     if ( Guildmaster(player) ) {
        c_count = (time_t)floor(mudstate.check_counter);
        d_count = (time_t)floor(mudstate.dump_counter);
@@ -5499,7 +5540,8 @@ list_options_system(dbref player)
        strncpy(dbchktime,(char *) ctime(&c_count), 24);
        strncpy(dbdumptime,(char *) ctime(&d_count), 24);
        strncpy(playerchktime,(char *) ctime(&i_count), 24);
-       notify(player, unsafe_tprintf("\r\nSystem Timers:\r\n--> Next DB Check: %s [%s to trigger]\r\n--> Next DB Dump: %s [%s to trigger]\r\n--> Next Idle User Check: %s [%s to trigger]\r\n",
+       notify(player, "\r\n--- System Timers and Triggers -----------------------------------------------");
+       notify(player, unsafe_tprintf("--> Next DB Check: %s [%s to trigger]\r\n--> Next DB Dump: %s [%s to trigger]\r\n--> Next Idle User Check: %s [%s to trigger]\r\n",
                       dbchktime, time_format_2(c_count - mudstate.now, buf2),
                       dbdumptime, time_format_2(d_count - mudstate.now, buf3),
                       playerchktime, time_format_2(i_count - mudstate.now, buf4)));
@@ -5512,7 +5554,8 @@ list_options_system(dbref player)
        strncpy(mailtime,(char *) ctime(&mudstate.mailflat_time), 24);
        strncpy(aregtime,(char *) ctime(&mudstate.aregflat_time), 24);
        strncpy(mushtime,(char *) ctime(&mudstate.mushflat_time), 24);
-       notify(player, unsafe_tprintf("Last Dumps:\r\n--> Mush: %s\r\n--> Mail: %s\r\n--> News: %s\r\n--> Areg: %s",
+       notify(player, "--- System DB Saves and DB Dumps ---------------------------------------------");
+       notify(player, unsafe_tprintf("--> Mush: %s\r\n--> Mail: %s\r\n--> News: %s\r\n--> Areg: %s",
                       (mudstate.start_time == mudstate.mushflat_time  ? "[No Previous Dump]      " :
                             (char *) mushtime ),
                       (mudstate.mail_state == 2 ? "[Mail system disabled]  " :
@@ -5522,6 +5565,7 @@ list_options_system(dbref player)
                       (mudstate.start_time == mudstate.aregflat_time ? "[No Previous Dump]      " :
                             (char *) aregtime )));
     }
+    notify(player, "------------------------------------------------------------------------------");
 }
 
 static void
