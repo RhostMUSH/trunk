@@ -6,7 +6,13 @@
 #
 #Standard defines
 
-echo "This will pull the latest SVN distribution from the primary trunk."
+if [ -d ./Server/game ]
+then
+   echo "You don't want to do this.  If you want the latest distro, please"
+   echo "go into the 'Server' directory and type './patch.sh'"
+   exit 0
+fi
+echo "This will pull the latest GIT distribution from the primary trunk."
 echo "This script will also autorun the make confsource to compile the code"
 echo "and issue ./Startmush to start up your mush."
 echo ""

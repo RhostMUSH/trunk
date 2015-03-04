@@ -3,7 +3,9 @@ This is the following layout:
 DevTools/  		-- currently unused
 Plugins/  		-- currently unused 
 rhost_installer.sh*	-- The installsetup script.  Not needed
-                           if you have actually grabbed the tarball.
+                           if you have actually grabbed the tarball or if
+                           you downloaded the latest git repository.
+                           Use patch.sh to update the source tree once received.
 Contrib/  		-- currently unused
 Mushcode/  		-- currently unused
 Server/			-- the main RhostMUSH directory.  To configure you
