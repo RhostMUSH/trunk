@@ -27312,3 +27312,4 @@ Bug Fixes
 * @depowers wouldn't work properly on inheritance when power_objects was 
   enabled [ASH]
 * printf() had a one by off padding issue with extra spaces with ' option [ASH]
+* off by one buffer count for ansi_txtfile parameter caused bleeding [ASH]

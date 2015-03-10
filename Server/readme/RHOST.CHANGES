@@ -15,6 +15,8 @@ Fix for Mysql.c issue in a sigfault
 				- Thanks Ol'Sarge
 @depower didn't work right for inheritance on power_objects
 				- Thanks Sunder
+Buffer overrun in ansi_txtfile because of non-null termination.
+				- Thanks Rook
 
 
 		         RhostMUSH 3.9.4 Update File

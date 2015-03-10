@@ -137,6 +137,7 @@ fcache_read(FBLOCK ** cp, char *filename)
 	return -1;
     }
     buff = alloc_lbuf("fcache_read.temp");
+    memset(buff, '\0', LBUF_SIZE);
 
     /* Set up the initial cache buffer to make things easier */
 
@@ -155,19 +156,19 @@ fcache_read(FBLOCK ** cp, char *filename)
     if ( mudconf.ansi_txtfiles ) {
        memset(lbuf1, '\0', LBUF_SIZE);
        memset(lbuf2, '\0', LBUF_SIZE);
-       nmax2 = read(fd, buff, LBUF_SIZE);
+       nmax2 = read(fd, buff, LBUF_SIZE - 1);
        if ( nmax2 > 0 ) {
 #ifdef ZENTY_ANSI
           lbuf1ptr = lbuf1;
           lbuf2ptr = lbuf2;
           parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
 #else
-          strcpy(lbuf1, buff);
+          strncpy(lbuf1, buff, LBUF_SIZE - 1);
 #endif
        }
        nmax = strlen(lbuf1);
     } else {
-       nmax = nmax2 = read(fd, lbuf1, LBUF_SIZE);
+       nmax = nmax2 = read(fd, lbuf1, LBUF_SIZE - 1);
     }
     while ( (nmax > 0) && (nmax2 > 0) ) {
 	for (n = 0; n < nmax; n++) {
@@ -185,7 +186,7 @@ fcache_read(FBLOCK ** cp, char *filename)
 	    }
 	}
         if ( mudconf.ansi_txtfiles ) {
-	   nmax2 = read(fd, buff, LBUF_SIZE);
+	   nmax2 = read(fd, buff, LBUF_SIZE - 1);
            memset(lbuf1, '\0', LBUF_SIZE);
            memset(lbuf2, '\0', LBUF_SIZE);
            if ( nmax2 > 0 ) {
@@ -194,12 +195,12 @@ fcache_read(FBLOCK ** cp, char *filename)
               lbuf2ptr = lbuf2;
               parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
 #else
-              strcpy(lbuf1, buff);
+              strncpy(lbuf1, buff, LBUF_SIZE - 1);
 #endif
            }
            nmax = strlen(lbuf1);
         } else {
-	   nmax = nmax2 = read(fd, lbuf1, LBUF_SIZE);
+	   nmax = nmax2 = read(fd, lbuf1, LBUF_SIZE - 1);
         }
         tot_lines++;
         if ( tot_lines > max_lines ) {
