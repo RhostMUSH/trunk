@@ -1,0 +1,106 @@
+There are differences in the initial set up from Rhost to PennMUSH.
+
+A lot of people use PennMUSH and if you are one of them, this may help you.
+
+First, help is seperated into 'help' and 'wizhelp'.  This can be confusing.
+If you want to 'combine' them, you may use the following code snippit:
+
+$ahelp*:@pemit %#=[switch([!!words(%0)][match(/search,%0*)],0?,[setq(0,help)][setq(1,0)],11,[setq(0,rest(%0))][setq(1,2)],setq(0,trim(%0)))][setq(a,textfile(help,%q0,%q1))][setq(b,textfile(wizhelp,%q0,%q1))][setq(2,)][ifelse(!strmatch(%qa,No entry*),%qa[setq(2,%r)])][ifelse(!strmatch(%qb,No entry*),%q2%qb[setq(2,%r)])][ifelse(!$r(2),No topics found for '%q0'.)]
+
+This will display help from help and wizhelp for any matching topic.  It should make life easier for you.
+This also honors the /search switch.
+
+The comsystem is softcode and included in the readme directory. (comsys).  Just load it in.
+The mail wrappers can be gotten from http://code.google.com/p/rhostmush
+Please see the other readme files on setting other things up like guests, master rooms, and so forth.
+
+The following are used for compatibility to keep in mind:
+
+FLAGS Pennmush----------------RhostMUSH
+      ABODE                   ABODE
+      ANSI                    ANSI
+      AUDIBLE                 AUDIBLE
+      CHAN_USEFIRSTMATCH      N/A
+      CHOWN_OK                CHOWN_OK
+      CLOUDY                  N/A
+      COLOR                   ANSICOLOR
+      DARK                    DARK
+      DEBUG                   TRACE
+      DESTROY_OK              DESTROY_OK 
+      ENTER_OK                ENTER_OK
+      FIXED                   NO_TEL
+      FLOATING                FLOATING
+      GAGGED                  GAGGED
+      HALT                    HALT
+      HAVEN                   HAVEN
+      HEAR_CONNECT            MONITOR (@toggle)
+      HEAVY                   NO_TEL/@lock-teleport
+      JUMP_OK                 JUMP_OK
+      KEEPALIVE               KEEPALIVE (@toggle)
+      LIGHT                   LIGHT
+      LINK_OK                 LINK_OK
+      LISTEN_PARENT           (@admin listen_parents)
+      LOUD                    NO_OVERRIDE/NO_USELOCK
+      MISTRUST                GUILDOBJ/NO_GOBJ/BACKSTAGE/NOBACKSTAGE
+      MONIKER                 EXTANSI (@toggle)
+      MONITOR                 MONITOR
+      MYOPIC                  MYOPIC
+      NOACCENTS               ACCENTS (@toggle)
+      NOSPOOF                 NOSPOOF
+      NO_COMMAND              NO_COMMAND
+      NO_LEAVE                @icmd leave/@lock-leave
+      NO_TEL                  NO_TEL
+      ON-VACATION             MARKER0-MARKER9
+      OPAQUE                  OPAQUE
+      OPEN_OK                 @lock-openfrom
+      ORPHAN                  NOGLOBPARENT (@toggle)
+      PUPPET                  PUPPET
+      QUIET                   QUIET
+      ROYALTY                 GUILDMASTER/ARCHITECT/COUNCILOR
+      SAFE                    SAFE
+      STICKY                  STICKY
+      TERSE                   TERSE
+      TRANSPARENT             TRANSPARENT
+      UNFINDABLE              UNFINDABLE
+      VERBOSE                 VERBOSE
+      VISUAL                  VISUAL
+      WIZARD                  WIZARD/IMMORTAL
+      XTERM256                XTERMCOLOR
+
+
+@powers Pennmush----------------RhostMUSH
+        Announce                FREE_WALL
+        Boot                    BOOT
+        Builder                 @quota !WANDERER (flag)
+        CAN_DARK                @admin player_dark/@depower dark
+        Can_spoof               N/A - Wizard+ auto-spoof
+        Cemit                   N/A
+        Chat_Privs              N/A
+        DEBIT                   STEAL
+        Functions               Wizard+ only (See @lfunctions)
+        Guest                   GUEST (flag)
+        HOOK                    Wizard+ only
+        Halt                    HALT_QUEUE/HALT_QUEUE_ALL
+        Hide                    NOWHO
+        Idle                    @timeout player to -1
+        Link_Anywhere           N/A (security risk)
+        Login                   LOGIN (flag)
+        Long_Fingers            LONG_FINGERS
+        MANY_ATTRIBS            (@admin vlimit)
+        No_Pay                  FREE (flag)
+        No_Quota                FREE_QUOTA
+        Open_Anywhere           N/A (security risk)
+        PICK_DBREFS             Wizard+ only
+        PUEBLO_SEND             N/A
+        Pemit_All               LONG_FINGERS
+        Player_Create           Wizard+ only (security risk)
+        Poll                    N/A -- Softcode @doing/header
+        Queue                   SEE_QUEUE/SEE_QUEUE_ALL/HALT_QUEUE/HALT_QUEUE_ALL
+        Quotas                  GUILDMASTER (flag)
+        SQL_OK                  N/A 
+        Search                  SEARCH_ANY
+        See_All                 EXAMINE_FULL
+        See_Queue               SEE_QUEUE/SEE_QUEUE_ALL
+        Tport_Anything          TEL_ANYTHING
+        Tport_Anywhere          TEL_ANYWHERE
+        Unkillable              NOKILL
