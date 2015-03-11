@@ -1,0 +1,910 @@
+There are differences in the initial set up from Rhost to PennMUSH.
+
+A lot of people use PennMUSH and if you are one of them, this may help you.
+
+NOTE:  If you plan to use sideeffects, you must set the SIDEFX flag to allow 
+       the target to use it
+
+First, help is seperated into 'help' and 'wizhelp'.  This can be confusing.
+If you want to 'combine' them, you may use the following code snippit:
+
+$ahelp*:@pemit %#=[switch([!!words(%0)][match(/search,%0*)],0?,[setq(0,help)][setq(1,0)],11,[setq(0,rest(%0))][setq(1,2)],setq(0,trim(%0)))][setq(a,textfile(help,%q0,%q1))][setq(b,textfile(wizhelp,%q0,%q1))][setq(2,)][ifelse(!strmatch(%qa,No entry*),%qa[setq(2,%r)])][ifelse(!strmatch(%qb,No entry*),%q2%qb[setq(2,%r)])][ifelse(!$r(2),No topics found for '%q0'.)]
+
+This will display help from help and wizhelp for any matching topic.  It 
+should make life easier for you.  This also honors the /search switch.
+
+The comsystem is softcode and included in the readme directory. (comsys).  
+Just load it in.  The mail wrappers can be gotten from:
+
+                      http://code.google.com/p/rhostmush
+
+Please see the other readme files on setting other things up like 
+guests, master rooms, and so forth.
+
+The following are used for compatibility to keep in mind:
+
+@commands Pennmush----------------RhostMUSH
+          @@                      @@
+          @ALLHALT                @halt/all
+          @ALLQUOTA               @quota/all
+          @ASSERT                 @assert
+          @ATRCHOWN               @chown
+          @ATRLOCK                @lock
+          @ATTRIBUTE              @attribute
+          @BOOT                   @boot
+          @BREAK                  @break
+          @CEMIT                  N/A
+          @CHANNEL                N/A
+          @CHAT                   N/A
+          @CHOWN                  @chown
+          @CHOWNALL               @chownall
+          @CHZONE                 @zone
+          @CHZONEALL              @zone
+          @CLOCK                  N/A
+          @CLONE                  @clone
+          @COMMAND                N/A
+          @CONFIG                 @admin
+          @CPATTR                 @cpattr
+          @CREATE                 @create
+          @DBCK                   @dbck
+          @DECOMPILE              @decompile 
+          @DESTROY                @destroy
+          @DIG                    @dig
+          @DISABLE                @disable
+          @DOLIST                 @dolist
+          @DRAIN                  @drain
+          @DUMP                   @dump
+          @EDIT                   @edit
+          @ELOCK                  @lock/enter
+          @EMIT                   @emit
+          @ENABLE                 @enable
+          @ENTRANCES              @entrances
+          @EUNLOCK                @unlock/enter
+          @FIND                   @find
+          @FIRSTEXIT              N/A
+          @FLAG                   @flag
+          @FORCE                  @force
+          @FUNCTION               @function/@lfunction
+          @GREP                   @grep
+          @HALT                   @halt
+          @HIDE                   @hide
+          @HOOK                   @hook
+          @INCLUDE                @include
+          @KICK                   @kick
+          @LEMIT                  @lemit
+          @LINK                   @link
+          @LIST                   @list
+          @LISTMOTD               @listmotd
+          @LOCK                   @lock
+          @LOG                    @log
+          @LOGWIPE                N/A
+          @LSET                   @set
+          @MAIL                   mail
+          @MALIAS                 wmail/alias
+          @MAPSQL                 N/A
+          @MESSAGE                @pemit/@remit + parsestr()
+          @MONIKER                @extansi
+          @MOTD                   @motd
+          @MVATTR                 @mvattr
+          @NAME                   @name
+          @NEWPASSWORD            @newpassword
+          @NOTIFY                 @notify
+          @NSCEMIT                N/A
+          @NSEMIT                 @emit
+          @NSLEMIT                @lemit
+          @NSOEMIT                @oemit
+          @NSPEMIT                @pemit
+          @NSPROMPT               N/A
+          @NSREMIT                @remit
+          @NSZEMIT                @zemit
+          @NUKE                   @destroy/@nuke
+          @OEMIT                  @oemit
+          @OPEN                   @open
+          @PARENT                 @parent
+          @PASSWORD               @password
+          @PCREATE                @pcreate
+          @PEMIT                  @pemit
+          @POLL                   @doing/header
+          @POOR                   @poor
+          @POWER                  @power
+          @PROMPT                 N/A (@program?)
+          @PS                     @ps
+          @PURGE                  @timewarp/dump 1
+          @QUOTA                  @quota
+          @READCACHE              @readcache
+          @RECYCLE                @purge
+          @REJECTMOTD             @rejectmotd
+          @REMIT                  @remit
+          @RESTART                @reboot
+          @RETRY                  N/A
+          @RWALL                  @wall/wiz
+          @SCAN                   (see softcode)
+          @SEARCH                 @search
+          @SELECT                 @switch/first
+          @SET                    @set
+          @SHUTDOWN               @shutdown
+          @SITELOCK               @admin forbid_host/forbid_site
+          @SLAVE                  N/A
+          @SOCKSET                N/A
+          @SQL                    (only if MySQL enabled)
+          @SQUOTA                 @quota
+          @STATS                  @stats
+          @SWEEP                  @sweep
+          @SWITCH                 @switch
+          @TELEPORT               @teleport
+          @TRIGGER                @trigger
+          @ULOCK                  @lock/use
+          @UNDESTROY              @recover
+          @UNLINK                 @unlink
+          @UNLOCK                 @unlock
+          @UNRECYCLE              @recover
+          @UPTIME                 @uptime
+          @UUNLOCK                @unlock/use
+          @VERB                   @verb
+          @VERSION                @version
+          @WAIT                   @wait
+          @WALL                   @wall
+          @WARNINGS               N/A
+          @WCHECK                 N/A
+          @WEBPASSWD              N/A
+          @WHEREIS                @whereis
+          @WIPE                   @wipe
+          @WIZMOTD                @wizmotd
+          @WIZWALL                @wall/wiz
+          @ZEMIT                  @zemit
+          ANEWS                   @dynhelp
+          ATTRIB_SET              (@hook on S)
+          BRIEF                   ex/brief
+          BUY                     N/A
+          DESERT                  (see follow softcode)
+          DISMISS                 (see follow softcode)
+          DOING                   doing
+          DROP                    drop
+          EMPTY                   @tel/list lcon(target)=me
+          ENTER                   enter
+          EXAMINE                 examine
+          FOLLOW                  (see follow softcode)
+          GET                     get
+          GIVE                    give
+          GOTO                    goto
+          HELP                    help/wizhelp
+          HOME                    home
+          HUH_COMMAND             @admin global_error_obj
+          INVENTORY               inventory
+          KILL                    kill
+          LEAVE                   leave
+          LOOK                    look
+          NEWS                    news
+          PAGE                    page/lpage/rpage/mrpage
+          POSE                    pose
+          SAY                     say
+          SCORE                   score
+          SEMIPOSE                pose/nospace 
+          SESSION                 session
+          SLAY                    slay
+          TEACH                   train
+          THINK                   think
+          UNFOLLOW                (see follow softcode)
+          UNIMPLEMENTED_COMMAND   @admin global_error_obj
+          USE                     use
+          WARN_ON_MISSING         N/A
+          WHISPER                 whisper
+          WHO                     who
+          WITH                    N/A
+
+Commands that exist in Rhost that have no PennMUSH equivelant:
+@aflags                      @apply_marked                 @areg
+@blacklist                   @cluster                      @conncheck
+@convert                     @cut                          @dbclean
+@depower                     @dynhelp                      @eval
+@femit                       @fixdb                        @fpose
+@freeze                      @fsay                         @icmd
+@last                        @lfunction                    @limit
+@logrotate                   @mark                         @mark_all
+@money                       @program                      @progreset
+@protect                     @quitprogram                  @reclist
+@recover                     @register                     @remote
+@robot                       @rxlevel                      @skip
+@snapshot                    @snoop                        @thaw
+@timewarp                    @toad                         @toggle
+@toggledef                   @tor                          @turtle
+@txlevel                     @whereall                     grab
+join                         listen                        mrpage
+newsdb                       rpage                         smell
+taste                        touch                         wielded
+worn                         +players
+
+FLAGS Pennmush----------------RhostMUSH
+      ABODE                   ABODE
+      ANSI                    ANSI
+      AUDIBLE                 AUDIBLE
+      CHAN_USEFIRSTMATCH      N/A
+      CHOWN_OK                CHOWN_OK
+      CLOUDY                  N/A
+      COLOR                   ANSICOLOR
+      DARK                    DARK
+      DEBUG                   TRACE
+      DESTROY_OK              DESTROY_OK 
+      ENTER_OK                ENTER_OK
+      FIXED                   NO_TEL
+      FLOATING                FLOATING
+      GAGGED                  GAGGED
+      HALT                    HALT
+      HAVEN                   HAVEN
+      HEAR_CONNECT            MONITOR (@toggle)
+      HEAVY                   NO_TEL/@lock-teleport
+      JUMP_OK                 JUMP_OK
+      KEEPALIVE               KEEPALIVE (@toggle)
+      LIGHT                   LIGHT
+      LINK_OK                 LINK_OK
+      LISTEN_PARENT           (@admin listen_parents)
+      LOUD                    NO_OVERRIDE/NO_USELOCK
+      MISTRUST                GUILDOBJ/NO_GOBJ/BACKSTAGE/NOBACKSTAGE
+      MONIKER                 EXTANSI (@toggle)
+      MONITOR                 MONITOR
+      MYOPIC                  MYOPIC
+      NOACCENTS               ACCENTS (@toggle)
+      NOSPOOF                 NOSPOOF
+      NO_COMMAND              NO_COMMAND
+      NO_LEAVE                @icmd leave/@lock-leave
+      NO_TEL                  NO_TEL
+      ON-VACATION             MARKER0-MARKER9
+      OPAQUE                  OPAQUE
+      OPEN_OK                 @lock-openfrom
+      ORPHAN                  NOGLOBPARENT (@toggle)
+      PUPPET                  PUPPET
+      QUIET                   QUIET
+      ROYALTY                 GUILDMASTER/ARCHITECT/COUNCILOR
+      SAFE                    SAFE
+      STICKY                  STICKY
+      TERSE                   TERSE
+      TRANSPARENT             TRANSPARENT
+      UNFINDABLE              UNFINDABLE
+      VERBOSE                 VERBOSE
+      VISUAL                  VISUAL
+      WIZARD                  WIZARD/IMMORTAL
+      XTERM256                XTERMCOLOR
+
+Flags and Toggles that exist in Rhost that have no PennMUSH equivelant:
+------ Flags
+ALTQUOTA                     ANONYMOUS                     ARCHITECT
+AUDITORIUM                   BLIND                         BOUNCE
+CLOAK                        COUNCILOR                     FUBAR
+GUILDMASTER                  GUILDOBJ                      IMMORTAL
+INDESTRUCTABLE               NO_ANSINAME                   NO_BACKSTAGE
+NO_CODE                      NO_CONNECT                    NO_EXAMINE
+NO_FLASH                     NO_GOBJ                       NO_MODIFY
+NO_MOVE                      NO_NAME                       NO_OVERRIDE
+NO_PESTER                    NO_POSSESS                    NO_STOP
+NO_UNDERLINE                 NO_USELOCK                    NO_WALLS
+NO_YELL                      PRIVATE                       ROBOT
+SCLOAK                       SEE_OEMIT                     SHOWFAILCMD
+SIDEFX                       SPAMMONITOR                   SPOOF
+STOP                         WANDERER                      ZONECONTENTS
+ZONEPARENT
+------ Toggles
+ATRUSE                       CHKREALITY                    CPUTIME
+EXFULLWIZATTR                FORCEHALTED                   HIDEIDLE
+IGNOREZONE                   IMMPROG                       LOGROOM
+MAILVALIDATE                 MAIL_LOCKDOWN                 MAIL_NOPARSE
+MAIL_STRIPRETURN             MONITOR_AREG                  MONITOR_BAD
+MONITOR_CONN                 MONITOR_CPU                   MONITOR_DISREASON
+MONITOR_FAIL                 MONITOR_SITE                  MONITOR_STATS
+MONITOR_TIME                 MONITOR_USERID                MONITOR_VLIMIT
+MORTALREALITY                NODEFAULT                     NOSHPROG
+NOZONEPARENT                 NO_ANSI_EX                    NO_ANSI_EXIT
+NO_ANSI_PLAYER               NO_ANSI_ROOM                  NO_ANSI_THING
+NO_FORMAT                    NO_TIMESTAMP                  PAGELOCK
+PROG                         PROG_ON_CONNECT               SAFELOG
+SEE_SUSPECT                  SILENTEFFECT                  SNUFFDARK
+ZONECMDCHK                   ZONE_AUTOADD                  ZONE_AUTOADDALL
+
+@powers Pennmush----------------RhostMUSH
+        Announce                FREE_WALL
+        Boot                    BOOT
+        Builder                 @quota !WANDERER (flag)
+        CAN_DARK                @admin player_dark/@depower dark
+        Can_spoof               N/A - Wizard+ auto-spoof
+        Cemit                   N/A
+        Chat_Privs              N/A
+        DEBIT                   STEAL
+        Functions               Wizard+ only (See @lfunctions)
+        Guest                   GUEST (flag)
+        HOOK                    Wizard+ only
+        Halt                    HALT_QUEUE/HALT_QUEUE_ALL
+        Hide                    NOWHO
+        Idle                    @timeout player to -1
+        Link_Anywhere           N/A (security risk)
+        Login                   LOGIN (flag)
+        Long_Fingers            LONG_FINGERS
+        MANY_ATTRIBS            (@admin vlimit)
+        No_Pay                  FREE (flag)
+        No_Quota                FREE_QUOTA
+        Open_Anywhere           N/A (security risk)
+        PICK_DBREFS             Wizard+ only
+        PUEBLO_SEND             N/A
+        Pemit_All               LONG_FINGERS
+        Player_Create           PCREATE
+        Poll                    N/A -- Softcode @doing/header
+        Queue                   SEE_QUEUE/SEE_QUEUE_ALL/HALT_QUEUE/HALT_QUEUE_ALL
+        Quotas                  CHANGE_QUOTAS
+        SQL_OK                  N/A 
+        Search                  SEARCH_ANY
+        See_All                 EXAMINE_FULL
+        See_Queue               SEE_QUEUE/SEE_QUEUE_ALL
+        Tport_Anything          TEL_ANYTHING
+        Tport_Anywhere          TEL_ANYWHERE
+        Unkillable              NOKILL
+
+Depowers are unique in Rhost and PennMUSH has no equivelant.
+Powers that exist in RhostMUSH that have no match in PennMUSH:
+CHOWN_ME                     WIZ_WHO                       NOFORCE
+FREE_QUOTA                   JOIN_PLAYER                   NO_BOOT
+STAT_ANY                     WHO_UNFIND                    SHUTDOWN
+PURGE                        CHOWN_ANYWHERE                CHOWN_OTHER
+GRAB_PLAYER                  SECURITY                      WRAITH
+HIDEBIT
+
+
+Functions Pennmush----------------RhostMUSH
+          @@                      @@
+          ABS                     ACCENT 
+          ACCNAME                 CNAME
+          ACOS                    ACOS
+          ADD                     ADD
+          AFTER                   AFTER
+          ALIAS                   ALIAS/LISTPROTECT
+          ALIGN                   PRINTF
+          ALLOF                   @function (softfunctions)
+          ALPHAMAX                ALPHAMAX
+          ALPHAMIN                ALPHAMIN
+          AND                     AND
+          ANDFLAGS                ANDFLAGS
+          ANDLFLAGS               ANDFLAG
+          ANDLPOWERS              @function (softfunctions)
+          ANSI                    ANSI
+          APOSS                   APOSS
+          ART                     ART
+          ASIN                    ASIN
+          ATAN                    ATAN
+          ATAN2                   N/A
+          ATRLOCK                 HASFLAG(#obj/attr,LOCK)
+          ATTRIB_SET              SET
+          BAND                    MASK
+          BASECONV                PACK/UNPACK
+          BEEP                    BEEP
+          BEFORE                  BEFORE
+          BENCHMARK               CPUTIME (@toggle)
+          BNAND                   MASK
+          BNOT                    MASK
+          BOR                     BOR
+          BOUND                   BOUND/FBOUND
+          BRACKETS                BRACKETS
+          BXOR                    MASK
+          CAND                    CAND
+          CAPSTR                  CAPSTR
+          CASE                    CASE
+          CASEALL                 CASEALL
+          CAT                     CAT
+          CBUFFER                 N/A
+          CBUFFERADD              N/A
+          CDESC                   N/A
+          CEIL                    CEIL
+          CEMIT                   N/A
+          CENTER                  CENTER
+          CFLAGS                  N/A
+          CHANNELS                N/A
+          CHECKPASS               CHECKPASS
+          CHILDREN                CHILDREN
+          CHR                     CHR
+          CLFLAGS                 N/A
+          CLOCK                   N/A
+          CLONE                   CLONE
+          CMDS                    CMDS
+          CMOGRIFIER              N/A
+          CMSGS                   N/A
+          COLORS                  COLORS
+          COMP                    COMP
+          CON                     CON
+          COND                    @function (softfunctions)
+          CONDALL                 @function (softfunctions)
+          CONFIG                  CONFIG
+          CONN                    CONN
+          CONTROLS                CONTROLS
+          CONVSECS                CONVSECS
+          CONVTIME                CONVTIME
+          CONVUTCSECS             CONVSECS
+          CONVUTCTIME             CONVTIME
+          COR                     COR
+          COS                     COS
+          COWNER                  N/A
+          CREATE                  CREATE
+          CRECALL                 N/A
+          CSECS                   N/A
+          CSTATUS                 N/A
+          CTIME                   N/A
+          CTITLE                  N/A
+          CTU                     CTU
+          CUSERS                  N/A
+          CWHO                    N/A
+          DEC                     DEC/XDEC
+          DECODE64                DECODE64
+          DECOMPOSE               TRANSLATE
+          DECRYPT                 DECRYPT
+          DEFAULT                 DEFAULT
+          DIE                     DICE
+          DIG                     DIG
+          DIGEST                  DIGEST
+          DIST2D                  DIST2D
+          DIST3D                  DIST3D
+          DIV                     DIV
+          DOING                   DOING
+          E                       E
+          EDEFAULT                EDEFAULT
+          EDIT                    PEDIT/EDIT
+          ELEMENT                 MATCH
+          ELEMENTS                ELEMENTSMUX/ELEMENTS
+          ELIST                   ELIST
+          ELOCK                   ELOCK
+          EMIT                    EMIT
+          ENCODE64                ENCODE64
+          ENCRYPT                 ENCRYPT
+          ENDTAG                  N/A
+          ENTRANCES               ENTRANCES
+          EQ                      EQ
+          ESCAPE                  ESCAPE
+          ETIME                   @function (softfunctions)
+          ETIMEFMT                TIMEFMT
+          EVAL                    EVAL
+          EXIT                    EXIT
+          EXTRACT                 EXTRACT
+          FDIV                    FDIV
+          FILTER                  FILTER
+          FILTERBOOL              FILTER
+          FINDABLE                FINDABLE
+          FIRST                   FIRST
+          FIRSTOF                 @function (softfunctions)
+          FLAGS                   FLAGS
+          FLIP                    REVERSE
+          FLOOR                   FLOOR
+          FLOORDIV                FLOORDIV
+          FMOD                    FMOD
+          FN                      BYPASS
+          FOLD                    FOLD
+          FOLDERSTATS             mail/folder
+          FOLLOWERS               N/A (softcode available)
+          FOLLOWING               N/A (softcode available)
+          FOREACH                 FOREACH
+          FRACTION                N/A
+          FULLALIAS               ALIAS + LISTPROTECT
+          FULLNAME                FULLNAME
+          FUNCTIONS               LISTFUNCTIONS
+          GET                     GET
+          GETPIDS                 PIDS
+          GET_EVAL                GET_EVAL
+          GRAB                    GRAB
+          GRABALL                 GRABALL
+          GREP                    GREP
+          GREPI                   GREP
+          GT                      GT
+          GTE                     GTE
+          HASATTR                 HASATTR
+          HASATTRP                HASATTRP
+          HASATTRPVAL             HASATTRPVAL
+          HASATTRVAL              HASATTRVAL
+          HASFLAG                 HASFLAG
+          HASPOWER                HASPOWER
+          HASTYPE                 HASTYPE
+          HEIGHT                  @function (softfunctions)
+          HIDDEN                  HIDDEN
+          HOME                    HOME
+          HOST                    LOOKUP_SITE
+          HTML                    N/A
+          IBREAK                  IBREAK
+          IDLE                    IDLE
+          IF                      IFELSE
+          IFELSE                  IFELSE
+          ILEV                    ILEV
+          INAME                   NAME
+          INC                     INC/XINC
+          INDEX                   INDEX
+          INUM                    INUM/INUM2
+          IPADDR                  LOOKUP_SITE
+          ISDAYLIGHT              TIMEFMT
+          ISDBREF                 ISDBREF
+          ISINT                   ISINT
+          ISNUM                   ISNUM
+          ISOBJID                 N/A
+          ISREGEXP                N/A
+          ISWORD                  ISWORD
+          ITEMIZE                 ELIST
+          ITEMS                   WORDS 
+          ITER                    ITER
+          ITEXT                   ITEXT
+	  LALIGN                  PRINTF
+          LAST                    LAST
+          LATTR                   LATTR
+          LATTRP                  LATTRP
+          LCON                    LCON
+          LCSTR                   LCSTR
+          LDELETE                 LDELETE
+          LEFT                    LEFT
+          LEMIT                   LEMIT
+          LETQ                    @function (softfunctions)
+          LEXITS                  LEXITS
+          LFLAGS                  LFLAGS
+          LINK                    LINK
+          LINSERT                 INSERT
+          LIST                    LISTPOWERS/LISTFLAGS/LISTTOGGLES/etc
+          LISTQ                   N/A
+          LIT                     LIT
+          LJUST                   LJUST
+          LLOCKFLAGS              N/A
+          LLOCKS                  LOCKS
+          LMATH                   STRFUNC
+          LN                      LN
+          LNUM                    LNUM/LNUM2
+          LOC                     LOC
+          LOCALIZE                LOCALIZE
+          LOCATE                  LOCATE
+          LOCK                    LOCK
+          LOCKFILTER              LOCKCHECK
+          LOCKFLAGS               FLAGS
+          LOCKOWNER               OWNER
+          LOCKS                   LOCKS
+          LOG                     LOG
+          LPARENT                 PARENTS
+          LPIDS                   PIDS
+          LPLAYERS                LCON
+          LPORTS                  PORT
+          LPOS                    LPOS
+          LREPLACE                REPLACE
+          LSEARCH                 SEARCH/SEARCHNG
+          LSEARCHR                @function to revwords(search())
+          LSET                    SET
+          LSTATS                  STATS
+          LT                      LT
+          LTE                     LTE
+          LTHINGS                 LCON
+          LVCON                   LCON + STREVAL at mortal
+          LVEXITS                 LCON + STREVAL at mortal
+          LVPLAYERS               LCON + STREVAL at mortal
+          LVTHINGS                LCON + STREVAL at mortal
+          LWHO                    LWHO
+          LWHOID                  N/A
+          MAIL                    MAILREAD/MAILSEND
+          MAILDSTATS              MAILSIZE/MAILQUOTA
+          MAILFROM                MAILREAD
+          MAILFSTATS              FOLDERLIST/FOLDERCURRENT
+          MAILLIST                MAILREAD
+          MAILSEND                MAILSEND
+          MAILSTATS               MAILSIZE/MAILQUOTA
+          MAILSTATUS              MAILSIZE/MAILQUOTA
+          MAILSUBJECT             MAILREAD
+          MAILTIME                MAILREAD
+          MALIAS                  MAILREAD
+          MAP                     MAP
+          MAPSQL                  N/A
+          MATCH                   MATCH
+          MATCHALL                MATCHALL
+          MAX                     MAX
+          MEAN                    AVG
+          MEDIAN                  AVG
+          MEMBER                  MEMBER
+          MERGE                   MERGE
+          MESSAGE                 PARSESTR + PEMIT/REMIT
+          MID                     MID
+          MIN                     MIN
+          MIX                     MIX
+          MODULO                  MOD
+          MONEY                   MONEY
+          MONIKER                 CNAME
+          MSECS                   MODIFYTIME + CONVTIME
+          MTIME                   MODIFYTIME
+          MUDNAME                 MUDNAME
+          MUDURL                  N/A
+          MUL                     MUL
+          MUNGE                   MUNGE
+          MWHO                    LWHO + STREVAL at mortal
+          MWHOID                  N/A
+          NAME                    NAME
+          NAMEGRAB                @function (softfunctions)
+          NAMEGRABALL             @function (softfunctions)
+          NAMELIST                @function (softfunctions)
+          NAND                    NAND
+          NATTR                   ATTRCNT
+          NATTRP                  ATTRCNT
+          NCAND                   !CAND
+          NCHILDREN               CHILDREN
+          NCON                    WORDS + LCON
+          NCOND                   @function (softfunctions)
+          NCONDALL                @function (softfunctions)
+          NCOR                    !COR
+          NEARBY                  NEARBY
+          NEQ                     NEQ
+          NEXITS                  WORDS + LEXITS
+          NEXT                    NEXT
+          NEXTDBREF               N/A
+          NLSEARCH                WORDS + LSEARCH
+          NMWHO                   WORDS + LWHO + STREVAL at mortal
+          NOR                     NOR
+          NOT                     NOT or !
+          NPLAYERS                WORDS + LCON
+          NSCEMIT                 N/A
+          NSEARCH                 WORDS + LSEARCH
+          NSEMIT                  EMIT
+          NSLEMIT                 LEMIT
+          NSOEMIT                 OEMIT
+          NSPEMIT                 PEMIT
+          NSPROMPT                N/A (@program?)
+          NSREMIT                 REMIT
+          NSZEMIT                 ZEMIT
+          NTHINGS                 WORDS + LCON
+          NULL                    NULL
+          NUM                     NUM
+          NUMVERSION              N/A
+          NVCON                   WORDS + LCON + STREVAL at mortal
+          NVEXITS                 WORDS + LEXITS + STREVAL at mortal
+          NVPLAYERS               WORDS + LCON + STREVAL at mortal
+          NVTHINGS                WORDS + LCON + STREVAL at mortal
+          NWHO                    WORDS + LWHO
+          OBJ                     OBJ
+          OBJEVAL                 OBJEVAL
+          OBJID                   N/A
+          OBJMEM                  SIZE
+          OEMIT                   OEMIT
+          OPEN                    OPEN
+          OR                      OR
+          ORD                     ASC
+          ORDINAL                 N/A
+          ORFLAGS                 ORFLAGS
+          ORLFLAGS                ORFLAG
+          ORLPOWERS               N/A (easy to @function)
+          OWNER                   OWNER
+          PARENT                  PARENT
+          PCREATE                 CREATE
+          PEMIT                   PEMIT
+          PFUN                    U + PARENT
+          PI                      PI 
+          PIDINFO                 PID
+          PLAYER                  before(grab(lwho(1),*:%0),:)
+          PLAYERMEM               SIZE
+          PMATCH                  PMATCH
+          POLL                    DOING
+          PORTS                   PORT
+          POS                     POS
+          POSS                    POSS
+          POWER                   POWER
+          POWERS                  LPOWERS
+          PROMPT                  N/A (@program?)
+          PUEBLO                  N/A
+          QUOTA                   QUOTA
+          R                       R
+          RAND                    RAND
+          RANDWORD                PICKRAND
+          RECV                    CHARIN
+          REGEDIT                 REGEDIT
+          REGEDITALL              REGEDITALL
+          REGEDITALLI             REGEDITALLI
+          REGEDITI                REGEDITI
+          REGISTERS               N/A
+          REGLATTR                LATTR
+          REGLATTRP               LATTRP
+          REGLMATCH               REGLMATCH
+          REGLMATCHALL            REGLMATCHALL
+          REGLMATCHALLI           REGLMATCHALLI
+          REGLMATCHI              REGLMATCHI
+          REGMATCH                REGMATCH
+          REGMATCHI               REGMATCHI
+          REGNATTR                WORDS + ATTR
+          REGNATTRP               WORDS + ATTRP
+          REGRAB                  REGRAB
+          REGRABALL               REGRABALL
+          REGRABALLI              REGRABALLI
+          REGRABI                 REGRABI
+          REGREP                  REGREP
+          REGREPI                 REGREPI
+          REGXATTR                ATTR
+          REGXATTRP               ATTRP
+          REMAINDER               REMAINDER
+          REMIT                   REMIT
+          REMOVE                  REMOVE
+          RENDER                  N/A
+          REPEAT                  REPEAT
+          REST                    REST
+          RESTARTS                N/A
+          RESTARTTIME             RESTARTTIME
+          RESWITCH                RESWITCH
+          RESWITCHALL             RESWITCHALL
+          RESWITCHALLI            RESWITCHALLI
+          RESWITCHI               RESWITCHI
+          REVWORDS                REVWORDS
+          RIGHT                   RIGHT
+          RJUST                   RJUST
+          RLOC                    RLOC
+          RNUM                    RNUM
+          ROOM                    ROOM
+          ROOT                    N/A
+          ROUND                   ROUND
+          S                       S
+          SCAN                    N/A
+          SCRAMBLE                SCRAMBLE
+          SECS                    SECS
+          SECURE                  SECURE/SECUREX
+          SENT                    CHAROUT
+          SET                     SET
+          SETDIFF                 SETDIFF
+          SETINTER                SETINTER
+          SETQ                    SETQ
+          SETR                    SETR
+          SETUNION                SETUNION
+          SHA0                    DIGEST
+          SHL                     SHL
+          SHR                     SHR
+          SHUFFLE                 SHUFFLE
+          SIGN                    NCOMP(%0,0)
+          SIN                     SIN
+          SLEV                    N/A
+          SORT                    SORT
+          SORTBY                  SORTBY
+          SORTKEY                 @function (softfunctions)
+          SOUNDEX                 SOUNDEX
+          SOUNDSLIKE              SOUNDXLIKE
+          SPACE                   SPACE
+          SPEAK                   PARSESTR
+          SPEAKPENN               PARSESTR
+          SPELLNUM                SPELLNUM
+          SPLICE                  SPLICE
+          SQL                     (if MYSQL enabled)
+          SQLESCAPE               (if MYSQL enabled)
+          SQRT                    SQRT
+          SQUISH                  SQUISH
+          SSL                     N/A
+          STARTTIME               STARTTIME
+          STDDEV                  AVG
+          STEP                    STEP
+          STEXT                   N/A
+          STRALLOF                @function (softfunctions)
+          STRCAT                  STRCAT
+          STRDELETE               CREPLACE
+          STRFIRSTOF              @function (softfunctions)
+          STRINGSECS              @function (softfunctions)
+          STRINSERT               CREPLACE
+          STRIPACCENTS            STRIPACCENTS
+          STRIPANSI               STRIPANSI
+          STRLEN                  STRLEN
+          STRMATCH                STRMATCH
+          STRREPLACE              CREPLACE
+          SUB                     SUB
+          SUBJ                    SUBJ
+          SWITCH                  SWITCH
+          SWITCHALL               SWITCHALL
+          T                       T
+          TABLE                   @function (softfunctions)/COLUMNS
+          TAG                     N/A
+          TAGWRAP                 N/A
+          TAN                     TAN
+          TEL                     TEL
+          TERMINFO                N/A
+          TESTLOCK                LOCKCHECK
+          TEXTENTRIES             WORDS + TEXTFILE
+          TEXTFILE                TEXTFILE
+          TIME                    TIME
+          TIMEFMT                 PTIMEFMT
+          TIMESTRING              SINGLETIME/TIMEFMT
+          TR                      TR
+          TRIM                    TRIM
+          TRIMPENN                TRIM
+          TRIMTINY                TRIM
+          TRUNC                   TRUNC
+          TYPE                    TYPE
+          UCSTR                   UCSTR
+          UDEFAULT                UDEFAULT
+          UFUN                    U
+          ULAMBDA                 U + #lambda
+          ULDEFAULT               ULDEFAULT
+          ULOCAL                  ULOCAL
+          UNIQUE                  LISTDIFF/LISTUNION/LISTINTER
+          UNSETQ                  N/A
+          UPTIME                  N/A
+          UTCTIME                 TIME
+          V                       V
+          VADD                    VADD
+          VALID                   VALID
+          VCROSS                  VCROSS
+          VDIM                    VDIM
+          VDOT                    VDOT
+          VERSION                 VERSION
+          VISIBLE                 VISIBLE
+          VMAG                    VMAG
+          VMAX                    N/A
+          VMIN                    N/A
+          VMUL                    VMUL
+          VSUB                    VSUB
+          VUNIT                   VUNIT
+          WHERE                   WHERE
+          WIDTH                   @function (softfunctions)
+          WILDGREP                GREP
+          WILDGREPI               GREPI
+          WIPE                    WIPE
+          WORDPOS                 WORDPOS
+          WORDS                   WORDS/MWORDS
+          WRAP                    WRAP
+          XATTR                   XATTR
+          XATTRP                  XATTRP
+          XCON                    XCON
+          XEXITS                  LEXITS + EXTRACT
+          XGET                    XGET
+          XMWHO                   LWHO + STREVAL at mortal + EXTRACT
+          XMWHOID                 N/A
+          XOR                     XOR
+          XPLAYERS                XCON
+          XTHINGS                 XCON
+          XVCON                   XCON + STREVAL at mortal
+          XVEXITS                 LEXITS + STREVAL at mortal
+          XVPLAYERS               XCON + STREVAL at mortal
+          XVTHINGS                XCON + STREVAL at mortal
+          XWHO                    LWHO + EXTRACT
+          XWHOID                  N/A
+          ZEMIT                   ZEMIT
+          ZFUN                    ZFUN
+          ZMWHO                   ZWHO + STREVAL at mortal
+          ZONE                    LZONE
+          ZWHO                    ZWHO
+
+Functions that exist in Rhost that do not have a match in PennMUSH:
+AIINDEX                      AINDEX                        ANDCHR 
+ARRAY                        ATTRCNT                       BETWEEN 
+BITTYPE                      CANSEE                        CAPLIST 
+CHKGARBAGE                   CHKREALITY                    CHKTRACE 
+CHOMP                        CITER                         CLOAK 
+CLUSTER_ADD                  CLUSTER_ATTRCNT               CLUSTER_DEFAULT 
+CLUSTER_EDEFAULT             CLUSTER_FLAGS                 CLUSTER_GET 
+CLUSTER_GET_EVAL             CLUSTER_GREP                  CLUSTER_HASATTR 
+CLUSTER_HASFLAG              CLUSTER_LATTR                 CLUSTER_REGREP 
+CLUSTER_REGREPI              CLUSTER_SET                   CLUSTER_STATS 
+CLUSTER_U                    CLUSTER_U2                    CLUSTER_U2DEFAULT 
+CLUSTER_U2LDEFAULT           CLUSTER_U2LOCAL               CLUSTER_UDEFAULT 
+CLUSTER_UEVAL                CLUSTER_ULDEFAULT             CLUSTER_ULOCAL 
+CLUSTER_VATTRCNT             CLUSTER_WIPE                  CLUSTER_XGET 
+COLUMNS                      COSH                          COUNTSPECIAL 
+CRC32                        DELEXTRACT                    DESTROY 
+EDITANSI                     EE                            ERROR 
+EXP                          FBETWEEN                      FBOUND 
+GARBLE                       GLOBALROOM                    GUILD 
+HASDEPOWER                   HASQUOTA                      HASRXLEVEL 
+HASTOGGLE                    HASTXLEVEL                    INPROGRAM   
+INZONE                       ISALNUM                       ISALPHA 
+ISCLUSTER                    ISDIGIT                       ISHIDDEN 
+ISLOWER                      ISPUNCT                       ISSPACE 
+ISUPPER                      ISXDIGIT                      KEEPFLAGS 
+KEEPTYPE                     LAND                          LAVG 
+LCMDS                        LDEPOWERS                     LISTMATCH 
+LISTNEWSGROUPS               LISTRLEVELS                   LISTTOGGLES 
+LLOC                         LMAX                          LMIN 
+LMUL                         LNOR                          LOCALFUNC 
+LOCKDECODE                   LOCKENCODE                    LOGSTATUS 
+LOGTOFILE                    LOR                           LRAND 
+LROOMS                       LTOGGLES                      LXNOR 
+LXOR                         MONEYNAME                     MOON 
+MOVE                         NAMEQ                         NOSTR 
+NOTCHR                       NSLOOKUP                      ORCHR 
+PARENMATCH                   PFIND                         PGREP 
+POWER10                      PRIVATIZE                     PROGRAMMER 
+PUSHREGS                     RACE                          RANDMATCH 
+RANDPOS                      REGEDITALLILIT                REGEDITALLLIT 
+REGEDITILIT                  REGEDITLIT                    REGNUMMATCH 
+REGNUMMATCHI                 REMFLAGS                      REMTYPE 
+REVERSE                      ROMAN                         ROTL 
+ROTR                         RSET                          RXLEVEL 
+SAFEBUFF                     SEES                          SETQMATCH 
+SHIFT                        SINH                          STR 
+STRDISTANCE                  STREQ                         STREVAL 
+STRFUNC                      STRIP                         STRLENRAW 
+STRLENVIS                    STRMATH                       SUBNETMATCH 
+TANH                         TOGGLE                        TOTCMDS 
+TRACE                        TXLEVEL                       UEVAL 
+WHILE                        WILDMATCH                     WRAPCOLUMNS 
+WRITABLE                     XNOR                          XORCHR 
+XORFLAG                      ZFUNDEFAULT                   ZFUNEVAL 
+ZFUNLDEFAULT                 ZFUNLOCAL 
