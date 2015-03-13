@@ -25426,6 +25426,7 @@ The developers who may appear in these files are:
 ASH - Ashen-Shugar        AMB - Ambrosia            EEH - Noltar
 KRK - Loki                LNS - Lensman             ODN - Odin
 SEA - Seawolf             THO - Thorin              NYS - Nyctasia
+ROK - Rook
  
 Current Revision: 3.9.5p0
 
