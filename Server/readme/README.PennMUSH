@@ -214,6 +214,47 @@ newsdb                       rpage                         smell
 taste                        touch                         wielded
 worn                         +players
 
+@locks PennMUSH---------------RhostMUSH
+       BASIC                  BASIC/DEFAULT
+       ENTER                  ENTER
+       TELEPORT               TPORT
+       USE                    USE
+       PAGE                   PAGE
+       ZONE                   ZONEWIZLOCK/ZONETOLOCK/TWINKLOCK
+       PARENT                 PARENT
+       LINK                   LINK
+       OPEN                   OPEN
+       MAIL                   mail/lock
+       USER                   USER
+       USER:<dynamicname>     lockencode()/lockdecode()/lockcheck()
+       SPEECH                 SPEECH
+       LISTEN                 USE (see listen argument -- Also see attributeuselocks)
+       COMMAND                USE (commands are default -- Also see attributeuselocks)
+       LEAVE                  LEAVE
+       DROP                   DROP
+       DROPIN                 DROPTO
+       GIVE                   GIVE
+       FROM                   GIVETO
+       PAY                    N/A
+       RECEIVE                RECEIVE
+       FOLLOW                 (See softcoded follow code)
+       EXAMINE                See NO_MODIFY/NO_EXAMINE/TWINKLOCK
+       CHZONE                 ZONETOLOCK/ZONEWIZLOCK/TWINKLOCK
+       FORWARD                N/A
+       FILTER                 N/A
+       INFILTER               N/A
+       CONTROL                CONTROL
+       DROPTO                 DROPTO
+       DESTROY                See: @recover/@purge/INDESTRUCTIBLE/SAFE
+       INTERACT               N/A (See: Reality Levels)
+       TAKE                   GETFROM
+       MAILFORWARD            mail/lock, mail/autofor
+
+@locks that exist in Rhost that have no PennMUSH equivelant:
+TELOUTLOCK                   TWINKLOCK                     DARKLOCK
+ALTNAME                      CHOWN                         
+
+
 FLAGS Pennmush----------------RhostMUSH
       ABODE                   ABODE
       ANSI                    ANSI
