@@ -1,0 +1,110 @@
+@@ Rhost allows hardcoded +help to work.  You may use this instead though.
+@@
+@pemit me=Creating General Help Object (RhostMUSH Specific!)
+@pemit me=Initializing system...
+@set me=quiet
+@create HelpObject
+@create HelpFunction
+@create HelpDatabase
+@set HelpDatabase=safe indestructable halt !inherit
+@set HelpFunction=halt inherit safe indestructable
+@set HelpObject=!halt inherit safe indestructable
+@parent HelpObject=HelpFunction
+@fo me=&F-DB HelpObject=num(HelpFunction)
+@fo me=&H-DB HelpObject=num(HelpDatabase)
+@fo me=&H-DB HelpFunction=num(HelpDatabase)
+@link helpfunction=helpobject
+@link helpdatabase=helpobject
+@pemit me=Initialization Completed.
+@pemit me=Initializing main command set...
+&HELP HelpObject=$+help*:@pemit %#=[setq(0,edit(trim(%0),%b,_))][setq(1,gt(pos(%b,trim(%0)),0))][u(help[or(eq(words(r(0)),0),gt(r(0),0))],r(0),%#,r(1))]
+&HELPCFG HelpObject=$+cfghelp:@pemit %#=[u(HELPCFGM[u(D_WIZARD,%#)],%#)]
+&HELPCFGLIST HelpObject=$+cfghelp/list:@pemit %#=[u(HELPCFGLISTM[u(D_WIZARD,%#)],%#)]
+@pemit me=Command Set Completed.
+@pemit me=Initializing functionaries...
+&HELPCFGLISTM0 HelpFunction=[u(D_ERRORMSG,%0)]
+&HELPCFGLISTM1 HelpFunction=[center(Index Of Help for +help object,78,-)]%r[ljust(+HELP <arg>,40,.)] : Displays help topics or indexes.%r[ljust(+CFGHELP,40,.)] : Lists all current configurations.%r[ljust(+CFGHELP/LIST,40,.)] : Shows this screen%r[ljust(+CFGHELP/LIST ALL,40,.)] : Displays references to all configs.%r[ljust(+CFGHELP <toggle>,40,.)] : Enables/Disables given toggle%r[ljust(+CFGHELP <config>=<value>,40,.)] : Sets value to given configuration.%r[ljust(+CFGHELP/ADD <config>=<value>,40,.)] : Adds value to existing config.%r[ljust(+CFGHELP/DEL <config>=<value>,40,.)] : Deletes value from existing config.%r[repeat(-,78)]
+&HELPCFGSETF HelpFunction=[u(D_WIZARD,%1)][gt(match(%0,*=*),0)][or(and(match(v(cfg_list),%0),not(match(%0,*=*))),and(match(v(cfg_other),before(%0,=)),match(%0,*=*)))]
+&HELPCFGSET HelpObject=$+cfghelp* *:@pemit %#=[u(HELPCFGSETM_[and(match(/LIST,%0),match(all,%1))],%1,%#,match(/ADD /DEL,%0))];@break [match(/LIST,%0)];&[u(HELPCFGSETCHK[match(101 111,r(0))],%1)] [u(GENERIC[gt(match(101 111,r(0)),0)],v(F-DB))]=[u(HELPCFGSETVAR[match(101 111,r(0))],%1,match(/ADD /DEL,%0))]
+&HELPCFGSETM_0 HelpFunction=[u(HELPCFGSETM[match(100 110 101 111,setr(0,u(helpcfgsetf,%0,%1)))],%0,%1,%2)]
+&HELPCFGSETM_1 HelpFunction=The following settings are available:%r[center(Toggles,78,-)][iter(v(cfg_list),%r[ljust(##,30,.)]: [extract(v(cfg_list_help),match(v(cfg_list),##),1,@)])]%r[center(ANSI Configurations,78,-)][iter(v(cfg_ansi),%r[ljust(##,30,.)]: [extract(v(cfg_other_help),match(v(cfg_other),##),1,@)])]%r[center(Other Configurations,78,-)][iter(setdiff(v(cfg_other),v(cfg_ansi)),%r[ljust(##,30,.)]: [extract(v(cfg_other_help),match(v(cfg_other),##),1,@)])]%r[repeat(-,78)]
+&HELPCFGSETM0 HelpFunction=[u(D_ERRORMSG,%0)]
+&HELPCFGSETM1 HelpFunction=HelpCfg: ERROR - Invalid toggle '[secure(%0)]' given for setting.
+&HELPCFGSETM2 HelpFunction=HelpCfg: ERROR - Invalid [ifelse(not(match(v(cfg_options),before(%0,=))),ansi-settable)] configure '[before(secure(%0),=)]' given for setting.
+&HELPCFGSETM3 HelpFunction=HelpCfg: Toggle '[ucstr(secure(%0))]' [ifelse(match(v(cfg_options),%0),disabled,enabled)].
+&HELPCFGSETM4 HelpFunction=[u(HELPCFGSETM4_[member(1 2,%2)][gt(match(get([v(F-DB)]/D_[s(secure(before(%0,=)))]),after(%0,=)),0)],%0,%1,%2)]
+&HELPCFGSETM4_00 HelpFunction=HelpCfg: Config Option '[ucstr(secure(before(%0,=)))]' cleared.
+&HELPCFGSETM4_01 HelpFunction=HelpCFG: Config Option '[ucstr(secure(before(%0,=)))]' set to '[after(%0,=)]'.
+&HELPCFGSETM4_10 HelpFunction=HelpCfg: Config Option '[ucstr(secure(before(%0,=)))]' added '[after(%0,=)]'.
+&HELPCFGSETM4_11 HelpFunction=HelpCfg: Config Option '[ucstr(secure(before(%0,=)))]' already contains '[after(%0,=)]'.
+&HELPCFGSETM4_20 HelpFunction=HelpCfg: Config Option '[ucstr(secure(before(%0,=)))]' does not contain '[after(%0,=)]'.
+&HELPCFGSETM4_21 HelpFunction=HelpCfg: Config option '[ucstr(secure(before(%0,=)))]' removed '[after(%0,=)]'.
+&HELPCFGSETCHK1 HelpFunction=CFG_OPTIONS
+&HELPCFGSETCHK2 HelpFunction=D_[s(secure(before(%0,=)))]
+&HELPCFGSETVAR1 HelpFunction=[ifelse(match(v(cfg_options),%0),setdiff(v(cfg_options),ucstr(secure(%0))),setunion(v(cfg_options),ucstr(secure(%0))))]
+&HELPCFGSETVAR2 HelpFunction=[u(HELPCFGSETVAR2_%1,%0)]
+&HELPCFGSETVAR2_0 HelpFunction=[ifelse(match(v(cfg_needupper),before(%0,=)),ucstr(after(%0,=)),after(%0,=))]
+&HELPCFGSETVAR2_1 HelpFunction=[setunion(get([v(F-DB)]/D_[before(%0,=)]),ifelse(match(v(cfg_needupper),before(%0,=)),ucstr(after(%0,=)),after(%0,=)))]
+&HELPCFGSETVAR2_2 HelpFunction=[setdiff(get([v(F-DB)]/D_[before(%0,=)]),ifelse(match(v(cfg_needupper),before(%0,=)),ucstr(after(%0,=)),after(%0,=)))]
+&HELPCFGM0 HelpFunction=[u(D_ERRORMSG,%0)]
+&HELPCFGM1 HelpFunction=Displaying configurations on HelpFunction object:%r[repeat(-,78)][iter(v(cfg_other),%r[ljust(##,30,.)]: [v(D_##)] [u(GENERIC[gt(match(v(cfg_ansi),##),0)],%(ANSI Code Required%))])]%r[repeat(-,78)]%rCurrent Options Enabled: [v(CFG_OPTIONS)]%rAvailable Options: [v(CFG_LIST)]%r[repeat(-,78)]
+&CFG_OTHER HelpFunction=ERRORMSG CHANGEABLE_WIZ ANSITITLE ANSIWTOPIC ANSITOPIC ANSIREF ANSIWREF ANSITITLE_TOPIC ANSITITLE_REFERENCE OMIT HIDE WHIDE TOPIC MSG
+&CFG_ANSI HelpFunction=ANSITITLE ANSIWTOPIC ANSITOPIC ANSIREF ANSIWREF ANSITITLE_TOPIC ANSITITLE_REFERENCE
+&CFG_NEEDUPPER HelpFunction=OMIT HIDE WHIDE TOPIC
+&CFG_OTHER_HELP HelpFunction=Error message player gets.@Definition of what is recognized as a wizard@ANSI colors for the title.@ANSI color for wizard topics.@ANSI color for normal topics@ANSI color for mortal quick references@ANSI color for wizard quick references@ANSI color for 'Topics' in title.@ANSI color for 'References' in title.@Topics NULLED from expanded +help (eval)@Topics hidden from help index@Wizard topics hidden from index@Expanded master-topic lists (N/A!)@Message displayed for 'OMIT'ed topics.
+&TITLE HelpFunction=MushHelp (c) Ashen-Shugar, all rights reserved %b%b %[Page %0/%1%]
+&D_ERRORMSG HelpFunction=[objeval(%0,error())]
+&D_WIZARD HelpFunction=[and(u(d_changeable_wiz,%0),or(eq(words(get([v(H-DB)]/D_W_%1)),0),u([v(H-DB)]/D_W_%1,%0)))]
+&D_CHANGEABLE_WIZ HelpFunction=[gte(bittype(%0),4)]
+&D_ANSITITLE HelpFunction=h
+&D_ANSIWTOPIC HelpFunction=hy
+&D_ANSITOPIC HelpFunction=h
+&D_ANSIREF HelpFunction=n
+&D_ANSIWREF HelpFunction=n
+&D_ANSITITLE_TOPIC HelpFunction=h
+&D_ANSITITLE_REFERENCE HelpFunction=h
+&D_OMIT HelpFunction=[v(9)]
+&D_HIDE HelpFunction=[v(9)]
+&D_WHIDE HelpFunction=[v(9)]
+&D_TOPIC HelpFunction=[v(9)]
+&D_MSG HelpFunction=[v(9)]
+&VERSION HelpFunction=Version 1.2.2
+&FOR_HELP HelpFunction=For help, type '+help topic' where topic is one of the topics in caps.[ifelse(and(match(v(cfg_options),CHECKANSI),andflag(%#,!ansi,!ansicolor),u(d_wizard,%#)),%rTopics within %[%]'s are wizard topics.)]
+&HELP1 HelpFunction=[u(help0[gt(match(v(cfg_options),verbose),0)],%0,%1,%2,%3,%4,%5)]
+&HELP00 HelpFunction=[u(HELP00_[gt(words(v(d_topic)),0)],%0,%1,%2,%3,%4,%5)]
+&HELP00_0 HelpFunction=[setq(2,iter(setdiff(lattr([v(H-DB)]/W_*),iter(ucstr(v(d_whide)),W_##)),u(GENERIC[or(eq(words(get([v(H-DB)]/D_##)),0),u([v(H-DB)]/D_##,%1))],##)))][setq(0,[setdiff(lattr([v(H-DB)]/H_*),iter(ucstr(v(d_hide)),H_##))] [switch(u(d_wizard,%1),1,r(2))])][setq(1,max(min(div(words(r(0)),75),%0),0))][setq(3,extract(r(0),add(mul(r(1),75),1),75))][ansi(v(d_ansititle),[repeat(-,78)]%r[ljust(v(version),18)][u(title,add(r(1),1),add(div(words(r(0)),75),1))])]%r[repeat(-,35)] [ansi(v(d_ansititle_topic),Topics)] [repeat(-,35)][iter(r(3),[switch(mod(sub(match(r(3),##),1),5),0,%r)][u(HELPPARSE[gt(match(r(2),##),0)],##)])]%r[ansi(v(d_ansititle),[repeat(-,78)]%r%b%b%b[u(for_help)]%r[repeat(-,78)])][ansi(n,%b)]
+&HELP00_1 HelpFunction=[setq(2,iter(setdiff(lattr([v(H-DB)]/W_*),iter(ucstr(v(d_whide)),W_##)),u(GENERIC[or(eq(words(get([v(H-DB)]/D_##)),0),u([v(H-DB)]/D_##,%1))],##)))][setq(0,[setdiff(lattr([v(H-DB)]/H_*),iter(ucstr(v(d_hide)),H_##))] [switch(u(d_wizard,%1),1,r(2))])][setq(1,max(min(div(words(r(0)),75),%0),0))][setq(3,extract(r(0),add(mul(r(1),75),1),75))][ansi(v(d_ansititle),[repeat(-,78)]%r[ljust(v(version),18)][u(title,add(r(1),1),add(div(words(r(0)),75),1))])]%r[ansi(v(d_ansititle),[repeat(-,35)])] [ansi(v(d_ansititle_topic),Topics)] [ansi(v(d_ansititle),[repeat(-,35)])][iter(r(3),[switch(mod(sub(match(r(3),##),1),5),0,%r)][u(HELPPARSE[gt(match(r(2),##),0)],##)])]%r[ansi(v(d_ansititle),[repeat(-,78)]%r%b%b%b[u(for_help)]%r[repeat(-,78)])][ansi(n,%b)]
+&HELPPARSE0 HelpFunction=[ansi(v(d_ansitopic),ljust(mid(edit(%0,_,%b),2,15),15))]
+&HELPPARSEA1 HelpFunction=[ansi(v(d_ansiwtopic),ljust(mid(edit(%0,_,%b),2,15),15))]
+&HELPPARSENA1 HelpFunction=[ljust(%[[mid(edit(%0,_,%b),2,13)]%],15,.)]
+&HELPPARSE1 HelpFunction=[u(HELPPARSE[ifelse(and(match(v(cfg_options),CHECKANSI),andflag(%#,!ansi,!ansicolor)),NA,A)]1,%0,%1)]
+&HELP01 HelpFunction=[u(HELP01_[gt(words(v(d_topic)),0)],%0,%1,%2,%3,%4,%5)]
+&HELP01_0 HelpFunction=[setq(2,iter(setdiff(lattr([v(H-DB)]/W_*),iter(ucstr(v(d_whide)),W_##)),u(GENERIC[or(eq(words(get([v(H-DB)]/D_##)),0),u([v(H-DB)]/D_##,%1))],##)))][setq(0,[setdiff(lattr([v(H-DB)]/H_*),iter(ucstr(v(d_hide)),H_##))] [switch(u(d_wizard,%1),1,r(2))])][setq(1,max(min(div(words(r(0)),30),%0),0))][setq(3,extract(r(0),add(mul(r(1),30),1),30))][ansi(v(d_ansititle),[repeat(-,78)]%r[ljust(v(version),18)][u(title,add(r(1),1),add(div(words(r(0)),30),1))]%r[repeat(-,78)])]%r[ansi(v(d_ansititle_topic),Topics)][ansi(v(d_ansititle),[repeat(-,9)])][ansi(v(d_ansititle_reference),Reference)][ansi(v(d_ansititle),[repeat(-,15)])]|[ansi(v(d_ansititle_topic),Topics)][ansi(v(d_ansititle),[repeat(-,9)])][ansi(v(d_ansititle_reference),Reference)][ansi(v(d_ansititle),[repeat(-,15)])]%r[ansi(v(d_ansititle),[repeat(-,78)])][iter(r(3),[switch(mod(sub(match(r(3),##),1),2),0,%r,%b|)][u(HELPPARSE_[gt(match(r(2),##),0)],##)])]%r[ansi(v(d_ansititle),[repeat(-,78)]%r[u(for_help)]%r[repeat(-,78)])][ansi(n,%b)]
+&HELP01_1 HelpFunction=[setq(2,iter(setdiff(lattr([v(H-DB)]/W_*),iter(ucstr(v(d_whide)),W_##)),u(GENERIC[or(eq(words(get([v(H-DB)]/D_##)),0),u([v(H-DB)]/D_##,%1))],##)))][setq(0,[setdiff(lattr([v(H-DB)]/H_*),iter(ucstr(v(d_hide)),H_##))] [switch(u(d_wizard,%1),1,r(2))])][setq(1,max(min(div(words(r(0)),30),%0),0))][setq(3,extract(r(0),add(mul(r(1),30),1),30))][ansi(v(d_ansititle),[repeat(-,78)]%r[ljust(v(version),18)][u(title,add(r(1),1),add(div(words(r(0)),30),1))]%r[repeat(-,78)])]%r[ansi(v(d_ansititle_topic),Topics)][ansi(v(d_ansititle),[repeat(-,9)])][ansi(v(d_ansititle_reference),Reference)][ansi(v(d_ansititle),[repeat(-,15)])]|[ansi(v(d_ansititle_topic),Topics)][ansi(v(d_ansititle),[repeat(-,9)])][ansi(v(d_ansititle_reference),Reference)][ansi(v(d_ansititle),[repeat(-,15)])]%r[repeat(-,78)][iter(r(3),[switch(mod(sub(match(r(3),##),1),2),0,%r,%b|)][u(HELPPARSE_[gt(match(r(2),##),0)],##)])]%r[ansi(v(d_ansititle),[repeat(-,78)]%r[u(for_help)]%r[repeat(-,78)])][ansi(n,%b)]
+&HELPPARSE_0 HelpFunction=[ansi(v(d_ansitopic),mid(edit(%0,_,%b),2,15))][repeat(.,sub(17,strlen(%0)))][ansi(v(d_ansiref),ljust(mid(before(get([v(H-DB)]/%0),//),0,22),22))]
+&HELPPARSEA_1 HelpFunction=[ansi(v(d_ansiwtopic),mid(edit(%0,_,%b),2,15))][repeat(.,sub(17,strlen(%0)))][ansi(v(d_ansiwref),ljust(mid(before(get([v(H-DB)]/%0),//),0,22),22))]
+&HELPPARSENA_1 HelpFunction=[ljust(%[[mid(edit(%0,_,%b),2,13)]%],15,.)][ansi(v(d_ansiwref),ljust(mid(before(get([v(H-DB)]/%0),//),0,22),22))]
+&HELPPARSE_1 HelpFunction=[u(HELPPARSE[ifelse(and(match(v(cfg_options),CHECKANSI),andflag(%#,!ansi,!ansicolor)),NA,A)]_1,%0,%1)]
+&HELP0 HelpFunction=[u(HELP1[gt(words(setdiff(ucstr(%0),u(d_omit))),0)],s(%0),%1,%2,%3,%4,%5)]
+&HELP11 HelpFunction=[ansi(v(d_ansititle),[ljust(v(version),18)][u(title,1,1)]%r[repeat(-,78)])]%r[ansi(v(d_ansititle),rjust([ifelse(%2,ucstr(edit(%0,_,%b)),ucstr(%0))]-----,78,-))]%r[u(showhelp[and(u(d_wizard,%1,%0),words(get([v(H-DB)]/W_%0)))][gt(words(get([v(H-DB)]/H_%0)),0)],%0,%1)]%r[ansi(v(d_ansititle),repeat(-,78))][ansi(n,%b)]
+&HELP10 HelpFunction=[u(D_MSG,%0,%1)]
+&SHOWHELP00 HelpFunction=[center(* No +help defined for '[secure(ifelse(%2,ucstr(edit(%0,_,%b)),ucstr(%0)))]' *,78,*)]
+&SHOWHELP01 HelpFunction=[s(after(get([v(H-DB)]/H_%0),//))]
+&SHOWHELP10 HelpFunction=[s(after(get([v(H-DB)]/W_%0),//))]
+&SHOWHELP11 HelpFunction=[s(after(get([v(H-DB)]/H_%0),//))]%r[ansi(v(d_ansititle),[repeat(-,78)]%r-----Wizard Reference:)]%r[s(after(get([v(H-DB)]/W_%0),//))]
+&CFG_LIST HelpFunction=VERBOSE CHECKANSI
+&CFG_LIST_HELP HelpFunction=Toggles the quick-reference in the help system.@Toggles the checking of ansi-viewable players
+&CFG_OPTIONS HelpFunction=VERBOSE CHECKANSI 
+&GENERIC1 HelpFunction=%0
+@pemit me=Completed.
+@pemit me=Initialization of topical help...
+&H_+HELP Helpdata=List/Show Topics//Syntax: +HELP %[<arg>]%r%rThe +HELP command is used for multiple purposes.  If you type%rjust +help (or +help #) it displays that page of available%rtopics that you can see +help on.  Otherwise, if you give it%ra topic that shows up, it will give you detailed%rhelp on that given topic like you're reading now.
+&W_+HELP Helpdata=Making New help//Ok, you probably wondered 'how do I add new help?'.  It's easy.  You add it%rby setting attributes on the actual HelpDatabase (Object dbref# [v(h-db)])%rIf you wanted to set up a general (mortal) help topic, you would do:%r[space(10)]&H_<topic> [v(h-db)]=Quick Description//The help explaining <topic>%r[space(10)]Example: &H_+STAFF [v(h-db)]=Staff Listing//Syntax: +STAFF%%r%%r%r[space(19)]This displays the current staff on the mush. Blah blah blah.%r%rIf you wanted to set up a wizard topic, you would do:%r[space(10)]&W_<topic> [v(h-db)]=Quick Description//Wizhelp explaining <topic>%r%rIf you wanted only a specific list of people to have access to a help topic:%r[space(10)]&D_W_<topic> [v(h-db)]=<function>%r[space(10)]Example: &D_W_+STAFF [v(h-db)]=%[gte(bittype(%%0),3)]%r
+&W_+CFGHELP HelpData=Configure Help//Syntax: +CFGHELP%[/<switch>] <args>%r%rThe +CFGHELP command is used for multiple things.  It is%rused for checking current configurations, setting configurations, and%rclearing or resetting configurations for the help system.%rThe following options exist:%r%r+CFGHELP -- Displays current configuration settings.%r+CFGHELP/LIST ALL -- List definitions of configurations.%r+CFGHELP/LIST -- Lists quick help for +CFGHELP command%r+CFGHELP <toggle> -- Sets/Unsets the given toggle%r[space(5)]Toggles are: VERBOSE -- Toggles quick references on +help listing%r[space(18)]CHECKANSI -- Toggles to check if players are ansi aware.%r+CFGHELP <config>=<value> -- Sets a given value to the given config.
+&D_W_+HELP Helpdata=[gte(bittype(%0),6)]
+@pemit me=Completed.
+@pemit me=Finalization of setup...
+@tel helpfunct=helpobject
+@tel helpdata=helpobject
+@set/quiet me=!quiet
+@pemit me=Object help -> Completed.

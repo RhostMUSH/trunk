@@ -16,7 +16,7 @@ should make life easier for you.  This also honors the /search switch.
 The comsystem is softcode and included in the readme directory. (comsys).  
 Just load it in.  The mail wrappers can be gotten from:
 
-                      http://code.google.com/p/rhostmush
+        Anon FTP solbianca.silentmobius.net/pub/mush/RhostMUSH/
 
 Please see the other readme files on setting other things up like 
 guests, master rooms, and so forth.
@@ -378,6 +378,7 @@ ZONECMDCHK                   ZONE_AUTOADD                  ZONE_AUTOADDALL
         Unkillable              NOKILL
 
 Depowers are unique in Rhost and PennMUSH has no equivelant.
+
 Powers that exist in RhostMUSH that have no match in PennMUSH:
 CHOWN_ME                     WIZ_WHO                       NOFORCE
 FREE_QUOTA                   JOIN_PLAYER                   NO_BOOT

@@ -1,0 +1,19 @@
+Make sure to mkindx the files first, then you can read them with @dynhelp
+The files here are:
+old .................... Subdirectory that holds the older versions
+README ................. This is the file you are reading.
+StartObject ............ This is an object that configures the mail system
+                         when the user first connects.  You place this at the
+                         starting location of new players.
+brandymail.wrap ........ This is the object for the brandy mailer interface.
+                         You place this object in the Master Room.
+muxmail.wrap ........... This is the object for the MUX/TM3 @mail interface.
+                         You place this object in the Master Room.
+pennmail.wrap .......... This is the object for the PENN @mail interface.
+                         You place this object in the Master Room.
+brandymailer_rho.txt ... This is the help file for the brandy mailer interface.
+                         You need to run 'mkindx' on this file.
+muxmail_rho.txt ........ This is the help file for the MUX/TM3 @mail interface.
+                         You need to run 'mkindx' on this file.
+pennmail_rho.txt ....... This is the help file for the PENN @mail interface.
+                         You need to run 'mkindx' on this file.

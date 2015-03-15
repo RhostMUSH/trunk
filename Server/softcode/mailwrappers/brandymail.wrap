@@ -1,0 +1,99 @@
+@create Send Mail RhostAliases <SMA>=10
+&VERSION Send Mail RhostAliases <SMA>=1.5
+@Ufail Send Mail RhostAliases <SMA>=You need to set the BRANDY_MAIL toggle (type: @toggle me=brandy_mail) to use this interface.
+&USEMAIL Send Mail RhostAliases <SMA>=[hastoggle(%#,brandy_mail)]
+&MAIN_HELP Send Mail RhostAliases <SMA>=$bmail:@dynhelp brandymailer_rho=%#
+&MAIN_HELP_ARG Send Mail RhostAliases <SMA>=$bmail *:@dynhelp brandymailer_rho/%0=%#
+@set Send Mail RhostAliases <SMA>/MAIN_HELP_ARG = no_parse
+@lock/UseLock Send Mail RhostAliases <SMA>=USEMAIL/1
+&CMD_+DUMPMAIL Send Mail RhostAliases <SMA>=$+dumpmail*:@pemit %#=+Mail: This option not yet supported.
+&CMD_+MAILSTATUS Send Mail RhostAliases <SMA>=$+mailstatus *:@pemit %#=[list(%0,ifelse(objeval(%#,hastype(*[itext(0)],player)),+Mail: [name(*[itext(0)])] has [ifelse(gt(0,extract(mailquick(*[itext(0)],,1),1,1)),new mail,unread mail)].,+Mail: [itext(0)] - Permission denied.))]
+&CMD_+SET_MAIL_OPTION_DELETE Send Mail RhostAliases <SMA>=$+set mail option delete=*:@pemit %#=Mail deleting is always soft.
+&CMD_+SET_MAIL_OPTION_MODE Send Mail RhostAliases <SMA>=$+set mail option mode=*:@pemit %#=Mail mode can not be changed.
+&CMD_+SET_MAIL_OPTION_FORMAT Send Mail RhostAliases <SMA>=$+set mail option format=*:@pemit %#=Mail format is always standard.
+&CMD_+SET_MAIL_OPTION_AUTOFORWARD Send Mail RhostAliases <SMA>=$+set mail option autoforward=*:@fo %#={mail/autofor %0}
+&CMD_+SET_MAIL_OPTION_SEPERATOR Send Mail RhostAliases <SMA>=$+set mail option seperator=*:@pemit %#=You have specified your seperator to be a [ifelse(setr(0,match(%0,space)),SPACE,RETURN)];@toggle %#=[ifelse(r(0),MAIL_STRIPRETURN,!MAIL_STRIPRETURN)]
+&CMD_+SET_MAIL_OPTION_INBOX Send Mail RhostAliases <SMA>=$+set mail option inbox=*:@fo %#={folder/change %0}
+&CMD_+SET_MAIL_OPTION_VACATION Send Mail RhostAliases <SMA>=$+set mail option vacation=*:@pemit %#=Vacation message will overwrite reject message (if exists);@fo %#={mail/reject %0}
+&CMD_+SET_MAIL_OPTION_REJECT Send Mail RhostAliases <SMA>=$+set mail option reject=*:@pemit %#=Reject message will overwrite vacation message (if exists);@fo %#={mail/reject %0}
+&CMD_+SHOW_MAIL_OPTIONS Send Mail RhostAliases <SMA>=$+show mail options:@fo %#={mail/reject +list;mail/quota;think Mail: Signature is [ifelse(words(setr(0,get(me/mailsig))),r(0),currently empty)]%%rMail: Currently on message [max(get(%#/mailcurrent),1)]%%rMail: [ifelse(hastoggle(%#,brandy_mail),You currently have the brandy mail interface active,You do not have the brandy mail interface active)]%%rMail: [ifelse(hastoggle(%#,MAIL_STRIPRETURN),Your seperator is currently a SPACE.,Your seperator is currently a RETURN.)]%%rMail: Your mailbox is currently taking up [mailsize(%#,2)] bytes.}
+&CMD_+NOTE Send Mail RhostAliases <SMA>=$+note *:@fo %#={mail/send %#=[ifelse(match(pos(%0,=),#-1),Personal Note//[escape(%0)],[before(%0,=)]//[escape(after(%0,=))])]}
+&CMD_+ONOTE Send Mail RhostAliases <SMA>=$+onote *=*//*:@fo %#={mail/send %0=%1://[escape(%2)]}
+&CMD_+CHECK_MAIL Send Mail RhostAliases <SMA>=$+check mail:@fo %#={mail/quick}
+&CMD_+READ Send Mail RhostAliases <SMA>=$+read:@fo %#={mail/quick}
+&CMD_+SKIM Send Mail RhostAliases <SMA>=$+skim*:@pemit %#=[repeat(=,78)]%r%r[center(List of Mail Messages,78)]%r%r[space(10)][ljc(Sender,19)][ljc(Subject,20)][ljc(Size,6)][ljc(Received,20)]%r[space(10)][ljust(------,19)][ljust(-------,20)][ljust(----,6)][ljust(--------,20)];@pemit %#=[list(ifelse(isnum(v(0)),setinter(mailstatus(%#),v(0)),mailstatus(%#,trim(v(0)))),u(mail_status_bm,mailstatus(%#,##),%#))]%r%rSelected folder: Current%r%r[repeat(=,78)]
+&CMD_+READ_EXTENDED Send Mail RhostAliases <SMA>=$+read *:@dolist [switch(%0,n,new,u,unread,%0)]={@fo %#=mail/read ##;&MAILCURRENT %#=##}
+&CMD_+REPLY_EXT Send Mail RhostAliases <SMA>=$+reply *:@fo %#={mail/reply [first(%0)]*=Reply: [rest(%0)]}
+&CMD_+REPLY Send Mail RhostAliases <SMA>=$+reply:@swi [words(get(%#/mailcurrent))]=0,{@pemit %#=+Mail: Reply to what message?},{@fo %#={mail/reply [get(%#/mailcurrent)]*=Reply...}}
+&CMD_+REPLYALL_EXT Send Mail RhostAliases <SMA>=$+replyall *:@fo %#={mail/reply @[first(%0)]*=Reply: [rest(%0)]}
+&CMD_+REPLYALL Send Mail RhostAliases <SMA>=$+replyall:@swi [words(get(%#/mailcurrent))]=0,{@pemit %#=+Mail: Reply to what message?},{@fo %#={mail/reply @[get(%#/mailcurrent)]*=Reply...}}
+&CMD_+REPLY_EXTNM Send Mail RhostAliases <SMA>=$+replynm *:@fo %#={mail/reply [first(%0)]=Reply: [rest(%0)]}
+&CMD_+REPLYNM Send Mail RhostAliases <SMA>=$+replynm:@swi [words(get(%#/mailcurrent))]=0,{@pemit %#=+Mail: Reply to what message?},{@fo %#={mail/reply [get(%#/mailcurrent)]=Reply...}}
+&CMD_+REPLYALLNM Send Mail RhostAliases <SMA>=$+replyallnm:@swi [words(get(%#/mailcurrent))]=0,{@pemit %#=+Mail: Reply to what message?},{@fo %#={mail/reply @[get(%#/mailcurrent)]=Reply...}}
+&CMD_+REPLYALLNM Send Mail RhostAliases <SMA>=$+replyallnm *:@fo %#={mail/reply @[first(%0)]=Reply: [rest(%0)]}
+&CMD_+MAIL_STATUS Send Mail RhostAliases <SMA>=$+mail status*:@swi [and(gte(bittype(%#),5),strmatch(%0,for *))]=1,{@fo %#=mail/quota [num(*[after(%0,for)])]},{@fo %#=mail/quota}
+&CMD_+FORWARD_TO Send Mail RhostAliases <SMA>=$+forward to *:@fo %#={mail/forward [get(%#/mailcurrent)] @%0}
+&CMD_+FORWARD_NUMTO Send Mail RhostAliases <SMA>=$+forward * to *:@fo %#={mail/forward %0 @%1}
+&CMD_+FORWARD Send Mail RhostAliases <SMA>=$+forward *=*:@fo %#={mail/forward [get(%#/mailcurrent)] @%0=%1}
+&CMD_+BOUNCE Send Mail RhostAliases <SMA>=$+bounce *=*:@fo %#={@toggle %#=!brandy_mail;mail/forward %1 @%0;@toggle %#=brandy_mail}
+&CMD_+REVIEW_GENERIC Send Mail RhostAliases <SMA>=$+review:@fo %#={mail/recall/all}
+&CMD_+REVIEW_LETTERS Send Mail RhostAliases <SMA>=$+review letters:@fo %#={mail/recall/all}
+&CMD_+REVIEW_LETTERS_PLR Send Mail RhostAliases <SMA>=$+review letters *:@fo %#={mail/recall/all *%0}
+&CMD_+REVIEW_LETTERS_UNR Send Mail RhostAliases <SMA>=$+review unread letters:@fo %#={mail/recall}
+&CMD_+REVIEW_LETTERS_UNRPLR Send Mail RhostAliases <SMA>=$+review unread letters *:@fo %#={mail/recall *%0}
+&CMD_+REVIEW_LETTER Send Mail RhostAliases <SMA>=$+review letter *:@fo %#={mail/recall %0}
+&CMD_+RETRACT_LETTER Send Mail RhostAliases <SMA>=$+retract letter *:@fo %#={mail/recall %0=+all}
+&CMD_+MAIL Send Mail RhostAliases <SMA>=$+mail *=*:@fo %#={mail @%0=%1}
+&CMD_+SET_MAIL_QUOTA Send Mail RhostAliases <SMA>=$+set mail quota *=*/*:@swi [gte(bittype(%#),5)]=1,{@fo %#=wmail/size %0=%1},{@pemit %#=Permission Denied.}
+&CMD_+DESTROY_MAILBOX_FOR Send Mail RhostAliases <SMA>=$+destroy mailbox for *:@swi/f [gte(bittype(%#),5)]=1,{@fo %#=wmail/wipe %0},{@pemit %#=Permission Denied}
+&CMD_+MAIL_CC Send Mail RhostAliases <SMA>=$+cc *:@fo %#={mail/write +acc=%0};@pemit %#=Warning: This may not do what you expect. RHost @mail will add all names to the To: List. Use +bcc for Blind Carbon Copys.
+&CMD_+MAIL_BCC Send Mail RhostAliases <SMA>=$+bcc *:@fo %#={mail/write +bcc=%0}
+&CMD_+MAIL_+EDIT Send Mail RhostAliases <SMA>=$+edit *=*:@fo %#={mail/write +feditall=%0,%1}
+&CMD_+MAIL_+SUBJECT Send Mail RhostAliases <SMA>=$+subject *:@fo %#={mail/write +subject=%0}
+&CMD_+MAIL_+PROOF Send Mail RhostAliases <SMA>=$+proof:@fo %#={mail/write +proof}
+&CMD_+MAIL_+TOSS Send Mail RhostAliases <SMA>=$+toss:@fo %#={mail/write +forget}
+&CMD_+MAIL_+SEND Send Mail RhostAliases <SMA>=$+send:@fo %#={--}
+&CMD_+MAIL_+ADDNOTE Send Mail RhostAliases <SMA>=$+add note *:@fo %#={mail/write %0}
+&CMD_+DELETE Send Mail RhostAliases <SMA>=$+delete*:@fo %#={mail/mark [ifelse(words(%0),%0,get(%#/mailcurrent))]}
+&CMD_+UNDELETE Send Mail RhostAliases <SMA>=$+undelete*:@fo %#={mail/unmark [ifelse(strlen(%0),%0,get(%#/mailcurrent))]}
+&CMD_+MARK Send Mail RhostAliases <SMA>=$+mark*:@fo %#={mail/mark %0}
+&CMD_+UNMARK Send Mail RhostAliases <SMA>=$+unmark*:@fo %#={mail/unmark %0}
+&CMD_+SAVE Send Mail RhostAliases <SMA>=$+save*:@fo %#={mail/mark/save [ifelse(words(%0),%0,get(%#/mailcurrent))]}
+&CMD_+UNSAVE Send Mail RhostAliases <SMA>=$+unsave *:@fo %#={mail/unmark %0}
+&CMD_+CLEAR Send Mail RhostAliases <SMA>=$+clear*:@fo %#={mail/mark [ifelse(strlen(%0),%0,get(%#/mailcurrent))]}
+&CMD_+UNCLEAR Send Mail RhostAliases <SMA>=$+unclear*:@fo %#={mail/unmark [ifelse(strlen(%0),%0,get(%#/mailcurrent))]}
+&CMD_+FLUSH Send Mail RhostAliases <SMA>=$+flush:@fo %#={mail/delete}
+&CMD_+ADD_PERSONAL_ALIAS Send Mail RhostAliases <SMA>=$+add personal alias *=*:@fo %#={&[first(secure(%0))] %#=@ [secure(%1)]};@pemit %#=Personal mail alias '[first(secure(%0))]' stored with list '[secure(%1)]'. To use in a mail message, use '+mail &alias=subject'
+&CMD_REMOVE_PERSONAL_ALIAS Send Mail RhostAliases <SMA>=$+remove personal alias *:@fo %#={&[first(secure(0))] %#};@pemit %#=Personal mail alias '[first(secure(%0))]' removed.
+&CMD_EXPAND_PERSONAL_ALIAS Send Mail RhostAliases <SMA>=$+expand personal alias *:@pemit %#=Contents of personal mail alias '[first(secure(%0))]':%r[get(%#/[first(secure(%0))])]
+&CMD_LIST_PERSONAL_ALIASES Send Mail RhostAliases <SMA>=$+list personal aliases:@pemit %#=Note: this is the same as lattr(me):%r[objeval(%#,lattr(%#))]
+&CMD_ADD_GLOBAL_ALIAS Send Mail RhostAliases <SMA>=$+add global alias *=*:@fo %#={wmail/alias %0=[setunion(mailalias(%0),num(*%1))]}
+&CMD_REMOVE_GLOBAL_ALIAS Send Mail RhostAliases <SMA>=$+remove global alias *:@fo %#={wmail/alias/remove %0}
+&CMD_EXPAND_GLOBAL_ALIAS Send Mail RhostAliases <SMA>=$+expand global alias *:@fo %#=wmail/alias
+&CMD_LIST_GLOBAL_ALIASES Send Mail RhostAliases <SMA>=$+list global aliases:@fo %#=mail/alias
+&CMD_ADD_FOLDER Send Mail RhostAliases <SMA>=$+add folder *:@fo %#={folder/create %0}
+&CMD_REMOVE_FOLDER Send Mail RhostAliases <SMA>=$+remove folder *:@fo %#={folder/delete %0}
+&CMD_LIST_FOLDER Send Mail RhostAliases <SMA>=$+list folders:@fo %#=folder/list
+&CMD_SELECT_FOLDER_EXT Send Mail RhostAliases <SMA>=$+select folder *:@fo %#={folder/change %0};&CURRENT_FOLDER %#=[secure(%0)]
+&CMD_SELECT_FOLDER Send Mail RhostAliases <SMA>=$+select folder:@fo %#=folder/change;&CURRENT_FOLDER %#=Incoming
+&CMD_MOVE_MSG_TO_FOLDER Send Mail RhostAliases <SMA>=$+move * to *:@switch [get(%#/current_folder)]=,{&CURRENT_FOLDER %#=Incoming};@fo %#={folder/move %0=[get(%#/current_folder)],%1}
+&CMD_MOVE_MSG_BY_SUBJ Send Mail RhostAliases <SMA>=$+move/subj * to *:@switch [get(%#/current_folder)]=,{&CURRENT_FOLDER %#=Incoming};@fo %#={folder/move [mailstatus(%#,/%0)]=[get(%#/current_folder)],%1}
+&CMD_+ZAP Send Mail RhostAliases <SMA>=$+zap*:@fo %#={mail/zap %0}
+&CMD_+MAIL_ACC Send Mail RhostAliases <SMA>=$+acc *:@fo %#={mail/write +acc=%0}
+&MAIL_+NEXT Send Mail RhostAliases <SMA>=$+next:@fo %#=mail/next
+&MAIL_+PREV Send Mail RhostAliases <SMA>=$+prev:@fo %#=mail/next -
+&MAIL_+ZAP Send Mail RhostAliases <SMA>=$+zap:@fo %#=mail/zap
+&CMD_+SET_MAIL+OPTION_SPACE Send Mail RhostAliases <SMA>=$+set mail option space=*:@pemit %#=You have specified your seperator to be a [ifelse(setr(0,match(%0,space)),SPACE,RETURN)];@toggle %#=[ifelse(r(0),MAIL_STRIPRETURN,!MAIL_STRIPRETURN)]
+&CMD_+QUICKFORWARD Send Mail RhostAliases <SMA>=$+quickforward *=*:@toggle %#=!brandy_mail;@fo %#={mail/forward [get(%#/mailcurrent)] @%0=%1};@wait 0=@toggle me=brandy_mail}
+&CMD_+QUICKFORWARD_NUMTO Send Mail RhostAliases <SMA>=$+quickforward * to *:@toggle %#=!brandy_mail;@fo %#={mail/forward %0 @%1=Forward//};@wait 0=@toggle %#=brandy_mail
+&CMD_+QUICKFORWARD_TO Send Mail RhostAliases <SMA>=$+quickforward to *:@toggle %#=!brandy_mail;@fo %#={mail/forward [get(%#/mailcurrent)] @%0=Forward//};@wait 0=@toggle %#=brandy_mail
+&CMD_+MAIL_+FAKESEND Send Mail RhostAliases <SMA>=$--:@pemit %#=Mail: Send what? You need to start a message first.
+&CMD_FAKE_SKIM Send Mail RhostAliases <SMA>=$+mail:@pemit %#=Mail: I believe you want to use '+skim'.
+&CMD_+SKIM_BACKUP Send Mail RhostAliases <SMA>=$+skim*:@fo %#={mail/status %0}
+&MAIL_STATUS_BM Send Mail RhostAliases <SMA>=[ifelse(eq(setr(0,before(after(v(0),%(),%))),get(%1/MailCurrent)),+,%b)][before(after(v(0),%[),%])][rjust(r(0),5)]%) %b[ljc(trim(after(before(v(0),<),:)),19)][ljc(trim(ifelse(words(setr(0,after(v(0),Subj:))),r(0),NONE)),20)][ljust(before(after(v(0),> %(),%bB),6)][extract(before(after(v(0),<),>),1,4)]
+@set Send Mail RhostAliases <SMA>/CMD_+SKIM_BACKUP = no_command
+@set Send Mail RhostAliases <SMA>=INDESTRUCTABLE
+@set Send Mail RhostAliases <SMA>=SHOWFAILCMD
+@set Send Mail RhostAliases <SMA>=SAFE
+@set Send Mail RhostAliases <SMA>=INHERIT
+@set Send Mail RhostAliases <SMA>=STOP

@@ -1,0 +1,22 @@
+@create StartObject=10
+@lock StartObject=me
+@fo me=&DB StartObject=[num(startobject)]
+@lock StartObject=*Ashen-Shugar
+@VA StartObject=@pemit %0=Welcome to [mudname()]! Thank you for having an interest in our mush. At this point, we'll set up some simple connection information for you. Please enter what type of mail system you prefer. You may specify PENN's, Brandy Mail's, or Mux's @mail.%rIf you are new to mushing, you may type 'X' to exit out of this and choose all defaults.%rPlease enter your choice now:;@progprompt me=<M>ux, <B>randy, <P>enn, <O>ther, <X>it:;@program %0=[v(DB)]/vb
+@VB StartObject=@swi match(m b p o x,%0)=0,{@pemit %#=Sorry, you just choose one of the formats for mail (or eXit). Please try again.;@tr me/va=%#},{@pemit %#=[switch(%0,m,[You have selected to use mux's @mail system. The commands should work as you expect. Use '[ansi(hr,mmail)]' for help on this.],p,[You have selected to use penn's @mail system. The commands should work as you expect. Use '[ansi(hr,pmail)]' for help on this.],b,[You have selected to use Brandy's +mail system. The commands should work as you expect. Use '[ansi(hr,bmail)]' for help on this.],o,[You have selected to use the built-in mail system. It's really powerful. Good choice. Use '[ansi(hr,help mail)]' for help on this.],x,[You have opted to choose all defaults and exit the setup configuration.)];@swi [match(x p m b,%0)]=1,{@pemit %#=All options set to default RhostMUSH specific. Thank you.;&DID_START %#=DONE},2,{@toggle %#=penn_mail},>2,{@toggle %#=brandy_mail mail_stripreturn};@break [match(%0,x)];@tr me/vc=%#}
+@VD StartObject=@pemit %0=To check the bbs system, please type +help bbs. It uses the Myrddin BBS system.%r%rThis ends the initial setup.;&DID_START %0=DONE;@set *%0=command
+&LISTEN1 StartObject=^* has connected*:@break [hasflag(%#,guest)];@wait 1=@swi/f [match(get(%#/did_start),DONE)][match(WORKING WORKING2,get(%#/did_start))]=00,{&DID_START %#=WORKING;@tr me/va=%#},01,{@pemit %#=You disconnected in the middle of initializing your character.;@tr me/va=%#},02,{@pemit %#=You disconnected in the middle of initializing your character.;@tr me/vc=%#}
+@ZA StartObject=@pemit %0=You disconnected while in the process of initializing your character. [ifelse(match(get(%0/did_start),WORKING),Please enter your mail system of choice.,Please answer if you want to autojoin bbs channels.)];@tr me/[ifelse(match(get(%0/did_start),WORKING),va,vc)]=%0
+&VC_OLD StartObject=@pemit %0=You are now going to be configured to join all the available bbs boards.;@progprompt me=Continue? (Y/N) :;&DID_START %0=WORKING2;@program %0=[v(DB)]/vd
+@VC StartObject=@pemit %0=Do you wish to use a TM3/MUX compatable page system. This means, that you can use 'p <message>' or 'page <message>' to page the last person you paged. If you choose not to, you may use 'lp <message>' to page the last person you paged. (the choice will not effect the lp command).;@progprompt me=Enable TM3/MUX page (Y/N) :;&DID_START %0=WORKING2;@program %0=[v(DB)]/ve
+@VE StartObject=@swi [match(y n,%0)]=0,{@pemit %#=I'm sorry, but that's not a valid choice. Please choose 'Y' or 'N'.;@program %#=[v(DB)]/ve},1,{@pemit %#=You have chosen to use the TM3/MUX page interface. You can unset this latter by typing: @toggle me=!muxpage;@toggle %#=muxpage;@tr me/vd=%#},2,{@pemit %#=You have chosen NOT to use the TM3/MUX page interface. You can set this latter by typing: @toggle me=muxpage;@tr me/vd=%#}
+@set StartObject=DARK
+@set StartObject=INHERIT
+@set StartObject=MONITOR
+@set StartObject=UNFINDABLE
+@set StartObject=SAFE
+@set StartObject=SCLOAK
+@set StartObject=INDESTRUCTABLE
+@toggle StartObject=prog
+@pemit %#=This can cause an error/permission denied if it's not configured.  Ignore it.
+@set StartObject=COMMAND

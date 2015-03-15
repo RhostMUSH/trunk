@@ -1,0 +1,11 @@
+This is a file container for what exists here
+
++help                          -- Softcoded +help incase you wanted one
+RhostSPACE                     -- Rhost specific Dynamic Space
+comsys                         -- The main comsystem for RhostMUSH -- MUX with Penn compat.
+daily                          -- Reproduction of MUX's @daily feature
+follow                         -- Reproduction of Penn's follow code
+mailwrappers                   -- Mail wrappers for MUX/TM3 @mail, Penn's @mail, and brandy's +mail
+scan                           -- Penn's @scan code
+softfunctions.minmax           -- Softfunction wrappers to mimic various MUX/Penn feature sets
+softfunctions.old_donotuse     -- An old version of softfunctions, not useful unless you support old rhost
