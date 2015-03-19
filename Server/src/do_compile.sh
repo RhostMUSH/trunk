@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-COMP=gdbm
+COMP=qdbm
 case ${COMP} in
    gdbm) gdbmdir=./gdbm-1.8.3
          ;;
@@ -13,10 +13,20 @@ esac
 cd $gdbmdir
 if [ -f ./Makefile ]
 then
-   make
+   if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
+   then
+      make mac
+   else
+      make
+   fi
 else
    ./configure
-   make
+   if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
+   then
+      make mac
+   else
+      make
+   fi
 fi
 rm -f libqdbm*.so* >/dev/null 2>&1
 exit 0

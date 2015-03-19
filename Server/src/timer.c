@@ -17,6 +17,27 @@
 #include "rwho_clilib.h"
 #include "local.h"
 
+/******************************************************************************
+ * Mac OSX does not have clock_gettime, so this is their method of reproducing
+ * it.  This will likely have to occur for any oth3er systems also missing this
+ * functionality, so define below when required for each arch-type
+ ******************************************************************************/
+#ifdef __MACH__
+#include <sys/time.h>
+#define CLOCK_REALTIME  0
+#define CLOCK_MONOTONIC 0
+/* clock_gettime mac OSX implementation */
+int clock_gettime(int clk_id, struct timespec* t) {
+   struct timeval now;
+   int rv = gettimeofday(&now, NULL);
+   if (rv)
+      return rv;
+   t->tv_sec  = now.tv_sec;
+   t->tv_nsec = now.tv_usec * 1000;
+   return 0;
+}
+#endif
+
 /*#include <sys/resource.h>*/
 
 extern void		NDECL(do_second);
