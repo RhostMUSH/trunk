@@ -8,6 +8,6 @@ rhost_installer.sh*	-- The installsetup script.  Not needed
                            you downloaded the latest git repository.
                            Use patch.sh to update the source tree once received.
 Contrib/  		-- currently unused
-Mushcode/  		-- currently unused
+Mushcode/  		-- Various MUSH softcode that is useful for RhostMUSH
 Server/			-- the main RhostMUSH directory.  To configure you
                            would issue 'make confsource' from this directory
