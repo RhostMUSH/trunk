@@ -4767,6 +4767,10 @@
   
   See Also: @name, @extansi, @caption, ANSINAME, ansi(), EXTANSI TOGGLE, 
             @titlecaption
+
+& @moniker
+  See Also: @ansiname, @titlecaption, ANSINAME, ansi(), EXTANSI TOGGLE,
+            @extansi, @caption  
   
 & @extansi
   Command: @extansi[/<switch>] <object> = <string>
