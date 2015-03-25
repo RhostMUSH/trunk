@@ -10,7 +10,7 @@ NOTE:  Rhost does support UNICODE/UTF8, but it's currently not part of the main
        branch as of this writing.  Please talk to Kage on the dev site for more
        information on when it'll be released.
 
-First, on PennMUSH, help is seperated into 'help' and 'wizhelp'.  This can 
+First, on PennMUSH, help is separated into 'help' and 'wizhelp'.  This can 
 be confusing. If you want to 'combine' them, you may use the following snippit:
 
 $ahelp*:@pemit %#=[switch([!!words(%0)][match(/search,%0*)],0?,[setq(0,help)][setq(1,0)],11,[setq(0,rest(%0))][setq(1,2)],setq(0,trim(%0)))][setq(a,textfile(help,%q0,%q1))][setq(b,textfile(wizhelp,%q0,%q1))][setq(2,)][ifelse(!strmatch(%qa,No entry*),%qa[setq(2,%r)])][ifelse(!strmatch(%qb,No entry*),%q2%qb[setq(2,%r)])][ifelse(!$r(2),No topics found for '%q0'.)]
