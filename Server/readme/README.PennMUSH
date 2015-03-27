@@ -473,511 +473,564 @@ GRAB_PLAYER                  SECURITY                      WRAITH
 HIDEBIT
 
 
-Functions Pennmush----------------RhostMUSH
-          @@                      @@
-          ABS                     ACCENT 
-          ACCNAME                 CNAME
-          ACOS                    ACOS
-          ADD                     ADD
-          AFTER                   AFTER
-          ALIAS                   ALIAS/LISTPROTECT
-          ALIGN                   PRINTF
-          ALLOF                   @function (softfunctions)
-          ALPHAMAX                ALPHAMAX
-          ALPHAMIN                ALPHAMIN
-          AND                     AND
-          ANDFLAGS                ANDFLAGS
-          ANDLFLAGS               ANDFLAG
-          ANDLPOWERS              @function (softfunctions)
-          ANSI                    ANSI
-          APOSS                   APOSS
-          ART                     ART
-          ASIN                    ASIN
-          ATAN                    ATAN
-          ATAN2                   N/A
-          ATRLOCK                 HASFLAG(#obj/attr,LOCK)
-          ATTRIB_SET              SET
-          BAND                    MASK
-          BASECONV                PACK/UNPACK
-          BEEP                    BEEP
-          BEFORE                  BEFORE
-          BENCHMARK               CPUTIME (@toggle)
-          BNAND                   MASK
-          BNOT                    MASK
-          BOR                     BOR
-          BOUND                   BOUND/FBOUND
-          BRACKETS                BRACKETS
-          BXOR                    MASK
-          CAND                    CAND
-          CAPSTR                  CAPSTR
-          CASE                    CASE
-          CASEALL                 CASEALL
-          CAT                     CAT
-          CBUFFER                 N/A
-          CBUFFERADD              N/A
-          CDESC                   N/A
-          CEIL                    CEIL
-          CEMIT                   N/A
-          CENTER                  CENTER
-          CFLAGS                  N/A
-          CHANNELS                N/A
-          CHECKPASS               CHECKPASS
-          CHILDREN                CHILDREN
-          CHR                     CHR
-          CLFLAGS                 N/A
-          CLOCK                   N/A
-          CLONE                   CLONE
-          CMDS                    CMDS
-          CMOGRIFIER              N/A
-          CMSGS                   N/A
-          COLORS                  COLORS
-          COMP                    COMP
-          CON                     CON
-          COND                    @function (softfunctions)
-          CONDALL                 @function (softfunctions)
-          CONFIG                  CONFIG
-          CONN                    CONN
-          CONTROLS                CONTROLS
-          CONVSECS                CONVSECS
-          CONVTIME                CONVTIME
-          CONVUTCSECS             CONVSECS
-          CONVUTCTIME             CONVTIME
-          COR                     COR
-          COS                     COS
-          COWNER                  N/A
-          CREATE                  CREATE
-          CRECALL                 N/A
-          CSECS                   N/A
-          CSTATUS                 N/A
-          CTIME                   N/A
-          CTITLE                  N/A
-          CTU                     CTU
-          CUSERS                  N/A
-          CWHO                    N/A
-          DEC                     DEC/XDEC
-          DECODE64                DECODE64
-          DECOMPOSE               TRANSLATE
-          DECRYPT                 DECRYPT
-          DEFAULT                 DEFAULT
-          DIE                     DICE
-          DIG                     DIG
-          DIGEST                  DIGEST
-          DIST2D                  DIST2D
-          DIST3D                  DIST3D
-          DIV                     DIV
-          DOING                   DOING
-          E                       E
-          EDEFAULT                EDEFAULT
-          EDIT                    PEDIT/EDIT
-          ELEMENT                 MATCH
-          ELEMENTS                ELEMENTSMUX/ELEMENTS
-          ELIST                   ELIST
-          ELOCK                   ELOCK
-          EMIT                    EMIT
-          ENCODE64                ENCODE64
-          ENCRYPT                 ENCRYPT
-          ENDTAG                  N/A
-          ENTRANCES               ENTRANCES
-          EQ                      EQ
-          ESCAPE                  ESCAPE
-          ETIME                   @function (softfunctions)
-          ETIMEFMT                TIMEFMT
-          EVAL                    EVAL
-          EXIT                    EXIT
-          EXTRACT                 EXTRACT
-          FDIV                    FDIV
-          FILTER                  FILTER
-          FILTERBOOL              FILTER
-          FINDABLE                FINDABLE
-          FIRST                   FIRST
-          FIRSTOF                 @function (softfunctions)
-          FLAGS                   FLAGS
-          FLIP                    REVERSE
-          FLOOR                   FLOOR
-          FLOORDIV                FLOORDIV
-          FMOD                    FMOD
-          FN                      BYPASS
-          FOLD                    FOLD
-          FOLDERSTATS             folderlist()            
-          FOLLOWERS               N/A (softcode available)
-          FOLLOWING               N/A (softcode available)
-          FOREACH                 FOREACH
-          FRACTION                N/A
-          FULLALIAS               ALIAS + LISTPROTECT
-          FULLNAME                FULLNAME
-          FUNCTIONS               LISTFUNCTIONS
-          GET                     GET
-          GETPIDS                 PIDS
-          GET_EVAL                GET_EVAL
-          GRAB                    GRAB
-          GRABALL                 GRABALL
-          GREP                    GREP
-          GREPI                   GREP
-          GT                      GT
-          GTE                     GTE
-          HASATTR                 HASATTR
-          HASATTRP                HASATTRP
-          HASATTRPVAL             HASATTRPVAL
-          HASATTRVAL              HASATTRVAL
-          HASFLAG                 HASFLAG
-          HASPOWER                HASPOWER
-          HASTYPE                 HASTYPE
-          HEIGHT                  @function (softfunctions)
-          HIDDEN                  HIDDEN
-          HOME                    HOME
-          HOST                    LOOKUP_SITE
-          HTML                    N/A
-          IBREAK                  IBREAK
-          IDLE                    IDLE
-          IF                      IFELSE
-          IFELSE                  IFELSE
-          ILEV                    ILEV
-          INAME                   NAME
-          INC                     INC/XINC
-          INDEX                   INDEX
-          INUM                    INUM/INUM2
-          IPADDR                  LOOKUP_SITE
-          ISDAYLIGHT              TIMEFMT
-          ISDBREF                 ISDBREF
-          ISINT                   ISINT
-          ISNUM                   ISNUM
-          ISOBJID                 N/A
-          ISREGEXP                N/A
-          ISWORD                  ISWORD
-          ITEMIZE                 ELIST
-          ITEMS                   WORDS 
-          ITER                    ITER
-          ITEXT                   ITEXT
-	  LALIGN                  PRINTF
-          LAST                    LAST
-          LATTR                   LATTR
-          LATTRP                  LATTRP
-          LCON                    LCON
-          LCSTR                   LCSTR
-          LDELETE                 LDELETE
-          LEFT                    LEFT
-          LEMIT                   LEMIT
-          LETQ                    @function (softfunctions)
-          LEXITS                  LEXITS
-          LFLAGS                  LFLAGS
-          LINK                    LINK
-          LINSERT                 INSERT
-          LIST                    LISTPOWERS/LISTFLAGS/LISTTOGGLES/etc
-          LISTQ                   N/A
-          LIT                     LIT
-          LJUST                   LJUST
-          LLOCKFLAGS              N/A
-          LLOCKS                  LOCKS
-          LMATH                   STRFUNC
-          LN                      LN
-          LNUM                    LNUM/LNUM2
-          LOC                     LOC
-          LOCALIZE                LOCALIZE
-          LOCATE                  LOCATE
-          LOCK                    LOCK
-          LOCKFILTER              LOCKCHECK
-          LOCKFLAGS               FLAGS
-          LOCKOWNER               OWNER
-          LOCKS                   LOCKS
-          LOG                     LOG
-          LPARENT                 PARENTS
-          LPIDS                   PIDS
-          LPLAYERS                LCON
-          LPORTS                  PORT
-          LPOS                    LPOS
-          LREPLACE                REPLACE
-          LSEARCH                 SEARCH/SEARCHNG
-          LSEARCHR                @function to revwords(search())
-          LSET                    SET
-          LSTATS                  STATS
-          LT                      LT
-          LTE                     LTE
-          LTHINGS                 LCON
-          LVCON                   LCON + STREVAL at mortal
-          LVEXITS                 LCON + STREVAL at mortal
-          LVPLAYERS               LCON + STREVAL at mortal
-          LVTHINGS                LCON + STREVAL at mortal
-          LWHO                    LWHO
-          LWHOID                  N/A
-          MAIL                    MAILREAD/MAILSEND
-          MAILDSTATS              MAILSIZE/MAILQUOTA
-          MAILFROM                MAILREAD
-          MAILFSTATS              FOLDERLIST/FOLDERCURRENT
-          MAILLIST                MAILREAD
-          MAILSEND                MAILSEND
-          MAILSTATS               MAILSIZE/MAILQUOTA
-          MAILSTATUS              MAILSIZE/MAILQUOTA
-          MAILSUBJECT             MAILREAD
-          MAILTIME                MAILREAD
-          MALIAS                  MAILREAD
-          MAP                     MAP
-          MAPSQL                  N/A
-          MATCH                   MATCH
-          MATCHALL                MATCHALL
-          MAX                     MAX
-          MEAN                    AVG
-          MEDIAN                  AVG
-          MEMBER                  MEMBER
-          MERGE                   MERGE
-          MESSAGE                 PARSESTR + PEMIT/REMIT
-          MID                     MID
-          MIN                     MIN
-          MIX                     MIX
-          MODULO                  MOD
-          MONEY                   MONEY
-          MONIKER                 CNAME
-          MSECS                   MODIFYTIME + CONVTIME
-          MTIME                   MODIFYTIME
-          MUDNAME                 MUDNAME
-          MUDURL                  N/A
-          MUL                     MUL
-          MUNGE                   MUNGE
-          MWHO                    LWHO + STREVAL at mortal
-          MWHOID                  N/A
-          NAME                    NAME
-          NAMEGRAB                @function (softfunctions)
-          NAMEGRABALL             @function (softfunctions)
-          NAMELIST                @function (softfunctions)
-          NAND                    NAND
-          NATTR                   ATTRCNT
-          NATTRP                  ATTRCNT
-          NCAND                   !CAND
-          NCHILDREN               CHILDREN
-          NCON                    WORDS + LCON
-          NCOND                   @function (softfunctions)
-          NCONDALL                @function (softfunctions)
-          NCOR                    !COR
-          NEARBY                  NEARBY
-          NEQ                     NEQ
-          NEXITS                  WORDS + LEXITS
-          NEXT                    NEXT
-          NEXTDBREF               N/A
-          NLSEARCH                WORDS + LSEARCH
-          NMWHO                   WORDS + LWHO + STREVAL at mortal
-          NOR                     NOR
-          NOT                     NOT or !
-          NPLAYERS                WORDS + LCON
-          NSCEMIT                 N/A
-          NSEARCH                 WORDS + LSEARCH
-          NSEMIT                  EMIT
-          NSLEMIT                 LEMIT
-          NSOEMIT                 OEMIT
-          NSPEMIT                 PEMIT
-          NSPROMPT                N/A (@program?)
-          NSREMIT                 REMIT
-          NSZEMIT                 ZEMIT
-          NTHINGS                 WORDS + LCON
-          NULL                    NULL
-          NUM                     NUM
-          NUMVERSION              N/A
-          NVCON                   WORDS + LCON + STREVAL at mortal
-          NVEXITS                 WORDS + LEXITS + STREVAL at mortal
-          NVPLAYERS               WORDS + LCON + STREVAL at mortal
-          NVTHINGS                WORDS + LCON + STREVAL at mortal
-          NWHO                    WORDS + LWHO
-          OBJ                     OBJ
-          OBJEVAL                 OBJEVAL
-          OBJID                   N/A
-          OBJMEM                  SIZE
-          OEMIT                   OEMIT
-          OPEN                    OPEN
-          OR                      OR
-          ORD                     ASC
-          ORDINAL                 N/A
-          ORFLAGS                 ORFLAGS
-          ORLFLAGS                ORFLAG
-          ORLPOWERS               N/A (easy to @function)
-          OWNER                   OWNER
-          PARENT                  PARENT
-          PCREATE                 CREATE
-          PEMIT                   PEMIT
-          PFUN                    U + PARENT
-          PI                      PI 
-          PIDINFO                 PID
-          PLAYER                  before(grab(lwho(1),*:%0),:)
-          PLAYERMEM               SIZE
-          PMATCH                  PMATCH
-          POLL                    DOING
-          PORTS                   PORT
-          POS                     POS
-          POSS                    POSS
-          POWER                   POWER
-          POWERS                  LPOWERS
-          PROMPT                  N/A (@program?)
-          PUEBLO                  N/A
-          QUOTA                   QUOTA
-          R                       R
-          RAND                    RAND
-          RANDWORD                PICKRAND
-          RECV                    CHARIN
-          REGEDIT                 REGEDIT
-          REGEDITALL              REGEDITALL
-          REGEDITALLI             REGEDITALLI
-          REGEDITI                REGEDITI
-          REGISTERS               N/A
-          REGLATTR                LATTR
-          REGLATTRP               LATTRP
-          REGLMATCH               REGLMATCH
-          REGLMATCHALL            REGLMATCHALL
-          REGLMATCHALLI           REGLMATCHALLI
-          REGLMATCHI              REGLMATCHI
-          REGMATCH                REGMATCH
-          REGMATCHI               REGMATCHI
-          REGNATTR                WORDS + ATTR
-          REGNATTRP               WORDS + ATTRP
-          REGRAB                  REGRAB
-          REGRABALL               REGRABALL
-          REGRABALLI              REGRABALLI
-          REGRABI                 REGRABI
-          REGREP                  REGREP
-          REGREPI                 REGREPI
-          REGXATTR                ATTR
-          REGXATTRP               ATTRP
-          REMAINDER               REMAINDER
-          REMIT                   REMIT
-          REMOVE                  REMOVE
-          RENDER                  N/A
-          REPEAT                  REPEAT
-          REST                    REST
-          RESTARTS                N/A
-          RESTARTTIME             RESTARTTIME
-          RESWITCH                RESWITCH
-          RESWITCHALL             RESWITCHALL
-          RESWITCHALLI            RESWITCHALLI
-          RESWITCHI               RESWITCHI
-          REVWORDS                REVWORDS
-          RIGHT                   RIGHT
-          RJUST                   RJUST
-          RLOC                    RLOC
-          RNUM                    RNUM
-          ROOM                    ROOM
-          ROOT                    N/A
-          ROUND                   ROUND
-          S                       S
-          SCAN                    N/A
-          SCRAMBLE                SCRAMBLE
-          SECS                    SECS
-          SECURE                  SECURE/SECUREX
-          SENT                    CHAROUT
-          SET                     SET
-          SETDIFF                 SETDIFF
-          SETINTER                SETINTER
-          SETQ                    SETQ
-          SETR                    SETR
-          SETUNION                SETUNION
-          SHA0                    DIGEST
-          SHL                     SHL
-          SHR                     SHR
-          SHUFFLE                 SHUFFLE
-          SIGN                    NCOMP(%0,0)
-          SIN                     SIN
-          SLEV                    N/A
-          SORT                    SORT
-          SORTBY                  SORTBY
-          SORTKEY                 @function (softfunctions)
-          SOUNDEX                 SOUNDEX
-          SOUNDSLIKE              SOUNDXLIKE
-          SPACE                   SPACE
-          SPEAK                   PARSESTR
-          SPEAKPENN               PARSESTR
-          SPELLNUM                SPELLNUM
-          SPLICE                  SPLICE
-          SQL                     (if MYSQL enabled)
-          SQLESCAPE               (if MYSQL enabled)
-          SQRT                    SQRT
-          SQUISH                  SQUISH
-          SSL                     N/A
-          STARTTIME               STARTTIME
-          STDDEV                  AVG
-          STEP                    STEP
-          STEXT                   N/A
-          STRALLOF                @function (softfunctions)
-          STRCAT                  STRCAT
-          STRDELETE               CREPLACE
-          STRFIRSTOF              @function (softfunctions)
-          STRINGSECS              @function (softfunctions)
-          STRINSERT               CREPLACE
-          STRIPACCENTS            STRIPACCENTS
-          STRIPANSI               STRIPANSI
-          STRLEN                  STRLEN
-          STRMATCH                STRMATCH
-          STRREPLACE              CREPLACE
-          SUB                     SUB
-          SUBJ                    SUBJ
-          SWITCH                  SWITCH
-          SWITCHALL               SWITCHALL
-          T                       T
-          TABLE                   @function (softfunctions)/COLUMNS
-          TAG                     N/A
-          TAGWRAP                 N/A
-          TAN                     TAN
-          TEL                     TEL
-          TERMINFO                N/A
-          TESTLOCK                LOCKCHECK
-          TEXTENTRIES             WORDS + TEXTFILE
-          TEXTFILE                TEXTFILE
-          TIME                    TIME
-          TIMEFMT                 PTIMEFMT
-          TIMESTRING              SINGLETIME/TIMEFMT
-          TR                      TR
-          TRIM                    TRIM
-          TRIMPENN                TRIM
-          TRIMTINY                TRIM
-          TRUNC                   TRUNC
-          TYPE                    TYPE
-          UCSTR                   UCSTR
-          UDEFAULT                UDEFAULT
-          UFUN                    U
-          ULAMBDA                 U + #lambda
-          ULDEFAULT               ULDEFAULT
-          ULOCAL                  ULOCAL
-          UNIQUE                  LISTDIFF/LISTUNION/LISTINTER
-          UNSETQ                  N/A
-          UPTIME                  N/A
-          UTCTIME                 TIME
-          V                       V
-          VADD                    VADD
-          VALID                   VALID
-          VCROSS                  VCROSS
-          VDIM                    VDIM
-          VDOT                    VDOT
-          VERSION                 VERSION
-          VISIBLE                 VISIBLE
-          VMAG                    VMAG
-          VMAX                    N/A
-          VMIN                    N/A
-          VMUL                    VMUL
-          VSUB                    VSUB
-          VUNIT                   VUNIT
-          WHERE                   WHERE
-          WIDTH                   @function (softfunctions)
-          WILDGREP                GREP
-          WILDGREPI               GREPI
-          WIPE                    WIPE
-          WORDPOS                 WORDPOS
-          WORDS                   WORDS/MWORDS
-          WRAP                    WRAP
-          XATTR                   XATTR
-          XATTRP                  XATTRP
-          XCON                    XCON
-          XEXITS                  LEXITS + EXTRACT
-          XGET                    XGET
-          XMWHO                   LWHO + STREVAL at mortal + EXTRACT
-          XMWHOID                 N/A
-          XOR                     XOR
-          XPLAYERS                XCON
-          XTHINGS                 XCON
-          XVCON                   XCON + STREVAL at mortal
-          XVEXITS                 LEXITS + STREVAL at mortal
-          XVPLAYERS               XCON + STREVAL at mortal
-          XVTHINGS                XCON + STREVAL at mortal
-          XWHO                    LWHO + EXTRACT
-          XWHOID                  N/A
-          ZEMIT                   ZEMIT
-          ZFUN                    ZFUN
-          ZMWHO                   ZWHO + STREVAL at mortal
-          ZONE                    LZONE
-          ZWHO                    ZWHO
+
+Functions Pennmush----------------RhostMUSH--------------------MUX
+          @@                      @@                           @@
+          ABS                     ABS                          ABS/IABS
+          ACCENT                  ACCENT                       ACCENT
+          ACCNAME                 CNAME                        MONIKER
+          ACOS                    ACOS                         ACOS
+          ADD                     ADD                          ADD
+          AFTER                   AFTER                        AFTER
+          ALIAS                   get(#db/alias)/LISTPROTECT   get(#db/alias)
+          ALIGN                   PRINTF                       N/A
+          ALLOF                   @function (softfunctions)    N/A
+          ALPHAMAX                ALPHAMAX                     ALPHAMAX
+          ALPHAMIN                ALPHAMIN                     ALPHAMIN
+          AND                     AND                          AND/ANDBOOL
+          ANDFLAGS                ANDFLAGS                     ANDFLAGS
+          ANDLFLAGS               ANDFLAG                      N/A
+          ANDLPOWERS              @function (softfunctions)    N/A
+          ANSI                    ANSI                         ANSI
+          APOSS                   APOSS                        APOSS
+          ART                     ART                          ART
+          ASIN                    ASIN                         ASIN
+          ATAN                    ATAN                         ATAN
+          ATAN2                   N/A                          ATAN2
+          N/A                     ATTRCNT                      ATTRCNT
+          ATRLOCK                 HASFLAG(#obj/attr,LOCK)      HASFLAG(#obj/attr,LOCK)
+          ATTRIB_SET              SET                          SET
+          BAND                    MASK                         BAND
+          BASECONV                PACK/UNPACK                  BASECONV
+          BEEP                    BEEP                         BEEP
+          BEFORE                  BEFORE                       BEFORE
+          N/A                     BITTYPE                      BITTYPE
+          BENCHMARK               CPUTIME (@toggle)            N/A
+          BNAND                   MASK                         BNAND
+          BNOT                    MASK                         N/A
+          BOR                     BOR                          BOR
+          BOUND                   BOUND/FBOUND                 N/A
+          BRACKETS                BRACKETS                     N/A
+          BXOR                    MASK                         BXOR
+          CAND                    CAND                         CAND/CANDBOOL
+          CAPSTR                  CAPSTR                       CAPSTR
+          CASE                    CASE                         CASE
+          CASEALL                 CASEALL                      N/A
+          CAT                     CAT                          CAT
+          CBUFFER                 N/A                          N/A
+          CBUFFERADD              N/A                          N/A
+          CDESC                   N/A                          N/A
+          CEIL                    CEIL                         CEIL
+          CEMIT                   N/A                          CEMIT
+          CENTER                  CENTER                       CENTER
+          CFLAGS                  N/A                          N/A
+          CHANNELS                N/A                          CHANNELS
+          CHECKPASS               CHECKPASS                    N/A
+          CHILDREN                CHILDREN                     CHILDREN
+          N/A                     N/A                          CHOOSE
+          CHR                     CHR                          CHR
+          CLFLAGS                 N/A                          N/A
+          CLOCK                   N/A                          N/A
+          CLONE                   CLONE                        N/A
+          CMDS                    CMDS                         CMDS
+          CMOGRIFIER              N/A                          N/A
+          CMSGS                   N/A                          N/A
+          COLORS                  COLORS                       N/A
+          N/A                     N/A                          COLORDEPTH
+          N/A                     @function (softfunctions)    COLUMNNS
+          N/A                     N/A                          COMALIAS
+          COMP                    COMP                         COMP
+          N/A                     N/A                          COMTITLE
+          CON                     CON                          CON
+          COND                    @function (softfunctions)    N/A
+          CONDALL                 @function (softfunctions)    N/A
+          CONFIG                  CONFIG                       CONFIG
+          CONN                    CONN                         CONN
+          convsecs(get(#db/last)) convsecs(get(#db/last))      CONNLAST
+          N/A                     N/A                          CONNLEFT
+          N/A                     N/A                          CONNMAX
+          N/A                     N/A                          CONNNUM
+          N/A                     N/A                          CONNRECORD
+          N/A                     N/A                          CONNTOTAL 
+          CONTROLS                CONTROLS                     CONTROLS
+          CONVSECS                CONVSECS                     CONVSECS
+          CONVTIME                CONVTIME                     CONVTIME
+          CONVUTCSECS             CONVSECS                     CONVSECS
+          CONVUTCTIME             CONVTIME                     CONVTIME
+          COR                     COR                          COR/CORBOOL
+          COS                     COS                          COS
+          ALIGN                   PRINTF                       CPAD
+          N/A                     CRC32                        CRC32
+          COWNER                  N/A                          N/A
+          CREATE                  CREATE                       CREATE
+          CRECALL                 N/A                          N/A
+          CSECS                   N/A                          N/A
+          CSTATUS                 N/A                          N/A
+          CTIME                   N/A                          CTIME
+          CTITLE                  N/A                          N/A
+          CTU                     CTU                          CTU
+          CUSERS                  N/A                          N/A
+          CWHO                    N/A                          CWHO
+          DEC                     DEC/XDEC                     DEC
+          DECODE64                DECODE64                     N/A
+          DECOMPOSE               TRANSLATE                    TRANSLATE
+          DECRYPT                 DECRYPT                      DECRYPT
+          DEFAULT                 DEFAULT                      DEFAULT
+          N/A                     DESTROY                      DESTROY
+          DIE                     DICE                         DIE
+          DIG                     DIG                          CREATE(with 'r')
+          DIGEST                  DIGEST                       DIGEST
+          N/A                     TIMEFMT                      DIGITTIME
+          DIST2D                  DIST2D                       DIST2D
+          DIST3D                  DIST3D                       DIST3D
+          @function               @function                    DISTRIBUTE
+          DIV                     DIV                          IDIV
+          DOING                   DOING                        DOING
+          N/A                     N/A                          DUMPING
+          E                       E                            E
+          EDEFAULT                EDEFAULT                     EDEFAULT
+          EDIT                    PEDIT/EDIT                   EDIT
+          ELEMENT                 MATCH                        MATCH
+          ELEMENTS                ELEMENTSMUX/ELEMENTS         ELEMENTS
+          ELIST                   ELIST                        ITEMIZE
+          ELOCK                   ELOCK                        ELOCK
+          EMIT                    EMIT                         EMIT
+          ENCODE64                ENCODE64                     N/A
+          ENCRYPT                 ENCRYPT                      ENCRYPT
+          ENDTAG                  N/A                          N/A
+          ENTRANCES               ENTRANCES                    ENTRANCES
+          EQ                      EQ                           EQ
+          N/A                     ERROR                        ERROR
+          ESCAPE                  ESCAPE                       ESCAPE
+          ETIME                   @function (softfunctions)    N/A
+          ETIMEFMT                TIMEFMT                      ETIMEFMT
+          EVAL                    EVAL                         EVAL
+          EXIT                    EXIT                         EXIT
+          N/A                     EXP                          EXP
+          EXTRACT                 EXTRACT                      EXTRACT
+          %+                      %+                           FCOUNT
+          %+                      %+                           FDEPTH
+          FDIV                    FDIV                         FDIV
+          FILTER                  FILTER                       FILTER
+          FILTERBOOL              FILTER                       FILTERBOOL
+          FINDABLE                FINDABLE                     FINDABLE
+          FIRST                   FIRST                        FIRST
+          FIRSTOF                 @function (softfunctions)    N/A
+          FLAGS                   FLAGS                        FLAGS
+          FLIP                    REVERSE                      REVERSE
+          FLOOR                   FLOOR                        FLOOR
+          FLOORDIV                FLOORDIV                     FLOORDIV
+          FMOD                    FMOD                         FMOD
+          FN                      BYPASS                       N/A
+          FOLD                    FOLD                         FOLD
+          FOLDERSTATS             folderlist()                 N/A
+          FOLLOWERS               N/A (softcode available)     N/A
+          FOLLOWING               N/A (softcode available)     N/A
+          FOREACH                 FOREACH                      FOREACH
+          FRACTION                N/A                          N/A
+          FULLALIAS               ALIAS + LISTPROTECT          N/A
+          FULLNAME                FULLNAME                     FULLNAME
+          FUNCTIONS               LISTFUNCTIONS                N/A
+          GET                     GET                          GET
+          GETPIDS                 PIDS                         N/A
+          GET_EVAL                GET_EVAL                     GET_EVAL
+          GRAB                    GRAB                         GRAB
+          GRABALL                 GRABALL                      GRABALL
+          GREP                    GREP                         GREP
+          GREPI                   GREP                         GREPI
+          GT                      GT                           GT
+          GTE                     GTE                          GTE
+          HASATTR                 HASATTR                      HASATTR
+          HASATTRP                HASATTRP                     HASATTRP
+          HASATTRPVAL             HASATTRP                     HASATTRP
+          HASATTRVAL              HASATTR                      HASATTR
+          HASFLAG                 HASFLAG                      HASFLAG
+          HASPOWER                HASPOWER                     HASPOWER
+          N/A                     HASQUOTA                     HASQUOTA
+          HASTYPE                 HASTYPE                      HASTYPE
+          HEIGHT                  @function (softfunctions)    HEIGHT
+          HIDDEN                  HIDDEN                       N/A
+          HOME                    HOME                         HOME
+          HOST                    LOOKUP_SITE                  HOST
+          HTML                    N/A                          N/A
+          IBREAK                  IBREAK                       N/A
+          IDLE                    IDLE                         IDLE
+          IF                      IFELSE                       IF
+          IFELSE                  IFELSE                       IFELSE
+          ILEV                    ILEV                         ILEV
+          INAME                   NAME                         NAME
+          INC                     INC/XINC                     INC
+          INDEX                   INDEX                        INDEX
+          INUM                    INUM/INUM2                   INUM
+          N/A                     INZONE                       INZONE
+          IPADDR                  LOOKUP_SITE                  N/A
+          ISDAYLIGHT              TIMEFMT                      N/A
+          ISDBREF                 ISDBREF                      ISDBREF
+          ISINT                   ISINT                        ISINT 
+          ISNUM                   ISNUM                        ISNUM
+          N/A                     N/A                          ISRAT
+          ISOBJID                 N/A                          N/A
+          ISREGEXP                N/A                          N/A
+          ISWORD                  ISWORD                       ISWORD
+          ITEMIZE                 ELIST                        ITEMIZE
+          ITEMS                   WORDS                        WORDS
+          ITER                    ITER                         ITER
+          ITEXT                   ITEXT                        ITEXT
+	  LALIGN                  PRINTF                       N/A
+          STRMATH                 LADD                         LADD
+          N/A                     LAND                         LAND
+          LAST                    LAST                         LAST
+          N/A                     LASTCREATE                   LASTCREATE
+          LATTR                   LATTR                        LATTR
+          N/A                     LATTR                        LATTRCMDS
+          LATTRP                  LATTRP                       LATTRP
+          N/A                     LCMDS                        LCMDS
+          LCON                    LCON                         LCON
+          LCSTR                   LCSTR                        LCSTR
+          LDELETE                 LDELETE                      LDELETE
+          LEFT                    LEFT                         STRTRUNC
+          LEMIT                   LEMIT                        N/A
+          LETQ                    @function (softfunctions)    N/A
+          LEXITS                  LEXITS                       LEXITS
+          LFLAGS                  LFLAGS                       LFLAGS
+          LINK                    LINK                         LINK
+          N/A                     LIST (like iter())           LIST (like iter())
+          LINSERT                 INSERT                       INSERT
+          LIST                    LISTPOWERS, FLAGS, etc       N/A
+          LISTQ                   N/A                          N/A
+          LIT                     LIT                          LIT
+          LJUST                   LJUST                        LJUST
+          LLOCKFLAGS              N/A                          N/A
+          LLOCKS                  LOCKS                        LOCKS
+          LMATH                   STRFUNC                      N/A
+          LN                      LN                           LN
+          LNUM                    LNUM/LNUM2                   LNUM
+          LOC                     LOC                          LOC
+          LOCALIZE                LOCALIZE                     LOCALIZE
+          LOCATE                  LOCATE                       LOCATE
+          LOCK                    LOCK                         LOCK
+          N/A                     LOG2FILE                     LOG
+          LOCKFILTER              LOCKCHECK                    N/A
+          LOCKFLAGS               FLAGS                        FLAGS
+          LOCKOWNER               OWNER                        OWNER
+          LOCKS                   LOCK                         LOCK
+          LOG                     LOG                          LOG
+          LPARENT                 PARENTS                      LPARENT
+          LPIDS                   PIDS                         N/A
+          LPLAYERS                LCON                         LCON
+          N/A                     LOR                          LOR
+          LPORTS                  PORT                         PORTS
+          ALIGN                   PRINTF                       LPAD
+          LPOS                    LPOS                         LPOS
+          DIE                     DICE                         LRAND
+          N/A                     LROOMS                       LROOMS
+          LREPLACE                REPLACE                      REPLACE
+          LSEARCH                 SEARCH/SEARCHNG              SEARCH
+          LSEARCHR                revwords(search())           revwords(search())
+          LSET                    SET                          SET
+          LSTATS                  STATS                        STATS
+          LT                      LT                           LT
+          LTE                     LTE                          LTE
+          LTHINGS                 LCON                         LCON
+          LVCON                   LCON + STREVAL at mortal     N/A
+          LVEXITS                 LCON + STREVAL at mortal     N/A
+          LVPLAYERS               LCON + STREVAL at mortal     N/A
+          LVTHINGS                LCON + STREVAL at mortal     N/A
+          LWHO                    LWHO                         LWHO
+          LWHOID                  N/A                          N/A
+          MAIL                    MAILREAD/MAILSEND            MAIL
+          MAILDSTATS              MAILSIZE/MAILQUOTA           MAILSIZE
+          MAILFROM                MAILREAD                     MAILFROM
+          MAILFSTATS              FOLDERLIST/FOLDERCURRENT     N/A
+          MAILLIST                MAILREAD                     N/A
+          MAILSEND                MAILSEND                     N/A
+          MAILSTATS               MAILSIZE/MAILQUOTA           MAILSIZE
+          MAILSTATUS              MAILSIZE/MAILQUOTA           MAILSIZE
+          MAILSUBJECT             MAILREAD                     MAILSUBJ
+          MAILTIME                MAILREAD                     N/A
+          MALIAS                  MAILREAD                     N/A
+          MAP                     MAP                          MAP
+          MAPSQL                  N/A                          N/A
+          MATCH                   MATCH                        MATCH
+          MATCHALL                MATCHALL                     MATCHALL
+          MAX                     MAX                          MAX
+          MEAN                    AVG                          AVG
+          MEDIAN                  AVG                          AVG
+          MEMBER                  MEMBER                       MEMBER
+          MERGE                   MERGE                        MERGE
+          MESSAGE                 PARSESTR + PEMIT/REMIT       N/A
+          MID                     MID                          MID
+          MIN                     MIN                          MIN
+          MIX                     MIX                          MIX
+          MODULO                  MOD                          MOD
+          MONEY                   MONEY                        MONEY
+          MONIKER                 CNAME                        MONIKER
+          N/A                     N/A                          MOTD
+          MSECS                   MODIFYTIME + CONVTIME        MTIME + CONVTIME
+          MTIME                   MODIFYTIME                   MTIME
+          MUDNAME                 MUDNAME                      MUDNAME
+          MUDURL                  N/A                          N/A
+          MUL                     MUL                          MUL
+          MUNGE                   MUNGE                        MUNGE
+          MWHO                    LWHO + STREVAL at mortal     N/A
+          MWHOID                  N/A                          N/A
+          NAME                    NAME                         NAME
+          NAMEGRAB                @function (softfunctions)    N/A
+          NAMEGRABALL             @function (softfunctions)    N/A
+          NAMELIST                @function (softfunctions)    N/A
+          NAND                    NAND                         N/A
+          NATTR                   ATTRCNT                      ATTRCNT
+          NATTRP                  ATTRCNT                      ATTRCNT
+          NCAND                   !CAND                        NOT(CAND())
+          NCHILDREN               CHILDREN                     CHILDREN
+          NCON                    WORDS + LCON                 WORDS + LCON
+          NCOND                   @function (softfunctions)    N/A
+          NCONDALL                @function (softfunctions)    N/A
+          NCOR                    !COR                         NOT(COR())
+          NEARBY                  NEARBY                       NEARBY
+          NEQ                     NEQ                          NEQ
+          NEXITS                  WORDS + LEXITS               WORDS + LEXITS
+          NEXT                    NEXT                         NEXT
+          NEXTDBREF               N/A                          N/A
+          NLSEARCH                WORDS + SEARCH               WORDS + SEARCH
+          NMWHO                   WORDS+LWHO+STREVAL at mort   N/A
+          NOR                     NOR                          N/A
+          NOT                     NOT or !                     NOT
+          NPLAYERS                WORDS + LCON                 WORDS + LCON
+          NSCEMIT                 N/A                          N/A
+          NSEARCH                 WORDS + SEARCH               WORDS + SEARCH
+          NSEMIT                  EMIT                         EMIT
+          NSLEMIT                 LEMIT                        N/A
+          NSOEMIT                 OEMIT                        N/A
+          NSPEMIT                 PEMIT                        N/A
+          NSPROMPT                N/A (@program?)              N/A (@program?)
+          NSREMIT                 REMIT                        N/A
+          NSZEMIT                 ZEMIT                        N/A
+          NTHINGS                 WORDS + LCON                 WORDS + LCON
+          NULL                    NULL                         NULL
+          NUM                     NUM                          NUM
+          NUMVERSION              N/A                          N/A
+          NVCON                   WORDS+LCON+STREVAL at mort   N/A
+          NVEXITS                 WORDS+LEXITS+STREVAL at mo   N/A
+          NVPLAYERS               WORDS+LCON+STREVAL at mort   N/A
+          NVTHINGS                WORDS+LCON+STREVAL at mort   N/A
+          NWHO                    WORDS + LWHO                 WORDS + LWHO
+          OBJ                     OBJ                          OBJ
+          OBJEVAL                 OBJEVAL                      OBJEVAL
+          OBJID                   N/A                          N/A
+          OBJMEM                  SIZE                         OBJMEM
+          OEMIT                   OEMIT                        OEMIT
+          OPEN                    OPEN                         N/A
+          OR                      OR                           OR/ORBOOL
+          ORD                     ASC                          ORD
+          ORDINAL                 N/A                          N/A
+          ORFLAGS                 ORFLAGS                      ORFLAGS
+          ORLFLAGS                ORFLAG                       N/A
+          ORLPOWERS               N/A (easy to @function)      N/A
+          OWNER                   OWNER                        OWNER
+          PARENT                  PARENT                       PARENT
+          PCREATE                 CREATE                       CREATE
+          PEMIT                   PEMIT                        PEMIT
+          PFUN                    U + PARENT                   U + PARENT
+          PI                      PI                           PI
+          PIDINFO                 PID                          N/A
+          PLAYER                  before(grab(lwho(1),*:%0),:) N/A
+          PLAYERMEM               SIZE                         PLAYMEM
+          PMATCH                  PMATCH                       PMATCH
+          POLL                    DOING                        POLL
+          PORTS                   PORT                         PORTS
+          POS                     POS                          POS
+          POSS                    POSS                         POSS
+          POWER                   POWER                        POWER
+          POWERS                  LPOWERS                      POWERS
+          PROMPT                  N/A (@program?)              N/A (@program?)
+          PUEBLO                  N/A                          N/A
+          QUOTA                   QUOTA                        N/A
+          R                       R                            R
+          RAND                    RAND                         RAND
+          RANDWORD                PICKRAND                     PICKRAND
+          RECV                    CHARIN                       N/A
+          REGEDIT                 REGEDIT                      N/A
+          REGEDITALL              REGEDITALL                   N/A
+          REGEDITALLI             REGEDITALLI                  N/A
+          REGEDITI                REGEDITI                     N/A
+          REGISTERS               N/A                          N/A
+          REGLATTR                LATTR                        N/A
+          REGLATTRP               LATTRP                       N/A
+          REGLMATCH               REGLMATCH                    N/A
+          REGLMATCHALL            REGLMATCHALL                 N/A
+          REGLMATCHALLI           REGLMATCHALLI                N/A
+          REGLMATCHI              REGLMATCHI                   N/A
+          REGMATCH                REGMATCH                     REGMATCH
+          REGMATCHI               REGMATCHI                    REGMATCHI
+          REGNATTR                WORDS + ATTR                 N/A
+          REGNATTRP               WORDS + ATTRP                N/A
+          REGRAB                  REGRAB                       REGRAB
+          REGRABALL               REGRABALL                    REGRABALL
+          REGRABALLI              REGRABALLI                   REGRABALLI
+          REGRABI                 REGRABI                      REGRABI
+          REGREP                  REGREP                       N/A
+          REGREPI                 REGREPI                      N/A
+          REGXATTR                ATTR                         N/A
+          REGXATTRP               ATTRP                        N/A
+          REMAINDER               REMAINDER                    REMAINDER
+          REMIT                   REMIT                        REMIT
+          REMOVE                  REMOVE                       REMOVE
+          RENDER                  N/A                          N/A
+          REPEAT                  REPEAT                       REPEAT
+          REST                    REST                         REST
+          RESTARTS                N/A                          RESTARTS
+          RESTARTTIME             REBOOTTIME                   RESTARTTIME
+          CONVTIME(RESTARTTIME))  CONVTIME(REBOOTTIME())       RESTARTSECS
+          RESWITCH                RESWITCH                     N/A
+          RESWITCHALL             RESWITCHALL                  N/A
+          RESWITCHALLI            RESWITCHALLI                 N/A
+          RESWITCHI               RESWITCHI                    N/A
+          REVWORDS                REVWORDS                     REVWORDS
+          RIGHT                   RIGHT                        RIGHT
+          RJUST                   RJUST                        RJUST
+          RLOC                    RLOC                         RLOC
+          N/A                     ROMAN                        ROMAN
+          RNUM                    RNUM                         N/A
+          ROOM                    ROOM                         ROOM
+          ROOT                    N/A                          N/A
+          ROUND                   ROUND                        ROUND
+          ALIGN                   PRINTF                       RPAD
+          S                       S                            S
+          SCAN                    N/A                          N/A
+          SCRAMBLE                SCRAMBLE                     SCRAMBLE
+          SECS                    SECS                         SECS
+          SECURE                  SECURE/SECUREX               SECURE
+          SENT                    CHAROUT                      N/A
+          SET                     SET                          SET
+          SETDIFF                 SETDIFF                      SETDIFF
+          SETINTER                SETINTER                     SETINTER
+          SETQ                    SETQ                         SETQ
+          SETR                    SETR                         SETR
+          SETUNION                SETUNION                     SETUNION
+          SHA0                    DIGEST                       DIGEST
+          DIGEST                  DIGEST                       SHA1
+          SHL                     SHL                          SHL
+          SHR                     SHR                          SHR
+          SHUFFLE                 SHUFFLE                      SHUFFLE
+          SIGN                    NCOMP(%0,0)                  SIGN
+          SIN                     SIN                          SIN
+          SLEV                    N/A                          N/A
+          @function               @function                    SITEINFO
+          SORT                    SORT                         SORT
+          SORTBY                  SORTBY                       SORTBY
+          SORTKEY                 @function (softfunctions)    N/A
+          SOUNDEX                 SOUNDEX                      N/A
+          SOUNDSLIKE              SOUNDXLIKE                   N/A
+          SPACE                   SPACE                        SPACE
+          SPEAK                   PARSESTR                     N/A
+          SPEAKPENN               PARSESTR                     N/A
+          SPELLNUM                SPELLNUM                     SPELLNUM
+          SPLICE                  SPLICE                       SPLICE
+          SQL                     (if MYSQL enabled)           N/A (ASYNC db)
+          SQLESCAPE               (if MYSQL enabled)           N/A (ASYNC db)
+          SQRT                    SQRT                         SQRT
+          SQUISH                  SQUISH                       SQUISH
+          SSL                     N/A                          N/A
+          STARTTIME               STARTTIME                    STARTTIME
+          CONVTIME(STARTTIME))    CONVTIME(STARTTIME())        STARTSECS
+          N/A                     STATS                        STATS
+          STDDEV                  AVG                          AVG
+          STEP                    STEP                         STEP
+          STEXT                   N/A                          N/A
+          STRALLOF                @function (softfunctions)    N/A
+          STRCAT                  STRCAT                       STRCAT
+          N/A                     STRIP                        STRIP
+          STRDELETE               CREPLACE/DELETE              DELETE
+          STRFIRSTOF              @function (softfunctions)    N/A
+          STRINGSECS              @function (softfunctions)    N/A
+          STRINSERT               CREPLACE                     N/A
+          STRIPACCENTS            STRIPACCENTS                 STRIPACCENTS
+          STRIPANSI               STRIPANSI                    STRIPANSI
+          STRLEN                  STRLEN                       STRLEN
+          STRMATCH                STRMATCH                     STRMATCH
+          N/A                     STRLENRAW                    STRMEM
+          STRREPLACE              CREPLACE/REPLACE             REPLACE
+          SUB                     SUB                          SUB
+          N/A                     ESCAPEX                      SUBEVAL
+          SUBJ                    SUBJ                         SUBJ
+          N/A                     N/A                          SUCCESSES
+          SWITCH                  SWITCH                       SWITCH
+          SWITCHALL               SWITCHALL                    N/A
+          T                       T                            T
+          TABLE                   @function (softfunctions)    TABLE
+          TAG                     N/A                          N/A
+          TAGWRAP                 N/A                          N/A
+          TAN                     TAN                          TAN
+          TEL                     TEL                          TEL
+          TERMINFO                N/A                          TERMINFO
+          TESTLOCK                LOCKCHECK                    N/A
+          TEXTENTRIES             WORDS + TEXTFILE             WORDS + TEXTFILE
+          TEXTFILE                TEXTFILE                     TEXTFILE
+          TIME                    TIME                         TIME
+          TIMEFMT                 PTIMEFMT                     TIMEFMT
+          TIMESTRING              SINGLETIME/TIMEFMT           SINGLETIME
+          TR                      TR                           TR 
+          TRIM                    TRIM                         TRIM
+          TRIMPENN                TRIM                         TRIM
+          TRIMTINY                TRIM                         TRIM
+          N/A                     N/A                          TRIGGER
+          TRUNC                   TRUNC                        TRUNC
+          TYPE                    TYPE                         TYPE
+          UCSTR                   UCSTR                        UCSTR
+          UDEFAULT                UDEFAULT                     UDEFAULT
+          UFUN                    U                            U
+          ULAMBDA                 U + #lambda                  N/A
+          ULDEFAULT               ULDEFAULT                    N/A
+          ULOCAL                  ULOCAL                       ULOCAL
+          UNIQUE                  LISTDIFF/LISTUNION/LISTINTER N/A
+          UNSETQ                  N/A                          N/A
+          UPTIME                  N/A                          N/A
+          UTCTIME                 TIME                         TIME
+          V                       V                            V
+          VADD                    VADD                         VADD
+          VALID                   VALID                        VALID
+          VCROSS                  VCROSS                       VCROSS
+          VDIM                    VDIM                         VDIM
+          VDOT                    VDOT                         VDOT
+          VERSION                 VERSION                      VERSION
+          VISIBLE                 VISIBLE                      VISIBLE
+          VMAG                    VMAG                         VMAG
+          VMAX                    N/A                          N/A
+          VMIN                    N/A                          N/A
+          VMUL                    VMUL                         VMUL
+          VSUB                    VSUB                         VSUB
+          VUNIT                   VUNIT                        VUNIT
+          WHERE                   WHERE                        WHERE
+          WIDTH                   @function (softfunctions)    WIDTH
+          WILDGREP                GREP                         N/A
+          WILDGREPI               GREPI                        N/A
+          WIPE                    WIPE                         WIPE
+          WORDPOS                 WORDPOS                      WORDPOS
+          WORDS                   WORDS/MWORDS                 WORDS
+          WRAP                    WRAP                         WRAP
+          N/A                     MODIFYTIME                   WRITETIME
+          XATTR                   ATTR                         N/A
+          XATTRP                  ATTRP                        N/A
+          XCON                    XCON                         N/A
+          XEXITS                  LEXITS + EXTRACT             N/A
+          XGET                    XGET                         XGET
+          XMWHO                   LWHO+EXTRACT+STREVAL at mor  N/A
+          XMWHOID                 N/A                          N/A
+          XOR                     XOR                          XOR
+          XPLAYERS                XCON                         N/A
+          XTHINGS                 XCON                         N/A
+          XVCON                   XCON + STREVAL at mortal     N/A
+          XVEXITS                 LEXITS + STREVAL at mortal   N/A
+          XVPLAYERS               XCON + STREVAL at mortal     N/A
+          XVTHINGS                XCON + STREVAL at mortal     N/A
+          XWHO                    LWHO + EXTRACT               LWHO + EXTRACT
+          XWHOID                  N/A                          N/A
+          ZEMIT                   ZEMIT                        N/A
+          ZFUN                    ZFUN                         ZFUN
+          ZMWHO                   ZWHO + STREVAL at mortal     N/A
+          ZONE                    LZONE                        ZONE
+          ZWHO                    ZWHO                         ZWHO
 
 Functions that exist in Rhost that do not have a match in PennMUSH:
 AIINDEX                      AINDEX                        ANDCHR 
@@ -1022,16 +1075,16 @@ PUSHREGS                     RACE                          RANDMATCH
 RANDPOS                      REGEDITALLILIT                REGEDITALLLIT 
 REGEDITILIT                  REGEDITLIT                    REGNUMMATCH 
 REGNUMMATCHI                 REMFLAGS                      REMTYPE 
-REVERSE                      ROMAN                         ROTL 
-ROTR                         RSET                          RXLEVEL 
-SAFEBUFF                     SEES                          SETQMATCH 
-SHIFT                        SINH                          STR 
-STRDISTANCE                  STREQ                         STREVAL 
-STRFUNC                      STRIP                         STRLENRAW 
-STRLENVIS                    STRMATH                       SUBNETMATCH 
-TANH                         TOGGLE                        TOTCMDS 
-TRACE                        TXLEVEL                       UEVAL 
-WHILE                        WILDMATCH                     WRAPCOLUMNS 
-WRITABLE                     XNOR                          XORCHR 
-XORFLAG                      ZFUNDEFAULT                   ZFUNEVAL 
-ZFUNLDEFAULT                 ZFUNLOCAL 
+ROMAN                        ROTL                          ROTR         
+RSET                         RXLEVEL                       SAFEBUFF 
+SEES                         SETQMATCH                     SHIFT 
+SINH                         STR                           STRDISTANCE
+STREQ                        STREVAL                       STRFUNC
+STRIP                        STRLENRAW                     STRLENVIS
+STRMATH                      SUBNETMATCH                   TANH
+TOGGLE                       TOTCMDS                       TRACE
+TXLEVEL                      UEVAL                         WHILE
+WILDMATCH                    WRAPCOLUMNS                   WRITABLE
+XNOR                         XORCHR                        XORFLAG
+ZFUNDEFAULT                  ZFUNEVAL                      ZFUNLDEFAULT
+ZFUNLOCAL 
