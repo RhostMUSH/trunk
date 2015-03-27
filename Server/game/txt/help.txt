@@ -27264,6 +27264,8 @@ Changes
 * ' option to printf() is now more useful with how it padds [ASH]
 * before(), after(), and mid() have a switch to disable ansi-awareness for 
   speed [ASH]
+* Stricter checking of setq/setq_old/setr/setr_old label argument and more
+  clear error message in case label is invalid [AMB]
   
 Bug Fixes
 ---------
@@ -27318,3 +27320,4 @@ Bug Fixes
   enabled [ASH]
 * printf() had a one by off padding issue with extra spaces with ' option [ASH]
 * off by one buffer count for ansi_txtfile parameter caused bleeding [ASH]
+* Third optional argument of setq/setr did not evaluate [AMB]
