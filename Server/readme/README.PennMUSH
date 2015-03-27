@@ -26,6 +26,11 @@ Just load it in.  The mail wrappers can be gotten from:
 Please see the other readme files on setting other things up like 
 guests, master rooms, and so forth.
 
+Comparisons were done based on the following:
+RhostMUSH 3.9.5p0
+MUX 2.12.0.2
+PennMUSH 1.8.6p0
+
 The following are used for compatibility to keep in mind:
 
 @commands Pennmush----------------RhostMUSH----------------------MUX2
