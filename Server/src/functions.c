@@ -26445,6 +26445,15 @@ FUNCTION(fun_setq_old)
     if (!fn_range_check("SETQ", nfargs, 2, 3, buff, bufcx))
       return;
 
+    if (nfargs > 2)
+    {
+       if(!*fargs[2])
+       {
+         safe_str("#-1 INVALID LABEL", buff, bufcx);
+         return;
+       }
+    }
+
     regnum = -1;
     i_namefnd = 0;
     if ( ((strcmp(fargs[0], "!") == 0) || strcmp(fargs[0], "+") == 0) && 
@@ -26540,10 +26549,30 @@ FUNCTION(fun_setq)
     result_orig = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                        fargs[0], cargs, ncargs);
 
+    result_second = NULL;
+    if ((nfargs > 2))
+    {
+       if(!*fargs[2])
+       {
+           safe_str("#-1 INVALID LABEL", buff, bufcx);
+           free_lbuf(result_orig);
+           return;
+       }
+       result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
+                            EV_EVAL, fargs[2], cargs, ncargs);
+       if(!*result_second)
+       {
+           safe_str("#-1 INVALID LABEL", buff, bufcx);
+           free_lbuf(result_orig);
+           free_lbuf(result_second);
+           return;
+       }
+    }
+
     i_namefnd = 0;
     regnum = -1;
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
-          (nfargs > 2) && *fargs[2] ) {
+          (nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
@@ -26604,16 +26633,9 @@ FUNCTION(fun_setq)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          result_second = NULL;
-          result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
-                        EV_EVAL, fargs[2], cargs, ncargs);
-          if(*result_second)
-          {
+       if ( (nfargs > 2) && *result_second ) {
               strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
               *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
-          }
-          free_lbuf(result_second);
        }
        free_lbuf(result);
     }
@@ -26628,21 +26650,16 @@ FUNCTION(fun_setq)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          result_second = NULL;
-          result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
-                        EV_EVAL, fargs[2], cargs, ncargs);
-          if(*result_second)
-          {   
+       if ( (nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
-          }
-          free_lbuf(result_second);
        }
        free_lbuf(result);
     }
 #endif
     free_lbuf(result_orig);
+    if ( (nfargs > 2) && *fargs[2] )
+        free_lbuf(result_second);
 }
 
 /* fun_setr: works like setq but returns it's input as well */
@@ -26653,6 +26670,15 @@ FUNCTION(fun_setr_old)
 
     if (!fn_range_check("SETR", nfargs, 2, 3, buff, bufcx))
       return;
+
+    if (nfargs > 2)
+    {
+       if(!*fargs[2])
+       {
+         safe_str("#-1 INVALID LABEL", buff, bufcx);
+         return;
+       }
+    }
 
     i_namefnd = 0;
     regnum = -1;
@@ -26751,10 +26777,30 @@ FUNCTION(fun_setr)
     result_orig = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                        fargs[0], cargs, ncargs);
 
+    result_second = NULL;
+    if (nfargs > 2)
+    {
+       if(!*fargs[2])
+       {
+           safe_str("#-1 INVALID LABEL", buff, bufcx);
+           free_lbuf(result_orig);
+           return;
+       }
+       result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
+                            EV_EVAL, fargs[2], cargs, ncargs);
+       if(!*result_second)
+       {
+           safe_str("#-1 INVALID LABEL", buff, bufcx);
+           free_lbuf(result_orig);
+           free_lbuf(result_second);
+           return;
+       }
+    }
+
     i_namefnd = 0;
     regnum = -1;
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
-         (nfargs > 2) && *fargs[2] ) {
+         (nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
@@ -26815,16 +26861,9 @@ FUNCTION(fun_setr)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          result_second = NULL;
-          result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
-                        EV_EVAL, fargs[2], cargs, ncargs);
-          if(*result_second)
-          {
+       if ( (nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
-          }
-          free_lbuf(result_second);
        }
        safe_str(result, buff, bufcx);
        free_lbuf(result);
@@ -26840,22 +26879,17 @@ FUNCTION(fun_setr)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          result_second = NULL;
-          result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
-                        EV_EVAL, fargs[2], cargs, ncargs);
-          if(*result_second)
-          {
+       if ( (nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
-          }
-          free_lbuf(result_second);
        }
        safe_str(result, buff, bufcx);
        free_lbuf(result);
     }
 #endif
     free_lbuf(result_orig);
+    if ( (nfargs > 2) && *fargs[2] )
+        free_lbuf(result_second);
 }
 
 FUNCTION(fun_r)
