@@ -26543,7 +26543,7 @@ FUNCTION(fun_setq)
     i_namefnd = 0;
     regnum = -1;
     result_second = NULL;
-    if ( (nfargs > 2) && *fargs[2] )
+    if ( (nfargs > 2) && *fargs[2] ) {
        result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                             EV_EVAL, fargs[2], cargs, ncargs);
     }
@@ -26748,7 +26748,7 @@ FUNCTION(fun_setr)
     i_namefnd = 0;
     regnum = -1;
     result_second = NULL;
-    if ( (nfargs > 2) && *fargs[2] )
+    if ( (nfargs > 2) && *fargs[2] ) {
        result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                             EV_EVAL, fargs[2], cargs, ncargs);
     }
