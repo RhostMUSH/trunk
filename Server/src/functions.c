@@ -26605,11 +26605,15 @@ FUNCTION(fun_setq)
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
        if ( (nfargs > 2) && *fargs[2] ) {
+          result_second = NULL;
           result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                         EV_EVAL, fargs[2], cargs, ncargs);
-          strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+          if(*result_second)
+          {
+              strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+              *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+          }
           free_lbuf(result_second);
-          *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
        free_lbuf(result);
     }
@@ -26625,11 +26629,15 @@ FUNCTION(fun_setq)
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
        if ( (nfargs > 2) && *fargs[2] ) {
+          result_second = NULL;
           result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                         EV_EVAL, fargs[2], cargs, ncargs);
-          strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+          if(*result_second)
+          {   
+            strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+            *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+          }
           free_lbuf(result_second);
-          *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
        free_lbuf(result);
     }
@@ -26808,11 +26816,15 @@ FUNCTION(fun_setr)
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
        if ( (nfargs > 2) && *fargs[2] ) {
+          result_second = NULL;
           result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                         EV_EVAL, fargs[2], cargs, ncargs);
-          strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+          if(*result_second)
+          {
+            strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+            *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+          }
           free_lbuf(result_second);
-          *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
        safe_str(result, buff, bufcx);
        free_lbuf(result);
@@ -26829,11 +26841,15 @@ FUNCTION(fun_setr)
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
        if ( (nfargs > 2) && *fargs[2] ) {
+          result_second = NULL;
           result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                         EV_EVAL, fargs[2], cargs, ncargs);
-          strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+          if(*result_second)
+          {
+            strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
+            *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+          }
           free_lbuf(result_second);
-          *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
        safe_str(result, buff, bufcx);
        free_lbuf(result);
