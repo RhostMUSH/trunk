@@ -799,6 +799,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PEMIT_TOREALITY 1048576 /* Pemit to specic realities */
 #define PEMIT_ONEEVAL	2097152 /* One eval for @pemit/list */
 #define PEMIT_OSTR	4194304 /* @oemit uses multi-parameters */
+#define PIPE_ON         1       /* Enable @pipe to attribute */
+#define PIPE_OFF        2	/* Disable @pipe to attribute */
 #define	PS_BRIEF	0	/* Short PS report */
 #define	PS_LONG		1	/* Long PS report */
 #define	PS_SUMM		2	/* Queue counts only */

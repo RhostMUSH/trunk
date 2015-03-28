@@ -2748,9 +2748,10 @@ static void
 dump_users(DESC * e, char *match, int key)
 {
     DESC *d;
-    int count, rcount = 0;
+    dbref aowner;
+    int count, rcount = 0, i_attrpipe = 0, aflags;
     time_t now;
-    char *buf, *fp, *gp, *doingAnsiBuf, *doingAccentBuf, *pDoing; 
+    char *buf, *fp, *gp, *doingAnsiBuf, *doingAccentBuf, *pDoing, *atext, *atext2, *atextptr; 
 #ifdef ZENTY_ANSI
     char *doingAnsiBufp, *abuf, *abufp, *msg_ns2, *mp2, *doingAccentBufp;
 #endif
@@ -2759,10 +2760,11 @@ dump_users(DESC * e, char *match, int key)
     char buf_format[80];
     char one_chr_holder = ' ';
     char *tpr_buff, *tprp_buff;
+    ATTR *atr;
 
     DPUSH; /* #139 */
     memset(buf_format, 0, sizeof(buf_format));
-    if (Fubar(e->player)) {
+    if ( Good_chk(e->player) && Fubar(e->player)) {
 	notify(e->player, "You can't do that...");
 	VOIDRETURN; /* #139 */
     }
@@ -2777,28 +2779,83 @@ dump_users(DESC * e, char *match, int key)
     doingAccentBuf = alloc_lbuf("dump_users_accents");
     tprp_buff = tpr_buff = alloc_lbuf("dump_users_tprintf");
 
+    if ( Good_chk(e->player) && H_Attrpipe(e->player) ) {
+       atr = atr_str3("___ATTRPIPE");
+       if ( atr ) {
+          atext2 = atr_get(e->player, atr->number, &aowner, &aflags);
+          if ( *atext2 ) {
+             atr = atr_str3(atext2);
+             if ( atr ) {
+                if ( Controlsforattr(e->player, e->player, atr, aflags) ) {
+                   i_attrpipe = 1;
+                }
+             }
+          }
+          free_lbuf(atext2);
+          if ( i_attrpipe ) {
+             atext2 = atr_get(e->player, atr->number, &aowner, &aflags);
+             atextptr = atext = alloc_lbuf("dump_users_pipe");
+             safe_str(atext2, atext, &atextptr);
+             free_lbuf(atext2);
+          }
+       }
+       if ( !i_attrpipe ) {
+          queue_string(e, (char *)"Notice: Piping attribute no longer exists.  Piping has been auto-disabled.\r\n");
+          s_Flags4(e->player, Flags4(e->player) & ~HAS_ATTRPIPE);
+          atr = atr_str3("___ATTRPIPE");
+          if ( atr ) {
+             atr_clr(e->player, atr->number);
+          }
+       }
+    }
     time(&now);
 
     if (key == CMD_SESSION) {
-	queue_string(e, "                                  ");
-	queue_string(e, "Characters Input----  Characters Output---\r\n");
-        queue_string(e, "Player Name          #Cmnds Port  ");
+        if ( i_attrpipe ) {
+           safe_str((char *)"                                  ", atext, &atextptr);
+           safe_str((char *)"Characters Input----  Characters Output---\r\n", atext, &atextptr);
+           safe_str((char *)"Player Name          #Cmnds Port  ", atext, &atextptr);
+        } else {
+	   queue_string(e, "                                  ");
+	   queue_string(e, "Characters Input----  Characters Output---\r\n");
+           queue_string(e, "Player Name          #Cmnds Port  ");
+        }
     }
     else
 #ifdef PARIS
-      queue_string(e, "Player Name            On For Idle  ");
+      if ( i_attrpipe ) {
+         safe_str((char *)"Player Name            On For Idle  ", atext, &atextptr);
+      } else {
+         queue_string(e, "Player Name            On For Idle  ");
+      }
 #else
-      queue_string(e, "Player Name          On For Idle  ");
+      if ( i_attrpipe ) {
+         safe_str((char *)"Player Name          On For Idle  ", atext, &atextptr);
+      } else {
+         queue_string(e, "Player Name          On For Idle  ");
+      }
 #endif
     if (key == CMD_SESSION) {
-	queue_string(e, "Pend  Lost     Total  Pend  Lost     Total\r\n");
+        if ( i_attrpipe ) {
+           safe_str((char *)"Pend  Lost     Total  Pend  Lost     Total\r\n", atext, &atextptr);
+        } else {
+	   queue_string(e, "Pend  Lost     Total  Pend  Lost     Total\r\n");
+        }
     } else if ((e->flags & DS_CONNECTED) && (Wizard(e->player) || HasPriv(e->player, NOTHING, POWER_WIZ_WHO, POWER3, POWER_LEVEL_NA))
 	&& (!DePriv(e->player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
 	       && (key == CMD_WHO)) {
 #ifdef PARIS
-        queue_string(e, "Room      Cmds Host\r\n");
+        if ( i_attrpipe ) {
+           safe_str((char *)"Room      Cmds Host\r\n", atext, &atextptr);
+        } else {
+           queue_string(e, "Room      Cmds Host\r\n");
+        }
 #else
-	queue_string(e, "Room     Ports Host\r\n");
+        if ( i_attrpipe ) {
+           safe_str((char *)"Room     Ports Host\r\n", atext, &atextptr);
+        } else {
+	   queue_string(e, "Room     Ports Host\r\n");
+        }
 #endif
     } else {
 	if (mudconf.who_default) {
@@ -2808,14 +2865,26 @@ dump_users(DESC * e, char *match, int key)
 	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2);
            *mp2 = '\0';
            if ( Accents(e->player) ) {
-	      queue_string(e, msg_ns2);
+              if ( i_attrpipe ) {
+                 safe_str(msg_ns2, atext, &atextptr);
+              } else {
+	         queue_string(e, msg_ns2);
+              }
            } else {
-	      queue_string(e, strip_safe_accents(abuf));
+              if ( i_attrpipe ) {
+                 safe_str(strip_safe_accents(abuf), atext, &atextptr);
+              } else {
+	         queue_string(e, strip_safe_accents(abuf));
+              }
            }
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
-	   queue_string(e, mudstate.ng_doing_hdr);
+           if ( i_attrpipe ) {
+              safe_str(mudstate.ng_doing_hdr, atext, &atextptr);
+           } else {
+	      queue_string(e, mudstate.ng_doing_hdr);
+           }
 #endif
 	} else  {
            tprp_buff = tpr_buff;
@@ -2825,20 +2894,39 @@ dump_users(DESC * e, char *match, int key)
 	   parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2);
            *mp2 = '\0';
            if ( Accents(e->player) ) {
-	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
-                           mudstate.guild_hdr, msg_ns2));
+              if ( i_attrpipe ) {
+                 safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_ns2),
+                          atext, &atextptr);
+              } else {
+	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+                              mudstate.guild_hdr, msg_ns2));
+              }
            } else {
-	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
-                           mudstate.guild_hdr, strip_safe_accents(abuf)));
+              if ( i_attrpipe ) {
+                 safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, strip_safe_accents(abuf)),
+                          atext, &atextptr);
+              } else {
+	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+                              mudstate.guild_hdr, strip_safe_accents(abuf)));
+              }
            }
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
-	   queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
-                        mudstate.guild_hdr,mudstate.doing_hdr));
+           if ( i_attrpipe ) {
+              safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr,mudstate.doing_hdr),
+                       atext, &atextptr);
+           } else {
+	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
+                           mudstate.guild_hdr,mudstate.doing_hdr));
+           }
 #endif
         }
-	queue_string(e, "\r\n");
+        if ( i_attrpipe ) {
+           safe_str("\r\n", atext, &atextptr);
+        } else {
+	   queue_string(e, "\r\n");
+        }
     }
     count = 0;
     DESC_ITER_CONN(d) {
@@ -3115,9 +3203,18 @@ dump_users(DESC * e, char *match, int key)
                    *fp++ = one_chr_holder;
                 one_chr_holder=' ';
 	    }
-	    queue_string(e, buf);
-	    if (ShowAnsi(e->player) && index(buf, ESC_CHAR))
-		queue_string(e, antemp);
+            if ( i_attrpipe ) {
+               safe_str(buf, atext, &atextptr);
+            } else {
+	       queue_string(e, buf);
+            }
+	    if (ShowAnsi(e->player) && index(buf, ESC_CHAR)) {
+                if ( i_attrpipe ) {
+                   safe_str(antemp, atext, &atextptr);
+                } else {
+		   queue_string(e, antemp);
+                }
+            }
 	}
     }
 
@@ -3143,18 +3240,37 @@ dump_users(DESC * e, char *match, int key)
        sprintf(buf, "%d Player%slogged in.\r\n", rcount,
    	       (rcount == 1) ? " " : "s ");
 
-    queue_string(e, buf);
+    if ( i_attrpipe ) {
+       safe_str(buf, atext, &atextptr);
+    } else {
+       queue_string(e, buf);
+    }
     if ((rcount - count > 0) && mudconf.who_unfindable) {
 	sprintf(buf, "%d Player%s hidden.\r\n", rcount - count,
 		(rcount - count == 1) ? " is" : "s are");
-	queue_string(e, buf);
+        if ( i_attrpipe ) {
+           safe_str(buf, atext, &atextptr);
+        } else {
+	   queue_string(e, buf);
+        }
     }
-    if ( NoWho(e->player) )
-       queue_string(e, "You are @hidden from the WHO.\r\n");
+    if ( NoWho(e->player) ) {
+       if ( i_attrpipe ) {
+          safe_str(buf, atext, &atextptr);
+       } else {
+          queue_string(e, "You are @hidden from the WHO.\r\n");
+       }
+    }
     free_lbuf(buf);
     free_lbuf(doingAnsiBuf);
     free_lbuf(doingAccentBuf);
     free_lbuf(tpr_buff);
+    if ( i_attrpipe ) {
+       atr_add_raw(e->player, atr->number, atext);
+       if ( TogNoisy(e->player) )
+          queue_string(e, "Piping output to attribute.\r\n");
+       free_lbuf(atext);
+    }
     VOIDRETURN; /* #139 */
 }
 /* ---------------------------------------------------------------------------

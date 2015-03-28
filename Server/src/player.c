@@ -127,6 +127,9 @@ int	aflags, i;
 	atrbuf = atr_get(player, A_LOGINDATA, &aowner, &aflags);
 	decrypt_logindata(atrbuf, &login_info);
 	if (isgood) {
+		if ( Good_obj(player) && H_Attrpipe(player) ) {
+			raw_notify(player, (char *)"Notice: You are piping output to an attribute.", 0, 1);
+		}
 		if (login_info.new_bad > 0) {
 			notify(player, " ");
                         tprp_buff = tpr_buff = alloc_lbuf("record_login");

@@ -53,11 +53,11 @@
   @force       @fpose       @fsay        @halt        @hide        @include
   @last        @link        @list        @listmotd    @lfunction   @lock      
   @mailsig     @mvattr      @name        @notify      @oemit       @open      
-  @parent      @password    @pemit       @program     @protect     @ps        
-  @quitprogram @quota       @register    @robot       @search      @set       
-  @skip        @stats       @sudo        @sweep       @switch      @teleport  
-  @trigger     @unlink      @unlock      @verb        @wait        @wall      
-  @wipe        
+  @parent      @password    @pemit       @pipe        @program     @protect   
+  @ps          @quitprogram @quota       @register    @robot       @search    
+  @set         @skip        @stats       @sudo        @sweep       @switch    
+  @teleport    @trigger     @unlink      @unlock      @verb        @wait      
+  @wall        @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 & commands2
@@ -3830,8 +3830,44 @@
                 
   See Also: page, @emit, @oemit, SPOOFING
   
+& @pipe
+  Command: @pipe[/<switch>] [<attribute>]
+ 
+  This command will allow you to pipe output that you would normally see on
+  your screen into a specified attribute.  You must have permission to write
+  to the attribute, the attribute must be a valid attribute name, and the
+  attribute can not be full (or it'll auto-disable upon attempt).  The 
+  following switches are used:
+    /on   -- Turn on piping to the specified attribute.  
+    /off  -- Turn off piping to the attribute.
+  
+  Please note, you obviously can not pipe to multiple attributes at once,
+  and once the attribute is filled to capacity, piping to that attribute
+  will be automatically disabled and output will return to your screen
+  as normal.
+  
+  If you @toggle yourself NOISY, then every output segment that would show
+  up on your screen will notify you that it was piped to the file.
+  
+  If you are still piping to an attribute, it will notify you of this upon
+  connection, regardless of the NOISY @toggle. 
+  
+  You can not use this feature if you are set NO_CODE, GUEST, or WANDERER. 
+  
+  Example:
+    > @pipe/on BOO;WHO;@pipe/off 
+    Piping to attribute has been enabled.
+    Piping to attribute has been disabled.
+    > think v(boo)
+    Player Name          On For Idle  Guild       Doing
+    Tester                00:01   0s  Citizen
+    1 Player logged in. (Bummer.)
+  
+  See Also: @toggle, NOISY, @set, &
+
 & @ps
   Command: @ps[/<switches>] [<object>]
+  
   Lists information about the commands you have on each of the queues.
   Unless the /summary switch is used, this command lists all the commands you
   have on the queues, optionally along with their enactor and arguments.
@@ -25448,7 +25484,7 @@ Available Revisions:
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
   3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
-  3.9.5: 3.9.5p0
+  3.9.5: 3.9.5p0, 3.9.5p1
 
 & 1.0.0p0
 Release Date: Aug 1 1989
@@ -27321,3 +27357,17 @@ Bug Fixes
 * printf() had a one by off padding issue with extra spaces with ' option [ASH]
 * off by one buffer count for ansi_txtfile parameter caused bleeding [ASH]
 * Third optional argument of setq/setr did not evaluate [AMB]
+
+& 3.9.5p1
+Release Date: 03/27/15
+Status: Alpha
+  
+New Features
+------------
+* @pipe will allow you to pipe output to an attribute (until full) [ASH]
+
+Changes
+------------
+  
+Bug Fixes
+------------
