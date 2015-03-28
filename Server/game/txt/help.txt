@@ -3837,7 +3837,8 @@
   your screen into a specified attribute.  You must have permission to write
   to the attribute, the attribute must be a valid attribute name, and the
   attribute can not be full (or it'll auto-disable upon attempt).  The 
-  following switches are used:
+  attribute is also always on the enactor.  You can't specify another object.
+  The following switches are used:
     /on   -- Turn on piping to the specified attribute.  
     /off  -- Turn off piping to the attribute.
   
