@@ -30,6 +30,25 @@ else
    echo "Hum.  No source files.  I'll tell git to yoink the source files for you then."
    echo "downloading..."|tr -d '\012'
    git clone https://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+   if [ $? -ne 0 ]
+   then
+      echo "error."
+      echo "Ugh.  Https failed, let's try normal http...."|tr -d '\012'
+      git clone http://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         echo "error"
+         echo "Double ugh.  Http failed, too.  Let's try the full git itself..."|tr -d '\012'
+         git clone git://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+         if [ $? -ne 0 ]
+         then
+            echo "error."
+            echo "I'm sorry, the git repository is not responding.  Try again later."
+            exit 1
+         fi
+      fi
+   fi
+
    echo "done!"
    type=1
 fi
