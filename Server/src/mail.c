@@ -3384,8 +3384,13 @@ void mail_mark(dbref player, int key, char *buf, dbref wiz, int key2)
 	cpt1 = myitoa(savecur);
 	atr_add_raw(player,A_MSAVECUR,cpt1);
     }
-    if ((key != M_READM) && key2)
-      notify_quiet(player,unsafe_tprintf("Mail: %d message(s) %s",count,sbuf1));
+    if ((key != M_READM) && key2) {
+      if ( saved && (count == 0) && (savecur >= savemax) ) {
+         notify_quiet(player,unsafe_tprintf("Mail: save messages at max of %d.  Could not save message.", savemax));
+      } else {
+         notify_quiet(player,unsafe_tprintf("Mail: %d message(s) %s",count,sbuf1));
+      }
+    }
   }
 }
 

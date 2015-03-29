@@ -27372,3 +27372,4 @@ Changes
     
 Bug Fixes
 ------------
+* mail/mark/save when no more saved quota wouldn't notify you of that [ASH]
