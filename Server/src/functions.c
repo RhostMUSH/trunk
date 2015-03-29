@@ -17642,6 +17642,21 @@ FUNCTION(fun_atan)
     }
     fval(buff, bufcx, val);
 }
+
+FUNCTION(fun_atan2)
+{
+    double val;
+
+    if (!fn_range_check("ATAN2", nfargs, 2, 3, buff, bufcx)) {
+       return;
+    }
+    val = atan2(safe_atof(fargs[0]), safe_atof(fargs[1]));
+    if ( nfargs == 3 ) {
+            val = ConvertR2RDG(val, fargs[2]);
+    }
+    fval(buff, bufcx, val);
+}
+
 FUNCTION(fun_ctu)
 {
     double val;
@@ -29812,6 +29827,7 @@ FUN flist[] =
     {"ASC", fun_asc, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ASIN", fun_asin, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN", fun_atan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ATAN2", fun_atan2, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATTRCNT", fun_attrcnt, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AVG", fun_avg, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BEEP", fun_beep, 1, 0, CA_WIZARD, 0},
