@@ -501,7 +501,7 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           ART                     ART                          ART
           ASIN                    ASIN                         ASIN
           ATAN                    ATAN                         ATAN
-          ATAN2                   N/A                          ATAN2
+          ATAN2                   ATAN2                        ATAN2
           N/A                     ATTRCNT                      ATTRCNT
           ATRLOCK                 HASFLAG(#obj/attr,LOCK)      HASFLAG(#obj/attr,LOCK)
           ATTRIB_SET              SET                          SET
@@ -1001,8 +1001,8 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           VERSION                 VERSION                      VERSION
           VISIBLE                 VISIBLE                      VISIBLE
           VMAG                    VMAG                         VMAG
-          VMAX                    N/A                          N/A
-          VMIN                    N/A                          N/A
+          VMAX                    SORTLIST                     N/A
+          VMIN                    SORTLIST                     N/A
           VMUL                    VMUL                         VMUL
           VSUB                    VSUB                         VSUB
           VUNIT                   VUNIT                        VUNIT
