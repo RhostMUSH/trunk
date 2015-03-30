@@ -27429,6 +27429,7 @@ New Features
   
 Changes
 ------------
+* strfunc now has a ceiling of arguments to 1000 to avoid DoS issues [ASH]
     
 Bug Fixes
 ------------
