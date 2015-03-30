@@ -14928,6 +14928,19 @@ FUNCTION(fun_strfunc)
       return;
    }
 
+   nitems = 0;
+   strtok = fargs[1];
+   while ( *strtok ) {
+      if ( *strtok == sep )
+         nitems++;
+      strtok++;
+   }
+   
+   if ( nitems >= 1000 ) {
+      safe_str((char *)"#-1 STRFUNC WILL NOT PROCESS OVER 1000 ARGUMENTS", buff, bufcx);
+      return;
+   }
+
    list = alloc_lbuf("fun_strfunc");
 
    /* These will always be the same list and null terminated */
@@ -25373,6 +25386,176 @@ do_asort(char *s[], int n, int sort_type)
     }
 }
 
+FUNCTION(fun_sortlist)
+{
+   char *s_strtok[MAX_ARGS], *s_strtokr[MAX_ARGS], *s_buff[MAX_ARGS], sep[2], sorttype, *s_chk;
+   int i_loop, i, i_first, i_order, i_chk, i_chk2, i_initial, i_null;
+   double f_chk, f_chk2;
+ 
+   if (!fn_range_check("SORTLIST", nfargs, 4, MAX_ARGS, buff, bufcx))
+       return;
+  
+   if ( (*fargs[0] != '+') && (*fargs[0]) != '-' ) {
+      safe_str("#-1 SORTLIST TYPE MUST BEGIN WITH +/-.", buff, bufcx);
+      return;
+   }
+   i_order = 0;
+   if ( *fargs[0] == '+' )
+      i_order = 1;
+
+   switch ( ToLower(*(fargs[0]+1)) ) {
+      case 'n':  /* Numeric */
+      case 'd':  /* Dbref */
+      case 'f':  /* Float */
+      case 'a':  /* Alphanumeric */
+         sorttype = *(fargs[0]+1);
+         break;
+      default:
+         sorttype = 'a';
+         break;
+   }
+
+   sep[0] = ' ';
+   sep[1] = '\0';
+   if ( *fargs[1] ) {
+      sep[0] = *fargs[1];
+   }       
+
+   i_loop = 0;
+   for ( i=2; i < nfargs; i++ ) {
+      s_strtok[i] = s_strtokr[i] = NULL;
+      s_buff[i] = alloc_lbuf("sort_list_buffer");
+      memset(s_buff[i], '\0', LBUF_SIZE);
+      strcpy(s_buff[i], fargs[i]);
+      if ( s_buff[i] && *s_buff[i] ) {
+         i_loop = 1;
+         s_strtok[i] = s_buff[i];
+         s_strtokr[i] = strchr(s_buff[i], *sep);
+         if ( s_strtokr[i] && *s_strtokr[i] ) {
+            *(s_strtokr[i]) = '\0';
+            s_strtokr[i] = s_strtokr[i]+strlen(sep);
+         }
+      }
+   }
+
+   i_first = i_null = 0;
+   i_chk = i_chk2 = 0;
+   f_chk = f_chk2 = 0;
+   while ( i_loop ) {
+      i_loop = 0;
+      i_initial = 0;
+      for ( i = 2; i < nfargs; i++ ) {
+         if ( !s_strtok[i] || !*s_strtok[i] ) {
+            if ( s_strtokr[i] ) {
+               s_strtok[i] = s_strtokr[i];
+               s_strtokr[i] = strchr(s_strtok[i], *sep);
+               if ( s_strtokr[i] && *s_strtokr[i] ) {
+                  *(s_strtokr[i]) = '\0';
+                  s_strtokr[i] = s_strtokr[i]+strlen(sep);
+               }
+               i_loop = 1;
+            }
+            continue;
+         }
+         switch(sorttype) {
+            case 'n': /* Numeric */
+               if ( !i_initial ) {
+                  i_chk = atoi(s_strtok[i]);
+               } else {
+                  i_chk2 = atoi(s_strtok[i]);
+                  if ( (i_order  && (i_chk2 > i_chk)) ||
+                       (!i_order && (i_chk > i_chk2)) ) {
+                     i_chk = i_chk2;
+                  }
+               }
+               break;
+            case 'd': /* Dbref */
+               if ( !i_initial ) {
+                  if (*s_strtok[i] == '#') {
+                     i_chk = atoi(s_strtok[i]+1);
+                  } else {
+                     i_chk = -1;
+                  }
+                  if ( !Good_chk(i_chk) )
+                     i_chk = -1;
+               } else {
+                  if ( *(s_strtok[i]) == '#' ) {
+                     i_chk2 = atoi(s_strtok[i]+1);
+                  } else {
+                     i_chk2 = -1;
+                  }
+                  if ( !Good_chk(i_chk2) )
+                     i_chk2 = i_chk;
+                  if ( (i_order  && (i_chk2 > i_chk)) ||
+                       (!i_order && (i_chk > i_chk2)) ) {
+                     i_chk = i_chk2;
+                  }
+               }
+               break;
+            case 'f': /* Float */
+               if ( !i_initial ) {
+                  f_chk = safe_atof(s_strtok[i]);
+               } else {
+                  f_chk2 = safe_atof(s_strtok[i]);
+                  if ( (i_order  && (f_chk2 > f_chk)) ||
+                       (!i_order && (f_chk > f_chk2)) ) {
+                     f_chk = f_chk2;
+                  }
+               }
+               break;
+            case 'a': /* AlphaNumeric */
+               if ( !i_initial ) {
+                  s_chk = s_strtok[i];
+               } else {
+                  if ( (i_order  && (strcmp(s_strtok[i], s_chk) > 0)) ||
+                       (!i_order && (strcmp(s_chk, s_strtok[i]) > 0)) ) {
+                     s_chk = s_strtok[i];
+                  }
+               }
+               break;
+         }
+         i_initial = 1;
+         if ( s_strtok[i] || s_strtokr[i] ) {
+            i_loop = 1;
+            s_strtok[i] = s_strtokr[i];
+            if ( s_strtokr[i] && *s_strtokr[i] )
+               s_strtokr[i] = strchr(s_strtok[i], *sep);
+            if ( s_strtokr[i] && *s_strtokr[i] ) {
+               *(s_strtokr[i]) = '\0';
+               s_strtokr[i] = s_strtokr[i]+strlen(sep);
+            }
+            i_null = 1;
+         }
+         if ( !i_loop )
+            break;
+      }
+      if ( !i_loop )
+         break;
+
+      if ( i_first )
+         safe_chr(*sep, buff, bufcx);
+      i_first = 1;
+      switch(sorttype) {
+         case 'n': /* Numeric */
+            if ( i_null ) ival(buff, bufcx, i_chk);     
+            break;
+         case 'd': /* Dbref */
+            if ( i_null ) dbval(buff, bufcx, i_chk);
+            break;
+         case 'f': /* Float */
+            if ( i_null ) fval(buff, bufcx, f_chk);
+            break;
+         case 'a': /* AlphaNumeric */
+            if ( i_null ) safe_str(s_chk, buff, bufcx);
+            break;
+      }
+      i_null = 0;
+   }
+   for ( i=2; i < nfargs; i++ ) {
+      free_lbuf(s_buff[i]);
+   }
+}
+
 FUNCTION(fun_sort)
 {
     int nitems, sort_type;
@@ -30315,6 +30498,7 @@ FUN flist[] =
     {"SIZE", fun_size, 1, FN_VARARGS, CA_WIZARD, 0},
     {"SORT", fun_sort, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SORTBY", fun_sortby, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"SORTLIST", fun_sortlist, 4, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SOUNDEX", fun_soundex, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SOUNDLIKE", fun_soundlike, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"SPACE", fun_space, 1, 0, CA_PUBLIC, 0},

@@ -9002,16 +9002,16 @@
   SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()    
   SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()     
   SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()      
-  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()    
-  SPLICE()        SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()   
-  STARTSECS()     STATS()         STEP()         STR()          STRCAT()      
-  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()       
-  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()     
-  SUB()           SUBJ()          SUBNETMATCH()  SWITCH()       SWITCHALL()
-  T()             TAN()           TEL()          TIME()         TIMEFMT()
-  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
-  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
-  TR()            TRACE()         TRANSLATE() 
+  SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
+  SPELLNUM()      SPLICE()        SQLITE_QUERY() SQRT()         SQUISH()     
+  STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
+  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
+  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
+  STRMATH()       SUB()           SUBJ()         SUBNETMATCH()  SWITCH()     
+  SWITCHALL()     T()             TAN()          TEL()          TIME()       
+  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
+  TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
+  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -9099,9 +9099,9 @@
                       NUMMATCH() NUMMEMBER() NUMWILDMATCH() PARSE() RANDMATCH()
                       RANDEXTRACT() REMFLAGS() REMOVE() REMTYPE() REST() 
                       REVERSE() REVWORDS() RINDEX() SAFEBUFF() SETDIFF() 
-                      SETINTER() SETUNION() SORT() SORTBY() STEP() STRFUNC() 
-                      STRMATH() TOTMATCH() TOTMEMBER() TOTWILDMATCH() WHILE()
-                      WILDMATCH()
+                      SETINTER() SETUNION() SORT() SORTBY() SORTLIST() STEP() 
+                      STRFUNC() STRMATH() TOTMATCH() TOTMEMBER() TOTWILDMATCH()
+                      WHILE() WILDMATCH()
             See Also: help list functions
   
   Logarithms:         E() EXP() LN() LOG() PI() POWER() POWER10() SHL() SHR()
@@ -15938,7 +15938,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Note:  When using delimiters, the lists that you pass it can NOT be empty.
          Munge will not match up any empty lists sent to it. 
   
-  See Also: map(), fold(), iter(), list()
+  See Also: map(), fold(), iter(), list(), sortlist()
  
 & CITER()
   Function: citer(<list>, <eval>[, <delim>])
@@ -18348,8 +18348,49 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say sort(foo-bar-bletch,,-,+)
     You say "bar+bletch+foo"
   
-  See Also: sortby(), munge(), map(), setinter(), setunion(), setdiff()
+  See Also: sortby(), munge(), map(), setinter(), setunion(), setdiff(),
+            sortlist()
   
+& SORTLIST()
+  Function: sortlist(<order>, <sep>, <list1>, <list2>, [...,<listN>])
+  
+  This function takes 2 or more lists and chooses from each sample the max
+  or min value based on the sorting value type.  The <order> must have as the
+  first character a + for maxsort or a - for minsort.  If you do not specify
+  a sort type after the +/- or if the value is invalid, it assumes alphanum.
+  
+  The lists may be unequal lists.
+  
+  The following <order> types are allowed:  
+    +a  -- (default) sort alphanumerically by maximum value 
+    -a  -- (default) sort alphanumerically by maximum value
+    +n  -- sort integers numerically by maximum value
+    -n  -- sort integers numerically by minimum value
+    +f  -- sort floating numerically by maximum value
+    -f  -- sort floating numerically by minimum value
+    +d  -- sort dbref#'s numerically by maximum valid dbref# (#-1 if invalid)
+    -d  -- sort dbref#'s numerically by minimum valid dbref# (#-1 if invalid)
+  
+  With the dbref# sort, any invalid dbref# is assigned the value #-1.  If all
+  arguments in that list order are all invalid, #-1 will be seen for the
+  value.
+  
+  Examples:
+    > say sortlist(+n,,1 2 3,10 0 20, 0 0 0)
+    You say "10 2 20"
+    > say sortlist(-n,,1 2 3,10 0 20, -100 100 200)
+    You say "-100 0 3"
+    > say sortlist(-n,:,1:2:3,5:6:7,4:4:4,0:9:20)
+    You say "5:9:20"
+    > say sortlist(+f,,1.2 2.5 3.3,1.3 2.4 -1.2)
+    You say "1.3 2.5 3.3"
+    > say sortlist(+d,,#1 #2 #3,#10 #0 #20 #3735 #100 #200 #333,#-1 #3 #3735)
+    (Note: #3735 in this example is a Garbage/Recover/Non-Existant dbref#)
+    You say "#10 #3 #20 #-1 #100 #200 #333"
+  
+  See Also: sort(), munge(), map(), setinter(), setunion(), setdiff(),
+            listinter(), listunion(), listdiff()
+
 & SORTBY()
   Function: sortby([<obj>/]<attrib>,<list>[,<delim> [,<sep>]])
   
@@ -19815,7 +19856,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   > say map(object/add_one,1 2 3 4 5)
   You say "2 3 4 5 6"
   
-  See Also: filter(), fold(), iter(), parse(), u(), munge(), citer(), nsiter()
+  See Also: filter(), fold(), iter(), parse(), u(), munge(), citer(), 
+            nsiter(), sortlist()
   
 & filter()
   Function: filter([<obj>/]<attr>,<list>[,<delim>[,<sep>][,<arg1>,...,<argN>]])
@@ -19839,7 +19881,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say filter(object/is_odd,1@2@3@4@5,@,|)
     You say "1|3|5"
   
-  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list()
+  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list(), sortlist()
   
 & fold()
   Function: fold([<obj>/]<attr>, <list>[, <base-case>[, <delim>])
@@ -25040,6 +25082,7 @@ Mail: Done
   setunion()    - Returns the union of two lists.
   sort()        - Sorts a list.
   sortby()      - Sorts a list by passing it through a function.
+  sortlist()    - Sorts 2 or more lists by the specified order type.
 
   { Continued in list functions4 }
 & list functions4
@@ -27382,6 +27425,7 @@ New Features
 ------------
 * @pipe will allow you to pipe output to an attribute (until full) [ASH]
 * ATAN2 for MUX2/Penn/other compatibility [ASH]
+* sortlist() takes 2 or more lists and selects max/min based on sorting [ASH]
   
 Changes
 ------------
