@@ -2149,6 +2149,9 @@ announce_connect(dbref player, DESC * d, int dc)
 	    if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
+	    } else if (dc == 2) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (@hide Connect)"));
 	    } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
 		    notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Blind)"));
@@ -2160,6 +2163,9 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
+	    } else if (dc == 2) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (@hide Connect)"));
 	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
@@ -2185,6 +2191,9 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
+	    } else if (dc == 2) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (@hide Connect)"));
 	    } else if (dc) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark Connect)"));
@@ -3762,7 +3771,7 @@ check_connect(DESC * d, const char *msg)
 	   strcat(user, buff2);
         }
     }
-    if ((!strncmp(command, "co", 2)) || (!strncmp(command, "cd", 2))) {
+    if ( (!strncmp(command, "co", 2)) || (!strncmp(command, "cd", 2)) || (!strncmp(command, "ch", 2)) ) {
 
 	/* See if this connection would exceed the max #players */
         
@@ -3784,7 +3793,9 @@ check_connect(DESC * d, const char *msg)
         ok_to_login = ((nplayers < mudconf.max_players) && (nplayers < mudstate.max_logins_allowed));
 	if (!strncmp(command, "cd", 2))
 	  dc = 1;
-	else
+	else if ( !strncmp(command, "ch", 2))
+          dc = 2;
+        else
 	  dc =0;
 	player = connect_player(user, password, (char *)d);
         player2 = lookup_player(NOTHING, user, 0);
@@ -3886,7 +3897,7 @@ check_connect(DESC * d, const char *msg)
 		}
 		free_lbuf(buff);
 	    }
-	    if (dc) {
+	    if (dc == 1) {
 	      if (Immortal(player)) {
 		s_Flags2(player, (Flags2(player) | SCLOAK | UNFINDABLE));
 		s_Flags(player, (Flags(player) | DARK));
@@ -3897,7 +3908,13 @@ check_connect(DESC * d, const char *msg)
 	      }
 	      if ((!Immortal(player) && !Wizard(player)) || (Wizard(player) && DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)))
 		dc = 0;
-	    }
+	    } else if (dc == 2) { 
+               if ( Wizard(player) || HasPriv(player, NOTHING, POWER_NOWHO, POWER5, NOTHING) ) {
+                  s_Flags3(player, Flags3(player) | NOWHO);
+               } else {
+                  dc = 0;
+               }
+            }
             mudstate.chkcpu_stopper = time(NULL);
             mudstate.chkcpu_toggle = 0;
             mudstate.chkcpu_locktog = 0;

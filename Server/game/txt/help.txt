@@ -27439,6 +27439,7 @@ New Features
 * @pipe will allow you to pipe output to an attribute (until full) [ASH]
 * ATAN2 for MUX2/Penn/other compatibility [ASH]
 * sortlist() takes 2 or more lists and selects max/min based on sorting [ASH]
+* ch to allow you to connect @hidden (if wizard or @powered NOWHO) [ASH]
   
 Changes
 ------------
