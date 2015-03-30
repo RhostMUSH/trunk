@@ -31,6 +31,29 @@
   
   The /search switch works for +help as well.
   
+& co
+& cd
+& ch
+  Command: co <name> <password>
+           cd <name> <password>
+           ch <name> <password>
+  
+  These commands are only useful on the connect screen.  They are used to
+  connect to your account <name> with the provided <password>.  There are
+  currently three methods to do so.
+  
+  They are as follows:
+     co  -- This option is the default and normal method to connect.
+            This option has no special conditions or privilages.
+     ch  -- Wizards and anyone with the NOWHO @power (to @hide) can use this.
+            This option will auto-hide the player when connecting.
+            It defaults to the 'co' option if you can't @hide.
+     cd  -- Wizards and higher can use this to connect dark to the game.
+            This effectively connects wiz-cloaked to the game.
+            Immortals get auto-added to supercloak.
+  
+  See Also: @aconnect, @adisconnect, @hide
+            
 & commands
   Help available for RhostMUSH Commands:
    
