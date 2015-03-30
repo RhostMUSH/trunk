@@ -890,17 +890,30 @@
   
 & IDLE
   Command: idle                 (everyone)
+           idle @@<string>      (everyone)
            idle <command>	(wizards only)
   
   This command does nothing.  It will issue a NO-OP (non-operation) which 
   allows the user to send information to the mush without actually unidling.
   While using this command your idle state does not change so to other users
-  you will appear to be idle.
+  you will appear to be idle.  
+  
+  If you specify @@<string> then <string> will be displayed to you as if 
+  you issued 'think <string>' but without updating your idle time.  
+  
+  Note:  The <string> is NOT evaluated, intentionally.
   
   This command can only be used if you're connected to the mush.  It can not
   be used if the command has been restricted from you.
   
   Wizards may specify a command to issue under an 'idle state' as an option.
+  
+  Examples:
+    > idle
+    > idle @@boo![add(1,1)]
+      boo![add(1,1)]
+    > idle think Test: [add(1,1)]    (as a wizard)
+      Test: 2
   
   See Also: @@
 
@@ -27430,6 +27443,7 @@ New Features
 Changes
 ------------
 * strfunc now has a ceiling of arguments to 1000 to avoid DoS issues [ASH]
+* By popular demand, 'idle' when followed by '@@' does an idle think [ASH]
     
 Bug Fixes
 ------------

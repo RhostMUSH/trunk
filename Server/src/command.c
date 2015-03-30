@@ -8833,13 +8833,21 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
    }
 
    if ( Wizard(player) && string && *string ) {
-      mudstate.train_cntr++;
-      getitimer(ITIMER_PROF, &itimer);
-      process_command(player, cause, 1, string, args, nargs, 0);
-      setitimer(ITIMER_PROF, &itimer, NULL); 
-      mudstate.train_cntr--;
+      if ( (*string == '@') && (*(string+1) == '@') ) {
+         notify_quiet(player, string+2);
+      } else {
+         mudstate.train_cntr++;
+         getitimer(ITIMER_PROF, &itimer);
+         process_command(player, cause, 1, string, args, nargs, 0);
+         setitimer(ITIMER_PROF, &itimer, NULL); 
+         mudstate.train_cntr--;
+      }
    } else if ( !Wizard(player) && string && *string ) {
-      notify(player, "idle does not take arguments.");
+      if ( (*string == '@') && (*(string+1) == '@') ) {
+         notify_quiet(player, string+2);
+      } else {
+         notify(player, "idle for you does not allow command execution other than '@@' for messages");
+      }
    }
 }
 

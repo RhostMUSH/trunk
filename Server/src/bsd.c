@@ -355,7 +355,8 @@ shovechars(int port,char* address)
     int avail_descriptors, maxfds, active_auths, aflags2, temp1, temp2;
     int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep;
     dbref aowner2;
-    char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6];
+    char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
+         s_cutter2[8];
     FILE *f;
     int silent;
 
@@ -733,9 +734,12 @@ shovechars(int port,char* address)
 		}
                 if ( (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
                    memcpy(s_cutter, d->input_head->cmd, 5);
+                   memcpy(s_cutter2, d->input_head->cmd, 7);
                    s_cutter[5] = '\0';
+                   s_cutter2[7] = '\0';
                    if ( (Good_obj(d->player) && Wizard(d->player) && (stricmp(s_cutter, "idle ") == 0)) || 
-                        (stricmp(s_cutter, "idle") == 0) ) {
+                        (stricmp(s_cutter, "idle") == 0) ||
+                        (stricmp(s_cutter2, "idle @@") == 0) ) {
                       cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);
                       if ( cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
                          if ( !(CmdCheck(d->player) && cmdtest(d->player, "idle")) ) {
