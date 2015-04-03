@@ -10334,13 +10334,21 @@
   
   See Also: LIST FLAGS, ATTRIBUTE FLAGS, hastype()
   
-& delete()
-  Function: delete(<string>,<first>,<len>)
+& DELETE()
+  Function: delete(<string>, <first>, <len> [,<key>])
+  
   Returns <string>, but with <len> characters starting after the character
   at position <first> removed.  In other words, this function copies <first>
   characters, skips <len> characters, and then copies the remainder of the 
   string.
- 
+  
+  You may specify a <key> of 1 to tell mid() to take the string raw and
+  not do ansi-aware processing.  This will speed up the function.
+  The default is '0' which does ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
+   
   Example:
     > say delete(abcdefgh, 3, 2)
     You say "abcfgh"
@@ -18399,7 +18407,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   The following <order> types are allowed:  
     +a  -- (default) sort alphanumerically by maximum value 
-    -a  -- (default) sort alphanumerically by maximum value
+    -a  -- (default) sort alphanumerically by minimum value
     +n  -- sort integers numerically by maximum value
     -n  -- sort integers numerically by minimum value
     +f  -- sort floating numerically by maximum value
@@ -27468,6 +27476,8 @@ Changes
 ------------
 * strfunc now has a ceiling of arguments to 1000 to avoid DoS issues [ASH]
 * By popular demand, 'idle' when followed by '@@' does an idle think [ASH]
+* delete() is now ansi-aware [ASH]
+* @uptime shows system uptime (when available) [ASH]
     
 Bug Fixes
 ------------

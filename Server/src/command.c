@@ -5523,7 +5523,7 @@ list_options_system(dbref player)
 #endif
     if ( mudconf.ansi_default ) {
        notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
-       notify(player, "     Functions Affected: TR(), BEFORE(), AFTER(), MID()");
+       notify(player, "     Functions Affected: TR(), BEFORE(), AFTER(), MID(), DELETE()");
     } else {
        notify(player, "ANSI handler for functions() ------------------------------------- DISABLED");
     }

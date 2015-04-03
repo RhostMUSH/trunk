@@ -19346,28 +19346,88 @@ FUNCTION(fun_andflag)
 
 FUNCTION(fun_delete)
 {
-    char *s;
-    int i, start, nchars, len;
+   char *s, *s2;
+   int i, start, nchars, len, i_noansi;
+   char *outbuff, *outbuff2, *s_output;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *spl, *spl2;
 
-    s = fargs[0];
-    start = atoi(fargs[1]);
-    nchars = atoi(fargs[2]);
-    len = strlen(s);
-    if ((start >= len) || (nchars <= 0) || (start < 0)) {
-       safe_str(s, buff, bufcx);
-       return;
-    }
-    if (nchars > LBUF_SIZE)
+   if (!fn_range_check("DELETE", nfargs, 3, 4, buff, bufcx))
+      return;
+
+   s = fargs[0];
+   start = atoi(fargs[1]);
+   nchars = atoi(fargs[2]);
+   len = strlen(s);
+   if ((start >= len) || (nchars <= 0) || (start < 0)) {
+      safe_str(s, buff, bufcx);
+      return;
+   }
+
+   i_noansi = 0;
+   if ( (nfargs > 3) && *fargs[3] ) {
+      i_noansi = (atoi(fargs[3]) ? 1 : 0);
+   }
+   if ( !mudconf.ansi_default )
+      i_noansi = !i_noansi;
+
+   if (nchars > LBUF_SIZE)
       nchars = LBUF_SIZE;
-    for (i = 0; i < start; i++) {
-       if (safe_chr(*s++, buff, bufcx))
-         break;
-    }
-    if ((i + nchars) < len) {
-       s += nchars;
-       while (*s)
-            safe_chr(*s++, buff, bufcx);
-    }
+
+   if ( i_noansi ) {
+      for (i = 0; i < start; i++) {
+         if (safe_chr(*s++, buff, bufcx))
+            break;
+      }
+      if ((i + nchars) < len) {
+         s += nchars;
+         while (*s)
+              safe_chr(*s++, buff, bufcx);
+      }
+   } else {
+      outbuff = alloc_lbuf("fun_mid");
+      outbuff2 = alloc_lbuf("fun_mid");
+      memset(outbuff, '\0', LBUF_SIZE);
+      memset(outbuff2, '\0', LBUF_SIZE);
+      initialize_ansisplitter(outsplit, LBUF_SIZE);
+      initialize_ansisplitter(outsplit2, LBUF_SIZE);
+      split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+      len = strlen(outbuff);
+      if ((start >= len)) {
+         safe_str(fargs[0], buff, bufcx);
+         free_lbuf(outbuff);
+         free_lbuf(outbuff2);
+         return;
+      }
+      s = outbuff;
+      s2 = outbuff2;
+      spl = outsplit;
+      spl2 = outsplit2;
+      for (i = 0; i < start; i++) {
+         *s2 = *s;
+         clone_ansisplitter(spl2, spl);
+         s2++;
+         s++;
+         spl2++;
+         spl++;
+      }
+      if ((i + nchars) < len) {
+         s += nchars;
+         spl += nchars;
+         while (*s) {
+            *s2 = *s;
+            clone_ansisplitter(spl2, spl);
+            s++;
+            s2++;
+            spl++;
+            spl2++;
+         }
+      }
+      s_output = rebuild_ansi(outbuff2, outsplit2);
+      safe_str(s_output, buff, bufcx);
+      free_lbuf(s_output);
+      free_lbuf(outbuff);
+      free_lbuf(outbuff2);
+   }
 }
 
 FUNCTION(fun_lflags)
@@ -30117,7 +30177,7 @@ FUN flist[] =
     {"DECRYPT", fun_decrypt, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"DEFAULT", fun_default, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
-    {"DELETE", fun_delete, 3, 0, CA_PUBLIC, CA_NO_CODE},
+    {"DELETE", fun_delete, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"DELEXTRACT", fun_delextract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"DESTROY", fun_destroy, 1, 0, CA_PUBLIC, 0},

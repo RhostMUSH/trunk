@@ -3340,22 +3340,50 @@ do_uptime(dbref player, dbref cause, int key)
   time_t now;
   char *buff;
   int i_syear, i_ryear;
-  
+  char *s_uptime, *s_chk;
+  FILE *fp;
+
   DPUSH; /* #141 */
   
   time(&now);
+
   buff = alloc_mbuf("uptime");
+  s_uptime = alloc_mbuf("uptime_sys");
+
+  /* Open the command for reading. */
+  fp = popen("/usr/bin/uptime", "r");
+  if (fp != NULL) {
+     memset(s_uptime, '\0', MBUF_SIZE);
+     fgets(s_uptime, MBUF_SIZE - 1, fp);
+     s_chk = strchr(s_uptime, ',');
+     if ( s_chk ) {
+        s_chk = strchr(s_chk+1, ',');
+        if ( s_chk )
+           *s_chk = '\0';
+        else
+           memset(s_uptime, '\0', MBUF_SIZE);
+     } else {
+        memset(s_uptime, '\0', MBUF_SIZE);
+     }
+     pclose(fp);
+  }
+
   strcpy(buff,time_format_1(now - mudstate.reboot_time));
   i_syear = ((mudstate.now - mudstate.start_time) / 31536000);
   i_ryear = ((mudstate.now - mudstate.reboot_time) / 31536000);
-  if ( i_syear || i_ryear )
+  if ( i_syear || i_ryear ) {
     notify(player, unsafe_tprintf("%s has been up for %dy %s, Reboot: %dy %s",
 			   mudconf.mud_name, i_syear,
 			   time_format_1(now - mudstate.start_time), i_ryear, buff));
-  else
+    if ( *s_uptime )
+       notify(player, unsafe_tprintf("System Uptime: %s", s_uptime));
+  } else {
     notify(player, unsafe_tprintf("%s has been up for %s, Reboot: %s",
 			   mudconf.mud_name,
 			   time_format_1(now - mudstate.start_time), buff));
+    if ( *s_uptime )
+       notify(player, unsafe_tprintf("System Uptime: %s", s_uptime));
+  }
   free_mbuf(buff);
   VOIDRETURN; /* #141 */
 }
