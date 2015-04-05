@@ -4220,6 +4220,9 @@ SNOOPY                                                           God     Wiz
 
 & @toggledef3
 & @flagdef3 
+  Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
+           @toggledef[/<switches>] [<togglename>=<permission(s)>]
+  
   The restrictions available for /type are:
   P   player - players can not set/unset this
   T   thing - things (objects) can not set/unset this 
