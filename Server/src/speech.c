@@ -48,6 +48,11 @@ ColorName(dbref player)
 
     ansibuf = atr_pget(player, A_ANSINAME, &aname, &aflags);
 
+    if ( !*ansibuf ) {
+       free_lbuf(ansibuf);
+       return Name(player);
+    }
+
     i_extansi = 0;
     memset(mybuf, '\0', MBUF_SIZE);
     mybufptr = mybuf;
