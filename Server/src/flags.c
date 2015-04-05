@@ -3788,7 +3788,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify_quiet(player, tmp_ptr);
       notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       for ( cntr = 0; cntr < 18; cntr++ ) {
-         if ( cntr < 11 ) {
+         if ( cntr < 10 ) {
             sprintf(tmp_ptr, "%-20s [%c] 0x%08x    %-20s [%c] 0x%08x", 
                     static_names[cntr], static_list2[cntr], static_masks[cntr],
                     type_names[cntr], type_list[cntr], type_masks[cntr]);
