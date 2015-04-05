@@ -27478,6 +27478,7 @@ New Features
 * ATAN2 for MUX2/Penn/other compatibility [ASH]
 * sortlist() takes 2 or more lists and selects max/min based on sorting [ASH]
 * ch to allow you to connect @hidden (if wizard or @powered NOWHO) [ASH]
+* flag_access_type, toggle_access_type @admin parms for TYPE restrictions [ASH]
   
 Changes
 ------------
@@ -27487,6 +27488,7 @@ Changes
 * @uptime shows system uptime (when available) [ASH]
 * If a player @toggles VARIABLE on themselves, then says, poses, and @walls
   will be colorized as if cname() [ASH]
+* @flagdef and @toggledef now can restrict based on TYPE [ASH]
     
 Bug Fixes
 ------------

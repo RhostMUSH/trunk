@@ -367,6 +367,7 @@ NAMETAB flagdef_sw[] =
     {(char *) "list", 2, CA_IMMORTAL, 0, FLAGDEF_LIST},
     {(char *) "letter", 2, CA_IMMORTAL, 0, FLAGDEF_CHAR},
     {(char *) "index", 2, CA_IMMORTAL, 0, FLAGDEF_INDEX},
+    {(char *) "type", 2, CA_IMMORTAL, 0, FLAGDEF_TYPE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB oemit_sw[] =

@@ -447,6 +447,7 @@ typedef struct flag_entry {
 	int     listperm;       /* Who sees this flag when set */
         int     setovperm;      /* Override who can set the flag */
         int     usetovperm;     /* Override who can unset the flag */
+	int	typeperm;	/* Type permission */
 	int     (*handler)();   /* Handler for setting/clearing this flag */
 } FLAGENT;
 
@@ -458,6 +459,7 @@ typedef struct toggle_entry {
 	int     listperm;       /* Who sees this flag when set */
 	int	setovperm;	/* Override who can set the toggle */
 	int	usetovperm;	/* Override who can unset the toggle */
+	int	typeperm;	/* Type permission */
 	int     (*handler)();   /* Handler for setting/clearing this flag */
 } TOGENT;
 
