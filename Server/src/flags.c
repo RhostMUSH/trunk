@@ -22,17 +22,29 @@ char *index(const char *, int);
 
 extern NAMETAB access_nametab[];
 
-#define DEF_THING	1
-#define DEF_PLAYER	2
-#define DEF_EXIT	4
-#define DEF_ROOM	8
+#define DEF_THING		0x00000001
+#define DEF_PLAYER		0x00000002
+#define DEF_EXIT		0x00000004
+#define DEF_ROOM		0x00000008
+#define DEF_REGISTERED		0x00000010
+#define DEF_GUILDMASTER 	0x00000020
+#define DEF_ARCHITECT		0x00000040
+#define DEF_COUNCILOR		0x00000080
+#define DEF_WIZARD		0x00000100
+#define DEF_IMMORTAL		0x00000200
 
 NAMETAB flagdef_type[] =
 {
-    {(char *) "thing", 1, CA_PUBLIC, 0, DEF_THING},
-    {(char *) "player", 1, CA_PUBLIC, 0, DEF_PLAYER},
-    {(char *) "exit", 1, CA_PUBLIC, 0, DEF_EXIT},
-    {(char *) "room", 1, CA_PUBLIC, 0, DEF_ROOM},
+    {(char *) "thing", 2, CA_PUBLIC, 0, DEF_THING},
+    {(char *) "player", 2, CA_PUBLIC, 0, DEF_PLAYER},
+    {(char *) "exit", 2, CA_PUBLIC, 0, DEF_EXIT},
+    {(char *) "room", 2, CA_PUBLIC, 0, DEF_ROOM},
+    {(char *) "registered", 2, CA_PUBLIC, 0, DEF_REGISTERED},
+    {(char *) "guildmaster", 2, CA_PUBLIC, 0, DEF_GUILDMASTER},
+    {(char *) "architect", 2, CA_PUBLIC, 0, DEF_ARCHITECT},
+    {(char *) "councilor", 2, CA_PUBLIC, 0, DEF_COUNCILOR},
+    {(char *) "wizard", 2, CA_PUBLIC, 0, DEF_WIZARD},
+    {(char *) "immortal", 2, CA_PUBLIC, 0, DEF_IMMORTAL},
     {NULL, 0, 0, 0, 0}};
 
 
@@ -1410,8 +1422,24 @@ flag_set(dbref target, dbref player, char *flag, int key)
                          ((Typeof(target) == TYPE_PLAYER) && (fp->typeperm & DEF_PLAYER)) ||
                          ((Typeof(target) == TYPE_THING) && (fp->typeperm & DEF_THING)) ||
                          ((Typeof(target) == TYPE_EXIT) && (fp->typeperm & DEF_EXIT)) ) ) {
-		     notify(player, "Permission denied.");
-                     perm = 0;
+                     if ( !(fp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
+                                            DEF_COUNCILOR|DEF_WIZARD|DEF_IMMORTAL)) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
+                        perm = 0;
+                     }
+                     if ( !perm ) 
+		        notify(player, "Permission denied.");
                   }
 
 		/* Invoke the flag handler, and print feedback */
@@ -1515,7 +1543,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
     FLAGENT *fp;
     TOGENT *tp;
     FLAG i_flag;
-    int negate, result, i_flagchk, i_ovperm, i_uovperm;
+    int negate, result, i_flagchk, i_ovperm, i_uovperm, perm;
     char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
 
     /* Trim spaces, and handle the negation character */
@@ -1542,6 +1570,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 
 	/* Make sure a toggle name was specified */
 
+        perm = 1;
 	if (*pt1 == '\0') {
 	    if (negate) {
               if ( !(key & SIDEEFFECT) )
@@ -1568,13 +1597,32 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 		    (Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) && 
                     !Immortal(player))) {
 		     notify(player, "Permission denied.");
-                } else if ( (((Typeof(target) == TYPE_ROOM) && (tp->typeperm & DEF_ROOM)) || 
+                    perm = 0;
+                } 
+                if ( perm && (((Typeof(target) == TYPE_ROOM) && (tp->typeperm & DEF_ROOM)) || 
                              ((Typeof(target) == TYPE_PLAYER) && (tp->typeperm & DEF_PLAYER)) ||
                              ((Typeof(target) == TYPE_THING) && (tp->typeperm & DEF_THING)) ||
                              ((Typeof(target) == TYPE_EXIT) && (tp->typeperm & DEF_EXIT)) ) ) {
-		     notify(player, "Permission denied.");
-		} else {
-
+                    if ( !(tp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
+                                            DEF_COUNCILOR|DEF_WIZARD|DEF_IMMORTAL)) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
+                        perm = 0;
+                     }
+                     if ( !perm )
+                        notify(player, "Permission denied.");
+                }
+		if ( perm ) {
 		/* Invoke the toggle handler, and print feedback */
 
                   if ( tp->toggleflag & TOGGLE2 ) {
@@ -3696,14 +3744,16 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 {
 #ifndef STANDALONE
    TOGENT *tp;
-   char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[7], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;;
-   char static_list[33], static_list2[19], type_list[5], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;;
+   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
                           "LOGFLAG", NULL };
-   char   *type_names[]={ "THING", "PLAYER", "EXIT", "ROOM", NULL };
-   int     type_masks[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008, 0x00000000 };
+   char   *type_names[]={ "THING", "PLAYER", "EXIT", "ROOM", "REGISTERED", "GUILDMASTER", "ARCHITECT", 
+                          "COUNCILOR", "WIZARD", "IMMORTAL", NULL };
+   int     type_masks[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008, 0x00000010, 0x00000020, 0x00000040,
+                          0x00000080, 0x00000100, 0x00000200, 0x00000000 };
    int   static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
                           0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
                           0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
@@ -3717,9 +3767,10 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
     * i -!immortal, + -!suspect, ! -!guest, ^ -!wanderer, M - mortal, L - LOGFLAG */
    strcpy(static_list, "GWAI CS gmsacwiL   +!^        M ");
    strcpy(static_list2, "GIWCASM+!^giwcasmL ");
-   strcpy(type_list, "TPER");
-   type_list[4]='\0';
+   strcpy(type_list, "TPERrgacwi");
+   type_list[10]='\0';
    static_list[32]='\0';
+   static_list2[32]='\0';
    stripmask=0xBFCB0090;
    c_bef = ' ';
    c_aft = ' ';
@@ -3737,7 +3788,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify_quiet(player, tmp_ptr);
       notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       for ( cntr = 0; cntr < 18; cntr++ ) {
-         if ( cntr < 4 ) {
+         if ( cntr < 11 ) {
             sprintf(tmp_ptr, "%-20s [%c] 0x%08x    %-20s [%c] 0x%08x", 
                     static_names[cntr], static_list2[cntr], static_masks[cntr],
                     type_names[cntr], type_list[cntr], type_masks[cntr]);
@@ -3752,10 +3803,10 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       return;
    }
    if ( (key & FLAGDEF_LIST) || key == 0 ) {
-      notify_quiet(player, "|Flagname           |Flg|Set          |Unset" \
-                           "        |See          |Type|NoM|");
-      notify_quiet(player, "+-------------------+---+-------------+" \
-                           "-------------+-------------+----+---+");
+      notify_quiet(player, "|Flagname           |Flg|Set        |Unset" \
+                           "      |See        |Type      |NoM|");
+      notify_quiet(player, "+-------------------+---+-----------+" \
+                           "-----------+-----------+----------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_toggledef");
       for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
@@ -3778,7 +3829,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          nodecomp = (tp->handler == th_noset);
 
          while ( cntr < 32 ) {
-            if ( (cntr < 5) && (tp->typeperm & (1 << cntr)) ) {
+            if ( (cntr < 11) && (tp->typeperm & (1 << cntr)) ) {
                *t_ptr = type_list[cntr];
                 t_ptr++;
             }
@@ -3804,7 +3855,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             c_aft = ' ';
          }
          tprp_buff = tpr_buff;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-19s|%c%c%c|%-13s|%-13s|%-13s|%-4s| %c |", 
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-19s|%c%c%c|%-11s|%-11s|%-11s|%-10s| %c |", 
                                            tp->togglename, c_bef, tp->togglelett, c_aft, setovpermary, 
                                            usetovpermary, listpermary, typepermary, (nodecomp ? 'Y' : ' ')));
       }
@@ -3812,8 +3863,8 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       if ( !fnd )
          notify_quiet(player, "                        *** NO MATCHING FLAGS FOUND ***");
 
-      notify_quiet(player, "+-------------------+---+-------------+" \
-                           "-------------+-------------+----+---+");
+      notify_quiet(player, "+-------------------+---+-----------+" \
+                           "-----------+-----------+----------+---+");
    } else { 
       for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
            tp;
@@ -4112,14 +4163,16 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 {
 #ifndef STANDALONE
    FLAGENT *fp;
-   char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[4], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;
-   char static_list[33], static_list2[19], type_list[5], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;
+   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
                           "LOGFLAG", NULL };
-   char   *type_names[]={ "THING", "PLAYER", "EXIT", "ROOM", NULL };
-   int     type_masks[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008, 0x00000000 };
+   char   *type_names[]={ "THING", "PLAYER", "EXIT", "ROOM", "REGISTERED", "GUILDMASTER", "ARCHITECT", 
+                          "COUNCILOR", "WIZARD", "IMMORTAL", NULL };
+   int     type_masks[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008, 0x00000010, 0x00000020, 0x00000040,
+                          0x00000080, 0x00000100, 0x00000200, 0x00000000 };
    int   static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
                           0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
                           0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
@@ -4133,9 +4186,10 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
     * i -!immortal, + -!suspect, ! -!guest, ^ -!wanderer, M - mortal, L - LOGFLAG */
    strcpy(static_list, "GWAI CS gmsacwiL   +!^        M ");
    strcpy(static_list2, "GIWCASM+!^giwcasmL ");
-   strcpy(type_list, "TPER");
-   type_list[4]='\0';
+   strcpy(type_list, "TPERrgacwi");
+   type_list[10]='\0';
    static_list[32]='\0';
+   static_list2[32]='\0';
    stripmask=0xBFCB0090;
    c_bef = ' ';
    c_aft = ' ';
@@ -4153,7 +4207,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify_quiet(player, tmp_ptr);
       notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       for ( cntr = 0; cntr < 18; cntr++ ) {
-         if ( cntr < 4 ) {
+         if ( cntr < 10 ) {
             sprintf(tmp_ptr, "%-20s [%c] 0x%08x    %-20s [%c] 0x%08x", 
                     static_names[cntr], static_list2[cntr], static_masks[cntr],
                     type_names[cntr], type_list[cntr], type_masks[cntr]);
@@ -4168,10 +4222,10 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       return;
    }
    if ( (key & FLAGDEF_LIST) || key == 0 ) {
-      notify_quiet(player, "|Flagname        |Flg|Set           |Unset" \
-                           "         |See           |Type|NoM|");
-      notify_quiet(player, "+----------------+---+--------------+" \
-                           "--------------+--------------+----+---+");
+      notify_quiet(player, "|Flagname        |Flg|Set         |Unset" \
+                           "       |See         |Type      |NoM|");
+      notify_quiet(player, "+----------------+---+------------+" \
+                           "------------+------------+----------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
       for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
@@ -4195,7 +4249,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          nodecomp = (nodecomp | ((fp->flagvalue & IMMORTAL) &&
                                  (fp->flagflag == 0)));
          while ( cntr < 32 ) {
-            if ( (cntr < 5) && (fp->typeperm & (1 << cntr)) ) {
+            if ( (cntr < 11) && (fp->typeperm & (1 << cntr)) ) {
                *t_ptr = type_list[cntr];
                t_ptr++;
             }
@@ -4221,7 +4275,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             c_aft = ' ';
          }
          tprp_buff = tpr_buff;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-16s|%c%c%c|%-14s|%-14s|%-14s|%-4s| %c |", 
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-16s|%c%c%c|%-12s|%-12s|%-12s|%-10s| %c |", 
                                            fp->flagname, c_bef, fp->flaglett, c_aft, setovpermary, 
                                            usetovpermary, listpermary, typepermary, (nodecomp ? 'Y' : ' ')));
       }
@@ -4229,8 +4283,8 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       if ( !fnd )
          notify_quiet(player, "                        *** NO MATCHING FLAGS FOUND ***");
 
-      notify_quiet(player, "+----------------+---+--------------+" \
-                           "--------------+--------------+----+---+");
+      notify_quiet(player, "+----------------+---+------------+" \
+                           "------------+------------+----------+---+");
    } else { 
       for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
 	   fp;

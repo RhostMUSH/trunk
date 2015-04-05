@@ -27505,6 +27505,7 @@ Changes
 * If a player @toggles VARIABLE on themselves, then says, poses, and @walls
   will be colorized as if cname() [ASH]
 * @flagdef and @toggledef now can restrict based on TYPE [ASH]
+* added bitlevel permission override to @flagdef/@typedef TYPE restricts [ASH]
     
 Bug Fixes
 ------------

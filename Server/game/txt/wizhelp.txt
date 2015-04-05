@@ -4181,8 +4181,9 @@ SNOOPY                                                           God     Wiz
   The 'see' is special in the fact this is actually the permission(s) of who 
   can truly see the flag.
   
-  {see 'wizhelp @flagdef2' for a list of available permissions}
-  {see 'wizhelp @flagdef3' for a list of all @admin related parameters}
+  { see 'wizhelp @flagdef2' for a list of available permissions }
+  { see 'wizhelp @flagdef3' for a list of available type restrictions }
+  { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
 & @toggledef2
 & @flagdef2
@@ -4209,22 +4210,42 @@ SNOOPY                                                           God     Wiz
   m   ignore_mortal - only guildmaster and higher have access.
   L   logflag - log all setting (/set) or removing (/unset) of specified flag.
   
+  If you wish to remove a permission, you can use '!permission' to unset a
+  given permission.  You may specify multiple permissions to set and remove at
+  the same time.  (i.e.  @flagdef/set marker0=god immortal !royalty mortal)
+ 
+  { see 'wizhelp @flagdef3' for a list of available type restrictions }
+  { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
+
+& @toggledef3
+& @flagdef3 
   The restrictions available for /type are:
   P   player - players can not set/unset this
   T   thing - things (objects) can not set/unset this 
   R   room - rooms can not set/unset this
   E   exit - exits can not set/unset this
+  r   registered - enforce type setting to registered players and higher
+  g   guildmaster - enforce type setting to guildmaster and higher
+  a   architect - enforce type setting to architect and higher
+  c   councilor - enforce type setting to councilor and higher
+  w   wizard - enforce type setting to wizard (royalty) and higher
+  i   immortal - enforce type setting to immmortal/#1 only
   
+  Note type restrictions if no bit restriction (rgacwi) specified, it assumes
+  no one will be allowed to set that given type.  Ergo, it locks it down
+  based on type only.  Registered players are defined as any player who does
+  not have the GUEST or WANDERER flag.
+   
   If you wish to remove a permission, you can use '!permission' to unset a
   given permission.  You may specify multiple permissions to set and remove at
-  the same time.  (i.e.  @flagdef/set marker0=god immortal !royalty mortal)
+  the same time.  (i.e.  @flagdef/type marker0=immortal !royalty room)
 
-  {see 'wizhelp @flagdef3' for a list of all @admin related parameters}
+  {see 'wizhelp @flagdef4' for a list of all @admin related parameters}
   
   See Also: @flag, @flagdef, @toggledef
 
-& @toggledef3
-& @flagdef3
+& @toggledef4
+& @flagdef4
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
            @toggledef[/<switches>] [<togglename>=<permission(s)>]
   
