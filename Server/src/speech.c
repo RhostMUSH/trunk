@@ -16,11 +16,13 @@ char *strtok_r(char *, const char *, char **);
 #include "externs.h"
 #include "flags.h"
 #include "alloc.h"
+#include "rhost_ansi.h"
 #ifdef REALITY_LEVELS
 #include "levels.h"
 #endif /* REALITY_LEVELS */
 
 extern void FDECL(do_page_one, (dbref, dbref, int, char *));
+extern char * parse_ansi_name(dbref, char *);
 
 int sp_ok(dbref player)
 {
@@ -33,13 +35,51 @@ int sp_ok(dbref player)
 	return 1;
 }
 
+char *
+ColorName(dbref player)
+{
+    static char mybuf[MBUF_SIZE];
+    char *ansibuf, *mybufptr, *tmpptr;
+    int aflags, i_extansi;
+    dbref aname;
+
+    if ( !VariableExit(player) )
+       return Name(player);
+
+    ansibuf = atr_pget(player, A_ANSINAME, &aname, &aflags);
+
+    i_extansi = 0;
+    memset(mybuf, '\0', MBUF_SIZE);
+    mybufptr = mybuf;
+
+    if ( ExtAnsi(player) && (strcmp(Name(player), strip_all_special(ansibuf)) == 0) )
+       i_extansi = 1;
+
+    if ( i_extansi ) {
+       safe_str(ansibuf, mybuf, &mybufptr);
+    } else if ( !ExtAnsi(player) ) {
+       tmpptr =  parse_ansi_name(player, ansibuf);
+       safe_str(tmpptr, mybuf, &mybufptr);
+       free_lbuf(tmpptr);
+       safe_str(Name(player), mybuf, &mybufptr);
+#ifdef ZENTY_ANSI
+       safe_str(SAFE_ANSI_NORMAL, mybuf, &mybufptr);
+#else
+       safe_str(ANSI_NORMAL, mybuf, &mybufptr);
+#endif
+    } else {
+       safe_str(Name(player), mybuf, &mybufptr);
+    }
+    free_lbuf(ansibuf);
+    return mybuf;
+}
 static void say_shout (int target, const char *prefix, int flags, 
 		dbref player, char *message)
 {
 	if (flags & SAY_NOTAG)
-        raw_broadcast(player,target, "%s%.3900s", Name(player), message);
+        	raw_broadcast(player,target, "%s%.3900s", ColorName(player), message);
 	else
-		raw_broadcast(player,target, "%s%s%.3900s", prefix, Name(player), message);
+		raw_broadcast(player,target, "%s%s%.3900s", prefix, ColorName(player), message);
 }
 
 static const char *announce_msg = "Announcement: ";
@@ -131,13 +171,13 @@ void do_say (dbref player, dbref cause, int key, char *message)
                       if ( no_ansi ) {
 		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
                       } else {
-		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message));
                       }
                    } else {
                       if ( no_ansi ) {
 		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
                       } else {
-		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message));
                       }
                    }
                 } else {
@@ -195,7 +235,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), MSG_NO_ANSI);
                       } else {
                          notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message), 0);
                       }
 #else
                       if ( no_ansi ) {
@@ -203,7 +243,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    } else {
@@ -213,7 +253,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), MSG_NO_ANSI);
                       } else {
                          notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message), 0);
                       }
 #else
                       if ( no_ansi ) {
@@ -221,7 +261,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
                       } else {
                          notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message), 0);
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -256,7 +296,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                         safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message), MSG_NO_ANSI);
                    } else {
                       notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message), 0);
+                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message), 0);
                    }
 #else
                    if ( no_ansi ) {
@@ -264,7 +304,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                            safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
                    } else {
                       notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message));
                    }
 #endif /* REALITY_LEVELS */
                 }
@@ -297,7 +337,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                            safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message), MSG_NO_ANSI);
                    } else {
                       notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message), 0);
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message), 0);
                    }
 #else
                    if ( no_ansi ) {
@@ -305,7 +345,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                            safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
                    } else {
                       notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message));
                    }
 #endif /* REALITY_LEVELS */
                 }
@@ -463,9 +503,9 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		break;
 	case SAY_WALLPOSE:
 		if (say_flags & SAY_NOTAG)
-			raw_broadcast(player, 0, "%s %.3900s", Name(player), message);
+			raw_broadcast(player, 0, "%s %.3900s", ColorName(player), message);
 		else
-			raw_broadcast(player, 0, "Announcement: %s %.3900s", Name(player),
+			raw_broadcast(player, 0, "Announcement: %s %.3900s", ColorName(player),
 				message);
 		STARTLOG(LOG_SHOUTS,"WIZ","SHOUT")
 			log_name(player);
@@ -477,9 +517,9 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		break;
 	case SAY_WIZPOSE:
 		if (say_flags & SAY_NOTAG)
-			raw_broadcast(player, BUILDER, "%s %.3900s", Name(player), message);
+			raw_broadcast(player, BUILDER, "%s %.3900s", ColorName(player), message);
 		else
-			raw_broadcast(player, BUILDER, "Broadcast: %s %.3900s", Name(player),
+			raw_broadcast(player, BUILDER, "Broadcast: %s %.3900s", ColorName(player),
 				message);
 		STARTLOG(LOG_SHOUTS,"WIZ","BCAST")
 			log_name(player);

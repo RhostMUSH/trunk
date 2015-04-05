@@ -4842,6 +4842,10 @@
             @titlecaption
 
 & @moniker
+  There is no @moniker.  You actually want @extansi.
+  
+  Please see help on @extansi on how to utilize this.
+  
   See Also: @ansiname, @titlecaption, ANSINAME, ansi(), EXTANSI TOGGLE,
             @extansi, @caption  
   
@@ -24364,6 +24368,9 @@ Mail: Done
   parse the @exitto attribute for it's destination location and not where
   it is currently linked to.
   
+  If a player sets the VARIABLE toggle on himself, then all ansi via
+  Cname()/%k will show up when that player @walls, poses, or uses say.
+    
   See Also: variable exits, @exitto
   
 & IC
@@ -27478,6 +27485,8 @@ Changes
 * By popular demand, 'idle' when followed by '@@' does an idle think [ASH]
 * delete() is now ansi-aware [ASH]
 * @uptime shows system uptime (when available) [ASH]
+* If a player @toggles VARIABLE on themselves, then says, poses, and @walls
+  will be colorized as if cname() [ASH]
     
 Bug Fixes
 ------------
