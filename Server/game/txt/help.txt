@@ -4833,7 +4833,12 @@
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
   
-  Example: @ansiname object=hr
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
+  
+  Example: 
+    > @ansiname object=hr
+    Set.
   
   Note:  If the object is @toggled with EXTANSI, then ansiname can hold
          literal ansicodes.  Check help on @extansi for this.  
@@ -4843,6 +4848,9 @@
 
 & @moniker
   There is no @moniker.  You actually want @extansi.
+  
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
   
   Please see help on @extansi on how to utilize this.
   
@@ -4864,6 +4872,9 @@
   Note:  Target must be @toggled EXTANSI to use this command.
   
   The optional switch /quiet suppresses output unless an error is thrown.
+  
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
   
   Examlple:  @name object=99 Red Balloons
              > Name set.
