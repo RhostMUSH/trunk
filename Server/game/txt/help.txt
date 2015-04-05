@@ -24246,8 +24246,13 @@ Mail: Done
   When this toggle is set on the target, that target is allowed to use
   extended ansi (ie: the actual ansi codes) in the @ansiname attribute,
   thereby, allowing multi-color names.  This is done through the command
-  '@extansi' in combination with this toggle.  The name of the item in
-  '@extansi' MUST match the name that was given by @name.
+  '@extansi' in combination with this toggle.  
+  
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
+  
+  Note: The name of the item in '@extansi' MUST match the name that 
+        was given by @name.
   
   See Also: @extansi, ansi()
   
