@@ -4173,6 +4173,7 @@ SNOOPY                                                           God     Wiz
                  'Set'   - defines who can set the flag.
                  'Unset' - defines who can remove the flag.
                  'See'   - defines who can see the flag.
+                 'Type'  - defines type restrictions for flag.
                  'NoM'   - defines if the flag is un-modifiable.
   
   Keep in mind that if the columns are EMPTY, it defaults to whatever the mush
