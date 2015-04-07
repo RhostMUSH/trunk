@@ -29,12 +29,33 @@ void bzero(void *, int);
 #include "debug.h"
 #endif
 
-#define NDBMBUFSZ	4092
+/* 4 less to be safe */
+#ifdef QDBM
+  #ifdef LBUF64
+    #define NDBMBUFSZ 65532
+  #else
+    #ifdef LBUF32
+      #define NDBMBUFSZ 32764
+    #else
+      #ifdef LBUF16
+        #define NDBMBUFSZ 16380
+      #else
+        #ifdef LBUF8
+          #define NDBMBUFSZ 8188
+        #else
+          #define NDBMBUFSZ 4092
+        #endif
+      #endif
+    #endif
+  #endif
+#else
+#define NDBMBUFSZ 4092
+#endif
 #define MAXNUKEPLY	-10
 #define PMNUKEPLY	10
 #define MAXWRTLN	1000
 #define BSMIN		10
-#define BSMAX		9999
+#define BSMAX		((NDBMBUFSZ > 4092) ? ((NDBMBUFSZ / sizeof(short int)) - 3) : 9999)
 
 #define Useg_obj(x)	(Good_obj(x) && !Going(x) && !Recover(x))
 
@@ -47,7 +68,7 @@ typedef struct ptrlst2 {
   char *ptr;
   int player;
   short int index;
-  short int len;
+  int len;
   struct ptrlst2 *next;
 } PTRLST2;
 
@@ -91,10 +112,10 @@ typedef struct plyst {
   short int bsize;
   char *rejm;
   short int rejlen;
-  short int wrtm;
+  int wrtm;
   PTRLST2 *wrtl;
   char *wrts;
-  short int wrtlen;
+  int wrtlen;
   short int page;
   int afor;
   char *flist;
@@ -304,10 +325,10 @@ void *myapush(int len)
   pt1 = malloc(len + 3);
   pt3 = (PTRLST *)malloc(sizeof(PTRLST));
   if (!pt1 || !pt3) return NULL;
-  if (!((unsigned int)pt1 % 4))
+  if (!((pmath1)pt1 % 4))
     pt2 = pt1;
   else
-    pt2 = pt1 + 4 - ((unsigned int)pt1 % 4);
+    pt2 = pt1 + 4 - ((pmath1)pt1 % 4);
   pt3->ptr = pt1;
   pt3->next = allptr;
   allptr = pt3;
@@ -959,7 +980,7 @@ int ptrlst2_sch(PTRLST2 *pass1, short int chk)
   return 0;
 }
 
-short int verlen(char *st1, short int tlen)
+int verlen(char *st1, int tlen)
 {
   char *t1, *t2;
 
@@ -968,14 +989,14 @@ short int verlen(char *st1, short int tlen)
   if (t2 == st1)
     return 0;
   else
-    return ((short int)(t2 - st1 + 1));
+    return ((int)(t2 - st1 + 1));
 }
 
 PTRLST2 *fixmsg1(PTRLST2 *pass1)
 {
   PTRLST2 *pt1, *pt3, *pt4, *pt5, *pt6;
   PLYST *pt2;
-  short int lcheck;
+  int lcheck;
 
   pt2 = allplay;
   while (pt2) {
@@ -1882,7 +1903,7 @@ void fixwrt()
 {
   PLYST *pt1;
   PTRLST2 *pt2, *pt3, *pt4;
-  short int count, x, lcheck, imax;
+  int count, x, lcheck, imax;
   short int ilst[MAXWRTLN];
 
   pt1 = allplay;
@@ -2006,7 +2027,7 @@ void fixwrt()
 void fixother()
 {
   PLYST *pt1;
-  short int lcheck;
+  int lcheck;
 
   pt1 = allplay;
   while (pt1) {

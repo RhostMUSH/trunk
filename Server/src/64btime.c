@@ -172,10 +172,10 @@ static struct tm *_gmtime64_r (const time_t * now, double *_t, struct tm *p)
     double t;
     long m;
     t = pivot_time_t (now, _t);
-    if ( t > 90000000000000.0 )
-       t = 90000000000000.0;
-    if ( t < -90000000000000.0 )
-       t = -90000000000000.0;
+    if ( t > 182000000000000.0 )
+       t = 182000000000000.0;
+    if ( t < -182000000000000.0 )
+       t = -182000000000000.0;
     v_tm_sec = fmod(t,60);
     t /= 60;
     v_tm_min = fmod(t,60);

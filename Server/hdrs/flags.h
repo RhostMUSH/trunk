@@ -173,7 +173,7 @@
 #define NOCODE		0x00200000	/* Players may not code */
 #define HAS_PROTECT	0x00400000	/* Player target has protect name data */
 #define XTERMCOLOR      0x00800000      /* Extended AnSI Xterm colors */
-/* 0x01000000 free */
+#define HAS_ATTRPIPE    0x01000000      /* Attribute piping via @pipe */
 /* 0x02000000 free */
 /* 0x04000000 free */
 /* 0x08000000 free */
@@ -294,6 +294,7 @@
 #define POWER_PCREATE		6
 #define POWER_STAT_ANY		8
 #define POWER_FREE_WALL		10
+/* 12 free */
 #define POWER_FREE_PAGE		14
 #define POWER_HALT_QUEUE	16
 #define POWER_HALT_QUEUE_ALL	18
@@ -309,6 +310,17 @@
 #define POWER_NOWHO             4
 #define POWER_FULLTEL_ANYWHERE  6
 #define POWER_EX_FULL           8
+/* 10 free */
+/* 12 free */
+/* 14 free */
+/* 16 free */
+/* 18 free */
+/* 20 free */
+/* 22 free */
+/* 24 free */
+/* 26 free */
+/* 28 free */
+/* 30 free */
 
 /* DEPOWER flags */
 /* First word */
@@ -351,6 +363,18 @@
 #define DP_PASSWORD		0
 #define DP_MORTAL_EXAMINE	2
 #define DP_PERSONAL_COMMANDS	4
+#define DP_DARK			8
+/* 10 free */
+/* 12 free */
+/* 14 free */
+/* 16 free */
+/* 18 free */
+/* 20 free */
+/* 22 free */
+/* 24 free */
+/* 26 free */
+/* 28 free */
+/* 30 free */
 
 /* Flags from prior versions of MUSH */
 #define PERN_SLAVE      0x00000080
@@ -423,6 +447,7 @@ typedef struct flag_entry {
 	int     listperm;       /* Who sees this flag when set */
         int     setovperm;      /* Override who can set the flag */
         int     usetovperm;     /* Override who can unset the flag */
+	int	typeperm;	/* Type permission */
 	int     (*handler)();   /* Handler for setting/clearing this flag */
 } FLAGENT;
 
@@ -432,6 +457,9 @@ typedef struct toggle_entry {
 	char    togglelett;       /* Flag letter for listing */
 	int     toggleflag;       /* Ctrl flags for this flag (recursive? :-) */
 	int     listperm;       /* Who sees this flag when set */
+	int	setovperm;	/* Override who can set the toggle */
+	int	usetovperm;	/* Override who can unset the toggle */
+	int	typeperm;	/* Type permission */
 	int     (*handler)();   /* Handler for setting/clearing this flag */
 } TOGENT;
 
@@ -503,7 +531,7 @@ extern char *   FDECL(unparse_object2, (dbref, dbref, int));
 extern char *   FDECL(unparse_object_numonly, (dbref));
 extern char *   FDECL(ansi_exitname, (dbref));
 extern int      FDECL(convert_flags, (dbref, char *, FLAGSET *, FLAG *, int));
-extern void     FDECL(decompile_flags, (dbref, dbref, char *));
+extern void     FDECL(decompile_flags, (dbref, dbref, char *, char *, int));
 extern int	FDECL(HasPriv, (dbref, dbref, int, int, int));
 
 extern int	FDECL(parse_aflags, (dbref, dbref, int, char *, char **, int));
@@ -575,6 +603,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ShowFailCmd(x)  ((Flags4(x) & SHOWFAILCMD) != 0)
 #define Backstage(x)    (((Flags3(x) & BACKSTAGE) != 0) || ((Flags3(Owner(x)) & BACKSTAGE) != 0))
 #define NoBackstage(x)  ((Flags4(x) & NOBACKSTAGE) != 0)
+#define Private(x)	((Flags3(x) & PRIVATE) != 0)
 #define Anonymous(x)    ((Flags3(x) & ANONYMOUS) != 0)
 #define s_Lrused(x)	s_Flags3((x), Flags3(x) | LRFLAG)
 #define c_Lrused(x)	s_Flags3((x), Flags3(x) & ~LRFLAG)
@@ -693,8 +722,8 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 /* Who did this dark thing? and why? it broke stuff... */
 /*#define Dark(x)         (((Flags(x) & DARK) != 0) && (Wizard(x) || !Alive(x)))*/
 #define Altq(x)		((Flags3(x) & ALTQUOTA) != 0)
-#define Dark(x)		(((Flags(x) & DARK) != 0) || ((Flags2(x) & RECOVER) != 0) || \
-                         ((Flags(x) & GOING) != 0))
+#define Dark(x)		( (!DePriv(x, NOTHING, DP_DARK, POWER8, POWER_LEVEL_NA) && ((Flags(x) & DARK) != 0)) || \
+                          ((Flags2(x) & RECOVER) != 0) || ((Flags(x) & GOING) != 0) )
 #define Jump_ok(x)      (((Flags(x) & JUMP_OK) != 0) && Has_contents(x))
 #define Sticky(x)       ((Flags(x) & STICKY) != 0)
 #define Destroy_ok(x)   ((Flags(x) & DESTROY_OK) != 0)
@@ -778,8 +807,12 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			 (Typeof(x) == TYPE_PLAYER))
 #define Slave(x)        ((Flags2(Owner(x)) & SLAVE) != 0)
 #define Fubar(x)	((Flags2(Owner(x)) & FUBAR) != 0)
+/*
 #define Hidden(x)       (((Flags(x) & DARK) != 0) || ((Flags2(x) & RECOVER) != 0) || \
                          ((Flags(x) & GOING) != 0))
+*/
+#define Hidden(x)	( (!DePriv(x, NOTHING, DP_DARK, POWER8, POWER_LEVEL_NA) && ((Flags(x) & DARK) != 0)) || \
+                          ((Flags2(x) & RECOVER) != 0) || ((Flags(x) & GOING) != 0) )
 #ifndef STANDALONE
 #define Cloak(x)	(Unfindable(x) && Hidden(x) && (Immortal(x) || \
 			 Immortal(Owner(x)) || ((Wizard(x) || \
@@ -809,6 +842,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define H_Fwdlist(x)    ((Flags2(x) & HAS_FWDLIST) != 0)
 #define H_Listen(x)     ((Flags2(x) & HAS_LISTEN) != 0)
 #define H_Protect(x)	((Flags4(x) & HAS_PROTECT) != 0)
+#define H_Attrpipe(x)	((Flags4(x) & HAS_ATTRPIPE) != 0)
 
 #define s_Halted(x)     s_Flags((x), Flags(x) | HALT)
 #define s_Going(x)      s_Flags((x), Flags(x) | GOING)
@@ -817,7 +851,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define c_Connected(x)  s_Flags2((x), Flags2(x) & ~CONNECTED)
 
 #define Parentable(p,x) (Controls(p,x) || \
-			 (Parent_ok(x) && could_doit(p,x,A_LPARENT,1)))
+			 (Parent_ok(x) && could_doit(p,x,A_LPARENT,1,0)))
 
 #define MyopicExam(p,x) (((Flags(x) & VISUAL) != 0) || \
 			 (!Myopic(p) && Examinable(p,x)))
@@ -872,7 +906,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \
 			     (Inherits(p) || !Inherits(x))) || \
-                             could_doit(p,x,A_LTWINK,0)) && \
+                             could_doit(p,x,A_LTWINK,0,0)) && \
 			   ((Immortal(p) && !(((a)->flags & (AF_GOD)) || \
                                               (f & (AF_GOD)))) || \
 			    (Wizard(p) && \

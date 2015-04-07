@@ -32,6 +32,8 @@
 #define atrpWiz(s) (s == 5)
 #define atrpImm(s) (s == 6)
 #define atrpGod(s) (s == 7)
+#define atrpPreReg(s) (s == 0)
+
 
 #define SPLIT_NORMAL		0x00
 #define SPLIT_HILITE		0x01
@@ -46,6 +48,7 @@ typedef struct ansisplit {
 	char	c_bgansi;	/* Normal background ansi */
 	int	i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
+        int	i_ascii8;	/* ASCII-8 encoding */
 } ANSISPLIT;
 
 typedef struct atrp {
@@ -114,9 +117,9 @@ extern int	FDECL(nfy_que, (dbref, int, int, int));
 extern int	FDECL(halt_que, (dbref, dbref));
 extern int	FDECL(halt_que_pid, (dbref, int, int));
 extern int	FDECL(halt_que_all, (void));
-extern void	FDECL(wait_que, (dbref, dbref, int, dbref, char *, char *[],
+extern void	FDECL(wait_que, (dbref, dbref, double, dbref, char *, char *[],
 			int, char *[], char *[]));
-extern int	NDECL(que_next);
+extern double	NDECL(que_next);
 extern int	FDECL(do_top, (int ncmds));
 extern void	NDECL(recover_queue_deposits);
 
@@ -309,6 +312,8 @@ extern int      FDECL(See_attr, (dbref, dbref, ATTR*, dbref, int, int));
 extern int	FDECL(Controls, (dbref, dbref));
 extern int	FDECL(Examinable, (dbref, dbref));
 extern int	FDECL(Controlsforattr, (dbref, dbref, ATTR*, int));
+extern dbref	FDECL(Location, (dbref));
+extern dbref	FDECL(Location_safe, (dbref, int));
 extern dbref	FDECL(absloc, (dbref));
 extern int	FDECL(evlevchk, (dbref, int));
 extern dbref	FDECL(insert_first, (dbref, dbref));
@@ -318,7 +323,8 @@ extern int	FDECL(member, (dbref, dbref));
 extern int	FDECL(is_integer, (char *));
 extern int	FDECL(is_number, (char *));
 extern int	FDECL(is_rhointeger, (char *));
-extern int	FDECL(could_doit, (dbref, dbref, int, int));
+extern int	FDECL(is_float, (char *));
+extern int	FDECL(could_doit, (dbref, dbref, int, int, int));
 extern int	FDECL(can_see, (dbref, dbref, int));
 extern int	FDECL(can_see2, (dbref, dbref, int));
 extern void	FDECL(add_quota, (dbref, int, int));
@@ -356,7 +362,7 @@ extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
 			int, int, OBLOCKMASTER *, int, int, int));
-extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int));
+extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int, int));
 extern dbref	FDECL(match_controlled, (dbref, const char *));
 extern dbref	FDECL(match_controlled_or_twinked, (dbref, const char *));
 extern dbref	FDECL(match_affected, (dbref, const char *));
@@ -372,6 +378,8 @@ extern const char *	FDECL(string_match, (const char * ,const char *));
 extern char *	FDECL(dollar_to_space, (const char *));
 extern char *	FDECL(replace_string, (const char *, const char *,
 			const char *, int));
+extern char *	FDECL(replace_string_ansi, (const char *, const char *,
+			const char *, int, int));
 extern char *	FDECL(replace_tokens, (const char *, const char *, const char *, const char *));
 extern void     FDECL(split_ansi, (char *, char *, ANSISPLIT *));
 extern char *   FDECL(rebuild_ansi, (char *, ANSISPLIT *));
@@ -396,11 +404,23 @@ extern char * 	FDECL(utf8toucp, (char *));
 extern char * 	FDECL(ucptoutf8, (char *));
 
 /* From boolexp.c */
-extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *));
+extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *, int));
 extern BOOLEXP *FDECL(parse_boolexp, (dbref,const char *, int));
-extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int));
+extern int	FDECL(eval_boolexp_atr, (dbref, dbref, dbref, char *,int, int));
 
 /* From functions.c */
+#ifndef SINGLETHREAD
+extern void 	FDECL(initialize_ansisplitter, (ANSISPLIT *, int));
+extern void 	FDECL(clone_ansisplitter, (ANSISPLIT *, ANSISPLIT *));
+extern void 	FDECL(clone_ansisplitter_two, (ANSISPLIT *, ANSISPLIT *, ANSISPLIT *));
+extern void     FDECL(search_and_replace_ansi, (char *, ANSISPLIT *, ANSISPLIT *, ANSISPLIT *, int, int));
+
+#else
+#define		initialize_ansisplitter(x, y) (0)
+#define		clone_ansisplitter(x, y) (0)
+#define		clone_ansisplitter_two(x, y, z) (0)
+#define		search_and_replace_ansi(w, x, y, z, a, b) (0)
+#endif
 extern int	FDECL(xlate, (char *));
 
 /* From unparse.c */
@@ -569,6 +589,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DECOMP_ATTRS	2	/* Decompile Attrs */
 #define DECOMP_TREE	4	/* Decompile Penn Trees */
 #define DECOMP_REGEXP	8	/* Decompile by Regexp */
+#define DECOMP_TF	16	/* Stupid /tf compatibility to @decompile for PennMUSH */
 #define	DBCK_DEFAULT	1	/* Get default tests too */
 #define	DBCK_REPORT	2	/* Report info to invoker */
 #define	DBCK_FULL	4	/* Do all tests */
@@ -582,6 +603,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	DBCK_TYPES	1024	/* Check for valid & appropriate types */
 #define	DBCK_SPARE	2048	/* Make sure spare header fields are NOTHING */
 #define	DBCK_HOMES	4096	/* Make sure homes and droptos are valid */
+#define DBCLEAN_CHECK	1	/* Just run a test run on what dbclean would show */
 #define	DEST_ONE	1	/* object */
 #define	DEST_ALL	2	/* owner */
 #define	DEST_OVERRIDE	4	/* override Safe() */
@@ -635,6 +657,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define FLAGDEF_SEE     4	/* Set flag 'see' permissions */
 #define FLAGDEF_LIST	8	/* List current flags and permissions (default) */
 #define FLAGDEF_CHAR  	16	/* Redefine the character for the flag */
+#define FLAGDEF_INDEX	32	/* Show the permission index allowed */
+#define FLAGDEF_TYPE	64	/* Define type restrictions */
 #define	FRC_PREFIX	0	/* #num command */
 #define	FRC_COMMAND	1	/* what=command */
 #define	GET_QUIET	1	/* Don't do osucc/asucc if control */
@@ -673,6 +697,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define ICMD_CROOM	128
 #define ICMD_LROOM      256
 #define ICMD_LALLROOM   512
+#define ICMD_EVAL       1024
+#define ICMD_EROOM      2048
 #define	KILL_KILL	1	/* gives victim insurance */
 #define	KILL_SLAY	2	/* no insurance */
 #define	LOOK_LOOK	1	/* list desc (and succ/fail if room) */
@@ -777,6 +803,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PEMIT_TOREALITY 1048576 /* Pemit to specic realities */
 #define PEMIT_ONEEVAL	2097152 /* One eval for @pemit/list */
 #define PEMIT_OSTR	4194304 /* @oemit uses multi-parameters */
+#define PIPE_ON         1       /* Enable @pipe to attribute */
+#define PIPE_OFF        2	/* Disable @pipe to attribute */
 #define	PS_BRIEF	0	/* Short PS report */
 #define	PS_LONG		1	/* Long PS report */
 #define	PS_SUMM		2	/* Queue counts only */
@@ -819,6 +847,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define REC_AGE		8
 #define REC_DEST	16
 #define REC_FREE	32
+#define REBOOT_SILENT 0x00000001  /* @reboot silently */
 #define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
 #define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
 #define	SAY_SAY		1	/* say in current room */
@@ -845,6 +874,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	SET_QUIET	1	/* Don't display 'Set.' message. */
 #define SET_NOISY	2
 #define SET_RSET	4	/* set() is really rset() */
+#define SET_TREE	8	/* set() the entire trees */
+#define SET_TREECHK	16	/* Verify we can set trees */
 #define	SHUTDN_NORMAL	0	/* Normal shutdown */
 #define	SHUTDN_PANIC	1	/* Write a panic dump file */
 #define	SHUTDN_EXIT	2	/* Exit from shutdown code */
@@ -875,6 +906,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SIDE_RSET       4194304 /* Side-effect rset() */
 #define SIDE_MOVE       8388608 /* Side-effect move() */       
 #define SIDE_CLUSTER_ADD 16777216 /* Side-effect cluster_add() */
+#define	SIDE_MAIL	33554432  /* mail send side effect */
 #define	SNAPSHOT_NOOPT	0	/* No option specified */
 #define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
 #define SNAPSHOT_UNLOAD	2	/* Unload a snapshot from the db */
@@ -933,6 +965,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	TOAD_UNIQUE	2	/* Unique Rename Object */
 #define TOGGLE_CHECK	1
 #define TOGGLE_CLEAR	2	/* Clear the toggle list */
+#define TOR_LIST	1	/* List the TOR information */
+#define TOR_CACHE	2	/* Recache the TOR information */
 #define	TRIG_QUIET	1	/* Don't display 'Triggered.' message. */
 #define TRIG_PROGRAM    2       /* Trigger is actually a @program */
 #define TRIG_COMMAND    4       /* Can Trigger $commands */
@@ -941,6 +975,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define INCLUDE_CLEAR	4	/* Clear the attributes locally */
 #define INCLUDE_NOBREAK 8	/* Do not @break other than inside @include */
 #define INCLUDE_TARGET	16	/* Allow the target item (if you control it) to be executor */
+#define INCLUDE_OVERRIDE 32	/* Trigger include like well trigger */
 #define SUDO_GLOBAL	1	/* Reverse of localized */
 #define SUDO_CLEAR	2	/* Clear registers */
 #define	TWARP_QUEUE	1	/* Warp the wait and sem queues */
@@ -965,6 +1000,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
+#define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
+#define EDIT_RAW	8	/* Raw ANSI editor for strings (old edit method) */
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */
 #define CLUSTER_DEL	4	/* delete a dbref from a cluster */

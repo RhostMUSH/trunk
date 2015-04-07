@@ -1,0 +1,160 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH CBCODEC 1 "2005-05-23" "Man Page" "Quick Database Manager"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+cbcodec \- popular encoders and decoders
+.SH SYNOPSIS
+.B cbcodec url
+.RI "[-d] [-br] [-rs " base " " target "] [-l] [-e " expr "] [" file "]"
+.br
+.B cbcodec base
+.RI "[-d] [-l] [-c " num "] [-e " expr "] [" file "]"
+.br
+.B cbcodec quote
+.RI "[-d] [-l] [-c " num "] [-e " expr "] [" file "]"
+.br
+.B cbcodec mime
+.RI "[-d] [-hd] [-bd] [-part " num "] [-l] [-ec " code "] [-qp] [-dc] [-e " expr "] [" file "]"
+.br
+.B cbcodec csv
+.RI "[-d] [-t] [-l] [-e " expr "] [-html] [" file "]"
+.br
+.B cbcodec xml
+.RI "[-d] [-p] [-l] [-e " expr "] [-tsv] [" file "]"
+.br
+.B cbcodec zlib
+.RI "[-d] [-gz] [-crc] [" file "]"
+.br
+.B cbcodec lzo
+.RI "[-d] [" file "]"
+.br
+.B cbcodec bzip
+.RI "[-d] [" file "]"
+.br
+.B cbcodec iconv
+.RI "[-ic " code "] [-oc " code "] [-ol " ltype "] [-cn] [-wc] [-um] [" file "]"
+.br
+.B cbcodec date
+.RI "[-wf] [-rf] [-utc] [" str "]"
+.SH DESCRIPTION
+This manual page documents briefly the
+.B cbcodec
+commands.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+\fBcbcodec\fP is  a tool to use encoding and decoding features provided
+by Cabin. This command is used in the above format. \fIfile\fP specifies a
+input file. If it is omitted, the standard input is read.
+.SH OPTIONS
+A summary of options is included below.
+For a complete description, see the
+file:///usr/share/doc/qdbm-doc/spex.html#cabincli.
+.TP
+.B \-d
+perform decoding (unescaping), not encoding (escaping).
+.TP
+.B \-br
+break up URL into elements.
+.TP
+.B \-rs
+resolve relative URL.
+.TP
+.B \-l
+output the tailing newline.
+.TP
+.BI "\-e " expr
+specify input data directly.
+.TP
+.BI "\-c " num
+limit the number of columns of the encoded data.
+.TP
+.B \-hd
+parse MIME and extract headers in TSV format.
+.TP
+.B \-bd
+parse MIME and extract the body.
+.TP
+.BI "\-part " num
+parse MIME and extract a part.
+.TP
+.BI "\-ec " code
+specify the input encoding, which is UTF-8 by default.
+.TP
+.B \-qp
+use quoted-printable encoding, which is Base64 by default.
+.TP
+.B \-dc
+output the encoding name instead of the result string when decoding.
+.TP
+.B \-t
+parse CSV. Convert the data into TSV. Tab and new-line in a cell are
+deleted.
+.TP
+.B \-html
+parse CSV. Convert the data into HTML.
+.TP
+.B \-p
+parse XML. Show tags and text sections with dividing headers.
+.TP
+.B \-tsv
+parse XML. Show the result in TSV format. Characters of tabs and
+new-lines are URL-encoded.
+.TP
+.B \-gz
+use GZIP format.
+.TP
+.B \-crc
+output the CRC32 checksum as hexadecimal and big endian.
+.TP
+.BI "\-ic " code
+specify the input encoding, which is detected automatically by
+default.
+.TP
+.BI "\-oc " code
+specify the output encoding, which is UTF-8 by default.
+.TP
+.BI "\-ol " ltype
+convert line feed characters, with `unix'(LF), `dos'(CRLF), and
+`mac'(CR).
+.TP
+.B \-cn
+detect the input encoding and show its name.
+.TP
+.B \-wc
+count the number of characters of the input string of UTF-8.
+.TP
+.B \-um
+output mappings of UCS-2 characters and C strings of UTF-16BE and UTF-8.
+.TP
+.B \-wf
+output in W3CDTF format.
+.TP
+.B \-rf
+output in RFC 1123 format.
+.TP
+.B \-utc
+output the coordinate universal time.
+.SH SEE ALSO
+.BR qdbm (3),
+.BR cabin (3).
+.SH AUTHOR
+QDBM was written by Mikio Hirabayashi <mikio@fallabs.com>.
+.PP
+This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
+for the Debian project (but may be used by others).

@@ -127,6 +127,9 @@ int	aflags, i;
 	atrbuf = atr_get(player, A_LOGINDATA, &aowner, &aflags);
 	decrypt_logindata(atrbuf, &login_info);
 	if (isgood) {
+		if ( Good_obj(player) && H_Attrpipe(player) ) {
+			raw_notify(player, (char *)"Notice: You are piping output to an attribute.", 0, 1);
+		}
 		if (login_info.new_bad > 0) {
 			notify(player, " ");
                         tprp_buff = tpr_buff = alloc_lbuf("record_login");
@@ -475,7 +478,7 @@ char	*temp, *tp;
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
 
-	p = (int)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate.player_htab);
 	if (p) {
 
 		/* Entry found in the hashtable.  If a player, succeed if the
@@ -500,10 +503,10 @@ char	*temp, *tp;
 
 		/* It's an alias (or an incorrect entry).  Clobber it */
 
-		stat = hashrepl(temp, (int *)player, &mudstate.player_htab);
+		stat = hashrepl(temp, (int *)(pmath2)player, &mudstate.player_htab);
 		free_lbuf(temp);
 	} else {
-		stat = hashadd(temp, (int *)player, &mudstate.player_htab);
+		stat = hashadd(temp, (int *)(pmath2)player, &mudstate.player_htab);
 		free_lbuf(temp);
 		stat = (stat < 0) ? 0 : 1;
 	}
@@ -520,7 +523,7 @@ char	*temp, *tp;
 	*tp = '\0';
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
-	p = (int)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate.player_htab);
 	if (!p || (p == NOTHING) || ((player != NOTHING) && (p != player))) {
 		free_lbuf(temp);
 		return 0;
@@ -537,6 +540,12 @@ char	*temp, *tp;
 
 	if (!string_compare(name, "me"))
 		return doer;
+
+  if (!string_compare(name, "here")) {
+     p = Location(doer);
+     if ( Good_chk(p) && isPlayer(p) )
+        return p;
+  }
 
 	if (*name == NUMBER_TOKEN) {
 		name++;
@@ -557,7 +566,7 @@ char	*temp, *tp;
 	*tp = '\0';
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
-	p = (int)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate.player_htab);
 	free_lbuf(temp);
 	if (!p) {
 		if (check_who)
@@ -649,6 +658,33 @@ BADNAME	*bp;
 	strcpy(bp->name, bad_name);
 }
 
+dbref protectname_clear (dbref player)
+{
+   PROTECTNAME *bp, *backp;
+   dbref target;
+
+   if ( !Good_chk(player) )
+      return -1;
+
+   backp = NULL;
+   for ( bp=mudstate.protectname_head; bp; backp=bp, bp=backp->next ) {
+      if ( bp->i_name == player ) {
+         target = bp->i_name;
+         if ( backp ) {
+            backp->next = bp->next;
+         } else {
+            mudstate.protectname_head = bp->next;
+         }
+      }
+      if ( bp->i_key ) {
+         delete_player_name(target, bp->name);
+      }
+      XFREE(bp->name, "protectname.name");
+      XFREE(bp, "protectname.struc");
+   }
+   return player;
+}
+
 dbref protectname_remove (char *protect_name, dbref player)
 {
    PROTECTNAME *bp, *backp;
@@ -685,13 +721,12 @@ dbref protectname_remove (char *protect_name, dbref player)
 
 dbref protectname_unalias (char *protect_name, dbref player)
 {
-   PROTECTNAME *bp, *backp;
+   PROTECTNAME *bp;
    dbref target, aowner, p;
    int aflags;
    char *s_alias, *tp, *temp;
 
-   backp = NULL;
-   for ( bp=mudstate.protectname_head; bp; backp=bp, bp=bp->next ) {
+   for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
       if ( Wizard(player) || (bp->i_name == player) ) {
          if ( !string_compare( protect_name, Name(bp->i_name) ) ) {
             return -3;
@@ -713,7 +748,7 @@ dbref protectname_unalias (char *protect_name, dbref player)
                safe_str(bp->name, temp, &tp);
 	       for (tp=temp; *tp; tp++)
 		   *tp = ToLower((int)*tp);
-	       p = (int)hashfind(temp, &mudstate.player_htab);
+	       p = (pmath2)hashfind(temp, &mudstate.player_htab);
                free_lbuf(temp);
                if ( p == target ) {
                   delete_player_name(target, bp->name);
@@ -729,13 +764,12 @@ dbref protectname_unalias (char *protect_name, dbref player)
 
 dbref protectname_alias (char *protect_name, dbref player)
 {
-   PROTECTNAME *bp, *backp;
+   PROTECTNAME *bp;
    dbref target, aowner, p;
    int aflags;
    char *s_alias, *tp, *temp;
 
-   backp = NULL;
-   for ( bp=mudstate.protectname_head; bp; backp=bp, bp=bp->next ) {
+   for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
       if ( Wizard(player) || (bp->i_name == player) ) {
          if ( !string_compare( protect_name, bp->name ) ) {
             target = bp->i_name;
@@ -753,7 +787,7 @@ dbref protectname_alias (char *protect_name, dbref player)
                safe_str(bp->name, temp, &tp);
 	       for (tp=temp; *tp; tp++)
 		   *tp = ToLower((int)*tp);
-	       p = (int)hashfind(temp, &mudstate.player_htab);
+	       p = (pmath2)hashfind(temp, &mudstate.player_htab);
                free_lbuf(temp);
                if ( !p ) {
                   add_player_name(target, bp->name);

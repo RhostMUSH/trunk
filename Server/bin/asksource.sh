@@ -49,18 +49,26 @@ fi
 BETAOPT=0
 DEFS="-Wall"
 DATE="$(date +"%m%d%y")"
-MORELIBS=""
-OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
+MORELIBS="\$(EXTLIBS)"
+OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25"
 C_OPTIONS=$(echo $OPTIONS|wc -w)
-BOPTIONS="1 2 3 4 5"
+BOPTIONS="1 2 3 4 5 6"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
 DOPTIONS="1 2 3"
 C_DOPTIONS=$(echo $DOPTIONS|wc -w)
+LOPTIONS="1 2 3 4 5"
+C_LOPTIONS=$(echo $LOPTIONS|wc -w)
+AOPTIONS="1 2 3"
+C_AOPTIONS=$(echo $AOPTIONS|wc -w)
 REPEAT=1
 for i in ${OPTIONS}
 do
    X[${i}]=" "
 done
+if [ $(${MYGCC} -lpcre 2>&1|grep -c "cannot find") -eq 0 ]
+then
+   X[25]="X"
+fi
 for i in ${BOPTIONS}
 do
    XB[${i}]=" "
@@ -69,6 +77,16 @@ for i in ${DOPTIONS}
 do
    XD[${i}]=" "
 done
+for i in ${LOPTIONS}
+do
+   XL[${i}]=" "
+done
+   XL[1]="X"
+for i in ${AOPTIONS}
+do
+   XA[${i}]=" "
+done
+   XA[2]="X"
 # Load default options
 if [ -f ./asksource.default ]
 then
@@ -78,7 +96,7 @@ DEF[1]="-DUSE_SIDEEFFECT"
 DEF[2]="-DTINY_U"
 DEF[3]="-DMUX_INCDEC"
 DEF[4]="-DSOFTCOM"
-DEF[5]="-DTINY_SUB"
+DEF[5]=""
 DEF[6]="-DUSECRYPT"
 DEF[7]="-DPLUSHELP"
 DEF[8]="-DPROG_LIKEMUX"
@@ -98,6 +116,7 @@ DEF[21]="-DOLD_REALITIES"
 DEF[22]="-DMUXCRYPT"
 DEF[23]=""
 DEF[24]=""
+DEF[25]="-DPCRE_BUILTIN"
 DEFB[1]="\$(MYSQL_DEFS)"
 DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
@@ -107,9 +126,57 @@ DEFB[5]="-DQDBM"
 DEFD[1]="-DMUSH_DOORS"
 DEFD[2]="-DEMPIRE_DOORS"
 DEFD[3]="-DPOP3_DOORS"
+DEFL[1]=""
+DEFL[2]="-DLBUF8"
+DEFL[3]="-DLBUF16"
+DEFL[4]="-DLBUF32"
+DEFL[5]="-DLBUF64"
+DEFA[1]="-DTINY_SUB"
+DEFA[2]="-DC_SUB"
+DEFA[3]="-DM_SUB"
+
 ###################################################################
 # MENU - Main Menu for RhostMUSH Configuration Utility
 ###################################################################
+ansimenu() {
+clear
+echo "             RhostMUSH ANSI / LAST COMMAND Configuration Utility"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo " ** IF NOT ENABLED, THE SUBSTITUTION ACTS AS A 'LAST COMMAND' SUBSTITUTION **"
+echo "             ** ONE OF THESE SUBSTITUTIONS MUST BE SET TO ANSI **"
+echo ""
+echo "[${XA[1]}]   1. %x is ANSI sub     [${XA[2]}]  2. %c is ANSI sub     [${XA[3]}]  3. %m is ANSI sub"
+echo ""
+echo ""
+echo "------------------------------------------------------------------------------"
+echo "[Q]   Go Back to Previous Menu"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "Keys: [h]elp [i]nfo"
+echo "      Or, you may select a number to toggle"
+echo ""
+echo "Please Enter selection: "|tr -d '\012'
+}
+lbufmenu() {
+clear
+echo "                      RhostMUSH LBUFFER Configuration Utility"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "  **REMEMBER TO SET YOUR OUTPUT_LIMIT CONFIG OPTION TO 4 TIMES THIS AMOUNT**  "
+echo ""
+echo "[${XL[1]}]   1. 4K (Rhost)         [${XL[2]}]  2. 8K (Penn/TM3/Mux)  [${XL[3]}]  3. 16K"
+echo "[${XL[4]}]   4. 32K                [${XL[5]}]  5. 64K"
+echo ""
+echo "------------------------------------------------------------------------------"
+echo "[Q]   Go Back to Previous Menu"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "Keys: [h]elp [i]nfo"
+echo "      Or, you may select a number to toggle"
+echo ""
+echo "Please Enter selection: "|tr -d '\012'
+}
 doormenu() {
 clear
 echo "                    RhostMUSH Door Source Configuration Utility"
@@ -133,16 +200,17 @@ echo "                       RhostMUSH Source Configuration Utility"
 echo ""
 echo "------------------------------------------------------------------------------"
 echo "[${X[1]}]  1. Sideeffects        [${X[2]}]  2. MUSH/MUX u()/zfun  [${X[3]}]  3. MUX inc()/dec()"
-echo "[${X[4]}]  4. Disabled Comsys    [${X[5]}]  5. ansi %x not %c     [${X[6]}]  6. crypt()/decrypt()"
+echo "[${X[4]}]  4. Disabled Comsys    [#]  5. ANSI SUBS (menu)   [${X[6]}]  6. crypt()/decrypt()"
 echo "[${X[7]}]  7. +help hardcoded    [${X[8]}]  8. MUX @program       [${X[9]}]  9. COMMAND flag"
 echo "[${X[10]}] 10. ~/_ attributes     [${X[11]}] 11. Reality Levels     [${X[12]}] 12. a-z setq support"
 echo "[${X[13]}] 13. Enhanced ANSI      [${X[14]}] 14. Marker Flags       [${X[15]}] 15. Bang support"
 echo "[${X[16]}] 16. Alternate WHO      [${X[17]}] 17. Old SETQ/SETR      [${X[18]}] 18. Secured Sideeffects"
 echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[21]}] 21. Old Reality Lvls" 
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
+echo "[${X[25]}] 25. Pcre System Libs"
 echo "--------------------------- Beta/Unsupported Additions -----------------------"
 echo "[${XB[1]}] B1. 3rd Party MySQL    [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
-echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support"
+echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
@@ -206,6 +274,9 @@ info() {
          then
             echo "This will enable the MUSH Doors portion of @door connectivity."
             echo "This is used with the doors.txt/doors.indx files for sites."
+         elif [ $BETAOPT -eq 2 ]
+         then
+            echo ""
          elif [ $RUNBETA -eq 1 ]
          then
             echo "This enables you to automatically include the MYSQL definitions"
@@ -223,6 +294,9 @@ info() {
          then
             echo "This will enable the Empire (Unix Game) door.  You must have"
             echo "A currently running unix game server running and listening on a port."
+         elif [ $BETAOPT -eq 2 ]
+         then
+            echo ""
          elif [ $RUNBETA -eq 1 ]
          then
             echo "This option drills down to various door options that you can enable."
@@ -240,6 +314,9 @@ info() {
          then
             echo "This enables the POP3 door interface.  This is still very limited"
             echo "in functionality and currently only displays total mail counts."
+         elif [ $BETAOPT -eq 2 ]
+         then
+            echo ""
          elif [ $RUNBETA -eq 1 ]
          then
             echo "This allows you to have 64 character attribute length.  This in effect"
@@ -259,6 +336,9 @@ info() {
             echo "file-based SQL relational database system, similar to MySQL or"
             echo "PostgreSQL, but without the complexity (or fragility) of running a"
             echo "server."
+         elif [ $BETAOPT -eq 2 ]
+         then
+            echo ""
          else
             echo "RhostMUSH has a very archiac and obtuse comsystem.  It does work, and"
             echo "is very secure and solid, but it lacks significant functionality."
@@ -275,13 +355,34 @@ info() {
             echo "binary compatible with GDBM, so any existing databases"
             echo "WILL NOT LOAD.  You have to flatfile dump the database then"
             echo "db_load the flatfile into the database once qdbm is compiled."
+         elif [ $BETAOPT -eq 2 ]
+         then
+            echo ""
          else
-            echo "RhostMUSH by default allows %c to be ansi.  However, on TinyMUSH3,"
-            echo "%x is used for ANSI.  Use this to switch how %c and %x is used."
+            echo "This submenu allows you to choose, which substitution act as ANSI"
+            echo "code substitutions. These are the settings to mimic other codebases:"
+            echo "       MUX: %x and %c are ANSI, %m is last command."
+            echo "      PENN: %c is last command. There are no ANSI substutions."
+            echo "TinyMUSH 3: %x is ANSI sub, %m is last command. %x depends on config."
          fi
          ;;
-      6) echo "RhostMUSH supports crypt() and decrypt() functions.  Toggle this"
-         echo "if you wish to use them."
+      6) if [ $RUNBETA -eq 1 ]
+         then
+            echo "This selection displays the menu allowing you to change the default"
+            echo "size of Rhost's text buffers. The default is traditionally 4000 for"
+            echo "Rhost, and 8192 for PennMUSH, TinyMUSH and MUX."
+            echo "Now you can select your favorite length yourself, with the options "
+            echo "of clasic 4k, 8K like other codebases, or even 16, 32 and 64K!     "
+            echo "This increases both, the max length of attribute contents as well  "
+            echo "as output length going to the client.                              "
+            echo "IMPORTANT: the config parameter output_length should always be     "
+            echo "4 times this setting. Rhost has a default output_limit config      "
+            echo "setting of '16384' with the 4K LBUFs. Increase accordingly before  "
+            echo "starting your game."
+         else
+            echo "RhostMUSH supports crypt() and decrypt() functions.  Toggle this"
+            echo "if you wish to use them."
+         fi
          ;;
       7) echo "RhostMUSH allows you to use a plushelp.txt file for +help.  This"
          echo "supports MUX/TinyMUSH3 in how +help is hardcoded to a text file."
@@ -368,6 +469,10 @@ info() {
          echo "incompatible with the development library for OpenSSL.  In such"
          echo "a case, select this option to disable OpenSSL from compiling."
          ;;
+     25) echo "The system dependant PCRE Library will be much  much faster"
+         echo "than the one included with the source.  However, if you find"
+         echo "issues with it compiling with this enabled, disable it."
+         ;;
      B*|b*) RUNBETA=1
          info $(echo $1|cut -c2-)
          RUNBETA=0
@@ -376,6 +481,9 @@ info() {
          if [ $BETAOPT -eq 1 ]
          then
             echo "Please select between 1 and ${C_DOPTIONS} for information."
+         elif [ $BETAOPT -eq 2 ]
+         then
+            echo "Please select between 1 and ${C_LOPTIONS} for information."
          else
             echo "Please select between 1 and ${C_OPTIONS} for information."
             echo "Please select between B1 and B${C_BOPTIONS} for beta."
@@ -404,6 +512,32 @@ parse() {
          fi
       fi
    fi
+   if [ $BETAOPT -eq 2 ]
+   then
+      if [ "$ARG" != "q" -a "$ARG" != "h" ]
+      then
+         if [ -z "$ARGNUM" ]
+         then
+            ARG="NULL"
+         elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 6 ]
+         then
+            ARG="NULL"
+         fi
+      fi
+   fi
+   if [ $BETAOPT -eq 3 ]
+   then
+      if [ "$ARG" != "q" -a "$ARG" != "h" ]
+      then
+         if [ -z "$ARGNUM" ]
+         then
+            ARG="NULL"
+         elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 3 ]
+         then
+            ARG="NULL"
+         fi
+      fi
+   fi
    case ${ARG} in
       x) xtraopts
          echo "< HIT RETURN KEY TO CONTINUE >"
@@ -418,7 +552,7 @@ parse() {
          echo "< HIT RETURN KEY TO CONTINUE >"
          read ANS
          ;;
-      q) if [ ${BETAOPT} -eq 1 ]
+      q) if [ ${BETAOPT} -ne 0 ]
          then
             BETACONTINUE=0
          else
@@ -468,10 +602,21 @@ parse() {
             if [ $TST -eq 2 ]
             then
                BETAOPT=1
+            elif [ $TST -eq 6 ]
+            then
+               BETAOPT=2
             else
                if [ "${XB[${TST}]}" = "X" ]
                then
-                  XB[${TST}]=" "
+                  if [ "${TST}" -eq 5 ]
+                  then
+                    if [ "${XL[1]}" = "X" ]
+                    then
+                      XB[${TST}]=" "
+                    fi
+                  else
+                    XB[${TST}]=" "
+                  fi
                else
                   XB[${TST}]="X"
                fi
@@ -488,6 +633,9 @@ parse() {
             echo "ERROR: Invalid option '$1'"
             echo "< HIT RETURN KEY TO CONTINUE >"
             read ANS
+         elif [ ${BETAOPT} -eq 0 -a "$TST" -eq 5 ]
+         then
+            BETAOPT=3
          elif [ ${BETAOPT} -eq 1 -a "$TST" -gt 0 -a "$TST" -le ${C_DOPTIONS} ]
          then
             if [ "${XD[$1]}" = "X" ]
@@ -495,6 +643,29 @@ parse() {
                XD[$1]=" "
             else
                XD[$1]="X"
+            fi
+         elif [ ${BETAOPT} -eq 2 -a "$TST" -gt 0 -a "$TST" -le ${C_LOPTIONS} ]
+         then
+            for i in ${LOPTIONS}
+            do
+              XL[${i}]=" "
+            done
+            XL[$1]="X"
+            if [ ${i} -ne 1 ]
+            then
+              XB[5]="X"
+            fi
+         elif [ ${BETAOPT} -eq 3 -a "$TST" -gt 0 -a "$TST" -le ${C_AOPTIONS} ]
+         then
+            if [ "${XA[$1]}" = "X" ]
+            then
+               XA[$1]=" "
+            else
+               XA[$1]="X"
+            fi
+            if [ "${XA[1]}" != "X" -a "${XA[2]}" != "X" -a "${XA[3]}" != "X" ]
+            then
+               XA[2]="X"
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  
@@ -529,6 +700,16 @@ clearopts() {
    do
       XD[${i}]=" "
    done
+   for i in ${LOPTIONS}
+   do
+      XL[${i}]=" "
+   done
+      XL[1]="X"
+   for i in ${AOPTIONS}
+   do
+      XA[${i}]=" "
+   done
+      XA[2]="X"
    echo "Options have been cleared."
 }
 
@@ -938,9 +1119,17 @@ saveopts() {
       do
          echo "XB[$i]=\"${XB[$i]}\"" >> ${DUMPFILE}
       done
-      for i in ${BOPTIONS}
+      for i in ${DOPTIONS}
       do
          echo "XD[$i]=\"${XD[$i]}\"" >> ${DUMPFILE}
+      done
+      for i in ${LOPTIONS}
+      do
+         echo "XL[$i]=\"${XL[$i]}\"" >> ${DUMPFILE}
+      done
+      for i in ${AOPTIONS}
+      do
+         echo "XA[$i]=\"${XA[$i]}\"" >> ${DUMPFILE}
       done
       if [ -f "${DUMPFILE}.mark" ]
       then
@@ -975,6 +1164,20 @@ setopts() {
       if [ "${XD[$i]}" = "X" ]
       then
          DEFS="${DEFD[$i]} ${DEFS}"
+      fi
+   done
+   for i in ${LOPTIONS}
+   do
+      if [ "${XL[$i]}" = "X" ]
+      then
+         DEFS="${DEFL[$i]} ${DEFS}"
+      fi
+   done
+   for i in ${AOPTIONS}
+   do
+      if [ "${XA[$i]}" = "X" ]
+      then
+         DEFS="${DEFA[$i]} ${DEFS}"
       fi
    done
 }
@@ -1255,6 +1458,11 @@ setlibs() {
          MORELIBS="${MORELIBS} -lssl"
       fi
    fi
+   if [ "${X[25]}" = "X" ]
+   then
+      echo "Compiling with system pcre library..."
+      MORELIBS="${MORELIBS} -lpcre"
+   fi
    MORELIBS="MORELIBS = ${MORELIBS}"
 }
 
@@ -1370,6 +1578,29 @@ main() {
              XB[2]="X"
           fi
       fi
+      if [ ${BETAOPT} -eq 2 ]
+      then
+          BETACONTINUE=2
+          while [ $BETACONTINUE -eq 2 ]
+          do
+             lbufmenu
+             read ANS
+             parse $ANS
+          done
+          BETAOPT=0
+      fi
+      if [ ${BETAOPT} -eq 3 ]
+      then
+          BETACONTINUE=3
+          while [ $BETACONTINUE -eq 3 ]
+          do
+             ansimenu
+             read ANS
+             parse $ANS
+          done
+          BETAOPT=0
+      fi
+
    done
    setopts
    setdefaults

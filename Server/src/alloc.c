@@ -68,16 +68,24 @@ pool_err(const char *logsys, int logflag, int poolnum,
     if (!mudstate.logging) {
 	STARTLOG(logflag, logsys, "ALLOC")
 	    sprintf(mudstate.buffer,
+#ifdef BIT64
+		    "%.10s[%d] (tag %.40s) %.50s at %lx (line %d of %.20s).",
+#else
 		    "%.10s[%d] (tag %.40s) %.50s at %x (line %d of %.20s).",
+#endif
 		    action, pools[poolnum].pool_size, tag, reason,
-		    (int) ph, line_num, file_name);
+		    (pmath1) ph, line_num, file_name);
 	log_text(mudstate.buffer);
 	ENDLOG
     } else if (logflag != LOG_ALLOCATE) {
 	sprintf(mudstate.buffer,
+#ifdef BIT64
+		"\n***< %.10s[%d] (tag %.40s) %.50s at %lx (line %d of %.20s). >***",
+#else
 		"\n***< %.10s[%d] (tag %.40s) %.50s at %x (line %d of %.20s). >***",
+#endif
 		action, pools[poolnum].pool_size, tag, reason,
-		(int) ph, line_num, file_name);
+		(pmath1) ph, line_num, file_name);
 	log_text(mudstate.buffer);
     }
 }
@@ -315,7 +323,7 @@ pool_stats(int poolnum, const char *text)
     char format_str[80];
 
     buf = alloc_mbuf("pool_stats");
-    memset(format_str, 0, sizeof(format_str));
+    memset(format_str, '\0', sizeof(format_str));
     strcpy(format_str, "%-14.14s %5d");
     if ( pools[poolnum].num_alloc > 999999999 )
        strcat(format_str, " %9.4g");

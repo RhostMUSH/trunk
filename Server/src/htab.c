@@ -137,6 +137,11 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
       return NULL;
     }
 
+    if (htab->entry == NULL ) {
+      LOGTEXT("ERR", "hashfind2 was passed a NULL htab->entry");
+      return NULL;
+    }
+
     numchecks = 0;
     htab->scans++;
     hval = hashval(str, htab->mask);
@@ -897,9 +902,13 @@ void hashwalk_dump(HASHTAB *pHtab, char *ref) {
     for (hEntPtr = pHtab->entry->element[i];
 	 hEntPtr != NULL;
 	 hEntPtr = hEntPtr->next) {
+#ifdef BIT64
+      fprintf(pFile, "{target = \"%s\", data = %lx, bIsOriginal = %d}\n",
+#else
       fprintf(pFile, "{target = \"%s\", data = %x, bIsOriginal = %d}\n",
+#endif
 	      hEntPtr->target,
-	      (int) hEntPtr->data,
+	      (pmath2) hEntPtr->data,
 	      hEntPtr->bIsOriginal);
     }
   }

@@ -89,7 +89,7 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto)
 
 	/* Make sure the player passes the link lock */
 
-	if (!could_doit(player, loc, A_LLINK)) {
+	if (!could_doit(player, loc, A_LLINK, 0, 0)) {
 	    notify_quiet(player, "You can't link to there.");
 	    return;
 	}
@@ -188,7 +188,7 @@ link_exit(dbref player, dbref exit, dbref dest)
 
     if ((dest != HOME) &&
 	((!controls(player, dest) && !Link_ok(dest)) ||
-	 !could_doit(player, dest, A_LLINK))) {
+	 !could_doit(player, dest, A_LLINK, 0, 0))) {
 	notify_quiet(player, "Permission denied.");
 	return;
     }
@@ -272,7 +272,7 @@ do_link(dbref player, dbref cause, int key, char *what, char *where)
 	    break;
 	}
 	if (!can_set_home(player, thing, room) ||
-	    !could_doit(player, room, A_LLINK)) {
+	    !could_doit(player, room, A_LLINK, 0, 0)) {
 	    notify_quiet(player, "Permission denied.");
 	} else if (room == HOME) {
 	    notify_quiet(player, "Can't set home to home.");
@@ -298,7 +298,7 @@ do_link(dbref player, dbref cause, int key, char *what, char *where)
 	    notify_quiet(player, "That is not a room!");
 	} else if ((room != HOME) &&
 		   ((!controls(player, room) && !Link_ok(room)) ||
-		    !could_doit(player, room, A_LLINK))) {
+		    !could_doit(player, room, A_LLINK, 0, 0))) {
 	    notify_quiet(player, "Permission denied.");
 	} else {
 	    s_Dropto(thing, room);

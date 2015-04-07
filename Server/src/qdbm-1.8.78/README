@@ -1,0 +1,45 @@
+================================================================
+ QDBM: Quick Database Manager
+ Copyright (C) 2000-2007 Mikio Hirabayashi
+================================================================
+
+
+Please read the following documents with a WWW browser.
+How to install QDBM is explained in the specification.
+
+  README         - this file
+  COPYING        - license
+  ChangeLog      - history of enhancement
+  NEWS           - news for users
+  THANKS         - list of contributors
+  doc/index.html - index of documents
+
+
+Contents of the directory tree is below.
+
+  ./             - sources of QDBM
+  ./doc/         - documents
+  ./plus/        - API for C++
+  ./java/        - API for Java
+  ./perl/        - API for Perl
+  ./ruby/        - API for Ruby
+  ./cgi/         - CGI scripts
+  ./man1/        - manual pages for commands
+  ./man3/        - manual pages for C API
+  ./lab/         - for test and experiment
+  ./bros/        - for comparison with other database managers
+  ./misc/        - miscellaneous files
+
+
+QDBM is released under the terms of the GNU Lesser General Public
+License.  See the file `COPYING' for details.
+
+QDBM was written by Mikio Hirabayashi.  You can contact the author
+by e-mail to `mikio@fallabs.com'.
+
+
+Thanks.
+
+
+
+== END OF FILE ==

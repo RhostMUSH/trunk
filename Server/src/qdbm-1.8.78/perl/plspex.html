@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="author" content="Mikio Hirabayashi" />
+<meta name="keywords" content="QDBM, Perl, Depot, Curia, Villa" />
+<meta name="description" content="specifications of Perl API of QDBM" />
+<link rel="contents" href="./" />
+<link rel="alternate" href="plspex-ja.html" hreflang="ja" title="the Japanese version" />
+<link rev="made" href="mailto:mikio@fallabs.com" />
+<title>Specifications of QDBM for Perl</title>
+<style type="text/css">html { margin: 0em 0em; padding: 0em 0em; background: #eeeeee none; }
+body { margin: 2em 2em; padding: 0em 0em;
+  background: #eeeeee none; color: #111111;
+  font-style: normal; font-weight: normal; }
+h1 { margin-top: 1.8em; margin-bottom: 1.3em; font-weight: bold; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold;
+  border-left: solid 0.6em #445555; border-bottom: solid 1pt #bbbbbb;
+  padding: 0.5em 0.5em; width: 60%; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; }
+hr { margin-top: 2.5em; margin-bottom: 1.5em; height: 1pt;
+  color: #999999; background-color: #999999; border: none; }
+div.note,div.navi { text-align: right; }
+div.logo { text-align: center; margin: 3em 0em; }
+div.logo img { border: inset 2pt #ccccdd; }
+p { margin: 0.8em 0em; line-height: 140%; }
+p,dd { text-indent: 0.8em; }
+div,pre { margin-left: 1.7em; margin-right: 1.7em; }
+pre { background-color: #ddddee; padding: 0.2em; border: 1pt solid #bbbbcc; font-size: smaller; }
+kbd { color: #111111; font-style: normal; font-weight: bold; }
+a { color: #0022aa; text-decoration: none; }
+a:hover,a:focus { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+table { padding: 1pt 2pt 1pt 2pt; border: none; margin-left: 1.7em; border-collapse: collapse; }
+th { padding: 1pt 4pt 1pt 4pt; border-style: none;
+  text-align: left; vertical-align: bottom; }
+td { padding: 1pt 4pt 1pt 4pt; border: 1pt solid #333333;
+  text-align: left; vertical-align: top; }
+ul,ol,dl { line-height: 140%; }
+dt { margin-left: 1.2em; }
+dd { margin-left: 2.0em; }
+ul.lines { list-style-type: none; }
+@media print {
+  html,body { margin: 0em 0em; background-color: #ffffff; color: #000000; }
+  h1 { padding: 8em 0em 0.5em 0em; text-align: center; }
+  h2 { page-break-before: always; }
+  div.note { text-align: center; }
+  div.navi,div.logo { display: none }
+  hr { display: none; }
+  pre { margin: 0.8em 0.8em; background-color: #ffffff;
+    border: 1pt solid #aaaaaa; font-size: smaller; }
+  a,kbd { color: #000000; text-decoration: none; }
+  h1,h2,h3 { font-family: sans-serif; }
+  p,div,li,dt,dd { font-family: serif; }
+  pre,kbd { font-family: monospace; }
+  dd { font-size: smaller; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>Specifications of QDBM for Perl</h1>
+
+<div class="note">Copyright (C) 2000-2006 Mikio Hirabayashi</div>
+<div class="note">Last Update: Thu, 26 Oct 2006 15:00:20 +0900</div>
+<div class="navi">[<a href="plapidoc/index.html">API</a>] [<a href="plspex-ja.html" hreflang="ja">Japanese</a>]</div>
+
+<hr />
+
+<h2>Table of Contents</h2>
+
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#examples">Examples</a></li>
+<li><a href="#bugs">Bugs</a></li>
+</ol>
+
+<hr />
+
+<h2><a name="overview" id="overview" class="head">Overview</a></h2>
+
+<p>QDBM provides API for Perl.  This encapsulates the basic API, the extended API and the advanced API of QDBM.  These APIs are implemented with the APIs for C called with XS language.  There are two kinds of interfaces to handle a database: using methods directly and using tying functions with a hash.</p>
+
+<p>In case of using methods, you call the constructor `new' of the class `Depot', `Curia' or `Villa' to open a database file or directory and get the handle.  The method `close' is used in order to close the database.  If the instance is destroyed without closing the database explicitly, the destructor closes the database.  The method `put' is used in order to store a record.  The method `out' is used in order to delete a record.  The method `get' is used in order to retrieve a record.  Besides, most operations like ones of the APIs for C are available.</p>
+
+<p>In case of using tying functions, you call the `tie' function whose parameters are the same as ones of the constructor.  After tying, operations with the tied hash perform as operations to the binded database.  You use the `untie' function to close the database.</p>
+
+<p>Although keys and values of storing records are treated as strings, binary data can be stored as they are.  `Depot' realizes a hash database with a file.  `Curia' realizes a hash database with a directory and multiple files.  `Villa' realizes a B+ tree database with a file.  `Depot' is fastest.  `Curia' is most scalable.  `Villa' provides cursor supporting ordering access.</p>
+
+<p>For more information about the APIs, read documents in the sub directory `<a href="plapidoc/">plapidoc</a>'.</p>
+
+<hr />
+
+<h2><a name="installation" id="installation" class="head">Installation</a></h2>
+
+<p>Make sure that Perl 5.6.0 or later version is installed and make sure that QDBM is installed under `/usr/local'.</p>
+
+<p>Change the current working directory to the sub directory named `perl'.</p>
+
+<pre>cd perl
+</pre>
+
+<p>Run the configuration script.</p>
+
+<pre>./configure
+</pre>
+
+<p>Build programs.</p>
+
+<pre>make
+</pre>
+
+<p>Perform self-diagnostic test.</p>
+
+<pre>make check
+</pre>
+
+<p>Install programs.  This operation must be carried out by the root user.</p>
+
+<pre>make install
+</pre>
+
+<p>When a series of work finishes, `Depot.so', `Depot.pm', `Curia.so', `Curia.pm', `Villa.so', `Villa.pm', and so on are installed under an appropriate directory according to the install directory of Perl.  Executable commands `pldptest', `plcrtest', and `plvltest' will be installed in `/usr/local/bin'.</p>
+
+<p>To uninstall them, execute the following command after `./configure'.  This operation must be carried out by the root user.</p>
+
+<pre>make uninstall
+</pre>
+
+<hr />
+
+<h2><a name="examples" id="examples" class="head">Examples</a></h2>
+
+<p>The following example stores and retrieves a phone number, using the name as the key.</p>
+
+<pre>use Depot;
+
+use constant NAME =&gt; "mikio";
+use constant NUMBER =&gt; "000-1234-5678";
+use constant DBNAME =&gt; "book";
+
+sub main {
+    my($depot, $val);
+
+    # open the database
+    if(!($depot = new Depot(&amp;DBNAME, Depot::OWRITER | Depot::OCREAT))){
+        printf(STDERR "new failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    # store the record
+    if(!$depot-&gt;put(&amp;NAME, &amp;NUMBER)){
+        printf(STDERR "put failed: %s\n", $Depot::errmsg);
+    }
+
+    # retrieve the record
+    if(!($val = $depot-&gt;get(&amp;NAME))){
+        printf(STDERR "get failed: %s\n", $Depot::errmsg);
+    } else {
+        printf("Name: %s\n", &amp;NAME);
+        printf("Number: %s\n", $val);
+    }
+
+    # close the database
+    if(!$depot-&gt;close()){
+        printf(STDERR "close failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    return 0;
+}
+
+exit(main());
+</pre>
+
+<p>The following example is a transcription of the one above, using tying functions.</p>
+
+<pre>use Depot;
+
+use constant NAME =&gt; "mikio";
+use constant NUMBER =&gt; "000-1234-5678";
+use constant DBNAME =&gt; "book";
+
+sub main {
+    my(%hash, $val);
+
+    # open the database
+    if(!tie(%hash, "Depot", &amp;DBNAME, Depot::OWRITER | Depot::OCREAT)){
+        printf(STDERR "tie failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    # store the record
+    if(!($hash{&amp;NAME} = &amp;NUMBER)){
+        printf(STDERR "store failed: %s\n", $Depot::errmsg);
+    }
+
+    # retrieve the record
+    if(!($val = $hash{&amp;NAME})){
+        printf(STDERR "fetch failed: %s\n", $Depot::errmsg);
+    } else {
+        printf("Name: %s\n", &amp;NAME);
+        printf("Number: %s\n", $val);
+    }
+
+    # close the record
+    if(!untie(%hash)){
+        printf(STDERR "untie failed: %s\n", $Depot::errmsg);
+        return 1;
+    }
+
+    return 0;
+}
+
+exit(main());
+</pre>
+
+<p>The following example performs forward matching search for strings, using the class `Villa'.</p>
+
+<pre>use Villa;
+
+use constant DBNAME =&gt; "words";
+use constant PREFIX =&gt; "apple";
+
+sub main {
+    my($villa, $key, $val);
+
+    # open the database
+    if(!($villa = new Villa(&amp;DBNAME, Villa::OWRITER | Villa::OCREAT))){
+        printf(STDERR "new failed: %s\n", $Villa::errmsg);
+        return 1;
+    }
+
+    # store the record
+    if(!$villa-&gt;put("applet", "little application", Villa::DDUP) ||
+       !$villa-&gt;put("aurora", "polar wonderwork", Villa::DDUP) ||
+       !$villa-&gt;put("apple", "delicious fruit", Villa::DDUP) ||
+       !$villa-&gt;put("amigo", "good friend", Villa::DDUP) ||
+       !$villa-&gt;put("apple", "big city", Villa::DDUP)){
+        printf(STDERR "put failed: %s\n", $Villa::errmsg);
+    }
+
+    # set the cursor at the top of candidates
+    $villa-&gt;curjump(&amp;PREFIX);
+
+    # scan with the cursor
+    while($key = $villa-&gt;curkey()){
+        my($prefix) = &amp;PREFIX;
+        ($key =~ m/^$prefix/) || last;
+        $val = $villa-&gt;curval();
+        printf("%s: %s\n", $key, $val);
+        $villa-&gt;curnext();
+    }
+
+    # close the database
+    if(!$villa-&gt;close()){
+        printf(STDERR "close failed: %s\n", $Villa::errmsg);
+        return 1;
+    }
+
+    return 0;
+}
+
+exit(main());
+</pre>
+
+<hr />
+
+<h2><a name="bugs" id="bugs" class="head">Bugs</a></h2>
+
+<p>So far, this API is not associated with AnyDBM_File.</p>
+
+<p>This API can be implemented more effectively by Perl hackers.</p>
+
+<p>For the sake of simplicity of interface, Curia for Perl does not feature handling large objects, and Villa for Perl can not be binded with a comparing function defined by users.</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->

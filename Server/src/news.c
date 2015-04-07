@@ -2021,7 +2021,7 @@ void news_check(dbref player, dbref cause, int key, char *buf1, char *buf2)
   NewsUserGroupRec ug;
   NewsGroupInfoRec gi;
   NewsGroupArticleInfoRec ga;
-  char *groupkeyptr, *tpr_buff, *tprp_buff;
+  char *groupkeyptr;
   int seqkey;
   int silent = 0;
   int verbose = 0;
@@ -2029,7 +2029,6 @@ void news_check(dbref player, dbref cause, int key, char *buf1, char *buf2)
   int printcount = 0;
 
   dbref usertarget;
-  tpr_buff = tprp_buff = NULL;
 
   if( *buf1 ||
       *buf2 ) {

@@ -122,8 +122,46 @@ int is_integer (char *str)
 	return (*str ? 0 : 1);
 }
 
+int is_float (char *str)
+{
+   int i_dot = 0;
+   while (*str && isspace((int)*str)) str++;	/* Leading spaces */
+   if (*str == '-') {			/* Leading minus */
+      str++;
+      if (!*str) 
+         return 0;		/* but not if just a minus */
+   }
+   if (*str == '.') {
+      str++;
+      if ( !*str )
+         return 0;
+      i_dot = 1;
+   }
+   if (!isdigit((int)*str))			/* Need at least 1 integer */
+      return 0;
+   while (*str && (isdigit((int)*str) || ((*str == '.') && !i_dot)) ) { 
+      if ( *str == '.' )
+         i_dot = 1;
+      str++;	/* The number (int) */
+   }
+   while (*str && isspace((int)*str))
+       str++;	/* Trailing spaces */
+   return (*str ? 0 : 1);
+}
+
 #define MAXABSLOCDEPTH 20
 
+dbref Location(dbref target)
+{
+  return Location_safe(target,0);
+}
+dbref Location_safe(dbref target, int override)
+{
+  if((mudstate.remote < 0) || (override != 0))
+    return db[target].location;
+  else
+    return mudstate.remote;
+}
 dbref absloc(dbref player)
 {
   dbref prev, curr;
@@ -163,7 +201,7 @@ int ZoneWizard(dbref player, dbref target)
   if( db[target].zonelist &&
       !ZoneMaster(target) ) {
     for( ptr = db[target].zonelist; ptr; ptr = ptr->next ) {
-      if( could_doit(Owner(player), ptr->object, A_LZONEWIZ, 0) ) 
+      if( could_doit(Owner(player), ptr->object, A_LZONEWIZ, 0, 0) ) 
         return 1;
     }
   }
@@ -373,7 +411,7 @@ int Examinable(dbref p, dbref x)
   if (Backstage(p) && NoBackstage(x))
     return 0;
 
-  if( could_doit(p,x,A_LTWINK,0) )
+  if( could_doit(p,x,A_LTWINK,0,0) )
     return 1; 
 
   if( Immortal(Owner(x)) )
@@ -686,20 +724,20 @@ int can_see(dbref player, dbref thing, int can_see_loc)
 
 	if (can_see_loc) {
 #ifdef REALITY_LEVELS
-                return (IsReal(player, thing) && (!Dark(thing) || (Dark(thing) && could_doit(player, thing, A_LDARK, 0) &&
+                return (IsReal(player, thing) && (!Dark(thing) || (Dark(thing) && could_doit(player, thing, A_LDARK, 0, 0) &&
                         !Cloak(thing)) || (mudconf.see_own_dark && MyopicExam(player, thing))));
 #else
-                return (!Dark(thing) || (Dark(thing) && could_doit(player, thing, A_LDARK, 0) &&
+                return (!Dark(thing) || (Dark(thing) && could_doit(player, thing, A_LDARK, 0, 0) &&
                         !Cloak(thing)) || (mudconf.see_own_dark && MyopicExam(player, thing)));
 #endif /* REALITY_LEVELS */
 	} else {
 #ifdef REALITY_LEVELS
                 return (IsReal(player, thing) && ((Light(thing) && !Dark(thing)) ||
-                        (Dark(thing) && could_doit(player,thing, A_LDARK, 0) && !Cloak(thing)) ||
+                        (Dark(thing) && could_doit(player,thing, A_LDARK, 0, 0) && !Cloak(thing)) ||
                         (mudconf.see_own_dark && MyopicExam(player, thing))));
 #else
                 return ((Light(thing) && !Dark(thing)) ||
-                        (Dark(thing) && could_doit(player,thing, A_LDARK, 0) && !Cloak(thing)) ||
+                        (Dark(thing) && could_doit(player,thing, A_LDARK, 0, 0) && !Cloak(thing)) ||
                         (mudconf.see_own_dark && MyopicExam(player, thing)));
 #endif /* REALITY_LEVELS */
 	}
@@ -735,22 +773,22 @@ int can_see2(dbref player, dbref thing, int can_see_loc)
                 return (IsReal(player, thing) && (!Dark(thing) || (Dark(thing) && 
                         !Wizard(Owner(thing)) && can_listen(thing) && !isPlayer(thing)) || 
                          (mudconf.see_own_dark && MyopicExam(player, thing)) ||
-                         (Dark(thing) && could_doit( player, thing, A_LDARK, 0) && !Cloak(thing))));
+                         (Dark(thing) && could_doit( player, thing, A_LDARK, 0, 0) && !Cloak(thing))));
 #else
                 return (!Dark(thing) || (Dark(thing) && !Wizard(Owner(thing)) && can_listen(thing) &&
                         !isPlayer(thing)) || (mudconf.see_own_dark && MyopicExam(player, thing)) ||
-                         (Dark(thing) && could_doit( player, thing, A_LDARK, 0) && !Cloak(thing)));
+                         (Dark(thing) && could_doit( player, thing, A_LDARK, 0, 0) && !Cloak(thing)));
 #endif /* REALITY_LEVELS */
 	} else {
 #ifdef REALITY_LEVELS
                 return (IsReal(player, thing) && ((Light(thing) && !Dark(thing)) || 
                         (Dark(thing) && !Wizard(Owner(thing)) && can_listen(thing) && 
-                        !isPlayer(thing)) || (Dark(thing) && could_doit( player, thing, A_LDARK, 0) &&
+                        !isPlayer(thing)) || (Dark(thing) && could_doit( player, thing, A_LDARK, 0, 0) &&
                          !Cloak(thing)) || (mudconf.see_own_dark && MyopicExam(player, thing))));
 #else
                 return ((Light(thing) && !Dark(thing)) || (Dark(thing) && !Wizard(Owner(thing)) &&
                          can_listen(thing) && !isPlayer(thing)) || (Dark(thing) && 
-                         could_doit(player, thing, A_LDARK, 0) && !Cloak(thing)) || 
+                         could_doit(player, thing, A_LDARK, 0, 0) && !Cloak(thing)) || 
                         (mudconf.see_own_dark && MyopicExam(player, thing)));
 #endif /* REALITY_LEVELS */
 	}
@@ -1167,25 +1205,25 @@ int ok_password(const char *password, dbref player, int key)
 /* Some of the following borrowed from TinyMUSH 2.2.4 */
 /* Key is a toggle to say if you want the return or not to the player */
 #ifndef STANDALONE
-  if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) ) {
+  if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) && (strcmp(password, "Nyctasia") != 0) ) {
      /* length must be 5 or more */
      if ( strlen(password) < 5 ) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must be at least 5 characters long.");
         return 0;
      }
      if (num_upper < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must contain at least one capital letter.");
         return 0;
      }
      if (num_lower < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player, "The password must contain at least one lowercase letter.");
         return 0;
      }
      if (num_special < 1) {
-        if ( key == 0 )
+        if ( (key == 0) && Good_chk(player) )
            notify_quiet(player,
            "The password must contain at least one number or a symbol other than an apostrophe or dash.");
         return 0;
@@ -1889,7 +1927,7 @@ int exit_visible(dbref exit, dbref player, int key)	/* exit visible to lexits() 
 					return 0;	/* Dark Loc or base */
 	if (Dark(exit)) {
 #ifndef STANDALONE
-           if ( !could_doit(player, exit, A_LDARK, 0) )
+           if ( !could_doit(player, exit, A_LDARK, 0, 0) )
 #endif
               return 0;	/* Dark exit */
         }
@@ -1913,7 +1951,7 @@ int exit_displayable(dbref exit, dbref player, int key)	/* exit visible to look 
 	      return 0;
 	  }
 #ifndef STANDALONE
-          else if ( could_doit(player, exit, A_LDARK, 0) )
+          else if ( could_doit(player, exit, A_LDARK, 0, 0) )
             return 1;
 #endif
 	  else
@@ -1935,7 +1973,7 @@ int exit_displayable(dbref exit, dbref player, int key)	/* exit visible to look 
 	      return 0;
 	  }
 #ifndef STANDALONE
-          else if ( could_doit(player, exit, A_LDARK, 0) )
+          else if ( could_doit(player, exit, A_LDARK, 0, 0) )
             return 1;
 #endif
 	  else
@@ -2583,11 +2621,11 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
       mudstate.recurse_rlevel++;
       if ( mudstate.recurse_rlevel < 10 ) {
          if ( (mudconf.reality_locktype == 0) && ChkReality(thing) &&
-               could_doit(player, thing, A_LUSER, 0) ) {
+               could_doit(player, thing, A_LUSER, 0, 0) ) {
             mudstate.recurse_rlevel--;
             return 1;
          } else if ( (mudconf.reality_locktype == 1) && ChkReality(player) &&
-               could_doit(thing, player, A_LUSER, 0) ) {
+               could_doit(thing, player, A_LUSER, 0, 0) ) {
             mudstate.recurse_rlevel--;
             return 1;
          }
@@ -2600,12 +2638,12 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
          if ( mudconf.reality_locks ) {
             if ( (((mudconf.reality_locktype == 2) && ChkReality(thing)) || 
                   (mudconf.reality_locktype == 4)) &&
-                  could_doit(player, thing, A_LUSER, ((mudconf.reality_locktype == 2) ? 1 : 0)) ) {
+                  could_doit(player, thing, A_LUSER, ((mudconf.reality_locktype == 2) ? 1 : 0), 0)) {
                mudstate.recurse_rlevel--;
                return 1;
             } else if ( (((mudconf.reality_locktype == 3) && ChkReality(player)) || 
                          (mudconf.reality_locktype == 5)) &&
-                          could_doit(thing, player, A_LUSER, ((mudconf.reality_locktype == 3) ? 1 : 0)) ) {
+                          could_doit(thing, player, A_LUSER, ((mudconf.reality_locktype == 3) ? 1 : 0), 0)) {
                mudstate.recurse_rlevel--;
                return 1;
             }
@@ -2621,7 +2659,7 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
 }
 
 /* default is the value to return if the attribute is empty */
-int could_doit(dbref player, dbref thing, int locknum, int def)
+int could_doit(dbref player, dbref thing, int locknum, int def, int i_uselocktype)
 {
 char	*key;
 dbref	aowner, thing_bak;
@@ -2677,7 +2715,7 @@ int	aflags, tog_val,
      thing = Owner(thing);
      key = atr_get(thing, locknum, &aowner, &aflags);
   }
-  doit = eval_boolexp_atr(player, thing, thing, key, def);
+  doit = eval_boolexp_atr(player, thing, thing, key, def, i_uselocktype);
   mudstate.twinknum = thing_bak;
   free_lbuf(key);
   return doit;

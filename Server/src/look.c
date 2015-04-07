@@ -76,14 +76,14 @@ look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
 	 key = 0;
 #ifdef REALITY_LEVELS
         if ((Dark(loc) && !IsReal(player, loc))
-                && !could_doit( player, loc, A_LDARK, 0 ))
+                && !could_doit( player, loc, A_LDARK, 0, 0))
 #else
-        if (Dark(loc) && !could_doit( player, loc, A_LDARK, 0 ))
+        if (Dark(loc) && !could_doit( player, loc, A_LDARK, 0, 0))
 #endif /* REALITY_LEVELS */
 	    key |= VE_BASE_DARK;
 	ITER_PARENTS(loc, parent, lev) {
 	    key &= ~VE_LOC_DARK;
-	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0 ))
+	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0, 0))
 		key |= VE_LOC_DARK;
 	    DOLIST(thing, Exits(parent)) {
                 if ( ((parent != pcheck) && (Flags3(thing) & PRIVATE)) || 
@@ -144,7 +144,7 @@ look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
 	      continue;
 	    }
             key &= ~VE_LOC_DARK;
-	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0 ))
+	    if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0, 0))
 		key |= VE_LOC_DARK;
 	    DOLIST(thing, Exits(parent)) {
                 if ( ((parent != pcheck) && (Flags3(thing) & PRIVATE)) || 
@@ -248,7 +248,7 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
 
     /* check to see if he can see the location */
 
-    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0)) || 
+    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0, 0)) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc)));
 /*  can_see_loc = (!Dark(loc) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); */
@@ -375,7 +375,7 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
         }
     }
 
-    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0)) ||
+    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0, 0)) ||
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); 
 /*  can_see_loc = (!Dark(loc) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); */
@@ -476,7 +476,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
         }
     }
 
-    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0)) ||
+    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0, 0)) ||
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); 
 /*  can_see_loc = (!Dark(loc) || 
 		   (mudconf.see_own_dark && MyopicExam(player, loc))); */
@@ -704,23 +704,30 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 {
     time_t endtme;
     dbref aowner, othing;
-    int ca, aflags, go2, go3, timechk;
+    int ca, aflags, go2, go3, timechk, i_chk, i_chkflag;
     ATTR *attr;
-    char *as, *buf, *bp, *retbuff, *go1, *buf2;
+    char *as, *buf, *bp, *retbuff, *go1, *buf2, *buf3;
     char tbuf[80], tbuf2[80];
 
     retbuff = alloc_lbuf("grep_int");
     othing = thing;
     go1 = strpbrk(watr, "?\\*");
+    i_chkflag = 0;
     if (strpbrk(wcheck, "?\\*")) {
 	go3 = 0;
 	buf2 = wcheck;
     } else {
 	buf2 = alloc_lbuf("grep_int2");
 	bp = buf2;
-	safe_chr('*', buf2, &bp);
-	safe_str(wcheck, buf2, &bp);
-	safe_chr('*', buf2, &bp);
+        if ( i_key & 2 ) {
+	   safe_str(wcheck, buf2, &bp);
+           i_key &= ~2;
+           i_chkflag = 1;
+        } else {
+  	   safe_chr('*', buf2, &bp);
+	   safe_str(wcheck, buf2, &bp);
+  	   safe_chr('*', buf2, &bp);
+        }
 	*bp = '\0';
 	go3 = 1;
     }
@@ -750,8 +757,35 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
                                     ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))) &&
   	         (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
   		 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
-
-		if (quick_wild(buf2, buf)) {
+                i_chk = 0;
+                i_chk = quick_wild(buf2, buf);
+                if ( i_chkflag && !i_chk ) {
+                   buf3 = alloc_lbuf("enhanced_grep");
+                   sprintf(buf3, "* %s *", buf2);
+                   i_chk = quick_wild(buf3, buf);
+                   if ( !i_chk ) {
+                      sprintf(buf3, "%s *", buf2);
+                      i_chk = quick_wild(buf3, buf);
+                      if ( !i_chk ) {
+                         sprintf(buf3, "* %s", buf2);
+                         i_chk = quick_wild(buf3, buf);
+                      }
+                   }
+                   if ( !i_chk ) {
+                      sprintf(buf3, "*\t%s\t*", buf2);
+                      i_chk = quick_wild(buf3, buf);
+                      if ( !i_chk ) {
+                         sprintf(buf3, "%s\t*", buf2);
+                         i_chk = quick_wild(buf3, buf);
+                         if ( !i_chk ) {
+                            sprintf(buf3, "*\t%s", buf2);
+                            i_chk = quick_wild(buf3, buf);
+                         }
+                      }
+                   }
+                   free_lbuf(buf3);
+                }
+		if (i_chk) {
                     if ( i_key ) {
                        sprintf(tbuf2, "#%d/", othing);
                        safe_str(tbuf2, retbuff, &bp);
@@ -894,7 +928,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
     thing1 = noisy_match_result();
     if (thing1 != NOTHING) {
       ex1 = Examinable(player, thing1);
-      twk1 = could_doit(player,thing1,A_LTWINK,0);
+      twk1 = could_doit(player,thing1,A_LTWINK,0,0);
     }
     if ((thing1 == NOTHING) || (!ex1 && !twk1)) {
 	notify(player, "Bad source object.");
@@ -948,7 +982,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	init_match(player, dest, NOTYPE);
 	match_everything(MAT_EXIT_PARENTS);
 	thing2 = noisy_match_result();
-        twk1 = could_doit(player,thing2,A_LTWINK,0);
+        twk1 = could_doit(player,thing2,A_LTWINK,0,0);
 	if ((thing2 == NOTHING) || (!Controls(player, thing2) && !twk1 && !chkv1)) {
             tprp_buff = tpr_buff;
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Bad destination object -> %s", dest));
@@ -1327,7 +1361,7 @@ show_desc(dbref player, dbref loc, int key)
                (char **) NULL, 0);
 #endif /* REALITY_LEVELS */
     }
-    if ( Good_obj(player) && LogRoom(loc) && (Location(player) == loc) ) {
+    if ( Good_obj(player) && LogRoom(loc) && !Quiet(loc) && (Location(player) == loc) ) {
        notify_quiet(player, "This room is currently logging what it hears.");
     }
 }
@@ -1415,7 +1449,7 @@ look_in(dbref player, dbref loc, int key)
     /* tell him the appropriate messages if he has the key */
 
     if (Typeof(loc) == TYPE_ROOM) {
-	if (could_doit(player, loc, A_LOCK,1)) {
+	if (could_doit(player, loc, A_LOCK,1,0)) {
 	    pattr = A_SUCC;
 	    oattr = A_OSUCC;
 	    aattr = A_ASUCC;
@@ -2923,20 +2957,19 @@ do_whereis(dbref player, dbref cause, int key, char *name)
 extern NAMETAB indiv_attraccess_nametab[];
 
 static void
-decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname)
+decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname, char *qualout, int i_tf)
 {
-  int atr, aflags, got_any;
+  int atr, aflags;
   char *buf, *ltext, *buff2, *tname, *tpr_buff, *tprp_buff;
   dbref aowner;
   ATTR *ap;
   BOOLEXP *bool;
   NAMETAB *np;
 
-  got_any = 0;
   buff2 = alloc_mbuf("do_decomp.attr_name");
   tname = alloc_lbuf("decomp_wild");
-  memset(tname, 0, sizeof(tname));
-  memset(buff2, 0, sizeof(buff2));
+  memset(tname, 0, LBUF_SIZE);
+  memset(buff2, 0, MBUF_SIZE);
   if (newname && *newname)
     strncpy(tname, newname, (LBUF_SIZE - 1));
   else
@@ -2954,18 +2987,19 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
 	free_boolexp(bool);
         tprp_buff = tpr_buff;
 	noansi_notify(player,
-		      safe_tprintf(tpr_buff, &tprp_buff, "@lock/%s %s=%s",
-			           ap->name, tname, ltext));
+		      safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
+			           (i_tf ? qualout : (char *)""), ap->name, tname, ltext));
       } else {
         strncpy(buff2, ap->name, (MBUF_SIZE - 1));
         tprp_buff = tpr_buff;
-        raw_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%c%s %.3000s=",
+        raw_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%c%s %.3000s=",
+                            (i_tf ? qualout : (char *)""), 
                             ((ap->number < A_USER_START) ? '@' : '&'), buff2, tname), 0, 0);
         noansi_notify(player, buf);
 	if (aflags & AF_LOCK) {
             tprp_buff = tpr_buff;
-	    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@lock %s/%s",
-				               tname, buff2));
+	    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",
+				               (i_tf ? qualout : (char *)""), tname, buff2));
 	}
 	for (np = indiv_attraccess_nametab;
 	     np->name;
@@ -2977,7 +3011,8 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
 
                 tprp_buff = tpr_buff;
 		noansi_notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "@set %s/%s = %s",
+		       safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s/%s = %s",
+                               (i_tf ? qualout : (char *)""),
 			       tname,
 			       buff2,
 			       np->name));
@@ -2993,17 +3028,23 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
 }
 
 void 
-do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
+do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 {
     BOOLEXP *bool;
-    char *got, *thingname, *as, *ltext, *buff, *tpr_buff, *tprp_buff;
+    char *got, *thingname, *as, *ltext, *buff, *tpr_buff, *tprp_buff,
+         *qual, *qualout;
     dbref aowner, thing;
-    int val, aflags, ca, key_buff, i_regexp, i_tree;
+    int val, aflags, ca, key_buff, i_regexp, i_tree, i_tf;
     ATTR *attr;
     NAMETAB *np;
     OBLOCKMASTER master;
 
-    i_regexp = i_tree = 0;
+    i_regexp = i_tree = i_tf = 0;
+
+    if ( key & DECOMP_TF ) {
+       i_tf = 1;
+       key &= ~DECOMP_TF;
+    }
     if ( key & DECOMP_REGEXP ) {
        i_regexp = 1;
        key &= ~DECOMP_REGEXP;
@@ -3018,34 +3059,75 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
     thing = NOTHING;
     if (!name || !*name)
       return;
+
+    qualout = alloc_lbuf("do_decomp_tf");
+    attr = atr_str("TFPREFIX");
+    if ( i_tf ) {
+       if ( qualin && *qualin ) {
+          strcpy(qualout, qualin);
+       } else {
+          sprintf(qualout, "%s", (char *)"FugueEdit > ");
+       }
+       if ( attr ) {
+          qual = atr_pget(player, attr->number, &aowner, &aflags);
+          if ( *qual ) {
+             strcpy(qualout, qual);
+          }
+          free_lbuf(qual);
+       }
+    }
+    qual= alloc_lbuf("do_decomp_tf2");
+
     olist_init(&master);
     if (parse_attrib_wild(player, name, &thing, 0, 1, 0, &master, 0, i_regexp, i_tree)) {
       if (!Examinable(player, thing)) {
 	notify_quiet(player, "You can only decompile things you can examine.");
 	olist_cleanup(&master);
+        free_lbuf(qual);
+        free_lbuf(qualout);
 	return;
       }
-      decomp_wildattrs(player, thing, &master, qual);
+      if ( i_tf ) {
+         sprintf(qual, "#%d", thing);
+      } else {
+         if ( qualin && *qualin )
+            strcpy(qual, qualin);
+      }
+      decomp_wildattrs(player, thing, &master, qual, qualout, i_tf);
       olist_cleanup(&master);
       if ( mudstate.outputflushed ) {
          notify_quiet(player, "WARNING: Output limited exceeded on @decompile.  Attributes cut off.");
       }
+      free_lbuf(qual);
+      free_lbuf(qualout);
       return;
     }
     olist_cleanup(&master);
     init_match(player, name, TYPE_THING);
     match_everything(MAT_EXIT_PARENTS);
     thing = noisy_match_result();
-
     /* get result */
-    if (thing == NOTHING)
+    if (thing == NOTHING) {
+        free_lbuf(qual);
+        free_lbuf(qualout);
 	return;
+    }
 
     if (!Examinable(player, thing)) {
 	notify_quiet(player,
 		     "You can only decompile things you can examine.");
+        free_lbuf(qual);
+        free_lbuf(qualout);
 	return;
     }
+
+    if ( i_tf ) {
+       sprintf(qual, "#%d", thing);
+    } else {
+       if ( qualin && *qualin )
+          strcpy(qual, qualin);
+    }
+
     thingname = atr_get(thing, A_LOCK, &aowner, &aflags);
     bool = parse_boolexp(player, thingname, 1);
 
@@ -3063,18 +3145,18 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
             *(thingname + LBUF_SIZE - 1) = '\0';
 	    val = OBJECT_DEPOSIT(Pennies(thing));
             if ( !key )
-	       noansi_notify(player, unsafe_tprintf("@create %s=%d", thingname, val));
+	       noansi_notify(player, unsafe_tprintf("%s@create %s=%d", (i_tf ? qualout : (char *)""), thingname, val));
 	    break;
 	case TYPE_ROOM:
 	    strcpy(thingname, "here");
             if ( !key )
-	       noansi_notify(player, unsafe_tprintf("@dig/teleport %s", Name(thing)));
+	       noansi_notify(player, unsafe_tprintf("%s@dig/teleport %s", (i_tf ? qualout : (char *)""), Name(thing)));
 	    break;
 	case TYPE_EXIT:
 	    strncpy(thingname, Name(thing), LBUF_SIZE - 1);
             *(thingname + LBUF_SIZE - 1) = '\0';
             if ( !key )
-	       noansi_notify(player, unsafe_tprintf("@open %s", Name(thing)));
+	       noansi_notify(player, unsafe_tprintf("%s@open %s", (i_tf ? qualout : (char *)""),  Name(thing)));
 	    for (got = thingname; *got; got++) {
 		if (*got == EXIT_DELIMITER) {
 		    *got = '\0';
@@ -3092,7 +3174,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
 
     if ( !key_buff || (key_buff & DECOMP_ATTRS) ) {
        if (bool != TRUE_BOOLEXP) {
-          noansi_notify(player, unsafe_tprintf("@lock %s=%s", thingname,
+          noansi_notify(player, unsafe_tprintf("%s@lock %s=%s", (i_tf ? qualout : (char *)""), thingname,
                                          unparse_boolexp_decompile(player, bool)));
        }
     }
@@ -3129,23 +3211,21 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
 						     bool);
 		   free_boolexp(bool);
 		   tprp_buff = tpr_buff;
-		   noansi_notify(player,
-		          safe_tprintf(tpr_buff, &tprp_buff, "@lock/%s %s=%s",
-			          attr->name, thingname, ltext));
+		   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
+			         (i_tf ? qualout : (char *)""), attr->name, thingname, ltext));
 	       } else {
                    strncpy(buff, attr->name, (MBUF_SIZE - 1));
                    *(buff + MBUF_SIZE - 1) = '\0';
 		   tprp_buff = tpr_buff;
-		   noansi_notify(player,
-		          safe_tprintf(tpr_buff, &tprp_buff, "%c%s %s=%s",
-			          ((ca < A_USER_START) ?
-				   '@' : '&'),
-			          buff, thingname, got));
+		   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%c%s %s=%s",
+			         (i_tf ? qualout : (char *)""), 
+                                 ((ca < A_USER_START) ?  '@' : '&'),
+			         buff, thingname, got));
    
 		   if (aflags & AF_LOCK) {
 		       tprp_buff = tpr_buff;
-		       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@lock %s/%s",
-					      thingname, buff));
+		       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",
+					     (i_tf ? qualout : (char *)""), thingname, buff));
 		   }
 		   for (np = indiv_attraccess_nametab;
 		        np->name;
@@ -3156,8 +3236,8 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
 			   (!(np->perm & CA_NO_DECOMP))) {
    
 		           tprp_buff = tpr_buff;
-			   noansi_notify(player,
-			          safe_tprintf(tpr_buff, &tprp_buff, "@set %s/%s = %s",
+			   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s/%s = %s",
+                                          (i_tf ? qualout : (char *)""),
 				          thingname,
 				          buff,
 				          np->name));
@@ -3173,20 +3253,23 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qual)
 
 #ifdef REALITY_LEVELS
     if ( !key_buff || (key_buff & DECOMP_ATTRS) )
-       decompile_rlevels(player, thing, thingname);
+       decompile_rlevels(player, thing, thingname, qualout, i_tf);
 #endif /* REALITY_LEVELS */
 
     if ( !key_buff || (key_buff & DECOMP_FLAGS) )
-       decompile_flags(player, thing, thingname);
+       decompile_flags(player, thing, thingname, qualout, i_tf);
 
     /* If the object has a parent, report it */
 
     if ( (!key_buff || (key_buff & DECOMP_ATTRS)) && (Parent(thing) != NOTHING) )
-	noansi_notify(player, unsafe_tprintf("@parent %s=%s", thingname, Name(Parent(thing))));
+	noansi_notify(player, unsafe_tprintf("%s@parent %s=%s", 
+                              (i_tf ? qualout : (char *)""), thingname, Name(Parent(thing))));
 
     if ( mudstate.outputflushed ) {
         notify_quiet(player, "WARNING: Output limited exceeded on @decompile.  Attributes cut off.");
     }
 
+    free_lbuf(qual);
+    free_lbuf(qualout);
     free_lbuf(thingname);
 }

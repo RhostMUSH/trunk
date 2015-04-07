@@ -41,6 +41,7 @@ struct confdata {
 	char	roomlog_path[128]; /* Path where LOGROOM and LOGROOMENH is sent */
         char	logdb_name[128];/* Name of log db */
 	int	round_kludge; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */
+	char ip_address[15];
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
         int     debug_id;       /* shared memory key for debug monitor */
@@ -280,15 +281,17 @@ struct confdata {
         int     nand_compat;    /* Old (BROKEN) pre-p15 Rhost nand compatibility */
         int     hasattrp_compat; /* Boolean: does hasattrp only check parents */
         int     must_unlquota;  /* Forces you to @quota/unlock before you give @quota */
-        char    forbid_host[1000]; /* forbid host names */
-        char    suspect_host[1000]; /* suspect host names */
-        char    register_host[1000]; /* register host names */
-        char    noguest_host[1000]; /* noguest host names */
-        char    autoreg_host[1000]; /* noguest host names */
-        char    validate_host[1000]; /* Invalidate autoregister email masks */
-        char    goodmail_host[1000]; /* Good hosts to allow to autoregister ALWAYS */
+        char    forbid_host[LBUF_SIZE]; /* forbid host names */
+        char    suspect_host[LBUF_SIZE]; /* suspect host names */
+        char    register_host[LBUF_SIZE]; /* register host names */
+        char    noguest_host[LBUF_SIZE]; /* noguest host names */
+        char    autoreg_host[LBUF_SIZE]; /* noguest host names */
+        char    validate_host[LBUF_SIZE]; /* Invalidate autoregister email masks */
+        char    goodmail_host[LBUF_SIZE]; /* Good hosts to allow to autoregister ALWAYS */
         char    log_command_list[1000]; /* List of commands to log */
-        char    nobroadcast_host[1000]; /* Don't broadcast to sites in this host */
+        char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
+        char    tor_localhost[1000];	/* Localhost name for TOR lookup */
+        int	tor_paranoid;	/* Paranoid option for TOR enable Checkig */
         int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
         int     paranoid_exit_linking; /* unlinked exits can't be linked unless controlled */
         int     notonerr_return; /* If function returns '#-1' not() returns '0' if disabled */
@@ -380,6 +383,8 @@ struct confdata {
 	int	clusterfunc_cap;	/* Cluster cap for processing (function) */
 	int	mux_child_compat;	/* Is it MUX/TM3 compatable for children() */
 	int	mux_lcon_compat;	/* Is it MUX/TM3 compatable for children() */
+	int	ansi_default;		/* Allow functions to be ansi-default aware that can do so */
+	int	accent_extend;		/* Expand accents from 251-255 */
 	int	switch_search;		/* Switch search() and searchng() */
 	int	signal_crontab;		/* Signal the crontab via USR1 */
         int 	max_name_protect;	/* Maximum name protects allowed */
@@ -395,11 +400,16 @@ struct confdata {
 	int	lfunction_max;	/* Maximum lfunctions allowed */
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 	int	listen_parents;	/* ^listens handle parents */
+	int     icmd_obj;        /* The object for the icmd evaluation */
+	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
+	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
+	int	float_precision;	/* Float percision for math functions() -- default 6 */
+	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
         struct rlevel_def {
-            char name[9];	/* name of level */
+            char name[17];	/* name of level */
             RLEVEL value;	/* bitmask for level */
             char attr[33];	/* RLevel desc attribute */
         } reality_level[32];	/* Reality levels */
@@ -506,6 +516,20 @@ struct blacklist_list {
 	struct	blacklist_list	*next;
 };
 
+/* For a future mod to split up HIGH cpu based on function 
+ * This will be smarter as we'll compare it to last time
+ * executed as well, or at least some wiggy logic. */
+struct struct_cpu_recurse {
+	int	chk_nslookup;
+	int	chk_textfile;
+	int	chk_dynhelp;
+	int	chk_entrances;
+	int	chk_lrooms;
+	int	chk_parenmatch;
+	int	chk_search;
+	int	chk_stats;
+};
+
 typedef struct statedata STATEDATA;
 struct statedata {
 #ifndef STANDALONE
@@ -513,6 +537,8 @@ struct statedata {
         int     objevalst;
 	int	breakst;
 	int	breakdolist;
+  dbref remote; /* Remote location for @remote */
+  dbref remotep;/* Remote location for @remote player*/
 	int	dolistnest;
         int     shell_program;  /* Shelled out of @program */
         dbref   store_lastcr;   /* Store the last created dbref# for functions */
@@ -540,12 +566,14 @@ struct statedata {
 	char	*dol_arr[50];	/* Dolist Array */
 	int	alarm_triggered;/* Has periodic alarm signal occurred? */
 	time_t	now;		/* What time is it now? */
+	double  nowmsec; /* What time is it now, with msecs */
 	time_t	lastnow;	/* What time was it last? */
-	time_t	dump_counter;	/* Countdown to next db dump */
-	time_t	check_counter;	/* Countdown to next db check */
-	time_t	idle_counter;	/* Countdown to next idle check */
-	time_t	rwho_counter;	/* Countdown to next RWHO dump */
-	time_t	mstats_counter;	/* Countdown to next mstats snapshot */
+	double  lastnowmsec; /* What time was it last, with msecs */
+	double	dump_counter;	/* Countdown to next db dump */
+	double	check_counter;	/* Countdown to next db check */
+	double	idle_counter;	/* Countdown to next idle check */
+	double	rwho_counter;	/* Countdown to next RWHO dump */
+	double	mstats_counter;	/* Countdown to next mstats snapshot */
 	time_t  chkcpu_stopper; /* What time was it when command started */
 	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
 	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
@@ -689,7 +717,7 @@ struct statedata {
 	int	curr_percentsubs;	/* Current percent sub tree */
 	int	tog_percentsubs;	/* Ok, you hit the max percent sub ceiling.  Bad boy */
 	int	cntr_percentsubs;	/* Counter to kill the little pecker */
-        time_t  cntr_reset;	/* Reset the basic counters after 60 seconds */
+        double  cntr_reset;	/* Reset the basic counters after 60 seconds */
 	int	recurse_rlevel;	/* Allow recurse limit for reality levels */
 	int	sub_overridestate; /* state information for sub_overrides */
 	int	sub_includestate; /* state information for sub_overrides */
@@ -710,8 +738,15 @@ struct statedata {
 	int	notrace;	/* Do not trace */
 	int	start_of_cmds;	/* Start of command -- hack around zenty ansi */
         int	twinknum;	/* Dbref of twink object if inside twinklock */
+	int	dumpstatechk;	/* Dump state check */
+	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
+	char	tor_localcache[1000]; /* Cache for the tor local host */
+	int 	insideaflags; 	/* Inside @aflag eval check */
+	int	insideicmds;	/* Inside ICMD evaluation */
 #else
+  dbref remote; /* Remote location for @remote */
+  dbref remotep;/* Remote location for @remote player */
 	int	logging;	/* Are we in the middle of logging? */
 	char	buffer[256];	/* A buffer for holding temp stuff */
         char    *lbuf_buffer;	/* An lbuf buffer we can globally use */

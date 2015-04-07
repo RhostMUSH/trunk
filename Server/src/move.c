@@ -536,7 +536,7 @@ move_via_teleport(dbref thing, dbref dest, dbref cause, int hush, int quiet)
     if ((dest != HOME) && Good_obj(src)) {
 	curr = src;
 	for (count = mudconf.ntfy_nest_lim; count > 0; count--) {
-	    if (!could_doit(cause, curr, A_LTELOUT,1) && (!Controls(cause, curr) ||
+	    if (!could_doit(cause, curr, A_LTELOUT,1,0) && (!Controls(cause, curr) ||
 	      DePriv(cause, NOTHING, DP_OVERRIDE, POWER7, POWER_LEVEL_NA) ||
               NoOverride(cause) || !(mudconf.wiz_override) ||
 		   DePriv(cause, Owner(curr), DP_LOCKS, POWER6, NOTHING))) {
@@ -689,7 +689,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
         return;
     }
 #endif
-    if (Good_obj(loc) && could_doit(player, exit, A_LOCK,1)) {
+    if (Good_obj(loc) && could_doit(player, exit, A_LOCK,1,0)) {
 	switch (Typeof(loc)) {
 	case TYPE_ROOM:
 	    move_via_exit(player, loc, NOTHING, exit, hush);
@@ -864,22 +864,25 @@ do_get(dbref player, dbref cause, int key, char *what)
 
 	if (thing == player) {
 	    notify(player, "You cannot get yourself!");
-	} else if (!could_doit(player, playerloc, A_LGETFROM, 1)) {
-		notify(player, "You can not get anything at your location.");
-        } else if (!could_doit(player, thingloc, A_LGETFROM, 1)) {
-		notify(player, "You can not get anything from that location.");
-	} else if (could_doit(player, thing, A_LOCK,1)) {
+	} else if (!could_doit(player, playerloc, A_LGETFROM, 1, 0)) {
+            failmsg = (char *) "You can not get anything at your location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, playerloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
+        } else if (!could_doit(player, thingloc, A_LGETFROM, 1, 0)) {
+            failmsg = (char *) "You can not get anything from that location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, thingloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
+	} else if (could_doit(player, thing, A_LOCK, 1, 0)) {
 	    if (thingloc != Location(player)) {
-		notify(thingloc,
-		       unsafe_tprintf("%s was taken from you.",
-			       Name(thing)));
+		notify(thingloc, unsafe_tprintf("%s was taken from you.", Name(thing)));
 	    }
 	    move_via_generic(thing, player, player, 0);
 	    notify(thing, "Taken.");
 	    oattr = quiet ? 0 : A_OSUCC;
 	    aattr = quiet ? 0 : A_ASUCC;
-	    did_it(player, thing, A_SUCC, "Taken.", oattr, NULL,
-		   aattr, (char **) NULL, 0);
+	    did_it(player, thing, A_SUCC, "Taken.", oattr, NULL, aattr, (char **) NULL, 0);
 	} else {
 	    oattr = quiet ? 0 : A_OFAIL;
 	    aattr = quiet ? 0 : A_AFAIL;
@@ -887,9 +890,7 @@ do_get(dbref player, dbref cause, int key, char *what)
 		failmsg = (char *) "You can't take that from there.";
 	    else
 		failmsg = (char *) "You can't pick that up.";
-	    did_it(player, thing,
-		   A_FAIL, failmsg,
-		   oattr, NULL, aattr, (char **) NULL, 0);
+	    did_it(player, thing, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
 	}
 	break;
     case TYPE_EXIT:
@@ -910,11 +911,17 @@ do_get(dbref player, dbref cause, int key, char *what)
 	if (!Controls(player, thing) && !Controls(player, playerloc)) {
 	    notify(player, "Permission denied.");
 	    break;
-	} else if (!could_doit(player, playerloc, A_LGETFROM, 1)) {
-	    notify(player, "You can not get anything at your location.");
+	} else if (!could_doit(player, playerloc, A_LGETFROM, 1, 0)) {
+            failmsg = (char *) "You can not get anything at your location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, playerloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
 	    break;
-        } else if (!could_doit(player, thingloc, A_LGETFROM, 1)) {
-	    notify(player, "You can not get anything from that location.");
+        } else if (!could_doit(player, thingloc, A_LGETFROM, 1, 0)) {
+            failmsg = (char *) "You can not get anything from that location.";
+            oattr = quiet ? 0 : A_OFAIL;
+            aattr = quiet ? 0 : A_AFAIL;
+            did_it(player, thingloc, A_FAIL, failmsg, oattr, NULL, aattr, (char **) NULL, 0);
 	    break;
         }
 	/* Do it */
@@ -978,9 +985,9 @@ do_drop(dbref player, dbref cause, int key, char *name)
 	/* You have to be carrying it */
 
 	if (((Location(thing) != player) && !Wizard(player)) ||
-	    (!could_doit(player, thing, A_LDROP,1)) || 
-            (!could_doit(player, Location(player), A_LDROPTO, 1))) {
-            if ( !could_doit(player, thing, A_LDROP, 1))
+	    (!could_doit(player, thing, A_LDROP, 1, 0)) || 
+            (!could_doit(player, Location(player), A_LDROPTO, 1, 0))) {
+            if ( !could_doit(player, thing, A_LDROP, 1, 0))
 	       did_it(player, thing, A_DFAIL, "You can't drop that.",
 		      A_ODFAIL, NULL, A_ADFAIL, (char **) NULL, 0);
             else
@@ -1052,7 +1059,7 @@ do_enter_internal(dbref player, dbref thing, int quiet)
 	       oattr, NULL, aattr, (char **) NULL, 0);
     } else if (player == thing) {
 	notify(player, "You can't enter yourself!");
-    } else if (could_doit(player, thing, A_LENTER,1)) {
+    } else if (could_doit(player, thing, A_LENTER, 1, 0)) {
 	loc = Location(player);
 	oattr = quiet ? HUSH_ENTER : 0;
 	move_via_generic(player, thing, NOTHING, oattr);
@@ -1117,10 +1124,10 @@ do_leave(dbref player, dbref cause, int key)
     quiet = 0;
     if ((key & MOVE_QUIET) && Controls(player, loc))
 	quiet = HUSH_LEAVE;
-    if (could_doit(player, loc, A_LLEAVE,1)) {
+    if (could_doit(player, loc, A_LLEAVE, 1, 0)) {
        thing = Location(loc);
        if ( Typeof(thing) == TYPE_ROOM ) {
-          if (could_doit(player, thing, A_LENTER,1)) 
+          if (could_doit(player, thing, A_LENTER, 1, 0)) 
 	     move_via_generic(player, Location(loc), NOTHING, quiet);
           else
              notify(player, "You can't enter the room that way.");

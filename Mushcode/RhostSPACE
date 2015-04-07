@@ -1,0 +1,339 @@
+@@
+@@ Version 0.1.0 of RhostSPACE Dynamic Space System
+@@ Author: Ashen-Shugar
+@@
+@@ RhostSpace Closet
+@@
+@dig/teleport RhostSpace Closet
+@@
+@@ - RhostSpace Parent
+@create RhostSpace
+@Desc RhostSpace=[u(show_desc)]
+@nameformat RhostSpace=[u(show_name)]
+&COORDS RhostSpace=0 0 0
+&MAX-COORDS RhostSpace=5 5 0
+&MIN-COORDS RhostSpace=-5 -5 0
+&SHOW_DESC RhostSpace=[edefault(me/desc.[edit(v(coords),%b,-)],u(default_desc))]
+&ROOM_NAME RhostSpace=Rhost DynSpace
+&SHOW_NAME RhostSpace=[edefault(me/name.[edit(v(coords),%b,-)],u(default_name))]
+&DEFAULT_DESC RhostSpace=An infinite grey plane surrounds you.
+&DEFAULT_NAME RhostSpace=Rhost DynSpace
+&NAME.0-0-0 RhostSpace=RhostSpace - Point of Orgin
+@set RhostSpace=SAFE
+@set RhostSpace=INHERIT
+@@
+@@ Main Database
+@@
+@create RhostDB
+@set RhostDB=halt
+@@
+@@ RhostSpace Tools
+@@
+@create RhostSpaceTools
+&RSPACE_DYN RhostSpaceTools=$+rspace/dyn *:@pemit %#=[u(RSPACE_DYN_MSG[u(rspace_dyn_fun,%0)],%0)];@break [r(1)];@dolist [setr(0,iter(get([v(ROOM_DB)]/dynamic_rooms),ifelse(match(con(##),#-1),##)))]=@destroy/purge ##;&DYNAMIC_ROOMS [v(ROOM_DB)]=[setdiff(get([v(ROOM_DB)]/dynamic_rooms),%q0)]
+&RSPACE_LIST RhostSpaceTools=$+rspace/list:@pemit %#=RSpace: Current statistics of RSpace%r[repeat(-,78)]%rMax Coordinates (MAX-COORDS): X:[ljust(first(get([v(room_parent)]/max-coords))%,,5)] Y:[ljust(extract(get([v(room_parent)]/max-coords),1,1)%,,5)] Z:[ljust(last(get([v(room_parent)]/max-coords))%,,5)]%rMin Coordinates (MIN-COORDS): X:[ljust(first(get([v(room_parent)]/min-coords))%,,5)] Y:[ljust(extract(get([v(room_parent)]/min-coords),1,1)%,,5)] Z:[ljust(last(get([v(room_parent)]/min-coords))%,,5)]%rNumber of Static Rooms Defined (STATIC_ROOMS): [words(get([v(room_db)]/static_rooms))]%rNumber of Dynamic Rooms Defined (DYNAMIC_ROOMS): [words(get([v(room_db)]/dynamic_rooms))]%rNumber of coordinate based descriptions (DESC.X-Y-Z): [words(lattr([v(room_parent)]/desc.*-*-*))]%rNumber of coordinate based names (NAME.X-Y-Z): [words(lattr([v(room_parent)]/name.*-*-*))]%r[repeat(-,78)]%rDefault Name (DEFAULT_NAME): [get([v(room_parent)]/default_name)]%rDefault Description (DEFAULT_DESC): [get([v(room_parent)]/default_desc)]%rDefault RXLevels (SET_RXLEVELS): [default([v(room_parent)]/set_rxlevels,*NONE*)]%rDefault TXLevels (SET_TXLEVELS): [default([v(room_parent)]/set_txlevels,*NONE*)]%rNumber of override coordinate mappings (MAP_OMIT.X-Z): [words(lattr([v(room_db)]/map_omit.*-*))]%r[repeat(-,78)]
+&RSPACE_DESC RhostSpaceTools=$+rspace/desc *:@pemit %#=[u(RSPACE_DESC_MSG[u(rspace_desc_fun,%0)],%0)];@break [r(1)];@eval [u(rspace_desc_modify,%0)]
+&RSPACE_STATIC RhostSpaceTools=$+rspace/static *:@pemit %#=[u(RSPACE_STATIC_MSG[u(rspace_static_fun,%0)],%0)];@break [r(1)];@eval [u(rspace_static_modify,%0)]
+&RSPACE_MAP RhostSpaceTools=$+rspace/map *:@pemit %#=[u(rspace_map_msg[u(rspace_map_fun,%0)],%0)];@break [r(1)];@eval [u(rspace_map_modify,%0)]
+&RSPACE_SET RhostSpaceTools=$+rspace/set *:@pemit %#=[u(rspace_set_msg[u(rspace_set_fun,%0)],%0)];@break [r(1)];@eval [u(rspace_set_modify,%0)]
+&RSPACE_DYN_FUN RhostSpaceTools=[match(v(rspace_dyn_switches),%0)]
+&RSPACE_DYN_SWITCHES RhostSpaceTools=list flush-cache
+&RSPACE_SHIFT RhostSpaceTools=$rspace/shift *:@@ shift the player to the target coordinates
+&RSPACE_DYN_MSG0 RhostSpaceTools=[u(rspace_deferror,%0,+rspace/dyn,v(rspace_dyn_switches))]
+&RSPACE_DYN_MSG1 RhostSpaceTools=RSpace: Listing all rooms currently being used in rspace:%r[center(- Static Rooms -,78,-)]%r[edit(columns(iter(get([v(room_db)]/static_rooms),[ljust(##@,13,.)][setq(9,get(##/coords))]@X:[ljust(first(%q9),5,@)]Y:[ljust(extract(%q9,2,1),5,@)]Z:[ljust(last(%q9),5,@)]),35,2,l,0,0,|%b,%b|%b,%b%b|,1,,,1),@,%b)]%r[center(- Dynamic Rooms -,78,-)]%r[edit(columns(iter(get([v(room_db)]/dynamic_rooms),[ljust(##@,13,.)][setq(9,get(##/coords))][ifelse(match(con(##),#-1),@Recycling,@X:[ljust(first(%q9),5,@)]Y:[ljust(extract(%q9,2,1),5,@)]Z:[ljust(last(%q9),5,@)])]),35,2,l,0,0,|%b,%b|%b,%b%b|,1,,,1),@,%b)]%r[repeat(-,78)][setq(1,1)]
+&RSPACE_DYN_MSG2 RhostSpaceTools=RSpace: Flushing out all dynamic space rooms not currently being utilized.%rCurrent: [wrap(get([v(room_db)]/dynamic_rooms),69,l,,,9)]%rPurged: [wrap(setr(9,iter(get([v(room_db)]/dynamic_rooms),ifelse(match(con(##),#-1),##))),70,l,,,8)]%rUpdated: [ifelse(!$r(9),EMPTY,wrap(setdiff(get([v(room_db)]/dynamic_rooms),%q9),69,l,,,9))][setq(1,1)]
+&RSPACE_DESC_SWITCHES RhostSpaceTools=list display set edit clear
+&RSPACE_DESC_MSG0 RhostSpaceTools=[u(rspace_deferror,%0,+rspace/desc,v(rspace_desc_switches))]
+&RSPACE_DESC_MSG1 RhostSpaceTools=RSpace: Listing all coordinates with specific descriptions:%r[repeat(-,78)]%r[setq(9,iter(lattr([v(room_parent)]/desc.*-*-*),X:[edit(edit(after(##,.),-,@Y:,1),-,@Z:)]))][ifelse(!$r(9),center(- No Individual Descs -,78),edit(columns(%q9,16,4,l,0,0,|%b,%b|%b,%b%b|,0,,,1),@,%b))]%r[repeat(-,78)][setq(1,1)]
+&RSPACE_DESC_FUN RhostSpaceTools=[match(v(rspace_desc_switches),first(%0))]
+&RSPACE_DESC_RANGECHK RhostSpaceTools=[setq(9,get([v(room_parent)]/max-coords))][setq(8,get([v(room_parent)]/min-coords))][setq(7,rest(%0))][cand(eq(words(%q7),3),between(first(%q8),first(%q9),first(%q7),1),between(extract(%q8,1,1),extract(%q9,1,1),extract(%q7,1,1),1),between(last(%q8),last(%q9),last(%q7),1))]
+&RSPACE_DESC_MSG2 RhostSpaceTools=RSpace: [switch([hasattr([v(room_parent)]/desc.[edit(rest(%0),%b,-)])][u(rspace_desc_rangechk,%0)][eq(words(rest(%0)),3)],111,Displaying description for coordinates at [edit(rest(%0),%b,%,)]:%r[repeat(-,78)]%r[get([v(room_parent)]/desc.[edit(rest(%0),%b,-)])]%r[repeat(-,78)],011,No description currently set for these coordinates.,*0,Syntax: +rspace/desc display X Y Z,001,Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].)][setq(1,1)]
+&RSPACE_SPAWN RhostSpaceTools=$+rspace/spawn:@pemit %#=Spawning new RSpace.;@eval [u([parent(me)]/do_spawnroom)];@pemit %#=Spawning complete. %[Static room:[r(9)] / Main Space:[r(8)] / Room DB: [r(7)]%]
+&RSPACE_HELP RhostSpaceTools=$+rspace/help*:@pemit %#=[u(rspace_help_msg[!!$v(0)],%0)]
+&RSPACE_VERSION RhostSpaceTools=0.1.0
+&RSPACE_DESC_MSG3 RhostSpaceTools=[setq(1,1)]RSpace: [switch([gt(pos(=,rest(%0)),0)][!!$after(rest(%0),=)][u(rspace_desc_rangechk,before(%0,=))],0*,Syntax: +rspace/desc set X Y Z=<desc>,10?,RSpace: 'Use +rspace/desc clear' X Y Z to clear the description.,110,RSpace: Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,111,[setq(1,0)]RSpace: Description set for coordinates at [setq(9,rest(before(%0,=)))]X:[first(%q9)] Y:[extract(%q9,2,1)] Z:[extract(%q9,3,1)].)]
+&RSPACE_DESC_MODIFY RhostSpaceTools=[u([v(FX_DB)]/rspace_desc_modify,%0)]
+&RSPACE_DESC_MSG4 RhostSpaceTools=[setq(1,1)]RSpace: [switch([cand(gt(pos(=,rest(%0)),0),gt(pos(/,after(%0,=)),0))][u(rspace_desc_rangechk,before(%0,=))],0*,Syntax: +rspace/desc edit X Y Z=<old>/<new>,RSpace: Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,11,[setq(1,0)]RSpace: Description edited at coordinates [setq(9,rest(before(%0,=)))]X:[first(%q9)] Y:[extract(%q9,2,1)] Z:[extract(%q9,3,1)].)]
+&RSPACE_DESC_MSG5 RhostSpaceTools=[setq(1,1)]RSpace: [ifelse(u(rspace_desc_rangechk,%0),[setq(1,0)]Description at coordinates [setq(9,rest(%0))]X:[first(%q9)] Y:[extract(%q9,2,1)] Z:[extract(%q9,3,1)] has been cleared.,Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].)]
+&RSPACE_STATIC_SWITCHES RhostSpaceTools=list edit add remove
+&RSPACE_DEFERROR RhostSpaceTools=[setq(1,1)]RSpace: Option '[first(secure(%0))]' unrecognized for command %1. Use one of: %2
+&RSPACE_STATIC_MSG0 RhostSpaceTools=[u(rspace_deferror,%0,+rspace/static,v(rspace_static_switches))]
+&RSPACE_STATIC_FUN RhostSpaceTools=[match(v(rspace_static_switches),first(%0))]
+&RSPACE_STATIC_MSG1 RhostSpaceTools=[setq(1,1)][list(lnum(0,sub(ceil(fdiv(words(setr(9,get([v(room_db)]/static_rooms))),2)),1)),printf(| $-10s $-25s| $-10s $-25s|,setr(8,extract(%q9,add(1,mul(##,2)),1)),ifelse(!!$r(8),X:[edit(edit(edit(get(%q8/coords),%b,@Y:,1),%b,@Z:),@,%b)]),setr(7,extract(%q9,add(2,mul(##,2)),1)),ifelse(!!$r(7),X:[edit(edit(edit(get(%q7/coords),%b,@Y:,1),%b,@Z:),@,%b)])),,RSpace: Listing all static rooms being utilized in rspace:%r+[ljust(- Room ---- Coordinates -,37,-)]+[ljust(- Room ---- Coordinates -,37,-)]+)]+[repeat(-,37)]+[repeat(-,37)]+
+&RSPACE_STATIC_MSG2 RhostSpaceTools=[setq(1,1)]RSpace: [switch([gt(match(get([v(room_db)]/static_rooms),rest(before(%0,=))),0)][cand(eq(words(after(%0,=)),3),u(rspace_desc_rangechk,X [after(%0,=)]))][cand(!!$setr(8,after(%0,=)),!setr(7,ladd(iter(get([v(room_db)]/static_rooms),strmatch(%q8,get(##/coords))))))][and(pos(=,rest(%0)),!!$rest(%0))],*0,Syntax: +rspace/static edit <dbref# of room/object>=<new-coordinates>,0*,Target dbref# is not an existing static room.,10*,[ifelse(eq(3,words(after(%0,=))),Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,Syntax: +rspace/static edit <dbref# of room/object>=<new coordinates>)],110*,[ifelse(r(7),Coordinates [after(%0,=)] already in use.,Use 'remove' option to remove static room.)],1111,Static room [rest(before(%0,=))] modified with new coordinates [after(%0,=)][setq(1,0)].)]
+&RSPACE_STATIC_MSG3 RhostSpaceTools=[setq(1,1)]RSpace: [switch([cand(setr(5,or(hastype(setr(6,rest(before(%0,=))),room),hastype(%q6,thing))),eq(match(get([v(room_db)]/static_rooms),%q6),0))][cand(eq(words(after(%0,=)),3),u(rspace_desc_rangechk,X [after(%0,=)]))][setq(8,after(%0,=))][!setr(7,ladd(iter(get([v(room_db)]/static_rooms),strmatch(%q8,get(##/coords)))))],?0*,[ifelse(eq(words(after(%0,=)),3),Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,Syntax: +rspace/static add <dbref# of room/object>=<coordinates>)],0*,[ifelse(%q5,Dbref [rest(before(%0,=))] already defined as static room.,Dbref [rest(before(%0,=))] not a room/object.)],110,Coordinates [after(%0,=)] already in use.,111,New static room [rest(before(%0,=))] defined with coordinates [after(%0,=)].[setq(1,0)])]
+&RSPACE_STATIC_MSG4 RhostSpaceTools=[setq(1,1)]RSpace: [switch([eq(words(%0),2)][!!match(get([v(room_db)]/static_rooms),last(%0))],0*,Syntax: +rspace/static remove <dbref#>.,10,Dbref [last(%0)] not defined as a static room.,11,Static room [last(%0)] has been removed from the static room list.[setq(1,0)])]
+&RSPACE_STATIC_MODIFY RhostSpaceTools=[u([v(FX_DB)]/rspace_static_modify,%0)]
+&RSPACE_SET_SWITCHES RhostSpaceTools=max-coords min-coords default_name default_desc rxlevels txlevels
+&RSPACE_SET_FUN RhostSpaceTools=[match(v(rspace_set_switches),first(before(%0,=)))]
+&RSPACE_SET_MSG0 RhostSpaceTools=[u(rspace_deferror,%0,+rspace/set,v(rspace_set_switches))]
+&RSPACE_SET_MSG1 RhostSpaceTools=[setq(1,1)]RSpace: [switch([eq(words(%0),4)][setq(9,rest(%0))][setq(8,get([v(room_parent)]/min-coords))][cand(gte(first(%q9),first(%q8)),gte(extract(%q9,2,1),extract(%q8,2,1)),gte(last(%q9),last(%q8)))],0*,Syntax: +rspace/set max-coords X Y Z,10,Coordinates specified not greater than min coordinates [get([v(room_parent)]/min-coords)].,11,[setq(1,0)]New max coordinates set with [rest(%0)] %[old coodinates were [get([v(room_parent)]/max-coords)]%])]
+&RSPACE_SET_MSG2 RhostSpaceTools=[setq(1,1)]RSpace: [switch([eq(words(%0),4)][setq(9,rest(%0))][setq(8,get([v(room_parent)]/max-coords))][cand(lte(first(%q9),first(%q8)),lte(extract(%q9,2,1),extract(%q8,2,1)),lte(last(%q9),last(%q8)))],0*,Syntax: +rspace/set min-coords X Y Z,10,Coordinates specified not less than max coordinates [get([v(room_parent)]/max-coords)].,11,[setq(1,0)]New min coordinates set with [rest(%0)] %[old coodinates were [get([v(room_parent)]/min-coords)]%])]
+&RSPACE_SET_MSG3 RhostSpaceTools=[setq(1,1)]RSpace: [ifelse(!!$after(%0,=),Default name established for grid system.[setq(1,0)],Syntax: +rspace/set default_name=<new name>)]
+&RSPACE_SET_MSG4 RhostSpaceTools=[setq(1,1)]RSpace: [ifelse(!!$after(%0,=),Default description established for grid system.[setq(1,0)],Syntax: +rspace/set default_desc=<new description>)]
+&RSPACE_SET_MSG5 RhostSpaceTools=[setq(1,1)]RSpace: [switch([!!$after(%0,=)][eq(words(after(%0,=)),words(setinter(lcstr(after(%0,=)),lcstr(listrlevels()))))],0*,Syntax: +rspace/set rxlevels=<reality level list>,?0,Unrecognized realities specified were: [setdiff(lcstr(after(%0,=)),lcstr(listrlevels()))].,11,New RX realities specified for dynamic space system.[setq(1,0)])]
+&RSPACE_SET_MSG6 RhostSpaceTools=[setq(1,1)]RSpace: [switch([!!$after(%0,=)][eq(words(after(%0,=)),words(setinter(lcstr(after(%0,=)),lcstr(listrlevels()))))],0*,Syntax: +rspace/set txlevels=<reality level list>,?0,Unrecognized realities specified were: [setdiff(lcstr(after(%0,=)),lcstr(listrlevels()))].,11,New TX realities specified for dynamic space system.[setq(1,0)])]
+&RSPACE_SET_MODIFY RhostSpaceTools=[u([v(FX_DB)]/rspace_set_modify,%0)]
+&RSPACE_NAME RhostSpaceTools=$+rspace/name *:@pemit %#=[u(RSPACE_NAME_MSG[u(rspace_name_fun,%0)],%0)];@break [r(1)];@eval [u(rspace_name_modify,%0)]
+&RSPACE_NAME_SWITCHES RhostSpaceTools=list display set edit clear
+&RSPACE_NAME_MSG0 RhostSpaceTools=[u(rspace_deferror,%0,+rspace/name,v(rspace_name_switches))]
+&RSPACE_NAME_MSG1 RhostSpaceTools=RSpace: Listing all coordinates with specific names:%r[repeat(-,78)]%r[setq(9,iter(lattr([v(room_parent)]/name.*-*-*),X:[after(##,.)]))][ifelse(!$r(9),center(- No Individual Names -,78),edit(columns([edit(edit(%q9,-,@Y:,1),-,@Z:)],16,4,l,0,0,|%b,%b|%b,%b%b|,0,,,1),@,%b))]%r[repeat(-,78)][setq(1,1)]
+&RSPACE_NAME_FUN RhostSpaceTools=[match(v(rspace_name_switches),first(%0))]
+&RSPACE_NAME_MSG2 RhostSpaceTools=RSpace: [switch([hasattr([v(room_parent)]/name.[edit(rest(%0),%b,-)])][u(rspace_desc_rangechk,%0)][eq(words(rest(%0)),3)],111,Displaying name for coordinates at [edit(rest(%0),%b,%,)]:%r[repeat(-,78)]%r[get([v(room_parent)]/name.[edit(rest(%0),%b,-)])]%r[repeat(-,78)],011,No name currently set for these coordinates.,*0,Syntax: +rspace/name display X Y Z,001,Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].)][setq(1,1)]
+&RSPACE_NAME_MSG3 RhostSpaceTools=[setq(1,1)]RSpace: [switch([gt(pos(=,rest(%0)),0)][!!$after(rest(%0),=)][u(rspace_desc_rangechk,before(%0,=))],0*,Syntax: +rspace/name set X Y Z=<desc>,10?,RSpace: 'Use +rspace/name clear' X Y Z to clear the name.,110,RSpace: Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,111,[setq(1,0)]RSpace: Name set for coordinates at [setq(9,rest(before(%0,=)))]X:[first(%q9)] Y:[extract(%q9,2,1)] Z:[extract(%q9,3,1)].)]
+&RSPACE_NAME_MODIFY RhostSpaceTools=[u([v(FX_DB)]/rspace_name_modify,%0)]
+&RSPACE_NAME_MSG4 RhostSpaceTools=[setq(1,1)]RSpace: [switch([cand(gt(pos(=,rest(%0)),0),gt(pos(/,after(%0,=)),0))][u(rspace_desc_rangechk,before(%0,=))],0*,Syntax: +rspace/name edit X Y Z=<old>/<new>,RSpace: Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,11,[setq(1,0)]RSpace: Name edited at coordinates [setq(9,rest(before(%0,=)))]X:[first(%q9)] Y:[extract(%q9,2,1)] Z:[extract(%q9,3,1)].)]
+&RSPACE_NAME_MSG5 RhostSpaceTools=[setq(1,1)]RSpace: [ifelse(u(rspace_desc_rangechk,%0),[setq(1,0)]Name at coordinates [setq(9,rest(%0))]X:[first(%q9)] Y:[extract(%q9,2,1)] Z:[extract(%q9,3,1)] has been cleared.,Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].)]
+&RSPACE_MAP_SWITCHES RhostSpaceTools=list set resize
+&RSPACE_MAP_FUN RhostSpaceTools=[match(v(rspace_map_switches),first(%0))]
+&RSPACE_MAP_MSG0 RhostSpaceTools=[u(rspace_deferror,%0,+rspace/map,v(rspace_map_switches))]
+&RSPACE_MAP_MSG1 RhostSpaceTools=[setq(1,1)][list(setr(6,lattr([setq(7,extract(get([v(room_parent)]/min-coords),2,1))][setr(9,v(room_db))]/map_omit.*)),ifelse(pos(#,%q9),edit(columns(u(rspace_map_citer,##),22,3,l,0,0,|%b%b,%b|%b,%b%b|,,,,1),@,%b)%r[repeat(-,78)]),,RSpace: Listing all coordinates with walls (grouped by Y-coordinate):%r[repeat(-,78)])][ifelse(!$r(6),Rspace: Listing all coordinates with walls:%r[repeat(-,78)]%r[center(- No Walls Found -,78)]%r[repeat(-,78)])]
+&RSPACE_MAP_CITER RhostSpaceTools=[setq(8,after(edit(edit(%0,.-,.~),--,-~),.))][edit(citer([get(%q9/%0)],ifelse(pos(#,##),X:[edit(%q8,-,@Y:[add(%q7,#@,-1)]@Z:)])),~,-)]
+&RSPACE_MAP_MSG2 RhostSpaceTools=[setq(1,1)]RSpace: [switch([eq(4,words(before(%0,=)))][!!match(wall !wall,after(%0,=))][u(rspace_desc_rangechk,before(%0,=))],0*,Syntax: +rspace/map set X Y Z=<wall|!wall>,10*,Unrecognized term. Must use WALL or !WALL.,110,Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,111,Coordinates [rest(before(%0,=))] established to be [ifelse(pos(!,after(%0,=)),not a wall,wall)].[setq(1,0)])]
+&RSPACE_MAP_MODIFY RhostSpaceTools=[u([v(FX_DB)]/rspace_map_modify,%0)]
+&RSPACE_MAP_MSG3 RhostSpaceTools=[setq(1,1)]RSpace: Re-mapping wall-map coordinates where required:%r[repeat(-,78)]%r[setq(8,add(1,abs(sub(extract(get([v(room_parent)]/max-coords),2,1),extract(get([v(room_parent)]/min-coords),2,1)))))][setq(9,iter(lattr([v(room_db)]/map_omit.*),ifelse(eq(strlen(get([v(room_db)]/##)),%q8),,##)))][ifelse(words(%q9),[space(5)][words(%q9)] X/Z Coordinate[ifelse(gt(words(%q9),1),s)] resized.[setq(1,0)],No Coordinate resizing necessary)]%r[repeat(-,78)]
+&RSPACE_HELP_MSG0 RhostSpaceTools=Rspace: Main Help%r[repeat(-,78)]%r[ljust(+rspace/help %[topic%],45,.)] This help%r[ljust(+rspace/dyn %[list|flush-cache%],45,.)] List/Wipe rooms in dynamic space.%r+rspace/set %[max-coords|min-coords|%r[space(13)]default_name|rxlevels|txlevels%]. set/change globals.%r[ljust(+rspace/static %[list|edit|add|remove%],45,.)] modify static rooms.%r[ljust(+rspace/desc %[list|display|set|edit|clear%],45,.)] Modify desc coordinates.%r[ljust(+rspace/name %[list|display|set|edit|clear%],45,.)] Modify name coordinates.%r[ljust(+rspace/map %[list|set|resize%],45,.)] Manipulate map WALLS.%r[ljust(+rspace/switch %[<rspace dbref#>%],45,.)] List or switch to Rspace.%r[ljust(+rspace/spawn,45,.)] Spawn New RSpace.%r[ljust(+rspace/label %[<string>%],45,.)] Set a label for the space.%r[ljust(+rspace/list,45,.)] List current space values.%r[repeat(-,78)]
+&RSPACE_HELP_MSG1 RhostSpaceTools=[u(RSPACE_HELP_MSG1_[match(v(rspace_help_switches),trim(%0))],%0)]
+&RSPACE_HELP_SWITCHES RhostSpaceTools=help dyn set static desc name map switch spawn label list
+&RSPACE_HELP_MSG1_0 RhostSpaceTools=RSpace: [u(rspace_deferror,%0,+rspace/help,v(rspace_help_switches))]
+&RSPACE_HELP_MSG1_1 RhostSpaceTools=RSpace: Sub-topic 'help':%r[repeat(-,78)]%rThis topic breaks down help for the dynamic space%rsystem. %rAvailable topics: [v(rspace_help_switches)]%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_2 RhostSpaceTools=RSpace: Sub-topic 'dyn':%r[repeat(-,78)]%rThe dyn subfunction to +rspace is used to list all currently%rused dynamic space rooms or clear out the existing dynamic%rspace rooms currently allocated.%r%rSyntax #1: +rspace/dyn list%rThis lists all the rooms currently allocated to dynamic space.%r%rSyntax #2: +rspace/dyn flush-cache%rThis will purge all dynamic rooms not currently utilized.%rAny dynamic room currently in-use will not be wiped.%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_3 RhostSpaceTools=RSpace: Sub-topic 'set':%r[repeat(-,78)]%rThe set subfunction to +rspace is used to set various global definitions%rsuch as max and min coordinates and various descriptions.%r%rSyntax #1: +rspace/set max-coords=X Y Z%rThis sets the max coordinates of the X, Y, and Z axis.%r%rSyntax #2: +rspace/set min-coords=X Y Z%rThis sets the min coordinates of the X, Y, and Z axis.%r%rSyntax #3: +rspace/set default_name=<name>%rThis sets the default global name for all dynamic rooms.%rIndividual names will override this value.%r%rSyntax #4: +rspace/set default_desc=<description>%rThis sets the default global description for all dynamic rooms.%rIndividual descriptions will override this value.%r%rSyntax #5: +rspace/set rxlevels=<list of realities>%rThis sets the VALID realities for rxlevels for dynamic space.%r%rSyntax #6: +rspace/set txlevels=<list of realities>%rThis sets the VALID realities for txlevels for dynamic space.%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_4 RhostSpaceTools=RSpace: Sub-topic 'static':%r[repeat(-,78)]%rThe static subfunction to +rspace is used to modify the%rstatic room definitions of the dynamic space grid.%r%rSyntax #1: +rspace/static list%rThis lists all static rooms and their coordinates for dynamic space.%r%rSyntax #2: +rspace/static edit <dbref#>=<new coordinates>%rThis specifies new coordinates for the specified static room.%r%rSyntax #3: +rspace/static add <dbref#>=<coordinates>%rThis sets up a new object/room as a static location.%r%rSyntax #4: +rspace/static remove <dbref#>%rThis removes the location as a static room from dynamic space.%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_5 RhostSpaceTools=RSpace: Sub-topic 'desc':%r[repeat(-,78)]%rThe subtopic desc is used to set/modify individual%rdescriptions based on a coordinate system. These are 'static' descriptions%rtied directly to a coordinate, and not a specific dbref# in any way.%r%rSyntax #1: +rspace/desc list%rList all coordinates with unique descriptions.%r%rSyntax #2: +rspace/desc display X Y Z%rDisplay description for coordinates at given X, Y, and Z axis.%r%rSyntax #3: +rspace/desc set X Y Z=<description>%rSet a description for the specified coordinates.%r%rSyntax #4: +rspace/desc edit X Y Z=<old>/<new>%rModify description for specified coordinates from old to new.%r%rSyntax #5: +rspace/desc clear X Y Z%rRemove the description for the specified coordinates.%r%rNote: To escape out functionality, surround string in %[lit%(%)%].%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_6 RhostSpaceTools=RSpace: Sub-topic 'name':%r[repeat(-,78)]%rThe subtopic name is used to set/modify individual%rnames based on a coordinate system. These are 'static' names%rtied directly to a coordinate, and not a specific dbref# in any way.%r%rSyntax #1: +rspace/name list%rList all coordinates with unique names.%r%rSyntax #2: +rspace/name display X Y Z%rDisplay name for coordinates at given X, Y, and Z axis.%r%rSyntax #3: +rspace/name set X Y Z=<name>%rSet a name for the specified coordinates.%r%rSyntax #4: +rspace/name edit X Y Z=<old>/<new>%rModify name for specified coordinates from old to new.%r%rSyntax #5: +rspace/name clear X Y Z%rRemove the name for the specified coordinates.%r%rNote: To escape out functionality, surround string in %[lit()%].%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_7 RhostSpaceTools=RSpace: Sub-topic 'map':%r[repeat(-,78)]%rThis subtopic establishes or removes 'walls' from grid coordinates%rthat are inside the dynamic space room. These 'walls' will disallow%rany movement to those coordinates if established.%rThis is intended to help mimic a complex maze system.%r%rSyntax #1: +rspace/map list%rList all grid coordinates that contain walls.%r%rSyntax #2: +rspace/map X Y Z=WALL%rEstablish a 'wall' as the specified coordinates.%r%rSyntax #3: +rspace/map X Y Z=!WALL%rRemove the 'wall' at the specified coordinates.%r%rSyntax #4: +rspace/map resize%rThis will 're-size' all the wall locations to match the current range of%rMAX and MIN coordinates for the grid system. You should always issue a%r+rspace/map resize when you change the MAX and MIN coordinates of dynamic%rspace or the grid system may not match up with the walls you specified.%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_8 RhostSpaceTools=RSpace: Sub-topic 'switch':%r[repeat(-,78)]%rThis subtopic lists or changes the current dynamic space system that%ryou wish to alter, list, and/or display.  If no arguments specified,%rit will return something like this:%r%rListing%bDynamic%bSpaces%bCurrently%bDefined:%r+Active%b-%bLabel%b[repeat(-,10)]%bRSpace%b[repeat(-,3)]%bRoomDB%b[repeat(-,3)]%bStatic%b[repeat(-,3)]%bDynamic%b[repeat(-,9)]+%r|[space(9)]1st%bSpace[space(8)]#1293[space(6)]#1280[space(6)]1[space(10)]0[space(16)]|%r|[space(3)]*[space(5)]The%bDesert[space(7)]#1295[space(6)]#1297[space(6)]2[space(10)]2[space(16)]|%r+[repeat(-,76)]+%rKey:%bSelect%bbased%bon%bRSpace%bdbref#%bto%bswitch%bbetween%brealities.%r%rIf you wish to change to a different reality, specify the dbref# %runder 'RSpace' to select.  
+&RSPACE_HELP_MSG1_9 RhostSpaceTools=RSpace: Sub-topic 'spawn':%r[repeat(-,78)]%rThis subtopic will spawn a new reality level.  Sadly you can't delete them.%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_10 RhostSpaceTools=RSpace: Sub-topic 'label':%r[repeat(-,78)]%rThis will label the currently selected rhost space with the specified%rlabel.  The lbael should be an identifier of what the space is.%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_11 RhostSpaceTools=RSpace: Sub-topic 'list':%r[repeat(-,78)]%rThis lists current settings of the currently selected rhost space reality%r[repeat(-,78)]
+&RSPACE_SWITCH RhostSpaceTools=$+rspace/switch*:@pemit %#=[u(rspace_switch_do[!!$v(0)],%0)];@break [r(1)];@eval [u([v(fx_db)]/rspace_switch_issue,%0)]
+&RSPACE_SWITCH_DO0 RhostSpaceTools=[setq(1,1)][list(v(rspace_listspaces),[printf(| %b $-5s $-16s $-10s $-10s $-10s $-16s |,ifelse(match(v(room_parent),first(##)),*),default([first(##)]/default_label,Unlabeled),first(##),rest(##),words(get([rest(##)]/static_rooms)),words(get([rest(##)]/dynamic_rooms)))],|,Listing Dynamic Spaces Currently Defined:%r+[ljust(Active - Label ---------- RSpace --- RoomDB --- Static --- Dynamic --,76,-)]+)]+[repeat(-,76)]+%rKey: Select based on RSpace dbref# to switch between realities.
+&RSPACE_SWITCH_DO1 RhostSpaceTools=[setq(1,0)][ifelse(match(v(rspace_listspaces),[setr(9,trim(%0))] #*,|),RSpace: Switching to Reality %q9[setq(8,rest(grab(v(rspace_listspaces),%q9 #*,|)))].,RSpace: Target %q9 is not a valid R-Space dbref#. +rspace/switch to list.[setq(1,1)])]
+&RSPACE_SWITCH_DO0_A RhostSpaceTools=[setq(1,1)][list(v(rspace_listspaces),[printf(| %b $-5s $-16s $-10s $-10s $-10s $-16s |,ifelse(match(v(room_parent),first(##)),*),default([first(##)]/default_label,Unlabeled),first(##),rest(##),words(get([rest(##)]/static_rooms)),words(get([rest(##)]/dynamic_rooms)))],|,Listing Dynamic Spaces Currently Defined:%r+[ljust(Active - Label ---------- RSpace --- RoomDB --- Static --- Dynamic --,76,-)]+)]+[repeat(-,76)]+%rKey: Select based on RSpace dbref# to switch between realities.
+&RSPACE_LABEL RhostSpaceTools=$+rspace/label*:@pemit %#=[ifelse(!!$v(0),New label set for reality [v(room_parent)] of [secure(%0)].[setq(1,0)],Label for reality [v(room_parent)] is: [default([v(room_parent)]/default_label,Unlabeled)].[setq(1,1)])];@break [r(1)];&DEFAULT_LABEL [v(room_parent)]=[trim(secure(%0))]
+@set RhostSpaceTools=SAFE
+@set RhostSpaceTools=INHERIT
+@set RhostSpaceTools=SIDEFX
+@set RhostSpaceTools=command
+@@
+@@ RhostSpace Tools FX object
+@@
+@create RhostSpaceFX
+&RSPACE_DESC_MODIFY RhostSpaceFX=[switch(match(set edit clear,first(%0)),1,set(v(room_parent),DESC.[edit(rest(before(%0,=)),%b,-)]:[after(%0,=)]),2,set(v(room_parent),DESC.[setr(8,edit(rest(before(%0,=)),%b,-))]:[edit(get([v(room_parent)]/DESC.%q8),before(after(%0,=),/),after(after(%0,=),/))]),3,set(v(room_parent),DESC.[edit(rest(%0),%b,-)]:))]
+&RSPACE_STATIC_MODIFY RhostSpaceFX=[switch(match(edit add remove,first(%0)),1,set(rest(before(%0,=)),COORDS:[after(%0,=)]),2,[set(v(room_db),STATIC_ROOMS:[setunion(get([v(room_db)]/static_rooms),rest(before(%0,=)))])][set(rest(before(%0,=)),COORDS:[after(%0,=)])][set(v(room_db),DYNAMIC_ROOMS:[setdiff(get([v(room_db)]/dynamic_rooms),rest(before(%0,=)))])],3,set(v(room_db),STATIC_ROOMS:[setdiff(get([v(room_db)]/static_rooms),last(%0))]))]
+&RSPACE_SET_MODIFY RhostSpaceFX=[ifelse(match(max-coords min-coords default_name default_desc rxlevels txlevels,setr(9,first(before(%0,=)))),[setq(9,ifelse(match(rxlevels txlevels,%q9),set_%q9,%q9))][set(v(room_parent),%q9:[ifelse(pos(=,%0),after(%0,=),rest(%0))])])]
+&RSPACE_NAME_MODIFY RhostSpaceFX=[switch(match(set edit clear,first(%0)),1,set(v(room_parent),NAME.[edit(rest(before(%0,=)),%b,-)]:[after(%0,=)]),2,set(v(room_parent),NAME.[setr(8,edit(rest(before(%0,=)),%b,-))]:[edit(get([v(room_parent)]/NAME.%q8),before(after(%0,=),/),after(after(%0,=),/))]),3,set(v(room_parent),NAME.[edit(rest(%0),%b,-)]:))]
+&RSPACE_MAP_MODIFY RhostSpaceFX=[switch(match(set resize,first(%0)),1,[setq(9,rest(before(%0,=)))][setq(8,[first(%q9)]-[last(%q9)])][setq(7,ifelse(hasattr(v(room_db),map_omit.%q8),get([v(room_db)]/map_omit.%q8),repeat(.,add(1,sub(extract(get([v(room_parent)]/max-coords),2,1),extract(get([v(room_parent)]/min-coords),2,1))))))][setr(5,add(abs(sub(extract(get([v(room_parent)]/min-coords),2,1),extract(%q9,2,1))),1))][setq(6,creplace(%q7,%q5,ifelse(match(wall,after(%0,=)),#,.)))][ifelse(pos(#,%q6),,setq(6,))][set(v(room_db),MAP_OMIT.%q8:%q6)],2,[iter(%q9,[setq(7,strlen(get([v(room_db)]/##)))][setq(5,max(1,add(div(sub(%q8,%q7),2),1)))][setq(4,div(max(0,sub(%q7,%q8)),2))][set(v(room_db),##:[creplace(repeat(.,%q8),%q5,shr(shl(get([v(room_db)]/##),%q4),%q4))])])])]
+&DO_SPAWNROOM RhostSpaceFX=[setq(8,create(RhostSPACE,10))][parent(%q8,v(rhost_mainparent))][setq(9,dig(Dynamic Space - Home))][setq(%q9,float)][toggle(%q9,noglobparent)][parent(%q9,%q8)][setq(7,create(RhostSPACE RoomDB,10))][tel(%q7,%q8)][link(%q7,%q8)][set(%q7,STATIC_ROOMS:%q9)][set(v(fx_db),RSPACE_LISTSPACES:[setunion(get([v(fx_db)]/rspace_listspaces),%q8 %q7,|)])][set(%q9,COORDS:0 0 0)][set(%q8,ROOM_DB:%q7)][set(%q8,FX_DB:[v(FX_DB)])]
+&RSPACE_SWITCH_ISSUE RhostSpaceFX=[set(v(fx_db),ROOM_DB:%q8)][set(v(fx_db),ROOM_PARENT:%q9)]
+@set RhostSpaceFX=SAFE
+@set RhostSpaceFX=INHERIT
+@set RhostSpaceFX=SIDEFX
+@@
+@@ Exit Creation Time
+@@
+&VISLOCK me
+&VISLOCK2 me
+&PASSBOTH me
+@@
+@@ North
+@@
+@open North <N>;north;n=rhostspace
+@lock North <N>=VISLOCK/1
+@lock/DarkLock North <N>=VISLOCK/1
+@ExitTo North <N>=[u(SETUPROOM)]
+@Fail North <N>=You are unable to go that direction.
+&VISLOCK North <N>=[cand(u(mapcheck),!eq(extract(get([room(%#)]/min-coords),v(xyz-pos),1),extract(get([room(%#)]/max-coords),v(xyz-pos),1)),between(add(v(top-offset),extract(get([room(%#)]/min-coords),v(xyz-pos),1)),add(v(bottom-offset),extract(get([room(%#)]/max-coords),v(xyz-pos),1)),extract(get([room(%#)]/coords),v(xyz-pos),1)))]
+&TOP-OFFSET North <N>=-1
+&XYZ-POS North <N>=1
+&BOTTOM-OFFSET North <N>=0
+&VISLOCK2 North <N>=[between(add(v(top-offset2),extract(get([room(%#)]/min-coords),v(xyz-pos2),1)),add(v(bottom-offset2),extract(get([room(%#)]/max-coords),v(xyz-pos2),1)),extract(get([room(%#)]/coords),v(xyz-pos2),1)))]
+&PASSBOTH North <N>=[cand(u(vislock),u(vislock2))]
+&XYZ-ADD North <N>=1 0 0
+&CHECKCOORDS North <N>=[setq(1,get([room(%#)]/coords),currcoords)][setq(0,vadd(r(currcoords),v(xyz-add)),newcoords)]
+&STATIC_CHECK North <N>=[iter(get([get([room(%#)]/room_db)]/static_rooms),ifelse(strmatch(r(newcoords),get(##/coords)),setq(2,##,room_dbref)[ibreak(0)]))]
+&DYNAMIC_CHECK North <N>=[iter(get([get([room(%#)]/room_db)]/dynamic_rooms),ifelse(match(con(##),#-1),setq(2,##,room_dbref)[ibreak(0)]))]
+&SETUPROOM North <N>=[u(CHECKCOORDS)][null([u(static_check)][ifelse(!isdbref(r(room_dbref)),u(dynamic_used))][ifelse(!isdbref(r(room_dbref)),u(dynamic_check))][ifelse(!isdbref(r(room_dbref)),[setq(2,dig(get([room(%#)]/room_name)),room_dbref)][set(r(room_dbref),float)][parent(r(room_dbref),parent(room(%#)))][set(get([room(%#)]/room_db),DYNAMIC_ROOMS:[setunion(get([get([room(%#)]/room_db)]/dynamic_rooms),r(room_dbref))])][toggle(r(room_dbref),noglobparent)][set(r(room_dbref),COORDS:[r(newcoords)])][rxlevel(r(room_dbref),get([room(%#)]/set_rxlevels))][txlevel(r(room_dbref),get([room(%#)]/set_txlevels))],set(r(room_dbref),COORDS:[r(newcoords)]))])][r(room_dbref)]
+&DYNAMIC_USED North <N>=[iter(get([get([room(%#)]/room_db)]/dynamic_rooms),ifelse(and(!match(con(##),#-1),strmatch(r(newcoords),get(##/coords))),setq(2,##,room_dbref)[ibreak(0)]))]
+&MAPCHECK North <N>=[u(checkcoords)][cor(!$setr(9,mid(get([get([room(%#)]/room_db)]/map_omit.[edit(delextract(r(newcoords),2,1),%b,-)]),add(extract(get([room(%#)]/max-coords),2,1),extract(r(newcoords),2,1)),1)),!member(#,%q9))]
+&ISSUE_NEW_ROOM North <N>=[setq(2,dig(default(%1/room_name,Dynamic Space)),room_dbref)][set(r(room_dbref),float)][parent(r(room_dbref),%1))][set(get(%1/room_db),DYNAMIC_ROOMS:[setunion(get([get(%1/room_db)]/dynamic_rooms),r(room_dbref))])][toggle(r(room_dbref),noglobparent)][set(r(room_dbref),COORDS:%2)][rxlevel(r(room_dbref),get(%1/set_rxlevels))][txlevel(r(room_dbref),get(%1/set_txlevels))]
+&ISSUE_OLD_ROOM North <N>=[set(%3,COORDS:%2)][tel(%0,%3)]
+@set North <N>=DARK
+@set North <N>=INHERIT
+@set North <N>=SIDEFX
+@toggle North <N>=variable
+@fo me=&EXIT_NORTH RhostSpace=num(North <N>)
+@@ 
+@@ South
+@@
+@open South <S>;south;s=rhostspace
+@lock South=VISLOCK/1
+@lock/DarkLock South=VISLOCK/1
+&BOTTOM-OFFSET South=1
+&XYZ-POS South=1
+&TOP-OFFSET South=0
+&XYZ-ADD South=-1 0 0
+@set South=DARK
+@set South=INHERIT
+@set South=SIDEFX
+@toggle South=variable
+@@
+@@ East
+@@
+@open East <E>;east;e=rhostspace
+@lock East=VISLOCK/1
+@lock/DarkLock East=VISLOCK/1
+&XYZ-POS East=2
+&TOP-OFFSET East=-1
+&BOTTOM-OFFSET East=0
+&XYZ-ADD East=0 1 0
+@set East=DARK
+@set East=INHERIT
+@set East=SIDEFX
+@toggle East=variable
+@@
+@@ West
+@@
+@open West <W>;west;w=rhostspace
+@lock West=VISLOCK/1
+@lock/DarkLock West=VISLOCK/1
+&XYZ-POS West=2
+&BOTTOM-OFFSET West=1
+&TOP-OFFSET West=0
+&XYZ-ADD West=0 -1 0
+@set West=DARK
+@set West=INHERIT
+@set West=SIDEFX
+@toggle West=variable
+@@
+@@ NorthEast
+@@
+@open NorthEast <NE>;northeast;ne=rhostspace
+@lock NorthEast=PASSBOTH/1
+@lock/DarkLock NorthEast=PASSBOTH/1
+&TOP-OFFSET NorthEast=-1
+&TOP-OFFSET2 NorthEast=-1
+&BOTTOM-OFFSET NorthEast=0
+&BOTTOM-OFFSET2 NorthEast=0
+&XYZ-POS NorthEast=1
+&XYZ-POS2 NorthEast=2
+&XYZ-ADD NorthEast=1 1 0
+@set NorthEast=DARK
+@set NorthEast=INHERIT
+@set NorthEast=SIDEFX
+@toggle NorthEast=variable
+@@
+@@ NorthWest
+@@
+@open NorthWest <NW>;northwest;nw=rhostspace
+@lock NorthWest=PASSBOTH/1
+@lock/DarkLock NorthWest=PASSBOTH/1
+&TOP-OFFSET NorthWest=-1
+&TOP-OFFSET2 NorthWest=0
+&BOTTOM-OFFSET NorthWest=0
+&XYZ-POS NorthWest=1
+&XYZ-POS2 NorthWest=2
+&BOTTOM-OFFSET2 NorthWest=1
+&XYZ-ADD NorthWest=1 -1 0
+@set NorthWest=DARK
+@set NorthWest=INHERIT
+@set NorthWest=SIDEFX
+@toggle NorthWest=variable
+@@
+@@ SouthEast
+@@
+@open SouthEast <SE>;southeast;se=rhostspace
+@lock SouthEast=PASSBOTH/1
+@lock/DarkLock SouthEast=PASSBOTH/1
+&TOP-OFFSET SouthEast=0
+&TOP-OFFSET2 SouthEast=-1
+&BOTTOM-OFFSET SouthEast=1
+&BOTTOM-OFFSET2 SouthEast=0
+&XYZ-POS SouthEast=1
+&XYZ-POS2 SouthEast=2
+&XYZ-ADD SouthEast=-1 1 0
+@set SouthEast=DARK
+@set SouthEast=INHERIT
+@set SouthEast=SIDEFX
+@toggle SouthEast=variable
+@@
+@@ SouthWest
+@@
+@open SouthWest <SW>;southwest;sw=rhostspace
+@lock SouthWest=PASSBOTH/1
+@lock/DarkLock SouthWest=PASSBOTH/1
+&XYZ-POS2 SouthWest=2
+&TOP-OFFSET SouthWest=0
+&TOP-OFFSET2 SouthWest=0
+&BOTTOM-OFFSET SouthWest=1
+&BOTTOM-OFFSET2 SouthWest=1
+&XYZ-ADD SouthWest=-1 -1 0
+@set SouthWest=DARK
+@set SouthWest=INHERIT
+@set SouthWest=SIDEFX
+@toggle SouthWest=variable
+@@ 
+@@ Up
+@@
+@open Up <U>;up;u=rhostspace
+@lock Up <U>=VISLOCK/1
+@lock/DarkLock Up <U>=VISLOCK/1
+&XYZ-POS Up <U>=3
+&BOTTOM-OFFSET Up <U>=0
+&TOP-OFFSET Up <U>=-1
+&XYZ-ADD Up <U>=0 0 1
+@set Up <U>=DARK
+@set Up <U>=INHERIT
+@set Up <U>=SIDEFX
+@toggle Up <U>=variable
+@@
+@@ Down
+@@
+@open Down <D>;down;d=rhostspace
+@lock Down <D>=VISLOCK/1
+@lock/DarkLock Down <D>=VISLOCK/1
+&XYZ-POS Down <D>=3
+&BOTTOM-OFFSET Down <D>=1
+&TOP-OFFSET Down <D>=0
+&XYZ-ADD Down <D>=0 0 -1
+@set Down <D>=DARK
+@set Down <D>=INHERIT
+@set Down <D>=SIDEFX
+@toggle Down <D>=variable
+@@
+@@ finish up exits
+@@
+@fo me=&EXIT_NORTH RhostSpaceFX=num(North <N>)
+@parent South <S>=North <N>
+@parent East <E>=North <N>
+@parent West <W>=North <N>
+@parent NorthEast=North <N>
+@parent NorthWest=North <N>
+@parent SouthEast=North <N>
+@parent SouthWest=North <N>
+@parent Up <U>=North <N>
+@parent Down <D>=North <N>
+@tel/list [lexits(here)]=rhostspace
+@@
+@@ finish up parenting foo
+@@
+@create FirstSpace
+@set FirstSpace=inh safe
+@parent FirstSpace=RhostSpace
+@fo me=&ROOM_DB FirstSpace=num(RhostDB)
+@fo me=&FX_DB RhostSpace=num(RhostSpaceFX)
+&DEFAULT_LABEL FirstSpace=1st Space
+@set me=sidefx
+@eval [set(RhostDB,STATIC_ROOMS:[setr(0,dig(Static - Rhost DYnspace))])][set(%q0,float)][toggle(%q0,noglobparent)][parent(%q0,firstspace)]
+@set me=!sidefx
+@parent RhostSpaceTools=RhostSpaceFX
+@fo me=&FX_DB RhostSpaceFX=num(RhostSpaceFX)
+@fo me=&ROOM_DB RhostSpaceFX=num(RhostDB)
+@fo me=&ROOM_PARENT RhostSpaceFX=num(FirstSpace)
+@fo me=&RSPACE_LISTSPACES RhostSpaceFX=[num(Firstspace)] [num(RhostDB)]
+@fo me=&RHOST_MAINPARENT RhostSpaceFX=num(RhostSpace)
+@@
+@@ ok, we're done
+@@
+think Completed.

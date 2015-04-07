@@ -1,0 +1,78 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH RLMGR 1 "2005-05-23" "Man Page" "Quick Database Manager"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+rlmgr \- administration utility for QDBM Relic
+.SH SYNOPSIS
+.B rlmgr create
+.I name
+.br
+.B rlmgr store
+.RI "[-kx] [-vx|-vf] [-insert] " name " " key " " val
+.br
+.B rlmgr delete
+.RI "[-kx] " name " " key
+.br
+.B rlmgr fetch
+.RI "[-kx] [-ox] [-n] " name " " key
+.br
+.B rlmgr list
+.RI "[-ox] " name
+.SH DESCRIPTION
+This manual page documents briefly the
+.B rlmgr
+commands.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+\fBrlmgr\fP is a utility for debugging Relic and its applications. It
+features editing and checking of a database. It can be used for
+database applications with shell scripts. This command is used in the
+above format.  \fIname\fP specifies a database name. \fIkey\fP
+specifies the key of a record. \fIval\fP specifies the value of a
+record.
+.SH OPTIONS
+A summary of options is included below.
+For a complete description, see the
+file:///usr/share/doc/qdbm-doc/spex.html#reliccli.
+.TP
+.B \-kx
+treat \fIkey\fP as a binary expression of hexadecimal notation.
+.TP
+.B \-vx
+treat \fIval\fP as a binary expression of hexadecimal notation.
+.TP
+.B \-vf
+read the value from a file specified with \fIval\fP.
+.TP
+.B \-insert
+specify the storing mode for `DBM_INSERT'.
+.TP
+.B \-ox
+treat the output as a binary expression of hexadecimal notation.
+.TP
+.B \-n
+do not output the tailing newline.
+.SH SEE ALSO
+.BR qdbm (3),
+.BR relic (3).
+.SH AUTHOR
+QDBM was written by Mikio Hirabayashi <mikio@fallabs.com>.
+.PP
+This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
+for the Debian project (but may be used by others).

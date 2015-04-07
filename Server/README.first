@@ -1,5 +1,28 @@
 Welcome to opensource Rhostmush!
 
+The main parts of making your RhostMUSH, easy pleasy:
+1.  ./patch.sh -- This makes sure you have the latest code.
+    If you got this by git clone https://github.com/RhostMUSH/trunk
+    then you can ignore patching.  You can use ./patch.sh at any
+    time to update your code.  It ignores local.c incase you make
+    your own modules.
+2.  make confsource.  Yup, it's menu driven, nifty eh?
+    Options you may want to select (other than the defaults):
+    5  (%c is selected by default, but choose %x as well for MUX/TM3 compat)
+    9  (if you want $commands to require the COMMAND flag)
+    16 (if you want a wider WHO listing like older versions of MUX)
+    22 (if you're converting a TinyMUSH3 or TinyMUX/MUX2 flatfile)
+    24 (if you have issues with -lssl not being found)
+    B3 (for 64 character attribute names)
+    B6 (select 8K for Penn/MUX2/TM3 default, up to 32K.  64K is network intensive)
+    B5 (will be autoselected if you choose 8K or more.  Pick this anyway)
+    B4 (if you have sqlite libraries and wish to use this)
+3.  'r' to compile with the settings you selected.  
+4.  Modify your netrhost.conf file as specified.  Make sure to align
+    your port and debug_id as shown in the netrhost.conf file.
+
+For a more thorough understanding of how to set things up, keep reading!
+
 If you have syntax issues running 'make config', 'make confsource' 
 or 'make bugreport' please run the script: ./bin/script_setup.sh
 
@@ -7,8 +30,11 @@ Now... things you need to do.
 
 1) run ./dirsetup.sh
 
-	This is a simple script that will change file permissions
-	and directory permissions to properly protect RhostMUSH.
+   This is a simple script that will change file permissions
+   and directory permissions to properly protect RhostMUSH.
+   These settings generally work fine out of the box so
+   you likely won't even have to set this up if you don't want to.
+    
 
 2) Make and run the RhostMUSH source
    Type:  make confsource
@@ -17,9 +43,14 @@ Now... things you need to do.
    type: ./bin/script_setup.sh
 
    Then type: make confsource
+
+   After the compile process is done, you should be good to go.
+   If it complains about missing binaries then type 'make links'
      
 
 3) To do manual configuration (skip if #2 worked for you)
+   And yes, this is a bit of a pain in the bottom, hopefully you
+   will not need this.
 
         You need the following definitions defined to make this
         work:  TINY_U, USE_SIDEEFFECTS, MUX_INCDEC, ATTR_HACK
@@ -36,6 +67,8 @@ Now... things you need to do.
 	just want to quickly hand edit the Makefile, it is in the
 	directory src (full path src/Makefile).  Then you may just
 	run 'make source', if you so choose to hand-edit the Makefile.
+
+  After the compile process is done, type 'make links'!
 
 	--------------
 
@@ -54,8 +87,11 @@ Now... things you need to do.
    To login:  co Wizard Nyctasia
 
 6) Things to do once you have connected.
-   a.  @dig your master room
+   a.  @dig your master room and in your netrhost.conf file define master_room
+       to this dbref (without the #.  So like master_room 2)
    b.  Create an immortal holder charater (@pcreate then @set immortal)
+       Feel free to set up holder characters for all the bittypes which are:
+          GUILDMASTER, ARCHITECT, COUNCILOR, WIZARD, IMMORTAL
    c.  @chown/preserve the master room and #0 to the immortal holder character.
    d.  Log into the immortal character
    e.  @pcreate all your guest characters and set them up properly.  My suggestion:
@@ -63,6 +99,8 @@ Now... things you need to do.
        
        @list guest will show your guest characters and if they're set up properly.
    f.  Any master room code you load in from your immholder character (or @chown/preserve to it)
+       The readme directory has softfunctions.minmax that has MUX/Penn compatability functions and comsys.
+       All other softcode (like mail wrappers) can be found on http://code.google.com/p/rhostmush in downloads.
 
 7) Set up any other characters you want.  Anyone immortal can issue @function, @admin, or anything #1 can do.
 

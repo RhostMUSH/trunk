@@ -30,8 +30,8 @@
 #define M_AUTOFOR	0x01000000
 #define M_VERSION	0x02000000
 #define M_ALL		0x04000000
-#define M_PREV          0x08000000 /* This is NOT a switch.  It's a mask for mail/next */
-#define M_ANON                0x10000000
+#define M_PREV		0x08000000 /* This is NOT a switch.  It's a mask for mail/next */
+#define M_ANON		0x10000000
 
 #define WM_CLEAN	0x00000001
 #define WM_LOAD		0x00000002

@@ -49,8 +49,12 @@ struct attr {
 
 extern ATTR *	FDECL(atr_num, (int anum));
 extern ATTR *	FDECL(atr_num2, (int anum));
+extern ATTR *	FDECL(atr_num3, (int anum));
+extern ATTR *	FDECL(atr_num4, (int anum));
 extern ATTR *	FDECL(atr_str, (char *s));
 extern ATTR *	FDECL(atr_str2, (char *s));
+extern ATTR *	FDECL(atr_str3, (char *s));
+extern ATTR *	FDECL(atr_str_notify, (char *s));
 extern ATTR *	FDECL(atr_num_bool, (int anum));
 extern ATTR *	FDECL(atr_str_bool, (char *s));
 
@@ -168,7 +172,7 @@ extern NAME *names;
 
 #define SYSTEM -1
 
-#define	Location(t)		db[t].location
+//#define	Location(t)		db[t].location
 #define	Zone(t)			NOTHING
 #define	Contents(t)		db[t].contents
 #define	Exits(t)		db[t].exits

@@ -203,12 +203,12 @@ char	*str, *sp;
 		notify(giver, "Permission denied.");
 		return;
 	}
-	if ((Flags3(thing) & NOMOVE) && !Wizard(giver)) {
+	if ( (mudstate.remotep == thing) || ((Flags3(thing) & NOMOVE) && !Wizard(giver)) ) {
 		notify(giver, "Permission denied.");
 		return;
 	}
 
-	if (!could_doit(giver, thing, A_LGIVE,1)) {
+	if (!could_doit(giver, thing, A_LGIVE, 1, 0)) {
 		sp = str = alloc_lbuf("do_give.gfail");
 		safe_str((char *)"You can't give ", str, &sp);
 		safe_str(Name(thing), str, &sp);
@@ -220,7 +220,7 @@ char	*str, *sp;
 		free_lbuf(str);
 		return;
 	}
-	if (!could_doit(thing, recipient, A_LRECEIVE,1)) {
+	if (!could_doit(thing, recipient, A_LRECEIVE, 1, 0)) {
 		sp = str = alloc_lbuf("do_give.rfail");
 		safe_str(Name(recipient), str, &sp);
 		safe_str((char *)" doesn't want ", str, &sp);
@@ -236,7 +236,7 @@ char	*str, *sp;
 	loc = Location(giver);
 	if ( !Good_obj(loc) || loc == NOTHING || loc == AMBIGUOUS || Recover(loc) || Going(loc) )
            loc = giver;
-	if (!could_doit(giver, loc, A_LGIVETO, 1)) {
+	if (!could_doit(giver, loc, A_LGIVETO, 1, 0)) {
 		sp = str = alloc_lbuf("do_giveto.rfail");
 		safe_str((char *)"You can not give ", str, &sp);
 		safe_str(Name(thing), str, &sp);
@@ -311,7 +311,7 @@ char	*str;
 					mudconf.many_coins));
 			return;
 		}
-		if ((Typeof(recipient) != TYPE_PLAYER) && (!could_doit(giver, recipient, A_LUSE,1))) {
+		if ((Typeof(recipient) != TYPE_PLAYER) && (!could_doit(giver, recipient, A_LUSE, 1, 1))) {
 			notify(giver,
 				unsafe_tprintf("%s won't take your money.",
 					Name(recipient)));

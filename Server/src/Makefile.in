@@ -118,8 +118,8 @@ DEFS =
 # people try to login from distant sites.  Use the third line if you're running
 # on a SysV-ish system and BSD support isn't built in to the standard libc.
 #
-MORELIBS	= -lm
-#MORELIBS	= -lm -lnsl -lsocket -L/usr/ucblib -lucb	# Mips
+MORELIBS	= -lm -lrt
+#MORELIBS	= -lm -lrt -lnsl -lsocket -L/usr/ucblib -lucb	# Mips
 
 # Set this to the directory where the MUSH game lives.
 GAME	= /usr/games/lib/mush

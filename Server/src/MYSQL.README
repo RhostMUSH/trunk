@@ -1,0 +1,29 @@
+This is BETA ONLY!  THIS HAS NOT BEEN TESTED
+
+This has structure changes that are REQUIRED for 3.9p4 
+and later and the future 4.0 changes.  If this is applied to
+earlier (first release) 3.9 code, it will CRASH YOUR MUSH.
+
+Files that need attention:
+MYSQL.README -- this file
+MYSQL.Makefile -- Changes that need to be ported to main Makefile
+MYSQL.local.c -- Changes that need to be ported to local.c
+
+You need to make all the MYSQL additions MANUALLY to the
+existing Makefile.
+
+DO NOT COPY OVER IT.  They are NOT COMPATIBLE.
+
+You need to make the mysql additions MANUALLY to the local.c
+file.
+
+DO NOT COPY OVER IT.  They are NOT COMPATIBLE.
+
+Once that is done, you can then, from this directory type:
+
+make clean
+make
+
+And it should compile in your SQL changes.
+
+Good luck!

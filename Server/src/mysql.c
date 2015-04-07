@@ -42,7 +42,8 @@
 /* Edit this if needed */
 #define MYSQL_RETRY_TIMES 3
 
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
+extern int FDECL(alarm_msec, (double));
 
 /************* DON'T EDIT ANYTHING BELOW HERE **********/
 
@@ -165,7 +166,7 @@ FUNCTION(local_fun_sql_escape) {
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      sleep(1);
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
       sql_init(cause);
       retries++;
     }
@@ -260,7 +261,7 @@ static int sql_init(dbref player) {
    * localhost, use the Unix domain socket instead.
    */
   
-  mysql_init(mysql_struct);
+  mysql_struct = mysql_init(mysql_struct);
   
   result = mysql_real_connect(mysql_struct, DB_HOST, DB_USER, DB_PASS, DB_BASE,
  			      3306, DB_SOCKET, 0);
@@ -311,7 +312,7 @@ static int sql_query(dbref player,
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      sleep(1);
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
       sql_init(player);
       retries++;
     }
@@ -329,7 +330,7 @@ static int sql_query(dbref player,
   
   /* Send the query. */
   
-  alarm(5);
+  alarm_msec(5);
   s_qstr = alloc_lbuf("tmp_q_string");
   memset(s_qstr, '\0', LBUF_SIZE);
   strncpy(s_qstr, q_string, LBUF_SIZE - 2);
@@ -338,13 +339,13 @@ static int sql_query(dbref player,
      notify(player, "The SQL engine forced a failure on a timeout.");
      sql_shutdown(player);
      mudstate.alarm_triggered = 0;
-     alarm(next_timer());
+     alarm_msec(next_timer());
      free_lbuf(s_qstr);
      return 0;
   }
   free_lbuf(s_qstr);
   mudstate.alarm_triggered = 0;
-  alarm(next_timer());
+  alarm_msec(next_timer());
 
 
   if ((got_rows) && (mysql_errno(mysql_struct) == CR_SERVER_GONE_ERROR)) {
@@ -360,13 +361,13 @@ static int sql_query(dbref player,
     sql_shutdown(player);
     
     while ((retries < MYSQL_RETRY_TIMES) && (!mysql_struct)) {
-      sleep(1);
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
       sql_init(player);
       retries++;
     }
     
     if (mysql_struct) {
-      alarm(5);
+      alarm_msec(5);
       s_qstr = alloc_lbuf("tmp_q_string");
       memset(s_qstr, '\0', LBUF_SIZE);
       strncpy(s_qstr, q_string, LBUF_SIZE - 2);
@@ -375,13 +376,13 @@ static int sql_query(dbref player,
          notify(player, "The SQL engine forced a failure on a timeout.");
          sql_shutdown(player);
          mudstate.alarm_triggered = 0;
-         alarm(next_timer());
+         alarm_msec(next_timer());
          free_lbuf(s_qstr);
          return 0;
       }
       free_lbuf(s_qstr);
       mudstate.alarm_triggered = 0;
-      alarm(next_timer());
+      alarm_msec(next_timer());
     }
   }
   if (got_rows) {

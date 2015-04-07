@@ -53,6 +53,7 @@ CMD_TWO_ARG_ARGV(do_cpattr);
 CMD_TWO_ARG(do_create);			/* Create a new object */
 CMD_ONE_ARG(do_cut);			/* Truncate contents or exits list */
 CMD_NO_ARG(do_dbck);			/* Consistency check */
+CMD_NO_ARG(do_dbclean);			/* Clean unused attributes -- piggy as shit */
 CMD_TWO_ARG(do_decomp);			/* Reproduce commands to recrete obj */
 CMD_ONE_ARG(do_destroy);		/* Destroy an object */
 CMD_TWO_ARG_ARGV(do_dig);		/* Dig a new room */
@@ -62,6 +63,7 @@ CMD_TWO_ARG_ARGV(do_door);
 CMD_ONE_ARG(do_drop);			/* Drop an object */
 CMD_ONE_ARG(do_dump);			/* Dump the database */
 CMD_TWO_ARG(do_dynhelp);                /* Dynamic help command */
+CMD_ONE_ARG(do_pipe);			/* Pipe output to attribute */
 CMD_TWO_ARG_ARGV(do_edit);		/* Edit one or more attributes */
 CMD_ONE_ARG(do_enter);			/* Enter an object */
 CMD_ONE_ARG(do_entrances);		/* List exits and links to loc */
@@ -146,6 +148,7 @@ CMD_TWO_ARG_ARGV(do_quota);		/* Set or display quotas */
 CMD_NO_ARG(do_readcache);		/* Reread text file cache */
 CMD_NO_ARG(do_reboot);
 CMD_TWO_ARG(do_register);
+CMD_TWO_ARG_CMDARG(do_remote); /* Run commands at remote location */
 CMD_NO_ARG(do_rwho);			/* Open or close conn to rem RWHO */
 CMD_ONE_ARG(do_say);			/* Messages to all */
 CMD_NO_ARG(do_score);			/* Display my wealth */
@@ -154,6 +157,7 @@ CMD_ONE_ARG(do_search_for_players);
 CMD_NO_ARG(do_selfboot);
 CMD_TWO_ARG(do_set);			/* Set flags or attributes */
 CMD_TWO_ARG(do_toggle);			/* Set flags or attributes */
+CMD_NO_ARG(do_tor);			/* TOR cache manipulation */
 CMD_TWO_ARG_SEP(do_setattr);		/* Set object attribute */
 CMD_TWO_ARG(do_setvattr);		/* Set variable attribute */
 CMD_TWO_ARG(do_setvattr_cluster);	/* Set variable attribute on cluster */
@@ -171,6 +175,7 @@ CMD_ONE_ARG(do_thaw);			/* THAW out a frozen queue entry */
 CMD_ONE_ARG(do_think);			/* Think command (ie: @pemit me=message) */
 CMD_ONE_ARG(do_timewarp);		/* Warp various timers */
 CMD_TWO_ARG(do_toad);			/* Turn a tinyjerk into a tinytoad */
+CMD_TWO_ARG(do_toggledef);              /* Set/unset/see/list paramaters for toggles */
 CMD_TWO_ARG(do_turtle);			/* Turn a tinyjerk into a tinyturtle */
 CMD_ONE_ARG_CMDARG(do_train);		/* Train the player */
 CMD_ONE_ARG_CMDARG(do_noparsecmd);      /* noparse the command */
@@ -296,7 +301,6 @@ typedef struct aliasentry {
 #define HOOK_CLEAR	0x00000040	/* CLEAR hook */
 #define HOOK_LIST	0x00000080	/* LIST hooks */
 #define HOOK_FAIL       0x00000100      /* FAIL hooks */
-
 
 extern int	FDECL(check_access, (dbref, int, int, int));
 extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int));

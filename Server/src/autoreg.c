@@ -17,7 +17,29 @@
 #include "externs.h"
 #include "alloc.h"
 
+
+/* 4 less to be safe */
+#ifdef QDBM
+  #ifdef LBUF64
+    #define NDBMBUFSZ 65532
+  #else
+    #ifdef LBUF32
+      #define NDBMBUFSZ 32764
+    #else
+      #ifdef LBUF16
+        #define NDBMBUFSZ 16380
+      #else
+        #ifdef LBUF8
+          #define NDBMBUFSZ 8188
+        #else
+          #define NDBMBUFSZ 4092
+        #endif
+      #endif
+    #endif
+  #endif
+#else
 #define NDBMBUFSZ 4092
+#endif
 
 static char aregname[129 + 64];
 static char dumpname[129 + 64];
@@ -32,7 +54,7 @@ int areg_init()
 {
   int rtemp;
 
-  rtemp =((int) bigbuffer) % 4;
+  rtemp =((pmath2) bigbuffer) % 4;
   if (rtemp)
     nbuffer = bigbuffer + 4 - rtemp;
   else
@@ -179,7 +201,7 @@ void areg_unload(dbref player)
     do {
       infodata = dbm_fetch(aregfile,keydata);
       if (infodata.dptr) {
-	fprintf(dump1,"%s\n",keydata.dptr);
+	fprintf(dump1,"%s\n",(char *)keydata.dptr);
 	memcpy(nbuffer,infodata.dptr,infodata.dsize);
 	intpt = (int *)nbuffer;
 	for (x = 0; x < (*(intpt + 1) + 2); x++) {

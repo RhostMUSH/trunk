@@ -1,3 +1,26 @@
+                         RhostMUSH 3.9.5 Update File
+Softcode overrides for connect files
+				- Thanks Matrix
+Bug in the milisecond timers with regards to dumps
+				- Thanks Matrix
+Ansi auto-recognized in connect.txt (optionally)
+				- Thanks Rook
+floating point can dynamically be increased for precision.
+				- Thanks Stephen
+Ansi compression and optimization encoding
+				- Thanks Exaurdon
+Fix for timers with milisecond and alarms
+				- Thanks Ol'Sarge
+Fix for Mysql.c issue in a sigfault
+				- Thanks Ol'Sarge
+@depower didn't work right for inheritance on power_objects
+				- Thanks Sunder
+Buffer overrun in ansi_txtfile because of non-null termination.
+				- Thanks Rook
+mail/mark/save would not alert you if you hit MAX SAVED messages.
+				- Thanks Mercutio
+
+
 		         RhostMUSH 3.9.4 Update File
 REALITY_LEVELS wouldn't compile because of undeclared function.
 				- Thanks Dahan
@@ -23,6 +46,8 @@ functions.c bombed with the clang compiler because of restrictive type-casting c
 				- Thanks Volund
 @skip/@ifelse, @switch, and @sudo didn't evaluate substitutions properly.
 				- Thanks Volund
+Compiletime bug in speech.c with REALITY_LEVELS not defined.
+				- Thanks psc943
 
 		         RhostMUSH 3.9.3 Update File
 @include -- Idea Copied from Penn 
@@ -394,7 +419,7 @@ Bug in do_dbck with db loading/startup/reboot - small chance of crash. -Fixed
 Feature bug in read_remote_name.  Didn't check examinable - Fixed
 				- Ambrosia
 Hook 'fail' didn't work in hook_cmd.  - Fixed
-				- Chimera
+				- Rook
 Bug in mail.c where it could effect @nuking players - fixed
 				- Odin
 Bug in news.c where it could effect @nuking players - fixed
@@ -801,7 +826,7 @@ inc()/dec() (the hardcoded xinc/xdec) now, like other servers, handle
                                    Additions
                                --- Functions ---
 elementsmux() - for MUX elements() compatibility.
-				- Thanks Chimera@EnnerSeas
+				- Thanks Rook@EnnerSeas
 parsestr() -  helps with speech formatting.
 chomp() - used to strip returns before, after, or both sides of string.
 				- Thanks Storm
@@ -839,7 +864,7 @@ mail_anonymous - Default name for anonymous mail (Default: *Anonymous*)
 sidefx_maxcalls - (1000 default) for max sideffects allowed/command.
 oattr_enable_altname - to enable/disable alt name usage in odrop/ofail/osucc.
 oattr_uses_altname - for alt names sent to odrop/ofail/osucc.
-				- Thanks Chimera @ Ennerseas (default _NPC)
+				- Thanks Rook @ Ennerseas (default _NPC)
 empower_fulltel - Offer two methods for FULLTEL ('self' & anything not cloaked)
 				- Thanks Punk@FantasyMoon
 spam_msg - Message sent to spammers
@@ -873,11 +898,11 @@ Objects could use the brandy toggle to send mail.  - Fixed
 Security issue with autoregistration - Fixed
 goto didn't have hooks before/after right - Fixed
 SIGSEGV on autozone add if player didn't belong to zone - Fixed
-				- Thanks Chimera & Sylph @ Ennerseas
+				- Thanks Rook & Sylph @ Ennerseas
 Bug with teleporting and permissions - Fixed
 				- Thanks Mach Speed@FantasyMoon
 NASTY bug that could corrupt registries with @freeze/@thaw/@wait (RARE) - Fixed
-				- Thanks Chimera @ Ennerseas
+				- Thanks Rook @ Ennerseas
 Fix help entry with @convert/@quota cross-matching. - Fixed
 				- Thanks Dervish
 Fix alloc corruption with 'page' from liberal nulls. (p15 introduced) - Fixed
@@ -889,7 +914,7 @@ Fix for orflags()/andflags() being broke with flag rewrite. - Fixed
 Fix for @hooks to now successfully work on goto - Fixed
 Fix for @uptime to show time up longer than a year - Fixed
 Fix for @hook on goto.  Did not handle /permit or /ignore right - Fixed
-				- Thanks Chimera
+				- Thanks Rook
 Fix for legacy bug in @list functions for blowing a buffer if too many user
      defined functions have been defined.  Wow, talk about old.
 				- Thanks Aalita@Ennersea

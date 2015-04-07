@@ -11,7 +11,11 @@
 #include <setjmp.h>
 #include "mudconf.h"
 #include "config.h"
+#ifdef PCRE_BUILTIN
+#include <pcre.h>
+#else
 #include "pcre.h"
+#endif
 #include "externs.h"
 #include "match.h"
 #include "flags.h"
@@ -191,7 +195,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   pcre *re;
   pcre_extra *study = NULL;
   const char *errptr;
-  char *start, *abuf, *prebuf, *prep, *postbuf, *postp, *str, *obuf, *obufptr,
+  char *start, *abuf, *prebuf, *prep, *postbuf, *postp, *str, *obuf,
        *mybuff, *mybuffptr, tmp;
   int subpatterns, offsets[99], erroffset, flags, all,
       match_offset, len, i, p, loop;
@@ -266,7 +270,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       re_subpatterns = subpatterns;
 
       str = fargs[i+1];
-      obufptr = obuf = alloc_lbuf("regedit_sub_dollars");
+      obuf = alloc_lbuf("regedit_sub_dollars");
       mybuffptr = mybuff = alloc_lbuf("regedit_sub_dollars");
       while (*str) {
          if ( *str == '$' )
@@ -371,14 +375,14 @@ FUNCTION(fun_regediti)
 
 FUNCTION(fun_regeditall)
 {
-   if (!fn_range_check("REGEDITALL", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALL", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 2);
 }
 
 FUNCTION(fun_regeditalli)
 {
-   if (!fn_range_check("REGEDITALLI", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALLI", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 3);
 }
@@ -394,14 +398,14 @@ FUNCTION(fun_regeditilit)
 
 FUNCTION(fun_regeditalllit)
 {
-   if (!fn_range_check("REGEDITALL", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALL", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 6);
 }
 
 FUNCTION(fun_regeditallilit)
 {
-   if (!fn_range_check("REGEDITALLI", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("REGEDITALLI", nfargs, 3, MAX_ARGS, buff, bufcx))
       return;
    do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 7);
 }
@@ -750,6 +754,14 @@ do_remultimatch(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
 
     if (!fn_range_check(name, nfargs, 2, 3, buff, bufcx))
         return;
+
+    if (mudstate.last_cmd_timestamp == mudstate.now) {
+       mudstate.heavy_cpu_recurse += 1;
+    }
+    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+       return;
+    }
 
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];

@@ -24,6 +24,7 @@ extern void depower_set(dbref, dbref, char *, int);
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int));
 extern int count_chars(const char *, const char c);
+static void set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
 
 dbref match_controlled(dbref player, const char *name)
 {
@@ -48,7 +49,7 @@ dbref	mat;
 	match_everything(MAT_EXIT_PARENTS);
 	mat = noisy_match_result();
 	if (Good_obj(mat) && !Controls(player, mat) &&
-            !could_doit(player,mat,A_LTWINK,0)) {
+            !could_doit(player,mat,A_LTWINK,0,0)) {
 		notify_quiet(player, "Permission denied.");
 		return NOTHING;
 	} else {
@@ -199,7 +200,7 @@ char	*oldalias, *trimalias;
                 if ( NoMod(thing) && !WizMod(player) ) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!Controls(player, thing) &&
-                    !could_doit(player,thing,A_LTWINK,0)) {
+                    !could_doit(player,thing,A_LTWINK,0,0)) {
 
 			/* Make sure we have rights to do it.  We can't do
 			 * the normal Set_attr check because ALIAS is only
@@ -450,7 +451,7 @@ dbref	exit;
                 if ( NoMod(exit) && !WizMod(player) ) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!controls(player, exit) &&
-                    !could_doit(player,exit,A_LTWINK,0)) {
+                    !could_doit(player,exit,A_LTWINK,0,0)) {
 			notify_quiet(player, "Permission denied.");
 		} else {
 			switch (Typeof(exit)) {
@@ -631,7 +632,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
 	     (isPlayer(thing) && Immortal(thing) && !God(player))) {
     notify_quiet(player, "Players always own themselves.");
   } else if (((!controls(player, thing) && 
-	       !(Chown_ok(thing) && could_doit(player, thing, A_LCHOWN,1)) &&
+	       !(Chown_ok(thing) && could_doit(player, thing, A_LCHOWN,1,0)) &&
 	       !(HasPriv(player,thing,POWER_CHOWN_OTHER,POWER3,NOTHING)) &&
 	       !((owner==Owner(player)) && HasPriv(player,thing,POWER_CHOWN_ME,POWER3,NOTHING)) ) ||
 	      (isThing(thing) && (Location(thing) != player) &&
@@ -673,94 +674,239 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
  * do_set: Set flags or attributes on objects, or flags on attributes.
  */
 
+int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
+{
+   char *s_name, *s_ptr, *s_ptr2, *s_tmp, *s_string;
+   int atr, val, i_attrcnts, aflags, i_cntr;
+   dbref aowner;
+   ATTR *a_name;
+
+   s_tmp = NULL;
+   i_cntr = val = i_attrcnts = 0;
+
+   if ( strchr(attr_name, '`') == NULL )
+      return 1;
+
+   s_ptr2 = s_ptr = attr_name;
+   s_ptr2++;
+   while ( s_ptr2 && s_ptr && *s_ptr && *s_ptr2) {
+      if ( (*s_ptr == *s_ptr2) && (*s_ptr == '`') )
+         return 2;
+      s_ptr++;
+      s_ptr2++;
+   }
+
+   i_attrcnts = atrcint(1, thing, 0);
+   if ( ((i_attrcnts + 1) >= mudconf.vlimit) || (i_attrcnts < 0) ) 
+      return 1;
+
+   s_name = alloc_sbuf("set_trees");   
+   memset(s_name, '\0', SBUF_SIZE);
+   sprintf(s_name, "%.*s", SBUF_SIZE - 1, attr_name);
+
+   s_ptr = strchr(s_name, '`');
+   s_ptr2 = s_name;
+   s_string = alloc_lbuf("set_trees2");
+   sprintf(s_string, "%s", (char *) "@@ - Tree Trunk");
+
+   /* Do attribute checking */
+   s_tmp = alloc_lbuf("set_trees_contents");
+   while ( s_ptr ) {
+      i_cntr++;
+      *s_ptr = '\0';
+      atr = mkattr(s_name);
+      *s_ptr = '`';
+      if ( atr < 0 ) {
+         val = 1;
+         break;
+      }
+      a_name = atr_num3(atr);
+      if ( a_name ) {
+         set_attr_internal(owner, thing, a_name->number, s_string, SET_TREECHK, owner, &val, 1);   
+         if ( val ) 
+            break;
+         atr_get_str(s_tmp, thing, a_name->number, &aowner, &aflags);
+         if ( *s_tmp ) {
+            i_attrcnts--;
+         }
+         if ( i_attrcnts >= mudconf.vlimit ) {
+            val = 1;
+         }
+      } else {
+         val = 1;
+      }
+      if ( val ) {
+         break;
+      }
+      s_ptr++;
+      s_ptr2 = s_ptr;
+      if ( !s_ptr2 )
+         break;
+      s_ptr = strchr(s_ptr2, '`');
+   }
+   if ( (i_attrcnts + 1 + i_cntr) >= mudconf.vlimit )
+      val=1;
+
+   /* Ok, trees good, let's set them */
+   if ( !val ) {
+      memset(s_name, '\0', SBUF_SIZE);
+      sprintf(s_name, "%.*s", SBUF_SIZE - 1, attr_name);
+      s_ptr = strchr(s_name, '`');
+      s_ptr2 = s_name;
+      while ( s_ptr ) {
+         *s_ptr = '\0';
+         atr = mkattr(s_name);
+         *s_ptr = '`';
+         if ( atr < 0 ) {
+            val = 1;
+            break;
+         }
+         a_name = atr_num3(atr);
+         if ( a_name ) {
+            atr_get_str(s_tmp, thing, a_name->number, &aowner, &aflags);
+            if ( !*s_tmp ) {
+               set_attr_internal(owner, thing, a_name->number, s_string, SET_QUIET, owner, &val, 1);   
+            }
+         }
+         s_ptr++;
+         s_ptr2 = s_ptr;
+         if ( !s_ptr2 )
+            break;
+         s_ptr = strchr(s_ptr2, '`');
+      }
+   }
+   free_lbuf(s_tmp);
+   free_lbuf(s_string);
+   free_sbuf(s_name);
+   return val;
+}
+
 static void set_attr_internal (dbref player, dbref thing, int attrnum, 
-			char *attrtext, int key, dbref cause)
+			char *attrtext, int key, dbref cause, int *val, int i_chk)
 {
 dbref	aowner, aowner2;
 int	aflags, could_hear, aflags2;
 char    *buff2, *buff2ret, *tpr_buff, *tprp_buff;
 ATTR	*attr;
 
-	attr = atr_num2(attrnum);
-	if ( !attr || ((attr->flags) & AF_IS_LOCK) ) {
-	  notify_quiet(player,"Permission denied.");
-	  return;
-	}
-	atr_pget_info(thing, attrnum, &aowner, &aflags);
-	if (attr && Set_attr(player, thing, attr, aflags)) { 
-		if ((attr->check != NULL) &&
-		    (!(*attr->check)(0, player, thing, attrnum, attrtext)))
-			return;
-                if ( Good_obj(mudconf.global_attrdefault) &&
-                     !Recover(mudconf.global_attrdefault) &&
-                     !Going(mudconf.global_attrdefault) &&
-                     ((attr->flags & AF_ATRLOCK) || (aflags & AF_ATRLOCK)) &&
-                     (thing != mudconf.global_attrdefault) ) {
-                   buff2 = alloc_lbuf("global_attr_chk");
-                   atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
-                   if ( *buff2 ) {
-                      buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1);
-                      if ( atoi(buff2ret) == 0 ) {
-                         free_lbuf(buff2);
-                         free_lbuf(buff2ret);
-                         notify_quiet(player, "Permission denied: String does not match unique attribute lock.");
-                         return;
-                      }
-                      free_lbuf(buff2ret);
-                   }
-                   free_lbuf(buff2);
-                } 
-		if (((attr->flags) & AF_NOANSI) && index(attrtext,ESC_CHAR)) {
-                  if ( !((attrnum == 220) && Good_obj(thing) && (thing != NOTHING) && ExtAnsi(thing)) ) {
-		     notify_quiet(player,"Ansi codes not allowed on this attribute.");
-		     return;
-                  }
-		}
-		if (((attr->flags) & AF_NORETURN) && (index(attrtext,'\n') || index(attrtext, '\r'))) {
-		  notify_quiet(player,"Return codes not allowed on this attribute.");
-		  return;
-                }
-		could_hear = Hearer(thing);
-		mudstate.vlplay = player;
-                if ( attrnum == A_QUEUEMAX ) 
-		   atr_add(thing, attrnum, attrtext, thing, aflags);
-                else
-		   atr_add(thing, attrnum, attrtext, Owner(player), aflags);
-                if ( (attr->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
-                    STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
-                    log_name_and_loc(player);
-                    buff2ret = alloc_lbuf("log_attribute");
-                    if ( *attrtext )
-                       sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                                          cause, attr->name, thing, attrtext);
-                    else
-                       sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to an empty string",
-                                          cause, attr->name, thing);
-                    log_text(buff2ret);
-                    free_lbuf(buff2ret);
-                    ENDLOG
-                }
+   if ( i_chk )
+      attr = atr_num4(attrnum);
+   else
+      attr = atr_num2(attrnum);
+   if ( !attr || ((attr->flags) & AF_IS_LOCK) ) {
+      if ( !(key & SET_TREECHK) )
+         notify_quiet(player,"Permission denied.");
+      *val = 1;
+      return;
+   }
 
-		handle_ears(thing, could_hear, Hearer(thing));
-		if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
-		    if (mudstate.vlplay != NOTHING) {
-		      if ( (key & SET_NOISY) || TogNoisy(player) ) {
-                        tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
-                        if ( *attrtext )
-			   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s.",Name(thing),attr->name));
-                        else
-			   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared).",Name(thing),attr->name));
-                        free_lbuf(tpr_buff);
-		      } else
-			notify_quiet(player, "Set.");
-		    }
-		    else
-			notify_quiet(player, "Permission denied.");
-		}
-	} else {
-		notify_quiet(player, "Permission denied.");
-	}
+   atr_pget_info(thing, attrnum, &aowner, &aflags);
+   if (attr && Set_attr(player, thing, attr, aflags)) { 
+      if ( (attr->check != NULL) &&
+           (!(*attr->check)(0, player, thing, attrnum, attrtext))) {
+         *val = 1;
+         return;
+      }
+      if ( Good_obj(mudconf.global_attrdefault) &&
+           !Recover(mudconf.global_attrdefault) &&
+           !Going(mudconf.global_attrdefault) &&
+           ((attr->flags & AF_ATRLOCK) || (aflags & AF_ATRLOCK)) &&
+           (thing != mudconf.global_attrdefault) ) {
+         buff2 = alloc_lbuf("global_attr_chk");
+         atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
+         if ( *buff2 ) {
+            buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1);
+            if ( atoi(buff2ret) == 0 ) {
+               free_lbuf(buff2);
+               free_lbuf(buff2ret);
+               if ( !(key & SET_TREECHK) )
+                  notify_quiet(player, "Permission denied: String does not match unique attribute lock.");
+               *val = 1;
+               return;
+            }
+            free_lbuf(buff2ret);
+         }
+         free_lbuf(buff2);
+      } 
+      if (((attr->flags) & AF_NOANSI) && index(attrtext,ESC_CHAR)) {
+         if ( !((attrnum == 220) && Good_obj(thing) && (thing != NOTHING) && ExtAnsi(thing)) ) {
+            if ( !(key & SET_TREECHK) )
+               notify_quiet(player,"Ansi codes not allowed on this attribute.");
+            *val = 1;
+            return;
+         }
+      }
+      if (((attr->flags) & AF_NORETURN) && (index(attrtext,'\n') || index(attrtext, '\r'))) {
+         if ( !(key & SET_TREECHK) )
+            notify_quiet(player,"Return codes not allowed on this attribute.");
+         *val = 1;
+         return;
+      }
+      *val = 0;
+      if ( key & SET_TREECHK ) {
+         return;
+      }
+      could_hear = Hearer(thing);
+      mudstate.vlplay = player;
+
+      if ( key & SET_TREE ) {
+         *val = set_trees(thing, (char *)attr->name, Owner(player), aflags);
+         if ( *val != 0 ) {
+            if ( !Quiet(player) && !Quiet(thing) ) {
+               buff2ret = alloc_lbuf("error_msg_set_internal");
+               if ( *val == 2 )
+                  sprintf(buff2ret, "Empty/Null branches defined in target tree '%s'.", attr->name);
+               else
+                  sprintf(buff2ret, "Unable to set attribute branches for target tree '%s'.", attr->name);
+               notify_quiet(player, buff2ret);
+               free_lbuf(buff2ret);
+            }
+            return;
+         }
+      }
+      if ( attrnum == A_QUEUEMAX ) 
+         atr_add(thing, attrnum, attrtext, thing, aflags);
+      else
+         atr_add(thing, attrnum, attrtext, Owner(player), aflags);
+
+      if ( (attr->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
+         STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
+            log_name_and_loc(player);
+            buff2ret = alloc_lbuf("log_attribute");
+            if ( *attrtext )
+               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
+                       cause, attr->name, thing, attrtext);
+            else
+               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to an empty string",
+                       cause, attr->name, thing);
+            log_text(buff2ret);
+            free_lbuf(buff2ret);
+         ENDLOG
+      }
+
+      handle_ears(thing, could_hear, Hearer(thing));
+      if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+         if (mudstate.vlplay != NOTHING) {
+            if ( (key & SET_NOISY) || TogNoisy(player) ) {
+               tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
+               if ( *attrtext )
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s.",Name(thing),attr->name));
+               else
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared).",Name(thing),attr->name));
+               free_lbuf(tpr_buff);
+            } else
+               notify_quiet(player, "Set.");
+         } else {
+            notify_quiet(player, "Permission denied.");
+            *val = 1;
+         }
+      }
+   } else {
+      if ( !(key & SET_TREECHK ) )
+         notify_quiet(player, "Permission denied.");
+      *val = 1;
+   }
 }
 
 void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
@@ -928,14 +1074,14 @@ void do_set(dbref player, dbref cause, int key, char *name, char *flag)
 {
 dbref	thing, thing2, aowner;
 char	*p, *buff, *tpr_buff, *tprp_buff;
-int	atr, atr2, aflags, clear, flagvalue, could_hear, i_flagchk;
+int	atr, atr2, aflags, clear, flagvalue, could_hear, i_flagchk, val;
 ATTR	*attr, *attr2;
 int     ibf = -1;
 
 	/* See if we have the <obj>/<attr> form, which is how you set attribute
 	 * flags.
 	 */
-        i_flagchk = 0;
+        i_flagchk = val = 0;
 	if (parse_attrib (player, name, &thing, &atr)) {
 		if (atr != NOTHING) {
 
@@ -1095,7 +1241,7 @@ int     ibf = -1;
 
 		/* Go set it */
 
-		set_attr_internal(player, thing, atr, p, key, cause);
+		set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
                 if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
                    strcpy(mudstate.lbuf_buffer, p);
 		free_lbuf(buff);
@@ -1119,14 +1265,16 @@ void do_setattr(dbref player, dbref cause, int attrnum, int key,
 		char *name, char *attrtext)
 {
 dbref	thing;
+int	val;
 
 	init_match(player, name, NOTYPE);
 	match_everything(MAT_EXIT_PARENTS);
 	thing = noisy_match_result();
 
+        val = 0;
 	if (thing == NOTHING)
 		return;
-	set_attr_internal(player, thing, attrnum, attrtext, key, cause);
+	set_attr_internal(player, thing, attrnum, attrtext, key, cause, &val, 0);
 }
 
 void do_mvattr (dbref player, dbref cause, int key, char *what, 
@@ -1151,7 +1299,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
     return;
   
   con1 = Controls(player,thing);
-  twk1 = could_doit(player,thing,A_LTWINK,0);
+  twk1 = could_doit(player,thing,A_LTWINK,0,0);
   /* Look up the source attribute.  If it either doesn't exist or isn't
    * readable, use an empty string.
    */
@@ -1340,7 +1488,7 @@ int	aflags;
 	} else {
 		atr_pget_info(*thing, attr->number, &aowner, &aflags);
 		if (!See_attr(player, *thing, attr, aowner, aflags, 1) &&
-                    !could_doit(Owner(player), *thing, A_LZONEWIZ, 0)) {
+                    !could_doit(Owner(player), *thing, A_LZONEWIZ, 0, 0)) {
 			*atr = NOTHING;
 		} else {
 			*atr = attr->number;
@@ -1403,13 +1551,20 @@ int	aflags;
 static void find_wild_attrs (dbref player, dbref thing, char *str, int check_exclude, int hash_insert,
 		int get_locks,OBLOCKMASTER *master, int i_regexp, int i_tree)
 {
-ATTR	*attr;
+ATTR	*attr, *atr2;
 char	*as;
 dbref	aowner;
-int	ca, ok, aflags;
+int	ca, ok, aflags, i_nowild;
 
 	/* Walk the attribute list of the object */
 
+        i_nowild = 0;
+        if ( *str && (!strchr(str, '*') && !strchr(str, '?')) ) {
+           i_nowild = 1;
+           atr2 = (ATTR *) hashfind(str, &mudstate.attr_name_htab);
+           if ( !atr2 )
+              i_nowild = 0;
+        }
 	atr_push();
 	for (ca=atr_head(thing, &as); ca; ca=atr_next(&as)) {
 		attr = atr_num(ca);
@@ -1451,7 +1606,8 @@ int	ca, ok, aflags;
 			ok = 0;
 
                 if ( mudstate.reverse_wild == 1 ) {
-		   if (ok && ((!i_regexp && !quick_wild(str, (char *)attr->name)) ||
+		   if (ok && ((i_nowild && (strcmp(atr2->name, attr->name) == 0)) ||
+                              (!i_regexp && !quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && !quick_regexp_match(str, (char *)attr->name, 0))) ) {
                       if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
@@ -1462,7 +1618,8 @@ int	ca, ok, aflags;
                       }
 		   }
                 } else {
-		   if (ok && ((!i_regexp && quick_wild(str, (char *)attr->name)) ||
+		   if (ok && ((i_nowild && (strcmp(atr2->name, attr->name) == 0)) ||
+                              (!i_regexp && quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && quick_regexp_match(str, (char *)attr->name, 0))) ) {
                       if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
 			   olist_add(master,ca);
@@ -1555,7 +1712,7 @@ ATTR	*attr;
  * edit_string, do_edit: Modify attributes.
  */
 
-void edit_string (char *src, char **dst, char **rdst, char *from, char *to, int key, int i_type)
+void edit_string (char *src, char **dst, char **rdst, char *from, char *to, int key, int i_type, int i_compat)
 {
 char	*cp, *rcp, *tpr_buff, *tprp_buff;
 
@@ -1571,10 +1728,16 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                 if ( key == 0 ) {
 	           *rdst = alloc_lbuf("edit_string_2.^");
                    rcp = *rdst;
+#ifdef ZENTY_ANSI
+                   safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
+                   safe_str(SAFE_ANSI_NORMAL, *rdst, &rcp);
+#else
                    safe_str(ANSI_HILITE, *rdst, &rcp);
-		   safe_str(to, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(ANSI_NORMAL, *rdst, &rcp);
-		   safe_str(src, *rdst, &rcp);
+#endif
+		   safe_str(strip_all_ansi(src), *rdst, &rcp);
                    *rcp = '\0';
                 }
 		*cp = '\0';
@@ -1588,10 +1751,16 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                 if ( key == 0 ) {
 	           *rdst = alloc_lbuf("edit_string_2.$");
                    rcp = *rdst;
-                   safe_str(src, *rdst, &rcp);
+                   safe_str(strip_all_ansi(src), *rdst, &rcp);
+#ifdef ZENTY_ANSI
+                   safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
+                   safe_str(SAFE_ANSI_NORMAL, *rdst, &rcp);
+#else
                    safe_str(ANSI_HILITE, *rdst, &rcp);
-		   safe_str(to, *rdst, &rcp);
+		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(ANSI_NORMAL, *rdst, &rcp);
+#endif
                    *rcp = '\0';
                 }
 		*cp = '\0';
@@ -1604,11 +1773,30 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
 		    ((from[1] == '$') || (from[1] == '^')) &&
 		    (from[2] == '\0'))
 			from++;
-		*dst = replace_string(from, to, src, i_type);
+                if ( i_compat == 2 ) {
+		   *dst = replace_string(from, to, src, i_type);
+                } else {
+		   *dst = replace_string_ansi(from, to, src, i_type, i_compat);
+                }
                 if ( key == 0 ) {
                    tprp_buff = tpr_buff = alloc_lbuf("edit_string");
-                   *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
-                                          to, ANSI_NORMAL), src, i_type);
+#ifdef ZENTY_ANSI
+                   if ( i_compat == 2 ) {
+                      *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
+                                             to, SAFE_ANSI_NORMAL), src, i_type);
+                   } else {
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
+                                             strip_all_ansi(to), SAFE_ANSI_NORMAL), src, i_type, i_compat);
+                   }
+#else
+                   if ( i_compat == 2 ) {
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
+                                             to, ANSI_NORMAL), src, i_type, i_compat);
+                   } else {
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
+                                             strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);
+                   }
+#endif
                    free_lbuf(tpr_buff);
                 }
 	}
@@ -1618,19 +1806,22 @@ void do_edit(dbref player, dbref cause, int key, char *it,
 		char *args[], int nargs)
 {
 dbref	thing, aowner, aowner2;
-int	attr, got_one, aflags, doit, aflags2, editchk, editsingle;
+int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat;
 char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff;
 ATTR	*ap;
 OBLOCKMASTER master;
 
 	/* Make sure we have something to do. */
 
+	if ( (key & EDIT_STRICT) && (key & EDIT_RAW) ) {
+		notify_quiet(player, "Incompatible switches to edit");
+		return;
+	}
 	if ((nargs < 1) || !*args[0]) {
 		notify_quiet(player, "Nothing to do.");
 		return;
 	}
-
-	editchk = editsingle = 0;
+	i_compat = editchk = editsingle = 0;
 	if ( key & EDIT_CHECK ) {
 	   editchk = 1;
 	   key = key & ~EDIT_CHECK;
@@ -1639,6 +1830,15 @@ OBLOCKMASTER master;
 	   editsingle = 1;
 	   key = key & ~EDIT_SINGLE;
         }
+	if ( key & EDIT_STRICT ) {
+	   i_compat |= 1;
+	   key = key & ~EDIT_STRICT;
+        }
+        if ( key & EDIT_RAW ) {
+	   i_compat |= 2;
+	   key = key & ~EDIT_RAW;
+        }
+        
 	from = args[0];
 	to = (nargs >= 2) ? args[1] : (char *)"";
 
@@ -1683,7 +1883,7 @@ OBLOCKMASTER master;
 				/* Do the edit and save the result */
 
 				got_one = 1;
-				edit_string(atext, &result, &retresult, from, to, 0, editsingle);
+				edit_string(atext, &result, &retresult, from, to, 0, editsingle, i_compat);
 				if (ap->check != NULL) {
 					doit = (*ap->check)(0, player, thing,
 						ap->number, result);
@@ -1799,7 +1999,7 @@ void do_wipe(dbref player, dbref cause, int key, char *it)
    }
    mudstate.reverse_wild = orig_revwild;
    if ( (( Flags(thing) & SAFE ) || Indestructable(thing)) && mudconf.safe_wipe > 0 ) {
-      if ( !(Controls( player, thing ) || could_doit(player,thing,A_LTWINK,0)) ) {
+      if ( !(Controls( player, thing ) || could_doit(player,thing,A_LTWINK,0,0)) ) {
          if ( !(key & SIDEEFFECT) ) {
             notify_quiet(player, "No matching attributes.");
          }
@@ -1887,7 +2087,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
       return;
    }
    if (!Good_chk(thing) || (!controls(player, thing) &&
-       !could_doit(player,thing,A_LTWINK,0)) ) {
+       !could_doit(player,thing,A_LTWINK,0,0)) ) {
        notify_quiet(player, "Permission denied.");
        return;
    }
@@ -1899,20 +2099,35 @@ void do_include(dbref player, dbref cause, int key, char *string,
    mudstate.includenest++;
    buff1ptr = buff1 = atr_pget(thing, attrib, &owner, &flags);
    if ( key & INCLUDE_COMMAND ) {
-      if ( ((*buff1 == '$') || (*buff1 == '^')) && (strchr(buff1, ':') != NULL) ) {
+      if ( *buff1 && (((*buff1 == '$') || (*buff1 == '^')) && (strchr(buff1, ':') != NULL)) ) {
          buff1ptr = strchr(buff1, ':') + 1;
       }
    }
-
+   if ( !*buff1 || !*buff1ptr ) {
+      free_lbuf(buff1);
+      return;
+   }
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
-      if ( (i < ncargs) && cargs[i] && *cargs[i] )
-         memcpy(s_buff[i], cargs[i], LBUF_SIZE - 1);
-      if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
-         if ( !argv[i] || !*argv[i] ) {
-            memset(s_buff[i], '\0', LBUF_SIZE);
+      if ( key & INCLUDE_OVERRIDE ) {
+         if ( nargs > 0 ) {
+            if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
+               if ( argv[i] && *argv[i] )
+                  sprintf(s_buff[i], "%s", argv[i]);      
+            }
          } else {
-            memcpy(s_buff[i], argv[i], LBUF_SIZE);
+            if ( (i < ncargs) && cargs[i] && *cargs[i] )
+               sprintf(s_buff[i], "%s", cargs[i]);
+         }
+      } else {
+         if ( (i < ncargs) && cargs[i] && *cargs[i] )
+            sprintf(s_buff[i], "%s", cargs[i]);
+         if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
+            if ( !argv[i] || !*argv[i] ) {
+               memset(s_buff[i], '\0', LBUF_SIZE);
+            } else {
+               sprintf(s_buff[i], "%s", argv[i]);      
+            }
          }
       }
    }
@@ -1979,7 +2194,7 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
         return;
      }
      if (!controls(it, thing) &&
-         !could_doit(it,thing,A_LTWINK,0)) {
+         !could_doit(it,thing,A_LTWINK,0,0)) {
          notify_quiet(it, "Permission denied.");
          return;
      }
@@ -1989,7 +2204,7 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
         return;
      }
      if (!controls(player, thing) &&
-         !could_doit(player,thing,A_LTWINK,0)) {
+         !could_doit(player,thing,A_LTWINK,0,0)) {
          notify_quiet(player, "Permission denied.");
          return;
      }
@@ -2066,7 +2281,7 @@ int	ibf = -1;
 
 	/* Make sure player can use it */
 
-	if (!could_doit(player, thing, A_LUSE,1)) {
+	if (!could_doit(player, thing, A_LUSE,1,1)) {
 		did_it(player, thing, A_UFAIL,
 			"You can't figure out how to use that.",
 			A_OUFAIL, NULL, A_AUFAIL, (char **)NULL, 0);
@@ -2104,9 +2319,14 @@ int	ibf = -1;
 void do_setvattr(dbref player, dbref cause, int key, char *arg1, char *arg2)
 {
 char	*s;
-int	anum;
+int	anum, i_tree;
 
 	arg1++;					/* skip the '&' */
+        i_tree = 0;
+        if ( *arg1 == '`' ) {
+           i_tree = SET_TREE;
+           arg1++;
+        }
 	for (s=arg1; *s&&!isspace((int)*s); s++) ;	/* take to the space */
 	if (*s) *s++='\0';			/* split it */
 
@@ -2120,7 +2340,7 @@ int	anum;
 			"That's not a good name for an attribute.");
 		return;
 	}
-	do_setattr(player, cause, anum, key, s, arg2);
+	do_setattr(player, cause, anum, (key | i_tree), s, arg2);
 }
 
 

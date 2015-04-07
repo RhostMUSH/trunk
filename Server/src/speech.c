@@ -16,11 +16,13 @@ char *strtok_r(char *, const char *, char **);
 #include "externs.h"
 #include "flags.h"
 #include "alloc.h"
+#include "rhost_ansi.h"
 #ifdef REALITY_LEVELS
 #include "levels.h"
 #endif /* REALITY_LEVELS */
 
 extern void FDECL(do_page_one, (dbref, dbref, int, char *));
+extern char * parse_ansi_name(dbref, char *);
 
 int sp_ok(dbref player)
 {
@@ -33,13 +35,56 @@ int sp_ok(dbref player)
 	return 1;
 }
 
+char *
+ColorName(dbref player)
+{
+    static char mybuf[MBUF_SIZE];
+    char *ansibuf, *mybufptr, *tmpptr;
+    int aflags, i_extansi;
+    dbref aname;
+
+    if ( !VariableExit(player) )
+       return Name(player);
+
+    ansibuf = atr_pget(player, A_ANSINAME, &aname, &aflags);
+
+    if ( !*ansibuf ) {
+       free_lbuf(ansibuf);
+       return Name(player);
+    }
+
+    i_extansi = 0;
+    memset(mybuf, '\0', MBUF_SIZE);
+    mybufptr = mybuf;
+
+    if ( ExtAnsi(player) && (strcmp(Name(player), strip_all_special(ansibuf)) == 0) )
+       i_extansi = 1;
+
+    if ( i_extansi ) {
+       safe_str(ansibuf, mybuf, &mybufptr);
+    } else if ( !ExtAnsi(player) ) {
+       tmpptr =  parse_ansi_name(player, ansibuf);
+       safe_str(tmpptr, mybuf, &mybufptr);
+       free_lbuf(tmpptr);
+       safe_str(Name(player), mybuf, &mybufptr);
+#ifdef ZENTY_ANSI
+       safe_str(SAFE_ANSI_NORMAL, mybuf, &mybufptr);
+#else
+       safe_str(ANSI_NORMAL, mybuf, &mybufptr);
+#endif
+    } else {
+       safe_str(Name(player), mybuf, &mybufptr);
+    }
+    free_lbuf(ansibuf);
+    return mybuf;
+}
 static void say_shout (int target, const char *prefix, int flags, 
 		dbref player, char *message)
 {
 	if (flags & SAY_NOTAG)
-        raw_broadcast(player,target, "%s%.3900s", Name(player), message);
+        	raw_broadcast(player,target, "%s%.3900s", ColorName(player), message);
 	else
-		raw_broadcast(player,target, "%s%s%.3900s", prefix, Name(player), message);
+		raw_broadcast(player,target, "%s%s%.3900s", prefix, ColorName(player), message);
 }
 
 static const char *announce_msg = "Announcement: ";
@@ -101,7 +146,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 	case SAY_EMIT:
 		if (!Good_obj(loc)) return;
 		if (!sp_ok(player)) return;
-		if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH, 1)) {
+		if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH, 1, 0)) {
 		  did_it(player,loc,A_SFAIL, "You are not allowed to speak in this location.",
 			0, NULL, A_ASFAIL, (char **)NULL, 0);
 		  return;
@@ -131,13 +176,13 @@ void do_say (dbref player, dbref cause, int key, char *message)
                       if ( no_ansi ) {
 		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
                       } else {
-		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message));
                       }
                    } else {
                       if ( no_ansi ) {
 		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
                       } else {
-		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message));
                       }
                    }
                 } else {
@@ -195,7 +240,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), MSG_NO_ANSI);
                       } else {
                          notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message), 0);
                       }
 #else
                       if ( no_ansi ) {
@@ -203,7 +248,11 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
                       } else {
                          notify_except(loc, player, player,
+<<<<<<< HEAD
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
+=======
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message), 0);
+>>>>>>> origin/master
                       }
 #endif /* REALITY_LEVELS */
                    } else {
@@ -213,7 +262,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), MSG_NO_ANSI);
                       } else {
                          notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message), 0);
                       }
 #else
                       if ( no_ansi ) {
@@ -221,7 +270,11 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
                       } else {
                          notify_except(loc, player, player,
+<<<<<<< HEAD
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
+=======
+                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message), 0);
+>>>>>>> origin/master
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -256,7 +309,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                         safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message), MSG_NO_ANSI);
                    } else {
                       notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message), 0);
+                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message), 0);
                    }
 #else
                    if ( no_ansi ) {
@@ -264,7 +317,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                            safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
                    } else {
                       notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message));
                    }
 #endif /* REALITY_LEVELS */
                 }
@@ -297,7 +350,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                            safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message), MSG_NO_ANSI);
                    } else {
                       notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message), 0);
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message), 0);
                    }
 #else
                    if ( no_ansi ) {
@@ -305,7 +358,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                            safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
                    } else {
                       notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
+                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message));
                    }
 #endif /* REALITY_LEVELS */
                 }
@@ -463,9 +516,9 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		break;
 	case SAY_WALLPOSE:
 		if (say_flags & SAY_NOTAG)
-			raw_broadcast(player, 0, "%s %.3900s", Name(player), message);
+			raw_broadcast(player, 0, "%s %.3900s", ColorName(player), message);
 		else
-			raw_broadcast(player, 0, "Announcement: %s %.3900s", Name(player),
+			raw_broadcast(player, 0, "Announcement: %s %.3900s", ColorName(player),
 				message);
 		STARTLOG(LOG_SHOUTS,"WIZ","SHOUT")
 			log_name(player);
@@ -477,9 +530,9 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		break;
 	case SAY_WIZPOSE:
 		if (say_flags & SAY_NOTAG)
-			raw_broadcast(player, BUILDER, "%s %.3900s", Name(player), message);
+			raw_broadcast(player, BUILDER, "%s %.3900s", ColorName(player), message);
 		else
-			raw_broadcast(player, BUILDER, "Broadcast: %s %.3900s", Name(player),
+			raw_broadcast(player, BUILDER, "Broadcast: %s %.3900s", ColorName(player),
 				message);
 		STARTLOG(LOG_SHOUTS,"WIZ","BCAST")
 			log_name(player);
@@ -632,14 +685,14 @@ static int page_check (dbref player, dbref target, int num, int length)
 		page_return(player, target, "Away", A_AWAY, buff, NULL);
 	} else if (DePriv(player, target, DP_PAGE, POWER6, NOTHING)) {
 		notify(player, "Permission denied.");
-	} else if (!could_doit(player, target, A_LPAGE,1)) {
+	} else if (!could_doit(player, target, A_LPAGE,1,0)) {
 		if (Wizard(target) && Cloak(target))
 			page_return(player, target, "Away", A_AWAY, buff, NULL);
 		else {
 			sprintf(buff,"Sorry, %s is not accepting pages.", Name(target));
 			page_return(player, target, "Reject", A_REJECT, buff, NULL);
 		}
-	} else if (!could_doit(target, player, A_LPAGE,3)) {
+	} else if (!could_doit(target, player, A_LPAGE,3,0)) {
                 tprp_buff = tpr_buff = alloc_lbuf("page_check");
 		if (Wizard(player)) {
 			notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Warning: %s can't return your page.",Name(target)));
@@ -677,7 +730,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
            ansikey = PAGE_NOANSI;
         }
         key = (key &~ PAGE_NOANSI);
-        if (((!tname && !message) || (*tname == '\0' && *message == '\0'))
+        if ((((!tname || !*tname) && !message) || (*tname == '\0' && *message == '\0'))
               && MuxPage(player) && !(key & PAGE_LOC)) {
           // get last page attr
 	  if ( key & PAGE_PORT) {
@@ -716,15 +769,18 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
           return;
         }
  
-        if ( MuxPage(player) && !(key & (PAGE_RET | PAGE_LAST | PAGE_RETMULTI)) && !*message ) {
+        if ( MuxPage(player) && !(key & (PAGE_RET | PAGE_LAST | PAGE_RETMULTI)) && 
+             ((!*message && tname && *tname) || (*message && (!tname || !*tname))) ) {
            if ( key & PAGE_PORT ) {
 	     notify(player, "Last page/return page not avaiable to ports switch.");
 	     return;
 	   }
 	   dbuff = sbuff = alloc_lbuf("do_page");
-           safe_str(tname, sbuff, &dbuff);
+           if ( tname && *tname )
+              safe_str(tname, sbuff, &dbuff);
            if ( *message ) {
-              safe_chr('=', sbuff, &dbuff);
+              if ( tname && *tname )
+                 safe_chr('=', sbuff, &dbuff);
               safe_str(message, sbuff, &dbuff);
            }
 	   nkey = PAGE_LAST;
@@ -1387,10 +1443,11 @@ void do_pemit (dbref player, dbref cause, int key, char *recipient,
 dbref	target, loc, aowner, darray[LBUF_SIZE/2];
 char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
 char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff;
+char    *strtok, *strtokr, *strtokbuf;
 #ifdef REALITY_LEVELS
-char    *reality_buff, *s_ptr, *r_bufr, *pt3, *strtok, *strtokr, *strtokbuf;
+char    *pt3, *r_bufr, *s_ptr, *reality_buff;
 #endif
-int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr, side_effect; 
+int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;
 int     xxx_x, xxx_y, xxx_z, i_oneeval, i_snufftoofar, i_oemitstr, dcntr, dcntrtmp;
 
@@ -1406,7 +1463,6 @@ ZLISTNODE *z_ptr, *y_ptr;
       return;
    }
    if ( key & SIDEEFFECT ) {
-      side_effect=1;
       key &=~SIDEEFFECT;
    }
    if ( key & PEMIT_NOSUB ) {
@@ -1765,7 +1821,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                   ok_to_do = 0;
                   break;
                }
-               if ( (!Controls(player,target) && !could_doit(player,target,A_LZONEWIZ,0)) ) {
+               if ( (!Controls(player,target) && !could_doit(player,target,A_LZONEWIZ,0,0)) ) {
                   notify(player, "Invalid zone.");
                   ok_to_do = 0;
                   break;
@@ -1773,7 +1829,7 @@ ZLISTNODE *z_ptr, *y_ptr;
             }
             loc = where_is(target);
             if ((key == PEMIT_PEMIT) && (Flags3(target) & AUDIT) && !Admin(player) &&
-                !could_doit(player,target,A_LSPEECH,1)) {
+                !could_doit(player,target,A_LSPEECH,1,0)) {
                did_it(player,target,A_SFAIL, "You are not allowed to speak to that location.",
                       0, NULL, A_ASFAIL, (char **)NULL, 0);
                break;
@@ -1781,7 +1837,7 @@ ZLISTNODE *z_ptr, *y_ptr;
             dobreak = 0;
             switch (key) {
                case PEMIT_OEMIT:
-                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1)) {
+                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1,0)) {
                      did_it(player,loc,A_SFAIL, "You are not allowed to speak to that location.",
                             0, NULL, A_ASFAIL, (char **)NULL, 0);
                      dobreak = 1;
@@ -1791,7 +1847,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                case PEMIT_FPOSE:
                case PEMIT_FPOSE_NS:
                case PEMIT_FEMIT:
-                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1)) {
+                  if ((Flags3(loc) & AUDIT) && !Admin(player) && !could_doit(player,loc,A_LSPEECH,1,0)) {
                      did_it(player,target,A_SFAIL, "You are not allowed to speak to that location.",
                             0, NULL, A_ASFAIL, (char **)NULL, 0);
                      dobreak = 1;
@@ -1989,7 +2045,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                      }
                      if (Typeof(loc) == TYPE_ROOM) {
                         if ((Flags3(loc) & AUDIT) && !Admin(player) &&
-                            !could_doit(player,loc,A_LSPEECH,1)) {
+                            !could_doit(player,loc,A_LSPEECH,1,0)) {
                            did_it(player,target,A_SFAIL, "You are not allowed to speak to that location.",
                                   0, NULL, A_ASFAIL, (char **)NULL, 0);
                            break;

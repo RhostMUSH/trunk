@@ -280,9 +280,11 @@ void
 log_name(dbref target)
 {
     FILE *f_foo;
+#ifndef STANDALONE
     char *tp;
 
     tp = NULL;
+#endif
     if ( mudstate.f_logfile_name )
        f_foo = mudstate.f_logfile_name;
     else

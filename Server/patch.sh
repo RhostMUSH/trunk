@@ -12,6 +12,7 @@ else
    echo "Abortng by user request."
    exit 1
 fi
+type=0
 if [ -f ./src.tbz ]
 then
    echo "I found a source file."
@@ -26,16 +27,51 @@ then
       exit 1
    fi
 else
-   echo "I'm sorry, I did not find a src.tbz at '$(pwd)'.  Please copy that file in and try again."
-   exit 1
+   echo "Hum.  No source files.  I'll tell git to yoink the source files for you then."
+   echo "downloading..."|tr -d '\012'
+   git clone https://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+   if [ $? -ne 0 ]
+   then
+      echo "error."
+      echo "Ugh.  Https failed, let's try normal http...."|tr -d '\012'
+      git clone http://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         echo "error"
+         echo "Double ugh.  Http failed, too.  Let's try the full git itself..."|tr -d '\012'
+         git clone git://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+         if [ $? -ne 0 ]
+         then
+            echo "error."
+            echo "I'm sorry, the git repository is not responding.  Try again later."
+            exit 1
+         fi
+      fi
+   fi
+
+   echo "done!"
+   type=1
 fi
 echo "Making a backup of all your files, please wait..."|tr -d '\012'
 lc_date=$(date +%m%d%y%H%M%S)
 tar -czf src_backup_${lc_date}.tgz src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
 echo "... completed.  Filename is src_backup_${lc_date}.tgz"
-echo "Copying your binary ... just in case.  Backup will be src/netrhost.automate"
-cp -f src/netrhost src/netrhost.automate
-bunzip -cd src.tbz|tar -xvf -
+echo "Copying your binary ... just in case.  Backup will be src/netrhost.automate (or bin/netrhost.automate)"
+[[ -f src/netrhost ]] && cp -f src/netrhost src/netrhost.automate
+[[ -f bin/netrhost ]] && cp -f bin/netrhost bin/netrhost.automate
+if [ ${type} -eq 0 ]
+then
+   bunzip -cd src.tbz|tar -xvf -
+else
+   mv -f src/local.c src/local.c.backup
+   cp -f rhost_tmp/Server/src/*.c src
+   cp -f src/local.c.backup src/local.c
+   cp -f rhost_tmp/Server/hdrs/*.h hdrs
+   cp -f rhost_tmp/Server/bin/asksource* bin
+   cp -f rhost_tmp/Server/game/txt/help.txt game/txt/help.txt
+   cp -f rhost_tmp/Server/game/txt/wizhelp.txt game/txt/wizhelp.txt
+   rm -rf ./rhost_tmp
+fi
 cd src
 make clean;make
 cd ../game/txt

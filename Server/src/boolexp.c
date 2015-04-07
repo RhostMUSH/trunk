@@ -43,11 +43,11 @@ check_attr(dbref player, dbref lockobj, ATTR * attr, char *key)
 }
 
 int 
-eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b)
+eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 {
     dbref aowner, obj, source;
     int aflags, c, checkit, boolchk, lockchk;
-    char *key, *buff, *buff2;
+    char *key, *buff, *buff2, *mybuff[2];
     ATTR *a;
 
     if (b == TRUE_BOOLEXP)
@@ -56,13 +56,13 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b)
     lockchk = 0;
     switch (b->type) {
     case BOOLEXP_AND:
-	return (eval_boolexp(player, thing, from, b->sub1) &&
-		eval_boolexp(player, thing, from, b->sub2));
+	return (eval_boolexp(player, thing, from, b->sub1, i_evaltype) &&
+		eval_boolexp(player, thing, from, b->sub2, i_evaltype));
     case BOOLEXP_OR:
-	return (eval_boolexp(player, thing, from, b->sub1) ||
-		eval_boolexp(player, thing, from, b->sub2));
+	return (eval_boolexp(player, thing, from, b->sub1, i_evaltype) ||
+		eval_boolexp(player, thing, from, b->sub2, i_evaltype));
     case BOOLEXP_NOT:
-	return !eval_boolexp(player, thing, from, b->sub1);
+	return !eval_boolexp(player, thing, from, b->sub1, i_evaltype);
     case BOOLEXP_INDIR:
 	/*
 	 * BOOLEXP_INDIR (i.e. @) is a unary operation which is replaced at
@@ -103,7 +103,7 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b)
 	    return (0);
 	}
 	key = atr_get(b->sub1->thing, A_LOCK, &aowner, &aflags);
-	c = eval_boolexp_atr(player, b->sub1->thing, from, key,1);
+	c = eval_boolexp_atr(player, b->sub1->thing, from, key,1, i_evaltype);
 	free_lbuf(key);
 	mudstate.lock_nest_lev--;
 	return (c);
@@ -150,8 +150,12 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b)
                mudstate.chkcpu_locktog = 0;
                if ( mudstate.chkcpu_toggle )
                   lockchk = 1;
+               mybuff[0] = alloc_sbuf("boolexp_eval");
+               mybuff[1] = NULL;
+               sprintf(mybuff[0], "%d", i_evaltype);
 	       buff2 = exec(source, player, player, EV_FIGNORE | EV_EVAL | EV_TOP,
-			    buff, (char **) NULL, 0);
+			    buff, mybuff, 1);
+               free_sbuf(mybuff[0]);
                if ( mudstate.chkcpu_toggle && !lockchk )
                   mudstate.chkcpu_locktog = 1;
                mudstate.inside_locks = boolchk;
@@ -200,7 +204,7 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b)
 }
 
 int 
-eval_boolexp_atr(dbref player, dbref thing, dbref from, char *key, int def)
+eval_boolexp_atr(dbref player, dbref thing, dbref from, char *key, int def, int i_evaltype)
 {
     BOOLEXP *b;
     int ret_value;
@@ -209,7 +213,7 @@ eval_boolexp_atr(dbref player, dbref thing, dbref from, char *key, int def)
     if (b == NULL) {
 	ret_value = def;
     } else {
-	ret_value = eval_boolexp(player, thing, from, b);
+	ret_value = eval_boolexp(player, thing, from, b, i_evaltype);
 	free_boolexp(b);
     }
     return (ret_value);

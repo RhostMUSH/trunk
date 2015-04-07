@@ -1,0 +1,80 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH CRTSV 1 "2005-05-23" "Man Page" "Quick Database Manager"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+crtsv \- mutual converter between TSV and QDBM Curia database
+.SH SYNOPSIS
+.B crtsv import
+.RI "[-bnum " num "] [-dnum " num "] [-bin] " name
+.br
+.B crtsv export
+.RI "[-bin] " name
+.SH DESCRIPTION
+This manual page documents briefly the
+.B crtsv
+commands.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+
+The command \fBcrtsv\fP features mutual conversion between a database
+of Curia and a TSV text. This command is useful when data exchange
+with another version of QDBM or another DBM, or when data exchange
+between systems which have different byte orders. This command is used
+in the above format. \fIname\fP specifies a database name. The
+subcommand \fBexport\fP reads TSV data from the standard input.  If a key
+overlaps, the latter is adopted. \fB-bnum\fP specifies the number of the
+elements of the bucket array. \fB-dnum\fP specifies the number of division
+of the database. The subcommand \fBimport\fP writes TSV data to the
+standard output.
+.SH OPTIONS
+A summary of options is included below.
+For a complete description, see the
+file:///usr/share/doc/qdbm-doc/spex.html#curiacli.
+.TP
+.BI "\-bnum " num
+specify the number of the elements of the bucket array.
+.TP
+.BI "\-dnum " num
+specify the number of division of the database.
+.TP
+.B \-bin
+treat records as Base64 format.
+.SH EXAMPLES
+For example, to make a
+database to search `/etc/password' by a user name, perform the following
+command.
+.br
+\fB    cat /etc/passwd | tr ':' '\t' | crtsv import casket\fP
+.br
+.PP
+Thus, to retrieve the information of a user `mikio', perform the following
+command.
+.br
+\fB    crmgr get casket mikio\fP
+.br
+.SH SEE ALSO
+.BR qdbm (3),
+.BR crmgr (1),
+.BR curia (3),
+.BR cropen (3).
+.SH AUTHOR
+QDBM was written by Mikio Hirabayashi <mikio@fallabs.com>.
+.PP
+This manual page was written by Fumitoshi UKAI <ukai@debian.or.jp>,
+for the Debian project (but may be used by others).

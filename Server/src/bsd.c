@@ -48,6 +48,8 @@ void bzero(void *, int);
 #include "debug.h"
 #define FILENUM BSD_C
 
+#include <math.h>
+
 #ifdef TLI
 #include <sys/stream.h>
 #include <sys/tiuser.h>
@@ -81,10 +83,164 @@ int FDECL(process_input, (DESC *));
 extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, int, int, char *));
 extern int FDECL(lookup, (char *, char *));
 extern CF_HAND(cf_site);
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
+
+extern int FDECL(alarm_msec, (double));
+extern int NDECL(alarm_stop);
+
 int signal_depth;
 
-int make_socket(int port)
+void populate_tor_seed(void)
+{
+   struct sockaddr_in *p_sock2;
+   void *v_sock;
+   struct addrinfo hints, *res, *p_res;
+   char ipstr[INET_ADDRSTRLEN + 1], *tbuff, *tbuff2, *tpr2, *strtok, *mystrtok_r;
+   char *tok1, *tok2, *tok3, *tok4, *tokptr;
+   int i_validip;
+
+   if ( !*(mudconf.tor_localhost) ) {
+      strcpy(mudstate.tor_localcache, (char *)"1.0.0.127");
+      return;
+   }
+
+   memset(&hints, 0, sizeof(hints));
+   hints.ai_socktype = SOCK_STREAM;
+   hints.ai_family = AF_INET;
+
+   tbuff = alloc_lbuf("populate_tor_seed");
+   tpr2 = tbuff2 = alloc_lbuf("populate_tor_seed2");
+   memset(tbuff2, '\0', LBUF_SIZE);
+   strcpy(tbuff, mudconf.tor_localhost);
+
+   strtok = strtok_r(tbuff, " \t", &mystrtok_r);
+
+   i_validip = 0;
+   while ( strtok ) {
+      if ((getaddrinfo(strtok, NULL, &hints, &res)) == 0) {
+         for( p_res = res; p_res != NULL; p_res = p_res->ai_next) {
+            p_sock2 = (struct sockaddr_in *)p_res->ai_addr;
+            v_sock = &(p_sock2->sin_addr);
+   
+            inet_ntop(p_res->ai_family, v_sock, ipstr, sizeof(ipstr)-1);
+            tok1 = tok2 = tok3 = tok4 = NULL;
+            tok1 = strtok_r(ipstr, ".", &tokptr);
+            if ( tok1 ) {
+               tok2 = strtok_r(NULL, ".", &tokptr);
+               if ( tok2 ) {
+                  tok3 = strtok_r(NULL, ".", &tokptr);
+                  if ( tok3 ) {
+                     tok4 = strtok_r(NULL, ".", &tokptr);
+                  }
+               }
+            }
+            if ( !tok4 ) {
+               continue;
+            }
+            if ( i_validip )
+               safe_chr(' ', tbuff2, &tpr2);
+            safe_str(tok4, tbuff2, &tpr2);
+            safe_chr('.', tbuff2, &tpr2);
+            safe_str(tok3, tbuff2, &tpr2);
+            safe_chr('.', tbuff2, &tpr2);
+            safe_str(tok2, tbuff2, &tpr2);
+            safe_chr('.', tbuff2, &tpr2);
+            safe_str(tok1, tbuff2, &tpr2);
+            i_validip = 1;
+         }
+         freeaddrinfo(res);
+      }
+      strtok = strtok_r(NULL, " \t", &mystrtok_r);
+   }
+   tpr2 = tbuff2 + 999;
+   while ( tpr2 && *tpr2 && !isspace(*tpr2) )
+      tpr2--;
+   *tpr2 = '\0';
+   if ( !*tbuff2 ) {
+      strcpy(mudstate.tor_localcache, (char *)"1.0.0.127");
+   } else {
+      strncpy(mudstate.tor_localcache, tbuff2, 999);
+   }
+   free_lbuf(tbuff);
+   free_lbuf(tbuff2);
+}
+
+/*********************************************************************************************
+ * 1. Need a mudstate.tor_ipaddr 1000 char buffer to house the tor-translated addresses
+ * 2. Need to write a mudconf.tor_localhost to mudstate.tor_ipaddr cache routine
+ * 3. Need to loop for each entry in tor_ipaddr for a tor lookup *bleh*
+ * 4. Thi function needs re-arrangement to minimalize as much as we can on overhead
+ */
+int check_tor(struct in_addr a_remote, int i_port) {
+   char *s_reverselocal, *s_reverseremote, *s_tordns, *tortok, *tortokptr,
+        *s_tmp, *s_tok1, *s_tok2, *s_tok3, *s_tok4, *s_tokptr, *s_tmp2,
+        ipstr[INET_ADDRSTRLEN + 1];
+   int i_found;
+   struct addrinfo hints, *res, *p_res;
+   struct sockaddr_in *p_sock2;
+   void *v_sock;
+
+   if ( !*(mudstate.tor_localcache) )
+      populate_tor_seed();
+
+
+   s_tmp           = alloc_lbuf("check_tor_local");
+   s_reverselocal  = alloc_sbuf("check_tor_1");
+   s_reverseremote = alloc_sbuf("check_tor_2");
+   s_tordns        = alloc_mbuf("check_tor_3");
+
+   memset(s_tmp, '\0', LBUF_SIZE);
+   strcpy(s_tmp, mudstate.tor_localcache);
+   tortok = strtok_r(s_tmp, " \t", &tortokptr);
+   i_found = 0;
+   while (tortok) {
+      sprintf(s_reverselocal, "%s", tortok);
+      s_tmp2 = inet_ntoa(a_remote);
+      s_tok1 = s_tok2 = s_tok3 = s_tok4 = NULL; 
+      s_tok1 = strtok_r(s_tmp2, ".", &s_tokptr);
+      if ( s_tok1 ) {
+         s_tok2 = strtok_r(NULL, ".", &s_tokptr);
+         if ( s_tok2 ) {
+            s_tok3 = strtok_r(NULL, ".", &s_tokptr);
+            if ( s_tok3 ) {
+               s_tok4 = strtok_r(NULL, ".", &s_tokptr);
+            }
+         }
+      }
+      if ( s_tok4 ) {
+         sprintf(s_reverseremote, "%s.%s.%s.%s", s_tok4, s_tok3, s_tok2, s_tok1);
+         sprintf(s_tordns, "%s.%d.%s.ip-port.exitlist.torproject.org", s_reverseremote, i_port, s_reverselocal);
+         memset(&hints, 0, sizeof(hints));
+         hints.ai_socktype = SOCK_STREAM;
+         hints.ai_family = AF_INET;
+         if ((getaddrinfo(s_tordns, NULL, &hints, &res)) == 0) {
+            memset(ipstr, '\0', sizeof(ipstr));
+            for( p_res = res; p_res != NULL; p_res = p_res->ai_next) {
+               p_sock2 = (struct sockaddr_in *)p_res->ai_addr;
+               v_sock = &(p_sock2->sin_addr);
+            
+               inet_ntop(p_res->ai_family, v_sock, ipstr, sizeof(ipstr)-1);
+               if ( strcmp(ipstr, "127.0.0.2") == 0 ) {
+                  i_found = 1;
+                  break;
+               }
+            }
+            freeaddrinfo(res);
+            if ( i_found )
+               break;
+         }
+      }
+      tortok = strtok_r(NULL, " \t", &tortokptr);
+   }
+   free_lbuf(s_tmp);
+   free_sbuf(s_reverselocal);
+   free_sbuf(s_reverseremote);
+   free_mbuf(s_tordns);
+
+   return i_found;
+}
+
+int make_socket(int port, char* address)
 {
     int s, opt;
     FILE *f_fptr;
@@ -126,7 +282,10 @@ int make_socket(int port)
     }
     serverreq = (struct sockaddr_in *) bindreq->addr.buf;
     serverreq->sin_family = AF_INET;
-    serverreq->sin_addr.s_addr = INADDR_ANY;
+    if(inet_addr((const char*)address) != -1)
+        serverreq->sin_addr.s_addr = inet_addr((const char*)address);
+    else
+        serverreq->sin_addr.s_addr = INADDR_ANY;
     serverreq->sin_port = htons(port);
     bindreq->addr.len = sizeof(struct sockaddr_in);
     bindret->addr.maxlen = sizeof(struct sockaddr_in);
@@ -153,7 +312,10 @@ int make_socket(int port)
 	log_perror("NET", "FAIL", NULL, "setsockopt");
     }
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
+    if(inet_addr((const char*)address) != -1)
+        server.sin_addr.s_addr = inet_addr((const char*)address);
+    else
+        server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
 	log_perror("NET", "FAIL", NULL, "bind");
@@ -184,17 +346,20 @@ int maxd;
 
 
 void 
-shovechars(int port)
+shovechars(int port,char* address)
 {
     fd_set input_set, output_set;
-    struct timeval last_slice, current_time, next_slice, timeout, slice_timeout;
+    struct timeval last_slice, current_time, next_slice, timeout;
     int found, check, new_connection_error_count = 0;
     DESC *d, *dnext, *newd;
     CMDENT *cmdp = NULL;
     int avail_descriptors, maxfds, active_auths, aflags2, temp1, temp2;
     int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep;
     dbref aowner2;
-    char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6];
+    char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
+         s_cutter2[8];
+    FILE *f;
+    int silent;
 
 #ifdef TLI
     struct pollfd *fds;
@@ -209,11 +374,22 @@ shovechars(int port)
 
     DPUSH; /* #2 */
     mudstate.debug_cmd = (char *) "< shovechars >";
-    sock = make_socket(port);
+    sock = make_socket(port, address);
     maxd = sock + 1;
     get_tod(&last_slice);
     flagkeep = i_oldlasttime = i_oldlastcnt = 0;
-
+    f = fopen("reboot.silent","r");
+    silent=0;
+    found = -1;
+    if(f != NULL) {
+      silent=1;
+      memset(tsitebuff, '\0', sizeof(tsitebuff));
+      fgets(tsitebuff, sizeof(tsitebuff)-1, f);
+      fclose(f);
+      if ( *tsitebuff )
+         found = atoi(tsitebuff);
+      remove("reboot.silent");
+    }
 
     /* we may be rebooting, so recalc maxd */
     DESC_ITER_ALL(d) {
@@ -224,7 +400,11 @@ shovechars(int port)
 	maxd = d->door_desc + 1;
       }
       if( d->flags & DS_CONNECTED ) {
-        queue_string(d, "Game: New server image successfully loaded.\r\n");
+        if(!silent) {
+          queue_string(d, "Game: New server image successfully loaded.\r\n");
+        } else if ( d->player == found ) {
+          queue_string(d, "Game: Finished Rebooting Silently.\r\n"); 
+        }
         strncpy(all, Name(d->player), 5);
         *(all + 5) = '\0';
         if (!stricmp(all, "guest")) {
@@ -314,10 +494,11 @@ shovechars(int port)
 
 	/* any queued robot commands waiting? */
 
-	timeout.tv_sec = que_next();
-	timeout.tv_usec = 0;
+  double next = roundf(que_next() * 10) / 10;
+	timeout.tv_sec = floor(next);
+	timeout.tv_usec = floor(1000000 * fmod(next,1.0)); ;
 	next_slice = msec_add(last_slice, mudconf.timeslice);
-	slice_timeout = timeval_sub(next_slice, current_time);
+	timeval_sub(next_slice, current_time);
 
 #ifdef TLI
 	for (i = 0; i < maxfds; i++)
@@ -554,9 +735,12 @@ shovechars(int port)
 		}
                 if ( (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
                    memcpy(s_cutter, d->input_head->cmd, 5);
+                   memcpy(s_cutter2, d->input_head->cmd, 7);
                    s_cutter[5] = '\0';
+                   s_cutter2[7] = '\0';
                    if ( (Good_obj(d->player) && Wizard(d->player) && (stricmp(s_cutter, "idle ") == 0)) || 
-                        (stricmp(s_cutter, "idle") == 0) ) {
+                        (stricmp(s_cutter, "idle") == 0) ||
+                        (stricmp(s_cutter2, "idle @@") == 0) ) {
                       cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);
                       if ( cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
                          if ( !(CmdCheck(d->player) && cmdtest(d->player, "idle")) ) {
@@ -570,8 +754,10 @@ shovechars(int port)
                       }
                    }
                 }
+
                 /* Ignore Null Input */
-                if (d->input_tot == (i_oldlastcnt + 2)) {
+                if ( (d->input_tot <= (i_oldlastcnt + 2)) && d->input_head && d->input_head->cmd &&
+                     ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
                    d->last_time = i_oldlasttime;
                 }
 	    }
@@ -667,7 +853,7 @@ new_connection(int sock)
     struct sockaddr_in addr;
     static int spam_log = 0;
     char *logbuff, *addroutbuf;
-    int myerrno = 0;
+    int myerrno = 0, i_chktor = 0;
 
 #ifndef TLI
     int addr_len;
@@ -770,18 +956,27 @@ new_connection(int sock)
     memset(tchbuff, 0, sizeof(tchbuff));
     cur_port =  ntohs(addr.sin_port);
 
-/* DO BLACKLIST CHECK HERE */
-    if ( blacklist_check(addr.sin_addr) ) {
-       STARTLOG(LOG_NET | LOG_SECURITY, "NET", "BLACK");
+    /* DO TOR LOOKUP HERE IF ENABLED */
+    if ( mudconf.tor_paranoid ) {
+       i_chktor = check_tor(addr.sin_addr, mudconf.port);
+    }
+    /* DO BLACKLIST CHECK HERE */
+    if ( blacklist_check(addr.sin_addr) || i_chktor ) {
+       STARTLOG(LOG_NET | LOG_SECURITY, "NET", (i_chktor ? "TOR" : "BLACK"));
           buff = alloc_mbuf("new_connection.LOG.badsite");
-          sprintf(buff, "[%d/%s] Connection refused - Blacklisted.  (Remote port %d)",
-                  newsock, inet_ntoa(addr.sin_addr), cur_port);
+          sprintf(buff, "[%d/%s] Connection refused - %s.  (Remote port %d)",
+                  newsock, inet_ntoa(addr.sin_addr), (i_chktor ? "TOR" : "Blacklisted"), cur_port);
           log_text(buff);
-          broadcast_monitor(NOTHING, MF_CONN, "SITE IN BLACKLIST", NULL,
-                            inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          if ( i_chktor ) {
+             broadcast_monitor(NOTHING, MF_CONN, "SITE IN TOR", NULL,
+                               inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          } else {
+             broadcast_monitor(NOTHING, MF_CONN, "SITE IN BLACKLIST", NULL,
+                               inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          }
           free_mbuf(buff);
        ENDLOG
-       fcache_rawdump(newsock, FC_CONN_SITE);
+       fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
        shutdown(newsock, 2);
        close(newsock);
        errno = 0;
@@ -881,14 +1076,14 @@ new_connection(int sock)
   	   broadcast_monitor(NOTHING, MF_CONN, "PORT REJECT", NULL, 
                              inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
         }
- 	fcache_rawdump(newsock, FC_CONN_SITE);
+ 	fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
 	shutdown(newsock, 2);
 	close(newsock);
 	errno = 0;
 	d = NULL;
     } else {
 	buff = alloc_mbuf("new_connection.sitename");
-        memset(buff, 0, sizeof(buff));
+        memset(buff, 0, MBUF_SIZE);
   	strncpy(buff, strip_nonprint(addroutbuf), MBUF_SIZE - 1);
 	STARTLOG(LOG_NET, "NET", "CONN")
 	    buff1 = alloc_mbuf("new_connection.LOG.open");
@@ -1230,7 +1425,7 @@ start_auth(DESC * d)
       free_lbuf(logbuff);
     ENDLOG
 
-    alarm(3);
+    alarm_msec(3);
 
     if( connect(d->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
@@ -1256,7 +1451,7 @@ start_auth(DESC * d)
     /* recalibrate the mush timers */
 
     mudstate.alarm_triggered = 0;
-    alarm(next_timer());
+    alarm_msec(next_timer());
 
     d->flags |= DS_AUTH_CONNECTING;
     DPOP; /* #8 */
@@ -1547,7 +1742,8 @@ process_output(DESC * d)
                 if ( !retry_success ) {
                    if ( errno == 11 ) {
                    /* It's a timeout, let's wait for a few milliseconds and try again */
-                      usleep(10);
+/*                    usleep(10); */
+                      nanosleep((struct timespec[]){{0, 100000000}}, NULL);
 	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
                    }
                    if ( cnt < 0 ) {
@@ -1671,14 +1867,18 @@ process_input(DESC * d)
 		while (*qf) {
 			*p++ = *qf++;
 		}
-	} else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 250) && ((p+10) < pend) ) {
-		sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-		qf = qfind;
-		in+=5;
-		got+=5;
-		while ( *qf ) {
-		   *p++ = *qf++;
-		}
+	} else if ( (((int)(unsigned char)*q) > 160) && 
+                    ((!mudconf.accent_extend && ((int)(unsigned char)*q) < 250) || (mudconf.accent_extend && ((int)(unsigned char)*q) < 256)) && 
+                    ((p+10) < pend) ) {
+            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {
+               sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
+               in+=5;
+               got+=5;
+               qf = qfind;
+               while ( *qf ) {
+                  *p++ = *qf++;
+               }
+            }
 	} else {
 		in--;
 		if (p >= pend)
@@ -1793,8 +1993,8 @@ NDECL(set_signals)
     if (mudconf.sig_action != SA_DFLT) {
 	signal(SIGILL, sighandler);
 	signal(SIGTRAP, sighandler);
-	signal(SIGFPE, sighandler);
-	signal(SIGSEGV, sighandler);
+  	signal(SIGFPE, sighandler);
+  	signal(SIGSEGV, sighandler);
 	signal(SIGABRT, sighandler);
 #ifdef SIGFSZ
 	signal(SIGXFSZ, sighandler);
@@ -1834,8 +2034,10 @@ void ignore_signals(){
      return;
 
   signal_depth = signal_depth + 1; /* Increase our 'signal unset level' */
-  for (i = 0; i < NSIG; i++)
-      signal(i, SIG_IGN);
+  for (i = 0; i < NSIG; i++) {
+      if ( i != SIGUSR2 )
+         signal(i, SIG_IGN);
+  }
 }
 
 /* Called to reset signal handling after db operations. */
@@ -1849,9 +2051,9 @@ void reset_signals(){
 									 									*/
 	if(signal_depth == 0) 
 		set_signals();
-        /* If signals were ignored, the alarm() will have been as well */
+        /* If signals were ignored, the alarm_msec() will have been as well */
         mudstate.alarm_triggered = 0;
-        alarm (next_timer());
+        alarm_msec (next_timer());
 }
 
 static void 
@@ -2093,7 +2295,8 @@ sighandler(int sig)
                 }
              }
           }
-          alarm(0); 
+          alarm_msec(0); 
+          alarm_stop();
           ignore_signals();
           raw_broadcast(0, 0, "Game: Restarting due to signal SIGUSR1.");
           raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected.");
@@ -2107,21 +2310,28 @@ sighandler(int sig)
 	mudstate.dump_counter = 0;
 	break;
     case SIGINT:		/* Log + ignore */
-    case SIGFPE:
 #ifdef SIGSYS
     case SIGSYS:
 #endif
 	log_signal(signames[sig], sig);
 	break;
     case SIGUSR2:		/* Perform clean shutdown. */
+        mudstate.forceusr2 = 1;
         log_signal(signames[sig], sig);
         raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGUSR2!");
         sprintf(buff, "Caught signal %s", signames[sig]);
         STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
            log_text((char*) "Shutting down due to signal SIGUSR2.");
+           if ( mudstate.dumpstatechk ) {
+              log_text((char *)"  Waiting for dump to finish.  Passively triggering shutdown.");
+              mudstate.shutdown_flag = 1;
+           }
         ENDLOG
-        do_shutdown(NOTHING, NOTHING, 0, buff);
-        mudstate.shutdown_flag = 1;
+        if ( !mudstate.shutdown_flag ) {
+           mudstate.forceusr2 = 0;
+           do_shutdown(NOTHING, NOTHING, 0, buff);
+           mudstate.shutdown_flag = 1;
+        }
         break;
     case SIGTERM:		/* Attempt flatfile dump before shutdown. */
         log_signal(signames[sig], sig);
@@ -2167,6 +2377,9 @@ sighandler(int sig)
         exit(1); /* Brutal. But daddy said I had to go to bed now. */
         break; 
     case SIGQUIT:		/* Normal shutdown */
+    case SIGSEGV:               /* SEGV/BUS, we have no idea on the state engine - just drop hard */
+    case SIGILL:		/* Panic save + coredump */
+    case SIGFPE:
 #ifdef SIGXCPU
     case SIGXCPU:
 #endif
@@ -2175,9 +2388,7 @@ sighandler(int sig)
 	sprintf(buff, "Caught signal %s - shutting down.", signames[sig]);
 	do_shutdown(NOTHING, NOTHING, 0, buff);
 	break;
-    case SIGILL:		/* Panic save + coredump */
     case SIGTRAP:
-    case SIGSEGV:
 #ifdef SIGXFSZ
     case SIGXFSZ:
 #endif
@@ -2187,10 +2398,12 @@ sighandler(int sig)
 #ifdef SIGBUS
     case SIGBUS:
 #endif
+        /* Hopefully this saves corruption on SIGSEGV's and butt-hurt crashes */
+        pcache_sync();
+        SYNC;
 	check_panicking(sig);
 	log_signal(signames[sig], sig);
 	report();
-	sprintf(buff, "Caught signal %s - shutting down.", signames[sig]);
 	do_shutdown(NOTHING, NOTHING, SHUTDN_PANIC, buff);
 
 	/* Either resignal, or clear signal handling and retry the

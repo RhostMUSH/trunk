@@ -144,6 +144,14 @@
 
 #define ANSIEX(x)	(No_Ansi_Ex(player) ? "" : (x))
 
+#ifndef TINY_SUB
+  #ifndef C_SUB
+    #ifndef M_SUB
+      #define C_SUB
+    #endif
+  #endif
+#endif
+
 #ifdef ZENTY_ANSI
 #ifdef TINY_SUB
 /* The %x codes */
@@ -181,7 +189,12 @@
 #define SAFE_ANSI_BMAGENTA	"%xM"
 #define SAFE_ANSI_BCYAN	"%xC"
 #define SAFE_ANSI_BWHITE	"%xW"
-#else
+
+/* End of TINY_SUB definitions */
+#endif
+
+#ifndef TINY_SUB
+#ifdef C_SUB
 /* The %c codes */
 #define SAFE_ANSI_NORMAL  "%cn"
 
@@ -218,7 +231,52 @@
 #define SAFE_ANSI_BCYAN	"%cC"
 #define SAFE_ANSI_BWHITE	"%cW"
 
-/* End of TINY_SUB definitions */
+/* End of C_SUB definitions */
+#endif
+#endif
+
+#ifndef TINY_SUB
+#ifndef C_SUB
+#ifdef M_SUB
+/* The %m codes */
+#define SAFE_ANSI_NORMAL  "%mn"
+
+#define SAFE_ANSI_HILITE   "%mh"
+#define SAFE_ANSI_INVERSE  "%mi"
+#define SAFE_ANSI_BLINK    "%mf"
+#define SAFE_ANSI_UNDERSCORE "%mu"
+
+
+//#define SAFE_ANSI_INV_BLINK         "%m"
+//#define SAFE_ANSI_INV_HILITE        "%m"
+//#define SAFE_ANSI_BLINK_HILITE      "%m"
+//#define SAFE_ANSI_INV_BLINK_HILITE  "%m"
+
+/* Foreground colors */
+
+#define SAFE_ANSI_BLACK	"%mx"
+#define SAFE_ANSI_RED	"%mr"
+#define SAFE_ANSI_GREEN	"%mg"
+#define SAFE_ANSI_YELLOW	"%my"
+#define SAFE_ANSI_BLUE	"%mb"
+#define SAFE_ANSI_MAGENTA	"%mm"
+#define SAFE_ANSI_CYAN	"%mc"
+#define SAFE_ANSI_WHITE	"%mw"
+
+/* Background colors */
+
+#define SAFE_ANSI_BBLACK	"%mX"
+#define SAFE_ANSI_BRED	"%mR"
+#define SAFE_ANSI_BGREEN	"%mG"
+#define SAFE_ANSI_BYELLOW	"%mY"
+#define SAFE_ANSI_BBLUE	"%mB"
+#define SAFE_ANSI_BMAGENTA	"%mM"
+#define SAFE_ANSI_BCYAN	"%mC"
+#define SAFE_ANSI_BWHITE	"%mW"
+
+/* End of M_SUB definitions */
+#endif
+#endif
 #endif
 
 #ifdef INCLUDE_ASCII_TABLE

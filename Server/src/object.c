@@ -18,7 +18,9 @@
 
 #define ZAP_LOC(i)	{ s_Location(i, NOTHING); s_Next(i, NOTHING); }
 
-extern int NDECL(next_timer);
+extern double NDECL(next_timer);
+
+extern int FDECL(alarm_msec, (double));
 
 static int check_type;
 
@@ -827,9 +829,10 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 {
     dbref i, comp;
     int count, typecomp;
-    char cstat, buff2[10], *tpr_buff = NULL, *tprp_buff = NULL;
+    char buff2[10];
     double timecomp;
 #ifndef STANDALONE
+    char cstat, *tpr_buff = NULL, *tprp_buff = NULL;
     time_t timevar;
     dbref dummy1;
     int dummy2;
@@ -838,9 +841,11 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 
     if (key & REC_COUNT) {
 	key &= ~REC_COUNT;
+#ifndef STANDALONE
 	cstat = 1;
     } else {
 	cstat = 0;
+#endif
     }
     count = 0;
     typecomp = -1;
@@ -897,7 +902,9 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
       i = mudstate.freelist;
     else
       i = mudstate.recoverlist;
+#ifndef STANDALONE
     tprp_buff = tpr_buff = alloc_lbuf("destroy_obj");
+#endif
     while (i != NOTHING) {
 	if ((typecomp > -1) && (Typeof(i) != typecomp)) {
 	    i = Link(i);
@@ -972,10 +979,11 @@ void
 do_purge(dbref player, dbref cause, int key, char *buff)
 {
     dbref owner, obj, place, dummy1;
-    int dummy2, count;
+    int count;
     char *tname;
     double timecomp;
 #ifndef STANDALONE
+    int dummy2;
     time_t timevar;
     char *pt1;
 #endif
@@ -1057,6 +1065,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	    timecomp *= 86400.0;
 	} else if (key == PURGE_TYPE) {
 	    switch (toupper(*buff)) {
+#ifndef STANDALONE
 	    case 'T':
 		dummy2 = TYPE_THING;
 		break;
@@ -1069,6 +1078,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	    case 'P':
 		dummy2 = TYPE_PLAYER;
 		break;
+#endif
 	    default:
 #ifndef STANDALONE
 		notify(player, "Bad type in purge command.");
@@ -1306,10 +1316,13 @@ NDECL(void check_dead_refs)
 {
     dbref targ, owner, i, j, loc;
     int aflags, dirty;
-    char *str, *tpr_buff = NULL, *tprp_buff = NULL;
+    char *str;
     FWDLIST *fp;
 
+#ifndef STANDALONE
+    char *tpr_buff = NULL, *tprp_buff = NULL;
     tprp_buff = tpr_buff = alloc_lbuf("check_dead_refs");
+#endif
     DO_WHOLE_DB(i) {
 
 	/* Check the parent */
@@ -1592,7 +1605,9 @@ NDECL(void check_dead_refs)
 	    }
 	}
     }
+#ifndef STANDALONE
     free_lbuf(tpr_buff);
+#endif
 }
 
 /* ---------------------------------------------------------------------------
@@ -1989,7 +2004,10 @@ static
 NDECL(void check_floating)
 {
     dbref owner, i;
+#ifndef STANDALONE
     char *tpr_buff = NULL, *tprp_buff = NULL;
+    tprp_buff = tpr_buff = alloc_lbuf("check_floating");
+#endif
 
     /* Mark everyplace you can get to via exits from the starting room */
 
@@ -1998,7 +2016,6 @@ NDECL(void check_floating)
 
     /* Look for rooms not marked and not set FLOATING */
 
-    tprp_buff = tpr_buff = alloc_lbuf("check_floating");
     DO_WHOLE_DB(i) {
 	if (!Going(i) && !Recover(i)) {
 	  owner = Owner(i);
@@ -2049,7 +2066,9 @@ NDECL(void check_floating)
 	  }
 	}
     }
+#ifndef STANDALONE
     free_lbuf(tpr_buff);
+#endif
 }
 
 /* ---------------------------------------------------------------------------
@@ -2068,7 +2087,7 @@ do_dbck(dbref player, dbref cause, int key)
     check_floating();
 #ifndef STANDALONE
     if (player != NOTHING) {
-	alarm(next_timer());
+	alarm_msec(next_timer());
 	if (!Quiet(player))
 	    notify(player, "Done.");
     }

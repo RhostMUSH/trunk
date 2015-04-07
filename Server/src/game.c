@@ -40,6 +40,8 @@
 #include "rhost_ansi.h"
 #include "door.h"
 
+#include <math.h>
+
 extern void NDECL(init_attrtab);
 extern void NDECL(init_cmdtab);
 extern void NDECL(cf_init);
@@ -72,6 +74,10 @@ void NDECL(dump_database);
 void NDECL(pcache_sync);
 static void FDECL(dump_database_internal, (int));
 static void NDECL(init_rlimit);
+
+extern double FDECL(time_ng, (double*));
+extern int FDECL(alarm_msec, (double));
+extern int NDECL(alarm_stop);
 
 int reserved;
 
@@ -134,6 +140,10 @@ do_dump(dbref player, dbref cause, int key, char *msg)
     char *ptr, prv_ptr;
     int i_valid;
 
+    if ( mudstate.forceusr2 ) {
+       notify(player, "In the middle of a SIGUSR2, unable to dump.");
+       return;
+    }
     DPUSH; /* #68 */
     i_valid = 1;
     prv_ptr = '\0';
@@ -200,7 +210,7 @@ NDECL(report)
 static int 
 atr_match1(dbref thing, dbref parent, dbref player, char type,
 	   char *str, int check_exclude,
-	   int hash_insert, int dpcheck, int cmast)
+	   int hash_insert, int dpcheck, int cmast, int *i_lock)
 {
     dbref aowner, thing2;
     int match, attr, aflags, i, ck, ck2, ck3, loc, attrib2, x, i_cpuslam, 
@@ -215,7 +225,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
 
     ck3 = ck2 = chkwild = i_inparen = 0;
     oldchk = mudstate.chkcpu_toggle;
-    if (!could_doit(player, parent, A_LUSE,1)) {
+    if (!could_doit(player, parent, A_LUSE, 1, 1)) {
         if ( mudstate.chkcpu_toggle && !oldchk ) {
            broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (USELOCK)",
                              (char *)"(internal-attribute)", NULL, parent, 0, 0, NULL);
@@ -228,12 +238,14 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
            ENDLOG
         }
         if ( Good_obj(thing) && ShowFailCmd(thing) ) {
+          *i_lock = 1;
           ck3 = 1;
         } else {
 	  RETURN(-1); /* #70 */
         }
     }
-
+    if ( *i_lock )
+       ck3 = 1;
     /* Mimic PENN's ability to only have players access $cmds on themselves/invent */
     if ( mudconf.penn_playercmds && (Good_obj(thing) && isPlayer(thing)) ) {
        if ( Good_obj(player) )
@@ -335,7 +347,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                   /* Is the attribute SBUF-2 chars or less in size? */
                   if ( strlen(ap->name) < (SBUF_SIZE - 2) ) {
                      s_uselock = alloc_sbuf("attr_uselock");
-                     memset(s_uselock, 0, sizeof(s_uselock));
+                     memset(s_uselock, 0, SBUF_SIZE);
                      sprintf(s_uselock, "~%.30s", ap->name);
                      ap2 = atr_str(s_uselock);
                      if ( ap2 ) {
@@ -355,7 +367,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                               if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
                                  i_cpuslam = 1;
                                  cpuslam = alloc_lbuf("uselock_cpuslam");
-                                 memset(cpuslam, 0, sizeof(cpuslam));
+                                 memset(cpuslam, 0, LBUF_SIZE);
                                  sprintf(cpuslam, "(ATTR:%.32s):%.3900s", s_uselock, cputext);
                                  broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (ATRULCK)",
                                                    (char *)cpuslam, NULL, parent, 0, 0, NULL);
@@ -391,7 +403,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
 	       match = 1;
 	       if (!cmast && (Flags3(thing) & NOSTOP) && (thing != mudconf.master_room) &&
                    (Location(thing) != mudconf.master_room)) {
-	         ck = atr_match1(mudconf.master_room, mudconf.master_room, player, type, str, 0, 0, dpcheck, 1);
+	         ck = atr_match1(mudconf.master_room, mudconf.master_room, player, type, str, 0, 0, dpcheck, 1, i_lock);
 	         if (ck < 2) {
 	           ck2 = list_check(Contents(mudconf.master_room), player, AMATCH_CMD, str, 0, 0, 0);
 	         }
@@ -437,7 +449,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
        did_it(player, thing, A_UFAIL,
              "You can not use $-commands on that.",
               A_OUFAIL, NULL, A_AUFAIL, (char **)NULL, 0);
-       RETURN(1); /* #70 */
+       RETURN(-1); /* #70 */
     } else {
        RETURN(match); /* #70 */
     }
@@ -449,7 +461,7 @@ int
 atr_match(dbref thing, dbref player, char type, char *str, int check_parents, int dpcheck)
 {
     int match, lev, result, exclude, insert;
-    int retval;
+    int retval, i_lock;
     dbref parent;
 
     DPUSH; /* #71 */
@@ -468,9 +480,9 @@ atr_match(dbref thing, dbref player, char type, char *str, int check_parents, in
 
     /* If not checking parents, just check the thing */
 
-    match = 0;
+    match = i_lock = 0;
     if (!check_parents) {
-        retval = atr_match1(thing, thing, player, type, str, 0, 0, dpcheck, 0);
+        retval = atr_match1(thing, thing, player, type, str, 0, 0, dpcheck, 0, &i_lock);
         RETURN(retval); /* #71 */
     }
 
@@ -483,7 +495,7 @@ atr_match(dbref thing, dbref player, char type, char *str, int check_parents, in
 	if (!Good_obj(Parent(parent)))
 	    insert = 0;
 	result = atr_match1(thing, parent, player, type, str,
-			    exclude, insert, dpcheck, 0);
+			    exclude, insert, dpcheck, 0, &i_lock);
 	if ((result == 3) || (result == 2)) {
 	  match = 2;
 	  break;
@@ -583,13 +595,16 @@ dflt_from_msg(dbref sender, dbref sendloc)
 void 
 notify_check(dbref target, dbref sender, const char *msg, int port, int key, int i_type)
 {
-    char *msg_ns, *mp, *msg_ns2, *mp2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *msg_utf, *mp_utf;
-    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr;
+#ifdef ZENTY_ANSI
+    char *mp2;
+#endif
+    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *msg_utf, *mp_utf;
+    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0;
     int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
     FWDLIST *fp;
-    ATTR *ap_log;
+    ATTR *ap_log, *ap_attrpipe;
 
     DPUSH; /* #75 */
 
@@ -598,9 +613,10 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     msg_ns2 = NULL;
     cpulbuf = NULL;
+
     /* If speaker is invalid or message is empty, just exit */
 
-    if ((!Good_obj(target) && !port) || !msg || !*msg) {
+    if ( !Good_obj(sender) || (!Good_obj(target) && !port) || !msg || !*msg) {
 	mudstate.pageref = NOTHING;
 	VOIDRETURN; /* #75 */
     }
@@ -612,7 +628,47 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	mudstate.ntfy_nest_lev--;
 	VOIDRETURN; /* #75 */
     }
-    
+    /* Let's optionally log to a file if specified -- Note:  This bypasses spoof output obviously */ 
+    if ( H_Attrpipe(target) ) {
+       ap_attrpipe = atr_str_notify("___ATTRPIPE");
+       if ( ap_attrpipe ) {
+          s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+          if ( *s_pipeattr ) {
+             ap_attrpipe = atr_str_notify(s_pipeattr);
+             if ( ap_attrpipe ) {
+                free_lbuf(s_pipeattr);
+                s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+                if ( Controlsforattr(target, target, ap_attrpipe, aflags)) {
+                   if ( strlen(s_pipeattr) + strlen(msg) < (LBUF_SIZE - 40) ) {
+                      s_pipebuffptr = s_pipebuff = alloc_lbuf("pipe_buffering");
+                      if ( *s_pipeattr ) {
+                         safe_str(s_pipeattr, s_pipebuff, &s_pipebuffptr);
+                         safe_str("\r\n", s_pipebuff, &s_pipebuffptr);
+                      }
+                      safe_str((char *)msg, s_pipebuff, &s_pipebuffptr);
+                      atr_add_raw(target, ap_attrpipe->number, s_pipebuff);
+                      free_lbuf(s_pipebuff);
+                      free_lbuf(s_pipeattr);
+	              mudstate.ntfy_nest_lev--;
+                      if ( TogNoisy(target) )
+                         raw_notify(target, (char *)"Piping output to attribute.", 0, 1);
+	              VOIDRETURN; /* #75 */
+                   }
+                }
+             }
+          } 
+          free_lbuf(s_pipeattr);
+       }
+       if ( !ap_attrpipe ) {
+          raw_notify(target, (char *)"Notice: Piping attribute no longer exists.  Piping has been auto-disabled.", 0, 1);
+       } else {
+          raw_notify(target, (char *)"Notice: Piping attribute full.  Piping has been auto-disabled.", 0, 1);
+       }
+       s_Flags4(target, (Flags4(target) & (~HAS_ATTRPIPE)));
+       ap_attrpipe = atr_str_notify("___ATTRPIPE");
+       if ( ap_attrpipe )
+          atr_clr(target, ap_attrpipe->number);
+    }
     /* If we want NOSPOOF output, generate it.  It is only needed if
      * we are sending the message to the target object */
     for (i = 0; i < LBUF_SIZE; i++)
@@ -620,8 +676,10 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     if (key & MSG_ME) {
 	mp = msg_ns = alloc_lbuf("notify_check");
+#ifdef ZENTY_ANSI
 	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
 	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
+#endif
 	if (!port && Nospoof(target) &&
 	    (target != sender) &&
 	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&
@@ -759,7 +817,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	pass_uselock = 0;
 	if ((key & MSG_ME) && check_listens &&
 	    (pass_listen || Monitor(target)))
-	    pass_uselock = could_doit(sender, target, A_LUSE,1);
+	    pass_uselock = could_doit(sender, target, A_LUSE, 1, 2);
 
 	/* Process AxHEAR if we pass LISTEN, USElock and it's for me */
 
@@ -918,7 +976,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
             }
         }
 
-        if ( LogRoom(target) ) {
+        if ( LogRoom(target) && ( isRoom(target) || (!isRoom(target) && (Location(sender) == target)) ) ) {
            s_logroom = alloc_mbuf("log_room");
            memset(s_logroom, '\0', MBUF_SIZE);
            ap_log = atr_str("LOGNAME");
@@ -1138,55 +1196,16 @@ notify_except3(dbref loc, dbref player, dbref exc1, dbref exc2, int level,
 
       DOLIST(first, Contents(loc)) {
 	if (first != exc1 && first != exc2) {
-	    if ((level && Immortal(first)) || (!level && Wizard(first)))
+	    if ( !Private(first) && ((level && Immortal(first)) || (!level && Wizard(first))) )
 		notify_check(first, player, msg, 0,
 			     (MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE), 0);
 	}
       }
       if ( isPlayer(loc) || isThing(loc) ) {
-	 if ((level && Immortal(loc)) || (!level && Wizard(loc)))
+	 if ( !Private(loc) && ((level && Immortal(loc)) || (!level && Wizard(loc))) )
              notify_quiet(loc, msg);
       }
     VOIDRETURN; /* #79 */
-}
-
-void
-do_reboot(dbref player, dbref cause, int key)
-{
-  int port;
-
-  DPUSH; /* #80 */
-
-  if ((!Wizard(player) &&
-      !HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA))) {
-      notify(player, "Permission denied.");
-      DPOP; /* #80 */
-      return;
-  }
-  if (HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA)) {
-     if ( (player != cause) && !Immortal(player)) {
-         notify(cause, "Permission denied.");
-         notify(player, unsafe_tprintf("%s tried to make you @reboot.", Name(cause)));
-         DPOP; /* #80 */
-         return;
-     }
-     else if (desc_in_use == NULL) {
-        notify(player, "You can not queue a reboot with the power shutdown.");
-        DPOP; /* #80 */
-        return;
-     }
-  }
-  alarm(0);
-  ignore_signals();
-  port = mudconf.port;
-  raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
-  raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
-  STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
-    log_text((char *) "Reboot by ");
-    log_name(player);
-  ENDLOG
-  mudstate.reboot_flag = port;
-  VOIDRETURN; /* #80 */
 }
 
 void 
@@ -1250,6 +1269,7 @@ do_shutdown(dbref player, dbref cause, int key, char *message)
 	
 	/* Stop handling signals. */
 	
+        mudstate.dumpstatechk=1;
 	ignore_signals();
 	
 	/* Close the attribute text db and dump the header db */
@@ -1273,6 +1293,81 @@ do_shutdown(dbref player, dbref cause, int key, char *message)
     VOIDRETURN; /* #81 */
 }
 
+void
+do_reboot(dbref player, dbref cause, int key)
+{
+  int port;
+  FILE *f;
+  DESC *d;
+
+  DPUSH; /* #80 */
+
+  if ( mudstate.forceusr2 ) {
+      notify(player, "In the middle of a SIGUSR2, unable to @reboot.");
+      DPOP; /* #80 */
+      return;
+  }
+
+  if ((!Wizard(player) &&
+      !HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA))) {
+      notify(player, "Permission denied.");
+      DPOP; /* #80 */
+      return;
+  }
+  if (HasPriv(player, NOTHING, POWER_SHUTDOWN, POWER4, POWER_LEVEL_NA)) {
+     if ( (player != cause) && !Immortal(player)) {
+         notify(cause, "Permission denied.");
+         notify(player, unsafe_tprintf("%s tried to make you @reboot.", Name(cause)));
+         DPOP; /* #80 */
+         return;
+     }
+     else if (desc_in_use == NULL) {
+        notify(player, "You can not queue a reboot with the power shutdown.");
+        DPOP; /* #80 */
+        return;
+     }
+  }
+
+  alarm_msec(0);
+  alarm_stop();
+  mudstate.dumpstatechk=1;
+  ignore_signals();
+  port = mudconf.port;
+
+  if (key == REBOOT_SILENT) {
+     f = fopen("reboot.silent", "w+");
+
+     DESC_ITER_CONN(d) {
+        if ( (d->player == player) ) {
+           if (f == NULL) {
+              queue_string(d,"Cannot write silent reboot file. Final message will not be snuffed.");
+           } else {
+              queue_string(d,"Game: Rebooting Silently.");
+           }
+           queue_write(d, "\r\n", 2);
+           process_output(d);
+        }
+     }
+     if ( f ) {
+        fprintf(f, "%d\n", player);
+        fclose(f);
+     }
+  } else {
+    raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
+    raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
+  }
+  if ( mudstate.shutdown_flag ) {
+     raw_broadcast(0, 0, "Game: Signal USR2 caught in middle of reboot.  Shutting down the game.");
+     do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+  }
+  STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
+    log_text((char *) "Reboot by ");
+    log_name(player);
+  ENDLOG
+  mudstate.reboot_flag = port;
+  VOIDRETURN; /* #80 */
+}
+
 static void 
 dump_database_internal(int panic_dump)
 {
@@ -1281,7 +1376,8 @@ dump_database_internal(int panic_dump)
 
     DPUSH; /* #82 */
     
-    ignore_signals();  	 /* Stop handling signals. */
+    /* This is broke with timers, I don't know why yet */
+    ignore_signals(); 	 /* Stop handling signals. */
  
     dmpfile = alloc_mbuf("dump_database_internal");
     outdbfile = alloc_mbuf("dump_database_internal");
@@ -1308,7 +1404,11 @@ dump_database_internal(int panic_dump)
 	    log_perror("DMP", "FAIL", "Opening crash file",
 		       mudconf.crashdb);
 	}
-        reset_signals(); 	/* Resume normal signal handling. */
+        /* This is broke, I don't know why yet */
+        reset_signals(); /* Resume normal signal handling. */
+        if ( mudstate.shutdown_flag ) {
+           do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+        }
 	VOIDRETURN; /* #82 */
     }
 
@@ -1329,7 +1429,11 @@ dump_database_internal(int panic_dump)
 		log_perror("SAV", "FAIL",
 			   "Renaming output file to DB file",
 			   tmpfile);
+            /* This is broke, I don't know why yet */
             reset_signals(); 	/* Resume normal signal handling. */
+            if ( mudstate.shutdown_flag ) {
+               do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+            }
 	    VOIDRETURN; /* #82 */
 	} else {
 	    log_perror("SAV", "FAIL", "Opening", tmpfile);
@@ -1356,7 +1460,12 @@ dump_database_internal(int panic_dump)
     free_mbuf(prevfile);
     local_dump(panic_dump);
 
-    reset_signals(); 	/* Resume normal signal handling. */
+    /* This is broke, I don't know why yet */
+    reset_signals();  	/* Resume normal signal handling. */
+
+    if ( mudstate.shutdown_flag ) {
+       do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+    }
     
     VOIDRETURN; /* #82 */
 }
@@ -1366,6 +1475,7 @@ NDECL(dump_database)
 {
     char *buff;
 
+    mudstate.dumpstatechk=1;
     DPUSH; /* #83 */
 
     mudstate.epoch++;
@@ -1387,6 +1497,7 @@ NDECL(dump_database)
     log_text(buff);
     ENDLOG
     free_mbuf(buff);
+    mudstate.dumpstatechk=0;
     VOIDRETURN; /* #83 */
 }
 
@@ -1398,6 +1509,11 @@ fork_and_dump(int key, char *msg)
   char *flatfilename;
   FILE *f;
 
+  /* If we're in the middle of a kill -USR2 don't dump -- the shutdown will take care of it */
+  if ( mudstate.forceusr2 )
+     return;
+
+  mudstate.dumpstatechk=1;
   DPUSH; /* #84 */
   /* always sync up working files before dumping a flatfile database */
   if( key & DUMP_FLAT ) {
@@ -1405,7 +1521,7 @@ fork_and_dump(int key, char *msg)
   }
 
   if (*mudconf.dump_msg)
-    raw_broadcast(0, 0, "%s", mudconf.dump_msg);
+    raw_broadcast(0, NO_WALLS, "%s", mudconf.dump_msg);
 
   mudstate.epoch++;
   buff = alloc_mbuf("fork_and_dump");
@@ -1471,6 +1587,7 @@ fork_and_dump(int key, char *msg)
         free_mbuf(flatfilename);
 
         if (f) {
+          /* This is broke with timers, I don't know why yet */
           ignore_signals(); /* Ignore signals while dumping. */
           STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
             log_text((char*)"Dumping db to flatfile...");
@@ -1481,7 +1598,8 @@ fork_and_dump(int key, char *msg)
           ENDLOG
           fclose(f);
           time(&mudstate.mushflat_time);
-          reset_signals(); /* All done, resume signal handling. */
+          /* This is broke, I don't know why yet */
+           reset_signals(); /* All done, resume signal handling. */
         }
         else {
           STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")
@@ -1490,12 +1608,16 @@ fork_and_dump(int key, char *msg)
         }
       }
       if (*mudconf.postdump_msg)
-        raw_broadcast(0, 0, "%s", mudconf.postdump_msg);
+        raw_broadcast(0, NO_WALLS, "%s", mudconf.postdump_msg);
 
     } else if (child < 0) {
       log_perror("DMP", "FORK", NULL, "fork()");
     }
   }
+  if ( mudstate.shutdown_flag ) {
+     do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
+  }
+  mudstate.dumpstatechk=0;
 }
 
 
@@ -1784,7 +1906,7 @@ static void
 NDECL(process_preload)
 {
     dbref thing, parent, aowner;
-    int aflags, lev, i, i_matchint;
+    int aflags, lev, i_matchint;
     char *tstr, *tstr2, *s_strtok, *s_strtokr, *s_matchstr;
     FWDLIST *fp;
 
@@ -1793,7 +1915,6 @@ NDECL(process_preload)
     fp = (FWDLIST *) alloc_lbuf("process_preload.fwdlist");
     tstr = alloc_lbuf("process_preload.string");
     tstr2 = alloc_lbuf("process_preload.string");
-    i = 0;
     DO_WHOLE_DB(thing) {
 
 	/* Ignore GOING objects */
@@ -2080,7 +2201,9 @@ main(int argc, char *argv[])
     hashreset(&mudstate.error_htab);
     nhashreset(&mudstate.desc_htab);
 
-    mudstate.now = time(NULL);
+    mudstate.nowmsec = time_ng(NULL);
+    mudstate.now = (time_t) floor(mudstate.nowmsec);
+    mudstate.lastnowmsec = mudstate.nowmsec;
     mudstate.lastnow = mudstate.now;
     mudstate.evalnum = 0;
     mudstate.guest_num = 0;
@@ -2100,7 +2223,9 @@ main(int argc, char *argv[])
 
     /* go do it */
 
-    mudstate.now = time(NULL);
+    mudstate.nowmsec = time_ng(NULL);
+    mudstate.now = (time_t) floor(mudstate.nowmsec);
+    mudstate.lastnowmsec = mudstate.nowmsec;
     mudstate.lastnow = mudstate.now;
     init_timer();
 
@@ -2112,7 +2237,7 @@ main(int argc, char *argv[])
     }
     local_startup();
     /* --- main mush loop --- */
-    shovechars(mudconf.port);
+    shovechars(mudconf.port, mudconf.ip_address);
     /* --- end main mush loop --- */
     local_shutdown();
     rebooting = mudstate.reboot_flag;

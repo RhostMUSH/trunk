@@ -11,7 +11,7 @@ extern RLEVEL   FDECL(RxLevel, (dbref));
 extern RLEVEL   FDECL(TxLevel, (dbref));
 extern char *   FDECL(rxlevel_description, (dbref, dbref, int, int));
 extern char *   FDECL(txlevel_description, (dbref, dbref, int, int));
-extern void	FDECL(decompile_rlevels, (dbref, dbref, char *));
+extern void	FDECL(decompile_rlevels, (dbref, dbref, char *, char *, int));
 extern void 	FDECL(did_it_rlevel, (dbref, dbref, int, const char *, int,
 				const char *, int, char *[], int));
 extern void 	FDECL(notify_except_rlevel, (dbref, dbref, dbref,

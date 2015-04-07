@@ -26,6 +26,7 @@ char *strtok_r(char *, const char *, char **);
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*);
 extern int remote_read_sanitize(FILE *, dbref, int, int);
+extern dbref FDECL(match_thing, (dbref, char *));
 
 void do_teleport(dbref player, dbref cause, int key, char *slist, 
 		 char *dlist[], int nargs)
@@ -159,7 +160,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  continue;
 		}
 	}
-	if (No_tel(victim) && !Wizard(player)) {
+	if ( (mudstate.remotep == victim) || (No_tel(victim) && !Wizard(player)) ) {
 		if( victim == player )
 			notify_quiet(player,"You aren't allowed to @tel.");
 		else
@@ -283,7 +284,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 			DePriv(player,Owner(destination),DP_TEL_ANYWHERE,POWER7,NOTHING) ||
 			DePriv(player,Owner(destination),DP_LOCKS,POWER6,NOTHING)) &&
 		    (!Jump_ok(destination) ||
-		     !could_doit(player, destination, A_LTPORT,1))) {
+		     !could_doit(player, destination, A_LTPORT,1,0))) {
 
 			/* Nope, report failure */
 
@@ -364,6 +365,41 @@ dbref	victim;
 	/* force victim to do command */
 	wait_que(victim, player, 0, NOTHING, command, args, nargs,
 		mudstate.global_regs, mudstate.global_regsname);
+}
+
+/* ---------------------------------------------------------------------------
+ * do_remote: Run a command from a different location.
+ */
+
+void do_remote(dbref player, dbref cause, int key, char *loc,
+    char *command, char *args[], int nargs)
+{
+dbref target;
+char *retbuff;
+
+   if ( mudstate.remote != -1 ) {
+      notify(player, "You can not nest @remote.");
+      return;
+   }
+   if ( !command || !*command ) {
+      return;
+   }
+   if ( !loc || !*loc ) {
+      target = NOTHING;
+   } else {
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, loc, NULL, 0);
+      target = match_thing(player, retbuff);
+      free_lbuf(retbuff);
+   }
+
+  if(!Good_obj(target) ||Recover(target) || Going(target) || !Controls(player,target)) {
+    notify(player,"Permission denied.");
+  }
+  mudstate.remote = target;
+  mudstate.remotep = player;
+  process_command(player, player, 0, command, args, nargs, 0);
+  mudstate.remote = -1;
+  mudstate.remotep = -1;
 }
 
 /* ---------------------------------------------------------------------------

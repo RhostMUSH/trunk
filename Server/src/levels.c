@@ -165,18 +165,20 @@ txlevel_description(dbref player, dbref target, int flag, int f2)
     return buff;
 }
 
-void decompile_rlevels(dbref player, dbref thing, char *thingname)
+void decompile_rlevels(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
 {
     char *buf, *tpr_buff, *tprp_buff;
 
     buf = rxlevel_description(player, thing, 0, 0);
     tprp_buff = tpr_buff = alloc_lbuf("decompile_rlevels");
-    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@rxlevel %s=%s", strip_ansi(thingname), buf));
+    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@rxlevel %s=%s", 
+                                       (i_tf ? qualout : (char *)""), strip_ansi(thingname), buf));
     free_lbuf(buf);
 
     buf = txlevel_description(player, thing, 0, 0);
     tprp_buff = tpr_buff;
-    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@txlevel %s=%s", strip_ansi(thingname), buf));
+    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@txlevel %s=%s", 
+                                      (i_tf ? qualout : (char *)""), strip_ansi(thingname), buf));
     free_lbuf(tpr_buff);
     free_lbuf(buf);
 }
@@ -186,7 +188,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
     dbref thing;
     int negate, i;
     RLEVEL result, ormask, andmask;
-    char lname[9], *buff;
+    char lname[17], *buff;
 
     /* find thing */
     if ((thing = match_controlled(player, object)) == NOTHING)
@@ -209,7 +211,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
             ++arg;
         }
         for(i=0; *arg && !isspace((int)*arg); ++arg)
-            if(i < 8)
+            if(i < 16)
                 lname[i++] = *arg;
         lname[i] = '\0';
         if(!lname[0])
@@ -249,7 +251,7 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     dbref thing;
     int negate, i;
     RLEVEL result, ormask, andmask;
-    char lname[9], *buff;
+    char lname[17], *buff;
 
     /* find thing */
     if ((thing = match_controlled(player, object)) == NOTHING)
@@ -272,7 +274,7 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
             ++arg;
         }
         for(i=0; *arg && !isspace((int)*arg); ++arg)
-            if(i < 8)
+            if(i < 16)
                 lname[i++] = *arg;
         lname[i] = '\0';
         if(!lname[0])

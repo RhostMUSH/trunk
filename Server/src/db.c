@@ -21,6 +21,7 @@ void bzero(void *, int);
 #include "vattr.h"
 #include "match.h"
 #include "alloc.h"
+#include "interface.h"
 
 #ifndef O_ACCMODE
 #define O_ACCMODE	(O_RDONLY|O_WRONLY|O_RDWR)
@@ -292,6 +293,9 @@ extern int FDECL(ansiname_ck, (int, dbref, dbref, int, char *));
 extern void FDECL(pcache_reload, (dbref));
 extern void FDECL(desc_reload, (dbref));
 extern void FDECL(do_reboot, (dbref, dbref, int));
+extern int FDECL(process_output, (DESC * d));
+extern int FDECL(list_vcount, ());
+
 
 AFLAGENT attrflag[] =
 {
@@ -778,7 +782,7 @@ fwdlist_load(FWDLIST * fp, dbref player, char *atext)
 		    (!God(player) &&
 		     !controls(player, target) &&
 		     (!Link_ok(target) ||
-		      !could_doit(player, target, A_LLINK,1))));
+		      !could_doit(player, target, A_LLINK, 1, 0))));
 #else
 	    fail = !Good_obj(target);
 #endif
@@ -882,7 +886,7 @@ fwdlist_get(dbref thing)
 #ifdef STANDALONE
 
     dbref aowner;
-    int aflags, errors;
+    int aflags;
     char *tp;
 
     static FWDLIST *fp = NULL;
@@ -890,7 +894,7 @@ fwdlist_get(dbref thing)
     if (!fp)
 	fp = (FWDLIST *) alloc_lbuf("fwdlist_get");
     tp = atr_get(thing, A_FORWARDLIST, &aowner, &aflags);
-    errors = fwdlist_load(fp, GOD, tp);
+    fwdlist_load(fp, GOD, tp);
     free_lbuf(tp);
 #else
     FWDLIST *fp;
@@ -1122,7 +1126,6 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
     free_sbuf(buff);
     return;
 }
-
 /* ---------------------------------------------------------------------------
  * do_fixdb: Directly edit database fields
  */
@@ -1287,6 +1290,94 @@ NDECL(init_attrtab)
  */
 
 ATTR *
+atr_str_notify(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_notify");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_str3(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str3");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
 atr_str2(char *s)
 {
     char *buff, *p, *q;
@@ -1296,7 +1387,7 @@ atr_str2(char *s)
 
     /* Convert the buffer name to lowercase */
 
-    buff = alloc_mbuf("atr_str");
+    buff = alloc_mbuf("atr_str2");
     for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
 	*p = ToLower((int)*q);
     *p = '\0';
@@ -1515,6 +1606,64 @@ anum_extend(int newtop)
 /* ---------------------------------------------------------------------------
  * atr_num: Look up an attribute by number.
  */
+
+ATTR *
+atr_num4(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num3(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
 
 ATTR *
 atr_num2(int anum)
@@ -2360,6 +2509,10 @@ atr_set_flags(dbref thing, int atr, dbref flags)
 /* ---------------------------------------------------------------------------
  * atr_get_raw, atr_get_str, atr_get: Get an attribute from the database.
  */
+
+// Global LBUF size static buffer for large LBUF -> small LBUF conversion.
+Attr tmp_lbuf[LBUF_SIZE];
+//
 char *
 atr_get_raw(dbref thing, int atr)
 {
@@ -2372,6 +2525,13 @@ atr_get_raw(dbref thing, int atr)
 
     makekey(thing, atr, &okey);
     a = FETCH(&okey);
+    if(a != NULL)
+      if(strlen(a) > (LBUF_SIZE-1))
+      {
+        memset(tmp_lbuf, '\0', LBUF_SIZE);
+        strncpy(tmp_lbuf,a,LBUF_SIZE-1);
+        return tmp_lbuf;
+      }
     return a;
 }
 
@@ -3371,3 +3531,107 @@ init_gdbm_db(char *gdbmfile)
     vattr_init();
     return (0);
 }
+
+#ifndef STANDALONE
+void do_dbclean(dbref player, dbref cause, int key)
+{
+   char *s_chkattr, *s_buff, *cs;
+   int ca, i, i_walkie, i_cntr, i_max, i_del;
+   VATTR *va, *va2;
+   ATTR *atr;
+   DESC *d;
+
+   DESC_ITER_CONN(d) {
+      if ( (d->player == player) ) {
+         if ( key & DBCLEAN_CHECK )
+            queue_string(d,"Checking dabase of empty attributes.  Please wait...");
+         else
+            queue_string(d,"Purging dabase of empty attributes.  Please wait...");
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+   s_buff = alloc_sbuf("do_dbclean");
+   s_chkattr = alloc_lbuf("attribute_delete");
+
+   DESC_ITER_CONN(d) {
+      if ( (d->player == player) ) {
+         queue_string(d, "---> Hashing values...");
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+   DO_WHOLE_DB(i) {
+      for (ca=atr_head(i, &cs); ca; ca=atr_next(&cs)) {
+         if ( ca > A_USER_START ) {
+            atr = atr_num2(ca);
+            va = (VATTR *) vattr_find((char *)atr->name);
+            if ( va && !(va->flags & AF_DELETED) ) {
+               if ( !(va->flags & AF_NONBLOCKING) ) {
+                  va->flags |= AF_NONBLOCKING;
+               }
+            }
+         }
+      }
+   }
+   DESC_ITER_CONN(d) {
+      if ( (d->player == player) ) {
+         if ( key & DBCLEAN_CHECK )
+            queue_string(d, "---> Initializing check routines...");
+         else
+            queue_string(d, "---> Initializing purge routines...");
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+
+   
+   va = vattr_first();
+   i_max = list_vcount();
+   i_walkie = i_del = i_cntr = 0;
+
+   for (va = vattr_first(); va; va = va2) {
+       if ( va )
+          va2 = vattr_next(va);
+       if ( va && !(va->flags & AF_DELETED)) {
+          if ( !(va->flags & AF_NONBLOCKING) && va->name ) {
+             strcpy(s_buff, va->name);
+             if ( key & DBCLEAN_CHECK )
+                va->flags &= ~AF_NONBLOCKING;
+             else
+	        vattr_delete(s_buff);
+             i_del++;
+             i_cntr++;
+          } else {
+             va->flags &= ~AF_NONBLOCKING;
+          }
+       }
+       i_walkie++;
+       if ( !(i_walkie % 5000) ) {
+          sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d %s]", 
+                  i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted") );
+          i_del = 0;
+          DESC_ITER_CONN(d) {
+             if ( (d->player == player) ) {
+                queue_string(d, s_chkattr);
+                queue_write(d, "\r\n", 2);
+                process_output(d);
+             }
+          }
+       }
+   }
+   DESC_ITER_CONN(d) {
+      sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d %s]\r\n---> Completed!  %d total attributes have been %s.", 
+                          i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted"),
+                          i_cntr, ((key & DBCLEAN_CHECK) ? "verified deleteable" : "deleted") );
+      if ( (d->player == player) ) {
+         queue_string(d, s_chkattr);
+         queue_write(d, "\r\n", 2);
+         process_output(d);
+      }
+   }
+   free_lbuf(s_chkattr);
+   free_sbuf(s_buff);
+}
+
+#endif

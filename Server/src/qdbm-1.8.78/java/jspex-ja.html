@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="author" content="Mikio Hirabayashi" />
+<meta name="keywords" content="QDBM, Java, Depot, Curia, Villa" />
+<meta name="description" content="specifications of Java API of QDBM" />
+<link rel="contents" href="./" />
+<link rel="alternate" href="jspex.html" hreflang="en" title="the English version" />
+<link rev="made" href="mailto:mikio@fallabs.com" />
+<title>Specifications of QDBM for Java (Japanese)</title>
+<style type="text/css">html { margin: 0em 0em; padding: 0em 0em; background: #eeeeee none; }
+body { margin: 2em 2em; padding: 0em 0em;
+  background: #eeeeee none; color: #111111;
+  font-style: normal; font-weight: normal; }
+h1 { margin-top: 1.8em; margin-bottom: 1.3em; font-weight: bold; }
+h2 { margin-top: 1.8em; margin-bottom: 1.1em; font-weight: bold;
+  border-left: solid 0.6em #445555; border-bottom: solid 1pt #bbbbbb;
+  padding: 0.5em 0.5em; width: 60%; }
+h3 { margin-top: 1.8em; margin-bottom: 0.8em; font-weight: bold; }
+hr { margin-top: 2.5em; margin-bottom: 1.5em; height: 1pt;
+  color: #999999; background-color: #999999; border: none; }
+div.note,div.navi { text-align: right; }
+div.logo { text-align: center; margin: 3em 0em; }
+div.logo img { border: inset 2pt #ccccdd; }
+p { margin: 0.8em 0em; line-height: 140%; }
+p,dd { text-indent: 0.8em; }
+div,pre { margin-left: 1.7em; margin-right: 1.7em; }
+pre { background-color: #ddddee; padding: 0.2em; border: 1pt solid #bbbbcc; font-size: smaller; }
+kbd { color: #111111; font-style: normal; font-weight: bold; }
+a { color: #0022aa; text-decoration: none; }
+a:hover,a:focus { color: #0033ee; text-decoration: underline; }
+a.head { color: #111111; text-decoration: none; }
+table { padding: 1pt 2pt 1pt 2pt; border: none; margin-left: 1.7em; border-collapse: collapse; }
+th { padding: 1pt 4pt 1pt 4pt; border-style: none;
+  text-align: left; vertical-align: bottom; }
+td { padding: 1pt 4pt 1pt 4pt; border: 1pt solid #333333;
+  text-align: left; vertical-align: top; }
+ul,ol,dl { line-height: 140%; }
+dt { margin-left: 1.2em; }
+dd { margin-left: 2.0em; }
+ul.lines { list-style-type: none; }
+@media print {
+  html,body { margin: 0em 0em; background-color: #ffffff; color: #000000; }
+  h1 { padding: 8em 0em 0.5em 0em; text-align: center; }
+  h2 { page-break-before: always; }
+  div.note { text-align: center; }
+  div.navi,div.logo { display: none }
+  hr { display: none; }
+  pre { margin: 0.8em 0.8em; background-color: #ffffff;
+    border: 1pt solid #aaaaaa; font-size: smaller; }
+  a,kbd { color: #000000; text-decoration: none; }
+  h1,h2,h3 { font-family: sans-serif; }
+  p,div,li,dt,dd { font-family: serif; }
+  pre,kbd { font-family: monospace; }
+  dd { font-size: smaller; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>QDBM付属Java用API仕様書</h1>
+
+<div class="note">Copyright (C) 2000-2006 Mikio Hirabayashi</div>
+<div class="note">Last Update: Thu, 26 Oct 2006 15:00:20 +0900</div>
+<div class="navi">[<a href="japidoc/index.html">API</a>] [<a href="jspex.html" hreflang="en">English</a>]</div>
+
+<hr />
+
+<h2>目次</h2>
+
+<ol>
+<li><a href="#overview">概要</a></li>
+<li><a href="#installation">インストール</a></li>
+<li><a href="#setting">環境設定</a></li>
+<li><a href="#examples">サンプルコード</a></li>
+<li><a href="#bugs">バグ</a></li>
+</ol>
+
+<hr />
+
+<h2><a name="overview" id="overview" class="head">概要</a></h2>
+
+<p>QDBMにはJava言語用のAPIがある。QDBMの基本APIと拡張APIと上級APIの関数群をJavaのクラス機構を用いてカプセル化し、かつスレッドセーフにしたものである。C言語のAPIをJava Native Interfaceを介して呼び出すように実装されている。</p>
+
+<p>基本APIはファイルを用いてハッシュデータベースを実現する。クラス `Depot' のコンストラクタによってデータベースファイルが開かれる。データベースを閉じるにはメソッド `close' を呼ぶ。ファイナライザでもデータベースを閉じようとするが、それに頼ってはならない。メソッド `put' はレコードを追加するために用いる。メソッド `out' はレコードを削除するために用いる。メソッド `get' はレコードを検索するために用いる。その他にも、C言語の基本APIとほぼ同じ操作を利用することができる。各メソッドはエラー時にクラス `DepotException' のインスタンスを投げる。</p>
+
+<p>拡張APIはディレクトリと複数のファイルを用いてハッシュデータベースを実現する。クラス `Curia' のコンストラクタによってデータベースディレクトリが開かれる。データベースを閉じるにはメソッド `close' を呼ぶ。ファイナライザでもデータベースを閉じようとするが、それに頼ってはならない。メソッド `put' はレコードを追加するために用いる。メソッド `out' はレコードを削除するために用いる。メソッド `get' はレコードを検索するために用いる。その他にも、C言語の拡張APIとほぼ同じ操作を利用することができる。各メソッドはエラー時にクラス `CuriaException' のインスタンスを投げる。</p>
+
+<p>上級APIはファイルを用いてB+木データベースを実現する。クラス `Villa' のコンストラクタによってデータベースファイルが開かれる。データベースを閉じるにはメソッド `close' を呼ぶ。ファイナライザでもデータベースを閉じようとするが、それに頼ってはならない。メソッド `put' はレコードを追加するために用いる。メソッド `out' はレコードを削除するために用いる。メソッド `get' はレコードを検索するために用いる。その他にも、C言語の上級APIとほぼ同じ操作を利用することができる。各メソッドはエラー時にクラス `VillaException' のインスタンスを投げる。</p>
+
+<p>`Depot' と `Curia' と `Villa' はインタフェース `ADBM' を実装する。このインタフェースはUNIX標準のDBMと同様の機能を持つデータベースマネージャを抽象化したものである。各メソッドはエラー時にクラス `DBMException' のインスタンスを投げる。四つのAPIから適切なものを選択する際には、実行効率を重視するなら `Depot' を、スケーラビリティを重視するなら `Curia' を、順序に基づく参照が必要なら `Villa' を、エレガンスと保守性を重視するなら `ADBM' を選ぶべきであろう。データベースファイルは各APIの間で互換性がない。</p>
+
+<p>各クラスはパッケージ `qdbm' に含まれ、アプリケーションのソースファイルでそれをインポートすることができる。</p>
+
+<p>CのAPIは、スレッド間でデータベースハンドルを共有しない限りはスレッドセーフである。JavaのAPIでは、複数のスレッドが同じハンドルにアクセスしてもスレッドセーフである。</p>
+
+<p>`put' で既存のレコードの上書きがキャンセルされた際や `get' で存在しないレコードが検索された際には例外によって操作の失敗が通知されるが、それが鬱陶しい場合は `silent' フラグを真にするとよい。その場合は失敗が戻り値によって通知される。</p>
+
+<p>APIの詳細に関しては、サブディレクトリ `<a href="japidoc/">japidoc</a>' の文書を参照すること。</p>
+
+<hr />
+
+<h2><a name="installation" id="installation" class="head">インストール</a></h2>
+
+<h3>準備</h3>
+
+<p>JDKの1.2以降のバージョンがインストールされ、環境変数 `JAVA_HOME' が適切に設定され、QDBMが `/usr/local' 以下にインストールされていることが必要である。</p>
+
+<p>インストール作業は、サブディレクトリ `java' をカレントディレクトリにして行う。</p>
+
+<pre>cd java
+</pre>
+
+<h3>普通の手順</h3>
+
+<p>ビルド環境を設定する。JavaのコンパイルにGCCを用いる場合、`--with-gcj' オプションを付ける。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check
+</pre>
+
+<p>プログラムをインストールする。作業は `root' ユーザで行う。</p>
+
+<pre>make install
+</pre>
+
+<p>一連の作業が終ると、ネイティブライブラリ `libjqdbm.so' 等とJARファイル `qdbm.jar' が `/usr/local/lib' にインストールされる。</p>
+
+<p>アンインストールするには、`./configure' をした後の状態で以下のコマンドを実行する。作業は `root' ユーザで行う。</p>
+
+<pre>make uninstall
+</pre>
+
+<h3>Windowsの場合</h3>
+
+<p>Windows（Cygwin）にインストールする場合、以下の手順に従う。</p>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make win
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check-win
+</pre>
+
+<p>プログラムをインストールする。なお、アンインストールする場合は `make uninstall-win' とする。</p>
+
+<pre>make install-win
+</pre>
+
+<p>Windowsでは、インポートライブラリ `libjqdbm.dll.a' が生成され、さらにダイナミックリンクライブラリ `jqdbm.dll' が生成される。`jqdbm.dll' は `/usr/local/bin' にインストールされる。</p>
+
+<p>Cygwin環境でMinGWを用いてビルドするには、`make win' の代わりに `make mingw' を用いる。CygwinのUNIXエミュレーション層を用いる場合、生成されるプログラムは `cygwin1.dll' に依存したものになる。MinGWによってWin32のネイティブDLLとリンクさせればこの問題を回避できる。</p>
+
+<h3>Mac OS Xの場合</h3>
+
+<p>Mac OS X（Darwin）にインストールする場合、以下の手順に従う。</p>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make mac
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check-mac
+</pre>
+
+<p>プログラムをインストールする。なお、アンインストールする場合は `make uninstall-mac' とする。</p>
+
+<pre>make install-mac
+</pre>
+
+<p>Mac OS Xでは、`libjqdbm.so' 等の代わりに `libjqdbm.dylib' や `libjqdbm.jnilib' 等が生成される。</p>
+
+<h3>HP-UXの場合</h3>
+
+<p>HP-UXにインストールする場合、以下の手順に従う。</p>
+
+<p>ビルド環境を設定する。</p>
+
+<pre>./configure
+</pre>
+
+<p>プログラムをビルドする。</p>
+
+<pre>make hpux
+</pre>
+
+<p>プログラムの自己診断テストを行う。</p>
+
+<pre>make check-hpux
+</pre>
+
+<p>プログラムをインストールする。なお、アンインストールする場合は `make uninstall-hpux' とする。</p>
+
+<pre>make install-hpux
+</pre>
+
+<p>HP-UXでは、`libjqdbm.so' 等の代わりに `libjqdbm.sl' が生成される。</p>
+
+<hr />
+
+<h2><a name="setting" id="setting" class="head">環境設定</a></h2>
+
+<p>QDBMを利用したJavaプログラムをビルドしたり、それを実行したりするには、環境変数を設定しておく必要がある。</p>
+
+<p>クラスパスを設定する。環境変数 `CLASSPATH' の値がJARファイルのフルパスを含むようにする。</p>
+
+<pre>CLASSPATH=$CLASSPATH:/usr/local/lib/qdbm.jar
+export CLASSPATH
+</pre>
+
+<p>ライブラリパスを設定する。環境変数 `LD_LIBRARY_PATH' の値がライブラリのあるディレクトリを含むようにする。なお、Windowsではこの設定は不要であり、Mac OS Xでは環境変数 `DYLD_LIBRARY_PATH' を用い、HP-UXでは環境変数 `SHLIB_PATH' を用いる。</p>
+
+<pre>LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+export LD_LIBRARY_PATH
+</pre>
+
+<hr />
+
+<h2><a name="examples" id="examples" class="head">サンプルコード</a></h2>
+
+<p>名前と対応させて電話番号を格納し、それを検索するアプリケーションのサンプルコードを以下に示す。</p>
+
+<pre>import qdbm.*;
+
+public class Sample {
+
+  static final String NAME = "mikio";
+  static final String NUMBER = "000-1234-5678";
+  static final String DBNAME = "book";
+
+  public static void main(String[] args){
+    Depot depot = null;
+    try {
+
+      // データベースを開く
+      depot = new Depot(DBNAME, Depot.OWRITER | Depot.OCREAT, -1);
+
+      // レコードを格納する
+      depot.put(NAME.getBytes(), NUMBER.getBytes());
+
+      // レコードを取得する
+      byte[] res = depot.get(NAME.getBytes());
+      System.out.println("Name: " + NAME);
+      System.out.println("Number: " + new String(res));
+
+    } catch(DepotException e){
+      e.printStackTrace();
+    } finally {
+
+      // データベースを閉じる
+      if(depot != null){
+        try {
+          depot.close();
+        } catch(DepotException e){
+          e.printStackTrace();
+        }
+      }
+
+    }
+  }
+
+}
+</pre>
+
+<p>上記の例を `ADBM' クラスを用いて書き直した例を以下に示す。</p>
+
+<pre>import qdbm.*;
+
+public class Sample {
+
+  static final String NAME = "mikio";
+  static final String NUMBER = "000-1234-5678";
+  static final String DBNAME = "book";
+
+  public static void main(String[] args){
+    ADBM dbm = null;
+    try {
+
+      // データベースを開く
+      dbm = new Depot(DBNAME, Depot.OWRITER | Depot.OCREAT, -1);
+
+      // レコードを格納する
+      dbm.store(NAME.getBytes(), NUMBER.getBytes(), true);
+
+      // レコードを取得する
+      byte[] res = dbm.fetch(NAME.getBytes());
+      System.out.println("Name: " + NAME);
+      System.out.println("Number: " + new String(res));
+
+    } catch(DBMException e){
+      e.printStackTrace();
+    } finally {
+
+      // データベースを閉じる
+      if(dbm != null){
+        try {
+          dbm.close();
+        } catch(DBMException e){
+          e.printStackTrace();
+        }
+      }
+
+    }
+  }
+
+}
+</pre>
+
+<p>`Villa' クラスを用いて文字列の前方一致検索を行う例を以下に示す。</p>
+
+<pre>import qdbm.*;
+
+public class Sample {
+
+  static final String DBNAME = "words";
+  static final String PREFIX = "apple";
+
+  public static void main(String[] args){
+    Villa villa = null;
+    try {
+
+      // データベースを開く
+      villa = new Villa(DBNAME, Villa.OWRITER | Villa.OCREAT, Villa.CMPOBJ);
+
+      // レコードを格納する
+      villa.putobj("applet", "little application", Villa.DDUP);
+      villa.putobj("aurora", "polar wonderwork", Villa.DDUP);
+      villa.putobj("apple", "delicious fruit", Villa.DDUP);
+      villa.putobj("amigo", "good friend", Villa.DDUP);
+      villa.putobj("apple", "big city", Villa.DDUP);
+
+      try {
+
+        // カーソルを候補の先頭に置く
+        villa.curjumpobj(PREFIX, Villa.JFORWARD);
+
+        // カーソルを走査する
+        for(;;){
+          String key = (String)villa.curkeyobj();
+          if(!key.startsWith(PREFIX)) break;
+          String val = (String)villa.curvalobj();
+          System.out.println(key + ": " + val);
+          villa.curnext();
+        }
+
+      } catch(VillaException e){
+        if(e.ecode != Villa.ENOITEM) throw e;
+      }
+    } catch(VillaException e){
+      e.printStackTrace();
+    } finally {
+
+      // データベースを閉じる
+      if(villa != null){
+        try {
+          villa.close();
+        } catch(VillaException e){
+          e.printStackTrace();
+        }
+      }
+
+    }
+  }
+
+}
+</pre>
+
+<p>Java用APIを利用したプログラムをビルドするには、クラスパスを適切に設定した上で、`javac' を実行する。例えば、`Sample.java' から `Sample.class' を作るには、以下のようにビルドを行う。</p>
+
+<pre>javac Sample.java
+</pre>
+
+<hr />
+
+<h2><a name="bugs" id="bugs" class="head">バグ</a></h2>
+
+<p>ひとつのプロセスで複数のデータベースファイルを同時に利用することは可能であるが、同じデータベースファイルの複数のハンドルを利用してはならない。ひとつのデータベースを複数のスレッドで利用する場合には、メインスレッドで生成したハンドルを他のスレッドに渡せばよい。</p>
+
+<p>オブジェクトを直列化してデータベースに格納する手法は便利であるが、オブジェクトの直列化は時間的および空間的に効率がよくない。明示的にバイト配列に変換できるならば、なるべくバイト配列を格納した方がよい。また、ハッシュデータベースのキーの比較はオブジェクトに対しても直列化した状態で行われる。すなわち、二つのオブジェクトが直列化した状態で完全に一致しない場合は、たとえ `equals' の値が真であっても、一致したキーとはみなされない。B+木データベースでは比較関数を適切に指定できるのでこの問題はない。</p>
+
+<hr />
+
+</body>
+
+</html>
+
+<!-- END OF FILE -->
