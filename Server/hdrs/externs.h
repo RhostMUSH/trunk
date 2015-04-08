@@ -49,6 +49,7 @@ typedef struct ansisplit {
 	int	i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
         int	i_ascii8;	/* ASCII-8 encoding */
+	int i_utf8;	/* UTF8 encoding */
 } ANSISPLIT;
 
 typedef struct atrp {

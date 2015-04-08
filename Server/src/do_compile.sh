@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-COMP=qdbm
+COMP=gdbm
 case ${COMP} in
    gdbm) gdbmdir=./gdbm-1.8.3
          ;;

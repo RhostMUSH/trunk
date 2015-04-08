@@ -11,10 +11,7 @@
 #include "externs.h"
 #include "alloc.h"
 #include "rhost_ansi.h"
-<<<<<<< HEAD
 #include "rhost_utf8.h"
-=======
->>>>>>> origin/master
 
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
 extern dbref    FDECL(match_thing, (dbref, char *));
@@ -748,6 +745,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
    s_last.c_accent = '\0';
    s_last.i_special = 0;
    s_last.i_ascii8 = 0;
+   s_last.i_utf8 = 0;
 
    s_buffptr = s_buffer = alloc_lbuf("rebuild_ansi");
    s_format = alloc_sbuf("rebuild_ansi");
@@ -756,6 +754,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
    s_ptr = s_split;
    i_normalize = i_normalize2 = 0;
    while ( s_inptr && *s_inptr ) {
+		fprintf(stderr, "UTF8 TEST: %d\n", s_ptr->i_utf8);
       i_ansi = 0;
       if ( !s_ptr )
          break;
@@ -855,9 +854,13 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       s_last.c_bgansi = s_ptr->c_bgansi;
       s_last.c_accent = s_ptr->c_accent;
       s_last.i_special = s_ptr->i_special;
-      /* no need for s_last duplicating i_ascii8 */
-      /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
-      if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
+
+	  if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
+		safe_chr('%', s_buffer, &s_buffptr);
+		sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
+		fprintf(stderr, "UTF8 Testing -- Rebuild -- %s\n", s_format);
+		safe_str(s_format, s_buffer, *s_buffptr);
+      } else if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
          safe_chr('%', s_buffer, &s_buffptr);
          sprintf(s_format, "<%03d>", s_ptr->i_ascii8);
          safe_str(s_format, s_buffer, &s_buffptr);
@@ -890,8 +893,9 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 #ifdef ZENTY_ANSI
 
    ANSISPLIT *s_ptr;
-   char *s_inptr, *s_outptr;
-   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent;
+   char *s_inptr, *s_outptr, *endptr;
+   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt;
+   char buf_utf8[10];
 
    i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
@@ -903,6 +907,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_outptr = s_output;
    s_ptr = s_split;
 
+   memset(buf_utf8, '\0', 10);
    memset(s_ptr->s_fghex, '\0', 5);
    memset(s_ptr->s_bghex, '\0', 5);
    s_ptr->c_fgansi = '\0';
@@ -910,6 +915,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->c_accent = '\0';
    s_ptr->i_special = 0;
    s_ptr->i_ascii8 = 0;
+   s_ptr->i_utf8 = 0;
    while ( s_inptr && *s_inptr ) {
       if ( (*s_inptr == '%') && ((*(s_inptr+1) == SAFE_CHR)
 #ifdef SAFE_CHR2
@@ -985,14 +991,30 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             continue;
          }
       }
-      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
+	  if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') ) {
+		*s_outptr = '?';
+		s_inptr+=3;
+
+		utfcnt = 0;
+		while (utfcnt < 8 && *s_inptr != '>') {
+			buf_utf8[utfcnt] = *s_inptr;
+			utfcnt++;
+			s_inptr++;
+		}
+				
+		s_ptr->i_utf8 = strtol(buf_utf8, &endptr, 16);
+		s_ptr->i_ascii8 = 0;
+		fprintf(stderr, "UTF8 Testing -- SPLIT -- %d\n", s_ptr->i_utf8);
+	  } else if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
            isdigit(*(s_inptr+3)) && isdigit(*(s_inptr+4)) && (*(s_inptr+5) == '>') ) {
          *s_outptr = '?';
          s_ptr->i_ascii8 = atoi(s_inptr+2);
+		 s_ptr->i_utf8 = 0;
          s_inptr+=5;
       } else {
          *s_outptr = *s_inptr;
          s_ptr->i_ascii8 = 0;
+		 s_ptr->i_utf8 = 0;
       }
       s_ptr++;
       if ( !s_ptr || !s_outptr ) 

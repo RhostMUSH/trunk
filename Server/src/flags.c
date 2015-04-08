@@ -726,13 +726,14 @@ TOGENT tog_table[] =
   {"NOISY", TOG_NOISY, 'N', 1, 0, 0, 0, 0, th_player},
   {"ZONECMDCHK", TOG_ZONECMDCHK, 'k', 1, 0, 0, 0, 0, th_player},
   {"HIDEIDLE", TOG_HIDEIDLE, 'h', 1, 0, 0, 0, 0, th_wiz},
+  {"HIDEIDLE", TOG_HIDEIDLE, 'h', 1, 0, 0, 0, 0, th_wiz},
   {"MORTALREALITY", TOG_MORTALREALITY, 'M', 1, 0, 0, 0, 0, th_wiz},
-  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, 0, 0, 0, th_player},
+  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, 0, 0, 0, th_noutf8},
   {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, 0, 0, 0, th_player},
   {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, th_noset},
   {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, 0, 0, 0, th_player},
   {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, 0, 0, 0, th_wiz},
-  {"UTF8", TOG_UTF8, '$', 1, 0, th_noaccents},
+  {"UTF8", TOG_UTF8, '$', 1, 0, 0, 0, 0, th_noaccents},
   {NULL, 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 

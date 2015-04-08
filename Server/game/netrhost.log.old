@@ -1,9 +1,94 @@
-Master IPC Debugging stack created w/ key = 32005 [shared memory id: 360458]
+Master IPC Debugging stack created w/ key = 32005 [shared memory id: 1015827]
 ./netrhost.debugmon: initiating ./netrhost
-140610.173934 RhostMUSH: Game log file opened as netrhost.gamelog.
+150408.173521 RhostMUSH: Game log file opened as netrhost.gamelog.
 Slave IPC Debugging stack connected w/ key = 32005
-./netrhost.debugmon: ./netrhost exited with status 0
-./netrhost.debugmon: debug stack depth = 0
+UTF8 Testing -- SPLIT 1 -- 
+UTF8 Testing -- SPLIT 1 -- 
+UTF8 Testing -- SPLIT 1 -- 
+UTF8 Testing -- SPLIT 1 -- 
+UTF8 Testing -- SPLIT 1 -- 
+UTF8 Testing -- SPLIT 1 -- 
+UTF8 Testing -- SPLIT -- 
+UTF8 Testing -- SPLIT -- 
+UTF8 Testing -- SPLIT -- 
+150408.173930 RhostMUSH RBT/DUMP : Dumping reboot data...
+150408.173930 RhostMUSH RBT/DUMP : Dump complete.
+150408.173930 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+UTF8 Testing -- SPLIT 1 -- 3
+UTF8 Testing -- SPLIT 1 -- 30
+UTF8 Testing -- SPLIT 1 -- 304
+UTF8 Testing -- SPLIT 1 -- 304a
+UTF8 Testing -- SPLIT 1 -- 304a>
+UTF8 Testing -- SPLIT 1 -- 304a>%
+UTF8 Testing -- SPLIT -- 304a>%
+UTF8 Testing -- SPLIT 1 -- 304a>%
+UTF8 Testing -- SPLIT 1 -- 304a>%
+UTF8 Testing -- SPLIT 1 -- 308a>%
+UTF8 Testing -- SPLIT 1 -- 3088>%
+UTF8 Testing -- SPLIT 1 -- 3088>%
+UTF8 Testing -- SPLIT 1 -- 3088>%
+UTF8 Testing -- SPLIT -- 3088>%
+150408.174025 RhostMUSH RBT/DUMP : Dumping reboot data...
+150408.174025 RhostMUSH RBT/DUMP : Dump complete.
+150408.174025 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+UTF8 Testing -- SPLIT 1 -- 3
+UTF8 Testing -- SPLIT 1 -- 30
+UTF8 Testing -- SPLIT 1 -- 304
+UTF8 Testing -- SPLIT 1 -- 304a
+UTF8 Testing -- SPLIT -- 304a
+UTF8 Testing -- SPLIT 1 -- 304a
+UTF8 Testing -- SPLIT 1 -- 304a
+UTF8 Testing -- SPLIT 1 -- 306a
+UTF8 Testing -- SPLIT 1 -- 306f
+UTF8 Testing -- SPLIT -- 306f
+UTF8 Testing -- SPLIT 1 -- 306f
+UTF8 Testing -- SPLIT 1 -- 306f
+UTF8 Testing -- SPLIT 1 -- 308f
+UTF8 Testing -- SPLIT 1 -- 3088
+UTF8 Testing -- SPLIT -- 3088
+UTF8 Testing -- SPLIT 1 -- 3088
+UTF8 Testing -- SPLIT 1 -- 3088
+UTF8 Testing -- SPLIT 1 -- 3048
+UTF8 Testing -- SPLIT 1 -- 3046
+UTF8 Testing -- SPLIT -- 3046
+150408.174331 RhostMUSH RBT/DUMP : Dumping reboot data...
+150408.174331 RhostMUSH RBT/DUMP : Dump complete.
+150408.174331 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+UTF8 Testing -- SPLIT -- 304a
+UTF8 Testing -- SPLIT -- 306f
+UTF8 Testing -- SPLIT -- 3088
+UTF8 Testing -- SPLIT -- 3046
+150408.174839 RhostMUSH RBT/DUMP : Dumping reboot data...
+150408.174839 RhostMUSH RBT/DUMP : Dump complete.
+150408.174839 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+UTF8 Testing -- SPLIT -- 304a
+UTF8 Testing -- SPLIT -- 306f
+UTF8 Testing -- SPLIT -- 3088
+UTF8 Testing -- SPLIT -- 3046
+150408.175238 RhostMUSH RBT/DUMP : Dumping reboot data...
+150408.175238 RhostMUSH RBT/DUMP : Dump complete.
+150408.175238 RhostMUSH: Game log file opened as netrhost.gamelog.
+Slave IPC Debugging stack connected w/ key = 32005
+UTF8 Testing -- SPLIT -- 304a
+UTF8 Testing -- SPLIT -- 306f
+UTF8 Testing -- SPLIT -- 3088
+UTF8 Testing -- SPLIT -- 3046
+./netrhost.debugmon: ./netrhost exited with status 139
+./netrhost.debugmon: debug stack depth = 9
+./netrhost.debugmon: stackframe 0 = game.c, line 2146
+./netrhost.debugmon: stackframe 1 = bsd.c, line 375
+./netrhost.debugmon: stackframe 2 = netcommon.c, line 4466
+./netrhost.debugmon: stackframe 3 = netcommon.c, line 4220
+./netrhost.debugmon: stackframe 4 = command.c, line 2613
+./netrhost.debugmon: stackframe 5 = command.c, line 2055
+./netrhost.debugmon: stackframe 6 = command.c, line 2613
+./netrhost.debugmon: stackframe 7 = command.c, line 2055
+./netrhost.debugmon: stackframe 8 = eval.c, line 1147
+./netrhost.debugmon: last caller was #1, last command: th scramble(%<u304a>%<u306f>%<u3088>%<u3046>)
 
-./netrhost.debugmon: last db fetch was for #10
+./netrhost.debugmon: last db fetch was for #3
 ./netrhost.debugmon: exiting
