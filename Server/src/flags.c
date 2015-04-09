@@ -4060,7 +4060,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
       } else
          negate = 0;
          
-      if ( !stricmp(cmd, "flag_access_type") ) {
+      if ( !stricmp(cmd, "flag_access_type") || !stricmp(cmd, "toggle_access_type") ) {
          srch_return = search_nametab(GOD, flagdef_type, strtok2);
       } else {
          srch_return = search_nametab(GOD, access_nametab, strtok2);
@@ -4124,7 +4124,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
            } else if ( !stricmp(cmd, "toggle_access_see") ) {
               tp->listperm &= ~mask_del;
               tp->listperm |= mask_add;
-           } else if ( !stricmp(cmd, "flag_access_type") ) {
+           } else if ( !stricmp(cmd, "toggle_access_type") ) {
               tp->typeperm &= ~mask_del;
               tp->typeperm |= mask_add;
            }
