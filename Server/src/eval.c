@@ -662,43 +662,37 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff2, &bufc2);
             } else if ( (*string == '<') ) {
                 string++;
-                while ( *string ) {
-                   if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
-                      s_intbuf[0] = *(string);
-                      s_intbuf[1] = *(string+1);
-                      s_intbuf[2] = *(string+2);
-                      i_extendnum = atoi(s_intbuf);
-                      if ( (i_extendnum >= 32) && (i_extendnum <= 126) ) {
+                if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
+                   s_intbuf[0] = *(string);
+                   s_intbuf[1] = *(string+1);
+                   s_intbuf[2] = *(string+2);
+                   i_extendnum = atoi(s_intbuf);
+                   if ( (i_extendnum >= 32) && (i_extendnum <= 126) ) {
+                      safe_chr((char) i_extendnum, buff2, &bufc2);
+                      safe_chr((char) i_extendnum, buff, &bufc);
+                   } else if ( (i_extendnum >= 160) && 
+                           ((!mudconf.accent_extend && (i_extendnum <= 250)) || (mudconf.accent_extend && (i_extendnum <=255))) ) {
+                      if ( i_extendnum == 255 )
                          safe_chr((char) i_extendnum, buff2, &bufc2);
-                         safe_chr((char) i_extendnum, buff, &bufc);
-                      } else if ( (i_extendnum >= 160) && 
-                              ((!mudconf.accent_extend && (i_extendnum <= 250)) || (mudconf.accent_extend && (i_extendnum <=255))) ) {
-                         if ( i_extendnum == 255 )
-                            safe_chr((char) i_extendnum, buff2, &bufc2);
-                         safe_chr((char) i_extendnum, buff2, &bufc2);
-                         safe_chr(' ', buff, &bufc);                         
-                      } else {
-                         switch(i_extendnum) {
-                            case 251:
-                            case 252: safe_chr('u', buff2, &bufc2);
-                                      break;
-                            case 253:
-                            case 255: safe_chr('y', buff2, &bufc2);
-                                      break;
-                            case 254: safe_chr('p', buff2, &bufc2);
-                                      break;
-                         }
-                      }
-                      i_extendcnt+=3;
-                      string+=3;
-                      if (*string == '>' ) {
-                         break;
-                      }
+                      safe_chr((char) i_extendnum, buff2, &bufc2);
+                      safe_chr(' ', buff, &bufc);                         
                    } else {
-                      safe_chr(*string, buff, &bufc);
-                      safe_chr(*string, buff2, &bufc2);
-                      break;
+                      switch(i_extendnum) {
+                         case 251:
+                         case 252: safe_chr('u', buff2, &bufc2);
+                                   break;
+                         case 253:
+                         case 255: safe_chr('y', buff2, &bufc2);
+                                   break;
+                         case 254: safe_chr('p', buff2, &bufc2);
+                                   break;
+                      }
                    }
+                   i_extendcnt+=3;
+                   string+=3;
+                } else {
+                   safe_chr(*string, buff, &bufc);
+                   safe_chr(*string, buff2, &bufc2);
                 }
             } else if ( (*string == 'f') ) {
                 ch = (unsigned char)*(++string);

@@ -16346,11 +16346,14 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @edit, editansi(), strip(), garble(), pedit(), chomp(), regedit()
   
 & EDITANSI()
-  Function: editansi(<string>, <search color-codes>, <replace color-codes>)
+  Function: editansi(<string>, <search>, <replace> [,<search>, <replace>,...])
   
   This function will take a string, and replace all searched for ansi codes
-  and replace them with the specified ansi codes.  The following logic
-  works for the search and replace in order of priority:
+  and replace them with the specified replaced ansi codes.  You may specify
+  more than one search/replace segment for ansi codes, but they must always
+  be in a paired set.
+  
+  The following logic works for the search and replace in order of priority:
     1.  If <search> is just ansi-normal (n), then it assumes you want an
         exact match on any character that has no previous encoding, and will
         replace with <replace> ALL encoding specified.
@@ -16381,6 +16384,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "abcdef"    (abc is hilight blue, def is hilight red)
     > say editansi([ansi(hb,abc,n,def)],hb,hy)
     You say "abcdef"    (abc is hilight yellow, def is non-ansified)
+    > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
+    You say "abcxyzdef" (abc is yellow, def is non-ansi, xyz is blue)
   
   See Also: accents(), edit(), regedit(), pemit(), @edit
 
@@ -16818,9 +16823,18 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 & PRIVATIZE()
   Function: privatize(<value>)
   
-  This function, if enabled (1), will make it so all localized setq 
-  registers will be initialized to null upon calling the function.  This
-  will affect functions such as localize(), ulocal(), uzfun(), etc.
+  This function takes two values.  1 to enable or 0 to disable (default).
+  When enabled, any function call that is using localization for registers,
+  such as localize(), ulocal(), ueval(), uzfun(), etc, will be initialized
+  to a null (empty string) instead of housing the contents that was passed
+  to it (which is the default).  Keep in mind, this only initializes the
+  localized values, and once the localization is finished, the values are
+  returned to their previous value, as how localization is intended.
+  
+  The Values allowed are:
+    1 - Toggle on the feature to initialize to null all registers (%q0-z)
+        that are used in localized functions (localize(), ulocal(), etc)
+    0 - Toggle off the feature to initialize to null registers (default).
   
   Example:
     > @va me=(before R0: [r(0)])[setq(0,internal)] --My R0:[r(0)]--
@@ -27506,7 +27520,9 @@ Changes
   will be colorized as if cname() [ASH]
 * @flagdef and @toggledef now can restrict based on TYPE [ASH]
 * added bitlevel permission override to @flagdef/@typedef TYPE restricts [ASH]
+* editansi() now accepts multiple arguments for search/replace [ASH]
     
 Bug Fixes
 ------------
 * mail/mark/save when no more saved quota wouldn't notify you of that [ASH]
+* ascii8 encoding could allow multi-sequences in %<###> encoding [ASH]

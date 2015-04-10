@@ -1991,11 +1991,41 @@ fval(char *buff, char **bufcx, double result)
  * for validity.
  */
 
-int fn_range_check(const char *fname, int nfargs, int minargs,
-       int maxargs, char *result, char **resultcx)
+int fn_range_check_real(const char *fname, int nfargs, int minargs,
+       int maxargs, char *result, char **resultcx, int evenodd)
 {
-    if ((nfargs >= minargs) && (nfargs <= maxargs))
-       return 1;
+    int i_return = 0;
+
+    if ((nfargs >= minargs) && (nfargs <= maxargs)) {
+       switch(evenodd) {
+          case 1: /* Odd number out */
+             if ( (nfargs % 2) == 1 )
+                i_return = 1;
+             break;
+          case 2: /* Even number out */ 
+             if ( (nfargs % 2) == 0 )
+                i_return = 1;
+             break;
+          default: /* Assume non even/odd */
+             i_return = 1;
+             break;
+       }
+       if ( !i_return ) {
+          safe_str((char*)"#-1 FUNCTION (", result, resultcx);
+          safe_str((char*)fname, result, resultcx);
+          if ( evenodd == 1 )
+             safe_str((char*)") EXPECTS AN ODD NUMBER BETWEEN ", result, resultcx);
+          else
+             safe_str((char*)") EXPECTS AN EVEN NUMBER BETWEEN ", result, resultcx);
+          ival(result, resultcx, minargs);
+          safe_str((char*)" AND ", result, resultcx);
+          ival(result, resultcx, maxargs);
+          safe_str((char*)" ARGUMENTS [RECEIVED ", result, resultcx);
+          ival(result, resultcx, nfargs);
+          safe_chr(']', result, resultcx);
+       } 
+       return i_return;
+    }
 
     if (maxargs == (minargs + 1)) {
         safe_str((char*)"#-1 FUNCTION (", result, resultcx);
@@ -2018,7 +2048,7 @@ int fn_range_check(const char *fname, int nfargs, int minargs,
         ival(result, resultcx, nfargs);
         safe_chr(']', result, resultcx);
     }
-    return 0;
+    return i_return;
 }
 
 /* ---------------------------------------------------------------------------
@@ -25068,12 +25098,15 @@ FUNCTION(fun_editansi)
 {
    ANSISPLIT search_val[LBUF_SIZE], replace_val[LBUF_SIZE], a_input[LBUF_SIZE];
    char *s_input, *s_combine, *s_buff, *s_buffptr, *s_array[3];
-   int i_omit1, i_omit2;
+   int i_omit1, i_omit2, i_loop;
 
 #ifndef ZENTY_ANSI
    safe_str((char *)"#-1 ZENTY ANSI REQUIRED FOR THIS FUNCTION.", buff, bufcx);
    return;
 #endif
+   if (!fn_range_check_real("EDITANSI", nfargs, 3, MAX_ARGS, buff, bufcx, 1)) 
+       return;
+
    if ( !*fargs[0] )
       return;
 
@@ -25095,30 +25128,36 @@ FUNCTION(fun_editansi)
    s_array[1] = alloc_lbuf("fun_editansi2");
    s_array[2] = NULL;
    sprintf(s_array[1], "%c", 'X');
-   sprintf(s_array[0], "%s", fargs[1]);
-   fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
-   i_omit1 = ansi_omitter;
-   split_ansi(s_buff, s_combine, search_val);
-   memset(s_combine, '\0', LBUF_SIZE);
-   memset(s_buff, '\0', LBUF_SIZE);
-   s_buffptr = s_buff;
-   sprintf(s_array[1], "%c", 'X');
-   sprintf(s_array[0], "%s", fargs[2]);
-   fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
-   i_omit2 = ansi_omitter;
-   split_ansi(s_buff, s_combine, replace_val);
-   free_lbuf(s_combine);
 
-   search_and_replace_ansi(s_input, a_input, search_val, replace_val, i_omit1, i_omit2);
+   for ( i_loop = 1; i_loop < nfargs; i_loop++ ) {
+      memset(s_buff, '\0', LBUF_SIZE);
+      s_buffptr = s_buff;
+      sprintf(s_array[0], "%s", fargs[i_loop]);
+      fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+      i_omit1 = ansi_omitter;
+      split_ansi(s_buff, s_combine, search_val);
+      memset(s_combine, '\0', LBUF_SIZE);
+      memset(s_buff, '\0', LBUF_SIZE);
+      s_buffptr = s_buff;
+      sprintf(s_array[0], "%s", fargs[i_loop+1]);
+      fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+      i_omit2 = ansi_omitter;
+      split_ansi(s_buff, s_combine, replace_val);
+      search_and_replace_ansi(s_input, a_input, search_val, replace_val, i_omit1, i_omit2);
+      initialize_ansisplitter(search_val, 2);
+      initialize_ansisplitter(replace_val, 2);
+      i_loop++;
+   }
+   free_lbuf(s_combine);
    s_combine = rebuild_ansi(s_input, a_input);
    safe_str(s_combine, buff, bufcx);
-
    free_lbuf(s_input);
    free_lbuf(s_combine);
    free_lbuf(s_buff);
    free_lbuf(s_array[0]);
    free_lbuf(s_array[1]);
 }
+
 FUNCTION(fun_stripansi)
 {
     /* Strips ANSI codes away from a given string of text. Starts by
@@ -30196,7 +30235,7 @@ FUN flist[] =
     {"EE", fun_ee, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EDEFAULT", fun_edefault, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"EDIT", fun_edit, 3, FN_VARARGS, CA_PUBLIC, 0},
-    {"EDITANSI", fun_editansi, 3, 0, CA_PUBLIC, 0},
+    {"EDITANSI", fun_editansi, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"ELEMENTS", fun_elements, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTSMUX", fun_elementsmux, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELIST", fun_elist, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
