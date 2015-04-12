@@ -419,6 +419,7 @@ char	*s;
  * #define SPLIT_FLASH             0x02
  * #define SPLIT_UNDERSCORE        0x04
  * #define SPLIT_INVERSE           0x08
+ * #define SPLIT_NOANSI            0x10
  *
  * typedef struct ansisplit {
  *         char    s_fghex[5];     // Hex representation - foreground
@@ -571,6 +572,9 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
+                  ((i_search & SPLIT_NOANSI) && 
+                     !((a_pt->c_fgansi) || (a_pt->c_bgansi) || 
+                       *(a_pt->s_fghex) || *(a_pt->s_bghex))) &&
                   i_search &&
                   !(s_pt->i_special) &&
                   !(s_pt->c_accent) ) {
@@ -589,10 +593,13 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special |= r_pt->i_special;
           }
       /* Just match if ANSI special : special to special, even if ansi-normal */
-      } else if ( !*(s_pt->s_fghex) &&
-                  !*(s_pt->s_bghex) &&
-                  !(s_pt->c_fgansi) &&
-                  !(s_pt->c_bgansi) &&
+      } else if ( !*(s_pt->s_fghex) && 
+                  !*(s_pt->s_bghex) && 
+                  !(s_pt->c_fgansi) && 
+                  !(s_pt->c_bgansi) && 
+                  ((i_search & SPLIT_NOANSI) && 
+                     !((a_pt->c_fgansi) || (a_pt->c_bgansi) || 
+                       *(a_pt->s_fghex) || *(a_pt->s_bghex))) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
                   ((a_pt->i_special & s_pt->i_special) == s_pt->i_special) &&
                   !(s_pt->c_accent) ) {
@@ -933,8 +940,10 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
                case 'I': s_ptr->i_special |= SPLIT_INVERSE;
                          i_special = 1;
                          break;
-               case 'n':
-               case 'N': s_ptr->i_special = 0;
+               case 'N': s_ptr->i_special |= SPLIT_NOANSI;
+                         i_special = 1;
+                         break;
+               case 'n': s_ptr->i_special = 0;
                          memset(s_ptr->s_fghex, '\0', 5);
                          memset(s_ptr->s_bghex, '\0', 5);
                          s_ptr->c_fgansi ='\0';

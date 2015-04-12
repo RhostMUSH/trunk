@@ -40,6 +40,7 @@
 #define SPLIT_FLASH		0x02
 #define SPLIT_UNDERSCORE	0x04
 #define SPLIT_INVERSE		0x08
+#define SPLIT_NOANSI		0x10
 
 typedef struct ansisplit {
 	char	s_fghex[5];	/* Hex representation - foreground */

@@ -16375,6 +16375,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     I - anything NOT set inverse.
     U - anything NOT set underscore.
     F - anything NOT set flash.
+    N - anything NOT using ansi colors.
   
   If these are specified in replace, it will strip those specified ansi
   special encodings. 
@@ -16385,7 +16386,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say editansi([ansi(hb,abc,n,def)],hb,hy)
     You say "abcdef"    (abc is hilight yellow, def is non-ansified)
     > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
-    You say "abcxyzdef" (abc is yellow, def is non-ansi, xyz is blue)
+    You say "abcxyzdef" (abc is yellow, xyz is blue, def is non-ansi)
   
   See Also: accents(), edit(), regedit(), pemit(), @edit
 
@@ -27521,6 +27522,7 @@ Changes
 * @flagdef and @toggledef now can restrict based on TYPE [ASH]
 * added bitlevel permission override to @flagdef/@typedef TYPE restricts [ASH]
 * editansi() now accepts multiple arguments for search/replace [ASH]
+* 'N' normalizer search for editansi() [ASH]
     
 Bug Fixes
 ------------

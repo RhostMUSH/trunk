@@ -24857,6 +24857,8 @@ FUNCTION(fun_ansi)
                  break;
               case 'F': ansi_omitter |= SPLIT_FLASH;
                  break;
+              case 'N': ansi_omitter |= SPLIT_NOANSI;
+                 break;
               case 'n': 
                  if ( !i_allow[4] )
                     safe_str(SAFE_ANSI_NORMAL, ansi_special, &ansi_specialptr);
