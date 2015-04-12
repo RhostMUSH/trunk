@@ -572,9 +572,9 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
-                  ((i_search & SPLIT_NOANSI) && 
+                  (!(i_search & SPLIT_NOANSI) || ((i_search & SPLIT_NOANSI) && 
                      !((a_pt->c_fgansi) || (a_pt->c_bgansi) || 
-                       *(a_pt->s_fghex) || *(a_pt->s_bghex))) &&
+                       *(a_pt->s_fghex) || *(a_pt->s_bghex)))) && 
                   i_search &&
                   !(s_pt->i_special) &&
                   !(s_pt->c_accent) ) {
@@ -597,9 +597,9 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
                   !*(s_pt->s_bghex) && 
                   !(s_pt->c_fgansi) && 
                   !(s_pt->c_bgansi) && 
-                  ((i_search & SPLIT_NOANSI) && 
+                  (!(i_search & SPLIT_NOANSI) || ((i_search & SPLIT_NOANSI) && 
                      !((a_pt->c_fgansi) || (a_pt->c_bgansi) || 
-                       *(a_pt->s_fghex) || *(a_pt->s_bghex))) &&
+                       *(a_pt->s_fghex) || *(a_pt->s_bghex)))) && 
                   !(i_search && (a_pt->i_special & i_search)) &&
                   ((a_pt->i_special & s_pt->i_special) == s_pt->i_special) &&
                   !(s_pt->c_accent) ) {
