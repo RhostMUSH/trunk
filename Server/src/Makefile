@@ -9,6 +9,13 @@ srcdir = .
 bindir = ../bin
 incdir = ../hdrs
 
+CHK = $(shell uname -s|grep -c "Darwin")
+ifeq "$(CHK)" "1"
+   EXTLIBS=
+else
+   EXTLIBS=-lrt
+endif
+
 ERR = $(shell which gcc >/dev/null; echo $$?)
 ifeq "$(ERR)" "0"
    CC = gcc
