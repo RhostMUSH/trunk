@@ -21,7 +21,7 @@ README.AUTOCONF file.
 	GUILDMASTER - Very limited.  Sees dbrief#'s, can ex things their
 	level and lower and @quota players.
   
-    There is further information about the bits in README.BITS
+        There is further information about the bits in README.BITS
 
 2)  You need to @pcreate your guest characters and set them GUEST.
 	It doesn't create them on the fly but we considered this better.
@@ -30,9 +30,10 @@ README.AUTOCONF file.
         but before you do so, you must add the dbref#'s to the param
         guest_namelist
 
-3)  @powers are INHERITED.  Therefore, they are meaningless on objects.
+3)  @powers are INHERITED.  Therefore, you need power_objects enabled (@admin)
+        to make this work properly for non-plauyers.
 	A power is taken before a bit level ONLY if higher than that bit.
-	Yes, powers are multi-level.  Again, they do not work on non-players.
+	Yes, powers are multi-level.  
 
 4)  @depowers are automatically checked first before anything else.
 	This is also meaningless on objects.
@@ -43,22 +44,15 @@ README.AUTOCONF file.
 	it can't identify.  Dataloss is better than unrecoverable data.
         Yes, any such 'repairing' is logged so you know if something is up.
 
-7)  unlike MUX, the .txt files do not parse functionality.
-    You _can_ however force parsing of .txt files with dynhelp() and @dynhelp.
-    If you want to insert ANSI into the news.txt file, for example, you have
-    to put the LITERAL ansi codes into it.  ANSI is not really considered too
-    nice on the connect screen or other .txt files because some terminals can
-    not process ansi codes correctly and hang.  You can, however, use @dynhelp
-    (or dynhelp()) to parse the .txt files.
+7)  You can get your connect.txt to parse ansi.  See ansi_txtfiles in wizhelp.
+        You can also override it with softcode if you so wanted.  
+        See file_object in wizhelp for more information on this.  
 
-8)  When you compile the binaries, you need to move them to the main directory
-    the mush is housed in.  Keep in mind to NEVER overwrite the current 'rhost'
-    binary if the mush is running.  First, move the running binary to something
-    like 'rhost~' then you can move/copy the new binary into 'rhost'.  You
-    can use the 'install_binaries.sh' script in the ~/src directory to do this
-    for you.  Failure to follow this procedure will cause Rhost to crash on
-    a @reboot.
+8)  When re-compiling the binaries, all you have to remember is when done, issue
+        @reboot on the game and @readcache.
+   
+        You do not need to @shutdown.
 
 9)  load the file softfunctions into the mush once it's set up.  This are 
-    @functions that will alias the functions that PENN, MUX, and TinyMUSH have
-    that is either named differently or we don't have for one reason or another.
+        @functions that will alias the functions that PENN, MUX, and TinyMUSH have
+        that is either named differently or we don't have for one reason or another.

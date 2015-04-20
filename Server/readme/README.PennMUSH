@@ -257,18 +257,18 @@ Commands that exist in Rhost that have no PennMUSH equivelant:
 @freeze                      @fsay                         @icmd
 @last                        @lfunction                    @limit
 @logrotate                   @mark                         @mark_all
-@money                       @program                      @progreset
-@protect                     @quitprogram                  @reclist
-@recover                     @register                     @remote
-@robot                       @rxlevel                      @skip
-@snapshot                    @snoop                        @thaw
-@timewarp                    @toad                         @toggle
-@toggledef                   @tor                          @turtle
-@txlevel                     @whereall                     grab
-join                         listen                        mrpage
-newsdb                       rpage                         smell
-taste                        touch                         wielded
-worn                         +players
+@money                       @pipe                         @program
+@progreset                   @protect                      @quitprogram
+@reclist                     @recover                      @register
+@remote                      @robot                        @rxlevel
+@skip                        @snapshot                     @snoop
+@thaw                        @timewarp                     @toad
+@toggle                      @toggledef                    @tor
+@turtle                      @txlevel                      @whereall
+grab                         join                          listen
+mrpage                       newsdb                        rpage
+smell                        taste                         touch
+wielded                      worn                          +players
 
 @locks PennMUSH---------------RhostMUSH-----------------------------------MUX2
        BASIC                  BASIC/DEFAULT                               DEFAULT
@@ -501,7 +501,7 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           ART                     ART                          ART
           ASIN                    ASIN                         ASIN
           ATAN                    ATAN                         ATAN
-          ATAN2                   N/A                          ATAN2
+          ATAN2                   ATAN2                        ATAN2
           N/A                     ATTRCNT                      ATTRCNT
           ATRLOCK                 HASFLAG(#obj/attr,LOCK)      HASFLAG(#obj/attr,LOCK)
           ATTRIB_SET              SET                          SET
@@ -1001,8 +1001,8 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           VERSION                 VERSION                      VERSION
           VISIBLE                 VISIBLE                      VISIBLE
           VMAG                    VMAG                         VMAG
-          VMAX                    N/A                          N/A
-          VMIN                    N/A                          N/A
+          VMAX                    SORTLIST                     N/A
+          VMIN                    SORTLIST                     N/A
           VMUL                    VMUL                         VMUL
           VSUB                    VSUB                         VSUB
           VUNIT                   VUNIT                        VUNIT
@@ -1083,13 +1083,13 @@ REGNUMMATCHI                 REMFLAGS                      REMTYPE
 ROMAN                        ROTL                          ROTR         
 RSET                         RXLEVEL                       SAFEBUFF 
 SEES                         SETQMATCH                     SHIFT 
-SINH                         STR                           STRDISTANCE
-STREQ                        STREVAL                       STRFUNC
-STRIP                        STRLENRAW                     STRLENVIS
-STRMATH                      SUBNETMATCH                   TANH
-TOGGLE                       TOTCMDS                       TRACE
-TXLEVEL                      UEVAL                         WHILE
-WILDMATCH                    WRAPCOLUMNS                   WRITABLE
-XNOR                         XORCHR                        XORFLAG
-ZFUNDEFAULT                  ZFUNEVAL                      ZFUNLDEFAULT
-ZFUNLOCAL 
+SINH                         SORTLISAT                     STR
+STRDISTANCE                  STREQ                         STREVAL
+STRFUNC                      STRIP                         STRLENRAW
+STRLENVIS                    STRMATH                       SUBNETMATCH
+TANH                         TOGGLE                        TOTCMDS
+TRACE                        TXLEVEL                       UEVAL
+WHILE                        WILDMATCH                     WRAPCOLUMNS
+WRITABLE                     XNOR                          XORCHR
+XORFLAG                      ZFUNDEFAULT                   ZFUNEVAL
+ZFUNLDEFAULT                 ZFUNLOCAL 

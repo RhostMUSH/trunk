@@ -7,3 +7,7 @@ Under NO CIRCUMSTANCES should you kill -9 your mush unless you don't care for th
 database.  The reason is if the mush happens to be saving, in any method, to the 
 database, especially a QDBM database, you will likely have just corrupted your
 database, so pull out a flatfile to recover.
+
+Sadly, this also may occur if the server hosting you takes a nose-dive in the middle
+of a db write.  Rhost can recover corruption in-game while up, but if it bombs
+in the middle of a write, all bets are off. :)

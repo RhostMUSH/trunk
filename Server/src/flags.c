@@ -22,6 +22,31 @@ char *index(const char *, int);
 
 extern NAMETAB access_nametab[];
 
+#define DEF_THING		0x00000001
+#define DEF_PLAYER		0x00000002
+#define DEF_EXIT		0x00000004
+#define DEF_ROOM		0x00000008
+#define DEF_REGISTERED		0x00000010
+#define DEF_GUILDMASTER 	0x00000020
+#define DEF_ARCHITECT		0x00000040
+#define DEF_COUNCILOR		0x00000080
+#define DEF_WIZARD		0x00000100
+#define DEF_IMMORTAL		0x00000200
+
+NAMETAB flagdef_type[] =
+{
+    {(char *) "thing", 2, CA_PUBLIC, 0, DEF_THING},
+    {(char *) "player", 2, CA_PUBLIC, 0, DEF_PLAYER},
+    {(char *) "exit", 2, CA_PUBLIC, 0, DEF_EXIT},
+    {(char *) "room", 2, CA_PUBLIC, 0, DEF_ROOM},
+    {(char *) "registered", 2, CA_PUBLIC, 0, DEF_REGISTERED},
+    {(char *) "guildmaster", 2, CA_PUBLIC, 0, DEF_GUILDMASTER},
+    {(char *) "architect", 2, CA_PUBLIC, 0, DEF_ARCHITECT},
+    {(char *) "councilor", 2, CA_PUBLIC, 0, DEF_COUNCILOR},
+    {(char *) "wizard", 2, CA_PUBLIC, 0, DEF_WIZARD},
+    {(char *) "immortal", 2, CA_PUBLIC, 0, DEF_IMMORTAL},
+    {NULL, 0, 0, 0, 0}};
+
 
 /* ---------------------------------------------------------------------------
  * fh_any: set or clear indicated bit, no security checking
@@ -623,71 +648,71 @@ int fh_none(dbref target, dbref player, int flag, int fflags, int reset)
  */
 TOGENT tog_table[] =
 {
-  {"MONITOR", TOG_MONITOR, 'M', 0, CA_BUILDER, 0, 0, th_monitor},
-  {"MONITOR_USERID", TOG_MONITOR_USERID, 'U', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"MONITOR_SITE", TOG_MONITOR_SITE, 'S', 0, CA_IMMORTAL, 0, 0, th_immortal},
-  {"MONITOR_STATS", TOG_MONITOR_STATS, 'T', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"MONITOR_FAIL", TOG_MONITOR_FAIL, 'F', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"MONITOR_CONN", TOG_MONITOR_CONN, 'C', 0, CA_IMMORTAL, 0, 0, th_immortal},
-  {"MONITOR_TIME", TOG_MONITOR_TIME, 'I', 0, CA_BUILDER, 0, 0, th_monitor},
-  {"MONITOR_DISREASON", TOG_MONITOR_DISREASON, 'R', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"MONITOR_VLIMIT", TOG_MONITOR_VLIMIT, 'L', 0, CA_IMMORTAL, 0, 0, th_immortal},
-  {"MONITOR_CPU", TOG_MONITOR_CPU, 'c', 0, CA_IMMORTAL, 0, 0, th_immortal},
-  {"VANILLA_ERRORS", TOG_VANILLA_ERRORS, 'V', 0, 0, 0, 0, th_any},
-  {"NO_ANSI_EX", TOG_NO_ANSI_EX, 'E', 0, 0, 0, 0, th_any},
-  {"CPUTIME", TOG_CPUTIME, 'P', 0, 0, 0, 0, th_any},
-  {"NOTIFY_LINK", TOG_NOTIFY_LINK, 'l', 0, 0, 0, 0, th_any},
-  {"MONITOR_AREG", TOG_MONITOR_AREG, 'A', 0, CA_IMMORTAL, 0, 0, th_immortal},
-  {"NO_ANSI_PLAYER", TOG_NOANSI_PLAYER, 'p', 0, 0, 0, 0, th_any},
-  {"NO_ANSI_THING", TOG_NOANSI_THING, 't', 0, 0, 0, 0, th_any},
-  {"NO_ANSI_EXIT", TOG_NOANSI_EXIT, 'e', 0, 0, 0, 0, th_any},
-  {"NO_ANSI_ROOM", TOG_NOANSI_ROOM, 'r', 0, 0, 0, 0, th_any},
-  {"NO_FORMAT", TOG_NO_FORMAT, 'f', 0, CA_IMMORTAL, 0, 0, th_immortal},
-  {"NO_TIMESTAMP", TOG_NO_TIMESTAMP, 's', 0, CA_IMMORTAL, 0, 0, th_immortal},
-  {"ZONE_AUTOADD", TOG_ZONE_AUTOADD, 'z', 0, 0, 0, 0, th_any},
-  {"ZONE_AUTOADDALL", TOG_ZONE_AUTOADDALL, 'Z', 0, 0, 0, 0, th_any},
-  {"WIELDED", TOG_WIELDABLE, 'W', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"WORN", TOG_WEARABLE, 'w', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"SEE_SUSPECT", TOG_SEE_SUSPECT, '+', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"BRANDY_MAIL", TOG_BRANDY_MAIL, 'b', 0, 0, 0, 0, th_any},
-  {"FORCEHALTED", TOG_FORCEHALTED, 'h', 0, 0, 0, 0, th_immortal},
-  {"PROG", TOG_PROG, 'g', 0, 0, 0, 0, th_wiz},
-  {"NOSHPROG", TOG_NOSHELLPROG, 'o', 0, CA_WIZARD, 0, 0, th_wiz},
-  {"EXTANSI", TOG_EXTANSI, 'E', 1, 0, 0, 0, th_extansi},
-  {"IMMPROG", TOG_IMMPROG, 'I', 1, CA_IMMORTAL, 0, 0, th_immortal},
-  {"MONITOR_BAD", TOG_MONITOR_BFAIL, 'B', 1, CA_IMMORTAL, 0, 0, th_immortal},
-  {"PROG_ON_CONNECT", TOG_PROG_ON_CONNECT, 'O', 1, CA_WIZARD, 0, 0, th_wiz},
-  {"MAIL_STRIPRETURN", TOG_MAIL_STRIPRETURN, 'm', 1, 0, 0, 0, th_any},
-  {"PENN_MAIL", TOG_PENN_MAIL, '@', 1, 0, 0, 0, th_any},
-  {"SILENTEFFECT", TOG_SILENTEFFECTS, 'q', 1, CA_WIZARD, 0, 0, th_wiz},
-  {"IGNOREZONE", TOG_IGNOREZONE, 'i', 1, CA_WIZARD, 0, 0, th_immortal},
-  {"VPAGE", TOG_VPAGE, 'v', 1, 0, 0, 0, th_any},
-  {"PAGELOCK", TOG_PAGELOCK, 'P', 1, 0, 0, 0, th_wiz},
-  {"MAIL_NOPARSE", TOG_MAIL_NOPARSE, 'n', 1, 0, 0, 0, th_any},
-  {"MAIL_LOCKDOWN", TOG_MAIL_LOCKDOWN, 'd', 1, CA_IMMORTAL, 0, 0, th_immortal},
-  {"MUXPAGE", TOG_MUXPAGE, 'p', 1, 0, 0, 0, th_any},
-  {"NOZONEPARENT", TOG_NOZONEPARENT, 'y', 1, 0, 0, 0, th_any},
-  {"ATRUSE", TOG_ATRUSE, 'a', 1, 0, 0, 0, th_wiz},
-  {"NOGLOBPARENT", TOG_NOGLOBPARENT, 'G', 1, 0, 0, 0, th_wiz},
-  {"LOGROOM", TOG_LOGROOM, '!', 1, CA_WIZARD, 0, 0, th_wiz},
-  {"VARIABLE", TOG_VARIABLE, '~', 1, 0, 0, 0, th_any},
+  {"MONITOR", TOG_MONITOR, 'M', 0, CA_BUILDER, 0, 0, 0, th_monitor},
+  {"MONITOR_USERID", TOG_MONITOR_USERID, 'U', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"MONITOR_SITE", TOG_MONITOR_SITE, 'S', 0, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"MONITOR_STATS", TOG_MONITOR_STATS, 'T', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"MONITOR_FAIL", TOG_MONITOR_FAIL, 'F', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"MONITOR_CONN", TOG_MONITOR_CONN, 'C', 0, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"MONITOR_TIME", TOG_MONITOR_TIME, 'I', 0, CA_BUILDER, 0, 0, 0, th_monitor},
+  {"MONITOR_DISREASON", TOG_MONITOR_DISREASON, 'R', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"MONITOR_VLIMIT", TOG_MONITOR_VLIMIT, 'L', 0, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"MONITOR_CPU", TOG_MONITOR_CPU, 'c', 0, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"VANILLA_ERRORS", TOG_VANILLA_ERRORS, 'V', 0, 0, 0, 0, 0, th_any},
+  {"NO_ANSI_EX", TOG_NO_ANSI_EX, 'E', 0, 0, 0, 0, 0, th_any},
+  {"CPUTIME", TOG_CPUTIME, 'P', 0, 0, 0, 0, 0, th_any},
+  {"NOTIFY_LINK", TOG_NOTIFY_LINK, 'l', 0, 0, 0, 0, 0, th_any},
+  {"MONITOR_AREG", TOG_MONITOR_AREG, 'A', 0, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"NO_ANSI_PLAYER", TOG_NOANSI_PLAYER, 'p', 0, 0, 0, 0, 0, th_any},
+  {"NO_ANSI_THING", TOG_NOANSI_THING, 't', 0, 0, 0, 0, 0, th_any},
+  {"NO_ANSI_EXIT", TOG_NOANSI_EXIT, 'e', 0, 0, 0, 0, 0, th_any},
+  {"NO_ANSI_ROOM", TOG_NOANSI_ROOM, 'r', 0, 0, 0, 0, 0, th_any},
+  {"NO_FORMAT", TOG_NO_FORMAT, 'f', 0, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"NO_TIMESTAMP", TOG_NO_TIMESTAMP, 's', 0, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"ZONE_AUTOADD", TOG_ZONE_AUTOADD, 'z', 0, 0, 0, 0, 0, th_any},
+  {"ZONE_AUTOADDALL", TOG_ZONE_AUTOADDALL, 'Z', 0, 0, 0, 0, 0, th_any},
+  {"WIELDED", TOG_WIELDABLE, 'W', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"WORN", TOG_WEARABLE, 'w', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"SEE_SUSPECT", TOG_SEE_SUSPECT, '+', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"BRANDY_MAIL", TOG_BRANDY_MAIL, 'b', 0, 0, 0, 0, 0, th_any},
+  {"FORCEHALTED", TOG_FORCEHALTED, 'h', 0, 0, 0, 0, 0, th_immortal},
+  {"PROG", TOG_PROG, 'g', 0, 0, 0, 0, 0, th_wiz},
+  {"NOSHPROG", TOG_NOSHELLPROG, 'o', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"EXTANSI", TOG_EXTANSI, 'E', 1, 0, 0, 0, 0, th_extansi},
+  {"IMMPROG", TOG_IMMPROG, 'I', 1, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"MONITOR_BAD", TOG_MONITOR_BFAIL, 'B', 1, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"PROG_ON_CONNECT", TOG_PROG_ON_CONNECT, 'O', 1, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"MAIL_STRIPRETURN", TOG_MAIL_STRIPRETURN, 'm', 1, 0, 0, 0, 0, th_any},
+  {"PENN_MAIL", TOG_PENN_MAIL, '@', 1, 0, 0, 0, 0, th_any},
+  {"SILENTEFFECT", TOG_SILENTEFFECTS, 'q', 1, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"IGNOREZONE", TOG_IGNOREZONE, 'i', 1, CA_WIZARD, 0, 0, 0, th_immortal},
+  {"VPAGE", TOG_VPAGE, 'v', 1, 0, 0, 0, 0, th_any},
+  {"PAGELOCK", TOG_PAGELOCK, 'P', 1, 0, 0, 0, 0, th_wiz},
+  {"MAIL_NOPARSE", TOG_MAIL_NOPARSE, 'n', 1, 0, 0, 0, 0, th_any},
+  {"MAIL_LOCKDOWN", TOG_MAIL_LOCKDOWN, 'd', 1, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"MUXPAGE", TOG_MUXPAGE, 'p', 1, 0, 0, 0, 0, th_any},
+  {"NOZONEPARENT", TOG_NOZONEPARENT, 'y', 1, 0, 0, 0, 0, th_any},
+  {"ATRUSE", TOG_ATRUSE, 'a', 1, 0, 0, 0, 0, th_wiz},
+  {"NOGLOBPARENT", TOG_NOGLOBPARENT, 'G', 1, 0, 0, 0, 0, th_wiz},
+  {"LOGROOM", TOG_LOGROOM, '!', 1, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"VARIABLE", TOG_VARIABLE, '~', 1, 0, 0, 0, 0, th_any},
 #ifdef ENH_LOGROOM
-  {"LOGROOMENH", TOG_LOGROOMENH, '^', 1, CA_IMMORTAL, 0, 0, th_immortal},
+  {"LOGROOMENH", TOG_LOGROOMENH, '^', 1, CA_IMMORTAL, 0, 0, 0, th_immortal},
 #endif
-  {"EXFULLWIZATTR", TOG_EXFULLWIZATTR, 'x', 1, CA_IMMORTAL, 0, 0, th_immortal},
-  {"NODEFAULT", TOG_NODEFAULT, 'D', 1, CA_WIZARD, 0, 0, th_wiz},
-  {"KEEPALIVE", TOG_KEEPALIVE, 'K', 1, 0, 0, 0, th_player},
-  {"CHKREALITY", TOG_CHKREALITY, 'C', 1, 0, 0, 0, th_wiz},
-  {"NOISY", TOG_NOISY, 'N', 1, 0, 0, 0, th_player},
-  {"ZONECMDCHK", TOG_ZONECMDCHK, 'k', 1, 0, 0, 0, th_player},
-  {"HIDEIDLE", TOG_HIDEIDLE, 'h', 1, 0, 0, 0, th_wiz},
-  {"MORTALREALITY", TOG_MORTALREALITY, 'M', 1, 0, 0, 0, th_wiz},
-  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, 0, 0, th_player},
-  {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, 0, 0, th_player},
-  {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, th_noset},
-  {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, 0, 0, th_player},
-  {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, 0, 0, th_wiz},
-  {NULL, 0, ' ', 0, 0, 0, 0, NULL}
+  {"EXFULLWIZATTR", TOG_EXFULLWIZATTR, 'x', 1, CA_IMMORTAL, 0, 0, 0, th_immortal},
+  {"NODEFAULT", TOG_NODEFAULT, 'D', 1, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"KEEPALIVE", TOG_KEEPALIVE, 'K', 1, 0, 0, 0, 0, th_player},
+  {"CHKREALITY", TOG_CHKREALITY, 'C', 1, 0, 0, 0, 0, th_wiz},
+  {"NOISY", TOG_NOISY, 'N', 1, 0, 0, 0, 0, th_player},
+  {"ZONECMDCHK", TOG_ZONECMDCHK, 'k', 1, 0, 0, 0, 0, th_player},
+  {"HIDEIDLE", TOG_HIDEIDLE, 'h', 1, 0, 0, 0, 0, th_wiz},
+  {"MORTALREALITY", TOG_MORTALREALITY, 'M', 1, 0, 0, 0, 0, th_wiz},
+  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, 0, 0, 0, th_player},
+  {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, 0, 0, 0, th_player},
+  {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, th_noset},
+  {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, 0, 0, 0, th_player},
+  {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {NULL, 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 
 POWENT pow_table[] =
@@ -777,130 +802,131 @@ POWENT depow_table[] =
 FLAGENT gen_flags[] =
 {
   /* First Set of Flags */
-  {"AUDIBLE", HEARTHRU, 'n', 0, 0, 0, 0, fh_hear_bit},
-  {"CHOWN_OK", CHOWN_OK, 'C', 0, 0, 0, 0, fh_any},
-  {"CONTROL_OK", CONTROL_OK, 'z', 0, 0, 0, 0, fh_any},
-  {"DARK", DARK, 'D', 0, 0, 0, 0, fh_dark_bit},
-  {"DESTROY_OK", DESTROY_OK, 'd', 0, 0, 0, 0, fh_any},
-  {"ENTER_OK", ENTER_OK, 'e', 0, 0, 0, 0, fh_any},
-  {"GOING", GOING, 'G', 0, CA_NO_DECOMP, 0, 0, fh_god},
-  {"HALTED", HALT, 'h', 0, 0, 0, 0, fh_any},
-  {"HAS_STARTUP", HAS_STARTUP, '+', 0, CA_GOD | CA_NO_DECOMP, 0, 0, fh_god},
-  {"HAVEN", HAVEN, 'H', 0, 0, 0, 0, fh_any},
-  {"IMMORTAL", IMMORTAL, 'i', 0, 0, 0, 0, fh_god},
-  {"INHERIT", INHERIT, 'I', 0, 0, 0, 0, fh_inherit},
-  {"JUMP_OK", JUMP_OK, 'J', 0, 0, 0, 0, fh_any},
-  {"LINK_OK", LINK_OK, 'L', 0, 0, 0, 0, fh_any},
-  {"MONITOR", MONITOR, 'M', 0, 0, 0, 0, fh_hear_bit},
-  {"MYOPIC", MYOPIC, 'm', 0, 0, 0, 0, fh_any},
-  {"NO_SPOOF", NOSPOOF, 'N', 0, 0, 0, 0, fh_any},
-  {"OPAQUE", OPAQUE, 'O', 0, 0, 0, 0, fh_any},
-  {"PUPPET", PUPPET, 'p', 0, 0, 0, 0, fh_hear_bit},
-  {"QUIET", QUIET, 'Q', 0, 0, 0, 0, fh_any},
-  {"ROBOT", ROBOT, 'r', 0, 0, 0, 0, fh_any},
-  {"SAFE", SAFE, 's', 0, 0, 0, 0, fh_any},
-  {"STICKY", STICKY, 'S', 0, 0, 0, 0, fh_any},
-  {"TERSE", TERSE, 't', 0, 0, 0, 0, fh_any},
-  {"TRACE", TRACE, 'T', 0, 0, 0, 0, fh_any},
-  {"TRANSPARENT", SEETHRU, 'T', 0, 0, 0, 0, fh_any},
-  {"VERBOSE", VERBOSE, 'v', 0, 0, 0, 0, fh_any},
-  {"VISUAL", VISUAL, 'V', 0, 0, 0, 0, fh_any},
-  {"ROYALTY", WIZARD, 'W', 0, 0, 0, 0, fh_immortal_bit},
+  {"AUDIBLE", HEARTHRU, 'n', 0, 0, 0, 0, 0, fh_hear_bit},
+  {"CHOWN_OK", CHOWN_OK, 'C', 0, 0, 0, 0, 0, fh_any},
+  {"CONTROL_OK", CONTROL_OK, 'z', 0, 0, 0, 0, 0, fh_any},
+  {"DARK", DARK, 'D', 0, 0, 0, 0, 0, fh_dark_bit},
+  {"DESTROY_OK", DESTROY_OK, 'd', 0, 0, 0, 0, 0, fh_any},
+  {"ENTER_OK", ENTER_OK, 'e', 0, 0, 0, 0, 0, fh_any},
+  {"GOING", GOING, 'G', 0, CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"HALTED", HALT, 'h', 0, 0, 0, 0, 0, fh_any},
+  {"HAS_STARTUP", HAS_STARTUP, '+', 0, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"HAVEN", HAVEN, 'H', 0, 0, 0, 0, 0, fh_any},
+  {"IMMORTAL", IMMORTAL, 'i', 0, 0, 0, 0, 0, fh_god},
+  {"INHERIT", INHERIT, 'I', 0, 0, 0, 0, 0, fh_inherit},
+  {"JUMP_OK", JUMP_OK, 'J', 0, 0, 0, 0, 0, fh_any},
+  {"LINK_OK", LINK_OK, 'L', 0, 0, 0, 0, 0, fh_any},
+  {"MONITOR", MONITOR, 'M', 0, 0, 0, 0, 0, fh_hear_bit},
+  {"MYOPIC", MYOPIC, 'm', 0, 0, 0, 0, 0, fh_any},
+  {"NO_SPOOF", NOSPOOF, 'N', 0, 0, 0, 0, 0, fh_any},
+  {"OPAQUE", OPAQUE, 'O', 0, 0, 0, 0, 0, fh_any},
+  {"PUPPET", PUPPET, 'p', 0, 0, 0, 0, 0, fh_hear_bit},
+  {"QUIET", QUIET, 'Q', 0, 0, 0, 0, 0, fh_any},
+  {"ROBOT", ROBOT, 'r', 0, 0, 0, 0, 0, fh_any},
+  {"SAFE", SAFE, 's', 0, 0, 0, 0, 0, fh_any},
+  {"STICKY", STICKY, 'S', 0, 0, 0, 0, 0, fh_any},
+  {"TERSE", TERSE, 't', 0, 0, 0, 0, 0, fh_any},
+  {"TRACE", TRACE, 'T', 0, 0, 0, 0, 0, fh_any},
+  {"TRANSPARENT", SEETHRU, 'T', 0, 0, 0, 0, 0, fh_any},
+  {"VERBOSE", VERBOSE, 'v', 0, 0, 0, 0, 0, fh_any},
+  {"VISUAL", VISUAL, 'V', 0, 0, 0, 0, 0, fh_any},
+  {"ROYALTY", WIZARD, 'W', 0, 0, 0, 0, 0, fh_immortal_bit},
   /* Second Set of Flags */
-  {"ABODE", ABODE, 'A', FLAG2, 0, 0, 0, fh_any},
-  {"ANSI", ANSI, '<', FLAG2, 0, 0, 0, fh_any},
-  {"ANSICOLOR", ANSICOLOR, '>', FLAG2, 0, 0, 0, fh_any},
-  {"ARCHITECT", BUILDER, 'B', FLAG2, 0, 0, 0, fh_wiz},
-  {"BYEROOM", BYEROOM, '=', FLAG2, CA_NO_DECOMP, 0, 0, fh_byeroom_bit},
-  {"CLOAK", CLOAK, 'b', FLAG2, 0, 0, 0, fh_wiz},
-  {"CONNECTED", CONNECTED, 'c', FLAG2, CA_NO_DECOMP, 0, 0, fh_immortal_bit},
-  {"COUNCILOR", ADMIN, 'a', FLAG2, 0, 0, 0, fh_wiz},
-  {"FLOATING", FLOATING, 'F', FLAG2, 0, 0, 0, fh_any},
-  {"FREE", FREE, 'X', FLAG2, 0, 0, 0, fh_admin},
-  {"FUBAR", FUBAR, 'f', FLAG2, CA_WIZARD, 0, 0, fh_fubar},
-  {"GUEST", GUEST_FLAG, '!', FLAG2, CA_WIZARD, 0, 0, fh_wiz},
-  {"GUILDMASTER", GUILDMASTER, 'g', FLAG2, 0, 0, 0, fh_wiz},
-  {"GUILDOBJ", GUILDOBJ, 'j', FLAG2, CA_ADMIN, 0, 0, fh_gobj},
-  {"HAS_FWDLIST", HAS_FWDLIST, '&', FLAG2, CA_GOD | CA_NO_DECOMP, 0, 0, fh_god},
-  {"HAS_LISTEN", HAS_LISTEN, '@', FLAG2, CA_GOD | CA_NO_DECOMP, 0, 0, fh_god},
-  {"INDESTRUCTABLE", INDESTRUCTABLE, '~', FLAG2, 0, 0, 0, fh_wiz},
-  {"KEY", KEY, 'K', FLAG2, 0, 0, 0, fh_any},
-  {"LIGHT", LIGHT, 'l', FLAG2, 0, 0, 0, fh_any},
-  {"NO_FLASH", NOFLASH, '-', FLAG2, 0, 0, 0, fh_any},
-  {"NO_TEL", NO_TEL, 'o', FLAG2, CA_WIZARD | FA_HANDLER, 0, 0, fh_wiz_sec},
-  {"NO_WALLS", NO_WALLS, 'w', FLAG2, 0, 0, 0, fh_any},
-  {"NO_YELL", NO_YELL, 'y', FLAG2, FA_HANDLER, 0, 0, fh_builder_sec},
-  {"PARENT_OK", PARENT_OK, 'Y', FLAG2, 0, 0, 0, fh_any},
-  {"RECOVER", RECOVER, '$', FLAG2, CA_NO_DECOMP, 0, 0, fh_god},
-  {"SCLOAK", SCLOAK, 'Z', FLAG2, CA_IMMORTAL, 0, 0, fh_immortal_bit},
-  {"SLAVE", SLAVE, 'x', FLAG2, CA_BUILDER | FA_HANDLER, 0, 0, fh_builder_sec},
-  {"SUSPECT", SUSPECT, 'u', FLAG2, CA_WIZARD, 0, 0, fh_wiz},
-  {"UNFINDABLE", UNFINDABLE, 'U', FLAG2, 0, 0, 0, fh_unfind_bit},
-  {"WANDERER", WANDERER, '^', FLAG2, CA_ADMIN, 0, 0, fh_admin},
+  {"ABODE", ABODE, 'A', FLAG2, 0, 0, 0, 0, fh_any},
+  {"ANSI", ANSI, '<', FLAG2, 0, 0, 0, 0, fh_any},
+  {"ANSICOLOR", ANSICOLOR, '>', FLAG2, 0, 0, 0, 0, fh_any},
+  {"ARCHITECT", BUILDER, 'B', FLAG2, 0, 0, 0, 0, fh_wiz},
+  {"BYEROOM", BYEROOM, '=', FLAG2, CA_NO_DECOMP, 0, 0, 0, fh_byeroom_bit},
+  {"CLOAK", CLOAK, 'b', FLAG2, 0, 0, 0, 0, fh_wiz},
+  {"CONNECTED", CONNECTED, 'c', FLAG2, CA_NO_DECOMP, 0, 0, 0, fh_immortal_bit},
+  {"COUNCILOR", ADMIN, 'a', FLAG2, 0, 0, 0, 0, fh_wiz},
+  {"FLOATING", FLOATING, 'F', FLAG2, 0, 0, 0, 0, fh_any},
+  {"FREE", FREE, 'X', FLAG2, 0, 0, 0, 0, fh_admin},
+  {"FUBAR", FUBAR, 'f', FLAG2, CA_WIZARD, 0, 0, 0, fh_fubar},
+  {"GUEST", GUEST_FLAG, '!', FLAG2, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"GUILDMASTER", GUILDMASTER, 'g', FLAG2, 0, 0, 0, 0, fh_wiz},
+  {"GUILDOBJ", GUILDOBJ, 'j', FLAG2, CA_ADMIN, 0, 0, 0, fh_gobj},
+  {"HAS_FWDLIST", HAS_FWDLIST, '&', FLAG2, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"HAS_LISTEN", HAS_LISTEN, '@', FLAG2, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"INDESTRUCTABLE", INDESTRUCTABLE, '~', FLAG2, 0, 0, 0, 0, fh_wiz},
+  {"KEY", KEY, 'K', FLAG2, 0, 0, 0, 0, fh_any},
+  {"LIGHT", LIGHT, 'l', FLAG2, 0, 0, 0, 0, fh_any},
+  {"NO_FLASH", NOFLASH, '-', FLAG2, 0, 0, 0, 0, fh_any},
+  {"NO_TEL", NO_TEL, 'o', FLAG2, CA_WIZARD | FA_HANDLER, 0, 0, 0, fh_wiz_sec},
+  {"NO_WALLS", NO_WALLS, 'w', FLAG2, 0, 0, 0, 0, fh_any},
+  {"NO_YELL", NO_YELL, 'y', FLAG2, FA_HANDLER, 0, 0, 0, fh_builder_sec},
+  {"PARENT_OK", PARENT_OK, 'Y', FLAG2, 0, 0, 0, 0, fh_any},
+  {"RECOVER", RECOVER, '$', FLAG2, CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"SCLOAK", SCLOAK, 'Z', FLAG2, CA_IMMORTAL, 0, 0, 0, fh_immortal_bit},
+  {"SLAVE", SLAVE, 'x', FLAG2, CA_BUILDER | FA_HANDLER, 0, 0, 0, fh_builder_sec},
+  {"SUSPECT", SUSPECT, 'u', FLAG2, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"UNFINDABLE", UNFINDABLE, 'U', FLAG2, 0, 0, 0, 0, fh_unfind_bit},
+  {"WANDERER", WANDERER, '^', FLAG2, CA_ADMIN, 0, 0, 0, fh_admin},
   /* Third set of flags */
-  {"ALTQUOTA", ALTQUOTA, 'Q', FLAG3, CA_NO_DECOMP, 0, 0, fh_none},
-  {"ANONYMOUS", ANONYMOUS, 'Y', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"AUDITORIUM", AUDIT, 'a', FLAG3, 0, 0, 0, fh_any},
-  {"BACKSTAGE", BACKSTAGE, 'b', FLAG3, CA_IMMORTAL, 0, 0, fh_immortal_bit},
-  {"CMDCHECK", CMDCHECK, 'K', FLAG3, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, fh_immortal_bit},
-  {"COMBAT", COMBAT, 'X', FLAG3, 0, 0, 0, fh_any},
-  {"DOORED", DOORRED, 'R', FLAG3, 0, 0, 0, fh_any},
-  {"DPSHIFT", DPSHIFT, 'B', FLAG3, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, fh_immortal_bit},
-  {"DR_PURGE", DR_PURGE, 'x', FLAG3, CA_NO_DECOMP, 0, 0, fh_immortal_bit},
-  {"IC", IC, 'I', FLAG3, 0, 0, 0, fh_any},
-  {"NO_ANSINAME", NO_ANSINAME, 'n', FLAG3, 0, 0, 0, fh_wiz},
-  {"NO_COMMAND", NOCOMMAND, 'c', FLAG3, 0, 0, 0, fh_any},
-  {"NO_CONNECT", NOCONNECT, 'A', FLAG3, CA_ADMIN, 0, 0, fh_admin2},
-  {"NO_EXAMINE", NOEXAMINE, 'E', FLAG3, 0, 0, 0, fh_wiz},
-  {"NO_GOBJ", NO_GOBJ, 'G', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"NO_MODIFY", NOMODIFY, 'M', FLAG3, 0, 0, 0, fh_wiz},
-  {"NO_MOVE", NOMOVE, 'N', FLAG3, CA_WIZARD | FA_HANDLER, 0, 0, fh_wiz_sec},
-  {"NO_OVERRIDE", NO_OVERRIDE, 'V', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"NO_PESTER", NO_PESTER, 'p', FLAG3, 0, 0, 0, fh_wiz},
-  {"NO_POSSESS", NOPOSSESS, 'C', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"NO_STOP", NOSTOP, 'F', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"NO_USELOCK", NO_USELOCK, 'U', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"NO_WHO", NOWHO, 'W', FLAG3, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, fh_immortal_bit},
-  {"PRIVATE", PRIVATE, 'P', FLAG3, 0, 0, 0, fh_wiz},
-  {"SEE_OEMIT", SEE_OEMIT, 'O', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"SIDEFX", SIDEFX, 's', FLAG3, 0, 0, 0, fh_any},
-  {"SPOOF", SPOOF, 'S', FLAG3, CA_IMMORTAL, 0, 0, fh_immortal_bit},
-  {"STOP", STOP, 'D', FLAG3, CA_WIZARD, 0, 0, fh_wiz},
-  {"TELOK", TELOK, 'T', FLAG3, 0, 0, 0, fh_any},
-  {"ZONECONTENTS", ZONECONTENTS, 'z', FLAG3, 0, 0, 0, fh_zonecontents},
-  {"ZONEMASTER", ZONEMASTER, 'Z', FLAG3, 0, 0, 0, fh_zonemaster},
+  {"ALTQUOTA", ALTQUOTA, 'Q', FLAG3, CA_NO_DECOMP, 0, 0, 0, fh_none},
+  {"ANONYMOUS", ANONYMOUS, 'Y', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"AUDITORIUM", AUDIT, 'a', FLAG3, 0, 0, 0, 0, fh_any},
+  {"BACKSTAGE", BACKSTAGE, 'b', FLAG3, CA_IMMORTAL, 0, 0, 0, fh_immortal_bit},
+  {"CMDCHECK", CMDCHECK, 'K', FLAG3, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, fh_immortal_bit},
+  {"COMBAT", COMBAT, 'X', FLAG3, 0, 0, 0, 0, fh_any},
+  {"DOORED", DOORRED, 'R', FLAG3, 0, 0, 0, 0, fh_any},
+  {"DPSHIFT", DPSHIFT, 'B', FLAG3, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, fh_immortal_bit},
+  {"DR_PURGE", DR_PURGE, 'x', FLAG3, CA_NO_DECOMP, 0, 0, 0, fh_immortal_bit},
+  {"IC", IC, 'I', FLAG3, 0, 0, 0, 0, fh_any},
+  {"NO_ANSINAME", NO_ANSINAME, 'n', FLAG3, 0, 0, 0, 0, fh_wiz},
+  {"NO_COMMAND", NOCOMMAND, 'c', FLAG3, 0, 0, 0, 0, fh_any},
+  {"NO_CONNECT", NOCONNECT, 'A', FLAG3, CA_ADMIN, 0, 0, 0, fh_admin2},
+  {"NO_EXAMINE", NOEXAMINE, 'E', FLAG3, 0, 0, 0, 0, fh_wiz},
+  {"NO_GOBJ", NO_GOBJ, 'G', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"NO_MODIFY", NOMODIFY, 'M', FLAG3, 0, 0, 0, 0, fh_wiz},
+  {"NO_MOVE", NOMOVE, 'N', FLAG3, CA_WIZARD | FA_HANDLER, 0, 0, 0, fh_wiz_sec},
+  {"NO_OVERRIDE", NO_OVERRIDE, 'V', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"NO_PESTER", NO_PESTER, 'p', FLAG3, 0, 0, 0, 0, fh_wiz},
+  {"NO_POSSESS", NOPOSSESS, 'C', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"NO_STOP", NOSTOP, 'F', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"NO_USELOCK", NO_USELOCK, 'U', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"NO_WHO", NOWHO, 'W', FLAG3, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, fh_immortal_bit},
+  {"PRIVATE", PRIVATE, 'P', FLAG3, 0, 0, 0, 0, fh_wiz},
+  {"SEE_OEMIT", SEE_OEMIT, 'O', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"SIDEFX", SIDEFX, 's', FLAG3, 0, 0, 0, 0, fh_any},
+  {"SPOOF", SPOOF, 'S', FLAG3, CA_IMMORTAL, 0, 0, 0, fh_immortal_bit},
+  {"STOP", STOP, 'D', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"TELOK", TELOK, 'T', FLAG3, 0, 0, 0, 0, fh_any},
+  {"ZONECONTENTS", ZONECONTENTS, 'z', FLAG3, 0, 0, 0, 0, fh_zonecontents},
+  {"ZONEMASTER", ZONEMASTER, 'Z', FLAG3, 0, 0, 0, 0, fh_zonemaster},
   /* Fourth set of flags */
-  {"BLIND", BLIND, 'g', FLAG4, 0, 0, 0, fh_any},
-  {"BOUNCE", BOUNCE, 'o', FLAG4, 0, 0, 0, fh_any},
+  {"BLIND", BLIND, 'g', FLAG4, 0, 0, 0, 0, fh_any},
+  {"BOUNCE", BOUNCE, 'o', FLAG4, 0, 0, 0, 0, fh_any},
 #ifdef ENABLE_COMMAND_FLAG
-  {"COMMANDS", COMMANDS, '$', FLAG4, 0, 0, 0, fh_any},
+  {"COMMANDS", COMMANDS, '$', FLAG4, 0, 0, 0, 0, fh_any},
 #else
-  {"COMMANDS", COMMANDS, '$', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, fh_none},
+  {"COMMANDS", COMMANDS, '$', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_none},
 #endif
-  {"INPROGRAM", INPROGRAM, 'i', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, fh_god},
-  {"LOGIN", LOGIN, 'L', FLAG4, CA_WIZARD, 0, 0, fh_wiz},
+  {"INPROGRAM", INPROGRAM, 'i', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"LOGIN", LOGIN, 'L', FLAG4, CA_WIZARD, 0, 0, 0, fh_wiz},
 #ifdef MARKER_FLAGS
-  {"MARKER0", MARKER0, '0', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER1", MARKER1, '1', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER2", MARKER2, '2', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER3", MARKER3, '3', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER4", MARKER4, '4', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER5", MARKER5, '5', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER6", MARKER6, '6', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER7", MARKER7, '7', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER8", MARKER8, '8', FLAG4, 0, 0, 0, fh_god},
-  {"MARKER9", MARKER9, '9', FLAG4, 0, 0, 0, fh_god},
+  {"MARKER0", MARKER0, '0', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER1", MARKER1, '1', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER2", MARKER2, '2', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER3", MARKER3, '3', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER4", MARKER4, '4', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER5", MARKER5, '5', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER6", MARKER6, '6', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER7", MARKER7, '7', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER8", MARKER8, '8', FLAG4, 0, 0, 0, 0, fh_god},
+  {"MARKER9", MARKER9, '9', FLAG4, 0, 0, 0, 0, fh_god},
 #endif
-  {"NO_BACKSTAGE", NOBACKSTAGE, 'd', FLAG4, CA_IMMORTAL, 0, 0, fh_immortal_bit},
-  {"NO_CODE", NOCODE, 'j', FLAG4, CA_WIZARD, 0, 0, fh_wiz},
-  {"NO_NAME", NONAME, 'm', FLAG4, CA_WIZARD, 0, 0, fh_wiz},
-  {"NO_UNDERLINE", NOUNDERLINE, 'u', FLAG4, 0, 0, 0, fh_any},
-  {"SHOWFAILCMD", SHOWFAILCMD, 'f', FLAG4, 0, 0, 0, fh_any},
-  {"SPAMMONITOR", SPAMMONITOR, 'w', FLAG4, CA_IMMORTAL, 0, 0, fh_immortal_bit},
-  {"ZONEPARENT", ZONEPARENT, 'y', FLAG4, 0, 0, 0, fh_any},
-  {"HAS_PROTECT", HAS_PROTECT, '+', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, fh_god},
-  {"XTERMCOLOR", XTERMCOLOR, 't', FLAG4, 0, 0, 0, fh_any},
-  {"", 0, ' ', 0, 0, 0, 0, NULL}
+  {"NO_BACKSTAGE", NOBACKSTAGE, 'd', FLAG4, CA_IMMORTAL, 0, 0, 0, fh_immortal_bit},
+  {"NO_CODE", NOCODE, 'j', FLAG4, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"NO_NAME", NONAME, 'm', FLAG4, CA_WIZARD, 0, 0, 0, fh_wiz},
+  {"NO_UNDERLINE", NOUNDERLINE, 'u', FLAG4, 0, 0, 0, 0, fh_any},
+  {"SHOWFAILCMD", SHOWFAILCMD, 'f', FLAG4, 0, 0, 0, 0, fh_any},
+  {"SPAMMONITOR", SPAMMONITOR, 'w', FLAG4, CA_IMMORTAL, 0, 0, 0, fh_immortal_bit},
+  {"ZONEPARENT", ZONEPARENT, 'y', FLAG4, 0, 0, 0, 0, fh_any},
+  {"HAS_PROTECT", HAS_PROTECT, '+', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"XTERMCOLOR", XTERMCOLOR, 't', FLAG4, 0, 0, 0, 0, fh_any},
+  {"HAS_ATTRPIPE", HAS_ATTRPIPE, '|', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"", 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 
 #endif /* STANDALONE */
@@ -1391,6 +1417,30 @@ flag_set(dbref target, dbref player, char *flag, int key)
 		     notify(player, "Permission denied.");
                      perm = 0;
                   }
+                  if ( perm && 
+                        (((Typeof(target) == TYPE_ROOM) && (fp->typeperm & DEF_ROOM)) || 
+                         ((Typeof(target) == TYPE_PLAYER) && (fp->typeperm & DEF_PLAYER)) ||
+                         ((Typeof(target) == TYPE_THING) && (fp->typeperm & DEF_THING)) ||
+                         ((Typeof(target) == TYPE_EXIT) && (fp->typeperm & DEF_EXIT)) ) ) {
+                     if ( !(fp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
+                                            DEF_COUNCILOR|DEF_WIZARD|DEF_IMMORTAL)) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
+                        perm = 0;
+                     } else if ( (fp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
+                        perm = 0;
+                     }
+                     if ( !perm ) 
+		        notify(player, "Permission denied.");
+                  }
 
 		/* Invoke the flag handler, and print feedback */
 
@@ -1493,7 +1543,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
     FLAGENT *fp;
     TOGENT *tp;
     FLAG i_flag;
-    int negate, result, i_flagchk, i_ovperm, i_uovperm;
+    int negate, result, i_flagchk, i_ovperm, i_uovperm, perm;
     char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
 
     /* Trim spaces, and handle the negation character */
@@ -1520,6 +1570,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 
 	/* Make sure a toggle name was specified */
 
+        perm = 1;
 	if (*pt1 == '\0') {
 	    if (negate) {
               if ( !(key & SIDEEFFECT) )
@@ -1546,8 +1597,32 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 		    (Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) && 
                     !Immortal(player))) {
 		     notify(player, "Permission denied.");
-		} else {
-
+                    perm = 0;
+                } 
+                if ( perm && (((Typeof(target) == TYPE_ROOM) && (tp->typeperm & DEF_ROOM)) || 
+                             ((Typeof(target) == TYPE_PLAYER) && (tp->typeperm & DEF_PLAYER)) ||
+                             ((Typeof(target) == TYPE_THING) && (tp->typeperm & DEF_THING)) ||
+                             ((Typeof(target) == TYPE_EXIT) && (tp->typeperm & DEF_EXIT)) ) ) {
+                    if ( !(tp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
+                                            DEF_COUNCILOR|DEF_WIZARD|DEF_IMMORTAL)) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
+                        perm = 0;
+                     }
+                     if ( !perm )
+                        notify(player, "Permission denied.");
+                }
+		if ( perm ) {
 		/* Invoke the toggle handler, and print feedback */
 
                   if ( tp->toggleflag & TOGGLE2 ) {
@@ -3669,16 +3744,20 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 {
 #ifndef STANDALONE
    TOGENT *tp;
-   char listpermary[33], setovpermary[33], usetovpermary[33], *lp_ptr, *sop_ptr, *usop_ptr;
-   char static_list[33], static_list2[19], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;;
+   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
-                        "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
-                        "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
-                        "LOGFLAG", NULL };
-   int static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
-                       0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
-                       0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
-                       0x00008000, 0x00000000 };
+                          "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
+                          "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
+                          "LOGFLAG", NULL };
+   char   *type_names[]={ "THING", "PLAYER", "EXIT", "ROOM", "REGISTERED", "GUILDMASTER", "ARCHITECT", 
+                          "COUNCILOR", "WIZARD", "IMMORTAL", NULL };
+   int     type_masks[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008, 0x00000010, 0x00000020, 0x00000040,
+                          0x00000080, 0x00000100, 0x00000200, 0x00000000 };
+   int   static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
+                          0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
+                          0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
+                          0x00008000, 0x00000000 };
    int  cntr, nodecomp, stripmask, srch_return, mask_add, mask_del, wild_mtch, fnd;
 
    /* Copy 32 characters */
@@ -3688,7 +3767,10 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
     * i -!immortal, + -!suspect, ! -!guest, ^ -!wanderer, M - mortal, L - LOGFLAG */
    strcpy(static_list, "GWAI CS gmsacwiL   +!^        M ");
    strcpy(static_list2, "GIWCASM+!^giwcasmL ");
+   strcpy(type_list, "TPERrgacwi");
+   type_list[10]='\0';
    static_list[32]='\0';
+   static_list2[32]='\0';
    stripmask=0xBFCB0090;
    c_bef = ' ';
    c_aft = ' ';
@@ -3700,22 +3782,31 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 
    if ( (key & FLAGDEF_INDEX) ) {
       tmp_ptr = alloc_lbuf("do_toggledef");
-      sprintf(tmp_ptr, "%-20s %-3s %s", (char *)"Flag Permission", "Flg", (char *)"Hex Value");
+      sprintf(tmp_ptr, "%-20s %-3s %-10s    %-20s %-3s %-10s", 
+                       (char *)"Flag Permission", "Flg", (char *)"Hex Value",
+                       (char *)"Type Permission", "Flg", (char *)"Hex Value");
       notify_quiet(player, tmp_ptr);
-      notify_quiet(player, "-------------------- --- ----------");
+      notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       for ( cntr = 0; cntr < 18; cntr++ ) {
-         sprintf(tmp_ptr, "%-20s [%c] 0x%08x", static_names[cntr], static_list2[cntr], static_masks[cntr]);
+         if ( cntr < 10 ) {
+            sprintf(tmp_ptr, "%-20s [%c] 0x%08x    %-20s [%c] 0x%08x", 
+                    static_names[cntr], static_list2[cntr], static_masks[cntr],
+                    type_names[cntr], type_list[cntr], type_masks[cntr]);
+         } else {
+            sprintf(tmp_ptr, "%-20s [%c] 0x%08x",
+                    static_names[cntr], static_list2[cntr], static_masks[cntr]);
+         }
          notify_quiet(player, tmp_ptr);
       }
-      notify_quiet(player, "-------------------- --- ----------");
+      notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       free_lbuf(tmp_ptr);
       return;
    }
    if ( (key & FLAGDEF_LIST) || key == 0 ) {
-      notify_quiet(player, "|Flagname           |Flg|Set            |Unset" \
-                           "          |See            |NoM|");
-      notify_quiet(player, "+-------------------+---+---------------+" \
-                           "---------------+---------------+---+");
+      notify_quiet(player, "|Flagname           |Flg|Set        |Unset" \
+                           "      |See        |Type      |NoM|");
+      notify_quiet(player, "+-------------------+---+-----------+" \
+                           "-----------+-----------+----------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_toggledef");
       for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
@@ -3729,13 +3820,19 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          memset(listpermary, 0, sizeof(listpermary));
          memset(setovpermary, 0, sizeof(listpermary));
          memset(usetovpermary, 0, sizeof(listpermary));
+         memset(typepermary, 0, sizeof(typepermary));
          lp_ptr = listpermary;
          sop_ptr = setovpermary;
          usop_ptr = usetovpermary;
+         t_ptr = typepermary;
          cntr = 0;
          nodecomp = (tp->handler == th_noset);
 
          while ( cntr < 32 ) {
+            if ( (cntr < 11) && (tp->typeperm & (1 << cntr)) ) {
+               *t_ptr = type_list[cntr];
+                t_ptr++;
+            }
             if ( (tp->listperm &~ stripmask) & (1 << cntr) ) {
                *lp_ptr = static_list[cntr];
                 lp_ptr++;
@@ -3758,16 +3855,16 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             c_aft = ' ';
          }
          tprp_buff = tpr_buff;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-19s|%c%c%c|%-15s|%-15s|%-15s| %c |", 
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-19s|%c%c%c|%-11s|%-11s|%-11s|%-10s| %c |", 
                                            tp->togglename, c_bef, tp->togglelett, c_aft, setovpermary, 
-                                           usetovpermary, listpermary, (nodecomp ? 'Y' : ' ')));
+                                           usetovpermary, listpermary, typepermary, (nodecomp ? 'Y' : ' ')));
       }
       free_lbuf(tpr_buff);
       if ( !fnd )
          notify_quiet(player, "                        *** NO MATCHING FLAGS FOUND ***");
 
-      notify_quiet(player, "+-------------------+---+---------------+" \
-                           "---------------+---------------+---+");
+      notify_quiet(player, "+-------------------+---+-----------+" \
+                           "-----------+-----------+----------+---+");
    } else { 
       for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
            tp;
@@ -3795,6 +3892,40 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             tp->togglelett = *flag2;
             free_lbuf(tpr_buff);
          }
+         return;
+      }
+      if ( key & FLAGDEF_TYPE ) {
+         mask_add = mask_del = 0;
+         nodecomp = 0;
+         tmp_ptr = strtok(flag2, " \t");
+         while (tmp_ptr != NULL) {
+            if ( *tmp_ptr == '!' ) {
+               nodecomp = 1;
+               tmp_ptr++;
+            } else
+               nodecomp = 0;
+
+            srch_return = search_nametab(GOD, flagdef_type, tmp_ptr);
+            if ( srch_return != -1 ) {
+               if (nodecomp)
+                  mask_del |= srch_return;
+               else
+                  mask_add |= srch_return;
+            }
+            tmp_ptr = strtok(NULL, " \t");
+         }
+         if ( !mask_add && !mask_del ) {
+            notify_quiet(player, "Nothing for @flagdef to do.");
+            return;
+         }
+         tp->typeperm &= ~mask_del;
+         tp->typeperm |= mask_add;
+         tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'type' restrictions for toggle %s",
+                                           tp->togglename));
+         sprintf(tpr_buff, "   ->   %s", (char *)"Set:");
+         listset_nametab(player, flagdef_type, 0, tp->typeperm, 0, tpr_buff, 1);
+         free_lbuf(tpr_buff);
          return;
       }
       tmp_ptr = strtok(flag2, " \t");
@@ -3868,7 +3999,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
 #ifdef STANDALONE
    return 0;
 #else
-   int mask_add, mask_del, negate, srch_return, stripmask, i_mask1, i_mask2, i_mask3;
+   int mask_add, mask_del, negate, srch_return, stripmask, i_mask1, i_mask2, i_mask3, i_mask4;
    char *strtok, *strtok2, *strtokptr, *buff;
    FLAGENT *fp;
    TOGENT *tp;
@@ -3898,7 +4029,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
       }
       return -1;
    }
-   i_mask1 = i_mask2 = i_mask3 = srch_return = mask_add = mask_del = negate = 0;
+   i_mask1 = i_mask2 = i_mask3 = i_mask4 = srch_return = mask_add = mask_del = negate = 0;
    fp = (FLAGENT *)NULL;
    tp = (TOGENT *)NULL;
    if ( i_type == IS_TYPE_FLAG ) {
@@ -3929,7 +4060,11 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
       } else
          negate = 0;
          
-      srch_return = search_nametab(GOD, access_nametab, strtok2);
+      if ( !stricmp(cmd, "flag_access_type") || !stricmp(cmd, "toggle_access_type") ) {
+         srch_return = search_nametab(GOD, flagdef_type, strtok2);
+      } else {
+         srch_return = search_nametab(GOD, access_nametab, strtok2);
+      }
       if ( srch_return != -1 ) {
          if (negate)
             mask_del |= srch_return;
@@ -3970,10 +4105,14 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
            } else if ( !stricmp(cmd, "flag_access_see") ) {
               fp->listperm &= ~mask_del;
               fp->listperm |= mask_add;
+           } else if ( !stricmp(cmd, "flag_access_type") ) {
+              fp->typeperm &= ~mask_del;
+              fp->typeperm |= mask_add;
            }
            i_mask1 = fp->setovperm;
            i_mask2 = fp->usetovperm;
            i_mask3 = fp->listperm;
+           i_mask4 = fp->typeperm;
            break;
       case IS_TYPE_TOGGLE: /* Set variables to type toggle */
            if ( !stricmp(cmd, "toggle_access_set") ) {
@@ -3985,10 +4124,14 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
            } else if ( !stricmp(cmd, "toggle_access_see") ) {
               tp->listperm &= ~mask_del;
               tp->listperm |= mask_add;
+           } else if ( !stricmp(cmd, "toggle_access_type") ) {
+              tp->typeperm &= ~mask_del;
+              tp->typeperm |= mask_add;
            }
            i_mask1 = tp->setovperm;
            i_mask2 = tp->usetovperm;
            i_mask3 = tp->listperm;
+           i_mask4 = tp->typeperm;
            break;
    } 
    buff = alloc_lbuf("do_flag_and_toggle_def_conf");
@@ -4002,6 +4145,8 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
       listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->usetovperm : tp->usetovperm) & ~(stripmask|0x40000000), 0, buff, 1);
       sprintf(buff, "   ->   See: %s", (char *)((i_mask3 & 0x40000000) ? "mortal" : ""));
       listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->listperm : tp->listperm) & ~(stripmask|0x40000000), 0, buff, 1);
+      sprintf(buff, "   ->  Type: %s", (char *)"");
+      listset_nametab(player, flagdef_type, 0, ((i_type == IS_TYPE_FLAG) ? fp->typeperm : tp->typeperm), 0, buff, 1);
    } else {
       STARTLOG(LOG_STARTUP, "CNF", "NFND")
          sprintf(buff, "%.3900s: permissions set for %s '%s' [added: %08x, removed: %08x].", 
@@ -4018,16 +4163,20 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 {
 #ifndef STANDALONE
    FLAGENT *fp;
-   char listpermary[33], setovpermary[33], usetovpermary[33], *lp_ptr, *sop_ptr, *usop_ptr;
-   char static_list[33], static_list2[19], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;
+   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
-                        "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
-                        "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
-                        "LOGFLAG", NULL };
-   int static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
-                       0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
-                       0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
-                       0x00008000, 0x00000000 };
+                          "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
+                          "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
+                          "LOGFLAG", NULL };
+   char   *type_names[]={ "THING", "PLAYER", "EXIT", "ROOM", "REGISTERED", "GUILDMASTER", "ARCHITECT", 
+                          "COUNCILOR", "WIZARD", "IMMORTAL", NULL };
+   int     type_masks[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008, 0x00000010, 0x00000020, 0x00000040,
+                          0x00000080, 0x00000100, 0x00000200, 0x00000000 };
+   int   static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
+                          0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
+                          0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
+                          0x00008000, 0x00000000 };
    int  cntr, nodecomp, stripmask, srch_return, mask_add, mask_del, wild_mtch, fnd;
 
    /* Copy 32 characters */
@@ -4037,7 +4186,10 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
     * i -!immortal, + -!suspect, ! -!guest, ^ -!wanderer, M - mortal, L - LOGFLAG */
    strcpy(static_list, "GWAI CS gmsacwiL   +!^        M ");
    strcpy(static_list2, "GIWCASM+!^giwcasmL ");
+   strcpy(type_list, "TPERrgacwi");
+   type_list[10]='\0';
    static_list[32]='\0';
+   static_list2[32]='\0';
    stripmask=0xBFCB0090;
    c_bef = ' ';
    c_aft = ' ';
@@ -4049,22 +4201,31 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 
    if ( (key & FLAGDEF_INDEX) ) {
       tmp_ptr = alloc_lbuf("do_flagdef");
-      sprintf(tmp_ptr, "%-20s %-3s %s", (char *)"Flag Permission", "Flg", (char *)"Hex Value");
+      sprintf(tmp_ptr, "%-20s %-3s %-10s    %-20s %-3s %-10s", 
+                       (char *)"Flag Permission", "Flg", (char *)"Hex Value",
+                       (char *)"Type Permission", "Flg", (char *)"Hex Value");
       notify_quiet(player, tmp_ptr);
-      notify_quiet(player, "-------------------- --- ----------");
+      notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       for ( cntr = 0; cntr < 18; cntr++ ) {
-         sprintf(tmp_ptr, "%-20s [%c] 0x%08x", static_names[cntr], static_list2[cntr], static_masks[cntr]);
+         if ( cntr < 10 ) {
+            sprintf(tmp_ptr, "%-20s [%c] 0x%08x    %-20s [%c] 0x%08x", 
+                    static_names[cntr], static_list2[cntr], static_masks[cntr],
+                    type_names[cntr], type_list[cntr], type_masks[cntr]);
+         } else {
+            sprintf(tmp_ptr, "%-20s [%c] 0x%08x",
+                    static_names[cntr], static_list2[cntr], static_masks[cntr]);
+         }
          notify_quiet(player, tmp_ptr);
       }
-      notify_quiet(player, "-------------------- --- ----------");
+      notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       free_lbuf(tmp_ptr);
       return;
    }
    if ( (key & FLAGDEF_LIST) || key == 0 ) {
-      notify_quiet(player, "|Flagname        |Flg|Set             |Unset" \
-                           "           |See             |NoM|");
-      notify_quiet(player, "+----------------+---+----------------+" \
-                           "----------------+----------------+---+");
+      notify_quiet(player, "|Flagname        |Flg|Set         |Unset" \
+                           "       |See         |Type      |NoM|");
+      notify_quiet(player, "+----------------+---+------------+" \
+                           "------------+------------+----------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
       for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
@@ -4078,14 +4239,20 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          memset(listpermary, 0, sizeof(listpermary));
          memset(setovpermary, 0, sizeof(listpermary));
          memset(usetovpermary, 0, sizeof(listpermary));
+         memset(typepermary, 0, sizeof(typepermary));
          lp_ptr = listpermary;
          sop_ptr = setovpermary;
          usop_ptr = usetovpermary;
+         t_ptr = typepermary;
          cntr = 0;
          nodecomp = (fp->listperm & CA_NO_DECOMP);
          nodecomp = (nodecomp | ((fp->flagvalue & IMMORTAL) &&
                                  (fp->flagflag == 0)));
          while ( cntr < 32 ) {
+            if ( (cntr < 11) && (fp->typeperm & (1 << cntr)) ) {
+               *t_ptr = type_list[cntr];
+               t_ptr++;
+            }
             if ( (fp->listperm &~ stripmask) & (1 << cntr) ) {
                *lp_ptr = static_list[cntr];
                 lp_ptr++;
@@ -4108,16 +4275,16 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             c_aft = ' ';
          }
          tprp_buff = tpr_buff;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-16s|%c%c%c|%-16s|%-16s|%-16s| %c |", 
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-16s|%c%c%c|%-12s|%-12s|%-12s|%-10s| %c |", 
                                            fp->flagname, c_bef, fp->flaglett, c_aft, setovpermary, 
-                                           usetovpermary, listpermary, (nodecomp ? 'Y' : ' ')));
+                                           usetovpermary, listpermary, typepermary, (nodecomp ? 'Y' : ' ')));
       }
       free_lbuf(tpr_buff);
       if ( !fnd )
          notify_quiet(player, "                        *** NO MATCHING FLAGS FOUND ***");
 
-      notify_quiet(player, "+----------------+---+----------------+" \
-                           "----------------+----------------+---+");
+      notify_quiet(player, "+----------------+---+------------+" \
+                           "------------+------------+----------+---+");
    } else { 
       for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
 	   fp;
@@ -4145,6 +4312,40 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             fp->flaglett = *flag2;
             free_lbuf(tpr_buff);
          }
+         return;
+      }
+      if ( key & FLAGDEF_TYPE ) {
+         mask_add = mask_del = 0;
+         nodecomp = 0;
+         tmp_ptr = strtok(flag2, " \t");
+         while (tmp_ptr != NULL) {
+            if ( *tmp_ptr == '!' ) {
+               nodecomp = 1;
+               tmp_ptr++;
+            } else
+               nodecomp = 0;
+
+            srch_return = search_nametab(GOD, flagdef_type, tmp_ptr);
+            if ( srch_return != -1 ) {
+               if (nodecomp)
+                  mask_del |= srch_return;
+               else
+                  mask_add |= srch_return;
+            }
+            tmp_ptr = strtok(NULL, " \t");
+         }
+         if ( !mask_add && !mask_del ) {
+            notify_quiet(player, "Nothing for @flagdef to do.");
+            return;
+         }
+         fp->typeperm &= ~mask_del;
+         fp->typeperm |= mask_add;
+         tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'type' restrictions for flag %s",
+                                           fp->flagname));
+         sprintf(tpr_buff, "   ->   %s", (char *)"Set:");
+         listset_nametab(player, flagdef_type, 0, fp->typeperm, 0, tpr_buff, 1);
+         free_lbuf(tpr_buff);
          return;
       }
       tmp_ptr = strtok(flag2, " \t");

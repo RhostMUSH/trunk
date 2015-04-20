@@ -114,8 +114,9 @@ double safe_atof(char *);
 char *upcasestr(char *);
 char *next_token(char *, char);
 char * split_token(char **, char);
-int fn_range_check(const char *, int, int, int, char *, char **);
+int fn_range_check_real(const char *, int, int, int, char *, char **, int);
 int delim_check(char *[], int, int, char *, char *, char **, int, dbref, dbref, dbref, char *[], int);
 int list2arr(char *arr[], int maxlen, char *list, char sep);
+#define fn_range_check(a, b, c, d, e, f)	fn_range_check_real(a, b, c, d, e, f, 0)
 
 #endif

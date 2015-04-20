@@ -17,6 +17,8 @@ Fix for Mysql.c issue in a sigfault
 				- Thanks Sunder
 Buffer overrun in ansi_txtfile because of non-null termination.
 				- Thanks Rook
+mail/mark/save would not alert you if you hit MAX SAVED messages.
+				- Thanks Mercutio
 
 
 		         RhostMUSH 3.9.4 Update File

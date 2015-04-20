@@ -31,6 +31,29 @@
   
   The /search switch works for +help as well.
   
+& co
+& cd
+& ch
+  Command: co <name> <password>
+           cd <name> <password>
+           ch <name> <password>
+  
+  These commands are only useful on the connect screen.  They are used to
+  connect to your account <name> with the provided <password>.  There are
+  currently three methods to do so.
+  
+  They are as follows:
+     co  -- This option is the default and normal method to connect.
+            This option has no special conditions or privilages.
+     ch  -- Wizards and anyone with the NOWHO @power (to @hide) can use this.
+            This option will auto-hide the player when connecting.
+            It defaults to the 'co' option if you can't @hide.
+     cd  -- Wizards and higher can use this to connect dark to the game.
+            This effectively connects wiz-cloaked to the game.
+            Immortals get auto-added to supercloak.
+  
+  See Also: @aconnect, @adisconnect, @hide
+            
 & commands
   Help available for RhostMUSH Commands:
    
@@ -53,11 +76,11 @@
   @force       @fpose       @fsay        @halt        @hide        @include
   @last        @link        @list        @listmotd    @lfunction   @lock      
   @mailsig     @mvattr      @name        @notify      @oemit       @open      
-  @parent      @password    @pemit       @program     @protect     @ps        
-  @quitprogram @quota       @register    @robot       @search      @set       
-  @skip        @stats       @sudo        @sweep       @switch      @teleport  
-  @trigger     @unlink      @unlock      @verb        @wait        @wall      
-  @wipe        
+  @parent      @password    @pemit       @pipe        @program     @protect   
+  @ps          @quitprogram @quota       @register    @robot       @search    
+  @set         @skip        @stats       @sudo        @sweep       @switch    
+  @teleport    @trigger     @unlink      @unlock      @verb        @wait      
+  @wall        @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 & commands2
@@ -890,17 +913,30 @@
   
 & IDLE
   Command: idle                 (everyone)
+           idle @@<string>      (everyone)
            idle <command>	(wizards only)
   
   This command does nothing.  It will issue a NO-OP (non-operation) which 
   allows the user to send information to the mush without actually unidling.
   While using this command your idle state does not change so to other users
-  you will appear to be idle.
+  you will appear to be idle.  
+  
+  If you specify @@<string> then <string> will be displayed to you as if 
+  you issued 'think <string>' but without updating your idle time.  
+  
+  Note:  The <string> is NOT evaluated, intentionally.
   
   This command can only be used if you're connected to the mush.  It can not
   be used if the command has been restricted from you.
   
   Wizards may specify a command to issue under an 'idle state' as an option.
+  
+  Examples:
+    > idle
+    > idle @@boo![add(1,1)]
+      boo![add(1,1)]
+    > idle think Test: [add(1,1)]    (as a wizard)
+      Test: 2
   
   See Also: @@
 
@@ -3830,8 +3866,45 @@
                 
   See Also: page, @emit, @oemit, SPOOFING
   
+& @pipe
+  Command: @pipe[/<switch>] [<attribute>]
+ 
+  This command will allow you to pipe output that you would normally see on
+  your screen into a specified attribute.  You must have permission to write
+  to the attribute, the attribute must be a valid attribute name, and the
+  attribute can not be full (or it'll auto-disable upon attempt).  The 
+  attribute is also always on the enactor.  You can't specify another object.
+  The following switches are used:
+    /on   -- Turn on piping to the specified attribute.  
+    /off  -- Turn off piping to the attribute.
+  
+  Please note, you obviously can not pipe to multiple attributes at once,
+  and once the attribute is filled to capacity, piping to that attribute
+  will be automatically disabled and output will return to your screen
+  as normal.
+  
+  If you @toggle yourself NOISY, then every output segment that would show
+  up on your screen will notify you that it was piped to the file.
+  
+  If you are still piping to an attribute, it will notify you of this upon
+  connection, regardless of the NOISY @toggle. 
+  
+  You can not use this feature if you are set NO_CODE, GUEST, or WANDERER. 
+  
+  Example:
+    > @pipe/on BOO;WHO;@pipe/off 
+    Piping to attribute has been enabled.
+    Piping to attribute has been disabled.
+    > think v(boo)
+    Player Name          On For Idle  Guild       Doing
+    Tester                00:01   0s  Citizen
+    1 Player logged in. (Bummer.)
+  
+  See Also: @toggle, NOISY, @set, &
+
 & @ps
   Command: @ps[/<switches>] [<object>]
+  
   Lists information about the commands you have on each of the queues.
   Unless the /summary switch is used, this command lists all the commands you
   have on the queues, optionally along with their enactor and arguments.
@@ -4760,7 +4833,12 @@
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
   
-  Example: @ansiname object=hr
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
+  
+  Example: 
+    > @ansiname object=hr
+    Set.
   
   Note:  If the object is @toggled with EXTANSI, then ansiname can hold
          literal ansicodes.  Check help on @extansi for this.  
@@ -4769,6 +4847,13 @@
             @titlecaption
 
 & @moniker
+  There is no @moniker.  You actually want @extansi.
+  
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
+  
+  Please see help on @extansi on how to utilize this.
+  
   See Also: @ansiname, @titlecaption, ANSINAME, ansi(), EXTANSI TOGGLE,
             @extansi, @caption  
   
@@ -4787,6 +4872,9 @@
   Note:  Target must be @toggled EXTANSI to use this command.
   
   The optional switch /quiet suppresses output unless an error is thrown.
+  
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
   
   Examlple:  @name object=99 Red Balloons
              > Name set.
@@ -8866,26 +8954,27 @@
  
   Help is available for the following functions:
  
- @@()                ABS()                ACCENT()           ACOS()        
- ADD()               AFTER()              AINDEX()           AIINDEX()         
- ALPHAMAX()          ALPHAMIN()           AND()              ANDCHR()        
- ANDFLAG()           ANDFLAGS()           ANSI()             APOSS()     
- ARRAY()             ART()                ASC()              ASIN()           
- ATAN()              ATTRCNT()            AVG()              BEFORE()         
- BETWEEN()           BITTYPE()            BOUND()            BRACKETS()       
- CAND()              CAPSTR()             CASE()             CASEALL()        
- CAT()               CEIL()               CENTER()           CHARIN()          
- CHAROUT()           CHKREALITY()         CHKTRACE()         CHOMP()          
- CHR()               CITER()              CLONE()            CLUSTER_ADD()     
- CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()   
- CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR() 
- CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI() 
- CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()      
- CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT()
- CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT()
- CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()             CNAME()           
- COLORS()            COLUMNS()            COMP()             CON()             
- CONFIG()            CONN()               CONTROLS()         CONVSECS()    
+ @@()               ABS()               ACCENT()             ACOS()        
+ ADD()              AFTER()             AINDEX()             AIINDEX()         
+ ALPHAMAX()         ALPHAMIN()          AND()                ANDCHR()        
+ ANDFLAG()          ANDFLAGS()          ANSI()               APOSS()     
+ ARRAY()            ART()               ASC()                ASIN()           
+ ATAN()             ATAN2()             ATTRCNT()            AVG()            
+ BEFORE()           BETWEEN()           BITTYPE()            BOUND()          
+ BRACKETS()         CAND()              CAPSTR()             CASE()           
+ CASEALL()          CAT()               CEIL()               CENTER()         
+ CHARIN()           CHAROUT()           CHKREALITY()         CHKTRACE()       
+ CHOMP()            CHR()               CITER()              CLONE()          
+ CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT()
+ CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()   
+ CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP() 
+ CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()      
+ CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()
+ CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL() 
+ CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()           
+ CNAME()            COLORS()            COLUMNS()            COMP()           
+ CON()              CONFIG()            CONN()               CONTROLS()       
+ CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -8964,16 +9053,16 @@
   SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()    
   SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()     
   SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()      
-  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()    
-  SPLICE()        SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()   
-  STARTSECS()     STATS()         STEP()         STR()          STRCAT()      
-  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()       
-  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()     
-  SUB()           SUBJ()          SUBNETMATCH()  SWITCH()       SWITCHALL()
-  T()             TAN()           TEL()          TIME()         TIMEFMT()
-  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
-  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
-  TR()            TRACE()         TRANSLATE() 
+  SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
+  SPELLNUM()      SPLICE()        SQLITE_QUERY() SQRT()         SQUISH()     
+  STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
+  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
+  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
+  STRMATH()       SUB()           SUBJ()         SUBNETMATCH()  SWITCH()     
+  SWITCHALL()     T()             TAN()          TEL()          TIME()       
+  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
+  TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
+  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -9061,9 +9150,9 @@
                       NUMMATCH() NUMMEMBER() NUMWILDMATCH() PARSE() RANDMATCH()
                       RANDEXTRACT() REMFLAGS() REMOVE() REMTYPE() REST() 
                       REVERSE() REVWORDS() RINDEX() SAFEBUFF() SETDIFF() 
-                      SETINTER() SETUNION() SORT() SORTBY() STEP() STRFUNC() 
-                      STRMATH() TOTMATCH() TOTMEMBER() TOTWILDMATCH() WHILE()
-                      WILDMATCH()
+                      SETINTER() SETUNION() SORT() SORTBY() SORTLIST() STEP() 
+                      STRFUNC() STRMATH() TOTMATCH() TOTMEMBER() TOTWILDMATCH()
+                      WHILE() WILDMATCH()
             See Also: help list functions
   
   Logarithms:         E() EXP() LN() LOG() PI() POWER() POWER10() SHL() SHR()
@@ -9155,9 +9244,9 @@
 & FUNCTION CLASSES6
   Topic: FUNCTION CLASSES <continued>
   
-  Trigonometry:        ACOS() ASIN() ATAN() COS() CTU() DIST2D() DIST3D() SIN()
-                       TAN() VADD() VCROSS() VDIM() VDOT() VMAG() VMUL() VSUB()
-                       VUNIT()
+  Trigonometry:        ACOS() ASIN() ATAN() ATAN2() COS() CTU() DIST2D() 
+                       DIST3D() SIN() TAN() VADD() VCROSS() VDIM() VDOT() 
+                       VMAG() VMUL() VSUB() VUNIT()
              See Also: help trigonometry functions  
     
   Aliased functions:   FLIP() FOREACH() ITEMS() MATCHALL() SQUISH() LPARENT() 
@@ -10260,13 +10349,21 @@
   
   See Also: LIST FLAGS, ATTRIBUTE FLAGS, hastype()
   
-& delete()
-  Function: delete(<string>,<first>,<len>)
+& DELETE()
+  Function: delete(<string>, <first>, <len> [,<key>])
+  
   Returns <string>, but with <len> characters starting after the character
   at position <first> removed.  In other words, this function copies <first>
   characters, skips <len> characters, and then copies the remainder of the 
   string.
- 
+  
+  You may specify a <key> of 1 to tell mid() to take the string raw and
+  not do ansi-aware processing.  This will speed up the function.
+  The default is '0' which does ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
+   
   Example:
     > say delete(abcdefgh, 3, 2)
     You say "abcfgh"
@@ -15900,7 +15997,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   Note:  When using delimiters, the lists that you pass it can NOT be empty.
          Munge will not match up any empty lists sent to it. 
   
-  See Also: map(), fold(), iter(), list()
+  See Also: map(), fold(), iter(), list(), sortlist()
  
 & CITER()
   Function: citer(<list>, <eval>[, <delim>])
@@ -16249,11 +16346,14 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @edit, editansi(), strip(), garble(), pedit(), chomp(), regedit()
   
 & EDITANSI()
-  Function: editansi(<string>, <search color-codes>, <replace color-codes>)
+  Function: editansi(<string>, <search>, <replace> [,<search>, <replace>,...])
   
   This function will take a string, and replace all searched for ansi codes
-  and replace them with the specified ansi codes.  The following logic
-  works for the search and replace in order of priority:
+  and replace them with the specified replaced ansi codes.  You may specify
+  more than one search/replace segment for ansi codes, but they must always
+  be in a paired set.
+  
+  The following logic works for the search and replace in order of priority:
     1.  If <search> is just ansi-normal (n), then it assumes you want an
         exact match on any character that has no previous encoding, and will
         replace with <replace> ALL encoding specified.
@@ -16275,6 +16375,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     I - anything NOT set inverse.
     U - anything NOT set underscore.
     F - anything NOT set flash.
+    N - anything NOT using ansi colors.
   
   If these are specified in replace, it will strip those specified ansi
   special encodings. 
@@ -16284,6 +16385,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "abcdef"    (abc is hilight blue, def is hilight red)
     > say editansi([ansi(hb,abc,n,def)],hb,hy)
     You say "abcdef"    (abc is hilight yellow, def is non-ansified)
+    > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
+    You say "abcxyzdef" (abc is yellow, xyz is blue, def is non-ansi)
   
   See Also: accents(), edit(), regedit(), pemit(), @edit
 
@@ -16721,9 +16824,18 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
 & PRIVATIZE()
   Function: privatize(<value>)
   
-  This function, if enabled (1), will make it so all localized setq 
-  registers will be initialized to null upon calling the function.  This
-  will affect functions such as localize(), ulocal(), uzfun(), etc.
+  This function takes two values.  1 to enable or 0 to disable (default).
+  When enabled, any function call that is using localization for registers,
+  such as localize(), ulocal(), ueval(), uzfun(), etc, will be initialized
+  to a null (empty string) instead of housing the contents that was passed
+  to it (which is the default).  Keep in mind, this only initializes the
+  localized values, and once the localization is finished, the values are
+  returned to their previous value, as how localization is intended.
+  
+  The Values allowed are:
+    1 - Toggle on the feature to initialize to null all registers (%q0-z)
+        that are used in localized functions (localize(), ulocal(), etc)
+    0 - Toggle off the feature to initialize to null registers (default).
   
   Example:
     > @va me=(before R0: [r(0)])[setq(0,internal)] --My R0:[r(0)]--
@@ -18310,8 +18422,49 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say sort(foo-bar-bletch,,-,+)
     You say "bar+bletch+foo"
   
-  See Also: sortby(), munge(), map(), setinter(), setunion(), setdiff()
+  See Also: sortby(), munge(), map(), setinter(), setunion(), setdiff(),
+            sortlist()
   
+& SORTLIST()
+  Function: sortlist(<order>, <sep>, <list1>, <list2>, [...,<listN>])
+  
+  This function takes 2 or more lists and chooses from each sample the max
+  or min value based on the sorting value type.  The <order> must have as the
+  first character a + for maxsort or a - for minsort.  If you do not specify
+  a sort type after the +/- or if the value is invalid, it assumes alphanum.
+  
+  The lists may be unequal lists.
+  
+  The following <order> types are allowed:  
+    +a  -- (default) sort alphanumerically by maximum value 
+    -a  -- (default) sort alphanumerically by minimum value
+    +n  -- sort integers numerically by maximum value
+    -n  -- sort integers numerically by minimum value
+    +f  -- sort floating numerically by maximum value
+    -f  -- sort floating numerically by minimum value
+    +d  -- sort dbref#'s numerically by maximum valid dbref# (#-1 if invalid)
+    -d  -- sort dbref#'s numerically by minimum valid dbref# (#-1 if invalid)
+  
+  With the dbref# sort, any invalid dbref# is assigned the value #-1.  If all
+  arguments in that list order are all invalid, #-1 will be seen for the
+  value.
+  
+  Examples:
+    > say sortlist(+n,,1 2 3,10 0 20, 0 0 0)
+    You say "10 2 20"
+    > say sortlist(-n,,1 2 3,10 0 20, -100 100 200)
+    You say "-100 0 3"
+    > say sortlist(-n,:,1:2:3,5:6:7,4:4:4,0:9:20)
+    You say "5:9:20"
+    > say sortlist(+f,,1.2 2.5 3.3,1.3 2.4 -1.2)
+    You say "1.3 2.5 3.3"
+    > say sortlist(+d,,#1 #2 #3,#10 #0 #20 #3735 #100 #200 #333,#-1 #3 #3735)
+    (Note: #3735 in this example is a Garbage/Recover/Non-Existant dbref#)
+    You say "#10 #3 #20 #-1 #100 #200 #333"
+  
+  See Also: sort(), munge(), map(), setinter(), setunion(), setdiff(),
+            listinter(), listunion(), listdiff()
+
 & SORTBY()
   Function: sortby([<obj>/]<attrib>,<list>[,<delim> [,<sep>]])
   
@@ -18896,8 +19049,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say pi()
     You say "3.141562654"
   
-  See Also: acos(), asin(), atan(), cos(), sin(), tan(), ctu(), cosh(), sinh(),
-            tanh()
+  See Also: acos(), asin(), atan(), atan2(), cos(), sin(), tan(), ctu(), 
+            cosh(), sinh(), tanh()
   
 & PID()
   Function: pid([<display> [,<seperator> [,<type> [,<target>]]])
@@ -18987,8 +19140,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say sin(fdiv(pi(),6))
     You say "0.5"
   
-  See Also: acos(), asin(), atan(), cos(), pi(), tan(), ctu(), sinh(), cosh(),
-            tanh()
+  See Also: acos(), asin(), atan(), atan2(), cos(), pi(), tan(), ctu(), 
+            sinh(), cosh(), tanh()
   
 & SINH()
   Function: sinh(<number> [,<units>])
@@ -19008,7 +19161,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say sinh(fdiv(pi(),6))
     You say "0.547854"
   
-  See Also: acos(), asin(), atan(), cos(), pi(), tan(), ctu(), cosh(), tanh()
+  See Also: acos(), asin(), atan(), atan2(), cos(), pi(), tan(), ctu(), 
+            cosh(), tanh(), sin()
 
 & SINGLETIME()
   Function: singletime(<seconds>)
@@ -19041,8 +19195,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say ctu(180,d,r)
     You say "3.141593"
   
-  See Also: sin(), cos(), tan(), asin(), acos(), atan(), pi(), cosh(), sinh(),
-            tanh()
+  See Also: sin(), cos(), tan(), asin(), acos(), atan(), atan2(), pi(), 
+            cosh(), sinh(), tanh()
   
 & COS()
   Function: cos(<number> [,<units>])
@@ -19062,8 +19216,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say cos(fdiv(pi(),6))
     You say "0.866025"
   
-  See Also: acos(), asin(), atan(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
-            tanh()
+  See Also: acos(), asin(), atan(), atan2(), pi(), sin(), tan(), ctu(), 
+            cosh(), sinh(), tanh()
   
 & COSH()
   Function: cosh(<number> [,<units>])
@@ -19083,7 +19237,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say cosh(fdiv(pi(),6))
     You say "1.140238"
   
-  See Also: acos(), asin(), atan(), pi(), sin(), tan(), ctu(), sinh(), tanh()
+  See Also: acos(), asin(), atan(), atan2(), pi(), sin(), tan(), ctu(), 
+            sinh(), tanh()
 
 & TAN()
   Function: tan(<number> [,<units>])
@@ -19101,8 +19256,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say tan(fdiv(pi(),4))
     You say "1"
   
-  See Also: acos(), asin(), atan(), cos(), pi(), sin(), ctu(), cosh(), sinh(),
-            tanh()
+  See Also: acos(), asin(), atan(), atan2(), cos(), pi(), sin(), ctu(), 
+            cosh(), sinh(), tanh()
   
 & TANH()
   Function: tanh(<number> [,<units>])
@@ -19120,7 +19275,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say tanh(fdiv(pi(),4))
     You say "1.324609"
 
-  See Also: acos(), asin(), atan(), cos(), pi(), sin(), ctu(), cosh(), sinh()
+  See Also: acos(), asin(), atan(), atan2(), cos(), pi(), sin(), ctu(), 
+            cosh(), sinh() 
 
 & ASIN()
   Function: asin(<number> [,<units>])
@@ -19140,8 +19296,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say asin(0.5)
     You say "0.523599"
   
-  See Also: acos(), atan(), cos(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
-            tanh()
+  See Also: acos(), atan(), atan2(), cos(), pi(), sin(), tan(), ctu(), 
+            cosh(), sinh(), tanh()
   
 & ACCENT()
   Function: accent(<string>,<template>)
@@ -19262,13 +19418,19 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say acos(0.866025)
     You say "0.5236"
   
-  See Also: asin(), atan(), cos(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
-            tanh()
+  See Also: asin(), atan(), atan2(), cos(), pi(), sin(), tan(), ctu(), 
+            cosh(), sinh(), tanh()
   
 & ATAN()
+& ATAN2()
   Function: atan(<number> [,<units>])
+            atan2(<number1>, <number2> [,<units>]
   
-  Returns the arctangent of <number>, expressed in radians.
+  ATAN Returns the arctangent of <number>, expressed in radians.
+  
+  ATAN2 Returns the arctangent of <number1> divided by <number2> in radians.
+  This is equivelant to atan(fdiv(<number1>,<number2>)[,<units>]) but allows
+  a '0' divider without a divide by zero error.
    
   You may specify <units> which are either (r)adians,
   (g)radians, or (d)egrees.  (r)adians are the default.
@@ -19278,11 +19440,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     You say "0"
     > say atan(1)
     You say "0.785398"
+    > say atan2(90,90)
+    You say "0.785398"
     > say atan(1.557408)
     You say "1"
+    > say atan2(90,25)
+    You say "1.299849"
   
   See Also: acos(), asin(), cos(), pi(), sin(), tan(), ctu(), cosh(), sinh(),
-            tanh()
+            tanh(), atan2()
   
 & FLOOR()
   Function: floor(<number>)
@@ -19764,7 +19930,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   > say map(object/add_one,1 2 3 4 5)
   You say "2 3 4 5 6"
   
-  See Also: filter(), fold(), iter(), parse(), u(), munge(), citer(), nsiter()
+  See Also: filter(), fold(), iter(), parse(), u(), munge(), citer(), 
+            nsiter(), sortlist()
   
 & filter()
   Function: filter([<obj>/]<attr>,<list>[,<delim>[,<sep>][,<arg1>,...,<argN>]])
@@ -19788,7 +19955,7 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
     > say filter(object/is_odd,1@2@3@4@5,@,|)
     You say "1|3|5"
   
-  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list()
+  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list(), sortlist()
   
 & fold()
   Function: fold([<obj>/]<attr>, <list>[, <base-case>[, <delim>])
@@ -24094,8 +24261,13 @@ Mail: Done
   When this toggle is set on the target, that target is allowed to use
   extended ansi (ie: the actual ansi codes) in the @ansiname attribute,
   thereby, allowing multi-color names.  This is done through the command
-  '@extansi' in combination with this toggle.  The name of the item in
-  '@extansi' MUST match the name that was given by @name.
+  '@extansi' in combination with this toggle.  
+  
+  If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
+  @toggle on yourself.
+  
+  Note: The name of the item in '@extansi' MUST match the name that 
+        was given by @name.
   
   See Also: @extansi, ansi()
   
@@ -24227,6 +24399,9 @@ Mail: Done
   parse the @exitto attribute for it's destination location and not where
   it is currently linked to.
   
+  If a player sets the VARIABLE toggle on himself, then all ansi via
+  Cname()/%k will show up when that player @walls, poses, or uses say.
+    
   See Also: variable exits, @exitto
   
 & IC
@@ -24989,6 +25164,7 @@ Mail: Done
   setunion()    - Returns the union of two lists.
   sort()        - Sorts a list.
   sortby()      - Sorts a list by passing it through a function.
+  sortlist()    - Sorts 2 or more lists by the specified order type.
 
   { Continued in list functions4 }
 & list functions4
@@ -25302,6 +25478,7 @@ Mail: Done
   acos()        - Returns the arc-cosine of a number in radians.
   asin()        - Returns the arc-sine of a number in radians.
   atan()        - Returns the arc-tangent of a number in radians.
+  atan2()       - Returns the arc-tangent of a two numbers in radians.
   cos()         - Returns the cosine of a number in radians.
   ctu()         - Converts a trigonometric unit from  one to another.
   dist2d()      - Returns the integer distance between two Cartesian points in 2d.
@@ -25448,7 +25625,7 @@ Available Revisions:
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
   3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
-  3.9.5: 3.9.5p0
+  3.9.5: 3.9.5p0, 3.9.5p1
 
 & 1.0.0p0
 Release Date: Aug 1 1989
@@ -27321,3 +27498,34 @@ Bug Fixes
 * printf() had a one by off padding issue with extra spaces with ' option [ASH]
 * off by one buffer count for ansi_txtfile parameter caused bleeding [ASH]
 * Third optional argument of setq/setr did not evaluate [AMB]
+
+& 3.9.5p1
+Release Date: 03/27/15
+Status: Alpha
+  
+New Features
+------------
+* @pipe will allow you to pipe output to an attribute (until full) [ASH]
+* ATAN2 for MUX2/Penn/other compatibility [ASH]
+* sortlist() takes 2 or more lists and selects max/min based on sorting [ASH]
+* ch to allow you to connect @hidden (if wizard or @powered NOWHO) [ASH]
+* flag_access_type, toggle_access_type @admin parms for TYPE restrictions [ASH]
+  
+Changes
+------------
+* strfunc now has a ceiling of arguments to 1000 to avoid DoS issues [ASH]
+* By popular demand, 'idle' when followed by '@@' does an idle think [ASH]
+* delete() is now ansi-aware [ASH]
+* @uptime shows system uptime (when available) [ASH]
+* If a player @toggles VARIABLE on themselves, then says, poses, and @walls
+  will be colorized as if cname() [ASH]
+* @flagdef and @toggledef now can restrict based on TYPE [ASH]
+* added bitlevel permission override to @flagdef/@typedef TYPE restricts [ASH]
+* editansi() now accepts multiple arguments for search/replace [ASH]
+* 'N' normalizer search for editansi() [ASH]
+    
+Bug Fixes
+------------
+* mail/mark/save when no more saved quota wouldn't notify you of that [ASH]
+* ascii8 encoding could allow multi-sequences in %<###> encoding [ASH]
+* forgot to define EXTLIBS in the Makefile -- oopse [ASH]

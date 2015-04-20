@@ -87,6 +87,8 @@
 &FUNPR_STRALLOF soft=[trim(squish(iter(lnum(0,sub(%+,2)),ifelse(!$^setr(0,s(v(%i0))),%q0),%b,v(sub(%+,1))),v(sub(%+,1))),,v(sub(%+,1)))]
 &FUNPV_HEIGHT soft=[default(%#/HEIGHT,default([owner(%#)]/HEIGHT,24))]
 &FUNPV_WIDTH soft=[default(%#/WIDTH,default([owner(%#)]/WIDTH,78))]
+&FUN_VMAX soft=[sortlist(+n,%2,%0,%1)]
+&FUN_VMIN soft=[sortlist(-n,%2,%0,%1)]
 @fo softfunc=&DB me=num(softfunc)
 @tel SFSideFX=softfunctions
 @startup softfunc=@dolist lattr([v(db)]/fun_*)=@function [after(##,_)]=[v(db)]/##;@dolist lattr([v(db)]/funp_*)=@function/priv/pres [after(##,_)]=[v(db)]/##;@dolist lattr([v(DB)]/funpr_*)=@function/pres [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpv_*)=@function/priv [after(##,_)]=[v(DB)]/##;@wait 10={@dolist lattr([v(db)]/funflag_*)=@admin function_access=[after(##,_)] [get([v(db)]/##)]};@wait 10=@dolist lattr([v(db)]/minmax_*)={@function/min [after(##,_)]=[first(get([v(db)]/##))];@function/max [after(##,_)]=[rest(get([v(db)]/##))]}

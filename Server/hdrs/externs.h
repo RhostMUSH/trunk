@@ -40,6 +40,7 @@
 #define SPLIT_FLASH		0x02
 #define SPLIT_UNDERSCORE	0x04
 #define SPLIT_INVERSE		0x08
+#define SPLIT_NOANSI		0x10
 
 typedef struct ansisplit {
 	char	s_fghex[5];	/* Hex representation - foreground */
@@ -655,6 +656,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define FLAGDEF_LIST	8	/* List current flags and permissions (default) */
 #define FLAGDEF_CHAR  	16	/* Redefine the character for the flag */
 #define FLAGDEF_INDEX	32	/* Show the permission index allowed */
+#define FLAGDEF_TYPE	64	/* Define type restrictions */
 #define	FRC_PREFIX	0	/* #num command */
 #define	FRC_COMMAND	1	/* what=command */
 #define	GET_QUIET	1	/* Don't do osucc/asucc if control */
@@ -799,6 +801,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PEMIT_TOREALITY 1048576 /* Pemit to specic realities */
 #define PEMIT_ONEEVAL	2097152 /* One eval for @pemit/list */
 #define PEMIT_OSTR	4194304 /* @oemit uses multi-parameters */
+#define PIPE_ON         1       /* Enable @pipe to attribute */
+#define PIPE_OFF        2	/* Disable @pipe to attribute */
 #define	PS_BRIEF	0	/* Short PS report */
 #define	PS_LONG		1	/* Long PS report */
 #define	PS_SUMM		2	/* Queue counts only */

@@ -1290,6 +1290,50 @@ NDECL(init_attrtab)
  */
 
 ATTR *
+atr_str_notify(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_notify");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
 atr_str3(char *s)
 {
     char *buff, *p, *q;

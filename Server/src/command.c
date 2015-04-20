@@ -367,6 +367,7 @@ NAMETAB flagdef_sw[] =
     {(char *) "list", 2, CA_IMMORTAL, 0, FLAGDEF_LIST},
     {(char *) "letter", 2, CA_IMMORTAL, 0, FLAGDEF_CHAR},
     {(char *) "index", 2, CA_IMMORTAL, 0, FLAGDEF_INDEX},
+    {(char *) "type", 2, CA_IMMORTAL, 0, FLAGDEF_TYPE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB oemit_sw[] =
@@ -740,6 +741,12 @@ NAMETAB open_sw[] =
 NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCREATE_REG},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB pipe_sw[] =
+{
+    {(char *) "on", 1, CA_PUBLIC, 0, PIPE_ON},
+    {(char *) "off", 1, CA_PUBLIC, 0, PIPE_OFF},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pemit_sw[] =
@@ -1251,6 +1258,8 @@ CMDENT command_table[] =
      PCRE_PLAYER, CS_TWO_ARG, 0, do_pcreate},
     {(char *) "@pemit", pemit_sw, CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
      PEMIT_PEMIT, CS_TWO_ARG | CS_NOINTERP | CS_CMDARG, 0, do_pemit},
+    {(char *) "@pipe", pipe_sw, CA_NO_GUEST | CA_NO_SLAVE | CA_NO_WANDER, CA_NO_CODE, 
+     0, CS_ONE_ARG | CS_INTERP, 0, do_pipe},
     {(char *) "@poor", NULL, CA_WIZARD | CA_ADMIN, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_poor},
     {(char *) "@power", power_sw, CA_PUBLIC, 0,
@@ -5515,7 +5524,7 @@ list_options_system(dbref player)
 #endif
     if ( mudconf.ansi_default ) {
        notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
-       notify(player, "     Functions Affected: TR(), BEFORE(), AFTER(), MID()");
+       notify(player, "     Functions Affected: TR(), BEFORE(), AFTER(), MID(), DELETE()");
     } else {
        notify(player, "ANSI handler for functions() ------------------------------------- DISABLED");
     }
@@ -8825,13 +8834,21 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
    }
 
    if ( Wizard(player) && string && *string ) {
-      mudstate.train_cntr++;
-      getitimer(ITIMER_PROF, &itimer);
-      process_command(player, cause, 1, string, args, nargs, 0);
-      setitimer(ITIMER_PROF, &itimer, NULL); 
-      mudstate.train_cntr--;
+      if ( (*string == '@') && (*(string+1) == '@') ) {
+         notify_quiet(player, string+2);
+      } else {
+         mudstate.train_cntr++;
+         getitimer(ITIMER_PROF, &itimer);
+         process_command(player, cause, 1, string, args, nargs, 0);
+         setitimer(ITIMER_PROF, &itimer, NULL); 
+         mudstate.train_cntr--;
+      }
    } else if ( !Wizard(player) && string && *string ) {
-      notify(player, "idle does not take arguments.");
+      if ( (*string == '@') && (*(string+1) == '@') ) {
+         notify_quiet(player, string+2);
+      } else {
+         notify(player, "idle for you does not allow command execution other than '@@' for messages");
+      }
    }
 }
 
@@ -9051,6 +9068,72 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
    mudstate.train_cntr--;
 }
 
+void 
+do_pipe(dbref player, dbref cause, int key, char *name)
+{
+   ATTR *atr, *atr2;
+   dbref aowner;
+   int aflags, anum;
+   char *s_atext;
+
+   switch (key) {
+      case PIPE_ON: /* Enable piping to attribute */
+           if ( H_Attrpipe(player) ) {
+              raw_notify(player, (char *)"You already are piping to an attribute.", 0, 1);
+           } else {
+              if ( !*name ) {
+                 notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+              } else {
+                 anum = mkattr(name);
+                 if ( anum < 0 ) {
+                    notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                 } else { 
+                    atr2 = atr_str3(name);
+                    if ( !atr2 ) {
+                       notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                    } else {
+                       anum = mkattr("___ATTRPIPE");
+                       if ( anum > 0 ) {
+                          atr = atr_str("___ATTRPIPE");
+                          if ( !atr ) {
+                             notify_quiet(player, (char *)"The piping attribute could not be written to.");
+                          } else {
+                             s_atext = atr_get(player, atr2->number, &aowner, &aflags);
+                             free_lbuf(s_atext);
+                             if ( !Controlsforattr(player, player, atr2, aflags)) {
+                                notify_quiet(player, (char *)"You have no permission to pipe to that attribute.");
+                             } else {
+                                notify_quiet(player, (char *)"Piping to attribute has been enabled.");
+                                atr_add_raw(player, atr->number, name);
+                                s_Flags4(player, Flags4(player) | HAS_ATTRPIPE);
+                             }
+                          }
+                       } else {
+                          notify_quiet(player, (char *)"The piping attribute could not be written to.");
+                       }
+                    }
+                 }
+              }
+           }
+           break;
+      case PIPE_OFF: /* Disable piping to attribute */
+           if ( H_Attrpipe(player) ) {
+              s_Flags4(player, Flags4(player) & ~HAS_ATTRPIPE);
+              atr = atr_str("___ATTRPIPE");
+              if ( atr ) {
+                 atr_clr(player, atr->number);
+              }
+              notify_quiet(player, (char *)"Piping to attribute has been disabled.");
+           } else {
+              notify_quiet(player, (char *)"Piping to attribute is not currently enabled.");
+           }
+           break;
+      default: /* A switch must be used */
+           raw_notify(player, (char *)"A valid switch must be used with @pipe.", 0, 1);
+           break;        
+   }
+
+}
 
 void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
 {

@@ -4164,6 +4164,7 @@ SNOOPY                                                           God     Wiz
     /set    - This sets permissions of who can SET the flag.
     /unset  - This sets permissions of who can UNSET (remove) the flag.
     /see    - This sets permissions of who can SEE the flag.  (see below)
+    /type   - This sets restrictions of what type can NOT set/unset the flag.
     /letter - This sets the specific letter defined for the flag.
     /index  - This gives an index of flags and their hex representation and
               associated letter.
@@ -4172,6 +4173,7 @@ SNOOPY                                                           God     Wiz
                  'Set'   - defines who can set the flag.
                  'Unset' - defines who can remove the flag.
                  'See'   - defines who can see the flag.
+                 'Type'  - defines type restrictions for flag.
                  'NoM'   - defines if the flag is un-modifiable.
   
   Keep in mind that if the columns are EMPTY, it defaults to whatever the mush
@@ -4180,8 +4182,9 @@ SNOOPY                                                           God     Wiz
   The 'see' is special in the fact this is actually the permission(s) of who 
   can truly see the flag.
   
-  {see 'wizhelp @flagdef2' for a list of available permissions}
-  {see 'wizhelp @flagdef3' for a list of all @admin related parameters}
+  { see 'wizhelp @flagdef2' for a list of available permissions }
+  { see 'wizhelp @flagdef3' for a list of available type restrictions }
+  { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
 & @toggledef2
 & @flagdef2
@@ -4211,13 +4214,42 @@ SNOOPY                                                           God     Wiz
   If you wish to remove a permission, you can use '!permission' to unset a
   given permission.  You may specify multiple permissions to set and remove at
   the same time.  (i.e.  @flagdef/set marker0=god immortal !royalty mortal)
+ 
+  { see 'wizhelp @flagdef3' for a list of available type restrictions }
+  { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
-  {see 'wizhelp @flagdef3' for a list of all @admin related parameters}
+& @toggledef3
+& @flagdef3 
+  Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
+           @toggledef[/<switches>] [<togglename>=<permission(s)>]
+  
+  The restrictions available for /type are:
+  P   player - players can not set/unset this
+  T   thing - things (objects) can not set/unset this 
+  R   room - rooms can not set/unset this
+  E   exit - exits can not set/unset this
+  r   registered - enforce type setting to registered players and higher
+  g   guildmaster - enforce type setting to guildmaster and higher
+  a   architect - enforce type setting to architect and higher
+  c   councilor - enforce type setting to councilor and higher
+  w   wizard - enforce type setting to wizard (royalty) and higher
+  i   immortal - enforce type setting to immmortal/#1 only
+  
+  Note type restrictions if no bit restriction (rgacwi) specified, it assumes
+  no one will be allowed to set that given type.  Ergo, it locks it down
+  based on type only.  Registered players are defined as any player who does
+  not have the GUEST or WANDERER flag.
+   
+  If you wish to remove a permission, you can use '!permission' to unset a
+  given permission.  You may specify multiple permissions to set and remove at
+  the same time.  (i.e.  @flagdef/type marker0=immortal !royalty room)
+
+  {see 'wizhelp @flagdef4' for a list of all @admin related parameters}
   
   See Also: @flag, @flagdef, @toggledef
 
-& @toggledef3
-& @flagdef3
+& @toggledef4
+& @flagdef4
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
            @toggledef[/<switches>] [<togglename>=<permission(s)>]
   
@@ -4228,11 +4260,13 @@ SNOOPY                                                           God     Wiz
   flag_access_set     - [@flagdef/set] Sets override permission on 'set'.
   flag_access_unset   - [@flagdef/unset] Sets override permission on 'unset'.
   flag_access_see     - [@flagdef/see] Sets override permission on 'see'.
+  flag_access_type    - [@flagdef/type] Sets type restrictions on set/unset.
   
   @admin parameters for TOGGLE based permissions.
   toggle_access_set   - [@flagdef/set] Sets override permission on 'set'.
   toggle_access_unset - [@flagdef/unset] Sets override permission on 'unset'.
   toggle_access_see   - [@flagdef/see] Sets override permission on 'see'.
+  toggle_access_type  - [@flagdef/type] Sets type restrictions on set/unset.
   
   These parameters allow them to be 'permanent' in so much that they're 
   applied at the booting of the mush.  Be aware that if you use flag_name
@@ -4241,7 +4275,7 @@ SNOOPY                                                           God     Wiz
   
   See Also: flag_access_set, flag_access_unset, flag_access_see,
             toggle_access_set, toggle_access_unset, toggle_access_see,
-            @flagdef, @toggledef
+            flag_access_type, toggle_access_type, @flagdef, @toggledef
 & @hook
   Command: @hook[/<switch(s)>] [<command/attribute>]
   
@@ -5093,24 +5127,24 @@ SNOOPY                                                           God     Wiz
   exits_connect_rooms       expand_goto               fascist_teleport        
   file_object               find_money_chance         flag_alias              
   flag_name                 flag_access_see           flag_access_set         
-  flag_access_unset         float_precision           forbid_host             
-  forbid_site               fork_dump                 format_compatbility     
-  fork_vfork                format_contents           format_exits            
-  format_name               formats_are_local         full_file               
-  full_motd_message         function_access           function_alias          
-  function_invocation_limit function_recursion_limit  gdbm_cache_size         
-  gdbm_database             global_aconnect           global_adisconnect      
-  global_ansimask           global_attrdefault        global_clone_exit       
-  global_clone_obj          global_clone_player       global_clone_room       
-  global_clone_thing        global_error_obj          global_parent_exit      
-  global_parent_obj         global_parent_player      global_parent_room      
-  global_parent_thing       good_name                 goodmail_host           
-  gconf_file                guest_char_num            guest_file              
-  guest_namelist            guild_attrname            guild_default           
-  guild_hdr                 hackattr_nowiz            hackattr_see            
-  hasattrp_compat           heavy_cpu_max             help_file               
-  help_index                hide_nospoof              hook_cmd                
-  hook_obj                
+  flag_access_type          flag_access_unset         float_precision         
+  forbid_host               forbid_site               fork_dump               
+  format_compatbility       fork_vfork                format_contents         
+  format_exits              format_name               formats_are_local       
+  full_file                 full_motd_message         function_access         
+  function_alias            function_invocation_limit function_recursion_limit
+  gdbm_cache_size           gdbm_database             global_aconnect         
+  global_adisconnect        global_ansimask           global_attrdefault      
+  global_clone_exit         global_clone_obj          global_clone_player     
+  global_clone_room         global_clone_thing        global_error_obj        
+  global_parent_exit        global_parent_obj         global_parent_player    
+  global_parent_room        global_parent_thing       good_name               
+  goodmail_host             gconf_file                guest_char_num          
+  guest_file                guest_namelist            guild_attrname          
+  guild_default             guild_hdr                 hackattr_nowiz          
+  hackattr_see              hasattrp_compat           heavy_cpu_max           
+  help_file                 help_index                hide_nospoof            
+  hook_cmd                  hook_obj                
   
 { 'wizhelp config parameters3' for more }
 
@@ -5211,17 +5245,18 @@ SNOOPY                                                           God     Wiz
   terse_shows_contents      terse_shows_exits         terse_shows_move_messages
   thing_attr_default        thing_flags               thing_parent            
   thing_quota               thing_toggles             timeslice               
-  toggle_access_set         toggle_access_see         toggle_access_unset
-  tor_localhost             tor_paranoid              trace_output_limit      
-  trace_topdown             trust_site                uncompress_program      
-  unowned_safe              user_attr_flags           validate_host           
-  vattr_limit_checkwiz      vlimit                    wait_cost               
-  wall_cost                 whereis_notify            wizmax_dest_limit       
-  wizmax_vattr_limit        who_default               who_unfindable          
-  who_showwiz               who_wizlevel              who_whowiztype          
-  whohost_size              wiz_override              wiz_uselock             
-  wizard_help_file          wizard_help_index         wizard_motd_file        
-  wizard_motd_message       wizard_queue_limit        zone_parents
+  toggle_access_see         toggle_access_set         toggle_access_type
+  toggle_access_unset       tor_localhost             tor_paranoid            
+  trace_output_limit        trace_topdown             trust_site              
+  uncompress_program        unowned_safe              user_attr_flags         
+  validate_host             vattr_limit_checkwiz      vlimit                  
+  wait_cost                 wall_cost                 whereis_notify          
+  wizmax_dest_limit         wizmax_vattr_limit        who_default             
+  who_unfindable            who_showwiz               who_wizlevel            
+  who_whowiztype            whohost_size              wiz_override            
+  wiz_uselock               wizard_help_file          wizard_help_index       
+  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
+  zone_parents
 
 { 'wizhelp config parameters7' for more (reality levels) }
 
@@ -5236,11 +5271,14 @@ SNOOPY                                                           God     Wiz
 
 & abort_on_bug
   Config parameter: abort_on_bug <yes/no>.  Default: no
+  
   Indicates whether or not the server is to abort when it logs a bug.
+  
   See Also: log.
 
 & accent_extend
   Config parameter: accent_extend <boolean>    Default: 0
+  
   Specifies if accents should allow the extensions of ASCII 251-255
   to be preformed and understood with accents as well as chr() encoding.
   This could have unforseen issues with some clients, and may have
@@ -5249,6 +5287,7 @@ SNOOPY                                                           God     Wiz
 
 & access
   Config parameter: access <command> <permlist>
+  
   Modifies the permissions needed to execute the indicated command.
   Specifying a permission adds it to the list of permissions required; to
   remove a permission prefix it with a ! character.
@@ -5263,6 +5302,7 @@ SNOOPY                                                           God     Wiz
 
 & ahear_maxcount
   Config parameter: ahear_maxcount <value>    Default: 30
+  
   This defines the total number of times recursive listens/ahears
   can be triggered by the same 'target' in a given set of time
   defined by the config param AHEAR_MAXTIME. 
@@ -5271,6 +5311,7 @@ SNOOPY                                                           God     Wiz
 
 & ahear_maxtime
   Config parameter: ahear_maxtime <seconds>    Default: 0
+  
   This defines the total time allowed that a recursive listen/ahear
   can occur a set base of recursions defined by the config parameter
   AHEAR_MAXCOUNT.  A value of '0' assumes disabled protection.
@@ -5292,6 +5333,7 @@ SNOOPY                                                           God     Wiz
 
 & allow_ansinames
   Config parameter: allow_ansinames <value>.  Default: 15
+  
   Specifies weither objects may have ansi codes in their names.  It uses
   a binary mask on weither each data type may be enabled/disabled.  The
   following masks exist.
@@ -5306,6 +5348,7 @@ SNOOPY                                                           God     Wiz
 
 & allow_whodark
   Config parameter: allow_whodark <yes/no>.  Default: yes
+  
   Specifies weither players who are DARK will be hidden from the WHO/DOING,
   @whereis, and @whereall commands.  This is only in effect is the admin
   parameters PLAYER_DARK and WHO_UNFINDABLE are *both* disabled.
@@ -5313,6 +5356,7 @@ SNOOPY                                                           God     Wiz
 
 & alt_inventories
   Config parameter: alt_inventories <yes/no>.  Default: no
+  
   Specifies if alternate inventories ('wielded' and 'worn') are to be enabled
   or not.  If enabled, any item that is @toggled WORN can be seen with the
   'worn' inventory command.  Any item that is @toggled WIELDED can be seen
@@ -5324,6 +5368,7 @@ SNOOPY                                                           God     Wiz
 
 & altover_inv
   Config parameter: altover_inv <yes/no>.  Default: no
+  
   Specifies if the normal 'inventory' command should display items that
   have been @toggled WORN or WIELDED.
   
@@ -5331,6 +5376,7 @@ SNOOPY                                                           God     Wiz
 
 & always_blind
   Config parameter: always_blind <yes/no>.  Default: no
+  
   Specifies if the BLIND flag on rooms and exits is considered 'always in
   effect.'.  If this is enabled, then the BLIND flag on exits and rooms
   will do the REVERSE effect and make exit movement visible.  See the
@@ -5360,6 +5406,7 @@ SNOOPY                                                           God     Wiz
 
 & areg_file
   Config parameter: areg_file <file>   Default:  autoreg.txt
+  
   Specifies the file seen when AUTOREGISTRATION is enabled at the connect 
   screen and a player who is able to autoregister (but not create) connects
   to the mush.
@@ -5374,6 +5421,7 @@ SNOOPY                                                           God     Wiz
 
 & aregh_file
   Config parameter: aregh_file <file>   Default: areghost.txt
+  
   Specifies the file seen when AUTOREGISTRATION is enabled at the connect
   screen and a player who is able to autoregister AND able to create
   connects to the mush.
@@ -5460,6 +5508,7 @@ SNOOPY                                                           God     Wiz
 
 & attr_access
   Config parameter: attr_access <attr> [!]<privilege> [[!]<privilege>]...
+  
   Changes the access rights to the named attribute.
  
   The following privileges may be used:
@@ -5517,6 +5566,7 @@ SNOOPY                                                           God     Wiz
 
 & attr_cmd_access
   Config parameter: attr_cmd_access [!]<privilege> [[!]<privilege>]...
+  
   Changes the access rights on all attribute-setting commands in parallel.
   Use this parameter to allow or deny access to the attribute-setting commands
   as a group.  This directive should normally be followed by access directives
@@ -5525,11 +5575,13 @@ SNOOPY                                                           God     Wiz
 
 & authenticate
   Config parameter: authenticate <ON(1)/OFF(0)>   Default: ON
+  
   Enables or disables the mush's requirement to grab authentication of idents
   on player's connecting.  The default for this value is ON
 
 & bad_name
   Config parameter: bad_name <wildcarded-name>.
+  
   Specifies that any name that matches <wildcarded-name> may not be used as a
   player name.  Attempts to create a player with a disallowed name (or to
   rename to a disallowed name) will be rejected.  Normally, words that
@@ -5538,6 +5590,7 @@ SNOOPY                                                           God     Wiz
 
 & badsite_file
   Config parameter: badsite_file <path>.  Default: badsite.txt
+  
   Specifies the name of the file that is sent to new net connections from
   sites that have been blocked from accessing the server.  The connection
   is closed immediately after the file is sent.
@@ -5545,6 +5598,7 @@ SNOOPY                                                           God     Wiz
 
 & bcc_hidden
   Config parameter: bcc_hidden <ON(1)/OFF(0)>   Default: ON
+  
   Specifies if +bcc for brandy_mail interface 'mail writing' will have anyone
   in the +bcc list not be able to see the 'To:' list in mail being sent.
   If this is disabled, then the reverse is in effect, where the only ones
@@ -5552,6 +5606,7 @@ SNOOPY                                                           God     Wiz
 
 & blind_snuffs_cons
   Config parameter: blind_snuffs_cons <ON(1)/OFF(0)>  Default: OFF
+  
   Specifies if the BLIND flag will snuff (surpress) the connected/disconnected
   messages when players connect/disconnect.  This applies if the room is
   set BLIND as well.  As always, (Blind) messages will show for wizards
@@ -5559,6 +5614,7 @@ SNOOPY                                                           God     Wiz
 
 & brace_compatibility
   Config parameter: brace_compatibility <yes/no>.  Default: NO
+  
   This config parameter enables compatibility with other codebases when it
   comes to lit() and handling of curly braces. With this parameter enabled,
   the curly braces get shown when inside a lit(), without need for escaping
@@ -5566,6 +5622,7 @@ SNOOPY                                                           God     Wiz
   
 & break_compatibility
   Config parameter: break_compatibility <yes/no>.  Default: NO
+  
   This config parameter enables backward compatability to the erraneous
   double-evaluation standard that @break and @assert had for the
   first argument.  This backward compatibility would only be relevant
@@ -5580,6 +5637,7 @@ SNOOPY                                                           God     Wiz
 
 & cache_names
   Config parameter: cache_names <yes/no>.  Default: yes
+  
   This defines if the cache uses object name caching.  This should not be
   changed.
 
@@ -5622,6 +5680,7 @@ SNOOPY                                                           God     Wiz
 
 & check_interval
   Config parameter: check_interval <secs>.  Default: 600.
+  
   Specifies how often (in seconds) the database is to be automatically
   scanned for inconsistencies and purged of references to destroyed objects.
   Any inconsistencies found are either fixed or recorded in the log file.
@@ -5630,6 +5689,7 @@ SNOOPY                                                           God     Wiz
 
 & check_offset
   Config parameter: check_offset <secs>.  Default: 300.
+  
   Specifies how long after startup the first automatic database check is
   to be performed.  Subsequent checks are performed every check_interval
   seconds.
@@ -5638,11 +5698,13 @@ SNOOPY                                                           God     Wiz
 
 & cache_steal_dirty
   Config parameter: cache_steal_dirty <yes/no>.  Default: NO
+  
   Specifies whether or not the cache manager may take a modified attribute
   and write it out when trying to insert a new attribute into the cache.
 
 & clone_copies_cost
   Config parameter: clone_copies_cost <yes/no>.  Default: NO
+  
   Indicates whether or not @cloned objects inherit the cost of the original.
   If disabled, @cloned objects cost the same as a @create that doesn't specify
   the object cost.  The new owner is charged the correct amount in either
@@ -5652,6 +5714,7 @@ SNOOPY                                                           God     Wiz
 
 & cluster_cap
   Config parameter: cluster_cap <value>.  Default: 10
+  
   Specifies the delay in seconds when a cluster action (command) can be 
   triggered.  This is a GLOBAL setting and effects ALL clusters.  Cluster 
   actions are not target specific, but mush-wide.  This is to avoid 
@@ -5661,6 +5724,7 @@ SNOOPY                                                           God     Wiz
 
 & clusterfunc_cap
   Config parameter: clusterfunc_cap <value>.  Default: 1
+  
   Specifies the delay in seconds when a cluster function action (function)
   can be triggered.  This is a GLOBAL setting and effects ALL clusters.
   Cluster function actions are not target specific, but mush wide.  This
@@ -5672,6 +5736,7 @@ SNOOPY                                                           God     Wiz
 
 & command_dark
   Config parameter: command_dark <value>.  Default: OFF(0)
+  
   Specifies if objects with $-commands can be dark or not.  This only takes
   presedence if the @admin parameter PLAYER_DARK is set to OFF.  Otherwise,
   this config parameter is meaningless.  Setting this value to TRUE enables
@@ -5683,6 +5748,7 @@ SNOOPY                                                           God     Wiz
 
 & command_quota_increment
   Config parameter: command_quota_increment <amount>. Default: 1
+  
   Specifies the number of commands by which the command quota for connected
   users each timeslice.  Each command a user types in (commands executed by
   machines do not count) decreases the quota by 1, and the user's commands are
@@ -5691,6 +5757,7 @@ SNOOPY                                                           God     Wiz
 
 & command_quota_max
   Config parameter: command_quota_max <amount>. Default: 100
+  
   Specifies the maximum value for the command quota for connected users.
   A user's command quota is only increased if it is below this value.
   Each command a user types in (commands executed by machines do not count)
@@ -5700,6 +5767,7 @@ SNOOPY                                                           God     Wiz
 
 & compress_program
   Config parameter: compress_program <path>.  Default: /usr/ucb/compress
+  
   Specifies the program to be run to compress the database file when it is
   written.  If database file compression is enabled, database dumps are piped
   through this program on their way out to disk.
@@ -5707,6 +5775,7 @@ SNOOPY                                                           God     Wiz
 
 & compression
   Config parameter: compress <yes/no>.  Default: no
+  
   Indicates whether or not the database is to be compressed using the
   compress_program when it is written, and whether or not to check for a
   compressed database to uncompress at startup.  
@@ -5714,6 +5783,7 @@ SNOOPY                                                           God     Wiz
 
 & config_access
   Config parameter: config_access <param> [!]<privilege> [[!]<privilege>]...
+  
   Changes the privileges needed to change the specified configuration
   parameter.  The value 'disabled' indicates that the parameter may only
   be specified in the configuration file at startup.  Setting privileges
@@ -5723,11 +5793,13 @@ SNOOPY                                                           God     Wiz
 
 & conn_timeout
   Config parameter: conn_timeout <num>.  Default: 120
+  
   Specifies how many seconds a new network connection may remain open before
   connecting to a character before being automatically disconnected.
 
 & connect_file
   Config parameter: connect_file <path>.  Default: connect.txt
+  
   Specifies the name of the file that a user sees immediately after connecting
   to the RhostMUSH if registration is not enabled.  This file normally 
   contains help on how to connect to or create a character, as well as the 
@@ -5736,6 +5808,7 @@ SNOOPY                                                           God     Wiz
 
 & connect_reg_file
   Config parameter: connect_reg_file <path>.  Default: connect_reg.txt
+  
   Specifies the name of the file that a user sees immediately after connecting
   to the RhostMUSH if registration is enabled.  This file normally contains
   help on how to get a character (usually by sending e-mail to one of the
@@ -5745,6 +5818,7 @@ SNOOPY                                                           God     Wiz
 
 & cpu_secure_lvl
   Config parameter: cpu_secure_lvl <value>.  Default: 0 (normal security)
+  
   This specifies the level of security you wish to use if the max cpu cycles
   (defined by max_cpu_cycles) has been reached with CPU abuses.  The following
   security levels exist:
@@ -5765,6 +5839,7 @@ SNOOPY                                                           God     Wiz
 
 & cpuintervalchk
   Config parameter: cpuintervalchk <value>.  Default: 80 (percent)
+  
   Specifies the cpu load that should be set as the ceiling that a mush
   'process' can take up.  If it exceeds the cpu and exceeds the cputimechk
   value, the job is auto-aborted and the cpu returned to normal.  Valid range 
@@ -5775,6 +5850,7 @@ SNOOPY                                                           God     Wiz
 
 & cputimechk
   Config parameter: cputimechk <value>.  Default: 60 (seconds)
+  
   Specifies the time (in seconds) that a job can be at the CPU level
   specified by cpuintervalchk before the mush 'job' is aborted.  The valid
   range is between 10 and 3600 seconds (10 seconds to 1 hour).  It is generally
@@ -5788,6 +5864,7 @@ SNOOPY                                                           God     Wiz
   
 & crash_database
   Config parameter: crash_database <path>.  Default: none
+  
   Specifies the name of the database file that should be written when mush
   detects an internal error and is about to crash.  Note that the database
   may contain corrupted links of the error occurs in the middle of moving
@@ -5795,26 +5872,30 @@ SNOOPY                                                           God     Wiz
   Dumping a crash database is currently not implemented.
 
 & create_max_cost
-  Config directive: create_max_cost <amount>.  Default: 505
+  Config parameter: create_max_cost <amount>.  Default: 505
+  
   Specifies the maximum amount of money that is used in calculating the value
   of a created object.  Specifying more than this amount of money in a @create
   command will cause the excess to be wasted.
   See Also: create_min_cost, sacrifice_adjust, sacrifice_factor.
 
 & create_min_cost
-  Config directive: create_min_cost <amount>.  Default: 10
+  Config parameter: create_min_cost <amount>.  Default: 10
+  
   Specifies the minimum (and default) cost for creating an object.
   See Also: create_max_cost, sacrifice_adjust, sacrifice_factor.
 
 & dark_sleepers
-  Config directive: dark_sleepers <yes/no>.  Default: yes
+  Config parameter: dark_sleepers <yes/no>.  Default: yes
+  
   Indicates whether or not disconnected players are to be considered 'dark',
   so that they do not show up when a player looks in the room that they are
   in.  Disconnected players can still be found by examining the room or by
   using [next()] to follow the contents chain for the room.
 
 & default_home
-  Config directive: default_home <location>.  Default (player_starting_home)
+  Config parameter: default_home <location>.  Default (player_starting_home)
+  
   Sets the home location for objects which have an invalid home (whether
   because the home location was deleted, or is owned by another player and
   is not set ABODE) and the home of their owner is also invalid.  If this
@@ -5822,7 +5903,7 @@ SNOOPY                                                           God     Wiz
   See Also: player_starting_home.
 
 & descs_are_local
-  Config directive: descs_are_local <yes/no>.  Default: no
+  Config parameter: descs_are_local <yes/no>.  Default: no
   
   This specifies if descriptions and anything passed through the did_it()
   processor are localized through the duration of the did_it() processing
@@ -5833,10 +5914,12 @@ SNOOPY                                                           God     Wiz
 
 & dig_cost
   Config parameter: dig_cost <amount>.  Default: 10
+  
   Specifies how much the @dig command costs.
 
 & door_file
   Config parameter: door_file <file>.  Default: door.txt
+  
   Specifies the name of the file that is used when players use the @door
   socket interface command.  Anything that exists in door.txt is what will
   be allowed to connect to.  You must have a door.indx file created off
@@ -5844,17 +5927,20 @@ SNOOPY                                                           God     Wiz
 
 & door_index
   Config parameter: door_index <file>.  Default: door.indx
+  
   Specifies the index file that is used to cross-reference the door_file
   text file.
 
 & down_file
   Config parameter: down_file <pathname>.  Default: down.txt
+  
   Specifies the name of the file that is displayed when players attempt to
   connect to a non-wizard character when logins are disabled.
   See Also: @disable, down_motd_message.
 
 & down_motd_message
   Config parameter: down_motd_message <message>.  Default: blank
+  
   Sets the message that is displayed when a player attempts to connect to a
   non-wizard character when logins are disabled.  This message is displayed
   in addition to the contents of the down.txt file.
@@ -5862,23 +5948,27 @@ SNOOPY                                                           God     Wiz
 
 & dump_interval
   Config parameter: dump_interval <amount>.  Default: 3600
+  
   Specifies the time in seconds between automatic database dumps.
   See Also: dump_offset, output_database.
 
 & dump_message
   Config parameter: dump_message <message>.  Default: blank
+  
   Sets the message that is sent to everyone before the database is being
   dumped to disk, whether automatically or via the @dump command.
   See Also: @dump, postdump_message.
 
 & dump_offset
   Config parameter: dump_offset <amount>.  Default: 0
+  
   Specifies the time in seconds between startup and the first database dump.
   If zero, the value of the dump_interval parameter is used.
   See Also: dump_interval.
 
 & earn_limit
   Config parameter: earn_limit <amount>.  Default: 10000
+  
   Specifies the threshold at which earning additional money becomes difficult.
   Specifically, players with more than this much money no longer receive a
   paycheck for each day they connect, only receive one penny for sacrificing
@@ -5888,6 +5978,7 @@ SNOOPY                                                           God     Wiz
 
 & empower_fulltel
   Config parameter: empower_fulltel <yes/no>.  Default: no
+  
   Indicates if the FULLTEL @power effects on the targeted player (default)
   or if it effects all object types.  If this parameter is enabled, the
   target which is @powered FULLTEL will then be able to teleport anything
@@ -5896,33 +5987,39 @@ SNOOPY                                                           God     Wiz
 
 & enable_tstamps
   Config parameter: enable_tstamps <yes/no>.  Default: no
+  
   Indicates whether or not to enable the automatic timestamping of items
   when they are created or modified.
 
 & enforce_unfindable
   Config parameter: enforce_unfindable <yes/no>.  Default: no
+  
   Indicates whether or not to enforce hidden/dark so that unfindable
   will be properly hidden in locations with regards to objeval() or
   other similiar function calls.
 
 & error_file
   Config parameter: error_file <file>.  Default: error.txt
+  
   Indicates the file that will be read for the error (huh? messages) that
   are randomly generated.  Any element that starts with a '!' will be
   evaluated.  Error file code can not be traced.
 
 & error_index
   Config parameter: error_index <file>.  Default: error.indx
+  
   Indicates the file that will be used as the index key for the error_file.
 
 & examine_flags
   Config parameter: examine_flags <yes/no>.  Default: yes
+  
   Indicates whether or not the examine command should include an expanded
   flags list in the description of the object.
   See Also: examine.
 
 & examine_public_attrs
   Config parameter: examine_public_attrs <yes/no>.  Default: yes
+  
   Indicate whether or not the examine command should display the public
   attributes of the object by default when used by a player who does not
   control the object.  Regardless of the setting of this parameter, the
@@ -5932,6 +6029,7 @@ SNOOPY                                                           God     Wiz
 
 & examine_restrictive
   Config parameter: examine_restrictive <value>.  Default: 0
+  
   Specifies the 'bitlevel' that is restrictive from examining anything 
   they can't control.  If they fail, it returns that they can not examine
   the target and returns no information about the target.  The following
@@ -5948,6 +6046,7 @@ SNOOPY                                                           God     Wiz
 
 & exit_attr_default
   Config parameter: exit_attr_default <dbref>.  Default: -1
+  
   Specifies the default dbref that internal attributes that are processed
   through the standard 'handler' are evaluated.  The original desc of the
   target is passed as '%0' into this description.  This effects built-ins
@@ -5960,6 +6059,7 @@ SNOOPY                                                           God     Wiz
 
 & exit_flags
   Config parameter: exit_flags <flags>.  Default: blank
+  
   Modifies the set of flags that an exit receives when it is created via the
   @open command or via the optional exit creation parameters of the @dig or
   @link commands.  Flags prefixed by a ! remove the indicated flag from the
@@ -5972,6 +6072,7 @@ SNOOPY                                                           God     Wiz
 
 & exit_toggles
   Config parameter: exit_toggles <toggles>.  Default: blank
+  
   Modifies the set of toggles that an exit receives when it is created via the
   @open command or via the optional exit creation parameters of the @dig or
   @link commands.  Toggles prefixed by a ! remove the indicated flag from the
@@ -5984,6 +6085,7 @@ SNOOPY                                                           God     Wiz
 
 & exit_parent
   Config parameter: exit_parent <dbref>.  Default: #-1
+  
   Specifies what the default global parent should be.  If a valid global
   exit_parent is defined, whenever new exits are @opened, they will 
   automatically be parented to the specified dbref#.  Permissions will not
@@ -5994,23 +6096,27 @@ SNOOPY                                                           God     Wiz
 
 & exit_quota
   Config parameter: exit_quota <amount>.  Default: 1
+  
   Sets how much quota it costs to create an exit (and also how much the
   remaining quota is increased when an exit is @destroyed.
   See Also: @quota, player_quota, room_quota, thing_quota, QUOTAS.
 
 & exits_connect_rooms
   Config parameter: exits_connect_rooms <yes/no>.  Default: no
+  
   Defines if exits linking one room to another will be the only requirement
   for the room to be non-floating.  This is handy if you do not always
   want to have everything linked to the starting room (indirectly).
 
 & expand_goto
   Config parameter: expand_goto <yes/no>.  Default: no
+  
   Specifies that all movement through exits should follow a 'goto' command
   for permissions and restrictions.
 
 & fascist_teleport
   Config parameter: fascist_teleport <yes/no>.  Default: no
+  
   If this parameter is set to yes, then players (and objects) may not
   teleport out of locations that they do not control or which are not set
   JUMP_OK.  If the teleporting player is inside an object, the room that
@@ -6055,6 +6161,7 @@ SNOOPY                                                           God     Wiz
 
 & find_money_chance
   Config parameter: find_money_chance <amount>.  Default: 0
+  
   Indicates the chance that players have of finding money when entering a
   new room.  The chance is 1 / find_money_chance, except that finding money
   is disabled if this parameter is set to zero.
@@ -6081,7 +6188,7 @@ SNOOPY                                                           God     Wiz
   Sets an override for set permissions for the specified flag.  This is
   similiar to issuing @flagdef/set on the specified flag.
   
-  See Also: flag_access_unset, flag_access_see, @flagdef
+  See Also: flag_access_unset, flag_access_type, flag_access_see, @flagdef
 
 & flag_access_unset
   Config parameter: flag_access_unset <flagname> <permission(s)>
@@ -6089,7 +6196,7 @@ SNOOPY                                                           God     Wiz
   Sets an override for unset permissions for the specified flag.  This is
   similiar to issuing @flagdef/unset on the specified flag.
   
-  See Also: flag_access_set, flag_access_see, @flagdef
+  See Also: flag_access_set, flag_access_type, flag_access_see, @flagdef
 
 & flag_access_see
   Config parameter: flag_access_set <flagname> <permission(s)>
@@ -6097,7 +6204,15 @@ SNOOPY                                                           God     Wiz
   Sets an override for see permissions for the specified flag.  This is
   similiar to issuing @flagdef/see on the specified flag.
   
-  See Also: flag_access_unset, flag_access_set, @flagdef
+  See Also: flag_access_unset, flag_accees_type, flag_access_set, @flagdef
+
+& flag_access_type
+  Config parameter: flag_access_type <flagname> <permission(s)>
+  
+  Sets a type restriction for set/unset permissions for the specified flag.  
+  This is similiar to issuing @flagdef/type on the specified flag.
+  
+  See Also: flag_access_unset, flag_accees_see, flag_access_set, @flagdef
 
 & float_precision
   Config parameter: float_precision <value>   Default: 6
@@ -6109,6 +6224,7 @@ SNOOPY                                                           God     Wiz
   
 & nand_compat
   Config parameter: nand_compat <yes/no>.    Default: no
+  
   This config defines if the nand() function should be compatible with a
   previous broken implementation of RhostMUSH.  This is only for those who may
   depend on the 'broken' evaluation for their code, otherwise it's safe to keep
@@ -6116,6 +6232,7 @@ SNOOPY                                                           God     Wiz
 
 & noauth_site
   Config parameter: noauth_site <addr> <mask>.
+  
   Indicates that connections are to ignore AUTH lookups.  This is handy to
   avoid any type of timeout conditions or non-recognized conditions on
   poorly configured remote hosts.  You can check out what sites are having
@@ -6123,6 +6240,7 @@ SNOOPY                                                           God     Wiz
 
 & nobroadcast_host
   Config parameter: nobroadcast_host <!host> <host> ... <host>
+  
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will not be monitored on site connections and
   disconnections.  This is handy for automated site connections where
@@ -6131,6 +6249,7 @@ SNOOPY                                                           God     Wiz
 
 & nodns_site
   Config parameter: nodns_site <addr> <mask>.
+  
   Indicates that connections are to ignore reverse DNS lookups.  This is 
   useful when remote sites have mangled DNS addresses or if they are
   configured wrong.  This also helps in conditions where you may be
@@ -6139,6 +6258,7 @@ SNOOPY                                                           God     Wiz
 
 & forbid_host
   Config parameter: forbid_host <!host> <host> ... <host>
+  
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will not be allowed to connect and will be rejected
   upon socket connection. This works like 'forbid_site' but deals with DNS
@@ -6156,6 +6276,7 @@ SNOOPY                                                           God     Wiz
 
 & forbid_site
   Config parameter: forbid_site <addr> <mask>.
+  
   Indicates that connections are to be rejected from sites whose address
   matches the specified address when ANDed with the mask.  The contents of
   the file specified by badsite_file is sent immediately before closing
@@ -6167,6 +6288,7 @@ SNOOPY                                                           God     Wiz
 
 & fork_dump
   Config parameter: fork_dump <yes/no>.  Default: yes
+  
   Indicates whether or not database dumps are to be done by fork()ing off a
   separate process to perform the dump.  While enabling this parameter reduces
   the amount of time needed to perform the dump, it requires that the system
@@ -6175,6 +6297,7 @@ SNOOPY                                                           God     Wiz
 
 & fork_vfork
   Config parameter: fork_vfork <yes/no>.  Default: no
+  
   Indicates whether or not the vfork() system call should be used in place of
   fork() when a database dump is to be performed.  This parameter is only
   checked if the fork_dump parameter is set to yes.
@@ -6182,6 +6305,7 @@ SNOOPY                                                           God     Wiz
 
 & format_compatibility
   Config parameter: format_compatibility <yes/no>.  Default: no
+  
   In the past, TinyMUSH/PennMUSH changed the names of their format-related
   attributes from @format<term> to @<term>format. With this parameter enabled,
   the old format gets used in case compatibility with those old versions is
@@ -6189,6 +6313,7 @@ SNOOPY                                                           God     Wiz
 
 & format_contents
   Config parameter: format_contents <yes/no>.  Default: no
+  
   Indicates whether or not to allow user-definable content listings.  When
   in effect, if the ConFormat attribute exits, it will take presidence over
   the default Contents: information.
@@ -6197,6 +6322,7 @@ SNOOPY                                                           God     Wiz
 
 & format_exits
   Config parameter: format_exits <yes/no>.  Default: no
+  
   Indicates whether or not to allow user-definable exit listings.  This 
   includes both ExitFormat and DarkExitFormat.  If either of these 
   attributes exist, it will take presidence over the default 'Exits'.
@@ -6205,6 +6331,7 @@ SNOOPY                                                           God     Wiz
 
 & format_name
   Config parameter: format_name <yes/no>.  Default: no
+  
   Indicates whether or not to allow names of contents to be user-definable.
   This will, as all other format_* params, allow parent checks.
   
@@ -6263,7 +6390,7 @@ SNOOPY                                                           God     Wiz
   See Also: down_motd_file, max_players.
 
 & function_invocation_limit
-  Config directive: function_invocation_limit <num>.  Default: 2500
+  Config parameter: function_invocation_limit <num>.  Default: 2500
  
   This directive sets the maximum number of times that a command may make
   function calls.  If the invocation limit is exceeded, the string 
@@ -6274,7 +6401,7 @@ SNOOPY                                                           God     Wiz
   of the function invocation limit.
 
 & function_recursion_limit
-  Config directive: function_recursion_limit <num>.  Default: 50
+  Config parameter: function_recursion_limit <num>.  Default: 50
  
   This directive sets the maximum number of nested function calls that
   may be made before the function call is aborted and the string
@@ -6284,28 +6411,33 @@ SNOOPY                                                           God     Wiz
 
 & gconf_file
   Config parameter: gconf_file <file>.  Default: noguest.txt
+  
   Specifies the file that will be displayed to players who try to connect
   guests from disallowed sites.  Disallowed sites are handled with use of
   the NOGUEST_SITE config parameter.
 
 & gdbm_cache_size
   Config parameter: gdbm_cache_size <number>.  Default: 4096
+  
   Specifies the size of the cache used by the text database in 1K blocks.
 
 & gdbm_database
   Config parameter: gdbm_database <path>.  Default: none.
+  
   Specifies the name of the file that stores the text portion of the
   database.  The text strings are stored in a binary format optimized for
   fast retrieval and storage rather than access with programs such as more.
 
 & global_aconnect
   Config parameter: global_aconnect <number>.  Default: 0
+  
   Specifies if the master room recognizes player connects.  If it is enabled,
   then any object inside the master room that has an @aconnect will be 
   triggered as if it was that player's own @aconnect who just connected.
 
 & global_adisconnect
   Config parameter: global_adisconnect <number>.  Default: 0
+  
   Specifies if the master room recognizes player disconnects.  If it is 
   enabled, then any object inside the master room that has an @adisconnect
   will be triggered as if it was that player's own @adisconnect who just 
@@ -6313,6 +6445,7 @@ SNOOPY                                                           God     Wiz
 
 & global_ansimask
   Config parameter: global_ansimask <mask>.  Default: 2097151
+  
   Specifies a mask of ansi codes you do *NOT* want to be able to use globally.
   This will strip them from all %c and ansi() substitutions.  All the colors
   starting with a '*' are background colors.   Any color you do *not* want
@@ -6330,6 +6463,7 @@ SNOOPY                                                           God     Wiz
 
 & global_attrdefault
   Config parameter: global_attrdefault <dbref>.    Default: -1
+  
   Specifies the default object that SET LOCKS are checked for when setting
   or clearing attributes.  To set this, the individual attribute must be
   set 'ATRLOCK' and a matching attribute must exist on the global_attrdefault.
@@ -6376,6 +6510,7 @@ SNOOPY                                                           God     Wiz
 
 & global_clone_obj
   Config parameter: global_clone_obj <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone object'.  When a new item is created, dug
   pcreated, or in any form added to the db, all attributes on this
@@ -6389,6 +6524,7 @@ SNOOPY                                                           God     Wiz
 
 & global_parent_obj
   Config parameter: global_parent_obj <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works seperate from
   @parent and 'global @parents'.  This object, if set, will have all
@@ -6408,6 +6544,7 @@ SNOOPY                                                           God     Wiz
 
 & global_clone_exit
   Config parameter: global_clone_exit <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone exits'.  When a new exit is opened,
   or in any form added to the db, all attributes on this object are 
@@ -6418,6 +6555,7 @@ SNOOPY                                                           God     Wiz
 
 & global_parent_exit
   Config parameter: global_parent_exit <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works seperate from
   @parent and 'global @parents'.  This object, if set, will have all
@@ -6431,6 +6569,7 @@ SNOOPY                                                           God     Wiz
 
 & global_clone_room
   Config parameter: global_clone_room <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone rooms'.  When a new room is dug,
   or in any form added to the db, all attributes on this object are 
@@ -6441,6 +6580,7 @@ SNOOPY                                                           God     Wiz
 
 & global_parent_room
   Config parameter: global_parent_room <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works seperate from
   @parent and 'global @parents'.  This object, if set, will have all
@@ -6454,6 +6594,7 @@ SNOOPY                                                           God     Wiz
 
 & global_clone_thing
   Config parameter: global_clone_thing <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone things'.  When a new thing is created,
   or in any form added to the db, all attributes on this object are 
@@ -6464,6 +6605,7 @@ SNOOPY                                                           God     Wiz
 
 & global_parent_thing
   Config parameter: global_parent_thing <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works seperate from
   @parent and 'global @parents'.  This object, if set, will have all
@@ -6477,6 +6619,7 @@ SNOOPY                                                           God     Wiz
 
 & global_clone_player
   Config parameter: global_clone_player <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone players'.  When a new player is pcreated,
   or in any form added to the db, all attributes on this object are 
@@ -6487,6 +6630,7 @@ SNOOPY                                                           God     Wiz
 
 & global_parent_player
   Config parameter: global_parent_player <dbref>.    Default: -1
+  
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works seperate from
   @parent and 'global @parents'.  This object, if set, will have all
@@ -6500,12 +6644,14 @@ SNOOPY                                                           God     Wiz
 
 & good_name
   Config parameter: good_name <name>.
+  
   Removes <name> from the list of names that may not be used as a player
   name, reversing the effect of a bad_name directive.  The name must match
   exactly (wildcard matching is not performed).
 
 & goodmail_host
   Config parameter: goodmail_host <string>.  Default: (null)
+  
   Specifies VALID email addresses for the autoregistration system.
   If an email specified matches this wildcarded list, it will ALWAYS ALLOW
   the autoregistation.  This will add or remove to existing or from existing 
@@ -6527,6 +6673,7 @@ SNOOPY                                                           God     Wiz
 
 & guest_char_num
   Config parameter: guest_char_num <number>.  Default: (none)
+  
   Indicates the database number of the guest character.  If set, the specified
   guest character is subject to additional restrictions (such as not being
   allowed to create or destroy objects).  The actual restrictions can be
@@ -6535,12 +6682,14 @@ SNOOPY                                                           God     Wiz
 
 & guest_file
   Config parameter: guest_file <path>.  Default: guest.txt.
+  
   Specifies the file that is to be shown to people connecting to the
   guest character in place of the motd file.
   See Also: guest_char_num.
 
 & guest_namelist
   Config parameter: guest_namelist <val !val val>.  Default: (none)
+  
   This is a special config parameter.  With this, you may override the current
   guest system and choose different players with different names.  You can
   only enter a player once, and you can not modify this if either a guest
@@ -6592,6 +6741,7 @@ SNOOPY                                                           God     Wiz
 
 & hackattr_nowiz
   Config parameter: hackattr_nowiz <ON(1)/OFF(0)>  Default: OFF
+  
   Defines if '-DHACK_ATTR' was compiled in, that all attributes starting with
   '_' should be handled like any other attribute.  This means, that the 
   default setting of having all attributes starting with '_' will no longer be
@@ -6601,6 +6751,7 @@ SNOOPY                                                           God     Wiz
 
 & hackattr_see
   Config parameter: hackattr_see <ON(1)/OFF(0)>  Default: OFF
+  
   Defines if '-DHACK_ATTR' was compiled in, that all attributes starting with
   '_' should be seen by mortals.  This means, that the default setting of 
   having attributes starting with '_' will be follow the normal rules for
@@ -6610,12 +6761,14 @@ SNOOPY                                                           God     Wiz
 
 & hasattrp_compat
   Config parameter: hasattrp_compat <value>.  Default: 0
+  
   This config parameter enables MUX/TM3 'compatibility' of the hasattrp()
   function so that it _will_ check the target object as well as the parent-
   chain for matching attributes.  By default, it will not check the target.
 
 & heavy_cpu_max
   Config parameter: heavy_cpu_max <value>.  Default: 50
+  
   Specifies how many iterations of heavy cpu used functionality can be called
   per command before disallowing it.  This helps against DoS based attacks.
   
@@ -6623,12 +6776,14 @@ SNOOPY                                                           God     Wiz
 
 & help_file
   Config parameter: help_file <path>.  Default: help.txt
+  
   Specifies the name of the file containing the text used by the help command.
   
   See Also: help, help_index
 
 & help_index
   Config parameter: help_index <path>.  Default: help.indx
+  
   Specifies the name of the index file used by the help command.  This file
   must be generated by mkindex from the wizard help file.  The contents of
   this file are read in to a hash table when the game is started and whenever
@@ -6638,12 +6793,14 @@ SNOOPY                                                           God     Wiz
 
 & hide_nospoof
   Config parameter: hide_nospoof <ON(1)/OFF(0)>  Default: OFF
+  
   Defines if you must control the target in order to see the NOSPOOF flag on
   the target.  This takes into account the VISUAL flag.  ie:  If you're
   set visual, you *still* must control the target to see the nospoof flag.
   
 & hook_cmd
   Config parameter: hook_cmd <command> <hooks/!hooks>
+  
   This admin parameter allows you to specify multiple hooks for commands
   or attributes in the .conf file or online via @admin.  This is an 
   alternative way to applying hooks besides the @hook command.
@@ -6662,6 +6819,7 @@ SNOOPY                                                           God     Wiz
                       
 & hook_obj
   Config parameter: hook_obj <dbref>.  Default: -1
+  
   Specifies the valid dbref# that the hook information is stored.  All
   hooks are in the form <prefix>_<command/attribute>.  
   Attributes are stored in the form:
@@ -6685,27 +6843,32 @@ SNOOPY                                                           God     Wiz
   
 & hostnames
   Config parameter: hostnames <yes/no>.  Default: yes
+  
   Indicates whether or not IP addresses should be replaced with host names
   where possible in the log file and wizard WHO report.
 
 & icmd_obj
   Config parameter: icmd_obj <dbref>. Default: -1
+  
   Sets the dbref of the ICMD Object, usable with @icmd/eval.
   See 'help @icmd'
 
 & idle_interval
   Config parameter: idle_interval <secs>.  Default: 60
+  
   Sets the interval between checks for idle users. 
   See Also: conn_timeout, idle_timeout.
 
 & idle_message
   Config parameter: idle_message <yes/no>.  Default: yes
+  
   Indicates if a wizard receives a message when they have idled beyond the
   idle_timeout and if they have gone dark or cloaked.
   See Also: idle_timeout, idle_wiz_cloak, idle_wiz_dark
 
 & idle_timeout
   Config parameter: idle_timeout <secs>.  Default: 3600 (one hour)
+  
   Sets the amount of time that a player may remain idle before being
   automatically disconnected.  Players idle longer than this parameter are
   disconnected when the next check for idle players is done.  If this value
@@ -6716,6 +6879,7 @@ SNOOPY                                                           God     Wiz
 
 & idle_wiz_cloak
   Config parameter: idle_wiz_cloak <yes/no>.  Default: no
+  
   Indicates whether or not wizards who are idle for longer than the default
   timeout value are automatically CLOAKED, and then unCLOAKED when they
   type in their next command.  Wizards already set to be CLOAKED are not
@@ -6724,6 +6888,7 @@ SNOOPY                                                           God     Wiz
 
 & idle_wiz_dark
   Config parameter: idle_wiz_dark <yes/no>.  Default: no
+  
   Indicates whether or not wizards who are idle for longer than the default
   timeout value are to automatically be set DARK, and then unDARKed when they
   type in their next command.  Wizards already set DARK are not automatically
@@ -6732,6 +6897,7 @@ SNOOPY                                                           God     Wiz
 
 & ifelse_substitutions
   Config parameter: ifelse_substitutions <yes/no>.  Default: no
+  
   Specifies if ifelse() allows #$ substitutions.
   By default, this is disabled as it firstly breaks compatibility with
   older versions of RhostMUSH, and secondly, because it is a security
@@ -6741,6 +6907,7 @@ SNOOPY                                                           God     Wiz
 
 & imm_nomod
   Config parameter: imm_nomod <yes/no>.  Default: no
+  
   Indicates whether or not the NOMODIFY flag is accessable to immortals only
   or to both immortals and royalty (wizards).  If configured to be immortal
   only, this flag will resemble the 'CONSTANT' flag in TM 3.0.
@@ -6749,11 +6916,13 @@ SNOOPY                                                           God     Wiz
 
 & include
   Config parameter: include <path>.  Default: none
+  
   Reads and processes configuration directives from the named file.
   This directive is only valid during startup.
 
 & includecnt
   Config parameter: includecnt <value>.  Default: 10
+  
   Specifies the total number of times @include can be called within a single
   set of input.  A $command on an attribute is considered a single set of 
   input.  Try to keep this relatively low to avoid DoS attacks.
@@ -6762,6 +6931,7 @@ SNOOPY                                                           God     Wiz
 
 & includenest
   Config parameter: includenest <value>.  Default: 3
+  
   Specifies the total number of times @include can be nested within itself.
   Please try to keep this value somewhat low to avoid attacks on your mush.
   
@@ -6769,6 +6939,7 @@ SNOOPY                                                           God     Wiz
 
 & initial_size
   Config parameter: initial_size <value>.  Default: 1000
+  
   This specific parameter specifies the initial starting size of the database
   structure when initially making the database.  This parameter is defaulted
   to disabled and should only be used if you know exactly what you're doing.
@@ -6776,6 +6947,7 @@ SNOOPY                                                           God     Wiz
 
 & input_database
   Config parameter: input_database.  Default: tinymush.db
+  
   Specifies the name of the database file that is read in at startup.
   This file is used only as an input file, the parameter output_database
   controls where updated copies of the database are written.
@@ -6783,6 +6955,7 @@ SNOOPY                                                           God     Wiz
 
 & internal_compress_string
   Config parameter: internal_compress_string <yes/no>.  Default: no
+  
   Specifies whether or not a simple bigram compression is to be performed on
   text strings in the database.  Enabling this directive shrinks the amount
   of space needed to store the database both on disk and in memory, but
@@ -6790,17 +6963,20 @@ SNOOPY                                                           God     Wiz
 
 & inventory_name
   Config parameter: inventory_name <string>.  Default: backpack
+  
   Specifies the string that is used to specify the name of the inventory type
   when ALT_INVENTORIES are enabled.  If no string is specified, the default
   of 'backpack' is used.  Ansi, tabs, and carriage returns are stripped.
 
 & ip_address
   Config parameter: ip_address <address>.  Default: 0.0.0.0
+  
   Specifies the IP address on which the game listens for new connections.
   See Also: port.
 
 & kill_guarantee_cost
   Config parameter: kill_guarantee_cost <amount>.  Default: 100
+  
   Specifies the amount of money you have to spend (ie. kill target = <amount>)
   to have a 100% chance of killing them (assuming there are no other factors,
   such as the victim being immortal or in a HAVEN room, etc).  The chance of
@@ -6809,6 +6985,7 @@ SNOOPY                                                           God     Wiz
 
 & kill_max_cost
   Config parameter: kill_max_cost <amount>.  Default: 100
+  
   Specifies the maximum amount of money that may be usefully spent on a kill
   attempt.  Spending more than this amount does not improve the chance of
   success.  Setting this parameter to less than the kill_guarantee_cost
@@ -6819,6 +6996,7 @@ SNOOPY                                                           God     Wiz
 
 & kill_min_cost
   Config parameter: kill_min_cost <amount>.  Default: 10
+  
   Specifies the minimum (and default) cost for attempting to kill someone or
   something.
   See Also: kill, kill_guarantee_cost, kill_max_cost, HAVEN, IMMORTAL,
@@ -6865,6 +7043,7 @@ SNOOPY                                                           God     Wiz
 
 & list_access
   Config parameter: list_access <param> [!]<privilege> [[!]<privilege>]...
+  
   Changes the access needed to the <param> option of the @list command.
   See Also: @list, PERMISSIONS.
 
@@ -6888,13 +7067,14 @@ SNOOPY                                                           God     Wiz
   
 & link_cost
   Config parameter: link_cost <amount>.  Default: 1.
+  
   Specifies the cost of using the @link command to establish or change the
   link of an exit to its destination, the home of a player or an object, or
   the drop-to of a room.
   See Also: @link.
 
 & lock_recursion_limit
-  Config directive: lock_recursion_limit <num>.  Default: 20
+  Config parameter: lock_recursion_limit <num>.  Default: 20
  
   Sets the maximum number of levels of indirection that may be used when
   using indirect locks.  If more than this many levels are used, the lock
@@ -6902,6 +7082,7 @@ SNOOPY                                                           God     Wiz
 
 & log
   Config parameter: log [!]<logoption> [[!]<logoption>]...
+  
   Specifies what types of events are to be logged to the logfile.
   
     accounting     - Write an accounting record to the log for each player
@@ -6936,6 +7117,7 @@ SNOOPY                                                           God     Wiz
 
 & log_command_list
   Config parameter: log_command_list <cmd !cmd> (Default (none))
+  
   This config parameter specifies individual commands to log.  If, for
   instance, @boot was being abused, you could use this to set up logging
   for anything or anyone who used @boot.  This parameter will accept
@@ -6952,6 +7134,7 @@ SNOOPY                                                           God     Wiz
 
 & login_to_prog
   Config parameter: login_to_prog <value>  (Default 1)
+  
   Specifies that @programs continue even if a player QUIT's, LOGOUT's,
   or the mush @shutdowns, @reboots, or the server crashes.
   There is no danger with this parameter.
@@ -6960,6 +7143,7 @@ SNOOPY                                                           God     Wiz
 
 & noshell_prog
   Config parameter: noshell_prog <value>  (Default 0)
+  
   Specifies if players (other than immortals) can shell from inside
   a @program.  In other words, if the player can use |<command> from
   inside a @program.  This can be understandably dangerous if @program
@@ -6967,11 +7151,13 @@ SNOOPY                                                           God     Wiz
 
 & sidefx_maxcalls
   Config parameter: sidefx_maxcalls <value>  (Default 1000)
+  
   Specifies the maximum number of sideeffects that are allowed to be
   called per command.  This helps avoid DoS based attacks.
 
 & sidefx_returnval
   Config parameter: sidefx_returnval <value>  (Default 0)
+  
   Specifies if sidefx that create items (dig, open, create), return the 
   dbref# of the item or if it returns a null.  If enabled, it returns the
   dbref#.
@@ -6980,6 +7166,7 @@ SNOOPY                                                           God     Wiz
 
 & nospam_connect
   Config parameter: nospam_connect <value>  (Default 0)
+  
   Specifies if people from FORBID sides are logged in the mushname.log file.
   Real twinkish players may try multiple connects to overload a log file and
   this config parameter will help remove that.
@@ -6989,18 +7176,21 @@ SNOOPY                                                           God     Wiz
 
 & noregist_onwho
   Config parameter: noregist_onwho <value>  (Default 0)
+  
   This is a very simple parameter that will snuff the 'R' on register sites
   on the WHO.  There was complaints about this being annoying so this 
   parameter was done as it was a simple addition.
 
 & lnum_compat
   Config parameter: lnum_compat <value>  (Default 0)
+  
   Specifies if lnum()/lnum2() will work like MUX/PENN and return a null if 
   a '0' value is given to them.  This had to be a config parameter so that
   prior code did not break.
 
 & log_maximum
   Config parameter: log_maximum <value>  Default: 1
+  
   Specifies the number of times logtofile() can be called per command.
   This should be limited to a low number as the I/O for rapidly opening
   and closing files for logging purposes can become determental for the
@@ -7008,6 +7198,7 @@ SNOOPY                                                           God     Wiz
 
 & log_network_errors
   Config parameter: log_network_errors <yes/no>  (Default yes)
+  
   This parameter specifies if logging of network errors should occur
   ingame.  This should not be cause of issues, but with bad network
   connectivity, this can lead to rather large logs regarding failed
@@ -7015,6 +7206,7 @@ SNOOPY                                                           God     Wiz
 
 & log_options
   Config parameter: log_options [!]<option> [[!]<option>]...
+  
   Specifies the type of information to be included in each log entry.
   The possible values are:
     flags       - Include the flags set on a player or object.
@@ -7025,6 +7217,7 @@ SNOOPY                                                           God     Wiz
 
 & logout_cmd_access
   Config parameter: logout_cmd_access [!]<option> [[!]<option>]...
+  
   This parameter specifies the access for commands that can be executed at
   the connect screen.  Keep in mind, that this effects the command PERIOD
   and not JUST at the connect screen.  Examples of commands this effects
@@ -7049,12 +7242,14 @@ SNOOPY                                                           God     Wiz
 
 & look_moreflags
   Config parameter: look_moreflags <yes/no>.  Default: NO
+  
   Indicates whether 'examine' and it's ilk will have global attribute
   flags show up on attributes within []'s.  The default behavior is to
   have global attributes ignored.
 
 & look_obey_terse
   Config parameter: look_obey_terse <yes/no>.  Default: YES
+  
   Indicates whether or not the 'look' command obeys the TERSE flag when
   deciding how much information to display.  If set to yes, the
   terse_shows_contents, terse_shows_exits, and terse_shows_move_messages
@@ -7066,12 +7261,14 @@ SNOOPY                                                           God     Wiz
 
 & machine_command_cost
   Config parameter: machine_command_cost <number>.  Default: 64
+  
   Sets the cost for running a command from a machine, as opposed to running
   it interactively.  Each command run has a one in <number> chance of being
   charged one coin for machine overhead.
 
 & manlog_file
   Config parameter: manlog_file <string>.  Default: manual_log
+  
   Specifies what the filename is that the manual @log (@log/manual) is 
   written to.  The file has to be in the current directory and a '.txt'
   extension is automatically added on whatever filename you have specified.
@@ -7079,11 +7276,13 @@ SNOOPY                                                           God     Wiz
 
 & map_delim_space
   Config parameter: map_delim_space <value>.  Default: YES
+  
   Verifies that the output delimeter is a space by default.  If this is
   set to 0 (or NO/FALSE), the output delimeter is defaulted to a NULL.
 
 & match_own_commands
   Config parameter: match_own_commands <yes/no>.  Default: NO
+  
   Specifies whether or not objects search themselves for $-commands when a
   command does not match an exit or an internal command.  In order for
   players to search themselves for commands, both match_own_commands and
@@ -7092,6 +7291,7 @@ SNOOPY                                                           God     Wiz
 
 & master_room
   Config parameter: master_room <roomnum>.  Default: (none)
+  
   Specifies the room that is searched for exits if a command does not match
   an exit in the current room, and for $-command if a command does not match
   any $-commands that are available to the player in his current location.
@@ -7100,6 +7300,7 @@ SNOOPY                                                           God     Wiz
 
 & max_cpu_cycles
   Config parameter: max_cpu_cycles <num>.  Default: 3
+  
   Specifies the total sequential cpu slams a target may issue before higher
   security practices (cpu_secure_lvl) are issued.  If you tend to have a lot
   of abuse and are overly paranoid, you may wish to set this value to 2 or
@@ -7109,6 +7310,7 @@ SNOOPY                                                           God     Wiz
 
 & max_dest_limit
   Config parameter: max_dest_limit <num>.  Default: 1000
+  
   Specifies the maximum times a non-wizard (full wizard/bitlevel 5) may be
   able to @destroy something.  Once this limit is reached, they will no
   longer be able to issue the @destroy command.  This limit may be increased
@@ -7120,6 +7322,7 @@ SNOOPY                                                           God     Wiz
 
 & max_folders
   Config parameter: max_folders <value>.   Default: 20
+  
   Specifies the total number of mail folders that a player may have at
   any given time.  The player may never have more than max_folders.
 
@@ -7162,7 +7365,7 @@ SNOOPY                                                           God     Wiz
   See Also: max_pcreate_lim
 
 & max_percentsubs
-  Config directive: max_percentsubs <num>.  Default: 1000000
+  Config parameter: max_percentsubs <num>.  Default: 1000000
   
   Sets the maximum number of percent-substitutions that are allowed to
   be called in a singular command.  This includes, but is not limited to,
@@ -7170,7 +7373,7 @@ SNOOPY                                                           God     Wiz
   such as %va.
 
 & max_players
-  Config directive: max_players <num>.  Default: -1 (unlimited)
+  Config parameter: max_players <num>.  Default: -1 (unlimited)
  
   Sets the maximum number of players that may be connected at any one time
   Note that wizards are allowed to login even if they would exceed the limit,
@@ -7191,6 +7394,7 @@ SNOOPY                                                           God     Wiz
 
 & max_vattr_limit
   Config parameter: max_vattr_limit <num>.  Default: 10000
+  
   Specifies the maximum times a non-wizard (full wizard/bitlevel 5) may be
   able to create *new* attributes.  A new attribute is defined as an 
   attribute name that hasn't previously been created that does not exist
@@ -7203,6 +7407,7 @@ SNOOPY                                                           God     Wiz
 
 & maximum_size
   Config parameter: maximum_size <value>.    Default: -1
+  
   This config parameter is only alloweable in the .conf file and determines
   what limit (if any) should be placed on the cap of the total number of
   objects the database should have.  The default of '-1' specifies no limit.
@@ -7246,6 +7451,7 @@ SNOOPY                                                           God     Wiz
 
 & money_name_plural
   Config parameter: money_name_plural <string>.  Default: pennies
+  
   Specifies the string to use to describe the coin of the realm when they
   are being referred to plurally (such as: 'You have <number> pennies.', where
   <number>  is not 1).
@@ -7253,18 +7459,21 @@ SNOOPY                                                           God     Wiz
  
 & money_name_singular
   Config parameter: money_name_singular <string>.  Default: penny
+  
   Specifies the string to use to describe the coin of the realm when they
   are being referred to singularly (such as: 'You found a penny!').
   See Also: money_name_plural.
 
 & motd_file
   Config parameter: motd_file <pathname>.  Default: motd.txt
+  
   Specifies the name of the file to be shown to players immediately after they
   connect to their characters.
   See Also: @readcache, newuser_file, motd_message.
 
 & motd_message
   Config parameter: motd_message <message>.  Default: blank
+  
   Sets the MOTD message that is displayed to all characters when they log in.
   This message is displayed in addition to the contents of the motd.txt
   file.  It can be changed with the @motd command and examined by the
@@ -7273,6 +7482,7 @@ SNOOPY                                                           God     Wiz
 
 & mud_name
   Config parameter: mud_name <string>.  Default: RhostMUSH
+  
   Specifies the mud name that is transmitted to a remote RWHO server when
   reporting information.
   See Also: rwho_dump_interval, rwho_host, rwho_info_port, rwho_pasword,
@@ -7280,6 +7490,7 @@ SNOOPY                                                           God     Wiz
 
 & muddb_name
   Config parameter: mudb_name <string>.  Default:  RhostMUSH
+  
   Specified the db name associeted as the base-string for the mail and
   bbs/news systems.  This includes the main db files, and the flatfile
   dump files.  This does not effect the db name the game, itself, uses.
@@ -7288,6 +7499,7 @@ SNOOPY                                                           God     Wiz
 
 & must_unlquota
   Config parameter: must_unlquota <value>  (Default 0)
+  
   Specifies if a wizard is forced to @quota/unlock a player before they give
   them @quota.  This is done for added security incase you wish to limit
   @quota/unlock and @quota/lock to immortal or #1 access only.  This will
@@ -7295,30 +7507,35 @@ SNOOPY                                                           God     Wiz
  
 & mux_child_compat
   Config parameter: mux_child_compat <bool>  Default: no (0)
+  
   Specifies if children() should follow the 'broken' method of mux/tm3's
   children() and return a null string if no children are found instead
   of #-1 (which follows parent()).
 
 & mux_lcon_compat
   Config parameter: mux_lcon_compat <bool>  Default: no (0)
+  
   Specifies if lcon() returns null (an empty string) if there is no
   contents.  The default behavior is that it returns #-1 if there is
   no contents.
 
 & newpass_god
   Config parameter: newpass_god <1/0>.  Default: 0 
+  
   This is only valid in the config file.  If specified, it will allow
   an immortal to newpassword the #1 character ONCE during that reboot
   session.  NOTE.  This is NOT a yes/no issue, it requires a '1/0'.
 
 & news_file
   Config parameter: news_file <path>.  Default: news.txt
+  
   Specifies the name of the file containing the text used by the news
   command.
   See Also: news, news_index
 
 & news_index
   Config parameter: news_index <path>.  Default: news.indx
+  
   Specifies the name of the index file used by the news command.  This file
   must be generated by mkindex from the news file.  The contents of this
   file are read in to a hash table when the game is started and whenever a
@@ -7327,6 +7544,7 @@ SNOOPY                                                           God     Wiz
 
 & newuser_file
   Config parameter: newuser_file <filename>.  Default: newuser.txt
+  
   Specifies the file to be shown to new players immediately after they
   create their characters, in place of the MOTD file.  This file should
   contain information about the basic commands and how to get help.
@@ -7334,11 +7552,13 @@ SNOOPY                                                           God     Wiz
 
 & no_startup
   Config parameter: no_startup <yes/no>.  Default: no
+  
   This is only valid in the config file.  This specifies if at boot/reboot
   time, if @startups will not be triggered.  
 
 & noautoreg_host
   Config parameter: noautoreg_host <!host> <host> ... <host>
+  
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will not be able to autoregister from that site.
   This works like 'noautoreg_site' but deals with DNS wildcard name 
@@ -7355,7 +7575,7 @@ SNOOPY                                                           God     Wiz
              validate_host, @site
 
 & noautoreg_site
-  Config directive: noautoreg_site <site> <mask>
+  Config parameter: noautoreg_site <site> <mask>
   
   Establishes sites that are not permitted to use autoregistration.
   This is effectively the same as forbid_site but only effects the
@@ -7365,6 +7585,7 @@ SNOOPY                                                           God     Wiz
 
 & noguest_host
   Config parameter: noguest_host <!host> <host> ... <host>
+  
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will not be able to connect to guest characters.
   This works like 'noguest_site' but deals with DNS wildcard name 
@@ -7381,7 +7602,7 @@ SNOOPY                                                           God     Wiz
              validate_host, @site
 
 & noguest_site
-  Config directive: noguest_site <site> <mask>
+  Config parameter: noguest_site <site> <mask>
   
   Establishes sites that are not permitted to use the guest characters.
   This is effectively the same as forbid_site but only effects guests.
@@ -7390,6 +7611,7 @@ SNOOPY                                                           God     Wiz
 
 & nonindxtxt_maxlines
   Config parameter: nonindxtxt_maxlines <value>.    Default: 200
+  
   This defines the total number of lines that a non mkindx'd .txt file can have
   before it is summarilly ignored from being loaded into the mush's memory
   stack.
@@ -7398,7 +7620,7 @@ SNOOPY                                                           God     Wiz
   want to do.  This is intended for DoS protection.
 
 & notify_recursion_limit
-  Config directive: notify_recursion_limit <num>.  Default: 20
+  Config parameter: notify_recursion_limit <num>.  Default: 20
  
   Sets the maximum number of times that the notify() routine may be called
   recursively.  A recursive call is made whenever a message heard by an
@@ -7413,6 +7635,7 @@ SNOOPY                                                           God     Wiz
 
 & oattr_enable_altname
   Config parameter: oattr_Enable_altname <yes/no>.  Default: no
+  
   Specifies if alternate names are looked up when you move through exits.
   The alt name is defined by an attribute with the 'oattr_uses_altname'
   config parameter.
@@ -7421,6 +7644,7 @@ SNOOPY                                                           God     Wiz
 
 & oattr_uses_altname
   Config parameter: oattr_uses_altname <string>.  Default: _NPC
+  
   Specifies the alternate name used if oattr_enable_altname is enabled.
   The alternate name is seen with exit movement for OSUCC, OFAIL, and
   ODROP.  This is handy for RP situations.
@@ -7429,6 +7653,7 @@ SNOOPY                                                           God     Wiz
 
 & offline_reg
   Config parameter: offline_reg <yes/no>.  Default: NO
+  
   Indicates if you desire to use autoregistration.  When turned on, it
   enables the connect screen 'register' command.  The syntax of this
   command is: 'register <character> <email>'.  It is used in junction
@@ -7437,12 +7662,14 @@ SNOOPY                                                           God     Wiz
 
 & old_elist
   Config parameter: old_elist <yes/no>.  Default: NO
+  
   This forces elist() to work like the older version which would allow
   a double-eval for the first list.  This is considered a security risk
   but is allowed as a paramter for backward compatibility for games.
   
 & online_reg
   Config parameter: online_reg <yes/no>.  Default: NO
+  
   Indicates if you desire to use autoregistration.  When turned on, it
   enables the on-line guest characters to use the @register command
   to register for a character.  It is used in junction with register_site
@@ -7451,6 +7678,7 @@ SNOOPY                                                           God     Wiz
 
 & open_cost
   Config parameter: open_cost <amount>.  Default: 1
+  
   Indicates the cost of using the @open command to open a new exit.
   If a destination for the new exit is specified and the link is successful,
   then the link_cost is also charged.
@@ -7458,6 +7686,7 @@ SNOOPY                                                           God     Wiz
 
 & output_database
   Config parameter: output_database <pathname>.  Default: none
+  
   Specifies the file to which te database is to be written when writing
   checkpoint dumps or writing the final dump after receiving a @shutdown
   command.
@@ -7465,6 +7694,7 @@ SNOOPY                                                           God     Wiz
 
 & output_limit
   Config parameter: output_limit <amount>.  Default: 16384
+  
   Indicates the maximum number of characters that a connected player may have
   queued for output.  As queued output is normally transmitted once each
   second, this parameter limits the amount of output that can be generated by
@@ -7477,22 +7707,26 @@ SNOOPY                                                           God     Wiz
 
 & page_cost
   Config parameter: page_cost <amount>.  Default: 10
+  
   Specifies the cost of using the page command.
   See Also: page.
 
 & num_guests
   Config parameter: num_guests <ammount>.  Default: 0
+  
   Specifies the total number of guest characters allowed to connect at one 
   time.  Do note that each and every guest will be unique and that if more 
   are required, more need to be @pcreated.
 
 & comcost
   Config parameter: comcost <ammount>.  Default: 5
+  
   Specifies the cost of using the channel system.  Do note that the channels
   'public' and 'sting' are free of charge.
 
 & wall_cost
   Config parameter: wall_cost <ammount>.  Default: 250
+  
   Specifies the cost of using a @wall if you're not privalaged.
   Privalaged is defined of having at least a GUILDMASTER bit.
 
@@ -7545,6 +7779,7 @@ SNOOPY                                                           God     Wiz
 
 & paycheck
   Config parameter: paycheck <amount>.  Default: 0
+  
   Specifies the default amount of money that players receive each day they
   connect.  This parameter may be overridden by setting the ALLOWANCE
   attribute on the player to a different value.
@@ -7569,6 +7804,7 @@ SNOOPY                                                           God     Wiz
 
 & pemit_any_object
   Config parameter: pemit_any_object <yes/no>.  Default: no
+  
   Indicates whether or not players may @pemit to faraway objects they do not
   control.  It does not affect @pemits to faraway players, the
   pemit_far_players directive is used for that purpose.
@@ -7576,6 +7812,7 @@ SNOOPY                                                           God     Wiz
 
 & pemit_far_players
   Config parameter: pemit_far_players <yes/no>.  Default: no
+  
   Controls whether or not players may use the @pemit command to send messages
   to other connected players that are not in the same room.  The rules and
   costs for this form of @pemit are the same as for page.
@@ -7583,6 +7820,7 @@ SNOOPY                                                           God     Wiz
 
 & penn_playercmds
   Config parameter: penn_playercmds <yes/no>.  Default: no
+  
   Indicates that if player_match_own_commands, player_match_commands, and 
   match_own_commands are all enabled, that players will only be able to use
   $commands on other players if they are in their inventory.  They will still
@@ -7590,6 +7828,7 @@ SNOOPY                                                           God     Wiz
 
 & penn_switches
   Config parameter: penn_switches <yes/no>.  Default: no
+  
   Indicates if you wish to use the PENN method of switch() and switchall() or
   the MUSH/MUX/RHOST method of switch() and switchall().  If you decide to
   use the PENN method, then, like @switch, it will evaluate < and > as 
@@ -7598,6 +7837,7 @@ SNOOPY                                                           God     Wiz
 
 & permit_site
   Config parameter: permit_site <addr> <mask>.
+  
   Indicates that connections are to be accepted and registration is not to be
   enforced from sites whose address matches the specified address when ANDed
   with the mask.  This directive is typically used to enable connections from
@@ -7607,6 +7847,7 @@ SNOOPY                                                           God     Wiz
 
 & player_attr_default
   Config parameter: player_attr_default <dbref>.  Default: -1
+  
   Specifies the default dbref that internal attributes that are processed
   through the standard 'handler' are evaluated.  The original desc of the
   target is passed as '%0' into this description.  This effects built-ins
@@ -7619,6 +7860,7 @@ SNOOPY                                                           God     Wiz
 
 & player_flags
   Config parameter: player_flags <flags>.  Default: blank
+  
   Modifies the set of flags that a player receives when it is created via the
   @pcreate command or via the connection screen.  Flags prefixed by a ! remove
   the indicated flag from the set.  
@@ -7630,6 +7872,7 @@ SNOOPY                                                           God     Wiz
 
 & player_toggles
   Config parameter: player_toggles <toggles>.  Default: blank
+  
   Modifies the set of toggles that a player receives when it is created via the
   @pcreate command or via the connection screen.  Toggles prefixed by a ! remove
   the indicated toggle from the set.  
@@ -7641,6 +7884,7 @@ SNOOPY                                                           God     Wiz
 
 & player_dark
   Config parameter: player_dark <value>.  Default: 1
+  
   When set, allows players to set themselves dark and to effect objects puppet
   and listening dark in such a manner that wizards normally are (more or less)
   When off, it behaves differently by not allowing players to set themselves
@@ -7648,6 +7892,7 @@ SNOOPY                                                           God     Wiz
 
 & player_listen
   Config parameter: player_listen.  Default: no
+  
   Indicates whether the Listen, Aahear, Ahear, and Amhear attributes on
   player objects are to be obeyed.
   
@@ -7655,6 +7900,7 @@ SNOOPY                                                           God     Wiz
 
 & player_match_own_commands
   Config parameter: player_match_own_commands <yes/no>.  Default: no
+  
   Specifies whether or not players should check themselves for $-commands.
   This parameter is only checked if the match_own_commands parameter is
   set to yes.
@@ -7662,16 +7908,19 @@ SNOOPY                                                           God     Wiz
 
 & player_match_commands
   Config parameter: player_match_commands <yes/no>. Default: no
+  
   Specifies whether or not players should be checked for $-commands or
   any type of listen command (such as ^commands), @listen, or @ahear.
   See Also: match_own_commands, player_match_own_commands
 
 & player_name_spaces
   Config parameter: player_name_spaces.  Default: 0
+  
   Sets the ability for players to have spaces in their names.
 
 & player_parent
   Config parameter: player_parent <dbref>.  Default: #-1
+  
   Specifies what the default global parent should be.  If a valid global
   player_parent is defined, whenever new player are created, either by
   @pcreate or at the connect screen or any other method, they will
@@ -7684,6 +7933,7 @@ SNOOPY                                                           God     Wiz
 
 & player_queue_limit
   Config parameter: player_queue_limit.  Default: 100
+  
   Sets the maximum number of commands that non-wizard players may have on the
   queue at one time.  An attempt to queue more commands than allowed will
   halt the object performing the command.
@@ -7692,12 +7942,14 @@ SNOOPY                                                           God     Wiz
 
 & player_quota
   Config parameter: player_quota <amount>.  Default: 1
+  
   Sets how much quota it costs to create a robot player (and also how much the
   remaining quota is increased when a robot is @destroyed.
   See Also: @quota, exit_quota, room_quota, thing_quota, QUOTAS.
 
 & player_starting_home
   Config parameter: player_starting_home.  Default: <player_starting_room>
+  
   Specifies the room to which the home of new players is set.  If this
   parameter has not been set, then the value of the player_starting_room
   parameter is used instead.
@@ -7705,6 +7957,7 @@ SNOOPY                                                           God     Wiz
 
 & player_starting_room
   Config parameter: player_starting_room.  Default: 0
+  
   Specifies the room that new players start out in.  If the
   player_starting_home parameter has not been set, then player_starting_room
   is used for both.
@@ -7712,12 +7965,14 @@ SNOOPY                                                           God     Wiz
 
 & plushelp_file
   Config parameter: plushelp_file <path>.  Default: plushelp.txt
+  
   Specifies the name of the file containing the text used by the +help command.
   
   See Also: help, plushelp_index, help_file, help_index
 
 & plushelp_index
   Config parameter: plushelp_index <path>.  Default: plushelp.indx
+  
   Specifies the name of the index file used by the +help command.  This file
   must be generated by mkindex from the wizard +help file.  The contents of
   this file are read in to a hash table when the game is started and whenever
@@ -7727,22 +7982,26 @@ SNOOPY                                                           God     Wiz
 
 & port
   Config parameter: port <port>.  Default: 6250
+  
   Specifies the IP port on which the game listens for new connections.
   See Also: ip_address.
 
 & postdump_message
   Config parameter: postdump_message <message>.  Default: blank
+  
   Sets the message that is sent to everyone after a database dump
   whether automatically or via the @dump command.
   See Also: @dump, dump_message.
 
 & power_access
   Config parameter: power_access <power> [!]<privilege> [[!]<privilege>]...
+  
   Changes the access rights to the named power.
   See Also: @list powers, PERMISSIONS.
 
 & public_flags
   Config parameter: public_flags <yes/no>.  Default: yes
+  
   If enabled, indicates that players may get the flags of any object with the
   flags() function call.  Otherwise, they may only get the flags for objects
   that are examinable by them.
@@ -7750,12 +8009,14 @@ SNOOPY                                                           God     Wiz
 
 & power_objects
   Config parameter: power_objects <boolean>.  Default: 0
+  
   If enabled, then non-players will be checked for @powers and @depowers in
   addition to the owner.  The higher power (for @power) or harsher restriction
   (for @depower) between the two will be chosen.
 
 & queue_active_chunk
   Config parameter: queue_idle_chunk <num>.  Default: 0
+  
   Specifies the number of commands to be run from the player queue when the
   check for network traffic indicates that there is data needing to be
   read from or written to the network.
@@ -7763,6 +8024,7 @@ SNOOPY                                                           God     Wiz
 
 & queue_compatible
   Config parameter: queue_compatible <yes/no>.  Default: no
+  
   Specifies if the Semaphore count is allowed to go negative.  If enabled,
   then Semaphore is allowed to be decremented by one every time @notify
   is called, weither you have anything to queue or not.  Otherwise, it
@@ -7770,6 +8032,7 @@ SNOOPY                                                           God     Wiz
 
 & queue_idle_chunk
   Config parameter: queue_idle_chunk <num>.  Default: 3
+  
   Specifies the number of commands to be run from the player queue when the
   check for network traffic indicates that there is no data needing to be
   read from or written to the network.
@@ -7777,11 +8040,13 @@ SNOOPY                                                           God     Wiz
 
 & quiet_look
   Config parameter: quiet_look <yes/no>.  Default: yes
+  
   Indicates whether or not players are shown the attributes set on an object
   when they look at it.  Best left enabled.
 
 & quiet_whisper
   Config parameter: quiet_whisper <yes/no>.  Default: yes
+  
   Indicates whether or not whispers are completely invisible except to the
   whispered-to player, or if a '<whisperer> whispers something to
   <recipient>.' message is displayed to everyone else in the same room.
@@ -7789,18 +8054,21 @@ SNOOPY                                                           God     Wiz
 
 & quit_file
   Config parameter: quit_file <filename>.  Default: quit.txt
+  
   Specifies the name of the file that is displayed to users after they QUIT
   but before the network connection is closed.
   See Also: QUIT, @readcache.
 
 & quota_cost
   Config parameter: quota_cost <amount>.  Default: 1
+  
   Indicates how much adding one object to the database charges against the
   player's quota.
   See Also: @create, @destroy, @dig, @open, @quota, QUOTAS.
 
 & quotas
   Config parameter: quotas <yes/no>.  Default: no
+  
   Indicates whether or not building quotas are enforced and maintained.
   Quotas are stored as a relative number, ie. number of objects that the
   player may create, not the total number that the player may create.
@@ -7811,6 +8079,7 @@ SNOOPY                                                           God     Wiz
 
 & read_remote_desc
   Config parameter: read_remote_desc <yes/no>.  Default: no
+  
   Indicates whether or not the descriptions of faraway objects are available
   to players that don't control them via the examine command and get()
   function.
@@ -7818,6 +8087,7 @@ SNOOPY                                                           God     Wiz
 
 & read_remote_name
   Config parameter: read_remote_name <yes/no>.  Default: no
+  
   Indicates whether or not the names of faraway objects are available
   to players that don't control them via the examine command and get()
   function.
@@ -7825,17 +8095,20 @@ SNOOPY                                                           God     Wiz
  
 & recycling
   Config parameter: recycling <yes/no>.  Default: yes
+  
   Indicates whether or not object destruction, recycling, reuse is enabled.
   Don't change it.
 
 & register_create_file
   Config parameter: register_create_file <filename>.  Default: create_reg.txt
+  
   Specifies the name of the file that is shown to players who attempt to
   create a new character when registration is in force from their site.
   See Also: @list_file, @readcache, register_site.
  
 & register_host
   Config parameter: register_host <!host> <host> ... <host>
+  
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will be marked as registration and will not be able
   to create a character.  This works like 'register_site' but deals with DNS 
@@ -7853,18 +8126,21 @@ SNOOPY                                                           God     Wiz
 
 & register_site
   Config parameter: register_site <addr> <mask>.
+  
   Indicates that registration is to be enforced for sites whose address
   matches the specified address when ANDed with the mask.
   See Also: forbid_site, noguest_site, permit_site, REGISTRATION, SITE LISTS.
 
 & regtry_limit
   Config parameter: regtry_limit <count>.  Default: 1
+  
   Specifies the number of times that a user is allowed to try to register
   for a character before that command is disabled for that particular
   connection.
 
 & restrict_home
   Config parameter: restrict_home <value>.  Default: 0 (unrestricted)
+  
   Specifies the restrictions that the commands 'home' and 'go home' will 
   entitle.  As 'home' is a special command it is not accessable with the
   normal '@admin access' parameter.  Thus, this parameter has been added
@@ -7890,11 +8166,13 @@ SNOOPY                                                           God     Wiz
     
 & restrict_home2
   Config parameter: restrict_home2 <value>. Default: 0 (unrestricted)
+  
   Allows distabling the home command for players set NO_CODE. If this
   parameter is set to 1, those players will not be able to go home.
 
 & restrict_sidefx
   Config parameter: restrict_sidefx <value>.  Default: 0 (unrestricted)
+  
   Specifies the bitlevel that is able to use the side-effect functions.
   The side-effect functions are:
       TEL    SET    PEMIT    LINK    CREATE    DIG    OPEN    EMIT
@@ -7913,17 +8191,20 @@ SNOOPY                                                           God     Wiz
 
 & retry_limit
   Config paramater: retry_limit <count>.  Default: 3
+  
   Specifies the number of times that a user is allowed to try to connect to
   an existing player before being disconnected.
   See Also: conn_timeout.
  
 & robot_cost
   Config paramater: robot_cost <amount>.  Default: 1000
+  
   Specifies the cost of using the @robot command to create a robot.
   See Also: @robot, ROBOT.
 
 & robot_flags
   Config parameter: robot_flags <flags>.  Default: ROBOT
+  
   Modifies the set of flags that a robot receives when it is created via
   the @robot command.  Flags prefixed by a ! remove the indicated flag from
   the set.
@@ -7935,6 +8216,7 @@ SNOOPY                                                           God     Wiz
 
 & robot_toggles
   Config parameter: robot_toggles <toggles>.  Default: blank
+  
   Modifies the set of toggles that a robot receives when it is created via
   the @robot command.  Toggles prefixed by a ! remove the indicated toggle from
   the set.
@@ -7946,12 +8228,14 @@ SNOOPY                                                           God     Wiz
 
 & robot_speech
   Config parameter: robot_speech: <yes/no>.  Default: yes
+  
   Indicates whether or not robot characters are allowed to use the speech,
   pose, and emit commands in areas not controlled by their owner.
   See Also: @robot, ROBOT.
 
 & room_aconnect
   Config parameter: room_aconnect <value>.  Default: 0
+  
   Specifies if individual rooms (and their parents) trigger @aconnects
   when a player connects at that location.  This follows standards for
   dark/wizcloak/supercloak.
@@ -7960,6 +8244,7 @@ SNOOPY                                                           God     Wiz
 
 & room_adisconnect
   Config parameter: room_adisconnect <value>.  Default: 0
+  
   Specifies if individual rooms (and their parents) trigger @adisconnects
   when a player disconnects at that location.  This follows standards for
   dark/wizcloak/supercloak.
@@ -7968,6 +8253,7 @@ SNOOPY                                                           God     Wiz
 
 & room_attr_default
   Config parameter: room_attr_default <dbref>.  Default: -1
+  
   Specifies the default dbref that internal attributes that are processed
   through the standard 'handler' are evaluated.  The original desc of the
   target is passed as '%0' into this description.  This effects built-ins
@@ -7980,6 +8266,7 @@ SNOOPY                                                           God     Wiz
 
 & room_flags
   Config parameter: room_flags <flags>.  Default: blank
+  
   Modifies the set of flags that a room receives when it is @dug.
   Flags prefixed by a ! remove the indicated flag from the set.
   
@@ -7990,6 +8277,7 @@ SNOOPY                                                           God     Wiz
 
 & room_toggles
   Config parameter: room_toggles <toggles>.  Default: blank
+  
   Modifies the set of toggles that a room receives when it is @dug.
   Flags prefixed by a ! remove the indicated toggle from the set.
   
@@ -8000,6 +8288,7 @@ SNOOPY                                                           God     Wiz
 
 & room_parent  
   Config parameter: room_parent <dbref>.  Default: #-1
+  
   Specifies what the default global parent should be.  If a valid global
   room_parent is defined, whenever new rooms are @dug, they will
   automatically be parented to the specified dbref#.  Permissions will not
@@ -8011,12 +8300,14 @@ SNOOPY                                                           God     Wiz
 
 & room_quota
   Config parameter: room_quota <amount>.  Default: 1
+  
   Sets how much quota it costs to dig a room (and also how much the
   remaining quota is increased when a room is @destroyed.
   See Also: @quota, exit_quota, player_quota, thing_quota, QUOTAS.
 
 & rooms_can_open
   Config parameter: rooms_can_open <yes/no>.  Default: no
+  
   When this config parameter is set to yes/1, rooms are able to use the
   @open command and open() function (if sideeffects are enabled).
   This helps with MUX compatiblilty. The resulting new exit will be owned
@@ -8024,11 +8315,13 @@ SNOOPY                                                           God     Wiz
 
 & roomlog_path
   Config parameter: roomlog_path <string>.  Default: roomlogs
+  
   Specifies the path (based off the game directory) where room logs
   are kept.  Room logs are from the LOGROOM toggle.
 
 & rwho_data_port
   Config parameter: rwho_data_port <number>.  Default: 0
+  
   Sets the port number that is used to retrive RWHO information from the
   remote RWHO server in response to a user entering the RWHO command.
   If zero, the RWHO command is disabled.  Use of this parameter is *STRONGLY*
@@ -8039,6 +8332,7 @@ SNOOPY                                                           God     Wiz
 
 & rwho_dump_interval
   Config parameter: rwho_dump_interval <secs>.  Default: 241
+  
   Sets the number of seconds between RWHO dumps, during which the RhostMUSH 
   sends an 'I am alive' message and a list of all connected users to the 
   remote RWHO server.
@@ -8046,18 +8340,21 @@ SNOOPY                                                           God     Wiz
 
 & rwho_host
   Config parameter: rwho_host <hostname/ip_address>.  Default: 36.21.0.69
+  
   Sets the host name or IP address of the remote RWHO server.
   See Also: mud_name, rwho_data_port, rwho_info_port, rwho_password,
             rwho_transmit.
 
 & rwho_info_port
   Config parameter: rwho_info_port <number>.  Default: 6888
+  
   Sets the port number to be used when sending data to the remote RWHO
   server.
   See Also: mud_name, rwho_host, rwho_password, rwho_transmit.
 
 & rwho_password
   Config parameter: rwho_password <string>.  Default: something wrong.
+  
   Sets the password that is used when sending data to a remote RWHO server.
   You must receive the value for this parameter from the administrator
   of the RWHO server that you are using.
@@ -8065,11 +8362,13 @@ SNOOPY                                                           God     Wiz
 
 & rwho_transmit
   Config parameter: rwho_transmit <yes/no>.  Default: no
+  
   Indicates whether or not to transmit data to a remote RWHO server.
   See Also: @list, mud_name, rwho_host, rwho_info_port, rwho_password.
 
 & sacrifice_adjust
   Config parameter: sacrifice_adjust <amount>.  Default -1.
+  
   This parameter is part of the formula that is used to determine an object's
   value given the amount spent on its creation.  The formula is:
  
@@ -8081,6 +8380,7 @@ SNOOPY                                                           God     Wiz
 
 & sacrifice_factor
   Config parameter: sacrifice_factor <amount>.  Default 5.
+  
   This parameter is part of the formula that is used to determine an object's
   value given the amount spent on its creation.  The formula is:
  
@@ -8092,6 +8392,7 @@ SNOOPY                                                           God     Wiz
 
 & safe_wipe
   Config parameter: safe_wipe <yes/no>.  Default: no
+  
   This parameter specifies if the SAFE and INDESTRUCTABLE flags will stop
   @wipe from working on that specific target that has either of those flags.
 
@@ -8118,12 +8419,14 @@ SNOOPY                                                           God     Wiz
 
 & search_cost
   Config parameter: search_cost <amount>.  Default: 100
+  
   Specifies how much commands that scan the entire database (such as @find,
   @search, and stats with a playername) cost.
   See Also: stats, @find, @search.
 
 & secure_atruselock
   Config parameter: secure_atruselock <yes/no>.  Default: no
+  
   Specifies if ATTRIBUTE USELOCKS (see help attribute uselock) can be set
   globally without restriction, or if it will require the IMMORTAL ONLY
   @toggle 'ATRUSE' to be set on the target before they can set attributes
@@ -8133,6 +8436,7 @@ SNOOPY                                                           God     Wiz
 
 & secure_dark
   Config parameter: secure_dark <yes/no>.  Default: no
+  
   Specifies weither non-wizards (below level 5) can set the dark flag
   on themselves.  Keep in mind that the admin parameter 'player_dark'
   if disabled will make this flag moot.
@@ -8161,6 +8465,7 @@ SNOOPY                                                           God     Wiz
 
 & secure_jumpok
   Config parameter: secure_jumpok <value>.  Default: 0
+  
   Specifies the permissions of someone being able to set the JUMP_OK flag.
   The following exist for permission levels:
      0  - Everyone can set it on everything.
@@ -8175,18 +8480,21 @@ SNOOPY                                                           God     Wiz
 
 & see_owned_dark
   Config parameter: see_owned_dark <yes/no>.  Default: yes
+  
   Specifies whether or not players see their own DARK objects when they
   look at a room.  It does not affect the inventory or examine commands,
   both of which show all objects.
 
 & showother_altname
   Config parameter: showother_altname <yes/no>.  Default: no
+  
   This config parameter specifies if people can see 'Equipment' that a player
   has by looking at them.  If this is toggled on, anything that a player
   has that is toggled WORN or WIELDED will show up as Equipment.
 
 & shs_reverse
   Config parameter: shs_reverse <yes/no>.  Default: no
+  
   This config parameter specifies if the SHA encryption via digest() is
   in SHS_REVERSE mode.  Some systems reverse the encryption methodology
   and this is to allow it to be compatable to systems that do.
@@ -8196,6 +8504,7 @@ SNOOPY                                                           God     Wiz
 
 & sideeffects
   Config parameter: sideeffects <value>.  Default: 32 (just LIST)
+  
   This config parameter specifies what side-effects you want enabled.
 
   Sideeffects may either be specified through a space delimited list
@@ -8229,7 +8538,8 @@ SNOOPY                                                           God     Wiz
   See Also: restrict_sidefx, sideeffects_txt, sideeffects_examples
 
 & sideeffects_examples
-  
+  Explanatory Field Only:
+   
   Compatability options:
     PENN = SET CREATE LINK PEMIT TEL DIG OPEN EMIT OEMIT CLONE PARENT
            LOCK LEMIT REMIT WIPE ZEMIT NAME
@@ -8248,6 +8558,8 @@ SNOOPY                                                           God     Wiz
   See Also: restrict_sidefx, sideeffects_txt, sideeffects
   
 & sideeffects_txt
+  Config parameter: sideeffects_txt   (no arguments)
+  
   This is used to display (via the config() function) the sideeffects
   that are currently being used.  This is only for display, and is
   intended to give a user-friendly string list of the parameters.
@@ -8256,6 +8568,7 @@ SNOOPY                                                           God     Wiz
 
 & signal_action
   Config parameter: signal_action <default|resignal|retry>.  Default: default
+  
   Specifies what action to take when a fatal signal is received.  The
   possibilities are:
      default  - Don't catch fatal signals.  Nothing will be cleaned up and a
@@ -8274,6 +8587,7 @@ SNOOPY                                                           God     Wiz
 
 & signal_cron
   Config parameter: signal_cron <bool>  Default: no (0)
+  
   This parameter specifies if you load in a predefined 'cron' file at the
   signal.  This is useful for tying in outside mush processing into the
   standard queue cycle.  For example, tying in the unix crontab right
@@ -8337,12 +8651,14 @@ SNOOPY                                                           God     Wiz
 
 & space_compress
   Config parameter: space_compress <yes/no>.  Default: yes
+  
   Specifies whether or not extra spaces are to be removed from user input
   as it is processed.  If enabled, multiple spaces are compressed to a single
   space, and spaces at the ends of strings are removed.
 
 & spam_limit
   Config parameter: spam_limit <value>.  Default: 60
+  
   This specifies the number of commands anyone who is flagged SPAMMONITOR
   may issue in a 60 second period of time.  This is a very handy flag to
   set on new players (player_flags admin param) to help avoid twinkieness
@@ -8355,6 +8671,7 @@ SNOOPY                                                           God     Wiz
 
 & spam_msg
   Config parameter: spam_msg <string>.  Default: <default string>
+  
   This specifies the message sent to the player when they have hit the
   threshold for spamming determined by the SPAMMONITOR flag.
   
@@ -8362,6 +8679,7 @@ SNOOPY                                                           God     Wiz
 
 & spam_objmsg
   Config parameter: spam_objmsg <string>.  Default: <default string>
+  
   This specifies the message sent to the player when their object hits
   the threshold for spamming determined by the SPAMMONITOR flag.
   
@@ -8385,6 +8703,7 @@ SNOOPY                                                           God     Wiz
 
 & stack_limit
   Config parameter: stack_limit <value>.  Default: 10000
+  
   Specifies the maximum recursive calls a command can issue before a ceiling
   is hit and it aborts the command lookup.  This is used to avoid some DoS
   based attacks that some twinkie little turdball could attempt.  All stack
@@ -8392,6 +8711,7 @@ SNOOPY                                                           God     Wiz
 
 & start_build
   Config parameter: start_build <yes/no>.  Default: no
+  
   Specifies whether or not players are allowed to build automatically when
   they connect.  Usually when a new player is created it sets them WANDERER
   so that even if with quota, they can not build.  This in effect removes
@@ -8399,11 +8719,13 @@ SNOOPY                                                           God     Wiz
 
 & starting_money
   Config parameter: starting_money <amount>.  Default: 0
+  
   Sets the amount of money that new players start out with.
   See Also: paycheck.
 
 & starting_quota
   Config parameter: starting_quota <amount>.  Default: 10
+  
   Sets the building quota that players receive when they are created, whether
   by @pcreate or the connection screen.
   See Also: @quota, quotas.
@@ -8418,6 +8740,7 @@ SNOOPY                                                           God     Wiz
 
 & sub_include
   Config parameter: sub_include <string>.    Default: (empty)
+  
   This parameter allows you to specify what NEW %-substitutions you wish
   to define.  You go about this by specifying each character in a string
   that you wish the parser to identify as a unique substitution.
@@ -8461,6 +8784,7 @@ SNOOPY                                                           God     Wiz
 
 & sub_override
   Config parameter: sub_override <bitwise mask>.   Default: 0
+  
   This sets up the override parameter for the various %-substitutions.  These
   substitutions are seen in 'help substitutions'.  When the mask exists, the
   default setting for these substitutions will be 'DISABLED'.  To enable it, 
@@ -8534,6 +8858,7 @@ SNOOPY                                                           God     Wiz
 
 & suspect_host
   Config parameter: suspect_host <!host> <host> ... <host>
+  
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will be marked as suspect upon socket connection. 
   This works like 'suspect_site' but deals with DNS wildcard name conventions.
@@ -8551,6 +8876,7 @@ SNOOPY                                                           God     Wiz
   
 & suspect_site
   Config parameter: suspect_site <addr> <mask>.
+  
   Indicates that sites whose address matches the specified address when ANDed
   with the mask are to be considered suspect, and any player creates, connects
   and disconnects are to be reported to all logged-in wizards.
@@ -8559,6 +8885,7 @@ SNOOPY                                                           God     Wiz
 
 & sweep_dark
   Config parameter: sweep_dark <yes/no>.  Default: no
+  
   Indicates whether or not players are allowed to @sweep dark places they do
   not control.
   
@@ -8566,18 +8893,21 @@ SNOOPY                                                           God     Wiz
 
 & switch_default_all
   Config parameter: switch_default_all <yes/no>.  Default: yes
+  
   Indicates whether the @switch command should perform the commands for all
   targets that match or just the first one that matches if you don't specify
   either /all or /first as a command switch.
 
 & switch_search
   Config parameter: switch_search <yes/no>.  Default: no
+  
   Specifies if search and searchng are switched for evaluation.
   
   See Also: (in help) @search, search(), searchng()
 
 & switch_substitutions
   Config parameter: switch_substitutions <yes/no>.  Default: no
+  
   Specifies if @switch, switch(), and switchall() allows #$ substitutions.
   By default, this is disabled as it firstly breaks compatibility with
   older versions of RhostMUSH, and secondly, because it is a security
@@ -8616,6 +8946,7 @@ SNOOPY                                                           God     Wiz
 
 & thing_attr_default
   Config parameter: thing_attr_default <dbref>.  Default: -1
+  
   Specifies the default dbref that internal attributes that are processed
   through the standard 'handler' are evaluated.  The original desc of the
   target is passed as '%0' into this description.  This effects built-ins
@@ -8628,6 +8959,7 @@ SNOOPY                                                           God     Wiz
 
 & thing_flags
   Config parameter: thing_flags <flags>.  Default: blank
+  
   Modifies the set of flags that a thing receives when it is @created.
   Flags prefixed by a ! remove the indicated flag from the set.
   
@@ -8637,6 +8969,7 @@ SNOOPY                                                           God     Wiz
 
 & thing_parent  
   Config parameter: thing_parent <dbref>.  Default: #-1
+  
   Specifies what the default global parent should be.  If a valid global
   thing_parent is defined, whenever new objects are @created, they will
   automatically be parented to the specified dbref#.  Permissions will not
@@ -8648,12 +8981,14 @@ SNOOPY                                                           God     Wiz
   
 & thing_quota
   Config parameter: thing_quota <amount>.  Default: 1
+  
   Sets how much quota it costs to create a thing (and also how much the
   remaining quota is increased when a thing is @destroyed.
   See Also: @quota, exit_quota, player_quota, room_quota, QUOTAS.
 
 & timeslice
   Config parameter: timeslice <amount>.  Default: 1000
+  
   Specifies the interval at which connected users' command quotas are
   increased.  Each command a user types in (commands executed by machines do
   not count) decreases that user's quota by 1, and the user's commands are
@@ -8666,7 +9001,8 @@ SNOOPY                                                           God     Wiz
   Sets an override for set permissions for the specified toggle.  This is
   similiar to issuing @toggledef/set on the specified toggle.
   
-  See Also: toggle_access_unset, toggle_access_see, @toggledef
+  See Also: toggle_access_unset, toggle_access_see, toggle_access_type, 
+            @toggledef
 
 & toggle_access_unset
   Config parameter: toggle_access_unset <togglename> <permission(s)>
@@ -8674,7 +9010,8 @@ SNOOPY                                                           God     Wiz
   Sets an override for unset permissions for the specified toggle.  This is
   similiar to issuing @toggledef/unset on the specified toggle.
   
-  See Also: toggle_access_set, toggle_access_see, @toggledef
+  See Also: toggle_access_set, toggle_access_see, toggle_access_type,
+            @toggledef
 
 & toggle_access_see
   Config parameter: toggle_access_set <togglename> <permission(s)>
@@ -8682,7 +9019,17 @@ SNOOPY                                                           God     Wiz
   Sets an override for see permissions for the specified toggle.  This is
   similiar to issuing @toggledef/see on the specified toggle.
   
-  See Also: toggle_access_unset, toggle_access_set, @toggledef
+  See Also: toggle_access_unset, toggle_access_set, toggle_access_type,
+            @toggledef
+
+& toggle_access_type
+  Config parameter: toggle_access_type <togglename> <permission(s)>
+  
+  Sets a type restriction for set/unset permissions for the specified toggle.
+  This is similiar to issuing @toggledef/type on the specified toggle.
+    
+  See Also: toggle_access_unset, toggle_access_set, toggle_access_type,
+            @toggledef
 
 & tor_localhost
   Config parameter: tor_localhost <host1> [<host2>... <hostX>]  Default: null
@@ -8708,6 +9055,7 @@ SNOOPY                                                           God     Wiz
 
 & trace_output_limit
   Config parameter: trace_output_limit <amount>.  Default: 200
+  
   Specifies the maximum number of lines of trace output that will be displayed
   when using top-down format.  Bottom-up format output is not affected by this
   parameter.
@@ -8722,24 +9070,28 @@ SNOOPY                                                           God     Wiz
 
 & trace_topdown
   Config parameter: trace_topdown <yes/no>.  Default: yes
+  
   Specifies whether TRACE output is displayed top-down (complete evaluation
   shown first, followed by sub-evaluations), or bottom-up (sub-evaluations
   shown first, followed by the larger evaluation of which they are a part).
 
 & trust_site
   Config parameter: trust_site <addr> <mask>.
+  
   Indicates that sites whose address matches the specified address when ANDed
   with the mask are not to be considered suspect.
   See Also: suspect_site, SITE LISTS.
 
 & uncompress_program
   Config parameter: uncompress_program <path>.  Default: /usr/ucb/uncompress
+  
   Specifies the program to be run to uncompress compressed database files when
   reading them in at startup.
   See Also: compress_program, compresion.
 
 & unowned_safe
   Config parameter: unowned_safe <yes/no>.  Default: no
+  
   Indicates whether or not objects not owned by you are automatically
   considered SAFE.  (This parameter only affects wizards)  Note that players
   are always considered SAFE, and DESTROY_OK things are never considered SAFE.
@@ -8747,11 +9099,13 @@ SNOOPY                                                           God     Wiz
 
 & user_attr_access
   Config parameter: user_attr_access [!]<privilege> [[!]<privilege>]...
+  
   Changes the access flags that new user-named attributes receive when
   they are created.  By default, user attributes are invisible to others.
 
 & validate_host
   Config parameter: validate_host <string>.  Default: (null)
+  
   Specifies invalid email addresses for the autoregistration system.
   If an email specified matches this wildcarded list, it will not allow
   the autoregistation.  This will add or remove to existing or from existing 
@@ -8778,6 +9132,7 @@ SNOOPY                                                           God     Wiz
  
 & vlimit
   Config parameter: vlimit <ammount>.  Default 750
+  
   Sets the total user-defined attributes that a dbref# can have.  Any
   attempt to set above this returns an error message.
   
@@ -8786,6 +9141,7 @@ SNOOPY                                                           God     Wiz
 
 & wait_cost
   Config parameter: wait_cost <amount>.  Default: 10
+  
   Sets the amount of money that it costs to run the @wait command and other
   actions that add commands to the queue.  The money is refunded when the
   command is removed from the queue (either when it is executed or by @halt).
@@ -8793,17 +9149,20 @@ SNOOPY                                                           God     Wiz
 
 & whereis_notify
   Config parameter: whereis_notify <value>.  Default: 1
+  
   Sets the condition if the targetted player gets notified if someone did
   a @whois on them.  Note, that cloaked wizards do not give a message to
   players who can not normally see them.
 
 & who_comment
   Config parameter: who_comment <yes/no>.  Default: yes
+  
   Indicates if the 'extra' commentary in the WHO/DOING should be seen.
   These are seen as (Bummers) and so forth.
 
 & who_default
   Config parameter: who_default <value>.  Default: 0
+  
   Sets the way the mortal WHO (or wizard DOING) looks.  The default is the
   standard RhostMUSH way (where it shows GUILDS).  Enabling this will
   remove the GUILDS from the WHO which in effect defaults the WHO look
@@ -8811,6 +9170,7 @@ SNOOPY                                                           God     Wiz
 
 & who_showwiz
   Config parameter: who_showwiz <value>.  Default: 0
+  
   Shows a '*' beside any staff GUILDMASTER and higher whenever a player
   types WHO or DOING.  This admin config takes presidence over the
   config parameter who_showwiztype.
@@ -8818,6 +9178,7 @@ SNOOPY                                                           God     Wiz
 
 & who_showwiztype
   Config parameter: who_showwiztype <value>.  Default: 0
+  
   Shows the flag associated with the staff's bit on the WHO.  Note that
   both ROYALTY (wizards) and IMMORTAL (super-wizards) are shown with the
   'W' flag in the WHO/DOING.  This admin parameter is ignored if the
@@ -8826,12 +9187,14 @@ SNOOPY                                                           God     Wiz
 
 & who_unfindable
   Config parameter: who_unfindable <value>.  Default: 1
+  
   Allows players to dissapear from the standard WHO/DOING list.  This
   unaffects any of the other operators of the unfindable flag.  A value
   of 0 will make it so they still show up on the WHO.
 
 & who_wizlevel
   Config parameter: who_wizlevel <value>.  Default: 0
+  
   This tells what wizlevel to show in the WHO if who_showwiz or 
   who_showwiztype is enabled.  If a value above the maximum level is
   specified (5) it assumes the maximum level (5).  The valid values are
@@ -8846,6 +9209,7 @@ SNOOPY                                                           God     Wiz
 
 & whohost_size
   Config parameter: whohost_size <value>.  Default: 0 (range: 0 to 28)
+  
   Specifies how many characters are to show up on a wizard WHO.  The default
   of '0' tells the WHO to display the full site regardless of the size.
   If a value greater than 0 or less than 28 is specified, then the hosts
@@ -8853,23 +9217,27 @@ SNOOPY                                                           God     Wiz
 
 & wiz_override
   Config parameter: wiz_override <value>.  Default: 1 (enabled)
+  
   Specifies if wizards (royalty and higher) override locks as the default.
   Locks include anything settable with @lock.  Attribute overriding is
   unaffected.
 
 & wiz_uselock
   Config parameter: wiz_uselock <value>.  Default: 1 (enabled)
+  
   Specifies if wizards (royalty and higher) override uselocks as the default.
   This ONLY effects uselocks.
 
 & wizard_help_file
   Config parameter: wizard_help_file <path>.  Default: wizhelp.txt
+  
   Specifies the name of the file containing the text used by the wizhelp
   command.
   See Also: wizhelp, wizard_help_index
 
 & wizard_help_index
   Config parameter: wizard_help_index <path>.  Default: wizhelp.indx
+  
   Specifies the name of the index file used by the wizhelp command.  This file
   must be generated by mkindex from the wizard help file.  The contents of
   this file are read in to a hash table when the game is started and whenever
@@ -8878,6 +9246,7 @@ SNOOPY                                                           God     Wiz
 
 & wizard_motd_file
   Config parameter: wizard_motd_file <path>.  Default: wizmotd.txt
+  
   Specifies the name of the file that contains the wizard MOTD message that
   is displayed to wizards when they log in.  This message is displayed in
   addition to the wizard MOTD message that is set by the @motd/wiz command or
@@ -8888,6 +9257,7 @@ SNOOPY                                                           God     Wiz
  
 & wizard_motd_message
   Config parameter: wizard_motd_message <message>.  Default: blank
+  
   Sets the wizard MOTD message that is displayed to wizards when they log in.
   This message is displayed in addition to the contents of the wizmotd.txt
   file.  It can be changed with the @motd/wiz command and examined by the
@@ -8896,6 +9266,7 @@ SNOOPY                                                           God     Wiz
 
 & wizard_queue_limit
   Config parameter: wizard_queue_limit.  Default: 100
+  
   Sets the maximum number of commands that wizard players may have on the
   queue at one time.  An attempt to queue more commands than allowed will
   halt the object performing the command.
@@ -8904,6 +9275,7 @@ SNOOPY                                                           God     Wiz
 
 & wizmax_vattr_limit
   Config parameter: wizmax_vattr_limit <num>    Default: 1000000
+  
   Specifies the maximum times a wizard (full wizard/bitlevel 5) or higher
   may be able to create *new* attributes.  A new attribute is defined as an
   attribute name that hasn't previously been created that does not exist
@@ -8916,6 +9288,7 @@ SNOOPY                                                           God     Wiz
 
 & wizmax_dest_limit
   Config parameter: wizmax_dest_limit <num>.  Default: 100000
+  
   Specifies the maximum times a wizard (full wizard/bitlevel 5) or higher may 
   be able to @destroy something.  Once this limit is reached, they will no
   longer be able to issue the @destroy command.  This limit may be increased
@@ -8927,6 +9300,7 @@ SNOOPY                                                           God     Wiz
 
 & zone_parents
   Config parameter: zone_parents (yes/no).  Default: YES
+  
   This option specifies if zones are allowed to inherit attributes from
   their zone masters.
   
@@ -8938,6 +9312,7 @@ SNOOPY                                                           God     Wiz
 
 & zones_like_parents
   Config parameter: zones_like_parents <yes/no>.  Default: NO
+  
   This parameter specifies if objects and players should follow zones for
   $commands as if they were @parents.  This can be a bit more computationally
   expensive so some care should be thought out prior to using this.

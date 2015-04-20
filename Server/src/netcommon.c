@@ -2149,6 +2149,9 @@ announce_connect(dbref player, DESC * d, int dc)
 	    if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
+	    } else if (dc == 2) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (@hide Connect)"));
 	    } else if ( mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc))) ) {
 		    notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Blind)"));
@@ -2160,6 +2163,9 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (NCloak(player)) {
 		notify_except3(loc, player, player, player, 0,
 			       strcat(buf, " (Cloaked)"));
+	    } else if (dc == 2) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (@hide Connect)"));
 	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
@@ -2185,6 +2191,9 @@ announce_connect(dbref player, DESC * d, int dc)
 	    } else if (Dark(player)) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark)"));
+	    } else if (dc == 2) {
+		notify_except3(loc, player, player, player, 0,
+				strcat(buf, " (@hide Connect)"));
 	    } else if (dc) {
 		notify_except3(loc, player, player, player, 0,
 				strcat(buf, " (Dark Connect)"));
@@ -2748,9 +2757,10 @@ static void
 dump_users(DESC * e, char *match, int key)
 {
     DESC *d;
-    int count, rcount = 0;
+    dbref aowner;
+    int count, rcount = 0, i_attrpipe = 0, aflags;
     time_t now;
-    char *buf, *fp, *gp, *doingAnsiBuf, *doingAccentBuf, *pDoing; 
+    char *buf, *fp, *gp, *doingAnsiBuf, *doingAccentBuf, *pDoing, *atext, *atext2, *atextptr; 
 #ifdef ZENTY_ANSI
     char *doingAnsiBufp, *abuf, *abufp, *msg_ns2, *mp2, *doingAccentBufp;
 #endif
@@ -2759,10 +2769,11 @@ dump_users(DESC * e, char *match, int key)
     char buf_format[80];
     char one_chr_holder = ' ';
     char *tpr_buff, *tprp_buff;
+    ATTR *atr;
 
     DPUSH; /* #139 */
     memset(buf_format, 0, sizeof(buf_format));
-    if (Fubar(e->player)) {
+    if ( Good_chk(e->player) && Fubar(e->player)) {
 	notify(e->player, "You can't do that...");
 	VOIDRETURN; /* #139 */
     }
@@ -2777,28 +2788,83 @@ dump_users(DESC * e, char *match, int key)
     doingAccentBuf = alloc_lbuf("dump_users_accents");
     tprp_buff = tpr_buff = alloc_lbuf("dump_users_tprintf");
 
+    if ( Good_chk(e->player) && H_Attrpipe(e->player) ) {
+       atr = atr_str3("___ATTRPIPE");
+       if ( atr ) {
+          atext2 = atr_get(e->player, atr->number, &aowner, &aflags);
+          if ( *atext2 ) {
+             atr = atr_str3(atext2);
+             if ( atr ) {
+                if ( Controlsforattr(e->player, e->player, atr, aflags) ) {
+                   i_attrpipe = 1;
+                }
+             }
+          }
+          free_lbuf(atext2);
+          if ( i_attrpipe ) {
+             atext2 = atr_get(e->player, atr->number, &aowner, &aflags);
+             atextptr = atext = alloc_lbuf("dump_users_pipe");
+             safe_str(atext2, atext, &atextptr);
+             free_lbuf(atext2);
+          }
+       }
+       if ( !i_attrpipe ) {
+          queue_string(e, (char *)"Notice: Piping attribute no longer exists.  Piping has been auto-disabled.\r\n");
+          s_Flags4(e->player, Flags4(e->player) & ~HAS_ATTRPIPE);
+          atr = atr_str3("___ATTRPIPE");
+          if ( atr ) {
+             atr_clr(e->player, atr->number);
+          }
+       }
+    }
     time(&now);
 
     if (key == CMD_SESSION) {
-	queue_string(e, "                                  ");
-	queue_string(e, "Characters Input----  Characters Output---\r\n");
-        queue_string(e, "Player Name          #Cmnds Port  ");
+        if ( i_attrpipe ) {
+           safe_str((char *)"                                  ", atext, &atextptr);
+           safe_str((char *)"Characters Input----  Characters Output---\r\n", atext, &atextptr);
+           safe_str((char *)"Player Name          #Cmnds Port  ", atext, &atextptr);
+        } else {
+	   queue_string(e, "                                  ");
+	   queue_string(e, "Characters Input----  Characters Output---\r\n");
+           queue_string(e, "Player Name          #Cmnds Port  ");
+        }
     }
     else
 #ifdef PARIS
-      queue_string(e, "Player Name            On For Idle  ");
+      if ( i_attrpipe ) {
+         safe_str((char *)"Player Name            On For Idle  ", atext, &atextptr);
+      } else {
+         queue_string(e, "Player Name            On For Idle  ");
+      }
 #else
-      queue_string(e, "Player Name          On For Idle  ");
+      if ( i_attrpipe ) {
+         safe_str((char *)"Player Name          On For Idle  ", atext, &atextptr);
+      } else {
+         queue_string(e, "Player Name          On For Idle  ");
+      }
 #endif
     if (key == CMD_SESSION) {
-	queue_string(e, "Pend  Lost     Total  Pend  Lost     Total\r\n");
+        if ( i_attrpipe ) {
+           safe_str((char *)"Pend  Lost     Total  Pend  Lost     Total\r\n", atext, &atextptr);
+        } else {
+	   queue_string(e, "Pend  Lost     Total  Pend  Lost     Total\r\n");
+        }
     } else if ((e->flags & DS_CONNECTED) && (Wizard(e->player) || HasPriv(e->player, NOTHING, POWER_WIZ_WHO, POWER3, POWER_LEVEL_NA))
 	&& (!DePriv(e->player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
 	       && (key == CMD_WHO)) {
 #ifdef PARIS
-        queue_string(e, "Room      Cmds Host\r\n");
+        if ( i_attrpipe ) {
+           safe_str((char *)"Room      Cmds Host\r\n", atext, &atextptr);
+        } else {
+           queue_string(e, "Room      Cmds Host\r\n");
+        }
 #else
-	queue_string(e, "Room     Ports Host\r\n");
+        if ( i_attrpipe ) {
+           safe_str((char *)"Room     Ports Host\r\n", atext, &atextptr);
+        } else {
+	   queue_string(e, "Room     Ports Host\r\n");
+        }
 #endif
     } else {
 	if (mudconf.who_default) {
@@ -2808,14 +2874,26 @@ dump_users(DESC * e, char *match, int key)
 	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2);
            *mp2 = '\0';
            if ( Accents(e->player) ) {
-	      queue_string(e, msg_ns2);
+              if ( i_attrpipe ) {
+                 safe_str(msg_ns2, atext, &atextptr);
+              } else {
+	         queue_string(e, msg_ns2);
+              }
            } else {
-	      queue_string(e, strip_safe_accents(abuf));
+              if ( i_attrpipe ) {
+                 safe_str(strip_safe_accents(abuf), atext, &atextptr);
+              } else {
+	         queue_string(e, strip_safe_accents(abuf));
+              }
            }
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
-	   queue_string(e, mudstate.ng_doing_hdr);
+           if ( i_attrpipe ) {
+              safe_str(mudstate.ng_doing_hdr, atext, &atextptr);
+           } else {
+	      queue_string(e, mudstate.ng_doing_hdr);
+           }
 #endif
 	} else  {
            tprp_buff = tpr_buff;
@@ -2825,20 +2903,39 @@ dump_users(DESC * e, char *match, int key)
 	   parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2);
            *mp2 = '\0';
            if ( Accents(e->player) ) {
-	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
-                           mudstate.guild_hdr, msg_ns2));
+              if ( i_attrpipe ) {
+                 safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_ns2),
+                          atext, &atextptr);
+              } else {
+	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+                              mudstate.guild_hdr, msg_ns2));
+              }
            } else {
-	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
-                           mudstate.guild_hdr, strip_safe_accents(abuf)));
+              if ( i_attrpipe ) {
+                 safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, strip_safe_accents(abuf)),
+                          atext, &atextptr);
+              } else {
+	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+                              mudstate.guild_hdr, strip_safe_accents(abuf)));
+              }
            }
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
-	   queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
-                        mudstate.guild_hdr,mudstate.doing_hdr));
+           if ( i_attrpipe ) {
+              safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr,mudstate.doing_hdr),
+                       atext, &atextptr);
+           } else {
+	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
+                           mudstate.guild_hdr,mudstate.doing_hdr));
+           }
 #endif
         }
-	queue_string(e, "\r\n");
+        if ( i_attrpipe ) {
+           safe_str("\r\n", atext, &atextptr);
+        } else {
+	   queue_string(e, "\r\n");
+        }
     }
     count = 0;
     DESC_ITER_CONN(d) {
@@ -3115,9 +3212,18 @@ dump_users(DESC * e, char *match, int key)
                    *fp++ = one_chr_holder;
                 one_chr_holder=' ';
 	    }
-	    queue_string(e, buf);
-	    if (ShowAnsi(e->player) && index(buf, ESC_CHAR))
-		queue_string(e, antemp);
+            if ( i_attrpipe ) {
+               safe_str(buf, atext, &atextptr);
+            } else {
+	       queue_string(e, buf);
+            }
+	    if (ShowAnsi(e->player) && index(buf, ESC_CHAR)) {
+                if ( i_attrpipe ) {
+                   safe_str(antemp, atext, &atextptr);
+                } else {
+		   queue_string(e, antemp);
+                }
+            }
 	}
     }
 
@@ -3143,18 +3249,37 @@ dump_users(DESC * e, char *match, int key)
        sprintf(buf, "%d Player%slogged in.\r\n", rcount,
    	       (rcount == 1) ? " " : "s ");
 
-    queue_string(e, buf);
+    if ( i_attrpipe ) {
+       safe_str(buf, atext, &atextptr);
+    } else {
+       queue_string(e, buf);
+    }
     if ((rcount - count > 0) && mudconf.who_unfindable) {
 	sprintf(buf, "%d Player%s hidden.\r\n", rcount - count,
 		(rcount - count == 1) ? " is" : "s are");
-	queue_string(e, buf);
+        if ( i_attrpipe ) {
+           safe_str(buf, atext, &atextptr);
+        } else {
+	   queue_string(e, buf);
+        }
     }
-    if ( NoWho(e->player) )
-       queue_string(e, "You are @hidden from the WHO.\r\n");
+    if ( NoWho(e->player) ) {
+       if ( i_attrpipe ) {
+          safe_str(buf, atext, &atextptr);
+       } else {
+          queue_string(e, "You are @hidden from the WHO.\r\n");
+       }
+    }
     free_lbuf(buf);
     free_lbuf(doingAnsiBuf);
     free_lbuf(doingAccentBuf);
     free_lbuf(tpr_buff);
+    if ( i_attrpipe ) {
+       atr_add_raw(e->player, atr->number, atext);
+       if ( TogNoisy(e->player) )
+          queue_string(e, "Piping output to attribute.\r\n");
+       free_lbuf(atext);
+    }
     VOIDRETURN; /* #139 */
 }
 /* ---------------------------------------------------------------------------
@@ -3215,22 +3340,50 @@ do_uptime(dbref player, dbref cause, int key)
   time_t now;
   char *buff;
   int i_syear, i_ryear;
-  
+  char *s_uptime, *s_chk;
+  FILE *fp;
+
   DPUSH; /* #141 */
   
   time(&now);
+
   buff = alloc_mbuf("uptime");
+  s_uptime = alloc_mbuf("uptime_sys");
+
+  /* Open the command for reading. */
+  fp = popen("/usr/bin/uptime", "r");
+  if (fp != NULL) {
+     memset(s_uptime, '\0', MBUF_SIZE);
+     fgets(s_uptime, MBUF_SIZE - 1, fp);
+     s_chk = strchr(s_uptime, ',');
+     if ( s_chk ) {
+        s_chk = strchr(s_chk+1, ',');
+        if ( s_chk )
+           *s_chk = '\0';
+        else
+           memset(s_uptime, '\0', MBUF_SIZE);
+     } else {
+        memset(s_uptime, '\0', MBUF_SIZE);
+     }
+     pclose(fp);
+  }
+
   strcpy(buff,time_format_1(now - mudstate.reboot_time));
   i_syear = ((mudstate.now - mudstate.start_time) / 31536000);
   i_ryear = ((mudstate.now - mudstate.reboot_time) / 31536000);
-  if ( i_syear || i_ryear )
+  if ( i_syear || i_ryear ) {
     notify(player, unsafe_tprintf("%s has been up for %dy %s, Reboot: %dy %s",
 			   mudconf.mud_name, i_syear,
 			   time_format_1(now - mudstate.start_time), i_ryear, buff));
-  else
+    if ( *s_uptime )
+       notify(player, unsafe_tprintf("System Uptime: %s", s_uptime));
+  } else {
     notify(player, unsafe_tprintf("%s has been up for %s, Reboot: %s",
 			   mudconf.mud_name,
 			   time_format_1(now - mudstate.start_time), buff));
+    if ( *s_uptime )
+       notify(player, unsafe_tprintf("System Uptime: %s", s_uptime));
+  }
   free_mbuf(buff);
   VOIDRETURN; /* #141 */
 }
@@ -3646,7 +3799,7 @@ check_connect(DESC * d, const char *msg)
 	   strcat(user, buff2);
         }
     }
-    if ((!strncmp(command, "co", 2)) || (!strncmp(command, "cd", 2))) {
+    if ( (!strncmp(command, "co", 2)) || (!strncmp(command, "cd", 2)) || (!strncmp(command, "ch", 2)) ) {
 
 	/* See if this connection would exceed the max #players */
         
@@ -3668,7 +3821,9 @@ check_connect(DESC * d, const char *msg)
         ok_to_login = ((nplayers < mudconf.max_players) && (nplayers < mudstate.max_logins_allowed));
 	if (!strncmp(command, "cd", 2))
 	  dc = 1;
-	else
+	else if ( !strncmp(command, "ch", 2))
+          dc = 2;
+        else
 	  dc =0;
 	player = connect_player(user, password, (char *)d);
         player2 = lookup_player(NOTHING, user, 0);
@@ -3770,7 +3925,7 @@ check_connect(DESC * d, const char *msg)
 		}
 		free_lbuf(buff);
 	    }
-	    if (dc) {
+	    if (dc == 1) {
 	      if (Immortal(player)) {
 		s_Flags2(player, (Flags2(player) | SCLOAK | UNFINDABLE));
 		s_Flags(player, (Flags(player) | DARK));
@@ -3781,7 +3936,13 @@ check_connect(DESC * d, const char *msg)
 	      }
 	      if ((!Immortal(player) && !Wizard(player)) || (Wizard(player) && DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)))
 		dc = 0;
-	    }
+	    } else if (dc == 2) { 
+               if ( Wizard(player) || HasPriv(player, NOTHING, POWER_NOWHO, POWER5, NOTHING) ) {
+                  s_Flags3(player, Flags3(player) | NOWHO);
+               } else {
+                  dc = 0;
+               }
+            }
             mudstate.chkcpu_stopper = time(NULL);
             mudstate.chkcpu_toggle = 0;
             mudstate.chkcpu_locktog = 0;
