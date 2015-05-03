@@ -747,6 +747,8 @@ NAMETAB pipe_sw[] =
 {
     {(char *) "on", 1, CA_PUBLIC, 0, PIPE_ON},
     {(char *) "off", 1, CA_PUBLIC, 0, PIPE_OFF},
+    {(char *) "tee", 1, CA_PUBLIC, 0, PIPE_TEE},
+    {(char *) "status", 1, CA_PUBLIC, 0, PIPE_STATUS},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pemit_sw[] =
@@ -9073,43 +9075,47 @@ do_pipe(dbref player, dbref cause, int key, char *name)
 {
    ATTR *atr, *atr2;
    dbref aowner;
-   int aflags, anum;
-   char *s_atext;
+   int aflags, anum, i_type;
+   char *s_atext, *s_tmpbuff;
 
    switch (key) {
       case PIPE_ON: /* Enable piping to attribute */
+      case PIPE_TEE: /* Enable piping to attribute */
            if ( H_Attrpipe(player) ) {
-              raw_notify(player, (char *)"You already are piping to an attribute.", 0, 1);
+              raw_notify(player, (char *)"@pipe: you already are piping to an attribute.", 0, 1);
            } else {
               if ( !*name ) {
-                 notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                 notify_quiet(player, (char *)"@pipe: a valid attribute must be specified to pipe to.");
               } else {
                  anum = mkattr(name);
                  if ( anum < 0 ) {
-                    notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                    notify_quiet(player, (char *)"@pipe: a valid attribute must be specified to pipe to.");
                  } else { 
                     atr2 = atr_str3(name);
                     if ( !atr2 ) {
-                       notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                       notify_quiet(player, (char *)"@pipe: a valid attribute must be specified to pipe to.");
                     } else {
                        anum = mkattr("___ATTRPIPE");
                        if ( anum > 0 ) {
                           atr = atr_str("___ATTRPIPE");
                           if ( !atr ) {
-                             notify_quiet(player, (char *)"The piping attribute could not be written to.");
+                             notify_quiet(player, (char *)"@pipe: the piping attribute could not be written to.");
                           } else {
                              s_atext = atr_get(player, atr2->number, &aowner, &aflags);
                              free_lbuf(s_atext);
                              if ( !Controlsforattr(player, player, atr2, aflags)) {
-                                notify_quiet(player, (char *)"You have no permission to pipe to that attribute.");
+                                notify_quiet(player, (char *)"@pipe: you have no permission to pipe to that attribute.");
                              } else {
-                                notify_quiet(player, (char *)"Piping to attribute has been enabled.");
-                                atr_add_raw(player, atr->number, name);
+                                notify_quiet(player, (char *)"@pipe: piping to attribute has been enabled.");
+                                s_tmpbuff = alloc_lbuf("do_pipe_tee");
+                                sprintf(s_tmpbuff, "%s %d", name, ((key & PIPE_TEE) ? 1 : 0));
+                                atr_add_raw(player, atr->number, s_tmpbuff);
+                                free_lbuf(s_tmpbuff);
                                 s_Flags4(player, Flags4(player) | HAS_ATTRPIPE);
                              }
                           }
                        } else {
-                          notify_quiet(player, (char *)"The piping attribute could not be written to.");
+                          notify_quiet(player, (char *)"@pipe: the piping attribute could not be written to.");
                        }
                     }
                  }
@@ -9123,13 +9129,44 @@ do_pipe(dbref player, dbref cause, int key, char *name)
               if ( atr ) {
                  atr_clr(player, atr->number);
               }
-              notify_quiet(player, (char *)"Piping to attribute has been disabled.");
+              notify_quiet(player, (char *)"@pipe: piping to attribute has been disabled.");
            } else {
-              notify_quiet(player, (char *)"Piping to attribute is not currently enabled.");
+              notify_quiet(player, (char *)"@pipe: piping to attribute is not currently enabled.");
+           }
+           break;
+      case PIPE_STATUS: /* Status of piping */
+           i_type = 0;
+           if ( H_Attrpipe(player) ) {
+              anum = mkattr("___ATTRPIPE");
+              if ( anum > 0 ) {
+                 atr = atr_str("___ATTRPIPE");
+                 if ( !atr ) {
+                    s_Flags4(player, Flags4(player) & ~HAS_ATTRPIPE);
+                    notify_quiet(player, (char *)"@pipe: piping could not continue so was automatically stopped.");
+                 } else {
+                    s_atext = atr_get(player, atr->number, &aowner, &aflags);
+                    s_tmpbuff = strchr(s_atext, ' ');
+                    if ( s_tmpbuff ) {
+                       *s_tmpbuff = '\0';
+                       i_type = atoi(s_tmpbuff+1);
+                    }
+                    s_tmpbuff = alloc_lbuf("pipe_status");
+                    sprintf(s_tmpbuff, "@pipe: currently in %s mode writing to attribute '%s'.", 
+                           (i_type ? "TEE" : "PIPE (ON)"), s_atext);
+                    raw_notify(player, s_tmpbuff, 0, 1);
+                    free_lbuf(s_tmpbuff);
+                    free_lbuf(s_atext); 
+                 }
+              } else {
+                 s_Flags4(player, Flags4(player) & ~HAS_ATTRPIPE);
+                 notify_quiet(player, (char *)"@pipe: piping could not continue so was automatically stopped.");
+              }
+           } else {
+              notify_quiet(player, (char *)"@pipe: piping to attribute is not currently enabled.");
            }
            break;
       default: /* A switch must be used */
-           raw_notify(player, (char *)"A valid switch must be used with @pipe.", 0, 1);
+           raw_notify(player, (char *)"@pipe: a valid switch must be used with @pipe.", 0, 1);
            break;        
    }
 

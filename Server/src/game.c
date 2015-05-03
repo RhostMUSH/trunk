@@ -599,9 +599,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     char *mp2;
 #endif
     char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
-    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipebuff, *s_pipebuffptr;
+    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
-    int i, nargs, aflags, has_neighbors, pass_listen, noansi=0;
+    int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype;
     int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
     FWDLIST *fp;
     ATTR *ap_log, *ap_attrpipe;
@@ -630,10 +630,17 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     }
     /* Let's optionally log to a file if specified -- Note:  This bypasses spoof output obviously */ 
     if ( H_Attrpipe(target) ) {
+       i_pipetype = 0;
        ap_attrpipe = atr_str_notify("___ATTRPIPE");
        if ( ap_attrpipe ) {
           s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
           if ( *s_pipeattr ) {
+             if ( (s_pipeattr2 = strchr(s_pipeattr, ' ')) != NULL ) {
+                *s_pipeattr2 = '\0';
+                i_pipetype = atoi(s_pipeattr2+1);
+             } else {
+                i_pipetype = 0;
+             }
              ap_attrpipe = atr_str_notify(s_pipeattr);
              if ( ap_attrpipe ) {
                 free_lbuf(s_pipeattr);
@@ -648,11 +655,15 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                       safe_str((char *)msg, s_pipebuff, &s_pipebuffptr);
                       atr_add_raw(target, ap_attrpipe->number, s_pipebuff);
                       free_lbuf(s_pipebuff);
-                      free_lbuf(s_pipeattr);
-	              mudstate.ntfy_nest_lev--;
-                      if ( TogNoisy(target) )
-                         raw_notify(target, (char *)"Piping output to attribute.", 0, 1);
-	              VOIDRETURN; /* #75 */
+                      if ( i_pipetype == 0 ) {
+                         free_lbuf(s_pipeattr);
+                         if ( TogNoisy(target) )
+                            raw_notify(target, (char *)"Piping output to attribute.", 0, 1);
+	                 mudstate.ntfy_nest_lev--;
+	                 VOIDRETURN; /* #75 */
+                      }
+                   } else {
+                      i_pipetype = -1;
                    }
                 }
              }
@@ -661,13 +672,19 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
        }
        if ( !ap_attrpipe ) {
           raw_notify(target, (char *)"Notice: Piping attribute no longer exists.  Piping has been auto-disabled.", 0, 1);
+          i_pipetype = -2;
        } else {
-          raw_notify(target, (char *)"Notice: Piping attribute full.  Piping has been auto-disabled.", 0, 1);
+          if ( (i_pipetype == -1) || (i_pipetype == 0) ) {
+             raw_notify(target, (char *)"Notice: Piping attribute full.  Piping has been auto-disabled.", 0, 1);
+             i_pipetype = -2;
+          }
        }
-       s_Flags4(target, (Flags4(target) & (~HAS_ATTRPIPE)));
-       ap_attrpipe = atr_str_notify("___ATTRPIPE");
-       if ( ap_attrpipe )
-          atr_clr(target, ap_attrpipe->number);
+       if ( i_pipetype == -2 ) {
+          s_Flags4(target, (Flags4(target) & (~HAS_ATTRPIPE)));
+          ap_attrpipe = atr_str_notify("___ATTRPIPE");
+          if ( ap_attrpipe )
+             atr_clr(target, ap_attrpipe->number);
+       }
     }
     /* If we want NOSPOOF output, generate it.  It is only needed if
      * we are sending the message to the target object */

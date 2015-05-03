@@ -3875,16 +3875,22 @@
   attribute can not be full (or it'll auto-disable upon attempt).  The 
   attribute is also always on the enactor.  You can't specify another object.
   The following switches are used:
-    /on   -- Turn on piping to the specified attribute.  
-    /off  -- Turn off piping to the attribute.
+    /on     -- Turn on piping to the specified attribute.  
+    /off    -- Turn off piping to the attribute.
+    /tee    -- This turns on piping but also allows viewing output normally.
+    /status -- This gives the current status of your piping.
   
   Please note, you obviously can not pipe to multiple attributes at once,
   and once the attribute is filled to capacity, piping to that attribute
   will be automatically disabled and output will return to your screen
-  as normal.
+  as normal.  If you specify /tee output will occur normally to your screen
+  but you will still be notified if the attrib is filled or an error
+  occured while writing output to it.
   
   If you @toggle yourself NOISY, then every output segment that would show
-  up on your screen will notify you that it was piped to the file.
+  up on your screen will notify you that it was piped to the file.  This
+  can be spammy, but it is useful if you want some notification and you
+  have not used /tee.
   
   If you are still piping to an attribute, it will notify you of this upon
   connection, regardless of the NOISY @toggle. 
@@ -27510,6 +27516,7 @@ New Features
 * sortlist() takes 2 or more lists and selects max/min based on sorting [ASH]
 * ch to allow you to connect @hidden (if wizard or @powered NOWHO) [ASH]
 * flag_access_type, toggle_access_type @admin parms for TYPE restrictions [ASH]
+* /tee and /status switches for @pipe to allow more flexibility [ASH]
   
 Changes
 ------------
