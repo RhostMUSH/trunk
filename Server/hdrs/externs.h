@@ -803,6 +803,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PEMIT_OSTR	4194304 /* @oemit uses multi-parameters */
 #define PIPE_ON         1       /* Enable @pipe to attribute */
 #define PIPE_OFF        2	/* Disable @pipe to attribute */
+#define PIPE_TEE        4	/* Enable @pipe to attribute + normal output */
+#define PIPE_STATUS	8	/* Status of piping */
 #define	PS_BRIEF	0	/* Short PS report */
 #define	PS_LONG		1	/* Long PS report */
 #define	PS_SUMM		2	/* Queue counts only */
