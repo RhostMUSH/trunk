@@ -3407,6 +3407,7 @@ do_uptime(dbref player, dbref cause, int key)
        notify(player, unsafe_tprintf("System Uptime: %s", s_uptime));
   }
   free_mbuf(buff);
+  free_mbuf(s_uptime);
   VOIDRETURN; /* #141 */
 }
 
