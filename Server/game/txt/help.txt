@@ -27532,6 +27532,7 @@ Changes
 * added bitlevel permission override to @flagdef/@typedef TYPE restricts [ASH]
 * editansi() now accepts multiple arguments for search/replace [ASH]
 * 'N' normalizer search for editansi() [ASH]
+* with the avent of SHA512 passwords, password length capped at 160 char [ASH]
     
 Bug Fixes
 ------------

@@ -1183,6 +1183,11 @@ int ok_password(const char *password, dbref player, int key)
   if (*password == '\0')
     return 0;
 
+  if ( strlen(password) > 160 ) {
+    notify_quiet(player, "The password must be less than 160 characters long.");
+    return 0;
+  }
+
   num_upper = num_lower = num_special = 0;
   for (scan = password; *scan; scan++) {
     if (!isprint((int)*scan) || isspace((int)*scan)) {
