@@ -27517,6 +27517,8 @@ New Features
 * ch to allow you to connect @hidden (if wizard or @powered NOWHO) [ASH]
 * flag_access_type, toggle_access_type @admin parms for TYPE restrictions [ASH]
 * /tee and /status switches for @pipe to allow more flexibility [ASH]
+* Optional compiletime to allow GLIB2's SHA512 random-seed passwords [ASH]
+  Note: This does allow backward compatibility with existing DES passwords
   
 Changes
 ------------

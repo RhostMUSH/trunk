@@ -50,7 +50,7 @@ BETAOPT=0
 DEFS="-Wall"
 DATE="$(date +"%m%d%y")"
 MORELIBS="\$(EXTLIBS)"
-OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25"
+OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26"
 C_OPTIONS=$(echo $OPTIONS|wc -w)
 BOPTIONS="1 2 3 4 5 6"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
@@ -117,6 +117,7 @@ DEF[22]="-DMUXCRYPT"
 DEF[23]=""
 DEF[24]=""
 DEF[25]="-DPCRE_BUILTIN"
+DEF[26]="-DCRYPT_GLIB2"
 DEFB[1]="\$(MYSQL_DEFS)"
 DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
@@ -207,7 +208,7 @@ echo "[${X[13]}] 13. Enhanced ANSI      [${X[14]}] 14. Marker Flags       [${X[1
 echo "[${X[16]}] 16. Alternate WHO      [${X[17]}] 17. Old SETQ/SETR      [${X[18]}] 18. Secured Sideeffects"
 echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[21]}] 21. Old Reality Lvls" 
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
-echo "[${X[25]}] 25. Pcre System Libs"
+echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords"
 echo "--------------------------- Beta/Unsupported Additions -----------------------"
 echo "[${XB[1]}] B1. 3rd Party MySQL    [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
@@ -472,6 +473,10 @@ info() {
      25) echo "The system dependant PCRE Library will be much  much faster"
          echo "than the one included with the source.  However, if you find"
          echo "issues with it compiling with this enabled, disable it."
+         ;;
+     26) echo "This option encrypts your passwords using a random seed and"
+         echo "the SHA512 encryption method.  It will fall back to standard"
+         echo "DES encryption for compatibility regardless."
          ;;
      B*|b*) RUNBETA=1
          info $(echo $1|cut -c2-)
