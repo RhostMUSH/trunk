@@ -69,6 +69,17 @@ if [ $(${MYGCC} -lpcre 2>&1|grep -c "cannot find") -eq 0 ]
 then
    X[25]="X"
 fi
+gl_ldd=$(ldd --version|head -1|cut -f2 -d')')
+gl_ldd1=$(echo ${gl_ldd}|cut -f1 -d".")
+gl_ldd2=$(echo ${gl_ldd}|cut -f2 -d".")
+if [ -z "${gl_ldd2}" ]
+then
+   gl_ldd2=0
+fi
+if [ ${gl_ldd1} -ge 2 -a ${gl_ldd2} -ge 7 ]
+then
+   X[26]="X"
+fi
 for i in ${BOPTIONS}
 do
    XB[${i}]=" "
