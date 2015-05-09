@@ -1184,7 +1184,9 @@ int ok_password(const char *password, dbref player, int key)
     return 0;
 
   if ( strlen(password) > 160 ) {
+#ifndef STANDALONE
     notify_quiet(player, "The password must be less than 160 characters long.");
+#endif
     return 0;
   }
 
