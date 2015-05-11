@@ -27517,6 +27517,8 @@ New Features
 * ch to allow you to connect @hidden (if wizard or @powered NOWHO) [ASH]
 * flag_access_type, toggle_access_type @admin parms for TYPE restrictions [ASH]
 * /tee and /status switches for @pipe to allow more flexibility [ASH]
+* Optional compiletime to allow GLIB2's SHA512 random-seed passwords [ASH]
+  Note: This does allow backward compatibility with existing DES passwords
   
 Changes
 ------------
@@ -27530,9 +27532,11 @@ Changes
 * added bitlevel permission override to @flagdef/@typedef TYPE restricts [ASH]
 * editansi() now accepts multiple arguments for search/replace [ASH]
 * 'N' normalizer search for editansi() [ASH]
+* with the avent of SHA512 passwords, password length capped at 160 char [ASH]
     
 Bug Fixes
 ------------
 * mail/mark/save when no more saved quota wouldn't notify you of that [ASH]
 * ascii8 encoding could allow multi-sequences in %<###> encoding [ASH]
 * forgot to define EXTLIBS in the Makefile -- oopse [ASH]
+* missed free in the @uptime changes for buffers [ASH]
