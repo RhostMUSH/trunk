@@ -27533,6 +27533,8 @@ Changes
 * editansi() now accepts multiple arguments for search/replace [ASH]
 * 'N' normalizer search for editansi() [ASH]
 * with the avent of SHA512 passwords, password length capped at 160 char [ASH]
+* on systems that do not have a SHA512 compatible glibc fall back to DES
+  while encrypting passwords. [ASH]
     
 Bug Fixes
 ------------
@@ -27540,3 +27542,4 @@ Bug Fixes
 * ascii8 encoding could allow multi-sequences in %<###> encoding [ASH]
 * forgot to define EXTLIBS in the Makefile -- oopse [ASH]
 * missed free in the @uptime changes for buffers [ASH]
+* buffering issue with @list options [ASH]

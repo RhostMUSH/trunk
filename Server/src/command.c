@@ -5429,11 +5429,11 @@ list_options_values_parse(dbref player, int p_val)
 static void
 list_options_system(dbref player)
 {
-   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[25],
+   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
         newstime[25], mailtime[25], aregtime[25], mushtime[25];
    time_t c_count, d_count, i_count;
 
-   memset(playerchktime, '\0', 25);
+   memset(playerchktime, '\0', 125);
 /* "------------------------------------------------------------------" */
    notify(player, "--- System Player Config Parameters ------------------------------------------");
 #ifdef TINY_SUB
@@ -5467,7 +5467,7 @@ list_options_system(dbref player)
 #endif
    notify(player, playerchktime);
 
-   memset(playerchktime, '\0', 25);
+   memset(playerchktime, '\0', 125);
 #ifdef TINY_U
     notify(player, "u()/zfun() ------------------------------------------------------- PENN/MUX/TM3");
 #else
