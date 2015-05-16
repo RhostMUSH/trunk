@@ -26875,7 +26875,7 @@ FUNCTION(fun_setq)
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
-               (stricmp(mudstate.global_regsname[i], result_orig) == 0) ) {
+               (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;
@@ -27103,7 +27103,7 @@ FUNCTION(fun_setr)
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
-               (stricmp(mudstate.global_regsname[i], result_orig) == 0) ) {
+               (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;

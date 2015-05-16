@@ -27543,3 +27543,4 @@ Bug Fixes
 * forgot to define EXTLIBS in the Makefile -- oopse [ASH]
 * missed free in the @uptime changes for buffers [ASH]
 * buffering issue with @list options [ASH]
+* old_setq didn't handle re-mapping register names with '!' option [ASH]

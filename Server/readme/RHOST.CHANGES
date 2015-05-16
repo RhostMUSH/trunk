@@ -19,6 +19,8 @@ Buffer overrun in ansi_txtfile because of non-null termination.
 				- Thanks Rook
 mail/mark/save would not alert you if you hit MAX SAVED messages.
 				- Thanks Mercutio
+old_setq had an issue with '!' parameter not reusing registers.
+				- Thanks Ixokai
 
 
 		         RhostMUSH 3.9.4 Update File
