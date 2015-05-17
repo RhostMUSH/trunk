@@ -55,7 +55,6 @@ think Continuing with loading of script...
 &CMD_COMNOTIFY ChanSys=$comnotify*:@pemit %#=[u(FN_COMNOTIFY[match(/enable /disable /list /on /off,first(%0))],rest(%0))]
 @Adisconnect ChanSys=@swi/f [!hasflag(%#,dark)]=1,@eval [u([v(FX-DB)]/FN_COMNOTIFYBROADCAST,%#,has disconnected.)]
 @set ChanSys/cmd_comprefix=no_parse
-@set ChanSys/CMD_CHAN_TITLE=no_parse
 @set ChanSys=INHERIT
 @set ChanSys=SHOWFAILCMD
 @@
