@@ -2118,7 +2118,8 @@ Returns:      pointer to the opcode for the bracket, or NULL if not found
 static const uschar *
 find_bracket(const uschar * code, BOOL utf8, int number)
 {
-  utf8 = utf8;			/* Stop pedantic compilers complaining */
+  BOOL utf8_b = utf8;
+  utf8 = utf8_b;			/* Stop pedantic compilers complaining */
 
   for (;;) {
     register int c = *code;
@@ -2159,7 +2160,8 @@ Returns:      pointer to the opcode for OP_RECURSE, or NULL if not found
 static const uschar *
 find_recurse(const uschar * code, BOOL utf8)
 {
-  utf8 = utf8;			/* Stop pedantic compilers complaining */
+  BOOL utf8_b = utf8;
+  utf8 = utf8_b;			/* Stop pedantic compilers complaining */
 
   for (;;) {
     register int c = *code;
@@ -3402,7 +3404,7 @@ case status of the value. */
 	     if a digit follows ( then there will just be digits until ) because
 	     the syntax was checked in the first pass. */
 
-	  else if ((digitab[ptr[1]] && ctype_digit) != 0) {
+	  else if ((digitab[ptr[1]] & ctype_digit) != 0) {
 	    int condref;	/* Don't amalgamate; some compilers */
 	    condref = *(++ptr) - '0';	/* grumble at autoincrement in declaration */
 	    while (*(++ptr) != ')')

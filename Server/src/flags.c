@@ -3745,7 +3745,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 #ifndef STANDALONE
    TOGENT *tp;
    char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;;
-   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
@@ -4164,7 +4164,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 #ifndef STANDALONE
    FLAGENT *fp;
    char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;
-   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 

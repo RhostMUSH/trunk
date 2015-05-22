@@ -2454,6 +2454,7 @@ int cmdtest(dbref player, char *cmd)
 
   rval = 0;
   buff1 = atr_get(player, A_CMDCHECK, &aowner, &aflags);
+  buff2 = NULL;
   pt1 = buff1;
   while (pt1 && *pt1) {
     pt2 = strchr(pt1, ':');
@@ -2723,7 +2724,7 @@ process_command(dbref player, dbref cause, int interactive,
 	     mudstate.debug_cmd = cmdsave;
              STARTLOG(LOG_ALWAYS, "WIZ", "SPAM");
              log_name_and_loc(player);
-             cpulbuf = alloc_lbuf(cpulbuf);
+             cpulbuf = alloc_lbuf("cpulbuf");
              sprintf(cpulbuf, " SEC/SPAM overload: (#%d) %.3940s", spamowner, command);
              log_text(cpulbuf);
              free_lbuf(cpulbuf);
@@ -10367,7 +10368,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 	                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                 EV_STRIP_LS | EV_STRIP_TS,
 			                 xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                              ; /* We just want to increment the counter to count it */
                            s_strtok = alloc_lbuf("cluster_trigger_build");
                            sprintf(s_strtok, "%.32s/%.3900s", s_tmpstr, s_strtokptr);
                            do_trigger(player, cause, (TRIG_QUIET), s_strtok, xargs, nxargs);
@@ -10436,7 +10438,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 	                      parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                    EV_STRIP_LS | EV_STRIP_TS,
 			                    xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                                 ; /* We just want to count the variable */
                               if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                  s_strtok = alloc_lbuf("cluster_set_build");
                                  s_tmpstr = strtok_r(s_text, " ", &s_inbufptr);
@@ -10468,7 +10471,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 	                         parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                       EV_STRIP_LS | EV_STRIP_TS,
 			                       xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                                    ; /* We just want to count the variable */
                                  if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                     s_tmpstr = find_cluster(thing, player, anum3);
                                     s_strtok = alloc_lbuf("cluster_set_build");

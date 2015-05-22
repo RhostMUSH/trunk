@@ -18,6 +18,7 @@ char *index(const char *, int);
 #include "rhost_ansi.h"
 
 extern NAMETAB indiv_attraccess_nametab[];
+extern NAMETAB lock_sw[];
 extern POWENT pow_table[];
 extern POWENT depow_table[];
 extern void depower_set(dbref, dbref, char *, int);
@@ -263,107 +264,126 @@ char	*oldalias, *trimalias;
 
 void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
 {
-dbref	thing, aowner;
-int	atr, aflags, nomtest;
-ATTR	*ap;
-struct boolexp *okey;
-time_t  tt;
-char    *bufr;
+   dbref thing, aowner;
+   int atr, aflags, nomtest;
+   ATTR *ap;
+   struct boolexp *okey;
+   time_t tt;
+   char *bufr;
+   NAMETAB *nt;
 
-	if (parse_attrib(player, name, &thing, &atr)) {
-		if (atr != NOTHING) {
-			if (!atr_get_info(thing, atr, &aowner, &aflags)) {
-				notify_quiet(player,
-					"Attribute not present on object.");
-				return;
-			}
+   if (parse_attrib(player, name, &thing, &atr)) {
+      if (atr != NOTHING) {
+         if (!atr_get_info(thing, atr, &aowner, &aflags)) {
+            notify_quiet(player, "Attribute not present on object.");
+            return;
+         }
 
-			ap = atr_num(atr);
+         ap = atr_num(atr);
 
-			/* You may lock an attribute if:
-			 * you could write the attribute if it were stored on
-			 * yourself
-			 *    --and--
-			 * you own the attribute or are a wizard as long as
-			 * you are not #1 and are trying to do something to #1.
-			 */
+         /* You may lock an attribute if:
+          * you could write the attribute if it were stored on
+          * yourself
+          *    --and--
+          * you own the attribute or are a wizard as long as
+          * you are not #1 and are trying to do something to #1.
+          */
 
-			nomtest = ((NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
-			if (ap && !nomtest && (God(player) ||
-			     (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner)) ||
-			     (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner) &&
-					(Wizard(player) || (Admin(player) && !Wizard(thing)) ||
-			       (aowner == Owner(player)))))) {
-				aflags |= AF_LOCK;
-				atr_set_flags(thing, atr, aflags);
-				if (!Quiet(player) && !Quiet(thing))
-					notify_quiet(player,
-						"Attribute locked.");
-			} else {
-				notify_quiet(player, "Permission denied.");
-			}
-			return;
-		}
-	}
+         nomtest = ((NoMod(thing) && !WizMod(player)) || 
+                    (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
+                    (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
+         if (ap && !nomtest && (God(player) ||
+             (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner)) ||
+             (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner) &&
+             (Wizard(player) || (Admin(player) && !Wizard(thing)) || (aowner == Owner(player)))))) {
+            aflags |= AF_LOCK;
+            atr_set_flags(thing, atr, aflags);
+            if (!Quiet(player) && !Quiet(thing)) {
+               if ( TogNoisy(player) ) {
+                  bufr = alloc_lbuf("do_lock");
+                  sprintf(bufr, "Attribute locked - %s/%s", Name(thing), ap->name);
+                  notify_quiet(player, bufr);
+                  free_lbuf(bufr);
+               } else {
+                  notify_quiet(player, "Attribute locked.");
+               }
+            }
+         } else {
+               notify_quiet(player, "Permission denied.");
+         }
+         return;
+      }
+   }
     
-	init_match(player, name, NOTYPE);
-	match_everything(MAT_EXIT_PARENTS);
-	thing = match_result();
+   init_match(player, name, NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   thing = match_result();
 
-	switch (thing) {
-	case NOTHING:
-		notify_quiet(player,
-			"I don't see what you want to lock!");
-		return;
-	case AMBIGUOUS:
-		notify_quiet(player,
-			"I don't know which one you want to lock!");
-		return;
-	default:
-		if (!controls(player, thing)) {
-			notify_quiet(player, "You can't lock that!");
-			return;
-		}
-	}
+   switch (thing) {
+      case NOTHING:
+         notify_quiet(player, "I don't see what you want to lock!");
+         return;
+      case AMBIGUOUS:
+         notify_quiet(player, "I don't know which one you want to lock!");
+         return;
+      default:
+         if (!controls(player, thing)) {
+            notify_quiet(player, "You can't lock that!");
+            return;
+         }
+   }
 
-        if( (key == A_LZONETO || 
-             key == A_LZONEWIZ) &&
-            !ZoneMaster(thing) ) {
-          notify_quiet(player, "That object isn't a Zone Master.");
-          return;
-        }
+   if( (key == A_LZONETO || key == A_LZONEWIZ) && !ZoneMaster(thing) ) {
+      notify_quiet(player, "That object isn't a Zone Master.");
+      return;
+   }
 
-	if  ((NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
-	  notify_quiet(player, "Permission denied.");
-	  return;
-	}
+   if ( (NoMod(thing) && !WizMod(player)) || 
+        (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
+        (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
+      notify_quiet(player, "Permission denied.");
+      return;
+   }
 
-        if( key == A_LTWINK &&
-            Typeof(thing) == TYPE_PLAYER ) {
-          notify_quiet(player, "Warning: Setting a TwinkLock on a player is generally not a good idea.");
-        }
-      
-	okey = parse_boolexp(player, strip_returntab(keytext,3), 0);
-	if (okey == TRUE_BOOLEXP) {
-		notify_quiet(player, "I don't understand that key.");
-	} else {
+   if( key == A_LTWINK && Typeof(thing) == TYPE_PLAYER ) {
+      notify_quiet(player, "Warning: Setting a TwinkLock on a player is generally not a good idea.");
+   }
+   
+   okey = parse_boolexp(player, strip_returntab(keytext,3), 0);
+   if (okey == TRUE_BOOLEXP) {
+      notify_quiet(player, "I don't understand that key.");
+   } else {
+      /* everything ok, do it */
+      if (!key)
+         key = A_LOCK;
+      if ( mudconf.enable_tstamps && !NoTimestamp(thing) ) {
+         time(&tt);
+         bufr = (char *) ctime(&tt);
+         bufr[strlen(bufr) - 1] = '\0';
+         atr_add_raw(thing, A_MODIFY_TIME, bufr);
+      }
 
-		/* everything ok, do it */
-
-		if (!key)
-			key = A_LOCK;
-                if ( mudconf.enable_tstamps && !NoTimestamp(thing) ) {
-                   time(&tt);
-                   bufr = (char *) ctime(&tt);
-                   bufr[strlen(bufr) - 1] = '\0';
-                   atr_add_raw(thing, A_MODIFY_TIME, bufr);
-                }
-
-		atr_add_raw(thing, key, unparse_boolexp_quiet(player, okey));
-		if (!Quiet(player) && !Quiet(thing))
-			notify_quiet(player, "Locked.");
-	}
-	free_boolexp(okey);
+      atr_add_raw(thing, key, unparse_boolexp_quiet(player, okey));
+      if (!Quiet(player) && !Quiet(thing)) {
+         if ( TogNoisy(player) ) { 
+            for ( nt = lock_sw; nt && nt->name; nt++ ) {
+               if ( nt->flag == key ) 
+                  break;
+            }
+            bufr = alloc_lbuf("mbuf_lock_noisy");
+            if ( nt && nt->name ) {
+               sprintf(bufr, "Locked - %s/%s.", Name(thing), nt->name);
+            } else {
+               sprintf(bufr, "Locked - %s/%s.", Name(thing), (char*)"(UNKNOWN)");
+            }
+            notify_quiet(player, bufr);
+            free_lbuf(bufr);
+         } else {
+            notify_quiet(player, "Locked.");
+         }
+      }
+   }
+   free_boolexp(okey);
 }
 
 /* ---------------------------------------------------------------------------
@@ -372,60 +392,84 @@ char    *bufr;
 
 void do_unlock(dbref player, dbref cause, int key, char *name)
 {
-dbref	thing, aowner;
-int	atr, aflags;
-ATTR	*ap;
+   dbref thing, aowner;
+   int atr, aflags;
+   char *bufr;
+   ATTR *ap;
+   NAMETAB *nt;
 
-	if (parse_attrib(player, name, &thing, &atr)) {
-                if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
-		   notify_quiet(player, "Permission denied.");
-                   return;
-                }
-		if (atr != NOTHING) {
-			if (!atr_get_info(thing, atr, &aowner, &aflags)) {
-				notify_quiet(player,
-					"Attribute not present on object.");
-				return;
-			}
-			ap = atr_num(atr);
+   if (parse_attrib(player, name, &thing, &atr)) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
+      if (atr != NOTHING) {
+         if (!atr_get_info(thing, atr, &aowner, &aflags)) {
+            notify_quiet(player, "Attribute not present on object.");
+            return;
+         }
+         ap = atr_num(atr);
 
-			/* You may unlock an attribute if:
-			 * you could write the attribute if it were stored on
-			 * yourself
-			 *   --and--
-			 * you own the attribute or are a wizard as long as
-			 * you are not #1 and are trying to do something to #1.
-			 */
+         /* You may unlock an attribute if:
+          * you could write the attribute if it were stored on
+          * yourself
+          *   --and--
+          * you own the attribute or are a wizard as long as
+          * you are not #1 and are trying to do something to #1.
+          */
 		
-			if (ap && (God(player) ||
-			     (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner)) ||
-			     (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner) &&
-			      (Wizard(player) ||
-					 (aowner == Owner(player)))))) {
-				aflags &= ~AF_LOCK;
-				atr_set_flags(thing, atr, aflags);
-				if (Owner(player != Owner(thing)))
-				if (!Quiet(player) && !Quiet(thing))
-					notify_quiet(player,
-						"Attribute unlocked.");
-			} else {
-				notify_quiet(player, "Permission denied.");
-			}
-			return;
-		}
-	}
+         if ( ap && (God(player) ||
+              (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner)) ||
+              (!God(thing) && Set_attr(player, player, ap, 0) && Controls(player,aowner) &&
+              (Wizard(player) || (aowner == Owner(player)))))) {
+            aflags &= ~AF_LOCK;
+            atr_set_flags(thing, atr, aflags);
+            if (Owner(player != Owner(thing))) {
+               if (!Quiet(player) && !Quiet(thing)) {
+                  if ( TogNoisy(player) ) {
+                     bufr = alloc_lbuf("do_unlock");
+                     sprintf(bufr, "Attribute unlocked - %s/%s", Name(thing), ap->name);
+                     notify_quiet(player, bufr);
+                     free_lbuf(bufr);
+                  } else {
+                     notify_quiet(player, "Attribute unlocked.");
+                  }
+               }
+            }
+         } else {
+            notify_quiet(player, "Permission denied.");
+         }
+         return;
+      }
+   }
     
-	if (!key)
-		key = A_LOCK;
-	if ((thing = match_controlled(player, name)) != NOTHING) {
-                if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
-		   notify_quiet(player, "Permission denied.");
-                   return;
-                }
-		atr_clr(thing, key);
-		if (!Quiet(player) && !Quiet(thing))
-			notify_quiet(player, "Unlocked.");
-	}
+   if (!key)
+      key = A_LOCK;
+   if ((thing = match_controlled(player, name)) != NOTHING) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
+      atr_clr(thing, key);
+      if (!Quiet(player) && !Quiet(thing)) {
+         if ( TogNoisy(player) ) {
+            for ( nt = lock_sw; nt && nt->name; nt++ ) {
+               if ( nt->flag == key ) 
+                  break;
+            }
+            bufr = alloc_lbuf("mbuf_lock_noisy");
+            if ( nt && nt->name ) {
+               sprintf(bufr, "Unlocked - %s/%s.", Name(thing), nt->name);
+            } else {
+               sprintf(bufr, "Unlocked - %s/%s.", Name(thing), (char*)"(UNKNOWN)");
+            }
+            notify_quiet(player, bufr);
+            free_lbuf(bufr);
+         } else {
+            notify_quiet(player, "Unlocked.");
+         }
+      }
+   }
 }
 
 /* ---------------------------------------------------------------------------

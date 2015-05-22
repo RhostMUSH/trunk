@@ -1548,6 +1548,7 @@ void q_lock(dbref who, int key, int qswitch[])
 void quota_lock(dbref player, dbref who, int all, int key, int qswitch[], int qset)
 {
   dbref i;
+  char *tbuf;
 
   if (!all) {
     if (!Controls(player,who)) {
@@ -1574,10 +1575,25 @@ void quota_lock(dbref player, dbref who, int all, int key, int qswitch[], int qs
 	q_lock(i, key, qswitch);
     }
   }
-  if (key == QUOTA_LOCK)
-    notify(player,"Locked.");
-  else
-    notify(player,"Unlocked.");
+  if (key == QUOTA_LOCK) {
+    if ( TogNoisy(player) ) {
+       tbuf = alloc_lbuf("quota_lock");
+       sprintf(tbuf, "Locked - %s/quotalock", Name(player));
+       notify(player, tbuf);
+       free_lbuf(tbuf);
+    } else {
+       notify(player,"Locked.");
+    }
+  } else {
+    if ( TogNoisy(player) ) {
+       tbuf = alloc_lbuf("quota_lock");
+       sprintf(tbuf, "Unlocked - %s/quotalock", Name(player));
+       notify(player, tbuf);
+       free_lbuf(tbuf);
+    } else {
+       notify(player,"Unlocked.");
+    }
+  }
 }
 
 void quota_take(dbref player, dbref who, int key, char *cargs[], int nargs)
@@ -2153,7 +2169,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
   addr_num.s_addr = inet_addr(buff1);
   if ( strchr(buff2, '/') != NULL ) {
      maskval = atol(buff2+1);
-     if ((maskval < 0) || (maskval > 32)) {
+     if (((long)maskval < 0) || (maskval > 32)) {
         notify(player, "Bad mask in site command");
         return;
      }

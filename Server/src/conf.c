@@ -3034,7 +3034,7 @@ CF_HAND(cf_site)
     addr_num.s_addr = inet_addr(addr_txt);
     if ( strchr(mask_txt, '/') != NULL ) {
        maskval = atol(mask_txt+1);
-       if ((maskval < 0) || (maskval > 32)) {
+       if (((long)maskval < 0) || (maskval > 32)) {
 	  cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
 	  return -1;
        }

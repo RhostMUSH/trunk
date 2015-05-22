@@ -649,7 +649,7 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 	}
 	notify_quiet(player, "Snoop attached.");
 	VOIDRETURN; /* #106 */
-    } else if ((key == SNOOP_OFF)) {
+    } else if ( key == SNOOP_OFF ) {
 	found = 0;
 	DESC_ITER_PLAYER(victim, d) {
 	    if (d->snooplist != NULL) {

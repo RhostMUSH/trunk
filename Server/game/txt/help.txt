@@ -27535,6 +27535,7 @@ Changes
 * with the avent of SHA512 passwords, password length capped at 160 char [ASH]
 * on systems that do not have a SHA512 compatible glibc fall back to DES
   while encrypting passwords. [ASH]
+* Locks (normal and attribute) are 'noisy' with the NOISY @toggle [ASH]
     
 Bug Fixes
 ------------
@@ -27544,3 +27545,4 @@ Bug Fixes
 * missed free in the @uptime changes for buffers [ASH]
 * buffering issue with @list options [ASH]
 * old_setq didn't handle re-mapping register names with '!' option [ASH]
+* Cleaned up code to compile without warnings on latest clang [ASH]
