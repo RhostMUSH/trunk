@@ -3052,7 +3052,11 @@ dump_users(DESC * e, char *match, int key)
 #endif
 			d->addr);
 
+#ifdef PARIS
+		fp = &buf[16];
+#else
 		fp = &buf[14];
+#endif
 
                 if ( !(HasPriv(d->player, e->player, POWER_HIDEBIT, POWER5, NOTHING) && 
                        (d->player != e->player || mudstate.objevalst) && (e->flags & DS_CONNECTED))) {
@@ -3144,7 +3148,11 @@ dump_users(DESC * e, char *match, int key)
 			gp, pDoing);
 		}
 		if (Admin(e->player) || HasPriv(e->player, d->player, POWER_WIZ_WHO, POWER3, NOTHING)) {
-		    fp = &buf[14];
+#ifdef PARIS
+                    fp = &buf[16];
+#else
+                    fp = &buf[14];
+#endif
                     if ( !(HasPriv(d->player, e->player, POWER_HIDEBIT, POWER5, NOTHING) &&
                            (d->player != e->player || mudstate.objevalst)) && (e->flags & DS_CONNECTED)) {
                         if (mudconf.who_showwiz && Guildmaster(d->player) ) {
@@ -3197,7 +3205,11 @@ dump_users(DESC * e, char *match, int key)
 		else if (HasPriv(e->player, d->player, POWER_WHO_UNFIND, POWER4, NOTHING) && 
 				(e->flags & DS_CONNECTED))
 		   one_chr_holder = 'H';
-		fp = &buf[14];
+#ifdef PARIS
+                fp = &buf[16];
+#else
+                fp = &buf[14];
+#endif
                 if ( !(HasPriv(d->player, e->player, POWER_HIDEBIT, POWER5, NOTHING) &&
                        (d->player != e->player || mudstate.objevalst)) && (e->flags & DS_CONNECTED)) {
                    if (mudconf.who_showwiz && Guildmaster(d->player) ) {
