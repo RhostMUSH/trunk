@@ -9497,10 +9497,9 @@ FUNCTION(fun_timefmt)
         }
      }
      if ( tzmush->mush_tzone ) {
-        secs = secs + timezone + tzmush->mush_offset;
-/*      secs2 = secs2 + timezone + tzmush->mush_offset; */
-        secs2 = secs2 + (double)(int)timezone + (double)(tzmush->mush_offset);
-        i_frell = mudstate.now + timezone + tzmush->mush_offset;
+        secs = secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
+        secs2 = secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
+        i_frell = (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
         tms2 = localtime(&i_frell);
      }
   }
