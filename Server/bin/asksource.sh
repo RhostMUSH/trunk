@@ -21,7 +21,7 @@ fi
 # Environments
 ###################################################################
 LDCONFIG=""
-MYGCC=""
+MYGCC="cc"
 if [ $(uname -s|grep -ic "bsd") -gt 0 ]
 then
    LDOPT="-r"
@@ -1213,7 +1213,7 @@ setopts() {
 ###################################################################
 setdefaults() {
   echo "Configuring default definitions..."
-  cc ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
+  ${MYGCC} ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
   if [ $? -eq 0 ]
   then
      if [ "$(../src/intsize)" -gt 4 ]
