@@ -10,3 +10,7 @@ echo "Protecting directory and file..."|tr -d '\012'
 chmod 700 .
 chmod 700 ../Rhost* 2>/dev/null
 echo "done."
+if [ ! -f /bin/bash ]
+then
+   ./bin/script_setup.sh
+fi
