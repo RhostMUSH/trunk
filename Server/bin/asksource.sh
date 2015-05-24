@@ -1213,7 +1213,7 @@ setopts() {
 ###################################################################
 setdefaults() {
   echo "Configuring default definitions..."
-  gcc ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
+  cc ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
   if [ $? -eq 0 ]
   then
      if [ "$(../src/intsize)" -gt 4 ]
