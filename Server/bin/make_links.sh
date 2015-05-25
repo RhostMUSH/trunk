@@ -6,10 +6,11 @@ do
       echo Entered directory: $i
       for x in dbconvert mkhtml mkindx netrhost netrhost.debugmon
       do
-	 echo "     Creating Link: $x"
+	 echo "     Creating Link: $x"|tr -d '\012'
          rm $x 2>/dev/null
-         ln -s ../src/$x ../bin/$x
-         ln -s ../bin/$x $x
+         [[ ! -f ../bin/$x ]] && echo " unable to find binary!" && exit 1
+         [[ ! -h $x ]] && ln -s ../bin/$x $x 2>/dev/null || echo "..[ skipping ln ]"|tr -d '\012' 
+         echo " completed."
       done
       cd ..
    fi
