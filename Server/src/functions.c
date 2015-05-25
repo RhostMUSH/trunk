@@ -9784,7 +9784,7 @@ FUNCTION(fun_timefmt)
                 fmtdone = 1;
                 break;
               case 't': /* Timezone */
-                fm.lastval = timezone;
+                fm.lastval = (int)timezone;
                 sprintf(fmtbuff, "%d", fm.lastval);
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
