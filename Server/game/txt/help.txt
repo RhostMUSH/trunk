@@ -27591,4 +27591,6 @@ Bug Fixes
 * missed free in the @uptime changes for buffers [ASH]
 * buffering issue with @list options [ASH]
 * old_setq didn't handle re-mapping register names with '!' option [ASH]
-* Cleaned up code to compile without warnings on latest clang [ASH]
+* cleaned up code to compile without warnings on latest clang [ASH]
+* cleaned up code to compile without warnings on latest BSD (with clang) [ASH]
+* some unixes do not have scandir so we rolled our own in such a case [ASH]

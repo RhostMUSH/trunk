@@ -23,6 +23,7 @@ char *strtok_r(char *, const char *, char **);
 #include "attrs.h"
 #include "door.h"
 
+
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*);
 extern int remote_read_sanitize(FILE *, dbref, int, int);
@@ -2279,6 +2280,71 @@ static int file_select(const struct direct *entry)
    else
       return(0);
 }
+
+#ifndef scandir
+/* Some unix systems do not handle scandir -- so we build one for them */
+int
+scandir(const char *directory_name,
+            struct dirent ***array_pointer,
+            int (*select_function)(const struct dirent *),
+            int (*compare_function)(const struct dirent**, const struct dirent**)
+)
+{
+   DIR *directory;
+   struct dirent **array;
+   struct dirent *entry;
+   struct dirent *copy;
+   int allocated = 20;
+   int counter = 0;
+
+   if (directory = opendir (directory_name), directory == NULL)
+      return -1;
+
+   if (array = (struct dirent **)malloc (allocated * sizeof(struct dirent *)), array == NULL)
+      return -1;
+
+   while (entry = readdir(directory), entry)
+      if (select_function == NULL || (*select_function)(entry)) {
+         int namelength = strlen(entry->d_name) + 1;
+         int extra = 0;
+
+         if (sizeof(entry->d_name) <= namelength) {
+            extra += namelength - sizeof(entry->d_name);
+         }
+
+         if (copy = (struct dirent *)malloc(sizeof(struct dirent) + extra), copy == NULL) {
+            closedir(directory);
+            free(array);
+            return -1;
+        }
+        copy->d_ino = entry->d_ino;
+        copy->d_reclen = entry->d_reclen;
+        strcpy(copy->d_name, entry->d_name);
+
+        if (counter + 1 == allocated) {
+           allocated <<= 1;
+           array = (struct dirent **)
+           realloc ((char *)array, allocated * sizeof(struct dirent *));
+           if (array == NULL) {
+              closedir(directory);
+              free(array);
+              free(copy);
+              return -1;
+           }
+        }
+        array[counter++] = copy;
+     }
+     array[counter] = NULL;
+     *array_pointer = array;
+     closedir(directory);
+
+     if (counter > 1 && compare_function)
+        qsort((char *)array, counter, sizeof(struct dirent *),
+	      (int(*)(const void *, const void *))(compare_function));
+
+     return counter;
+}
+#endif
 
 void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
 {
