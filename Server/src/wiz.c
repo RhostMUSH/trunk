@@ -6,7 +6,6 @@ char *strtok_r(char *, const char *, char **);
 #endif
 
 #include <dirent.h>
-#include <sys/dir.h>
 #include "copyright.h"
 #include "autoconf.h"
 
@@ -22,7 +21,6 @@ char *strtok_r(char *, const char *, char **);
 #include "alloc.h"
 #include "attrs.h"
 #include "door.h"
-
 
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*);
@@ -2273,7 +2271,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     notify(player,"Entry not found in site list");
 }
 
-static int file_select(const struct direct *entry)
+static int file_select(const struct dirent *entry)
 {
    if ( strstr(entry->d_name, ".img") != NULL ) 
       return(1);
