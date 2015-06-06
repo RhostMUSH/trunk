@@ -847,7 +847,7 @@ DESC *
 new_connection(int sock)
 {
     int newsock, maxsitecon, maxtsitecon, cur_port;
-    char *buff, *buff1, *cmdsave, tchbuff[1000], *tsite_buff;
+    char *buff, *buff1, *cmdsave, tchbuff[LBUF_SIZE], *tsite_buff;
     DESC *d, *dchk, *dchknext;
     struct sockaddr_in addr;
     static int spam_log = 0;
@@ -1150,7 +1150,7 @@ static const char *disc_messages[] =
 void 
 shutdownsock(DESC * d, int reason)
 {
-    char *buff, *buff2, all[10], tchbuff[1000], tsitebuff[1001], *ptsitebuff;
+    char *buff, *buff2, all[10], tchbuff[LBUF_SIZE], tsitebuff[1001], *ptsitebuff;
     time_t now;
     int temp1, temp2, sitecntr;
     struct SNOOPLISTNODE *temp;
@@ -1621,7 +1621,7 @@ DESC *
 initializesock(int s, struct sockaddr_in * a, char *addr)
 {
     DESC *d;
-    char tchbuff[1000];
+    char tchbuff[LBUF_SIZE];
 
     DPUSH; /* #11 */
 
