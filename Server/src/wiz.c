@@ -2279,7 +2279,7 @@ static int file_select(const struct dirent *entry)
       return(0);
 }
 
-#ifdef need_scandir
+#ifdef NEED_SCANDIR
 /* Some unix systems do not handle scandir -- so we build one for them */
 int
 scandir(const char *directory_name,

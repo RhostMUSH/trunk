@@ -1221,6 +1221,11 @@ setdefaults() {
         DEFS="-DBIT64 ${DEFS}"
      fi
   fi
+  ${MYGCC} ../src/scantst.c -o ../src/scantst >/dev/null 2>&1
+  if [ $? -ne 0 ]
+  then
+     DEFS="-DNEED_SCANDIR ${DEFS}"
+  fi
   if [ "$(uname -a|grep -ci aix)" -ne 0 ]
   then
      echo "Patching for AIX..."
