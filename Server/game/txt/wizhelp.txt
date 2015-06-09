@@ -6154,6 +6154,7 @@ SNOOPY                                                           God     Wiz
     %0 -- The numerical site host of the incomming connection.
     %1 -- The dns host entry (if availabe, else ip) of incoming connection.
     %2 -- The port that they're connected to on the mush
+    %3 -- The player dbref#, if connected, otherwise shows '-1'.
   
   All ansi and such will process normally.
   

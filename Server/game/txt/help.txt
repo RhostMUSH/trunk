@@ -27582,6 +27582,7 @@ Changes
   while encrypting passwords. [ASH]
 * Locks (normal and attribute) are 'noisy' with the NOISY @toggle [ASH]
 * expanded flag overwrite for expanded-who (PARIS) compiletime [ASH]
+* added player dbref as 4th arg (%3) to file_object parameter [ASH]
     
 Bug Fixes
 ------------
