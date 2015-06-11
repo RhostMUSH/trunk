@@ -56,8 +56,10 @@ extern int ndescriptors;
 extern int FDECL(process_output, (DESC * d));
 extern CF_HAND(cf_site);
 static void desc_addhash(DESC * d);
-extern int FDECL(lookup, (char *, char *));
+extern int FDECL(lookup, (char *, char *, int, int *));
 static void set_userstring(char **, const char *);
+extern const char *addrout(struct in_addr);
+
 
 /* for aconnect: player = room, target = connecting player */
 /*
@@ -1212,7 +1214,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
 		  char *site, int succ, int recentfail, int fail, char *reason)
 {
     char *buff, *buff2, b3[80], *pt1;
-    int i;
+    int i, i_retvar = -1;
     DESC *d;
     struct tm *tp;
     time_t  t;
@@ -1223,7 +1225,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
     if ( (inflags & (MF_CONN|MF_DCONN|MF_FAIL|MF_BFAIL|MF_GFAIL|MF_COMPFAIL)) && *(mudconf.nobroadcast_host) ) {
        buff2 = alloc_lbuf("nobroadcast_monitor_chk");
        sprintf(buff2, "%s", mudconf.nobroadcast_host);
-       if ( lookup(site, buff2) ) {
+       if ( lookup(site, buff2, -1, &i_retvar) ) {
           free_lbuf(buff);
           free_lbuf(buff2);
           VOIDRETURN;   
@@ -3669,10 +3671,10 @@ static const char *create_fail =
 static int 
 check_connect(DESC * d, const char *msg)
 {
-    char *command, *user, *password, *buff, *cmdsave, *buff3;
+    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff;
     dbref player, aowner, player2;
     int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest;
-    int ok_to_login;
+    int ok_to_login, i_sitemax;
     DESC *d2, *d3;
     char buff2[10], *in_tchr, tchar_buffer[600];
 
@@ -3767,7 +3769,20 @@ check_connect(DESC * d, const char *msg)
 	comptest = 1;
     } else if (!comptest && (d->host_info & H_NOGUEST)) {
 	fcache_dump(d, FC_GUEST_FAIL);
-	broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, "NO GUEST FAIL", d->userid, d->addr, 0, 0, 0, NULL);
+        i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
+        if ( i_sitemax == -1 ) {
+           tsite_buff = alloc_lbuf("noguest_check");
+           addroutbuf = (char *) addrout((d->address).sin_addr);
+           strcpy(tsite_buff, addroutbuf);
+           strcpy(tsite_buff, mudconf.noguest_host);
+           lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
+           free_lbuf(tsite_buff);
+        }
+        if ( i_sitemax == -1 ) {
+	   broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, "NO GUEST FAIL", d->userid, d->addr, 0, 0, 0, NULL);
+        } else {
+	   broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, unsafe_tprintf("NO GUEST FAIL[%d max]", i_sitemax), d->userid, d->addr, 0, 0, 0, NULL);
+        }
 	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "GUESTFAIL")
 	  buff = alloc_mbuf("check_conn.LOG,badguest");
 	  sprintf(buff, "[%d/%s] Attempt to connect to guest char from registered site",
@@ -4036,14 +4051,14 @@ check_connect(DESC * d, const char *msg)
               if ( mudconf.pcreate_paranoia > 0 ) {
                  sprintf(buff, "%.100s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                  if ( (mudconf.pcreate_paranoia == 1) && 
-                      !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_REGISTRATION) &&
+                      !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
                       !(d->host_info & H_REGISTRATION) ) {
                     cf_site((int *)&mudstate.access_list, buff, 
                             H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
                     sprintf(buff, "(PCREATE) [%.100s] marked for autoregistration.  (Remote port %d)",
                             inet_ntoa(d->address.sin_addr), ntohs(d->address.sin_port));
                  } else if ( (mudconf.pcreate_paranoia == 2) &&
-                            !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_FORBIDDEN) ) {
+                            !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
                     cf_site((int *)&mudstate.access_list, buff, 
                             H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
                     sprintf(buff, "(PCREATE) [%.100s] marked for autoforbid.  (Remote port %d)",
@@ -4555,30 +4570,43 @@ blacklist_check(struct in_addr host)
  */
 
 int 
-site_check(struct in_addr host, SITE * site_list, int stop)
+site_check(struct in_addr host, SITE * site_list, int stop, int key, int flag)
 {
-    SITE *this;
-    int rflag;
+   SITE *this;
+   int rflag, rkey, i_found;
 
-    DPUSH; /* #149 */
-    rflag = 0;
-    for (this = site_list; this; this = this->next) {
-	if ((host.s_addr & this->mask.s_addr) == this->address.s_addr) {
-	  if (!stop) {
-	    RETURN(this->flag); /* #149 */
-	  }
-	  else if (this->flag == H_FORBIDDEN) {
-	    if (rflag) {
-	      RETURN(rflag); /* #149 */
-	    }
-	    else {
-	      RETURN(this->flag); /* #149 */
-	    }
-	  }
-	  rflag |= this->flag;
-        }
-    }
-    RETURN(rflag); /* #149 */
+   DPUSH; /* #149 */
+   rflag = i_found = 0;
+   rkey = 2000000000;
+   for (this = site_list; this; this = this->next) {
+      if ((host.s_addr & this->mask.s_addr) == this->address.s_addr) {
+         if ( key && (this->flag == flag) ) {
+            i_found = 1;
+            if ( rkey > this->maxcon ) {
+               rkey = this->maxcon;
+            }
+            if ( !stop ) {
+               RETURN(rkey);
+            }
+         } else if (!stop) {
+            RETURN(this->flag); /* #149 */
+         } else if (this->flag == H_FORBIDDEN) {
+            if (rflag) {
+               RETURN(rflag); /* #149 */
+            } else {
+               RETURN(this->flag); /* #149 */
+            }
+         }
+         rflag |= this->flag;
+      }
+   }
+   if ( key ) {
+      if ( !i_found ) 
+         rkey = -1;
+      RETURN(rkey);
+   } else {
+      RETURN(rflag); /* #149 */
+   }
 }
 
 /* --------------------------------------------------------------------------
@@ -4652,7 +4680,7 @@ static void
 list_sites(dbref player, SITE * site_list,
 	   const char *header_txt, int stat_type)
 {
-    char *buff, *buff1, *str;
+    char *buff, *buff1, *str, *str2;
     SITE *this;
 
     DPUSH; /* #151 */
@@ -4661,14 +4689,26 @@ list_sites(dbref player, SITE * site_list,
     buff1 = alloc_sbuf("list_sites.addr");
     sprintf(buff, "----- %s -----", header_txt);
     notify(player, buff);
-    notify(player, "Address              Mask                 Status");
+    notify(player, "Address              Mask                 Max-Conns      Status");
+    str2 = alloc_sbuf("list_sites");
     for (this = site_list; this; this = this->next) {
 	str = (char *) stat_string(stat_type, this->flag, this->key);
+        if ( (this->flag & H_REGISTRATION) ||
+             (this->flag & H_FORBIDDEN) ||
+             (this->flag & H_NOGUEST) ) {
+           if ( this->maxcon == -1 ) 
+              strcpy(str2, (char *)"Restricted");
+           else
+              sprintf(str2, "%d cons", this->maxcon);
+        } else {
+              strcpy(str2, (char *)"N/A (Ignored)");
+        }
 	strcpy(buff1, inet_ntoa(this->mask));
-	sprintf(buff, "%-20s %-20s %s",
-		inet_ntoa(this->address), buff1, str);
+	sprintf(buff, "%-20s %-20s %-14s %s",
+		inet_ntoa(this->address), buff1, str2, str);
 	notify(player, buff);
     }
+    free_sbuf(str2);
 
     free_mbuf(buff);
     free_sbuf(buff1);
@@ -4678,15 +4718,40 @@ list_sites(dbref player, SITE * site_list,
 void
 list_hosts(dbref player, char *hostchrtype, char *hostchrmeth)
 {
-    char *tmp_word, tbuff[LBUF_SIZE], *tpr_buff, *tprp_buff;
+    char *tmp_word, tbuff[LBUF_SIZE], sbuff[SBUF_SIZE], *tpr_buff, *tprp_buff, *tmp_wordptr;
+    int i_maxcons, i_found;
 
-    memset(tbuff, 0, sizeof(tbuff));
+    memset(tbuff, '\0', sizeof(tbuff));
+    memset(sbuff, '\0', sizeof(sbuff));
     strncpy(tbuff, hostchrtype, (LBUF_SIZE > strlen(hostchrtype) ? strlen(hostchrtype) : LBUF_SIZE - 1));
     if ( hostchrtype ) {
        tmp_word = strtok(tbuff, " ");
        tprp_buff = tpr_buff = alloc_lbuf("list_hosts_tprintf");
        while( tmp_word ) {
-          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-40.40s  %-s", tmp_word, hostchrmeth));
+          i_found = 0;
+          i_maxcons = -1;
+          if ( (tmp_wordptr = strchr(tmp_word, '|')) != NULL ) {
+             i_found = 1;
+             *tmp_wordptr = '\0';
+             i_maxcons = atoi(tmp_wordptr+1);
+          }
+          if ( (strcmp(hostchrmeth, "Forbidden") == 0) ||
+               (strcmp(hostchrmeth, "Noguest") == 0) ||
+               (strcmp(hostchrmeth, "Registration") == 0) ) {
+             if ( i_maxcons == -1 ) {
+                strcpy(sbuff, (char *)"Restricted");                
+             } else {
+                sprintf(sbuff, "%d cons", i_maxcons);
+             }
+          } else {
+             if ( i_maxcons != -1 )
+                sprintf(sbuff, (char *)"N/A (%d)", i_maxcons);                
+             else
+                strcpy(sbuff, (char *)"N/A (Ignored)");
+          }
+          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-40.40s  %-14s %-s", tmp_word, sbuff, hostchrmeth));
+          if ( i_found )
+             *tmp_wordptr = '|';
           tmp_word = strtok( NULL, " " );
        }
        free_lbuf(tpr_buff);
@@ -4720,7 +4785,7 @@ list_siteinfo(dbref player)
 	       S_SPECIAL);
 
     notify(player, "----- DNS Access Permissions -----");
-    notify(player, unsafe_tprintf("%-40s  %-s", "DNS Name Convention", "Status"));
+    notify(player, unsafe_tprintf("%-40s  %-14s %-s", "DNS Name Convention", "Max-Conns", "Status"));
     list_hosts(player, mudconf.forbid_host, "Forbidden");
     list_hosts(player, mudconf.suspect_host, "Suspected");
     list_hosts(player, mudconf.register_host, "Registration");

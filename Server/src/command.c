@@ -43,7 +43,7 @@ extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
 extern POWENT pow_table[];
 extern POWENT depow_table[];
-extern int lookup(char *, char *);
+extern int lookup(char *, char *, int, int *);
 extern CF_HAND(cf_site);
 extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
@@ -80,6 +80,14 @@ CMDENT * lookup_orig_command(char *cmdname);
  *    2nd word of permissions
  *    switch bitwise
  */
+
+NAMETAB admin_sw[] =
+{
+    {(char *) "load", 2, CA_IMMORTAL, 0, ADMIN_LOAD},
+    {(char *) "save", 1, CA_IMMORTAL, 0, ADMIN_SAVE},
+    {(char *) "execute", 1, CA_IMMORTAL, 0, ADMIN_EXECUTE},
+    {(char *) "list", 2, CA_IMMORTAL, 0, ADMIN_LIST},
+    {NULL, 0, 0, 0, 0}};
 
 NAMETAB break_sw[] =
 {
@@ -911,6 +919,7 @@ NAMETAB site_sw[] =
   {(char *) "noautoreg", 6, CA_IMMORTAL, 0, SITE_NOAR},
   {(char *) "noauth", 6, CA_IMMORTAL, 0, SITE_NOAUTH},
   {(char *) "nodns", 3, CA_IMMORTAL, 0, SITE_NODNS},
+  {(char *) "list", 2, CA_IMMORTAL, 0, SITE_LIST},
   {NULL, 0, 0, 0, 0}};
 
 NAMETAB snapshot_sw[] =
@@ -1072,7 +1081,7 @@ CMDENT command_table[] =
 {
     {(char *) "@@", NULL, 0, 0,
      0, CS_NO_ARGS, 0, do_comment},
-    {(char *) "@admin", NULL, CA_GOD | CA_IMMORTAL, 0,
+    {(char *) "@admin", admin_sw, CA_GOD | CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_admin},
     {(char *) "@aflags", aflags_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_aflags},
@@ -2594,7 +2603,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -2861,7 +2870,7 @@ process_command(dbref player, dbref cause, int interactive,
        safe_str(cut_str_logptr, log_indiv, &log_indiv_ptr);
        free_lbuf(cut_str_log);
 #endif
-       if ( lookup(log_indiv, lcbuf) ) {
+       if ( lookup(log_indiv, lcbuf, -2, &i_retvar) ) {
           STARTLOG(LOG_ALWAYS, "CMD", "INDIVIDUAL")
              log_name_and_loc(player);
              if ( player != cause )
@@ -3264,7 +3273,7 @@ process_command(dbref player, dbref cause, int interactive,
                        tchbuff = alloc_mbuf("cpu_regsite");
                        DESC_ITER_CONN(d) {  
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_REGISTRATION) ) { 
+                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) { 
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                                if ( mudconf.cpu_secure_lvl == 4 )
                                   cf_site((int *)&mudstate.access_list, tchbuff,
@@ -3949,7 +3958,7 @@ process_command(dbref player, dbref cause, int interactive,
                        tchbuff = alloc_mbuf("cpu_regsite");
                        DESC_ITER_CONN(d) {
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_REGISTRATION) ) {
+                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                                if ( mudconf.cpu_secure_lvl == 4 )
                                   cf_site((int *)&mudstate.access_list, tchbuff,

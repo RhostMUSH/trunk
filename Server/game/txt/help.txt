@@ -27564,6 +27564,8 @@ New Features
 * /tee and /status switches for @pipe to allow more flexibility [ASH]
 * Optional compiletime to allow GLIB2's SHA512 random-seed passwords [ASH]
   Note: This does allow backward compatibility with existing DES passwords
+* forbid, register, and guest site restrictions allow optional connects [ASH]
+* @admin allows you to online load/save/list .conf file parameters [ASH]
   
 Changes
 ------------

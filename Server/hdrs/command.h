@@ -292,6 +292,11 @@ typedef struct aliasentry {
 
 #define BREAK_INLINE	0x00000001	/* @break/@assert should not go to wait queue */
 
+#define ADMIN_LOAD	0x00000001	/* @admin/load the parameters */
+#define ADMIN_SAVE	0x00000002	/* @admin/save the parameters */
+#define ADMIN_EXECUTE	0x00000004	/* @admin/execute (run) the parameters */
+#define ADMIN_LIST	0x00000008	/* @admikn/list the config params */
+
 #define HOOK_BEFORE	0x00000001	/* BEFORE hook */
 #define HOOK_AFTER	0x00000002	/* AFTER hook */
 #define HOOK_PERMIT	0x00000004	/* PERMIT hook */

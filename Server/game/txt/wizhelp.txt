@@ -2103,16 +2103,45 @@
   See Also: the source code.
 
 & @admin
-  Command: @admin <param>=<value>
+  Command: @admin[/<switch>] <param>=<value>
   Sets a RhostMUSH configuration parameter to the indicated value.
   Type 'wizhelp config parameters' for a list of the config parameters that
   may be set.
   
-  Note: This is not a permanent change and will be reset to the default
-        behavior after the next reboot, shutdown, or startup.  To make
-        this permanent, add the entry in the .conf (default netrhost.conf).
+  Note: Unless you use the /load, /save, etc arguments, this is not a 
+        permanent change and will be reset to the default behavior after 
+        the next reboot, shutdown, or startup.  To make this permanent, 
+        add the entry in the .conf (default netrhost.conf).
+  
+  Please make sure you have 'include rhost_ingame.conf' toward the bottom
+  of your netrhost.conf file so the below will work on reboots.
+  
+  Optional Switches:
+    /load    -- This will load to a specified bref# (defined by admin_object)
+                all the lines from the rhost_ingame.conf file, up to 1000 
+                lines.
+    /save    -- This will save all the _LINE## (in order) that was on the
+                admin_object into the rhost_ingame.conf file.  This will
+                overwrite the file and does not append to it.
+    /execute -- This will execute all the admin parameters in the 
+                rhost_ingame.conf file.
+    /list    -- This will list what is currently defined in the
+                rhost_ingame.conf file.
   
   Example:  @admin access=+chan ignore
+  
+  With the optional switches, note that the dbref# defined from the config
+  option 'admin_object' must be a valid object, must be owned by an immortal,
+  and the _LINE## (like _LINE0, _LINE1, _LINE2, etc) must be in order and
+  must start with _LINE0.  Any skipping of numbers will not be read.  Any
+  invalid @admin config paremeter will be skipped.  Any comment you wish to
+  add to the file must start with a '#'.  Like &_LINE1 #obj=# my comment.
+  
+  Any blank lines that were added to the rhost_ingame.conf manually will be
+  loaded as a comment and have a '#' when you save.  Any lines over 1000
+  will not be read.
+  
+  See Also: admin_object
 
 & @apply_marked
   Command: @apply_marked <command>
@@ -2205,6 +2234,8 @@
     /NOAUTH        - removes site information for authentication checks.
     /NOHOST        - removes site information for DNS checks.
     /ALL           - removes all matching site information.
+    /LIST          - show the raw *_host listings that you can use for
+                     removal.  Handy if you use the optional connection args.
   
   It will remove all matching instances for each switch field.  This command
   is only accessable by immortals.
@@ -6267,11 +6298,22 @@ SNOOPY                                                           God     Wiz
   existing site information already specified with forbid_host.  You may use
   '!ALL' to clear the forbid host table.
   
-  Example:  @admin forbid_host=*.aol.com !*.compuserve.com
+  You may specify an optional ceiling of allowed connects before the
+  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
+  3 connections from aol.com at any one time, then enforce the restriction.
+  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
+  FORBID restrictions.
+  
+  Example:  @admin forbid_host=*.aol.com !*.compuserve.com *ego.com|3
             (forbids any site matching *.aol.com and removes *.compuserve.com)
+            (will forbid *ego.com if more than 3 connections are seen)
             @admin forbid_host=!ALL
             (this clears the forbid_host list)
   
+  Note:  If you used a ceiling, you must specify the ceiling in removing
+         the site or it will not match it.  You may use @site/list to see
+         the raw site information that you can use to remove the site.
+   
   See Also: register_host, suspect_host, noguest_host, noautoreg_host, 
             validate_host, @site
 
@@ -7594,11 +7636,22 @@ SNOOPY                                                           God     Wiz
   information already specified with noguest_host.  You may use '!ALL' 
   to clear the noguest host table.
   
-  Example:  @admin noguest_host=*.aol.com !*.compuserve.com
+  You may specify an optional ceiling of allowed connects before the
+  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
+  3 connections from aol.com at any one time, then enforce the restriction.
+  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
+  FORBID restrictions.
+  
+  Example:  @admin noguest_host=*.aol.com !*.compuserve.com *ego.com|3
             (no-guests any site matching *.aol.com and removes *.compuserve.com)
+            (will deny guests on *ego.com if more than 3 connections are seen)
             @admin noguest_host=!ALL
             (this clears the noguest_host list)
   
+  Note:  If you used a ceiling, you must specify the ceiling in removing
+         the site or it will not match it.  You may use @site/list to see
+         the raw site information that you can use to remove the site.
+   
   See Also:  forbid_host, suspect_host, register_host, noautoreg_host, 
              validate_host, @site
 
@@ -8117,10 +8170,21 @@ SNOOPY                                                           God     Wiz
   existing site information already specified with register_host.  You may 
   use '!ALL' to clear the register host table.
   
-  Example:  @admin register_host=*.aol.com !*.compuserve.com
+  You may specify an optional ceiling of allowed connects before the
+  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
+  3 connections from aol.com at any one time, then enforce the restriction.
+  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
+  FORBID restrictions.
+  
+  Example:  @admin register_host=*.aol.com !*.compuserve.com *ego.com|3
             (registers any site matching *.aol.com and removes *.compuserve.com)
+            (will register cons on *ego.com if more than 3 connections are seen)
             @admin register_host=!ALL
             (this clears the register_host list)
+  
+  Note:  If you used a ceiling, you must specify the ceiling in removing
+         the site or it will not match it.  You may use @site/list to see
+         the raw site information that you can use to remove the site.
   
   See Also:  forbid_host, suspect_host, noguest_host, noautoreg_host, 
              validate_host, @site

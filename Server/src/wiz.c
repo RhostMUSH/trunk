@@ -2153,13 +2153,54 @@ void do_convert (dbref player, dbref cause, int key, char *buff1, char *buff2)
   }
   notify(player,"Done.");
 }
+void do_site_buff(dbref player, char *instr, char *label)
+{
+  char *s_tbuff, *s_tprbuff, *s_mybuff, *s_mybufptr, *s_strtok, *s_strtok_r;
+  int i_cntr;
+
+  s_tbuff = alloc_lbuf("do_site_list");
+  s_tprbuff = alloc_lbuf("do_site_list");
+  s_mybufptr = s_mybuff = alloc_lbuf("do_site_buff");
+
+  sprintf(s_tprbuff, "%s ----------", label);
+  safe_str(s_tprbuff, s_mybuff, &s_mybufptr);
+
+  strcpy(s_tbuff, instr);
+  s_strtok =  (char *)strtok_r(s_tbuff, " \t", &s_strtok_r);
+  i_cntr = 0;
+  while ( s_strtok ) {
+     if ( !(i_cntr % 3) ) {
+        safe_str((char *)"\r\n   ", s_mybuff, &s_mybufptr);
+     } 
+     sprintf(s_tprbuff, "%-24s ", s_strtok);
+     safe_str(s_tprbuff, s_mybuff,  &s_mybufptr);
+     s_strtok = strtok_r(NULL, " \t", &s_strtok_r);
+     i_cntr++;
+  }
+  notify(player, s_mybuff);
+  free_lbuf(s_tbuff);
+  free_lbuf(s_tprbuff);
+  free_lbuf(s_mybuff);
+}
 
 void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
 {
   SITE *pt1, *pt2;
   struct in_addr addr_num, mask_num;
-  char count;
+  char count; 
   unsigned long maskval;
+
+  if ( key & SITE_LIST ) {
+     do_site_buff(player, mudconf.forbid_host, (char *)"forbid_host");
+     do_site_buff(player, mudconf.suspect_host, (char *)"suspect_host");
+     do_site_buff(player, mudconf.register_host, (char *)"register_host");
+     do_site_buff(player, mudconf.noguest_host, (char *)"noguest_host");
+     do_site_buff(player, mudconf.autoreg_host, (char *)"autoreg_host");
+     do_site_buff(player, mudconf.validate_host, (char *)"validate_host");
+     do_site_buff(player, mudconf.goodmail_host, (char *)"goodmail_host");
+     do_site_buff(player, mudconf.nobroadcast_host, (char *)"nobroadcast_host");
+     return;
+  }
 
   if (!*buff1 || !*buff2 || !key) {
     notify(player,"Bad format in site command");
