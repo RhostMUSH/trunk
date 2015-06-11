@@ -4879,10 +4879,16 @@ do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
                       }
                       *tb2 = '\0';
                       i_found = 0;
-                      for (tp = conftable; tp->pname; tp++) {
-                         if (!strcmp(tp->pname, tbuf2)) {
-                            i_found = 1;
-                            break;
+                      if ( !strcmp(tbuf2, "newpass_god") || !strcmp(tbuf2, "include") ) {
+                         /* Do not allow putting newpass_god into this */
+                         /* Do not allow putting include into this */
+                         i_found = 0;
+                      } else {
+                         for (tp = conftable; tp->pname; tp++) {
+                            if (!strcmp(tp->pname, tbuf2)) {
+                               i_found = 1;
+                               break;
+                            }
                          }
                       }
                    } else {
