@@ -3989,7 +3989,7 @@ CONF conftable[] =
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.motd_msg, 1024, 0, CA_WIZARD,
      (char *) "Text used for @motd online."},
     {(char *) "muddb_name",
-     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.muddb_name, 32, 0, CA_PUBLIC,
+     cf_string, CA_DISABLED, (int *) mudconf.muddb_name, 32, 0, CA_PUBLIC,
      (char *) "The name used for the RhostMUSH DB's (mail/news)."},
     {(char *) "mud_name",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mud_name, 32, 0, CA_PUBLIC,
@@ -4886,7 +4886,11 @@ do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
                       } else {
                          for (tp = conftable; tp->pname; tp++) {
                             if (!strcmp(tp->pname, tbuf2)) {
-                               i_found = 1;
+                               if ( !(tp->flags & CA_DISABLED) ) {
+                                  i_found = 1;
+                               } else {
+                                  i_found = -1;
+                               }
                                break;
                             }
                          }
@@ -4894,10 +4898,11 @@ do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
                    } else {
                       i_found = 1;
                    }
-                   if ( !i_found ) {
+                   if ( i_found != 1 ) {
                       i_cntr2++;
                       tprpbuff = tprbuff;
-                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: skipping invalid config option '%s' in attribute '_LINE%d'.", tbuf2, i_cntr2-1));
+                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: skipping %s config option '%s' in attribute '_LINE%d'.", 
+                                   (!i_found ? "invalid" : "restricted"), tbuf2, i_cntr2-1));
                       continue;
                    }
                    fprintf(fp, "%s\n", tbuf);
