@@ -2347,6 +2347,8 @@ CF_HAND(cf_atrperms)
    free_lbuf(sbuff1);
    free_lbuf(sbuff2);
    free_lbuf(sbuff3);
+   if ( retval == 5 )
+      retval = 0;
    return retval;
 }
 
