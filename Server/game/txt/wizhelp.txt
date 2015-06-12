@@ -5123,29 +5123,30 @@ SNOOPY                                                           God     Wiz
   particular parameter.
   
   abort_on_bug             accent_extend            access                 
-  ahear_maxcount           ahear_maxtime            alias                  
-  allow_ansinames          allow_whodark            alt_inventories        
-  altover_inv              always_blind             ansi_default           
-  ansi_textfiles           areg_file                areg_lim               
-  aregh_file               atrperms                 atrperms_max           
-  attr_access              attr_alias               attr_cmd_access        
-  authenticate             bad_name                 badsite_file           
-  bcc_hidden               blind_snuffs_cons        brace_compatibility    
-  break_compatability      cache_depth              cache_steal_dirty      
-  cache_trim               cache_width              cap_articles           
-  cap_conjunctions         cap_preposition          check_interval         
-  check_offset             clone_copies_cost        cluster_cap            
-  clusterfunc_cap          comcost                  command_dark           
-  command_quota_increment  command_quota_max        compress_program       
-  compression              config_access            conn_timeout           
-  connect_file             connect_reg_file         cpu_secure_lvl         
-  cpuintervalchk           cputimechk               crash_database         
-  create_max_cost          create_min_cost          dark_sleepers          
-  descs_are_local          default_home             dig_cost               
-  door_file                door_index               down_file              
-  down_motd_message        dump_interval            dump_message           
-  dump_offset              earn_limit               empower_fulltel        
-  enable_tstamps           enforce_unfindable       error_file
+  admin_object             ahear_maxcount           ahear_maxtime          
+  alias                    allow_ansinames          allow_whodark          
+  alt_inventories          altover_inv              always_blind           
+  ansi_default             ansi_textfiles           areg_file              
+  areg_lim                 aregh_file               atrperms               
+  atrperms_max             attr_access              attr_alias             
+  attr_cmd_access          authenticate             bad_name               
+  badsite_file             bcc_hidden               blind_snuffs_cons      
+  brace_compatibility      break_compatability      cache_depth            
+  cache_steal_dirty        cache_trim               cache_width            
+  cap_articles             cap_conjunctions         cap_preposition        
+  check_interval           check_offset             clone_copies_cost      
+  cluster_cap              clusterfunc_cap          comcost                
+  command_dark             command_quota_increment  command_quota_max      
+  compress_program         compression              config_access          
+  conn_timeout             connect_file             connect_reg_file       
+  cpu_secure_lvl           cpuintervalchk           cputimechk             
+  crash_database           create_max_cost          create_min_cost        
+  dark_sleepers            descs_are_local          default_home           
+  dig_cost                 door_file                door_index             
+  down_file                down_motd_message        dump_interval          
+  dump_message             dump_offset              earn_limit             
+  empower_fulltel          enable_tstamps           enforce_unfindable     
+  error_file 
   
 { 'wizhelp config parameters2' for more }
 
@@ -5330,6 +5331,18 @@ SNOOPY                                                           God     Wiz
   wizhelp PERMISSIONS.
   
   See Also: PERMISSIONS, @list.
+
+& admin_object
+  Config parameter: admin_object <dbref>   Default: -1
+  
+  Specifies the object that all @admin config parmeters are loaded or unloaded
+  to and from the shell.  It will read and write from/to the rhost_ingame.conf
+  file.  This should be toward the bottom of your netrhost.conf file in the
+  form 'include rhost_ingame.conf'.  If it is not, please add this toward the
+  bottom of your netrhost.conf file right ABOVE the section that states it
+  is for local aliases/parameters.
+  
+  See Also: @admin
 
 & ahear_maxcount
   Config parameter: ahear_maxcount <value>    Default: 30
