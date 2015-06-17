@@ -20481,8 +20481,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and all subsequent list elements are moved
   down.  This means that it appears between the <pos-1>'th and <pos>'th
-  elements of the original list.  This function may not be used to append
-  a word to a list.  You may specify more than one position.
+  elements of the original list.  This function may be used to append or
+  prepend a word to a list.  You may specify more than one position.
    
   <delim> may be used to specify a delimiter other than a space.
   
