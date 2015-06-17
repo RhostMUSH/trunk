@@ -27599,3 +27599,4 @@ Bug Fixes
 * some unixes do not have scandir so we rolled our own in such a case [ASH]
 * possible buffer overflow missed with expanding site restrictions [ASH]
 * bug with scandir being undefined on certain unix flavors [ASH]
+* citer() and tr() didn't honor LF correctly in some situations [ASH]

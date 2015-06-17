@@ -5971,6 +5971,10 @@ FUNCTION(fun_tr)
    p_sp2 = outsplit2;   
    s_inptr = s_holdstr = alloc_lbuf("fun_tr_str3");
    while ( *s_ptr ) {
+      if ( s_chrmap[(int)*s_ptr] == '\r' ) {
+         s_ptr++;
+         continue;
+      }
       if ( s_chrmap[(int)*s_ptr] == '\n' ) {
          safe_chr('\r', s_holdstr, &s_inptr);
          if ( !i_noansi ) {
@@ -22232,13 +22236,17 @@ FUNCTION(fun_citer)
     cntr=1;
     tprp_buff  = tpr_buff = alloc_lbuf("fun_citer");
     while (*cp) {
-       if (*cp == '\r') {
-         if (*(cp + 1) == '\n')
-           cp++;
-           p_sp++;
+       if ( (cp != curr) &&  (*cp == '\n') && (*(cp-1) == '\r') ) {
+          cp++;
+          p_sp++;
        }
        *objstring = *cp;
-       *(objstring+1) = '\0';
+       if ( *cp == '\r' ) {
+          *(objstring+1) = *(cp+1);
+          *(objstring+2) = '\0';
+       } else {
+          *(objstring+1) = '\0';
+       }
        s_output = rebuild_ansi(objstring, p_sp);
        cp++;
        p_sp++;

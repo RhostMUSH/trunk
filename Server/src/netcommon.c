@@ -3697,7 +3697,7 @@ check_connect(DESC * d, const char *msg)
     if ( strlen(user) > 120 )
        overf = 0;
     if (!overf) {
-	queue_string(d,"Your attempt to crash this mush has been noted and logged.\r\n\n");
+	queue_string(d,"Your attempt to crash this mush has been noted and logged.\r\n");
 	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "OVERFLOW")
 	  *(((char *)msg)+LBUF_SIZE-MBUF_SIZE-1) = '\0';
 	  buff = alloc_lbuf("check_conn.LOG.over");
@@ -3741,7 +3741,7 @@ check_connect(DESC * d, const char *msg)
        is_guest = 1;
     if ( (!comptest && ((strlen(user) > 5) || (strcmp(password, "guest")))) ||
          (is_guest && !strcmp(password, "guest") && comptest) ) {
-	queue_string(d, "Use 'co guest guest' to connect to a guest character.\r\n\n");
+	queue_string(d, "Use 'co guest guest' to connect to a guest character.\r\n");
 	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
 	    buff = alloc_mbuf("check_conn.LOG.bad");
 	sprintf(buff, "[%d/%s] Failed connect to '%s'",
@@ -3801,7 +3801,7 @@ check_connect(DESC * d, const char *msg)
 	*command = 'a';
 	comptest = 1;
     } else if (!comptest && (mudstate.guest_num >= mudconf.max_num_guests)) {
-	queue_string(d, "Maximum number of guests has been reached.\r\n\n");
+	queue_string(d, "Maximum number of guests has been reached.\r\n");
 	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
 	    buff = alloc_mbuf("check_conn.LOG.bad");
 	sprintf(buff, "[%d/%s] Failed connect to '%s'",
@@ -3878,7 +3878,7 @@ check_connect(DESC * d, const char *msg)
 	player = connect_player(user, password, (char *)d);
         player2 = lookup_player(NOTHING, user, 0);
 	if (player == NOPERM) {
-		queue_string(d, "Connections to that player are not allowed from your site.\r\n\n");
+		queue_string(d, "Connections to that player are not allowed from your site.\r\n");
 	    STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BADSITE")
 		buff = alloc_mbuf("check_conn.LOG.bad");
 	    sprintf(buff, "[%d/%s] Failed connect to '%s'",
