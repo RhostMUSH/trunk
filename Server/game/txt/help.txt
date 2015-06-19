@@ -20,6 +20,8 @@
   
   You may use the /search switch for content searching.  Eg: help/search *mail*
   
+  Command syntax help is available by issuing /syntax. Eg: @emit/syntax
+  
   If there are any errors in the help text, please notify a Wizard.
   An HTML version of all the help contained here is available at
   http://rhostmush.com/autohelp/help.html
