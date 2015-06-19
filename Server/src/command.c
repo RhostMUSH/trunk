@@ -2130,10 +2130,28 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    xkey = search_nametab(player, cmdp->switches, switchp);
 	    if (xkey == -1) {
                 tprp_buff = tpr_buff = alloc_lbuf("process_cmdent");
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "Unrecognized switch '%s' for command '%s'.",
-			       switchp, cmdp->cmdname));
-                display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                if ( strcmp(switchp, "syntax") == 0 ) {
+                   switch (cmdp->callseq & CS_NARG_MASK) {
+                      case CS_NO_ARGS:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>]             (no arguments)", cmdp->cmdname);
+                         break;
+                      case CS_ONE_ARG:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>] <argument>", cmdp->cmdname);
+                         break;
+                      case CS_TWO_ARG:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>] <argument> = <argument>", cmdp->cmdname);
+                         break;
+                       default:
+                          sprintf(tpr_buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+                   }
+                   notify(player, tpr_buff);
+                   display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                } else {
+		   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                                  "Unrecognized switch '%s' for command '%s'.",
+			          switchp, cmdp->cmdname));
+                   display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                }
                 free_lbuf(tpr_buff);
                 DPOP; /* #27 */
 		return;
@@ -2154,9 +2172,27 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	} while (buf1);
     } else if (switchp && ((cmdp->callseq & CS_PASS_SWITCHES) == 0)) {
         tprp_buff = tpr_buff = alloc_lbuf("process_cmdent");
-	notify(player,
-	       safe_tprintf(tpr_buff, &tprp_buff, "Command %s does not take switches.",
-		       cmdp->cmdname));
+        if ( strcmp(switchp, "syntax") == 0 ) {
+           switch (cmdp->callseq & CS_NARG_MASK) {
+              case CS_NO_ARGS:
+                 sprintf(tpr_buff, "Syntax: %s                          (no arguments or switches)", cmdp->cmdname);
+                 break;
+              case CS_ONE_ARG:
+                 sprintf(tpr_buff, "Syntax: %s <argument>               (no switches)", cmdp->cmdname);
+                 break;
+              case CS_TWO_ARG:
+                 sprintf(tpr_buff, "Syntax: %s <argument> = <argument>  (no switches)", cmdp->cmdname);
+                 break;
+              default:
+                 sprintf(tpr_buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+           }
+           notify(player, tpr_buff);
+           notify(player, (char *)"Available Switches: N/A (no switches exist)");
+        } else {
+	   notify(player,
+	          safe_tprintf(tpr_buff, &tprp_buff, "Command %s does not take switches.",
+		          cmdp->cmdname));
+        }
         free_lbuf(tpr_buff);
         DPOP; /* #27 */
 	return;
