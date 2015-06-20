@@ -8492,7 +8492,15 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
                   fclose(fp);
                   mail_load(player);
                } else {
-                  notify_quiet(player, "Mail: no mail flatfile to load.  Using a new mail database.");
+                  sprintf(p1, "cp -f prevflat/%s.dump.* data > /dev/null 2>&1", mudconf.muddb_name);
+                  system(p1);
+                  sprintf(p1, "data/%s.dump.mail", mudconf.muddb_name);
+                  if ( (fp = fopen(p1, "r")) != NULL ) {
+                     fclose(fp);
+                     mail_load(player);
+                  } else {
+                     notify_quiet(player, "Mail: no mail flatfile to load.  Using a new mail database.");
+                  }
                }
             }
             free_lbuf(p1);
