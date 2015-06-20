@@ -8467,6 +8467,7 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 {
     int key2, flags;
     char *p1, *p2;
+    FILE *fp;
     dbref owner;
 
     recblock = 0;
@@ -8479,16 +8480,22 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
             lastwplayer = player;
             lastwflag = key;
             p1 = alloc_lbuf("clobber_mail");
-            sprintf(p1, "rm -f data/RhostMUSH.mail.* data/RhostMUSH.folder.* >/dev/null 2>&1"); 
+            sprintf(p1, "rm -f data/%s.mail.* data/%s.folder.* >/dev/null 2>&1", mudconf.muddb_name, mudconf.muddb_name); 
             mail_close();
             system(p1);
-            free_lbuf(p1);
             mudstate.mail_state = mail_init();
             if ( mudstate.mail_state != 1 ) {
 	       notify_quiet(player, "Mail: Mail was unable to be recovered.  Sorry.");
             } else {
-               mail_load(player);
+               sprintf(p1, "data/%s.dump.mail", mudconf.muddb_name);
+               if ( (fp = fopen(p1, "r")) != NULL ) {
+                  fclose(fp);
+                  mail_load(player);
+               } else {
+                  notify_quiet(player, "Mail: no mail flatfile to load.  Using a new mail database.");
+               }
             }
+            free_lbuf(p1);
          } else {
 	    notify_quiet(player, "Mail: Mail is currently turned off.");
          }
