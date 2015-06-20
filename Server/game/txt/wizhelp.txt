@@ -16,6 +16,10 @@
   
   You may use the /search switch for content.  Eg: wizhelp/search *mail*
   
+  Command syntax help is available by issuing /syntax. Eg: @emit/syntax
+  
+  The multi-tier bit order can be seen with 'help control'
+  
   If there are any errors in the help text, please notify a Wizard.
   
   See Also: help, and +help.
@@ -466,7 +470,7 @@
   override the existing control/permission levels globally.  This can
   obviously become quite complex, but we'll touch on the majority of them.
   The bits are all absolute to their level and lower.  Thus, lower level
-  bits can NOT MODIFY higher level bits, short of specail privs which will
+  bits can NOT MODIFY higher level bits, short of special privs which will
   be discussed later.
   
   First, the main control is handled by a bitlevel tier as follows.
@@ -485,7 +489,9 @@
                          can do all your normal wizardly goodness.
                          They override all locks their level and lower
                          unless set no_override/no_uselock.  Yes, this
-                         also includes pagelocks.
+                         also includes pagelocks.  This is referred to as
+                         'Royalty' within the codebase, but is in fact a
+                         full Wizard bit.  Re-iterate.  Full wizard.
    Councilor   [Bit 4] - This is the 'admin' bit.  It has most of the wiz
                          privs, but lacks some of the higher level db
                          control.
@@ -504,6 +510,8 @@
                          very little power or control.  They lack any
                          and all db modification abilities, including
                          but not limited to editing, creating, etc.
+                         They also can not use mail.  Yes, this is
+                         intentional.
   
   {wizhelp control2 for exceptions}
   {wizhelp control flow for the general flow of permissions}
@@ -544,8 +552,8 @@
                                          @hook
                                          Guildmaster Owned thing set INHERIT
                                                      Citizen ---+
-                                                     Wanderer
-                                                     Guest
+                                                     Wanderer --+
+                                                     Guest -----+
                                                      Toggles(some)
                                                      Flags(some)
                                                      @hook
@@ -590,7 +598,9 @@
    TwinkLock  -- @lock/twink is a special lock that grants editing, and
                  by extension, examining ability of anything that they
                  pass the lock on.  Obviously, it can be abused, thus
-                 why it's called a TWINK lock.
+                 why it's called a TWINK lock.  Setting a TwinkLock item
+                 NO_MODIFY will remove the editing ability and leave the
+                 examine ability.
    NO_MODIFY  -- This is a flag that can optionaly be tagged to be 
                  tiered-up to immortal.  It in essence makes any target
                  (including twinklocked items) non-modifiable.
