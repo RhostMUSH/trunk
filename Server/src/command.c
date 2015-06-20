@@ -1467,7 +1467,7 @@ CMDENT command_table[] =
      LOOK_INVENTORY, CS_NO_ARGS, 0, do_wielded},
     {(char *) "whisper", whisper_sw, CA_LOCATION | CA_NO_SLAVE, 0,
      PEMIT_WHISPER, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
-    {(char *) "wizhelp", genhelp_sw, CA_WIZARD | CA_ADMIN | CA_BUILDER, 0,
+    {(char *) "wizhelp", genhelp_sw, CA_WIZARD | CA_ADMIN | CA_BUILDER | CA_GUILDMASTER, 0,
      HELP_WIZHELP, CS_ONE_ARG, 0, do_help},
     {(char *) "worn", NULL, 0, 0,
      LOOK_INVENTORY, CS_NO_ARGS, 0, do_worn},

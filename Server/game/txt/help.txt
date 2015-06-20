@@ -27593,6 +27593,7 @@ Changes
 * added player dbref as 4th arg (%3) to file_object parameter [ASH]
 * If the mail-db gets corruption, you can attempt a wmail/load to recover it
   if you have a valid mail flatfile. [ASH]
+* wizhelp granted to GUILDMASTER bitted players by default [ASH]
     
 Bug Fixes
 ------------
