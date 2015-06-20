@@ -9973,6 +9973,11 @@ For help on an individual power, type:
 A special topic for DYNAMIC GLOBAL ALIASES is seen with wizhelp on 
                           mail_def_object
   
+Note: if mail shows that it is turned off, and attempting to turn it on
+      returns that the mail has an error, your mail db is likely
+      corrupted.  You can attempt a wmail/load to load in a previous
+      flatfile to recover the mail (if one is available).
+  
 See Also: mail
 
 & wmail cmdlist

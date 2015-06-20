@@ -8474,9 +8474,24 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
       if (key == WM_WIPE) {
 	mnuke_save(player,buf1);
 	return;
-      }
-      else {
-	notify_quiet(player, "Mail: Mail is currently turned off.");
+      } else {
+         if ( key == WM_LOAD ) {
+            lastwplayer = player;
+            lastwflag = key;
+            p1 = alloc_lbuf("clobber_mail");
+            sprintf(p1, "rm -f data/RhostMUSH.mail.* data/RhostMUSH.folder.* >/dev/null 2>&1"); 
+            mail_close();
+            system(p1);
+            free_lbuf(p1);
+            mudstate.mail_state = mail_init();
+            if ( mudstate.mail_state != 1 ) {
+	       notify_quiet(player, "Mail: Mail was unable to be recovered.  Sorry.");
+            } else {
+               mail_load(player);
+            }
+         } else {
+	    notify_quiet(player, "Mail: Mail is currently turned off.");
+         }
 	return;
       }
     }

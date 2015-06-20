@@ -27591,6 +27591,8 @@ Changes
 * Locks (normal and attribute) are 'noisy' with the NOISY @toggle [ASH]
 * expanded flag overwrite for expanded-who (PARIS) compiletime [ASH]
 * added player dbref as 4th arg (%3) to file_object parameter [ASH]
+* If the mail-db gets corruption, you can attempt a wmail/load to recover it
+  if you have a valid mail flatfile. [ASH]
     
 Bug Fixes
 ------------
