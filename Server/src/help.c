@@ -29,7 +29,7 @@ pstricmp(char *buf1, char *buf2, int len)
         p2++;
         cntr++;
     }
-    if ( (cntr == len) )
+    if ( cntr == len )
         return 0;
     if ((*p1 == '\0') && (*p2 == '\0'))
         return 0;

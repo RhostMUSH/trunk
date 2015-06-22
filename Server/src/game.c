@@ -1350,7 +1350,7 @@ do_reboot(dbref player, dbref cause, int key)
      f = fopen("reboot.silent", "w+");
 
      DESC_ITER_CONN(d) {
-        if ( (d->player == player) ) {
+        if ( d->player == player ) {
            if (f == NULL) {
               queue_string(d,"Cannot write silent reboot file. Final message will not be snuffed.");
            } else {
@@ -1969,7 +1969,7 @@ NDECL(process_preload)
                   if ( s_matchstr ) {
                      *s_matchstr = '\0';
                      i_matchint = atoi(s_matchstr+1);
-                     if ( (i_matchint == 1) ) {
+                     if ( i_matchint == 1 ) {
                         protectname_add(s_strtok, thing);
                         protectname_alias(s_strtok, thing);
                      }

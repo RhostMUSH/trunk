@@ -43,7 +43,7 @@ extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
 extern POWENT pow_table[];
 extern POWENT depow_table[];
-extern int lookup(char *, char *);
+extern int lookup(char *, char *, int, int *);
 extern CF_HAND(cf_site);
 extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
@@ -80,6 +80,14 @@ CMDENT * lookup_orig_command(char *cmdname);
  *    2nd word of permissions
  *    switch bitwise
  */
+
+NAMETAB admin_sw[] =
+{
+    {(char *) "load", 2, CA_IMMORTAL, 0, ADMIN_LOAD},
+    {(char *) "save", 1, CA_IMMORTAL, 0, ADMIN_SAVE},
+    {(char *) "execute", 1, CA_IMMORTAL, 0, ADMIN_EXECUTE},
+    {(char *) "list", 2, CA_IMMORTAL, 0, ADMIN_LIST},
+    {NULL, 0, 0, 0, 0}};
 
 NAMETAB break_sw[] =
 {
@@ -911,6 +919,7 @@ NAMETAB site_sw[] =
   {(char *) "noautoreg", 6, CA_IMMORTAL, 0, SITE_NOAR},
   {(char *) "noauth", 6, CA_IMMORTAL, 0, SITE_NOAUTH},
   {(char *) "nodns", 3, CA_IMMORTAL, 0, SITE_NODNS},
+  {(char *) "list", 2, CA_IMMORTAL, 0, SITE_LIST},
   {NULL, 0, 0, 0, 0}};
 
 NAMETAB snapshot_sw[] =
@@ -1072,7 +1081,7 @@ CMDENT command_table[] =
 {
     {(char *) "@@", NULL, 0, 0,
      0, CS_NO_ARGS, 0, do_comment},
-    {(char *) "@admin", NULL, CA_GOD | CA_IMMORTAL, 0,
+    {(char *) "@admin", admin_sw, CA_GOD | CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_admin},
     {(char *) "@aflags", aflags_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_aflags},
@@ -1458,7 +1467,7 @@ CMDENT command_table[] =
      LOOK_INVENTORY, CS_NO_ARGS, 0, do_wielded},
     {(char *) "whisper", whisper_sw, CA_LOCATION | CA_NO_SLAVE, 0,
      PEMIT_WHISPER, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
-    {(char *) "wizhelp", genhelp_sw, CA_WIZARD | CA_ADMIN | CA_BUILDER, 0,
+    {(char *) "wizhelp", genhelp_sw, CA_WIZARD | CA_ADMIN | CA_BUILDER | CA_GUILDMASTER, 0,
      HELP_WIZHELP, CS_ONE_ARG, 0, do_help},
     {(char *) "worn", NULL, 0, 0,
      LOOK_INVENTORY, CS_NO_ARGS, 0, do_worn},
@@ -2121,10 +2130,28 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    xkey = search_nametab(player, cmdp->switches, switchp);
 	    if (xkey == -1) {
                 tprp_buff = tpr_buff = alloc_lbuf("process_cmdent");
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "Unrecognized switch '%s' for command '%s'.",
-			       switchp, cmdp->cmdname));
-                display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                if ( strcmp(switchp, "syntax") == 0 ) {
+                   switch (cmdp->callseq & CS_NARG_MASK) {
+                      case CS_NO_ARGS:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>]             (no arguments)", cmdp->cmdname);
+                         break;
+                      case CS_ONE_ARG:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>] <argument>", cmdp->cmdname);
+                         break;
+                      case CS_TWO_ARG:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>] <argument> = <argument>", cmdp->cmdname);
+                         break;
+                       default:
+                          sprintf(tpr_buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+                   }
+                   notify(player, tpr_buff);
+                   display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                } else {
+		   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                                  "Unrecognized switch '%s' for command '%s'.",
+			          switchp, cmdp->cmdname));
+                   display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                }
                 free_lbuf(tpr_buff);
                 DPOP; /* #27 */
 		return;
@@ -2145,9 +2172,27 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	} while (buf1);
     } else if (switchp && ((cmdp->callseq & CS_PASS_SWITCHES) == 0)) {
         tprp_buff = tpr_buff = alloc_lbuf("process_cmdent");
-	notify(player,
-	       safe_tprintf(tpr_buff, &tprp_buff, "Command %s does not take switches.",
-		       cmdp->cmdname));
+        if ( strcmp(switchp, "syntax") == 0 ) {
+           switch (cmdp->callseq & CS_NARG_MASK) {
+              case CS_NO_ARGS:
+                 sprintf(tpr_buff, "Syntax: %s                          (no arguments or switches)", cmdp->cmdname);
+                 break;
+              case CS_ONE_ARG:
+                 sprintf(tpr_buff, "Syntax: %s <argument>               (no switches)", cmdp->cmdname);
+                 break;
+              case CS_TWO_ARG:
+                 sprintf(tpr_buff, "Syntax: %s <argument> = <argument>  (no switches)", cmdp->cmdname);
+                 break;
+              default:
+                 sprintf(tpr_buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+           }
+           notify(player, tpr_buff);
+           notify(player, (char *)"Available Switches: N/A (no switches exist)");
+        } else {
+	   notify(player,
+	          safe_tprintf(tpr_buff, &tprp_buff, "Command %s does not take switches.",
+		          cmdp->cmdname));
+        }
         free_lbuf(tpr_buff);
         DPOP; /* #27 */
 	return;
@@ -2454,6 +2499,7 @@ int cmdtest(dbref player, char *cmd)
 
   rval = 0;
   buff1 = atr_get(player, A_CMDCHECK, &aowner, &aflags);
+  buff2 = NULL;
   pt1 = buff1;
   while (pt1 && *pt1) {
     pt2 = strchr(pt1, ':');
@@ -2593,7 +2639,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -2723,7 +2769,7 @@ process_command(dbref player, dbref cause, int interactive,
 	     mudstate.debug_cmd = cmdsave;
              STARTLOG(LOG_ALWAYS, "WIZ", "SPAM");
              log_name_and_loc(player);
-             cpulbuf = alloc_lbuf(cpulbuf);
+             cpulbuf = alloc_lbuf("cpulbuf");
              sprintf(cpulbuf, " SEC/SPAM overload: (#%d) %.3940s", spamowner, command);
              log_text(cpulbuf);
              free_lbuf(cpulbuf);
@@ -2860,7 +2906,7 @@ process_command(dbref player, dbref cause, int interactive,
        safe_str(cut_str_logptr, log_indiv, &log_indiv_ptr);
        free_lbuf(cut_str_log);
 #endif
-       if ( lookup(log_indiv, lcbuf) ) {
+       if ( lookup(log_indiv, lcbuf, -2, &i_retvar) ) {
           STARTLOG(LOG_ALWAYS, "CMD", "INDIVIDUAL")
              log_name_and_loc(player);
              if ( player != cause )
@@ -3263,7 +3309,7 @@ process_command(dbref player, dbref cause, int interactive,
                        tchbuff = alloc_mbuf("cpu_regsite");
                        DESC_ITER_CONN(d) {  
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_REGISTRATION) ) { 
+                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) { 
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                                if ( mudconf.cpu_secure_lvl == 4 )
                                   cf_site((int *)&mudstate.access_list, tchbuff,
@@ -3948,7 +3994,7 @@ process_command(dbref player, dbref cause, int interactive,
                        tchbuff = alloc_mbuf("cpu_regsite");
                        DESC_ITER_CONN(d) {
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_REGISTRATION) ) {
+                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                                if ( mudconf.cpu_secure_lvl == 4 )
                                   cf_site((int *)&mudstate.access_list, tchbuff,
@@ -5429,11 +5475,11 @@ list_options_values_parse(dbref player, int p_val)
 static void
 list_options_system(dbref player)
 {
-   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[25],
+   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
         newstime[25], mailtime[25], aregtime[25], mushtime[25];
    time_t c_count, d_count, i_count;
 
-   memset(playerchktime, '\0', 25);
+   memset(playerchktime, '\0', 125);
 /* "------------------------------------------------------------------" */
    notify(player, "--- System Player Config Parameters ------------------------------------------");
 #ifdef TINY_SUB
@@ -5467,7 +5513,7 @@ list_options_system(dbref player)
 #endif
    notify(player, playerchktime);
 
-   memset(playerchktime, '\0', 25);
+   memset(playerchktime, '\0', 125);
 #ifdef TINY_U
     notify(player, "u()/zfun() ------------------------------------------------------- PENN/MUX/TM3");
 #else
@@ -10367,7 +10413,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 	                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                 EV_STRIP_LS | EV_STRIP_TS,
 			                 xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                              ; /* We just want to increment the counter to count it */
                            s_strtok = alloc_lbuf("cluster_trigger_build");
                            sprintf(s_strtok, "%.32s/%.3900s", s_tmpstr, s_strtokptr);
                            do_trigger(player, cause, (TRIG_QUIET), s_strtok, xargs, nxargs);
@@ -10436,7 +10483,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 	                      parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                    EV_STRIP_LS | EV_STRIP_TS,
 			                    xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                                 ; /* We just want to count the variable */
                               if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                  s_strtok = alloc_lbuf("cluster_set_build");
                                  s_tmpstr = strtok_r(s_text, " ", &s_inbufptr);
@@ -10468,7 +10516,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 	                         parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                       EV_STRIP_LS | EV_STRIP_TS,
 			                       xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                                    ; /* We just want to count the variable */
                                  if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                     s_tmpstr = find_cluster(thing, player, anum3);
                                     s_strtok = alloc_lbuf("cluster_set_build");

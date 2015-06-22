@@ -20,6 +20,8 @@
   
   You may use the /search switch for content searching.  Eg: help/search *mail*
   
+  Command syntax help is available by issuing /syntax. Eg: @emit/syntax
+  
   If there are any errors in the help text, please notify a Wizard.
   An HTML version of all the help contained here is available at
   http://rhostmush.com/autohelp/help.html
@@ -8156,8 +8158,8 @@
   Attribute trees are defined by attributes that contain ` to break up each
   branch in a tree.  Example:  THIS`IS`A`TREE`ATTRIBUTE
   
-  @clusters are not tree aware.  This is intentional, and will not be worth
-  the effort to make them so.  Please do not ask for it to happen.
+  @clusters and @wipe are not tree aware.  This is intentional, and will 
+  not be worth the effort to make them so.  Please do not ask for it to happen.
    
   RhostMUSH does not, specifically, have attribute trees as you would define
   them as.  Rhost does, however, allow you to mimic the feature set with
@@ -8172,17 +8174,58 @@
   PennMUSH style trees.
   
   For detailed information on what support RhostMUSH has for trees:
-     ATTRIBUTE TREE SETTING    -- Help on attribute tree setting. 
-     ATTRIBUTE TREE VIEWING    -- Help on attribute tree viewing.
-     ATTRIBUTE TREE PERMISSION -- Help on attribute tree locking/perms.
+     ATTRIBUTE TREE SETTING     -- Help on attribute tree setting. 
+     ATTRIBUTE TREE VIEWING     -- Help on attribute tree viewing.
+     ATTRIBUTE TREE PERMISSION  -- Help on attribute tree locking/perms.
+  
+  For detailed information on limitations of what RhostMUSH does not:
+     ATTRIBUTE TREE LIMITATIONS -- Limitations of attribute trees.
   
   See Also: @set, &, set(), rset(), lattr()
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
 
+& ATTRIBUTE TREE LIMITATIONS
+  Topic: Attribute Trees/limitations
+  
+  There are caveats of using 'attribute trees' in RhostMUSH.  The largest of
+  which, is the fact, that natively RhostMUSH does not support attribute 
+  trees.  This is the case because of the binary database and the absolute
+  overhead we would have implimenting a fully featured attribute tree system
+  that would match (or exceed) what Penn offers.  The second, and larger
+  issue is for the large amount of overhead this would cause, there really
+  is very little gain out of it other than attribute organization. 
+  
+  Every time an attribute tree would be looked up, every conceiveable branch
+  would have to be checked to see if permissions were granted.  While in
+  Penn this would be less costly (but likely still costly for all the
+  branch checks) in Rhost it would be doubly so.  We have to consider reality
+  levels, the multiple bitlevel checks, all the various locks, all the various
+  @powers, all the various @depowers, all the various built-in capping and
+  conditionals, and do a hash lookup of every single attribute on the object
+  for every single branch of every single pattern on the object itself for 
+  every single branch in every single chain for every single lookup.  
+  That would be a horrible waste of resources for minimal gains.
+  
+  So with that in mind, these are the limitations of Rhost with Attrib Trees:
+    1.  @cluster/@wipe/wipe() is not attribute tree aware.  It likely won't be.
+    2.  You can orphan a branch from a trunk if a further branch is locked.
+        Remember, these are not true trees, just an imitation of them.
+    3.  The set()/@set/lattr/examine/decompile honors the attribute tree
+        permissions but only if the tree option is specified for them.
+        Otherwise, it sees it just like any other attribute.
+    4.  You can orphan a tree branch by setting an empty attribute (removing)
+        it as it doesn't check branches of that attribute for permissions.
+        So be careful.
+    5.  This is intended to emulate the most used feature sets of Penn and
+        was able to be done with minimal overhead.  Again, we have no
+        interests nor desire to duplicate Penn's capabilities in this
+        avenue as we see it directly opposite of our own agendas and goals.
+
 & ATTRIBUTE TREE SETTING
+  Topic: Attribute Trees/setting
   
   The following ways allow you to set trees and follow branching.
-  Please be aware, @clusters ARE NOT TREE AWARE!!!
+  Please be aware, @clusters and @wipe ARE NOT TREE AWARE!!!
   
   Setting Attributes:
     @set  -- @set has a /tree switch, that when used with attribute setting,
@@ -8203,8 +8246,10 @@
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
   
 & ATTRIBUTE TREE VIEWING
+  Topic: Attribute Trees/viewing
+  
   The following ways allow you to view/examine trees and follow branching.
-  Please be aware, @clusters ARE NOT TREE AWARE!!!
+  Please be aware, @clusters and @wipe ARE NOT TREE AWARE!!!
   
   Viewing Attributes:
     ex    -- The examine command has a /tree option that lets you examine just
@@ -8226,8 +8271,10 @@
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
 
 & ATTRIBUTE TREE PERMISSION
+  Topic: Attribute Trees/permission
+  
   The following ways allows you to set permissions on various tree branches.
-  Please be aware, @clusters ARE NOT TREE AWARE!!!
+  Please be aware, @clusters and @wipe ARE NOT TREE AWARE!!!
   
   Locking Attributes:
     @lock -- Yup.  You can @lock an attribute and if it won't have permission
@@ -20436,8 +20483,8 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and all subsequent list elements are moved
   down.  This means that it appears between the <pos-1>'th and <pos>'th
-  elements of the original list.  This function may not be used to append
-  a word to a list.  You may specify more than one position.
+  elements of the original list.  This function may be used to append or
+  prepend a word to a list.  You may specify more than one position.
    
   <delim> may be used to specify a delimiter other than a space.
   
@@ -27519,6 +27566,12 @@ New Features
 * /tee and /status switches for @pipe to allow more flexibility [ASH]
 * Optional compiletime to allow GLIB2's SHA512 random-seed passwords [ASH]
   Note: This does allow backward compatibility with existing DES passwords
+* forbid, register, and guest site restrictions allow optional connects [ASH]
+* @admin allows you to online load/save/list .conf file parameters [ASH]
+* NO_NAME flag on object types will evaluate @nameformat if available on all
+  THING types for the purpose of inventory, contents, and looking [ASH]
+* A non-conformat switch global /syntax is available for most commands that
+  will now show syntax and available switches for any command [ASH]
   
 Changes
 ------------
@@ -27533,6 +27586,14 @@ Changes
 * editansi() now accepts multiple arguments for search/replace [ASH]
 * 'N' normalizer search for editansi() [ASH]
 * with the avent of SHA512 passwords, password length capped at 160 char [ASH]
+* on systems that do not have a SHA512 compatible glibc fall back to DES
+  while encrypting passwords. [ASH]
+* Locks (normal and attribute) are 'noisy' with the NOISY @toggle [ASH]
+* expanded flag overwrite for expanded-who (PARIS) compiletime [ASH]
+* added player dbref as 4th arg (%3) to file_object parameter [ASH]
+* If the mail-db gets corruption, you can attempt a wmail/load to recover it
+  if you have a valid mail flatfile. [ASH]
+* wizhelp granted to GUILDMASTER bitted players by default [ASH]
     
 Bug Fixes
 ------------
@@ -27540,3 +27601,11 @@ Bug Fixes
 * ascii8 encoding could allow multi-sequences in %<###> encoding [ASH]
 * forgot to define EXTLIBS in the Makefile -- oopse [ASH]
 * missed free in the @uptime changes for buffers [ASH]
+* buffering issue with @list options [ASH]
+* old_setq didn't handle re-mapping register names with '!' option [ASH]
+* cleaned up code to compile without warnings on latest clang [ASH]
+* cleaned up code to compile without warnings on latest BSD (with clang) [ASH]
+* some unixes do not have scandir so we rolled our own in such a case [ASH]
+* possible buffer overflow missed with expanding site restrictions [ASH]
+* bug with scandir being undefined on certain unix flavors [ASH]
+* citer() and tr() didn't honor LF correctly in some situations [ASH]

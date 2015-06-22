@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 echo "This will pull a src tarball from the Server location and attempt to rebuild."
 echo "Once fiished, you can @reboot in the Mush to load the new code."
 echo "Do not forget to @readcache as well to read in the new text files."
@@ -57,8 +57,14 @@ lc_date=$(date +%m%d%y%H%M%S)
 tar -czf src_backup_${lc_date}.tgz src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
 echo "... completed.  Filename is src_backup_${lc_date}.tgz"
 echo "Copying your binary ... just in case.  Backup will be src/netrhost.automate (or bin/netrhost.automate)"
-[[ -f src/netrhost ]] && cp -f src/netrhost src/netrhost.automate
-[[ -f bin/netrhost ]] && cp -f bin/netrhost bin/netrhost.automate
+if [ -f src/netrhost ] 
+then 
+   cp -f src/netrhost src/netrhost.automate
+fi
+if [ -f bin/netrhost ] 
+then
+   cp -f bin/netrhost bin/netrhost.automate
+fi
 if [ ${type} -eq 0 ]
 then
    bunzip -cd src.tbz|tar -xvf -
@@ -73,7 +79,12 @@ else
    rm -rf ./rhost_tmp
 fi
 cd src
-make clean;make
+if [ `uname -s|grep -ic bsd` -gt 0 ]
+then
+   gmake clean;gmake
+else
+   make clean;make
+fi
 cd ../game/txt
 ../mkindx help.txt help.indx
 ../mkindx wizhelp.txt wizhelp.indx

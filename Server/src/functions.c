@@ -5971,6 +5971,10 @@ FUNCTION(fun_tr)
    p_sp2 = outsplit2;   
    s_inptr = s_holdstr = alloc_lbuf("fun_tr_str3");
    while ( *s_ptr ) {
+      if ( s_chrmap[(int)*s_ptr] == '\r' ) {
+         s_ptr++;
+         continue;
+      }
       if ( s_chrmap[(int)*s_ptr] == '\n' ) {
          safe_chr('\r', s_holdstr, &s_inptr);
          if ( !i_noansi ) {
@@ -6352,7 +6356,7 @@ FUNCTION(fun_cmds)
                   found = 1;
                   cmd += d->command_count;
                } else {
-                  if ( (d_type == d->descriptor) ) {
+                  if ( d_type == d->descriptor ) {
                      cmd = d->command_count;
                      /* Fake single mode */
                      i_type = 0;
@@ -6610,7 +6614,7 @@ FUNCTION(fun_pack)
       ++q;
 
   }
-  if ( (i_penn == 1) ) {
+  if ( i_penn == 1 ) {
      p = TempBuffer;
      while ( p && *p ) {
         safe_chr(ToLower(*p), buff, bufcx);
@@ -7391,7 +7395,7 @@ FUNCTION(fun_garble)
        */
       if ( mudstate.chkcpu_toggle )
          break;
-      if ( (i_string == 1) ) {
+      if ( i_string == 1 ) {
          if ( ((!(random() % num) && !sip) || (((random() % 100) < num) && sip)) ) {
             strcpy(s_tmpvalue, fargs[6]);
             s_retval = exec(player, cause, player, EV_STRIP | EV_FCHECK | EV_EVAL, s_tmpvalue,
@@ -9497,10 +9501,9 @@ FUNCTION(fun_timefmt)
         }
      }
      if ( tzmush->mush_tzone ) {
-        secs = secs + timezone + tzmush->mush_offset;
-/*      secs2 = secs2 + timezone + tzmush->mush_offset; */
-        secs2 = secs2 + (double)(int)timezone + (double)(tzmush->mush_offset);
-        i_frell = mudstate.now + timezone + tzmush->mush_offset;
+        secs = secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
+        secs2 = secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
+        i_frell = (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
         tms2 = localtime(&i_frell);
      }
   }
@@ -9785,7 +9788,7 @@ FUNCTION(fun_timefmt)
                 fmtdone = 1;
                 break;
               case 't': /* Timezone */
-                fm.lastval = timezone;
+                fm.lastval = (int)timezone;
                 sprintf(fmtbuff, "%d", fm.lastval);
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
@@ -10096,7 +10099,7 @@ FUNCTION(fun_ptimefmt)
   val = 0;
   if (nfargs == 2) {
     val = (unsigned int) atoi(fargs[1]);
-    if (!is_integer(fargs[1]) || (val < 0)) {
+    if (!is_integer(fargs[1]) || ((int)val < 0)) {
       safe_str("#-1 VALUE MUST BE A POSITIVE INTEGER", buff, bufcx);
       return;
     }
@@ -12724,10 +12727,10 @@ FUNCTION(fun_u)
     } else {
        result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
                      &(fargs[1]), nfargs - 1);
+       safe_str(result, buff, bufcx);
+       free_lbuf(result);
     }
     free_lbuf(atext);
-    safe_str(result, buff, bufcx);
-    free_lbuf(result);
     safer_unufun(tval);
 }
 
@@ -13546,10 +13549,10 @@ FUNCTION(fun_u2)
     } else {
        result = exec(thing, cause, player, EV_FCHECK | EV_EVAL, atext,
                      &(fargs[1]), nfargs - 1);
+       safe_str(result, buff, bufcx);
+       free_lbuf(result);
     }
     free_lbuf(atext);
-    safe_str(result, buff, bufcx);
-    free_lbuf(result);
     safer_unufun(tval);
 }
 
@@ -14703,6 +14706,7 @@ FUNCTION(fun_v)
     sbuf = alloc_sbuf("fun_v");
     sbufc = sbuf;
     safe_sb_chr('%', sbuf, &sbufc);
+    i_shifted = 0;
     if ( isdigit(*fargs[0]) ) {
        i_shifted = atoi(fargs[0]) / 10;
        if ( i_shifted < 0 )
@@ -18437,8 +18441,9 @@ FUNCTION(fun_lexits)
                         safe_str("#-1", namebuff, &namebufcx);
                     } else {
                         safe_str(Name(thing), namebuff, &namebufcx);
-                        for (s = namebuff; *s && (*s != ';'); s++);
-                           *s = '\0';
+                        for (s = namebuff; *s && (*s != ';'); s++)
+                           ;  /* Go to the ';' or EOL */
+                        *s = '\0';
                     }
                     if (gotone) {
                        if ( (nfargs > 1) && *fargs[1] ) {
@@ -18733,11 +18738,12 @@ do_itemfuns(char *buff, char **bufcx, char *str, int el, char *word,
 
         sptr = eptr = trim_space_sep(str, sep);
         overrun = 1;
-        for (ct = el; ct > 2 && eptr; eptr = next_token(eptr, sep), ct--);
-            if (eptr) {
-                overrun = 0;
-                iptr = split_token(&eptr, sep);
-            }
+        for (ct = el; ct > 2 && eptr; eptr = next_token(eptr, sep), ct--)
+           ; /* Go to the next token */
+        if (eptr) {
+           overrun = 0;
+           iptr = split_token(&eptr, sep);
+        }
         /* If we didn't make it to the target element, just return
          * the string.  Insert is allowed to continue if we are
          * exactly at the end of the string, but replace and delete
@@ -20426,7 +20432,7 @@ FUNCTION(fun_lnum)
           x = 0;
       }
       else if (nfargs >= 2) {
-          if (*fargs[1]);
+          if (*fargs[1])
               y = atoi(fargs[1]);
           if ((nfargs >= 3) && (*fargs[2]))
               sep = *fargs[2];
@@ -22230,13 +22236,17 @@ FUNCTION(fun_citer)
     cntr=1;
     tprp_buff  = tpr_buff = alloc_lbuf("fun_citer");
     while (*cp) {
-       if (*cp == '\r') {
-         if (*(cp + 1) == '\n')
-           cp++;
-           p_sp++;
+       if ( (cp != curr) &&  (*cp == '\n') && (*(cp-1) == '\r') ) {
+          cp++;
+          p_sp++;
        }
        *objstring = *cp;
-       *(objstring+1) = '\0';
+       if ( *cp == '\r' ) {
+          *(objstring+1) = *(cp+1);
+          *(objstring+2) = '\0';
+       } else {
+          *(objstring+1) = '\0';
+       }
        s_output = rebuild_ansi(objstring, p_sp);
        cp++;
        p_sp++;
@@ -26875,7 +26885,7 @@ FUNCTION(fun_setq)
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
-               (stricmp(mudstate.global_regsname[i], result_orig) == 0) ) {
+               (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;
@@ -27103,7 +27113,7 @@ FUNCTION(fun_setr)
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
-               (stricmp(mudstate.global_regsname[i], result_orig) == 0) ) {
+               (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;
@@ -27659,7 +27669,7 @@ FUNCTION(fun_countspecial)
      return;
   }
 
-  i_val = 0;
+  i_val = i_key = 0;
   
   if ( !*fargs[0] ) {
      ival(buff, bufcx, i_val);
@@ -28718,6 +28728,7 @@ FUNCTION(fun_pemit)
       notify(player, "Permission denied.");
       return;
    }
+   i_key = 0;
    if ( nfargs > 2 && *fargs[2] ) {
       i_key = atoi(fargs[2]);
    }
@@ -29996,6 +30007,7 @@ FUNCTION(fun_cluster_stats)
    if (!fn_range_check("CLUSTER_STATS", nfargs, 2, 3, buff, bufcx))
        return;
 
+   i_type = 0;
    if ( *fargs[1] )
       i_type = atoi(fargs[1]);
 
@@ -31443,9 +31455,10 @@ CF_HAND(cf_func_access)
     UFUN *ufp;
     char *ap;
 
-    for (ap = str; *ap && !isspace((int)*ap); ap++);
-       if (*ap)
-          *ap++ = '\0';
+    for (ap = str; *ap && !isspace((int)*ap); ap++)
+       ; /* Padd to spaces */
+    if (*ap)
+       *ap++ = '\0';
 
     for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
                fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {

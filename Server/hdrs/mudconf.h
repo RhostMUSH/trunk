@@ -404,6 +404,7 @@ struct confdata {
 	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
 	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
 	int	float_precision;	/* Float percision for math functions() -- default 6 */
+	int	admin_object;	/* The admin object */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
@@ -474,6 +475,7 @@ struct site_data {
 	struct in_addr mask;		/* Mask to apply before comparing */
 	int	flag;			/* Value to return on match */
 	int	key;			/* Auto sited or not? */
+	int	maxcon;			/* Maximum connections allowed from site */
 };
 
 

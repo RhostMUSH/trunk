@@ -2521,8 +2521,9 @@ unparse_object_numonly(dbref target)
 char *
 unparse_object(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *fp;
-    int exam;
+    char *buf, *fp, *nfmt, *buf2;
+    int exam, aflags;
+    dbref aowner;
 
     buf = alloc_lbuf("unparse_object");
     if (target == NOTHING) {
@@ -2555,12 +2556,26 @@ unparse_object(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
 
+    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+       nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
+       if ( *nfmt ) {   
+          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0);
+          if ( Wizard(player) ) {
+             sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
+          } else {
+             strcpy(buf, buf2);
+          }
+          free_lbuf(buf2);
+       }
+       free_lbuf(nfmt);
+    }
+
     return buf;
 }
 char *
 unparse_object_altname(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *fp, name_str[31];
+    char *buf, *buf2, *fp, name_str[31], *nfmt;
     int exam, aowner;
     dbref aflags;
 
@@ -2610,6 +2625,20 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
     }
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
+
+    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+       nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
+       if ( *nfmt ) {
+          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0);
+          if ( Wizard(player) ) {
+             sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
+          } else {
+             strcpy(buf, buf2);
+          }
+          free_lbuf(buf2);
+       }
+       free_lbuf(nfmt);
+    }
 
     return buf;
 }
@@ -2824,7 +2853,7 @@ parse_ansi_name(dbref target, char *ansibuf)
 char *
 unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[31];
+    char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[31], *nfmt;
     int exam, aowner, ansi_ok;
     dbref aflags;
 #ifndef ZENTY_ANSI
@@ -3008,13 +3037,26 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
        memset(buf, 0, LBUF_SIZE);
 
     free_lbuf(buf2);    
+    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+       nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
+       if ( *nfmt ) {
+          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0);
+          if ( Wizard(player) ) {
+             sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
+          } else {
+             strcpy(buf, buf2);
+          }
+          free_lbuf(buf2);
+       }
+       free_lbuf(nfmt);
+    }
     return buf;
 }
 
 char *
 unparse_object_ansi(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *fp, *ansibuf, ansitmp[30];
+    char *buf, *buf2, *fp, *ansibuf, ansitmp[30], *nfmt;
     int exam, aowner, ansi_ok;
     dbref aflags;
 #ifndef ZENTY_ANSI
@@ -3171,6 +3213,20 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
        memset(buf, 0, LBUF_SIZE);
 
     free_lbuf(buf2);    
+    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+       nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
+       if ( *nfmt ) {
+          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0);
+          if ( Wizard(player) ) {
+             sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
+          } else {
+             strcpy(buf, buf2);
+          }
+          free_lbuf(buf2);
+       }
+       free_lbuf(nfmt);
+    }
+
     return buf;
 }
 
@@ -3745,7 +3801,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 #ifndef STANDALONE
    TOGENT *tp;
    char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;;
-   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
@@ -4164,7 +4220,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 #ifndef STANDALONE
    FLAGENT *fp;
    char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;
-   char static_list[33], static_list2[19], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 

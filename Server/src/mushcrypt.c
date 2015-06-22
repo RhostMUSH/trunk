@@ -150,8 +150,18 @@ char * mush_crypt(const char *key) {
   }
   s_buff[9]='\0';
   memset(s_salt, '\0', 20);
-  sprintf(s_salt, "$6$%s$", s_buff);
-  RETURN(crypt(key, s_salt)); /* #96 */
+  s = crypt("abcde", "$6$12345$");
+  if ( s && strlen(s) > 20 ) {
+     sprintf(s_salt, "$6$%s$", s_buff);
+     RETURN(crypt(key, s_salt)); /* #96 */
+  } else {
+#ifndef STANDALONE
+     STARTLOG(LOG_ALWAYS, "WIZ", "CRYPT");
+     log_text((char *)"Warning: password encryption does not handle SHA512 hashes.  Incompatible glibc.  Falling back to DES.");
+     ENDLOG
+#endif
+     RETURN(crypt(key, "XX")); /* #96 */
+  }
 #else
   RETURN(crypt(key, "XX")); /* #96 */
 #endif

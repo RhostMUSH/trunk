@@ -660,7 +660,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff, &bufc);
                 safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff2, &bufc2);
-            } else if ( (*string == '<') ) {
+            } else if ( *string == '<' ) {
                 string++;
                 if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
                    s_intbuf[0] = *(string);
@@ -694,7 +694,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                    safe_chr(*string, buff, &bufc);
                    safe_chr(*string, buff2, &bufc2);
                 }
-            } else if ( (*string == 'f') ) {
+            } else if ( *string == 'f' ) {
                 ch = (unsigned char)*(++string);
                 if ( ch == 'n' ) {
                    accent_toggle = 0;
@@ -1207,7 +1207,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 	    case '%':		/* Percent - a literal % */
 #ifdef ZENTY_ANSI            
-               if((*(dstr + 1) == SAFE_CHR)
+               if ( ((*(dstr + 1) == SAFE_CHR) && 1) /* Needed && 1 to ignore clang warning */
 #ifdef SAFE_CHR2
                                         || (*(dstr + 1) == SAFE_CHR2 )
 #endif

@@ -286,6 +286,7 @@ NDECL(cf_init)
     mudconf.file_object = -1;		/* File object for @list_file overloading */
     mudconf.ansi_default = 0;		/* Allow ansi aware functions ansi default */
     mudconf.accent_extend = 0;		/* Can we extend accents from 251-255? */
+    mudconf.admin_object = -1;		/* The admin object to define */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -2346,6 +2347,8 @@ CF_HAND(cf_atrperms)
    free_lbuf(sbuff1);
    free_lbuf(sbuff2);
    free_lbuf(sbuff3);
+   if ( retval == 5 )
+      retval = 0;
    return retval;
 }
 
@@ -3018,7 +3021,8 @@ CF_HAND(cf_badname)
 CF_HAND(cf_site)
 {
     SITE *site, *last, *head;
-    char *addr_txt, *mask_txt;
+    char *addr_txt, *mask_txt, *maxcon_txt;
+    int i_maxcon;
     struct in_addr addr_num, mask_num;
     unsigned long maskval;
 
@@ -3034,7 +3038,7 @@ CF_HAND(cf_site)
     addr_num.s_addr = inet_addr(addr_txt);
     if ( strchr(mask_txt, '/') != NULL ) {
        maskval = atol(mask_txt+1);
-       if ((maskval < 0) || (maskval > 32)) {
+       if (((long)maskval < 0) || (maskval > 32)) {
 	  cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
 	  return -1;
        }
@@ -3046,6 +3050,14 @@ CF_HAND(cf_site)
     if (addr_num.s_addr == -1) {
 	cf_log_syntax(player, cmd, "Bad host address: %s", addr_txt);
 	return -1;
+    }
+
+    i_maxcon = -1;
+    maxcon_txt = strtok(NULL, " \t=,");
+    if ( maxcon_txt && *maxcon_txt ) {
+       i_maxcon = atoi(maxcon_txt);
+       if ( i_maxcon < 0 )
+          i_maxcon = -1;
     }
     head = (SITE *) (pmath2)*vp;
     /* Parse the access entry and allocate space for it */
@@ -3060,6 +3072,7 @@ CF_HAND(cf_site)
     } else {
        site->key = 0;
     }
+    site->maxcon = i_maxcon;
     site->address.s_addr = addr_num.s_addr;
     site->mask.s_addr = mask_num.s_addr;
     site->flag = extra;
@@ -3438,6 +3451,9 @@ CONF conftable[] =
     {(char *) "accent_extend",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.accent_extend, 0, 0, CA_WIZARD,
      (char *) "Are accents extended past 250 to 255??"},
+    {(char *) "admin_object",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.admin_object, 0, 0, CA_WIZARD,
+     (char *) "The object that will be used to load and save inline conf parameters.   Default: -1   Value: %d"},
     {(char *) "ansi_default",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ansi_default, 0, 0, CA_WIZARD,
      (char *) "Are functions that are ansi aware made ansi-aware by default?"},
@@ -3975,7 +3991,7 @@ CONF conftable[] =
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.motd_msg, 1024, 0, CA_WIZARD,
      (char *) "Text used for @motd online."},
     {(char *) "muddb_name",
-     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.muddb_name, 32, 0, CA_PUBLIC,
+     cf_string, CA_DISABLED, (int *) mudconf.muddb_name, 32, 0, CA_PUBLIC,
      (char *) "The name used for the RhostMUSH DB's (mail/news)."},
     {(char *) "mud_name",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mud_name, 32, 0, CA_PUBLIC,
@@ -4735,30 +4751,6 @@ cf_set(char *cp, char *ap, dbref player)
 }
 
 /* ---------------------------------------------------------------------------
- * do_admin: Command handler to set config params at runtime */
-
-void
-do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
-{
-    int i, i_tval;
-
-    i_tval = 0;
-    if ( strchr(kw, '!') )
-       i_tval = 1;
-    i = cf_set(kw, value, player);
-    if ((i >= 0) && !Quiet(player))
-	if ( i_tval )
-	   notify(player, "Cleared.");
-	else
-	   notify(player, "Set.");
-    else if (i == -1 && !Quiet(player))
-        notify(player, "Failure.");
-    else if (i == -2 && !Quiet(player))
-        notify(player, "Set. (redefined)");
-    return;
-}
-
-/* ---------------------------------------------------------------------------
  * cf_read: Read in config parameters from named file
  */
 
@@ -4787,6 +4779,217 @@ cf_read(char *fn)
     }
     return retval;
 }
+
+/* ---------------------------------------------------------------------------
+ * do_admin: Command handler to set config params at runtime */
+
+void
+do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
+{
+    int i, i_tval, i_cntr, i_cntr2, atr, aflags, i_found;
+    dbref aowner;
+    char *tbuf, *sbuf, *tprbuff, *tprpbuff, *tbuf2, *tb, *tb2;
+    FILE *fp;
+    ATTR *aname;
+    CONF *tp;
+
+    tprpbuff = tprbuff = alloc_lbuf("do_admin_tpr");
+    switch( extra ) {
+       case ADMIN_LOAD: /* Load parameters into defined dbref# */
+          if ( Good_chk(mudconf.admin_object) && Immortal(Owner(mudconf.admin_object)) ) {
+             if ( (fp = fopen("rhost_ingame.conf", "r")) != NULL ) {
+                tbuf = alloc_lbuf("admin_load");
+                sbuf = alloc_sbuf("admin_load");
+                notify_quiet(player, "@admin: Loading config parameters to object defined in admin_object param.");
+                sprintf(tbuf, "#%d/_LINE*", mudconf.admin_object);
+                do_wipe(player, player, (SIDEEFFECT), tbuf);
+                i_cntr = 0;
+                while ( !feof(fp) ) {
+                   if ( i_cntr > 999 ) {
+                      notify_quiet(player, "@admin: can not have more than 1000 entries in rhost_ingame.conf.  Sorry.  Ignoring rest.");
+                      break;
+                   }
+                   fgets(tbuf, LBUF_SIZE, fp);
+                   if ( feof(fp) )
+                      break;
+                   if ( !*tbuf || (*tbuf == '\r') || (*tbuf == '\n') ) {
+                      strcpy(tbuf, (char *)"#");
+                   } else {
+                      if ( (tbuf[strlen(tbuf)-1] == '\r') ||
+                           (tbuf[strlen(tbuf)-1] == '\n') )
+                         tbuf[strlen(tbuf)-1]='\0';
+                   }
+                   sprintf(sbuf, "_LINE%d", i_cntr);
+                   atr = mkattr(sbuf);
+                   if ( atr < 0 ) {
+                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: error attempting to create attribute %s.  Aborting.", sbuf));
+                      break;
+                   }
+                   aname = atr_num3(atr);
+                   if ( !aname ) {
+                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: error attempting to create attribute %s.  Aborting.", sbuf));
+                      break;
+                   }
+                   atr_add_raw(mudconf.admin_object, aname->number, tbuf);
+                   i_cntr++;
+                }
+                notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: completed loading %d lines onto object #%d.", i_cntr, mudconf.admin_object));
+                free_lbuf(tbuf);
+                free_sbuf(sbuf);
+                fclose(fp);
+             } else {
+                notify_quiet(player, "@admin: There is no 'rhost_ingame.conf' file in your game directory.");
+             }
+          } else {
+             notify_quiet(player, "@admin: Invalid object defined in 'admin_object'.");
+          }
+          break;
+       case ADMIN_SAVE: /* Save parameters into defined dbref# */
+          if ( Good_chk(mudconf.admin_object) && Immortal(Owner(mudconf.admin_object)) ) {
+             if ( (fp = fopen("rhost_ingame.conf", "w")) != NULL ) {
+                i_cntr = i_cntr2 = 0;
+                tbuf = alloc_lbuf("admin_save");
+                tbuf2 = alloc_lbuf("admin_save");
+                sbuf = alloc_sbuf("admin_save");
+                while ( 1 ) { /* Go until line not found */
+                   if ( i_cntr2 > 999 ) {
+                      notify_quiet(player, "@admin: can not have more than 1000 entries in rhost_ingame.conf.  Sorry.  Ignoring rest.");
+                      break;
+                   }
+                   sprintf(sbuf, "_LINE%d", i_cntr2);
+                   atr = mkattr(sbuf);
+                   if ( atr < 0 ) {
+                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: error attempting to create attribute %s.  Aborting.", sbuf));
+                      break;
+                   }
+                   aname = atr_num3(atr);
+                   if ( !aname ) {
+                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: error attempting to create attribute %s.  Aborting.", sbuf));
+                      break;
+                   }
+                   memset(tbuf, '\0', LBUF_SIZE);
+                   atr_get_str(tbuf, mudconf.admin_object, aname->number, &aowner, &aflags);
+                   if ( !*tbuf ) {
+                      /* Empty line -- assume we want to end here */
+                      break;
+                   }
+                   if ( *tbuf != '#' ) {
+                      tb = tbuf;
+                      tb2 = tbuf2;
+                      while ( *tb && !isspace(*tb) ) {
+                         *(tb2++) = *(tb++);
+                      }
+                      *tb2 = '\0';
+                      i_found = 0;
+                      if ( !strcmp(tbuf2, "newpass_god") || !strcmp(tbuf2, "include") ) {
+                         /* Do not allow putting newpass_god into this */
+                         /* Do not allow putting include into this */
+                         i_found = 0;
+                      } else {
+                         for (tp = conftable; tp->pname; tp++) {
+                            if (!strcmp(tp->pname, tbuf2)) {
+                               if ( !(tp->flags & CA_DISABLED) ) {
+                                  i_found = 1;
+                               } else {
+                                  i_found = -1;
+                               }
+                               break;
+                            }
+                         }
+                      }
+                   } else {
+                      i_found = 1;
+                   }
+                   if ( i_found != 1 ) {
+                      i_cntr2++;
+                      tprpbuff = tprbuff;
+                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: skipping %s config option '%s' in attribute '_LINE%d'.", 
+                                   (!i_found ? "invalid" : "restricted"), tbuf2, i_cntr2-1));
+                      continue;
+                   }
+                   fprintf(fp, "%s\n", tbuf);
+                   i_cntr++;
+                   i_cntr2++;
+                }
+                notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: completed writing %d (of %d) lines into rhost_ingame.conf.", i_cntr, i_cntr2));
+                free_sbuf(sbuf);
+                free_lbuf(tbuf);
+                free_lbuf(tbuf2);
+                fclose(fp);
+             } else {
+                notify_quiet(player, "@admin: unable to open 'rhost_ingame.conf' file in your game directory.");
+             }
+          } else {
+             notify_quiet(player, "@admin: Invalid object defined in 'admin_object'.");
+          }
+          break;
+       case ADMIN_EXECUTE: /* Execute parameters saved in file */
+          if ( Good_chk(mudconf.admin_object) && Immortal(Owner(mudconf.admin_object)) ) {
+             if ( (fp = fopen("rhost_ingame.conf", "r")) != NULL ) {
+                i_cntr = 0;
+                tbuf = alloc_lbuf("admin_save");
+                while ( !feof(fp) ) {
+                   fgets(tbuf, LBUF_SIZE, fp);
+                   if ( !feof(fp) )
+                      i_cntr++;
+                }
+                free_lbuf(tbuf);
+                fclose(fp);
+                cf_read("rhost_ingame.conf");
+                notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: executed %d lines from rhost_ingame.conf", i_cntr));
+             } else {
+                notify_quiet(player, "@admin: unable to open 'rhost_ingame.conf' file in your game directory.");
+             }
+          } else {
+             notify_quiet(player, "@admin: Invalid object defined in 'admin_object'.");
+          }
+          break;
+       case ADMIN_LIST: /* List the params in the file */
+          if ( Good_chk(mudconf.admin_object) && Immortal(Owner(mudconf.admin_object)) ) {
+             if ( (fp = fopen("rhost_ingame.conf", "r")) != NULL ) {
+                i_cntr = 0;
+                tbuf = alloc_lbuf("admin_save");
+                notify_quiet(player, "@admin: listing config params in 'rhost_ingame.conf':");
+                while ( !feof(fp) ) {
+                   fgets(tbuf, LBUF_SIZE, fp);
+                   if ( !feof(fp) ) {
+                      tprpbuff = tprbuff;
+                      if ( (tbuf[strlen(tbuf)-1] == '\r') ||
+                           (tbuf[strlen(tbuf)-1] == '\n') )
+                         tbuf[strlen(tbuf)-1]='\0';
+                      notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "   %04d : %s", i_cntr, tbuf));
+                      i_cntr++;
+                   }
+                }
+                free_lbuf(tbuf);
+                notify_quiet(player, "@admin: listing completed.");
+             } else {
+                notify_quiet(player, "@admin: unable to open 'rhost_ingame.conf' file in your game directory.");
+             }
+          } else {
+             notify_quiet(player, "@admin: Invalid object defined in 'admin_object'.");
+          }
+          break;
+       default: /* Normal set/unset of values */
+          i_tval = 0;
+          if ( strchr(kw, '!') )
+             i_tval = 1;
+          i = cf_set(kw, value, player);
+          if ((i >= 0) && !Quiet(player))
+	      if ( i_tval )
+	         notify(player, "Cleared.");
+	      else
+	         notify(player, "Set.");
+          else if (i == -1 && !Quiet(player))
+              notify(player, "Failure.");
+          else if (i == -2 && !Quiet(player))
+              notify(player, "Set. (redefined)");
+          break;
+    }
+    free_lbuf(tprbuff);
+    return;
+}
+
 
 /* ---------------------------------------------------------------------------
  * list_cf_access: List access to config directives.

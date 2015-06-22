@@ -47,7 +47,7 @@ int quick_wild_internal(char *tstr, char *dstr, int *pLoopCntr)
 	if ( (*tstr == '\0') && (*dstr == '\0') ) {
            return 1;
         }
-        if ( (*tstr == '\0') ) {
+        if ( *tstr == '\0' ) {
            return 0;
         }
 	while (*tstr != '*') {

@@ -21,7 +21,13 @@ fi
 # Environments
 ###################################################################
 LDCONFIG=""
-MYGCC=""
+MYGCC="cc"
+if [ $(uname -s|grep -ic "bsd") -gt 0 ]
+then
+   LDOPT="-r"
+else
+   LDOPT="-p"
+fi
 if [ -f /sbin/ldconfig ]
 then
    LDCONFIG="/sbin/ldconfig"
@@ -1207,7 +1213,7 @@ setopts() {
 ###################################################################
 setdefaults() {
   echo "Configuring default definitions..."
-  gcc ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
+  ${MYGCC} ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
   if [ $? -eq 0 ]
   then
      if [ "$(../src/intsize)" -gt 4 ]
@@ -1215,6 +1221,11 @@ setdefaults() {
         echo "Patching for 64bit platform..."
         DEFS="-DBIT64 ${DEFS}"
      fi
+  fi
+  ${MYGCC} ../src/scantst.c -o ../src/scantst >/dev/null 2>&1
+  if [ $? -ne 0 ]
+  then
+     DEFS="-DNEED_SCANDIR ${DEFS}"
   fi
   if [ "$(uname -a|grep -ci aix)" -ne 0 ]
   then
@@ -1266,7 +1277,7 @@ setdefaults() {
      Z3=0
      if [ -n "${LDCONFIG}" ]
      then
-        Z4=$(${LDCONFIG} -p|grep -c libsqlite3.so)
+        Z4=$(${LDCONFIG} ${LDOPT}|grep -c libsqlite3.so)
      else
         Z4=0
      fi
@@ -1297,7 +1308,7 @@ setdefaults() {
   fi
   if [ -n "${LDCONFIG}" ]
   then
-     Z1=$(${LDCONFIG} -p|grep -c openssl.so)
+     Z1=$(${LDCONFIG} ${LDOPT}|grep -c openssl.so)
   else
      Z1=0
   fi
@@ -1326,7 +1337,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} -p|grep -c libcrypt.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libcrypt.so)
    else
       Z4=0
    fi
@@ -1346,7 +1357,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} -p|grep -c libsocket.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libsocket.so)
    else
       Z4=0
    fi
@@ -1366,7 +1377,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} -p|grep -c libresolv.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libresolv.so)
    else
       Z4=0
    fi
@@ -1386,7 +1397,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} -p|grep -c libnsl.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libnsl.so)
    else
       Z4=0
    fi
@@ -1406,7 +1417,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} -p|grep -c libm.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libm.so)
    else
       Z4=0
    fi
@@ -1430,7 +1441,7 @@ setlibs() {
    fi
    if [ -n "${LDCONFIG}" ]
    then
-      Z1=$(${LDCONFIG} -p|grep -c openssl.so)
+      Z1=$(${LDCONFIG} ${LDOPT}|grep -c openssl.so)
    else
       Z1=0
    fi
@@ -1441,7 +1452,7 @@ setlibs() {
          Z1=0
          if [ -n "${LDCONFIG}" ]
          then
-            Z2=$(${LDCONFIG} -p|grep -c libcrypto.so)
+            Z2=$(${LDCONFIG} ${LDOPT}|grep -c libcrypto.so)
          else
             Z2=0
          fi
@@ -1461,7 +1472,7 @@ setlibs() {
          Z1=0
          if [ -n "${LDCONFIG}" ]
          then
-            Z2=$(${LDCONFIG} -p|grep -c libcrypto.so)
+            Z2=$(${LDCONFIG} ${LDOPT}|grep -c libcrypto.so)
          else
             Z2=0
          fi
