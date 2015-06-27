@@ -890,6 +890,12 @@ NAMETAB rwho_sw[] =
     {(char *) "stop", 3, CA_PUBLIC, 0, RWHO_STOP},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB selfboot_sw[] =
+{
+    {(char *) "list", 1, CA_PUBLIC, 0, SELFBOOT_LIST},
+    {(char *) "port", 1, CA_PUBLIC, 0, SELFBOOT_PORT},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB search_sw[] =
 {
     {(char *) "nogarbage", 1, CA_IMMORTAL, 0, SEARCH_NOGARBAGE},
@@ -1312,8 +1318,8 @@ CMDENT command_table[] =
 #endif /* REALITY_LEVELS */
     {(char *) "@search", search_sw, 0, 0,
      SRCH_SEARCH, CS_ONE_ARG | CS_NOINTERP, 0, do_search},
-    {(char *) "@selfboot", NULL, CA_NO_SLAVE | CA_PLAYER | CA_NO_GUEST, 0,
-     0, CS_NO_ARGS, 0, do_selfboot},
+    {(char *) "@selfboot", selfboot_sw, CA_NO_SLAVE | CA_PLAYER | CA_NO_GUEST, 0,
+     0, CS_ONE_ARG, 0, do_selfboot},
 /* Removed CA_GBL_BUILD from @set : ASH 08/23/98 */
 #ifndef NO_ENH
     {(char *) "@set", set_sw,

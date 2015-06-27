@@ -760,11 +760,22 @@
   See Also: say, @femit, pose
   
 & @SELFBOOT
-  Command: @selfboot
+  Command: @selfboot[/<switch>] [<port>]
  
   This command will disconnect all ports except the port that you
   initiate the command from. (IE: it will disconnect your hung logins)
   
+  You may specify the following optional switches:
+     /list -- Will list what ports you're currently connected on.
+     /port -- When specified with the <port> will boot the specific
+              connection.
+  
+  If you have a single connection, it will not boot it.
+  
+  Note: @selfboot by itself will boot every connection that has a greater
+        idle time than the other connection.  Which, if you have two ACTIVE
+        connections may not be the result you want :)
+   
   See Also: port()
  
 & grab
@@ -27594,6 +27605,8 @@ Changes
 * If the mail-db gets corruption, you can attempt a wmail/load to recover it
   if you have a valid mail flatfile. [ASH]
 * wizhelp granted to GUILDMASTER bitted players by default [ASH]
+* @selfboot has optional switches /list and /port so you can specify what 
+  connection you want selfbooted.
     
 Bug Fixes
 ------------

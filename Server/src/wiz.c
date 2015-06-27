@@ -27,6 +27,64 @@ extern int remote_read_obj(FILE *, dbref, int, int, int*);
 extern int remote_read_sanitize(FILE *, dbref, int, int);
 extern dbref FDECL(match_thing, (dbref, char *));
 
+static const char *
+time_format_1(time_t dt)
+{
+    register struct tm *delta;
+    static char buf[64];
+
+
+    if (dt < 0)
+        dt = 0;
+
+    delta = gmtime(&dt);
+    if ((int)dt >= 31556926 ) {
+        sprintf(buf, "%dy", (int)dt / 31556926);
+    } else if ((int)dt >= 2629743 ) {
+        sprintf(buf, "%dM", (int)dt / 2629743);
+    } else if ((int)dt >= 604800) {
+        sprintf(buf, "%dw", (int)dt / 604800);
+    } else if (delta->tm_yday > 0) {
+        sprintf(buf, "%dd", delta->tm_yday);
+    } else if (delta->tm_hour > 0) {
+        sprintf(buf, "%dh", delta->tm_hour);
+    } else if (delta->tm_min > 0) {
+        sprintf(buf, "%dm", delta->tm_min);
+    } else {
+        sprintf(buf, "%ds", delta->tm_sec);
+    }
+    return(buf);
+}
+
+static const char *
+time_format_2(time_t dt)
+{
+    register struct tm *delta;
+    static char buf[64];
+
+
+    if (dt < 0)
+        dt = 0;
+
+    delta = gmtime(&dt);
+    if ((int)dt >= 31556926 ) {
+        sprintf(buf, "%dy", (int)dt / 31556926);
+    } else if ((int)dt >= 2629743 ) {
+        sprintf(buf, "%dM", (int)dt / 2629743);
+    } else if ((int)dt >= 604800) {
+        sprintf(buf, "%dw", (int)dt / 604800);
+    } else if (delta->tm_yday > 0) {
+        sprintf(buf, "%dd", delta->tm_yday);
+    } else if (delta->tm_hour > 0) {
+        sprintf(buf, "%dh", delta->tm_hour);
+    } else if (delta->tm_min > 0) {
+        sprintf(buf, "%dm", delta->tm_min);
+    } else {
+        sprintf(buf, "%ds", delta->tm_sec);
+    }
+    return(buf);
+}
+
 void do_teleport(dbref player, dbref cause, int key, char *slist, 
 		 char *dlist[], int nargs)
 {
@@ -818,35 +876,84 @@ void do_conncheck(dbref player, dbref cause, int key)
   }
 }
 
-void do_selfboot(dbref player, dbref cause, int key)
+void do_selfboot(dbref player, dbref cause, int key, char *name)
 {
 time_t	dtime, now;
-int	port, count;
+int	port, count, count2;
+char    *tbuf;
 DESC	*d;
 
   dtime = 0;
   count = 0;
   port = -1;
-  time(&now);
-  DESC_ITER_CONN(d) {
-    if (d->player == player) {
-      if (!count || (now - d->last_time) < dtime) {
-	if (count)
-	  boot_by_port(port,!God(player),player,NULL);
-	dtime = now - d->last_time;
-	port = d->descriptor;
-      }
-      else
-	boot_by_port(d->descriptor,!God(player),player,NULL);
-      count++;
-    }
-  }
-  if (count < 2) {
-    notify(player,"You only have 1 connection.");
-  }
-  else {
-    notify(player,unsafe_tprintf("%d connection(s) closed.", count - 1));
-  }
+  switch (key) {
+     case SELFBOOT_LIST:   /* List ports you have open */
+        tbuf = alloc_lbuf("do_selfboot");
+        sprintf(tbuf, "%-10s %-10s %-10s %s\r\n%s", (char *)"Port", (char *)"Idle",
+                (char *)"Conn", (char *)"Site",
+                (char *)"------------------------------------------------------------------------------");
+        notify(player, tbuf);
+        DESC_ITER_CONN(d) {
+          if (d->player == player) {
+             sprintf(tbuf, "%-10d %-10s %-10s %s", d->descriptor, time_format_1(mudstate.now - d->last_time),
+                     time_format_2(mudstate.now - d->connected_at), inet_ntoa(d->address.sin_addr));
+             notify(player, tbuf);
+          }
+        }
+        notify(player, (char *)"------------------------------------------------------------------------------");
+        free_lbuf(tbuf);
+        break;
+     case SELFBOOT_PORT:   /* boot specified port */
+        if ( !name || !*name ) {
+           notify(player, "You must specify a port with the /port switch.");
+        } else {
+           port = atoi(name);
+           count = count2 = 0;
+           DESC_ITER_CONN(d) {
+             if ( d->player == player )
+                count2++;
+           }
+          
+           DESC_ITER_CONN(d) {
+             if ( (d->player == player) && (d->descriptor == port) ) {
+                if ( count2 > 1 )
+	           boot_by_port(d->descriptor,!God(player),player,NULL);
+                count++;
+             }
+           }
+           if ( count > 0 ) {
+              if ( count2 <= 1 ) {
+                 notify(player, "You can't boot your only connection.");
+              } else {
+                 notify(player,unsafe_tprintf("%d connection(s) closed.", count));
+              }
+           } else {
+              notify(player, "You do not have a connection from that port.");
+           }
+        }
+        break;
+     default:              /* default behavior */
+        time(&now);
+        DESC_ITER_CONN(d) {
+          if (d->player == player) {
+            if (!count || (now - d->last_time) < dtime) {
+	      if (count)
+	        boot_by_port(port,!God(player),player,NULL);
+	      dtime = now - d->last_time;
+	      port = d->descriptor;
+            } else {
+	      boot_by_port(d->descriptor,!God(player),player,NULL);
+            }
+            count++;
+          }
+        }
+        if (count < 2) {
+          notify(player,"You only have 1 connection.");
+        } else {
+          notify(player,unsafe_tprintf("%d connection(s) closed.", count - 1));
+        }
+        break;
+   }
 }
       
 
