@@ -24155,8 +24155,10 @@ Mail: Done
      help mail write cmdlist
   
   Thank you for using the tutorial.
+& @channel
+& +channel
 & channel
-  NOTE: If this has been disabled, check '+help' for the new one.
+  NOTE: If this has been disabled, check 'comhelp' or '+help' for the new one.
   
   The built in channel system that RhostMUSH has is a simple design
   based off standard MUSE com systems.  The format for each is
@@ -24169,8 +24171,10 @@ Mail: Done
        +com channel=message      ('talk' on a given channel)
   
   (help channel2 to continue)
+& @channel2
+& +channel2
 & channel2
-  NOTE: If this has been disabled, check '+help channel' for the new one.
+  NOTE: If this has been disabled, check 'comhelp' or '+help' for the new one.
   
   The channel system is case sensitive and does recognize various
   formatting by the following special cases.
