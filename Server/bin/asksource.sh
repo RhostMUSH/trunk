@@ -11,6 +11,22 @@ then
    exit 1
 fi
 ###################################################################
+# check for mysql goodness
+###################################################################
+MYSQL_VER=$(mysql_config --version 2>/dev/null)
+if [ -z "${MYSQL_VER}" ]
+then
+   MYSQL_VER=0
+fi
+echo "0" > ../src/usesql.toggle
+# load in mysql goodness
+mysql_host=$(grep ^mudconf.mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_user=$(grep ^mudconf.mysql_user ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_pass=$(grep ^mudconf.mysql_pass ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_dbname=$(grep ^mudconf.mysql_base ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_socket=$(grep ^mudconf.mysql_socket ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_port=$(grep ^mudconf.mysql_port ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+###################################################################
 # Fix for save
 ###################################################################
 if [ -f asksource.save ]
@@ -66,6 +82,8 @@ LOPTIONS="1 2 3 4 5"
 C_LOPTIONS=$(echo $LOPTIONS|wc -w)
 AOPTIONS="1 2 3"
 C_AOPTIONS=$(echo $AOPTIONS|wc -w)
+DBOPTIONS="1 2"
+C_DBOPTIONS=$(echo $DBOPTIONS|wc -w)
 REPEAT=1
 for i in ${OPTIONS}
 do
@@ -108,6 +126,10 @@ do
    XA[${i}]=" "
 done
    XA[2]="X"
+for i in ${DBOPTIONS}
+do
+   MS[${i}]=" "
+done
 # Load default options
 if [ -f ./asksource.default ]
 then
@@ -139,7 +161,16 @@ DEF[23]=""
 DEF[24]=""
 DEF[25]="-DPCRE_BUILTIN"
 DEF[26]="-DCRYPT_GLIB2"
-DEFB[1]="\$(MYSQL_DEFS)"
+
+if [ "${MYSQL_VER}" != "0" ]
+then
+   DEFDB[1]="\$(MYSQL_VERSION)"
+else
+   DEFDB[1]=""
+fi
+DEFDB[2]=""
+
+DEFB[1]=""
 DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
 DEFB[4]="-DSQLITE"
@@ -160,6 +191,109 @@ DEFA[3]="-DM_SUB"
 ###################################################################
 # MENU - Main Menu for RhostMUSH Configuration Utility
 ###################################################################
+mysql_set_args() {
+looper=1
+while [ ${looper} -eq 1 ]
+do
+clear
+   echo "------------------------------------------------------------------------------"
+   echo "1.  MySQL HostName: ${mysql_host}"
+   echo "2.  MySQL UserName: ${mysql_user}"
+   echo "3.  MySQL Password: ${mysql_pass}"
+   echo "4.  MySQL Database: ${mysql_dbname}"
+   echo "5.  MySQL Socket  : ${mysql_socket}"
+   echo "6.  MySQL Port    : ${mysql_port}"
+   echo "------------------------------------------------------------------------------"
+   echo "[Q]   Go Back to Previous Menu"
+   echo "------------------------------------------------------------------------------"
+   echo ""
+   echo "Select response: "|tr -d '\012'
+   read ANS
+   case ${ANS} in
+      q|Q) looper=0
+           ANS=""
+           break
+           ;;
+      1) echo "[${mysql_host}]: "|tr -d '\012'
+         sqlval=mysql_host
+         ;;
+      2) echo "[${mysql_user}]: "|tr -d '\012'
+         sqlval=mysql_user
+         ;;
+      3) echo "[${mysql_pass}]: "|tr -d '\012'
+         sqlval=mysql_pass
+         ;;
+      4) echo "[${mysql_dbname}]: "|tr -d '\012'
+         sqlval=mysql_dbname
+         ;;
+      5) echo "[${mysql_socket}]: "|tr -d '\012'
+         sqlval=mysql_socket
+         ;;
+      6) echo "[${mysql_port}]: "|tr -d '\012'
+         sqlval=mysql_port
+         ;;
+      *) echo "Invalid argument"
+         echo "<ENTER RETURN TO CONTINUE>"
+         read ANS
+         continue
+         ;;
+   esac
+   read SQLANS
+   if [ -n "${SQLANS}" ]
+   then
+      eval ${sqlval}=\${SQLANS}
+   fi
+done
+echo "Creating new file."
+read ANS
+cat ../bin/mysql.blank > ../game/rhost_mysql.conf 2>/dev/null
+echo "# Generated from make config" >> ../game/rhost_mysql.conf
+echo "mudconf.mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
+echo "mudconf.mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
+echo "mudconf.mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
+echo "mudconf.mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
+echo "mudconf.mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
+echo "mudconf.mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
+}
+
+mysqlmenu() {
+if [ "${MYSQL_VER}" = "0" ]
+then
+   echo "MySQL client is not installed on this server.  Can not install module."
+   echo "<ENTER RETURN TO CONTINUE>"
+   read ANS
+   return 200
+fi
+clear
+echo "               RhostMUSH MySQL / MariaDB Configuration Utility"
+echo " NOTE:  This will only manually configure the 'game' directory.  Custom"
+echo "        directories will have to be manually modified through rhost_mysql.conf"
+echo "------------------------------------------------------------------------------"
+echo "[${MS[1]}]  1. Toggle MySQL On/Off"
+echo "[#]  2. Change MySQL Data"
+echo "------------------------------------------------------------------------------"
+echo "MySQL HostName: ${mysql_host}"
+echo "MySQL UserName: ${mysql_user}"
+echo "MySQL Password: ${mysql_pass}"
+echo "MySQL Database: ${mysql_dbname}"
+echo "MySQL Socket  : ${mysql_socket}"
+echo "MySQL Port    : ${mysql_port}"
+echo "------------------------------------------------------------------------------"
+echo "[Q]   Go Back to Previous Menu"
+echo "------------------------------------------------------------------------------"
+#mudconf.mysql_host localhost
+#mudconf.mysql_user dbuser
+#mudconf.mysql_pass dbpass
+#mudconf.mysql_base dbname
+#mudconf.mysql_socket /var/lib/mysql/mysql.sock
+#mudconf.mysql_port 3306
+echo ""
+echo "Keys: [h]elp [i]nfo"
+echo "      Or, you may select a number to toggle"
+echo ""
+echo "Please Enter selection: "|tr -d '\012'
+}
+
 ansimenu() {
 clear
 echo "             RhostMUSH ANSI / LAST COMMAND Configuration Utility"
@@ -231,7 +365,7 @@ echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[2
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
 echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords"
 echo "--------------------------- Beta/Unsupported Additions -----------------------"
-echo "[${XB[1]}] B1. 3rd Party MySQL    [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
+echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
 echo "------------------------------------------------------------------------------"
 echo ""
@@ -564,6 +698,19 @@ parse() {
          fi
       fi
    fi
+   if [ $BETAOPT -eq 4 ]
+   then
+      if [ "$ARG" != "q" -a "$ARG" != "h" ]
+      then
+         if [ -z "$ARGNUM" ]
+         then
+            ARG="NULL"
+         elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 2 ]
+         then
+            ARG="NULL"
+         fi
+      fi
+   fi
    case ${ARG} in
       x) xtraopts
          echo "< HIT RETURN KEY TO CONTINUE >"
@@ -631,6 +778,9 @@ parse() {
             elif [ $TST -eq 6 ]
             then
                BETAOPT=2
+            elif [ $TST -eq 1 ]
+            then
+               BETAOPT=4
             else
                if [ "${XB[${TST}]}" = "X" ]
                then
@@ -692,6 +842,27 @@ parse() {
             if [ "${XA[1]}" != "X" -a "${XA[2]}" != "X" -a "${XA[3]}" != "X" ]
             then
                XA[2]="X"
+            fi
+         elif [ ${BETAOPT} -eq 4 -a "$TST" -gt 0 -a "$TST" -le ${C_DBOPTIONS} ]
+         then
+            if [ "${MS[$1]}" = "X" ]
+            then
+               MS[$1]=" "
+            else
+               MS[$1]="X"
+            fi
+            if [ "$TST" -eq 1 ]
+            then
+               if [ "${MS[$1]}" = "X" ]
+               then
+                  echo "1" > ../src/usesql.toggle
+               else
+                  echo "0" > ../src/usesql.toggle
+               fi
+            fi
+            if [ "$TST" -eq 2 ]
+            then
+               mysql_set_args
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  
@@ -1086,6 +1257,10 @@ loadopts() {
       echo "ERROR: No previous config options found to load."
    fi
    DUMPFILE=""
+   if [ "${MS[1]}" = "X" ]
+   then
+      echo "1" > ../src/usesql.toggle
+   fi
 }
 
 ###################################################################
@@ -1157,6 +1332,10 @@ saveopts() {
       do
          echo "XA[$i]=\"${XA[$i]}\"" >> ${DUMPFILE}
       done
+      for i in ${DBOPTIONS}
+      do
+         echo "MS[$i]=\"${MS[$i]}\"" >> ${DUMPFILE}
+      done
       if [ -f "${DUMPFILE}.mark" ]
       then
          MARKER=$(cat ${DUMPFILE}.mark)
@@ -1204,6 +1383,13 @@ setopts() {
       if [ "${XA[$i]}" = "X" ]
       then
          DEFS="${DEFA[$i]} ${DEFS}"
+      fi
+   done
+   for i in ${DBOPTIONS}
+   do
+      if [ "${MS[$i]}" = "X" ]
+      then
+         DEFS="${DEFDB[$i]} ${DEFS}"
       fi
    done
 }
@@ -1293,6 +1479,16 @@ setdefaults() {
         MORELIBS="-lsqlite3 ${MORELIBS}"
      fi
   fi
+  if [ "${MS[1]}" = "X" ]
+  then
+     if [ "${MYSQL_VER}" = "0" ]
+     then
+        MS[1]=" "
+        echo "MySQL was not found.  Stripping it..."
+     else
+        MORELIBS="\$(MYSQL_LIB) ${MORELIBS}"
+     fi
+  fi
   BOB1=$(uname -r|cut -f1 -d".")
   BOB2=$(uname -s)
   if [ -d /usr/ucbinclude -a "${BOB2}" = "SunOS" ]
@@ -1323,6 +1519,11 @@ setdefaults() {
         echo "OpenSSL identified.  Configuring..."
         DEFS="${DEFS} -DHAS_OPENSSL"
      fi
+  fi
+  if [ "${MS[1]}" == "X" ]
+  then
+     echo "MySQL identified.  Configuring..."
+     DEFS="${DEFS} \$(MYSQL_INCLUDE)"
   fi
   DEFS="DEFS = ${DEFS}"
 }
@@ -1628,6 +1829,22 @@ main() {
              ansimenu
              read ANS
              parse $ANS
+          done
+          BETAOPT=0
+      fi
+      if [ ${BETAOPT} -eq 4 ]
+      then
+          BETACONTINUE=4
+          while [ $BETACONTINUE -eq 4 ]
+          do
+             mysqlmenu
+             if [ $? -ne 200 ]
+             then
+                read ANS
+                parse $ANS
+             else
+                BETACONTINUE=0
+             fi
           done
           BETAOPT=0
       fi

@@ -430,6 +430,14 @@ struct confdata {
         int     sqlite_query_limit;
         char    sqlite_db_path[128];
 #endif /* SQLITE */
+#ifdef MYSQL_VERSION
+        char	mysql_host[128];
+        char	mysql_user[128];
+        char	mysql_pass[128];
+        char	mysql_base[128];
+        char	mysql_socket[128];
+	int	mysql_port;
+#endif
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */

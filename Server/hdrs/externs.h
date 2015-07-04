@@ -2,6 +2,8 @@
 
 #include "copyright.h"
 
+#define MYSQL_VER "Version 1.1 Beta"
+
 #ifndef _M__EXTERNS__H
 #define	_M__EXTERNS__H
 

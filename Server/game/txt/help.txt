@@ -129,13 +129,32 @@
   OBJECT TYPES        PARENT OBJECTS    PUPPETS              QUICKREFERENCE  
   REALITY LEVELS      REGEXPS           REGEXP SYNTAX        REGEXP CLASSES  
   REGEXP EXAMPLES     ROBBERY           ROYALTY              SEARCH CLASSES  
-  SEMAPHORES          SENSES            SETQ_TEMPLATES       SIDEEFFECTS     
-  SINGLETHREADING     SPOOFING          STACK                SUBSTITUTIONS   
-  SUCCESS             SWITCHES          TOGGLES              USEFUL          
-  VARIABLE EXITS      VATOVZ            VERBS                WANDERER        
-  ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
+  SEMAPHORES          SENSES            SETQ_TEMPLATES       SQL
+  SIDEEFFECTS         SINGLETHREADING   SPOOFING             STACK            
+  SUBSTITUTIONS       SUCCESS           SWITCHES             TOGGLES        
+  USEFUL              VARIABLE EXITS    VATOVZ               VERBS             
+  WANDERER            ZATOZZ            ZONES                $-COMMANDS      
+  #LAMBDA
   
   
+& SQL
+  SQL is available in two flavors in RhostMUSH, both are built in and both can
+  be ran at the same time.  
+  
+  SQLITE:  
+  This is a 'lite' form of SQL.  It has a good solid base, but doesn't offer
+  some of the more advanced features that MySQL/MariaDB has.  The hosting
+  server must have a workign SQLITE library to successfully link to and use
+  this database offering.
+  
+  MySQL/MariaDB:
+  This is an advanced form of SQL.  It allows all the feature-rich
+  capabilities of a fully function SQL engine.  The hosting server must have
+  mysql or mariadb to be able to link to and use this offering.
+  
+  See Also: sqlite_query(), @sql, @sqlconnect, @sqldisconnect, sql(), sqlon,
+            sqloff()
+
 & CLUSTERS
   Clusters are a method to have 1 or more real dbref#'s defined as a single
   virtual 'container' or entity to house attributes.  Using cluster related
@@ -11044,6 +11063,99 @@
    
   See Also: SUBSTITUTIONS, obj(), poss(), aposs()
   
+& @sql
+  Command: @sql <query>
+   
+  This command issues an SQL query if the MUSH supports SQL and can connect 
+  to an SQL server. You must be wizard/immortal to use @sql.
+   
+  Generally, the sql() function is more useful for coding, as it delimits its
+  return values, but @sql is handy for INSERT-type queries and quick checks. 
+  If you pass arbitrary data to @sql, be sure you call sqlescape() on it; 
+  see the example in help sql().
+   
+  Example:
+    > @sql SHOW TABLES
+   
+  See also: sql(), @sqlconnect, @sqldisconnect, sqlon(), sqloff()
+
+& @sqlconnect
+  Command: @sqlconnect
+  
+  This attempts to establish an SQL connection to the remote MySQL database.
+  Only wizards+ can use this feature.
+  
+  Example:
+    > @sqlconnect
+  
+  See Also: sqlon(), @sqldisconnect, sqloff(), @sql, sql()
+
+& @sqldisconnect
+  Command: @sqldisconnect
+  
+  This attempts to close an SQL connection to the remote MySQL database.
+  Only wizards+ can use this feature.
+  
+  Example:
+    > @sqldisconnect
+  
+  See Also: sqloff(), @sqlconnect, sqlon(), @sql, sql()
+
+& SQL()
+  Function: sql(<SQL statement> [,<delim>,[<field delim>]])
+   
+  This function sends a SQL statement to an external SQL database and
+  returns the results. The user must be wizard or immortal.  On failure,
+  or a problem with executing the SQL statement, the function returns #-1.
+   
+  If multiple rows are returned, each row will be delimited by <delim>;
+  if <delim> is not specified, a space will be used. If multiple fields
+  are returned, each field will be delimited by <field delim> if specified,
+  or <delim> if not, or a space by default.
+   
+  Please not that special characters to mush (%, {, }, [, ], (, ), \) may
+  have to be escaped for use in queries.  Please use ' for quotes for fields.
+  Only wizards+ can use this feature.
+
+  Examples: (borrowed from TinyMUSH3's help file)
+  > @sql SELECT player_name, dbref_num FROM test WHERE race='Vampire'
+  Row 1, Field 1: Nos
+  Row 1, Field 2: 4
+  Row 2, Field 1: Caine
+  Row 2, Field 2: 389
+  > &VAMPS me = SELECT player_name, dbref_num FROM test WHERE race='Vampire'
+                ORDER BY player_name
+  > say [sql(v(VAMPS))] -- [sql(v(VAMPS),|)]
+  You say "Caine 389 Nos 4 -- Caine|389|Nos|4"
+  > @sql UPDATE test SET race='Vampire' WHERE dbref_num=672
+  SQL query touched 1 row.
+  > say [sql(v(VAMPS),|,)] -- [sql(v(VAMPS),|,/)]
+  You say "Caine 389|Nos 4|Rufus 672 -- Caine/389|Nos/4|Rufus/672"
+  
+  See Also: @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect
+
+& SQLON()
+  Function: sqlon()
+  
+  This function is essentially just the function equivelant of @sqlconnect.
+  Only wizards+ can use this feature.
+  
+  Example:
+    > think sqlon()
+  
+  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql()
+
+& SQLOFF()
+  Function: sqloff()
+  
+  This function is essentially just the function equivelant of @sqlconnect.
+  Only wizards+ can use this feature.
+  
+  Example:
+    > think sqloff()
+  
+  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql()
+
 & SQLITE_QUERY()
   Function: sqlite_query(<db>,<query>[,<cdel>[,<rdel>[,<arg1>,...,<argN>]]])
   
@@ -25693,7 +25805,7 @@ Available Revisions:
   3.9.2: 3.9.2p0, 3.9.2p1
   3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
   3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
-  3.9.5: 3.9.5p0, 3.9.5p1
+  3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2
 
 & 1.0.0p0
 Release Date: Aug 1 1989
@@ -27626,3 +27738,20 @@ Bug Fixes
 * possible buffer overflow missed with expanding site restrictions [ASH]
 * bug with scandir being undefined on certain unix flavors [ASH]
 * citer() and tr() didn't honor LF correctly in some situations [ASH]
+
+& 3.9.5p2
+Release Date: 07/04/15
+Status: Alpha
+  
+New Features
+------------
+* MySQL natively is now recognized within RhostMUSH's build utility [ASH]
+  - Note: ./patch.sh will not patch this in as it did require a rewrite
+    of the src/Makefile, bin/asksource.sh, and some additional files.
+  - ./patch.sh (and patching) will not break backward compatibility.
+  
+Changes
+------------
+    
+Bug Fixes
+------------

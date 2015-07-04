@@ -5479,11 +5479,31 @@ list_options_values_parse(dbref player, int p_val)
 }
 
 static void
+list_options_mysql(dbref player)
+{
+   char *tbuf;
+
+   tbuf = alloc_lbuf("list_options_mysql");
+   sprintf(tbuf, "Host: %s\r\nUser: %s\r\nPassword: %s\r\nDatabase: %s\r\nSocket: %s\r\nPort: %d", 
+                  mudconf.mysql_host,
+                  mudconf.mysql_user,
+                  mudconf.mysql_pass,
+                  mudconf.mysql_base,
+                  mudconf.mysql_socket,
+                  mudconf.mysql_port);
+   notify(player, tbuf);
+   free_lbuf(tbuf);
+}
+
+static void
 list_options_system(dbref player)
 {
    char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
         newstime[25], mailtime[25], aregtime[25], mushtime[25];
    time_t c_count, d_count, i_count;
+#ifdef MYSQL_VERSION
+   char *tbuf;
+#endif
 
    memset(playerchktime, '\0', 125);
 /* "------------------------------------------------------------------" */
@@ -5572,7 +5592,10 @@ list_options_system(dbref player)
     notify(player, "SQLite ----------------------------------------------------------- DISABLED");
 #endif
 #ifdef MYSQL_VERSION
-    notify(player, "Third party MySQL ------------------------------------------------ ENABLED");
+    tbuf = alloc_mbuf("list_option_system");
+    sprintf(tbuf, "[%.40s, SQL: %.40s]----------------------------------------", MYSQL_VER, MYSQL_VERSION);
+    notify(player, unsafe_tprintf("MySQL/MariaDB --------%-42.42s-- ENABLED", tbuf));
+    free_mbuf(tbuf);
 #else
     notify(player, "Third party MySQL ------------------------------------------------ DISABLED");
 #endif
@@ -7656,6 +7679,8 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_config(player);
            else if ( (stricmp(s_ptr2, "system") == 0) )
               list_options_system(player);
+           else if ( (stricmp(s_ptr2, "mysql") == 0) )
+              list_options_mysql(player);
            else if ( stricmp(s_ptr2, "boolean") == 0 ) {
               s_ptr = strtok(NULL, " ");
               if ( s_ptr )
@@ -7672,7 +7697,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_values_parse(player, p_val);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
-                                   " mail, values, boolean, config, system");
+                                   " mail, values, boolean, config, system, mysql");
         } else {
 	   list_options(player);
         }
