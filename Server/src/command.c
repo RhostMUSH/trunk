@@ -5601,7 +5601,7 @@ list_options_system(dbref player)
     notify(player, unsafe_tprintf("MySQL/MariaDB --------%-42.42s-- ENABLED", tbuf));
     free_mbuf(tbuf);
 #else
-    notify(player, "Third party MySQL ------------------------------------------------ DISABLED");
+    notify(player, "MySQL/MariaDB ---------------------------------------------------- DISABLED");
 #endif
     if ( mudconf.ansi_default ) {
        notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
