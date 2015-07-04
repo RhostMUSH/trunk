@@ -1,0 +1,13 @@
+MySQL is now native in RhostMUSH as of 3.9.5p2.
+
+If you are patching UP from an older version, you need to update
+the following files:
+
+1.  update your src/Makefile to the one in the 3.9.5p2+ rep
+2.  update your bin/asksource.* files to the one in the 3.9.5p2+ repo
+3.  append 'include rhost_mysql.conf' BEFORE the rhost_ingame.conf file
+    and before the section that says 'local additions' toward the end of
+    your netrhost.conf file.
+4.  copy the game/rhost_mysql.conf file from the 3.9.5p2+ repo 
+5.  Issue 'make clean' then make confsource to rebuild using the latest
+    builder script to build in the mysql changes.

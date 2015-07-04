@@ -294,12 +294,14 @@ NDECL(cf_init)
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
+#ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
     strcpy(mudconf.mysql_pass, (char *)"dbpass");
     strcpy(mudconf.mysql_base, (char *)"databasename");
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
+#endif
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
     mudstate.insideicmds = 0;		/* inside @icmd eval check */
     mudstate.dumpstatechk = 0;		/* State of the dump state */
@@ -3371,6 +3373,7 @@ CONF conftable[] =
     {(char *) "manlog_file",
      cf_string, CA_DISABLED, (int *) mudconf.manlog_file, 32, 0, CA_WIZARD,
      (char *) "Define file used with @log command."},
+#ifdef MYSQL_VERSION
     {(char *) "mysql_host",
      cf_string, CA_DISABLED, (int *) mudconf.mysql_host, 126, 0, CA_WIZARD,
      (char *) "MySQL Hostname to connect to."},
@@ -3390,6 +3393,7 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.mysql_port, 0, 0, CA_WIZARD,
      (char *) "MySQL database port to connect to.\r\n"\
               "                             Default: 3306 Value: %d"},
+#endif
     {(char *) "cpuintervalchk",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.cpuintervalchk, 0, 0, CA_WIZARD,
      (char *) "Define percentage before cpu-enforcement.\r\n"\

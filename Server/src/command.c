@@ -5481,6 +5481,7 @@ list_options_values_parse(dbref player, int p_val)
 static void
 list_options_mysql(dbref player)
 {
+#ifdef MYSQL_VERSION
    char *tbuf;
 
    tbuf = alloc_lbuf("list_options_mysql");
@@ -5493,6 +5494,9 @@ list_options_mysql(dbref player)
                   mudconf.mysql_port);
    notify(player, tbuf);
    free_lbuf(tbuf);
+#else
+   notify(player, "MySQL is not currently enabled.");
+#endif
 }
 
 static void
