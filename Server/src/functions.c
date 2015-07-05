@@ -1322,7 +1322,8 @@ extern CMDENT * lookup_command(char *);
 extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
 
 /* pom.c nefinitions */
-#define PI_MUSH        3.14159265358
+/* #define PI_MUSH        3.14159265358 */
+#define PI_MUSH        3.14159265358979323846264338327950288419716939937510
 #define EPOCH_MUSH     85
 #define EPSILONg  279.611371    /* solar ecliptic long at EPOCH */
 #define RHOg      282.680403    /* solar ecliptic long of perigee at EPOCH */
@@ -17415,7 +17416,22 @@ FUNCTION(fun_modulo)
 
 FUNCTION(fun_pi)
 {
-    safe_str("3.141592654", buff, bufcx);
+    int i_range;
+    char *s_buff;
+    char *s_pi=(char *)"3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679";
+    i_range = 0;
+    if ( *fargs[0] )
+       i_range = atoi(fargs[0]);
+    if ( i_range < 1 ) {
+       i_range = 9;
+    } else if ( i_range > mudconf.float_precision ) {
+       i_range = mudconf.float_precision;
+    }
+    i_range+=2;
+    s_buff = alloc_mbuf("fun_pi");
+    sprintf(s_buff, "%.*s", i_range, s_pi);
+    safe_str(s_buff, buff, bufcx);
+    free_mbuf(s_buff);
 }
 FUNCTION(fun_ee)
 {
@@ -17443,7 +17459,23 @@ FUNCTION(fun_ee)
 
 FUNCTION(fun_e)
 {
-    safe_str("2.718281828", buff, bufcx);
+    int i_range;
+    char *s_buff;
+    char *s_e=(char *)"2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274";
+
+    i_range = 0;
+    if ( *fargs[0] )
+       i_range = atoi(fargs[0]);
+    if ( i_range < 1 ) {
+       i_range = 9;
+    } else if ( i_range > mudconf.float_precision ) {
+       i_range = mudconf.float_precision;
+    }
+    i_range+=2;
+    s_buff = alloc_mbuf("fun_pi");
+    sprintf(s_buff, "%.*s", i_range, s_e);
+    safe_str(s_buff, buff, bufcx);
+    free_mbuf(s_buff);
 }
 /**********************************************
  * Degree, Radian, Grad converter - From MUX2
@@ -30245,7 +30277,7 @@ FUN flist[] =
     {"DIV", fun_div, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"DOING", fun_doing, 1, FN_VARARGS, CA_WIZARD, 0},
     {"DYNHELP", fun_dynhelp, 2, FN_VARARGS, CA_WIZARD, 0},
-    {"E", fun_e, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"E", fun_e, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EE", fun_ee, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EDEFAULT", fun_edefault, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"EDIT", fun_edit, 3, FN_VARARGS, CA_PUBLIC, 0},
@@ -30511,7 +30543,7 @@ FUN flist[] =
 #endif
 #endif
     {"PGREP", fun_pgrep, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"PI", fun_pi, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"PI", fun_pi, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PID", fun_pid, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PMATCH", fun_pmatch, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PORT", fun_port, 1, 0, CA_WIZARD, CA_NO_CODE},

@@ -19217,10 +19217,16 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
   
 & PI()
-  Function: pi()
+  Function: pi([<arg>])
  
   Returns the value of the trigonometric constant pi to nine decimal places.
- 
+  
+  If you specify an <arg> it takes that as the percision to the number of
+  decimal places you want.  The value must be greater than zero, and less
+  than the current maximum value specified as floating point precision.
+  
+  Please see:  @list options system 
+   
   Example:
     > say pi()
     You say "3.141562654"
@@ -19289,9 +19295,15 @@ columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   See Also: @ps, @halt, @wait
   
 & E()
-  Function: e()
+  Function: e([<arg>])
   Returns the value of the numeric constant e to nine decimal places.
- 
+  
+  If you specify an <arg> it takes that as the percision to the number of
+  decimal places you want.  The value must be greater than zero, and less
+  than the current maximum value specified as floating point precision.
+  
+  Please see:  @list options system 
+   
   Example:
     > say e()
     You say "2.718281828"
@@ -27752,6 +27764,8 @@ New Features
   
 Changes
 ------------
+* pi() and e() optionally take an argument to specify the value for
+  precision from 1 to float_precision (@list options system)
     
 Bug Fixes
 ------------
