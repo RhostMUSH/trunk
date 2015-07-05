@@ -18,6 +18,14 @@ if [ -z "${MYSQL_VER}" ]
 then
    MYSQL_VER=0
 fi
+if [ "${MYSQL_VER}" != "0" ]
+then
+   MYSQL_TST=$(echo $(mysql_config --include|cut -f2- -d'I')/mysql.h)
+   if [ ! -f "${MYSQL_TST}" ]
+   then
+      MYSQL_VER=0
+   fi
+fi
 echo "0" > ../src/usesql.toggle
 # load in mysql goodness
 mysql_host=$(grep ^mudconf.mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
