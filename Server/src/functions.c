@@ -17417,7 +17417,7 @@ FUNCTION(fun_modulo)
 FUNCTION(fun_pi)
 {
     int i_range;
-    char *s_buff;
+    char *s_buff, *s_buff2, *s_buff3;
     char *s_pi=(char *)"3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679";
     i_range = 0;
     if ( *fargs[0] )
@@ -17426,12 +17426,20 @@ FUNCTION(fun_pi)
        i_range = 9;
     } else if ( i_range > mudconf.float_precision ) {
        i_range = mudconf.float_precision;
+       if ( i_range < 1 )
+          i_range = 1;
     }
-    i_range+=2;
+    i_range+=1;
     s_buff = alloc_mbuf("fun_pi");
-    sprintf(s_buff, "%.*s", i_range, s_pi);
+    s_buff2 = alloc_sbuf("fun_pi2");
+    s_buff3 = alloc_sbuf("fun_pi3");
+    sprintf(s_buff2, "0.%.6s", s_pi+i_range);
+    sprintf(s_buff3, "%.1f", safe_atof(s_buff2) + ((mudconf.round_kludge) ? 0.00000001 : 0.0));
+    sprintf(s_buff, "%.*s%c", i_range, s_pi, s_buff3[2]);
     safe_str(s_buff, buff, bufcx);
     free_mbuf(s_buff);
+    free_sbuf(s_buff2);
+    free_sbuf(s_buff3);
 }
 FUNCTION(fun_ee)
 {
@@ -17460,7 +17468,7 @@ FUNCTION(fun_ee)
 FUNCTION(fun_e)
 {
     int i_range;
-    char *s_buff;
+    char *s_buff, *s_buff2, *s_buff3;
     char *s_e=(char *)"2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274";
 
     i_range = 0;
@@ -17470,12 +17478,20 @@ FUNCTION(fun_e)
        i_range = 9;
     } else if ( i_range > mudconf.float_precision ) {
        i_range = mudconf.float_precision;
+       if ( i_range < 1 )
+          i_range = 1;
     }
-    i_range+=2;
-    s_buff = alloc_mbuf("fun_pi");
-    sprintf(s_buff, "%.*s", i_range, s_e);
+    i_range+=1;
+    s_buff = alloc_mbuf("fun_e");
+    s_buff2 = alloc_sbuf("fun_e2");
+    s_buff3 = alloc_sbuf("fun_e3");
+    sprintf(s_buff2, "0.%.6s", s_e+i_range);
+    sprintf(s_buff3, "%.1f", safe_atof(s_buff2) + ((mudconf.round_kludge) ? 0.00000001 : 0.0));
+    sprintf(s_buff, "%.*s%c", i_range, s_e, s_buff3[2]);
     safe_str(s_buff, buff, bufcx);
     free_mbuf(s_buff);
+    free_sbuf(s_buff2);
+    free_sbuf(s_buff3);
 }
 /**********************************************
  * Degree, Radian, Grad converter - From MUX2
