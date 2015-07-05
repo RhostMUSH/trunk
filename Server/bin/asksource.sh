@@ -28,12 +28,12 @@ then
 fi
 echo "0" > ../src/usesql.toggle
 # load in mysql goodness
-mysql_host=$(grep ^mudconf.mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
-mysql_user=$(grep ^mudconf.mysql_user ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
-mysql_pass=$(grep ^mudconf.mysql_pass ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
-mysql_dbname=$(grep ^mudconf.mysql_base ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
-mysql_socket=$(grep ^mudconf.mysql_socket ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
-mysql_port=$(grep ^mudconf.mysql_port ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_host=$(grep ^mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_user=$(grep ^mysql_user ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_pass=$(grep ^mysql_pass ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_dbname=$(grep ^mysql_base ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_socket=$(grep ^mysql_socket ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_port=$(grep ^mysql_port ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
 ###################################################################
 # Fix for save
 ###################################################################
@@ -256,12 +256,12 @@ echo "Creating new file."
 read ANS
 cat ../bin/mysql.blank > ../game/rhost_mysql.conf 2>/dev/null
 echo "# Generated from make config" >> ../game/rhost_mysql.conf
-echo "mudconf.mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
-echo "mudconf.mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
-echo "mudconf.mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
-echo "mudconf.mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
-echo "mudconf.mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
-echo "mudconf.mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
+echo "mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
+echo "mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
+echo "mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
+echo "mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
+echo "mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
+echo "mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
 }
 
 mysqlmenu() {
@@ -289,12 +289,6 @@ echo "MySQL Port    : ${mysql_port}"
 echo "------------------------------------------------------------------------------"
 echo "[Q]   Go Back to Previous Menu"
 echo "------------------------------------------------------------------------------"
-#mudconf.mysql_host localhost
-#mudconf.mysql_user dbuser
-#mudconf.mysql_pass dbpass
-#mudconf.mysql_base dbname
-#mudconf.mysql_socket /var/lib/mysql/mysql.sock
-#mudconf.mysql_port 3306
 echo ""
 echo "Keys: [h]elp [i]nfo"
 echo "      Or, you may select a number to toggle"
