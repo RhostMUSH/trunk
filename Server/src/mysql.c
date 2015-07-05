@@ -5,7 +5,7 @@
  * Written by Lensman, 09 Nov, 03.
  * Adapted from PennMUSH mySQL Contrib by Hans Engelen and Javelin.
  */
-#define MYSQL_VERSION "Version 1.alpha"
+ /* #define MYSQL_VER "Version 1.1 Beta" */
  /*
  * NOTE: This is _NOT_ supported or recommended by the RhostMUSH team. No
  *       gurantees are made with regards to performance or stability.
@@ -80,7 +80,7 @@ static int sql_query(dbref player,
  *************************************************************/
 void do_sql(dbref player, dbref cause, int key, char *arg_left) {
   if (!*arg_left) {
-    notify(player, unsafe_tprintf("@SQL for RhostMUSH (%s) based on the PennMUSH mySQL Contrib patch", MYSQL_VERSION));
+    notify(player, unsafe_tprintf("@SQL for RhostMUSH (%s [MySQL %s]) based on the PennMUSH mySQL Contrib patch", MYSQL_VER, MYSQL_VERSION));
     notify(player, unsafe_tprintf("Status is %s. (Last connection made by %s)", 
 			   mysql_struct ? "CONNECTED" : "DISCONNECTED",
 			   lastConnectMadeBy < 0 ? "SYSTEM" : Name(lastConnectMadeBy)));
@@ -166,7 +166,7 @@ FUNCTION(local_fun_sql_escape) {
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL);
       sql_init(cause);
       retries++;
     }
@@ -263,9 +263,10 @@ static int sql_init(dbref player) {
   
   mysql_struct = mysql_init(mysql_struct);
   
-  result = mysql_real_connect(mysql_struct, DB_HOST, DB_USER, DB_PASS, DB_BASE,
- 			      3306, DB_SOCKET, 0);
-  
+  result = mysql_real_connect(mysql_struct, mudconf.mysql_host, mudconf.mysql_user,
+                              mudconf.mysql_pass, mudconf.mysql_base, mudconf.mysql_port,
+                              mudconf.mysql_socket, 0);
+
   if (!result) {
     STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
     log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
@@ -312,7 +313,7 @@ static int sql_query(dbref player,
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL);
       sql_init(player);
       retries++;
     }
@@ -361,7 +362,7 @@ static int sql_query(dbref player,
     sql_shutdown(player);
     
     while ((retries < MYSQL_RETRY_TIMES) && (!mysql_struct)) {
-      nanosleep((struct timespec[]){{0, 900000000}}, NULL)
+      nanosleep((struct timespec[]){{0, 900000000}}, NULL);
       sql_init(player);
       retries++;
     }

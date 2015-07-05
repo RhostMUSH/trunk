@@ -9,5 +9,39 @@ the following files:
     and before the section that says 'local additions' toward the end of
     your netrhost.conf file.
 4.  copy the game/rhost_mysql.conf file from the 3.9.5p2+ repo 
-5.  Issue 'make clean' then make confsource to rebuild using the latest
+5.  The following lines have to be changed in local.c (toward the top):
+    /* Called when the mush starts up, immediatly prior to the main game
+     * loop being entered. By this point all databases are loaded and
+     * all variables configured.
+     */
+    #ifdef MYSQL_VERSION
+       extern void local_mysql_init(void);
+       extern int sql_shutdown(dbref player);
+    #endif
+    
+    #ifdef SQLITE
+       extern void local_sqlite_init(void);
+    #endif /* SQLITE */
+    
+    void local_startup(void) {
+    #ifdef SQLITE
+       local_sqlite_init();
+    #endif /* SQLITE */
+    #ifdef MYSQL_VERSION
+       local_mysql_init();
+    #endif
+       load_regexp_functions();
+    }
+
+    /* Called immediatly after the main game loop exits. At this point
+     * all databases and variables are still configured
+     */
+    void local_shutdown(void) {
+    #ifdef MYSQL_VERSION
+       sql_shutdown(-1);
+    #endif
+    }
+
+6.  Issue 'make clean' then make confsource to rebuild using the latest
     builder script to build in the mysql changes.
+
