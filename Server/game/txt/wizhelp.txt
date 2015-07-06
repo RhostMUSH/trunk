@@ -9785,6 +9785,10 @@ SNOOPY                                                           God     Wiz
   If you want to display ansi codes in .txt files and parse it, use @dynhelp.
   You may specify either '/' or '^' here for path information.
   
+  This function does NOT return the output into a buffer.  This is a
+  sideeffect function.  If you want the output in a stored buffer, please
+  use the textfile() function instead.
+    
   Example:
     > think dynhelp(help,mail)
     (returns the 'mail' topic in the help file)
@@ -9796,7 +9800,7 @@ SNOOPY                                                           God     Wiz
   See Also: @dynhelp, textfile()
 
 & TEXTFILE()
-  Function: textfile(<helpfile>,<topic>[,<parsekey>])
+  Function: textfile(<helpfile>,<topic>[,<parsekey>[,<type>[<sep>]]])
   
   This function works similarilly to dynhelp(), except that the resulting
   string is returned to the controlling command and not as a side-effect.
@@ -9807,6 +9811,13 @@ SNOOPY                                                           God     Wiz
   to parse the input and evaluate it.  A '2' will enable content searches.
   
   This function was coded to provide Penn and MUX2 compatibility.
+  
+  You may specify a <type> of '1' if you wish the function to return the
+  wildcarded list of matches without the standard help entry header of
+  'Here are the entries which match...'.  Useful for functions.
+  
+  You may specify a seperate seperator <sep> to be used for returned
+  arguments for matches.  It will default to two spaces.
   
   Example:
     > think textfile(help,mail)

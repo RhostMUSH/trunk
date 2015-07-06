@@ -315,7 +315,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 
 int
 parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2, 
-              char *t_buff, char *t_bufptr, int t_val)
+              char *t_buff, char *t_bufptr, int t_val, int i_type, char *sep)
 {
    help_indx entry;
    char *tmp, *p_tmp, *p, *q, *line, *msg, *p_msg, *result, *tpass;
@@ -392,8 +392,13 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                    *p = '\0'; 
             }
             if ( quick_wild(msg, line) ) { 
-               if ( first )
-                  safe_str("  ", tmp, &p_tmp);
+               if ( first ) {
+                  if ( i_type ) {
+                     safe_str(sep, tmp, &p_tmp);
+                  } else {
+                     safe_str("  ", tmp, &p_tmp);
+                  }
+               }
                safe_str(entry.topic, tmp, &p_tmp);
                first = 1;
                break;
@@ -402,17 +407,21 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
       if ( t_val ) {
          if ( first ) {
-            safe_str(unsafe_tprintf("Here are the entries which match content '%s':\r\n", msg), t_buff, &t_bufptr);
+            if ( !i_type )
+               safe_str(unsafe_tprintf("Here are the entries which match content '%s':\r\n", msg), t_buff, &t_bufptr);
             safe_str(tmp, t_buff, &t_bufptr);
          } else {
-            safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
+            if ( !i_type )
+               safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
          }
       } else {
          if ( first ) {
-            notify(player, unsafe_tprintf("Here are the entries which match content '%s':", msg));
+            if ( !i_type )
+               notify(player, unsafe_tprintf("Here are the entries which match content '%s':", msg));
             notify(player, tmp);
          } else {
-            notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
+            if ( !i_type )
+               notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
          }
       }
       free_lbuf(msg);
@@ -432,8 +441,13 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       } else {
          if ( quick_wild(msg, entry.topic) ) {
             matched = 1;
-            if ( first )
-               safe_str("  ", tmp, &p_tmp);
+            if ( first ) {
+               if ( i_type ) {
+                  safe_str(sep, tmp, &p_tmp);
+               } else {
+                  safe_str("  ", tmp, &p_tmp);
+               }
+            }
             safe_str(entry.topic, tmp, &p_tmp);
             first = 1;
          }
@@ -523,17 +537,22 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
    } else if ( matched ) {
       if ( t_val ) {
-         safe_str(unsafe_tprintf("Here are the entries which match '%s':\r\n", msg), t_buff, &t_bufptr);
+         if ( !i_type )
+            safe_str(unsafe_tprintf("Here are the entries which match '%s':\r\n", msg), t_buff, &t_bufptr);
          safe_str(tmp, t_buff, &t_bufptr);
       } else {
-         notify(player, unsafe_tprintf("Here are the entries which match '%s':", msg));
+         if ( !i_type )
+            notify(player, unsafe_tprintf("Here are the entries which match '%s':", msg));
          notify(player, tmp);
       }
    } else {
-      if ( t_val )
-         safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
-      else
-         notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+      if ( t_val ) {
+         if ( !i_type )
+            safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
+      } else {
+         if ( !i_type )
+            notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+      }
    }
    free_lbuf(tmp);
    tf_fclose(fp_help);
@@ -568,7 +587,7 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
    } else {
       in_file = fhelp;
    } 
-   retval = parse_dynhelp(it, cause, key, in_file, in_topic, (char *)NULL, (char *)NULL, 0);
+   retval = parse_dynhelp(it, cause, key, in_file, in_topic, (char *)NULL, (char *)NULL, 0, 0, (char *)NULL);
    free_lbuf(in_topic);
    if ( retval ) {
 	STARTLOG(LOG_PROBLEMS, "DYN", "FILE")

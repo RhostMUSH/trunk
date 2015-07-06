@@ -1303,7 +1303,7 @@ extern POWENT * FDECL(find_power, (dbref, char *));
 extern POWENT * FDECL(find_depower, (dbref, char *));
 extern void FDECL(cf_log_notfound, (dbref player, char *cmd,
             const char *thingname, char *thing));
-extern int FDECL(parse_dynhelp, (dbref, dbref, int, char *, char *, char *, char *, int));
+extern int FDECL(parse_dynhelp, (dbref, dbref, int, char *, char *, char *, char *, int, int, char *));
 extern int FDECL(pstricmp, (char *, char *, int));
 #ifdef REALITY_LEVELS
 extern RLEVEL FDECL(find_rlevel, (char *));
@@ -4289,9 +4289,9 @@ FUNCTION(fun_art)
 
 FUNCTION(fun_textfile)
 {
-   int t_val;
+   int t_val, i_check;
    dbref it;
-   char *t_buff, *t_bufptr;
+   char *t_buff, *t_bufptr, *tmp_buff;
    CMDENT *cmdp;
 
    if (mudstate.last_cmd_timestamp == mudstate.now) {
@@ -4308,7 +4308,7 @@ FUNCTION(fun_textfile)
       return;
    }
 
-   if (!fn_range_check("TEXTFILE", nfargs, 2, 3, buff, bufcx))
+   if (!fn_range_check("TEXTFILE", nfargs, 2, 5, buff, bufcx))
        return;
 
    it = player;
@@ -4318,8 +4318,21 @@ FUNCTION(fun_textfile)
       t_val = (((t_val < 0) || (t_val > 2)) ? 0 : t_val);
    }
    t_bufptr = t_buff = alloc_lbuf("fun_textfile");
-   parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], t_buff, t_bufptr, 1);
+   tmp_buff = alloc_lbuf("fun_textfile2");
+   i_check = 0;
+   if ( (nfargs > 3) && *fargs[3] ) {
+      i_check = atoi(fargs[3]);
+      if ( i_check != 0 )
+         i_check = 1;
+   }
+   if ( i_check && (nfargs > 4) && *fargs[4] ) {
+      strcpy(tmp_buff, fargs[4]);
+   } else {
+      strcpy(tmp_buff, (char *)"  ");
+   }
+   parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], t_buff, t_bufptr, 1, i_check, tmp_buff);
 
+   free_lbuf(tmp_buff);
    safe_str(t_buff, buff, bufcx);
    free_lbuf(t_buff);
 }
@@ -4365,7 +4378,7 @@ FUNCTION(fun_dynhelp)
       t_val = (((t_val < 0) || (t_val > 2)) ? 0 : t_val);
    }
 
-   retval = parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], (char *)NULL, (char *)NULL, 0);
+   retval = parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], (char *)NULL, (char *)NULL, 0, 0, (char *)NULL);
 
    if ( retval ) {
       safe_str("#-1", buff, bufcx);

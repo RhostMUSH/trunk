@@ -11,7 +11,7 @@
 #include "interface.h"
 #include "door.h"
 
-extern int parse_dynhelp(dbref, dbref, int, char *, char *, char *, char *, int);
+extern int parse_dynhelp(dbref, dbref, int, char *, char *, char *, char *, int, int, char *);
 
 int mushDoorOpen(DESC *d, int nArgs, char *args[], int id) {
   dbref loc, player = d->player;
@@ -21,7 +21,7 @@ int mushDoorOpen(DESC *d, int nArgs, char *args[], int id) {
   i_found = 1;
   t_bufptr = t_buff = alloc_lbuf("mush_doors");
   s_port = s_strtok = NULL;
-  retval = parse_dynhelp(player, player, 0, (char *)"doors", args[0], t_buff, t_bufptr, 1); 
+  retval = parse_dynhelp(player, player, 0, (char *)"doors", args[0], t_buff, t_bufptr, 1, 0, (char *)NULL); 
   if ( t_buff && *t_buff && 
        ((strstr(t_buff, (char *)"No entry for") != NULL) ||
         (strstr(t_buff, (char *)"Here are the entries which match") != NULL) ||

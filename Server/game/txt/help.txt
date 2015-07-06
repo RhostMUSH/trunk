@@ -27790,6 +27790,8 @@ Changes
 * div(), fdiv(), floordiv(), fmod(), modulo(), remainder(), and
   sub() now handle multiple arguments for Penn compatibility. [ASH]
 * For those who are used to Penn, 'DEBUG' is aliased to 'TRACE' [ASH]
+* textfile() takes optional arguments to sanitize output for use
+  in various coding including an output seperator [ASH]
     
 Bug Fixes
 ------------
