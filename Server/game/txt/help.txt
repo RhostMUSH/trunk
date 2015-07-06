@@ -7841,6 +7841,7 @@
   
   See Also: @ansiname
   
+& DEBUG
 & TRACE
   Flag: TRACE(T)
  
@@ -11839,23 +11840,24 @@ See Also: timefmt()
   
 & MAX()
   Function: max(<number1>,<number2>[,<numberN]...)
- 
+   
   Returns the largest integer from among its arguments.
   Up to 30 arguments may be specified.
-  <numberN> may be a floating point number, and a floating point result
+  
+  Numbers may be floating point numbers, and a floating point result
   is returned.
- 
+   
   Examples:
     > say max(2,4)
     You say "4"
     > say max(-100,50,0,25)
     You say "50"
- 
+   
   See Also: min(), alphamin(), alphamax()
   
 & MIN()
   Function: min(<number1>,<number2>[,<numberN]...)
- 
+   
   Returns the smallest integer from among its arguments.
   Up to 30 arguments may be specified.
   <numberN> may be a floating point number, and a floating point result
@@ -11866,17 +11868,18 @@ See Also: timefmt()
     You say "2"
     > say min(-100,50,0,25)
     You say "-10"
- 
+   
   See Also: max(), alphamin(), alphamax()
   
 & ADD()
   Function: add(<number1>,<number2>[,<numberN>]...)
- 
+   
   Returns the result of adding its arguments together.
   You may add up to 30 numbers in one add() call.
-  <numberN> may be a floating point number, and a floating point result
+  
+  Numbers may be floating point numbers, and a floating point result
   is returned.
- 
+   
   Example:
     > say add(2,4)
     You say "6"
@@ -11886,12 +11889,15 @@ See Also: timefmt()
   See Also: div(), mod(), mul(), sub()
   
 & SUB()
-  Function: sub(<number1>,<number2>)
- 
+  Function: sub(<number1>,<number2>[,<numberN>]...)
+   
   Returns the result of subtracting <number2> from <number1>.
   The numbers may be floating point numbers, and a floating point result
+  is returned.  
+   
+  Numbers may be floating point numbers, and a floating point result
   is returned.
- 
+   
   Example:
     > say sub(5,2)
     You say "3"
@@ -11900,11 +11906,12 @@ See Also: timefmt()
   
 & MUL()
   Function: mul(<number1>,<number2>[,<numberN>]...)
- 
+   
   Returns the result of multiplying its arguments together.
-  <numberN> may be a floating point number, and a floating point result
+  
+  Numbers may be floating point numbers, and a floating point result
   is returned.
- 
+   
   Example:
     > say mul(3,5)
     You say "15"
@@ -11914,11 +11921,12 @@ See Also: timefmt()
   See Also: add(), div(), fdiv(), mod() round(), sub(), trunc()
   
 & DIV()
-  Function: div(<number1>,<number2>)
- 
+  Function: div(<number1>,<number2>[,<numberN>]...)
+   
   Returns the integer quotient from dividing <number1> by <number2>.
-  <numberN> may be a floating point number, and an integer result is returned.
- 
+  
+  For floating point numbers, please use the fdiv() function. 
+   
   Example:
     > say div(15,3)
     You say "5"
@@ -11930,17 +11938,19 @@ See Also: timefmt()
     You say "6"
     > say div(-17,3)
     You say XXXXX
+  
   This function may also be called as idiv().
   
   See Also: add(), fdiv(), mod(), mul(), round(), sub(), trunc()
   
 & FDIV()
-  Function: fdiv(<number1>,<number2>)
- 
+  Function: fdiv(<number1>,<number2>[,<numberN>]...)
+   
   Returns the floating point quotient from dividing <number1> by <number2>.
-  <number> may be a floating point number, and a floating point result is
+  
+  Numbers may be floating point numbers, and a floating point result is
   returned.
- 
+   
   Results:
     > say fdiv(15,3)
     You say "5"
@@ -11983,10 +11993,12 @@ See Also: timefmt()
   See Also: modifytime()
   
 & MODULO()
-  Function: modulo(<integer1>,<integer2>)
+  Function: modulo(<integer1>,<integer2>[,<integerN>]...)
    
   Returns the modulo from <integer1> and <integer2>.
- 
+  
+  You may specify more than two values.
+   
   Example:
     > say mod(13,-3)
     You say "1"
@@ -11996,11 +12008,13 @@ See Also: timefmt()
   See Also: add(), fdiv(), div(), mul(), round(), sub(), trunc()
   
 & REMAINDER()
-  Function: remainder(<integer1>,<integer2>)
+  Function: remainder(<integer1>,<integer2>[,<integerN>]...)
   
   Returns the integer remainder from dividing <integer1> by <integer2>.
   This could be aliased to either modulo() or remainder().  To see
   which, do: think mod()
+  
+  You may specify more than two values.
    
   Example:
     > say remainder(15,3)
@@ -12015,11 +12029,13 @@ See Also: timefmt()
   See Also: add(), fdiv(), div(), mul(), round(), sub(), trunc()
    
 & MOD()
-  Function: mod(<integer1>,<integer2>)
+  Function: mod(<integer1>,<integer2>[,<integerN>]...)
    
   Returns the integer remainder from dividing <integer1> by <integer2>.
   This could be aliased to either modulo() or remainder().  To see
   which, do: think mod()
+  
+  You may specify more than two values.
    
   Example:
     > say mod(15,3)
@@ -12034,11 +12050,13 @@ See Also: timefmt()
   See Also: add(), fdiv(), div(), mul(), round(), sub(), trunc(), fmod()
 
 & FMOD()
-  Function: fmod(<double1>,<double2>)
+  Function: fmod(<double1>,<double2>[,<doubleN>]...)
    
   Returns the floating remainder from dividing <double1> by <double2>.
   This works just like mod(), except it takes floating point numbers
   instead of integers.
+  
+  You may specify more than two values.
    
   Example:
     > say fmod(15.1,3.1)
@@ -27765,8 +27783,13 @@ New Features
 Changes
 ------------
 * pi() and e() optionally take an argument to specify the value for
-  precision from 1 to float_precision (@list options system)
+  precision from 1 to float_precision (@list options system) [ASH]
+* div(), fdiv(), floordiv(), fmod(), modulo(), remainder(), and
+  sub() now handle multiple arguments for Penn compatibility. [ASH]
+* For those who are used to Penn, 'DEBUG' is aliased to 'TRACE' [ASH]
     
 Bug Fixes
 ------------
 * mysql didn't update the include file for mysql correctly [ASH]
+* help entries didn't always add a CR to the LF [ASH]
+

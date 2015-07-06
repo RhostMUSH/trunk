@@ -216,7 +216,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                 break;
              for (p = line; *p != '\0'; p++) {
                 *p = ToLower((int)*p);
-                if (*p == '\n')
+                if ( (*p == '\n') || (*p == '\r') )
                    *p = '\0';
              }
              if ( quick_wild( topic, line ) ) {
@@ -301,7 +301,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 	if (line[0] == '&')
 	    break;
 	for (p = line; *p != '\0'; p++)
-	    if (*p == '\n')
+	    if ( (*p == '\n') || (*p == '\r') )
 		*p = '\0';
 	noansi_notify(player, line);
     }
@@ -388,7 +388,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                break;
             for (p = line; *p != '\0'; p++) {
                *p = ToLower((int)*p);
-               if (*p == '\n')
+               if ( (*p == '\n') || (*p == '\r') )
                    *p = '\0'; 
             }
             if ( quick_wild(msg, line) ) { 
@@ -402,7 +402,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
       if ( t_val ) {
          if ( first ) {
-            safe_str(unsafe_tprintf("Here are the entries which match content '%s':\n", msg), t_buff, &t_bufptr);
+            safe_str(unsafe_tprintf("Here are the entries which match content '%s':\r\n", msg), t_buff, &t_bufptr);
             safe_str(tmp, t_buff, &t_bufptr);
          } else {
             safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
@@ -487,21 +487,21 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          if (line[0] == '&')
             break;
          for (p = line; *p != '\0'; p++)
-            if (*p == '\n')
+            if ( (*p == '\n') || (*p == '\r') )
                 *p = '\0';
          if ( key & DYN_PARSE ) {
             result = exec(player, cause, cause,
                          EV_STRIP | EV_FCHECK | EV_EVAL, line, (char**)NULL, 0);
             if ( t_val ) {
                safe_str(result, t_buff, &t_bufptr);
-               safe_chr('\n', t_buff, &t_bufptr);
+               safe_str("\r\n", t_buff, &t_bufptr);
             } else
                notify(player, result);
             free_lbuf(result);
          } else {
             if ( t_val ) {
                safe_str(line, t_buff, &t_bufptr);
-               safe_chr('\n', t_buff, &t_bufptr);
+               safe_str("\r\n", t_buff, &t_bufptr);
             } else
                noansi_notify(player, line);
          }
@@ -523,7 +523,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
    } else if ( matched ) {
       if ( t_val ) {
-         safe_str(unsafe_tprintf("Here are the entries which match '%s':\n", msg), t_buff, &t_bufptr);
+         safe_str(unsafe_tprintf("Here are the entries which match '%s':\r\n", msg), t_buff, &t_bufptr);
          safe_str(tmp, t_buff, &t_bufptr);
       } else {
          notify(player, unsafe_tprintf("Here are the entries which match '%s':", msg));
@@ -698,7 +698,7 @@ errmsg(dbref player)
 	if (line[0] == '&')
 	    break;
 	for (p = line; *p != '\0'; p++)
-	    if (*p == '\n')
+	    if ( (*p == '\n') || (*p == '\r') )
 		*p = '\0';
 	if (!first)
 	    strcat(errbuf, "\r\n");

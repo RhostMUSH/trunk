@@ -17235,7 +17235,26 @@ FUNCTION(fun_add)
 
 FUNCTION(fun_sub)
 {
-    fval(buff, bufcx, safe_atof(fargs[0]) - safe_atof(fargs[1]));
+    double sum;
+    int got_one, i;
+
+    sum = 0;
+    for (i = 0, got_one = 0; i < nfargs; i++) {
+        if ( i == 0 )
+           sum = safe_atof(fargs[i]);
+        else
+           sum = sum - safe_atof(fargs[i]);
+        if (i > 0)
+            got_one = 1;
+    }
+    if (!got_one) {
+       safe_str("#-1 FUNCTION (SUB) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+    } else
+       fval(buff, bufcx, sum);
+
+/*  fval(buff, bufcx, safe_atof(fargs[0]) - safe_atof(fargs[1])); */
 }
 
 FUNCTION(fun_mul)
@@ -17310,81 +17329,144 @@ FUNCTION(fun_trunc)
 
 FUNCTION(fun_div)
 {
-    int bot, top;
+    int bot, sum, i;
 
-    bot = atoi(fargs[1]);
-    top = 0;
-    if (bot == 0) {
-       safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
-    } else {
-       top = atoi(fargs[0]);
-       if ( top < -(INT_MAX) )
-          top = -(INT_MAX);
-       ival(buff, bufcx, top / bot);
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (DIV) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
     }
+    for (i = 0; i < nfargs; i++) {
+       if ( i == 0 ) {
+          sum = atoi(fargs[i]);
+          continue;
+       }
+       bot = atoi(fargs[i]);
+       if ( bot == 0 ) {
+          safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+          return;
+       }
+       if ( sum < -(INT_MAX) )
+          sum = -(INT_MAX);
+       sum = sum / bot;
+    }
+    ival(buff, bufcx, sum);
 }
 
 /* Functionality borrowed from MUX2 */
 FUNCTION(fun_floordiv)
 {
-    int bot, top;
+    int bot, sum, i;
 
-    bot = atoi(fargs[1]);
-    if (bot == 0) {
-       safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
-    } else {
-       top = atoi(fargs[0]);
-       if ( top < -(INT_MAX) )
-          top = -(INT_MAX);
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (FLOORDIV) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    for (i = 0; i < nfargs; i++) {
+       if ( i == 0 ) {
+          sum = atoi(fargs[i]);
+          continue;
+       }
+       bot = atoi(fargs[i]);
+       if ( bot == 0 ) {
+          safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+          return;
+       }
+       if ( sum < -(INT_MAX) )
+          sum = -(INT_MAX);
        if (bot < 0) {
-          if (top <= 0) {
-             ival(buff, bufcx, (top / bot));
+          if (sum <= 0) {
+             sum = sum / bot;
           } else {
-             ival(buff, bufcx, ((top - bot - 1) / bot));
+             sum = (sum - bot - 1) / bot;
           }
        } else {
-          if (top < 0) {
-             ival(buff, bufcx, ((top - bot + 1) / bot));
+          if (sum < 0) {
+             sum = (sum - bot + 1) / bot;
           } else {
-             ival(buff, bufcx, (top / bot));
+             sum = sum / bot;
           }
        }
     }
+    ival(buff, bufcx, sum);
 }
 
 FUNCTION(fun_fdiv)
 {
-    double bot;
+    int i;
+    double bot, sum;
 
-    bot = safe_atof(fargs[1]);
-    if (bot == 0) {
-       safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
-    } else {
-       fval(buff, bufcx, (safe_atof(fargs[0]) / bot));
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (FDIV) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
     }
+    for (i = 0; i < nfargs; i++) {
+       if ( i == 0 ) {
+          sum = safe_atof(fargs[i]);
+          continue;
+       }
+       bot = safe_atof(fargs[i]);
+       if ( bot == 0 ) {
+          safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+          return;
+       }
+       sum = sum / bot;
+    }
+    fval(buff, bufcx, sum);
 }
 
 FUNCTION(fun_mod)
 {
-    int bot, top;
+    int bot, sum, i;
 
-    bot = atoi(fargs[1]);
-    top = atoi(fargs[0]);
-    if (bot == 0)
-       bot = 1;
-    if ( top < -(INT_MAX) )
-       top = -(INT_MAX);
-    ival(buff, bufcx, top % bot);
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (REMAINDER) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    for (i = 0; i < nfargs; i++) {
+       if ( i == 0 ) {
+          sum = atoi(fargs[i]);
+          continue;
+       }
+       bot = atoi(fargs[i]);
+       if (bot == 0)
+          bot = 1;
+       if ( sum < -(INT_MAX) )
+          sum = -(INT_MAX);
+       sum = sum % bot;
+    }
+    ival(buff, bufcx, sum);
 }
 
 FUNCTION(fun_fmod)
 {
-    double bot;
+    int i;
+    double bot, sum;
 
-    bot = safe_atof(fargs[1]);
-    if (bot == 0)
-      bot = 1;
-    fval(buff, bufcx, fmod(safe_atof(fargs[0]),bot));
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (FMOD) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    for (i = 0; i < nfargs; i++) {
+       if ( i == 0 ) {
+          sum = safe_atof(fargs[i]);
+          continue;
+       }
+       bot = safe_atof(fargs[i]);
+       if (bot == 0)
+          bot = 1;
+       sum = fmod(sum, bot);
+    }
+    fval(buff, bufcx, sum);
 }
 
 /*******************************************************************************/
@@ -17392,26 +17474,41 @@ FUNCTION(fun_fmod)
 /*******************************************************************************/
 FUNCTION(fun_modulo)
 {
-    int bot, i_top;
-    bot = atoi(fargs[1]);
-    i_top = atoi(fargs[0]);
+    int bot, sum, i;
 
-    if ( bot == 0 )
-       bot = 1;
-    if (i_top < 0) {
-      if (bot < 0) {
-        if ( i_top < -(INT_MAX) )
-           i_top = -(INT_MAX);
-        i_top = -(-i_top % -bot);
-      } else
-        i_top = (bot - (-i_top % bot)) % bot;
-    } else {
-      if (bot < 0)
-        i_top = -((-bot - (i_top % -bot)) % -bot);
-      else
-        i_top = i_top % bot;
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (MODULO) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
     }
-    ival(buff, bufcx, i_top);
+    for (i = 0; i < nfargs; i++) {
+       if ( i == 0 ) {
+          sum = atoi(fargs[i]);
+          continue;
+       }
+       bot = atoi(fargs[i]);
+       if ( bot == 0 )
+          bot = 1;
+
+       if (sum < 0) {
+          if (bot < 0) {
+             if ( sum < -(INT_MAX) )
+                sum = -(INT_MAX);
+             sum = -(-sum % -bot);
+          } else {
+             sum = (bot - (-sum % bot)) % bot;
+          }
+       } else {
+          if (bot < 0) {
+             sum = -((-bot - (sum % -bot)) % -bot);
+          } else {
+             sum = sum % bot;
+          }
+       }
+    }
+
+    ival(buff, bufcx, sum);
 }
 
 FUNCTION(fun_pi)
@@ -30290,7 +30387,7 @@ FUN flist[] =
     {"DIGEST", fun_digest, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"DIST2D", fun_dist2d, 4, 0, CA_PUBLIC, CA_NO_CODE},
     {"DIST3D", fun_dist3d, 6, 0, CA_PUBLIC, CA_NO_CODE},
-    {"DIV", fun_div, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"DIV", fun_div, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"DOING", fun_doing, 1, FN_VARARGS, CA_WIZARD, 0},
     {"DYNHELP", fun_dynhelp, 2, FN_VARARGS, CA_WIZARD, 0},
     {"E", fun_e, 1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -30321,14 +30418,14 @@ FUN flist[] =
     {"EXTRACT", fun_extract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBETWEEN", fun_fbetween, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBOUND", fun_fbound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"FDIV", fun_fdiv, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"FDIV", fun_fdiv, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FILTER", fun_filter, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FINDABLE", fun_findable, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"FIRST", fun_first, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"FLAGS", fun_flags, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"FLOOR", fun_floor, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"FLOORDIV", fun_floordiv, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"FMOD", fun_fmod, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"FLOORDIV", fun_floordiv, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"FMOD", fun_fmod, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FOLD", fun_fold, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FOLDERCURRENT", fun_foldercurrent, 0, FN_VARARGS, CA_WIZARD, 0},
     {"FOLDERLIST", fun_folderlist, 1, 0, CA_WIZARD, 0},
@@ -30487,7 +30584,7 @@ FUN flist[] =
     {"MIN", fun_min, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MIX", fun_mix, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MODIFYTIME", fun_modifytime, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"MODULO", fun_modulo, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"MODULO", fun_modulo, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MOON", fun_moon, 1, FN_VARARGS, CA_PUBLIC, 0},
     {"MONEY", fun_money, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"MONEYNAME", fun_moneyname, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -30581,7 +30678,7 @@ FUN flist[] =
     {"RANDPOS", fun_randpos, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"REBOOTTIME", fun_reboottime, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"REBOOTSECS", fun_rebootsecs, 0, 0, CA_PUBLIC, CA_NO_CODE},
-    {"REMAINDER", fun_mod, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"REMAINDER", fun_mod, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REMFLAGS", fun_remflags, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
 #ifdef SECURE_SIDEEFFECT
@@ -30685,7 +30782,7 @@ FUN flist[] =
     {"STRLENVIS", fun_strlenvis, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRMATCH", fun_strmatch, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRMATH", fun_strmath, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
-    {"SUB", fun_sub, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"SUB", fun_sub, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SUBJ", fun_subj, 1, 0, CA_PUBLIC, 0},
     {"SUBNETMATCH", fun_subnetmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
