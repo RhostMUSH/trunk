@@ -12853,11 +12853,14 @@ See Also: timefmt()
 & STRFUNC()
   Function: strfunc(<function>, <list of arguments>[,<delim>])
   
-  The strfunc function is used to transform a string of arguments
-  into seperate identified arguments and feed them into the specified
-  function.  If you do not have access to the function or if you give
-  the target function an invalid number of arguments, an error message
-  will be displayed.
+  The strfunc (string function) function is used to transform a 
+  string of arguments into seperate identified arguments and feed 
+  them into the specified function.  If you do not have access to the 
+  function or if you give the target function an invalid number of 
+  arguments, an error message will be displayed.
+  
+  This in effect will turn any function in the game into a string
+  oriented function.  Thus the name, 'strfunc'.
   
   Examples:
     > say add(1,2,3,4)
