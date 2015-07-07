@@ -13,6 +13,7 @@
 #include "help.h"
 #include "htab.h"
 #include "alloc.h"
+#include "rhost_ansi.h"
 
 int
 pstricmp(char *buf1, char *buf2, int len)
@@ -48,13 +49,14 @@ struct help_entry {
     char original;		/* 1 for the longest name for a topic.
 				   0 for abbreviations */
     char *key;			/* The key this is stored under. */
+    char *keyorig;		/* The uncut original key */
 };
 
 int 
 helpindex_read(HASHTAB * htab, char *filename)
 {
     help_indx entry;
-    char *p, fullFilename[129 + 32];
+    char *p, fullFilename[129 + 32], *korig;
     int count;
     FILE *fp;
     struct help_entry *htab_entry;
@@ -63,6 +65,7 @@ helpindex_read(HASHTAB * htab, char *filename)
 	htab_entry;
 	htab_entry = (struct help_entry *) hash_nextentry(htab)) {
 	free(htab_entry->key);
+	free(htab_entry->keyorig);
 	free(htab_entry);
     }
 
@@ -91,13 +94,18 @@ helpindex_read(HASHTAB * htab, char *filename)
 	htab_entry->pos = entry.pos;
 	htab_entry->original = 1;	/* First is the longest */
 	htab_entry->key = (char *) malloc(strlen(entry.topic) + 1);
+	htab_entry->keyorig = (char *) malloc(strlen(entry.topic) + 1);
 	strcpy(htab_entry->key, entry.topic);
+	strcpy(htab_entry->keyorig, entry.topic);
+        korig = (char *) malloc(strlen(entry.topic) + 1);
+	strcpy(korig, entry.topic);
 	while (p > entry.topic) {
 	  p--;
 	  if (!isspace((int)*p) && (hashadd2(entry.topic, (int *) htab_entry, htab, htab_entry->original) == 0)) 
 	    count++;
 	  else {
 	    free(htab_entry->key);
+	    free(htab_entry->keyorig);
 	    free(htab_entry);
 	  }
 	  *p = '\0';
@@ -106,10 +114,14 @@ helpindex_read(HASHTAB * htab, char *filename)
 	  htab_entry->pos = entry.pos;
 	  htab_entry->original = 0;
 	  htab_entry->key = (char *) malloc(strlen(entry.topic) + 1);
+	  htab_entry->keyorig = (char *) malloc(strlen(korig) + 1);
 	  strcpy(htab_entry->key, entry.topic);
+	  strcpy(htab_entry->keyorig, korig);
 	}
 	free(htab_entry->key);
+	free(htab_entry->keyorig);
 	free(htab_entry);
+        free(korig);
     }
     tf_fclose(fp);
     hashreset(htab);
@@ -166,7 +178,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
     int offset;
     struct help_entry *htab_entry;
     char matched;
-    char *topic_list, *buffp;
+    char *topic_list, *buffp, *mybuff, *myp;
     char realFilename[129 + 32];
 
     if (*topic == '\0')
@@ -294,6 +306,22 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 	    tf_fclose(fp);
 	return;
     }
+    myp = mybuff = alloc_lbuf("ANSI_HELP");
+#ifdef ZENTY_ANSI
+    safe_str(SAFE_ANSI_HILITE, mybuff, &myp);
+    for ( p = htab_entry->keyorig; *p; p++ ) {
+       safe_chr(ToUpper(*p), mybuff, &myp);
+    }
+    safe_str(SAFE_ANSI_NORMAL, mybuff, &myp);
+#else
+    safe_str(ANSI_HILITE, mybuff, &myp);
+    for ( p = htab_entry->keyorig; *p; p++ ) {
+       safe_chr(ToUpper(*p), mybuff, &myp);
+    }
+    safe_str(ANSI_NORMAL, mybuff, &myp);
+#endif
+    notify(player, mybuff);
+    free_lbuf(mybuff);
     line = alloc_lbuf("help_write");
     for (;;) {
 	if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
@@ -321,7 +349,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    char *tmp, *p_tmp, *p, *q, *line, *msg, *p_msg, *result, *tpass;
    int first, found, matched, one_through, space_compress;
    FILE *fp_indx, *fp_help;
-   char filename[129 + 40];
+   char filename[129 + 40], *mybuff, *myp;
 
    fp_help = NULL;
    memset(filename, 0, sizeof(filename));
@@ -495,6 +523,24 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       one_through=0;
       space_compress = mudconf.space_compress;
       mudconf.space_compress=0;
+      if ( !i_type && !t_val ) {
+         myp = mybuff = alloc_lbuf("ANSI_DYNHELP");
+#ifdef ZENTY_ANSI
+         safe_str(SAFE_ANSI_HILITE, mybuff, &myp);
+         for ( p = entry.topic; *p; p++ ) {
+            safe_chr(ToUpper(*p), mybuff, &myp);
+         }
+         safe_str(SAFE_ANSI_NORMAL, mybuff, &myp);
+#else
+         safe_str(ANSI_HILITE, mybuff, &myp);
+         for ( p = entry.topic; *p; p++ ) {
+            safe_chr(ToUpper(*p), mybuff, &myp);
+         }
+         safe_str(ANSI_NORMAL, mybuff, &myp);
+#endif
+         notify(player, mybuff);
+         free_lbuf(mybuff);
+      }
       for (;;) {
          if (fgets(line, LBUF_SIZE - 1, fp_help) == NULL)
             break;
