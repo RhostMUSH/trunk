@@ -11920,6 +11920,7 @@ See Also: timefmt()
   
   See Also: add(), div(), fdiv(), mod() round(), sub(), trunc()
   
+& IDIV()
 & DIV()
   Function: div(<number1>,<number2>[,<numberN>]...)
    
