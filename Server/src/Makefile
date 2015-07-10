@@ -5,13 +5,14 @@
 # there.
 
 SHELL=/bin/sh
-srcdir = .
+srcdir = ../src
 bindir = ../bin
 incdir = ../hdrs
 
-CHK = $(shell cat ./usesql.toggle 2>/dev/null)
-MYSQL_V = FOO
-ifeq "$(CHK)" "1"
+# This is the custom file that asksource.sh defines
+include $(srcdir)/custom.defs
+
+ifeq "$(USEMYSQL)" "1"
    CHK = $(shell mysql_config --version 2>/dev/null|wc -l)
    ifeq "$(CHK)" "1"
       MYSQL_INCLUDE = $(shell mysql_config --include)
@@ -53,8 +54,8 @@ endif
 CPP = $(CC) -E
 # Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.
 # If using CYGWIN, comment out the whole line.
-LIBS = -L./qdbm/ -lqdbm
-#LIBS = -L./qdbm/ -lqdbm
+LIBS = $(CUSTLIBS)
+
 LIBOBJS = 
 # for compiling on lowmem systems use this
 #CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192
@@ -82,17 +83,9 @@ COM_SRC	=
 COM_OBJ	=
 
 # Door Configurations
-#DRMUSHSRC = door_mush.c
-#DRMUSHOBJ = door_mush.o
-#DREMPIRESRC = empire.c
-#DREMPIREOBJ = empire.o
-#DREMPIREHDR = empire.h
-#DRMAILSRC = door_mail.c
-#DRMAILOBJ = door_mail.o
 DR_SRC = $(DRMUSHSRC) $(DREMPIRESRC) $(DRMAILSRC)
 DR_OBJ = $(DRMUSHOBJ) $(DREMPIREOBJ) $(DRMAILOBJ)
 DR_HDR = $(DREMPIREHDR)
-#DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE
 
 # Everything needed to use the database in standalone mode.
 SA_SRC	= sa-db.c sa-db_rw.c sa-boolexp.c sa-unparse.c sa-compress.c \
@@ -190,8 +183,8 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # SYS_MALLOC - Used if malloc.h is in a borked spot.
 ###########################################################################################################
 
-DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS $(MYSQL_VERSION) -DC_SUB -DLBUF32 -DQDBM -DSQLITE -DSBUF64 -DCRYPT_GLIB2 -DPCRE_BUILTIN -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL $(MYSQL_INCLUDE)
-#DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS -DC_SUB -DQDBM -DSBUF64 -DMUXCRYPT -DSECURE_SIDEEFFECT -DOLD_SETQ -DBANGS -DMARKER_FLAGS -DZENTY_ANSI -DEXPANDED_QREGS -DREALITY_LEVELS -DATTR_HACK -DPROG_LIKEMUX -DPLUSHELP -DUSECRYPT -DSOFTCOM -DMUX_INCDEC -DTINY_U -DUSE_SIDEEFFECT -Wall -DHAS_OPENSSL
+# DEFS is handled by asksource.sh  Feel free to add new definitions but do not remove CUSTDEFS
+DEFS = $(CUSTDEFS) -Wall 
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).
@@ -277,7 +270,11 @@ DEFS = -DBROKEN_NDBM -DBROKEN_ERRNO_SYS $(MYSQL_VERSION) -DC_SUB -DLBUF32 -DQDBM
 ################################################################  #5
 #MORELIBS  = -lm -lrt -L/usr/local/lib -lcygipc
 
-MORELIBS = -lm -lnsl -lresolv -lcrypt $(MYSQL_LIB) -lsqlite3 $(EXTLIBS) -lcrypto -lssl -lpcre
+#MORELIBS = -lm -lnsl -lresolv -lcrypt $(MYSQL_LIB) $(EXTLIBS) -lcrypto -lssl -lpcre
+
+# MORELIBS is handled by the asksource.sh script for auto-generation.
+# any customization add to this but do not remove CUSTMORELIBS
+MORELIBS = $(CUSTMORELIBS)
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
@@ -368,7 +365,7 @@ OUT	= $(bindir)/netrhost $(bindir)/netrhost.debugmon $(bindir)/murboot \
 all: rundate $(OUT)
 
 rundate:
-	@../bin/dodate.sh
+	@$(bindir)/dodate.sh
 
 #.PHONY:	all
 

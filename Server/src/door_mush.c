@@ -14,20 +14,19 @@
 extern int parse_dynhelp(dbref, dbref, int, char *, char *, char *, char *, int, int, char *);
 
 int mushDoorOpen(DESC *d, int nArgs, char *args[], int id) {
-  dbref loc, player = d->player;
-  int sock, i_found, retval;
+  dbref player = d->player;
+  int sock, i_found;
   char *t_buff, *t_bufptr, *s_addy, *s_port, *s_strtok;
 
   i_found = 1;
   t_bufptr = t_buff = alloc_lbuf("mush_doors");
   s_port = s_strtok = NULL;
-  retval = parse_dynhelp(player, player, 0, (char *)"doors", args[0], t_buff, t_bufptr, 1, 0, (char *)NULL); 
+  parse_dynhelp(player, player, 0, (char *)"doors", args[0], t_buff, t_bufptr, 1, 0, (char *)NULL); 
   if ( t_buff && *t_buff && 
        ((strstr(t_buff, (char *)"No entry for") != NULL) ||
         (strstr(t_buff, (char *)"Here are the entries which match") != NULL) ||
         (strstr(t_buff, (char *)"Sorry, that file") != NULL)) ) 
      i_found = 0;
-  loc = Location(player);
   if ( i_found && *t_buff && args[0] && *args[0]) {
      s_addy = strtok_r(t_buff, " \t\r\n", &s_strtok);
      if ( s_addy )

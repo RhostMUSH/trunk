@@ -18,15 +18,6 @@ if [ -z "${MYSQL_VER}" ]
 then
    MYSQL_VER=0
 fi
-if [ "${MYSQL_VER}" != "0" ]
-then
-   MYSQL_TST=$(echo $(mysql_config --include|cut -f2- -d'I')/mysql.h)
-   if [ ! -f "${MYSQL_TST}" ]
-   then
-      MYSQL_VER=0
-   fi
-fi
-echo "0" > ../src/usesql.toggle
 # load in mysql goodness
 mysql_host=$(grep ^mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
 mysql_user=$(grep ^mysql_user ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
@@ -853,15 +844,6 @@ parse() {
             else
                MS[$1]="X"
             fi
-            if [ "$TST" -eq 1 ]
-            then
-               if [ "${MS[$1]}" = "X" ]
-               then
-                  echo "1" > ../src/usesql.toggle
-               else
-                  echo "0" > ../src/usesql.toggle
-               fi
-            fi
             if [ "$TST" -eq 2 ]
             then
                mysql_set_args
@@ -1527,7 +1509,7 @@ setdefaults() {
      echo "MySQL identified.  Configuring..."
      DEFS="${DEFS} \$(MYSQL_INCLUDE)"
   fi
-  DEFS="DEFS = ${DEFS}"
+  DEFS="CUSTDEFS = ${DEFS}"
 }
 
 ###################################################################
@@ -1697,93 +1679,68 @@ setlibs() {
       echo "Compiling with system pcre library..."
       MORELIBS="${MORELIBS} -lpcre"
    fi
-   MORELIBS="MORELIBS = ${MORELIBS}"
+   MORELIBS="CUSTMORELIBS = ${MORELIBS}"
 }
 
 ###################################################################
 # UPDATEMAKEFILE - Update the makefile with the changes
 ###################################################################
 updatemakefile() {
-   echo "Updating the DEFS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^DEF ../src/Makefile|sed "s/\//\\\\\//g")/${DEFS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
-
-#  Let's do the door additions here
+   echo "Generating custom DEFS section for the Makefile now.  Please wait..."
+   echo "# Custom Definitions" > ../src/custom.defs
+   echo "${DEFS}" >> ../src/custom.defs
+   echo "Generating the custom LIBS section of the Makefile now.  Please wait..."
+   echo "# Custom Libraries" >> ../src/custom.defs
+   echo "${MORELIBS}" >> ../src/custom.defs
    if [ "${XB[2]}" = "X" ]
    then
-      cat ../src/Makefile|sed "s/^#DR_DEF/DR_DEF/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
+      echo "Generating @door section for the Makefile now.  Please wait..."
+      echo "# Main @door engine" >> ../src/custom.defs
+      echo "DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE" >> ../src/custom.defs
       if [ "${XD[1]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMUSH/DRMUSH/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMUSH/#DRMUSH/g" > /tmp/$$CONF$$
+         echo "# Mush @door" >> ../src/custom.defs
+         echo "DRMUSHSRC = door_mush.c" >> ../src/custom.defs
+         echo "DRMUSHOBJ = door_mush.o" >> ../src/custom.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[2]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DREMPIRE/DREMPIRE/g"|sed "s/^#DR_HDR/DR_HDR/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DR_HDR/#DR_HDR/g" > /tmp/$$CONF$$
+         echo "# Empire @door" >> ../src/custom.defs
+         echo "DREMPIRESRC = empire.c" >> ../src/custom.defs
+         echo "DREMPIREOBJ = empire.o" >> ../src/custom.defs
+         echo "DREMPIREHDR = empire.h" >> ../src/custom.defs
+         echo "DR_HDR = \$(DREMPIREHDR)" >> ../src/custom.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[3]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMAIL/DRMAIL/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
+         echo "# POP mail @door" >> ../src/custom.defs
+         echo "DRMAILSRC = door_mail.c" >> ../src/custom.defs
+         echo "DRMAILOBJ = door_mail.o" >> ../src/custom.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
-   else
-      cat ../src/Makefile|sed "s/^DR_DEF/#DR_DEF/g"|sed "s/^DRMUSH/#DRMUSH/g"| \
-         sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
    fi
+   echo "Generating DB link library for the Makefile now.  Please wait..."
+   echo "# DB used for Mush Engine" >> ../src/custom.defs
    if [ "${XB[5]}" = "X" ]
    then
-      echo "Compiling to QDBM database."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./qdbm/ -lqdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=qdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
+      echo "COMP=qdbm" > ../src/do_compile.var
    else
-      echo "Compiling to GDBM database (default)."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=gdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo "CUSTLIBS = -L../src/gdbm-1.8.3/.libs/ -lgdbm_compat -L../src/gdbm-1.8.3/ -lgdbm" >> ../src/custom.defs
+      echo "COMP=gdbm" > ../src/do_compile.var
    fi
-   # add CFLAGS for low memory
+   chmod 755 ../src/do_compile.var
    if [ "${X[23]}" = "X" ]
    then
-      echo "Adding CFLAG option for low memory compile..."
-      cat ../src/Makefile|sed "s/^#CFLAG/CFLAG/g" > /tmp/$$CONF$$
-   else
-      cat ../src/Makefile|sed "s/^CFLAG/#CFLAG/g" > /tmp/$$CONF$$
+      echo "Generating Makefile for low-memory compiling.  Please wait..."
+      echo "# This is needed if server hosting us has extreme low memory and no swap" >> ../src/custom.defs
+      echo "CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192" >> ../src/custom.defs
    fi
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
-   echo "...completed."
-   echo "Updating the MORELIBS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^MORELIBS ../src/Makefile| \
-       sed "s/\//\\\\\//g")/${MORELIBS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
-   echo "...completed."
+   if [ "${MS[1]}" = "X" ]
+   then
+      echo "# MySQL compatibility engine" >> ../src/custom.defs
+      echo "Generating Makefile for MySQL generation.  Please wait..."
+      echo "USEMYSQL = 1" >> ../src/custom.defs
+   fi
 }
 
 ###################################################################

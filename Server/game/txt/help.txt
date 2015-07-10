@@ -27794,9 +27794,11 @@ Changes
 * textfile() takes optional arguments to sanitize output for use
   in various coding including an output seperator [ASH]
 * hilite topic headers for help (as requested by many) [ASH]
+* mysql more vigerously tries to keep stale connections active [ASH]
+* the build script more cleanly does dynamic building of Makefile [ASH]
     
 Bug Fixes
 ------------
 * mysql didn't update the include file for mysql correctly [ASH]
 * help entries didn't always add a CR to the LF [ASH]
-
+* small memory leak in door code [ASH]

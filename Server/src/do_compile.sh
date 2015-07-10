@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-COMP=qdbm
-case ${COMP} in
+. ../src/do_compile.var
+case ${COMP:=gdbm} in
    gdbm) gdbmdir=./gdbm-1.8.3
          ;;
    qdbm) gdbmdir=./qdbm
