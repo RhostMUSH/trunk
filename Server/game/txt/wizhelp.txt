@@ -1279,7 +1279,7 @@
       /CHECK         : This lists the depowers currently employed on target.
       /REMOVE        : This removes the depower from the target.
   
-( See wizhelp depower2 for more )
+{ See wizhelp depower2 for more }
 
 & DEPOWER2
   Command: @depower (continued)
@@ -3598,8 +3598,9 @@
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
    
   Please be aware, <set> and <see> are different arguments, please substitute
-  below where <set/see> are defined depending if you plan to set <see> permissions
-  or <set> permissions.  <set> permissions handles setting and UN-setting.
+  below where <set/see> are defined depending if you plan to set <see> 
+  permissions or <set> permissions.  <set> permissions handles setting and 
+  UN-setting.
   
   The following bits exist for the <set> and <see> parameters:
       0 - Unable to <set/see> if target is a guest or wanderer
@@ -3613,7 +3614,7 @@
       8 - Must pass evaluation check for <set/see>
           Evaluation is as:
           -- A valid hook_obj must be defined.
-          -- The attribute 'AFLAG_EVAL' is used for FUNCTION evaluation on hook_obj.
+          -- The attribute 'AFLAG_EVAL' is used for FUNCTION eval on hook_obj.
           -- %0 is the attribute name attempting to be set.
           -- %1 is the enactor attempting to set the attribute.
           -- %2 is the type.  <set> is '0' and <see> is '1'.
@@ -3733,16 +3734,16 @@
   Example:  @aflags/perm
             @aflags/perm 2
 
-------------------------------------------------------------------------------
-Attribute Prefix                                                 Set     See
-------------------------------------------------------------------------------
-TESTEST                                                          Arch    Cit
-WASWAS                                                           Cit     Wiz
-WEREWERE                                                         God     Arch
-SNOOPY                                                           God     Wiz
-   +----- Owner: #-1,  Object: #-1,  Enactor: #1234,  Modifier: #1234
-
-----------------------------[     4/   100 max]-------------------------------
+  ----------------------------------------------------------------------------
+  Attribute Prefix                                                 Set     See
+  ----------------------------------------------------------------------------
+  TESTEST                                                          Arch    Cit
+  WASWAS                                                           Cit     Wiz
+  WEREWERE                                                         God     Arch
+  SNOOPY                                                           God     Wiz
+     +----- Owner: #-1,  Object: #-1,  Enactor: #1234,  Modifier: #1234
+  
+  --------------------------[     4/   100 max]-------------------------------
   
   In the above, the prefixes are TESTEST, WASWAS, WEREWERE, and SNOOPY.
   As shown, SNOOPY has special permissions.  The owner is #-1 (the default)
@@ -4088,7 +4089,7 @@ SNOOPY                                                           God     Wiz
   
 { wizhelp quota alternate2 for more }
 & quota alternate2
-(CONTINUED)
+  (CONTINUED)
   Command: @quota[/<switches>] [<player>[=<quota>]]
            @quota/all[/<switches>] [<quota>]]
   
@@ -4105,7 +4106,7 @@ SNOOPY                                                           God     Wiz
 { wizhelp quota alternate3 for more }
 
 & quota alternate33
-(CONTINUED)
+  (CONTINUED)
   Command: @quota[/<switches>] [<player>[=<quota>]]
            @quota/all[/<switches>] [<quota>]]
   
@@ -5588,10 +5589,10 @@ SNOOPY                                                           God     Wiz
   hidden      - The attribute is visible only to wizards.
   pinvisible  - The attribute is examinable by royalty+ only.
   default     - The attribute 'inherits' attribute formatting.
-* no_inherit  - The attribute is not inheritable by children.
-* visual      - The attribute is visual by everyone.
-* no_ansi     - The attribute does not hold ansi.
-* no_clone    - The attribute will not be @cloned.
+ *no_inherit  - The attribute is not inheritable by children.
+ *visual      - The attribute is visual by everyone.
+ *no_ansi     - The attribute does not hold ansi.
+ *no_clone    - The attribute will not be @cloned.
    
   If you use a command similar to:
      @admin attr_access=<attr>
@@ -7665,11 +7666,11 @@ SNOOPY                                                           God     Wiz
   Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
   FORBID restrictions.
   
-  Example:  @admin noguest_host=*.aol.com !*.compuserve.com *ego.com|3
-            (no-guests any site matching *.aol.com and removes *.compuserve.com)
-            (will deny guests on *ego.com if more than 3 connections are seen)
-            @admin noguest_host=!ALL
-            (this clears the noguest_host list)
+  Example: @admin noguest_host=*.aol.com !*.compuserve.com *ego.com|3
+           (no-guests any site matching *.aol.com and removes *.compuserve.com)
+           (will deny guests on *ego.com if more than 3 connections are seen)
+           @admin noguest_host=!ALL
+           (this clears the noguest_host list)
   
   Note:  If you used a ceiling, you must specify the ceiling in removing
          the site or it will not match it.  You may use @site/list to see
@@ -7951,8 +7952,8 @@ SNOOPY                                                           God     Wiz
   Config parameter: player_toggles <toggles>.  Default: blank
   
   Modifies the set of toggles that a player receives when it is created via the
-  @pcreate command or via the connection screen.  Toggles prefixed by a ! remove
-  the indicated toggle from the set.  
+  @pcreate command or via the connection screen.  Toggles prefixed by a ! 
+  remove the indicated toggle from the set.  
   
   Note that toggle names are case sensitive and in lower case.
   
@@ -8199,11 +8200,11 @@ SNOOPY                                                           God     Wiz
   Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
   FORBID restrictions.
   
-  Example:  @admin register_host=*.aol.com !*.compuserve.com *ego.com|3
-            (registers any site matching *.aol.com and removes *.compuserve.com)
-            (will register cons on *ego.com if more than 3 connections are seen)
-            @admin register_host=!ALL
-            (this clears the register_host list)
+  Example: @admin register_host=*.aol.com !*.compuserve.com *ego.com|3
+           (registers any site matching *.aol.com and removes *.compuserve.com)
+           (will register cons on *ego.com if more than 3 connections are seen)
+           @admin register_host=!ALL
+           (this clears the register_host list)
   
   Note:  If you used a ceiling, you must specify the ceiling in removing
          the site or it will not match it.  You may use @site/list to see
@@ -9908,59 +9909,63 @@ SNOOPY                                                           God     Wiz
   For the alternate quota system, it will show an 'L' after each group
   as that system allows individual locking.
 & folder
-The folder sub-commands are part of the mail system.  Check 'help'
-(instead of 'wizhelp') for further explanation.  There is only
-one wizard sub-command:
-   folder/plist <player>
+  Topic: folder
   
-Example:  folder/plist Twink
+  The folder sub-commands are part of the mail system.  Check 'help'
+  (instead of 'wizhelp') for further explanation.  There is only
+  one wizard sub-command:
+     folder/plist <player>
   
-This sub-command will display the list of folders for <player>.
+  Example:  folder/plist Twink
+  
+  This sub-command will display the list of folders for <player>.
 
 & mail
-Mail is documented in the regular help.  Wizard differences and
-extra commands are documented in wizhelp.
+  Topic mail
+  
+  Mail is documented in the regular help.  Wizard differences and
+  extra commands are documented in wizhelp.
    
-The mail command takes various switches to perform the various mail
-sub-commands, as in:
+  The mail command takes various switches to perform the various mail
+  sub-commands, as in:
   
     mail/read 1
   
-To get help on a particular mail sub-command, use the command:
+  To get help on a particular mail sub-command, use the command:
   
     wizhelp mail <sub-command>
   
-where <sub-command> is one of the sub-commands listed below:
+  where <sub-command> is one of the sub-commands listed below:
    
-check      number    send       fsend       quota        cmdlist
-recall
+  check      number    send       fsend       quota        cmdlist
+  recall
    
-Four new config parameters have been added: mailmax_send, and mailbox_size,
-                                            mail_tolist, mail_default. 
+  Four new config parameters have been added: mailmax_send, and mailbox_size,
+                                              mail_tolist, mail_default. 
   
-See Also: wmail
+  See Also: wmail
 
 & mail recall
-Topic: mail recall special commands for wizards.
-Syntax: mail/recall <args>
+  Topic: mail recall special commands for wizards.
+  Syntax: mail/recall <args>
   
-For general help on mail/recall, please check 'help mail recall'.
+  For general help on mail/recall, please check 'help mail recall'.
    
-You may specify a '@<player>' as an argument to see mail that was sent
-by other players.  You may use the /all switch with this as well.
-If you wish to view the mail of the other player, you must use 
-mail/number and mail/check.
+  You may specify a '@<player>' as an argument to see mail that was sent
+  by other players.  You may use the /all switch with this as well.
+  If you wish to view the mail of the other player, you must use 
+  mail/number and mail/check.
    
-Syntax:
+  Syntax:
     > mail/recall @target
     (this shows all mail sent by target that is unread)
     > mail/recall/all @target
     (this shows all mail sent by target, including read)
   
-See Also: help mail recall
+  See Also: help mail recall
 
 & mail cmdlist
-Topic: mail command list for wizards
+  Topic: mail command list for wizards
   
   mail/check <player>=<num>        -- views target player's message.
   mail/number <player>[=<arg>]     -- lists target player's mail.  This uses 
@@ -9977,32 +9982,34 @@ Topic: mail command list for wizards
   See Also: wmail cmdlist
 
 & wmail
-WMail is an extension for regular 'mail' for the wizards as hard code
-limitations stop us from adding extra /switches to the standard mail
-without a total rewrite. (we're considering it anyway for the future)
+  Topic: wmail
   
-The following options exist for wmail:
+  WMail is an extension for regular 'mail' for the wizards as hard code
+  limitations stop us from adding extra /switches to the standard mail
+  without a total rewrite. (we're considering it anyway for the future)
   
-clean     load       unload     wipe      on       off        access
-override  restart    size       fix       lfix     alias      lock
-smax      time       dtime      cmdlist
+  The following options exist for wmail:
   
-For help on an individual power, type:
+  clean     load       unload     wipe      on       off        access
+  override  restart    size       fix       lfix     alias      lock
+  smax      time       dtime      cmdlist
+  
+  For help on an individual power, type:
   
   wizhelp wmail <sub-command>
  
-A special topic for DYNAMIC GLOBAL ALIASES is seen with wizhelp on 
+  A special topic for DYNAMIC GLOBAL ALIASES is seen with wizhelp on 
                           mail_def_object
   
-Note: if mail shows that it is turned off, and attempting to turn it on
-      returns that the mail has an error, your mail db is likely
-      corrupted.  You can attempt a wmail/load to load in a previous
-      flatfile to recover the mail (if one is available).
+  Note: if mail shows that it is turned off, and attempting to turn it on
+        returns that the mail has an error, your mail db is likely
+        corrupted.  You can attempt a wmail/load to load in a previous
+        flatfile to recover the mail (if one is available).
   
-See Also: mail
+  See Also: mail
 
 & wmail cmdlist
-Topic: wmail command listing for wizards
+  Topic: wmail command listing for wizards
   
   wmail/access <args>      - Adds (+add), Removes (+remove), or lists (+list)
                              access restrictions of players to the mail system
@@ -10027,7 +10034,7 @@ Topic: wmail command listing for wizards
   { wizhelp wmail cmdlist2 to continue }
 
 & wmail cmdlist2
-Topic: wmail command listing for wizards (CONTINUED)
+  Topic: wmail command listing for wizards (CONTINUED)
   
   wmail/smax <value>       - Globally establishes the total number of save 
                              messages players may have.  Default is 10.
@@ -10039,251 +10046,256 @@ Topic: wmail command listing for wizards (CONTINUED)
   See Also: mail
 
 & wmail smax
-smax:
-Format:  wmail/smax <value> (default 10)
-This establishes the total maximum number of SAVE messages a person
-can have on a global level.  This will set SAVE messages on all but
-ROYALTY and higher.
+  Command:  wmail/smax <value> (default 10)
   
-Example:  wmail/smax 5
+  This establishes the total maximum number of SAVE messages a person
+  can have on a global level.  This will set SAVE messages on all but
+  ROYALTY and higher.
   
-See Also: @mailsmax
+  Example:  wmail/smax 5
+  
+  See Also: @mailsmax
 
 & wmail time
-Format:  wmail/time <value> (default 14 days)
-This will set up the automatic purging to the specified time (in days)
-If you set a '0', then all mail is purged.  This is done whenever
-a player disconnects.  This is settable only by SUPER-ROYALTY. NEW
-or UNREAD mail is not purged.
+  Command:  wmail/time <value> (default 14 days)
   
-Example:  wmail/time 20
+  This will set up the automatic purging to the specified time (in days)
+  If you set a '0', then all mail is purged.  This is done whenever
+  a player disconnects.  This is settable only by SUPER-ROYALTY. NEW
+  or UNREAD mail is not purged.
+  
+  Example:  wmail/time 20
 
 & wmail dtime
-Format:  wmail/dtime <player>=<value>
-This is a one time deal and will force a purging of mail of the
-given user from the 'value' number of days.  If you specify '0' then
-all mail is purged.  This is settable only by SUPER-ROYALTY.  NEW
-and UNREAD mail is not purged.  This value is not stored.
+  Command:  wmail/dtime <player>=<value>
   
-Example:  wmail/dtime BloatedPlayer=2
+  This is a one time deal and will force a purging of mail of the
+  given user from the 'value' number of days.  If you specify '0' then
+  all mail is purged.  This is settable only by SUPER-ROYALTY.  NEW
+  and UNREAD mail is not purged.  This value is not stored.
+  
+  Example:  wmail/dtime BloatedPlayer=2
 
 & mail quota
-quota:
-Format:  mail/quota <player>
+  Command:  mail/quota <player>
   
-This shows various statistics on the given player.  These are:
+  This shows various statistics on the given player.  These are:
   
    The total mailbox size and what they're currently at.
    The total mail save maximum and what they're currently at.
    The total mail they can currently send out and what they're at.
   
-Example:  mail/quota BloatedPlayer
+  Example:  mail/quota BloatedPlayer
 
 & mail send
-send:
-Format:  mail/send <address list>=<message>
-See 'help mail send' for details on how to use this sub-command.
-Wizard-owned objects can send mail.  Replies to messages from
-those objects will be sent to the owner.  The from line of those
-messages will be from the object owner.  The address list can
-be seperated with commas instead of a space. You shouldn't
-mix commas and spaces as seperators.
+  Command:  mail/send <address list>=<message>
   
-NOTE:  All messages from objects you controlled will show up that
-       they came from YOU and not your object.
+  See 'help mail send' for details on how to use this sub-command.
+  Wizard-owned objects can send mail.  Replies to messages from
+    those objects will be sent to the owner.  The from line of those
+  messages will be from the object owner.  The address list can
+  be seperated with commas instead of a space. You shouldn't
+  mix commas and spaces as seperators.
+  
+  NOTE:  All messages from objects you controlled will show up that
+         they came from YOU and not your object.
 
 & mail fsend
-Format: mail/fsend <address list>=<message>
-See 'help mail send' for details on how to use this sub-command.
-This allows immortals to send mail and override any locks or
-max-messages a player has for their mail box.  The address list
-can be seperated with commas instead of a space. You shouldn't
-mix commas and spaces as seperators.
+  Command: mail/fsend <address list>=<message>
   
-*NOTE*  /fsend sent mail will *not* be autoforwarded.
+  See 'help mail send' for details on how to use this sub-command.
+  This allows immortals to send mail and override any locks or
+  max-messages a player has for their mail box.  The address list
+  can be seperated with commas instead of a space. You shouldn't
+  mix commas and spaces as seperators.
   
-Example:  mail/fsend player1 player2 +global &personal=subject//My message
+  *NOTE*  /fsend sent mail will *not* be autoforwarded.
+  
+  Example:  mail/fsend player1 player2 +global &personal=subject//My message
 
 & wmail size
-size:
-Format: wmail/size <user>=<[10 - 2000]>
-This resets a player's maximum messages they can recieve to a given
-ammount from 10 to 2000.  This will override the global default of
-99 messages (or whatever is defined).
+  Command: wmail/size <user>=<[10 - 2000]>
   
-Example:  wmail/size BloatedPlayer=10
+  This resets a player's maximum messages they can recieve to a given
+  ammount from 10 to 2000.  This will override the global default of
+  99 messages (or whatever is defined).
   
-See Also: mail quota
+  Example:  wmail/size BloatedPlayer=10
+  
+  See Also: mail quota
 
 & mail number
-number:
-Format: mail/number <target>=#
-For details on the 'number' sub-command, see 'help mail number'.
-Wizards can use the number command on anyone, regardless of the
-mail sharing lock.
+  Command: mail/number <target>=#
   
-Example:  mail/number Twink=1-5
+  For details on the 'number' sub-command, see 'help mail number'.
+  Wizards can use the number command on anyone, regardless of the
+  mail sharing lock.
   
-See Also: mail check
+  Example:  mail/number Twink=1-5
+  
+  See Also: mail check
 
 & mail check
-check:
-Format: mail/check <target>=<#>
-For details on the 'check' sub-command, see 'help mail check'.
-The #1 (god) can check anyone's mail, regardless of the mail
-sharing lock.  Other wizards must pass the mail sharing lock to
-check mail.
+  Command: mail/check <target>=<#>
   
-Example:  mail/check Twink=2
+  For details on the 'check' sub-command, see 'help mail check'.
+  The #1 (god) can check anyone's mail, regardless of the mail
+  sharing lock.  Other wizards must pass the mail sharing lock to
+  check mail.
   
-See Also: mail number
+  Example:  mail/check Twink=2
+  
+  See Also: mail number
 
 & wmail wipe
-wipe: 
-Format: wmail/wipe <target> 
-Will delete all mail for target. This sub-command is called automatically
-when players are @destroyed.
+  Command: wmail/wipe <target> 
   
-Example: mail/wipe Jerk
+  Will delete all mail for target. This sub-command is called automatically
+  when players are @destroyed.
+  
+  Example: mail/wipe Jerk
 
 & wmail load
-load: 
-Format: wmail/load
-Will reload the mail db from the mail text dump file.
+  Command: wmail/load
+  
+  Will reload the mail db from the mail text dump file.
+  This will also fix a corrupt db by attempting to load in a previoius
+  flatfile.
 
 & wmail unload
-unload:  
-Format: wmail/unload 
-Will dump the mail db to a text file.
+  Command: wmail/unload 
+  
+  Will dump the mail db to a text file.
 
 & wmail clean
-clean: 
-Format: wmail/clean
-Right now, basically does a unload followed by a load. In the future, detailed
-mail db consitency checking is planned for this function.
+  Command: wmail/clean
+  
+  Right now, basically does a unload followed by a load. In the future, 
+  detailed mail db consitency checking is planned for this function.
 
 & wmail on  
-on:  
-Format: wmail/on
-Will turn the mail system on if previously turned off.
+  Command: wmail/on
+  
+  Will turn the mail system on if previously turned off.  If the db is
+  corrupted you will need to wmail/load a flatfile in.
 
 & wmail off
-off: 
-Format: wmail/off
-Will turn the mail system off
+  Command: wmail/off
+  
+  Will turn the mail system off.  Corrupted mail systems are automatically off.
 
 & wmail access
-access:  
-Format: wmail/access +list
-                     +add=<player>
-                     +remove=<player>
+  Command: wmail/access +list
+           wmail/access +add=<player>
+           wmail/access +remove=<player>
   
-What this command does is allow wizards to lock selected users out of the
-mail system. +list will give a list of users locked out. The +add command
-will lock out a user.  The +remove command will restore mail access for 
-that user.  This is designed to accept 1 user at a time in the add/remove.
+  What this command does is allow wizards to lock selected users out of the
+  mail system. +list will give a list of users locked out. The +add command
+  will lock out a user.  The +remove command will restore mail access for 
+  that user.  This is designed to accept 1 user at a time in the add/remove.
   
-Examples:  wmail/access +list           (list restrictions)
-           wmail/access +add=twink1     (remove user twink1's mail privies)
-           wmail/access +remove=twink2  (re-allow twink2 to use mail)
+  Examples:  wmail/access +list           (list restrictions)
+             wmail/access +add=twink1     (remove user twink1's mail privies)
+             wmail/access +remove=twink2  (re-allow twink2 to use mail)
 
 & wmail override
-override:
-Format: wmail/override <player>
-Reset (remove) the password for <player>.  Useful if someone forgets
-his password.
+  Command: wmail/override <player>
   
-Example:  wmail/override ForgetFul
+  Reset (remove) the password for <player>.  Useful if someone forgets
+  his password.
+  
+  Example:  wmail/override ForgetFul
 
 & wmail restart
-restart:
-Format: wmail/restart
-This unloads and reloads (basically restarts) the mail daemon for the 
-RhostMUSH.
+  Command: wmail/restart
+  
+  This unloads and reloads (basically restarts) the mail daemon for the 
+  RhostMUSH.
 
 & wmail fix
-fix:
-Format: wmail/fix
-This does an on-line fixmail to the mail daemon for the RhostMUSH. It in 
-essence reindexes everything and does all the checking.  Keep in mind, 
-this is a HUGE drain on resources so if you do this on line, expect some 
-major lagging.
-    
-This command can only be done by Super-Royalty
+  Command: wmail/fix
   
-See Also: wmail lfix
+  This does an on-line fixmail to the mail daemon for the RhostMUSH. It in 
+  essence reindexes everything and does all the checking.  Keep in mind, 
+  this is a HUGE drain on resources so if you do this on line, expect some 
+  major lagging.
+    
+  This command can only be done by Super-Royalty
+  
+  See Also: wmail lfix
 
 & wmail lfix
-lfix:
-Format: wmail/lfix
-This puts the newly defined fixmail into the RhostMUSH memory.  
+  Command: wmail/lfix
   
-*NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE*
-This will totally delete the previous mail information for the new one.
-Ie: if you didn't do wmail/fix BEFORE this, all mail information is *GONE*
-This command can only be done by Super-Royalty
+  This puts the newly defined fixmail into the RhostMUSH memory.  
+  
+  *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE*
+  This will totally delete the previous mail information for the new one.
+  Ie: if you didn't do wmail/fix BEFORE this, all mail information is *GONE*
+  This command can only be done by Super-Royalty
    
-See Also: wmail fix
+  See Also: wmail fix
 
 & wmail alias
-alias:
-Format: wmail/alias[[/lock][/remove]] [<alias-name>=<list of players>]
-This establishes global mail aliases for the given group of users.  A user can
-then access this by using a '+alias-name' in their address list when mailing.
-You may also lock aliases to given things.  This works just like standard MUSH
-locks and is accessable by adding a /lock switch to the /alias switch.
+  Command: wmail/alias[[/lock][/remove]] [<alias-name>=<list of players>]
   
-Typing the alias without the user list removes the alias.  Using the alias 
-switch without arguments will list all global aliases currently available and
-any and all locks on those aliases.
+  This establishes global mail aliases for the given group of users.  A user 
+  can then access this by using a '+alias-name' in their address list when 
+  mailing.  You may also lock aliases to given things.  This works just like 
+  standard MUSH locks and is accessable by adding a /lock switch to the /alias 
+  switch.
   
-To remove the alias, use the /remove switch in junction with the /alias 
-switch.  To remove just the lock, specify the /remove with the /lock and the
-/alias.
+  Typing the alias without the user list removes the alias.  Using the alias 
+  switch without arguments will list all global aliases currently available and
+  any and all locks on those aliases.
   
-Examples:  wmail/alias                      (lists the aliases and locks)
-           wmail/alias wiz=wiz1 wiz2 wiz3   (adds alias wiz with players)
-           wmail/alias/lock wiz=!*user      (establishes a lock for alias wiz)
-           wmail/alias/remove wiz           (removes alias wiz)
+  To remove the alias, use the /remove switch in junction with the /alias 
+  switch.  To remove just the lock, specify the /remove with the /lock and the
+  /alias.
+  
+  Examples:  wmail/alias                     (lists the aliases and locks)
+             wmail/alias wiz=wiz1 wiz2 wiz3  (adds alias wiz with players)
+             wmail/alias/lock wiz=!*user     (establishes a lock for alias wiz)
+             wmail/alias/remove wiz          (removes alias wiz)
  
-To see how to create dynamic global aliases, check 'mail_def_object'.
+  To see how to create dynamic global aliases, check 'mail_def_object'.
     
-See Also: wmail lock, wmail remove, mail_def_object
+  See Also: wmail lock, wmail remove, mail_def_object
 
 & wmail remove
-remove:
-Format: wmail/alias/remove
-Format: wmail/alias/lock/remove
+  Command: wmail/alias/remove
+           wmail/alias/lock/remove
   
-The first format is for removing aliases from the global alias list.  This
-also purges the matching lock for the alias automatically.  The second
-form just removes the lock.
+  The first format is for removing aliases from the global alias list.  This
+  also purges the matching lock for the alias automatically.  The second
+  form just removes the lock.
   
-Example:  wmail/alias/remove MyGLobalAlias
+  Example:  wmail/alias/remove MyGLobalAlias
   
-See Also: wmail alias, wmail lock
+  See Also: wmail alias, wmail lock
 
 & wmail lock
-lock:
-Format: wmail/alias/lock <alias-name>=<mush lock>
-This locks the given alias to the desired lock.  You would set the lock just
-as you would a normal @lock.  Specifying no lock clears the lock and allows
-it accessable by anyone.
-   
-Example:  wmail/alias/lock MyGlobalAlias=!*twink
+  Command: wmail/alias/lock <alias-name>=<mush lock>
   
-See Also: wmail alias, wmail remove
+  This locks the given alias to the desired lock.  You would set the lock just
+  as you would a normal @lock.  Specifying no lock clears the lock and allows
+  it accessable by anyone.
+   
+  Example:  wmail/alias/lock MyGlobalAlias=!*twink
+  
+  See Also: wmail alias, wmail remove
 
 & mailbox_size
-mailbox_size:
-This can be set to a number between 10 and 2000 inclusive.  This
-number indicates the maximum number of messages anyone can have.
-Default: 99
+  Config Parameter: mailbox_size <value>   Default: 99
+  
+  This can be set to a number between 10 and 2000 inclusive.  This
+  number indicates the maximum number of messages anyone can have.
 
 & mailmax_send
-This number indicates the maximum number of players to whom anyone can
-send mail at once.
-Default: 100
+  Config Parameter: mailbox_send <value>   Default: 100
+  
+  This number indicates the maximum number of players to whom anyone can
+  send mail at once.
 
 & MAILSIZE()
   Function: mailsize(<user>,<arg>)
@@ -10459,13 +10471,13 @@ Default: 100
   Example:
     > wmail/alias
     Alias: staff
-    Lock: (Ashen-Shugar(#123Pci<>)|Start Room(#0RFI)|Wizard(#1P))&!Tester(#100P)
+    Lock: (Ashen-Shugar(#123Pci<>)|Start Room(#0RFI)|Wizard(#1P))&!Test(#100P)
     Contents: Ashen-Shugar Corum
     Mail: Done.
     > think mailalias(staff)
     #123 #456
     > think mailalias(staff,1)
-    (*Ashen-Shugar|#0|*Horus)&!*Tester
+    (*Ashen-Shugar|#0|*Horus)&!*Test
   
   See Also: wizhelp wmail alias, help mail alias
 
@@ -10503,9 +10515,9 @@ Default: 100
 & news setup
   The news.txt file (and help.txt file) uses a unique index system for 
   references.  You design the file with a '&' to start an index key and the
-  text after it is the content of that topic.  The main topic is *ALWAYS* 'help'
-  So when you type 'help' or 'news', the text that shows up is after the index 
-  'help' (i.e.  & help)
+  text after it is the content of that topic.  The main topic is *ALWAYS* 
+  'help' So when you type 'help' or 'news', the text that shows up is after 
+  the index 'help' (i.e.  & help)
   
 { For help on how to set one up, please see:  'wizhelp news setup2' }
   
@@ -10529,12 +10541,12 @@ Default: 100
     & getting started
     Do stuff in here to start out on our mush!
   
-Notice that it is not case sensitive, and all topics start with a '&'.  Also
-notice that they do not have to be in any order, but they NEED to be in order
-of how they would be seen.  You can't have 'HELP MAIL SEND' before 'HELP MAIL'
-as it will find the topic for 'help mail send' first.  It uses partial matches.
-You can have as much text as you want in it, but please, for the readability,
-try to keep all information on a 20x78 screen.
+  Notice that it is not case sensitive, and all topics start with a '&'.  Also
+  notice that they do not have to be in any order, but they NEED to be in order
+  of how they would be seen.  You can't have 'HELP MAIL SEND' before 
+  'HELP MAIL' as it will find the topic for 'help mail send' first.  It uses 
+  partial matches.  You can have as much text as you want in it, but please, 
+  for the readability, try to keep all information on a 20x78 screen.
   
 { wizhelp news setup3 to continue }
 
