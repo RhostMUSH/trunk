@@ -322,6 +322,14 @@ static int sql_query(dbref player,
       retries++;
     }
   }
+  /* If there's a valid structure, but it's not responding yet, wait until it does */
+  if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+      retries = 0;
+      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) )) {
+         nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+         retries++;
+      }
+  }
   if (!mysql_struct || (mysql_ping(mysql_struct) != 0)) {
     notify(player, "No SQL database connection.");
     if (buff)
