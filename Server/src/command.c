@@ -462,6 +462,7 @@ NAMETAB halt_sw[] =
     {(char *) "pid", 1, CA_PUBLIC, 0, HALT_PID},
     {(char *) "stop", 1, CA_PUBLIC, 0, HALT_PIDSTOP | SW_MULTIPLE},
     {(char *) "cont", 1, CA_PUBLIC, 0, HALT_PIDCONT | SW_MULTIPLE},
+    {(char *) "quiet", 1, CA_PUBLIC, 0, HALT_QUIET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB hide_sw[] =
@@ -2645,7 +2646,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -2963,11 +2964,15 @@ process_command(dbref player, dbref cause, int interactive,
                      targetlist[i] = -2000000;
                   while ( s_aptextptr ) {
                      passtarget = match_thing_quiet(player, s_aptextptr);
+                     i_targetchk = 0;
                      for (i = 0; i < LBUF_SIZE; i++) {
-                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
+                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) ) {
+                           if ( targetlist[i] == -2000000)
+                              i_targetchk = 1;
                            break;
+                        }
                      }
-                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != Owner(player)) ) {
+                     if ( i_targetchk && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != Owner(player)) ) {
                         if ( !No_Ansi_Ex(passtarget) )
                            sprintf(tbuff, "%sBounce [#%d]>%s %s] %.3950s", ANSI_HILITE, player, ANSI_NORMAL, Name(player), command);
                         else
@@ -9769,6 +9774,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    i_temp2 = i_temp = i_corrupted = i_isequal = i_lowball = i_highball = 0;
    i_nomatch = i_nowipe = i_wipecnt = i_totobjs = 0;
    anum = anum2 = anum3 = anum4 = NOTHING;
+   s_strtokptr = NULL;
 
    s_foo = NULL;
    if ( !name || !*name ) {

@@ -1548,6 +1548,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 
     /* Trim spaces, and handle the negation character */
 
+    fp = (FLAGENT*)NULL;
     pt1 = toggle;
     st = 1;
     while (st) {

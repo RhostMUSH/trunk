@@ -1316,11 +1316,15 @@ void
 do_halt(dbref player, dbref cause, int key, char *target)
 {
     dbref player_targ, obj_targ;
-    int numhalted, pid, i_keytype;
+    int numhalted, pid, i_keytype, i_quiet;
 
     /* Figure out what to halt */
 
-    i_keytype = 0;
+    i_keytype = i_quiet = 0;
+    if ( key & HALT_QUIET ) {
+       key = key & ~HALT_QUIET;
+       i_quiet = 1;
+    }
     pid = -1;
     if ( key & HALT_PIDSTOP ) {
        i_keytype = 1;
@@ -1370,10 +1374,12 @@ do_halt(dbref player, dbref cause, int key, char *target)
       else if (!numhalted)
 	notify(player,"PID not found/Permisison denied.");
       if ( numhalted && (i_keytype > 0) ) {
-         if ( i_keytype == 1 )
-	    notify(Owner(player), unsafe_tprintf("Queue entry %d stopped.", numhalted));
-         else
-	    notify(Owner(player), unsafe_tprintf("Queue entry %d resumed.", numhalted));
+         if ( !(Quiet(player) || i_quiet) ) {
+            if ( i_keytype == 1 )
+	       notify(Owner(player), unsafe_tprintf("Queue entry %d stopped.", numhalted));
+            else
+	       notify(Owner(player), unsafe_tprintf("Queue entry %d resumed.", numhalted));
+         }
          return;
       }
     } else {
@@ -1397,7 +1403,7 @@ do_halt(dbref player, dbref cause, int key, char *target)
 	numhalted = halt_que(player_targ, obj_targ);
     }
 
-    if (Quiet(player))
+    if (Quiet(player) || i_quiet)
 	return;
     if (numhalted == 1) {
         if ( pid != -1 ) {

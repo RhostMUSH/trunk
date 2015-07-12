@@ -7962,7 +7962,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
   s_normal = alloc_mbuf("printf_mbuf_2");
   s_accent = alloc_mbuf("printf_mbuf_3");
   memset(s_padstring, '\0', sizeof(s_padstring));
-  i_linecnt = i_chk = i_lastspace = 0;
+  i_linecnt = i_chk = i_lastspace = spares = 0;
   i_savejust = -1;
 
   if( !fm->fieldwidth ) {
@@ -7973,7 +7973,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 #ifdef ZENTY_ANSI
 */
     i_stripansi = strlen(strip_all_special(fmtbuff)) - count_extended(fmtbuff);
-    idy = idx = i_chk = 0;
+    idy = idx = i_chk = gapwidth = 0;
     snarfle_special_characters(fmtbuff, s_padstring);
     strcpy(fmtbuff, s_padstring);
     memset(s_padstring, '\0', sizeof(s_padstring));
@@ -17350,6 +17350,7 @@ FUNCTION(fun_div)
        safe_chr(']', buff, bufcx);
        return;
     }
+    sum = 0;
     for (i = 0; i < nfargs; i++) {
        if ( i == 0 ) {
           sum = atoi(fargs[i]);
@@ -17378,6 +17379,7 @@ FUNCTION(fun_floordiv)
        safe_chr(']', buff, bufcx);
        return;
     }
+    sum = 0;
     for (i = 0; i < nfargs; i++) {
        if ( i == 0 ) {
           sum = atoi(fargs[i]);
@@ -17418,6 +17420,7 @@ FUNCTION(fun_fdiv)
        safe_chr(']', buff, bufcx);
        return;
     }
+    sum = 0;
     for (i = 0; i < nfargs; i++) {
        if ( i == 0 ) {
           sum = safe_atof(fargs[i]);
@@ -17443,6 +17446,7 @@ FUNCTION(fun_mod)
        safe_chr(']', buff, bufcx);
        return;
     }
+    sum = 0;
     for (i = 0; i < nfargs; i++) {
        if ( i == 0 ) {
           sum = atoi(fargs[i]);
@@ -17469,6 +17473,7 @@ FUNCTION(fun_fmod)
        safe_chr(']', buff, bufcx);
        return;
     }
+    sum = 0;
     for (i = 0; i < nfargs; i++) {
        if ( i == 0 ) {
           sum = safe_atof(fargs[i]);
@@ -17495,6 +17500,7 @@ FUNCTION(fun_modulo)
        safe_chr(']', buff, bufcx);
        return;
     }
+    sum = 0;
     for (i = 0; i < nfargs; i++) {
        if ( i == 0 ) {
           sum = atoi(fargs[i]);
@@ -25668,6 +25674,7 @@ FUNCTION(fun_sortlist)
       safe_str("#-1 SORTLIST TYPE MUST BEGIN WITH +/-.", buff, bufcx);
       return;
    }
+   s_chk = NULL;
    i_order = 0;
    if ( *fargs[0] == '+' )
       i_order = 1;
@@ -29025,6 +29032,7 @@ FUNCTION(fun_cluster_wipe)
       notify(player, "Permission denied.");
       return;
    }
+   s_strtokptr = NULL;
    s_buff = alloc_lbuf("fun_cluster_wipe");
    s_buff2 = alloc_lbuf("fun_cluster_wipe2");
    if ( strchr(fargs[0], '/') != NULL ) {
@@ -30035,6 +30043,8 @@ FUNCTION(fun_cluster_set)
       notify(player, "Permission denied.");
       return;
    }
+
+   s_strtokptr = NULL;
 
    s_buf1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[0], cargs, ncargs);

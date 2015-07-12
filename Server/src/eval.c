@@ -597,6 +597,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     accent_toggle = 0;
     i_extendcnt = 0;
     s_intbuf[3] = '\0';
+    ch = ch1 = ch2 = '\0';
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
@@ -2439,6 +2440,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        mudstate.notrace = 1;
                     }
 		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs);
+                    is_trace_bkup = 0;
                     if ( ufp->flags & FN_NOTRACE ) {
                        mudstate.notrace = is_trace_bkup;
                     }

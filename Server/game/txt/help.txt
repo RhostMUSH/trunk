@@ -2841,11 +2841,13 @@
   Halting an object does not affect commands waiting on it as a semaphore.
   
   Switches available are:
-    /PID  - This will halt (kill) the PID reference to the job in the @ps.
-            This, unlike @halt alone, *WILL* affect jobs waiting as
-            semaphores.
-    /STOP - (used with /PID) - Sets the queue entry into a SLEEP state
-    /CONT - (used with /PID) - Resets the queue entry into a RUN state
+    /PID   - This will halt (kill) the PID reference to the job in the @ps.
+             This, unlike @halt alone, *WILL* affect jobs waiting as
+             semaphores.
+    /STOP  - (used with /PID) - Sets the queue entry into a SLEEP state
+    /CONT  - (used with /PID) - Resets the queue entry into a RUN state
+    /QUIET - Will quiet the output when you have halted something.
+             Note: warnings/errors will still show through this.
   
   See Also: @drain, @notify, @ps, kill, HALTED, SEMAPHORES, pid()
   
@@ -28050,9 +28052,11 @@
   * hilite topic headers for help (as requested by many) [ASH]
   * mysql more vigerously tries to keep stale connections active [ASH]
   * the build script more cleanly does dynamic building of Makefile [ASH]
+  * @halt has a /quiet switch now.
     
   Bug Fixes
   ------------
   * mysql didn't update the include file for mysql correctly [ASH]
   * help entries didn't always add a CR to the LF [ASH]
   * small memory leak in door code [ASH]
+  * Erraneous warnings removed when compiling with -O2 optimization [ASH]
