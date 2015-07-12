@@ -310,7 +310,7 @@ static int sql_query(dbref player,
    * generating a #-1. Notify the player, too, and set the return code.
    */
   
-  if ( mysql_struct && !mysql_ping(mysql_struct) ) {
+  if ( mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
      sql_shutdown(player);
   }
   if (!mysql_struct) {
