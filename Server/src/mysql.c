@@ -53,6 +53,9 @@ static long  numConnectionsMade = 0;
 static long  numRowsRetrieved = 0;
 static dbref lastConnectMadeBy = -1;
 
+int mysql_check_bool=0;
+int mysql_last_check=0;
+
 int sql_shutdown(dbref player);
 static int sql_init(dbref player);
 static int sql_query(dbref player, 
@@ -93,6 +96,7 @@ void do_sql(dbref player, dbref cause, int key, char *arg_left) {
 }
 
 void do_sql_connect(dbref player, dbref cause, int key) {
+   mysql_check_bool = 0;
    if (sql_init(player) < 0) {
     notify(player, "Database connection attempt failed.");
   } else {
@@ -257,7 +261,12 @@ static int sql_init(dbref player) {
   
   if (mysql_struct)
     sql_shutdown(player);
-  
+ 
+  if ( (mysql_check_bool == -1) || ((mysql_check_bool > 3) && (mudstate.now < (mysql_last_check + 120))) ) {
+     notify(player, "Too many failed attempts to connect to the database.  Issue @sqlconnect to enforce a restart.");
+     mysql_check_bool = -1;
+     return 1;
+  } 
   /* Try to connect to the database host. If we have specified
    * localhost, use the Unix domain socket instead.
    */
@@ -273,6 +282,9 @@ static int sql_init(dbref player) {
     log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
     log_text("Failed to connect to SQL database.");
     ENDLOG
+    mysql_check_bool++;
+    if ( mudstate.now > (mysql_last_check + 120) )
+       mysql_last_check = mudstate.now;
     return -1;
   } else {
     STARTLOG(LOG_PROBLEMS, "SQL", "INF");
@@ -310,6 +322,13 @@ static int sql_query(dbref player,
    * generating a #-1. Notify the player, too, and set the return code.
    */
   
+  if ( mysql_check_bool == -1 ) {
+     notify(player, "No SQL database connection.  Enforce restart with @sqlconnect.");
+     if (buff)
+        safe_str("#-1", buff, bp);
+     return -1;
+  }
+
   if ( mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
      sql_shutdown(player);
   }
@@ -379,6 +398,13 @@ static int sql_query(dbref player,
       retries++;
     }
     
+    if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+      retries = 0;
+      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+         nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+         retries++;
+      }
+    }
     if (mysql_struct) {
       alarm_msec(5);
       s_qstr = alloc_lbuf("tmp_q_string");
@@ -396,6 +422,8 @@ static int sql_query(dbref player,
       free_lbuf(s_qstr);
       mudstate.alarm_triggered = 0;
       alarm_msec(next_timer());
+    } else {
+      notify(player, "The SQL engine forced a failure on a timeout and couldn't reconnect.");
     }
   }
   if (got_rows) {
