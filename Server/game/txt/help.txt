@@ -59,30 +59,30 @@
 & commands
   Help available for RhostMUSH Commands:
    
-  ]            "            :            ;            &            #
-  \\           >
+  ]          "            :            ;            &              #
+  \\         >
   
-  +channel     doing        drop         enter        examine      folder     
-  get          give         goto         grab         help         +help 
-  idle         INFO         inventory    join         kill         leave      
-  listen       LOGOUT       look         lpage        mail         move       
-  mrpage       news         OUTPUTPREFIX OUTPUTSUFFIX page         pose       
-  QUIT         read         rpage        say          score        SESSION    
-  smell        take         taste        think        throw        touch      
-  train        use          version      wield        whisper      who        
+  +channel   doing        drop         enter        examine        folder     
+  get        give         goto         grab         help           +help 
+  idle       INFO         inventory    join         kill           leave      
+  listen     LOGOUT       look         lpage        mail           move       
+  mrpage     news         OUTPUTPREFIX OUTPUTSUFFIX page           pose       
+  QUIT       read         rpage        say          score          SESSION    
+  smell      take         taste        think        throw          touch      
+  train      use          version      wield        whisper        who        
   worn
   
-  @@           @break       @chown       @clone       @create      @decompile
-  @destroy     @dig         @doing       @dolist      @drain       @edit 
-  @emit        @entrances   @eval        @extansi     @femit       @find      
-  @force       @fpose       @fsay        @halt        @hide        @include
-  @last        @link        @list        @listmotd    @lfunction   @lock      
-  @mailsig     @mvattr      @name        @notify      @oemit       @open      
-  @parent      @password    @pemit       @pipe        @program     @protect   
-  @ps          @quitprogram @quota       @register    @robot       @search    
-  @set         @skip        @stats       @sudo        @sweep       @switch    
-  @teleport    @trigger     @unlink      @unlock      @verb        @wait      
-  @wall        @wipe        
+  @@         @break       @chown       @clone       @create        @decompile
+  @destroy   @dig         @doing       @dolist      @drain         @edit 
+  @emit      @entrances   @eval        @extansi     @femit         @find      
+  @force     @fpose       @fsay        @halt        @hide          @include
+  @last      @link        @list        @listmotd    @lfunction     @lock      
+  @mailsig   @mvattr      @name        @notify      @oemit         @open      
+  @parent    @password    @pemit       @pipe        @program       @protect   
+  @ps        @quitprogram @quota       @register    @robot         @search    
+  @set       @skip        @sql         @sqlconnect  @sqldisconnect @stats     
+  @sudo      @sweep       @switch      @teleport    @trigger       @unlink    
+  @unlock    @verb        @wait        @wall        @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 & commands2
@@ -130,11 +130,11 @@
   REALITY LEVELS      REGEXPS           REGEXP SYNTAX        REGEXP CLASSES  
   REGEXP EXAMPLES     ROBBERY           ROYALTY              SEARCH CLASSES  
   SEMAPHORES          SENSES            SETQ_TEMPLATES       SQL
-  SIDEEFFECTS         SINGLETHREADING   SPOOFING             STACK            
-  SUBSTITUTIONS       SUCCESS           SWITCHES             TOGGLES        
-  USEFUL              VARIABLE EXITS    VATOVZ               VERBS             
-  WANDERER            ZATOZZ            ZONES                $-COMMANDS      
-  #LAMBDA
+  SQLESCAPE           SIDEEFFECTS       SINGLETHREADING      SPOOFING           
+  STACK               SUBSTITUTIONS     SUCCESS              SWITCHES           
+  TOGGLES             USEFUL            VARIABLE EXITS       VATOVZ             
+  VERBS               WANDERER          ZATOZZ               ZONES              
+  $-COMMANDS          #LAMBDA
   
   
 & SQL
@@ -11087,7 +11087,7 @@
   Example:
     > @sql SHOW TABLES
    
-  See also: sql(), @sqlconnect, @sqldisconnect, sqlon(), sqloff()
+  See also: sql(), @sqlconnect, @sqldisconnect, sqlon(), sqloff(), sqlescape()
 
 & @sqlconnect
   Command: @sqlconnect
@@ -11098,7 +11098,7 @@
   Example:
     > @sqlconnect
   
-  See Also: sqlon(), @sqldisconnect, sqloff(), @sql, sql()
+  See Also: sqlon(), @sqldisconnect, sqloff(), @sql, sql(), sqlescape()
 
 & @sqldisconnect
   Command: @sqldisconnect
@@ -11109,10 +11109,11 @@
   Example:
     > @sqldisconnect
   
-  See Also: sqloff(), @sqlconnect, sqlon(), @sql, sql()
+  See Also: sqloff(), @sqlconnect, sqlon(), @sql, sql(), sqlescape()
 
 & SQL()
   Function: sql(<SQL statement> [,<delim>,[<field delim>]])
+            sqlescape(<SQL statement>
    
   This function sends a SQL statement to an external SQL database and
   returns the results. The user must be wizard or immortal.  On failure,
@@ -11142,7 +11143,25 @@
   > say [sql(v(VAMPS),|,)] -- [sql(v(VAMPS),|,/)]
   You say "Caine 389|Nos 4|Rufus 672 -- Caine/389|Nos/4|Rufus/672"
   
-  See Also: @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect
+  See Also: sqlescape(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect
+
+& SQLESCAPE()
+  Function: sqlescape(<string>)
+  
+  This function performs SQL-server-implemented escaping of <string>. It's
+  important to escape arbitrary data before passing it to the sql() function,
+  or @sql command, to prevent SQL injection attacks.
+   
+  When used in an SQL query, the results of an sqlescape() function
+  should be enclosed in single quotes.
+   
+  Note: You must be a wizard (or higher) to utilize this function.
+  
+  Example:
+    > think sqlescape(You don't say)
+    You don\'t say
+  
+  See Also: sql(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect
 
 & SQLON()
   Function: sqlon()
@@ -11153,7 +11172,7 @@
   Example:
     > think sqlon()
   
-  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql()
+  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql(), sqlescape()
 
 & SQLOFF()
   Function: sqloff()
@@ -11164,7 +11183,7 @@
   Example:
     > think sqloff()
   
-  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql()
+  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql(), sqlescape()
 
 & SQLITE_QUERY()
   Function: sqlite_query(<db>,<query>[,<cdel>[,<rdel>[,<arg1>,...,<argN>]]])
@@ -25997,7 +26016,11 @@
   txlevel()       - Sets or unsets a reality transmit level for an object.
   wipe()          - Wipes attribute(s) from object.
   zemit()         - Emits a string to every room of a zone.
-  sqllite_query() - SQL Lite database query
+  sqlite_query()  - SQL Lite database query.
+  sql()           - MySQL database query.
+  sqlescape()     - MySQL escape driven query.
+  sqlon()         - MySQL database enabler.
+  sqloff()        - MySQL database deabler.
 
 & zone functions
   Function Lists: Zone Functions.
