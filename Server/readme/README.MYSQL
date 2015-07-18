@@ -1,15 +1,29 @@
 MySQL is now native in RhostMUSH as of 3.9.5p2.
 
+Download the git repository to a seperate directory so that you can
+copy over the files that it requires you to.
+
+Suggestion:  git clone http://github.com/RhostMUSH/trunk ~/tmprho
+
 If you are patching UP from an older version, you need to update
 the following files:
 
-1.  update your src/Makefile to the one in the 3.9.5p2+ rep
+1.  update your src/Makefile to the one in the 3.9.5p2+ repo
+    ( cp ~/tmprho/Server/src/Makefile ~/Rhost/Server/src/Makefile )
 2.  update your bin/asksource.* files to the one in the 3.9.5p2+ repo
+    ( cp ~/tmprho/Server/bin/asksource.* ~/Rhost/Server/bin/ )
 3.  append 'include rhost_mysql.conf' BEFORE the rhost_ingame.conf file
-    and before the section that says 'local additions' toward the end of
+    and before the section that says 'define local aliases' toward the end of
     your netrhost.conf file.
+    ( edit your ~/Rhost/Server/game/netrhost.conf file )
 4.  copy the game/rhost_mysql.conf file from the 3.9.5p2+ repo 
-5.  The following lines have to be changed in local.c (toward the top):
+    ( cp ~/tmprho/Server/game/rhost_mysql.conf ~/Rhost/Server/game/ )
+5.  The following lines have to be REPLACED/CHANGED in local.c ( toward the top ):
+    ( you may edit this or copy the one from the other distro )
+    ( do either:  edit ~/Rhost/Server/src/local.c )
+    (        or:  cp ~/tmprho/Server/src/local.c ~/Rhost/Server/src/local.c )
+     
+//----------- IF REPLACING/CHANGING local.c COPY BELOW --------------------------
     /* Called when the mush starts up, immediatly prior to the main game
      * loop being entered. By this point all databases are loaded and
      * all variables configured.
@@ -41,6 +55,7 @@ the following files:
        sql_shutdown(-1);
     #endif
     }
+//----------- IF REPLACING/CHANGING local.c COPY ABOVE --------------------------
 
 6.  Issue 'make clean' then make confsource to rebuild using the latest
     builder script to build in the mysql changes.
