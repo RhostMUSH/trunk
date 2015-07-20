@@ -5505,6 +5505,43 @@ list_options_mysql(dbref player)
 }
 
 static void
+list_options_convtime(dbref player)
+{
+#ifdef HAS_GETDATE
+   FILE *fp;
+   char *s_file, *s_line;
+
+   s_file = getenv((char *)"DATEMSK");
+   if ( (fp = fopen(s_file, "r")) == NULL ) {
+      notify(player, "There is no convtime.template file in your game directory.");
+   } else {
+      s_line = alloc_lbuf("list_options_convtime");
+      notify(player, "Supported Date Formats [~/game/convtime.template] --------------------------");
+      while ( !feof(fp) ) {
+         fgets(s_line, (LBUF_SIZE-2), fp);
+         if ( !feof(fp) ) {
+            if ( (strlen(s_line) > 1) && (s_line[strlen(s_line)-2] == '\r') )
+               s_line[strlen(s_line)-2] = '\0';
+            else if ( (strlen(s_line) > 0) && (s_line[strlen(s_line)-1] == '\n') )
+               s_line[strlen(s_line)-1] = '\0';
+            notify(player, s_line);
+         }
+      }
+      fclose(fp);
+      notify(player, "----------------------------------------------------------------------------");
+      notify(player, "Key: %a/%A - Weekday Name (Www), %b/%B - Month Name (Mmm), %D - %m/%d/%y");
+      notify(player, "     %m    - month (1-12),       %d    - day (1-31),       %Y - year (yyyy)");
+      notify(player, "     %H    - hour (0-23),        %M    - minute (0-59),    %S - second (0-59)");
+      notify(player, "----------------------------------------------------------------------------");
+      free_lbuf(s_line);
+   }
+#else
+   notify(player, "Extended convtime() is not available.");
+#endif
+   
+}
+
+static void
 list_options_system(dbref player)
 {
    char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
@@ -5565,6 +5602,11 @@ list_options_system(dbref player)
     notify(player, "Sideeffects [SIDEFX required] ------------------------------------ ENABLED");
 #else
     notify(player, "Sideeffects [SIDEFX required] ------------------------------------ DISABLED");
+#endif
+#ifdef HAS_GETDATE
+    notify(player, "Enhanced convtime() formats --[ see @list options convtime ]------ ENABLED");
+#else
+    notify(player, "Enhanced convtime() formats -------------------------------------- DISABLED");
 #endif
 #ifdef ENABLE_COMMAND_FLAG
     notify(player, "The COMMAND flag ------------------------------------------------- ENABLED");
@@ -7688,6 +7730,8 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_config(player);
            else if ( (stricmp(s_ptr2, "system") == 0) )
               list_options_system(player);
+           else if ( (stricmp(s_ptr2, "convtime") == 0) )
+              list_options_convtime(player);
            else if ( (stricmp(s_ptr2, "mysql") == 0) )
               list_options_mysql(player);
            else if ( stricmp(s_ptr2, "boolean") == 0 ) {
@@ -7706,7 +7750,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_values_parse(player, p_val);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
-                                   " mail, values, boolean, config, system, mysql");
+                                   " mail, values, boolean, config, system, mysql, convtime");
         } else {
 	   list_options(player);
         }

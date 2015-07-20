@@ -18623,7 +18623,12 @@
     You say "Wed Jun 24 10:22:54 1992"
     > say convtime(Wed Jun 24 10:22:54 1992)
     You say "709395774"
+  
   This function may also be called as time2secs().
+  
+  This function, if allowing enhanced time formats, can handle a
+  varying method of other formats.  Please see '@list options convtime'
+  to see the available extra formats (if available).
   
   See Also: convsecs(), secs(), time(), timefmt()
   
@@ -28078,6 +28083,7 @@
   * mysql more vigerously tries to keep stale connections active [ASH]
   * the build script more cleanly does dynamic building of Makefile [ASH]
   * @halt has a /quiet switch now.
+  * if getdate is found on the server, allow enhanced convtime [ASH]
     
   Bug Fixes
   ------------
