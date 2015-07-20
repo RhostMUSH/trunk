@@ -5508,10 +5508,9 @@ static void
 list_options_convtime(dbref player)
 {
    FILE *fp;
-   char *s_file, *s_line;
+   char *s_line;
 
-   s_file = getenv((char *)"DATEMSK");
-   if ( (fp = fopen(s_file, "r")) == NULL ) {
+   if ( (fp = fopen((char *)"../game/convtime.template", "r")) == NULL ) {
       notify(player, "There is no convtime.template file in your game directory.");
    } else {
       s_line = alloc_lbuf("list_options_convtime");
