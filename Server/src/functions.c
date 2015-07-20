@@ -1371,8 +1371,6 @@ safe_sha0(const char *text, size_t len, char *buff, char **bufcx)
 }
 #endif
 
-#ifdef HAS_GETDATE
-
 void
 do_date_conv(char *instr, char *outstr)
 {
@@ -1477,7 +1475,6 @@ do_date_conv(char *instr, char *outstr)
    free_lbuf(str6);
    free_lbuf(str7);
 }
-#endif
 
 void safer_unufun(int tval)
 {
@@ -10456,16 +10453,13 @@ FUNCTION(fun_convtime)
 {
     struct tm *ttm;
     long l_offset;
-#ifdef HAS_GETDATE
     char *outstr;
-#endif
 
     ttm = localtime(&mudstate.now);
     l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
     if (do_convtime(fargs[0], ttm)) {
        fval(buff, bufcx, (double)(mktime64(ttm) + l_offset));
-    } else {
-#ifdef HAS_GETDATE
+    } else if ( mudconf.enhanced_convtime ) {
        outstr = alloc_lbuf("fun_convtime_adv");
        do_date_conv(fargs[0], outstr);
        if (do_convtime(outstr, ttm)) {
@@ -10474,12 +10468,10 @@ FUNCTION(fun_convtime)
           safe_str("-1", buff, bufcx);
        }
        free_lbuf(outstr);
-#else
+    } else {
        safe_str("-1", buff, bufcx);
-#endif
     }
 }
-
 
 /* ---------------------------------------------------------------------------
  * fun_starttime: What time did this system last reboot?

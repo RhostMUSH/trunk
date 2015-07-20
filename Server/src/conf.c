@@ -287,6 +287,7 @@ NDECL(cf_init)
     mudconf.ansi_default = 0;		/* Allow ansi aware functions ansi default */
     mudconf.accent_extend = 0;		/* Can we extend accents from 251-255? */
     mudconf.admin_object = -1;		/* The admin object to define */
+    mudconf.enhanced_convtime = 0;	/* Enhanced convtime formatting */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3542,6 +3543,9 @@ CONF conftable[] =
     {(char *) "enforce_unfindable",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enforce_unfindable, 0, 0, CA_PUBLIC,
      (char *) "Is UNFINDABLE/DARK enforced for locations?"},
+    {(char *) "enhanced_convtime",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enhanced_convtime, 0, 0, CA_PUBLIC,
+     (char *) "Does convtime() handle extra formats?"},
     {(char *) "error_file",
      cf_string, CA_DISABLED, (int *) mudconf.error_file, 32, 0, CA_WIZARD,
      (char *) "File used for huh? messages."},

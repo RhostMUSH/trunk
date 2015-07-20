@@ -5157,7 +5157,7 @@
   down_file                down_motd_message        dump_interval          
   dump_message             dump_offset              earn_limit             
   empower_fulltel          enable_tstamps           enforce_unfindable     
-  error_file 
+  enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 
@@ -6045,6 +6045,13 @@
   
   Indicates whether or not to enable the automatic timestamping of items
   when they are created or modified.
+
+& enhanced_convtime
+  Config parameter: enhanced_convtime <yes/no>.  Default: no
+  
+  Indicates if convtime() will allow enhanced formats to be processed
+  with the convtime function.  Due to a slightly higher overhead this
+  is disabled by default.
 
 & enforce_unfindable
   Config parameter: enforce_unfindable <yes/no>.  Default: no

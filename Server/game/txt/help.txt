@@ -18630,6 +18630,8 @@
   varying method of other formats.  Please see '@list options convtime'
   to see the available extra formats (if available).
   
+  Enhanced date checking is handled with the 'enhanced_convtime' param.
+  
   See Also: convsecs(), secs(), time(), timefmt()
   
 & SORT()
@@ -28069,6 +28071,8 @@
     - Note: ./patch.sh will not patch this in as it did require a rewrite
       of the src/Makefile, bin/asksource.sh, and some additional files.
     - ./patch.sh (and patching) will not break backward compatibility.
+  * enhanced_convtime toggles the processing of extra formats for the
+    convtime() function [ASH]
   
   Changes
   ------------

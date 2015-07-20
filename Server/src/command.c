@@ -5507,7 +5507,6 @@ list_options_mysql(dbref player)
 static void
 list_options_convtime(dbref player)
 {
-#ifdef HAS_GETDATE
    FILE *fp;
    char *s_file, *s_line;
 
@@ -5519,7 +5518,7 @@ list_options_convtime(dbref player)
       notify(player, "Supported Date Formats [~/game/convtime.template] --------------------------");
       while ( !feof(fp) ) {
          fgets(s_line, (LBUF_SIZE-2), fp);
-         if ( !feof(fp) ) {
+         if ( !feof(fp) && (*s_line != '#') ) {
             if ( (strlen(s_line) > 1) && (s_line[strlen(s_line)-2] == '\r') )
                s_line[strlen(s_line)-2] = '\0';
             else if ( (strlen(s_line) > 0) && (s_line[strlen(s_line)-1] == '\n') )
@@ -5535,10 +5534,6 @@ list_options_convtime(dbref player)
       notify(player, "----------------------------------------------------------------------------");
       free_lbuf(s_line);
    }
-#else
-   notify(player, "Extended convtime() is not available.");
-#endif
-   
 }
 
 static void
@@ -5603,11 +5598,11 @@ list_options_system(dbref player)
 #else
     notify(player, "Sideeffects [SIDEFX required] ------------------------------------ DISABLED");
 #endif
-#ifdef HAS_GETDATE
-    notify(player, "Enhanced convtime() formats --[ see @list options convtime ]------ ENABLED");
-#else
-    notify(player, "Enhanced convtime() formats -------------------------------------- DISABLED");
-#endif
+    if ( mudconf.enhanced_convtime ) {
+       notify(player, "Enhanced convtime() formats --[ see @list options convtime ]------ ENABLED");
+    } else {
+       notify(player, "Enhanced convtime() formats -------------------------------------- DISABLED");
+    }
 #ifdef ENABLE_COMMAND_FLAG
     notify(player, "The COMMAND flag ------------------------------------------------- ENABLED");
 #else
@@ -7730,9 +7725,12 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_config(player);
            else if ( (stricmp(s_ptr2, "system") == 0) )
               list_options_system(player);
-           else if ( (stricmp(s_ptr2, "convtime") == 0) )
-              list_options_convtime(player);
-           else if ( (stricmp(s_ptr2, "mysql") == 0) )
+           else if ( (stricmp(s_ptr2, "convtime") == 0) ) {
+              if ( !(mudconf.enhanced_convtime) )
+                 notify(player, "Extended convtime() is not available.");
+              else
+                 list_options_convtime(player);
+           } else if ( (stricmp(s_ptr2, "mysql") == 0) )
               list_options_mysql(player);
            else if ( stricmp(s_ptr2, "boolean") == 0 ) {
               s_ptr = strtok(NULL, " ");
