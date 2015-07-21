@@ -18119,24 +18119,42 @@ FUNCTION(fun_lzone)
  */
 FUNCTION(fun_zwho)
 {
-  dbref it;
-  int gotone;
+  dbref it, thing;
+  int gotone, i_chk;
   char *tbuf;
   ZLISTNODE *ptr;
 
+  if (!fn_range_check("ZWHO", nfargs, 1, 2, buff, bufcx)) 
+     return;
+
   it = match_thing(player, fargs[0]);
+
+  i_chk = 0;
+
+  if ( (nfargs > 1) && *fargs[1] )
+     i_chk = atoi(fargs[1]);
 
   gotone = 0;
   if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
      tbuf = alloc_sbuf("fun_zwho");
      for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
-        if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
+        if ( !i_chk && Good_obj(ptr->object) && !Recover(ptr->object) &&
              isPlayer(ptr->object) ) {
            if ( gotone )
               safe_chr(' ', buff, bufcx);
            gotone = 1;
            sprintf(tbuf, "#%d", ptr->object);
            safe_str(tbuf, buff, bufcx);
+        } else if ( (i_chk != 0) && Good_chk(ptr->object) && Has_contents(ptr->object) ) {
+           DOLIST(thing, Contents(ptr->object)) {
+              if ( Good_chk(thing) && isPlayer(thing) ) {
+                 if ( gotone ) 
+                    safe_chr(' ', buff, bufcx);
+                 gotone = 1;
+                 sprintf(tbuf, "#%d", thing);
+                 safe_str(tbuf, buff, bufcx);
+              }
+           }
         }
      }
      free_sbuf(tbuf);
@@ -18158,7 +18176,7 @@ FUNCTION(fun_inzone)
 
   gotone = 0;
   if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
-     tbuf = alloc_sbuf("fun_zwho");
+     tbuf = alloc_sbuf("fun_inzone");
      for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
         if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
              isRoom(ptr->object) ) {
@@ -31098,7 +31116,7 @@ FUN flist[] =
     {"ZFUN2LDEFAULT", fun_zfun2ldefault, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"ZFUN2LOCAL", fun_zfun2local, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
-    {"ZWHO", fun_zwho, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ZWHO", fun_zwho, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {NULL, NULL, 0, 0, 0, 0}
 };
 

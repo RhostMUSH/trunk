@@ -10926,20 +10926,29 @@
   See Also: @zone, ZONES, lzone(), zwho()
   
 & ZWHO()
-  Function: zwho(<zone>)
+  Function: zwho(<zone> [,<type>])
   Returns the players in the specified zonemaster.  If the target is not
   a zonemaster, or if the object is not a valid zone, it returns an
-  empty list.  This is _not_ database intensive.
+  empty list.  This is _not_ database intensive.  This is the default 
+  <type> '0'.
+  
+  If you specify <type> '1' for the zwho(), it lists all players that reside
+  inside every single location belonging to that zone.  Also not overly
+  cost intensive.
   
   Example:
     > @set here=zonemaster
     > @zone here=#0   (a room)
+    > say lcon(#0,player)
+      You say "#1 #3 #5"
     > @zone here=#534 (a room)
     > @zone here=#987 (a player)
     > say lzone(here)
     You say "#0 #534 #987"
     > say zwho(here)
     You say "#987"
+    > say zwho(here,1)
+    You say "#1 #3 #5"
   
   See Also: @zone, ZONES, lzone(), inzone()
   
@@ -28100,6 +28109,8 @@
   * if getdate is found on the server, allow enhanced convtime [ASH]
   * enhancement to creplace() for a multi-char-position replace [ASH]
   * foreach passes the position now as '%1' [ASH]
+  * zwho() by default listed type target belonging to a zone.  Now,
+    it optionally lists players INSIDE any item in the zone [ASH]
     
   Bug Fixes
   ------------
