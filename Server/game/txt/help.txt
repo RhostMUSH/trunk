@@ -19984,10 +19984,11 @@
    
   Each character in <string> has the user-defined function of the first
   argument performed on it; the character is passed to the function as
-  %0. The results are concatenated. If <begin> and <end> are specified,
-  only the characters between <begin> and <end> are parsed, other characters
-  are concatenated as they are. This allows a rudimentary form of tokens and
-  speeds up the evaluation greatly if tokenizing is your purpose.
+  %0. The position of the argument is passed as %1.  The results are 
+  concatenated. If <begin> and <end> are specified, only the characters 
+  between <begin> and <end> are parsed, other characters are concatenated 
+  as they are. This allows a rudimentary form of tokens and speeds up 
+  the evaluation greatly if tokenizing is your purpose.
    
   Examples:
     > &add_one me=[add(%0,1)]
@@ -28098,6 +28099,7 @@
   * @halt has a /quiet switch now.
   * if getdate is found on the server, allow enhanced convtime [ASH]
   * enhancement to creplace() for a multi-char-position replace [ASH]
+  * foreach passes the position now as '%1' [ASH]
     
   Bug Fixes
   ------------

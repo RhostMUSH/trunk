@@ -7305,10 +7305,10 @@ FUNCTION(fun_remflags)
 FUNCTION(fun_foreach)
 {
     dbref aowner, thing;
-    int aflags, anum, tval, flag = 0;
+    int i_cntr, aflags, anum, tval, flag = 0;
     ATTR *ap;
-    char *atext, *atextbuf, *str, *cp, *bp, *result;
-    char cbuf[2], prev = '\0';
+    char *atext, *atextbuf, *str, *cp, *bp[2], *result;
+    char cbuf[2], cbuf2[12], prev = '\0';
 
     if (!fn_range_check("FOREACH", nfargs, 2, 4, buff, bufcx)) {
         return;
@@ -7337,14 +7337,17 @@ FUNCTION(fun_foreach)
     atextbuf = alloc_lbuf("fun_foreach");
     cp = trim_space_sep(strip_all_special(fargs[1]), ' ');
 
-    bp = cbuf;
-
+    memset(cbuf2, '\0', sizeof(cbuf2));
+    bp[0] = cbuf;
+    bp[1] = cbuf2;
     cbuf[1] = '\0';
+    i_cntr = 0;
 
     if (nfargs >= 3) {
         while (cp && *cp) {
             cbuf[0] = *cp++;
-
+            sprintf(cbuf2, "%d", i_cntr);
+            i_cntr++;
             if (flag) {
                 if ( (nfargs >= 4) && (cbuf[0] == *fargs[3]) && (prev != '\\') && (prev != '%')) {
                     flag = 0;
@@ -7368,7 +7371,7 @@ FUNCTION(fun_foreach)
                   result = alloc_lbuf("edefault_buff");
                   sprintf(result ,"#-1 PERMISSION DENIED");
                } else {
-                  result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+                  result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, bp, 2);
                }
             } else {
                tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
@@ -7376,7 +7379,7 @@ FUNCTION(fun_foreach)
                   result = alloc_lbuf("edefault_buff");
                   sprintf(result ,"#-1 PERMISSION DENIED");
                } else {
-                  result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+                  result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, bp, 2);
                }
             }
             safer_unufun(tval);
@@ -7387,7 +7390,8 @@ FUNCTION(fun_foreach)
     } else {
         while (cp && *cp) {
             cbuf[0] = *cp++;
-
+            sprintf(cbuf2, "%d", i_cntr);
+            i_cntr++;
             strcpy(atextbuf, atext);
             str = atextbuf;
             if ( (mudconf.secure_functions & 1) ) {
@@ -7396,7 +7400,7 @@ FUNCTION(fun_foreach)
                   result = alloc_lbuf("edefault_buff");
                   sprintf(result ,"#-1 PERMISSION DENIED");
                } else {
-                  result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+                  result = exec(thing, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, bp, 2);
                }
             } else {
                tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
@@ -7404,7 +7408,7 @@ FUNCTION(fun_foreach)
                   result = alloc_lbuf("edefault_buff");
                   sprintf(result ,"#-1 PERMISSION DENIED");
                } else {
-                  result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, &bp, 1);
+                  result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, bp, 2);
                }
             }
             safer_unufun(tval);
