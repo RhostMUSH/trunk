@@ -28111,6 +28111,7 @@
   * foreach passes the position now as '%1' [ASH]
   * zwho() by default listed type target belonging to a zone.  Now,
     it optionally lists players INSIDE any item in the zone [ASH]
+  * mysql has been enhanced and security improved [ASH]
     
   Bug Fixes
   ------------

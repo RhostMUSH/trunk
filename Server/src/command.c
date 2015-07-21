@@ -5493,7 +5493,7 @@ list_options_mysql(dbref player)
    sprintf(tbuf, "Host: %s\r\nUser: %s\r\nPassword: %s\r\nDatabase: %s\r\nSocket: %s\r\nPort: %d", 
                   mudconf.mysql_host,
                   mudconf.mysql_user,
-                  mudconf.mysql_pass,
+                  (Immortal(player) ? mudconf.mysql_pass : (char *)"****"),
                   mudconf.mysql_base,
                   mudconf.mysql_socket,
                   mudconf.mysql_port);
@@ -7729,9 +7729,12 @@ do_list(dbref player, dbref cause, int extra, char *arg)
                  notify(player, "Extended convtime() is not available.");
               else
                  list_options_convtime(player);
-           } else if ( (stricmp(s_ptr2, "mysql") == 0) )
-              list_options_mysql(player);
-           else if ( stricmp(s_ptr2, "boolean") == 0 ) {
+           } else if ( stricmp(s_ptr2, "mysql") == 0 ) {
+              if ( Wizard(player) )
+                 list_options_mysql(player);
+              else
+                 notify(player, "MySQL has been enabled.");
+           } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
               s_ptr = strtok(NULL, " ");
               if ( s_ptr )
                  p_val = atoi(s_ptr);
