@@ -12810,8 +12810,9 @@
   
   See Also: iter(), citer(), nsiter(), list()
   
-& creplace()
+& CREPLACE()
   Function: creplace(<string>, <position>, <string2>[, <type>][,<range>])
+            creplace(<string>, <position list>, <character>)
   
   The creplace function will replace characters starting at position
   <position> and based on the type, will continue to overwrite till
@@ -12819,6 +12820,10 @@
   
   If you specify the range, it will give the number of characters to enact
   upon.  Default is length of string2.
+  
+  The second option only allows three arguments, and will replace the 
+  character positions specfied in the space delimited <position list>
+  with the character specified with <character>.
   
   Valid types are: 
         o - overwrite : starting at position it'll continue to overwrite
@@ -12829,14 +12834,18 @@
             into the string.
   
   Examples:
-    > creplace(this is a test,4,whee)
+    > say creplace(this is a test,4,whee)
     You say "thiwhee a test"
-    > creplace(this is a test,4,wheewheewhoowha!)
+    > say creplace(this is a test,4,wheewheewhoowha!)
     You say "thiwheewheewhoowha!"
-    > creplace(this is a test,4,wheewheewhoowha!,c)
+    > say creplace(this is a test,4,wheewheewhoowha!,c)
     You say "thiwheewheewho" 
-    > creplace(this is a test,4,wheewheewhoowha!,i)
+    > say creplace(this is a test,4,wheewheewhoowha!,i)
     You say "thiwheewheewhoowha!s is a test"
+  
+  Option 2 Example:
+    > say creplace(this is a test,1 3 4,X)
+    You say "XhXX is a test"
   
   See Also: replace(), lreplace()
   
@@ -28088,6 +28097,7 @@
   * the build script more cleanly does dynamic building of Makefile [ASH]
   * @halt has a /quiet switch now.
   * if getdate is found on the server, allow enhanced convtime [ASH]
+  * enhancement to creplace() for a multi-char-position replace [ASH]
     
   Bug Fixes
   ------------

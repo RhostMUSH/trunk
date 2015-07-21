@@ -20584,7 +20584,8 @@ FUNCTION(fun_caplist)
 FUNCTION(fun_creplace)
 {
    char *curr, *cp, sep, *sop, *sp, *curr_temp, *sop_temp;
-   int  i_val, i_cntr, exit_val, i_range, i_rangecnt;
+   int  i_val, i_cntr, exit_val, i_range, i_rangecnt, i_array[LBUF_SIZE];
+   char *s_strtok, *s_strtokr;
 
    if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
        return;
@@ -20610,6 +20611,45 @@ FUNCTION(fun_creplace)
    safe_str(strip_ansi(curr_temp),curr,&cp);
    free_lbuf(curr_temp);
    cp = curr;
+   if ( (strchr(fargs[1], ' ') != 0) || (strchr(fargs[1], '\t') != 0) ) {
+      if ( nfargs > 3) {
+         safe_str("#-1 MULTI-REPLACE OPTION REQUIRES 3 ARGS ONLY.", buff, bufcx);
+         free_lbuf(sop_temp);
+         free_lbuf(curr);
+         return;
+      }
+      sop = exec(player, cause, caller,
+                 EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
+      if ( !*sop || !*sop_temp ) {
+         safe_str(curr, buff, bufcx);
+         free_lbuf(sop_temp);
+         free_lbuf(sop);
+         free_lbuf(curr);
+         return;
+      }
+      memset(i_array, 0, sizeof(i_array));
+      s_strtok = strtok_r(sop, " \t", &s_strtokr);
+      while ( s_strtok ) {
+         i_range = atoi(s_strtok) - 1;
+         if ( (i_range >= 0) && (i_range < LBUF_SIZE) ) {
+            i_array[i_range]=1;
+         }
+         s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+      }
+      free_lbuf(sop);
+      i_cntr = 0;
+      while ( *cp ) {
+         if ( i_array[i_cntr] == 1 )
+            *cp = *sop_temp;
+         cp++;
+         i_cntr++;
+      }
+      free_lbuf(sop_temp);
+      safe_str(curr, buff, bufcx);
+      free_lbuf(curr);
+      return;
+   }
+
    sop = alloc_lbuf("fun_creplace");
    sp = sop;
    safe_str(strip_ansi(sop_temp),sop,&sp);
