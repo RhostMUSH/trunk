@@ -2,6 +2,8 @@
 
 #include "copyright.h"
 
+#define MYSQL_VER "Version 1.1 Beta"
+
 #ifndef _M__EXTERNS__H
 #define	_M__EXTERNS__H
 
@@ -672,6 +674,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define HALT_PID	2
 #define HALT_PIDSTOP	4	/* stop pid processing */
 #define HALT_PIDCONT	8	/* restore pid processing */
+#define HALT_QUIET	16	/* Quiet mode on halting */
 #define HIDE_ON         1       /* Hide from WHO */
 #define HIDE_OFF        2       /* Unhide from WHO */
 #define	HELP_HELP	1	/* get data from help file */
@@ -936,6 +939,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	STAT_PLAYER	0	/* Display stats for one player or tot objs */
 #define	STAT_ALL	1	/* Display global stats */
 #define	STAT_ME		2	/* Display stats for me */
+#define SELFBOOT_LIST   1	/* List all ports you have for selfboot */
+#define SELFBOOT_PORT	2	/* boot the specified port for your self */
 #define	SWITCH_DEFAULT	0	/* Use the configured default for switch */
 #define	SWITCH_ANY	1	/* Execute all cases that match */
 #define	SWITCH_ONE	2	/* Execute only first case that matches */

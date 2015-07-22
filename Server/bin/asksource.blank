@@ -1226,6 +1226,7 @@ setdefaults() {
   then
      DEFS="-DNEED_SCANDIR ${DEFS}"
   fi
+
   if [ "$(uname -a|grep -ci aix)" -ne 0 ]
   then
      echo "Patching for AIX..."

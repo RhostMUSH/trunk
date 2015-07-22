@@ -11,6 +11,21 @@ then
    exit 1
 fi
 ###################################################################
+# check for mysql goodness
+###################################################################
+MYSQL_VER=$(mysql_config --version 2>/dev/null)
+if [ -z "${MYSQL_VER}" ]
+then
+   MYSQL_VER=0
+fi
+# load in mysql goodness
+mysql_host=$(grep ^mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_user=$(grep ^mysql_user ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_pass=$(grep ^mysql_pass ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_dbname=$(grep ^mysql_base ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_socket=$(grep ^mysql_socket ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+mysql_port=$(grep ^mysql_port ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
+###################################################################
 # Fix for save
 ###################################################################
 if [ -f asksource.save ]
@@ -66,6 +81,8 @@ LOPTIONS="1 2 3 4 5"
 C_LOPTIONS=$(echo $LOPTIONS|wc -w)
 AOPTIONS="1 2 3"
 C_AOPTIONS=$(echo $AOPTIONS|wc -w)
+DBOPTIONS="1 2"
+C_DBOPTIONS=$(echo $DBOPTIONS|wc -w)
 REPEAT=1
 for i in ${OPTIONS}
 do
@@ -108,6 +125,10 @@ do
    XA[${i}]=" "
 done
    XA[2]="X"
+for i in ${DBOPTIONS}
+do
+   MS[${i}]=" "
+done
 # Load default options
 if [ -f ./asksource.default ]
 then
@@ -139,7 +160,16 @@ DEF[23]=""
 DEF[24]=""
 DEF[25]="-DPCRE_BUILTIN"
 DEF[26]="-DCRYPT_GLIB2"
-DEFB[1]="\$(MYSQL_DEFS)"
+
+if [ "${MYSQL_VER}" != "0" ]
+then
+   DEFDB[1]="\$(MYSQL_VERSION)"
+else
+   DEFDB[1]=""
+fi
+DEFDB[2]=""
+
+DEFB[1]=""
 DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
 DEFB[4]="-DSQLITE"
@@ -160,6 +190,103 @@ DEFA[3]="-DM_SUB"
 ###################################################################
 # MENU - Main Menu for RhostMUSH Configuration Utility
 ###################################################################
+mysql_set_args() {
+looper=1
+while [ ${looper} -eq 1 ]
+do
+clear
+   echo "------------------------------------------------------------------------------"
+   echo "1.  MySQL HostName: ${mysql_host}"
+   echo "2.  MySQL UserName: ${mysql_user}"
+   echo "3.  MySQL Password: ${mysql_pass}"
+   echo "4.  MySQL Database: ${mysql_dbname}"
+   echo "5.  MySQL Socket  : ${mysql_socket}"
+   echo "6.  MySQL Port    : ${mysql_port}"
+   echo "------------------------------------------------------------------------------"
+   echo "[Q]   Go Back to Previous Menu"
+   echo "------------------------------------------------------------------------------"
+   echo ""
+   echo "Select response: "|tr -d '\012'
+   read ANS
+   case ${ANS} in
+      q|Q) looper=0
+           ANS=""
+           break
+           ;;
+      1) echo "[${mysql_host}]: "|tr -d '\012'
+         sqlval=mysql_host
+         ;;
+      2) echo "[${mysql_user}]: "|tr -d '\012'
+         sqlval=mysql_user
+         ;;
+      3) echo "[${mysql_pass}]: "|tr -d '\012'
+         sqlval=mysql_pass
+         ;;
+      4) echo "[${mysql_dbname}]: "|tr -d '\012'
+         sqlval=mysql_dbname
+         ;;
+      5) echo "[${mysql_socket}]: "|tr -d '\012'
+         sqlval=mysql_socket
+         ;;
+      6) echo "[${mysql_port}]: "|tr -d '\012'
+         sqlval=mysql_port
+         ;;
+      *) echo "Invalid argument"
+         echo "<ENTER RETURN TO CONTINUE>"
+         read ANS
+         continue
+         ;;
+   esac
+   read SQLANS
+   if [ -n "${SQLANS}" ]
+   then
+      eval ${sqlval}=\${SQLANS}
+   fi
+done
+echo "Creating new file."
+read ANS
+cat ../bin/mysql.blank > ../game/rhost_mysql.conf 2>/dev/null
+echo "# Generated from make config" >> ../game/rhost_mysql.conf
+echo "mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
+echo "mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
+echo "mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
+echo "mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
+echo "mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
+echo "mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
+}
+
+mysqlmenu() {
+if [ "${MYSQL_VER}" = "0" ]
+then
+   echo "MySQL client is not installed on this server.  Can not install module."
+   echo "<ENTER RETURN TO CONTINUE>"
+   read ANS
+   return 200
+fi
+clear
+echo "               RhostMUSH MySQL / MariaDB Configuration Utility"
+echo " NOTE:  This will only manually configure the 'game' directory.  Custom"
+echo "        directories will have to be manually modified through rhost_mysql.conf"
+echo "------------------------------------------------------------------------------"
+echo "[${MS[1]}]  1. Toggle MySQL On/Off"
+echo "[#]  2. Change MySQL Data"
+echo "------------------------------------------------------------------------------"
+echo "MySQL HostName: ${mysql_host}"
+echo "MySQL UserName: ${mysql_user}"
+echo "MySQL Password: ${mysql_pass}"
+echo "MySQL Database: ${mysql_dbname}"
+echo "MySQL Socket  : ${mysql_socket}"
+echo "MySQL Port    : ${mysql_port}"
+echo "------------------------------------------------------------------------------"
+echo "[Q]   Go Back to Previous Menu"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "Keys: [h]elp [i]nfo"
+echo "      Or, you may select a number to toggle"
+echo ""
+echo "Please Enter selection: "|tr -d '\012'
+}
+
 ansimenu() {
 clear
 echo "             RhostMUSH ANSI / LAST COMMAND Configuration Utility"
@@ -231,7 +358,7 @@ echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[2
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
 echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords"
 echo "--------------------------- Beta/Unsupported Additions -----------------------"
-echo "[${XB[1]}] B1. 3rd Party MySQL    [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
+echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
 echo "------------------------------------------------------------------------------"
 echo ""
@@ -564,6 +691,19 @@ parse() {
          fi
       fi
    fi
+   if [ $BETAOPT -eq 4 ]
+   then
+      if [ "$ARG" != "q" -a "$ARG" != "h" ]
+      then
+         if [ -z "$ARGNUM" ]
+         then
+            ARG="NULL"
+         elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 2 ]
+         then
+            ARG="NULL"
+         fi
+      fi
+   fi
    case ${ARG} in
       x) xtraopts
          echo "< HIT RETURN KEY TO CONTINUE >"
@@ -631,6 +771,9 @@ parse() {
             elif [ $TST -eq 6 ]
             then
                BETAOPT=2
+            elif [ $TST -eq 1 ]
+            then
+               BETAOPT=4
             else
                if [ "${XB[${TST}]}" = "X" ]
                then
@@ -692,6 +835,18 @@ parse() {
             if [ "${XA[1]}" != "X" -a "${XA[2]}" != "X" -a "${XA[3]}" != "X" ]
             then
                XA[2]="X"
+            fi
+         elif [ ${BETAOPT} -eq 4 -a "$TST" -gt 0 -a "$TST" -le ${C_DBOPTIONS} ]
+         then
+            if [ "${MS[$1]}" = "X" ]
+            then
+               MS[$1]=" "
+            else
+               MS[$1]="X"
+            fi
+            if [ "$TST" -eq 2 ]
+            then
+               mysql_set_args
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  
@@ -1086,6 +1241,10 @@ loadopts() {
       echo "ERROR: No previous config options found to load."
    fi
    DUMPFILE=""
+   if [ "${MS[1]}" = "X" ]
+   then
+      echo "1" > ../src/usesql.toggle
+   fi
 }
 
 ###################################################################
@@ -1157,6 +1316,10 @@ saveopts() {
       do
          echo "XA[$i]=\"${XA[$i]}\"" >> ${DUMPFILE}
       done
+      for i in ${DBOPTIONS}
+      do
+         echo "MS[$i]=\"${MS[$i]}\"" >> ${DUMPFILE}
+      done
       if [ -f "${DUMPFILE}.mark" ]
       then
          MARKER=$(cat ${DUMPFILE}.mark)
@@ -1204,6 +1367,13 @@ setopts() {
       if [ "${XA[$i]}" = "X" ]
       then
          DEFS="${DEFA[$i]} ${DEFS}"
+      fi
+   done
+   for i in ${DBOPTIONS}
+   do
+      if [ "${MS[$i]}" = "X" ]
+      then
+         DEFS="${DEFDB[$i]} ${DEFS}"
       fi
    done
 }
@@ -1293,6 +1463,16 @@ setdefaults() {
         MORELIBS="-lsqlite3 ${MORELIBS}"
      fi
   fi
+  if [ "${MS[1]}" = "X" ]
+  then
+     if [ "${MYSQL_VER}" = "0" ]
+     then
+        MS[1]=" "
+        echo "MySQL was not found.  Stripping it..."
+     else
+        MORELIBS="\$(MYSQL_LIB) ${MORELIBS}"
+     fi
+  fi
   BOB1=$(uname -r|cut -f1 -d".")
   BOB2=$(uname -s)
   if [ -d /usr/ucbinclude -a "${BOB2}" = "SunOS" ]
@@ -1324,7 +1504,12 @@ setdefaults() {
         DEFS="${DEFS} -DHAS_OPENSSL"
      fi
   fi
-  DEFS="DEFS = ${DEFS}"
+  if [ "${MS[1]}" == "X" ]
+  then
+     echo "MySQL identified.  Configuring..."
+     DEFS="${DEFS} \$(MYSQL_INCLUDE)"
+  fi
+  DEFS="CUSTDEFS = ${DEFS}"
 }
 
 ###################################################################
@@ -1494,93 +1679,68 @@ setlibs() {
       echo "Compiling with system pcre library..."
       MORELIBS="${MORELIBS} -lpcre"
    fi
-   MORELIBS="MORELIBS = ${MORELIBS}"
+   MORELIBS="CUSTMORELIBS = ${MORELIBS}"
 }
 
 ###################################################################
 # UPDATEMAKEFILE - Update the makefile with the changes
 ###################################################################
 updatemakefile() {
-   echo "Updating the DEFS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^DEF ../src/Makefile|sed "s/\//\\\\\//g")/${DEFS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
-
-#  Let's do the door additions here
+   echo "Generating custom DEFS section for the Makefile now.  Please wait..."
+   echo "# Custom Definitions" > ../src/custom.defs
+   echo "${DEFS}" >> ../src/custom.defs
+   echo "Generating the custom LIBS section of the Makefile now.  Please wait..."
+   echo "# Custom Libraries" >> ../src/custom.defs
+   echo "${MORELIBS}" >> ../src/custom.defs
    if [ "${XB[2]}" = "X" ]
    then
-      cat ../src/Makefile|sed "s/^#DR_DEF/DR_DEF/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
+      echo "Generating @door section for the Makefile now.  Please wait..."
+      echo "# Main @door engine" >> ../src/custom.defs
+      echo "DR_DEF = -DENABLE_DOORS -DEXAMPLE_DOOR_CODE" >> ../src/custom.defs
       if [ "${XD[1]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMUSH/DRMUSH/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMUSH/#DRMUSH/g" > /tmp/$$CONF$$
+         echo "# Mush @door" >> ../src/custom.defs
+         echo "DRMUSHSRC = door_mush.c" >> ../src/custom.defs
+         echo "DRMUSHOBJ = door_mush.o" >> ../src/custom.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[2]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DREMPIRE/DREMPIRE/g"|sed "s/^#DR_HDR/DR_HDR/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DR_HDR/#DR_HDR/g" > /tmp/$$CONF$$
+         echo "# Empire @door" >> ../src/custom.defs
+         echo "DREMPIRESRC = empire.c" >> ../src/custom.defs
+         echo "DREMPIREOBJ = empire.o" >> ../src/custom.defs
+         echo "DREMPIREHDR = empire.h" >> ../src/custom.defs
+         echo "DR_HDR = \$(DREMPIREHDR)" >> ../src/custom.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
       if [ "${XD[3]}" = "X" ]
       then
-         cat ../src/Makefile|sed "s/^#DRMAIL/DRMAIL/g" > /tmp/$$CONF$$
-      else
-         cat ../src/Makefile|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
+         echo "# POP mail @door" >> ../src/custom.defs
+         echo "DRMAILSRC = door_mail.c" >> ../src/custom.defs
+         echo "DRMAILOBJ = door_mail.o" >> ../src/custom.defs
       fi
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
-   else
-      cat ../src/Makefile|sed "s/^DR_DEF/#DR_DEF/g"|sed "s/^DRMUSH/#DRMUSH/g"| \
-         sed "s/^DREMPIRE/#DREMPIRE/g"|sed "s/^DRMAIL/#DRMAIL/g" > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-      rm -f /tmp/$$CONF$$ 2>/dev/null
    fi
+   echo "Generating DB link library for the Makefile now.  Please wait..."
+   echo "# DB used for Mush Engine" >> ../src/custom.defs
    if [ "${XB[5]}" = "X" ]
    then
-      echo "Compiling to QDBM database."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./qdbm/ -lqdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=qdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
+      echo "COMP=qdbm" > ../src/do_compile.var
    else
-      echo "Compiling to GDBM database (default)."
-      sed "s~^$(grep "^LIBS " ../src/Makefile)~LIBS = -L./gdbm-1.8.3/.libs/ -lgdbm_compat -L./gdbm-1.8.3/ -lgdbm~g" ../src/Makefile > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/Makefile
-      rm -f /tmp/$$CONF$$
-      sed "s~^$(grep "^COMP=" ../src/do_compile.sh)~COMP=gdbm~g" ../src/do_compile.sh > /tmp/$$CONF$$
-      mv -f /tmp/$$CONF$$ ../src/do_compile.sh
-      chmod 755 ../src/do_compile.sh
-      rm -f /tmp/$$CONF$$
+      echo "CUSTLIBS = -L../src/gdbm-1.8.3/.libs/ -lgdbm_compat -L../src/gdbm-1.8.3/ -lgdbm" >> ../src/custom.defs
+      echo "COMP=gdbm" > ../src/do_compile.var
    fi
-   # add CFLAGS for low memory
+   chmod 755 ../src/do_compile.var
    if [ "${X[23]}" = "X" ]
    then
-      echo "Adding CFLAG option for low memory compile..."
-      cat ../src/Makefile|sed "s/^#CFLAG/CFLAG/g" > /tmp/$$CONF$$
-   else
-      cat ../src/Makefile|sed "s/^CFLAG/#CFLAG/g" > /tmp/$$CONF$$
+      echo "Generating Makefile for low-memory compiling.  Please wait..."
+      echo "# This is needed if server hosting us has extreme low memory and no swap" >> ../src/custom.defs
+      echo "CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192" >> ../src/custom.defs
    fi
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
-   echo "...completed."
-   echo "Updating the MORELIBS section of the Makefile now.  Please wait..."
-   cat ../src/Makefile|sed "s/$(grep ^MORELIBS ../src/Makefile| \
-       sed "s/\//\\\\\//g")/${MORELIBS}/g" > /tmp/$$CONF$$
-   mv -f ../src/Makefile ../src/Makefile.${DATE} 2>/dev/null
-   mv -f /tmp/$$CONF$$ ../src/Makefile 2>/dev/null
-   rm -f /tmp/$$CONF$$ 2>/dev/null
-   echo "...completed."
+   if [ "${MS[1]}" = "X" ]
+   then
+      echo "# MySQL compatibility engine" >> ../src/custom.defs
+      echo "Generating Makefile for MySQL generation.  Please wait..."
+      echo "USEMYSQL = 1" >> ../src/custom.defs
+   fi
 }
 
 ###################################################################
@@ -1628,6 +1788,22 @@ main() {
              ansimenu
              read ANS
              parse $ANS
+          done
+          BETAOPT=0
+      fi
+      if [ ${BETAOPT} -eq 4 ]
+      then
+          BETACONTINUE=4
+          while [ $BETACONTINUE -eq 4 ]
+          do
+             mysqlmenu
+             if [ $? -ne 200 ]
+             then
+                read ANS
+                parse $ANS
+             else
+                BETACONTINUE=0
+             fi
           done
           BETAOPT=0
       fi

@@ -287,6 +287,7 @@ NDECL(cf_init)
     mudconf.ansi_default = 0;		/* Allow ansi aware functions ansi default */
     mudconf.accent_extend = 0;		/* Can we extend accents from 251-255? */
     mudconf.admin_object = -1;		/* The admin object to define */
+    mudconf.enhanced_convtime = 0;	/* Enhanced convtime formatting */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -294,6 +295,14 @@ NDECL(cf_init)
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
+#ifdef MYSQL_VERSION
+    strcpy(mudconf.mysql_host, (char *)"localhost");
+    strcpy(mudconf.mysql_user, (char *)"dbuser");
+    strcpy(mudconf.mysql_pass, (char *)"dbpass");
+    strcpy(mudconf.mysql_base, (char *)"databasename");
+    strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
+    mudconf.mysql_port=3306;
+#endif
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
     mudstate.insideicmds = 0;		/* inside @icmd eval check */
     mudstate.dumpstatechk = 0;		/* State of the dump state */
@@ -3365,6 +3374,27 @@ CONF conftable[] =
     {(char *) "manlog_file",
      cf_string, CA_DISABLED, (int *) mudconf.manlog_file, 32, 0, CA_WIZARD,
      (char *) "Define file used with @log command."},
+#ifdef MYSQL_VERSION
+    {(char *) "mysql_host",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mysql_host, 126, 0, CA_WIZARD,
+     (char *) "MySQL Hostname to connect to."},
+    {(char *) "mysql_user",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mysql_user, 126, 0, CA_WIZARD,
+     (char *) "MySQL user of database to connect to."},
+    {(char *) "mysql_pass",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mysql_pass, 126, 0, CA_WIZARD,
+     (char *) "MySQL password of user of database to connect to."},
+    {(char *) "mysql_base",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mysql_base, 126, 0, CA_WIZARD,
+     (char *) "MySQL database name to connect to."},
+    {(char *) "mysql_socket",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mysql_socket, 126, 0, CA_WIZARD,
+     (char *) "MySQL database socket lock file."},
+    {(char *) "mysql_port",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.mysql_port, 0, 0, CA_WIZARD,
+     (char *) "MySQL database port to connect to.\r\n"\
+              "                             Default: 3306 Value: %d"},
+#endif
     {(char *) "cpuintervalchk",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.cpuintervalchk, 0, 0, CA_WIZARD,
      (char *) "Define percentage before cpu-enforcement.\r\n"\
@@ -3513,6 +3543,9 @@ CONF conftable[] =
     {(char *) "enforce_unfindable",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enforce_unfindable, 0, 0, CA_PUBLIC,
      (char *) "Is UNFINDABLE/DARK enforced for locations?"},
+    {(char *) "enhanced_convtime",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enhanced_convtime, 0, 0, CA_PUBLIC,
+     (char *) "Does convtime() handle extra formats?"},
     {(char *) "error_file",
      cf_string, CA_DISABLED, (int *) mudconf.error_file, 32, 0, CA_WIZARD,
      (char *) "File used for huh? messages."},

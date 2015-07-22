@@ -150,7 +150,6 @@ static int addDoor(const char *doorName,
 		   doorInput_t  pFnRead,
 		   int bitLvl, int loc) {
   int door, deAlloc = 0;
-  void *v_toss;
   DPUSH; /* 3 */
   door = findDoor(doorName);
   if (door > 0) {
@@ -163,7 +162,7 @@ static int addDoor(const char *doorName,
 
   if (gnDoors == (maxDoors - 1)) {
     // grow array
-    v_toss = realloc(gaDoors, sizeof(door_t) * (maxDoors + 5));
+    gaDoors = realloc(gaDoors, sizeof(door_t) * (maxDoors + 5));
     if (gaDoors == NULL) {
       LOGTEXT("ERR", -1, "Could not allocate memory for resizing door array.");
       RETURN(-1); /* 3 */      

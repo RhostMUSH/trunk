@@ -23,6 +23,10 @@ old_setq had an issue with '!' parameter not reusing registers.
 				- Thanks Ixokai
 missing test case for scandir() function fixed.
 				- Thanks Maighdlin
+suggestion to make textfile() more useful in functions.
+				- Thanks qa'toq
+alteration of new Makefile build procedure rebuilt based on Ternary@Dark Metal's suggestions.
+				- Thanks Ternary/Ol'Sarge
 
 
 		         RhostMUSH 3.9.4 Update File

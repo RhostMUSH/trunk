@@ -154,7 +154,7 @@ CMD_ONE_ARG(do_say);			/* Messages to all */
 CMD_NO_ARG(do_score);			/* Display my wealth */
 CMD_ONE_ARG(do_search);			/* Search for objs matching criteria */
 CMD_ONE_ARG(do_search_for_players);
-CMD_NO_ARG(do_selfboot);
+CMD_ONE_ARG(do_selfboot);
 CMD_TWO_ARG(do_set);			/* Set flags or attributes */
 CMD_TWO_ARG(do_toggle);			/* Set flags or attributes */
 CMD_NO_ARG(do_tor);			/* TOR cache manipulation */

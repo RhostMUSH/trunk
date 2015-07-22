@@ -601,7 +601,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
-    int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype;
+    int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0;
     int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
     FWDLIST *fp;
     ATTR *ap_log, *ap_attrpipe;
@@ -967,11 +967,15 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                   i_targetlist = 0;
                   while ( s_aptextptr ) {
                      passtarget = match_thing_quiet(target, s_aptextptr);
+                     i_brokenotify = 0;
                      for (i = 0; i < LBUF_SIZE; i++) {
-                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
+                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) ) {
+                           if ( targetlist[i] == -2000000 )
+                              i_brokenotify = 1;
                            break;
+                        }
                      }
-                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != target) && !((passtarget == Owner(target)) && Puppet(target)) ) {
+                     if ( i_brokenotify && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != target) && !((passtarget == Owner(target)) && Puppet(target)) ) {
                         if ( !No_Ansi_Ex(passtarget) )
                            sprintf(tbuff, "%sBounce [#%d]>%s %.3950s", ANSI_HILITE, target, ANSI_NORMAL, msg);
                         else

@@ -2,4 +2,4 @@
 RhostMUSH		- The main RhostMUSH support site
 
 & rhostmush
-rhostmush.org 4201
+iweb.localecho.net 4201

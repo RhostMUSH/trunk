@@ -13,6 +13,7 @@
 #include "help.h"
 #include "htab.h"
 #include "alloc.h"
+#include "rhost_ansi.h"
 
 int
 pstricmp(char *buf1, char *buf2, int len)
@@ -48,13 +49,14 @@ struct help_entry {
     char original;		/* 1 for the longest name for a topic.
 				   0 for abbreviations */
     char *key;			/* The key this is stored under. */
+    char *keyorig;		/* The uncut original key */
 };
 
 int 
 helpindex_read(HASHTAB * htab, char *filename)
 {
     help_indx entry;
-    char *p, fullFilename[129 + 32];
+    char *p, fullFilename[129 + 32], *korig;
     int count;
     FILE *fp;
     struct help_entry *htab_entry;
@@ -63,6 +65,7 @@ helpindex_read(HASHTAB * htab, char *filename)
 	htab_entry;
 	htab_entry = (struct help_entry *) hash_nextentry(htab)) {
 	free(htab_entry->key);
+	free(htab_entry->keyorig);
 	free(htab_entry);
     }
 
@@ -91,13 +94,18 @@ helpindex_read(HASHTAB * htab, char *filename)
 	htab_entry->pos = entry.pos;
 	htab_entry->original = 1;	/* First is the longest */
 	htab_entry->key = (char *) malloc(strlen(entry.topic) + 1);
+	htab_entry->keyorig = (char *) malloc(strlen(entry.topic) + 1);
 	strcpy(htab_entry->key, entry.topic);
+	strcpy(htab_entry->keyorig, entry.topic);
+        korig = (char *) malloc(strlen(entry.topic) + 1);
+	strcpy(korig, entry.topic);
 	while (p > entry.topic) {
 	  p--;
 	  if (!isspace((int)*p) && (hashadd2(entry.topic, (int *) htab_entry, htab, htab_entry->original) == 0)) 
 	    count++;
 	  else {
 	    free(htab_entry->key);
+	    free(htab_entry->keyorig);
 	    free(htab_entry);
 	  }
 	  *p = '\0';
@@ -106,10 +114,14 @@ helpindex_read(HASHTAB * htab, char *filename)
 	  htab_entry->pos = entry.pos;
 	  htab_entry->original = 0;
 	  htab_entry->key = (char *) malloc(strlen(entry.topic) + 1);
+	  htab_entry->keyorig = (char *) malloc(strlen(korig) + 1);
 	  strcpy(htab_entry->key, entry.topic);
+	  strcpy(htab_entry->keyorig, korig);
 	}
 	free(htab_entry->key);
+	free(htab_entry->keyorig);
 	free(htab_entry);
+        free(korig);
     }
     tf_fclose(fp);
     hashreset(htab);
@@ -166,7 +178,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
     int offset;
     struct help_entry *htab_entry;
     char matched;
-    char *topic_list, *buffp;
+    char *topic_list, *buffp, *mybuff, *myp;
     char realFilename[129 + 32];
 
     if (*topic == '\0')
@@ -216,7 +228,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                 break;
              for (p = line; *p != '\0'; p++) {
                 *p = ToLower((int)*p);
-                if (*p == '\n')
+                if ( (*p == '\n') || (*p == '\r') )
                    *p = '\0';
              }
              if ( quick_wild( topic, line ) ) {
@@ -294,6 +306,22 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 	    tf_fclose(fp);
 	return;
     }
+    myp = mybuff = alloc_lbuf("ANSI_HELP");
+#ifdef ZENTY_ANSI
+    safe_str(SAFE_ANSI_HILITE, mybuff, &myp);
+    for ( p = htab_entry->keyorig; *p; p++ ) {
+       safe_chr(ToUpper(*p), mybuff, &myp);
+    }
+    safe_str(SAFE_ANSI_NORMAL, mybuff, &myp);
+#else
+    safe_str(ANSI_HILITE, mybuff, &myp);
+    for ( p = htab_entry->keyorig; *p; p++ ) {
+       safe_chr(ToUpper(*p), mybuff, &myp);
+    }
+    safe_str(ANSI_NORMAL, mybuff, &myp);
+#endif
+    notify(player, mybuff);
+    free_lbuf(mybuff);
     line = alloc_lbuf("help_write");
     for (;;) {
 	if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
@@ -301,7 +329,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 	if (line[0] == '&')
 	    break;
 	for (p = line; *p != '\0'; p++)
-	    if (*p == '\n')
+	    if ( (*p == '\n') || (*p == '\r') )
 		*p = '\0';
 	noansi_notify(player, line);
     }
@@ -315,13 +343,13 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 
 int
 parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2, 
-              char *t_buff, char *t_bufptr, int t_val)
+              char *t_buff, char *t_bufptr, int t_val, int i_type, char *sep)
 {
    help_indx entry;
    char *tmp, *p_tmp, *p, *q, *line, *msg, *p_msg, *result, *tpass;
    int first, found, matched, one_through, space_compress;
    FILE *fp_indx, *fp_help;
-   char filename[129 + 40];
+   char filename[129 + 40], *mybuff, *myp;
 
    fp_help = NULL;
    memset(filename, 0, sizeof(filename));
@@ -388,12 +416,17 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                break;
             for (p = line; *p != '\0'; p++) {
                *p = ToLower((int)*p);
-               if (*p == '\n')
+               if ( (*p == '\n') || (*p == '\r') )
                    *p = '\0'; 
             }
             if ( quick_wild(msg, line) ) { 
-               if ( first )
-                  safe_str("  ", tmp, &p_tmp);
+               if ( first ) {
+                  if ( i_type ) {
+                     safe_str(sep, tmp, &p_tmp);
+                  } else {
+                     safe_str("  ", tmp, &p_tmp);
+                  }
+               }
                safe_str(entry.topic, tmp, &p_tmp);
                first = 1;
                break;
@@ -402,17 +435,21 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
       if ( t_val ) {
          if ( first ) {
-            safe_str(unsafe_tprintf("Here are the entries which match content '%s':\n", msg), t_buff, &t_bufptr);
+            if ( !i_type )
+               safe_str(unsafe_tprintf("Here are the entries which match content '%s':\r\n", msg), t_buff, &t_bufptr);
             safe_str(tmp, t_buff, &t_bufptr);
          } else {
-            safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
+            if ( !i_type )
+               safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
          }
       } else {
          if ( first ) {
-            notify(player, unsafe_tprintf("Here are the entries which match content '%s':", msg));
+            if ( !i_type )
+               notify(player, unsafe_tprintf("Here are the entries which match content '%s':", msg));
             notify(player, tmp);
          } else {
-            notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
+            if ( !i_type )
+               notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
          }
       }
       free_lbuf(msg);
@@ -432,8 +469,13 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       } else {
          if ( quick_wild(msg, entry.topic) ) {
             matched = 1;
-            if ( first )
-               safe_str("  ", tmp, &p_tmp);
+            if ( first ) {
+               if ( i_type ) {
+                  safe_str(sep, tmp, &p_tmp);
+               } else {
+                  safe_str("  ", tmp, &p_tmp);
+               }
+            }
             safe_str(entry.topic, tmp, &p_tmp);
             first = 1;
          }
@@ -481,27 +523,45 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       one_through=0;
       space_compress = mudconf.space_compress;
       mudconf.space_compress=0;
+      if ( !i_type && !t_val ) {
+         myp = mybuff = alloc_lbuf("ANSI_DYNHELP");
+#ifdef ZENTY_ANSI
+         safe_str(SAFE_ANSI_HILITE, mybuff, &myp);
+         for ( p = entry.topic; *p; p++ ) {
+            safe_chr(ToUpper(*p), mybuff, &myp);
+         }
+         safe_str(SAFE_ANSI_NORMAL, mybuff, &myp);
+#else
+         safe_str(ANSI_HILITE, mybuff, &myp);
+         for ( p = entry.topic; *p; p++ ) {
+            safe_chr(ToUpper(*p), mybuff, &myp);
+         }
+         safe_str(ANSI_NORMAL, mybuff, &myp);
+#endif
+         notify(player, mybuff);
+         free_lbuf(mybuff);
+      }
       for (;;) {
          if (fgets(line, LBUF_SIZE - 1, fp_help) == NULL)
             break;
          if (line[0] == '&')
             break;
          for (p = line; *p != '\0'; p++)
-            if (*p == '\n')
+            if ( (*p == '\n') || (*p == '\r') )
                 *p = '\0';
          if ( key & DYN_PARSE ) {
             result = exec(player, cause, cause,
                          EV_STRIP | EV_FCHECK | EV_EVAL, line, (char**)NULL, 0);
             if ( t_val ) {
                safe_str(result, t_buff, &t_bufptr);
-               safe_chr('\n', t_buff, &t_bufptr);
+               safe_str("\r\n", t_buff, &t_bufptr);
             } else
                notify(player, result);
             free_lbuf(result);
          } else {
             if ( t_val ) {
                safe_str(line, t_buff, &t_bufptr);
-               safe_chr('\n', t_buff, &t_bufptr);
+               safe_str("\r\n", t_buff, &t_bufptr);
             } else
                noansi_notify(player, line);
          }
@@ -523,17 +583,22 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
    } else if ( matched ) {
       if ( t_val ) {
-         safe_str(unsafe_tprintf("Here are the entries which match '%s':\n", msg), t_buff, &t_bufptr);
+         if ( !i_type )
+            safe_str(unsafe_tprintf("Here are the entries which match '%s':\r\n", msg), t_buff, &t_bufptr);
          safe_str(tmp, t_buff, &t_bufptr);
       } else {
-         notify(player, unsafe_tprintf("Here are the entries which match '%s':", msg));
+         if ( !i_type )
+            notify(player, unsafe_tprintf("Here are the entries which match '%s':", msg));
          notify(player, tmp);
       }
    } else {
-      if ( t_val )
-         safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
-      else
-         notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+      if ( t_val ) {
+         if ( !i_type )
+            safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
+      } else {
+         if ( !i_type )
+            notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+      }
    }
    free_lbuf(tmp);
    tf_fclose(fp_help);
@@ -568,7 +633,7 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
    } else {
       in_file = fhelp;
    } 
-   retval = parse_dynhelp(it, cause, key, in_file, in_topic, (char *)NULL, (char *)NULL, 0);
+   retval = parse_dynhelp(it, cause, key, in_file, in_topic, (char *)NULL, (char *)NULL, 0, 0, (char *)NULL);
    free_lbuf(in_topic);
    if ( retval ) {
 	STARTLOG(LOG_PROBLEMS, "DYN", "FILE")
@@ -698,7 +763,7 @@ errmsg(dbref player)
 	if (line[0] == '&')
 	    break;
 	for (p = line; *p != '\0'; p++)
-	    if (*p == '\n')
+	    if ( (*p == '\n') || (*p == '\r') )
 		*p = '\0';
 	if (!first)
 	    strcat(errbuf, "\r\n");

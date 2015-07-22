@@ -22,15 +22,22 @@
  * loop being entered. By this point all databases are loaded and
  * all variables configured.
  */
+#ifdef MYSQL_VERSION
+   extern void local_mysql_init(void);
+   extern int sql_shutdown(dbref player);
+#endif
 
 #ifdef SQLITE
-       extern void local_sqlite_init(void);
+   extern void local_sqlite_init(void);
 #endif /* SQLITE */
 
 void local_startup(void) {
 #ifdef SQLITE
    local_sqlite_init();
 #endif /* SQLITE */
+#ifdef MYSQL_VERSION
+   local_mysql_init();
+#endif
    load_regexp_functions();
 }
 
@@ -38,7 +45,9 @@ void local_startup(void) {
  * all databases and variables are still configured
  */
 void local_shutdown(void) {
-
+#ifdef MYSQL_VERSION
+   sql_shutdown(-1);
+#endif
 }
 
 /* Called after Rhost has written out the reboot file */

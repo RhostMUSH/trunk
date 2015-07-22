@@ -462,6 +462,7 @@ NAMETAB halt_sw[] =
     {(char *) "pid", 1, CA_PUBLIC, 0, HALT_PID},
     {(char *) "stop", 1, CA_PUBLIC, 0, HALT_PIDSTOP | SW_MULTIPLE},
     {(char *) "cont", 1, CA_PUBLIC, 0, HALT_PIDCONT | SW_MULTIPLE},
+    {(char *) "quiet", 1, CA_PUBLIC, 0, HALT_QUIET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB hide_sw[] =
@@ -890,6 +891,12 @@ NAMETAB rwho_sw[] =
     {(char *) "stop", 3, CA_PUBLIC, 0, RWHO_STOP},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB selfboot_sw[] =
+{
+    {(char *) "list", 1, CA_PUBLIC, 0, SELFBOOT_LIST},
+    {(char *) "port", 1, CA_PUBLIC, 0, SELFBOOT_PORT},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB search_sw[] =
 {
     {(char *) "nogarbage", 1, CA_IMMORTAL, 0, SEARCH_NOGARBAGE},
@@ -1312,8 +1319,8 @@ CMDENT command_table[] =
 #endif /* REALITY_LEVELS */
     {(char *) "@search", search_sw, 0, 0,
      SRCH_SEARCH, CS_ONE_ARG | CS_NOINTERP, 0, do_search},
-    {(char *) "@selfboot", NULL, CA_NO_SLAVE | CA_PLAYER | CA_NO_GUEST, 0,
-     0, CS_NO_ARGS, 0, do_selfboot},
+    {(char *) "@selfboot", selfboot_sw, CA_NO_SLAVE | CA_PLAYER | CA_NO_GUEST, 0,
+     0, CS_ONE_ARG, 0, do_selfboot},
 /* Removed CA_GBL_BUILD from @set : ASH 08/23/98 */
 #ifndef NO_ENH
     {(char *) "@set", set_sw,
@@ -2639,7 +2646,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -2957,11 +2964,15 @@ process_command(dbref player, dbref cause, int interactive,
                      targetlist[i] = -2000000;
                   while ( s_aptextptr ) {
                      passtarget = match_thing_quiet(player, s_aptextptr);
+                     i_targetchk = 0;
                      for (i = 0; i < LBUF_SIZE; i++) {
-                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
+                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) ) {
+                           if ( targetlist[i] == -2000000)
+                              i_targetchk = 1;
                            break;
+                        }
                      }
-                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != Owner(player)) ) {
+                     if ( i_targetchk && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != Owner(player)) ) {
                         if ( !No_Ansi_Ex(passtarget) )
                            sprintf(tbuff, "%sBounce [#%d]>%s %s] %.3950s", ANSI_HILITE, player, ANSI_NORMAL, Name(player), command);
                         else
@@ -5473,11 +5484,66 @@ list_options_values_parse(dbref player, int p_val)
 }
 
 static void
+list_options_mysql(dbref player)
+{
+#ifdef MYSQL_VERSION
+   char *tbuf;
+
+   tbuf = alloc_lbuf("list_options_mysql");
+   sprintf(tbuf, "Host: %s\r\nUser: %s\r\nPassword: %s\r\nDatabase: %s\r\nSocket: %s\r\nPort: %d", 
+                  mudconf.mysql_host,
+                  mudconf.mysql_user,
+                  (Immortal(player) ? mudconf.mysql_pass : (char *)"****"),
+                  mudconf.mysql_base,
+                  mudconf.mysql_socket,
+                  mudconf.mysql_port);
+   notify(player, tbuf);
+   free_lbuf(tbuf);
+#else
+   notify(player, "MySQL is not currently enabled.");
+#endif
+}
+
+static void
+list_options_convtime(dbref player)
+{
+   FILE *fp;
+   char *s_line;
+
+   if ( (fp = fopen((char *)"../game/convtime.template", "r")) == NULL ) {
+      notify(player, "There is no convtime.template file in your game directory.");
+   } else {
+      s_line = alloc_lbuf("list_options_convtime");
+      notify(player, "Supported Date Formats [~/game/convtime.template] --------------------------");
+      while ( !feof(fp) ) {
+         fgets(s_line, (LBUF_SIZE-2), fp);
+         if ( !feof(fp) && (*s_line != '#') ) {
+            if ( (strlen(s_line) > 1) && (s_line[strlen(s_line)-2] == '\r') )
+               s_line[strlen(s_line)-2] = '\0';
+            else if ( (strlen(s_line) > 0) && (s_line[strlen(s_line)-1] == '\n') )
+               s_line[strlen(s_line)-1] = '\0';
+            notify(player, s_line);
+         }
+      }
+      fclose(fp);
+      notify(player, "----------------------------------------------------------------------------");
+      notify(player, "Key: %a/%A - Weekday Name (Www), %b/%B - Month Name (Mmm), %D - %m/%d/%y");
+      notify(player, "     %m    - month (1-12),       %d    - day (1-31),       %Y - year (yyyy)");
+      notify(player, "     %H    - hour (0-23),        %M    - minute (0-59),    %S - second (0-59)");
+      notify(player, "----------------------------------------------------------------------------");
+      free_lbuf(s_line);
+   }
+}
+
+static void
 list_options_system(dbref player)
 {
    char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
         newstime[25], mailtime[25], aregtime[25], mushtime[25];
    time_t c_count, d_count, i_count;
+#ifdef MYSQL_VERSION
+   char *tbuf;
+#endif
 
    memset(playerchktime, '\0', 125);
 /* "------------------------------------------------------------------" */
@@ -5531,6 +5597,11 @@ list_options_system(dbref player)
 #else
     notify(player, "Sideeffects [SIDEFX required] ------------------------------------ DISABLED");
 #endif
+    if ( mudconf.enhanced_convtime ) {
+       notify(player, "Enhanced convtime() formats --[ see @list options convtime ]------ ENABLED");
+    } else {
+       notify(player, "Enhanced convtime() formats -------------------------------------- DISABLED");
+    }
 #ifdef ENABLE_COMMAND_FLAG
     notify(player, "The COMMAND flag ------------------------------------------------- ENABLED");
 #else
@@ -5566,9 +5637,12 @@ list_options_system(dbref player)
     notify(player, "SQLite ----------------------------------------------------------- DISABLED");
 #endif
 #ifdef MYSQL_VERSION
-    notify(player, "Third party MySQL ------------------------------------------------ ENABLED");
+    tbuf = alloc_mbuf("list_option_system");
+    sprintf(tbuf, "[%.40s, SQL: %.40s]----------------------------------------", MYSQL_VER, MYSQL_VERSION);
+    notify(player, unsafe_tprintf("MySQL/MariaDB --------%-42.42s-- ENABLED", tbuf));
+    free_mbuf(tbuf);
 #else
-    notify(player, "Third party MySQL ------------------------------------------------ DISABLED");
+    notify(player, "MySQL/MariaDB ---------------------------------------------------- DISABLED");
 #endif
     if ( mudconf.ansi_default ) {
        notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
@@ -7650,7 +7724,17 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_config(player);
            else if ( (stricmp(s_ptr2, "system") == 0) )
               list_options_system(player);
-           else if ( stricmp(s_ptr2, "boolean") == 0 ) {
+           else if ( (stricmp(s_ptr2, "convtime") == 0) ) {
+              if ( !(mudconf.enhanced_convtime) )
+                 notify(player, "Extended convtime() is not available.");
+              else
+                 list_options_convtime(player);
+           } else if ( stricmp(s_ptr2, "mysql") == 0 ) {
+              if ( Wizard(player) )
+                 list_options_mysql(player);
+              else
+                 notify(player, "MySQL has been enabled.");
+           } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
               s_ptr = strtok(NULL, " ");
               if ( s_ptr )
                  p_val = atoi(s_ptr);
@@ -7666,7 +7750,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_values_parse(player, p_val);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
-                                   " mail, values, boolean, config, system");
+                                   " mail, values, boolean, config, system, mysql, convtime");
         } else {
 	   list_options(player);
         }
@@ -9734,6 +9818,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    i_temp2 = i_temp = i_corrupted = i_isequal = i_lowball = i_highball = 0;
    i_nomatch = i_nowipe = i_wipecnt = i_totobjs = 0;
    anum = anum2 = anum3 = anum4 = NOTHING;
+   s_strtokptr = NULL;
 
    s_foo = NULL;
    if ( !name || !*name ) {
