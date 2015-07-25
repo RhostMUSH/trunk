@@ -86,6 +86,8 @@ think Continuing with loading of script...
 @@
 @create ChanFunc=10
 @parent ChanSys=ChanFunc
+&FUN_CNAME ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,u(F_CHK_CEMIT,%0,%1))][ifelse(match(111,r(2)),u([v(FX-DB)]/do_genpemit,[r(8)][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(F_DO_CEMIT,%0,%1,%#)])][ulocal([v(FX-DB)]/do_hist1,secs())],r(5)))]
+@startup ChanFunc=@function/priv cname=me/fun_cname
 &STRIP_ALL ChanFunc=[ifelse(strmatch(stripaccents(),*NOT FOUND),stripansi(%0),stripansi(stripaccents(%0)))]
 &FUN_CNAME ChanFunc=[u(fun_captiontitle,%0)][switch([strmatch(name(%0),u(strip_all,get(%0/ansiname)))][hastoggle(%0,extansi)][hasattr(%0,ansiname)],111,[get(%0/ansiname)][ansi(n,)],001,ansi(get(%0/ansiname),name(%0)),name(%0))][u(fun_caption,%0)]
 &FUN_CAPTION ChanFunc=[ifelse(hasattr(%0,caption),%b[get(%0/caption)])]

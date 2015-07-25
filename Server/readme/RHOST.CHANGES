@@ -27,6 +27,8 @@ suggestion to make textfile() more useful in functions.
 				- Thanks qa'toq
 alteration of new Makefile build procedure rebuilt based on Ternary@Dark Metal's suggestions.
 				- Thanks Ternary/Ol'Sarge
+fix to the src/Makefile to redefine default SHELL since latest Debian horked it with dash.
+				- Thanks Mercutio
 
 
 		         RhostMUSH 3.9.4 Update File

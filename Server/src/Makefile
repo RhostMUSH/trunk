@@ -4,7 +4,18 @@
 # Search for the text 'CONFIGURATION SECTION' and make any changes needed
 # there.
 
-SHELL=/bin/sh
+CHK = $(uname -a|grep -i debian)
+ifeq "$(CHK)" "1"
+   SHELL=/bin/bash
+else
+   CHK = $(test -f /etc/debian_version && echo 1 || echo 0)
+   ifeq "$(CHK)" "1"
+      SHELL=/bin/bash
+   else
+      SHELL=/bin/sh
+   endif
+endif
+
 srcdir = ../src
 bindir = ../bin
 incdir = ../hdrs
