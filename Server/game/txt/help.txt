@@ -20560,6 +20560,9 @@
   number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first  unnamed AND
   unused register.  '!' just uses the first unnamed register.
+  
+  If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
+  register set and not a label assigned.
    
   Example:
     > &TEST me=Test on [mudname()] at [time()].
@@ -20590,6 +20593,9 @@
   number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
+  
+  If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
+  register set and not a label assigned.
 
   See Also: setr_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
   
@@ -20615,6 +20621,9 @@
   number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
+  
+  If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
+  register set and not a label assigned.
    
   Example: 
     > &TEST me=Test on [mudname()] at [time()].
@@ -20643,6 +20652,9 @@
   number/label specifies to reuse the label OR assign a label to the next
   available register automatically.  '+' will use the first unnamed AND
   unused register.  '!' just uses the first unnamed register.
+  
+  If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
+  register set and not a label assigned.
   
   See Also: setq_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
   
@@ -28112,6 +28124,8 @@
   * zwho() by default listed type target belonging to a zone.  Now,
     it optionally lists players INSIDE any item in the zone [ASH]
   * mysql has been enhanced and security improved [ASH]
+  * setq/setr with + and ! if fed a label, if label is 0-9 or a-z,
+    it sets the register instead of setting a label. [ASH]
     
   Bug Fixes
   ------------

@@ -27097,12 +27097,19 @@ FUNCTION(fun_setq_old)
 
     if (nfargs > 2)
     {
-       if(!*fargs[2])
-       {
-         safe_str("#-1 INVALID LABEL", buff, bufcx);
-         return;
+       if( !*fargs[2] ) {
+          safe_str("#-1 INVALID LABEL", buff, bufcx);
+          return;
+       }
+
+       /* If the third arg is 0-9 or A-Z disallow */
+       if ( ((strlen(fargs[0]) == 1) && ((*fargs[0] == '!') || (*fargs[0] == '+'))) &&
+            (strlen(fargs[2]) == 1) && isalnum(*fargs[2]) ) {
+          *fargs[0]=*fargs[2];
+          *fargs[2]='\0';
        }
     }
+
 
     regnum = -1;
     i_namefnd = 0;
@@ -27217,6 +27224,12 @@ FUNCTION(fun_setq)
            free_lbuf(result_second);
            return;
        }
+       /* If the third arg is 0-9 or A-Z disallow */
+       if ( ((strlen(result_orig) == 1) && ((*result_orig == '!') || (*result_orig == '+'))) &&
+            (strlen(result_second) == 1) && isalnum(*result_second) ) {
+          *result_orig=*result_second;
+          *result_second = '\0';
+       }
     }
 
     i_namefnd = 0;
@@ -27323,10 +27336,15 @@ FUNCTION(fun_setr_old)
 
     if (nfargs > 2)
     {
-       if(!*fargs[2])
-       {
+       if( !*fargs[2] ) {
          safe_str("#-1 INVALID LABEL", buff, bufcx);
          return;
+       }
+       /* If the third arg is 0-9 or A-Z disallow */
+       if ( ((strlen(fargs[0]) == 1) && ((*fargs[0] == '!') || (*fargs[0] == '+'))) &&
+            (strlen(fargs[2]) == 1) && isalnum(*fargs[2]) ) {
+          *fargs[0]=*fargs[2];
+          *fargs[2]='\0';
        }
     }
 
@@ -27444,6 +27462,12 @@ FUNCTION(fun_setr)
            free_lbuf(result_orig);
            free_lbuf(result_second);
            return;
+       }
+       /* If the third arg is 0-9 or A-Z disallow */
+       if ( ((strlen(result_orig) == 1) && ((*result_orig == '!') || (*result_orig == '+'))) &&
+            (strlen(result_second) == 1) && isalnum(*result_second) ) {
+          *result_orig=*result_second;
+          *result_second = '\0';
        }
     }
 
