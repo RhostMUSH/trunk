@@ -5772,8 +5772,12 @@
   
   See Also: @include, @force, @trigger, @skip, @break, @assert, @switch
 
+& @attach
 & @include
   Command: @include[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
+           @attach[/<switch>]  <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
+  
+  Note:  @attach is an alias to @include/override.
   
   The @include command can only be issued in a queue.  Ergo, if it is to be 
   issued at the player command line, it must be queued first (like with @wait)
