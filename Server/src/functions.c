@@ -18857,21 +18857,48 @@ FUNCTION(fun_moneyname)
 
 FUNCTION(fun_pos)
 {
-    int i = 1;
+    int i = 1, i_key;
     char *s, *t, *u;
 
-    i = 1;
+    if (!fn_range_check("POS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
+
     s = strip_all_special(fargs[1]);
-    while (*s) {
-       u = s;
-       t = fargs[0];
-       while (*t && *t == *u)
-           ++t, ++u;
-       if (*t == '\0') {
-           ival(buff, bufcx, i);
-           return;
+    i = 1;
+    if ( i_key ) {
+       t = u = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             if ( !u ) {
+                u = t;
+                break;
+             }
+          }
+          ++s;
+          ++i;
        }
-       ++i, ++s;
+       if ( u ) {
+          ival(buff, bufcx, i);
+          return;
+       }
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+              ++t, ++u;
+          if (*t == '\0') {
+              ival(buff, bufcx, i);
+              return;
+          }
+          ++i, ++s;
+       }
     }
     safe_str("#-1", buff, bufcx);
     return;
@@ -20352,10 +20379,10 @@ FUNCTION(fun_capstr)
 FUNCTION(fun_caplist)
 {
     char *curr, *osep, *sep, style, *wordlist, *t_str, *s_tok, *s_tokr, *ap;
-    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap;
+    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap, i_hcap, i_hyphen;
     
     // We aren't allowed more than 4 args here.
-    if( !fn_range_check( "CAPLIST", nfargs, 1, 4, buff, bufcx ) )
+    if( !fn_range_check( "CAPLIST", nfargs, 1, 5, buff, bufcx ) )
       return;
 
     // If there's no list, then just return nothing.
@@ -20366,6 +20393,7 @@ FUNCTION(fun_caplist)
     sep = ( fargs[1] && *fargs[1] ) ? fargs[1] : (char *)" ";
     osep = ( fargs[2] && *fargs[2] ) ? fargs[2] : sep;
     style = ( fargs[3] && *fargs[3] ) ? ToUpper(*fargs[3]) : 'N';
+    i_hyphen = ( fargs[4] && *fargs[4] ) ? atoi(fargs[4]) : 0;
     wordlist = trim_space_sep( fargs[0], *sep );
     i_last = countwords( fargs[0], *sep );
     i_first = i_found = i_cap = 0;
@@ -20393,7 +20421,7 @@ FUNCTION(fun_caplist)
           // Capitalize the first letter of every word
   	  // Lowercase the rest of each word.
           case 'L': /* Enforce Lower Case */
-             i_cap = 0;
+             i_cap = i_hcap = 0;
              ap = curr;
              while ( *ap ) {
 #ifdef ZENTY_ANSI
@@ -20434,13 +20462,19 @@ FUNCTION(fun_caplist)
                    }
                 }
 #endif
-                if ( !i_cap ) {
-  	           safe_chr( ToUpper( *ap ), buff, bufcx );
-                   i_cap = 1;
-                } else {
-  	           safe_chr( ToLower( *ap ), buff, bufcx );
+                if ( *ap ) {
+                   if ( !i_cap ) {
+  	              safe_chr( ToUpper( *ap ), buff, bufcx );
+                      i_cap = 1;
+                   } else {
+                      if ( i_hyphen && (*(ap-1) == '-') ) {
+  	                 safe_chr( ToUpper( *ap ), buff, bufcx );
+                      } else {
+  	                 safe_chr( ToLower( *ap ), buff, bufcx );
+                      }
+                   }
+                   ap++;
                 }
-                ap++;
 	    }
 	    break;
 
@@ -20480,7 +20514,7 @@ FUNCTION(fun_caplist)
                  s_tok = strtok_r(NULL, " ", &s_tokr);
               }
           }
-          i_cap = 0;
+          i_cap = i_hcap = 0;
           ap = curr;
 	  while( *ap ) {
 #ifdef ZENTY_ANSI
@@ -20521,21 +20555,25 @@ FUNCTION(fun_caplist)
                 }
              }
 #endif
-             if ( !i_cap ) {
-                if ( !i_found || !i_first || (i_lastchk == i_last) ) {
-                   safe_chr( ToUpper( *ap ), buff, bufcx );
-                   i_first = 1;
+             if ( *ap ) {
+                if ( !i_cap ) {
+                   if ( !i_found || !i_first || (i_lastchk == i_last) ) {
+                      safe_chr( ToUpper( *ap ), buff, bufcx );
+                      i_first = 1;
+                   } else {
+                      safe_chr( ToLower( *ap ), buff, bufcx );
+                      i_first = 1;
+                   }
+                   i_cap = i_hcap = 1;
                 } else {
-                   safe_chr( ToLower( *ap ), buff, bufcx );
-                   i_first = 1;
+                   if ( i_hyphen && (*(ap-1) == '-') ) {
+                      safe_chr( ToUpper( *ap ), buff, bufcx );
+                   } else {
+	              safe_chr( ToLower( *ap ), buff, bufcx );
+                   }
                 }
-                i_cap = 1;
-             } else {
-	        if( *ap ) {
-	           safe_chr( ToLower( *ap ), buff, bufcx );
-                }
+                ap++;
              }
-             ap++;
 	  }
           i_lastchk++;
           break;
@@ -30883,7 +30921,7 @@ FUN flist[] =
     {"PID", fun_pid, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PMATCH", fun_pmatch, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PORT", fun_port, 1, 0, CA_WIZARD, CA_NO_CODE},
-    {"POS", fun_pos, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"POS", fun_pos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"POSS", fun_poss, 1, 0, CA_PUBLIC, 0},
     {"POWER", fun_power, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"POWER10", fun_power10, 1, 0, CA_PUBLIC, CA_NO_CODE},

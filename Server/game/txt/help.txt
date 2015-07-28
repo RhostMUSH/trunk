@@ -12628,14 +12628,21 @@
   See Also: lit(), s(), t()
   
 & POS()
-  Function: pos(<string1>,<string2>)
+  Function: pos(<string1>,<string2>[,<type>])
    
   This function returns the position that string1 begins in string2,
   with the first position being 1.
   If string1 is not in string2, then it returns #-1.
-   
+  
+  You may optionally specify a <type> of '1' to tell pos() to match ANY
+  of the characters specified in <string1> and to return the first match. 
+  
   Example: 
     > say pos(man,superman)
+    You say "6"
+    > say pos(uman,superman,1)
+    You say "2"
+    > say pos(nam,superman,1)
     You say "6"
   
   See Also: totpos(), numpos(), randpos()
@@ -15628,7 +15635,7 @@
   See Also: lcstr(), ucstr(), caplist()
 
 & CAPLIST()
-  Function: caplist(<list>[,<delim>[,<osep>[,<key>]]])
+  Function: caplist(<list>[,<delim>[,<osep>[,<key>[,<type>]]]])
 
   Returns <list> with the first character of each word capitalized.  You may
   specify an optional <delim> as a delimiter for the list input, otherwise the
@@ -15644,6 +15651,11 @@
     - T:    Performs a 'true' capitalization based on currently English
             definition for titles.
   
+  A <type> of '1' will work with <key> values of 'L' or 'T' to optionally 
+  capitalize all words contained in a hyphon, optionally.  The default
+  behavior is to capitalize only the start of the word.  This <type> value
+  has no influence on the 'N' <key> type.
+   
   Example:
     > say caplist(the mAn in thE mOon).
     You say "The MAn In ThE MOon."
@@ -28126,6 +28138,9 @@
   * mysql has been enhanced and security improved [ASH]
   * setq/setr with + and ! if fed a label, if label is 0-9 or a-z,
     it sets the register instead of setting a label. [ASH]
+  * caplist() optionally capitalizes all parts of hyphonated words
+    optionally if that word would have been capitalized [ASH]
+  * pos() optionally matches any of the chars specified [ASH]
     
   Bug Fixes
   ------------
