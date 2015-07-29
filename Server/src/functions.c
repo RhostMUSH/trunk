@@ -18906,21 +18906,41 @@ FUNCTION(fun_pos)
 
 FUNCTION(fun_numpos)
 {
-    int i = 1, count;
+    int i = 1, count, i_key;
     char *s, *t, *u;
+
+    if (!fn_range_check("NUMPOS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
 
     i = 1;
     count = 0;
     s = strip_all_special(fargs[1]);
-    while (*s) {
-       u = s;
-       t = fargs[0];
-       while (*t && *t == *u)
-           ++t, ++u;
-       if (*t == '\0') {
-           count++;
+    if ( i_key ) {
+       t = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             count++;
+          }
+          ++s;
+          ++i;
        }
-       ++i, ++s;
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+              ++t, ++u;
+          if (*t == '\0') {
+              count++;
+          }
+          ++i, ++s;
+       }
     }
     ival(buff, bufcx, count);
     return;
@@ -18928,24 +18948,47 @@ FUNCTION(fun_numpos)
 
 FUNCTION(fun_totpos)
 {
-    int i = 1;
+    int i = 1, i_key;
     char *s, *t, *u;
     int gotone = 0;
 
-    i = 1;
+    if (!fn_range_check("TOTPOS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
+
     s = strip_all_special(fargs[1]);
-    while (*s) {
-       u = s;
-       t = fargs[0];
-       while (*t && *t == *u)
-           ++t, ++u;
-       if (*t == '\0') {
-           if( gotone )
-              safe_chr(' ', buff, bufcx);
-           gotone = 1;
-           ival(buff, bufcx, i);
+    i = 1;
+    if ( i_key ) {
+       t = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             if( gotone )
+                safe_chr(' ', buff, bufcx);
+             gotone = 1;
+             ival(buff, bufcx, i);
+          }
+          ++s;
+          ++i;
        }
-       ++i, ++s;
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+             ++t, ++u;
+          if (*t == '\0') {
+             if( gotone )
+                safe_chr(' ', buff, bufcx);
+             gotone = 1;
+             ival(buff, bufcx, i);
+          }
+          ++i, ++s;
+       }
     }
     return;
 }
@@ -30882,7 +30925,7 @@ FUN flist[] =
     {"NUMMATCH", fun_nummatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NUMWILDMATCH", fun_numwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NUMMEMBER", fun_nummember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"NUMPOS", fun_numpos, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"NUMPOS", fun_numpos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"OBJ", fun_obj, 1, 0, CA_PUBLIC, 0},
     {"OBJEVAL", fun_objeval, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
@@ -31068,7 +31111,7 @@ FUN flist[] =
     {"TOTMATCH", fun_totmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"TOTPOS", fun_totpos, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TOTPOS", fun_totpos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TR", fun_tr, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TRACE", fun_trace, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRANSLATE", fun_translate, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},

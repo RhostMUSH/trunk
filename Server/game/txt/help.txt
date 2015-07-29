@@ -12652,30 +12652,45 @@
   See Also: totpos(), numpos(), randpos()
   
 & TOTPOS()
-  Function: totpos(<match>,<string>)
+  Function: totpos(<match>,<string>[,<type>])
   
   This function returns all the positions of 'match' in the given 'string'.
   This works just like pos() but will give the character placement of
   all the matches instead of the pos()'s first match.
-  If match is not found in string, a #-1 is returned.
+  
+  If a match is not found in string, an empty value is returned (null).
+  
+  You may optionally specify a <type> of '1' to tell totpos() to match ANY
+  of the characters specified in <string> and to return all the matches. 
   
   Example:
     > say totpos(t,this is a test)
     You say "1 11 14"
+    > say totpos(ts,this is a test,1)
+    You say "1 4 7 11 13 14"
+    > say totpos(t,foobles)
+    You say ""
   
   See Also: numpos(), pos(), randpos()
   
 & NUMPOS()
-  Function: numpos(<match>,<string>)
+  Function: numpos(<match>,<string>[,<type>])
   
   This function returns the total number of matches of 'match' in the
   string 'string'.  This works like totpos() but returns the number
   of matches instead of the position of the matches.  If no matches
   are found, it returns a '0'.
   
+  You may optionally specify a <type> of '1' to tell numpos() to match ANY
+  of the characters specified in <string> and to return the total.
+  
   Example:
     > say numpos(t,this is a test)
     You say "3"
+    > say numpos(ts,this is a test,1)
+    You say "6"
+    > say totpos(t,foobles)
+    You say "0"
   
   See Also: totpos(), pos(), randpos()
   
@@ -28144,7 +28159,8 @@
     it sets the register instead of setting a label. [ASH]
   * caplist() optionally capitalizes all parts of hyphonated words
     optionally if that word would have been capitalized [ASH]
-  * pos() optionally matches any of the chars specified [ASH]
+  * pos(), totpos(), and numpos() optionally matches any of the 
+    chars specified [ASH]
     
   Bug Fixes
   ------------
