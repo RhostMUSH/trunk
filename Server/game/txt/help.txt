@@ -1616,6 +1616,79 @@
   
   See Also: mail, news, folder
   
+& FIRSTOF()
+& ALLOF()
+& STRFIRSTOF()
+& STRALLOF()
+& OFPARSE()
+  Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
+
+  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  
+  This function will take each <eval> and returns it based on the <type>.
+  
+  The following types exist:
+    1  -- Issue a firstof().  Essentially return the first <eval> that is
+          a true boolean.  This stops evaluation on first true <eval>.
+          The <default> is returned if no evals are met.  The <default>
+          is the assumed argument if only passed a single argument.
+    2  -- Issue an allof().  Essentially returning every <eval> that is
+          a true boolean.  This evaluates every argument.
+    3  -- This is the reverse of '1'.  It returns the first <eval> that
+          is a false boolean.  IT stops evaluation on first false <eval>.
+          This again assumes <default> if no other arguments.
+    4  -- This is the reverse of '2'.  It returns every false <eval>
+          boolean. This evaluates every argument.
+    5  -- Issue a strfirstof().  Essentially returns the first <eval> that
+          is a non-null string.  This stops evaluation on first non-null
+          <eval>.
+    6  -- Issues a strallof().  Essentially returns every <eval> that is
+          a non-null string.  This evaluates everyu argument.
+    7  -- This is the reverse of '5'.  It essentially will either return
+          a null or the default value.
+    8  -- This is the reverse of '6'.  It essentially will return
+          a list of nulls if you have such in your list.  This evaluates
+          every argument.
+  
+  For PennMUSH function lineup:
+      firstof(x,y)    == ofparse(1,x,y)
+      allof(x,y,z)    == ofparse(2,x,y,z)
+      strfirstof(x,y) == ofparse(5,x,y)
+      strallof(x,y,z) == ofparse(6,x,y,z)
+  
+{ see 'help ofparse2' for examples }
+
+& OFPARSE2
+  (CONTINUED)
+  Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
+
+  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Examples:
+    > say ofparse(1,0,2)
+    You say "2"
+    > say ofparse(1,10,11,0)
+    You say "10"
+    > say ofparse(1,grab(the cat,mommy),grab(in the hat,daddy),#-1 Error)
+    You say "#-1 Error"
+    > say ofparse(2,#-1,#101,#2970,,#-3,0,#319,null(This Doesn't Count),|)
+    You say "#101|#2970|#319"
+    > say ofparse(2,foo, 0, #-1, bar, baz,)
+    You say "foobarbaz"
+    > say ofparse(2,foo, 0, #-1, bar, baz,%b)
+    You say "foo bar baz"
+    > say ofparse(3,get(%#/fullname), u(%#/ansiname), %n)
+    You say, "Mike"
+    > say ofparse(4,,  ,foo,@@(Nothing),%b,bar|baz,#-1,|)
+    You say, "foo| |bar|baz|#-1"
+  
+  See Also: BOOLEAN VALUES, cor(), cand(), iter()
+
 & OUTPUTPREFIX
   Command: OUTPUTPREFIX <string>
   Causes <string> to be output on a line by itself before printing the
@@ -14315,6 +14388,7 @@
     You say "1 - test / test2"
   
   See Also: BOOLEAN VALUES, and(), not(), xor(), nand(), nor(), xnor(), cand()
+            ofparse()
   
 & OR()
   Function: or(<boolean1>,<boolean2>[,<booleanN>]...)
@@ -25956,6 +26030,7 @@
   nostr()       - The exact opposite of str().
   notchr()      - Returns true if NONE of the specified chars are in string.
   numpos()      - Returns the total number of matches of a character in string.
+  ofparse()     - Returns various manipulations of evaluated strings.
   orchr()       - Returns true if any of the specified chars are in a string.
   parsestr()    - Parses a string according to formatting rules.
   pedit()       - Like edit(), but with PennMUSH functionality.
@@ -28135,6 +28210,7 @@
     - ./patch.sh (and patching) will not break backward compatibility.
   * enhanced_convtime toggles the processing of extra formats for the
     convtime() function [ASH]
+  * ofparse() -- Handles all the various firstoff/allof/etc functions [ASH]
   
   Changes
   ------------
