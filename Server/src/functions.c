@@ -20846,15 +20846,15 @@ FUNCTION(fun_creplace)
    if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
        return;
 
-   curr_temp = exec(player, cause, caller,
-                    EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
-   i_val = atoi(curr_temp);
-   free_lbuf(curr_temp);
+   sop = exec(player, cause, caller,
+              EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
+   i_val = atoi(sop);
    if ( i_val < 1 || i_val > (LBUF_SIZE-1) ) {
       curr_temp = alloc_mbuf("creplace");
       sprintf(curr_temp, "#-1 VALUE MUST BE > 0 < %d", LBUF_SIZE);
       safe_str(curr_temp, buff, bufcx);
       free_mbuf(curr_temp);
+      free_lbuf(sop);
       return;
    }
 
@@ -20867,15 +20867,14 @@ FUNCTION(fun_creplace)
    safe_str(strip_ansi(curr_temp),curr,&cp);
    free_lbuf(curr_temp);
    cp = curr;
-   if ( (strchr(fargs[1], ' ') != 0) || (strchr(fargs[1], '\t') != 0) ) {
+   if ( (strchr(sop, ' ') != 0) || (strchr(sop, '\t') != 0) ) {
       if ( nfargs > 3) {
          safe_str("#-1 MULTI-REPLACE OPTION REQUIRES 3 ARGS ONLY.", buff, bufcx);
          free_lbuf(sop_temp);
+         free_lbuf(sop);
          free_lbuf(curr);
          return;
       }
-      sop = exec(player, cause, caller,
-                 EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       if ( !*sop || !*sop_temp ) {
          safe_str(curr, buff, bufcx);
          free_lbuf(sop_temp);
@@ -20892,7 +20891,6 @@ FUNCTION(fun_creplace)
          }
          s_strtok = strtok_r(NULL, " \t", &s_strtokr);
       }
-      free_lbuf(sop);
       i_cntr = 0;
       while ( *cp ) {
          if ( i_array[i_cntr] == 1 )
@@ -20901,11 +20899,12 @@ FUNCTION(fun_creplace)
          i_cntr++;
       }
       free_lbuf(sop_temp);
+      free_lbuf(sop);
       safe_str(curr, buff, bufcx);
       free_lbuf(curr);
       return;
    }
-
+   free_lbuf(sop);
    sop = alloc_lbuf("fun_creplace");
    sp = sop;
    safe_str(strip_ansi(sop_temp),sop,&sp);
