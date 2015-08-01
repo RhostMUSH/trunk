@@ -12733,18 +12733,27 @@
   
   If a match is not found in string, an empty value is returned (null).
   
-  You may optionally specify a <type> of '1' to tell totpos() to match ANY
-  of the characters specified in <string> and to return all the matches. 
+  The following types are available:
+    1 - Tells totpos() to match ANY of the characters specified in 
+        <string> and to return all the matches. 
+    2 - Tells totpos() to match ANY of the characters specified in
+        <string> and return the characters matched, in order, that
+        were found.
   
+  Note:  Options 1 and 2 are good mixes to stage and prep replacement
+         with the creplace() function.
+   
   Example:
     > say totpos(t,this is a test)
     You say "1 11 14"
     > say totpos(ts,this is a test,1)
     You say "1 4 7 11 13 14"
+    > say totpos(ts,this is a test,2)
+    You say "tsstst"
     > say totpos(t,foobles)
     You say ""
   
-  See Also: numpos(), pos(), randpos()
+  See Also: numpos(), pos(), randpos(), creplace()
   
 & NUMPOS()
   Function: numpos(<match>,<string>[,<type>])
@@ -12931,7 +12940,12 @@
   
   The second option only allows three arguments, and will replace the 
   character positions specfied in the space delimited <position list>
-  with the character specified with <character>.
+  with the character(s) specified with <character>.  If you specify more
+  than one character, it will continue to wrap around the list until
+  the end of the string is met.
+  
+  Note:  The second option can use output from totpos() to stage and prep
+         the values you want to replace depending on the situation.
   
   Valid types are: 
         o - overwrite : starting at position it'll continue to overwrite
@@ -12954,8 +12968,10 @@
   Option 2 Example:
     > say creplace(this is a test,1 3 4,X)
     You say "XhXX is a test"
+    > say creplace(this is a test,1 3 4,XYZ)
+    You say "XhYZ is a test"
   
-  See Also: replace(), lreplace()
+  See Also: replace(), lreplace(), totpos()
   
 & strmath()
   Function: strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>)

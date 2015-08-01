@@ -19120,10 +19120,14 @@ FUNCTION(fun_totpos)
        while (*s) {
           t = strchr(fargs[0], *s);
           if ( t ) {
-             if( gotone )
-                safe_chr(' ', buff, bufcx);
-             gotone = 1;
-             ival(buff, bufcx, i);
+             if ( i_key == 2 ) {
+                safe_chr(*s, buff, bufcx);
+             } else {
+                if( gotone )
+                   safe_chr(' ', buff, bufcx);
+                gotone = 1;
+                ival(buff, bufcx, i);
+             }
           }
           ++s;
           ++i;
@@ -20867,6 +20871,7 @@ FUNCTION(fun_creplace)
    safe_str(strip_ansi(curr_temp),curr,&cp);
    free_lbuf(curr_temp);
    cp = curr;
+   sp = sop_temp;
    if ( (strchr(sop, ' ') != 0) || (strchr(sop, '\t') != 0) ) {
       if ( nfargs > 3) {
          safe_str("#-1 MULTI-REPLACE OPTION REQUIRES 3 ARGS ONLY.", buff, bufcx);
@@ -20893,9 +20898,13 @@ FUNCTION(fun_creplace)
       }
       i_cntr = 0;
       while ( *cp ) {
-         if ( i_array[i_cntr] == 1 )
-            *cp = *sop_temp;
+         if ( i_array[i_cntr] == 1 ) {
+            *cp = *sp;
+            sp++;
+         }
          cp++;
+         if ( !*sp )
+            sp = sop_temp;
          i_cntr++;
       }
       free_lbuf(sop_temp);
