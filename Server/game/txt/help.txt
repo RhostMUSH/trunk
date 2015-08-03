@@ -16289,6 +16289,8 @@
     You say "1 4 1"
     > say iter(This is a test,##,,***)
     You say "This***is***a***test"
+    > say iter(This is a test,%i0,,***)
+    You say "This***is***a***test"
   
   See Also: nsiter(), citer(), @dolist, parse(), list(), list(), itext(), 
             inum(), ilev(), ibreak()
@@ -18397,7 +18399,7 @@
     4
     2
     BB
-    > @emit [list(This@is,strlen(##),@,AA)]BB
+    > @emit [list(This@is,strlen(%i0),@,AA)]BB
     AA
     4
     2

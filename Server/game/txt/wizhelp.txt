@@ -5503,8 +5503,9 @@
       OWNER         -- Optional.  The owner that the prefix will affect.
       TARGET        -- Optional.  The specific dbref# the prefix will affect.
   
-  Please note the permission is a bittype from 1 to 7.  It uses the same
+  Please note the permission is a bittype from 1 to 8.  It uses the same
   numerical values that the bittype() function uses.  These values are:
+      Evaluation      8  (Special -- This is an evaluation bit only)
       God (#1)        7
       Super-Royalty   6
       Royalty         5
@@ -5515,8 +5516,10 @@
    
   Owner can be anything, but defaults to '-1' to mean global.
   Target can be anything, but defaults to '-1' to mean global.
-   
-  See Also: atrperms_max, @aflags
+  
+  For more about the bits see: @aflags bits 
+  
+  See Also: atrperms_max, @aflags, @aflags bits
   
 {see atrperms2 for examples and explainations}
 & atrperms2
