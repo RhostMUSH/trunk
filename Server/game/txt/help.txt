@@ -2684,6 +2684,9 @@
   
   The /inline switch may use %d0 to %d9 for ## substitution.  %dL for outer.   
   
+  Without /inline, it will not handle %d0-%d9.  The reason is the overhead
+  that this would cause would be insufficient for the rewards. 
+  
   If present, <switch> can be any of:
     /space     - (Default) List elements are separated by spaces.
     /delimit   - List elements are separated by <delimiter>.
