@@ -8273,8 +8273,16 @@
 & ATTRIBUTE TREES
   Topic: Attribute trees
   
+  For ease of documentation, the attribute tree character for this
+  documentation will be the ` character.
+  
   Attribute trees are defined by attributes that contain ` to break up each
   branch in a tree.  Example:  THIS`IS`A`TREE`ATTRIBUTE
+  
+  Note:  The tree character, while defaulting to ` can be defined as any
+         character, and may be changed depending on the whim of the admin
+         running your game.  Please check '@list options system' on what the
+         current tree character is defined as.  
   
   @clusters and @wipe are not tree aware.  This is intentional, and will 
   not be worth the effort to make them so.  Please do not ask for it to happen.
@@ -8298,6 +8306,9 @@
   
   For detailed information on limitations of what RhostMUSH does not:
      ATTRIBUTE TREE LIMITATIONS -- Limitations of attribute trees.
+  
+  For showing what the current TREE character is:
+     @list options system
   
   See Also: @set, &, set(), rset(), lattr()
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
@@ -28232,6 +28243,8 @@
   * enhanced_convtime toggles the processing of extra formats for the
     convtime() function [ASH]
   * ofparse() -- Handles all the various firstoff/allof/etc functions [ASH]
+  * tree_character -- @admin param to define what the TREE character is
+    for attribute trees.  Default of ` [ASH]
   
   Changes
   ------------

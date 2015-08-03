@@ -1177,7 +1177,7 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 
 	buf = atr_get(thing, ca, &aowner, &aflags);
 	if (Read_attr(player, othing, attr, aowner, aflags, 0)) {
-           if ( !i_tree || (i_tree && !count_chars(attr->name, '`')) ) {
+           if ( !i_tree || (i_tree && !count_chars(attr->name, *(mudconf.tree_character))) ) {
 	      if (!(check_exclude && (aflags & AF_PRIVATE))) {
 		 if (hash_insert)
 		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);

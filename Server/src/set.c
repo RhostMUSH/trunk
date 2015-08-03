@@ -728,13 +728,13 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
    s_tmp = NULL;
    i_cntr = val = i_attrcnts = 0;
 
-   if ( strchr(attr_name, '`') == NULL )
+   if ( strchr(attr_name, *(mudconf.tree_character)) == NULL )
       return 1;
 
    s_ptr2 = s_ptr = attr_name;
    s_ptr2++;
    while ( s_ptr2 && s_ptr && *s_ptr && *s_ptr2) {
-      if ( (*s_ptr == *s_ptr2) && (*s_ptr == '`') )
+      if ( (*s_ptr == *s_ptr2) && (*s_ptr == *(mudconf.tree_character)) )
          return 2;
       s_ptr++;
       s_ptr2++;
@@ -748,7 +748,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
    memset(s_name, '\0', SBUF_SIZE);
    sprintf(s_name, "%.*s", SBUF_SIZE - 1, attr_name);
 
-   s_ptr = strchr(s_name, '`');
+   s_ptr = strchr(s_name, *(mudconf.tree_character));
    s_ptr2 = s_name;
    s_string = alloc_lbuf("set_trees2");
    sprintf(s_string, "%s", (char *) "@@ - Tree Trunk");
@@ -759,7 +759,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
       i_cntr++;
       *s_ptr = '\0';
       atr = mkattr(s_name);
-      *s_ptr = '`';
+      *s_ptr = *(mudconf.tree_character);
       if ( atr < 0 ) {
          val = 1;
          break;
@@ -786,7 +786,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
       s_ptr2 = s_ptr;
       if ( !s_ptr2 )
          break;
-      s_ptr = strchr(s_ptr2, '`');
+      s_ptr = strchr(s_ptr2, *(mudconf.tree_character));
    }
    if ( (i_attrcnts + 1 + i_cntr) >= mudconf.vlimit )
       val=1;
@@ -795,12 +795,12 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
    if ( !val ) {
       memset(s_name, '\0', SBUF_SIZE);
       sprintf(s_name, "%.*s", SBUF_SIZE - 1, attr_name);
-      s_ptr = strchr(s_name, '`');
+      s_ptr = strchr(s_name, *(mudconf.tree_character));
       s_ptr2 = s_name;
       while ( s_ptr ) {
          *s_ptr = '\0';
          atr = mkattr(s_name);
-         *s_ptr = '`';
+         *s_ptr = *(mudconf.tree_character);
          if ( atr < 0 ) {
             val = 1;
             break;
@@ -816,7 +816,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
          s_ptr2 = s_ptr;
          if ( !s_ptr2 )
             break;
-         s_ptr = strchr(s_ptr2, '`');
+         s_ptr = strchr(s_ptr2, *(mudconf.tree_character));
       }
    }
    free_lbuf(s_tmp);
@@ -1653,7 +1653,7 @@ int	ca, ok, aflags, i_nowild;
 		   if (ok && ((i_nowild && (strcmp(atr2->name, attr->name) == 0)) ||
                               (!i_regexp && !quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && !quick_regexp_match(str, (char *)attr->name, 0))) ) {
-                      if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
+                      if ( !i_tree || (i_tree && (count_chars(attr->name, *(mudconf.tree_character)) <= count_chars(str, *(mudconf.tree_character)))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,
@@ -1665,7 +1665,7 @@ int	ca, ok, aflags, i_nowild;
 		   if (ok && ((i_nowild && (strcmp(atr2->name, attr->name) == 0)) ||
                               (!i_regexp && quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && quick_regexp_match(str, (char *)attr->name, 0))) ) {
-                      if ( !i_tree || (i_tree && (count_chars(attr->name, '`') <= count_chars(str, '`'))) ) {
+                      if ( !i_tree || (i_tree && (count_chars(attr->name, *(mudconf.tree_character)) <= count_chars(str, *(mudconf.tree_character)))) ) {
 			   olist_add(master,ca);
 			   if (hash_insert) {
 				   nhashadd(ca, (int *)attr,

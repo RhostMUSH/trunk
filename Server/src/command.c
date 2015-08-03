@@ -5663,6 +5663,7 @@ list_options_system(dbref player)
 #else
     notify(player, "Player password encryption method -------------------------------- DES");
 #endif
+    notify(player, unsafe_tprintf("Current TREE character is defined as ----------------------------- %s", mudconf.tree_character));
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
                               SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
