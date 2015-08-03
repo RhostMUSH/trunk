@@ -406,6 +406,7 @@ struct confdata {
 	int	float_precision;	/* Float percision for math functions() -- default 6 */
 	int	admin_object;	/* The admin object */
 	int	enhanced_convtime;	/* Enhanced convtime format */
+	char	tree_character[2];	/* The Tree Character */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
