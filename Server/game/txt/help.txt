@@ -28271,6 +28271,8 @@
     optionally if that word would have been capitalized [ASH]
   * pos(), totpos(), and numpos() optionally matches any of the 
     chars specified [ASH]
+  * new parameter in examine_restrictive and it now restricts
+    @decompile as well [ASH]
     
   Bug Fixes
   ------------
