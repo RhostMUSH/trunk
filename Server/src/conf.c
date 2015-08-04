@@ -295,6 +295,7 @@ NDECL(cf_init)
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
+    strcpy(mudconf.tree_character, (char *)"'");
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -2365,6 +2366,36 @@ CF_HAND(cf_atrperms)
  * cf_string: Set string parameter.
  */
 
+CF_HAND(cf_string_chr)
+{
+    int retval;
+    char *buff;
+
+    /* Copy the string to the buffer if it is not too big */
+
+    retval = 0;
+    if (strlen(str) >= extra) {
+	str[extra - 1] = '\0';
+	if (mudstate.initializing) {
+	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
+		buff = alloc_lbuf("cf_string.LOG");
+	    sprintf(buff, "%.3900s: String truncated", cmd);
+	    log_text(buff);
+	    free_lbuf(buff);
+	    ENDLOG
+	} else {
+	    notify(player, "String truncated");
+	}
+	retval = 1;
+    }
+    if ( *str ) 
+       strcpy((char *) vp, str);
+    else
+       strcpy((char *) vp, (char *)"`");
+
+    return retval;
+}
+
 CF_HAND(cf_string)
 {
     int retval;
@@ -3616,6 +3647,9 @@ CONF conftable[] =
     {(char *) "toggle_access_type",
      cf_toggle_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Toggle TYPE Restrictions ala @flagdef"},
+    {(char *) "tree_character",
+     cf_string_chr, CA_GOD | CA_IMMORTAL, (int *) mudconf.tree_character, 2, 0, CA_WIZARD,
+     (char *) "The character for the tree seperator."},
     {(char *) "forbid_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
      H_FORBIDDEN, 0, CA_WIZARD,
@@ -5191,6 +5225,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                } else if ( (tp->interpreter == cf_string) ||
                          (tp->interpreter == cf_atrperms) ||
                          (tp->interpreter == cf_string_sub) ||
+                         (tp->interpreter == cf_string_chr) ||
                          (tp->interpreter == cf_dynstring) ||
                          (tp->interpreter == cf_dynguest) ||
 			 (tp->interpreter == cf_sidefx && bVerboseSideFx)) {

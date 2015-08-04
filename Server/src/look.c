@@ -1177,7 +1177,7 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 
 	buf = atr_get(thing, ca, &aowner, &aflags);
 	if (Read_attr(player, othing, attr, aowner, aflags, 0)) {
-           if ( !i_tree || (i_tree && !count_chars(attr->name, '`')) ) {
+           if ( !i_tree || (i_tree && !count_chars(attr->name, *(mudconf.tree_character))) ) {
 	      if (!(check_exclude && (aflags & AF_PRIVATE))) {
 		 if (hash_insert)
 		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);
@@ -1847,11 +1847,12 @@ do_examine(dbref player, dbref cause, int key, char *name)
             }
           }
           if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player, thing) ) {
-             if ( ((mudconf.examine_restrictive == 1) && !Guildmaster(player)) ||
-                  ((mudconf.examine_restrictive == 2) && !Builder(player)) ||
-                  ((mudconf.examine_restrictive == 3) && !Admin(player)) ||
-                  ((mudconf.examine_restrictive == 4) && !Wizard(player)) ||
-                  ((mudconf.examine_restrictive == 5) && !Immortal(player)) ) {
+             if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+                  ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+                  ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+                  ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+                  ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+                  ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
                 notify(player, "You don't have permission to examine that.");
 	        olist_cleanup(&master);
                 return;
@@ -1926,11 +1927,12 @@ do_examine(dbref player, dbref cause, int key, char *name)
     }
 
     if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player,thing) ) {
-       if ( ((mudconf.examine_restrictive == 1) && !Guildmaster(player)) ||
-            ((mudconf.examine_restrictive == 2) && !Builder(player)) ||
-            ((mudconf.examine_restrictive == 3) && !Admin(player)) ||
-            ((mudconf.examine_restrictive == 4) && !Wizard(player)) ||
-            ((mudconf.examine_restrictive == 5) && !Immortal(player)) ) {
+       if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+            ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+            ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+            ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
               notify(player, "You don't have permission to examine that.");
               return;
        }
@@ -3087,6 +3089,20 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
         free_lbuf(qualout);
 	return;
       }
+      if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player, thing) ) {
+         if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+              ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+              ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+              ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+              ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+              ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
+            notify(player, "You don't have permission to examine that.");
+            olist_cleanup(&master);
+            free_lbuf(qual);
+            free_lbuf(qualout);
+            return;
+         }
+      }
       if ( i_tf ) {
          sprintf(qual, "#%d", thing);
       } else {
@@ -3119,6 +3135,19 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
         free_lbuf(qual);
         free_lbuf(qualout);
 	return;
+    }
+    if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player, thing) ) {
+       if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+            ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+            ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+            ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
+          notify(player, "You don't have permission to examine that.");
+          free_lbuf(qual);
+          free_lbuf(qualout);
+          return;
+       }
     }
 
     if ( i_tf ) {

@@ -5663,6 +5663,7 @@ list_options_system(dbref player)
 #else
     notify(player, "Player password encryption method -------------------------------- DES");
 #endif
+    notify(player, unsafe_tprintf("Current TREE character is defined as ----------------------------- %s", mudconf.tree_character));
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
                               SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
@@ -6644,13 +6645,15 @@ list_options(dbref player)
     }
     if ( mudconf.examine_restrictive > 0 ) {
        switch(mudconf.examine_restrictive) {
-          case 1: notify(player, "Examine restricts control for mortals.");
+          case 1: notify(player, "Examine restricts control for Guests/Wanderers.");
              break;
-          case 2: notify(player, "Examine restricts control for Guildmaster and lower.");
+          case 2: notify(player, "Examine restricts control for mortals.");
              break;
-          case 3: notify(player, "Examine restricts control for Architect and lower.");
+          case 3: notify(player, "Examine restricts control for Guildmaster and lower.");
              break;
-          case 4: notify(player, "Examine restricts control for Councilor and lower.");
+          case 4: notify(player, "Examine restricts control for Architect and lower.");
+             break;
+          case 5: notify(player, "Examine restricts control for Councilor and lower.");
              break;
           default: notify(player, "Examine restricts control for Wizard and lower.");
              break;

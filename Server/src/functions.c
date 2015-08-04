@@ -17202,6 +17202,158 @@ FUNCTION(fun_or)
     }
     return;
 }
+
+void
+handle_cor(char *fargs[], int nfargs, char *cargs[], int ncargs, int i_key, char *buff, char **bufcx, 
+           dbref player, dbref cause, dbref caller)
+{
+    int i, val, tval, i_keytype, i_first;
+    char *retbuff, *bp, osep;
+
+    i_first = val = 0;
+    osep = '\0';
+    if ( !i_key ) {
+       i_keytype = nfargs;
+    } else {
+       i_keytype = nfargs - 1;
+    }
+    if ( (i_key == 2) || (i_key == 4) || (i_key == 6) || (i_key == 8) ) {
+       retbuff = exec(player, cause, caller, EV_STRIP|EV_FCHECK|EV_EVAL, (char *) fargs[nfargs-1], cargs, ncargs);
+       if ( *retbuff ) {
+          osep = *retbuff;
+       }
+       free_lbuf(retbuff);
+    }
+    for (i = 0; i < i_keytype; i++) {
+        retbuff = exec(player, cause, caller, EV_STRIP|EV_FCHECK|EV_EVAL, (char *) fargs[i], cargs, ncargs);
+        if ( !i_key ) {
+           tval = atoi(retbuff);
+           if (i > 0) {
+               val = val || tval;
+           } else {
+               val = tval || 0;
+           }
+        } else if ( (i_key >= 5) && (i_key <= 8)) {
+           bp = retbuff;
+           if ( *bp && (i_key <= 6) ) {
+              if ( (i_key == 6) && i_first && osep )
+                 safe_chr(osep, buff, bufcx);
+              i_first = 1;
+              safe_str(retbuff, buff, bufcx);
+              if ( i_key == 5 )
+                 val = 1;
+           } else if ( !*bp && (i_key >= 7) ){
+              if ( (i_key == 8) && i_first && osep )
+                 safe_chr(osep, buff, bufcx);
+              i_first = 1;
+              safe_str(retbuff, buff, bufcx);
+              if ( i_key == 7 )
+                 val = 1;
+           }
+        } else if ( (i_key >= 1) && (i_key <= 4) ) {
+           bp = retbuff;
+           while (*bp && isspace(*bp))
+             bp++;
+           if ( !*bp || 
+                ((*bp == '#') && (*(bp+1) == '-')) ||
+                ((*bp == '0') && !*(bp+1)) ) {
+              if ( i_key >= 3 ) {
+                 if ( (i_key == 4) && i_first && osep )
+                    safe_chr(osep, buff, bufcx);
+                 i_first = 1;
+                 safe_str(retbuff, buff, bufcx);
+                 if ( i_key == 3 )
+                    val = 1;
+              }
+              /* Do nothing */
+           } else {
+              if ( i_key <= 2 ) {
+                 if ( (i_key == 2) && i_first && osep )
+                    safe_chr(osep, buff, bufcx);
+                 i_first = 1;
+                 safe_str(retbuff, buff, bufcx);
+                 if ( i_key == 1 )
+                    val = 1;
+              }
+           }
+        }
+        free_lbuf(retbuff);
+        if ( val == 1 )
+           break;
+    }
+    if ( ((i_key == 1) || (i_key == 3) || (i_key == 5) || (i_key == 7)) && (val != 1) ) {
+       retbuff = exec(player, cause, caller, EV_STRIP|EV_FCHECK|EV_EVAL, (char *) fargs[nfargs-1], cargs, ncargs);
+       if ( *retbuff ) {
+          safe_str(retbuff, buff, bufcx);
+       }
+       free_lbuf(retbuff);
+    }
+    if ( !i_key )
+       ival(buff, bufcx, val);
+    return;
+}
+           
+FUNCTION(fun_ofparse) {
+   int i_type, i_args, i_chk;
+   char *retbuff;
+
+   i_type = i_args = 0;
+   i_chk = 2;
+   if ( nfargs > 0 ) {
+      retbuff = exec(player, cause, caller, EV_STRIP|EV_FCHECK|EV_EVAL, (char *) fargs[0], cargs, ncargs);
+      i_type = atoi(retbuff);
+      free_lbuf(retbuff);
+   }
+   switch (i_type) {
+      case 1: /* firstof() */
+      case 3: /* strfirstof()() */
+      case 5: /* !firstof() */
+      case 7: /* !strfirstof() */
+         if ( nfargs >= 2 )
+            i_args = 2;
+         i_chk = 2;
+         break;
+      case 2: /* allof() */
+      case 4: /* strallof() */
+      case 6: /* !allof() */
+      case 8: /* !strallof() */
+         if ( nfargs >= 3 )
+            i_args = 3;
+         i_chk = 3;
+         break;
+      default:
+         safe_str("#-1 UNKNOWN TYPE SPECIFIED.  SELECT BETWEEN 1-8", buff, bufcx);
+         i_type = 0;
+         break;
+   }
+   if ( i_type == 0 )
+      return;
+
+   if ( i_args == 0 ) {
+      safe_str("#-1 FUNCTION (OFPARSE KEYTYPE ", buff, bufcx);
+      ival(buff, bufcx, i_type);
+      safe_str(") EXPECTS ", buff, bufcx);
+      ival(buff, bufcx, i_chk);
+      safe_str(" OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+      ival(buff, bufcx, nfargs);
+      safe_chr(']', buff, bufcx);
+      return;
+   } 
+   handle_cor(fargs+1, nfargs-1, cargs, ncargs, i_type, buff, bufcx, player, cause, caller);
+}
+
+FUNCTION(fun_cor)
+{
+   if ( nfargs < 2 ) {
+        safe_str("#-1 FUNCTION (COR) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+        ival(buff, bufcx, nfargs);
+        safe_chr(']', buff, bufcx);
+        return;
+   }
+   handle_cor(fargs, nfargs, cargs, ncargs, 0, buff, bufcx, player, cause, caller);
+}
+
+/*
 FUNCTION(fun_cor)
 {
     int i, val, tval;
@@ -17229,6 +17381,7 @@ FUNCTION(fun_cor)
     ival(buff, bufcx, val);
     return;
 }
+*/
 
 FUNCTION(fun_nor)
 {
@@ -18857,21 +19010,48 @@ FUNCTION(fun_moneyname)
 
 FUNCTION(fun_pos)
 {
-    int i = 1;
+    int i = 1, i_key;
     char *s, *t, *u;
 
-    i = 1;
+    if (!fn_range_check("POS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
+
     s = strip_all_special(fargs[1]);
-    while (*s) {
-       u = s;
-       t = fargs[0];
-       while (*t && *t == *u)
-           ++t, ++u;
-       if (*t == '\0') {
-           ival(buff, bufcx, i);
-           return;
+    i = 1;
+    if ( i_key ) {
+       t = u = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             if ( !u ) {
+                u = t;
+                break;
+             }
+          }
+          ++s;
+          ++i;
        }
-       ++i, ++s;
+       if ( u ) {
+          ival(buff, bufcx, i);
+          return;
+       }
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+              ++t, ++u;
+          if (*t == '\0') {
+              ival(buff, bufcx, i);
+              return;
+          }
+          ++i, ++s;
+       }
     }
     safe_str("#-1", buff, bufcx);
     return;
@@ -18879,21 +19059,41 @@ FUNCTION(fun_pos)
 
 FUNCTION(fun_numpos)
 {
-    int i = 1, count;
+    int i = 1, count, i_key;
     char *s, *t, *u;
+
+    if (!fn_range_check("NUMPOS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
 
     i = 1;
     count = 0;
     s = strip_all_special(fargs[1]);
-    while (*s) {
-       u = s;
-       t = fargs[0];
-       while (*t && *t == *u)
-           ++t, ++u;
-       if (*t == '\0') {
-           count++;
+    if ( i_key ) {
+       t = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             count++;
+          }
+          ++s;
+          ++i;
        }
-       ++i, ++s;
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+              ++t, ++u;
+          if (*t == '\0') {
+              count++;
+          }
+          ++i, ++s;
+       }
     }
     ival(buff, bufcx, count);
     return;
@@ -18901,24 +19101,51 @@ FUNCTION(fun_numpos)
 
 FUNCTION(fun_totpos)
 {
-    int i = 1;
+    int i = 1, i_key;
     char *s, *t, *u;
     int gotone = 0;
 
-    i = 1;
+    if (!fn_range_check("TOTPOS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
+
     s = strip_all_special(fargs[1]);
-    while (*s) {
-       u = s;
-       t = fargs[0];
-       while (*t && *t == *u)
-           ++t, ++u;
-       if (*t == '\0') {
-           if( gotone )
-              safe_chr(' ', buff, bufcx);
-           gotone = 1;
-           ival(buff, bufcx, i);
+    i = 1;
+    if ( i_key ) {
+       t = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             if ( i_key == 2 ) {
+                safe_chr(*s, buff, bufcx);
+             } else {
+                if( gotone )
+                   safe_chr(' ', buff, bufcx);
+                gotone = 1;
+                ival(buff, bufcx, i);
+             }
+          }
+          ++s;
+          ++i;
        }
-       ++i, ++s;
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+             ++t, ++u;
+          if (*t == '\0') {
+             if( gotone )
+                safe_chr(' ', buff, bufcx);
+             gotone = 1;
+             ival(buff, bufcx, i);
+          }
+          ++i, ++s;
+       }
     }
     return;
 }
@@ -20352,10 +20579,10 @@ FUNCTION(fun_capstr)
 FUNCTION(fun_caplist)
 {
     char *curr, *osep, *sep, style, *wordlist, *t_str, *s_tok, *s_tokr, *ap;
-    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap;
+    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap, i_hcap, i_hyphen;
     
     // We aren't allowed more than 4 args here.
-    if( !fn_range_check( "CAPLIST", nfargs, 1, 4, buff, bufcx ) )
+    if( !fn_range_check( "CAPLIST", nfargs, 1, 5, buff, bufcx ) )
       return;
 
     // If there's no list, then just return nothing.
@@ -20366,6 +20593,7 @@ FUNCTION(fun_caplist)
     sep = ( fargs[1] && *fargs[1] ) ? fargs[1] : (char *)" ";
     osep = ( fargs[2] && *fargs[2] ) ? fargs[2] : sep;
     style = ( fargs[3] && *fargs[3] ) ? ToUpper(*fargs[3]) : 'N';
+    i_hyphen = ( fargs[4] && *fargs[4] ) ? atoi(fargs[4]) : 0;
     wordlist = trim_space_sep( fargs[0], *sep );
     i_last = countwords( fargs[0], *sep );
     i_first = i_found = i_cap = 0;
@@ -20393,7 +20621,7 @@ FUNCTION(fun_caplist)
           // Capitalize the first letter of every word
   	  // Lowercase the rest of each word.
           case 'L': /* Enforce Lower Case */
-             i_cap = 0;
+             i_cap = i_hcap = 0;
              ap = curr;
              while ( *ap ) {
 #ifdef ZENTY_ANSI
@@ -20434,13 +20662,19 @@ FUNCTION(fun_caplist)
                    }
                 }
 #endif
-                if ( !i_cap ) {
-  	           safe_chr( ToUpper( *ap ), buff, bufcx );
-                   i_cap = 1;
-                } else {
-  	           safe_chr( ToLower( *ap ), buff, bufcx );
+                if ( *ap ) {
+                   if ( !i_cap ) {
+  	              safe_chr( ToUpper( *ap ), buff, bufcx );
+                      i_cap = 1;
+                   } else {
+                      if ( i_hyphen && (*(ap-1) == '-') ) {
+  	                 safe_chr( ToUpper( *ap ), buff, bufcx );
+                      } else {
+  	                 safe_chr( ToLower( *ap ), buff, bufcx );
+                      }
+                   }
+                   ap++;
                 }
-                ap++;
 	    }
 	    break;
 
@@ -20480,7 +20714,7 @@ FUNCTION(fun_caplist)
                  s_tok = strtok_r(NULL, " ", &s_tokr);
               }
           }
-          i_cap = 0;
+          i_cap = i_hcap = 0;
           ap = curr;
 	  while( *ap ) {
 #ifdef ZENTY_ANSI
@@ -20521,21 +20755,25 @@ FUNCTION(fun_caplist)
                 }
              }
 #endif
-             if ( !i_cap ) {
-                if ( !i_found || !i_first || (i_lastchk == i_last) ) {
-                   safe_chr( ToUpper( *ap ), buff, bufcx );
-                   i_first = 1;
+             if ( *ap ) {
+                if ( !i_cap ) {
+                   if ( !i_found || !i_first || (i_lastchk == i_last) ) {
+                      safe_chr( ToUpper( *ap ), buff, bufcx );
+                      i_first = 1;
+                   } else {
+                      safe_chr( ToLower( *ap ), buff, bufcx );
+                      i_first = 1;
+                   }
+                   i_cap = i_hcap = 1;
                 } else {
-                   safe_chr( ToLower( *ap ), buff, bufcx );
-                   i_first = 1;
+                   if ( i_hyphen && (*(ap-1) == '-') ) {
+                      safe_chr( ToUpper( *ap ), buff, bufcx );
+                   } else {
+	              safe_chr( ToLower( *ap ), buff, bufcx );
+                   }
                 }
-                i_cap = 1;
-             } else {
-	        if( *ap ) {
-	           safe_chr( ToLower( *ap ), buff, bufcx );
-                }
+                ap++;
              }
-             ap++;
 	  }
           i_lastchk++;
           break;
@@ -20612,15 +20850,15 @@ FUNCTION(fun_creplace)
    if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
        return;
 
-   curr_temp = exec(player, cause, caller,
-                    EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
-   i_val = atoi(curr_temp);
-   free_lbuf(curr_temp);
+   sop = exec(player, cause, caller,
+              EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
+   i_val = atoi(sop);
    if ( i_val < 1 || i_val > (LBUF_SIZE-1) ) {
       curr_temp = alloc_mbuf("creplace");
       sprintf(curr_temp, "#-1 VALUE MUST BE > 0 < %d", LBUF_SIZE);
       safe_str(curr_temp, buff, bufcx);
       free_mbuf(curr_temp);
+      free_lbuf(sop);
       return;
    }
 
@@ -20633,15 +20871,15 @@ FUNCTION(fun_creplace)
    safe_str(strip_ansi(curr_temp),curr,&cp);
    free_lbuf(curr_temp);
    cp = curr;
-   if ( (strchr(fargs[1], ' ') != 0) || (strchr(fargs[1], '\t') != 0) ) {
+   sp = sop_temp;
+   if ( (strchr(sop, ' ') != 0) || (strchr(sop, '\t') != 0) ) {
       if ( nfargs > 3) {
          safe_str("#-1 MULTI-REPLACE OPTION REQUIRES 3 ARGS ONLY.", buff, bufcx);
          free_lbuf(sop_temp);
+         free_lbuf(sop);
          free_lbuf(curr);
          return;
       }
-      sop = exec(player, cause, caller,
-                 EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs);
       if ( !*sop || !*sop_temp ) {
          safe_str(curr, buff, bufcx);
          free_lbuf(sop_temp);
@@ -20658,20 +20896,24 @@ FUNCTION(fun_creplace)
          }
          s_strtok = strtok_r(NULL, " \t", &s_strtokr);
       }
-      free_lbuf(sop);
       i_cntr = 0;
       while ( *cp ) {
-         if ( i_array[i_cntr] == 1 )
-            *cp = *sop_temp;
+         if ( i_array[i_cntr] == 1 ) {
+            *cp = *sp;
+            sp++;
+         }
          cp++;
+         if ( !*sp )
+            sp = sop_temp;
          i_cntr++;
       }
       free_lbuf(sop_temp);
+      free_lbuf(sop);
       safe_str(curr, buff, bufcx);
       free_lbuf(curr);
       return;
    }
-
+   free_lbuf(sop);
    sop = alloc_lbuf("fun_creplace");
    sp = sop;
    safe_str(strip_ansi(sop_temp),sop,&sp);
@@ -30844,11 +31086,14 @@ FUN flist[] =
     {"NUMMATCH", fun_nummatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NUMWILDMATCH", fun_numwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NUMMEMBER", fun_nummember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"NUMPOS", fun_numpos, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"NUMPOS", fun_numpos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"OBJ", fun_obj, 1, 0, CA_PUBLIC, 0},
     {"OBJEVAL", fun_objeval, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"OEMIT", fun_oemit, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+#endif
+    {"OFPARSE", fun_ofparse, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+#ifdef USE_SIDEEFFECT
     {"OPEN", fun_open, 1, FN_VARARGS, CA_PUBLIC, 0},
 #endif
     {"OR", fun_or, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -30883,7 +31128,7 @@ FUN flist[] =
     {"PID", fun_pid, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PMATCH", fun_pmatch, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PORT", fun_port, 1, 0, CA_WIZARD, CA_NO_CODE},
-    {"POS", fun_pos, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"POS", fun_pos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"POSS", fun_poss, 1, 0, CA_PUBLIC, 0},
     {"POWER", fun_power, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"POWER10", fun_power10, 1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -31030,7 +31275,7 @@ FUN flist[] =
     {"TOTMATCH", fun_totmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"TOTPOS", fun_totpos, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TOTPOS", fun_totpos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TR", fun_tr, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TRACE", fun_trace, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRANSLATE", fun_translate, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},

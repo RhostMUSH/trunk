@@ -1616,6 +1616,79 @@
   
   See Also: mail, news, folder
   
+& FIRSTOF()
+& ALLOF()
+& STRFIRSTOF()
+& STRALLOF()
+& OFPARSE()
+  Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
+
+  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  
+  This function will take each <eval> and returns it based on the <type>.
+  
+  The following types exist:
+    1  -- Issue a firstof().  Essentially return the first <eval> that is
+          a true boolean.  This stops evaluation on first true <eval>.
+          The <default> is returned if no evals are met.  The <default>
+          is the assumed argument if only passed a single argument.
+    2  -- Issue an allof().  Essentially returning every <eval> that is
+          a true boolean.  This evaluates every argument.
+    3  -- This is the reverse of '1'.  It returns the first <eval> that
+          is a false boolean.  IT stops evaluation on first false <eval>.
+          This again assumes <default> if no other arguments.
+    4  -- This is the reverse of '2'.  It returns every false <eval>
+          boolean. This evaluates every argument.
+    5  -- Issue a strfirstof().  Essentially returns the first <eval> that
+          is a non-null string.  This stops evaluation on first non-null
+          <eval>.
+    6  -- Issues a strallof().  Essentially returns every <eval> that is
+          a non-null string.  This evaluates everyu argument.
+    7  -- This is the reverse of '5'.  It essentially will either return
+          a null or the default value.
+    8  -- This is the reverse of '6'.  It essentially will return
+          a list of nulls if you have such in your list.  This evaluates
+          every argument.
+  
+  For PennMUSH function lineup:
+      firstof(x,y)    == ofparse(1,x,y)
+      allof(x,y,z)    == ofparse(2,x,y,z)
+      strfirstof(x,y) == ofparse(5,x,y)
+      strallof(x,y,z) == ofparse(6,x,y,z)
+  
+{ see 'help ofparse2' for examples }
+
+& OFPARSE2
+  (CONTINUED)
+  Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
+
+  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Examples:
+    > say ofparse(1,0,2)
+    You say "2"
+    > say ofparse(1,10,11,0)
+    You say "10"
+    > say ofparse(1,grab(the cat,mommy),grab(in the hat,daddy),#-1 Error)
+    You say "#-1 Error"
+    > say ofparse(2,#-1,#101,#2970,,#-3,0,#319,null(This Doesn't Count),|)
+    You say "#101|#2970|#319"
+    > say ofparse(2,foo, 0, #-1, bar, baz,)
+    You say "foobarbaz"
+    > say ofparse(2,foo, 0, #-1, bar, baz,%b)
+    You say "foo bar baz"
+    > say ofparse(3,get(%#/fullname), u(%#/ansiname), %n)
+    You say, "Mike"
+    > say ofparse(4,,  ,foo,@@(Nothing),%b,bar|baz,#-1,|)
+    You say, "foo| |bar|baz|#-1"
+  
+  See Also: BOOLEAN VALUES, cor(), cand(), iter()
+
 & OUTPUTPREFIX
   Command: OUTPUTPREFIX <string>
   Causes <string> to be output on a line by itself before printing the
@@ -2610,6 +2683,9 @@
   is processed.  Great for timed events.
   
   The /inline switch may use %d0 to %d9 for ## substitution.  %dL for outer.   
+  
+  Without /inline, it will not handle %d0-%d9.  The reason is the overhead
+  that this would cause would be insufficient for the rewards. 
   
   If present, <switch> can be any of:
     /space     - (Default) List elements are separated by spaces.
@@ -5772,8 +5848,12 @@
   
   See Also: @include, @force, @trigger, @skip, @break, @assert, @switch
 
+& @attach
 & @include
   Command: @include[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
+           @attach[/<switch>]  <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
+  
+  Note:  @attach is an alias to @include/override.
   
   The @include command can only be issued in a queue.  Ergo, if it is to be 
   issued at the player command line, it must be queued first (like with @wait)
@@ -8193,8 +8273,16 @@
 & ATTRIBUTE TREES
   Topic: Attribute trees
   
+  For ease of documentation, the attribute tree character for this
+  documentation will be the ` character.
+  
   Attribute trees are defined by attributes that contain ` to break up each
   branch in a tree.  Example:  THIS`IS`A`TREE`ATTRIBUTE
+  
+  Note:  The tree character, while defaulting to ` can be defined as any
+         character, and may be changed depending on the whim of the admin
+         running your game.  Please check '@list options system' on what the
+         current tree character is defined as.  
   
   @clusters and @wipe are not tree aware.  This is intentional, and will 
   not be worth the effort to make them so.  Please do not ask for it to happen.
@@ -8218,6 +8306,9 @@
   
   For detailed information on limitations of what RhostMUSH does not:
      ATTRIBUTE TREE LIMITATIONS -- Limitations of attribute trees.
+  
+  For showing what the current TREE character is:
+     @list options system
   
   See Also: @set, &, set(), rset(), lattr()
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
@@ -12628,43 +12719,74 @@
   See Also: lit(), s(), t()
   
 & POS()
-  Function: pos(<string1>,<string2>)
+  Function: pos(<string1>,<string2>[,<type>])
    
   This function returns the position that string1 begins in string2,
   with the first position being 1.
   If string1 is not in string2, then it returns #-1.
-   
+  
+  You may optionally specify a <type> of '1' to tell pos() to match ANY
+  of the characters specified in <string1> and to return the first match. 
+  
   Example: 
     > say pos(man,superman)
+    You say "6"
+    > say pos(uman,superman,1)
+    You say "2"
+    > say pos(nam,superman,1)
     You say "6"
   
   See Also: totpos(), numpos(), randpos()
   
 & TOTPOS()
-  Function: totpos(<match>,<string>)
+  Function: totpos(<match>,<string>[,<type>])
   
   This function returns all the positions of 'match' in the given 'string'.
   This works just like pos() but will give the character placement of
   all the matches instead of the pos()'s first match.
-  If match is not found in string, a #-1 is returned.
   
+  If a match is not found in string, an empty value is returned (null).
+  
+  The following types are available:
+    1 - Tells totpos() to match ANY of the characters specified in 
+        <string> and to return all the matches. 
+    2 - Tells totpos() to match ANY of the characters specified in
+        <string> and return the characters matched, in order, that
+        were found.
+  
+  Note:  Options 1 and 2 are good mixes to stage and prep replacement
+         with the creplace() function.
+   
   Example:
     > say totpos(t,this is a test)
     You say "1 11 14"
+    > say totpos(ts,this is a test,1)
+    You say "1 4 7 11 13 14"
+    > say totpos(ts,this is a test,2)
+    You say "tsstst"
+    > say totpos(t,foobles)
+    You say ""
   
-  See Also: numpos(), pos(), randpos()
+  See Also: numpos(), pos(), randpos(), creplace()
   
 & NUMPOS()
-  Function: numpos(<match>,<string>)
+  Function: numpos(<match>,<string>[,<type>])
   
   This function returns the total number of matches of 'match' in the
   string 'string'.  This works like totpos() but returns the number
   of matches instead of the position of the matches.  If no matches
   are found, it returns a '0'.
   
+  You may optionally specify a <type> of '1' to tell numpos() to match ANY
+  of the characters specified in <string> and to return the total.
+  
   Example:
     > say numpos(t,this is a test)
     You say "3"
+    > say numpos(ts,this is a test,1)
+    You say "6"
+    > say totpos(t,foobles)
+    You say "0"
   
   See Also: totpos(), pos(), randpos()
   
@@ -12832,7 +12954,12 @@
   
   The second option only allows three arguments, and will replace the 
   character positions specfied in the space delimited <position list>
-  with the character specified with <character>.
+  with the character(s) specified with <character>.  If you specify more
+  than one character, it will continue to wrap around the list until
+  the end of the string is met.
+  
+  Note:  The second option can use output from totpos() to stage and prep
+         the values you want to replace depending on the situation.
   
   Valid types are: 
         o - overwrite : starting at position it'll continue to overwrite
@@ -12855,8 +12982,10 @@
   Option 2 Example:
     > say creplace(this is a test,1 3 4,X)
     You say "XhXX is a test"
+    > say creplace(this is a test,1 3 4,XYZ)
+    You say "XhYZ is a test"
   
-  See Also: replace(), lreplace()
+  See Also: replace(), lreplace(), totpos()
   
 & strmath()
   Function: strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>)
@@ -14289,6 +14418,7 @@
     You say "1 - test / test2"
   
   See Also: BOOLEAN VALUES, and(), not(), xor(), nand(), nor(), xnor(), cand()
+            ofparse()
   
 & OR()
   Function: or(<boolean1>,<boolean2>[,<booleanN>]...)
@@ -15628,7 +15758,7 @@
   See Also: lcstr(), ucstr(), caplist()
 
 & CAPLIST()
-  Function: caplist(<list>[,<delim>[,<osep>[,<key>]]])
+  Function: caplist(<list>[,<delim>[,<osep>[,<key>[,<type>]]]])
 
   Returns <list> with the first character of each word capitalized.  You may
   specify an optional <delim> as a delimiter for the list input, otherwise the
@@ -15644,6 +15774,11 @@
     - T:    Performs a 'true' capitalization based on currently English
             definition for titles.
   
+  A <type> of '1' will work with <key> values of 'L' or 'T' to optionally 
+  capitalize all words contained in a hyphon, optionally.  The default
+  behavior is to capitalize only the start of the word.  This <type> value
+  has no influence on the 'N' <key> type.
+   
   Example:
     > say caplist(the mAn in thE mOon).
     You say "The MAn In ThE MOon."
@@ -16164,6 +16299,8 @@
     > say iter(Was it a cat I saw,words(##),s)
     You say "1 4 1"
     > say iter(This is a test,##,,***)
+    You say "This***is***a***test"
+    > say iter(This is a test,%i0,,***)
     You say "This***is***a***test"
   
   See Also: nsiter(), citer(), @dolist, parse(), list(), list(), itext(), 
@@ -18273,7 +18410,7 @@
     4
     2
     BB
-    > @emit [list(This@is,strlen(##),@,AA)]BB
+    > @emit [list(This@is,strlen(%i0),@,AA)]BB
     AA
     4
     2
@@ -25925,6 +26062,7 @@
   nostr()       - The exact opposite of str().
   notchr()      - Returns true if NONE of the specified chars are in string.
   numpos()      - Returns the total number of matches of a character in string.
+  ofparse()     - Returns various manipulations of evaluated strings.
   orchr()       - Returns true if any of the specified chars are in a string.
   parsestr()    - Parses a string according to formatting rules.
   pedit()       - Like edit(), but with PennMUSH functionality.
@@ -28104,6 +28242,9 @@
     - ./patch.sh (and patching) will not break backward compatibility.
   * enhanced_convtime toggles the processing of extra formats for the
     convtime() function [ASH]
+  * ofparse() -- Handles all the various firstoff/allof/etc functions [ASH]
+  * tree_character -- @admin param to define what the TREE character is
+    for attribute trees.  Default of ` [ASH]
   
   Changes
   ------------
@@ -28126,6 +28267,12 @@
   * mysql has been enhanced and security improved [ASH]
   * setq/setr with + and ! if fed a label, if label is 0-9 or a-z,
     it sets the register instead of setting a label. [ASH]
+  * caplist() optionally capitalizes all parts of hyphonated words
+    optionally if that word would have been capitalized [ASH]
+  * pos(), totpos(), and numpos() optionally matches any of the 
+    chars specified [ASH]
+  * new parameter in examine_restrictive and it now restricts
+    @decompile as well [ASH]
     
   Bug Fixes
   ------------

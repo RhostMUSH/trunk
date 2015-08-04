@@ -5290,16 +5290,16 @@
   thing_quota               thing_toggles             timeslice               
   toggle_access_see         toggle_access_set         toggle_access_type
   toggle_access_unset       tor_localhost             tor_paranoid            
-  trace_output_limit        trace_topdown             trust_site              
-  uncompress_program        unowned_safe              user_attr_flags         
-  validate_host             vattr_limit_checkwiz      vlimit                  
-  wait_cost                 wall_cost                 whereis_notify          
-  wizmax_dest_limit         wizmax_vattr_limit        who_default             
-  who_unfindable            who_showwiz               who_wizlevel            
-  who_whowiztype            whohost_size              wiz_override            
-  wiz_uselock               wizard_help_file          wizard_help_index       
-  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
-  zone_parents
+  trace_output_limit        trace_topdown             tree_character
+  trust_site                uncompress_program        unowned_safe            
+  user_attr_flags           validate_host             vattr_limit_checkwiz    
+  vlimit                    wait_cost                 wall_cost               
+  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
+  who_default               who_unfindable            who_showwiz             
+  who_wizlevel              who_whowiztype            whohost_size            
+  wiz_override              wiz_uselock               wizard_help_file        
+  wizard_help_index         wizard_motd_file          wizard_motd_message     
+  wizard_queue_limit        zone_parents
 
 { 'wizhelp config parameters7' for more (reality levels) }
 
@@ -5503,8 +5503,9 @@
       OWNER         -- Optional.  The owner that the prefix will affect.
       TARGET        -- Optional.  The specific dbref# the prefix will affect.
   
-  Please note the permission is a bittype from 1 to 7.  It uses the same
+  Please note the permission is a bittype from 1 to 8.  It uses the same
   numerical values that the bittype() function uses.  These values are:
+      Evaluation      8  (Special -- This is an evaluation bit only)
       God (#1)        7
       Super-Royalty   6
       Royalty         5
@@ -5515,8 +5516,10 @@
    
   Owner can be anything, but defaults to '-1' to mean global.
   Target can be anything, but defaults to '-1' to mean global.
-   
-  See Also: atrperms_max, @aflags
+  
+  For more about the bits see: @aflags bits 
+  
+  See Also: atrperms_max, @aflags, @aflags bits
   
 {see atrperms2 for examples and explainations}
 & atrperms2
@@ -6094,14 +6097,17 @@
   
   Specifies the 'bitlevel' that is restrictive from examining anything 
   they can't control.  If they fail, it returns that they can not examine
-  the target and returns no information about the target.  The following
-  levels exist to be settable:
+  the target and returns no information about the target.  This will also
+  affect @decompile.
+  
+  The following levels exist to be settable:
           0  - default: no additional restrictions set.
-          1  - guildmaster: under guildmaster held to restrictions.
-          2  - architect: under architect held to restrictions.
-          3  - councilor: under councilor held to restrictions.
-          4  - wizard: under wizard/royalty held to restrictions.
-          5  - immortal: under immortal held to restrictions.
+          1  - mortal: guests/wanderers held to restrictions.
+          2  - guildmaster: under guildmaster held to restrictions.
+          3  - architect: under architect held to restrictions.
+          4  - councilor: under councilor held to restrictions.
+          5  - wizard: under wizard/royalty held to restrictions.
+          6  - immortal: under immortal held to restrictions.
   
   There is nothing to block immortals as immortals are considered #1.
   The current setting is visible through @list options.
@@ -9171,6 +9177,17 @@
   shown first, followed by sub-evaluations), or bottom-up (sub-evaluations
   shown first, followed by the larger evaluation of which they are a part).
 
+& tree_character
+  Config parameter: tree_character <character>.  Default: `
+  
+  Defines the character used to distinguish Penn-like trees.  Since ` is
+  an annoying character, it's up to the administration to select one
+  if this doesn't work for them.
+  
+  The character currently selected is displayed with:
+                   @list options system
+  
+  
 & trust_site
   Config parameter: trust_site <addr> <mask>.
   

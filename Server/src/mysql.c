@@ -278,6 +278,12 @@ static int sql_init(dbref player) {
  
   if ( (mysql_check_bool == -1) || ((mysql_check_bool > 3) && (mudstate.now < (mysql_last_check + 120))) ) {
      notify(player, "Too many failed attempts to connect to the database.  Issue @sqlconnect to enforce a restart.");
+     if ( mysql_check_bool != -1 ) {
+        STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
+        log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
+        log_text("Critical failure to connect to SQL database.  @sqlconnect is required to restart connection.");
+        ENDLOG
+     }
      mysql_check_bool = -1;
      return 1;
   } 
@@ -339,7 +345,7 @@ static int sql_query(dbref player,
   if ( mysql_check_bool == -1 ) {
      notify(player, "No SQL database connection.  Enforce restart with @sqlconnect.");
      if (buff)
-        safe_str("#-1", buff, bp);
+         safe_str("#-1 CONNECTION FAILED", buff, bp);
      return -1;
   }
 
@@ -365,14 +371,21 @@ static int sql_query(dbref player,
   }
   if (!mysql_struct || (mysql_ping(mysql_struct) != 0)) {
     notify(player, "No SQL database connection.");
+    STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
+    log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
+    log_text("Failure to connect to SQL database in sql-query.");
+    ENDLOG
     if (buff)
-      safe_str("#-1", buff, bp);
+      safe_str("#-1 CONNECTION FAILED", buff, bp);
     sql_shutdown(player);
     return -1;
   }
 
-  if (!q_string || !*q_string)
+  if (!q_string || !*q_string) {
+    if (buff)
+      safe_str("#-1 INVALID QUERY", buff, bp);
     return 0;
+  }
   
   /* Send the query. */
   
@@ -383,10 +396,16 @@ static int sql_query(dbref player,
   got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
   if ( mudstate.alarm_triggered ) {
      notify(player, "The SQL engine forced a failure on a timeout.");
+     STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
+     log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
+     log_text("Timeout Failure to respond to SQL database in sql-query.");
+     ENDLOG
      sql_shutdown(player);
      mudstate.alarm_triggered = 0;
      alarm_msec(next_timer());
      free_lbuf(s_qstr);
+     if (buff)
+        safe_str("#-1 CONNECTION TIMEOUT", buff, bp);
      return 0;
   }
   free_lbuf(s_qstr);
@@ -427,10 +446,16 @@ static int sql_query(dbref player,
       got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
       if ( mudstate.alarm_triggered ) {
          notify(player, "The SQL engine forced a failure on a timeout.");
+         STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
+         log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
+         log_text("Timeout Failure to respond to SQL database in sql-query.");
+         ENDLOG
          sql_shutdown(player);
          mudstate.alarm_triggered = 0;
          alarm_msec(next_timer());
          free_lbuf(s_qstr);
+         if (buff)
+           safe_str("#-1 CONNECTION TIMEOUT", buff, bp);
          return 0;
       }
       free_lbuf(s_qstr);
@@ -438,12 +463,16 @@ static int sql_query(dbref player,
       alarm_msec(next_timer());
     } else {
       notify(player, "The SQL engine forced a failure on a timeout and couldn't reconnect.");
+      STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
+      log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
+      log_text("Timeout Failure to respond to SQL database in sql-query with reconnect.");
+      ENDLOG
     }
   }
   if (got_rows) {
     notify(player, mysql_error(mysql_struct));
     if (buff)
-      safe_str("#-1", buff, bp);
+      safe_str("#-1 QUERY ERROR", buff, bp);
     return -1;
   }
   
