@@ -6645,13 +6645,15 @@ list_options(dbref player)
     }
     if ( mudconf.examine_restrictive > 0 ) {
        switch(mudconf.examine_restrictive) {
-          case 1: notify(player, "Examine restricts control for mortals.");
+          case 1: notify(player, "Examine restricts control for Guests/Wanderers.");
              break;
-          case 2: notify(player, "Examine restricts control for Guildmaster and lower.");
+          case 2: notify(player, "Examine restricts control for mortals.");
              break;
-          case 3: notify(player, "Examine restricts control for Architect and lower.");
+          case 3: notify(player, "Examine restricts control for Guildmaster and lower.");
              break;
-          case 4: notify(player, "Examine restricts control for Councilor and lower.");
+          case 4: notify(player, "Examine restricts control for Architect and lower.");
+             break;
+          case 5: notify(player, "Examine restricts control for Councilor and lower.");
              break;
           default: notify(player, "Examine restricts control for Wizard and lower.");
              break;

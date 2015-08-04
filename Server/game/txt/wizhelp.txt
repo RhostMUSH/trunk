@@ -6097,14 +6097,17 @@
   
   Specifies the 'bitlevel' that is restrictive from examining anything 
   they can't control.  If they fail, it returns that they can not examine
-  the target and returns no information about the target.  The following
-  levels exist to be settable:
+  the target and returns no information about the target.  This will also
+  affect @decompile.
+  
+  The following levels exist to be settable:
           0  - default: no additional restrictions set.
-          1  - guildmaster: under guildmaster held to restrictions.
-          2  - architect: under architect held to restrictions.
-          3  - councilor: under councilor held to restrictions.
-          4  - wizard: under wizard/royalty held to restrictions.
-          5  - immortal: under immortal held to restrictions.
+          1  - mortal: guests/wanderers held to restrictions.
+          2  - guildmaster: under guildmaster held to restrictions.
+          3  - architect: under architect held to restrictions.
+          4  - councilor: under councilor held to restrictions.
+          5  - wizard: under wizard/royalty held to restrictions.
+          6  - immortal: under immortal held to restrictions.
   
   There is nothing to block immortals as immortals are considered #1.
   The current setting is visible through @list options.
