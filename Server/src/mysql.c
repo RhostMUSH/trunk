@@ -166,18 +166,19 @@ FUNCTION(local_fun_sql_escape) {
 
   if ( mysql_check_bool == -1 ) {
      notify(player, "No SQL database connection.  Enforce restart with @sqlconnect.");
-     safe_str("#-1 NO CONNECTION", buff, bufcx);
+     safe_str("#-1 CONNECTION FAILED", buff, bufcx);
      return;
   }
 
-  memset(bigbuff, '\0', sizeof(bigbuff));
-
+  if ( mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+     sql_shutdown(player);
+  }
   if (!mysql_struct) {
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
       nanosleep((struct timespec[]){{0, 900000000}}, NULL);
-      sql_init(cause);
+      sql_init(player);
       retries++;
     }
   }
@@ -189,13 +190,19 @@ FUNCTION(local_fun_sql_escape) {
          retries++;
       }
   }
-
   if (!mysql_struct || (mysql_ping(mysql_struct) != 0)) {
-    safe_str("#-1 NO CONNECTION", buff, bufcx);
+    STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
+    log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
+    log_text("Failure to connect to SQL database in sql-escape.");
+    ENDLOG
+    safe_str("#-1 CONNECTION FAILED", buff, bufcx);
+    sql_shutdown(player);
     mysql_struct = NULL;
     return;
   }
-  
+
+  memset(bigbuff, '\0', sizeof(bigbuff));
+
   s_localchr = alloc_lbuf("local_fun_sql_escape");
   memset(s_localchr, '\0', LBUF_SIZE);
   strncpy(s_localchr, fargs[0], LBUF_SIZE-2);
