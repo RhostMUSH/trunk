@@ -108,6 +108,8 @@ while(defined($file = &$files)) {
 
 system("rm -f ./$dir/netrhost.conf 2>/dev/null");
 system("rm -f ./$dir/netrhost.pid 2>/dev/null");
+system("rm -f ./$dir/kill_back.sh 2>/dev/null");
+system("rm -f ./$dir/kill_sleep.sh 2>/dev/null");
 
 #die "Unable to open ./game/netrhost.conf and ./$dir/netrhost.conf!\n"
 #  unless (open(FIN, './game/netrhost.conf') && open(FOUT, ">./$dir/$dir.conf"));

@@ -132,9 +132,9 @@
   SEMAPHORES          SENSES            SETQ_TEMPLATES       SQL
   SQLESCAPE           SIDEEFFECTS       SINGLETHREADING      SPOOFING           
   STACK               SUBSTITUTIONS     SUCCESS              SWITCHES           
-  TOGGLES             USEFUL            VARIABLE EXITS       VATOVZ             
-  VERBS               WANDERER          ZATOZZ               ZONES              
-  $-COMMANDS          #LAMBDA
+  TOGGLES             USEFUL            USER ATTRIBUTES      VARIABLE EXITS   
+  VATOVZ              VERBS             WANDERER             ZATOZZ           
+  ZONES               $-COMMANDS        #LAMBDA
   
   
 & SQL
@@ -9991,7 +9991,10 @@
   equivalent to %o, for instance).  The percent form (%o in the previous
   example) is preferred as it is faster, and there are no longer any security
   problems associated with it.  Note that attributes with single-character
-  names cannot be retrieved with v().
+  names cannot be retrieved with v().  
+  
+  '#' will return the dbref# of the enactor, UNLESS there is a valid char
+  after it in which it will attempt to pull the attribute.
   
   Do note that the '%' substitution for attributes only works for @va to @vz.
   
@@ -9999,6 +10002,20 @@
                 any attribute with a single character.
   
   Notes: v() allows you to grab values past %9 without resorting to shift().
+  
+  Examples:
+    > &# me=test
+    Set
+    > &#123 me=Test 2
+    Set
+    > say num(me)
+    You say "#123"
+    > say v(#)
+    You say "#123"
+    > say get(me/#)
+    You say "test"
+    > say v(#123)
+    You say "Test 2"
   
   See Also: GENDER, SUBSTITUTION, PARENT OBJECTS, SHIFT()
   
@@ -25149,6 +25166,25 @@
   
                          help differences
   
+& USER ATTRIBUTES
+  User attributes are defined as personally designed or created attribute
+  names by the user.  These can be mostly anything you want, up to the
+  length of the current SBUF (32 or 64 characters) and starting with
+  a-z, A-Z, ~ (if configured), # (if configured), or _ (wiz only).
+  
+  Attributes may not start with any other character, but after the initial
+  character they are able to contain most characters up to the SBUF
+  lenght.
+  
+  You can set these attributes with the & (or clustered >) command, or by
+  using @set or set().  Individual help for each of those is available.
+  
+  Attribute permissions may not be possible to set based on locks that may
+  exist, control of the object you're trying to set it on, or global 
+  permissions prefixes that may be established.
+  
+  See Also: &, >, @set, set(), @cpattr, @mvattr
+  
 & DIFFERENCES
   First we'll touch on the TinyMUX differences.
   1) Paging.
@@ -28273,6 +28309,7 @@
     chars specified [ASH]
   * new parameter in examine_restrictive and it now restricts
     @decompile as well [ASH]
+  * hardened sqlescape() to more vigerously do connect attempts [ASH]
     
   Bug Fixes
   ------------

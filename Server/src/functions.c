@@ -14810,7 +14810,7 @@ FUNCTION(fun_v)
     tbuf = fargs[0];
 
 #ifdef ATTR_HACK
-    if ((isalpha((int)(tbuf[0])) || (tbuf[0] == '_') || (tbuf[0] == '~')) && tbuf[1]) {
+    if ((isalpha((int)(tbuf[0])) || (tbuf[0] == '_') || (tbuf[0] == '~') || (tbuf[0] == '#')) && tbuf[1]) {
 #else
     if (isalpha((int)(tbuf[0])) && tbuf[1]) {
 #endif
