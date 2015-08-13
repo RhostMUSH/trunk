@@ -7537,7 +7537,7 @@ list_process(dbref player)
  * list_rlevels: List defined reality levels
  */
 static void
-list_rlevels(dbref player)
+list_rlevels(dbref player, int i_key)
 {
     int i, cmp_x, cmp_y, cmp_z;
     char *tpr_buff, *tprp_buff;
@@ -7558,11 +7558,20 @@ list_rlevels(dbref player)
                       cmp_z, mudconf.no_levels));
     } else {
        tprp_buff = tpr_buff = alloc_lbuf("list_rlevels");
-       for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
-           tprp_buff = tpr_buff;
-           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
-               mudconf.reality_level[i].name, mudconf.reality_level[i].value,
-               mudconf.reality_level[i].attr));
+       if ( i_key ) {
+          for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              tprp_buff = tpr_buff;
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: %10u   Desc: %s",
+                  mudconf.reality_level[i].name, mudconf.reality_level[i].value,
+                  mudconf.reality_level[i].attr));
+          }
+       } else {
+          for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              tprp_buff = tpr_buff;
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
+                  mudconf.reality_level[i].name, mudconf.reality_level[i].value,
+                  mudconf.reality_level[i].attr));
+          }
        }
        free_lbuf(tpr_buff);
     }
@@ -7827,7 +7836,10 @@ do_list(dbref player, dbref cause, int extra, char *arg)
         break;
 #ifdef REALITY_LEVELS
     case LIST_RLEVELS:
-        list_rlevels(player);
+        if ( s_ptr2 && *s_ptr2 && (strncmp(s_ptr2, "dec", 3) == 0) )
+           list_rlevels(player, 1);
+        else
+           list_rlevels(player, 0);
         break;
 #endif /* REALITY_LEVELS */
     case LIST_STACKS:

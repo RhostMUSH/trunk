@@ -28310,6 +28310,7 @@
   * new parameter in examine_restrictive and it now restricts
     @decompile as well [ASH]
   * hardened sqlescape() to more vigerously do connect attempts [ASH]
+  * @list rlevel dec for decimal display [ASH]
     
   Bug Fixes
   ------------
