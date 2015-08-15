@@ -3116,6 +3116,13 @@
 & @list rlevels
   Lists all the current reality levels and information about each.  Will
   only work if enabled at compiletime.
+  
+  You may specify 'dec' at the end to return the decimal values instead
+  of hex.
+  
+  Examples:
+    > @list rlevel
+    > @list rlevel dec
 
 & @list cmdslogged
   Lists all commands that are currently being logged.
