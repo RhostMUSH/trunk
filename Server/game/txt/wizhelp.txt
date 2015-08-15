@@ -2936,8 +2936,9 @@
   
   You may page the value by applying a number (from 1 to max-pages) after the
   parameter.  For example:
-    > @list options boolean       - lists first page
-    > @list options boolean 3     - lists third page
+    > @list options boolean        - lists first page
+    > @list options boolean 3      - lists third page
+    > @list options boolean *mail* - list all options that contain 'mail'
   
   See Also: @admin
 

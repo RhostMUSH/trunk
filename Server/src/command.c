@@ -5464,22 +5464,22 @@ list_options_mail(dbref player)
 }
 
 static void
-list_options_boolean_parse(dbref player, int p_val)
+list_options_boolean_parse(dbref player, int p_val, char *s_val)
 {
    DPUSH; /* #44 */
    if (p_val < 1)
       p_val = 1;
-   list_options_boolean(player, p_val);
+   list_options_boolean(player, p_val, s_val);
    DPOP; /* #44 */
 }
 
 static void
-list_options_values_parse(dbref player, int p_val)
+list_options_values_parse(dbref player, int p_val, char *s_val)
 {
    DPUSH; /* #45 */
    if (p_val < 1)
       p_val = 1;
-   list_options_values(player, p_val);
+   list_options_values(player, p_val, s_val);
    DPOP; /* #45 */
 }
 
@@ -7748,18 +7748,20 @@ do_list(dbref player, dbref cause, int extra, char *arg)
                  notify(player, "MySQL has been enabled.");
            } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
               s_ptr = strtok(NULL, " ");
-              if ( s_ptr )
+              if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
-              else
+                 s_ptr = (char *)NULL;
+              } else
                  p_val = 0;
-              list_options_boolean_parse(player, p_val);
+              list_options_boolean_parse(player, p_val, s_ptr);
            } else if ( stricmp(s_ptr2, "values") == 0 ) {
               s_ptr = strtok(NULL, " ");
-              if ( s_ptr )
+              if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
-              else
+                 s_ptr = (char *)NULL;
+              } else
                  p_val = 0;
-              list_options_values_parse(player, p_val);
+              list_options_values_parse(player, p_val, s_ptr);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
                                    " mail, values, boolean, config, system, mysql, convtime");

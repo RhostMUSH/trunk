@@ -28311,6 +28311,8 @@
     @decompile as well [ASH]
   * hardened sqlescape() to more vigerously do connect attempts [ASH]
   * @list rlevel dec for decimal display [ASH]
+  * @list options value/boolean allows optional wildcard searches [ASH]
+  * improved strmath() to handle a greater range of floating points [ASH]
     
   Bug Fixes
   ------------

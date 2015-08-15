@@ -5086,7 +5086,7 @@ list_cf_access(dbref player, char *s_mask, int key)
 }
 
 /* Idea taken from TinyMUSH 3.0 */
-void list_options_boolean(dbref player, int p_val)
+void list_options_boolean(dbref player, int p_val, char *s_val)
 {
    CONF *tp;
    int cntr, t_pages;
@@ -5108,8 +5108,11 @@ void list_options_boolean(dbref player, int p_val)
    for (tp = conftable; tp->pname; tp++) {
       if (((tp->interpreter == cf_bool)) &&
           (check_access(player, tp->flags2, 0, 0))) {
-         if ( (cntr < (20 * (p_val-1))) ||
-              (cntr >= (20 * p_val)) ) {
+         if ( s_val && *s_val ) {
+            if ( !quick_wild(s_val, tp->pname) ) {
+               continue;
+            }
+         } else if ( !s_val && ((cntr < (20 * (p_val-1))) || (cntr >= (20 * p_val))) ) {
             cntr++;
             continue;
          }
@@ -5119,10 +5122,11 @@ void list_options_boolean(dbref player, int p_val)
          cntr++;
       }
    }
-   raw_notify(player, unsafe_tprintf("--- Page %d of %d ---", p_val, t_pages), 0, 1);
+   if ( !s_val )
+      raw_notify(player, unsafe_tprintf("--- Page %d of %d ---", p_val, t_pages), 0, 1);
 }
 
-void list_options_values(dbref player, int p_val)
+void list_options_values(dbref player, int p_val, char *s_val)
 {
    CONF *tp;
    int cntr, t_pages;
@@ -5152,8 +5156,12 @@ void list_options_values(dbref player, int p_val)
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
-         if ( (cntr < (10 * (p_val-1))) ||
-              (cntr >= (10 * p_val)) ) {
+         if ( s_val && *s_val ) {
+            if ( !quick_wild(s_val, tp->pname) ) {
+               continue;
+            }
+         } else if ( !s_val && ((cntr < (10 * (p_val-1))) ||
+                      (cntr >= (10 * p_val))) ) {
             cntr++;
             continue;
          }
@@ -5162,7 +5170,8 @@ void list_options_values(dbref player, int p_val)
          cntr++;
       }
    }
-   raw_notify(player, unsafe_tprintf("--- Page %d of %d---", p_val, t_pages), 0, 1);
+   if ( !s_val )
+      raw_notify(player, unsafe_tprintf("--- Page %d of %d---", p_val, t_pages), 0, 1);
 }
 
 /*---------------------------------------------------------------------------

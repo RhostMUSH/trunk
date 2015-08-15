@@ -122,6 +122,15 @@ int is_integer (char *str)
 	return (*str ? 0 : 1);
 }
 
+int is_float2 (char *str) 
+{
+  char *chk;
+  
+  if(strtod( str, &chk ));
+
+  return (*chk ? 0 : 1);
+}
+
 int is_float (char *str)
 {
    int i_dot = 0;
