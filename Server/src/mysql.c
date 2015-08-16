@@ -216,6 +216,19 @@ FUNCTION(local_fun_sql_escape) {
   free_lbuf(s_localchr);
 }
 
+FUNCTION(local_fun_sql_ping) {
+   char *s_buf;
+
+   if ( !mysql_struct ) {
+      safe_str("1", buff, bufcx);
+   } else {
+      s_buf = alloc_sbuf("sql_ping");
+      sprintf(s_buf, "%d", mysql_ping(mysql_struct));
+      safe_str(s_buf, buff, bufcx);
+      free_sbuf(s_buf);
+   }
+}
+
 void local_mysql_init(void) {
   /* Setup our local command and function tables */
   static CMDENT mysql_cmd_table[] = {
@@ -231,6 +244,7 @@ void local_mysql_init(void) {
     {"SQLESCAPE", local_fun_sql_escape, 1, 0, CA_WIZARD, 0},
     {"SQLON", local_fun_sql_connect, 0, 0, CA_WIZARD, 0},
     {"SQLOFF", local_fun_sql_disconnect, 0, 0, CA_WIZARD, 0},
+    {"SQLPING", local_fun_sql_ping, 0, 0, CA_WIZARD, 0},
     {NULL, NULL, 0, 0, 0, 0}
   };
 
@@ -292,7 +306,7 @@ static int sql_init(dbref player) {
         ENDLOG
      }
      mysql_check_bool = -1;
-     return 1;
+     return -1;
   } 
   /* Try to connect to the database host. If we have specified
    * localhost, use the Unix domain socket instead.
