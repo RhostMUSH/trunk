@@ -406,6 +406,7 @@ struct confdata {
 	int	float_precision;	/* Float percision for math functions() -- default 6 */
 	int	admin_object;	/* The admin object */
 	int	enhanced_convtime;	/* Enhanced convtime format */
+	int	mysql_delay;	/* MySql Retry Delay Value (in seconds) */
 	char	tree_character[2];	/* The Tree Character */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
@@ -756,6 +757,7 @@ struct statedata {
 	char	tor_localcache[1000]; /* Cache for the tor local host */
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */
+	time_t	mysql_last;	/* Last mysql hang time */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

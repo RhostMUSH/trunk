@@ -5168,6 +5168,8 @@
   enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
+{ 'wizhelp config parameters reality' for more (reality levels) }
+{ 'wizhelp config parameters mysql' for more (mysql params) }
 
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
@@ -5309,9 +5311,10 @@
   wizard_help_index         wizard_motd_file          wizard_motd_message     
   wizard_queue_limit        zone_parents
 
-{ 'wizhelp config parameters7' for more (reality levels) }
+{ 'wizhelp config parameters reality' for more (reality levels) }
+{ 'wizhelp config parameters mysql' for more (mysql params) }
 
-& CONFIG PARAMETERS7
+& CONFIG PARAMETERS REALITY
   Topic: CONFIG PARAMETERS (reality levels)
 
   reality_level             wiz_always_real           def_exit_rx
@@ -5319,6 +5322,62 @@
   def_player_rx             def_player_tx             def_thing_rx            
   def_thing_tx              reality_locks             reality_locktype
   reality_compare
+
+{ 'wizhelp config parameters mysql' for more (mysql params) }
+
+& CONFIG PARAMETERS REALITY
+  mysql_delay               mysql_host                mysql_user
+  mysql_pass                mysql_base                mysql_socket
+  mysql_port
+
+{ 'wizhelp config parameters reality' for more (reality levels) }
+
+& mysql_delay
+  Config parameter: mysql_delay <value>.  Default: 0 (range 60-86400)
+  
+  Set the delay for when sql will be allowed to retry the connection
+  to the database after a series of consecutive failures.  The default
+  value of '0' will mean that it will hard-lock any re-attempt until
+  a manual @sqlconnect is issued.
+  
+& mysql_host
+  Config parameter: mysql_host <string>.  Default: localhost
+  
+  Specifies the host that houses the mysql database engine you wish
+  to connect to.  DNS name or IP is fine.
+
+& mysql_user
+  Config parameter: mysql_user <string>.  Default: dbuser
+  
+  Specifies the user that you use to connect to the database.
+  
+& mysql_pass
+  Config parameter: mysql_pass <string>.  Default: dbpass
+  
+  Specifies the password that you use to connect to the database
+  with the user specified in mysql_user.  This is a NON ENCRYPTED 
+  value so please keep that in mind.
+
+& mysql_base
+  Config parameter: mysql_base <string>.  Default: databasename
+  
+  Specifies the actual database name that you will be connecting
+  to with the login defined by mysql_user and the password defined
+  by mysql_pass and the host defined by mysql_host.
+
+& mysql_socket
+  Config parameter: mysql_socket <string>.  Default: /var/lib/mysql/mysql.sock
+  
+  Specifies the mysql_socket file which is usually only necessary for any
+  localhost derived MySQL instances.  This value is ignored for any non-local
+  sql connection that uses the TCP transport utility.
+
+& mysql_port
+  Config parameter: mysql_port <value>.  Default: 3306
+  
+  Specifies the port that the mysql database is running on.  Please be
+  aware that port 3306 should work in most cases as that is the default
+  port for MySQL.
 
 & abort_on_bug
   Config parameter: abort_on_bug <yes/no>.  Default: no

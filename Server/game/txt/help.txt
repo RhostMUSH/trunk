@@ -28306,6 +28306,9 @@
     for attribute trees.  Default of ` [ASH]
   * sqlping() to check if the database is alive and kicking or dead and
     stinky [ASH]
+  * mysql_delay defaults to '0' for a paranoid hard-deny or 60-86400 for
+    a delay on how long until the next attempt for a positive mysql
+    connection is allowed [ASH]
   
   Changes
   ------------
@@ -28338,6 +28341,8 @@
   * @list rlevel dec for decimal display [ASH]
   * @list options value/boolean allows optional wildcard searches [ASH]
   * improved strmath() to handle a greater range of floating points [ASH]
+  * optionally allow a time-delay on MySQL reconnections instead of
+    a forced hard-deny via @sqlconnect to give some better control [ASH]
     
   Bug Fixes
   ------------
