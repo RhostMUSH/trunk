@@ -296,7 +296,7 @@ NDECL(cf_init)
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
-    strcpy(mudconf.tree_character, (char *)"'");
+    strcpy(mudconf.tree_character, (char *)"`");
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
