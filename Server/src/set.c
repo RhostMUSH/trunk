@@ -2151,7 +2151,6 @@ void do_include(dbref player, dbref cause, int key, char *string,
       free_lbuf(buff1);
       return;
    }
-notify(player, unsafe_tprintf("DEBUG: @include: Nargs: %d, Ncargs: %d", nargs, ncargs));
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
       if ( key & INCLUDE_OVERRIDE ) {
