@@ -69,8 +69,8 @@ extern long	FDECL(count_player,(dbref, int));
 /* From conf.c */
 extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
 extern int	FDECL(cf_modify_multibits, (int *, int *, char *, long, long, dbref, char *));
-extern void	FDECL(list_options_boolean, (dbref, int));
-extern void	FDECL(list_options_values, (dbref, int));
+extern void	FDECL(list_options_boolean, (dbref, int, char *));
+extern void	FDECL(list_options_values, (dbref, int, char *));
 extern void	FDECL(cf_display, (dbref, char *, int, char *, char **));
 extern void     FDECL(sideEffectMaskToString, (int, char *, char **));
 /* From udb_achunk.c */
@@ -327,6 +327,7 @@ extern int	FDECL(is_integer, (char *));
 extern int	FDECL(is_number, (char *));
 extern int	FDECL(is_rhointeger, (char *));
 extern int	FDECL(is_float, (char *));
+extern int	FDECL(is_float2, (char *));
 extern int	FDECL(could_doit, (dbref, dbref, int, int, int));
 extern int	FDECL(can_see, (dbref, dbref, int));
 extern int	FDECL(can_see2, (dbref, dbref, int));

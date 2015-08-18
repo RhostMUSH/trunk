@@ -165,9 +165,19 @@ FUNCTION(local_fun_sql_escape) {
     return;
 
   if ( mysql_check_bool == -1 ) {
-     notify(player, "No SQL database connection.  Enforce restart with @sqlconnect.");
-     safe_str("#-1 CONNECTION FAILED", buff, bufcx);
-     return;
+     if ( mudconf.mysql_delay != 0 ) {
+        if ( mudstate.now > (mudstate.mysql_last + mudconf.mysql_delay) ) {
+           mysql_check_bool = 0;
+        } else {
+           notify(player, "SQL failed connect multiple times.  Delaying for timeout period before retry.");
+           safe_str("#-1 CONNECTION FAILED", buff, bufcx);
+           return;
+        }
+     } else {
+        notify(player, "No SQL database connection.  Enforce restart with @sqlconnect.");
+        safe_str("#-1 CONNECTION FAILED", buff, bufcx);
+        return;
+    }
   }
 
   if ( mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
@@ -177,7 +187,7 @@ FUNCTION(local_fun_sql_escape) {
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+      nanosleep((struct timespec[]){{0, 500000000}}, NULL);
       sql_init(player);
       retries++;
     }
@@ -186,7 +196,7 @@ FUNCTION(local_fun_sql_escape) {
   if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
       retries = 0;
       while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
-         nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+         nanosleep((struct timespec[]){{0, 500000000}}, NULL);
          retries++;
       }
   }
@@ -216,6 +226,19 @@ FUNCTION(local_fun_sql_escape) {
   free_lbuf(s_localchr);
 }
 
+FUNCTION(local_fun_sql_ping) {
+   char *s_buf;
+
+   if ( !mysql_struct ) {
+      safe_str("1", buff, bufcx);
+   } else {
+      s_buf = alloc_sbuf("sql_ping");
+      sprintf(s_buf, "%d", mysql_ping(mysql_struct));
+      safe_str(s_buf, buff, bufcx);
+      free_sbuf(s_buf);
+   }
+}
+
 void local_mysql_init(void) {
   /* Setup our local command and function tables */
   static CMDENT mysql_cmd_table[] = {
@@ -231,6 +254,7 @@ void local_mysql_init(void) {
     {"SQLESCAPE", local_fun_sql_escape, 1, 0, CA_WIZARD, 0},
     {"SQLON", local_fun_sql_connect, 0, 0, CA_WIZARD, 0},
     {"SQLOFF", local_fun_sql_disconnect, 0, 0, CA_WIZARD, 0},
+    {"SQLPING", local_fun_sql_ping, 0, 0, CA_WIZARD, 0},
     {NULL, NULL, 0, 0, 0, 0}
   };
 
@@ -283,16 +307,27 @@ static int sql_init(dbref player) {
   if (mysql_struct)
     sql_shutdown(player);
  
+  if ( (mysql_check_bool == -1) && (mudconf.mysql_delay != 0) && ( mudstate.now > (mudstate.mysql_last + mudconf.mysql_delay)) ) {
+     mysql_check_bool = 0;
+  }
+
   if ( (mysql_check_bool == -1) || ((mysql_check_bool > 3) && (mudstate.now < (mysql_last_check + 120))) ) {
-     notify(player, "Too many failed attempts to connect to the database.  Issue @sqlconnect to enforce a restart.");
+     if ( mudconf.mysql_delay > 0 )
+        notify(player, "Too many failed attempts to connect to the database.  Please wait for timed delay.");
+     else
+        notify(player, "Too many failed attempts to connect to the database.  Issue @sqlconnect to enforce a restart.");
      if ( mysql_check_bool != -1 ) {
         STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
         log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
-        log_text("Critical failure to connect to SQL database.  @sqlconnect is required to restart connection.");
+        if ( mudconf.mysql_delay > 0 )
+           log_text("Critical failure to connect to SQL database.  Timed delay has not been met for retry.");
+        else
+           log_text("Critical failure to connect to SQL database.  @sqlconnect is required to restart connection.");
         ENDLOG
      }
      mysql_check_bool = -1;
-     return 1;
+     mudstate.mysql_last = mudstate.now;
+     return -1;
   } 
   /* Try to connect to the database host. If we have specified
    * localhost, use the Unix domain socket instead.
@@ -350,10 +385,21 @@ static int sql_query(dbref player,
    */
   
   if ( mysql_check_bool == -1 ) {
-     notify(player, "No SQL database connection.  Enforce restart with @sqlconnect.");
-     if (buff)
-         safe_str("#-1 CONNECTION FAILED", buff, bp);
-     return -1;
+     if ( mudconf.mysql_delay != 0 ) {
+        if ( mudstate.now > (mudstate.mysql_last + mudconf.mysql_delay) ) {
+           mysql_check_bool = 0;
+        } else {
+           notify(player, "SQL failed connect multiple times.  Delaying for timeout period before retry.");
+           if (buff)
+              safe_str("#-1 CONNECTION FAILED", buff, bp);
+           return -1;
+        }
+     } else {
+        notify(player, "No SQL database connection.  Enforce restart with @sqlconnect.");
+        if (buff)
+           safe_str("#-1 CONNECTION FAILED", buff, bp);
+        return -1;
+    }
   }
 
   if ( mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
@@ -363,7 +409,7 @@ static int sql_query(dbref player,
     /* Try to reconnect. */
     retries = 0;
     while ((retries < MYSQL_RETRY_TIMES) && !mysql_struct) {
-      nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+      nanosleep((struct timespec[]){{0, 500000000}}, NULL);
       sql_init(player);
       retries++;
     }
@@ -372,7 +418,7 @@ static int sql_query(dbref player,
   if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
       retries = 0;
       while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
-         nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+         nanosleep((struct timespec[]){{0, 500000000}}, NULL);
          retries++;
       }
   }
@@ -433,7 +479,7 @@ static int sql_query(dbref player,
     sql_shutdown(player);
     
     while ((retries < MYSQL_RETRY_TIMES) && (!mysql_struct)) {
-      nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+      nanosleep((struct timespec[]){{0, 500000000}}, NULL);
       sql_init(player);
       retries++;
     }
@@ -441,7 +487,7 @@ static int sql_query(dbref player,
     if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
       retries = 0;
       while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
-         nanosleep((struct timespec[]){{0, 900000000}}, NULL);
+         nanosleep((struct timespec[]){{0, 500000000}}, NULL);
          retries++;
       }
     }

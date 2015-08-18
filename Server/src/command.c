@@ -2066,7 +2066,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 {
     char *buf1, *buf2, tchar, *s_uselock, *dx_tmp;
     char *args[MAX_ARG], *tpr_buff, *tprp_buff;
-    int nargs, i, fail, interp, key, xkey, chk_tog;
+    int nargs, i, fail, interp, key, xkey, chk_tog, argtwo_save;
     ATTR *hk_ap2;
     time_t chk_stop;
 
@@ -2085,6 +2085,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 #define	Protect(x) (cmdp->perms & x)
 
     fail = 0;
+
     if (Protect(CA_LOCATION) && !Has_location(player))
 	fail++;
     if (Protect(CA_CONTENTS) && !Has_contents(player))
@@ -2304,6 +2305,13 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	/* Interpret ARG1 */
 
+        argtwo_save = mudstate.argtwo_fix;
+        if ( arg && *arg && (strchr(arg, '=') == NULL) ) {
+           mudstate.argtwo_fix = 1;
+        } else {
+           mudstate.argtwo_fix = 0;
+        }
+
 	buf2 = parse_to(&arg, '=', EV_STRIP_TS);
 
 	/* Handle when no '=' was specified */
@@ -2379,6 +2387,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    if (interp & EV_EVAL)
 		free_lbuf(buf2);
 	}
+        mudstate.argtwo_fix = argtwo_save;
 
 	/* Free the buffer obtained by evaluating Arg1 */
 
@@ -5464,22 +5473,22 @@ list_options_mail(dbref player)
 }
 
 static void
-list_options_boolean_parse(dbref player, int p_val)
+list_options_boolean_parse(dbref player, int p_val, char *s_val)
 {
    DPUSH; /* #44 */
    if (p_val < 1)
       p_val = 1;
-   list_options_boolean(player, p_val);
+   list_options_boolean(player, p_val, s_val);
    DPOP; /* #44 */
 }
 
 static void
-list_options_values_parse(dbref player, int p_val)
+list_options_values_parse(dbref player, int p_val, char *s_val)
 {
    DPUSH; /* #45 */
    if (p_val < 1)
       p_val = 1;
-   list_options_values(player, p_val);
+   list_options_values(player, p_val, s_val);
    DPOP; /* #45 */
 }
 
@@ -7537,7 +7546,7 @@ list_process(dbref player)
  * list_rlevels: List defined reality levels
  */
 static void
-list_rlevels(dbref player)
+list_rlevels(dbref player, int i_key)
 {
     int i, cmp_x, cmp_y, cmp_z;
     char *tpr_buff, *tprp_buff;
@@ -7558,11 +7567,20 @@ list_rlevels(dbref player)
                       cmp_z, mudconf.no_levels));
     } else {
        tprp_buff = tpr_buff = alloc_lbuf("list_rlevels");
-       for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
-           tprp_buff = tpr_buff;
-           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
-               mudconf.reality_level[i].name, mudconf.reality_level[i].value,
-               mudconf.reality_level[i].attr));
+       if ( i_key ) {
+          for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              tprp_buff = tpr_buff;
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: %10u   Desc: %s",
+                  mudconf.reality_level[i].name, mudconf.reality_level[i].value,
+                  mudconf.reality_level[i].attr));
+          }
+       } else {
+          for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              tprp_buff = tpr_buff;
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
+                  mudconf.reality_level[i].name, mudconf.reality_level[i].value,
+                  mudconf.reality_level[i].attr));
+          }
        }
        free_lbuf(tpr_buff);
     }
@@ -7739,18 +7757,20 @@ do_list(dbref player, dbref cause, int extra, char *arg)
                  notify(player, "MySQL has been enabled.");
            } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
               s_ptr = strtok(NULL, " ");
-              if ( s_ptr )
+              if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
-              else
+                 s_ptr = (char *)NULL;
+              } else
                  p_val = 0;
-              list_options_boolean_parse(player, p_val);
+              list_options_boolean_parse(player, p_val, s_ptr);
            } else if ( stricmp(s_ptr2, "values") == 0 ) {
               s_ptr = strtok(NULL, " ");
-              if ( s_ptr )
+              if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
-              else
+                 s_ptr = (char *)NULL;
+              } else
                  p_val = 0;
-              list_options_values_parse(player, p_val);
+              list_options_values_parse(player, p_val, s_ptr);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
                                    " mail, values, boolean, config, system, mysql, convtime");
@@ -7827,7 +7847,10 @@ do_list(dbref player, dbref cause, int extra, char *arg)
         break;
 #ifdef REALITY_LEVELS
     case LIST_RLEVELS:
-        list_rlevels(player);
+        if ( s_ptr2 && *s_ptr2 && (strncmp(s_ptr2, "dec", 3) == 0) )
+           list_rlevels(player, 1);
+        else
+           list_rlevels(player, 0);
         break;
 #endif /* REALITY_LEVELS */
     case LIST_STACKS:

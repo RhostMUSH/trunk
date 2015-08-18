@@ -22539,7 +22539,7 @@ FUNCTION(fun_strmath)
                safe_chr(sep2, buff, bufcx);
             }
          }
-         if ( is_float(s_str) ) {
+         if ( is_float2(s_str) ) {
             f_number = safe_atof(s_str);
             if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
                switch( *fargs[2] ) {

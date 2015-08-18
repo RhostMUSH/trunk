@@ -153,7 +153,7 @@
   mysql or mariadb to be able to link to and use this offering.
   
   See Also: sqlite_query(), @sql, @sqlconnect, @sqldisconnect, sql(), sqlon,
-            sqloff()
+            sqloff(), sqlping()
 
 & CLUSTERS
   Clusters are a method to have 1 or more real dbref#'s defined as a single
@@ -9238,7 +9238,8 @@
   SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()     
   SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()      
   SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
-  SPELLNUM()      SPLICE()        SQLITE_QUERY() SQRT()         SQUISH()     
+  SPELLNUM()      SPLICE()        SQL()          SQLESCAPE()    SQLOFF()
+  SQLON()         SQLPING()       SQLITE_QUERY() SQRT()         SQUISH()     
   STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
   STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
   STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
@@ -11204,7 +11205,9 @@
   Example:
     > @sql SHOW TABLES
    
-  See also: sql(), @sqlconnect, @sqldisconnect, sqlon(), sqloff(), sqlescape()
+  See also: sql(), @sqlconnect, @sqldisconnect, sqlon(), sqloff(),
+            sqlescape(), sqlping()
+
 
 & @sqlconnect
   Command: @sqlconnect
@@ -11215,7 +11218,8 @@
   Example:
     > @sqlconnect
   
-  See Also: sqlon(), @sqldisconnect, sqloff(), @sql, sql(), sqlescape()
+  See Also: sqlon(), @sqldisconnect, sqloff(), @sql, sql(), sqlescape(),
+      sqlping()
 
 & @sqldisconnect
   Command: @sqldisconnect
@@ -11260,7 +11264,8 @@
   > say [sql(v(VAMPS),|,)] -- [sql(v(VAMPS),|,/)]
   You say "Caine 389|Nos 4|Rufus 672 -- Caine/389|Nos/4|Rufus/672"
   
-  See Also: sqlescape(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect
+  See Also: sqlescape(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect,
+            sqlping()
 
 & SQLESCAPE()
   Function: sqlescape(<string>)
@@ -11275,10 +11280,11 @@
   Note: You must be a wizard (or higher) to utilize this function.
   
   Example:
-    > think sqlescape(You don't say)
-    You don\'t say
+    > say sqlescape(You don't say)
+    You say "You don\'t say"
   
-  See Also: sql(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect
+  See Also: sql(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect,
+            sqlping()
 
 & SQLON()
   Function: sqlon()
@@ -11287,9 +11293,11 @@
   Only wizards+ can use this feature.
   
   Example:
-    > think sqlon()
+    > say sqlon()
+    You say "0"
   
-  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql(), sqlescape()
+  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql(), sqlescape(),
+            sqlping()
 
 & SQLOFF()
   Function: sqloff()
@@ -11298,9 +11306,24 @@
   Only wizards+ can use this feature.
   
   Example:
-    > think sqloff()
+    > say sqloff()
+    You say "0"
   
-  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql(), sqlescape()
+  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql(), sqlescape(),
+            sqlping()
+
+& SQLPING()
+  Function: sqlping()
+  
+  This function returns '0' if the database is alive and active, or non-zero
+  (usually '1') if the database has an error with connectivity.
+  
+  Example:
+    > say sqlping()
+    You say "0"
+    
+  See Also: @sqlconnect, sqloff(), @sqldisconnect, @sql, sql(), sqlescape(),
+            sqlon()
 
 & SQLITE_QUERY()
   Function: sqlite_query(<db>,<query>[,<cdel>[,<rdel>[,<arg1>,...,<argN>]]])
@@ -28281,6 +28304,11 @@
   * ofparse() -- Handles all the various firstoff/allof/etc functions [ASH]
   * tree_character -- @admin param to define what the TREE character is
     for attribute trees.  Default of ` [ASH]
+  * sqlping() to check if the database is alive and kicking or dead and
+    stinky [ASH]
+  * mysql_delay defaults to '0' for a paranoid hard-deny or 60-86400 for
+    a delay on how long until the next attempt for a positive mysql
+    connection is allowed [ASH]
   
   Changes
   ------------
@@ -28310,6 +28338,11 @@
   * new parameter in examine_restrictive and it now restricts
     @decompile as well [ASH]
   * hardened sqlescape() to more vigerously do connect attempts [ASH]
+  * @list rlevel dec for decimal display [ASH]
+  * @list options value/boolean allows optional wildcard searches [ASH]
+  * improved strmath() to handle a greater range of floating points [ASH]
+  * optionally allow a time-delay on MySQL reconnections instead of
+    a forced hard-deny via @sqlconnect to give some better control [ASH]
     
   Bug Fixes
   ------------
@@ -28319,3 +28352,4 @@
   * Erraneous warnings removed when compiling with -O2 optimization [ASH]
   * ~/src/Makefile was broke on latest Debian builds because of an
     incompatibility with their /bin/sh (/bin/dash) binary [ASH]
+  * argument handler issue when passing zero args to @include/override [ASH]

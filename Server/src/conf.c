@@ -288,6 +288,7 @@ NDECL(cf_init)
     mudconf.accent_extend = 0;		/* Can we extend accents from 251-255? */
     mudconf.admin_object = -1;		/* The admin object to define */
     mudconf.enhanced_convtime = 0;	/* Enhanced convtime formatting */
+    mudconf.mysql_delay = 0;		/* Toggle to turn on/off delay > 0 sets delay */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -295,7 +296,7 @@ NDECL(cf_init)
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
-    strcpy(mudconf.tree_character, (char *)"'");
+    strcpy(mudconf.tree_character, (char *)"`");
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -304,6 +305,8 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
+    mudstate.mysql_last = 0;		/* Time of last mysql hang check */
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
     mudstate.insideicmds = 0;		/* inside @icmd eval check */
     mudstate.dumpstatechk = 0;		/* State of the dump state */
@@ -1032,6 +1035,16 @@ CF_HAND(cf_verifyint)
     if ((*vp < extra2) || (*vp > extra)) {
         if ( !mudstate.initializing) 
            notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
+	return -1;
+    } else
+	return 0;
+}
+CF_HAND(cf_verifyint_mysql)
+{
+    sscanf(str, "%d", vp);
+    if ( (*vp != 0) && ((*vp < extra2) || (*vp > extra)) ) {
+        if ( !mudstate.initializing) 
+           notify(player, unsafe_tprintf("Value must be 0 or between %d and %d.", extra2, extra));
 	return -1;
     } else
 	return 0;
@@ -3405,6 +3418,10 @@ CONF conftable[] =
     {(char *) "manlog_file",
      cf_string, CA_DISABLED, (int *) mudconf.manlog_file, 32, 0, CA_WIZARD,
      (char *) "Define file used with @log command."},
+    {(char *) "mysql_delay",
+     cf_verifyint_mysql, CA_GOD | CA_IMMORTAL, &mudconf.mysql_delay, 86400, 60, CA_WIZARD,
+     (char *) "MySQL delay before retry connections allowed.\r\n"\
+              "                             Default: 0 (off)  Value: %d"},
 #ifdef MYSQL_VERSION
     {(char *) "mysql_host",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mysql_host, 126, 0, CA_WIZARD,
@@ -5086,7 +5103,7 @@ list_cf_access(dbref player, char *s_mask, int key)
 }
 
 /* Idea taken from TinyMUSH 3.0 */
-void list_options_boolean(dbref player, int p_val)
+void list_options_boolean(dbref player, int p_val, char *s_val)
 {
    CONF *tp;
    int cntr, t_pages;
@@ -5108,8 +5125,11 @@ void list_options_boolean(dbref player, int p_val)
    for (tp = conftable; tp->pname; tp++) {
       if (((tp->interpreter == cf_bool)) &&
           (check_access(player, tp->flags2, 0, 0))) {
-         if ( (cntr < (20 * (p_val-1))) ||
-              (cntr >= (20 * p_val)) ) {
+         if ( s_val && *s_val ) {
+            if ( !quick_wild(s_val, tp->pname) ) {
+               continue;
+            }
+         } else if ( !s_val && ((cntr < (20 * (p_val-1))) || (cntr >= (20 * p_val))) ) {
             cntr++;
             continue;
          }
@@ -5119,10 +5139,11 @@ void list_options_boolean(dbref player, int p_val)
          cntr++;
       }
    }
-   raw_notify(player, unsafe_tprintf("--- Page %d of %d ---", p_val, t_pages), 0, 1);
+   if ( !s_val )
+      raw_notify(player, unsafe_tprintf("--- Page %d of %d ---", p_val, t_pages), 0, 1);
 }
 
-void list_options_values(dbref player, int p_val)
+void list_options_values(dbref player, int p_val, char *s_val)
 {
    CONF *tp;
    int cntr, t_pages;
@@ -5152,8 +5173,12 @@ void list_options_values(dbref player, int p_val)
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
-         if ( (cntr < (10 * (p_val-1))) ||
-              (cntr >= (10 * p_val)) ) {
+         if ( s_val && *s_val ) {
+            if ( !quick_wild(s_val, tp->pname) ) {
+               continue;
+            }
+         } else if ( !s_val && ((cntr < (10 * (p_val-1))) ||
+                      (cntr >= (10 * p_val))) ) {
             cntr++;
             continue;
          }
@@ -5162,7 +5187,8 @@ void list_options_values(dbref player, int p_val)
          cntr++;
       }
    }
-   raw_notify(player, unsafe_tprintf("--- Page %d of %d---", p_val, t_pages), 0, 1);
+   if ( !s_val )
+      raw_notify(player, unsafe_tprintf("--- Page %d of %d---", p_val, t_pages), 0, 1);
 }
 
 /*---------------------------------------------------------------------------
@@ -5212,6 +5238,8 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                    return;
                }
                if ( (tp->interpreter == cf_int) ||
+                    (tp->interpreter == cf_verifyint) ||
+                    (tp->interpreter == cf_verifyint_mysql) ||
                     (tp->interpreter == cf_bool) ||
                     (tp->interpreter == cf_who_bool) ||
                     (tp->interpreter == cf_int_runtime) ||
