@@ -305,6 +305,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
     mudstate.mysql_last = 0;		/* Time of last mysql hang check */
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
     mudstate.insideicmds = 0;		/* inside @icmd eval check */

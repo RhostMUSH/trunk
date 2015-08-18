@@ -2066,7 +2066,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 {
     char *buf1, *buf2, tchar, *s_uselock, *dx_tmp;
     char *args[MAX_ARG], *tpr_buff, *tprp_buff;
-    int nargs, i, fail, interp, key, xkey, chk_tog;
+    int nargs, i, fail, interp, key, xkey, chk_tog, argtwo_save;
     ATTR *hk_ap2;
     time_t chk_stop;
 
@@ -2085,6 +2085,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 #define	Protect(x) (cmdp->perms & x)
 
     fail = 0;
+
     if (Protect(CA_LOCATION) && !Has_location(player))
 	fail++;
     if (Protect(CA_CONTENTS) && !Has_contents(player))
@@ -2304,6 +2305,13 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	/* Interpret ARG1 */
 
+        argtwo_save = mudstate.argtwo_fix;
+        if ( arg && *arg && (strchr(arg, '=') == NULL) ) {
+           mudstate.argtwo_fix = 1;
+        } else {
+           mudstate.argtwo_fix = 0;
+        }
+
 	buf2 = parse_to(&arg, '=', EV_STRIP_TS);
 
 	/* Handle when no '=' was specified */
@@ -2379,6 +2387,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    if (interp & EV_EVAL)
 		free_lbuf(buf2);
 	}
+        mudstate.argtwo_fix = argtwo_save;
 
 	/* Free the buffer obtained by evaluating Arg1 */
 

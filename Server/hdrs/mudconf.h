@@ -758,6 +758,7 @@ struct statedata {
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */
 	time_t	mysql_last;	/* Last mysql hang time */
+	int	argtwo_fix;	/* Arg 2 fix test for '=' */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

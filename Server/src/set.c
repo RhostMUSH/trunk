@@ -2151,10 +2151,12 @@ void do_include(dbref player, dbref cause, int key, char *string,
       free_lbuf(buff1);
       return;
    }
+notify(player, unsafe_tprintf("DEBUG: @include: Nargs: %d, Ncargs: %d", nargs, ncargs));
    for (i = 0; i < 10; i++) {
       s_buff[i] = alloc_lbuf("do_include_buffers");
       if ( key & INCLUDE_OVERRIDE ) {
-         if ( nargs > 0 ) {
+/*       if ( nargs > 0 ) { */
+         if ( !mudstate.argtwo_fix ) {
             if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
                if ( argv[i] && *argv[i] )
                   sprintf(s_buff[i], "%s", argv[i]);      
