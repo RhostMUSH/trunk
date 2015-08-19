@@ -25,7 +25,7 @@
 #define	ToLower(s) (isupper(s) ? tolower(s) : (s))
 #define	ToUpper(s) (islower(s) ? toupper(s) : (s))
 #define DOING_SIZE 32	/* @doing and @doing/header size */
-#define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#'))
+#define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#') || (c == '.') || (c == '+'))
 
 #define atrpCit(s) (s == 1)
 #define atrpGuild(s) (s == 2)

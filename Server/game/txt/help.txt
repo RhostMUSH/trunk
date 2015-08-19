@@ -2090,7 +2090,8 @@
   
   Specifying an object not in the cluster will return an error.
   
-  Attributes must start with an alpha character, or in special cases a ~ or _.
+  Attributes must start with an alpha character, or in special cases any
+  of the following characters: ~_#.+
   
   Example:
     >myattr ClusterObj=This is my data on attribute 'myattr'
@@ -2113,7 +2114,8 @@
   The & command may be used to set predefined attributes (in this instance,
   '&<attr> <object>=<value>' is equivalent to '@<attr> <object>=<value>').
   
-  Attributes must start with an alpha character, or in special cases a ~ or _.
+  Attributes must start with an alpha character, or in special cases any
+  of the following characters: ~_#.+
   
   Starting with a '`' will tell it to use the TREE method for setting 
   attributes which will attempt to set/validate all branches to the tree
@@ -4229,7 +4231,8 @@
   to set either predefined attributes or user-named attributes.  Either of
   these is equivalent to the second form of the @set command.
   
-  Attributes must start with an alpha character, or in special cases a ~ or _.
+  Attributes must start with an alpha character, or in special cases any
+  of the following characters: ~_#.+
   
   The /tree switch is ignored on anything not regarding setting or clearing
   attributes.  If any branch in the specified defined tree-attribute is 
@@ -28343,6 +28346,7 @@
   * improved strmath() to handle a greater range of floating points [ASH]
   * optionally allow a time-delay on MySQL reconnections instead of
     a forced hard-deny via @sqlconnect to give some better control [ASH]
+  * allow '.' and '+' as first characters for attribute names [ASH]
     
   Bug Fixes
   ------------

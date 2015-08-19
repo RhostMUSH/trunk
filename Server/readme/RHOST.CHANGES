@@ -29,6 +29,8 @@ alteration of new Makefile build procedure rebuilt based on Ternary@Dark Metal's
 				- Thanks Ternary/Ol'Sarge
 fix to the src/Makefile to redefine default SHELL since latest Debian horked it with dash.
 				- Thanks Mercutio
+Make '.' as first char allowable in attribute names.
+				- Thanks Ixokai
 
 
 		         RhostMUSH 3.9.4 Update File
