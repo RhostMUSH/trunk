@@ -24339,16 +24339,16 @@ FUNCTION(fun_step)
     ATTR *ap;
     dbref aowner, thing;
     int aflags, anum, step_size, i, tval;
-    char *atext, *str, *cp, *atextbuf, *bb_p, *os[10], *result,
+    char *atext, *str, *cp, *atextbuf, *bb_p, *os[MAX_ARGS+1], *result,
          sep, osep, *tpr_buff, *tprp_buff;
 
     svarargs_preamble("STEP", 5);
 
     step_size = atoi(fargs[2]);
-    if ((step_size < 1) || (step_size > NUM_ENV_VARS)) {
+    if ((step_size < 1) || (step_size > MAX_ARGS )) {
         tprp_buff = tpr_buff = alloc_lbuf("fun_step");
         safe_str((char *)safe_tprintf(tpr_buff, &tprp_buff, "#-1 STEP SIZE MUST BE BETWEEN 1 AND %d",
-                                      NUM_ENV_VARS), buff, bufcx);
+                                      MAX_ARGS), buff, bufcx);
         free_lbuf(tpr_buff);
         return;
     }

@@ -17552,8 +17552,9 @@
   etc. The number of elements in the list does not need to be evenly
   divisible by the step size. If no delimiters are provided, a space is
   used as the delimiter. The step size must be at least 1, and no greater
-  than 10. Calling this function with a step size of 1 is equivalent to
-  using map().
+  than 30. Calling this function with a step size of 1 is equivalent to
+  using map().  Anything over argument 9 (%9) can be called with v().  Such
+  as v(10), v(20), and so forth.
   
   Example:
     > &print_line me = %r%0 -- %1 -- %2
@@ -28347,6 +28348,7 @@
   * optionally allow a time-delay on MySQL reconnections instead of
     a forced hard-deny via @sqlconnect to give some better control [ASH]
   * allow '.' and '+' as first characters for attribute names [ASH]
+  * step() allows up to MAX_ARGS arguments now [ASH]
     
   Bug Fixes
   ------------
