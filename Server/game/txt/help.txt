@@ -13966,6 +13966,7 @@
      qreg       - returns '1' if string is valid qreg label.
      colorname  - returns '1' if string is a valid +name for ansi.
      ansicodes  - always returns '1'.  Meant for Penn compatibility.
+     timezone   - returns '1' if string is a valid timezone.
   
   If a valid option is not specified, this function returns #-1.
   
@@ -28329,6 +28330,7 @@
     a forced hard-deny via @sqlconnect to give some better control [ASH]
   * allow '.' and '+' as first characters for attribute names [ASH]
   * step() allows up to MAX_ARGS arguments now [ASH]
+  * timezone option added to valid() [ASH]
     
   Bug Fixes
   ------------

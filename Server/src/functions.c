@@ -5655,13 +5655,15 @@ FUNCTION(fun_valid)
  * * given type (such as an object name).
  */
 
-   char *mbuf;
-   CMDENT *cmdp;
-   FLAGENT *flgp;
-   FUN *fp;
-   UFUN *ufp;
-   PENNANSI *cm;
-   TOGENT *tp;
+  char *mbuf;
+  int i_tag;
+  CMDENT *cmdp;
+  FLAGENT *flgp;
+  FUN *fp;
+  UFUN *ufp;
+  PENNANSI *cm;
+  TOGENT *tp;
+  TZONE_MUSH *tzmush;
 
   if (!fargs[0] || !*fargs[0]) {
       safe_str("#-1", buff, bufcx);
@@ -5752,6 +5754,15 @@ FUNCTION(fun_valid)
      ival(buff, bufcx, ((cm != NULL) ? 1 : 0));
   } else if (!stricmp(fargs[0], "ansicodes")) {
      ival(buff, bufcx, 1);
+  } else if (!stricmp(fargs[0], "timezone")) {
+     i_tag = 0;
+     for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
+        if ( stricmp((char *)tzmush->mush_tzone, (char *)fargs[1]) == 0 ) {
+           i_tag = 1;
+           break;
+        }
+     }
+     ival(buff, bufcx, i_tag);
   } else {
      safe_str("#-1", buff, bufcx);
   }
