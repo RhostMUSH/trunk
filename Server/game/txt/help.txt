@@ -1718,6 +1718,8 @@
   Note: If you are paging people with spaces in their name, start the page
         with a comma.  i.e.  page ,player with space, player2 = message
   
+  <control> is the formatter for the page (", ;, :, etc)
+  
   This command sends <message> to <player-list>.  If you do not specify a 
   message, it tells a player that you are looking for them, and tell the 
   player where you are.  You may use either the player's name or alias, and 
@@ -1763,6 +1765,8 @@
 & mrpage
   Command: mrpage[/<switch>] [[<control>]<message>]
   
+  <control> is the formatter for the page (", ;, :, etc)
+  
   This command will automatically page the last person(s) who paged you.
   This will in essence, page the entire list that you saw in the last page
   to you so that you can continue with multi-page messages.
@@ -1778,6 +1782,8 @@
 & rpage
   Command: rpage[/<switch>] [[<control>]<message>]
   
+  <control> is the formatter for the page (", ;, :, etc)
+  
   This command will automatically page the last person who paged you.
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
@@ -1789,6 +1795,8 @@
   
 & lpage
   Command: lpage[/<switch>] [[<control>]<message>]
+  
+  <control> is the formatter for the page (", ;, :, etc)
   
   This command will automatically page the last person(s) who you paged.
   You need not specify a player name.  It accepts and understands all
@@ -7639,11 +7647,11 @@
 & ROYALTY
   Flag: ROYALTY(W)   
   
-  If a person is ROYALTY. they are a wizard, unkillable, 
+  If a person is ROYALTY, they are a wizard, unkillable, 
   subject to fewer restrictions, and able to use wizard commands.  
   In general, ROYALTY can do anything using #<number> or *<player>. 
   Only player #1 or SUPER-ROYALTY can set and unset the ROYALTY flag of 
-  other players.   No ROYALTY can turn their own ROYALTY flag off.   
+  other players.  No ROYALTY can turn their own ROYALTY flag off.   
   
   See Also: GUILDMASTER, ARCHITECT, COUNCILOR, IMMORTAL
   
@@ -15999,7 +16007,7 @@
   <delim> may be used to specify a delimiter other than a space.
  
   Examples:
-    > say revwords(This is a test, Really...)
+    > say revwords(This is a test\, Really...)
     You say "Really... test, a is This"
     > say revwords(Was it a cat I saw?)
     You say "saw? I cat a it Was"
@@ -16092,7 +16100,7 @@
   See Also: before(), first(), rest()
   
 & ROOM()
-  Function: room(obj)
+  Function: room(<obj>)
  
   Returns the number of the room that <obj> is in, or would be in if it
   executed LEAVE commands until it got to a room.  You can find out the
