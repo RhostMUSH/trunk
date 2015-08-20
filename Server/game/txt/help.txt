@@ -13625,33 +13625,6 @@
   See Also: 'help regexp syntax' for an explanation of regular expressions.
   
 & DIE()
-  Function: die(<value1>,<value2>[[[,<type>],<botval>],<seperator>])
-   
-  This function rolls the dice.  It works as if you were rolling dice and 
-  returns the result.  <value1> is the number of dice and <value2> is the 
-  sides of the dice.  For example dice(2,4) would specify you rolling 2 
-  4-sided dice. If the type value is set to '0', then it will display ONLY 
-  the total of all the rolls.  If the type value is set to '1', then it will 
-  display both all the rolls for that total value and the total value.  If 
-  the type is set to '2' then it will only display all the rolls for that 
-  total value, but not the total value.  <botval> specifies low ceiling for 
-  the dice.  You may specify an optional output seperator.  This is an alias
-  for the 'dice()' function.
-   
-  Examples:
-    > say die(2,4)        [give me the total of rolling 2 4-sided dice]
-      You say "3"
-    > say die(2,4,1)      [give me the total and individual dice rolls]
-      You say "3 1 2"
-    > say die(2,4,2)      [give me just the individual dice rolls]
-      You say "1 2"
-    > say die(2,4,2,3)    [give me just the dice rolls with MIN value of 3]
-      You say "3 3"
-    > say die(2,4,2,,@)   [give me just the dice rolls with a seperator '@']
-      You say "1@2"
-   
-  See Also: rand()
-  
 & DICE()
   Function: dice(<val1>,<val2>[[[[[,<type>],<botval>],<sep>],<fail>],<crit>])
    
@@ -26310,7 +26283,6 @@
   Function Lists: Aliased Functions.
      
   flip()        - An alias of revwords()
-  foreach()     - An alias of map()
   items()       - <<Change: Not in help.>>
   matchall()    - <<Not in help.>>
   squish()      - An alias of strip()
