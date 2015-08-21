@@ -28343,3 +28343,5 @@
   * ~/src/Makefile was broke on latest Debian builds because of an
     incompatibility with their /bin/sh (/bin/dash) binary [ASH]
   * argument handler issue when passing zero args to @include/override [ASH]
+  * @hook did not show percent subs enabled/disabled properly on rare
+    occurances [ASH]

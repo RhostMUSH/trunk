@@ -9757,6 +9757,8 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                no_attr = no_attr2 = 0;
                ret_char = ' ';
                sprintf(sub_ptrbuff, "SUB_%c", *sub_ptr);
+               if ( !ok_attr_name(sub_ptrbuff) ) 
+                  sprintf(sub_ptrbuff, "SUB_%03d", (int)*sub_ptr);
                ap2 = atr_str(sub_ptrbuff);
                if ( !ap2 )
                   no_attr = no_attr2 = 1;
@@ -9767,6 +9769,8 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                      no_attr = no_attr2 = 1;
                   else {
                      sprintf(sub_ptrbuff, "CHR_%c", *sub_ptr);
+                     if ( !ok_attr_name(sub_ptrbuff) ) 
+                        sprintf(sub_ptrbuff, "CHR_%03d", (int)*sub_ptr);
                      ap2 = atr_str(sub_ptrbuff);
                      if ( !ap2 ) {
                         no_attr2 = 1;
