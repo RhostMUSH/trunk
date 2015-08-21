@@ -11548,6 +11548,7 @@
   AST1   Atlantic Standard Time              Caribbean        UTC - 4 hours
   AST2   Atlantic Standard Time              North America    UTC - 4 hours
   AST3   Arabia Standard Time                Asia             UTC + 3 hours
+  AWST   Australian Western Standard Time    Australia        UTC + 8 hours
   AZOST  Azores Summer Time                  Atlantic         UTC
   AZOT   Azores Time                         Atlantic         UTC - 1 hour
   AZST   Azerbaijan Summer Time              Asia             UTC + 5 hours
@@ -28331,6 +28332,7 @@
   * allow '.' and '+' as first characters for attribute names [ASH]
   * step() allows up to MAX_ARGS arguments now [ASH]
   * timezone option added to valid() [ASH]
+  * parentable_control_lock controls if @locks are inheritable [ASH]
     
   Bug Fixes
   ------------
