@@ -105,6 +105,7 @@ void execute_entry(BQUE *queue)
 		mudstate.breakst = 0;
                 mudstate.breakdolist = 0;
                 mudstate.includecnt = 0;
+                mudstate.includenest = 0;
                 mudstate.force_halt =0;
 		while (command && !mudstate.breakst) {
 		    cp = parse_to(&command, ';', 0);
