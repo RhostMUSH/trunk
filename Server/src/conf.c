@@ -5033,7 +5033,7 @@ do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
              if ( (fp = fopen("rhost_ingame.conf", "r")) != NULL ) {
                 i_cntr = 0;
                 tbuf = alloc_lbuf("admin_save");
-                notify_quiet(player, "@admin: listing config params in 'rhost_ingame.conf':");
+                notify_quiet(player, unsafe_tprintf("@admin: listing config params in 'rhost_ingame.conf' [dbref #%d]:", mudconf.admin_object));
                 while ( !feof(fp) ) {
                    fgets(tbuf, LBUF_SIZE, fp);
                    if ( !feof(fp) ) {

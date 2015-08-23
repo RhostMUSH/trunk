@@ -28345,4 +28345,5 @@
   * argument handler issue when passing zero args to @include/override [ASH]
   * @hook did not show percent subs enabled/disabled properly on rare
     occurances [ASH]
-  * @incldue didn't reset the state correctly in some instances [ASH]
+  * @include didn't reset the state correctly in some instances [ASH]
+  * @dolist/inline didn't properly parse nested args [ASH]
