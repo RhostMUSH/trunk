@@ -1718,6 +1718,8 @@
   Note: If you are paging people with spaces in their name, start the page
         with a comma.  i.e.  page ,player with space, player2 = message
   
+  <control> is the formatter for the page (", ;, :, etc)
+  
   This command sends <message> to <player-list>.  If you do not specify a 
   message, it tells a player that you are looking for them, and tell the 
   player where you are.  You may use either the player's name or alias, and 
@@ -1763,6 +1765,8 @@
 & mrpage
   Command: mrpage[/<switch>] [[<control>]<message>]
   
+  <control> is the formatter for the page (", ;, :, etc)
+  
   This command will automatically page the last person(s) who paged you.
   This will in essence, page the entire list that you saw in the last page
   to you so that you can continue with multi-page messages.
@@ -1778,6 +1782,8 @@
 & rpage
   Command: rpage[/<switch>] [[<control>]<message>]
   
+  <control> is the formatter for the page (", ;, :, etc)
+  
   This command will automatically page the last person who paged you.
   You need not specify a player name.  It accepts and understands all
   the format and commands that page would understand.
@@ -1789,6 +1795,8 @@
   
 & lpage
   Command: lpage[/<switch>] [[<control>]<message>]
+  
+  <control> is the formatter for the page (", ;, :, etc)
   
   This command will automatically page the last person(s) who you paged.
   You need not specify a player name.  It accepts and understands all
@@ -7639,11 +7647,11 @@
 & ROYALTY
   Flag: ROYALTY(W)   
   
-  If a person is ROYALTY. they are a wizard, unkillable, 
+  If a person is ROYALTY, they are a wizard, unkillable, 
   subject to fewer restrictions, and able to use wizard commands.  
   In general, ROYALTY can do anything using #<number> or *<player>. 
   Only player #1 or SUPER-ROYALTY can set and unset the ROYALTY flag of 
-  other players.   No ROYALTY can turn their own ROYALTY flag off.   
+  other players.  No ROYALTY can turn their own ROYALTY flag off.   
   
   See Also: GUILDMASTER, ARCHITECT, COUNCILOR, IMMORTAL
   
@@ -11540,6 +11548,7 @@
   AST1   Atlantic Standard Time              Caribbean        UTC - 4 hours
   AST2   Atlantic Standard Time              North America    UTC - 4 hours
   AST3   Arabia Standard Time                Asia             UTC + 3 hours
+  AWST   Australian Western Standard Time    Australia        UTC + 8 hours
   AZOST  Azores Summer Time                  Atlantic         UTC
   AZOT   Azores Time                         Atlantic         UTC - 1 hour
   AZST   Azerbaijan Summer Time              Asia             UTC + 5 hours
@@ -13625,33 +13634,6 @@
   See Also: 'help regexp syntax' for an explanation of regular expressions.
   
 & DIE()
-  Function: die(<value1>,<value2>[[[,<type>],<botval>],<seperator>])
-   
-  This function rolls the dice.  It works as if you were rolling dice and 
-  returns the result.  <value1> is the number of dice and <value2> is the 
-  sides of the dice.  For example dice(2,4) would specify you rolling 2 
-  4-sided dice. If the type value is set to '0', then it will display ONLY 
-  the total of all the rolls.  If the type value is set to '1', then it will 
-  display both all the rolls for that total value and the total value.  If 
-  the type is set to '2' then it will only display all the rolls for that 
-  total value, but not the total value.  <botval> specifies low ceiling for 
-  the dice.  You may specify an optional output seperator.  This is an alias
-  for the 'dice()' function.
-   
-  Examples:
-    > say die(2,4)        [give me the total of rolling 2 4-sided dice]
-      You say "3"
-    > say die(2,4,1)      [give me the total and individual dice rolls]
-      You say "3 1 2"
-    > say die(2,4,2)      [give me just the individual dice rolls]
-      You say "1 2"
-    > say die(2,4,2,3)    [give me just the dice rolls with MIN value of 3]
-      You say "3 3"
-    > say die(2,4,2,,@)   [give me just the dice rolls with a seperator '@']
-      You say "1@2"
-   
-  See Also: rand()
-  
 & DICE()
   Function: dice(<val1>,<val2>[[[[[,<type>],<botval>],<sep>],<fail>],<crit>])
    
@@ -13985,6 +13967,7 @@
      qreg       - returns '1' if string is valid qreg label.
      colorname  - returns '1' if string is a valid +name for ansi.
      ansicodes  - always returns '1'.  Meant for Penn compatibility.
+     timezone   - returns '1' if string is a valid timezone.
   
   If a valid option is not specified, this function returns #-1.
   
@@ -16026,7 +16009,7 @@
   <delim> may be used to specify a delimiter other than a space.
  
   Examples:
-    > say revwords(This is a test, Really...)
+    > say revwords(This is a test\, Really...)
     You say "Really... test, a is This"
     > say revwords(Was it a cat I saw?)
     You say "saw? I cat a it Was"
@@ -16119,7 +16102,7 @@
   See Also: before(), first(), rest()
   
 & ROOM()
-  Function: room(obj)
+  Function: room(<obj>)
  
   Returns the number of the room that <obj> is in, or would be in if it
   executed LEAVE commands until it got to a room.  You can find out the
@@ -17552,8 +17535,9 @@
   etc. The number of elements in the list does not need to be evenly
   divisible by the step size. If no delimiters are provided, a space is
   used as the delimiter. The step size must be at least 1, and no greater
-  than 10. Calling this function with a step size of 1 is equivalent to
-  using map().
+  than 30. Calling this function with a step size of 1 is equivalent to
+  using map().  Anything over argument 9 (%9) can be called with v().  Such
+  as v(10), v(20), and so forth.
   
   Example:
     > &print_line me = %r%0 -- %1 -- %2
@@ -26309,7 +26293,6 @@
   Function Lists: Aliased Functions.
      
   flip()        - An alias of revwords()
-  foreach()     - An alias of map()
   items()       - <<Change: Not in help.>>
   matchall()    - <<Not in help.>>
   squish()      - An alias of strip()
@@ -28347,6 +28330,9 @@
   * optionally allow a time-delay on MySQL reconnections instead of
     a forced hard-deny via @sqlconnect to give some better control [ASH]
   * allow '.' and '+' as first characters for attribute names [ASH]
+  * step() allows up to MAX_ARGS arguments now [ASH]
+  * timezone option added to valid() [ASH]
+  * parentable_control_lock controls if @locks are inheritable [ASH]
     
   Bug Fixes
   ------------
@@ -28357,3 +28343,7 @@
   * ~/src/Makefile was broke on latest Debian builds because of an
     incompatibility with their /bin/sh (/bin/dash) binary [ASH]
   * argument handler issue when passing zero args to @include/override [ASH]
+  * @hook did not show percent subs enabled/disabled properly on rare
+    occurances [ASH]
+  * @include didn't reset the state correctly in some instances [ASH]
+  * @dolist/inline didn't properly parse nested args [ASH]

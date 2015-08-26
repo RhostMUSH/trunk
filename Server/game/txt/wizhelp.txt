@@ -5325,7 +5325,7 @@
 
 { 'wizhelp config parameters mysql' for more (mysql params) }
 
-& CONFIG PARAMETERS REALITY
+& CONFIG PARAMETERS MYSQL
   mysql_delay               mysql_host                mysql_user
   mysql_pass                mysql_base                mysql_socket
   mysql_port
@@ -7911,9 +7911,7 @@
 & parentable_control_lock
   Config parameter: parentable_control_lock <yes/no>.  Default: no
  
-  Specifies whether or not objects without a ControlLock inherit the
-  ControlLock of their parent.  Note that the ControlLock is only obeyed
-  for objects whose ZONE flag is set.
+  Specifies whether or not @locks will be inheritable from their parents.
 
 & partial_conn
   Config parameter: partial_conn <yes/no>.  Default: yes

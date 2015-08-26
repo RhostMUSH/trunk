@@ -5673,6 +5673,11 @@ list_options_system(dbref player)
     notify(player, "Player password encryption method -------------------------------- DES");
 #endif
     notify(player, unsafe_tprintf("Current TREE character is defined as ----------------------------- %s", mudconf.tree_character));
+    if (mudconf.parent_control)
+       notify(player, "Lock Control for all @lock processing ---------------------------- PARENTS");
+    else
+       notify(player, "Lock Control for all @lock processing ---------------------------- LOCAL");
+
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
                               SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
@@ -6224,7 +6229,7 @@ list_options(dbref player)
 	notify(player, "You may only @teleport out of locations that are JUMP_OK or that you control.");
 
     if (mudconf.parent_control)
-	notify(player, "The 'ControlLock' lock may be inherited from parents.");
+	notify(player, "All locks may be inherited from parents.");
 
     notify(player,
     unsafe_tprintf("Players may have at most %d commands in the queue at one time.",
@@ -9752,6 +9757,8 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                no_attr = no_attr2 = 0;
                ret_char = ' ';
                sprintf(sub_ptrbuff, "SUB_%c", *sub_ptr);
+               if ( !ok_attr_name(sub_ptrbuff) ) 
+                  sprintf(sub_ptrbuff, "SUB_%03d", (int)*sub_ptr);
                ap2 = atr_str(sub_ptrbuff);
                if ( !ap2 )
                   no_attr = no_attr2 = 1;
@@ -9762,6 +9769,8 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                      no_attr = no_attr2 = 1;
                   else {
                      sprintf(sub_ptrbuff, "CHR_%c", *sub_ptr);
+                     if ( !ok_attr_name(sub_ptrbuff) ) 
+                        sprintf(sub_ptrbuff, "CHR_%03d", (int)*sub_ptr);
                      ap2 = atr_str(sub_ptrbuff);
                      if ( !ap2 ) {
                         no_attr2 = 1;

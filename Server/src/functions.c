@@ -5655,13 +5655,15 @@ FUNCTION(fun_valid)
  * * given type (such as an object name).
  */
 
-   char *mbuf;
-   CMDENT *cmdp;
-   FLAGENT *flgp;
-   FUN *fp;
-   UFUN *ufp;
-   PENNANSI *cm;
-   TOGENT *tp;
+  char *mbuf;
+  int i_tag;
+  CMDENT *cmdp;
+  FLAGENT *flgp;
+  FUN *fp;
+  UFUN *ufp;
+  PENNANSI *cm;
+  TOGENT *tp;
+  TZONE_MUSH *tzmush;
 
   if (!fargs[0] || !*fargs[0]) {
       safe_str("#-1", buff, bufcx);
@@ -5752,6 +5754,15 @@ FUNCTION(fun_valid)
      ival(buff, bufcx, ((cm != NULL) ? 1 : 0));
   } else if (!stricmp(fargs[0], "ansicodes")) {
      ival(buff, bufcx, 1);
+  } else if (!stricmp(fargs[0], "timezone")) {
+     i_tag = 0;
+     for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
+        if ( stricmp((char *)tzmush->mush_tzone, (char *)fargs[1]) == 0 ) {
+           i_tag = 1;
+           break;
+        }
+     }
+     ival(buff, bufcx, i_tag);
   } else {
      safe_str("#-1", buff, bufcx);
   }
@@ -24339,16 +24350,16 @@ FUNCTION(fun_step)
     ATTR *ap;
     dbref aowner, thing;
     int aflags, anum, step_size, i, tval;
-    char *atext, *str, *cp, *atextbuf, *bb_p, *os[10], *result,
+    char *atext, *str, *cp, *atextbuf, *bb_p, *os[MAX_ARGS+1], *result,
          sep, osep, *tpr_buff, *tprp_buff;
 
     svarargs_preamble("STEP", 5);
 
     step_size = atoi(fargs[2]);
-    if ((step_size < 1) || (step_size > NUM_ENV_VARS)) {
+    if ((step_size < 1) || (step_size > MAX_ARGS )) {
         tprp_buff = tpr_buff = alloc_lbuf("fun_step");
         safe_str((char *)safe_tprintf(tpr_buff, &tprp_buff, "#-1 STEP SIZE MUST BE BETWEEN 1 AND %d",
-                                      NUM_ENV_VARS), buff, bufcx);
+                                      MAX_ARGS), buff, bufcx);
         free_lbuf(tpr_buff);
         return;
     }

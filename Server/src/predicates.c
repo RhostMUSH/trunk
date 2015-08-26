@@ -2722,7 +2722,10 @@ int	aflags, tog_val,
 	HasPriv(player,Owner(thing),POWER_WRAITH,POWER4,NOTHING))
     return 1;
 
-  key = atr_get(thing, locknum, &aowner, &aflags);
+  if ( mudconf.parent_control )
+     key = atr_pget(thing, locknum, &aowner, &aflags);
+  else
+     key = atr_get(thing, locknum, &aowner, &aflags);
   /* TWINKLOCK is an inheritable lock -- why you need to be careful of player setting!!! */
   thing_bak = mudstate.twinknum;
   if ( (locknum == A_LTWINK) && !isPlayer(thing) && !*key && Good_chk(Owner(thing)) ) {

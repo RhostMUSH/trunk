@@ -4198,8 +4198,8 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.paranoid_exit_linking, 0, 0, CA_PUBLIC,
      (char *) "Improve security on unlinked exits?"},
     {(char *) "parentable_control_lock",
-     cf_bool, CA_DISABLED, &mudconf.parent_control, 0, 0, CA_PUBLIC,
-     (char *) "Do parents follow ControlLocks?"},
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.parent_control, 0, 0, CA_PUBLIC,
+     (char *) "Do parents follow Locks?"},
     {(char *) "parent_nest_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.parent_nest_lim, 0, 0, CA_WIZARD,
      (char *) "Maximum nesting allowed on @parents.\r\n"\
@@ -5033,7 +5033,7 @@ do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
              if ( (fp = fopen("rhost_ingame.conf", "r")) != NULL ) {
                 i_cntr = 0;
                 tbuf = alloc_lbuf("admin_save");
-                notify_quiet(player, "@admin: listing config params in 'rhost_ingame.conf':");
+                notify_quiet(player, unsafe_tprintf("@admin: listing config params in 'rhost_ingame.conf' [dbref #%d]:", mudconf.admin_object));
                 while ( !feof(fp) ) {
                    fgets(tbuf, LBUF_SIZE, fp);
                    if ( !feof(fp) ) {

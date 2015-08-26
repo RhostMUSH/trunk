@@ -1504,10 +1504,15 @@ setdefaults() {
         DEFS="${DEFS} -DHAS_OPENSSL"
      fi
   fi
-  if [ "${MS[1]}" == "X" ]
+  if [ "${MS[1]}" = "X" ]
   then
      echo "MySQL identified.  Configuring..."
      DEFS="${DEFS} \$(MYSQL_INCLUDE)"
+  fi
+  if [ "$(uname -s)" = "Darwin" ]
+  then
+     echo "Removing inline ctype as Mac borks it..."
+     DEFS="${DEFS} -D_DONT_USE_CTYPE_INLINE_"
   fi
   DEFS="CUSTDEFS = ${DEFS}"
 }

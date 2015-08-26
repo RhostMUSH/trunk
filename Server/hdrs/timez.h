@@ -25,6 +25,7 @@ TZONE_MUSH timezone_list[]={
    {(char *)"AST1", (char *)"Atlantic Standard Time", (char *)"Caribbean", -14400},
    {(char *)"AST2", (char *)"Atlantic Standard Time", (char *)"North America", -14400},
    {(char *)"AST3", (char *)"Arabia Standard Time", (char *)"Asia", 10800},
+   {(char *)"AWST", (char *)"Australian Western Standard Time", (char *)"Australia", 28800},
    {(char *)"AZOST", (char *)"Azores Summer Time", (char *)"Atlantic", 0},
    {(char *)"AZOT", (char *)"Azores Time", (char *)"Atlantic", -3600},
    {(char *)"AZST", (char *)"Azerbaijan Summer Time", (char *)"Asia", 18000},

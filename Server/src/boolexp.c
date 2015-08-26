@@ -102,7 +102,10 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 	    mudstate.lock_nest_lev--;
 	    return (0);
 	}
-	key = atr_get(b->sub1->thing, A_LOCK, &aowner, &aflags);
+        if ( mudconf.parent_control )
+	   key = atr_pget(b->sub1->thing, A_LOCK, &aowner, &aflags);
+        else
+	   key = atr_get(b->sub1->thing, A_LOCK, &aowner, &aflags);
 	c = eval_boolexp_atr(player, b->sub1->thing, from, key,1, i_evaltype);
 	free_lbuf(key);
 	mudstate.lock_nest_lev--;
