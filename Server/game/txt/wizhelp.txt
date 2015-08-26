@@ -5325,7 +5325,7 @@
 
 { 'wizhelp config parameters mysql' for more (mysql params) }
 
-& CONFIG PARAMETERS REALITY
+& CONFIG PARAMETERS MYSQL
   mysql_delay               mysql_host                mysql_user
   mysql_pass                mysql_base                mysql_socket
   mysql_port
