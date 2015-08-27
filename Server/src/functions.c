@@ -5657,6 +5657,7 @@ FUNCTION(fun_valid)
 
   char *mbuf;
   int i_tag;
+  struct boolexp *okey;
   CMDENT *cmdp;
   FLAGENT *flgp;
   FUN *fp;
@@ -5762,6 +5763,16 @@ FUNCTION(fun_valid)
            break;
         }
      }
+     ival(buff, bufcx, i_tag);
+  } else if (!stricmp(fargs[0], "locktype")) {
+     i_tag = search_nametab(player, lock_sw, fargs[1]);
+     ival(buff, bufcx, ((i_tag > 0) ? 1 : 0));
+  } else if (!stricmp(fargs[0], "lockkey")) {
+     okey = parse_boolexp(player, fargs[1], 0);
+     i_tag = 1;
+     if (okey == TRUE_BOOLEXP)
+        i_tag = 0;
+     free_boolexp(okey);
      ival(buff, bufcx, i_tag);
   } else {
      safe_str("#-1", buff, bufcx);
@@ -10667,7 +10678,7 @@ FUNCTION(fun_default)
     int attrib, free_buffer, aflags;
     ATTR *attr;
     char *atr_gotten, *s_fargs0, *s_fargs1;
-    struct boolexp *bool;
+    struct boolexp *okey;
 
     s_fargs0 = exec(player, cause, caller,  EV_FCHECK | EV_EVAL | EV_STRIP, fargs[0], cargs, ncargs);
     if (!parse_attrib(player, s_fargs0, &thing, &attrib)) {
@@ -10703,10 +10714,10 @@ FUNCTION(fun_default)
     if (attr->flags & AF_IS_LOCK) {
        atr_gotten = atr_get(thing, attrib, &aowner, &aflags);
        if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
-          bool = parse_boolexp(player, atr_gotten, 1);
+          okey = parse_boolexp(player, atr_gotten, 1);
           free_lbuf(atr_gotten);
-          atr_gotten = unparse_boolexp(player, bool);
-          free_boolexp(bool);
+          atr_gotten = unparse_boolexp(player, okey);
+          free_boolexp(okey);
        } else {
           free_lbuf(atr_gotten);
           atr_gotten = (char *) "#-1 PERMISSION DENIED";
@@ -10743,7 +10754,7 @@ FUNCTION(fun_xget)
     int attrib, free_buffer, aflags;
     ATTR *attr;
     char *atr_gotten, *tpr_buff, *tprp_buff;
-    struct boolexp *bool;
+    struct boolexp *okey;
 
     tprp_buff = tpr_buff = alloc_lbuf("fun_xget");
     if (!parse_attrib(player, safe_tprintf(tpr_buff, &tprp_buff, "%s/%s",fargs[0], fargs[1]), &thing, &attrib)) {
@@ -10771,10 +10782,10 @@ FUNCTION(fun_xget)
     if (attr->flags & AF_IS_LOCK) {
        atr_gotten = atr_get(thing, attrib, &aowner, &aflags);
        if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
-          bool = parse_boolexp(player, atr_gotten, 1);
+          okey = parse_boolexp(player, atr_gotten, 1);
           free_lbuf(atr_gotten);
-          atr_gotten = unparse_boolexp(player, bool);
-          free_boolexp(bool);
+          atr_gotten = unparse_boolexp(player, okey);
+          free_boolexp(okey);
        } else {
           free_lbuf(atr_gotten);
           atr_gotten = (char *) "#-1 PERMISSION DENIED";
@@ -10822,7 +10833,7 @@ FUNCTION(fun_get)
     int attrib, free_buffer, aflags;
     ATTR *attr;
     char *atr_gotten;
-    struct boolexp *bool;
+    struct boolexp *okey;
 
     if (!parse_attrib(player, fargs[0], &thing, &attrib)) {
        safe_str("#-1 NO MATCH", buff, bufcx);
@@ -10847,10 +10858,10 @@ FUNCTION(fun_get)
     if (attr->flags & AF_IS_LOCK) {
        atr_gotten = atr_get(thing, attrib, &aowner, &aflags);
        if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
-           bool = parse_boolexp(player, atr_gotten, 1);
+           okey = parse_boolexp(player, atr_gotten, 1);
            free_lbuf(atr_gotten);
-           atr_gotten = unparse_boolexp(player, bool);
-           free_boolexp(bool);
+           atr_gotten = unparse_boolexp(player, okey);
+           free_boolexp(okey);
        } else {
            free_lbuf(atr_gotten);
            atr_gotten = (char *) "#-1 PERMISSION DENIED";
@@ -11436,7 +11447,7 @@ FUNCTION(fun_edefault)
     int attrib, free_buffer, aflags, eval_it, tval;
     ATTR *attr;
     char *atr_gotten, *atr_gotten2, *s_fargs0, *s_fargs1;
-    struct boolexp *bool;
+    struct boolexp *okey;
 
     
     s_fargs0 = exec(player, cause, caller,  EV_FCHECK | EV_EVAL | EV_STRIP, fargs[0], cargs, ncargs);
@@ -11474,10 +11485,10 @@ FUNCTION(fun_edefault)
     if (attr->flags & AF_IS_LOCK) {
        atr_gotten = atr_get(thing, attrib, &aowner, &aflags);
        if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
-          bool = parse_boolexp(player, atr_gotten, 1);
+          okey = parse_boolexp(player, atr_gotten, 1);
           free_lbuf(atr_gotten);
-          atr_gotten = unparse_boolexp(player, bool);
-          free_boolexp(bool);
+          atr_gotten = unparse_boolexp(player, okey);
+          free_boolexp(okey);
        } else {
           free_lbuf(atr_gotten);
           atr_gotten = (char *) "#-1 PERMISSION DENIED";
@@ -11534,7 +11545,7 @@ FUNCTION(fun_get_eval)
     ATTR *attr;
     char *atr_gotten;
     char *atr_gotten2;
-    struct boolexp *bool;
+    struct boolexp *okey;
 
     if (!parse_attrib(player, fargs[0], &thing, &attrib)) {
        safe_str("#-1 NO MATCH", buff, bufcx);
@@ -11560,10 +11571,10 @@ FUNCTION(fun_get_eval)
     if (attr->flags & AF_IS_LOCK) {
        atr_gotten = atr_get(thing, attrib, &aowner, &aflags);
        if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
-          bool = parse_boolexp(player, atr_gotten, 1);
+          okey = parse_boolexp(player, atr_gotten, 1);
           free_lbuf(atr_gotten);
-          atr_gotten = unparse_boolexp(player, bool);
-          free_boolexp(bool);
+          atr_gotten = unparse_boolexp(player, okey);
+          free_boolexp(okey);
        } else {
           free_lbuf(atr_gotten);
           atr_gotten = (char *) "#-1 PERMISSION DENIED";
@@ -15168,7 +15179,7 @@ FUNCTION(fun_eval)
    dbref thing, aowner;
    int attrib, aflags, free_buffer, eval_it, tval;
    char *tbuf, *atr_gotten, *atr_gotten2, *tpr_buff, *tprp_buff;
-   struct boolexp *bool;
+   struct boolexp *okey;
    ATTR *attr;
 
    if (!fn_range_check("EVAL", nfargs, 1, 2, buff, bufcx)) {
@@ -15213,10 +15224,10 @@ FUNCTION(fun_eval)
       if (attr->flags & AF_IS_LOCK) {
          atr_gotten = atr_get(thing, attrib, &aowner, &aflags);
          if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
-            bool = parse_boolexp(player, atr_gotten, 1);
+            okey = parse_boolexp(player, atr_gotten, 1);
             free_lbuf(atr_gotten);
-            atr_gotten = unparse_boolexp(player, bool);
-            free_boolexp(bool);
+            atr_gotten = unparse_boolexp(player, okey);
+            free_boolexp(okey);
          } else {
             free_lbuf(atr_gotten);
             atr_gotten = (char *) "#-1 PERMISSION DENIED";
@@ -20156,7 +20167,7 @@ FUNCTION(fun_lock)
     int aflags;
     char *tbuf, *t_lbuf;
     ATTR *attr;
-    struct boolexp *bool;
+    struct boolexp *okey;
 #ifdef USE_SIDEEFFECT
     CMDENT *cmdp;
     char   *str;
@@ -20230,10 +20241,10 @@ FUNCTION(fun_lock)
        if (!Read_attr(player, it, attr, aowner, aflags, 0)) {
            free_lbuf(tbuf);
        } else {
-           bool = parse_boolexp(player, tbuf, 1);
+           okey = parse_boolexp(player, tbuf, 1);
            free_lbuf(tbuf);
-           tbuf = (char *) unparse_boolexp_function(player, bool);
-           free_boolexp(bool);
+           tbuf = (char *) unparse_boolexp_function(player, okey);
+           free_boolexp(okey);
            safe_str(tbuf, buff, bufcx);
        }
     }
@@ -20247,10 +20258,10 @@ FUNCTION(fun_lock)
     if (!Read_attr(player, it, attr, aowner, aflags, 0)) {
         free_lbuf(tbuf);
     } else {
-        bool = parse_boolexp(player, tbuf, 1);
+        okey = parse_boolexp(player, tbuf, 1);
         free_lbuf(tbuf);
-        tbuf = (char *) unparse_boolexp_function(player, bool);
-        free_boolexp(bool);
+        tbuf = (char *) unparse_boolexp_function(player, okey);
+        free_boolexp(okey);
         safe_str(tbuf, buff, bufcx);
     }
 #endif
@@ -20262,7 +20273,7 @@ FUNCTION(fun_elock)
     int aflags;
     char *tbuf;
     ATTR *attr;
-    struct boolexp *bool;
+    struct boolexp *okey;
 
     /* Parse lock supplier into obj + lock */
 
@@ -20295,9 +20306,9 @@ FUNCTION(fun_elock)
         tbuf = atr_get(it, attr->number, &aowner, &aflags);
         if ((attr->number == A_LOCK) ||
             Read_attr(player, it, attr, aowner, aflags, 0)) {
-            bool = parse_boolexp(player, tbuf, 1);
-            ival(buff, bufcx, eval_boolexp(victim, it, it, bool, i_locktype));
-            free_boolexp(bool);
+            okey = parse_boolexp(player, tbuf, 1);
+            ival(buff, bufcx, eval_boolexp(victim, it, it, okey, i_locktype));
+            free_boolexp(okey);
         } else {
             safe_str("0", buff, bufcx);
         }

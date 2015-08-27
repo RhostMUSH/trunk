@@ -13968,6 +13968,8 @@
      colorname  - returns '1' if string is a valid +name for ansi.
      ansicodes  - always returns '1'.  Meant for Penn compatibility.
      timezone   - returns '1' if string is a valid timezone.
+     locktype   - returns '1' if string is a valid lock switch/type.
+     lockkey    - returns '1' if string is a valid string for locking.
   
   If a valid option is not specified, this function returns #-1.
   
@@ -28333,6 +28335,7 @@
   * step() allows up to MAX_ARGS arguments now [ASH]
   * timezone option added to valid() [ASH]
   * parentable_control_lock controls if @locks are inheritable [ASH]
+  * valid() types locktype and lockkey added for Penn compat [ASH]
     
   Bug Fixes
   ------------
