@@ -85,9 +85,20 @@ then
 else
    make clean;make
 fi
-cd ../game/txt
-../mkindx help.txt help.indx
-../mkindx wizhelp.txt wizhelp.indx
+cd ..
+
+gl_mypath=$(pwd)
+gl_dirs=$(find . -maxdepth 1 -type d -name "[0-9A-Za-z]*" -exec basename {} \;)
+for i in ${gl_dirs}
+do
+  if [ -d ${gl_mypath}/${i}/txt ]
+  then
+     echo "Indexing ${gl_mypath}/${i}..."
+     cd ${gl_mypath}/$i/txt
+      ../mkindx help.txt help.indx
+      ../mkindx wizhelp.txt wizhelp.indx
+  fi
+done
 echo "Ok, we're done.  Ignore any warnings.  If you had errors, please report it to the developers."
 echo "Once you @reboot the mush, please issue @readcache to read in the new help files."
 exit 0
