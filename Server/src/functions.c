@@ -20303,7 +20303,10 @@ FUNCTION(fun_elock)
                !nearby_or_control(player, it)) {
         safe_str("#-1 TOO FAR AWAY", buff, bufcx);
     } else {
-        tbuf = atr_get(it, attr->number, &aowner, &aflags);
+        if ( mudconf.parent_control )
+           tbuf = atr_pget(it, attr->number, &aowner, &aflags);
+        else
+           tbuf = atr_get(it, attr->number, &aowner, &aflags);
         if ((attr->number == A_LOCK) ||
             Read_attr(player, it, attr, aowner, aflags, 0)) {
             okey = parse_boolexp(player, tbuf, 1);
