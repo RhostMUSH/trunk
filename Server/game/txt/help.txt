@@ -28350,3 +28350,4 @@
     occurances [ASH]
   * @include didn't reset the state correctly in some instances [ASH]
   * @dolist/inline didn't properly parse nested args [ASH]
+  * regedit*() functions could double-eval the $0-$99 subs [ASH]
