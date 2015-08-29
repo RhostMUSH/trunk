@@ -303,7 +303,8 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
               pcre_copy_substring(re_from, re_offsets, re_subpatterns, p, obuf,
                                   LBUF_SIZE);
 */
-              sprintf(obuf, "%c%d%c", (int)(unsigned char)255, p, (int)(unsigned char)255);
+/*            sprintf(obuf, "%c%d%c", (int)(unsigned char)255, p, (int)(unsigned char)255); */
+              sprintf(obuf, "$%d$", p);
               safe_str(obuf, mybuff, &mybuffptr);
               break;
             }
@@ -324,10 +325,12 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
             obufptr = obuf;
             obuf2 = alloc_lbuf("pcre_edit_crap");
             while ( *abufptr ) { 
-               if ( (int)(unsigned char)*abufptr == 255 ) {
+/*             if ( (int)(unsigned char)*abufptr == 255 ) { */
+               if ( *abufptr = '$' )
                   abufptr++;
                   p = atoi(abufptr);
-                  while ( *abufptr && (int)(unsigned char)*abufptr != 255 )
+/*                while ( *abufptr && (int)(unsigned char)*abufptr != 255 ) */
+                  while ( *abufptr && *abufptr != '$' )
                      abufptr++;
                   pcre_copy_substring(re_from, re_offsets, re_subpatterns, p, obuf2,
                                       LBUF_SIZE);
