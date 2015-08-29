@@ -458,17 +458,17 @@ ATTR 	*tst_glb, *format_atr;
                            if ( *d && tst_attr && *master_str ) {
                               if ( *d ) {
                                  master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                                   d, args, nargs);
+                                                   d, args, nargs, (char **)NULL, 0);
                                  buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                             master_str, &master_ret, 1);
+                                             master_str, &master_ret, 1, (char **)NULL, 0);
                                  free_lbuf(master_ret);
                               } else {
                                  buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                             master_str, args, nargs);
+                                             master_str, args, nargs, (char **)NULL, 0);
                               }
                            } else {
                               buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                          d, args, nargs);
+                                          d, args, nargs, (char **)NULL, 0);
                            }
 			   notify(player, buff);
 			   free_lbuf(buff);
@@ -529,17 +529,17 @@ ATTR 	*tst_glb, *format_atr;
                    if ( tst_attr && *master_str ) {
                       if ( *d ) {
                          master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                           d, args, nargs);
+                                           d, args, nargs, (char **)NULL, 0);
                          buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                     master_str, &master_ret, 1);
+                                     master_str, &master_ret, 1, (char **)NULL, 0);
                          free_lbuf(master_ret);
                       } else {
                          buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                     master_str, args, nargs);
+                                     master_str, args, nargs, (char **)NULL, 0);
                       }
                    } else {
                       buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                  d, args, nargs);
+                                  d, args, nargs, (char **)NULL, 0);
                    }
 	  	   notify(player, buff);
 		   free_lbuf(buff);
@@ -587,17 +587,17 @@ ATTR 	*tst_glb, *format_atr;
                  if ( tst_attr && *master_str ) {
                     if ( *d ) {
                        master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                         d, args, nargs);
+                                         d, args, nargs, (char **)NULL, 0);
                        buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                   master_str, &master_ret, 1);
+                                   master_str, &master_ret, 1, (char **)NULL, 0);
                        free_lbuf(master_ret);
                     } else {
                        buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                   master_str, args, nargs);
+                                   master_str, args, nargs, (char **)NULL, 0);
                     }
                  } else {
                     buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                d, args, nargs);
+                                d, args, nargs, (char **)NULL, 0);
                  }
 		 notify(player, buff);
 		 free_lbuf(buff);
@@ -651,17 +651,17 @@ ATTR 	*tst_glb, *format_atr;
                   if ( tst_attr && *master_str ) {
                     if ( *d ) {
                        master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                         d, args, nargs);
+                                         d, args, nargs, (char **)NULL, 0);
                        buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                   master_str, &master_ret, 1);
+                                   master_str, &master_ret, 1, (char **)NULL, 0);
                        free_lbuf(master_ret);
                     } else {
                        buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                   master_str, args, nargs);
+                                   master_str, args, nargs, (char **)NULL, 0);
                     }
                   } else {
                     buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-                                d, args, nargs);
+                                d, args, nargs, (char **)NULL, 0);
                   }
                   if ( *buff ) {
                      tprp_buff = tpr_buff = alloc_lbuf("did_it_rlevel");

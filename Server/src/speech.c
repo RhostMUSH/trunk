@@ -627,7 +627,7 @@ static void page_return (dbref player, dbref target, const char *tag,
          i_pagebuff = 0;
       }
       str2 = exec(target, player, player, EV_FCHECK|EV_EVAL|EV_TOP, str,
-                  s_pagebuff, i_pagebuff);
+                  s_pagebuff, i_pagebuff, (char **)NULL, 0);
       t = time(NULL);
       tp = localtime(&t);
       if (*str2) {
@@ -1554,7 +1554,7 @@ ZLISTNODE *z_ptr, *y_ptr;
       plist = 1;
       key &= ~PEMIT_LIST;
       pt1 = exec(player, cause, cause, EV_STRIP|EV_FCHECK|EV_EVAL,
-                 recipient_buff, cargs, ncargs);
+                 recipient_buff, cargs, ncargs, (char **)NULL, 0);
       recip2 = pt1;
       while (isspace((int)*recip2))
          recip2++;
@@ -1578,7 +1578,7 @@ ZLISTNODE *z_ptr, *y_ptr;
    cntr=1;
    if ( i_oneeval && !noeval ) {
       result = exec(player, cause, cause, EV_EVAL|EV_STRIP|EV_FCHECK|EV_TOP,
-                    message, cargs, ncargs);
+                    message, cargs, ncargs, (char **)NULL, 0);
    }
    while (list) {
       ok_to_do = 0;
@@ -1603,7 +1603,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                free_lbuf(tpr_buff);
                if (!noeval) {
                   result = exec(player, cause, cause, EV_STRIP|EV_FCHECK|EV_EVAL,
-                                buff4, cargs, ncargs);
+                                buff4, cargs, ncargs, (char **)NULL, 0);
                }
                free_lbuf(buff3);
                free_lbuf(buff4);
@@ -1612,7 +1612,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                safe_str(message, buff3, &buff4);
                if (!noeval) {
                   result = exec(player, cause, cause, EV_STRIP|EV_FCHECK|EV_EVAL,
-                                buff3, cargs, ncargs);
+                                buff3, cargs, ncargs, (char **)NULL, 0);
                }
                free_lbuf(buff3);
             }
@@ -1623,7 +1623,7 @@ ZLISTNODE *z_ptr, *y_ptr;
          if ((key == PEMIT_PEMIT) || (key == PEMIT_PORT)) {
             if (!noeval && !i_oneeval) {
                result = exec(player, cause, cause, EV_EVAL|EV_STRIP|EV_FCHECK|EV_TOP,
-                             message, cargs, ncargs);
+                             message, cargs, ncargs, (char **)NULL, 0);
             }
          }
       }

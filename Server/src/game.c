@@ -363,7 +363,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                               cputext = alloc_lbuf("store_text_attruselock");
                               strcpy(cputext, atext);
                               result = exec(parent, player, player, EV_FCHECK | EV_EVAL, atext,
-                                            (char **)NULL, 0);
+                                            (char **)NULL, 0, (char **)NULL, 0);
                               if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
                                  i_cpuslam = 1;
                                  cpuslam = alloc_lbuf("uselock_cpuslam");
@@ -533,7 +533,7 @@ check_filter(dbref object, dbref player, int filter, const char *msg)
 	RETURN(1); /* #72 */
     }
     dp = nbuf = exec(object, player, player, EV_FIGNORE | EV_EVAL | EV_TOP, buf,
-		     (char **) NULL, 0);
+		     (char **) NULL, 0, (char **)NULL, 0);
     free_lbuf(buf);
     do {
 	cp = parse_to(&dp, ',', EV_STRIP);
@@ -562,7 +562,7 @@ add_prefix(dbref object, dbref player, int prefix,
 	safe_str((char *) dflt, buf, &cp);
     } else {
 	nbuf = exec(object, player, player, EV_FIGNORE | EV_EVAL | EV_TOP, buf,
-		    (char **) NULL, 0);
+		    (char **) NULL, 0, (char **)NULL, 0);
 	free_lbuf(buf);
 	buf = nbuf;
 	cp = &buf[strlen(buf)];

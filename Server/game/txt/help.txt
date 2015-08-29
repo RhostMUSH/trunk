@@ -28336,6 +28336,8 @@
   * timezone option added to valid() [ASH]
   * parentable_control_lock controls if @locks are inheritable [ASH]
   * valid() types locktype and lockkey added for Penn compat [ASH]
+  * total rework of the internal exec parser stack to properly handle
+    some erraneous REGEXP pre-parsing syntax issues [ASH]
     
   Bug Fixes
   ------------

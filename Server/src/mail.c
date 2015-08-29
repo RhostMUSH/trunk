@@ -1079,7 +1079,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
     keydata.dsize = sizeof(int) << 1;
     infodata = dbm_fetch(mailfile,keydata);
     if (infodata.dptr) {
-      pt4 = exec(player, player, player, EV_FIGNORE | EV_EVAL, infodata.dptr, (char **) NULL, 0);
+      pt4 = exec(player, player, player, EV_FIGNORE | EV_EVAL, infodata.dptr, (char **) NULL, 0, (char **)NULL, 0);
       notify_quiet(player,"Mail:");
       notify_quiet(player,pt4);
       free_lbuf(pt4);
@@ -1210,7 +1210,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
 	strcat(s_tmparry[3], ctime((time_t *)pt3));
  	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
         s_returnfilter = exec(*toplay, *toplay, *toplay, EV_FCHECK | EV_EVAL, s_mailfilter,
-                              s_tmparry, 4);
+                              s_tmparry, 4, (char **)NULL, 0);
         free_lbuf(s_tmparry[0]);
         free_lbuf(s_tmparry[1]);
         free_lbuf(s_tmparry[2]);
@@ -1345,7 +1345,7 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
                     ((Cloak(thing_tmp) && SCloak(thing_tmp)) && !Immortal(player))) ) {
                if ( check_read_perms2(player, thing_tmp, attr, dummy1, dummy2) ) {
                   s_plratrretval = exec(player, thing_tmp, thing_tmp, EV_FCHECK | EV_EVAL, 
-                                        s_plratr, (char **) NULL, 0);
+                                        s_plratr, (char **) NULL, 0, (char **)NULL, 0);
                   did_alloc = 1;
                } else {
                   s_plratrretval = NULL;
@@ -1384,7 +1384,7 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
             s_plratr = atr_pget(thing_tmp, attr->number, &dummy1, &dummy2);
             if ( s_plratr && Good_obj(player) ) { 
                s_plratrretval = exec(thing_tmp, player, player, EV_FCHECK | EV_EVAL, 
-                                     s_plratr, (char **) NULL, 0);
+                                     s_plratr, (char **) NULL, 0, (char **)NULL, 0);
                did_alloc = 1;
             } else {
                s_plratrretval = NULL;
@@ -1873,7 +1873,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
                   apt = NULL;
                   chk_lbuf_free = 0;
                } else
-                  apt = exec(thing_tmp, p2, p2, EV_FCHECK | EV_EVAL, apt_tmp, (char **) NULL, 0);
+                  apt = exec(thing_tmp, p2, p2, EV_FCHECK | EV_EVAL, apt_tmp, (char **) NULL, 0, (char **)NULL, 0);
                free_lbuf(apt_tmp);
             } else {
                apt_tmp = atr_pget(thing_tmp, attr->number, &dummy1, &dummy2);
@@ -1884,7 +1884,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
                } else {
                   if ( check_read_perms2(p2, thing_tmp, attr, dummy1, dummy2) ) {
                      apt = exec(p2, thing_tmp, thing_tmp, EV_FCHECK | EV_EVAL, apt_tmp,
-                                (char **) NULL, 0);
+                                (char **) NULL, 0, (char **)NULL, 0);
                   } else {
                      chk_lbuf_free = 0;
                      apt = NULL;

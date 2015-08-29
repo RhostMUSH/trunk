@@ -444,7 +444,7 @@ char *retbuff;
    if ( !loc || !*loc ) {
       target = NOTHING;
    } else {
-      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, loc, NULL, 0);
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, loc, (char **)NULL, 0, (char **)NULL, 0);
       target = match_thing(player, retbuff);
       free_lbuf(retbuff);
    }

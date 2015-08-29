@@ -1036,7 +1036,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                             atr_get_str(buff2, mudconf.global_attrdefault, t2, &aowner2, &aflags2);
                             if ( *buff2 ) {
                                buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &(pt1->info), 1);
+                                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &(pt1->info), 1, (char **)NULL, 0);
                                if ( atoi(buff2ret) == 0 ) {
                                   free_lbuf(buff2ret);
                                   no_set = 1;
@@ -1421,7 +1421,7 @@ look_in(dbref player, dbref loc, int key)
             safe_str(mudstate.global_regs[x],savereg[x],&pt);
           }
        }
-       s = exec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0);
+       s = exec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             pt = mudstate.global_regs[x];

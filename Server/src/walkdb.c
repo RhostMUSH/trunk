@@ -815,7 +815,7 @@ int	save_invk_ctr;
 				parm->s_rst_eval, 0);
 			result = exec(player, cause, cause,
 				EV_FCHECK|EV_EVAL|EV_NOTRACE, buff2,
-				(char **)NULL, 0);
+				(char **)NULL, 0, (char **)NULL, 0);
 			free_lbuf(buff2);
 			if (!*result || !xlate(result)) {
 				free_lbuf(result);

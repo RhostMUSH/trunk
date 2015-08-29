@@ -1663,7 +1663,7 @@ trigger_cluster_action(dbref thing, dbref player)
             s_strtok = atr_get(thing, attr->number, &aowner, &aflags);
             if ( s_strtok && *s_strtok ) {
                s_tmpstr = exec(thing, thing, thing, EV_STRIP | EV_FCHECK | EV_EVAL, 
-                               s_strtok, (char **)NULL, 0);
+                               s_strtok, (char **)NULL, 0, (char **)NULL, 0);
                free_lbuf(s_tmpstr);
                mudstate.clust_time = mudstate.now;
             }

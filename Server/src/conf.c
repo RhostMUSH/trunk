@@ -1641,7 +1641,7 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
    sprintf(mybuff[2], "%d", i_type);
    mudstate.insideaflags = 1;
    retval = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL,
-                            atext, mybuff, 3);
+                            atext, mybuff, 3, (char **)NULL, 0);
    mudstate.insideaflags = 0;
    free_sbuf(mybuff[0]);
    free_sbuf(mybuff[1]);

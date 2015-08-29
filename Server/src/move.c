@@ -638,7 +638,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
              pt = savereg[x];
              safe_str(mudstate.global_regs[x],savereg[x],&pt);
           }
-          retbuff = exec(exit, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, atext, (char **) NULL, 0);
+          retbuff = exec(exit, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, atext, (char **) NULL, 0, (char **)NULL, 0);
           if ( !*retbuff ) {
              loc = NOTHING;
           } else if ( *retbuff && (stricmp(retbuff, "home") == 0) ) {
