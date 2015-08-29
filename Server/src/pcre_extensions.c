@@ -299,11 +299,6 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
               if (p >= re_subpatterns || re_offsets == NULL || re_from == NULL)
                  break;
          
-/*
-              pcre_copy_substring(re_from, re_offsets, re_subpatterns, p, obuf,
-                                  LBUF_SIZE);
-*/
-/*            sprintf(obuf, "%c%d%c", (int)(unsigned char)255, p, (int)(unsigned char)255); */
               sprintf(obuf, "$%d$", p);
               safe_str(obuf, mybuff, &mybuffptr);
               break;
@@ -316,7 +311,26 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
          } /* While *str */
          *mybuffptr = '\0';
          if ( key & 4 ) { 
-            safe_str(mybuff, postbuf, &postp);
+            memset(obuf, '\0', LBUF_SIZE);
+            abufptr = mybuff;
+            obufptr = obuf;
+            obuf2 = alloc_lbuf("pcre_edit_crap");
+            while ( *abufptr ) { 
+               if ( *abufptr == '$' ) {
+                  abufptr++;
+                  p = atoi(abufptr);
+                  while ( *abufptr && *abufptr != '$' )
+                     abufptr++;
+                  pcre_copy_substring(re_from, re_offsets, re_subpatterns, p, obuf2,
+                                      LBUF_SIZE);
+                  safe_str(obuf2, obuf, &obufptr);
+               } else {
+                  safe_chr(*abufptr, obuf, &obufptr);
+               }
+               abufptr++;
+            }            
+            free_lbuf(obuf2);
+            safe_str(obuf, postbuf, &postp);
          } else {
             abuf = exec(player, cause, caller,
                         EV_STRIP | EV_FCHECK | EV_EVAL, mybuff, cargs, ncargs);
@@ -325,11 +339,9 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
             obufptr = obuf;
             obuf2 = alloc_lbuf("pcre_edit_crap");
             while ( *abufptr ) { 
-/*             if ( (int)(unsigned char)*abufptr == 255 ) { */
-               if ( *abufptr = '$' )
+               if ( *abufptr == '$' ) {
                   abufptr++;
                   p = atoi(abufptr);
-/*                while ( *abufptr && (int)(unsigned char)*abufptr != 255 ) */
                   while ( *abufptr && *abufptr != '$' )
                      abufptr++;
                   pcre_copy_substring(re_from, re_offsets, re_subpatterns, p, obuf2,
