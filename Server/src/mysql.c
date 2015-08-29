@@ -335,9 +335,16 @@ static int sql_init(dbref player) {
   
   mysql_struct = mysql_init(mysql_struct);
   
-  result = mysql_real_connect(mysql_struct, mudconf.mysql_host, mudconf.mysql_user,
-                              mudconf.mysql_pass, mudconf.mysql_base, mudconf.mysql_port,
-                              mudconf.mysql_socket, 0);
+  /* Check a NULL for socket where it then assumes default */
+  if ( stricmp(mudconf.mysql_socket, "NULL") == 0 ) {
+     result = mysql_real_connect(mysql_struct, mudconf.mysql_host, mudconf.mysql_user,
+                                 mudconf.mysql_pass, mudconf.mysql_base, mudconf.mysql_port,
+                                 NULL, 0);
+  } else {
+     result = mysql_real_connect(mysql_struct, mudconf.mysql_host, mudconf.mysql_user,
+                                 mudconf.mysql_pass, mudconf.mysql_base, mudconf.mysql_port,
+                                 mudconf.mysql_socket, 0);
+  }
 
   if (!result) {
     STARTLOG(LOG_PROBLEMS, "SQL", "ERR");

@@ -270,6 +270,8 @@ echo "        directories will have to be manually modified through rhost_mysql.
 echo ""
 echo " For LOCAL INSTALLS please specify a valid MySQL Socket.  For ubuntu systems"
 echo " this is generally located in /var/run/mysqld/mysqld.sock"
+echo " Feel free to specify 'NULL' as the socket for it to use the default value."
+echo ""
 echo " For REMOTE INSTALLS you may specify /dev/null for the socket."
 echo "------------------------------------------------------------------------------"
 echo "[${MS[1]}]  1. Toggle MySQL On/Off"
