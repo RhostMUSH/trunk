@@ -1014,11 +1014,29 @@ CF_HAND(cf_int_runtime)
 
 CF_HAND(cf_vint)
 {
+    int i_ceil = 10000;
+    char s_buf[20];
     sscanf(str, "%d", vp);
-    if ((*vp < 0) || (*vp > 10000))
+#ifdef QDBM
+    i_ceil = 10000;
+    sprintf(s_buf, (char *)"[QDBM Mode]");
+#else
+#ifdef BIT64
+    i_ceil = 400;
+    sprintf(s_buf, (char *)"[GDBM 64Bit Mode]");
+#else
+    sprintf(s_buf, (char *)"[GDBM 32Bit Mode]");
+    i_ceil = 750;
+#endif
+#endif
+    if ((*vp < 0) || (*vp > i_ceil)) {
+        if ( !mudstate.initializing) {
+           notify(player, unsafe_tprintf("%s Value must be between 0 and %d.", s_buf, i_ceil));
+        }
 	return -1;
-    else
+    } else {
 	return 0;
+    }
 }
 
 CF_HAND(cf_mailint)

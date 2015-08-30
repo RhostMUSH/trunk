@@ -28338,6 +28338,8 @@
   * valid() types locktype and lockkey added for Penn compat [ASH]
   * total rework of the internal exec parser stack to properly handle
     some erraneous REGEXP pre-parsing syntax issues [ASH]
+  * because people kept raising the VLIMIT past the recommended values
+    while in GDBM mode, we have hard-locked it for 32/64 bit GDBM [ASH]
     
   Bug Fixes
   ------------

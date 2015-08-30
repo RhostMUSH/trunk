@@ -5505,7 +5505,7 @@ list_options_mysql(dbref player)
                   mudconf.mysql_user,
                   (Immortal(player) ? mudconf.mysql_pass : (char *)"****"),
                   mudconf.mysql_base,
-                  mudconf.mysql_socket,
+                  ( (stricmp(mudconf.mysql_socket, "NULL") == 0) ? "(NULL) [default socket]" : mudconf.mysql_socket),
                   mudconf.mysql_port);
    notify(player, tbuf);
    free_lbuf(tbuf);
@@ -5639,7 +5639,11 @@ list_options_system(dbref player)
 #ifdef QDBM
     notify(player, "Database Engine -------------------------------------------------- QDBM");
 #else
-    notify(player, "Database Engine -------------------------------------------------- GDBM");
+#ifdef BIT64
+    notify(player, "Database Engine -------------------------------------------------- GDBM [64Bit]");
+#else
+    notify(player, "Database Engine -------------------------------------------------- GDBM [32Bit]");
+#endif
 #endif
 #ifdef SQLITE
     notify(player, "SQLite ----------------------------------------------------------- ENABLED");
