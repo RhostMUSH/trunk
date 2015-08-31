@@ -1314,6 +1314,7 @@ do_reboot(dbref player, dbref cause, int key)
 {
   int port;
   FILE *f;
+  struct stat statbuf;
   DESC *d;
 
   DPUSH; /* #80 */
@@ -1343,6 +1344,13 @@ do_reboot(dbref player, dbref cause, int key)
         return;
      }
   }
+#ifndef VMS
+  if (stat((char *)"netrhost", &statbuf) != 0) {
+     notify(player, "There is no netrhost executable to reboot to!");
+     DPOP; /* #80 */
+     return;
+  }
+#endif
 
   alarm_msec(0);
   alarm_stop();
