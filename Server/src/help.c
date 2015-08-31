@@ -551,7 +551,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                 *p = '\0';
          if ( key & DYN_PARSE ) {
             result = exec(player, cause, cause,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, line, (char**)NULL, 0);
+                         EV_STRIP | EV_FCHECK | EV_EVAL, line, (char**)NULL, 0, (char **)NULL, 0);
             if ( t_val ) {
                safe_str(result, t_buff, &t_bufptr);
                safe_str("\r\n", t_buff, &t_bufptr);
@@ -616,7 +616,7 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
    if ( !*msg || !msg ) {
       it = player;
    } else {
-      line = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL, msg, (char **) NULL, 0);
+      line = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL, msg, (char **) NULL, 0, (char **)NULL, 0);
       it = lookup_player(player, line, 1);
       if (it == NOTHING || !Good_obj(it) || !isPlayer(it) || Going(it) || Recover(it) ) {
          notify_quiet(player, unsafe_tprintf("Unknown player '%s'.", line));
@@ -776,7 +776,7 @@ errmsg(dbref player)
     if ( *errbuf == '!' ) {
        i_trace = mudstate.notrace;
        mudstate.notrace = 1;
-       buffp = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, errbuf+1, (char **) NULL, 0);
+       buffp = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, errbuf+1, (char **) NULL, 0, (char **)NULL, 0);
        strcpy(errbuf, buffp);
        free_lbuf(buffp);
        mudstate.notrace = i_trace;

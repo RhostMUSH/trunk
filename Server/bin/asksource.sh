@@ -111,24 +111,30 @@ for i in ${BOPTIONS}
 do
    XB[${i}]=" "
 done
+XB[5]="X"
+
 for i in ${DOPTIONS}
 do
    XD[${i}]=" "
 done
+
 for i in ${LOPTIONS}
 do
    XL[${i}]=" "
 done
-   XL[1]="X"
+XL[1]="X"
+
 for i in ${AOPTIONS}
 do
    XA[${i}]=" "
 done
-   XA[2]="X"
+XA[2]="X"
+
 for i in ${DBOPTIONS}
 do
    MS[${i}]=" "
 done
+
 # Load default options
 if [ -f ./asksource.default ]
 then
@@ -267,6 +273,12 @@ clear
 echo "               RhostMUSH MySQL / MariaDB Configuration Utility"
 echo " NOTE:  This will only manually configure the 'game' directory.  Custom"
 echo "        directories will have to be manually modified through rhost_mysql.conf"
+echo ""
+echo " For LOCAL INSTALLS please specify a valid MySQL Socket.  For ubuntu systems"
+echo " this is generally located in /var/run/mysqld/mysqld.sock"
+echo " Feel free to specify 'NULL' as the socket for it to use the default value."
+echo ""
+echo " For REMOTE INSTALLS you may specify /dev/null for the socket."
 echo "------------------------------------------------------------------------------"
 echo "[${MS[1]}]  1. Toggle MySQL On/Off"
 echo "[#]  2. Change MySQL Data"

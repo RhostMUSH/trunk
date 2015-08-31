@@ -1960,7 +1960,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
          }
 #endif
          result = exec(thing, player, player, EV_FCHECK | EV_EVAL, atext,
-                       (char **)NULL, 0);
+                       (char **)NULL, 0, (char **)NULL, 0);
          mudstate.password_nochk = 0;
          if ( save_flg ) {
             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
@@ -2279,7 +2279,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	if (interp & EV_EVAL)
 	    buf1 = exec(player, cause, cause, interp | EV_FCHECK | EV_TOP,
-			arg, cargs, ncargs);
+			arg, cargs, ncargs, (char **)NULL, 0);
 	else
 	    buf1 = parse_to(&arg, '\0', interp | EV_TOP);
 
@@ -2326,7 +2326,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
               sprintf(buf1, "%s", buf2);
         } else {
 	   buf1 = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL | EV_TOP,
-		       buf2, cargs, ncargs);
+		       buf2, cargs, ncargs, (char **)NULL, 0);
 	}
 
 	if (cmdp->callseq & CS_ARGV) {
@@ -2335,7 +2335,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	    parse_arglist(player, cause, cause, arg, '\0',
 			  interp | EV_STRIP_LS | EV_STRIP_TS,
-			  args, MAX_ARG, cargs, ncargs, 0);
+			  args, MAX_ARG, cargs, ncargs, 0, (char **)NULL, 0);
 	    for (nargs = 0; (nargs < MAX_ARG) && args[nargs]; nargs++);
 
 	    /* Call the correct command handler */
@@ -2360,7 +2360,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    if (interp & EV_EVAL) {
 		buf2 = exec(player, cause, cause,
 			    interp | EV_FCHECK | EV_TOP,
-			    arg, cargs, ncargs);
+			    arg, cargs, ncargs, (char **)NULL, 0);
 	    } else {
 		buf2 = parse_to(&arg, '\0',
 				interp | EV_STRIP_LS | EV_STRIP_TS | EV_TOP);
@@ -2546,7 +2546,8 @@ int cmdtest(dbref player, char *cmd)
                }
                if ( *buff2 ) {
                   mudstate.insideicmds = 1;
-                  mbuf = exec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, (char **)NULL, 0);
+                  mbuf = exec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, 
+                              (char **)NULL, 0, (char **)NULL, 0);
                   mudstate.insideicmds = 0;
                   if ( *mbuf ) {
                      if ( atoi(mbuf) == 2 )
@@ -4179,7 +4180,7 @@ process_command(dbref player, dbref cause, int interactive,
     cval = cval2 = 0;
     free_lbuf(lcbuf);
     lcbuf = exec(player, cause, cause, EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, command,
-		 args, nargs);
+		 args, nargs, (char **)NULL, 0);
     succ = 0;
 
     /* Idea for enter/leave aliases from R'nice@TinyTIM */
@@ -4371,7 +4372,7 @@ process_command(dbref player, dbref cause, int interactive,
                mudstate.notrace = 1;
                lcbuf_temp = exec(mudconf.global_error_obj, cause, cause, 
                                  EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, lcbuf,
-                                 arr_prog, narg_prog );
+                                 arr_prog, narg_prog, (char **)NULL, 0);
                mudstate.notrace = i_trace;
                mudstate.nocodeoverride = 0;
                notify(player, lcbuf_temp);
@@ -5504,7 +5505,7 @@ list_options_mysql(dbref player)
                   mudconf.mysql_user,
                   (Immortal(player) ? mudconf.mysql_pass : (char *)"****"),
                   mudconf.mysql_base,
-                  mudconf.mysql_socket,
+                  ( (stricmp(mudconf.mysql_socket, "NULL") == 0) ? "(NULL) [default socket]" : mudconf.mysql_socket),
                   mudconf.mysql_port);
    notify(player, tbuf);
    free_lbuf(tbuf);
@@ -5638,7 +5639,11 @@ list_options_system(dbref player)
 #ifdef QDBM
     notify(player, "Database Engine -------------------------------------------------- QDBM");
 #else
-    notify(player, "Database Engine -------------------------------------------------- GDBM");
+#ifdef BIT64
+    notify(player, "Database Engine -------------------------------------------------- GDBM [64Bit]");
+#else
+    notify(player, "Database Engine -------------------------------------------------- GDBM [32Bit]");
+#endif
 #endif
 #ifdef SQLITE
     notify(player, "SQLite ----------------------------------------------------------- ENABLED");
@@ -8506,7 +8511,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
   int i_evaled = 0;
 
   if ( mudconf.break_compatibility ) {
-     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, NULL, 0);
+     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
      i_evaled = 1;
   } else
      arg1_eval = arg1;
@@ -8535,7 +8540,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
   int i_evaled = 0;
 
   if ( mudconf.break_compatibility ) {
-     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, NULL, 0);
+     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
      i_evaled = 1;
   } else
      arg1_eval = arg1;
@@ -9072,7 +9077,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       return;
    }
    i_breakst = mudstate.breakst;
-   retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, NULL, 0);
+   retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, (char **)NULL, 0, (char **)NULL, 0);
    old_trainmode=mudstate.trainmode;
    if ( *retbuff && (((atoi(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
                      ((atoi(retbuff) != 0) &&  (key & SKIP_IFELSE))) ) {
@@ -9155,7 +9160,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( !s_player || !*s_player ) {
       target = NOTHING;
    } else {
-      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_player, NULL, 0);
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_player, (char **)NULL, 0, (char **)NULL, 0);
       target = match_thing(player, retbuff);
       free_lbuf(retbuff);
    }
@@ -9364,7 +9369,7 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       }
       atr_clr(thing, A_ANSINAME);
    } else {
-     retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, instr, NULL, 0);
+     retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, instr, (char **)NULL, 0, (char **)NULL, 0);
      namebuffptr = namebuff = alloc_lbuf("do_extansi.exitname");
       if ( isExit(thing) ) {
          for (s = Name(thing); *s && (*s != ';'); s++)
@@ -9780,7 +9785,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                            no_attr2 = 1;
                         } else {
                            ret_buff = exec(mudconf.hook_obj, player, player, EV_FCHECK | EV_EVAL, sub_buff2,
-                                           (char **)NULL, 0);
+                                           (char **)NULL, 0, (char **)NULL, 0);
                            if ( *ret_buff )
                               ret_char = *ret_buff;
                            else
@@ -9868,7 +9873,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    s_instr = alloc_lbuf("do_cluster");
    strcpy(s_instr, name);
    s_return = exec(player, cause, cause, EV_FCHECK | EV_EVAL, s_instr,
-                  (char **)NULL, 0);
+                  (char **)NULL, 0, (char **)NULL, 0);
    if ( !s_return || !*s_return ) {
       notify(player, "@cluster requires an argument.");
       free_lbuf(s_return);
@@ -10344,7 +10349,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             } else {
                parse_arglist(player, cause, cause, s_tmpptr, '\0',
                              EV_STRIP_LS | EV_STRIP_TS,
-                             xargs, MAX_ARG, (char **)NULL, 0, 0);
+                             xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
                for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
@@ -10407,7 +10412,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                } else {
                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
                                 EV_STRIP_LS | EV_STRIP_TS,
-                                xargs, MAX_ARG, (char **)NULL, 0, 0);
+                                xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                   if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                      s_instr = atr_get(thing, anum2, &aowner, &aflags);
@@ -10532,7 +10537,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                         if ( *s_strtok ) {
 	                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                 EV_STRIP_LS | EV_STRIP_TS,
-			                 xargs, MAX_ARG, (char **)NULL, 0, 0);
+			                 xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
 	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
                               ; /* We just want to increment the counter to count it */
                            s_strtok = alloc_lbuf("cluster_trigger_build");
@@ -10602,7 +10607,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                                 (strchr(s_strtokptr, '?') != NULL) ) {
 	                      parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                    EV_STRIP_LS | EV_STRIP_TS,
-			                    xargs, MAX_ARG, (char **)NULL, 0, 0);
+			                    xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
 	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
                                  ; /* We just want to count the variable */
                               if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
@@ -10635,7 +10640,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                               } else {
 	                         parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                       EV_STRIP_LS | EV_STRIP_TS,
-			                       xargs, MAX_ARG, (char **)NULL, 0, 0);
+			                       xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
 	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
                                     ; /* We just want to count the variable */
                                  if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {

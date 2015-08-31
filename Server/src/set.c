@@ -860,7 +860,7 @@ ATTR	*attr;
          atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
          if ( *buff2 ) {
             buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1);
+                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1, (char **)NULL, 0);
             if ( atoi(buff2ret) == 0 ) {
                free_lbuf(buff2);
                free_lbuf(buff2ret);
@@ -1427,7 +1427,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
          atr_get_str(buff2, mudconf.global_attrdefault, out_attr->number, &aowner2, &aflags2);
          if ( *buff2 ) {
             buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &astr, 1);
+                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &astr, 1, (char **)NULL, 0);
             if ( atoi(buff2ret) == 0 ) {
                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
                                     "%s: Permission denied: String does not match unique attribute lock.", args[i]));
@@ -1944,7 +1944,7 @@ OBLOCKMASTER master;
                                    if ( buff2 && *buff2 ) {
                                       buff2ret = exec(player, 
                                                       mudconf.global_attrdefault, mudconf.global_attrdefault,
-                                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &result, 1);
+                                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &result, 1, (char **)NULL, 0);
                                       if ( buff2ret && *buff2ret && atoi(buff2ret) == 0 ) {
                                          tprp_buff = tpr_buff;
                                          notify_quiet(player,

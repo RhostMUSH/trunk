@@ -269,7 +269,7 @@ fcache_rawdump(int fd, int num, struct in_addr host)
              sprintf(sarray[3], "%d", NOTHING);
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4);
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -377,7 +377,7 @@ fcache_dump(DESC * d, int num)
                 sprintf(sarray[3], "%d", d->player);
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4);
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {

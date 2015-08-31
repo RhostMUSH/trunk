@@ -1360,7 +1360,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
    }
    for (a=0; (a<(nargs-1)) && args[a] && args[a+1]; a+=2) {
       buff = exec(player, cause, cause, EV_FCHECK|EV_EVAL|EV_TOP, args[a],
-                  cargs, ncargs);
+                  cargs, ncargs, (char **)NULL, 0);
       if ( PCRE_EXEC && i_regexp ) {
          chkwild = regexp_wild_match(buff, expr, (char **)NULL, 0, 1);
       } else {
@@ -2120,17 +2120,17 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 			if ( tst_attr && *master_str ) {
                            if ( *d ) {
 			      master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				                d, args, nargs);
+				                d, args, nargs, (char **)NULL, 0);
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, &master_ret, 1);
+				          master_str, &master_ret, 1, (char **)NULL, 0);
                               free_lbuf(master_ret);
                            } else {
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, args, nargs);
+				          master_str, args, nargs, (char **)NULL, 0);
                            }
 			} else {
 			   buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				       d, args, nargs);
+				       d, args, nargs, (char **)NULL, 0);
                         }
                         if ( mudconf.formats_are_local &&
                               ((what == A_LCON_FMT) ||
@@ -2190,17 +2190,17 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 			if ( tst_attr && *master_str ) {
 			   if ( *d ) {
 			      master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				                d, args, nargs);
+				                d, args, nargs, (char **)NULL, 0);
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, &master_ret, 1);
+				          master_str, &master_ret, 1, (char **)NULL, 0);
                               free_lbuf(master_ret);
 			   } else {
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, args, nargs);
+				          master_str, args, nargs, (char **)NULL, 0);
 			   }
                         } else {
 			   buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				      d, args, nargs);
+				      d, args, nargs, (char **)NULL, 0);
                         }
 			notify(player, buff);
 			free_lbuf(buff);
@@ -2262,17 +2262,17 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                         if ( tst_attr && *master_str ) {
 			   if ( *d ) {
 			      master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				                d, args, nargs);
+				                d, args, nargs, (char **)NULL, 0);
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, &master_ret, 1);
+				          master_str, &master_ret, 1, (char **)NULL, 0);
                               free_lbuf(master_ret);
 			   } else {
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, args, nargs);
+				          master_str, args, nargs, (char **)NULL, 0);
 			   }
                         } else {
 			   buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				      d, args, nargs);
+				      d, args, nargs, (char **)NULL, 0);
                         }
 			if ( *buff ) {
 			  if ( mudconf.oattr_enable_altname &&
@@ -2553,7 +2553,7 @@ char	*xargs[10];
 
 	if (nargs >= 7) {
 		parse_arglist(victim, actor, actor, args[6], '\0',
-			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0, 0);
+			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0, 0, (char **)NULL, 0);
 		for (nxargs=0; (nxargs<10) && xargs[nxargs]; nxargs++) ;
 	}
 

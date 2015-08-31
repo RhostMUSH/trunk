@@ -376,7 +376,7 @@ match_list_altname(first)
            if ( NoName(first) ) {
 	      namebuf2 = atr_pget(first, A_NAME_FMT, &aowner, &aflags);
               if ( *namebuf2 ) {
-                 namebuf3 = exec(first, match_who, match_who, EV_FIGNORE|EV_EVAL|EV_TOP, namebuf2, (char **) NULL, 0);
+                 namebuf3 = exec(first, match_who, match_who, EV_FIGNORE|EV_EVAL|EV_TOP, namebuf2, (char **) NULL, 0, (char **)NULL, 0);
                  strcpy(namebuf, strip_all_special(namebuf3));
                  free_lbuf(namebuf3);
               }

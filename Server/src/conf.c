@@ -1014,40 +1014,74 @@ CF_HAND(cf_int_runtime)
 
 CF_HAND(cf_vint)
 {
-    sscanf(str, "%d", vp);
-    if ((*vp < 0) || (*vp > 10000))
+    int i_ceil = 10000, vp_old=0;
+    char s_buf[20];
+  
+    sscanf(str, "%d", &vp_old);
+#ifdef QDBM
+    i_ceil = 10000;
+    sprintf(s_buf, (char *)"[QDBM Mode]");
+#else
+#ifdef BIT64
+    i_ceil = 400;
+    sprintf(s_buf, (char *)"[GDBM 64Bit Mode]");
+#else
+    sprintf(s_buf, (char *)"[GDBM 32Bit Mode]");
+    i_ceil = 750;
+#endif
+#endif
+    if ((vp_old < 0) || (vp_old > i_ceil)) {
+        if ( !mudstate.initializing) {
+           notify(player, unsafe_tprintf("%s Value must be between 0 and %d.", s_buf, i_ceil));
+        }
 	return -1;
-    else
+    } else {
+        *vp = vp_old;
 	return 0;
+    }
 }
 
 CF_HAND(cf_mailint)
 {
-    sscanf(str, "%d", vp);
-    if ((*vp < 10) || (*vp > 9999))
+    int vp_old = 0;
+
+    sscanf(str, "%d", &vp_old);
+    if ((vp_old < 10) || (vp_old > 9999)) {
+        if ( !mudstate.initializing) 
+           notify(player, "Value must be between 10 and 9999.");
 	return -1;
-    else
+    } else {
+        *vp = vp_old;
 	return 0;
+    }
 }
 CF_HAND(cf_verifyint)
 {
-    sscanf(str, "%d", vp);
-    if ((*vp < extra2) || (*vp > extra)) {
+    int vp_old = 0;
+
+    sscanf(str, "%d", &vp_old);
+    if ((vp_old < extra2) || (vp_old > extra)) {
         if ( !mudstate.initializing) 
            notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
 	return -1;
-    } else
+    } else {
+        *vp = vp_old;
 	return 0;
+    }
 }
 CF_HAND(cf_verifyint_mysql)
 {
-    sscanf(str, "%d", vp);
-    if ( (*vp != 0) && ((*vp < extra2) || (*vp > extra)) ) {
+    int vp_old = 0;
+
+    sscanf(str, "%d", &vp_old);
+    if ( (vp_old != 0) && ((vp_old < extra2) || (vp_old > extra)) ) {
         if ( !mudstate.initializing) 
            notify(player, unsafe_tprintf("Value must be 0 or between %d and %d.", extra2, extra));
 	return -1;
-    } else
+    } else {
+        *vp = vp_old;
 	return 0;
+    }
 }
 
 /* ---------------------------------------------------------------------------
@@ -1641,7 +1675,7 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
    sprintf(mybuff[2], "%d", i_type);
    mudstate.insideaflags = 1;
    retval = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL,
-                            atext, mybuff, 3);
+                            atext, mybuff, 3, (char **)NULL, 0);
    mudstate.insideaflags = 0;
    free_sbuf(mybuff[0]);
    free_sbuf(mybuff[1]);
