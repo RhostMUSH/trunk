@@ -28340,6 +28340,7 @@
     some erraneous REGEXP pre-parsing syntax issues [ASH]
   * because people kept raising the VLIMIT past the recommended values
     while in GDBM mode, we have hard-locked it for 32/64 bit GDBM [ASH]
+  * @reboot enforces binary's existance prior to actual rebooting [ASH]
     
   Bug Fixes
   ------------
