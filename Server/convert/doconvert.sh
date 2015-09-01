@@ -399,4 +399,5 @@ then
    then
       echo "        'more muxlocks.out' : $(wc -l muxlocks.out|cut -f1 -d" ") locks need to be manually loaded into RhostMUSH."
    fi
+   echo "Note: #1's password was forcefully reset to 'Nyctasia' incase the passwords did not convert over."
 fi
