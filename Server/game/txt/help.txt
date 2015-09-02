@@ -28355,4 +28355,8 @@
     occurances [ASH]
   * @include didn't reset the state correctly in some instances [ASH]
   * @dolist/inline didn't properly parse nested args [ASH]
-  * regedit*() functions could double-eval the $0-$99 subs [ASH]
+  * regedit*() functions could double-eval the $0-$99 subs.  This will
+    break some backward compatability on anything that depended on the
+    double evaluation but is a necessary evil for security plus now
+    behaves like it should have to begin with (via the help) [ASH]
+  * cd (connect dark) didn't follow permission restrictions right [ASH]

@@ -1266,12 +1266,16 @@ flag_set(dbref target, dbref player, char *flag, int key)
 {
     FLAGENT *fp;
     TOGENT *tp;
-    int negate, result, perm, i_ovperm, i_uovperm, i_chkflags;
+    int negate, result, perm, i_ovperm, i_uovperm, i_chkflags, i_setmuffle;
     char *pt1, *pt2, st, *tbuff, *tpr_buff, *tprp_buff, *tpr_buff2, *tprp_buff2;
 
     /* Trim spaces, and handle the negation character */
 
-    result = i_chkflags = 0;
+    result = i_chkflags = i_setmuffle = 0;
+    if ( key & SET_MUFFLE ) {
+       i_setmuffle = 1;
+       key &= ~SET_MUFFLE;
+    }
     pt1 = flag;
     st = 1;
     tbuff = alloc_lbuf("log_flag_set_information");
@@ -1298,32 +1302,38 @@ flag_set(dbref target, dbref player, char *flag, int key)
 	/* Make sure a flag name was specified */
 
 	if (*pt1 == '\0') {
-	    if (negate)
-		notify(player, "You must specify a flag or flags to clear.");
-	    else
-		notify(player, "You must specify a flag or flags to set.");
+            if ( !i_setmuffle) {
+	       if (negate)
+		   notify(player, "You must specify a flag or flags to clear.");
+	       else
+		   notify(player, "You must specify a flag or flags to set.");
+            }
 	} else {
 
 	    fp = find_flag(target, pt1);
 	    if (fp == NULL) {
                 tp = find_toggle_perm(target, pt1, player);
-                if ( tp == NULL ) {
-		   notify(player, "I don't understand that flag.");
-                } else {
-                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @toggle me=%s?]", pt1));
-                   tprp_buff = tpr_buff;
-                }
+                if ( !i_setmuffle) {
+                   if ( tp == NULL ) {
+		      notify(player, "I don't understand that flag.");
+                   } else {
+                      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @toggle me=%s?]", pt1));
+                      tprp_buff = tpr_buff;
+                   }
+               }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
-                        !Immortal(player)))
-		  notify(player, "Permission denied.");
-		else {
+                        !Immortal(player))) {
+                  if ( !i_setmuffle )
+		     notify(player, "Permission denied.");
+		} else {
 		  perm = 1;
 		  if (!(fp->flagflag & FA_HANDLER)) {
 		    if (!Controls(player,target) && 
 			!HasPriv(player,target,POWER_SECURITY,POWER4,NOTHING)) {
-		      notify(player, "Permission denied.");
+                      if ( !i_setmuffle ) 
+		         notify(player, "Permission denied.");
 		      perm = 0;
 		    }
 		  }
@@ -1331,7 +1341,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   /* NOMODIFY was changed to be immortal only settable/removable */
                   if ( perm && (fp->flagvalue & NOMODIFY) && (mudconf.imm_nomod) &&
                        !Immortal(player) && (fp->flagflag & FLAG3) ) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
                   }
 
@@ -1339,7 +1350,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && (mudconf.secure_jumpok > 7) && 
                        !Immortal(player) && 
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
 		  }
 
@@ -1347,7 +1359,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && (mudconf.secure_jumpok > 6) && 
                        !Immortal(player) && !isRoom(target) &&
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
                   }
 
@@ -1355,7 +1368,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && (mudconf.secure_jumpok > 5) && 
                        !Wizard(player) && 
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
 		  }
 
@@ -1363,7 +1377,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && (mudconf.secure_jumpok > 4) && 
                        !Wizard(player) && !isRoom(target) &&
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
                   }
 
@@ -1371,7 +1386,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && (mudconf.secure_jumpok > 3) && 
                        !Admin(player) && 
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
 		  }
 
@@ -1379,7 +1395,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && (mudconf.secure_jumpok > 2) && 
                        !Admin(player) && !isRoom(target) &&
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
                   }
 
@@ -1387,7 +1404,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && (mudconf.secure_jumpok > 1) && 
                        !Builder(player) && 
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
 		  }
 
@@ -1395,14 +1413,16 @@ flag_set(dbref target, dbref player, char *flag, int key)
                   if ( perm && (fp->flagvalue & JUMP_OK) && mudconf.secure_jumpok && 
                        !Builder(player) && !isRoom(target) &&
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
                   }
 
                   if ( perm && (fp->flagvalue & DARK) && mudconf.secure_dark &&
                        !Wizard(player) && isPlayer(target) &&
                        !(fp->flagflag & (FLAG2 | FLAG3 | FLAG4))) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
                   }
 		  if ( perm && (fp->flagvalue & SIDEFX) && (fp->flagflag & FLAG3) &&
@@ -1414,7 +1434,8 @@ flag_set(dbref target, dbref player, char *flag, int key)
                                (Guildmaster(player) && (mudconf.restrict_sidefx <= 2 )) ||
 			       ((Wanderer(player) || Guest(player)) && (mudconf.restrict_sidefx <=  1)) ||
                                (mudconf.restrict_sidefx == 0 )) ) {
-		     notify(player, "Permission denied.");
+                     if ( !i_setmuffle )
+		        notify(player, "Permission denied.");
                      perm = 0;
                   }
                   if ( perm && 
@@ -1438,7 +1459,7 @@ flag_set(dbref target, dbref player, char *flag, int key)
                      } else if ( (fp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
                         perm = 0;
                      }
-                     if ( !perm ) 
+                     if ( !perm && !i_setmuffle )
 		        notify(player, "Permission denied.");
                   }
 
@@ -1493,9 +1514,10 @@ flag_set(dbref target, dbref player, char *flag, int key)
                     } else
 		       result = fp->handler(target, player, fp->flagvalue,
 				        fp->flagflag, negate);
-		    if (!result)
-		      notify(player, "Permission denied.");
-		    else if (!(key & SET_QUIET) && !Quiet(player)) {
+		    if (!result) {
+                      if ( !i_setmuffle )
+		         notify(player, "Permission denied.");
+		    } else if (!(key & SET_QUIET) && !Quiet(player) && !i_setmuffle) {
 		      if ( (key & SET_NOISY) || (TogNoisy(player)) ) {
                         tprp_buff = tpr_buff;
                         tprp_buff2 = tpr_buff2;

@@ -3977,12 +3977,16 @@ check_connect(DESC * d, const char *msg)
 	    }
 	    if (dc == 1) {
 	      if (Immortal(player)) {
-		s_Flags2(player, (Flags2(player) | SCLOAK | UNFINDABLE));
-		s_Flags(player, (Flags(player) | DARK));
+                buff = alloc_lbuf("connect_dark");
+                sprintf(buff, "%s", (char *)"scloak unfindable dark");
+                flag_set(player, player, buff, SET_MUFFLE);
+                free_lbuf(buff);
 	      }
 	      else if (Wizard(player)) {
-		s_Flags2(player, (Flags2(player) | UNFINDABLE));
-		s_Flags(player, (Flags(player) | DARK));
+                buff = alloc_lbuf("connect_dark");
+                sprintf(buff, "%s", (char *)"unfindable dark");
+                flag_set(player, player, buff, SET_MUFFLE);
+                free_lbuf(buff);
 	      }
 	      if ((!Immortal(player) && !Wizard(player)) || (Wizard(player) && DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)))
 		dc = 0;
