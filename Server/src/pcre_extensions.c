@@ -336,7 +336,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
                sregs[j] = NULL;
                if ( j < re_subpatterns ) {
                   sregs[j] = alloc_lbuf("regexp_crap");
-                  pcre_copy_substring(re_from, re_offsets, re_subpatterns, p, sregs[j],
+                  pcre_copy_substring(re_from, re_offsets, re_subpatterns, j, sregs[j],
                                       LBUF_SIZE);
                }
             }
