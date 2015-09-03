@@ -28366,3 +28366,4 @@
     behaves like it should have to begin with (via the help) [ASH]
   * cd (connect dark) didn't follow permission restrictions right [ASH]
   * @admin function_access didn't work quite right on @lfunctions [ASH]
+  * @limit with globals of unlimited for destory/vlimit was broke [ASH]

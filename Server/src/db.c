@@ -2038,7 +2038,7 @@ al_add(dbref thing, int attrnum)
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( i_array[1] != -1 ) {
+             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
                      (i_array[1] == -2 ? (Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
                    notify_quiet(mudstate.vlplay,"Variable attribute new creation maximum reached.");
@@ -2193,7 +2193,7 @@ al_delete(dbref thing, int attrnum)
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( i_array[1] != -1 ) {
+             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
                      (i_array[1] == -2 ? (Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
                    notify_quiet(mudstate.vlplay,"Variable attribute new creation (del) maximum reached.");

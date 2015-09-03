@@ -31,6 +31,8 @@ fix to the src/Makefile to redefine default SHELL since latest Debian horked it 
 				- Thanks Mercutio
 Make '.' as first char allowable in attribute names.
 				- Thanks Ixokai
+@limit with unlimited values for @destroy and vlimit was broke.
+				- Thanks Ixokai
 
 
 		         RhostMUSH 3.9.4 Update File
