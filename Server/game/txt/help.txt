@@ -2695,7 +2695,10 @@
   The /inline switch may use %d0 to %d9 for ## substitution.  %dL for outer.   
   
   Without /inline, it will not handle %d0-%d9.  The reason is the overhead
-  that this would cause would be insufficient for the rewards. 
+  that this would cause would be insufficient for the rewards.  This will
+  hold true to anything that queues with @dolist/inline.  So @switch, @wait,
+  or similar will not be able to process the %d0-%d9.  Sorry for the 
+  limitation.
   
   If present, <switch> can be any of:
     /space     - (Default) List elements are separated by spaces.
@@ -14736,18 +14739,19 @@
   See Also: nummatch(), totmatch(), totmember(), match(), member()
   
 & remove()
-  Function: remove(<list>, <word>[, <delim>])
+  Function: remove(<list>, <word(s)>[, <delim>])
  
-  Remove takes a list and a word, and returns the list, with the word deleted
-  from it.  <delim> may be used to specify a delimiter other than a space.
+  Remove takes a list and a word (or words), and returns the list, with the 
+  word deleted from it.  <delim> may be used to specify a delimiter 
+  other than a space.  You may specify more than one word.
  
   Example:
     > say remove(this is a test, is)
     You say "this a test"
     > say remove(You can't remove, this)
     You say "You can't remove"
-    > say remove(You can't remove multiple words, You can't)
-    You say "#-1 CAN ONLY DELETE ONE ELEMENT"
+    > say remove(You can remove multiple words, You can)
+    You say "remove multiple words"
     > say remove(How about an o-separated list, w ab, o) 
     You say "Hout an o-separated list"
   
@@ -28341,6 +28345,7 @@
   * because people kept raising the VLIMIT past the recommended values
     while in GDBM mode, we have hard-locked it for 32/64 bit GDBM [ASH]
   * @reboot enforces binary's existance prior to actual rebooting [ASH]
+  * remove() now allows multiple removals
     
   Bug Fixes
   ------------
@@ -28360,3 +28365,4 @@
     double evaluation but is a necessary evil for security plus now
     behaves like it should have to begin with (via the help) [ASH]
   * cd (connect dark) didn't follow permission restrictions right [ASH]
+  * @admin function_access didn't work quite right on @lfunctions [ASH]

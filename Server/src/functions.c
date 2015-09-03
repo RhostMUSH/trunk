@@ -19496,36 +19496,63 @@ FUNCTION(fun_remove)
 {
     char *s, *sp, *word;
     char sep;
-    int first, found;
+    int i, j, first, found, iargs[LBUF_SIZE / 2], nitems0, nitems1;
+    char *sargs0[LBUF_SIZE / 2], *sargs1[LBUF_SIZE / 2], *t_buff, *t_buff2;
 
     varargs_preamble("REMOVE", 3);
     if (index(fargs[1], sep)) {
-        safe_str("#-1 CAN ONLY DELETE ONE ELEMENT", buff, bufcx);
-        return;
-    }
-    s = fargs[0];
-    word = fargs[1];
+       t_buff = alloc_lbuf("remove_multi");
+       t_buff2 = alloc_lbuf("remove_multi2");
+       memset(iargs, 0, sizeof(iargs));
+       strcpy(t_buff, fargs[0]);
+       strcpy(t_buff2, fargs[1]);
+       nitems0 = list2arr(sargs0, LBUF_SIZE / 2, t_buff, sep);
+       nitems1 = list2arr(sargs1, LBUF_SIZE / 2, t_buff2, sep);
+       for ( i = 0; i < nitems1; i++ ) {
+          for ( j = 0; j < nitems0; j++ ) {
+             if ( iargs[j] )
+                continue;
+             if ( strcmp(sargs0[j], sargs1[i]) == 0 ) {
+                iargs[j] = 1;
+                break;
+             }
+          }
+       }
+       first = 0;
+       for ( j = 0; j < nitems0; j++ ) {
+          if ( iargs[j] )
+             continue;
+          if ( first )
+             safe_chr(sep, buff, bufcx);
+          safe_str(sargs0[j], buff, bufcx);
+          first = 1;
+       }
+       free_lbuf(t_buff);
+       free_lbuf(t_buff2);
+    } else {
+       s = fargs[0];
+       word = fargs[1];
 
-    /* Walk through the string copying words until (if ever) we get to
-     * one that matches the target word.
-     */
-
-    sp = s;
-    found = 0;
-    first = 1;
-    while (s) {
-        sp = split_token(&s, sep);
-        if (found || strcmp(sp, word)) {
-            if (!first)
-                safe_chr(sep, buff, bufcx);
-            safe_str(sp, buff, bufcx);
-            first = 0;
-        } else {
-            found = 1;
-        }
-    }
+       /* Walk through the string copying words until (if ever) we get to
+        * one that matches the target word.
+        */
+       sp = s;
+       found = 0;
+       first = 1;
+       while (s) {
+           sp = split_token(&s, sep);
+           if (found || strcmp(sp, word)) {
+               if (!first)
+                   safe_chr(sep, buff, bufcx);
+               safe_str(sp, buff, bufcx);
+               first = 0;
+           } else {
+               found = 1;
+           }
+       }
+   }
 }
-
+   
 FUNCTION(fun_median)
 {
 }
@@ -32099,6 +32126,7 @@ CF_HAND(cf_func_access)
     if (*ap)
        *ap++ = '\0';
 
+    /* Global hardcoded Functions */
     for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
                fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
        if (!string_compare(fp->name, str)) {
@@ -32106,18 +32134,23 @@ CF_HAND(cf_func_access)
                      player, cmd));
        }
     }
+
+    /* Global softcoded @functions */
     for (ufp = ufun_head; ufp; ufp = ufp->next) {
        if (!string_compare(ufp->name, str)) {
            return (cf_modify_multibits(&ufp->perms, &ufp->perms2, ap, extra, extra2,
                      player, cmd));
        }
     }
-    for (ufp = ulfun_head; ufp; ufp = ufp->next) {
-       if (!string_compare(ufp->name, str)) {
-           return (cf_modify_multibits(&ufp->perms, &ufp->perms2, ap, extra, extra2,
-                     player, cmd));
-       }
+
+    /* Local @lfunctions in the form <dbref>_name.  Like 1234_header */
+    ufp = (UFUN *) hashfind(str, &mudstate.ulfunc_htab);
+    if ( ufp && !(Immortal(player) || (Builder(player) && Controls(player, ufp->owner))) ) {
+       ufp = NULL;
+    } else if ( ufp ) {
+       return (cf_modify_multibits(&ufp->perms, &ufp->perms2, ap, extra, extra2, player, cmd));
     }
+
     cf_log_notfound(player, cmd, "Function", str);
     return -1;
 }

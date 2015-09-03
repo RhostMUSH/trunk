@@ -6513,6 +6513,12 @@
   the same name.  Please see wizhelp on 'function overloading' for how
   to do this.
   
+  Global hardcoded functions are identified by their name.  Ergo 'add'.
+  
+  Global softcoded @functions are identified by their name.  Ergo 'foot'.  
+  
+  Local softcoded @lfunctions are identified by owner + name. Ergo: '123_foot.'
+  
   See Also: @list functions, FUNCTION LIST, PERMISSIONS, function_alias.
 
 & function_alias
