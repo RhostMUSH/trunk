@@ -31945,7 +31945,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
    }
    free_lbuf(s_chkattr);
 
-   if ( count >= i_array[4] ) {
+   if ( i_local && (count >= i_array[4]) ) {
       notify(player, unsafe_tprintf("Maximum number of LOCAL functions have been defined for your userid [%d].", i_array[4]));
       free_sbuf(np);
       return;
