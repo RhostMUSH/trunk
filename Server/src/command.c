@@ -8036,11 +8036,11 @@ void do_limit(dbref player, dbref cause, int key, char *name,
              i_array[i] = atoi(s_buffptr);
          }
          if ( i_array[3] == -2 ) {
-            i_array[3] = (i_wizcheck ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit);
+            i_array[3] = (Wizard(target) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit);
             i_d_default = 1;
          }
          if ( i_array[1] == -2 ) {
-            i_array[1] = (i_wizcheck ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit);
+            i_array[1] = (Wizard(target) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit);
             i_v_default = 1;
          }
          if ( i_array[4] == -2 ) {
@@ -8062,11 +8062,11 @@ void do_limit(dbref player, dbref cause, int key, char *name,
                            (i_v_default ? "(Default)" : " ")));
          }
          notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d%s", i_array[4], (i_array[4] == mudconf.lfunction_max ? " (Default)" : " ")));
-         notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("\r\nCurrent NonWizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
-         notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("Current Wizard Global Maximums:     @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
-         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+         notify(player, unsafe_tprintf("Current Global @lfunction Maximum:  %d", 
                            mudconf.lfunction_max));
       } else {
          notify(player, unsafe_tprintf("Limitations for player %s(#%d):", Name(target), target));
@@ -8075,16 +8075,16 @@ void do_limit(dbref player, dbref cause, int key, char *name,
             notify(player, "   VLimit---=>   Current: N/A        Maximum: Unlimited");
          } else {
             notify(player, unsafe_tprintf("   @destroy-=>   Current: 0          Maximum: %d (Default)",
-                           mudconf.max_dest_limit));
+                           (Wizard(target) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit)));
             notify(player, unsafe_tprintf("   VLimit---=>   Current: 0          Maximum: %d (Default)",
-                           mudconf.max_vattr_limit));
+                           (Wizard(target) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit)));
          }
          notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d (Default)", mudconf.lfunction_max));
-         notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("\r\nCurrent NonWizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
-         notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("Current Wizard Global Maximums:     @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
-         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+         notify(player, unsafe_tprintf("Current Global @lfunction Maximum:  %d", 
                            mudconf.lfunction_max));
       }
       free_lbuf(s_chkattr);
