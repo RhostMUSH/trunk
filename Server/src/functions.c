@@ -31705,7 +31705,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                  "------------------------", "--------",
                  "--------------------------", "---", "---", "----"));
        }
-       s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+       if ( !isPlayer(player) && Good_chk(Owner(player)) )
+          s_chkattr = atr_get(Owner(player), A_DESTVATTRMAX, &aowner2, &aflags2);
+       else
+          s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
        i_array[0] = i_array[2] = 0;
        i_array[4] = i_array[1] = i_array[3] = -2;
        if ( *s_chkattr ) {
@@ -31928,7 +31931,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
       }
    }
 
-   s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+   if ( !isPlayer(player) && Good_chk(Owner(player)) )
+      s_chkattr = atr_get(Owner(player), A_DESTVATTRMAX, &aowner2, &aflags2);
+   else
+      s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
    i_array[0] = i_array[2] = 0;
    i_array[4] = i_array[1] = i_array[3] = -2;
    if ( *s_chkattr ) {
@@ -31946,7 +31952,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
    free_lbuf(s_chkattr);
 
    if ( i_local && (count >= i_array[4]) ) {
-      notify(player, unsafe_tprintf("Maximum number of LOCAL functions have been defined for your userid [%d].", i_array[4]));
+      if ( !isPlayer(player) && Good_chk(Owner(player)) )
+         notify(player, unsafe_tprintf("Maximum number of LOCAL functions have been defined for your userid #%d [%d max].", Owner(player), i_array[4]));
+      else
+         notify(player, unsafe_tprintf("Maximum number of LOCAL functions have been defined for your userid #%d [%d max].", player, i_array[4]));
       free_sbuf(np);
       return;
    }
