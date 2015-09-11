@@ -4785,7 +4785,10 @@
   changable only by ROYALTY.  The only other difference is those set
   WANDERER are able to set/unset attributes.  Anyone bitted COUNCILOR and 
   lower are effected by this flag.  ROYALTY and higher are immune.
-
+  
+  The start_build @admin parameter will, if enabled, disable this flag from
+  being set automatically on new players.
+  
 & DPSHIFT
   Flag: DPSHIFT([B]) (immortal only)
   This is an internal flag in use with the @depower system and shouldn't

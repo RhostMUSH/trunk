@@ -123,19 +123,36 @@
   CLUSTERS            DROP-TO           ENACTOR              EXITS           
   FAILURE             FLAG ALIAS        FLAG LIST            FLAGS           
   FUNCTION ALIASES    FUNCTION LIST     FUNCTION TYPES       FUNCTIONS       
-  GENDER              GOALS             HERE                 HOMES           
-  LINKING             LISTENING         LISTS                LOOPING         
-  MAIL                ME                MONEY                MOVING          
-  OBJECT TYPES        PARENT OBJECTS    PUPPETS              QUICKREFERENCE  
-  REALITY LEVELS      REGEXPS           REGEXP SYNTAX        REGEXP CLASSES  
-  REGEXP EXAMPLES     ROBBERY           ROYALTY              SEARCH CLASSES  
-  SEMAPHORES          SENSES            SETQ_TEMPLATES       SQL
-  SQLESCAPE           SIDEEFFECTS       SINGLETHREADING      SPOOFING           
-  STACK               SUBSTITUTIONS     SUCCESS              SWITCHES           
-  TOGGLES             USEFUL            USER ATTRIBUTES      VARIABLE EXITS   
-  VATOVZ              VERBS             WANDERER             ZATOZZ           
-  ZONES               $-COMMANDS        #LAMBDA
+  GENDER              GOALS             GUESTS               HERE              
+  HOMES               LINKING           LISTENING            LISTS            
+  LOOPING             MAIL              ME                   MONEY          
+  MOVING              OBJECT TYPES      PARENT OBJECTS       PUPPETS       
+  QUICKREFERENCE      REALITY LEVELS    REGEXPS              REGEXP SYNTAX    
+  REGEXP CLASSES      REGEXP EXAMPLES   ROBBERY              ROYALTY          
+  SEARCH CLASSES      SEMAPHORES        SENSES               SETQ_TEMPLATES   
+  SQL                 SQLESCAPE         SIDEEFFECTS          SINGLETHREADING  
+  SPOOFING            STACK             SUBSTITUTIONS        SUCCESS          
+  SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
+  VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
+  ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
   
+& NEW USERS
+& GUESTS
+  Guests are considered a temporary player bit on a mush.  They have severely
+  limited access and are essentially a look but do not touch type of player.
+  
+  As a guest, you can interact with the mush and the playerbase, but you can
+  not leave any lasting information into the game.  This includes, but is not
+  limited to sending mail, setting attributes, building of any type, altering
+  any data within the mush (except for global commands that the wizzes allow),
+  or setting/altering your player character in any way.
+  
+  If you wish to have a more flexible account, we recommend creating a player
+  then going through the methods on the mush to register your player or
+  whatever method they have for becoming a member player of that mush.
+  
+  Remember, guests CAN NOT MAIL.  This is something that will likely cause
+  confusion regardless of what game you are on.  This is also intentional.
   
 & SQL
   SQL is available in two flavors in RhostMUSH, both are built in and both can
@@ -2073,6 +2090,13 @@
   'Wanderer' in the 'Guild' field in the WHO/DOING can be changed to something
   else as well depending on the configuration on that particular RhostMUSH.
   
+  There also is a flag 'wanderer' that gets set on any new player.  This will
+  in effect disable all building of the player (wizard/immortal overrides
+  this flag) until this flag is removed.  
+  
+  For wizards wanting to remove this on new player creation, please see the
+  wizard help for the 'start_build' config parameter.
+
 & ]
   Command: ]<command>
   
