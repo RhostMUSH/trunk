@@ -175,11 +175,10 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 {
     FILE *fp;
     char *p, *line;
-    int offset;
+    int offset, i_first, i_found, matched;
     struct help_entry *htab_entry;
-    char matched;
     char *topic_list, *buffp, *mybuff, *myp;
-    char realFilename[129 + 32];
+    char realFilename[129 + 32], *s_tmpbuff, *s_ptr;
 
     if (*topic == '\0')
 	topic = (char *) "help";
@@ -201,7 +200,8 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
        }
        line = alloc_lbuf("help_write");
        buffp = topic_list = alloc_lbuf("help_write");
-       matched = 0;
+       i_found = i_first = matched = 0;
+       s_ptr = s_tmpbuff = alloc_lbuf("help_write_search");
        for (htab_entry = (struct help_entry *) hash_firstentry(htab);
             htab_entry != NULL;
             htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -218,9 +218,11 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
               ENDLOG
               free_lbuf(line);
               free_lbuf(topic_list);
+              free_lbuf(s_tmpbuff);
               tf_fclose(fp);
               return;
           }
+          i_found = i_first = 0;
           for (;;) {
              if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
                 break;
@@ -231,14 +233,26 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                 if ( (*p == '\n') || (*p == '\r') )
                    *p = '\0';
              }
+             if ( i_first ) 
+                safe_chr(' ', s_tmpbuff, &s_ptr);
+             i_first = 1;
+             safe_str(line, s_tmpbuff, &s_ptr);
              if ( quick_wild( topic, line ) ) {
-                matched = 1;
+                i_found = matched = 1;
 		safe_str(htab_entry->key, topic_list, &buffp);
 		safe_str((char *) "  ", topic_list, &buffp);
                 break;
              }
           }
+          if ( !i_found && quick_wild(topic, s_tmpbuff) ) {
+             matched = 1;
+             safe_str(htab_entry->key, topic_list, &buffp);
+             safe_str((char *) "  ", topic_list, &buffp);
+          }
+          memset(s_tmpbuff, '\0', LBUF_SIZE);
+          s_ptr = s_tmpbuff;
        }
+       free_lbuf(s_tmpbuff);
        if (matched == 0)
           notify(player, unsafe_tprintf("No entry for contents '%s'.", topic));
        else {
@@ -690,9 +704,8 @@ errmsg(dbref player)
 {
     FILE *fp;
     char *p, *line;
-    int offset, first, i_trace;
+    int offset, first, i_trace, matched;
     struct help_entry *htab_entry;
-    char matched;
     char *topic_list, *buffp, filename[129 + 32];
     HASHTAB *htab;
     static char errbuf[LBUF_SIZE];
