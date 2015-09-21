@@ -671,6 +671,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	GLOB_LIST	3	/* key to list */
 #define GREP_QUIET	1
 #define GREP_REGEXP	2	/* regexp handler */
+#define GREP_PARENT	4	/* grep parent */
 #define	HALT_ALL	1	/* halt everything */
 #define HALT_PID	2
 #define HALT_PIDSTOP	4	/* stop pid processing */

@@ -3730,6 +3730,7 @@
   The following switches exist for @grep:
     /quiet  - filters out the output of the 'Grep: Done.' message
     /regexp - apply regular expression matching for 'string'.
+    /parent - search down parent trees as well (showing parents separately).
   
   Example: 
   > @grep me=*,*al*
@@ -28371,6 +28372,7 @@
   * @reboot enforces binary's existance prior to actual rebooting [ASH]
   * remove() now allows multiple removals
   * enhanced content searches for help [ASH]
+  * @grep now handles /parent switch [ASH]
     
   Bug Fixes
   ------------

@@ -454,6 +454,7 @@ NAMETAB grep_sw[] =
 {
     {(char *) "quiet", 1, CA_PUBLIC, 0, GREP_QUIET},
     {(char *) "regexp", 1, CA_PUBLIC, 0, GREP_REGEXP | SW_MULTIPLE},
+    {(char *) "parent", 1, CA_PUBLIC, 0, GREP_PARENT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB halt_sw[] =

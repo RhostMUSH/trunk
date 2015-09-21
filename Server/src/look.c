@@ -810,25 +810,52 @@ void
 do_grep(dbref player, dbref cause, int key, char *source,
 	char *wildch[], int nargs)
 {
-    dbref thing;
-    char *pt1;
+    dbref thing, parent;
+    int i_parent, loop;
+    char *pt1, *s_buff, *s_ptr;
 
     if (nargs != 2) {
 	notify(player, "Incorrect command format.");
 	return;
     }
+
+    i_parent = 0;
+    if ( key & GREP_PARENT ) {
+       i_parent = 1;
+       key &= ~GREP_PARENT;
+    }
     init_match(player, source, NOTYPE);
     match_everything(MAT_EXIT_PARENTS);
     thing = noisy_match_result();
-    if (thing == NOTHING)
+    if (thing == NOTHING) {
 	notify(player, "Bad object specified.");
-    else if (!Examinable(player, thing))
+    } else if (!Examinable(player, thing)) {
 	notify(player, "Bad object specified.");
-    else {
-        if ( PCRE_EXEC && (key & GREP_REGEXP) )
+    } else if ( i_parent ) {
+        s_ptr = s_buff = alloc_lbuf("do_grep_parent");
+        ITER_PARENTS(thing, parent, loop) {
+           if ( !mudstate.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
+              if ( PCRE_EXEC && (key & GREP_REGEXP) ) {
+                 pt1 = grep_internal_regexp(player, parent, wildch[1], wildch[0], 1, 0);
+              } else {
+	         pt1 = grep_internal(player, parent, wildch[1], wildch[0], 0);
+              }
+              if ( (thing != parent) && pt1 && *pt1) {
+                 s_ptr = s_buff;
+                 notify(player, safe_tprintf(s_buff, &s_ptr, "--[#%d] %s", parent, pt1));
+              } else {
+	         notify(player, pt1);
+              }
+	      free_lbuf(pt1);
+           }
+        }
+        free_lbuf(s_buff);
+    } else {
+        if ( PCRE_EXEC && (key & GREP_REGEXP) ) {
            pt1 = grep_internal_regexp(player, thing, wildch[1], wildch[0], 1, 0);
-        else
+        } else {
 	   pt1 = grep_internal(player, thing, wildch[1], wildch[0], 0);
+        }
 	notify(player, pt1);
 	free_lbuf(pt1);
     }
