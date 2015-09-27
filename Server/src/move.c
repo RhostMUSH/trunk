@@ -816,6 +816,7 @@ do_get(dbref player, dbref cause, int key, char *what)
     }
     /* Look for the thing locally */
 
+
     init_match_check_keys(player, what, TYPE_THING);
     match_neighbor();
     match_exit();
@@ -839,6 +840,11 @@ do_get(dbref player, dbref cause, int key, char *what)
 
     if (((Flags3(thing) & NOMOVE) || (Flags2(thing) & FUBAR)) && !Wizard(player)) {
 	notify(player, "Permission denied.");
+	return;
+    }
+
+    if ( (mudstate.remotep == player) || (mudstate.remotep == thing) ) {
+        notify(player, "You can't get that here.");
 	return;
     }
 
@@ -966,6 +972,10 @@ do_drop(dbref player, dbref cause, int key, char *name)
 	notify(player, "I don't know which you mean!");
 	return;
     }
+    if ( (mudstate.remotep == player) || (mudstate.remotep == thing) ) {
+        notify(player, "You can't drop that here.");
+	return;
+    }
 /*  if (Cloak(thing) && !Controls(player,thing)) */
     if ((SCloak(thing) && Cloak(thing) && !Immortal(player)) || (Cloak(thing) && !Wizard(player))) {
 	thing = NOTHING;
@@ -1087,7 +1097,7 @@ do_enter(dbref player, dbref cause, int key, char *what)
     if ((thing = noisy_match_result()) == NOTHING)
 	return;
 
-    if (Flags3(player) & NOMOVE) {
+    if ( (Flags3(player) & NOMOVE) || (mudstate.remotep == player) ) {
 	notify(player,"Permission denied.");
 	return;
     }
@@ -1117,7 +1127,7 @@ do_leave(dbref player, dbref cause, int key)
 	notify(player, "You can't leave.");
 	return;
     }
-    if (Flags3(player) & NOMOVE) {
+    if ( (Flags3(player) & NOMOVE) || (mudstate.remotep == player) ) {
 	notify(player, "Permission denied.");
 	return;
     }

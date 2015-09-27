@@ -93,6 +93,10 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
   int	con, dcount, quiet, side_effect=0, tel_bool_chk;
 
 	/* get victim */
+      if ( mudstate.remotep == player) {
+         notify(player, "You can't teleport.");
+         return;
+      }
 
       tel_bool_chk = 0;
       if (key & TEL_QUIET) {

@@ -203,7 +203,8 @@ char	*str, *sp;
 		notify(giver, "Permission denied.");
 		return;
 	}
-	if ( (mudstate.remotep == thing) || ((Flags3(thing) & NOMOVE) && !Wizard(giver)) ) {
+	if ( (mudstate.remotep == giver) || (mudstate.remotep == recipient) || 
+             (mudstate.remotep == thing) || ((Flags3(thing) & NOMOVE) && !Wizard(giver)) ) {
 		notify(giver, "Permission denied.");
 		return;
 	}
