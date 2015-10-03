@@ -10590,8 +10590,10 @@
       characters and set them up properly.  This is done by the following.
       A.  @pcreate Guest#=guest (where # is from 1 to NUM_GUESTS)
       B.  @set Guest#=!wanderer guest (where # is from 1 to NUM_GUESTS)
-      C. (optional) @desc Guest#=<whatever>
-      D.  If someone tried to connect to a guest when you did not create
+      C.  @lock *Guest#=*Guest# (where # is from 1 to NUM_GUESTS)
+      D.  @adisconnect *Guest#=home (where # is from 1 to NUM_GUESTS)
+      E. (optional) @desc Guest#=<whatever>
+      F.  If someone tried to connect to a guest when you did not create
           any, before you can use the guests that you have created, you
           have to @reboot the server.  This resets the guest counter.
           You *only* have to do this if someone tried to connect to
