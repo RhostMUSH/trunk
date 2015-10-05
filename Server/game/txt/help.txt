@@ -18127,6 +18127,15 @@
   use the '!' option to only hilight the errors (if any), otherwise it will
   return the hilighted string.
   
+  Bugs:  
+  Do to how pre-processing works for functions, eventhough the arguments to
+  this function are not evaluated, if you do not END in the right number
+  of )'s and ]'s it's highly possible that it will evaluate portions of
+  the string passed to it ANYWAY thinking that it's outside the bounds
+  of the parsestr() function itself.  If you run into such a case, store
+  the value you are comparing into an attribute and then use parenmatch()
+  to compare the result so it won't assume (wrongly) how to parse it.
+  
   Examples:
     > say parenstr([add(1,2))])
     You say "[add(1,2))]"       (the second ')' would be hilighted red)
