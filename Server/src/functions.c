@@ -5644,6 +5644,114 @@ FUNCTION(fun_vunit)
 
 }
 
+/* Validate the string entered is a valid ansi string */
+int
+validate_ansi(char *s_instr)
+{
+   char *s, *t, *s_outstr;
+   int i_valid, i_chk;
+   PENNANSI *cm;
+
+   /* Until we're done with this */
+   return 1;
+
+   i_valid = 1;
+   s = s_instr;
+   t = s_outstr = alloc_lbuf("validate_ansi");
+   while ( s && *s ) {
+      if ( *s == '+' ) {
+         s++;
+         t = s_outstr;
+         while ( !isspace(*s) ) {
+            safe_chr(*s, s_outstr, &t);
+            s++;
+         }
+         cm = (PENNANSI *)hashfind(s_outstr, &mudstate.ansi_htab);
+         if ( !cm ) {
+            i_valid = 0;
+            break;
+         }
+      }
+      if ( isdigit(*s) ) {
+         if ( (*s == '0') && (((*(s+1) == 'x') || (*(s+1) == 'X')) && isxdigit(*(s+2)) && isxdigit(*(s+3))) ) {
+            s_outstr[0] = *(s+2);
+            s_outstr[1] = *(s+3);
+            s_outstr[2] = '\0';
+            sscanf(s_outstr, "%2x", &i_chk);
+            if ( (i_chk < 0) || (i_chk > 255) ) {
+               i_valid = 0;
+               break;
+            }
+            while ( !isspace(*s) ) {
+               s++;
+            }
+         } else {
+            t = s_outstr;
+            while ( !isspace(*s) ) {
+               safe_chr(*s, s_outstr, &t);
+               s++;
+            }
+            i_chk = atoi(s_outstr);
+            if ( (i_chk < 0) || (i_chk > 255) ) {
+               i_valid = 0;
+               break;
+            }
+         }
+      }
+      if ( *s == '#' ) {
+      }
+      if ( *s == '<' ) {
+         if ( *(s+1) == '#' ) {
+         } else {
+         }
+      }
+      /* Ignore spaces */
+      if ( isspace(*s) ) {
+         s++;
+         continue;
+      }
+      /* Ignore / character */
+      if ( *s == '/' ) {
+         s++;
+         continue;
+      }
+      /* Check for normal ansi crap here */
+      switch (*s) {
+         case 'f':
+         case 'h':
+         case 'u':
+         case 'i':
+         case 'n':
+         case 'x':
+         case 'r':
+         case 'g':
+         case 'y':
+         case 'b':
+         case 'm':
+         case 'c':
+         case 'w':
+         case 'X':
+         case 'R':
+         case 'G':
+         case 'Y':
+         case 'B':
+         case 'M':
+         case 'C':
+         case 'W': /* Valid, carry on */
+                 break;
+         default: /* Invalid, abort and return 0 */
+                 i_valid = 0;
+                 break;
+              
+      }
+      if ( !i_valid )
+         break;
+      s++;
+   }
+   free_lbuf(s_outstr);
+   return i_valid;
+}
+
 /* ----------------------------------------------------------------------
  * End of vector math additions
  */
@@ -5754,7 +5862,7 @@ FUNCTION(fun_valid)
      cm = (PENNANSI *)hashfind(fargs[1], &mudstate.ansi_htab);
      ival(buff, bufcx, ((cm != NULL) ? 1 : 0));
   } else if (!stricmp(fargs[0], "ansicodes")) {
-     ival(buff, bufcx, 1);
+     ival(buff, bufcx, validate_ansi(fargs[1]));
   } else if (!stricmp(fargs[0], "timezone")) {
      i_tag = 0;
      for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
@@ -12816,6 +12924,43 @@ FUNCTION(fun_parenmatch)
        free_lbuf(tbuff);
     }
 }
+
+FUNCTION(fun_parenstr)
+{
+   int tcnt, i_type;
+   char *tbuff, *tbuffptr, *sbuff, *revatextptr, *revatext, *atextptr;
+
+   if ( !fargs[0] || !*fargs[0] ) {
+      return;
+   }
+
+   tcnt = i_type = 0;
+   sbuff = alloc_lbuf("parenstrbuff");
+   if ( *fargs[0] == '!' ) {
+      strcpy(sbuff, fargs[0]+1);
+      i_type = 1;
+   } else {
+      strcpy(sbuff, fargs[0]);
+   }
+   tbuffptr = tbuff = alloc_lbuf("parenstr");
+   tcnt = paren_match(sbuff, tbuff, &tbuffptr, -1, i_type);
+   if ( tcnt > 0 ) {
+      revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
+      atextptr = strip_escapes(sbuff);
+      do_reverse(atextptr, revatext, &revatextptr);
+      free_lbuf(atextptr);
+      tbuffptr = tbuff;
+      tcnt = paren_match2(revatext);
+      free_lbuf(revatext);
+      tcnt = paren_match(sbuff, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(sbuff)-tcnt) : -1), i_type);
+      safe_str(tbuff, buff, bufcx);
+   } else {
+      safe_str(tbuff, buff, bufcx);
+   }
+   free_lbuf(sbuff);
+   free_lbuf(tbuff);
+}
+
 
 FUNCTION(fun_u)
 {
@@ -31156,6 +31301,7 @@ FUN flist[] =
     {"OWNER", fun_owner, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PACK", fun_pack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PARENMATCH", fun_parenmatch, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"PARENSTR", fun_parenstr, -1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"PARENT", fun_parent, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else

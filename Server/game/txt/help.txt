@@ -18113,15 +18113,38 @@
   See Also: pack(), unpack(), mask(), tobin(), tohex(), tooct(), todec(),
             digest()
   
+& PARENSTR()
+  Function: parenstr(<string>)
+            parenstr(!<string>)
+  
+  This funbction returns an ansified match of parenthesis, brackets, and
+  braces while hilighting red any mis-matched of the three.  If you start
+  the string you are comparing with a '!' then only the first mis-match
+  will be displayed.  The comparison will always be left to right.  If the
+  string is too large, it will always be returned un-altered.  If there are
+  a large number of parenthesis, brackets and praces, it is possible the
+  result will be cut off as ansi takes up extra spaces.  If this is the case,
+  use the '!' option to only hilight the errors (if any), otherwise it will
+  return the hilighted string.
+  
+  Examples:
+    > say parenstr([add(1,2))])
+    You say "[add(1,2))]"       (the second ')' would be hilighted red)
+    > say parenstr(![add(1,2))])
+    You say "[add(1,2))]"       (JUST the second ')' would be hilighted red)
+  
+  See Also: parenmatch(), brackets(), pos(), totpos()
+
 & PARENMATCH()
   Function: parenmatch([<object>/]<attribute>[,<type>])
   
   This function returns an ansified match of parenthesis, brackets, and braces
   while hilighting red any mis-matched of the three.  The comparison will 
   always be left to right.  If the string is too large, it will always be
-  returned.  If there are a large number of parenthesis, brackets, and braces,
-  it is possible the result will be cut off as ansi takes up extra spaces.
-  If this is the case, use type '1' to just return errors (if any).
+  returned un-altered.  If there are a large number of parenthesis, brackets, 
+  and braces, it is possible the result will be cut off as ansi takes up 
+  extra spaces.  If this is the case, use type '1' to just return 
+  errors (if any).
   
   The following types exist:
     0 - Ansify the string and highlight red the first missmatch found (default)
@@ -18135,7 +18158,7 @@
     > say parenmatch(vb,1)
     You say "[add(1,2))]"       (Just the second ')' would be colorized)
   
-  See Also: brackets(), pos(), totpos()
+  See Also: parenstr(), brackets(), pos(), totpos()
   
 & PARENTS()
   Function: parents(<obj>)
@@ -28326,6 +28349,7 @@
   * mysql_delay defaults to '0' for a paranoid hard-deny or 60-86400 for
     a delay on how long until the next attempt for a positive mysql
     connection is allowed [ASH]
+  * parenstr() works like parenmatch() but takes a literal string [ASH]
   
   Changes
   ------------
