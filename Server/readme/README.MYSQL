@@ -1,5 +1,17 @@
 MySQL is now native in RhostMUSH as of 3.9.5p2.
 
+*******************************************************************************
+** IMPORTANT ** IMPORTANT ** IMPORTANT ** IMPORTANT **IMPORTANT ** IMPORTANT **
+*******************************************************************************
+To autodetect it, YOU MUST HAVE mysql_config installed and running
+on your server.  Without this, even if you have mysql db installed
+it won't be able to recognize the parameters you will need for it
+and will thus fail.  Please check your linux distribution to see
+what packages are needed to install mysql_config.
+*******************************************************************************
+** IMPORTANT ** IMPORTANT ** IMPORTANT ** IMPORTANT **IMPORTANT ** IMPORTANT **
+*******************************************************************************
+
 Download the git repository to a seperate directory so that you can
 copy over the files that it requires you to.
 
