@@ -10259,7 +10259,16 @@
   Will reload the mail db from the mail text dump file.
   This will also fix a corrupt db by attempting to load in a previoius
   flatfile.
-
+  
+  If you do not have a valid flatfile, it will give you an error stating
+  such.
+  
+  HOWEVER.  There is a caveat.  If the mail system is currently off and
+  you are issuing wmail/load to fix this problem, and if there currently
+  is no valid flatfile to load, this will in essence reset your mail
+  database to a clean slate, thereby removing everything and effectively
+  starting over for your mail system.
+  
 & wmail unload
   Command: wmail/unload 
   
@@ -10276,6 +10285,16 @@
   
   Will turn the mail system on if previously turned off.  If the db is
   corrupted you will need to wmail/load a flatfile in.
+  
+  If you do not have a mail flatfile to load, issuing wmail/load will give
+  an appropiate error.
+
+  HOWEVER.  If your mail is currently disabled, and wmail/on isn't bringing
+  the mail system online, wmail/load will fix the mail system.  It does this
+  by first attempting to load in a valid mail flatfile.  If you have never
+  made a flatfile backup of your mail, it essentially resets the mail db
+  to a clean slate and brings it back up.  You will, however, have lost
+  all your mail, but the mail system will be working again.
 
 & wmail off
   Command: wmail/off

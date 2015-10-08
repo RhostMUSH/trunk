@@ -5687,7 +5687,9 @@ list_options_system(dbref player)
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
                               SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
-    notify(player, unsafe_tprintf("Maximum attribs per object is: %d", mudconf.vlimit));
+    notify(player, unsafe_tprintf("Maximum attribs per object [VLIMIT] is: %d", mudconf.vlimit));
+    notify(player, unsafe_tprintf("Maximum attribs per page of lattr output is: %d", ((LBUF_SIZE - (LBUF_SIZE/20)) / SBUF_SIZE)));
+
     if ( Guildmaster(player) ) {
        c_count = (time_t)floor(mudstate.check_counter);
        d_count = (time_t)floor(mudstate.dump_counter);
