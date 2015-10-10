@@ -9528,7 +9528,7 @@
   database files and the netmush program) to display information under
   certain circumstances.  The names of the files used can be changed with
   configuration directives (or on the netmush command line, in the case of
-  netmush.conf).
+  netmush.conf).  These are contained in the 'txt' sub-directory.
  
   badsite.txt:    Displayed when someone connects from a site that is not
                   allowed to connect.  The connection is then closed.
@@ -9540,14 +9540,16 @@
                   character when logins are disabled.
   help.indx:      Index for the help.txt file, produced by the mkindx program.
   help.txt:       File containing information displayed by the help command.
-{ 'wizhelp files2' for more }
-& files2
   guest.txt:      Displayed to whoever connects to the guest character
                   specifiedby the guest_character config parameter.
   motd.txt:       Displayed after someone connects to an existing character.
   netmush.conf:   Configuration directives read at startup.
   news.indx:      Index for the news.txt file, produced by the mkindx program.
   news.txt:       File containing information displayed by the news command.
+  
+{ 'wizhelp files2' for more }
+
+& files2
   newuser.txt:    Displayed after someone creates a new character or connects
                   to their character for the first time.
   quit.txt:       Displayed after someone QUITs but before the net connection
@@ -9569,7 +9571,97 @@
   error.indx:     Index file for the error message file.
   doorconf.txt:   File used to control what doorways are used with @door
   doorconf.indx:  Index file for the doorways.
- 
+  
+{ 'wizhelp files3 for the binaries and execution files }
+
+& files3
+  These files are contained in the 'game' subdirectory.
+  
+  mkindx:            Binary that indexes the txt files.  To index a text file 
+                     you would type (from within the txt directory):
+                           ../mkindx help.txt help.indx
+  netrhost:          The actual binary for the RhostMUSH engine.
+  netrhost.debugmon: The debug wrapper to return useful information on a
+                     failure to start or run RhostMUSH
+  mush.config:       The general setup file for global variables for RhostMUSH
+                     (you should not have to modify this file ever)
+  netrhost.conf:     The configure file to set up your RhostMUSH parameters
+  rhost_ingame.conf: The configure file that can be modified in-game.  Please
+                     see 'wizhelp @admin' for more.
+  rhost_mysql.conf:  The mysql configuration file (enable mysql at compiletime)
+  alias.conf:        The global alias file that RhostMUSH uses for shorthand
+                     for commands, functions, flags, etc.
+  netrhost.gamelog   The actual log file gamelog.  Controlled with @logrotate
+  netrhost.log       The Rhost system log file (system start/stop/fail info)
+  Startmush:         The script you would use to execute and startup RhostMUSH
+  prevflat:          Directory that houses all your immediately previous
+                     backup flatfiles
+  oldflat:           Directory that houses the tarball of all yoru backups
+  oldlogs:           Directory that houses all your old log files.
+  
+{ 'wizhelp files4' for the data files in the 'data' subdirectory }
+
+& files4
+  These are the files for the Rhost database.  Unless otherwise stated you
+  should leave these files alone unless you know what you're doing.
+  To back up these files always use @dump/flat, wmail/unload, @areg/unload,
+  and newsdb/unload 
+  
+  ------------main DBs
+  netrhost.db:          The binary database that was read when the mush started
+  netrhost.db.prev:     The binary database that is backed up when you Start
+                        your mush.  This was originally named 'netrhost.db'
+  netrhost.db.new       The binary database that is updated at checkpoints.
+                        When you Startmush this is the db that gets moved
+                        to 'netrhost.db'.  netrhost.db is moved to 
+                        'netrhost.db.prev'.  This will always be your latest.
+  netrhost.db.new.old:  The binary database that is archived as oldest
+  netrhost.db.new.prev: The binary database archived when 'new' is written.
+  netrhost.gdbm.db:     This is the main active database for RhostMUSH. This is
+                        always open as long as the mush is live.
+  netrhost.gdbm.dir:    This is the directory index listing for the RhostMUSH
+                        database.
+  netrhost.gdbm.pag:    This is the main index sorting and position file for
+                        RhostMUSH.  When the binary database gets corrupted
+                        due to acts of god (power outages, disk failures etc)
+                        this will likely always but always be the file that 
+                        is clobbered.  Sadly you can't just backup binary files
+                        as the binary file is always in a questionable state.
+                        So eventhough RhostMUSH has great ability for safty,
+                        always but always @dump/flat to make backups!
+  netrhost.db.flat:     The flatfile dump of the RhostMUSH database
+  netrhost.db.termflat: The flatfile dump when you kill -TERM your mush.
+                        the TERM signal happens when a server is shutdown.
+  
+{ 'wizhelp files5' for the other binary files in the 'data' directory }
+& files5
+  ------------mail DB's  [handled with the 'mail' and 'folder' commands]
+  RhostMUSH.folder.dir: This is the mail folder directory index file for the
+                        RhostMUSH mail system.
+  RhostMUSH.folder.pag: This is the main folder index sorting and position 
+                        file for the RhostMUSH mail system.
+  RhostMUSH.dump.fodler:The dump file for the RhostMUSH mail folder system.
+  RhostMUSH.mail.dir:   This is the main mail directory index file for the
+                        RhostMUSH mail system.
+  RhostMUSH.mail.pag:   This is the main mail index sorting and position
+                        file for the RhostMUSH mail system.
+  RhostMUSH.dump.mail:  The dump file for the RhostMUSH mail system.
+  
+  Note:  Most poeple prefer softcoded news like Myrddin's BBS.
+  ------------mail DB's  [handled with the news and newsdb commands]
+  RhostMUSH.news.dir:   The main news directory index file for the news
+                        bbs system
+  RhostMUSH.news.pag:   The main index sorting and position file for the
+                        RhostMUSH hardcoded bbs system
+  RhostMUSH.news.flat:  The flatfile for the RhostMUSH news system.
+  
+  ------------AutoReg DB's [handled with the @register/register/@areg cmds]
+  RhostMUSH.areg.dir:   The main autoreg index file for the autoregistration
+                        system for RhostMUSH
+  RhostMUSH.areg.pag:   The main autoreg sorting and position file for
+                        the hardcoded RhostMUSH autoregistration system.
+  RhostMUSH.areg.dump:  The flatfile for the RhostMUSH autoreg system.
+  
   See Also: badsite_file, connect_file, connect_reg_file, down_file,
             guest_file, help_file, help_index, motd_file, news_file,
             news_index, newuser_file, quit_file, register_create_file,
@@ -10671,9 +10763,14 @@
 
 & news setup3
   Once the .txt file is finished, you need to create the index for the text
-  file.  To do this, you would type the following:
+  file.  To do this, from within the txt directory you would type 
+  the following:
   
     ./mkindx news.txt news.indx
+  
+  (if the above returned an error message of not being found, you type:)
+  
+    ../mkindx news.txt news.indx
   
   This creates the index file for the text file.  For help, you would use
   'help.txt help.indx' as it's arguments.  For the +help, you would use
