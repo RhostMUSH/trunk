@@ -31814,7 +31814,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                 sprintf(s_minargs, "%-3d", ufp2->minargs);
              }
              if ( i_local ) {
-                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-10d[%-20.20s] %-3s %-3s %c%c%c%c",
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-10d[%-20.20s] %-3s %-3s %c%c%c%c%c",
                                   ufp2->name, 
                                   ((Good_chk(ufp2->obj) && (Owner(ufp2->obj) == ufp2->orig_owner)) ? ufp2->obj : -1), 
                                   ((ap != NULL) ? ap->name : "(INVALID ATRIBUTE)"),
@@ -31825,9 +31825,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                                   ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
                                   ((ufp2->flags & FN_PRES) ? 'p' : '-'), 
                                   ((ufp2->flags & FN_PROTECT) ? '+' : '-'), 
-                                  ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+                                  ((ufp2->flags & FN_NOTRACE) ? 't' : '-'),
+                                  (((ufp2->perms > 0) || (ufp2->perms2 > 0)) ? '!' : ' ')));
              } else {
-                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c",
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-24.24s   #%-7d  %-26.26s %-3s %-3s %c%c%c%c%c",
                                   ufp2->name, 
                                   ufp2->obj,
                                   ((ap != NULL) ? ap->name : "(INVALID ATRIBUTE)"),
@@ -31836,7 +31837,8 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                                   ((ufp2->flags & FN_PRIV) ? 'W' : '-'),
                                   ((ufp2->flags & FN_PRES) ? 'p' : '-'), 
                                   ((ufp2->flags & FN_PROTECT) ? '+' : '-'), 
-                                  ((ufp2->flags & FN_NOTRACE) ? 't' : '-')));
+                                  ((ufp2->flags & FN_NOTRACE) ? 't' : '-'),
+                                  (((ufp2->perms > 0) || (ufp2->perms2 > 0)) ? '!' : ' ')));
              }
              count++;
           }
@@ -31851,6 +31853,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
                  "------------------------", "--------",
                  "--------------------------", "---", "---", "----"));
        }
+       notify(player, "Key: [W]Wizard, [p]Preserved, [+]Protected, [t]NoTrace, [!]Flagged");
        if ( !isPlayer(player) && Good_chk(Owner(player)) )
           s_chkattr = atr_get(Owner(player), A_DESTVATTRMAX, &aowner2, &aflags2);
        else

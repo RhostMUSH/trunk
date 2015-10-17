@@ -2648,9 +2648,12 @@
              p - preserved
              + - protected
              t - notrace
+             ! - flagged (a permission flag exists for that function)
   
   You will see the MAX and MIN fields only if they are outside the defaults. 
   
+  Note: you may use @function/display to see the flag permissions.
+   
   See Also: @attribute 
  
 & @halt

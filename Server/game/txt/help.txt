@@ -6153,8 +6153,11 @@
              p - preserved
              + - protected
              t - notrace
+             ! - flagged (a permission flag exists for that function)
   
   You will see the MAX and MIN fields only if they are outside the defaults. 
+  
+  Note:  You may use @lfunction/display to see the flag permissions.
   
   When deleting functions, if you wish to specify a local function that is
   by a specific user, you may use the form:

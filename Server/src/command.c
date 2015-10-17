@@ -7326,7 +7326,7 @@ list_functionperms(dbref player, char *s_mask, int key)
         ulfp = (UFUN *) hash_nextentry(&mudstate.ulfunc_htab)) {
       if ( chk_tog || check_access(player, ulfp->perms, ulfp->perms2, 0)) {
          if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)ulfp->name)) ) {
-            sprintf(s_buf, "%-.31s:[#%10d]", ulfp->name, ulfp->owner);
+            sprintf(s_buf, "%-.31s:[#%d]", ulfp->name, ulfp->owner);
             listset_nametab(player, access_nametab, access_nametab2, ulfp->perms, ulfp->perms2, s_buf, 1);
          }
       }
