@@ -28409,6 +28409,7 @@
   * remove() now allows multiple removals
   * enhanced content searches for help [ASH]
   * @grep now handles /parent switch [ASH]
+  * ! shown on @function and @lfunction if a flag permission exists [ASH]
     
   Bug Fixes
   ------------
@@ -28431,3 +28432,4 @@
   * @admin function_access didn't work quite right on @lfunctions [ASH]
   * @limit with globals of unlimited for destory/vlimit was broke [ASH]
   * Further restrictions to @remote required for safe guarding [ASH]
+  * small cleanup in formatting with @list funperm [ASH]
