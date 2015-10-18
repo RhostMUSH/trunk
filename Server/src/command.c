@@ -5683,6 +5683,10 @@ list_options_system(dbref player)
        notify(player, "Lock Control for all @lock processing ---------------------------- PARENTS");
     else
        notify(player, "Lock Control for all @lock processing ---------------------------- LOCAL");
+    if ( mudconf.name_with_desc )
+       notify(player, "Name shown before descs when looking at non-owned things --------- ENABLED");
+    else
+       notify(player, "Name shown before descs when looking at non-owned things --------- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
