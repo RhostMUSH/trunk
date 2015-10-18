@@ -1018,7 +1018,10 @@
   <person>'s <object>" won't work).
   
   'read' is the same as 'look'.
- 
+  
+  Note: if the @admin parameter name_with_desc is enabled, then you will 
+        see the name of the thing before the description.
+   
   See Also: @adesc, @describe, @odesc, examine, smell, touch, taste, listen
   
 & smell
@@ -28362,6 +28365,8 @@
     a delay on how long until the next attempt for a positive mysql
     connection is allowed [ASH]
   * parenstr() works like parenmatch() but takes a literal string [ASH]
+  * @admin name_with_desc boolean toggle to enable showing names of
+    things you look at [ASH]
   
   Changes
   ------------
@@ -28433,3 +28438,5 @@
   * @limit with globals of unlimited for destory/vlimit was broke [ASH]
   * Further restrictions to @remote required for safe guarding [ASH]
   * small cleanup in formatting with @list funperm [ASH]
+  * if a user-defined attribute was deleted the @function attached
+    to it would no longer show up, now it does but gives warnings [ASH]

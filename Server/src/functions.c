@@ -31785,7 +31785,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
           if ( i_local && ((ufp2->owner != Owner(player)) && !controls(player, ufp2->owner)) ) 
              continue;
           ap = atr_num(ufp2->atr);
-          if (ap) {
+          if (ap || !ap) {
              if ( ufp2->owner == Owner(player) )
                 count_owner++;
 

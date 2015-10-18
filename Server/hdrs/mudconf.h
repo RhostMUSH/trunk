@@ -441,6 +441,7 @@ struct confdata {
         char	mysql_socket[128];
 	int	mysql_port;
 #endif
+	int	name_with_desc;	/* Toggle to enable names with descs when looking (if not-examinable) */
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */

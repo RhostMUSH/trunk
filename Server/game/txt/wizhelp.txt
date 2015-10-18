@@ -5244,24 +5244,24 @@
   money_lim_counc          money_name_plural        money_name_singular    
   motd_file                motd_message             mud_name               
   muddb_name               must_unlquota            mux_child_compat
-  mus_lcon_compat          nand_compat              newpass_god            
-  news_file                news_index               newuser_file           
-  no_startup               noauth_site              noautoreg_host         
-  noautoreg_site           nobroadcast_host         noguest_host           
-  noguest_site             nodns_site               nonindxtxt_maxlines    
-  noregist_onwho           noshell_prog             nospam_connect         
-  notify_recursion_limit   notonerr_return          num_guests             
-  oattr_enable_altname     oattr_uses_altname       offline_reg            
-  old_elist                online_reg               open_cost              
-  output_database          output_limit             page_cost              
-  paranoid_allocate        paranoid_exit_linking    parentable_control_lock
-  partial_conn             partial_deconn           paycheck               
-  pcreate_paranoia         pemit_any_object         pemit_far_players      
-  penn_playercmds          penn_switches            permit_site            
-  player_attr_default      player_dark              player_flags           
-  player_listen            player_match_commands    player_match_own_command
-  player_name_spaces       player_parent            player_queue_limit     
-  player_quota           
+  mus_lcon_compat          name_with_desc           nand_compat            
+  newpass_god              news_file                news_index             
+  newuser_file             no_startup               noauth_site            
+  noautoreg_host           noautoreg_site           nobroadcast_host       
+  noguest_host             noguest_site             nodns_site             
+  nonindxtxt_maxlines      noregist_onwho           noshell_prog           
+  nospam_connect           notify_recursion_limit   notonerr_return        
+  num_guests               oattr_enable_altname     oattr_uses_altname     
+  offline_reg              old_elist                online_reg             
+  open_cost                output_database          output_limit           
+  page_cost                paranoid_allocate        paranoid_exit_linking  
+  parentable_control_lock  partial_conn             partial_deconn         
+  paycheck                 pcreate_paranoia         pemit_any_object       
+  pemit_far_players        penn_playercmds          penn_switches          
+  permit_site              player_attr_default      player_dark            
+  player_flags             player_listen            player_match_commands  
+  player_match_own_command player_name_spaces       player_parent          
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -6363,6 +6363,14 @@
   based floating point notation (like mul, fdiv, etc).  The range that
   is allowed is 1-48.  Anything over 48 is meaningless anyway due to
   limitations on floating point notation precision.
+  
+& name_with_desc
+  Config parameter: name_with_desc <boolean>.    Default: no
+  
+  This config defines if you should see the 'name' of an item when you look at
+  it before the description that shows up.  This only affects things that you
+  normally do not control (own or have permission over) and only affects
+  things that you can actually see at your location.
   
 & nand_compat
   Config parameter: nand_compat <yes/no>.    Default: no

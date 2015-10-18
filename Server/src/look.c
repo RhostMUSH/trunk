@@ -1294,17 +1294,17 @@ look_simple(dbref player, dbref thing, int obey_terse)
            ((NoAnsiPlayer(player) || !(mudconf.allow_ansinames & ANSI_PLAYER)) && isPlayer(thing)) ||
            ((NoAnsiThing(player) || !(mudconf.allow_ansinames & ANSI_THING)) && isThing(thing)) ||
            ((NoAnsiExit(player) || !(mudconf.allow_ansinames & ANSI_EXIT)) && isExit(thing)) ||
-           ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) )
+           ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) ) {
            if (isPlayer(thing) || isThing(thing))
 	      buff = unparse_object_altname(player, thing, 1);
            else
 	      buff = unparse_object(player, thing, 1);
-        else
+        } else {
            if (isPlayer(thing) || isThing(thing))
               buff = unparse_object_ansi_altname(player, thing, 1);
            else
               buff = unparse_object_ansi(player, thing, 1);
-
+        }
         if ( Good_obj(thing) && ((NoName(thing) && *buff) || !NoName(thing)) ) {
            if(Good_obj(thing) && isPlayer(thing)) {
               pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
@@ -1332,6 +1332,41 @@ look_simple(dbref player, dbref thing, int obey_terse)
         }
 
 	free_lbuf(buff);
+    } else if ( mudconf.name_with_desc == 1 ) {
+        if ( NoAnsiName(thing) || NoAnsiName(Owner(thing)) ||
+           ((NoAnsiPlayer(player) || !(mudconf.allow_ansinames & ANSI_PLAYER)) && isPlayer(thing)) ||
+           ((NoAnsiThing(player) || !(mudconf.allow_ansinames & ANSI_THING)) && isThing(thing)) ||
+           ((NoAnsiExit(player) || !(mudconf.allow_ansinames & ANSI_EXIT)) && isExit(thing)) ||
+           ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) ) {
+           if (isPlayer(thing) || isThing(thing))
+	      buff = unparse_object_altname(player, thing, 1);
+           else
+	      buff = unparse_object(player, thing, 1);
+        } else {
+           if (isPlayer(thing) || isThing(thing))
+              buff = unparse_object_ansi_altname(player, thing, 1);
+           else
+              buff = unparse_object_ansi(player, thing, 1);
+        }
+        pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
+        pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+        tprp_buff = tpr_buff = alloc_lbuf("look_simple");
+        if(*pbuf) {
+           if ( *pbuf2 ) {
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
+           } else {
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
+           }
+        } else {
+           if ( *pbuf2 ) {
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
+           } else {
+              notify(player, buff);
+           }
+        }
+        free_lbuf(tpr_buff);
+        free_lbuf(pbuf);
+        free_lbuf(pbuf2);
     }
     pattr = (obey_terse && Terse(player)) ? 0 : A_DESC;
     if ( pattr ) {

@@ -289,6 +289,7 @@ NDECL(cf_init)
     mudconf.admin_object = -1;		/* The admin object to define */
     mudconf.enhanced_convtime = 0;	/* Enhanced convtime formatting */
     mudconf.mysql_delay = 0;		/* Toggle to turn on/off delay > 0 sets delay */
+    mudconf.name_with_desc = 0;		/* Enable state to allow looking at names of things you can't examine */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4006,6 +4007,9 @@ CONF conftable[] =
     {(char *) "lnum_compat",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.lnum_compat, 0, 0, CA_PUBLIC,
      (char *) "Is lnum()/lnum2() TinyMUSH/MUX compatible?"},
+    {(char *) "name_with_desc",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.name_with_desc, 0, 0, CA_PUBLIC,
+     (char *) "Can you see the name of what you look at?"},
     {(char *) "nand_compat",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.nand_compat, 0, 0, CA_PUBLIC,
      (char *) "Use the pre-pl15 nand() behaviour?. (DEPRECATED)"},
