@@ -15756,6 +15756,24 @@
   
   See Also: secure(), escape(), escapex()
   
+& ESCLIST()
+  Function: esclist(<list of characters to escape>|<string>)
+  
+  This function takes an optional list of characters you wish to escape and
+  then escapes them (via adding a \ character before it) to every character
+  that you specified.  This is intended to be used with weird escape 
+  situations like calling external sources.
+  
+  Examples:
+    > @va me=Test: 'A string' and "anoter string", I say.
+    Set.
+    > say esclist('",|[v(va)])
+    You say "Test: \'A string\' and \"anoter string\"\, I say."
+    > say esclist('|[v(va)])
+    You say "Test: \'A string\' and "anoter string", I say."
+  
+  See Also: escape(), escapex(), unesclist()
+  
 & ESCAPE()
   Function: escape(<string>)
  
@@ -15779,7 +15797,7 @@
   processed by escape(), therefore the [get()] call has already been
   performed.
   
-  See Also: secure(), securex(), escapex()
+  See Also: secure(), securex(), escapex(), esclist(), unesclist()
   
 & ESCAPEX()
   Function: escapex(<string> [,<omission>])
@@ -15792,7 +15810,7 @@
     > say escapex(Hey, Sneak a peak at Wiz's desc... [get($1/desc)],\[\])
     You say "\Hey \,Sneak a peek at Wiz's desc... [get\(#1/desc\)]"
   
-  See Also: escape(), secure(), securex()
+  See Also: escape(), secure(), securex(), esclist(), unesclist()
   
 & MUDNAME()
   Function: mudname()
@@ -18081,6 +18099,24 @@
    
   See Also: unpack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(), 
             roman()
+  
+& UNESCLIST()
+  Function: unesclist(<list of characters to un-escape>|<string>)
+  
+  This function takes an optional list of characters you wish to un-escape 
+  and then un-escapes them (via removing the \ character before it) from 
+  every character that you specified.  This is intended to be used with 
+  weird escape situations like calling external sources.
+  
+  Examples:
+    > @va me=Test: \'A string\' and \"anoter string\"\, I say.
+    Set.
+    > say unesclist('",|[v(va)])
+    You say "Test: 'A string' and "anoter string", I say."
+    > say unesclist('|[v(va)])
+    You say "Test: 'A string' and "anoter string", I say."
+  
+  See Also: escape(), escapex(), esclist()
   
 & UNPACK()
   Function: unpack(<packed number>[[,<radix>][,<penn compat flag>]])
@@ -28367,6 +28403,7 @@
   * parenstr() works like parenmatch() but takes a literal string [ASH]
   * @admin name_with_desc boolean toggle to enable showing names of
     things you look at [ASH]
+  * esclist() and unesclist() to specify characters to escape [ASH]
   
   Changes
   ------------

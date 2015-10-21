@@ -19844,6 +19844,63 @@ FUNCTION(fun_secure)
     }
 }
 
+FUNCTION(fun_esclist)
+{
+    char *s_index, *s, *s2;
+
+    s_index = alloc_lbuf("fun_esclist");
+    memset(s_index, '\0', LBUF_SIZE);
+    s2 = s_index;
+
+    s = fargs[0];
+
+    while ( s && *s && (*s != '|') ) {
+       *s2 = *s;
+       s2++;
+       s++;
+    }
+    if ( s && *s && *s == '|' )
+       s++;
+
+    while (*s) {
+       if ( strchr(s_index, *s) != NULL ) {
+          safe_chr('\\', buff, bufcx);
+       } 
+       safe_chr(*s, buff, bufcx);
+       s++;
+    }
+    free_lbuf(s_index);
+}
+
+FUNCTION(fun_unesclist)
+{
+    char *s_index, *s, *s2;
+
+    s_index = alloc_lbuf("fun_unesclist");
+    memset(s_index, '\0', LBUF_SIZE);
+    s2 = s_index;
+
+    s = fargs[0];
+
+    while ( s && *s && (*s != '|') ) {
+       *s2 = *s;
+       s2++;
+       s++;
+    }
+    if ( s && *s && *s == '|' )
+       s++;
+
+    while (*s) {
+       if ( (*s == '\\') && strchr(s_index, *(s+1)) != NULL ) {
+          s++;
+          continue;
+       } 
+       safe_chr(*s, buff, bufcx);
+       s++;
+    }
+    free_lbuf(s_index);
+}
+
 FUNCTION(fun_escape)
 {
     char *s, *d, *s2;
@@ -31074,6 +31131,7 @@ FUN flist[] =
     {"ERROR", fun_error, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPE", fun_escape, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPEX", fun_escape, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ESCLIST", fun_esclist, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EVAL", fun_eval, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXIT", fun_exit, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EXP", fun_exp, 1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -31515,6 +31573,7 @@ FUN flist[] =
     {"U2LDEFAULT", fun_u2ldefault, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"U2LOCAL", fun_u2local, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"UNESCLIST", fun_unesclist, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"UNPACK", fun_unpack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"V", fun_v, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"VADD", fun_vadd, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
