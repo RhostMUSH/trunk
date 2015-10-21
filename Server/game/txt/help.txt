@@ -28440,3 +28440,5 @@
   * small cleanup in formatting with @list funperm [ASH]
   * if a user-defined attribute was deleted the @function attached
     to it would no longer show up, now it does but gives warnings [ASH]
+  * put a ceiling on function_recurse_limit to no longer bypass the
+    debug STACK LIMIT (of 1000) as a worse case scenerio [ASH]

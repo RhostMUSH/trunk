@@ -1,0 +1,29 @@
+Rhost uses a stack limit in the debug monitor.
+
+This stack limit is set to a reasonable amount of 1000.
+This is defined in the debug.h file in the hdrs directory.
+
+This will directly impact the function_recursion_limit from being
+set above 100.  If, for whatever reason, you really must have
+a ridiculously high recursion limit, then it is a suggestion to
+manually modify the stack limit in debug.h to a higher number.
+
+We have reasonably set it to 10000 without too much issue, but keep
+in mind, the overhead is higher for every stack you throw on the 
+process table.  Higher stack means more memory used.
+
+The value in ~/Rhost/Server/hdrs/debug.h is currently set as:
+
+#define STACKMAX 1000
+
+Feel free to change this to a higher value if you wish.
+
+The caveat.  This effects the debug stack daemon.  Meaning,
+the only way for this to be updated is through @shutdown and
+then a fresh ./Startmush.
+
+A @reboot WILL NOT LOAD IN A NEW DEBUG MONITOR!!!!
+
+You can issue @list stack to see the current stack ceiling ingame.
+
+
