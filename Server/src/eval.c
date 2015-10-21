@@ -1001,6 +1001,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     static const char *absp[5] =
     {"", "its", "hers", "his", "theirs"};
 
+
     DPUSH; /* #67 */
 		
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
@@ -1056,6 +1057,12 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
         mudstate.stack_toggle = 1;
         RETURN(buff); /* #67 */
     }
+#ifndef NODEBUGMONITOR
+    if ( (debugmem->stacktop + mudconf.func_nest_lim) > STACKMAX ) {
+        mudstate.stack_toggle = 1;
+        RETURN(buff);
+    }
+#endif
     if ( mudstate.sidefx_currcalls >= mudconf.sidefx_maxcalls 
 	 &&
 	 (mudconf.sidefx_maxcalls > 0 || (mudconf.sidefx_maxcalls = 1))) {
