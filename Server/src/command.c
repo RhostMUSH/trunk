@@ -43,7 +43,7 @@ extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
 extern POWENT pow_table[];
 extern POWENT depow_table[];
-extern int lookup(char *, char *);
+extern int lookup(char *, char *, int, int *);
 extern CF_HAND(cf_site);
 extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
@@ -80,6 +80,14 @@ CMDENT * lookup_orig_command(char *cmdname);
  *    2nd word of permissions
  *    switch bitwise
  */
+
+NAMETAB admin_sw[] =
+{
+    {(char *) "load", 2, CA_IMMORTAL, 0, ADMIN_LOAD},
+    {(char *) "save", 1, CA_IMMORTAL, 0, ADMIN_SAVE},
+    {(char *) "execute", 1, CA_IMMORTAL, 0, ADMIN_EXECUTE},
+    {(char *) "list", 2, CA_IMMORTAL, 0, ADMIN_LIST},
+    {NULL, 0, 0, 0, 0}};
 
 NAMETAB break_sw[] =
 {
@@ -446,6 +454,7 @@ NAMETAB grep_sw[] =
 {
     {(char *) "quiet", 1, CA_PUBLIC, 0, GREP_QUIET},
     {(char *) "regexp", 1, CA_PUBLIC, 0, GREP_REGEXP | SW_MULTIPLE},
+    {(char *) "parent", 1, CA_PUBLIC, 0, GREP_PARENT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB halt_sw[] =
@@ -454,6 +463,7 @@ NAMETAB halt_sw[] =
     {(char *) "pid", 1, CA_PUBLIC, 0, HALT_PID},
     {(char *) "stop", 1, CA_PUBLIC, 0, HALT_PIDSTOP | SW_MULTIPLE},
     {(char *) "cont", 1, CA_PUBLIC, 0, HALT_PIDCONT | SW_MULTIPLE},
+    {(char *) "quiet", 1, CA_PUBLIC, 0, HALT_QUIET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB hide_sw[] =
@@ -747,6 +757,8 @@ NAMETAB pipe_sw[] =
 {
     {(char *) "on", 1, CA_PUBLIC, 0, PIPE_ON},
     {(char *) "off", 1, CA_PUBLIC, 0, PIPE_OFF},
+    {(char *) "tee", 1, CA_PUBLIC, 0, PIPE_TEE},
+    {(char *) "status", 1, CA_PUBLIC, 0, PIPE_STATUS},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pemit_sw[] =
@@ -880,6 +892,12 @@ NAMETAB rwho_sw[] =
     {(char *) "stop", 3, CA_PUBLIC, 0, RWHO_STOP},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB selfboot_sw[] =
+{
+    {(char *) "list", 1, CA_PUBLIC, 0, SELFBOOT_LIST},
+    {(char *) "port", 1, CA_PUBLIC, 0, SELFBOOT_PORT},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB search_sw[] =
 {
     {(char *) "nogarbage", 1, CA_IMMORTAL, 0, SEARCH_NOGARBAGE},
@@ -909,6 +927,7 @@ NAMETAB site_sw[] =
   {(char *) "noautoreg", 6, CA_IMMORTAL, 0, SITE_NOAR},
   {(char *) "noauth", 6, CA_IMMORTAL, 0, SITE_NOAUTH},
   {(char *) "nodns", 3, CA_IMMORTAL, 0, SITE_NODNS},
+  {(char *) "list", 2, CA_IMMORTAL, 0, SITE_LIST},
   {NULL, 0, 0, 0, 0}};
 
 NAMETAB snapshot_sw[] =
@@ -1070,7 +1089,7 @@ CMDENT command_table[] =
 {
     {(char *) "@@", NULL, 0, 0,
      0, CS_NO_ARGS, 0, do_comment},
-    {(char *) "@admin", NULL, CA_GOD | CA_IMMORTAL, 0,
+    {(char *) "@admin", admin_sw, CA_GOD | CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_admin},
     {(char *) "@aflags", aflags_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_aflags},
@@ -1301,8 +1320,8 @@ CMDENT command_table[] =
 #endif /* REALITY_LEVELS */
     {(char *) "@search", search_sw, 0, 0,
      SRCH_SEARCH, CS_ONE_ARG | CS_NOINTERP, 0, do_search},
-    {(char *) "@selfboot", NULL, CA_NO_SLAVE | CA_PLAYER | CA_NO_GUEST, 0,
-     0, CS_NO_ARGS, 0, do_selfboot},
+    {(char *) "@selfboot", selfboot_sw, CA_NO_SLAVE | CA_PLAYER | CA_NO_GUEST, 0,
+     0, CS_ONE_ARG, 0, do_selfboot},
 /* Removed CA_GBL_BUILD from @set : ASH 08/23/98 */
 #ifndef NO_ENH
     {(char *) "@set", set_sw,
@@ -1456,7 +1475,7 @@ CMDENT command_table[] =
      LOOK_INVENTORY, CS_NO_ARGS, 0, do_wielded},
     {(char *) "whisper", whisper_sw, CA_LOCATION | CA_NO_SLAVE, 0,
      PEMIT_WHISPER, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
-    {(char *) "wizhelp", genhelp_sw, CA_WIZARD | CA_ADMIN | CA_BUILDER, 0,
+    {(char *) "wizhelp", genhelp_sw, CA_WIZARD | CA_ADMIN | CA_BUILDER | CA_GUILDMASTER, 0,
      HELP_WIZHELP, CS_ONE_ARG, 0, do_help},
     {(char *) "worn", NULL, 0, 0,
      LOOK_INVENTORY, CS_NO_ARGS, 0, do_worn},
@@ -1942,7 +1961,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
          }
 #endif
          result = exec(thing, player, player, EV_FCHECK | EV_EVAL, atext,
-                       (char **)NULL, 0);
+                       (char **)NULL, 0, (char **)NULL, 0);
          mudstate.password_nochk = 0;
          if ( save_flg ) {
             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
@@ -2048,7 +2067,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 {
     char *buf1, *buf2, tchar, *s_uselock, *dx_tmp;
     char *args[MAX_ARG], *tpr_buff, *tprp_buff;
-    int nargs, i, fail, interp, key, xkey, chk_tog;
+    int nargs, i, fail, interp, key, xkey, chk_tog, argtwo_save;
     ATTR *hk_ap2;
     time_t chk_stop;
 
@@ -2067,6 +2086,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 #define	Protect(x) (cmdp->perms & x)
 
     fail = 0;
+
     if (Protect(CA_LOCATION) && !Has_location(player))
 	fail++;
     if (Protect(CA_CONTENTS) && !Has_contents(player))
@@ -2119,10 +2139,28 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    xkey = search_nametab(player, cmdp->switches, switchp);
 	    if (xkey == -1) {
                 tprp_buff = tpr_buff = alloc_lbuf("process_cmdent");
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "Unrecognized switch '%s' for command '%s'.",
-			       switchp, cmdp->cmdname));
-                display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                if ( strcmp(switchp, "syntax") == 0 ) {
+                   switch (cmdp->callseq & CS_NARG_MASK) {
+                      case CS_NO_ARGS:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>]             (no arguments)", cmdp->cmdname);
+                         break;
+                      case CS_ONE_ARG:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>] <argument>", cmdp->cmdname);
+                         break;
+                      case CS_TWO_ARG:
+                         sprintf(tpr_buff, "Syntax: %s[</switch(s)>] <argument> = <argument>", cmdp->cmdname);
+                         break;
+                       default:
+                          sprintf(tpr_buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+                   }
+                   notify(player, tpr_buff);
+                   display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                } else {
+		   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                                  "Unrecognized switch '%s' for command '%s'.",
+			          switchp, cmdp->cmdname));
+                   display_nametab(player, cmdp->switches, (char *)"Available Switches:", 0);
+                }
                 free_lbuf(tpr_buff);
                 DPOP; /* #27 */
 		return;
@@ -2143,9 +2181,27 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	} while (buf1);
     } else if (switchp && ((cmdp->callseq & CS_PASS_SWITCHES) == 0)) {
         tprp_buff = tpr_buff = alloc_lbuf("process_cmdent");
-	notify(player,
-	       safe_tprintf(tpr_buff, &tprp_buff, "Command %s does not take switches.",
-		       cmdp->cmdname));
+        if ( strcmp(switchp, "syntax") == 0 ) {
+           switch (cmdp->callseq & CS_NARG_MASK) {
+              case CS_NO_ARGS:
+                 sprintf(tpr_buff, "Syntax: %s                          (no arguments or switches)", cmdp->cmdname);
+                 break;
+              case CS_ONE_ARG:
+                 sprintf(tpr_buff, "Syntax: %s <argument>               (no switches)", cmdp->cmdname);
+                 break;
+              case CS_TWO_ARG:
+                 sprintf(tpr_buff, "Syntax: %s <argument> = <argument>  (no switches)", cmdp->cmdname);
+                 break;
+              default:
+                 sprintf(tpr_buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+           }
+           notify(player, tpr_buff);
+           notify(player, (char *)"Available Switches: N/A (no switches exist)");
+        } else {
+	   notify(player,
+	          safe_tprintf(tpr_buff, &tprp_buff, "Command %s does not take switches.",
+		          cmdp->cmdname));
+        }
         free_lbuf(tpr_buff);
         DPOP; /* #27 */
 	return;
@@ -2224,7 +2280,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	if (interp & EV_EVAL)
 	    buf1 = exec(player, cause, cause, interp | EV_FCHECK | EV_TOP,
-			arg, cargs, ncargs);
+			arg, cargs, ncargs, (char **)NULL, 0);
 	else
 	    buf1 = parse_to(&arg, '\0', interp | EV_TOP);
 
@@ -2250,6 +2306,13 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	/* Interpret ARG1 */
 
+        argtwo_save = mudstate.argtwo_fix;
+        if ( arg && *arg && (strchr(arg, '=') == NULL) ) {
+           mudstate.argtwo_fix = 1;
+        } else {
+           mudstate.argtwo_fix = 0;
+        }
+
 	buf2 = parse_to(&arg, '=', EV_STRIP_TS);
 
 	/* Handle when no '=' was specified */
@@ -2264,7 +2327,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
               sprintf(buf1, "%s", buf2);
         } else {
 	   buf1 = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL | EV_TOP,
-		       buf2, cargs, ncargs);
+		       buf2, cargs, ncargs, (char **)NULL, 0);
 	}
 
 	if (cmdp->callseq & CS_ARGV) {
@@ -2273,7 +2336,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	    parse_arglist(player, cause, cause, arg, '\0',
 			  interp | EV_STRIP_LS | EV_STRIP_TS,
-			  args, MAX_ARG, cargs, ncargs, 0);
+			  args, MAX_ARG, cargs, ncargs, 0, (char **)NULL, 0);
 	    for (nargs = 0; (nargs < MAX_ARG) && args[nargs]; nargs++);
 
 	    /* Call the correct command handler */
@@ -2298,7 +2361,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    if (interp & EV_EVAL) {
 		buf2 = exec(player, cause, cause,
 			    interp | EV_FCHECK | EV_TOP,
-			    arg, cargs, ncargs);
+			    arg, cargs, ncargs, (char **)NULL, 0);
 	    } else {
 		buf2 = parse_to(&arg, '\0',
 				interp | EV_STRIP_LS | EV_STRIP_TS | EV_TOP);
@@ -2325,6 +2388,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    if (interp & EV_EVAL)
 		free_lbuf(buf2);
 	}
+        mudstate.argtwo_fix = argtwo_save;
 
 	/* Free the buffer obtained by evaluating Arg1 */
 
@@ -2452,6 +2516,7 @@ int cmdtest(dbref player, char *cmd)
 
   rval = 0;
   buff1 = atr_get(player, A_CMDCHECK, &aowner, &aflags);
+  buff2 = NULL;
   pt1 = buff1;
   while (pt1 && *pt1) {
     pt2 = strchr(pt1, ':');
@@ -2482,7 +2547,8 @@ int cmdtest(dbref player, char *cmd)
                }
                if ( *buff2 ) {
                   mudstate.insideicmds = 1;
-                  mbuf = exec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, (char **)NULL, 0);
+                  mbuf = exec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, 
+                              (char **)NULL, 0, (char **)NULL, 0);
                   mudstate.insideicmds = 0;
                   if ( *mbuf ) {
                      if ( atoi(mbuf) == 2 )
@@ -2591,7 +2657,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -2721,7 +2787,7 @@ process_command(dbref player, dbref cause, int interactive,
 	     mudstate.debug_cmd = cmdsave;
              STARTLOG(LOG_ALWAYS, "WIZ", "SPAM");
              log_name_and_loc(player);
-             cpulbuf = alloc_lbuf(cpulbuf);
+             cpulbuf = alloc_lbuf("cpulbuf");
              sprintf(cpulbuf, " SEC/SPAM overload: (#%d) %.3940s", spamowner, command);
              log_text(cpulbuf);
              free_lbuf(cpulbuf);
@@ -2858,7 +2924,7 @@ process_command(dbref player, dbref cause, int interactive,
        safe_str(cut_str_logptr, log_indiv, &log_indiv_ptr);
        free_lbuf(cut_str_log);
 #endif
-       if ( lookup(log_indiv, lcbuf) ) {
+       if ( lookup(log_indiv, lcbuf, -2, &i_retvar) ) {
           STARTLOG(LOG_ALWAYS, "CMD", "INDIVIDUAL")
              log_name_and_loc(player);
              if ( player != cause )
@@ -2909,11 +2975,15 @@ process_command(dbref player, dbref cause, int interactive,
                      targetlist[i] = -2000000;
                   while ( s_aptextptr ) {
                      passtarget = match_thing_quiet(player, s_aptextptr);
+                     i_targetchk = 0;
                      for (i = 0; i < LBUF_SIZE; i++) {
-                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
+                        if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) ) {
+                           if ( targetlist[i] == -2000000)
+                              i_targetchk = 1;
                            break;
+                        }
                      }
-                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != Owner(player)) ) {
+                     if ( i_targetchk && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != Owner(player)) ) {
                         if ( !No_Ansi_Ex(passtarget) )
                            sprintf(tbuff, "%sBounce [#%d]>%s %s] %.3950s", ANSI_HILITE, player, ANSI_NORMAL, Name(player), command);
                         else
@@ -3261,7 +3331,7 @@ process_command(dbref player, dbref cause, int interactive,
                        tchbuff = alloc_mbuf("cpu_regsite");
                        DESC_ITER_CONN(d) {  
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_REGISTRATION) ) { 
+                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) { 
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                                if ( mudconf.cpu_secure_lvl == 4 )
                                   cf_site((int *)&mudstate.access_list, tchbuff,
@@ -3946,7 +4016,7 @@ process_command(dbref player, dbref cause, int interactive,
                        tchbuff = alloc_mbuf("cpu_regsite");
                        DESC_ITER_CONN(d) {
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1) == H_REGISTRATION) ) {
+                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                                if ( mudconf.cpu_secure_lvl == 4 )
                                   cf_site((int *)&mudstate.access_list, tchbuff,
@@ -4111,7 +4181,7 @@ process_command(dbref player, dbref cause, int interactive,
     cval = cval2 = 0;
     free_lbuf(lcbuf);
     lcbuf = exec(player, cause, cause, EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, command,
-		 args, nargs);
+		 args, nargs, (char **)NULL, 0);
     succ = 0;
 
     /* Idea for enter/leave aliases from R'nice@TinyTIM */
@@ -4303,7 +4373,7 @@ process_command(dbref player, dbref cause, int interactive,
                mudstate.notrace = 1;
                lcbuf_temp = exec(mudconf.global_error_obj, cause, cause, 
                                  EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, lcbuf,
-                                 arr_prog, narg_prog );
+                                 arr_prog, narg_prog, (char **)NULL, 0);
                mudstate.notrace = i_trace;
                mudstate.nocodeoverride = 0;
                notify(player, lcbuf_temp);
@@ -5405,33 +5475,88 @@ list_options_mail(dbref player)
 }
 
 static void
-list_options_boolean_parse(dbref player, int p_val)
+list_options_boolean_parse(dbref player, int p_val, char *s_val)
 {
    DPUSH; /* #44 */
    if (p_val < 1)
       p_val = 1;
-   list_options_boolean(player, p_val);
+   list_options_boolean(player, p_val, s_val);
    DPOP; /* #44 */
 }
 
 static void
-list_options_values_parse(dbref player, int p_val)
+list_options_values_parse(dbref player, int p_val, char *s_val)
 {
    DPUSH; /* #45 */
    if (p_val < 1)
       p_val = 1;
-   list_options_values(player, p_val);
+   list_options_values(player, p_val, s_val);
    DPOP; /* #45 */
+}
+
+static void
+list_options_mysql(dbref player)
+{
+#ifdef MYSQL_VERSION
+   char *tbuf;
+
+   tbuf = alloc_lbuf("list_options_mysql");
+   sprintf(tbuf, "Host: %s\r\nUser: %s\r\nPassword: %s\r\nDatabase: %s\r\nSocket: %s\r\nPort: %d", 
+                  mudconf.mysql_host,
+                  mudconf.mysql_user,
+                  (Immortal(player) ? mudconf.mysql_pass : (char *)"****"),
+                  mudconf.mysql_base,
+                  ( (stricmp(mudconf.mysql_socket, "NULL") == 0) ? "(NULL) [default socket]" : mudconf.mysql_socket),
+                  mudconf.mysql_port);
+   notify(player, tbuf);
+   free_lbuf(tbuf);
+#else
+   notify(player, "MySQL is not currently enabled.");
+#endif
+}
+
+static void
+list_options_convtime(dbref player)
+{
+   FILE *fp;
+   char *s_line;
+
+   if ( (fp = fopen((char *)"../game/convtime.template", "r")) == NULL ) {
+      notify(player, "There is no convtime.template file in your game directory.");
+   } else {
+      s_line = alloc_lbuf("list_options_convtime");
+      notify(player, "Supported Date Formats [~/game/convtime.template] --------------------------");
+      while ( !feof(fp) ) {
+         fgets(s_line, (LBUF_SIZE-2), fp);
+         if ( !feof(fp) && (*s_line != '#') ) {
+            if ( (strlen(s_line) > 1) && (s_line[strlen(s_line)-2] == '\r') )
+               s_line[strlen(s_line)-2] = '\0';
+            else if ( (strlen(s_line) > 0) && (s_line[strlen(s_line)-1] == '\n') )
+               s_line[strlen(s_line)-1] = '\0';
+            notify(player, s_line);
+         }
+      }
+      fclose(fp);
+      notify(player, "----------------------------------------------------------------------------");
+      notify(player, "Key: %a/%A - Weekday Name (Www), %b/%B - Month Name (Mmm), %D - %m/%d/%y");
+      notify(player, "     %m    - month (1-12),       %d    - day (1-31),       %Y - year (yyyy)");
+      notify(player, "     %H    - hour (0-23),        %M    - minute (0-59),    %S - second (0-59)");
+      notify(player, "----------------------------------------------------------------------------");
+      free_lbuf(s_line);
+   }
 }
 
 static void
 list_options_system(dbref player)
 {
-   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[25],
+   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
         newstime[25], mailtime[25], aregtime[25], mushtime[25];
    time_t c_count, d_count, i_count;
+#ifdef MYSQL_VERSION
+   char *tbuf;
+#endif
 
-   memset(playerchktime, '\0', 25);
+   memset(playerchktime, '\0', 125);
 /* "------------------------------------------------------------------" */
    notify(player, "--- System Player Config Parameters ------------------------------------------");
 #ifdef TINY_SUB
@@ -5465,7 +5590,7 @@ list_options_system(dbref player)
 #endif
    notify(player, playerchktime);
 
-   memset(playerchktime, '\0', 25);
+   memset(playerchktime, '\0', 125);
 #ifdef TINY_U
     notify(player, "u()/zfun() ------------------------------------------------------- PENN/MUX/TM3");
 #else
@@ -5483,6 +5608,11 @@ list_options_system(dbref player)
 #else
     notify(player, "Sideeffects [SIDEFX required] ------------------------------------ DISABLED");
 #endif
+    if ( mudconf.enhanced_convtime ) {
+       notify(player, "Enhanced convtime() formats --[ see @list options convtime ]------ ENABLED");
+    } else {
+       notify(player, "Enhanced convtime() formats -------------------------------------- DISABLED");
+    }
 #ifdef ENABLE_COMMAND_FLAG
     notify(player, "The COMMAND flag ------------------------------------------------- ENABLED");
 #else
@@ -5510,7 +5640,11 @@ list_options_system(dbref player)
 #ifdef QDBM
     notify(player, "Database Engine -------------------------------------------------- QDBM");
 #else
-    notify(player, "Database Engine -------------------------------------------------- GDBM");
+#ifdef BIT64
+    notify(player, "Database Engine -------------------------------------------------- GDBM [64Bit]");
+#else
+    notify(player, "Database Engine -------------------------------------------------- GDBM [32Bit]");
+#endif
 #endif
 #ifdef SQLITE
     notify(player, "SQLite ----------------------------------------------------------- ENABLED");
@@ -5518,9 +5652,12 @@ list_options_system(dbref player)
     notify(player, "SQLite ----------------------------------------------------------- DISABLED");
 #endif
 #ifdef MYSQL_VERSION
-    notify(player, "Third party MySQL ------------------------------------------------ ENABLED");
+    tbuf = alloc_mbuf("list_option_system");
+    sprintf(tbuf, "[%.40s, SQL: %.40s]----------------------------------------", MYSQL_VER, MYSQL_VERSION);
+    notify(player, unsafe_tprintf("MySQL/MariaDB --------%-42.42s-- ENABLED", tbuf));
+    free_mbuf(tbuf);
 #else
-    notify(player, "Third party MySQL ------------------------------------------------ DISABLED");
+    notify(player, "MySQL/MariaDB ---------------------------------------------------- DISABLED");
 #endif
     if ( mudconf.ansi_default ) {
        notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
@@ -5536,10 +5673,27 @@ list_options_system(dbref player)
     } else {
        notify(player, "ASCII 250-255 encoding ------------------------------------------- DISABLED");
     }
+#ifdef CRYPT_GLIB2
+    notify(player, "Player password encryption method -------------------------------- SHA512");
+#else
+    notify(player, "Player password encryption method -------------------------------- DES");
+#endif
+    notify(player, unsafe_tprintf("Current TREE character is defined as ----------------------------- %s", mudconf.tree_character));
+    if (mudconf.parent_control)
+       notify(player, "Lock Control for all @lock processing ---------------------------- PARENTS");
+    else
+       notify(player, "Lock Control for all @lock processing ---------------------------- LOCAL");
+    if ( mudconf.name_with_desc )
+       notify(player, "Name shown before descs when looking at non-owned things --------- ENABLED");
+    else
+       notify(player, "Name shown before descs when looking at non-owned things --------- DISABLED");
+
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
                               SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
-    notify(player, unsafe_tprintf("Maximum attribs per object is: %d", mudconf.vlimit));
+    notify(player, unsafe_tprintf("Maximum attribs per object [VLIMIT] is: %d", mudconf.vlimit));
+    notify(player, unsafe_tprintf("Maximum attribs per page of lattr output is: %d", ((LBUF_SIZE - (LBUF_SIZE/20)) / SBUF_SIZE)));
+
     if ( Guildmaster(player) ) {
        c_count = (time_t)floor(mudstate.check_counter);
        d_count = (time_t)floor(mudstate.dump_counter);
@@ -6087,7 +6241,7 @@ list_options(dbref player)
 	notify(player, "You may only @teleport out of locations that are JUMP_OK or that you control.");
 
     if (mudconf.parent_control)
-	notify(player, "The 'ControlLock' lock may be inherited from parents.");
+	notify(player, "All locks may be inherited from parents.");
 
     notify(player,
     unsafe_tprintf("Players may have at most %d commands in the queue at one time.",
@@ -6517,13 +6671,15 @@ list_options(dbref player)
     }
     if ( mudconf.examine_restrictive > 0 ) {
        switch(mudconf.examine_restrictive) {
-          case 1: notify(player, "Examine restricts control for mortals.");
+          case 1: notify(player, "Examine restricts control for Guests/Wanderers.");
              break;
-          case 2: notify(player, "Examine restricts control for Guildmaster and lower.");
+          case 2: notify(player, "Examine restricts control for mortals.");
              break;
-          case 3: notify(player, "Examine restricts control for Architect and lower.");
+          case 3: notify(player, "Examine restricts control for Guildmaster and lower.");
              break;
-          case 4: notify(player, "Examine restricts control for Councilor and lower.");
+          case 4: notify(player, "Examine restricts control for Architect and lower.");
+             break;
+          case 5: notify(player, "Examine restricts control for Councilor and lower.");
              break;
           default: notify(player, "Examine restricts control for Wizard and lower.");
              break;
@@ -7174,7 +7330,7 @@ list_functionperms(dbref player, char *s_mask, int key)
         ulfp = (UFUN *) hash_nextentry(&mudstate.ulfunc_htab)) {
       if ( chk_tog || check_access(player, ulfp->perms, ulfp->perms2, 0)) {
          if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)ulfp->name)) ) {
-            sprintf(s_buf, "%-.31s:[#%10d]", ulfp->name, ulfp->owner);
+            sprintf(s_buf, "%-.31s:[#%d]", ulfp->name, ulfp->owner);
             listset_nametab(player, access_nametab, access_nametab2, ulfp->perms, ulfp->perms2, s_buf, 1);
          }
       }
@@ -7407,7 +7563,7 @@ list_process(dbref player)
  * list_rlevels: List defined reality levels
  */
 static void
-list_rlevels(dbref player)
+list_rlevels(dbref player, int i_key)
 {
     int i, cmp_x, cmp_y, cmp_z;
     char *tpr_buff, *tprp_buff;
@@ -7428,11 +7584,20 @@ list_rlevels(dbref player)
                       cmp_z, mudconf.no_levels));
     } else {
        tprp_buff = tpr_buff = alloc_lbuf("list_rlevels");
-       for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
-           tprp_buff = tpr_buff;
-           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
-               mudconf.reality_level[i].name, mudconf.reality_level[i].value,
-               mudconf.reality_level[i].attr));
+       if ( i_key ) {
+          for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              tprp_buff = tpr_buff;
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: %10u   Desc: %s",
+                  mudconf.reality_level[i].name, mudconf.reality_level[i].value,
+                  mudconf.reality_level[i].attr));
+          }
+       } else {
+          for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              tprp_buff = tpr_buff;
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
+                  mudconf.reality_level[i].name, mudconf.reality_level[i].value,
+                  mudconf.reality_level[i].attr));
+          }
        }
        free_lbuf(tpr_buff);
     }
@@ -7597,23 +7762,35 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               list_options_config(player);
            else if ( (stricmp(s_ptr2, "system") == 0) )
               list_options_system(player);
-           else if ( stricmp(s_ptr2, "boolean") == 0 ) {
-              s_ptr = strtok(NULL, " ");
-              if ( s_ptr )
-                 p_val = atoi(s_ptr);
+           else if ( (stricmp(s_ptr2, "convtime") == 0) ) {
+              if ( !(mudconf.enhanced_convtime) )
+                 notify(player, "Extended convtime() is not available.");
               else
+                 list_options_convtime(player);
+           } else if ( stricmp(s_ptr2, "mysql") == 0 ) {
+              if ( Wizard(player) )
+                 list_options_mysql(player);
+              else
+                 notify(player, "MySQL has been enabled.");
+           } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
+              s_ptr = strtok(NULL, " ");
+              if ( s_ptr && is_integer(s_ptr) ) {
+                 p_val = atoi(s_ptr);
+                 s_ptr = (char *)NULL;
+              } else
                  p_val = 0;
-              list_options_boolean_parse(player, p_val);
+              list_options_boolean_parse(player, p_val, s_ptr);
            } else if ( stricmp(s_ptr2, "values") == 0 ) {
               s_ptr = strtok(NULL, " ");
-              if ( s_ptr )
+              if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
-              else
+                 s_ptr = (char *)NULL;
+              } else
                  p_val = 0;
-              list_options_values_parse(player, p_val);
+              list_options_values_parse(player, p_val, s_ptr);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
-                                   " mail, values, boolean, config, system");
+                                   " mail, values, boolean, config, system, mysql, convtime");
         } else {
 	   list_options(player);
         }
@@ -7687,7 +7864,10 @@ do_list(dbref player, dbref cause, int extra, char *arg)
         break;
 #ifdef REALITY_LEVELS
     case LIST_RLEVELS:
-        list_rlevels(player);
+        if ( s_ptr2 && *s_ptr2 && (strncmp(s_ptr2, "dec", 3) == 0) )
+           list_rlevels(player, 1);
+        else
+           list_rlevels(player, 0);
         break;
 #endif /* REALITY_LEVELS */
     case LIST_STACKS:
@@ -7863,11 +8043,11 @@ void do_limit(dbref player, dbref cause, int key, char *name,
              i_array[i] = atoi(s_buffptr);
          }
          if ( i_array[3] == -2 ) {
-            i_array[3] = (i_wizcheck ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit);
+            i_array[3] = (Wizard(target) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit);
             i_d_default = 1;
          }
          if ( i_array[1] == -2 ) {
-            i_array[1] = (i_wizcheck ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit);
+            i_array[1] = (Wizard(target) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit);
             i_v_default = 1;
          }
          if ( i_array[4] == -2 ) {
@@ -7889,11 +8069,11 @@ void do_limit(dbref player, dbref cause, int key, char *name,
                            (i_v_default ? "(Default)" : " ")));
          }
          notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d%s", i_array[4], (i_array[4] == mudconf.lfunction_max ? " (Default)" : " ")));
-         notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("\r\nCurrent NonWizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
-         notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("Current Wizard Global Maximums:     @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
-         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+         notify(player, unsafe_tprintf("Current Global @lfunction Maximum:  %d", 
                            mudconf.lfunction_max));
       } else {
          notify(player, unsafe_tprintf("Limitations for player %s(#%d):", Name(target), target));
@@ -7902,16 +8082,16 @@ void do_limit(dbref player, dbref cause, int key, char *name,
             notify(player, "   VLimit---=>   Current: N/A        Maximum: Unlimited");
          } else {
             notify(player, unsafe_tprintf("   @destroy-=>   Current: 0          Maximum: %d (Default)",
-                           mudconf.max_dest_limit));
+                           (Wizard(target) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit)));
             notify(player, unsafe_tprintf("   VLimit---=>   Current: 0          Maximum: %d (Default)",
-                           mudconf.max_vattr_limit));
+                           (Wizard(target) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit)));
          }
          notify(player, unsafe_tprintf("   @Lfunction>   Maximum: %d (Default)", mudconf.lfunction_max));
-         notify(player, unsafe_tprintf("Current Global Maximums       :  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("\r\nCurrent NonWizard Global Maximums:  @destroy: %-11d VLimit: %d",
                            mudconf.max_dest_limit, mudconf.max_vattr_limit));
-         notify(player, unsafe_tprintf("Current Wizard Global Maximums:  @destroy: %-11d VLimit: %d",
+         notify(player, unsafe_tprintf("Current Wizard Global Maximums:     @destroy: %-11d VLimit: %d",
                            mudconf.wizmax_dest_limit, mudconf.wizmax_vattr_limit));
-         notify(player, unsafe_tprintf("Current @lfunction Maximum: %d", 
+         notify(player, unsafe_tprintf("Current Global @lfunction Maximum:  %d", 
                            mudconf.lfunction_max));
       }
       free_lbuf(s_chkattr);
@@ -7953,24 +8133,33 @@ void do_limit(dbref player, dbref cause, int key, char *name,
          sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_newval, i_array[2], i_array[3], i_array[4]);
          atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
          free_mbuf(s_newmbuff);
-         notify(player, unsafe_tprintf("@limit: New VLimit maximum for %s(#%d) set from %d to %d", 
-                        Name(target), target, i_array[1], i_newval));
+         notify(player, unsafe_tprintf("@limit: New VLimit maximum for %s(#%d) set from %d%s to %d%s", 
+                        Name(target), target, i_array[1], 
+                        ((i_array[1] == -1) ? " (Unlimited)" : ((i_array[1] == -2) ? " (Default)" : "")), 
+                        i_newval,
+                        ((i_newval == -1) ? " (Unlimited)" : ((i_newval == -2) ? " (Default)" : "")) ));
          return;
       } else if ( key & LIMIT_LFUN ) {
          s_newmbuff = alloc_mbuf("@limit.lfun");
          sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_array[3], i_newval);
          atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
          free_mbuf(s_newmbuff);
-         notify(player, unsafe_tprintf("@limit: New @lfunction maximum for %s(#%d) set from %d to %d", 
-                        Name(target), target, i_array[4], i_newval));
+         notify(player, unsafe_tprintf("@limit: New @lfunction maximum for %s(#%d) set from %d%s to %d%s", 
+                        Name(target), target, i_array[4], 
+                        ((i_array[4] == -1) ? " (Unlimited)" : ((i_array[4] == -2) ? " (Default)" : "")), 
+                        i_newval,
+                        ((i_newval == -1) ? " (Unlimited)" : ((i_newval == -2) ? " (Default)" : "")) ));
          return;
       } else {
          s_newmbuff = alloc_mbuf("@limit.dadd");
          sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_newval, i_array[4]);
          atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
          free_mbuf(s_newmbuff);
-         notify(player, unsafe_tprintf("@limit: New @destroy maximum for %s(#%d) set from %d to %d", 
-                        Name(target), target, i_array[3], i_newval));
+         notify(player, unsafe_tprintf("@limit: New @destroy maximum for %s(#%d) set from %d%s to %d%s", 
+                        Name(target), target, i_array[3], 
+                        ((i_array[3] == -1) ? " (Unlimited)" : ((i_array[3] == -2) ? " (Default)" : "")), 
+                        i_newval,
+                        ((i_newval == -1) ? " (Unlimited)" : ((i_newval == -2) ? " (Default)" : "")) ));
          return;
       }
    }
@@ -8338,7 +8527,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
   int i_evaled = 0;
 
   if ( mudconf.break_compatibility ) {
-     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, NULL, 0);
+     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
      i_evaled = 1;
   } else
      arg1_eval = arg1;
@@ -8367,7 +8556,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
   int i_evaled = 0;
 
   if ( mudconf.break_compatibility ) {
-     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, NULL, 0);
+     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
      i_evaled = 1;
   } else
      arg1_eval = arg1;
@@ -8904,7 +9093,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       return;
    }
    i_breakst = mudstate.breakst;
-   retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, NULL, 0);
+   retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, (char **)NULL, 0, (char **)NULL, 0);
    old_trainmode=mudstate.trainmode;
    if ( *retbuff && (((atoi(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
                      ((atoi(retbuff) != 0) &&  (key & SKIP_IFELSE))) ) {
@@ -8987,7 +9176,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( !s_player || !*s_player ) {
       target = NOTHING;
    } else {
-      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_player, NULL, 0);
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_player, (char **)NULL, 0, (char **)NULL, 0);
       target = match_thing(player, retbuff);
       free_lbuf(retbuff);
    }
@@ -9073,43 +9262,47 @@ do_pipe(dbref player, dbref cause, int key, char *name)
 {
    ATTR *atr, *atr2;
    dbref aowner;
-   int aflags, anum;
-   char *s_atext;
+   int aflags, anum, i_type;
+   char *s_atext, *s_tmpbuff;
 
    switch (key) {
       case PIPE_ON: /* Enable piping to attribute */
+      case PIPE_TEE: /* Enable piping to attribute */
            if ( H_Attrpipe(player) ) {
-              raw_notify(player, (char *)"You already are piping to an attribute.", 0, 1);
+              raw_notify(player, (char *)"@pipe: you already are piping to an attribute.", 0, 1);
            } else {
               if ( !*name ) {
-                 notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                 notify_quiet(player, (char *)"@pipe: a valid attribute must be specified to pipe to.");
               } else {
                  anum = mkattr(name);
                  if ( anum < 0 ) {
-                    notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                    notify_quiet(player, (char *)"@pipe: a valid attribute must be specified to pipe to.");
                  } else { 
                     atr2 = atr_str3(name);
                     if ( !atr2 ) {
-                       notify_quiet(player, (char *)"A valid attribute must be specified to pipe to.");
+                       notify_quiet(player, (char *)"@pipe: a valid attribute must be specified to pipe to.");
                     } else {
                        anum = mkattr("___ATTRPIPE");
                        if ( anum > 0 ) {
                           atr = atr_str("___ATTRPIPE");
                           if ( !atr ) {
-                             notify_quiet(player, (char *)"The piping attribute could not be written to.");
+                             notify_quiet(player, (char *)"@pipe: the piping attribute could not be written to.");
                           } else {
                              s_atext = atr_get(player, atr2->number, &aowner, &aflags);
                              free_lbuf(s_atext);
                              if ( !Controlsforattr(player, player, atr2, aflags)) {
-                                notify_quiet(player, (char *)"You have no permission to pipe to that attribute.");
+                                notify_quiet(player, (char *)"@pipe: you have no permission to pipe to that attribute.");
                              } else {
-                                notify_quiet(player, (char *)"Piping to attribute has been enabled.");
-                                atr_add_raw(player, atr->number, name);
+                                notify_quiet(player, (char *)"@pipe: piping to attribute has been enabled.");
+                                s_tmpbuff = alloc_lbuf("do_pipe_tee");
+                                sprintf(s_tmpbuff, "%s %d", name, ((key & PIPE_TEE) ? 1 : 0));
+                                atr_add_raw(player, atr->number, s_tmpbuff);
+                                free_lbuf(s_tmpbuff);
                                 s_Flags4(player, Flags4(player) | HAS_ATTRPIPE);
                              }
                           }
                        } else {
-                          notify_quiet(player, (char *)"The piping attribute could not be written to.");
+                          notify_quiet(player, (char *)"@pipe: the piping attribute could not be written to.");
                        }
                     }
                  }
@@ -9123,13 +9316,44 @@ do_pipe(dbref player, dbref cause, int key, char *name)
               if ( atr ) {
                  atr_clr(player, atr->number);
               }
-              notify_quiet(player, (char *)"Piping to attribute has been disabled.");
+              notify_quiet(player, (char *)"@pipe: piping to attribute has been disabled.");
            } else {
-              notify_quiet(player, (char *)"Piping to attribute is not currently enabled.");
+              notify_quiet(player, (char *)"@pipe: piping to attribute is not currently enabled.");
+           }
+           break;
+      case PIPE_STATUS: /* Status of piping */
+           i_type = 0;
+           if ( H_Attrpipe(player) ) {
+              anum = mkattr("___ATTRPIPE");
+              if ( anum > 0 ) {
+                 atr = atr_str("___ATTRPIPE");
+                 if ( !atr ) {
+                    s_Flags4(player, Flags4(player) & ~HAS_ATTRPIPE);
+                    notify_quiet(player, (char *)"@pipe: piping could not continue so was automatically stopped.");
+                 } else {
+                    s_atext = atr_get(player, atr->number, &aowner, &aflags);
+                    s_tmpbuff = strchr(s_atext, ' ');
+                    if ( s_tmpbuff ) {
+                       *s_tmpbuff = '\0';
+                       i_type = atoi(s_tmpbuff+1);
+                    }
+                    s_tmpbuff = alloc_lbuf("pipe_status");
+                    sprintf(s_tmpbuff, "@pipe: currently in %s mode writing to attribute '%s'.", 
+                           (i_type ? "TEE" : "PIPE (ON)"), s_atext);
+                    raw_notify(player, s_tmpbuff, 0, 1);
+                    free_lbuf(s_tmpbuff);
+                    free_lbuf(s_atext); 
+                 }
+              } else {
+                 s_Flags4(player, Flags4(player) & ~HAS_ATTRPIPE);
+                 notify_quiet(player, (char *)"@pipe: piping could not continue so was automatically stopped.");
+              }
+           } else {
+              notify_quiet(player, (char *)"@pipe: piping to attribute is not currently enabled.");
            }
            break;
       default: /* A switch must be used */
-           raw_notify(player, (char *)"A valid switch must be used with @pipe.", 0, 1);
+           raw_notify(player, (char *)"@pipe: a valid switch must be used with @pipe.", 0, 1);
            break;        
    }
 
@@ -9161,7 +9385,7 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       }
       atr_clr(thing, A_ANSINAME);
    } else {
-     retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, instr, NULL, 0);
+     retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, instr, (char **)NULL, 0, (char **)NULL, 0);
      namebuffptr = namebuff = alloc_lbuf("do_extansi.exitname");
       if ( isExit(thing) ) {
          for (s = Name(thing); *s && (*s != ';'); s++)
@@ -9554,6 +9778,8 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                no_attr = no_attr2 = 0;
                ret_char = ' ';
                sprintf(sub_ptrbuff, "SUB_%c", *sub_ptr);
+               if ( !ok_attr_name(sub_ptrbuff) ) 
+                  sprintf(sub_ptrbuff, "SUB_%03d", (int)*sub_ptr);
                ap2 = atr_str(sub_ptrbuff);
                if ( !ap2 )
                   no_attr = no_attr2 = 1;
@@ -9564,6 +9790,8 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                      no_attr = no_attr2 = 1;
                   else {
                      sprintf(sub_ptrbuff, "CHR_%c", *sub_ptr);
+                     if ( !ok_attr_name(sub_ptrbuff) ) 
+                        sprintf(sub_ptrbuff, "CHR_%03d", (int)*sub_ptr);
                      ap2 = atr_str(sub_ptrbuff);
                      if ( !ap2 ) {
                         no_attr2 = 1;
@@ -9573,7 +9801,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                            no_attr2 = 1;
                         } else {
                            ret_buff = exec(mudconf.hook_obj, player, player, EV_FCHECK | EV_EVAL, sub_buff2,
-                                           (char **)NULL, 0);
+                                           (char **)NULL, 0, (char **)NULL, 0);
                            if ( *ret_buff )
                               ret_char = *ret_buff;
                            else
@@ -9646,6 +9874,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    i_temp2 = i_temp = i_corrupted = i_isequal = i_lowball = i_highball = 0;
    i_nomatch = i_nowipe = i_wipecnt = i_totobjs = 0;
    anum = anum2 = anum3 = anum4 = NOTHING;
+   s_strtokptr = NULL;
 
    s_foo = NULL;
    if ( !name || !*name ) {
@@ -9660,7 +9889,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    s_instr = alloc_lbuf("do_cluster");
    strcpy(s_instr, name);
    s_return = exec(player, cause, cause, EV_FCHECK | EV_EVAL, s_instr,
-                  (char **)NULL, 0);
+                  (char **)NULL, 0, (char **)NULL, 0);
    if ( !s_return || !*s_return ) {
       notify(player, "@cluster requires an argument.");
       free_lbuf(s_return);
@@ -10136,7 +10365,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             } else {
                parse_arglist(player, cause, cause, s_tmpptr, '\0',
                              EV_STRIP_LS | EV_STRIP_TS,
-                             xargs, MAX_ARG, (char **)NULL, 0, 0);
+                             xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
                for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
@@ -10199,7 +10428,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                } else {
                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
                                 EV_STRIP_LS | EV_STRIP_TS,
-                                xargs, MAX_ARG, (char **)NULL, 0, 0);
+                                xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                   if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                      s_instr = atr_get(thing, anum2, &aowner, &aflags);
@@ -10324,8 +10553,9 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                         if ( *s_strtok ) {
 	                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                 EV_STRIP_LS | EV_STRIP_TS,
-			                 xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+			                 xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                              ; /* We just want to increment the counter to count it */
                            s_strtok = alloc_lbuf("cluster_trigger_build");
                            sprintf(s_strtok, "%.32s/%.3900s", s_tmpstr, s_strtokptr);
                            do_trigger(player, cause, (TRIG_QUIET), s_strtok, xargs, nxargs);
@@ -10393,8 +10623,9 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                                 (strchr(s_strtokptr, '?') != NULL) ) {
 	                      parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                    EV_STRIP_LS | EV_STRIP_TS,
-			                    xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+			                    xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                                 ; /* We just want to count the variable */
                               if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                  s_strtok = alloc_lbuf("cluster_set_build");
                                  s_tmpstr = strtok_r(s_text, " ", &s_inbufptr);
@@ -10425,8 +10656,9 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                               } else {
 	                         parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                       EV_STRIP_LS | EV_STRIP_TS,
-			                       xargs, MAX_ARG, (char **)NULL, 0, 0);
-	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
+			                       xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
+                                    ; /* We just want to count the variable */
                                  if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                                     s_tmpstr = find_cluster(thing, player, anum3);
                                     s_strtok = alloc_lbuf("cluster_set_build");

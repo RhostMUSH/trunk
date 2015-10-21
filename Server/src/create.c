@@ -1260,7 +1260,7 @@ do_destroy(dbref player, dbref cause, int key, char *what)
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( i_array[3] != -1 ) {
+             if ( (i_array[3] != -1) && !((i_array[3] == -2) && ((Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) == -1)) ) {
                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
                    notify_quiet(player,"@destruction limit maximum reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "DESTROY")

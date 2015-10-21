@@ -154,7 +154,7 @@ CMD_ONE_ARG(do_say);			/* Messages to all */
 CMD_NO_ARG(do_score);			/* Display my wealth */
 CMD_ONE_ARG(do_search);			/* Search for objs matching criteria */
 CMD_ONE_ARG(do_search_for_players);
-CMD_NO_ARG(do_selfboot);
+CMD_ONE_ARG(do_selfboot);
 CMD_TWO_ARG(do_set);			/* Set flags or attributes */
 CMD_TWO_ARG(do_toggle);			/* Set flags or attributes */
 CMD_NO_ARG(do_tor);			/* TOR cache manipulation */
@@ -291,6 +291,11 @@ typedef struct aliasentry {
 #define CA_CLUSTER	0x00000010	/* Clustered? */
 
 #define BREAK_INLINE	0x00000001	/* @break/@assert should not go to wait queue */
+
+#define ADMIN_LOAD	0x00000001	/* @admin/load the parameters */
+#define ADMIN_SAVE	0x00000002	/* @admin/save the parameters */
+#define ADMIN_EXECUTE	0x00000004	/* @admin/execute (run) the parameters */
+#define ADMIN_LIST	0x00000008	/* @admikn/list the config params */
 
 #define HOOK_BEFORE	0x00000001	/* BEFORE hook */
 #define HOOK_AFTER	0x00000002	/* AFTER hook */

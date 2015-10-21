@@ -1,0 +1,21 @@
+# This is a static template file.  
+# Any changes to this file will not be implemented.
+# This is due to not successful (currently) 64 bit getdate() function.
+# Any enhancements to formats you want, please submit to Rhost DEVS.
+# -- The Rhost Devs
+%a %b %d %H:%M:%S %Y
+%a %b %d %H:%M:%S
+%b %d %H:%M:%S %Y
+%b %d %H:%M:%S
+%B %d %H:%M:%S
+%B %d %H:%M:%S %Y
+%b %d %Y
+%b %d
+%B %d %Y
+%B %d
+%m-%d-%Y %H:%M:%S
+%m/%d/%Y %H:%M:%S
+%m.%d.%Y %H:%M:%S
+%H:%M:%S %m-%d-%Y
+%H:%M:%S %m/%d/%Y
+%H:%M:%S %m.%d.%Y

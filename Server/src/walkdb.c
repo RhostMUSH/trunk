@@ -123,8 +123,6 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                mudstate.dol_inumarr[mudstate.dolistnest] = cntr;
             }
             mudstate.dolistnest++;
-            buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
-            buff3ptr = strtok_r(buff3, ";", &buff3tok);
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   *savereg[x] = '\0';
@@ -136,8 +134,14 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                }
             }
             i_now = mudstate.now;
-            while ( !mudstate.breakdolist && buff3ptr && !mudstate.breakst ) {
-               process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
+
+            buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
+            buff3tok = buff3;
+            while ( !mudstate.breakdolist && buff3tok && !mudstate.breakst ) { 
+               buff3ptr = parse_to(&buff3tok, ';', 0);
+               if ( buff3ptr && *buff3ptr ) {
+                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
+               }
                if ( time(NULL) > (i_now + 3) ) {
                    if ( !mudstate.breakdolist ) {
                       notify(player, unsafe_tprintf("@dolist/inline:  Aborted for high utilization [nest level %d].", mudstate.dolistnest));
@@ -146,7 +150,6 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                    mudstate.breakdolist=1;
                    break;
                }
-               buff3ptr = strtok_r(NULL, ";", &buff3tok);
             }
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
@@ -812,7 +815,7 @@ int	save_invk_ctr;
 				parm->s_rst_eval, 0);
 			result = exec(player, cause, cause,
 				EV_FCHECK|EV_EVAL|EV_NOTRACE, buff2,
-				(char **)NULL, 0);
+				(char **)NULL, 0, (char **)NULL, 0);
 			free_lbuf(buff2);
 			if (!*result || !xlate(result)) {
 				free_lbuf(result);

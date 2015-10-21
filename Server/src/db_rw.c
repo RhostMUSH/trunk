@@ -1619,11 +1619,12 @@ remote_read_sanitize(FILE *f, dbref i, int db_format, int flags)
 
    i_count = 0;
    i_ref = getref(f);
+   t_str = NULL;
    if ( feof(f) || (i_ref < 0) || (i_ref > 7) )
       return(1);
    if (!(flags & V_ATRNAME)) 
       t_str = (char *)getstring_noalloc(f); /* Player name */
-   if ( feof(f) || !*t_str )
+   if ( feof(f) || !t_str || !*t_str )
       return(1);
    t_str = (char *)getstring_noalloc(f); /* Location */
    if ( feof(f) || (*t_str == '>') )

@@ -2774,7 +2774,12 @@ then
 fi
 if uname | egrep -i 'BSD' > /dev/null 2>&1
 then
-  MYOPTS="-O1 -fno-omit-frame-pointer -fno-force-addr"
+  if cc --version | egrep -i 'clang' > /dev/null 2>&1
+  then
+     MYOPTS="-O1 -fno-omit-frame-pointer"
+  else
+     MYOPTS="-O1 -fno-omit-frame-pointer -fno-force-addr"
+  fi
 fi
 if gcc --version | egrep -i '^2\.(8|9)' > /dev/null 2>&1
 then

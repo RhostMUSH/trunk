@@ -294,7 +294,7 @@ match_list_altname(first)
     dbref first;
 {
     dbref absolute, aowner;
-    char *namebuf;
+    char *namebuf, *namebuf2, *namebuf3;
     int aflags;
 
 #ifdef REALITY_LEVELS
@@ -373,8 +373,19 @@ match_list_altname(first)
 
 	namebuf = atr_get(first, A_ALTNAME, &aowner, &aflags);
         if ( !*namebuf ) {
-           free_lbuf(namebuf);
-           continue;
+           if ( NoName(first) ) {
+	      namebuf2 = atr_pget(first, A_NAME_FMT, &aowner, &aflags);
+              if ( *namebuf2 ) {
+                 namebuf3 = exec(first, match_who, match_who, EV_FIGNORE|EV_EVAL|EV_TOP, namebuf2, (char **) NULL, 0, (char **)NULL, 0);
+                 strcpy(namebuf, strip_all_special(namebuf3));
+                 free_lbuf(namebuf3);
+              }
+              free_lbuf(namebuf2);
+           }
+           if ( !*namebuf ) {
+              free_lbuf(namebuf);
+              continue;
+           }
         } 
 	if (!string_compare(namebuf, match_name)) {
 	    /* if multiple exact matches, randomly choose one */

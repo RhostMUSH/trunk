@@ -810,25 +810,52 @@ void
 do_grep(dbref player, dbref cause, int key, char *source,
 	char *wildch[], int nargs)
 {
-    dbref thing;
-    char *pt1;
+    dbref thing, parent;
+    int i_parent, loop;
+    char *pt1, *s_buff, *s_ptr;
 
     if (nargs != 2) {
 	notify(player, "Incorrect command format.");
 	return;
     }
+
+    i_parent = 0;
+    if ( key & GREP_PARENT ) {
+       i_parent = 1;
+       key &= ~GREP_PARENT;
+    }
     init_match(player, source, NOTYPE);
     match_everything(MAT_EXIT_PARENTS);
     thing = noisy_match_result();
-    if (thing == NOTHING)
+    if (thing == NOTHING) {
 	notify(player, "Bad object specified.");
-    else if (!Examinable(player, thing))
+    } else if (!Examinable(player, thing)) {
 	notify(player, "Bad object specified.");
-    else {
-        if ( PCRE_EXEC && (key & GREP_REGEXP) )
+    } else if ( i_parent ) {
+        s_ptr = s_buff = alloc_lbuf("do_grep_parent");
+        ITER_PARENTS(thing, parent, loop) {
+           if ( !mudstate.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
+              if ( PCRE_EXEC && (key & GREP_REGEXP) ) {
+                 pt1 = grep_internal_regexp(player, parent, wildch[1], wildch[0], 1, 0);
+              } else {
+	         pt1 = grep_internal(player, parent, wildch[1], wildch[0], 0);
+              }
+              if ( (thing != parent) && pt1 && *pt1) {
+                 s_ptr = s_buff;
+                 notify(player, safe_tprintf(s_buff, &s_ptr, "--[#%d] %s", parent, pt1));
+              } else {
+	         notify(player, pt1);
+              }
+	      free_lbuf(pt1);
+           }
+        }
+        free_lbuf(s_buff);
+    } else {
+        if ( PCRE_EXEC && (key & GREP_REGEXP) ) {
            pt1 = grep_internal_regexp(player, thing, wildch[1], wildch[0], 1, 0);
-        else
+        } else {
 	   pt1 = grep_internal(player, thing, wildch[1], wildch[0], 0);
+        }
 	notify(player, pt1);
 	free_lbuf(pt1);
     }
@@ -1036,7 +1063,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                             atr_get_str(buff2, mudconf.global_attrdefault, t2, &aowner2, &aflags2);
                             if ( *buff2 ) {
                                buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &(pt1->info), 1);
+                                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &(pt1->info), 1, (char **)NULL, 0);
                                if ( atoi(buff2ret) == 0 ) {
                                   free_lbuf(buff2ret);
                                   no_set = 1;
@@ -1177,7 +1204,7 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 
 	buf = atr_get(thing, ca, &aowner, &aflags);
 	if (Read_attr(player, othing, attr, aowner, aflags, 0)) {
-           if ( !i_tree || (i_tree && !count_chars(attr->name, '`')) ) {
+           if ( !i_tree || (i_tree && !count_chars(attr->name, *(mudconf.tree_character))) ) {
 	      if (!(check_exclude && (aflags & AF_PRIVATE))) {
 		 if (hash_insert)
 		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);
@@ -1267,17 +1294,17 @@ look_simple(dbref player, dbref thing, int obey_terse)
            ((NoAnsiPlayer(player) || !(mudconf.allow_ansinames & ANSI_PLAYER)) && isPlayer(thing)) ||
            ((NoAnsiThing(player) || !(mudconf.allow_ansinames & ANSI_THING)) && isThing(thing)) ||
            ((NoAnsiExit(player) || !(mudconf.allow_ansinames & ANSI_EXIT)) && isExit(thing)) ||
-           ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) )
+           ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) ) {
            if (isPlayer(thing) || isThing(thing))
 	      buff = unparse_object_altname(player, thing, 1);
            else
 	      buff = unparse_object(player, thing, 1);
-        else
+        } else {
            if (isPlayer(thing) || isThing(thing))
               buff = unparse_object_ansi_altname(player, thing, 1);
            else
               buff = unparse_object_ansi(player, thing, 1);
-
+        }
         if ( Good_obj(thing) && ((NoName(thing) && *buff) || !NoName(thing)) ) {
            if(Good_obj(thing) && isPlayer(thing)) {
               pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
@@ -1305,6 +1332,41 @@ look_simple(dbref player, dbref thing, int obey_terse)
         }
 
 	free_lbuf(buff);
+    } else if ( mudconf.name_with_desc == 1 ) {
+        if ( NoAnsiName(thing) || NoAnsiName(Owner(thing)) ||
+           ((NoAnsiPlayer(player) || !(mudconf.allow_ansinames & ANSI_PLAYER)) && isPlayer(thing)) ||
+           ((NoAnsiThing(player) || !(mudconf.allow_ansinames & ANSI_THING)) && isThing(thing)) ||
+           ((NoAnsiExit(player) || !(mudconf.allow_ansinames & ANSI_EXIT)) && isExit(thing)) ||
+           ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) ) {
+           if (isPlayer(thing) || isThing(thing))
+	      buff = unparse_object_altname(player, thing, 1);
+           else
+	      buff = unparse_object(player, thing, 1);
+        } else {
+           if (isPlayer(thing) || isThing(thing))
+              buff = unparse_object_ansi_altname(player, thing, 1);
+           else
+              buff = unparse_object_ansi(player, thing, 1);
+        }
+        pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
+        pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+        tprp_buff = tpr_buff = alloc_lbuf("look_simple");
+        if(*pbuf) {
+           if ( *pbuf2 ) {
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf));
+           } else {
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s, %.90s", buff, pbuf));
+           }
+        } else {
+           if ( *pbuf2 ) {
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff));
+           } else {
+              notify(player, buff);
+           }
+        }
+        free_lbuf(tpr_buff);
+        free_lbuf(pbuf);
+        free_lbuf(pbuf2);
     }
     pattr = (obey_terse && Terse(player)) ? 0 : A_DESC;
     if ( pattr ) {
@@ -1421,7 +1483,7 @@ look_in(dbref player, dbref loc, int key)
             safe_str(mudstate.global_regs[x],savereg[x],&pt);
           }
        }
-       s = exec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0);
+       s = exec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             pt = mudstate.global_regs[x];
@@ -1847,11 +1909,12 @@ do_examine(dbref player, dbref cause, int key, char *name)
             }
           }
           if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player, thing) ) {
-             if ( ((mudconf.examine_restrictive == 1) && !Guildmaster(player)) ||
-                  ((mudconf.examine_restrictive == 2) && !Builder(player)) ||
-                  ((mudconf.examine_restrictive == 3) && !Admin(player)) ||
-                  ((mudconf.examine_restrictive == 4) && !Wizard(player)) ||
-                  ((mudconf.examine_restrictive == 5) && !Immortal(player)) ) {
+             if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+                  ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+                  ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+                  ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+                  ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+                  ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
                 notify(player, "You don't have permission to examine that.");
 	        olist_cleanup(&master);
                 return;
@@ -1926,11 +1989,12 @@ do_examine(dbref player, dbref cause, int key, char *name)
     }
 
     if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player,thing) ) {
-       if ( ((mudconf.examine_restrictive == 1) && !Guildmaster(player)) ||
-            ((mudconf.examine_restrictive == 2) && !Builder(player)) ||
-            ((mudconf.examine_restrictive == 3) && !Admin(player)) ||
-            ((mudconf.examine_restrictive == 4) && !Wizard(player)) ||
-            ((mudconf.examine_restrictive == 5) && !Immortal(player)) ) {
+       if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+            ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+            ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+            ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
               notify(player, "You don't have permission to examine that.");
               return;
        }
@@ -3087,6 +3151,20 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
         free_lbuf(qualout);
 	return;
       }
+      if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player, thing) ) {
+         if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+              ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+              ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+              ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+              ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+              ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
+            notify(player, "You don't have permission to examine that.");
+            olist_cleanup(&master);
+            free_lbuf(qual);
+            free_lbuf(qualout);
+            return;
+         }
+      }
       if ( i_tf ) {
          sprintf(qual, "#%d", thing);
       } else {
@@ -3119,6 +3197,19 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
         free_lbuf(qual);
         free_lbuf(qualout);
 	return;
+    }
+    if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player, thing) ) {
+       if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 2) && !Guildmaster(player)) ||
+            ((mudconf.examine_restrictive == 3) && !Builder(player)) ||
+            ((mudconf.examine_restrictive == 4) && !Admin(player)) ||
+            ((mudconf.examine_restrictive == 5) && !Wizard(player)) ||
+            ((mudconf.examine_restrictive == 6) && !Immortal(player)) ) {
+          notify(player, "You don't have permission to examine that.");
+          free_lbuf(qual);
+          free_lbuf(qualout);
+          return;
+       }
     }
 
     if ( i_tf ) {

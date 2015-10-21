@@ -19,6 +19,20 @@ Buffer overrun in ansi_txtfile because of non-null termination.
 				- Thanks Rook
 mail/mark/save would not alert you if you hit MAX SAVED messages.
 				- Thanks Mercutio
+old_setq had an issue with '!' parameter not reusing registers.
+				- Thanks Ixokai
+missing test case for scandir() function fixed.
+				- Thanks Maighdlin
+suggestion to make textfile() more useful in functions.
+				- Thanks qa'toq
+alteration of new Makefile build procedure rebuilt based on Ternary@Dark Metal's suggestions.
+				- Thanks Ternary/Ol'Sarge
+fix to the src/Makefile to redefine default SHELL since latest Debian horked it with dash.
+				- Thanks Mercutio
+Make '.' as first char allowable in attribute names.
+				- Thanks Ixokai
+@limit with unlimited values for @destroy and vlimit was broke.
+				- Thanks Ixokai
 
 
 		         RhostMUSH 3.9.4 Update File

@@ -217,7 +217,7 @@ char *
 parse_arglist(dbref player, dbref cause, dbref caller, char *dstr, 
               char delim, dbref eval,
 	      char *fargs[], dbref nfargs, char *cargs[],
-	      dbref ncargs, int i_type)
+	      dbref ncargs, int i_type, char *regargs[], int nregargs)
 {
     char *rstr, *tstr, *mychar, *mycharptr, *s;
     int arg, peval;
@@ -258,7 +258,7 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 	    tstr = parse_to(&rstr, '\0', peval);
 	if (eval & EV_EVAL) {
 	    fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK, tstr,
-			      cargs, ncargs);
+			      cargs, ncargs, regargs, nregargs);
 	} else {
             if (  i_type  ) {
                mychar = mycharptr = alloc_lbuf("no_eval_parse_arglist");
@@ -282,7 +282,7 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
                   s++;
                }
 	       fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK | EV_EVAL | ~EV_STRIP_ESC, mychar,
-			         cargs, ncargs);
+			         cargs, ncargs, regargs, nregargs);
                free_lbuf(mychar);
             } else {
 	       fargs[arg] = alloc_lbuf("parse_arglist");
@@ -603,6 +603,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 	i_utfnum = 0;
 	i_utfcnt = 0;
     s_intbuf[3] = '\0';
+    ch = ch1 = ch2 = '\0';
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
@@ -1109,7 +1110,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 
 char *
 exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
-     char *cargs[], int ncargs)
+     char *cargs[], int ncargs, char *regargs[], int nregargs)
 {
 /* MAX_ARGS is located in externs.h - default is 30 */
 #ifdef MAX_ARGS
@@ -1281,7 +1282,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 mudstate.stack_val--;
 		tstr = exec(player, cause, caller,
 			    (eval | EV_FCHECK | EV_FMAND),
-			    tbuf, cargs, ncargs);
+			    tbuf, cargs, ncargs, regargs, nregargs);
 		safe_str(tstr, buff, &bufc);
 		free_lbuf(tstr);
 		dstr--;
@@ -1312,7 +1313,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		}
 		tstr = exec(player, cause, caller,
 			    (eval & ~(EV_STRIP | EV_FCHECK)),
-			    tbuf, cargs, ncargs);
+			    tbuf, cargs, ncargs, regargs, nregargs);
 		safe_str(tstr, buff, &bufc);
 		if (!(eval & EV_STRIP)) {
 		    safe_chr('}', buff, &bufc);
@@ -1352,7 +1353,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 	    case '%':		/* Percent - a literal % */
 #ifdef ZENTY_ANSI            
-               if((*(dstr + 1) == SAFE_CHR)
+               if ( ((*(dstr + 1) == SAFE_CHR) && 1) /* Needed && 1 to ignore clang warning */
 #ifdef SAFE_CHR2
                                         || (*(dstr + 1) == SAFE_CHR2 )
 #endif
@@ -1392,7 +1393,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( sub_txt  ) {
                          if ( *sub_txt ) {
                             mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_C;
-                            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                             mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_C;
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_txt);
@@ -1534,7 +1535,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          safe_str("%f", buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_F;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
                             safe_str("%f", buff, &bufc);
                          else
@@ -1559,7 +1560,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_str((char *) "\r\n", buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_R;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_str((char *) "\r\n", buff, &bufc);
                          else
@@ -1584,7 +1585,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_chr('\t', buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_T;
-                         sub_buf = exec(mudconf.hook_obj, cause, player, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, player, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_chr('\t', buff, &bufc);
                          else
@@ -1638,6 +1639,23 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		safe_str(atr_gotten, buff, &bufc);
 		free_lbuf(atr_gotten);
 		break;
+            case '$':
+                i = -1;
+                dstr++;
+                if ( isdigit((unsigned char)*dstr) ) {
+                   i = *dstr - '0';
+                   dstr++;
+                   if ( isdigit((unsigned char)*dstr) ) {
+                      i *= 10;
+                      i += *dstr - '0';
+                      dstr++;
+                   }
+                }
+                if ( i != -1 ) {
+                   if ( (i >= 0) && i < nregargs ) 
+                      safe_str(regargs[i], buff, &bufc);
+                }
+                break;
 #ifndef NO_ENH
 	    case 'Q':
 	    case 'q':
@@ -1715,7 +1733,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_O;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_str(tbuf, buff, &bufc);
                          else
@@ -1748,7 +1766,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_P;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
                             safe_str(tbuf, buff, &bufc);
                          else
@@ -1780,7 +1798,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_S;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_str(tbuf, buff, &bufc);
                          else
@@ -1813,7 +1831,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_A;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
                             safe_str(tbuf, buff, &bufc);
                          else
@@ -1840,7 +1858,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_NUM;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_str(tbuf, buff, &bufc);
                          else
@@ -1867,7 +1885,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_BANG;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_str(tbuf, buff, &bufc);
                          else
@@ -1894,7 +1912,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_AT;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
                             safe_str(tbuf, buff, &bufc);
                          else
@@ -1974,7 +1992,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_W;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_str(tbuf, buff, &bufc);
                          else
@@ -2029,7 +2047,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          }
                       } else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_K;
-		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf ) {
                             if ( t_bufb ) {
                                safe_str(t_bufb, buff, &bufc);
@@ -2071,7 +2089,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          safe_str(Name(cause), buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_N;
-		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
                             safe_str(Name(cause), buff, &bufc);
                          else
@@ -2108,7 +2126,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		         safe_str(tbuf, buff, &bufc);
                       else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_L;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf )
 		            safe_str(tbuf, buff, &bufc);
                          else
@@ -2145,7 +2163,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( sub_txt ) {
                          if ( *sub_txt ) {
                             mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_X;
-                            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0);
+                            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                             mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_X;
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_txt);
@@ -2205,7 +2223,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          sub_txt2 = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( sub_txt2 && *sub_txt2) {
                             sub_buf2 = exec(mudconf.hook_obj, cause, caller, 
-                                            EV_EVAL|EV_STRIP|EV_FCHECK, sub_txt2, (char **)NULL, 0);
+                                            EV_EVAL|EV_STRIP|EV_FCHECK, sub_txt2, (char **)NULL, 0, (char **)NULL, 0);
                             sub_delim = 1;
                             if ( *sub_buf2 ) {
                                if ( is_integer(sub_buf2) ) {
@@ -2256,10 +2274,10 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          if ( *sub_txt ) {
                             if ( sub_delim )
                                sub_buf = exec(mudconf.hook_obj, player, caller, EV_EVAL|EV_STRIP|EV_FCHECK, 
-                                         sub_txt, (char **)&t_bufa, 1);
+                                         sub_txt, (char **)&t_bufa, 1, (char **)NULL, 0);
                             else
                                sub_buf = exec(mudconf.hook_obj, player, caller, EV_EVAL|EV_STRIP|EV_FCHECK, 
-                                         sub_txt, (char **)NULL, 0);
+                                         sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_buf);
                          }
@@ -2463,7 +2481,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
 				 ')', feval, fargs, nfargs,
-				 cargs, ncargs, i_type);
+				 cargs, ncargs, i_type, regargs, nregargs);
 	    /* If no closing delim, just insert the '(' and
 	     * continue normally */
 
@@ -2583,7 +2601,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        is_trace_bkup = mudstate.notrace;
                        mudstate.notrace = 1;
                     }
-		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs);
+		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs, regargs, nregargs);
+                    is_trace_bkup = 0;
                     if ( ufp->flags & FN_NOTRACE ) {
                        mudstate.notrace = is_trace_bkup;
                     }

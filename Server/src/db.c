@@ -2038,7 +2038,7 @@ al_add(dbref thing, int attrnum)
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( i_array[1] != -1 ) {
+             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
                      (i_array[1] == -2 ? (Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
                    notify_quiet(mudstate.vlplay,"Variable attribute new creation maximum reached.");
@@ -2193,7 +2193,7 @@ al_delete(dbref thing, int attrnum)
                   s_buffptr = (char *) strtok(NULL, " "), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( i_array[1] != -1 ) {
+             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
                      (i_array[1] == -2 ? (Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
                    notify_quiet(mudstate.vlplay,"Variable attribute new creation (del) maximum reached.");
@@ -3542,7 +3542,7 @@ void do_dbclean(dbref player, dbref cause, int key)
    DESC *d;
 
    DESC_ITER_CONN(d) {
-      if ( (d->player == player) ) {
+      if ( d->player == player ) {
          if ( key & DBCLEAN_CHECK )
             queue_string(d,"Checking dabase of empty attributes.  Please wait...");
          else
@@ -3555,7 +3555,7 @@ void do_dbclean(dbref player, dbref cause, int key)
    s_chkattr = alloc_lbuf("attribute_delete");
 
    DESC_ITER_CONN(d) {
-      if ( (d->player == player) ) {
+      if ( d->player == player ) {
          queue_string(d, "---> Hashing values...");
          queue_write(d, "\r\n", 2);
          process_output(d);
@@ -3575,7 +3575,7 @@ void do_dbclean(dbref player, dbref cause, int key)
       }
    }
    DESC_ITER_CONN(d) {
-      if ( (d->player == player) ) {
+      if ( d->player == player ) {
          if ( key & DBCLEAN_CHECK )
             queue_string(d, "---> Initializing check routines...");
          else
@@ -3612,7 +3612,7 @@ void do_dbclean(dbref player, dbref cause, int key)
                   i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted") );
           i_del = 0;
           DESC_ITER_CONN(d) {
-             if ( (d->player == player) ) {
+             if ( d->player == player ) {
                 queue_string(d, s_chkattr);
                 queue_write(d, "\r\n", 2);
                 process_output(d);
@@ -3624,7 +3624,7 @@ void do_dbclean(dbref player, dbref cause, int key)
       sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d %s]\r\n---> Completed!  %d total attributes have been %s.", 
                           i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted"),
                           i_cntr, ((key & DBCLEAN_CHECK) ? "verified deleteable" : "deleted") );
-      if ( (d->player == player) ) {
+      if ( d->player == player ) {
          queue_string(d, s_chkattr);
          queue_write(d, "\r\n", 2);
          process_output(d);

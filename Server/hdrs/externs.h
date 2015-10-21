@@ -2,6 +2,8 @@
 
 #include "copyright.h"
 
+#define MYSQL_VER "Version 1.1 Beta"
+
 #ifndef _M__EXTERNS__H
 #define	_M__EXTERNS__H
 
@@ -23,7 +25,7 @@
 #define	ToLower(s) (isupper(s) ? tolower(s) : (s))
 #define	ToUpper(s) (islower(s) ? toupper(s) : (s))
 #define DOING_SIZE 32	/* @doing and @doing/header size */
-#define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#'))
+#define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#') || (c == '.') || (c == '+'))
 
 #define atrpCit(s) (s == 1)
 #define atrpGuild(s) (s == 2)
@@ -40,6 +42,7 @@
 #define SPLIT_FLASH		0x02
 #define SPLIT_UNDERSCORE	0x04
 #define SPLIT_INVERSE		0x08
+#define SPLIT_NOANSI		0x10
 
 typedef struct ansisplit {
 	char	s_fghex[5];	/* Hex representation - foreground */
@@ -67,8 +70,8 @@ extern long	FDECL(count_player,(dbref, int));
 /* From conf.c */
 extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
 extern int	FDECL(cf_modify_multibits, (int *, int *, char *, long, long, dbref, char *));
-extern void	FDECL(list_options_boolean, (dbref, int));
-extern void	FDECL(list_options_values, (dbref, int));
+extern void	FDECL(list_options_boolean, (dbref, int, char *));
+extern void	FDECL(list_options_values, (dbref, int, char *));
 extern void	FDECL(cf_display, (dbref, char *, int, char *, char **));
 extern void     FDECL(sideEffectMaskToString, (int, char *, char **));
 /* From udb_achunk.c */
@@ -128,13 +131,13 @@ extern void	NDECL(recover_queue_deposits);
 extern void	NDECL(tcache_init);
 extern char *	FDECL(parse_to, (char **, char, int));
 extern char *	FDECL(parse_arglist, (dbref, dbref, dbref, char *, char, int,
-			char *[], int, char*[], int, int));
+			char *[], int, char*[], int, int, char *[], int));
 extern int	FDECL(get_gender, (dbref));
 #ifdef ZENTY_ANSI
 extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **, char*, char **));
 extern int      FDECL(parse_comments, (char *, char *, char **));
 #endif
-extern char *	FDECL(exec, (dbref, dbref, dbref, int, char *, char *[], int));
+extern char *	FDECL(exec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int));
 
 /* From flags.c */
 extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
@@ -325,6 +328,7 @@ extern int	FDECL(is_integer, (char *));
 extern int	FDECL(is_number, (char *));
 extern int	FDECL(is_rhointeger, (char *));
 extern int	FDECL(is_float, (char *));
+extern int	FDECL(is_float2, (char *));
 extern int	FDECL(could_doit, (dbref, dbref, int, int, int));
 extern int	FDECL(can_see, (dbref, dbref, int));
 extern int	FDECL(can_see2, (dbref, dbref, int));
@@ -671,10 +675,12 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	GLOB_LIST	3	/* key to list */
 #define GREP_QUIET	1
 #define GREP_REGEXP	2	/* regexp handler */
+#define GREP_PARENT	4	/* grep parent */
 #define	HALT_ALL	1	/* halt everything */
 #define HALT_PID	2
 #define HALT_PIDSTOP	4	/* stop pid processing */
 #define HALT_PIDCONT	8	/* restore pid processing */
+#define HALT_QUIET	16	/* Quiet mode on halting */
 #define HIDE_ON         1       /* Hide from WHO */
 #define HIDE_OFF        2       /* Unhide from WHO */
 #define	HELP_HELP	1	/* get data from help file */
@@ -806,6 +812,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PEMIT_OSTR	4194304 /* @oemit uses multi-parameters */
 #define PIPE_ON         1       /* Enable @pipe to attribute */
 #define PIPE_OFF        2	/* Disable @pipe to attribute */
+#define PIPE_TEE        4	/* Enable @pipe to attribute + normal output */
+#define PIPE_STATUS	8	/* Status of piping */
 #define	PS_BRIEF	0	/* Short PS report */
 #define	PS_LONG		1	/* Long PS report */
 #define	PS_SUMM		2	/* Queue counts only */
@@ -877,6 +885,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SET_RSET	4	/* set() is really rset() */
 #define SET_TREE	8	/* set() the entire trees */
 #define SET_TREECHK	16	/* Verify we can set trees */
+#define SET_MUFFLE	32	/* Totally  muffle set messages */
 #define	SHUTDN_NORMAL	0	/* Normal shutdown */
 #define	SHUTDN_PANIC	1	/* Write a panic dump file */
 #define	SHUTDN_EXIT	2	/* Exit from shutdown code */
@@ -924,6 +933,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SITE_ALL	128
 #define SITE_PER	256
 #define SITE_TRU	512
+#define SITE_LIST	1024	/* List @site/list information */
 #define SKIP_IFELSE	1	/* @ifelse conversion for @skip */
 #define SNOOP_ON	1	/* Start snooping */
 #define SNOOP_OFF	2	/* Stop snooping */
@@ -936,6 +946,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	STAT_PLAYER	0	/* Display stats for one player or tot objs */
 #define	STAT_ALL	1	/* Display global stats */
 #define	STAT_ME		2	/* Display stats for me */
+#define SELFBOOT_LIST   1	/* List all ports you have for selfboot */
+#define SELFBOOT_PORT	2	/* boot the specified port for your self */
 #define	SWITCH_DEFAULT	0	/* Use the configured default for switch */
 #define	SWITCH_ANY	1	/* Execute all cases that match */
 #define	SWITCH_ONE	2	/* Execute only first case that matches */

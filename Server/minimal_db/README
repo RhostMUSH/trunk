@@ -2,6 +2,9 @@ All .txt files must be mkindx'd.
 The flatfile must be loaded in as a new db
 This is a minimal db with basic 'features' built in.
 
+the reimaged.db.flat needs to be loaded in, it's the latest one.
+the reimaged.conf file needs to be copied over the netrhost.conf in your game directory.
+
 
 Steps:
 

@@ -223,18 +223,30 @@ char	*target;
  * check_site: Check for allowed/disallowed sites.
  */
 
-int lookup(char *host, char *data)
+int lookup(char *host, char *data, int i_cnt, int *i_retvar)
 {
-  char *parse, buff[MBUF_SIZE];
+  char *parse, *parse_max, buff[MBUF_SIZE];
+  int i_parse, i_chk;
 
   memset(buff, 0, sizeof(buff));
   strncpy(buff,host,(MBUF_SIZE-1));
   parse = strtok(data,",/\t ");
+  i_chk = -1;
   while (parse) {
-    if (quick_wild(parse,buff))
+    i_parse = 0;
+    i_chk = -1;
+    if ( (i_cnt != -2) && ((parse_max = strchr(parse, '|')) != NULL) ) {
+       *parse_max = '\0';
+       i_parse = 1;
+       i_chk = atoi(parse_max+1);
+    }
+    if ( quick_wild(parse,buff) && ((i_cnt < 0) || (i_chk == -1) || (i_cnt >= i_chk)) )
       break;
+    if ( i_parse )
+       *parse_max = '|';
     parse = strtok(NULL,",/\t ");
   }
+  *i_retvar = i_chk;
   if (parse)
     return 1;
   else
@@ -246,19 +258,19 @@ int check_site(dbref player, DESC *d)
 {
   char *siteinfo, *host;
   dbref	aowner;
-  int	aflags, ok;
+  int	aflags, ok, i_retvar = -1;
 
   host = inet_ntoa(d->address.sin_addr);
   siteinfo = atr_get(player,A_SITEGOOD, &aowner, &aflags);
   if (*siteinfo == '\0')
     ok = 1;
   else 
-    ok = lookup(host,siteinfo);
+    ok = lookup(host, siteinfo, -2, &i_retvar);
   free_lbuf(siteinfo);
   if (ok) {
     siteinfo = atr_get(player,A_SITEBAD, &aowner, &aflags);
     if (*siteinfo != '\0') 
-      ok = !lookup(host,siteinfo);
+      ok = !lookup(host, siteinfo, -2, &i_retvar);
     free_lbuf(siteinfo);
   }
   return ok;
@@ -658,6 +670,8 @@ BADNAME	*bp;
 	strcpy(bp->name, bad_name);
 }
 
+/* This isn't being used yet 
+ *
 dbref protectname_clear (dbref player)
 {
    PROTECTNAME *bp, *backp;
@@ -667,6 +681,7 @@ dbref protectname_clear (dbref player)
       return -1;
 
    backp = NULL;
+   target = NOTHING;
    for ( bp=mudstate.protectname_head; bp; backp=bp, bp=backp->next ) {
       if ( bp->i_name == player ) {
          target = bp->i_name;
@@ -676,7 +691,7 @@ dbref protectname_clear (dbref player)
             mudstate.protectname_head = bp->next;
          }
       }
-      if ( bp->i_key ) {
+      if ( (target != NOTHING) && bp->i_key ) {
          delete_player_name(target, bp->name);
       }
       XFREE(bp->name, "protectname.name");
@@ -684,6 +699,7 @@ dbref protectname_clear (dbref player)
    }
    return player;
 }
+*/
 
 dbref protectname_remove (char *protect_name, dbref player)
 {
@@ -999,7 +1015,7 @@ int reg_internal(char *name, char *email, char *dum, int key)
 {
   DESC *d;
   char rpass[9], work, *pt1, *pt2, *buff, readstr[80], instr_buff[1000], *tmp_email, *tmp_email_ptr, *s_filename;
-  int x, code, abortmail, tot_lines, tot_badlines, allow_through, good_email;
+  int x, code, abortmail, tot_lines, tot_badlines, allow_through, good_email, i_retvar = -1;
   dbref player;
   char *tpr_buff, *tprp_buff;
   FILE *fpt, *fpt2;
@@ -1069,12 +1085,12 @@ int reg_internal(char *name, char *email, char *dum, int key)
   strcpy(instr_buff, mudconf.goodmail_host);
   tmp_email_ptr = tmp_email = alloc_mbuf("tmp_email");
   safe_str(email, tmp_email, &tmp_email_ptr);
-  if (((char *)mudconf.goodmail_host) && lookup(tmp_email, instr_buff)) {
+  if (((char *)mudconf.goodmail_host) && lookup(tmp_email, instr_buff, -2, &i_retvar)) {
      allow_through = 1;
   }
   /* Now let's see if the mail is invalid */
   strcpy(instr_buff, mudconf.validate_host);
-  if (((char *)mudconf.validate_host) && lookup(tmp_email, instr_buff) && !allow_through) {
+  if (((char *)mudconf.validate_host) && lookup(tmp_email, instr_buff, -2, &i_retvar) && !allow_through) {
     if ( !key ) {
        STARTLOG(LOG_SECURITY | LOG_PCREATES, "AUTOREG", "BAD")
          tpr_buff = tprp_buff = alloc_lbuf("reg_internal");

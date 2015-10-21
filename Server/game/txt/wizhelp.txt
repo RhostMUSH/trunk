@@ -16,6 +16,10 @@
   
   You may use the /search switch for content.  Eg: wizhelp/search *mail*
   
+  Command syntax help is available by issuing /syntax. Eg: @emit/syntax
+  
+  The multi-tier bit order can be seen with 'help control'
+  
   If there are any errors in the help text, please notify a Wizard.
   
   See Also: help, and +help.
@@ -466,7 +470,7 @@
   override the existing control/permission levels globally.  This can
   obviously become quite complex, but we'll touch on the majority of them.
   The bits are all absolute to their level and lower.  Thus, lower level
-  bits can NOT MODIFY higher level bits, short of specail privs which will
+  bits can NOT MODIFY higher level bits, short of special privs which will
   be discussed later.
   
   First, the main control is handled by a bitlevel tier as follows.
@@ -485,7 +489,9 @@
                          can do all your normal wizardly goodness.
                          They override all locks their level and lower
                          unless set no_override/no_uselock.  Yes, this
-                         also includes pagelocks.
+                         also includes pagelocks.  This is referred to as
+                         'Royalty' within the codebase, but is in fact a
+                         full Wizard bit.  Re-iterate.  Full wizard.
    Councilor   [Bit 4] - This is the 'admin' bit.  It has most of the wiz
                          privs, but lacks some of the higher level db
                          control.
@@ -504,6 +510,8 @@
                          very little power or control.  They lack any
                          and all db modification abilities, including
                          but not limited to editing, creating, etc.
+                         They also can not use mail.  Yes, this is
+                         intentional.
   
   {wizhelp control2 for exceptions}
   {wizhelp control flow for the general flow of permissions}
@@ -544,8 +552,8 @@
                                          @hook
                                          Guildmaster Owned thing set INHERIT
                                                      Citizen ---+
-                                                     Wanderer
-                                                     Guest
+                                                     Wanderer --+
+                                                     Guest -----+
                                                      Toggles(some)
                                                      Flags(some)
                                                      @hook
@@ -590,7 +598,9 @@
    TwinkLock  -- @lock/twink is a special lock that grants editing, and
                  by extension, examining ability of anything that they
                  pass the lock on.  Obviously, it can be abused, thus
-                 why it's called a TWINK lock.
+                 why it's called a TWINK lock.  Setting a TwinkLock item
+                 NO_MODIFY will remove the editing ability and leave the
+                 examine ability.
    NO_MODIFY  -- This is a flag that can optionaly be tagged to be 
                  tiered-up to immortal.  It in essence makes any target
                  (including twinklocked items) non-modifiable.
@@ -1269,7 +1279,7 @@
       /CHECK         : This lists the depowers currently employed on target.
       /REMOVE        : This removes the depower from the target.
   
-( See wizhelp depower2 for more )
+{ See wizhelp depower2 for more }
 
 & DEPOWER2
   Command: @depower (continued)
@@ -2103,16 +2113,45 @@
   See Also: the source code.
 
 & @admin
-  Command: @admin <param>=<value>
+  Command: @admin[/<switch>] <param>=<value>
   Sets a RhostMUSH configuration parameter to the indicated value.
   Type 'wizhelp config parameters' for a list of the config parameters that
   may be set.
   
-  Note: This is not a permanent change and will be reset to the default
-        behavior after the next reboot, shutdown, or startup.  To make
-        this permanent, add the entry in the .conf (default netrhost.conf).
+  Note: Unless you use the /load, /save, etc arguments, this is not a 
+        permanent change and will be reset to the default behavior after 
+        the next reboot, shutdown, or startup.  To make this permanent, 
+        add the entry in the .conf (default netrhost.conf).
+  
+  Please make sure you have 'include rhost_ingame.conf' toward the bottom
+  of your netrhost.conf file so the below will work on reboots.
+  
+  Optional Switches:
+    /load    -- This will load to a specified bref# (defined by admin_object)
+                all the lines from the rhost_ingame.conf file, up to 1000 
+                lines.
+    /save    -- This will save all the _LINE## (in order) that was on the
+                admin_object into the rhost_ingame.conf file.  This will
+                overwrite the file and does not append to it.
+    /execute -- This will execute all the admin parameters in the 
+                rhost_ingame.conf file.
+    /list    -- This will list what is currently defined in the
+                rhost_ingame.conf file.
   
   Example:  @admin access=+chan ignore
+  
+  With the optional switches, note that the dbref# defined from the config
+  option 'admin_object' must be a valid object, must be owned by an immortal,
+  and the _LINE## (like _LINE0, _LINE1, _LINE2, etc) must be in order and
+  must start with _LINE0.  Any skipping of numbers will not be read.  Any
+  invalid @admin config paremeter will be skipped.  Any comment you wish to
+  add to the file must start with a '#'.  Like &_LINE1 #obj=# my comment.
+  
+  Any blank lines that were added to the rhost_ingame.conf manually will be
+  loaded as a comment and have a '#' when you save.  Any lines over 1000
+  will not be read.
+  
+  See Also: admin_object
 
 & @apply_marked
   Command: @apply_marked <command>
@@ -2205,6 +2244,8 @@
     /NOAUTH        - removes site information for authentication checks.
     /NOHOST        - removes site information for DNS checks.
     /ALL           - removes all matching site information.
+    /LIST          - show the raw *_host listings that you can use for
+                     removal.  Handy if you use the optional connection args.
   
   It will remove all matching instances for each switch field.  This command
   is only accessable by immortals.
@@ -2607,9 +2648,12 @@
              p - preserved
              + - protected
              t - notrace
+             ! - flagged (a permission flag exists for that function)
   
   You will see the MAX and MIN fields only if they are outside the defaults. 
   
+  Note: you may use @function/display to see the flag permissions.
+   
   See Also: @attribute 
  
 & @halt
@@ -2895,8 +2939,9 @@
   
   You may page the value by applying a number (from 1 to max-pages) after the
   parameter.  For example:
-    > @list options boolean       - lists first page
-    > @list options boolean 3     - lists third page
+    > @list options boolean        - lists first page
+    > @list options boolean 3      - lists third page
+    > @list options boolean *mail* - list all options that contain 'mail'
   
   See Also: @admin
 
@@ -3074,6 +3119,13 @@
 & @list rlevels
   Lists all the current reality levels and information about each.  Will
   only work if enabled at compiletime.
+  
+  You may specify 'dec' at the end to return the decimal values instead
+  of hex.
+  
+  Examples:
+    > @list rlevel
+    > @list rlevel dec
 
 & @list cmdslogged
   Lists all commands that are currently being logged.
@@ -3557,8 +3609,9 @@
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
    
   Please be aware, <set> and <see> are different arguments, please substitute
-  below where <set/see> are defined depending if you plan to set <see> permissions
-  or <set> permissions.  <set> permissions handles setting and UN-setting.
+  below where <set/see> are defined depending if you plan to set <see> 
+  permissions or <set> permissions.  <set> permissions handles setting and 
+  UN-setting.
   
   The following bits exist for the <set> and <see> parameters:
       0 - Unable to <set/see> if target is a guest or wanderer
@@ -3572,7 +3625,7 @@
       8 - Must pass evaluation check for <set/see>
           Evaluation is as:
           -- A valid hook_obj must be defined.
-          -- The attribute 'AFLAG_EVAL' is used for FUNCTION evaluation on hook_obj.
+          -- The attribute 'AFLAG_EVAL' is used for FUNCTION eval on hook_obj.
           -- %0 is the attribute name attempting to be set.
           -- %1 is the enactor attempting to set the attribute.
           -- %2 is the type.  <set> is '0' and <see> is '1'.
@@ -3692,16 +3745,16 @@
   Example:  @aflags/perm
             @aflags/perm 2
 
-------------------------------------------------------------------------------
-Attribute Prefix                                                 Set     See
-------------------------------------------------------------------------------
-TESTEST                                                          Arch    Cit
-WASWAS                                                           Cit     Wiz
-WEREWERE                                                         God     Arch
-SNOOPY                                                           God     Wiz
-   +----- Owner: #-1,  Object: #-1,  Enactor: #1234,  Modifier: #1234
-
-----------------------------[     4/   100 max]-------------------------------
+  ----------------------------------------------------------------------------
+  Attribute Prefix                                                 Set     See
+  ----------------------------------------------------------------------------
+  TESTEST                                                          Arch    Cit
+  WASWAS                                                           Cit     Wiz
+  WEREWERE                                                         God     Arch
+  SNOOPY                                                           God     Wiz
+     +----- Owner: #-1,  Object: #-1,  Enactor: #1234,  Modifier: #1234
+  
+  --------------------------[     4/   100 max]-------------------------------
   
   In the above, the prefixes are TESTEST, WASWAS, WEREWERE, and SNOOPY.
   As shown, SNOOPY has special permissions.  The owner is #-1 (the default)
@@ -4047,7 +4100,7 @@ SNOOPY                                                           God     Wiz
   
 { wizhelp quota alternate2 for more }
 & quota alternate2
-(CONTINUED)
+  (CONTINUED)
   Command: @quota[/<switches>] [<player>[=<quota>]]
            @quota/all[/<switches>] [<quota>]]
   
@@ -4064,7 +4117,7 @@ SNOOPY                                                           God     Wiz
 { wizhelp quota alternate3 for more }
 
 & quota alternate33
-(CONTINUED)
+  (CONTINUED)
   Command: @quota[/<switches>] [<player>[=<quota>]]
            @quota/all[/<switches>] [<quota>]]
   
@@ -4735,7 +4788,10 @@ SNOOPY                                                           God     Wiz
   changable only by ROYALTY.  The only other difference is those set
   WANDERER are able to set/unset attributes.  Anyone bitted COUNCILOR and 
   lower are effected by this flag.  ROYALTY and higher are immune.
-
+  
+  The start_build @admin parameter will, if enabled, disable this flag from
+  being set automatically on new players.
+  
 & DPSHIFT
   Flag: DPSHIFT([B]) (immortal only)
   This is an internal flag in use with the @depower system and shouldn't
@@ -5092,31 +5148,34 @@ SNOOPY                                                           God     Wiz
   particular parameter.
   
   abort_on_bug             accent_extend            access                 
-  ahear_maxcount           ahear_maxtime            alias                  
-  allow_ansinames          allow_whodark            alt_inventories        
-  altover_inv              always_blind             ansi_default           
-  ansi_textfiles           areg_file                areg_lim               
-  aregh_file               atrperms                 atrperms_max           
-  attr_access              attr_alias               attr_cmd_access        
-  authenticate             bad_name                 badsite_file           
-  bcc_hidden               blind_snuffs_cons        brace_compatibility    
-  break_compatability      cache_depth              cache_steal_dirty      
-  cache_trim               cache_width              cap_articles           
-  cap_conjunctions         cap_preposition          check_interval         
-  check_offset             clone_copies_cost        cluster_cap            
-  clusterfunc_cap          comcost                  command_dark           
-  command_quota_increment  command_quota_max        compress_program       
-  compression              config_access            conn_timeout           
-  connect_file             connect_reg_file         cpu_secure_lvl         
-  cpuintervalchk           cputimechk               crash_database         
-  create_max_cost          create_min_cost          dark_sleepers          
-  descs_are_local          default_home             dig_cost               
-  door_file                door_index               down_file              
-  down_motd_message        dump_interval            dump_message           
-  dump_offset              earn_limit               empower_fulltel        
-  enable_tstamps           enforce_unfindable       error_file
+  admin_object             ahear_maxcount           ahear_maxtime          
+  alias                    allow_ansinames          allow_whodark          
+  alt_inventories          altover_inv              always_blind           
+  ansi_default             ansi_textfiles           areg_file              
+  areg_lim                 aregh_file               atrperms               
+  atrperms_max             attr_access              attr_alias             
+  attr_cmd_access          authenticate             bad_name               
+  badsite_file             bcc_hidden               blind_snuffs_cons      
+  brace_compatibility      break_compatability      cache_depth            
+  cache_steal_dirty        cache_trim               cache_width            
+  cap_articles             cap_conjunctions         cap_preposition        
+  check_interval           check_offset             clone_copies_cost      
+  cluster_cap              clusterfunc_cap          comcost                
+  command_dark             command_quota_increment  command_quota_max      
+  compress_program         compression              config_access          
+  conn_timeout             connect_file             connect_reg_file       
+  cpu_secure_lvl           cpuintervalchk           cputimechk             
+  crash_database           create_max_cost          create_min_cost        
+  dark_sleepers            descs_are_local          default_home           
+  dig_cost                 door_file                door_index             
+  down_file                down_motd_message        dump_interval          
+  dump_message             dump_offset              earn_limit             
+  empower_fulltel          enable_tstamps           enforce_unfindable     
+  enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
+{ 'wizhelp config parameters reality' for more (reality levels) }
+{ 'wizhelp config parameters mysql' for more (mysql params) }
 
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
@@ -5185,24 +5244,24 @@ SNOOPY                                                           God     Wiz
   money_lim_counc          money_name_plural        money_name_singular    
   motd_file                motd_message             mud_name               
   muddb_name               must_unlquota            mux_child_compat
-  mus_lcon_compat          nand_compat              newpass_god            
-  news_file                news_index               newuser_file           
-  no_startup               noauth_site              noautoreg_host         
-  noautoreg_site           nobroadcast_host         noguest_host           
-  noguest_site             nodns_site               nonindxtxt_maxlines    
-  noregist_onwho           noshell_prog             nospam_connect         
-  notify_recursion_limit   notonerr_return          num_guests             
-  oattr_enable_altname     oattr_uses_altname       offline_reg            
-  old_elist                online_reg               open_cost              
-  output_database          output_limit             page_cost              
-  paranoid_allocate        paranoid_exit_linking    parentable_control_lock
-  partial_conn             partial_deconn           paycheck               
-  pcreate_paranoia         pemit_any_object         pemit_far_players      
-  penn_playercmds          penn_switches            permit_site            
-  player_attr_default      player_dark              player_flags           
-  player_listen            player_match_commands    player_match_own_command
-  player_name_spaces       player_parent            player_queue_limit     
-  player_quota           
+  mus_lcon_compat          name_with_desc           nand_compat            
+  newpass_god              news_file                news_index             
+  newuser_file             no_startup               noauth_site            
+  noautoreg_host           noautoreg_site           nobroadcast_host       
+  noguest_host             noguest_site             nodns_site             
+  nonindxtxt_maxlines      noregist_onwho           noshell_prog           
+  nospam_connect           notify_recursion_limit   notonerr_return        
+  num_guests               oattr_enable_altname     oattr_uses_altname     
+  offline_reg              old_elist                online_reg             
+  open_cost                output_database          output_limit           
+  page_cost                paranoid_allocate        paranoid_exit_linking  
+  parentable_control_lock  partial_conn             partial_deconn         
+  paycheck                 pcreate_paranoia         pemit_any_object       
+  pemit_far_players        penn_playercmds          penn_switches          
+  permit_site              player_attr_default      player_dark            
+  player_flags             player_listen            player_match_commands  
+  player_match_own_command player_name_spaces       player_parent          
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -5247,20 +5306,21 @@ SNOOPY                                                           God     Wiz
   thing_quota               thing_toggles             timeslice               
   toggle_access_see         toggle_access_set         toggle_access_type
   toggle_access_unset       tor_localhost             tor_paranoid            
-  trace_output_limit        trace_topdown             trust_site              
-  uncompress_program        unowned_safe              user_attr_flags         
-  validate_host             vattr_limit_checkwiz      vlimit                  
-  wait_cost                 wall_cost                 whereis_notify          
-  wizmax_dest_limit         wizmax_vattr_limit        who_default             
-  who_unfindable            who_showwiz               who_wizlevel            
-  who_whowiztype            whohost_size              wiz_override            
-  wiz_uselock               wizard_help_file          wizard_help_index       
-  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
-  zone_parents
+  trace_output_limit        trace_topdown             tree_character
+  trust_site                uncompress_program        unowned_safe            
+  user_attr_flags           validate_host             vattr_limit_checkwiz    
+  vlimit                    wait_cost                 wall_cost               
+  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
+  who_default               who_unfindable            who_showwiz             
+  who_wizlevel              who_whowiztype            whohost_size            
+  wiz_override              wiz_uselock               wizard_help_file        
+  wizard_help_index         wizard_motd_file          wizard_motd_message     
+  wizard_queue_limit        zone_parents
 
-{ 'wizhelp config parameters7' for more (reality levels) }
+{ 'wizhelp config parameters reality' for more (reality levels) }
+{ 'wizhelp config parameters mysql' for more (mysql params) }
 
-& CONFIG PARAMETERS7
+& CONFIG PARAMETERS REALITY
   Topic: CONFIG PARAMETERS (reality levels)
 
   reality_level             wiz_always_real           def_exit_rx
@@ -5268,6 +5328,62 @@ SNOOPY                                                           God     Wiz
   def_player_rx             def_player_tx             def_thing_rx            
   def_thing_tx              reality_locks             reality_locktype
   reality_compare
+
+{ 'wizhelp config parameters mysql' for more (mysql params) }
+
+& CONFIG PARAMETERS MYSQL
+  mysql_delay               mysql_host                mysql_user
+  mysql_pass                mysql_base                mysql_socket
+  mysql_port
+
+{ 'wizhelp config parameters reality' for more (reality levels) }
+
+& mysql_delay
+  Config parameter: mysql_delay <value>.  Default: 0 (range 60-86400)
+  
+  Set the delay for when sql will be allowed to retry the connection
+  to the database after a series of consecutive failures.  The default
+  value of '0' will mean that it will hard-lock any re-attempt until
+  a manual @sqlconnect is issued.
+  
+& mysql_host
+  Config parameter: mysql_host <string>.  Default: localhost
+  
+  Specifies the host that houses the mysql database engine you wish
+  to connect to.  DNS name or IP is fine.
+
+& mysql_user
+  Config parameter: mysql_user <string>.  Default: dbuser
+  
+  Specifies the user that you use to connect to the database.
+  
+& mysql_pass
+  Config parameter: mysql_pass <string>.  Default: dbpass
+  
+  Specifies the password that you use to connect to the database
+  with the user specified in mysql_user.  This is a NON ENCRYPTED 
+  value so please keep that in mind.
+
+& mysql_base
+  Config parameter: mysql_base <string>.  Default: databasename
+  
+  Specifies the actual database name that you will be connecting
+  to with the login defined by mysql_user and the password defined
+  by mysql_pass and the host defined by mysql_host.
+
+& mysql_socket
+  Config parameter: mysql_socket <string>.  Default: /var/lib/mysql/mysql.sock
+  
+  Specifies the mysql_socket file which is usually only necessary for any
+  localhost derived MySQL instances.  This value is ignored for any non-local
+  sql connection that uses the TCP transport utility.
+
+& mysql_port
+  Config parameter: mysql_port <value>.  Default: 3306
+  
+  Specifies the port that the mysql database is running on.  Please be
+  aware that port 3306 should work in most cases as that is the default
+  port for MySQL.
 
 & abort_on_bug
   Config parameter: abort_on_bug <yes/no>.  Default: no
@@ -5299,6 +5415,18 @@ SNOOPY                                                           God     Wiz
   wizhelp PERMISSIONS.
   
   See Also: PERMISSIONS, @list.
+
+& admin_object
+  Config parameter: admin_object <dbref>   Default: -1
+  
+  Specifies the object that all @admin config parmeters are loaded or unloaded
+  to and from the shell.  It will read and write from/to the rhost_ingame.conf
+  file.  This should be toward the bottom of your netrhost.conf file in the
+  form 'include rhost_ingame.conf'.  If it is not, please add this toward the
+  bottom of your netrhost.conf file right ABOVE the section that states it
+  is for local aliases/parameters.
+  
+  See Also: @admin
 
 & ahear_maxcount
   Config parameter: ahear_maxcount <value>    Default: 30
@@ -5448,8 +5576,9 @@ SNOOPY                                                           God     Wiz
       OWNER         -- Optional.  The owner that the prefix will affect.
       TARGET        -- Optional.  The specific dbref# the prefix will affect.
   
-  Please note the permission is a bittype from 1 to 7.  It uses the same
+  Please note the permission is a bittype from 1 to 8.  It uses the same
   numerical values that the bittype() function uses.  These values are:
+      Evaluation      8  (Special -- This is an evaluation bit only)
       God (#1)        7
       Super-Royalty   6
       Royalty         5
@@ -5460,8 +5589,10 @@ SNOOPY                                                           God     Wiz
    
   Owner can be anything, but defaults to '-1' to mean global.
   Target can be anything, but defaults to '-1' to mean global.
-   
-  See Also: atrperms_max, @aflags
+  
+  For more about the bits see: @aflags bits 
+  
+  See Also: atrperms_max, @aflags, @aflags bits
   
 {see atrperms2 for examples and explainations}
 & atrperms2
@@ -5534,10 +5665,10 @@ SNOOPY                                                           God     Wiz
   hidden      - The attribute is visible only to wizards.
   pinvisible  - The attribute is examinable by royalty+ only.
   default     - The attribute 'inherits' attribute formatting.
-* no_inherit  - The attribute is not inheritable by children.
-* visual      - The attribute is visual by everyone.
-* no_ansi     - The attribute does not hold ansi.
-* no_clone    - The attribute will not be @cloned.
+ *no_inherit  - The attribute is not inheritable by children.
+ *visual      - The attribute is visual by everyone.
+ *no_ansi     - The attribute does not hold ansi.
+ *no_clone    - The attribute will not be @cloned.
    
   If you use a command similar to:
      @admin attr_access=<attr>
@@ -5991,6 +6122,13 @@ SNOOPY                                                           God     Wiz
   Indicates whether or not to enable the automatic timestamping of items
   when they are created or modified.
 
+& enhanced_convtime
+  Config parameter: enhanced_convtime <yes/no>.  Default: no
+  
+  Indicates if convtime() will allow enhanced formats to be processed
+  with the convtime function.  Due to a slightly higher overhead this
+  is disabled by default.
+
 & enforce_unfindable
   Config parameter: enforce_unfindable <yes/no>.  Default: no
   
@@ -6032,14 +6170,17 @@ SNOOPY                                                           God     Wiz
   
   Specifies the 'bitlevel' that is restrictive from examining anything 
   they can't control.  If they fail, it returns that they can not examine
-  the target and returns no information about the target.  The following
-  levels exist to be settable:
+  the target and returns no information about the target.  This will also
+  affect @decompile.
+  
+  The following levels exist to be settable:
           0  - default: no additional restrictions set.
-          1  - guildmaster: under guildmaster held to restrictions.
-          2  - architect: under architect held to restrictions.
-          3  - councilor: under councilor held to restrictions.
-          4  - wizard: under wizard/royalty held to restrictions.
-          5  - immortal: under immortal held to restrictions.
+          1  - mortal: guests/wanderers held to restrictions.
+          2  - guildmaster: under guildmaster held to restrictions.
+          3  - architect: under architect held to restrictions.
+          4  - councilor: under councilor held to restrictions.
+          5  - wizard: under wizard/royalty held to restrictions.
+          6  - immortal: under immortal held to restrictions.
   
   There is nothing to block immortals as immortals are considered #1.
   The current setting is visible through @list options.
@@ -6154,6 +6295,7 @@ SNOOPY                                                           God     Wiz
     %0 -- The numerical site host of the incomming connection.
     %1 -- The dns host entry (if availabe, else ip) of incoming connection.
     %2 -- The port that they're connected to on the mush
+    %3 -- The player dbref#, if connected, otherwise shows '-1'.
   
   All ansi and such will process normally.
   
@@ -6222,6 +6364,14 @@ SNOOPY                                                           God     Wiz
   is allowed is 1-48.  Anything over 48 is meaningless anyway due to
   limitations on floating point notation precision.
   
+& name_with_desc
+  Config parameter: name_with_desc <boolean>.    Default: no
+  
+  This config defines if you should see the 'name' of an item when you look at
+  it before the description that shows up.  This only affects things that you
+  normally do not control (own or have permission over) and only affects
+  things that you can actually see at your location.
+  
 & nand_compat
   Config parameter: nand_compat <yes/no>.    Default: no
   
@@ -6266,11 +6416,22 @@ SNOOPY                                                           God     Wiz
   existing site information already specified with forbid_host.  You may use
   '!ALL' to clear the forbid host table.
   
-  Example:  @admin forbid_host=*.aol.com !*.compuserve.com
+  You may specify an optional ceiling of allowed connects before the
+  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
+  3 connections from aol.com at any one time, then enforce the restriction.
+  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
+  FORBID restrictions.
+  
+  Example:  @admin forbid_host=*.aol.com !*.compuserve.com *ego.com|3
             (forbids any site matching *.aol.com and removes *.compuserve.com)
+            (will forbid *ego.com if more than 3 connections are seen)
             @admin forbid_host=!ALL
             (this clears the forbid_host list)
   
+  Note:  If you used a ceiling, you must specify the ceiling in removing
+         the site or it will not match it.  You may use @site/list to see
+         the raw site information that you can use to remove the site.
+   
   See Also: register_host, suspect_host, noguest_host, noautoreg_host, 
             validate_host, @site
 
@@ -6365,6 +6526,12 @@ SNOOPY                                                           God     Wiz
   allow the function to be OVERLOADED with a softcoded function of
   the same name.  Please see wizhelp on 'function overloading' for how
   to do this.
+  
+  Global hardcoded functions are identified by their name.  Ergo 'add'.
+  
+  Global softcoded @functions are identified by their name.  Ergo 'foot'.  
+  
+  Local softcoded @lfunctions are identified by owner + name. Ergo: '123_foot.'
   
   See Also: @list functions, FUNCTION LIST, PERMISSIONS, function_alias.
 
@@ -7593,11 +7760,22 @@ SNOOPY                                                           God     Wiz
   information already specified with noguest_host.  You may use '!ALL' 
   to clear the noguest host table.
   
-  Example:  @admin noguest_host=*.aol.com !*.compuserve.com
-            (no-guests any site matching *.aol.com and removes *.compuserve.com)
-            @admin noguest_host=!ALL
-            (this clears the noguest_host list)
+  You may specify an optional ceiling of allowed connects before the
+  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
+  3 connections from aol.com at any one time, then enforce the restriction.
+  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
+  FORBID restrictions.
   
+  Example: @admin noguest_host=*.aol.com !*.compuserve.com *ego.com|3
+           (no-guests any site matching *.aol.com and removes *.compuserve.com)
+           (will deny guests on *ego.com if more than 3 connections are seen)
+           @admin noguest_host=!ALL
+           (this clears the noguest_host list)
+  
+  Note:  If you used a ceiling, you must specify the ceiling in removing
+         the site or it will not match it.  You may use @site/list to see
+         the raw site information that you can use to remove the site.
+   
   See Also:  forbid_host, suspect_host, register_host, noautoreg_host, 
              validate_host, @site
 
@@ -7753,9 +7931,7 @@ SNOOPY                                                           God     Wiz
 & parentable_control_lock
   Config parameter: parentable_control_lock <yes/no>.  Default: no
  
-  Specifies whether or not objects without a ControlLock inherit the
-  ControlLock of their parent.  Note that the ControlLock is only obeyed
-  for objects whose ZONE flag is set.
+  Specifies whether or not @locks will be inheritable from their parents.
 
 & partial_conn
   Config parameter: partial_conn <yes/no>.  Default: yes
@@ -7874,8 +8050,8 @@ SNOOPY                                                           God     Wiz
   Config parameter: player_toggles <toggles>.  Default: blank
   
   Modifies the set of toggles that a player receives when it is created via the
-  @pcreate command or via the connection screen.  Toggles prefixed by a ! remove
-  the indicated toggle from the set.  
+  @pcreate command or via the connection screen.  Toggles prefixed by a ! 
+  remove the indicated toggle from the set.  
   
   Note that toggle names are case sensitive and in lower case.
   
@@ -8116,10 +8292,21 @@ SNOOPY                                                           God     Wiz
   existing site information already specified with register_host.  You may 
   use '!ALL' to clear the register host table.
   
-  Example:  @admin register_host=*.aol.com !*.compuserve.com
-            (registers any site matching *.aol.com and removes *.compuserve.com)
-            @admin register_host=!ALL
-            (this clears the register_host list)
+  You may specify an optional ceiling of allowed connects before the
+  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
+  3 connections from aol.com at any one time, then enforce the restriction.
+  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
+  FORBID restrictions.
+  
+  Example: @admin register_host=*.aol.com !*.compuserve.com *ego.com|3
+           (registers any site matching *.aol.com and removes *.compuserve.com)
+           (will register cons on *ego.com if more than 3 connections are seen)
+           @admin register_host=!ALL
+           (this clears the register_host list)
+  
+  Note:  If you used a ceiling, you must specify the ceiling in removing
+         the site or it will not match it.  You may use @site/list to see
+         the raw site information that you can use to remove the site.
   
   See Also:  forbid_host, suspect_host, noguest_host, noautoreg_host, 
              validate_host, @site
@@ -9075,6 +9262,17 @@ SNOOPY                                                           God     Wiz
   shown first, followed by sub-evaluations), or bottom-up (sub-evaluations
   shown first, followed by the larger evaluation of which they are a part).
 
+& tree_character
+  Config parameter: tree_character <character>.  Default: `
+  
+  Defines the character used to distinguish Penn-like trees.  Since ` is
+  an annoying character, it's up to the administration to select one
+  if this doesn't work for them.
+  
+  The character currently selected is displayed with:
+                   @list options system
+  
+  
 & trust_site
   Config parameter: trust_site <addr> <mask>.
   
@@ -9341,7 +9539,7 @@ SNOOPY                                                           God     Wiz
   database files and the netmush program) to display information under
   certain circumstances.  The names of the files used can be changed with
   configuration directives (or on the netmush command line, in the case of
-  netmush.conf).
+  netmush.conf).  These are contained in the 'txt' sub-directory.
  
   badsite.txt:    Displayed when someone connects from a site that is not
                   allowed to connect.  The connection is then closed.
@@ -9353,14 +9551,16 @@ SNOOPY                                                           God     Wiz
                   character when logins are disabled.
   help.indx:      Index for the help.txt file, produced by the mkindx program.
   help.txt:       File containing information displayed by the help command.
-{ 'wizhelp files2' for more }
-& files2
   guest.txt:      Displayed to whoever connects to the guest character
                   specifiedby the guest_character config parameter.
   motd.txt:       Displayed after someone connects to an existing character.
   netmush.conf:   Configuration directives read at startup.
   news.indx:      Index for the news.txt file, produced by the mkindx program.
   news.txt:       File containing information displayed by the news command.
+  
+{ 'wizhelp files2' for more }
+
+& files2
   newuser.txt:    Displayed after someone creates a new character or connects
                   to their character for the first time.
   quit.txt:       Displayed after someone QUITs but before the net connection
@@ -9382,7 +9582,97 @@ SNOOPY                                                           God     Wiz
   error.indx:     Index file for the error message file.
   doorconf.txt:   File used to control what doorways are used with @door
   doorconf.indx:  Index file for the doorways.
- 
+  
+{ 'wizhelp files3 for the binaries and execution files }
+
+& files3
+  These files are contained in the 'game' subdirectory.
+  
+  mkindx:            Binary that indexes the txt files.  To index a text file 
+                     you would type (from within the txt directory):
+                           ../mkindx help.txt help.indx
+  netrhost:          The actual binary for the RhostMUSH engine.
+  netrhost.debugmon: The debug wrapper to return useful information on a
+                     failure to start or run RhostMUSH
+  mush.config:       The general setup file for global variables for RhostMUSH
+                     (you should not have to modify this file ever)
+  netrhost.conf:     The configure file to set up your RhostMUSH parameters
+  rhost_ingame.conf: The configure file that can be modified in-game.  Please
+                     see 'wizhelp @admin' for more.
+  rhost_mysql.conf:  The mysql configuration file (enable mysql at compiletime)
+  alias.conf:        The global alias file that RhostMUSH uses for shorthand
+                     for commands, functions, flags, etc.
+  netrhost.gamelog   The actual log file gamelog.  Controlled with @logrotate
+  netrhost.log       The Rhost system log file (system start/stop/fail info)
+  Startmush:         The script you would use to execute and startup RhostMUSH
+  prevflat:          Directory that houses all your immediately previous
+                     backup flatfiles
+  oldflat:           Directory that houses the tarball of all yoru backups
+  oldlogs:           Directory that houses all your old log files.
+  
+{ 'wizhelp files4' for the data files in the 'data' subdirectory }
+
+& files4
+  These are the files for the Rhost database.  Unless otherwise stated you
+  should leave these files alone unless you know what you're doing.
+  To back up these files always use @dump/flat, wmail/unload, @areg/unload,
+  and newsdb/unload 
+  
+  ------------main DBs
+  netrhost.db:          The binary database that was read when the mush started
+  netrhost.db.prev:     The binary database that is backed up when you Start
+                        your mush.  This was originally named 'netrhost.db'
+  netrhost.db.new       The binary database that is updated at checkpoints.
+                        When you Startmush this is the db that gets moved
+                        to 'netrhost.db'.  netrhost.db is moved to 
+                        'netrhost.db.prev'.  This will always be your latest.
+  netrhost.db.new.old:  The binary database that is archived as oldest
+  netrhost.db.new.prev: The binary database archived when 'new' is written.
+  netrhost.gdbm.db:     This is the main active database for RhostMUSH. This is
+                        always open as long as the mush is live.
+  netrhost.gdbm.dir:    This is the directory index listing for the RhostMUSH
+                        database.
+  netrhost.gdbm.pag:    This is the main index sorting and position file for
+                        RhostMUSH.  When the binary database gets corrupted
+                        due to acts of god (power outages, disk failures etc)
+                        this will likely always but always be the file that 
+                        is clobbered.  Sadly you can't just backup binary files
+                        as the binary file is always in a questionable state.
+                        So eventhough RhostMUSH has great ability for safty,
+                        always but always @dump/flat to make backups!
+  netrhost.db.flat:     The flatfile dump of the RhostMUSH database
+  netrhost.db.termflat: The flatfile dump when you kill -TERM your mush.
+                        the TERM signal happens when a server is shutdown.
+  
+{ 'wizhelp files5' for the other binary files in the 'data' directory }
+& files5
+  ------------mail DB's  [handled with the 'mail' and 'folder' commands]
+  RhostMUSH.folder.dir: This is the mail folder directory index file for the
+                        RhostMUSH mail system.
+  RhostMUSH.folder.pag: This is the main folder index sorting and position 
+                        file for the RhostMUSH mail system.
+  RhostMUSH.dump.fodler:The dump file for the RhostMUSH mail folder system.
+  RhostMUSH.mail.dir:   This is the main mail directory index file for the
+                        RhostMUSH mail system.
+  RhostMUSH.mail.pag:   This is the main mail index sorting and position
+                        file for the RhostMUSH mail system.
+  RhostMUSH.dump.mail:  The dump file for the RhostMUSH mail system.
+  
+  Note:  Most poeple prefer softcoded news like Myrddin's BBS.
+  ------------mail DB's  [handled with the news and newsdb commands]
+  RhostMUSH.news.dir:   The main news directory index file for the news
+                        bbs system
+  RhostMUSH.news.pag:   The main index sorting and position file for the
+                        RhostMUSH hardcoded bbs system
+  RhostMUSH.news.flat:  The flatfile for the RhostMUSH news system.
+  
+  ------------AutoReg DB's [handled with the @register/register/@areg cmds]
+  RhostMUSH.areg.dir:   The main autoreg index file for the autoregistration
+                        system for RhostMUSH
+  RhostMUSH.areg.pag:   The main autoreg sorting and position file for
+                        the hardcoded RhostMUSH autoregistration system.
+  RhostMUSH.areg.dump:  The flatfile for the RhostMUSH autoreg system.
+  
   See Also: badsite_file, connect_file, connect_reg_file, down_file,
             guest_file, help_file, help_index, motd_file, news_file,
             news_index, newuser_file, quit_file, register_create_file,
@@ -9697,6 +9987,10 @@ SNOOPY                                                           God     Wiz
   If you want to display ansi codes in .txt files and parse it, use @dynhelp.
   You may specify either '/' or '^' here for path information.
   
+  This function does NOT return the output into a buffer.  This is a
+  sideeffect function.  If you want the output in a stored buffer, please
+  use the textfile() function instead.
+    
   Example:
     > think dynhelp(help,mail)
     (returns the 'mail' topic in the help file)
@@ -9708,7 +10002,7 @@ SNOOPY                                                           God     Wiz
   See Also: @dynhelp, textfile()
 
 & TEXTFILE()
-  Function: textfile(<helpfile>,<topic>[,<parsekey>])
+  Function: textfile(<helpfile>,<topic>[,<parsekey>[,<type>[<sep>]]])
   
   This function works similarilly to dynhelp(), except that the resulting
   string is returned to the controlling command and not as a side-effect.
@@ -9719,6 +10013,13 @@ SNOOPY                                                           God     Wiz
   to parse the input and evaluate it.  A '2' will enable content searches.
   
   This function was coded to provide Penn and MUX2 compatibility.
+  
+  You may specify a <type> of '1' if you wish the function to return the
+  wildcarded list of matches without the standard help entry header of
+  'Here are the entries which match...'.  Useful for functions.
+  
+  You may specify a seperate seperator <sep> to be used for returned
+  arguments for matches.  It will default to two spaces.
   
   Example:
     > think textfile(help,mail)
@@ -9809,59 +10110,63 @@ SNOOPY                                                           God     Wiz
   For the alternate quota system, it will show an 'L' after each group
   as that system allows individual locking.
 & folder
-The folder sub-commands are part of the mail system.  Check 'help'
-(instead of 'wizhelp') for further explanation.  There is only
-one wizard sub-command:
-   folder/plist <player>
+  Topic: folder
   
-Example:  folder/plist Twink
+  The folder sub-commands are part of the mail system.  Check 'help'
+  (instead of 'wizhelp') for further explanation.  There is only
+  one wizard sub-command:
+     folder/plist <player>
   
-This sub-command will display the list of folders for <player>.
+  Example:  folder/plist Twink
+  
+  This sub-command will display the list of folders for <player>.
 
 & mail
-Mail is documented in the regular help.  Wizard differences and
-extra commands are documented in wizhelp.
+  Topic mail
+  
+  Mail is documented in the regular help.  Wizard differences and
+  extra commands are documented in wizhelp.
    
-The mail command takes various switches to perform the various mail
-sub-commands, as in:
+  The mail command takes various switches to perform the various mail
+  sub-commands, as in:
   
     mail/read 1
   
-To get help on a particular mail sub-command, use the command:
+  To get help on a particular mail sub-command, use the command:
   
     wizhelp mail <sub-command>
   
-where <sub-command> is one of the sub-commands listed below:
+  where <sub-command> is one of the sub-commands listed below:
    
-check      number    send       fsend       quota        cmdlist
-recall
+  check      number    send       fsend       quota        cmdlist
+  recall
    
-Four new config parameters have been added: mailmax_send, and mailbox_size,
-                                            mail_tolist, mail_default. 
+  Four new config parameters have been added: mailmax_send, and mailbox_size,
+                                              mail_tolist, mail_default. 
   
-See Also: wmail
+  See Also: wmail
 
 & mail recall
-Topic: mail recall special commands for wizards.
-Syntax: mail/recall <args>
+  Topic: mail recall special commands for wizards.
+  Syntax: mail/recall <args>
   
-For general help on mail/recall, please check 'help mail recall'.
+  For general help on mail/recall, please check 'help mail recall'.
    
-You may specify a '@<player>' as an argument to see mail that was sent
-by other players.  You may use the /all switch with this as well.
-If you wish to view the mail of the other player, you must use 
-mail/number and mail/check.
+  You may specify a '@<player>' as an argument to see mail that was sent
+  by other players.  You may use the /all switch with this as well.
+  If you wish to view the mail of the other player, you must use 
+  mail/number and mail/check.
    
-Syntax:
+  Syntax:
     > mail/recall @target
     (this shows all mail sent by target that is unread)
     > mail/recall/all @target
     (this shows all mail sent by target, including read)
   
-See Also: help mail recall
+  See Also: help mail recall
 
 & mail cmdlist
-Topic: mail command list for wizards
+  Topic: mail command list for wizards
   
   mail/check <player>=<num>        -- views target player's message.
   mail/number <player>[=<arg>]     -- lists target player's mail.  This uses 
@@ -9878,27 +10183,34 @@ Topic: mail command list for wizards
   See Also: wmail cmdlist
 
 & wmail
-WMail is an extension for regular 'mail' for the wizards as hard code
-limitations stop us from adding extra /switches to the standard mail
-without a total rewrite. (we're considering it anyway for the future)
+  Topic: wmail
   
-The following options exist for wmail:
+  WMail is an extension for regular 'mail' for the wizards as hard code
+  limitations stop us from adding extra /switches to the standard mail
+  without a total rewrite. (we're considering it anyway for the future)
   
-clean     load       unload     wipe      on       off        access
-override  restart    size       fix       lfix     alias      lock
-smax      time       dtime      cmdlist
+  The following options exist for wmail:
   
-For help on an individual power, type:
+  clean     load       unload     wipe      on       off        access
+  override  restart    size       fix       lfix     alias      lock
+  smax      time       dtime      cmdlist
+  
+  For help on an individual power, type:
   
   wizhelp wmail <sub-command>
  
-A special topic for DYNAMIC GLOBAL ALIASES is seen with wizhelp on 
+  A special topic for DYNAMIC GLOBAL ALIASES is seen with wizhelp on 
                           mail_def_object
   
-See Also: mail
+  Note: if mail shows that it is turned off, and attempting to turn it on
+        returns that the mail has an error, your mail db is likely
+        corrupted.  You can attempt a wmail/load to load in a previous
+        flatfile to recover the mail (if one is available).
+  
+  See Also: mail
 
 & wmail cmdlist
-Topic: wmail command listing for wizards
+  Topic: wmail command listing for wizards
   
   wmail/access <args>      - Adds (+add), Removes (+remove), or lists (+list)
                              access restrictions of players to the mail system
@@ -9923,7 +10235,7 @@ Topic: wmail command listing for wizards
   { wizhelp wmail cmdlist2 to continue }
 
 & wmail cmdlist2
-Topic: wmail command listing for wizards (CONTINUED)
+  Topic: wmail command listing for wizards (CONTINUED)
   
   wmail/smax <value>       - Globally establishes the total number of save 
                              messages players may have.  Default is 10.
@@ -9935,251 +10247,275 @@ Topic: wmail command listing for wizards (CONTINUED)
   See Also: mail
 
 & wmail smax
-smax:
-Format:  wmail/smax <value> (default 10)
-This establishes the total maximum number of SAVE messages a person
-can have on a global level.  This will set SAVE messages on all but
-ROYALTY and higher.
+  Command:  wmail/smax <value> (default 10)
   
-Example:  wmail/smax 5
+  This establishes the total maximum number of SAVE messages a person
+  can have on a global level.  This will set SAVE messages on all but
+  ROYALTY and higher.
   
-See Also: @mailsmax
+  Example:  wmail/smax 5
+  
+  See Also: @mailsmax
 
 & wmail time
-Format:  wmail/time <value> (default 14 days)
-This will set up the automatic purging to the specified time (in days)
-If you set a '0', then all mail is purged.  This is done whenever
-a player disconnects.  This is settable only by SUPER-ROYALTY. NEW
-or UNREAD mail is not purged.
+  Command:  wmail/time <value> (default 14 days)
   
-Example:  wmail/time 20
+  This will set up the automatic purging to the specified time (in days)
+  If you set a '0', then all mail is purged.  This is done whenever
+  a player disconnects.  This is settable only by SUPER-ROYALTY. NEW
+  or UNREAD mail is not purged.
+  
+  Example:  wmail/time 20
 
 & wmail dtime
-Format:  wmail/dtime <player>=<value>
-This is a one time deal and will force a purging of mail of the
-given user from the 'value' number of days.  If you specify '0' then
-all mail is purged.  This is settable only by SUPER-ROYALTY.  NEW
-and UNREAD mail is not purged.  This value is not stored.
+  Command:  wmail/dtime <player>=<value>
   
-Example:  wmail/dtime BloatedPlayer=2
+  This is a one time deal and will force a purging of mail of the
+  given user from the 'value' number of days.  If you specify '0' then
+  all mail is purged.  This is settable only by SUPER-ROYALTY.  NEW
+  and UNREAD mail is not purged.  This value is not stored.
+  
+  Example:  wmail/dtime BloatedPlayer=2
 
 & mail quota
-quota:
-Format:  mail/quota <player>
+  Command:  mail/quota <player>
   
-This shows various statistics on the given player.  These are:
+  This shows various statistics on the given player.  These are:
   
    The total mailbox size and what they're currently at.
    The total mail save maximum and what they're currently at.
    The total mail they can currently send out and what they're at.
   
-Example:  mail/quota BloatedPlayer
+  Example:  mail/quota BloatedPlayer
 
 & mail send
-send:
-Format:  mail/send <address list>=<message>
-See 'help mail send' for details on how to use this sub-command.
-Wizard-owned objects can send mail.  Replies to messages from
-those objects will be sent to the owner.  The from line of those
-messages will be from the object owner.  The address list can
-be seperated with commas instead of a space. You shouldn't
-mix commas and spaces as seperators.
+  Command:  mail/send <address list>=<message>
   
-NOTE:  All messages from objects you controlled will show up that
-       they came from YOU and not your object.
+  See 'help mail send' for details on how to use this sub-command.
+  Wizard-owned objects can send mail.  Replies to messages from
+    those objects will be sent to the owner.  The from line of those
+  messages will be from the object owner.  The address list can
+  be seperated with commas instead of a space. You shouldn't
+  mix commas and spaces as seperators.
+  
+  NOTE:  All messages from objects you controlled will show up that
+         they came from YOU and not your object.
 
 & mail fsend
-Format: mail/fsend <address list>=<message>
-See 'help mail send' for details on how to use this sub-command.
-This allows immortals to send mail and override any locks or
-max-messages a player has for their mail box.  The address list
-can be seperated with commas instead of a space. You shouldn't
-mix commas and spaces as seperators.
+  Command: mail/fsend <address list>=<message>
   
-*NOTE*  /fsend sent mail will *not* be autoforwarded.
+  See 'help mail send' for details on how to use this sub-command.
+  This allows immortals to send mail and override any locks or
+  max-messages a player has for their mail box.  The address list
+  can be seperated with commas instead of a space. You shouldn't
+  mix commas and spaces as seperators.
   
-Example:  mail/fsend player1 player2 +global &personal=subject//My message
+  *NOTE*  /fsend sent mail will *not* be autoforwarded.
+  
+  Example:  mail/fsend player1 player2 +global &personal=subject//My message
 
 & wmail size
-size:
-Format: wmail/size <user>=<[10 - 2000]>
-This resets a player's maximum messages they can recieve to a given
-ammount from 10 to 2000.  This will override the global default of
-99 messages (or whatever is defined).
+  Command: wmail/size <user>=<[10 - 2000]>
   
-Example:  wmail/size BloatedPlayer=10
+  This resets a player's maximum messages they can recieve to a given
+  ammount from 10 to 2000.  This will override the global default of
+  99 messages (or whatever is defined).
   
-See Also: mail quota
+  Example:  wmail/size BloatedPlayer=10
+  
+  See Also: mail quota
 
 & mail number
-number:
-Format: mail/number <target>=#
-For details on the 'number' sub-command, see 'help mail number'.
-Wizards can use the number command on anyone, regardless of the
-mail sharing lock.
+  Command: mail/number <target>=#
   
-Example:  mail/number Twink=1-5
+  For details on the 'number' sub-command, see 'help mail number'.
+  Wizards can use the number command on anyone, regardless of the
+  mail sharing lock.
   
-See Also: mail check
+  Example:  mail/number Twink=1-5
+  
+  See Also: mail check
 
 & mail check
-check:
-Format: mail/check <target>=<#>
-For details on the 'check' sub-command, see 'help mail check'.
-The #1 (god) can check anyone's mail, regardless of the mail
-sharing lock.  Other wizards must pass the mail sharing lock to
-check mail.
+  Command: mail/check <target>=<#>
   
-Example:  mail/check Twink=2
+  For details on the 'check' sub-command, see 'help mail check'.
+  The #1 (god) can check anyone's mail, regardless of the mail
+  sharing lock.  Other wizards must pass the mail sharing lock to
+  check mail.
   
-See Also: mail number
+  Example:  mail/check Twink=2
+  
+  See Also: mail number
 
 & wmail wipe
-wipe: 
-Format: wmail/wipe <target> 
-Will delete all mail for target. This sub-command is called automatically
-when players are @destroyed.
+  Command: wmail/wipe <target> 
   
-Example: mail/wipe Jerk
+  Will delete all mail for target. This sub-command is called automatically
+  when players are @destroyed.
+  
+  Example: mail/wipe Jerk
 
 & wmail load
-load: 
-Format: wmail/load
-Will reload the mail db from the mail text dump file.
-
+  Command: wmail/load
+  
+  Will reload the mail db from the mail text dump file.
+  This will also fix a corrupt db by attempting to load in a previoius
+  flatfile.
+  
+  If you do not have a valid flatfile, it will give you an error stating
+  such.
+  
+  HOWEVER.  There is a caveat.  If the mail system is currently off and
+  you are issuing wmail/load to fix this problem, and if there currently
+  is no valid flatfile to load, this will in essence reset your mail
+  database to a clean slate, thereby removing everything and effectively
+  starting over for your mail system.
+  
 & wmail unload
-unload:  
-Format: wmail/unload 
-Will dump the mail db to a text file.
+  Command: wmail/unload 
+  
+  Will dump the mail db to a text file.
 
 & wmail clean
-clean: 
-Format: wmail/clean
-Right now, basically does a unload followed by a load. In the future, detailed
-mail db consitency checking is planned for this function.
+  Command: wmail/clean
+  
+  Right now, basically does a unload followed by a load. In the future, 
+  detailed mail db consitency checking is planned for this function.
 
 & wmail on  
-on:  
-Format: wmail/on
-Will turn the mail system on if previously turned off.
+  Command: wmail/on
+  
+  Will turn the mail system on if previously turned off.  If the db is
+  corrupted you will need to wmail/load a flatfile in.
+  
+  If you do not have a mail flatfile to load, issuing wmail/load will give
+  an appropiate error.
+
+  HOWEVER.  If your mail is currently disabled, and wmail/on isn't bringing
+  the mail system online, wmail/load will fix the mail system.  It does this
+  by first attempting to load in a valid mail flatfile.  If you have never
+  made a flatfile backup of your mail, it essentially resets the mail db
+  to a clean slate and brings it back up.  You will, however, have lost
+  all your mail, but the mail system will be working again.
 
 & wmail off
-off: 
-Format: wmail/off
-Will turn the mail system off
+  Command: wmail/off
+  
+  Will turn the mail system off.  Corrupted mail systems are automatically off.
 
 & wmail access
-access:  
-Format: wmail/access +list
-                     +add=<player>
-                     +remove=<player>
+  Command: wmail/access +list
+           wmail/access +add=<player>
+           wmail/access +remove=<player>
   
-What this command does is allow wizards to lock selected users out of the
-mail system. +list will give a list of users locked out. The +add command
-will lock out a user.  The +remove command will restore mail access for 
-that user.  This is designed to accept 1 user at a time in the add/remove.
+  What this command does is allow wizards to lock selected users out of the
+  mail system. +list will give a list of users locked out. The +add command
+  will lock out a user.  The +remove command will restore mail access for 
+  that user.  This is designed to accept 1 user at a time in the add/remove.
   
-Examples:  wmail/access +list           (list restrictions)
-           wmail/access +add=twink1     (remove user twink1's mail privies)
-           wmail/access +remove=twink2  (re-allow twink2 to use mail)
+  Examples:  wmail/access +list           (list restrictions)
+             wmail/access +add=twink1     (remove user twink1's mail privies)
+             wmail/access +remove=twink2  (re-allow twink2 to use mail)
 
 & wmail override
-override:
-Format: wmail/override <player>
-Reset (remove) the password for <player>.  Useful if someone forgets
-his password.
+  Command: wmail/override <player>
   
-Example:  wmail/override ForgetFul
+  Reset (remove) the password for <player>.  Useful if someone forgets
+  his password.
+  
+  Example:  wmail/override ForgetFul
 
 & wmail restart
-restart:
-Format: wmail/restart
-This unloads and reloads (basically restarts) the mail daemon for the 
-RhostMUSH.
+  Command: wmail/restart
+  
+  This unloads and reloads (basically restarts) the mail daemon for the 
+  RhostMUSH.
 
 & wmail fix
-fix:
-Format: wmail/fix
-This does an on-line fixmail to the mail daemon for the RhostMUSH. It in 
-essence reindexes everything and does all the checking.  Keep in mind, 
-this is a HUGE drain on resources so if you do this on line, expect some 
-major lagging.
-    
-This command can only be done by Super-Royalty
+  Command: wmail/fix
   
-See Also: wmail lfix
+  This does an on-line fixmail to the mail daemon for the RhostMUSH. It in 
+  essence reindexes everything and does all the checking.  Keep in mind, 
+  this is a HUGE drain on resources so if you do this on line, expect some 
+  major lagging.
+    
+  This command can only be done by Super-Royalty
+  
+  See Also: wmail lfix
 
 & wmail lfix
-lfix:
-Format: wmail/lfix
-This puts the newly defined fixmail into the RhostMUSH memory.  
+  Command: wmail/lfix
   
-*NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE*
-This will totally delete the previous mail information for the new one.
-Ie: if you didn't do wmail/fix BEFORE this, all mail information is *GONE*
-This command can only be done by Super-Royalty
+  This puts the newly defined fixmail into the RhostMUSH memory.  
+  
+  *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE* *NOTE*
+  This will totally delete the previous mail information for the new one.
+  Ie: if you didn't do wmail/fix BEFORE this, all mail information is *GONE*
+  This command can only be done by Super-Royalty
    
-See Also: wmail fix
+  See Also: wmail fix
 
 & wmail alias
-alias:
-Format: wmail/alias[[/lock][/remove]] [<alias-name>=<list of players>]
-This establishes global mail aliases for the given group of users.  A user can
-then access this by using a '+alias-name' in their address list when mailing.
-You may also lock aliases to given things.  This works just like standard MUSH
-locks and is accessable by adding a /lock switch to the /alias switch.
+  Command: wmail/alias[[/lock][/remove]] [<alias-name>=<list of players>]
   
-Typing the alias without the user list removes the alias.  Using the alias 
-switch without arguments will list all global aliases currently available and
-any and all locks on those aliases.
+  This establishes global mail aliases for the given group of users.  A user 
+  can then access this by using a '+alias-name' in their address list when 
+  mailing.  You may also lock aliases to given things.  This works just like 
+  standard MUSH locks and is accessable by adding a /lock switch to the /alias 
+  switch.
   
-To remove the alias, use the /remove switch in junction with the /alias 
-switch.  To remove just the lock, specify the /remove with the /lock and the
-/alias.
+  Typing the alias without the user list removes the alias.  Using the alias 
+  switch without arguments will list all global aliases currently available and
+  any and all locks on those aliases.
   
-Examples:  wmail/alias                      (lists the aliases and locks)
-           wmail/alias wiz=wiz1 wiz2 wiz3   (adds alias wiz with players)
-           wmail/alias/lock wiz=!*user      (establishes a lock for alias wiz)
-           wmail/alias/remove wiz           (removes alias wiz)
+  To remove the alias, use the /remove switch in junction with the /alias 
+  switch.  To remove just the lock, specify the /remove with the /lock and the
+  /alias.
+  
+  Examples:  wmail/alias                     (lists the aliases and locks)
+             wmail/alias wiz=wiz1 wiz2 wiz3  (adds alias wiz with players)
+             wmail/alias/lock wiz=!*user     (establishes a lock for alias wiz)
+             wmail/alias/remove wiz          (removes alias wiz)
  
-To see how to create dynamic global aliases, check 'mail_def_object'.
+  To see how to create dynamic global aliases, check 'mail_def_object'.
     
-See Also: wmail lock, wmail remove, mail_def_object
+  See Also: wmail lock, wmail remove, mail_def_object
 
 & wmail remove
-remove:
-Format: wmail/alias/remove
-Format: wmail/alias/lock/remove
+  Command: wmail/alias/remove
+           wmail/alias/lock/remove
   
-The first format is for removing aliases from the global alias list.  This
-also purges the matching lock for the alias automatically.  The second
-form just removes the lock.
+  The first format is for removing aliases from the global alias list.  This
+  also purges the matching lock for the alias automatically.  The second
+  form just removes the lock.
   
-Example:  wmail/alias/remove MyGLobalAlias
+  Example:  wmail/alias/remove MyGLobalAlias
   
-See Also: wmail alias, wmail lock
+  See Also: wmail alias, wmail lock
 
 & wmail lock
-lock:
-Format: wmail/alias/lock <alias-name>=<mush lock>
-This locks the given alias to the desired lock.  You would set the lock just
-as you would a normal @lock.  Specifying no lock clears the lock and allows
-it accessable by anyone.
-   
-Example:  wmail/alias/lock MyGlobalAlias=!*twink
+  Command: wmail/alias/lock <alias-name>=<mush lock>
   
-See Also: wmail alias, wmail remove
+  This locks the given alias to the desired lock.  You would set the lock just
+  as you would a normal @lock.  Specifying no lock clears the lock and allows
+  it accessable by anyone.
+   
+  Example:  wmail/alias/lock MyGlobalAlias=!*twink
+  
+  See Also: wmail alias, wmail remove
 
 & mailbox_size
-mailbox_size:
-This can be set to a number between 10 and 2000 inclusive.  This
-number indicates the maximum number of messages anyone can have.
-Default: 99
+  Config Parameter: mailbox_size <value>   Default: 99
+  
+  This can be set to a number between 10 and 2000 inclusive.  This
+  number indicates the maximum number of messages anyone can have.
 
 & mailmax_send
-This number indicates the maximum number of players to whom anyone can
-send mail at once.
-Default: 100
+  Config Parameter: mailbox_send <value>   Default: 100
+  
+  This number indicates the maximum number of players to whom anyone can
+  send mail at once.
 
 & MAILSIZE()
   Function: mailsize(<user>,<arg>)
@@ -10355,13 +10691,13 @@ Default: 100
   Example:
     > wmail/alias
     Alias: staff
-    Lock: (Ashen-Shugar(#123Pci<>)|Start Room(#0RFI)|Wizard(#1P))&!Tester(#100P)
+    Lock: (Ashen-Shugar(#123Pci<>)|Start Room(#0RFI)|Wizard(#1P))&!Test(#100P)
     Contents: Ashen-Shugar Corum
     Mail: Done.
     > think mailalias(staff)
     #123 #456
     > think mailalias(staff,1)
-    (*Ashen-Shugar|#0|*Horus)&!*Tester
+    (*Ashen-Shugar|#0|*Horus)&!*Test
   
   See Also: wizhelp wmail alias, help mail alias
 
@@ -10376,8 +10712,10 @@ Default: 100
       characters and set them up properly.  This is done by the following.
       A.  @pcreate Guest#=guest (where # is from 1 to NUM_GUESTS)
       B.  @set Guest#=!wanderer guest (where # is from 1 to NUM_GUESTS)
-      C. (optional) @desc Guest#=<whatever>
-      D.  If someone tried to connect to a guest when you did not create
+      C.  @lock *Guest#=*Guest# (where # is from 1 to NUM_GUESTS)
+      D.  @adisconnect *Guest#=home (where # is from 1 to NUM_GUESTS)
+      E. (optional) @desc Guest#=<whatever>
+      F.  If someone tried to connect to a guest when you did not create
           any, before you can use the guests that you have created, you
           have to @reboot the server.  This resets the guest counter.
           You *only* have to do this if someone tried to connect to
@@ -10399,9 +10737,9 @@ Default: 100
 & news setup
   The news.txt file (and help.txt file) uses a unique index system for 
   references.  You design the file with a '&' to start an index key and the
-  text after it is the content of that topic.  The main topic is *ALWAYS* 'help'
-  So when you type 'help' or 'news', the text that shows up is after the index 
-  'help' (i.e.  & help)
+  text after it is the content of that topic.  The main topic is *ALWAYS* 
+  'help' So when you type 'help' or 'news', the text that shows up is after 
+  the index 'help' (i.e.  & help)
   
 { For help on how to set one up, please see:  'wizhelp news setup2' }
   
@@ -10425,20 +10763,25 @@ Default: 100
     & getting started
     Do stuff in here to start out on our mush!
   
-Notice that it is not case sensitive, and all topics start with a '&'.  Also
-notice that they do not have to be in any order, but they NEED to be in order
-of how they would be seen.  You can't have 'HELP MAIL SEND' before 'HELP MAIL'
-as it will find the topic for 'help mail send' first.  It uses partial matches.
-You can have as much text as you want in it, but please, for the readability,
-try to keep all information on a 20x78 screen.
+  Notice that it is not case sensitive, and all topics start with a '&'.  Also
+  notice that they do not have to be in any order, but they NEED to be in order
+  of how they would be seen.  You can't have 'HELP MAIL SEND' before 
+  'HELP MAIL' as it will find the topic for 'help mail send' first.  It uses 
+  partial matches.  You can have as much text as you want in it, but please, 
+  for the readability, try to keep all information on a 20x78 screen.
   
 { wizhelp news setup3 to continue }
 
 & news setup3
   Once the .txt file is finished, you need to create the index for the text
-  file.  To do this, you would type the following:
+  file.  To do this, from within the txt directory you would type 
+  the following:
   
     ./mkindx news.txt news.indx
+  
+  (if the above returned an error message of not being found, you type:)
+  
+    ../mkindx news.txt news.indx
   
   This creates the index file for the text file.  For help, you would use
   'help.txt help.indx' as it's arguments.  For the +help, you would use

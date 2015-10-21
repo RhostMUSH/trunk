@@ -6,7 +6,6 @@ char *strtok_r(char *, const char *, char **);
 #endif
 
 #include <dirent.h>
-#include <sys/dir.h>
 #include "copyright.h"
 #include "autoconf.h"
 
@@ -28,6 +27,64 @@ extern int remote_read_obj(FILE *, dbref, int, int, int*);
 extern int remote_read_sanitize(FILE *, dbref, int, int);
 extern dbref FDECL(match_thing, (dbref, char *));
 
+static const char *
+time_format_1(time_t dt)
+{
+    register struct tm *delta;
+    static char buf[64];
+
+
+    if (dt < 0)
+        dt = 0;
+
+    delta = gmtime(&dt);
+    if ((int)dt >= 31556926 ) {
+        sprintf(buf, "%dy", (int)dt / 31556926);
+    } else if ((int)dt >= 2629743 ) {
+        sprintf(buf, "%dM", (int)dt / 2629743);
+    } else if ((int)dt >= 604800) {
+        sprintf(buf, "%dw", (int)dt / 604800);
+    } else if (delta->tm_yday > 0) {
+        sprintf(buf, "%dd", delta->tm_yday);
+    } else if (delta->tm_hour > 0) {
+        sprintf(buf, "%dh", delta->tm_hour);
+    } else if (delta->tm_min > 0) {
+        sprintf(buf, "%dm", delta->tm_min);
+    } else {
+        sprintf(buf, "%ds", delta->tm_sec);
+    }
+    return(buf);
+}
+
+static const char *
+time_format_2(time_t dt)
+{
+    register struct tm *delta;
+    static char buf[64];
+
+
+    if (dt < 0)
+        dt = 0;
+
+    delta = gmtime(&dt);
+    if ((int)dt >= 31556926 ) {
+        sprintf(buf, "%dy", (int)dt / 31556926);
+    } else if ((int)dt >= 2629743 ) {
+        sprintf(buf, "%dM", (int)dt / 2629743);
+    } else if ((int)dt >= 604800) {
+        sprintf(buf, "%dw", (int)dt / 604800);
+    } else if (delta->tm_yday > 0) {
+        sprintf(buf, "%dd", delta->tm_yday);
+    } else if (delta->tm_hour > 0) {
+        sprintf(buf, "%dh", delta->tm_hour);
+    } else if (delta->tm_min > 0) {
+        sprintf(buf, "%dm", delta->tm_min);
+    } else {
+        sprintf(buf, "%ds", delta->tm_sec);
+    }
+    return(buf);
+}
+
 void do_teleport(dbref player, dbref cause, int key, char *slist, 
 		 char *dlist[], int nargs)
 {
@@ -36,6 +93,10 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
   int	con, dcount, quiet, side_effect=0, tel_bool_chk;
 
 	/* get victim */
+      if ( mudstate.remotep == player) {
+         notify(player, "You can't teleport.");
+         return;
+      }
 
       tel_bool_chk = 0;
       if (key & TEL_QUIET) {
@@ -387,7 +448,7 @@ char *retbuff;
    if ( !loc || !*loc ) {
       target = NOTHING;
    } else {
-      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, loc, NULL, 0);
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, loc, (char **)NULL, 0, (char **)NULL, 0);
       target = match_thing(player, retbuff);
       free_lbuf(retbuff);
    }
@@ -819,35 +880,84 @@ void do_conncheck(dbref player, dbref cause, int key)
   }
 }
 
-void do_selfboot(dbref player, dbref cause, int key)
+void do_selfboot(dbref player, dbref cause, int key, char *name)
 {
 time_t	dtime, now;
-int	port, count;
+int	port, count, count2;
+char    *tbuf;
 DESC	*d;
 
   dtime = 0;
   count = 0;
   port = -1;
-  time(&now);
-  DESC_ITER_CONN(d) {
-    if (d->player == player) {
-      if (!count || (now - d->last_time) < dtime) {
-	if (count)
-	  boot_by_port(port,!God(player),player,NULL);
-	dtime = now - d->last_time;
-	port = d->descriptor;
-      }
-      else
-	boot_by_port(d->descriptor,!God(player),player,NULL);
-      count++;
-    }
-  }
-  if (count < 2) {
-    notify(player,"You only have 1 connection.");
-  }
-  else {
-    notify(player,unsafe_tprintf("%d connection(s) closed.", count - 1));
-  }
+  switch (key) {
+     case SELFBOOT_LIST:   /* List ports you have open */
+        tbuf = alloc_lbuf("do_selfboot");
+        sprintf(tbuf, "%-10s %-10s %-10s %s\r\n%s", (char *)"Port", (char *)"Idle",
+                (char *)"Conn", (char *)"Site",
+                (char *)"------------------------------------------------------------------------------");
+        notify(player, tbuf);
+        DESC_ITER_CONN(d) {
+          if (d->player == player) {
+             sprintf(tbuf, "%-10d %-10s %-10s %s", d->descriptor, time_format_1(mudstate.now - d->last_time),
+                     time_format_2(mudstate.now - d->connected_at), inet_ntoa(d->address.sin_addr));
+             notify(player, tbuf);
+          }
+        }
+        notify(player, (char *)"------------------------------------------------------------------------------");
+        free_lbuf(tbuf);
+        break;
+     case SELFBOOT_PORT:   /* boot specified port */
+        if ( !name || !*name ) {
+           notify(player, "You must specify a port with the /port switch.");
+        } else {
+           port = atoi(name);
+           count = count2 = 0;
+           DESC_ITER_CONN(d) {
+             if ( d->player == player )
+                count2++;
+           }
+          
+           DESC_ITER_CONN(d) {
+             if ( (d->player == player) && (d->descriptor == port) ) {
+                if ( count2 > 1 )
+	           boot_by_port(d->descriptor,!God(player),player,NULL);
+                count++;
+             }
+           }
+           if ( count > 0 ) {
+              if ( count2 <= 1 ) {
+                 notify(player, "You can't boot your only connection.");
+              } else {
+                 notify(player,unsafe_tprintf("%d connection(s) closed.", count));
+              }
+           } else {
+              notify(player, "You do not have a connection from that port.");
+           }
+        }
+        break;
+     default:              /* default behavior */
+        time(&now);
+        DESC_ITER_CONN(d) {
+          if (d->player == player) {
+            if (!count || (now - d->last_time) < dtime) {
+	      if (count)
+	        boot_by_port(port,!God(player),player,NULL);
+	      dtime = now - d->last_time;
+	      port = d->descriptor;
+            } else {
+	      boot_by_port(d->descriptor,!God(player),player,NULL);
+            }
+            count++;
+          }
+        }
+        if (count < 2) {
+          notify(player,"You only have 1 connection.");
+        } else {
+          notify(player,unsafe_tprintf("%d connection(s) closed.", count - 1));
+        }
+        break;
+   }
 }
       
 
@@ -1548,6 +1658,7 @@ void q_lock(dbref who, int key, int qswitch[])
 void quota_lock(dbref player, dbref who, int all, int key, int qswitch[], int qset)
 {
   dbref i;
+  char *tbuf;
 
   if (!all) {
     if (!Controls(player,who)) {
@@ -1574,10 +1685,25 @@ void quota_lock(dbref player, dbref who, int all, int key, int qswitch[], int qs
 	q_lock(i, key, qswitch);
     }
   }
-  if (key == QUOTA_LOCK)
-    notify(player,"Locked.");
-  else
-    notify(player,"Unlocked.");
+  if (key == QUOTA_LOCK) {
+    if ( TogNoisy(player) ) {
+       tbuf = alloc_lbuf("quota_lock");
+       sprintf(tbuf, "Locked - %s/quotalock", Name(player));
+       notify(player, tbuf);
+       free_lbuf(tbuf);
+    } else {
+       notify(player,"Locked.");
+    }
+  } else {
+    if ( TogNoisy(player) ) {
+       tbuf = alloc_lbuf("quota_lock");
+       sprintf(tbuf, "Unlocked - %s/quotalock", Name(player));
+       notify(player, tbuf);
+       free_lbuf(tbuf);
+    } else {
+       notify(player,"Unlocked.");
+    }
+  }
 }
 
 void quota_take(dbref player, dbref who, int key, char *cargs[], int nargs)
@@ -2138,13 +2264,54 @@ void do_convert (dbref player, dbref cause, int key, char *buff1, char *buff2)
   }
   notify(player,"Done.");
 }
+void do_site_buff(dbref player, char *instr, char *label)
+{
+  char *s_tbuff, *s_tprbuff, *s_mybuff, *s_mybufptr, *s_strtok, *s_strtok_r;
+  int i_cntr;
+
+  s_tbuff = alloc_lbuf("do_site_list");
+  s_tprbuff = alloc_lbuf("do_site_list");
+  s_mybufptr = s_mybuff = alloc_lbuf("do_site_buff");
+
+  sprintf(s_tprbuff, "%s ----------", label);
+  safe_str(s_tprbuff, s_mybuff, &s_mybufptr);
+
+  strcpy(s_tbuff, instr);
+  s_strtok =  (char *)strtok_r(s_tbuff, " \t", &s_strtok_r);
+  i_cntr = 0;
+  while ( s_strtok ) {
+     if ( !(i_cntr % 3) ) {
+        safe_str((char *)"\r\n   ", s_mybuff, &s_mybufptr);
+     } 
+     sprintf(s_tprbuff, "%-24s ", s_strtok);
+     safe_str(s_tprbuff, s_mybuff,  &s_mybufptr);
+     s_strtok = strtok_r(NULL, " \t", &s_strtok_r);
+     i_cntr++;
+  }
+  notify(player, s_mybuff);
+  free_lbuf(s_tbuff);
+  free_lbuf(s_tprbuff);
+  free_lbuf(s_mybuff);
+}
 
 void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
 {
   SITE *pt1, *pt2;
   struct in_addr addr_num, mask_num;
-  char count;
+  char count; 
   unsigned long maskval;
+
+  if ( key & SITE_LIST ) {
+     do_site_buff(player, mudconf.forbid_host, (char *)"forbid_host");
+     do_site_buff(player, mudconf.suspect_host, (char *)"suspect_host");
+     do_site_buff(player, mudconf.register_host, (char *)"register_host");
+     do_site_buff(player, mudconf.noguest_host, (char *)"noguest_host");
+     do_site_buff(player, mudconf.autoreg_host, (char *)"autoreg_host");
+     do_site_buff(player, mudconf.validate_host, (char *)"validate_host");
+     do_site_buff(player, mudconf.goodmail_host, (char *)"goodmail_host");
+     do_site_buff(player, mudconf.nobroadcast_host, (char *)"nobroadcast_host");
+     return;
+  }
 
   if (!*buff1 || !*buff2 || !key) {
     notify(player,"Bad format in site command");
@@ -2153,7 +2320,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
   addr_num.s_addr = inet_addr(buff1);
   if ( strchr(buff2, '/') != NULL ) {
      maskval = atol(buff2+1);
-     if ((maskval < 0) || (maskval > 32)) {
+     if (((long)maskval < 0) || (maskval > 32)) {
         notify(player, "Bad mask in site command");
         return;
      }
@@ -2256,13 +2423,78 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     notify(player,"Entry not found in site list");
 }
 
-static int file_select(const struct direct *entry)
+static int file_select(const struct dirent *entry)
 {
    if ( strstr(entry->d_name, ".img") != NULL ) 
       return(1);
    else
       return(0);
 }
+
+#ifdef NEED_SCANDIR
+/* Some unix systems do not handle scandir -- so we build one for them */
+int
+scandir(const char *directory_name,
+            struct dirent ***array_pointer,
+            int (*select_function)(const struct dirent *),
+            int (*compare_function)(const struct dirent**, const struct dirent**)
+)
+{
+   DIR *directory;
+   struct dirent **array;
+   struct dirent *entry;
+   struct dirent *copy;
+   int allocated = 20;
+   int counter = 0;
+
+   if (directory = opendir (directory_name), directory == NULL)
+      return -1;
+
+   if (array = (struct dirent **)malloc (allocated * sizeof(struct dirent *)), array == NULL)
+      return -1;
+
+   while (entry = readdir(directory), entry)
+      if (select_function == NULL || (*select_function)(entry)) {
+         int namelength = strlen(entry->d_name) + 1;
+         int extra = 0;
+
+         if (sizeof(entry->d_name) <= namelength) {
+            extra += namelength - sizeof(entry->d_name);
+         }
+
+         if (copy = (struct dirent *)malloc(sizeof(struct dirent) + extra), copy == NULL) {
+            closedir(directory);
+            free(array);
+            return -1;
+        }
+        copy->d_ino = entry->d_ino;
+        copy->d_reclen = entry->d_reclen;
+        strcpy(copy->d_name, entry->d_name);
+
+        if (counter + 1 == allocated) {
+           allocated <<= 1;
+           array = (struct dirent **)
+           realloc ((char *)array, allocated * sizeof(struct dirent *));
+           if (array == NULL) {
+              closedir(directory);
+              free(array);
+              free(copy);
+              return -1;
+           }
+        }
+        array[counter++] = copy;
+     }
+     array[counter] = NULL;
+     *array_pointer = array;
+     closedir(directory);
+
+     if (counter > 1 && compare_function)
+        qsort((char *)array, counter, sizeof(struct dirent *),
+	      (int(*)(const void *, const void *))(compare_function));
+
+     return counter;
+}
+#endif
 
 void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
 {

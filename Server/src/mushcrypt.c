@@ -68,15 +68,43 @@ int mush_crypt_validate(dbref player,
 			int flag) {
 #ifdef CRYPT_ENCRYPT_SHS
   SHS_INFO shsInfo;
-  static char crypt_buff[70];
+  static char crypt_buff[70]; 
+#endif
+#ifdef CRYPT_GLIB2
+  char crypt_salt[70], *s, *d;
 #endif
 
   DPUSH; /* #95 */
 
 #ifdef CRYPT_ENCRYPT_DES
+#ifdef CRYPT_GLIB2
+  memset(crypt_salt, '\0', 70);
+  if ( (*pEncrypted == '$') && (*(pEncrypted+1) == '6') && (*(pEncrypted+2) == '$') ) {
+     s = (char *)pEncrypted;
+     d = crypt_salt;
+     s+=3;
+     while ( *s && *s != '$' ) {
+        if ( *s == '$' ) {
+           s++;
+           continue;
+        }
+        *d = *s;
+        s++;
+        d++;
+     }
+     sprintf(crypt_buff, "$6$%s$", crypt_salt);
+     if (strcmp(pEncrypted, crypt(pUnencrypted, crypt_buff)) == 0) {
+       RETURN(1); /* #95 */
+     }
+  }
   if (strcmp(pEncrypted, crypt(pUnencrypted, "XX")) == 0) {
     RETURN(1); /* #95 */
   }
+#else
+  if (strcmp(pEncrypted, crypt(pUnencrypted, "XX")) == 0) {
+    RETURN(1); /* #95 */
+  }
+#endif
 #endif
 
 #ifdef CRYPT_ENCRYPT_SHS
@@ -112,7 +140,31 @@ int mush_crypt_validate(dbref player,
 char * mush_crypt(const char *key) {
 #ifdef CRYPT_ENCRYPT_DES
   DPUSH; /* #96 */
+#ifdef CRYPT_GLIB2
+  char *s, s_buff[10], s_salt[20];
+  int i;
+  s = s_buff;
+  for ( i=0;i<9;i++) {
+     *s = (char)((rand()%88)+38);
+     s++;
+  }
+  s_buff[9]='\0';
+  memset(s_salt, '\0', 20);
+  s = crypt("abcde", "$6$12345$");
+  if ( s && strlen(s) > 20 ) {
+     sprintf(s_salt, "$6$%s$", s_buff);
+     RETURN(crypt(key, s_salt)); /* #96 */
+  } else {
+#ifndef STANDALONE
+     STARTLOG(LOG_ALWAYS, "WIZ", "CRYPT");
+     log_text((char *)"Warning: password encryption does not handle SHA512 hashes.  Incompatible glibc.  Falling back to DES.");
+     ENDLOG
+#endif
+     RETURN(crypt(key, "XX")); /* #96 */
+  }
+#else
   RETURN(crypt(key, "XX")); /* #96 */
+#endif
 #elif CRYPT_ENCRYPT_SHS
   SHS_INFO shsInfo;
   static char crypt_buff[70];

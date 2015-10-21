@@ -27,7 +27,7 @@ Please see the other readme files on setting other things up like
 guests, master rooms, and so forth.
 
 Comparisons were done based on the following:
-RhostMUSH 3.9.5p0
+RhostMUSH 3.9.5p2
 MUX 2.12.0.2
 PennMUSH 1.8.6p0
 
@@ -489,7 +489,7 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           AFTER                   AFTER                        AFTER
           ALIAS                   get(#db/alias)/LISTPROTECT   get(#db/alias)
           ALIGN                   PRINTF                       N/A
-          ALLOF                   @function (softfunctions)    N/A
+          ALLOF                   OFPARSE                      N/A
           ALPHAMAX                ALPHAMAX                     ALPHAMAX
           ALPHAMIN                ALPHAMIN                     ALPHAMIN
           AND                     AND                          AND/ANDBOOL
@@ -620,7 +620,7 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           FILTERBOOL              FILTER                       FILTERBOOL
           FINDABLE                FINDABLE                     FINDABLE
           FIRST                   FIRST                        FIRST
-          FIRSTOF                 @function (softfunctions)    N/A
+          FIRSTOF                 OFPARSE                      N/A
           FLAGS                   FLAGS                        FLAGS
           FLIP                    REVERSE                      REVERSE
           FLOOR                   FLOOR                        FLOOR
@@ -628,7 +628,7 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           FMOD                    FMOD                         FMOD
           FN                      BYPASS                       N/A
           FOLD                    FOLD                         FOLD
-          FOLDERSTATS             folderlist()                 N/A
+          FOLDERSTATS             FOLDERLIST                   N/A
           FOLLOWERS               N/A (softcode available)     N/A
           FOLLOWING               N/A (softcode available)     N/A
           FOREACH                 FOREACH                      FOREACH
@@ -943,11 +943,11 @@ Functions Pennmush----------------RhostMUSH--------------------MUX
           STDDEV                  AVG                          AVG
           STEP                    STEP                         STEP
           STEXT                   N/A                          N/A
-          STRALLOF                @function (softfunctions)    N/A
+          STRALLOF                OFPARSE                      N/A
           STRCAT                  STRCAT                       STRCAT
           N/A                     STRIP                        STRIP
           STRDELETE               CREPLACE/DELETE              DELETE
-          STRFIRSTOF              @function (softfunctions)    N/A
+          STRFIRSTOF              OFPARSE                      N/A
           STRINGSECS              @function (softfunctions)    N/A
           STRINSERT               CREPLACE                     N/A
           STRIPACCENTS            STRIPACCENTS                 STRIPACCENTS

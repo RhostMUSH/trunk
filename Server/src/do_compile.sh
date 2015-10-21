@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-COMP=gdbm
-case ${COMP} in
+. ../src/do_compile.var
+case ${COMP:=gdbm} in
    gdbm) gdbmdir=./gdbm-1.8.3
          ;;
    qdbm) gdbmdir=./qdbm
@@ -16,6 +16,9 @@ then
    if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
    then
       make mac
+   elif [ $(uname -s|grep -ic bsd) -eq 1 ]
+   then
+      gmake
    else
       make
    fi
@@ -24,6 +27,9 @@ else
    if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
    then
       make mac
+   elif [ $(uname -s|grep -ic bsd) -eq 1 ]
+   then
+      gmake
    else
       make
    fi

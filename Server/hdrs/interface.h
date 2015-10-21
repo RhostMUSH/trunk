@@ -187,7 +187,7 @@ extern int	FDECL(fetch_idle, (dbref));
 extern int	FDECL(fetch_connect, (dbref));
 extern void	NDECL(check_idle);
 extern void	NDECL(process_commands);
-extern int	FDECL(site_check, (struct in_addr, SITE *, int));
+extern int	FDECL(site_check, (struct in_addr, SITE *, int, int, int));
 extern int	FDECL(blacklist_check, (struct in_addr host));
 extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref));
 extern dbref	FDECL(find_connected_name, (dbref, char *));

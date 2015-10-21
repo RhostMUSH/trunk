@@ -238,7 +238,7 @@ fcache_rawdump(int fd, int num, struct in_addr host)
     int cnt, remaining;
     char *start;
     FBLOCK *fp;
-    char *atext, *retbuff, *sarray[4], *lbuf1, *lbuf2, *lbuf3;
+    char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2, *lbuf3;
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
@@ -266,13 +266,15 @@ fcache_rawdump(int fd, int num, struct in_addr host)
              sarray[0] = alloc_lbuf("fcache_dump1");
              sarray[1] = alloc_lbuf("fcache_dump2");
              sarray[2] = alloc_lbuf("fcache_dump2");
-             sarray[3] = NULL;
+             sarray[3] = alloc_lbuf("fcache_dump2");
+             sarray[4] = NULL;
              strcpy(sarray[0], inet_ntoa(host));
              strcpy(sarray[1], sarray[0]);
              sprintf(sarray[2], "%d", fd);
+             sprintf(sarray[3], "%d", NOTHING);
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 3);
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -304,6 +306,7 @@ fcache_rawdump(int fd, int num, struct in_addr host)
              free_lbuf(sarray[0]);
              free_lbuf(sarray[1]);
              free_lbuf(sarray[2]);
+             free_lbuf(sarray[3]);
           }
           free_lbuf(atext);
        }
@@ -344,7 +347,7 @@ void
 fcache_dump(DESC * d, int num)
 {
     FBLOCK *fp;
-    char *atext, *retbuff, *sarray[4], *lbuf1, *lbuf2, *lbuf3; 
+    char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2, *lbuf3; 
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf2ptr, lbuf3ptr;
 #endif
@@ -371,13 +374,18 @@ fcache_dump(DESC * d, int num)
              sarray[0] = alloc_lbuf("fcache_dump1");
              sarray[1] = alloc_lbuf("fcache_dump2");
              sarray[2] = alloc_lbuf("fcache_dump2");
-             sarray[3] = NULL;
+             sarray[3] = alloc_lbuf("fcache_dump2");
+             sarray[4] = NULL;
              strcpy(sarray[0], inet_ntoa(d->address.sin_addr));
              strcpy(sarray[1], d->addr);
              sprintf(sarray[2], "%d", d->descriptor);
+             if ( d->player == 0 )
+                sprintf(sarray[3], "%d", NOTHING);
+             else
+                sprintf(sarray[3], "%d", d->player);
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 3);
+                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -403,6 +411,7 @@ fcache_dump(DESC * d, int num)
              free_lbuf(sarray[0]);
              free_lbuf(sarray[1]);
              free_lbuf(sarray[2]);
+             free_lbuf(sarray[3]);
           }
           free_lbuf(atext);
        }

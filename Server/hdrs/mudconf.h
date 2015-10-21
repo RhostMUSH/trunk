@@ -404,6 +404,10 @@ struct confdata {
 	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
 	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
 	int	float_precision;	/* Float percision for math functions() -- default 6 */
+	int	admin_object;	/* The admin object */
+	int	enhanced_convtime;	/* Enhanced convtime format */
+	int	mysql_delay;	/* MySql Retry Delay Value (in seconds) */
+	char	tree_character[2];	/* The Tree Character */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
@@ -429,6 +433,15 @@ struct confdata {
         int     sqlite_query_limit;
         char    sqlite_db_path[128];
 #endif /* SQLITE */
+#ifdef MYSQL_VERSION
+        char	mysql_host[128];
+        char	mysql_user[128];
+        char	mysql_pass[128];
+        char	mysql_base[128];
+        char	mysql_socket[128];
+	int	mysql_port;
+#endif
+	int	name_with_desc;	/* Toggle to enable names with descs when looking (if not-examinable) */
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */
@@ -474,6 +487,7 @@ struct site_data {
 	struct in_addr mask;		/* Mask to apply before comparing */
 	int	flag;			/* Value to return on match */
 	int	key;			/* Auto sited or not? */
+	int	maxcon;			/* Maximum connections allowed from site */
 };
 
 
@@ -744,6 +758,8 @@ struct statedata {
 	char	tor_localcache[1000]; /* Cache for the tor local host */
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */
+	time_t	mysql_last;	/* Last mysql hang time */
+	int	argtwo_fix;	/* Arg 2 fix test for '=' */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

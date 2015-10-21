@@ -122,6 +122,15 @@ int is_integer (char *str)
 	return (*str ? 0 : 1);
 }
 
+int is_float2 (char *str) 
+{
+  char *chk;
+  
+  if(strtod( str, &chk ));
+
+  return (*chk ? 0 : 1);
+}
+
 int is_float (char *str)
 {
    int i_dot = 0;
@@ -1183,6 +1192,13 @@ int ok_password(const char *password, dbref player, int key)
   if (*password == '\0')
     return 0;
 
+  if ( strlen(password) > 160 ) {
+#ifndef STANDALONE
+    notify_quiet(player, "The password must be less than 160 characters long.");
+#endif
+    return 0;
+  }
+
   num_upper = num_lower = num_special = 0;
   for (scan = password; *scan; scan++) {
     if (!isprint((int)*scan) || isspace((int)*scan)) {
@@ -1344,7 +1360,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
    }
    for (a=0; (a<(nargs-1)) && args[a] && args[a+1]; a+=2) {
       buff = exec(player, cause, cause, EV_FCHECK|EV_EVAL|EV_TOP, args[a],
-                  cargs, ncargs);
+                  cargs, ncargs, (char **)NULL, 0);
       if ( PCRE_EXEC && i_regexp ) {
          chkwild = regexp_wild_match(buff, expr, (char **)NULL, 0, 1);
       } else {
@@ -2104,17 +2120,17 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 			if ( tst_attr && *master_str ) {
                            if ( *d ) {
 			      master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				                d, args, nargs);
+				                d, args, nargs, (char **)NULL, 0);
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, &master_ret, 1);
+				          master_str, &master_ret, 1, (char **)NULL, 0);
                               free_lbuf(master_ret);
                            } else {
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, args, nargs);
+				          master_str, args, nargs, (char **)NULL, 0);
                            }
 			} else {
 			   buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				       d, args, nargs);
+				       d, args, nargs, (char **)NULL, 0);
                         }
                         if ( mudconf.formats_are_local &&
                               ((what == A_LCON_FMT) ||
@@ -2174,17 +2190,17 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 			if ( tst_attr && *master_str ) {
 			   if ( *d ) {
 			      master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				                d, args, nargs);
+				                d, args, nargs, (char **)NULL, 0);
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, &master_ret, 1);
+				          master_str, &master_ret, 1, (char **)NULL, 0);
                               free_lbuf(master_ret);
 			   } else {
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, args, nargs);
+				          master_str, args, nargs, (char **)NULL, 0);
 			   }
                         } else {
 			   buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				      d, args, nargs);
+				      d, args, nargs, (char **)NULL, 0);
                         }
 			notify(player, buff);
 			free_lbuf(buff);
@@ -2246,17 +2262,17 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                         if ( tst_attr && *master_str ) {
 			   if ( *d ) {
 			      master_ret = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				                d, args, nargs);
+				                d, args, nargs, (char **)NULL, 0);
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, &master_ret, 1);
+				          master_str, &master_ret, 1, (char **)NULL, 0);
                               free_lbuf(master_ret);
 			   } else {
 			      buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				          master_str, args, nargs);
+				          master_str, args, nargs, (char **)NULL, 0);
 			   }
                         } else {
 			   buff = exec(thing, player, player, EV_EVAL|EV_FIGNORE|EV_TOP,
-				      d, args, nargs);
+				      d, args, nargs, (char **)NULL, 0);
                         }
 			if ( *buff ) {
 			  if ( mudconf.oattr_enable_altname &&
@@ -2537,7 +2553,7 @@ char	*xargs[10];
 
 	if (nargs >= 7) {
 		parse_arglist(victim, actor, actor, args[6], '\0',
-			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0, 0);
+			EV_STRIP_LS|EV_STRIP_TS, xargs, 10, (char **)NULL, 0, 0, (char **)NULL, 0);
 		for (nxargs=0; (nxargs<10) && xargs[nxargs]; nxargs++) ;
 	}
 
@@ -2706,7 +2722,10 @@ int	aflags, tog_val,
 	HasPriv(player,Owner(thing),POWER_WRAITH,POWER4,NOTHING))
     return 1;
 
-  key = atr_get(thing, locknum, &aowner, &aflags);
+  if ( mudconf.parent_control )
+     key = atr_pget(thing, locknum, &aowner, &aflags);
+  else
+     key = atr_get(thing, locknum, &aowner, &aflags);
   /* TWINKLOCK is an inheritable lock -- why you need to be careful of player setting!!! */
   thing_bak = mudstate.twinknum;
   if ( (locknum == A_LTWINK) && !isPlayer(thing) && !*key && Good_chk(Owner(thing)) ) {

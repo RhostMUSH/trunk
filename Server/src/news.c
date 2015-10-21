@@ -755,7 +755,7 @@ void news_post(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
 
   titlebuffexec = exec(player, player, player, EV_FCHECK|EV_STRIP|EV_EVAL, 
-                       titletok, NULL, 0);
+                       titletok, NULL, 0, (char **)NULL, 0);
 
   if( !*titlebuffexec ) {
     notify(player, "News: Your title must evaluate to something that isn't an empty string.");
@@ -771,7 +771,7 @@ void news_post(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
 
   textbuffexec = exec(player, player, player, EV_FCHECK|EV_STRIP|EV_EVAL,
-                      buf2, NULL, 0);
+                      buf2, NULL, 0, (char **)NULL, 0);
 
   if( !*textbuffexec ) {
     notify(player, "News: Your text must evaluate to something that isn't an empty string.");
@@ -1022,7 +1022,7 @@ void news_repost(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
 
   titlebuffexec = exec(player, player, player, EV_FCHECK|EV_STRIP|EV_EVAL, 
-                       titletok, NULL, 0);
+                       titletok, NULL, 0, (char **)NULL, 0);
 
   if( !*titlebuffexec ) {
     notify(player, "News: Your title must evaluate to something that isn't an empty string.");
@@ -1038,7 +1038,7 @@ void news_repost(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
 
   textbuffexec = exec(player, player, player, EV_FCHECK|EV_STRIP|EV_EVAL,
-                      buf2, NULL, 0);
+                      buf2, NULL, 0, (char **)NULL, 0);
 
   if( !*textbuffexec ) {
     notify(player, "News: Your text must evaluate to something that isn't an empty string.");
@@ -1351,7 +1351,7 @@ void news_mailto(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
   /* prepare players reply */
   textbuffexec = exec(player, player, player, EV_FCHECK|EV_STRIP|EV_EVAL,
-                      buf2, NULL, 0);
+                      buf2, NULL, 0, (char **)NULL, 0);
 
   /* check for subject line */
   texttok = strstr( textbuffexec, "//" );
@@ -4560,7 +4560,7 @@ int user_passes_post(dbref user, char* group_name)
   }
 
   resultbuff = exec(user, user, user, EV_FCHECK|EV_STRIP|EV_EVAL, 
-                    gp.text, NULL, 0);
+                    gp.text, NULL, 0, (char **)NULL, 0);
 
   result = atoi(resultbuff);
   free_lbuf(resultbuff);
@@ -4583,7 +4583,7 @@ int user_passes_read(dbref user, char* group_name)
   }
 
   resultbuff = exec(user, user, user, EV_FCHECK|EV_STRIP|EV_EVAL, 
-                    gr.text, NULL, 0);
+                    gr.text, NULL, 0, (char **)NULL, 0);
 
   result = atoi(resultbuff);
   free_lbuf(resultbuff);
@@ -4606,7 +4606,7 @@ int user_passes_admin(dbref user, char* group_name)
   }
 
   resultbuff = exec(user, user, user, EV_FCHECK|EV_STRIP|EV_EVAL, 
-                    gx.text, NULL, 0);
+                    gx.text, NULL, 0, (char **)NULL, 0);
 
   result = atoi(resultbuff);
   free_lbuf(resultbuff);

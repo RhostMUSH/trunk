@@ -13,9 +13,32 @@ which would include the mail database.
 
 wmail/unload -- this flatfile dumps your mail db.  You should run it daily.
 
-To recover your mail, you need to delete your mail databases, reboot, then
-reload your mail flatfiles.  If you have no mail flatfiles, well, you're 
-going to have to start over with the mail database.  Sorry.
+To recover your mail, it assumes you have a mail flatfile in either the
+~/Server/game/data directory or the ~/Server/game/prevflat directory.  The
+latter directory is used in junction to the backup_flat.sh and will always
+house the latest flatfile if not one recently dumped in your data directory.
+
+To recover your mail system at this point:
+
+wmail/load
+
+Yup, that's it.  It'll take care of everything else.  Isn't automation grand?
+
+Doesn't even require a reboot :)
+
+NOTE:  You may at this point wish to run the following:
+       wmail/fix  -- this fixes the mail database and sync's it to the mush db.
+       wmail/lfix -- this loads in the fixed mail database
+
+If you have a very old mail database, this is likely going to be required
+to sync against nuked players and other changes to the game since the flatfile.
+
+If this is a new db that you have, you can skip the fixing.
+
+********* MANUAL RECOVERING OF THE MAIL DATABASE GOES HERE *********************
+To recover your mail manually, you need to delete your mail databases, 
+reboot, then reload your mail flatfiles.  If you have no mail flatfiles, 
+well, you're going to have to start over with the mail database.  Sorry.
 
 First, go into the 'game' subdirectory.  Inside that directory is a 'data'
 directory.
@@ -52,3 +75,4 @@ wmail/fix   -- this will run a fix on the mail db and repair any issues.
 wmail/lfix  -- this will load the fixed flatfile back into the mush.
 
 At this point you should be good to go.
+********* MANUAL RECOVERING OF THE MAIL DATABASE GOES HERE *********************

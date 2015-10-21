@@ -1,0 +1,11 @@
+########### MySQL settings ##################################################
+#   mysql_host:   The hostname to connect to. In theory this means
+#                 that a remote host could be used, but unless you've
+#                 a really fast connection to that box it's not
+#                 recommended
+#   mysql_user:   The username to connect to the database as.
+#   mysql_pass:   The password for the above user.
+#   mysql_base:   The name of the database to connect to.
+#   mysql_socket: the mysql socket protocol library
+#   mysql_port:   the port the mysql database is listening on
+#############################################################################

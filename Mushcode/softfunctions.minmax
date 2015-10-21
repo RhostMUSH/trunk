@@ -73,18 +73,23 @@
 &FUN_SORTKEY soft=[munge(#lambda/%[sort%(%%0%,%2%,%3%)%],iter(%1,edit(u(%0,itext(0)),%b,),ifelse(!$v(3),%b,%3),ifelse(!$v(3),%b,%3)),%1,ifelse(!$v(3),%b,%3),ifelse(!$v(4),ifelse(!$v(3),%b,%3),%4))]
 &MINMAX_SORTKEY soft=2 5
 &FUN_ALIGN soft=[printf([iter(%0,$[case(mid(%i0,0,1),<,-[delete(%i0,0,1)],>,[delete(%i0,0,1)],_,_[delete(%i0,0,1)],-,^[delete(%i0,0,1)],=,_[delete(%i0,0,1)],-%i0)]|"s)],%1,%2,%3,%4,%5,%6,%7,%8,%9)]
-&FUN_NCOND me=[strfunc(switch,0 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
-&FUN_NCONDALL me=[strfunc(switchall,0 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
-&FUN_COND me=[strfunc(switch,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
-&FUN_CONDALL me=[strfunc(switchall,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
+&FUN_NCOND soft=[strfunc(switch,0 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
+&FUN_NCONDALL soft=[strfunc(switchall,0 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
+&FUN_COND soft=[strfunc(switch,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
+&FUN_CONDALL soft=[strfunc(switchall,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
 &MINMAX_NCOND soft=2 2
 &MINMAX_NCONDALL soft=2 2
 &MINMAX_COND soft=2 2
 &MINMAX_CONDALL soft=2 2
-&FUNPR_FIRSTOF soft=[trim(iter(lnum(0,sub(%+,2)),ifelse(!!^setr(0,s(v(%i0))),%q0[ibreak(0)])))][ifelse(!^r(0),s(v(sub(%+,1))))]
-&FUNPR_ALLOF soft=[trim(squish(iter(lnum(0,sub(%+,2)),ifelse(!!^setr(0,s(v(%i0))),%q0),%b,v(sub(%+,1))),v(sub(%+,1))),,v(sub(%+,1)))]
-&FUNPR_STRFIRSTOF soft=[trim(iter(lnum(0,sub(%+,2)),ifelse(!$^setr(0,s(v(%i0))),%q0[ibreak(0)])))][ifelse(!^r(0),s(v(sub(%+,1))))]
-&FUNPR_STRALLOF soft=[trim(squish(iter(lnum(0,sub(%+,2)),ifelse(!$^setr(0,s(v(%i0))),%q0),%b,v(sub(%+,1))),v(sub(%+,1))),,v(sub(%+,1)))]
+@@ Old systems -- Use prior to 3.9.5p2
+@@ &FUNPR_FIRSTOF soft=[trim(iter(lnum(0,sub(%+,2)),ifelse(!!^setr(0,s(v(%i0))),%q0[ibreak(0)])))][ifelse(!^r(0),s(v(sub(%+,1))))]
+@@ &FUNPR_ALLOF soft=[trim(squish(iter(lnum(0,sub(%+,2)),ifelse(!!^setr(0,s(v(%i0))),%q0),%b,v(sub(%+,1))),v(sub(%+,1))),,v(sub(%+,1)))]
+@@ &FUNPR_STRFIRSTOF soft=[trim(iter(lnum(0,sub(%+,2)),ifelse(!$^setr(0,s(v(%i0))),%q0[ibreak(0)])))][ifelse(!^r(0),s(v(sub(%+,1))))]
+@@ &FUNPR_STRALLOF soft=[trim(squish(iter(lnum(0,sub(%+,2)),ifelse(!$^setr(0,s(v(%i0))),%q0),%b,v(sub(%+,1))),v(sub(%+,1))),,v(sub(%+,1)))]
+&FUN_FIRSTOF soft=[ofparse(1,%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
+&FUN_ALLOF soft=[ofparse(2,%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
+&FUN_STRFIRSTOF soft=[ofparse(5,%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
+&FUN_STRALLOF soft=[ofparse(6,%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
 &FUNPV_HEIGHT soft=[default(%#/HEIGHT,default([owner(%#)]/HEIGHT,24))]
 &FUNPV_WIDTH soft=[default(%#/WIDTH,default([owner(%#)]/WIDTH,78))]
 &FUN_VMAX soft=[sortlist(+n,%2,%0,%1)]

@@ -6,7 +6,7 @@
 
 /* This code is very wastefull of memory, but hey its just a quicky program */
 
-#define MAXTOPICS  1500
+#define MAXTOPICS  5000
 #define MAXTEXTLEN 64000
 
 char bigtextbuff[MAXTEXTLEN];

@@ -51,7 +51,7 @@ char	*tbuf, sep_ch;
 char	*buff;
 #endif
 
-	if ((b == TRUE_BOOLEXP)) {
+	if ( b == TRUE_BOOLEXP ) {
 		if (format == F_EXAMINE) {
 			safe_str((char *)"*UNLOCKED*", boolexp_buf, &buftop);
 		}

@@ -6,8 +6,16 @@
 SHELL  = /bin/sh
 srcdir = ./src
 gdbmdir= ./src/gdbm-1.8.3/
-#gdbmdir= ./src/qdbm/
+qdbmdir= ./src/qdbm/
 bindir = ./bin
+
+CHK = $(shell uname -s|grep -ic "bsd")
+ifeq "$(CHK)" "1"
+   MAKE=gmake
+else
+   MAKE=make
+endif
+
 
 all: instructions
 
@@ -31,6 +39,8 @@ instructions:
 	@echo "   Causes the symlinks to be created within the game dirs"
 	@echo "make gdbm"
 	@echo "   This compiles just the gdbm libraries."
+	@echo "make qdbm"
+	@echo "   This compiles just the qdbm libraries."
 	@echo " "
 	@echo "make clean"
 	@echo "   Removes any old object files and binaries"
@@ -44,8 +54,8 @@ instructions:
 	@echo "   This removes the gdbm libs requiring a fresh compile."
 	@echo "make gdbmrclean"
 	@echo "   This puts gdbm into a 'clean' state as if just downloaded."
-	@echo "make distrib"
-	@echo "   Creates a tar archive of the rhost directory hierachy"
+#	@echo "make distrib"
+#	@echo "   Creates a tar archive of the rhost directory hierachy"
 	@echo
 	@echo "make customize"
 	@echo "   If you want to run more than one game, use this command to"
@@ -59,30 +69,32 @@ confsource: config source
 	@echo
 source:
 	@(cd $(srcdir) ; ./do_compile.sh)
-	(cd $(srcdir) ; make)
+	(cd $(srcdir) ; $(MAKE))
 	@echo
 	@echo " *******************************************************"
 	@echo "  If the build succeeded you might want to 'make links' " 
 	@echo " *******************************************************"
 	@echo 
+qdbm:
+	@(cd $(qdbmdir) ; $() clean ; ./configure; $(MAKE); rm libqdbm*.so*)
 gdbm:
-	@(cd $(gdbmdir) ; make clean ; ./configure --enable-static --disable-shared; make; rm libqdbm*.so*)
+	@(cd $(gdbmdir) ; $() clean ; ./configure --enable-static --disable-shared; $(MAKE); rm libqdbm*.so*)
 create_oldsrc:
 	@(./bin/make_csrc.sh)
 	@echo ... Done
 links:
 	@./bin/make_links.sh
 clean:
-	@(cd $(srcdir) ; make clean)
+	@(cd $(srcdir) ; $(MAKE) clean)
 realclean: clean gdbmclean
 	@(rm src/*~ hdrs/*~)
 superclean: clean gdbmrclean
 	@(rm src/*~ hdrs/*~ bin/*~)
 gdbmclean:
-	@(cd $(gdbmdir) ; make clean)
+	@(cd $(gdbmdir) ; $(MAKE) clean)
 gdbmrclean:
-	@(cd $(gdbmdir) ; make realclean)
+	@(cd $(gdbmdir) ; $(MAKE) realclean)
 customize:
-	@./bin/customize.sh
+	@./bin/customize.pl
 bugreport: 
 	@./bin/bugreport.sh
