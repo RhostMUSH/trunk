@@ -9209,31 +9209,31 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()    COR()           COS()         CRC32()         CREATE() 
-  CREATETIME()  CREPLACE()      CTU()         DEC()           DECODE64()
-  DECRYPT()     DEFAULT()       DELETE()      DELEXTRACT()    DESTROY()     
-  DICE()        DIG()           DIGEST()      DIST2D()        DIST3D()      
-  DIV()         E()             EDEFAULT()    EDIT()          EDITANSI() 
-  EE()          ELIST()         ELEMENTS()    ELEMENTSMUX()   ELOCK()      
-  EMIT()        ENCODE64()      ENCRYPT()     ENTRANCES()     EQ()         
-  ERROR()       ESCAPE()        ESCAPEX()     EVAL()          EXIT()       
-  EXP()         EXTRACT()       EXTRACTWORD() FBETWEEN()      FBOUND()     
-  FDIV()        FILTER()        FINDABLE()    FIRST()         FLAGS()      
-  FLOOR()       FLOORDIV()      FOLD()        FOLDERCURRENT() FOLDERLIST() 
-  FOREACH()     FULLNAME()      GARBLE()      GET()           GET_EVAL()   
-  GLOBALROOM()  GRAB()          GRABALL()     GREP()          GT()         
-  GTE()         GUILD()         HASATTR()     HASATTRP()      HASFLAG()    
-  HASTOGGLE()   HASTYPE()       HASQUOTA()    HASRXLEVEL()    HASTXLEVEL() 
-  HOME()        IBREAK()        IDLE()        IFELSE()        IINDEX()     
-  ILEV()        INC()           INDEX()       INPROGRAM()     INSERT()     
-  INUM()        INZONE()        ISALNUM()     ISALPHA()       ISCLUSTER()  
-  ISDBREF()     ISDIGIT()       ISHIDDEN()    ISNUM()         ISPUNCT()    
-  ISSPACE()     ISWORD()        ISXDIGIT()    ITER()          ITEXT()      
-  KEEPFLAGS()   KEEPTYPE()      LADD()        LAND()          LAST()       
-  LASTCREATE()  LATTR()         LAVG()        LCMDS()         LCON()       
-  LCSTR()       LDELETE()       LDIV()        LEMIT()         LEFT()       
-  LEXITS()      LFLAGS()        LINK()        LIST()          LISTCOMMANDS()
-  LISTDIFF()    LISTFUNCTIONS() 
+  CONVTIME()     COR()         COS()           CRC32()       CREATE() 
+  CREATETIME()   CREPLACE()    CTU()           DEC()         DECODE64()
+  DECRYPT()      DEFAULT()     DELETE()        DELEXTRACT()  DESTROY()     
+  DICE()         DIG()         DIGEST()        DIST2D()      DIST3D()      
+  DIV()          E()           EDEFAULT()      EDIT()        EDITANSI() 
+  EE()           ELIST()       ELEMENTS()      ELEMENTSMUX() ELOCK()      
+  EMIT()         ENCODE64()    ENCRYPT()       ENTRANCES()   EQ()         
+  ERROR()        ESCAPE()      ESCAPEX()       ESCLIST()     EVAL()        
+  EXIT()         EXP()         EXTRACT()       EXTRACTWORD() FBETWEEN()    
+  FBOUND()       FDIV()        FILTER()        FINDABLE()    FIRST()       
+  FLAGS()        FLOOR()       FLOORDIV()      FOLD()        FOLDERCURRENT()
+  FOLDERLIST()   FOREACH()     FULLNAME()      GARBLE()      GET()         
+  GET_EVAL()     GLOBALROOM()  GRAB()          GRABALL()     GREP()        
+  GT()           GTE()         GUILD()         HASATTR()     HASATTRP()    
+  HASFLAG()      HASTOGGLE()   HASTYPE()       HASQUOTA()    HASRXLEVEL()  
+  HASTXLEVEL()   HOME()        IBREAK()        IDLE()        IFELSE()      
+  IINDEX()       ILEV()        INC()           INDEX()       INPROGRAM()   
+  INSERT()       INUM()        INZONE()        ISALNUM()     ISALPHA()     
+  ISCLUSTER()    ISDBREF()     ISDIGIT()       ISHIDDEN()    ISNUM()       
+  ISPUNCT()      ISSPACE()     ISWORD()        ISXDIGIT()    ITER()        
+  ITEXT()        KEEPFLAGS()   KEEPTYPE()      LADD()        LAND()        
+  LAST()         LASTCREATE()  LATTR()         LAVG()        LCMDS()       
+  LCON()         LCSTR()       LDELETE()       LDIV()        LEMIT()       
+  LEFT()         LEXITS()      LFLAGS()        LINK()        LIST()        
+  LISTCOMMANDS() LISTDIFF()    LISTFUNCTIONS() 
   
 { 'help function list3' for more }
   
@@ -9298,18 +9298,18 @@
 
 & FUNCTION LIST5
   
-  TRIM()         TRUNC()         TXLEVEL()       TYPE()         U() 
-  U2()           UCSTR()         UDEFAULT()      UDEFAULT2()    UEVAL()
-  ULDEFAULT()    U2LDEFAULT()    ULOCAL()        ULOCAL2()      UNPACK()
-  V()            VADD()          VALID()         VATTRCNT()     VCROSS()
-  VDIM()         VDOT()          VERSION()       VISIBLE()      VISIBLEMUX()
-  VMAG()         VMUL()          VSUB()          VUNIT()        WHERE()
-  WHILE()        WILDMATCH()     WIPE()          WORDPOS()      WORDS()       
-  WRAP()         WRAPCOLUMNS()   WRITABLE()      XCON()         XDEC()       
-  XINC()         XGET()          XNOR()          XOR()          XORCHR()     
-  ZEMIT()        ZFUN()          ZFUN2()         ZFUNDEFAULT()  ZFUN2DEFAULT()
-  ZFUNEVAL()     ZFUNLDEFAULT()  ZFUNL2DEFAULT() ZFUNLOCAL()    ZFUN2LOCAL() 
-  ZWHO() 
+  TRIM()         TRUNC()       TXLEVEL()       TYPE()          U() 
+  U2()           UCSTR()       UDEFAULT()      UDEFAULT2()     UEVAL()
+  ULDEFAULT()    U2LDEFAULT()  ULOCAL()        ULOCAL2()       UNESCLIST()
+  UNPACK()       V()           VADD()          VALID()         VATTRCNT()   
+  VCROSS()       VDIM()        VDOT()          VERSION()       VISIBLE()    
+  VISIBLEMUX()   VMAG()        VMUL()          VSUB()          VUNIT()      
+  WHERE()        WHILE()       WILDMATCH()     WIPE()          WORDPOS()    
+  WORDS()        WRAP()        WRAPCOLUMNS()   WRITABLE()      XCON()       
+  XDEC()         XINC()        XGET()          XNOR()          XOR()        
+  XORCHR()       ZEMIT()       ZFUN()          ZFUN2()         ZFUNDEFAULT()
+  ZFUN2DEFAULT() ZFUNEVAL()    ZFUNLDEFAULT()  ZFUNL2DEFAULT() ZFUNLOCAL()  
+  ZFUN2LOCAL()   ZWHO() 
   
 { 'help function aliases' for aliases on existing functions }
   
@@ -9451,8 +9451,8 @@
                        CASE() CASEALL() CAT() CENTER() CHOMP() COLUMNS() 
                        COMP() CREPLACE() DECODE64() DECRYPT() DELETE() EDIT() 
                        EDITANSI() ENCODE64() ENCRYPT() ESCAPE() ESCAPEX() 
-                       EVAL() GARBLE() IFELSE() ISALNUM() ISALPHA() ISDBREF()
-                       ISDIGIT() ISNUM() ISPUNCT() ISSPACE() ISWORD() 
+                       ESCLIST() EVAL() GARBLE() IFELSE() ISALNUM() ISALPHA() 
+                       ISDBREF() ISDIGIT() ISNUM() ISPUNCT() ISSPACE() ISWORD()
                        ISXDIGIT() LCSTR() LEFT() LIT() LJC() LJUST() MERGE() 
                        MID() NOSTR() NOTCHR() NUMPOS() ORCHR() PARSESTR() 
                        PEDIT() POS() PRINTF() RANDPOS() REPEAT() REPLACE() 
@@ -9461,8 +9461,8 @@
                        SPLICE() SQUISH() STR() STRDISTANCE() STREQ() STREVAL()
                        STRIP() STRIPACCENTS() STRLEN() STRMATCH() SUBNETMATCH()
                        SWITCH() SWITCHALL() T() TOTPOS() TR() TRANSLATE() 
-                       TRIM() UCSTR() WORDPOS() WORDS() WRAP() WRAPCOLUMNS() 
-                       XORCHR()
+                       TRIM() UCSTR() UNESCLIST() WORDPOS() WORDS() WRAP() 
+                       WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -11251,7 +11251,7 @@
     > @sql SHOW TABLES
    
   See also: sql(), @sqlconnect, @sqldisconnect, sqlon(), sqloff(),
-            sqlescape(), sqlping()
+            sqlescape(), sqlping(), esclist(), unesclist()
 
 
 & @sqlconnect
@@ -11264,8 +11264,8 @@
     > @sqlconnect
   
   See Also: sqlon(), @sqldisconnect, sqloff(), @sql, sql(), sqlescape(),
-      sqlping()
-
+            sqlping(), esclist(), unesclist()
+  
 & @sqldisconnect
   Command: @sqldisconnect
   
@@ -11276,6 +11276,7 @@
     > @sqldisconnect
   
   See Also: sqloff(), @sqlconnect, sqlon(), @sql, sql(), sqlescape()
+            sqlping(), esclist(), unesclist()
 
 & SQL()
   Function: sql(<SQL statement> [,<delim>,[<field delim>]])
@@ -11310,7 +11311,7 @@
   You say "Caine 389|Nos 4|Rufus 672 -- Caine/389|Nos/4|Rufus/672"
   
   See Also: sqlescape(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect,
-            sqlping()
+            sqlping(), esclist(), unesclist()
 
 & SQLESCAPE()
   Function: sqlescape(<string>)
@@ -11329,7 +11330,7 @@
     You say "You don\'t say"
   
   See Also: sql(), @sql, sqlon(), sqloff(), @sqlconnect, @sqldisconnect,
-            sqlping()
+            sqlping(), esclist(), unesclist()
 
 & SQLON()
   Function: sqlon()
@@ -15734,7 +15735,7 @@
   processed by secure(), therefore the [get()] call has already been
   performed.
   
-  See Also: escape(), escapex()
+  See Also: escape(), escapex(), esclist(), unesclist()
   
 & SECUREX()
   function: securex(<string> [,<omission>])
@@ -15754,7 +15755,7 @@
     > say securex(v(va),\%\,)
     You say "%rTest?  Yes, a test.
   
-  See Also: secure(), escape(), escapex()
+  See Also: secure(), escape(), escapex(), esclist(), unesclist()
   
 & ESCLIST()
   Function: esclist(<list of characters to escape>|<string>)
@@ -15772,7 +15773,7 @@
     > say esclist('|[v(va)])
     You say "Test: \'A string\' and "anoter string", I say."
   
-  See Also: escape(), escapex(), unesclist()
+  See Also: escape(), escapex(), unesclist(), esclist(), unesclist()
   
 & ESCAPE()
   Function: escape(<string>)
@@ -26184,6 +26185,7 @@
   encrypt()     - Encrypt a string based on an offset.
   escape()      - Adds escape characters to some special characters.
   escapex()     - Like escape() but allows specifying characters not to escape.
+  esclist()     - Escape optionally specified characters from a string.
   eval()        - Evaluates code.
   garble()      - Garbles input by replacing text.
   ifelse()      - Returns true if an expression evaluates as true.
@@ -26262,6 +26264,7 @@
   translate()   - Translates special characters to percent substitutions.
   trim()        - Trims trailing and leading spaces from a string.
   ucstr()       - Upper-cases a string.
+  unesclist()   - Escape optionally specified characters from a string.
   wordpos()     - Returns the position of a word in a string.
   words()       - Returns the number of words in a string.
   wrap()        - Formats a string by wrapping it, much like columns()
