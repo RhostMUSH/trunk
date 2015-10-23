@@ -21770,7 +21770,7 @@ FUNCTION(fun_array)
 
    osep = alloc_lbuf("array_outsep");
    sprintf(osep, "%s", "\r\n");
-   if ( (nfargs > 5) && *fargs[5] ) {
+   if ( nfargs > 5 ) {
       strcpy(osep, fargs[5]);
    }
 
