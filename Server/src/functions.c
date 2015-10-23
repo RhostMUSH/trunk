@@ -21717,12 +21717,12 @@ FUNCTION(fun_lcmds)
 /* array(string, regcount, length [[,delim][,type]]) */
 FUNCTION(fun_array)
 {
-   char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep;
+   char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep, *osep;
    int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS];
    time_t it_now;
    ANSISPLIT insplit[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in, *p_out;
 
-   if (!fn_range_check("ARRAY", nfargs, 3, 5, buff, bufcx))
+   if (!fn_range_check("ARRAY", nfargs, 3, 6, buff, bufcx))
       return;
 
    /* insanely dangerous function -- only allow 10 per command */
@@ -21767,6 +21767,12 @@ FUNCTION(fun_array)
    }
    if ( (i_width == 0) && !sep )
       sep = ' ';
+
+   osep = alloc_lbuf("array_outsep");
+   sprintf(osep, "%s", "\r\n");
+   if ( (nfargs > 5) && *fargs[5] ) {
+      strcpy(osep, fargs[5]);
+   }
 
    initialize_ansisplitter(insplit, LBUF_SIZE);
    initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -21823,7 +21829,7 @@ FUNCTION(fun_array)
             s_tmpbuff = rebuild_ansi(s_output, outsplit);
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
             if ( *mudstate.global_regs[i_regcurr] )
-               safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
             safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -21841,7 +21847,7 @@ FUNCTION(fun_array)
          s_tmpbuff = rebuild_ansi(s_output, outsplit);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
          if ( *mudstate.global_regs[i_regcurr] )
-            safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
          safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
@@ -21922,7 +21928,7 @@ FUNCTION(fun_array)
 
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
             if ( *mudstate.global_regs[i_regcurr] )
-               safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
             safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -21939,13 +21945,14 @@ FUNCTION(fun_array)
          s_tmpbuff = rebuild_ansi(s_output, outsplit);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
          if ( *mudstate.global_regs[i_regcurr] )
-            safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
          safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
    }
    free_lbuf(s_input);
    free_lbuf(s_output);
+   free_lbuf(osep);
 }
 
 FUNCTION(fun_reverse)
