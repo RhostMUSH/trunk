@@ -39,7 +39,7 @@
 
 #define SPLIT_NORMAL		0x00
 #define SPLIT_HILITE		0x01
-#define SPLIT_FLASH		0x02
+#define SPLIT_FLASH		    0x02
 #define SPLIT_UNDERSCORE	0x04
 #define SPLIT_INVERSE		0x08
 #define SPLIT_NOANSI		0x10
@@ -49,10 +49,10 @@ typedef struct ansisplit {
 	char	s_bghex[5];	/* Hex representation - background */
 	char	c_fgansi;	/* Normal foreground ansi */
 	char	c_bgansi;	/* Normal background ansi */
-	int	i_special;	/* Special ansi characters */
+	int	    i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
-        int	i_ascii8;	/* ASCII-8 encoding */
-	long i_utf8;	/* UTF8 encoding */
+    int	    i_ascii8;	/* ASCII-8 encoding */
+	unsigned int    i_utf8;	    /* UTF8 encoding */
 } ANSISPLIT;
 
 typedef struct atrp {

@@ -1853,7 +1853,7 @@ process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost;
-    char *p, *pend, *q, *qend, qfind[12], *qf, *tmpptr = NULL, tmpbuf[12];
+    char *p, *pend, *q, *qend, qfind[12], *qf, *tmpptr = NULL, tmpbuf[15];
     char *cmdsave;
 
     DPUSH; /* #16 */
@@ -1898,7 +1898,7 @@ process_input(DESC * d)
 		(d->raw_input_at)--;
   	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
-	} else if (p < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+	} else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
 		sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
 		tmpptr = utf8toucp(tmpbuf);
 		sprintf(qfind, "%c<u%s>", '%', tmpptr);
@@ -1909,7 +1909,7 @@ process_input(DESC * d)
 		while (*qf) {
 			*p++ = *qf++;
 		}
-	} else if (p < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+	} else if ((p+13) < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
 		sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
 		tmpptr = utf8toucp(tmpbuf);
 		sprintf(qfind, "%c<u%s>", '%', tmpptr);
@@ -1920,7 +1920,7 @@ process_input(DESC * d)
 		while (*qf) {
 			*p++ = *qf++;
 		}	
-	} else if (p < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+	} else if ((p+13) < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
 		sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
 		tmpptr = utf8toucp(tmpbuf);
 		sprintf(qfind, "%c<u%s>", '%', tmpptr);
@@ -1934,7 +1934,7 @@ process_input(DESC * d)
 	} else if ( (((int)(unsigned char)*q) > 160) && 
                     ((!mudconf.accent_extend && ((int)(unsigned char)*q) < 250) || (mudconf.accent_extend && ((int)(unsigned char)*q) < 256)) && 
                     ((p+10) < pend) ) {
-            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {
+            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {				
                sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
                in+=5;
                got+=5;
