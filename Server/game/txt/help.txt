@@ -28493,3 +28493,4 @@
     debug STACK LIMIT (of 1000) as a worse case scenerio [ASH]
   * toggles did not showup when you @decompiled. [ASH]
   * @robot was broke with internal flag checks [ASH]
+  * xinc/xdec for registers didn't understand labels [ASH]

@@ -27337,16 +27337,24 @@ FUNCTION(fun_xdec)
 
 FUNCTION(fun_dec)
 {
-    int regnum, val, i;
+    int regnum, val, i, i_namefnd;
     char *pt1, *tpr_buff, *tprp_buff;
 
     regnum = atoi(fargs[0]);
-    i = 0;
+    i = i_namefnd = 0;
 #ifdef EXPANDED_QREGS
-    if ( (((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)*fargs[0]) ) {
+    for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
+            (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
+          regnum = i;
+          i_namefnd = 1;
+          break;
+       }
+    }
+    if ( !i_namefnd && ((((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)*fargs[0])) ) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( isalpha((int)(*fargs[0])) ) {
+       if ( !i_namefnd && isalpha((int)(*fargs[0])) ) {
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -27400,16 +27408,25 @@ FUNCTION(fun_xinc)
 
 FUNCTION(fun_inc)
 {
-    int regnum, val, i;
+    int regnum, val, i, i_namefnd;
     char *pt1, *tpr_buff, *tprp_buff;
 
     regnum = atoi(fargs[0]);
-    i = 0;
+    i = i_namefnd = 0;
 #ifdef EXPANDED_QREGS
-    if ( (((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)(*fargs[0])) ) {
+    for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
+            (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
+          regnum = i;
+          i_namefnd = 1;
+          break;
+       }
+    }
+
+    if ( !i_namefnd && ((((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)(*fargs[0]))) ) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( isalpha((int)(*fargs[0])) ) {
+       if ( !i_namefnd && isalpha((int)(*fargs[0])) ) {
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
