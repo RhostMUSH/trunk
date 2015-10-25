@@ -28464,6 +28464,7 @@
   * @grep now handles /parent switch [ASH]
   * ! shown on @function and @lfunction if a flag permission exists [ASH]
   * array() has optional output seperator [ASH]
+  * %q<LABEL> now also handles 0-9a-z registers [ASH]
     
   Bug Fixes
   ------------
