@@ -21045,7 +21045,8 @@
     > say replace(Yet@Another@Mundane@List, 3, Funky, @)
     You say "Yet@Another@Funky@List"
   
-  See Also: extract(), extractword(), insert(), ldelete(), delete(), rindex()
+  See Also: extract(), extractword(), insert(), ldelete(), delete(), rindex(),
+            edit()
   
 & LDELETE()
   Function: ldelete(<list>, <pos> [<pos2>...<posN>] [, <sep>])
