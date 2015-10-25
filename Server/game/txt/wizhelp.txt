@@ -10751,8 +10751,10 @@
     BIFF THE MIGHTY             BOB THE WEAK                  DISCLAIMER
     GETTING STARTED             
     
+    & biffy
     & BIFF THE MIGHTY
     Biff is a mighty wizard.
+    'biffy' is an alias so will work for me, too.
     
     & bob the weak
     Bob is a mighty wizard in disguise.
