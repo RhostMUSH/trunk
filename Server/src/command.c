@@ -750,7 +750,7 @@ NAMETAB open_sw[] =
 
 NAMETAB pcreate_sw[] =
 {
-    {(char *) "register", 1, CA_WIZARD, 0, PCREATE_REG},
+    {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pipe_sw[] =

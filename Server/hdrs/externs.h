@@ -772,7 +772,6 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define NFY_PID		8	/* Notify or Drain based on PID */
 #define	OPEN_LOCATION	0	/* Open exit in my location */
 #define	OPEN_INVENTORY	1	/* Open exit in me */
-#define PCREATE_REG     2	/* Register on @pcreate */
 #define PAGE_LAST	1
 #define PAGE_RET	2
 #define PAGE_PORT	4
@@ -783,7 +782,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	PASS_ANY	1	/* name=newpass */
 #define	PASS_MINE	2	/* oldpass=newpass */
 #define	PCRE_PLAYER	1	/* create new player */
-#define	PCRE_ROBOT	2	/* create robot player */
+#define PCRE_REG     	2	/* Register on @pcreate */
+#define	PCRE_ROBOT	4	/* create robot player */
 #define	PEMIT_PEMIT	1	/* emit to named player */
 #define	PEMIT_OEMIT	2	/* emit to all in current room except named */
 #define	PEMIT_WHISPER	4	/* whisper to player in current room */
