@@ -1537,11 +1537,29 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    if ( (*dstr != '>') ) {
                       dstr = orig_dstr;
                    } else {
-                      for ( sub_cntr = 0 ; sub_cntr < MAX_GLOBAL_REGS; sub_cntr++ ) {
-                         if (  mudstate.global_regsname[sub_cntr] &&
-                               !stricmp(mudstate.global_regsname[sub_cntr], t_bufa) ) {
-		            safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
-                            break;
+#ifdef EXPANDED_QREGS
+                      if ( *t_bufa && !*(t_bufa+1) && isalnum(*t_bufa) ) {
+                         for ( w = 0; w < 37; w++ ) {
+                            if ( mudstate.nameofqreg[w] == tolower(*t_bufa) )
+                               break;
+                         }
+                         i = w;
+		         if ( mudstate.global_regs[i] ) {
+		            safe_str(mudstate.global_regs[i], buff, &bufc);
+                         }
+#else
+		         i = (*t_bufa - '0');
+		         if ((i >= 0) && (i <= 9) && mudstate.global_regs[i] ) {
+		            safe_str(mudstate.global_regs[i], buff, &bufc);
+                         }
+#endif
+                      } else {
+                         for ( sub_cntr = 0 ; sub_cntr < MAX_GLOBAL_REGS; sub_cntr++ ) {
+                            if (  mudstate.global_regsname[sub_cntr] &&
+                                  !stricmp(mudstate.global_regsname[sub_cntr], t_bufa) ) {
+		               safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
+                               break;
+                            }
                          }
                       }
                    }
