@@ -291,6 +291,7 @@ NDECL(cf_init)
     mudconf.enhanced_convtime = 0;	/* Enhanced convtime formatting */
     mudconf.mysql_delay = 0;		/* Toggle to turn on/off delay > 0 sets delay */
     mudconf.name_with_desc = 0;		/* Enable state to allow looking at names of things you can't examine */
+    mudconf.proxy_checker = 0;		/* Proxy Checker -- Not very reliable */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4348,6 +4349,10 @@ CONF conftable[] =
     {(char *) "float_precision",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.float_precision, 48, 1, CA_WIZARD,
      (char *) "The decimal placement of float precision for math functions.   Default: 0   Value: %d"},
+    {(char *) "proxy_checker",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.proxy_checker, 0, 0, CA_WIZARD,
+     (char *) "The Proxy Checker.  0 off, >0 on, 2 block guests, 4 block register.\r\n"\
+              "                             Default: 0   Value: %d"},
     {(char *) "public_flags",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.pub_flags, 0, 0, CA_WIZARD,
      (char *) "Players can get flags on anything?"},

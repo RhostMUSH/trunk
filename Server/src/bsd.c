@@ -23,6 +23,12 @@ void bzero(void *, int);
 #endif
 #endif
 #include <signal.h>
+
+/* For MTU/MSS additions */
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+
+
 /*hack*/
 /* #define NSIG 32 */
 #ifndef NSIG
@@ -75,7 +81,7 @@ int ndescriptors = 0;
 DESC *descriptor_list = NULL;
 DESC *desc_in_use = NULL;
 
-DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *));
+DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *, int));
 DESC *FDECL(new_connection, (int));
 int FDECL(process_output, (DESC *));
 int FDECL(process_input, (DESC *));
@@ -852,7 +858,8 @@ new_connection(int sock)
     struct sockaddr_in addr;
     static int spam_log = 0;
     char *logbuff, *addroutbuf;
-    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0;
+    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, 
+        i_mtu, i_mtulen, i_mss, i_msslen, i_proxychk;
 
 #ifndef TLI
     int addr_len;
@@ -864,7 +871,7 @@ new_connection(int sock)
 
     DPUSH; /* #5 */
 
-    cur_port = 0;
+    cur_port = i_proxychk = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< new_connection >";
 #ifdef TLI
@@ -959,8 +966,43 @@ new_connection(int sock)
     if ( mudconf.tor_paranoid ) {
        i_chktor = check_tor(addr.sin_addr, mudconf.port);
     }
+
+    if ( mudconf.proxy_checker > 0 ) {
+       /* Check MTU */
+       i_mtulen = sizeof(i_mtu);
+       i_msslen = sizeof(i_mss);
+       getsockopt(newsock, SOL_IP, IP_MTU, &i_mtu, (unsigned int *)&i_mtulen);
+       getsockopt(newsock, IPPROTO_TCP, TCP_MAXSEG,  &i_mss, (unsigned int*)&i_msslen);
+
+       if ( (i_mtu <= 1500) && ((i_mss + 80) < i_mtu) ) { /* Possible Proxy -- Block */
+          STARTLOG(LOG_NET | LOG_SECURITY, "NET", "PROXY");
+             buff = alloc_mbuf("new_connection.LOG.badsite");
+             sprintf(buff, "[%d/%s] Possible Proxy [MTU %d/MSS %d].  (Remote port %d)",
+                     newsock, inet_ntoa(addr.sin_addr), i_mtu, i_mss, cur_port);
+             log_text(buff);
+             free_mbuf(buff);
+          ENDLOG
+          if ( (mudconf.proxy_checker & 2) && (mudconf.proxy_checker & 4) ) {
+             i_proxychk = H_NOGUEST | H_REGISTRATION;
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [GUEST/REGISTER DISABLED]", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          } else if ( mudconf.proxy_checker & 2 ) {
+             i_proxychk = H_NOGUEST;
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [GUEST DISABLED]", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          } else if ( mudconf.proxy_checker & 4 ) {
+             i_proxychk = H_REGISTRATION;
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [REGISTER DISABLED]", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          } else {
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          }
+       } 
+    }
+
     /* DO BLACKLIST CHECK HERE */
-    if ( blacklist_check(addr.sin_addr) || i_chktor ) {
+    if ( blacklist_check(addr.sin_addr) || i_chktor  ) {
        STARTLOG(LOG_NET | LOG_SECURITY, "NET", (i_chktor ? "TOR" : "BLACK"));
           buff = alloc_mbuf("new_connection.LOG.badsite");
           sprintf(buff, "[%d/%s] Connection refused - %s.  (Remote port %d)",
@@ -1118,7 +1160,7 @@ new_connection(int sock)
            free_lbuf(buff1);
            ENDLOG
         }
-	d = initializesock(newsock, &addr, buff);
+	d = initializesock(newsock, &addr, buff, i_proxychk);
         broadcast_monitor(NOTHING, MF_CONN, "PORT CONNECT", NULL, buff, newsock, 0, cur_port, NULL);
 	free_mbuf(buff);
 	mudstate.debug_cmd = cmdsave;
@@ -1660,7 +1702,7 @@ check_auth(DESC * d)
 
 
 DESC *
-initializesock(int s, struct sockaddr_in * a, char *addr)
+initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
 {
     DESC *d, *dchk, *dchknext;
     char tchbuff[LBUF_SIZE];
@@ -1716,6 +1758,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr)
     strcpy(tchbuff, mudconf.suspect_host);
     if ((char *)mudconf.suspect_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_SUSPECT;
+    d->host_info = d->host_info | i_keyflag;
     d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';
     d->doing[0] = '\0';
@@ -1908,6 +1951,8 @@ process_input(DESC * d)
                   *p++ = *qf++;
                }
             }
+        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != '\0') ) {
+            q++;
 	} else {
 	    in--;
 	    if (p >= pend)

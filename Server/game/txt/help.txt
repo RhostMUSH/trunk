@@ -28415,6 +28415,7 @@
   * @admin name_with_desc boolean toggle to enable showing names of
     things you look at [ASH]
   * esclist() and unesclist() to specify characters to escape [ASH]
+  * added proxy_checker config param for semi-accurate proxy detect [ASH] 
   
   Changes
   ------------

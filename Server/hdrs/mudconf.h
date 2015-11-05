@@ -408,6 +408,7 @@ struct confdata {
 	int	enhanced_convtime;	/* Enhanced convtime format */
 	int	mysql_delay;	/* MySql Retry Delay Value (in seconds) */
 	char	tree_character[2];	/* The Tree Character */
+	int	proxy_checker;	/* Proxy Checker -- Not very reliable */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */

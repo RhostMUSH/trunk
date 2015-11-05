@@ -5270,28 +5270,29 @@
 
   player_starting_home      player_starting_room      player_toggles
   plushelp_file             plushelp_index            port                    
-  postdump_message          power_access              public_flags            
-  queue_active_chunk        queue_compatible          queue_idle_chunk        
-  quiet_look                quiet_whisper             quit_file               
-  quotas                    read_remote_desc          read_remote_name        
-  recycling                 register_create_file      register_host           
-  register_site             regtry_limit              restrict_home           
-  restrict_sidefx           retry_limit               robot_cost              
-  robot_flags               robot_speech              robot_toggles           
-  room_aconnect             room_adisconnect          room_attr_default       
-  room_flags                room_parent               room_quota              
-  room_toggles              roomlog_path              round_kludge
-  rwho_data_port            rwho_dump_interval        rwho_host
-  rwho_info_port            rwho_password             rwho_transmit
-  sacrifice_adjust          sacrifice_factor          safe_wipe
-  safer_passwords           safer_ufun                search_cost             
-  secure_atruselock         secure_dark               secure_functions        
-  secure_jumpok             see_owned_dark            showother_altname       
-  shs_reverse               sidefx_maxcalls           sidefx_returnval        
-  sideeffects               signal_action             signal_cron             
-  signal_object             signal_object_type        space_compress          
-  spam_limit                spam_msg                  spam_objmsg             
-  sqlite_db_path            sqlite_query_limit        stack_limit
+  proxy_checker             postdump_message          power_access            
+  public_flags              queue_active_chunk        queue_compatible        
+  queue_idle_chunk          quiet_look                quiet_whisper           
+  quit_file                 quotas                    read_remote_desc        
+  read_remote_name          recycling                 register_create_file    
+  register_host             register_site             regtry_limit            
+  restrict_home             restrict_sidefx           retry_limit             
+  robot_cost                robot_flags               robot_speech            
+  robot_toggles             room_aconnect             room_adisconnect        
+  room_attr_default         room_flags                room_parent             
+  room_quota                room_toggles              roomlog_path            
+  round_kludge              rwho_data_port            rwho_dump_interval      
+  rwho_host                 rwho_info_port            rwho_password           
+  rwho_transmit             sacrifice_adjust          sacrifice_factor        
+  safe_wipe                 safer_passwords           safer_ufun              
+  search_cost               secure_atruselock         secure_dark             
+  secure_functions          secure_jumpok             see_owned_dark          
+  showother_altname         shs_reverse               sidefx_maxcalls         
+  sidefx_returnval          sideeffects               signal_action           
+  signal_cron               signal_object             signal_object_type      
+  space_compress            spam_limit                spam_msg                
+  spam_objmsg               sqlite_db_path            sqlite_query_limit      
+  stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -8156,6 +8157,28 @@
   
   See Also: help, @readcache, plushelp_file, help_file, help_index
 
+& proxy_checker
+  Config parameter: proxy_checker <bitwise>.    Default: 0
+  
+  The proxy_checker is a bitwise mask to allow optional proxy detection and
+  possible blockiing of sites that match a proxy.  The proxy detection is
+  semi-accurate, will not detect all proxies, and can give false positives
+  for other non-proxy sites.  Phone-based connections will be seen as
+  proxies (since they essentially are).
+  
+  The following values exist:
+    0  - Disable the checker alltogether (default)
+    1  - Just detect and alert possible proxies.
+    2  - Disallow guest connections from the possible proxies.
+    4  - Disallow registration (player creation) from the possible proxy.
+    6  - (2 & 4) essentially disallow guest and registration.
+  
+  Due to the fact this is hit and miss, there is no method for forbidding
+  for the proxy checker.  Plese be aware, as this WILL give you false
+  positives, issuing option 2 or 4 (or an option of 6 which combines them)
+  can effectively block innocent players.  The option however, is there
+  anyway.
+
 & port
   Config parameter: port <port>.  Default: 6250
   
@@ -8603,6 +8626,12 @@
   new passwords will have to be at least 5 characters long, have at least one
   lowercase and uppercase letter, and require a special character which is
   non-alphanumeric or ', or -.
+  
+  DES passwords are 8 characters or less.
+  
+  SHA512 passwords (default) are 160 characters or less.
+  
+  Note:  Guest players still are allowed 'guest' as their password.
 
 & search_cost
   Config parameter: search_cost <amount>.  Default: 100
