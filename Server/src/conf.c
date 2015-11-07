@@ -1729,6 +1729,7 @@ attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
             if ( (God(player) && atrpGod(atrp->flag_see)) ||
                  (Immortal(player) && atrpImm(atrp->flag_see)) ||
                  (Wizard(player) && atrpWiz(atrp->flag_see)) ||
+                 ((HasPriv(player, NOTHING, POWER_EX_FULL, POWER5, NOTHING) && ExFullWizAttr(player)) && atrpWiz(atrp->flag_see)) ||
                  (Admin(player) && atrpCounc(atrp->flag_see)) ||
                  (Builder(player) && atrpArch(atrp->flag_see)) ||
                  (Guildmaster(player) && atrpGuild(atrp->flag_see)) ||

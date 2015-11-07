@@ -28496,3 +28496,4 @@
   * toggles did not showup when you @decompiled. [ASH]
   * @robot was broke with internal flag checks [ASH]
   * xinc/xdec for registers didn't understand labels [ASH]
+  * EXFULLWIZATTR didn't work with @aflags wiz (and lower) [ASH]

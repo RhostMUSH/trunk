@@ -1014,7 +1014,11 @@
   This toggle, when set on a player with the @power EXAMINE_FULL, will
   allow the target player to be able to see all hidden wizard attributes.
   This includes all special attributes that start with '_'.
-   
+  
+  This will also work on all @aflag definitions as long as it's a wizard
+  and lower for seeable.  This does not grant the ability to set attributes.
+  This also will not work on any @aflag definition of immortal or god.
+    
 & NOGLOBPARENT TOGGLE
   Toggle: NOGLOBPARENT (Wiz only by default)
   
