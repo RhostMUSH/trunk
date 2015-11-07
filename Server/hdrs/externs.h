@@ -32,6 +32,7 @@
 #define atrpArch(s) (s == 3)
 #define atrpCounc(s) (s == 4)
 #define atrpWiz(s) (s == 5)
+#define atrvWiz(s) (s <= 5)
 #define atrpImm(s) (s == 6)
 #define atrpGod(s) (s == 7)
 #define atrpPreReg(s) (s == 0)
