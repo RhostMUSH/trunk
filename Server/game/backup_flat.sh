@@ -38,7 +38,7 @@
 # NCFTPFILE - filename that is used to store login/password info for ncftpput
 #             We force this file user read only for safty
 #             You need to edit this file with your login/password/host info!
-# EMAIL - Login/password combination to use for rcp/scp backups
+# CPLOGIN - Login/password combination to use for rcp/scp backups
 # BKUPPATH - remote path you wish backups to go
 # ENABLEREMOTE - toggle to enable/disable remote backup and specify type
 #                0 - none, 1 - rcp/scp, 2 - ncftp, 3 - nail (or other mailprg)
@@ -47,10 +47,11 @@
 # MAILSUBJ - subject for the mail system
 # MAILTO - where to send the mail to
 # MAILMSG - message you want included in any mail with the logs
+# MUTTFIX - If your mail program is mutt, uncomment this line for mailing.
 #############################################################################
 init_rcp() {
    RCP=/usr/bin/scp	
-   EMAIL=none@none.com
+   CPLOGIN=none@none.com
    BKUPPATH=/home/none
    NCFTP=/usr/bin/ncftpput
    NCFTPFILE=./.rfile
@@ -61,6 +62,7 @@ init_rcp() {
    MAILSUBJ="RhostMUSH Backup"
    MAILTO="$LOGNAME@localhost"
    MAILMSG="The backup was successful"
+   #MUTTFIX="--"
 }
 #############################################################################
 
@@ -71,7 +73,7 @@ init_rcp() {
 # MAILPROG - the mail program that is used to email
 #############################################################################
 init_logging() {
-   ERRMAIL=${LOGNAME}
+   ERRMAIL=${MAILTO}
    ERRMAILPROG=mail		
 }
 #############################################################################
@@ -283,26 +285,26 @@ do_remote_copy() {
    then
       if [ ${ENABLEREMOTE} -eq 1 ]
       then
-         ${RCP} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT} ${EMAIL}:${BKUPPATH}
+         ${RCP} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT} ${CPLOGIN}:${BKUPPATH}
       elif [ ${ENABLEREMOTE} -eq 2 ]
       then
          ${NCFTP} -f ${NCFTPFILE} ${BKUPPATH} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT}
       elif [ ${ENABLEREMOTE} -eq 3 ]
       then
-         echo "${MAILMSG}"|${MAILPROG} -s "${MAILSUBJ}" ${MAILATTACH} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT} ${MAILTO}
+         echo "${MAILMSG}"|${MAILPROG} -s "${MAILSUBJ}" ${MAILATTACH} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT} ${MUTTFIX} ${MAILTO}
       else
          echo "" > /dev/null
       fi
    else
       if [ ${ENABLEREMOTE} -eq 1 ]
       then
-         ${RCP} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT} ${EMAIL}:${BKUPPATH}
+         ${RCP} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT} ${CPLOGIN}:${BKUPPATH}
       elif [ ${ENABLEREMOTE} -eq 2 ]
       then
          ${NCFTP} -f ${NCFTPFILE} ${BKUPPATH} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT}
       elif [ ${ENABLEREMOTE} -eq 3 ]
       then
-         echo "${MAILMSG}"|${MAILPROG} -s "${MAILSUBJ}" ${MAILATTACH} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT} ${MAILTO}
+         echo "${MAILMSG}"|${MAILPROG} -s "${MAILSUBJ}" ${MAILATTACH} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT} ${MUTTFIX} ${MAILTO}
       else
          echo "" > /dev/null
       fi
