@@ -21768,6 +21768,9 @@ FUNCTION(fun_array)
    if ( (i_width == 0) && !sep )
       sep = ' ';
 
+   if ( sep == '\n' )
+      sep = '\r';
+
    osep = alloc_lbuf("array_outsep");
    sprintf(osep, "%s", "\r\n");
    if ( nfargs > 5 ) {
@@ -21809,6 +21812,10 @@ FUNCTION(fun_array)
          p_out++;
          i++;
          if ( *s_inptr && ( (sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0)) ) ) {
+            if ( sep == '\r' ) {
+               s_inptr++;
+               p_in++;
+            }  
             i = 0;
             if ( !sep ) {
                s_ptr2 = s_inptr;
