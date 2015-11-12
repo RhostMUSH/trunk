@@ -19267,6 +19267,64 @@ FUNCTION(fun_numpos)
     return;
 }
 
+FUNCTION(fun_elementpos)
+{
+   char *s, *s_strtok, *s_strtokr, sep, *outbuff, *outbuff2;
+   int i, i_len, i_first;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *osp;
+
+
+   if (!fn_range_check("ELEMENTPOS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] || !*fargs[1] ) {
+      return;
+   }
+
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   initialize_ansisplitter(outsplit2, LBUF_SIZE);
+   outbuff = alloc_lbuf("fun_elementpos");
+   split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+   if ( !*outbuff ) {
+      free_lbuf(outbuff);
+      return;
+   }
+   i_len = strlen(outbuff);
+   s = outbuff2 = alloc_lbuf("fun_elementpos");
+   memset(outbuff2, '\0', LBUF_SIZE);
+   osp = outsplit2;
+
+   sep = ' ';
+   if ( nfargs > 2 ) 
+      sep = *fargs[2];
+
+   s_strtok = strtok_r(fargs[1], " \t", &s_strtokr);
+   i_first = 0;
+   while ( s_strtok ) {
+      i = atoi(s_strtok) - 1;
+      if ( (i >= 0) && (i < i_len) ) {
+         if ( i_first && sep ) {
+            *s = sep;
+            s++;
+            osp++;
+         }
+         *s = outbuff[i];
+         clone_ansisplitter(osp, outsplit+i);
+         osp++;
+         s++;
+         i_first = 1;
+      }
+      s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+   }
+  
+   free_lbuf(outbuff); 
+   outbuff = rebuild_ansi(outbuff2, outsplit2);
+   free_lbuf(outbuff2);
+   safe_str(outbuff, buff, bufcx);
+   free_lbuf(outbuff);
+}
+
 FUNCTION(fun_totpos)
 {
     int i = 1, i_key;
@@ -31146,6 +31204,7 @@ FUN flist[] =
     {"EDEFAULT", fun_edefault, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"EDIT", fun_edit, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"EDITANSI", fun_editansi, 3, FN_VARARGS, CA_PUBLIC, 0},
+    {"ELEMENTPOS", fun_elementpos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTS", fun_elements, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTSMUX", fun_elementsmux, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELIST", fun_elist, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
