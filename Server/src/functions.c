@@ -1387,7 +1387,6 @@ do_date_conv(char *instr, char *outstr)
    str5 = alloc_lbuf("conv5");
    str6 = alloc_lbuf("conv5");
    str7 = alloc_lbuf("conv5");
-// Wed Dec 31 19:00:00 1969
 
    time(&tt);
    tbuff = (char *) ctime(&tt);
@@ -1395,76 +1394,71 @@ do_date_conv(char *instr, char *outstr)
    sscanf(tbuff, "%s %s %d %d:%d:%d %d", s_week, s_mon, &i_day, &i_hour, &i_min, &i_sec, &i_year);
 
    if ( sscanf(instr, "%s %s %s %s:%s:%s %s", str1, str2, str3, str4, str5, str6, str7) == 7) {
-// %a %b %d %H:%M:%S %Y
+/* %a %b %d %H:%M:%S %Y */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str2, atoi(str3), atoi(str4), atoi(str5), atoi(str6), atoi(str7));
    } else if ( sscanf(instr, "%s %s %s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6 ) {
-// %a %b %d %H:%M:%S
+/* %a %b %d %H:%M:%S */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str2, atoi(str3), atoi(str4), atoi(str5), atoi(str6), i_year);
    } else if ( sscanf(instr, "%s %s %s:%s:%s %s", str1, str2, str3, str4, str5, str6) == 6) {
-// %b %d %H:%M:%S %Y
-// %B %d %H:%M:%S %Y
+/* %b %d %H:%M:%S %Y */
+/* %B %d %H:%M:%S %Y */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), atoi(str3), atoi(str4), atoi(str5), atoi(str6));
    } else if ( sscanf(instr, "%s %s %s:%s:%s", str1, str2, str3, str4, str5) == 5) {
-// %b %d %H:%M:%S
-// %B %d %H:%M:%S
+/* %b %d %H:%M:%S */
+/* %B %d %H:%M:%S */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), atoi(str3), atoi(str4), atoi(str5), i_year);
    } else if ( sscanf(instr, "%s-%s-%s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6 ) {
-// %m-%d-%Y %H:%M:%S
+/* %m-%d-%Y %H:%M:%S */
       if ( (atoi(str1) <= 12) && (atoi(str1) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str1)-1], atoi(str2), atoi(str4), atoi(str5), atoi(str6), atoi(str3));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s/%s/%s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %m/%d/%Y %H:%M:%S
+/* %m/%d/%Y %H:%M:%S */
       if ( (atoi(str1) <= 12) && (atoi(str1) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str1)-1], atoi(str2), atoi(str4), atoi(str5), atoi(str6), atoi(str3));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s.%s.%s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %m.%d.%Y %H:%M:%S
+/* %m.%d.%Y %H:%M:%S */
       if ( (atoi(str1) <= 12) && (atoi(str1) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str1)-1], atoi(str2), atoi(str4), atoi(str5), atoi(str6), atoi(str3));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s:%s:%s %s-%s-%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %H:%M:%S %m-%d-%Y
+/* %H:%M:%S %m-%d-%Y */
       if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s:%s:%s %s/%s/%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %H:%M:%S %m/%d/%Y
-      if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
-         sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
-      } else {
-         strcpy(outstr, instr);
-      }
-   } else if ( sscanf(instr, "%s:%s:%s %s/%s/%s", str1, str2, str3, str4, str5, str6) == 6) {
+/* %H:%M:%S %m/%d/%Y */
       if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s:%s:%s %s.%s.%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %H:%M:%S %m.%d.%Y
+/* %H:%M:%S %m.%d.%Y */
       if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s %s %s", str1, str2, str3) == 3) {
-// %b %d %Y
-// %B %d %Y
+/* %b %d %Y */
+/* %B %d %Y */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, atoi(str3));
    } else if ( sscanf(instr, "%s %s", str1, str2) == 2) {
-// %b %d
-// %B %d
+/* %b %d */
+/* %B %d */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, i_year);
    } else {
+/* FIFO it */
       strcpy(outstr, instr);
    }
    free_lbuf(str1);

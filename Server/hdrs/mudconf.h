@@ -409,6 +409,8 @@ struct confdata {
 	int	mysql_delay;	/* MySql Retry Delay Value (in seconds) */
 	char	tree_character[2];	/* The Tree Character */
 	int	proxy_checker;	/* Proxy Checker -- Not very reliable */
+	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
+	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */

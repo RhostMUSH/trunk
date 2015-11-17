@@ -7,6 +7,8 @@
 &CMD_DESERT FollowCode=$desert*:@pemit %#=[u([parent(me)]/DESERTMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODESERT%q0,%#,%q1)]
 &CMD_DISMISS FollowCode=$dismiss*:@pemit %#=[u([parent(me)]/DISMISSMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODISMISSFOLLOWING%q0,%q1,%#)];&FOLLOWERS %#=[u([parent(me)]/DODISMISSFOLLOW%q0,%#,%q1)]
 &CMD_FOLLOWLOCK FollowCode=$flock/*:@pemit %#=[u([parent(me)]/FOLLOWLOCKMSG[match(allow deny list,first(%0))],rest(%0))];@break [!r(0)];@eval [u([parent(me)]/DOFOLLOWLOCK,rest(%0))]
+&VERSION FollowCode=FollowCode 1.0.1 [Ashen-Shugar]
+@adisconnect FollowCode=@include/command me/desert
 @set FollowCode=INDESTRUCTABLE
 @set FollowCode=SAFE
 @set FollowCode=INHERIT

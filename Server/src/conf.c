@@ -292,6 +292,8 @@ NDECL(cf_init)
     mudconf.mysql_delay = 0;		/* Toggle to turn on/off delay > 0 sets delay */
     mudconf.name_with_desc = 0;		/* Enable state to allow looking at names of things you can't examine */
     mudconf.proxy_checker = 0;		/* Proxy Checker -- Not very reliable */
+    mudconf.idle_stamp = 0;             /* Enable for idle checking on players */
+    mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3903,6 +3905,13 @@ CONF conftable[] =
     {(char *) "idle_message",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.idle_message, 0, 0, CA_WIZARD,
      (char *) "Do wizards receive message when idled out?"},
+    {(char *) "idle_stamp",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.idle_stamp, 0, 0, CA_WIZARD,
+     (char *) "Enable idle player checking?"},
+    {(char *) "idle_stamp_max",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.idle_stamp_max, 300, 1, CA_WIZARD,
+     (char *) "Max count for idle checking.\r\n"\
+              "        [range 1-300]        Default: 10   Value: %d"},
     {(char *) "idle_wiz_cloak",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.idle_wiz_cloak, 0, 0, CA_WIZARD,
      (char *) "Do wizards cloak when idled out?"},

@@ -5215,28 +5215,28 @@
   Topic: CONFIG PARAMETERS (continued)
   
   hostnames                icmd_obj                 idle_interval          
-  idle_message             idle_timeout             idle_wiz_dark          
-  idle_wiz_cloak           ifelse_substitution      imm_nomod              
-  include                  includecnt               includenest            
-  initial_size             input_database           internal_compress_string
-  inventory_name           kill_guarantee_cost      kill_max_cost          
-  kill_min_cost            lastsite_paranoia        lattr_default_oldstyle 
-  lcon_checks_dark         lfunction_max            list_access            
-  list_max_chars           listen_parents           link_cost              
-  lnum_compat              lock_recursion_limit     log                    
-  log_command_list         log_maximum              log_network_errors     
-  log_options              login_to_prog            logout_cmd_access      
-  logout_cmd_alias         look_moreflags           look_obey_terse        
-  machine_command_cost     mail_anonymous           mail_autodeltime       
-  mail_default             mail_def_object          mail_hidden            
-  mail_tolist              mail_verbosity           mailbox_size           
-  maildelete               mailinclude_file         mailprog               
-  mailsub                  mailmax_send             master_room            
-  match_own_commands       manlog_file              map_delim_space        
-  max_cpu_cycles           max_dest_limit           max_folders            
-  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
-  max_pcreate_time         max_percentsubs          max_players            
-  max_sitecons           
+  idle_message             idle_stamp               idle_stamp_max
+  idle_timeout             idle_wiz_dark            idle_wiz_cloak         
+  ifelse_substitution      imm_nomod                include                
+  includecnt               includenest              initial_size           
+  input_database           internal_compress_string inventory_name         
+  kill_guarantee_cost      kill_max_cost            kill_min_cost          
+  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
+  lfunction_max            list_access              list_max_chars         
+  listen_parents           link_cost                lnum_compat            
+  lock_recursion_limit     log                      log_command_list       
+  log_maximum              log_network_errors       log_options            
+  login_to_prog            logout_cmd_access        logout_cmd_alias       
+  look_moreflags           look_obey_terse          machine_command_cost   
+  mail_anonymous           mail_autodeltime         mail_default            
+  mail_def_object          mail_hidden              mail_tolist            
+  mail_verbosity           mailbox_size             maildelete             
+  mailinclude_file         mailprog                 mailsub                
+  mailmax_send             master_room              match_own_commands     
+  manlog_file              map_delim_space          max_cpu_cycles         
+  max_dest_limit           max_folders              max_lastsite_cnt       
+  max_name_protect         max_pcreate_lim          max_pcreate_time       
+  max_percentsubs          max_players              max_sitecons           
   
 { 'wizhelp config parameters4' for more }
 
@@ -7037,6 +7037,27 @@
   Indicates if a wizard receives a message when they have idled beyond the
   idle_timeout and if they have gone dark or cloaked.
   See Also: idle_timeout, idle_wiz_cloak, idle_wiz_dark
+
+& idle_stamp
+  Config parameter: idle_stamp <yes/no>.  Default: no
+  
+  Specifies if it should stamp a CRC32 checksum of what the player typed and
+  how many times they did it up to <idle_stamp_max> commands on the target
+  player.  This effectively is an anti-idle detection mechanism that will
+  quickly identify the commands typed by the player if they're the same
+  and keep a count of how often the player has issued it.
+  
+  See Also: idle_stamp_max
+  
+& idle_stamp_max
+  Config parameter: idle_stamp_max <count>  Default: 10
+  
+  Specifies how many commands are to be logged per player with a running 
+  tally of how often they typed the command.  The command is a hashed
+  value so you won't actually see what the player typed, only if what
+  they typed matches what they previously typed.
+  
+  See Also: idle_stamp
 
 & idle_timeout
   Config parameter: idle_timeout <secs>.  Default: 3600 (one hour)

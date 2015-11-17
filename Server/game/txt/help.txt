@@ -28442,6 +28442,7 @@
   * esclist() and unesclist() to specify characters to escape [ASH]
   * added proxy_checker config param for semi-accurate proxy detect [ASH] 
   * elementpos() works like elements() but for characters [ASH]
+  * anti-idling detection added via idle_stamp and idle_stamp_max [ASH]
   
   Changes
   ------------
