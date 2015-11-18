@@ -28531,3 +28531,4 @@
   * xinc/xdec for registers didn't understand labels [ASH]
   * EXFULLWIZATTR didn't work with @aflags wiz (and lower) [ASH]
   * array() didn't normalize %r's correctly [ASH]
+  * crashbug in idle_stamp for noncommands [ASH]
