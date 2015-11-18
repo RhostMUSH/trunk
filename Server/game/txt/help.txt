@@ -3025,7 +3025,13 @@
     flags           - Lists the name and letter of all the flags.
     functions       - Lists all the available functions.
     options         - Lists several global options and limits.
-                      You may specify subtopics: boolean, values, config, mail
+        |             You may specify subtopics: boolean, values, config, 
+        |             mail, and system
+        +-> boolean - Subtopic option for listing boolean values
+        +-> values  - Subtopic option for listing int values
+        +-> config  - Subtopic option for listing config options
+        +-> mail    - Subtopic option for listing mail options
+        +-> system  - Subtopic option for listing system settings
     switches        - Lists what commands support switches and the switches
                       that they do support.
     toggles         - Lists toggles supported by the mush.
