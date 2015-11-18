@@ -360,7 +360,7 @@ shovechars(int port,char* address)
     DESC *d, *dnext, *newd;
     CMDENT *cmdp = NULL;
     int avail_descriptors, maxfds, active_auths, aflags2, temp1, temp2;
-    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep;
+    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep, i_len;
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
          s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, *b_progatrptr;
@@ -743,9 +743,10 @@ shovechars(int port,char* address)
 		}
 
                 /* Idle stamp checking for command typed */
-                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) ) {
+                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
                    ulCRC32 = 0;
-                   ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, strlen(d->input_head->cmd));
+                   i_len = strlen(d->input_head->cmd);
+                   ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, i_len);
                    anum = mkattr("_IDLESTAMP");
                    if ( anum > 0 ) {
                       ap = atr_num(anum);
