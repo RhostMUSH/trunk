@@ -1,6 +1,6 @@
 #!/bin/bash
 :> temp.html
-for i in $(cat shit)
+for i in $(cat proxysnarf.txt)
 do
    echo "Processing $i..."|tr -d '\012'
    wget -O index.html $i > /dev/null 2>&1
