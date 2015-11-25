@@ -4819,6 +4819,7 @@ FUNCTION(fun_scramble)
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     initialize_ansisplitter(outsplit2, LBUF_SIZE);
     outbuff = alloc_lbuf("fun_scramble");
+    memset(outbuff, '\0', LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
     num = strlen(outbuff);
@@ -14921,17 +14922,43 @@ FUNCTION(fun_mid)
 FUNCTION(fun_first)
 {
     char *s, *first, sep;
+    ANSISPLIT outsplit[LBUF_SIZE], *sp;
+    char *outbuff, *retbuff;
 
     /* If we are passed an empty arglist return a null string */
 
     if (nfargs == 0) {
         return;
     }
-    varargs_preamble("FIRST", 2);
-    s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
-    first = split_token(&s, sep);
-    if (first) {
-        safe_str(first, buff, bufcx);
+    if (!fn_range_check("FIRST", nfargs, 1, 3, buff, bufcx))
+       return;
+
+    sep = ' ';
+    if ( (nfargs > 1) && *fargs[1] )
+       sep = *fargs[1];
+
+    if ( nfargs <= 2 ) {
+       s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
+       first = split_token(&s, sep);
+       if (first) {
+           safe_str(first, buff, bufcx);
+       }
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       outbuff = alloc_lbuf("fun_first");
+       memset(outbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+       first = s = trim_space_sep(outbuff, sep);  /* leading spaces ... */
+       sp = outsplit + (first - outbuff);
+       while ( *s && *s != sep ) s++;
+       *s = '\0';
+       if ( *first ) {
+          retbuff = rebuild_ansi(first, sp);
+          safe_str(retbuff, buff, bufcx);
+          free_lbuf(retbuff);
+       }
+       free_lbuf(outbuff);
     }
 }
 
@@ -28986,29 +29013,72 @@ FUNCTION(fun_last)
 {
     char sep, *pStart, *pEnd, *p;
     int nLen;
+    ANSISPLIT outsplit[LBUF_SIZE], *sp_Start, *sp_End, *sp;
+    char *outbuff, *retbuff;
+
 
     if (nfargs <= 0) {
         return;
     }
-    varargs_preamble("LAST", 2);
 
-    nLen = strlen(fargs[0]);
-    pStart = trim_space_sep(fargs[0], sep);
-    pEnd = pStart + nLen - 1;
+    if (!fn_range_check("LAST", nfargs, 1, 3, buff, bufcx))
+       return;
 
-    if (sep == ' ') {
-        while (pStart <= pEnd && *pEnd == ' ') {
-            pEnd--;
-        }
-        pEnd[1] = '\0';
+    sep = ' ';
+    if ( (nfargs > 1) && *fargs[1] )
+       sep = *fargs[1];
+
+    if ( nfargs <= 2 ) {
+       nLen = strlen(fargs[0]);
+       pStart = trim_space_sep(fargs[0], sep);
+       pEnd = pStart + nLen - 1;
+   
+       if (sep == ' ') {
+           while (pStart <= pEnd && *pEnd == ' ') {
+               pEnd--;
+           }
+           pEnd[1] = '\0';
+       }
+   
+       p = pEnd;
+       while (pStart <= p && *p != sep) {
+           p--;
+       }
+   
+       safe_str(p+1, buff, bufcx);
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       outbuff = alloc_lbuf("fun_last");
+       memset(outbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+  
+       nLen = strlen(outbuff);
+       pStart = trim_space_sep(outbuff, sep);
+       sp_Start = outsplit + (pStart - outbuff);
+       pEnd = pStart + nLen - 1;
+       sp_End = sp_Start + nLen - 1;
+
+       if ( sep == ' ' ) {
+          while ( pStart <= pEnd && *pEnd == ' ' ) {
+             pEnd--;
+             sp_End--;
+          }
+          pEnd[1] = '\0';
+       }
+      
+       p = pEnd;
+       sp = sp_End;
+       
+       while (pStart <= p && *p != sep) {
+          p--;
+          sp--;
+       }
+
+       retbuff = rebuild_ansi(p+1, sp+1);
+       safe_str(retbuff, buff, bufcx);
+       free_lbuf(outbuff);
+       free_lbuf(retbuff);
     }
-
-    p = pEnd;
-    while (pStart <= p && *p != sep) {
-        p--;
-    }
-
-    safe_str(p+1, buff, bufcx);
 }
 
 /* ---------------------------------------------------------------------------

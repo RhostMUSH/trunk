@@ -12324,13 +12324,15 @@
   See Also: dist2d()
   
 & FIRST()
-  Function: first(<string>[, <delim>])
+  Function: first(<string>[, <delim> [, <key>]])
  
   Returns the first word of a string, that is, everything to the left
   of the first space in the string, or the entire string if there are
   no spaces in the string.
   
   <delim> may be used to specify a word delimiter other than a space.
+  
+  <key> may be specified as '1' to allow first() to be ansi-aware.
  
   Example:
     > say first(This is a test)
@@ -15975,10 +15977,14 @@
   See Also: lnum()
   
 & LAST()
-  Function: last(<list> [,<delim>])
+  Function: last(<list> [,<delim> [,<key>]])
   
   This function returns the last element in the list.  You may specify an 
   optional seperator (delim), otherwise a default of a space is used.
+  
+  <delim> may be used to specify a word delimiter other than a space.
+  
+  <key> may be specified as '1' to allow last() to be ansi-aware.
   
   Examples:
     > say last(this is a test)
@@ -28499,6 +28505,7 @@
   * ! shown on @function and @lfunction if a flag permission exists [ASH]
   * array() has optional output seperator [ASH]
   * %q<LABEL> now also handles 0-9a-z registers [ASH]
+  * first() and last() are now optionally ANSI-aware with 3rd arg [ASH]
     
   Bug Fixes
   ------------
