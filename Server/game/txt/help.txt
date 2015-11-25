@@ -12337,7 +12337,7 @@
   Example:
     > say first(This is a test)
     You say "This"
-    > say first(Would you like coffee, or perhaps tea)
+    > say first(Would you like coffee\, or perhaps tea)
     You say "Would"
     > say first(List&with&nonstandard&delimiters,&)
     You say "List"
