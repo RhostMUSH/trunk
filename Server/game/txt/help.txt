@@ -15480,6 +15480,7 @@
   
   See Also: convsecs(), convtime(), time(), timefmt()
   
+& MWORDS()
 & WORDS()
   Function:  words(<string>[, <delim>])
             mwords(<string>[, <multi-character-delim>])
