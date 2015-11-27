@@ -14937,7 +14937,7 @@ FUNCTION(fun_first)
     if ( (nfargs > 1) && *fargs[1] )
        sep = *fargs[1];
 
-    if ( nfargs <= 2 ) {
+    if ( (nfargs <= 2) || (atoi(fargs[2]) == 0) ) {
        s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
        first = split_token(&s, sep);
        if (first) {
@@ -29028,7 +29028,7 @@ FUNCTION(fun_last)
     if ( (nfargs > 1) && *fargs[1] )
        sep = *fargs[1];
 
-    if ( nfargs <= 2 ) {
+    if ( (nfargs <= 2) || (atoi(fargs[2]) == 0) ) {
        nLen = strlen(fargs[0]);
        pStart = trim_space_sep(fargs[0], sep);
        pEnd = pStart + nLen - 1;
