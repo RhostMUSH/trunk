@@ -28540,3 +28540,4 @@
   * EXFULLWIZATTR didn't work with @aflags wiz (and lower) [ASH]
   * array() didn't normalize %r's correctly [ASH]
   * crashbug in idle_stamp for noncommands [ASH]
+  * CYGWIN should work with compiling Rhost on Windows platforms [ASH]
