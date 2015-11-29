@@ -172,13 +172,13 @@ NDECL(cf_init)
     mudconf.regtry_limit = 1;
     if ( LBUF_SIZE == 4000 ) {
        mudconf.output_limit = 16384;
-    } else if ( LBUF_SIZE = 8192 ) {
+    } else if ( LBUF_SIZE == 8192 ) {
        mudconf.output_limit = 65536;
-    } else if ( LBUF_SIZE = 16384 ) {
+    } else if ( LBUF_SIZE == 16384 ) {
        mudconf.output_limit = 131072;
-    } else if ( LBUF_SIZE = 32768 ) {
+    } else if ( LBUF_SIZE == 32768 ) {
        mudconf.output_limit = 262144;
-    } else if ( LBUF_SIZE = 65536 ) {
+    } else if ( LBUF_SIZE == 65536 ) {
        mudconf.output_limit = 524288;
     } else {
        mudconf.output_limit = 16384;
