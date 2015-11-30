@@ -1129,7 +1129,7 @@ destroy_player(dbref player, dbref victim, int purge)
 
     boot_off(victim, (char *) "You have been destroyed!");
     halt_que(victim, NOTHING);
-    count = chown_all(victim, player);
+    count = chown_all(victim, player, 0);
     /* MMMail Addition for hardcoded mailer */
     mudstate.nuke_status = 1;
     areg_del_player(victim);

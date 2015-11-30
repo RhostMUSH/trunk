@@ -28541,3 +28541,4 @@
   * array() didn't normalize %r's correctly [ASH]
   * crashbug in idle_stamp for noncommands [ASH]
   * CYGWIN should work with compiling Rhost on Windows platforms [ASH]
+  * the /preserve switch to @chownall didn't work properly [ASH]

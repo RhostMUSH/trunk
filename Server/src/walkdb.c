@@ -371,58 +371,61 @@ STATS	statinfo;
 #endif	/* MSTATS */
 }
 
-int chown_all (dbref from_player, dbref to_player)
+int chown_all (dbref from_player, dbref to_player, int key)
 {
-int	i, count, quota_out[4], quota_in[4];
+   int i, count, quota_out[4], quota_in[4];
 
-	if (Typeof(from_player) != TYPE_PLAYER)
-		from_player = Owner(from_player);
-	if (Typeof(to_player) != TYPE_PLAYER)
-		to_player = Owner(to_player);
-	count = 0;
-	for (i = 0; i < 4; i++)
-	  quota_out[i] = quota_in[i] = 0;
-	DO_WHOLE_DB(i) {
-		if (Recover(i))
-		  continue;
-		if ((Owner(i) == from_player) && (Owner(i) != i)) {
-			switch (Typeof(i)) {
-			case TYPE_PLAYER:
-				s_Owner(i, i);
-				quota_out[TYPE_PLAYER] += mudconf.player_quota;
-				break;
-			case TYPE_THING:
-				s_Owner (i, to_player);
-				quota_out[TYPE_THING] += mudconf.thing_quota;
-				quota_in[TYPE_THING] += mudconf.thing_quota;
-				break;
-			case TYPE_ROOM:
-				s_Owner (i, to_player);
-				quota_out[TYPE_ROOM] += mudconf.room_quota;
-				quota_in[TYPE_ROOM] += mudconf.room_quota;
-				break;
-			case TYPE_EXIT:
-				s_Owner (i, to_player);
-				quota_out[TYPE_EXIT] += mudconf.exit_quota;
-				quota_in[TYPE_EXIT] += mudconf.exit_quota;
-				break;
-			default:
-				s_Owner (i, to_player);
-			}
-			s_Flags(i, (Flags(i) & ~(CHOWN_OK|INHERIT)) | HALT);
-			count++;
-		}
-	}
-	for (i = 0; i < 4; i++) {
-	  add_quota(from_player, quota_out[i], i);
-	  pay_quota_force(to_player, quota_in[i], i);
-	}
-	return count;
+   if (Typeof(from_player) != TYPE_PLAYER)
+      from_player = Owner(from_player);
+   if (Typeof(to_player) != TYPE_PLAYER)
+      to_player = Owner(to_player);
+   count = 0;
+   for (i = 0; i < 4; i++)
+      quota_out[i] = quota_in[i] = 0;
+   DO_WHOLE_DB(i) {
+      if (Recover(i))
+         continue;
+      if ((Owner(i) == from_player) && (Owner(i) != i)) {
+         switch (Typeof(i)) {
+            case TYPE_PLAYER:
+               s_Owner(i, i);
+               quota_out[TYPE_PLAYER] += mudconf.player_quota;
+               break;
+            case TYPE_THING:
+               s_Owner (i, to_player);
+               quota_out[TYPE_THING] += mudconf.thing_quota;
+               quota_in[TYPE_THING] += mudconf.thing_quota;
+               break;
+            case TYPE_ROOM:
+               s_Owner (i, to_player);
+               quota_out[TYPE_ROOM] += mudconf.room_quota;
+               quota_in[TYPE_ROOM] += mudconf.room_quota;
+               break;
+            case TYPE_EXIT:
+               s_Owner (i, to_player);
+               quota_out[TYPE_EXIT] += mudconf.exit_quota;
+               quota_in[TYPE_EXIT] += mudconf.exit_quota;
+               break;
+            default:
+               s_Owner (i, to_player);
+         }
+         if ( !key ) {
+/*          s_Flags(i, (Flags(i) & ~(CHOWN_OK|INHERIT)) | HALT); */
+            s_Flags(i, (Flags(i) & ~(CHOWN_OK|INHERIT|WIZARD|IMMORTAL|ADMIN|BUILDER|GUILDMASTER)) | HALT);
+         }
+         count++;
+      }
+   }
+   for (i = 0; i < 4; i++) {
+      add_quota(from_player, quota_out[i], i);
+      pay_quota_force(to_player, quota_in[i], i);
+   }
+   return count;
 }
 
 void do_chownall (dbref player, dbref cause, int key, char *from, char *to)
 {
-int	count;
+int	count, bLeaveFlags;
 dbref	victim, recipient;
 
 	init_match (player, from, TYPE_PLAYER);
@@ -449,7 +452,8 @@ dbref	victim, recipient;
 		notify(player, "Permission denied.");
 		return;
 	}
-	count = chown_all(victim, recipient);
+        bLeaveFlags = (key & CHOWN_PRESERVE) && Wizard(player);
+	count = chown_all(victim, recipient, bLeaveFlags);
 	if (!Quiet(player)) {
 		notify(player, unsafe_tprintf("%d objects @chowned.", count));
 	}
