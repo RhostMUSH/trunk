@@ -179,6 +179,15 @@ NAMETAB chown_sw[] = {
   {NULL, 0, 0, 0, 0}
 };
 
+NAMETAB chownall_sw[] = {
+  {(char *) "preserve", 2, CA_WIZARD, 0, CHOWN_PRESERVE},
+  {(char *) "room", 1, CA_WIZARD, 0, CHOWN_ROOM | SW_MULTIPLE},
+  {(char *) "exit", 1, CA_WIZARD, 0, CHOWN_EXIT | SW_MULTIPLE},
+  {(char *) "player", 2, CA_WIZARD, 0, CHOWN_PLAYER | SW_MULTIPLE},
+  {(char *) "thing", 1, CA_WIZARD, 0, CHOWN_THING | SW_MULTIPLE},
+  {NULL, 0, 0, 0, 0}
+};
+
 NAMETAB cluster_sw[] = {
   {(char *) "new", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_NEW},
   {(char *) "add", 2, CA_WIZARD, CA_CLUSTER, CLUSTER_ADD},
@@ -1114,7 +1123,7 @@ CMDENT command_table[] =
     {(char *) "@chown", chown_sw,
      CA_NO_SLAVE | CA_NO_GUEST | CA_GBL_BUILD | CA_NO_WANDER, 0,
      CHOWN_ONE, CS_TWO_ARG | CS_INTERP, 0, do_chown},
-    {(char *) "@chownall", chown_sw, CA_WIZARD | CA_ADMIN | CA_GBL_BUILD, 0,
+    {(char *) "@chownall", chownall_sw, CA_WIZARD | CA_ADMIN | CA_GBL_BUILD, 0,
      CHOWN_ALL, CS_TWO_ARG | CS_INTERP, 0, do_chownall},
     {(char *) "@clone", clone_sw,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_CONTENTS | CA_NO_GUEST | CA_NO_WANDER, 0,
@@ -9984,6 +9993,35 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             }
          }
          break;
+/*
+      case CLUSTER_CLONE:
+         if ( i_isequal ) {
+            notify(player, "Invalid syntax for @cluster/clone.  Use: @cluster/clone <dbref#>");
+         } else if ( !Cluster(thing) ) {
+            notify(player, "That object isn't a cluster.  Use @cluster/new to make one.");
+         } else {
+            anum = mkattr("_CLUSTER");
+            if ( anum > 0 ) {
+               attr = atr_num(anum);
+               if ( !attr ) {
+                  notify(player, "Can not make cluster attribute!  Aborting!");
+               } else {
+                  s_text = atr_get(thing, attr->number, &aowner, &aflags);
+                  if ( !*s_text ) {
+                     notify(player, "The cluster listing got corrupted!  Aborting!");
+                  }
+                  free_lbuf(s_text);
+// Check if player has quota to clone
+// Check if player has permission to clone
+// Keep track of every dbref# that is being cloned.  int[LBUF/2] works well for this.
+// Clone the object, keep track of it, and when done, set _CLUSTER attrib and CLUSTER toggle
+               }
+            } else {
+               notify(player, "Can not make cluster attribute!  Aborting!");
+            }
+         }
+         break;
+*/
       case CLUSTER_ADD:  
          if ( !i_isequal ) {
             if ( i_sideeffect ) 

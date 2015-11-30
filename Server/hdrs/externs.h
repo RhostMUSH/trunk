@@ -570,6 +570,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CHOWN_ONE	1	/* item = new_owner */
 #define	CHOWN_ALL	2	/* old_owner = new_owner */
 #define CHOWN_PRESERVE  4       /* wiz+ only. Don't set halt, keep flags */
+#define CHOWN_ROOM	8
+#define CHOWN_EXIT	16
+#define CHOWN_PLAYER	32
+#define CHOWN_THING	64
 #define	CLONE_LOCATION	0	/* Create cloned object in my location */
 #define	CLONE_INHERIT	1	/* Keep INHERIT bit if set */
 #define	CLONE_PRESERVE	2	/* Preserve the owner of the object */

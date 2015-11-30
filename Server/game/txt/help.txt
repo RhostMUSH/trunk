@@ -28507,6 +28507,8 @@
   * array() has optional output seperator [ASH]
   * %q<LABEL> now also handles 0-9a-z registers [ASH]
   * first() and last() are now optionally ANSI-aware with 3rd arg [ASH]
+  * @chownall now optionally allows a mix of specifying room, exit,
+    thing or player.  It defaults to all types [ASH]
     
   Bug Fixes
   ------------
@@ -28542,3 +28544,5 @@
   * crashbug in idle_stamp for noncommands [ASH]
   * CYGWIN should work with compiling Rhost on Windows platforms [ASH]
   * the /preserve switch to @chownall didn't work properly [ASH]
+  * @chownall and @chown did not properly strip some of the staff
+    flags as it should have when /preserve was not specified [ASH]

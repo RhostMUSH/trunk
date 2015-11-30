@@ -2325,12 +2325,14 @@
 
 & @clone
   Command: @clone[/<switches>] <object>
+  
   Wizards may also specify the /preserve switch, which preserves the original
   owner of the object in the new copy, instead of creating the copy as being
   owned by the wizard.
 
 & @chownall
   Command: @chownall[/<switch>] <victim>[=<recipient>]
+  
   Changes the ownership of all of the victim's objects, rooms, and exits to
   the indicated recipient (or to the wizard performing the @chownall if
   no recipient is specified).  All objects, rooms, and exits are set HALTED.
@@ -2339,7 +2341,17 @@
   
   The following additional switches are available to wizards:
     /preserve - preserve flags on target items.
+    /exit     - Specify just exits to chown.
+    /room     - Specify just rooms to chown.
+    /thing    - Specify just things to chown.
+    /player   - Specify just players (Robots via @robot) to chown.
    
+  All switches can be combined.  If you do not specify a TYPE switch it 
+  will assume all types (which is the default behavior).
+  
+  Without specifying /preserve, Robots will be owned to themselves as this
+  could be a security risk otherwise.
+     
   Be careful when using /preserve with @chownall as some things may not be
   desireable to have flags passed over!  This may be a security risk!
    
@@ -2347,6 +2359,7 @@
 
 & @cut
   Command: @cut <object/exit>
+  
   Cuts off the object or exit list for the current location at the indicated
   object or exit by setting [next(thing)] to NOTHING.  Objects or exits that
   follow in the chain are not moved or otherwise changed, and are only

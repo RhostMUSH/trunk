@@ -93,8 +93,8 @@
 #define GUILDOBJ        0x00000200      
 #define GUILDMASTER     0x00000400      /* Player has gm privs */
 #define NO_WALLS        0x00000800      /* So to stop normal walls */
-#define OLD_TEMPLE	0x00001000
-#define OLD_NOROBOT	0x00002000
+/* 0x00001000 free */                   /* #define OLD_TEMPLE	0x00001000 */
+/* 0x00002000 free */                   /* #define OLD_NOROBOT	0x00002000 */
 #define SCLOAK		0x00004000
 #define CLOAK		0x00008000
 #define FUBAR		0x00010000

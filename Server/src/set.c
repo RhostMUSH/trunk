@@ -705,7 +705,8 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
     atr_chown(thing);
 
     if (!bLeaveFlags) {
-      s_Flags(thing, (Flags(thing) & ~(CHOWN_OK|INHERIT|WIZARD|IMMORTAL|ADMIN|BUILDER|GUILDMASTER)) | HALT);
+      s_Flags(thing, (Flags(thing) & ~(CHOWN_OK|INHERIT|WIZARD)) | HALT);
+      s_Flags2(thing, (Flags2(thing) & ~(IMMORTAL|ADMIN|BUILDER|GUILDMASTER)));
     }
     halt_que(NOTHING, thing);
       
