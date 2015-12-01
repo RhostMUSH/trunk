@@ -1728,6 +1728,8 @@ queue_string(DESC * d, const char *s)
 
     DPUSH; /* #119 */
 
+    if ( !d )
+       VOIDRETURN;
     if ((!d->player || !ShowAnsi(d->player)) && index(s, ESC_CHAR))
 	new = strip_ansi(s);
     else if (!ShowAnsiColor(d->player) && index(s, ESC_CHAR))

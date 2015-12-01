@@ -47,7 +47,7 @@ extern int FDECL(process_door_input, (DESC *));
 extern void FDECL(save_door, (DESC *, char *));
 extern void FDECL(initDoorSystem, (void));
 extern void FDECL(modifyDoorStatus, (dbref, char *, char *));
-extern void FDECL(openDoor, (dbref, dbref, char *, int, char *[]));
+extern void FDECL(openDoor, (dbref, dbref, char *, int, char *[], int));
 extern void FDECL(closeDoor, (DESC *, char *));
 extern void FDECL(closeDoorWithId, (DESC *, int));
 extern void FDECL(listDoors, (dbref, char *, int full));

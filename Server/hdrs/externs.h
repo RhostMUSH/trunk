@@ -632,6 +632,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DOOR_SW_CLOSE	4
 #define DOOR_SW_STATUS  8
 #define DOOR_SW_FULL    16
+#define DOOR_SW_PUSH	32
 #define	DROP_QUIET	1	/* Don't do odrop/adrop if control */
 #define	DUMP_STRUCT	1	/* Dump flat structure file */
 #define	DUMP_TEXT	2	/* Dump text (gdbm) file */

@@ -5462,44 +5462,95 @@
   
   See Also: drop, @adfail, @odfail, @lock
   
-& @DOOR
-  Command : @DOOR 
-  Switches: STATUS, OPEN, CLOSED, LIST
+& @door
+  Command: @door 
+  Switches: STATUS, OPEN, CLOSED, LIST, PUSH, KICK
   
-  @DOOR provides control over arbitraty TCP connections that are opened from
+  @door provides control over arbitraty TCP connections that are opened from
   inside the mush to some external program or service.
   
   In order for a door to be available a C-code module must first be loaded by
   an Admin(*), or compiled statically into the mush server.
   
-  To see what doors exist on your system, type: @DOOR
+  To see what doors exist on your system, type: @door
   
-  (*) Not available in RhostMUSH 3.2.4p15
+  (*) Not available in RhostMUSH 3.2.4p15 and earlier.
   
-  See Also: DOOR_OPEN, DOOR_CLOSE, DOOR_LIST, DOOR_STATUS, DOOR_WRITING,
-            INTERNAL_DOORS, DOORED
+  See 'DOOR SYNTAX' on a quick listing of commands and what they do.
+  
+  See Also: DOOR_OPEN, DOOR_PUSH, DOOR_CLOSE, DOOR_LIST, DOOR_STATUS, 
+            DOOR_KICK, DOOR_WRITING, INTERNAL_DOORS, DOORED, DOOR SYNTAX
+  
+& DOOR SYNTAX
+  Command: @door
+  
+  The following commands exist:
+    @door[/list]  -- List the available doors.  This is the default switch:
+        Syntax: @door/list
+  
+    @door/full    -- List full statistics of the specified door.
+        Syntax: @door/full <doorname>
+    
+    @door/status  -- Gives the status of the current door.
+        Syntax: @door/status <doorname>=<setting>
+        Settings: closed -- forces the door closed and drops all connections.
+                  online -- sets the door for allowing connections.
+                  offline -- forces the door offline, drops all connections
+                             plus disables the door from further connections.
+  
+   @door/open    -- Opens the specified door.               
+        Syntax: @door/open <doorname> [=<arguments>]
+        Door: MUSH
+           Arguments: mushname -- For the MUSH door, argument is the mush name
+                                  no arguments just lists the available mushes.
+        Door: EMPIRE
+           Arguments: login,password -- First arg is login, second is password
+  
+   @door/push    -- Pushes the target player into the door.
+        Syntax: @door/push <player>|<doorname> [=<arguments>]
+        Door: MUSH
+           Arguments: mushname -- For the MUSH door, argument is the mush name
+                                  no arguments just lists the available mushes.
+        Door: EMPIRE
+           Arguments: login,password -- First arg is login, second is password
+  
+   @door/close   -- Closes the specified door.
+        Syntax: @door/close <doorname>
+   
+   @door/kick    -- Closes the specified door to the target player.
+        Syntax: @door/kick <target>|<doorname>
+         
+   For custom doors, please check the help the maintainer provides.        
+  
+  See Also: DOOR_OPEN, DOOR_PUSH, DOOR_CLOSE, DOOR_LIST, DOOR_STATUS, 
+            DOOR_KICK, DOOR_WRITING, INTERNAL_DOORS, DOORED, DOOR SYNTAX
   
 & DOOR_LIST
-  Command : @DOOR/LIST <name>
+  Command: @door/list [<door>]
   
   This command lists information with regards to which doors are configured
   on this system.
   
-  @DOOR/LIST without any arguments will return the same as just typing @DOOR.
-  @DOOR/LIST name will return information for the named door only.
+  @door/list without any arguments will return the same as just typing @door.
+  @door/list <door> will return information for the named door only.
   
-  Continued in DOOR_LIST2  
+  Example:
+    > @door/list
+    > @door/list mush
   
-  See Also: @DOOR, DOOR_OPEN, DOOR_CLOSE, DOOR_STATUS, DOOR_WRITING,
+  Continued in DOOR_LIST2 which will explain the details of the output.
+  
+  See Also: @door, DOOR_OPEN, DOOR_PUSH, DOOR_CLOSE, DOOR_STATUS, DOOR_WRITING,
             INTERNAL_DOORS, DOORED
   
 & DOOR_LIST2
+  Command: @door/list [<door>]
   .. DOOR_LIST continued
   
     NUM  NAME       STATUS      P  LOC
    (# 0) MUSH       OFFLINE    (0) #PLAYER
   
-  The above is an example of information returned by @DOOR/LIST.
+  The above is an example of information returned by @door/list.
   -  The number is the internal identifier for the given door-type.
   -  The STATUS will be one of OFFLINE, ONLINE, CLOSED, OPEN, INTERNAL
   -  'P' stands for 'permission' and means that you must have a bittype()
@@ -5511,11 +5562,11 @@
      this door upon a player. #EXIT and #THING work in a similar way.
      If the value is a dbref then only the specified dbref can access the door
   
-  See Also: @DOOR, DOOR_OPEN, DOOR_CLOSE, DOOR_STATUS, DOOR_WRITING,
+  See Also: @door, DOOR_PUSH, DOOR_OPEN, DOOR_CLOSE, DOOR_STATUS, DOOR_WRITING,
             INTERNAL_DOORS, DOORED, BITTYPE()
   
 & DOOR_OPEN
-  Command : @DOOR/OPEN <name> [ = arguments ]
+  Command: @door/open <door> [=<arguments>]
   
   Use this command to open a connection to a named door. The door's status
   must be set to 'ONLINE' or already be 'OPEN' for this to work.
@@ -5523,33 +5574,84 @@
   Certain doors may require additional arguments before they can be opened.
   
   In addition some doors may have bitlevel requirements or may only be 
-  triggered by certain people, rooms, or exits. Check @DOOR/LIST for details.
+  triggered by certain people, rooms, or exits. Check @door/list for details.
   
-  See Also: @DOOR, DOOR_CLOSE, DOOR_LIST, DOOR_STATUS, DOOR_WRITING,
-            INTERNAL_DOORS, DOORED, BITTYPE()
+  Example:
+    > @door/open mush=RhostMUSH
   
+  This will open door called 'mush' with the argument target 'RhostMUSH'
+  
+  See Also: @door, DOOR_PUSH, DOOR_CLOSE, DOOR_LIST, DOOR_STATUS, DOOR_WRITING,
+            DOOR_KICK, INTERNAL_DOORS, DOORED, BITTYPE()
+  
+& DOOR_PUSH
+  Command: @door/push <player>|<door> [=<arguments>]
+  
+  Use this command to push another player through the door with any specific
+  arguments that you wish.  This is great for automated procedures.
+  
+  <player> must be a valid player, and must be connected.  If they are
+  connected more than once, it uses the connection with the least idle time.
+  
+  Example:
+    > @door/push TinyPlayer|mush=RhostMUSH
+  
+  This will open door called 'mush' with the argument target 'RhostMUSH' and
+  push the player 'TinyPlayer' into it.
+  
+  See Also: @door, DOOR_PUSH, DOOR_CLOSE, DOOR_LIST, DOOR_STATUS, DOOR_WRITING,
+            DOOR_KICK, INTERNAL_DOORS, DOORED, BITTYPE()
+
 & DOOR_CLOSE
-  Command : @DOOR/CLOSE <name>
+  Command: @door/close <door>
   
   This command will close an existing door connection providing it's 
   currently open.
   
   If you're caught in a door and need to abort it then type:
-  > !@DOOR/CLOSE <name>
+  > !@door/close <door>
   
-  See Also: @DOOR, DOOR_OPEN, DOOR_LIST, DOOR_STATUS, DOOR_WRITING,
-            INTERNAL_DOORS, DOORED
+  Please notice the '!' at the start of the command!
+   
+  Example:
+    > !@door/close mush   -- This will close the current active door
+    > !!@door/close mush  -- This will close the outermost door (if chained)
+    > !!!@door/close mush -- The third door (and so forth with more !'s)   
+  
+  See Also: @door, DOOR_PUSH, DOOR_OPEN, DOOR_LIST, DOOR_STATUS, DOOR_WRITING,
+            DOOR_KICK, INTERNAL_DOORS, DOORED
+
+& DOOR_KICK
+  Command: @door/kick <player>|<door>
+  
+  This command will close the specified <door> that the current <player> is
+  connected to.
+  
+  It will error out if the player is not a player or player is not connected.
+  
+  Example:
+    > @door/kick TinyPlayer|mush
+  
+  This will close the door 'mush' from the player 'TinyPlayer'.
+  
+  See Also: @door, DOOR_PUSH, DOOR_OPEN, DOOR_LIST, DOOR_STATUS, DOOR_WRITING,
+            DOOR_KICK, INTERNAL_DOORS, DOORED
   
 & DOOR_STATUS
-  Command : @DOOR/STATUS <name> = <status>
+  Command : @door/status <name> = <status>
   Note    : This switch is restricted to immortals only.
   
   Used to change the status of a door. Valid statuses are ONLINE, OFFLINE, and
   CLOSED. If CLOSED or OFFLINE is chosen then all existing connections are
   terminated.
   
-  See Also: @DOOR, DOOR_OPEN, DOOR_CLOSE, DOOR_LIST, DOOR_WRITING,
-            INTERNAL_DOORS, DOORED
+  Example:
+    > @door/status mush=online       -- Brings the door online
+    > @door/status mush=closed       -- shutdowns the sockets for the door
+    > @door/status mush=offline      -- Brings the door offline
+  
+  See Also: @door, DOOR_PUSH, DOOR_OPEN, DOOR_CLOSE, DOOR_LIST, DOOR_WRITING,
+            DOOR_KICK, INTERNAL_DOORS, DOORED
   
 & DOOR_WRITING
   
@@ -5597,7 +5699,7 @@
   *Func should be the name of your implementation function. P is the 
   permission, or bittype level, at which this door should be usable. And L 
   should be one of PLAYER_e, ROOM_e, EXIT_e, or dbref. It corresponds to the
-  LOC field on @DOOR/LIST
+  LOC field on @door/list
   
   initFunc, closeFunc, inputFunc and outputFunc may all be null. If the 
   inputFunc and/or outputFunc is null then the mush will simply pass bytes 
@@ -5608,8 +5710,8 @@
   included with your RhostMUSH.
   
 & INTERNAL_DOORS
-  Internal Doors are special cases of @DOORs. They will can only be seen on 
-  the active door list by immortals, and cannot be accessed via the @DOOR 
+  Internal Doors are special cases of @door. They will can only be seen on 
+  the active door list by immortals, and cannot be accessed via the @door 
   command.
   
   Typically Internal Doors are used transparently by other aspects of the 
@@ -5625,7 +5727,7 @@
   
   Expect to see alot more happening in this area soon! :)
   
-  See Also: @DOOR
+  See Also: @door
   
 & @drop
   Command: @drop[/<switch>] <object> = <message>
@@ -28456,6 +28558,8 @@
   * added proxy_checker config param for semi-accurate proxy detect [ASH] 
   * elementpos() works like elements() but for characters [ASH]
   * anti-idling detection added via idle_stamp and idle_stamp_max [ASH]
+  * @door/kick to kick a player off a connected door [ASH]
+  * @door/push to push a player into a door [ASH]
   
   Changes
   ------------
@@ -28509,6 +28613,7 @@
   * first() and last() are now optionally ANSI-aware with 3rd arg [ASH]
   * @chownall now optionally allows a mix of specifying room, exit,
     thing or player.  It defaults to all types [ASH]
+  * @door now allows interactive connections (ergo, it allows queueing) [ASH]
     
   Bug Fixes
   ------------

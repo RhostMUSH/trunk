@@ -744,15 +744,44 @@ void modifyDoorStatus(dbref player, char *pDoorName, char * status) {
 void openDoor(dbref player, 
 	      dbref cause, 
 	      char *pDoor,
-	      int nArgs, char *args[]) {
-  int d;
+	      int nArgs, char *args[], int i_type) {
+  int d, i_now;
+  DESC *d_door, *d_use;
   DPUSH; /* #11 */
 
   d = findDoor(pDoor);
   if (d < 0) {
-    notify(player, "Bad door in open.");
+    if ( player != cause ) {
+       notify(cause, "Bad door in open for specified target.");
+    } else {
+       notify(player, "Bad door in open.");
+    }
   } else if (!isPlayer(player)) {
-    notify(player, "Only players can open a door.");
+    if ( player != cause ) {
+       notify(cause, "The target is not a player so can not use doors.");
+    } else {
+       notify(player, "Only players can open a door.");
+    }
+  } else if (desc_in_use->flags & DS_HAS_DOOR) {
+    if ( player != cause ) {
+       notify(cause, "Target already has a door open on the attempted connection.");
+    } else {
+       notify(player, "You already have a door open on the attempted connection.");
+    }
+  } else if (bittype(player) <  gaDoors[d]->bittype) {
+    if ( player != cause ) {
+       notify(cause, "Try as you might, you can't shove the target through that door.");
+    } else {
+       notify(player, "Try as you might, the door refuses to budge");
+    }
+  } else if (gaDoors[d]->doorStatus == OFFLINE_e){ 
+    if ( player != cause ) {
+       notify(cause, "That door is currently offline.");
+    } else {
+       notify(player, "That door is currently offline.");
+    }
+  } else if (gaDoors[d]->locTrig == dINTERNAL_e) {
+    notify(player, "Internal doors cannot be opened in this manner.");
   } else if (gaDoors[d]->locTrig != PLAYER_e &&
 	     ((gaDoors[d]->locTrig == ROOM_e && !isRoom(cause))
 	      ||
@@ -760,27 +789,69 @@ void openDoor(dbref player,
 	      ||
 	      (gaDoors[d]->locTrig >= 0 && gaDoors[d]->locTrig != cause))) {
     notify(cause, "You can't force a player to open a door."); 
-  } else if (desc_in_use == NULL) {
-    notify(player, "Door's can't be opened from a queue.");
-  } else if (desc_in_use->flags & DS_HAS_DOOR) {
-    notify(player, "You already have a door open on the attempted connection.");
-  } else if (bittype(player) <  gaDoors[d]->bittype) {
-    notify(player, "Try as you might, the door refuses to budge");
-  } else if (gaDoors[d]->doorStatus == OFFLINE_e){ 
-    notify(player, "That door is currently offline.");
-  } else if (gaDoors[d]->locTrig == dINTERNAL_e) {
-    notify(player, "Internal doors cannot be opened in this manner.");
+  } else if ( i_type || desc_in_use == NULL) {
+     if ( !isPlayer(player) ) {
+        if ( player != cause ) {
+           notify(cause, "Invalid target.  Door's can't be opened from a non-player.");
+        } else {
+           notify(player, "Only players who are connected can issue a door.");
+        }
+     } else if ( !controls(cause, player) ) {
+        notify(cause, "Sorry, you do not have permission to force the target into a door.");
+     } else {
+        i_now = 0;
+        d_use = NULL;
+        DESC_ITER_CONN(d_door) {
+           if (d_door->player == player) {
+              if ( d_door->last_time > i_now ) {
+                 d_use = d_door;
+                 i_now = d_door->last_time;
+              }
+           }
+        }
+        if ( d_use ) {
+           if ((gaDoors[d]->pFnOpenDoor)(d_use, nArgs, args, d) < 0) {
+              LOGTEXT("ERR", player, unsafe_tprintf("failed to open a door to %s", gaDoors[d]->pName));
+              if ( player != cause ) {
+                 notify(cause, "The door fails to open for the target.");
+              } else {
+                 notify(player, "The door fails to open.");
+              }
+              shut_door(d_use);
+           } else {
+              gaDoors[d]->doorStatus = OPEN_e;
+              (gaDoors[d]->nConnections)++;
+              LOGTEXT("INF", player, unsafe_tprintf("opens a door to %s", gaDoors[d]->pName));
+              if ( player != cause ) {
+                 notify(cause, unsafe_tprintf("Target %s opens a door to %s", Name(player), gaDoors[d]->pName));
+              }
+           }
+        } else {
+           if ( player != cause ) {
+              notify(cause, "Invalid target.  Door's can't be opened from a queue with an invalid or disconnected player.");
+           } else {
+              notify(player, "Sorry, we couldn't open the door for you.");
+           }
+        }
+     }
   } else {
     if ((gaDoors[d]->pFnOpenDoor)(desc_in_use, nArgs, args, d) < 0) {
       LOGTEXT("ERR", player, unsafe_tprintf("failed to open a door to %s",
 				     gaDoors[d]->pName));
-      notify(player, "The door fails to open.");
+      if ( player != cause ) {
+         notify(cause, "The door fails to open for the target player.");
+      } else {
+         notify(player, "The door fails to open.");
+      }
       shut_door(desc_in_use);
     } else {
       gaDoors[d]->doorStatus = OPEN_e;
       (gaDoors[d]->nConnections)++;
       LOGTEXT("INF", player, unsafe_tprintf("opens a door to %s",
 				     gaDoors[d]->pName));
+      if ( player != cause ) {
+         notify(cause, unsafe_tprintf("Target %s opens a door to %s", Name(player), gaDoors[d]->pName));
+      }
     }
 
   }

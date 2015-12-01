@@ -277,6 +277,8 @@ NAMETAB door_sw[] =
 {
     {(char *) "list", 1, CA_PUBLIC, 0, DOOR_SW_LIST},
     {(char *) "open", 1, CA_PUBLIC, 0, DOOR_SW_OPEN},
+    {(char *) "push", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, DOOR_SW_PUSH},
+    {(char *) "kick", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, DOOR_SW_KICK},
     {(char *) "close", 1, CA_PUBLIC, 0, DOOR_SW_CLOSE},
     {(char *) "status", 1, CA_GOD | CA_IMMORTAL, 0, DOOR_SW_STATUS},
     {(char *) "full", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, DOOR_SW_FULL | SW_MULTIPLE},
@@ -8499,7 +8501,10 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
 void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int nargs)
 {
 #ifdef ENABLE_DOORS
-  int bFull = 0;
+  int bFull = 0, i_now;
+  char *s_strtok, *s_strtokr;
+  dbref target;
+  DESC *d_door, *d_use;
 
   DPUSH; /* #58 */
 
@@ -8517,8 +8522,35 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
       listDoors(player, dname, bFull);
       notify(player,"Done.");
       break;
+    case DOOR_SW_PUSH:
+      if ( !dname || !*dname ) {
+         notify(player, "That is not a valid player.");
+      } else {
+         s_strtok = strtok_r(dname, "|", &s_strtokr);
+         if ( !s_strtok || !*s_strtok ) {
+            target = NOTHING;
+         } else {
+            target = lookup_player(player, s_strtok, 0);
+         }
+         if ( !Good_chk(target) || !isPlayer(target) ) {
+            notify(player, "That is not a valid player.");
+         } else if ( !controls(player, target) ) {
+            notify(player, "You do not control that target.");
+         } else if ( !Connected(target) ) {
+            notify(player, "That target is not currently connected.");
+         } else {
+            s_strtok = strtok_r(NULL, "|", &s_strtokr);
+            if ( !s_strtok ) {
+               notify(player, "Invalid door specified.");
+            } else {
+               notify(player, unsafe_tprintf("You push %s through the door.", Name(target)));
+               openDoor(target, cause, s_strtok, nargs, args, 1);
+            }
+         }
+      }
+      break;
     case DOOR_SW_OPEN:
-      openDoor(player, cause, dname, nargs, args);
+      openDoor(player, cause, dname, nargs, args, 0);
       break;
     case DOOR_SW_STATUS:
       modifyDoorStatus(player, dname, nargs > 0 ? args[0] : NULL);
@@ -8526,6 +8558,46 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
     case DOOR_SW_CLOSE:
       closeDoor(desc_in_use, dname);      
       break;
+    case DOOR_SW_KICK:
+      if ( !dname || !*dname ) {
+         notify(player, "That is not a valid player.");
+      } else {
+         s_strtok = strtok_r(dname, "|", &s_strtokr);
+         if ( !s_strtok || !*s_strtok ) {
+            target = NOTHING;
+         } else {
+            target = lookup_player(player, s_strtok, 0);
+         }
+         if ( !Good_chk(target) || !isPlayer(target) ) {
+            notify(player, "That is not a valid player.");
+         } else if ( !controls(player, target) ) {
+            notify(player, "You do not control that target.");
+         } else if ( !Connected(target) ) {
+            notify(player, "That target is not currently connected.");
+         } else {
+            d_use = NULL;
+            i_now = 0;
+            DESC_ITER_CONN(d_door) {
+               if (d_door->player == target) {
+                  if ( d_door->last_time > i_now ) {
+                     d_use = d_door;
+                     i_now = d_door->last_time;
+                  }
+               }
+            }
+            if ( !d_use ) {
+               notify(player, "That target is not currently connected.");
+            } else {
+               s_strtok = strtok_r(NULL, "|", &s_strtokr);
+               if ( !s_strtok ) {
+                  notify(player, "Invalid door specified.");
+               } else {
+                  notify(player, unsafe_tprintf("You kicked %s from the door.", Name(target)));
+                  closeDoor(d_use, s_strtok);      
+               }
+            }
+         }
+     }
   }
 #endif
   DPOP; /* #58 */

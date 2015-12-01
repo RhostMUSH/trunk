@@ -36,21 +36,21 @@ int mushDoorOpen(DESC *d, int nArgs, char *args[], int id) {
      else
         sock = -1;
      if (sock < 0) {
-       queue_string(desc_in_use, "Mush connection failed\r\n");
+       queue_string(d, "Mush connection failed\r\n");
        free_lbuf(t_buff);
        return -1;
      } else {
-       queue_string(desc_in_use, "*** CONNECTED ***\r\n");
+       queue_string(d, "*** CONNECTED ***\r\n");
      }
   } else if ( !i_found || (i_found && args[0] && *args[0]) ) {
      if ( strstr(t_buff, (char *)"Sorry, that file") != NULL )
-        queue_string(desc_in_use, "There are currently no mush doors configured.\r\n");
+        queue_string(d, "There are currently no mush doors configured.\r\n");
      else
-        queue_string(desc_in_use, "Unrecognized mush.  Can not establish connection.\r\n");
+        queue_string(d, "Unrecognized mush.  Can not establish connection.\r\n");
      free_lbuf(t_buff);
      return -1;
   } else if ( i_found && (!args[0] || !*args[0]) && t_buff ) {
-     queue_string(desc_in_use, t_buff);
+     queue_string(d, t_buff);
   }
   free_lbuf(t_buff);
   return 1;
