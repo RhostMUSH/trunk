@@ -28614,6 +28614,7 @@
   * @chownall now optionally allows a mix of specifying room, exit,
     thing or player.  It defaults to all types [ASH]
   * @door now allows interactive connections (ergo, it allows queueing) [ASH]
+  * Broke out %m, %c, and %x from sub_override params [ASH]
     
   Bug Fixes
   ------------

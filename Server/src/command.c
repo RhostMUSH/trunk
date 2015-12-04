@@ -9679,9 +9679,11 @@ void do_hook(dbref player, dbref cause, int key, char *name)
    dbref aobj;
    char *s_ptr, *s_ptrbuff, *cbuff, *p, *q, *tpr_buff, *tprp_buff, *sub_buff, 
         *sub_ptr, *sub_ptrbuff, *sub_buff2, *ret_buff, ret_char;
-   char *sub_str[]={"n", "#", "!", "@", "l", "s", "o", "p", "a", "r", "t", "c", "x", "f", NULL};
+   char *sub_str[]={"n", "#", "!", "@", "l", "s", "o", "p", "a", "r", "t", "c", "x", "f", 
+                    "k", "w", "m", NULL};
    char *sub_atr[]={"SUB_N", "SUB_NUM", "SUB_BANG", "SUB_AT", "SUB_L", "SUB_S", "SUB_O", 
-                    "SUB_P", "SUB_A", "SUB_R", "SUB_T", "SUB_C", "SUB_X", "SUB_F", NULL};
+                    "SUB_P", "SUB_A", "SUB_R", "SUB_T", "SUB_C", "SUB_X", "SUB_F", "SUB_K", 
+                    "SUB_W", "SUB_M", NULL};
    CMDENT *cmdp;
    ATTR *ap, *ap2;
   

@@ -976,10 +976,10 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *bufc2, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr;
-    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc;
+    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
-    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val;
+    int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
     FUN *fp;
     UFUN *ufp, *ulfp;
@@ -1194,6 +1194,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    savec = *dstr;
 	    savepos = bufc;
             mudstate.curr_percentsubs++;
+            c_last_chr = ' ';
             
             if ( mudstate.chkcpu_toggle || (mudstate.curr_percentsubs >= mudconf.max_percentsubs) ) {
                 mudstate.tog_percentsubs = 1;
@@ -1236,27 +1237,47 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #ifdef TINY_SUB
 	    case 'x':
 	    case 'X':		/* ansi subs */
+                 if ( c_last_chr == ' ' )
+                    c_last_chr = 'X';
 #endif
 #ifdef C_SUB
 	    case 'c':
 	    case 'C':		/* ansi subs */
+                 if ( c_last_chr == ' ' )
+                    c_last_chr = 'C';
 #endif
 #ifdef M_SUB
 	    case 'm':
 	    case 'M':   	/* ansi subs */
+                 if ( c_last_chr == ' ' )
+                    c_last_chr = 'M';
 #endif
 #endif
-                if ( (mudconf.sub_override & SUB_C) && 
-                     !(mudstate.sub_overridestate & SUB_C) && 
-                     Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_C");
+                if ( Good_obj(mudconf.hook_obj) &&
+                     (((c_last_chr == 'C') && (mudconf.sub_override & SUB_C) && !(mudstate.sub_overridestate & SUB_C)) ||
+                      ((c_last_chr == 'X') && (mudconf.sub_override & SUB_X) && !(mudstate.sub_overridestate & SUB_X)) ||
+                      ((c_last_chr == 'M') && (mudconf.sub_override & SUB_M) && !(mudstate.sub_overridestate & SUB_M))) ) {
+                   switch(c_last_chr) {
+                      case 'X':
+                         sub_ap = atr_str("SUB_X");
+                         i_last_chr = SUB_X;
+                         break;
+                      case 'M':
+                         sub_ap = atr_str("SUB_M");
+                         i_last_chr = SUB_M;
+                         break;
+                      default:
+                         sub_ap = atr_str("SUB_C");
+                         i_last_chr = SUB_C;
+                         break;
+                   }
                    if (sub_ap) {
                       sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
                       if ( sub_txt  ) {
                          if ( *sub_txt ) {
-                            mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_C;
+                            mudstate.sub_overridestate = mudstate.sub_overridestate | i_last_chr;
                             sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                            mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_C;
+                            mudstate.sub_overridestate = mudstate.sub_overridestate & ~i_last_chr;
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_txt);
                             free_lbuf(sub_buf);
@@ -2024,27 +2045,47 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #ifndef C_SUB
             case 'C':		/* Command substitution */
             case 'c':
+                 if ( c_last_chr == ' ' )
+                    c_last_chr = 'C';
 #endif
 #ifndef TINY_SUB
             case 'X':		/* Command substitution */
             case 'x':
+                 if ( c_last_chr == ' ' )
+                    c_last_chr = 'X';
 #endif
 #ifndef M_SUB
             case 'M':		/* Command substitution */
             case 'm':
+                 if ( c_last_chr == ' ' )
+                    c_last_chr = 'M';
 #endif
 #endif
-                if ( (mudconf.sub_override & SUB_X) && 
-                     !(mudstate.sub_overridestate & SUB_X) && 
-                     Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_X");
+                if ( Good_obj(mudconf.hook_obj) &&
+                     (((c_last_chr == 'C') && (mudconf.sub_override & SUB_C) && !(mudstate.sub_overridestate & SUB_C)) ||
+                      ((c_last_chr == 'X') && (mudconf.sub_override & SUB_X) && !(mudstate.sub_overridestate & SUB_X)) ||
+                      ((c_last_chr == 'M') && (mudconf.sub_override & SUB_M) && !(mudstate.sub_overridestate & SUB_M))) ) {
+                   switch(c_last_chr) {
+                      case 'X':
+                         sub_ap = atr_str("SUB_X");
+                         i_last_chr = SUB_X;
+                         break;
+                      case 'M':
+                         sub_ap = atr_str("SUB_M");
+                         i_last_chr = SUB_M;
+                         break;
+                      default:
+                         sub_ap = atr_str("SUB_C");
+                         i_last_chr = SUB_C;
+                         break;
+                   }
                    if (sub_ap) {
                       sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
                       if ( sub_txt ) {
                          if ( *sub_txt ) {
-                            mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_X;
+                            mudstate.sub_overridestate = mudstate.sub_overridestate | i_last_chr;
                             sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                            mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_X;
+                            mudstate.sub_overridestate = mudstate.sub_overridestate & ~i_last_chr;
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_txt);
                             free_lbuf(sub_buf);
