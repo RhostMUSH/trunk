@@ -28615,6 +28615,7 @@
     thing or player.  It defaults to all types [ASH]
   * @door now allows interactive connections (ergo, it allows queueing) [ASH]
   * Broke out %m, %c, and %x from sub_override params [ASH]
+  * cleanup of the sub_override parser [ASH]
     
   Bug Fixes
   ------------

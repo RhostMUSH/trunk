@@ -34,6 +34,42 @@ extern char * parse_ansi_name(dbref, char *);
  * returned as NULL.
  */
 
+int
+sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, char **bufc, dbref cause, dbref caller, int feval) {
+   ATTR *sub_ap;
+   int sub_aflags;
+   dbref sub_aowner;
+   char *s_buf, *sub_txt, *sub_buf;
+
+   if ( Good_obj(mudconf.hook_obj) && (mudconf.sub_override & i_include) && !(mudstate.sub_overridestate & i_include) ) {
+      s_buf = alloc_sbuf("sub_override_process");
+      sprintf(s_buf, "SUB_%s", s_chr);
+      sub_ap = atr_str(s_buf);
+      if ( !sub_ap ) {
+         safe_str(s_include, buff, bufc);
+      } else {
+         sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
+         if ( !sub_txt )
+            safe_str(s_include, buff, bufc);
+         else {
+            mudstate.sub_overridestate = mudstate.sub_overridestate | i_include;
+            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+            if ( !*sub_buf )
+               safe_str(s_include, buff, bufc);
+            else
+               safe_str(sub_buf, buff, bufc);
+            mudstate.sub_overridestate = mudstate.sub_overridestate & ~i_include;
+            free_lbuf(sub_txt);
+            free_lbuf(sub_buf);
+         }
+      }
+      free_sbuf(s_buf);
+      return 1;
+   } else {
+      return 0;
+   }
+}
+
 static char *
 parse_to_cleanup(int eval, int first, char *cstr,
 		 char *rstr, char *zstr)
@@ -1408,78 +1444,21 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 break;
             case 'f':		/* Accents */
             case 'F':	
-                if ( (mudconf.sub_override & SUB_R) && !(mudstate.sub_overridestate & SUB_R) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_F");
-                   if (!sub_ap)
-                      safe_str("%f", buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-                         safe_str("%f", buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_F;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-                            safe_str("%f", buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_F;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
-                   safe_str("%f", buff, &bufc);
+                if ( !sub_override_process(SUB_F, (char *)"%f", (char *)"F", buff, &bufc, cause, caller, feval) ) {
+		   safe_str("%f", buff, &bufc);
+                }
                 break;
 	    case 'r':		/* Carriage return */
 	    case 'R':
-                if ( (mudconf.sub_override & SUB_R) && !(mudstate.sub_overridestate & SUB_R) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_R");
-                   if (!sub_ap)
-		      safe_str((char *) "\r\n", buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_str((char *) "\r\n", buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_R;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_str((char *) "\r\n", buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_R;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
-		   safe_str((char *) "\r\n", buff, &bufc);
+                if ( !sub_override_process(SUB_R, (char *)"\r\n", (char *)"R", buff, &bufc, cause, caller, feval) ) {
+		   safe_str((char *)"\r\n", buff, &bufc);
+                }
 		break;
 	    case 't':		/* Tab */
 	    case 'T':
-                if ( (mudconf.sub_override & SUB_T) && !(mudstate.sub_overridestate & SUB_T) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_T");
-                   if (!sub_ap)
-		      safe_chr('\t', buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_chr('\t', buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_T;
-                         sub_buf = exec(mudconf.hook_obj, cause, player, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_chr('\t', buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_T;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
-		   safe_chr('\t', buff, &bufc);
+                if ( !sub_override_process(SUB_T, (char *)"\t", (char *)"T", buff, &bufc, cause, caller, feval) ) {
+		   safe_str("\t", buff, &bufc);
+                }
 		break;
 	    case 'B':		/* Blank */
 	    case 'b':
@@ -1624,28 +1603,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    tbuf = Name(cause);
 		else
 		    tbuf = (char *) obj[gender];
-                if ( (mudconf.sub_override & SUB_O) && !(mudstate.sub_overridestate & SUB_O) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_O");
-                   if (!sub_ap)
-		      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_O;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_O;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
+                if ( !sub_override_process(SUB_O, tbuf, (char *)"O", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
+                }
 		break;
 	    case 'P':		/* Personal pronoun */
 	    case 'p':
@@ -1657,28 +1617,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		} else {
                     sprintf(tbuf, "%.1000s", (char *) poss[gender]);
 		}
-                if ( (mudconf.sub_override & SUB_P) && !(mudstate.sub_overridestate & SUB_P) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_P");
-                   if (!sub_ap)
-                      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-                         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_P;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-                            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_P;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
-                   safe_str(tbuf, buff, &bufc);
+                if ( !sub_override_process(SUB_P, tbuf, (char *)"P", buff, &bufc, cause, caller, feval) ) {
+		   safe_str(tbuf, buff, &bufc);
+                }
                 free_lbuf(tbuf);
 		break;
 	    case 'S':		/* Subjective pronoun */
@@ -1689,28 +1630,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    tbuf = Name(cause);
 		else
 		    tbuf = (char *) subj[gender];
-                if ( (mudconf.sub_override & SUB_S) && !(mudstate.sub_overridestate & SUB_S) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_S");
-                   if (!sub_ap)
-		      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_S;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_S;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
+                if ( !sub_override_process(SUB_S, tbuf, (char *)"S", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
+                }
 		break;
 	    case 'A':		/* Absolute posessive */
 	    case 'a':		/* idea from Empedocles */
@@ -1722,109 +1644,33 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		} else {
                     sprintf(tbuf, "%.1000s", (char *) absp[gender]);
 		}
-                if ( (mudconf.sub_override & SUB_A) && !(mudstate.sub_overridestate & SUB_A) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_A");
-                   if (!sub_ap)
-                      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-                         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_A;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-                            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_A;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
-                   safe_str(tbuf, buff, &bufc);
+                if ( !sub_override_process(SUB_A, tbuf, (char *)"A", buff, &bufc, cause, caller, feval) ) {
+		   safe_str(tbuf, buff, &bufc);
+                }
                 free_lbuf(tbuf);
 		break;
 	    case '#':		/* Invoker DB number */
 		tbuf = alloc_sbuf("exec.invoker");
 		sprintf(tbuf, "#%d", cause);
-                if ( (mudconf.sub_override & SUB_NUM) && !(mudstate.sub_overridestate & SUB_NUM) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_NUM");
-                   if (!sub_ap)
-		      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_NUM;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_NUM;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
+                if ( !sub_override_process(SUB_NUM, tbuf, (char *)"NUM", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
+                }
 		free_sbuf(tbuf);
 		break;
 	    case '!':		/* Executor DB number */
 		tbuf = alloc_sbuf("exec.executor");
 		sprintf(tbuf, "#%d", player);
-                if ( (mudconf.sub_override & SUB_BANG) && !(mudstate.sub_overridestate & SUB_BANG) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_BANG");
-                   if (!sub_ap)
-		      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_BANG;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_BANG;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
+                if ( !sub_override_process(SUB_BANG, tbuf, (char *)"BANG", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
+                }
 		free_sbuf(tbuf);
 		break;
             case '@':           /* Immediate Executor DB number */
                 tbuf = alloc_sbuf("exec.executor");
                 sprintf(tbuf, "#%d", caller);
-                if ( (mudconf.sub_override & SUB_AT) && !(mudstate.sub_overridestate & SUB_AT) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_AT");
-                   if (!sub_ap)
-                      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-                         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_AT;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-                            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_AT;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
-                   safe_str(tbuf, buff, &bufc);
+                if ( !sub_override_process(SUB_AT, tbuf, (char *)"AT", buff, &bufc, cause, caller, feval) ) {
+		   safe_str(tbuf, buff, &bufc);
+                }
                 free_sbuf(tbuf);
                 break;
              case '+':         /* Number of args passed */
@@ -1883,28 +1729,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             case 'W':		/* TwinkLock enactor */
 		tbuf = alloc_sbuf("exec.twink");
 		sprintf(tbuf, "#%d", mudstate.twinknum);
-                if ( (mudconf.sub_override & SUB_W) && !(mudstate.sub_overridestate & SUB_W) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_W");
-                   if (!sub_ap)
-		      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_W;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_W;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
+                if ( !sub_override_process(SUB_W, tbuf, (char *)"W", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
+                }
 		free_sbuf(tbuf);
                 break;
 	    case 'K':		/* Invoker name */
@@ -1980,65 +1807,29 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		break;
 	    case 'N':		/* Invoker name */
 	    case 'n':
-                if ( (mudconf.sub_override & SUB_N) && !(mudstate.sub_overridestate & SUB_N) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_N");
-                   if (!sub_ap)
-                      safe_str(Name(cause), buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-                         safe_str(Name(cause), buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_N;
-		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-                            safe_str(Name(cause), buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_N;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
+                if ( !sub_override_process(SUB_N, Name(cause), (char *)"N", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(Name(cause), buff, &bufc);
+                }
 		break;
 	    case 'L':		/* Invoker location db# */
 	    case 'l':
 		twhere = where_is(cause);
-		if (Immortal(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && SCloak(twhere) && !Immortal(cause) && (twhere != cause))
+		if (Immortal(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && SCloak(twhere) && !Immortal(cause) && (twhere != cause)) {
 		  twhere = -1;
-		else if (Wizard(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && !Wizard(cause) && (twhere != cause))
+		} else if (Wizard(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && !Wizard(cause) && (twhere != cause)) {
 		  twhere = -1;
-                else if (mudconf.enforce_unfindable && (twhere != cause) &&
-                         ((Immortal(Owner(cause)) && Dark(cause) && Unfindable(cause) && SCloak(cause) && !Immortal(player)) ||
-                          (Wizard(Owner(cause)) && Dark(cause) && Unfindable(cause) && !Wizard(player)) ||
-                          (Unfindable(cause) && !Controls(player,cause) && (cause != player)) || (Unfindable(twhere) && !Controls(player,twhere) && (Owner(twhere) != player) && (cause != player))))
+                } else if (mudconf.enforce_unfindable && (twhere != cause) &&
+                            ((Immortal(Owner(cause)) && Dark(cause) && Unfindable(cause) && SCloak(cause) && !Immortal(player)) ||
+                             (Wizard(Owner(cause)) && Dark(cause) && Unfindable(cause) && !Wizard(player)) ||
+                             (Unfindable(cause) && !Controls(player,cause) && (cause != player)) || 
+                             (Unfindable(twhere) && !Controls(player,twhere) && (Owner(twhere) != player) && (cause != player)) )) {
 		  twhere = -1;
+                }
 		tbuf = alloc_sbuf("exec.exloc");
 		sprintf(tbuf, "#%d", twhere);
-                if ( (mudconf.sub_override & SUB_L) && !(mudstate.sub_overridestate & SUB_L) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_L");
-                   if (!sub_ap)
-		      safe_str(tbuf, buff, &bufc);
-                   else {
-                      sub_txt = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
-                      if ( !sub_txt )
-		         safe_str(tbuf, buff, &bufc);
-                      else {
-                         mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_L;
-                         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*sub_buf )
-		            safe_str(tbuf, buff, &bufc);
-                         else
-                            safe_str(sub_buf, buff, &bufc);
-                         mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_L;
-                         free_lbuf(sub_txt);
-                         free_lbuf(sub_buf);
-                      }
-                   }
-                } else
+                if ( !sub_override_process(SUB_L, tbuf, (char *)"L", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
+                }
 		free_sbuf(tbuf);
 		break;
 #ifndef NOEXTSUBS
