@@ -170,19 +170,7 @@ NDECL(cf_init)
     mudconf.idle_interval = 60;
     mudconf.retry_limit = 3;
     mudconf.regtry_limit = 1;
-    if ( LBUF_SIZE == 4000 ) {
-       mudconf.output_limit = 16384;
-    } else if ( LBUF_SIZE == 8192 ) {
-       mudconf.output_limit = 65536;
-    } else if ( LBUF_SIZE == 16384 ) {
-       mudconf.output_limit = 131072;
-    } else if ( LBUF_SIZE == 32768 ) {
-       mudconf.output_limit = 262144;
-    } else if ( LBUF_SIZE == 65536 ) {
-       mudconf.output_limit = 524288;
-    } else {
-       mudconf.output_limit = 16384;
-    }
+    mudconf.output_limit = 16384;
     mudconf.paycheck = 0;
     mudconf.paystart = 0;
     mudconf.paylimit = 10000;
@@ -993,6 +981,7 @@ CF_HAND(cf_rlevel)
 }
 #endif /* REALITY_LEVELS */
 
+
 /* ---------------------------------------------------------------------------
  * cf_int: Set integer parameter.
  */
@@ -1018,6 +1007,47 @@ CF_HAND(cf_int)
     return -1;
   }
 }
+
+
+CF_HAND(cf_chartoint)
+{
+  char s_list[]="n#!@lsopartcxfkwm";
+  int  s_mask[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008,
+                  0x00000010, 0x00000020, 0x00000040, 0x00000080,
+                  0x00000100, 0x00000200, 0x00000400, 0x00000800,
+                  0x00001000, 0x00002000, 0x00004000, 0x00008000,
+                  0x00010000, 0x00020000, 0x00040000, 0x00080000,
+                  0x00000000 };
+  char *s, *t, *fail_str, *fail_strptr;
+  int i_return, i_mask;
+
+  if ( (atoi(str) > 0) || (strcmp(str, "0") == 0) ) {
+     i_return = cf_int(vp, str, extra, extra2, player, cmd);
+     return i_return;
+  } 
+
+  s = str;
+  i_mask = 0;
+  fail_strptr = fail_str = alloc_lbuf("cf_chartoint");
+  while ( *s ) {
+     t = strchr(s_list, *s);
+     if ( t ) {
+        i_mask = i_mask | s_mask[t - s_list];
+     } else {
+        if ( strchr(fail_str, *s) == NULL ) {
+           safe_chr(*s, fail_str, &fail_strptr);
+        }
+     }
+     s++;
+  }
+  if ( !mudstate.initializing && *fail_str ) {
+     notify(player, unsafe_tprintf("Invalid substitutions: %s", fail_str));
+  }
+  free_lbuf(fail_str);
+  *vp = i_mask;
+  return 0;
+}
+
 CF_HAND(cf_int_runtime)
 {
    /* Copy the numeric value to the parameter but ONLY on startup */
@@ -4593,7 +4623,7 @@ CONF conftable[] =
      cf_string_sub, CA_GOD|CA_IMMORTAL, (int *) mudconf.sub_include, 26, 0, CA_WIZARD,
      (char *) "Substitutions included for percent-lookups on parser."},
     {(char *) "sub_override",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.sub_override, 0, 0, CA_PUBLIC,
+     cf_chartoint, CA_GOD | CA_IMMORTAL, &mudconf.sub_override, 0, 0, CA_PUBLIC,
      (char *) "Override mask for percent-substitutions.\r\n"\
               "                             Default: 0   Value: %d"},
     {(char *) "suspect_site",
@@ -5238,6 +5268,7 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
       cntr++;
@@ -5256,6 +5287,7 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
          if ( s_val && *s_val ) {
@@ -5330,6 +5362,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                     (tp->interpreter == cf_int_runtime) ||
                     (tp->interpreter == cf_mailint) ||
                     (tp->interpreter == cf_vint) ||
+                    (tp->interpreter == cf_chartoint) ||
                     (tp->interpreter == cf_recurseint) ||
 		    (tp->interpreter == cf_sidefx && !bVerboseSideFx)) {
 

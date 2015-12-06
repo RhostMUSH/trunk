@@ -9064,6 +9064,13 @@
   
   You would add the values together and apply to the sub_override 'bitmask'
   to set or unset the given overrides.
+  
+  You may also INSTEAD of the numerical value specify the character that you 
+  wish to override.  You can not mix numerical and letters.
+  
+  Example:
+    > @admin sub_override=365
+    > @admin sub_override=ncxf
    
   (help sub_override2 for continuation)
 
