@@ -1849,7 +1849,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          dstr++;
                       }
                       *t_bufb = '\0';
-                      sub_ap = atr_str("DEBUG");
+                      sub_ap = atr_str("TRACE");
                       if ( sub_ap ) {
                          sub_txt = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
