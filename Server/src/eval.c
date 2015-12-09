@@ -1016,7 +1016,10 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
-    int is_trace, is_trace_bkup, is_top, save_count, x, y, z, w, sub_delim, sub_cntr, sub_value, sub_valuecnt;
+    int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
+#ifdef EXPANDED_QREGS
+    int w;
+#endif
     FUN *fp;
     UFUN *ufp, *ulfp;
     ATTR *sub_ap;
@@ -1041,7 +1044,9 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     DPUSH; /* #67 */
 		
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
+#ifdef EXPANDED_QREGS
     w = 0;
+#endif
     mudstate.evalcount++;
 
     if (dstr == NULL) {
@@ -1548,6 +1553,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		            safe_str(mudstate.global_regs[i], buff, &bufc);
                          }
 #else
+                      if ( *t_bufa && !*(t_bufa+1) && isdigit(*t_bufa) ) {
 		         i = (*t_bufa - '0');
 		         if ((i >= 0) && (i <= 9) && mudstate.global_regs[i] ) {
 		            safe_str(mudstate.global_regs[i], buff, &bufc);
@@ -1832,6 +1838,39 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
 		free_sbuf(tbuf);
 		break;
+            case '_':           /* Yay is the trace breakpoint */
+                if ( (dstr+1) && (*(dstr+1) == '<') && strchr(dstr, '>') ) {
+                   dstr+=2;
+                   if ( dstr && *dstr ) {
+                      t_bufb = t_bufa = alloc_lbuf("trace_subs");
+                      while ( *dstr && (*dstr != '>') ) {
+                         *t_bufb = ToLower(*dstr);
+                         t_bufb++;
+                         dstr++;
+                      }
+                      *t_bufb = '\0';
+                      sub_ap = atr_str("DEBUG");
+                      if ( sub_ap ) {
+                         sub_txt = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
+                         if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
+                            mudstate.trace_nest_lev++;
+                            s_Flags(player, (Flags(player) | TRACE));
+                         } else if ( *sub_txt && (*t_bufa == '-') && (strstr(sub_txt, t_bufa+1) != NULL) ) {
+                            mudstate.trace_nest_lev--;
+                            if ( mudstate.trace_nest_lev < 0 )
+                               mudstate.trace_nest_lev = 0;
+                            if ( !mudstate.trace_nest_lev )
+                               s_Flags(player, (Flags(player) & ~TRACE));
+                         } else if ( !stricmp(t_bufa, "off") ) {
+                            mudstate.trace_nest_lev = 0;
+                            s_Flags(player, (Flags(player) & ~TRACE));
+                         }
+                         free_lbuf(sub_txt);
+                      }
+                      free_lbuf(t_bufa);
+                   }
+                }
+                break;
 #ifndef NOEXTSUBS
 #ifndef C_SUB
             case 'C':		/* Command substitution */

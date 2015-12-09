@@ -10007,6 +10007,7 @@
     %?      = Show current function invocation as well as current nest levels.
     %c      = ANSI substitution or Last Command Executed.
     %x      = ANSI substitution or Last Command Executed.
+    %_      = The TRACE breakpoint marker.  See 'help %_' for more.
     %m      = ANSI substitution or Last Command Executed.
 
               The functionality of above subs depends on compile options:
@@ -10038,6 +10039,34 @@
         This _ONLY_ works for @va to @vz attributes currently.  Sorry.
   
   See Also: GENDER, V(), SHIFT(), ACCENT()
+  
+& %_
+  Topic: SUBSTITUTIONS
+  Syntax: %_<label>  -- enables debugging if <label> is in DEBUG attribute.
+          %_<-label> -- disables debugging for <label>
+          %_<off>    -- disables all debugging
+  
+  The %_ substitution is a special substitution as it allows you to enbed
+  breakpoints into code to toggle on and off debugging on the fly dynamically.
+  This is handled by the enactors 'DEBUG' attribute that houses the marker
+  that you specify for the substitutions.  The marker can be any string.
+  You use 
+  
+  Using the <label> adds to the debug stack and using <-label> reduces one
+  from the debug stack.  This allows you to essentially nest debugging
+  breakpoints within code and only enable/disable them when you set
+  the specified label in your DEBUG value.
+  
+  Examples:
+    > &DEBUG me=123
+    > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<-123>[add(3,3)]
+    YourPlayerName(#12345)} 'add(2,2)' -> '4'
+    You say "Debugging: 246"
+    > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<off>[add(3,3)]
+    YourPlayerName(#12345)} 'add(2,2)' -> '4'
+    You say "Debugging: 246"
+  
+  See Also: SUBSTITUTIONS
   
 & SUCCESS
   Topic: SUCCESS
@@ -28560,6 +28589,7 @@
   * anti-idling detection added via idle_stamp and idle_stamp_max [ASH]
   * @door/kick to kick a player off a connected door [ASH]
   * @door/push to push a player into a door [ASH]
+  * %_<label> debug breakpoints are now available for coding [ASH]
   
   Changes
   ------------

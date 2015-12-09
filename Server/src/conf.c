@@ -709,6 +709,7 @@ NDECL(cf_init)
     mudstate.db_size = 0;
     mudstate.freelist = NOTHING;
     mudstate.markbits = NULL;
+    mudstate.trace_nest_lev = 0;
     mudstate.func_nest_lev = 0;
     mudstate.ufunc_nest_lev = 0;
     mudstate.func_invk_ctr = 0;
@@ -726,6 +727,9 @@ NDECL(cf_init)
 #ifdef EXPANDED_QREGS
     strcpy(mudstate.nameofqreg, "0123456789abcdefghijklmnopqrstuvwxyz");
     mudstate.nameofqreg[36]='\0';
+#else
+    strcpy(mudstate.nameofqreg, "0123456789");
+    mudstate.nameofqreg[10]='\0';
 #endif
     mudstate.emit_substitute = 0; /* Toggle @emit/substitute */
 #else

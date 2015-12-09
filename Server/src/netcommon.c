@@ -3864,6 +3864,8 @@ check_connect(DESC * d, const char *msg)
                 nplayers++;
             if ( nplayers < (mudstate.max_logins_allowed) )
 	       nplayers = mudconf.max_players - 1;
+            if ( nplayers < 0 )
+               nplayers = 0;
 	} else {
 	    nplayers = 0;
 	    DESC_ITER_CONN(d2)

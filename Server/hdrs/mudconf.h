@@ -671,6 +671,7 @@ struct statedata {
 	int	db_top;		/* Number of items in the db */
 	int	db_size;	/* Allocated size of db structure */
 	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
+        int	trace_nest_lev;	/* The trace nest level */
 	int	func_nest_lev;	/* Current nesting of functions */
 	int	func_invk_ctr;	/* Functions invoked so far by this command */
 	int	ntfy_nest_lev;	/* Current nesting of notifys */
@@ -679,9 +680,7 @@ struct statedata {
 	char	*global_regs[MAX_GLOBAL_REGS];	/* Global registers */
 	char	*global_regsname[MAX_GLOBAL_REGS];	/* Global register names */
         char    *global_regs_backup[MAX_GLOBAL_REGS];
-#ifdef EXPANDED_QREGS
         char    nameofqreg[37]; /* Buffer to hold qregs */
-#endif
         int	global_regs_wipe;	/* Toggle to wipe localized regs */
 	int	mail_state;
 	int	whisper_state;

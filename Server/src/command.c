@@ -2965,6 +2965,7 @@ process_command(dbref player, dbref cause, int interactive,
 
     /* Reset recursion limits */
 
+    mudstate.trace_nest_lev = 0;
     mudstate.func_nest_lev  = 0;
     mudstate.ufunc_nest_lev = 0;
     mudstate.func_invk_ctr  = 0;
