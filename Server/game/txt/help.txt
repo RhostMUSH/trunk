@@ -10050,8 +10050,10 @@
   breakpoints into code to toggle on and off debugging on the fly dynamically.
   This is handled by the enactors 'DEBUG' attribute that houses the marker
   that you specify for the substitutions.  The marker can be any string.
-  You use 
   
+  You use - for the label to turn off debugging for that particular debug
+  marker.  For stacked debugging this will decrement the debug stack count.
+   
   Using the <label> adds to the debug stack and using <-label> reduces one
   from the debug stack.  This allows you to essentially nest debugging
   breakpoints within code and only enable/disable them when you set
