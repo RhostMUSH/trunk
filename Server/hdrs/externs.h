@@ -367,7 +367,7 @@ extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
 			int, int, OBLOCKMASTER *, int, int, int));
-extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int, int));
+extern void	FDECL(edit_string, (char *, char **, char **, char *, char *, int, int, int, int));
 extern dbref	FDECL(match_controlled, (dbref, const char *));
 extern dbref	FDECL(match_controlled_or_twinked, (dbref, const char *));
 extern dbref	FDECL(match_affected, (dbref, const char *));
