@@ -10059,10 +10059,10 @@
   breakpoints within code and only enable/disable them when you set
   the specified label in your TRACE value.
   
-  Note: This will intermix with the TRACE flag so if you already previously
-  have the TRACE flag set, it will not keep the state while using this
-  method for tracing.
-    
+  Note: This has absolutely no impact on the TRACE flag and uses another
+  method to keep track of how it's tracing information.  You can use
+  this in addition to the TRACE flag if you so wish.
+  
   Examples:
     > &TRACE me=123
     > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<-123>[add(3,3)]

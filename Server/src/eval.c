@@ -1127,7 +1127,10 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     at_space = 1;
     gender = -1;
     alldone = 0;
+/*
     is_trace = Trace(player) && !(eval & EV_NOTRACE);
+*/
+    is_trace = (Trace(player) || (mudstate.trace_nest_lev > 0)) && !(eval & EV_NOTRACE);
     if ( mudstate.notrace )
        is_trace = 0;
     is_top = 0;
@@ -1347,7 +1350,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }
                 } 
 #ifdef ZENTY_ANSI
-                // Leave the ansi code intact
+                /* Leave the ansi code intact */
                 if(!(eval & EV_PARSE_ANSI)) {        
                     safe_chr('%', buff, &bufc);
                     if(*dstr == SAFE_CHR)
@@ -1877,7 +1880,6 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          sub_txt = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
                             mudstate.trace_nest_lev++;
-                            s_Flags(player, (Flags(player) | TRACE));
                             if ( mudstate.trace_nest_lev < 98 ) {
                                sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, t_bufa);
                             } else {
@@ -1890,11 +1892,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             mudstate.trace_nest_lev--;
                             if ( mudstate.trace_nest_lev < 0 )
                                mudstate.trace_nest_lev = 0;
-                            if ( !mudstate.trace_nest_lev )
-                               s_Flags(player, (Flags(player) & ~TRACE));
                          } else if ( !stricmp(t_bufa, "off") ) {
                             mudstate.trace_nest_lev = 0;
-                            s_Flags(player, (Flags(player) & ~TRACE));
                             for ( inum_val = 0; inum_val < 100; inum_val++)   
                                *(t_label[inum_val]) = '\0';
                          }
