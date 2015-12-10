@@ -1147,7 +1147,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	savestr = alloc_lbuf("exec.save");
         s_label = alloc_sbuf("exec.save_label");
 	strcpy(savestr, dstr);
-        if ( mudstate.trace_nest_lev < 100) {
+        if ( mudstate.trace_nest_lev < 99) {
            if ( (mudstate.trace_nest_lev > 0) && i_label_lev )
 	      strcpy(s_label, t_label[i_label_lev]);
         } else {
@@ -1889,6 +1889,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
                             mudstate.trace_nest_lev++;
                             i_label_lev = mudstate.trace_nest_lev;
+                            if ( i_label_lev > 99 )
+                               i_label_lev = 99;
                             if ( mudstate.trace_nest_lev < 98 ) {
                                trace_buff = alloc_mbuf("color_by_label");
                                sprintf(trace_buff, "TRACE_COLOR_%.*s", SBUF_SIZE - 1, t_bufa);
@@ -1926,7 +1928,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                }
                                i_label[mudstate.trace_nest_lev]=1;
                             } else {
-                               sprintf(t_label[99], "%s%s%s", ANSI_RED, "**MAX-REACHED**", ANSI_NORMAL);
+                               sprintf(t_label[99], "%s%s%s", ANSI_RED, "* MAX-REACHED *", ANSI_NORMAL);
                             }
                          } else if ( *sub_txt && (*t_bufa == '-') && (strstr(sub_txt, t_bufa+1) != NULL) ) {
                             if ( mudstate.trace_nest_lev < 98 ) {
