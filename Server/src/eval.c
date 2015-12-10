@@ -443,7 +443,8 @@ static void
 tcache_finish(void)
 {
     TCENT *xp;
-    char *tpr_buff = NULL, *tprp_buff = NULL, *s_aptext = NULL, *s_aptextptr = NULL, *s_strtokr = NULL, *tbuff = NULL;
+    char *tpr_buff = NULL, *tprp_buff = NULL, *s_aptext = NULL, *s_aptextptr = NULL, *s_strtokr = NULL, *tbuff = NULL, 
+         *tstr, *tstr2, *s_grep;
     int i_apflags, i_targetlist;
     dbref i_apowner, passtarget, targetlist[LBUF_SIZE], i;
     ATTR *ap_log;
@@ -453,23 +454,41 @@ tcache_finish(void)
     for (i = 0; i < LBUF_SIZE; i++)
        targetlist[i]=-2000000;
 
+
     tprp_buff = tpr_buff = alloc_lbuf("tcache_finish");
     tbuff = alloc_lbuf("bounce_on_notify_exec");
     while (tcache_head != NULL) {
 	xp = tcache_head;
 	tcache_head = xp->next;
         tprp_buff = tpr_buff;
+        ap_log = atr_str("TRACE_GREP");
+        if ( ap_log ) {
+           s_grep = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
+           if ( s_grep && *s_grep ) {
+              edit_string(xp->orig, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
+              free_lbuf(tstr);
+           } else {
+              tstr2 = alloc_lbuf("fun_with_grep");
+              strcpy(tstr2, xp->orig);
+           }
+           free_lbuf(s_grep);
+        } else {
+           tstr2 = alloc_lbuf("fun_with_grep");
+           strcpy(tstr2, xp->orig);
+        }
+
         if ( *(xp->label) ) {
 	   notify(Owner(xp->player),
 	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} '%s' -> '%s'", Name(xp->player), xp->player,
-		          ANSI_HILITE, xp->label, ANSI_NORMAL, xp->orig, xp->result));
+		          ANSI_HILITE, xp->label, ANSI_NORMAL, tstr2, xp->result));
         } else {
 	   notify(Owner(xp->player),
 	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
-		          xp->orig, xp->result));
+		          tstr2, xp->result));
         }
+        free_lbuf(tstr2);
 
-       if ( Bouncer(xp->player) ) {
+        if ( Bouncer(xp->player) ) {
             ap_log = atr_str("BOUNCEFORWARD");
             if ( ap_log ) {
                s_aptext = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);

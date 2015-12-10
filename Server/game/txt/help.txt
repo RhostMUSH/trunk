@@ -8110,7 +8110,11 @@
   substitutions that it performs that change the original string.  The order
   for displaying nested evaluations (such as when evaluating the arguments to
   a function) is a site-selected configuration parameter.
- 
+  
+  You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
+  if you wish to have a specific piece of code in trace output which matches
+  the trace output return in red the match.
+   
   Example:
   > @set object = trace
   > @va object = say The result is [add(4,mul(3,%0))].
@@ -10068,6 +10072,10 @@
   by label as &TRACE_COLOR_<label> me=+orange.  Like &TRACE_COLOR_123.
   This will fall back on 'TRACE_COLOR' if the by label isn't found.
   
+  You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
+  if you wish to have a specific piece of code in trace output which matches
+  the trace output return in red the match.
+   
   Examples:
     > &TRACE me=123
     > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<-123>[add(3,3)]
@@ -13928,6 +13936,10 @@
   
   This function can be used to selectively turn on trace output for a piece
   of MUSH code. This can help to avoid the often spammy output of trace.
+  
+  You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
+  if you wish to have a specific piece of code in trace output which matches
+  the trace output return in red the match.
    
   Example: (line 2 wrapped)
     > &broken object=[add(3,mul)(3,7))]
