@@ -1757,7 +1757,7 @@ ATTR	*attr;
  * edit_string, do_edit: Modify attributes.
  */
 
-void edit_string (char *src, char **dst, char **rdst, char *from, char *to, int key, int i_type, int i_compat)
+void edit_string (char *src, char **dst, char **rdst, char *from, char *to, int key, int i_type, int i_compat, int i_redeye)
 {
 char	*cp, *rcp, *tpr_buff, *tprp_buff;
 
@@ -1774,11 +1774,17 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
 	           *rdst = alloc_lbuf("edit_string_2.^");
                    rcp = *rdst;
 #ifdef ZENTY_ANSI
-                   safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
+                   if ( i_redeye ) 
+                      safe_str(SAFE_ANSI_RED, *rdst, &rcp);
+                   else
+                      safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
 		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(SAFE_ANSI_NORMAL, *rdst, &rcp);
 #else
-                   safe_str(ANSI_HILITE, *rdst, &rcp);
+                   if ( i_redeye ) 
+                      safe_str(ANSI_RED, *rdst, &rcp);
+                   else
+                      safe_str(ANSI_HILITE, *rdst, &rcp);
 		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(ANSI_NORMAL, *rdst, &rcp);
 #endif
@@ -1798,11 +1804,17 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                    rcp = *rdst;
                    safe_str(strip_all_ansi(src), *rdst, &rcp);
 #ifdef ZENTY_ANSI
-                   safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
+                   if ( i_redeye )
+                      safe_str(SAFE_ANSI_RED, *rdst, &rcp);
+                   else
+                      safe_str(SAFE_ANSI_HILITE, *rdst, &rcp);
 		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(SAFE_ANSI_NORMAL, *rdst, &rcp);
 #else
-                   safe_str(ANSI_HILITE, *rdst, &rcp);
+                   if ( i_redeye )
+                      safe_str(ANSI_RED, *rdst, &rcp);
+                   else
+                      safe_str(ANSI_HILITE, *rdst, &rcp);
 		   safe_str(strip_all_ansi(to), *rdst, &rcp);
                    safe_str(ANSI_NORMAL, *rdst, &rcp);
 #endif
@@ -1827,18 +1839,22 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                    tprp_buff = tpr_buff = alloc_lbuf("edit_string");
 #ifdef ZENTY_ANSI
                    if ( i_compat == 2 ) {
-                      *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
+                      *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
+                                             (i_redeye ? SAFE_ANSI_RED : SAFE_ANSI_HILITE),
                                              to, SAFE_ANSI_NORMAL), src, i_type);
                    } else {
-                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", SAFE_ANSI_HILITE,
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
+                                             (i_redeye ? SAFE_ANSI_RED : SAFE_ANSI_HILITE),
                                              strip_all_ansi(to), SAFE_ANSI_NORMAL), src, i_type, i_compat);
                    }
 #else
                    if ( i_compat == 2 ) {
-                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
+                                             (i_redeye ? ANSI_RED : ANSI_HILITE),
                                              to, ANSI_NORMAL), src, i_type, i_compat);
                    } else {
-                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", ANSI_HILITE,
+                      *rdst = replace_string_ansi(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
+                                             (i_redeye ? ANSI_RED : ANSI_HILITE),
                                              strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);
                    }
 #endif
@@ -1928,7 +1944,7 @@ OBLOCKMASTER master;
 				/* Do the edit and save the result */
 
 				got_one = 1;
-				edit_string(atext, &result, &retresult, from, to, 0, editsingle, i_compat);
+				edit_string(atext, &result, &retresult, from, to, 0, editsingle, i_compat, 0);
 				if (ap->check != NULL) {
 					doit = (*ap->check)(0, player, thing,
 						ap->number, result);

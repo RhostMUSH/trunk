@@ -24602,7 +24602,7 @@ FUNCTION(fun_edit)
     /* The '1' specifies not to alloc second pointer so not needed
      * If you use '0' you need to alloc and define another char pointer
      */
-    edit_string(fargs[0], &tstr, (char **)NULL, fargs[1], fargs[2], 1, i_editkey, i_compat);
+    edit_string(fargs[0], &tstr, (char **)NULL, fargs[1], fargs[2], 1, i_editkey, i_compat, 0);
     safe_str(tstr, buff, bufcx);
     free_lbuf(tstr);
 }

@@ -10548,7 +10548,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                      if ( !*s_instr ) {
                         notify(player, "No action set for cluster.  Use @cluster/action instead.");
                      } else {
-                        edit_string(s_instr, &s_inbufptr, &s_tmpstr, xargs[0], xargs[1], 0, 0, 0);
+                        edit_string(s_instr, &s_inbufptr, &s_tmpstr, xargs[0], xargs[1], 0, 0, 0, 0);
                         s_strtok = strtok_r(s_text, " ", &s_strtokptr);
                         while ( s_strtok ) {
                            thing3 = match_thing(player, s_strtok);
