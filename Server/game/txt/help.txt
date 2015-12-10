@@ -8128,7 +8128,7 @@
   number of trace output lines that may be produced by an evaluation is limited
   to 200.  Bottom-up trace output is not limited.
   
-  See Also: VERBOSE, PUPPET, trace(), chktrace()
+  See Also: VERBOSE, PUPPET, %_, trace(), chktrace()
 
 & NOSPOOF
 & NO_SPOOF
@@ -10059,6 +10059,10 @@
   breakpoints within code and only enable/disable them when you set
   the specified label in your TRACE value.
   
+  Note: This will intermix with the TRACE flag so if you already previously
+  have the TRACE flag set, it will not keep the state while using this
+  method for tracing.
+    
   Examples:
     > &TRACE me=123
     > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<-123>[add(3,3)]
@@ -10068,7 +10072,7 @@
     YourPlayerName(#12345)} 'add(2,2)' -> '4'
     You say "Debugging: 246"
   
-  See Also: SUBSTITUTIONS
+  See Also: SUBSTITUTIONS, TRACE, trace()
   
 & SUCCESS
   Topic: SUCCESS
@@ -13925,7 +13929,7 @@
   However, if the TRACE flag was set on the object prior to execution, then
   you would see trace output for everything up to the trace(0) call.
   
-  See Also: TRACE, VERBOSE, PUPPET, chktrace()
+  See Also: %_, TRACE, VERBOSE, PUPPET, chktrace()
   
 & MATCH()
   Function: match(<string>, <pattern>[, <delim>])
