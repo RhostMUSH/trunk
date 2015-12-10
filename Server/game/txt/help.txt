@@ -28685,3 +28685,4 @@
   * the /preserve switch to @chownall didn't work properly [ASH]
   * @chownall and @chown did not properly strip some of the staff
     flags as it should have when /preserve was not specified [ASH]
+  * weird issue fixed where it thought max players reached when didn't [ASH]

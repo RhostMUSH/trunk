@@ -379,6 +379,7 @@ struct tcache_ent {
     dbref player;
     char *orig;
     char *result;
+    char *label;
     struct tcache_ent *next;
 }         *tcache_head;
 int tcache_top, tcache_count;
@@ -408,7 +409,7 @@ NDECL(tcache_empty)
 }
 
 static void 
-tcache_add(dbref player, char *orig, char *result)
+tcache_add(dbref player, char *orig, char *result, char *s_label)
 {
     char *tp;
     TCENT *xp;
@@ -423,13 +424,16 @@ tcache_add(dbref player, char *orig, char *result)
             xp->player = player;
 	    xp->orig = orig;
 	    xp->result = tp;
+            xp->label = s_label;
 	    xp->next = tcache_head;
 	    tcache_head = xp;
 	} else {
 	    free_lbuf(orig);
+            free_sbuf(s_label);
 	}
     } else {
 	free_lbuf(orig);
+        free_sbuf(s_label);
     }
     DPOP; /* #65 */
 }
@@ -454,9 +458,15 @@ tcache_finish(void)
 	xp = tcache_head;
 	tcache_head = xp->next;
         tprp_buff = tpr_buff;
-	notify(Owner(xp->player),
-	       safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
-		       xp->orig, xp->result));
+        if ( *(xp->label) ) {
+	   notify(Owner(xp->player),
+	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} '%s' -> '%s'", Name(xp->player), xp->player,
+		          ANSI_HILITE, xp->label, ANSI_NORMAL, xp->orig, xp->result));
+        } else {
+	   notify(Owner(xp->player),
+	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
+		          xp->orig, xp->result));
+        }
 
        if ( Bouncer(xp->player) ) {
             ap_log = atr_str("BOUNCEFORWARD");
@@ -492,6 +502,7 @@ tcache_finish(void)
 
 	free_lbuf(xp->orig);
 	free_lbuf(xp->result);
+        free_sbuf(xp->label);
 	free_sbuf(xp);
     }
     free_lbuf(tbuff);
@@ -999,6 +1010,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 
 #endif
 
+char t_label[100][SBUF_SIZE];
+
 char *
 exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
      char *cargs[], int ncargs, char *regargs[], int nregargs)
@@ -1011,7 +1024,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
-    char *buff, *bufc, *bufc2, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr;
+    char *buff, *bufc, *bufc2, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
@@ -1126,7 +1139,12 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     if (is_trace) {
 	is_top = tcache_empty();
 	savestr = alloc_lbuf("exec.save");
+        s_label = alloc_sbuf("exec.save_label");
 	strcpy(savestr, dstr);
+        if ( mudstate.trace_nest_lev < 100)
+	   strcpy(s_label, t_label[mudstate.trace_nest_lev]);
+        else
+	   strcpy(s_label, t_label[99]);
     }
     if (index(dstr, ESC_CHAR)) {
 	strcpy(dstr, strip_ansi(dstr));
@@ -1844,18 +1862,31 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    if ( dstr && *dstr ) {
                       t_bufb = t_bufa = alloc_lbuf("trace_subs");
                       while ( *dstr && (*dstr != '>') ) {
+                         if ( isspace(*dstr) ) {
+                            dstr++;
+                            continue;
+                         }
                          *t_bufb = ToLower(*dstr);
                          t_bufb++;
                          dstr++;
                       }
                       *t_bufb = '\0';
+                      *(t_bufa+SBUF_SIZE-1) = '\0';
                       sub_ap = atr_str("TRACE");
                       if ( sub_ap ) {
                          sub_txt = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
                             mudstate.trace_nest_lev++;
                             s_Flags(player, (Flags(player) | TRACE));
+                            if ( mudstate.trace_nest_lev < 98 ) {
+                               sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, t_bufa);
+                            } else {
+                               sprintf(t_label[99], "%s%s%s", ANSI_RED, "**MAX-REACHED**", ANSI_NORMAL);
+                            }
                          } else if ( *sub_txt && (*t_bufa == '-') && (strstr(sub_txt, t_bufa+1) != NULL) ) {
+                            if ( mudstate.trace_nest_lev < 98 ) {
+                               *(t_label[mudstate.trace_nest_lev]) = '\0';
+                            }
                             mudstate.trace_nest_lev--;
                             if ( mudstate.trace_nest_lev < 0 )
                                mudstate.trace_nest_lev = 0;
@@ -1864,6 +1895,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          } else if ( !stricmp(t_bufa, "off") ) {
                             mudstate.trace_nest_lev = 0;
                             s_Flags(player, (Flags(player) & ~TRACE));
+                            for ( inum_val = 0; inum_val < 100; inum_val++)   
+                               *(t_label[inum_val]) = '\0';
                          }
                          free_lbuf(sub_txt);
                       }
@@ -2572,7 +2605,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     /* Report trace information */
 
     if (is_trace) {
-	tcache_add(player, savestr, buff);
+	tcache_add(player, savestr, buff, s_label);
 	save_count = tcache_count - mudconf.trace_limit;;
 	if (is_top || !mudconf.trace_topdown)
 	    tcache_finish();
