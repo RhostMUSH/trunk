@@ -24,6 +24,7 @@ char *index(const char *, int);
 
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern char * parse_ansi_name(dbref, char *);
+extern void fun_ansi(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -1026,6 +1027,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *bufc2, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr;
+    char *trace_array[3], *trace_buff, *trace_buffptr;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
@@ -1864,14 +1866,17 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    dstr+=2;
                    if ( dstr && *dstr ) {
                       t_bufb = t_bufa = alloc_lbuf("trace_subs");
+                      sub_value = 0;
                       while ( *dstr && (*dstr != '>') ) {
                          if ( isspace(*dstr) ) {
                             dstr++;
                             continue;
                          }
-                         *t_bufb = ToLower(*dstr);
+                         if ( sub_value < (SBUF_SIZE - 1) )
+                            *t_bufb = ToLower(*dstr);
                          t_bufb++;
                          dstr++;
+                         sub_value++;
                       }
                       *t_bufb = '\0';
                       *(t_bufa+SBUF_SIZE-1) = '\0';
@@ -1881,7 +1886,28 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
                             mudstate.trace_nest_lev++;
                             if ( mudstate.trace_nest_lev < 98 ) {
-                               sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, t_bufa);
+                               sub_ap = atr_str("TRACE_COLOR");
+                               if ( sub_ap ) {
+                                  sub_buf = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
+                                  if ( *sub_buf ) {
+                                     trace_array[0] = sub_buf;
+                                     trace_array[1] = t_bufa;
+                                     trace_array[2] = NULL;
+                                     trace_buffptr = trace_buff = alloc_lbuf("buffer_for_trace");
+                                     fun_ansi(trace_buff, &trace_buffptr, player, cause, cause, trace_array, 2, (char **)NULL, 0);
+                                     if ( strlen(trace_buff) > (SBUF_SIZE - 1) ) {
+                                        sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, t_bufa);
+                                     } else {
+                                        sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, trace_buff);
+                                     }
+                                     free_lbuf(trace_buff);
+                                  } else {
+                                     sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, t_bufa);
+                                  }
+                                  free_lbuf(sub_buf);
+                               } else {
+                                     sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, t_bufa);
+                               }
                             } else {
                                sprintf(t_label[99], "%s%s%s", ANSI_RED, "**MAX-REACHED**", ANSI_NORMAL);
                             }

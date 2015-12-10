@@ -10057,20 +10057,29 @@
   Using the <label> adds to the debug stack and using <-label> reduces one
   from the debug stack.  This allows you to essentially nest debugging
   breakpoints within code and only enable/disable them when you set
-  the specified label in your TRACE value.
+  the specified label in your TRACE value.  For instance, &TRACE me=123
   
   Note: This has absolutely no impact on the TRACE flag and uses another
   method to keep track of how it's tracing information.  You can use
   this in addition to the TRACE flag if you so wish.
   
+  You may use the attribute TRACE_COLOR to set a standard color for your
+  labels.   For instance, &TRACE_COLOR me=+purple
+  
   Examples:
     > &TRACE me=123
     > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<-123>[add(3,3)]
-    YourPlayerName(#12345)} 'add(2,2)' -> '4'
+    YourPlayerName(#12345) [123]} 'add(2,2)' -> '4'
     You say "Debugging: 246"
     > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<off>[add(3,3)]
-    YourPlayerName(#12345)} 'add(2,2)' -> '4'
+    YourPlayerName(#12345) [123]} 'add(2,2)' -> '4'
     You say "Debugging: 246"
+    > &TRACE_COLOR me=+orange
+    > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<off>[add(3,3)]
+    YourPlayerName(#12345) [123]} 'add(2,2)' -> '4'
+    You say "Debugging: 246"
+  
+  In the last exampole, the 123 inside the []'s would have been orange.
   
   See Also: SUBSTITUTIONS, TRACE, trace()
   
