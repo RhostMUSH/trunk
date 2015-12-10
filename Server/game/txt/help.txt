@@ -28620,6 +28620,7 @@
   * @door/push to push a player into a door [ASH]
   * %_<label> debug breakpoints are now available for coding [ASH]
   * TRACE, TRACE_COLOR and TRACE_COLOR_<label> for trace %_<label> [ASH]
+  * TRACE_GREP will highlight red any trace output that matches [ASH]
   
   Changes
   ------------
