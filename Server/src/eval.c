@@ -1012,6 +1012,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 #endif
 
 char t_label[100][SBUF_SIZE];
+int i_label[100], i_label_lev = 0;
 
 char *
 exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
@@ -1132,7 +1133,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 /*
     is_trace = Trace(player) && !(eval & EV_NOTRACE);
 */
-    is_trace = (Trace(player) || (mudstate.trace_nest_lev > 0)) && !(eval & EV_NOTRACE);
+    is_trace = (Trace(player) || ((mudstate.trace_nest_lev > 0) && i_label_lev)) && !(eval & EV_NOTRACE);
     if ( mudstate.notrace )
        is_trace = 0;
     is_top = 0;
@@ -1146,10 +1147,12 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	savestr = alloc_lbuf("exec.save");
         s_label = alloc_sbuf("exec.save_label");
 	strcpy(savestr, dstr);
-        if ( mudstate.trace_nest_lev < 100)
-	   strcpy(s_label, t_label[mudstate.trace_nest_lev]);
-        else
+        if ( mudstate.trace_nest_lev < 100) {
+           if ( (mudstate.trace_nest_lev > 0) && i_label_lev )
+	      strcpy(s_label, t_label[i_label_lev]);
+        } else {
 	   strcpy(s_label, t_label[99]);
+        }
     }
     if (index(dstr, ESC_CHAR)) {
 	strcpy(dstr, strip_ansi(dstr));
@@ -1885,6 +1888,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          sub_txt = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
                             mudstate.trace_nest_lev++;
+                            i_label_lev = mudstate.trace_nest_lev;
                             if ( mudstate.trace_nest_lev < 98 ) {
                                sub_ap = atr_str("TRACE_COLOR");
                                if ( sub_ap ) {
@@ -1908,20 +1912,37 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                } else {
                                      sprintf(t_label[mudstate.trace_nest_lev], "%.*s", SBUF_SIZE - 1, t_bufa);
                                }
+                               i_label[mudstate.trace_nest_lev]=1;
                             } else {
                                sprintf(t_label[99], "%s%s%s", ANSI_RED, "**MAX-REACHED**", ANSI_NORMAL);
                             }
                          } else if ( *sub_txt && (*t_bufa == '-') && (strstr(sub_txt, t_bufa+1) != NULL) ) {
                             if ( mudstate.trace_nest_lev < 98 ) {
-                               *(t_label[mudstate.trace_nest_lev]) = '\0';
+                               for ( inum_val = 0; inum_val <= mudstate.trace_nest_lev; inum_val++ ) {
+                                  if ( *(t_label[inum_val]) && 
+                                        (stricmp(strip_all_special(t_label[inum_val]), t_bufa+1) == 0) &&
+                                        i_label[inum_val] ) {
+                                     i_label[inum_val] = 0;
+                                     break;
+                                  }
+                               }
+                               i_label_lev = 0;
+                               for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
+                                  if ( i_label[inum_val] == 1 ) {
+                                     i_label_lev = inum_val;
+                                     break;
+                                  }
+                               }
                             }
-                            mudstate.trace_nest_lev--;
+/*                          mudstate.trace_nest_lev--; */
                             if ( mudstate.trace_nest_lev < 0 )
                                mudstate.trace_nest_lev = 0;
                          } else if ( !stricmp(t_bufa, "off") ) {
-                            mudstate.trace_nest_lev = 0;
-                            for ( inum_val = 0; inum_val < 100; inum_val++)   
+                            i_label_lev = mudstate.trace_nest_lev = 0;
+                            for ( inum_val = 0; inum_val < 100; inum_val++) {
                                *(t_label[inum_val]) = '\0';
+                               i_label[inum_val] = 0;
+                            }
                          }
                          free_lbuf(sub_txt);
                       }
