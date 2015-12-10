@@ -10064,7 +10064,9 @@
   this in addition to the TRACE flag if you so wish.
   
   You may use the attribute TRACE_COLOR to set a standard color for your
-  labels.   For instance, &TRACE_COLOR me=+purple
+  labels.   For instance, &TRACE_COLOR me=+purple.  You may specify colors
+  by label as &TRACE_COLOR_<label> me=+orange.  Like &TRACE_COLOR_123.
+  This will fall back on 'TRACE_COLOR' if the by label isn't found.
   
   Examples:
     > &TRACE me=123
@@ -28605,6 +28607,7 @@
   * @door/kick to kick a player off a connected door [ASH]
   * @door/push to push a player into a door [ASH]
   * %_<label> debug breakpoints are now available for coding [ASH]
+  * TRACE, TRACE_COLOR and TRACE_COLOR_<label> for trace %_<label> [ASH]
   
   Changes
   ------------

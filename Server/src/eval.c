@@ -1890,7 +1890,19 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             mudstate.trace_nest_lev++;
                             i_label_lev = mudstate.trace_nest_lev;
                             if ( mudstate.trace_nest_lev < 98 ) {
-                               sub_ap = atr_str("TRACE_COLOR");
+                               trace_buff = alloc_mbuf("color_by_label");
+                               sprintf(trace_buff, "TRACE_COLOR_%.*s", SBUF_SIZE - 1, t_bufa);
+                               sub_ap = atr_str(trace_buff);
+                               free_mbuf(trace_buff);
+                               if ( sub_ap ) {
+                                  sub_buf = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
+                                  if ( !*sub_buf ) {
+                                     sub_ap = atr_str("TRACE_COLOR");
+                                  }
+                                  free_lbuf(sub_buf);
+                               } else {
+                                  sub_ap = atr_str("TRACE_COLOR");
+                               }
                                if ( sub_ap ) {
                                   sub_buf = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
                                   if ( *sub_buf ) {
