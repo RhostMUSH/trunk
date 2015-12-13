@@ -19844,6 +19844,63 @@ FUNCTION(fun_secure)
     }
 }
 
+FUNCTION(fun_esclist)
+{
+    char *s_index, *s, *s2;
+
+    s_index = alloc_lbuf("fun_esclist");
+    memset(s_index, '\0', LBUF_SIZE);
+    s2 = s_index;
+
+    s = fargs[0];
+
+    while ( s && *s && (*s != '|') ) {
+       *s2 = *s;
+       s2++;
+       s++;
+    }
+    if ( s && *s && *s == '|' )
+       s++;
+
+    while (*s) {
+       if ( strchr(s_index, *s) != NULL ) {
+          safe_chr('\\', buff, bufcx);
+       } 
+       safe_chr(*s, buff, bufcx);
+       s++;
+    }
+    free_lbuf(s_index);
+}
+
+FUNCTION(fun_unesclist)
+{
+    char *s_index, *s, *s2;
+
+    s_index = alloc_lbuf("fun_unesclist");
+    memset(s_index, '\0', LBUF_SIZE);
+    s2 = s_index;
+
+    s = fargs[0];
+
+    while ( s && *s && (*s != '|') ) {
+       *s2 = *s;
+       s2++;
+       s++;
+    }
+    if ( s && *s && *s == '|' )
+       s++;
+
+    while (*s) {
+       if ( (*s == '\\') && strchr(s_index, *(s+1)) != NULL ) {
+          s++;
+          continue;
+       } 
+       safe_chr(*s, buff, bufcx);
+       s++;
+    }
+    free_lbuf(s_index);
+}
+
 FUNCTION(fun_escape)
 {
     char *s, *d, *s2;
@@ -21660,12 +21717,12 @@ FUNCTION(fun_lcmds)
 /* array(string, regcount, length [[,delim][,type]]) */
 FUNCTION(fun_array)
 {
-   char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep;
+   char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep, *osep;
    int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS];
    time_t it_now;
    ANSISPLIT insplit[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in, *p_out;
 
-   if (!fn_range_check("ARRAY", nfargs, 3, 5, buff, bufcx))
+   if (!fn_range_check("ARRAY", nfargs, 3, 6, buff, bufcx))
       return;
 
    /* insanely dangerous function -- only allow 10 per command */
@@ -21710,6 +21767,12 @@ FUNCTION(fun_array)
    }
    if ( (i_width == 0) && !sep )
       sep = ' ';
+
+   osep = alloc_lbuf("array_outsep");
+   sprintf(osep, "%s", "\r\n");
+   if ( nfargs > 5 ) {
+      strcpy(osep, fargs[5]);
+   }
 
    initialize_ansisplitter(insplit, LBUF_SIZE);
    initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -21766,7 +21829,7 @@ FUNCTION(fun_array)
             s_tmpbuff = rebuild_ansi(s_output, outsplit);
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
             if ( *mudstate.global_regs[i_regcurr] )
-               safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
             safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -21784,7 +21847,7 @@ FUNCTION(fun_array)
          s_tmpbuff = rebuild_ansi(s_output, outsplit);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
          if ( *mudstate.global_regs[i_regcurr] )
-            safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
          safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
@@ -21865,7 +21928,7 @@ FUNCTION(fun_array)
 
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
             if ( *mudstate.global_regs[i_regcurr] )
-               safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
             safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -21882,13 +21945,14 @@ FUNCTION(fun_array)
          s_tmpbuff = rebuild_ansi(s_output, outsplit);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
          if ( *mudstate.global_regs[i_regcurr] )
-            safe_str("\r\n", mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
          safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
    }
    free_lbuf(s_input);
    free_lbuf(s_output);
+   free_lbuf(osep);
 }
 
 FUNCTION(fun_reverse)
@@ -27273,16 +27337,24 @@ FUNCTION(fun_xdec)
 
 FUNCTION(fun_dec)
 {
-    int regnum, val, i;
+    int regnum, val, i, i_namefnd;
     char *pt1, *tpr_buff, *tprp_buff;
 
     regnum = atoi(fargs[0]);
-    i = 0;
+    i = i_namefnd = 0;
 #ifdef EXPANDED_QREGS
-    if ( (((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)*fargs[0]) ) {
+    for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
+            (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
+          regnum = i;
+          i_namefnd = 1;
+          break;
+       }
+    }
+    if ( !i_namefnd && ((((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)*fargs[0])) ) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( isalpha((int)(*fargs[0])) ) {
+       if ( !i_namefnd && isalpha((int)(*fargs[0])) ) {
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -27336,16 +27408,25 @@ FUNCTION(fun_xinc)
 
 FUNCTION(fun_inc)
 {
-    int regnum, val, i;
+    int regnum, val, i, i_namefnd;
     char *pt1, *tpr_buff, *tprp_buff;
 
     regnum = atoi(fargs[0]);
-    i = 0;
+    i = i_namefnd = 0;
 #ifdef EXPANDED_QREGS
-    if ( (((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)(*fargs[0])) ) {
+    for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
+            (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
+          regnum = i;
+          i_namefnd = 1;
+          break;
+       }
+    }
+
+    if ( !i_namefnd && ((((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)(*fargs[0]))) ) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( isalpha((int)(*fargs[0])) ) {
+       if ( !i_namefnd && isalpha((int)(*fargs[0])) ) {
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -31079,6 +31160,7 @@ FUN flist[] =
     {"ERROR", fun_error, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPE", fun_escape, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPEX", fun_escape, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ESCLIST", fun_esclist, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EVAL", fun_eval, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXIT", fun_exit, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EXP", fun_exp, 1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -31520,6 +31602,7 @@ FUN flist[] =
     {"U2LDEFAULT", fun_u2ldefault, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"U2LOCAL", fun_u2local, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"UNESCLIST", fun_unesclist, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"UNPACK", fun_unpack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"V", fun_v, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"VADD", fun_vadd, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

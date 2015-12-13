@@ -23,4 +23,14 @@
 #define IS_2BYTE(a)		((a & BYTE2_MASK) == UTF8_2BYTE)
 #define IS_CBYTE(a)		((a & UTF8_CBYTE_MASK) == UTF8_CBYTE)
 
+// Fancy quote to ascii quote conversion
+#define ASCII_DOUBLE_QUOTE      0x0022
+#define DOUBLE_QUOTE_LEFT       0x201C
+#define DOUBLE_QUOTE_RIGHT      0x201D
+#define DOUBLE_QUOTE_REVERSED   0x201F
+
+// Full width colon to standard colon conversion
+#define ASCII_COLON     0x003A
+#define FULLWIDTH_COLON 0xFF1A 
+
 #endif

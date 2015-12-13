@@ -662,7 +662,7 @@ clone_ansi(char *s_input, char *s_inputptr,
       s_outsplitptr->c_accent = s_insplitptr->c_accent;
       s_outsplitptr->i_special = s_insplitptr->i_special;
       s_outsplitptr->i_ascii8 = s_insplitptr->i_ascii8;
-	  s_outsplitptr->i_utf8 = s_insplitptr->i_utf8;
+      s_outsplitptr->i_utf8 = s_insplitptr->i_utf8;
       s_inputptr++;
       s_insplitptr++;
       s_outputptr++;
@@ -695,7 +695,7 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_fgansi  = p_cp->c_fgansi;
       p_ap->c_bgansi  = p_cp->c_bgansi;
       p_ap->i_ascii8  = p_cp->i_ascii8;
-	  p_ap->i_utf8    = p_cp->i_utf8;
+      p_ap->i_utf8    = p_cp->i_utf8;
    } else {
       strcpy(p_ap->s_fghex, p_bp->s_fghex);
       strcpy(p_ap->s_bghex, p_bp->s_bghex);
@@ -704,7 +704,7 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_fgansi  = p_bp->c_fgansi;
       p_ap->c_bgansi  = p_bp->c_bgansi;
       p_ap->i_ascii8  = p_bp->i_ascii8;
-	  p_ap->i_utf8    = p_bp->i_utf8;
+      p_ap->i_utf8    = p_bp->i_utf8;
    }
 }
 
@@ -734,7 +734,7 @@ void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
       memset(p_bp->s_bghex, '\0', 5);
       p_bp->i_special = 0;
       p_bp->i_ascii8 = 0;
-	  p_bp->i_utf8 = 0;
+      p_bp->i_utf8 = 0;
       p_bp->c_accent = '\0';
       p_bp->c_fgansi = '\0';
       p_bp->c_bgansi = '\0';
@@ -1714,10 +1714,11 @@ utf8toucp(char *utf)
     int i_b1, i_b2, i_b3, i_b4, i_bytecnt, i_ucp;
     
     tmp = (char*)malloc(3);
-    ucp = (char*)malloc(7);
+    ucp = (char*)malloc(12);
     
     i_bytecnt = strlen(utf) / 2;
     
+    // Convert UTF-8 Bytes to Unicode Code Point
     if (i_bytecnt == 1) {
         return utf;
     } else if (i_bytecnt == 2) {
@@ -1726,7 +1727,7 @@ utf8toucp(char *utf)
         strncpy(tmp, utf+2, 2);
         i_b2 = strtol(tmp, &ptr, 16);       
         i_ucp = ((i_b1 - 192) * 64) + (i_b2 - 128);
-        sprintf(ucp, "%04x", i_ucp);
+        sprintf(ucp, "%c<u%04x>", '%', i_ucp);
     } else if (i_bytecnt == 3) {
         strncpy(tmp, utf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
@@ -1735,7 +1736,7 @@ utf8toucp(char *utf)
         strncpy(tmp, utf+4, 2);
         i_b3 = strtol(tmp, &ptr, 16);
         i_ucp = ((i_b1 - 224) * 4096) + ((i_b2 - 128) * 64) + (i_b3 - 128);
-        sprintf(ucp, "%04x", i_ucp);
+        sprintf(ucp, "%c<u%04x>", '%', i_ucp);
     } else if (i_bytecnt == 4) {
         strncpy(tmp, utf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
@@ -1746,9 +1747,25 @@ utf8toucp(char *utf)
         strncpy(tmp, utf+6, 2);
         i_b4 = strtol(tmp, &ptr, 16);
         i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
-        sprintf(ucp, "%04x", i_ucp);
+        sprintf(ucp, "%c<u%04x>", '%', i_ucp);
     } else {
         sprintf(ucp, " ");
+    }
+    
+    // If the Unicode Code Point is a fancy double quote
+    // convert it to ASCII double quote
+    switch (i_ucp) {
+        case DOUBLE_QUOTE_LEFT:
+        case DOUBLE_QUOTE_RIGHT:
+        case DOUBLE_QUOTE_REVERSED:
+		    if (!mudconf.allow_fancy_quotes)
+                sprintf(ucp, "%c", ASCII_DOUBLE_QUOTE);
+            break;
+        
+        case FULLWIDTH_COLON:
+		    if (!mudconf.allow_fullwidth_colon)
+			    sprintf(ucp, "%c", ASCII_COLON);
+			break;
     }
     
     free(tmp);
@@ -1772,7 +1789,7 @@ ucptoutf8(char *ucp)
     i_ucp = strtol(ucp, &ptr, 16);
     
     if ( i_ucp > 31 && i_ucp <= 127) {  // Single byte, return value and not return code
-        return ucp;
+        sprintf(utf, "%02x", i_ucp);
     } else if (i_ucp <= 2047) { // 2 byte
         i_b1 = (i_ucp / 64) + 192;
         i_b2 = (i_ucp % 64) + 128;      

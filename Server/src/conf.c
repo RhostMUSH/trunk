@@ -16,6 +16,7 @@
 #include "alloc.h"
 #include "flags.h"
 #include "udb_defs.h"
+#include "debug.h"
 
 /* ---------------------------------------------------------------------------
  * CONFPARM: Data used to find fields in CONFDATA.
@@ -758,6 +759,8 @@ NDECL(cf_init)
     mudconf.vlimit = 750;
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
     mudconf.vattr_limit_checkwiz = 0; /* Check if wizards check vattr limits */
+	mudconf.allow_fancy_quotes = 0;  /* Allow UTF-8 double quote characters */
+	mudconf.allow_fullwidth_colon = 0; /* Allow UTF-8 fullwidth colon character */
     mudstate.logging = 0;
     mudstate.attr_next = A_USER_START;
     mudstate.iter_alist.data = NULL;
@@ -1034,6 +1037,23 @@ CF_HAND(cf_vint)
     if ((vp_old < 0) || (vp_old > i_ceil)) {
         if ( !mudstate.initializing) {
            notify(player, unsafe_tprintf("%s Value must be between 0 and %d.", s_buf, i_ceil));
+        }
+	return -1;
+    } else {
+        *vp = vp_old;
+	return 0;
+    }
+}
+
+CF_HAND(cf_recurseint)
+{
+    int i_ceil = 50, vp_old=0;
+  
+    sscanf(str, "%d", &vp_old);
+    i_ceil = STACKMAX / 10;
+    if ((vp_old < 0) || (vp_old > i_ceil)) {
+        if ( !mudstate.initializing) {
+           notify(player, unsafe_tprintf("Value must be between 0 and %d [Stackmax is %d].", i_ceil, STACKMAX));
         }
 	return -1;
     } else {
@@ -3748,7 +3768,7 @@ CONF conftable[] =
      (char *) "The current function invocation limit.\r\n"\
               "                             Default: 2500   Value: %d"},
     {(char *) "function_recursion_limit",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.func_nest_lim, 0, 0, CA_WIZARD,
+     cf_recurseint, CA_GOD | CA_IMMORTAL, &mudconf.func_nest_lim, 0, 0, CA_WIZARD,
      (char *) "The current function recursion limit.\r\n"\
               "(Max is 300)                 Default: 50   Value: %d"},
     {(char *) "wildmatch_limit",
@@ -4798,6 +4818,14 @@ CONF conftable[] =
      (char *) "Default object TX level.\r\n"\
               "                             Default: 1   Value: %d"},
 #endif /* REALITY_LEVELS */
+    {(char *)"allow_fancy_quotes",
+	 cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_fancy_quotes, 0, 0, CA_WIZARD,
+	 (char *) "Allow UTF-8 encoded double quotes.\r\n"\
+	          "                             Default: 0   Value: %d"},
+    {(char *)"allow_fullwidth_colon",
+	 cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_fullwidth_colon, 0, 0, CA_WIZARD,
+	          "Allow UTF-8 encoded full width colon character.\r\n"\
+			  "                             Default: 0   Value: %d"},
     {NULL,
      NULL, 0, NULL, 0}};
 
@@ -5192,7 +5220,8 @@ void list_options_values(dbref player, int p_val, char *s_val)
       if (((tp->interpreter == cf_int) ||
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
-           (tp->interpreter == cf_vint)) &&
+           (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
       cntr++;
       }
@@ -5209,7 +5238,8 @@ void list_options_values(dbref player, int p_val, char *s_val)
       if (((tp->interpreter == cf_int) ||
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
-           (tp->interpreter == cf_vint)) &&
+           (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
          if ( s_val && *s_val ) {
             if ( !quick_wild(s_val, tp->pname) ) {
@@ -5283,6 +5313,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                     (tp->interpreter == cf_int_runtime) ||
                     (tp->interpreter == cf_mailint) ||
                     (tp->interpreter == cf_vint) ||
+                    (tp->interpreter == cf_recurseint) ||
 		    (tp->interpreter == cf_sidefx && !bVerboseSideFx)) {
 
                    sprintf(tempbuff, "%d", *(tp->loc));

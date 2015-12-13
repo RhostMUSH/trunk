@@ -474,8 +474,10 @@ struct confdata {
 	int	lfunction_max;	/* Maximum lfunctions allowed */
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 	char	sub_include[200];
-	int	old_elist;		/* Old elist processing */
+	int	old_elist;		/* Old elist processing */	
 #endif	/* STANDALONE */
+    int allow_fancy_quotes;
+    int allow_fullwidth_colon;
 };
 
 extern CONFDATA mudconf;

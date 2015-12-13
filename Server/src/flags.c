@@ -3529,7 +3529,8 @@ convert_flags(dbref player, char *flaglist, FLAGSET * fset, FLAG * p_type, int w
 void 
 decompile_flags(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
 {
-    char *tpr_buff, *tprp_buff;
+    char *tpr_buff, *tprp_buff, *s_buff, *s_ptr;
+    int first = 0;
     FLAG f1, f2, f3, f4;
     FLAGENT *fp;
 
@@ -3540,6 +3541,7 @@ decompile_flags(dbref player, dbref thing, char *thingname, char *qualout, int i
     f3 = Flags3(thing);
     f4 = Flags4(thing);
 
+    s_ptr = s_buff = alloc_lbuf("decompile_flags");
     for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
 	 fp;
 	 fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)){
@@ -3585,12 +3587,71 @@ decompile_flags(dbref player, dbref thing, char *thingname, char *qualout, int i
 	    continue;
 
 	/* We made it this far, report this flag */
-
-        tprp_buff = tpr_buff = alloc_lbuf("decompile_flags");
-	noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s=%s", 
-                                           (i_tf ? qualout : (char *)""), thingname, fp->flagname));
-        free_lbuf(tpr_buff);
+        if ( first )
+           safe_chr(' ', s_buff, &s_ptr);
+        safe_str((char *)fp->flagname, s_buff, &s_ptr);
+        first = 1;
     }
+    if ( *s_buff ) {
+       tprp_buff = tpr_buff = alloc_lbuf("decompile_flags");
+       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s=%s", 
+                                          (i_tf ? qualout : (char *)""), thingname, s_buff));
+       free_lbuf(tpr_buff);
+    }
+    free_lbuf(s_buff);
+}
+
+void 
+decompile_toggles(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
+{
+    char *tpr_buff, *tprp_buff, *s_buff, *s_ptr;
+    int first = 0;
+    FLAG f1, f2;
+    TOGENT *tp;
+
+    /* Report generic flags */
+
+    f1 = Toggles(thing);
+    f2 = Toggles2(thing);
+
+    s_ptr = s_buff = alloc_lbuf("decompile_flags");
+    for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
+         tp;
+         tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+
+	/* Skip if we shouldn't decompile this flag */
+
+	if (tp->listperm & CA_NO_DECOMP)
+	    continue;
+
+	/* Skip if this flag is not set */
+
+	if (tp->toggleflag & TOGGLE2) {
+	    if (!(f2 & tp->togglevalue))
+		continue;
+	} else {
+	    if (!(f1 & tp->togglevalue))
+		continue;
+	}
+
+	/* Skip if we can't see this flag */
+
+	if (!check_access(player, tp->listperm, 0, 0))
+	    continue;
+
+	/* We made it this far, report this flag */
+        if ( first )
+           safe_chr(' ', s_buff, &s_ptr);
+        safe_str((char *)tp->togglename, s_buff, &s_ptr);
+        first = 1;
+    }
+    if ( *s_buff ) {
+       tprp_buff = tpr_buff = alloc_lbuf("decompile_flags");
+       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@toggle %s=%s", 
+                                         (i_tf ? qualout : (char *)""), thingname, s_buff));
+       free_lbuf(tpr_buff);
+    }
+    free_lbuf(s_buff);
 }
 #endif /* STANDALONE */
 

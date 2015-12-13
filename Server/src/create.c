@@ -905,13 +905,13 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
     time_t now, dtime;
     DESC *d, *e;
 
-    if ( (key & PCREATE_REG) && !Wizard(player) ) {
+    if ( (key & PCRE_REG) && !Wizard(player) ) {
 	notify(player, "Permission denied.");
 	return;
     }
-    if ((!Wizard(player) && !Admin(player) &&
+    if ( !(key & PCRE_ROBOT) && ((!Wizard(player) && !Admin(player) &&
 	 !HasPriv(player, NOTHING, POWER_PCREATE, POWER4, POWER_LEVEL_NA)) ||
-	DePriv(player, NOTHING, DP_PCREATE, POWER7, POWER_LEVEL_NA)) {
+	DePriv(player, NOTHING, DP_PCREATE, POWER7, POWER_LEVEL_NA)) ) {
 	notify(player, "Permission denied.");
 	return;
     }
@@ -920,7 +920,7 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
     } else {
 	name2 = name;
     }
-    if ( key & PCREATE_REG ) {
+    if ( key & PCRE_REG ) {
        time(&now);
        dtime = 0;
        e = NULL;

@@ -769,7 +769,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 						   safe_chr(*string, buff, &bufc);
 						   safe_chr(*string, buff2, &bufc2);
 						   safe_chr(*string, buff_utf, &bufc_utf);
-						}					   
+						}
+						string++;
 					}
 				}
             } else if ( (*string == 'f') ) {
@@ -1146,6 +1147,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     static const char *absp[5] =
     {"", "its", "hers", "his", "theirs"};
 
+
     DPUSH; /* #67 */
 		
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
@@ -1201,6 +1203,12 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
         mudstate.stack_toggle = 1;
         RETURN(buff); /* #67 */
     }
+#ifndef NODEBUGMONITOR
+    if ( (debugmem->stacktop + mudconf.func_nest_lim) > STACKMAX ) {
+        mudstate.stack_toggle = 1;
+        RETURN(buff);
+    }
+#endif
     if ( mudstate.sidefx_currcalls >= mudconf.sidefx_maxcalls 
 	 &&
 	 (mudconf.sidefx_maxcalls > 0 || (mudconf.sidefx_maxcalls = 1))) {
@@ -1675,11 +1683,29 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    if ( (*dstr != '>') ) {
                       dstr = orig_dstr;
                    } else {
-                      for ( sub_cntr = 0 ; sub_cntr < MAX_GLOBAL_REGS; sub_cntr++ ) {
-                         if (  mudstate.global_regsname[sub_cntr] &&
-                               !stricmp(mudstate.global_regsname[sub_cntr], t_bufa) ) {
-		            safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
-                            break;
+#ifdef EXPANDED_QREGS
+                      if ( *t_bufa && !*(t_bufa+1) && isalnum(*t_bufa) ) {
+                         for ( w = 0; w < 37; w++ ) {
+                            if ( mudstate.nameofqreg[w] == tolower(*t_bufa) )
+                               break;
+                         }
+                         i = w;
+		         if ( mudstate.global_regs[i] ) {
+		            safe_str(mudstate.global_regs[i], buff, &bufc);
+                         }
+#else
+		         i = (*t_bufa - '0');
+		         if ((i >= 0) && (i <= 9) && mudstate.global_regs[i] ) {
+		            safe_str(mudstate.global_regs[i], buff, &bufc);
+                         }
+#endif
+                      } else {
+                         for ( sub_cntr = 0 ; sub_cntr < MAX_GLOBAL_REGS; sub_cntr++ ) {
+                            if (  mudstate.global_regsname[sub_cntr] &&
+                                  !stricmp(mudstate.global_regsname[sub_cntr], t_bufa) ) {
+		               safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
+                               break;
+                            }
                          }
                       }
                    }

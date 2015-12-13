@@ -56,7 +56,7 @@ void bzero(void *, int);
 #include <sys/tihdr.h>
 #include <stropts.h>
 #include <poll.h>
-#define shutdown(x,y)		0
+#define shutdown(x,y)       0
 extern int t_errno;
 extern char *t_errlist[];
 #endif
@@ -261,24 +261,24 @@ int make_socket(int port, char* address)
     s = socket(AF_INET, SOCK_STREAM, 0);
 #endif
     if (s < 0) {
-	log_perror("NET", "FAIL", NULL, "creating master socket");
+    log_perror("NET", "FAIL", NULL, "creating master socket");
         DPOP; /* #1 */
-	exit(3);
+    exit(3);
     }
 #ifdef TLI
     bindreq = (struct t_bind *) t_alloc(s, T_BIND, T_ALL);
     if (!bindreq) {
-	log_perror("NET", "FAIL", NULL, "t_alloc(req)");
-	close(s);
+    log_perror("NET", "FAIL", NULL, "t_alloc(req)");
+    close(s);
         DPOP; /* #1 */
-	exit(4);
+    exit(4);
     }
     bindret = (struct t_bind *) t_alloc(s, T_BIND, T_ALL);
     if (!bindret) {
-	log_perror("NET", "FAIL", NULL, "t_alloc(ret)");
-	close(s);
+    log_perror("NET", "FAIL", NULL, "t_alloc(ret)");
+    close(s);
         DPOP; /* #1 */
-	exit(4);
+    exit(4);
     }
     serverreq = (struct sockaddr_in *) bindreq->addr.buf;
     serverreq->sin_family = AF_INET;
@@ -293,23 +293,23 @@ int make_socket(int port, char* address)
     bindreq->qlen = 5;
 
     if (t_bind(s, bindreq, bindret) < 0) {
-	log_perror("NET", "FAIL", NULL, "t_bind");
-	close(s);
+    log_perror("NET", "FAIL", NULL, "t_bind");
+    close(s);
         DPOP; /* #1 */
-	exit(5);
+    exit(5);
     }
     serverret = (struct sockaddr_in *) bindret->addr.buf;
     if (serverreq->sin_port != serverret->sin_port) {
-	log_perror("NET", "FAIL", NULL, "t_bind(portinuse)");
-	close(s);
+    log_perror("NET", "FAIL", NULL, "t_bind(portinuse)");
+    close(s);
         DPOP; /* #1 */
-	exit(6);
+    exit(6);
     }
 #else
     opt = 1;
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
-		   (char *) &opt, sizeof(opt)) < 0) {
-	log_perror("NET", "FAIL", NULL, "setsockopt");
+           (char *) &opt, sizeof(opt)) < 0) {
+    log_perror("NET", "FAIL", NULL, "setsockopt");
     }
     server.sin_family = AF_INET;
     if(inet_addr((const char*)address) != -1)
@@ -318,10 +318,10 @@ int make_socket(int port, char* address)
         server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
-	log_perror("NET", "FAIL", NULL, "bind");
-	close(s);
+    log_perror("NET", "FAIL", NULL, "bind");
+    close(s);
         DPOP; /* #1 */
-	exit(4);
+    exit(4);
     }
     listen(s, 5);
 #endif
@@ -336,9 +336,9 @@ int make_socket(int port, char* address)
 }
 
 #ifndef HAVE_GETTIMEOFDAY
-#define get_tod(x)	{ (x)->tv_sec = time(NULL); (x)->tv_usec = 0; }
+#define get_tod(x)  { (x)->tv_sec = time(NULL); (x)->tv_usec = 0; }
 #else
-#define get_tod(x)	gettimeofday(x, (struct timezone *)0)
+#define get_tod(x)  gettimeofday(x, (struct timezone *)0)
 #endif
 
 int maxd;
@@ -365,11 +365,11 @@ shovechars(int port,char* address)
     struct pollfd *fds;
     int i;
 
-#define CheckInput(x)	((fds[x].revents & POLLIN) == POLLIN)
-#define CheckOutput(x)	((fds[x].revents & POLLOUT) == POLLOUT)
+#define CheckInput(x)   ((fds[x].revents & POLLIN) == POLLIN)
+#define CheckOutput(x)  ((fds[x].revents & POLLOUT) == POLLOUT)
 #else
-#define CheckInput(x)	FD_ISSET(x, &input_set)
-#define CheckOutput(x)	FD_ISSET(x, &output_set)
+#define CheckInput(x)   FD_ISSET(x, &input_set)
+#define CheckOutput(x)  FD_ISSET(x, &output_set)
 #endif
 
     DPUSH; /* #2 */
@@ -397,7 +397,7 @@ shovechars(int port,char* address)
         maxd = d->descriptor + 1;
       }
       if ((d->flags & DS_HAS_DOOR) && (d->door_desc >= maxd)) {
-	maxd = d->door_desc + 1;
+    maxd = d->door_desc + 1;
       }
       if( d->flags & DS_CONNECTED ) {
         if(!silent) {
@@ -467,7 +467,7 @@ shovechars(int port,char* address)
     avail_descriptors = maxfds - 36;
 
     STARTLOG(LOG_STARTUP, "INI", "BSD")
-	log_text((char *) "Max Descriptors: ");
+    log_text((char *) "Max Descriptors: ");
     log_text((char *) unsafe_tprintf("%d", avail_descriptors));
     mudstate.max_logins_allowed = avail_descriptors - 10;
     ENDLOG
@@ -477,123 +477,123 @@ shovechars(int port,char* address)
         /* Beginning of a new cycle - free unsafe_tprint buffers */
         freeTrackedBuffers();
 
-	get_tod(&current_time);
-	last_slice = update_quotas(last_slice, current_time);
+    get_tod(&current_time);
+    last_slice = update_quotas(last_slice, current_time);
 
-	process_commands();
+    process_commands();
 #ifdef ENABLE_DOORS
-	door_processInternalDoors();
+    door_processInternalDoors();
 #endif
-	local_tick();
-	if (mudstate.shutdown_flag || mudstate.reboot_flag)
-	    break;
+    local_tick();
+    if (mudstate.shutdown_flag || mudstate.reboot_flag)
+        break;
 
-	/* test for events */
+    /* test for events */
 
-	dispatch();
+    dispatch();
 
-	/* any queued robot commands waiting? */
+    /* any queued robot commands waiting? */
 
   double next = roundf(que_next() * 10) / 10;
-	timeout.tv_sec = floor(next);
-	timeout.tv_usec = floor(1000000 * fmod(next,1.0)); ;
-	next_slice = msec_add(last_slice, mudconf.timeslice);
-	timeval_sub(next_slice, current_time);
+    timeout.tv_sec = floor(next);
+    timeout.tv_usec = floor(1000000 * fmod(next,1.0)); ;
+    next_slice = msec_add(last_slice, mudconf.timeslice);
+    timeval_sub(next_slice, current_time);
 
 #ifdef TLI
-	for (i = 0; i < maxfds; i++)
-	    fds[i].fd = -1;
+    for (i = 0; i < maxfds; i++)
+        fds[i].fd = -1;
 #else
-	FD_ZERO(&input_set);
-	FD_ZERO(&output_set);
+    FD_ZERO(&input_set);
+    FD_ZERO(&output_set);
 #endif
 
-	/* Listen for new connections if there are free descriptors */
+    /* Listen for new connections if there are free descriptors */
 
-	if (ndescriptors < avail_descriptors) {
+    if (ndescriptors < avail_descriptors) {
 #ifdef TLI
-	    fds[sock].fd = sock;
-	    fds[sock].events = POLLIN;
+        fds[sock].fd = sock;
+        fds[sock].events = POLLIN;
 #else
-	    FD_SET(sock, &input_set);
+        FD_SET(sock, &input_set);
 #endif
-	}
+    }
 
         active_auths = 0;
 
-	/* Mark sockets that we want to test for change in status */
-	DESC_ITER_ALL(d) {
+    /* Mark sockets that we want to test for change in status */
+    DESC_ITER_ALL(d) {
 #ifdef TLI
-	    if (!d->input_head || d->output_head) {
-		fds[d->descriptor].fd = d->descriptor;
-		fds[d->descriptor].events = 0;
-		if (!d->input_head)
-		    fds[d->descriptor].events |= POLLIN;
-		if (d->output_head)
-		    fds[d->descriptor].events |= POLLOUT;
-	    }
+        if (!d->input_head || d->output_head) {
+        fds[d->descriptor].fd = d->descriptor;
+        fds[d->descriptor].events = 0;
+        if (!d->input_head)
+            fds[d->descriptor].events |= POLLIN;
+        if (d->output_head)
+            fds[d->descriptor].events |= POLLOUT;
+        }
 #else
-	    if (!d->input_head && (d->flags & DS_AUTH_IN_PROGRESS) == 0)
-		FD_SET(d->descriptor, &input_set);
-	    if (d->output_head)
-		FD_SET(d->descriptor, &output_set);
-	    if (d->flags & DS_AUTH_IN_PROGRESS) {
+        if (!d->input_head && (d->flags & DS_AUTH_IN_PROGRESS) == 0)
+        FD_SET(d->descriptor, &input_set);
+        if (d->output_head)
+        FD_SET(d->descriptor, &output_set);
+        if (d->flags & DS_AUTH_IN_PROGRESS) {
                 active_auths++;
-		if (d->authdescriptor >= maxd)
-		    maxd = d->authdescriptor + 1;
-		if (d->flags & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
-		    FD_SET(d->authdescriptor, &output_set);
-		FD_SET(d->authdescriptor, &input_set);
-	    }
-	    if (d->flags & DS_HAS_DOOR) {
-	      if (d->door_desc >= maxd)
-		maxd = d->door_desc + 1;
-	      if (!d->door_input_head)
-		FD_SET(d->door_desc, &input_set);
-	      if (d->door_output_head)
-		FD_SET(d->door_desc, &output_set);
-	    }
+        if (d->authdescriptor >= maxd)
+            maxd = d->authdescriptor + 1;
+        if (d->flags & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
+            FD_SET(d->authdescriptor, &output_set);
+        FD_SET(d->authdescriptor, &input_set);
+        }
+        if (d->flags & DS_HAS_DOOR) {
+          if (d->door_desc >= maxd)
+        maxd = d->door_desc + 1;
+          if (!d->door_input_head)
+        FD_SET(d->door_desc, &input_set);
+          if (d->door_output_head)
+        FD_SET(d->door_desc, &output_set);
+        }
 #endif
-	}
-	door_registerInternalDoorDescriptors(&input_set, &output_set, &maxd);
+    }
+    door_registerInternalDoorDescriptors(&input_set, &output_set, &maxd);
 
 
         /* Enable AUTH timeout processing */
         if( active_auths > 0 ) {
-	  timeout.tv_sec = MIN(timeout.tv_sec,1);
+      timeout.tv_sec = MIN(timeout.tv_sec,1);
         }
 
-	/* Wait for something to happen */
+    /* Wait for something to happen */
 #ifdef TLI
-	found = poll(fds, maxfds, timeout.tv_sec);
+    found = poll(fds, maxfds, timeout.tv_sec);
 #else
-	found = select(maxd, &input_set, &output_set, (fd_set *) NULL,
-		       &timeout);
+    found = select(maxd, &input_set, &output_set, (fd_set *) NULL,
+               &timeout);
 #endif
-	if (found < 0) {
-	    if (errno != EINTR) {
-		(mudstate.scheck)++;
-		switch(errno) {
-		  case EBADF:
-			fprintf(stderr,"BAD FILE DESCRIPTOR\n");
-			break;
-		  case EINVAL:
-			fprintf(stderr,"N is NEGATIVE\n");
-			break;
-		  case ENOMEM:
-			fprintf(stderr,"NO MEMORY\n");
-		}
-		log_perror("NET", "FAIL",
-			   "checking for activity, clearing decriptor queues", "select");
-		DESC_ITER_ALL(d) {
-		  freeqs(d,0);
-		}
-		if (mudstate.scheck > 2) {
-		  log_perror("NET","FAIL","Repeated select failures.  Shutting down.","select");
-		  break;
-		}
-	    }
-	}
+    if (found < 0) {
+        if (errno != EINTR) {
+        (mudstate.scheck)++;
+        switch(errno) {
+          case EBADF:
+            fprintf(stderr,"BAD FILE DESCRIPTOR\n");
+            break;
+          case EINVAL:
+            fprintf(stderr,"N is NEGATIVE\n");
+            break;
+          case ENOMEM:
+            fprintf(stderr,"NO MEMORY\n");
+        }
+        log_perror("NET", "FAIL",
+               "checking for activity, clearing decriptor queues", "select");
+        DESC_ITER_ALL(d) {
+          freeqs(d,0);
+        }
+        if (mudstate.scheck > 2) {
+          log_perror("NET","FAIL","Repeated select failures.  Shutting down.","select");
+          break;
+        }
+        }
+    }
 
         /* NOTE: Some firewalls discard AUTH connection attempts
         ** instead of refusing the connection.  This can cause
@@ -602,111 +602,111 @@ shovechars(int port,char* address)
         ** we detect if there is socket activity. -Thorin 04/2002
         */
         if( active_auths > 0 ) {
-	  DESC_SAFEITER_ALL(d, dnext) {
-	    if( (d->flags & DS_AUTH_IN_PROGRESS) &&
-	        (time(NULL) - d->connected_at >= 3) ) {
-		d->flags &= ~DS_AUTH_IN_PROGRESS;
-	      	shutdown(d->authdescriptor, 2);
-		close(d->authdescriptor);
-              	strcpy(d->userid,"");
-		STARTLOG(LOG_NET, "NET", "FAIL")
-	  	  logbuff = alloc_mbuf("shovechars.LOG.authtimeout");
-  		  sprintf(logbuff,
-	   	  	"[%d/%s] Auth request timed out",
-		    	d->descriptor,
-			d->addr);
-		  log_text(logbuff);
-		  free_mbuf(logbuff);
-	 	ENDLOG
-	    }
+      DESC_SAFEITER_ALL(d, dnext) {
+        if( (d->flags & DS_AUTH_IN_PROGRESS) &&
+            (time(NULL) - d->connected_at >= 3) ) {
+        d->flags &= ~DS_AUTH_IN_PROGRESS;
+            shutdown(d->authdescriptor, 2);
+        close(d->authdescriptor);
+                strcpy(d->userid,"");
+        STARTLOG(LOG_NET, "NET", "FAIL")
+          logbuff = alloc_mbuf("shovechars.LOG.authtimeout");
+          sprintf(logbuff,
+            "[%d/%s] Auth request timed out",
+                d->descriptor,
+            d->addr);
+          log_text(logbuff);
+          free_mbuf(logbuff);
+        ENDLOG
+        }
           }
         }
 
-	if (found < 0) {
-	    continue;
+    if (found < 0) {
+        continue;
         }
-	mudstate.scheck = 0;
+    mudstate.scheck = 0;
 
-	/* if !found then time for robot commands */
+    /* if !found then time for robot commands */
 
-	if (!found) {
-	    do_top(mudconf.queue_chunk);
-	    continue;
-	} else {
-	    do_top(mudconf.active_q_chunk);
-	}
+    if (!found) {
+        do_top(mudconf.queue_chunk);
+        continue;
+    } else {
+        do_top(mudconf.active_q_chunk);
+    }
 
-	/* Check for new connection requests */
+    /* Check for new connection requests */
 
-	check = CheckInput(sock);
-	if (check) {
-	    newd = new_connection(sock);
-	    if (!newd) {
+    check = CheckInput(sock);
+    if (check) {
+        newd = new_connection(sock);
+        if (!newd) {
 #ifdef TLI
-		check = (errno && (errno != ENFILE));
+        check = (errno && (errno != ENFILE));
 #else
-		check = (errno && (errno != EINTR) &&
-			 (errno != EMFILE) &&
-			 (errno != ENFILE));
+        check = (errno && (errno != EINTR) &&
+             (errno != EMFILE) &&
+             (errno != ENFILE));
 #endif
-		if (check) {
+        if (check) {
                     if( ++new_connection_error_count == 10 ) {
                       log_perror("NET", "FAIL", NULL,
                                  "new_connection/stop");
                     }
                     else if( new_connection_error_count < 10 ) {
-		      log_perror("NET", "FAIL", NULL,
-		   	         "new_connection");
+              log_perror("NET", "FAIL", NULL,
+                     "new_connection");
                     }
-		}
-	    } else {
-		if (newd->descriptor >= maxd)
-		    maxd = newd->descriptor + 1;
-	    }
-	}
+        }
+        } else {
+        if (newd->descriptor >= maxd)
+            maxd = newd->descriptor + 1;
+        }
+    }
 
-	/* Check for activity on user sockets */
-	DESC_SAFEITER_ALL(d, dnext) {
-	    /* Check for Auth */
+    /* Check for activity on user sockets */
+    DESC_SAFEITER_ALL(d, dnext) {
+        /* Check for Auth */
 
-	    if (d->flags & DS_AUTH_IN_PROGRESS) {
-		if ((d->flags & DS_AUTH_CONNECTING) &&
+        if (d->flags & DS_AUTH_IN_PROGRESS) {
+        if ((d->flags & DS_AUTH_CONNECTING) &&
                     CheckOutput(d->authdescriptor)) {
                     check_auth_connect(d);
                 }
-		else if ((d->flags & DS_NEED_AUTH_WRITE) &&
-		    CheckOutput(d->authdescriptor)) {
-		    write_auth(d);
+        else if ((d->flags & DS_NEED_AUTH_WRITE) &&
+            CheckOutput(d->authdescriptor)) {
+            write_auth(d);
                 }
                 else if( CheckInput(d->authdescriptor) ) {
-		      check_auth(d);
+              check_auth(d);
                 }
-	    }
+        }
 
-	    if (d->flags & DS_HAS_DOOR) {
-	      if (CheckInput(d->door_desc)) {
-		d->last_time = mudstate.now;
-		if (!process_door_input(d)) {
-		  closeDoorWithId(d, d->door_num);
-		}
-	      }
-	    }
-	    /* Lensy:
-	     *  Additional check needed because the above call might close the conny
-	     */
-	    if (d->flags & DS_HAS_DOOR) {
-	      if (CheckOutput(d->door_desc)) {
-		if (!process_door_output(d)) {
-		  closeDoorWithId(d, d->door_num);
-		}
-	      }
-	    }
-	    /* Process input from sockets with pending input */
+        if (d->flags & DS_HAS_DOOR) {
+          if (CheckInput(d->door_desc)) {
+        d->last_time = mudstate.now;
+        if (!process_door_input(d)) {
+          closeDoorWithId(d, d->door_num);
+        }
+          }
+        }
+        /* Lensy:
+         *  Additional check needed because the above call might close the conny
+         */
+        if (d->flags & DS_HAS_DOOR) {
+          if (CheckOutput(d->door_desc)) {
+        if (!process_door_output(d)) {
+          closeDoorWithId(d, d->door_num);
+        }
+          }
+        }
+        /* Process input from sockets with pending input */
 
-	    check = CheckInput(d->descriptor);
-	    if (check) {
+        check = CheckInput(d->descriptor);
+        if (check) {
 
-		/* Undo autodark */
+        /* Undo autodark */
 
                 i_oldlasttime = d->last_time;
                 flagkeep = d->flags;
@@ -726,13 +726,13 @@ shovechars(int port,char* address)
                    d->last_time = mudstate.now;
                 }
 
-		/* Process received data */
+        /* Process received data */
 
                 i_oldlastcnt = d->input_tot;
-		if (!process_input(d)) {
-		    shutdownsock(d, R_SOCKDIED);
-		    continue;
-		}
+        if (!process_input(d)) {
+            shutdownsock(d, R_SOCKDIED);
+            continue;
+        }
                 if ( (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
                    memcpy(s_cutter, d->input_head->cmd, 5);
                    memcpy(s_cutter2, d->input_head->cmd, 7);
@@ -760,19 +760,19 @@ shovechars(int port,char* address)
                      ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
                    d->last_time = i_oldlasttime;
                 }
-	    }
+        }
 
-	    /* Process output for sockets with pending output */
+        /* Process output for sockets with pending output */
 
-	    check = CheckOutput(d->descriptor);
-	    if (check) {
-		if (!process_output(d)) {
-		    shutdownsock(d, R_SOCKDIED);
-		}
-	    }
-	}
-	door_checkInternalDoorDescriptors(&input_set, &output_set);
-	
+        check = CheckOutput(d->descriptor);
+        if (check) {
+        if (!process_output(d)) {
+            shutdownsock(d, R_SOCKDIED);
+        }
+        }
+    }
+    door_checkInternalDoorDescriptors(&input_set, &output_set);
+    
     }
     DPOPCONDITIONAL; /* #2 */
 }
@@ -787,7 +787,7 @@ addrout(struct in_addr a)
     DPUSH; /* #3 */
 
     if (mudconf.use_hostname) {
-	struct hostent *he;
+    struct hostent *he;
 
         /* check the nodns_site list */
         if( site_check(a, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS ) {
@@ -795,22 +795,22 @@ addrout(struct in_addr a)
           RETURN(retval); /* #3 */
         }
 
-	he = gethostbyaddr((char *) &a.s_addr, sizeof(a.s_addr), AF_INET);
-	if (he) {
+    he = gethostbyaddr((char *) &a.s_addr, sizeof(a.s_addr), AF_INET);
+    if (he) {
             retval = he->h_name;
             if ( !mudconf.nospam_connect ) {
                STARTLOG(LOG_NET, "NET", "DNS")
-    	         logbuff = alloc_lbuf("bsd.addrout");
+                 logbuff = alloc_lbuf("bsd.addrout");
                  sprintf(logbuff, "%s = %s", inet_ntoa(a), retval);
                  log_text(logbuff);
                  free_lbuf(logbuff);
                ENDLOG
             }
-	    RETURN(retval); /* #3 */
+        RETURN(retval); /* #3 */
         }
-	else {
+    else {
             retval = inet_ntoa(a);
-	    RETURN(retval); /* 3 */
+        RETURN(retval); /* 3 */
         }
     } 
     retval = inet_ntoa(a);
@@ -820,17 +820,17 @@ addrout(struct in_addr a)
 #ifdef TLI
 static void 
 log_tli_error(const char *key, const char *routine,
-	      int err, int t_err)
+          int err, int t_err)
 {
     char *buff;
 
     DPUSH; /* #4 */
 
     STARTLOG(LOG_NET, "NET", "BIND")
-	buff = alloc_mbuf("log_tli_error");
+    buff = alloc_mbuf("log_tli_error");
     sprintf(buff, "%s failed, errno=%d(%s), t_errno=%d(%s)",
-	    routine, err, sys_errlist[err],
-	    t_err, t_errlist[t_err]);
+        routine, err, sys_errlist[err],
+        t_err, t_errlist[t_err]);
     log_text(buff);
     free_mbuf(buff);
     ENDLOG
@@ -870,9 +870,9 @@ new_connection(int sock)
     mudstate.debug_cmd = (char *) "< new_connection >";
 #ifdef TLI
     if (!nc_call) {
-	nc_call = (struct t_call *) t_alloc(sock, T_CALL, T_ALL);
-	if (!nc_call) {
-	    RETURN(0); /* #5 */
+    nc_call = (struct t_call *) t_alloc(sock, T_CALL, T_ALL);
+    if (!nc_call) {
+        RETURN(0); /* #5 */
         }
     }
     if (t_listen(sock, nc_call) < 0) {
@@ -884,26 +884,26 @@ new_connection(int sock)
     sigrelse(SIGALRM);
 
     if (newsock < 0) {
-	log_tli_error("RES", "t_open", errno, t_errno);
-	RETURN(0); /* #5 */
+    log_tli_error("RES", "t_open", errno, t_errno);
+    RETURN(0); /* #5 */
     }
     sighold(SIGALRM);
     ret = t_bind(newsock, NULL, NULL);
     sigrelse(SIGALRM);
 
     if (ret < 0) {
-	log_tli_error("BIND", "t_bind", errno, t_errno);
-	t_close(newsock);
-	RETURN(0); /* #5 */
+    log_tli_error("BIND", "t_bind", errno, t_errno);
+    t_close(newsock);
+    RETURN(0); /* #5 */
     }
     sighold(SIGALRM);
     ret = t_accept(sock, newsock, nc_call);
     sigrelse(SIGALRM);
 
     if (ret < 0) {
-	log_tli_error("RES", "t_accept", errno, t_errno);
-	t_close(newsock);
-	RETURN(0); /* #5 */
+    log_tli_error("RES", "t_accept", errno, t_errno);
+    t_close(newsock);
+    RETURN(0); /* #5 */
     }
     /* push the read/write support module on the stream */
 
@@ -912,9 +912,9 @@ new_connection(int sock)
     sigrelse(SIGALRM);
 
     if (ret < 0) {
-	log_tli_error("STRM", "ioctl I_PUSH", errno, t_errno);
-	t_close(newsock);
-	RETURN(0); /* #5 */
+    log_tli_error("STRM", "ioctl I_PUSH", errno, t_errno);
+    t_close(newsock);
+    RETURN(0); /* #5 */
     }
     bcopy(nc_call->addr.buf, &addr, sizeof(struct sockaddr_in));
 
@@ -927,29 +927,29 @@ new_connection(int sock)
         spam_log++;
         if( spam_log < 10 ) {
           STARTLOG(LOG_NET, "NET", "FAIL")
-      		logbuff = alloc_mbuf("new_connection.accept");
-  	        sprintf(logbuff,
-		    "new_connection: Accept failed with code %d",
-		    myerrno);
-	        log_text(logbuff);
-	        free_mbuf(logbuff);
-	  ENDLOG
+            logbuff = alloc_mbuf("new_connection.accept");
+            sprintf(logbuff,
+            "new_connection: Accept failed with code %d",
+            myerrno);
+            log_text(logbuff);
+            free_mbuf(logbuff);
+      ENDLOG
         }
         else if( spam_log == 10 ) {
           spam_log++;
           STARTLOG(LOG_NET, "NET", "FAIL")
-      		logbuff = alloc_mbuf("new_connection.accept2");
-  	        sprintf(logbuff,
-		    "new_connection: Accept failed with code %d",
-		    myerrno);
-	        log_text(logbuff);
-  	        sprintf(logbuff,
-		    "This will be the last time this is reported.");
-	        log_text(logbuff);
-	        free_mbuf(logbuff);
-	  ENDLOG
+            logbuff = alloc_mbuf("new_connection.accept2");
+            sprintf(logbuff,
+            "new_connection: Accept failed with code %d",
+            myerrno);
+            log_text(logbuff);
+            sprintf(logbuff,
+            "This will be the last time this is reported.");
+            log_text(logbuff);
+            free_mbuf(logbuff);
+      ENDLOG
         }
-	RETURN(0); /* #5 */
+    RETURN(0); /* #5 */
     }
 #endif /* TLI */
 
@@ -999,31 +999,31 @@ new_connection(int sock)
           if (mudconf.lastsite_paranoia == 1) {
              cf_site((int *)&mudstate.access_list, tchbuff,
                      H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
-  	     broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("SITE SET AUTO-REGISTER[%d attempts/%ds time]", 
+         broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("SITE SET AUTO-REGISTER[%d attempts/%ds time]", 
                                mudstate.cmp_lastsite_cnt, 
                                (mudstate.now - mudstate.last_con_attempt)),
                                NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-	     STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
-	     buff = alloc_mbuf("new_connection.LOG.autoregister");
-	     sprintf(buff, "[%d/%s] marked for autoregistration.  (Remote port %d)",
-		     newsock, inet_ntoa(addr.sin_addr), cur_port);
-	     log_text(buff);
-	     free_mbuf(buff);
-	     ENDLOG
+         STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
+         buff = alloc_mbuf("new_connection.LOG.autoregister");
+         sprintf(buff, "[%d/%s] marked for autoregistration.  (Remote port %d)",
+             newsock, inet_ntoa(addr.sin_addr), cur_port);
+         log_text(buff);
+         free_mbuf(buff);
+         ENDLOG
           } else {
              cf_site((int *)&mudstate.access_list, tchbuff,
                      H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
-  	     broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("SITE SET AUTO-FORBID[%d attempts/%ds time]", 
+         broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("SITE SET AUTO-FORBID[%d attempts/%ds time]", 
                                mudstate.cmp_lastsite_cnt, 
                                (mudstate.now - mudstate.last_con_attempt)),
                                NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-	     STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
-	     buff = alloc_mbuf("new_connection.LOG.autoregister");
-	     sprintf(buff, "[%d/%s] marked for autoforbidding.  (Remote port %d)",
-		     newsock, inet_ntoa(addr.sin_addr), cur_port);
-	     log_text(buff);
-	     free_mbuf(buff);
-	     ENDLOG
+         STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
+         buff = alloc_mbuf("new_connection.LOG.autoregister");
+         sprintf(buff, "[%d/%s] marked for autoforbidding.  (Remote port %d)",
+             newsock, inet_ntoa(addr.sin_addr), cur_port);
+         log_text(buff);
+         free_mbuf(buff);
+         ENDLOG
            }
            mudstate.cmp_lastsite_cnt = 0;
        } else if ( (mudconf.lastsite_paranoia > 0) &&
@@ -1070,59 +1070,59 @@ new_connection(int sock)
         
     if ( i_forbid ) {
         if ( !mudconf.nospam_connect ) { /* Ok, this removes possible spamming of logs */
-	   STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
-	       buff = alloc_mbuf("new_connection.LOG.badsite");
-	   sprintf(buff, "[%d/%s] Connection refused.  (Remote port %d)",
-		   newsock, inet_ntoa(addr.sin_addr), cur_port);
-	   log_text(buff);
-	   free_mbuf(buff);
-	   ENDLOG
+       STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
+           buff = alloc_mbuf("new_connection.LOG.badsite");
+       sprintf(buff, "[%d/%s] Connection refused.  (Remote port %d)",
+           newsock, inet_ntoa(addr.sin_addr), cur_port);
+       log_text(buff);
+       free_mbuf(buff);
+       ENDLOG
         }
         if ( maxsitecon >= mudconf.max_sitecons ) {
-  	   broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("MAX OPEN PORTS[%d]", maxsitecon), NULL, 
+       broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("MAX OPEN PORTS[%d]", maxsitecon), NULL, 
                              inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
         } else if ( maxtsitecon >= (mudstate.max_logins_allowed+7) ) {
-  	   broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("MAX OPEN DESCRIPTORS[%d]", maxtsitecon), NULL, 
+       broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("MAX OPEN DESCRIPTORS[%d]", maxtsitecon), NULL, 
                              inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
         } else {
            if ( i_chksite == -1 )
               i_chksite = i_retvar;
            if ( i_chksite != -1 ) {
-  	      broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("PORT REJECT[%d max]", i_chksite), NULL, 
+          broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("PORT REJECT[%d max]", i_chksite), NULL, 
                                 inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
            } else {
-  	      broadcast_monitor(NOTHING, MF_CONN, "PORT REJECT", NULL, 
+          broadcast_monitor(NOTHING, MF_CONN, "PORT REJECT", NULL, 
                                 inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
            }
         }
- 	fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
-	shutdown(newsock, 2);
-	close(newsock);
-	errno = 0;
-	d = NULL;
+    fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
+    shutdown(newsock, 2);
+    close(newsock);
+    errno = 0;
+    d = NULL;
     } else {
-	buff = alloc_mbuf("new_connection.sitename");
+    buff = alloc_mbuf("new_connection.sitename");
         memset(buff, 0, MBUF_SIZE);
-  	strncpy(buff, strip_nonprint(addroutbuf), MBUF_SIZE - 1);
-	STARTLOG(LOG_NET, "NET", "CONN")
-	    buff1 = alloc_mbuf("new_connection.LOG.open");
-	sprintf(buff1, "[%d/%s] Connection opened (remote port %d)",
-		newsock, buff, cur_port);
-	log_text(buff1);
-	free_mbuf(buff1);
-	ENDLOG
+    strncpy(buff, strip_nonprint(addroutbuf), MBUF_SIZE - 1);
+    STARTLOG(LOG_NET, "NET", "CONN")
+        buff1 = alloc_mbuf("new_connection.LOG.open");
+    sprintf(buff1, "[%d/%s] Connection opened (remote port %d)",
+        newsock, buff, cur_port);
+    log_text(buff1);
+    free_mbuf(buff1);
+    ENDLOG
         if ( strcmp(buff, addroutbuf) != 0) {
-	   STARTLOG(LOG_NET, "NET", "CONN")
+       STARTLOG(LOG_NET, "NET", "CONN")
            buff1 = alloc_lbuf("error_on_dns");
            sprintf(buff1, "Warning: Non-printable codes stripped in dns '%s'.", addroutbuf);
            log_text(buff1);
            free_lbuf(buff1);
            ENDLOG
         }
-	d = initializesock(newsock, &addr, buff);
+    d = initializesock(newsock, &addr, buff);
         broadcast_monitor(NOTHING, MF_CONN, "PORT CONNECT", NULL, buff, newsock, 0, cur_port, NULL);
-	free_mbuf(buff);
-	mudstate.debug_cmd = cmdsave;
+    free_mbuf(buff);
+    mudstate.debug_cmd = cmdsave;
     }
     mudstate.debug_cmd = cmdsave;
 
@@ -1181,19 +1181,19 @@ shutdownsock(DESC * d, int reason)
 
     if ((reason == R_LOGOUT) &&
     (site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN))
-	reason = R_QUIT;
+    reason = R_QUIT;
 
     if (d->flags & DS_CONNECTED) {
 
-	strncpy(all, Name(d->player), 5);
-	*(all + 5) = '\0';
-	if (!stricmp(all, "guest")) {
-	    temp1 = atoi((Name(d->player) + 5));
-	    temp2 = 0x00000001;
-	    temp2 <<= (temp1 - 1);
-	    mudstate.guest_status &= ~temp2;
-	    mudstate.guest_num--;
-	}
+    strncpy(all, Name(d->player), 5);
+    *(all + 5) = '\0';
+    if (!stricmp(all, "guest")) {
+        temp1 = atoi((Name(d->player) + 5));
+        temp2 = 0x00000001;
+        temp2 <<= (temp1 - 1);
+        mudstate.guest_status &= ~temp2;
+        mudstate.guest_num--;
+    }
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tsitebuff, 0, sizeof(tsitebuff));
            strncpy(tsitebuff, mudconf.guest_namelist, 1000);
@@ -1211,76 +1211,76 @@ shutdownsock(DESC * d, int reason)
               sitecntr++;
            }
         }
-	if (mudconf.maildelete)
-	    mail_md1(d->player, d->player, 1, -1);
-	strcpy(all, "all");
-	mail_mark(d->player, M_READM, all, NOTHING, 1);
-	atr_clr(d->player, A_MPSET);
-	atr_clr(d->player, A_MCURR);
+    if (mudconf.maildelete)
+        mail_md1(d->player, d->player, 1, -1);
+    strcpy(all, "all");
+    mail_mark(d->player, M_READM, all, NOTHING, 1);
+    atr_clr(d->player, A_MPSET);
+    atr_clr(d->player, A_MCURR);
 
-	/* Do the disconnect stuff if we aren't doing a LOGOUT
-	 * (which keeps the connection open so the player can connect
-	 * to a different character).
-	 */
+    /* Do the disconnect stuff if we aren't doing a LOGOUT
+     * (which keeps the connection open so the player can connect
+     * to a different character).
+     */
 
-	if (reason != R_LOGOUT) {
-	    fcache_dump(d, FC_QUIT);
-	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "DISC")
-		buff = alloc_mbuf("shutdownsock.LOG.disconn");
-	    sprintf(buff, "[%d/%s] Logout by ",
-		    d->descriptor, d->addr);
-	    log_text(buff);
-	    log_name(d->player);
-	    sprintf(buff, " <Reason: %s>",
-		    disc_reasons[reason]);
-	    log_text(buff);
-	    free_mbuf(buff);
-	    ENDLOG
-	} else {
-	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "LOGO")
-		buff = alloc_mbuf("shutdownsock.LOG.logout");
-	    sprintf(buff, "[%d/%s] Logout by ",
-		    d->descriptor, d->addr);
-	    log_text(buff);
-	    log_name(d->player);
-	    sprintf(buff, " <Reason: %s>",
-		    disc_reasons[reason]);
-	    log_text(buff);
-	    free_mbuf(buff);
-	    ENDLOG
-	}
-
-	/* If requested, write an accounting record of the form:
-	 * Plyr# Flags Cmds ConnTime Loc Money [Site] <DiscRsn> Name
-	 */
-
-	STARTLOG(LOG_ACCOUNTING, "DIS", "ACCT")
-	    now = mudstate.now - d->connected_at;
-	buff = alloc_lbuf("shutdownsock.LOG.accnt");
-	buff2 = decode_flags(GOD, GOD, Flags(d->player),
-			     Flags2(d->player), Flags3(d->player),
-			     Flags4(d->player));
-	sprintf(buff, "%d %s %d %ld %d %d [%s] <%s> %s",
-		d->player, buff2, d->command_count, now,
-		Location(d->player), Pennies(d->player),
-		d->addr, disc_reasons[reason],
-		Name(d->player));
-	log_text(buff);
-	free_lbuf(buff);
-	free_mbuf(buff2);
-	ENDLOG
-	    announce_disconnect(d->player, d, disc_messages[reason]);
+    if (reason != R_LOGOUT) {
+        fcache_dump(d, FC_QUIT);
+        STARTLOG(LOG_NET | LOG_LOGIN, "NET", "DISC")
+        buff = alloc_mbuf("shutdownsock.LOG.disconn");
+        sprintf(buff, "[%d/%s] Logout by ",
+            d->descriptor, d->addr);
+        log_text(buff);
+        log_name(d->player);
+        sprintf(buff, " <Reason: %s>",
+            disc_reasons[reason]);
+        log_text(buff);
+        free_mbuf(buff);
+        ENDLOG
     } else {
-	if (reason == R_LOGOUT)
-	    reason = R_QUIT;
-	STARTLOG(LOG_SECURITY | LOG_NET, "NET", "DISC")
-	    buff = alloc_mbuf("shutdownsock.LOG.neverconn");
-	sprintf(buff,
-		"[%d/%s] Connection closed, never connected. <Reason: %s>",
-		d->descriptor, d->addr, disc_reasons[reason]);
-	log_text(buff);
-	free_mbuf(buff);
-	ENDLOG
+        STARTLOG(LOG_NET | LOG_LOGIN, "NET", "LOGO")
+        buff = alloc_mbuf("shutdownsock.LOG.logout");
+        sprintf(buff, "[%d/%s] Logout by ",
+            d->descriptor, d->addr);
+        log_text(buff);
+        log_name(d->player);
+        sprintf(buff, " <Reason: %s>",
+            disc_reasons[reason]);
+        log_text(buff);
+        free_mbuf(buff);
+        ENDLOG
+    }
+
+    /* If requested, write an accounting record of the form:
+     * Plyr# Flags Cmds ConnTime Loc Money [Site] <DiscRsn> Name
+     */
+
+    STARTLOG(LOG_ACCOUNTING, "DIS", "ACCT")
+        now = mudstate.now - d->connected_at;
+    buff = alloc_lbuf("shutdownsock.LOG.accnt");
+    buff2 = decode_flags(GOD, GOD, Flags(d->player),
+                 Flags2(d->player), Flags3(d->player),
+                 Flags4(d->player));
+    sprintf(buff, "%d %s %d %ld %d %d [%s] <%s> %s",
+        d->player, buff2, d->command_count, now,
+        Location(d->player), Pennies(d->player),
+        d->addr, disc_reasons[reason],
+        Name(d->player));
+    log_text(buff);
+    free_lbuf(buff);
+    free_mbuf(buff2);
+    ENDLOG
+        announce_disconnect(d->player, d, disc_messages[reason]);
+    } else {
+    if (reason == R_LOGOUT)
+        reason = R_QUIT;
+    STARTLOG(LOG_SECURITY | LOG_NET, "NET", "DISC")
+        buff = alloc_mbuf("shutdownsock.LOG.neverconn");
+    sprintf(buff,
+        "[%d/%s] Connection closed, never connected. <Reason: %s>",
+        d->descriptor, d->addr, disc_reasons[reason]);
+    log_text(buff);
+    free_mbuf(buff);
+    ENDLOG
     }
     process_output(d);
     process_door_output(d);
@@ -1298,20 +1298,20 @@ shutdownsock(DESC * d, int reason)
            }
         }
         free_mbuf(t_addroutbuf);
-	d->flags &= ~DS_CONNECTED;
-	d->connected_at = mudstate.now;
-	d->retries_left = mudconf.retry_limit;
-	d->regtries_left = mudconf.regtry_limit;
-	d->command_count = 0;
-	d->timeout = mudconf.idle_timeout;
-	d->player = 0;
-	d->doing[0] = '\0';
-	d->quota = mudconf.cmd_quota_max;
-	d->last_time = 0;
-	d->host_info = site_check((d->address).sin_addr,
-				  mudstate.access_list, 1, 0, 0) |
-	    			  site_check((d->address).sin_addr,
-				  mudstate.suspect_list, 0, 0, 0);
+    d->flags &= ~DS_CONNECTED;
+    d->connected_at = mudstate.now;
+    d->retries_left = mudconf.retry_limit;
+    d->regtries_left = mudconf.regtry_limit;
+    d->command_count = 0;
+    d->timeout = mudconf.idle_timeout;
+    d->player = 0;
+    d->doing[0] = '\0';
+    d->quota = mudconf.cmd_quota_max;
+    d->last_time = 0;
+    d->host_info = site_check((d->address).sin_addr,
+                  mudstate.access_list, 1, 0, 0) |
+                      site_check((d->address).sin_addr,
+                  mudstate.suspect_list, 0, 0, 0);
         i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
         if ( (i_sitemax != -1) && (i_sitecnt < (i_sitemax + 1)) )
            d->host_info &= ~H_FORBIDDEN;
@@ -1338,45 +1338,45 @@ shutdownsock(DESC * d, int reason)
         strcpy(tchbuff, mudconf.suspect_host);
         if ((char *)mudconf.suspect_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_SUSPECT;
-	d->input_tot = d->input_size;
-	d->output_tot = 0;
-	/* free up the snooplist before freeing the desc -Thorin */
-	while (d->snooplist) {
-	    temp = d->snooplist->next;
-	    if (d->snooplist->sfile) {
-		fprintf(d->snooplist->sfile, "Snoop stopped due to logout: (%ld) %s", mudstate.now, ctime(&mudstate.now));
-		fclose(d->snooplist->sfile);
-	    }
-	    free(d->snooplist);
-	    d->snooplist = temp;
-	}
-	d->snooplist = NULL;
-	d->logged = 0;
-	welcome_user(d);
+    d->input_tot = d->input_size;
+    d->output_tot = 0;
+    /* free up the snooplist before freeing the desc -Thorin */
+    while (d->snooplist) {
+        temp = d->snooplist->next;
+        if (d->snooplist->sfile) {
+        fprintf(d->snooplist->sfile, "Snoop stopped due to logout: (%ld) %s", mudstate.now, ctime(&mudstate.now));
+        fclose(d->snooplist->sfile);
+        }
+        free(d->snooplist);
+        d->snooplist = temp;
+    }
+    d->snooplist = NULL;
+    d->logged = 0;
+    welcome_user(d);
     } else {
-	broadcast_monitor(NOTHING, MF_CONN, "PORT DISCONNECT", d->userid, d->addr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
-	shutdown(d->descriptor, 2);
-	close(d->descriptor);
-	freeqs(d,0); /* 0 is for all */
-	*d->prev = d->next;
-	if (d->next)
-	    d->next->prev = d->prev;
-	/* free up the snooplist before freeing the desc -Thorin */
-	while (d->snooplist) {
-	    temp = d->snooplist->next;
-	    if (d->snooplist->sfile) {
-		fprintf(d->snooplist->sfile, "Snoop stopped due to shutdown of descriptor: (%ld) %s", mudstate.now, ctime(&mudstate.now));
-		fclose(d->snooplist->sfile);
-	    }
-	    free(d->snooplist);
-	    d->snooplist = temp;
-	}
-	if (d->flags & DS_AUTH_IN_PROGRESS) {
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
-	}
-	free_desc(d);
-	ndescriptors--;
+    broadcast_monitor(NOTHING, MF_CONN, "PORT DISCONNECT", d->userid, d->addr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
+    shutdown(d->descriptor, 2);
+    close(d->descriptor);
+    freeqs(d,0); /* 0 is for all */
+    *d->prev = d->next;
+    if (d->next)
+        d->next->prev = d->prev;
+    /* free up the snooplist before freeing the desc -Thorin */
+    while (d->snooplist) {
+        temp = d->snooplist->next;
+        if (d->snooplist->sfile) {
+        fprintf(d->snooplist->sfile, "Snoop stopped due to shutdown of descriptor: (%ld) %s", mudstate.now, ctime(&mudstate.now));
+        fclose(d->snooplist->sfile);
+        }
+        free(d->snooplist);
+        d->snooplist = temp;
+    }
+    if (d->flags & DS_AUTH_IN_PROGRESS) {
+        shutdown(d->authdescriptor, 2);
+        close(d->authdescriptor);
+    }
+    free_desc(d);
+    ndescriptors--;
     }
     DPOP; /* #6 */
 }
@@ -1393,19 +1393,19 @@ make_nonblocking(int s)
 
 #ifdef FNDELAY
     if (fcntl(s, F_SETFL, FNDELAY) == -1) {
-	log_perror("NET", "FAIL", "make_nonblocking", "fcntl");
+    log_perror("NET", "FAIL", "make_nonblocking", "fcntl");
     }
 #else 
     if (fcntl(s, F_SETFL, O_NDELAY) == -1) {
-	log_perror("NET", "FAIL", "make_nonblocking", "fcntl");
+    log_perror("NET", "FAIL", "make_nonblocking", "fcntl");
     }
 #endif /* FNDELAY */
 #ifdef HAVE_LINGER
     ling.l_onoff = 0;
     ling.l_linger = 0;
     if (setsockopt(s, SOL_SOCKET, SO_LINGER,
-		   (char *) &ling, sizeof(ling)) < 0) {
-	log_perror("NET", "FAIL", "linger", "setsockopt");
+           (char *) &ling, sizeof(ling)) < 0) {
+    log_perror("NET", "FAIL", "linger", "setsockopt");
     }
 #endif /* HAVE_LINGER */
     DPOP; /* #7 */
@@ -1442,15 +1442,15 @@ start_auth(DESC * d)
     bzero((char *) &sin, sizeof(sin));
 
     if ((d->authdescriptor = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-	log_perror("NET", "FAIL", "creating auth sock", "socket");
-	d->flags &= ~DS_AUTH_IN_PROGRESS;
-	VOIDRETURN; /* #8 */
+    log_perror("NET", "FAIL", "creating auth sock", "socket");
+    d->flags &= ~DS_AUTH_IN_PROGRESS;
+    VOIDRETURN; /* #8 */
     }
 
     /* now make the socket non-blocking */
     make_nonblocking(d->authdescriptor);
 
-    sin.sin_port = htons(113);	/* auth/ident port */
+    sin.sin_port = htons(113);  /* auth/ident port */
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = d->address.sin_addr.s_addr;
 
@@ -1471,9 +1471,9 @@ start_auth(DESC * d)
 
     if( connect(d->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
-  	  d->flags &= ~DS_AUTH_IN_PROGRESS;
+      d->flags &= ~DS_AUTH_IN_PROGRESS;
           if( errno != EINTR ) {
-	    log_perror("NET", "FAIL", "connecting AUTH sock", "connect");
+        log_perror("NET", "FAIL", "connecting AUTH sock", "connect");
           }
           else {
             STARTLOG(LOG_NET, "NET", "AUTH")
@@ -1484,9 +1484,9 @@ start_auth(DESC * d)
               free_lbuf(logbuff);
             ENDLOG
           }
-	  shutdown(d->authdescriptor, 2);
-	  close(d->authdescriptor);
-	  VOIDRETURN; /* #8 */
+      shutdown(d->authdescriptor, 2);
+      close(d->authdescriptor);
+      VOIDRETURN; /* #8 */
         }
     }
 
@@ -1546,30 +1546,30 @@ write_auth(DESC * d)
     sprintf(buff, "%d, %d\r\n", ntohs(d->address.sin_port), mudconf.port);
 
     if (write(d->authdescriptor, buff, strlen(buff)) < 0) {
-	free_mbuf(buff);
-	if (errno == EINTR) {
+    free_mbuf(buff);
+    if (errno == EINTR) {
 
-	    VOIDRETURN; /* #9 */
-	}
-	if (errno != EINPROGRESS) {
+        VOIDRETURN; /* #9 */
+    }
+    if (errno != EINPROGRESS) {
             STARTLOG(LOG_NET, "NET", "AUTH")
-      	      logbuff = alloc_lbuf("check_auth.LOG.writeerr");
-    	      sprintf(logbuff,
-	              "[%d/%s] AUTH write: %s", d->descriptor, d->addr,
-	              strerror(errno));
-	      log_text(logbuff);
-	      free_lbuf(logbuff);
-	    ENDLOG
-	    d->flags &= ~DS_AUTH_IN_PROGRESS;
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
-	}
+              logbuff = alloc_lbuf("check_auth.LOG.writeerr");
+              sprintf(logbuff,
+                  "[%d/%s] AUTH write: %s", d->descriptor, d->addr,
+                  strerror(errno));
+          log_text(logbuff);
+          free_lbuf(logbuff);
+        ENDLOG
+        d->flags &= ~DS_AUTH_IN_PROGRESS;
+        shutdown(d->authdescriptor, 2);
+        close(d->authdescriptor);
+    }
     }
     else {
         free_mbuf(buff);
     }
     d->flags &= ~DS_NEED_AUTH_WRITE;
-    shutdown(d->authdescriptor, 1);	/* close write */
+    shutdown(d->authdescriptor, 1); /* close write */
     VOIDRETURN; /* #9 */
 }
 
@@ -1590,18 +1590,18 @@ check_auth(DESC * d)
 
     if ((numread = read(d->authdescriptor, buff, MBUF_SIZE - 1)) < 0) {
         STARTLOG(LOG_NET, "NET", "AUTH")
-  	  logbuff = alloc_lbuf("check_auth.LOG.readerr");
-	  sprintf(logbuff,
-	          "[%d/%s] AUTH read: %s", d->descriptor, d->addr,
-	          strerror(errno));
-	  log_text(logbuff);
-	  free_lbuf(logbuff);
-	ENDLOG
-	d->flags &= ~DS_AUTH_IN_PROGRESS;
-	shutdown(d->authdescriptor, 2);
-	close(d->authdescriptor);
+      logbuff = alloc_lbuf("check_auth.LOG.readerr");
+      sprintf(logbuff,
+              "[%d/%s] AUTH read: %s", d->descriptor, d->addr,
+              strerror(errno));
+      log_text(logbuff);
+      free_lbuf(logbuff);
+    ENDLOG
+    d->flags &= ~DS_AUTH_IN_PROGRESS;
+    shutdown(d->authdescriptor, 2);
+    close(d->authdescriptor);
         free_mbuf(buff);
-	VOIDRETURN; /* #10 */
+    VOIDRETURN; /* #10 */
     }
     buff[numread] = '\0';
 
@@ -1610,49 +1610,49 @@ check_auth(DESC * d)
     free_mbuf(buff);
 
     if (index(d->userid, '\r') || index(d->userid, '\n')) {
-	/* we got it all */
-	/* extract the user id if it's there */
+    /* we got it all */
+    /* extract the user id if it's there */
 
         resp3 = alloc_mbuf("check_auth_resp3");
         buff2 = alloc_mbuf("check_auth_buff2");
         /* d->userid is guaranteed to be within MBUF size,
            therefore a direct sscanf of any field within will be
            <= MBUF size */
-	if (sscanf(d->userid, "%d , %d : USERID : %s : %s", &resp1, &resp2, resp3, buff2) == 4) {
-	    strncpy(d->userid, strip_nonprint(buff2), MBUF_SIZE - 1);
-	    d->flags &= ~DS_AUTH_IN_PROGRESS;
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
+    if (sscanf(d->userid, "%d , %d : USERID : %s : %s", &resp1, &resp2, resp3, buff2) == 4) {
+        strncpy(d->userid, strip_nonprint(buff2), MBUF_SIZE - 1);
+        d->flags &= ~DS_AUTH_IN_PROGRESS;
+        shutdown(d->authdescriptor, 2);
+        close(d->authdescriptor);
             if ( strcmp(buff2, d->userid) != 0 ) {
                STARTLOG(LOG_NET, "NET", "AUTH")
-		  logbuff = alloc_lbuf("check_auth.LOG.got_it");
+          logbuff = alloc_lbuf("check_auth.LOG.got_it");
                   sprintf(logbuff, "Warning: Non-printable codes stripped in userid '%s'.", buff2);
                   log_text(logbuff);
                   free_lbuf(logbuff);
                ENDLOG
             }
-	    STARTLOG(LOG_NET, "NET", "AUTH")
-		logbuff = alloc_lbuf("check_auth.LOG.got_it");
-	        sprintf(logbuff,
-		    "[%d/%s] User identified: %s", d->descriptor, d->addr,
-		    d->userid);
-	        log_text(logbuff);
-	        free_lbuf(logbuff);
-	    ENDLOG
-	} else {		/* protocol error */
-	    d->flags &= ~DS_AUTH_IN_PROGRESS;
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
-	    STARTLOG(LOG_NET, "NET", "AUTH")
-		logbuff = alloc_lbuf("check_auth.LOG.prot_err");
-	        sprintf(logbuff,
-		  "[%d/%s] Auth protocol error: %s", d->descriptor, d->addr,
-		    d->userid);
-	        log_text(logbuff);
-	        free_lbuf(logbuff);
-	    ENDLOG
+        STARTLOG(LOG_NET, "NET", "AUTH")
+        logbuff = alloc_lbuf("check_auth.LOG.got_it");
+            sprintf(logbuff,
+            "[%d/%s] User identified: %s", d->descriptor, d->addr,
+            d->userid);
+            log_text(logbuff);
+            free_lbuf(logbuff);
+        ENDLOG
+    } else {        /* protocol error */
+        d->flags &= ~DS_AUTH_IN_PROGRESS;
+        shutdown(d->authdescriptor, 2);
+        close(d->authdescriptor);
+        STARTLOG(LOG_NET, "NET", "AUTH")
+        logbuff = alloc_lbuf("check_auth.LOG.prot_err");
+            sprintf(logbuff,
+          "[%d/%s] Auth protocol error: %s", d->descriptor, d->addr,
+            d->userid);
+            log_text(logbuff);
+            free_lbuf(logbuff);
+        ENDLOG
             strcpy(d->userid,"");
-	}
+    }
         free_mbuf(resp3);
         free_mbuf(buff2);
     } 
@@ -1673,7 +1673,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr)
     ndescriptors++;
     d = alloc_desc("init_sock");
     d->descriptor = s;
-    d->flags = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;	/* start authenticating */
+    d->flags = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;    /* start authenticating */
     d->connected_at = mudstate.now;
     d->retries_left = mudconf.retry_limit;
     d->regtries_left = mudconf.regtry_limit;
@@ -1691,7 +1691,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr)
     }
     free_mbuf(t_addroutbuf);
     d->host_info = site_check((*a).sin_addr, mudstate.access_list, 1, 0, 0) |
-		   site_check((*a).sin_addr, mudstate.suspect_list, 0, 0, 0);
+           site_check((*a).sin_addr, mudstate.suspect_list, 0, 0, 0);
     i_sitemax = site_check((*a).sin_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
     if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
        d->host_info &= ~H_FORBIDDEN;
@@ -1717,7 +1717,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr)
     strcpy(tchbuff, mudconf.suspect_host);
     if ((char *)mudconf.suspect_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_SUSPECT;
-    d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
+    d->player = 0;      /* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';
     d->doing[0] = '\0';
     make_nonblocking(s);
@@ -1755,9 +1755,9 @@ initializesock(int s, struct sockaddr_in * a, char *addr)
     *d->userid = '\0';
     memset(d->addr, 0, sizeof(d->addr)); /* Null terminate the sucker */
     strncpy(d->addr, addr, 50);
-    d->address = *a;		/* added 5/3/90 SCG */
+    d->address = *a;        /* added 5/3/90 SCG */
     if (descriptor_list)
-	descriptor_list->prev = &d->next;
+    descriptor_list->prev = &d->next;
     d->hashnext = NULL;
     d->next = descriptor_list;
     d->prev = &descriptor_list;
@@ -1782,15 +1782,15 @@ process_output(DESC * d)
     tb = d->output_head;
     retry_cnt = retry_success = 0;
     while (tb != NULL) {
-	while (tb->hdr.nchars > 0) {
+    while (tb->hdr.nchars > 0) {
 
-	    cnt = WRITE(d->descriptor, tb->hdr.start,
-			tb->hdr.nchars);
-	    if (cnt < 0) {
-		mudstate.debug_cmd = cmdsave;
+        cnt = WRITE(d->descriptor, tb->hdr.start,
+            tb->hdr.nchars);
+        if (cnt < 0) {
+        mudstate.debug_cmd = cmdsave;
                 if ( (errno == EWOULDBLOCK) || (errno == EAGAIN) ) {
                    while ( retry_cnt < 10 ) {
-	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
+                  cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
                       if ( (cnt < 0) && !((errno == EWOULDBLOCK) || (errno == EAGAIN)) ) {
                          retry_cnt = 20;
                          retry_success = 1;
@@ -1808,7 +1808,7 @@ process_output(DESC * d)
                    /* It's a timeout, let's wait for a few milliseconds and try again */
 /*                    usleep(10); */
                       nanosleep((struct timespec[]){{0, 100000000}}, NULL);
-	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
+                  cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
                    }
                    if ( cnt < 0 ) {
                       if ( (mudconf.log_network_errors > 0) && (mudstate.last_network_owner != d->player) ) {
@@ -1826,23 +1826,23 @@ process_output(DESC * d)
                    }
                 }
 #if 0 /* original code here */
-  		if (errno == EWOULDBLOCK) {
-  		    RETURN(1); /* #12 */
+        if (errno == EWOULDBLOCK) {
+            RETURN(1); /* #12 */
                 }
 #endif
                 if ( cnt < 0 )
-		   RETURN(0); /* #12 */
-	    }
-	    d->output_size -= cnt;
-	    tb->hdr.nchars -= cnt;
-	    tb->hdr.start += cnt;
-	}
-	save = tb;
-	tb = tb->hdr.nxt;
-	free_lbuf(save);
-	d->output_head = tb;
-	if (tb == NULL)
-	    d->output_tail = NULL;
+           RETURN(0); /* #12 */
+        }
+        d->output_size -= cnt;
+        tb->hdr.nchars -= cnt;
+        tb->hdr.start += cnt;
+    }
+    save = tb;
+    tb = tb->hdr.nxt;
+    free_lbuf(save);
+    d->output_head = tb;
+    if (tb == NULL)
+        d->output_tail = NULL;
     }
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #12 */
@@ -1859,82 +1859,85 @@ process_input(DESC * d)
     DPUSH; /* #16 */
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_input >";
-	
+    
     memset(qfind, '\0', sizeof(qfind));
-	memset(tmpbuf, '\0', sizeof(tmpbuf));
+    memset(tmpbuf, '\0', sizeof(tmpbuf));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
-	mudstate.debug_cmd = cmdsave;
-	RETURN(0); /* #16 */
+    mudstate.debug_cmd = cmdsave;
+    RETURN(0); /* #16 */
     }
     if (!d->raw_input) {
-	d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-	d->raw_input_at = d->raw_input->cmd;
+    d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+    d->raw_input_at = d->raw_input->cmd;
     }
     p = d->raw_input_at;
     pend = d->raw_input->cmd + LBUF_SIZE - sizeof(CBLKHDR) - 1;
     lost = 0;
     for (q = buf, qend = buf + got; q < qend; q++) {
-	if (*q == '\n') {
-	    *p = '\0';
-	    if (p > d->raw_input->cmd) {
-		save_command(d, d->raw_input);
-		d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-		p = d->raw_input_at = d->raw_input->cmd;
-		pend = d->raw_input->cmd + LBUF_SIZE -
-		    sizeof(CBLKHDR) - 1;
-	    } else {
-		in -= 1;	/* for newline */
-	    }
-	} else if ((*q == '\b') || (*q == 127)) {
-	    if (*q == 127)
-		queue_string(d, "\b \b");
-	    else
-		queue_string(d, " \b");
-	    in -= 2;
-	    if (p > d->raw_input->cmd)
-		p--;
-	    if (p < d->raw_input_at)
-		(d->raw_input_at)--;
-  	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
-	    *p++ = *q;
-	} else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
-		sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
-		tmpptr = utf8toucp(tmpbuf);
-		sprintf(qfind, "%c<u%s>", '%', tmpptr);
-		q+=3;
-		in+=12;
-		got+=12;
-		qf = qfind;
-		while (*qf) {
-			*p++ = *qf++;
-		}
-	} else if ((p+13) < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
-		sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
-		tmpptr = utf8toucp(tmpbuf);
-		sprintf(qfind, "%c<u%s>", '%', tmpptr);
-		q+=2;
-		in+=10;
-		got+=10;
-		qf = qfind;
-		while (*qf) {
-			*p++ = *qf++;
-		}	
-	} else if ((p+13) < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
-		sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
-		tmpptr = utf8toucp(tmpbuf);
-		sprintf(qfind, "%c<u%s>", '%', tmpptr);
-		q+=1;
-		in+=8;
-		got+=8;
-		qf = qfind;
-		while (*qf) {
-			*p++ = *qf++;
-		}
-	} else if ( (((int)(unsigned char)*q) > 160) && 
+    if (*q == '\n') {
+        *p = '\0';
+        if (p > d->raw_input->cmd) {
+        save_command(d, d->raw_input);
+        d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+        p = d->raw_input_at = d->raw_input->cmd;
+        pend = d->raw_input->cmd + LBUF_SIZE -
+            sizeof(CBLKHDR) - 1;
+        } else {
+        in -= 1;    /* for newline */
+        }
+    } else if ((*q == '\b') || (*q == 127)) {
+        if (*q == 127)
+        queue_string(d, "\b \b");
+        else
+        queue_string(d, " \b");
+        in -= 2;
+        if (p > d->raw_input->cmd)
+        p--;
+        if (p < d->raw_input_at)
+        (d->raw_input_at)--;
+    } else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
+        *p++ = *q;
+    } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+        sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
+        tmpptr = utf8toucp(tmpbuf);
+        sprintf(qfind, "%s", tmpptr);
+		
+        q+=3;
+        in+=12;
+        got+=12;
+        qf = qfind;
+        while (*qf) {
+            *p++ = *qf++;
+        }
+    } else if ((p+13) < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+        sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+        tmpptr = utf8toucp(tmpbuf);
+        sprintf(qfind, "%s", tmpptr);
+		
+        q+=2;
+        in+=10;
+        got+=10;
+        qf = qfind;
+        while (*qf) {
+            *p++ = *qf++;
+        }   
+    } else if ((p+13) < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+        sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+        tmpptr = utf8toucp(tmpbuf);
+        sprintf(qfind, "%s", tmpptr);
+        
+        q+=1;
+        in+=8;
+        got+=8;
+        qf = qfind;
+        while (*qf) {
+            *p++ = *qf++;
+        }
+    } else if ( (((int)(unsigned char)*q) > 160) && 
                     ((!mudconf.accent_extend && ((int)(unsigned char)*q) < 250) || (mudconf.accent_extend && ((int)(unsigned char)*q) < 256)) && 
                     ((p+10) < pend) ) {
-            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {				
+            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {             
                sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
                in+=5;
                got+=5;
@@ -1943,18 +1946,18 @@ process_input(DESC * d)
                   *p++ = *qf++;
                }
             }
-	} else {
-		in--;
-		if (p >= pend)
-		lost++;
-	}
+    } else {
+        in--;
+        if (p >= pend)
+        lost++;
+    }
     }
     if (p > d->raw_input->cmd) {
-	d->raw_input_at = p;
+    d->raw_input_at = p;
     } else {
-	free_lbuf(d->raw_input);
-	d->raw_input = NULL;
-	d->raw_input_at = NULL;
+    free_lbuf(d->raw_input);
+    d->raw_input = NULL;
+    d->raw_input_at = NULL;
     }
     if ( got > 0 )
        d->input_tot += got;
@@ -1962,11 +1965,11 @@ process_input(DESC * d)
        d->input_size += in;
     if ( lost > 0 )
        d->input_lost += lost;
-	
-	if (tmpptr) {
-		free(tmpptr);
-	}
-	
+    
+    if (tmpptr) {
+        free(tmpptr);
+    }
+    
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #16 */
 }
@@ -1979,22 +1982,22 @@ close_sockets(int emergency, char *message)
     DPUSH; /* #17 */
     do_rwho(NOTHING, NOTHING, RWHO_STOP);
     DESC_SAFEITER_ALL(d, dnext) {
-	if (emergency) {
+    if (emergency) {
 
-	    WRITE(d->descriptor, message, strlen(message));
-	    if (shutdown(d->descriptor, 2) < 0)
-		log_perror("NET", "FAIL", NULL, "shutdown");
-	    close(d->descriptor);
-	    if (d->flags & DS_HAS_DOOR)
-	      close(d->door_desc);
-	} else {
-	    queue_string(d, message);
-	    queue_write(d, "\r\n", 2);
-	    if (!(mudstate.reboot_flag))
-	      shutdownsock(d, R_GOING_DOWN);
-	    else
-	      shutdownsock(d, R_REBOOT);
-	}
+        WRITE(d->descriptor, message, strlen(message));
+        if (shutdown(d->descriptor, 2) < 0)
+        log_perror("NET", "FAIL", NULL, "shutdown");
+        close(d->descriptor);
+        if (d->flags & DS_HAS_DOOR)
+          close(d->door_desc);
+    } else {
+        queue_string(d, message);
+        queue_write(d, "\r\n", 2);
+        if (!(mudstate.reboot_flag))
+          shutdownsock(d, R_GOING_DOWN);
+        else
+          shutdownsock(d, R_REBOOT);
+    }
     }
     close(sock);
     DPOP; /* #17 */
@@ -2055,23 +2058,23 @@ NDECL(set_signals)
 #endif
 
     if (mudconf.sig_action != SA_DFLT) {
-	signal(SIGILL, sighandler);
-	signal(SIGTRAP, sighandler);
-  	signal(SIGFPE, sighandler);
-  	signal(SIGSEGV, sighandler);
-	signal(SIGABRT, sighandler);
+    signal(SIGILL, sighandler);
+    signal(SIGTRAP, sighandler);
+    signal(SIGFPE, sighandler);
+    signal(SIGSEGV, sighandler);
+    signal(SIGABRT, sighandler);
 #ifdef SIGFSZ
-	signal(SIGXFSZ, sighandler);
+    signal(SIGXFSZ, sighandler);
 #endif
 #ifdef SIGEMT
-	signal(SIGEMT, sighandler);
+    signal(SIGEMT, sighandler);
 #endif
 #ifdef SIGBUS
-	signal(SIGBUS, sighandler);
-	signal(SIGFPE, SIG_IGN);
+    signal(SIGBUS, sighandler);
+    signal(SIGFPE, SIG_IGN);
 #endif
 #ifdef SIGSYS
-	signal(SIGSYS, sighandler);
+    signal(SIGSYS, sighandler);
 #endif
     }
     DPOP; /* #19 */
@@ -2084,7 +2087,7 @@ unset_signals()
     DPUSH; /* #20 */
 
     for (i = 0; i < NSIG; i++)
-	    signal(i, SIG_DFL);
+        signal(i, SIG_DFL);
     abort();
     DPOP; /* #20 */
 }
@@ -2110,11 +2113,11 @@ void reset_signals(){
         if ( mudstate.reboot_flag || (signal_depth < 1) )
            return;
 
-	signal_depth = signal_depth - 1; /* Reduce 'signal unset' depth. We only want
-									 									* to call set_signals() if it is 0.
-									 									*/
-	if(signal_depth == 0) 
-		set_signals();
+    signal_depth = signal_depth - 1; /* Reduce 'signal unset' depth. We only want
+                                                                        * to call set_signals() if it is 0.
+                                                                        */
+    if(signal_depth == 0) 
+        set_signals();
         /* If signals were ignored, the alarm_msec() will have been as well */
         mudstate.alarm_triggered = 0;
         alarm_msec (next_timer());
@@ -2130,9 +2133,9 @@ check_panicking(int sig)
     /* If we are panicking, turn off signal catching and resignal */
 
     if (mudstate.panicking) {
-	for (i = 0; i < NSIG; i++)
-	    signal(i, SIG_DFL);
-	kill(getpid(), sig);
+    for (i = 0; i < NSIG; i++)
+        signal(i, SIG_DFL);
+    kill(getpid(), sig);
     }
     mudstate.panicking = 1;
     DPOP; /* #21 */
@@ -2146,7 +2149,7 @@ log_signal(const char *signame, int sig)
     DPUSH; /* #22 */
     memset(s_to_i, '\0', 30);
     STARTLOG(LOG_PROBLEMS, "SIG", "CATCH")
-	log_text((char *) "Caught signal ");
+    log_text((char *) "Caught signal ");
     log_text((char *) signame);
     sprintf(s_to_i, " [%d]", sig);
     log_text((char *) s_to_i);
@@ -2179,14 +2182,14 @@ sighandler(int sig)
 #else /* HAVE__SYS_SIGLIST */
     static const char *signames[] =
     {
-	"SIGZERO", "SIGHUP", "SIGINT", "SIGQUIT",
-	"SIGILL", "SIGTRAP", "SIGABRT", "SIGEMT",
-	"SIGFPE", "SIGKILL", "SIGUSR1", "SIGSEGV",
-	"SIGUSR2", "SIGPIPE", "SIGALRM", "SIGTERM",
-	"SIGURG", "SIGSTOP", "SIGTSTP", "SIGCONT",
-	"SIGCHLD", "SIGTTIN", "SIGTTOU", "SIGIO",
-	"SIGXCPU", "SIGXFSZ", "SIGVTALRM", "SIGPROF",
-	"SIGWINCH", "SIGLOST", "SIGBUS", "SIGSYS"};
+    "SIGZERO", "SIGHUP", "SIGINT", "SIGQUIT",
+    "SIGILL", "SIGTRAP", "SIGABRT", "SIGEMT",
+    "SIGFPE", "SIGKILL", "SIGUSR1", "SIGSEGV",
+    "SIGUSR2", "SIGPIPE", "SIGALRM", "SIGTERM",
+    "SIGURG", "SIGSTOP", "SIGTSTP", "SIGCONT",
+    "SIGCHLD", "SIGTTIN", "SIGTTOU", "SIGIO",
+    "SIGXCPU", "SIGXFSZ", "SIGVTALRM", "SIGPROF",
+    "SIGWINCH", "SIGLOST", "SIGBUS", "SIGSYS"};
 
 #endif /* HAVE__SYS_SIGLIST */
 #endif /* HAVE_SYS_SIGLIST */
@@ -2221,19 +2224,19 @@ sighandler(int sig)
     i_crontmp = NOTHING;
 
     switch (sig) {
-    case SIGALRM:		/* Timer */
-	mudstate.alarm_triggered = 1;
-	break;
-    case SIGCHLD:		/* Change in child status */
+    case SIGALRM:       /* Timer */
+    mudstate.alarm_triggered = 1;
+    break;
+    case SIGCHLD:       /* Change in child status */
 #ifndef SIGNAL_SIGCHLD_BRAINDAMAGE
-	signal(SIGCHLD, sighandler);
+    signal(SIGCHLD, sighandler);
 #endif
 #ifdef HAVE_WAIT3
-	while (wait3(&stat, WNOHANG, NULL) > 0);
+    while (wait3(&stat, WNOHANG, NULL) > 0);
 #else
-	wait(&stat);
+    wait(&stat);
 #endif
-	break;
+    break;
     case SIGUSR1:   /* Perform a @reboot. */
           log_signal(signames[sig], sig);
           /* User configured signal handling might happen. */
@@ -2368,18 +2371,18 @@ sighandler(int sig)
             log_text((char *) "Reboot due to signal SIGUSR1.");
           ENDLOG
           mudstate.reboot_flag = 1;
-          break;			
-    case SIGHUP:		/* Perform a database dump */
-	log_signal(signames[sig], sig);
-	mudstate.dump_counter = 0;
-	break;
-    case SIGINT:		/* Log + ignore */
+          break;            
+    case SIGHUP:        /* Perform a database dump */
+    log_signal(signames[sig], sig);
+    mudstate.dump_counter = 0;
+    break;
+    case SIGINT:        /* Log + ignore */
 #ifdef SIGSYS
     case SIGSYS:
 #endif
-	log_signal(signames[sig], sig);
-	break;
-    case SIGUSR2:		/* Perform clean shutdown. */
+    log_signal(signames[sig], sig);
+    break;
+    case SIGUSR2:       /* Perform clean shutdown. */
         mudstate.forceusr2 = 1;
         log_signal(signames[sig], sig);
         raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGUSR2!");
@@ -2397,7 +2400,7 @@ sighandler(int sig)
            mudstate.shutdown_flag = 1;
         }
         break;
-    case SIGTERM:		/* Attempt flatfile dump before shutdown. */
+    case SIGTERM:       /* Attempt flatfile dump before shutdown. */
         log_signal(signames[sig], sig);
         ignore_signals();
         raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGTERM!");
@@ -2440,18 +2443,18 @@ sighandler(int sig)
         CLOSE;
         exit(1); /* Brutal. But daddy said I had to go to bed now. */
         break; 
-    case SIGQUIT:		/* Normal shutdown */
+    case SIGQUIT:       /* Normal shutdown */
     case SIGSEGV:               /* SEGV/BUS, we have no idea on the state engine - just drop hard */
-    case SIGILL:		/* Panic save + coredump */
+    case SIGILL:        /* Panic save + coredump */
     case SIGFPE:
 #ifdef SIGXCPU
     case SIGXCPU:
 #endif
-	check_panicking(sig);
-	log_signal(signames[sig], sig);
-	sprintf(buff, "Caught signal %s - shutting down.", signames[sig]);
-	do_shutdown(NOTHING, NOTHING, 0, buff);
-	break;
+    check_panicking(sig);
+    log_signal(signames[sig], sig);
+    sprintf(buff, "Caught signal %s - shutting down.", signames[sig]);
+    do_shutdown(NOTHING, NOTHING, 0, buff);
+    break;
     case SIGTRAP:
 #ifdef SIGXFSZ
     case SIGXFSZ:
@@ -2465,43 +2468,43 @@ sighandler(int sig)
         /* Hopefully this saves corruption on SIGSEGV's and butt-hurt crashes */
         pcache_sync();
         SYNC;
-	check_panicking(sig);
-	log_signal(signames[sig], sig);
-	report();
-	do_shutdown(NOTHING, NOTHING, SHUTDN_PANIC, buff);
+    check_panicking(sig);
+    log_signal(signames[sig], sig);
+    report();
+    do_shutdown(NOTHING, NOTHING, SHUTDN_PANIC, buff);
 
-	/* Either resignal, or clear signal handling and retry the
-	 * failed operation.  It should still fail, we haven't done
-	 * anything to fix it, but it just _might_ succeed.  If
-	 * that happens things will go downhill rapidly because we
-	 * have closed all our files and cleaned up.  On the other
-	 * hand, retrying the failing operation usually gets a 
-	 * usable coredump, whereas aborting from within the
-	 * signal handler often doesn't.
-	 */
+    /* Either resignal, or clear signal handling and retry the
+     * failed operation.  It should still fail, we haven't done
+     * anything to fix it, but it just _might_ succeed.  If
+     * that happens things will go downhill rapidly because we
+     * have closed all our files and cleaned up.  On the other
+     * hand, retrying the failing operation usually gets a 
+     * usable coredump, whereas aborting from within the
+     * signal handler often doesn't.
+     */
 
-	unset_signals();
-	if (mudconf.sig_action == SA_RESIG)
-	    signal(sig, SIG_DFL);
-	else {
-	    VOIDRETURN; /* #23 */
+    unset_signals();
+    if (mudconf.sig_action == SA_RESIG)
+        signal(sig, SIG_DFL);
+    else {
+        VOIDRETURN; /* #23 */
         }
         DPOP; /* #23 */
-	exit(1);
+    exit(1);
 
-    case SIGABRT:		/* Coredump. */
-	check_panicking(sig);
-	log_signal(signames[sig], sig);
-	report();
+    case SIGABRT:       /* Coredump. */
+    check_panicking(sig);
+    log_signal(signames[sig], sig);
+    report();
 
-	unset_signals();
-	if (mudconf.sig_action == SA_RESIG)
-	    signal(sig, SIG_DFL);
-	else {
-	    VOIDRETURN; /* #23 */
+    unset_signals();
+    if (mudconf.sig_action == SA_RESIG)
+        signal(sig, SIG_DFL);
+    else {
+        VOIDRETURN; /* #23 */
         }
-	DPOP; /* #23 */
-	exit(1);
+    DPOP; /* #23 */
+    exit(1);
 
     }
     signal(sig, sighandler);
@@ -2525,27 +2528,27 @@ dump_rusers(DESC * call_by)
     DPUSH; /* #24 */
 
     if (!(mudconf.control_flags & CF_ALLOW_RWHO)) {
-	queue_string(call_by, "RWHO is not available now.\r\n");
-	VOIDRETURN; /* #24 */
+    queue_string(call_by, "RWHO is not available now.\r\n");
+    VOIDRETURN; /* #24 */
     }
     p = srv = mudconf.rwho_host;
     while ((*p != '\0') && ((*p == '.') || isdigit((int)*p)))
-	p++;
+    p++;
 
     if (*p != '\0') {
-	if ((hp = gethostbyname(srv)) == (struct hostent *) NULL) {
-	    queue_string(call_by, "Error connecting to rwho.\r\n");
-	    VOIDRETURN; /* #24 */
-	}
-	(void) bcopy(hp->h_addr, (char *) &addr.sin_addr, hp->h_length);
+    if ((hp = gethostbyname(srv)) == (struct hostent *) NULL) {
+        queue_string(call_by, "Error connecting to rwho.\r\n");
+        VOIDRETURN; /* #24 */
+    }
+    (void) bcopy(hp->h_addr, (char *) &addr.sin_addr, hp->h_length);
     } else {
-	unsigned long f;
+    unsigned long f;
 
-	if ((f = inet_addr(srv)) == -1L) {
-	    queue_string(call_by, "Error connecting to rwho.\r\n");
-	    VOIDRETURN; /* #24 */
-	}
-	(void) bcopy((char *) &f, (char *) &addr.sin_addr, sizeof(f));
+    if ((f = inet_addr(srv)) == -1L) {
+        queue_string(call_by, "Error connecting to rwho.\r\n");
+        VOIDRETURN; /* #24 */
+    }
+    (void) bcopy((char *) &f, (char *) &addr.sin_addr, sizeof(f));
     }
     addr.sin_port = htons(mudconf.rwho_data_port);
     addr.sin_family = AF_INET;
@@ -2553,19 +2556,19 @@ dump_rusers(DESC * call_by)
 #ifdef TLI
     fd = tf_topen(TLI_TCP, O_RDWR);
     if (fd = <0) {
-	queue_string(call_by, "Error in connecting to rwhod.\r\n");
-	VOIDRETURN; /* #24 */
+    queue_string(call_by, "Error in connecting to rwhod.\r\n");
+    VOIDRETURN; /* #24 */
     }
     if (t_bind(fd, NULL, NULL) < 0) {
-	tf_close(fd);
-	queue_string(call_by, "Error in connecting to rwhod.\r\n");
-	VOIDRETURN; /* #24 */
+    tf_close(fd);
+    queue_string(call_by, "Error in connecting to rwhod.\r\n");
+    VOIDRETURN; /* #24 */
     }
     call = (struct t_call *) t_alloc(fd, T_CALL, T_ALL);
     if (call == NULL) {
-	tf_close(fd);
-	queue_string(call_by, "Error in connecting to rwhod.\r\n");
-	VOIDRETURN; /* #24 */
+    tf_close(fd);
+    queue_string(call_by, "Error in connecting to rwhod.\r\n");
+    VOIDRETURN; /* #24 */
     }
     bcopy(addr, pbuf->addr.buf, sizeof(struct sockaddr_in));
     call->addr.len = sizeof(struct sockaddr_in);
@@ -2573,14 +2576,14 @@ dump_rusers(DESC * call_by)
 #else
     fd = tf_socket(AF_INET, SOCK_STREAM);
     if (fd < 0) {
-	queue_string(call_by, "Error in connecting to rwhod.\r\n");
-	VOIDRETURN; /* #24 */
+    queue_string(call_by, "Error in connecting to rwhod.\r\n");
+    VOIDRETURN; /* #24 */
     }
 #endif
 
 #ifdef TLI
     if (t_connect(fd, call, NULL) < 0) {
-	queue_string(call_by, "Error in connecting to rwhod.\r\n");
+    queue_string(call_by, "Error in connecting to rwhod.\r\n");
         tf_close(fd);
         VOIDRETURN; /* #24 */
     }
@@ -2592,16 +2595,16 @@ dump_rusers(DESC * call_by)
     }
 #else
     if (connect(fd, &addr, sizeof(addr)) < 0) {
-	queue_string(call_by, "Error in connecting to rwhod.\r\n");
-	tf_close(fd);
-	VOIDRETURN; /* #24 */
+    queue_string(call_by, "Error in connecting to rwhod.\r\n");
+    tf_close(fd);
+    VOIDRETURN; /* #24 */
     }
 #endif
     rbuf = alloc_lbuf("dump_rusers");
     red = 0;
     while ((red = READ(fd, rbuf, LBUF_SIZE)) > 0) {
-	rbuf[red] = '\0';
-	queue_string(call_by, rbuf);
+    rbuf[red] = '\0';
+    queue_string(call_by, rbuf);
     }
 
     free_lbuf(rbuf);

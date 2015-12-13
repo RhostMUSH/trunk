@@ -3347,8 +3347,10 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
        decompile_rlevels(player, thing, thingname, qualout, i_tf);
 #endif /* REALITY_LEVELS */
 
-    if ( !key_buff || (key_buff & DECOMP_FLAGS) )
+    if ( !key_buff || (key_buff & DECOMP_FLAGS) ) {
        decompile_flags(player, thing, thingname, qualout, i_tf);
+       decompile_toggles(player, thing, thingname, qualout, i_tf);
+    }
 
     /* If the object has a parent, report it */
 
