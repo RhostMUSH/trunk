@@ -7,3 +7,9 @@ RhostMUSH has a developer hangout MUSH at iweb.localecho.net 4201 - please feel 
 Online help files for RhostMUSH exist. 
 =====
 This is Ambrosia's branch, and currently the branch were main development of RhostMUSH is happening. This branch will, for now, merge and build up the latest and greatest before release to Master.
+
+Rhost Wiki
+=====
+We have started a few helpful wiki pages on this site to help with Rhost game owners.
+
+Click the wiki link to the right for a full list.  Feel free to submit issues and suggestions for more.

@@ -574,7 +574,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 	if (key & TOAD_NO_CHOWN) {
 		count = -1;
 	} else {
-		count = chown_all(victim, recipient);
+		count = chown_all(victim, recipient, 0);
 		s_Owner(victim, recipient);	/* you get it */
 	}
 	s_Flags(victim, TYPE_THING|HALT);
@@ -732,7 +732,7 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 	if (key & TOAD_NO_CHOWN) {
 		count = -1;
 	} else {
-		count = chown_all(victim, recipient);
+		count = chown_all(victim, recipient, 0);
 		s_Owner(victim, recipient);	/* you get it */
 	}
 	s_Flags(victim, TYPE_THING|HALT);

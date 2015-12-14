@@ -34,7 +34,8 @@ wget -q -O - http://proxy-ip-list.com/download/free-proxy-list.txt|tr '\015' '\0
 # This is massive, and will grab a ton of sites
 wget -q -O - http://www.shallalist.de/Downloads/shallalist.tar.gz|tar -zxvOf - BL/anonvpn/domains 2>/dev/null|grep -v "[A-Za-z]" >> blacklist.txt
 
-cat blacklist.txt | sort -u > blacklist.tmp
+./proxysnarf.sh
+cat blacklist.txt temp.txt| sort -u > blacklist.tmp
 cat blacklist.tmp > blacklist.txt
 
 rm -f Tor_ip_list_EXIT.csv bulk.txt bulk2.txt blacklist.tmp

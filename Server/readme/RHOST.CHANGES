@@ -33,6 +33,10 @@ Make '.' as first char allowable in attribute names.
 				- Thanks Ixokai
 @limit with unlimited values for @destroy and vlimit was broke.
 				- Thanks Ixokai
+@decompile didn't show @toggles
+				- Thanks Tesagk
+xinc() and xdec() didn't properly handle labels for registers.
+				- Thanks UnRegistered Guest (Wanted to be Anonymous)
 
 
 		         RhostMUSH 3.9.4 Update File

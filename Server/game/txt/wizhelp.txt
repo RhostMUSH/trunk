@@ -1014,7 +1014,11 @@
   This toggle, when set on a player with the @power EXAMINE_FULL, will
   allow the target player to be able to see all hidden wizard attributes.
   This includes all special attributes that start with '_'.
-   
+  
+  This will also work on all @aflag definitions as long as it's a wizard
+  and lower for seeable.  This does not grant the ability to set attributes.
+  This also will not work on any @aflag definition of immortal or god.
+    
 & NOGLOBPARENT TOGGLE
   Toggle: NOGLOBPARENT (Wiz only by default)
   
@@ -2321,12 +2325,14 @@
 
 & @clone
   Command: @clone[/<switches>] <object>
+  
   Wizards may also specify the /preserve switch, which preserves the original
   owner of the object in the new copy, instead of creating the copy as being
   owned by the wizard.
 
 & @chownall
   Command: @chownall[/<switch>] <victim>[=<recipient>]
+  
   Changes the ownership of all of the victim's objects, rooms, and exits to
   the indicated recipient (or to the wizard performing the @chownall if
   no recipient is specified).  All objects, rooms, and exits are set HALTED.
@@ -2335,7 +2341,17 @@
   
   The following additional switches are available to wizards:
     /preserve - preserve flags on target items.
+    /exit     - Specify just exits to chown.
+    /room     - Specify just rooms to chown.
+    /thing    - Specify just things to chown.
+    /player   - Specify just players (Robots via @robot) to chown.
    
+  All switches can be combined.  If you do not specify a TYPE switch it 
+  will assume all types (which is the default behavior).
+  
+  Without specifying /preserve, Robots will be owned to themselves as this
+  could be a security risk otherwise.
+     
   Be careful when using /preserve with @chownall as some things may not be
   desireable to have flags passed over!  This may be a security risk!
    
@@ -2343,6 +2359,7 @@
 
 & @cut
   Command: @cut <object/exit>
+  
   Cuts off the object or exit list for the current location at the indicated
   object or exit by setting [next(thing)] to NOTHING.  Objects or exits that
   follow in the chain are not moved or otherwise changed, and are only
@@ -5211,28 +5228,28 @@
   Topic: CONFIG PARAMETERS (continued)
   
   hostnames                icmd_obj                 idle_interval          
-  idle_message             idle_timeout             idle_wiz_dark          
-  idle_wiz_cloak           ifelse_substitution      imm_nomod              
-  include                  includecnt               includenest            
-  initial_size             input_database           internal_compress_string
-  inventory_name           kill_guarantee_cost      kill_max_cost          
-  kill_min_cost            lastsite_paranoia        lattr_default_oldstyle 
-  lcon_checks_dark         lfunction_max            list_access            
-  list_max_chars           listen_parents           link_cost              
-  lnum_compat              lock_recursion_limit     log                    
-  log_command_list         log_maximum              log_network_errors     
-  log_options              login_to_prog            logout_cmd_access      
-  logout_cmd_alias         look_moreflags           look_obey_terse        
-  machine_command_cost     mail_anonymous           mail_autodeltime       
-  mail_default             mail_def_object          mail_hidden            
-  mail_tolist              mail_verbosity           mailbox_size           
-  maildelete               mailinclude_file         mailprog               
-  mailsub                  mailmax_send             master_room            
-  match_own_commands       manlog_file              map_delim_space        
-  max_cpu_cycles           max_dest_limit           max_folders            
-  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
-  max_pcreate_time         max_percentsubs          max_players            
-  max_sitecons           
+  idle_message             idle_stamp               idle_stamp_max
+  idle_timeout             idle_wiz_dark            idle_wiz_cloak         
+  ifelse_substitution      imm_nomod                include                
+  includecnt               includenest              initial_size           
+  input_database           internal_compress_string inventory_name         
+  kill_guarantee_cost      kill_max_cost            kill_min_cost          
+  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
+  lfunction_max            list_access              list_max_chars         
+  listen_parents           link_cost                lnum_compat            
+  lock_recursion_limit     log                      log_command_list       
+  log_maximum              log_network_errors       log_options            
+  login_to_prog            logout_cmd_access        logout_cmd_alias       
+  look_moreflags           look_obey_terse          machine_command_cost   
+  mail_anonymous           mail_autodeltime         mail_default            
+  mail_def_object          mail_hidden              mail_tolist            
+  mail_verbosity           mailbox_size             maildelete             
+  mailinclude_file         mailprog                 mailsub                
+  mailmax_send             master_room              match_own_commands     
+  manlog_file              map_delim_space          max_cpu_cycles         
+  max_dest_limit           max_folders              max_lastsite_cnt       
+  max_name_protect         max_pcreate_lim          max_pcreate_time       
+  max_percentsubs          max_players              max_sitecons           
   
 { 'wizhelp config parameters4' for more }
 
@@ -5270,28 +5287,29 @@
 
   player_starting_home      player_starting_room      player_toggles
   plushelp_file             plushelp_index            port                    
-  postdump_message          power_access              public_flags            
-  queue_active_chunk        queue_compatible          queue_idle_chunk        
-  quiet_look                quiet_whisper             quit_file               
-  quotas                    read_remote_desc          read_remote_name        
-  recycling                 register_create_file      register_host           
-  register_site             regtry_limit              restrict_home           
-  restrict_sidefx           retry_limit               robot_cost              
-  robot_flags               robot_speech              robot_toggles           
-  room_aconnect             room_adisconnect          room_attr_default       
-  room_flags                room_parent               room_quota              
-  room_toggles              roomlog_path              round_kludge
-  rwho_data_port            rwho_dump_interval        rwho_host
-  rwho_info_port            rwho_password             rwho_transmit
-  sacrifice_adjust          sacrifice_factor          safe_wipe
-  safer_passwords           safer_ufun                search_cost             
-  secure_atruselock         secure_dark               secure_functions        
-  secure_jumpok             see_owned_dark            showother_altname       
-  shs_reverse               sidefx_maxcalls           sidefx_returnval        
-  sideeffects               signal_action             signal_cron             
-  signal_object             signal_object_type        space_compress          
-  spam_limit                spam_msg                  spam_objmsg             
-  sqlite_db_path            sqlite_query_limit        stack_limit
+  proxy_checker             postdump_message          power_access            
+  public_flags              queue_active_chunk        queue_compatible        
+  queue_idle_chunk          quiet_look                quiet_whisper           
+  quit_file                 quotas                    read_remote_desc        
+  read_remote_name          recycling                 register_create_file    
+  register_host             register_site             regtry_limit            
+  restrict_home             restrict_sidefx           retry_limit             
+  robot_cost                robot_flags               robot_speech            
+  robot_toggles             room_aconnect             room_adisconnect        
+  room_attr_default         room_flags                room_parent             
+  room_quota                room_toggles              roomlog_path            
+  round_kludge              rwho_data_port            rwho_dump_interval      
+  rwho_host                 rwho_info_port            rwho_password           
+  rwho_transmit             sacrifice_adjust          sacrifice_factor        
+  safe_wipe                 safer_passwords           safer_ufun              
+  search_cost               secure_atruselock         secure_dark             
+  secure_functions          secure_jumpok             see_owned_dark          
+  showother_altname         shs_reverse               sidefx_maxcalls         
+  sidefx_returnval          sideeffects               signal_action           
+  signal_cron               signal_object             signal_object_type      
+  space_compress            spam_limit                spam_msg                
+  spam_objmsg               sqlite_db_path            sqlite_query_limit      
+  stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -7033,6 +7051,27 @@
   idle_timeout and if they have gone dark or cloaked.
   See Also: idle_timeout, idle_wiz_cloak, idle_wiz_dark
 
+& idle_stamp
+  Config parameter: idle_stamp <yes/no>.  Default: no
+  
+  Specifies if it should stamp a CRC32 checksum of what the player typed and
+  how many times they did it up to <idle_stamp_max> commands on the target
+  player.  This effectively is an anti-idle detection mechanism that will
+  quickly identify the commands typed by the player if they're the same
+  and keep a count of how often the player has issued it.
+  
+  See Also: idle_stamp_max
+  
+& idle_stamp_max
+  Config parameter: idle_stamp_max <count>  Default: 10
+  
+  Specifies how many commands are to be logged per player with a running 
+  tally of how often they typed the command.  The command is a hashed
+  value so you won't actually see what the player typed, only if what
+  they typed matches what they previously typed.
+  
+  See Also: idle_stamp
+
 & idle_timeout
   Config parameter: idle_timeout <secs>.  Default: 3600 (one hour)
   
@@ -8156,6 +8195,28 @@
   
   See Also: help, @readcache, plushelp_file, help_file, help_index
 
+& proxy_checker
+  Config parameter: proxy_checker <bitwise>.    Default: 0
+  
+  The proxy_checker is a bitwise mask to allow optional proxy detection and
+  possible blockiing of sites that match a proxy.  The proxy detection is
+  semi-accurate, will not detect all proxies, and can give false positives
+  for other non-proxy sites.  Phone-based connections will be seen as
+  proxies (since they essentially are).
+  
+  The following values exist:
+    0  - Disable the checker alltogether (default)
+    1  - Just detect and alert possible proxies.
+    2  - Disallow guest connections from the possible proxies.
+    4  - Disallow registration (player creation) from the possible proxy.
+    6  - (2 & 4) essentially disallow guest and registration.
+  
+  Due to the fact this is hit and miss, there is no method for forbidding
+  for the proxy checker.  Plese be aware, as this WILL give you false
+  positives, issuing option 2 or 4 (or an option of 6 which combines them)
+  can effectively block innocent players.  The option however, is there
+  anyway.
+
 & port
   Config parameter: port <port>.  Default: 6250
   
@@ -8603,6 +8664,12 @@
   new passwords will have to be at least 5 characters long, have at least one
   lowercase and uppercase letter, and require a special character which is
   non-alphanumeric or ', or -.
+  
+  DES passwords are 8 characters or less.
+  
+  SHA512 passwords (default) are 160 characters or less.
+  
+  Note:  Guest players still are allowed 'guest' as their password.
 
 & search_cost
   Config parameter: search_cost <amount>.  Default: 100
@@ -8991,12 +9058,19 @@
     %l ----    16     (0x00000010)    |  %f ----  8192     (0x00002000)
     %s ----    32     (0x00000020)    |  %k ---- 16384     (0x00004000)
     %o ----    64     (0x00000040)    |  %w ---- 32768     (0x00008000)
-    %p ----   128     (0x00000080)    |  
+    %p ----   128     (0x00000080)    |  %m ---- 65536     (0x00010000)
     %a ----   256     (0x00000100)    |
   ----------------------------------------------------------------------------
   
   You would add the values together and apply to the sub_override 'bitmask'
   to set or unset the given overrides.
+  
+  You may also INSTEAD of the numerical value specify the character that you 
+  wish to override.  You can not mix numerical and letters.
+  
+  Example:
+    > @admin sub_override=365
+    > @admin sub_override=ncxf
    
   (help sub_override2 for continuation)
 
@@ -9015,7 +9089,7 @@
     %l ----           SUB_L           |  %f ----           SUB_F
     %s ----           SUB_S           |  %k ----           SUB_K
     %o ----           SUB_O           |  %w ----           SUB_W
-    %p ----           SUB_P           |  
+    %p ----           SUB_P           |  %m ----           SUB_M
     %a ----           SUB_A           |
   ----------------------------------------------------------------------------
   
@@ -10751,8 +10825,10 @@
     BIFF THE MIGHTY             BOB THE WEAK                  DISCLAIMER
     GETTING STARTED             
     
+    & biffy
     & BIFF THE MIGHTY
     Biff is a mighty wizard.
+    'biffy' is an alias so will work for me, too.
     
     & bob the weak
     Bob is a mighty wizard in disguise.

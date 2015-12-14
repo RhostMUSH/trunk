@@ -23,6 +23,12 @@ void bzero(void *, int);
 #endif
 #endif
 #include <signal.h>
+
+/* For MTU/MSS additions */
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+
+
 /*hack*/
 /* #define NSIG 32 */
 #ifndef NSIG
@@ -76,7 +82,7 @@ int ndescriptors = 0;
 DESC *descriptor_list = NULL;
 DESC *desc_in_use = NULL;
 
-DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *));
+DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *, int));
 DESC *FDECL(new_connection, (int));
 int FDECL(process_output, (DESC *));
 int FDECL(process_input, (DESC *));
@@ -87,6 +93,7 @@ extern double NDECL(next_timer);
 
 extern int FDECL(alarm_msec, (double));
 extern int NDECL(alarm_stop);
+extern unsigned int CRC32_ProcessBuffer(unsigned int, const void *, unsigned int);
 
 int signal_depth;
 
@@ -354,12 +361,14 @@ shovechars(int port,char* address)
     DESC *d, *dnext, *newd;
     CMDENT *cmdp = NULL;
     int avail_descriptors, maxfds, active_auths, aflags2, temp1, temp2;
-    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep;
+    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep, i_len;
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
-         s_cutter2[8];
+         s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, *b_progatrptr;
     FILE *f;
-    int silent;
+    int silent, i_progatr, anum;
+    unsigned int ulCRC32;
+    ATTR *ap;
 
 #ifdef TLI
     struct pollfd *fds;
@@ -729,10 +738,78 @@ shovechars(int port,char* address)
         /* Process received data */
 
                 i_oldlastcnt = d->input_tot;
-        if (!process_input(d)) {
-            shutdownsock(d, R_SOCKDIED);
-            continue;
-        }
+				
+		if (!process_input(d)) {
+		    shutdownsock(d, R_SOCKDIED);
+		    continue;
+		}
+
+                /* Idle stamp checking for command typed */
+                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
+                   ulCRC32 = 0;
+                   i_len = strlen(d->input_head->cmd);
+                   ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, i_len);
+                   anum = mkattr("_IDLESTAMP");
+                   if ( anum > 0 ) {
+                      ap = atr_num(anum);
+                      if (ap) {
+                         progatr = atr_get(d->player, ap->number, &aowner2, &aflags2);
+                         if ( progatr ) {
+                            progatr_str = progatr;
+                            i_progatr = 0;
+                            while ( progatr_str && *progatr_str ) {
+                               if ( *progatr_str == ' ' )
+                                  i_progatr++;
+                               progatr_str++;
+                            }
+                            s_progatr = alloc_sbuf("idle_stamp");
+                            sprintf(s_progatr, "%u", ulCRC32);
+                            if ( (i_progatr >= mudconf.idle_stamp_max) && (strstr(progatr, s_progatr) == NULL) ) {
+                               progatr_str = strtok_r(progatr, " ", &progatr_strptr);
+                               if ( progatr_str )
+                                  progatr_str = strtok_r(NULL, " ", &progatr_strptr);
+                            } else {
+                               progatr_str = strtok_r(progatr, " ", &progatr_strptr);
+                            }
+                            b_progatrptr = b_progatr = alloc_lbuf("idle_stamp");
+                            i_progatr = 0;
+                            anum = 0;
+                            if ( progatr_str ) {
+                               while ( progatr_str ) {
+                                  if ( i_progatr > 0 )
+                                     safe_chr(' ', b_progatr, &b_progatrptr);
+                                  if ( strstr(progatr_str, s_progatr) != NULL ) {
+                                     anum = 1;
+                                     if ( strchr(progatr_str, ':') != NULL ) {
+                                        i_progatr = atoi(strchr(progatr_str, ':')+1); 
+                                        i_progatr++;
+                                     } else {
+                                        i_progatr = 1;
+                                     }
+                                     sprintf(s_progatr, "%u:%d", ulCRC32, i_progatr);
+                                     safe_str(s_progatr, b_progatr, &b_progatrptr);
+                                  } else {
+                                     i_progatr = 1;
+                                     safe_str(progatr_str, b_progatr, &b_progatrptr);
+                                  }
+                                  progatr_str = strtok_r(NULL, " ", &progatr_strptr);
+                               }
+                            } 
+                            if ( !anum ) {
+                               if ( i_progatr )
+                                  safe_chr(' ', b_progatr, &b_progatrptr);
+                               sprintf(s_progatr, "%u:1", ulCRC32);
+                               safe_str(s_progatr, b_progatr, &b_progatrptr);
+                            }
+                            atr_add_raw(d->player, ap->number, b_progatr);
+                            free_sbuf(s_progatr);
+                            free_lbuf(b_progatr);
+                         }
+                         free_lbuf(progatr);
+                      }
+                   }
+                }
+
                 if ( (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
                    memcpy(s_cutter, d->input_head->cmd, 5);
                    memcpy(s_cutter2, d->input_head->cmd, 7);
@@ -853,7 +930,8 @@ new_connection(int sock)
     struct sockaddr_in addr;
     static int spam_log = 0;
     char *logbuff, *addroutbuf;
-    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0;
+    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, 
+        i_mtu, i_mtulen, i_mss, i_msslen, i_proxychk;
 
 #ifndef TLI
     int addr_len;
@@ -865,7 +943,7 @@ new_connection(int sock)
 
     DPUSH; /* #5 */
 
-    cur_port = 0;
+    cur_port = i_proxychk = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< new_connection >";
 #ifdef TLI
@@ -960,8 +1038,45 @@ new_connection(int sock)
     if ( mudconf.tor_paranoid ) {
        i_chktor = check_tor(addr.sin_addr, mudconf.port);
     }
+
+#ifndef CYGWIN
+    if ( mudconf.proxy_checker > 0 ) {
+       /* Check MTU */
+       i_mtulen = sizeof(i_mtu);
+       i_msslen = sizeof(i_mss);
+       getsockopt(newsock, SOL_IP, IP_MTU, &i_mtu, (unsigned int *)&i_mtulen);
+       getsockopt(newsock, IPPROTO_TCP, TCP_MAXSEG,  &i_mss, (unsigned int*)&i_msslen);
+
+       if ( (i_mtu <= 1500) && ((i_mss + 80) < i_mtu) ) { /* Possible Proxy -- Block */
+          STARTLOG(LOG_NET | LOG_SECURITY, "NET", "PROXY");
+             buff = alloc_mbuf("new_connection.LOG.badsite");
+             sprintf(buff, "[%d/%s] Possible Proxy [MTU %d/MSS %d].  (Remote port %d)",
+                     newsock, inet_ntoa(addr.sin_addr), i_mtu, i_mss, cur_port);
+             log_text(buff);
+             free_mbuf(buff);
+          ENDLOG
+          if ( (mudconf.proxy_checker & 2) && (mudconf.proxy_checker & 4) ) {
+             i_proxychk = H_NOGUEST | H_REGISTRATION;
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [GUEST/REGISTER DISABLED]", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          } else if ( mudconf.proxy_checker & 2 ) {
+             i_proxychk = H_NOGUEST;
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [GUEST DISABLED]", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          } else if ( mudconf.proxy_checker & 4 ) {
+             i_proxychk = H_REGISTRATION;
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [REGISTER DISABLED]", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          } else {
+             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY", NULL,
+                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+          }
+       } 
+    }
+#endif
+
     /* DO BLACKLIST CHECK HERE */
-    if ( blacklist_check(addr.sin_addr) || i_chktor ) {
+    if ( blacklist_check(addr.sin_addr) || i_chktor  ) {
        STARTLOG(LOG_NET | LOG_SECURITY, "NET", (i_chktor ? "TOR" : "BLACK"));
           buff = alloc_mbuf("new_connection.LOG.badsite");
           sprintf(buff, "[%d/%s] Connection refused - %s.  (Remote port %d)",
@@ -1119,7 +1234,7 @@ new_connection(int sock)
            free_lbuf(buff1);
            ENDLOG
         }
-    d = initializesock(newsock, &addr, buff);
+	d = initializesock(newsock, &addr, buff, i_proxychk);
         broadcast_monitor(NOTHING, MF_CONN, "PORT CONNECT", NULL, buff, newsock, 0, cur_port, NULL);
     free_mbuf(buff);
     mudstate.debug_cmd = cmdsave;
@@ -1661,7 +1776,7 @@ check_auth(DESC * d)
 
 
 DESC *
-initializesock(int s, struct sockaddr_in * a, char *addr)
+initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
 {
     DESC *d, *dchk, *dchknext;
     char tchbuff[LBUF_SIZE];
@@ -1717,7 +1832,8 @@ initializesock(int s, struct sockaddr_in * a, char *addr)
     strcpy(tchbuff, mudconf.suspect_host);
     if ((char *)mudconf.suspect_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_SUSPECT;
-    d->player = 0;      /* be sure #0 isn't wizard.  Shouldn't be. */
+    d->host_info = d->host_info | i_keyflag;
+    d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';
     d->doing[0] = '\0';
     make_nonblocking(s);
@@ -1946,11 +2062,13 @@ process_input(DESC * d)
                   *p++ = *qf++;
                }
             }
-    } else {
-        in--;
-        if (p >= pend)
-        lost++;
-    }
+        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != '\0') ) {
+            q++;
+	} else {
+	    in--;
+	    if (p >= pend)
+		lost++;
+	}
     }
     if (p > d->raw_input->cmd) {
     d->raw_input_at = p;

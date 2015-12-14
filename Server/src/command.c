@@ -179,6 +179,15 @@ NAMETAB chown_sw[] = {
   {NULL, 0, 0, 0, 0}
 };
 
+NAMETAB chownall_sw[] = {
+  {(char *) "preserve", 2, CA_WIZARD, 0, CHOWN_PRESERVE},
+  {(char *) "room", 1, CA_WIZARD, 0, CHOWN_ROOM | SW_MULTIPLE},
+  {(char *) "exit", 1, CA_WIZARD, 0, CHOWN_EXIT | SW_MULTIPLE},
+  {(char *) "player", 2, CA_WIZARD, 0, CHOWN_PLAYER | SW_MULTIPLE},
+  {(char *) "thing", 1, CA_WIZARD, 0, CHOWN_THING | SW_MULTIPLE},
+  {NULL, 0, 0, 0, 0}
+};
+
 NAMETAB cluster_sw[] = {
   {(char *) "new", 1, CA_WIZARD, CA_CLUSTER, CLUSTER_NEW},
   {(char *) "add", 2, CA_WIZARD, CA_CLUSTER, CLUSTER_ADD},
@@ -268,6 +277,8 @@ NAMETAB door_sw[] =
 {
     {(char *) "list", 1, CA_PUBLIC, 0, DOOR_SW_LIST},
     {(char *) "open", 1, CA_PUBLIC, 0, DOOR_SW_OPEN},
+    {(char *) "push", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, DOOR_SW_PUSH},
+    {(char *) "kick", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, DOOR_SW_KICK},
     {(char *) "close", 1, CA_PUBLIC, 0, DOOR_SW_CLOSE},
     {(char *) "status", 1, CA_GOD | CA_IMMORTAL, 0, DOOR_SW_STATUS},
     {(char *) "full", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, DOOR_SW_FULL | SW_MULTIPLE},
@@ -1114,7 +1125,7 @@ CMDENT command_table[] =
     {(char *) "@chown", chown_sw,
      CA_NO_SLAVE | CA_NO_GUEST | CA_GBL_BUILD | CA_NO_WANDER, 0,
      CHOWN_ONE, CS_TWO_ARG | CS_INTERP, 0, do_chown},
-    {(char *) "@chownall", chown_sw, CA_WIZARD | CA_ADMIN | CA_GBL_BUILD, 0,
+    {(char *) "@chownall", chownall_sw, CA_WIZARD | CA_ADMIN | CA_GBL_BUILD, 0,
      CHOWN_ALL, CS_TWO_ARG | CS_INTERP, 0, do_chownall},
     {(char *) "@clone", clone_sw,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_CONTENTS | CA_NO_GUEST | CA_NO_WANDER, 0,
@@ -2954,6 +2965,7 @@ process_command(dbref player, dbref cause, int interactive,
 
     /* Reset recursion limits */
 
+    mudstate.trace_nest_lev = 0;
     mudstate.func_nest_lev  = 0;
     mudstate.ufunc_nest_lev = 0;
     mudstate.func_invk_ctr  = 0;
@@ -8490,7 +8502,10 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
 void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int nargs)
 {
 #ifdef ENABLE_DOORS
-  int bFull = 0;
+  int bFull = 0, i_now;
+  char *s_strtok, *s_strtokr;
+  dbref target;
+  DESC *d_door, *d_use;
 
   DPUSH; /* #58 */
 
@@ -8508,8 +8523,35 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
       listDoors(player, dname, bFull);
       notify(player,"Done.");
       break;
+    case DOOR_SW_PUSH:
+      if ( !dname || !*dname ) {
+         notify(player, "That is not a valid player.");
+      } else {
+         s_strtok = strtok_r(dname, "|", &s_strtokr);
+         if ( !s_strtok || !*s_strtok ) {
+            target = NOTHING;
+         } else {
+            target = lookup_player(player, s_strtok, 0);
+         }
+         if ( !Good_chk(target) || !isPlayer(target) ) {
+            notify(player, "That is not a valid player.");
+         } else if ( !controls(player, target) ) {
+            notify(player, "You do not control that target.");
+         } else if ( !Connected(target) ) {
+            notify(player, "That target is not currently connected.");
+         } else {
+            s_strtok = strtok_r(NULL, "|", &s_strtokr);
+            if ( !s_strtok ) {
+               notify(player, "Invalid door specified.");
+            } else {
+               notify(player, unsafe_tprintf("You push %s through the door.", Name(target)));
+               openDoor(target, cause, s_strtok, nargs, args, 1);
+            }
+         }
+      }
+      break;
     case DOOR_SW_OPEN:
-      openDoor(player, cause, dname, nargs, args);
+      openDoor(player, cause, dname, nargs, args, 0);
       break;
     case DOOR_SW_STATUS:
       modifyDoorStatus(player, dname, nargs > 0 ? args[0] : NULL);
@@ -8517,6 +8559,46 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
     case DOOR_SW_CLOSE:
       closeDoor(desc_in_use, dname);      
       break;
+    case DOOR_SW_KICK:
+      if ( !dname || !*dname ) {
+         notify(player, "That is not a valid player.");
+      } else {
+         s_strtok = strtok_r(dname, "|", &s_strtokr);
+         if ( !s_strtok || !*s_strtok ) {
+            target = NOTHING;
+         } else {
+            target = lookup_player(player, s_strtok, 0);
+         }
+         if ( !Good_chk(target) || !isPlayer(target) ) {
+            notify(player, "That is not a valid player.");
+         } else if ( !controls(player, target) ) {
+            notify(player, "You do not control that target.");
+         } else if ( !Connected(target) ) {
+            notify(player, "That target is not currently connected.");
+         } else {
+            d_use = NULL;
+            i_now = 0;
+            DESC_ITER_CONN(d_door) {
+               if (d_door->player == target) {
+                  if ( d_door->last_time > i_now ) {
+                     d_use = d_door;
+                     i_now = d_door->last_time;
+                  }
+               }
+            }
+            if ( !d_use ) {
+               notify(player, "That target is not currently connected.");
+            } else {
+               s_strtok = strtok_r(NULL, "|", &s_strtokr);
+               if ( !s_strtok ) {
+                  notify(player, "Invalid door specified.");
+               } else {
+                  notify(player, unsafe_tprintf("You kicked %s from the door.", Name(target)));
+                  closeDoor(d_use, s_strtok);      
+               }
+            }
+         }
+     }
   }
 #endif
   DPOP; /* #58 */
@@ -9598,9 +9680,11 @@ void do_hook(dbref player, dbref cause, int key, char *name)
    dbref aobj;
    char *s_ptr, *s_ptrbuff, *cbuff, *p, *q, *tpr_buff, *tprp_buff, *sub_buff, 
         *sub_ptr, *sub_ptrbuff, *sub_buff2, *ret_buff, ret_char;
-   char *sub_str[]={"n", "#", "!", "@", "l", "s", "o", "p", "a", "r", "t", "c", "x", "f", NULL};
+   char *sub_str[]={"n", "#", "!", "@", "l", "s", "o", "p", "a", "r", "t", "c", "x", "f", 
+                    "k", "w", "m", NULL};
    char *sub_atr[]={"SUB_N", "SUB_NUM", "SUB_BANG", "SUB_AT", "SUB_L", "SUB_S", "SUB_O", 
-                    "SUB_P", "SUB_A", "SUB_R", "SUB_T", "SUB_C", "SUB_X", "SUB_F", NULL};
+                    "SUB_P", "SUB_A", "SUB_R", "SUB_T", "SUB_C", "SUB_X", "SUB_F", "SUB_K", 
+                    "SUB_W", "SUB_M", NULL};
    CMDENT *cmdp;
    ATTR *ap, *ap2;
   
@@ -9984,6 +10068,35 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             }
          }
          break;
+/*
+      case CLUSTER_CLONE:
+         if ( i_isequal ) {
+            notify(player, "Invalid syntax for @cluster/clone.  Use: @cluster/clone <dbref#>");
+         } else if ( !Cluster(thing) ) {
+            notify(player, "That object isn't a cluster.  Use @cluster/new to make one.");
+         } else {
+            anum = mkattr("_CLUSTER");
+            if ( anum > 0 ) {
+               attr = atr_num(anum);
+               if ( !attr ) {
+                  notify(player, "Can not make cluster attribute!  Aborting!");
+               } else {
+                  s_text = atr_get(thing, attr->number, &aowner, &aflags);
+                  if ( !*s_text ) {
+                     notify(player, "The cluster listing got corrupted!  Aborting!");
+                  }
+                  free_lbuf(s_text);
+// Check if player has quota to clone
+// Check if player has permission to clone
+// Keep track of every dbref# that is being cloned.  int[LBUF/2] works well for this.
+// Clone the object, keep track of it, and when done, set _CLUSTER attrib and CLUSTER toggle
+               }
+            } else {
+               notify(player, "Can not make cluster attribute!  Aborting!");
+            }
+         }
+         break;
+*/
       case CLUSTER_ADD:  
          if ( !i_isequal ) {
             if ( i_sideeffect ) 
@@ -10435,7 +10548,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                      if ( !*s_instr ) {
                         notify(player, "No action set for cluster.  Use @cluster/action instead.");
                      } else {
-                        edit_string(s_instr, &s_inbufptr, &s_tmpstr, xargs[0], xargs[1], 0, 0, 0);
+                        edit_string(s_instr, &s_inbufptr, &s_tmpstr, xargs[0], xargs[1], 0, 0, 0, 0);
                         s_strtok = strtok_r(s_text, " ", &s_strtokptr);
                         while ( s_strtok ) {
                            thing3 = match_thing(player, s_strtok);

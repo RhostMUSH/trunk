@@ -76,6 +76,7 @@ else
    cp -f rhost_tmp/Server/bin/asksource* bin
    cp -f rhost_tmp/Server/game/txt/help.txt game/txt/help.txt
    cp -f rhost_tmp/Server/game/txt/wizhelp.txt game/txt/wizhelp.txt
+   cp -f rhost_tmp/Server/readme/RHOST.CHANGES readme/RHOST.CHANGES
    rm -rf ./rhost_tmp
 fi
 cd src

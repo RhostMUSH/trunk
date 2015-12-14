@@ -1387,7 +1387,6 @@ do_date_conv(char *instr, char *outstr)
    str5 = alloc_lbuf("conv5");
    str6 = alloc_lbuf("conv5");
    str7 = alloc_lbuf("conv5");
-// Wed Dec 31 19:00:00 1969
 
    time(&tt);
    tbuff = (char *) ctime(&tt);
@@ -1395,76 +1394,71 @@ do_date_conv(char *instr, char *outstr)
    sscanf(tbuff, "%s %s %d %d:%d:%d %d", s_week, s_mon, &i_day, &i_hour, &i_min, &i_sec, &i_year);
 
    if ( sscanf(instr, "%s %s %s %s:%s:%s %s", str1, str2, str3, str4, str5, str6, str7) == 7) {
-// %a %b %d %H:%M:%S %Y
+/* %a %b %d %H:%M:%S %Y */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str2, atoi(str3), atoi(str4), atoi(str5), atoi(str6), atoi(str7));
    } else if ( sscanf(instr, "%s %s %s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6 ) {
-// %a %b %d %H:%M:%S
+/* %a %b %d %H:%M:%S */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str2, atoi(str3), atoi(str4), atoi(str5), atoi(str6), i_year);
    } else if ( sscanf(instr, "%s %s %s:%s:%s %s", str1, str2, str3, str4, str5, str6) == 6) {
-// %b %d %H:%M:%S %Y
-// %B %d %H:%M:%S %Y
+/* %b %d %H:%M:%S %Y */
+/* %B %d %H:%M:%S %Y */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), atoi(str3), atoi(str4), atoi(str5), atoi(str6));
    } else if ( sscanf(instr, "%s %s %s:%s:%s", str1, str2, str3, str4, str5) == 5) {
-// %b %d %H:%M:%S
-// %B %d %H:%M:%S
+/* %b %d %H:%M:%S */
+/* %B %d %H:%M:%S */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), atoi(str3), atoi(str4), atoi(str5), i_year);
    } else if ( sscanf(instr, "%s-%s-%s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6 ) {
-// %m-%d-%Y %H:%M:%S
+/* %m-%d-%Y %H:%M:%S */
       if ( (atoi(str1) <= 12) && (atoi(str1) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str1)-1], atoi(str2), atoi(str4), atoi(str5), atoi(str6), atoi(str3));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s/%s/%s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %m/%d/%Y %H:%M:%S
+/* %m/%d/%Y %H:%M:%S */
       if ( (atoi(str1) <= 12) && (atoi(str1) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str1)-1], atoi(str2), atoi(str4), atoi(str5), atoi(str6), atoi(str3));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s.%s.%s %s:%s:%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %m.%d.%Y %H:%M:%S
+/* %m.%d.%Y %H:%M:%S */
       if ( (atoi(str1) <= 12) && (atoi(str1) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str1)-1], atoi(str2), atoi(str4), atoi(str5), atoi(str6), atoi(str3));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s:%s:%s %s-%s-%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %H:%M:%S %m-%d-%Y
+/* %H:%M:%S %m-%d-%Y */
       if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s:%s:%s %s/%s/%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %H:%M:%S %m/%d/%Y
-      if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
-         sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
-      } else {
-         strcpy(outstr, instr);
-      }
-   } else if ( sscanf(instr, "%s:%s:%s %s/%s/%s", str1, str2, str3, str4, str5, str6) == 6) {
+/* %H:%M:%S %m/%d/%Y */
       if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s:%s:%s %s.%s.%s", str1, str2, str3, str4, str5, str6) == 6) {
-// %H:%M:%S %m.%d.%Y
+/* %H:%M:%S %m.%d.%Y */
       if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str4)-1], atoi(str5), atoi(str1), atoi(str2), atoi(str3), atoi(str6));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf(instr, "%s %s %s", str1, str2, str3) == 3) {
-// %b %d %Y
-// %B %d %Y
+/* %b %d %Y */
+/* %B %d %Y */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, atoi(str3));
    } else if ( sscanf(instr, "%s %s", str1, str2) == 2) {
-// %b %d
-// %B %d
+/* %b %d */
+/* %B %d */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, i_year);
    } else {
+/* FIFO it */
       strcpy(outstr, instr);
    }
    free_lbuf(str1);
@@ -4825,6 +4819,7 @@ FUNCTION(fun_scramble)
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     initialize_ansisplitter(outsplit2, LBUF_SIZE);
     outbuff = alloc_lbuf("fun_scramble");
+    memset(outbuff, '\0', LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
     num = strlen(outbuff);
@@ -14927,17 +14922,43 @@ FUNCTION(fun_mid)
 FUNCTION(fun_first)
 {
     char *s, *first, sep;
+    ANSISPLIT outsplit[LBUF_SIZE], *sp;
+    char *outbuff, *retbuff;
 
     /* If we are passed an empty arglist return a null string */
 
     if (nfargs == 0) {
         return;
     }
-    varargs_preamble("FIRST", 2);
-    s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
-    first = split_token(&s, sep);
-    if (first) {
-        safe_str(first, buff, bufcx);
+    if (!fn_range_check("FIRST", nfargs, 1, 3, buff, bufcx))
+       return;
+
+    sep = ' ';
+    if ( (nfargs > 1) && *fargs[1] )
+       sep = *fargs[1];
+
+    if ( (nfargs <= 2) || (atoi(fargs[2]) == 0) ) {
+       s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
+       first = split_token(&s, sep);
+       if (first) {
+           safe_str(first, buff, bufcx);
+       }
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       outbuff = alloc_lbuf("fun_first");
+       memset(outbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+       first = s = trim_space_sep(outbuff, sep);  /* leading spaces ... */
+       sp = outsplit + (first - outbuff);
+       while ( *s && *s != sep ) s++;
+       *s = '\0';
+       if ( *first ) {
+          retbuff = rebuild_ansi(first, sp);
+          safe_str(retbuff, buff, bufcx);
+          free_lbuf(retbuff);
+       }
+       free_lbuf(outbuff);
     }
 }
 
@@ -19267,6 +19288,64 @@ FUNCTION(fun_numpos)
     return;
 }
 
+FUNCTION(fun_elementpos)
+{
+   char *s, *s_strtok, *s_strtokr, sep, *outbuff, *outbuff2;
+   int i, i_len, i_first;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *osp;
+
+
+   if (!fn_range_check("ELEMENTPOS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] || !*fargs[1] ) {
+      return;
+   }
+
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   initialize_ansisplitter(outsplit2, LBUF_SIZE);
+   outbuff = alloc_lbuf("fun_elementpos");
+   split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+   if ( !*outbuff ) {
+      free_lbuf(outbuff);
+      return;
+   }
+   i_len = strlen(outbuff);
+   s = outbuff2 = alloc_lbuf("fun_elementpos");
+   memset(outbuff2, '\0', LBUF_SIZE);
+   osp = outsplit2;
+
+   sep = ' ';
+   if ( nfargs > 2 ) 
+      sep = *fargs[2];
+
+   s_strtok = strtok_r(fargs[1], " \t", &s_strtokr);
+   i_first = 0;
+   while ( s_strtok ) {
+      i = atoi(s_strtok) - 1;
+      if ( (i >= 0) && (i < i_len) ) {
+         if ( i_first && sep ) {
+            *s = sep;
+            s++;
+            osp++;
+         }
+         *s = outbuff[i];
+         clone_ansisplitter(osp, outsplit+i);
+         osp++;
+         s++;
+         i_first = 1;
+      }
+      s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+   }
+  
+   free_lbuf(outbuff); 
+   outbuff = rebuild_ansi(outbuff2, outsplit2);
+   free_lbuf(outbuff2);
+   safe_str(outbuff, buff, bufcx);
+   free_lbuf(outbuff);
+}
+
 FUNCTION(fun_totpos)
 {
     int i = 1, i_key;
@@ -21768,6 +21847,9 @@ FUNCTION(fun_array)
    if ( (i_width == 0) && !sep )
       sep = ' ';
 
+   if ( sep == '\n' )
+      sep = '\r';
+
    osep = alloc_lbuf("array_outsep");
    sprintf(osep, "%s", "\r\n");
    if ( nfargs > 5 ) {
@@ -21809,6 +21891,10 @@ FUNCTION(fun_array)
          p_out++;
          i++;
          if ( *s_inptr && ( (sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0)) ) ) {
+            if ( sep == '\r' ) {
+               s_inptr++;
+               p_in++;
+            }  
             i = 0;
             if ( !sep ) {
                s_ptr2 = s_inptr;
@@ -24516,7 +24602,7 @@ FUNCTION(fun_edit)
     /* The '1' specifies not to alloc second pointer so not needed
      * If you use '0' you need to alloc and define another char pointer
      */
-    edit_string(fargs[0], &tstr, (char **)NULL, fargs[1], fargs[2], 1, i_editkey, i_compat);
+    edit_string(fargs[0], &tstr, (char **)NULL, fargs[1], fargs[2], 1, i_editkey, i_compat, 0);
     safe_str(tstr, buff, bufcx);
     free_lbuf(tstr);
 }
@@ -28932,29 +29018,72 @@ FUNCTION(fun_last)
 {
     char sep, *pStart, *pEnd, *p;
     int nLen;
+    ANSISPLIT outsplit[LBUF_SIZE], *sp_Start, *sp_End, *sp;
+    char *outbuff, *retbuff;
+
 
     if (nfargs <= 0) {
         return;
     }
-    varargs_preamble("LAST", 2);
 
-    nLen = strlen(fargs[0]);
-    pStart = trim_space_sep(fargs[0], sep);
-    pEnd = pStart + nLen - 1;
+    if (!fn_range_check("LAST", nfargs, 1, 3, buff, bufcx))
+       return;
 
-    if (sep == ' ') {
-        while (pStart <= pEnd && *pEnd == ' ') {
-            pEnd--;
-        }
-        pEnd[1] = '\0';
+    sep = ' ';
+    if ( (nfargs > 1) && *fargs[1] )
+       sep = *fargs[1];
+
+    if ( (nfargs <= 2) || (atoi(fargs[2]) == 0) ) {
+       nLen = strlen(fargs[0]);
+       pStart = trim_space_sep(fargs[0], sep);
+       pEnd = pStart + nLen - 1;
+   
+       if (sep == ' ') {
+           while (pStart <= pEnd && *pEnd == ' ') {
+               pEnd--;
+           }
+           pEnd[1] = '\0';
+       }
+   
+       p = pEnd;
+       while (pStart <= p && *p != sep) {
+           p--;
+       }
+   
+       safe_str(p+1, buff, bufcx);
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       outbuff = alloc_lbuf("fun_last");
+       memset(outbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+  
+       nLen = strlen(outbuff);
+       pStart = trim_space_sep(outbuff, sep);
+       sp_Start = outsplit + (pStart - outbuff);
+       pEnd = pStart + nLen - 1;
+       sp_End = sp_Start + nLen - 1;
+
+       if ( sep == ' ' ) {
+          while ( pStart <= pEnd && *pEnd == ' ' ) {
+             pEnd--;
+             sp_End--;
+          }
+          pEnd[1] = '\0';
+       }
+      
+       p = pEnd;
+       sp = sp_End;
+       
+       while (pStart <= p && *p != sep) {
+          p--;
+          sp--;
+       }
+
+       retbuff = rebuild_ansi(p+1, sp+1);
+       safe_str(retbuff, buff, bufcx);
+       free_lbuf(outbuff);
+       free_lbuf(retbuff);
     }
-
-    p = pEnd;
-    while (pStart <= p && *p != sep) {
-        p--;
-    }
-
-    safe_str(p+1, buff, bufcx);
 }
 
 /* ---------------------------------------------------------------------------
@@ -31144,6 +31273,7 @@ FUN flist[] =
     {"EDEFAULT", fun_edefault, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"EDIT", fun_edit, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"EDITANSI", fun_editansi, 3, FN_VARARGS, CA_PUBLIC, 0},
+    {"ELEMENTPOS", fun_elementpos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTS", fun_elements, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELEMENTSMUX", fun_elementsmux, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ELIST", fun_elist, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},

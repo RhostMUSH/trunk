@@ -249,8 +249,7 @@ DEFS = $(CUSTDEFS) -Wall
 #
 # IMPORTANT: Make sure you've read CYGWIN.readme before trying this!
 #
-#CYGWIN = -I/usr/local/include -DCYGWIN -DBROKEN_ERRNO_SYS -DBROKEN_NDBM\
-#         -DSYSWAIT -DNODEBUGMONITOR -g 
+#CYGWIN = -I/usr/local/include -DCYGWIN -DBROKEN_ERRNO_SYS -DBROKEN_NDBM -DSYSWAIT -DNODEBUGMONITOR -g 
  
 # Libraries.  
 # The following extra libraries are required based on what system you have.

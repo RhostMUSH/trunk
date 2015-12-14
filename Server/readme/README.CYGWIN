@@ -1,0 +1,19 @@
+Rhost does work under windows using the cygwin package.
+
+1.  When you do install cygwin, the following packages must be added:
+make
+git
+gcc
+crypt
+openssl (optional)
+gdbm
+bash
+
+2.  The src/Makefile has to manually have the CYGWIN line uncommented.
+
+3.  When you issue Startmush, you must pass it the -cyg option.
+
+
+Hopefully this gets you working with Rhost.
+
+Good luck.

@@ -408,6 +408,9 @@ struct confdata {
 	int	enhanced_convtime;	/* Enhanced convtime format */
 	int	mysql_delay;	/* MySql Retry Delay Value (in seconds) */
 	char	tree_character[2];	/* The Tree Character */
+	int	proxy_checker;	/* Proxy Checker -- Not very reliable */
+	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
+	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
@@ -670,6 +673,7 @@ struct statedata {
 	int	db_top;		/* Number of items in the db */
 	int	db_size;	/* Allocated size of db structure */
 	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
+        int	trace_nest_lev;	/* The trace nest level */
 	int	func_nest_lev;	/* Current nesting of functions */
 	int	func_invk_ctr;	/* Functions invoked so far by this command */
 	int	ntfy_nest_lev;	/* Current nesting of notifys */
@@ -678,9 +682,7 @@ struct statedata {
 	char	*global_regs[MAX_GLOBAL_REGS];	/* Global registers */
 	char	*global_regsname[MAX_GLOBAL_REGS];	/* Global register names */
         char    *global_regs_backup[MAX_GLOBAL_REGS];
-#ifdef EXPANDED_QREGS
         char    nameofqreg[37]; /* Buffer to hold qregs */
-#endif
         int	global_regs_wipe;	/* Toggle to wipe localized regs */
 	int	mail_state;
 	int	whisper_state;

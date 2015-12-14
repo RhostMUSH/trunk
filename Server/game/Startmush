@@ -2,6 +2,11 @@
 #
 #	Startmush - Kick off the netmush process.
 #
+CYGWIN=0
+if [ "$1" = "-cyg" -o "$2" = "-cyg" ]
+then
+   CYGWIN=1
+fi
 PATH=/usr/local/bin:/usr/ucb:/bin:/usr/bin:.; export PATH
 # You need this library path for the new gdbm
 # LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/gdbm-1.8.3:../src/gdbm-1.8.3/.libs
@@ -133,7 +138,12 @@ then
 fi
 if [ -f "$INPUT_DB" ]
 then
-   (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+   if [ ${CYGWIN} -eq 1 ]
+   then
+      (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+   else
+      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+   fi
 else
    echo "There was no valid database information found."
    echo "Is this the first time that you are trying to start the mush? (Y/N) : "|tr -d '\012'
@@ -152,14 +162,29 @@ else
          fi
          if [ -f "$INPUT_DB" ]
          then
-            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+            if [ ${CYGWIN} -eq 1 ]
+            then
+               (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+            else
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+            fi
          else
             echo "The database wasn't loaded properly.  Going to initialize a new db.  RETURN to continue, ^C to abort."
             read ANS
-            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+            if [ ${CYGWIN} -eq 1 ]
+            then
+               (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+            else
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+            fi
          fi
       else
-         (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+         if [ ${CYGWIN} -eq 1 ]
+         then
+            (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+         else
+            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+         fi
       fi
       echo "Have fun with your new mush.  #1's initial password will be 'Nyctasia'"
       echo "Don't forget to @shutdown as soon as you connect to save the new database."

@@ -1733,6 +1733,8 @@ queue_string(DESC * d, const char *s)
 
     DPUSH; /* #119 */
 
+    if ( !d )
+       VOIDRETURN;
     if ((!d->player || !ShowAnsi(d->player)) && index(s, ESC_CHAR))
 	new = strip_ansi(s);
     else if (!ShowAnsiColor(d->player) && index(s, ESC_CHAR))
@@ -3883,7 +3885,7 @@ check_connect(DESC * d, const char *msg)
             nplayers = 0;
             DESC_ITER_CONN(d2)
                 nplayers++;
-            if ( nplayers < (mudstate.max_logins_allowed) )
+            if ( nplayers > mudstate.max_logins_allowed )
 	       nplayers = mudconf.max_players - 1;
 	} else {
 	    nplayers = 0;
@@ -3891,7 +3893,7 @@ check_connect(DESC * d, const char *msg)
 		nplayers++;
 	}
 
-        ok_to_login = ((nplayers < mudconf.max_players) && (nplayers < mudstate.max_logins_allowed));
+        ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
 	if (!strncmp(command, "cd", 2))
 	  dc = 1;
 	else if ( !strncmp(command, "ch", 2))
@@ -4124,14 +4126,14 @@ check_connect(DESC * d, const char *msg)
             nplayers = 0;
 	    DESC_ITER_CONN(d2)
 		nplayers++;
-            if ( nplayers < (mudstate.max_logins_allowed) )
-	       nplayers = mudconf.max_players;
+            if ( nplayers > (mudstate.max_logins_allowed) )
+	       nplayers = mudconf.max_players - 1;
 	} else {
 	    nplayers = 0;
 	    DESC_ITER_CONN(d2)
 		nplayers++;
 	}
-        ok_to_login = ((nplayers < mudconf.max_players) && (nplayers < mudstate.max_logins_allowed));
+        ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
 	if ((nplayers > mudconf.max_players) && (mudconf.max_players >= 0)) {
 
 	    /* Too many players on, reject the attempt */
