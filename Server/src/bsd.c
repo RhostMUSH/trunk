@@ -1037,6 +1037,7 @@ new_connection(int sock)
        i_chktor = check_tor(addr.sin_addr, mudconf.port);
     }
 
+#ifndef __MACH__
 #ifndef CYGWIN
     if ( mudconf.proxy_checker > 0 ) {
        /* Check MTU */
@@ -1071,6 +1072,7 @@ new_connection(int sock)
           }
        } 
     }
+#endif
 #endif
 
     /* DO BLACKLIST CHECK HERE */
