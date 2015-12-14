@@ -10044,6 +10044,7 @@
   
   See Also: GENDER, V(), SHIFT(), ACCENT()
   
+& TRACE_GREP
 & %_
   Topic: SUBSTITUTIONS
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
@@ -10074,7 +10075,8 @@
   
   You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
   if you wish to have a specific piece of code in trace output which matches
-  the trace output return in red the match.
+  the trace output return in red the match.  If the TRACE_GREP attribute
+  is attribute-set REGEXP, it will take the string as a regexp match.
    
   Examples:
     > &TRACE me=123
@@ -26638,7 +26640,7 @@
   
   The current Lead Developer (which we change up) is marked with a '*'.
    
-  Current Revision: 3.9.5p2
+  Current Revision: 3.9.5p3
 
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
@@ -26654,7 +26656,7 @@
     3.9.2: 3.9.2p0, 3.9.2p1
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
-    3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2
+    3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -28715,3 +28717,18 @@
   * @chownall and @chown did not properly strip some of the staff
     flags as it should have when /preserve was not specified [ASH]
   * weird issue fixed where it thought max players reached when didn't [ASH]
+
+& 3.9.5p3
+  Release Date: 12/13/15
+  Status: Alpha
+  
+  New Features
+  ------------
+  
+  Changes
+  ------------
+  * TRACE_GREP attribute if set REGEXP will do regular expression matching on
+    the trace output for all trace output.
+    
+  Bug Fixes
+  ------------

@@ -25,6 +25,7 @@ char *index(const char *, int);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern char * parse_ansi_name(dbref, char *);
 extern void fun_ansi(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -446,6 +447,10 @@ tcache_finish(void)
     char *tpr_buff = NULL, *tprp_buff = NULL, *s_aptext = NULL, *s_aptextptr = NULL, *s_strtokr = NULL, *tbuff = NULL, 
          *tstr, *tstr2, *s_grep;
     int i_apflags, i_targetlist;
+#ifdef PCRE_EXEC
+    char *trace_buffptr, *trace_array[4], *trace_tmp;
+    int i_trace;
+#endif
     dbref i_apowner, passtarget, targetlist[LBUF_SIZE], i;
     ATTR *ap_log;
 
@@ -465,8 +470,32 @@ tcache_finish(void)
         if ( ap_log ) {
            s_grep = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
            if ( s_grep && *s_grep ) {
+#ifdef PCRE_EXEC
+              if ( (i_apflags & AF_REGEXP) || (ap_log->flags & AF_REGEXP) ) {
+                 trace_buffptr = tstr2 = alloc_lbuf("grep_regexp");
+                 trace_tmp = alloc_lbuf("grep_regexp_tmp");
+#ifdef ZENTY_ANSI
+                 sprintf(trace_tmp, "%s$0%s", SAFE_ANSI_RED, SAFE_ANSI_NORMAL);
+#else
+                 sprintf(trace_tmp, "%s$0%s", ANSI_RED, ANSI_NORMAL);
+#endif
+                 trace_array[0] = xp->orig;
+                 trace_array[1] = s_grep;
+                 trace_array[2] = trace_tmp;
+                 trace_array[3] = NULL;
+                 i_trace = mudstate.notrace;
+                 mudstate.notrace = 1;
+                 do_regedit(tstr2, &trace_buffptr, xp->player, xp->player, xp->player, trace_array, 3, (char **)NULL, 0, 8);
+                 mudstate.notrace = i_trace;
+                 free_lbuf(trace_tmp);
+              } else {
+                 edit_string(xp->orig, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
+                 free_lbuf(tstr);
+              }
+#else
               edit_string(xp->orig, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
               free_lbuf(tstr);
+#endif
            } else {
               tstr2 = alloc_lbuf("fun_with_grep");
               strcpy(tstr2, xp->orig);
