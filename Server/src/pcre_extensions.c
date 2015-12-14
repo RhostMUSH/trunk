@@ -197,12 +197,18 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   const char *errptr;
   char *start, *abufptr, *abuf, *prebuf, *prep, *postbuf, *postp, *str, 
        *obufptr, *obuf, *obuf2, *mybuff, *mybuffptr, tmp, *sregs[100];
-  int subpatterns, offsets[99], erroffset, flags, all,
+  int subpatterns, offsets[99], erroffset, flags, all, i_key,
       match_offset, len, i, p, loop, j;
 
   flags = all = match_offset = 0;
 
-  flags = 0;
+  i_key = flags = 0;
+
+  if ( key == 8 ) {
+     key = 3;
+     i_key = 8;
+  }
+
   if ( key & 1 )
     flags = PCRE_CASELESS;
 
@@ -211,7 +217,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
 
   prep = prebuf = alloc_lbuf("do_regedit_prebuf");
   postp = postbuf = alloc_lbuf("do_regedit_postbuf");
-  if ( key == 8 ) {
+  if ( i_key == 8 ) {
      abuf = alloc_lbuf("do_regedit");
      strcpy(abuf, fargs[0]);
   } else {
@@ -226,7 +232,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     prep = prebuf;
     /* old postbuf is new prebuf */
     safe_str(postbuf, prebuf, &prep);
-    if ( key == 8 ) {
+    if ( i_key == 8 ) {
        abuf = alloc_lbuf("do_regedit");
        strcpy(abuf, fargs[i]);
     } else {
@@ -235,7 +241,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     }
 
     if ((re = pcre_compile(abuf, flags, &errptr, &erroffset, tables)) == NULL) {
-      if ( key == 8 ) {
+      if ( i_key == 8 ) {
          safe_str(postbuf, buff, bufcx);
       } else {
          /* Matching error. */
@@ -252,7 +258,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       study = pcre_study(re, 0, &errptr);
       if (errptr != NULL) {
         free(re);
-        if ( key == 8 ) {
+        if ( i_key == 8 ) {
            safe_str(postbuf, buff, bufcx);
         } else {
            safe_str("#-1 REGEXP ERROR: ", buff, bufcx);
