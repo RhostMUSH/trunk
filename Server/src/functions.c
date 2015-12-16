@@ -25348,6 +25348,7 @@ FUNCTION(fun_caseall)
 FUNCTION(fun_ifelse)
 {
     char *mbuff, *tbuff, *retbuff;
+    int i_istrue;
 
     /* If we don't have at least 2 args, return nothing */
 
@@ -25359,7 +25360,14 @@ FUNCTION(fun_ifelse)
     mbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[0], cargs, ncargs, (char **)NULL, 0);
     retbuff = NULL;
-    if (atoi(mbuff)) {
+    
+    if (mudconf.ifelse_compat) {
+        i_istrue = tboolchk(mbuff);
+    } else {
+        i_istrue = atoi(mbuff);
+    }
+    
+    if (i_istrue) {
         if ( mudconf.ifelse_substitutions ) {
            retbuff = replace_tokens(fargs[1], NULL, NULL, mbuff);
            tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
