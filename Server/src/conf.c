@@ -397,6 +397,7 @@ NDECL(cf_init)
     mudconf.penn_playercmds = 0; /* $cmds on players like PENN */
     mudconf.format_compatibility = 0; /* format attributes mux/penn compatible */
     mudconf.brace_compatibility = 0; /* MUX/TM3 brace {} compatibility with parser */
+    mudconf.ifelse_compat = 0; /* ifelse() / @ifelse Mux string boolean compatibility */
     mudconf.penn_switches = 0;  /* switch() and switchall() behave like PENN if '1' */
     mudconf.lattr_default_oldstyle = 0;	/* lattr() error's has errors snuffed */
     mudconf.look_moreflags = 0;	/* Show global flags on attributes */

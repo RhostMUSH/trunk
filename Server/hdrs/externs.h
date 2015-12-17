@@ -402,6 +402,7 @@ extern int	FDECL(safe_copy_chr, (char, char *, char **, int));
 extern int	FDECL(matches_exit_from_list, (char *, char *));
 extern char *	FDECL(myitoa, (int));
 extern char *   FDECL(translate_string, (const char *, int));
+extern int FDECL(tboolchk,(char *));
 extern char *	FDECL(find_cluster, (dbref, dbref, int));
 extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
 

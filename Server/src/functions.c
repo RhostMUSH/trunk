@@ -25359,7 +25359,12 @@ FUNCTION(fun_ifelse)
     mbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[0], cargs, ncargs, (char **)NULL, 0);
     retbuff = NULL;
-    if (atoi(mbuff)) {
+    int i_evalResult=0;
+    if(mudconf.ifelse_compat)
+        i_evalResult=tboolchk(mbuff);
+    else
+        i_evalResult=atoi(mbuff);
+    if (i_evalResult) {
         if ( mudconf.ifelse_substitutions ) {
            retbuff = replace_tokens(fargs[1], NULL, NULL, mbuff);
            tbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
