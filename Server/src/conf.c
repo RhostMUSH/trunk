@@ -3973,6 +3973,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.idle_timeout, 0, 0, CA_WIZARD,
      (char *) "Value in seconds before someone idles out.\r\n"\
               "                             Default: 3600   Value: %d"},
+    {(char *) "ifelse_compat",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_compat, 0, 0, CA_PUBLIC,
+     (char *) "Does @if/if() eval to TRUE with normal strings?"},
     {(char *) "ifelse_substitutions",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_substitutions, 0, 0, CA_PUBLIC,
      (char *) "Does @switch/switch()/switchall() allow #$?"},
