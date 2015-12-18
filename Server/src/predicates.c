@@ -126,7 +126,8 @@ int is_float2 (char *str)
 {
   char *chk;
   
-  if(strtod( str, &chk ));
+  if(strtod( str, &chk ))
+  ; /* Then  do nothing */
 
   return (*chk ? 0 : 1);
 }
