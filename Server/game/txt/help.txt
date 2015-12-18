@@ -28731,6 +28731,8 @@
   ------------
   * TRACE_GREP attribute if set REGEXP will do regular expression matching on
     the trace output for all trace output. [ASH]
+  * modified system uptime to hard-query the utmp system file for
+    compatibility and performance [ASH]
     
   Bug Fixes
   ------------
