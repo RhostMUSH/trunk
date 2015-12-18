@@ -397,6 +397,7 @@ NDECL(cf_init)
     mudconf.penn_playercmds = 0; /* $cmds on players like PENN */
     mudconf.format_compatibility = 0; /* format attributes mux/penn compatible */
     mudconf.brace_compatibility = 0; /* MUX/TM3 brace {} compatibility with parser */
+    mudconf.ifelse_compat = 0; /* ifelse() / @ifelse Mux string boolean compatibility */
     mudconf.penn_switches = 0;  /* switch() and switchall() behave like PENN if '1' */
     mudconf.lattr_default_oldstyle = 0;	/* lattr() error's has errors snuffed */
     mudconf.look_moreflags = 0;	/* Show global flags on attributes */
@@ -3972,6 +3973,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.idle_timeout, 0, 0, CA_WIZARD,
      (char *) "Value in seconds before someone idles out.\r\n"\
               "                             Default: 3600   Value: %d"},
+    {(char *) "ifelse_compat",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_compat, 0, 0, CA_PUBLIC,
+     (char *) "Does @if/if() eval to TRUE with normal strings?"},
     {(char *) "ifelse_substitutions",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_substitutions, 0, 0, CA_PUBLIC,
      (char *) "Does @switch/switch()/switchall() allow #$?"},

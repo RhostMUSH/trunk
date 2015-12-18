@@ -5230,55 +5230,55 @@
   hostnames                icmd_obj                 idle_interval          
   idle_message             idle_stamp               idle_stamp_max
   idle_timeout             idle_wiz_dark            idle_wiz_cloak         
-  ifelse_substitution      imm_nomod                include                
-  includecnt               includenest              initial_size           
-  input_database           internal_compress_string inventory_name         
-  kill_guarantee_cost      kill_max_cost            kill_min_cost          
-  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
-  lfunction_max            list_access              list_max_chars         
-  listen_parents           link_cost                lnum_compat            
-  lock_recursion_limit     log                      log_command_list       
-  log_maximum              log_network_errors       log_options            
-  login_to_prog            logout_cmd_access        logout_cmd_alias       
-  look_moreflags           look_obey_terse          machine_command_cost   
-  mail_anonymous           mail_autodeltime         mail_default            
-  mail_def_object          mail_hidden              mail_tolist            
-  mail_verbosity           mailbox_size             maildelete             
-  mailinclude_file         mailprog                 mailsub                
-  mailmax_send             master_room              match_own_commands     
-  manlog_file              map_delim_space          max_cpu_cycles         
-  max_dest_limit           max_folders              max_lastsite_cnt       
-  max_name_protect         max_pcreate_lim          max_pcreate_time       
-  max_percentsubs          max_players              max_sitecons           
+  ifelse_compat            ifelse_substitution      imm_nomod
+  include                  includecnt               includenest
+  initial_size             input_database           internal_compress_string
+  inventory_name           kill_guarantee_cost      kill_max_cost
+  kill_min_cost            lastsite_paranoia        lattr_default_oldstyle
+  lcon_checks_dark         lfunction_max            list_access
+  list_max_chars           listen_parents           link_cost
+  lnum_compat              lock_recursion_limit     log
+  log_command_list         log_maximum              log_network_errors
+  log_options              login_to_prog            logout_cmd_access
+  logout_cmd_alias         look_moreflags           look_obey_terse
+  machine_command_cost     mail_anonymous           mail_autodeltime
+  mail_default             mail_def_object          mail_hidden
+  mail_tolist              mail_verbosity           mailbox_size
+  maildelete               mailinclude_file         mailprog
+  mailsub                  mailmax_send             master_room
+  match_own_commands       manlog_file              map_delim_space
+  max_cpu_cycles           max_dest_limit           max_folders
+  max_lastsite_cnt         max_name_protect         max_pcreate_lim
+  max_pcreate_time         max_percentsubs          max_players
   
 { 'wizhelp config parameters4' for more }
 
 & CONFIG PARAMETERS4
   Topic: CONFIG PARAMETERS (continued)
   
-  max_vattr_limit          maximum_size             min_con_attempt        
-  money_lim_off            money_lim_gm             money_lim_arch         
-  money_lim_counc          money_name_plural        money_name_singular    
-  motd_file                motd_message             mud_name               
-  muddb_name               must_unlquota            mux_child_compat
-  mus_lcon_compat          name_with_desc           nand_compat            
-  newpass_god              news_file                news_index             
-  newuser_file             no_startup               noauth_site            
-  noautoreg_host           noautoreg_site           nobroadcast_host       
-  noguest_host             noguest_site             nodns_site             
-  nonindxtxt_maxlines      noregist_onwho           noshell_prog           
-  nospam_connect           notify_recursion_limit   notonerr_return        
-  num_guests               oattr_enable_altname     oattr_uses_altname     
-  offline_reg              old_elist                online_reg             
-  open_cost                output_database          output_limit           
-  page_cost                paranoid_allocate        paranoid_exit_linking  
-  parentable_control_lock  partial_conn             partial_deconn         
-  paycheck                 pcreate_paranoia         pemit_any_object       
-  pemit_far_players        penn_playercmds          penn_switches          
-  permit_site              player_attr_default      player_dark            
-  player_flags             player_listen            player_match_commands  
-  player_match_own_command player_name_spaces       player_parent          
-  player_queue_limit       player_quota           
+  max_sitecons             max_vattr_limit          maximum_size
+  min_con_attempt          money_lim_off            money_lim_gm
+  money_lim_arch           money_lim_counc          money_name_plural
+  money_name_singular      motd_file                motd_message
+  mud_name                 muddb_name               must_unlquota
+  mux_child_compat         mus_lcon_compat          name_with_desc
+  nand_compat              newpass_god              news_file
+  news_index               newuser_file             no_startup
+  noauth_site              noautoreg_host           noautoreg_site
+  nobroadcast_host         noguest_host             noguest_site
+  nodns_site               nonindxtxt_maxlines      noregist_onwho
+  noshell_prog             nospam_connect           notify_recursion_limit
+  notonerr_return          num_guests               oattr_enable_altname
+  oattr_uses_altname       offline_reg              old_elist
+  online_reg               open_cost                output_database
+  output_limit             page_cost                paranoid_allocate
+  paranoid_exit_linking    parentable_control_lock  partial_conn
+  partial_deconn           paycheck                 pcreate_paranoia
+  pemit_any_object         pemit_far_players        penn_playercmds
+  penn_switches            permit_site              player_attr_default
+  player_dark              player_flags             player_listen
+  player_match_commands    player_match_own_command player_name_spaces
+  player_parent            player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -5768,6 +5768,10 @@
   comes to lit() and handling of curly braces. With this parameter enabled,
   the curly braces get shown when inside a lit(), without need for escaping
   them.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
   
 & break_compatibility
   Config parameter: break_compatibility <yes/no>.  Default: NO
@@ -5776,6 +5780,10 @@
   double-evaluation standard that @break and @assert had for the
   first argument.  This backward compatibility would only be relevant
   for all versions of Rhost 3.9 from its conception to the SVN 165 release.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & cache_depth
   Config parameter: cache_depth <depth>.  Default: 10.
@@ -6398,6 +6406,10 @@
   depend on the 'broken' evaluation for their code, otherwise it's safe to keep
   it no.
 
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
+
 & noauth_site
   Config parameter: noauth_site <addr> <mask>.
   
@@ -6489,6 +6501,10 @@
   attributes from @format<term> to @<term>format. With this parameter enabled,
   the old format gets used in case compatibility with those old versions is
   needed.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & format_contents
   Config parameter: format_contents <yes/no>.  Default: no
@@ -6951,6 +6967,10 @@
   function so that it _will_ check the target object as well as the parent-
   chain for matching attributes.  By default, it will not check the target.
 
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
+
 & heavy_cpu_max
   Config parameter: heavy_cpu_max <value>.  Default: 50
   
@@ -7101,6 +7121,19 @@
   unDARKed.
   See Also: idle_wiz_cloak
 
+& ifelse_compat
+  Config parameter: ifelse_compat <yes>.  Default: no
+
+  This config parameter, if enabled, makes the if() and ifelse() functions
+  as well as the @skip, @if, and @ifelse commands behave as TRUE if their
+  first argument is a normal string. This increases compatbility with other
+  codebases, especially MUX, and removes the need to use t() in many of those
+  situations.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
+ 
 & ifelse_substitutions
   Config parameter: ifelse_substitutions <yes/no>.  Default: no
   
@@ -7393,6 +7426,10 @@
   Specifies if lnum()/lnum2() will work like MUX/PENN and return a null if 
   a '0' value is given to them.  This had to be a config parameter so that
   prior code did not break.
+ 
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & log_maximum
   Config parameter: log_maximum <value>  Default: 1
@@ -7718,12 +7755,20 @@
   children() and return a null string if no children are found instead
   of #-1 (which follows parent()).
 
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
+
 & mux_lcon_compat
   Config parameter: mux_lcon_compat <bool>  Default: no (0)
   
   Specifies if lcon() returns null (an empty string) if there is no
   contents.  The default behavior is that it returns #-1 if there is
   no contents.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & newpass_god
   Config parameter: newpass_god <1/0>.  Default: 0 
@@ -8266,6 +8311,10 @@
   then Semaphore is allowed to be decremented by one every time @notify
   is called, weither you have anything to queue or not.  Otherwise, it
   will not decrement this attribute.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & queue_idle_chunk
   Config parameter: queue_idle_chunk <num>.  Default: 3

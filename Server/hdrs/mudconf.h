@@ -306,6 +306,7 @@ struct confdata {
         int	penn_playercmds; /* Do $commands on players like PENN */
 	int	format_compatibility;	/* Mush/mux compatibility */
 	int	brace_compatibility;	/* Mux compatibility */
+  int ifelse_compat; /* ifelse() / @ifelse Mux string boolean compatibility */
 	int	max_cpu_cycles;  /* Maximum allowed CPU slams allowed in a row */
 	int	cpu_secure_lvl;	/* Action to take when max_cpu_cycles reached */
 	int	expand_goto;	/* Toggle on/off expanding exit names to use 'goto' */

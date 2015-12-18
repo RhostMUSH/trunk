@@ -28724,11 +28724,13 @@
   
   New Features
   ------------
+  * ifelse_compat option that makes if()/ifelse()/@skip/@if etc. behave
+    as TRUE in case the first argument is a normal string. [AMB]
   
   Changes
   ------------
   * TRACE_GREP attribute if set REGEXP will do regular expression matching on
-    the trace output for all trace output.
+    the trace output for all trace output. [ASH]
     
   Bug Fixes
   ------------

@@ -9171,14 +9171,24 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
    time_t i_now;
    int old_trainmode, i_breakst, i_joiner;
 
-   if ( !s_boolian || !*s_boolian || !nargs || !args[0] || !*args[0] ) {
+   if ( !nargs || !args[0] || !*args[0] )
       return;
-   }
    i_breakst = mudstate.breakst;
-   retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, (char **)NULL, 0, (char **)NULL, 0);
+   char c_dummy[]="0";
+   if ( !s_boolian || !*s_boolian ) {
+      retbuff = c_dummy;
+   }
+   else {
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, (char **)NULL, 0, (char **)NULL, 0);
+   }
    old_trainmode=mudstate.trainmode;
-   if ( *retbuff && (((atoi(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
-                     ((atoi(retbuff) != 0) &&  (key & SKIP_IFELSE))) ) {
+   int i_evalResult=0;
+   if(mudconf.ifelse_compat)
+      i_evalResult=tboolchk(retbuff);
+   else
+      i_evalResult=atoi(retbuff);
+   if ( *retbuff && (((i_evalResult == 0) && !(key & SKIP_IFELSE)) ||
+                     ((i_evalResult != 0) &&  (key & SKIP_IFELSE))) ) {
     /* I have no idea why this is here, but I left it in incase I need 
       if ( desc_in_use == NULL ) {
          mudstate.trainmode = 1;
@@ -9220,7 +9230,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          }
       }
       mudstate.trainmode = old_trainmode;
-   } else if ( *retbuff && (atoi(retbuff) == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
+   } else if ( *retbuff && (i_evalResult == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
       mys = args[1];
       i_now = mudstate.now;
       while (mys) {
@@ -9235,7 +9245,12 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          }
       }
    }
-   free_lbuf(retbuff);
+   if ( !s_boolian || !*s_boolian ) {
+      retbuff = NULL;
+   }
+   else {
+      free_lbuf(retbuff);
+   }
    if ( desc_in_use != NULL ) {
       mudstate.breakst = i_breakst;
    }
