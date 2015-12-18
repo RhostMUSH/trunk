@@ -9,6 +9,7 @@
 /* Solaris has borked header file declarations */
 char *index(const char *, int);
 #endif
+#include <utmp.h>
 
 #include "copyright.h"
 #include "autoconf.h"
@@ -3378,8 +3379,12 @@ do_uptime(dbref player, dbref cause, int key)
   time_t now;
   char *buff;
   int i_syear, i_ryear;
-  char *s_uptime, *s_chk;
+  char *s_uptime;
+  struct utmp *ut;
+/*
   FILE *fp;
+  char *s_chk;
+*/
 
   DPUSH; /* #141 */
   
@@ -3389,6 +3394,7 @@ do_uptime(dbref player, dbref cause, int key)
   s_uptime = alloc_mbuf("uptime_sys");
 
   /* Open the command for reading. */
+/*
   fp = popen("/usr/bin/uptime", "r");
   if (fp != NULL) {
      memset(s_uptime, '\0', MBUF_SIZE);
@@ -3405,6 +3411,20 @@ do_uptime(dbref player, dbref cause, int key)
      }
      pclose(fp);
   }
+*/
+
+  setutent();
+  ut = getutent();
+  while ( ut && (ut->ut_type != BOOT_TIME) )
+     ut = getutent();
+
+  memset(s_uptime, '\0', MBUF_SIZE);
+  if ( ut ) {
+     strcpy(s_uptime, time_format_1(mudstate.now - ut->ut_tv.tv_sec));
+  } else {
+     notify(player, "Error on system time.");
+  }
+  endutent();
 
   strcpy(buff,time_format_1(now - mudstate.reboot_time));
   i_syear = ((mudstate.now - mudstate.start_time) / 31536000);
