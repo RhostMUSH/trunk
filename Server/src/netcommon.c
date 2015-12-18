@@ -3421,8 +3421,6 @@ do_uptime(dbref player, dbref cause, int key)
   memset(s_uptime, '\0', MBUF_SIZE);
   if ( ut ) {
      strcpy(s_uptime, time_format_1(mudstate.now - ut->ut_tv.tv_sec));
-  } else {
-     notify(player, "Error on system time.");
   }
   endutxent();
 
