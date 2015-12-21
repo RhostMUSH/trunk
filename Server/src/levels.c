@@ -71,9 +71,10 @@ RLEVEL find_rlevel(char *name)
 {
     int i;
 
-    for(i=0; i < mudconf.no_levels; ++i)
+    for(i=0; i < mudconf.no_levels; ++i) {
         if(!strcasecmp(name, mudconf.reality_level[i].name))
              return mudconf.reality_level[i].value;
+    }
     return 0;
 }
 
