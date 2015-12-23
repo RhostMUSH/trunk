@@ -7080,16 +7080,31 @@
   quickly identify the commands typed by the player if they're the same
   and keep a count of how often the player has issued it.
   
+  The attribute will be _IDLESTAMP on the player and will contain values
+  similar to:
+   
+                2623071918:1 2166209533:1 1469448984:1 
+  
+  The value before the ':' is the CRC32 checksum of the command they typed.
+  The value after the ':' is the number of times the command was issued.
+  
+  By default it keeps the last 10 unique commands a player types. 
+  This value can be modified with 'idle_stamp_max' @admin param.
+   
   See Also: idle_stamp_max
   
 & idle_stamp_max
-  Config parameter: idle_stamp_max <count>  Default: 10
+  Config parameter: idle_stamp_max <count>  Default: 10  
   
   Specifies how many commands are to be logged per player with a running 
   tally of how often they typed the command.  The command is a hashed
   value so you won't actually see what the player typed, only if what
   they typed matches what they previously typed.
   
+  This value can be between 1 to 300.
+  
+  For more details see idle_stamp.
+   
   See Also: idle_stamp
 
 & idle_timeout
