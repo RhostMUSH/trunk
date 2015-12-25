@@ -1648,13 +1648,36 @@
    FREE_WALL       FREE_PAGE      *HALT_QUEUE      HALT_QUEUE_ALL
   *NOKILL         *SEARCH_ANY     *SECURITY       *WHO_UNFIND
   *WRAITH          SHUTDOWN       *PURGE          *HIDEBIT
-   NOWHO           EXAMINE_FULL   FULLTEL
+   NOWHO           EXAMINE_FULL   FULLTEL         *EXECSCRIPT
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
   down to GUILDMASTER.
 
   Help is available seperately to explain what each power does by typing:
       wizhelp power <power>
+
+& POWER EXECSCRIPT
+  Power argument: @power[/switch] <user>=[@g|@a|@c] fulltel
+  
+  Unlike other @powers, this power IS NOT INHERITABLE.
+  
+  This power will grant the target the ability to use the execscript()
+  function.  This effectively executes a script from the ~/game/scripts
+  directory and reads the value back as if it was a native function.
+  All output is sanitized in ASCII-7 printable characters.  All other
+  characters are converted to a '?'.
+  
+  Power bitlevel GUILDMASTER grants the ability to use the execscript()
+  function but disallows the ability to pass arguments to it.
+  
+  Power bitlevel ARCHITECT (and higher) grants the ability to use
+  the execscript() function with optional arguments.
+  
+  Note that arguments passed to the script is also sanitized to avoid
+  methods to garner outside shell access but extreme caution should
+  be used in using this anyway.
+  
+  See Also: execscript()
 
 & POWER FULLTEL
   Power argument: @power[/switch] <user>=[@g|@a|@c] fulltel
@@ -9966,7 +9989,32 @@
   LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE() LPOWERS()       LTOGGLES()
   MAILALIAS()   MAILQUICK()   MAILQUOTA()   MAILSIZE()      MAILSTATUS()
   MSIZETOT()    NSLOOKUP()    QUOTA()       SIZE()          TEXTFILE()
-  MAILREAD()    MAILSEND()
+  MAILREAD()    MAILSEND()    EXECSCRIPT()
+
+& EXECSCRIPT()
+  Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
+  
+  Note:  This function issues a shell interpreter so will have some
+         overhead compared to calling it natively through an API.
+  
+  This function executes a script called <script name> in the game
+  directory's sub-directory 'scripts'.  It is case sensitive and strips
+  illegal characters (like, .., /, $, etc) from the script name.
+  
+  This requires the EXECSCRIPT @power of GUILDMASTER to use the function.
+  It requires the ARCHITECT level to allow the use of passing arguments
+  to the script.  Unlike other powers, this power is not inheritable.
+  
+  You can pass a maximum of 9 arguments to the script not including the
+  script name.
+   
+  Examples:
+    > say execscript(hello.sh)
+    You say "hello from the script."
+    > say execscript(hello.sh,test)
+    You say "hello from the script with args: 'test'"
+  
+  See Also: POWER EXECSCRIPT
 
 & NSLOOKUP()
   Function: nslookup(<target>)

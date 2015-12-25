@@ -33,6 +33,7 @@ char *rindex(const char *, int);
 #include <math.h>
 #include <assert.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #ifdef HAS_OPENSSL
 #include <openssl/sha.h>
 #include <openssl/evp.h>
@@ -15427,6 +15428,179 @@ FUNCTION(fun_eval)
          free_lbuf(atr_gotten);
       return;
    }
+}
+
+
+
+/* Fun execscript for external script execution */
+FUNCTION(fun_execscript)
+{
+   FILE *fp;
+   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2;
+   int i_count, i_buff, i_power, i_level;
+   time_t i_now;
+   struct stat st_buf;
+   POWENT *pent;
+
+
+/* Require the use of a special @power for execution here 
+   at GM allow script call WITHOUT arguments
+   at ARCH allow script call WITH arguments
+*/
+/* @admin param to '0' disable feature, '1' allow calls w/o args, '2' allow with args */
+
+   if ( !(mudconf.sideeffects & SIDE_EXECSCRIPT) ) {
+      notify(player, "#-1 FUNCTION DISABLED");
+      return;
+   }
+   if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   mudstate.sidefx_currcalls++;
+
+   if (!fn_range_check("EXECSCRIPT", nfargs, 1, 10, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] ) {
+      safe_str("#-1 NO FILE SPECIFIED", buff, bufcx);
+      return;
+   }
+   if ( (strstr(fargs[0], "..") != NULL) || (strchr(fargs[0], '$') != NULL) || (strchr(fargs[0], '/')) ) {
+      safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
+      return;
+   }
+
+   s_combine = alloc_lbuf("fun_execscript");
+   strcpy(s_combine, (char *)"execscript");
+
+   pent = find_power(player, s_combine);
+   if ( !pent ) {
+      notify(player, "#-1 POWER CHECK FAILED");
+      free_lbuf(s_combine);
+      return;
+   }
+   i_power = Toggles4(player);
+   i_power >>= (pent->powerpos);
+   i_level = i_power & POWER_LEVEL_COUNC;
+
+   if ( !i_level ) {
+      notify(player, "Permission denied.");
+      free_lbuf(s_combine);
+      return;
+   }
+
+   if ( (i_level & POWER_LEVEL_GUILD) && (nfargs > 1) ) {
+      notify(player, "Permission denied.  Not allowed to pass arguments.");
+      free_lbuf(s_combine);
+      return;
+   }
+
+   if (mudstate.last_cmd_timestamp == mudstate.now) {
+      mudstate.heavy_cpu_recurse += 1;
+   }
+   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+      safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+      free_lbuf(s_combine);
+      return;
+   }
+
+   i_now = time(NULL);
+   if ( mudconf.cputimechk < 5 )
+      i_count = 5;
+   else
+      i_count = mudconf.cputimechk;
+
+   if ( i_now > (mudstate.now + i_count) ) {
+      mudstate.chkcpu_toggle = 1;
+      free_lbuf(s_combine);
+      return;
+   }
+
+   if ( stat("/usr/bin/timeout", &st_buf) == -1 ) {
+      safe_str("#-1 /usr/bin/timeout not available.  No safty net for pipe execution.", buff, bufcx);
+      free_lbuf(s_combine);
+      return;
+   }
+
+   sprintf(s_combine, "./scripts/%.100s", fargs[0]);
+   if ( (stat(s_combine, &st_buf) == -1) || !(st_buf.st_mode & 0x500) ) {
+      sprintf(s_combine, "#-1 UNABLE TO EXECUTE '%s'", fargs[0]);
+      safe_str(s_combine, buff, bufcx);
+      free_lbuf(s_combine);
+      return;
+   }
+   
+   if ( nfargs > 1 ) {
+      s_inbufptr = s_inbuf = alloc_lbuf("fun_execscript_buffer");
+      for ( i_count = 1; i_count < nfargs; i_count++ ) {
+         if ( i_count > 1 )
+            safe_chr(' ', s_inbuf, &s_inbufptr);
+         safe_str(fargs[i_count], s_inbuf, &s_inbufptr);
+      }
+      sptr2 = sptr = alloc_lbuf("exec_remapper");
+      s_inbufptr = s_inbuf;
+      while ( *s_inbufptr ) {
+         switch (*s_inbufptr) {
+            case '$':
+            case '`':
+            case '(':
+            case ')':
+            case '\\':
+            case '<':
+            case '>':
+            case '&':
+               safe_chr('\\', sptr, &sptr2);
+               break;
+         }
+         safe_chr(*s_inbufptr, sptr, &sptr2);
+         s_inbufptr++;
+      }
+      sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s %.3800s", fargs[0], sptr);
+      free_lbuf(s_inbuf);
+      free_lbuf(sptr);
+   } else {
+      sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s", fargs[0]);
+   }
+
+   fp = popen(s_combine, "r");
+   if (fp != NULL) {
+      s_inread = alloc_lbuf("fun_execscript_read");
+      memset(s_inread, '\0', LBUF_SIZE);
+      s_inbufptr = s_inbuf = alloc_lbuf("fun_execscript_buffer");
+      i_count = i_buff = 0;
+      while ( !feof(fp) ) {
+         /* Abort after 5,000 lines or if output exceeds LBUF */
+         if ( (i_count > 5000) || (i_buff > (LBUF_SIZE - 1)) ) {
+            if ( i_count > 5000 )
+               notify_quiet(player, "Max input lines (5000) reached.");
+            else
+               notify_quiet(player, "LBUF reached for input.");
+            break;
+         }
+         memset(s_inread, '\0', LBUF_SIZE);
+         fgets(s_inread, LBUF_SIZE - 1, fp);
+         sptr = s_inread;
+         /* convert to a '?' non-printable non-ascii-7 chars */
+         while ( *sptr ) {
+            if ( !((isprint(*sptr) || isspace(*sptr)) && isascii(*sptr)) )
+               *sptr = '?';
+            sptr++;
+         }
+         safe_str(s_inread, s_inbuf, &s_inbufptr);   
+         i_buff += strlen(s_inread);
+         i_count++;
+      }
+      pclose(fp);
+      safe_str(s_inbuf, buff, bufcx);
+      free_lbuf(s_inread);
+      free_lbuf(s_inbuf);
+   } else {
+      sprintf(s_combine, "#-1 UNABLE TO EXECUTE '%s'", fargs[0]);
+      safe_str(s_combine, buff, bufcx);
+   }
+   free_lbuf(s_combine);
 }
 
 /* ---------------------------------------------------------------------------
@@ -31296,6 +31470,7 @@ FUN flist[] =
     {"EXP", fun_exp, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"EXTRACTWORD", fun_extractword, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXTRACT", fun_extract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"EXECSCRIPT", fun_execscript, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"FBETWEEN", fun_fbetween, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBOUND", fun_fbound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FDIV", fun_fdiv, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

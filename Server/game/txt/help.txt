@@ -28726,6 +28726,9 @@
   ------------
   * ifelse_compat option that makes if()/ifelse()/@skip/@if etc. behave
     as TRUE in case the first argument is a normal string. [AMB]
+  * execscript() with matching sideeffect value and @power execscript to
+    allow executing external script as a function with appropiate 
+    safeguards for script name and arguments [ASH]
   
   Changes
   ------------
