@@ -9997,6 +9997,11 @@
   Note:  This function issues a shell interpreter so will have some
          overhead compared to calling it natively through an API.
   
+  Requirements:  /usr/bin/timeout (on MacOSX link to /usr/local/bin/gtimeout)
+                 script/binary existing in ~/game/scripts and chmod u+rx
+                 @powered EXECSCRIPT GM or higher
+                 Set SIDEFX (with the sideffect EXECSCRIPT enabled)
+  
   This function executes a script called <script name> in the game
   directory's sub-directory 'scripts'.  It is case sensitive and strips
   illegal characters (like, .., /, $, etc) from the script name.
