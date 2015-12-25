@@ -15525,7 +15525,7 @@ FUNCTION(fun_execscript)
    }
 
    sprintf(s_combine, "./scripts/%.100s", fargs[0]);
-   if ( (stat(s_combine, &st_buf) == -1) || !(st_buf.st_mode & 0x500) ) {
+   if ( (stat(s_combine, &st_buf) == -1) || !(st_buf.st_mode & S_IXUSR) || !(st_buf.st_mode & S_IRUSR) ) {
       sprintf(s_combine, "#-1 UNABLE TO EXECUTE '%s'", fargs[0]);
       safe_str(s_combine, buff, bufcx);
       free_lbuf(s_combine);
