@@ -15568,14 +15568,12 @@ FUNCTION(fun_execscript)
       s_inbufptr = s_inbuf;
       while ( *s_inbufptr ) {
          switch (*s_inbufptr) {
-            case '$':
-            case '`':
-            case '(':
-            case ')':
-            case '\\':
-            case '<':
-            case '>':
-            case '&':
+            case '\r':
+            case '\n':
+               s_inbufptr++;
+               continue;
+               break;
+            default:
                safe_chr('\\', sptr, &sptr2);
                break;
          }
