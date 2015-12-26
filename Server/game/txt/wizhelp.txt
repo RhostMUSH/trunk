@@ -10012,7 +10012,17 @@
   
   You can pass a maximum of 9 arguments to the script not including the
   script name.
-   
+  
+  The following variables are available from inside the scripts called:
+    MUSH_PLAYER       - [%!] dbref# of player followed by name of player.  
+    MUSH_CAUSE        - [%#] dbref# of cause followed by name of cause.  
+    MUSH_CALLER       - [%@] dbref# of caller followed by name of caller.  
+    MUSH_FLAGS        - the flags of the player.
+    MUSH_TOGGLES      - the togglesof the player.
+    MUSH_OWNER        - dbref# of player's owner by name of owner.
+    MUSH_OWNERFLAGS   - the flags of the player's owner.
+    MUSH_OWNERTOGGLES - the toggles of the player's owner.
+  
   Examples:
     > say execscript(hello.sh)
     You say "hello from the script."

@@ -15532,6 +15532,31 @@ FUNCTION(fun_execscript)
       return;
    }
    
+   sprintf(s_combine, "#%d %s", player, Name(player));
+   setenv("MUSH_PLAYER", s_combine, 1);
+   sprintf(s_combine, "#%d %s", cause, Name(cause));
+   setenv("MUSH_CAUSE", s_combine, 1);
+   sprintf(s_combine, "#%d %s", caller, Name(caller));
+   setenv("MUSH_CALLER", s_combine, 1);
+   sprintf(s_combine, "#%d %s", Owner(player), Name(Owner(player)));
+   setenv("MUSH_OWNER", s_combine, 1);
+   sptr2 = flag_description(GOD, player, 0, (int *)NULL, 0);
+   sprintf(s_combine, "%s", sptr2);
+   free_lbuf(sptr2);
+   setenv("MUSH_FLAGS", s_combine, 1);
+   sptr2 = flag_description(GOD, Owner(player), 0, (int *)NULL, 0);
+   sprintf(s_combine, "%s", sptr2);
+   free_lbuf(sptr2);
+   setenv("MUSH_OWNERFLAGS", s_combine, 1);
+   sptr2 = toggle_description(GOD, player, 0, 0, (int *)NULL);
+   sprintf(s_combine, "%s", sptr2);
+   free_lbuf(sptr2);
+   setenv("MUSH_TOGGLES", s_combine, 1);
+   sptr2 = toggle_description(GOD, Owner(player), 0, 0, (int *)NULL);
+   sprintf(s_combine, "%s", sptr2);
+   free_lbuf(sptr2);
+   setenv("MUSH_OWNERTOGGLES", s_combine, 1);
+
    if ( nfargs > 1 ) {
       s_inbufptr = s_inbuf = alloc_lbuf("fun_execscript_buffer");
       for ( i_count = 1; i_count < nfargs; i_count++ ) {
