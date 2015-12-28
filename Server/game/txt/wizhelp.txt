@@ -10029,7 +10029,63 @@
     > say execscript(hello.sh,test)
     You say "hello from the script with args: 'test'"
   
+  See 'writing scripts' for help on dos and don'ts in writing execscripts.
+    
   See Also: POWER EXECSCRIPT
+
+& WRITING SCRIPTS
+  Topic: Writing Scripts
+  
+  The execscript() is an popen exec call.  This means that it will, 
+  unfortunately, wait for children processes of the calling script to
+  finish before it returns.  What does this mean?  It means it is a 
+  blocking call, ergo, your mush WILL HANG until the child process
+  finishes.  Some protection was put into the call so that anything
+  from the 'direct' call of the script will auto kill itself after
+  a 5 second period, but it is unable to handle sub-shells or sub-calls
+  from within the called script itself.  It will have to wait until those
+  finish, so some importance should be shown on calling scripts or 
+  programs that could potentially take longer than 5 seconeds.
+  
+  Things to do:
+    1.  If you call a script that may take input, use expect or some
+        hereto or other method to feed it the required input so the
+        process will not hang waiting for input.
+  
+    2.  If the script is backgrounded, you need to redirect the output
+        for STDERR and STDOUT to a file or /dev/null.  Otherwise, the
+        script will wait for it to finish since it's expecting output.
+        Yes, this also includes nohupped processes.
+        Examples: (these work properly)
+          >  sleep 100 # this will be killed after 5 seconds
+          >  nohup /path/to/script.sh > /tmp/out.log 2>&1 &
+        Hanging Examples: (these do not redirect STDERR and STDOUT)
+          >  sleep 100 &
+          >  nohup /path/to/script.sh &
+  
+    3.  If you have something that will take more than 5 seconds, my
+        suggestion is to redirect the output to a file, then as part
+        of the script, have it check the existances of that file
+        and look for a 'done processing' section, and have as part
+        of your script have it check the existance of that file for
+        existing processing, have it check the 'done processing' to
+        then display the contents of that file and then REMOVE it
+        after that, otherwise, it runs the script that generates the
+        process.  You can write this method into any language you want.
+  
+    4.  This is an adhock process as it calls a shell interpreter.  All
+        work on cleanup in the script or dangling leaks, process hangs,
+        or other should be at responsibility of the person who writes
+        those scripts.  ALWAYS keep in mind the three important things:
+        A.  All output that can take over 5 seconds is redirected.
+        B.  Anything over 5 seconds will be killed unless you code around it.
+        C.  Background processes can hang the mush indefinately until
+            returned.
+  
+  Those are the important things to remember when scripting, an example
+  script is included as 'hello.sh' in the ~/game/scripts directory.
+  
+  Party on.
 
 & NSLOOKUP()
   Function: nslookup(<target>)
