@@ -3990,11 +3990,11 @@ CONF conftable[] =
      cf_include, CA_DISABLED, NULL, 0, 0, CA_WIZARD,
      (char *) "Process config params by filename on startup."},
     {(char *) "includecnt",
-     cf_int, CA_DISABLED, &mudconf.includecnt, 0, 0, CA_WIZARD,
+     cf_int, CA_GOD, &mudconf.includecnt, 0, 0, CA_WIZARD,
      (char *) "Include count iterations per command set.\r\n"\
               "                             Default: 10   Value: %d"},
     {(char *) "includenest",
-     cf_int, CA_DISABLED, &mudconf.includenest, 0, 0, CA_WIZARD,
+     cf_int, CA_GOD, &mudconf.includenest, 0, 0, CA_WIZARD,
      (char *) "Include recursion iterations per command set.\r\n"\
               "                             Default: 3   Value: %d"},
     {(char *) "initial_size",
@@ -4283,7 +4283,7 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.oattr_enable_altname, 0, 0, CA_PUBLIC,
      (char *) "Do o-attribs look at alternate names?"},
     {(char *) "oattr_uses_altname",
-     cf_string, CA_DISABLED, (int *) mudconf.oattr_uses_altname, 31, 0, CA_WIZARD,
+     cf_string, CA_GOD, (int *) mudconf.oattr_uses_altname, 31, 0, CA_WIZARD,
      (char *) "Altname used for o-attributes."},
     {(char *) "offline_reg",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.offline_reg, 0, 0, CA_WIZARD,
