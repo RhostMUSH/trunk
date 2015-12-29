@@ -28741,3 +28741,5 @@
     
   Bug Fixes
   ------------
+  * columns() did not default justification to 'L'eft if left blank with 
+    4 or more arguments [ASH]

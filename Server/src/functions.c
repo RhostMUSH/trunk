@@ -3581,8 +3581,12 @@ FUNCTION(fun_columns)
            winfo.just = JUST_CENTER;
            break;
         default:
-           safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
-           return;
+           if ( !*fargs[3] ) {
+              winfo.just = JUST_LEFT;
+           } else {
+              safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
+              return;
+           }
            break;
      }
   }
