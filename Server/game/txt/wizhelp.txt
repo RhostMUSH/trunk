@@ -3440,12 +3440,17 @@
   
   @purge #dbref (destroys the given dbref# that is in the recovery list)
   The following switches are also available:
-      /all           - purges the recovery list permanently destroying all 
-                       things marked recovery (things previously destroyed)
-      /time <1-100>  - purges the recovery list from the specified # of days
-                       ago and later. 0 will default to 'all'.
-      /type <TYPE>   - purges all dbref#'s matching type 'TYPE'.
-      /owner <OWNER> - purges all objects owned by owner 'OWNER'.
+      /all                    - purges the recovery list permanently 
+                                destroying all things marked recovery 
+                                (things previously destroyed)
+      /time <1-100>           - purges the recovery list from the specified 
+                                # of days ago and later. 
+      /type <TYPE>            - purges all dbref#'s matching type 'TYPE'.
+      /owner <OWNER>          - purges all objects owned by owner 'OWNER'.
+      /ttype <1-100>/<TYPE>   - purges all objects based on 'TYPE' that was 
+                                # of days ago and later.
+      /towner <1-100>/<OWNER> - purges all objects owned by owner 'OWNER'
+                                that was # of days ago or later.
   
   Example:  @purge/type room
   

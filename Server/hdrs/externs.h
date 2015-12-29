@@ -827,6 +827,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PURGE_TIME	2
 #define PURGE_TYPE	4
 #define PURGE_OWNER	8
+#define PURGE_TIMETYPE  16
+#define PURGE_TIMEOWNER 32
 #define PROTECT_LIST	1
 #define PROTECT_ADD	2
 #define PROTECT_DEL	4

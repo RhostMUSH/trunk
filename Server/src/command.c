@@ -860,6 +860,8 @@ NAMETAB purge_sw[] =
     {(char *) "time", 2, CA_IMMORTAL, 0, PURGE_TIME},
     {(char *) "type", 2, CA_IMMORTAL, 0, PURGE_TYPE},
     {(char *) "owner", 1, CA_IMMORTAL, 0, PURGE_OWNER},
+    {(char *) "ttype", 2, CA_IMMORTAL, 0, PURGE_TIMETYPE},
+    {(char *) "towner", 2, CA_IMMORTAL, 0, PURGE_TIMEOWNER},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB quota_sw[] =

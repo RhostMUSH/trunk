@@ -28736,6 +28736,8 @@
     the trace output for all trace output. [ASH]
   * modified system uptime to hard-query the utmp system file for
     compatibility and performance [ASH]
+  * added /towner and /ttype switches to @purge to combine time and type/owner
+    for enhanced purging [ASH]
     
   Bug Fixes
   ------------
