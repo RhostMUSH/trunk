@@ -1,5 +1,5 @@
 @create Global: ScanObj <SO>=10
-&CREDITS Global: ScanObj <SO>=Ashen-Shugar@Blahblahblah
+&CREDITS Global: ScanObj <SO>=Version: 1.0.1 | Ashen-Shugar@RhostMUSH
 &CMD_SCAN Global: ScanObj <SO>=$@scan* *:@pemit %#=[u(do_scan[!$v(0)][match(/room /self /zone /global,%0)],%0,%1,%#,$,@scan)]
 &DO_SCAN00 Global: ScanObj <SO>=Unrecognized switch '[lcstr(secure(%0))]' for command %4.
 &CMD_SCAN2 Global: ScanObj <SO>=$@scan:@pemit %#=What command do you want to scan for?
@@ -8,18 +8,19 @@
 &DO_SCAN01 Global: ScanObj <SO>=[u(scan_contents,%0,%1,%2,%3,%4)]
 &DO_SCAN02 Global: ScanObj <SO>=[u(scan_self,%0,%1,%2,%3,%4)]
 &SCAN_CONTENTS Global: ScanObj <SO>=%rMatching on contents of your location:[nsiter(setdiff(lcon(loc(%2)),%2),u(scan_obj,##,%1,%2,%3,%4),%b)]
-&SCAN_OBJ Global: ScanObj <SO>=[setq(1,trim(nsiter(lattrp(%0,,%3),u(scan_obj[hasflag(%0/##,regexp)],%0,%1,%2,%3,##))))][ifelse(!!$r(1),%r[name(%0)]%(%0[flags(%0)]%) %[%q1%])]
+&SCAN_OBJ Global: ScanObj <SO>=[setq(v,0)][setq(1,trim(nsiter(lattrp(%0,,%3),u(scan_obj[hasflag(%0/##,regexp)],%0,%1,%2,%3,##))))][ifelse(!!$r(1),%r[name(%0)]%(%0[flags(%0)]%) %[%qv: %q1%])]
 &SCAN_SELF Global: ScanObj <SO>=%rMatching on self and carried objects:[nsiter(setunion(lcon(%2),%2),u(scan_obj,##,%1,%2,%3,%4))]
 &SCAN_ZONE Global: ScanObj <SO>=%rMatching on zones in vicinity:[nsiter(setunion(lzone(loc(%2)),lzone(%2),u(dozone,[lcon(%2)] [lcon(loc(%2))])),u(scan_obj,##,%1,%2,%3,%4))]
 &DOZONE Global: ScanObj <SO>=[iter(%0,lzone(##))]
 &DO_SCAN04 Global: ScanObj <SO>=[u(scan_master,%0,%1,%2,%3,%4)]
 &DO_SCAN03 Global: ScanObj <SO>=[u(scan_zone,%0,%1,%2,%3,%4)]
 &SCAN_MASTER Global: ScanObj <SO>=%rMatching on master room:[nsiter(lcon(globalroom()),u(scan_obj,##,%1,%2,%3,%4))]
-&CMD_LSCAN Global: ScanObj <SO>=@listenscan* *:@pemit %#=[u(do_scan[!$v(0)][match(/room /self /zone /global,%0)],%0,%1,%#,^,@lscan)]
-&CMD_LSCAN2 Global: ScanObj <SO>=@listenscan:@pemit %#=What listen do you want to scan for?
-&CMD_LSCAN3 Global: ScanObj <SO>=@listenscan/*:@pemit %#=[u(do_scan00,/%0,x,x,x,@lscan)]
+&CMD_LSCAN Global: ScanObj <SO>=$@listenscan* *:@pemit %#=[u(do_scan[!$v(0)][match(/room /self /zone /global,%0)],%0,%1,%#,^,@lscan)]
+&CMD_LSCAN2 Global: ScanObj <SO>=$@listenscan:@pemit %#=What listen do you want to scan for?
+&CMD_LSCAN3 Global: ScanObj <SO>=$@listenscan/*:@pemit %#=[u(do_scan00,/%0,x,x,x,@lscan)]
 &CANUSE Global: ScanObj <SO>=[gte(bittype(%#),2)]
 @lock/UseLock Global: ScanObj <SO>=CANUSE/1
-&SCAN_OBJ0 Global: ScanObj <SO>=[ifelse(strmatch(%1,before(after(get(%0/%4),%3),:)),%4%b)]
-&SCAN_OBJ1 Global: ScanObj <SO>=[ifelse(regmatch(%1,before(after(get(%0/%4),%3),:)),%4%b)]
+&SCAN_OBJ0 Global: ScanObj <SO>=[ifelse(strmatch(%1,before(after(get(%0/%4),%3),:)),[setq(v,add(%qv,1))]%0/%4%b)]
+&SCAN_OBJ1 Global: ScanObj <SO>=[ifelse(regmatch(%1,before(after(get(%0/%4),%3),:)),[setq(v,add(%qv,1))]%0/%4%b)]
+&FUN_SCAN Global: ScanObj <SO>=[u(scan_contents,%0,%1,%2,%3,%4)][u(scan_self,%0,%1,%2,%3,%4)][u(scan_zone,%0,%1,%2,%3,%4)][u(scan_master,%0,%1,%2,%3,%4)]
 @set Global: ScanObj <SO>=INDESTRUCTABLE SAFE INHERIT STOP
