@@ -1,13 +1,13 @@
 @create @mail RhostAliases <MRA>=10
-&VERSION @mail RhostAliases <MRA>=1.2
+&VERSION @mail RhostAliases <MRA>=1.3
 &USEMAIL @mail RhostAliases <MRA>=[hastoggle(%#,brandy_mail)]
 @Ufail @mail RhostAliases <MRA>=You need to set the BRANDY_MAIL toggle (type: @toggle me=brandy_mail) to use this feature. You may also set the MAIL_STRIPRETURN (@toggle me=mail_stripreturn) to combine lines with a space instead of a carrage return.
 @lock/UseLock @mail RhostAliases <MRA>=USEMAIL/1
 &MAIN_HELP @mail RhostAliases <MRA>=$mmail:@dynhelp muxmail_rho=%#
 &MAIN_HELP_ARG @mail RhostAliases <MRA>=$mmail *:@dynhelp muxmail_rho/%0=%#
 @set @mail RhostAliases <MRA>/MAIN_HELP_ARG = no_parse
-&CMD_@MAIL_PREPEND @mail RhostAliases <MRA>=$~*:@fo %#={mail/write +insert=1,%0}
-&CMD_@MAIL_REPLY @mail RhostAliases <MRA>=$@mail/reply*:@fo %#={mail/reply [ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))]=Reply...}
+&CMD_@MAIL_PREPEND @mail RhostAliases <MRA>=$~*:@sudo %#={mail/write +insert=1,%0}
+&CMD_@MAIL_REPLY @mail RhostAliases <MRA>=$@mail/reply*:@sudo %#[setq(1,[ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))])]={mail/reply %q1=Reply...}
 &CMD_@MAIL_REPLYALL @mail RhostAliases <MRA>=$@mail/replyall*:@fo %#={mail/reply @[ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))]=Reply...}
 &CMD_@MAIL_REPLYQUOTE @mail RhostAliases <MRA>=$@mail/reply/quote*:@fo %#={mail/reply [ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))]*=Reply...}
 &CMD_@MAIL_REPLYALLQUOTE @mail RhostAliases <MRA>=$@mail/replyall/quote*:@fo %#={mail/reply @[ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))]*=Reply...}
@@ -27,7 +27,7 @@
 &CMD_@MAIL_FORWARD @mail RhostAliases <MRA>=$@mail/forward *=*:@fo %#={mail/forward %0 @%1=Forward...}
 &CMD_@MAIL_QUICK @mail RhostAliases <MRA>=$@mail/quick */*=*:@fo %#={mail/send @%0=%1//%2}
 &CMD_@MAIL_QMAIL @mail RhostAliases <MRA>=$@qmail */*=*:@fo %#={mail/send @%0=%1//%2}
-&CMD_@MAIL_STATS @mail RhostAliases <MRA>=$@mail/?stats*:@pemit %#=[ifelse(setr(0,and(gte(bittype(%#),5),controls(%#,%0))),[first(mailquick(%0))] Total: [extract(mailquick(%0),2,1)] New, [extrat(mailquick(%0),3,1)] Unread, [mailsize(%0,2)] Bytes)];@fo %#={mail/quota %0}
+&CMD_@MAIL_STATS @mail RhostAliases <MRA>=$@mail/?stats*:@break [!^setr(z,pmatch(trim(%1)))]=@pemit %#=Player Not Found.;@pemit %#=[ifelse(setr(0,and(gte(bittype(%#),5),controls(%#,%qz))),[first(mailquick(%qz))] Total: [extract(mailquick(%qz),2,1)] New%, [extract(mailquick(%qz),3,1)] Unread%, [mailsize(%qz,2)] Bytes)];@fo %#={mail/quota %qz}
 &CMD_@MAIL_NUKE @mail RhostAliases <MRA>=$@mail/nuke *;@swi [gte(bittype(%#),5)]=1,{@fo %#=wmail/wipe %0},{@pemit %#=Permission denied.}
 &CMD_@MAIL_READ @mail RhostAliases <MRA>=$@mail/read *:@fo %#={mail %0}
 &CMD_@MAIL_GENERIC_LIST @mail RhostAliases <MRA>=$@mail/list *:@pemit %#=[center(- %bMAIL: Folder Current%b -,78,-)];@pemit %#=[list(mailstatus(%#,%0),u(mail_status_mux,mailstatus(%#,##)))][repeat(-,78)]
@@ -43,6 +43,7 @@
 &CMD_@MAIL_VIEW @mail RhostAliases <MRA>=$@mail/review *=*:@fo %#={mail/recall/all %1}
 &CMD_@MAIL_RECALL @mail RhostAliases <MRA>=$@mail/retract *=*:@fo %#={mail/recall %1=%0}
 &CMD_@MAIL_REVIEW @mail RhostAliases <MRA>=$@mail/review *:@fo %#={mail/recall *%0}
+&CMD_@MAIL_REVIEWALL @mail=$@mail/reviewall *:@fo %#={mail/recall/all *%0}
 &CMD_@MAIL_CLEAR @mail RhostAliases <MRA>=$@mail/clear *:@fo %#={mail/mark %0}
 &CMD_@MAIL_UNCLEAR @mail RhostAliases <MRA>=$@mail/unclear *:@fo %#={mail/unmark %0}
 &CMD_@MAIL_PURGE @mail RhostAliases <MRA>=$@mail/purge:@fo %#={mail/delete}
@@ -62,3 +63,5 @@
 @set @mail RhostAliases <MRA>=SAFE
 @set @mail RhostAliases <MRA>=INHERIT
 @set @mail RhostAliases <MRA>=STOP
+
+
