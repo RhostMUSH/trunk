@@ -7437,7 +7437,7 @@ FUNCTION(fun_foreach)
     dbref aowner, thing;
     int i_cntr, aflags, anum, tval, flag = 0;
     ATTR *ap;
-    char *atext, *atextbuf, *str, *cp, *bp[2], *result;
+    char *atext, *atextbuf, *str, *cp, *bp[2], *result, *cpbuff;
     char cbuf[2], cbuf2[12], prev = '\0';
 
     if (!fn_range_check("FOREACH", nfargs, 2, 4, buff, bufcx)) {
@@ -7466,6 +7466,9 @@ FUNCTION(fun_foreach)
     }
     atextbuf = alloc_lbuf("fun_foreach");
     cp = trim_space_sep(strip_all_special(fargs[1]), ' ');
+    cpbuff = alloc_lbuf("foreach_buff");
+    strcpy(cpbuff, cp);
+    cp = cpbuff;
 
     memset(cbuf2, '\0', sizeof(cbuf2));
     bp[0] = cbuf;
@@ -7475,7 +7478,8 @@ FUNCTION(fun_foreach)
 
     if (nfargs >= 3) {
         while (cp && *cp) {
-            cbuf[0] = *cp++;
+            cbuf[0] = *cp;
+            cp++;
             sprintf(cbuf2, "%d", i_cntr);
             i_cntr++;
             if (flag) {
@@ -7493,6 +7497,7 @@ FUNCTION(fun_foreach)
                 }
             }
 
+            memset(atextbuf, '\0', LBUF_SIZE);
             strcpy(atextbuf, atext);
             str = atextbuf;
             if ( (mudconf.secure_functions & 1) ) {
@@ -7519,9 +7524,11 @@ FUNCTION(fun_foreach)
         }
     } else {
         while (cp && *cp) {
-            cbuf[0] = *cp++;
+            cbuf[0] = *cp;
+            cp++;
             sprintf(cbuf2, "%d", i_cntr);
             i_cntr++;
+            memset(atextbuf, '\0', LBUF_SIZE);
             strcpy(atextbuf, atext);
             str = atextbuf;
             if ( (mudconf.secure_functions & 1) ) {
@@ -7549,6 +7556,7 @@ FUNCTION(fun_foreach)
 
     free_lbuf(atextbuf);
     free_lbuf(atext);
+    free_lbuf(cpbuff);
 }
 
 

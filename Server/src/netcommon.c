@@ -80,6 +80,29 @@ void FDECL(dump_rusers, (DESC * call_by));
 #endif
 
 extern char *
+strip_ansi2(const char *raw)
+{
+    static char buf[LBUF_SIZE];
+    char *p = (char *) raw;
+    char *q = buf;
+
+    DPUSH; /* #98 */
+
+    while (p && *p) {
+	if (*p == ESC_CHAR) {
+	    /* Start of ANSI code. Skip to end. */
+	    while (*p && !isalpha((int)*p))
+		p++;
+	    if (*p)
+		p++;
+	} else
+	    *q++ = *p++;
+    }
+    *q = '\0';
+    RETURN(buf); /* #98 */
+}
+
+extern char *
 strip_ansi(const char *raw)
 {
     static char buf[LBUF_SIZE];
@@ -168,6 +191,50 @@ strip_safe_ansi(const char *raw)
 
 
 extern char *
+strip_all_special2(const char *raw)
+{
+    static char buf[LBUF_SIZE];
+    char *p = (char *) raw;
+    char *q = buf;
+
+    DPUSH; /* #100 */
+
+    while (p && *p) {
+        if ( (*p == '%') && ((*(p+1) == SAFE_CHR) 
+#ifdef SAFE_CHR2
+                         || (*(p+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                         || (*(p+1) == SAFE_CHR3)
+#endif
+)) {
+           if ( isAnsi[(int) *(p+2)]) {
+              p+=3; // strip safe ansi
+              continue;
+           }
+           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           *q++ = *p++;
+        } else if (*p == ESC_CHAR) {
+            // Strip normal ansi
+            while (*p && !isalpha((int)*p))
+                p++;
+            if (*p)
+                p++;
+        } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
+           p+=3;
+        } else {
+            *q++ = *p++;
+        }
+    }
+    *q = '\0';
+    RETURN(buf); /* #100 */
+}
+
+extern char *
 strip_all_special(const char *raw)
 {
     static char buf[LBUF_SIZE];
@@ -210,6 +277,7 @@ strip_all_special(const char *raw)
     *q = '\0';
     RETURN(buf); /* #100 */
 }
+
 extern char *
 strip_all_ansi(const char *raw)
 {

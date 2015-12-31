@@ -28744,3 +28744,5 @@
   ------------
   * columns() did not default justification to 'L'eft if left blank with 
     4 or more arguments [ASH]
+  * foreach() had a possibility of overwriting a static buffer in-use
+    which could return erraneous results (non-crash-bug) [ASH]

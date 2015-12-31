@@ -1822,7 +1822,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 if ( !ExtAnsi(cause) ) {
                    t_bufb = parse_ansi_name(cause, t_bufa);
                 }
-                if ( strcmp(Name(cause), strip_all_special(t_bufa)) != 0 ) {
+                if ( strcmp(Name(cause), strip_all_special2(t_bufa)) != 0 ) {
                    free_lbuf(t_bufa);
                    t_bufa = alloc_lbuf("normal name here");
                    strcpy(t_bufa, Name(cause));
@@ -1982,7 +1982,7 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             if ( mudstate.trace_nest_lev < 98 ) {
                                for ( inum_val = 0; inum_val <= mudstate.trace_nest_lev; inum_val++ ) {
                                   if ( *(t_label[inum_val]) && 
-                                        (stricmp(strip_all_special(t_label[inum_val]), t_bufa+1) == 0) &&
+                                        (stricmp(strip_all_special2(t_label[inum_val]), t_bufa+1) == 0) &&
                                         i_label[inum_val] ) {
                                      i_label[inum_val] = 0;
                                      break;

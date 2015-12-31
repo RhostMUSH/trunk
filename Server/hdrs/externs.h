@@ -94,16 +94,19 @@ extern void	FDECL(broadcast_monitor, (dbref,int,char*,char*,char*,int,int,int,ch
 extern void	VDECL(raw_broadcast, (dbref,int, char *, ...));
 extern void	VDECL(raw_broadcast2, (int, char *, ...));
 extern char *	FDECL(strip_ansi, (const char *));
+extern char *	FDECL(strip_ansi2, (const char *));
 #ifdef ZENTY_ANSI
 extern char *   FDECL(strip_safe_ansi, (const char *));
 extern char *   FDECL(strip_safe_accents, (const char *));
 extern char *   FDECL(strip_all_ansi, (const char *));
 extern char *   FDECL(strip_all_special, (const char *));
+extern char *   FDECL(strip_all_special2, (const char *));
 #else
 #define strip_safe_ansi(x) (x)
 #define strip_safe_accents(x) (x)
 #define strip_all_ansi(x) strip_ansi(x)
 #define strip_all_special(x) strip_ansi(x)
+#define strip_all_special2(x) strip_ansi2(x)
 #endif
 extern char *	FDECL(strip_nonprint, (const char *));
 extern char *	FDECL(strip_returntab, (const char *, int));
