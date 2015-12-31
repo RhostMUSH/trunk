@@ -24,3 +24,9 @@
 &SCAN_OBJ1 Global: ScanObj <SO>=[ifelse(regmatch(%1,before(after(get(%0/%4),%3),:)),[setq(v,add(%qv,1))]%0/%4%b)]
 &FUN_SCAN Global: ScanObj <SO>=[u(scan_contents,%0,%1,%2,%3,%4)][u(scan_self,%0,%1,%2,%3,%4)][u(scan_zone,%0,%1,%2,%3,%4)][u(scan_master,%0,%1,%2,%3,%4)]
 @set Global: ScanObj <SO>=INDESTRUCTABLE SAFE INHERIT STOP
+@@
+@@ @scan -- Returns error message
+@@ @scan[/room /self /zone /global] <exact command> -- scan for command (optional location with switch)
+@@ @listenscan -- Returns error message
+@@ @listenscan[/room /self /zone /global] <exact command> -- scan for listens (optional location with switch)
+@@ By default guildmaster or higher (staff only) can use this command.  Controlled with 'CANUSE' attribute.
