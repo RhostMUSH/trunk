@@ -67,7 +67,9 @@ then
 fi
 if [ ${type} -eq 0 ]
 then
-   bunzip -cd src.tbz|tar -xvf -
+   mv -f src/local.c src/local.c.backup
+   bunzip2 -cd src.tbz|tar -xf -
+   cp -f src/local.c.backup src/local.c
 else
    mv -f src/local.c src/local.c.backup
    cp -f rhost_tmp/Server/src/*.c src
@@ -80,7 +82,7 @@ else
    rm -rf ./rhost_tmp
 fi
 cd src
-if [ `uname -s|grep -ic bsd` -gt 0 ]
+if [ $(uname -s|grep -ic bsd) -gt 0 ]
 then
    gmake clean;gmake
 else
