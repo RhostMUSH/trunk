@@ -15503,7 +15503,7 @@ FUNCTION(fun_execscript)
       return;
    }
 
-   if ( (i_level & POWER_LEVEL_GUILD) && (nfargs > 1) ) {
+   if ( (i_level == POWER_LEVEL_GUILD) && (nfargs > 1) ) {
       notify(player, "Permission denied.  Not allowed to pass arguments.");
       free_lbuf(s_combine);
       return;
