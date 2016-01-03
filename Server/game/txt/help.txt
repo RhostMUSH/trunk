@@ -18394,7 +18394,7 @@
   See Also: parenmatch(), brackets(), pos(), totpos()
 
 & PARENMATCH()
-  Function: parenmatch([<object>/]<attribute>[,<type>])
+  Function: parenmatch([<object>/]<attribute> [,<type>, [<key>]])
   
   This function returns an ansified match of parenthesis, brackets, and braces
   while hilighting red any mis-matched of the three.  The comparison will 
@@ -18402,11 +18402,17 @@
   returned un-altered.  If there are a large number of parenthesis, brackets, 
   and braces, it is possible the result will be cut off as ansi takes up 
   extra spaces.  If this is the case, use type '1' to just return 
-  errors (if any).
+  errors (if any).  An optional key of '1' will issue a pretty-print of the
+  output in addition to the color output.
   
   The following types exist:
     0 - Ansify the string and highlight red the first missmatch found (default)
     1 - If there is a missmatch, ONLY return that, else ansify the string.
+  
+  The following keys exist:
+    0 - (default) do not pretty print the output.
+    1 - pretty print the output.  Be aware on attribs that approach the 
+        maximum output buffer size you may get values cut off.
   
   Examples:
     > @va me=[add(1,1)]
@@ -28739,6 +28745,7 @@
   * added /towner and /ttype switches to @purge to combine time and type/owner
     for enhanced purging [ASH]
   * Laxed some restrictions on @admin params [ASH]
+  * optional 3rd argument to parenmatch() does pretty-print of mush code [ASH]
     
   Bug Fixes
   ------------
