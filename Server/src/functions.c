@@ -12757,13 +12757,15 @@ int
 paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_indent)
 {
     char *atextptr;
-    int oldtcnt, tcnt, i_clr, i_err, esc_val, i_pos, i_indentnow;
+    int oldtcnt, tcnt, i_clr, i_err, esc_val, i_pos, i_indentnow, i_close, i_lastclose;
     static int iarr[LBUF_SIZE];
     static char *s_clrs[] = {ANSI_MAGENTA, ANSI_GREEN, ANSI_YELLOW, ANSI_CYAN, ANSI_BLUE};
 
-    i_indentnow = i_pos = i_err = i_clr = tcnt = oldtcnt = esc_val = 0;
+    i_indentnow = i_pos = i_err = i_clr = tcnt = oldtcnt = esc_val = i_close = i_lastclose = 0;
     atextptr = atext;
     while ( *atextptr ) {
+       i_lastclose = i_close;
+       i_close = 0;
        if ( (*atextptr == '%') || (*atextptr == '\\') )
           esc_val = !esc_val;
        if (!esc_val) {
@@ -12786,6 +12788,7 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                            i_err = 1;
                         i_clr = tcnt;
                         tcnt--;
+                        i_close = 1;
                         break;
              case ')' : if (tcnt == 0)
                            i_err = 1;
@@ -12793,6 +12796,7 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                            i_err = 1;
                         i_clr = tcnt;
                         tcnt--;
+                        i_close = 1;
                         break;
              case '}' : if (tcnt == 0)
                            i_err = 1;
@@ -12800,6 +12804,7 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                            i_err = 1;
                         i_clr = tcnt;
                         tcnt--;
+                        i_close = 1;
                         break;
           }
        }
@@ -12834,14 +12839,24 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
        } else {
           if ( tcnt != oldtcnt ) {
              if ( i_indent ) {
-                safe_str("\r\n", buff, bptr);
-                for ( i_indentnow = 0; i_indentnow < i_clr; i_indentnow++ ) {
-                   safe_str("   ", buff, bptr);
+                if ( i_close ) {
+                   safe_str("\r\n", buff, bptr);
+                   for ( i_indentnow = 0; i_indentnow < (i_clr-1); i_indentnow++ ) {
+                      safe_str("   ", buff, bptr);
+                   }
                 }
              }
              safe_strmax(s_clrs[i_clr % 5], buff, bptr);
              safe_chr(*atextptr, buff, bptr);
              safe_str(ANSI_NORMAL, buff, bptr);
+             if ( i_indent ) {
+                if ( !i_close ) {
+                   safe_str("\r\n", buff, bptr);
+                   for ( i_indentnow = 0; i_indentnow < i_clr; i_indentnow++ ) {
+                      safe_str("   ", buff, bptr);
+                   }
+                }
+             }
           } else {
              safe_chr(*atextptr, buff, bptr);
           }
