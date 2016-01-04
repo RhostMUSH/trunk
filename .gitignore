@@ -17,6 +17,7 @@ Server/game/*.gamelog
 Server/game/oldlogs/*
 Server/game/kill_*
 Server/game/image/*.img
+Server/game/txt/*.indx
 Server/bin/asksource.save*
 Server/bin/netrhost*
 Server/bin/dbconvert
