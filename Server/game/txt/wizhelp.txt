@@ -1657,7 +1657,7 @@
       wizhelp power <power>
 
 & POWER EXECSCRIPT
-  Power argument: @power[/switch] <user>=[@g|@a|@c] fulltel
+  Power argument: @power[/switch] <user>=[@g|@a|@c] execscript
   
   Unlike other @powers, this power IS NOT INHERITABLE.
   

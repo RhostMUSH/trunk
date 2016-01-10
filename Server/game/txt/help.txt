@@ -15942,7 +15942,9 @@
   function: securex(<string> [,<omission>])
   
   This functions exactly like secure(), except you may specify what characters
-  you do not wish to be secured out.
+  you do not wish to be secured out.  The following special characters are
+  available for omitting:
+     a - ignore all forms of ansi subsitutions from the string.
   
   Examples:
     > @va me=Sneak a peek at Wiz's desc... [get(#1/desc)]
@@ -16005,8 +16007,10 @@
   Function: escapex(<string> [,<omission>])
   
   This functions exactly like escape(), except you may specify what characters
-  you wish to omit from being escaped through <omition>.  You may specify 'f'
-  in the omission to omit the first escape (backslash) from the string.
+  you wish to omit from being escaped through <omition>.  The optional special
+  characters can be used when looking to escape out fields:
+     f - omit the first escape (backslash) from the string.
+     a - omit all forms of ansi subsitutions from the string.
   
   Example:
     > say escapex(Hey, Sneak a peak at Wiz's desc... [get($1/desc)],\[\])
@@ -28746,6 +28750,8 @@
     for enhanced purging [ASH]
   * Laxed some restrictions on @admin params [ASH]
   * optional 3rd argument to parenmatch() does pretty-print of mush code [ASH]
+  * securex() and escapex() now optionally accept 'a' as argument to ignore
+    ansi [ASH]
     
   Bug Fixes
   ------------

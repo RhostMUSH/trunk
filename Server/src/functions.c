@@ -20124,10 +20124,26 @@ FUNCTION(fun_member)
 
 FUNCTION(fun_secure)
 {
-    char *s, *s2;
+    char *s, *s2, c_chr[5], *cptr;
 
     if (!fn_range_check("SECUREX", nfargs, 1, 2, buff, bufcx))
        return;
+
+    cptr = c_chr;
+#ifdef C_SUB
+    *cptr = 'c';
+    cptr++;
+#endif
+#ifdef TINY_SUB
+    *cptr = 'x';
+    cptr++;
+#endif
+#ifdef M_SUB
+    *cptr = 'm';
+    cptr++;
+#endif
+    *cptr = '\0';
+
     s = fargs[0];
     if ( nfargs > 1 )
        s2 = fargs[1];
@@ -20147,6 +20163,10 @@ FUNCTION(fun_secure)
             case '}':
             case ',':
             case ';':
+                 if ( s2 && strchr(s2, 'a') && (*s == '%') && *(s+1) && strchr(c_chr, *(s+1)) ) {
+                   safe_chr(*s, buff, bufcx);
+                   break;
+                 } 
                  if ( !(s2 && strchr(s2, *s)) ) {
                    safe_chr(' ', buff, bufcx);
                    break;
@@ -20217,7 +20237,7 @@ FUNCTION(fun_unesclist)
 
 FUNCTION(fun_escape)
 {
-    char *s, *d, *s2;
+    char *s, *d, *s2, c_chr[5], *cptr;
 
     if (!fn_range_check("ESCAPEX", nfargs, 1, 2, buff, bufcx))
        return;
@@ -20226,6 +20246,21 @@ FUNCTION(fun_escape)
        s2 = fargs[1];
     else
        s2 = NULL;
+
+    cptr = c_chr;
+#ifdef C_SUB
+    *cptr = 'c';
+    cptr++;
+#endif
+#ifdef TINY_SUB
+    *cptr = 'x';
+    cptr++;
+#endif
+#ifdef M_SUB
+    *cptr = 'm';
+    cptr++;
+#endif
+    *cptr = '\0';
 
     d=*bufcx;
     while (*s) {
@@ -20241,6 +20276,10 @@ FUNCTION(fun_escape)
           case ')':   /* Added 7/00 Ash */
           case ';':
           case ',':   /* Added 7/00 Ash */
+              if ( s2 && strchr(s2, 'a') && (*s == '%') && *(s+1) && strchr(c_chr, *(s+1)) ) {
+                 safe_chr(*s, buff, bufcx);
+                 break;
+              }
               if ( !(s2 && strchr(s2, *s)) )
                  safe_chr('\\', buff, bufcx);
           default:
