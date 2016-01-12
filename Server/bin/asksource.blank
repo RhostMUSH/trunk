@@ -62,7 +62,7 @@ else
    do
       if [ $(file "$i"|grep -c ELF) -gt 0 ]
       then
-        LDCONFIG="$i"
+        MYGCC="$i"
       fi
    done
 fi
@@ -1500,15 +1500,28 @@ setdefaults() {
   if [ -n "${LDCONFIG}" ]
   then
      Z1=$(${LDCONFIG} ${LDOPT}|grep -c openssl.so)
+     if [ ${Z1} -eq 0 ]
+     then
+        Z1=$(${LDCONFIG} ${LDOPT}|grep -c libssl.so)
+     fi
   else
      Z1=0
   fi
   if [ "${X[24]}" != "X" ]
   then
-     if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h ]
+     if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h -a -f /usr/include/openssl/bio.h ]
      then
-        echo "OpenSSL identified.  Configuring..."
-        DEFS="${DEFS} -DHAS_OPENSSL"
+        if [ $(uname -a|grep -ic ubuntu) -eq 0 ]
+        then
+           echo "OpenSSL identified.  Configuring..."
+           DEFS="${DEFS} -DHAS_OPENSSL"
+        else
+           if [ $Z1 -gt 0 ]
+           then
+              echo "OpenSSL identified.  Configuring..."
+              DEFS="${DEFS} -DHAS_OPENSSL"
+           fi
+        fi
      elif [ $Z1 -gt 0 ]
      then
         echo "OpenSSL identified.  Configuring..."
