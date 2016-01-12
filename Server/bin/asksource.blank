@@ -1499,10 +1499,10 @@ setdefaults() {
   fi
   if [ -n "${LDCONFIG}" ]
   then
-     Z1=$(${LDCONFIG} ${LDOPT}|grep -c openssl.so)
+     Z1=$(${LDCONFIG} ${LDOPT}|grep -c "openssl.so$")
      if [ ${Z1} -eq 0 ]
      then
-        Z1=$(${LDCONFIG} ${LDOPT}|grep -c libssl.so)
+        Z1=$(${LDCONFIG} ${LDOPT}|grep -c "libssl.so$")
      fi
   else
      Z1=0
