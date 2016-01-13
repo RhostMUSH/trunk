@@ -27,6 +27,12 @@ then
       exit 1
    fi
 else
+   git --version > /dev/null 2>&1
+   if [ $? -ne 0 ]
+   then
+      echo "Oopse!  You do not have git installed.  You need that to use patch.sh.  Sorry!"
+      exit 1
+   fi
    echo "Hum.  No source files.  I'll tell git to yoink the source files for you then."
    echo "downloading..."|tr -d '\012'
    git clone https://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
