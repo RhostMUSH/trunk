@@ -312,6 +312,7 @@ NAMETAB dynhelp_sw[] =
 {
     {(char *) "parse", 1, CA_WIZARD, 0, DYN_PARSE},
     {(char *) "search", 1, CA_WIZARD, 0, DYN_SEARCH},
+    {(char *) "nolabel", 1, CA_WIZARD, 0, DYN_NOLABEL | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB edit_sw[] =

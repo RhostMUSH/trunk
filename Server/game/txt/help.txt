@@ -28752,6 +28752,7 @@
   * optional 3rd argument to parenmatch() does pretty-print of mush code [ASH]
   * securex() and escapex() now optionally accept 'a' as argument to ignore
     ansi [ASH]
+  * @dynhelp has a /nolabel switch to snarf the hilighted index values [ASH]
     
   Bug Fixes
   ------------

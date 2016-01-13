@@ -361,10 +361,19 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
 {
    help_indx entry;
    char *tmp, *p_tmp, *p, *q, *line, *msg, *p_msg, *result, *tpass;
-   int first, found, matched, one_through, space_compress;
+   int first, found, matched, one_through, space_compress, i_noindex;
    FILE *fp_indx, *fp_help;
    char filename[129 + 40], *mybuff, *myp;
 
+   if ( (key & DYN_SEARCH) && (key & DYN_NOLABEL) ) {
+      notify_quiet(player, "Illegal combination of switches.");
+      return(1);
+   }
+   i_noindex = 0;
+   if ( key & DYN_NOLABEL ) {
+      key &= ~DYN_NOLABEL;
+      i_noindex = 1;
+   }
    fp_help = NULL;
    memset(filename, 0, sizeof(filename));
    tpass = fhelp;
@@ -393,6 +402,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    for (q = msg; *q; q++)
        *q = ToLower((int)*q);
    found = first = matched = 0;
+
 
    if ( key & DYN_SEARCH ) {
       sprintf(filename, "%.128s/%.32s.txt", mudconf.txt_dir, fhelp);
@@ -537,7 +547,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       one_through=0;
       space_compress = mudconf.space_compress;
       mudconf.space_compress=0;
-      if ( !i_type && !t_val ) {
+      if ( !i_noindex && !i_type && !t_val ) {
          myp = mybuff = alloc_lbuf("ANSI_DYNHELP");
 #ifdef ZENTY_ANSI
          safe_str(SAFE_ANSI_HILITE, mybuff, &myp);

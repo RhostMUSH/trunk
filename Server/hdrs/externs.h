@@ -1021,6 +1021,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define THAW_DEL	1	/* Drop the frozen FTIME pid process */
 #define DYN_PARSE       1	/* Parse the help */
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
+#define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
 #define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
