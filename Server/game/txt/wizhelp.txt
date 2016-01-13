@@ -4471,8 +4471,9 @@
   valid as part of the filename (or path).
   
   Available switches:
-    /parse - this will parse the help evaluating all %n's/functions.
-    /search - search content and list topics containing '<topic>'.
+    /parse   - this will parse the help evaluating all %n's/functions.
+    /search  - search content and list topics containing '<topic>'.
+    /nolabel - snuff the hilight index of the topic <topic> when showing.
   
   Example:
     (let's say you want to read a history text file called 'history.txt')
