@@ -27,6 +27,7 @@ void bzero(void *, int);
 /* For MTU/MSS additions */
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <sys/socket.h>
 
 
 /*hack*/
@@ -1039,6 +1040,7 @@ new_connection(int sock)
 
 #ifndef __MACH__
 #ifndef CYGWIN
+#ifndef BROKEN_PROXY
     if ( mudconf.proxy_checker > 0 ) {
        /* Check MTU */
        i_mtulen = sizeof(i_mtu);
@@ -1072,6 +1074,7 @@ new_connection(int sock)
           }
        } 
     }
+#endif
 #endif
 #endif
 
