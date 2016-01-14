@@ -25,9 +25,9 @@ void bzero(void *, int);
 #include <signal.h>
 
 /* For MTU/MSS additions */
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <sys/socket.h>
 
 
 /*hack*/
