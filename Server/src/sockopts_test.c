@@ -11,4 +11,5 @@ main()
 
    i_mtulen = sizeof(i_mtu);
    getsockopt(newsock, SOL_IP, IP_MTU, &i_mtu, (unsigned int *)&i_mtulen);
+   getsockopt(newsock, IPPROTO_TCP, TCP_MAXSEG,  &i_mss, (unsigned int*)&i_msslen);
 }
