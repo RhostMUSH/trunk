@@ -693,6 +693,8 @@
 & @program
   Command: @program <player>=<obj/attr>[:<prefix>]
   
+  Note:  The PROG @toggle is required for anything that will use @program.
+  
   This command allows for small 'programs' within RhostMUSH. To understand this
   command, you must first understand the fact that it completely bypasses any
   commands, built-in or otherwise, and allows you to send user-input directly
