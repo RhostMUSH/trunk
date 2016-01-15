@@ -1393,6 +1393,8 @@ setopts() {
 # SETDEFAULTS - Assign default DEFS required for platform
 ###################################################################
 setdefaults() {
+  # compile timeout.c incase we need it
+  ${MYGCC} ../src/timeout.c -o ../bin/timeout > /dev/null 2>&1
   echo "Configuring default definitions..."
   ${MYGCC} ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
   if [ $? -eq 0 ]

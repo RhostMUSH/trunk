@@ -28753,6 +28753,7 @@
   * securex() and escapex() now optionally accept 'a' as argument to ignore
     ansi [ASH]
   * @dynhelp has a /nolabel switch to snarf the hilighted index values [ASH]
+  * Improved compatibility with execscript
     
   Bug Fixes
   ------------
@@ -28760,3 +28761,4 @@
     4 or more arguments [ASH]
   * foreach() had a possibility of overwriting a static buffer in-use
     which could return erraneous results (non-crash-bug) [ASH]
+  * Ancient systems (CentOS 4/5) didn't successfully handle MTU values [ASH]

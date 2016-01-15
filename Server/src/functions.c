@@ -15475,7 +15475,7 @@ FUNCTION(fun_execscript)
 {
    FILE *fp;
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2;
-   int i_count, i_buff, i_power, i_level;
+   int i_count, i_buff, i_power, i_level, i_alttimeout;
    time_t i_now;
    struct stat st_buf;
    POWENT *pent;
@@ -15556,10 +15556,14 @@ FUNCTION(fun_execscript)
       return;
    }
 
+   i_alttimeout = 0;
    if ( stat("/usr/bin/timeout", &st_buf) == -1 ) {
-      safe_str("#-1 /usr/bin/timeout not available.  No safty net for pipe execution.", buff, bufcx);
-      free_lbuf(s_combine);
-      return;
+      if ( stat("../bin/timeout", &st_buf) == -1 ) {
+         safe_str("#-1 /usr/bin/timeout nor local timeout not available.  No safty net for pipe execution.", buff, bufcx);
+         free_lbuf(s_combine);
+         return;
+      }
+      i_alttimeout = 1;
    }
 
    sprintf(s_combine, "./scripts/%.100s", fargs[0]);
@@ -15618,11 +15622,17 @@ FUNCTION(fun_execscript)
          safe_chr(*s_inbufptr, sptr, &sptr2);
          s_inbufptr++;
       }
-      sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s %.3800s", fargs[0], sptr);
+      if ( i_alttimeout == 1 )
+         sprintf(s_combine, "../bin/timeout -9 5 ./scripts/%.100s %.3800s", fargs[0], sptr);
+      else
+         sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s %.3800s", fargs[0], sptr);
       free_lbuf(s_inbuf);
       free_lbuf(sptr);
    } else {
-      sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s", fargs[0]);
+      if ( i_alttimeout == 1 )
+         sprintf(s_combine, "../bin/timeout -9 5 ./scripts/%.100s", fargs[0]);
+      else
+         sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s", fargs[0]);
    }
 
    fp = popen(s_combine, "r");
