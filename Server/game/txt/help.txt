@@ -18609,7 +18609,7 @@
   See Also: @pemit, npemit(), SIDEEFFECTS
   
 & NPEMIT()
-  Function: npemit(<object> [<object2> ...],<string>)
+  Function: npemit(<object> [<object2> ...],<string> [,<key>])
   
   The npemit() function works like pemit() except it won't strip spaces.
   
@@ -28756,6 +28756,7 @@
     ansi [ASH]
   * @dynhelp has a /nolabel switch to snarf the hilighted index values [ASH]
   * Improved compatibility with execscript
+  * NPEMIT(), like PEMIT(), now handles 3 arguments.
     
   Bug Fixes
   ------------

@@ -31773,7 +31773,7 @@ FUN flist[] =
     {"NEQ", fun_neq, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"NEXT", fun_next, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
-    {"NPEMIT", fun_pemit, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"NPEMIT", fun_pemit, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"NOR", fun_nor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NOSTR", fun_nostr, 2, 0, CA_PUBLIC, 0},
