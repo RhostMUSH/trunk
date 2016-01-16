@@ -1,0 +1,35 @@
+<Public> Where's Wilco says, "Pleasant aromas!"
+@create Descer=10
+&F_DELDESC Descer=[setr(0,[and(words(%0),valid(attrname,desc`%0))][!!$lattr(%1/desc`*)][hasattr(%1,desc`%0)])]
+&DELDESCM000 Descer=[ansi(g,Multi Descer)]: Invalid attribute specified.
+&DELDESCM010 Descer=[ansi(g,Multi Descer)]: Invalid attribute specified.
+&DELDESCM100 Descer=[ansi(g,Multi Descer)]: No descriptions made. Please use +desc/set to make a new one.
+&DELDESCM110 Descer=[ansi(g,Multi Descer)]: No such description to delete.
+&DELDESCM111 Descer=[ansi(g,Multi Descer)]: Description '[ansi(hr,capstr(lcstr(%0)))]' deleted.
+&CMD_DELDESC Descer=$+desc/del *:@pemit %#=[u(DELDESCM[u(f_deldesc,%0,%#)],%0,%#)];@break [!match(%q0,111)];&desc`%0 %#=
+&CMD_DESCLIST Descer=$+desc/list:@pemit %#=[printf(---$-76:-:s,Multi Description Listing)]%r[setq(0,lattr(%#/desc`*))][ifelse(!$r(0),No Descriptions Found,columns(iter(%q0,capstr(lcstr(after(##,`)))),23,3,l,0,0,|%b,%b|%b,%b|,,,,1))]%r[repeat(-,79)]
+&ESTABLISHDESCM0 Descer=[ansi(g,Multi Descer)]: No such description to set.
+&ESTABLISHDESCM1 Descer=[ansi(g,Multi Descer)]: Description '[ansi(hr,capstr(lcstr(%0)))]' set.
+&F_ESTABLISHDESC Descer=[setr(0,and(words(%0),valid(attrname,desc`%0),hasattr(%1,desc`%0)))]
+&CMD_ESTABLISHDESC Descer=$+desc *:@pemit %#=[u(ESTABLISHDESCM[u(f_establishdesc,%0,%#)],%0,%#)];@break [!r(1))];@desc %#=[get(%#/desc`%0)]
+&SETDESCM00 Descer=[ansi(g,Multi Descer)]: Invalid attribute name for description.
+&SETDESCM11 Descer=[ansi(g,Multi Descer)]: Description already exists. Delete first or choose a different name.
+&SETDESCM10 Descer=[ansi(g,Multi Descer)]: Description '[ansi(hr,capstr(lcstr(%0)))]' set to: [ansi(hc,mid(%1,0,30))][ifelse(gt(strlen(%1),30),...)]
+&F_SETDESC Descer=[setr(0,[and(words(%0),valid(attrname,desc`%0))][hasattr(%2,desc`%0)])]
+&CMD_SETDESC Descer=$+desc/set *=*:@pemit %#=[u(SETDESCM[u(f_setdesc,%0,%1,%#)],%0,%1,%#)];@break [!match(%q0,10)];&desc`%0 %#={%1};@set %#/desc`%0=no_command
+@set Descer/CMD_SETDESC = no_parse
+&F_VIEWDESC Descer=[setr(0,[and(words(%0),valid(attrname,desc`%0))][hasattr(%1,desc`%0)])]
+&VIEWDESCM00 Descer=[ansi(g,Multi Descer)]: Invalid attribute name for description.
+&VIEWDESCM10 Descer=[ansi(g,Multi Descer)]: No such description set.
+&VIEWDESCM11 Descer=[ansi(g,Multi Descer)]: Description is as follows (wrapped for ease of display):%r[repeat(-,78)]%r[printf($1:|:&s $-74|"s $1:|:&s,%r,get(%1/desc`%0),%r)]%r[repeat(-,78)]
+&CMD_VIEWDESC Descer=$+desc/view *:@pemit %#=[u(VIEWDESCM[u(f_viewdesc,%0,%#)],%0,%#)]
+&HELP_LIST Descer=del set view list help @@
+&HELP_LIST_@@ Descer=[ljust(+desc <label>,30)] - Use the description defined by <label>.
+&HELP_LIST_DEL Descer=[ljust(+desc/del <label>,30)] - Delete the description defined by <label>.
+&HELP_LIST_SET Descer=[ljust(+desc/set <label>=<desc>,30)] - Set a description <desc> to <label>.
+&HELP_LIST_VIEW Descer=[ljust(+desc/view <label>,30)] - View the description defined by <label>.
+&HELP_LIST_HELP Descer=[ljust(+desc/help,30)] - Show this screen.
+&HELP_LIST_LIST Descer=[ljust(+desc/list,30)] - List all descriptions by <label>.
+&CMD_HELPDESC Descer=$+desc/help:@pemit %#=[repeat(-,78)]%r[ansi(g,Multi Descer)]: [iter(v(help_list),%r[u(help_list_##)])]%r[repeat(-,78)]
+&CREDITS Descer=Kitai, modified by Ashen-Shugar
+@set Descer=INDESTRUCTABLE SAFE INHERIT
