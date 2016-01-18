@@ -28757,6 +28757,7 @@
   * @dynhelp has a /nolabel switch to snarf the hilighted index values [ASH]
   * Improved compatibility with execscript
   * NPEMIT(), like PEMIT(), now handles 3 arguments.
+  * enhanced argument range check on all regedit*() functions [ASH]
     
   Bug Fixes
   ------------
