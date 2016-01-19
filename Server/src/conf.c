@@ -294,6 +294,7 @@ NDECL(cf_init)
     mudconf.proxy_checker = 0;		/* Proxy Checker -- Not very reliable */
     mudconf.idle_stamp = 0;             /* Enable for idle checking on players */
     mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
+    mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4345,6 +4346,9 @@ CONF conftable[] =
     {(char *) "penn_playercmds",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.penn_playercmds, 0, 0, CA_PUBLIC,
      (char *) "Commands on player work only for player?"},
+    {(char *) "penn_setq",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.penn_setq, 0, 0, CA_PUBLIC,
+     (char *) "Does setq() family mimic penn for labels"},
     {(char *) "penn_switches",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.penn_switches, 0, 0, CA_PUBLIC,
      (char *) "Does switch() understand > and <?"},

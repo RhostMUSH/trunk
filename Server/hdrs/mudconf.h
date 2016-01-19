@@ -412,6 +412,7 @@ struct confdata {
 	int	proxy_checker;	/* Proxy Checker -- Not very reliable */
 	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
 	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
+	int	penn_setq;	/* Do penn setq formatting */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */

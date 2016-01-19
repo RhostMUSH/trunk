@@ -5702,6 +5702,10 @@ list_options_system(dbref player)
        notify(player, "Name shown before descs when looking at non-owned things --------- ENABLED");
     else
        notify(player, "Name shown before descs when looking at non-owned things --------- DISABLED");
+    if ( mudconf.penn_setq )
+       notify(player, "Setq/Setr use PennMUSH compatiability mode ----------------------- ENABLED");
+    else
+       notify(player, "Setq/Setr use PennMUSH compatiability mode ----------------------- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 

@@ -27986,7 +27986,7 @@ FUNCTION(fun_nameq)
 
 FUNCTION(fun_setq_old)
 {
-    int regnum, i, i_namefnd;
+    int regnum, i, i_namefnd, i_penntog;
 
     if (!fn_range_check("SETQ", nfargs, 2, 3, buff, bufcx))
       return;
@@ -28006,15 +28006,19 @@ FUNCTION(fun_setq_old)
        }
     }
 
+    i_penntog = 0;
+    if ( mudconf.penn_setq && (nfargs == 2)) {
+       i_penntog = 1;
+    }
 
     regnum = -1;
     i_namefnd = 0;
-    if ( ((strcmp(fargs[0], "!") == 0) || strcmp(fargs[0], "+") == 0) && 
-         (nfargs > 2) && *fargs[2] ) {
+    if ( (i_penntog || (strcmp(fargs[0], "!") == 0) || (strcmp(fargs[0], "+") == 0)) && 
+         (i_penntog || ((nfargs > 2) && *fargs[2])) ) {
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
-               (stricmp(mudstate.global_regsname[i], fargs[2]) == 0) ) {
+               (stricmp(mudstate.global_regsname[i], (i_penntog ? fargs[0] : fargs[2])) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;
@@ -28069,8 +28073,8 @@ FUNCTION(fun_setq_old)
        strcpy(mudstate.global_regs[regnum], fargs[1]);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          strncpy(mudstate.global_regsname[regnum], fargs[2], (SBUF_SIZE - 1));
+       if ( i_penntog || ((nfargs > 2) && *fargs[2]) ) {
+          strncpy(mudstate.global_regsname[regnum], (i_penntog ? fargs[0] : fargs[2]), (SBUF_SIZE - 1));
           *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
     }
@@ -28083,8 +28087,8 @@ FUNCTION(fun_setq_old)
        strcpy(mudstate.global_regs[regnum], fargs[1]);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          strncpy(mudstate.global_regsname[regnum], fargs[2], (SBUF_SIZE - 1));
+       if ( i_penntog || ((nfargs > 2) && *fargs[2]) ) {
+          strncpy(mudstate.global_regsname[regnum], (i_penntog ? fargs[0] : fargs[2]), (SBUF_SIZE - 1));
           *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
     }
@@ -28093,7 +28097,7 @@ FUNCTION(fun_setq_old)
 
 FUNCTION(fun_setq)
 {
-    int regnum, i, i_namefnd;
+    int regnum, i, i_namefnd, i_nfargs;
     char *result, *result_orig, *result_second;
 
     if (!fn_range_check("SETQ", nfargs, 2, 3, buff, bufcx))
@@ -28102,6 +28106,7 @@ FUNCTION(fun_setq)
     result_orig = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                        fargs[0], cargs, ncargs, (char **)NULL, 0);
 
+    i_nfargs = nfargs;
     result_second = NULL;
     if ((nfargs > 2))
     {
@@ -28127,11 +28132,25 @@ FUNCTION(fun_setq)
           *result_second = '\0';
        }
     }
-
+    if ( (nfargs == 2) && mudconf.penn_setq ) {
+       if ( !*result_orig ) {
+          safe_str("#-1 INVALID LABEL", buff, bufcx);
+          free_lbuf(result_orig);
+          return;
+       }
+       i_nfargs = 3;
+       result_second = alloc_lbuf("penn_setq_args");
+       if ( (strlen(result_orig) == 1) && isalnum(*result_orig) ) {
+          *result_second = '\0';
+       } else {
+           strcpy(result_second, result_orig);
+           strcpy(result_orig, (char *)"+");
+       }
+    }
     i_namefnd = 0;
     regnum = -1;
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
-          (nfargs > 2) && *result_second ) {
+          (i_nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
@@ -28192,7 +28211,7 @@ FUNCTION(fun_setq)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *result_second ) {
+       if ( (i_nfargs > 2) && *result_second ) {
               strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
               *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
@@ -28209,7 +28228,7 @@ FUNCTION(fun_setq)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *result_second ) {
+       if ( (i_nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
@@ -28217,7 +28236,7 @@ FUNCTION(fun_setq)
     }
 #endif
     free_lbuf(result_orig);
-    if ( (nfargs > 2) && *fargs[2] )
+    if ( ((nfargs > 2) && *fargs[2]) || mudconf.penn_setq )
         free_lbuf(result_second);
 }
 
@@ -28225,7 +28244,7 @@ FUNCTION(fun_setq)
 
 FUNCTION(fun_setr_old)
 {
-    int regnum, i, i_namefnd;
+    int regnum, i, i_namefnd, i_penntog;
 
     if (!fn_range_check("SETR", nfargs, 2, 3, buff, bufcx))
       return;
@@ -28244,14 +28263,19 @@ FUNCTION(fun_setr_old)
        }
     }
 
+    i_penntog = 0;
+    if ( mudconf.penn_setq && (nfargs == 2)) {
+       i_penntog = 1;
+    }
+
     i_namefnd = 0;
     regnum = -1;
-    if ( ((strcmp(fargs[0], "!") == 0) || (strcmp(fargs[0], "+") == 0)) && 
-         (nfargs > 2) && *fargs[2] ) {
+    if ( (i_penntog || (strcmp(fargs[0], "!") == 0) || (strcmp(fargs[0], "+") == 0)) && 
+         (i_penntog || ((nfargs > 2) && *fargs[2])) ) {
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
-               (stricmp(mudstate.global_regsname[i], fargs[2]) == 0) ) {
+               (stricmp(mudstate.global_regsname[i], (i_penntog ? fargs[0] : fargs[2]) ) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;
@@ -28306,8 +28330,8 @@ FUNCTION(fun_setr_old)
        strcpy(mudstate.global_regs[regnum], fargs[1]);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          strncpy(mudstate.global_regsname[regnum], fargs[2], (SBUF_SIZE - 1));
+       if ( i_penntog || ((nfargs > 2) && *fargs[2]) ) {
+          strncpy(mudstate.global_regsname[regnum], (i_penntog ? fargs[0] : fargs[2]), (SBUF_SIZE - 1));
           *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
        safe_str(fargs[1], buff, bufcx);
@@ -28321,8 +28345,8 @@ FUNCTION(fun_setr_old)
        strcpy(mudstate.global_regs[regnum], fargs[1]);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *fargs[2] ) {
-          strncpy(mudstate.global_regsname[regnum], fargs[2], (SBUF_SIZE - 1));
+       if ( i_penntog || ((nfargs > 2) && *fargs[2]) ) {
+          strncpy(mudstate.global_regsname[regnum], (i_penntog ? fargs[0] : fargs[2]), (SBUF_SIZE - 1));
           *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
        safe_str(fargs[1], buff, bufcx);
@@ -28332,7 +28356,7 @@ FUNCTION(fun_setr_old)
 
 FUNCTION(fun_setr)
 {
-    int regnum, i, i_namefnd;
+    int regnum, i, i_namefnd, i_nfargs;
     char *result, *result_orig, *result_second;
 
     if (!fn_range_check("SETR", nfargs, 2, 3, buff, bufcx))
@@ -28342,6 +28366,7 @@ FUNCTION(fun_setr)
                        fargs[0], cargs, ncargs, (char **)NULL, 0);
 
     result_second = NULL;
+    i_nfargs = nfargs;
     if (nfargs > 2)
     {
        if(!*fargs[2])
@@ -28366,11 +28391,26 @@ FUNCTION(fun_setr)
           *result_second = '\0';
        }
     }
+    if ( (nfargs == 2) && mudconf.penn_setq ) {
+       if ( !*result_orig ) {
+          safe_str("#-1 INVALID LABEL", buff, bufcx);
+          free_lbuf(result_orig);
+          return;
+       }
+       i_nfargs = 3;
+       result_second = alloc_lbuf("penn_setr_args");
+       if ( (strlen(result_orig) == 1) && isalnum(*result_orig) ) {
+          *result_second = '\0';
+       } else {
+           strcpy(result_second, result_orig);
+           strcpy(result_orig, (char *)"+");
+       }
+    }
 
     i_namefnd = 0;
     regnum = -1;
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
-         (nfargs > 2) && *result_second ) {
+         (i_nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
        for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
@@ -28431,7 +28471,7 @@ FUNCTION(fun_setr)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *result_second ) {
+       if ( (i_nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
@@ -28449,7 +28489,7 @@ FUNCTION(fun_setr)
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
           mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
-       if ( (nfargs > 2) && *result_second ) {
+       if ( (i_nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
        }
@@ -28458,7 +28498,7 @@ FUNCTION(fun_setr)
     }
 #endif
     free_lbuf(result_orig);
-    if ( (nfargs > 2) && *fargs[2] )
+    if ( ((nfargs > 2) && *fargs[2]) || mudconf.penn_setq )
         free_lbuf(result_second);
 }
 

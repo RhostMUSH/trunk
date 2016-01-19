@@ -21018,10 +21018,15 @@
   See Also: setq(), setr(), r(), SETQ_TEMPLATE
 
 & SETQ()
-  Function: setq(<number>,<string>[,<label>])
+  Function: setq(<register>,<string>[,<label>])
             setq(<label>,<string>[,<label>)
             setq(!,<string>,<label>)
             setq(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setq(<label|register>,<string>)
+            setq(+,<string>,<label>)
+            setq(!,<string>,<label>)
  
   The setq() function is used to copy strings into local registers.
   It returns a null string; it is a purely "side effect" function.
@@ -21063,10 +21068,15 @@
             setqmatch(), SETQ_TEMPLATE
   
 & SETQ_OLD()
-  Function: setq_old(<number>,<string>[,<label>])
+  Function: setq_old(<register>,<string>[,<label>])
             setq_old(<label>,<string>[,<label>])
             setq_old(!,<string>,<label>)
             setq_old(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setq_old(<label|register>,<string>)
+            setq_old(+,<string>,<label>)
+            setq_old(!,<string>,<label>)
   
   This functions exactly like setq(), except it is using the old MUSH 
   method of evaluation.  This tends to be less abraisive on braces and
@@ -21088,10 +21098,15 @@
   See Also: setr_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
   
 & SETR()
-  Function: setr(<number>,<string>[,<label>])
+  Function: setr(<register>,<string>[,<label>])
             setr(<label>,<string>[,<label>])
             setr(!,<string>,<label>)
             setr(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setr(<label|register>,<string>)
+            setr(+,<string>,<label>)
+            setr(!,<string>,<label>)
  
   The setr() function is used to copy strings into local registers.
   Unlike setq(), it returns its <string> argument.
@@ -21122,10 +21137,15 @@
             setqmatch(), SETQ_TEMPLATE
   
 & SETR_OLD()
-  Function: setr_old(<number>,<string>[,<label>])
+  Function: setr_old(<register>,<string>[,<label>])
             setr_old(<label>,<string>[,<label>])
             setr_old(!,<string>,<label>)
             setr_old(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setr_old(<label|register>,<string>)
+            setr_old(+,<string>,<label>)
+            setr_old(!,<string>,<label>)
   
   This functions exactly like setr(), except it is using the old MUSH 
   method of evaluation.  This tends to be less abraisive on braces and
@@ -28741,6 +28761,7 @@
   * execscript() with matching sideeffect value and @power execscript to
     allow executing external script as a function with appropiate 
     safeguards for script name and arguments [ASH]
+  * penn_setq -- Penn compatibility option for labels with setq/setr.
   
   Changes
   ------------
