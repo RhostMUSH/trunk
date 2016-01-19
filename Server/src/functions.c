@@ -28008,7 +28008,8 @@ FUNCTION(fun_setq_old)
 
     i_penntog = 0;
     if ( mudconf.penn_setq && (nfargs == 2)) {
-       i_penntog = 1;
+       if ( !((strlen(fargs[0]) == 1) && isalnum(*fargs[0])) )
+          i_penntog = 1;
     }
 
     regnum = -1;
@@ -28265,7 +28266,8 @@ FUNCTION(fun_setr_old)
 
     i_penntog = 0;
     if ( mudconf.penn_setq && (nfargs == 2)) {
-       i_penntog = 1;
+       if ( !((strlen(fargs[0]) == 1) && isalnum(*fargs[0])) )
+          i_penntog = 1;
     }
 
     i_namefnd = 0;
