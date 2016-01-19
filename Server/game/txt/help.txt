@@ -18614,13 +18614,21 @@
   The npemit() function works like pemit() except it won't strip spaces.
   
   This executes the exact same code as pemit(), but with the assumption
-  of the @admin param secure_sideeffects enabled.
+  of the compile time option secure_sideeffects enabled.  This is the
+  default behavior.
   
-  Ergo: This function is exactly the same as pemit() with the @admin
-        parameter 'secure_sideeffects' enabled.
+  Ergo: This function is exactly the same as pemit() with the compile
+        option 'secure_sideeffects' enabled.  This function is left
+        in to ensure 'secure_sideeffect' behavior exists for npemit
+        regardless of compile time options specified.
   
   This function is essentially left for compatibility reasons and not
-  really needed anymore.
+  really needed anymore, except when compiling specificaly without
+  the default behavior.  The example below will always be pretty much
+  the same regardless of what option you have.  Without the option
+  secure_sideeffect, it essentially causes a double-eval which while
+  not the preferred method is backward compatible to very old versions
+  of RhostMUSH, MUX, and TinyMUSH.
      
   Example:
   > @pemit/list me me=test
