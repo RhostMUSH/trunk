@@ -2864,7 +2864,14 @@
   Command: @list functions
   Lists the functions that may be used to obtain information when evaluating
   command lines.
-
+  
+  You may specify the sub-categories:
+      built-in - list only the built-in hardcoded functions.
+      user     - list only user-defined global @functions.
+      local    - list only the local @lfunctions
+  
+  By default, it lists all functions.
+ 
 & @list globals
   Command: @list globals
   Lists the global parameters that may be set or cleared by the @enable and

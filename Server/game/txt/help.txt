@@ -10972,6 +10972,7 @@
          ^ - center justify
          _ - stretch justify
          + - do not cut value if exceed value (default is cut off)
+         * - cut value from the right instead of the left.
          & - process carrage returns and keep in same column field.  This
              will break up lines based on carrage returns (%r) and keep
              formatted into the same column specified in the format.
@@ -11001,6 +11002,7 @@
          0 - if prepending a number, tells it to padd 0's.
   
   Note: The ` and ' code fields won't work on single line columns.
+        The * option is not compatible with the & option.
    
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
   
@@ -28796,6 +28798,8 @@
   * Improved compatibility with execscript
   * NPEMIT(), like PEMIT(), now handles 3 arguments.
   * enhanced argument range check on all regedit*() functions [ASH]
+  * added '*' option to printf that allows cutting values from the right [ASH]
+  * @list functions accepts sub-options 'user', 'local', and 'built-in' [ASH]
     
   Bug Fixes
   ------------

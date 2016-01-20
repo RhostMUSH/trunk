@@ -7827,7 +7827,15 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 	display_toggletab(player);
 	break;
     case LIST_FUNCTIONS:
-	list_functable(player);
+        if ( s_ptr2 && *s_ptr2 && 
+             !( (stricmp(s_ptr2, "built-in") == 0) ||
+                (stricmp(s_ptr2, "user") == 0) ||
+                (stricmp(s_ptr2, "local") == 0) ) ) {
+           notify_quiet(player, "Unknown sub-option for FUNCTIONS.  Use one of: "\
+                                "built-in, user, local");
+        } else {
+	   list_functable(player, s_ptr2);
+        }
 	break;
     case LIST_GLOBALS:
 	interp_nametab(player, enable_names, mudconf.control_flags,

@@ -8195,6 +8195,8 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
        *s_special, *s_normal, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
       center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt;
+  char *outbuff, *s_output, *s_outptr;
+  ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
   i_breakhappen = i_usepadding = 0;
   if( fm->lastval ) {
@@ -8350,15 +8352,30 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
        fm->format_padstsize = 0;
        fm->format_padch = ' ';
     } else if ( *(fm->format_padst) == '!') {
-/*     fm->format_padstsize = strlen(strip_all_special(fm->format_padst)); */
        snarfle_special_characters(fm->format_padst+1, s_padstring);
        fm->format_padstsize = strlen(strip_all_special(s_padstring));
     } else {
        snarfle_special_characters(fm->format_padst, s_padstring);
     }
     i_nostripansi = strlen(fmtbuff);
-    if ( fm->nocutval && *fmtbuff && ((fm->fieldwidth + morepadd) < i_stripansi) )
+    /* Do not cut at all */
+    if ( (fm->nocutval == 1) && *fmtbuff && ((fm->fieldwidth + morepadd) < i_stripansi) )
        fm->fieldwidth = i_stripansi;
+    /* Cut from right, not left */
+    if ( (fm->nocutval == 2) && *fmtbuff && ((fm->fieldwidth + morepadd) < i_stripansi) ) {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       outbuff = alloc_lbuf("fun_scramble");
+       memset(outbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fmtbuff), outbuff, outsplit);
+       if ( strlen(outbuff) > (fm->fieldwidth + morepadd) ) {
+          s_outptr = outbuff + (strlen(outbuff) - (fm->fieldwidth + morepadd));
+          p_sp = outsplit + (s_outptr - outbuff);
+          s_output = rebuild_ansi(s_outptr, p_sp);
+          strcpy(fmtbuff, s_output);
+          free_lbuf(s_output);
+       }
+       free_lbuf(outbuff);
+    }
     padwidth = (fm->fieldwidth + morepadd) - i_stripansi;
     if ( fm->format_padch )
        padch = fm->format_padch;
@@ -9451,6 +9468,20 @@ FUNCTION(fun_printf)
                         fm.fieldsupress3 = 1;
                         formatpass = 1;
                         break;
+                     case '*': /* Cut field from RIGHT and not LEFT */
+                        if( fm.nocutval ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           fmterror = 1;
+                           break;
+                        }
+                        if( fm.breakonreturn || fm.forcebreakonreturn ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           fmterror = 1;
+                           break;
+                        }
+                        fm.nocutval = 2;
+                        formatpass = 1;
+                        break;
                      case '+': /* don't cut the fields */
                         if( fm.nocutval ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
@@ -9498,6 +9529,11 @@ FUNCTION(fun_printf)
                         formatpass = 1;
                         break;
                      case '&': /* breakonreturn */
+                        if( fm.nocutval == 2 ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           fmterror = 1;
+                           break;
+                        }
                         if( fm.breakonreturn || fm.forcebreakonreturn ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
                            fmterror = 1;
@@ -32793,25 +32829,31 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
 }
 
 void
-list_functable(dbref player)
+list_functable(dbref player, char *s_filter)
 {
     char *buf, *bp, *buf2, *bp2, *buf3, *bp3;
 
-    bp = buf = alloc_lbuf("list_functable");
-    bp2 = buf2 = alloc_lbuf("list_functable2");
-    bp3 = buf3 = alloc_lbuf("list_functable3");
-    safe_str((char *) "Functions : ", buf, &bp);
-    list_functable2(player, buf, &bp, 1);
-    notify(player, buf);
-    free_lbuf(buf);
-    safe_str((char *) "User-Functions : ", buf2, &bp2);
-    list_functable2(player, buf2, &bp2, 2);
-    notify(player, buf2);
-    free_lbuf(buf2);
-    safe_str((char *) "Local-Functions: ", buf3, &bp3);
-    list_functable2(player, buf3, &bp3, 4);
-    notify(player, buf3);
-    free_lbuf(buf3);
+    if ( !s_filter || !*s_filter || (stricmp(s_filter, "built-in") == 0) ) {
+       bp = buf = alloc_lbuf("list_functable");
+       safe_str((char *) "Functions : ", buf, &bp);
+       list_functable2(player, buf, &bp, 1);
+       notify(player, buf);
+       free_lbuf(buf);
+    }
+    if ( !s_filter || !*s_filter || (stricmp(s_filter, "user") == 0) ) {
+       bp2 = buf2 = alloc_lbuf("list_functable2");
+       safe_str((char *) "User-Functions : ", buf2, &bp2);
+       list_functable2(player, buf2, &bp2, 2);
+       notify(player, buf2);
+       free_lbuf(buf2);
+    }
+    if ( !s_filter || !*s_filter || (stricmp(s_filter, "local") == 0) ) {
+       bp3 = buf3 = alloc_lbuf("list_functable3");
+       safe_str((char *) "Local-Functions: ", buf3, &bp3);
+       list_functable2(player, buf3, &bp3, 4);
+       notify(player, buf3);
+       free_lbuf(buf3);
+    }
 }
 
 /* ---------------------------------------------------------------------------

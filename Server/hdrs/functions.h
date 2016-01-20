@@ -51,7 +51,7 @@ typedef struct ufun {
 #define FN_LOCAL     4096       /* @function is a local user function */
 
 extern void	NDECL(init_functab);
-extern void	FDECL(list_functable, (dbref));
+extern void	FDECL(list_functable, (dbref, char *));
 extern void	FDECL(list_functable2, (dbref, char*, char**, int));
 
 /* (Moved from functions.c by Lensman)
