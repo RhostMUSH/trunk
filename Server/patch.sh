@@ -104,8 +104,11 @@ do
   then
      echo "Indexing ${gl_mypath}/${i}..."
      cd ${gl_mypath}/$i/txt
-      ../mkindx help.txt help.indx
-      ../mkindx wizhelp.txt wizhelp.indx
+     if [ -f ../mkindx ]
+     then
+        ../mkindx help.txt help.indx
+        ../mkindx wizhelp.txt wizhelp.indx
+     fi
   fi
 done
 echo "Ok, we're done.  Ignore any warnings.  If you had errors, please report it to the developers."
