@@ -5707,9 +5707,9 @@ list_options_system(dbref player)
     else
        notify(player, "Setq/Setr use PennMUSH compatiability mode ----------------------- DISABLED");
     if ( mudconf.format_compatibility )
-       notify(player, "Attribute formatting compatibility (&<name>FORMAT) --------------- ENABLED");
+       notify(player, "Attribute formatting compatibility (&<name>FORMAT) --------------- FORMAT AFTER");
     else
-       notify(player, "Attribute formatting non-compatibility (&FORMAT<name>) ----------- DISABLED");
+       notify(player, "Attribute formatting non-compatibility (&FORMAT<name>) ----------- FORMAT FIRST");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
