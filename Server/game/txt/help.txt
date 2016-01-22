@@ -85,6 +85,9 @@
   @unlock    @verb        @wait        @wall        @wipe        
   
 { 'help commands2' for more (attribute-commands) }
+
+& attributes
+& attribute-commands
 & commands2
   Help available for RhostMUSH Commands (continued):
  
@@ -135,7 +138,38 @@
   SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
   VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
   ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
+  ATTRIB FORMATTING
   
+& ATTRIB FORMATTING
+& ATTRIBUTE FORMATTING
+  All NON-ACTION attributes allowed formatting are in: help attributes
+  
+  Attribute formatting can be accomplished multiple ways.  First, there is
+  a generic local 'format' for most @-attributes.  To process this format,
+  you need to set an attribute of the name '<format>attr' on the target
+  (or parent, global parent, zone of the target. Use <attr>format if the
+  config parameter format_compatibility is enabled). If this attribute is
+  not found, it will then look at the global default parents for matching
+  attribute inheritance.  Any attribute that you wish to inherit default
+  pattern formatting must be set DEFAULT (attribute flag).  The desc is
+  passed into the formatting as '%0'.  Local formatting has priority
+  over global formatting.
+  
+  Note: Most RhostMUSHes will be configured to use &FORMAT<attr>.
+  
+  Examples:
+    > @desc me=This is a test
+    > @admin player_attr_default=123
+    > @desc #123=-< %0 >-
+    > lo me
+      -< This is a test >-
+    > &formatdesc me===<%0>==
+    > lo me
+      ===<This is a test>===
+
+  See Also: ATTRIBUTES, ATTRIBUTE FLAG DEFAULT, @conformat, 
+            @exitformat, @nameformat
+
 & NEW USERS
 & GUESTS
   Guests are considered a temporary player bit on a mush.  They have severely
@@ -28800,6 +28834,7 @@
   * enhanced argument range check on all regedit*() functions [ASH]
   * added '*' option to printf that allows cutting values from the right [ASH]
   * @list functions accepts sub-options 'user', 'local', and 'built-in' [ASH]
+  * improved help for attrib formatting and added a plug in normal help [ASH]
     
   Bug Fixes
   ------------
