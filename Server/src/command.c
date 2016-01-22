@@ -5576,140 +5576,140 @@ list_options_system(dbref player)
    notify(player, "--- System Player Config Parameters ------------------------------------------");
 #ifdef TINY_SUB
    sprintf(playerchktime, 
-           "%cx --------------------------------------------------------------- %s",
+           "%cx ------------------------------------------------------------- %s",
            '%', "ANSI");
 #else
    sprintf(playerchktime, 
-           "%cx --------------------------------------------------------------- %s",
+           "%cx ------------------------------------------------------------- %s",
            '%', "LASTCMD");
 #endif
    notify(player, playerchktime);
 #ifdef C_SUB
    sprintf(playerchktime, 
-           "%cc --------------------------------------------------------------- %s",
+           "%cc ------------------------------------------------------------- %s",
            '%', "ANSI");
 #else
    sprintf(playerchktime, 
-           "%cc --------------------------------------------------------------- %s",
+           "%cc ------------------------------------------------------------- %s",
            '%', "LASTCMD");
 #endif
    notify(player, playerchktime);
 #ifdef M_SUB
    sprintf(playerchktime, 
-           "%cm --------------------------------------------------------------- %s",
+           "%cm ------------------------------------------------------------- %s",
            '%', "ANSI");
 #else
    sprintf(playerchktime, 
-           "%cm --------------------------------------------------------------- %s",
+           "%cm ------------------------------------------------------------- %s",
            '%', "LASTCMD");
 #endif
    notify(player, playerchktime);
 
    memset(playerchktime, '\0', 125);
 #ifdef TINY_U
-    notify(player, "u()/zfun() ------------------------------------------------------- PENN/MUX/TM3");
+    notify(player, "u()/zfun() ----------------------------------------------------- PENN/MUX/TM3");
 #else
-    notify(player, "u()/zfun() ------------------------------------------------------- RHOST NATIVE");
+    notify(player, "u()/zfun() ----------------------------------------------------- RHOST NATIVE");
 #endif
 #ifdef MUX_INCDEC
-    notify(player, "inc()/dec() ------------------------------------------------------ NUMERIC");
-    notify(player, "xinc()/xdec() ---------------------------------------------------- REGISTERS");
+    notify(player, "inc()/dec() ---------------------------------------------------- NUMERIC");
+    notify(player, "xinc()/xdec() -------------------------------------------------- REGISTERS");
 #else
-    notify(player, "inc()/dec() ------------------------------------------------------ REGISTERS");
-    notify(player, "xinc()/xdec() ---------------------------------------------------- NUMERIC");
+    notify(player, "inc()/dec() ---------------------------------------------------- REGISTERS");
+    notify(player, "xinc()/xdec() -------------------------------------------------- NUMERIC");
 #endif
 #ifdef USE_SIDEEFFECT
-    notify(player, "Sideeffects [SIDEFX required] ------------------------------------ ENABLED");
+    notify(player, "Sideeffects [SIDEFX required] ---------------------------------- ENABLED");
 #else
-    notify(player, "Sideeffects [SIDEFX required] ------------------------------------ DISABLED");
+    notify(player, "Sideeffects [SIDEFX required] ---------------------------------- DISABLED");
 #endif
     if ( mudconf.enhanced_convtime ) {
-       notify(player, "Enhanced convtime() formats --[ see @list options convtime ]------ ENABLED");
+       notify(player, "Enhanced convtime() formats --[ see @list options convtime ]---- ENABLED");
     } else {
-       notify(player, "Enhanced convtime() formats -------------------------------------- DISABLED");
+       notify(player, "Enhanced convtime() formats ------------------------------------ DISABLED");
     }
 #ifdef ENABLE_COMMAND_FLAG
-    notify(player, "The COMMAND flag ------------------------------------------------- ENABLED");
+    notify(player, "The COMMAND flag ----------------------------------------------- ENABLED");
 #else
-    notify(player, "The COMMAND flag ------------------------------------------------- DISABLED");
+    notify(player, "The COMMAND flag ----------------------------------------------- DISABLED");
 #endif
 #ifdef EXPANDED_QREGS
-    notify(player, "A-Z setq registers ----------------------------------------------- ENABLED");
+    notify(player, "A-Z setq registers --------------------------------------------- ENABLED");
 #else
-    notify(player, "A-Z setq registers ----------------------------------------------- DISABLED");
+    notify(player, "A-Z setq registers --------------------------------------------- DISABLED");
 #endif
 #ifdef ATTR_HACK
     if ( mudconf.hackattr_see == 0 ) {
-       notify(player, "Attributes starting with _ and ~ --------------------------------- WIZARD ONLY");
+       notify(player, "Attributes starting with _ and ~ ------------------------------- WIZARD ONLY");
     } else {
-       notify(player, "Attributes starting with _ and ~ --------------------------------- ENABLED");
+       notify(player, "Attributes starting with _ and ~ ------------------------------- ENABLED");
     }
 #else
-    notify(player, "Attributes starting with _ and ~ --------------------------------- DISABLED");
+    notify(player, "Attributes starting with _ and ~ ------------------------------- DISABLED");
 #endif
 #ifdef BANGS
-    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] ----------------------------- ENABLED");
+    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] --------------------------- ENABLED");
 #else
-    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] ----------------------------- DISABLED");
+    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] --------------------------- DISABLED");
 #endif
 #ifdef QDBM
-    notify(player, "Database Engine -------------------------------------------------- QDBM");
+    notify(player, "Database Engine ------------------------------------------------ QDBM");
 #else
 #ifdef BIT64
-    notify(player, "Database Engine -------------------------------------------------- GDBM [64Bit]");
+    notify(player, "Database Engine ------------------------------------------------ GDBM [64Bit]");
 #else
-    notify(player, "Database Engine -------------------------------------------------- GDBM [32Bit]");
+    notify(player, "Database Engine ------------------------------------------------ GDBM [32Bit]");
 #endif
 #endif
 #ifdef SQLITE
-    notify(player, "SQLite ----------------------------------------------------------- ENABLED");
+    notify(player, "SQLite --------------------------------------------------------- ENABLED");
 #else
-    notify(player, "SQLite ----------------------------------------------------------- DISABLED");
+    notify(player, "SQLite --------------------------------------------------------- DISABLED");
 #endif
 #ifdef MYSQL_VERSION
     tbuf = alloc_mbuf("list_option_system");
-    sprintf(tbuf, "[%.40s, SQL: %.40s]----------------------------------------", MYSQL_VER, MYSQL_VERSION);
-    notify(player, unsafe_tprintf("MySQL/MariaDB --------%-42.42s-- ENABLED", tbuf));
+    sprintf(tbuf, "[%.40s, SQL: %.40s]--------------------------------------", MYSQL_VER, MYSQL_VERSION);
+    notify(player, unsafe_tprintf("MySQL/MariaDB ------%-42.42s-- ENABLED", tbuf));
     free_mbuf(tbuf);
 #else
-    notify(player, "MySQL/MariaDB ---------------------------------------------------- DISABLED");
+    notify(player, "MySQL/MariaDB -------------------------------------------------- DISABLED");
 #endif
     if ( mudconf.ansi_default ) {
-       notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
+       notify(player, "ANSI handler for functions() ----------------------------------- ENABLED");
        notify(player, "     Functions Affected: TR(), BEFORE(), AFTER(), MID(), DELETE()");
     } else {
-       notify(player, "ANSI handler for functions() ------------------------------------- DISABLED");
+       notify(player, "ANSI handler for functions() ----------------------------------- DISABLED");
     }
     notify(player, unsafe_tprintf(
-                       "Floating point precision ----------------------------------------- %d DECIMALS",
+                       "Floating point precision --------------------------------------- %d DECIMALS",
                        mudconf.float_precision));
     if ( mudconf.accent_extend ) {
-       notify(player, "ASCII 250-255 encoding ------------------------------------------- ENABLED");
+       notify(player, "ASCII 250-255 encoding ----------------------------------------- ENABLED");
     } else {
-       notify(player, "ASCII 250-255 encoding ------------------------------------------- DISABLED");
+       notify(player, "ASCII 250-255 encoding ----------------------------------------- DISABLED");
     }
 #ifdef CRYPT_GLIB2
-    notify(player, "Player password encryption method -------------------------------- SHA512");
+    notify(player, "Player password encryption method ------------------------------ SHA512");
 #else
-    notify(player, "Player password encryption method -------------------------------- DES");
+    notify(player, "Player password encryption method ------------------------------ DES");
 #endif
-    notify(player, unsafe_tprintf("Current TREE character is defined as ----------------------------- %s", mudconf.tree_character));
+    notify(player, unsafe_tprintf("Current TREE character is defined as --------------------------- %s", mudconf.tree_character));
     if (mudconf.parent_control)
-       notify(player, "Lock Control for all @lock processing ---------------------------- PARENTS");
+       notify(player, "Lock Control for all @lock processing -------------------------- PARENTS");
     else
-       notify(player, "Lock Control for all @lock processing ---------------------------- LOCAL");
+       notify(player, "Lock Control for all @lock processing -------------------------- LOCAL");
     if ( mudconf.name_with_desc )
-       notify(player, "Name shown before descs when looking at non-owned things --------- ENABLED");
+       notify(player, "Name shown before descs when looking at non-owned things ------- ENABLED");
     else
-       notify(player, "Name shown before descs when looking at non-owned things --------- DISABLED");
+       notify(player, "Name shown before descs when looking at non-owned things ------- DISABLED");
     if ( mudconf.penn_setq )
-       notify(player, "Setq/Setr use PennMUSH compatiability mode ----------------------- ENABLED");
+       notify(player, "Setq/Setr use PennMUSH compatiability mode --------------------- ENABLED");
     else
-       notify(player, "Setq/Setr use PennMUSH compatiability mode ----------------------- DISABLED");
+       notify(player, "Setq/Setr use PennMUSH compatiability mode --------------------- DISABLED");
     if ( mudconf.format_compatibility )
-       notify(player, "Attribute formatting compatibility (&<name>FORMAT) --------------- FORMAT AFTER");
+       notify(player, "Attribute formatting compatibility (&<name>FORMAT) ------------- FORMAT AFTER");
     else
-       notify(player, "Attribute formatting non-compatibility (&FORMAT<name>) ----------- FORMAT FIRST");
+       notify(player, "Attribute formatting non-compatibility (&FORMAT<name>) --------- FORMAT FIRST");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
