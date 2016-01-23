@@ -7,11 +7,12 @@
 @@  necessary objects for you and modify all referenced dbref's in the
 @@  code.
 @@
+@@  This code was modified to add +bbnext and +bbsanitize
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 @set me=quiet
 @@ WEB OFF
-@pemit me=[repeat(=,78)]%r[center(Constructing Myrddin's BBS v4.0.6,78)]%r[repeat(-,78)]%rPlease wait...%r
+@pemit me=[repeat(=,78)]%r[center(Constructing Myrddin's BBS v4.0.6c,78)]%r[repeat(-,78)]%rPlease wait...%r
 
 @create bbpocket=10
 @@ WEB ON
@@ -52,7 +53,7 @@
 &TR_POST_NOTIFY bbpocket=@switch hasflag(%0,DARK)=0,{@pemit/list iter(remove(lwho(),%0),switch(or(member([get(##/bb_omit)] [get(##/bb_silent)],%1),not(u(%1/canread,##))),0,##))=(New BB message ([member(v(groups),%1)]/%2) posted to '[name(%1)]' by [ifelse(hasattr(%1,anonymous),get(%1/anonymous),name(%0))]: %3)}
 &FN_TIMEOUT_CLOSE bbpocket=switch(%0:[lte(sub(%0,secs()),259200)],0:*,0,*:1,1,0)
 &FN_HASCONFIG bbpocket=or(hasattr(%0,anonymous),neq(get(%0/config_timeout),get(#222/config_timeout)))
-&VERSION bbpocket=4.0.6b
+&VERSION bbpocket=4.0.6c
 @set bbpocket=!HALT
 @set bbpocket=INHERIT
 @set bbpocket=SAFE
@@ -108,6 +109,11 @@
 &CMD_+BBSEARCH mbboard=$+bbsearch */*:@switch [member(u(#222/valid_groups,%#,write),setr(0,u(#222/get_group,%0)))]:[hasattr(%q0,anonymous)]:[isdbref(setr(1,locate(%#,*%1,p)))]=0:*:*,{@pemit %#=BB Group '%0' is either an invalid Group, an unreadable Group, or a Group you do not subscribe to.},1:1:*,{@pemit %#=BB Group '[name(%q0)]' is an anonymous group.},1:0:0,{@pemit %#=No such player '%1'.},{@switch words(setr(2,grep(%q0,hdr_*,|%q1|)))=0,{@pemit %#=[name(%q1)] hasn't posted any messages to the '[name(%q0)]' Group.},{@pemit %#=%r[repeat(=,78)]%r[center(**** [name(%q0)] ****,78)]%r[space(8)]Message[space(28)]Posted[space(8)]By%r[repeat(-,78)]; @dolist %q2={@pemit %#=[ljust([member(get(#222/groups),%q0)]/[member(get(%q0/mess_lst),last(##,_))],6)][ljust(u(#222/fn_msg_flags,%#,%q0,last(##,_)),2)][ljust(index([setr(3,get(%q0/##))],|,1,1),35)][ljust(index(%q3,|,2,1),14)][mid([index(%q3,|,3,1)],0,21)][switch(member(%q2,##),words(%q2),%r[repeat(=,78)])]}}}
 &CMD_+BBSEARCH_NOGREP mbboard=$+bbsearch */*:@switch [member(u(#222/valid_groups,%#,write),setr(0,u(#222/get_group,%0)))]:[hasattr(%q0,anonymous)]:[isdbref(setr(1,locate(%#,*%1,p)))]=0:*:*,{@pemit %#=You do not subscribe to that Group.},1:1:*,{@pemit %#=BB Group '[name(%q0)]' is an anonymous group.},1:0:0,{@pemit %#=No such player '%1'.},{@switch words(setr(2,u(#222/fn_grep,%q0,hdr_*,|%q1|)))=0,{@pemit %#=[name(%q1)] hasn't posted any messages to the '[name(%q0)]' Group.},{@pemit %#=%r[repeat(=,78)]%r[center(**** [name(%q0)] ****,78)]%r[space(8)]Message[space(28)]Posted[space(8)]By%r[repeat(-,78)]; @dolist %q2={@pemit %#=[ljust([member(get(#222/groups),%q0)]/[member(get(%q0/mess_lst),last(##,_))],6)][ljust(u(#222/fn_msg_flags,%#,%q0,last(##,_)),2)][ljust(index([setr(3,get(%q0/##))],|,1,1),35)][ljust(index(%q3,|,2,1),14)][mid([index(%q3,|,3,1)],0,21)][switch(member(%q2,##),words(%q2),%r[repeat(=,78)])]}}}
 &CMD_+BBNOTIFY mbboard=$+bbnotify *=*:@switch/first [member(u(#222/valid_groups,%#,read),setr(0,u(#222/get_group,%0)))]:[member(on off,lcstr(%1))]:[lcstr(%1)]=0:*:*,{@pemit %#=[switch(%q0,#-2,That Group name is not specific enough.,You do not subscribe to that Group.)]},*:0:*,{@pemit %#=Invalid choice '%1'. Choices are 'on' or 'off'.},*:*:off,{&bb_silent %#=[setunion(get(%#/bb_silent),%q0)]; @pemit %#=Post notification for BB Group '[name(%q0)]' turned off. You will no longer be notified of new postings to that Group.},{&bb_silent %#=[setdiff(get(%#/bb_silent),%q0)]; @pemit %#=Post notification for BB Group '[name(%q0)]' turned on. You will now be notified of new postings to that Group.}
+
+&CMD_BBNEXT mbboard=$+bbnext:@switch [iter([setdiff([get(#222/master_lst)],[get(%#/bb_read)])],##)]=,@pemit %#=No unread messages.,{@dolist [get(#222/groups)]=@switch [hasattr(##,hdr_[first([setdiff([get(#222/master_lst)],[get(%#/bb_read)])])])]=1,@pemit %#=[center(%B[name(##)]%b,80,=)]%R[ljust([extract([get(##/hdr_[first([setdiff([get(#222/master_lst)],[get(%#/bb_read)])])])],1,1,|)],35)][ljust([extract([get(##/hdr_[first([setdiff([get(#222/master_lst)],[get(%#/bb_read)])])])],2,1,|)],15)][ljust([extract([get(##/hdr_[first([setdiff([get(#222/master_lst)],[get(%#/bb_read)])])])],3,1,|)],10)]%R[repeat(-,80)]%R[get(##/bdy_[first([setdiff([get(#222/master_lst)],[get(%#/bb_read)])])])]%R[repeat(=,80)][set(%#,bb_read:[get(%#/bb_read)]%B[first([setdiff([get(#222/master_lst)],[get(%#/bb_read)])])])]
+
+&CMD_BBSANITIZE mbboard=$+bbsanitize:&BB_READ %#=[setq(0,get(%#/bb_read))][setq(1,setinter(get(%#/bb_read),u(#222/master_lst)))][r(1)];@pemit %#=+BBS: Listings sanitized. [ifelse(neq(words(r(0)),words(r(1))),%([sub(words(r(0)),words(r(1)))] cleaned%),%(Nothing cleaned%))
+
 @set mbboard=!HALT
 @set mbboard=INHERIT
 @set mbboard=SAFE
@@ -141,7 +147,7 @@
 @force me=@edit [num(mbboard)]/*=#222,[num(bbpocket)]
 
 @@ need to wait so that the @forces above can finish
-@wait 3={@tel bbpocket=mbboard; @name mbboard=BBS - Myrddin's Global BBS v4.0.6; @set me=!quiet}
+@wait 3={@tel bbpocket=mbboard; @name mbboard=BBS - Myrddin's Global BBS v4.0.6c; @set me=!quiet}
 
 @switch/first %#:[first(version())]=#1:Tiny*,{@attribute/access bb_read=hidden wizard; @attribute/access bb_omit=hidden wizard},#1:Penn*,{@set bboard=WIZARD},*:Tiny*,{@pemit me=Reminder! Make sure #1 executes the following:%r%b%b@attribute/access bb_read=hidden wizard%r%b%b@attribute/access bb_omit=hidden wizard%r%b%b@attribute/access bb_silent=hidden wizard},{@pemit me=Reminder! Make sure #1 sets the BBS WIZARD}
 
