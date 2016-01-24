@@ -28899,3 +28899,4 @@
   * foreach() had a possibility of overwriting a static buffer in-use
     which could return erraneous results (non-crash-bug) [ASH]
   * Ancient systems (CentOS 4/5) didn't successfully handle MTU values [ASH]
+  * enhanced_convtime didn't handle all conditions properly [ASH]
