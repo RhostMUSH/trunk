@@ -4697,7 +4697,7 @@
             pid()
   
 & @wipe
-  Command: @wipe[/<switch>] <object>[/<wild-attr>]
+  Command: @wipe[/<switch(es)>] <object>[/<wild-attr>]
  
   This command erases attributes from an object.  All attributes that match
   <wild-attr> (or all attributes, if <wild-attr> is not specified) are removed
@@ -4711,14 +4711,20 @@
     /preserve    - wipe everything EXCEPT the wild-attr matches.  This in 
                    effect does the reverse of normal @wipe.
     /regexp      - use regular expression instead of standard glob-matching
+    /owner       - use an owner argument to wipe only attribs that is owned
+                   by the specified player.  You can use wild-attrs with
+                   this options.
+                   
   
   Example:
     > @wipe me/va*
     Wiped - 1 attributes.
     > @wipe/reg me/^.a$
     Wiped - 4 attributes.
+    > @wipe/owner Corum/me/za*  (wipe all attribs matching za* owned by Corum)
+    Wiped - 1 attributes.
   
-  See Also: wipe(), @edit, @grep  
+  See Also: wipe(), @edit, @grep, @cluster, cluster_wipe()
 
 & @whereis
   Command: @whereis <player>
