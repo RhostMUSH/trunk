@@ -206,6 +206,8 @@ NAMETAB cluster_sw[] = {
   {(char *) "trigger", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_TRIGGER},
   {(char *) "function", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_FUNC | SW_MULTIPLE},
   {(char *) "regexp", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REGEXP | SW_MULTIPLE},
+  {(char *) "preserve", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_PRESERVE | SW_MULTIPLE},
+  {(char *) "owner", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_OWNER | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}
 };
 
@@ -1038,7 +1040,8 @@ NAMETAB thaw_sw[] =
 NAMETAB wipe_sw[] =
 {
     {(char *) "preserve", 1, CA_PUBLIC, 0, WIPE_PRESERVE | SW_MULTIPLE},
-    {(char *) "regexp", 1, CA_PUBLIC, 0, WIPE_REGEXP},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, WIPE_REGEXP | SW_MULTIPLE},
+    {(char *) "owner", 1, CA_PUBLIC, 0, WIPE_OWNER},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB wait_sw[] =
@@ -9981,10 +9984,10 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 {
    dbref thing, thing2, thing3, aowner;
    char *s_inbufptr, *s_instr, *s_tmpptr, *tpr_buff, *tprp_buff, *s_text,
-        *s_strtok, *s_strtokptr, *s_return, *s_tmpstr, *xargs[MAX_ARG], *s_foo;
+        *s_strtok, *s_strtokptr, *s_return, *s_tmpstr, *xargs[MAX_ARG], *s_foo, *s_tmp;
    int anum, anum2, anum3, aflags, i_isequal, i_corrupted, i_temp, i_temp2, i_lowball, 
         i_highball, i_first, nxargs, i, i_clusterfunc, anum4, i_sideeffect,
-        i_nomatch, i_nowipe, i_wipecnt, i_totobjs, i_regexp;
+        i_nomatch, i_nowipe, i_wipecnt, i_totobjs, i_regexp, i_preserve, i_owner;
    ATTR *attr;
    time_t starttme, endtme;
    double timechk;
@@ -10006,11 +10009,12 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    
    s_instr = alloc_lbuf("do_cluster");
    strcpy(s_instr, name);
-   s_return = exec(player, cause, cause, EV_FCHECK | EV_EVAL, s_instr,
+   s_tmp = exec(player, cause, cause, EV_FCHECK | EV_EVAL, s_instr,
                   (char **)NULL, 0, (char **)NULL, 0);
-   if ( !s_return || !*s_return ) {
+   free_lbuf(s_instr);
+   if ( !s_tmp || !*s_tmp ) {
       notify(player, "@cluster requires an argument.");
-      free_lbuf(s_return);
+      free_lbuf(s_tmp);
       return;
    }
 
@@ -10019,7 +10023,29 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
       i_regexp = 1;
       key &= ~CLUSTER_REGEXP;
    }
-   free_lbuf(s_instr);
+   i_preserve = 0;
+   if ( key & CLUSTER_PRESERVE ) {
+      i_preserve = 1;
+      key &= ~CLUSTER_PRESERVE;
+   }
+   i_owner = 0;
+   if ( (key & CLUSTER_OWNER) && (key & CLUSTER_WIPE) ) {
+      i_owner = 1;
+      key &= ~CLUSTER_OWNER;
+      if ( strchr(s_tmp, '/') != NULL ) {
+         s_return = alloc_lbuf("cluster_return");
+         strcpy(s_return, strchr(s_tmp, '/') + 1);
+      } else {
+         notify(player, "@cluster/wipe/owner requires a valid player target.");
+         free_lbuf(s_tmp);
+         return;
+      }
+   } else {
+      s_return = alloc_lbuf("cluster_return");
+      strcpy(s_return, s_tmp);
+      free_lbuf(s_tmp);
+      s_tmp = NULL;
+   }
    if ( strchr(s_return, '=') ==  NULL ) {
       if ( strchr(s_return, '/') != NULL ) {
          s_inbufptr = s_instr = alloc_lbuf("do_cluster");
@@ -10058,12 +10084,16 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    if ( !Good_chk(thing) || !isThing(thing) ) {
       notify(player, "Cluster object must be a valid object.");
       free_lbuf(s_return);
+      if ( s_tmp )
+         free_lbuf(s_tmp);
       return;
    }
 
    if ( !(Cluster(player) || Controls(player, thing)) ) {
       notify(player, "You have no control over that cluster.");
       free_lbuf(s_return);
+      if ( s_tmp )
+         free_lbuf(s_tmp);
       return;
    }
 
@@ -11208,6 +11238,10 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                i_totobjs = 0;
                if ( i_regexp ) 
                   i_regexp = WIPE_REGEXP;
+               if ( i_preserve )
+                  i_preserve = WIPE_PRESERVE;
+               if ( i_owner )
+                  i_owner = WIPE_OWNER;
                while ( s_strtok ) {
                   endtme = time(NULL);
                   if ( mudstate.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
@@ -11221,11 +11255,22 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                   i_totobjs++;
                   thing3 = match_thing(player, s_strtok);
                   if ( Good_chk(thing3) && Cluster(thing3) ) {
-                     if ( *s_return && (strchr(s_return, '/') != NULL) ) {
-                        sprintf(s_instr, "%s%s", s_strtok, strchr(s_return, '/'));
-                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_instr);
+                     if ( ((!i_owner && *s_return) || (i_owner && *s_tmp)) && 
+                          ((!i_owner && (strchr(s_return, '/') != NULL)) ||
+                            (i_owner && (strchr(s_tmp, '/') != NULL))) ) {
+                        if ( i_owner ) {
+                           s_foo = strchr(s_tmp, '/');            
+                           *s_foo = '\0';
+                           if ( strchr(s_return, '/') )
+                              sprintf(s_instr, "%s/%s%s", s_tmp, s_strtok, strchr(s_return, '/'));
+                           else
+                              sprintf(s_instr, "%s/%s", s_tmp, s_strtok);
+                           *s_foo = '/';
+                        } else
+                           sprintf(s_instr, "%s%s", s_strtok, strchr(s_return, '/'));
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp|i_preserve|i_owner), s_instr);
                      } else
-                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_strtok);
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp|i_preserve|i_owner), s_strtok);
                   }
                   switch (mudstate.wipe_state) {
                      case -1: i_nomatch++;
@@ -11251,6 +11296,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    }
    free_lbuf(tpr_buff);
    free_lbuf(s_return);
+   if ( s_tmp )
+      free_lbuf(s_tmp);
 }
 
 int

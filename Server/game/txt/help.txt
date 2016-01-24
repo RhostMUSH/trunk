@@ -2373,23 +2373,50 @@
     /grep   - grep cluster for match     /reaction   - edit action on cluster
     /cut    - 'cut' dbref# from cluster  /trigger    - trigger attr in cluster
     /func   - Specify function action    /regexp     - use regexp pattern match
-    /wipe   - Wipe attrib(s) in cluster
+    /wipe   - Wipe attrib(s) in cluster  /owner      - Owner check for /wipe
+                                         /preserve   - Preserve /wipe pattern
    
   See Also:  clusters, cluster functions, cluster commands, >
 
+& @cluster regexp
+  Command: @cluster
+  
+  The regexp switch is used to give regular expression matching for the other
+  switches to @cluster.  It is currently useful with the following switches:
+      @cluster/wipe/regexp -- Use regexp matching to wipe attribs.
+      @cluster/grep/regexp -- Use regexp matching to grep attribs.
+  
+  See Also: @cluster wipe, @cluster grep
+   
+& @cluster preserve
+& @cluster owner
+  Command: @cluster/wipe
+  
+  These switches are useful only for @cluster/wipe.  Please see @cluster/wipe
+  for more information.
+  
+  See Also: @cluster wipe
+   
 & @cluster wipe
-  Command: @cluster/wipe <object>[/<wildattr>]
-           @cluster/wipe/regexp <object>[/<wildattr>]
+  Command: @cluster/wipe[/regexp] <object>[/<wildattr>]
+           @cluster/wipe/owner[/regexp] <owner>/<object>[/<wildattr>]
   
   The wipe switch, with an optional regexp switch addon, will wipe all matching
   attributes from every item in the cluster.  This works exactly like @wipe
   except is performed on the entirity of the cluster.
+  
+  Following switches are optionally used with @cluster/wipe:
+    /regexp   -- Convert wildcard matching to a regexp pattern.
+    /owner    -- Take optional owner argument to specify attribute ownership.
+    /preserve -- Preserve the wildcard pattern and wipe everything else.
   
   Example:
     > @cluster/wipe #1234/va*
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
     > @cluster/wipe/regexp #1234/^..$
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 22 attributes wiped.
+    > @cluster/wipe/owner Corum/#1234/va*
+    Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
   
   See Also: clusters, cluster functinos, cluster commands, >
 
@@ -18924,7 +18951,8 @@
   See Also: @destroy, wipe(), create()
   
 & WIPE()
-  Function: wipe(<obj>[/wildattr] [,<regexp>])
+  Function: wipe(<obj>[/wildattr] [[,<regexp>] [,<ownerkey>] [,<preserve>]])
+            wipe(<owner>/<obj>[/wildattr], [,<regexp>], 1, [,<preserve>])
   
   The wipe() function will remove all matching attributes specified by
   a wildcard, or, if no attribute is specified, remove all attributes of
@@ -18934,10 +18962,18 @@
   If <regexp> is specified as '1', then <wildattr> is evaluated as a
   regular expresion instead of the default expresion.
   
+  If <ownerkey> is specified as '1', then, as the second syntax example above,
+  it takes the additional <owner> argument as the owner to compare against.
+  
+  If <preserve> is specified as '1', it takes the reverse of the wipe and
+  keeps the specified wildcard pattern and wipes everything else.
+   
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
   
   Examples:
+    > say wipe(Corum/#123/*foo,,1)   (this wipes attribs owned by Corum only)
+    You say "Wipe: 1 attributes wiped."
     > say wipe(#123/*foo*)
     You say "Wipe: 8 attributes wiped."
     > say wipe(#123/^.*ab$,1)
@@ -22521,7 +22557,8 @@
             cluster_hasflag(), cluster_add()
 
 & CLUSTER_WIPE()
-  Function: cluster_wipe(<object>[/wildattr] [,<regxp>])
+  Function: cluster_wipe(<obj>[/wildattr] [[,<regexp>] [,<ownkey>] [,<pres>]])
+            cluster_wipe(<owner>/<obj>[/wildattr], [,<regexp>], 1, [,<pres>])
   
   The cluster_wipe() function will remove all matching attributes 
   specified by a wildcard, or, if no attribute is specified, 
@@ -22532,14 +22569,22 @@
   If <regexp> is specified as '1', then <wildattr> is evaluated as a
   regular expresion instead of the default expresion.
   
+  If <ownkey> is specified as '1', then, as the second syntax example above,
+  it takes the additional <owner> argument as the owner to compare against.
+  
+  If <pres> is specified as '1', it takes the reverse of the wipe and
+  keeps (preserves) the specified wildcard pattern and wipes everything else.
+  
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
   
   Examples:
+    > say cluster_wipe(Corum/#123/*foo,,1)  
+    You say "Wiped: [20 objects: 0 not found, 0 safe] 1 attributes wiped."
     > say cluster_wipe(#123)
-    You say ""
+    You say "Wiped: [20 objects: 0 not found, 0 safe] 127 attributes wiped."
     > say cluster_wipe(#123/*foo*)
-    You say ""
+    You say "Wiped: [20 objects: 0 not found, 0 safe] 0 attributes wiped."
   
   See Also: @cluster, cluster_attrcnt(), cluster_default(), cluster_edefault(),
             cluster_get(), cluster_get_eval(), cluster_grep(), 
@@ -28835,6 +28880,8 @@
   * added '*' option to printf that allows cutting values from the right [ASH]
   * @list functions accepts sub-options 'user', 'local', and 'built-in' [ASH]
   * improved help for attrib formatting and added a plug in normal help [ASH]
+  * @wipe, @cluster/wipe, wipe(), and cluster_wipe() now take optional 
+    owner argument to wipe only attributes owned by owner [ASH]
     
   Bug Fixes
   ------------

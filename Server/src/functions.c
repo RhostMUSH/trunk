@@ -30223,17 +30223,10 @@ FUNCTION(fun_cluster_wipe)
    time_t starttme, endtme;
    double timechk;
 
-   if (!fn_range_check("CLUSTER_WIPE", nfargs, 1, 2, buff, bufcx))
+   if (!fn_range_check("CLUSTER_WIPE", nfargs, 1, 4, buff, bufcx))
       return;
 
-   i_togregexp = 0;
-   if ( (nfargs > 1) && *fargs[1] ) {
-      s_return = exec(player, cause, caller,  EV_FCHECK | EV_EVAL | EV_STRIP, fargs[1], cargs, ncargs, (char **)NULL, 0);
-      if ( atoi(s_return) == 1 )
-         i_togregexp = WIPE_REGEXP;
-      free_lbuf(s_return);
-   }
-   i_totobjs = i_nomatch = i_nowipe = i_wipecnt = 0;
+   i_togregexp = i_totobjs = i_nomatch = i_nowipe = i_wipecnt = 0;
    if ( !(mudconf.sideeffects & SIDE_WIPE) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
@@ -30248,6 +30241,24 @@ FUNCTION(fun_cluster_wipe)
          cmdtest(Owner(player), "@wipe") || zonecmdtest(player, "@wipe") ) {
       notify(player, "Permission denied.");
       return;
+   }
+   if ( (nfargs > 1) && *fargs[1] ) {
+      s_return = exec(player, cause, caller,  EV_FCHECK | EV_EVAL | EV_STRIP, fargs[1], cargs, ncargs, (char **)NULL, 0);
+      if ( atoi(s_return) == 1 )
+         i_togregexp = WIPE_REGEXP;
+      free_lbuf(s_return);
+   }
+   if ( (nfargs > 2) && *fargs[2] ) {
+      s_return = exec(player, cause, caller,  EV_FCHECK | EV_EVAL | EV_STRIP, fargs[2], cargs, ncargs, (char **)NULL, 0);
+      if ( atoi(s_return) == 1 )
+         i_togregexp |= WIPE_OWNER;
+      free_lbuf(s_return);
+   }
+   if ( (nfargs > 3) && *fargs[3] ) {
+      s_return = exec(player, cause, caller,  EV_FCHECK | EV_EVAL | EV_STRIP, fargs[3], cargs, ncargs, (char **)NULL, 0);
+      if ( atoi(s_return) == 1 )
+         i_togregexp |= WIPE_PRESERVE;
+      free_lbuf(s_return);
    }
    s_strtokptr = NULL;
    s_buff = alloc_lbuf("fun_cluster_wipe");
@@ -30330,8 +30341,9 @@ FUNCTION(fun_wipe)
 {
    CMDENT *cmdp;
    char *s_buff;
+   int i_flags;
 
-   if (!fn_range_check("WIPE", nfargs, 1, 2, buff, bufcx))
+   if (!fn_range_check("WIPE", nfargs, 1, 4, buff, bufcx))
       return;
 
    if ( !(mudconf.sideeffects & SIDE_WIPE) ) {
@@ -30350,10 +30362,17 @@ FUNCTION(fun_wipe)
       return;
    }
 
+   i_flags = 0;
+   if ( (nfargs > 2) && *fargs[2] && (atoi(fargs[2]) == 1) )
+      i_flags = WIPE_OWNER;
+
+   if ( (nfargs > 3) && *fargs[3] && (atoi(fargs[3]) == 1) )
+      i_flags |= WIPE_PRESERVE;
+
    if ( (nfargs > 1) && *fargs[1] && (atoi(fargs[1]) == 1) ) {
-      do_wipe(player, cause, (SIDEEFFECT|WIPE_REGEXP), fargs[0]);
+      do_wipe(player, cause, (SIDEEFFECT|WIPE_REGEXP|i_flags), fargs[0]);
    } else {
-      do_wipe(player, cause, (SIDEEFFECT), fargs[0]);
+      do_wipe(player, cause, (SIDEEFFECT|i_flags), fargs[0]);
    }
    if ( TogNoisy(player) ) {
       switch( mudstate.wipe_state ) {

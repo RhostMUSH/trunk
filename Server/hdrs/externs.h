@@ -980,6 +980,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	SWEEP_VERBOSE	256	/* Display what pattern matches */
 #define WIPE_PRESERVE	1	/* Reverse effect of @wipe */
 #define WIPE_REGEXP	2	/* Wipe using regexp */
+#define WIPE_OWNER	4	/* Wipe all attributes owned by 'owner' */
 #define TEL_GRAB	1
 #define TEL_JOIN	2
 #define TEL_LIST	4
@@ -1043,6 +1044,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define CLUSTER_TRIGGER 16384	/* Trigger attribute on cluster */
 #define CLUSTER_FUNC    32768	/* Trigger function action instead of command action */
 #define CLUSTER_REGEXP  65536	/* Allow regexp matching where applicable */
+#define CLUSTER_PRESERVE 131072 /* Preserve the wipe -- effectively reversing it */
+#define CLUSTER_OWNER    262144 /* Preserve the wipe -- effectively reversing it */
 
 /* Hush codes for movement messages */
 
