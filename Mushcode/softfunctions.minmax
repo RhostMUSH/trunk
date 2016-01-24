@@ -80,6 +80,8 @@
 &FUN_CONDALL soft=[strfunc(switchall,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
 &FUNPT_RLCON soft=[ifelse(and(hastype(%@,room),member(get(%@/_RLCON),crc32(get(%@/conformat)))),objeval(%#,lcon(here)),objeval(%@,lcon(me)))]
 &FUNPT_RLEXITS soft=[ifelse(and(hastype(%@,room),member(get(%@/_RLEXITS),crc32(get(%@/exitformat)))),objeval(%#,lexits(here)),objeval(%@,lexits(me)))]
+&FUNPR_SETSYMDIFF soft=[setq(0,setinter(%0,%1,%2,%2,%4))][listunion(setdiff(%0,%q0,%2,%2,%4),setdiff(%1,%q0,%2,%2,%4),%2,%3)]
+&FUNPR_SETSYMDIFF soft=[setq(0,listinter(%0,%1,%2,%2,%4))][listunion(listdiff(%0,%q0,%2,%2,%4),listdiff(%1,%q0,%2,%2,%4),%2,%3)]
 &MINMAX_NCOND soft=2 2
 &MINMAX_NCONDALL soft=2 2
 &MINMAX_COND soft=2 2
