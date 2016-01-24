@@ -4698,6 +4698,7 @@
   
 & @wipe
   Command: @wipe[/<switch(es)>] <object>[/<wild-attr>]
+           @wipe/owner[/<switch(es)>] <owner>/<object>[/<wild-attr>]
  
   This command erases attributes from an object.  All attributes that match
   <wild-attr> (or all attributes, if <wild-attr> is not specified) are removed
@@ -4707,6 +4708,8 @@
   This only works on objects set SAFE if the config options safe_wipe is set
   to 0.
   
+  Notice that <owner> needs to be specified if you use the /owner switch.
+   
   The following switches exist:
     /preserve    - wipe everything EXCEPT the wild-attr matches.  This in 
                    effect does the reverse of normal @wipe.
