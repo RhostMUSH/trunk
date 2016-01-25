@@ -117,7 +117,7 @@
 @set mbboard/cmd_+bbnew=regexp
 
 
-&CMD_BBSANITIZE mbboard=$+bbsanitize:&BB_READ %#=[setq(0,get(%#/bb_read))][setq(1,setinter(get(%#/bb_read),u(#222/master_lst)))][r(1)];@pemit %#=+BBS: Listings sanitized. [ifelse(neq(words(r(0)),words(r(1))),%([sub(words(r(0)),words(r(1)))] cleaned%),%(Nothing cleaned%))
+&CMD_BBSANITIZE mbboard=$+bbsanitize:&BB_READ %#=[setq(0,get(%#/bb_read))][setq(1,setinter(get(%#/bb_read),u(#222/master_lst)))][r(1)];@pemit %#=+BBS: Listings sanitized. [ifelse(neq(words(r(0)),words(r(1))),%([sub(words(r(0)),words(r(1)))] cleaned%),%(Nothing cleaned%))]
 
 @set mbboard=!HALT
 @set mbboard=INHERIT
