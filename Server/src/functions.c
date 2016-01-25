@@ -28023,7 +28023,6 @@ FUNCTION(fun_nameq)
 FUNCTION(fun_setq_old)
 {
     int regnum, i, i_namefnd, i_penntog;
-
     if (!fn_range_check("SETQ", nfargs, 2, 3, buff, bufcx))
       return;
 
@@ -28064,8 +28063,8 @@ FUNCTION(fun_setq_old)
        if ( !i_namefnd ) {
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
-                if ( (strcmp(fargs[0], "+") == 0) && mudstate.global_regs[i] &&
-                  *mudstate.global_regs[i] ) {
+                if ( ((!i_penntog && (strcmp(fargs[0], "+") == 0)) || i_penntog) && 
+                     mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
                    continue;
                 }
                 regnum = i;
@@ -28093,7 +28092,9 @@ FUNCTION(fun_setq_old)
     }
     i = 0;
 #ifdef EXPANDED_QREGS
-    if ( !i_namefnd &&
+    if ( i_penntog && !i_namefnd && (!isalnum((int)(*fargs[0])) || (strlen(fargs[0]) > 1))) {
+       safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+    } else if ( !i_namefnd &&
          ((((regnum < 0) || (regnum > 9)) && isdigit((int)(*fargs[0]))) || !isalnum((int)(*fargs[0]))) ) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
@@ -28322,8 +28323,8 @@ FUNCTION(fun_setr_old)
        if ( !i_namefnd ) {
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
-                if ( (strcmp(fargs[0], "+") == 0) && mudstate.global_regs[i] &&
-                  *mudstate.global_regs[i] ) {
+                if ( ((!i_penntog && (strcmp(fargs[0], "+") == 0)) || i_penntog) && 
+                     mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
                    continue;
                 }
                 regnum = i;
@@ -28351,7 +28352,9 @@ FUNCTION(fun_setr_old)
     }
     i = 0;
 #ifdef EXPANDED_QREGS
-    if ( !i_namefnd &&
+    if ( i_penntog && !i_namefnd && (!isalnum((int)(*fargs[0])) || (strlen(fargs[0]) > 1))) {
+       safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+    } else if ( !i_namefnd &&
          ((((regnum < 0) || (regnum > 9)) && isdigit((int)*fargs[0])) || !isalnum((int)*fargs[0])) ) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
