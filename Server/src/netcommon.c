@@ -3769,6 +3769,9 @@ int
 softcode_trigger(DESC *d, const char *msg) {
     ATTR *atr;
     char *s_text, *s_return, *s_strtok, *s_strtokr, *s_buff, *s_array[10], *s_ptr;
+#ifdef ZENTY_ANSI
+    char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2;
+#endif
     int aflags, i_found;
     dbref aowner;
 
@@ -3869,7 +3872,18 @@ softcode_trigger(DESC *d, const char *msg) {
              break;
           }
 
+#ifdef ZENTY_ANSI
+          lbuf1 = alloc_lbuf("fcache_dump3");
+          lbuf2 = alloc_lbuf("fcache_dump4");
+          lbuf1ptr = lbuf1;
+          lbuf2ptr = lbuf2;
+          parse_ansi(s_buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+          queue_write(d, lbuf1, strlen(lbuf1));
+          free_lbuf(lbuf1);
+          free_lbuf(lbuf2);
+#else
           queue_string(d, s_buff);
+#endif
 	  queue_write(d, "\r\n", 2);
           free_lbuf(s_buff);
           break;
