@@ -12550,7 +12550,10 @@ FUNCTION(fun_streval)
            tlev = -1;
        if (tlev != -1) {
            mudstate.evalstate[mudstate.evalnum] = tlev;
-           mudstate.evaldb[mudstate.evalnum++] = player;
+           if ( Good_chk(player) && !isPlayer(player) )
+              mudstate.evaldb[mudstate.evalnum++] = Owner(player);
+           else
+              mudstate.evaldb[mudstate.evalnum++] = player;
        }
     } else {
        tlev = -1;

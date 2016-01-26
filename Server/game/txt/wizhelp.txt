@@ -461,7 +461,7 @@
   HELP SETUP         PLUSHELP SETUP     HUH SETUP          ELSEFILE SETUP
   REALITY LEVELS     MAIL ALIASES       HOOK SETUP         FUNCTION OVERLOADING
   FLAG ALIAS         ATTRIB CONTLOCKS   GLOBAL INHERITANCE ATTRIB FORMATTING
-  SIGNALS            TOR                CONTROL
+  SIGNALS            TOR                CONTROL            CUSTOMIZED CONNECT
 
 & CONTROL
   RhostMUSH has multiple levels and tiers for control.  In addition, it has
@@ -6366,7 +6366,76 @@
   
   All ansi and such will process normally.
   
-  See Also: @list_file
+  See 'help file_object2' on how to make customized commands for the connect
+  screen.  
+  
+  See Also: @list_file, file_object2, customized connect
+
+& CUSTOMIZED CONNECT
+& file_object2
+  Config parameter: file_object <dbref>.  Default: -1    (CONTINUED)
+  Topic: CUSTOMIZED CONNECT
+  
+  An additional feature of the file_object config parameter is the ability
+  to design customized commands that a player can issue on the connect screen.
+  They can be any command at all, and executes code at the permission level
+  of the file_object AS the file_object itself.  So some thought needs to go
+  with security with regards to this.
+  
+  The key variables that are used for this are:
+    FAKECOMMANDS    -- This is the '|' delimited list of commands that the
+                       user on the connect screen can use.  This is evaluated
+                       as the file_object itself.  Sorry, commands can not
+                       contain white spaces (spaces, tabs, etc).
+    RUN_<command>   -- This is the command that the user at the connect
+                       screen will be typing.  If you want the command 'bob'
+                       to exist for the connect screen, then RUN_BOB will
+                       be the attribute name.
+  
+  The following variables are recognized:
+    %#/%!/%@/%n/%k  -- All will refer to the file_object.
+    %0              -- The command typed at the connect screen.
+    %1              -- The arguments to the command the player typed.
+    %2              -- The player's numerical IP address.
+    %3              -- The player's reverse DNS of their IP address.
+    %4              -- The player's port that they are connecting on.
+  
+  If the command is not listed in FAKECOMMANDS, or if there is no associated
+  RUN_<command> attribute, then it reacts as if it was an invalid command
+  at the connect screen and goes to the default behavior.
+   
+  To design what commands are to be customized, you create a '|' delimited
+  list on the file_object.  
+  
+{ see 'help file_object3' or 'help customized connect2' for examples}  
+  
+& CUSTOMIZED CONNECT2
+& file_object3
+  Config parameter: file_object <dbref>.  Default: -1    (CONTINUED)
+  Topic: CUSTOMIZED CONNECT
+  
+  For the purpose of examples, we'll assume the file_object is #123.
+  
+  Example Setup:
+    > think %# - [get(%#/test)]
+    #111 - woop
+    > @admin file_object=123     (notice no '#' for the definition)
+    Set.
+    > &FAKECOMMANDS #123=bob|job|[get(#111/test)]
+    Set.
+    > &RUN_WOOP #123=You typed: %0 and are on from %3
+    Set.
+    > &RUN_BOB #123=You typed: %0 with args %1
+    Set.
+    > &RUN_JOB #123=Current jobs: %r[u(jobobject/jobs)]
+    Set.
+  
+  As shown, you have an amazing flexibility to customize your connect screen
+  with any command you want.  You can not, however, interact with connect
+  screen existing commands like 'connect' and so forth.  A small limitation
+  to an otherwise flexible tool.
+  
+  See Also: @admin, file_object, CUSTOMIZED CONNECT
 
 & find_money_chance
   Config parameter: find_money_chance <amount>.  Default: 0

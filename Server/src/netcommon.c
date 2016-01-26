@@ -343,6 +343,15 @@ strip_nonprint(const char *raw)
    RETURN(buf); /* #101 */
 }
 
+static void
+ival(char *buff, char **bufcx, int result)
+{
+  static char tempbuff[LBUF_SIZE/2];
+
+  sprintf(tempbuff, "%d", result);
+  safe_str(tempbuff, buff, bufcx);
+}
+
 static char *
 strip_ansi_flash(const char *raw)
 {
@@ -3756,6 +3765,126 @@ static const char *connect_fail =
 static const char *create_fail =
 "Either there is already a player with that name, or that name is illegal.\r\n";
 
+int
+softcode_trigger(DESC *d, const char *msg) {
+    ATTR *atr;
+    char *s_text, *s_return, *s_strtok, *s_strtokr, *s_buff, *s_array[10], *s_ptr;
+    int aflags, i_found;
+    dbref aowner;
+
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
+
+    if ( !Good_chk(mudconf.file_object) ) {
+       return(0);
+    }
+
+    atr = atr_str3("FAKECOMMANDS");
+    if ( !atr ) {
+       return(0);
+    }
+
+    s_text = atr_get(mudconf.file_object, atr->number, &aowner, &aflags);
+    if ( !s_text || !*s_text ) {
+       free_lbuf(s_text);
+       return(0);
+    }
+
+    for ( i_found = 0; i_found < 10; i_found++ ) 
+       s_array[i_found] = NULL;
+
+    i_found = 0;
+
+    /* Stack the arrays */
+    s_array[0] = alloc_lbuf("s_array_0");
+    s_array[1] = alloc_lbuf("s_array_1");
+    s_array[2] = alloc_lbuf("s_array_2");
+    s_array[3] = alloc_lbuf("s_array_3");
+    s_array[4] = alloc_lbuf("s_array_4");
+
+    /* Store last command as %0 */
+    s_ptr = s_array[0];
+    safe_str((char *)msg, s_array[0], &s_ptr);
+    if ( strchr(s_array[0], ' ') != NULL )
+       *(strchr(s_array[0], ' ')) = '\0';
+
+    /* Arguments to command as %1 */
+    s_ptr = s_array[1];
+    if ( strchr((char *)msg, ' ') != NULL )
+       safe_str(strchr((char *)msg, ' ')+1, s_array[1], &s_ptr);
+
+    /* DNS name as %2 */
+    s_ptr = s_array[2];
+    safe_str(inet_ntoa(d->address.sin_addr), s_array[2], &s_ptr);
+
+    /* IP number as %3 */
+    s_ptr = s_array[3];
+    safe_str(d->addr, s_array[3], &s_ptr);
+
+    /* Port  as %4*/
+    s_ptr = s_array[4];
+    ival(s_array[4], &s_ptr, d->descriptor);
+
+    s_return = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                    EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+    free_lbuf(s_text);
+    if ( !s_return || !*s_return ) {
+        free_lbuf(s_return);
+        free_lbuf(s_array[0]);
+        free_lbuf(s_array[1]);
+        free_lbuf(s_array[2]);
+        free_lbuf(s_array[3]);
+        free_lbuf(s_array[4]);
+        return(0);
+    }
+ 
+    s_strtok = strtok_r(s_return, "|", &s_strtokr);
+    i_found = 0;
+    while ( s_strtok ) {
+       if ( stricmp(s_strtok, s_array[0]) == 0 ) {
+          i_found = 1;
+          s_buff = alloc_lbuf("softcode_trigger");
+          sprintf(s_buff, "RUN_%s", s_strtok);
+          atr = atr_str3(s_buff);
+          free_lbuf(s_buff);
+          if ( !atr ) {
+             i_found = 0;
+             break;
+          }
+
+          s_text = atr_get(mudconf.file_object, atr->number, &aowner, &aflags);
+          if ( !s_text || !*s_text ) {
+             i_found = 0;
+             free_lbuf(s_text);
+             break;
+          }
+          
+          s_buff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                        EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+          free_lbuf(s_text);
+          if ( !s_buff || !*s_buff ) {
+             i_found = 0;
+             free_lbuf(s_buff);
+             break;
+          }
+
+          queue_string(d, s_buff);
+	  queue_write(d, "\r\n", 2);
+          free_lbuf(s_buff);
+          break;
+       }
+       s_strtok = strtok_r(NULL, "|", &s_strtokr);
+    }
+    free_lbuf(s_array[0]);
+    free_lbuf(s_array[1]);
+    free_lbuf(s_array[2]);
+    free_lbuf(s_array[3]);
+    free_lbuf(s_array[4]);
+    free_lbuf(s_return);
+    return(i_found);
+}
+
 static int 
 check_connect(DESC * d, const char *msg)
 {
@@ -4310,7 +4439,8 @@ check_connect(DESC * d, const char *msg)
         }
       }
     } else {
-	welcome_user(d);
+        if ( !softcode_trigger(d, msg) )
+	   welcome_user(d);
         if ( Good_obj(d->player) && !TogHideIdle(d->player) )
 	   d->command_count++;
     }
