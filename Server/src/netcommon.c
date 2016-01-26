@@ -3913,6 +3913,10 @@ check_connect(DESC * d, const char *msg)
     overf = parse_connect(msg, command, user, password);
     if ( strlen(user) > 120 )
        overf = 0;
+    if ( !((!strncmp(msg, "co", 2)) || (!strncmp(msg, "cd", 2)) || (!strncmp(msg, "ch", 2))) )
+       overf = 1;
+    if ( strlen(msg) > 2000 )
+       overf = 0;
     if (!overf) {
 	queue_string(d,"Your attempt to crash this mush has been noted and logged.\r\n");
 	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "OVERFLOW")

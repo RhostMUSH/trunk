@@ -6382,6 +6382,11 @@
   of the file_object AS the file_object itself.  So some thought needs to go
   with security with regards to this.
   
+  Note:  A player can not exceed 2000 character input in anyway at the connect
+         screen or the mush will aggressively tag the player as someone who is 
+         attempting to crash the mush, boot them off the server, and log their 
+         attempt.  This was a common method to crash a mush years ago.
+     
   The key variables that are used for this are:
     FAKECOMMANDS    -- This is the '|' delimited list of commands that the
                        user on the connect screen can use.  This is evaluated

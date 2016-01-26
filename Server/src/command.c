@@ -5543,7 +5543,7 @@ list_options_convtime(dbref player)
       notify(player, "There is no convtime.template file in your game directory.");
    } else {
       s_line = alloc_lbuf("list_options_convtime");
-      notify(player, "Supported Date Formats [~/game/convtime.template] --------------------------");
+      notify(player, "Supported Date Formats [~/game/convtime.template] ----------------------------");
       while ( !feof(fp) ) {
          fgets(s_line, (LBUF_SIZE-2), fp);
          if ( !feof(fp) && (*s_line != '#') ) {
@@ -5555,11 +5555,11 @@ list_options_convtime(dbref player)
          }
       }
       fclose(fp);
-      notify(player, "----------------------------------------------------------------------------");
+      notify(player, "------------------------------------------------------------------------------");
       notify(player, "Key: %a/%A - Weekday Name (Www), %b/%B - Month Name (Mmm), %D - %m/%d/%y");
-      notify(player, "     %m    - month (1-12),       %d    - day (1-31),       %Y - year (yyyy)");
-      notify(player, "     %H    - hour (0-23),        %M    - minute (0-59),    %S - second (0-59)");
-      notify(player, "----------------------------------------------------------------------------");
+      notify(player, "     %m    - month (01-12),      %d    - day (01-31),      %Y - year (yyyy)");
+      notify(player, "     %H    - hour (00-23),       %M    - minute (00-59),   %S - second (00-59)");
+      notify(player, "------------------------------------------------------------------------------");
       free_lbuf(s_line);
    }
 }
