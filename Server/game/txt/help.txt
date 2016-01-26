@@ -20687,7 +20687,7 @@
   If you do not specify a <prefix> then all prefix args are considered part
   of a normal string and ignored for special consideration.
   
-{ see 'help prsestr3' for examples }
+{ see 'help parsestr3' for examples }
 
 & PARSESTR3
   (CONTINUED)
