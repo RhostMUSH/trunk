@@ -17344,6 +17344,48 @@ FUNCTION(fun_strlen)
     ival(buff, bufcx, (int) strlen(strip_all_special(fargs[0])));
 }
 
+FUNCTION(fun_objid) {
+    dbref it, aowner;
+    int aflags;
+    long l_offset;
+    double d_objid;
+    char *atext;
+    struct tm *ttm;
+
+    it = match_thing(player, fargs[0]);
+    if (it != NOTHING) {
+       if (Cloak(it) && !Wizard(player)) {
+           safe_str("#-1", buff, bufcx);
+           return;
+       }
+       if (SCloak(it) && Cloak(it) && !Immortal(player)) {
+           safe_str("#-1", buff, bufcx);
+           return;
+       }
+    }
+
+    if (  !mudconf.enable_tstamps || NoTimestamp(it) ) {
+       dbval(buff, bufcx, it);
+       return;
+    } else {
+      atext = atr_get(it, A_CREATED_TIME, &aowner, &aflags);
+      if ( atext && *atext ) {
+         ttm = localtime(&mudstate.now);
+         l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+         if (do_convtime(atext, ttm)) {
+            d_objid = (double)(mktime64(ttm) + l_offset);
+            sprintf(atext, "#%d:%.0f", it, d_objid);
+            safe_str(atext, buff, bufcx);
+            free_lbuf(atext);
+            return;
+         }
+      }
+      free_lbuf(atext);
+    }
+    safe_str("#-1", buff, bufcx);
+    return;
+}
+
 FUNCTION(fun_num)
 {
     dbref it;
@@ -31891,6 +31933,7 @@ FUN flist[] =
     {"NUMMEMBER", fun_nummember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NUMPOS", fun_numpos, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"OBJ", fun_obj, 1, 0, CA_PUBLIC, 0},
+    {"OBJID", fun_objid, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"OBJEVAL", fun_objeval, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"OEMIT", fun_oemit, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
