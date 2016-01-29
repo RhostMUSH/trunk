@@ -3387,8 +3387,10 @@ parse_dbref_special(char *s) {
    q++;
 
    for (p = s; *p; p++) {
-      if (!isdigit((int)*p))
+      if (!isdigit((int)*p)) {
+         *r = ':';
          return NOTHING;
+      }
    }
    x = atoi(s); 
    *r = ':';
@@ -3408,16 +3410,10 @@ parse_dbref_special(char *s) {
                free_lbuf(atext);
                return ((x >= 0) ? x : NOTHING);
             }
-            x = -1;
          }
-         x = -1;
-      } else {
-         x = -1;
       }
       x = -1;
       free_lbuf(atext);
-   } else {
-      return ((x >= 0) ? x : NOTHING);
    }
 #endif
    return ((x >= 0) ? x : NOTHING);

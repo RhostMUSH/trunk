@@ -1017,7 +1017,7 @@ CF_HAND(cf_int)
 
 CF_HAND(cf_chartoint)
 {
-  char s_list[]="n#!@lsopartcxfkwm";
+  char s_list[]="n#!@lsopartcxfkwm:";
   int  s_mask[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008,
                   0x00000010, 0x00000020, 0x00000040, 0x00000080,
                   0x00000100, 0x00000200, 0x00000400, 0x00000800,
@@ -2544,7 +2544,7 @@ CF_HAND(cf_string)
 CF_HAND(cf_string_sub)
 {
     int retval;
-    char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-", *ptr;
+    char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-:", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 
