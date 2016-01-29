@@ -25,6 +25,7 @@ char *index(const char *, int);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern char * parse_ansi_name(dbref, char *);
 extern void fun_ansi(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
 
 /* ---------------------------------------------------------------------------
@@ -1729,6 +1730,20 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
                 free_lbuf(tbuf);
 		break;
+            case ':':           /* Invoker ObjID Number */
+		tbuf = alloc_sbuf("exec.invoker");
+		sprintf(tbuf, "#%d", cause);
+                trace_buffptr = trace_buff = alloc_lbuf("buffer_for_trace");
+                trace_array[0] = tbuf;
+                trace_array[1] = NULL;
+                trace_array[2] = NULL;
+                fun_objid(trace_buff, &trace_buffptr, player, cause, cause, trace_array, 1, (char **)NULL, 0);
+                if ( !sub_override_process(SUB_NUM, trace_buff, (char *)"COLON", buff, &bufc, cause, caller, feval) ) {
+		   safe_str(trace_buff, buff, &bufc);
+                }
+		free_sbuf(tbuf);
+                free_lbuf(trace_buff);
+                break;
 	    case '#':		/* Invoker DB number */
 		tbuf = alloc_sbuf("exec.invoker");
 		sprintf(tbuf, "#%d", cause);
