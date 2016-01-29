@@ -9460,14 +9460,14 @@
   NEQ()         NEXT()         NOR()          NOSTR()          NOT()          
   NOTCHR()      NPEMIT()       NSITER()       NUM()            NUMMATCH()     
   NULL()        NUMMEMBER()    NUMPOS()       NUMWILDMATCH()   OBJ()          
-  OBJEVAL()     OEMIT()        OPEN()         OR()             ORCHR()        
-  ORFLAG()      ORFLAGS()      OWNER()        PACK()           PARENMATCH()   
-  PARENT()      PARSE()        PARSESTR()     PEDIT()          PEMIT()        
-  PFIND()       PGREP()        PI()           PID()            PMATCH()       
-  PORT()        POS()          POSS()         POWER()          POWER10()      
-  PRINTF()      PRIVATIZE()    PROGRAMMER()   PTIMEFMT()       PUSHREGS()     
-  QUOTA()       R()            RACE()         RAND()           RANDPOS()      
-  RANDMATCH()   RANDEXTRACT() 
+  OBJEVAL()     OBJID()        OEMIT()        OPEN()           OR()           
+  ORCHR()       ORFLAG()       ORFLAGS()      OWNER()          PACK()         
+  PARENMATCH()  PARENT()       PARSE()        PARSESTR()       PEDIT()        
+  PEMIT()       PFIND()        PGREP()        PI()             PID()          
+  PMATCH()      PORT()         POS()          POSS()           POWER()        
+  POWER10()     PRINTF()       PRIVATIZE()    PROGRAMMER()     PTIMEFMT()     
+  PUSHREGS()    QUOTA()        R()            RACE()           RAND()         
+  RANDPOS()     RANDMATCH()    RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -9552,11 +9552,11 @@
   
   Database Information: CON() CREATETIME() ENTRANCES() EXIT() FOLDERCURRENT()
                         FOLDERLIST() GLOBALROOM() LOC() LOCATE() LROOMS() 
-                        MAILQUICK() MODIFYTIME() NEARBY() NEXT() NUM() OWNER()
-                        RLOC() ROOM() SEARCH() SEARCHNG() SEES() STATS() 
-                        WHERE() LISTCOMMANDS() LISTFLAGS() LISTFUNCTIONS() 
-                        LISTNEWSGROUPS() LISTTOGGLES() PMATCH() RNUM() VALID()
-                        XCON()
+                        MAILQUICK() MODIFYTIME() NEARBY() NEXT() NUM() OBJID()
+                        OWNER() RLOC() ROOM() SEARCH() SEARCHNG() SEES() 
+                        STATS() WHERE() LISTCOMMANDS() LISTFLAGS() 
+                        LISTFUNCTIONS() LISTNEWSGROUPS() LISTTOGGLES() 
+                        PMATCH() RNUM() VALID() XCON()
               See Also: help database information functions
   
   Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() ROMAN() ROUND()
@@ -10059,6 +10059,7 @@
 { 'help substitutions2' for more }
 
 & %#
+& %:
 & %l
 & %!
 & %@
@@ -10071,6 +10072,8 @@
 & %<
 & substitutions2
     %#      = Database number of the object that caused the message to be
+              displayed or the action list to be run.
+    %:      = Database object-id of the object that caused the message to be
               displayed or the action list to be run.
     %l      = Database number of the location of the object that caused the
               message to be displayed or the action list to be run.
@@ -14476,8 +14479,27 @@
     > say rnum(thingy,#124)
     You say "#122"
   
-  See Also: locate(), num()
+  See Also: locate(), num(), objid()
   
+& OBJID()
+  Function: objid(<object>)
+  
+  Returns the object id of the object.  This essentially is the dbref#
+  combined with the created time stamp (in julian seconds) that the object
+  was created to allow a fully unique identifier.
+  
+  This basically returns in the form <dbref>:<secs>.  
+  
+  If timestamps are not enabled on the mush, the object was created prior
+  to timestamps being enabled, or the object is toggled to ignore timestamps,
+  then this function will just return the dbref#.
+  
+  Example:
+    > say objid(me)
+    You say "#123:2848482828"
+  
+  See Also: num(), rnum(), locate()
+
 & NUM()
   Function: num(<object>)
  
@@ -14488,7 +14510,7 @@
     > say num(me)
     You say "#123"
    
-  See Also: locate(), rnum()
+  See Also: locate(), rnum(), objid()
   
 & CON()
   Function: con(<object>)
@@ -16795,6 +16817,7 @@
     *    - Look for everything in the above list.
   
 { 'help locate2' for more }
+
 & locate2
   You may also specify qualifiers in <where> to help resolve possible
   ambiguities:
@@ -16818,6 +16841,7 @@
     You have 42463 clams.
   
 { 'help locate3' for more }
+
 & locate3
     > look
     Nullspace(#250R)
@@ -16839,7 +16863,7 @@
     > say locate(me,here,*)
     You say "#250"
   
-  See Also: num(), PARENT OBJECTS
+  See Also: num(), PARENT OBJECTS, objid()
   
 & STRIP()
   Function: strip(<string1>,<string2> [,<type>])
@@ -26190,6 +26214,7 @@
   nearby()         - Tests if two different objects are near eachother.
   next()           - Returns the next object in a con()/exit() list.
   num()            - Returns the DbRef of an object.
+  objid()          - Returns the DbRef Object ID of an object.
   owner()          - Returns the owner of an object or an attribute.
   rloc()           - Returns the location of an objects location.
   room()           - Returns the dbref of the (absolute) room an object is in.
@@ -28871,6 +28896,7 @@
   * penn_setq -- Penn compatibility option for labels with setq/setr.
   * customized connect screens so you may add custom commands that a player
     can type at the connect screen.
+  * object id's and objid()/%: for all features that'd handle %#.
   
   Changes
   ------------
