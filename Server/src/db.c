@@ -3371,12 +3371,16 @@ NDECL(db_make_minimal)
 
 dbref
 parse_dbref_special(char *s) {
-   char *p, *q, *r, *atext;
-   int x, aflags;
+   char *p, *q, *r;
+   int x;
+#ifndef STANDALONE
+   char *atext;
+   int aflags;
    double y, z;
    struct tm *ttm;
    long l_offset;
    dbref aowner;
+#endif
 
    r = q = strchr(s, ':');
    *q = '\0';
@@ -3388,6 +3392,7 @@ parse_dbref_special(char *s) {
    }
    x = atoi(s); 
    *r = ':';
+#ifndef STANDALONE
    if ( Good_chk(x) ) {
       if ( NoTimestamp(x) ) {
          return ((x >= 0) ? x : NOTHING);
@@ -3414,6 +3419,7 @@ parse_dbref_special(char *s) {
    } else {
       return ((x >= 0) ? x : NOTHING);
    }
+#endif
    return ((x >= 0) ? x : NOTHING);
 }
 
@@ -3427,9 +3433,11 @@ parse_dbref(const char *s)
     if ( !*s )
        return NOTHING;
 
+#ifndef STANDALONE
     if ( mudconf.enable_tstamps && (strchr(s, ':') != NULL) ) {
        return parse_dbref_special((char *)s);
     }
+#endif
     for (p = s; *p; p++) {
 	if (!isdigit((int)*p))
 	    return NOTHING;
