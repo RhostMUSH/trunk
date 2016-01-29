@@ -17363,6 +17363,10 @@ FUNCTION(fun_objid) {
            return;
        }
     }
+    if ( !Good_obj(it) ) {
+       safe_str("#-1", buff, bufcx);
+       return;
+    }
 
     if (  !mudconf.enable_tstamps || NoTimestamp(it) ) {
        dbval(buff, bufcx, it);
@@ -17379,6 +17383,10 @@ FUNCTION(fun_objid) {
             free_lbuf(atext);
             return;
          }
+      } else {
+         free_lbuf(atext);
+         dbval(buff, bufcx, it);
+         return;
       }
       free_lbuf(atext);
     }
