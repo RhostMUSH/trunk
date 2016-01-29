@@ -56,7 +56,7 @@
 @@ 3) hook_cmd goto before after
 @@ @create HookObj=10
 @@ &B_GOTO HookObj=[setq(f,iter(get(%#/followers),ifelse(match(loc(itext(0)),loc(%#)),itext(0))))]
-@@ &A_GOTO HookObj=[setq(1,ifelse(and(gt(words(%x),1),wildmatch(go* mo*,%x)),rest(%x),%x))][iter(%qf,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow %n.)][move(itext(0),%q1)][u(parse_follow,%q1,itext(0))])]
+@@ &A_GOTO HookObj=[setq(1,ifelse(and(gt(words(%m),1),wildmatch(go* mo*,%m)),rest(%m),%m))][iter(%qf,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow %n.)][move(itext(0),%q1)][u(parse_follow,%q1,itext(0))])]
 @@ &SETUP_FOLLOW HookObj=[setq(g,iter(get(%0/followers),ifelse(match(loc(itext(0)),loc(%0)),itext(0))))]
 @@ &PARSE_FOLLOW HookObj=[iter(%qg,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow [name(%1)].)][move(itext(0),%0)][u(parse_follow,%0)])]
 @@ @set HookObj=INDESTRUCTABLE

@@ -35,6 +35,10 @@ int malloc_count = 0;
 
 #endif /* TEST_MALLOC */
 
+extern double mktime64(struct tm *);
+extern double safe_atof(char *);
+extern int FDECL(do_convtime, (char *, struct tm *));
+
 /* -------
  * Zone list management
  */
@@ -3365,6 +3369,54 @@ NDECL(db_make_minimal)
 
 #endif
 
+dbref
+parse_dbref_special(char *s) {
+   char *p, *q, *r, *atext;
+   int x, aflags;
+   double y, z;
+   struct tm *ttm;
+   long l_offset;
+   dbref aowner;
+
+   r = q = strchr(s, ':');
+   *q = '\0';
+   q++;
+
+   for (p = s; *p; p++) {
+      if (!isdigit((int)*p))
+         return NOTHING;
+   }
+   x = atoi(s); 
+   *r = ':';
+   if ( Good_chk(x) ) {
+      if ( NoTimestamp(x) ) {
+         return ((x >= 0) ? x : NOTHING);
+      }
+      atext = atr_get(x, A_CREATED_TIME, &aowner, &aflags);
+      if ( atext && *atext ) {
+         ttm = localtime(&mudstate.now);
+         l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+         if (do_convtime(atext, ttm)) {
+            y = (double)(mktime64(ttm) + l_offset);
+            z = safe_atof(q);
+            if ( y == z ) {
+               free_lbuf(atext);
+               return ((x >= 0) ? x : NOTHING);
+            }
+            x = -1;
+         }
+         x = -1;
+      } else {
+         x = -1;
+      }
+      x = -1;
+      free_lbuf(atext);
+   } else {
+      return ((x >= 0) ? x : NOTHING);
+   }
+   return ((x >= 0) ? x : NOTHING);
+}
+
 dbref 
 parse_dbref(const char *s)
 {
@@ -3375,6 +3427,9 @@ parse_dbref(const char *s)
     if ( !*s )
        return NOTHING;
 
+    if ( mudconf.enable_tstamps && (strchr(s, ':') != NULL) ) {
+       return parse_dbref_special((char *)s);
+    }
     for (p = s; *p; p++) {
 	if (!isdigit((int)*p))
 	    return NOTHING;
