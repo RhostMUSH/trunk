@@ -116,3 +116,10 @@ Now... things you need to do.
    if they exist.  It moves these flatfiles into the 'prevflat' directory, then tarballs those and dumps
    consecutive backups in the 'oldflat' directory.  By default it keeps 7 consecutive backups.  You may
    alter this in the backup_flat.sh script itself.
+
+9) All connect.txt and customized files can be found in the ~/Server/game/txt directory.  There is a 
+   README file there that explains their purposes in more detail.  You can see more information on
+   all files and how they inter-relate with 'wizhelp file'.
+
+10)The wiz bits can be confusing, so 'wizhelp control' is very helpful to give a high overview
+   of what each bit does and their inter-relationship is.
