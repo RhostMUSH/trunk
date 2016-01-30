@@ -20951,14 +20951,13 @@ FUNCTION(fun_lock)
 FUNCTION(fun_elock)
 {
     dbref it, victim, aowner, i_locktype;
-    int aflags;
+    int aflags, i_def;
     char *tbuf;
     ATTR *attr;
-    struct boolexp *okey;
 
     /* Parse lock supplier into obj + lock */
 
-    if (!fn_range_check("ELOCK", nfargs, 2, 3, buff, bufcx))
+    if (!fn_range_check("ELOCK", nfargs, 2, 4, buff, bufcx))
         return;
 
     if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx))
@@ -20969,7 +20968,7 @@ FUNCTION(fun_elock)
         safe_str("#-1 NOT FOUND", buff, bufcx);
         return;
     }
-    /* Get the victim and ensure we can do it */
+    /* Grab the locktype if optional -- This is for reality levels */
     i_locktype = 0;
     if ( (nfargs > 2) && *fargs[2] ) {
        i_locktype = atoi(fargs[2]);
@@ -20977,6 +20976,15 @@ FUNCTION(fun_elock)
           i_locktype = 0;
     }
 
+    /* The default lock value */
+    i_def = 1;
+    if ( (nfargs > 3) && *fargs[3] ) {
+       i_def = atoi(fargs[3]);
+       if ( (i_def < 0) || (i_def > 1) )
+          i_def = 1;
+    }
+
+    /* Get the victim and ensure we can do it */
     victim = match_thing(player, fargs[1]);
     if (!Good_obj(victim)) {
         safe_str("#-1 NOT FOUND", buff, bufcx);
@@ -20990,9 +20998,7 @@ FUNCTION(fun_elock)
            tbuf = atr_get(it, attr->number, &aowner, &aflags);
         if ((attr->number == A_LOCK) ||
             Read_attr(player, it, attr, aowner, aflags, 0)) {
-            okey = parse_boolexp(player, tbuf, 1);
-            ival(buff, bufcx, eval_boolexp(victim, it, it, okey, i_locktype));
-            free_boolexp(okey);
+            ival(buff, bufcx, eval_boolexp_atr(victim, it, it, tbuf, i_def, i_locktype));
         } else {
             safe_str("0", buff, bufcx);
         }

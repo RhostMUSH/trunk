@@ -10962,9 +10962,16 @@
   See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck()
   
 & elock()
-  Function: elock(<object>[/<whichlock>],<victim>)
+  Function: elock(<object>[/<whichlock>], <victim> [,<reality> [,<default>]])
+  
   Checks if <victim> would pass the named lock on <object>.  Only the object's
   owner may test locks other than the default lock.
+  
+  Optional values are as follows:
+    <reality> -- Specify if you are to do a reality level lock check.
+                 Valid values 0, 1, or 2.
+    <default> -- specify the default value if no lock found.  Defaults to '1'.
+                 Valid values 0 or 1.
   
   Example:
     > @lock me/page=!*Twinklock
@@ -10975,6 +10982,12 @@
       Set.
     > say elock(me/pagelock,*twink)
       You say "1"
+    > @unlock me/twink
+      Set.
+    > say elock(me/pagelock,*twink)
+      You say "1"
+    > say elock(me/pagelock,*twink,,0)
+      You say "0"
   
   See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck()
   
@@ -28919,6 +28932,7 @@
   * improved help for attrib formatting and added a plug in normal help [ASH]
   * @wipe, @cluster/wipe, wipe(), and cluster_wipe() now take optional 
     owner argument to wipe only attributes owned by owner [ASH]
+  * modified elock() to specify default values for locks [ASH]
     
   Bug Fixes
   ------------
