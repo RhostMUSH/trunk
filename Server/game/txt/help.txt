@@ -10962,14 +10962,16 @@
   See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck()
   
 & elock()
-  Function: elock(<object>[/<whichlock>], <victim> [,<reality> [,<default>]])
+  Function: elock(<object>[/<whichlock>], <victim> [,<type> [,<default>]])
   
   Checks if <victim> would pass the named lock on <object>.  Only the object's
   owner may test locks other than the default lock.
   
   Optional values are as follows:
-    <reality> -- Specify if you are to do a reality level lock check.
-                 Valid values 0, 1, or 2.
+    <type>    -- The argument (0-2) that you wish to pass as '%0' for 
+                 customizable UseLock lock checks.  '0' is default, 1 is 
+                 $commands only, 2 is ^listens only.  Valid values 0, 1, or 2.
+                 This is only meaningful for UseLocks.
     <default> -- specify the default value if no lock found.  Defaults to '1'.
                  Valid values 0 or 1.
   

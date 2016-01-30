@@ -20950,8 +20950,8 @@ FUNCTION(fun_lock)
 
 FUNCTION(fun_elock)
 {
-    dbref it, victim, aowner, i_locktype;
-    int aflags, i_def;
+    dbref it, victim, aowner;
+    int aflags, i_def, i_locktype;
     char *tbuf;
     ATTR *attr;
 
@@ -20968,7 +20968,11 @@ FUNCTION(fun_elock)
         safe_str("#-1 NOT FOUND", buff, bufcx);
         return;
     }
-    /* Grab the locktype if optional -- This is for reality levels */
+    /* Grab the locktype if optional -- This is used to specify the type of uselock 
+     * 0 - default
+     * 1 - $commands
+     * 2 - ^listens
+     */
     i_locktype = 0;
     if ( (nfargs > 2) && *fargs[2] ) {
        i_locktype = atoi(fargs[2]);
