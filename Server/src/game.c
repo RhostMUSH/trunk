@@ -2225,6 +2225,14 @@ main(int argc, char *argv[])
     hashreset(&mudstate.error_htab);
     nhashreset(&mudstate.desc_htab);
 
+/*  Missing hash resets */
+    hashreset(&mudstate.cmd_alias_htab);
+    hashreset(&mudstate.ufunc_htab);
+    hashreset(&mudstate.ulfunc_htab);
+    nhashreset(&mudstate.parent_htab);
+    hashreset(&mudstate.ansi_htab);
+
+
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);
     mudstate.lastnowmsec = mudstate.nowmsec;
