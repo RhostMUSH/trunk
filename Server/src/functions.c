@@ -28720,7 +28720,7 @@ FUNCTION(fun_isobjid)
        if (*p++ == NUMBER_TOKEN) {
          if ( strlen(fargs[0]) > 1 ) {
             dbitem = parse_dbref(p);
-            if (Good_obj(dbitem)) {
+            if (Good_chk(dbitem)) {
                 safe_str("1", buff, bufcx);
                 return;
             }
