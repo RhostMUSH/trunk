@@ -28707,6 +28707,30 @@ FUNCTION(fun_isxdigit)
 }
 
 /* ---------------------------------------------------------------------------
+ * isobjid: is the argument a valid objid?
+ */
+
+FUNCTION(fun_isobjid)
+{
+    char *p;
+    dbref dbitem;
+
+    if ( strchr(fargs[0], ':') != NULL ) {
+       p = fargs[0];
+       if (*p++ == NUMBER_TOKEN) {
+         if ( strlen(fargs[0]) > 1 ) {
+            dbitem = parse_dbref(p);
+            if (Good_obj(dbitem)) {
+                safe_str("1", buff, bufcx);
+                return;
+            }
+         }
+       }
+    }
+    safe_str("0", buff, bufcx);
+}
+
+/* ---------------------------------------------------------------------------
  * isdbref: is the argument a valid dbref?
  */
 
@@ -31801,6 +31825,7 @@ FUN flist[] =
     {"INZONE", fun_inzone, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISCLUSTER", fun_iscluster, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISDBREF", fun_isdbref, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISOBJID", fun_isobjid, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISINT", fun_isint, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISNUM", fun_isnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISALNUM", fun_isalnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
