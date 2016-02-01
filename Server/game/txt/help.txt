@@ -7448,6 +7448,10 @@
   appropiate @ufail messages (ufail, aufail, oufail), if there is a
   matching $command and the object is uselocked against you.
   
+  If the object is set SHOWFAILCMD in addition to STOP, then the
+  error is showed appropiately and all command processing is 
+  stopped at that point as well.
+  
 & BOUNCE
 & BOUNCEFORWARD
   Flag: BOUNCE([o])  
@@ -28945,3 +28949,4 @@
   * Ancient systems (CentOS 4/5) didn't successfully handle MTU values [ASH]
   * enhanced_convtime didn't handle all conditions properly [ASH]
   * bug with streval which didn't process right on non-player evaluation [ASH]
+  * minor glitch if an object set STOP and SHOWFAILCMD
