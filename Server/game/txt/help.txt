@@ -5411,7 +5411,10 @@
   
   This attribute sets up a caption that is used when a player is looked at.
   This 'caption' is appended to their name.  You may set a large caption,
-  but only the first 40 characters will be used.  ANSI is also stripped.
+  but only the first 40 characters will be used.  If you do not use the
+  ZENTY_ANSI compile time option then ANSI is also stripped.  Carrage 
+  returns will be stripped.
+  
   This is only used for players and is ignored for every other data type.
   
   Optional switches are /quiet to suppress output or /noisy to give 
@@ -5439,6 +5442,8 @@
   This attribute sets up a title (prefix) for the target player when
   they are looked at or looked at in a given location.  You may set
   a large title, but only the first 40 characters will be displayed.
+  If ZENTY_ANSI compiletime is not used, ansi is stripped.
+   
   No carrage returns are allowed in this string and it is only useful
   for players.
   
