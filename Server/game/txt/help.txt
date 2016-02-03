@@ -28982,3 +28982,4 @@
   * enhanced_convtime didn't handle all conditions properly [ASH]
   * bug with streval which didn't process right on non-player evaluation [ASH]
   * minor glitch if an object set STOP and SHOWFAILCMD
+  * minor glitch with @snapshot/loading over a player already connected [ASH]
