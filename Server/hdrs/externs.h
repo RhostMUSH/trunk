@@ -927,6 +927,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SIDE_CLUSTER_ADD 16777216 /* Side-effect cluster_add() */
 #define	SIDE_MAIL	33554432  /* mail send side effect */
 #define SIDE_EXECSCRIPT 67108864 /* execscript() sideeffect */
+#define SIDE_ZONE      134217728 /* zone() sideeffect function */
 #define	SNAPSHOT_NOOPT	0	/* No option specified */
 #define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
 #define SNAPSHOT_UNLOAD	2	/* Unload a snapshot from the db */

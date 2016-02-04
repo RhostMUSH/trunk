@@ -311,6 +311,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.zone_return = 0;		/* State data of zonecmd() */
     mudstate.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
     mudstate.mysql_last = 0;		/* Time of last mysql hang check */
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
@@ -1161,7 +1162,7 @@ CF_HAND(cf_verifyint_mysql)
 /* The value of MUX/PENN/ALL are taken from 'wizhelp sideeffects' */
 #define MUXMASK         131135
 #define PENNMASK        458719
-#define ALLMASK		134217727 /* 2147483647 would be 'really all', i.e. 32 1s */
+#define ALLMASK		268435455 /* 2147483647 would be 'really all', i.e. 32 1s */
 #define NO_FLAG_FOUND   -1
 
 /* The conversion function relies on the position of words in this array to match
@@ -1170,7 +1171,7 @@ const char * sideEffects[] = {
   "SET" , "CREATE", "LINK", "PEMIT", "TEL", "LIST", "DIG", "OPEN", "EMIT",
   "OEMIT", "CLONE", "PARENT", "LOCK", "LEMIT", "REMIT", "WIPE", "DESTROY",
   "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", 
-  "MAILSEND", "EXECSCRIPT", NULL
+  "MAILSEND", "EXECSCRIPT", "ZONE", NULL
 };
 
 /* This function takes an integer mask and converts it to a string list

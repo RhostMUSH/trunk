@@ -1321,6 +1321,7 @@ extern int encode_base64(const char *, int, char *, char **);
 extern void mail_quota(dbref, char *, int, int *, int *, int *, int *, int *, int *);
 extern CMDENT * lookup_command(char *);
 extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
+extern void do_zone(dbref, dbref, int, char *, char *);
 
 /* pom.c nefinitions */
 /* #define PI_MUSH        3.14159265358 */
@@ -18727,6 +18728,115 @@ FUNCTION(fun_ncomp)
 }
 
 /* --------------------------------------------------------------------------
+ * fun_zone: Return a list of objects in zone list
+ *
+ * mudstate.zone_return values:
+ *  1 - Success
+ *  0 - Initial state   (not used)
+ * -1 - invalid number of arguments (not used)
+ * -2 - permission denied
+ * -3 - can't zone a zonemaster
+ * -4 - invalid zonemaster
+ * -5 - object already in zone
+ */
+FUNCTION(fun_zonecmd)
+{
+  char *s_fill;
+  CMDENT *cmdp;
+
+  if ( !(mudconf.sideeffects & SIDE_ZONE) ) {
+     notify(player, "#-1 FUNCTION DISABLED");
+     return;
+  }
+
+  if (!fn_range_check("ZONE", nfargs, 2, 3, buff, bufcx)) {
+    return;
+  }
+
+  if ( !SideFX(player) || Fubar(player) || return_bit(player) < mudconf.restrict_sidefx ) {
+     notify(player, "Permission denied.");
+     return;
+  }
+
+  mudstate.sidefx_currcalls++;
+  cmdp = (CMDENT *)hashfind((char *)"@zone", &mudstate.command_htab);
+  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@zone") ||
+        cmdtest(Owner(player), "@zone") || zonecmdtest(player, "@zone") ) {
+     notify(player, "Permission denied.");
+     return;
+  }
+
+ /* add, del, purge */
+  mudstate.zone_return = 0;
+  switch (*fargs[0]) {
+     case 'a': /* Add */
+     case 'A': /* Add */
+               if ( (nfargs < 3) || !*fargs[2] ) {
+                  safe_str("#-1 NOTHING TO ADD TO ZONE", buff, bufcx);
+               } else if ( !*fargs[1] ) {
+                  safe_str("#-1 ADD TO WHAT ZONE?", buff, bufcx);
+               } else {
+                  do_zone(player, cause, (ZONE_ADD|SIDEEFFECT), fargs[1], fargs[2]);
+                  switch( mudstate.zone_return ) {
+                     case -2: /* No permission */
+                              safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+                              break;
+                     case -3: /* Already zonemaste r*/
+                              safe_str("#-1 CAN NOT ZONE A ZONEMASTER", buff, bufcx);
+                              break;
+                     case -4: /* Object not a zone master */
+                              safe_str("#-1 INVALID ZONEMASTER", buff, bufcx);
+                              break;
+                     case -5: /* Object already in zone */
+                              safe_str("#-1 ALREADY IN ZONE", buff, bufcx);
+                              break;
+                  }
+               }
+               break;
+     case 'd': /* Del */
+     case 'D': /* Del */
+               if ( (nfargs < 3) || !*fargs[2] ) {
+                  safe_str("#-1 NOTHING TO DELETE FROM ZONE", buff, bufcx);
+               } else if ( !*fargs[1] ) {
+                  safe_str("#-1 DELETE FROM WHAT ZONE?", buff, bufcx);
+               } else {
+                  do_zone(player, cause, (ZONE_DELETE|SIDEEFFECT), fargs[1], fargs[2]);
+                  switch( mudstate.zone_return ) {
+                     case -2: /* No permission */
+                              safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+                              break;
+                     case -5: /* Object already in zone */
+                              safe_str("#-1 NOT IN ZONE", buff, bufcx);
+                              break;
+                  }
+               }
+               break;
+     case 'p': /* Purge */
+     case 'P': /* Purge */
+               if ( nfargs > 2 ) {
+                  safe_str("#-1 PURGE ONLY TAKES TWO ARGUMENTS", buff, bufcx);
+               } else if ( !*fargs[1] ) {
+                  safe_str("#-1 PURGE WHAT ZONE?", buff, bufcx);
+               } else {
+                  s_fill = alloc_lbuf("zone_fill");
+                  do_zone(player, cause, (ZONE_PURGE|SIDEEFFECT), fargs[1], s_fill);
+                  free_lbuf(s_fill);
+                  switch( mudstate.zone_return ) {
+                     case -2: /* No permission */
+                              safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+                              break;
+                  }
+               }
+               break;
+     default:  /* Handler for all other cases */
+               safe_str("#-1 INVALID COMMAND ARGUMENT TO ZONE", buff, bufcx);
+               break;
+  }
+  mudstate.zone_return = 0;
+
+}
+
+/* --------------------------------------------------------------------------
  * fun_lzone: Return a list of objects in zone list
  */
 FUNCTION(fun_lzone)
@@ -32277,6 +32387,7 @@ FUN flist[] =
     {"ZFUN2LOCAL", fun_zfun2local, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"ZWHO", fun_zwho, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ZONECMD", fun_zonecmd, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {NULL, NULL, 0, 0, 0, 0}
 };
 

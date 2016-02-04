@@ -764,6 +764,7 @@ struct statedata {
 	int	insideicmds;	/* Inside ICMD evaluation */
 	time_t	mysql_last;	/* Last mysql hang time */
 	int	argtwo_fix;	/* Arg 2 fix test for '=' */
+        int     zone_return;	/* Return value of zonecmd() function */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

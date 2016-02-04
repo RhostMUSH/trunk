@@ -535,8 +535,19 @@
     are essentially the same, but from different directions.
   * Usage 4 will remove all references to zones from an object or
     zone master.  
- 
-  See Also: @lock, ZONES, lzone(), ZONEMASTER, ZONECONTENTS
+  
+  The config param 'zones_like_parents' can also be enabled to allow @zones
+  to function $commands to its members as if it was a @parent.
+   
+  Example:
+    > @set #2=zonemaster
+    Set.
+    > @set #2=zonecontents (for when we want a zone to have zonemastery fun)
+    Set.
+    > @zone/add #1=#2 
+    Zone Master added to object.
+  
+  See Also: @lock, ZONES, zonecmd(), lzone(), ZONEMASTER, ZONECONTENTS
   
 & changes
   For a list of actual changes, see 'help revis'.
@@ -9523,7 +9534,7 @@
   XDEC()         XINC()        XGET()          XNOR()          XOR()        
   XORCHR()       ZEMIT()       ZFUN()          ZFUN2()         ZFUNDEFAULT()
   ZFUN2DEFAULT() ZFUNEVAL()    ZFUNLDEFAULT()  ZFUNL2DEFAULT() ZFUNLOCAL()  
-  ZFUN2LOCAL()   ZWHO() 
+  ZFUN2LOCAL()   ZONECMD()     ZWHO() 
   
 { 'help function aliases' for aliases on existing functions }
   
@@ -9714,7 +9725,7 @@
   
   Zone Functions:     INZONE() ZFUN() ZFUN2() ZFUNDEFAULT() ZFUN2DEFAULT() 
                       ZFUNEVAL() ZFUNLDEFAULT() ZFUNL2DEFAULT() ZFUNLOCAL() 
-                      ZFUN2LOCAL() ZWHO()
+                      ZFUN2LOCAL() ZONECMD() ZWHO()
             See Also: help zone functions
   
   Cluster Functions:  CLUSTER_ADD() CLUSTER_ATTRCNT() CLUSTER_DEFAULT() 
@@ -11363,7 +11374,7 @@
     > say inzone(here)
     You say "#0 #534"
   
-  See Also: @zone, ZONES, lzone(), zwho()
+  See Also: @zone, ZONES, lzone(), zwho(), zonecmd()
   
 & ZWHO()
   Function: zwho(<zone> [,<type>])
@@ -11390,10 +11401,53 @@
     > say zwho(here,1)
     You say "#1 #3 #5"
   
-  See Also: @zone, ZONES, lzone(), inzone()
+  See Also: @zone, ZONES, lzone(), inzone(), zonecmd()
+  
+& ZONECMD()
+  Function: zonecmd(<command>, <target> [,<zone>])
+  
+  Note: This function requires the SIDEFX flag.
+  
+  This function duplicates the features of @zone, minus the list 
+  ability which can be found with lzone().  The following <commands>
+  are currently available with this function:
+    add    -- (shorthand with 'a') allows you to add a <target> to the
+              the specified <zone>.  It does sanity check and like
+              @zone you can not add a zonemaster to another zone.
+              Syntax: zonecmd(add, target, zone)
+   
+    delete -- (shorthand with 'd') allows you to delete the <target>
+              from the zone.  You can swap <target> and <zone> for
+              the same effect.
+              Syntax: zonecmd(del, target, zone)
+                      zonecmd(del, zone, target)
+  
+    purge  -- (shorthand with 'p') allows you to purge all zones
+              from <target>.  If a non-zonemaster is specified, it
+              will purge all zones from the target.  If a zonemaster
+              is specified, it will purge all members from that zone.
+              Syntax: zonecmd(purge, target)
+  
+  A successful execution of this function returns no output, otherwise
+  any error will start with #-1 for coding checks.
+   
+  Examples:
+    > @set #123=zonemaster
+    Set.
+    > say zonecmd(add,me,#123)
+    You say ""
+    > say zonecmd(add,me,#123)
+    You say "#-1 ALREADY IN ZONE"
+    > say zonecmd(del,me,#123)
+    You say ""
+    > say zonecmd(del,me,#123)
+    You say "#-1 NOT IN ZONE"
+  
+  See Also: @zone, ZONES, lzone(), inzone(), zwho()
   
 & LZONE()
   Function: lzone(<object> [,<key>])
+  
   Returns the zone list for an object. If the object is a zonemaster,
   the list contains the objects within the zone controlled by the 
   zonemaster. If the object is not a zonemaster, the list contains
@@ -11417,7 +11471,7 @@
     > say lzone(here,l)
     You say "1 2"
  
-  See Also: @zone, ZONES, inzone(), zwho()
+  See Also: @zone, ZONES, inzone(), zwho(), zonecmd()
  
 & OBJ()
   Function: obj(<object>)
@@ -26788,6 +26842,8 @@
   zfunlocal()    - Like ulocal(), but from the perspective of a zone object.
   zfun2local()   - Like u2local(), but from the perspective of a zone object.
   zwho()         - Returns the players in a specified zone master.
+  zonecmd()      - Adds/Deletes/Purges zones from targets.
+  lzone()        - Lists targets of a zone or zones of a target.
 
 & cluster functions
   cluster_add()        - Add new target into cluster.
@@ -27047,10 +27103,10 @@
   * localize() to localize registers from eval [ASH]
   * null() to snuff output of string [SEA]
   * ladd(), lsub(), lmul(), ldiv(), land(), lavg(), lmax(),
-  lmin(), lor(), lxor(), lnor(), lxnor(), ncomp(), streq(),
-  xcon(), inzone(), zemit(), zwho(), zfun(), zfun2(),
-  zfunlocal(), zfun2local(), zfundefault(), zfun2default(),
-  zfuneval(), zfunldefault(), zfunl2default() [SEA]
+    lmin(), lor(), lxor(), lnor(), lxnor(), ncomp(), streq(),
+    xcon(), inzone(), zemit(), zwho(), zfun(), zfun2(),
+    zfunlocal(), zfun2local(), zfundefault(), zfun2default(),
+    zfuneval(), zfunldefault(), zfunl2default() [SEA]
   * lastcreate(), while(), modifystamp(), createdstamp() [ASH]
   * @hide[/on/off] - For PENN compatibility [ASH]
   * @saystring define what is substituted instead of 'says' [ASH]
@@ -28948,6 +29004,7 @@
     can type at the connect screen.
   * object id's and objid()/%: for all features that'd handle %#.
   * isobjid() added.
+  * zonecmd() added (side-effect of @zone) [ASH]
   
   Changes
   ------------
