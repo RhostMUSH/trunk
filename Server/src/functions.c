@@ -19025,6 +19025,8 @@ FUNCTION(fun_xcon)
         t = 4;
       else if (!stricmp(pt2,"CONNECT"))
         t = 5;
+      else if (!stricmp(pt2,"CMDLISTEN"))
+        t = 6;
     } else if (pt1) {
       if (!stricmp(pt1+1,"PLAYER")) {
         t = 1;
@@ -19040,6 +19042,9 @@ FUNCTION(fun_xcon)
         *pt1 = '\0';
       } else if (!stricmp(pt1+1,"CONNECT")) {
         t = 5;
+        *pt1 = '\0';
+      } else if (!stricmp(pt1+1,"CMDLISTEN")) {
+        t = 6;
         *pt1 = '\0';
       }
     }
@@ -19078,6 +19083,8 @@ FUNCTION(fun_xcon)
               }
               break;
             case 4:
+            case 6:
+              canhear = isplayer = ispuppet = 0;
               if ((Typeof(thing) == TYPE_EXIT) && Audible(thing))
                 canhear = 1;
               else {
@@ -19137,7 +19144,7 @@ FUNCTION(fun_xcon)
                 isplayer = 1;
               if (Puppet(thing))
                 ispuppet = 1;
-              if (!canhear && !isplayer && !ispuppet) {
+              if ( (t == 6) && !canhear && !isplayer && !ispuppet) {
                 ITER_PARENTS(thing, parent, loop) {
                   if (Commer(parent))
                     cancom = 1;
@@ -19243,6 +19250,8 @@ FUNCTION(fun_lcon)
         t = 4;
       else if (!stricmp(pt2,"CONNECT"))
         t = 5;
+      else if (!stricmp(pt2,"CMDLISTEN"))
+        t = 6;
     } else if (pt1) {
       if (!stricmp(pt1+1,"PLAYER")) {
         t = 1;
@@ -19258,6 +19267,9 @@ FUNCTION(fun_lcon)
         *pt1 = '\0';
       } else if (!stricmp(pt1+1,"CONNECT")) {
         t = 5;
+        *pt1 = '\0';
+      } else if (!stricmp(pt1+1,"CMDLISTEN")) {
+        t = 6;
         *pt1 = '\0';
       }
     }
@@ -19292,6 +19304,8 @@ FUNCTION(fun_lcon)
                  }
                  break;
              case 4:
+             case 6:
+                 canhear = isplayer = ispuppet = 0;
                  if ((Typeof(thing) == TYPE_EXIT) && Audible(thing))
                     canhear = 1;
                  else {
@@ -19351,7 +19365,7 @@ FUNCTION(fun_lcon)
                    isplayer = 1;
                  if (Puppet(thing))
                    ispuppet = 1;
-                 if (!canhear && !isplayer && !ispuppet) {
+                 if ( (t == 6) && !canhear && !isplayer && !ispuppet) {
                    ITER_PARENTS(thing, parent, loop) {
                      if (Commer(parent))
                        cancom = 1;

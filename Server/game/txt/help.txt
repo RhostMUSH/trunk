@@ -15939,11 +15939,12 @@
  
   Returns a space-separated list of the contents of <object>.
   It takes specific switches as an option:
-      /PLAYER  -- lists all TYPE players in the contents.
-      /OBJECT  -- lists all TYPE objects in the contents.
-      /CONNECT -- lists all connected players in the contents.
-      /PUPPET  -- lists all flag type 'PUPPET' in the contents.
-      /LISTEN  -- lists all listening things in the contents.
+      /PLAYER    -- lists all TYPE players in the contents.
+      /OBJECT    -- lists all TYPE objects in the contents.
+      /CONNECT   -- lists all connected players in the contents.
+      /PUPPET    -- lists all flag type 'PUPPET' in the contents.
+      /LISTEN    -- lists all listening things in the contents.
+      /CMDLISTEN -- lists all listening/command things in the contents.
   
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
@@ -15976,11 +15977,12 @@
   This function is similiar to lcon() except it returns a space-seperated list
   of the contents of <object> starting at point <start> and returning <count>
   number of contents.  It takes a specific switch as an option:
-      /PLAYER  -- lists all TYPE players in the contents.
-      /OBJECT  -- lists all TYPE objects in the contents.
-      /CONNECT -- lists all connected players in the contents.
-      /PUPPET  -- lists all flag type 'PUPPET' in the contents.
-      /LISTEN  -- lists all listening things in the contents.
+      /PLAYER    -- lists all TYPE players in the contents.
+      /OBJECT    -- lists all TYPE objects in the contents.
+      /CONNECT   -- lists all connected players in the contents.
+      /PUPPET    -- lists all flag type 'PUPPET' in the contents.
+      /LISTEN    -- lists all listening things in the contents.
+      /CMDLISTEN -- lists all listening/command things in the contents.
   
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
@@ -29028,6 +29030,9 @@
   * @wipe, @cluster/wipe, wipe(), and cluster_wipe() now take optional 
     owner argument to wipe only attributes owned by owner [ASH]
   * modified elock() to specify default values for locks [ASH]
+  * the listen argument to lcon()/xcon() included $commands since that
+    was seen as listening in @sweeps, but we have broken this out now so
+    that 'listen' is truly listening and cmdlisten is the old behavior [ASH]
     
   Bug Fixes
   ------------
