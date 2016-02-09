@@ -18911,11 +18911,11 @@ FUNCTION(fun_zonecmd)
 FUNCTION(fun_lzone)
 {
   dbref it;
-  int i_cntr, i_type, i_max, i_ceil, i_domin, i_domax;
+  int i_cntr, i_type, i_max, i_ceil, i_domin, i_domax, i_objid;
   char *tbuf, c_type;
   ZLISTNODE *ptr;
 
-  if (!fn_range_check("LZONE", nfargs, 1, 2, buff, bufcx)) {
+  if (!fn_range_check("LZONE", nfargs, 1, 3, buff, bufcx)) {
     return;
   }
   it = match_thing(player, fargs[0]);
@@ -18934,6 +18934,11 @@ FUNCTION(fun_lzone)
   if ( i_type < 0 )
      i_type = 0;
 
+  i_objid = 1;
+  if ( (nfargs > 2) && *fargs[2] ) {
+     i_objid = (atoi(fargs[2]) ? 1 : 0);
+  }
+
   i_cntr = 0;
   i_max = (i_type - 1) * 400;
   i_ceil = i_max + 400;
@@ -18950,10 +18955,18 @@ FUNCTION(fun_lzone)
           break;
        /* NOTE: These sprintfs will not overflow an SBUF */
        if( ptr->next ) {
-         sprintf(tbuf, "#%d ", ptr->object);
+         if ( i_objid ) {
+            sprintf(tbuf, "%.*s ", SBUF_SIZE - 2, make_objid(ptr->object));
+         } else {
+            sprintf(tbuf, "#%d ", ptr->object);
+         }
        }
        else {
-         sprintf(tbuf, "#%d", ptr->object);
+          if ( i_objid ) {
+            sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(ptr->object));
+          } else {
+            sprintf(tbuf, "#%d", ptr->object);
+          }
        }
        safe_str(tbuf, buff, bufcx);
     }
@@ -18975,11 +18988,11 @@ FUNCTION(fun_lzone)
 FUNCTION(fun_zwho)
 {
   dbref it, thing;
-  int gotone, i_chk;
+  int gotone, i_chk, i_objid;
   char *tbuf;
   ZLISTNODE *ptr;
 
-  if (!fn_range_check("ZWHO", nfargs, 1, 2, buff, bufcx)) 
+  if (!fn_range_check("ZWHO", nfargs, 1, 3, buff, bufcx)) 
      return;
 
   it = match_thing(player, fargs[0]);
@@ -18989,6 +19002,10 @@ FUNCTION(fun_zwho)
   if ( (nfargs > 1) && *fargs[1] )
      i_chk = atoi(fargs[1]);
 
+  i_objid = 0;
+  if ( (nfargs > 2) && *fargs[2] ) {
+     i_objid = (atoi(fargs[2]) ? 1 : 0);
+  }
   gotone = 0;
   if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
      tbuf = alloc_sbuf("fun_zwho");
@@ -18998,7 +19015,11 @@ FUNCTION(fun_zwho)
            if ( gotone )
               safe_chr(' ', buff, bufcx);
            gotone = 1;
-           sprintf(tbuf, "#%d", ptr->object);
+           if ( i_objid ) {
+              sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(ptr->object));
+           } else {
+              sprintf(tbuf, "#%d", ptr->object);
+           }
            safe_str(tbuf, buff, bufcx);
         } else if ( (i_chk != 0) && Good_chk(ptr->object) && Has_contents(ptr->object) ) {
            DOLIST(thing, Contents(ptr->object)) {
@@ -19006,7 +19027,11 @@ FUNCTION(fun_zwho)
                  if ( gotone ) 
                     safe_chr(' ', buff, bufcx);
                  gotone = 1;
-                 sprintf(tbuf, "#%d", thing);
+                 if ( i_objid ) {
+                    sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
+                 } else {
+                    sprintf(tbuf, "#%d", thing);
+                 }
                  safe_str(tbuf, buff, bufcx);
               }
            }

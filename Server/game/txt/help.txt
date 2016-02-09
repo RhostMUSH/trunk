@@ -11390,7 +11390,7 @@
   See Also: @zone, ZONES, lzone(), zwho(), zonecmd()
   
 & ZWHO()
-  Function: zwho(<zone> [,<type>])
+  Function: zwho(<zone> [,<type>] [,<objid>])
   Returns the players in the specified zonemaster.  If the target is not
   a zonemaster, or if the object is not a valid zone, it returns an
   empty list.  This is _not_ database intensive.  This is the default 
@@ -11400,6 +11400,9 @@
   inside every single location belonging to that zone.  Also not overly
   cost intensive.
   
+  You may optionally specify the <objid> to '1' to show the listings as
+  objid's instead of the default of dbref#'s.
+   
   Example:
     > @set here=zonemaster
     > @zone here=#0   (a room)
@@ -11409,10 +11412,14 @@
     > @zone here=#987 (a player)
     > say lzone(here)
     You say "#0 #534 #987"
+    > say lzone(here,,1)
+    You say "#0:8294929292 #534:8285029852 #987:8572572727"
     > say zwho(here)
     You say "#987"
     > say zwho(here,1)
     You say "#1 #3 #5"
+    > say zwho(here,1,1)
+    You say "#1:8258757272 #3:8572757272 #5:8572572727"
   
   See Also: @zone, ZONES, lzone(), inzone(), zonecmd()
   
@@ -11459,7 +11466,7 @@
   See Also: @zone, ZONES, lzone(), inzone(), zwho()
   
 & LZONE()
-  Function: lzone(<object> [,<key>])
+  Function: lzone(<object> [,<key>] [,<objid>])
   
   Returns the zone list for an object. If the object is a zonemaster,
   the list contains the objects within the zone controlled by the 
@@ -11467,6 +11474,9 @@
   all of the zonemasters that the object belongs to.  This is _not_
   database intensive.
   
+  You may optionally specify <objid> as '1' to return the objid's 
+  of the target instead of the dbref#'s.
+   
   The following optional keys are available:
     0 - list all zones (or zonemasters) of the target (default)
     n - List 'n'th 400 zones (or zonesmasters) of the target. 
@@ -11481,6 +11491,8 @@
     > @zone here=#534
     > say lzone(here)         
     You say "#0 #534"
+    > say lzone(here,,1)         
+    You say "#0:8185828502 #534:8258128282"
     > say lzone(here,l)
     You say "1 2"
  
@@ -29086,8 +29098,8 @@
     was seen as listening in @sweeps, but we have broken this out now so
     that 'LISTEN' is truly listening and 'CMDLISTEN' is the old behavior [ASH]
   * lwho() is now objid aware optionally [ASH]
-  * lexits(), lcon(), xcon(), lrooms(), lparents(), and children() are
-    now objid aware [ASH]
+  * lexits(), lcon(), xcon(), lrooms(), lparents(), lzone(), zwho(), and 
+    children() are now objid aware [ASH]
     
   Bug Fixes
   ------------
