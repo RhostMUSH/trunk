@@ -29049,6 +29049,7 @@
   * the listen argument to lcon()/xcon() included $commands since that
     was seen as listening in @sweeps, but we have broken this out now so
     that 'LISTEN' is truly listening and 'CMDLISTEN' is the old behavior [ASH]
+  * lwho() is now objid aware optionally [ASH]
     
   Bug Fixes
   ------------
