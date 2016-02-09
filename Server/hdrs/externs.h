@@ -87,7 +87,7 @@ extern void	FDECL(reset_signals, ());
 extern void	FDECL(ignore_signals, ());
 
 /* From netcommon.c */
-extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref));
+extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref, int));
 extern int	FDECL(fetch_idle, (dbref));
 extern int	FDECL(fetch_connect, (dbref));
 extern void	FDECL(broadcast_monitor, (dbref,int,char*,char*,char*,int,int,int,char *));

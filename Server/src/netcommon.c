@@ -60,7 +60,7 @@ static void desc_addhash(DESC * d);
 extern int FDECL(lookup, (char *, char *, int, int *));
 static void set_userstring(char **, const char *);
 extern const char *addrout(struct in_addr);
-
+extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
 /* for aconnect: player = room, target = connecting player */
 /*
@@ -5043,11 +5043,11 @@ list_siteinfo(dbref player)
  */
 
 void 
-make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
+make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim, int i_objid)
 {
     DESC *d;
     int gotone = 0, i_port;
-    char *tpr_buff, *tprp_buff;
+    char *tpr_buff, *tprp_buff, *s_array[2], *tbuf, *array_buff, *array_buffptr;
     dbref target;
 
     DPUSH; /* #153 */
@@ -5061,6 +5061,11 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
       target = player;
 
     tprp_buff = tpr_buff = alloc_lbuf("make_ulist_tprintf");
+    if ( i_objid ) {
+       tbuf = alloc_sbuf("exec.invoker");
+       array_buffptr = array_buff = alloc_lbuf("buffer_for_objid");
+       s_array[1] = NULL;
+    }
     DESC_ITER_CONN(d) {
 	if (!Wizard(target) && Cloak(d->player))
 	    continue;
@@ -5092,12 +5097,32 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
            else
               i_port = -1;
            tprp_buff = tpr_buff;
-	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", d->player, i_port), buff, bufcx);
+           if ( i_objid ) {
+              sprintf(tbuf, "#%d", d->player);
+              s_array[0] = tbuf;
+              array_buffptr = array_buff;
+              fun_objid(array_buff, &array_buffptr, player, d->player, d->player, s_array, 1, (char **)NULL, 0);
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s|%d", array_buff, i_port), buff, bufcx);
+           } else {
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", d->player, i_port), buff, bufcx);
+           }
         } else {
            tprp_buff = tpr_buff;
-	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", d->player), buff, bufcx);
+           if ( i_objid ) {
+              sprintf(tbuf, "#%d", d->player);
+              array_buffptr = array_buff;
+              s_array[0] = tbuf;
+              fun_objid(array_buff, &array_buffptr, player, d->player, d->player, s_array, 1, (char **)NULL, 0);
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s", array_buff), buff, bufcx);
+           } else {
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", d->player), buff, bufcx);
+           }
         }
         gotone = 1;
+    }
+    if ( i_objid ) {
+       free_sbuf(tbuf);
+       free_lbuf(array_buff);
     }
     free_lbuf(tpr_buff);
     VOIDRETURN; /* #153 */

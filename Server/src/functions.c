@@ -21173,10 +21173,10 @@ FUNCTION(fun_elock)
 
 FUNCTION(fun_lwho)
 {
-    int i_type;
+    int i_type, i_objid;
     dbref victim;
 
-    if (!fn_range_check("LWHO", nfargs, 0, 2, buff, bufcx))
+    if (!fn_range_check("LWHO", nfargs, 0, 3, buff, bufcx))
        return;
     if ( nfargs >= 1 ) {
       i_type = atoi(fargs[0]);
@@ -21184,13 +21184,16 @@ FUNCTION(fun_lwho)
       i_type = 0;
     }
 
-    if ( (nfargs == 2) && Wizard(player) ) {
+    if ( (nfargs >= 2) && Wizard(player) ) {
       victim = match_thing_quiet(player, fargs[1]);
     } else {
       victim = NOTHING;
     }
-
-    make_ulist(player, buff, bufcx, i_type, victim);
+    i_objid = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_objid = (atoi(fargs[2]) ? 1 : 0);
+    }
+    make_ulist(player, buff, bufcx, i_type, victim, i_objid);
 }
 
 /* ---------------------------------------------------------------------------

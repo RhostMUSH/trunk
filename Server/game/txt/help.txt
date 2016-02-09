@@ -11014,11 +11014,16 @@
   See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck()
   
 & LWHO()
-  Function: lwho([[<value>], [<target>]])
+  Function: lwho([[<value>], [<target>], [<isobjid>]])
   Returns a list of the db numbers of connected players.  This returns what
   a 'WHO' or 'DOING' would return.  This takes an optional type value.
   '0' is the default, and '1' returns the player list in the form dbref:port.
-  '2' will return just the ports.
+  '2' will return just the ports.  
+  
+  You may specify <isobjid> as '1' if you wish to have the arguments returned
+  as object-id's.  Note, that since objid's return break values with a ':',
+  if you specify the port <value> it uses '|' instead to separate the argument
+  from the port.
   
   Note: You can only see your own port(s) unless you're a wizard.  Any other
         port will return '-1'.
@@ -11039,6 +11044,10 @@
     You say "#226 #271 #1"
     > say lwho(1)
     You say "#226:20 #271:5 #1:6"
+    > say lwho(,,1)
+    You say "#226:662752801 #271:662992921 #1:662728521"
+    > say lwho(1,,1)
+    You say "#226:662752801|20 #271:662992921|5 #1:662728521|6"
   
   See Also: WHO, DOING, conn(), idle()
  
