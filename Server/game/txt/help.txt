@@ -19450,6 +19450,7 @@
     -f  -- sort floating numerically by minimum value
     +d  -- sort dbref#'s numerically by maximum valid dbref# (#-1 if invalid)
     -d  -- sort dbref#'s numerically by minimum valid dbref# (#-1 if invalid)
+  +/-m  -- merge all the lists into a single list (+ or - does same thing)
   
   With the dbref# sort, any invalid dbref# is assigned the value #-1.  If all
   arguments in that list order are all invalid, #-1 will be seen for the
@@ -19460,13 +19461,15 @@
     You say "10 2 20"
     > say sortlist(-n,,1 2 3,10 0 20, -100 100 200)
     You say "-100 0 3"
-    > say sortlist(-n,:,1:2:3,5:6:7,4:4:4,0:9:20)
+    > say sortlist(+n,:,1:2:3,5:6:7,4:4:4,0:9:20)
     You say "5:9:20"
     > say sortlist(+f,,1.2 2.5 3.3,1.3 2.4 -1.2)
     You say "1.3 2.5 3.3"
     > say sortlist(+d,,#1 #2 #3,#10 #0 #20 #3735 #100 #200 #333,#-1 #3 #3735)
     (Note: #3735 in this example is a Garbage/Recover/Non-Existant dbref#)
     You say "#10 #3 #20 #-1 #100 #200 #333"
+    > say sortlist(+m,,a b c d e,1 2 3 4 5,v w x y z)
+    You say "a1v b2w c3x d4y e5z"
   
   See Also: sort(), munge(), map(), setinter(), setunion(), setdiff(),
             listinter(), listunion(), listdiff()
@@ -29100,6 +29103,7 @@
   * lwho() is now objid aware optionally [ASH]
   * lexits(), lcon(), xcon(), lrooms(), lparents(), lzone(), zwho(), and 
     children() are now objid aware [ASH]
+  * sortlist() now handles 'm' for merging.
     
   Bug Fixes
   ------------

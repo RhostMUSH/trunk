@@ -27167,6 +27167,7 @@ FUNCTION(fun_sortlist)
       case 'd':  /* Dbref */
       case 'f':  /* Float */
       case 'a':  /* Alphanumeric */
+      case 'm':  /* Merge type */
          sorttype = *(fargs[0]+1);
          break;
       default:
@@ -27272,6 +27273,13 @@ FUNCTION(fun_sortlist)
                   }
                }
                break;
+            case 'm': /* Merge */
+               if ( i_first ) {
+                  safe_chr(*sep, buff, bufcx);
+                  i_first = 0;
+               }
+               safe_str(s_strtok[i], buff, bufcx);
+               break;
          }
          i_initial = 1;
          if ( s_strtok[i] || s_strtokr[i] ) {
@@ -27291,7 +27299,7 @@ FUNCTION(fun_sortlist)
       if ( !i_loop )
          break;
 
-      if ( i_first )
+      if ( i_first && (sorttype != 'm') )
          safe_chr(*sep, buff, bufcx);
       i_first = 1;
       switch(sorttype) {
@@ -27306,6 +27314,8 @@ FUNCTION(fun_sortlist)
             break;
          case 'a': /* AlphaNumeric */
             if ( i_null ) safe_str(s_chk, buff, bufcx);
+            break;
+         case 'm': /* it's already handled */
             break;
       }
       i_null = 0;
