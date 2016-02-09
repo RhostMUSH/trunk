@@ -368,6 +368,13 @@ void
 do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
 {
   dbref thing, zonemaster;
+  int i_key;
+
+  i_key = 0;
+  if ( key & SIDEEFFECT ) {
+     key &= ~SIDEEFFECT;
+     i_key = 1;
+  }
 
   switch( key ) {
     case ZONE_ADD: /* or default */
@@ -378,7 +385,11 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if( thing == NOTHING )
           return;
         if( !Examinable(player, thing) ) {
-          notify_quiet(player, "You can't do that.");
+          if ( !i_key) {
+             notify_quiet(player, "You can't do that.");
+          } else {
+             mudstate.zone_return = -2;
+          }
           return;
         }
         viewzonelist(player, thing);
@@ -386,30 +397,49 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       }
        
       if( !*tname || !*pname ) {
-        notify_quiet(player, "This switch expects two arguments.");
+        if ( !i_key ) {
+           notify_quiet(player, "This switch expects two arguments.");
+        } else {
+           mudstate.zone_return = -1;
+        }
         return;
       }
      
       init_match(player, tname, NOTYPE);
       match_everything(0);
       thing = noisy_match_result();
-      if( thing == NOTHING )
+      if( thing == NOTHING ) {
+        if ( i_key )
+           mudstate.zone_return = -2;
         return;
+      }
 
       /* Make sure we can do it */
 
       if ( (NoMod(thing) && !WizMod(player)) ||
            (Backstage(player) && NoBackstage(thing)) ) {
-        notify_quiet(player, "Permission denied.");
+        if ( !i_key ) {
+           notify_quiet(player, "Permission denied.");
+        } else {
+           mudstate.zone_return = -2;
+        }
         return;
       }
       if (!Controls(player, thing)) {
-        notify_quiet(player, "Permission denied.");
+        if ( !i_key ) {
+           notify_quiet(player, "Permission denied.");
+        } else {
+           mudstate.zone_return = -2;
+        }
         return;
       }
 
       if( ZoneMaster(thing) ) {
-        notify_quiet(player, "You can't zone a Zone Master.");
+        if ( !i_key ) {
+           notify_quiet(player, "You can't zone a Zone Master.");
+        } else {
+           mudstate.zone_return = -3;
+        }
         return;
       }
       /* Find out what the new zone is */
@@ -417,34 +447,58 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       init_match(player, pname, NOTYPE);
       match_everything(0);
       zonemaster = noisy_match_result();
-      if (zonemaster == NOTHING)
+      if (zonemaster == NOTHING) {
+        if ( i_key ) {
+           mudstate.zone_return = -2;
+        }
         return;
+      }
  
       if( !ZoneMaster(zonemaster) ) {
-        notify_quiet(player, "That's not a Zone Master.");
+        if ( !i_key ) {
+           notify_quiet(player, "That's not a Zone Master.");
+        } else {
+           mudstate.zone_return = -4;
+        }
         return;
       }
 
       if(!Controls(player, zonemaster) && 
         !could_doit(player, zonemaster, A_LZONETO, 0, 0) &&
         !could_doit(player, zonemaster, A_LZONEWIZ, 0, 0)) {
-        notify_quiet(player, "Permission denied.");
+        if ( !i_key ) {
+           notify_quiet(player, "Permission denied.");
+        } else {
+           mudstate.zone_return = -2;
+        }
         return;
       }
 
       if( zlist_inlist(thing, zonemaster) ) {
-        notify_quiet(player, "Object is already in that zone.");
+        if ( !i_key ) {
+           notify_quiet(player, "Object is already in that zone.");
+        } else {
+           mudstate.zone_return = -5;
+        }
         return;
       }
 
       zlist_add(thing, zonemaster);
       zlist_add(zonemaster, thing);
 
-      notify_quiet(player, "Zone Master added to object.");
+      if ( !i_key ) {
+         notify_quiet(player, "Zone Master added to object.");
+      } else {
+         mudstate.zone_return = 1;
+      }
       break;
     case ZONE_DELETE:
       if( !*tname || !*pname ) {
-        notify_quiet(player, "This switch expects two arguments.");
+        if ( !i_key ) {
+           notify_quiet(player, "This switch expects two arguments.");
+        } else {
+           mudstate.zone_return = -1;
+        }
         return;
       }
       /* Find out what the zone is */
@@ -452,17 +506,27 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       init_match(player, pname, NOTYPE);
       match_everything(0);
       zonemaster = noisy_match_result();
-      if (zonemaster == NOTHING)
+      if (zonemaster == NOTHING) {
+        if ( i_key )
+           mudstate.zone_return = -2;
         return;
+      }
      
       init_match(player, tname, NOTYPE);
       match_everything(0);
       thing = noisy_match_result();
-      if( thing == NOTHING )
+      if( thing == NOTHING ) {
+        if ( i_key )
+           mudstate.zone_return = -2;
         return;
+      }
 
       if(!zlist_inlist(thing, zonemaster)) {
-        notify_quiet(player, "That is not one of this object's Zone Masters.");
+        if ( !i_key ) {
+           notify_quiet(player, "That is not one of this object's Zone Masters.");
+        } else {
+           mudstate.zone_return = -5;
+        }
         return;
       }
 
@@ -473,24 +537,40 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
          !Controls(player, zonemaster) && 
          !could_doit(player, zonemaster, A_LZONEWIZ, 0, 0)
          ) {
-        notify_quiet(player, "Permission denied.");
+        if ( !i_key ) {
+           notify_quiet(player, "Permission denied.");
+        } else {
+           mudstate.zone_return = -2;
+        }
         return;
       }
 
       if ( (NoMod(thing) && !WizMod(player)) ||
            (Backstage(player) && NoBackstage(thing)) ) {
-        notify_quiet(player, "Permission denied.");
+        if ( !i_key ) {
+           notify_quiet(player, "Permission denied.");
+        } else {
+           mudstate.zone_return = -2;
+        }
         return;
       }
 
       zlist_del(thing, zonemaster);
       zlist_del(zonemaster, thing);
 
-      notify_quiet(player, "Deleted.");
+      if ( !i_key ) {
+         notify_quiet(player, "Deleted.");
+      } else {
+         mudstate.zone_return = 1;
+      }
       break;
     case ZONE_PURGE:
       if( !*tname || *pname) {
-        notify_quiet(player, "This switch expects one argument.");
+        if ( !i_key ) {
+           notify_quiet(player, "This switch expects one argument.");
+        } else {
+         mudstate.zone_return = -1;
+        }
         return;
       }
       /* Find out what the zone is */
@@ -498,40 +578,68 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       init_match(player, tname, NOTYPE);
       match_everything(0);
       thing = noisy_match_result();
-      if (thing == NOTHING)
+      if (thing == NOTHING) {
+        if ( i_key )
+           mudstate.zone_return = -2;
         return;
+      }
 
       if( ZoneMaster(thing) ) {
         if(!Controls(player, thing) && 
           !could_doit(player, thing, A_LZONEWIZ, 0, 0)) {
-          notify_quiet(player, "Permission denied.");
+          if ( !i_key ) {
+             notify_quiet(player, "Permission denied.");
+          } else {
+             mudstate.zone_return = -2;
+          }
           return;
         }
         if ( (NoMod(thing) && !WizMod(player)) ||
              (Backstage(player) && NoBackstage(thing)) ) {
-          notify_quiet(player, "Permission denied.");
+          if ( !i_key ) {
+             notify_quiet(player, "Permission denied.");
+          } else {
+             mudstate.zone_return = -2;
+          }
           return;
         }
         zlist_destroy(thing);
-        notify_quiet(player, "All objects removed from zone.");
+        if ( !i_key ) {
+           notify_quiet(player, "All objects removed from zone.");
+        } else {
+           mudstate.zone_return = 1;
+        }
       }
       else {
         if(!Controls(player, thing)) {
-          notify_quiet(player, "Permission denied.");
+          if ( !i_key ) {
+             notify_quiet(player, "Permission denied.");
+          } else {
+             mudstate.zone_return = -2;
+          }
           return;
         }
         if ( (NoMod(thing) && !WizMod(player)) ||
              (Backstage(player) && NoBackstage(thing)) ) {
-          notify_quiet(player, "Permission denied.");
+          if ( !i_key ) {
+             notify_quiet(player, "Permission denied.");
+          } else {
+             mudstate.zone_return = -2;
+          }
           return;
         }
         zlist_destroy(thing);
 
-        notify_quiet(player, "Object removed from all zones.");
+        if ( !i_key ) {
+           notify_quiet(player, "Object removed from all zones.");
+        } else {
+           mudstate.zone_return = 1;
+        }
       }
       break;
     default:
-      notify_quiet(player, "Unknown switch!");
+      if ( !i_key )
+         notify_quiet(player, "Unknown switch!");
       break;
   }
   return;

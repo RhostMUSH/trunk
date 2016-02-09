@@ -19027,6 +19027,8 @@ FUNCTION(fun_xcon)
         t = 5;
       else if (!stricmp(pt2,"CMDLISTEN"))
         t = 6;
+      else if (!stricmp(pt2,"VISIBLE"))
+        t = 7;
     } else if (pt1) {
       if (!stricmp(pt1+1,"PLAYER")) {
         t = 1;
@@ -19045,6 +19047,9 @@ FUNCTION(fun_xcon)
         *pt1 = '\0';
       } else if (!stricmp(pt1+1,"CMDLISTEN")) {
         t = 6;
+        *pt1 = '\0';
+      } else if (!stricmp(pt1+1, "VISIBLE")) {
+        t = 7;
         *pt1 = '\0';
       }
     }
@@ -19161,6 +19166,12 @@ FUNCTION(fun_xcon)
                 continue;
               }
               break;
+            case 7:
+              if ( (mudconf.dark_sleepers && (Typeof(thing) == TYPE_PLAYER) && !Connected(thing) && !Puppet(thing)) || Dark(thing) ) {
+                j++;
+                continue;
+              }
+              break;
           }
           if (( !Cloak(thing) || (Immortal(player) || (Wizard(player) && !( Immortal(thing) &&
                  SCloak(thing))))) || MyopicExam(player,thing) ) {
@@ -19235,6 +19246,7 @@ FUNCTION(fun_lcon)
     ispuppet = 0;
     pt2 = NULL;
     pt1 = NULL;
+
     if ( (nfargs > 1) && *fargs[1] ) {
        pt2 = fargs[1];
     } else
@@ -19252,6 +19264,8 @@ FUNCTION(fun_lcon)
         t = 5;
       else if (!stricmp(pt2,"CMDLISTEN"))
         t = 6;
+      else if (!stricmp(pt2,"VISIBLE"))
+        t = 7;
     } else if (pt1) {
       if (!stricmp(pt1+1,"PLAYER")) {
         t = 1;
@@ -19271,6 +19285,9 @@ FUNCTION(fun_lcon)
       } else if (!stricmp(pt1+1,"CMDLISTEN")) {
         t = 6;
         *pt1 = '\0';
+      } else if (!stricmp(pt1+1, "VISIBLE")) {
+        t = 7;
+        *pt1 = '\0';
       }
     }
     it = match_thing(player, fargs[0]);
@@ -19281,6 +19298,7 @@ FUNCTION(fun_lcon)
         (Examinable(player, it) ||
          (Location(player) == it) ||
          (it == cause))) {
+
         tbuf = alloc_sbuf("fun_lcon");
         DOLIST(thing, Contents(it)) {
             i++;
@@ -19378,6 +19396,12 @@ FUNCTION(fun_lcon)
                  break;
               case 5:
                  if ((Typeof(thing) != TYPE_PLAYER) || !Connected(thing)) {
+                   j++;
+                   continue;
+                 }
+                 break;
+              case 7:
+                 if ( (mudconf.dark_sleepers && (Typeof(thing) == TYPE_PLAYER) && !Connected(thing) && !Puppet(thing)) || Dark(thing) ) {
                    j++;
                    continue;
                  }
@@ -20410,10 +20434,16 @@ FUNCTION(fun_esclist)
     s2 = s_index;
 
     s = fargs[0];
-
-    while ( s && *s && (*s != '|') ) {
-       *s2 = *s;
-       s2++;
+    while ( s && *s ) {
+       if ( *s != '|' ) {
+          *s2 = *s;
+          s2++;
+       } else if ( *s && (*(s+1) == '|') ) {
+          *s2 = *s;
+          s2++;
+       } else {
+          break;
+       }
        s++;
     }
     if ( s && *s && *s == '|' )

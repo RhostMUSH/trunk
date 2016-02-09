@@ -15945,6 +15945,7 @@
       /PUPPET    -- lists all flag type 'PUPPET' in the contents.
       /LISTEN    -- lists all listening things in the contents.
       /CMDLISTEN -- lists all listening/command things in the contents.
+      /VISIBLE   -- lists only things visible (not-dark) as if looking.
   
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
@@ -15983,6 +15984,7 @@
       /PUPPET    -- lists all flag type 'PUPPET' in the contents.
       /LISTEN    -- lists all listening things in the contents.
       /CMDLISTEN -- lists all listening/command things in the contents.
+      /VISIBLE   -- lists only things visible (not-dark) as if looking.
   
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
@@ -29007,6 +29009,7 @@
   * object id's and objid()/%: for all features that'd handle %#.
   * isobjid() added.
   * zonecmd() added (side-effect of @zone) [ASH]
+  * VISIBLE options to lcon() and xcon() to check only visible items [ASH]
   
   Changes
   ------------
@@ -29032,7 +29035,7 @@
   * modified elock() to specify default values for locks [ASH]
   * the listen argument to lcon()/xcon() included $commands since that
     was seen as listening in @sweeps, but we have broken this out now so
-    that 'listen' is truly listening and cmdlisten is the old behavior [ASH]
+    that 'LISTEN' is truly listening and 'CMDLISTEN' is the old behavior [ASH]
     
   Bug Fixes
   ------------
