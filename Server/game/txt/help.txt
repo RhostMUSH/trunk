@@ -16146,6 +16146,10 @@
   that you specified.  This is intended to be used with weird escape 
   situations like calling external sources.
   
+  To escape out the '|' character, have it as the last character.  Ergo,
+  something like: esclist(abcd||mystring).  This says escape out the '|'
+  then break the list on the next '|'.
+    
   Examples:
     > @va me=Test: 'A string' and "anoter string", I say.
     Set.
