@@ -29112,3 +29112,5 @@
   * bug with streval which didn't process right on non-player evaluation [ASH]
   * minor glitch if an object set STOP and SHOWFAILCMD
   * minor glitch with @snapshot/loading over a player already connected [ASH]
+  * flag_access_set, flag_access_unset, flag_access_see were case sensitive
+    and they shouldn't be [ASH]
