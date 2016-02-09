@@ -20428,17 +20428,20 @@ FUNCTION(fun_secure)
 FUNCTION(fun_esclist)
 {
     char *s_index, *s, *s2;
+    int i_escape;
 
     s_index = alloc_lbuf("fun_esclist");
     memset(s_index, '\0', LBUF_SIZE);
     s2 = s_index;
 
+    i_escape = 0;
     s = fargs[0];
     while ( s && *s ) {
        if ( *s != '|' ) {
           *s2 = *s;
           s2++;
-       } else if ( *s && (*(s+1) == '|') ) {
+       } else if ( !i_escape && *s && (*(s+1) == '|') ) {
+          i_escape = 1;
           *s2 = *s;
           s2++;
        } else {
