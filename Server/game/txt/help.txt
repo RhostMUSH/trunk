@@ -4344,7 +4344,8 @@
     @search object=Test,5000       <-- Things starting with Test from object
                                        #5000 to the end of the database.
   
-  See Also: @find, search(), searchng(), SEARCH CLASSES
+  See Also: @find, search(), searchng(), searchobjid(), searchngobjid(), 
+            SEARCH CLASSES
   
 & @set
   Command: @set[/<switches>] <object>=[!]<flag> [[!]<flag> [!]<flag> ...]
@@ -9502,22 +9503,23 @@
   RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
   RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
   ROUND()         RSET()          RXLEVEL()      S()            SAFEBUFF()    
-  SCRAMBLE()      SEARCH()        SEARCHNG()     SECS()         SECURE()      
-  SECUREX()       SEES()          SET()          SETDIFF()      SETINTER()     
-  SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()    
-  SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()     
-  SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()      
-  SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
-  SPELLNUM()      SPLICE()        SQL()          SQLESCAPE()    SQLOFF()
-  SQLON()         SQLPING()       SQLITE_QUERY() SQRT()         SQUISH()     
-  STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
-  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
-  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
-  STRMATH()       SUB()           SUBJ()         SUBNETMATCH()  SWITCH()     
-  SWITCHALL()     T()             TAN()          TEL()          TIME()       
-  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
-  TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
-  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE() 
+  SCRAMBLE()      SEARCH()        SEARCHOBJID()  SEARCHNG()     SEARCHNGOBJID()
+  SECS()          SECURE()        SECUREX()      SEES()         SET()        
+  SETDIFF()       SETINTER()      SETQ()         SETQ_OLD()     SETQMATCH()  
+  SETR()          SETR_OLD()      SETUNION()     SHIFT()        SHL()        
+  SHR()           SHUFFLE()       SIGN()         SIN()          SINGLETIME() 
+  SORT()          SORTBY()        SORTLIST()     SOUNDEX()      SOUNDLIKE()  
+  SOUNDSLIKE()    SPACE()         SPELLNUM()     SPLICE()       SQL()        
+  SQLESCAPE()     SQLOFF()        SQLON()        SQLPING()      SQLITE_QUERY()
+  SQRT()          SQUISH()        STARTTIME()    STARTSECS()    STATS()      
+  STEP()          STR()           STRCAT()       STRDISTANCE()  STREQ()      
+  STREVAL()       STRFUNC()       STRIP()        STRIPACCENTS() STRIPANSI()  
+  STRLEN()        STRMATCH()      STRMATH()      SUB()          SUBJ()       
+  SUBNETMATCH()   SWITCH()        SWITCHALL()    T()            TAN()        
+  TEL()           TIME()          TIMEFMT()      TOBIN()        TODEC()      
+  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
+  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
+  TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -9573,10 +9575,10 @@
   Database Information: CON() CREATETIME() ENTRANCES() EXIT() FOLDERCURRENT()
                         FOLDERLIST() GLOBALROOM() LOC() LOCATE() LROOMS() 
                         MAILQUICK() MODIFYTIME() NEARBY() NEXT() NUM() OBJID()
-                        OWNER() RLOC() ROOM() SEARCH() SEARCHNG() SEES() 
-                        STATS() WHERE() LISTCOMMANDS() LISTFLAGS() 
-                        LISTFUNCTIONS() LISTNEWSGROUPS() LISTTOGGLES() 
-                        PMATCH() RNUM() VALID() XCON()
+                        OWNER() RLOC() ROOM() SEARCH() SEARCHOBJID() SEARCHNG()
+                        SEARCHNGOBJID()  SEES() STATS() WHERE() LISTCOMMANDS()
+                        LISTFLAGS() LISTFUNCTIONS() LISTNEWSGROUPS() 
+                        LISTTOGGLES() PMATCH() RNUM() VALID() XCON()
               See Also: help database information functions
   
   Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() ROMAN() ROUND()
@@ -9905,7 +9907,9 @@
 & search classes
   Topic: SEARCH CLASSES
  
-  You may use the following classes in @search, search() and searchng()
+  You may use the following classes in @search, search(), searchng(),
+  searchobjid(), and searchngobjid()
+  
   function calls:
   
   TYPE      - Restricts to objects of the indicated type (OBJECTS, ROOMS,
@@ -15944,7 +15948,7 @@
   See Also: time(), secs(), timefmt()
   
 & LCON()
-  Function: lcon(<object>[/switch] [,<switch>][,<output seperator>][,0|1)])
+  Function: lcon(<object>[/switch] [[,<switch>] [,<sep>] [,<name>] [,<objid>]])
  
   Returns a space-separated list of the contents of <object>.
   It takes specific switches as an option:
@@ -15961,9 +15965,12 @@
   you have in the first argument to assume it's part of the object name.
   The function takes an output seperator as an optional third argument.
 
-  If the optional last argument is set to 1, lcon will display the object
-  names instead of the #dbrefs.
-
+  If the optional <name> argument is set to '1', lcon will display the object
+  names instead of the #dbrefs.  This is not compatible with objid.
+  
+  If the optional <objid> argument is set to '1', lcon will display the
+  objid's in the list.
+  
   By default, Rhost returns '#-1' if lcon() returns no objects. If the
   config option mux_lcon_compat is set to '1', lcon() will return an empty
   string instead, for MUX compatibility.
@@ -15978,11 +15985,13 @@
     You say "#223"
     > say lcon(me,puppet)
     You say "#223"
+    > say lcon(me,puppet,,,1)
+    You say "#223:8281828210"
   
   See Also: lexits(), @dolist
   
 & XCON()
-  Function: xcon(<object>[/switch],<start>,<count> [,<switch>])
+  Function: xcon(<object>[/switch],<start>,<count> [,<switch>] [,<objid>])
   
   This function is similiar to lcon() except it returns a space-seperated list
   of the contents of <object> starting at point <start> and returning <count>
@@ -15999,6 +16008,9 @@
   the '/' before it, to do the same thing.  This will cause any /switch
   you have in the first argument to assume it's part of the object name.
   
+  You may optionally specify <objid> as '1' to have it list objid's instead
+  of the default dbref#'s.
+   
 { type 'help xcon2' for examples }
   
 & XCON2
@@ -16022,19 +16034,24 @@
     You say "#2672"
     > say xcon(me,2,1,puppet)   
     You say "#2672"
+    > say xcon(me,2,1,puppet,1)   
+    You say "#2672:8281828218"
   
   See Also: lexits(), lcon()
   
 & LEXITS()
-  Function: lexits(<loc>[,<output seperator>][,0|1)][<key>])
+  Function: lexits(<loc> [,<output seperator>] [,<name>] [,<key>] [,<objid>])
  
   Returns a space-separated list of the exits in <loc> and its parents.
   Dark exits are not returned unless you own the location.
   Parented exits that are set PRIVATE will not be displayed.
   The function takes an output seperator as an optional second argument.
  
-  If the last optional argument is 1, lexits will display object names
-  instead of #dbrefs.
+  If the optional <name> argument is '1', lexits will display object names
+  instead of #dbrefs.  This is not compatible with <objid>.
+  
+  If the optional <objid> argument is '1', then lexits will display the
+  objid's instead of the dbref#'s.
   
   The following optional keys are available:
     0 - list all children of the target (default)
@@ -16048,9 +16065,11 @@
     The Town Square
     You are in the town square.  All around you .....
     Obvious exits:
-    foo  up  southeast  sw  north  
+    foo  up  southeast south
     > say lexits(here)
-    You say "#302 #10 #9 #8 #6"
+    You say "#302 #10 #9 #8"
+    > say lexits(here,,,,1)
+    You say "#302:8185018282 #10:8919291929 #9:8959295828 #8:8582828281"
   
   See Also: lcon(), @dolist, PARENT OBJECTS
   
@@ -16071,7 +16090,7 @@
   See Also: rand(), dice(), lnum(), lnum2()
   
 & lrooms()
-  Function: lrooms(<loc> [,<iteration> [,<type>]])
+  Function: lrooms(<loc> [,<iteration> [,<type>] [,<objid>]])
   
   This function returns from 1 to MAXIMUM level of iterations of rooms
   connected to the target <loc> room.  The MAXIMUM level is hypothetically
@@ -16088,6 +16107,9 @@
   that type '0' is not always guaranteed to be absolutely accurate as rooms 
   could be linked differently based on the order it's checked.
   
+  If you specify <objid> as '1', then it returns the objid's instead of
+  the dbref#'s.
+   
   Examples:
     > say lrooms(here,1)
     You say "#191 #101"
@@ -16097,6 +16119,8 @@
     You say "#191 #101 #19 #0 #1012 #10102"
     > say lrooms(here,2,0)
     You say "#19 #0 #1012 #10102"
+    > say lrooms(here,,,1)
+    You say "#191:8182858282 #101:8285928582"
   
   See Also: room(), lexits()
   
@@ -16582,15 +16606,20 @@
   See Also: loc(), rloc(), lrooms(), UNFINDABLE
   
 & SEARCH()
+& SEARCHOBJID()
   Function: search([<player>] [<class>=<restriction>[,<low>[,<high>]]])
- 
+            searchobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
+  
   The search() function returns a list of objects that match the search
   criteria, which are the same as with the @search command.  This function
   costs as much as the @search command, so repeated use is expensive.
  
   Caution: if you use the [ and ] characters in an Eval selection you will
   need to escape them.
- 
+  
+  The searchobjid() function works like search() but returns the objid's
+  instead of the dbref#'s.
+   
   Examples:
     > say search()
     You say "#226 #289 #325 #364 #368 #369"
@@ -16600,18 +16629,27 @@
     You say "#289 #325 #364 #368 #369"
     > say search(player=wizard)
     You say "#1"
+    > say searchobjid(me)
+    You say "#226:8128285820 #289:8929292929"
   
   See Also: searchng(), @search, @find, @stat, SEARCH CLASSES
 
 & SEARCHNG()
+& SEARCHNGOBJID()
   Function: searchng([<player>] [<class>=<restriction>[,<low>[,<high>]]])
+            searchngobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
   
   This function works exactly as search(), except it will not return any
   garbage (going/recover) objects in the results.
   
+  The searchngobjid() function works like searchng() but returns the objid's
+  instead of the dbref#'s.
+  
   Examples:
     > say searchng()
     You say "#226 #289 #325 #364 #368 #369"
+    > say searchngobjid(me)
+    You say "#226:8128285820 #289:8929292929"
   
   See Also: search(), @search, @find, @stat, SEARCH CLASSES
   
@@ -16638,7 +16676,8 @@
     > @stats/all
     377 objects = 51 rooms, 165 exits, 134 things, 20 players. (7 garbage)
   
-  See Also: @stats, @search, search(), searchng()
+  See Also: @stats, @search, search(), searchng(), searchobjid(),
+            searchngobjid()
   
 & ITEXT()
   Function: itext(<n> [,<key>])
@@ -18437,11 +18476,16 @@
   
   See Also: strmath()
 
+& PARENTS()
 & LPARENT()
-  Function: lparent(<obj>)
+  Function: parents(<obj> [,<objid>])
+            lparent(<obj> [,<objid>])
   
   Returns all the parents of <obj>.  Returns #-1 if <obj> cannot be found
   or has no parent or if you do not own and/or control <obj>
+  
+  If the optional <objid> is specified as '1', then it returns the objid's 
+  instead of the dbref#'s.
   
   Example:
     > say lparent(me)
@@ -18452,6 +18496,8 @@
     Parent set.
     > say lparent(#4)
     You say "#5 #6"
+    > say lparent(#4,1)
+    You say "#5:8185828582 #6:8281859282"
   
   See Also: parent(), children()
   
@@ -18621,30 +18667,15 @@
   
   See Also: parenstr(), brackets(), pos(), totpos()
   
-& PARENTS()
-  Function: parents(<obj>)
-  
-  Returns all the parents of <obj>.  Returns #-1 if <obj> cannot be found
-  or has no parent or if you do not own and/or control <obj>
-  
-  Example:
-    > say parents(me)
-    You say "#-1"
-    > @parent #4=#5
-    Parent set.
-    > @parent #5=#6
-    Parent set.
-    > say parents(#4)
-    You say "#5 #6"
-  
-  See Also: parent(), children()
-  
 & CHILDREN()
-  Function: children(<obj> [,<key>])
+  Function: children(<obj> [,<key>] [,<objid>])
   
   Returns all children (objects parented to <obj>) that can be found.
   As this is somewhat extensive on the CPU, it may be limited to wizards
   only in the future.
+  
+  If the optional <objid> is specified as '1', then it will return the
+  objid's instead of dbref#'s.
   
   The following optional keys are available:
     0 - list all children of the target (default)
@@ -18661,6 +18692,8 @@
   Parent set.
   > say children(#5)
   You say "#10 #15"
+  > say children(#5,,1)
+  You say "#10:8185828282 #15:8282859018"
   
   See Also: parents(), parent()
   
@@ -26340,6 +26373,8 @@
   room()           - Returns the dbref of the (absolute) room an object is in.
   search()         - Returns a list of objects that match search criteria.
   searchng()       - Like search but do not search garbage/recover.
+  searchobjid()    - Like search() but returns objid's.
+  searchngobjid()  - Like searchng() but returns objid's.
   sees()           - Returns true if an object is able to see a target object.
   stats()          - Shows information about the number of objects on the MUSH.
   where()          - Returns the true location of an object.
@@ -29023,6 +29058,7 @@
   * isobjid() added.
   * zonecmd() added (side-effect of @zone) [ASH]
   * VISIBLE options to lcon() and xcon() to check only visible items [ASH]
+  * searchobjid(), and searchngobjid() for objid results on searches [ASH]
   
   Changes
   ------------
@@ -29050,6 +29086,8 @@
     was seen as listening in @sweeps, but we have broken this out now so
     that 'LISTEN' is truly listening and 'CMDLISTEN' is the old behavior [ASH]
   * lwho() is now objid aware optionally [ASH]
+  * lexits(), lcon(), xcon(), lrooms(), lparents(), and children() are
+    now objid aware [ASH]
     
   Bug Fixes
   ------------

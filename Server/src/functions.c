@@ -1322,6 +1322,7 @@ extern void mail_quota(dbref, char *, int, int *, int *, int *, int *, int *, in
 extern CMDENT * lookup_command(char *);
 extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
 extern void do_zone(dbref, dbref, int, char *, char *);
+int do_convtime(char *, struct tm *);
 
 /* pom.c nefinitions */
 /* #define PI_MUSH        3.14159265358 */
@@ -1470,6 +1471,43 @@ do_date_conv(char *instr, char *outstr)
    free_lbuf(str5);
    free_lbuf(str6);
    free_lbuf(str7);
+}
+
+char *
+make_objid(dbref thing) {
+   char *atext; 
+   static char s_return[MBUF_SIZE];
+   dbref aowner;
+   int aflags;
+   struct tm *ttm;
+   long l_offset;
+   double d_objid;
+
+   if ( !Good_obj(thing) ) {
+      strcpy(s_return, (char *)"#-1");
+      return(s_return);
+   }
+
+
+   if (  !mudconf.enable_tstamps || NoTimestamp(thing) ) {
+      sprintf(s_return, "#%d", thing);
+   } else {
+      atext = atr_get(thing, A_CREATED_TIME, &aowner, &aflags);
+      if ( atext && *atext ) {
+         ttm = localtime(&mudstate.now);
+         l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+         if (do_convtime(atext, ttm)) {
+            d_objid = (double)(mktime64(ttm) + l_offset);
+            sprintf(s_return, "#%d:%.0f", thing, d_objid);
+         } else {
+            strcpy(s_return, (char *)"#-1");
+         }
+      } else {
+         sprintf(s_return, "#%d", thing);
+      }
+      free_lbuf(atext);
+   }
+   return(s_return);
 }
 
 void safer_unufun(int tval)
@@ -7177,10 +7215,10 @@ FUNCTION(fun_lookup_site)
 FUNCTION(fun_children)
 {
     dbref i, it;
-    int gotone, i_max, i_ceil, i_type, i_cntr, i_start, i_startcnt;
+    int gotone, i_max, i_ceil, i_type, i_cntr, i_start, i_startcnt, i_objid;
     char c_type, *tbuf;
 
-    if (!fn_range_check("CHILDREN", nfargs, 1, 2, buff, bufcx)) {
+    if (!fn_range_check("CHILDREN", nfargs, 1, 3, buff, bufcx)) {
        return;
     }
     i_type = 0;
@@ -7191,6 +7229,11 @@ FUNCTION(fun_children)
     if ( (nfargs > 1) && *fargs[1] ) {
        i_type = atoi(fargs[1]);
        c_type = *fargs[1];
+    }
+
+    i_objid = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_objid = (atoi(fargs[2]) ? 1 : 0);
     }
     if ( i_type < 0 )
        i_type = 0;
@@ -7219,12 +7262,16 @@ FUNCTION(fun_children)
              } else {
                 gotone = 1;
              }
-             dbval(buff, bufcx, i);
+             if ( i_objid ) {
+                safe_str(make_objid(i), buff, bufcx);
+             } else {
+                dbval(buff, bufcx, i);
+             }
           }
        }
        if ( c_type == 'l' ) {
           gotone = 1;
-          tbuf = alloc_sbuf("fun_lzone");
+          tbuf = alloc_sbuf("fun_children");
           sprintf(tbuf, "%d %d", ((i_cntr/400)+1), i_cntr);
           safe_str(tbuf, buff, bufcx);
           free_sbuf(tbuf);
@@ -10628,6 +10675,7 @@ do_convtime(char *str, struct tm *ttm)
 #undef LEAPYEAR_1900
 }
 
+
 FUNCTION(fun_convtime)
 {
     struct tm *ttm;
@@ -11505,7 +11553,7 @@ FUNCTION(fun_lrooms)
   static dbref rlist[1000];
   static int dlist[1000];
   dbref start, eloop;
-  int index, got, depth, d2, showall, index2;
+  int index, got, depth, d2, showall, index2, i_objid;
 
   if (mudstate.last_cmd_timestamp == mudstate.now) {
      mudstate.heavy_cpu_recurse += 1;
@@ -11514,10 +11562,14 @@ FUNCTION(fun_lrooms)
      safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
      return;
   }
-  if (!fn_range_check("LROOMS", nfargs, 1, 3, buff, bufcx)) {
+  if (!fn_range_check("LROOMS", nfargs, 1, 4, buff, bufcx)) {
     return;
   }
 
+  i_objid = 0;
+  if ( (nfargs > 3) && *fargs[3] ) {
+    i_objid = (atoi(fargs[3]) ? 1 : 0);
+  }
   if ((nfargs >= 2) && *fargs[1]) {
     depth = atoi(fargs[1]);
     if (depth < 0)
@@ -11560,8 +11612,12 @@ FUNCTION(fun_lrooms)
         if ( showall || (!showall && (dlist[index] == depth)) ) {
            if (got)
               safe_chr(' ',buff,bufcx);
-           safe_chr('#',buff,bufcx);
-           safe_str(myitoa(start),buff,bufcx);
+           if ( i_objid ) {
+              safe_str(make_objid(start), buff, bufcx);
+           } else {
+              safe_chr('#',buff,bufcx);
+              safe_str(myitoa(start),buff,bufcx);
+           }
            got = 1;
         }
         d2 = dlist[index];
@@ -14756,25 +14812,38 @@ FUNCTION(fun_elementsmux)
 FUNCTION(fun_parents)
 {
     dbref it;
-    int max_lev, gotone = 0;
+    int max_lev, gotone = 0, i_objid;
+
+    if (!fn_range_check("PARENTS", nfargs, 1, 2, buff, bufcx)) {
+       return;
+    }
+
+    i_objid = 0;
+    if ( (nfargs > 1) && *fargs[1] ) {
+       i_objid = (atoi(fargs[1]) ? 1 : 0);
+    }
 
     it = match_thing(player, fargs[0]);
     max_lev = 0;
     while (Good_obj(it) && (it != NOTHING) && (it != AMBIGUOUS) && (Examinable(player, it) || (it == cause))) {
-  if (Good_obj(Parent(it))) {
-      if (gotone) {
-    safe_chr(' ', buff, bufcx);
-            }
-            dbval(buff, bufcx, Parent(it));
-      gotone = 1;
-  }
-  max_lev++;
-  if ( max_lev > mudconf.parent_nest_lim )
-     break;
-  it = Parent(it);
-    }
-    if (!gotone)
-  safe_str("#-1", buff, bufcx);
+       if (Good_obj(Parent(it))) {
+          if (gotone) {
+             safe_chr(' ', buff, bufcx);
+          }
+          if ( i_objid ) {
+             safe_str(make_objid(Parent(it)), buff, bufcx);
+          } else {
+             dbval(buff, bufcx, Parent(it));
+          }
+          gotone = 1;
+       }
+       max_lev++;
+       if ( max_lev > mudconf.parent_nest_lim )
+          break;
+       it = Parent(it);
+   }
+   if (!gotone)
+      safe_str("#-1", buff, bufcx);
 }
 
 FUNCTION(fun_parent)
@@ -18984,14 +19053,14 @@ FUNCTION(fun_xcon)
 {
     dbref thing, it, parent, aowner;
     char *tbuf, *pt1, *buff2, *as, *s, *pt2;
-    int i, j, t, loop, can_prnt, did_prnt;
+    int i, j, t, loop, can_prnt, did_prnt, i_objid;
     int gotone = 0;
     int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
     int first, how_many;
     ATTR *ap;
 
-    if (!fn_range_check("XCON", nfargs, 3, 4, buff, bufcx))
+    if (!fn_range_check("XCON", nfargs, 3, 5, buff, bufcx))
       return;
 
     t = 0;
@@ -19008,6 +19077,10 @@ FUNCTION(fun_xcon)
        return;
     }
 
+    i_objid = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       i_objid = (atoi(fargs[4]) ? 1 : 0);       
+    }
     pt2 = NULL;
     pt1 = NULL;
     if ( (nfargs > 3) && *fargs[3] ) {
@@ -19190,10 +19263,19 @@ FUNCTION(fun_xcon)
                   ;
                else {
                   did_prnt++;
-                  if (gotone)
-                    sprintf(tbuf, " #%d", thing);
-                  else
-                    sprintf(tbuf, "#%d", thing);
+                  if (gotone) {
+                    if ( i_objid ) {
+                       sprintf(tbuf, " %.*s", LBUF_SIZE - 2, make_objid(thing));
+                    } else {
+                       sprintf(tbuf, " #%d", thing);
+                    }
+                  } else {
+                    if ( i_objid ) {
+                       sprintf(tbuf, "%.*s", LBUF_SIZE - 1, make_objid(thing));
+                    } else {
+                       sprintf(tbuf, "#%d", thing);
+                    }
+                  }
                   gotone = 1;
                   safe_str(tbuf, buff, bufcx);
                }
@@ -19226,19 +19308,29 @@ FUNCTION(fun_lcon)
 {
     dbref thing, it, parent, aowner;
     char *tbuf, *pt1, *buff2, *as, *s, *pt2, *namebuff, *namebufcx;
-    int i, j, t, loop;
+    int i, j, t, loop, i_objid;
     int gotone = 0;
     int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
     ATTR *ap;
 
-    if (!fn_range_check("LCON", nfargs, 1, 4, buff, bufcx))
+    if (!fn_range_check("LCON", nfargs, 1, 5, buff, bufcx))
       return;
-    if ( (nfargs > 3) && *fargs[3] )
+    if ( (nfargs > 3) && *fargs[3] ) {
       if(stricmp(fargs[3],"0") && stricmp(fargs[3],"1") && stricmp(fargs[3],"")) {
-        safe_str( "#-1 LAST ARGUMENT MUST BE 0 OR 1", buff, bufcx );
+        safe_str( "#-1 NAME ARGUMENT MUST BE 0 OR 1", buff, bufcx );
         return;
       }
+    }
+
+    i_objid = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       if ( (nfargs > 3) && (atoi(fargs[3]) == 1) ) {
+          safe_str("#-1 CAN NOT USE OBJID WITH NAME ARG.  MAKES NO SENSE.", buff, bufcx);
+          return;
+       }
+       i_objid = (atoi(fargs[4]) ? 1 : 0);       
+    }
     t = 0;
     canhear = 0;
     cancom = 0;
@@ -19449,12 +19541,24 @@ FUNCTION(fun_lcon)
                           /* tbuf is an SBUF so we can't just add this to it */
                           if ( (nfargs > 2) && *fargs[2] ) {
                              safe_str(fargs[2], buff, bufcx);
-                             sprintf(tbuf, "#%d", thing);
+                             if ( i_objid ) {
+                                sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
+                             } else {
+                                sprintf(tbuf, "#%d", thing);
+                             }
                           } else {
-                             sprintf(tbuf, " #%d", thing);
+                             if ( i_objid ) {
+                                sprintf(tbuf, " %.*s", SBUF_SIZE - 2, make_objid(thing));
+                             } else {
+                                sprintf(tbuf, " #%d", thing);
+                             }
                           }
                        } else {
-                          sprintf(tbuf, "#%d", thing);
+                          if ( i_objid ) {
+                             sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
+                          } else {
+                             sprintf(tbuf, "#%d", thing);
+                          }
                        }
                        gotone = 1;
                        safe_str(tbuf, buff, bufcx);
@@ -19489,16 +19593,25 @@ FUNCTION(fun_lexits)
 {
     dbref thing, it, parent;
     char *tbuf, *s, *namebuff, *namebufcx;
-    int exam, lev, key;
+    int exam, lev, key, i_objid;
     int gotone = 0, i_type = 0, i_pageval = 0, i_counter = 0, i_start = 0, i_max = 0, i_min = -1;
 
-    if (!fn_range_check("LEXITS", nfargs, 1, 4, buff, bufcx))
+    if (!fn_range_check("LEXITS", nfargs, 1, 5, buff, bufcx))
       return;
     if ( (nfargs > 2) && *fargs[2] ) {
        if(stricmp(fargs[2],"0") && stricmp(fargs[2],"1") && stricmp(fargs[2],"")) {
           safe_str( "#-1 THIRD ARGUMENT MUST BE 0 OR 1", buff, bufcx );
           return;
        }
+    }
+
+    i_objid = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       if ( (nfargs > 2) && (atoi(fargs[2]) == 1) ) {
+          safe_str("#-1 CAN NOT USE OBJID WITH NAME ARG.  MAKES NO SENSE.", buff, bufcx);
+          return;
+       }
+       i_objid = (atoi(fargs[4]) ? 1 : 0);
     }
 
     if ( (nfargs > 3) && *fargs[3] ) {
@@ -19585,12 +19698,24 @@ FUNCTION(fun_lexits)
                     if (gotone) {
                        if ( (nfargs > 1) && *fargs[1] ) {
                           safe_str(fargs[1], buff, bufcx);
-                          sprintf(tbuf, "#%d", thing);
+                          if ( i_objid ) {
+                             sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
+                          } else {
+                             sprintf(tbuf, "#%d", thing);
+                          }
                        } else {
-                          sprintf(tbuf, " #%d", thing);
+                          if ( i_objid ) {
+                             sprintf(tbuf, " %.*s", SBUF_SIZE - 2, make_objid(thing));
+                          } else {
+                             sprintf(tbuf, " #%d", thing);
+                          }
                        }
                     } else {
-                       sprintf(tbuf, "#%d", thing);
+                       if ( i_objid ) {
+                          sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
+                       } else {
+                          sprintf(tbuf, "#%d", thing);
+                       }
                     }
                     gotone = 1;
                     safe_str(tbuf, buff, bufcx);
@@ -22946,7 +23071,7 @@ FUNCTION(fun_alphamin)
  */
 
 void
-search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, char **bufcx, int key)
+search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, char **bufcx, int key, int i_objid)
 {
     dbref thing;
     char *nbuf;
@@ -23000,7 +23125,11 @@ search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, 
         if ( key && (Going(thing) || Recover(thing)) ) continue;
            if (gotone)
               safe_chr(' ', buff, bufcx);
-        dbval(buff, bufcx, thing);
+        if ( i_objid ) {
+           safe_str(make_objid(thing), buff, bufcx);
+        } else {
+           dbval(buff, bufcx, thing);
+        }
         gotone = 1;
     }
     free_sbuf(nbuf);
@@ -23101,19 +23230,34 @@ FUNCTION(fun_strdistance)
 FUNCTION(fun_search)
 {
    if ( mudconf.switch_search == 0 )
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 0);
    else
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 0);
 }
 
 FUNCTION(fun_searchng)
 {
    if ( mudconf.switch_search == 0 )
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 0);
    else
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 0);
 }
 
+FUNCTION(fun_searchobjid)
+{
+   if ( mudconf.switch_search == 0 )
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 1);
+   else
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 1);
+}
+
+FUNCTION(fun_searchngobjid)
+{
+   if ( mudconf.switch_search == 0 )
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 1);
+   else
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 1);
+}
 
 /* ---------------------------------------------------------------------------
  * fun_stats: Get database size statistics.
@@ -32158,7 +32302,7 @@ FUN flist[] =
 #else
     {"PARENT", fun_parent, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
-    {"PARENTS", fun_parents, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"PARENTS", fun_parents, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PARSE", fun_parse, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"PARSESTR", fun_parsestr, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef PASSWD_FUNC
@@ -32238,6 +32382,8 @@ FUN flist[] =
     {"SCRAMBLE", fun_scramble, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SEARCH", fun_search, -1, 0, CA_PUBLIC, 0},
     {"SEARCHNG", fun_searchng, -1, 0, CA_PUBLIC, 0},
+    {"SEARCHOBJID", fun_searchobjid, -1, 0, CA_PUBLIC, 0},
+    {"SEARCHNGOBJID", fun_searchngobjid, -1, 0, CA_PUBLIC, 0},
     {"SECS", fun_secs, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"SECURE", fun_secure, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SECUREX", fun_secure, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
