@@ -12186,7 +12186,7 @@ FUNCTION(fun_remtype)
     while (pt1) {
        init_match(player, pt1, NOTYPE);
        match_everything(MAT_EXIT_PARENTS);
-       obj = noisy_match_result();
+       obj = match_result();
        if (obj == NOTHING) {
           stype = TYPE_MASK;
        } else if (Going(obj) || Recover(obj)) {
@@ -12243,7 +12243,7 @@ FUNCTION(fun_keeptype)
     while (pt1) {
        init_match(player, pt1, NOTYPE);
        match_everything(MAT_EXIT_PARENTS);
-       obj = noisy_match_result();
+       obj = match_result();
        if (obj == NOTHING) {
           stype = TYPE_MASK;
        } else if (Going(obj) || Recover(obj)) {
