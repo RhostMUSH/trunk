@@ -813,16 +813,21 @@
   See Also: @toggle, @progprompt, @quitprogram
  
 & @quitprogram
-  Command: @quitprogram <player>
+  Command: @quitprogram[/<switch>] <player>
   
   Terminates the @program for player. If <player> is not specified, then it
   works upon the enactor (a player may quit a program while they are in it
   by piping out @quitprogram, see 'help @program').
   
+  Available switches:
+    /quiet - do not notify the target (or yourself) of quitprogramming.
+             Note: errors are still displayed.
+  
   Example:
     > @quitprogram *TinyPlayer
     @program cleared.
- 
+    > @quitprogram/quiet *TinyPlayer  (notice no output)
+   
   See also: @program, @progprompt.
  
 & @progprompt
@@ -11328,11 +11333,14 @@
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
-  Function: programmer(<player>)
+  Function: programmer(<player> [,<key>])
   Returns the dbref# of the enactor who placed the target player inside a
   program.  If the target player is not in a program, or if you do not
   have access to check the information, it returns '#-1'.
   
+  If <key> is specified as '1', it will return the #obj/attribute pair
+  that the person is currently in the programon.
+   
   Examples:
     > say %#
     You say "#123"
@@ -11346,6 +11354,8 @@
     You say "1"
     > |say programmer(me)
     You say "#123"
+    > |say programmer(me,1)
+    You say "me/va"
     > |@quitprogram
     @program cleared.
   
@@ -29104,6 +29114,8 @@
   * lexits(), lcon(), xcon(), lrooms(), lparents(), lzone(), zwho(), and 
     children() are now objid aware [ASH]
   * sortlist() now handles 'm' for merging.
+  * @quitprogram has /quiet switch
+  * programmer() optionally returns target/attrib pair of program call [ASH]
     
   Bug Fixes
   ------------
