@@ -813,16 +813,21 @@
   See Also: @toggle, @progprompt, @quitprogram
  
 & @quitprogram
-  Command: @quitprogram <player>
+  Command: @quitprogram[/<switch>] <player>
   
   Terminates the @program for player. If <player> is not specified, then it
   works upon the enactor (a player may quit a program while they are in it
   by piping out @quitprogram, see 'help @program').
   
+  Available switches:
+    /quiet - do not notify the target (or yourself) of quitprogramming.
+             Note: errors are still displayed.
+  
   Example:
     > @quitprogram *TinyPlayer
     @program cleared.
- 
+    > @quitprogram/quiet *TinyPlayer  (notice no output)
+   
   See also: @program, @progprompt.
  
 & @progprompt
@@ -11328,11 +11333,14 @@
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
-  Function: programmer(<player>)
+  Function: programmer(<player> [,<key>])
   Returns the dbref# of the enactor who placed the target player inside a
   program.  If the target player is not in a program, or if you do not
   have access to check the information, it returns '#-1'.
   
+  If <key> is specified as '1', it will return the #obj/attribute pair
+  that the person is currently in the programon.
+   
   Examples:
     > say %#
     You say "#123"
@@ -11346,6 +11354,8 @@
     You say "1"
     > |say programmer(me)
     You say "#123"
+    > |say programmer(me,1)
+    You say "me/va"
     > |@quitprogram
     @program cleared.
   
@@ -19450,6 +19460,7 @@
     -f  -- sort floating numerically by minimum value
     +d  -- sort dbref#'s numerically by maximum valid dbref# (#-1 if invalid)
     -d  -- sort dbref#'s numerically by minimum valid dbref# (#-1 if invalid)
+  +/-m  -- merge all the lists into a single list (+ or - does same thing)
   
   With the dbref# sort, any invalid dbref# is assigned the value #-1.  If all
   arguments in that list order are all invalid, #-1 will be seen for the
@@ -19460,13 +19471,15 @@
     You say "10 2 20"
     > say sortlist(-n,,1 2 3,10 0 20, -100 100 200)
     You say "-100 0 3"
-    > say sortlist(-n,:,1:2:3,5:6:7,4:4:4,0:9:20)
+    > say sortlist(+n,:,1:2:3,5:6:7,4:4:4,0:9:20)
     You say "5:9:20"
     > say sortlist(+f,,1.2 2.5 3.3,1.3 2.4 -1.2)
     You say "1.3 2.5 3.3"
     > say sortlist(+d,,#1 #2 #3,#10 #0 #20 #3735 #100 #200 #333,#-1 #3 #3735)
     (Note: #3735 in this example is a Garbage/Recover/Non-Existant dbref#)
     You say "#10 #3 #20 #-1 #100 #200 #333"
+    > say sortlist(+m,,a b c d e,1 2 3 4 5,v w x y z)
+    You say "a1v b2w c3x d4y e5z"
   
   See Also: sort(), munge(), map(), setinter(), setunion(), setdiff(),
             listinter(), listunion(), listdiff()
@@ -29100,6 +29113,9 @@
   * lwho() is now objid aware optionally [ASH]
   * lexits(), lcon(), xcon(), lrooms(), lparents(), lzone(), zwho(), and 
     children() are now objid aware [ASH]
+  * sortlist() now handles 'm' for merging.
+  * @quitprogram has /quiet switch
+  * programmer() optionally returns target/attrib pair of program call [ASH]
     
   Bug Fixes
   ------------
@@ -29112,3 +29128,5 @@
   * bug with streval which didn't process right on non-player evaluation [ASH]
   * minor glitch if an object set STOP and SHOWFAILCMD
   * minor glitch with @snapshot/loading over a player already connected [ASH]
+  * flag_access_set, flag_access_unset, flag_access_see were case sensitive
+    and they shouldn't be [ASH]

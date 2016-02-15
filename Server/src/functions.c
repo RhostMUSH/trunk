@@ -12081,7 +12081,16 @@ FUNCTION(fun_programmer)
 {
   char *t_buf, tmpstr[20], *tmpstrptr, *t_bufptr;
   dbref target, aowner2, it;
-  int aflags2, overflowchk;
+  int aflags2, overflowchk, i_attr;
+
+  if (!fn_range_check("PROGRAMMER", nfargs, 1, 2, buff, bufcx)) {
+    return;
+  }
+
+  i_attr = 0;
+  if ( (nfargs > 1) && *fargs[1] ) {
+     i_attr = (atoi(fargs[1]) ? 1 : 0);
+  }
 
   memset(tmpstr, 0, sizeof(tmpstr));
   it = lookup_player(player, fargs[0], 0);
@@ -12108,13 +12117,20 @@ FUNCTION(fun_programmer)
      if ( overflowchk >= 19 )
         break;
   }
-  target = atoi(tmpstr);
+  if ( *t_bufptr && *t_bufptr == ':' )
+     t_bufptr++;
 
-  if ( target != NOTHING && Good_obj(target) && !Recover(target) &&
-       !Going(target) && Controls(player, target) ) {
-     dbval(buff, bufcx, target);
+  if ( (i_attr == 1) && *t_bufptr ) {
+     safe_str(t_bufptr, buff, bufcx);
   } else {
-     safe_str("#-1", buff, bufcx);
+     target = atoi(tmpstr);
+
+     if ( target != NOTHING && Good_obj(target) && !Recover(target) &&
+          !Going(target) && Controls(player, target) ) {
+        dbval(buff, bufcx, target);
+     } else {
+        safe_str("#-1", buff, bufcx);
+     }
   }
   free_lbuf(t_buf);
 }
@@ -12170,7 +12186,7 @@ FUNCTION(fun_remtype)
     while (pt1) {
        init_match(player, pt1, NOTYPE);
        match_everything(MAT_EXIT_PARENTS);
-       obj = noisy_match_result();
+       obj = match_result();
        if (obj == NOTHING) {
           stype = TYPE_MASK;
        } else if (Going(obj) || Recover(obj)) {
@@ -12227,7 +12243,7 @@ FUNCTION(fun_keeptype)
     while (pt1) {
        init_match(player, pt1, NOTYPE);
        match_everything(MAT_EXIT_PARENTS);
-       obj = noisy_match_result();
+       obj = match_result();
        if (obj == NOTHING) {
           stype = TYPE_MASK;
        } else if (Going(obj) || Recover(obj)) {
@@ -27167,6 +27183,7 @@ FUNCTION(fun_sortlist)
       case 'd':  /* Dbref */
       case 'f':  /* Float */
       case 'a':  /* Alphanumeric */
+      case 'm':  /* Merge type */
          sorttype = *(fargs[0]+1);
          break;
       default:
@@ -27272,6 +27289,13 @@ FUNCTION(fun_sortlist)
                   }
                }
                break;
+            case 'm': /* Merge */
+               if ( i_first ) {
+                  safe_chr(*sep, buff, bufcx);
+                  i_first = 0;
+               }
+               safe_str(s_strtok[i], buff, bufcx);
+               break;
          }
          i_initial = 1;
          if ( s_strtok[i] || s_strtokr[i] ) {
@@ -27291,7 +27315,7 @@ FUNCTION(fun_sortlist)
       if ( !i_loop )
          break;
 
-      if ( i_first )
+      if ( i_first && (sorttype != 'm') )
          safe_chr(*sep, buff, bufcx);
       i_first = 1;
       switch(sorttype) {
@@ -27306,6 +27330,8 @@ FUNCTION(fun_sortlist)
             break;
          case 'a': /* AlphaNumeric */
             if ( i_null ) safe_str(s_chk, buff, bufcx);
+            break;
+         case 'm': /* it's already handled */
             break;
       }
       i_null = 0;
@@ -32353,7 +32379,7 @@ FUN flist[] =
     {"POWER10", fun_power10, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PRINTF", fun_printf, 2, FN_VARARGS, CA_PUBLIC, 0},
     {"PRIVATIZE", fun_privatize, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"PROGRAMMER", fun_programmer, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"PROGRAMMER", fun_programmer, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PTIMEFMT", fun_ptimefmt, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PUSHREGS", fun_pushregs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"QUOTA", fun_quota, 1, 0, CA_PUBLIC, CA_NO_CODE},

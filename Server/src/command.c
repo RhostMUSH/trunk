@@ -848,6 +848,11 @@ NAMETAB page_sw[] =
     //    {(char *) "noeval", 1, CA_WIZARD, 0, PAGE_NOEVAL},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB quitprogram_sw[] =
+{
+    {(char *) "quiet", 1, CA_PUBLIC, 0, QUITPRG_QUIET},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB ps_sw[] =
 {
     {(char *) "all", 1, CA_PUBLIC, 0, PS_ALL | SW_MULTIPLE},
@@ -1309,7 +1314,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_ps},
     {(char *) "@purge", purge_sw, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_purge},
-    {(char *) "@quitprogram", NULL, CA_PUBLIC,  0,
+    {(char *) "@quitprogram", quitprogram_sw, CA_PUBLIC,  0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_quitprogram},
     {(char *) "@quota", quota_sw, 0, 0,
      0, CS_TWO_ARG | CS_ARGV, 0, do_quota},
@@ -9108,11 +9113,15 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
       }
    }
    mudstate.shell_program = 0;
-   notify(player, "@program cleared.");
-   if ( thing == player )
-     notify(thing, "You have aborted your program.");
-   else
-     notify(thing, unsafe_tprintf("Your @program has been terminated by %s.", Name(player)));
+   if ( !(key & QUITPRG_QUIET) )
+      notify(player, "@program cleared.");
+   if ( thing == player ) {
+     if ( !(key & QUITPRG_QUIET) )
+        notify(thing, "You have aborted your program.");
+   } else {
+     if ( !(key & QUITPRG_QUIET) )
+        notify(thing, unsafe_tprintf("Your @program has been terminated by %s.", Name(player)));
+   }
    atr_clr(thing, A_PROGBUFFER);
    atr_clr(thing, A_PROGPROMPTBUF);
 }
