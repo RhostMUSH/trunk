@@ -3624,10 +3624,12 @@ void do_dbclean(dbref player, dbref cause, int key)
       for (ca=atr_head(i, &cs); ca; ca=atr_next(&cs)) {
          if ( ca > A_USER_START ) {
             atr = atr_num2(ca);
-            va = (VATTR *) vattr_find((char *)atr->name);
-            if ( va && !(va->flags & AF_DELETED) ) {
-               if ( !(va->flags & AF_NONBLOCKING) ) {
-                  va->flags |= AF_NONBLOCKING;
+            if ( atr ) {
+               va = (VATTR *) vattr_find((char *)atr->name);
+               if ( va && !(va->flags & AF_DELETED) ) {
+                  if ( !(va->flags & AF_NONBLOCKING) ) {
+                     va->flags |= AF_NONBLOCKING;
+                  }
                }
             }
          }

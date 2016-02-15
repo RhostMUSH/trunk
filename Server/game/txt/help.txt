@@ -29130,3 +29130,5 @@
   * minor glitch with @snapshot/loading over a player already connected [ASH]
   * flag_access_set, flag_access_unset, flag_access_see were case sensitive
     and they shouldn't be [ASH]
+  * possible crash bug in @dbclean if there's a cached attribute that
+    was not in-use properly [ASH]
