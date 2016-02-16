@@ -29129,7 +29129,6 @@
   * @quitprogram has /quiet switch
   * programmer() optionally returns target/attrib pair of program call [ASH]
   * @name added to @lock/twink as what you can do [ASH]
-  * Potentially improved resistance of timers against clock skews/jumps [AMB]
     
   Bug Fixes
   ------------
