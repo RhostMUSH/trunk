@@ -101,7 +101,7 @@ dbref	thing;
 int	i_chk1, i_chk2;
 char	*buff;
 
-	if ((thing = match_controlled(player, name)) == NOTHING)
+	if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
 		return;
 
 	/* check for bad name */

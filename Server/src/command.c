@@ -9497,7 +9497,7 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       notify(player, "Permission denied.");
       return;
    }
-   if ( !Controls(player, thing) ||
+   if ( !(Controls(player, thing) || could_doit(player, thing, A_LTWINK, 0, 0)) ||
         ((Cloak(thing) && SCloak(thing) && Immortal(thing) && !Immortal(player)) ||
          (Cloak(thing) && !Wizard(player))) ) {
       notify(player, "Permission denied.");

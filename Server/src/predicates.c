@@ -2734,6 +2734,8 @@ int	aflags, tog_val,
      mudstate.twinknum = thing;
      thing = Owner(thing);
      key = atr_get(thing, locknum, &aowner, &aflags);
+  } else if ( isPlayer(thing) && (locknum == A_LTWINK) && *key && (mudstate.twinknum == -1) ) {
+     mudstate.twinknum = thing;
   }
   doit = eval_boolexp_atr(player, thing, thing, key, def, i_uselocktype);
   mudstate.twinknum = thing_bak;

@@ -3380,6 +3380,7 @@
 & @lock type TwinkLock
   Lock Type: TwinkLock
   Syntax   : @lock/twink <target>=<key>
+  Special  : %w -- The target that is being checked in a @lock/twink
   
   Rooms, Objects, Exits:
      The twinklock is a unique lock in that it will allow anyone who passes
@@ -3389,7 +3390,9 @@
      or anything else on the object.  It is generally wise to have objects
      twinklocked be !INHERIT so that abuse will be limited.  If the lock
      does not exist, then NO ONE other than the owner will be able to modify
-     that target.
+     that target.  TwinkLock allows you to control @toggles, @name, @alias
+     and attribute control (@mvattr/@cpattr/@set (attributes)/&/etc).  It 
+     does NOT however allow you to set/remove locks or flags.
   
   Players:
      Players are special in that just like Rooms, Objects, and Exits, it
@@ -3398,8 +3401,17 @@
      This means if you pass the twinklock of a player, you automatically
      pass that lock on everything that player owns.
   
+     Example Lock to block player editing but allows all other owned:
+     > say num(player)
+     You say "#123"
+     > &CANUSE Player=[and(match(v(list),%#),!match(%w,#123))]
+     > &LIST Player=#5 #7 #9 #11         (list of target dbref#'s allowed)
+     > @lock/twink player=CANUSE/1
+  
   Special note:  You can set the item NOMODIFY if you want it to just have
-                 examine privalages and not modify privalages.
+                 examine privalages and not modify privalages.  You may
+                 also customize your @lock/twink to check %w against the
+                 target player dbref# with a complex lock.
   
 & @lock type UserLock
   Lock Type: UserLock
@@ -29116,6 +29128,7 @@
   * sortlist() now handles 'm' for merging.
   * @quitprogram has /quiet switch
   * programmer() optionally returns target/attrib pair of program call [ASH]
+  * @name added to @lock/twink as what you can do [ASH]
     
   Bug Fixes
   ------------
