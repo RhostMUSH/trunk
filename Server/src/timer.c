@@ -24,8 +24,9 @@
  ******************************************************************************/
 #ifdef __MACH__
 #include <sys/time.h>
-#define CLOCK_REALTIME  0
-#define CLOCK_MONOTONIC 0
+#define CLOCK_REALTIME      0
+#define CLOCK_MONOTONIC     0
+#define CLOCK_MONOTONIC_RAW 0
 /* clock_gettime mac OSX implementation */
 int clock_gettime(int clk_id, struct timespec* t) {
    struct timeval now;
@@ -91,7 +92,13 @@ double time_ng(double *t)
   long ms;
   time_t s;
   double result;
+#ifdef SOLARIS
   clock_gettime(CLOCK_REALTIME, &spec);
+#elif BSD_LIKE
+  clock_gettime(CLOCK_MONOTONIC, &spec);
+#else
+  clock_gettime(CLOCK_MONOTONIC_RAW, &spec);
+#endif
   s = spec.tv_sec;
   ms = round(spec.tv_nsec / 1.0e6);
   result = s + (floor((((1000.0+ms)/1000.0)-1.0) * 10) / 10);
