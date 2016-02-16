@@ -92,12 +92,16 @@ double time_ng(double *t)
   long ms;
   time_t s;
   double result;
+#if 0
 #ifdef SOLARIS
   clock_gettime(CLOCK_REALTIME, &spec);
 #elif BSD_LIKE
   clock_gettime(CLOCK_MONOTONIC, &spec);
 #else
   clock_gettime(CLOCK_MONOTONIC_RAW, &spec);
+#endif
+#else
+  clock_gettime(CLOCK_REALTIME, &spec);
 #endif
   s = spec.tv_sec;
   ms = round(spec.tv_nsec / 1.0e6);

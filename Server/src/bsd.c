@@ -377,7 +377,11 @@ struct timespec tTime;
 #ifndef HAVE_GETTIMEOFDAY
 #define get_tod(x)	{ (x)->tv_sec = time(NULL); (x)->tv_usec = 0; }
 #else
+#if 0
 #define get_tod(x)	clock_gettime_usec(x)
+#else
+#define get_tod(x)      gettimeofday(x, (struct timezone *)0)
+#endif
 #endif
 
 int maxd;
