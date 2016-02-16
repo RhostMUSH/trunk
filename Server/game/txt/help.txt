@@ -3401,6 +3401,13 @@
      This means if you pass the twinklock of a player, you automatically
      pass that lock on everything that player owns.
   
+     Example Lock to block player editing but allows all other owned:
+     > say num(player)
+     You say "#123"
+     > &CANUSE Player=[and(match(v(list),%#),!match(%w,#123))]
+     > &LIST Player=#5 #7 #9 #11         (list of target dbref#'s allowed)
+     > @lock/twink player=CANUSE/1
+  
   Special note:  You can set the item NOMODIFY if you want it to just have
                  examine privalages and not modify privalages.  You may
                  also customize your @lock/twink to check %w against the
