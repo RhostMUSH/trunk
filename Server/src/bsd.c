@@ -342,42 +342,10 @@ int make_socket(int port, char* address)
     RETURN(s); /* #1 */
 }
 
-#ifdef __MACH__
-#include <sys/time.h>
-#define CLOCK_REALTIME      0
-#define CLOCK_MONOTONIC     0
-#define CLOCK_MONOTONIC_RAW 0
-/* clock_gettime mac OSX implementation */
-int clock_gettime(int clk_id, struct timespec* t) {
-   struct timeval now;
-   int rv = gettimeofday(&now, NULL);
-   if (rv)
-      return rv;
-   t->tv_sec  = now.tv_sec;
-   t->tv_nsec = now.tv_usec * 1000;
-   return 0;
-}
-#endif
-
-void
-clock_gettime_usec(struct timeval *tm)
-{
-struct timespec tTime;
-#ifdef SOLARIS
-  clock_gettime(CLOCK_REALTIME, &tTime);
-#elif BSD_LIKE
-  clock_gettime(CLOCK_MONOTONIC, &tTime);
-#else
-  clock_gettime(CLOCK_MONOTONIC_RAW, &tTime);
-#endif
-  tm->tv_sec = tTime.tv_sec;
-  tm->tv_usec = tTime.tv_nsec / 1000;
-}
-
 #ifndef HAVE_GETTIMEOFDAY
 #define get_tod(x)	{ (x)->tv_sec = time(NULL); (x)->tv_usec = 0; }
 #else
-#define get_tod(x)	clock_gettime_usec(x)
+#define get_tod(x)	gettimeofday(x, (struct timezone *)0)
 #endif
 
 int maxd;
