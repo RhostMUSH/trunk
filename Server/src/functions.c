@@ -18950,7 +18950,7 @@ FUNCTION(fun_lzone)
   if ( i_type < 0 )
      i_type = 0;
 
-  i_objid = 1;
+  i_objid = 0;
   if ( (nfargs > 2) && *fargs[2] ) {
      i_objid = (atoi(fargs[2]) ? 1 : 0);
   }
