@@ -29132,6 +29132,7 @@
   * @progreset allows you to optionally modify in-action someone's active
     @program prompt [ASH]
   * Permissions on @function laxed to allow full access to wizards [ASH]
+  * added new time formats for convtime() and enhanced_convtime [ASH]
     
   Bug Fixes
   ------------
