@@ -11325,25 +11325,59 @@ do_progreset(dbref player, dbref cause, int key, char *name)
 {
    dbref target;
    DESC *d;
+   char *buff = NULL, *tpr_buff, *tprp_buff;
+   int i_buff = 0;
 
    if ( !name && !*name ) {
       target = player;
    } else {
-      target = lookup_player(player, name, 0);
+      if ( (buff = strchr(name, '=')) != NULL ) {
+         i_buff = 1;
+         *buff = '\0';
+         target = lookup_player(player, name, 0);
+         *buff = '=';
+         buff++;
+         if ( !*buff ) {
+            i_buff = 0;
+         } else  if ( strlen(buff) > 80 ) {
+            notify(player, "Custom prompt exceeds 80 characters.  Not setting.");
+            return;
+         }
+      } else {
+         target = lookup_player(player, name, 0);
+      }
    }
    if ( !Good_chk(target) || !Controls(player, target) ) {
       notify(player, "No matching target found.");
+      return;
+   }
+   if ( i_buff && !InProgram(target) ) {
+      notify(player, "Can not assign a prompt to someone not in a program.");
       return;
    }
    if ( !InProgram(target) ) {
       DESC_ITER_CONN(d) {
          if ( d->player == target ) {
             queue_string(d, "\377\371");
+            atr_clr(d->player, A_PROGPROMPTBUF);
          }
       }
       notify_quiet(player, "Program prompt reset.");
    } else {
-      notify_quiet(player, "Player is in a program, can not reset.");
+      if ( i_buff ) {
+         tprp_buff = tpr_buff = alloc_lbuf("do_progreset");
+         DESC_ITER_CONN(d) {
+            if ( d->player == target ) {
+               tprp_buff = tpr_buff;
+               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, buff, ANSI_NORMAL));
+               atr_add_raw(target, A_PROGPROMPTBUF, buff);
+            }
+         }
+         notify_quiet(player, "Program prompt customized.");
+         free_lbuf(tpr_buff);
+      } else {
+         notify_quiet(player, "Player is in a program, can not reset.");
+      }
    }
 }
 

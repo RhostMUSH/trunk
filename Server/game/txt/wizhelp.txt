@@ -3401,12 +3401,30 @@
 
 & @progreset
   Command: @progreset <playername>
+           @progreset <playername> = <newvalue>
   
-  This command, only useful on players, will target the player 
-  for a @program prompt reset.  This in effect nulls out their
-  prog-prompt that would display on their client.  As this can
-  only be done on players who are NOT in a program, it is 
-  obviously intended as a forced method to reset a bad prompt.
+  This command has two uses.
+
+  First use: (first syntax)
+     This command, only useful on players, will target the player 
+     for a @program prompt reset.  This in effect nulls out their
+     prog-prompt that would display on their client.  As this can
+     only be done on players who are NOT in a program, it is 
+     obviously intended as a forced method to reset a bad prompt.
+  
+  Second use: (second syntax)
+     This command, only useful on players, will target the player
+     for a @program prompt set.  This in effect overrides the
+     player's existing prompt with the new one you assign.  This
+     is useful to set a customized prompt or reset it mid-program
+     based on maybe an error that they type or if they're sitting
+     idle for too long and you will shortly abort them.
+  
+  Examples:
+     > @progreset *Player
+     Program prompt reset.
+     > @progreset *player=New Prompt>
+     Program prompt customized.
   
   See Also: IMMPROG
   

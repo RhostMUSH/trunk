@@ -29129,6 +29129,8 @@
   * @quitprogram has /quiet switch
   * programmer() optionally returns target/attrib pair of program call [ASH]
   * @name added to @lock/twink as what you can do [ASH]
+  * @progreset allows you to optionally modify in-action someone's active
+    @program prompt [ASH]
     
   Bug Fixes
   ------------
