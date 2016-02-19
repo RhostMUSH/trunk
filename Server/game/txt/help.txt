@@ -29131,6 +29131,7 @@
   * @name added to @lock/twink as what you can do [ASH]
   * @progreset allows you to optionally modify in-action someone's active
     @program prompt [ASH]
+  * Permissions on @function laxed to allow full access to wizards [ASH]
     
   Bug Fixes
   ------------

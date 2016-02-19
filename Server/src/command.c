@@ -1224,7 +1224,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG, 0, do_freeze},
     {(char *) "@fsay", fsay_sw, CA_LOCATION | CA_NO_SLAVE, CA_NO_CODE,
      PEMIT_FSAY, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
-    {(char *) "@function", function_sw, CA_IMMORTAL, 0,
+    {(char *) "@function", function_sw, CA_WIZARD, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_function},
     {(char *) "@grep", grep_sw, CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP | CS_ARGV, 0, do_grep},
