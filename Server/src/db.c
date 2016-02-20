@@ -846,12 +846,16 @@ fwdlist_rewrite(FWDLIST * fp, char *atext)
 int
 progprompt_ck(int key, dbref player, dbref thing, int anum, char *atext)
 {
+#ifndef STANDALONE
    if ( strlen(strip_all_ansi(atext)) > 80 ) {
       notify(player, "ProgPrompt can not exceed 80 characters.");
       return 0;
    } else {
       return 1;
    }
+#else
+   return 1;
+#endif
 }
 
 /* ---------------------------------------------------------------------------
