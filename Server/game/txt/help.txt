@@ -835,12 +835,21 @@
   
   This specifies a string (from 1 to 40 characters) that you may specify 
   for a player going through a program instead of the base '-'.  If you 
-  specify a 'NULL' as the string, there will be no prompt.  
+  specify a 'NULL' as the string, there will be no prompt.    
   
   The @progprompt does not end the string with a >.  If you wish to have
   one, you'll have to add it to the end of the defined prompt.
   
+  This is limited to 80 characters total.  You may have an ansified string.  
+  
+  Example:
+    > @progprompt me=Prompt>
+    Set.
+    > @wait 0=@progprompt me=[ansi(hr,Red>)]   (need the @wait to evaluate it) 
+    Set.
+  
   See Also: @program, @quitprogram
+  
 & @fsay
   Command: @fsay <object> = <message>
   Forces <object> (which may be a player) to say <message>.  Can only
@@ -29133,6 +29142,7 @@
     @program prompt [ASH]
   * Permissions on @function laxed to allow full access to wizards [ASH]
   * added new time formats for convtime() and enhanced_convtime [ASH]
+  * @progprompt hard-limited to 80 characters and now allows ANSI [ASH]
     
   Bug Fixes
   ------------

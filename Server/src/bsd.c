@@ -365,6 +365,9 @@ shovechars(int port,char* address)
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
          s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, *b_progatrptr;
+#ifdef ZENTY_ANSI
+    char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr;
+#endif
     FILE *f;
     int silent, i_progatr, anum;
     unsigned int ulCRC32;
@@ -447,10 +450,21 @@ shovechars(int port,char* address)
             queue_string(d, "You are still in a @program.\r\n");
             progatr = atr_get(d->player, A_PROGPROMPTBUF, &aowner2, &aflags2);
             if ( progatr && *progatr ) {
-               if ( strcmp(progatr, "NULL") != 0 )
+               if ( strcmp(progatr, "NULL") != 0 ) {
+#ifdef ZENTY_ANSI
+                  s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+                  s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+                  parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                  queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+                  free_lbuf(s_buff);
+                  free_lbuf(s_buff2);
+#else
                   queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
-            } else
+#endif
+               }
+            } else {
                queue_string(d, unsafe_tprintf("%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
+            }
             free_lbuf(progatr);
          } else {
             queue_string(d, "Your @program was aborted from the @reboot.\r\n");

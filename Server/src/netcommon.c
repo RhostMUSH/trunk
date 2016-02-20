@@ -2132,6 +2132,9 @@ announce_connect(dbref player, DESC * d, int dc)
     DESC *dtemp;
     char *argv[1];
     int totsucc, totfail, newfail;
+#ifdef ZENTY_ANSI
+    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+#endif
 
     DPUSH; /* #130 */
 
@@ -2348,10 +2351,21 @@ announce_connect(dbref player, DESC * d, int dc)
              if ( d->player == player ) {
                 progatr = atr_get(player, A_PROGPROMPTBUF, &aowner2, &aflags2);
                 if ( progatr && *progatr ) {
-                   if ( strcmp(progatr, "NULL") != 0 )
+                   if ( strcmp(progatr, "NULL") != 0 ) {
+#ifdef ZENTY_ANSI
+                      s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+                      s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+                      parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                      queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+                      free_lbuf(s_buff);
+                      free_lbuf(s_buff2);
+#else
                       queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
-                } else
+#endif
+                   }
+                } else {
                    queue_string(d, unsafe_tprintf("%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
+                }
                 free_lbuf(progatr);
                 break;
              }
@@ -4729,6 +4743,9 @@ NDECL(process_commands)
     CBLK *t;
     char *cmdsave, *progatr;
     dbref aowner2;
+#ifdef ZENTY_ANSI
+    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+#endif
 
     DPUSH; /* #148 */
 
@@ -4758,11 +4775,21 @@ NDECL(process_commands)
                         if ( InProgram(d->player) ) {
                            progatr = atr_get(d->player, A_PROGPROMPTBUF, &aowner2, &aflags2);
                            if ( progatr && *progatr ) {
-                              if ( strcmp(progatr, "NULL") != 0 )
-                                 queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, 
-                                              progatr, ANSI_NORMAL));
-                           } else
+                              if ( strcmp(progatr, "NULL") != 0 ) {
+#ifdef ZENTY_ANSI
+                                 s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+                                 s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+                                 parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                                 queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+                                 free_lbuf(s_buff);
+                                 free_lbuf(s_buff2);
+#else
+                                 queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
+#endif
+                              }
+                           } else {
                               queue_string(d, unsafe_tprintf("%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
+                           }
                            free_lbuf(progatr);
                         }
                         mudstate.shell_program = 0;

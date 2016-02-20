@@ -8992,8 +8992,11 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 {
    dbref thing, it, aowner;
    int aflags, atr;
-   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[80], *tpr_buff, *tprp_buff;
+   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[LBUF_SIZE], *tpr_buff, *tprp_buff;
    DESC *d;
+#ifdef ZENTY_ANSI
+   char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+#endif
 
    if (!*name || !name) {
       notify(player, "No valid player specified.");
@@ -9060,7 +9063,17 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
         if ( *strprompt ) {
            if ( strcmp(strprompt, "NULL") != 0 ) {
               tprp_buff = tpr_buff;
+
+#ifdef ZENTY_ANSI
+              s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+              s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+              parse_ansi((char *) strprompt, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+              queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+              free_lbuf(s_buff);
+              free_lbuf(s_buff2);
+#else
               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, strprompt, ANSI_NORMAL));
+#endif
            }
            atr_add_raw(thing, A_PROGPROMPTBUF, strprompt);
         } else {
@@ -11327,6 +11340,9 @@ do_progreset(dbref player, dbref cause, int key, char *name)
    DESC *d;
    char *buff = NULL, *tpr_buff, *tprp_buff;
    int i_buff = 0;
+#ifdef ZENTY_ANSI
+   char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+#endif
 
    if ( !name && !*name ) {
       target = player;
@@ -11339,7 +11355,7 @@ do_progreset(dbref player, dbref cause, int key, char *name)
          buff++;
          if ( !*buff ) {
             i_buff = 0;
-         } else  if ( strlen(buff) > 80 ) {
+         } else  if ( strlen(strip_all_ansi(buff)) > 80 ) {
             notify(player, "Custom prompt exceeds 80 characters.  Not setting.");
             return;
          }
@@ -11369,8 +11385,17 @@ do_progreset(dbref player, dbref cause, int key, char *name)
          DESC_ITER_CONN(d) {
             if ( d->player == target ) {
                tprp_buff = tpr_buff;
-               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, buff, ANSI_NORMAL));
                atr_add_raw(target, A_PROGPROMPTBUF, buff);
+#ifdef ZENTY_ANSI
+              s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+              s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+              parse_ansi((char *) buff, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+              queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+              free_lbuf(s_buff);
+              free_lbuf(s_buff2);
+#else
+              queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, buff, ANSI_NORMAL));
+#endif
             }
          }
          notify_quiet(player, "Program prompt customized.");

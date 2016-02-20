@@ -293,6 +293,7 @@ extern int FDECL(fwdlist_ck, (int, dbref, dbref, int, char *));
 
 /* Other declarations */
 extern int FDECL(ansiname_ck, (int, dbref, dbref, int, char *));
+extern int FDECL(progprompt_ck, (int, dbref, dbref, int, char *));
 
 extern void FDECL(pcache_reload, (dbref));
 extern void FDECL(desc_reload, (dbref));
@@ -494,7 +495,7 @@ ATTR attr[] =
     {"PayLim", A_PAYLIM, AF_MDARK | AF_NOPROG | AF_IMMORTAL, NULL},
     {"Prefix", A_PREFIX, AF_ODARK | AF_NOPROG, NULL},
     {"ProgBuffer", A_PROGBUFFER, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
-    {"ProgPrompt", A_PROGPROMPT, AF_ODARK | AF_NOPROG | AF_NOANSI | AF_NORETURN, NULL},
+    {"ProgPrompt", A_PROGPROMPT, AF_ODARK | AF_NOPROG | AF_NOANSI | AF_NORETURN, progprompt_ck},
     {"ProgPromptBuffer", A_PROGPROMPTBUF, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
     {"ProtectName", A_PROTECTNAME, AF_DARK | AF_MDARK | AF_INTERNAL | AF_GOD | AF_NOCMD, NULL},
     {"QueueMax", A_QUEUEMAX, AF_MDARK | AF_WIZARD | AF_NOPROG, NULL},
@@ -839,7 +840,22 @@ fwdlist_rewrite(FWDLIST * fp, char *atext)
 }
 
 /* ---------------------------------------------------------------------------
- * fwdlist_ck:  Check a list of dbref numbers to forward to for AUDIBLE
+ * progprompt_ck :  don't exceed 80 characters
+ */
+
+int
+progprompt_ck(int key, dbref player, dbref thing, int anum, char *atext)
+{
+   if ( strlen(strip_all_ansi(atext)) > 80 ) {
+      notify(player, "ProgPrompt can not exceed 80 characters.");
+      return 0;
+   } else {
+      return 1;
+   }
+}
+
+/* ---------------------------------------------------------------------------
+ * ansiname_ck:  don't allow if player set noansiname
  */
 
 int 
@@ -854,6 +870,10 @@ ansiname_ck(int key, dbref player, dbref thing, int anum, char *atext)
    else
       return 1;
 }
+
+/* ---------------------------------------------------------------------------
+ * fwdlist_ck:  Check a list of dbref numbers to forward to for AUDIBLE
+ */
 
 int 
 fwdlist_ck(int key, dbref player, dbref thing, int anum, char *atext)
