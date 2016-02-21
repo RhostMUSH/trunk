@@ -4610,8 +4610,13 @@ do_command(DESC * d, char *command)
       }
     }
 
-    if (cval == 2)
+    if (cval == 2) {
       cp = NULL;
+    }
+
+    if ( !(d->flags & DS_CONNECTED) && cp && (cp->perm & CF_DARK) ) {
+      cp = NULL;
+    }
 
     if (cp == NULL || (cp != NULL && InProgram(d->player) && command[0] != '|') || 
         (((NoShProg(d->player) && !mudconf.noshell_prog) ||

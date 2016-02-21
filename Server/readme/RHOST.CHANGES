@@ -41,6 +41,10 @@ columns() bug with left justification if fed null for field.
 				- Thanks Merit
 @dynhelp/noindex to snuff the hilight index in @dynhelp.
 				- Thanks Darren
+ltoggles()/hastoggle() didn't mirror lflags()/hasflag() for permissions.
+				- Thanks Polk
+dark permission makes on-connect screen command ignored to be overridden.
+				- Thanks Ixokai
 
 
 		         RhostMUSH 3.9.4 Update File
