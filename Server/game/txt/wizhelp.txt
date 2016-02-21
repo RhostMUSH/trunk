@@ -6384,10 +6384,9 @@
   
   All ansi and such will process normally.
   
-  See 'help file_object2' on how to make customized commands for the connect
-  screen.  
-  
   See Also: @list_file, file_object2, customized connect
+  
+{ See 'wizhelp file_object2' or 'wizhelp customized connect' for connect mods }
 
 & CUSTOMIZED CONNECT
 & file_object2
@@ -6400,6 +6399,9 @@
   of the file_object AS the file_object itself.  So some thought needs to go
   with security with regards to this.
   
+  Built-in logout_cmd_access commands (WHO, INFO, DOING, etc) may be accessed
+  this way if you set the access of the command DARK.
+    
   Note:  A player can not exceed 2000 character input in anyway at the connect
          screen or the mush will aggressively tag the player as someone who is 
          attempting to crash the mush, boot them off the server, and log their 
@@ -6430,7 +6432,9 @@
   To design what commands are to be customized, you create a '|' delimited
   list on the file_object.  
   
-{ see 'help file_object3' or 'help customized connect2' for examples}  
+  See Also: logout_cmd_access
+  
+{ see 'wizhelp file_object3' or 'wizhelp customized connect2' for examples}
   
 & CUSTOMIZED CONNECT2
 & file_object3
@@ -6458,7 +6462,7 @@
   screen existing commands like 'connect' and so forth.  A small limitation
   to an otherwise flexible tool.
   
-  See Also: @admin, file_object, CUSTOMIZED CONNECT
+  See Also: @admin, file_object, CUSTOMIZED CONNECT, logout_cmd_access
 
 & find_money_chance
   Config parameter: find_money_chance <amount>.  Default: 0
@@ -7613,6 +7617,14 @@
   the connect screen.  Keep in mind, that this effects the command PERIOD
   and not JUST at the connect screen.  Examples of commands this effects
   would be WHO, DOING, INFO, etc.
+  
+  The following options have special meaning for permissions for commands
+  for players at the connect screen:
+    ignore  -- then players at the connect screen can still issue the 
+               command, but connected players can not.
+    dark    -- players connected can issue the command, but the command
+               is 'ignored' for the connect screen.
+    disable -- the command is disabled entirely equally.
   
   See Also: logout_cmd_alias
 
