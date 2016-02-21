@@ -760,7 +760,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff2, &bufc2);
             } else if ( *string == '<' ) {
                 string++;
-                if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) ) {
+                if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
                    s_intbuf[0] = *(string);
                    s_intbuf[1] = *(string+1);
                    s_intbuf[2] = *(string+2);
