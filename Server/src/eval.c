@@ -779,7 +779,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 string+=2; */
             } else if ( (*string == '<') ) {
                 string++;
-                if ( (*string == 'u') && ( (*(string+5) == '>') || (*(string+7) == '>')) ) {
+                if ( (*string == 'u') && 
+                     (((strlen(string)) > 5 && (*(string+5) == '>')) 
+                       || ((strlen(string) > 6) && (*(string+6) == '>')) 
+                       || ((strlen(string) > 7) && (*(string+7) == '>')))) {
                     string++;
                     i_utfcnt = 0;
                     while ( *string ) {
