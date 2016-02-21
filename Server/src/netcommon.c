@@ -2138,7 +2138,7 @@ announce_connect(dbref player, DESC * d, int dc)
     char *argv[1];
     int totsucc, totfail, newfail;
 #ifdef ZENTY_ANSI
-    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+    char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
 #endif
 
     DPUSH; /* #130 */
@@ -2360,7 +2360,8 @@ announce_connect(dbref player, DESC * d, int dc)
 #ifdef ZENTY_ANSI
                       s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
                       s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-                      parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                      s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+                      parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
                       queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
                       free_lbuf(s_buff);
                       free_lbuf(s_buff2);
@@ -3807,7 +3808,7 @@ softcode_trigger(DESC *d, const char *msg) {
     ATTR *atr;
     char *s_text, *s_return, *s_strtok, *s_strtokr, *s_buff, *s_array[10], *s_ptr;
 #ifdef ZENTY_ANSI
-    char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2;
+    char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2, *lbuf3ptr, *lbuf3;
 #endif
     int aflags, i_found;
     dbref aowner;
@@ -3912,9 +3913,11 @@ softcode_trigger(DESC *d, const char *msg) {
 #ifdef ZENTY_ANSI
           lbuf1 = alloc_lbuf("fcache_dump3");
           lbuf2 = alloc_lbuf("fcache_dump4");
+          lbuf3 = alloc_lbuf("fcache_dump_utf");
           lbuf1ptr = lbuf1;
           lbuf2ptr = lbuf2;
-          parse_ansi(s_buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+          lbuf3ptr = lbuf3;
+          parse_ansi(s_buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
           queue_write(d, lbuf1, strlen(lbuf1));
           free_lbuf(lbuf1);
           free_lbuf(lbuf2);
@@ -4767,7 +4770,7 @@ NDECL(process_commands)
     char *cmdsave, *progatr;
     dbref aowner2;
 #ifdef ZENTY_ANSI
-    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+    char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
 #endif
 
     DPUSH; /* #148 */
@@ -4802,7 +4805,8 @@ NDECL(process_commands)
 #ifdef ZENTY_ANSI
                                  s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
                                  s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-                                 parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                                 s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+                                 parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
                                  queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
                                  free_lbuf(s_buff);
                                  free_lbuf(s_buff2);

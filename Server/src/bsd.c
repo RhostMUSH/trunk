@@ -367,7 +367,7 @@ shovechars(int port,char* address)
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
          s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, *b_progatrptr;
 #ifdef ZENTY_ANSI
-    char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr;
+    char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr, *s_buff3, *s_buff3ptr;
 #endif
     FILE *f;
     int silent, i_progatr, anum;
@@ -455,7 +455,8 @@ shovechars(int port,char* address)
 #ifdef ZENTY_ANSI
                   s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
                   s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-                  parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                  s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+                  parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
                   queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
                   free_lbuf(s_buff);
                   free_lbuf(s_buff2);
