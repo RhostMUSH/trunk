@@ -8446,7 +8446,9 @@
   
   If enabled, indicates that players may get the flags of any object with the
   flags() function call.  Otherwise, they may only get the flags for objects
-  that are examinable by them.
+  that are examinable by them.  This parameter also affects ltoggles() and
+  the like as well.
+  
   See Also: flags().
 
 & power_objects

@@ -11383,8 +11383,15 @@ FUNCTION(fun_hastoggle)
   init_match(player, fargs[0], NOTYPE);
   match_everything(MAT_EXIT_PARENTS);
   target = match_result();
+
+  if ( !((target != NOTHING) && (target != AMBIGUOUS) && (!Cloak(target) || (Cloak(target) &&
+        (Examinable(player, target) || Wizard(player)))) &&
+        (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+         (mudconf.pub_flags || Examinable(player, target) || (target == cause))) ) {
+/* --- The old method -- 02/20/2016
   if ((target == NOTHING) || (target == AMBIGUOUS) || !Good_obj(target) ||
        !Controls(player,target)) {
+*/
      safe_str("#-1",buff,bufcx);
   } else {
     pent = find_toggle(target,fargs[1]);
@@ -21080,7 +21087,14 @@ FUNCTION(fun_ltoggles)
     char *pt1;
 
     target = match_thing(player, fargs[0]);
+
+    if ( !((target != NOTHING) && (target != AMBIGUOUS) && (!Cloak(target) || (Cloak(target) &&
+          (Examinable(player, target) || Wizard(player)))) &&
+          (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+           (mudconf.pub_flags || Examinable(player, target) || (target == cause))) ) {
+/* --- Original if 02/20/2016
     if (!Good_obj(target) || (!Controls(player, target))) {
+*/
        safe_str("#-1", buff, bufcx);
     } else {
        pt1 = toggle_description(player, target, 0, 0, (int *)NULL);
