@@ -101,7 +101,7 @@ dbref	thing;
 int	i_chk1, i_chk2;
 char	*buff;
 
-	if ((thing = match_controlled(player, name)) == NOTHING)
+	if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
 		return;
 
 	/* check for bad name */
@@ -2033,23 +2033,46 @@ OBLOCKMASTER master;
 	}
 }
 
-void do_wipe(dbref player, dbref cause, int key, char *it)
+void do_wipe(dbref player, dbref cause, int key, char *it2)
 {
-   dbref thing, aowner;
-   int attr, got_one, aflags, orig_revwild, i_regexp;
+   dbref thing, aowner, target;
+   int attr, got_one, aflags, orig_revwild, i_regexp, i_owner;
    ATTR *ap;
-   char *atext, *buff2ret, *tpr_buff, *tprp_buff;
+   char *atext, *buff2ret, *tpr_buff, *tprp_buff, *it;
    OBLOCKMASTER master;
 
-   i_regexp = mudstate.wipe_state = 0;
-   olist_init(&master);
-   orig_revwild = mudstate.reverse_wild;
+   i_owner = i_regexp = mudstate.wipe_state = 0;
    if ( key & WIPE_PRESERVE )
       mudstate.reverse_wild = 1;
 
    if ( key & WIPE_REGEXP )
       i_regexp = 1;
+
+   if ( key & WIPE_OWNER ) {
+      i_owner = 1;
+      target = NOTHING;
+      if ( (it = strchr(it2, '/')) != NULL ) {
+         *it = '\0'; 
+         target = lookup_player(player, it2, 0);
+         *it = '/'; 
+         if ( !Good_chk(target) ) {
+            if ( !(key & SIDEEFFECT) )
+               notify_quiet(player, "Not a valid player.");
+            return;
+         } else { 
+            it = it+1;
+         }
+      } else {
+         if ( !(key & SIDEEFFECT) )
+            notify_quiet(player, "Need to specify user with wipe-by-user option.");
+         return;
+      }
+   } else {
+      it = it2;
+   }
    
+   olist_init(&master);
+   orig_revwild = mudstate.reverse_wild;
    if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp, 0)) {
       if ( !(key & SIDEEFFECT) )
          notify_quiet(player, "No match.");
@@ -2089,19 +2112,21 @@ void do_wipe(dbref player, dbref cause, int key, char *it)
          atr_get_str(atext, thing, ap->number, &aowner, &aflags);
          if (Set_attr(player, thing, ap, aflags) &&
              !(mudconf.safe_wipe && ((aflags & AF_SAFE) || (ap->flags & AF_SAFE))) ) {
-            atr_clr(thing, ap->number);
-            if ( (ap->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
-               STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
-                  log_name_and_loc(player);
-                  buff2ret = alloc_lbuf("log_attribute");
-                  sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d cleared",
-                          cause, ap->name, thing);
-                  log_text(buff2ret);
-                  free_lbuf(buff2ret);
-               ENDLOG
+            if ( !i_owner || (i_owner && (aowner == target)) ) {
+               atr_clr(thing, ap->number);
+               if ( (ap->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
+                  STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
+                     log_name_and_loc(player);
+                     buff2ret = alloc_lbuf("log_attribute");
+                     sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d cleared",
+                             cause, ap->name, thing);
+                     log_text(buff2ret);
+                     free_lbuf(buff2ret);
+                  ENDLOG
+               }
+               got_one = 1;
+               mudstate.wipe_state++;
             }
-            got_one = 1;
-            mudstate.wipe_state++;
          }
       }
    }

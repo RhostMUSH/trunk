@@ -5,6 +5,7 @@
 @@ FUNPR_ -- Preserved function
 @@ FUNPV_ -- Privileged function
 @@ FUNP_  -- Preserved & Privileged function
+@@ FUNPT_ -- Privileged & NoTrace function
 @create SoftFunctions
 @create SFSideFX
 @set SFSideFX=!no_command !halt inh safe indestructable sidefx
@@ -77,6 +78,10 @@
 &FUN_NCONDALL soft=[strfunc(switchall,0 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
 &FUN_COND soft=[strfunc(switch,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
 &FUN_CONDALL soft=[strfunc(switchall,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
+&FUNPT_RLCON soft=[ifelse(and(hastype(%@,room),member(get(%@/_RLCON),crc32(get(%@/conformat)))),objeval(%#,lcon(here)),objeval(%@,lcon(me)))]
+&FUNPT_RLEXITS soft=[ifelse(and(hastype(%@,room),member(get(%@/_RLEXITS),crc32(get(%@/exitformat)))),objeval(%#,lexits(here)),objeval(%@,lexits(me)))]
+&FUNPR_SETSYMDIFF soft=[setq(0,setinter(%0,%1,%2,%2,%4))][listunion(setdiff(%0,%q0,%2,%2,%4),setdiff(%1,%q0,%2,%2,%4),%2,%3)]
+&FUNPR_SETSYMDIFF soft=[setq(0,listinter(%0,%1,%2,%2,%4))][listunion(listdiff(%0,%q0,%2,%2,%4),listdiff(%1,%q0,%2,%2,%4),%2,%3)]
 &MINMAX_NCOND soft=2 2
 &MINMAX_NCONDALL soft=2 2
 &MINMAX_COND soft=2 2
@@ -94,7 +99,12 @@
 &FUNPV_WIDTH soft=[default(%#/WIDTH,default([owner(%#)]/WIDTH,78))]
 &FUN_VMAX soft=[sortlist(+n,%2,%0,%1)]
 &FUN_VMIN soft=[sortlist(-n,%2,%0,%1)]
+&FUN_CPAD soft=[printf($^%1:%2:+s,%0)]
+&FUN_LEHRAND soft=[trunc(fmod(fmod(mul(max(rand(%0),1),279470273),4294967291),%0))]
 @fo softfunc=&DB me=num(softfunc)
 @tel SFSideFX=softfunctions
-@startup softfunc=@dolist lattr([v(db)]/fun_*)=@function [after(##,_)]=[v(db)]/##;@dolist lattr([v(db)]/funp_*)=@function/priv/pres [after(##,_)]=[v(db)]/##;@dolist lattr([v(DB)]/funpr_*)=@function/pres [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpv_*)=@function/priv [after(##,_)]=[v(DB)]/##;@wait 10={@dolist lattr([v(db)]/funflag_*)=@admin function_access=[after(##,_)] [get([v(db)]/##)]};@wait 10=@dolist lattr([v(db)]/minmax_*)={@function/min [after(##,_)]=[first(get([v(db)]/##))];@function/max [after(##,_)]=[rest(get([v(db)]/##))]}
-@@ think Issue this command:  @dolist search\(flags=P\)=@swi \[words\(get\(##/race\)\)\]=0,@cpattr/clear ##/RACE=##/race
+@startup softfunc=@dolist lattr([v(db)]/fun_*)=@function [after(##,_)]=[v(db)]/##;@dolist lattr([v(db)]/funp_*)=@function/priv/pres [after(##,_)]=[v(db)]/##;@dolist lattr([v(DB)]/funpr_*)=@function/pres [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpv_*)=@function/priv [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpt_*)=@function/priv/notrace [after(##,_)]=[v(db)]/##;@wait 10={@dolist lattr([v(db)]/funflag_*)=@admin function_access=[after(##,_)] [get([v(db)]/##)]};@wait 10=@dolist lattr([v(db)]/minmax_*)={@function/min [after(##,_)]=[first(get([v(db)]/##))];@function/max [after(##,_)]=[rest(get([v(db)]/##))]}
+@@
+@@ On a converted flatfile you may have duplicated RACE attributes and GUILD attributes.
+@@ Issue this command:  @dolist search\(flags=P\)=@swi \[words\(get\(##/race\)\)\]=0,@cpattr/clear ##/RACE=##/race
+@@ Issue this command:  @dolist search\(flags=P\)=@swi \[words\(get\(##/guild\)\)\]=0,@cpattr/clear ##/GUILD=##/guild

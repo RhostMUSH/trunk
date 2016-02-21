@@ -62,7 +62,7 @@ else
    do
       if [ $(file "$i"|grep -c ELF) -gt 0 ]
       then
-        LDCONFIG="$i"
+        MYGCC="$i"
       fi
    done
 fi
@@ -1393,6 +1393,8 @@ setopts() {
 # SETDEFAULTS - Assign default DEFS required for platform
 ###################################################################
 setdefaults() {
+  # compile timeout.c incase we need it
+  ${MYGCC} ../src/timeout.c -o ../bin/timeout > /dev/null 2>&1
   echo "Configuring default definitions..."
   ${MYGCC} ../src/intsize.c -o ../src/intsize >/dev/null 2>&1
   if [ $? -eq 0 ]
@@ -1402,6 +1404,13 @@ setdefaults() {
         echo "Patching for 64bit platform..."
         DEFS="-DBIT64 ${DEFS}"
      fi
+  fi
+  echo "Testing MMU support on server..."
+  ${MYGCC} ../src/sockopts_test.c -o ../src/sockopts_test > /dev/null 2>&1
+  if [ $? -ne 0 ]
+  then
+     echo "Your server doesn't handle advanced socket protocols.  Disabling..."
+     DEFS="-BROKEN_PROXY ${DEFS}"
   fi
   ${MYGCC} ../src/scantst.c -o ../src/scantst >/dev/null 2>&1
   if [ $? -ne 0 ]
@@ -1499,16 +1508,29 @@ setdefaults() {
   fi
   if [ -n "${LDCONFIG}" ]
   then
-     Z1=$(${LDCONFIG} ${LDOPT}|grep -c openssl.so)
+     Z1=$(${LDCONFIG} ${LDOPT}|grep -c "openssl.so$")
+     if [ ${Z1} -eq 0 ]
+     then
+        Z1=$(${LDCONFIG} ${LDOPT}|grep -c "libssl.so$")
+     fi
   else
      Z1=0
   fi
   if [ "${X[24]}" != "X" ]
   then
-     if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h ]
+     if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h -a -f /usr/include/openssl/bio.h ]
      then
-        echo "OpenSSL identified.  Configuring..."
-        DEFS="${DEFS} -DHAS_OPENSSL"
+        if [ $(uname -a|grep -ic ubuntu) -eq 0 ]
+        then
+           echo "OpenSSL identified.  Configuring..."
+           DEFS="${DEFS} -DHAS_OPENSSL"
+        else
+           if [ $Z1 -gt 0 ]
+           then
+              echo "OpenSSL identified.  Configuring..."
+              DEFS="${DEFS} -DHAS_OPENSSL"
+           fi
+        fi
      elif [ $Z1 -gt 0 ]
      then
         echo "OpenSSL identified.  Configuring..."

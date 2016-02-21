@@ -206,6 +206,8 @@ NAMETAB cluster_sw[] = {
   {(char *) "trigger", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_TRIGGER},
   {(char *) "function", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_FUNC | SW_MULTIPLE},
   {(char *) "regexp", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_REGEXP | SW_MULTIPLE},
+  {(char *) "preserve", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_PRESERVE | SW_MULTIPLE},
+  {(char *) "owner", 3, CA_WIZARD, CA_CLUSTER, CLUSTER_OWNER | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}
 };
 
@@ -312,6 +314,7 @@ NAMETAB dynhelp_sw[] =
 {
     {(char *) "parse", 1, CA_WIZARD, 0, DYN_PARSE},
     {(char *) "search", 1, CA_WIZARD, 0, DYN_SEARCH},
+    {(char *) "nolabel", 1, CA_WIZARD, 0, DYN_NOLABEL | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB edit_sw[] =
@@ -845,6 +848,11 @@ NAMETAB page_sw[] =
     //    {(char *) "noeval", 1, CA_WIZARD, 0, PAGE_NOEVAL},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB quitprogram_sw[] =
+{
+    {(char *) "quiet", 1, CA_PUBLIC, 0, QUITPRG_QUIET},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB ps_sw[] =
 {
     {(char *) "all", 1, CA_PUBLIC, 0, PS_ALL | SW_MULTIPLE},
@@ -860,6 +868,8 @@ NAMETAB purge_sw[] =
     {(char *) "time", 2, CA_IMMORTAL, 0, PURGE_TIME},
     {(char *) "type", 2, CA_IMMORTAL, 0, PURGE_TYPE},
     {(char *) "owner", 1, CA_IMMORTAL, 0, PURGE_OWNER},
+    {(char *) "ttype", 2, CA_IMMORTAL, 0, PURGE_TIMETYPE},
+    {(char *) "towner", 2, CA_IMMORTAL, 0, PURGE_TIMEOWNER},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB quota_sw[] =
@@ -1035,7 +1045,8 @@ NAMETAB thaw_sw[] =
 NAMETAB wipe_sw[] =
 {
     {(char *) "preserve", 1, CA_PUBLIC, 0, WIPE_PRESERVE | SW_MULTIPLE},
-    {(char *) "regexp", 1, CA_PUBLIC, 0, WIPE_REGEXP},
+    {(char *) "regexp", 1, CA_PUBLIC, 0, WIPE_REGEXP | SW_MULTIPLE},
+    {(char *) "owner", 1, CA_PUBLIC, 0, WIPE_OWNER},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB wait_sw[] =
@@ -1213,7 +1224,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG, 0, do_freeze},
     {(char *) "@fsay", fsay_sw, CA_LOCATION | CA_NO_SLAVE, CA_NO_CODE,
      PEMIT_FSAY, CS_TWO_ARG | CS_INTERP, 0, do_pemit},
-    {(char *) "@function", function_sw, CA_IMMORTAL, 0,
+    {(char *) "@function", function_sw, CA_WIZARD, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_function},
     {(char *) "@grep", grep_sw, CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP | CS_ARGV, 0, do_grep},
@@ -1303,7 +1314,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_ps},
     {(char *) "@purge", purge_sw, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_purge},
-    {(char *) "@quitprogram", NULL, CA_PUBLIC,  0,
+    {(char *) "@quitprogram", quitprogram_sw, CA_PUBLIC,  0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_quitprogram},
     {(char *) "@quota", quota_sw, 0, 0,
      0, CS_TWO_ARG | CS_ARGV, 0, do_quota},
@@ -5537,7 +5548,7 @@ list_options_convtime(dbref player)
       notify(player, "There is no convtime.template file in your game directory.");
    } else {
       s_line = alloc_lbuf("list_options_convtime");
-      notify(player, "Supported Date Formats [~/game/convtime.template] --------------------------");
+      notify(player, "Supported Date Formats [~/game/convtime.template] ----------------------------");
       while ( !feof(fp) ) {
          fgets(s_line, (LBUF_SIZE-2), fp);
          if ( !feof(fp) && (*s_line != '#') ) {
@@ -5549,11 +5560,11 @@ list_options_convtime(dbref player)
          }
       }
       fclose(fp);
-      notify(player, "----------------------------------------------------------------------------");
+      notify(player, "------------------------------------------------------------------------------");
       notify(player, "Key: %a/%A - Weekday Name (Www), %b/%B - Month Name (Mmm), %D - %m/%d/%y");
-      notify(player, "     %m    - month (1-12),       %d    - day (1-31),       %Y - year (yyyy)");
-      notify(player, "     %H    - hour (0-23),        %M    - minute (0-59),    %S - second (0-59)");
-      notify(player, "----------------------------------------------------------------------------");
+      notify(player, "     %m    - month (01-12),      %d    - day (01-31),      %Y - year (yyyy)");
+      notify(player, "     %H    - hour (00-23),       %M    - minute (00-59),   %S - second (00-59)");
+      notify(player, "------------------------------------------------------------------------------");
       free_lbuf(s_line);
    }
 }
@@ -5573,132 +5584,140 @@ list_options_system(dbref player)
    notify(player, "--- System Player Config Parameters ------------------------------------------");
 #ifdef TINY_SUB
    sprintf(playerchktime, 
-           "%cx --------------------------------------------------------------- %s",
+           "%cx ------------------------------------------------------------- %s",
            '%', "ANSI");
 #else
    sprintf(playerchktime, 
-           "%cx --------------------------------------------------------------- %s",
+           "%cx ------------------------------------------------------------- %s",
            '%', "LASTCMD");
 #endif
    notify(player, playerchktime);
 #ifdef C_SUB
    sprintf(playerchktime, 
-           "%cc --------------------------------------------------------------- %s",
+           "%cc ------------------------------------------------------------- %s",
            '%', "ANSI");
 #else
    sprintf(playerchktime, 
-           "%cc --------------------------------------------------------------- %s",
+           "%cc ------------------------------------------------------------- %s",
            '%', "LASTCMD");
 #endif
    notify(player, playerchktime);
 #ifdef M_SUB
    sprintf(playerchktime, 
-           "%cm --------------------------------------------------------------- %s",
+           "%cm ------------------------------------------------------------- %s",
            '%', "ANSI");
 #else
    sprintf(playerchktime, 
-           "%cm --------------------------------------------------------------- %s",
+           "%cm ------------------------------------------------------------- %s",
            '%', "LASTCMD");
 #endif
    notify(player, playerchktime);
 
    memset(playerchktime, '\0', 125);
 #ifdef TINY_U
-    notify(player, "u()/zfun() ------------------------------------------------------- PENN/MUX/TM3");
+    notify(player, "u()/zfun() ----------------------------------------------------- PENN/MUX/TM3");
 #else
-    notify(player, "u()/zfun() ------------------------------------------------------- RHOST NATIVE");
+    notify(player, "u()/zfun() ----------------------------------------------------- RHOST NATIVE");
 #endif
 #ifdef MUX_INCDEC
-    notify(player, "inc()/dec() ------------------------------------------------------ NUMERIC");
-    notify(player, "xinc()/xdec() ---------------------------------------------------- REGISTERS");
+    notify(player, "inc()/dec() ---------------------------------------------------- NUMERIC");
+    notify(player, "xinc()/xdec() -------------------------------------------------- REGISTERS");
 #else
-    notify(player, "inc()/dec() ------------------------------------------------------ REGISTERS");
-    notify(player, "xinc()/xdec() ---------------------------------------------------- NUMERIC");
+    notify(player, "inc()/dec() ---------------------------------------------------- REGISTERS");
+    notify(player, "xinc()/xdec() -------------------------------------------------- NUMERIC");
 #endif
 #ifdef USE_SIDEEFFECT
-    notify(player, "Sideeffects [SIDEFX required] ------------------------------------ ENABLED");
+    notify(player, "Sideeffects [SIDEFX required] ---------------------------------- ENABLED");
 #else
-    notify(player, "Sideeffects [SIDEFX required] ------------------------------------ DISABLED");
+    notify(player, "Sideeffects [SIDEFX required] ---------------------------------- DISABLED");
 #endif
     if ( mudconf.enhanced_convtime ) {
-       notify(player, "Enhanced convtime() formats --[ see @list options convtime ]------ ENABLED");
+       notify(player, "Enhanced convtime() formats --[ see @list options convtime ]---- ENABLED");
     } else {
-       notify(player, "Enhanced convtime() formats -------------------------------------- DISABLED");
+       notify(player, "Enhanced convtime() formats ------------------------------------ DISABLED");
     }
 #ifdef ENABLE_COMMAND_FLAG
-    notify(player, "The COMMAND flag ------------------------------------------------- ENABLED");
+    notify(player, "The COMMAND flag ----------------------------------------------- ENABLED");
 #else
-    notify(player, "The COMMAND flag ------------------------------------------------- DISABLED");
+    notify(player, "The COMMAND flag ----------------------------------------------- DISABLED");
 #endif
 #ifdef EXPANDED_QREGS
-    notify(player, "A-Z setq registers ----------------------------------------------- ENABLED");
+    notify(player, "A-Z setq registers --------------------------------------------- ENABLED");
 #else
-    notify(player, "A-Z setq registers ----------------------------------------------- DISABLED");
+    notify(player, "A-Z setq registers --------------------------------------------- DISABLED");
 #endif
 #ifdef ATTR_HACK
     if ( mudconf.hackattr_see == 0 ) {
-       notify(player, "Attributes starting with _ and ~ --------------------------------- WIZARD ONLY");
+       notify(player, "Attributes starting with _ and ~ ------------------------------- WIZARD ONLY");
     } else {
-       notify(player, "Attributes starting with _ and ~ --------------------------------- ENABLED");
+       notify(player, "Attributes starting with _ and ~ ------------------------------- ENABLED");
     }
 #else
-    notify(player, "Attributes starting with _ and ~ --------------------------------- DISABLED");
+    notify(player, "Attributes starting with _ and ~ ------------------------------- DISABLED");
 #endif
 #ifdef BANGS
-    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] ----------------------------- ENABLED");
+    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] --------------------------- ENABLED");
 #else
-    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] ----------------------------- DISABLED");
+    notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] --------------------------- DISABLED");
 #endif
 #ifdef QDBM
-    notify(player, "Database Engine -------------------------------------------------- QDBM");
+    notify(player, "Database Engine ------------------------------------------------ QDBM");
 #else
 #ifdef BIT64
-    notify(player, "Database Engine -------------------------------------------------- GDBM [64Bit]");
+    notify(player, "Database Engine ------------------------------------------------ GDBM [64Bit]");
 #else
-    notify(player, "Database Engine -------------------------------------------------- GDBM [32Bit]");
+    notify(player, "Database Engine ------------------------------------------------ GDBM [32Bit]");
 #endif
 #endif
 #ifdef SQLITE
-    notify(player, "SQLite ----------------------------------------------------------- ENABLED");
+    notify(player, "SQLite --------------------------------------------------------- ENABLED");
 #else
-    notify(player, "SQLite ----------------------------------------------------------- DISABLED");
+    notify(player, "SQLite --------------------------------------------------------- DISABLED");
 #endif
 #ifdef MYSQL_VERSION
     tbuf = alloc_mbuf("list_option_system");
-    sprintf(tbuf, "[%.40s, SQL: %.40s]----------------------------------------", MYSQL_VER, MYSQL_VERSION);
-    notify(player, unsafe_tprintf("MySQL/MariaDB --------%-42.42s-- ENABLED", tbuf));
+    sprintf(tbuf, "[%.40s, SQL: %.40s]--------------------------------------", MYSQL_VER, MYSQL_VERSION);
+    notify(player, unsafe_tprintf("MySQL/MariaDB ------%-42.42s-- ENABLED", tbuf));
     free_mbuf(tbuf);
 #else
-    notify(player, "MySQL/MariaDB ---------------------------------------------------- DISABLED");
+    notify(player, "MySQL/MariaDB -------------------------------------------------- DISABLED");
 #endif
     if ( mudconf.ansi_default ) {
-       notify(player, "ANSI handler for functions() ------------------------------------- ENABLED");
+       notify(player, "ANSI handler for functions() ----------------------------------- ENABLED");
        notify(player, "     Functions Affected: TR(), BEFORE(), AFTER(), MID(), DELETE()");
     } else {
-       notify(player, "ANSI handler for functions() ------------------------------------- DISABLED");
+       notify(player, "ANSI handler for functions() ----------------------------------- DISABLED");
     }
     notify(player, unsafe_tprintf(
-                       "Floating point precision ----------------------------------------- %d DECIMALS",
+                       "Floating point precision --------------------------------------- %d DECIMALS",
                        mudconf.float_precision));
     if ( mudconf.accent_extend ) {
-       notify(player, "ASCII 250-255 encoding ------------------------------------------- ENABLED");
+       notify(player, "ASCII 250-255 encoding ----------------------------------------- ENABLED");
     } else {
-       notify(player, "ASCII 250-255 encoding ------------------------------------------- DISABLED");
+       notify(player, "ASCII 250-255 encoding ----------------------------------------- DISABLED");
     }
 #ifdef CRYPT_GLIB2
-    notify(player, "Player password encryption method -------------------------------- SHA512");
+    notify(player, "Player password encryption method ------------------------------ SHA512");
 #else
-    notify(player, "Player password encryption method -------------------------------- DES");
+    notify(player, "Player password encryption method ------------------------------ DES");
 #endif
-    notify(player, unsafe_tprintf("Current TREE character is defined as ----------------------------- %s", mudconf.tree_character));
+    notify(player, unsafe_tprintf("Current TREE character is defined as --------------------------- %s", mudconf.tree_character));
     if (mudconf.parent_control)
-       notify(player, "Lock Control for all @lock processing ---------------------------- PARENTS");
+       notify(player, "Lock Control for all @lock processing -------------------------- PARENTS");
     else
-       notify(player, "Lock Control for all @lock processing ---------------------------- LOCAL");
+       notify(player, "Lock Control for all @lock processing -------------------------- LOCAL");
     if ( mudconf.name_with_desc )
-       notify(player, "Name shown before descs when looking at non-owned things --------- ENABLED");
+       notify(player, "Name shown before descs when looking at non-owned things ------- ENABLED");
     else
-       notify(player, "Name shown before descs when looking at non-owned things --------- DISABLED");
+       notify(player, "Name shown before descs when looking at non-owned things ------- DISABLED");
+    if ( mudconf.penn_setq )
+       notify(player, "Setq/Setr use PennMUSH compatiability mode --------------------- ENABLED");
+    else
+       notify(player, "Setq/Setr use PennMUSH compatiability mode --------------------- DISABLED");
+    if ( mudconf.format_compatibility )
+       notify(player, "Attribute formatting compatibility (&<name>FORMAT) ------------- FORMAT AFTER");
+    else
+       notify(player, "Attribute formatting non-compatibility (&FORMAT<name>) --------- FORMAT FIRST");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
@@ -7820,8 +7839,16 @@ do_list(dbref player, dbref cause, int extra, char *arg)
     display_toggletab(player);
     break;
     case LIST_FUNCTIONS:
-    list_functable(player);
-    break;
+        if ( s_ptr2 && *s_ptr2 && 
+             !( (stricmp(s_ptr2, "built-in") == 0) ||
+                (stricmp(s_ptr2, "user") == 0) ||
+                (stricmp(s_ptr2, "local") == 0) ) ) {
+           notify_quiet(player, "Unknown sub-option for FUNCTIONS.  Use one of: "\
+                                "built-in, user, local");
+        } else {
+	   list_functable(player, s_ptr2);
+        }
+	break;
     case LIST_GLOBALS:
     interp_nametab(player, enable_names, mudconf.control_flags,
                (char *) "Global parameters:", (char *) "enabled",
@@ -8965,8 +8992,11 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 {
    dbref thing, it, aowner;
    int aflags, atr;
-   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[80], *tpr_buff, *tprp_buff;
+   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[LBUF_SIZE], *tpr_buff, *tprp_buff;
    DESC *d;
+#ifdef ZENTY_ANSI
+   char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
+#endif
 
    if (!*name || !name) {
       notify(player, "No valid player specified.");
@@ -9033,7 +9063,18 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
         if ( *strprompt ) {
            if ( strcmp(strprompt, "NULL") != 0 ) {
               tprp_buff = tpr_buff;
+
+#ifdef ZENTY_ANSI
+              s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+              s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+              s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+              parse_ansi((char *) strprompt, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
+              queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+              free_lbuf(s_buff);
+              free_lbuf(s_buff2);
+#else
               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, strprompt, ANSI_NORMAL));
+#endif
            }
            atr_add_raw(thing, A_PROGPROMPTBUF, strprompt);
         } else {
@@ -9086,11 +9127,15 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
       }
    }
    mudstate.shell_program = 0;
-   notify(player, "@program cleared.");
-   if ( thing == player )
-     notify(thing, "You have aborted your program.");
-   else
-     notify(thing, unsafe_tprintf("Your @program has been terminated by %s.", Name(player)));
+   if ( !(key & QUITPRG_QUIET) )
+      notify(player, "@program cleared.");
+   if ( thing == player ) {
+     if ( !(key & QUITPRG_QUIET) )
+        notify(thing, "You have aborted your program.");
+   } else {
+     if ( !(key & QUITPRG_QUIET) )
+        notify(thing, unsafe_tprintf("Your @program has been terminated by %s.", Name(player)));
+   }
    atr_clr(thing, A_PROGBUFFER);
    atr_clr(thing, A_PROGPROMPTBUF);
 }
@@ -9170,35 +9215,25 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
    char *retbuff, *cp, *mys, *s_buildptr, *s_build;
    time_t i_now;
    int old_trainmode, i_breakst, i_joiner;
-   int i_silent, i_istrue, i_isfalse;
-   
-   if (mudconf.ifelse_compat) {
-       i_silent = ( (s_boolian == NULL) || !nargs || !args[0] || !*args[0] );
-   } else {
-       i_silent = ( !s_boolian || !*s_boolian || !nargs || !args[0] || !*args[0] );
-   }
-   
-   if ( i_silent ) {
+
+   if ( !nargs || !args[0] || !*args[0] )
       return;
-   }
    i_breakst = mudstate.breakst;
-   retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, (char **)NULL, 0, (char **)NULL, 0);
-   old_trainmode=mudstate.trainmode;
-   
-   if (mudconf.ifelse_compat) {
-       i_istrue = ( *retbuff && (((tboolchk(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
-                     ((tboolchk(retbuff) != 0) &&  (key & SKIP_IFELSE))) );
-       i_isfalse = ( (!*retbuff || (tboolchk(retbuff) == 0)) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] );
-   } else {
-       i_istrue = ( *retbuff && (((atoi(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
-                     ((atoi(retbuff) != 0) &&  (key & SKIP_IFELSE))) );
-       i_isfalse = ( *retbuff && (atoi(retbuff) == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] );
+   char c_dummy[]="0";
+   if ( !s_boolian || !*s_boolian ) {
+      retbuff = c_dummy;
    }
-   
-    if ( i_istrue ) {    
-   
-    //if ( *retbuff && (((atoi(retbuff) == 0) && !(key & SKIP_IFELSE)) ||
-    //                 ((atoi(retbuff) != 0) &&  (key & SKIP_IFELSE))) ) { 
+   else {
+      retbuff = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_boolian, (char **)NULL, 0, (char **)NULL, 0);
+   }
+   old_trainmode=mudstate.trainmode;
+   int i_evalResult=0;
+   if(mudconf.ifelse_compat)
+      i_evalResult=tboolchk(retbuff);
+   else
+      i_evalResult=atoi(retbuff);
+   if ( *retbuff && (((i_evalResult == 0) && !(key & SKIP_IFELSE)) ||
+                     ((i_evalResult != 0) &&  (key & SKIP_IFELSE))) ) {
     /* I have no idea why this is here, but I left it in incase I need 
       if ( desc_in_use == NULL ) {
          mudstate.trainmode = 1;
@@ -9240,7 +9275,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          }
       }
       mudstate.trainmode = old_trainmode;
-   } else if ( i_isfalse ) {
+   } else if ( *retbuff && (i_evalResult == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
       mys = args[1];
       i_now = mudstate.now;
       while (mys) {
@@ -9255,7 +9290,12 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          }
       }
    }
-   free_lbuf(retbuff);
+   if ( !s_boolian || !*s_boolian ) {
+      retbuff = NULL;
+   }
+   else {
+      free_lbuf(retbuff);
+   }
    if ( desc_in_use != NULL ) {
       mudstate.breakst = i_breakst;
    }
@@ -9471,7 +9511,7 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       notify(player, "Permission denied.");
       return;
    }
-   if ( !Controls(player, thing) ||
+   if ( !(Controls(player, thing) || could_doit(player, thing, A_LTWINK, 0, 0)) ||
         ((Cloak(thing) && SCloak(thing) && Immortal(thing) && !Immortal(player)) ||
          (Cloak(thing) && !Wizard(player))) ) {
       notify(player, "Permission denied.");
@@ -9701,10 +9741,10 @@ void do_hook(dbref player, dbref cause, int key, char *name)
    char *s_ptr, *s_ptrbuff, *cbuff, *p, *q, *tpr_buff, *tprp_buff, *sub_buff, 
         *sub_ptr, *sub_ptrbuff, *sub_buff2, *ret_buff, ret_char;
    char *sub_str[]={"n", "#", "!", "@", "l", "s", "o", "p", "a", "r", "t", "c", "x", "f", 
-                    "k", "w", "m", NULL};
+                    "k", "w", "m", ":", NULL};
    char *sub_atr[]={"SUB_N", "SUB_NUM", "SUB_BANG", "SUB_AT", "SUB_L", "SUB_S", "SUB_O", 
                     "SUB_P", "SUB_A", "SUB_R", "SUB_T", "SUB_C", "SUB_X", "SUB_F", "SUB_K", 
-                    "SUB_W", "SUB_M", NULL};
+                    "SUB_W", "SUB_M", "SUB_COLON", NULL};
    CMDENT *cmdp;
    ATTR *ap, *ap2;
   
@@ -9967,10 +10007,10 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
 {
    dbref thing, thing2, thing3, aowner;
    char *s_inbufptr, *s_instr, *s_tmpptr, *tpr_buff, *tprp_buff, *s_text,
-        *s_strtok, *s_strtokptr, *s_return, *s_tmpstr, *xargs[MAX_ARG], *s_foo;
+        *s_strtok, *s_strtokptr, *s_return, *s_tmpstr, *xargs[MAX_ARG], *s_foo, *s_tmp;
    int anum, anum2, anum3, aflags, i_isequal, i_corrupted, i_temp, i_temp2, i_lowball, 
         i_highball, i_first, nxargs, i, i_clusterfunc, anum4, i_sideeffect,
-        i_nomatch, i_nowipe, i_wipecnt, i_totobjs, i_regexp;
+        i_nomatch, i_nowipe, i_wipecnt, i_totobjs, i_regexp, i_preserve, i_owner;
    ATTR *attr;
    time_t starttme, endtme;
    double timechk;
@@ -9992,11 +10032,12 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    
    s_instr = alloc_lbuf("do_cluster");
    strcpy(s_instr, name);
-   s_return = exec(player, cause, cause, EV_FCHECK | EV_EVAL, s_instr,
+   s_tmp = exec(player, cause, cause, EV_FCHECK | EV_EVAL, s_instr,
                   (char **)NULL, 0, (char **)NULL, 0);
-   if ( !s_return || !*s_return ) {
+   free_lbuf(s_instr);
+   if ( !s_tmp || !*s_tmp ) {
       notify(player, "@cluster requires an argument.");
-      free_lbuf(s_return);
+      free_lbuf(s_tmp);
       return;
    }
 
@@ -10005,7 +10046,29 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
       i_regexp = 1;
       key &= ~CLUSTER_REGEXP;
    }
-   free_lbuf(s_instr);
+   i_preserve = 0;
+   if ( key & CLUSTER_PRESERVE ) {
+      i_preserve = 1;
+      key &= ~CLUSTER_PRESERVE;
+   }
+   i_owner = 0;
+   if ( (key & CLUSTER_OWNER) && (key & CLUSTER_WIPE) ) {
+      i_owner = 1;
+      key &= ~CLUSTER_OWNER;
+      if ( strchr(s_tmp, '/') != NULL ) {
+         s_return = alloc_lbuf("cluster_return");
+         strcpy(s_return, strchr(s_tmp, '/') + 1);
+      } else {
+         notify(player, "@cluster/wipe/owner requires a valid player target.");
+         free_lbuf(s_tmp);
+         return;
+      }
+   } else {
+      s_return = alloc_lbuf("cluster_return");
+      strcpy(s_return, s_tmp);
+      free_lbuf(s_tmp);
+      s_tmp = NULL;
+   }
    if ( strchr(s_return, '=') ==  NULL ) {
       if ( strchr(s_return, '/') != NULL ) {
          s_inbufptr = s_instr = alloc_lbuf("do_cluster");
@@ -10044,12 +10107,16 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    if ( !Good_chk(thing) || !isThing(thing) ) {
       notify(player, "Cluster object must be a valid object.");
       free_lbuf(s_return);
+      if ( s_tmp )
+         free_lbuf(s_tmp);
       return;
    }
 
    if ( !(Cluster(player) || Controls(player, thing)) ) {
       notify(player, "You have no control over that cluster.");
       free_lbuf(s_return);
+      if ( s_tmp )
+         free_lbuf(s_tmp);
       return;
    }
 
@@ -11194,6 +11261,10 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                i_totobjs = 0;
                if ( i_regexp ) 
                   i_regexp = WIPE_REGEXP;
+               if ( i_preserve )
+                  i_preserve = WIPE_PRESERVE;
+               if ( i_owner )
+                  i_owner = WIPE_OWNER;
                while ( s_strtok ) {
                   endtme = time(NULL);
                   if ( mudstate.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
@@ -11207,11 +11278,22 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                   i_totobjs++;
                   thing3 = match_thing(player, s_strtok);
                   if ( Good_chk(thing3) && Cluster(thing3) ) {
-                     if ( *s_return && (strchr(s_return, '/') != NULL) ) {
-                        sprintf(s_instr, "%s%s", s_strtok, strchr(s_return, '/'));
-                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_instr);
+                     if ( ((!i_owner && *s_return) || (i_owner && *s_tmp)) && 
+                          ((!i_owner && (strchr(s_return, '/') != NULL)) ||
+                            (i_owner && (strchr(s_tmp, '/') != NULL))) ) {
+                        if ( i_owner ) {
+                           s_foo = strchr(s_tmp, '/');            
+                           *s_foo = '\0';
+                           if ( strchr(s_return, '/') )
+                              sprintf(s_instr, "%s/%s%s", s_tmp, s_strtok, strchr(s_return, '/'));
+                           else
+                              sprintf(s_instr, "%s/%s", s_tmp, s_strtok);
+                           *s_foo = '/';
+                        } else
+                           sprintf(s_instr, "%s%s", s_strtok, strchr(s_return, '/'));
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp|i_preserve|i_owner), s_instr);
                      } else
-                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp), s_strtok);
+                        do_wipe(thing3, thing3, (SIDEEFFECT|i_regexp|i_preserve|i_owner), s_strtok);
                   }
                   switch (mudstate.wipe_state) {
                      case -1: i_nomatch++;
@@ -11237,6 +11319,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
    }
    free_lbuf(tpr_buff);
    free_lbuf(s_return);
+   if ( s_tmp )
+      free_lbuf(s_tmp);
 }
 
 int
@@ -11255,25 +11339,72 @@ do_progreset(dbref player, dbref cause, int key, char *name)
 {
    dbref target;
    DESC *d;
+   char *buff = NULL, *tpr_buff, *tprp_buff;
+   int i_buff = 0;
+#ifdef ZENTY_ANSI
+   char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
+#endif
 
    if ( !name && !*name ) {
       target = player;
    } else {
-      target = lookup_player(player, name, 0);
+      if ( (buff = strchr(name, '=')) != NULL ) {
+         i_buff = 1;
+         *buff = '\0';
+         target = lookup_player(player, name, 0);
+         *buff = '=';
+         buff++;
+         if ( !*buff ) {
+            i_buff = 0;
+         } else  if ( strlen(strip_all_ansi(buff)) > 80 ) {
+            notify(player, "Custom prompt exceeds 80 characters.  Not setting.");
+            return;
+         }
+      } else {
+         target = lookup_player(player, name, 0);
+      }
    }
    if ( !Good_chk(target) || !Controls(player, target) ) {
       notify(player, "No matching target found.");
+      return;
+   }
+   if ( i_buff && !InProgram(target) ) {
+      notify(player, "Can not assign a prompt to someone not in a program.");
       return;
    }
    if ( !InProgram(target) ) {
       DESC_ITER_CONN(d) {
          if ( d->player == target ) {
             queue_string(d, "\377\371");
+            atr_clr(d->player, A_PROGPROMPTBUF);
          }
       }
       notify_quiet(player, "Program prompt reset.");
    } else {
-      notify_quiet(player, "Player is in a program, can not reset.");
+      if ( i_buff ) {
+         tprp_buff = tpr_buff = alloc_lbuf("do_progreset");
+         DESC_ITER_CONN(d) {
+            if ( d->player == target ) {
+               tprp_buff = tpr_buff;
+               atr_add_raw(target, A_PROGPROMPTBUF, buff);
+#ifdef ZENTY_ANSI
+              s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+              s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+              s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+              parse_ansi((char *) buff, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
+              queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+              free_lbuf(s_buff);
+              free_lbuf(s_buff2);
+#else
+              queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, buff, ANSI_NORMAL));
+#endif
+            }
+         }
+         notify_quiet(player, "Program prompt customized.");
+         free_lbuf(tpr_buff);
+      } else {
+         notify_quiet(player, "Player is in a program, can not reset.");
+      }
    }
 }
 

@@ -9,6 +9,7 @@
 /* Solaris has borked header file declarations */
 char *index(const char *, int);
 #endif
+#include <utmpx.h>
 
 #include "copyright.h"
 #include "autoconf.h"
@@ -59,7 +60,7 @@ static void desc_addhash(DESC * d);
 extern int FDECL(lookup, (char *, char *, int, int *));
 static void set_userstring(char **, const char *);
 extern const char *addrout(struct in_addr);
-
+extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
 /* for aconnect: player = room, target = connecting player */
 /*
@@ -77,6 +78,29 @@ extern const char *addrout(struct in_addr);
 void FDECL(dump_rusers, (DESC * call_by));
 
 #endif
+
+extern char *
+strip_ansi2(const char *raw)
+{
+    static char buf[LBUF_SIZE];
+    char *p = (char *) raw;
+    char *q = buf;
+
+    DPUSH; /* #98 */
+
+    while (p && *p) {
+	if (*p == ESC_CHAR) {
+	    /* Start of ANSI code. Skip to end. */
+	    while (*p && !isalpha((int)*p))
+		p++;
+	    if (*p)
+		p++;
+	} else
+	    *q++ = *p++;
+    }
+    *q = '\0';
+    RETURN(buf); /* #98 */
+}
 
 extern char *
 strip_ansi(const char *raw)
@@ -167,6 +191,50 @@ strip_safe_ansi(const char *raw)
 
 
 extern char *
+strip_all_special2(const char *raw)
+{
+    static char buf[LBUF_SIZE];
+    char *p = (char *) raw;
+    char *q = buf;
+
+    DPUSH; /* #100 */
+
+    while (p && *p) {
+        if ( (*p == '%') && ((*(p+1) == SAFE_CHR) 
+#ifdef SAFE_CHR2
+                         || (*(p+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+                         || (*(p+1) == SAFE_CHR3)
+#endif
+)) {
+           if ( isAnsi[(int) *(p+2)]) {
+              p+=3; // strip safe ansi
+              continue;
+           }
+           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+              p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           *q++ = *p++;
+        } else if (*p == ESC_CHAR) {
+            // Strip normal ansi
+            while (*p && !isalpha((int)*p))
+                p++;
+            if (*p)
+                p++;
+        } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
+           p+=3;
+        } else {
+            *q++ = *p++;
+        }
+    }
+    *q = '\0';
+    RETURN(buf); /* #100 */
+}
+
+extern char *
 strip_all_special(const char *raw)
 {
     static char buf[LBUF_SIZE];
@@ -209,6 +277,7 @@ strip_all_special(const char *raw)
     *q = '\0';
     RETURN(buf); /* #100 */
 }
+
 extern char *
 strip_all_ansi(const char *raw)
 {
@@ -272,6 +341,15 @@ strip_nonprint(const char *raw)
    *q = '\0';
 
    RETURN(buf); /* #101 */
+}
+
+static void
+ival(char *buff, char **bufcx, int result)
+{
+  static char tempbuff[LBUF_SIZE/2];
+
+  sprintf(tempbuff, "%d", result);
+  safe_str(tempbuff, buff, bufcx);
 }
 
 static char *
@@ -371,7 +449,7 @@ char *ansi_translate_bg[257]={
    ANSI_BGREEN, ANSI_BGREEN, ANSI_BWHITE, ANSI_BWHITE, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
    ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA,
    ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW,
-   ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BGREEN, ANSI_BWHITE,
+   ANSI_BYELLOW, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE,
    ANSI_BWHITE, ANSI_BWHITE, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BWHITE, ANSI_BWHITE,
    ANSI_BRED, ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BRED, ANSI_BRED,
    ANSI_BRED, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BMAGENTA, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BYELLOW, ANSI_BMAGENTA,
@@ -406,7 +484,7 @@ char *ansi_translate_fg[257]={
    ANSI_GREEN_H, ANSI_GREEN_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_RED, ANSI_MAGENTA, ANSI_MAGENTA, ANSI_MAGENTA_H,
    ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H,
    ANSI_YELLOW, ANSI_YELLOW, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW,
-   ANSI_YELLOW, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_GREEN_H, ANSI_WHITE_H,
+   ANSI_YELLOW, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H,
    ANSI_WHITE_H, ANSI_WHITE_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_YELLOW_H, ANSI_WHITE_H, ANSI_WHITE_H,
    ANSI_RED, ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_RED_H, ANSI_RED_H,
    ANSI_RED_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_MAGENTA_H, ANSI_YELLOW, ANSI_YELLOW, ANSI_YELLOW, ANSI_MAGENTA_H,
@@ -2059,6 +2137,9 @@ announce_connect(dbref player, DESC * d, int dc)
     DESC *dtemp;
     char *argv[1];
     int totsucc, totfail, newfail;
+#ifdef ZENTY_ANSI
+    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+#endif
 
     DPUSH; /* #130 */
 
@@ -2275,10 +2356,21 @@ announce_connect(dbref player, DESC * d, int dc)
              if ( d->player == player ) {
                 progatr = atr_get(player, A_PROGPROMPTBUF, &aowner2, &aflags2);
                 if ( progatr && *progatr ) {
-                   if ( strcmp(progatr, "NULL") != 0 )
+                   if ( strcmp(progatr, "NULL") != 0 ) {
+#ifdef ZENTY_ANSI
+                      s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+                      s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+                      parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                      queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+                      free_lbuf(s_buff);
+                      free_lbuf(s_buff2);
+#else
                       queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
-                } else
+#endif
+                   }
+                } else {
                    queue_string(d, unsafe_tprintf("%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
+                }
                 free_lbuf(progatr);
                 break;
              }
@@ -3401,8 +3493,12 @@ do_uptime(dbref player, dbref cause, int key)
   time_t now;
   char *buff;
   int i_syear, i_ryear;
-  char *s_uptime, *s_chk;
+  char *s_uptime;
+  struct utmpx *ut;
+/*
   FILE *fp;
+  char *s_chk;
+*/
 
   DPUSH; /* #141 */
   
@@ -3412,6 +3508,7 @@ do_uptime(dbref player, dbref cause, int key)
   s_uptime = alloc_mbuf("uptime_sys");
 
   /* Open the command for reading. */
+/*
   fp = popen("/usr/bin/uptime", "r");
   if (fp != NULL) {
      memset(s_uptime, '\0', MBUF_SIZE);
@@ -3428,6 +3525,18 @@ do_uptime(dbref player, dbref cause, int key)
      }
      pclose(fp);
   }
+*/
+
+  setutxent();
+  ut = getutxent();
+  while ( ut && (ut->ut_type != BOOT_TIME) )
+     ut = getutxent();
+
+  memset(s_uptime, '\0', MBUF_SIZE);
+  if ( ut ) {
+     strcpy(s_uptime, time_format_1(mudstate.now - ut->ut_tv.tv_sec));
+  }
+  endutxent();
 
   strcpy(buff,time_format_1(now - mudstate.reboot_time));
   i_syear = ((mudstate.now - mudstate.start_time) / 31536000);
@@ -3693,6 +3802,140 @@ static const char *connect_fail =
 static const char *create_fail =
 "Either there is already a player with that name, or that name is illegal.\r\n";
 
+int
+softcode_trigger(DESC *d, const char *msg) {
+    ATTR *atr;
+    char *s_text, *s_return, *s_strtok, *s_strtokr, *s_buff, *s_array[10], *s_ptr;
+#ifdef ZENTY_ANSI
+    char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2;
+#endif
+    int aflags, i_found;
+    dbref aowner;
+
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
+
+    if ( !Good_chk(mudconf.file_object) ) {
+       return(0);
+    }
+
+    atr = atr_str3("FAKECOMMANDS");
+    if ( !atr ) {
+       return(0);
+    }
+
+    s_text = atr_get(mudconf.file_object, atr->number, &aowner, &aflags);
+    if ( !s_text || !*s_text ) {
+       free_lbuf(s_text);
+       return(0);
+    }
+
+    for ( i_found = 0; i_found < 10; i_found++ ) 
+       s_array[i_found] = NULL;
+
+    i_found = 0;
+
+    /* Stack the arrays */
+    s_array[0] = alloc_lbuf("s_array_0");
+    s_array[1] = alloc_lbuf("s_array_1");
+    s_array[2] = alloc_lbuf("s_array_2");
+    s_array[3] = alloc_lbuf("s_array_3");
+    s_array[4] = alloc_lbuf("s_array_4");
+
+    /* Store last command as %0 */
+    s_ptr = s_array[0];
+    safe_str((char *)msg, s_array[0], &s_ptr);
+    if ( strchr(s_array[0], ' ') != NULL )
+       *(strchr(s_array[0], ' ')) = '\0';
+
+    /* Arguments to command as %1 */
+    s_ptr = s_array[1];
+    if ( strchr((char *)msg, ' ') != NULL )
+       safe_str(strchr((char *)msg, ' ')+1, s_array[1], &s_ptr);
+
+    /* DNS name as %2 */
+    s_ptr = s_array[2];
+    safe_str(inet_ntoa(d->address.sin_addr), s_array[2], &s_ptr);
+
+    /* IP number as %3 */
+    s_ptr = s_array[3];
+    safe_str(d->addr, s_array[3], &s_ptr);
+
+    /* Port  as %4*/
+    s_ptr = s_array[4];
+    ival(s_array[4], &s_ptr, d->descriptor);
+
+    s_return = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                    EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+    free_lbuf(s_text);
+    if ( !s_return || !*s_return ) {
+        free_lbuf(s_return);
+        free_lbuf(s_array[0]);
+        free_lbuf(s_array[1]);
+        free_lbuf(s_array[2]);
+        free_lbuf(s_array[3]);
+        free_lbuf(s_array[4]);
+        return(0);
+    }
+ 
+    s_strtok = strtok_r(s_return, "|", &s_strtokr);
+    i_found = 0;
+    while ( s_strtok ) {
+       if ( stricmp(s_strtok, s_array[0]) == 0 ) {
+          i_found = 1;
+          s_buff = alloc_lbuf("softcode_trigger");
+          sprintf(s_buff, "RUN_%s", s_strtok);
+          atr = atr_str3(s_buff);
+          free_lbuf(s_buff);
+          if ( !atr ) {
+             i_found = 0;
+             break;
+          }
+
+          s_text = atr_get(mudconf.file_object, atr->number, &aowner, &aflags);
+          if ( !s_text || !*s_text ) {
+             i_found = 0;
+             free_lbuf(s_text);
+             break;
+          }
+          
+          s_buff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                        EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+          free_lbuf(s_text);
+          if ( !s_buff || !*s_buff ) {
+             i_found = 0;
+             free_lbuf(s_buff);
+             break;
+          }
+
+#ifdef ZENTY_ANSI
+          lbuf1 = alloc_lbuf("fcache_dump3");
+          lbuf2 = alloc_lbuf("fcache_dump4");
+          lbuf1ptr = lbuf1;
+          lbuf2ptr = lbuf2;
+          parse_ansi(s_buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+          queue_write(d, lbuf1, strlen(lbuf1));
+          free_lbuf(lbuf1);
+          free_lbuf(lbuf2);
+#else
+          queue_string(d, s_buff);
+#endif
+	  queue_write(d, "\r\n", 2);
+          free_lbuf(s_buff);
+          break;
+       }
+       s_strtok = strtok_r(NULL, "|", &s_strtokr);
+    }
+    free_lbuf(s_array[0]);
+    free_lbuf(s_array[1]);
+    free_lbuf(s_array[2]);
+    free_lbuf(s_array[3]);
+    free_lbuf(s_array[4]);
+    free_lbuf(s_return);
+    return(i_found);
+}
+
 static int 
 check_connect(DESC * d, const char *msg)
 {
@@ -3720,6 +3963,10 @@ check_connect(DESC * d, const char *msg)
     password = alloc_mbuf("check_conn.pass");
     overf = parse_connect(msg, command, user, password);
     if ( strlen(user) > 120 )
+       overf = 0;
+    if ( !((!strncmp(msg, "co", 2)) || (!strncmp(msg, "cd", 2)) || (!strncmp(msg, "ch", 2))) )
+       overf = 1;
+    if ( strlen(msg) > 2000 )
        overf = 0;
     if (!overf) {
 	queue_string(d,"Your attempt to crash this mush has been noted and logged.\r\n");
@@ -4247,7 +4494,8 @@ check_connect(DESC * d, const char *msg)
         }
       }
     } else {
-	welcome_user(d);
+        if ( !softcode_trigger(d, msg) )
+	   welcome_user(d);
         if ( Good_obj(d->player) && !TogHideIdle(d->player) )
 	   d->command_count++;
     }
@@ -4518,6 +4766,9 @@ NDECL(process_commands)
     CBLK *t;
     char *cmdsave, *progatr;
     dbref aowner2;
+#ifdef ZENTY_ANSI
+    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+#endif
 
     DPUSH; /* #148 */
 
@@ -4547,11 +4798,21 @@ NDECL(process_commands)
                         if ( InProgram(d->player) ) {
                            progatr = atr_get(d->player, A_PROGPROMPTBUF, &aowner2, &aflags2);
                            if ( progatr && *progatr ) {
-                              if ( strcmp(progatr, "NULL") != 0 )
-                                 queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, 
-                                              progatr, ANSI_NORMAL));
-                           } else
+                              if ( strcmp(progatr, "NULL") != 0 ) {
+#ifdef ZENTY_ANSI
+                                 s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+                                 s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
+                                 parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                                 queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
+                                 free_lbuf(s_buff);
+                                 free_lbuf(s_buff2);
+#else
+                                 queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
+#endif
+                              }
+                           } else {
                               queue_string(d, unsafe_tprintf("%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
+                           }
                            free_lbuf(progatr);
                         }
                         mudstate.shell_program = 0;
@@ -4832,11 +5093,11 @@ list_siteinfo(dbref player)
  */
 
 void 
-make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
+make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim, int i_objid)
 {
     DESC *d;
     int gotone = 0, i_port;
-    char *tpr_buff, *tprp_buff;
+    char *tpr_buff, *tprp_buff, *s_array[2], *tbuf, *array_buff, *array_buffptr;
     dbref target;
 
     DPUSH; /* #153 */
@@ -4850,6 +5111,11 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
       target = player;
 
     tprp_buff = tpr_buff = alloc_lbuf("make_ulist_tprintf");
+    if ( i_objid ) {
+       tbuf = alloc_sbuf("exec.invoker");
+       array_buffptr = array_buff = alloc_lbuf("buffer_for_objid");
+       s_array[1] = NULL;
+    }
     DESC_ITER_CONN(d) {
 	if (!Wizard(target) && Cloak(d->player))
 	    continue;
@@ -4881,12 +5147,32 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim)
            else
               i_port = -1;
            tprp_buff = tpr_buff;
-	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", d->player, i_port), buff, bufcx);
+           if ( i_objid ) {
+              sprintf(tbuf, "#%d", d->player);
+              s_array[0] = tbuf;
+              array_buffptr = array_buff;
+              fun_objid(array_buff, &array_buffptr, player, d->player, d->player, s_array, 1, (char **)NULL, 0);
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s|%d", array_buff, i_port), buff, bufcx);
+           } else {
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", d->player, i_port), buff, bufcx);
+           }
         } else {
            tprp_buff = tpr_buff;
-	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", d->player), buff, bufcx);
+           if ( i_objid ) {
+              sprintf(tbuf, "#%d", d->player);
+              array_buffptr = array_buff;
+              s_array[0] = tbuf;
+              fun_objid(array_buff, &array_buffptr, player, d->player, d->player, s_array, 1, (char **)NULL, 0);
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s", array_buff), buff, bufcx);
+           } else {
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", d->player), buff, bufcx);
+           }
         }
         gotone = 1;
+    }
+    if ( i_objid ) {
+       free_sbuf(tbuf);
+       free_lbuf(array_buff);
     }
     free_lbuf(tpr_buff);
     VOIDRETURN; /* #153 */

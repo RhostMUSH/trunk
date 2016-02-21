@@ -37,6 +37,10 @@ Make '.' as first char allowable in attribute names.
 				- Thanks Tesagk
 xinc() and xdec() didn't properly handle labels for registers.
 				- Thanks UnRegistered Guest (Wanted to be Anonymous)
+columns() bug with left justification if fed null for field.
+				- Thanks Merit
+@dynhelp/noindex to snuff the hilight index in @dynhelp.
+				- Thanks Darren
 
 
 		         RhostMUSH 3.9.4 Update File

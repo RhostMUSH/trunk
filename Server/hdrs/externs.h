@@ -88,23 +88,26 @@ extern void	FDECL(reset_signals, ());
 extern void	FDECL(ignore_signals, ());
 
 /* From netcommon.c */
-extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref));
+extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref, int));
 extern int	FDECL(fetch_idle, (dbref));
 extern int	FDECL(fetch_connect, (dbref));
 extern void	FDECL(broadcast_monitor, (dbref,int,char*,char*,char*,int,int,int,char *));
 extern void	VDECL(raw_broadcast, (dbref,int, char *, ...));
 extern void	VDECL(raw_broadcast2, (int, char *, ...));
 extern char *	FDECL(strip_ansi, (const char *));
+extern char *	FDECL(strip_ansi2, (const char *));
 #ifdef ZENTY_ANSI
 extern char *   FDECL(strip_safe_ansi, (const char *));
 extern char *   FDECL(strip_safe_accents, (const char *));
 extern char *   FDECL(strip_all_ansi, (const char *));
 extern char *   FDECL(strip_all_special, (const char *));
+extern char *   FDECL(strip_all_special2, (const char *));
 #else
 #define strip_safe_ansi(x) (x)
 #define strip_safe_accents(x) (x)
 #define strip_all_ansi(x) strip_ansi(x)
 #define strip_all_special(x) strip_ansi(x)
+#define strip_all_special2(x) strip_ansi2(x)
 #endif
 extern char *	FDECL(strip_nonprint, (const char *));
 extern char *	FDECL(strip_returntab, (const char *, int));
@@ -403,6 +406,7 @@ extern int	FDECL(safe_copy_chr, (char, char *, char **, int));
 extern int	FDECL(matches_exit_from_list, (char *, char *));
 extern char *	FDECL(myitoa, (int));
 extern char *   FDECL(translate_string, (const char *, int));
+extern int FDECL(tboolchk,(char *));
 extern char *	FDECL(find_cluster, (dbref, dbref, int));
 extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
 
@@ -832,6 +836,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PURGE_TIME	2
 #define PURGE_TYPE	4
 #define PURGE_OWNER	8
+#define PURGE_TIMETYPE  16
+#define PURGE_TIMEOWNER 32
 #define PROTECT_LIST	1
 #define PROTECT_ADD	2
 #define PROTECT_DEL	4
@@ -926,6 +932,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SIDE_MOVE       8388608 /* Side-effect move() */       
 #define SIDE_CLUSTER_ADD 16777216 /* Side-effect cluster_add() */
 #define	SIDE_MAIL	33554432  /* mail send side effect */
+#define SIDE_EXECSCRIPT 67108864 /* execscript() sideeffect */
+#define SIDE_ZONE      134217728 /* zone() sideeffect function */
 #define	SNAPSHOT_NOOPT	0	/* No option specified */
 #define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
 #define SNAPSHOT_UNLOAD	2	/* Unload a snapshot from the db */
@@ -979,6 +987,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	SWEEP_VERBOSE	256	/* Display what pattern matches */
 #define WIPE_PRESERVE	1	/* Reverse effect of @wipe */
 #define WIPE_REGEXP	2	/* Wipe using regexp */
+#define WIPE_OWNER	4	/* Wipe all attributes owned by 'owner' */
 #define TEL_GRAB	1
 #define TEL_JOIN	2
 #define TEL_LIST	4
@@ -1020,6 +1029,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define THAW_DEL	1	/* Drop the frozen FTIME pid process */
 #define DYN_PARSE       1	/* Parse the help */
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
+#define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
 #define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
@@ -1041,6 +1051,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define CLUSTER_TRIGGER 16384	/* Trigger attribute on cluster */
 #define CLUSTER_FUNC    32768	/* Trigger function action instead of command action */
 #define CLUSTER_REGEXP  65536	/* Allow regexp matching where applicable */
+#define CLUSTER_PRESERVE 131072 /* Preserve the wipe -- effectively reversing it */
+#define CLUSTER_OWNER    262144 /* Preserve the wipe -- effectively reversing it */
 
 /* Hush codes for movement messages */
 
@@ -1084,6 +1096,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SUB_K		0x00004000
 #define SUB_W           0x00008000
 #define SUB_M           0x00010000
+#define SUB_COLON       0x00020000
 
 /* Message forwarding directives */
 

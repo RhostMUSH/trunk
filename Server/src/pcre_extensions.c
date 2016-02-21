@@ -199,6 +199,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
        *obufptr, *obuf, *obuf2, *mybuff, *mybuffptr, tmp, *sregs[100];
   int subpatterns, offsets[99], erroffset, flags, all, i_key,
       match_offset, len, i, p, loop, j;
+  time_t t_now, t_later;
 
   flags = all = match_offset = 0;
 
@@ -227,7 +228,10 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   safe_str(strip_ansi(abuf), postbuf, &postp);
   free_lbuf(abuf);
 
+  t_now = time(NULL);
   for (i = 1; i < nfargs - 1; i += 2) {
+    if ( mudstate.chkcpu_toggle )
+       break;
     postp = postbuf;
     prep = prebuf;
     /* old postbuf is new prebuf */
@@ -281,9 +285,14 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
         free(study);
       continue;
     }
-
     do {
+      t_later = time(NULL);
       /* Copy up to the start of the matched area */
+      if ( t_later > (t_now + 5) ) {
+         mudstate.chkcpu_toggle = 1;
+      }
+      if ( mudstate.chkcpu_toggle )
+         break;
       tmp = prebuf[offsets[0]];
       prebuf[offsets[0]] = '\0';
       safe_str(start, postbuf, &postp);
@@ -371,28 +380,6 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
                   break;
                free_lbuf(sregs[j]);
             }
-/*
-            memset(obuf, '\0', LBUF_SIZE);
-            abufptr = abuf;
-            obufptr = obuf;
-            obuf2 = alloc_lbuf("pcre_edit_crap");
-            while ( *abufptr ) { 
-               if ( *abufptr == '$' ) {
-                  abufptr++;
-                  p = atoi(abufptr);
-                  while ( *abufptr && *abufptr != '$' )
-                     abufptr++;
-                  pcre_copy_substring(re_from, re_offsets, re_subpatterns, p, obuf2,
-                                      LBUF_SIZE);
-                  safe_str(obuf2, obuf, &obufptr);
-               } else {
-                  safe_chr(*abufptr, obuf, &obufptr);
-               }
-               abufptr++;
-            }            
-            free_lbuf(obuf2);
-            safe_str(obuf, postbuf, &postp);
-*/
             safe_str(abuf, postbuf, &postp);
             free_lbuf(abuf);
          } 
@@ -442,49 +429,89 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
 
 FUNCTION(fun_regedit)
 {
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 0);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDIT) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 0);
+   }
 }
 
 FUNCTION(fun_regediti)
 {
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 1);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDITI) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 1);
+   }
 }
 
 FUNCTION(fun_regeditall)
 {
-   if (!fn_range_check("REGEDITALL", nfargs, 3, MAX_ARGS, buff, bufcx))
-      return;
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 2);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDITALL) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 2);
+   }
 }
 
 FUNCTION(fun_regeditalli)
 {
-   if (!fn_range_check("REGEDITALLI", nfargs, 3, MAX_ARGS, buff, bufcx))
-      return;
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 3);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDITALLI) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 3);
+   }
 }
 FUNCTION(fun_regeditlit)
 {
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 4);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDITLIT) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 4);
+   }
 }
 
 FUNCTION(fun_regeditilit)
 {
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 5);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDITLITI) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 5);
+   }
 }
 
 FUNCTION(fun_regeditalllit)
 {
-   if (!fn_range_check("REGEDITALL", nfargs, 3, MAX_ARGS, buff, bufcx))
-      return;
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 6);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDITALLLIT) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 6);
+   }
 }
 
 FUNCTION(fun_regeditallilit)
 {
-   if (!fn_range_check("REGEDITALLI", nfargs, 3, MAX_ARGS, buff, bufcx))
-      return;
-   do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 7);
+   if ( nfargs < 3 ) {
+       safe_str("#-1 FUNCTION (REGEDITALLILIT) EXPECTS 3 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+   } else {
+      do_regedit(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs, 7);
+   }
 }
 
 void

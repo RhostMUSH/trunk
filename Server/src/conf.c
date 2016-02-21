@@ -294,6 +294,7 @@ NDECL(cf_init)
     mudconf.proxy_checker = 0;      /* Proxy Checker -- Not very reliable */
     mudconf.idle_stamp = 0;             /* Enable for idle checking on players */
     mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
+    mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -310,12 +311,13 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
-    mudstate.argtwo_fix = 0;        /* Argument 2 fix for @include and other */
-    mudstate.mysql_last = 0;        /* Time of last mysql hang check */
-    mudstate.insideaflags = 0;      /* inside @aflags eval check */
-    mudstate.insideicmds = 0;       /* inside @icmd eval check */
-    mudstate.dumpstatechk = 0;      /* State of the dump state */
-    mudstate.forceusr2 = 0;     /* Forcing kill USR2 here */
+    mudstate.zone_return = 0;		/* State data of zonecmd() */
+    mudstate.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
+    mudstate.mysql_last = 0;		/* Time of last mysql hang check */
+    mudstate.insideaflags = 0;		/* inside @aflags eval check */
+    mudstate.insideicmds = 0;		/* inside @icmd eval check */
+    mudstate.dumpstatechk = 0;		/* State of the dump state */
+    mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
     mudstate.breakdolist = 0;
     mudstate.dolistnest = 0;
@@ -397,6 +399,7 @@ NDECL(cf_init)
     mudconf.penn_playercmds = 0; /* $cmds on players like PENN */
     mudconf.format_compatibility = 0; /* format attributes mux/penn compatible */
     mudconf.brace_compatibility = 0; /* MUX/TM3 brace {} compatibility with parser */
+    mudconf.ifelse_compat = 0; /* ifelse() / @ifelse Mux string boolean compatibility */
     mudconf.penn_switches = 0;  /* switch() and switchall() behave like PENN if '1' */
     mudconf.lattr_default_oldstyle = 0; /* lattr() error's has errors snuffed */
     mudconf.look_moreflags = 0; /* Show global flags on attributes */
@@ -1018,7 +1021,7 @@ CF_HAND(cf_int)
 
 CF_HAND(cf_chartoint)
 {
-  char s_list[]="n#!@lsopartcxfkwm";
+  char s_list[]="n#!@lsopartcxfkwm:";
   int  s_mask[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008,
                   0x00000010, 0x00000020, 0x00000040, 0x00000080,
                   0x00000100, 0x00000200, 0x00000400, 0x00000800,
@@ -1162,7 +1165,7 @@ CF_HAND(cf_verifyint_mysql)
 /* The value of MUX/PENN/ALL are taken from 'wizhelp sideeffects' */
 #define MUXMASK         131135
 #define PENNMASK        458719
-#define ALLMASK         67108863   /* 2147483647 would be 'really all', i.e. 32 1s */
+#define ALLMASK		268435455 /* 2147483647 would be 'really all', i.e. 32 1s */
 #define NO_FLAG_FOUND   -1
 
 /* The conversion function relies on the position of words in this array to match
@@ -1170,7 +1173,8 @@ CF_HAND(cf_verifyint_mysql)
 const char * sideEffects[] = {
   "SET" , "CREATE", "LINK", "PEMIT", "TEL", "LIST", "DIG", "OPEN", "EMIT",
   "OEMIT", "CLONE", "PARENT", "LOCK", "LEMIT", "REMIT", "WIPE", "DESTROY",
-  "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", "MAILSEND", NULL
+  "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", 
+  "MAILSEND", "EXECSCRIPT", "ZONE", NULL
 };
 
 /* This function takes an integer mask and converts it to a string list
@@ -2544,7 +2548,7 @@ CF_HAND(cf_string)
 CF_HAND(cf_string_sub)
 {
     int retval;
-    char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-", *ptr;
+    char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-:", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 
@@ -3975,6 +3979,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.idle_timeout, 0, 0, CA_WIZARD,
      (char *) "Value in seconds before someone idles out.\r\n"\
               "                             Default: 3600   Value: %d"},
+    {(char *) "ifelse_compat",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_compat, 0, 0, CA_PUBLIC,
+     (char *) "Does @if/if() eval to TRUE with normal strings?"},
     {(char *) "ifelse_substitutions",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_substitutions, 0, 0, CA_PUBLIC,
      (char *) "Does @switch/switch()/switchall() allow #$?"},
@@ -3988,11 +3995,11 @@ CONF conftable[] =
      cf_include, CA_DISABLED, NULL, 0, 0, CA_WIZARD,
      (char *) "Process config params by filename on startup."},
     {(char *) "includecnt",
-     cf_int, CA_DISABLED, &mudconf.includecnt, 0, 0, CA_WIZARD,
+     cf_int, CA_GOD, &mudconf.includecnt, 0, 0, CA_WIZARD,
      (char *) "Include count iterations per command set.\r\n"\
               "                             Default: 10   Value: %d"},
     {(char *) "includenest",
-     cf_int, CA_DISABLED, &mudconf.includenest, 0, 0, CA_WIZARD,
+     cf_int, CA_GOD, &mudconf.includenest, 0, 0, CA_WIZARD,
      (char *) "Include recursion iterations per command set.\r\n"\
               "                             Default: 3   Value: %d"},
     {(char *) "initial_size",
@@ -4281,7 +4288,7 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.oattr_enable_altname, 0, 0, CA_PUBLIC,
      (char *) "Do o-attribs look at alternate names?"},
     {(char *) "oattr_uses_altname",
-     cf_string, CA_DISABLED, (int *) mudconf.oattr_uses_altname, 31, 0, CA_WIZARD,
+     cf_string, CA_GOD, (int *) mudconf.oattr_uses_altname, 31, 0, CA_WIZARD,
      (char *) "Altname used for o-attributes."},
     {(char *) "offline_reg",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.offline_reg, 0, 0, CA_WIZARD,
@@ -4343,6 +4350,9 @@ CONF conftable[] =
     {(char *) "penn_playercmds",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.penn_playercmds, 0, 0, CA_PUBLIC,
      (char *) "Commands on player work only for player?"},
+    {(char *) "penn_setq",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.penn_setq, 0, 0, CA_PUBLIC,
+     (char *) "Does setq() family mimic penn for labels"},
     {(char *) "penn_switches",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.penn_switches, 0, 0, CA_PUBLIC,
      (char *) "Does switch() understand > and <?"},

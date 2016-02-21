@@ -449,7 +449,11 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
        did_it(player, thing, A_UFAIL,
              "You can not use $-commands on that.",
               A_OUFAIL, NULL, A_AUFAIL, (char **)NULL, 0);
-       RETURN(-1); /* #70 */
+       if ( Flags3(thing) & STOP ) {
+          RETURN(1); /* #70 */
+       } else {
+          RETURN(-1); /* #70 */
+       }
     } else {
        RETURN(match); /* #70 */
     }
@@ -2229,6 +2233,14 @@ main(int argc, char *argv[])
     hashreset(&mudstate.wizhelp_htab);
     hashreset(&mudstate.error_htab);
     nhashreset(&mudstate.desc_htab);
+
+/*  Missing hash resets */
+    hashreset(&mudstate.cmd_alias_htab);
+    hashreset(&mudstate.ufunc_htab);
+    hashreset(&mudstate.ulfunc_htab);
+    nhashreset(&mudstate.parent_htab);
+    hashreset(&mudstate.ansi_htab);
+
 
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);

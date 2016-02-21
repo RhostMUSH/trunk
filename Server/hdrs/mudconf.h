@@ -300,25 +300,25 @@ struct confdata {
     int mail_def_object;    /* Default object to use global mail eval aliases */
     int mail_autodeltime;   /* Autodelete on mail - time in days */
         char    guest_namelist[1000]; /* A string of guest names that can be used */
-        int nonindxtxt_maxlines; /* Maximum lines a non-indexed .txt file can have */
-        int     hackattr_nowiz; /* _attributes are not wiz only by default */
-    int     hackattr_see;   /* _attributes can be viewable by nonwizzes */
-        int penn_playercmds; /* Do $commands on players like PENN */
-    int format_compatibility;   /* Mush/mux compatibility */
-    int brace_compatibility;    /* Mux compatibility */
-    int max_cpu_cycles;  /* Maximum allowed CPU slams allowed in a row */
-    int cpu_secure_lvl; /* Action to take when max_cpu_cycles reached */
-    int expand_goto;    /* Toggle on/off expanding exit names to use 'goto' */
-    int global_ansimask;    /* Ansi mask on what to allow/deny */
-    int wizmax_vattr_limit; /* Maximum vattrs set by wizard+ */
-    int max_vattr_limit;    /* Maximum vattrs set by player */
-    int max_dest_limit; /* Maximum number you can @destroy */
-        int     wizmax_dest_limit;  /* Maximum number wiz can @destroy */
-    int vattr_limit_checkwiz;   /* Is wizard checking enabled? */
-    int hide_nospoof;   /* Hide the nospoof flag - default no */
-        int partial_conn;   /* Trigger @aconnects on partial connect */
-        int partial_deconn; /* Trigger @adisconnects on partial disconnect */
-    int secure_functions; /* Fix functions to be safer on evaluation - mask */
+        int	nonindxtxt_maxlines; /* Maximum lines a non-indexed .txt file can have */
+        int     hackattr_nowiz;	/* _attributes are not wiz only by default */
+	int     hackattr_see;   /* _attributes can be viewable by nonwizzes */
+        int	penn_playercmds; /* Do $commands on players like PENN */
+	int	format_compatibility;	/* Mush/mux compatibility */
+	int	brace_compatibility;	/* Mux compatibility */
+	int	max_cpu_cycles;  /* Maximum allowed CPU slams allowed in a row */
+	int	cpu_secure_lvl;	/* Action to take when max_cpu_cycles reached */
+	int	expand_goto;	/* Toggle on/off expanding exit names to use 'goto' */
+	int	global_ansimask;	/* Ansi mask on what to allow/deny */
+	int	wizmax_vattr_limit;	/* Maximum vattrs set by wizard+ */
+	int	max_vattr_limit;	/* Maximum vattrs set by player */
+	int	max_dest_limit;	/* Maximum number you can @destroy */
+        int     wizmax_dest_limit; 	/* Maximum number wiz can @destroy */
+	int	vattr_limit_checkwiz;	/* Is wizard checking enabled? */
+	int	hide_nospoof;	/* Hide the nospoof flag - default no */
+        int	partial_conn;	/* Trigger @aconnects on partial connect */
+        int	partial_deconn;	/* Trigger @adisconnects on partial disconnect */
+	int	secure_functions; /* Fix functions to be safer on evaluation - mask */
         int     penn_switches; /* PENN like switch()/switchall() */
     int heavy_cpu_max; /* Specify maximum for heavy cpu function-usage */
     int lastsite_paranoia;  /* Enable paranoia level on connections */
@@ -393,25 +393,26 @@ struct confdata {
     char    cap_articles[LBUF_SIZE];    /* caplist exceptions */
     char    cap_preposition[LBUF_SIZE]; /* caplist exceptions */
         char    atrperms[LBUF_SIZE];
-        int atrperms_max;
-        int safer_ufun;
-    int includenest;    /* Max number of nesting of @include */
-    int includecnt; /* Total number of @includes in the command caller */
-    int lfunction_max;  /* Maximum lfunctions allowed */
-        int blind_snuffs_cons;  /* Does the BLIND flag snuff aconnect/adisconnect */
-    int listen_parents; /* ^listens handle parents */
-    int     icmd_obj;        /* The object for the icmd evaluation */
-    int ansi_txtfiles;  /* Do allthe various connect files parse %-ansi subs */
-    int list_max_chars; /* Maximum characters allowed to be shoved in a list */
-    int float_precision;    /* Float percision for math functions() -- default 6 */
-    int admin_object;   /* The admin object */
-    int enhanced_convtime;  /* Enhanced convtime format */
-    int mysql_delay;    /* MySql Retry Delay Value (in seconds) */
-    char    tree_character[2];  /* The Tree Character */
-    int proxy_checker;  /* Proxy Checker -- Not very reliable */
-    int idle_stamp; /* Idle stamp to use for comparing 10 past commands */
-    int idle_stamp_max; /* Idle stamp count max to use for comparing X past commands */
-    dbref   file_object;    /* The file object to override @list_file foo */
+        int	atrperms_max;
+        int	safer_ufun;
+	int	includenest;	/* Max number of nesting of @include */
+	int	includecnt;	/* Total number of @includes in the command caller */
+	int	lfunction_max;	/* Maximum lfunctions allowed */
+        int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
+	int	listen_parents;	/* ^listens handle parents */
+	int     icmd_obj;        /* The object for the icmd evaluation */
+	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
+	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
+	int	float_precision;	/* Float percision for math functions() -- default 6 */
+	int	admin_object;	/* The admin object */
+	int	enhanced_convtime;	/* Enhanced convtime format */
+	int	mysql_delay;	/* MySql Retry Delay Value (in seconds) */
+	char	tree_character[2];	/* The Tree Character */
+	int	proxy_checker;	/* Proxy Checker -- Not very reliable */
+	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
+	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
+	int	penn_setq;	/* Do penn setq formatting */
+	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;    /* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -743,28 +744,29 @@ struct statedata {
     int log_maximum;    /* State to count logtotext() calls per command */
     int trainmode;  /* ] enabled */
         int     outputflushed;  /* Is output flushed on command? */
-    int     allowbypass;    /* Is bypass() allowed?  Ergo, in @function? */
-    int shifted;    /* Is 0-9 registers shifted? */
-    int clust_time; /* Time for cluster */
-    dbref   last_network_owner; /* The last network owner who had network issues */ 
-    FILE    *f_logfile_name;
-        int log_chk_reboot;
-    int blacklist_cnt;
-    int wipe_state; /* do_wipe state counter */
-    int includecnt; /* @include count */
-    int includenest;    /* @include nest count */
-    int nocodeoverride; /* Override NO_CODE flag for objeval() */
-    int notrace;    /* Do not trace */
-    int start_of_cmds;  /* Start of command -- hack around zenty ansi */
-        int twinknum;   /* Dbref of twink object if inside twinklock */
-    int dumpstatechk;   /* Dump state check */
-    int forceusr2;  /* Dump state check */
-        BLACKLIST *bl_list;     /* The black list */
-    char    tor_localcache[1000]; /* Cache for the tor local host */
-    int     insideaflags;   /* Inside @aflag eval check */
-    int insideicmds;    /* Inside ICMD evaluation */
-    time_t  mysql_last; /* Last mysql hang time */
-    int argtwo_fix; /* Arg 2 fix test for '=' */
+	int     allowbypass;	/* Is bypass() allowed?  Ergo, in @function? */
+	int	shifted;	/* Is 0-9 registers shifted? */
+	int	clust_time;	/* Time for cluster */
+	dbref	last_network_owner;	/* The last network owner who had network issues */	
+	FILE	*f_logfile_name;
+        int	log_chk_reboot;
+	int	blacklist_cnt;
+	int	wipe_state;	/* do_wipe state counter */
+	int	includecnt;	/* @include count */
+	int	includenest;	/* @include nest count */
+	int	nocodeoverride;	/* Override NO_CODE flag for objeval() */
+	int	notrace;	/* Do not trace */
+	int	start_of_cmds;	/* Start of command -- hack around zenty ansi */
+        int	twinknum;	/* Dbref of twink object if inside twinklock */
+	int	dumpstatechk;	/* Dump state check */
+	int	forceusr2;	/* Dump state check */
+        BLACKLIST *bl_list; 	/* The black list */
+	char	tor_localcache[1000]; /* Cache for the tor local host */
+	int 	insideaflags; 	/* Inside @aflag eval check */
+	int	insideicmds;	/* Inside ICMD evaluation */
+	time_t	mysql_last;	/* Last mysql hang time */
+	int	argtwo_fix;	/* Arg 2 fix test for '=' */
+        int     zone_return;	/* Return value of zonecmd() function */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

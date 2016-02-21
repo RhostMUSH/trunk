@@ -1,5 +1,25 @@
 Welcome to opensource Rhostmush!
 
+It is assumed that you have gotten to this point with the following command:
+
+git clone https://github.com/RhostMUSH/trunk Rhost
+
+If you did NOT get it this way, your file permissions may not be properly set
+up.  Please type:
+
+            chmod +rx bin/*.sh src/*.sh game/*.sh game/Startmush game/db_*
+
+This makes sure all the build scripts are properly made executable.
+This will result in 'permission denied' or similar results when running a script.
+
+Once ready to compile type: 
+
+            make confsource
+
+This will bring up a menu where you can selection options.
+
+Now, things that are important before you actually start building.
+
 The main parts of making your RhostMUSH, easy pleasy:
 1.  ./patch.sh -- This makes sure you have the latest code.
     If you got this by git clone https://github.com/RhostMUSH/trunk
@@ -116,3 +136,10 @@ Now... things you need to do.
    if they exist.  It moves these flatfiles into the 'prevflat' directory, then tarballs those and dumps
    consecutive backups in the 'oldflat' directory.  By default it keeps 7 consecutive backups.  You may
    alter this in the backup_flat.sh script itself.
+
+9) All connect.txt and customized files can be found in the ~/Server/game/txt directory.  There is a 
+   README file there that explains their purposes in more detail.  You can see more information on
+   all files and how they inter-relate with 'wizhelp file'.
+
+10)The wiz bits can be confusing, so 'wizhelp control' is very helpful to give a high overview
+   of what each bit does and their inter-relationship is.

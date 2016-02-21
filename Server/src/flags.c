@@ -774,6 +774,7 @@ POWENT pow_table[] =
   {"PURGE", POWER_OPURGE, 'p', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"FULLTEL", POWER_FULLTEL_ANYWHERE, 't', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"EXAMINE_FULL", POWER_EX_FULL, 'x', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"EXECSCRIPT", POWER_EXECSCRIPT, '$', POWER4, 0, POWER_LEVEL_COUNC, pw_imm},
   {NULL, 0, 0, 0, 0, 0, NULL}
 };
 
@@ -4162,10 +4163,16 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
    return 0;
 #else
    int mask_add, mask_del, negate, srch_return, stripmask, i_mask1, i_mask2, i_mask3, i_mask4;
-   char *strtok, *strtok2, *strtokptr, *buff;
+   char *strtok, *strtok2, *strtokptr, *buff, *s;
    FLAGENT *fp;
    TOGENT *tp;
    
+   s = str;
+   while ( s && *s ) {
+      *s = ToLower(*s);
+      s++;
+   }
+
    stripmask=0xBFCB0090;
    strtok = strtok_r(str, " \t", &strtokptr);
    strtok2 = NULL;

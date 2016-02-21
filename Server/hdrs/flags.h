@@ -294,7 +294,7 @@
 #define POWER_PCREATE		6
 #define POWER_STAT_ANY		8
 #define POWER_FREE_WALL		10
-/* 12 free */
+#define POWER_EXECSCRIPT	12
 #define POWER_FREE_PAGE		14
 #define POWER_HALT_QUEUE	16
 #define POWER_HALT_QUEUE_ALL	18

@@ -9,6 +9,8 @@ echo "done."
 echo "Protecting directory and file..."|tr -d '\012'
 chmod 700 .
 chmod 700 ../Rhost* 2>/dev/null
+echo "Making sure all .sh scripts are set executable"
+chmod +rx bin/*.sh src/*.sh game/*.sh game/Startmush game/db_load game/db_unload
 echo "done."
 if [ ! -f /bin/bash ]
 then

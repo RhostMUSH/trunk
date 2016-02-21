@@ -35,6 +35,10 @@ int malloc_count = 0;
 
 #endif /* TEST_MALLOC */
 
+extern double mktime64(struct tm *);
+extern double safe_atof(char *);
+extern int FDECL(do_convtime, (char *, struct tm *));
+
 /* -------
  * Zone list management
  */
@@ -289,6 +293,7 @@ extern int FDECL(fwdlist_ck, (int, dbref, dbref, int, char *));
 
 /* Other declarations */
 extern int FDECL(ansiname_ck, (int, dbref, dbref, int, char *));
+extern int FDECL(progprompt_ck, (int, dbref, dbref, int, char *));
 
 extern void FDECL(pcache_reload, (dbref));
 extern void FDECL(desc_reload, (dbref));
@@ -490,7 +495,7 @@ ATTR attr[] =
     {"PayLim", A_PAYLIM, AF_MDARK | AF_NOPROG | AF_IMMORTAL, NULL},
     {"Prefix", A_PREFIX, AF_ODARK | AF_NOPROG, NULL},
     {"ProgBuffer", A_PROGBUFFER, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
-    {"ProgPrompt", A_PROGPROMPT, AF_ODARK | AF_NOPROG | AF_NOANSI | AF_NORETURN, NULL},
+    {"ProgPrompt", A_PROGPROMPT, AF_ODARK | AF_NOPROG | AF_NOANSI | AF_NORETURN, progprompt_ck},
     {"ProgPromptBuffer", A_PROGPROMPTBUF, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
     {"ProtectName", A_PROTECTNAME, AF_DARK | AF_MDARK | AF_INTERNAL | AF_GOD | AF_NOCMD, NULL},
     {"QueueMax", A_QUEUEMAX, AF_MDARK | AF_WIZARD | AF_NOPROG, NULL},
@@ -835,7 +840,26 @@ fwdlist_rewrite(FWDLIST * fp, char *atext)
 }
 
 /* ---------------------------------------------------------------------------
- * fwdlist_ck:  Check a list of dbref numbers to forward to for AUDIBLE
+ * progprompt_ck :  don't exceed 80 characters
+ */
+
+int
+progprompt_ck(int key, dbref player, dbref thing, int anum, char *atext)
+{
+#ifndef STANDALONE
+   if ( strlen(strip_all_ansi(atext)) > 80 ) {
+      notify(player, "ProgPrompt can not exceed 80 characters.");
+      return 0;
+   } else {
+      return 1;
+   }
+#else
+   return 1;
+#endif
+}
+
+/* ---------------------------------------------------------------------------
+ * ansiname_ck:  don't allow if player set noansiname
  */
 
 int 
@@ -850,6 +874,10 @@ ansiname_ck(int key, dbref player, dbref thing, int anum, char *atext)
    else
       return 1;
 }
+
+/* ---------------------------------------------------------------------------
+ * fwdlist_ck:  Check a list of dbref numbers to forward to for AUDIBLE
+ */
 
 int 
 fwdlist_ck(int key, dbref player, dbref thing, int anum, char *atext)
@@ -3365,6 +3393,56 @@ NDECL(db_make_minimal)
 
 #endif
 
+dbref
+parse_dbref_special(char *s) {
+   char *p, *q, *r;
+   int x;
+#ifndef STANDALONE
+   char *atext;
+   int aflags;
+   double y, z;
+   struct tm *ttm;
+   long l_offset;
+   dbref aowner;
+#endif
+
+   r = q = strchr(s, ':');
+   *q = '\0';
+   q++;
+
+   for (p = s; *p; p++) {
+      if (!isdigit((int)*p)) {
+         *r = ':';
+         return NOTHING;
+      }
+   }
+   x = atoi(s); 
+   *r = ':';
+#ifndef STANDALONE
+   if ( Good_chk(x) ) {
+      if ( NoTimestamp(x) ) {
+         return ((x >= 0) ? x : NOTHING);
+      }
+      atext = atr_get(x, A_CREATED_TIME, &aowner, &aflags);
+      if ( atext && *atext ) {
+         ttm = localtime(&mudstate.now);
+         l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+         if (do_convtime(atext, ttm)) {
+            y = (double)(mktime64(ttm) + l_offset);
+            z = safe_atof(q);
+            if ( y == z ) {
+               free_lbuf(atext);
+               return ((x >= 0) ? x : NOTHING);
+            }
+         }
+      }
+      x = -1;
+      free_lbuf(atext);
+   }
+#endif
+   return ((x >= 0) ? x : NOTHING);
+}
+
 dbref 
 parse_dbref(const char *s)
 {
@@ -3375,6 +3453,11 @@ parse_dbref(const char *s)
     if ( !*s )
        return NOTHING;
 
+#ifndef STANDALONE
+    if ( mudconf.enable_tstamps && (strchr(s, ':') != NULL) ) {
+       return parse_dbref_special((char *)s);
+    }
+#endif
     for (p = s; *p; p++) {
 	if (!isdigit((int)*p))
 	    return NOTHING;
@@ -3565,10 +3648,12 @@ void do_dbclean(dbref player, dbref cause, int key)
       for (ca=atr_head(i, &cs); ca; ca=atr_next(&cs)) {
          if ( ca > A_USER_START ) {
             atr = atr_num2(ca);
-            va = (VATTR *) vattr_find((char *)atr->name);
-            if ( va && !(va->flags & AF_DELETED) ) {
-               if ( !(va->flags & AF_NONBLOCKING) ) {
-                  va->flags |= AF_NONBLOCKING;
+            if ( atr ) {
+               va = (VATTR *) vattr_find((char *)atr->name);
+               if ( va && !(va->flags & AF_DELETED) ) {
+                  if ( !(va->flags & AF_NONBLOCKING) ) {
+                     va->flags |= AF_NONBLOCKING;
+                  }
                }
             }
          }

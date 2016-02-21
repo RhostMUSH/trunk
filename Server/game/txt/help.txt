@@ -85,6 +85,9 @@
   @unlock    @verb        @wait        @wall        @wipe        
   
 { 'help commands2' for more (attribute-commands) }
+
+& attributes
+& attribute-commands
 & commands2
   Help available for RhostMUSH Commands (continued):
  
@@ -135,7 +138,38 @@
   SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
   VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
   ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
+  ATTRIB FORMATTING
   
+& ATTRIB FORMATTING
+& ATTRIBUTE FORMATTING
+  All NON-ACTION attributes allowed formatting are in: help attributes
+  
+  Attribute formatting can be accomplished multiple ways.  First, there is
+  a generic local 'format' for most @-attributes.  To process this format,
+  you need to set an attribute of the name '<format>attr' on the target
+  (or parent, global parent, zone of the target. Use <attr>format if the
+  config parameter format_compatibility is enabled). If this attribute is
+  not found, it will then look at the global default parents for matching
+  attribute inheritance.  Any attribute that you wish to inherit default
+  pattern formatting must be set DEFAULT (attribute flag).  The desc is
+  passed into the formatting as '%0'.  Local formatting has priority
+  over global formatting.
+  
+  Note: Most RhostMUSHes will be configured to use &FORMAT<attr>.
+  
+  Examples:
+    > @desc me=This is a test
+    > @admin player_attr_default=123
+    > @desc #123=-< %0 >-
+    > lo me
+      -< This is a test >-
+    > &formatdesc me===<%0>==
+    > lo me
+      ===<This is a test>===
+
+  See Also: ATTRIBUTES, ATTRIBUTE FLAG DEFAULT, @conformat, 
+            @exitformat, @nameformat
+
 & NEW USERS
 & GUESTS
   Guests are considered a temporary player bit on a mush.  They have severely
@@ -501,8 +535,19 @@
     are essentially the same, but from different directions.
   * Usage 4 will remove all references to zones from an object or
     zone master.  
- 
-  See Also: @lock, ZONES, lzone(), ZONEMASTER, ZONECONTENTS
+  
+  The config param 'zones_like_parents' can also be enabled to allow @zones
+  to function $commands to its members as if it was a @parent.
+   
+  Example:
+    > @set #2=zonemaster
+    Set.
+    > @set #2=zonecontents (for when we want a zone to have zonemastery fun)
+    Set.
+    > @zone/add #1=#2 
+    Zone Master added to object.
+  
+  See Also: @lock, ZONES, zonecmd(), lzone(), ZONEMASTER, ZONECONTENTS
   
 & changes
   For a list of actual changes, see 'help revis'.
@@ -693,6 +738,8 @@
 & @program
   Command: @program <player>=<obj/attr>[:<prefix>]
   
+  Note:  The PROG @toggle is required for anything that will use @program.
+  
   This command allows for small 'programs' within RhostMUSH. To understand this
   command, you must first understand the fact that it completely bypasses any
   commands, built-in or otherwise, and allows you to send user-input directly
@@ -766,16 +813,21 @@
   See Also: @toggle, @progprompt, @quitprogram
  
 & @quitprogram
-  Command: @quitprogram <player>
+  Command: @quitprogram[/<switch>] <player>
   
   Terminates the @program for player. If <player> is not specified, then it
   works upon the enactor (a player may quit a program while they are in it
   by piping out @quitprogram, see 'help @program').
   
+  Available switches:
+    /quiet - do not notify the target (or yourself) of quitprogramming.
+             Note: errors are still displayed.
+  
   Example:
     > @quitprogram *TinyPlayer
     @program cleared.
- 
+    > @quitprogram/quiet *TinyPlayer  (notice no output)
+   
   See also: @program, @progprompt.
  
 & @progprompt
@@ -783,12 +835,21 @@
   
   This specifies a string (from 1 to 40 characters) that you may specify 
   for a player going through a program instead of the base '-'.  If you 
-  specify a 'NULL' as the string, there will be no prompt.  
+  specify a 'NULL' as the string, there will be no prompt.    
   
   The @progprompt does not end the string with a >.  If you wish to have
   one, you'll have to add it to the end of the defined prompt.
   
+  This is limited to 80 characters total.  You may have an ansified string.  
+  
+  Example:
+    > @progprompt me=Prompt>
+    Set.
+    > @wait 0=@progprompt me=[ansi(hr,Red>)]   (need the @wait to evaluate it) 
+    Set.
+  
   See Also: @program, @quitprogram
+  
 & @fsay
   Command: @fsay <object> = <message>
   Forces <object> (which may be a player) to say <message>.  Can only
@@ -2337,23 +2398,50 @@
     /grep   - grep cluster for match     /reaction   - edit action on cluster
     /cut    - 'cut' dbref# from cluster  /trigger    - trigger attr in cluster
     /func   - Specify function action    /regexp     - use regexp pattern match
-    /wipe   - Wipe attrib(s) in cluster
+    /wipe   - Wipe attrib(s) in cluster  /owner      - Owner check for /wipe
+                                         /preserve   - Preserve /wipe pattern
    
   See Also:  clusters, cluster functions, cluster commands, >
 
+& @cluster regexp
+  Command: @cluster
+  
+  The regexp switch is used to give regular expression matching for the other
+  switches to @cluster.  It is currently useful with the following switches:
+      @cluster/wipe/regexp -- Use regexp matching to wipe attribs.
+      @cluster/grep/regexp -- Use regexp matching to grep attribs.
+  
+  See Also: @cluster wipe, @cluster grep
+   
+& @cluster preserve
+& @cluster owner
+  Command: @cluster/wipe
+  
+  These switches are useful only for @cluster/wipe.  Please see @cluster/wipe
+  for more information.
+  
+  See Also: @cluster wipe
+   
 & @cluster wipe
-  Command: @cluster/wipe <object>[/<wildattr>]
-           @cluster/wipe/regexp <object>[/<wildattr>]
+  Command: @cluster/wipe[/regexp] <object>[/<wildattr>]
+           @cluster/wipe/owner[/regexp] <owner>/<object>[/<wildattr>]
   
   The wipe switch, with an optional regexp switch addon, will wipe all matching
   attributes from every item in the cluster.  This works exactly like @wipe
   except is performed on the entirity of the cluster.
+  
+  Following switches are optionally used with @cluster/wipe:
+    /regexp   -- Convert wildcard matching to a regexp pattern.
+    /owner    -- Take optional owner argument to specify attribute ownership.
+    /preserve -- Preserve the wildcard pattern and wipe everything else.
   
   Example:
     > @cluster/wipe #1234/va*
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
     > @cluster/wipe/regexp #1234/^..$
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 22 attributes wiped.
+    > @cluster/wipe/owner Corum/#1234/va*
+    Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
   
   See Also: clusters, cluster functinos, cluster commands, >
 
@@ -3301,6 +3389,7 @@
 & @lock type TwinkLock
   Lock Type: TwinkLock
   Syntax   : @lock/twink <target>=<key>
+  Special  : %w -- The target that is being checked in a @lock/twink
   
   Rooms, Objects, Exits:
      The twinklock is a unique lock in that it will allow anyone who passes
@@ -3310,7 +3399,9 @@
      or anything else on the object.  It is generally wise to have objects
      twinklocked be !INHERIT so that abuse will be limited.  If the lock
      does not exist, then NO ONE other than the owner will be able to modify
-     that target.
+     that target.  TwinkLock allows you to control @toggles, @name, @alias
+     and attribute control (@mvattr/@cpattr/@set (attributes)/&/etc).  It 
+     does NOT however allow you to set/remove locks or flags.
   
   Players:
      Players are special in that just like Rooms, Objects, and Exits, it
@@ -3319,8 +3410,17 @@
      This means if you pass the twinklock of a player, you automatically
      pass that lock on everything that player owns.
   
+     Example Lock to block player editing but allows all other owned:
+     > say num(player)
+     You say "#123"
+     > &CANUSE Player=[and(match(v(list),%#),!match(%w,#123))]
+     > &LIST Player=#5 #7 #9 #11         (list of target dbref#'s allowed)
+     > @lock/twink player=CANUSE/1
+  
   Special note:  You can set the item NOMODIFY if you want it to just have
-                 examine privalages and not modify privalages.
+                 examine privalages and not modify privalages.  You may
+                 also customize your @lock/twink to check %w against the
+                 target player dbref# with a complex lock.
   
 & @lock type UserLock
   Lock Type: UserLock
@@ -4270,7 +4370,8 @@
     @search object=Test,5000       <-- Things starting with Test from object
                                        #5000 to the end of the database.
   
-  See Also: @find, search(), searchng(), SEARCH CLASSES
+  See Also: @find, search(), searchng(), searchobjid(), searchngobjid(), 
+            SEARCH CLASSES
   
 & @set
   Command: @set[/<switches>] <object>=[!]<flag> [[!]<flag> [!]<flag> ...]
@@ -4634,7 +4735,8 @@
             pid()
   
 & @wipe
-  Command: @wipe[/<switch>] <object>[/<wild-attr>]
+  Command: @wipe[/<switch(es)>] <object>[/<wild-attr>]
+           @wipe/owner[/<switch(es)>] <owner>/<object>[/<wild-attr>]
  
   This command erases attributes from an object.  All attributes that match
   <wild-attr> (or all attributes, if <wild-attr> is not specified) are removed
@@ -4644,18 +4746,26 @@
   This only works on objects set SAFE if the config options safe_wipe is set
   to 0.
   
+  Notice that <owner> needs to be specified if you use the /owner switch.
+   
   The following switches exist:
     /preserve    - wipe everything EXCEPT the wild-attr matches.  This in 
                    effect does the reverse of normal @wipe.
     /regexp      - use regular expression instead of standard glob-matching
+    /owner       - use an owner argument to wipe only attribs that is owned
+                   by the specified player.  You can use wild-attrs with
+                   this options.
+                   
   
   Example:
     > @wipe me/va*
     Wiped - 1 attributes.
     > @wipe/reg me/^.a$
     Wiped - 4 attributes.
+    > @wipe/owner Corum/me/za*  (wipe all attribs matching za* owned by Corum)
+    Wiped - 1 attributes.
   
-  See Also: wipe(), @edit, @grep  
+  See Also: wipe(), @edit, @grep, @cluster, cluster_wipe()
 
 & @whereis
   Command: @whereis <player>
@@ -5339,7 +5449,10 @@
   
   This attribute sets up a caption that is used when a player is looked at.
   This 'caption' is appended to their name.  You may set a large caption,
-  but only the first 40 characters will be used.  ANSI is also stripped.
+  but only the first 40 characters will be used.  If you do not use the
+  ZENTY_ANSI compile time option then ANSI is also stripped.  Carrage 
+  returns will be stripped.
+  
   This is only used for players and is ignored for every other data type.
   
   Optional switches are /quiet to suppress output or /noisy to give 
@@ -5367,6 +5480,8 @@
   This attribute sets up a title (prefix) for the target player when
   they are looked at or looked at in a given location.  You may set
   a large title, but only the first 40 characters will be displayed.
+  If ZENTY_ANSI compiletime is not used, ansi is stripped.
+   
   No carrage returns are allowed in this string and it is only useful
   for players.
   
@@ -7376,6 +7491,10 @@
   appropiate @ufail messages (ufail, aufail, oufail), if there is a
   matching $command and the object is uselocked against you.
   
+  If the object is set SHOWFAILCMD in addition to STOP, then the
+  error is showed appropiately and all command processing is 
+  stopped at that point as well.
+  
 & BOUNCE
 & BOUNCEFORWARD
   Flag: BOUNCE([o])  
@@ -9342,31 +9461,31 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()          COS()         CRC32()         CREATE() 
-  CREATETIME()    CREPLACE()     CTU()         DEC()           DECODE64()
-  DECRYPT()       DEFAULT()      DELETE()      DELEXTRACT()    DESTROY()     
-  DICE()          DIG()          DIGEST()      DIST2D()        DIST3D()      
-  DIV()           E()            EDEFAULT()    EDIT()          EDITANSI() 
-  EE()            ELIST()        ELEMENTPOS()  ELEMENTS()      ELEMENTSMUX()
-  ELOCK()         EMIT()         ENCODE64()    ENCRYPT()       ENTRANCES() 
-  EQ()            ERROR()        ESCAPE()      ESCAPEX()       ESCLIST()   
-  EVAL()          EXIT()         EXP()         EXTRACT()       EXTRACTWORD()
-  FBETWEEN()      FBOUND()       FDIV()        FILTER()        FINDABLE()  
-  FIRST()         FLAGS()        FLOOR()       FLOORDIV()      FOLD()      
-  FOLDERCURRENT() FOLDERLIST()   FOREACH()     FULLNAME()      GARBLE()    
-  GET()           GET_EVAL()     GLOBALROOM()  GRAB()          GRABALL()   
-  GREP()          GT()           GTE()         GUILD()         HASATTR()   
-  HASATTRP()      HASFLAG()      HASTOGGLE()   HASTYPE()       HASQUOTA()  
-  HASRXLEVEL()    HASTXLEVEL()   HOME()        IBREAK()        IDLE()      
-  IFELSE()        IINDEX()       ILEV()        INC()           INDEX()     
-  INPROGRAM()     INSERT()       INUM()        INZONE()        ISALNUM()   
-  ISALPHA()       ISCLUSTER()    ISDBREF()     ISDIGIT()       ISHIDDEN()  
-  ISNUM()         ISPUNCT()      ISSPACE()     ISWORD()        ISXDIGIT()  
-  ITER()          ITEXT()        KEEPFLAGS()   KEEPTYPE()      LADD()      
-  LAND()          LAST()         LASTCREATE()  LATTR()         LAVG()      
-  LCMDS()         LCON()         LCSTR()       LDELETE()       LDIV()      
-  LEMIT()         LEFT()         LEXITS()      LFLAGS()        LINK()      
-  LIST()          LISTCOMMANDS() LISTDIFF()    LISTFUNCTIONS() 
+  CONVTIME()      COR()         COS()          CRC32()         CREATE() 
+  CREATETIME()    CREPLACE()    CTU()          DEC()           DECODE64()
+  DECRYPT()       DEFAULT()     DELETE()       DELEXTRACT()    DESTROY()     
+  DICE()          DIG()         DIGEST()       DIST2D()        DIST3D()      
+  DIV()           E()           EDEFAULT()     EDIT()          EDITANSI() 
+  EE()            ELIST()       ELEMENTPOS()   ELEMENTS()      ELEMENTSMUX()
+  ELOCK()         EMIT()        ENCODE64()     ENCRYPT()       ENTRANCES() 
+  EQ()            ERROR()       ESCAPE()       ESCAPEX()       ESCLIST()   
+  EVAL()          EXIT()        EXP()          EXTRACT()       EXTRACTWORD()
+  FBETWEEN()      FBOUND()      FDIV()         FILTER()        FINDABLE()  
+  FIRST()         FLAGS()       FLOOR()        FLOORDIV()      FOLD()      
+  FOLDERCURRENT() FOLDERLIST()  FOREACH()      FULLNAME()      GARBLE()    
+  GET()           GET_EVAL()    GLOBALROOM()   GRAB()          GRABALL()   
+  GREP()          GT()          GTE()          GUILD()         HASATTR()   
+  HASATTRP()      HASFLAG()     HASTOGGLE()    HASTYPE()       HASQUOTA()  
+  HASRXLEVEL()    HASTXLEVEL()  HOME()         IBREAK()        IDLE()      
+  IFELSE()        IINDEX()      ILEV()         INC()           INDEX()     
+  INPROGRAM()     INSERT()      INUM()         INZONE()        ISALNUM()   
+  ISALPHA()       ISCLUSTER()   ISDBREF()      ISDIGIT()       ISHIDDEN()  
+  ISNUM()         ISOBJID()     ISPUNCT()      ISSPACE()       ISWORD()      
+  ISXDIGIT()      ITER()        ITEXT()        KEEPFLAGS()     KEEPTYPE()    
+  LADD()          LAND()        LAST()         LASTCREATE()    LATTR()       
+  LAVG()          LCMDS()       LCON()         LCSTR()         LDELETE()     
+  LDIV()          LEMIT()       LEFT()         LEXITS()        LFLAGS()      
+  LINK()          LIST()        LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -9388,14 +9507,14 @@
   NEQ()         NEXT()         NOR()          NOSTR()          NOT()          
   NOTCHR()      NPEMIT()       NSITER()       NUM()            NUMMATCH()     
   NULL()        NUMMEMBER()    NUMPOS()       NUMWILDMATCH()   OBJ()          
-  OBJEVAL()     OEMIT()        OPEN()         OR()             ORCHR()        
-  ORFLAG()      ORFLAGS()      OWNER()        PACK()           PARENMATCH()   
-  PARENT()      PARSE()        PARSESTR()     PEDIT()          PEMIT()        
-  PFIND()       PGREP()        PI()           PID()            PMATCH()       
-  PORT()        POS()          POSS()         POWER()          POWER10()      
-  PRINTF()      PRIVATIZE()    PROGRAMMER()   PTIMEFMT()       PUSHREGS()     
-  QUOTA()       R()            RACE()         RAND()           RANDPOS()      
-  RANDMATCH()   RANDEXTRACT() 
+  OBJEVAL()     OBJID()        OEMIT()        OPEN()           OR()           
+  ORCHR()       ORFLAG()       ORFLAGS()      OWNER()          PACK()         
+  PARENMATCH()  PARENT()       PARSE()        PARSESTR()       PEDIT()        
+  PEMIT()       PFIND()        PGREP()        PI()             PID()          
+  PMATCH()      PORT()         POS()          POSS()           POWER()        
+  POWER10()     PRINTF()       PRIVATIZE()    PROGRAMMER()     PTIMEFMT()     
+  PUSHREGS()    QUOTA()        R()            RACE()           RAND()         
+  RANDPOS()     RANDMATCH()    RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -9410,22 +9529,23 @@
   RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
   RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
   ROUND()         RSET()          RXLEVEL()      S()            SAFEBUFF()    
-  SCRAMBLE()      SEARCH()        SEARCHNG()     SECS()         SECURE()      
-  SECUREX()       SEES()          SET()          SETDIFF()      SETINTER()     
-  SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()    
-  SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()     
-  SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()      
-  SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
-  SPELLNUM()      SPLICE()        SQL()          SQLESCAPE()    SQLOFF()
-  SQLON()         SQLPING()       SQLITE_QUERY() SQRT()         SQUISH()     
-  STARTTIME()     STARTSECS()     STATS()        STEP()         STR()        
-  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
-  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
-  STRMATH()       SUB()           SUBJ()         SUBNETMATCH()  SWITCH()     
-  SWITCHALL()     T()             TAN()          TEL()          TIME()       
-  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
-  TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
-  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE() 
+  SCRAMBLE()      SEARCH()        SEARCHOBJID()  SEARCHNG()     SEARCHNGOBJID()
+  SECS()          SECURE()        SECUREX()      SEES()         SET()        
+  SETDIFF()       SETINTER()      SETQ()         SETQ_OLD()     SETQMATCH()  
+  SETR()          SETR_OLD()      SETUNION()     SHIFT()        SHL()        
+  SHR()           SHUFFLE()       SIGN()         SIN()          SINGLETIME() 
+  SORT()          SORTBY()        SORTLIST()     SOUNDEX()      SOUNDLIKE()  
+  SOUNDSLIKE()    SPACE()         SPELLNUM()     SPLICE()       SQL()        
+  SQLESCAPE()     SQLOFF()        SQLON()        SQLPING()      SQLITE_QUERY()
+  SQRT()          SQUISH()        STARTTIME()    STARTSECS()    STATS()      
+  STEP()          STR()           STRCAT()       STRDISTANCE()  STREQ()      
+  STREVAL()       STRFUNC()       STRIP()        STRIPACCENTS() STRIPANSI()  
+  STRLEN()        STRMATCH()      STRMATH()      SUB()          SUBJ()       
+  SUBNETMATCH()   SWITCH()        SWITCHALL()    T()            TAN()        
+  TEL()           TIME()          TIMEFMT()      TOBIN()        TODEC()      
+  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
+  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
+  TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -9442,7 +9562,7 @@
   XDEC()         XINC()        XGET()          XNOR()          XOR()        
   XORCHR()       ZEMIT()       ZFUN()          ZFUN2()         ZFUNDEFAULT()
   ZFUN2DEFAULT() ZFUNEVAL()    ZFUNLDEFAULT()  ZFUNL2DEFAULT() ZFUNLOCAL()  
-  ZFUN2LOCAL()   ZWHO() 
+  ZFUN2LOCAL()   ZONECMD()     ZWHO() 
   
 { 'help function aliases' for aliases on existing functions }
   
@@ -9480,11 +9600,11 @@
   
   Database Information: CON() CREATETIME() ENTRANCES() EXIT() FOLDERCURRENT()
                         FOLDERLIST() GLOBALROOM() LOC() LOCATE() LROOMS() 
-                        MAILQUICK() MODIFYTIME() NEARBY() NEXT() NUM() OWNER()
-                        RLOC() ROOM() SEARCH() SEARCHNG() SEES() STATS() 
-                        WHERE() LISTCOMMANDS() LISTFLAGS() LISTFUNCTIONS() 
-                        LISTNEWSGROUPS() LISTTOGGLES() PMATCH() RNUM() VALID()
-                        XCON()
+                        MAILQUICK() MODIFYTIME() NEARBY() NEXT() NUM() OBJID()
+                        OWNER() RLOC() ROOM() SEARCH() SEARCHOBJID() SEARCHNG()
+                        SEARCHNGOBJID()  SEES() STATS() WHERE() LISTCOMMANDS()
+                        LISTFLAGS() LISTFUNCTIONS() LISTNEWSGROUPS() 
+                        LISTTOGGLES() PMATCH() RNUM() VALID() XCON()
               See Also: help database information functions
   
   Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() ROMAN() ROUND()
@@ -9585,17 +9705,17 @@
                        COMP() CREPLACE() DECODE64() DECRYPT() DELETE() EDIT() 
                        EDITANSI() ELEMENTPOS() ENCODE64() ENCRYPT() ESCAPE() 
                        ESCAPEX() ESCLIST() EVAL() GARBLE() IFELSE() ISALNUM() 
-                       ISALPHA() ISDBREF() ISDIGIT() ISNUM() ISPUNCT() 
-                       ISSPACE() ISWORD() ISXDIGIT() LCSTR() LEFT() LIT() LJC()
-                       LJUST() MERGE() MID() NOSTR() NOTCHR() NUMPOS() ORCHR() 
-                       PARSESTR() PEDIT() POS() PRINTF() RANDPOS() REPEAT() 
-                       REPLACE() RIGHT() RJC() RJUST() ROTL() ROTR() S() 
-                       SCRAMBLE() SECURE() SECUREX() SHL() SHR() SHUFFLE() 
-                       SPACE() SPLICE() SQUISH() STR() STRDISTANCE() STREQ() 
-                       STREVAL() STRIP() STRIPACCENTS() STRLEN() STRMATCH() 
-                       SUBNETMATCH() SWITCH() SWITCHALL() T() TOTPOS() TR() 
-                       TRANSLATE() TRIM() UCSTR() UNESCLIST() WORDPOS() 
-                       WORDS() WRAP() WRAPCOLUMNS() XORCHR()
+                       ISALPHA() ISDBREF() ISDIGIT() ISNUM() ISOBJID() 
+                       ISPUNCT() ISSPACE() ISWORD() ISXDIGIT() LCSTR() LEFT() 
+                       LIT() LJC() LJUST() MERGE() MID() NOSTR() NOTCHR() 
+                       NUMPOS() ORCHR() PARSESTR() PEDIT() POS() PRINTF() 
+                       RANDPOS() REPEAT() REPLACE() RIGHT() RJC() RJUST() 
+                       ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
+                       SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
+                       STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
+                       STRLEN() STRMATCH() SUBNETMATCH() SWITCH() SWITCHALL() 
+                       T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() UNESCLIST()
+                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -9633,7 +9753,7 @@
   
   Zone Functions:     INZONE() ZFUN() ZFUN2() ZFUNDEFAULT() ZFUN2DEFAULT() 
                       ZFUNEVAL() ZFUNLDEFAULT() ZFUNL2DEFAULT() ZFUNLOCAL() 
-                      ZFUN2LOCAL() ZWHO()
+                      ZFUN2LOCAL() ZONECMD() ZWHO()
             See Also: help zone functions
   
   Cluster Functions:  CLUSTER_ADD() CLUSTER_ATTRCNT() CLUSTER_DEFAULT() 
@@ -9813,7 +9933,9 @@
 & search classes
   Topic: SEARCH CLASSES
  
-  You may use the following classes in @search, search() and searchng()
+  You may use the following classes in @search, search(), searchng(),
+  searchobjid(), and searchngobjid()
+  
   function calls:
   
   TYPE      - Restricts to objects of the indicated type (OBJECTS, ROOMS,
@@ -9987,6 +10109,7 @@
 { 'help substitutions2' for more }
 
 & %#
+& %:
 & %l
 & %!
 & %@
@@ -9999,6 +10122,8 @@
 & %<
 & substitutions2
     %#      = Database number of the object that caused the message to be
+              displayed or the action list to be run.
+    %:      = Database object-id of the object that caused the message to be
               displayed or the action list to be run.
     %l      = Database number of the location of the object that caused the
               message to be displayed or the action list to be run.
@@ -10887,9 +11012,18 @@
   See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck()
   
 & elock()
-  Function: elock(<object>[/<whichlock>],<victim>)
+  Function: elock(<object>[/<whichlock>], <victim> [,<type> [,<default>]])
+  
   Checks if <victim> would pass the named lock on <object>.  Only the object's
   owner may test locks other than the default lock.
+  
+  Optional values are as follows:
+    <type>    -- The argument (0-2) that you wish to pass as '%0' for 
+                 customizable UseLock lock checks.  '0' is default, 1 is 
+                 $commands only, 2 is ^listens only.  Valid values 0, 1, or 2.
+                 This is only meaningful for UseLocks.
+    <default> -- specify the default value if no lock found.  Defaults to '1'.
+                 Valid values 0 or 1.
   
   Example:
     > @lock me/page=!*Twinklock
@@ -10900,15 +11034,26 @@
       Set.
     > say elock(me/pagelock,*twink)
       You say "1"
+    > @unlock me/twink
+      Set.
+    > say elock(me/pagelock,*twink)
+      You say "1"
+    > say elock(me/pagelock,*twink,,0)
+      You say "0"
   
   See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck()
   
 & LWHO()
-  Function: lwho([[<value>], [<target>]])
+  Function: lwho([[<value>], [<target>], [<isobjid>]])
   Returns a list of the db numbers of connected players.  This returns what
   a 'WHO' or 'DOING' would return.  This takes an optional type value.
   '0' is the default, and '1' returns the player list in the form dbref:port.
-  '2' will return just the ports.
+  '2' will return just the ports.  
+  
+  You may specify <isobjid> as '1' if you wish to have the arguments returned
+  as object-id's.  Note, that since objid's return break values with a ':',
+  if you specify the port <value> it uses '|' instead to separate the argument
+  from the port.
   
   Note: You can only see your own port(s) unless you're a wizard.  Any other
         port will return '-1'.
@@ -10929,6 +11074,10 @@
     You say "#226 #271 #1"
     > say lwho(1)
     You say "#226:20 #271:5 #1:6"
+    > say lwho(,,1)
+    You say "#226:662752801 #271:662992921 #1:662728521"
+    > say lwho(1,,1)
+    You say "#226:662752801|20 #271:662992921|5 #1:662728521|6"
   
   See Also: WHO, DOING, conn(), idle()
  
@@ -10970,6 +11119,7 @@
          ^ - center justify
          _ - stretch justify
          + - do not cut value if exceed value (default is cut off)
+         * - cut value from the right instead of the left.
          & - process carrage returns and keep in same column field.  This
              will break up lines based on carrage returns (%r) and keep
              formatted into the same column specified in the format.
@@ -10999,6 +11149,7 @@
          0 - if prepending a number, tells it to padd 0's.
   
   Note: The ` and ' code fields won't work on single line columns.
+        The * option is not compatible with the & option.
    
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
   
@@ -11203,11 +11354,14 @@
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
       
 & PROGRAMMER()
-  Function: programmer(<player>)
+  Function: programmer(<player> [,<key>])
   Returns the dbref# of the enactor who placed the target player inside a
   program.  If the target player is not in a program, or if you do not
   have access to check the information, it returns '#-1'.
   
+  If <key> is specified as '1', it will return the #obj/attribute pair
+  that the person is currently in the programon.
+   
   Examples:
     > say %#
     You say "#123"
@@ -11221,6 +11375,8 @@
     You say "1"
     > |say programmer(me)
     You say "#123"
+    > |say programmer(me,1)
+    You say "me/va"
     > |@quitprogram
     @program cleared.
   
@@ -11262,10 +11418,10 @@
     > say inzone(here)
     You say "#0 #534"
   
-  See Also: @zone, ZONES, lzone(), zwho()
+  See Also: @zone, ZONES, lzone(), zwho(), zonecmd()
   
 & ZWHO()
-  Function: zwho(<zone> [,<type>])
+  Function: zwho(<zone> [,<type>] [,<objid>])
   Returns the players in the specified zonemaster.  If the target is not
   a zonemaster, or if the object is not a valid zone, it returns an
   empty list.  This is _not_ database intensive.  This is the default 
@@ -11275,6 +11431,9 @@
   inside every single location belonging to that zone.  Also not overly
   cost intensive.
   
+  You may optionally specify the <objid> to '1' to show the listings as
+  objid's instead of the default of dbref#'s.
+   
   Example:
     > @set here=zonemaster
     > @zone here=#0   (a room)
@@ -11284,21 +11443,71 @@
     > @zone here=#987 (a player)
     > say lzone(here)
     You say "#0 #534 #987"
+    > say lzone(here,,1)
+    You say "#0:8294929292 #534:8285029852 #987:8572572727"
     > say zwho(here)
     You say "#987"
     > say zwho(here,1)
     You say "#1 #3 #5"
+    > say zwho(here,1,1)
+    You say "#1:8258757272 #3:8572757272 #5:8572572727"
   
-  See Also: @zone, ZONES, lzone(), inzone()
+  See Also: @zone, ZONES, lzone(), inzone(), zonecmd()
+  
+& ZONECMD()
+  Function: zonecmd(<command>, <target> [,<zone>])
+  
+  Note: This function requires the SIDEFX flag.
+  
+  This function duplicates the features of @zone, minus the list 
+  ability which can be found with lzone().  The following <commands>
+  are currently available with this function:
+    add    -- (shorthand with 'a') allows you to add a <target> to the
+              the specified <zone>.  It does sanity check and like
+              @zone you can not add a zonemaster to another zone.
+              Syntax: zonecmd(add, target, zone)
+   
+    delete -- (shorthand with 'd') allows you to delete the <target>
+              from the zone.  You can swap <target> and <zone> for
+              the same effect.
+              Syntax: zonecmd(del, target, zone)
+                      zonecmd(del, zone, target)
+  
+    purge  -- (shorthand with 'p') allows you to purge all zones
+              from <target>.  If a non-zonemaster is specified, it
+              will purge all zones from the target.  If a zonemaster
+              is specified, it will purge all members from that zone.
+              Syntax: zonecmd(purge, target)
+  
+  A successful execution of this function returns no output, otherwise
+  any error will start with #-1 for coding checks.
+   
+  Examples:
+    > @set #123=zonemaster
+    Set.
+    > say zonecmd(add,me,#123)
+    You say ""
+    > say zonecmd(add,me,#123)
+    You say "#-1 ALREADY IN ZONE"
+    > say zonecmd(del,me,#123)
+    You say ""
+    > say zonecmd(del,me,#123)
+    You say "#-1 NOT IN ZONE"
+  
+  See Also: @zone, ZONES, lzone(), inzone(), zwho()
   
 & LZONE()
-  Function: lzone(<object> [,<key>])
+  Function: lzone(<object> [,<key>] [,<objid>])
+  
   Returns the zone list for an object. If the object is a zonemaster,
   the list contains the objects within the zone controlled by the 
   zonemaster. If the object is not a zonemaster, the list contains
   all of the zonemasters that the object belongs to.  This is _not_
   database intensive.
   
+  You may optionally specify <objid> as '1' to return the objid's 
+  of the target instead of the dbref#'s.
+   
   The following optional keys are available:
     0 - list all zones (or zonemasters) of the target (default)
     n - List 'n'th 400 zones (or zonesmasters) of the target. 
@@ -11313,10 +11522,12 @@
     > @zone here=#534
     > say lzone(here)         
     You say "#0 #534"
+    > say lzone(here,,1)         
+    You say "#0:8185828502 #534:8258128282"
     > say lzone(here,l)
     You say "1 2"
  
-  See Also: @zone, ZONES, inzone(), zwho()
+  See Also: @zone, ZONES, inzone(), zwho(), zonecmd()
  
 & OBJ()
   Function: obj(<object>)
@@ -11713,7 +11924,7 @@
     > say t(space(100))
     You say "0"
   
-  See Also: isdbref(), isspace(), s()
+  See Also: isobjid(), isdbref(), isspace(), s()
   
 & MIX()
   Function: mix([<object>/]<attribute>,<list 1>,<list 2>[,<list N>][,<delim>])
@@ -14216,7 +14427,7 @@
     > say valid(playername,me)
     You say "0"
   
-  See Also: isdbref(), name()
+  See Also: isobjid(), isdbref(), name()
   
 & VATTRCNT()
   Function: vattrcnt(<object> [,<type>])
@@ -14402,8 +14613,27 @@
     > say rnum(thingy,#124)
     You say "#122"
   
-  See Also: locate(), num()
+  See Also: locate(), num(), objid()
   
+& OBJID()
+  Function: objid(<object>)
+  
+  Returns the object id of the object.  This essentially is the dbref#
+  combined with the created time stamp (in julian seconds) that the object
+  was created to allow a fully unique identifier.
+  
+  This basically returns in the form <dbref>:<secs>.  
+  
+  If timestamps are not enabled on the mush, the object was created prior
+  to timestamps being enabled, or the object is toggled to ignore timestamps,
+  then this function will just return the dbref#.
+  
+  Example:
+    > say objid(me)
+    You say "#123:2848482828"
+  
+  See Also: num(), rnum(), locate()
+
 & NUM()
   Function: num(<object>)
  
@@ -14414,7 +14644,7 @@
     > say num(me)
     You say "#123"
    
-  See Also: locate(), rnum()
+  See Also: locate(), rnum(), objid()
   
 & CON()
   Function: con(<object>)
@@ -15761,24 +15991,29 @@
   See Also: time(), secs(), timefmt()
   
 & LCON()
-  Function: lcon(<object>[/switch] [,<switch>][,<output seperator>][,0|1)])
+  Function: lcon(<object>[/switch] [[,<switch>] [,<sep>] [,<name>] [,<objid>]])
  
   Returns a space-separated list of the contents of <object>.
   It takes specific switches as an option:
-      /PLAYER  -- lists all TYPE players in the contents.
-      /OBJECT  -- lists all TYPE objects in the contents.
-      /CONNECT -- lists all connected players in the contents.
-      /PUPPET  -- lists all flag type 'PUPPET' in the contents.
-      /LISTEN  -- lists all listening things in the contents.
+      /PLAYER    -- lists all TYPE players in the contents.
+      /OBJECT    -- lists all TYPE objects in the contents.
+      /CONNECT   -- lists all connected players in the contents.
+      /PUPPET    -- lists all flag type 'PUPPET' in the contents.
+      /LISTEN    -- lists all listening things in the contents.
+      /CMDLISTEN -- lists all listening/command things in the contents.
+      /VISIBLE   -- lists only things visible (not-dark) as if looking.
   
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
   you have in the first argument to assume it's part of the object name.
   The function takes an output seperator as an optional third argument.
 
-  If the optional last argument is set to 1, lcon will display the object
-  names instead of the #dbrefs.
-
+  If the optional <name> argument is set to '1', lcon will display the object
+  names instead of the #dbrefs.  This is not compatible with objid.
+  
+  If the optional <objid> argument is set to '1', lcon will display the
+  objid's in the list.
+  
   By default, Rhost returns '#-1' if lcon() returns no objects. If the
   config option mux_lcon_compat is set to '1', lcon() will return an empty
   string instead, for MUX compatibility.
@@ -15793,25 +16028,32 @@
     You say "#223"
     > say lcon(me,puppet)
     You say "#223"
+    > say lcon(me,puppet,,,1)
+    You say "#223:8281828210"
   
   See Also: lexits(), @dolist
   
 & XCON()
-  Function: xcon(<object>[/switch],<start>,<count> [,<switch>])
+  Function: xcon(<object>[/switch],<start>,<count> [,<switch>] [,<objid>])
   
   This function is similiar to lcon() except it returns a space-seperated list
   of the contents of <object> starting at point <start> and returning <count>
   number of contents.  It takes a specific switch as an option:
-      /PLAYER  -- lists all TYPE players in the contents.
-      /OBJECT  -- lists all TYPE objects in the contents.
-      /CONNECT -- lists all connected players in the contents.
-      /PUPPET  -- lists all flag type 'PUPPET' in the contents.
-      /LISTEN  -- lists all listening things in the contents.
+      /PLAYER    -- lists all TYPE players in the contents.
+      /OBJECT    -- lists all TYPE objects in the contents.
+      /CONNECT   -- lists all connected players in the contents.
+      /PUPPET    -- lists all flag type 'PUPPET' in the contents.
+      /LISTEN    -- lists all listening things in the contents.
+      /CMDLISTEN -- lists all listening/command things in the contents.
+      /VISIBLE   -- lists only things visible (not-dark) as if looking.
   
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
   you have in the first argument to assume it's part of the object name.
   
+  You may optionally specify <objid> as '1' to have it list objid's instead
+  of the default dbref#'s.
+   
 { type 'help xcon2' for examples }
   
 & XCON2
@@ -15835,19 +16077,24 @@
     You say "#2672"
     > say xcon(me,2,1,puppet)   
     You say "#2672"
+    > say xcon(me,2,1,puppet,1)   
+    You say "#2672:8281828218"
   
   See Also: lexits(), lcon()
   
 & LEXITS()
-  Function: lexits(<loc>[,<output seperator>][,0|1)][<key>])
+  Function: lexits(<loc> [,<output seperator>] [,<name>] [,<key>] [,<objid>])
  
   Returns a space-separated list of the exits in <loc> and its parents.
   Dark exits are not returned unless you own the location.
   Parented exits that are set PRIVATE will not be displayed.
   The function takes an output seperator as an optional second argument.
  
-  If the last optional argument is 1, lexits will display object names
-  instead of #dbrefs.
+  If the optional <name> argument is '1', lexits will display object names
+  instead of #dbrefs.  This is not compatible with <objid>.
+  
+  If the optional <objid> argument is '1', then lexits will display the
+  objid's instead of the dbref#'s.
   
   The following optional keys are available:
     0 - list all children of the target (default)
@@ -15861,9 +16108,11 @@
     The Town Square
     You are in the town square.  All around you .....
     Obvious exits:
-    foo  up  southeast  sw  north  
+    foo  up  southeast south
     > say lexits(here)
-    You say "#302 #10 #9 #8 #6"
+    You say "#302 #10 #9 #8"
+    > say lexits(here,,,,1)
+    You say "#302:8185018282 #10:8919291929 #9:8959295828 #8:8582828281"
   
   See Also: lcon(), @dolist, PARENT OBJECTS
   
@@ -15884,7 +16133,7 @@
   See Also: rand(), dice(), lnum(), lnum2()
   
 & lrooms()
-  Function: lrooms(<loc> [,<iteration> [,<type>]])
+  Function: lrooms(<loc> [,<iteration> [,<type>] [,<objid>]])
   
   This function returns from 1 to MAXIMUM level of iterations of rooms
   connected to the target <loc> room.  The MAXIMUM level is hypothetically
@@ -15901,6 +16150,9 @@
   that type '0' is not always guaranteed to be absolutely accurate as rooms 
   could be linked differently based on the order it's checked.
   
+  If you specify <objid> as '1', then it returns the objid's instead of
+  the dbref#'s.
+   
   Examples:
     > say lrooms(here,1)
     You say "#191 #101"
@@ -15910,6 +16162,8 @@
     You say "#191 #101 #19 #0 #1012 #10102"
     > say lrooms(here,2,0)
     You say "#19 #0 #1012 #10102"
+    > say lrooms(here,,,1)
+    You say "#191:8182858282 #101:8285928582"
   
   See Also: room(), lexits()
   
@@ -15942,7 +16196,9 @@
   function: securex(<string> [,<omission>])
   
   This functions exactly like secure(), except you may specify what characters
-  you do not wish to be secured out.
+  you do not wish to be secured out.  The following special characters are
+  available for omitting:
+     a - ignore all forms of ansi subsitutions from the string.
   
   Examples:
     > @va me=Sneak a peek at Wiz's desc... [get(#1/desc)]
@@ -15966,6 +16222,10 @@
   that you specified.  This is intended to be used with weird escape 
   situations like calling external sources.
   
+  To escape out the '|' character, have it as the last character.  Ergo,
+  something like: esclist(abcd||mystring).  This says escape out the '|'
+  then break the list on the next '|'.
+    
   Examples:
     > @va me=Test: 'A string' and "anoter string", I say.
     Set.
@@ -16005,8 +16265,10 @@
   Function: escapex(<string> [,<omission>])
   
   This functions exactly like escape(), except you may specify what characters
-  you wish to omit from being escaped through <omition>.  You may specify 'f'
-  in the omission to omit the first escape (backslash) from the string.
+  you wish to omit from being escaped through <omition>.  The optional special
+  characters can be used when looking to escape out fields:
+     f - omit the first escape (backslash) from the string.
+     a - omit all forms of ansi subsitutions from the string.
   
   Example:
     > say escapex(Hey, Sneak a peak at Wiz's desc... [get($1/desc)],\[\])
@@ -16387,15 +16649,20 @@
   See Also: loc(), rloc(), lrooms(), UNFINDABLE
   
 & SEARCH()
+& SEARCHOBJID()
   Function: search([<player>] [<class>=<restriction>[,<low>[,<high>]]])
- 
+            searchobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
+  
   The search() function returns a list of objects that match the search
   criteria, which are the same as with the @search command.  This function
   costs as much as the @search command, so repeated use is expensive.
  
   Caution: if you use the [ and ] characters in an Eval selection you will
   need to escape them.
- 
+  
+  The searchobjid() function works like search() but returns the objid's
+  instead of the dbref#'s.
+   
   Examples:
     > say search()
     You say "#226 #289 #325 #364 #368 #369"
@@ -16405,18 +16672,27 @@
     You say "#289 #325 #364 #368 #369"
     > say search(player=wizard)
     You say "#1"
+    > say searchobjid(me)
+    You say "#226:8128285820 #289:8929292929"
   
   See Also: searchng(), @search, @find, @stat, SEARCH CLASSES
 
 & SEARCHNG()
+& SEARCHNGOBJID()
   Function: searchng([<player>] [<class>=<restriction>[,<low>[,<high>]]])
+            searchngobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
   
   This function works exactly as search(), except it will not return any
   garbage (going/recover) objects in the results.
   
+  The searchngobjid() function works like searchng() but returns the objid's
+  instead of the dbref#'s.
+  
   Examples:
     > say searchng()
     You say "#226 #289 #325 #364 #368 #369"
+    > say searchngobjid(me)
+    You say "#226:8128285820 #289:8929292929"
   
   See Also: search(), @search, @find, @stat, SEARCH CLASSES
   
@@ -16443,7 +16719,8 @@
     > @stats/all
     377 objects = 51 rooms, 165 exits, 134 things, 20 players. (7 garbage)
   
-  See Also: @stats, @search, search(), searchng()
+  See Also: @stats, @search, search(), searchng(), searchobjid(),
+            searchngobjid()
   
 & ITEXT()
   Function: itext(<n> [,<key>])
@@ -16717,6 +16994,7 @@
     *    - Look for everything in the above list.
   
 { 'help locate2' for more }
+
 & locate2
   You may also specify qualifiers in <where> to help resolve possible
   ambiguities:
@@ -16740,6 +17018,7 @@
     You have 42463 clams.
   
 { 'help locate3' for more }
+
 & locate3
     > look
     Nullspace(#250R)
@@ -16761,7 +17040,7 @@
     > say locate(me,here,*)
     You say "#250"
   
-  See Also: num(), PARENT OBJECTS
+  See Also: num(), PARENT OBJECTS, objid()
   
 & STRIP()
   Function: strip(<string1>,<string2> [,<type>])
@@ -18240,11 +18519,16 @@
   
   See Also: strmath()
 
+& PARENTS()
 & LPARENT()
-  Function: lparent(<obj>)
+  Function: parents(<obj> [,<objid>])
+            lparent(<obj> [,<objid>])
   
   Returns all the parents of <obj>.  Returns #-1 if <obj> cannot be found
   or has no parent or if you do not own and/or control <obj>
+  
+  If the optional <objid> is specified as '1', then it returns the objid's 
+  instead of the dbref#'s.
   
   Example:
     > say lparent(me)
@@ -18255,6 +18539,8 @@
     Parent set.
     > say lparent(#4)
     You say "#5 #6"
+    > say lparent(#4,1)
+    You say "#5:8185828582 #6:8281859282"
   
   See Also: parent(), children()
   
@@ -18394,7 +18680,7 @@
   See Also: parenmatch(), brackets(), pos(), totpos()
 
 & PARENMATCH()
-  Function: parenmatch([<object>/]<attribute>[,<type>])
+  Function: parenmatch([<object>/]<attribute> [,<type>, [<key>]])
   
   This function returns an ansified match of parenthesis, brackets, and braces
   while hilighting red any mis-matched of the three.  The comparison will 
@@ -18402,11 +18688,17 @@
   returned un-altered.  If there are a large number of parenthesis, brackets, 
   and braces, it is possible the result will be cut off as ansi takes up 
   extra spaces.  If this is the case, use type '1' to just return 
-  errors (if any).
+  errors (if any).  An optional key of '1' will issue a pretty-print of the
+  output in addition to the color output.
   
   The following types exist:
     0 - Ansify the string and highlight red the first missmatch found (default)
     1 - If there is a missmatch, ONLY return that, else ansify the string.
+  
+  The following keys exist:
+    0 - (default) do not pretty print the output.
+    1 - pretty print the output.  Be aware on attribs that approach the 
+        maximum output buffer size you may get values cut off.
   
   Examples:
     > @va me=[add(1,1)]
@@ -18418,30 +18710,15 @@
   
   See Also: parenstr(), brackets(), pos(), totpos()
   
-& PARENTS()
-  Function: parents(<obj>)
-  
-  Returns all the parents of <obj>.  Returns #-1 if <obj> cannot be found
-  or has no parent or if you do not own and/or control <obj>
-  
-  Example:
-    > say parents(me)
-    You say "#-1"
-    > @parent #4=#5
-    Parent set.
-    > @parent #5=#6
-    Parent set.
-    > say parents(#4)
-    You say "#5 #6"
-  
-  See Also: parent(), children()
-  
 & CHILDREN()
-  Function: children(<obj> [,<key>])
+  Function: children(<obj> [,<key>] [,<objid>])
   
   Returns all children (objects parented to <obj>) that can be found.
   As this is somewhat extensive on the CPU, it may be limited to wizards
   only in the future.
+  
+  If the optional <objid> is specified as '1', then it will return the
+  objid's instead of dbref#'s.
   
   The following optional keys are available:
     0 - list all children of the target (default)
@@ -18458,6 +18735,8 @@
   Parent set.
   > say children(#5)
   You say "#10 #15"
+  > say children(#5,,1)
+  You say "#10:8185828282 #15:8282859018"
   
   See Also: parents(), parent()
   
@@ -18597,10 +18876,27 @@
   See Also: @pemit, npemit(), SIDEEFFECTS
   
 & NPEMIT()
-  Function: npemit(<object> [<object2> ...],<string>)
+  Function: npemit(<object> [<object2> ...],<string> [,<key>])
   
   The npemit() function works like pemit() except it won't strip spaces.
   
+  This executes the exact same code as pemit(), but with the assumption
+  of the compile time option secure_sideeffects enabled.  This is the
+  default behavior.
+  
+  Ergo: This function is exactly the same as pemit() with the compile
+        option 'secure_sideeffects' enabled.  This function is left
+        in to ensure 'secure_sideeffect' behavior exists for npemit
+        regardless of compile time options specified.
+  
+  This function is essentially left for compatibility reasons and not
+  really needed anymore, except when compiling specificaly without
+  the default behavior.  The example below will always be pretty much
+  the same regardless of what option you have.  Without the option
+  secure_sideeffect, it essentially causes a double-eval which while
+  not the preferred method is backward compatible to very old versions
+  of RhostMUSH, MUX, and TinyMUSH.
+     
   Example:
   > @pemit/list me me=test
   test
@@ -18859,7 +19155,8 @@
   See Also: @destroy, wipe(), create()
   
 & WIPE()
-  Function: wipe(<obj>[/wildattr] [,<regexp>])
+  Function: wipe(<obj>[/wildattr] [[,<regexp>] [,<ownerkey>] [,<preserve>]])
+            wipe(<owner>/<obj>[/wildattr], [,<regexp>], 1, [,<preserve>])
   
   The wipe() function will remove all matching attributes specified by
   a wildcard, or, if no attribute is specified, remove all attributes of
@@ -18869,10 +19166,18 @@
   If <regexp> is specified as '1', then <wildattr> is evaluated as a
   regular expresion instead of the default expresion.
   
+  If <ownerkey> is specified as '1', then, as the second syntax example above,
+  it takes the additional <owner> argument as the owner to compare against.
+  
+  If <preserve> is specified as '1', it takes the reverse of the wipe and
+  keeps the specified wildcard pattern and wipes everything else.
+   
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
   
   Examples:
+    > say wipe(Corum/#123/*foo,,1)   (this wipes attribs owned by Corum only)
+    You say "Wipe: 1 attributes wiped."
     > say wipe(#123/*foo*)
     You say "Wipe: 8 attributes wiped."
     > say wipe(#123/^.*ab$,1)
@@ -19176,6 +19481,7 @@
     -f  -- sort floating numerically by minimum value
     +d  -- sort dbref#'s numerically by maximum valid dbref# (#-1 if invalid)
     -d  -- sort dbref#'s numerically by minimum valid dbref# (#-1 if invalid)
+  +/-m  -- merge all the lists into a single list (+ or - does same thing)
   
   With the dbref# sort, any invalid dbref# is assigned the value #-1.  If all
   arguments in that list order are all invalid, #-1 will be seen for the
@@ -19186,13 +19492,15 @@
     You say "10 2 20"
     > say sortlist(-n,,1 2 3,10 0 20, -100 100 200)
     You say "-100 0 3"
-    > say sortlist(-n,:,1:2:3,5:6:7,4:4:4,0:9:20)
+    > say sortlist(+n,:,1:2:3,5:6:7,4:4:4,0:9:20)
     You say "5:9:20"
     > say sortlist(+f,,1.2 2.5 3.3,1.3 2.4 -1.2)
     You say "1.3 2.5 3.3"
     > say sortlist(+d,,#1 #2 #3,#10 #0 #20 #3735 #100 #200 #333,#-1 #3 #3735)
     (Note: #3735 in this example is a Garbage/Recover/Non-Existant dbref#)
     You say "#10 #3 #20 #-1 #100 #200 #333"
+    > say sortlist(+m,,a b c d e,1 2 3 4 5,v w x y z)
+    You say "a1v b2w c3x d4y e5z"
   
   See Also: sort(), munge(), map(), setinter(), setunion(), setdiff(),
             listinter(), listunion(), listdiff()
@@ -20577,7 +20885,7 @@
   If you do not specify a <prefix> then all prefix args are considered part
   of a normal string and ignored for special consideration.
   
-{ see 'help prsestr3' for examples }
+{ see 'help parsestr3' for examples }
 
 & PARSESTR3
   (CONTINUED)
@@ -21006,10 +21314,15 @@
   See Also: setq(), setr(), r(), SETQ_TEMPLATE
 
 & SETQ()
-  Function: setq(<number>,<string>[,<label>])
+  Function: setq(<register>,<string>[,<label>])
             setq(<label>,<string>[,<label>)
             setq(!,<string>,<label>)
             setq(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setq(<label|register>,<string>)
+            setq(+,<string>,<label>)
+            setq(!,<string>,<label>)
  
   The setq() function is used to copy strings into local registers.
   It returns a null string; it is a purely "side effect" function.
@@ -21051,10 +21364,15 @@
             setqmatch(), SETQ_TEMPLATE
   
 & SETQ_OLD()
-  Function: setq_old(<number>,<string>[,<label>])
+  Function: setq_old(<register>,<string>[,<label>])
             setq_old(<label>,<string>[,<label>])
             setq_old(!,<string>,<label>)
             setq_old(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setq_old(<label|register>,<string>)
+            setq_old(+,<string>,<label>)
+            setq_old(!,<string>,<label>)
   
   This functions exactly like setq(), except it is using the old MUSH 
   method of evaluation.  This tends to be less abraisive on braces and
@@ -21076,10 +21394,15 @@
   See Also: setr_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
   
 & SETR()
-  Function: setr(<number>,<string>[,<label>])
+  Function: setr(<register>,<string>[,<label>])
             setr(<label>,<string>[,<label>])
             setr(!,<string>,<label>)
             setr(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setr(<label|register>,<string>)
+            setr(+,<string>,<label>)
+            setr(!,<string>,<label>)
  
   The setr() function is used to copy strings into local registers.
   Unlike setq(), it returns its <string> argument.
@@ -21110,10 +21433,15 @@
             setqmatch(), SETQ_TEMPLATE
   
 & SETR_OLD()
-  Function: setr_old(<number>,<string>[,<label>])
+  Function: setr_old(<register>,<string>[,<label>])
             setr_old(<label>,<string>[,<label>])
             setr_old(!,<string>,<label>)
             setr_old(+,<string>,<label>)
+  
+      -- Penn Compatibility (if enabled) 
+            setr_old(<label|register>,<string>)
+            setr_old(+,<string>,<label>)
+            setr_old(!,<string>,<label>)
   
   This functions exactly like setr(), except it is using the old MUSH 
   method of evaluation.  This tends to be less abraisive on braces and
@@ -21279,7 +21607,7 @@
     You say "0"
  
   See Also: isdbref(), isalnum(), ispunct(), isxdigit(), isdigit(), isspace(),
-            isword()
+            isword(), isobjid()
   
 & ISALNUM()
   Function: isalnum(<string>)
@@ -21295,7 +21623,7 @@
     You say "1"
   
   See Also: isdbref(), isalpha(), ispunct(), isxdigit(), isdigit(), isspace(),
-            isword()
+            isword(), isobjid()
   
 & ISCLUSTER()
   Function: iscluster(<target>)
@@ -21325,7 +21653,7 @@
     You say "1"
    
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), isdigit(), isspace(),
-            isword()
+            isword(), isobjid()
   
 & ISHIDDEN()
   Function: ishidden(<player>)
@@ -21372,7 +21700,7 @@
     You say "0"
   
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), ispunct(), isspace(),
-            isword(), isdigit()
+            isword(), isdigit(), isobjid()
 
 & ISDIGIT()
   Function: isdigit(<string>)
@@ -21388,7 +21716,7 @@
     You say "1"
   
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), ispunct(), isspace(),
-            isword(), isint()
+            isword(), isint(), isobjid()
   
 & ISXDIGIT()
   Function: isxdigit(<string>)
@@ -21404,7 +21732,7 @@
     You say "0"
  
   See Also: isdbref(), isalpha(), isalnum(), isdigit(), ispunct(), isspace(),
-            isword()
+            isword(), isobjid()
   
 & ISSPACE()
   Function: isspace(<string>)
@@ -21422,7 +21750,7 @@
     You say "0"
  
   See Also: isdbref(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            isword()
+            isword(), isobjid()
   
 & ISDBREF()
   Function: isdbref(<string>)
@@ -21442,7 +21770,32 @@
      You say "0"
   
   See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            isword()
+            isword(), isobjid()
+
+& ISOBJID()
+  Function: isobjid(<string>)
+  
+  This function will return 1 if the string passed to it is a valid objid.
+  To be a valid objid the string must begin with '#' and be followed by an
+  integer, contain a ':' and have a valid timestamp.  Ergo, it must be a
+  valid objid.  Also, the objid must exist in the current database as a valid
+  object.  If the object fails either of these criteria, then a 0 is
+  returned.
+ 
+  Example:
+     > say objid(#1)
+     You say "#1:841303473"
+     > say isobjid(#-1)
+     You say "0"
+     > say isobjid(#1)
+     You say "0"
+     > say isobjid(#1:841303473)
+     You say "1"
+     > say isobjid(#1:841303472)
+     You say "0"
+  
+  See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
+            isword(), isdbref()
   
 & ISWORD()
   Function: isword(<string>)
@@ -22436,7 +22789,8 @@
             cluster_hasflag(), cluster_add()
 
 & CLUSTER_WIPE()
-  Function: cluster_wipe(<object>[/wildattr] [,<regxp>])
+  Function: cluster_wipe(<obj>[/wildattr] [[,<regexp>] [,<ownkey>] [,<pres>]])
+            cluster_wipe(<owner>/<obj>[/wildattr], [,<regexp>], 1, [,<pres>])
   
   The cluster_wipe() function will remove all matching attributes 
   specified by a wildcard, or, if no attribute is specified, 
@@ -22447,14 +22801,22 @@
   If <regexp> is specified as '1', then <wildattr> is evaluated as a
   regular expresion instead of the default expresion.
   
+  If <ownkey> is specified as '1', then, as the second syntax example above,
+  it takes the additional <owner> argument as the owner to compare against.
+  
+  If <pres> is specified as '1', it takes the reverse of the wipe and
+  keeps (preserves) the specified wildcard pattern and wipes everything else.
+  
   Check @list options to see if this side-effect is enabled.
   Anything using this side-effect must have the SIDEFX flag set.
   
   Examples:
+    > say cluster_wipe(Corum/#123/*foo,,1)  
+    You say "Wiped: [20 objects: 0 not found, 0 safe] 1 attributes wiped."
     > say cluster_wipe(#123)
-    You say ""
+    You say "Wiped: [20 objects: 0 not found, 0 safe] 127 attributes wiped."
     > say cluster_wipe(#123/*foo*)
-    You say ""
+    You say "Wiped: [20 objects: 0 not found, 0 safe] 0 attributes wiped."
   
   See Also: @cluster, cluster_attrcnt(), cluster_default(), cluster_edefault(),
             cluster_get(), cluster_get_eval(), cluster_grep(), 
@@ -26051,11 +26413,14 @@
   nearby()         - Tests if two different objects are near eachother.
   next()           - Returns the next object in a con()/exit() list.
   num()            - Returns the DbRef of an object.
+  objid()          - Returns the DbRef Object ID of an object.
   owner()          - Returns the owner of an object or an attribute.
   rloc()           - Returns the location of an objects location.
   room()           - Returns the dbref of the (absolute) room an object is in.
   search()         - Returns a list of objects that match search criteria.
   searchng()       - Like search but do not search garbage/recover.
+  searchobjid()    - Like search() but returns objid's.
+  searchngobjid()  - Like searchng() but returns objid's.
   sees()           - Returns true if an object is able to see a target object.
   stats()          - Shows information about the number of objects on the MUSH.
   where()          - Returns the true location of an object.
@@ -26408,6 +26773,7 @@
   Continued from String Functions.
       
   isnum()       - Returns true if input is a number.
+  isobjid()     - Returns true if input is an objid.
   ispunct()     - Returns true if first character of input is a punctuation.
   isspace()     - Returns true if first character of input is a whitespace.
   isword()      - Returns true if the argument contains only alpha characters. 
@@ -26574,6 +26940,8 @@
   zfunlocal()    - Like ulocal(), but from the perspective of a zone object.
   zfun2local()   - Like u2local(), but from the perspective of a zone object.
   zwho()         - Returns the players in a specified zone master.
+  zonecmd()      - Adds/Deletes/Purges zones from targets.
+  lzone()        - Lists targets of a zone or zones of a target.
 
 & cluster functions
   cluster_add()        - Add new target into cluster.
@@ -26833,10 +27201,10 @@
   * localize() to localize registers from eval [ASH]
   * null() to snuff output of string [SEA]
   * ladd(), lsub(), lmul(), ldiv(), land(), lavg(), lmax(),
-  lmin(), lor(), lxor(), lnor(), lxnor(), ncomp(), streq(),
-  xcon(), inzone(), zemit(), zwho(), zfun(), zfun2(),
-  zfunlocal(), zfun2local(), zfundefault(), zfun2default(),
-  zfuneval(), zfunldefault(), zfunl2default() [SEA]
+    lmin(), lor(), lxor(), lnor(), lxnor(), ncomp(), streq(),
+    xcon(), inzone(), zemit(), zwho(), zfun(), zfun2(),
+    zfunlocal(), zfun2local(), zfundefault(), zfun2default(),
+    zfuneval(), zfunldefault(), zfunl2default() [SEA]
   * lastcreate(), while(), modifystamp(), createdstamp() [ASH]
   * @hide[/on/off] - For PENN compatibility [ASH]
   * @saystring define what is substituted instead of 'says' [ASH]
@@ -28724,11 +29092,71 @@
   
   New Features
   ------------
+  * ifelse_compat option that makes if()/ifelse()/@skip/@if etc. behave
+    as TRUE in case the first argument is a normal string. [AMB]
+  * execscript() with matching sideeffect value and @power execscript to
+    allow executing external script as a function with appropiate 
+    safeguards for script name and arguments [ASH]
+  * penn_setq -- Penn compatibility option for labels with setq/setr.
+  * customized connect screens so you may add custom commands that a player
+    can type at the connect screen.
+  * object id's and objid()/%: for all features that'd handle %#.
+  * isobjid() added.
+  * zonecmd() added (side-effect of @zone) [ASH]
+  * VISIBLE options to lcon() and xcon() to check only visible items [ASH]
+  * searchobjid(), and searchngobjid() for objid results on searches [ASH]
   
   Changes
   ------------
   * TRACE_GREP attribute if set REGEXP will do regular expression matching on
-    the trace output for all trace output.
+    the trace output for all trace output. [ASH]
+  * modified system uptime to hard-query the utmp system file for
+    compatibility and performance [ASH]
+  * added /towner and /ttype switches to @purge to combine time and type/owner
+    for enhanced purging [ASH]
+  * Laxed some restrictions on @admin params [ASH]
+  * optional 3rd argument to parenmatch() does pretty-print of mush code [ASH]
+  * securex() and escapex() now optionally accept 'a' as argument to ignore
+    ansi [ASH]
+  * @dynhelp has a /nolabel switch to snarf the hilighted index values [ASH]
+  * Improved compatibility with execscript
+  * NPEMIT(), like PEMIT(), now handles 3 arguments.
+  * enhanced argument range check on all regedit*() functions [ASH]
+  * added '*' option to printf that allows cutting values from the right [ASH]
+  * @list functions accepts sub-options 'user', 'local', and 'built-in' [ASH]
+  * improved help for attrib formatting and added a plug in normal help [ASH]
+  * @wipe, @cluster/wipe, wipe(), and cluster_wipe() now take optional 
+    owner argument to wipe only attributes owned by owner [ASH]
+  * modified elock() to specify default values for locks [ASH]
+  * the listen argument to lcon()/xcon() included $commands since that
+    was seen as listening in @sweeps, but we have broken this out now so
+    that 'LISTEN' is truly listening and 'CMDLISTEN' is the old behavior [ASH]
+  * lwho() is now objid aware optionally [ASH]
+  * lexits(), lcon(), xcon(), lrooms(), lparents(), lzone(), zwho(), and 
+    children() are now objid aware [ASH]
+  * sortlist() now handles 'm' for merging.
+  * @quitprogram has /quiet switch
+  * programmer() optionally returns target/attrib pair of program call [ASH]
+  * @name added to @lock/twink as what you can do [ASH]
+  * @progreset allows you to optionally modify in-action someone's active
+    @program prompt [ASH]
+  * Permissions on @function laxed to allow full access to wizards [ASH]
+  * added new time formats for convtime() and enhanced_convtime [ASH]
+  * @progprompt hard-limited to 80 characters and now allows ANSI [ASH]
+  * ltoggles()/hastoggle() laxed to mimic lflags/hasflag perms [ASH]
     
   Bug Fixes
   ------------
+  * columns() did not default justification to 'L'eft if left blank with 
+    4 or more arguments [ASH]
+  * foreach() had a possibility of overwriting a static buffer in-use
+    which could return erraneous results (non-crash-bug) [ASH]
+  * Ancient systems (CentOS 4/5) didn't successfully handle MTU values [ASH]
+  * enhanced_convtime didn't handle all conditions properly [ASH]
+  * bug with streval which didn't process right on non-player evaluation [ASH]
+  * minor glitch if an object set STOP and SHOWFAILCMD
+  * minor glitch with @snapshot/loading over a player already connected [ASH]
+  * flag_access_set, flag_access_unset, flag_access_see were case sensitive
+    and they shouldn't be [ASH]
+  * possible crash bug in @dbclean if there's a cached attribute that
+    was not in-use properly [ASH]

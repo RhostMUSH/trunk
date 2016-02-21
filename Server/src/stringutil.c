@@ -1570,6 +1570,28 @@ char
     return new0;
 }
 
+int tboolchk(char *s_instr)
+{
+    char *bp;
+    bp = s_instr;
+
+    if (!bp || !*bp) {
+      return 0;
+    }
+    if (*bp == '#' && *(bp+1) == '-') {
+      return 0;
+    }
+    if ( (*bp == '0') && !*(bp+1)) {
+      return 0;
+    }
+    while (*bp == ' ' && *bp)
+      bp++;
+    if (*bp)
+       return 1;
+    else
+       return 0;
+}
+
 #ifndef STANDALONE
 char *
 find_cluster(dbref thing, dbref player, int anum)

@@ -2499,10 +2499,10 @@ scandir(const char *directory_name,
 void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
 {
    struct dirent **namelist;
-   char *tpr_buff, *tprp_buff, *s_mbname, *s_pt;
+   char *tpr_buff, *tprp_buff, *s_mbname, *s_pt, *s_name, *s_alias, *s_aliastmp;
    FILE *f_snap;
-   int i_dirnums, i_flag, i_count;
-   dbref thing;
+   int i_dirnums, i_flag, i_count, i_player, i_connect, aflags;
+   dbref thing, aowner;
 
    i_flag = i_count = 0;
    switch (key ) {
@@ -2619,9 +2619,42 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             free_mbuf(s_mbname);
             return;
          }
+         i_connect = i_player = 0;
+         if ( isPlayer(thing) ) {
+            i_player = 1;
+            if ( Connected(thing) ) {
+               i_connect = 1;
+            }
+         }
          tprp_buff = tpr_buff = alloc_lbuf("do_snapshot");
          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@snapshot: Reading image file %s onto #%d...", s_mbname, thing));
+         /* We need to clear their old alias... just in case */
+         if ( i_player ) {
+            s_name = alloc_lbuf("@snapshot_name");
+            s_alias = alloc_lbuf("@snapshot_alias");
+            sprintf(s_name, "#%d", thing);
+            do_alias(1, 1, 0, s_name, s_alias);
+            free_lbuf(s_name);
+            free_lbuf(s_alias);
+         }
          i_dirnums = remote_read_obj(f_snap, thing, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS, &i_count);
+         /* Now we can set their new alias and reset their connect flag */
+         if ( i_player ) {
+            s_name = alloc_lbuf("@snapshot_name");
+            sprintf(s_name, "#%d", thing);
+            s_alias = atr_get(thing, A_ALIAS, &aowner, &aflags);
+            if ( s_alias && *s_alias ) {
+               s_aliastmp = alloc_lbuf("@snapshot_aliastmp");
+               do_alias(1, 1, 0, s_name, s_aliastmp);
+               do_alias(1, 1, 0, s_name, s_alias);
+               free_lbuf(s_aliastmp);
+            }
+            if ( i_connect ) {
+               s_Connected(thing);
+            }
+            free_lbuf(s_name);
+            free_lbuf(s_alias);
+         }
          fclose(f_snap);
          switch (i_dirnums) {
             case 0: 

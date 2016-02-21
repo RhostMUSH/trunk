@@ -2,13 +2,13 @@
 @@ Create the Follow code central $command object
 @@
 @create FollowCode=10
-&CMD_FOLLOW FollowCode=$follow*:@pemit %#=[setq(0,0)][u([parent(me)]/FOLLOWMSG[!!$v(0)],%0)];@break [!r(0)];&FOLLOWERS %q1=[setunion(get(%q1/followers),%#)];&FOLLOWING %#=[setunion(get(%#/following),%q1)]
-&CMD_UNFOLLOW FollowCode=$unfollow*:@pemit %#=[u([parent(me)]/UNFOLLOWMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DOUNFOLLOW%q0,%#,%q1)];&FOLLOWING %#=[u([parent(me)]/DOUNFOLLOWING%q0,%q1,%#)]
-&CMD_DESERT FollowCode=$desert*:@pemit %#=[u([parent(me)]/DESERTMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODESERT%q0,%#,%q1)]
-&CMD_DISMISS FollowCode=$dismiss*:@pemit %#=[u([parent(me)]/DISMISSMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODISMISSFOLLOWING%q0,%q1,%#)];&FOLLOWERS %#=[u([parent(me)]/DODISMISSFOLLOW%q0,%#,%q1)]
-&CMD_FOLLOWLOCK FollowCode=$flock/*:@pemit %#=[u([parent(me)]/FOLLOWLOCKMSG[match(allow deny list,first(%0))],rest(%0))];@break [!r(0)];@eval [u([parent(me)]/DOFOLLOWLOCK,rest(%0))]
-&VERSION FollowCode=FollowCode 1.0.1 [Ashen-Shugar]
-@adisconnect FollowCode=@include/command/override #331/cmd_desert=,,,
+&CMD_FOLLOW FollowCode=$+follow*:@pemit %#=[setq(0,0)][u([parent(me)]/FOLLOWMSG[!!$v(0)],%0)];@break [!r(0)];&FOLLOWERS %q1=[setunion(get(%q1/followers),%#)];&FOLLOWING %#=[setunion(get(%#/following),%q1)]
+&CMD_UNFOLLOW FollowCode=$+unfollow*:@pemit %#=[u([parent(me)]/UNFOLLOWMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DOUNFOLLOW%q0,%#,%q1)];&FOLLOWING %#=[u([parent(me)]/DOUNFOLLOWING%q0,%q1,%#)]
+&CMD_DESERT FollowCode=$+desert*:@pemit %#=[u([parent(me)]/DESERTMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODESERT%q0,%#,%q1)]
+&CMD_DISMISS FollowCode=+$dismiss*:@pemit %#=[u([parent(me)]/DISMISSMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODISMISSFOLLOWING%q0,%q1,%#)];&FOLLOWERS %#=[u([parent(me)]/DODISMISSFOLLOW%q0,%#,%q1)]
+&CMD_FOLLOWLOCK FollowCode=$+flock/*:@pemit %#=[u([parent(me)]/FOLLOWLOCKMSG[match(allow deny list,first(%0))],rest(%0))];@break [!r(0)];@eval [u([parent(me)]/DOFOLLOWLOCK,rest(%0))]
+&VERSION FollowCode=FollowCode 1.0.2 [Ashen-Shugar]
+@adisconnect FollowCode=@include/command/override me/cmd_desert=,,,
 @set FollowCode=INDESTRUCTABLE
 @set FollowCode=SAFE
 @set FollowCode=INHERIT
@@ -17,27 +17,27 @@
 @@
 @create FollowFunction=10
 &FOLLOWMSG0 FollowFunction=You are following: [elist(iter(get(%#/following),name(##),,|),,|)]%rYou are followed by: [elist(iter(get(%#/followers),name(##),,|),,|)][setq(0,0)]
-&FOLLOWMSG1 FollowFunction=[setq(1,locate(%#,%0,n))][switch([sees(%#,%q1)][setr(2,!match(get(%#/following),%q1))][u(followfunc,%#,%q1)],111,You begin to follow [name(%q1)].[pemit(%q1,[name(%#)] begins to follow you.)][setq(0,1)],0*,follow: Invalid target specified.,?0*,follow: you are already following [name(%q1)],*0,follow: you arn't allowed to follow [name(%q1)].)]
+&FOLLOWMSG1 FollowFunction=[setq(1,locate(%#,%0,n))][switch([sees(%#,%q1)][setr(2,!match(get(%#/following),%q1))][u(followfunc,%#,%q1)],111,You begin to follow [name(%q1)].[pemit(%q1,[name(%#)] begins to follow you.)][setq(0,1)],0*,Follow: <+follow> invalid target specified.,?0*,Follow: <+follow> you are already following [name(%q1)],*0,Follow: <+follow> you arn't allowed to follow [name(%q1)].)]
 &FOLLOWFUNC FollowFunction=[and(or(!hasattr(%1,follow_allow),match(get(%1/follow_allow),%0)),!match(get(%1/follow_deny),%0))]
-&UNFOLLOWMSG1 FollowFunction=[ifelse(!match(get(%#/following),setr(1,locate(%#,%0,n))),unfollow: You arn't following that.[setq(0,0)],You stop following [name(%q1)].[pemit(%q1,[name(%#)] stops following you.)][setq(0,1)])]
+&UNFOLLOWMSG1 FollowFunction=[ifelse(!match(get(%#/following),setr(1,locate(%#,%0,n))),Follow: <+unfollow> You arn't following that.[setq(0,0)],You stop following [name(%q1)].[pemit(%q1,[name(%#)] stops following you.)][setq(0,1)])]
 &UNFOLLOWMSG0 FollowFunction=You stop following everyone.[setq(0,2)]
 &DOUNFOLLOW1 FollowFunction=[set(%1,setdiff(get(%1/followers),%0))]
 &DOUNFOLLOW2 FollowFunction=[iter(get(%0/following),[set(itext(0),FOLLOWERS:[setdiff(get([itext(0)]/FOLLOWERS),%0)])][pemit([itext(0)],[name(%0)] stops following you.)])]
 &DOUNFOLLOWING1 FollowFunction=[setdiff(get(%1/following),%0)]
 &DOUNFOLLOWING2 FollowFunction=[null()]
-&FOLLOWLOCKMSG0 FollowFunction=follow: flock doesn't understand that switch.
-&FOLLOWLOCKMSG1 FollowFunction=[null(iter(%0,[ifelse(gt(pos(!,itext(0)),0),[setq(5,locate(%#,delete(itext(0),0,1),n))][ifelse(!isdbref(%q5),setq(5,pmatch(delete(itext(0),0,1))))][ifelse(isdbref(%q5),setq(8,%q8 %q5))],[setq(5,locate(%#,itext(0),n))][ifelse(!isdbref(%q5),setq(5,pmatch(itext(0))))][ifelse(isdbref(%q5),setq(9,%q9 %q5))])]))][setq(1,1)][setq(0,1)]follow: allow lock modified %[[words(%q9)] added/[words(%q8)] removed%]
-&FOLLOWLOCKMSG2 FollowFunction=[null(iter(%0,[ifelse(gt(pos(!,itext(0)),0),[setq(5,locate(%#,delete(itext(0),0,1),n))][ifelse(!isdbref(%q5),setq(5,pmatch(delete(itext(0),0,1))))][ifelse(isdbref(%q5),setq(8,%q8 %q5))],[setq(5,locate(%#,itext(0),n))][ifelse(!isdbref(%q5),setq(5,pmatch(itext(0))))][ifelse(isdbref(%q5),setq(9,%q9 %q5))])]))][setq(1,2)][setq(0,1)]follow: deny lock modified %[[words(%q9)] added/[words(%q8)] removed%]
+&FOLLOWLOCKMSG0 FollowFunction=Follow: <+flock> flock doesn't understand that switch.
+&FOLLOWLOCKMSG1 FollowFunction=[null(iter(%0,[ifelse(gt(pos(!,itext(0)),0),[setq(5,locate(%#,delete(itext(0),0,1),n))][ifelse(!isdbref(%q5),setq(5,pmatch(delete(itext(0),0,1))))][ifelse(isdbref(%q5),setq(8,%q8 %q5))],[setq(5,locate(%#,itext(0),n))][ifelse(!isdbref(%q5),setq(5,pmatch(itext(0))))][ifelse(isdbref(%q5),setq(9,%q9 %q5))])]))][setq(1,1)][setq(0,1)]Follow: <+flock> allow lock modified %[[words(%q9)] added/[words(%q8)] removed%]
+&FOLLOWLOCKMSG2 FollowFunction=[null(iter(%0,[ifelse(gt(pos(!,itext(0)),0),[setq(5,locate(%#,delete(itext(0),0,1),n))][ifelse(!isdbref(%q5),setq(5,pmatch(delete(itext(0),0,1))))][ifelse(isdbref(%q5),setq(8,%q8 %q5))],[setq(5,locate(%#,itext(0),n))][ifelse(!isdbref(%q5),setq(5,pmatch(itext(0))))][ifelse(isdbref(%q5),setq(9,%q9 %q5))])]))][setq(1,2)][setq(0,1)]Follow: <+flock> deny lock modified %[[words(%q9)] added/[words(%q8)] removed%]
 &FOLLOWLOCKMSG3 FollowFunction=follow list allowed: [default(%#/follow_allow,ALL)]%rfollow list denied:%b [default(%#/follow_deny,NONE)][setq(0,0)]
 &DOFOLLOWLOCK FollowFunction=[set(%#,[setr(7,ifelse(eq(%q1,1),FOLLOW_ALLOW,FOLLOW_DENY))]:[setunion(setdiff(get(%#/%q7),%q8),%q9)])]
 &DISMISSMSG0 FollowFunction=You dismiss all your followers.[setq(0,2)]
-&DISMISSMSG1 FollowFunction=[ifelse(!match(get(%#/followers),setr(1,ifelse(isdbref(setr(9,locate(%#,%0,n))),%q9,pmatch(%0)))),dismiss: They arn't following you.[setq(0,0)],[name(%q1)] has been dismissed from following you.[setq(0,1)])]
+&DISMISSMSG1 FollowFunction=[ifelse(!match(get(%#/followers),setr(1,ifelse(isdbref(setr(9,locate(%#,%0,n))),%q9,pmatch(%0)))),Follow: <+dismiss> they arn't following you.[setq(0,0)],[name(%q1)] has been dismissed from following you.[setq(0,1)])]
 &DODISMISSFOLLOWING2 FollowFunction=[iter(get(%1/followers),[set([itext(0)],FOLLOWING:[setdiff(get([itext(0)]/FOLLOWING),%1)])][pemit([itext(0)],You have been dismissed from following [name(%1)].)])]
 &DODISMISSFOLLOWING1 FollowFunction=[set(%0,FOLLOWING:[setdiff(get(%0/FOLLOWING),%1)])][pemit(%0,You have been dismissed from following [name(%1)].)]
 &DODISMISSFOLLOW2 FollowFunction=[null()]
 &DODISMISSFOLLOW1 FollowFunction=[setdiff(get(%0/followers),%1)]
 &DESERTMSG0 FollowFunction=You desert everyone you're leading or following.[setq(0,2)]
-&DESERTMSG1 FollowFunction=[ifelse(!match([get(%#/followers)] [get(%#/following)],setr(1,ifelse(isdbref(setr(9,locate(%#,%0,n))),%q9,pmatch(%0)))),desert: They arn't following you and you arn't following them.[setq(0,0)],[switchall(1,match(get(%#/followers),%q1),You desert your follower [name(%q1)].[setq(9,1)],match(get(%#/following),%q1),[ifelse(%q9,%r)]You desert from following [name(%q1)].)][setq(0,1)])]
+&DESERTMSG1 FollowFunction=[ifelse(!match([get(%#/followers)] [get(%#/following)],setr(1,ifelse(isdbref(setr(9,locate(%#,%0,n))),%q9,pmatch(%0)))),Follow: <+desert> they arn't following you and you arn't following them.[setq(0,0)],[switchall(1,match(get(%#/followers),%q1),You desert your follower [name(%q1)].[setq(9,1)],match(get(%#/following),%q1),[ifelse(%q9,%r)]You desert from following [name(%q1)].)][setq(0,1)])]
 &DODESERT2 FollowFunction=[setq(9,get(%0/followers))][iter(get(%0/following),[set(itext(0),FOLLOWERS:[setdiff(get([itext(0)]/followers),%0)])][pemit(itext(0),[name(%#)] has deserted you and is no longer following.)])][iter(%q9,[set(itext(0),FOLLOWING:[setdiff(get([itext(0)]/following),%0)])][pemit(itext(0),[name(%#)] has deserted you and you can no longer follow [obj(%#)].)])][set(%0,following:)][set(%0,followers:)]
 &DODESERT1 FollowFunction=[setq(9,get(%0/followers))][ifelse(match(get(%0/following),%1),[set(%0,following:[setdiff(get(%0/following),%1)])][set(%1,followers:[setdiff(get(%1/followers),%#)])][pemit(%1,[name(%0)] has deserted you and is no longer following.)])][ifelse(match(%q9,%1),[set(%0,followers:[setdiff(Get(%0/followers),%1)])][set(%1,following:[setdiff(get(%1/following),%#)])][pemit(%1,[name(%0)] has deserted you and you can no longer follow [obj(%#)].)])]
 @set FollowFunction=INDESTRUCTABLE
@@ -56,7 +56,7 @@
 @@ 3) hook_cmd goto before after
 @@ @create HookObj=10
 @@ &B_GOTO HookObj=[setq(f,iter(get(%#/followers),ifelse(match(loc(itext(0)),loc(%#)),itext(0))))]
-@@ &A_GOTO HookObj=[setq(1,ifelse(and(gt(words(%x),1),wildmatch(go* mo*,%x)),rest(%x),%x))][iter(%qf,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow %n.)][move(itext(0),%q1)][u(parse_follow,%q1,itext(0))])]
+@@ &A_GOTO HookObj=[setq(1,ifelse(and(gt(words(%m),1),wildmatch(go* mo*,%m)),rest(%m),%m))][iter(%qf,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow %n.)][move(itext(0),%q1)][u(parse_follow,%q1,itext(0))])]
 @@ &SETUP_FOLLOW HookObj=[setq(g,iter(get(%0/followers),ifelse(match(loc(itext(0)),loc(%0)),itext(0))))]
 @@ &PARSE_FOLLOW HookObj=[iter(%qg,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow [name(%1)].)][move(itext(0),%0)][u(parse_follow,%0)])]
 @@ @set HookObj=INDESTRUCTABLE
@@ -64,4 +64,26 @@
 @@ @set HookObj=INHERIT
 @@ @set HookObj=SIDEFX
 @@
-@@ At this stage, you will need to @hook/before goto and @hook/after goto
+@@ At this stage, you will need to @hook/before goto and @hook/after goto [@rebooting after the hook_cmd does this]
+@@
+@@ --------------------------- Help
+@@ +follow [<player>]
+@@ This will follow the target player.  The player has to be at your location.
+@@ If no player specified it will list who you are following.
+@@
+@@ +unfollow [<player>]
+@@ This will stop following the target player.
+@@ If no player specified it stops you from following everyone.
+@@
+@@ +desert [<player>]
+@@ This will stop following target player as well as stopping target from following you.
+@@ If no player specified it stop you from following everyone and anyone following you.
+@@
+@@ +dismiss [<player>]
+@@ This will stop the target player from following you.
+@@ If no player specified it stops everyone from following you.
+@@
+@@ +flock[/switch] [<string>]
+@@   /allow -- allow the players in your list to follow you.
+@@   /deny  -- deny the players from ever following you.
+@@   /list  -- list your current allowed and denied players.

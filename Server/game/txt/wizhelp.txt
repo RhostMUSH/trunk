@@ -461,7 +461,7 @@
   HELP SETUP         PLUSHELP SETUP     HUH SETUP          ELSEFILE SETUP
   REALITY LEVELS     MAIL ALIASES       HOOK SETUP         FUNCTION OVERLOADING
   FLAG ALIAS         ATTRIB CONTLOCKS   GLOBAL INHERITANCE ATTRIB FORMATTING
-  SIGNALS            TOR                CONTROL
+  SIGNALS            TOR                CONTROL            CUSTOMIZED CONNECT
 
 & CONTROL
   RhostMUSH has multiple levels and tiers for control.  In addition, it has
@@ -765,6 +765,7 @@
   See Also: global_parent_obj, global_parent_player, global_parent_thing, 
             global_parent_room, global_parent_exit, zone_parents
   
+& attribute contlocks
 & attrib contlocks
   You may enable attribute content locking.  This is done by setting up a
   global object to handle 'content locks'.  This is done through the config
@@ -786,11 +787,12 @@
     
   See Also: ATRLOCK, global_attrdefault
   
+& attribute formatting
 & attrib formatting
   Attribute formatting can be accomplished multiple ways.  First, there is
   a generic local 'format' for most @-attributes.  To process this format,
-  you need to set an attribute of the name '<attr>format' on the target
-  (or parent, global parent, zone of the target. Use format<attr> if the
+  you need to set an attribute of the name 'format<attr>' on the target
+  (or parent, global parent, zone of the target. Use <attr>format if the
   config parameter format_compatibility is enabled). If this attribute is
   not found, it will then look at the global default parents for matching
   attribute inheritance.  Any attribute that you wish to inherit default
@@ -798,6 +800,8 @@
   passed into the formatting as '%0'.  Local formatting has priority
   over global formatting.
   
+  @list options system will show which format option is in use.
+   
   Examples:
     > @desc me=This is a test
     > @admin player_attr_default=123
@@ -1648,13 +1652,36 @@
    FREE_WALL       FREE_PAGE      *HALT_QUEUE      HALT_QUEUE_ALL
   *NOKILL         *SEARCH_ANY     *SECURITY       *WHO_UNFIND
   *WRAITH          SHUTDOWN       *PURGE          *HIDEBIT
-   NOWHO           EXAMINE_FULL   FULLTEL
+   NOWHO           EXAMINE_FULL   FULLTEL         *EXECSCRIPT
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
   down to GUILDMASTER.
 
   Help is available seperately to explain what each power does by typing:
       wizhelp power <power>
+
+& POWER EXECSCRIPT
+  Power argument: @power[/switch] <user>=[@g|@a|@c] execscript
+  
+  Unlike other @powers, this power IS NOT INHERITABLE.
+  
+  This power will grant the target the ability to use the execscript()
+  function.  This effectively executes a script from the ~/game/scripts
+  directory and reads the value back as if it was a native function.
+  All output is sanitized in ASCII-7 printable characters.  All other
+  characters are converted to a '?'.
+  
+  Power bitlevel GUILDMASTER grants the ability to use the execscript()
+  function but disallows the ability to pass arguments to it.
+  
+  Power bitlevel ARCHITECT (and higher) grants the ability to use
+  the execscript() function with optional arguments.
+  
+  Note that arguments passed to the script is also sanitized to avoid
+  methods to garner outside shell access but extreme caution should
+  be used in using this anyway.
+  
+  See Also: execscript()
 
 & POWER FULLTEL
   Power argument: @power[/switch] <user>=[@g|@a|@c] fulltel
@@ -2841,7 +2868,14 @@
   Command: @list functions
   Lists the functions that may be used to obtain information when evaluating
   command lines.
-
+  
+  You may specify the sub-categories:
+      built-in - list only the built-in hardcoded functions.
+      user     - list only user-defined global @functions.
+      local    - list only the local @lfunctions
+  
+  By default, it lists all functions.
+ 
 & @list globals
   Command: @list globals
   Lists the global parameters that may be set or cleared by the @enable and
@@ -3367,12 +3401,30 @@
 
 & @progreset
   Command: @progreset <playername>
+           @progreset <playername> = <newvalue>
   
-  This command, only useful on players, will target the player 
-  for a @program prompt reset.  This in effect nulls out their
-  prog-prompt that would display on their client.  As this can
-  only be done on players who are NOT in a program, it is 
-  obviously intended as a forced method to reset a bad prompt.
+  This command has two uses.
+
+  First use: (first syntax)
+     This command, only useful on players, will target the player 
+     for a @program prompt reset.  This in effect nulls out their
+     prog-prompt that would display on their client.  As this can
+     only be done on players who are NOT in a program, it is 
+     obviously intended as a forced method to reset a bad prompt.
+  
+  Second use: (second syntax)
+     This command, only useful on players, will target the player
+     for a @program prompt set.  This in effect overrides the
+     player's existing prompt with the new one you assign.  This
+     is useful to set a customized prompt or reset it mid-program
+     based on maybe an error that they type or if they're sitting
+     idle for too long and you will shortly abort them.
+  
+  Examples:
+     > @progreset *Player
+     Program prompt reset.
+     > @progreset *player=New Prompt>
+     Program prompt customized.
   
   See Also: IMMPROG
   
@@ -3417,12 +3469,17 @@
   
   @purge #dbref (destroys the given dbref# that is in the recovery list)
   The following switches are also available:
-      /all           - purges the recovery list permanently destroying all 
-                       things marked recovery (things previously destroyed)
-      /time <1-100>  - purges the recovery list from the specified # of days
-                       ago and later. 0 will default to 'all'.
-      /type <TYPE>   - purges all dbref#'s matching type 'TYPE'.
-      /owner <OWNER> - purges all objects owned by owner 'OWNER'.
+      /all                    - purges the recovery list permanently 
+                                destroying all things marked recovery 
+                                (things previously destroyed)
+      /time <1-100>           - purges the recovery list from the specified 
+                                # of days ago and later. 
+      /type <TYPE>            - purges all dbref#'s matching type 'TYPE'.
+      /owner <OWNER>          - purges all objects owned by owner 'OWNER'.
+      /ttype <1-100>/<TYPE>   - purges all objects based on 'TYPE' that was 
+                                # of days ago and later.
+      /towner <1-100>/<OWNER> - purges all objects owned by owner 'OWNER'
+                                that was # of days ago or later.
   
   Example:  @purge/type room
   
@@ -4443,8 +4500,9 @@
   valid as part of the filename (or path).
   
   Available switches:
-    /parse - this will parse the help evaluating all %n's/functions.
-    /search - search content and list topics containing '<topic>'.
+    /parse   - this will parse the help evaluating all %n's/functions.
+    /search  - search content and list topics containing '<topic>'.
+    /nolabel - snuff the hilight index of the topic <topic> when showing.
   
   Example:
     (let's say you want to read a history text file called 'history.txt')
@@ -5230,55 +5288,56 @@
   hostnames                icmd_obj                 idle_interval          
   idle_message             idle_stamp               idle_stamp_max
   idle_timeout             idle_wiz_dark            idle_wiz_cloak         
-  ifelse_substitution      imm_nomod                include                
-  includecnt               includenest              initial_size           
-  input_database           internal_compress_string inventory_name         
-  kill_guarantee_cost      kill_max_cost            kill_min_cost          
-  lastsite_paranoia        lattr_default_oldstyle   lcon_checks_dark       
-  lfunction_max            list_access              list_max_chars         
-  listen_parents           link_cost                lnum_compat            
-  lock_recursion_limit     log                      log_command_list       
-  log_maximum              log_network_errors       log_options            
-  login_to_prog            logout_cmd_access        logout_cmd_alias       
-  look_moreflags           look_obey_terse          machine_command_cost   
-  mail_anonymous           mail_autodeltime         mail_default            
-  mail_def_object          mail_hidden              mail_tolist            
-  mail_verbosity           mailbox_size             maildelete             
-  mailinclude_file         mailprog                 mailsub                
-  mailmax_send             master_room              match_own_commands     
-  manlog_file              map_delim_space          max_cpu_cycles         
-  max_dest_limit           max_folders              max_lastsite_cnt       
-  max_name_protect         max_pcreate_lim          max_pcreate_time       
-  max_percentsubs          max_players              max_sitecons           
+  ifelse_compat            ifelse_substitution      imm_nomod
+  include                  includecnt               includenest
+  initial_size             input_database           internal_compress_string
+  inventory_name           kill_guarantee_cost      kill_max_cost
+  kill_min_cost            lastsite_paranoia        lattr_default_oldstyle
+  lcon_checks_dark         lfunction_max            list_access
+  list_max_chars           listen_parents           link_cost
+  lnum_compat              lock_recursion_limit     log
+  log_command_list         log_maximum              log_network_errors
+  log_options              login_to_prog            logout_cmd_access
+  logout_cmd_alias         look_moreflags           look_obey_terse
+  machine_command_cost     mail_anonymous           mail_autodeltime
+  mail_default             mail_def_object          mail_hidden
+  mail_tolist              mail_verbosity           mailbox_size
+  maildelete               mailinclude_file         mailprog
+  mailsub                  mailmax_send             master_room
+  match_own_commands       manlog_file              map_delim_space
+  max_cpu_cycles           max_dest_limit           max_folders
+  max_lastsite_cnt         max_name_protect         max_pcreate_lim
+  max_pcreate_time         max_percentsubs          max_players
   
 { 'wizhelp config parameters4' for more }
 
 & CONFIG PARAMETERS4
   Topic: CONFIG PARAMETERS (continued)
   
-  max_vattr_limit          maximum_size             min_con_attempt        
-  money_lim_off            money_lim_gm             money_lim_arch         
-  money_lim_counc          money_name_plural        money_name_singular    
-  motd_file                motd_message             mud_name               
-  muddb_name               must_unlquota            mux_child_compat
-  mus_lcon_compat          name_with_desc           nand_compat            
-  newpass_god              news_file                news_index             
-  newuser_file             no_startup               noauth_site            
-  noautoreg_host           noautoreg_site           nobroadcast_host       
-  noguest_host             noguest_site             nodns_site             
-  nonindxtxt_maxlines      noregist_onwho           noshell_prog           
-  nospam_connect           notify_recursion_limit   notonerr_return        
-  num_guests               oattr_enable_altname     oattr_uses_altname     
-  offline_reg              old_elist                online_reg             
-  open_cost                output_database          output_limit           
-  page_cost                paranoid_allocate        paranoid_exit_linking  
-  parentable_control_lock  partial_conn             partial_deconn         
-  paycheck                 pcreate_paranoia         pemit_any_object       
-  pemit_far_players        penn_playercmds          penn_switches          
-  permit_site              player_attr_default      player_dark            
-  player_flags             player_listen            player_match_commands  
-  player_match_own_command player_name_spaces       player_parent          
-  player_queue_limit       player_quota           
+  max_sitecons             max_vattr_limit          maximum_size
+  min_con_attempt          money_lim_off            money_lim_gm
+  money_lim_arch           money_lim_counc          money_name_plural
+  money_name_singular      motd_file                motd_message
+  mud_name                 muddb_name               must_unlquota
+  mux_child_compat         mus_lcon_compat          name_with_desc
+  nand_compat              newpass_god              news_file
+  news_index               newuser_file             no_startup
+  noauth_site              noautoreg_host           noautoreg_site
+  nobroadcast_host         noguest_host             noguest_site
+  nodns_site               nonindxtxt_maxlines      noregist_onwho
+  noshell_prog             nospam_connect           notify_recursion_limit
+  notonerr_return          num_guests               oattr_enable_altname
+  oattr_uses_altname       offline_reg              old_elist
+  online_reg               open_cost                output_database
+  output_limit             page_cost                paranoid_allocate
+  paranoid_exit_linking    parentable_control_lock  partial_conn
+  partial_deconn           paycheck                 pcreate_paranoia
+  pemit_any_object         pemit_far_players        penn_playercmds
+  penn_setq                penn_switches            permit_site            
+  player_attr_default      player_dark              player_flags           
+  player_listen            player_match_commands    player_match_own_command
+  player_name_spaces       player_parent            player_queue_limit     
+  player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -5768,6 +5827,10 @@
   comes to lit() and handling of curly braces. With this parameter enabled,
   the curly braces get shown when inside a lit(), without need for escaping
   them.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
   
 & break_compatibility
   Config parameter: break_compatibility <yes/no>.  Default: NO
@@ -5776,6 +5839,10 @@
   double-evaluation standard that @break and @assert had for the
   first argument.  This backward compatibility would only be relevant
   for all versions of Rhost 3.9 from its conception to the SVN 165 release.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & cache_depth
   Config parameter: cache_depth <depth>.  Default: 10.
@@ -6317,7 +6384,81 @@
   
   All ansi and such will process normally.
   
-  See Also: @list_file
+  See 'help file_object2' on how to make customized commands for the connect
+  screen.  
+  
+  See Also: @list_file, file_object2, customized connect
+
+& CUSTOMIZED CONNECT
+& file_object2
+  Config parameter: file_object <dbref>.  Default: -1    (CONTINUED)
+  Topic: CUSTOMIZED CONNECT
+  
+  An additional feature of the file_object config parameter is the ability
+  to design customized commands that a player can issue on the connect screen.
+  They can be any command at all, and executes code at the permission level
+  of the file_object AS the file_object itself.  So some thought needs to go
+  with security with regards to this.
+  
+  Note:  A player can not exceed 2000 character input in anyway at the connect
+         screen or the mush will aggressively tag the player as someone who is 
+         attempting to crash the mush, boot them off the server, and log their 
+         attempt.  This was a common method to crash a mush years ago.
+     
+  The key variables that are used for this are:
+    FAKECOMMANDS    -- This is the '|' delimited list of commands that the
+                       user on the connect screen can use.  This is evaluated
+                       as the file_object itself.  Sorry, commands can not
+                       contain white spaces (spaces, tabs, etc).
+    RUN_<command>   -- This is the command that the user at the connect
+                       screen will be typing.  If you want the command 'bob'
+                       to exist for the connect screen, then RUN_BOB will
+                       be the attribute name.
+  
+  The following variables are recognized:
+    %#/%!/%@/%n/%k  -- All will refer to the file_object.
+    %0              -- The command typed at the connect screen.
+    %1              -- The arguments to the command the player typed.
+    %2              -- The player's numerical IP address.
+    %3              -- The player's reverse DNS of their IP address.
+    %4              -- The player's port that they are connecting on.
+  
+  If the command is not listed in FAKECOMMANDS, or if there is no associated
+  RUN_<command> attribute, then it reacts as if it was an invalid command
+  at the connect screen and goes to the default behavior.
+   
+  To design what commands are to be customized, you create a '|' delimited
+  list on the file_object.  
+  
+{ see 'help file_object3' or 'help customized connect2' for examples}  
+  
+& CUSTOMIZED CONNECT2
+& file_object3
+  Config parameter: file_object <dbref>.  Default: -1    (CONTINUED)
+  Topic: CUSTOMIZED CONNECT
+  
+  For the purpose of examples, we'll assume the file_object is #123.
+  
+  Example Setup:
+    > think %# - [get(%#/test)]
+    #111 - woop
+    > @admin file_object=123     (notice no '#' for the definition)
+    Set.
+    > &FAKECOMMANDS #123=bob|job|[get(#111/test)]
+    Set.
+    > &RUN_WOOP #123=You typed: %0 and are on from %3
+    Set.
+    > &RUN_BOB #123=You typed: %0 with args %1
+    Set.
+    > &RUN_JOB #123=Current jobs: %r[u(jobobject/jobs)]
+    Set.
+  
+  As shown, you have an amazing flexibility to customize your connect screen
+  with any command you want.  You can not, however, interact with connect
+  screen existing commands like 'connect' and so forth.  A small limitation
+  to an otherwise flexible tool.
+  
+  See Also: @admin, file_object, CUSTOMIZED CONNECT
 
 & find_money_chance
   Config parameter: find_money_chance <amount>.  Default: 0
@@ -6397,6 +6538,10 @@
   previous broken implementation of RhostMUSH.  This is only for those who may
   depend on the 'broken' evaluation for their code, otherwise it's safe to keep
   it no.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & noauth_site
   Config parameter: noauth_site <addr> <mask>.
@@ -6489,6 +6634,10 @@
   attributes from @format<term> to @<term>format. With this parameter enabled,
   the old format gets used in case compatibility with those old versions is
   needed.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & format_contents
   Config parameter: format_contents <yes/no>.  Default: no
@@ -6951,6 +7100,10 @@
   function so that it _will_ check the target object as well as the parent-
   chain for matching attributes.  By default, it will not check the target.
 
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
+
 & heavy_cpu_max
   Config parameter: heavy_cpu_max <value>.  Default: 50
   
@@ -7060,16 +7213,31 @@
   quickly identify the commands typed by the player if they're the same
   and keep a count of how often the player has issued it.
   
+  The attribute will be _IDLESTAMP on the player and will contain values
+  similar to:
+   
+                2623071918:1 2166209533:1 1469448984:1 
+  
+  The value before the ':' is the CRC32 checksum of the command they typed.
+  The value after the ':' is the number of times the command was issued.
+  
+  By default it keeps the last 10 unique commands a player types. 
+  This value can be modified with 'idle_stamp_max' @admin param.
+   
   See Also: idle_stamp_max
   
 & idle_stamp_max
-  Config parameter: idle_stamp_max <count>  Default: 10
+  Config parameter: idle_stamp_max <count>  Default: 10  
   
   Specifies how many commands are to be logged per player with a running 
   tally of how often they typed the command.  The command is a hashed
   value so you won't actually see what the player typed, only if what
   they typed matches what they previously typed.
   
+  This value can be between 1 to 300.
+  
+  For more details see idle_stamp.
+   
   See Also: idle_stamp
 
 & idle_timeout
@@ -7101,6 +7269,19 @@
   unDARKed.
   See Also: idle_wiz_cloak
 
+& ifelse_compat
+  Config parameter: ifelse_compat <yes>.  Default: no
+
+  This config parameter, if enabled, makes the if() and ifelse() functions
+  as well as the @skip, @if, and @ifelse commands behave as TRUE if their
+  first argument is a normal string. This increases compatbility with other
+  codebases, especially MUX, and removes the need to use t() in many of those
+  situations.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
+ 
 & ifelse_substitutions
   Config parameter: ifelse_substitutions <yes/no>.  Default: no
   
@@ -7393,6 +7574,10 @@
   Specifies if lnum()/lnum2() will work like MUX/PENN and return a null if 
   a '0' value is given to them.  This had to be a config parameter so that
   prior code did not break.
+ 
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & log_maximum
   Config parameter: log_maximum <value>  Default: 1
@@ -7718,12 +7903,20 @@
   children() and return a null string if no children are found instead
   of #-1 (which follows parent()).
 
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
+
 & mux_lcon_compat
   Config parameter: mux_lcon_compat <bool>  Default: no (0)
   
   Specifies if lcon() returns null (an empty string) if there is no
   contents.  The default behavior is that it returns #-1 if there is
   no contents.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & newpass_god
   Config parameter: newpass_god <1/0>.  Default: 0 
@@ -8041,6 +8234,18 @@
   $commands on other players if they are in their inventory.  They will still
   be able to use their own $commands.
 
+& penn_setq
+  Config parameter: penn_setq <yes/no>.   Default: no
+  
+  Enables setq/setr compatibility with PennMUSH.  This effectively allows
+  the use of:
+                  setq(label,blah) in addition to setq(1-9/a-z,blah)
+                  setr(label,blah) in addition to setr(1-9/a-z,blah)
+  
+  This effectively mimic's the Rhost built in setq(+,blah,label) option.
+  This will still allow the setq/setq with the + and ! options to work
+  as expected.
+
 & penn_switches
   Config parameter: penn_switches <yes/no>.  Default: no
   
@@ -8241,7 +8446,9 @@
   
   If enabled, indicates that players may get the flags of any object with the
   flags() function call.  Otherwise, they may only get the flags for objects
-  that are examinable by them.
+  that are examinable by them.  This parameter also affects ltoggles() and
+  the like as well.
+  
   See Also: flags().
 
 & power_objects
@@ -8266,6 +8473,10 @@
   then Semaphore is allowed to be decremented by one every time @notify
   is called, weither you have anything to queue or not.  Otherwise, it
   will not decrement this attribute.
+
+  See Also: brace_compatibility, break_compatibility, format_compatibility,
+            hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
+            nand_compat, queue_compatible
 
 & queue_idle_chunk
   Config parameter: queue_idle_chunk <num>.  Default: 3
@@ -9059,7 +9270,7 @@
     %s ----    32     (0x00000020)    |  %k ---- 16384     (0x00004000)
     %o ----    64     (0x00000040)    |  %w ---- 32768     (0x00008000)
     %p ----   128     (0x00000080)    |  %m ---- 65536     (0x00010000)
-    %a ----   256     (0x00000100)    |
+    %a ----   256     (0x00000100)    |  %: ----131072     (0x00020000)
   ----------------------------------------------------------------------------
   
   You would add the values together and apply to the sub_override 'bitmask'
@@ -9090,7 +9301,7 @@
     %s ----           SUB_S           |  %k ----           SUB_K
     %o ----           SUB_O           |  %w ----           SUB_W
     %p ----           SUB_P           |  %m ----           SUB_M
-    %a ----           SUB_A           |
+    %a ----           SUB_A           |  %: ----           SUB_COLON
   ----------------------------------------------------------------------------
   
   If the hook object (@admin hook_obj) is NOT defined, or if the attribute 
@@ -9902,7 +10113,103 @@
   LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE() LPOWERS()       LTOGGLES()
   MAILALIAS()   MAILQUICK()   MAILQUOTA()   MAILSIZE()      MAILSTATUS()
   MSIZETOT()    NSLOOKUP()    QUOTA()       SIZE()          TEXTFILE()
-  MAILREAD()    MAILSEND()
+  MAILREAD()    MAILSEND()    EXECSCRIPT()
+
+& EXECSCRIPT()
+  Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
+  
+  Note:  This function issues a shell interpreter so will have some
+         overhead compared to calling it natively through an API.
+  
+  Requirements:  /usr/bin/timeout (on MacOSX link to /usr/local/bin/gtimeout)
+                 script/binary existing in ~/game/scripts and chmod u+rx
+                 @powered EXECSCRIPT GM or higher
+                 Set SIDEFX (with the sideffect EXECSCRIPT enabled)
+  
+  This function executes a script called <script name> in the game
+  directory's sub-directory 'scripts'.  It is case sensitive and strips
+  illegal characters (like, .., /, $, etc) from the script name.
+  
+  This requires the EXECSCRIPT @power of GUILDMASTER to use the function.
+  It requires the ARCHITECT level to allow the use of passing arguments
+  to the script.  Unlike other powers, this power is not inheritable.
+  
+  You can pass a maximum of 9 arguments to the script not including the
+  script name.
+  
+  The following variables are available from inside the scripts called:
+    MUSH_PLAYER       - [%!] dbref# of player followed by name of player.  
+    MUSH_CAUSE        - [%#] dbref# of cause followed by name of cause.  
+    MUSH_CALLER       - [%@] dbref# of caller followed by name of caller.  
+    MUSH_FLAGS        - the flags of the player.
+    MUSH_TOGGLES      - the togglesof the player.
+    MUSH_OWNER        - dbref# of player's owner by name of owner.
+    MUSH_OWNERFLAGS   - the flags of the player's owner.
+    MUSH_OWNERTOGGLES - the toggles of the player's owner.
+  
+  Examples:
+    > say execscript(hello.sh)
+    You say "hello from the script."
+    > say execscript(hello.sh,test)
+    You say "hello from the script with args: 'test'"
+  
+  See 'writing scripts' for help on dos and don'ts in writing execscripts.
+    
+  See Also: POWER EXECSCRIPT
+
+& WRITING SCRIPTS
+  Topic: Writing Scripts
+  
+  The execscript() is an popen exec call.  This means that it will, 
+  unfortunately, wait for children processes of the calling script to
+  finish before it returns.  What does this mean?  It means it is a 
+  blocking call, ergo, your mush WILL HANG until the child process
+  finishes.  Some protection was put into the call so that anything
+  from the 'direct' call of the script will auto kill itself after
+  a 5 second period, but it is unable to handle sub-shells or sub-calls
+  from within the called script itself.  It will have to wait until those
+  finish, so some importance should be shown on calling scripts or 
+  programs that could potentially take longer than 5 seconeds.
+  
+  Things to do:
+    1.  If you call a script that may take input, use expect or some
+        hereto or other method to feed it the required input so the
+        process will not hang waiting for input.
+  
+    2.  If the script is backgrounded, you need to redirect the output
+        for STDERR and STDOUT to a file or /dev/null.  Otherwise, the
+        script will wait for it to finish since it's expecting output.
+        Yes, this also includes nohupped processes.
+        Examples: (these work properly)
+          >  sleep 100 # this will be killed after 5 seconds
+          >  nohup /path/to/script.sh > /tmp/out.log 2>&1 &
+        Hanging Examples: (these do not redirect STDERR and STDOUT)
+          >  sleep 100 &
+          >  nohup /path/to/script.sh &
+  
+    3.  If you have something that will take more than 5 seconds, my
+        suggestion is to redirect the output to a file, then as part
+        of the script, have it check the existances of that file
+        and look for a 'done processing' section, and have as part
+        of your script have it check the existance of that file for
+        existing processing, have it check the 'done processing' to
+        then display the contents of that file and then REMOVE it
+        after that, otherwise, it runs the script that generates the
+        process.  You can write this method into any language you want.
+  
+    4.  This is an adhock process as it calls a shell interpreter.  All
+        work on cleanup in the script or dangling leaks, process hangs,
+        or other should be at responsibility of the person who writes
+        those scripts.  ALWAYS keep in mind the three important things:
+        A.  All output that can take over 5 seconds is redirected.
+        B.  Anything over 5 seconds will be killed unless you code around it.
+        C.  Background processes can hang the mush indefinately until
+            returned.
+  
+  Those are the important things to remember when scripting, an example
+  script is included as 'hello.sh' in the ~/game/scripts directory.
+  
+  Party on.
 
 & NSLOOKUP()
   Function: nslookup(<target>)

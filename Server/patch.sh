@@ -27,6 +27,12 @@ then
       exit 1
    fi
 else
+   git --version > /dev/null 2>&1
+   if [ $? -ne 0 ]
+   then
+      echo "Oopse!  You do not have git installed.  You need that to use patch.sh.  Sorry!"
+      exit 1
+   fi
    echo "Hum.  No source files.  I'll tell git to yoink the source files for you then."
    echo "downloading..."|tr -d '\012'
    git clone https://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
@@ -67,7 +73,9 @@ then
 fi
 if [ ${type} -eq 0 ]
 then
-   bunzip -cd src.tbz|tar -xvf -
+   mv -f src/local.c src/local.c.backup
+   bunzip2 -cd src.tbz|tar -xf -
+   cp -f src/local.c.backup src/local.c
 else
    mv -f src/local.c src/local.c.backup
    cp -f rhost_tmp/Server/src/*.c src
@@ -80,7 +88,7 @@ else
    rm -rf ./rhost_tmp
 fi
 cd src
-if [ `uname -s|grep -ic bsd` -gt 0 ]
+if [ $(uname -s|grep -ic bsd) -gt 0 ]
 then
    gmake clean;gmake
 else
@@ -96,8 +104,11 @@ do
   then
      echo "Indexing ${gl_mypath}/${i}..."
      cd ${gl_mypath}/$i/txt
-      ../mkindx help.txt help.indx
-      ../mkindx wizhelp.txt wizhelp.indx
+     if [ -f ../mkindx ]
+     then
+        ../mkindx help.txt help.indx
+        ../mkindx wizhelp.txt wizhelp.indx
+     fi
   fi
 done
 echo "Ok, we're done.  Ignore any warnings.  If you had errors, please report it to the developers."

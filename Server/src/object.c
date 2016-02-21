@@ -980,10 +980,11 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 {
     dbref owner, obj, place, dummy1;
     int count;
-    char *tname;
+    char *tname, *mybreak;
     double timecomp;
 #ifndef STANDALONE
-    int dummy2;
+    dbref d1;
+    int dummy2, d2;
     time_t timevar;
     char *pt1;
 #endif
@@ -1048,7 +1049,74 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	s_Flags2(obj, 0);
 	s_Exits(obj, NOTHING);
     } else {
-	if (key == PURGE_TIME) {
+        if (key == PURGE_TIMEOWNER) {
+            if ( (mybreak = strchr(buff, '/')) == NULL ) {
+#ifndef STANDALONE
+               notify(player, "Bad syntax with @purge/timeowner.  Requires: @purge/towner <time>/<player>");
+#endif
+               return;
+            }
+            timecomp = atof(buff);
+            timecomp = atof(buff);
+	    if ((timecomp < 1.0) || (timecomp > 100.0)) {
+#ifndef STANDALONE
+		notify(player, "Bad number in purge command.");
+#endif
+		return;
+	    }
+	    timecomp *= 86400.0;
+	    if ((*(mybreak+1) == '#') && (is_number(mybreak + 2))) {
+		dummy1 = atoi(mybreak + 2);
+		if (!Good_obj(dummy1))
+		    dummy1 = -1;
+	    } else {
+#ifndef STANDALONE
+		dummy1 = lookup_player(player, mybreak+1, 0);
+#endif
+	    }
+	    if (dummy1 == -1) {
+#ifndef STANDALONE
+		notify(player, "Bad reference in purge command.");
+#endif
+		return;
+            }   
+        } else if (key == PURGE_TIMETYPE) {
+           if ( (mybreak = strchr(buff, '/')) == NULL ) {
+#ifndef STANDALONE
+              notify(player, "Bad syntax with @purge/timetype.  Requires: @purge/ttype <time>/<type>");
+#endif
+              return;
+           }
+           timecomp = atof(buff);
+	   if ((timecomp < 1.0) || (timecomp > 100.0)) {
+#ifndef STANDALONE
+		notify(player, "Bad number in purge command.");
+#endif
+		return;
+	   }
+	   timecomp *= 86400.0;
+           switch(toupper(*(mybreak+1))) {
+#ifndef STANDALONE
+	    case 'T':
+		dummy2 = TYPE_THING;
+		break;
+	    case 'R':
+		dummy2 = TYPE_ROOM;
+		break;
+	    case 'E':
+		dummy2 = TYPE_EXIT;
+		break;
+	    case 'P':
+		dummy2 = TYPE_PLAYER;
+		break;
+#endif
+	    default:
+#ifndef STANDALONE
+		notify(player, "Bad type in purge command.");
+#endif
+		return;
+           }
+        } else if (key == PURGE_TIME) {
 	    if (!is_number(buff)) {
 #ifndef STANDALONE
 		notify(player, "Bad number in purge command.");
@@ -1107,7 +1175,35 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	count = 0;
 	while (obj != NOTHING) {
 #ifndef STANDALONE
-	    if (key == PURGE_TIME) {
+            if (key == PURGE_TIMEOWNER) {
+		pt1 = atr_get(obj, A_RECTIME, &d1, &d2);
+		timevar = atol(pt1);
+		free_lbuf(pt1);
+		if (Next(obj) != dummy1) {
+		    place = obj;
+		    obj = Link(obj);
+		    continue;
+		}
+		if (difftime(mudstate.now, timevar) <= timecomp) {
+		    place = obj;
+		    obj = Link(obj);
+		    continue;
+		}
+            } else if (key == PURGE_TIMETYPE) {
+		pt1 = atr_get(obj, A_RECTIME, &d1, &d2);
+		timevar = atol(pt1);
+		free_lbuf(pt1);
+		if (Typeof(obj) != dummy2) {
+		    place = obj;
+		    obj = Link(obj);
+		    continue;
+		}
+		if (difftime(mudstate.now, timevar) <= timecomp) {
+		    place = obj;
+		    obj = Link(obj);
+		    continue;
+		}
+	    } else if (key == PURGE_TIME) {
 		pt1 = atr_get(obj, A_RECTIME, &dummy1, &dummy2);
 		timevar = atol(pt1);
 		free_lbuf(pt1);
