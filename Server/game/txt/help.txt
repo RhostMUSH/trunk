@@ -29162,3 +29162,4 @@
   * possible crash bug in @dbclean if there's a cached attribute that
     was not in-use properly [ASH]
   * small dangling check fix for %<###> ascii encoding [ASH]
+  * mailsend() was too restrictive for non-player types [ASH]

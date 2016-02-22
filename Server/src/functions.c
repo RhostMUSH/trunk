@@ -30479,7 +30479,11 @@ FUNCTION(fun_mailsend)
      safe_str("//", s_body, &s_bodyptr);
    }
    safe_str(fargs[2], s_body, &s_bodyptr);
-   do_mail(player, cause, i_key, fargs[0], s_body);
+   if ( !isPlayer(player) && Good_chk(Owner(player)) ) {
+      do_mail(Owner(player), cause, i_key, fargs[0], s_body);
+   } else {
+      do_mail(player, cause, i_key, fargs[0], s_body);
+   }
    free_lbuf(s_body);
 }
 
