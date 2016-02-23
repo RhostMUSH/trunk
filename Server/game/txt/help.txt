@@ -138,8 +138,27 @@
   SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
   VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
   ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
-  ATTRIB FORMATTING
+  ATTRIB FORMATTING   MAX ARGS
   
+& MAX ARGS
+  Topic: MAX ARGS
+  
+  Functions:
+    The maximum number of arguments you can pass functions, by default, is 30.
+    Anything over this tends to no longer be processed.  
+  
+    You can extend this by strfunc() to essentially turn any function into
+    a list function, which then extends the maximum number of arguments
+    to functions (that except 1 to n as arguments) to a maximum of 1000.
+  
+    Functions that are hard-locked with strict arguments are not effected.
+  
+  Commands:
+    Commands, by default, have 10 arguments you can pass to them.  This is
+    hard limited and immutable.
+  
+  See Also: strfunc(), @list functions, @list commands, commands, functions
+    
 & ATTRIB FORMATTING
 & ATTRIBUTE FORMATTING
   All NON-ACTION attributes allowed formatting are in: help attributes
