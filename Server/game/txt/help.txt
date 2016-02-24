@@ -149,9 +149,9 @@
   
     You can extend this by strfunc() to essentially turn any function into
     a list function, which then extends the maximum number of arguments
-    to functions (that except 1 to n as arguments) to a maximum of 1000.
+    to functions (that accept 1 to n as arguments) to a maximum of 1000.
   
-    Functions that are hard-locked with strict arguments are not effected.
+    Functions that are hard-locked with strict arguments are not affected.
   
   Commands:
     Commands, by default, have 10 arguments you can pass to them.  This is
