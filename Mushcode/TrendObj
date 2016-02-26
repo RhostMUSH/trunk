@@ -1,0 +1,57 @@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Trend Object version 1.0.0
+@@
+@@ -- +trend -- shows the current week's trend of MAX connections and UNIQUE 
+@@              connections
+@@ -- +trend <date> -- shows the specified week's trend of MAX and UNIQUE
+@@
+@@ Note: Stepping is by default '5'.  With a max of '100'.  This will 
+@@       dynamically increase if you ever exceed 100 connections and continue
+@@       to do so.  No, there's no known 'ceiling' on the range, so happy 
+@@       mudding.
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Create the TrendDB that houses the yearly statistics (done daily)
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@create TrendDB=10
+@set TrendDB=INDESTRUCTABLE SAFE HALT
+@@ -- Create the main functionary object
+@create TrendFun=10
+@fo me=&DB TrendFun=num(TrendDB)
+@fo me=&F-DB TrendFun=num(TrendFun)
+&VERSION TrendFun=1.0.0
+&FN_EVENLINE TrendFun=[printf($-8:!-:s- |[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]|,ifelse(v(0),ansi(hc,v(0)%b)),v(1),v(2),v(3),v(4),v(5),v(6),v(7),v(8),v(9),v(10),v(11),v(12),v(13),v(14))]
+&FN_CURR TrendFun=[switch([eq(%0,v(step))][gt(%1,0)],11,u(fn_currval,%0,%1),01,u(fn_currcol,%0,%1),10,N/A)]
+&FN_MAX TrendFun=[switch([eq(%0,v(step))][gt(%1,0)],11,u(fn_maxval,%0,%1),01,u(fn_maxcol,%0,%1))]
+&FN_CURRVAL TrendFun=[ansi(hC,ljust(%1,3))]
+&FN_MAXVAL TrendFun=[ansi(hM,ljust(%1,3))]
+&STEP TrendFun=5
+&FN_DOWNSTEP TrendFun=[space(10)]+[center(- [ansi(hc,Week Trend)] for [ansi(hc,u([v(F-DB)]/fn_genstartdate,%t))] -,66,-)]+[iter(lnum(mul(v(step),20),v(step),,5),%r[u(fn_evenline,ifelse(mod(%i0,2),%i0),u(fn_curr,%i0,first(get([v(DB)]/%0))),u(fn_max,%i0,rest(get([v(DB)]/%0))),u(fn_curr,%i0,first(get([v(DB)]/%1))),u(fn_max,%i0,rest(get([v(DB)]/%1))),u(fn_curr,%i0,first(get([v(DB)]/%2))),u(fn_max,%i0,rest(get([v(DB)]/%2))),u(fn_curr,%i0,first(get([v(DB)]/%3))),u(fn_max,%i0,rest(get([v(DB)]/%3))),u(fn_curr,%i0,first(get([v(DB)]/%4))),u(fn_max,%i0,rest(get([v(DB)]/%4))),u(fn_curr,%i0,first(get([v(DB)]/%5))),u(fn_max,%i0,rest(get([v(DB)]/%5))),u(fn_curr,%i0,first(get([v(DB)]/%6))),u(fn_max,%i0,rest(get([v(DB)]/%6))))])]%r[space(10)]+[repeat(-,66)]+%r[printf([space(14)]$-8s $-8s $-8s $-8s $-8s $-8s $-8s,Sun, Mon, Tue, Wed, Thu, Fri, Sat)]%r[space(14)]%[Version: [v(version)]%] Key: [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE CONNECTIONS)]
+&DAT_DAYS TrendFun=Sun Mon Tue Wed Thu Fri Sat
+&DAT_MONTH TrendFun=Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
+&FN_GENDATE TrendFun=[printf(VAL_$02s_$02s, match(v(dat_month),extract(%qt,2,1)), extract(%qt,3,1))]
+&FN_PULLATTRS TrendFun=[u(fn_storedate,%0)][revwords(extract(after(revwords(X X X X X X X X X X [sort(lattr([v(DB)]))]),u(fn_gendate)),1,sub(match(v(dat_days),extract(time(),1,1)),1)))] [u(fn_gendate)]
+&FN_RUNSTAT TrendFun=[setq(0,u(fn_pullattrs,%0))][u(fn_downstep,extract(%q0,1,1),extract(%q0,2,1),extract(%q0,3,1),extract(%q0,4,1),extract(%q0,5,1),extract(%q0,6,1),extract(%q0,7,1))]
+&FN_CURRCOL TrendFun=[ifelse(lte(%0,%1),ansi(hC,space(3)))]
+&FN_MAXCOL TrendFun=[ifelse(lte(%0,%1),ansi(hM,space(3)))]
+&FN_GENSTARTDATE TrendFun=[setq(a,match(v(dat_days),extract(%qt,1,1)))][setq(b,mul(sub(%qa,1),86400))][setq(c,convsecs(sub(convtime(%qt),%qb)))][printf($02s-$02s-$s,match(v(dat_month),extract(%qc,2,1)),extract(%qc,3,1),extract(%qc,5,1))]
+&FN_STOREDATE TrendFun=[setq(t,convtime(%0))][setq(t,ifelse(eq(%qt,-1),time(),convsecs(%qt)))]
+@set TrendFun=INDESTRUCTABLE SAFE INHERIT
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Create the master TrendOBJ with the commands
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@create TrendObj=10
+@fo me=&F-DB TrendObj=num(TrendFun)
+@fo me=&DB TrendObj=num(TrendDB)
+&DO_TIME TrendObj=@eval [setq(0,first(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(1,rest(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(2,words(lwho()))][setq(3,words(setdiff(iter(lwho(),lookup_site(##)),#-1)))];&VAL_[timefmt($02M_$02D,secs())] [v(DB)]=[max(%q0,%q2)] [max(%q1,%q3)]
+&CMD_TREND TrendObj=$+trend *:@pemit %#=[u([v(F-DB)]/fn_runstat,%0)]
+&CMD_TRENDNOW TrendObj=$+trend:@pemit %#=[u([v(F-DB)]/fn_runstat)]
+@Aconnect TrendObj=@tr me/do_time;@swi [gt(words(lwho()),mul(get([v(F-DB)]/step),20))]=1,&STEP [v(F-DB)]=[add(get([v(F-DB)]/step),1)]
+@set TrendObj=INDESTRUCTABLE SAFE INHERIT
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Cleanup on aisle one
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@tel/list trenddb trendfun=trendobj
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Ok we're done, let the user know
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+think Completed.
