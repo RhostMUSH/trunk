@@ -1,4 +1,4 @@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Trend Object version 1.0.0
 @@
 @@ -- +trend -- shows the current week's trend of MAX connections and UNIQUE 
@@ -9,9 +9,9 @@
 @@       dynamically increase if you ever exceed 100 connections and continue
 @@       to do so.  No, there's no known 'ceiling' on the range, so happy 
 @@       mudding.
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the TrendDB that houses the yearly statistics (done daily)
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @create TrendDB=10
 @set TrendDB=INDESTRUCTABLE SAFE HALT
 @@ -- Create the main functionary object
@@ -36,9 +36,9 @@
 &FN_GENSTARTDATE TrendFun=[setq(a,match(v(dat_days),extract(%qt,1,1)))][setq(b,mul(sub(%qa,1),86400))][setq(c,convsecs(sub(convtime(%qt),%qb)))][printf($02s-$02s-$s,match(v(dat_month),extract(%qc,2,1)),extract(%qc,3,1),extract(%qc,5,1))]
 &FN_STOREDATE TrendFun=[setq(t,convtime(%0))][setq(t,ifelse(eq(%qt,-1),time(),convsecs(%qt)))]
 @set TrendFun=INDESTRUCTABLE SAFE INHERIT
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the master TrendOBJ with the commands
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @create TrendObj=10
 @fo me=&F-DB TrendObj=num(TrendFun)
 @fo me=&DB TrendObj=num(TrendDB)
@@ -47,11 +47,11 @@
 &CMD_TRENDNOW TrendObj=$+trend:@pemit %#=[u([v(F-DB)]/fn_runstat)]
 @Aconnect TrendObj=@tr me/do_time;@swi [gt(words(lwho()),mul(get([v(F-DB)]/step),20))]=1,&STEP [v(F-DB)]=[add(get([v(F-DB)]/step),1)]
 @set TrendObj=INDESTRUCTABLE SAFE INHERIT
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Cleanup on aisle one
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @tel/list trenddb trendfun=trendobj
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Ok we're done, let the user know
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 think Completed.
