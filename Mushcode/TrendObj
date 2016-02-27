@@ -52,7 +52,10 @@
 &DO_KEEPER TrendObj=@tr/quiet me/do_time;@wait 43200=@tr/quiet me/do_keeper
 @startup TrendObj=@wait 100=@tr/quiet me/do_keeper
 @Aconnect TrendObj=@tr me/do_time;@swi [gt(words(lwho()),mul(get([v(F-DB)]/step),20))]=1,&STEP [v(F-DB)]=[add(get([v(F-DB)]/step),1)]
-@set TrendObj=INDESTRUCTABLE SAFE INHERIT
+@set TrendObj=INDESTRUCTABLE SAFE INHERIT !NO_COMMAND !HALT
+think Applying the COMMANDS flag.  Ignore if you see a PERMISSION DENIED
+@set TrendObj=COMMANDS
+@tr/quiet trendobj/startup
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Cleanup on aisle one
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
