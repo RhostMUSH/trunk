@@ -24,8 +24,8 @@
 @fo me=&F-DB TrendFun=num(TrendFun)
 &VERSION TrendFun=1.0.0
 &FN_EVENLINE TrendFun=[printf($-8:!-:s- |[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]|,ifelse(v(0),ansi(hc,v(0)%b)),v(1),v(2),v(3),v(4),v(5),v(6),v(7),v(8),v(9),v(10),v(11),v(12),v(13),v(14))]
-&FN_CURR TrendFun=[switch([eq(%0,v(step))][gt(%1,0)],11,u(fn_currval,%0,%1),01,u(fn_currcol,%0,%1),10,N/A)]
-&FN_MAX TrendFun=[switch([eq(%0,v(step))][gt(%1,0)],11,u(fn_maxval,%0,%1),01,u(fn_maxcol,%0,%1))]
+&FN_CURR TrendFun=[switch([eq(%0,v(step))][and(!!$v(1),gte(%1,0))],11,u(fn_currval,%0,%1),01,u(fn_currcol,%0,%1),10,N/A)]
+&FN_MAX TrendFun=[switch([eq(%0,v(step))][and(!!$v(1),gte(%1,0))],11,u(fn_maxval,%0,%1),01,u(fn_maxcol,%0,%1))]
 &FN_CURRVAL TrendFun=[ansi(hC,ljust(%1,3))]
 &FN_MAXVAL TrendFun=[ansi(hM,ljust(%1,3))]
 &STEP TrendFun=5
