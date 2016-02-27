@@ -28,7 +28,7 @@
 &DAT_DAYS TrendFun=Sun Mon Tue Wed Thu Fri Sat
 &DAT_MONTH TrendFun=Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
 &FN_GENDATE TrendFun=[printf(VAL_$02s_$02s, match(v(dat_month),extract(%qt,2,1)), extract(%qt,3,1))]
-&FN_PULLATTRS TrendFun=[u(fn_storedate,%0)][revwords(extract(after(revwords(X X X X X X X X X X [sort(lattr([v(DB)]))]),u(fn_gendate)),1,sub(match(v(dat_days),extract(time(),1,1)),1)))] [u(fn_gendate)]
+&FN_PULLATTRS TrendFun=[u(fn_storedate,%0)][revwords(extract(after(revwords(X X X X X X X X X X [setunion(lattr([v(DB)]),u(fn_gendate))]),u(fn_gendate)),1,sub(match(v(dat_days),extract(time(),1,1)),1)))] [u(fn_gendate)]
 &FN_RUNSTAT TrendFun=[setq(0,u(fn_pullattrs,%0))][u(fn_downstep,extract(%q0,1,1),extract(%q0,2,1),extract(%q0,3,1),extract(%q0,4,1),extract(%q0,5,1),extract(%q0,6,1),extract(%q0,7,1))]
 &FN_CURRCOL TrendFun=[ifelse(lte(%0,%1),ansi(hC,space(3)))]
 &FN_MAXCOL TrendFun=[ifelse(lte(%0,%1),ansi(hM,space(3)))]
