@@ -49,6 +49,8 @@
 &DO_TIME TrendObj=@eval [setq(0,first(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(1,rest(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(2,words(lwho()))][setq(3,words(setdiff(iter(lwho(),lookup_site(##)),#-1)))];&VAL_[timefmt($02M_$02D,secs())] [v(DB)]=[max(%q0,%q2)] [max(%q1,%q3)]
 &CMD_TREND TrendObj=$+trend *:@pemit %#=[u([v(F-DB)]/fn_runstat,%0)]
 &CMD_TRENDNOW TrendObj=$+trend:@pemit %#=[u([v(F-DB)]/fn_runstat)]
+&DO_KEEPER TrendObj=@tr/quiet me/do_time;@wait 43200=@tr/quiet me/do_keeper
+@startup TrendObj=@wait 100=@tr/quiet me/do_keeper
 @Aconnect TrendObj=@tr me/do_time;@swi [gt(words(lwho()),mul(get([v(F-DB)]/step),20))]=1,&STEP [v(F-DB)]=[add(get([v(F-DB)]/step),1)]
 @set TrendObj=INDESTRUCTABLE SAFE INHERIT
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
