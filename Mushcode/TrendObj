@@ -4,6 +4,11 @@
 @@              connections
 @@ -- +trend <date> -- shows the specified week's trend of MAX and UNIQUE
 @@
+@@ ToDo: If you have low connections on your mush where the possibility of
+@@       players conencting will NOT HAPPEN in a 24 hour period, you should
+@@       set up a cron job to run once a day to execute 'DO_TIME' on the
+@@       TrendObj.  This will cache data in the appropriate attribute.
+@@
 @@ Note: Stepping is by default '5'.  With a max of '100'.  This will 
 @@       dynamically increase if you ever exceed 100 connections and continue
 @@       to do so.  No, there's no known 'ceiling' on the range, so happy 
