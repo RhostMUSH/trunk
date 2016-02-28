@@ -1003,13 +1003,14 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             continue;
          }
       }
-      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') ) {
+      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') && 
+            ((strlen(s_inptr) > 8 && *(s_inptr+5) == '>') || (strlen(s_inptr) > 10 && *(s_inptr+7) == '>')) ) {
         *s_outptr = '?';
         s_inptr+=3;
         memset(buf_utf8, '\0', 10);
         utfcnt = 0;
 
-        while (utfcnt < 8 && *s_inptr != '>') {
+        while (utfcnt < 6 && *s_inptr != '>') {
             buf_utf8[utfcnt] = *s_inptr;
             utfcnt++;
             s_inptr++;
