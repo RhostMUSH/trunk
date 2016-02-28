@@ -33,12 +33,13 @@
 &DAT_DAYS TrendFun=Sun Mon Tue Wed Thu Fri Sat
 &DAT_MONTH TrendFun=Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
 &FN_GENDATE TrendFun=[printf(VAL_$02s_$02s, match(v(dat_month),extract(%qt,2,1)), extract(%qt,3,1))]
-&FN_PULLATTRS TrendFun=[u(fn_storedate,%0)][revwords(extract(after(revwords(X X X X X X X X X X [setunion(lattr([v(DB)]),u(fn_gendate))]),u(fn_gendate)),1,sub(match(v(dat_days),extract(time(),1,1)),1)))] [u(fn_gendate)]
+&FN_PULLATTRS TrendFun=[u(fn_storedate,%0)][u(fn_getsunday)][revwords(extract(after(revwords([setq(r,sub(match(v(dat_days),extract(%qt,1,1)),1))] X X X X X X X [sort(lattr([v(DB)]))] [setq(u,%qt)][iter(lnum(%qr,0),[setq(t,convsecs(sub(convtime(%qu),mul(86400,%i0))))][ifelse(hasattr(v(DB),u(fn_gendate)),,u(fn_gendate))])]),u(fn_gendate)),1,sub(match(v(dat_days),extract(%qt,1,1)),1)))] [u(fn_gendate)]
 &FN_RUNSTAT TrendFun=[setq(0,u(fn_pullattrs,%0))][u(fn_downstep,extract(%q0,1,1),extract(%q0,2,1),extract(%q0,3,1),extract(%q0,4,1),extract(%q0,5,1),extract(%q0,6,1),extract(%q0,7,1))]
 &FN_CURRCOL TrendFun=[ifelse(lte(%0,%1),ansi(hC,space(3)))]
 &FN_MAXCOL TrendFun=[ifelse(lte(%0,%1),ansi(hM,space(3)))]
 &FN_GENSTARTDATE TrendFun=[setq(a,match(v(dat_days),extract(%qt,1,1)))][setq(b,mul(sub(%qa,1),86400))][setq(c,convsecs(sub(convtime(%qt),%qb)))][printf($02s-$02s-$s,match(v(dat_month),extract(%qc,2,1)),extract(%qc,3,1),extract(%qc,5,1))]
 &FN_STOREDATE TrendFun=[setq(t,convtime(%0))][setq(t,ifelse(eq(%qt,-1),time(),convsecs(%qt)))]
+&FN_GETSUNDAY TrendFun=[setq(t,convsecs(add(convtime(%qt),mul(sub(7,match(v(dat_days),extract(%qt,1,1))),86400))))]
 @set TrendFun=INDESTRUCTABLE SAFE INHERIT
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the master TrendOBJ with the commands
