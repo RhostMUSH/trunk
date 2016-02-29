@@ -9,6 +9,7 @@
 @@ -- +trend/year <year> . - Show specified year's trend.
 @@ -- +trend/record ...... - Show statistics of maximums for month and year.
 @@ -- +trend/hour ........ - Show hourly trend for the day.
+@@ -- +trend/help .......  - The help command for listing all the above.
 @@
 @@ Note: Stepping is by default '5'.  With a max of '100'.  This will 
 @@       dynamically increase if you ever exceed 100 connections and continue
