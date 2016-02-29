@@ -66,7 +66,6 @@
 &FN_RUNHOUR_HEADER TrendFun=[space(4)]+[center(- Trend for Hourly for %ch%cc[timefmt($02M-$02D-$Y,secs())]%cn -,72,-)]+
 &FN_RUNHOUR_FOOT TrendFun=[setq(h,timefmt($h,secs()))]%r[space(4)]+[repeat(-,72)]+%r[printf([space(5)]$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s,u(fn_colorhour_foot,00),u(fn_colorhour_foot,01),u(fn_colorhour_foot,02),u(fn_colorhour_foot,03),u(fn_colorhour_foot,04),u(fn_colorhour_foot,05),u(fn_colorhour_foot,06),u(fn_colorhour_foot,07),u(fn_colorhour_foot,08),u(fn_colorhour_foot,09),u(fn_colorhour_foot,10),u(fn_colorhour_foot,11),u(fn_colorhour_foot,12),u(fn_colorhour_foot,13),u(fn_colorhour_foot,14),u(fn_colorhour_foot,15),u(fn_colorhour_foot,16),u(fn_colorhour_foot,17),u(fn_colorhour_foot,18),u(fn_colorhour_foot,19),u(fn_colorhour_foot,20),u(fn_colorhour_foot,21),u(fn_colorhour_foot,22),u(fn_colorhour_foot,23))]%r[space(4)]%[Version: [v(version)]%] Key: [ansi(hy,AVG PLAYER)] [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE)] [ansi(hr,YESTERDAY HOURS)]
 &FN_COLORHOUR_FOOT TrendFun=%ch[ifelse(lte(%0,%qh),%cc,%cr)]%0%cn
-8
 @set TrendFun=INDESTRUCTABLE SAFE INHERIT
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the master TrendOBJ with the commands
