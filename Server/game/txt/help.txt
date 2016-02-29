@@ -175,6 +175,7 @@
   over global formatting.
   
   Note: Most RhostMUSHes will be configured to use &FORMAT<attr>.
+        See '@list options system' to discover which method is in use.
   
   Examples:
     > @desc me=This is a test
