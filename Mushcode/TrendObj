@@ -77,7 +77,7 @@
 &DO_TIME TrendObj=@eval [setq(0,first(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(1,rest(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(2,words(lwho()))][setq(3,words(setdiff(iter(lwho(),lookup_site(##)),#-1)))];&VAL_[timefmt($02M_$02D,secs())] [v(DB)]=[max(%q0,%q2)] [max(%q1,%q3)]
 &CMD_TREND TrendObj=$+trend *:@pemit %#=[u([v(F-DB)]/fn_runstat,%0)]
 &CMD_TRENDNOW TrendObj=$+trend:@pemit %#=[u([v(F-DB)]/fn_runstat)]
-&DO_KEEPER TrendObj=@tr/quiet me/do_aconnect;@wait 3600=@tr/quiet me/do_keeper
+&DO_KEEPER TrendObj=@tr/quiet me/aconnect;@wait 3600=@tr/quiet me/do_keeper
 &CMD_TRENDMON TrendObj=$+trend/mon*:@pemit %#=[u([v(F-DB)]/fn_runmonth)]
 &CMD_TRENDYEAR TrendObj=$+trend/year*:@pemit %#=[u([v(F-DB)]/fn_runyear,%0)]
 &CMD_TRENDRECORDS TrendObj=$+trend/record*:@pemit %#=[u([v(F-DB)]/fn_records)]
