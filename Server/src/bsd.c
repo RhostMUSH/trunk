@@ -361,10 +361,11 @@ shovechars(int port,char* address)
     DESC *d, *dnext, *newd;
     CMDENT *cmdp = NULL;
     int avail_descriptors, maxfds, active_auths, aflags2, temp1, temp2;
-    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep, i_len;
+    int sitecntr, i_oldlasttime, i_oldlastcnt, flagkeep, i_len, i_cntr;
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
-         s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, *b_progatrptr;
+         s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, 
+         *t_progatr, *b_progatrptr;
 #ifdef ZENTY_ANSI
     char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr;
 #endif
@@ -777,9 +778,12 @@ shovechars(int port,char* address)
                             }
                             s_progatr = alloc_sbuf("idle_stamp");
                             sprintf(s_progatr, "%u", ulCRC32);
-                            if ( (i_progatr >= mudconf.idle_stamp_max) && (strstr(progatr, s_progatr) == NULL) ) {
+                            if ( (i_progatr >= (mudconf.idle_stamp_max-1)) && (strstr(progatr, s_progatr) == NULL) ) {
                                progatr_str = strtok_r(progatr, " ", &progatr_strptr);
                                if ( progatr_str )
+                                  progatr_str = strtok_r(NULL, " ", &progatr_strptr);
+                               /* Let's catch up to the current value if i_progatr - 1 still > mudconf.idle_stamp_max */
+                               if ( ((i_progatr - 1) >= (mudconf.idle_stamp_max-1)) && progatr_str )
                                   progatr_str = strtok_r(NULL, " ", &progatr_strptr);
                             } else {
                                progatr_str = strtok_r(progatr, " ", &progatr_strptr);
@@ -787,10 +791,10 @@ shovechars(int port,char* address)
                             b_progatrptr = b_progatr = alloc_lbuf("idle_stamp");
                             i_progatr = 0;
                             anum = 0;
+                            i_cntr = 0;
                             if ( progatr_str ) {
+                               t_progatr = alloc_lbuf("idle_stamp_movetoend");
                                while ( progatr_str ) {
-                                  if ( i_progatr > 0 )
-                                     safe_chr(' ', b_progatr, &b_progatrptr);
                                   if ( strstr(progatr_str, s_progatr) != NULL ) {
                                      anum = 1;
                                      if ( strchr(progatr_str, ':') != NULL ) {
@@ -799,14 +803,32 @@ shovechars(int port,char* address)
                                      } else {
                                         i_progatr = 1;
                                      }
-                                     sprintf(s_progatr, "%u:%d", ulCRC32, i_progatr);
-                                     safe_str(s_progatr, b_progatr, &b_progatrptr);
+                                     if ( i_progatr > 1 ) {
+                                        sprintf(t_progatr, "%u:%d", ulCRC32, i_progatr);
+                                     } else {
+                                        sprintf(s_progatr, "%u:%d", ulCRC32, i_progatr);
+                                        if ( i_cntr > 0 )
+                                           safe_chr(' ', b_progatr, &b_progatrptr);
+                                        safe_str(s_progatr, b_progatr, &b_progatrptr);
+                                        i_cntr++;
+                                     }
                                   } else {
-                                     i_progatr = 1;
+                                     if ( i_cntr > 0 )
+                                        safe_chr(' ', b_progatr, &b_progatrptr);
                                      safe_str(progatr_str, b_progatr, &b_progatrptr);
+                                     i_progatr = 1;
+                                     i_cntr++;
                                   }
                                   progatr_str = strtok_r(NULL, " ", &progatr_strptr);
                                }
+                               /* Move the last command issued to end of the list if existed */
+                               if ( *t_progatr ) {
+                                  if ( i_cntr > 0 ) {
+                                     safe_chr(' ', b_progatr, &b_progatrptr);
+                                  }
+                                  safe_str(t_progatr, b_progatr, &b_progatrptr);
+                               }
+                               free_lbuf(t_progatr);
                             } 
                             if ( !anum ) {
                                if ( i_progatr )
