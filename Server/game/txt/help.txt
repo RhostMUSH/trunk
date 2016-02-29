@@ -159,6 +159,9 @@
   
   See Also: strfunc(), @list functions, @list commands, commands, functions
     
+& descformat
+& formatdesc
+& @descformat
 & ATTRIB FORMATTING
 & ATTRIBUTE FORMATTING
   All NON-ACTION attributes allowed formatting are in: help attributes
