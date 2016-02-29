@@ -1,18 +1,20 @@
-@@ -- Trend Object version 1.0.0
+@@ -- Trend Object version 1.0.1
 @@
-@@ -- +trend -- shows the current week's trend of MAX connections and UNIQUE 
-@@              connections
 @@ -- +trend <date> -- shows the specified week's trend of MAX and UNIQUE
-@@
-@@ ToDo: If you have low connections on your mush where the possibility of
-@@       players conencting will NOT HAPPEN in a 24 hour period, you should
-@@       set up a cron job to run once a day to execute 'DO_TIME' on the
-@@       TrendObj.  This will cache data in the appropriate attribute.
+@@ -- +trend
+@@ -- +trend ............. - Show current week's trend.
+@@ -- +trend <date> ...... - Show specified week's trend.
+@@ -- +trend/month ....... - Show year's trend by month.
+@@ -- +trend/year ........ - Show current year's trend.
+@@ -- +trend/year <year> . - Show specified year's trend.
+@@ -- +trend/record ...... - Show statistics of maximums for month and year.
+@@ -- +trend/hour ........ - Show hourly trend for the day.
 @@
 @@ Note: Stepping is by default '5'.  With a max of '100'.  This will 
 @@       dynamically increase if you ever exceed 100 connections and continue
-@@       to do so.  No, there's no known 'ceiling' on the range, so happy 
-@@       mudding.
+@@       to do so.  For initial low connections, feel free to set this
+@@       to a lower value to begin with.  No, there's no known 'ceiling' 
+@@       on the range, so happy mudding.
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the TrendDB that houses the yearly statistics (done daily)
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
