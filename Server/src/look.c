@@ -24,6 +24,7 @@ char *index(const char *, int);
 #endif /* REALITY_LEVELS */
 
 extern int count_chars(const char *, const char c);
+extern dbref    FDECL(match_thing, (dbref, char *));
 
 static void 
 look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
@@ -1181,7 +1182,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 
 static void 
 look_atrs1(dbref player, dbref thing, dbref othing,
-	   int check_exclude, int hash_insert, int i_tree)
+	   int check_exclude, int hash_insert, int i_tree, dbref i_cluster)
 {
     dbref aowner;
     int ca, aflags;
@@ -1209,7 +1210,7 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 		 if (hash_insert)
 		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);
 		 view_atr(player, thing, attr, buf,
-			  aowner, aflags, 0, (thing != othing ? thing : -1));
+			  aowner, aflags, 0, (thing != othing ? thing : (i_cluster != NOTHING ? i_cluster : -1)));
 	      }
            }
 	}
@@ -1218,13 +1219,13 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 }
 
 static void 
-look_atrs(dbref player, dbref thing, int check_parents, int i_tree)
+look_atrs(dbref player, dbref thing, int check_parents, int i_tree, dbref i_cluster)
 {
     dbref parent;
     int lev, check_exclude, hash_insert;
 
     if (!check_parents) {
-	look_atrs1(player, thing, thing, 0, 0, i_tree);
+	look_atrs1(player, thing, thing, 0, 0, i_tree, i_cluster);
     } else {
 	hash_insert = 1;
 	check_exclude = 0;
@@ -1233,7 +1234,7 @@ look_atrs(dbref player, dbref thing, int check_parents, int i_tree)
 	    if (!Good_obj(Parent(parent)))
 		hash_insert = 0;
 	    look_atrs1(player, parent, thing,
-		       check_exclude, hash_insert, i_tree);
+		       check_exclude, hash_insert, i_tree, i_cluster);
 	    check_exclude = 1;
             if ( Good_obj(Parent(parent)) ) {
              if ( NoEx(Parent(parent)) && !Wizard(player) )
@@ -1381,7 +1382,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
 #endif /* REALITY_LEVELS */
 
     if (!mudconf.quiet_look && (!Terse(player) || !(isRoom(thing) && Terse(thing)) || mudconf.terse_look)) {
-	look_atrs(player, thing, 0, 0);
+	look_atrs(player, thing, 0, 0, NOTHING);
     }
 }
 
@@ -1528,7 +1529,7 @@ look_in(dbref player, dbref loc, int key)
     /* tell him the attributes, contents and exits */
 
     if ((key & LK_SHOWATTR) && !mudconf.quiet_look && !is_terse)
-	look_atrs(player, loc, 0, 0);
+	look_atrs(player, loc, 0, 0, NOTHING);
     if (!is_terse || mudconf.terse_contents)
 	look_contents(player, loc, "Contents:");
     if ((key & LK_SHOWEXIT) && (!is_terse || mudconf.terse_exits)) {
@@ -1772,7 +1773,7 @@ debug_examine(dbref player, dbref thing)
 
 static void 
 exam_wildattrs(dbref player, dbref thing, int do_parent,
-	       OBLOCKMASTER * master, int key)
+	       OBLOCKMASTER * master, int key, dbref i_cluster, int *i_found)
 {
     int atr, aflags, got_any, pobj;
     char *buf;
@@ -1795,6 +1796,11 @@ exam_wildattrs(dbref player, dbref thing, int do_parent,
                  pobj = -1;
         } else
 	    buf = atr_get(thing, atr, &aowner, &aflags);
+
+        /* Set pobj to dbref of i_cluster if pobj is -1 */
+        if ( pobj == -1 ) {
+           pobj = i_cluster;
+        }
 
 	/* Decide if the player should see the attr:
 	 * If obj is Examinable and has rights to see, yes.
@@ -1851,18 +1857,22 @@ exam_wildattrs(dbref player, dbref thing, int do_parent,
     if (!got_any && !key)
 	notify_quiet(player, "No matching attributes found.");
 
+    if (got_any)
+       *i_found = 1;
+
 }
 
 void 
 do_examine(dbref player, dbref cause, int key, char *name)
 {
-    dbref thing, content, exit, aowner, loc, aowner2;
+    dbref thing, content, exit, aowner, loc, aowner2, i_cluster_db;
     char savec;
-    char *temp, *buf, *buf2, *modbuf, *find_chr;
+    char *temp, *temp2, *buf, *buf2, *modbuf, *find_chr;
+    char *s_cluster, *s_clustertk, *s_clustertkptr;
     BOOLEXP *bool;
     int control, aflags, do_parent, echeck, aflags2, keyfound;
     OBLOCKMASTER master;
-    int cntr=0, i_tree=0, i_regexp=0;
+    int cntr=0, i_tree=0, i_regexp=0, i_cluster=0, i_found=0;
     ATTR *a_chk;
 
     /* This command is pointless if the player can't hear. */
@@ -1877,6 +1887,10 @@ do_examine(dbref player, dbref cause, int key, char *name)
     if ( key & EXAM_TREE ) {
        i_tree = 1;
        key &= ~EXAM_TREE;
+    }
+    if ( key & EXAM_CLUSTER ) {
+       i_cluster = 1;
+       key &= ~EXAM_CLUSTER;
     }
     mudstate.outputflushed = 0;
     do_parent = key & EXAM_PARENT;
@@ -1907,6 +1921,11 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	      olist_cleanup(&master);
 	      return;
             }
+          }
+          if (i_cluster && !Cluster(thing)) {
+              notify(player, "Target isn't a cluster.");
+	      olist_cleanup(&master);
+	      return;
           }
           if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player, thing) ) {
              if ( ((mudconf.examine_restrictive == 1) && (Wanderer(player) || Guest(player)) && !Wizard(player)) ||
@@ -1954,10 +1973,47 @@ do_examine(dbref player, dbref cause, int key, char *name)
                 free_lbuf(modbuf);
              }
           }
-	  exam_wildattrs(player, thing, do_parent, &master, keyfound);
+          if ( i_cluster ) {
+	     exam_wildattrs(player, thing, do_parent, &master, 1, thing, &i_found);
+          } else {
+	     exam_wildattrs(player, thing, do_parent, &master, keyfound, NOTHING, &i_found);
+          }
 	  olist_cleanup(&master);
           if ( mudstate.outputflushed ) {
               notify_quiet(player, "WARNING: Output limited exceeded on examine.  Attributes cut off.");
+          }
+          if ( i_cluster && !mudstate.outputflushed ) {
+             a_chk = atr_str("_CLUSTER");
+             if ( a_chk ) {
+                s_cluster = atr_get(thing, a_chk->number, &aowner, &aflags);
+                if ( *s_cluster ) {
+                   s_clustertk = strtok_r(s_cluster, " ", &s_clustertkptr);
+                   temp2 = alloc_lbuf("exam_cluster_wild");
+                   while ( s_clustertk && *s_clustertk ) {
+                      i_cluster_db = match_thing(player, s_clustertk);
+                      if ( Good_chk(i_cluster_db) && (i_cluster_db != thing) ) {
+                         if ( strchr(name, '/') != NULL ) {
+                            sprintf(temp2, "%s%s", s_clustertk, (char *)strchr(name, '/'));
+                         } else {
+                            strcpy(temp2, name);
+                         }
+                         if ( parse_attrib_wild(player, temp2, &i_cluster_db, 0, 1, 0, &master, 0, i_regexp, i_tree) ) {
+	                    exam_wildattrs(player, i_cluster_db, 0, &master, 1, i_cluster_db, &i_found);
+                         }
+	                 olist_cleanup(&master);
+                         if ( mudstate.outputflushed ) {
+                             notify_quiet(player, "WARNING: Output limited exceeded on examine.  Attributes cut off.");
+                             break;
+                         }
+                      }
+                      s_clustertk = strtok_r(NULL, " ", &s_clustertkptr);
+                   }
+                   if ( !i_found )
+	              notify_quiet(player, "No matching attributes found.");
+                   free_lbuf(temp2);
+                }
+                free_lbuf(s_cluster);
+             }
           }
 	  return;
 	}
@@ -1986,6 +2042,10 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	  notify(player, "I don't see that here.");
 	  return;
        }
+    }
+    if (i_cluster && !Cluster(thing)) {
+       notify(player, "Target isn't a cluster.");
+       return;
     }
 
     if ( mudconf.examine_restrictive && !Immortal(player) && !Controls(player,thing) ) {
@@ -2162,7 +2222,32 @@ do_examine(dbref player, dbref cause, int key, char *name)
        free_lbuf(modbuf);
     }
     if ( key != EXAM_BRIEF ) {
-       look_atrs(player, thing, do_parent, i_tree);
+       if ( i_cluster ) {
+          i_cluster_db = thing;
+       } else {
+          i_cluster_db = NOTHING;
+       }
+       look_atrs(player, thing, do_parent, i_tree, i_cluster_db);
+       if ( i_cluster && !mudstate.outputflushed ) {
+          a_chk = atr_str("_CLUSTER");
+          if ( a_chk ) {
+             s_cluster = atr_get(thing, a_chk->number, &aowner, &aflags);
+             if ( *s_cluster ) {
+                s_clustertk = strtok_r(s_cluster, " ", &s_clustertkptr);
+                while ( s_clustertk && *s_clustertk ) {
+                   i_cluster_db = match_thing(player, s_clustertk);
+                   if ( Good_chk(i_cluster_db) && (i_cluster_db != thing) ) {
+                      look_atrs(player, i_cluster_db, do_parent, i_tree, i_cluster_db);
+                      if ( mudstate.outputflushed ) {
+                          break;
+                      }
+                   }
+                   s_clustertk = strtok_r(NULL, " ", &s_clustertkptr);
+                }
+             }
+             free_lbuf(s_cluster);
+          }
+       }
     }
 
     /* show him interesting stuff */

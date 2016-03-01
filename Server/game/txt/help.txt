@@ -638,6 +638,8 @@
 & examine
   Command: examine[/<switches>] <object>[/<wild-attrib>]
   
+  Available switches are on: help examine4
+  
   Displays all available information about <object>.  <object> may be an
   object, 'me' or 'here'. You must control the object to examine it, or it
   must be set VISUAL.  If you do not own the object, you will just see the
@@ -709,20 +711,28 @@
   start with v and are two characters long.
  
   The following switches are available:
-     /brief  - Show everything but the attributes.
-     /quick  - When examining an object you don't control, show only the
-               owner's name. 
-     /full   - When examining an object you don't control, show any public
-               attributes set on the object in addition to the owner's name.
-     /parent - Includes attributes that are not present on the object itself
-               but which are inherited from the object's parent.  This only
-               works if you have permission to see it.
-     /tree   - Examine per Penn-Tree output separating trees with '`'.
-               Only useful with using #obj/attr format.
-     /regexp - Use regular expression for wildcard matches.
+     /brief   - Show everything but the attributes.
+     /quick   - When examining an object you don't control, show only the
+                owner's name. 
+     /full    - When examining an object you don't control, show any public
+                attributes set on the object in addition to the owner's name.
+     /parent  - Includes attributes that are not present on the object itself
+                but which are inherited from the object's parent.  This only
+                works if you have permission to see it.
+     /tree    - Examine per Penn-Tree output separating trees with '`'.
+                Only useful with using #obj/attr format.
+     /regexp  - Use regular expression for wildcard matches.
+     /cluster - Examines the specified cluster (and all members).
+  
+  
+  Example:
+    > examine me
+      -- Output of examine of yourself
+    > examine me/*foo*
+      -- Output of just all attribs matching *foo*
   
   See Also: look, @decompile, VISUAL, ATTRIBUTE OWNERSHIP, FLAG LIST,
-            ATTRIBUTE FLAGs
+            ATTRIBUTE FLAGS, lattr(), cluster_lattr()
   
   
 & @protect
@@ -2763,7 +2773,7 @@
             it will use that value (unevaluated) instead of the default.
          4. The default prefix for the /tf switch is: 'FugueEdit > '
   
-  See Also: examine, look
+  See Also: examine, look, lattr(), cluster_lattr()
   
 & @destroy
   Command: @destroy[/<switches>] <object>
@@ -29128,6 +29138,7 @@
   * zonecmd() added (side-effect of @zone) [ASH]
   * VISIBLE options to lcon() and xcon() to check only visible items [ASH]
   * searchobjid(), and searchngobjid() for objid results on searches [ASH]
+  * examine has /cluster switch for examining clusters [ASH]
   
   Changes
   ------------
