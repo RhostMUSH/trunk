@@ -21274,8 +21274,9 @@
                            @list options system  
   
   The inc() function is used to increment numerical values in local registers.
-  The valid registers are 0 through 9.  If the value in the register is a 
-  string, it will return the string without any changes.
+  The valid registers are 0-9, and a-z.  You may also use setq labels.
+  If the value in the register is a string, it will return the string without
+  any changes.
   
   Example:
     > say [setq(0,10)] 1: [r(0)] [inc(0)] 2: [r(0)]
@@ -21318,8 +21319,9 @@
                            @list options system  
   
   The dec() function is used to decrement numerical values in local registers.
-  The valid registers are 0 through 9.  If the value in the register is a
-  string, it will return the string without any changes.
+  The valid registers are 0-9, and a-z.  You may also use setq labels.
+  If the value in the register is a string, it will return the string without
+  any changes.
   
   Example:
     > say [setq(0,10)] 1: [r(0)] [dec(0)] 2: [r(0)]
