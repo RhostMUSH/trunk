@@ -21249,6 +21249,9 @@
 & XINC()
   Function: xinc(<number>)
   
+  INC() and XINC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
+  
   The xinc() function is used to increment the number passed into it.
   Any number passed into it is automatically incremented by one.
   
@@ -21266,6 +21269,9 @@
   
 & INC()
   Function: inc(<number>)
+  
+  INC() and XINC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
   
   The inc() function is used to increment numerical values in local registers.
   The valid registers are 0 through 9.  If the value in the register is a 
@@ -21287,6 +21293,9 @@
 & XDEC()
   Function: xdec(<number>)
   
+  DEC() and XDEC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
+  
   The xdec() function is used to decrement the number passed into it.
   Any number passed into it is automatically decremented by one.
   
@@ -21304,6 +21313,9 @@
   
 & DEC()
   Function: dec(<number>)
+  
+  DEC() and XDEC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
   
   The dec() function is used to decrement numerical values in local registers.
   The valid registers are 0 through 9.  If the value in the register is a
