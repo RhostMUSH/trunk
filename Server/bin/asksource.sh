@@ -13,6 +13,7 @@ fi
 ###################################################################
 # check for mysql goodness
 ###################################################################
+MYSQL_FORCE=0
 MYSQL_VER=$(mysql_config --version 2>/dev/null)
 if [ -z "${MYSQL_VER}" ]
 then
@@ -81,7 +82,7 @@ LOPTIONS="1 2 3 4 5"
 C_LOPTIONS=$(echo $LOPTIONS|wc -w)
 AOPTIONS="1 2 3"
 C_AOPTIONS=$(echo $AOPTIONS|wc -w)
-DBOPTIONS="1 2"
+DBOPTIONS="1 2 3"
 C_DBOPTIONS=$(echo $DBOPTIONS|wc -w)
 REPEAT=1
 for i in ${OPTIONS}
@@ -282,6 +283,7 @@ echo " For REMOTE INSTALLS you may specify /dev/null for the socket."
 echo "------------------------------------------------------------------------------"
 echo "[${MS[1]}]  1. Toggle MySQL On/Off"
 echo "[#]  2. Change MySQL Data"
+echo "[${MS[3]}]  3.  Force MySQL even if not detected. (Will not compile if no SQL!)"
 echo "------------------------------------------------------------------------------"
 echo "MySQL HostName: ${mysql_host}"
 echo "MySQL UserName: ${mysql_user}"
@@ -1486,11 +1488,16 @@ setdefaults() {
   fi
   if [ "${MS[1]}" = "X" ]
   then
-     if [ "${MYSQL_VER}" = "0" ]
+     if [ "${MYSQL_VER}" = "0" -a "${MS[3]}" != "X" ]
      then
         MS[1]=" "
         echo "MySQL was not found.  Stripping it..."
      else
+        FORCE_MYSQL=1
+        if [ "${MS[3]}" == "X" ]
+        then
+           echo "Force compiling in MYSQL libs.  You can fail compiling with this."
+        fi
         MORELIBS="\$(MYSQL_LIB) ${MORELIBS}"
      fi
   fi
@@ -1540,6 +1547,11 @@ setdefaults() {
   fi
   if [ "${MS[1]}" = "X" ]
   then
+     if [ $FORCE_MYSQL -eq 1 ]
+     then
+        echo "MySQL has been forced on.  This may fail compiling."
+        DEFS="${DEFS} -DFORCE_MYSQL"
+     fi
      echo "MySQL identified.  Configuring..."
      DEFS="${DEFS} \$(MYSQL_INCLUDE)"
   fi
