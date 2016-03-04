@@ -25,8 +25,6 @@ include $(srcdir)/custom.defs
 
 ifeq "$(USEMYSQL)" "1"
    CHK = $(shell mysql_config --version 2>/dev/null|wc -l)
-   CHK = 0
-   FORCE_MYSQL = 1
    ifeq "$(CHK)" "1"
       MYSQL_INCLUDE = $(shell mysql_config --include)
       MYSQL_LIB = $(shell mysql_config --libs)
