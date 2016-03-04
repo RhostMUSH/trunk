@@ -562,6 +562,8 @@ NAMETAB zone_sw[] =
     {(char *) "add", 1, CA_PUBLIC, 0, ZONE_ADD},
     {(char *) "delete", 1, CA_PUBLIC, 0, ZONE_DELETE},
     {(char *) "purge", 1, CA_PUBLIC, 0, ZONE_PURGE},
+    {(char *) "replace", 1, CA_PUBLIC, 0, ZONE_REPLACE},
+    {(char *) "list", 1, CA_PUBLIC, 0, ZONE_LIST},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB touch_sw[] =

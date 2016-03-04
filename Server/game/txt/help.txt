@@ -542,22 +542,27 @@
   See Also: @zone, @lock, lzone(), ZONEMASTER, ZONECONTENTS, ZONEPARENT
   
 & @zone
- Usage:
-  1) @zone <object or zonemaster>
-  2) @zone/add <object>=<zonemaster>
-  3) @zone/del <object or zonemaster>=<zonemaster or object>
-  4) @zone/purge <object or zonemaster>
+  Command: @zone[/<switch>] <target> [=<zone string>]
+  
+  Usage:
+    1) @zone[/list] <object or zonemaster>
+    3) @zone/add <object>=<zonemaster>
+    4) @zone/del <object or zonemaster>=<zonemaster or object>
+    5) @zone/purge <object or zonemaster>
+    6) @zone/replace <object>=<old zonemaster>/<new zonemaster>
   
   The @zone command adds and removes zone master entries from objects.
   An object may be a member of multiple zones.
- 
-  * Usage 1 will list the zones an object belongs to, or the objects that
-    belong to a zonemaster.
-  * Usage 2 will add a zone to an object.
-  * Usage 3 will delete an object from a zone, or zone from an object. These
-    are essentially the same, but from different directions.
-  * Usage 4 will remove all references to zones from an object or
-    zone master.  
+   
+    * Usage 1 will list the zones an object belongs to, or the objects that
+      belong to a zonemaster.
+    * Usage 2 will add a zone to an object.
+    * Usage 3 will delete an object from a zone, or zone from an object. These
+      are essentially the same, but from different directions.
+    * Usage 4 will remove all references to zones from an object or
+      zone master.  
+    * Usage 5 will replace the old zonemaster with the new zonemaster on the
+      target object.
   
   The config param 'zones_like_parents' can also be enabled to allow @zones
   to function $commands to its members as if it was a @parent.
@@ -11488,44 +11493,78 @@
   See Also: @zone, ZONES, lzone(), inzone(), zonecmd()
   
 & ZONECMD()
-  Function: zonecmd(<command>, <target> [,<zone>])
+  Function: zonecmd(<command>, <target> [,<zone string>])
   
   Note: This function requires the SIDEFX flag.
+  
+  The <zone string> in most cases will be the zone or target.  The exception 
+  is the replace command which requires the string of <oldzone>/<newzone>.
   
   This function duplicates the features of @zone, minus the list 
   ability which can be found with lzone().  The following <commands>
   are currently available with this function:
-    add    -- (shorthand with 'a') allows you to add a <target> to the
-              the specified <zone>.  It does sanity check and like
-              @zone you can not add a zonemaster to another zone.
-              Syntax: zonecmd(add, target, zone)
-   
-    delete -- (shorthand with 'd') allows you to delete the <target>
-              from the zone.  You can swap <target> and <zone> for
-              the same effect.
-              Syntax: zonecmd(del, target, zone)
-                      zonecmd(del, zone, target)
+    list    -- (shorthand with 'l') List zones on target zonemaster or all the 
+               zonemasters on the target zone.  You may specify <boolean> to
+               '1' (true) if you wish to show the list as objid's.
+               Syntax: zonecmd(list, target [,<boolean>])
   
-    purge  -- (shorthand with 'p') allows you to purge all zones
-              from <target>.  If a non-zonemaster is specified, it
-              will purge all zones from the target.  If a zonemaster
-              is specified, it will purge all members from that zone.
-              Syntax: zonecmd(purge, target)
+    add     -- (shorthand with 'a') allows you to add a <target> to the the 
+               specified <zone>.  It does sanity check and like @zone you can 
+               not add a zonemaster to another zone.  
+               Syntax: zonecmd(add, target, zone)
+   
+    delete  -- (shorthand with 'd') allows you to delete the <target>
+               from the zone.  You can swap <target> and <zone> for
+               the same effect.
+               Syntax: zonecmd(del, target, zone)
+                       zonecmd(del, zone, target)
+  
+    replace -- (shorthand with 'r') allows you to replace the zonemaster from
+               the target with the new zonemaster.
+               Syntax: zonecmd(replace, target, oldzone/newzone)
+  
+    purge   -- (shorthand with 'p') allows you to purge all zones
+               from <target>.  If a non-zonemaster is specified, it
+               will purge all zones from the target.  If a zonemaster
+               is specified, it will purge all members from that zone.
+               Syntax: zonecmd(purge, target)
+ 
+{ see 'help zonecmd2' for examples}
+  
+& ZONECMD2 
+ (CONTINUED)
+  Function: zonecmd(<command>, <target> [,<zone string>])
   
   A successful execution of this function returns no output, otherwise
   any error will start with #-1 for coding checks.
-   
+  
+  You can belong to multiple zones at the same time.
+    
   Examples:
     > @set #123=zonemaster
     Set.
-    > say zonecmd(add,me,#123)
+    > @set #789=zonemaster
+    Set.
+    > @set #12345=zonemaster
+    Set.
+    > say zonecmd(add,me,#789)
     You say ""
+    > say zonecmd(add,me,#12345)
+    You say ""
+    > say zonecmd(list,me)
+    You say "#789 #12345"
+    > say zonecmd(replace,me,#789/#123)
+    You say ""
+    > say zonecmd(list,me)
+    You say "#123 #12345"
     > say zonecmd(add,me,#123)
     You say "#-1 ALREADY IN ZONE"
     > say zonecmd(del,me,#123)
     You say ""
     > say zonecmd(del,me,#123)
     You say "#-1 NOT IN ZONE"
+    > say zonecmd(list,me)
+    You say "#12345"
   
   See Also: @zone, ZONES, lzone(), inzone(), zwho()
   
@@ -29153,6 +29192,7 @@
   * VISIBLE options to lcon() and xcon() to check only visible items [ASH]
   * searchobjid(), and searchngobjid() for objid results on searches [ASH]
   * examine has /cluster switch for examining clusters [ASH]
+  * @zone has /replace and /list switches.  zonecmd() has similar [ASH]
   
   Changes
   ------------

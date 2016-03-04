@@ -777,6 +777,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define ZONE_ADD	0	/* add a zone master to an object's list */
 #define ZONE_DELETE	1	/* delete a zone master from an object's list */
 #define ZONE_PURGE	2	/* purge an object's zone list (zmo too) */
+#define ZONE_REPLACE	4	/* Replace zone1 with zone2 */
+#define ZONE_LIST	8	/* List zones */
 #define	NFY_NFY		0	/* Notify first waiting command */
 #define	NFY_NFYALL	1	/* Notify all waiting commands */
 #define	NFY_DRAIN	2	/* Delete waiting commands */
