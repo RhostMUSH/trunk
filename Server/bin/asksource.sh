@@ -1493,9 +1493,9 @@ setdefaults() {
         MS[1]=" "
         echo "MySQL was not found.  Stripping it..."
      else
-        FORCE_MYSQL=1
         if [ "${MS[3]}" == "X" ]
         then
+           FORCE_MYSQL=1
            echo "Force compiling in MYSQL libs.  You can fail compiling with this."
         fi
         MORELIBS="\$(MYSQL_LIB) ${MORELIBS}"
