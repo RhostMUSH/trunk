@@ -13,7 +13,7 @@ fi
 ###################################################################
 # check for mysql goodness
 ###################################################################
-MYSQL_FORCE=0
+FORCE_MYSQL=0
 MYSQL_VER=$(mysql_config --version 2>/dev/null)
 if [ -z "${MYSQL_VER}" ]
 then
