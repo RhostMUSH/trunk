@@ -16,7 +16,9 @@
 &PENN_MAIL_NOSIG PennMailer Object <PMO>=$@mail/nosig *=*:@sudo %#={mail/send %0=%1}
 @set PennMailer Object <PMO>/PENN_MAIL_NOSIG = no_parse
 &PENN_MAIL_FORWARD PennMailer Object <PMO>=$@mail/fwd *=*:@sudo %#={@dolist %0=mail/forward ## %1}
+&PENN_MAIL_FORWARD2 PennMailer Object <PMO>=$@mail/forward *=*:@sudo %#={@dolist %0=mail/forward ## %1}
 @set PennMailer Object <PMO>/PENN_MAIL_FORWARD = no_parse
+@set PennMailer Object <PMO>/PENN_MAIL_FORWARD2 = no_parse
 &PENN_MAIL_READ PennMailer Object <PMO>=$@mail/read *:@swi [match(%0,*-*)]=0,@sudo %#={mail/read %0},@sudo %#={@dolist [lnum(before(%0,-),after(%0,-))]=mail/read ##}
 @set PennMailer Object <PMO>/PENN_MAIL_READ = no_parse
 &PENN_MAIL_LISTS PennMailer Object <PMO>=$@mail:@pemit %#=------------------------- MAIL (folder incoming) ----------------------------;@pemit %#=[list(mailstatus(%#),u(mail_status_penn,mailstatus(%#,##)))][repeat(-,77)]
