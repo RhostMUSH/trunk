@@ -154,12 +154,58 @@ else
       read ANS
       if [ "$ANS" = "y" -o "$ANS" = "Y" ]
       then
-         echo "Enter flatfile name (including full path): "|tr -d '\012'
-         read ANS
-         if [ -f "$ANS" ]
-         then
-            ./db_load data/netrhost.gdbm ${ANS} data/netrhost.db
-         fi
+         loop=0
+         nogen=0
+         while [ $loop -eq 0 ]
+         do
+            echo "Enter flatfile name (including full path), the string 'LOAD' (to load blank db), or just hit <ENTER> to search for a flatfile"
+            echo "Make selection now: "|tr -d '\012'
+            read ANS
+            if [ "$ANS" = "LOAD" ]
+            then
+               break
+            fi
+            if [ -z "$ANS" ]
+            then
+               if [ $nogen -eq 0 ]
+               then
+                  mycd=`pwd`
+                  cd ../../..
+                  lg_path=`pwd`
+                  cd ${mycd}
+                  echo "Doing search... please wait..."|tr -d '\012'
+                  lg_find="`find ${lg_path} -type f -exec ./findit.sh {} \; 2>/dev/null`"
+                  echo "...completed."
+               fi
+               if [ -z "${lg_find}" ]
+               then
+                  echo "No flatfiles found in ${lg_path}.  Enter flatfile name (including full path): "|tr -d '\012'
+                  read ANS
+               else
+                  cntr=1
+                  echo "----------------------------------"
+                  for i in ${lg_find}
+                  do
+                     i_cut=`echo "$i"|cut -f2- -d"/"`
+                     echo "${cntr}: ${lg_path}/${i_cut}"
+                     cntr=`expr $cntr + 1`
+                  done
+                  echo "----------------------------------"
+                  echo "Select filename number: "|tr -d '\012'
+                  read ANSIT
+                  ANS=`echo $lg_find|cut -f $ANSIT -d" "`
+               fi
+            fi
+            if [ -f "$ANS" ]
+            then
+               echo "Loading in ${ANS}..."
+               ./db_load data/netrhost.gdbm ${ANS} data/netrhost.db
+               loop=1
+            else
+               echo "File not found.  Try again."
+               nogen=1
+            fi
+         done
          if [ -f "$INPUT_DB" ]
          then
             if [ ${CYGWIN} -eq 1 ]
