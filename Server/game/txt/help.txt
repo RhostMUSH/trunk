@@ -29243,7 +29243,7 @@
   * Ancient systems (CentOS 4/5) didn't successfully handle MTU values [ASH]
   * enhanced_convtime didn't handle all conditions properly [ASH]
   * bug with streval which didn't process right on non-player evaluation [ASH]
-  * minor glitch if an object set STOP and SHOWFAILCMD
+  * minor glitch if an object set STOP and SHOWFAILCMD [ASH]
   * minor glitch with @snapshot/loading over a player already connected [ASH]
   * flag_access_set, flag_access_unset, flag_access_see were case sensitive
     and they shouldn't be [ASH]
@@ -29253,3 +29253,4 @@
   * mailsend() was too restrictive for non-player types [ASH]
   * cleanup of the idle_checker to always make current hash last in list [ASH]
   * crash bug if error.txt file was empty [ASH]
+  * logic issue with things set STOP and NOSTOP wouldn't always work [ASH]

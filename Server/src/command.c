@@ -4302,7 +4302,7 @@ process_command(dbref player, dbref cause, int interactive,
 			       AMATCH_CMD, lcbuf, 1, 1, 0);
 
         /* check for zone master commands */
-        if( !succ ) {
+        if( !succ && (sflag < 2) ) {
           realloc = absloc(player);
           if( Good_obj(realloc) && db[realloc].zonelist && 
               !ZoneMaster(realloc)) {
@@ -4326,7 +4326,7 @@ process_command(dbref player, dbref cause, int interactive,
         }
  
         /* Check for object/player $command matching for zonechecks if enabled */
-        if ( !succ && mudconf.zones_like_parents ) {
+        if ( !succ && mudconf.zones_like_parents && (sflag < 2) ) {
            /* Check player */
            if (mudconf.match_mine) {
 	      if ( ZoneCmdChk(player) && ((Typeof(player) != TYPE_PLAYER) ||
@@ -4365,7 +4365,7 @@ process_command(dbref player, dbref cause, int interactive,
 	/* If we didn't find anything, try in the master room */
 
 	if (!DePriv(player, NOTHING, DP_MASTER, POWER6, POWER_LEVEL_NA)) {
-	    if (!succ) {
+	    if (!succ && (sflag < 2) ) {
 		if (Good_obj(mudconf.master_room) &&
 		    Has_contents(mudconf.master_room)) {
 		    succ += list_check(Contents(mudconf.master_room),
@@ -4382,7 +4382,7 @@ process_command(dbref player, dbref cause, int interactive,
 
     /* If we still didn't find anything, tell how to get help. */
 
-    if (!succ) {
+    if (!succ && (sflag < 2) ) {
         if ( Good_obj(mudconf.global_error_obj) && !Recover(mudconf.global_error_obj) &&
              !Going(mudconf.global_error_obj) ) {
             if ( *lst_cmd ) {

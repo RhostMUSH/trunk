@@ -450,7 +450,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
              "You can not use $-commands on that.",
               A_OUFAIL, NULL, A_AUFAIL, (char **)NULL, 0);
        if ( Flags3(thing) & STOP ) {
-          RETURN(1); /* #70 */
+          RETURN(3); /* #70 */
        } else {
           RETURN(-1); /* #70 */
        }
