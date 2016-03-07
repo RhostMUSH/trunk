@@ -918,7 +918,7 @@ do_dig(dbref player, dbref cause, int key, char *name,
     }
     free_sbuf(buff);
     if (key == DIG_TELEPORT ) {
-       if ( No_tel(player) || (mudstate.remotep == player) ) {
+       if ( No_tel(player) || (mudstate.remotep != NOTHING) ) {
           notify_quiet(player, "You can't teleport to your @dug room.");
        } else {
 	(void) move_via_teleport(player, room, cause, 0, 0);

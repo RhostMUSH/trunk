@@ -93,7 +93,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
   int	con, dcount, quiet, side_effect=0, tel_bool_chk;
 
 	/* get victim */
-      if ( mudstate.remotep == player) {
+      if ( mudstate.remotep != NOTHING) {
          notify(player, "You can't teleport.");
          return;
       }
@@ -221,7 +221,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  continue;
 		}
 	}
-	if ( (mudstate.remotep == victim) || (No_tel(victim) && !Wizard(player)) ) {
+	if ( (mudstate.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
 		if( victim == player )
 			notify_quiet(player,"You aren't allowed to @tel.");
 		else

@@ -18,6 +18,10 @@ dbref	victim;
 char	*buf1, *buf2;
 int	cost;
 
+        if ( mudstate.remotep != NOTHING ) {
+           notify(player, "You can't kill right now.");
+           return;
+        }
 	init_match(player, what, TYPE_PLAYER);
 	match_neighbor();
 	match_me();
@@ -203,8 +207,7 @@ char	*str, *sp;
 		notify(giver, "Permission denied.");
 		return;
 	}
-	if ( (mudstate.remotep == giver) || (mudstate.remotep == recipient) || 
-             (mudstate.remotep == thing) || ((Flags3(thing) & NOMOVE) && !Wizard(giver)) ) {
+	if ( (mudstate.remotep != NOTHING) || ((Flags3(thing) & NOMOVE) && !Wizard(giver)) ) {
 		notify(giver, "Permission denied.");
 		return;
 	}

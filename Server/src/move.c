@@ -538,7 +538,7 @@ move_via_teleport(dbref thing, dbref dest, dbref cause, int hush, int quiet)
 	for (count = mudconf.ntfy_nest_lim; count > 0; count--) {
 	    if (!could_doit(cause, curr, A_LTELOUT,1,0) && (!Controls(cause, curr) ||
 	      DePriv(cause, NOTHING, DP_OVERRIDE, POWER7, POWER_LEVEL_NA) ||
-              NoOverride(cause) || !(mudconf.wiz_override) ||
+              NoOverride(cause) || !(mudconf.wiz_override) || (mudstate.remotep != NOTHING) ||
 		   DePriv(cause, Owner(curr), DP_LOCKS, POWER6, NOTHING))) {
 		if ((thing == cause) || (cause == NOTHING))
 		    failmsg = (char *)
@@ -561,6 +561,11 @@ move_via_teleport(dbref thing, dbref dest, dbref cause, int hush, int quiet)
 	      break;
 	}
     }
+    if ( mudstate.remotep != NOTHING ) {
+       notify_quiet(thing, "Can't teleport via remote.");
+       return 0;
+    }
+
     if ((dest == HOME) && !isExit(thing))
 	dest = Home(thing);
     if ((dest != NOTHING) && (!Good_obj(dest) || Going(dest) || Recover(dest))) {
@@ -624,6 +629,10 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
     int oattr, aattr, x, aflags;
     char *retbuff, *atext, *savereg[MAX_GLOBAL_REGS], *pt;
 
+    if ( mudstate.remotep != NOTHING ) {
+       notify(player, "You can't go that way by remote.");
+       return;
+    }
     oattr = aattr = 0;
     loc = Location(exit);
     if (loc == HOME)
@@ -734,6 +743,10 @@ do_move(dbref player, dbref cause, int key, char *direction)
     char *tpr_buff, *tprp_buff;
 
     if ((!Fubar(player) && !(Flags3(player) & NOMOVE)) || (Wizard(cause))) {
+        if ( (mudstate.remotep != NOTHING) || (mudstate.remote != NOTHING) ) {
+            notify(player, "You can't move there.");
+            return;
+        }
 	if (!string_compare(direction, "home") &&
             !(Flags2(player) & NO_TEL) &&
             !(cmdtest(player, "home")) &&
@@ -843,7 +856,7 @@ do_get(dbref player, dbref cause, int key, char *what)
 	return;
     }
 
-    if ( (mudstate.remotep == player) || (mudstate.remotep == thing) ) {
+    if ( (mudstate.remotep != NOTHING) || (mudstate.remote != NOTHING) ) {
         notify(player, "You can't get that here.");
 	return;
     }
@@ -972,7 +985,7 @@ do_drop(dbref player, dbref cause, int key, char *name)
 	notify(player, "I don't know which you mean!");
 	return;
     }
-    if ( (mudstate.remotep == player) || (mudstate.remotep == thing) ) {
+    if ( (mudstate.remotep != NOTHING) || (mudstate.remote != NOTHING) ) {
         notify(player, "You can't drop that here.");
 	return;
     }
@@ -1062,6 +1075,10 @@ do_enter_internal(dbref player, dbref thing, int quiet)
     dbref loc;
     int oattr, aattr;
 
+    if ( mudstate.remotep != NOTHING ) {
+       notify(player, "You can't enter by remote.");
+       return;
+    }
     if (!Enter_ok(thing) && !controls(player, thing)) {
 	oattr = quiet ? 0 : A_OEFAIL;
 	aattr = quiet ? 0 : A_AEFAIL;
@@ -1097,7 +1114,7 @@ do_enter(dbref player, dbref cause, int key, char *what)
     if ((thing = noisy_match_result()) == NOTHING)
 	return;
 
-    if ( (Flags3(player) & NOMOVE) || (mudstate.remotep == player) ) {
+    if ( (Flags3(player) & NOMOVE) || (mudstate.remotep != NOTHING) ) {
 	notify(player,"Permission denied.");
 	return;
     }
@@ -1127,7 +1144,7 @@ do_leave(dbref player, dbref cause, int key)
 	notify(player, "You can't leave.");
 	return;
     }
-    if ( (Flags3(player) & NOMOVE) || (mudstate.remotep == player) ) {
+    if ( (Flags3(player) & NOMOVE) || (mudstate.remotep != NOTHING) ) {
 	notify(player, "Permission denied.");
 	return;
     }

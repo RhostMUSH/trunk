@@ -29255,3 +29255,4 @@
   * cleanup of the idle_checker to always make current hash last in list [ASH]
   * crash bug if error.txt file was empty [ASH]
   * logic issue with things set STOP and NOSTOP wouldn't always work [ASH]
+  * Some possible race conditions with regards to @remote [ASH]

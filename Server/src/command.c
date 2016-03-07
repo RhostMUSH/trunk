@@ -3533,7 +3533,7 @@ process_command(dbref player, dbref cause, int interactive,
       cval2 = 1;
 
     if ((string_compare(command, "home") == 0) && !Fubar(player) && !cval && cval2 &&
-        (mudstate.remotep != player) &&
+        (mudstate.remotep == NOTHING) &&
 	!No_tel(player)) {
 	do_move(player, cause, 0, "home");
 	mudstate.debug_cmd = cmdsave;
@@ -3546,7 +3546,7 @@ process_command(dbref player, dbref cause, int interactive,
 	return;
     } else if ((string_compare(command, "home") == 0) && ( Fubar(player) || (cval == 1) ||
                                                            ((cval2 == 0) && (cval != 2)) || 
-                                                           ((No_tel(player) || (mudstate.remotep == player)) && cval != 2) ) && 
+                                                           ((No_tel(player) || (mudstate.remotep != NOTHING)) && cval != 2) ) && 
                                                          !mudstate.func_ignore) {
 	notify_quiet(player, "Permission denied.");
 	mudstate.debug_cmd = cmdsave;
@@ -3613,7 +3613,7 @@ process_command(dbref player, dbref cause, int interactive,
                       } else
                          cval = !hk_retval;
                    } 
-                   if ( mudstate.remotep == player ) {
+                   if ( mudstate.remotep != NOTHING ) {
 		      notify(player, "Permission denied.");
 		   } else if ( ((Flags3(player) & NOMOVE) || cval || cval2) && !do_ignore_exit ) {
 		      notify(player, "Permission denied.");
@@ -3701,7 +3701,7 @@ process_command(dbref player, dbref cause, int interactive,
                       } else
                          cval = !hk_retval;
                   }
-                  if (!((mudstate.remotep == player) || (Flags3(player) & NOMOVE)) && !cval && !cval2) {
+                  if (!((mudstate.remotep != NOTHING) || (Flags3(player) & NOMOVE)) && !cval && !cval2) {
 		    if ( (goto_cmdp->hookmask & HOOK_BEFORE) && Good_obj(mudconf.hook_obj) &&
 			 !Recover(mudconf.hook_obj) && !Going(mudconf.hook_obj) ) {
 		      s_uselock = alloc_sbuf("command_hook_process");
@@ -4223,7 +4223,7 @@ process_command(dbref player, dbref cause, int interactive,
 		free_lbuf(p);
 		if (Flags3(player) & NOMOVE)
 		  notify(player, "Permission denied.");
-                else if (mudstate.remotep == player)
+                else if (mudstate.remotep != NOTHING)
 		  notify(player, "Permission denied.");
 		else
 		  do_leave(player, player, 0);
@@ -4248,7 +4248,7 @@ process_command(dbref player, dbref cause, int interactive,
 		    free_lbuf(p);
 		    if (Flags3(player) & NOMOVE)
 		      notify(player, "Permission denied.");
-                    else if (mudstate.remotep == player)
+                    else if (mudstate.remotep != NOTHING)
 		      notify(player, "Permission denied.");
 		    else
 		      do_enter_internal(player, pcexit, 0);
