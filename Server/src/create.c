@@ -1423,6 +1423,10 @@ do_destroy(dbref player, dbref cause, int key, char *what)
     char *s_chkattr, *s_buffptr, *s_mbuf, *tpr_buff, *tprp_buff;
 
 
+    if (mudstate.remotep != NOTHING) {
+       notify(player, "Sorry, you can't destroy remotely.");
+       return;
+    }
     if (!mudconf.recycle) {
 	notify(player, "Sorry, destroying objects is not enabled.");
 	return;
@@ -1597,6 +1601,10 @@ do_nuke(dbref player, dbref cause, int key, char *name)
 
     /* XXX This is different from Pern. */
 
+    if (mudstate.remotep != NOTHING) {
+       notify(player, "Sorry, you can't nuke remotely.");
+       return;
+    }
     if (key & NUKE_PURGE) {
       if (!Immortal(player) && !HasPriv(player,NOTHING,POWER_OPURGE,POWER5,POWER_LEVEL_NA)) {
 	notify(player,"Unrecognized switch 'purge' for command '@destroy'.");

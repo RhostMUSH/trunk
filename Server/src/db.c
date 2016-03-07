@@ -1166,6 +1166,10 @@ do_fixdb(dbref player, dbref cause, int key, char *arg1, char *arg2)
     char *s_types[]={ "room", "thing", "exit", "player", "zone", "garbage", "unknown type 1", "unknown type 2", NULL };
     int aflags, i_type;
 
+    if ( mudstate.remotep != NOTHING ) {
+       notify(player, "You can't fix the db remotely.");
+       return;
+    }
     init_match(player, arg1, NOTYPE);
     match_everything(0);
     thing = noisy_match_result();
