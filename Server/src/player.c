@@ -366,7 +366,7 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot)
 
 	/* initialize everything */
 
-	s_Pass(player, mush_crypt(pbuf));
+	s_Pass(player, mush_crypt(pbuf, 0));
 	s_Home(player, start_home());
 	if (!mudconf.start_build)
           s_Flags2(player, Flags2(player) | WANDERER);
@@ -409,7 +409,7 @@ char	*target;
 	} else if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
 		notify(player, "Sorry.");
 	} else {
-		atr_add_raw(player, A_PASS, mush_crypt(newpass));
+		atr_add_raw(player, A_PASS, mush_crypt(newpass, 0));
 		notify(player, "Password changed.");
 	}
 	free_lbuf(target);

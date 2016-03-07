@@ -765,6 +765,11 @@ NAMETAB open_sw[] =
     {(char *) "location", 1, CA_PUBLIC, 0, OPEN_LOCATION},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB newpassword_sw[] =
+{
+    {(char *) "des", 1, CA_WIZARD, 0, NEWPASSWORD_DES},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
@@ -1280,7 +1285,7 @@ CMDENT command_table[] =
     {(char *) "@name", NULL,
      CA_NO_SLAVE | CA_NO_GUEST, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_name},
-    {(char *) "@newpassword", NULL, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
+    {(char *) "@newpassword", newpassword_sw, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
      PASS_ANY, CS_TWO_ARG, 0, do_newpassword},
     {(char *) "@notify", notify_sw,
      CA_GBL_INTERP | CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE,

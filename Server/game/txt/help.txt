@@ -29194,6 +29194,7 @@
   * examine has /cluster switch for examining clusters [ASH]
   * @zone has /replace and /list switches.  zonecmd() has similar [ASH]
   * Startmush is much more optimized for flatfile loading if required [ASH]
+  * @newpassword optionally allows /des switch to enforce DES passwords [ASH]
   
   Changes
   ------------

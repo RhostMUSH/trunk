@@ -2174,10 +2174,12 @@ NDECL(void check_floating)
 void 
 do_dbck(dbref player, dbref cause, int key)
 {
+#ifndef STANDALONE
     if (mudstate.remotep != NOTHING) {
        notify(player, "Can not dbck remotely.");
        return;
     }
+#endif
     check_type = key;
     make_freelist();
     purge_going();

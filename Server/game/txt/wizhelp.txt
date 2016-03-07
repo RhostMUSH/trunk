@@ -3349,12 +3349,20 @@
   See Also: @listmotd.
 
 & @newpassword
-  Command: @newpassword <player>[=<newpassword>]
+  Command: @newpassword[</switch>] <player>[=<newpassword>]
+  
   Gives <player> the new password <newpassword>.  If <newpassword> is not
   specified, the player is given a null password.  If logged in, the player
   is notified that his password has been changed.
   
-  Example:  @newpassword aplayer=test123
+  The following switches exist:
+    /des    - Enforce a DES password instead of the system default.
+   
+  Example:  
+    > @newpassword aplayer=test123
+    Password changed.
+    > @newpassword/des aplayer=test123
+    Password changed.
   
   See Also: @password.
 

@@ -120,9 +120,9 @@ int mush_crypt_validate(dbref player,
 
   if (strcmp(pUnencrypted, pEncrypted) == 0) {
     if (flag == 0) {
-      s_Pass(player, mush_crypt(pEncrypted));    
+      s_Pass(player, mush_crypt(pEncrypted, 0));    
     } else {
-      s_MPass(player, mush_crypt(pEncrypted));
+      s_MPass(player, mush_crypt(pEncrypted, 0));
     }
     RETURN(1); /* #95 */
   }
@@ -137,7 +137,7 @@ int mush_crypt_validate(dbref player,
 }
 
 
-char * mush_crypt(const char *key) {
+char * mush_crypt(const char *key, int val) {
 #ifdef CRYPT_ENCRYPT_DES
   DPUSH; /* #96 */
 #ifdef CRYPT_GLIB2
@@ -153,7 +153,11 @@ char * mush_crypt(const char *key) {
   s = crypt("abcde", "$6$12345$");
   if ( s && strlen(s) > 20 ) {
      sprintf(s_salt, "$6$%s$", s_buff);
-     RETURN(crypt(key, s_salt)); /* #96 */
+     if ( val ) {
+        RETURN(crypt(key, "XX")); /* #96 */
+     } else {
+        RETURN(crypt(key, s_salt)); /* #96 */
+     }
   } else {
 #ifndef STANDALONE
      STARTLOG(LOG_ALWAYS, "WIZ", "CRYPT");

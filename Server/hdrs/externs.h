@@ -505,7 +505,7 @@ extern int	FDECL(atr_pget_info, (dbref, int, dbref *, int *));
 extern void	FDECL(atr_free, (dbref));
 
 /* from mushcrypt.c */
-extern char *   FDECL(mush_crypt, (const char *));
+extern char *   FDECL(mush_crypt, (const char *, int));
 extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, int));
 
 /* Powers keys */
@@ -784,6 +784,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	NFY_DRAIN	2	/* Delete waiting commands */
 #define NFY_QUIET       4	/* Do not notify player if happening */
 #define NFY_PID		8	/* Notify or Drain based on PID */
+#define NEWPASSWORD_DES 2	/* Force @newpassword to use DES */
 #define	OPEN_LOCATION	0	/* Open exit in my location */
 #define	OPEN_INVENTORY	1	/* Open exit in me */
 #define PAGE_LAST	1
