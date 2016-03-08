@@ -1,0 +1,18 @@
+Two methods to do this:
+
+Method 1:
+in your netrhost.conf file add:
+newpass_god 777
+
+This will reset #1's password to the default 'Nyctasia'.
+
+
+Method 2:
+in your netrhost.conf file add:
+newpass_god 1
+
+This will allow IMMORTAL players to @newpassword #1 upon reboot.
+
+
+
+You can not combine methods.
