@@ -2257,6 +2257,16 @@ main(int argc, char *argv[])
     if (mudconf.rwho_transmit)
 	do_rwho(NOTHING, NOTHING, RWHO_START);
 
+    /* Reset #1's password if value is right */
+    if ( mudconf.newpass_god == 777 ) {
+       if ( Good_chk(GOD) ) {
+          s_Pass(GOD, mush_crypt((const char *)"Nyctasia", 1));
+          STARTLOG(LOG_ALWAYS, "WIZ", "PASS")
+             log_text((char *) "GOD password reset to 'Nyctasia'");
+          ENDLOG
+       }
+       mudconf.newpass_god = 0;
+    }
     /* go do it */
 
     mudstate.nowmsec = time_ng(NULL);

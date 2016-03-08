@@ -7939,11 +7939,25 @@
             nand_compat, queue_compatible
 
 & newpass_god
-  Config parameter: newpass_god <1/0>.  Default: 0 
+  Config parameter: newpass_god <1|0|777>.  Default: 0 
   
   This is only valid in the config file.  If specified, it will allow
   an immortal to newpassword the #1 character ONCE during that reboot
-  session.  NOTE.  This is NOT a yes/no issue, it requires a '1/0'.
+  session.  NOTE.  This is NOT a yes/no issue.
+  
+  The following values are recognized:
+      0    - Disabled (default).  This makes this parameter ignored.
+      1    - @newpassword for #1 enabled.  It allows IMMORTAL to @newpassword
+             #1 for ONE TIME ONLY during THAT BOOT CYCLE ONLY.
+      777  - This will automatically newpassword #1 to 'Nyctasia'.
+   
+  Please keep in mind to disable the 'newpass_god' option in the 
+  netrhost.conf file after this is properly set to avoid it being 
+  re-enabled or re-set during the next reboot. 
+  
+  This option can not be activated via @admin.  This option can not be
+  set via the admin_object.  This option MUST BE SET in the netrhost.conf
+  file only!!!
 
 & news_file
   Config parameter: news_file <path>.  Default: news.txt

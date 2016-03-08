@@ -29235,6 +29235,7 @@
   * @progprompt hard-limited to 80 characters and now allows ANSI [ASH]
   * ltoggles()/hastoggle() laxed to mimic lflags/hasflag perms [ASH]
   * logout_cmd_access if option set 'DARK' will be ignored and bypassed [ASH]
+  * newpass_god modified to reset #1's password in-game if set [ASH]
     
   Bug Fixes
   ------------
