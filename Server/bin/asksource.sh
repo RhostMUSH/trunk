@@ -1470,7 +1470,7 @@ setdefaults() {
      Z3=0
      if [ -n "${LDCONFIG}" ]
      then
-        Z4=$(${LDCONFIG} ${LDOPT}|grep -c libsqlite3.so)
+        Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libsqlite3.so$")
      else
         Z4=0
      fi
@@ -1573,7 +1573,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libcrypt.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypt.so$")
    else
       Z4=0
    fi
@@ -1593,7 +1593,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libsocket.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libsocket.so$")
    else
       Z4=0
    fi
@@ -1613,7 +1613,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libresolv.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libresolv.so$")
    else
       Z4=0
    fi
@@ -1633,7 +1633,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libnsl.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libnsl.so$")
    else
       Z4=0
    fi
@@ -1653,7 +1653,7 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libm.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libm.so$")
    else
       Z4=0
    fi
@@ -1677,7 +1677,7 @@ setlibs() {
    fi
    if [ -n "${LDCONFIG}" ]
    then
-      Z1=$(${LDCONFIG} ${LDOPT}|grep -c openssl.so)
+      Z1=$(${LDCONFIG} ${LDOPT}|grep -c "openssl.so$")
    else
       Z1=0
    fi
@@ -1688,7 +1688,7 @@ setlibs() {
          Z1=0
          if [ -n "${LDCONFIG}" ]
          then
-            Z2=$(${LDCONFIG} ${LDOPT}|grep -c libcrypto.so)
+            Z2=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypto.so$")
          else
             Z2=0
          fi
@@ -1708,7 +1708,7 @@ setlibs() {
          Z1=0
          if [ -n "${LDCONFIG}" ]
          then
-            Z2=$(${LDCONFIG} ${LDOPT}|grep -c libcrypto.so)
+            Z2=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypto.so$")
          else
             Z2=0
          fi
