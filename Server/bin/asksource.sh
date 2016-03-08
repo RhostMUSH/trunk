@@ -1413,7 +1413,7 @@ setdefaults() {
   if [ $? -ne 0 ]
   then
      echo "Your server doesn't handle advanced socket protocols.  Disabling..."
-     DEFS="-BROKEN_PROXY ${DEFS}"
+     DEFS="-DBROKEN_PROXY ${DEFS}"
   fi
   ${MYGCC} ../src/scantst.c -o ../src/scantst >/dev/null 2>&1
   if [ $? -ne 0 ]
