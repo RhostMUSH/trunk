@@ -4,6 +4,18 @@ From the game directory you would type:
 
 ./db_load data/netrhost.gdbm yourflatfilehere data/netrhost.db.new
 
+
+******************************************************************************
+Please note, you may also do: ./Startmush 
+
+Then you just follow the prompts to load in your flatfile there.
+******************************************************************************
+
+If you wish to have #1's password reset to 'Nyctasia' please add this
+to the bottom of your netrhost.conf file:
+
+newpass_god 777
+
 The caveat is that you must not have any netrhost.db* or netrhost.gdbm* files
 in your data directory prior to loading it in.  It'll error out if previous
 files exist.  So you will need to move all files that start with netrhost.db*
