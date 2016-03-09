@@ -10,31 +10,27 @@
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 @set me=quiet
-@pemit me=[repeat(=,78)]%r[center(Constructing Myrddin's mushcron v1.0.0,78)]%r[repeat(-,78)]%rPlease wait...%r
+@pemit me=[repeat(=,78)]%r[center(Constructing Myrddin's mushcron v1.0.0 Beta,78)]%r[repeat(-,78)]%rPlease wait...%r
 
 @create mushcron=10
 @lock mushcron=me
 @set mushcron=safe
 @set mushcron=!halt
 @switch strmatch(version(),*PennMUSH*)=1,{@set mushcron=wizard},{@set mushcron=inherit}
-@startup mushcron=@trigger me/cron
+@startup mushcron=@trigger me/cron=[secs()]
 
 @desc mushcron=[repeat(=,78)]%r%b[iter(lattr(me/cron_time_*),[ljust(rest(rest(##,_),_),25)][v(##)]%r)][repeat(-,78)]%rPattern of CRON_TIME_* attributes:%r%t<month>|<date>|<day of week>|<hour>|<minute>|<args>%r(ex. Mar||Sun|04|54| would trigger a cron job at 4:54am every sunday in the month of march)%r[repeat(=,78)]
 
-&CRON mushcron=@trigger me/cronjobs; @wait 60={@trigger me/cron}
-&CRONJOBS mushcron=@dolist [setq(8,time())][setq(1,extract(%q8,2,1))][setq(2,extract(%q8,3,1))][setq(3,extract(%q8,1,1))][setq(4,extract(extract(%q8,4,1),1,1,:))][setq(5,extract(time(),2,1,:))][lattr(me/cron_time_*)]={@switch and(or(member(extract([setq(0,v(##))]%q0,1,1,|),%q1),not(strlen(extract(%q0,1,1,|)))), or(member(extract(%q0,2,1,|),%q2), not(strlen(extract(%q0,2,1,|)))), or(member(extract(%q0,3,1,|),%q3), not(strlen(extract(%q0,3,1,|)))), or(member(extract(%q0,4,1,|),%q4), not(strlen(extract(%q0,4,1,|)))), or(member(extract(%q0,5,1,|),%q5), not(strlen(extract(%q0,5,1,|)))))=1,{@pemit #1=Triggering CRON_JOB_[extract(##,3,1,_)]; @trigger me/cron_job_[extract(##,3,1,_)]=[last(%q0,|)]}}
+&CRON mushcron=@trigger me/cronjobs=%0; @wait/until [add(%0,60)]={@trigger me/cron=[add(%0,60)]}
+&CRONJOBS mushcron=@dolist [setq(8,convsecs(%0))][setq(1,extract(%q8,2,1))][setq(2,extract(%q8,3,1))][setq(3,extract(%q8,1,1))][setq(4,extract(extract(%q8,4,1),1,1,:))][setq(5,extract(convsecs(%0),2,1,:))][lattr(me/cron_time_*)]={@switch and(or(member(extract([setq(0,v(##))]%q0,1,1,|),%q1),not(strlen(extract(%q0,1,1,|)))), or(member(extract(%q0,2,1,|),%q2), not(strlen(extract(%q0,2,1,|)))), or(member(extract(%q0,3,1,|),%q3), not(strlen(extract(%q0,3,1,|)))), or(member(extract(%q0,4,1,|),%q4), not(strlen(extract(%q0,4,1,|)))), or(member(extract(%q0,5,1,|),%q5), not(strlen(extract(%q0,5,1,|)))))=1,{@pemit #1=Triggering CRON_JOB_[extract(##,3,1,_)]; @trigger me/cron_job_[extract(##,3,1,_)]=[last(%q0,|)]}}
 &CREDITS mushcron=mushcron was coded by Myrddin (merlin@firstmagic.com). Permission is granted to distribute the code freely as long as the initial CREDIT attribute is kept intact. This code is located at www.firstmagic.com/~merlin/mushcode
 
 @switch strmatch(version(),*Rhost*)=1,{&CRON_TIME_BACKUP mushcron=|||06|00|;&CRON_JOB_BACKUP mushcron={wmail/unload;@areg/unload;@dump/flat}}
 &CRON_TIME_TIMECLOCK mushcron=||||00 02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56 58|
 &CRON_JOB_TIMECLOCK mushcron=@dolist lwho()={@timeonweek ##=[add(get(##/timeonweek),2)]; @timeon ##=[add(get(##/timeon),2)]}
 
-&CRON_TIME_TIMEONWEEK-PURGE mushcron=||Sun|03|01|
-&CRON_JOB_TIMEONWEEK-PURGE mushcron=@dolist [setq(0,first(stats()))][iter(lnum(add(fdiv(%q0,1000),or(0,mod(%q0,1000)))),##)]={@trigger #1/TR_TIMEONWEEK-PURGE=[add(mul(##,1000),1)],[mul(add(##,1),1000)]}
-
 &CRON_TIME_BBTIMEOUT mushcron=|||04|15|
-&CRON_JOB_BBTIMEOUT mushcron=@trigger #25/tr_timeout
-
+&CRON_JOB_BBTIMEOUT mushcron=@@ Change This to the Right Dbref# -- @trigger #25/tr_timeout
 
 @name mushcron=CRON - Myrddin's mushcron
 
