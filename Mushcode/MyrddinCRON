@@ -21,7 +21,7 @@
 
 @desc mushcron=[repeat(=,78)]%r%b[iter(lattr(me/cron_time_*),[ljust(rest(rest(##,_),_),25)][v(##)]%r)][repeat(-,78)]%rPattern of CRON_TIME_* attributes:%r%t<month>|<date>|<day of week>|<hour>|<minute>|<args>%r(ex. Mar||Sun|04|54| would trigger a cron job at 4:54am every sunday in the month of march)%r[repeat(=,78)]
 
-&CRON mushcron=@trigger me/cronjobs=%0; @wait/until [add(%0,60)]={@trigger me/cron=[add(%0,60)]}
+&CRON mushcron=@break [!$v(0)]=@pemit/list #1 %#=Must start up [name(me)] by triggering the startup.;@trigger me/cronjobs=%0; @wait/until [add(%0,60)]={@trigger me/cron=[add(%0,60)]}
 &CRONJOBS mushcron=@dolist [setq(8,convsecs(%0))][setq(1,extract(%q8,2,1))][setq(2,extract(%q8,3,1))][setq(3,extract(%q8,1,1))][setq(4,extract(extract(%q8,4,1),1,1,:))][setq(5,extract(convsecs(%0),2,1,:))][lattr(me/cron_time_*)]={@switch and(or(member(extract([setq(0,v(##))]%q0,1,1,|),%q1),not(strlen(extract(%q0,1,1,|)))), or(member(extract(%q0,2,1,|),%q2), not(strlen(extract(%q0,2,1,|)))), or(member(extract(%q0,3,1,|),%q3), not(strlen(extract(%q0,3,1,|)))), or(member(extract(%q0,4,1,|),%q4), not(strlen(extract(%q0,4,1,|)))), or(member(extract(%q0,5,1,|),%q5), not(strlen(extract(%q0,5,1,|)))))=1,{@pemit #1=Triggering CRON_JOB_[extract(##,3,1,_)]; @trigger me/cron_job_[extract(##,3,1,_)]=[last(%q0,|)]}}
 &CREDITS mushcron=mushcron was coded by Myrddin (merlin@firstmagic.com). Permission is granted to distribute the code freely as long as the initial CREDIT attribute is kept intact. This code is located at www.firstmagic.com/~merlin/mushcode
 
