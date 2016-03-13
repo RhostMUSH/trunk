@@ -11152,8 +11152,10 @@
          $ - specifies to tell printf() to start/initiate the format.
          s - specifies the location of a string substitution for formatting.
       Code Fields: 
-         ! - do not display value if null
+         ! - do not display value if null (if using < and/or > place ! after)
          @ - do not display value if null or previous value is null
+         < - null current value if previous value was null
+         > - null current value if next value is null
          - - left justify (right is default)
          ^ - center justify
          _ - stretch justify
@@ -29240,6 +29242,7 @@
   * logout_cmd_access if option set 'DARK' will be ignored and bypassed [ASH]
   * newpass_god modified to reset #1's password in-game if set [ASH]
   * 'w' option for / / in printf() allows cutting on line when |" used [ASH]
+  * '<' and '>' values to null current value if prevous/next value null [ASH]
     
   Bug Fixes
   ------------

@@ -9536,8 +9536,19 @@ FUNCTION(fun_printf)
                         fm.morepadd = (fm.morepadd | 4);
                         formatpass = 1;
                         break;
+                     case '>': /* Null the value if the value after it is null */
+                        if ( ((fmtcurrarg + 1) < nfargs) && (strlen(strip_all_special(fargs[fmtcurrarg+1])) == 0) ) {
+                           *fargs[fmtcurrarg]='\0';
+                        }
+                        break;
+                     case '<': /* Null the value if the value before it is null */
+                        if ( ((fmtcurrarg - 1) >= 0) && ((fmtcurrarg - 1) < nfargs) && 
+                             (strlen(strip_all_special(fargs[fmtcurrarg-1])) == 0) && (fmtcurrarg < nfargs)) {
+                           *fargs[fmtcurrarg]='\0';
+                        }
+                        break;
                      case '@': /* fieldsuppress type 3 */
-                        if( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
+                        if ( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
                            fmterror = 1;
                            break;
