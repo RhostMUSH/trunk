@@ -9726,6 +9726,7 @@ FUNCTION(fun_printf)
                      fm.forcebreakonreturn = 0;
                      fm.breakonreturn = 0;
                      fm.morepadd = 0;
+                     fm.cutatlength = 0;
                   }
                } /* For */
                pp--;
