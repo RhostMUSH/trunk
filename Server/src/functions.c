@@ -8318,7 +8318,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
              if ( i_lastspace > 0 ) { 
                 t = s_padstring + i_lastspace;
                 if ( (fm->cutatlength_line != 0) && (fm->cutatlength != 0) && (fm->morepadd & 4) && ((i_linecnt + 1) >= fm->cutatlength) ) {
-                   *t = '\0';
                    break;
                 }
                 if ( *t ) 
