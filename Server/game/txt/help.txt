@@ -11153,6 +11153,7 @@
          s - specifies the location of a string substitution for formatting.
       Code Fields: 
          ! - do not display value if null
+         @ - do not display value if null or previous value is null
          - - left justify (right is default)
          ^ - center justify
          _ - stretch justify
