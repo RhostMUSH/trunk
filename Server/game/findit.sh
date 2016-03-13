@@ -9,7 +9,8 @@ then
    exit
 fi
 line=`tail -1 $1`
-if [ "${line}" = "***END OF DUMP***" ]
+head=`head -1 $1`
+if [ "${line}" = "***END OF DUMP***" -a "${head}" = "+V74247" ]
 then
    echo "$1"
 fi
