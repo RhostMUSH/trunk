@@ -11182,6 +11182,8 @@
          / - The numerical value specified between /<number>/ will be used
              as a cut-off value when using the '|' wrap option.  
                examples: /10/ -- when using '|' cut off after 10 characters.
+             Use of /w<number>/ cuts off on the line when '|' and '"' is used.
+               examples: /w1/ -- when using '|"' cut off after first line.
              Valid values: 0-3998 (0 is unlimited)
       Value fields:
          1-3000 - format value to padd
@@ -29237,6 +29239,7 @@
   * ltoggles()/hastoggle() laxed to mimic lflags/hasflag perms [ASH]
   * logout_cmd_access if option set 'DARK' will be ignored and bypassed [ASH]
   * newpass_god modified to reset #1's password in-game if set [ASH]
+  * 'w' option for / / in printf() allows cutting on line when |" used [ASH]
     
   Bug Fixes
   ------------

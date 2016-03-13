@@ -8044,6 +8044,7 @@ struct timefmt_format {
   int forcebreakonreturn;
   int morepadd;
   int cutatlength;
+  int cutatlength_line;
   int specialpadder;
 };
 
@@ -8308,7 +8309,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
           }
           if ( idx > (LBUF_SIZE - 12) )
              break;
-          if ( (fm->cutatlength != 0) && (idy >= fm->cutatlength) )
+          if ( (fm->cutatlength_line == 0) && (fm->cutatlength != 0) && (idy >= fm->cutatlength) )
              break;
           if ( ((!*start_line || (i_linecnt < *start_line)) && 
                  (((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd)))) ||
@@ -8316,6 +8317,10 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                  (((i_chk+1) > (fm->fieldwidth + morepadd + *adjust_padd)) && (i_stripansi > (fm->fieldwidth + morepadd + *adjust_padd)))) ) {
              if ( i_lastspace > 0 ) { 
                 t = s_padstring + i_lastspace;
+                if ( (fm->cutatlength_line != 0) && (fm->cutatlength != 0) && (fm->morepadd & 4) && ((i_linecnt + 1) >= fm->cutatlength) ) {
+                   *t = '\0';
+                   break;
+                }
                 if ( *t ) 
                    t++;
                 i_chk = strlen(strip_all_special(t));
@@ -9291,6 +9296,7 @@ FUNCTION(fun_printf)
    fm.format_padstsize = 0;
    fm.formatting = 0;
    fm.cutatlength = 0;
+   fm.cutatlength_line = 0;
    fm.specialpadder = 0;
    for( pp = fargs[0]; !fmterror && pp && *pp; pp++ ) {
       switch( *pp ) {
@@ -9420,6 +9426,10 @@ FUNCTION(fun_printf)
                   switch( *pp ) {
                      case '/': /* Cut-off value if using '|' option */
                         if ( (strchr(pp+1, '/') != NULL ) ) {
+                           if ( (*(pp+1) == 'w') || (*(pp+1) == 'W') ) {
+                              fm.cutatlength_line = 1;
+                              pp++;
+                           }
                            fm.cutatlength = atoi(pp+1);
                            if ( fm.cutatlength < 0 )
                               fm.cutatlength = 0;
@@ -9727,6 +9737,7 @@ FUNCTION(fun_printf)
                      fm.breakonreturn = 0;
                      fm.morepadd = 0;
                      fm.cutatlength = 0;
+                     fm.cutatlength_line = 0;
                   }
                } /* For */
                pp--;
