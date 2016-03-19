@@ -21269,12 +21269,12 @@ FUNCTION(fun_lock)
 {
     dbref it, aowner;
     int aflags;
-    char *tbuf, *t_lbuf;
+    char *tbuf;
     ATTR *attr;
     struct boolexp *okey;
 #ifdef USE_SIDEEFFECT
     CMDENT *cmdp;
-    char   *str;
+    char   *str, *t_lbuf;
     int     anum;
 #endif
 
@@ -32149,7 +32149,9 @@ FUN flist[] =
 #endif
     {"CLUSTER_UEVAL", fun_cluster_ueval, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CLUSTER_VATTRCNT", fun_cluster_vattrcnt, 1, 0, CA_PUBLIC, CA_NO_CODE},
+#ifdef USE_SIDEEFFECT
     {"CLUSTER_WIPE", fun_cluster_wipe, 1, FN_NO_EVAL | FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+#endif
     {"CLUSTER_XGET", fun_cluster_xget, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CMDS", fun_cmds, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CNAME", fun_cname, 1, 0, CA_PUBLIC, 0},
