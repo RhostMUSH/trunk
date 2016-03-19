@@ -30062,6 +30062,43 @@ FUNCTION(fun_lastcreate)
     dbval(buff, bufcx, obj_list[obj_type]);
 }
 
+/* This is not a sideeffect */
+FUNCTION(fun_mailread)
+{
+   dbref target;
+   int i_key;
+   CMDENT *cmdp;
+
+   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate.command_htab);
+   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
+         cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   if (!fn_range_check("MAILREAD", nfargs, 3, 4, buff, bufcx))
+      return;
+
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] ) {
+      safe_str("#-1 INVALID ARGUMENTS TO MAILREAD", buff, bufcx);
+      return;
+   }
+   target = lookup_player(player, fargs[0], 1);
+   if ( !Good_chk(target) || !Controls(player, target) ) {
+      safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+
+   i_key = 0;
+   if ( (nfargs > 3) && *fargs[3] )
+      i_key = atoi(fargs[3]);
+
+   if ( i_key )
+      i_key = 1;
+
+   mail_read_func(target, fargs[1], player, fargs[2], i_key, buff, bufcx);
+}
+
 /* --------------------------------------------------------------------------
  * These are all the nasty side-effect functions.  USE AT OWN RISK!
  * Side effects are notorious to be not very secure.
@@ -30460,42 +30497,6 @@ FUNCTION(fun_emit)
    }
 
    do_say(player, cause, SAY_EMIT, fargs[0]);
-}
-
-FUNCTION(fun_mailread)
-{
-   dbref target;
-   int i_key;
-   CMDENT *cmdp;
-
-   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate.command_htab);
-   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
-         cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
-      notify(player, "Permission denied.");
-      return;
-   }
-
-   if (!fn_range_check("MAILREAD", nfargs, 3, 4, buff, bufcx))
-      return;
-
-   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] ) {
-      safe_str("#-1 INVALID ARGUMENTS TO MAILREAD", buff, bufcx);
-      return;
-   }
-   target = lookup_player(player, fargs[0], 1);
-   if ( !Good_chk(target) || !Controls(player, target) ) {
-      safe_str("#-1 PERMISSION DENIED", buff, bufcx);
-      return;
-   }
-
-   i_key = 0;
-   if ( (nfargs > 3) && *fargs[3] )
-      i_key = atoi(fargs[3]);
-
-   if ( i_key )
-      i_key = 1;
-
-   mail_read_func(target, fargs[1], player, fargs[2], i_key, buff, bufcx);
 }
 
 FUNCTION(fun_mailsend)
