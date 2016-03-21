@@ -9540,12 +9540,14 @@ FUNCTION(fun_printf)
                         if ( ((fmtcurrarg + 1) < nfargs) && (strlen(strip_all_special(fargs[fmtcurrarg+1])) == 0) ) {
                            *fargs[fmtcurrarg]='\0';
                         }
+                        formatpass = 1;
                         break;
                      case '<': /* Null the value if the value before it is null */
                         if ( ((fmtcurrarg - 1) >= 0) && ((fmtcurrarg - 1) < nfargs) && 
                              (strlen(strip_all_special(fargs[fmtcurrarg-1])) == 0) && (fmtcurrarg < nfargs)) {
                            *fargs[fmtcurrarg]='\0';
                         }
+                        formatpass = 1;
                         break;
                      case '@': /* fieldsuppress type 3 */
                         if ( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
@@ -9732,6 +9734,9 @@ FUNCTION(fun_printf)
                         fm.breakonreturn = 0;
                         fm.forcebreakonreturn = 0;
                         fm.morepadd = 0;
+                        break;
+                     default: /* Ignore all else */
+                        formatpass = 1;
                         break;
                   } /* Case */
                   if( !formatpass ) {
