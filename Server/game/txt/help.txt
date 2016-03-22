@@ -7726,6 +7726,17 @@
   
   See Also: enter, give
   
+& REQUIRE_TREES
+  Flag: REQUIRE_TREES(q)
+  
+  When set on a target, that target will require the TREE method for all
+  sets when it uses a character that is identified as a tree separator.
+  This is a way to help better enforce tree sets on targets.  Keep in mind,
+  this only affects sets, and nothing else as Rhost natively does not
+  handle trees.
+  
+  See Also: ATTRIBUTE TREES
+
 & GOING
   Flag: GOING(G)  
   
@@ -8645,7 +8656,7 @@
   For showing what the current TREE character is:
      @list options system
   
-  See Also: @set, &, set(), rset(), lattr()
+  See Also: @set, &, set(), rset(), lattr(), REQUIRE_TREES
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
 
 & ATTRIBUTE TREE LIMITATIONS
@@ -8691,6 +8702,8 @@
   The following ways allow you to set trees and follow branching.
   Please be aware, @clusters and @wipe ARE NOT TREE AWARE!!!
   
+  If the target is set REQUIRE_TREES then set requires this method.
+ 
   Setting Attributes:
     @set  -- @set has a /tree switch, that when used with attribute setting,
              will set the entire branch list included in the attribute.  The
@@ -9106,23 +9119,23 @@
 & FLAG LIST
   Topic: FLAG LIST
  
-  Flag  Title        Flag  Title           Flag  Title        Flag  Title
+  Flag  Title        Flag  Title           Flag  Title      Flag  Title
   -------------------------------------------------------------------------
-    A - ABODE          L - LINK_OK           X - FREE           m - MYOPIC
-    B - ARCHITECT      M - MONITOR           Y - PARENT_OK      n - AUDIBLE
-    C - CHOWN_OK       N - NO_SPOOF          a - COUNCILOR      o - NO_TEL
-    D - DARK           O - OPAQUE            b - CLOAK          p - PUPPET
-    E - EXIT           P - PLAYER            c - CONNECTED      r - ROBOT
-    F - FLOATING       Q - QUIET             d - DESTROY_OK     s - SAFE 
-    G - GOING          R - ROOM              e - ENTER_OK       t - TERSE      
-    H - HAVEN          S - STICKY            f - FUBAR          v - VERBOSE
-    I - INHERIT        T - TRACE/TRANSPARENT g - GUILDMASTER    w - NO_WALLS
-    J - JUMP_OK        U - UNFINDABLE        h - HALTED         x - SLAVE   
-    K - KEY            V - VISUAL            i - IMMORTAL       y - NO_YELL    
-    ~ - INDESTRUCTIBLE W - ROYALTY           l - LIGHT          z - CONTROL_OK
-    = - BYEROOM        < - ANSI              > - ANSICOLOR      
+    A - ABODE          L - LINK_OK           X - FREE         m - MYOPIC
+    B - ARCHITECT      M - MONITOR           Y - PARENT_OK    n - AUDIBLE
+    C - CHOWN_OK       N - NO_SPOOF          a - COUNCILOR    o - NO_TEL
+    D - DARK           O - OPAQUE            b - CLOAK        p - PUPPET
+    E - EXIT           P - PLAYER            c - CONNECTED    q - REQUIRE_TREES
+    F - FLOATING       Q - QUIET             d - DESTROY_OK   r - ROBOT
+    G - GOING          R - ROOM              e - ENTER_OK     s - SAFE 
+    H - HAVEN          S - STICKY            f - FUBAR        t - TERSE      
+    I - INHERIT        T - TRACE/TRANSPARENT g - GUILDMASTER  v - VERBOSE
+    J - JUMP_OK        U - UNFINDABLE        h - HALTED       w - NO_WALLS
+    K - KEY            V - VISUAL            i - IMMORTAL     x - SLAVE   
+    ~ - INDESTRUCTIBLE W - ROYALTY           l - LIGHT        y - NO_YELL    
+    = - BYEROOM        < - ANSI              > - ANSICOLOR    z - CONTROL_OK
     - - NO_FLASH
-  
+ 
   See Also: flag list2, attribute flags
   
   For information on a particular flag, type 'help <flagname>'.
@@ -19757,10 +19770,14 @@
   See Also: splice(), tr()
   
 & REPEAT()
-  Function: repeat(<string>,<number>)
+  Function: repeat(<string>,<number> [,<ansi>])
   
   This function simply repeats <string>, <number> times.  No spaces are
   inserted between each repetition.
+  
+  You may specify the <ansi> toggle to '1' to make repeat ansi aware
+  which optimizes ansi but will have a cost in performance.  This 
+  defaults to '0'.
   
   Example:
     > say repeat(Test, 5)
@@ -29200,6 +29217,10 @@
   * @zone has /replace and /list switches.  zonecmd() has similar [ASH]
   * Startmush is much more optimized for flatfile loading if required [ASH]
   * @newpassword optionally allows /des switch to enforce DES passwords [ASH]
+  * @admin delim_null param allows '@@' to be seen as an empty separator
+    for all arguments with an output seperator [ASH]
+  * REQUIRE_TREES flag when set requires the flag method to set attribs
+    on the target that contain a tree character [ASH]
   
   Changes
   ------------
@@ -29243,6 +29264,7 @@
   * newpass_god modified to reset #1's password in-game if set [ASH]
   * 'w' option for / / in printf() allows cutting on line when |" used [ASH]
   * '<' and '>' values to null current value if prevous/next value null [ASH]
+  * repeat() has optional third argument for better ansi handling [ASH]
     
   Bug Fixes
   ------------
@@ -29267,3 +29289,4 @@
   * Some possible race conditions with regards to @remote [ASH]
   * printf's // cut value wasn't properly initialized in all cases [ASH]
   * compile time fix for when you do not have siddeffects selected [ASH]
+  * possible memory leak in extractword() in certain conditions [ASH]

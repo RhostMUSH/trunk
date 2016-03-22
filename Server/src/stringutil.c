@@ -1192,6 +1192,8 @@ int safe_copy_chr(char src, char *buff, char **bufp, int max)
 char	*tp;
 int	retval;
 
+	if ( src == '\032' )
+           return 0;
 	tp = *bufp;
 	retval = 0;
 	if ((tp - buff) < max) {

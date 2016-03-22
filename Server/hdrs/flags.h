@@ -93,7 +93,7 @@
 #define GUILDOBJ        0x00000200      
 #define GUILDMASTER     0x00000400      /* Player has gm privs */
 #define NO_WALLS        0x00000800      /* So to stop normal walls */
-/* 0x00001000 free */                   /* #define OLD_TEMPLE	0x00001000 */
+#define REQUIRE_TREES 	0x00001000	/* Trees are required on this target for attrib sets */
 /* 0x00002000 free */                   /* #define OLD_NOROBOT	0x00002000 */
 #define SCLOAK		0x00004000
 #define CLOAK		0x00008000
@@ -716,6 +716,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Wizard(x)	((Flags(x) & WIZARD) || Immortal(x) || God(x) ||\
 			 ((Flags(Owner(x)) & WIZARD) && Inherits(x)))
 #endif
+#define ReqTrees(x)	((Flags2(x) & REQUIRE_TREES) != 0)
 #define Recover(x)	((Flags2(x) & RECOVER) != 0)
 #define Byeroom(x)	((Flags2(x) & BYEROOM) != 0)
 #define Dr_Purge(x)	((Flags3(x) & DR_PURGE) != 0)

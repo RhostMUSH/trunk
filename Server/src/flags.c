@@ -863,6 +863,7 @@ FLAGENT gen_flags[] =
   {"SUSPECT", SUSPECT, 'u', FLAG2, CA_WIZARD, 0, 0, 0, fh_wiz},
   {"UNFINDABLE", UNFINDABLE, 'U', FLAG2, 0, 0, 0, 0, fh_unfind_bit},
   {"WANDERER", WANDERER, '^', FLAG2, CA_ADMIN, 0, 0, 0, fh_admin},
+  {"REQUIRE_TREES", REQUIRE_TREES, 'q', FLAG2, 0, 0, 0, 0, fh_any},
   /* Third set of flags */
   {"ALTQUOTA", ALTQUOTA, 'Q', FLAG3, CA_NO_DECOMP, 0, 0, 0, fh_none},
   {"ANONYMOUS", ANONYMOUS, 'Y', FLAG3, CA_WIZARD, 0, 0, 0, fh_wiz},

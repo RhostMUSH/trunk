@@ -810,7 +810,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
          if ( a_name ) {
             atr_get_str(s_tmp, thing, a_name->number, &aowner, &aflags);
             if ( !*s_tmp ) {
-               set_attr_internal(owner, thing, a_name->number, s_string, SET_QUIET, owner, &val, 1);   
+               set_attr_internal(owner, thing, a_name->number, s_string, SET_QUIET | SET_BYPASS, owner, &val, 1);   
             }
          }
          s_ptr++;
@@ -895,6 +895,10 @@ ATTR	*attr;
       could_hear = Hearer(thing);
       mudstate.vlplay = player;
 
+      if ( !(key & SET_TREE) && ReqTrees(thing) && !(key & SET_BYPASS) && (strchr(attr->name, *(mudconf.tree_character)) != NULL) ) {
+         notify_quiet(player, "Target requires TREE set method for TREE attributes.");
+         return;
+      }
       if ( key & SET_TREE ) {
          *val = set_trees(thing, (char *)attr->name, Owner(player), aflags);
          if ( *val != 0 ) {

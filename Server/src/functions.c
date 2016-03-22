@@ -2218,7 +2218,7 @@ int fn_range_check_real(const char *fname, int nfargs, int minargs,
 
 int delim_check(char *fargs[], int nfargs, int sep_arg, char *sep,
     char *buff, char **bufcx, int eval, dbref player, dbref cause,
-                dbref caller, char *cargs[], int ncargs)
+                dbref caller, char *cargs[], int ncargs, int key)
 {
     char *tstr;
     int tlen;
@@ -2229,16 +2229,26 @@ int delim_check(char *fargs[], int nfargs, int sep_arg, char *sep,
           eval = 0;
        if (eval) {
           tstr = exec(player, cause, caller, EV_EVAL | EV_FCHECK,
-          fargs[sep_arg - 1], cargs, ncargs, (char **)NULL, 0);
+                      fargs[sep_arg - 1], cargs, ncargs, (char **)NULL, 0);
           tlen = strlen(tstr);
-          *sep = *tstr;
+          if ( key && mudconf.delim_null && (tlen == 2) && (strcmp(tstr, (char *)"@@") == 0) ) {
+             tlen = 1;
+             *sep = (char)'\032';
+          } else {
+             *sep = *tstr;
+          }
           free_lbuf(tstr);
        }
        if (tlen == 0) {
           *sep = ' ';
        } else if (tlen != 1) {
-          safe_str("#-1 SEPARATOR MUST BE ONE CHARACTER", buff, bufcx);
-          return 0;
+          if ( key && !eval && mudconf.delim_null && (tlen == 2) && (strcmp(fargs[sep_arg - 1], (char *)"@@") == 0) ) {
+             tlen = 1;
+             *sep = (char)'\032';
+          } else {
+             safe_str("#-1 SEPARATOR MUST BE ONE CHARACTER", buff, bufcx);
+             return 0;
+          }
        } else if (!eval) {
           *sep = *fargs[sep_arg - 1];
        }
@@ -4800,9 +4810,13 @@ FUNCTION(fun_shuffle)
        sep = *fargs[1];
     else
        sep = ' ';
-    if ( (nfargs > 2) && *fargs[2] )
-       osep = *fargs[2];
-    else
+    if ( (nfargs > 2) && *fargs[2] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[2], (char *)"@@") == 0) ) {
+          osep = (char)'\032';
+       } else {
+          osep = *fargs[2];
+       }
+    } else
        osep = sep;
 
     num = 0;
@@ -4966,12 +4980,16 @@ FUNCTION(fun_graball)
     }
     else
       pt2 = fargs[2];
-    if ( (nfargs > 3) && *fargs[3] )
-       osep = *fargs[3];
-    else if (nfargs > 3)
+    if ( (nfargs > 3) && *fargs[3] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) )
+          osep = '\0';
+       else
+          osep = *fargs[3];
+    } else if (nfargs > 3) {
        osep = '\0';
-    else
+    } else {
        osep = ' ';
+    }
     pt1 = strtok_r(fargs[0], pt2, &s_tok);
     cntr = 0;
     while (pt1) {
@@ -9735,7 +9753,7 @@ FUNCTION(fun_printf)
                         fm.forcebreakonreturn = 0;
                         fm.morepadd = 0;
                         break;
-                     default: /* Ignore all else */
+                     default: /* Do nothing */
                         formatpass = 1;
                         break;
                   } /* Case */
@@ -14993,6 +15011,8 @@ FUNCTION(fun_parse)
        sop_buf=exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
        strncpy(sop, sop_buf, sizeof(sop)-1);
+       if ( mudconf.delim_null && (strcmp(sop, (char *)"@@") == 0) )
+          *sop = '\0';
        free_lbuf(sop_buf);
     } else {
        strcpy(sop, " ");
@@ -17166,16 +17186,16 @@ FUNCTION(fun_extractword)
    if ( !*fargs[0] )
       return;
 
-   initialize_ansisplitter(outsplit, LBUF_SIZE);
-   fargbuff = alloc_lbuf("fun_extractword_fargbuff");
-   memset(fargbuff, '\0', LBUF_SIZE);
-   split_ansi(strip_ansi(fargs[0]), fargbuff, outsplit);
-
    start = atoi(fargs[1]);
    len = atoi(fargs[2]);
    if ((start < 1) || (len < 1)) {
       return;
    }
+
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   fargbuff = alloc_lbuf("fun_extractword_fargbuff");
+   memset(fargbuff, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(fargs[0]), fargbuff, outsplit);
 
    sep  = alloc_lbuf("fun_extractword_sep");
    osep = alloc_lbuf("fun_extractword_osep");
@@ -17186,6 +17206,8 @@ FUNCTION(fun_extractword)
    }
    if ( (nfargs > 4) && *fargs[4] ) {
       strcpy(osep, fargs[4]);
+      if ( mudconf.delim_null && (strcmp(osep, (char *)"@@") == 0) )
+         *osep = '\0';
    } else {
       strcpy(osep, sep);
    }
@@ -17884,7 +17906,10 @@ handle_cor(char *fargs[], int nfargs, char *cargs[], int ncargs, int i_key, char
     if ( (i_key == 2) || (i_key == 4) || (i_key == 6) || (i_key == 8) ) {
        retbuff = exec(player, cause, caller, EV_STRIP|EV_FCHECK|EV_EVAL, (char *) fargs[nfargs-1], cargs, ncargs, (char **)NULL, 0);
        if ( *retbuff ) {
-          osep = *retbuff;
+          if ( mudconf.delim_null && (strcmp(retbuff, (char *)"@@") == 0) )
+             osep = '\0';
+          else
+             osep = *retbuff;
        }
        free_lbuf(retbuff);
     }
@@ -21739,7 +21764,10 @@ FUNCTION(fun_caplist)
 
     // Set up our arguments.
     sep = ( fargs[1] && *fargs[1] ) ? fargs[1] : (char *)" ";
-    osep = ( fargs[2] && *fargs[2] ) ? fargs[2] : sep;
+    if ( mudconf.delim_null && fargs[2] && *fargs[2] && (strcmp(fargs[2], (char *)"@@") == 0))
+       osep = (char *)"\032";
+    else
+       osep = ( fargs[2] && *fargs[2] ) ? fargs[2] : sep;
     style = ( fargs[3] && *fargs[3] ) ? ToUpper(*fargs[3]) : 'N';
     i_hyphen = ( fargs[4] && *fargs[4] ) ? atoi(fargs[4]) : 0;
     wordlist = trim_space_sep( fargs[0], *sep );
@@ -22667,7 +22695,8 @@ FUNCTION(fun_array)
    osep = alloc_lbuf("array_outsep");
    sprintf(osep, "%s", "\r\n");
    if ( nfargs > 5 ) {
-      strcpy(osep, fargs[5]);
+      if ( !(mudconf.delim_null && (strcmp(fargs[5], "@@") == 0)) )
+         strcpy(osep, fargs[5]);
    }
 
    initialize_ansisplitter(insplit, LBUF_SIZE);
@@ -23536,7 +23565,17 @@ FUNCTION(fun_splice)
 
 FUNCTION(fun_repeat)
 {
-    int times, i, over = 0;
+    int times, i, j, over = 0, i_ansi, cntr = 0;
+    char *outbuff, *outbuff2, *outbuff2ptr, *s_combine;
+    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
+
+    if (!fn_range_check("REPEAT", nfargs, 2, 3, buff, bufcx))
+       return;
+
+    i_ansi = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_ansi = (atoi(fargs[2]) ? 1 : 0);
+    }
 
     times = atoi(fargs[1]);
     if ((times < 1) || (times > LBUF_SIZE - 1)) {
@@ -23544,8 +23583,39 @@ FUNCTION(fun_repeat)
     } else if (times == 1) {
        safe_str(fargs[0], buff, bufcx);
     } else if (*fargs[0]) {
-       for (i = 0; i < times && !over; i++)
-           over = safe_str(fargs[0], buff, bufcx);
+       if ( i_ansi ) {
+          outbuff = alloc_lbuf("repeat_ansi");
+          outbuff2 = alloc_lbuf("repeat_ansi2");
+          memset(outbuff, '\0', LBUF_SIZE);
+          memset(outbuff2, '\0', LBUF_SIZE);
+          initialize_ansisplitter(outsplit, LBUF_SIZE);
+          initialize_ansisplitter(outsplit2, LBUF_SIZE);
+          split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+          outbuff2ptr = outbuff2;
+          p_sp2 = outsplit2;
+          for (i = 0; i < times && !over; i++) {
+             over = safe_str(outbuff, outbuff2, &outbuff2ptr);   
+             p_sp = outsplit;
+             for ( j = 0; j < strlen(outbuff); j++ ) {
+                if ( !p_sp || (cntr > (LBUF_SIZE - 2)) ) {
+                   over = 1;
+                   break;
+                }
+                cntr++;
+                clone_ansisplitter(p_sp2, p_sp);
+                p_sp++;
+                p_sp2++;
+             }
+          }
+          s_combine = rebuild_ansi(outbuff2, outsplit2);
+          free_lbuf(outbuff);
+          free_lbuf(outbuff2);
+          safe_str(s_combine, buff, bufcx);
+          free_lbuf(s_combine);
+       } else {
+          for (i = 0; i < times && !over; i++)
+              over = safe_str(fargs[0], buff, bufcx);
+       }
     } else
        safe_chr('\0',buff,bufcx);
 }
@@ -23825,6 +23895,8 @@ FUNCTION(fun_iter)
        sop_buf=exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
        strncpy(sop, sop_buf, sizeof(sop)-1);
+       if ( mudconf.delim_null && (strcmp(sop, (char *)"@@") == 0) )
+          *sop = '\0';
        free_lbuf(sop_buf);
     } else {
        strcpy(sop, " ");
@@ -24416,10 +24488,14 @@ FUNCTION(fun_munge)
     } else
       sep = ' ';
     if (nfargs > 4) {
-       if ( *fargs[4])
-          osep = *fargs[4];
-       else
+       if ( *fargs[4]) {
+          if ( mudconf.delim_null && (strcmp(fargs[4],"@@") == 0) )
+             osep = (char)'\032';
+          else
+             osep = *fargs[4];
+       } else {
           osep = sep;
+       }
     } else
        osep = sep;
     atr_gotten = atr_pget(thing, attrib, &aowner, &aflags);
@@ -24921,10 +24997,14 @@ FUNCTION(fun_filter)
     else
        sep = ' ';
 
-    if ( (nfargs > 3) && *fargs[3] )
-       osep = *fargs[3];
-    else
+    if ( (nfargs > 3) && *fargs[3] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) )
+          osep = (char)'\032';
+       else
+          osep = *fargs[3];
+    } else {
        osep = sep;
+    }
 
     for ( i = 0; i < (MAX_ARGS+1); i++ )
         s_dynargs[i] = NULL;
@@ -25320,9 +25400,10 @@ FUNCTION(fun_map)
 
     osep = alloc_lbuf("fun_map_osep");
     if ( (nfargs > 3) ) {
-       if ( *fargs[3] )
-          strcpy(osep, fargs[3]);
-       else {
+       if ( *fargs[3] ) {
+          if ( !(mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0)) )
+             strcpy(osep, fargs[3]);
+       } else {
           if ( mudconf.map_delim_space ) {
              sprintf(osep, "%c", ' ');
           } else {
@@ -25618,7 +25699,7 @@ FUNCTION(fun_mix)
         sep = ' ';
         lastn = nfargs - 1;
     } else if (!delim_check(fargs, nfargs, nfargs, &sep, buff, bufcx, 0,
-                            player, cause, caller, cargs, ncargs)) {
+                            player, cause, caller, cargs, ncargs, 0)) {
         return;
     } else {
         lastn = nfargs - 2;
@@ -27461,14 +27542,13 @@ FUNCTION(fun_sort)
     if (!fn_range_check("SORT", nfargs, 1, 4, buff, bufcx))
         return;
     if (!delim_check(fargs, nfargs, 3, &sep, buff, bufcx, 0,
-                     player, cause, caller, cargs, ncargs))
+                     player, cause, caller, cargs, ncargs, 0))
         return;
     if (nfargs < 4)
         osep = sep;
     else if (!delim_check(fargs, nfargs, 4, &osep, buff, bufcx, 0,
-                          player, cause, caller, cargs, ncargs))
+                          player, cause, caller, cargs, ncargs, 1))
         return;
-
 
     /* Convert the list to an array */
 
@@ -27822,10 +27902,14 @@ do_listsets(int nfargs, char *fargs[], char *buff, char **bufcx, int i_type)
    else
       sep = ' ';
 
-   if ( (nfargs > 3) && *fargs[3] )
-      osep = *fargs[3];
-   else
+   if ( (nfargs > 3) && *fargs[3] ) {
+      if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) )
+         osep = (char)'\032';
+      else
+         osep = *fargs[3];
+   } else {
       osep = sep;
+   }
 
    if ( (nfargs > 4) && *fargs[4] )
       i_key = atoi(fargs[4]);
@@ -27937,8 +28021,12 @@ FUNCTION(fun_setunion)
        sep = *fargs[2];
 
     osep = sep;
-    if ( (nfargs > 3) && *fargs[3] )
-       osep = *fargs[3];
+    if ( (nfargs > 3) && *fargs[3] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) )
+          osep =  (char)'\032';
+       else
+          osep = *fargs[3];
+    }
 
     if ( (nfargs > 4) && *fargs[4] )
        sort_type = get_list_type_basic(*fargs[4]);
@@ -27962,8 +28050,12 @@ FUNCTION(fun_setdiff)
        sep = *fargs[2];
 
     osep = sep;
-    if ( (nfargs > 3) && *fargs[3] )
-       osep = *fargs[3];
+    if ( (nfargs > 3) && *fargs[3] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) )
+          osep =  (char)'\032';
+       else
+          osep = *fargs[3];
+    }
 
     if ( (nfargs > 4) && *fargs[4] )
        sort_type = get_list_type_basic(*fargs[4]);
@@ -27987,8 +28079,12 @@ FUNCTION(fun_setinter)
        sep = *fargs[2];
 
     osep = sep;
-    if ( (nfargs > 3) && *fargs[3] )
-       osep = *fargs[3];
+    if ( (nfargs > 3) && *fargs[3] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) )
+          osep =  (char)'\032';
+       else
+          osep = *fargs[3];
+    }
 
     if ( (nfargs > 4) && *fargs[4] )
        sort_type = get_list_type_basic(*fargs[4]);
@@ -32514,7 +32610,7 @@ FUN flist[] =
 #endif
     {"REMOVE", fun_remove, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REMTYPE", fun_remtype, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"REPEAT", fun_repeat, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"REPEAT", fun_repeat, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REPLACE", fun_replace, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REST", fun_rest, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REVERSE", fun_reverse, -1, 0, CA_PUBLIC, CA_NO_CODE},
