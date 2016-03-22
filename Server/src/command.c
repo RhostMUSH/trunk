@@ -5726,6 +5726,10 @@ list_options_system(dbref player)
        notify(player, "Attribute formatting compatibility (&<name>FORMAT) ------------- FORMAT AFTER");
     else
        notify(player, "Attribute formatting non-compatibility (&FORMAT<name>) --------- FORMAT FIRST");
+    if ( mudconf.delim_null )
+       notify(player, "@@ recognized as null output seperator ------------------------- ENABLED");
+    else
+       notify(player, "@@ recognized as null output seperator ------------------------- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
