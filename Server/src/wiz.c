@@ -89,7 +89,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		 char *dlist[], int nargs)
 {
   dbref	victim, destination, loc;
-  char	*to, *arg1, *arg2;
+  char	*to, *arg1, *arg2, separgs[3];
   int	con, dcount, quiet, side_effect=0, tel_bool_chk;
 
 	/* get victim */
@@ -113,12 +113,18 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 	notify(player,"No destination given.");
 	return;
       }
+      memset(separgs, '\0', sizeof(separgs));
+
       if ((key != TEL_LIST) && (nargs > 1))
 	notify(player,"Extra destinations ignored."); 
       dcount = 0;
       con = 1;
       if (key == TEL_LIST) {
-	arg1 = strtok(slist," ");
+        if ( strchr(slist, ',') != NULL )
+           *separgs = ',';
+        else
+           *separgs = ' ';
+	arg1 = strtok(slist, separgs);
 	if (!arg1) {
 	  notify(player,"No match.");
 	}
@@ -168,7 +174,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -183,7 +189,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -198,7 +204,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -208,7 +214,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -217,7 +223,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -229,7 +235,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -243,7 +249,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -256,7 +262,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -273,7 +279,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	case AMBIGUOUS:
@@ -282,7 +288,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	default:
@@ -291,7 +297,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -300,7 +306,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -318,7 +324,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -358,7 +364,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -380,7 +386,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		}
 	}
 	if (key == TEL_LIST)
-          arg1 = strtok(NULL," ");
+          arg1 = strtok(NULL, separgs);
       }
 }
 

@@ -535,9 +535,13 @@ do_regrab(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   else
      sep = ' ';
 
-  if ( (nfargs >= 4) && *fargs[3] )
-    osep = fargs[3];
-  else {
+  if ( (nfargs >= 4) && *fargs[3] ) {
+    if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+       osep = osepd;
+    } else {
+       osep = fargs[3];
+    }
+  } else {
     osepd[0] = sep;
     osep = osepd;
   }
@@ -568,7 +572,7 @@ do_regrab(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   do {
     r = split_token(&s, sep);
     if (pcre_exec(re, study, r, strlen(r), 0, 0, offsets, 99) >= 0) {
-      if (all && first) 
+      if (all && first && *osep) 
         safe_str(osep, buff, bufcx);
       safe_str(r, buff, bufcx);
       first = 1;

@@ -4566,9 +4566,21 @@
            @teleport[/switch] [<obj1,obj2,...>=[dest1, dest2,...]] <exit>
            @teleport[/switch] [<obj1,obj2,...>=[dest1, dest2,...]] home
    
-  The first form of the complex command moves <object> (or you) to the named
-  room or thing.  The second form sends <object> (or you) to the destination
-  of the named exit, while the third form sends <object> (or you) home.
+  Complex teleports accept the source list with spaces or commas.  If it
+  detects a comma, it will ignore spaces as the seperator.  This is to allow
+  teleporting things with multi-word names.
+  
+  The destination list (if more than one) must have commas.
+  
+  The first form of the complex command moves <object> (or you), and/or the 
+  list of space or comma delimited objects to the named room or thing.  
+  
+  The second form sends <object> (or you), and/or the list of space or comma
+  delimited objects to the destination of the named exit. 
+  
+  The third form sends <object> (or you), and/or the list of space or comma
+  delimited objects home.
+  
   If the destination room has a drop-to, the object will go to the drop-to
   instead of the named location.
   
@@ -4607,6 +4619,7 @@
     @tel #45=home                 - teleport #45 home
     @tel home                     - teleport the enactor home
     @tel/list/quiet #45 #56=#59   - teleport #45 and #56 to #59 quietly
+    @tel/list a space, bar=home   - teleport 'a space' and 'bar' home
     @tel/quiet #45=home           - teleport #45 home quietly
   
   See Also: JUMP_OK, @lock (tport and telout), @tfail, @otfail, @atfail
@@ -29290,3 +29303,4 @@
   * printf's // cut value wasn't properly initialized in all cases [ASH]
   * compile time fix for when you do not have siddeffects selected [ASH]
   * possible memory leak in extractword() in certain conditions [ASH]
+  * @tel/list didn't handle a comma separator properly for source [ASH]
