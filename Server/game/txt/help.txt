@@ -1763,10 +1763,10 @@
 & OFPARSE()
   Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
 
-  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
-  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 1&3: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 5&7: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
   
   This function will take each <eval> and returns it based on the <type>.
   
@@ -1805,10 +1805,10 @@
   (CONTINUED)
   Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
 
-  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
-  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 1&3: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 5&7: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
   Examples:
     > say ofparse(1,0,2)
     You say "2"

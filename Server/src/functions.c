@@ -4570,10 +4570,15 @@ FUNCTION(fun_lrand)
     if (!fn_range_check("LRAND", nfargs, 3, 4, buff, bufcx))
        return;
 
-    if ( (nfargs > 3) && (*fargs[3]) )
-       sep = *fargs[3];
-    else
+    if ( (nfargs > 3) && (*fargs[3]) ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+          sep = '\0';
+       } else {
+          sep = *fargs[3];
+       }
+    } else {
        sep = ' ';
+    }
 
     /* If we're generating no numbers, since this is a list function,
      * we return empty, rather than returning 0.
@@ -4594,7 +4599,7 @@ FUNCTION(fun_lrand)
     } else if (r_bot == r_top) {
         first = 0;
         for (i = 0; i < n_times; i++) {
-           if (first)
+           if (first && sep)
               safe_chr(sep, buff, bufcx);
            ival(buff, bufcx, r_bot);
            first = 1;
@@ -4604,7 +4609,7 @@ FUNCTION(fun_lrand)
         n_range = (double) r_top - r_bot + 1;
         first = 0;
         for (i = 0; i < n_times; i++) {
-           if (first)
+           if (first && sep)
               safe_chr(sep, buff, bufcx);
            ival(buff, bufcx, (r_bot + (random() % (int)n_range)));
            first = 1;
@@ -4637,10 +4642,15 @@ FUNCTION(fun_dice)
        botval = 1;
     if ( botval >= j )
        botval = j;
-    if ( nfargs > 4 && *fargs[4] )
-       sep = *fargs[4];
-    else
+    if ( nfargs > 4 && *fargs[4] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[4], (char *)"@@") == 0) ) {
+          sep = '\0';
+       } else {
+          sep = *fargs[4];
+       }
+    } else {
        sep = ' ';
+    }
     if ( nfargs > 5 && *fargs[5] )
        i_save = atoi(fargs[5]);
     else
@@ -4680,7 +4690,7 @@ FUNCTION(fun_dice)
        for (x = 0; x < i; x++) {
           if ( !(((i_type <= 5) && (i_type >=3)) &&
                  ((arry[x] <= (1 + i_save)) || (arry[x] >= (j - i_crit)))) ) {
-             if ( tot )
+             if ( tot && sep )
                 safe_chr(sep, buff, bufcx);
              ival(buff, bufcx, arry[x]);
              tot = 1;
@@ -4695,7 +4705,7 @@ FUNCTION(fun_dice)
        tot=0;
        for (x = 0; x < i; x++) {
           if ( farry[x] != -1 ) {
-            if ( tot )
+            if ( tot && sep )
                safe_chr(sep, buff, bufcx);
             ival(buff, bufcx, farry[x]);
             tot = 1;
@@ -4708,7 +4718,7 @@ FUNCTION(fun_dice)
        tot=0;
        for ( x = 0; x < i; x++) {
           if ( carry[x] != -1 ) {
-            if ( tot )
+            if ( tot && sep )
                safe_chr(sep, buff, bufcx);
             ival(buff, bufcx, carry[x]);
             tot = 1;
@@ -5322,10 +5332,15 @@ FUNCTION(fun_elist)
     if (nfargs > 1 && *fargs[1] ) {
        sep_buf = exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
-       if ( *sep_buf )
-          strcpy(sop, sep_buf);
-       else
+       if ( *sep_buf ) {
+          if ( mudconf.delim_null && (strcmp(sep_buf, (char *)"@@") == 0) ) {
+             *sop='\0';
+          } else {
+             strcpy(sop, sep_buf);
+          }
+       } else {
           strcpy(sop, "and");
+       }
        free_lbuf(sep_buf);
     } else {
        strcpy(sop, "and");
@@ -5349,10 +5364,15 @@ FUNCTION(fun_elist)
        safe_str(strip_ansi(sep_buf),sep_buf2,&sepptr);
        sepptr = sep_buf2;
        free_lbuf(sep_buf);
-       if ( *sep_buf2 )
-          sepfil = *sep_buf2;
-       else
+       if ( *sep_buf2 ) {
+          if ( mudconf.delim_null && (strcmp(sep_buf2, (char *)"@@") == 0) ) {
+             sepfil = '\0';
+          } else {
+             sepfil = *sep_buf2;
+          }
+       } else {
           sepfil = ' ';
+       }
        free_lbuf(sep_buf2);
     } else {
        sepfil = ' ';
@@ -5403,7 +5423,7 @@ FUNCTION(fun_elist)
     cntr = 1;
     while (cp) {
        objstring = split_token(&cp, sep);
-       if (!first)
+       if (!first && sepfil)
           safe_chr(sepfil, buff, bufcx);
        if ( mudconf.old_elist == 1 ) {
           result = exec(player, cause, caller,
@@ -5448,8 +5468,10 @@ FUNCTION(fun_elist)
              else
                 safe_chr(',', buff, bufcx);
           }
-          safe_chr(sepfil, buff, bufcx);
-          safe_str(sop, buff, bufcx);
+          if ( sepfil )
+             safe_chr(sepfil, buff, bufcx);
+          if ( *sop ) 
+             safe_str(sop, buff, bufcx);
        }
        cntr++;
     }
@@ -14791,10 +14813,15 @@ FUNCTION(fun_elements)
     delim = *fargs[2];
   else
     delim = ' ';
-  if ((nfargs > 3) && (*fargs[3]))
-    filler = *fargs[3];
-  else
+  if ((nfargs > 3) && (*fargs[3])) {
+    if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+       filler = '\0';
+    } else {
+       filler = *fargs[3];
+    }
+  } else {
     filler = delim;
+  }
   pos1 = fargs[1];
   while (*pos1 && isspace((int)*pos1))
     pos1++;
@@ -14838,7 +14865,7 @@ FUNCTION(fun_elements)
       x = LBUF_SIZE - 1;
     strncpy(mybuff,pt1,x);
     *(mybuff+x) = '\0';
-    if (got)
+    if (got && filler)
       safe_chr(filler, buff, bufcx);
     safe_str(mybuff, buff, bufcx);
     got = 1;
@@ -17055,16 +17082,26 @@ FUNCTION(fun_randextract)
      numext = 1;
   else
      numext = atoi(fargs[1]);
+
+  if ( (te != 'L') && (te != 'R') && (te != 'D') )
+    te = 'R';
+
   if ((!*fargs[0]) || (numext < 1) || (numext > LBUF_SIZE) || ((te != 'L') && (te != 'R') && (te != 'D')))
     return;
-  if ((nfargs > 2) && (*fargs[2]))
+  if ((nfargs > 2) && (*fargs[2])) {
     sep = *fargs[2];
-  else
+  } else {
     sep = ' ';
-  if (nfargs > 4 && (*fargs[4]))
-    osep = *fargs[4];
-  else
+  }
+  if (nfargs > 4 && (*fargs[4])) {
+    if ( mudconf.delim_null && (strcmp(fargs[4], (char *)"@@") == 0) ) {
+       osep = '\0';
+    } else {
+       osep = *fargs[4];
+    }
+  } else {
     osep = sep;
+  }
   nword = 0;
   p1 = fargs[0];
   while (*p1 && (*p1 == sep))
@@ -17107,7 +17144,7 @@ FUNCTION(fun_randextract)
            *p2 = '\0';
          else
            end = 1;
-         if (got)
+         if (got && osep)
            safe_chr(osep,buff,bufcx);
          safe_str(p1, buff, bufcx);
          got = 1;
@@ -17162,7 +17199,7 @@ FUNCTION(fun_randextract)
            z = LBUF_SIZE - 1;
          strncpy(b2, p1, z);
          *(b2 + z) = '\0';
-         if (got)
+         if (got && osep)
            safe_chr(osep,buff,bufcx);
          safe_str(b2, buff, bufcx);
          got = 1;
@@ -19849,7 +19886,9 @@ FUNCTION(fun_lexits)
                     if (gotone) {
                        if ( (nfargs > 1) && *fargs[1] ) {
                        /* tbuf is an SBUF so we can't just add this to it */
-                          safe_str(fargs[1], buff, bufcx);
+                          if ( !mudconf.delim_null || (mudconf.delim_null && (strcmp(fargs[1], (char *)"@@") != 0)) ) {
+                             safe_str(fargs[1], buff, bufcx);
+                          }
                        } else {
                           safe_chr(' ', buff, bufcx);
                        }
@@ -19861,7 +19900,9 @@ FUNCTION(fun_lexits)
                  } else {
                     if (gotone) {
                        if ( (nfargs > 1) && *fargs[1] ) {
-                          safe_str(fargs[1], buff, bufcx);
+                          if ( !mudconf.delim_null || (mudconf.delim_null && (strcmp(fargs[1], (char *)"@@") != 0)) ) {
+                             safe_str(fargs[1], buff, bufcx);
+                          }
                           if ( i_objid ) {
                              sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
                           } else {
@@ -22192,8 +22233,13 @@ FUNCTION(fun_lnum)
       else if (nfargs >= 2) {
           if (*fargs[1])
               y = atoi(fargs[1]);
-          if ((nfargs >= 3) && (*fargs[2]))
-              sep = *fargs[2];
+          if ((nfargs >= 3) && (*fargs[2])) {
+              if ( mudconf.delim_null && (strcmp(fargs[2], (char *)"@@") == 0) ) {
+                 sep = '\0';
+              } else {
+                 sep = *fargs[2];
+              }
+          }
           if ((nfargs == 4) && (*fargs[3])) {
               i_step = atoi(fargs[3]);
               if ( (i_step >= 2000000000) || (i_step <= 1) )
@@ -22209,7 +22255,8 @@ FUNCTION(fun_lnum)
               else
                  x++;
               for (ctr = x; ctr <= y && !over; ((i_step > 0) ? ctr += (i_step + 1) : ctr++) ) {
-                 over = safe_chr(sep, buff, bufcx);
+                 if ( sep )
+                    over = safe_chr(sep, buff, bufcx);
                  ival(buff, bufcx, ctr);
               }
           } else {
@@ -22218,7 +22265,8 @@ FUNCTION(fun_lnum)
               else
                  x--;
               for (ctr = x; (ctr >= y && (ctr >= 0 || mudconf.lnum_compat == 1)) && !over; ((i_step > 0) ? ctr -= (i_step + 1) : ctr--) ) {
-                over = safe_chr(sep, buff, bufcx);
+                if ( sep )
+                   over = safe_chr(sep, buff, bufcx);
                 ival(buff, bufcx, ctr);
               }
           }
@@ -22569,7 +22617,11 @@ FUNCTION(fun_lcmds)
        return;
 
     if (nfargs >= 2 && *fargs[1]) {
-      sep = *fargs[1];
+      if ( mudconf.delim_null && (strcmp(fargs[1], (char *)"@@") == 0) ) {
+         sep = '\0';
+      } else {
+         sep = *fargs[1];
+      }
     } else {
       sep = ' ';
     }
@@ -22617,7 +22669,7 @@ FUNCTION(fun_lcmds)
                              *c_ptr = ToLower((int)*c_ptr);
                              c_ptr++;
                           }
-                          if (!first)
+                          if (!first && sep)
                              safe_chr(sep, buff, bufcx);
                           first = 0;
                           safe_str(s_shoveattr+1, buff, bufcx);
@@ -22697,6 +22749,8 @@ FUNCTION(fun_array)
    if ( nfargs > 5 ) {
       if ( !(mudconf.delim_null && (strcmp(fargs[5], "@@") == 0)) )
          strcpy(osep, fargs[5]);
+      if ( mudconf.delim_null && (strcmp(fargs[5], "@@") == 0) )
+         *osep = '\0';
    }
 
    initialize_ansisplitter(insplit, LBUF_SIZE);
@@ -22757,8 +22811,10 @@ FUNCTION(fun_array)
             }
             s_tmpbuff = rebuild_ansi(s_output, outsplit);
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-            if ( *mudstate.global_regs[i_regcurr] )
-               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+            if ( *mudstate.global_regs[i_regcurr] ) {
+               if ( *osep )
+                  safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+            }
             safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -22775,8 +22831,10 @@ FUNCTION(fun_array)
       if ( *s_output && i ) {
          s_tmpbuff = rebuild_ansi(s_output, outsplit);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-         if ( *mudstate.global_regs[i_regcurr] )
-            safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+         if ( *mudstate.global_regs[i_regcurr] ) {
+            if ( *osep )
+               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+         }
          safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
@@ -22856,8 +22914,10 @@ FUNCTION(fun_array)
             }
 
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-            if ( *mudstate.global_regs[i_regcurr] )
-               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+            if ( *mudstate.global_regs[i_regcurr] ) {
+               if ( *osep )
+                  safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+            }
             safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -22873,8 +22933,10 @@ FUNCTION(fun_array)
       if ( *s_output && i ) {
          s_tmpbuff = rebuild_ansi(s_output, outsplit);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-         if ( *mudstate.global_regs[i_regcurr] )
-            safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+         if ( *mudstate.global_regs[i_regcurr] ) {
+            if ( *osep )
+               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+         }
          safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
