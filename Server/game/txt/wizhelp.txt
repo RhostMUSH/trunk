@@ -5249,12 +5249,12 @@
   conn_timeout             connect_file             connect_reg_file       
   cpu_secure_lvl           cpuintervalchk           cputimechk             
   crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            descs_are_local          default_home           
-  dig_cost                 door_file                door_index             
-  down_file                down_motd_message        dump_interval          
-  dump_message             dump_offset              earn_limit             
-  empower_fulltel          enable_tstamps           enforce_unfindable     
-  enhanced_convtime        error_file 
+  dark_sleepers            default_home             delim_null               
+  descs_are_local          dig_cost                 door_file              
+  door_index               down_file                down_motd_message      
+  dump_interval            dump_message             dump_offset            
+  earn_limit               empower_fulltel          enable_tstamps         
+  enforce_unfindable       enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -6126,6 +6126,13 @@
   parameter is not set, the value of player_starting_home is used instead.
   See Also: player_starting_home.
 
+& delim_null
+  Config parameter: delim_null <yes/no>.   Default: no
+  
+  Specifies if '@@' is to be identified as a special output seperator in
+  nearly every function to work as a null output delimiter.  This is to
+  help with MUX compatibility.
+  
 & descs_are_local
   Config parameter: descs_are_local <yes/no>.  Default: no
   
