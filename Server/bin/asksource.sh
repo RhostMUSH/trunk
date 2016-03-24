@@ -1476,7 +1476,10 @@ setdefaults() {
      fi
      if [ "$Z4" -eq 0 ]
      then
-        Z4=$(ld -lsqlite3 2>&1|grep -c "ld: warning")
+        if [ "$(uname -s)" != "Darwin" ]
+        then
+           Z4=$(ld -lsqlite3 2>&1|grep -c "ld: warning")
+        fi
      fi
      if [ "$Z4" -eq 0 ]
      then
@@ -1530,25 +1533,27 @@ setdefaults() {
   fi
   if [ "$Z1" -eq 0 ]
   then
-     Z1=$(ld -lssl 2>&1|grep -c "ld: warning")
+     if [ "$(uname -s)" != "Darwin" ]
+     then
+        Z1=$(ld -lssl 2>&1|grep -c "ld: warning")
+     fi
   fi
   if [ "${X[24]}" != "X" ]
   then
-#    if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h -a -f /usr/include/openssl/bio.h ]
-#    then
-#       if [ $(uname -a|grep -ic ubuntu) -eq 0 ]
-#       then
-#          echo "OpenSSL identified.  Configuring..."
-#          DEFS="${DEFS} -DHAS_OPENSSL"
-#       else
-#          if [ $Z1 -gt 0 ]
-#          then
-#             echo "OpenSSL identified.  Configuring..."
-#             DEFS="${DEFS} -DHAS_OPENSSL"
-#          fi
-#       fi
-#    elif [ $Z1 -gt 0 ]
-     if [ $Z1 -gt 0 ]
+     if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h -a -f /usr/include/openssl/bio.h ]
+     then
+        if [ $(uname -a|grep -ic ubuntu) -eq 0 ]
+        then
+           echo "OpenSSL identified.  Configuring..."
+           DEFS="${DEFS} -DHAS_OPENSSL"
+        else
+           if [ $Z1 -gt 0 ]
+           then
+              echo "OpenSSL identified.  Configuring..."
+              DEFS="${DEFS} -DHAS_OPENSSL"
+           fi
+        fi
+     elif [ $Z1 -gt 0 ]
      then
         echo "OpenSSL identified.  Configuring..."
         DEFS="${DEFS} -DHAS_OPENSSL"
@@ -1588,7 +1593,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
-      Z4=$(ld -lcrypt 2>&1|grep -c "ld: warning")
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lcrypt 2>&1|grep -c "ld: warning")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1612,7 +1620,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
-      Z4=$(ld -lsocket 2>&1|grep -c "ld: warning")
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lsocket 2>&1|grep -c "ld: warning")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1636,7 +1647,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
-      Z4=$(ld -lresolv 2>&1|grep -c "ld: warning")
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lresolv 2>&1|grep -c "ld: warning")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1660,7 +1674,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
-      Z4=$(ld -lnsl 2>&1|grep -c "ld: warning")
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lnsl 2>&1|grep -c "ld: warning")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1684,7 +1701,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
-      Z4=$(ld -lm 2>&1|grep -c "ld: warning")
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lm 2>&1|grep -c "ld: warning")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1712,7 +1732,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
-      Z4=$(ld -lssl 2>&1|grep -c "ld: warning")
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lssl 2>&1|grep -c "ld: warning")
+      fi
    fi
    if [ "${X[24]}" != "X" ]
    then
@@ -1727,7 +1750,10 @@ setlibs() {
          fi
          if [ "$Z2" -eq 0 ]
          then
-            Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
+            if [ "$(uname -s)" != "Darwin" ]
+            then
+               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
+            fi
          fi
          if [ "$Z2" -eq 0 ]
          then
@@ -1751,7 +1777,10 @@ setlibs() {
          fi
          if [ "$Z2" -eq 0 ]
          then
-            Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
+            if [ "$(uname -s)" != "Darwin" ]
+            then
+               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
+            fi
          fi
          if [ "$Z2" -eq 0 ]
          then
