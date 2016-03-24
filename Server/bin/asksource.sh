@@ -1476,6 +1476,10 @@ setdefaults() {
      fi
      if [ "$Z4" -eq 0 ]
      then
+        Z4=$(ld -lsqlite3 2>&1|grep -c "ld: warning")
+     fi
+     if [ "$Z4" -eq 0 ]
+     then
         Z1=$(ls /lib/libsqlite3.* 2>/dev/null|wc -l)
         Z2=$(ls /usr/lib/libsqlite3.* 2>/dev/null|wc -l)
         Z3=$(ls /usr/local/lib/libsqlite3.* 2>/dev/null|wc -l)
@@ -1523,6 +1527,10 @@ setdefaults() {
      fi
   else
      Z1=0
+  fi
+  if [ "$Z1" -eq 0 ]
+  then
+     Z1=$(ld -lssl 2>&1|grep -c "ld: warning")
   fi
   if [ "${X[24]}" != "X" ]
   then
@@ -1579,6 +1587,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
+      Z4=$(ld -lcrypt 2>&1|grep -c "ld: warning")
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
       Z1=$(ls /lib/libcrypt.* 2>/dev/null|wc -l)
       Z2=$(ls /usr/lib/libcrypt.* 2>/dev/null|wc -l)
       Z3=$(ls /usr/local/lib/libcrypt.* 2>/dev/null|wc -l)
@@ -1596,6 +1608,10 @@ setlibs() {
       Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libsocket.so$")
    else
       Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z4=$(ld -lsocket 2>&1|grep -c "ld: warning")
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1619,6 +1635,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
+      Z4=$(ld -lresolv 2>&1|grep -c "ld: warning")
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
       Z1=$(ls /lib/libresolv.* 2>/dev/null|wc -l)
       Z2=$(ls /usr/lib/libresolv.* 2>/dev/null|wc -l)
       Z3=$(ls /usr/local/lib/libresolv.* 2>/dev/null|wc -l)
@@ -1639,6 +1659,10 @@ setlibs() {
    fi
    if [ "$Z4" -eq 0 ]
    then
+      Z4=$(ld -lnsl 2>&1|grep -c "ld: warning")
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
       Z1=$(ls /lib/libnsl.* 2>/dev/null|wc -l)
       Z2=$(ls /usr/lib/libnsl.* 2>/dev/null|wc -l)
       Z3=$(ls /usr/local/lib/libnsl.* 2>/dev/null|wc -l)
@@ -1656,6 +1680,10 @@ setlibs() {
       Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libm.so$")
    else
       Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z4=$(ld -lm 2>&1|grep -c "ld: warning")
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1681,6 +1709,10 @@ setlibs() {
    else
       Z1=0
    fi
+   if [ "$Z4" -eq 0 ]
+   then
+      Z4=$(ld -lssl 2>&1|grep -c "ld: warning")
+   fi
    if [ "${X[24]}" != "X" ]
    then
       if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h ]
@@ -1691,6 +1723,10 @@ setlibs() {
             Z2=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypto.so$")
          else
             Z2=0
+         fi
+         if [ "$Z2" -eq 0 ]
+         then
+            Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
          fi
          if [ "$Z2" -eq 0 ]
          then
@@ -1711,6 +1747,10 @@ setlibs() {
             Z2=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypto.so$")
          else
             Z2=0
+         fi
+         if [ "$Z2" -eq 0 ]
+         then
+            Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
          fi
          if [ "$Z2" -eq 0 ]
          then
