@@ -1478,7 +1478,7 @@ setdefaults() {
      then
         if [ "$(uname -s)" != "Darwin" ]
         then
-           Z4=$(ld -lsqlite3 2>&1|grep -c "ld: warning")
+           Z4=$(ld -lsqlite3 2>&1|grep -c "ld: warning: can")
         fi
      fi
      if [ "$Z4" -eq 0 ]
@@ -1535,7 +1535,7 @@ setdefaults() {
   then
      if [ "$(uname -s)" != "Darwin" ]
      then
-        Z1=$(ld -lssl 2>&1|grep -c "ld: warning")
+        Z1=$(ld -lssl 2>&1|grep -c "ld: warning: can")
      fi
   fi
   if [ "${X[24]}" != "X" ]
@@ -1595,7 +1595,7 @@ setlibs() {
    then
       if [ "$(uname -s)" != "Darwin" ]
       then
-         Z4=$(ld -lcrypt 2>&1|grep -c "ld: warning")
+         Z4=$(ld -lcrypt 2>&1|grep -c "ld: warning: can")
       fi
    fi
    if [ "$Z4" -eq 0 ]
@@ -1622,7 +1622,7 @@ setlibs() {
    then
       if [ "$(uname -s)" != "Darwin" ]
       then
-         Z4=$(ld -lsocket 2>&1|grep -c "ld: warning")
+         Z4=$(ld -lsocket 2>&1|grep -c "ld: warning: can")
       fi
    fi
    if [ "$Z4" -eq 0 ]
@@ -1649,7 +1649,7 @@ setlibs() {
    then
       if [ "$(uname -s)" != "Darwin" ]
       then
-         Z4=$(ld -lresolv 2>&1|grep -c "ld: warning")
+         Z4=$(ld -lresolv 2>&1|grep -c "ld: warning: can")
       fi
    fi
    if [ "$Z4" -eq 0 ]
@@ -1676,7 +1676,7 @@ setlibs() {
    then
       if [ "$(uname -s)" != "Darwin" ]
       then
-         Z4=$(ld -lnsl 2>&1|grep -c "ld: warning")
+         Z4=$(ld -lnsl 2>&1|grep -c "ld: warning: can")
       fi
    fi
    if [ "$Z4" -eq 0 ]
@@ -1703,7 +1703,7 @@ setlibs() {
    then
       if [ "$(uname -s)" != "Darwin" ]
       then
-         Z4=$(ld -lm 2>&1|grep -c "ld: warning")
+         Z4=$(ld -lm 2>&1|grep -c "ld: warning: can")
       fi
    fi
    if [ "$Z4" -eq 0 ]
@@ -1734,7 +1734,7 @@ setlibs() {
    then
       if [ "$(uname -s)" != "Darwin" ]
       then
-         Z4=$(ld -lssl 2>&1|grep -c "ld: warning")
+         Z4=$(ld -lssl 2>&1|grep -c "ld: warning: can")
       fi
    fi
    if [ "${X[24]}" != "X" ]
@@ -1752,7 +1752,7 @@ setlibs() {
          then
             if [ "$(uname -s)" != "Darwin" ]
             then
-               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
+               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning: can")
             fi
          fi
          if [ "$Z2" -eq 0 ]
@@ -1779,7 +1779,7 @@ setlibs() {
          then
             if [ "$(uname -s)" != "Darwin" ]
             then
-               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning")
+               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning: can")
             fi
          fi
          if [ "$Z2" -eq 0 ]
