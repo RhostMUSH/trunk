@@ -11212,9 +11212,11 @@
                examples: /10/ -- when using '|' cut off after 10 characters.
              Use of /w<number>/ cuts off on the line when '|' and '"' is used.
                examples: /w1/ -- when using '|"' cut off after first line.
-             Valid values: 0-3998 (0 is unlimited)
+             Valid values: 0 - (LBUF - 100) (0 is unlimited)
       Value fields:
-         1-3000 - format value to padd
+         1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
+                        See: @list options system for current LBUF size.
+                        Example: 4000 LBUF, it would be 1-3900
          0 - if prepending a number, tells it to padd 0's.
   
   Note: The ` and ' code fields won't work on single line columns.
