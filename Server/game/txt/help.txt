@@ -11161,9 +11161,65 @@
   FORMAT SYNTAX:        help printf syntax
   EXAMPLES:             help printf examples
                         help printf penn      (for penn align-like examples)
+                        help printf borders   (a quick example on borders)
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
             wrapcolumns(), array()
+
+& PRINTF BORDERS
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Borders for printf is actually pretty easy.  You assign a field width
+  and give it the '&' option to tell it to repeat on a carrage return.
+  You then give it an argument of '%r' and it will continue to repeat
+  that column for as long as any other column has valid lines.   You can
+  have the field width greater than 1 char for multi-char borders.
+  
+  You will want to put a '.' for these fields to supress a final line
+  of carrage returns if the last line is empty.
+  
+  The following codes are utilized (see 'help printf codelist')
+    $ - Specify the start of the format
+    s - specify the end of the format (where the substitution occurs)
+    . - do not print last line if all fields have '.' and all fields empty 
+    : - use the specified filler specified between the ':''s (ergo :|:)
+    & - repeat column if a carrage return is detected
+    - - left justify the column
+    | - wrap column if length of argument is greater than the field width
+    " - wrap column on a space character (tab, space, etc) if possible
+   10 - set column width to 10 characters
+    7 - set column width to 7 characters
+  
+{ see 'help printf borders2' for the examples }
+
+& PRINTF BORDERS2
+  Syntax for Example:
+    > printf(<codelist1> <codelist2> <codelist3>, <arg1>, <arg2>, <arg3>)
+  
+  Example:
+    > think printf($.1:|:&s $-10|"s $1.:|:&s, %r, test, %r)
+    | test       |
+    > think printf($.1:|:&s $-10|"s $1.:|:&s, %r, test1 test2, %r)
+    | test1      |
+    | test2      |
+    > think printf($.1:|:&s $-10|"s $1.:|:&s, %r, test1 test2 test3, %r)
+    | test1      |
+    | test2      |
+    | test3      |
+    > think printf($.7:|+=:&s $-10|"s $7.:|+=:&s, %r, test1 test2 test3, %r)
+    |+=|+=| test1      |+=|+=|
+    |+=|+=| test2      |+=|+=|
+    |+=|+=| test3      |+=|+=|
+    > think [repeat(-,26)]%r[printf($.7:|+=:&s $-10|"s $7.:|+=:&s, %r, test1 test2
+            test3, %r)]%r[repeat(-,26)]  
+    --------------------------
+    |+=|+=| test1      |+=|+=|
+    |+=|+=| test2      |+=|+=|
+    |+=|+=| test3      |+=|+=|
+    --------------------------
+
+  See Also: printf(), printf examples
+
 
 & PRINTF CODELIST
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
