@@ -8086,6 +8086,7 @@ struct timefmt_format {
   int cutatlength;
   int cutatlength_line;
   int specialpadder;
+  int nolaster;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -9660,6 +9661,10 @@ FUNCTION(fun_printf)
                         fm.fieldsupress2 = 1;
                         formatpass = 1;
                         break;
+                     case '.': /* supress last line if all fields null */
+                        fm.nolaster = 1;
+                        formatpass = 1;
+                        break;
                      case '&': /* breakonreturn */
                         if( fm.nocutval == 2 ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
@@ -9775,6 +9780,7 @@ FUNCTION(fun_printf)
                         fm.breakonreturn = 0;
                         fm.forcebreakonreturn = 0;
                         fm.morepadd = 0;
+                        fm.nolaster = 0;
                         break;
                      default: /* Do nothing */
                         formatpass = 1;
@@ -9794,6 +9800,7 @@ FUNCTION(fun_printf)
                      fm.morepadd = 0;
                      fm.cutatlength = 0;
                      fm.cutatlength_line = 0;
+                     fm.nolaster = 0;
                   }
                } /* For */
                pp--;
@@ -9828,11 +9835,19 @@ FUNCTION(fun_printf)
       i_outbuff = 0;
       while ( i_loopydo ) {
          i_outbuff++;
-         i_loopydo = 0;
          i_totwidth = 0;
          fmtdone = 0;
          fmterror = 0;
          formatpass = 0;
+         i_loopydo = 0;
+         for ( i = 0; i < i_arrayval; i++ ) {
+            if ( fm_array[i].nolaster && (strlen(s_strarray[i]) == 0) ) {
+               i_loopydo++;
+            }
+         }
+         if ( i_loopydo == i_arrayval )
+            break;
+         i_loopydo = 0;
          safe_str("\r\n", buff, bufcx);
          for ( i = 0; i < i_arrayval; i++ ) {
             morepadd = 0;

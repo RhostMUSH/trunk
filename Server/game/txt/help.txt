@@ -11178,6 +11178,8 @@
          $ - specifies to tell printf() to start/initiate the format.
          s - specifies the location of a string substitution for formatting.
       Code Fields: 
+         . - if on every field, do not display line if on last line and if
+             all values will result in a completely blank line.
          ! - do not display value if null (if using < and/or > place ! after)
          @ - do not display value if null or previous value is null
          < - null current value if previous value was null
@@ -29280,6 +29282,9 @@
   * 'w' option for / / in printf() allows cutting on line when |" used [ASH]
   * '<' and '>' values to null current value if prevous/next value null [ASH]
   * repeat() has optional third argument for better ansi handling [ASH]
+  * printf() would print a blank line if the last argument for each field
+    was a carrage return.  New option '.' for each field will now
+    supress the last line if all arguments are empty for that line [ASH]
     
   Bug Fixes
   ------------
