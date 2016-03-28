@@ -29375,3 +29375,4 @@
   * possible memory leak in extractword() in certain conditions [ASH]
   * @tel/list didn't handle a comma separator properly for source [ASH]
   * permission issue with guildmaster and setting attributes [ASH]
+  * memory leak on rare occurances of lookup_site [ASH]

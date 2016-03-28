@@ -7278,7 +7278,7 @@ FUNCTION(fun_lookup_site)
          } else {
             s_str=atr_get(it, A_LASTSITE, &aowner, &aflags);
          }
-         if ( *s_str ) {
+         if ( s_str ) {
             gotone = 1;
             safe_str(s_str, buff, bufcx);
             free_lbuf(s_str);
@@ -32230,8 +32230,10 @@ FUNCTION(fun_cluster_stats)
                  thing = match_thing(player, s_return);
                  free_lbuf(s_return);
                  s_return = atr_get(thing, attr->number, &aowner, &aflags);
-                 if ( *s_return ) {
+                 if ( s_return && *s_return ) {
                     dbval(buff, bufcx, thing);
+                 }
+                 if ( s_return ) {
                     free_lbuf(s_return);
                  }
               } else {
