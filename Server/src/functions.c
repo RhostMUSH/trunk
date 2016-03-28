@@ -1322,6 +1322,7 @@ extern void mail_quota(dbref, char *, int, int *, int *, int *, int *, int *, in
 extern CMDENT * lookup_command(char *);
 extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
 extern void do_zone(dbref, dbref, int, char *, char *);
+extern int attrib_canset(dbref, const char *, dbref, dbref);
 int do_convtime(char *, struct tm *);
 
 /* pom.c nefinitions */
@@ -3233,6 +3234,7 @@ FUNCTION(fun_writable)
 {
    int attrib;
    dbref s_thing, t_thing;
+   char *sbuff, *s;
    ATTR *atr;
 
    s_thing = match_thing_quiet(player, fargs[0]);
@@ -3255,7 +3257,22 @@ FUNCTION(fun_writable)
               (!Wizard(s_thing) && *(strchr(fargs[1], '/') + 1) == '_') ) {
             ival(buff, bufcx, 0);
          } else {
-            ival(buff, bufcx, 1);
+            atr = atr_str(strchr(fargs[1], '/') + 1);
+            if ( atr ) {
+               ival(buff, bufcx, Set_attr(s_thing, t_thing, atr, 0));
+            } else {
+               sbuff = alloc_lbuf("fun_writable");
+               memset(sbuff, '\0', LBUF_SIZE);
+               sprintf(sbuff, "%.*s", SBUF_SIZE - 1, strchr(fargs[1], '/') + 1);
+               s = sbuff;
+               while ( *s ) {
+                  *s = ToLower(*s);
+                  s++;
+               }
+               attrib = attrib_canset(s_thing, sbuff, Owner(t_thing), t_thing);
+               ival(buff, bufcx, attrib);
+               free_lbuf(sbuff);
+            }
          }
       } else {
          ival(buff, bufcx, 0);

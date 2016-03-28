@@ -899,10 +899,8 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			   !(Flags(Owner(x)) & WIZARD) && \
 			   !(Flags2(Owner(x)) & ADMIN) && \
 			   !(Flags2(Owner(x)) & BUILDER) && \
-			   !((((a)->flags & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) && \
-			   ((a)->flags & AF_GUILDMASTER)) || \
-                             ((f & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) && \
-                              (f & (AF_GUILDMASTER)))))
+			   !(((a)->flags & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) || \
+                             (f & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER))))
 #ifndef STANDALONE
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \

@@ -15436,8 +15436,14 @@
   
   If <player> or <target> does not exist, it will return a failure (0).
   
-  If <attrib> does not exist, it will return a success, but only if the first
-  two conditions wouldn't cause a failure.
+  If <attrib> is an invalid attribute, it will return '0'.
+  
+  If <attrib> exists on <target>, it will check permissions and return '1' if
+  <player> can set the attribute, '0' if it can not.
+  
+  If <attrib> does not exist, it will check the hash table for matching 
+  permissions and return a '1' if the attribute would be settable on
+  the <target> by the <player>, or a '0' if would not.
   
   Example:
     > say writable(bob, fred/desc)
@@ -29341,6 +29347,7 @@
   * printf() would print a blank line if the last argument for each field
     was a carrage return.  New option '.' for each field will now
     supress the last line if all arguments are empty for that line [ASH]
+  * writable() is more useful with how it works for non-existant attribs [ASH]
     
   Bug Fixes
   ------------
@@ -29367,3 +29374,4 @@
   * compile time fix for when you do not have siddeffects selected [ASH]
   * possible memory leak in extractword() in certain conditions [ASH]
   * @tel/list didn't handle a comma separator properly for source [ASH]
+  * permission issue with guildmaster and setting attributes [ASH]
