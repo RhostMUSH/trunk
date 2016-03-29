@@ -5053,8 +5053,12 @@ FUNCTION(fun_logtofile)
     }
     mudstate.log_maximum++;
     s_logroom = alloc_mbuf("fun_logfile");
-    sprintf(s_logroom, "%.160s", fargs[0]);
-    do_log(player, cause, (MLOG_FILE), s_logroom, fargs[1]);
+    if ( strcmp(fargs[0], (char *)"log") == 0 ) {
+       do_log(player, cause, 0, fargs[1], s_logroom);
+    } else {
+       sprintf(s_logroom, "%.160s", fargs[0]);
+       do_log(player, cause, (MLOG_FILE), s_logroom, fargs[1]);
+    }
     free_mbuf(s_logroom);
 }
 

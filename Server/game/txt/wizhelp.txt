@@ -10306,6 +10306,9 @@
   This function is limited to 1 evocation per command.  This can be 
   changed with the 'log_maximum' @admin parameter.
   
+  If the '<path/file>' option is specified as 'log' it will assume the
+  system log file to log the message to.
+    
   See Also: @log, log_maximum
 
 & BYPASS()
