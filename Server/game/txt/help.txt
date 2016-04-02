@@ -2410,8 +2410,11 @@
      /location   - Create the new object in your location (default).
      /parent     - Set the new object's parent to be the template object and
                    don't copy the attributes.
+   
+  You may use the lastcreate() function to see the last room that @clone'd.
+  This would be based on the type of thing you @cloned.
   
-  See Also: @create, @decompile, @destroy, VISUAL
+  See Also: @create, @decompile, @destroy, VISUAL, lastcreate()
   
 & @cluster
   Command: @cluster[/<switch>] [[<arguments>][=<values>]]
@@ -2742,7 +2745,9 @@
   to its cost, specifically, value=(cost/5)-1.  The value may not be greater
   than 100, values that would be greater than 100 are rounded down to 100.
   
-  See Also: @destroy, TYPES OF OBJECTS
+  You may use the lastcreate() function to see the last thing @create'd
+  
+  See Also: @destroy, TYPES OF OBJECTS, lastcreate()
   
 & @decompile
   Command: @decompile[/<switch>] <thing>[/<wild-attrib>] [=<newname>]
@@ -2804,6 +2809,7 @@
   
 & @dig
   Command: @dig[/<switches>] <name> [= <exitlist> [, <exitlist>] ]
+  
   Creates a new room with the specified name and displays its number. This 
   command costs 10 coins. If the [= <exitlist>] option is used, an exit will
   be opened from the current room to the new room automatically.  If the
@@ -2824,7 +2830,10 @@
   If you specify the /teleport switch, then you are @teleported to the
   room after it is created and any exits are opened.
  
-  See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS
+  You may use the lastcreate() function to see the last room that @dig'd.
+  
+  See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS,
+            lastcreate()
   
 & @doing
   Command: @doing[/<switches>] [<message>]
@@ -4027,8 +4036,10 @@
   The following switches are available:
      /location  - Create the exit in your location (default).
      /inventory - Create the exit on yourself.
-   
-  See Also: @dig, @link, LINKING
+  
+  You may use the lastcreate() function to see the last thing @open'd
+  
+  See Also: @dig, @link, LINKING, lastcreate()
   
 & @parent
   Command: @parent <object> [=<parent>]

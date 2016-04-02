@@ -3395,8 +3395,11 @@
   Example:  @pcreate #5 NewPlayer=test123
             @pcreate NewPlayer=test123
             @pcreate/reg NewPlayer=myfriend@myemail.net
+   
+  You may use the lastcreate() function to see the last player @pcreate'd.
   
-  See Also: REGISTRATION.
+  See Also: REGISTRATION 
+  Normal Help: lastcreate()
 
 & @poor
   Command: @poor <amount>
