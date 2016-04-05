@@ -1,0 +1,29 @@
+RhostMUSH does support module writing.
+
+This requires hooking your changes into local.c, then modifying the Makefile (in the src directory)
+for any new source files that you wish to add.
+
+Something to be aware of is that all localized data is ran after the system cache subroutine.
+
+This means that if your code is depending on @startups, you need to put a delay in the @startup
+so that your local code can be loaded in as modules prior to the @startup execution.
+
+Something that will not work:
+
+@startup me=@superhappyfuncommand loadmeup=now
+
+A small alteration that will likely make this work fine.
+
+@startup me=@wait 1=@superhappyfuncommand loadmeup=now
+
+
+That 1 second delay for the queue will give the game engine time to load in your module code.
+
+If you wish your modules to be part of the main Rhost distribution you have two options:
+
+1.  Attempt to hack the bin/asksource.sh and bin/asksource.blank files.
+
+2.  Ask one of the Rhost devs to do it for you :)
+
+
+Good luck, and happy hacking
