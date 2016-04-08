@@ -130,5 +130,3 @@ think Applying the COMMANDS flag.  Ignore if you see a PERMISSION DENIED
 @@ -- Ok we're done, let the user know
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 think Completed.
-
-@@ @Aconnect TrendObj=@tr/quiet me/do_time;@ifelse [gt(words(lwho()),mul(get([v(F-DB)]/step),20))]={&STEP [v(F-DB)]=[add(get([v(F-DB)]/step),1)]};@ifelse [u([v(F-DB)]/fn_monthhigh)]%qa={&%qz [v(DB)]=%q5;&%qz_date [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())];@ifelse %qb={&%qz_date_max [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())]}};@ifelse [u([v(F-DB)]/fn_yearhigh)]%qa={&%qz [v(DB)]=%q5;&%qz_date [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())];@ifelse %qb={&%qz_date_max [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())]}};@ifelse [u([v(F-DB)]/fn_hourhigh)]%qa={&H_[setr(x,timefmt($h,setr(y,secs())))] [v(DB)]=%q9;&H_%qx_SECS [v(DB)]=[secs()];@switch/all 1=%qb,{&H_%qx_AVG [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]},%qc,{&H_%qx_MAX [v(db)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]},%qd,{&H_%qx_UNIQUE [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]}}
