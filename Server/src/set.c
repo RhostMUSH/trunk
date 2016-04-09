@@ -1129,8 +1129,8 @@ POWENT *tp;
 void do_set(dbref player, dbref cause, int key, char *name, char *flag)
 {
 dbref	thing, thing2, aowner;
-char	*p, *buff, *tpr_buff, *tprp_buff;
-int	atr, atr2, aflags, clear, flagvalue, could_hear, i_flagchk, val;
+char	*p, *buff, *tpr_buff, *tprp_buff, *buff2ret;
+int	atr, atr2, aflags, curraflags, clear, flagvalue, could_hear, i_flagchk, val;
 ATTR	*attr, *attr2;
 int     ibf = -1;
 
@@ -1177,7 +1177,7 @@ int     ibf = -1;
 					"Attribute not present on object.");
 				return;
 			}
-
+			curraflags = aflags;
 			/* Make sure we can write to the attribute */
 
 			attr = atr_num(atr);
@@ -1204,6 +1204,20 @@ int     ibf = -1;
 			if (!(key & SET_QUIET) &&
 			    !Quiet(player) && !Quiet(thing)) {
                                 tprp_buff = tpr_buff = alloc_lbuf("do_set");
+				if ( (attr->flags & AF_LOGGED) || (curraflags & AF_LOGGED) ) {
+					STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
+					log_name_and_loc(player);
+					buff2ret = alloc_lbuf("log_attribute_set");
+					sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d %s attribute flag '%s'",
+						cause, attr->name, thing, (clear ? "cleared" : "set"), give_name_aflags(player, cause, flagvalue));
+					log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+					sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+					log_text(buff2ret);
+#endif
+					free_lbuf(buff2ret);
+					ENDLOG
+				}
 				if (clear) {
 				  if ( (key & SET_NOISY) || TogNoisy(player) ) {
                                         if ( give_name_aflags(player, cause, flagvalue) )
@@ -1456,8 +1470,8 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
             STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
             log_name_and_loc(player);
             buff2ret = alloc_lbuf("log_attribute");
-            sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                               cause, out_attr->name, thing, astr);
+            sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.*s'",
+                               cause, out_attr->name, thing, (LBUF_SIZE - 100), astr);
             log_text(buff2ret);
 #ifndef NODEBUGMONITOR
             sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
