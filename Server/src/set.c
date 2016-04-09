@@ -16,6 +16,7 @@ char *index(const char *, int);
 #include "flags.h"
 #include "alloc.h"
 #include "rhost_ansi.h"
+#include "debug.h"
 
 extern NAMETAB indiv_attraccess_nametab[];
 extern NAMETAB lock_sw[];
@@ -904,10 +905,11 @@ ATTR	*attr;
          if ( *val != 0 ) {
             if ( !Quiet(player) && !Quiet(thing) ) {
                buff2ret = alloc_lbuf("error_msg_set_internal");
-               if ( *val == 2 )
+               if ( *val == 2 ) {
                   sprintf(buff2ret, "Empty/Null branches defined in target tree '%s'.", attr->name);
-               else
+               } else {
                   sprintf(buff2ret, "Unable to set attribute branches for target tree '%s'.", attr->name);
+               }
                notify_quiet(player, buff2ret);
                free_lbuf(buff2ret);
             }
@@ -923,13 +925,18 @@ ATTR	*attr;
          STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
             log_name_and_loc(player);
             buff2ret = alloc_lbuf("log_attribute");
-            if ( *attrtext )
-               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                       cause, attr->name, thing, attrtext);
-            else
+            if ( *attrtext ) {
+               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.*s'",
+                       cause, attr->name, thing, (LBUF_SIZE - 100), attrtext);
+            } else {
                sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to an empty string",
                        cause, attr->name, thing);
+            }
             log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+            sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+            log_text(buff2ret);
+#endif
             free_lbuf(buff2ret);
          ENDLOG
       }
@@ -1452,6 +1459,10 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
             sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
                                cause, out_attr->name, thing, astr);
             log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+            sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+            log_text(buff2ret);
+#endif
             free_lbuf(buff2ret);
             ENDLOG
         }
@@ -1484,6 +1495,10 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
           sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d cleared",
                              cause, attr->name, thing);
           log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+          sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+          log_text(buff2ret);
+#endif
           free_lbuf(buff2ret);
           ENDLOG
       }
@@ -1986,9 +2001,13 @@ OBLOCKMASTER master;
                                                STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
                                                log_name_and_loc(player);
                                                buff2ret = alloc_lbuf("log_attribute");
-                                               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                                                                  cause, ap->name, thing, result);
+                                               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.*s'",
+                                                                  cause, ap->name, thing, (LBUF_SIZE - 100), result);
                                                log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+                                               sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                                               log_text(buff2ret);
+#endif
                                                free_lbuf(buff2ret);
                                                ENDLOG
                                            }
@@ -2125,6 +2144,10 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
                      sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d cleared",
                              cause, ap->name, thing);
                      log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+                     sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                     log_text(buff2ret);
+#endif
                      free_lbuf(buff2ret);
                   ENDLOG
                }

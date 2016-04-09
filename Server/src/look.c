@@ -19,6 +19,7 @@ char *index(const char *, int);
 #include "command.h"
 #include "alloc.h"
 #include "rhost_ansi.h"
+#include "debug.h"
 #ifdef REALITY_LEVELS
 #include "levels.h"
 #endif /* REALITY_LEVELS */
@@ -1079,9 +1080,14 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                                STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
                                 log_name_and_loc(player);
                                 buff2ret = alloc_lbuf("log_attribute");
-                                sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'", 
-                                                   cause, attr->name, thing2, pt1->info);
+                                sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.*s'", 
+                                                   cause, attr->name, thing2, (LBUF_SIZE - 100), pt1->info);
                                 log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+                                sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                                log_text(buff2ret);
+#endif
+
                                 free_lbuf(buff2ret);
                                 ENDLOG
                             }
@@ -1118,6 +1124,10 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                         sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d cleared",
                                            cause, attr->name, thing1);
                         log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+                        sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                        log_text(buff2ret);
+#endif
                         free_lbuf(buff2ret);
                         ENDLOG
                     }

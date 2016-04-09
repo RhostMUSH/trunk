@@ -86,8 +86,11 @@ struct SNOOPLISTNODE {
 typedef struct descriptor_data_online DESC_ONLINE;
 struct descriptor_data_online {
   int version;
+  int descriptor;
   int width;
   int height;
+  char addr[255];
+  dbref player;
 };
 
 typedef struct descriptor_data DESC;
