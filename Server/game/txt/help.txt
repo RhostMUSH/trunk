@@ -19060,6 +19060,8 @@
   
   The npemit() function works like pemit() except it won't strip spaces.
   
+  <key> if specified to '1' evaluates '##' as each <object> in the list.
+  
   This executes the exact same code as pemit(), but with the assumption
   of the compile time option secure_sideeffects enabled.  This is the
   default behavior.
