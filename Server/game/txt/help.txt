@@ -168,7 +168,7 @@
   
   Attribute formatting can be accomplished multiple ways.  First, there is
   a generic local 'format' for most @-attributes.  To process this format,
-  you need to set an attribute of the name '<format>attr' on the target
+  you need to set an attribute of the name 'format<attr>' on the target
   (or parent, global parent, zone of the target. Use <attr>format if the
   config parameter format_compatibility is enabled). If this attribute is
   not found, it will then look at the global default parents for matching
