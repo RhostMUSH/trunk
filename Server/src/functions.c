@@ -33251,16 +33251,24 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total LOCAL User-Defined Functions: %d [%d matched] [%d defined of %d max allowed]", 
                     i_tcount, count, count_owner, i_array[4]));
           } else {
-             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d [%d matched]", 
-                    i_tcount, count));
+             if ( mudconf.function_max != -1 ) {
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d (unlimited) [%d matched]", 
+                       i_tcount, count));
+             } else {
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d (%d max) [%d matched]", 
+                       i_tcount, mudconf.function_max, count));
+             }
           }
        } else {
           if ( i_local ) {
              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total LOCAL User-Defined Functions: %d [%d defined of %d max allowed]", 
                     count, count_owner, i_array[4]));
           } else {
-             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d", 
-                    count));
+             if ( mudconf.function_max != -1 ) {
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d (%d max)", count, mudconf.function_max));
+             } else {
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total User-Defined Functions: %d (unlimited)", count));
+             }
           }
        }
        free_lbuf(tpr_buff);
@@ -33448,6 +33456,19 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
       for (ufp3 = ulfun_head; ufp3; ufp3 = ufp3->next) {
          if ( ufp3->owner == Owner(player) ) {
             count++;
+         }
+      }
+   }
+   if ( !i_local && !ufp ) {
+      /* You're only allowed 1000 (default) global functions total */
+      if ( mudconf.function_max != -1 ) {
+         for (ufp3 = ufun_head; ufp3; ufp3 = ufp3->next) {
+            count++;
+         }
+         if ( count >= mudconf.function_max ) {
+            notify(player, unsafe_tprintf("Maximum number of global functions have been defined [%d total, %d max].", count, mudconf.function_max));
+            free_sbuf(np);
+            return;
          }
       }
    }

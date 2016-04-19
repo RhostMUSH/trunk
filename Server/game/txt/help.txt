@@ -29313,6 +29313,7 @@
     for all arguments with an output seperator [ASH]
   * REQUIRE_TREES flag when set requires the flag method to set attribs
     on the target that contain a tree character [ASH]
+  * function_max to cap a ceiling on @functions allowed (1000 default) [ASH]
   
   Changes
   ------------

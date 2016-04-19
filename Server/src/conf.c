@@ -275,6 +275,7 @@ NDECL(cf_init)
     mudconf.includenest = 3;		/* Default nesting of @include */
     mudconf.includecnt = 10;		/* Maximum count of @includes per command session */
     mudconf.lfunction_max = 20;		/* Maximum lfunctions allowed per user */
+    mudconf.function_max = 1000;	/* Maximum functions allowed period */
     mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
     mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
     mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
@@ -3824,6 +3825,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.func_invk_lim, 0, 0, CA_WIZARD,
      (char *) "The current function invocation limit.\r\n"\
               "                             Default: 2500   Value: %d"},
+    {(char *) "function_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.function_max, 0, 0, CA_WIZARD,
+     (char *) "Max global functions (@functions).\r\n"\
+              "                             Default: 1000  Value: %d"},
     {(char *) "function_recursion_limit",
      cf_recurseint, CA_GOD | CA_IMMORTAL, &mudconf.func_nest_lim, 0, 0, CA_WIZARD,
      (char *) "The current function recursion limit.\r\n"\

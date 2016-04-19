@@ -2647,6 +2647,10 @@
   the arguments to the function are loaded into %0-%9, the <attr> attribute
   from <object> is fetched, and substitution is performed on the resulting
   text.  The result of that substitution is returned as the function result.
+  
+  The @admin config parameter function_max will define how many @functions
+  can be defined.  It defaults to 1000, and setting to '-1' allows unlimited.
+  
   The following switches exist:
     /privilege  - the function is evaluated as if the evaluation were being 
                   performed by the object on which it is stored, instead of 
@@ -2698,8 +2702,11 @@
   
   Note: you may use @function/display to see the flag permissions.
    
-  See Also: @attribute 
+  See Also: @attribute, @lfunction, lfunction_max, function_max
  
+& @lfunction
+  See: 'help @lfunction'
+  
 & @halt
   Command: @halt[/<switches>] [<object>]
   This command can be used to halt commands being run by a specific object,
@@ -5277,19 +5284,19 @@
   format_compatbility       fork_vfork                format_contents         
   format_exits              format_name               formats_are_local       
   full_file                 full_motd_message         function_access         
-  function_alias            function_invocation_limit function_recursion_limit
-  gdbm_cache_size           gdbm_database             global_aconnect         
-  global_adisconnect        global_ansimask           global_attrdefault      
-  global_clone_exit         global_clone_obj          global_clone_player     
-  global_clone_room         global_clone_thing        global_error_obj        
-  global_parent_exit        global_parent_obj         global_parent_player    
-  global_parent_room        global_parent_thing       good_name               
-  goodmail_host             gconf_file                guest_char_num          
-  guest_file                guest_namelist            guild_attrname          
-  guild_default             guild_hdr                 hackattr_nowiz          
-  hackattr_see              hasattrp_compat           heavy_cpu_max           
-  help_file                 help_index                hide_nospoof            
-  hook_cmd                  hook_obj                
+  function_alias            function_invocation_limit function_max
+  function_recursion_limit  gdbm_cache_size           gdbm_database           
+  global_aconnect           global_adisconnect        global_ansimask         
+  global_attrdefault        global_clone_exit         global_clone_obj        
+  global_clone_player       global_clone_room         global_clone_thing      
+  global_error_obj          global_parent_exit        global_parent_obj       
+  global_parent_player      global_parent_room        global_parent_thing     
+  good_name                 goodmail_host             gconf_file              
+  guest_char_num            guest_file                guest_namelist          
+  guild_attrname            guild_default             guild_hdr               
+  hackattr_nowiz            hackattr_see              hasattrp_compat         
+  heavy_cpu_max             help_file                 help_index              
+  hide_nospoof              hook_cmd                  hook_obj                
   
 { 'wizhelp config parameters3' for more }
 
@@ -6756,6 +6763,19 @@
   eval=<arg> parameter is treated as a separate command for the purposes
   of the function invocation limit.
 
+& function_max
+  Config parameter: function_max <n7um>.  Default: 1000 (-1 unlimited)
+  
+  This parameter specifies how many global @functions can be defined in
+  the game.  By default, 1000 can be defined before it will not allow
+  any new definitions.  You may modify or delete functions once the
+  max is reached, but can no longer add new ones.  You may specify this
+  value to '-1' (negative one) to assign an unlimited number which was
+  the previous behavior, however we feel 1000 is more than sufficient
+  for even the most hairy code so was a good default.
+  
+  See also: @function, @lfunction, lfunction_max
+ 
 & function_recursion_limit
   Config parameter: function_recursion_limit <num>.  Default: 50
  
@@ -7448,7 +7468,7 @@
   @limit command.
   
   See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
-            vattr_limit_checkwiz, max_dest_limit
+            vattr_limit_checkwiz, max_dest_limit, function_max
 
 & list_access
   Config parameter: list_access <param> [!]<privilege> [[!]<privilege>]...
