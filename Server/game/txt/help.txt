@@ -29297,11 +29297,11 @@
   * execscript() with matching sideeffect value and @power execscript to
     allow executing external script as a function with appropiate 
     safeguards for script name and arguments [ASH]
-  * penn_setq -- Penn compatibility option for labels with setq/setr.
+  * penn_setq -- Penn compatibility option for labels with setq/setr. [ASH]
   * customized connect screens so you may add custom commands that a player
-    can type at the connect screen.
-  * object id's and objid()/%: for all features that'd handle %#.
-  * isobjid() added.
+    can type at the connect screen. [ASH]
+  * object id's and objid()/%: for all features that'd handle %#. [ASH]
+  * isobjid() added. [ASH]
   * zonecmd() added (side-effect of @zone) [ASH]
   * VISIBLE options to lcon() and xcon() to check only visible items [ASH]
   * searchobjid(), and searchngobjid() for objid results on searches [ASH]
@@ -29327,8 +29327,8 @@
   * securex() and escapex() now optionally accept 'a' as argument to ignore
     ansi [ASH]
   * @dynhelp has a /nolabel switch to snarf the hilighted index values [ASH]
-  * Improved compatibility with execscript
-  * NPEMIT(), like PEMIT(), now handles 3 arguments.
+  * Improved compatibility with execscript [ASH]
+  * NPEMIT(), like PEMIT(), now handles 3 arguments. [ASH]
   * enhanced argument range check on all regedit*() functions [ASH]
   * added '*' option to printf that allows cutting values from the right [ASH]
   * @list functions accepts sub-options 'user', 'local', and 'built-in' [ASH]
@@ -29342,8 +29342,8 @@
   * lwho() is now objid aware optionally [ASH]
   * lexits(), lcon(), xcon(), lrooms(), lparents(), lzone(), zwho(), and 
     children() are now objid aware [ASH]
-  * sortlist() now handles 'm' for merging.
-  * @quitprogram has /quiet switch
+  * sortlist() now handles 'm' for merging. [ASH]
+  * @quitprogram has /quiet switch [ASH]
   * programmer() optionally returns target/attrib pair of program call [ASH]
   * @name added to @lock/twink as what you can do [ASH]
   * @progreset allows you to optionally modify in-action someone's active
@@ -29363,6 +29363,7 @@
   * writable() is more useful with how it works for non-existant attribs [ASH]
   * logtofile() optionally can write to the mush system log [ASH]
   * LOGGED attribute flag now logs the last command issued to change it [ASH]
+  * modified chkgarbage() to handle a (b)oth option [ASH]
     
   Bug Fixes
   ------------

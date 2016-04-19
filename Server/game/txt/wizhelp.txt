@@ -10266,12 +10266,19 @@
   than a handfull of times per command.
 
 & CHKGARBAGE()
-  Function: chkgarbage(<object>, <going|recover>)
+  Function: chkgarbage(<object>, <type>)
   
-  This function returns '1' if the target object is (g)oing or
-  currently (r)ecoverable.  You may specify the 'g' or 'r' for
-  the option or the entire word.  Your choice.  This is a boolean
-  function and will return '1' for TRUE and '0' for FALSE.
+  This function returns '1' (TRUE) if the target object is (g)oing,
+  currently (r)ecoverable, or (b)oth.  If the target object is not
+  going/recover as checking, it will return '0' (FALSE).
+  
+  You must specify a type.  There is no default value.
+  
+  The following types exist:
+      garbage [g] -- check for garbage. 'g' works as shorthand.
+      recover [r] -- check for recoverable. 'r' works as shorthand.
+      both [b]    -- check for both garbage and recoverable.
+
 
 & LOOKUP_SITE()
   Function: lookup_site(<player> [,<port>] [,<type>])

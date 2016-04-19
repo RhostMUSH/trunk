@@ -7205,18 +7205,21 @@ FUNCTION(fun_port)
 
 FUNCTION(fun_chkgarbage)
 {
-   int i, retval;
+   int i, retval, i_both;
    dbref thing;
 
    thing = -1;
-   retval = 0;
+   retval = i_both = 0;
    if ( (*fargs[0] == '#') && is_number(fargs[0]+1) ) {
       thing=atoi(fargs[0]+1);
    } else {
       ival(buff, bufcx, retval);
       return;
    }
-   if ( (*fargs[1] == 'r') || (*fargs[1] == 'R') ) {
+   if ( (*fargs[1] == 'b') || (*fargs[1] == 'B') ) {
+      i = mudstate.recoverlist;
+      i_both = 1;
+   } else if ( (*fargs[1] == 'r') || (*fargs[1] == 'R') ) {
       i = mudstate.recoverlist;
    } else {
       i = mudstate.freelist;
@@ -7227,6 +7230,16 @@ FUNCTION(fun_chkgarbage)
          break;
       }
       i = Link(i);
+   }
+   if ( i_both && !retval ) {
+      i = mudstate.freelist;
+      while ( i != NOTHING ) {
+         if ( i == thing ) {
+            retval = 1;
+            break;
+         }
+         i = Link(i);
+      }
    }
    ival(buff, bufcx, retval);
 }
