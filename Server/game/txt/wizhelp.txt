@@ -5348,14 +5348,14 @@
   oattr_uses_altname       offline_reg              old_elist
   online_reg               open_cost                output_database
   output_limit             page_cost                paranoid_allocate
-  paranoid_exit_linking    parentable_control_lock  partial_conn
-  partial_deconn           paycheck                 pcreate_paranoia
-  pemit_any_object         pemit_far_players        penn_playercmds
-  penn_setq                penn_switches            permit_site            
-  player_attr_default      player_dark              player_flags           
-  player_listen            player_match_commands    player_match_own_command
-  player_name_spaces       player_parent            player_queue_limit     
-  player_quota           
+  paranoid_exit_linking    parent_follow            parentable_control_lock
+  partial_conn             partial_deconn           paycheck               
+  pcreate_paranoia         pemit_any_object         pemit_far_players      
+  penn_playercmds          penn_setq                penn_switches          
+  permit_site              player_attr_default      player_dark            
+  player_flags             player_listen            player_match_commands  
+  player_match_own_command player_name_spaces       player_parent          
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -8225,6 +8225,17 @@
   
   Check help on '@link' for more information on exit linking.
 
+& parent_follow
+  Config parameter: parent_follow  <yes/no>.   Default: yes
+  
+  Specifies, that if you control the target, you get to see the entire parent
+  chain of the target with the parents() function.
+  
+  Note: Setting this to no (0) will return the default behavior of requiring
+        control of each parent in order to view it, which I found too 
+        restrictive.
+  
+  
 & parentable_control_lock
   Config parameter: parentable_control_lock <yes/no>.  Default: no
  

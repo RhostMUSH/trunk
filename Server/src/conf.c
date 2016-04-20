@@ -297,6 +297,7 @@ NDECL(cf_init)
     mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
     mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
     mudconf.delim_null = 0;		/* Allow '@@' for null delims */
+    mudconf.parent_follow = 1;		/* Parent allows following if you control target */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4330,6 +4331,9 @@ CONF conftable[] =
     {(char *) "parentable_control_lock",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.parent_control, 0, 0, CA_PUBLIC,
      (char *) "Do parents follow Locks?"},
+    {(char *) "parent_follow",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.parent_follow, 0, 0, CA_PUBLIC,
+     (char *) "If you control target do you see entire parent chain?"},
     {(char *) "parent_nest_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.parent_nest_lim, 0, 0, CA_WIZARD,
      (char *) "Maximum nesting allowed on @parents.\r\n"\

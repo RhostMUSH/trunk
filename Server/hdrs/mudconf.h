@@ -366,6 +366,7 @@ struct confdata {
 	int	switch_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
 	int	ifelse_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
 	int	examine_restrictive;	/* Is examine restrictive  */
+	int	parent_follow;		/* Allow parent followthrough if you control target */
 	int	queue_compatible;	/* Is the QUEUE mush compatible */
         int     max_percentsubs;	/* Maximum %-subs per command */
 	int	lcon_checks_dark;	/* Does lcon/xcon check dark? */

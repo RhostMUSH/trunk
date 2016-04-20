@@ -18699,10 +18699,9 @@
   
   See Also: strmath()
 
-& PARENTS()
 & LPARENT()
+& PARENTS()
   Function: parents(<obj> [,<objid>])
-            lparent(<obj> [,<objid>])
   
   Returns all the parents of <obj>.  Returns #-1 if <obj> cannot be found
   or has no parent or if you do not own and/or control <obj>
@@ -18710,16 +18709,24 @@
   If the optional <objid> is specified as '1', then it returns the objid's 
   instead of the dbref#'s.
   
+  By default, if you can not examine any of the parents in the chain, then
+  it will not show you the parent of that chain. 
+ 
+  If the @admin parameter 'parent_follow' is enabled, which is the default,
+  then if you control the <obj> you will see the entire parent chain,
+  regardless of your control or examine permissions of those parents in 
+  the chain.  We felt this should be the proper default behavior.
+  
   Example:
-    > say lparent(me)
+    > say parents(me)
     You say "#-1"
     > @parent #4=#5
     Parent set.
     > @parent #5=#6
     Parent set.
-    > say lparent(#4)
+    > say parents(#4)
     You say "#5 #6"
-    > say lparent(#4,1)
+    > say parents(#4,1)
     You say "#5:8185828582 #6:8281859282"
   
   See Also: parent(), children()
@@ -29314,6 +29321,8 @@
   * REQUIRE_TREES flag when set requires the flag method to set attribs
     on the target that contain a tree character [ASH]
   * function_max to cap a ceiling on @functions allowed (1000 default) [ASH]
+  * parent_follow @admin param (default to 1/yes) to allow control of target
+    to see entire parent chain [ASH]
   
   Changes
   ------------
