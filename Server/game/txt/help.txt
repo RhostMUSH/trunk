@@ -29393,3 +29393,4 @@
   * @tel/list didn't handle a comma separator properly for source [ASH]
   * permission issue with guildmaster and setting attributes [ASH]
   * memory leak on rare occurances of lookup_site [ASH]
+  * internal function for player lookup was not objid aware [ASH]

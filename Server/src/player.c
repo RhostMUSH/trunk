@@ -547,48 +547,52 @@ char	*temp, *tp;
 
 dbref lookup_player (dbref doer, char *name, int check_who)
 {
-dbref	p;
-char	*temp, *tp;
+   dbref p;
+   char *temp, *tp;
 
-	if (!string_compare(name, "me"))
-		return doer;
+   if (!string_compare(name, "me"))
+      return doer;
 
-  if (!string_compare(name, "here")) {
-     p = Location(doer);
-     if ( Good_chk(p) && isPlayer(p) )
-        return p;
-  }
+   if (!string_compare(name, "here")) {
+      p = Location(doer);
+      if ( Good_chk(p) && isPlayer(p) )
+         return p;
+   }
 
-	if (*name == NUMBER_TOKEN) {
-		name++;
-		if (!is_number(name))
-			return NOTHING;
-		p = atoi(name);
-		if (!Good_obj(p) || Recover(p))
-			return NOTHING;
-		if (!((Typeof(p) == TYPE_PLAYER) || God(doer)))
-			p = NOTHING;
-		return p;
-	}
-	tp = temp = alloc_lbuf("lookup_player");
-        if (*name == '*') {
-           safe_str(name+1, temp, &tp);
-        } else
-	   safe_str(name, temp, &tp);
-	*tp = '\0';
-	for (tp=temp; *tp; tp++)
-		*tp = ToLower((int)*tp);
-	p = (pmath2)hashfind(temp, &mudstate.player_htab);
-	free_lbuf(temp);
-	if (!p) {
-		if (check_who)
-			p = find_connected_name(doer, name);
-		else
-			p = NOTHING;
-	} else if (!Good_obj(p)) {
-		p = NOTHING;
-	}
-	return p;
+   if (*name == NUMBER_TOKEN) {
+      name++;
+      if ( *name && strchr(name, ':') != NULL ) {
+         return parse_dbref(name);
+      }
+      if (!is_number(name))
+         return NOTHING;
+      p = atoi(name);
+      if (!Good_obj(p) || Recover(p))
+         return NOTHING;
+      if (!((Typeof(p) == TYPE_PLAYER) || God(doer)))
+         p = NOTHING;
+      return p;
+   }
+   tp = temp = alloc_lbuf("lookup_player");
+   if (*name == '*') {
+      safe_str(name+1, temp, &tp);
+   } else {
+      safe_str(name, temp, &tp);
+   }
+   *tp = '\0';
+   for (tp=temp; *tp; tp++)
+      *tp = ToLower((int)*tp);
+   p = (pmath2)hashfind(temp, &mudstate.player_htab);
+   free_lbuf(temp);
+   if (!p) {
+      if (check_who)
+         p = find_connected_name(doer, name);
+      else
+         p = NOTHING;
+   } else if (!Good_obj(p)) {
+      p = NOTHING;
+   }
+   return p;
 }
 
 void NDECL(load_player_names)
