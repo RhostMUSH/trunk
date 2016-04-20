@@ -29394,3 +29394,4 @@
   * permission issue with guildmaster and setting attributes [ASH]
   * memory leak on rare occurances of lookup_site [ASH]
   * internal function for player lookup was not objid aware [ASH]
+  * parents() was too restrictive for thing getting own parent tree [ASH]

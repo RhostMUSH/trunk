@@ -14977,7 +14977,7 @@ FUNCTION(fun_elementsmux)
 
 FUNCTION(fun_parents)
 {
-    dbref it;
+    dbref it, i_allow;
     int max_lev, gotone = 0, i_objid;
 
     if (!fn_range_check("PARENTS", nfargs, 1, 2, buff, bufcx)) {
@@ -14990,8 +14990,11 @@ FUNCTION(fun_parents)
     }
 
     it = match_thing(player, fargs[0]);
+    i_allow = 0;
+    if ( it == cause )
+       i_allow = 1;
     max_lev = 0;
-    while (Good_obj(it) && (it != NOTHING) && (it != AMBIGUOUS) && (Examinable(player, it) || (it == cause))) {
+    while (Good_obj(it) && (it != NOTHING) && (it != AMBIGUOUS) && (Examinable(player, it) || (it == cause) || i_allow)) {
        if (Good_obj(Parent(it))) {
           if (gotone) {
              safe_chr(' ', buff, bufcx);
