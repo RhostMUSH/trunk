@@ -14991,7 +14991,7 @@ FUNCTION(fun_parents)
 
     it = match_thing(player, fargs[0]);
     i_allow = 0;
-    if ( it == cause )
+    if ( it == player )
        i_allow = 1;
     max_lev = 0;
     while (Good_obj(it) && (it != NOTHING) && (it != AMBIGUOUS) && (Examinable(player, it) || (it == cause) || i_allow)) {
