@@ -36,7 +36,7 @@
 &MINMAX_TIMESTRING soft=1 2
 &FUN_ITEMIZE soft=[elist(%0,%2,%1,%4,%3)]
 &MINMAX_ITEMIZE soft=1 4
-&FUN_LPARENT soft=[localize([setr(0,num(%0))] [setdiff(parents(r(0)),#-1 #-2)])]
+&FUN_LPARENT soft=[localize([setr(0,num(%0))] [listdiff(parents(r(0)),#-1 #-2)])]
 &MINMAX_LPARENT soft=1 1
 &FUN_EXPTIME soft=[timefmt($!Zy $!EM $!Cd $!Xh $!Fm $Gs,%0)]
 &MINMAX_EXPTIME soft=1 1
