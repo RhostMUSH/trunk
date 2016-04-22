@@ -915,6 +915,11 @@ NAMETAB reclist_sw[] =
     {(char *) "free", 1, CA_IMMORTAL, 0, REC_FREE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB register_sw[] =
+{
+    {(char *) "message", 1, CA_PUBLIC, 0, REGISTER_MSG},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB rwho_sw[] =
 {
     {(char *) "start", 3, CA_PUBLIC, 0, RWHO_START},
@@ -1334,7 +1339,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_reclist},
     {(char *) "@recover", NULL, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_recover},
-    {(char *) "@register", NULL, CA_PUBLIC, 0,
+    {(char *) "@register", register_sw, CA_PUBLIC, 0,
      0, CS_TWO_ARG, 0, do_register},
     {(char *) "@remote", NULL,
      CA_GBL_INTERP | CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,

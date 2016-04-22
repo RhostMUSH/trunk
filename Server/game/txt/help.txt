@@ -4375,14 +4375,43 @@
   
   See Also: @guild, race(), guild(), @set, &
   
+& register
+& connect
+& create
+& cd
+& ch
+  Offline Command:  co <player> <password>
+                    cd <player> <password>
+                    ch <player> <password>
+                    create <player> <password>
+                    register <player> <password>
+  
+  These offline commands are used to manipulate player creation and connection
+  on the connect screen.  They are:
+    co       -- connect to an existing player
+    cd       -- connect dark/cloaked to an existing player (if a wizard)
+    ch       -- connect @hidden (if you are @powered hidden)
+    cr[eate] -- create a player with the specified password
+    register -- register to a new player
+  
+  See Also: @register
+  
 & @register
-  Command: @register <character>=<email>
+  Command: @register[/<switch>] <character>=<email>
+
   This registers a character on-line and mails the specified <email> the 
   password for the character you created.  This can only be done by GUEST and
   only if the autoregistration is enabled.  Depending on configurations, you
   may be able to do this at the connect screen as well, except it's just
   'register'.
   
+  The online @register also supports the following switches:
+    /message - in addition to emailing the user the password, message the
+               user online what their password is.
+  
+  The switches will only affect the online @register command and will not
+  impact the offline method at all.
+    
 & @robot
   Command: @robot <name>=<password>
   Creates a robot player owned by you.  The robot has its ROBOT flag set, so
@@ -29390,6 +29419,7 @@
   * LOGGED attribute flag now logs the last command issued to change it [ASH]
   * modified chkgarbage() to handle a (b)oth option [ASH]
   * left() and right() are now optionally ansi-aware [ASH]
+  * @register has /message switch to immediately message player the pass [ASH]
     
   Bug Fixes
   ------------

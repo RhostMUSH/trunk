@@ -1210,7 +1210,7 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
           notify(player, "Unable to create player.  Unable to validate enactor site information.");
           return;
        }
-       switch (reg_internal(name2, pass, (char *)e, 1)) {
+       switch (reg_internal(name2, pass, (char *)e, 1, NULL)) {
           case 0:
             newplayer = lookup_player(player, name2, 0);
             notify(player,unsafe_tprintf("Player '%s [#%d]' autoregistered to email '%s'.", name2, newplayer, pass));

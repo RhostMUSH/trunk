@@ -1015,7 +1015,7 @@ char	*buff, *bufp;
 	free_lbuf(buff);
 }
 
-int reg_internal(char *name, char *email, char *dum, int key)
+int reg_internal(char *name, char *email, char *dum, int key, char *buff2)
 {
   DESC *d;
   char rpass[9], work, *pt1, *pt2, *buff, readstr[80], instr_buff[1000], *tmp_email, *tmp_email_ptr, *s_filename;
@@ -1145,6 +1145,9 @@ int reg_internal(char *name, char *email, char *dum, int key)
     rpass[x] = work;
   }
   rpass[8] = '\0';
+  if ( buff2 ) {
+     sprintf(buff2, "%s", rpass);
+  }
   player = create_player(name, rpass, NOTHING, 0);
   if (player == NOTHING) {
     if ( !key ) {
@@ -1264,7 +1267,7 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
   dbref p2;
   DESC *d, *e;
   time_t now, dtime;
-  char *buff;
+  char *buff, *buff2;
 
   if (!mudconf.online_reg) {
     notify(player, "Autoregistration is disabled.");
@@ -1305,10 +1308,14 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
       free_lbuf(buff);
     }
     else if (e) {
-      switch (reg_internal(name,email,(char *)e, 0)) {
+      buff2 = alloc_lbuf("do_register");
+      switch (reg_internal(name,email,(char *)e, 0, buff2)) {
         case 0:
 	  (e->regtries_left)--;
 	  notify(player,"Autoregistration completed.");
+          if ( (key & REGISTER_MSG) && *buff2 ) {
+             notify(player, unsafe_tprintf("Your password for account '%s' is: %s", name, buff2));
+          }
 	  break;
         case 1:
 	  notify(player,"Bad character name in autoregistration.  Invalid name or player already exists.");
@@ -1332,6 +1339,7 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
           notify(player, "Invalid character detected in email.");
           break;
       }
+      free_lbuf(buff2);
     }
   }
 }

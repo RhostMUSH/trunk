@@ -310,7 +310,7 @@ extern int	FDECL(protectname_check, (char *, dbref, int));
 extern void	FDECL(protectname_list, (dbref, int, dbref));
 extern dbref	FDECL(protectname_alias, (char *, dbref));
 extern dbref	FDECL(protectname_unalias, (char *, dbref));
-extern int	FDECL(reg_internal, (char *, char *, char *, int));
+extern int	FDECL(reg_internal, (char *, char *, char *, int, char *));
 
 /* From predicates.c */
 extern int	FDECL(isreal_chk, (dbref, dbref, int));
@@ -870,6 +870,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define REC_DEST	16
 #define REC_FREE	32
 #define REBOOT_SILENT 0x00000001  /* @reboot silently */
+#define REGISTER_MSG	1	/* Include a message to @register to output the password */
 #define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
 #define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
 #define	SAY_SAY		1	/* say in current room */

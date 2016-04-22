@@ -4442,7 +4442,7 @@ check_connect(DESC * d, const char *msg)
 	free_lbuf(buff3);
       }
       else {
-        switch (reg_internal(user, password, (char *)d, 0)) {
+        switch (reg_internal(user, password, (char *)d, 0, NULL)) {
 	  case 0:
 	    (d->regtries_left)--;
 	    queue_string(d, "Autoregistration password emailed.\r\n");
