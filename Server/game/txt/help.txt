@@ -5544,7 +5544,7 @@
   a large title, but only the first 40 characters will be displayed.
   If ZENTY_ANSI compiletime is not used, ansi is stripped.
    
-  No carrage returns are allowed in this string and it is only useful
+  No carriage returns are allowed in this string and it is only useful
   for players.
   
   Example:
@@ -11181,20 +11181,20 @@
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
   
   Borders for printf is actually pretty easy.  You assign a field width
-  and give it the '&' option to tell it to repeat on a carrage return.
+  and give it the '&' option to tell it to repeat on a carriage return.
   You then give it an argument of '%r' and it will continue to repeat
   that column for as long as any other column has valid lines.   You can
   have the field width greater than 1 char for multi-char borders.
   
   You will want to put a '.' for these fields to supress a final line
-  of carrage returns if the last line is empty.
+  of carriage returns if the last line is empty.
   
   The following codes are utilized (see 'help printf codelist')
     $ - Specify the start of the format
     s - specify the end of the format (where the substitution occurs)
     . - do not print last line if all fields have '.' and all fields empty 
     : - use the specified filler specified between the ':''s (ergo :|:)
-    & - repeat column if a carrage return is detected
+    & - repeat column if a carriage return is detected
     - - left justify the column
     | - wrap column if length of argument is greater than the field width
     " - wrap column on a space character (tab, space, etc) if possible
@@ -11256,12 +11256,12 @@
          _ - stretch justify
          + - do not cut value if exceed value (default is cut off)
          * - cut value from the right instead of the left.
-         & - process carrage returns and keep in same column field.  This
-             will break up lines based on carrage returns (%r) and keep
+         & - process carriage returns and keep in same column field.  This
+             will break up lines based on carriage returns (%r) and keep
              formatted into the same column specified in the format.
-         | - automatically format the text and insert carrage returns
+         | - automatically format the text and insert carriage returns
              at the specified padding field.  This does auto wrapping
-             like the '&' option without the need for carrage returns.
+             like the '&' option without the need for carriage returns.
          " - When used in junction with '|' it will try to split columns
              on the first whitespace instead of always at width.
          ' - If specified on a field, and that column is empty, the 
@@ -11753,7 +11753,7 @@
   If you wish to store the setq registers prior to this function, please
   utilize the pushregs() function to back-up your registers.
   
-  The defaults seperator is '%r' (carrage return + line feed).  If you do
+  The defaults seperator is '%r' (carriage return + line feed).  If you do
   not wish this to be the case, you may specify your own seperator <sep>
   which can be one or more characters.
   
@@ -13499,13 +13499,13 @@
 & CHOMP()
   Function: chomp(<string> [,<option>])
   
-  The chomp() function is used to strip carrage returns from the start,
+  The chomp() function is used to strip carriage returns from the start,
   end, or both sides of a string.
   
   The following options are available:
-    l - strip carrage returns on left side of string.
-    r - strip carrage returns on right side of string.
-    b - strip carrage returns on both sides of string (default).
+    l - strip carriage returns on left side of string.
+    r - strip carriage returns on right side of string.
+    b - strip carriage returns on both sides of string (default).
    
   Examples:
   > say chomp(%rthis is a test%r)
@@ -23232,7 +23232,7 @@
   the PENN_MAIL toggle.  The BRANDY_MAIL toggle will take presidence.
   
   For using the line editor, you may use the MAIL_STRIPRETURN toggle.  This
-  will convert the carrage return between lines to a space when combining.
+  will convert the carriage return between lines to a space when combining.
    
   To set a toggle, you would type: @toggle me=<toggle>.  An example would be:
                         @toggle me=BRANDY_MAIL
@@ -24148,7 +24148,7 @@
   You need the BRANDY_MAIL toggle (@toggle me=brandy_mail) to use this syntax.
   
   You may also optionally set the MAIL_STRIPRETURN toggle to signal the mailer
-  to use spaces to seperate lines instead of a carrage return.
+  to use spaces to seperate lines instead of a carriage return.
    
   This effects the commands:  mail, mail/reply, and mail/forward.
   
@@ -25872,7 +25872,7 @@
   
   When this toggle is set on the player, whenever that player finishes
   writing mail using the BRANDY_MAIL toggle, all lines are combined
-  with spaces instead of carrage returns.  This will mimic more how
+  with spaces instead of carriage returns.  This will mimic more how
   Brandy's +mail or Mux's @mail works.
   
   See Also: penn_mail toggle, brandy_mail toggle
@@ -27663,7 +27663,7 @@
   * NO_PARSE attribute flag that stops /evaluation of %0-%9 in $commands [ASH]
   * SAFE attribute flag that stops modification of attribute [ASH]
   * SHOWFAILCMD show any matching failed $cmd uses the @ufail suite [ASH]
-  * MAIL_STRIPRETURN when combining lines uses spaces not carrage returns [ASH]
+  * MAIL_STRIPRETURN when combining lines uses spaces not carriage returns [ASH]
   * PENN_MAIL when sending mail, use PENN like style [ASH]
   * guest_namelist specifies a dynamic namelist for guests [ASH]
   * hackattr_nowiz defines if '_attr' is wiz only or follows normal rules [ASH]
@@ -28730,7 +28730,7 @@
   * $Z in timefmt() would show negative values in > 32 bit math [ASH]
   * case sensitivity was reversed for reswitch/reswitchi cases [ASH]
   * backward compatibility with v(#) was broke. [ASH]
-  * IDLE mis-aligned carrage return and line feeds [ASH]
+  * IDLE mis-aligned carriage return and line feeds [ASH]
   
 & 3.9.4p0
   Release Date: 04/08/13
@@ -29383,7 +29383,7 @@
   * '<' and '>' values to null current value if prevous/next value null [ASH]
   * repeat() has optional third argument for better ansi handling [ASH]
   * printf() would print a blank line if the last argument for each field
-    was a carrage return.  New option '.' for each field will now
+    was a carriage return.  New option '.' for each field will now
     supress the last line if all arguments are empty for that line [ASH]
   * writable() is more useful with how it works for non-existant attribs [ASH]
   * logtofile() optionally can write to the mush system log [ASH]
