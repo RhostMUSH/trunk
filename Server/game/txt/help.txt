@@ -29337,6 +29337,7 @@
   * function_max to cap a ceiling on @functions allowed (1000 default) [ASH]
   * parent_follow @admin param (default to 1/yes) to allow control of target
     to see entire parent chain [ASH]
+  * @list advbuffers to show filename/linenumber of the allocation [ASH]
   
   Changes
   ------------

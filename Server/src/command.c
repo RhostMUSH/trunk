@@ -7708,6 +7708,7 @@ list_rlevels(dbref player, int i_key)
 #define LIST_STACKS	29
 #define LIST_FUNPERMS	30
 #define	LIST_DF_TOGGLES	31
+#define LIST_BUFTRACEADV 32
 
 NAMETAB list_names[] =
 {
@@ -7716,6 +7717,7 @@ NAMETAB list_names[] =
     {(char *) "attributes", 2, CA_PUBLIC, 0, LIST_ATTRIBUTES},
     {(char *) "bad_names", 2, CA_WIZARD, 0, LIST_BADNAMES},
     {(char *) "buffers", 2, CA_WIZARD, 0, LIST_BUFTRACE},
+    {(char *) "advbuffers", 3, CA_IMMORTAL, 0, LIST_BUFTRACEADV},
     {(char *) "commands", 3, CA_PUBLIC, 0, LIST_COMMANDS},
     {(char *) "config_permissions", 3, CA_IMMORTAL, 0, LIST_CONF_PERMS},
     {(char *) "costs", 3, CA_PUBLIC, 0, LIST_COSTS},
@@ -7783,7 +7785,10 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 #endif
 	break;
     case LIST_BUFTRACE:
-	list_buftrace(player);
+	list_buftrace(player, 0);
+	break;
+    case LIST_BUFTRACEADV:
+	list_buftrace(player, 1);
 	break;
     case LIST_ATTRIBUTES:
 	list_attrtable(player);

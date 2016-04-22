@@ -19,6 +19,8 @@ typedef struct pool_header {
     struct pool_header *next;	/* Next pool header in chain */
     struct pool_header *nxtfree;	/* Next pool header in freelist */
     char *buf_tag;		/* Debugging/trace tag */
+    char *filename;		/* Filename of tag */
+    int linenum;		/* Line number of tag */
 } POOLHDR;
 
 typedef struct pool_footer {
@@ -91,7 +93,7 @@ pool_err(const char *logsys, int logflag, int poolnum,
 }
 
 static void 
-pool_vfy(int poolnum, const char *tag, int line_num, char *file_name)
+pool_vfy(int poolnum, const char *tag, int line_num, const char *file_name)
 {
     POOLHDR *ph, *lastph;
     POOLFTR *pf;
@@ -109,7 +111,7 @@ pool_vfy(int poolnum, const char *tag, int line_num, char *file_name)
 
 	if (ph->magicnum != POOL_MAGICNUM) {
 	    pool_err("BUG", LOG_ALWAYS, poolnum, tag, ph,
-		     "Verify", "header corrupted (clearing freelist)", line_num, file_name);
+		     "Verify", "header corrupted (clearing freelist)", line_num, (char *)file_name);
 
 	    /* Break the header chain at this point so we don't
 	     * generate an error for EVERY alloc and free,
@@ -125,12 +127,12 @@ pool_vfy(int poolnum, const char *tag, int line_num, char *file_name)
 	}
 	if (pf->magicnum != POOL_MAGICNUM) {
 	    pool_err("BUG", LOG_ALWAYS, poolnum, tag, ph,
-		     "Verify", "footer corrupted", line_num, file_name);
+		     "Verify", "footer corrupted", line_num, (char *)file_name);
 	    pf->magicnum = POOL_MAGICNUM;
 	}
 	if (ph->pool_size != psize) {
 	    pool_err("BUG", LOG_ALWAYS, poolnum, tag, ph,
-		     "Verify", "header has incorrect size", line_num, file_name);
+		     "Verify", "header has incorrect size", line_num, (char *)file_name);
 	}
     }
 }
@@ -226,6 +228,8 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
     } while (p == NULL);
 
     ph->buf_tag = (char *) tag;
+    ph->filename = (char *) file_name;
+    ph->linenum = line_num;
     pools[poolnum].tot_alloc++;
     pools[poolnum].num_alloc++;
 
@@ -353,7 +357,7 @@ pool_stats(int poolnum, const char *text)
 }
 
 static void 
-pool_trace(dbref player, int poolnum, const char *text)
+pool_trace(dbref player, int poolnum, const char *text, int key)
 {
     POOLHDR *ph;
     typedef struct tmp_holder {
@@ -385,16 +389,29 @@ pool_trace(dbref player, int poolnum, const char *text)
 	h += sizeof(POOLHDR);
 	ibuf = (int *) h;
 	if (*ibuf != POOL_MAGICNUM) {
-/*	    notify(player, ph->buf_tag); */
-            for (st_ptr = st_holder; st_ptr; st_ptr = st_ptr->next) {
-               if ( !strcmp( ph->buf_tag, st_ptr->buff_name) ) {
-                  st_ptr->i_cntr++;
-                  break;
+            if ( key ) {
+               for (st_ptr = st_holder; st_ptr; st_ptr = st_ptr->next) {
+                  sprintf(s_fieldbuff, "%.90s {%.90s:%d}", ph->buf_tag, ph->filename, ph->linenum);
+                  if ( !strcmp( s_fieldbuff, st_ptr->buff_name) ) {
+                     st_ptr->i_cntr++;
+                     break;
+                  }
+               }
+            } else {
+               for (st_ptr = st_holder; st_ptr; st_ptr = st_ptr->next) {
+                  if ( !strcmp( ph->buf_tag, st_ptr->buff_name) ) {
+                     st_ptr->i_cntr++;
+                     break;
+                  }
                }
             }
             if ( !st_ptr ) {
                st_ptr2 = malloc(sizeof(THOLD));
-               sprintf(st_ptr2->buff_name, "%.199s", ph->buf_tag);
+               if ( key ) {
+                  sprintf(st_ptr2->buff_name, "%.90s {%.90s:%d}", ph->buf_tag, ph->filename, ph->linenum);
+               } else {
+                  sprintf(st_ptr2->buff_name, "%.199s", ph->buf_tag);
+               }
                st_ptr2->i_cntr = 1;
                st_ptr2->next = NULL;
                if ( !st_holder )
@@ -444,12 +461,12 @@ list_bufstats(dbref player)
 }
 
 void 
-list_buftrace(dbref player)
+list_buftrace(dbref player, int key)
 {
     int i;
 
     for (i = 0; i < NUM_POOLS; i++)
-	pool_trace(player, i, poolnames[i]);
+	pool_trace(player, i, poolnames[i], key);
 }
 
 #define BFACT 2
