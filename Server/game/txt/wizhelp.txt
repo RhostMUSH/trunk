@@ -3353,7 +3353,7 @@
   
   This command will append to the log (or a seperate manual-log entry) a 
   string of text.  If no switch is specified, it is sent to the mushname.log
-  file.  The following switches exist.  Ansi and carrage returns are stripped.
+  file.  The following switches exist.  Ansi and carriage returns are stripped.
   
       /manual - append text to the file specified by manlog_file @admin param
                 please note that percautions are taken to avoid this being
@@ -3362,7 +3362,7 @@
                 to alphanumeric and '_' and is forced to end with '_manual.log'
                 to the filename.  You may specify subdirectories (up to 127
                 total characters for the filename including path).  This option
-                allows carrage returns, tabs, and ansi.
+                allows carriage returns, tabs, and ansi.
                     Example: @log/file withthisname.
                 This makes a file with the name: withthisname_manual.log
       /stats  - gives you the current stats of the manual log file specified
@@ -6255,7 +6255,7 @@
 & delim_null
   Config parameter: delim_null <yes/no>.   Default: no
   
-  Specifies if '@@' is to be identified as a special output seperator in
+  Specifies if '@@' is to be identified as a special output separator in
   nearly every function to work as a null output delimiter.  This is to
   help with MUX compatibility.
   
@@ -10601,7 +10601,7 @@
   wildcarded list of matches without the standard help entry header of
   'Here are the entries which match...'.  Useful for functions.
   
-  You may specify a seperate seperator <sep> to be used for returned
+  You may specify a seperate separator <sep> to be used for returned
   arguments for matches.  It will default to two spaces.
   
   Example:
@@ -10879,7 +10879,7 @@
     those objects will be sent to the owner.  The from line of those
   messages will be from the object owner.  The address list can
   be seperated with commas instead of a space. You shouldn't
-  mix commas and spaces as seperators.
+  mix commas and spaces as separator.
   
   NOTE:  All messages from objects you controlled will show up that
          they came from YOU and not your object.
@@ -10891,7 +10891,7 @@
   This allows immortals to send mail and override any locks or
   max-messages a player has for their mail box.  The address list
   can be seperated with commas instead of a space. You shouldn't
-  mix commas and spaces as seperators.
+  mix commas and spaces as separator.
   
   *NOTE*  /fsend sent mail will *not* be autoforwarded.
   

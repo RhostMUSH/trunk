@@ -1764,9 +1764,9 @@
   Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
 
   Type 1&3: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
   Type 5&7: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
   
   This function will take each <eval> and returns it based on the <type>.
   
@@ -1806,9 +1806,9 @@
   Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
 
   Type 1&3: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
   Type 5&7: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
   Examples:
     > say ofparse(1,0,2)
     You say "2"
@@ -4578,7 +4578,7 @@
            @teleport[/switch] [<obj1,obj2,...>=[dest1, dest2,...]] home
    
   Complex teleports accept the source list with spaces or commas.  If it
-  detects a comma, it will ignore spaces as the seperator.  This is to allow
+  detects a comma, it will ignore spaces as the separator.  This is to allow
   teleporting things with multi-word names.
   
   The destination list (if more than one) must have commas.
@@ -10459,13 +10459,13 @@
   
   Example:
     > say shuffle(This is a test)
-    You say "This a is test"               (seperator is a space ' ')
+    You say "This a is test"               (separator is a space ' ')
     > say shuffle(This is a test)
     You say "a test This is"
     > say shuffle(This@is@a@test,@)
-    You say "is@a@This@test"               (seperator is a '@')
+    You say "is@a@This@test"               (separator is a '@')
     > say shuffle(This@is@a@test,@,|)
-    You say "This|test|a|is"               (seperator is '@', filler is '|')
+    You say "This|test|a|is"               (separator is '@', filler is '|')
   
   See Also: rand(), scramble(), sort(), setdiff(), setinter(), setunion() 
   
@@ -10871,7 +10871,7 @@
   <string> and returns those words in random order.  You may specify an 
   optional delimiter <delim> other than a space (the default).  You may also 
   specify what <type> of randextract() you wish to perform.  The following 
-  types exist.  You may specify an optional output seperator else it uses
+  types exist.  You may specify an optional output separator else it uses
   the same character as the delimiter.
       L - Grab given number of words lineally from the first random selection
       R - Grab <numwords> number of words but do not duplicate matches
@@ -11753,8 +11753,8 @@
   If you wish to store the setq registers prior to this function, please
   utilize the pushregs() function to back-up your registers.
   
-  The defaults seperator is '%r' (carriage return + line feed).  If you do
-  not wish this to be the case, you may specify your own seperator <sep>
+  The default separator is '%r' (carriage return + line feed).  If you do
+  not wish this to be the case, you may specify your own separator <sep>
   which can be one or more characters.
   
   This function is ansi aware. 
@@ -13597,7 +13597,7 @@
   recognizable format.  You may specify an output delimiter to use if
   you wish but it makes the format rather unique.  You may specify a seperate
   punctuation instead of the default comma (,).  The punctuation may be
-  more than one character.  You may specify the seperator if not a space as 
+  more than one character.  You may specify the separator if not a space as 
   well.
   
   You can also supply a munging function to apply for each argument passed to
@@ -13674,17 +13674,17 @@
   
   The strmath function is used to apply math to the entire string.  Numbers
   in the string are modified based on the math chosen applied to the number.
-  You may specify optional input and output seperators.  You may also specify
+  You may specify optional input and output separators.  You may also specify
   the word to start (<st>) the math on and how many words (<amt>) after the 
   start you wish to use. If no math is specified, '+' is used as a default.
-  The <idlm> and <isep> are inner delimiter and seperator to use for the 
+  The <idlm> and <isep> are inner delimiter and separator to use for the 
   normal delimited string.  This is so you can separate values such as:
                     To hit:5|To Damage:10|Base AC:15
   
   Note:  It handles floating point notation, so values with decimals are seen.
    
     Key:  str  -- input string    num  -- value to apply  math -- math to use
-          dlm  -- delimiter       sep  -- seperator       st   -- start value
+          dlm  -- delimiter       sep  -- separator       st   -- start value
           amt  -- word count      idlm -- inner delim     isep -- inner sep
   
   Valid math arguments are:
@@ -13832,14 +13832,14 @@
   See Also: match(), nummatch(), member(), nummember(), totmember()
   
 & GRABALL()
-  Function: graball(<string>, <pattern>[, <delimeter>[, <seperator>]])
+  Function: graball(<string>, <pattern>[, <delimeter>[, <separator>]])
    
   This function matches <pattern> against each word of <string>, returning
   the all the words it matches.  If no words are found to match the pattern,
   then an empty string is returned.  <pattern> may consist of wildcards.
   Wildcards being the use of '*' for any number of characters or '?' for
   a single character.  An optional delimiter may be used as well as an
-  optional output seperator. 
+  optional output separator. 
   
   Examples:
     > graball(This is a test,*es*)
@@ -13914,7 +13914,7 @@
   See Also: regrab(), regraball(), regraballi(), grab(), graball()
     
 & REGRABALL()
-  Function: regraball(<string>,<regexp>[,<delim>][,<output seperator>])
+  Function: regraball(<string>,<regexp>[,<delim>][,<output separator>])
   
   These functions work identically to the grab() and regrab()/regrabi()
   functions, save that they return all matches, not just the first: They
@@ -13932,7 +13932,7 @@
   See also: match(), matchall(), grab(), regmatch(), regraballi(), regrab()
   
 & REGRABALLI()
-  Function: regraballi(<string>,<regexp>[,<delim>][,<output seperator>])
+  Function: regraballi(<string>,<regexp>[,<delim>][,<output separator>])
   
   These functions work identically to the grab() and regrab()/regrabi()
   functions, save that they return all matches, not just the first: They
@@ -14275,15 +14275,15 @@
      1 - Display all the rolls of the dice.
      2 - Display the totals, then display all the roles of the dice.
      3 - Display the totals, then all normal rolls of dice, then display 
-         failures/criticals after with the default '|' seperator.
+         failures/criticals after with the default '|' separator.
      4 - Display all the normal rolls of the dice, then display the
          failures, then the criticals seperated by the default '|' character.
      5 - Display just the totals, then failures/criticals after with
-         the default '|' seperator.
+         the default '|' separator.
 
   <botval> specifies low ceiling masks for the dice.  You may specify an 
-  optional output seperator for the numbers.  If the seperator you specify
-  is the '|' character, the seperator used for failure/criticals becomes ':'.
+  optional output separator for the numbers.  If the separator you specify
+  is the '|' character, the separator used for failure/criticals becomes ':'.
   
   You may specify offset values to the 'fail'ure or for 'crit'ical success.
   The offset increases the range of failure or success.
@@ -14297,7 +14297,7 @@
       You say "1 2"
     > say dice(2,4,2,3)    [give me just the dice rolls with MIN value of 3]
       You say "3 3"
-    > say dice(2,4,2,,@)   [give me just the dice rolls with a seperator '@']
+    > say dice(2,4,2,,@)   [give me just the dice rolls with a separator '@']
       You say "1@2"
    
   See Also: rand()
@@ -14444,8 +14444,8 @@
   
   Extractword returns a string of length words, starting with the first
   word.  This works effectively like extract(), however, the deliminiter 
-  <delim> and seperator <sep> can be multi-character.  In addition, the
-  seperator may also contain ansi or special characters.
+  <delim> and separator <sep> can be multi-character.  In addition, the
+  separator may also contain ansi or special characters.
   
   If you specify the <del> toggle to '1' it assumes delextract() compatibility
   where the words choosen are all the words EXCEPT the range specified.
@@ -15549,7 +15549,7 @@
   * <cut>    - Specifies that the word be cut off if over maximum columns size.
                Arguments: 1 to cut, 0 for no cutting (default).
   * <lbd>    - What text you want displayed as the left border of the line.
-  * <mbd>    - What text you want as the seperator between columns on the line.
+  * <mbd>    - What text you want as the separator between columns on the line.
   * <rbd>    - What text you want displayed as the right border of the line.
   * <dsp>    - What display type you want.  Down then over or over then down.
                Arguments: 1 for over then down, 0 for down then over (default)
@@ -15656,7 +15656,7 @@
   * <ct>     - Specifies that the word be cut off if over maximum columns size.
                Arguments: 1 to cut, 0 for no cutting (default).
   * <lb>     - What text you want displayed as the left border of the line.
-  * <mb>     - What text you want as the seperator between columns on the line.
+  * <mb>     - What text you want as the separator between columns on the line.
   * <rb>     - What text you want displayed as the right border of the line.
   * <dsp>    - What display type you want.  Down then over or over then down.
                Arguments: 1 for over then down, 0 for down then over (default)
@@ -16200,7 +16200,7 @@
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
   you have in the first argument to assume it's part of the object name.
-  The function takes an output seperator as an optional third argument.
+  The function takes an output separator as an optional third argument.
 
   If the optional <name> argument is set to '1', lcon will display the object
   names instead of the #dbrefs.  This is not compatible with objid.
@@ -16277,12 +16277,12 @@
   See Also: lexits(), lcon()
   
 & LEXITS()
-  Function: lexits(<loc> [,<output seperator>] [,<name>] [,<key>] [,<objid>])
+  Function: lexits(<loc> [,<output separator>] [,<name>] [,<key>] [,<objid>])
  
   Returns a space-separated list of the exits in <loc> and its parents.
   Dark exits are not returned unless you own the location.
   Parented exits that are set PRIVATE will not be displayed.
-  The function takes an output seperator as an optional second argument.
+  The function takes an output separator as an optional second argument.
  
   If the optional <name> argument is '1', lexits will display object names
   instead of #dbrefs.  This is not compatible with <objid>.
@@ -16315,7 +16315,7 @@
    
   This function returns a total of '<count>' elements between the
   numbers '<lower>' and '<upper>'.  It may also choose the lower and
-  upper numbers for the list it generates.  If no output seperator
+  upper numbers for the list it generates.  If no output separator
   (output delim) is specified, a space is used by default.
    
   Example:
@@ -16550,7 +16550,7 @@
   See Also: capstr(), lcstr()
   
 & LNUM()
-  Function: lnum(<number>[,<number>,<seperator>,<stepping>])
+  Function: lnum(<number>[,<number>,<separator>,<stepping>])
  
   Returns a list of numbers from 0 to <number>-1.
   If a second number is specified it tells to use
@@ -16599,7 +16599,7 @@
   Function: last(<list> [,<delim> [,<key>]])
   
   This function returns the last element in the list.  You may specify an 
-  optional seperator (delim), otherwise a default of a space is used.
+  optional separator (delim), otherwise a default of a space is used.
   
   <delim> may be used to specify a word delimiter other than a space.
   
@@ -16618,7 +16618,7 @@
   
   This function returns the name of any command that exits on the
   object.  You may specify $-commands or ^-listens to search for.
-  The output seperator defaults at a space, but you may wish to
+  The output separator defaults at a space, but you may wish to
   specify a delimiter as commands may contain spaces.
   The following types exist:
     $ - list all commands on the target object.
@@ -17033,7 +17033,7 @@
 
   
 & ITER()
-  Function: iter(<list>, <eval>[, <delim> [, <output seperator>]])
+  Function: iter(<list>, <eval>[, <delim> [, <output separator>]])
  
   <list> is a <delimiter>-separated list of strings, which can be object
   numbers, attributes, or arbitrary words.  <eval> is a string that is to be
@@ -17263,7 +17263,7 @@
   This function garbles the input from <str> and returns it garbled.  Each word
   has a 1 in <value> chance of being garbled.  Normal garbled strings have a 
   random character assigned unless you specify the filler character.  You may 
-  specify a seperator other than space.  If you specify the <type> of '1', it 
+  specify a separator other than space.  If you specify the <type> of '1', it 
   assumes the value is a percentile instead of fractional.  A <value> '0' with
   <type> '0' (1/0) returns nothing while <type> '1' (0%) returns the string.
   The key field allows the following bitwise values:
@@ -18361,7 +18361,7 @@
       EXIT   - specifying exits
       OTHER  - specifying anything not fitting a MUSH 'type'.
   
-  You may specify optional seperators and output seperators.   You may specify
+  You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
@@ -18389,7 +18389,7 @@
       EXIT   - specifying exits
       OTHER  - specifying anything not fitting a MUSH 'type'.
   
-  You may specify optional seperators and output seperators.   You may specify
+  You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
@@ -19762,7 +19762,7 @@
   in the list.
   
   If <sep> is specified, it will be used (rather than a space) for the output
-  seperator for the list.
+  separator for the list.
   
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
@@ -19806,7 +19806,7 @@
   in the list.
    
   If <sep> is specified, it will be used (rather than a space) for the output
-  seperator for the list.
+  separator for the list.
   
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
@@ -19850,7 +19850,7 @@
   in the list.
    
   If <sep> is specified, it will be used (rather than a space) for the output
-  seperator for the list.
+  separator for the list.
   
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
@@ -19910,7 +19910,7 @@
   
   <delim> may be used to specify a delimiter other than a space.  
   
-  <sep> may be used to specify an output seperator other than a space.
+  <sep> may be used to specify an output separator other than a space.
    
   Example:
     > say splice(foo bar baz,eek moof gleep,bar)
@@ -20157,12 +20157,12 @@
   Help borrowed from Penn with permission.
   
 & VADD()
-  Function: vadd(<vector>,<vector>[[,<delimiter>],<seperator>])
+  Function: vadd(<vector>,<vector>[[,<delimiter>],<separator>])
    
   Returns the sum of two vectors.  A vector is a list of numbers
   separated by spaces or a delimiter.  The vector lists must contain
   the same number of items or it will return an error.  You may
-  specify an optional output seperator.
+  specify an optional output separator.
    
   Examples:
     > think vadd(1 2 3,4 5 6)
@@ -20189,11 +20189,11 @@
   See Also: vadd(), vunit(), vdot(), vmul(), vsub(), vmag(), vcross()
   
 & VUNIT()
-  Function: vunit(<vector>[[,<delimiter>],<seperator>])
+  Function: vunit(<vector>[[,<delimiter>],<separator>])
    
   Returns the unit vector (a vector of magnitude 1), which points
   in the same direction as the given vector.  This function may take
-  an optional output seperator.
+  an optional output separator.
    
   Examples:
     > think vunit(2 0 0)
@@ -20220,11 +20220,11 @@
   See Also: vadd(), vdim(), vunit(), vmul(), vsub(), vmag(), vcross()
   
 & VMUL()
-  Function: vmul(<vector|number>,<vector|number>[[,<delimiter>],<seperator>])
+  Function: vmul(<vector|number>,<vector|number>[[,<delimiter>],<separator>])
    
   Returns the result of either multiplying a vector by a number,
   or the elementwise product of two vectors.  This function may take an 
-  optional output seperator.
+  optional output separator.
   
   Examples: 
     > think vmul(1 2 3,2)      (this is a vector by number)
@@ -20237,11 +20237,11 @@
   See Also: vadd(), vdim(), vunit(), vdot(), vsub(), vmag(), vcross()
   
 & VSUB()
-  Function: vsub(<vector>,<vector>[[,<delimiter>],<seperator>])
+  Function: vsub(<vector>,<vector>[[,<delimiter>],<separator>])
    
   Returns the difference between two vectors.  The vectors must be
   the same length.  This function may take an optional output
-  seperator.
+  separator.
    
   Example:
     > think vsub(3 4 5,3 2 1)
@@ -20265,10 +20265,10 @@
   See Also: vadd(), vdim(), vunit(), vdot(), vmul(), vsub(), vcross()
   
 & VCROSS()
-  Function: vcross(<vector>,<vector>[,<delimiter>],<seperator>])
+  Function: vcross(<vector>,<vector>[,<delimiter>],<separator>])
    
   Returns the cross product of two vectors. The cross product of two
-  vectors is a vector.  This function may take an optional seperator.
+  vectors is a vector.  This function may take an optional separator.
   
                           | a b c |
   (a,b,c) X (d,e,f) = det | d e f | = i(bf-ce) + j(cd-af) + k(ae-bd)
@@ -20306,7 +20306,7 @@
             cosh(), sinh(), tanh()
   
 & PID()
-  Function: pid([<display> [,<seperator> [,<type> [,<target>]]])
+  Function: pid([<display> [,<separator> [,<type> [,<target>]]])
   
   This function returns the queue process table based on various arguments.
   
@@ -20322,7 +20322,7 @@
   Adding the <display> values will return a combination of the values seperated
   by the pipe (|) character.
   
-  <seperator> is your output seperator that you wish between processes.  
+  <separator> is your output separator that you wish between processes.  
   Default is a space.
   
   <type> can be one of many types.
@@ -20339,7 +20339,7 @@
 
 & PID2
   CONTINUED
-  Function: pid([<display> [,<seperator> [,<type> [,<target>]]])
+  Function: pid([<display> [,<separator> [,<type> [,<target>]]])
  
   Examples:
     > @ps/all 
@@ -21003,12 +21003,12 @@
   See Also: @dolist, iter(), map(), citer(), nsiter(), list()
   
 & PARSE()
-  Function: parse(<list>,<eval>[,<delimiter> [,<output seperator>]])
+  Function: parse(<list>,<eval>[,<delimiter> [,<output separator>]])
   
   This function takes each element of <list>, evaluates <eval> after
   substituting it for ##, and constructs a space-separated list of the
   results.  The special substitution of #@ can be used for the position
-  of the current item in the list.  You may specify an output seperator.
+  of the current item in the list.  You may specify an output separator.
   
   This function can be reproduced with the iter function and as
   such is considered depreciated but left for compatibility.
@@ -21178,7 +21178,7 @@
   
   <delim>iter may be used to specify a delimiter other than space.
   
-  <sep>erator may be used to specify an output seperator other than a space.
+  <sep>erator may be used to specify an output separator other than a space.
   
   You may specify arguments <arg1> through <argN> that will be passed as %1
   for the first argument (or arg1) all the way through MAX_ARGS 
@@ -21200,7 +21200,7 @@
   This function evaluates the contents of <attr> for each element of <list>,
   passing it in as %0.  A <delimiter>-separated list is returned of those
   elements for which the evaluation returns the value 1.  You may specify an
-  optional output seperator.
+  optional output separator.
   
   <delim> may be used to specify a delimiter other than space.
   
@@ -27503,7 +27503,7 @@
   Changes
   -------
   * @prog aliased to @program [ASH]
-  * filter() now supports an output seperator [ASH]
+  * filter() now supports an output separator [ASH]
   * lnum() and lnum2() optionally return NULL if given a '0' [ASH]
   * mask() now takes '~' for adding 1's comp, '1' for 1's and '2' for 2's [ASH]
   * mailquick() takes 3rd argument for MUX mail() compatibility [ASH]
@@ -27630,7 +27630,7 @@
   -------
   * lnum()/lnum2() handles negative numbers [ASH]
   * NOMODIFY optionally set to immortal only [ASH]
-  * all vector functions recognize output seperator [ASH]
+  * all vector functions recognize output separator [ASH]
   * mail +justify, +insert, +edit, +editall handles line numbers [ASH]
   * dice has more arguments for offset values [ASH]
   * modified/created is examinable now [ASH]
@@ -27954,7 +27954,7 @@
   * @list user_attributes handle wildcard matching [ASH]
   * @list alloc shows better buffer stats [ASH]
   * better replace_token call for all ##/#@ subs [ASH]
-  * citer() has optional seperator [ASH]
+  * citer() has optional separator [ASH]
   * lwho() has argument to list just ports [ASH]
   * modified MONITOR site monitoring to show remote port [ASH]
   * sin(), tan(), etc modified for MUX compatibility [ASH]
@@ -28990,7 +28990,7 @@
   * float_precision for floating point decimal precision (default 6) [ASH]
   * file_object parameter to specify dynamic override for connect.txt and 
     friends [ASH]
-  * extractword() is a multi-char delimeter/seperator/ansi-aware 
+  * extractword() is a multi-char delimeter/separator/ansi-aware 
     extract/delextract [ASH]
   * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
   * @dbclean to purge unused attributes from the db [ASH]
@@ -29221,7 +29221,7 @@
     sub() now handle multiple arguments for Penn compatibility. [ASH]
   * For those who are used to Penn, 'DEBUG' is aliased to 'TRACE' [ASH]
   * textfile() takes optional arguments to sanitize output for use
-    in various coding including an output seperator [ASH]
+    in various coding including an output separator [ASH]
   * hilite topic headers for help (as requested by many) [ASH]
   * mysql more vigerously tries to keep stale connections active [ASH]
   * the build script more cleanly does dynamic building of Makefile [ASH]
@@ -29260,7 +29260,7 @@
   * enhanced content searches for help [ASH]
   * @grep now handles /parent switch [ASH]
   * ! shown on @function and @lfunction if a flag permission exists [ASH]
-  * array() has optional output seperator [ASH]
+  * array() has optional output separator [ASH]
   * %q<LABEL> now also handles 0-9a-z registers [ASH]
   * first() and last() are now optionally ANSI-aware with 3rd arg [ASH]
   * @chownall now optionally allows a mix of specifying room, exit,
@@ -29331,7 +29331,7 @@
   * Startmush is much more optimized for flatfile loading if required [ASH]
   * @newpassword optionally allows /des switch to enforce DES passwords [ASH]
   * @admin delim_null param allows '@@' to be seen as an empty separator
-    for all arguments with an output seperator [ASH]
+    for all arguments with an output separator [ASH]
   * REQUIRE_TREES flag when set requires the flag method to set attribs
     on the target that contain a tree character [ASH]
   * function_max to cap a ceiling on @functions allowed (1000 default) [ASH]
