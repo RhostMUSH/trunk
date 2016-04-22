@@ -15149,15 +15149,41 @@ FUNCTION(fun_parse)
 
 FUNCTION(fun_left)
 {
-    int len = atoi(fargs[1]);
+    int len = atoi(fargs[1]), i_noansi;
+    char *outbuff, *s_output;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    if (!fn_range_check("LEFT", nfargs, 2, 3, buff, bufcx))
+       return;
+
+    i_noansi = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_noansi = (atoi(fargs[2]) ? 1 : 0);
+    }
+    if ( !mudconf.ansi_default )
+       i_noansi = !i_noansi;
 
     if (len < 1) {
-        safe_chr('\0', buff, bufcx);
+        return;
     } else {
-        if (len < (LBUF_SIZE - 1)) {
-            fargs[0][len] = '\0';
-        }
-        safe_str(fargs[0], buff, bufcx);
+       if ( i_noansi ) {
+          if (len < (LBUF_SIZE - 1)) {
+             fargs[0][len] = '\0';
+          }
+          safe_str(fargs[0], buff, bufcx);
+       } else {
+          outbuff = alloc_lbuf("fun_left");
+          memset(outbuff, '\0', LBUF_SIZE);
+          initialize_ansisplitter(outsplit, LBUF_SIZE);
+          split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+          if (len < (LBUF_SIZE - 1)) {
+              outbuff[len] = '\0';
+          }
+          s_output = rebuild_ansi(outbuff, outsplit);
+          safe_str(s_output, buff, bufcx);
+          free_lbuf(s_output);
+          free_lbuf(outbuff);
+      }
     }
 }
 
@@ -15168,16 +15194,45 @@ FUNCTION(fun_left)
 
 FUNCTION(fun_right)
 {
-    int len = atoi(fargs[1]);
+    int len = atoi(fargs[1]), i_noansi;
+    char *outbuff, *s_output;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    if (!fn_range_check("RIGHT", nfargs, 2, 3, buff, bufcx))
+       return;
+
+    i_noansi = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_noansi = (atoi(fargs[2]) ? 1 : 0);
+    }
+    if ( !mudconf.ansi_default )
+       i_noansi = !i_noansi;
 
     if (len < 1) {
-        safe_chr('\0', buff, bufcx);
+        return;
     } else {
-        len = strlen(fargs[0]) - len;
-        if (len < 1 || len > (LBUF_SIZE - 1) )
-            safe_str(fargs[0], buff, bufcx);
-        else
-            safe_str(fargs[0] + len, buff, bufcx);
+        if ( i_noansi ) {
+           len = strlen(fargs[0]) - len;
+           if (len < 1 || len > (LBUF_SIZE - 1) ) {
+              safe_str(fargs[0], buff, bufcx);
+           } else {
+              safe_str(fargs[0] + len, buff, bufcx);
+           }
+        } else {
+           outbuff = alloc_lbuf("fun_right");
+           memset(outbuff, '\0', LBUF_SIZE);
+           initialize_ansisplitter(outsplit, LBUF_SIZE);
+           split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+           len = strlen(outbuff) - len;
+           if (len < 1 || len > (LBUF_SIZE - 1) ) {
+              safe_str(fargs[0], buff, bufcx);
+           } else {
+              s_output = rebuild_ansi(outbuff + len, outsplit + len);
+              safe_str(s_output, buff, bufcx);
+              free_lbuf(s_output);
+           }
+           free_lbuf(outbuff);
+       }
     }
 }
 
@@ -32535,7 +32590,7 @@ FUN flist[] =
     {"LDELETE", fun_ldelete, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LDEPOWERS", fun_ldepowers, 1, 0, CA_IMMORTAL, 0},
     {"LDIV", fun_ldiv, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"LEFT", fun_left, 2, 0, CA_PUBLIC, 0},
+    {"LEFT", fun_left, 2, FN_VARARGS, CA_PUBLIC, 0},
 #ifdef USE_SIDEEFFECT
     {"LEMIT", fun_lemit, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
@@ -32732,7 +32787,7 @@ FUN flist[] =
     {"REST", fun_rest, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"REVERSE", fun_reverse, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"REVWORDS", fun_revwords, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"RIGHT", fun_right, 2, 0, CA_PUBLIC, 0},
+    {"RIGHT", fun_right, 2, FN_VARARGS, CA_PUBLIC, 0},
     {"RINDEX", fun_rindex, 4, 0, CA_PUBLIC, CA_NO_CODE},
     {"RJUST", fun_rjust, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"RJC", fun_rjc, 2, FN_VARARGS, CA_PUBLIC, 0},

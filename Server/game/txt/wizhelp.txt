@@ -5615,6 +5615,9 @@
     AFTER()   -- Key field reversed if DISABLED
     BEFORE()  -- Key field reversed if DISABLED
     MID()     -- Type field reversed if DISABLED
+    DELETE()  -- Key field reversed if DISABLED
+    LEFT()    -- Key field reversed if DISABLED
+    RIGHT()   -- Key field reversed if DISABLED
   
 & ansi_txtfiles
   Config parameter: ansi_textfiles <boolean>   Default: 0

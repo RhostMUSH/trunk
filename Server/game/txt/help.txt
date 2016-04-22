@@ -12464,10 +12464,17 @@
   See Also: timefmt()
 
 & RIGHT()
-  Function: right(<string>, <position>)
+  Function: right(<string>, <position> [,<key>])
   
   Right will take a string and return the right-most position of characters
   from the string.  
+  
+  You may specify a <key> of 1 to tell right() to take the string raw and
+  not do ansi-aware processing.  This will speed up the function.
+  The default is '0' which does ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
   
   Example:
     > say right(this is a test,5)
@@ -12481,12 +12488,19 @@
   
 & STRTRUNC()
 & LEFT()
-  Function: left(<string>, <position>)
-   (Alias): strtrunc(<string>,<position>)
+  Function: left(<string>, <position> [,<key>])
+   (Alias): strtrunc(<string>,<position> [,<key>])
   
   Left will take a string and return the left-most position of characters
   from the string.
   
+  You may specify a <key> of 1 to tell left() to take the string raw and
+  not do ansi-aware processing.  This will speed up the function.
+  The default is '0' which does ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
+   
   Example:
     > say left(this is a test,5)
     You say "this "
@@ -29374,6 +29388,7 @@
   * logtofile() optionally can write to the mush system log [ASH]
   * LOGGED attribute flag now logs the last command issued to change it [ASH]
   * modified chkgarbage() to handle a (b)oth option [ASH]
+  * left() and right() are now optionally ansi-aware [ASH]
     
   Bug Fixes
   ------------
@@ -29404,3 +29419,4 @@
   * memory leak on rare occurances of lookup_site [ASH]
   * internal function for player lookup was not objid aware [ASH]
   * parents() was too restrictive for thing getting own parent tree [ASH]
+  * Long standing issue with left()/right() with arg of '0' cut string [ASH]
