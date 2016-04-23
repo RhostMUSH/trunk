@@ -27100,8 +27100,9 @@
   Function Lists: Ansi Functions
       
   ansi()        - ANSI formats a string.
-  stripansi()   - Strips ANSI characters from a string.
   colors()      - List colors or optionally display value of color.
+  editansi()    - Edit the ANSI of a string.
+  stripansi()   - Strips ANSI characters from a string.
 
 & time functions
   Function Lists: Time Functions.
