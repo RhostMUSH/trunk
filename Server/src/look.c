@@ -1378,6 +1378,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
         free_lbuf(tpr_buff);
         free_lbuf(pbuf);
         free_lbuf(pbuf2);
+        free_lbuf(buff);
     }
     pattr = (obey_terse && Terse(player)) ? 0 : A_DESC;
     if ( pattr ) {
