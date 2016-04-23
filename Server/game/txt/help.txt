@@ -33,12 +33,20 @@
   
   The /search switch works for +help as well.
   
-& co
-& cd
-& ch
-  Command: co <name> <password>
-           cd <name> <password>
-           ch <name> <password>
+& register
+& connect
+& create
+& cdark
+& chidden
+  Command: co  <name> <password>  (short for connect)
+           cd  <name> <password>  (short for cdark)
+           ch  <name> <password>  (short for chidden)
+           cr  <name> <password>  (short for create)
+           reg <name> <password>  (short for register)
+  
+  Note:  To create/log in a character with spaces in their name, please use
+         "<name>".  Ergo, surround your name with double quotes.
+         The 'register' command does not allow creation with spaces.
   
   These commands are only useful on the connect screen.  They are used to
   connect to your account <name> with the provided <password>.  There are
@@ -47,12 +55,29 @@
   They are as follows:
      co  -- This option is the default and normal method to connect.
             This option has no special conditions or privilages.
+            Syntax: co player password
+                    co "Player With Spaces" password
+  
      ch  -- Wizards and anyone with the NOWHO @power (to @hide) can use this.
             This option will auto-hide the player when connecting.
             It defaults to the 'co' option if you can't @hide.
+            Syntax: ch player password
+                    ch "Player With Spaces" password
+  
      cd  -- Wizards and higher can use this to connect dark to the game.
             This effectively connects wiz-cloaked to the game.
             Immortals get auto-added to supercloak.
+            Syntax: cd player password
+                    cd "Player With Spaces" password
+     
+     cr  -- Allows creation of a player from the connect screen.
+            Syntax: cr player password
+                    cr "Player With Spaces" password
+  
+     reg -- If offline registration is enabled, allows the player to register
+            a character with a supplied email that is then used to email them
+            their password.
+            Syntax: reg player email@address
   
   See Also: @aconnect, @adisconnect, @hide
             
@@ -4374,27 +4399,6 @@
     /noisy - This verbosely prints the setting message.
   
   See Also: @guild, race(), guild(), @set, &
-  
-& register
-& connect
-& create
-& cd
-& ch
-  Offline Command:  co <player> <password>
-                    cd <player> <password>
-                    ch <player> <password>
-                    create <player> <password>
-                    register <player> <password>
-  
-  These offline commands are used to manipulate player creation and connection
-  on the connect screen.  They are:
-    co       -- connect to an existing player
-    cd       -- connect dark/cloaked to an existing player (if a wizard)
-    ch       -- connect @hidden (if you are @powered hidden)
-    cr[eate] -- create a player with the specified password
-    register -- register to a new player
-  
-  See Also: @register
   
 & @register
   Command: @register[/<switch>] <character>=<email>
