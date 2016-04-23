@@ -366,10 +366,10 @@ pool_trace(dbref player, int poolnum, const char *text, int key)
               struct tmp_holder *next;
            } THOLD;
     THOLD *st_holder = NULL, *st_ptr = NULL, *st_ptr2 = NULL;
-    int numfree, *ibuf;
+    int numfree, *ibuf, icount;
     char *h, s_fieldbuff[250];
 
-    numfree = 0;
+    numfree = icount = 0;
     notify(player, unsafe_tprintf("----- %s -----", text));
     for (ph = pools[poolnum].chain_head; ph != NULL; ph = ph->next) {
 	if (ph->magicnum != POOL_MAGICNUM) {
@@ -427,12 +427,13 @@ pool_trace(dbref player, int poolnum, const char *text, int key)
     st_ptr = st_holder;
     while ( st_ptr ) {
        sprintf(s_fieldbuff, "%s  [%d entries]", st_ptr->buff_name, st_ptr->i_cntr);
+       icount += st_ptr->i_cntr;
        notify(player, s_fieldbuff);
        st_ptr2 = st_ptr->next;
        free(st_ptr);
        st_ptr = st_ptr2;
     }
-    notify(player, unsafe_tprintf("%d free %s", numfree, text));
+    notify(player, unsafe_tprintf("%d free %s, %d allocated", numfree, text, icount));
 }
 
 static void 
