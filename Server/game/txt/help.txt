@@ -49,10 +49,10 @@
          The 'register' command does not allow creation with spaces.
   
   These commands are only useful on the connect screen.  They are used to
-  connect to your account <name> with the provided <password>.  There are
-  currently three methods to do so.
+  create/connect to your account <name> with the provided <password>.  
+  These commands are not useable once you are connected to the mush.
   
-  They are as follows:
+  These commands are as follows:
      co  -- This option is the default and normal method to connect.
             This option has no special conditions or privilages.
             Syntax: co player password
@@ -78,8 +78,9 @@
             a character with a supplied email that is then used to email them
             their password.
             Syntax: reg player email@address
+                    reg "Player With Spaces" email@address
   
-  See Also: @aconnect, @adisconnect, @hide
+  See Also: @aconnect, @adisconnect, @hide, @register
             
 & commands
   Help available for RhostMUSH Commands:
@@ -4401,23 +4402,39 @@
   See Also: @guild, race(), guild(), @set, &
   
 & @register
-  Command: @register[/<switch>] <character>=<email>
+  Command: @register[/<switch>] <player>=<email>
 
-  This registers a character on-line and mails the specified <email> the 
-  password for the character you created.  This can only be done by GUEST and
+  Note:  <player> should not contain " even if the player name is multi-word
+         as this command will auto recognize a multi-word player name.
+  
+  This registers a player on-line and mails the specified <email> the 
+  password for the player you created.  This can only be done by GUEST and
   only if the autoregistration is enabled.  Depending on configurations, you
   may be able to do this at the connect screen as well, except it's just
   'register'.
   
   The online @register also supports the following switches:
     /message - in addition to emailing the user the password, message the
-               user online what their password is.
+               user online what their password is.  This switch may be
+               disabled on the RhostMUSH you connect to.
   
   The switches will only affect the online @register command and will not
   impact the offline method at all.
-    
+  
+  Examples:
+    > @register player=my@email
+    Autoregistration completed.   
+    > @register A Player With Spaces=my@email
+    Autoregistration completed.   
+    > @register/message player=my@email
+    Autoregistration completed.   
+    Your password for account 'player' is: MTIvYrPT
+  
+  See Also: connect, cdark, chidden, create, register, @hide
+  
 & @robot
   Command: @robot <name>=<password>
+  
   Creates a robot player owned by you.  The robot has its ROBOT flag set, so
   it may use the OUTPUTPREFIX and OUTPUTSUFFIX commands that most publicly
   available robot programs require.  This command costs 1000 coins.
@@ -4461,6 +4478,7 @@
            @set[/<switches>] <object>=<attribute>:_<fromobj>/<fromattr>
            @set[/<switches>] <object>/<attr>=[!]<attrflag>
   Synonym: &<attribute> <object>[=<value>]
+           &`<tree`attribute> <object>[=<value>] (for setting a tree variable)
  
   The available switches are:
         /QUIET - sets/removes the target without the 'Set.' or 'Cleared.' 
@@ -10113,7 +10131,7 @@
 & SPOOFING
   Topic: SPOOFING
  
-  Spoofing is the act of making other characters think that a person said or
+  Spoofing is the act of making other players think that a person said or
   did something that they did not.  This is very easy to accomplish, and has
   some good effects, which is why it is allowed.  Note that the NOSPOOF flag
   allows players to see exactly who is spoofing what.  Be warned, wizards are
@@ -13077,7 +13095,7 @@
 & CHARIN()
   Function: charin(<player>[,<type>])
   
-  Charin returns the total number of characters of input that character has
+  Charin returns the total number of characters of input that player has
   received.  If the type is '1', it will return the information in the form
   of PORT:CHARIN.  
   
@@ -13283,7 +13301,7 @@
 & CHAROUT()
   Function: charout(<player>[,<type>])
   
-  Charout returns the total number of characters of output that the character
+  Charout returns the total number of characters of output that the player
   has sent.  If the type is '1', it will return the information in the form
   of PORT:CHAROUT.
   
@@ -17719,7 +17737,7 @@
   
   Examples:
     > @set me=royalty (let's assume you're a wizard)
-    > @va #2=[num(*Miriar)] (the ghod character - #1) (#2 a zone you control)
+    > @va #2=[num(*Miriar)] (the ghod player - #1) (#2 a zone you control)
     > say zfuneval(va/royalty)
     You say "#1"
     > say zfuneval(va/citizen)
@@ -17746,7 +17764,7 @@
   
   Examples:
     > @set me=royalty (let's assume you're a wizard)
-    > @va me=[num(*Miriar)] (the ghod character - #1)
+    > @va me=[num(*Miriar)] (the ghod player - #1)
     > say ueval(va/royalty)
     You say "#1"
     > say ueval(va/citizen)
@@ -22921,7 +22939,7 @@
   
   Examples:
     > @set cluster#1=royalty (let's assume you're a wizard)
-    > @va cluster#1=[num(*Miriar)] (the ghod character - #1)
+    > @va cluster#1=[num(*Miriar)] (the ghod player - #1)
     > say cluster_ueval(va/royalty)
     You say "#1"
   
@@ -23985,9 +24003,9 @@
            mail/autofor +off
   
   Autoforwarding is used to autoforward mail that you would normally get
-  to another player character.  This is handy in the event that you have
-  multiple characters and wish to have mail all catagorized to a central
-  character.  All forwarded mail is sent as from the original sender, 
+  to another player.  This is handy in the event that you have
+  multiple players and wish to have mail all catagorized to a central
+  player.  All forwarded mail is sent as from the original sender, 
   not from the player it was forwarded from.
   
   Autoforwarding can only be forwarded on a one-time basis.  It is not
@@ -26029,10 +26047,10 @@
   (*note this flag is meaningless on RhostMUSH*)
   When set on a player or object, denotes that they are In-Character and 
   therefore subject to inclusion in tinyplots, etc, and whatever they
-  say or do will be interpreted as if their character was doing or saying it.
+  say or do will be interpreted as if their player was doing or saying it.
   If this flag is not set, whatever the they say or do is to be interpreted
   as if it is either the real life person talking, or some mixture of the
-  character and the real life person that is not 100% In-Character and should
+  player and the real life person that is not 100% In-Character and should
   not be taken as being in character.
  
   When set on a room it denotes that the room is fair ground for roleplaying.
@@ -26209,7 +26227,7 @@
   
 & save
   RhostMUSH, unlike lp's, merc's, diku's or similiar mud derivitives, does not
-  have a 'save' option.  Your character, upon creation, is automatically saved.
+  have a 'save' option.  Your player, upon creation, is automatically saved.
   Everything you do, whenever you do it, is also automatically saved.  So just
   have fun, relax, and enjoy your time on.   Leave the saving to us :)
   
