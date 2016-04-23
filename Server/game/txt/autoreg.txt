@@ -4,7 +4,7 @@ The RhostMUSH you are connecting to is registered but you are free to
 create a character from your current site.  You do not need to register
 a player, but you are welcome to do so instead of just creating a character.
 If you do use register, it will email you the password to your character.
-
+  
                    The following commands are available:
 
  /~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\ 
@@ -15,5 +15,8 @@ If you do use register, it will email you the password to your character.
 ((  To see who is on            ----------=>   WHO                         ))
  )) To quit your character      ----------=>   QUIT                       (( 
 ((  To get help once connected  ----------=>   help (i.e. : help commands) ))
+ ))                                                                       (( 
+((  Note: use double quotes around name for names with spaces.             ))
+ )) Example: cr "player with spaces" password                             (( 
  \_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/
   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  
