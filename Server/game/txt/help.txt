@@ -5545,6 +5545,10 @@
   to send the target who enters the exit to.  All exit messages are 
   evaluated and sent as well.
   
+  If the exit is @powered FULLTEL then the exit will be assumed to have 
+  full 'link' permission to any valid destination that exits would normally
+  be able to link to.  @power requires wizard access to set.
+     
   Example:
     > @toggle MyExit=variable
     Set.
@@ -26034,7 +26038,9 @@
   
   Specifies that the target exit is a 'variable' exit and that it will
   parse the @exitto attribute for it's destination location and not where
-  it is currently linked to.
+  it is currently linked to.  If the exit is @powered FULLTEL then that
+  exit will be assumed to have full 'link' privialages to any valid
+  location returned from @exitto.
   
   If a player sets the VARIABLE toggle on himself, then all ansi via
   Cname()/%k will show up when that player @walls, poses, or uses say.
@@ -29443,6 +29449,8 @@
   * modified chkgarbage() to handle a (b)oth option [ASH]
   * left() and right() are now optionally ansi-aware [ASH]
   * @register has /message switch to immediately message player the pass [ASH]
+  * Exits that are @powered FULLTEL will allow variable exits to assume
+    'linkable' to any valid destination [ASH]
     
   Bug Fixes
   ------------
