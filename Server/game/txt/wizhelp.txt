@@ -1668,6 +1668,19 @@
   powers, this power works through parent trees.  This also works with
   global parents via global_parent_room/thing/player/obj.
   
+  This will follow the following chain to check for the FORMATTING power.
+  
+    self -> @parent(s) -> Global Parent -> Zone(s)
+  
+  The NOGLOBPARENT @toggle will stop it inheriting the FORMATTING power from
+  any global parent.  
+  
+  The NOZONEPARENT @toggle will stop it inheriting the FORMATTING power from
+  any zone master.
+  
+  If it fails a @parent/lock check, it will not inherit the FORMATTING power
+  from that parent in question.  No lock means it automatically passes.
+     
   This power will grant the target the ability to pass %0-%4 (respectively)
   into the @conformat, @exitformat, and @darkexitformat container
   formatters.  The substitutions are separated for each type of format.
