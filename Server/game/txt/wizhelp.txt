@@ -1662,7 +1662,7 @@
       wizhelp power <power>
 
 & POWER FORMATTING
-  Power argument: @power[/switch] <user>=[@g|@a|@c] execscript
+  Power argument: @power[/switch] <user>=[@g|@a|@c] formatting
   
   Unlike other @powers, this power IS NOT INHERITABLE.  However, unlike other
   powers, this power works through parent trees.  This also works with
