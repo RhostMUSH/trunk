@@ -916,7 +916,7 @@
   See Also: AUTOREGISTRATION
 
 & AUTOREG DB
-  The autoregistration system comes with an enhanced seperate database 
+  The autoregistration system comes with an enhanced separate database 
   and tools to manipulate this database.  For help on this, type:
   
          wizhelp @areg
@@ -1607,7 +1607,7 @@
   The @power command is used to give players given abilities not normally
   had.  Any power that SUPER-ROYALTY/ROYALTY wish to grant them are inhereted
   to any/all of their belongings as long as the INHERIT flag is set on it.
-  Each 'arg' specified in the list will be a seperate power to set/unset.  
+  Each 'arg' specified in the list will be a separate power to set/unset.  
   And the toggle for individual powers is optional.  Note that if no switch 
   is specified, /OFF is defaulted.  The @admin param 'power_objects' must
   be enabled for this to have effect on non-players.
@@ -1644,22 +1644,51 @@
   
   There are various powers available to be set with @power.  These are:
   
-   CHANGE_QUOTAS   CHOWN_ANYWHERE *CHOWN_ME       *WIZ_WHO
-  *CHOWN_OTHER    *EXAMINE_ALL    *NOFORCE         SEE_QUEUE_ALL
-   FREE_QUOTA     *GRAB_PLAYER    *JOIN_PLAYER     LONG_FINGERS
-  *NO_BOOT        *BOOT           *STEAL          *SEE_QUEUE
-  *TEL_ANYWHERE   *TEL_ANYTHING   *STAT_ANY        PCREATE
-   FREE_WALL       FREE_PAGE      *HALT_QUEUE      HALT_QUEUE_ALL
-  *NOKILL         *SEARCH_ANY     *SECURITY       *WHO_UNFIND
-  *WRAITH          SHUTDOWN       *PURGE          *HIDEBIT
-   NOWHO           EXAMINE_FULL   FULLTEL         *EXECSCRIPT
+   *BOOT            CHANGE_QUOTAS   CHOWN_ANYWHERE   *CHOWN_ME     
+   *CHOWN_OTHER    *EXAMINE_ALL     EXAMINE_FULL     *EXECSCRIPT    
+    FREE_QUOTA      FORMATTING      FREE_PAGE         FREE_WALL     
+    FULLTEL        *GRAB_PLAYER    *HALT_QUEUE        HALT_QUEUE_ALL
+   *HIDEBIT        *JOIN_PLAYER     LONG_FINGERS     *NO_BOOT      
+   *NOFORCE        *NOKILL          NOWHO             PCREATE    
+   *PURGE          *SEARCH_ANY     *SECURITY         *SEE_QUEUE
+    SEE_QUEUE_ALL   SHUTDOWN       *STAT_ANY         *STEAL          
+   *TEL_ANYWHERE   *TEL_ANYTHING   *WHO_UNFIND       *WIZ_WHO
+   *WRAITH        
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
   down to GUILDMASTER.
 
-  Help is available seperately to explain what each power does by typing:
+  Help is available separately to explain what each power does by typing:
       wizhelp power <power>
 
+& POWER FORMATTING
+  Power argument: @power[/switch] <user>=[@g|@a|@c] execscript
+  
+  Unlike other @powers, this power IS NOT INHERITABLE.
+  
+  This power will grant the target the ability to pass %0-%4 (respectively)
+  into the @conformat, @exitformat, and @darkexitformat container
+  formatters.  The substitutions are separated for each type of format.
+  
+  @conformat, @exitformat, @darkexitformat:
+      %0  -- The dbref list (space separated) that the enactor will have
+             seen normally by looking at the location.
+      %1  -- The name list (| separated) that will show the colorized
+             name, flags, altname, captions, and everything else that
+             they normally will have seen by looking.
+  
+  @exitformat, @darkexitformat
+      %2  -- The dbref list (space separated) of just the dark targets that
+             the enactor would normally have been able to see.
+      %3  -- The name list (| separated) that will show the colorized
+             name, flags, altname, and everything else that would normally
+             be seen with the dark targets that the enactor would normally
+             see.
+  
+  See Also: formats_are_local, format_contents, format_exits
+  
+  See Normal Help on:  @conformat, @exitformat, @darkexitformat
+  
 & POWER EXECSCRIPT
   Power argument: @power[/switch] <user>=[@g|@a|@c] execscript
   
@@ -2317,7 +2346,7 @@
   Command: @blacklist[/<switch>]
   
   This command lists, loads, or clears the current blacklists.  Blacklists are
-  similiar to forbid sites, except it keeps them in a seperate list to avoid
+  similiar to forbid sites, except it keeps them in a separate list to avoid
   spamming the site list.  You can have a maximum of 100,000 entries in the
   blacklist.  This reads a list of sites in a file blacklist.txt that it 
   populates into the blacklist.  All invalid sites will be ignored.  All
@@ -2514,7 +2543,7 @@
      text       - Ensure that all changes to the text portion of the
                   database are written out to disk.
      flat       - Create full flatfile backup database '<mudname>.db.flat'
-                  You may specify a seperate filename <arg> but it will
+                  You may specify a separate filename <arg> but it will
                   have '.flat' appended to it.  The filename will have
                   validation checking.
   
@@ -3351,7 +3380,7 @@
 & @log
   Command: @log[/<switches>] <text>
   
-  This command will append to the log (or a seperate manual-log entry) a 
+  This command will append to the log (or a separate manual-log entry) a 
   string of text.  If no switch is specified, it is sent to the mushname.log
   file.  The following switches exist.  Ansi and carriage returns are stripped.
   
@@ -4115,8 +4144,13 @@
 & @darkexitformat
   Attribute: @darkexitformat <target>=<value> (royalty and higher only)
   This attribute works like @exitformat except it's a secondary descriptor
-  incase the wizard wants to specify how a seperate exit-format list is
+  incase the wizard wants to specify how a separate exit-format list is
   to be displayed.  An example would be the dark exit formats.
+  
+  If the target is @powered FORMATTING, then the dbref# list of items that
+  the target sees will be passed as %0 and the | separated list of names
+  will be passed as %1.  Any dark exits that the target sees will be passed
+  as dbref#'s into %2, and their respective names | separated as %3.
   
   Example:
     > @darkexitformat here=No dark exits!
@@ -4130,6 +4164,8 @@
     No dark exits!
   
   Refer to the normal help on @exitformat and @conformat for more help.
+  
+  See Also: power formatting, formats_are_local, format_exits
 
 & @receivelim
   Attribute: @receivelim <player>=<value> (immortal only)
@@ -5099,7 +5135,7 @@
 & NO_POSSESS
   Flag: NO_POSSESS([C]) (royalty and higher)
   This flag when set on a player makes it so that player can not be
-  on from two seperate sites at once.  In addition, it makes it so
+  on from two separate sites at once.  In addition, it makes it so
   that player is unable to connect from the same site more than
   twice.  This is to help avoid account sharing.
   
@@ -5269,7 +5305,7 @@
   Command: @badsite <player>=<list of sites>
   
   This command will set up what sites a given player can _NOT_ log in from.
-  All sites must be seperated by a space and be put into their numerical
+  All sites must be separated by a space and be put into their numerical
   form.   this accepts wildcard matching.
   
   Example:  @badsite *tinyjerk=250.250.2.1 250.100.90.90 123.245.*
@@ -7018,7 +7054,7 @@
   Config parameter: global_parent_obj <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -7049,7 +7085,7 @@
   Config parameter: global_parent_exit <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -7074,7 +7110,7 @@
   Config parameter: global_parent_room <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -7099,7 +7135,7 @@
   Config parameter: global_parent_thing <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -7124,7 +7160,7 @@
   Config parameter: global_parent_player <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -10601,7 +10637,7 @@
   wildcarded list of matches without the standard help entry header of
   'Here are the entries which match...'.  Useful for functions.
   
-  You may specify a seperate separator <sep> to be used for returned
+  You may specify a separate separator <sep> to be used for returned
   arguments for matches.  It will default to two spaces.
   
   Example:
@@ -10878,7 +10914,7 @@
   Wizard-owned objects can send mail.  Replies to messages from
     those objects will be sent to the owner.  The from line of those
   messages will be from the object owner.  The address list can
-  be seperated with commas instead of a space. You shouldn't
+  be separated with commas instead of a space. You shouldn't
   mix commas and spaces as separator.
   
   NOTE:  All messages from objects you controlled will show up that
@@ -10890,7 +10926,7 @@
   See 'help mail send' for details on how to use this sub-command.
   This allows immortals to send mail and override any locks or
   max-messages a player has for their mail box.  The address list
-  can be seperated with commas instead of a space. You shouldn't
+  can be separated with commas instead of a space. You shouldn't
   mix commas and spaces as separator.
   
   *NOTE*  /fsend sent mail will *not* be autoforwarded.
@@ -11203,7 +11239,7 @@
   from you if they're higher bitlevel than you.
   
   The DARK and UNFINDABLE flags otherwise have expected results if used
-  seperate from each other, though DARK, for obvious reasons, will not
+  separate from each other, though DARK, for obvious reasons, will not
   make you 'DARK' like on normal mushes. (unless configured to do so with
   the appropiate @admin parameters)
 

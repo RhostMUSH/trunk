@@ -26,13 +26,270 @@ char *index(const char *, int);
 
 extern int count_chars(const char *, const char c);
 extern dbref    FDECL(match_thing, (dbref, char *));
+extern POWENT * FDECL(find_power, (dbref, char *));
+
+char *
+look_exit_parse(dbref player, dbref cause, dbref loc, int i_key, int keytype, int cloak)
+{
+   char *tpr_buff, *retbuff, *retbuffptr, sep, *tbuffatr;
+   int light_dark, foundany, lev, i_first, key, aflags;
+   dbref pcheck, thing, parent, oldparent, aowner;
+
+   pcheck = loc;
+   retbuffptr = retbuff = alloc_lbuf("look_exit_parse");
+   tpr_buff = alloc_lbuf("look_exits");
+   i_first = 0;
+   if ( i_key ) {
+      sep = '|';
+   } else {
+      sep = ' ';
+   }
+
+   key = 0;
+   for ( light_dark = 0; light_dark == 0 || 
+         (Wizard(player) && (light_dark < 2) && !Myopic(player)); light_dark++) {
+      foundany = 0;
+      if (light_dark == 1) {
+         key = VE_ACK;
+      } else {
+         key = 0;
+      }
+#ifdef REALITY_LEVELS
+      if ((Dark(loc) && !IsReal(player, loc)) && !could_doit( player, loc, A_LDARK, 0, 0)) {
+#else
+      if (Dark(loc) && !could_doit( player, loc, A_LDARK, 0, 0)) {
+#endif /* REALITY_LEVELS */
+         key |= VE_BASE_DARK;
+      }
+      ITER_PARENTS(loc, parent, lev) {
+         key &= ~VE_LOC_DARK;
+         if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0, 0)) {
+            key |= VE_LOC_DARK;
+         }
+         DOLIST(thing, Exits(parent)) {
+            if ( ((parent != pcheck) && (Flags3(thing) & PRIVATE)) || 
+                  (keytype && (Floating(thing) || (Flags3(thing) & PRIVATE))) ) {
+               continue;
+            }
+#ifdef REALITY_LEVELS
+            if (((light_dark == 0 && exit_displayable(thing, player, key)) ||
+                 (light_dark == 1 && !exit_displayable(thing, player, key))) &&
+                 IsReal(player, thing)) {
+#else
+            if ((light_dark == 0 && exit_displayable(thing, player, key)) ||
+                 (light_dark == 1 && !exit_displayable(thing, player, key))) {
+#endif /* REALITY_LEVELS */ 
+               foundany = 1;
+               break;
+            }
+         }
+         if (foundany) {
+            break;
+         }
+      }
+      if (!foundany) {
+         continue;
+      }
+
+      /* Execute for @exitformat */
+      if ( (light_dark == 1) && (SnuffDark(player) || !cloak) ) {
+         continue;
+      }
+      /* Execute for @darkexitformat */
+      if ( (light_dark == 0) && cloak ) {
+         continue;
+      } 
+
+      oldparent = -1;
+      ITER_PARENTS(loc, parent, lev) {
+      /* prevents exits being displayed multiple times if room
+       * parented to #0.
+       * Hack solution - Ashen Shugar
+       */
+         if ( parent == oldparent) {
+            continue;
+         }
+         key &= ~VE_LOC_DARK;
+         if (Dark(parent) && !could_doit( player, parent, A_LDARK, 0, 0)) {
+            key |= VE_LOC_DARK;
+         }
+         DOLIST(thing, Exits(parent)) {
+            if ( ((parent != pcheck) && (Flags3(thing) & PRIVATE)) || 
+                 (keytype && (Floating(thing) || (Flags3(thing) & PRIVATE))) ) {
+               continue;
+            }
+#ifdef REALITY_LEVELS
+            if (((light_dark == 0 && exit_displayable(thing, player, key)) ||
+                 (light_dark == 1 && !exit_displayable(thing, player, key))) &&
+                 IsReal(player, thing)) {
+#else
+            if ((light_dark == 0 && exit_displayable(thing, player, key)) ||
+                 (light_dark == 1 && !exit_displayable(thing, player, key))) {
+#endif /* REALITY_LEVELS */
+            /* chop off first exit alias to display */
+               if ( i_first ) {
+                  safe_chr(sep, retbuff, &retbuffptr);
+               }
+               i_first = 1;
+
+               /* Output Names exactly as the player would see it */
+               if ( i_key ) {
+                  sprintf(tpr_buff, "%s", Name(thing));
+                  if ( strchr(tpr_buff, ';') != NULL ) {
+                     *(strchr(tpr_buff, ';')) = '\0';
+                  }
+                  if ( ExtAnsi(thing) ) {
+                     tbuffatr = atr_get(thing, A_ANSINAME, &aowner, &aflags);
+                     if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
+                          !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                        if ( strcmp(strip_all_special(tbuffatr), tpr_buff) == 0 ) {
+                           if ( !Accents(player) ) {
+                              safe_str(strip_safe_accents(tbuffatr), retbuff, &retbuffptr);
+                           } else {
+                              safe_str(tbuffatr, retbuff, &retbuffptr);
+                           }
+                           safe_str(ANSI_NORMAL, retbuff, &retbuffptr);
+                        } else {
+                           safe_str(tpr_buff, retbuff, &retbuffptr);
+                        }
+                     } else {
+                        safe_str(tpr_buff, retbuff, &retbuffptr);
+                     }
+                     free_lbuf(tbuffatr);
+                  } else {
+                     tbuffatr = ansi_exitname(thing);
+                     if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
+                          !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                        if ( !Accents(player) ) {
+                           safe_str(strip_safe_accents(tbuffatr), retbuff, &retbuffptr);
+                        } else {
+                           safe_str(tbuffatr, retbuff, &retbuffptr);
+                        }
+                     }
+                     free_lbuf(tbuffatr);
+                     safe_str(tpr_buff, retbuff, &retbuffptr);
+                     if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
+                          !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                        safe_str(ANSI_NORMAL, retbuff, &retbuffptr);
+                     }
+                  }
+               /* Output just the dbref#'s */
+               } else {
+                  sprintf(tpr_buff, "#%d", thing);
+                  safe_str(tpr_buff, retbuff, &retbuffptr);
+               }
+            }
+         }
+      }
+   }
+   free_lbuf(tpr_buff);
+   return(retbuff);
+}
+
+char *
+look_iter_parse(dbref player, dbref loc, const char *contents_name, int key)
+{
+    char *buff, sep, *retbuff, *retbuffptr, *pbuf, *pbuf2, *tpr_buff;
+    int can_see_loc, i_first, aflags;
+    dbref thing, aowner;
+
+    i_first = 0;
+    if ( key )
+       sep = '|';
+    else
+       sep = ' ';
+    retbuffptr = retbuff = alloc_lbuf("look_iter_parse");
+
+    can_see_loc = (!Dark(loc) || (Dark(loc) && could_doit(player, loc, A_LDARK, 0, 0)) ||
+		   (mudconf.see_own_dark && MyopicExam(player, loc))); 
+
+#ifdef REALITY_LEVELS
+    can_see_loc = can_see_loc && IsReal(player, loc);
+#endif /* REALITY_LEVELS */
+    /* check to see if there is anything there */
+    DOLIST(thing, Contents(loc)) {
+#ifdef REALITY_LEVELS
+       if ( ((can_see(player, thing, can_see_loc) && mudconf.player_dark) ||
+            (can_see2(player, thing, can_see_loc) && !mudconf.player_dark)) &&
+            IsReal(player, thing)) {
+#else
+       if ((can_see(player, thing, can_see_loc) && mudconf.player_dark) ||
+                (can_see2(player, thing, can_see_loc) && !mudconf.player_dark)) {
+#endif /* REALITY_LEVELS */
+          /* something exists!  show him everything */
+          DOLIST(thing, Contents(loc)) {
+             if ( (Wearable(thing) || Wieldable(thing)) && mudconf.alt_inventories && 
+                   mudconf.altover_inv ) {
+                continue;
+             }
+             if ( (can_see(player, thing, can_see_loc) && mudconf.player_dark) ||
+		  (can_see2(player, thing, can_see_loc) && !mudconf.player_dark)) {
+                if ( key ) {
+                   if ( NoAnsiName(thing) || NoAnsiName(Owner(thing)) ||
+                        ((NoAnsiPlayer(player) || !(mudconf.allow_ansinames & ANSI_PLAYER)) && isPlayer(thing)) ||
+                        ((NoAnsiThing(player) || !(mudconf.allow_ansinames & ANSI_THING)) && isThing(thing)) ||
+                        ((NoAnsiExit(player) || !(mudconf.allow_ansinames & ANSI_EXIT)) && isExit(thing)) ||
+                        ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) ) {
+                      buff = unparse_object_altname(player, thing, 1);
+                   } else {
+                      buff = unparse_object_ansi_altname(player, thing, 1);
+                   }
+                   if ( ((NoName(thing) && *buff) || !NoName(thing)) ) {
+                      if ( i_first ) {
+                         safe_chr(sep, retbuff, &retbuffptr);
+                      }
+                      if (isPlayer(thing)) {
+                         pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
+                         pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
+                         tpr_buff = alloc_lbuf("tmp_name");
+                         if(*pbuf) {
+                            if ( *pbuf2 ) {
+                               sprintf(tpr_buff, "%.90s %s%s, %.90s", pbuf2, ANSI_NORMAL, buff, pbuf);
+                            } else {
+                               sprintf(tpr_buff, "%s %.90s", buff, pbuf);
+                            }
+                         } else {
+                            if ( *pbuf2 ) {
+                               sprintf(tpr_buff, "%.90s %s%s", pbuf2, ANSI_NORMAL, buff);
+                            } else {
+                               strncpy(tpr_buff, buff, LBUF_SIZE - 1);
+                            }
+                         }
+                         safe_str(tpr_buff, retbuff, &retbuffptr);
+                         free_lbuf(pbuf);
+                         free_lbuf(pbuf2);
+                         free_lbuf(tpr_buff);
+                      } else {
+                         safe_str(buff, retbuff, &retbuffptr);
+                      }
+                   }
+                } else {
+                   buff = alloc_lbuf("list_foo");
+                   sprintf(buff, "#%d", thing);
+                   if ( i_first ) {
+                      safe_chr(sep, retbuff, &retbuffptr);
+                   }
+                   safe_str(buff, retbuff, &retbuffptr);
+                }
+                i_first = 1;
+		free_lbuf(buff);
+             }
+          }
+	  break;		/* we're done */
+       }
+    }
+    return(retbuff);
+}
+
 
 static void 
-look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
+look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keytype)
 {
     dbref thing, parent, pcheck, dest, aowner;
     char *buff, *e, *s, *buf2, *buf3, *tbuff, *tbuffptr, *tbuffatr, *tpr_buff, *tprp_buff;
-    int foundany, lev, key, light_dark, do_ret, aflags, oldparent;
+    char *s_combine, *s_array[5];
+    int foundany, lev, key, light_dark, do_ret, aflags, oldparent, t_work, t_level; 
+    POWENT *pent;
 
     /* make sure location has exits */
 
@@ -41,25 +298,60 @@ look_exits(dbref player, dbref loc, const char *exit_name, int keytype)
 
     /* make sure there is at least one visible exit */
 
-    do_ret = 0;
+    do_ret = t_level = 0;
     if (!keytype && mudconf.fmt_exits && !NoFormat(player)) {
+       s_array[0] = NULL;
+       s_array[1] = NULL;
+       s_array[2] = NULL;
+       s_array[3] = NULL;
+       s_array[4] = NULL;
+
+       s_combine = alloc_lbuf("fun_lexits_formatting");
+       strcpy(s_combine, (char *)"formatting");
+       pent = find_power(loc, s_combine);
+       if ( pent ) {
+          t_work = Toggles4(loc);
+          t_work >>= (pent->powerpos);
+          t_level = t_work & POWER_LEVEL_COUNC;
+
+          if ( t_level ) {
+             s_array[0] = look_exit_parse(player, cause, loc, 0, keytype, 0);
+             s_array[1] = look_exit_parse(player, cause, loc, 1, keytype, 0);
+             s_array[2] = look_exit_parse(player, cause, loc, 0, keytype, 1);
+             s_array[3] = look_exit_parse(player, cause, loc, 1, keytype, 1);
+          }
+       }
+       free_lbuf(s_combine);
+
        buf3 = atr_pget(loc, A_LEXIT_FMT, &aowner, &aflags);
        if (*buf3) {
-            did_it(player, loc, A_LEXIT_FMT, NULL, 0, NULL,
-                   0, (char **) NULL, 0);
-            free_lbuf(buf3);
-            do_ret=1;
+          if ( t_level ) {
+             did_it(player, loc, A_LEXIT_FMT, NULL, 0, NULL, 0, s_array, 4);
+          } else {
+             did_it(player, loc, A_LEXIT_FMT, NULL, 0, NULL, 0, (char **) NULL, 0);
+          }
+          free_lbuf(buf3);
+          do_ret=1;
        } else if (buf3) {
             free_lbuf(buf3);
        }
        buf3 = atr_pget(loc, A_LDEXIT_FMT, &aowner, &aflags);
        if (*buf3) {
-            did_it(player, loc, A_LDEXIT_FMT, NULL, 0, NULL,
-                   0, (char **) NULL, 0);
-            free_lbuf(buf3);
-            do_ret=1;
+          if ( t_level ) {  
+             did_it(player, loc, A_LDEXIT_FMT, NULL, 0, NULL, 0, s_array, 4);
+          } else {
+             did_it(player, loc, A_LDEXIT_FMT, NULL, 0, NULL, 0, (char **) NULL, 0);
+          }
+          free_lbuf(buf3);
+          do_ret=1;
        } else if (buf3) {
             free_lbuf(buf3);
+       }
+       if (t_level) {
+          free_lbuf(s_array[0]);
+          free_lbuf(s_array[1]);
+          free_lbuf(s_array[2]);
+          free_lbuf(s_array[3]);
        }
     }
     if ( do_ret )
@@ -354,6 +646,11 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
     free_lbuf(tpr_buff);
 }
 
+
+
+
+
+
 static void 
 look_contents_altinv(dbref player, dbref loc, const char *contents_name)
 {
@@ -361,19 +658,45 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
     dbref can_see_loc;
     dbref aowner;
     char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
-    int aflags, i_cont=0;
+    char *s_array[3], *s_combine;
+    int aflags, i_cont=0, t_work, t_level; 
+    POWENT *pent;
 
     /* check to see if he can see the location */
 
+    t_level = 0;
     if (mudconf.fmt_contents && !NoFormat(player)) {
         buf2 = atr_pget(loc, A_LCON_FMT, &aowner, &aflags);
         if (*buf2) {
-            did_it(player, loc, A_LCON_FMT, NULL, 0, NULL,
-                   0, (char **) NULL, 0);
-            free_lbuf(buf2);
-            return;
+            s_array[0] = NULL;
+            s_array[1] = NULL;
+            s_array[2] = NULL;
+
+            s_combine = alloc_lbuf("fun_didit_formatting");
+            strcpy(s_combine, (char *)"formatting");
+            pent = find_power(loc, s_combine);
+            if ( pent ) {
+               t_work = Toggles4(loc);
+               t_work >>= (pent->powerpos);
+               t_level = t_work & POWER_LEVEL_COUNC;
+               if ( t_level ) {
+                  s_array[0] = look_iter_parse(player, loc, contents_name, 0);
+                  s_array[1] = look_iter_parse(player, loc, contents_name, 1);
+              }
+           }
+           free_lbuf(s_combine);
+
+           if ( t_level ) {
+              did_it(player, loc, A_LCON_FMT, NULL, 0, NULL, 0, s_array, 2);
+              free_lbuf(s_array[0]);
+              free_lbuf(s_array[1]);
+           } else {
+              did_it(player, loc, A_LCON_FMT, NULL, 0, NULL, 0, (char **) NULL, 0);
+           }
+           free_lbuf(buf2);
+           return;
         } else if (buf2) {
-            free_lbuf(buf2);
+           free_lbuf(buf2);
         }
     }
 
@@ -462,17 +785,43 @@ look_contents(dbref player, dbref loc, const char *contents_name)
     dbref can_see_loc;
     dbref aowner;
     char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
-    int aflags;
+    char *s_array[3], *s_combine;
+    int aflags, t_work, t_level; 
+    POWENT *pent;
 
     /* check to see if he can see the location */
 
+    t_level = 0;
     if (mudconf.fmt_contents && !NoFormat(player)) {
         buf2 = atr_pget(loc, A_LCON_FMT, &aowner, &aflags);
         if (*buf2) {
-            did_it(player, loc, A_LCON_FMT, NULL, 0, NULL,
-                   0, (char **) NULL, 0);
-            free_lbuf(buf2);
-            return;
+            s_array[0] = NULL;
+            s_array[1] = NULL;
+            s_array[2] = NULL;
+
+            s_combine = alloc_lbuf("fun_didit_formatting");
+            strcpy(s_combine, (char *)"formatting");
+            pent = find_power(loc, s_combine);
+            if ( pent ) {
+               t_work = Toggles4(loc);
+               t_work >>= (pent->powerpos);
+               t_level = t_work & POWER_LEVEL_COUNC;
+               if ( t_level ) {
+                  s_array[0] = look_iter_parse(player, loc, contents_name, 0);
+                  s_array[1] = look_iter_parse(player, loc, contents_name, 1);
+               }
+           }
+           free_lbuf(s_combine);
+
+           if ( t_level ) {
+              did_it(player, loc, A_LCON_FMT, NULL, 0, NULL, 0, s_array, 2);
+              free_lbuf(s_array[0]);
+              free_lbuf(s_array[1]);
+           } else {
+              did_it(player, loc, A_LCON_FMT, NULL, 0, NULL, 0, (char **) NULL, 0);
+           }
+           free_lbuf(buf2);
+           return;
         } else if (buf2) {
             free_lbuf(buf2);
         }
@@ -1441,7 +1790,7 @@ show_desc(dbref player, dbref loc, int key)
 }
 
 void 
-look_in(dbref player, dbref loc, int key)
+look_in(dbref player, dbref cause, dbref loc, int key)
 {
     char *s, *nfmt, *pt, *savereg[MAX_GLOBAL_REGS];
     int pattr, oattr, aattr, is_terse, showkey, has_namefmt, aflags2, x;
@@ -1544,8 +1893,8 @@ look_in(dbref player, dbref loc, int key)
     if (!is_terse || mudconf.terse_contents)
 	look_contents(player, loc, "Contents:");
     if ((key & LK_SHOWEXIT) && (!is_terse || mudconf.terse_exits)) {
-	look_exits(player, loc, "Obvious exits:", 0);
-        look_exits(player, mudconf.master_room, "Global exits:", 1);
+	look_exits(player, cause, loc, "Obvious exits:", 0);
+        look_exits(player, cause, mudconf.master_room, "Global exits:", 1);
     }
 }
 
@@ -1571,7 +1920,7 @@ do_look(dbref player, dbref cause, int key, char *name)
 		}
 		thing = Location(thing);
 	    }
-	    look_in(player, thing, look_key);
+	    look_in(player, cause, thing, look_key);
 	}
 	return;
     }
@@ -1612,7 +1961,7 @@ do_look(dbref player, dbref cause, int key, char *name)
 	case TYPE_ROOM:
 	    if ((thing == loc) || (!Cloak(thing)) || (Cloak(thing) && SCloak(thing) && Immortal(player)) ||
 		(Cloak(thing) && Wizard(player) && (!SCloak(thing) || Immortal(player)))) {
-	       look_in(player, thing, look_key);
+	       look_in(player, cause, thing, look_key);
             } else
 		notify(player, "I don't see that here.");
 	    break;
@@ -1637,7 +1986,7 @@ do_look(dbref player, dbref cause, int key, char *name)
 	       if (Transparent(thing) &&
 		   (Location(thing) != NOTHING)) {
 		   look_key &= ~LK_SHOWATTR;
-		   look_in(player, Location(thing), look_key);
+		   look_in(player, cause, Location(thing), look_key);
 	       }
             } else 
 		notify(player, "I don't see that here.");
@@ -2401,8 +2750,8 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	if (Has_contents(thing)) 
 	    look_contents(player, thing, "Contents:");
 	if (Typeof(thing) != TYPE_EXIT) {
-	    look_exits(player, thing, "Obvious exits:", 0);
-            look_exits(player, mudconf.master_room, "Global exits:", 1);
+	    look_exits(player, cause, thing, "Obvious exits:", 0);
+            look_exits(player, cause, mudconf.master_room, "Global exits:", 1);
         }
     }
     free_lbuf(temp);

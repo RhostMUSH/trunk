@@ -832,7 +832,7 @@
   r-registers are NOT preserved when @program triggers an attribute.  This
   is an unfortunate side-effect from allowing @program to be done across
   reboots and shutdowns.  Keep in mind that this will work differently 
-  than MUX's @program by splitting up arguments that were seperated by 
+  than MUX's @program by splitting up arguments that were separated by 
   commas into %0 - %9.  Any argument after the 10th is ignored.  
   Check @list options to see if it is using this method, or the MUX method 
   where it's only %0.
@@ -3685,7 +3685,7 @@
      player passes the lock, that room will be considered NOT DARK for that
      player.  If the lock does not exist, the dark room will be treated
      normally.  Please note that all items inside that room that are dark
-     are treated on a seperate basis for the DarkLocks.
+     are treated on a separate basis for the DarkLocks.
   
 & @lock type ChownLock
   Lock Type: ChownLock
@@ -5493,6 +5493,10 @@
   This replaces the normal 'Contents:' and 'Carrying:' lists.  The variable
   is evaluated as it would a description or other similiar message.
   
+  If the target is @powered FORMATTING, then the dbref# list of items that
+  the target sees will be passed as %0 and the | separated list of names
+  will be passed as %1.
+    
   Examples:
     > look
     A big Room
@@ -5518,6 +5522,11 @@
   This replaces the normal 'Obvious exits:'  listing.  The variable is
   evaluated as it would a description or other similiar message.
   
+  If the target is @powered FORMATTING, then the dbref# list of items that
+  the target sees will be passed as %0 and the | separated list of names
+  will be passed as %1.  Any dark exits that the target sees will be passed
+  as dbref#'s into %2, and their respective names | separated as %3.
+    
   Examples:
     > look
     A big Room
@@ -12160,7 +12169,7 @@
   
   This function is similiar to map(), except it takes the arguments in the 
   lists and passes them into the attribute as %0 (for list1), %1 (for list2),
-  up to %9 (for list9).  <delim> is used as the delimiter to seperate items
+  up to %9 (for list9).  <delim> is used as the delimiter to separate items
   in each of the lists.  If the number of lists is 2, the delimiter may be
   optional, otherwise you are forced to provide a delimiter.  If no delimiter
   is specified, it's defaulted as a space but only for the above condition.
@@ -13650,7 +13659,7 @@
   
   The elist function is used to return a list of words into an english
   recognizable format.  You may specify an output delimiter to use if
-  you wish but it makes the format rather unique.  You may specify a seperate
+  you wish but it makes the format rather unique.  You may specify a separate
   punctuation instead of the default comma (,).  The punctuation may be
   more than one character.  You may specify the separator if not a space as 
   well.
@@ -13768,7 +13777,7 @@
   Function: strfunc(<function>, <list of arguments>[,<delim>])
   
   The strfunc (string function) function is used to transform a 
-  string of arguments into seperate identified arguments and feed 
+  string of arguments into separate identified arguments and feed 
   them into the specified function.  If you do not have access to the 
   function or if you give the target function an invalid number of 
   arguments, an error message will be displayed.
@@ -14332,7 +14341,7 @@
      3 - Display the totals, then all normal rolls of dice, then display 
          failures/criticals after with the default '|' separator.
      4 - Display all the normal rolls of the dice, then display the
-         failures, then the criticals seperated by the default '|' character.
+         failures, then the criticals separated by the default '|' character.
      5 - Display just the totals, then failures/criticals after with
          the default '|' separator.
 
@@ -16285,7 +16294,7 @@
 & XCON()
   Function: xcon(<object>[/switch],<start>,<count> [,<switch>] [,<objid>])
   
-  This function is similiar to lcon() except it returns a space-seperated list
+  This function is similiar to lcon() except it returns a space-separated list
   of the contents of <object> starting at point <start> and returning <count>
   number of contents.  It takes a specific switch as an option:
       /PLAYER    -- lists all TYPE players in the contents.
@@ -19265,7 +19274,7 @@
 & LIST()
   Function: list(<list>, <eval>[, <delim> ][, <header>][, <target>])
  
-  This function works just like iter() but returns each result on a seperate
+  This function works just like iter() but returns each result on a separate
   line thereby bypassing the buffer limit that RhostMUSH contains.  Each line
   will be a new line and will not be space delimited and will be displayed
   PRIOR to the output of the command calling it.
@@ -19704,7 +19713,7 @@
   * If <delim> is specified, it (rather than a space) is used to separate items
     in the list.  You may specify an alternate delimiter without specifying
     a sort type by passing a null <sort type> parameter.
-  * If <sep> is specified, it (rather than a space) is used to seperate items
+  * If <sep> is specified, it (rather than a space) is used to separate items
     in the output.
    
   Examples:
@@ -20374,7 +20383,7 @@
     16   -  Show the STOP/RUNNING status of all the processes
     32   -  Show the commands queued for all the processes.
   
-  Adding the <display> values will return a combination of the values seperated
+  Adding the <display> values will return a combination of the values separated
   by the pipe (|) character.
   
   <separator> is your output separator that you wish between processes.  
@@ -20841,7 +20850,7 @@
   ansi-aware and also process strings faster without the ansi overhead.
   The default value is '0' which allows tr() to be fully ansi-aware.
    
-  Ranges of characters seperated by -'s are accepted. <find> and <replace> 
+  Ranges of characters separated by -'s are accepted. <find> and <replace> 
   must be the same length after expansion of ranges. If a character exists 
   more than once in <find>, only the last instance will be counted. The example
   below is the common ROT-13 algorithm for lower case strings, demonstrated
@@ -24203,7 +24212,7 @@
   You need the BRANDY_MAIL toggle (@toggle me=brandy_mail) to use this syntax.
   
   You may also optionally set the MAIL_STRIPRETURN toggle to signal the mailer
-  to use spaces to seperate lines instead of a carriage return.
+  to use spaces to separate lines instead of a carriage return.
    
   This effects the commands:  mail, mail/reply, and mail/forward.
   
@@ -25666,7 +25675,7 @@
 & mail dtutor6
   Topic: Mail Default Tutor (Page 6)
   
-  Ok, let's say you just wanted to send the player a message seperate from
+  Ok, let's say you just wanted to send the player a message separate from
   a reply.  You may send mail one of two ways.  You can send it the quick
   and easy method (which will be shown here), or you may use the built-in
   line editor (which is full of features).  If you prefer to use the
@@ -26321,7 +26330,7 @@
 & LISTRLEVELS()
   Function: listrlevels()
   
-  Returns all available levels in a space seperated list.  This function
+  Returns all available levels in a space separated list.  This function
   takes no arguments.
   
   Example:
@@ -27987,7 +27996,7 @@
   * uselock attrib flag checks matching ~<attribute> for uselock [ASH]
   * SPAMMONITOR flag check target for spam (60 cmds/sec) [ASH]
   * ZONEINHERIT allows zonemasters to have attribs inherited to children [ASH]
-  * muddb_name admin param for db names to seperate from 'mud_name' [ASH]
+  * muddb_name admin param for db names to separate from 'mud_name' [ASH]
   * global_error_obj evaluate the VA attribute on the object for huh? [ASH]
   * mail_autodeltime specifies when mail is globally purged (def 21 days) [ASH]
   * global_parent_room globally inherit attribs to room w/o @parent [ASH]
@@ -28188,7 +28197,7 @@
   New Features
   ------------
   * fmod() for Penn compatibility [ASH]
-  * seperate .conf file for most commonly used params [AMB]
+  * separate .conf file for most commonly used params [AMB]
   * @admin roomlog_path to specify different path for LOGROOM [ASH]
   * new minimal_db imported [ASH]
   
@@ -29396,6 +29405,8 @@
   * parent_follow @admin param (default to 1/yes) to allow control of target
     to see entire parent chain [ASH]
   * @list advbuffers to show filename/linenumber of the allocation [ASH]
+  * Added FORMATTING @power that when set on target allows %0-%3 to be
+    passed to @conformat, @exitformat, and @Nameformat [ASH]
   
   Changes
   ------------
