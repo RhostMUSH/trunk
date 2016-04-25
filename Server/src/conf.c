@@ -170,7 +170,27 @@ NDECL(cf_init)
     mudconf.idle_interval = 60;
     mudconf.retry_limit = 3;
     mudconf.regtry_limit = 1;
+#ifdef QDBM
+  #ifdef LBUF64
+    mudconf.output_limit = 262144;
+  #else
+    #ifdef LBUF32
+    mudconf.output_limit = 131072;
+    #else
+      #ifdef LBUF16
+    mudconf.output_limit = 65536;
+      #else
+        #ifdef LBUF8
+    mudconf.output_limit = 32768;
+        #else
     mudconf.output_limit = 16384;
+        #endif
+      #endif
+    #endif
+  #endif
+#else
+    mudconf.output_limit = 16384;
+#endif
     mudconf.paycheck = 0;
     mudconf.paystart = 0;
     mudconf.paylimit = 10000;

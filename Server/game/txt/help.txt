@@ -29473,6 +29473,7 @@
   * Exits that are @powered FULLTEL will allow variable exits to assume
     'linkable' to any valid destination [ASH]
   * make config/confsource now saves your last state you compiled with [ASH]
+  * output_limit defaults now based on LBUF size [ASH]
     
   Bug Fixes
   ------------
