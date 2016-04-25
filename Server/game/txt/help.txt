@@ -29462,6 +29462,7 @@
   * @register has /message switch to immediately message player the pass [ASH]
   * Exits that are @powered FULLTEL will allow variable exits to assume
     'linkable' to any valid destination [ASH]
+  * make config/confsource now saves your last state you compiled with [ASH]
     
   Bug Fixes
   ------------

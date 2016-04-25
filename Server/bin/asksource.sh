@@ -1344,6 +1344,59 @@ saveopts() {
    fi
 }
 
+
+###################################################################
+# LOADLASTSTATE - Load the last state
+###################################################################
+loadlaststate() {
+   if [ ! -f ${DUMPFILE} ]
+   then
+      return
+   fi
+   DUMPFILE=asksource.save_default
+   . ${DUMPFILE} 2>/dev/null
+}
+
+###################################################################
+# SAVELASTSTATE - save the last state upon leaving and load it
+# in if you reload it
+###################################################################
+savelaststate() {
+   DUMPFILE=asksource.save_default
+   cat /dev/null > ${DUMPFILE}
+   for i in ${OPTIONS}
+   do
+      echo "X[$i]=\"${X[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${BOPTIONS}
+   do
+      echo "XB[$i]=\"${XB[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${DOPTIONS}
+   do
+      echo "XD[$i]=\"${XD[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${LOPTIONS}
+   do
+      echo "XL[$i]=\"${XL[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${AOPTIONS}
+   do
+      echo "XA[$i]=\"${XA[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${DBOPTIONS}
+   do
+      echo "MS[$i]=\"${MS[$i]}\"" >> ${DUMPFILE}
+   done
+   if [ -f "${DUMPFILE}.mark" ]
+   then
+      MARKER=$(cat ${DUMPFILE}.mark)
+   else
+      MARKER=""
+   fi
+   echo "Options saved to slot ${SAVEANS} [${MARKER:-GENERIC}]"
+}
+
 ###################################################################
 # SETOPTS - Set options for compiletime run for makefile mod
 ###################################################################
@@ -1868,6 +1921,7 @@ updatemakefile() {
 # MAIN - Main system call and loop
 ###################################################################
 main() {
+   loadlaststate
    while [ ${REPEAT} -eq 1 ]
    do
       menu
@@ -1934,6 +1988,7 @@ main() {
    setdefaults
    setlibs
    updatemakefile
+   savelaststate
    echo "< HIT RETURN KEY TO CONTINUE >"
    read ANS
 }
