@@ -243,7 +243,7 @@ extern void	FDECL(log_type_and_name, (dbref));
 extern void	FDECL(log_type_and_num, (dbref));
 
 /* From look.c */
-extern void	FDECL(look_in, (dbref,dbref, int));
+extern void	FDECL(look_in, (dbref, dbref, dbref, int));
 extern long	FDECL(count_atrs, (dbref));
 extern char *	FDECL(grep_internal, (dbref, dbref, char *, char *, int));
 extern void     FDECL(viewzonelist, (dbref, dbref));

@@ -298,6 +298,7 @@
 #define POWER_FREE_PAGE		14
 #define POWER_HALT_QUEUE	16
 #define POWER_HALT_QUEUE_ALL	18
+#define POWER_FORMATTING	20
 #define POWER_NOKILL		22
 #define POWER_SEARCH_ANY	24
 #define POWER_SECURITY		26
@@ -363,6 +364,7 @@
 #define DP_PASSWORD		0
 #define DP_MORTAL_EXAMINE	2
 #define DP_PERSONAL_COMMANDS	4
+/* 6  free */
 #define DP_DARK			8
 /* 10 free */
 /* 12 free */

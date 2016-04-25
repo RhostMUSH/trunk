@@ -352,7 +352,7 @@ move_object(dbref thing, dbref dest)
 
     /* Look around and do the penny check */
 
-    look_in(thing, dest, (LK_SHOWEXIT | LK_OBEYTERSE));
+    look_in(thing, thing, dest, (LK_SHOWEXIT | LK_OBEYTERSE));
     if (isPlayer(thing) &&
 	(mudconf.payfind > 0) &&
 	(Pennies(thing) < mudconf.paylimit) &&
