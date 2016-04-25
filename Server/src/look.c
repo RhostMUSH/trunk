@@ -290,6 +290,7 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
     char *s_combine, *s_array[5];
     int foundany, lev, key, light_dark, do_ret, aflags, oldparent, t_work, t_level, max_lev; 
     POWENT *pent;
+    ZLISTNODE *ptr;
 
     /* make sure location has exits */
 
@@ -318,13 +319,15 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
              it = Parent(loc);
              while ( Good_chk(it) ) {
                 max_lev++;
-                if ( max_lev > mudconf.parent_nest_lim )
-                   break;
-                t_work = Toggles4(it);
-                t_work >>= (pent->powerpos);
-                t_level = t_work & POWER_LEVEL_COUNC;
-                if ( t_level )
-                   break;
+                if ( could_doit(loc, it, A_LPARENT, 1, 0) ) {
+                   if ( max_lev > mudconf.parent_nest_lim )
+                      break;
+                   t_work = Toggles4(it);
+                   t_work >>= (pent->powerpos);
+                   t_level = t_work & POWER_LEVEL_COUNC;
+                   if ( t_level )
+                      break;
+                }
                 it = Parent(it);
              }
           }
@@ -347,6 +350,19 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
              t_work = Toggles4(it);
              t_work >>= (pent->powerpos);
              t_level = t_work & POWER_LEVEL_COUNC;
+          }
+          if ( !t_level && !NoZoneParent(loc) ) {
+             for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
+                if ( ptr && Good_chk(ptr->object) ) {
+                   t_work = Toggles4(ptr->object);
+                   t_work >>= (pent->powerpos);
+                   t_level = t_work & POWER_LEVEL_COUNC;
+                   if ( t_level )
+                      break;
+                } else {
+                   break;
+                }
+             }
           }
           if ( t_level ) {
              s_array[0] = look_exit_parse(player, cause, loc, 0, keytype, 0);
@@ -693,6 +709,7 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
     char *s_array[3], *s_combine;
     int aflags, i_cont=0, t_work, t_level, max_lev; 
     POWENT *pent;
+    ZLISTNODE *ptr;
 
     /* check to see if he can see the location */
 
@@ -716,13 +733,15 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                   it = Parent(loc);
                   while ( Good_chk(it) ) {
                      max_lev++;
-                     if ( max_lev > mudconf.parent_nest_lim )
-                        break;
-                     t_work = Toggles4(it);
-                     t_work >>= (pent->powerpos);
-                     t_level = t_work & POWER_LEVEL_COUNC;
-                     if ( t_level )
-                        break;
+                     if ( could_doit(loc, it, A_LPARENT, 1, 0) ) {
+                        if ( max_lev > mudconf.parent_nest_lim )
+                           break;
+                        t_work = Toggles4(it);
+                        t_work >>= (pent->powerpos);
+                        t_level = t_work & POWER_LEVEL_COUNC;
+                        if ( t_level )
+                           break;
+                     }
                      it = Parent(it);
                   }
                }
@@ -745,6 +764,19 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                   t_work = Toggles4(it);
                   t_work >>= (pent->powerpos);
                   t_level = t_work & POWER_LEVEL_COUNC;
+               }
+               if ( !t_level && !NoZoneParent(loc) ) {
+                  for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
+                     if ( ptr && Good_chk(ptr->object) ) {
+                        t_work = Toggles4(ptr->object);
+                        t_work >>= (pent->powerpos);
+                        t_level = t_work & POWER_LEVEL_COUNC;
+                        if ( t_level )
+                           break;
+                     } else {
+                        break;
+                     }
+                  }
                }
                if ( t_level ) {
                   s_array[0] = look_iter_parse(player, loc, contents_name, 0);
@@ -853,6 +885,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
     char *s_array[3], *s_combine;
     int aflags, t_work, t_level, max_lev; 
     POWENT *pent;
+    ZLISTNODE *ptr;
 
     /* check to see if he can see the location */
 
@@ -876,13 +909,15 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                   it = Parent(loc);
                   while ( Good_chk(it) ) {
                      max_lev++;
-                     if ( max_lev > mudconf.parent_nest_lim )
-                        break;
-                     t_work = Toggles4(it);
-                     t_work >>= (pent->powerpos);
-                     t_level = t_work & POWER_LEVEL_COUNC;
-                     if ( t_level )
-                        break;
+                     if ( could_doit(loc, it, A_LPARENT, 1, 0) ) {
+                        if ( max_lev > mudconf.parent_nest_lim )
+                           break;
+                        t_work = Toggles4(it);
+                        t_work >>= (pent->powerpos);
+                        t_level = t_work & POWER_LEVEL_COUNC;
+                        if ( t_level )
+                           break;
+                     }
                      it = Parent(it);
                   }
                }
@@ -905,6 +940,19 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                   t_work = Toggles4(it);
                   t_work >>= (pent->powerpos);
                   t_level = t_work & POWER_LEVEL_COUNC;
+               }
+               if ( !t_level && !NoZoneParent(loc) ) {
+                  for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
+                     if ( ptr && Good_chk(ptr->object) ) {
+                        t_work = Toggles4(ptr->object);
+                        t_work >>= (pent->powerpos);
+                        t_level = t_work & POWER_LEVEL_COUNC;
+                        if ( t_level )
+                           break;
+                     } else {
+                        break;
+                     }
+                  }
                }
                if ( t_level ) {
                   s_array[0] = look_iter_parse(player, loc, contents_name, 0);
