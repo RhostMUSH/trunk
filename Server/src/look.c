@@ -286,7 +286,7 @@ static void
 look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keytype)
 {
     dbref thing, parent, pcheck, dest, aowner, it;
-    char *buff, *e, *s, *buf2, *buf3, *tbuff, *tbuffptr, *tbuffatr, *tpr_buff, *tprp_buff;
+    char *buff, *e, *s, *buf2, *buf3, *buf4, *tbuff, *tbuffptr, *tbuffatr, *tpr_buff, *tprp_buff;
     char *s_combine, *s_array[5];
     int foundany, lev, key, light_dark, do_ret, aflags, oldparent, t_work, t_level, max_lev; 
     POWENT *pent;
@@ -300,7 +300,9 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
     /* make sure there is at least one visible exit */
 
     do_ret = t_level = 0;
-    if (!keytype && mudconf.fmt_exits && !NoFormat(player)) {
+    buf3 = atr_pget(loc, A_LEXIT_FMT, &aowner, &aflags);
+    buf4 = atr_pget(loc, A_LDEXIT_FMT, &aowner, &aflags);
+    if ( ((buf3 && *buf3) || (buf4 && *buf4)) && !keytype && mudconf.fmt_exits && !NoFormat(player)) {
        s_array[0] = NULL;
        s_array[1] = NULL;
        s_array[2] = NULL;
@@ -373,29 +375,21 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
        }
        free_lbuf(s_combine);
 
-       buf3 = atr_pget(loc, A_LEXIT_FMT, &aowner, &aflags);
        if (*buf3) {
           if ( t_level ) {
              did_it(player, loc, A_LEXIT_FMT, NULL, 0, NULL, 0, s_array, 4);
           } else {
              did_it(player, loc, A_LEXIT_FMT, NULL, 0, NULL, 0, (char **) NULL, 0);
           }
-          free_lbuf(buf3);
           do_ret=1;
-       } else if (buf3) {
-            free_lbuf(buf3);
        }
-       buf3 = atr_pget(loc, A_LDEXIT_FMT, &aowner, &aflags);
-       if (*buf3) {
+       if (*buf4) {
           if ( t_level ) {  
              did_it(player, loc, A_LDEXIT_FMT, NULL, 0, NULL, 0, s_array, 4);
           } else {
              did_it(player, loc, A_LDEXIT_FMT, NULL, 0, NULL, 0, (char **) NULL, 0);
           }
-          free_lbuf(buf3);
           do_ret=1;
-       } else if (buf3) {
-            free_lbuf(buf3);
        }
        if (t_level) {
           free_lbuf(s_array[0]);
@@ -404,6 +398,11 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
           free_lbuf(s_array[3]);
        }
     }
+    if ( buf3 )
+       free_lbuf(buf3);
+    if ( buf4 )
+       free_lbuf(buf4);
+
     if ( do_ret )
        return;
 
