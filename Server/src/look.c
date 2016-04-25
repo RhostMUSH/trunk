@@ -285,10 +285,10 @@ look_iter_parse(dbref player, dbref loc, const char *contents_name, int key)
 static void 
 look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keytype)
 {
-    dbref thing, parent, pcheck, dest, aowner;
+    dbref thing, parent, pcheck, dest, aowner, it;
     char *buff, *e, *s, *buf2, *buf3, *tbuff, *tbuffptr, *tbuffatr, *tpr_buff, *tprp_buff;
     char *s_combine, *s_array[5];
-    int foundany, lev, key, light_dark, do_ret, aflags, oldparent, t_work, t_level; 
+    int foundany, lev, key, light_dark, do_ret, aflags, oldparent, t_work, t_level, max_lev; 
     POWENT *pent;
 
     /* make sure location has exits */
@@ -313,7 +313,41 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
           t_work = Toggles4(loc);
           t_work >>= (pent->powerpos);
           t_level = t_work & POWER_LEVEL_COUNC;
-
+          if ( !t_level ) {
+             max_lev = 1;
+             it = Parent(loc);
+             while ( Good_chk(it) ) {
+                max_lev++;
+                if ( max_lev > mudconf.parent_nest_lim )
+                   break;
+                t_work = Toggles4(it);
+                t_work >>= (pent->powerpos);
+                t_level = t_work & POWER_LEVEL_COUNC;
+                if ( t_level )
+                   break;
+                it = Parent(it);
+             }
+          }
+          if ( !t_level && !NoGlobParent(loc) ) {
+             it = NOTHING;
+             switch( Typeof(loc) ) {
+                case TYPE_ROOM:
+                   it = mudconf.global_parent_room;
+                   break;
+                case TYPE_THING:
+                   it = mudconf.global_parent_thing;
+                   break;
+                case TYPE_PLAYER:
+                   it = mudconf.global_parent_player;
+                   break;
+             }
+             if ( !Good_chk(it) ) {
+                it = mudconf.global_parent_obj;
+             }
+             t_work = Toggles4(it);
+             t_work >>= (pent->powerpos);
+             t_level = t_work & POWER_LEVEL_COUNC;
+          }
           if ( t_level ) {
              s_array[0] = look_exit_parse(player, cause, loc, 0, keytype, 0);
              s_array[1] = look_exit_parse(player, cause, loc, 1, keytype, 0);
@@ -654,12 +688,10 @@ look_altinv(dbref player, dbref loc, const char *contents_name)
 static void 
 look_contents_altinv(dbref player, dbref loc, const char *contents_name)
 {
-    dbref thing;
-    dbref can_see_loc;
-    dbref aowner;
+    dbref thing, can_see_loc, aowner, it;
     char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
     char *s_array[3], *s_combine;
-    int aflags, i_cont=0, t_work, t_level; 
+    int aflags, i_cont=0, t_work, t_level, max_lev; 
     POWENT *pent;
 
     /* check to see if he can see the location */
@@ -679,6 +711,41 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                t_work = Toggles4(loc);
                t_work >>= (pent->powerpos);
                t_level = t_work & POWER_LEVEL_COUNC;
+               if ( !t_level ) {
+                  max_lev = 1;
+                  it = Parent(loc);
+                  while ( Good_chk(it) ) {
+                     max_lev++;
+                     if ( max_lev > mudconf.parent_nest_lim )
+                        break;
+                     t_work = Toggles4(it);
+                     t_work >>= (pent->powerpos);
+                     t_level = t_work & POWER_LEVEL_COUNC;
+                     if ( t_level )
+                        break;
+                     it = Parent(it);
+                  }
+               }
+               if ( !t_level && !NoGlobParent(loc) ) {
+                  it = NOTHING;
+                  switch( Typeof(loc) ) {
+                     case TYPE_ROOM:
+                        it = mudconf.global_parent_room;
+                        break;
+                     case TYPE_THING:
+                        it = mudconf.global_parent_thing;
+                        break;
+                     case TYPE_PLAYER:
+                        it = mudconf.global_parent_player;
+                        break;
+                  }
+                  if ( !Good_chk(it) ) {
+                     it = mudconf.global_parent_obj;
+                  }
+                  t_work = Toggles4(it);
+                  t_work >>= (pent->powerpos);
+                  t_level = t_work & POWER_LEVEL_COUNC;
+               }
                if ( t_level ) {
                   s_array[0] = look_iter_parse(player, loc, contents_name, 0);
                   s_array[1] = look_iter_parse(player, loc, contents_name, 1);
@@ -781,12 +848,10 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
 static void 
 look_contents(dbref player, dbref loc, const char *contents_name)
 {
-    dbref thing;
-    dbref can_see_loc;
-    dbref aowner;
+    dbref thing, can_see_loc, aowner, it;
     char *buff, *pbuf, *pbuf2, *buf2, *tpr_buff, *tprp_buff;
     char *s_array[3], *s_combine;
-    int aflags, t_work, t_level; 
+    int aflags, t_work, t_level, max_lev; 
     POWENT *pent;
 
     /* check to see if he can see the location */
@@ -806,6 +871,41 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                t_work = Toggles4(loc);
                t_work >>= (pent->powerpos);
                t_level = t_work & POWER_LEVEL_COUNC;
+               if ( !t_level ) {
+                  max_lev = 1;
+                  it = Parent(loc);
+                  while ( Good_chk(it) ) {
+                     max_lev++;
+                     if ( max_lev > mudconf.parent_nest_lim )
+                        break;
+                     t_work = Toggles4(it);
+                     t_work >>= (pent->powerpos);
+                     t_level = t_work & POWER_LEVEL_COUNC;
+                     if ( t_level )
+                        break;
+                     it = Parent(it);
+                  }
+               }
+               if ( !t_level && !NoGlobParent(loc) ) {
+                  it = NOTHING;
+                  switch( Typeof(loc) ) {
+                     case TYPE_ROOM:
+                        it = mudconf.global_parent_room;
+                        break;
+                     case TYPE_THING:
+                        it = mudconf.global_parent_thing;
+                        break;
+                     case TYPE_PLAYER:
+                        it = mudconf.global_parent_player;
+                        break;
+                  }
+                  if ( !Good_chk(it) ) {
+                     it = mudconf.global_parent_obj;
+                  }
+                  t_work = Toggles4(it);
+                  t_work >>= (pent->powerpos);
+                  t_level = t_work & POWER_LEVEL_COUNC;
+               }
                if ( t_level ) {
                   s_array[0] = look_iter_parse(player, loc, contents_name, 0);
                   s_array[1] = look_iter_parse(player, loc, contents_name, 1);
