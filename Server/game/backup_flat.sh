@@ -133,7 +133,9 @@ init_vars() {
              txt/guest.txt txt/motd.txt txt/news.txt txt/newuser.txt \
              txt/noguest.txt txt/quit.txt txt/register.txt txt/wizmotd.txt \
              txt/plushelp.txt"
-   IMPORTANTFILES="netrhost.conf"
+   IMPORTANTFILES="alias.conf muxalias.conf rhost_ingame.conf \
+                   alternate_netrhost.conf netrhost.conf rhost_mysql.conf \
+                   compat.conf pennalias.conf tm3alias.conf"
 }
 #############################################################################
 
