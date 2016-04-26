@@ -7650,70 +7650,80 @@
 & MARKER0
   Flag: MARKER0([0])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER1
   Flag: MARKER1([1])  
   
-  This flag is a marker flag. 
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER2
   Flag: MARKER2([2])
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER3
   Flag: MARKER3([3])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER4
   Flag: MARKER4([4])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER5
   Flag: MARKER5([5])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER6
   Flag: MARKER6([6])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER7
   Flag: MARKER7([7])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER8
   Flag: MARKER8([8])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER9
   Flag: MARKER9([9])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
@@ -29462,6 +29472,8 @@
   * @register has /message switch to immediately message player the pass [ASH]
   * Exits that are @powered FULLTEL will allow variable exits to assume
     'linkable' to any valid destination [ASH]
+  * make config/confsource now saves your last state you compiled with [ASH]
+  * output_limit defaults now based on LBUF size [ASH]
     
   Bug Fixes
   ------------
