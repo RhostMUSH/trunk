@@ -12,5 +12,5 @@ Steps:
 2) make any relevant changes you wish
 3) db_load the flatfile
    - go into the game directory
-   - type: ./db_load data/netrhost.gdbm ../minimal_db/netrhost.db.flat data/netrhost.db.new
+   - type: ./db_load data/netrhost.gdbm ../minimal-DBs/minimal_db/netrhost.db.flat data/netrhost.db.new
 4) Startmush as expected
