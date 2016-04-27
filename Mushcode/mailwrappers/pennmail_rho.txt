@@ -144,6 +144,11 @@ MAIL-FOLDERS
 
 & mail-other
 MAIL-OTHER
+  @mail/review [<player> [=<message>]]
+        This will return the messages you sent.  You may specify an optional
+        player to filter down, and specify a message to actually view the 
+        message that you mailed out.
+
   @mail/clear [<msg-list | all>]
   @mail/unclear [<msg-list> | all>]
         These commands mark mail in the current folder as cleared or uncleared.
