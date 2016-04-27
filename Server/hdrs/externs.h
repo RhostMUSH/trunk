@@ -244,7 +244,7 @@ extern void	FDECL(log_type_and_name, (dbref));
 extern void	FDECL(log_type_and_num, (dbref));
 
 /* From look.c */
-extern void	FDECL(look_in, (dbref,dbref, int));
+extern void	FDECL(look_in, (dbref, dbref, dbref, int));
 extern long	FDECL(count_atrs, (dbref));
 extern char *	FDECL(grep_internal, (dbref, dbref, char *, char *, int));
 extern void     FDECL(viewzonelist, (dbref, dbref));
@@ -311,7 +311,7 @@ extern int	FDECL(protectname_check, (char *, dbref, int));
 extern void	FDECL(protectname_list, (dbref, int, dbref));
 extern dbref	FDECL(protectname_alias, (char *, dbref));
 extern dbref	FDECL(protectname_unalias, (char *, dbref));
-extern int	FDECL(reg_internal, (char *, char *, char *, int));
+extern int	FDECL(reg_internal, (char *, char *, char *, int, char *));
 
 /* From predicates.c */
 extern int	FDECL(isreal_chk, (dbref, dbref, int));
@@ -364,7 +364,7 @@ extern int	FDECL(exit_displayable, (dbref, dbref, int));
 extern void	FDECL(did_it, (dbref, dbref, int, const char *, int,
 			const char *, int, char *[], int));
 extern void	FDECL(list_bufstats, (dbref));
-extern void	FDECL(list_buftrace, (dbref));
+extern void	FDECL(list_buftrace, (dbref, int));
 
 /* From set.c */
 extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
@@ -511,7 +511,7 @@ extern int	FDECL(atr_pget_info, (dbref, int, dbref *, int *));
 extern void	FDECL(atr_free, (dbref));
 
 /* from mushcrypt.c */
-extern char *   FDECL(mush_crypt, (const char *));
+extern char *   FDECL(mush_crypt, (const char *, int));
 extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, int));
 
 /* Powers keys */
@@ -656,6 +656,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EXAM_QUICK      16      /* Nonowner sees just owner */
 #define EXAM_TREE	32	/* Examine Tree like Penn */
 #define EXAM_REGEXP	64	/* Examine by Regexp */
+#define EXAM_CLUSTER    128     /* Examine by Cluster */
 #define	FIXDB_OWNER	1	/* Fix OWNER field */
 #define	FIXDB_LOC	2	/* Fix LOCATION field */
 #define	FIXDB_CON	4	/* Fix CONTENTS field */
@@ -782,11 +783,14 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define ZONE_ADD	0	/* add a zone master to an object's list */
 #define ZONE_DELETE	1	/* delete a zone master from an object's list */
 #define ZONE_PURGE	2	/* purge an object's zone list (zmo too) */
+#define ZONE_REPLACE	4	/* Replace zone1 with zone2 */
+#define ZONE_LIST	8	/* List zones */
 #define	NFY_NFY		0	/* Notify first waiting command */
 #define	NFY_NFYALL	1	/* Notify all waiting commands */
 #define	NFY_DRAIN	2	/* Delete waiting commands */
 #define NFY_QUIET       4	/* Do not notify player if happening */
 #define NFY_PID		8	/* Notify or Drain based on PID */
+#define NEWPASSWORD_DES 2	/* Force @newpassword to use DES */
 #define	OPEN_LOCATION	0	/* Open exit in my location */
 #define	OPEN_INVENTORY	1	/* Open exit in me */
 #define PAGE_LAST	1
@@ -872,6 +876,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define REC_DEST	16
 #define REC_FREE	32
 #define REBOOT_SILENT 0x00000001  /* @reboot silently */
+#define REGISTER_MSG	1	/* Include a message to @register to output the password */
 #define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
 #define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
 #define	SAY_SAY		1	/* say in current room */
@@ -901,6 +906,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SET_TREE	8	/* set() the entire trees */
 #define SET_TREECHK	16	/* Verify we can set trees */
 #define SET_MUFFLE	32	/* Totally  muffle set messages */
+#define SET_BYPASS	64	/* Internal to set attribs on tree objects */
 #define	SHUTDN_NORMAL	0	/* Normal shutdown */
 #define	SHUTDN_PANIC	1	/* Write a panic dump file */
 #define	SHUTDN_EXIT	2	/* Exit from shutdown code */

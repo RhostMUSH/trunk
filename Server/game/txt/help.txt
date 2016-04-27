@@ -33,28 +33,54 @@
   
   The /search switch works for +help as well.
   
-& co
-& cd
-& ch
-  Command: co <name> <password>
-           cd <name> <password>
-           ch <name> <password>
+& register
+& connect
+& create
+& cdark
+& chidden
+  Command: co  <name> <password>  (short for connect)
+           cd  <name> <password>  (short for cdark)
+           ch  <name> <password>  (short for chidden)
+           cr  <name> <password>  (short for create)
+           reg <name> <password>  (short for register)
+  
+  Note:  To create/log in a character with spaces in their name, please use
+         "<name>".  Ergo, surround your name with double quotes.
+         The 'register' command does not allow creation with spaces.
   
   These commands are only useful on the connect screen.  They are used to
-  connect to your account <name> with the provided <password>.  There are
-  currently three methods to do so.
+  create/connect to your account <name> with the provided <password>.  
+  These commands are not useable once you are connected to the mush.
   
-  They are as follows:
+  These commands are as follows:
      co  -- This option is the default and normal method to connect.
             This option has no special conditions or privilages.
+            Syntax: co player password
+                    co "Player With Spaces" password
+  
      ch  -- Wizards and anyone with the NOWHO @power (to @hide) can use this.
             This option will auto-hide the player when connecting.
             It defaults to the 'co' option if you can't @hide.
+            Syntax: ch player password
+                    ch "Player With Spaces" password
+  
      cd  -- Wizards and higher can use this to connect dark to the game.
             This effectively connects wiz-cloaked to the game.
             Immortals get auto-added to supercloak.
+            Syntax: cd player password
+                    cd "Player With Spaces" password
+     
+     cr  -- Allows creation of a player from the connect screen.
+            Syntax: cr player password
+                    cr "Player With Spaces" password
   
-  See Also: @aconnect, @adisconnect, @hide
+     reg -- If offline registration is enabled, allows the player to register
+            a character with a supplied email that is then used to email them
+            their password.
+            Syntax: reg player email@address
+                    reg "Player With Spaces" email@address
+  
+  See Also: @aconnect, @adisconnect, @hide, @register
             
 & commands
   Help available for RhostMUSH Commands:
@@ -138,15 +164,37 @@
   SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
   VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
   ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
-  ATTRIB FORMATTING
+  ATTRIB FORMATTING   MAX ARGS
   
+& MAX ARGS
+  Topic: MAX ARGS
+  
+  Functions:
+    The maximum number of arguments you can pass functions, by default, is 30.
+    Anything over this tends to no longer be processed.  
+  
+    You can extend this by strfunc() to essentially turn any function into
+    a list function, which then extends the maximum number of arguments
+    to functions (that accept 1 to n as arguments) to a maximum of 1000.
+  
+    Functions that are hard-locked with strict arguments are not affected.
+  
+  Commands:
+    Commands, by default, have 10 arguments you can pass to them.  This is
+    hard limited and immutable.
+  
+  See Also: strfunc(), @list functions, @list commands, commands, functions
+    
+& descformat
+& formatdesc
+& @descformat
 & ATTRIB FORMATTING
 & ATTRIBUTE FORMATTING
   All NON-ACTION attributes allowed formatting are in: help attributes
   
   Attribute formatting can be accomplished multiple ways.  First, there is
   a generic local 'format' for most @-attributes.  To process this format,
-  you need to set an attribute of the name '<format>attr' on the target
+  you need to set an attribute of the name 'format<attr>' on the target
   (or parent, global parent, zone of the target. Use <attr>format if the
   config parameter format_compatibility is enabled). If this attribute is
   not found, it will then look at the global default parents for matching
@@ -156,6 +204,7 @@
   over global formatting.
   
   Note: Most RhostMUSHes will be configured to use &FORMAT<attr>.
+        See '@list options system' to discover which method is in use.
   
   Examples:
     > @desc me=This is a test
@@ -519,22 +568,27 @@
   See Also: @zone, @lock, lzone(), ZONEMASTER, ZONECONTENTS, ZONEPARENT
   
 & @zone
- Usage:
-  1) @zone <object or zonemaster>
-  2) @zone/add <object>=<zonemaster>
-  3) @zone/del <object or zonemaster>=<zonemaster or object>
-  4) @zone/purge <object or zonemaster>
+  Command: @zone[/<switch>] <target> [=<zone string>]
+  
+  Usage:
+    1) @zone[/list] <object or zonemaster>
+    3) @zone/add <object>=<zonemaster>
+    4) @zone/del <object or zonemaster>=<zonemaster or object>
+    5) @zone/purge <object or zonemaster>
+    6) @zone/replace <object>=<old zonemaster>/<new zonemaster>
   
   The @zone command adds and removes zone master entries from objects.
   An object may be a member of multiple zones.
- 
-  * Usage 1 will list the zones an object belongs to, or the objects that
-    belong to a zonemaster.
-  * Usage 2 will add a zone to an object.
-  * Usage 3 will delete an object from a zone, or zone from an object. These
-    are essentially the same, but from different directions.
-  * Usage 4 will remove all references to zones from an object or
-    zone master.  
+   
+    * Usage 1 will list the zones an object belongs to, or the objects that
+      belong to a zonemaster.
+    * Usage 2 will add a zone to an object.
+    * Usage 3 will delete an object from a zone, or zone from an object. These
+      are essentially the same, but from different directions.
+    * Usage 4 will remove all references to zones from an object or
+      zone master.  
+    * Usage 5 will replace the old zonemaster with the new zonemaster on the
+      target object.
   
   The config param 'zones_like_parents' can also be enabled to allow @zones
   to function $commands to its members as if it was a @parent.
@@ -615,6 +669,8 @@
 & examine
   Command: examine[/<switches>] <object>[/<wild-attrib>]
   
+  Available switches are on: help examine4
+  
   Displays all available information about <object>.  <object> may be an
   object, 'me' or 'here'. You must control the object to examine it, or it
   must be set VISUAL.  If you do not own the object, you will just see the
@@ -686,20 +742,28 @@
   start with v and are two characters long.
  
   The following switches are available:
-     /brief  - Show everything but the attributes.
-     /quick  - When examining an object you don't control, show only the
-               owner's name. 
-     /full   - When examining an object you don't control, show any public
-               attributes set on the object in addition to the owner's name.
-     /parent - Includes attributes that are not present on the object itself
-               but which are inherited from the object's parent.  This only
-               works if you have permission to see it.
-     /tree   - Examine per Penn-Tree output separating trees with '`'.
-               Only useful with using #obj/attr format.
-     /regexp - Use regular expression for wildcard matches.
+     /brief   - Show everything but the attributes.
+     /quick   - When examining an object you don't control, show only the
+                owner's name. 
+     /full    - When examining an object you don't control, show any public
+                attributes set on the object in addition to the owner's name.
+     /parent  - Includes attributes that are not present on the object itself
+                but which are inherited from the object's parent.  This only
+                works if you have permission to see it.
+     /tree    - Examine per Penn-Tree output separating trees with '`'.
+                Only useful with using #obj/attr format.
+     /regexp  - Use regular expression for wildcard matches.
+     /cluster - Examines the specified cluster (and all members).
+  
+  
+  Example:
+    > examine me
+      -- Output of examine of yourself
+    > examine me/*foo*
+      -- Output of just all attribs matching *foo*
   
   See Also: look, @decompile, VISUAL, ATTRIBUTE OWNERSHIP, FLAG LIST,
-            ATTRIBUTE FLAGs
+            ATTRIBUTE FLAGS, lattr(), cluster_lattr()
   
   
 & @protect
@@ -768,7 +832,7 @@
   r-registers are NOT preserved when @program triggers an attribute.  This
   is an unfortunate side-effect from allowing @program to be done across
   reboots and shutdowns.  Keep in mind that this will work differently 
-  than MUX's @program by splitting up arguments that were seperated by 
+  than MUX's @program by splitting up arguments that were separated by 
   commas into %0 - %9.  Any argument after the 10th is ignored.  
   Check @list options to see if it is using this method, or the MUX method 
   where it's only %0.
@@ -1725,10 +1789,10 @@
 & OFPARSE()
   Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
 
-  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
-  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 1&3: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
+  Type 5&7: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
   
   This function will take each <eval> and returns it based on the <type>.
   
@@ -1767,10 +1831,10 @@
   (CONTINUED)
   Function: ofparse(<type>, [<eval1> [,<eval2> ... <evalN or delim>]])
 
-  Type 1&3: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 2&4: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
-  Type 5&7: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <default>)
-  Type 6&8: ofparse(1,[<eval1> ,<eval2> ... <evalN>], <output seperator>)
+  Type 1&3: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 2&4: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
+  Type 5&7: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <default>)
+  Type 6&8: ofparse(<type>,[<eval1> ,<eval2> ... <evalN>], <output separator>)
   Examples:
     > say ofparse(1,0,2)
     You say "2"
@@ -2372,8 +2436,11 @@
      /location   - Create the new object in your location (default).
      /parent     - Set the new object's parent to be the template object and
                    don't copy the attributes.
+   
+  You may use the lastcreate() function to see the last room that @clone'd.
+  This would be based on the type of thing you @cloned.
   
-  See Also: @create, @decompile, @destroy, VISUAL
+  See Also: @create, @decompile, @destroy, VISUAL, lastcreate()
   
 & @cluster
   Command: @cluster[/<switch>] [[<arguments>][=<values>]]
@@ -2704,7 +2771,9 @@
   to its cost, specifically, value=(cost/5)-1.  The value may not be greater
   than 100, values that would be greater than 100 are rounded down to 100.
   
-  See Also: @destroy, TYPES OF OBJECTS
+  You may use the lastcreate() function to see the last thing @create'd
+  
+  See Also: @destroy, TYPES OF OBJECTS, lastcreate()
   
 & @decompile
   Command: @decompile[/<switch>] <thing>[/<wild-attrib>] [=<newname>]
@@ -2740,7 +2809,7 @@
             it will use that value (unevaluated) instead of the default.
          4. The default prefix for the /tf switch is: 'FugueEdit > '
   
-  See Also: examine, look
+  See Also: examine, look, lattr(), cluster_lattr()
   
 & @destroy
   Command: @destroy[/<switches>] <object>
@@ -2766,6 +2835,7 @@
   
 & @dig
   Command: @dig[/<switches>] <name> [= <exitlist> [, <exitlist>] ]
+  
   Creates a new room with the specified name and displays its number. This 
   command costs 10 coins. If the [= <exitlist>] option is used, an exit will
   be opened from the current room to the new room automatically.  If the
@@ -2786,7 +2856,10 @@
   If you specify the /teleport switch, then you are @teleported to the
   room after it is created and any exits are opened.
  
-  See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS
+  You may use the lastcreate() function to see the last room that @dig'd.
+  
+  See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS,
+            lastcreate()
   
 & @doing
   Command: @doing[/<switches>] [<message>]
@@ -3612,7 +3685,7 @@
      player passes the lock, that room will be considered NOT DARK for that
      player.  If the lock does not exist, the dark room will be treated
      normally.  Please note that all items inside that room that are dark
-     are treated on a seperate basis for the DarkLocks.
+     are treated on a separate basis for the DarkLocks.
   
 & @lock type ChownLock
   Lock Type: ChownLock
@@ -3989,8 +4062,10 @@
   The following switches are available:
      /location  - Create the exit in your location (default).
      /inventory - Create the exit on yourself.
-   
-  See Also: @dig, @link, LINKING
+  
+  You may use the lastcreate() function to see the last thing @open'd
+  
+  See Also: @dig, @link, LINKING, lastcreate()
   
 & @parent
   Command: @parent <object> [=<parent>]
@@ -4327,15 +4402,39 @@
   See Also: @guild, race(), guild(), @set, &
   
 & @register
-  Command: @register <character>=<email>
-  This registers a character on-line and mails the specified <email> the 
-  password for the character you created.  This can only be done by GUEST and
+  Command: @register[/<switch>] <player>=<email>
+
+  Note:  <player> should not contain " even if the player name is multi-word
+         as this command will auto recognize a multi-word player name.
+  
+  This registers a player on-line and mails the specified <email> the 
+  password for the player you created.  This can only be done by GUEST and
   only if the autoregistration is enabled.  Depending on configurations, you
   may be able to do this at the connect screen as well, except it's just
   'register'.
   
+  The online @register also supports the following switches:
+    /message - in addition to emailing the user the password, message the
+               user online what their password is.  This switch may be
+               disabled on the RhostMUSH you connect to.
+  
+  The switches will only affect the online @register command and will not
+  impact the offline method at all.
+  
+  Examples:
+    > @register player=my@email
+    Autoregistration completed.   
+    > @register A Player With Spaces=my@email
+    Autoregistration completed.   
+    > @register/message player=my@email
+    Autoregistration completed.   
+    Your password for account 'player' is: MTIvYrPT
+  
+  See Also: connect, cdark, chidden, create, register, @hide
+  
 & @robot
   Command: @robot <name>=<password>
+  
   Creates a robot player owned by you.  The robot has its ROBOT flag set, so
   it may use the OUTPUTPREFIX and OUTPUTSUFFIX commands that most publicly
   available robot programs require.  This command costs 1000 coins.
@@ -4379,6 +4478,7 @@
            @set[/<switches>] <object>=<attribute>:_<fromobj>/<fromattr>
            @set[/<switches>] <object>/<attr>=[!]<attrflag>
   Synonym: &<attribute> <object>[=<value>]
+           &`<tree`attribute> <object>[=<value>] (for setting a tree variable)
  
   The available switches are:
         /QUIET - sets/removes the target without the 'Set.' or 'Cleared.' 
@@ -4528,9 +4628,21 @@
            @teleport[/switch] [<obj1,obj2,...>=[dest1, dest2,...]] <exit>
            @teleport[/switch] [<obj1,obj2,...>=[dest1, dest2,...]] home
    
-  The first form of the complex command moves <object> (or you) to the named
-  room or thing.  The second form sends <object> (or you) to the destination
-  of the named exit, while the third form sends <object> (or you) home.
+  Complex teleports accept the source list with spaces or commas.  If it
+  detects a comma, it will ignore spaces as the separator.  This is to allow
+  teleporting things with multi-word names.
+  
+  The destination list (if more than one) must have commas.
+  
+  The first form of the complex command moves <object> (or you), and/or the 
+  list of space or comma delimited objects to the named room or thing.  
+  
+  The second form sends <object> (or you), and/or the list of space or comma
+  delimited objects to the destination of the named exit. 
+  
+  The third form sends <object> (or you), and/or the list of space or comma
+  delimited objects home.
+  
   If the destination room has a drop-to, the object will go to the drop-to
   instead of the named location.
   
@@ -4569,6 +4681,7 @@
     @tel #45=home                 - teleport #45 home
     @tel home                     - teleport the enactor home
     @tel/list/quiet #45 #56=#59   - teleport #45 and #56 to #59 quietly
+    @tel/list a space, bar=home   - teleport 'a space' and 'bar' home
     @tel/quiet #45=home           - teleport #45 home quietly
   
   See Also: JUMP_OK, @lock (tport and telout), @tfail, @otfail, @atfail
@@ -5380,6 +5493,10 @@
   This replaces the normal 'Contents:' and 'Carrying:' lists.  The variable
   is evaluated as it would a description or other similiar message.
   
+  If the target is @powered FORMATTING, then the dbref# list of items that
+  the target sees will be passed as %0 and the | separated list of names
+  will be passed as %1.
+    
   Examples:
     > look
     A big Room
@@ -5405,6 +5522,11 @@
   This replaces the normal 'Obvious exits:'  listing.  The variable is
   evaluated as it would a description or other similiar message.
   
+  If the target is @powered FORMATTING, then the dbref# list of items that
+  the target sees will be passed as %0 and the | separated list of names
+  will be passed as %1.  Any dark exits that the target sees will be passed
+  as dbref#'s into %2, and their respective names | separated as %3.
+    
   Examples:
     > look
     A big Room
@@ -5432,6 +5554,10 @@
   to send the target who enters the exit to.  All exit messages are 
   evaluated and sent as well.
   
+  If the exit is @powered FULLTEL then the exit will be assumed to have 
+  full 'link' permission to any valid destination that exits would normally
+  be able to link to.  @power requires wizard access to set.
+     
   Example:
     > @toggle MyExit=variable
     Set.
@@ -5482,7 +5608,7 @@
   a large title, but only the first 40 characters will be displayed.
   If ZENTY_ANSI compiletime is not used, ansi is stripped.
    
-  No carrage returns are allowed in this string and it is only useful
+  No carriage returns are allowed in this string and it is only useful
   for players.
   
   Example:
@@ -7524,70 +7650,80 @@
 & MARKER0
   Flag: MARKER0([0])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER1
   Flag: MARKER1([1])  
   
-  This flag is a marker flag. 
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER2
   Flag: MARKER2([2])
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER3
   Flag: MARKER3([3])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER4
   Flag: MARKER4([4])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER5
   Flag: MARKER5([5])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER6
   Flag: MARKER6([6])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER7
   Flag: MARKER7([7])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER8
   Flag: MARKER8([8])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
 & MARKER9
   Flag: MARKER9([9])  
   
-  This flag is a marker flag.  
+  This flag is a marker flag.  It is a dummy flag for reuse.
+  
   By default only #1 may set or unset it.  To change permissions
   of this flag, use the @flagdef command (in wizhelp).
   
@@ -7688,6 +7824,17 @@
   
   See Also: enter, give
   
+& REQUIRE_TREES
+  Flag: REQUIRE_TREES(q)
+  
+  When set on a target, that target will require the TREE method for all
+  sets when it uses a character that is identified as a tree separator.
+  This is a way to help better enforce tree sets on targets.  Keep in mind,
+  this only affects sets, and nothing else as Rhost natively does not
+  handle trees.
+  
+  See Also: ATTRIBUTE TREES
+
 & GOING
   Flag: GOING(G)  
   
@@ -8607,7 +8754,7 @@
   For showing what the current TREE character is:
      @list options system
   
-  See Also: @set, &, set(), rset(), lattr()
+  See Also: @set, &, set(), rset(), lattr(), REQUIRE_TREES
 { wiz help: @aflags, @admin, vlimit, @attribute, lattrp() }
 
 & ATTRIBUTE TREE LIMITATIONS
@@ -8653,6 +8800,8 @@
   The following ways allow you to set trees and follow branching.
   Please be aware, @clusters and @wipe ARE NOT TREE AWARE!!!
   
+  If the target is set REQUIRE_TREES then set requires this method.
+ 
   Setting Attributes:
     @set  -- @set has a /tree switch, that when used with attribute setting,
              will set the entire branch list included in the attribute.  The
@@ -9068,23 +9217,23 @@
 & FLAG LIST
   Topic: FLAG LIST
  
-  Flag  Title        Flag  Title           Flag  Title        Flag  Title
+  Flag  Title        Flag  Title           Flag  Title      Flag  Title
   -------------------------------------------------------------------------
-    A - ABODE          L - LINK_OK           X - FREE           m - MYOPIC
-    B - ARCHITECT      M - MONITOR           Y - PARENT_OK      n - AUDIBLE
-    C - CHOWN_OK       N - NO_SPOOF          a - COUNCILOR      o - NO_TEL
-    D - DARK           O - OPAQUE            b - CLOAK          p - PUPPET
-    E - EXIT           P - PLAYER            c - CONNECTED      r - ROBOT
-    F - FLOATING       Q - QUIET             d - DESTROY_OK     s - SAFE 
-    G - GOING          R - ROOM              e - ENTER_OK       t - TERSE      
-    H - HAVEN          S - STICKY            f - FUBAR          v - VERBOSE
-    I - INHERIT        T - TRACE/TRANSPARENT g - GUILDMASTER    w - NO_WALLS
-    J - JUMP_OK        U - UNFINDABLE        h - HALTED         x - SLAVE   
-    K - KEY            V - VISUAL            i - IMMORTAL       y - NO_YELL    
-    ~ - INDESTRUCTIBLE W - ROYALTY           l - LIGHT          z - CONTROL_OK
-    = - BYEROOM        < - ANSI              > - ANSICOLOR      
+    A - ABODE          L - LINK_OK           X - FREE         m - MYOPIC
+    B - ARCHITECT      M - MONITOR           Y - PARENT_OK    n - AUDIBLE
+    C - CHOWN_OK       N - NO_SPOOF          a - COUNCILOR    o - NO_TEL
+    D - DARK           O - OPAQUE            b - CLOAK        p - PUPPET
+    E - EXIT           P - PLAYER            c - CONNECTED    q - REQUIRE_TREES
+    F - FLOATING       Q - QUIET             d - DESTROY_OK   r - ROBOT
+    G - GOING          R - ROOM              e - ENTER_OK     s - SAFE 
+    H - HAVEN          S - STICKY            f - FUBAR        t - TERSE      
+    I - INHERIT        T - TRACE/TRANSPARENT g - GUILDMASTER  v - VERBOSE
+    J - JUMP_OK        U - UNFINDABLE        h - HALTED       w - NO_WALLS
+    K - KEY            V - VISUAL            i - IMMORTAL     x - SLAVE   
+    ~ - INDESTRUCTIBLE W - ROYALTY           l - LIGHT        y - NO_YELL    
+    = - BYEROOM        < - ANSI              > - ANSICOLOR    z - CONTROL_OK
     - - NO_FLASH
-  
+ 
   See Also: flag list2, attribute flags
   
   For information on a particular flag, type 'help <flagname>'.
@@ -10005,7 +10154,7 @@
 & SPOOFING
   Topic: SPOOFING
  
-  Spoofing is the act of making other characters think that a person said or
+  Spoofing is the act of making other players think that a person said or
   did something that they did not.  This is very easy to accomplish, and has
   some good effects, which is why it is allowed.  Note that the NOSPOOF flag
   allows players to see exactly who is spoofing what.  Be warned, wizards are
@@ -10384,13 +10533,13 @@
   
   Example:
     > say shuffle(This is a test)
-    You say "This a is test"               (seperator is a space ' ')
+    You say "This a is test"               (separator is a space ' ')
     > say shuffle(This is a test)
     You say "a test This is"
     > say shuffle(This@is@a@test,@)
-    You say "is@a@This@test"               (seperator is a '@')
+    You say "is@a@This@test"               (separator is a '@')
     > say shuffle(This@is@a@test,@,|)
-    You say "This|test|a|is"               (seperator is '@', filler is '|')
+    You say "This|test|a|is"               (separator is '@', filler is '|')
   
   See Also: rand(), scramble(), sort(), setdiff(), setinter(), setunion() 
   
@@ -10796,7 +10945,7 @@
   <string> and returns those words in random order.  You may specify an 
   optional delimiter <delim> other than a space (the default).  You may also 
   specify what <type> of randextract() you wish to perform.  The following 
-  types exist.  You may specify an optional output seperator else it uses
+  types exist.  You may specify an optional output separator else it uses
   the same character as the delimiter.
       L - Grab given number of words lineally from the first random selection
       R - Grab <numwords> number of words but do not duplicate matches
@@ -11097,9 +11246,65 @@
   FORMAT SYNTAX:        help printf syntax
   EXAMPLES:             help printf examples
                         help printf penn      (for penn align-like examples)
+                        help printf borders   (a quick example on borders)
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
             wrapcolumns(), array()
+
+& PRINTF BORDERS
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  Borders for printf is actually pretty easy.  You assign a field width
+  and give it the '&' option to tell it to repeat on a carriage return.
+  You then give it an argument of '%r' and it will continue to repeat
+  that column for as long as any other column has valid lines.   You can
+  have the field width greater than 1 char for multi-char borders.
+  
+  You will want to put a '.' for these fields to supress a final line
+  of carriage returns if the last line is empty.
+  
+  The following codes are utilized (see 'help printf codelist')
+    $ - Specify the start of the format
+    s - specify the end of the format (where the substitution occurs)
+    . - do not print last line if all fields have '.' and all fields empty 
+    : - use the specified filler specified between the ':''s (ergo :|:)
+    & - repeat column if a carriage return is detected
+    - - left justify the column
+    | - wrap column if length of argument is greater than the field width
+    " - wrap column on a space character (tab, space, etc) if possible
+   10 - set column width to 10 characters
+    7 - set column width to 7 characters
+  
+{ see 'help printf borders2' for the examples }
+
+& PRINTF BORDERS2
+  Syntax for Example:
+    > printf(<codelist1> <codelist2> <codelist3>, <arg1>, <arg2>, <arg3>)
+  
+  Example:
+    > think printf($.1:|:&s $-10|"s $1.:|:&s, %r, test, %r)
+    | test       |
+    > think printf($.1:|:&s $-10|"s $1.:|:&s, %r, test1 test2, %r)
+    | test1      |
+    | test2      |
+    > think printf($.1:|:&s $-10|"s $1.:|:&s, %r, test1 test2 test3, %r)
+    | test1      |
+    | test2      |
+    | test3      |
+    > think printf($.7:|+=:&s $-10|"s $7.:|+=:&s, %r, test1 test2 test3, %r)
+    |+=|+=| test1      |+=|+=|
+    |+=|+=| test2      |+=|+=|
+    |+=|+=| test3      |+=|+=|
+    > think [repeat(-,26)]%r[printf($.7:|+=:&s $-10|"s $7.:|+=:&s, %r, test1 test2
+            test3, %r)]%r[repeat(-,26)]  
+    --------------------------
+    |+=|+=| test1      |+=|+=|
+    |+=|+=| test2      |+=|+=|
+    |+=|+=| test3      |+=|+=|
+    --------------------------
+
+  See Also: printf(), printf examples
+
 
 & PRINTF CODELIST
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -11114,18 +11319,23 @@
          $ - specifies to tell printf() to start/initiate the format.
          s - specifies the location of a string substitution for formatting.
       Code Fields: 
-         ! - do not display value if null
+         . - if on every field, do not display line if on last line and if
+             all values will result in a completely blank line.
+         ! - do not display value if null (if using < and/or > place ! after)
+         @ - do not display value if null or previous value is null
+         < - null current value if previous value was null
+         > - null current value if next value is null
          - - left justify (right is default)
          ^ - center justify
          _ - stretch justify
          + - do not cut value if exceed value (default is cut off)
          * - cut value from the right instead of the left.
-         & - process carrage returns and keep in same column field.  This
-             will break up lines based on carrage returns (%r) and keep
+         & - process carriage returns and keep in same column field.  This
+             will break up lines based on carriage returns (%r) and keep
              formatted into the same column specified in the format.
-         | - automatically format the text and insert carrage returns
+         | - automatically format the text and insert carriage returns
              at the specified padding field.  This does auto wrapping
-             like the '&' option without the need for carrage returns.
+             like the '&' option without the need for carriage returns.
          " - When used in junction with '|' it will try to split columns
              on the first whitespace instead of always at width.
          ' - If specified on a field, and that column is empty, the 
@@ -11143,9 +11353,13 @@
          / - The numerical value specified between /<number>/ will be used
              as a cut-off value when using the '|' wrap option.  
                examples: /10/ -- when using '|' cut off after 10 characters.
-             Valid values: 0-3998 (0 is unlimited)
+             Use of /w<number>/ cuts off on the line when '|' and '"' is used.
+               examples: /w1/ -- when using '|"' cut off after first line.
+             Valid values: 0 - (LBUF - 100) (0 is unlimited)
       Value fields:
-         1-3000 - format value to padd
+         1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
+                        See: @list options system for current LBUF size.
+                        Example: 4000 LBUF, it would be 1-3900
          0 - if prepending a number, tells it to padd 0's.
   
   Note: The ` and ' code fields won't work on single line columns.
@@ -11455,44 +11669,78 @@
   See Also: @zone, ZONES, lzone(), inzone(), zonecmd()
   
 & ZONECMD()
-  Function: zonecmd(<command>, <target> [,<zone>])
+  Function: zonecmd(<command>, <target> [,<zone string>])
   
   Note: This function requires the SIDEFX flag.
+  
+  The <zone string> in most cases will be the zone or target.  The exception 
+  is the replace command which requires the string of <oldzone>/<newzone>.
   
   This function duplicates the features of @zone, minus the list 
   ability which can be found with lzone().  The following <commands>
   are currently available with this function:
-    add    -- (shorthand with 'a') allows you to add a <target> to the
-              the specified <zone>.  It does sanity check and like
-              @zone you can not add a zonemaster to another zone.
-              Syntax: zonecmd(add, target, zone)
-   
-    delete -- (shorthand with 'd') allows you to delete the <target>
-              from the zone.  You can swap <target> and <zone> for
-              the same effect.
-              Syntax: zonecmd(del, target, zone)
-                      zonecmd(del, zone, target)
+    list    -- (shorthand with 'l') List zones on target zonemaster or all the 
+               zonemasters on the target zone.  You may specify <boolean> to
+               '1' (true) if you wish to show the list as objid's.
+               Syntax: zonecmd(list, target [,<boolean>])
   
-    purge  -- (shorthand with 'p') allows you to purge all zones
-              from <target>.  If a non-zonemaster is specified, it
-              will purge all zones from the target.  If a zonemaster
-              is specified, it will purge all members from that zone.
-              Syntax: zonecmd(purge, target)
+    add     -- (shorthand with 'a') allows you to add a <target> to the the 
+               specified <zone>.  It does sanity check and like @zone you can 
+               not add a zonemaster to another zone.  
+               Syntax: zonecmd(add, target, zone)
+   
+    delete  -- (shorthand with 'd') allows you to delete the <target>
+               from the zone.  You can swap <target> and <zone> for
+               the same effect.
+               Syntax: zonecmd(del, target, zone)
+                       zonecmd(del, zone, target)
+  
+    replace -- (shorthand with 'r') allows you to replace the zonemaster from
+               the target with the new zonemaster.
+               Syntax: zonecmd(replace, target, oldzone/newzone)
+  
+    purge   -- (shorthand with 'p') allows you to purge all zones
+               from <target>.  If a non-zonemaster is specified, it
+               will purge all zones from the target.  If a zonemaster
+               is specified, it will purge all members from that zone.
+               Syntax: zonecmd(purge, target)
+ 
+{ see 'help zonecmd2' for examples}
+  
+& ZONECMD2 
+ (CONTINUED)
+  Function: zonecmd(<command>, <target> [,<zone string>])
   
   A successful execution of this function returns no output, otherwise
   any error will start with #-1 for coding checks.
-   
+  
+  You can belong to multiple zones at the same time.
+    
   Examples:
     > @set #123=zonemaster
     Set.
-    > say zonecmd(add,me,#123)
+    > @set #789=zonemaster
+    Set.
+    > @set #12345=zonemaster
+    Set.
+    > say zonecmd(add,me,#789)
     You say ""
+    > say zonecmd(add,me,#12345)
+    You say ""
+    > say zonecmd(list,me)
+    You say "#789 #12345"
+    > say zonecmd(replace,me,#789/#123)
+    You say ""
+    > say zonecmd(list,me)
+    You say "#123 #12345"
     > say zonecmd(add,me,#123)
     You say "#-1 ALREADY IN ZONE"
     > say zonecmd(del,me,#123)
     You say ""
     > say zonecmd(del,me,#123)
     You say "#-1 NOT IN ZONE"
+    > say zonecmd(list,me)
+    You say "#12345"
   
   See Also: @zone, ZONES, lzone(), inzone(), zwho()
   
@@ -11579,8 +11827,8 @@
   If you wish to store the setq registers prior to this function, please
   utilize the pushregs() function to back-up your registers.
   
-  The defaults seperator is '%r' (carrage return + line feed).  If you do
-  not wish this to be the case, you may specify your own seperator <sep>
+  The default separator is '%r' (carriage return + line feed).  If you do
+  not wish this to be the case, you may specify your own separator <sep>
   which can be one or more characters.
   
   This function is ansi aware. 
@@ -11931,7 +12179,7 @@
   
   This function is similiar to map(), except it takes the arguments in the 
   lists and passes them into the attribute as %0 (for list1), %1 (for list2),
-  up to %9 (for list9).  <delim> is used as the delimiter to seperate items
+  up to %9 (for list9).  <delim> is used as the delimiter to separate items
   in each of the lists.  If the number of lists is 2, the delimiter may be
   optional, otherwise you are forced to provide a delimiter.  If no delimiter
   is specified, it's defaulted as a space but only for the above condition.
@@ -12290,10 +12538,17 @@
   See Also: timefmt()
 
 & RIGHT()
-  Function: right(<string>, <position>)
+  Function: right(<string>, <position> [,<key>])
   
   Right will take a string and return the right-most position of characters
   from the string.  
+  
+  You may specify a <key> of 1 to tell right() to take the string raw and
+  not do ansi-aware processing.  This will speed up the function.
+  The default is '0' which does ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
   
   Example:
     > say right(this is a test,5)
@@ -12307,12 +12562,19 @@
   
 & STRTRUNC()
 & LEFT()
-  Function: left(<string>, <position>)
-   (Alias): strtrunc(<string>,<position>)
+  Function: left(<string>, <position> [,<key>])
+   (Alias): strtrunc(<string>,<position> [,<key>])
   
   Left will take a string and return the left-most position of characters
   from the string.
   
+  You may specify a <key> of 1 to tell left() to take the string raw and
+  not do ansi-aware processing.  This will speed up the function.
+  The default is '0' which does ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'key' is reversed.
+   
   Example:
     > say left(this is a test,5)
     You say "this "
@@ -12856,7 +13118,7 @@
 & CHARIN()
   Function: charin(<player>[,<type>])
   
-  Charin returns the total number of characters of input that character has
+  Charin returns the total number of characters of input that player has
   received.  If the type is '1', it will return the information in the form
   of PORT:CHARIN.  
   
@@ -13062,7 +13324,7 @@
 & CHAROUT()
   Function: charout(<player>[,<type>])
   
-  Charout returns the total number of characters of output that the character
+  Charout returns the total number of characters of output that the player
   has sent.  If the type is '1', it will return the information in the form
   of PORT:CHAROUT.
   
@@ -13311,13 +13573,13 @@
 & CHOMP()
   Function: chomp(<string> [,<option>])
   
-  The chomp() function is used to strip carrage returns from the start,
+  The chomp() function is used to strip carriage returns from the start,
   end, or both sides of a string.
   
   The following options are available:
-    l - strip carrage returns on left side of string.
-    r - strip carrage returns on right side of string.
-    b - strip carrage returns on both sides of string (default).
+    l - strip carriage returns on left side of string.
+    r - strip carriage returns on right side of string.
+    b - strip carriage returns on both sides of string (default).
    
   Examples:
   > say chomp(%rthis is a test%r)
@@ -13407,9 +13669,9 @@
   
   The elist function is used to return a list of words into an english
   recognizable format.  You may specify an output delimiter to use if
-  you wish but it makes the format rather unique.  You may specify a seperate
+  you wish but it makes the format rather unique.  You may specify a separate
   punctuation instead of the default comma (,).  The punctuation may be
-  more than one character.  You may specify the seperator if not a space as 
+  more than one character.  You may specify the separator if not a space as 
   well.
   
   You can also supply a munging function to apply for each argument passed to
@@ -13486,17 +13748,17 @@
   
   The strmath function is used to apply math to the entire string.  Numbers
   in the string are modified based on the math chosen applied to the number.
-  You may specify optional input and output seperators.  You may also specify
+  You may specify optional input and output separators.  You may also specify
   the word to start (<st>) the math on and how many words (<amt>) after the 
   start you wish to use. If no math is specified, '+' is used as a default.
-  The <idlm> and <isep> are inner delimiter and seperator to use for the 
+  The <idlm> and <isep> are inner delimiter and separator to use for the 
   normal delimited string.  This is so you can separate values such as:
                     To hit:5|To Damage:10|Base AC:15
   
   Note:  It handles floating point notation, so values with decimals are seen.
    
     Key:  str  -- input string    num  -- value to apply  math -- math to use
-          dlm  -- delimiter       sep  -- seperator       st   -- start value
+          dlm  -- delimiter       sep  -- separator       st   -- start value
           amt  -- word count      idlm -- inner delim     isep -- inner sep
   
   Valid math arguments are:
@@ -13525,7 +13787,7 @@
   Function: strfunc(<function>, <list of arguments>[,<delim>])
   
   The strfunc (string function) function is used to transform a 
-  string of arguments into seperate identified arguments and feed 
+  string of arguments into separate identified arguments and feed 
   them into the specified function.  If you do not have access to the 
   function or if you give the target function an invalid number of 
   arguments, an error message will be displayed.
@@ -13644,14 +13906,14 @@
   See Also: match(), nummatch(), member(), nummember(), totmember()
   
 & GRABALL()
-  Function: graball(<string>, <pattern>[, <delimeter>[, <seperator>]])
+  Function: graball(<string>, <pattern>[, <delimeter>[, <separator>]])
    
   This function matches <pattern> against each word of <string>, returning
   the all the words it matches.  If no words are found to match the pattern,
   then an empty string is returned.  <pattern> may consist of wildcards.
   Wildcards being the use of '*' for any number of characters or '?' for
   a single character.  An optional delimiter may be used as well as an
-  optional output seperator. 
+  optional output separator. 
   
   Examples:
     > graball(This is a test,*es*)
@@ -13726,7 +13988,7 @@
   See Also: regrab(), regraball(), regraballi(), grab(), graball()
     
 & REGRABALL()
-  Function: regraball(<string>,<regexp>[,<delim>][,<output seperator>])
+  Function: regraball(<string>,<regexp>[,<delim>][,<output separator>])
   
   These functions work identically to the grab() and regrab()/regrabi()
   functions, save that they return all matches, not just the first: They
@@ -13744,7 +14006,7 @@
   See also: match(), matchall(), grab(), regmatch(), regraballi(), regrab()
   
 & REGRABALLI()
-  Function: regraballi(<string>,<regexp>[,<delim>][,<output seperator>])
+  Function: regraballi(<string>,<regexp>[,<delim>][,<output separator>])
   
   These functions work identically to the grab() and regrab()/regrabi()
   functions, save that they return all matches, not just the first: They
@@ -14087,15 +14349,15 @@
      1 - Display all the rolls of the dice.
      2 - Display the totals, then display all the roles of the dice.
      3 - Display the totals, then all normal rolls of dice, then display 
-         failures/criticals after with the default '|' seperator.
+         failures/criticals after with the default '|' separator.
      4 - Display all the normal rolls of the dice, then display the
-         failures, then the criticals seperated by the default '|' character.
+         failures, then the criticals separated by the default '|' character.
      5 - Display just the totals, then failures/criticals after with
-         the default '|' seperator.
+         the default '|' separator.
 
   <botval> specifies low ceiling masks for the dice.  You may specify an 
-  optional output seperator for the numbers.  If the seperator you specify
-  is the '|' character, the seperator used for failure/criticals becomes ':'.
+  optional output separator for the numbers.  If the separator you specify
+  is the '|' character, the separator used for failure/criticals becomes ':'.
   
   You may specify offset values to the 'fail'ure or for 'crit'ical success.
   The offset increases the range of failure or success.
@@ -14109,7 +14371,7 @@
       You say "1 2"
     > say dice(2,4,2,3)    [give me just the dice rolls with MIN value of 3]
       You say "3 3"
-    > say dice(2,4,2,,@)   [give me just the dice rolls with a seperator '@']
+    > say dice(2,4,2,,@)   [give me just the dice rolls with a separator '@']
       You say "1@2"
    
   See Also: rand()
@@ -14256,8 +14518,8 @@
   
   Extractword returns a string of length words, starting with the first
   word.  This works effectively like extract(), however, the deliminiter 
-  <delim> and seperator <sep> can be multi-character.  In addition, the
-  seperator may also contain ansi or special characters.
+  <delim> and separator <sep> can be multi-character.  In addition, the
+  separator may also contain ansi or special characters.
   
   If you specify the <del> toggle to '1' it assumes delextract() compatibility
   where the words choosen are all the words EXCEPT the range specified.
@@ -15273,8 +15535,14 @@
   
   If <player> or <target> does not exist, it will return a failure (0).
   
-  If <attrib> does not exist, it will return a success, but only if the first
-  two conditions wouldn't cause a failure.
+  If <attrib> is an invalid attribute, it will return '0'.
+  
+  If <attrib> exists on <target>, it will check permissions and return '1' if
+  <player> can set the attribute, '0' if it can not.
+  
+  If <attrib> does not exist, it will check the hash table for matching 
+  permissions and return a '1' if the attribute would be settable on
+  the <target> by the <player>, or a '0' if would not.
   
   Example:
     > say writable(bob, fred/desc)
@@ -15355,7 +15623,7 @@
   * <cut>    - Specifies that the word be cut off if over maximum columns size.
                Arguments: 1 to cut, 0 for no cutting (default).
   * <lbd>    - What text you want displayed as the left border of the line.
-  * <mbd>    - What text you want as the seperator between columns on the line.
+  * <mbd>    - What text you want as the separator between columns on the line.
   * <rbd>    - What text you want displayed as the right border of the line.
   * <dsp>    - What display type you want.  Down then over or over then down.
                Arguments: 1 for over then down, 0 for down then over (default)
@@ -15462,7 +15730,7 @@
   * <ct>     - Specifies that the word be cut off if over maximum columns size.
                Arguments: 1 to cut, 0 for no cutting (default).
   * <lb>     - What text you want displayed as the left border of the line.
-  * <mb>     - What text you want as the seperator between columns on the line.
+  * <mb>     - What text you want as the separator between columns on the line.
   * <rb>     - What text you want displayed as the right border of the line.
   * <dsp>    - What display type you want.  Down then over or over then down.
                Arguments: 1 for over then down, 0 for down then over (default)
@@ -16006,7 +16274,7 @@
   You may optionally specify the switch as the second argument, without 
   the '/' before it, to do the same thing.  This will cause any /switch
   you have in the first argument to assume it's part of the object name.
-  The function takes an output seperator as an optional third argument.
+  The function takes an output separator as an optional third argument.
 
   If the optional <name> argument is set to '1', lcon will display the object
   names instead of the #dbrefs.  This is not compatible with objid.
@@ -16036,7 +16304,7 @@
 & XCON()
   Function: xcon(<object>[/switch],<start>,<count> [,<switch>] [,<objid>])
   
-  This function is similiar to lcon() except it returns a space-seperated list
+  This function is similiar to lcon() except it returns a space-separated list
   of the contents of <object> starting at point <start> and returning <count>
   number of contents.  It takes a specific switch as an option:
       /PLAYER    -- lists all TYPE players in the contents.
@@ -16083,12 +16351,12 @@
   See Also: lexits(), lcon()
   
 & LEXITS()
-  Function: lexits(<loc> [,<output seperator>] [,<name>] [,<key>] [,<objid>])
+  Function: lexits(<loc> [,<output separator>] [,<name>] [,<key>] [,<objid>])
  
   Returns a space-separated list of the exits in <loc> and its parents.
   Dark exits are not returned unless you own the location.
   Parented exits that are set PRIVATE will not be displayed.
-  The function takes an output seperator as an optional second argument.
+  The function takes an output separator as an optional second argument.
  
   If the optional <name> argument is '1', lexits will display object names
   instead of #dbrefs.  This is not compatible with <objid>.
@@ -16121,7 +16389,7 @@
    
   This function returns a total of '<count>' elements between the
   numbers '<lower>' and '<upper>'.  It may also choose the lower and
-  upper numbers for the list it generates.  If no output seperator
+  upper numbers for the list it generates.  If no output separator
   (output delim) is specified, a space is used by default.
    
   Example:
@@ -16356,7 +16624,7 @@
   See Also: capstr(), lcstr()
   
 & LNUM()
-  Function: lnum(<number>[,<number>,<seperator>,<stepping>])
+  Function: lnum(<number>[,<number>,<separator>,<stepping>])
  
   Returns a list of numbers from 0 to <number>-1.
   If a second number is specified it tells to use
@@ -16405,7 +16673,7 @@
   Function: last(<list> [,<delim> [,<key>]])
   
   This function returns the last element in the list.  You may specify an 
-  optional seperator (delim), otherwise a default of a space is used.
+  optional separator (delim), otherwise a default of a space is used.
   
   <delim> may be used to specify a word delimiter other than a space.
   
@@ -16424,7 +16692,7 @@
   
   This function returns the name of any command that exits on the
   object.  You may specify $-commands or ^-listens to search for.
-  The output seperator defaults at a space, but you may wish to
+  The output separator defaults at a space, but you may wish to
   specify a delimiter as commands may contain spaces.
   The following types exist:
     $ - list all commands on the target object.
@@ -16839,7 +17107,7 @@
 
   
 & ITER()
-  Function: iter(<list>, <eval>[, <delim> [, <output seperator>]])
+  Function: iter(<list>, <eval>[, <delim> [, <output separator>]])
  
   <list> is a <delimiter>-separated list of strings, which can be object
   numbers, attributes, or arbitrary words.  <eval> is a string that is to be
@@ -17069,7 +17337,7 @@
   This function garbles the input from <str> and returns it garbled.  Each word
   has a 1 in <value> chance of being garbled.  Normal garbled strings have a 
   random character assigned unless you specify the filler character.  You may 
-  specify a seperator other than space.  If you specify the <type> of '1', it 
+  specify a separator other than space.  If you specify the <type> of '1', it 
   assumes the value is a percentile instead of fractional.  A <value> '0' with
   <type> '0' (1/0) returns nothing while <type> '1' (0%) returns the string.
   The key field allows the following bitwise values:
@@ -17492,7 +17760,7 @@
   
   Examples:
     > @set me=royalty (let's assume you're a wizard)
-    > @va #2=[num(*Miriar)] (the ghod character - #1) (#2 a zone you control)
+    > @va #2=[num(*Miriar)] (the ghod player - #1) (#2 a zone you control)
     > say zfuneval(va/royalty)
     You say "#1"
     > say zfuneval(va/citizen)
@@ -17519,7 +17787,7 @@
   
   Examples:
     > @set me=royalty (let's assume you're a wizard)
-    > @va me=[num(*Miriar)] (the ghod character - #1)
+    > @va me=[num(*Miriar)] (the ghod player - #1)
     > say ueval(va/royalty)
     You say "#1"
     > say ueval(va/citizen)
@@ -18167,7 +18435,7 @@
       EXIT   - specifying exits
       OTHER  - specifying anything not fitting a MUSH 'type'.
   
-  You may specify optional seperators and output seperators.   You may specify
+  You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
@@ -18195,7 +18463,7 @@
       EXIT   - specifying exits
       OTHER  - specifying anything not fitting a MUSH 'type'.
   
-  You may specify optional seperators and output seperators.   You may specify
+  You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
@@ -18519,10 +18787,9 @@
   
   See Also: strmath()
 
-& PARENTS()
 & LPARENT()
+& PARENTS()
   Function: parents(<obj> [,<objid>])
-            lparent(<obj> [,<objid>])
   
   Returns all the parents of <obj>.  Returns #-1 if <obj> cannot be found
   or has no parent or if you do not own and/or control <obj>
@@ -18530,16 +18797,24 @@
   If the optional <objid> is specified as '1', then it returns the objid's 
   instead of the dbref#'s.
   
+  By default, if you can not examine any of the parents in the chain, then
+  it will not show you the parent of that chain. 
+ 
+  If the @admin parameter 'parent_follow' is enabled, which is the default,
+  then if you control the <obj> you will see the entire parent chain,
+  regardless of your control or examine permissions of those parents in 
+  the chain.  We felt this should be the proper default behavior.
+  
   Example:
-    > say lparent(me)
+    > say parents(me)
     You say "#-1"
     > @parent #4=#5
     Parent set.
     > @parent #5=#6
     Parent set.
-    > say lparent(#4)
+    > say parents(#4)
     You say "#5 #6"
-    > say lparent(#4,1)
+    > say parents(#4,1)
     You say "#5:8185828582 #6:8281859282"
   
   See Also: parent(), children()
@@ -18880,6 +19155,8 @@
   
   The npemit() function works like pemit() except it won't strip spaces.
   
+  <key> if specified to '1' evaluates '##' as each <object> in the list.
+  
   This executes the exact same code as pemit(), but with the assumption
   of the compile time option secure_sideeffects enabled.  This is the
   default behavior.
@@ -19007,7 +19284,7 @@
 & LIST()
   Function: list(<list>, <eval>[, <delim> ][, <header>][, <target>])
  
-  This function works just like iter() but returns each result on a seperate
+  This function works just like iter() but returns each result on a separate
   line thereby bypassing the buffer limit that RhostMUSH contains.  Each line
   will be a new line and will not be space delimited and will be displayed
   PRIOR to the output of the command calling it.
@@ -19446,7 +19723,7 @@
   * If <delim> is specified, it (rather than a space) is used to separate items
     in the list.  You may specify an alternate delimiter without specifying
     a sort type by passing a null <sort type> parameter.
-  * If <sep> is specified, it (rather than a space) is used to seperate items
+  * If <sep> is specified, it (rather than a space) is used to separate items
     in the output.
    
   Examples:
@@ -19559,7 +19836,7 @@
   in the list.
   
   If <sep> is specified, it will be used (rather than a space) for the output
-  seperator for the list.
+  separator for the list.
   
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
@@ -19603,7 +19880,7 @@
   in the list.
    
   If <sep> is specified, it will be used (rather than a space) for the output
-  seperator for the list.
+  separator for the list.
   
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
@@ -19647,7 +19924,7 @@
   in the list.
    
   If <sep> is specified, it will be used (rather than a space) for the output
-  seperator for the list.
+  separator for the list.
   
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
@@ -19680,10 +19957,14 @@
   See Also: splice(), tr()
   
 & REPEAT()
-  Function: repeat(<string>,<number>)
+  Function: repeat(<string>,<number> [,<ansi>])
   
   This function simply repeats <string>, <number> times.  No spaces are
   inserted between each repetition.
+  
+  You may specify the <ansi> toggle to '1' to make repeat ansi aware
+  which optimizes ansi but will have a cost in performance.  This 
+  defaults to '0'.
   
   Example:
     > say repeat(Test, 5)
@@ -19703,7 +19984,7 @@
   
   <delim> may be used to specify a delimiter other than a space.  
   
-  <sep> may be used to specify an output seperator other than a space.
+  <sep> may be used to specify an output separator other than a space.
    
   Example:
     > say splice(foo bar baz,eek moof gleep,bar)
@@ -19950,12 +20231,12 @@
   Help borrowed from Penn with permission.
   
 & VADD()
-  Function: vadd(<vector>,<vector>[[,<delimiter>],<seperator>])
+  Function: vadd(<vector>,<vector>[[,<delimiter>],<separator>])
    
   Returns the sum of two vectors.  A vector is a list of numbers
   separated by spaces or a delimiter.  The vector lists must contain
   the same number of items or it will return an error.  You may
-  specify an optional output seperator.
+  specify an optional output separator.
    
   Examples:
     > think vadd(1 2 3,4 5 6)
@@ -19982,11 +20263,11 @@
   See Also: vadd(), vunit(), vdot(), vmul(), vsub(), vmag(), vcross()
   
 & VUNIT()
-  Function: vunit(<vector>[[,<delimiter>],<seperator>])
+  Function: vunit(<vector>[[,<delimiter>],<separator>])
    
   Returns the unit vector (a vector of magnitude 1), which points
   in the same direction as the given vector.  This function may take
-  an optional output seperator.
+  an optional output separator.
    
   Examples:
     > think vunit(2 0 0)
@@ -20013,11 +20294,11 @@
   See Also: vadd(), vdim(), vunit(), vmul(), vsub(), vmag(), vcross()
   
 & VMUL()
-  Function: vmul(<vector|number>,<vector|number>[[,<delimiter>],<seperator>])
+  Function: vmul(<vector|number>,<vector|number>[[,<delimiter>],<separator>])
    
   Returns the result of either multiplying a vector by a number,
   or the elementwise product of two vectors.  This function may take an 
-  optional output seperator.
+  optional output separator.
   
   Examples: 
     > think vmul(1 2 3,2)      (this is a vector by number)
@@ -20030,11 +20311,11 @@
   See Also: vadd(), vdim(), vunit(), vdot(), vsub(), vmag(), vcross()
   
 & VSUB()
-  Function: vsub(<vector>,<vector>[[,<delimiter>],<seperator>])
+  Function: vsub(<vector>,<vector>[[,<delimiter>],<separator>])
    
   Returns the difference between two vectors.  The vectors must be
   the same length.  This function may take an optional output
-  seperator.
+  separator.
    
   Example:
     > think vsub(3 4 5,3 2 1)
@@ -20058,10 +20339,10 @@
   See Also: vadd(), vdim(), vunit(), vdot(), vmul(), vsub(), vcross()
   
 & VCROSS()
-  Function: vcross(<vector>,<vector>[,<delimiter>],<seperator>])
+  Function: vcross(<vector>,<vector>[,<delimiter>],<separator>])
    
   Returns the cross product of two vectors. The cross product of two
-  vectors is a vector.  This function may take an optional seperator.
+  vectors is a vector.  This function may take an optional separator.
   
                           | a b c |
   (a,b,c) X (d,e,f) = det | d e f | = i(bf-ce) + j(cd-af) + k(ae-bd)
@@ -20099,7 +20380,7 @@
             cosh(), sinh(), tanh()
   
 & PID()
-  Function: pid([<display> [,<seperator> [,<type> [,<target>]]])
+  Function: pid([<display> [,<separator> [,<type> [,<target>]]])
   
   This function returns the queue process table based on various arguments.
   
@@ -20112,10 +20393,10 @@
     16   -  Show the STOP/RUNNING status of all the processes
     32   -  Show the commands queued for all the processes.
   
-  Adding the <display> values will return a combination of the values seperated
+  Adding the <display> values will return a combination of the values separated
   by the pipe (|) character.
   
-  <seperator> is your output seperator that you wish between processes.  
+  <separator> is your output separator that you wish between processes.  
   Default is a space.
   
   <type> can be one of many types.
@@ -20132,7 +20413,7 @@
 
 & PID2
   CONTINUED
-  Function: pid([<display> [,<seperator> [,<type> [,<target>]]])
+  Function: pid([<display> [,<separator> [,<type> [,<target>]]])
  
   Examples:
     > @ps/all 
@@ -20579,7 +20860,7 @@
   ansi-aware and also process strings faster without the ansi overhead.
   The default value is '0' which allows tr() to be fully ansi-aware.
    
-  Ranges of characters seperated by -'s are accepted. <find> and <replace> 
+  Ranges of characters separated by -'s are accepted. <find> and <replace> 
   must be the same length after expansion of ranges. If a character exists 
   more than once in <find>, only the last instance will be counted. The example
   below is the common ROT-13 algorithm for lower case strings, demonstrated
@@ -20796,12 +21077,12 @@
   See Also: @dolist, iter(), map(), citer(), nsiter(), list()
   
 & PARSE()
-  Function: parse(<list>,<eval>[,<delimiter> [,<output seperator>]])
+  Function: parse(<list>,<eval>[,<delimiter> [,<output separator>]])
   
   This function takes each element of <list>, evaluates <eval> after
   substituting it for ##, and constructs a space-separated list of the
   results.  The special substitution of #@ can be used for the position
-  of the current item in the list.  You may specify an output seperator.
+  of the current item in the list.  You may specify an output separator.
   
   This function can be reproduced with the iter function and as
   such is considered depreciated but left for compatibility.
@@ -20971,7 +21252,7 @@
   
   <delim>iter may be used to specify a delimiter other than space.
   
-  <sep>erator may be used to specify an output seperator other than a space.
+  <sep>erator may be used to specify an output separator other than a space.
   
   You may specify arguments <arg1> through <argN> that will be passed as %1
   for the first argument (or arg1) all the way through MAX_ARGS 
@@ -20993,7 +21274,7 @@
   This function evaluates the contents of <attr> for each element of <list>,
   passing it in as %0.  A <delimiter>-separated list is returned of those
   elements for which the evaluation returns the value 1.  You may specify an
-  optional output seperator.
+  optional output separator.
   
   <delim> may be used to specify a delimiter other than space.
   
@@ -21216,6 +21497,9 @@
 & XINC()
   Function: xinc(<number>)
   
+  INC() and XINC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
+  
   The xinc() function is used to increment the number passed into it.
   Any number passed into it is automatically incremented by one.
   
@@ -21234,9 +21518,13 @@
 & INC()
   Function: inc(<number>)
   
+  INC() and XINC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
+  
   The inc() function is used to increment numerical values in local registers.
-  The valid registers are 0 through 9.  If the value in the register is a 
-  string, it will return the string without any changes.
+  The valid registers are 0-9, and a-z.  You may also use setq labels.
+  If the value in the register is a string, it will return the string without
+  any changes.
   
   Example:
     > say [setq(0,10)] 1: [r(0)] [inc(0)] 2: [r(0)]
@@ -21253,6 +21541,9 @@
   
 & XDEC()
   Function: xdec(<number>)
+  
+  DEC() and XDEC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
   
   The xdec() function is used to decrement the number passed into it.
   Any number passed into it is automatically decremented by one.
@@ -21272,9 +21563,13 @@
 & DEC()
   Function: dec(<number>)
   
+  DEC() and XDEC() may be reversed.  to check if they are, Please reference:  
+                           @list options system  
+  
   The dec() function is used to decrement numerical values in local registers.
-  The valid registers are 0 through 9.  If the value in the register is a
-  string, it will return the string without any changes.
+  The valid registers are 0-9, and a-z.  You may also use setq labels.
+  If the value in the register is a string, it will return the string without
+  any changes.
   
   Example:
     > say [setq(0,10)] 1: [r(0)] [dec(0)] 2: [r(0)]
@@ -22667,7 +22962,7 @@
   
   Examples:
     > @set cluster#1=royalty (let's assume you're a wizard)
-    > @va cluster#1=[num(*Miriar)] (the ghod character - #1)
+    > @va cluster#1=[num(*Miriar)] (the ghod player - #1)
     > say cluster_ueval(va/royalty)
     You say "#1"
   
@@ -23011,7 +23306,7 @@
   the PENN_MAIL toggle.  The BRANDY_MAIL toggle will take presidence.
   
   For using the line editor, you may use the MAIL_STRIPRETURN toggle.  This
-  will convert the carrage return between lines to a space when combining.
+  will convert the carriage return between lines to a space when combining.
    
   To set a toggle, you would type: @toggle me=<toggle>.  An example would be:
                         @toggle me=BRANDY_MAIL
@@ -23731,9 +24026,9 @@
            mail/autofor +off
   
   Autoforwarding is used to autoforward mail that you would normally get
-  to another player character.  This is handy in the event that you have
-  multiple characters and wish to have mail all catagorized to a central
-  character.  All forwarded mail is sent as from the original sender, 
+  to another player.  This is handy in the event that you have
+  multiple players and wish to have mail all catagorized to a central
+  player.  All forwarded mail is sent as from the original sender, 
   not from the player it was forwarded from.
   
   Autoforwarding can only be forwarded on a one-time basis.  It is not
@@ -23927,7 +24222,7 @@
   You need the BRANDY_MAIL toggle (@toggle me=brandy_mail) to use this syntax.
   
   You may also optionally set the MAIL_STRIPRETURN toggle to signal the mailer
-  to use spaces to seperate lines instead of a carrage return.
+  to use spaces to separate lines instead of a carriage return.
    
   This effects the commands:  mail, mail/reply, and mail/forward.
   
@@ -25390,7 +25685,7 @@
 & mail dtutor6
   Topic: Mail Default Tutor (Page 6)
   
-  Ok, let's say you just wanted to send the player a message seperate from
+  Ok, let's say you just wanted to send the player a message separate from
   a reply.  You may send mail one of two ways.  You can send it the quick
   and easy method (which will be shown here), or you may use the built-in
   line editor (which is full of features).  If you prefer to use the
@@ -25651,7 +25946,7 @@
   
   When this toggle is set on the player, whenever that player finishes
   writing mail using the BRANDY_MAIL toggle, all lines are combined
-  with spaces instead of carrage returns.  This will mimic more how
+  with spaces instead of carriage returns.  This will mimic more how
   Brandy's +mail or Mux's @mail works.
   
   See Also: penn_mail toggle, brandy_mail toggle
@@ -25762,7 +26057,9 @@
   
   Specifies that the target exit is a 'variable' exit and that it will
   parse the @exitto attribute for it's destination location and not where
-  it is currently linked to.
+  it is currently linked to.  If the exit is @powered FULLTEL then that
+  exit will be assumed to have full 'link' privialages to any valid
+  location returned from @exitto.
   
   If a player sets the VARIABLE toggle on himself, then all ansi via
   Cname()/%k will show up when that player @walls, poses, or uses say.
@@ -25775,10 +26072,10 @@
   (*note this flag is meaningless on RhostMUSH*)
   When set on a player or object, denotes that they are In-Character and 
   therefore subject to inclusion in tinyplots, etc, and whatever they
-  say or do will be interpreted as if their character was doing or saying it.
+  say or do will be interpreted as if their player was doing or saying it.
   If this flag is not set, whatever the they say or do is to be interpreted
   as if it is either the real life person talking, or some mixture of the
-  character and the real life person that is not 100% In-Character and should
+  player and the real life person that is not 100% In-Character and should
   not be taken as being in character.
  
   When set on a room it denotes that the room is fair ground for roleplaying.
@@ -25955,7 +26252,7 @@
   
 & save
   RhostMUSH, unlike lp's, merc's, diku's or similiar mud derivitives, does not
-  have a 'save' option.  Your character, upon creation, is automatically saved.
+  have a 'save' option.  Your player, upon creation, is automatically saved.
   Everything you do, whenever you do it, is also automatically saved.  So just
   have fun, relax, and enjoy your time on.   Leave the saving to us :)
   
@@ -26043,7 +26340,7 @@
 & LISTRLEVELS()
   Function: listrlevels()
   
-  Returns all available levels in a space seperated list.  This function
+  Returns all available levels in a space separated list.  This function
   takes no arguments.
   
   Example:
@@ -26850,8 +27147,9 @@
   Function Lists: Ansi Functions
       
   ansi()        - ANSI formats a string.
-  stripansi()   - Strips ANSI characters from a string.
   colors()      - List colors or optionally display value of color.
+  editansi()    - Edit the ANSI of a string.
+  stripansi()   - Strips ANSI characters from a string.
 
 & time functions
   Function Lists: Time Functions.
@@ -27282,7 +27580,7 @@
   Changes
   -------
   * @prog aliased to @program [ASH]
-  * filter() now supports an output seperator [ASH]
+  * filter() now supports an output separator [ASH]
   * lnum() and lnum2() optionally return NULL if given a '0' [ASH]
   * mask() now takes '~' for adding 1's comp, '1' for 1's and '2' for 2's [ASH]
   * mailquick() takes 3rd argument for MUX mail() compatibility [ASH]
@@ -27409,7 +27707,7 @@
   -------
   * lnum()/lnum2() handles negative numbers [ASH]
   * NOMODIFY optionally set to immortal only [ASH]
-  * all vector functions recognize output seperator [ASH]
+  * all vector functions recognize output separator [ASH]
   * mail +justify, +insert, +edit, +editall handles line numbers [ASH]
   * dice has more arguments for offset values [ASH]
   * modified/created is examinable now [ASH]
@@ -27442,7 +27740,7 @@
   * NO_PARSE attribute flag that stops /evaluation of %0-%9 in $commands [ASH]
   * SAFE attribute flag that stops modification of attribute [ASH]
   * SHOWFAILCMD show any matching failed $cmd uses the @ufail suite [ASH]
-  * MAIL_STRIPRETURN when combining lines uses spaces not carrage returns [ASH]
+  * MAIL_STRIPRETURN when combining lines uses spaces not carriage returns [ASH]
   * PENN_MAIL when sending mail, use PENN like style [ASH]
   * guest_namelist specifies a dynamic namelist for guests [ASH]
   * hackattr_nowiz defines if '_attr' is wiz only or follows normal rules [ASH]
@@ -27708,7 +28006,7 @@
   * uselock attrib flag checks matching ~<attribute> for uselock [ASH]
   * SPAMMONITOR flag check target for spam (60 cmds/sec) [ASH]
   * ZONEINHERIT allows zonemasters to have attribs inherited to children [ASH]
-  * muddb_name admin param for db names to seperate from 'mud_name' [ASH]
+  * muddb_name admin param for db names to separate from 'mud_name' [ASH]
   * global_error_obj evaluate the VA attribute on the object for huh? [ASH]
   * mail_autodeltime specifies when mail is globally purged (def 21 days) [ASH]
   * global_parent_room globally inherit attribs to room w/o @parent [ASH]
@@ -27733,7 +28031,7 @@
   * @list user_attributes handle wildcard matching [ASH]
   * @list alloc shows better buffer stats [ASH]
   * better replace_token call for all ##/#@ subs [ASH]
-  * citer() has optional seperator [ASH]
+  * citer() has optional separator [ASH]
   * lwho() has argument to list just ports [ASH]
   * modified MONITOR site monitoring to show remote port [ASH]
   * sin(), tan(), etc modified for MUX compatibility [ASH]
@@ -27909,7 +28207,7 @@
   New Features
   ------------
   * fmod() for Penn compatibility [ASH]
-  * seperate .conf file for most commonly used params [AMB]
+  * separate .conf file for most commonly used params [AMB]
   * @admin roomlog_path to specify different path for LOGROOM [ASH]
   * new minimal_db imported [ASH]
   
@@ -28509,7 +28807,7 @@
   * $Z in timefmt() would show negative values in > 32 bit math [ASH]
   * case sensitivity was reversed for reswitch/reswitchi cases [ASH]
   * backward compatibility with v(#) was broke. [ASH]
-  * IDLE mis-aligned carrage return and line feeds [ASH]
+  * IDLE mis-aligned carriage return and line feeds [ASH]
   
 & 3.9.4p0
   Release Date: 04/08/13
@@ -28769,7 +29067,7 @@
   * float_precision for floating point decimal precision (default 6) [ASH]
   * file_object parameter to specify dynamic override for connect.txt and 
     friends [ASH]
-  * extractword() is a multi-char delimeter/seperator/ansi-aware 
+  * extractword() is a multi-char delimeter/separator/ansi-aware 
     extract/delextract [ASH]
   * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
   * @dbclean to purge unused attributes from the db [ASH]
@@ -29000,7 +29298,7 @@
     sub() now handle multiple arguments for Penn compatibility. [ASH]
   * For those who are used to Penn, 'DEBUG' is aliased to 'TRACE' [ASH]
   * textfile() takes optional arguments to sanitize output for use
-    in various coding including an output seperator [ASH]
+    in various coding including an output separator [ASH]
   * hilite topic headers for help (as requested by many) [ASH]
   * mysql more vigerously tries to keep stale connections active [ASH]
   * the build script more cleanly does dynamic building of Makefile [ASH]
@@ -29039,7 +29337,7 @@
   * enhanced content searches for help [ASH]
   * @grep now handles /parent switch [ASH]
   * ! shown on @function and @lfunction if a flag permission exists [ASH]
-  * array() has optional output seperator [ASH]
+  * array() has optional output separator [ASH]
   * %q<LABEL> now also handles 0-9a-z registers [ASH]
   * first() and last() are now optionally ANSI-aware with 3rd arg [ASH]
   * @chownall now optionally allows a mix of specifying room, exit,
@@ -29097,14 +29395,31 @@
   * execscript() with matching sideeffect value and @power execscript to
     allow executing external script as a function with appropiate 
     safeguards for script name and arguments [ASH]
-  * penn_setq -- Penn compatibility option for labels with setq/setr.
+  * penn_setq -- Penn compatibility option for labels with setq/setr. [ASH]
   * customized connect screens so you may add custom commands that a player
-    can type at the connect screen.
-  * object id's and objid()/%: for all features that'd handle %#.
-  * isobjid() added.
+    can type at the connect screen. [ASH]
+  * object id's and objid()/%: for all features that'd handle %#. [ASH]
+  * isobjid() added. [ASH]
   * zonecmd() added (side-effect of @zone) [ASH]
   * VISIBLE options to lcon() and xcon() to check only visible items [ASH]
   * searchobjid(), and searchngobjid() for objid results on searches [ASH]
+  * examine has /cluster switch for examining clusters [ASH]
+  * @zone has /replace and /list switches.  zonecmd() has similar [ASH]
+  * Startmush is much more optimized for flatfile loading if required [ASH]
+  * @newpassword optionally allows /des switch to enforce DES passwords [ASH]
+  * @admin delim_null param allows '@@' to be seen as an empty separator
+    for all arguments with an output separator [ASH]
+  * REQUIRE_TREES flag when set requires the flag method to set attribs
+    on the target that contain a tree character [ASH]
+  * function_max to cap a ceiling on @functions allowed (1000 default) [ASH]
+  * parent_follow @admin param (default to 1/yes) to allow control of target
+    to see entire parent chain [ASH]
+  * @list advbuffers to show filename/linenumber of the allocation [ASH]
+  * Added FORMATTING @power that when set on target allows %0-%3 to be
+    passed to @conformat, @exitformat, and @Nameformat [ASH]
+  * Added new 'minimal-DBs' directory in order to ship multiple different
+    minimal DBs. [AMB]
+  * Added new Amb-MinimalRhost DB to the 'minimal-DBs' directory.
   
   Changes
   ------------
@@ -29119,8 +29434,8 @@
   * securex() and escapex() now optionally accept 'a' as argument to ignore
     ansi [ASH]
   * @dynhelp has a /nolabel switch to snarf the hilighted index values [ASH]
-  * Improved compatibility with execscript
-  * NPEMIT(), like PEMIT(), now handles 3 arguments.
+  * Improved compatibility with execscript [ASH]
+  * NPEMIT(), like PEMIT(), now handles 3 arguments. [ASH]
   * enhanced argument range check on all regedit*() functions [ASH]
   * added '*' option to printf that allows cutting values from the right [ASH]
   * @list functions accepts sub-options 'user', 'local', and 'built-in' [ASH]
@@ -29134,8 +29449,8 @@
   * lwho() is now objid aware optionally [ASH]
   * lexits(), lcon(), xcon(), lrooms(), lparents(), lzone(), zwho(), and 
     children() are now objid aware [ASH]
-  * sortlist() now handles 'm' for merging.
-  * @quitprogram has /quiet switch
+  * sortlist() now handles 'm' for merging. [ASH]
+  * @quitprogram has /quiet switch [ASH]
   * programmer() optionally returns target/attrib pair of program call [ASH]
   * @name added to @lock/twink as what you can do [ASH]
   * @progreset allows you to optionally modify in-action someone's active
@@ -29145,6 +29460,24 @@
   * @progprompt hard-limited to 80 characters and now allows ANSI [ASH]
   * ltoggles()/hastoggle() laxed to mimic lflags/hasflag perms [ASH]
   * logout_cmd_access if option set 'DARK' will be ignored and bypassed [ASH]
+  * newpass_god modified to reset #1's password in-game if set [ASH]
+  * 'w' option for / / in printf() allows cutting on line when |" used [ASH]
+  * '<' and '>' values to null current value if prevous/next value null [ASH]
+  * repeat() has optional third argument for better ansi handling [ASH]
+  * printf() would print a blank line if the last argument for each field
+    was a carriage return.  New option '.' for each field will now
+    supress the last line if all arguments are empty for that line [ASH]
+  * writable() is more useful with how it works for non-existant attribs [ASH]
+  * logtofile() optionally can write to the mush system log [ASH]
+  * LOGGED attribute flag now logs the last command issued to change it [ASH]
+  * modified chkgarbage() to handle a (b)oth option [ASH]
+  * left() and right() are now optionally ansi-aware [ASH]
+  * @register has /message switch to immediately message player the pass [ASH]
+  * Exits that are @powered FULLTEL will allow variable exits to assume
+    'linkable' to any valid destination [ASH]
+  * make config/confsource now saves your last state you compiled with [ASH]
+  * output_limit defaults now based on LBUF size [ASH]
+  * Moved minimal_db into new 'minimal-DBs' folder [AMB]
     
   Bug Fixes
   ------------
@@ -29155,10 +29488,25 @@
   * Ancient systems (CentOS 4/5) didn't successfully handle MTU values [ASH]
   * enhanced_convtime didn't handle all conditions properly [ASH]
   * bug with streval which didn't process right on non-player evaluation [ASH]
-  * minor glitch if an object set STOP and SHOWFAILCMD
+  * minor glitch if an object set STOP and SHOWFAILCMD [ASH]
   * minor glitch with @snapshot/loading over a player already connected [ASH]
   * flag_access_set, flag_access_unset, flag_access_see were case sensitive
     and they shouldn't be [ASH]
   * possible crash bug in @dbclean if there's a cached attribute that
     was not in-use properly [ASH]
   * small dangling check fix for %<###> ascii encoding [ASH]
+  * mailsend() was too restrictive for non-player types [ASH]
+  * cleanup of the idle_checker to always make current hash last in list [ASH]
+  * crash bug if error.txt file was empty [ASH]
+  * logic issue with things set STOP and NOSTOP wouldn't always work [ASH]
+  * Some possible race conditions with regards to @remote [ASH]
+  * printf's // cut value wasn't properly initialized in all cases [ASH]
+  * compile time fix for when you do not have siddeffects selected [ASH]
+  * possible memory leak in extractword() in certain conditions [ASH]
+  * @tel/list didn't handle a comma separator properly for source [ASH]
+  * permission issue with guildmaster and setting attributes [ASH]
+  * memory leak on rare occurances of lookup_site [ASH]
+  * internal function for player lookup was not objid aware [ASH]
+  * parents() was too restrictive for thing getting own parent tree [ASH]
+  * Long standing issue with left()/right() with arg of '0' cut string [ASH]
+  * missing free when name_with_desc enabled [ASH]

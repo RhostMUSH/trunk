@@ -1,0 +1,43 @@
+@@ Colored Speech System
+@@ This code sets up global hooks for the major localized communications, such as say, pose and @emit. It will parse the text
+@@ to identify the spoken portions and add a player defined color to these portions of text. This system will respect the SAFELOG
+@@ toggle and make use of a player set @saystring if present.
+@@
+@@ How to set colors: Players can define a &speechcolor attribute that contains the color code for the color they would like to see.
+@@ Any color code that would work in an ansi() call will work for this.
+@@   Example: &speechcolor me=hg will set the color to Hilite Green.
+@@
+@@ How to see the speaker's color: This system supports using your defined color for all text or seeing text using the color defined
+@@ by the speaker (default bold white). To enable seeing other's speech color set &ospeechcolor to 1.
+@@   Example: &ospeechcolor me=1
+@@
+@@ Credits: Kage - 02/21/2016
+
+
+@@ Import the code
+@@ Create the command object and place it in the master room.
+@@
+@create Colored Speech Commands=10
+&CMD_SAY Colored Speech Commands=$say *:@dolist [lcon(%l/connect)]={@include/localize%!/inc_colortext_prefix=##,%0,%#,[default(%#/saystring,if(match(%#,##),say,says))]%,}
+&CMD_SAY2 Colored Speech Commands=$"*:@dolist [lcon(%l/connect)]={@include/localize %!/inc_colortext_prefix=##,%0,%#,[default(%#/saystring,if(match(%#,##),say,says))]%,}
+&CMD_POSE Colored Speech Commands=$pose *:@dolist [lcon(%l/connect)]={@include/localize %!/inc_colortext=##,:%0,%#}
+&CMD_POSE2 Colored Speech Commands=$\:*:@dolist [lcon(%l/connect)]={@include/localize %!/inc_colortext=##,:%0,%#}
+&CMD_POSE3 Colored Speech Commands=$;*:@dolist [lcon(%l/connect)]={@include/localize %!/inc_colortext=##,\;%0,%#}
+&CMD_@EMIT2 Colored Speech Commands=$\\\\*:@dolist [lcon(%l/connect)]={@include/localize %!/inc_colortext=##,|%0,%#}
+&CMD_@EMIT Colored Speech Commands=$@emit *:@dolist [lcon(%l/connect)]={@include/localize %!/inc_colortext=##,|%0,%#}
+&INC_COLORTEXT Colored Speech Commands=@pemit %0=[setq(9,ifelse(get(%0/ospeechcolor),%2,%0))][setq(0,objeval(%q9,udefault(%q9/SPEECHCOLOR,h)))][setq(1,%2)][parsestr(%1,[ansi(%q0,%0)],",",,%2)]
+&INC_COLORTEXT_PREFIX Colored Speech Commands=@pemit %0=[setq(9,ifelse(get(%0/ospeechcolor),%2,%0))][setq(0,objeval(%q9,udefault(%q9/SPEECHCOLOR,hw)))][setq(8,if(and(match(%0,%2),not(hastoggle(%2,SAFELOG))),&you,%2))][parsestr(%1,[ansi(%q0,%0)],",",,%q8,,,,%3)]
+@set Colored Speech Commands=INHERIT
+@ifelse [match(setr(0,globalroom()),-1)]={think You currently have no master room configured. This code needs to be placed in a master room to function correctly.},{@tel Colored Speech Commands=%q0}
+
+@@ Create hook object with default hooks and trigger attribute to add @hooks.
+@@
+@create Hook Handler=10
+&I_SAY Hook Handler=0
+&I_POSE Hook Handler=0
+&I_@EMIT Hook Handler=0
+&TRIG_HOOKS Hook Handler=@hook/ignore say;@hook/ignore S;@hook/ignore pose;@hook/ignore P;@hook/ignore @emit;@hook/ignore E
+
+@@ Trigger the hooks and add the hook object, or provide directions needed to setup on existing hook object.
+@@
+@ifelse [match(config(hook_obj),-1)]={@admin hook_obj=[setr(0,num(Hook Handler))];@trig %q0/TRIG_HOOKS},{think You already have a hook handler setup. You will need to copy the I_SAY, I_POSE, and I_@EMIT attributes from [setr(1,num(Hook Handler))] to your hook object and trigger the TRIG_HOOKS attribute on %q1.}

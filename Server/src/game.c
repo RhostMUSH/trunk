@@ -450,7 +450,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
              "You can not use $-commands on that.",
               A_OUFAIL, NULL, A_AUFAIL, (char **)NULL, 0);
        if ( Flags3(thing) & STOP ) {
-          RETURN(1); /* #70 */
+          RETURN(3); /* #70 */
        } else {
           RETURN(-1); /* #70 */
        }
@@ -2262,6 +2262,16 @@ main(int argc, char *argv[])
     if (mudconf.rwho_transmit)
 	do_rwho(NOTHING, NOTHING, RWHO_START);
 
+    /* Reset #1's password if value is right */
+    if ( mudconf.newpass_god == 777 ) {
+       if ( Good_chk(GOD) ) {
+          s_Pass(GOD, mush_crypt((const char *)"Nyctasia", 1));
+          STARTLOG(LOG_ALWAYS, "WIZ", "PASS")
+             log_text((char *) "GOD password reset to 'Nyctasia'");
+          ENDLOG
+       }
+       mudconf.newpass_god = 0;
+    }
     /* go do it */
 
     mudstate.nowmsec = time_ng(NULL);

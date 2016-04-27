@@ -1,0 +1,250 @@
+----------------------------------
+Ambrosia's Minimal Rhost DB
+----------------------------------
+Version: 1.0.4  April 27th, 2016
+----------------------------------
+Version history:
+  1.0.0
+    - Initial database setup.
+  1.0.1
+    - Small fixes of objid(), isstaff() and bccheck() permissions and handling.
+    - bittype() access lowered to Architect level
+    - NO_CODE flag made visual to Architect
+  1.0.2
+    - Several convenience changes and fixes: _ Attributes moved to @aflags
+      system, allowing Architects to set, Guildmasters to see them.
+    - @flagdef lowered to Royalty level. @quota/max, @quota/unlock and @convert
+      moved to Architect level.
+    - NO_CODE flag made settable/unsettable by Architects.
+    - Fixed typo in conf file: ifselse -> ifelse
+    - Switched _Attributes to use the @aflags system
+      See: Guildmaster
+      Set: Architect
+  1.0.3
+    - Removed @flagdefs from in-game softcode, converted to flag_access_*
+      config options
+    - Lowered mailstatus() access to architect.
+  1.0.4
+    - Changed softcoded objid() to tag(), due to Rhost's new hardcoded
+      objid() which does perform a different functionality.
+    - Added more staff recommendations to this file.
+    - Added Reality TXLevel 'Admin' to all objects in the db except #1
+--------------------------------------------------------------------------------
+<READ THIS DOCUMENT CAREFULLY!>
+
+Greetings,
+This minimal Rhost DB was made with a secure setup, and as a good base to start
+a new game off in mind.
+
+It offers the following features:
+* Limbo, Master Room and Auxiliary room.
+* BC-Admin-<bitlevel> characters set up for each bitlevel to own global and
+  data objects, and inherit to.
+* BC-Admin-Mortal is @powered EXAMINE_ALL(Guildmaster), NOFORCE(Architect) and
+  LONG_FINGERS.
+* @startup on BC-Admin-Immortal lowers DARK flag access to Councilor level, and
+  NO_CODE visual access to Architect level.
+* Global Command objects inheriting from each bitlevel, with a separate staff-
+  -only object for each level.
+* Global Function objects inheriting from each bitlevel.
+* local Function objects inheriting from each bitlevel.
+* @function and @hook access lowered to Royalty level to remove immediate need
+  for Immortals or actual Immortal code.
+* @rxlevel, @txlevel, bittype() access lowered to Architect level to remove
+  immediate need for Royalty in many cases.
+* @startup on BC-Admin-Royalty to automatically load @hooks and @functions from
+  the Global Function objects, based on attribute naming.
+* Misc Data object to hold general data, like Staff lists etc.
+* Reality levels 'Real' and 'Admin'.
+  All created items and players by default are in Recieve-Level 'Real' and
+  Transmit-Levels 'Real' and 'Admin'.
+* All globals, Master Room, BCs-*, and other staff/code-related objects
+  currently have only 'Admin' as their Transmit-Level. This does not prevent
+  them fromi working properly. The only exception is #1, who has empty reality
+  levels.
+* The supplied netrhost.conf offers a secure setup of options, allows Royalty
+  to use @hook and @function, and also sets the function_access of several
+  functions to !no_code, which allows NO_CODE players to use the comsys
+  properly.
+  IT IS HIGHLY RECOMMENDED to use this .conf as a base for this DB.
+  The 'Port' configuration parameter is XXXX'd out. Set it first before starting
+  your game.
+* All existing objects have been @set SAFE and INDESTRUCTABLE.
+* All existing objects have a paranoid series of @locks set on themselves.
+* The +supersafe command is provided on #1 as an example of what was used to
+  easily set this on objects.
+* Players are @set NO_CODE and WANDERER by default. They get 40 credits on
+  creation, and a 1-credit-per-day paycheck.
+* All *mit sideeffects, as well as set(), create() and list() are enabled. The
+  latter three are necessary for the Comsystem. The rest of sideeffects are
+  disabled completely.
+* Flashing ansi is disabled.
+* _Attributes are settable by Architects, and seeable by Guildmasters. Read:
+  Still invisible and unsettable by mortals.
+* Architects can set up, unlock, and change alternate @quota on players.
+* Architects can set/unset the NO_CODE flag.
+* Guildmasters can see _Attributes
+* Architects can set _Attributes
+
+* Set-up compatibility SoftFunctions and @hook object.
+* Set up Comsys 1.0.9b at Architect level. (+bbhelp command)
+* Set up Myrddin +bboard at Architect level.
+* Set up Myrddon Cron at Architect level.
+* Anomaly Jobs (+jhelp)
+* SGP Places & Mutter 
+* Set up Penn-style follow.
+* Set up @scan (Up to architect-level items).
+* Set up Penn- and Mux compatibility Mailwrappers. (phelp and mhelp commands)
+* help .txt files and .indx files for the above.
+* @dynhelp access lowered to architect to call above helpfiles.
+
+* tag() - Softcoded function that returns #dbrefs based on an identifier.
+  This is an aid to write softcode that uses no hardcoded #dbrefs at all, making
+  it more cross-mush compatible and ready for backups.
+  tag(identifier) - Returns the #dbref.
+  tag() - shows a list of identifiers, their dbrefs and explaination.
+  The TAG object is in the auxiliary room.
+  It simply holds attributes like &tag_<identifier> = #dbref|Text.
+  Use tag(identifier) instead of a literal #dbref in any softcoded system.
+  All current important objects have tag() entries already, and tag() is
+  used in BC-Admin-Royalty's @startup to refer to the Global Function objects.
+  The only hardcoded #dbref (comsys internals excluded) is in the same startup,
+  the #dbref of the Mortal Function object, to load the tag() function off it.
+* isstaff() - Softcoded function that returns '1' if its argument matches
+  a #dbref in the 'isstaff' attribute on the Misc Data object.
+* bccheck() - Softcoded function that returns '1' if its argument matches
+  a #dbref in the 'bcs' attribute on the Misc Data object.
+* width() - Softcoded function that returns 78 for now. For cross-MU*
+  compatibility.
+* pass() - Softcoded function that takes a number as its parameter, and return
+  a random string of that length. Perfect for setting random passwords.
+* cmdmessage() - Softcoded function that takes two strings as its parameters.
+  Returns '<< STRING1 >> String2'. The <<>> part is highlighted red. Good for
+  all kinds of messages sent by game commands.
+* header() - Highly versatile, and a buffer-saving alternative
+  to using printf() for centering with ansi borders. HIGHLY recommended to use
+  instead of printf() for such things.
+  header(text,width,filler,fillercolor,outerpadding,paddingcolor,
+         leftinnerpadding,leftinnercolor,rightinnerpadding,rightinnercolor)
+    text - Text to center
+    width - Width of the header, defaults to width()
+    filler - Character(s) to draw the line with. Default: =
+    fillercolor - ansicode to color the line with
+    outerpadding - Characters to frame the outer ends of the line with.
+    paddingcolor - ansicode to color the outer characters with
+    leftinnerpadding - characters to put at the left side of <text>
+    leftinnercolor - ansicode to color the leftside characters with
+    rightinnerpadding - characters to put at the right side of <text>
+    rightinnercolor - ansicode to color the rightside characters with
+  ALL of header()'s parameters are optional. By default, header() simply draws
+  a 78-char wide line of ='s. Simply leave parameters empty if you want to set
+  one of the latter parameters.
+
+
+The whole DB is highly geared for a low-bitlevel setup.
+I am a strong believer in least-privileges-needed to do the job. Bittypes and
+powers are tools to do that job, not badges of friendship or trust that get
+tossed about.
+
+
+Here is my suggested list of powers and bittypes for staffers:
+
+Storytellers  - @powered TEL_ANYWHERE, JOIN_PLAYER and GRAB_PLAYER on
+                Guildmaster level.
+Builder-BCs   - Mortal, with @quota and money for their job. There should be one
+                shared BC for each area of the game, like BC-Houston. Special
+                Rooms, items or exits that require privilegs to examine or @tel
+                a player should belong to a BC-Houston-Powered that is @powered
+                EXAMINE_ALL, LONG_FINGERS And TEL_ANYTHING on Guildmaster level.
+                If the object actually needs to modify a player directly, have
+                it use a restricted staff Global, or if you absolutely must,
+                make a BC-Houston-Admin and @set it Architect. Do not give
+                normal builders access to it, only @chown things to it and @set
+                them inherit after review.
+                Both the -powered and -admin BCs can have random passwords and
+                be @set NO_CONNECT.
+Building Head - @set Guildmaster, powered TEL_ANYWHERE, TEL_ANYTHING and
+                optionally CHOWN_OTHER on Guildmaster level. Mind that the
+                latter technically allows them to @chown anything guildmaster-
+                and lower-owned in the master and auxiliary rooms. However,
+                it allows the Building Head to @chown items between BCs- and
+                to the BC-<location>-powered.
+Enforcers     - As Storyteller above, plus being @powered Security at
+                Guildmaster level, in order to handle problem players.
+                Optionally always given to Storytellers.
+Coders        - @set Architect.
+Head Coder    - Always trust your head coder.
+                @set Architect for the everyday bit. Give access to a
+                maintenance Councilor bit for special code projects. Finished
+                code along those lines should get @chowned to the
+                bc-admin-councilor.
+                If you as the MU* Head(s) don't know Softcode well, or want to
+                leave anything Code to your Head Coder, also give them optional
+                access to a maintenance Royalty bit in order to properly code
+                banning/blacklisting +commands and other rare code that requires
+                Royalty powers. Again, chown finished code to bc-admin-royalty.
+MU* Head(s)   - You're the boss(es). But please use an Architect bit for your
+                everyday things. Keep Immortal to yourself. Keep #1 to yourself.
+                And seriously avoid using either of them except for creating
+                a Royalty bit or doing intricate DB maintenance.
+Site Admins   - They already have more powers than any in-game bit can ever
+                have ;)
+                Depending on actual involvement with your game, their abilities
+                in-game can range from merely being @powered free_wall for 
+                notifying players of downtimes and/or being @powered shutdown in
+                order to shut down the game for maintenance, up to being the
+                only person with actual access to #1.
+
+Handle necessary functionality for adminning through the admin-only globals and
+softcode.
+
+The setup I personally suggest is to have ALL staffers be AT MAX Architect-level
+for everyday work and communication, with special coders that -really- require
+it having Councilor-characters available to log into for maintenance or special
+code setup. Technically if everything is done right, the Coder(s) of the game do
+not require higher privileges than Architect for the vast majority of things.
+Royalty-level code should be a rare exception, if at all necessary. The MU*
+Head(s) or site-admin should be the only one having access to #1, Immortals or
+perhaps even Royalty. The BC's, Global Function objects and Function objects at
+level Royalty and higher have simply been provided as a if-necessary convenience.
+
+
+Current objects are only @chowned to certain bitlevels if it is really required
+for them to function. Whenever possible, they have been @chowned to the mortal
+BC-Admin-Mortal. All custom global functions listed above except for tag() are
+on the semi-mortal Global Functions object. The Master Room and Auxiliary Room
+have been @chowned to BC-Admin-Architect.
+
+The Comsystem and +bboard are owned by BC-Admin-Architect, which means that
+higher bitlevels might not be able to use those systems if they hide and set
+themselves DARK. This is intentional. The Architect bitlevel is enough to freely
+set attributes on players, so these systems did not need anything higher, and
+it prioritizes Councilor+ as mere mainenance-duty bitlevels. Even the MU* Head
+should log on as an Architect for everyday things.
+
+The Comsystem and BBOARD have been modified to be configurable by Architect and
+higher. Both systems have a CANUSE attribute with the according code on them.
+Note that if you want both systems to be only configurable by Councilor+, that
+instead of @chowning them to a Councilor after changing those attribute for
+Councilor or higher, I suggest to simply @set the bboard and comsystem core
+objects NO_MODIFY instead, keeping them at Architect-power but making them
+unmodifyable by Architects.
+
+
+I highly recommend the use of the alternative @quota system. BC-Admin-Mortal
+and BC-Admin-Guildmaster both have this @quota system set up on themselves. Both
+of them have a high amount of money for everyday operations. You should not give
+them free quota or money.
+
+I also recommend to setup most global functions with /Privileged even if they
+are mortal-powered, to make them work even when players are set NO_CODE and
+WANDERER by default.
+
+Enjoy!
+
+P.S. the 'bin/asksource.save0' file has been supplied for loading in the
+'make config' or 'make confsource' step of Rhost installation. It provides the
+settings I have used when creating this database. Some settings, like the ANSI
+substitution, are used in the DB.
+
+--Ambrosia@RhostMUSH

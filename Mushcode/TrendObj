@@ -1,0 +1,132 @@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Trend Object version 1.0.5
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ Change Notes:
+@@
+@@ User              Date       Description                             Ver
+@@ ----------------- ---------- --------------------------------------- ------
+@@ Ashen-Shugar      02/27/2016 Added +trend/hour                       1.0.1
+@@ Ashen-Shugar      02/29/2016 Changed iter() to list() for buffering  1.0.2
+@@ Ashen-Shugar      03/02/2016 Added ^/v chevrons in +trend/hour       1.0.3
+@@ Ashen-Shugar      03/02/2016 Added +trend/record hour                1.0.3
+@@ Ashen-Shugar      04/05/2016 Bug in +trend/record hour               1.0.4
+@@ Ashen-Shugar      04/05/2016 Made AVG values more progressive        1.0.5
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@
+@@ -- +trend <date> -- shows the specified week's trend of MAX and UNIQUE
+@@ -- +trend
+@@ -- +trend ............. - Show current week's trend.
+@@ -- +trend <date> ...... - Show specified week's trend.
+@@ -- +trend/month ....... - Show year's trend by month.
+@@ -- +trend/year ........ - Show current year's trend.
+@@ -- +trend/year <year> . - Show specified year's trend.
+@@ -- +trend/record ...... - Show statistics of maximums for month and year.
+@@ -- +trend/hour ........ - Show hourly trend for the day.
+@@ -- +trend/help .......  - The help command for listing all the above.
+@@
+@@ Note: Stepping is by default '5'.  With a max of '100'.  This will 
+@@       dynamically increase if you ever exceed 100 connections and continue
+@@       to do so.  For initial low connections, feel free to set this
+@@       to a lower value to begin with.  No, there's no known 'ceiling' 
+@@       on the range, so happy mudding.
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Create the TrendDB that houses the yearly statistics (done daily)
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@create TrendDB=10
+@set TrendDB=INDESTRUCTABLE SAFE HALT
+@@ -- Create the main functionary object
+@create TrendFun=10
+@fo me=&DB TrendFun=num(TrendDB)
+@fo me=&F-DB TrendFun=num(TrendFun)
+&VERSION TrendFun=1.0.5
+&FN_EVENLINE TrendFun=[printf($-8:!-:s- |[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]$-3s$-3s[space(3)]|,ifelse(v(0),ansi(hc,v(0)%b)),v(1),v(2),v(3),v(4),v(5),v(6),v(7),v(8),v(9),v(10),v(11),v(12),v(13),v(14))]
+&FN_CURR TrendFun=[switch([eq(%0,v(step))][and(!!$v(1),gte(%1,0))],11,u(fn_currval,%0,%1),01,u(fn_currcol,%0,%1),10,N/A)]
+&FN_MAX TrendFun=[switch([eq(%0,v(step))][and(!!$v(1),gte(%1,0))],11,u(fn_maxval,%0,%1),01,u(fn_maxcol,%0,%1),10,ifelse(%qx,A))]
+&FN_CURRVAL TrendFun=[ansi(hC,ljust(%1,3))]
+&FN_MAXVAL TrendFun=[ansi(hM,ljust(%1,3))]
+&STEP TrendFun=5
+@@ Use this if the install breaks on the list
+@@ &FN_DOWNSTEP TrendFun=[u(fn_downstep_iter,%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
+&FN_DOWNSTEP TrendFun=[u(fn_downstep_list,%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
+&FN_DOWNSTEP_ITER TrendFun=[space(10)]+[center(- [ansi(hc,Week Trend)] for [ansi(hc,u([v(F-DB)]/fn_genstartdate,%t))] -,66,-)]+[iter(lnum(mul(v(step),20),v(step),,v(step)),%r[u(fn_evenline,ifelse(mod(#@,2),,%i0),u(fn_curr,%i0,first(get([v(DB)]/%0))),u(fn_max,%i0,rest(get([v(DB)]/%0))),u(fn_curr,%i0,first(get([v(DB)]/%1))),u(fn_max,%i0,rest(get([v(DB)]/%1))),u(fn_curr,%i0,first(get([v(DB)]/%2))),u(fn_max,%i0,rest(get([v(DB)]/%2))),u(fn_curr,%i0,first(get([v(DB)]/%3))),u(fn_max,%i0,rest(get([v(DB)]/%3))),u(fn_curr,%i0,first(get([v(DB)]/%4))),u(fn_max,%i0,rest(get([v(DB)]/%4))),u(fn_curr,%i0,first(get([v(DB)]/%5))),u(fn_max,%i0,rest(get([v(DB)]/%5))),u(fn_curr,%i0,first(get([v(DB)]/%6))),u(fn_max,%i0,rest(get([v(DB)]/%6))))])]%r[space(10)]+[repeat(-,66)]+%r[printf([space(14)]$-8s $-8s $-8s $-8s $-8s $-8s $-8s,Sun, Mon, Tue, Wed, Thu, Fri, Sat)]%r[space(14)]%[Version: [v(version)]%] Key: [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE CONNECTIONS)]
+&FN_DOWNSTEP_LIST TrendFun=[list(lnum(mul(v(step),20),v(step),,v(step)),[u(fn_evenline,ifelse(mod(#@,2),,%i0),u(fn_curr,%i0,first(get([v(DB)]/%0))),u(fn_max,%i0,rest(get([v(DB)]/%0))),u(fn_curr,%i0,first(get([v(DB)]/%1))),u(fn_max,%i0,rest(get([v(DB)]/%1))),u(fn_curr,%i0,first(get([v(DB)]/%2))),u(fn_max,%i0,rest(get([v(DB)]/%2))),u(fn_curr,%i0,first(get([v(DB)]/%3))),u(fn_max,%i0,rest(get([v(DB)]/%3))),u(fn_curr,%i0,first(get([v(DB)]/%4))),u(fn_max,%i0,rest(get([v(DB)]/%4))),u(fn_curr,%i0,first(get([v(DB)]/%5))),u(fn_max,%i0,rest(get([v(DB)]/%5))),u(fn_curr,%i0,first(get([v(DB)]/%6))),u(fn_max,%i0,rest(get([v(DB)]/%6))))],,[space(10)]+[center(- [ansi(hc,Week Trend)] for [ansi(hc,u([v(F-DB)]/fn_genstartdate,%t))] -,66,-)]+)][space(10)]+[repeat(-,66)]+%r[printf([space(14)]$-8s $-8s $-8s $-8s $-8s $-8s $-8s,Sun, Mon, Tue, Wed, Thu, Fri, Sat)]%r[space(14)]%[Version: [v(version)]%] Key: [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE CONNECTIONS)]
+&DAT_DAYS TrendFun=Sun Mon Tue Wed Thu Fri Sat
+&DAT_MONTH TrendFun=Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
+&FN_GENDATE TrendFun=[printf(VAL_$02s_$02s, match(v(dat_month),extract(%qt,2,1)), extract(%qt,3,1))]
+&FN_PULLATTRS TrendFun=[u(fn_storedate,%0)][u(fn_getsunday)][revwords(extract(after(revwords([setq(r,sub(match(v(dat_days),extract(%qt,1,1)),1))] X X X X X X X [sort(lattr([v(DB)]/VAL_*))] [setq(u,%qt)][iter(lnum(%qr,0),[setq(t,convsecs(sub(convtime(%qu),mul(86400,%i0))))][ifelse(hasattr(v(DB),u(fn_gendate)),,u(fn_gendate))])]),u(fn_gendate)),1,sub(match(v(dat_days),extract(%qt,1,1)),1)))] [u(fn_gendate)]
+&FN_RUNSTAT TrendFun=[setq(0,u(fn_pullattrs,%0))][u(fn_downstep,extract(%q0,1,1),extract(%q0,2,1),extract(%q0,3,1),extract(%q0,4,1),extract(%q0,5,1),extract(%q0,6,1),extract(%q0,7,1))]
+&FN_CURRCOL TrendFun=[ifelse(lte(%0,%1),ansi(hC,space(3)))]
+&FN_MAXCOL TrendFun=[ifelse(lte(%0,%1),ansi(hM,space(3)))]
+&FN_GENSTARTDATE TrendFun=[setq(a,match(v(dat_days),extract(%qt,1,1)))][setq(b,mul(sub(%qa,1),86400))][setq(c,convsecs(sub(convtime(%qt),%qb)))][printf($02s-$02s-$s,match(v(dat_month),extract(%qc,2,1)),extract(%qc,3,1),extract(%qc,5,1))]
+&FN_STOREDATE TrendFun=[setq(t,convtime(%0))][setq(t,ifelse(eq(%qt,-1),time(),convsecs(%qt)))]
+&FN_GETSUNDAY TrendFun=[setq(t,convsecs(add(convtime(%qt),mul(sub(7,match(v(dat_days),extract(%qt,1,1))),86400))))]
+&FN_MONTHHIGH TrendFun=[setq(a,0)][setq(b,0)][setq(0,get([v(DB)]/[setr(z,mon_[match(v(dat_month),extract(time(),2,1))])]))][setq(1,first(%q0))][setq(2,rest(%q0))][setq(3,words(lwho()))][setq(4,words(setdiff(iter(lwho(),lookup_site(##)),#-1)))][setq(5,[ifelse(gt(%q3,%q1),%q3[setq(a,1)],%q1)] [ifelse(gt(%q4,%q2),%q4[setq(a,1)][setq(b,1)],%q2)])]
+&FN_MONTHLINE TrendFun=[printf($-8:!-:s- |[space(4)]$-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s $-2s$-2s[space(3)]|,v(0),v(1),v(2),v(3),v(4),v(5),v(6),v(7),v(8),v(9),v(10),v(11),v(12),v(13),v(14),v(15),v(16),v(17),v(18),v(19),v(20),v(21),v(22),v(23),v(24))]
+&FN_RUNMONTH_HEADER TrendFun=[setq(v,timefmt($M,secs()))][setq(x,1)][setq(y,after(v(dat_month),extract(time(),2,1)))][space(10)]+[center(- [ansi(hc,Monthly Trend)] for [ansi(hr,sub(timefmt($Y,secs()),1))] to [ansi(hc,timefmt($Y,secs()))] -,66,-)]+[setq(d,timefmt($M,secs()))]
+@@ Use this if the install breaks on the list
+@@ &FN_RUNMONTH TrendFun=[u(fn_runmonth_iter)]
+&FN_RUNMONTH TrendFun=[u(fn_runmonth_list)]
+&FN_RUNMONTH_ITER TrendFun=[u(fn_runmonth_header)][iter(lnum(mul(v(step),20),v(step),,v(step)),%r[u(fn_monthline,ifelse(mod(#@,2),,%i0),u(fn_currx,%i0,1),u(fn_maxx,%i0,1),u(fn_currx,%i0,2),u(fn_maxx,%i0,2),u(fn_currx,%i0,3),u(fn_maxx,%i0,3),u(fn_currx,%i0,4),u(fn_maxx,%i0,4),u(fn_currx,%i0,5),u(fn_maxx,%i0,5),u(fn_currx,%i0,6),u(fn_maxx,%i0,6),u(fn_currx,%i0,7),u(fn_maxx,%i0,7),u(fn_currx,%i0,8),u(fn_maxx,%i0,8),u(fn_currx,%i0,9),u(fn_maxx,%i0,9),u(fn_currx,%i0,10),u(fn_maxx,%i0,10),u(fn_currx,%i0,11),u(fn_maxx,%i0,11),u(fn_currx,%i0,12),u(fn_maxx,%i0,12))])]%r[u(fn_runmonth_foot)]
+&FN_RUNMONTH_LIST TrendFun=[list(lnum(mul(v(step),20),v(step),,v(step)),[u(fn_monthline,ifelse(mod(#@,2),,%i0),u(fn_currx,%i0,1),u(fn_maxx,%i0,1),u(fn_currx,%i0,2),u(fn_maxx,%i0,2),u(fn_currx,%i0,3),u(fn_maxx,%i0,3),u(fn_currx,%i0,4),u(fn_maxx,%i0,4),u(fn_currx,%i0,5),u(fn_maxx,%i0,5),u(fn_currx,%i0,6),u(fn_maxx,%i0,6),u(fn_currx,%i0,7),u(fn_maxx,%i0,7),u(fn_currx,%i0,8),u(fn_maxx,%i0,8),u(fn_currx,%i0,9),u(fn_maxx,%i0,9),u(fn_currx,%i0,10),u(fn_maxx,%i0,10),u(fn_currx,%i0,11),u(fn_maxx,%i0,11),u(fn_currx,%i0,12),u(fn_maxx,%i0,12))],,,u(fn_runmonth_header))][u(fn_runmonth_foot)]
+&FN_RUNMONTH_FOOT TrendFun=[space(10)]+[repeat(-,66)]+%r[printf([space(15)]$-4s $-4s $-4s $-4s $-4s $-4s $-4s $-4s $-4s $-4s $-4s $-4s,u(fn_colormon,Jan),u(fn_colormon,Feb),u(fn_colormon,Mar),u(fn_colormon,Apr),u(fn_colormon,May),u(fn_colormon,Jun),u(fn_colormon,Jul),u(fn_colormon,Aug),u(fn_colormon,Sep),u(fn_colormon,Oct),u(fn_colormon,Nov),u(fn_colormon,Dec))]%r[space(14)]%[Version: [v(version)]%] Key: [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE)] [ansi(hr,LAST YEAR STATS)]
+&FN_YEARLINE TrendFun=[printf($-9:!-:s- |[space(5)]$-3s$-3s $-3s$-3s $-3s$-3s $-3s$-3s $-3s$-3s $-3s$=3s $-3s$-3s $-3s$-3s[space(5)]|,v(0),v(1),v(2),v(3),v(4),v(5),v(6),v(7),v(8),v(9),v(10),v(11),v(12),v(13),v(14),v(15),v(16),v(17))]
+&FN_RUNYEAR_HEADER TrendFun=[setq(t,convtime(ifelse(!!$v(0),[extract(time(),1,4)] %0,time())))][ifelse(eq(%qt,-1),setq(t,secs()))][setq(t,timefmt($Y,%qt))][space(11)]+[center(- Trend for year [ansi(hc,%qt)]-,65,-)]+
+&FN_YEARHIGH TrendFun=[setq(a,0)][setq(b,0)][setq(0,get([v(DB)]/[setr(z,year_[timefmt($Y,secs())])]))][setq(1,first(%q0))][setq(2,rest(%q0))][setq(3,words(lwho()))][setq(4,words(setdiff(iter(lwho(),lookup_site(##)),#-1)))][setq(5,[ifelse(gt(%q3,%q1),%q3[setq(a,1)],%q1)] [ifelse(gt(%q4,%q2),%q4[setq(a,1)][setq(b,1)],%q2)])]
+@@ Use this if the install breaks on the list
+@@ &FN_RUNYEAR TrendFun=[u(fn_runyear_iter)]
+&FN_RUNYEAR TrendFun=[u(fn_runyear_list,%0)]
+&FN_RUNYEAR_ITER TrendFun=[u([v(F-DB)]/fn_runyear_header,%0)][iter(lnum(mul(v(step),20),v(step),,v(step)),%r[u(fn_yearline,ifelse(mod(#@,2),,%i0),u(fn_curry,%i0,%qt),u(fn_maxy,%i0,%qt),u(fn_curry,%i0,add(%qt,1)),u(fn_maxy,%i0,add(%qt,1)),u(fn_curry,%i0,add(%qt,2)),u(fn_maxy,%i0,add(%qt,2)),u(fn_curry,%i0,add(%qt,3)),u(fn_maxy,%i0,add(%qt,3)),u(fn_curry,%i0,add(%qt,4)),u(fn_maxy,%i0,add(%qt,4)),u(fn_curry,%i0,add(%qt,5)),u(fn_maxy,%i0,add(%qt,5)),u(fn_curry,%i0,add(%qt,6)),u(fn_maxy,%i0,add(%qt,6)),u(fn_curry,%i0,add(%qt,7)),u(fn_maxy,%i0,add(%qt,7)),u(fn_curry,%I0,add(%qt,8)),u(fn_maxy,%i0,add(%qt,8)))])]%r[u(fn_runyear_foot)]
+&FN_RUNYEAR_LIST TrendFun=[list(lnum(mul(v(step),20),v(step),,v(step)),[u(fn_yearline,ifelse(mod(#@,2),,%i0),u(fn_curry,%i0,%qt),u(fn_maxy,%i0,%qt),u(fn_curry,%i0,add(%qt,1)),u(fn_maxy,%i0,add(%qt,1)),u(fn_curry,%i0,add(%qt,2)),u(fn_maxy,%i0,add(%qt,2)),u(fn_curry,%i0,add(%qt,3)),u(fn_maxy,%i0,add(%qt,3)),u(fn_curry,%i0,add(%qt,4)),u(fn_maxy,%i0,add(%qt,4)),u(fn_curry,%i0,add(%qt,5)),u(fn_maxy,%i0,add(%qt,5)),u(fn_curry,%i0,add(%qt,6)),u(fn_maxy,%i0,add(%qt,6)),u(fn_curry,%i0,add(%qt,7)),u(fn_maxy,%i0,add(%qt,7)),u(fn_curry,%I0,add(%qt,8)),u(fn_maxy,%i0,add(%qt,8)))],,u(fn_runyear_header,%0))][u(fn_runyear_foot)]
+&FN_RUNYEAR_FOOT TrendFun=[space(11)]+[repeat(-,65)]+%r[printf([space(17)]$-6s $-6s $-6s $-6s $-6s $-6s $-6s $-6s,u(fn_coloryear,%qt),u(fn_coloryear,add(%qt,1)),u(fn_coloryear,add(%qt,2)),u(fn_coloryear,add(%qt,3)),u(fn_coloryear,add(%qt,4)),u(fn_coloryear,add(%qt,5)),u(fn_coloryear,add(%qt,6)),u(fn_coloryear,add(%qt,7)),u(fn_coloryear,add(%qt,8)))]%r[space(14)]%[Version: [v(version)]%] Key: [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE)] [ansi(hr,NO YEAR DATA)]
+&FN_COLORYEAR TrendFun=%ch[ifelse(hasattr([v(DB)]/year_%0),%cc,%cr)]%0%cn
+&FN_COLORMON TrendFun=%ch[ifelse(match(%qy,%0),%cr,%cc)]%0%cn
+&FN_RECORDS TrendFun=[u(fn_records_[setq(0,grab(v(fn_records_lists),[trim(%0)]*))][ifelse(!$r(0),OVERVIEW,%q0)])]
+&FN_RECORDS_HOURS TrendFun=[setq(j,timefmt($h,secs()))][center(- Trend Records %[Hourly Reports%]-,79,-)][iter(lnum(0,23),%r%[[switch([gt(%qj,setr(o,printf($02s,%i0)))][lt(%qj,%qo)],10,%ch%cg%qo%cn,01,%ch%cr%qo%cn,%cC%qo%cn)]%] %ch%ccMax: [ljust(extract(get([v(DB)]/H_%i0),2,1),3)]%cn %[%ch%cyAvg: [ljust([setr(8,first(get([v(DB)]/H_%i0)))]/[setq(7,ifelse(lte(words(get([v(DB)]/H_%i0)),3),%q8,extract(get([v(DB)]/H_%i0),4,1)))][ifelse(gte(%q7,%q8),%ch%cg,%ch%cr)]%q7%cn%],8)] [default([v(DB)]/H_%i0_MAX,%b%b-%b%b-%b%b%b%b %b%b:%b%b:%b%b)]%, %ch%cmUnq: [ljust(extract(get([v(DB)]/H_%i0),3,1),3)]%cn [default([v(DB)]/H_%i0_UNIQUE,%b%b-%b%b-%b%b%b%b %b%b:%b%b:%b%b)])]%r[repeat(-,79)]%rKeys: [ansi(hc,MAX USERS)] [ansi(hy,AVG USERS)] [ansi(hm,MAX UNIQUE)] [ansi(hg,TODAYS USERS GTE AVG)] [ansi(hr,TODAYS USERS LT AVG)]
+&FN_RECORDS_OVERVIEW TrendFun=[center(- Trend Records -,78,-)]%rMax Yearly:-------------------%r[iter(lattr([v(DB)]/YEAR_????),%r%[[after(%i0,_)]%] %ch%ccUsers: [ljust(first(get([v(DB)]/%i0)),4)]%cn on [get([v(DB)]/%i0_date)]%, %ch%cmUnique: [ljust(rest(get([v(DB)]/%i0)),4)]%cn on [get([v(DB)]/%i0_date_max)])]%r%rMax Monthly:--------------------%r[iter(lnum(1,12),%r%[[extract(v(dat_month),%i0,1)]%] %ch%cc%bUsers: [ljust(first(default([v(DB)]/mon_%i0,%ch%crN/A)),4)]%cn on [default([v(DB)]/mon_%i0_date,%b%b-%b%b-%b%b%b%b %b%b:%b%b:%b%b)]%, %ch%cmUnique: [ljust(rest(default([v(DB)]/mon_%i0,X %ch%crN/A)),4)]%cn on [default([v(DB)]/mon_%i0_date_max,%b%b-%b%b-%b%b%b%b %b%b:%b%b:%b%b)])]%r[repeat(-,78)]
+&FN_RECORDS_LISTS TrendFun=OVERVIEW HOURS
+&FN_CURRX TrendFun=[u(fn_curr,%0,first(get([v(DB)]/mon_%1)))]
+&FN_CURRY TrendFun=[u(fn_curr,%0,first(get([v(DB)]/year_%1)))]
+&FN_MAXX TrendFun=[u(fn_max,%i0,rest(get([v(DB)]/mon_%1)))]
+&FN_MAXY TrendFun=[u(fn_max,%0,rest(get([v(DB)]/year_%1)))]
+@@ Use this if the install breaks on the list
+@@ &FN_RUNHOUR TrendFun=[u(fn_runhour_iter)]
+&FN_RUNHOUR TrendFun=[u(fn_runhour_list)]
+&FN_RUNHOUR_ITER TrendFun=[u([v(F-DB)]/fn_runhour_header)][iter(lnum(mul(v(step),20),v(step),,v(step)),%r[u(fn_hourline,ifelse(mod(#@,2),,%i0),u(fn_colorhour,%i0,0),u(fn_colorhour,%i0,1),u(fn_colorhour,%i0,2),u(fn_colorhour,%i0,3),u(fn_colorhour,%i0,4),u(fn_colorhour,%i0,5),u(fn_colorhour,%i0,6),u(fn_colorhour,%i0,7),u(fn_colorhour,%i0,8),u(fn_colorhour,%i0,9),u(fn_colorhour,%i0,10),u(fn_colorhour,%i0,11),u(fn_colorhour,%i0,12),u(fn_colorhour,%i0,13),u(fn_colorhour,%i0,14),u(fn_colorhour,%i0,15),u(fn_colorhour,%i0,16),u(fn_colorhour,%i0,17),u(fn_colorhour,%i0,18),u(fn_colorhour,%i0,19),u(fn_colorhour,%i0,20),u(fn_colorhour,%i0,21),u(fn_colorhour,%i0,22),u(fn_colorhour,%i0,23))])]%r[u(fn_runhour_foot)]
+&FN_RUNHOUR_LIST TrendFun=[list(lnum(mul(v(step),20),v(step),,v(step)),[u(fn_hourline,ifelse(mod(#@,2),,%i0),u(fn_colorhour,%i0,0),u(fn_colorhour,%i0,1),u(fn_colorhour,%i0,2),u(fn_colorhour,%i0,3),u(fn_colorhour,%i0,4),u(fn_colorhour,%i0,5),u(fn_colorhour,%i0,6),u(fn_colorhour,%i0,7),u(fn_colorhour,%i0,8),u(fn_colorhour,%i0,9),u(fn_colorhour,%i0,10),u(fn_colorhour,%i0,11),u(fn_colorhour,%i0,12),u(fn_colorhour,%i0,13),u(fn_colorhour,%i0,14),u(fn_colorhour,%i0,15),u(fn_colorhour,%i0,16),u(fn_colorhour,%i0,17),u(fn_colorhour,%i0,18),u(fn_colorhour,%i0,19),u(fn_colorhour,%i0,20),u(fn_colorhour,%i0,21),u(fn_colorhour,%i0,22),u(fn_colorhour,%i0,23))],,u(fn_runhour_header))][u(fn_runhour_foot)]
+&FN_HOURLINE TrendFun=[printf($-3:!-:s-|$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s|,v(0),v(1),v(2),v(3),v(4),v(5),v(6),v(7),v(8),v(9),v(10),v(11),v(12),v(13),v(14),v(15),v(16),v(17),v(18),v(19),v(20),v(21),v(22),v(23),v(24),v(25))]
+&FN_COLORHOUR TrendFun=[setq(0,get([v(DB)]/H_%1))][setq(1,first(%q0))][setq(2,extract(%q0,2,1))][setq(3,extract(%q0,3,1))][setq(l,%b)][ifelse(eq(%0,mul(v(step),20)),[setq(k,ifelse(lte(words(%q0),3),-1,extract(%q0,4,1)))][setq(l,switch([eq(%qk,-1)][gte(%qk,%q1)],00,%ch%crv,01,%ch%cg^,%b))])][ifelse(!!$r(1),ifelse(gte(%q1,%0),%ch%cY%ql%cn,ifelse(and(eq(%0,v(step)),gt(%q1,0)),%ch%cY%ql%cn,%ch%ql)),ifelse(eq(%0,v(step)),N))][ifelse(!!$r(2),ifelse(gte(%q2,%0),%cC%b%cn,ifelse(and(eq(%0,v(step)),gt(%q2,0)),%cC%b%cn,%b)),ifelse(eq(%0,v(step)),A))][ifelse(!!$r(3),ifelse(gte(%q3,%0),%cM%b%cn,ifelse(and(eq(%0,v(step)),gt(%q3,0)),%cM%b%cn)))]
+&FN_HOURHIGH TrendFun=[setq(v,min(10,max(2,add(1,div(sub(secs(),v(fn_starttime)),86400)))))][setq(j,ifelse(!$v(0),timefmt($h,secs()),%0))][setq(a,0)][setq(b,0)][setq(c,0)][setq(d,0)][setq(o,get([v(DB)]/H_%qj_SECS))][setq(0,get([v(DB)]/H_%qj))][setq(1,add(0,first(%q0)))][setq(2,add(0,extract(%q0,2,1)))][setq(3,add(0,extract(%q0,3,1)))][setq(s,add(0,extract(%q0,4,1)))][setq(4,round(lavg([setr(5,words(lwho()))] [ifelse(eq(%q1,0),repeat(%q5%b,%qv),repeat(%q1%b,%qv))]),0))][setq(6,words(setdiff(iter(lwho(),lookup_site(##)),#-1)))][setq(9,[ifelse(neq(%q4,%q1),%q4[setq(a,1)][setq(b,1)],%q1)] [ifelse(gt(%q5,%q2),%q5[setq(a,1)][setq(c,1)],%q2)] [ifelse(gt(%q6,%q3),%q6[setq(a,1)][setq(d,1)],%q3)] [ifelse(gt(secs(),add(%qo,3600)),%q5,max(%q5,%qs))])][setq(a,1)]
+&FN_RUNHOUR_HEADER TrendFun=[space(4)]+[center(- Trend for Hourly for %ch%cc[timefmt($02M-$02D-$Y,secs())]%cn -,72,-)]+
+&FN_RUNHOUR_FOOT TrendFun=[setq(h,timefmt($h,secs()))][space(4)]+[repeat(-,72)]+%r[printf([space(5)]$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s,u(fn_colorhour_foot,00),u(fn_colorhour_foot,01),u(fn_colorhour_foot,02),u(fn_colorhour_foot,03),u(fn_colorhour_foot,04),u(fn_colorhour_foot,05),u(fn_colorhour_foot,06),u(fn_colorhour_foot,07),u(fn_colorhour_foot,08),u(fn_colorhour_foot,09),u(fn_colorhour_foot,10),u(fn_colorhour_foot,11),u(fn_colorhour_foot,12),u(fn_colorhour_foot,13),u(fn_colorhour_foot,14),u(fn_colorhour_foot,15),u(fn_colorhour_foot,16),u(fn_colorhour_foot,17),u(fn_colorhour_foot,18),u(fn_colorhour_foot,19),u(fn_colorhour_foot,20),u(fn_colorhour_foot,21),u(fn_colorhour_foot,22),u(fn_colorhour_foot,23))]%r[space(4)]%[Version: [v(version)]%] Key: [ansi(hy,AVG PLAYER)] [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE)] [ansi(hr,YESTERDAY HOURS)]
+&FN_COLORHOUR_FOOT TrendFun=%ch[switch([lt(%0,%qh)][eq(%0,%qh)],10,%cc,01,%cx%cC,%cr)]%0%cn
+@wait 0=&FN_STARTTIME TrendFun=[secs()]
+@set TrendFun=INDESTRUCTABLE SAFE INHERIT
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Create the master TrendOBJ with the commands
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@create TrendObj=10
+@fo me=&F-DB TrendObj=num(TrendFun)
+@fo me=&DB TrendObj=num(TrendDB)
+&DO_TIME TrendObj=@eval [setq(0,first(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(1,rest(get([v(DB)]/VAL_[timefmt($02M_$02D,secs())])))][setq(2,words(lwho()))][setq(3,words(setdiff(iter(lwho(),lookup_site(##)),#-1)))];&VAL_[timefmt($02M_$02D,secs())] [v(DB)]=[max(%q0,%q2)] [max(%q1,%q3)]
+&CMD_TREND TrendObj=$+trend *:@pemit %#=[u([v(F-DB)]/fn_runstat,%0)]
+&CMD_TRENDNOW TrendObj=$+trend:@pemit %#=[u([v(F-DB)]/fn_runstat)]
+&DO_KEEPER TrendObj=@tr/quiet me/aconnect;@wait 3600=@tr/quiet me/do_keeper
+&CMD_TRENDMON TrendObj=$+trend/mon*:@pemit %#=[u([v(F-DB)]/fn_runmonth)]
+&CMD_TRENDYEAR TrendObj=$+trend/year*:@pemit %#=[u([v(F-DB)]/fn_runyear,%0)]
+&CMD_TRENDRECORDS TrendObj=$+trend/record*:@pemit %#=[u([v(F-DB)]/fn_records,last(%0))]
+&CMD_TRENDHELP TrendObj=$+trend/help:@pemit %#=[center(- Trend Help %[Version [ansi(hc,[get([v(F-DB)]/version)])]%]-,78,-)]%r[ljust(+trend%b,24,.)] - Show current week's trend.%r[ljust(+trend <date>%b,24,.)] - Show specified week's trend.%r[ljust(+trend/month%b,24,.)] - Show year's trend by month.%r[ljust(+trend/year%b,24,.)] - Show current year's trend.%r[ljust(+trend/year <year>%b,24,.)] - Show specified year's trend.%r[ljust(+trend/record %["hour"%]%b,24,.)] - Show statistics of maximums for month and year.%r[ljust(+trend/hour%b,24,.)] - Show hourly trend for the day.%r[repeat(-,78)]
+&CMD_TRENDHOUR TrendObj=$+trend/hour:@pemit %#=[u([v(F-DB)]/fn_runhour)]
+@startup TrendObj=@wait 100=@tr/quiet me/do_keeper
+@Aconnect TrendObj=@tr/quiet me/do_time;@skip/ifelse [gt(words(lwho()),mul(get([v(F-DB)]/step),20))]={&STEP [v(F-DB)]=[add(get([v(F-DB)]/step),1)]};@skip/ifelse [u([v(F-DB)]/fn_monthhigh)]%qa={&%qz [v(DB)]=%q5;&%qz_date [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())];@skip/ifelse %qb={&%qz_date_max [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())]}};@skip/ifelse [u([v(F-DB)]/fn_yearhigh)]%qa={&%qz [v(DB)]=%q5;&%qz_date [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())];@skip/ifelse %qb={&%qz_date_max [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())]}};@skip/ifelse [u([v(F-DB)]/fn_hourhigh)]%qa={&H_[setr(x,timefmt($h,setr(y,secs())))] [v(DB)]=%q9;&H_%qx_SECS [v(DB)]=[secs()];@switch/all 1=%qb,{&H_%qx_AVG [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]},%qc,{&H_%qx_MAX [v(db)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]},%qd,{&H_%qx_UNIQUE [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]}}
+@set TrendObj=INDESTRUCTABLE SAFE INHERIT !NO_COMMAND !HALT
+think Applying the COMMANDS flag.  Ignore if you see a PERMISSION DENIED
+@set TrendObj=COMMANDS
+@tr/quiet trendobj/startup
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Cleanup on aisle one
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@tel/list trenddb trendfun=trendobj
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ -- Ok we're done, let the user know
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+think Completed.

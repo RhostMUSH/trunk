@@ -1219,20 +1219,22 @@ int left;
 
 int safe_copy_chr(char src, char *buff, char **bufp, int max)
 {
-char    *tp;
-int retval;
+char	*tp;
+int	retval;
 
-    tp = *bufp;
-    retval = 0;
-    if ((tp - buff) < max) {
-        *tp++ = src;
-    } else {
-        retval = 1;
-    }
-    *bufp = tp;
-    *tp = '\0';
-/*  *(buff + max) = '\0'; */
-    return retval;
+	if ( src == '\032' )
+           return 0;
+	tp = *bufp;
+	retval = 0;
+	if ((tp - buff) < max) {
+		*tp++ = src;
+	} else {
+		retval = 1;
+	}
+	*bufp = tp;
+	*tp = '\0';
+/*	*(buff + max) = '\0'; */
+	return retval;
 }
 
 int matches_exit_from_list (char *str, char *pattern)

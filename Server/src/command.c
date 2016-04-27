@@ -348,6 +348,7 @@ NAMETAB examine_sw[] =
     {(char *) "quick", 1, CA_PUBLIC, 0, EXAM_QUICK},
     {(char *) "tree", 1, CA_PUBLIC, 0, EXAM_TREE | SW_MULTIPLE},
     {(char *) "regexp", 1, CA_PUBLIC, 0, EXAM_REGEXP | SW_MULTIPLE},
+    {(char *) "cluster", 1, CA_PUBLIC, 0, EXAM_CLUSTER},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB extansi_sw[] =
@@ -561,6 +562,8 @@ NAMETAB zone_sw[] =
     {(char *) "add", 1, CA_PUBLIC, 0, ZONE_ADD},
     {(char *) "delete", 1, CA_PUBLIC, 0, ZONE_DELETE},
     {(char *) "purge", 1, CA_PUBLIC, 0, ZONE_PURGE},
+    {(char *) "replace", 1, CA_PUBLIC, 0, ZONE_REPLACE},
+    {(char *) "list", 1, CA_PUBLIC, 0, ZONE_LIST},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB touch_sw[] =
@@ -762,6 +765,11 @@ NAMETAB open_sw[] =
     {(char *) "location", 1, CA_PUBLIC, 0, OPEN_LOCATION},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB newpassword_sw[] =
+{
+    {(char *) "des", 1, CA_WIZARD, 0, NEWPASSWORD_DES},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
@@ -905,6 +913,11 @@ NAMETAB reclist_sw[] =
     {(char *) "age", 1, CA_IMMORTAL, 0, REC_AGE},
     {(char *) "destroyer", 1, CA_IMMORTAL, 0, REC_DEST},
     {(char *) "free", 1, CA_IMMORTAL, 0, REC_FREE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB register_sw[] =
+{
+    {(char *) "message", 1, CA_PUBLIC, 0, REGISTER_MSG},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB rwho_sw[] =
@@ -1277,7 +1290,7 @@ CMDENT command_table[] =
     {(char *) "@name", NULL,
      CA_NO_SLAVE | CA_NO_GUEST, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_name},
-    {(char *) "@newpassword", NULL, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
+    {(char *) "@newpassword", newpassword_sw, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
      PASS_ANY, CS_TWO_ARG, 0, do_newpassword},
     {(char *) "@notify", notify_sw,
      CA_GBL_INTERP | CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE,
@@ -1326,7 +1339,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_reclist},
     {(char *) "@recover", NULL, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_recover},
-    {(char *) "@register", NULL, CA_PUBLIC, 0,
+    {(char *) "@register", register_sw, CA_PUBLIC, 0,
      0, CS_TWO_ARG, 0, do_register},
     {(char *) "@remote", NULL,
      CA_GBL_INTERP | CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
@@ -3530,10 +3543,10 @@ process_command(dbref player, dbref cause, int interactive,
       cval2 = 1;
 
     if ((string_compare(command, "home") == 0) && !Fubar(player) && !cval && cval2 &&
-        (mudstate.remotep != player) &&
-    !No_tel(player)) {
-    do_move(player, cause, 0, "home");
-    mudstate.debug_cmd = cmdsave;
+        (mudstate.remotep == NOTHING) &&
+	!No_tel(player)) {
+	do_move(player, cause, 0, "home");
+	mudstate.debug_cmd = cmdsave;
         getitimer(ITIMER_PROF, &itimer);
         reportcputime(player, &itimer);
         itimer.it_value.tv_sec = 0;
@@ -3543,7 +3556,7 @@ process_command(dbref player, dbref cause, int interactive,
     return;
     } else if ((string_compare(command, "home") == 0) && ( Fubar(player) || (cval == 1) ||
                                                            ((cval2 == 0) && (cval != 2)) || 
-                                                           ((No_tel(player) || (mudstate.remotep == player)) && cval != 2) ) && 
+                                                           ((No_tel(player) || (mudstate.remotep != NOTHING)) && cval != 2) ) && 
                                                          !mudstate.func_ignore) {
     notify_quiet(player, "Permission denied.");
     mudstate.debug_cmd = cmdsave;
@@ -3610,10 +3623,10 @@ process_command(dbref player, dbref cause, int interactive,
                       } else
                          cval = !hk_retval;
                    } 
-                   if ( mudstate.remotep == player ) {
-              notify(player, "Permission denied.");
-           } else if ( ((Flags3(player) & NOMOVE) || cval || cval2) && !do_ignore_exit ) {
-              notify(player, "Permission denied.");
+                   if ( mudstate.remotep != NOTHING ) {
+		      notify(player, "Permission denied.");
+		   } else if ( ((Flags3(player) & NOMOVE) || cval || cval2) && !do_ignore_exit ) {
+		      notify(player, "Permission denied.");
                    } else if ( !do_ignore_exit && !cval ) {
               if ( (goto_cmdp->hookmask & HOOK_BEFORE) && Good_obj(mudconf.hook_obj) &&
                !Recover(mudconf.hook_obj) && !Going(mudconf.hook_obj) ) {
@@ -3698,17 +3711,17 @@ process_command(dbref player, dbref cause, int interactive,
                       } else
                          cval = !hk_retval;
                   }
-                  if (!((mudstate.remotep == player) || (Flags3(player) & NOMOVE)) && !cval && !cval2) {
-            if ( (goto_cmdp->hookmask & HOOK_BEFORE) && Good_obj(mudconf.hook_obj) &&
-             !Recover(mudconf.hook_obj) && !Going(mudconf.hook_obj) ) {
-              s_uselock = alloc_sbuf("command_hook_process");
-              memset(s_uselock, 0, SBUF_SIZE);
-              strcpy(s_uselock, "B_goto");
-              hk_ap2 = atr_str(s_uselock);
-              chk_stop = mudstate.chkcpu_stopper;
-              chk_tog  = mudstate.chkcpu_toggle;
-              mudstate.chkcpu_stopper = time(NULL);
-              mudstate.chkcpu_toggle = 0;
+                  if (!((mudstate.remotep != NOTHING) || (Flags3(player) & NOMOVE)) && !cval && !cval2) {
+		    if ( (goto_cmdp->hookmask & HOOK_BEFORE) && Good_obj(mudconf.hook_obj) &&
+			 !Recover(mudconf.hook_obj) && !Going(mudconf.hook_obj) ) {
+		      s_uselock = alloc_sbuf("command_hook_process");
+		      memset(s_uselock, 0, SBUF_SIZE);
+		      strcpy(s_uselock, "B_goto");
+		      hk_ap2 = atr_str(s_uselock);
+		      chk_stop = mudstate.chkcpu_stopper;
+		      chk_tog  = mudstate.chkcpu_toggle;
+		      mudstate.chkcpu_stopper = time(NULL);
+		      mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
               hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
               mudstate.chkcpu_toggle = chk_tog;
@@ -4213,42 +4226,42 @@ process_command(dbref player, dbref cause, int interactive,
 
     /* Check for a leave alias */
 
-    p = atr_pget(Location(player), A_LALIAS, &aowner, &aflags);
-    if (p && *p) {
-        if (matches_exit_from_list(lcbuf, p)) {
-        free_lbuf(lcbuf);
-        free_lbuf(p);
-        if (Flags3(player) & NOMOVE)
-          notify(player, "Permission denied.");
-                else if (mudstate.remotep == player)
-          notify(player, "Permission denied.");
-        else
-          do_leave(player, player, 0);
+	p = atr_pget(Location(player), A_LALIAS, &aowner, &aflags);
+	if (p && *p) {
+	    if (matches_exit_from_list(lcbuf, p)) {
+		free_lbuf(lcbuf);
+		free_lbuf(p);
+		if (Flags3(player) & NOMOVE)
+		  notify(player, "Permission denied.");
+                else if (mudstate.remotep != NOTHING)
+		  notify(player, "Permission denied.");
+		else
+		  do_leave(player, player, 0);
                 getitimer(ITIMER_PROF, &itimer);
                 reportcputime(player, &itimer);
                 itimer.it_value.tv_sec = 0;
                 itimer.it_value.tv_usec = 0;
                 setitimer(ITIMER_PROF, &itimer, NULL);
                 DPOP; /* #29 */
-        return;
-        }
-    }
-    free_lbuf(p);
+		return;
+	    }
+	}
+	free_lbuf(p);
 
-    /* Check for enter aliases */
+	/* Check for enter aliases */
 
-    DOLIST(pcexit, Contents(Location(player))) {
-        p = atr_pget(pcexit, A_EALIAS, &aowner, &aflags);
-        if (p && *p) {
-        if (matches_exit_from_list(lcbuf, p)) {
-            free_lbuf(lcbuf);
-            free_lbuf(p);
-            if (Flags3(player) & NOMOVE)
-              notify(player, "Permission denied.");
-                    else if (mudstate.remotep == player)
-              notify(player, "Permission denied.");
-            else
-              do_enter_internal(player, pcexit, 0);
+	DOLIST(pcexit, Contents(Location(player))) {
+	    p = atr_pget(pcexit, A_EALIAS, &aowner, &aflags);
+	    if (p && *p) {
+		if (matches_exit_from_list(lcbuf, p)) {
+		    free_lbuf(lcbuf);
+		    free_lbuf(p);
+		    if (Flags3(player) & NOMOVE)
+		      notify(player, "Permission denied.");
+                    else if (mudstate.remotep != NOTHING)
+		      notify(player, "Permission denied.");
+		    else
+		      do_enter_internal(player, pcexit, 0);
                     getitimer(ITIMER_PROF, &itimer);
                     reportcputime(player, &itimer);
                     itimer.it_value.tv_sec = 0;
@@ -4299,7 +4312,7 @@ process_command(dbref player, dbref cause, int interactive,
                    AMATCH_CMD, lcbuf, 1, 1, 0);
 
         /* check for zone master commands */
-        if( !succ ) {
+        if( !succ && (sflag < 2) ) {
           realloc = absloc(player);
           if( Good_obj(realloc) && db[realloc].zonelist && 
               !ZoneMaster(realloc)) {
@@ -4323,7 +4336,7 @@ process_command(dbref player, dbref cause, int interactive,
         }
  
         /* Check for object/player $command matching for zonechecks if enabled */
-        if ( !succ && mudconf.zones_like_parents ) {
+        if ( !succ && mudconf.zones_like_parents && (sflag < 2) ) {
            /* Check player */
            if (mudconf.match_mine) {
           if ( ZoneCmdChk(player) && ((Typeof(player) != TYPE_PLAYER) ||
@@ -4357,29 +4370,29 @@ process_command(dbref player, dbref cause, int interactive,
        if ( !succ && Has_contents(player) && (sflag < 2) ) {
            succ += list_check(Contents(player), player, AMATCH_CMD, lcbuf, 1, 1, 1);
            }
-    }
+	}
 
-    /* If we didn't find anything, try in the master room */
+	/* If we didn't find anything, try in the master room */
 
-    if (!DePriv(player, NOTHING, DP_MASTER, POWER6, POWER_LEVEL_NA)) {
-        if (!succ) {
-        if (Good_obj(mudconf.master_room) &&
-            Has_contents(mudconf.master_room)) {
-            succ += list_check(Contents(mudconf.master_room),
-                       player, AMATCH_CMD, lcbuf, 0, 0, 0);
-            if (atr_match(mudconf.master_room,
-                  player, AMATCH_CMD, lcbuf, 0, 0) > 0) {
-            succ++;
-            }
-        }
-        }
-     }
+	if (!DePriv(player, NOTHING, DP_MASTER, POWER6, POWER_LEVEL_NA)) {
+	    if (!succ && (sflag < 2) ) {
+		if (Good_obj(mudconf.master_room) &&
+		    Has_contents(mudconf.master_room)) {
+		    succ += list_check(Contents(mudconf.master_room),
+				       player, AMATCH_CMD, lcbuf, 0, 0, 0);
+		    if (atr_match(mudconf.master_room,
+				  player, AMATCH_CMD, lcbuf, 0, 0) > 0) {
+			succ++;
+		    }
+		}
+	    }
+	 }
     }
     free_lbuf(lcbuf);
 
     /* If we still didn't find anything, tell how to get help. */
 
-    if (!succ) {
+    if (!succ && (sflag < 2) ) {
         if ( Good_obj(mudconf.global_error_obj) && !Recover(mudconf.global_error_obj) &&
              !Going(mudconf.global_error_obj) ) {
             if ( *lst_cmd ) {
@@ -5718,6 +5731,10 @@ list_options_system(dbref player)
        notify(player, "Attribute formatting compatibility (&<name>FORMAT) ------------- FORMAT AFTER");
     else
        notify(player, "Attribute formatting non-compatibility (&FORMAT<name>) --------- FORMAT FIRST");
+    if ( mudconf.delim_null )
+       notify(player, "@@ recognized as null output seperator ------------------------- ENABLED");
+    else
+       notify(player, "@@ recognized as null output seperator ------------------------- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
@@ -7691,11 +7708,12 @@ list_rlevels(dbref player, int i_key)
 #ifdef REALITY_LEVELS
 #define LIST_RLEVELS    26
 #endif /* REALITY_LEVELS */
-#define LIST_LOGCOMMANDS 27 
-#define LIST_DEPOWERS   28
-#define LIST_STACKS 29
-#define LIST_FUNPERMS   30
-#define LIST_DF_TOGGLES 31
+#define LIST_LOGCOMMANDS 27	
+#define LIST_DEPOWERS	28
+#define LIST_STACKS	29
+#define LIST_FUNPERMS	30
+#define	LIST_DF_TOGGLES	31
+#define LIST_BUFTRACEADV 32
 
 NAMETAB list_names[] =
 {
@@ -7704,6 +7722,7 @@ NAMETAB list_names[] =
     {(char *) "attributes", 2, CA_PUBLIC, 0, LIST_ATTRIBUTES},
     {(char *) "bad_names", 2, CA_WIZARD, 0, LIST_BADNAMES},
     {(char *) "buffers", 2, CA_WIZARD, 0, LIST_BUFTRACE},
+    {(char *) "advbuffers", 3, CA_IMMORTAL, 0, LIST_BUFTRACEADV},
     {(char *) "commands", 3, CA_PUBLIC, 0, LIST_COMMANDS},
     {(char *) "config_permissions", 3, CA_IMMORTAL, 0, LIST_CONF_PERMS},
     {(char *) "costs", 3, CA_PUBLIC, 0, LIST_COSTS},
@@ -7771,8 +7790,11 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 #endif
     break;
     case LIST_BUFTRACE:
-    list_buftrace(player);
-    break;
+	list_buftrace(player, 0);
+	break;
+    case LIST_BUFTRACEADV:
+	list_buftrace(player, 1);
+	break;
     case LIST_ATTRIBUTES:
     list_attrtable(player);
     break;

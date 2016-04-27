@@ -93,7 +93,7 @@
 #define GUILDOBJ        0x00000200      
 #define GUILDMASTER     0x00000400      /* Player has gm privs */
 #define NO_WALLS        0x00000800      /* So to stop normal walls */
-/* 0x00001000 free */                   /* #define OLD_TEMPLE	0x00001000 */
+#define REQUIRE_TREES 	0x00001000	/* Trees are required on this target for attrib sets */
 /* 0x00002000 free */                   /* #define OLD_NOROBOT	0x00002000 */
 #define SCLOAK		0x00004000
 #define CLOAK		0x00008000
@@ -298,6 +298,7 @@
 #define POWER_FREE_PAGE		14
 #define POWER_HALT_QUEUE	16
 #define POWER_HALT_QUEUE_ALL	18
+#define POWER_FORMATTING	20
 #define POWER_NOKILL		22
 #define POWER_SEARCH_ANY	24
 #define POWER_SECURITY		26
@@ -363,6 +364,7 @@
 #define DP_PASSWORD		0
 #define DP_MORTAL_EXAMINE	2
 #define DP_PERSONAL_COMMANDS	4
+/* 6  free */
 #define DP_DARK			8
 /* 10 free */
 /* 12 free */
@@ -717,6 +719,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Wizard(x)	((Flags(x) & WIZARD) || Immortal(x) || God(x) ||\
 			 ((Flags(Owner(x)) & WIZARD) && Inherits(x)))
 #endif
+#define ReqTrees(x)	((Flags2(x) & REQUIRE_TREES) != 0)
 #define Recover(x)	((Flags2(x) & RECOVER) != 0)
 #define Byeroom(x)	((Flags2(x) & BYEROOM) != 0)
 #define Dr_Purge(x)	((Flags3(x) & DR_PURGE) != 0)
@@ -899,10 +902,8 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			   !(Flags(Owner(x)) & WIZARD) && \
 			   !(Flags2(Owner(x)) & ADMIN) && \
 			   !(Flags2(Owner(x)) & BUILDER) && \
-			   !((((a)->flags & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) && \
-			   ((a)->flags & AF_GUILDMASTER)) || \
-                             ((f & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) && \
-                              (f & (AF_GUILDMASTER)))))
+			   !(((a)->flags & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) || \
+                             (f & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER))))
 #ifndef STANDALONE
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \

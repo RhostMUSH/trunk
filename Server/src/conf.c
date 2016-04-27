@@ -170,7 +170,27 @@ NDECL(cf_init)
     mudconf.idle_interval = 60;
     mudconf.retry_limit = 3;
     mudconf.regtry_limit = 1;
+#ifdef QDBM
+  #ifdef LBUF64
+    mudconf.output_limit = 262144;
+  #else
+    #ifdef LBUF32
+    mudconf.output_limit = 131072;
+    #else
+      #ifdef LBUF16
+    mudconf.output_limit = 65536;
+      #else
+        #ifdef LBUF8
+    mudconf.output_limit = 32768;
+        #else
     mudconf.output_limit = 16384;
+        #endif
+      #endif
+    #endif
+  #endif
+#else
+    mudconf.output_limit = 16384;
+#endif
     mudconf.paycheck = 0;
     mudconf.paystart = 0;
     mudconf.paylimit = 10000;
@@ -272,16 +292,17 @@ NDECL(cf_init)
     mudconf.signal_crontab = 0;     /* USR1 signals crontab file reading */
     mudconf.max_name_protect = 0;
     mudconf.map_delim_space = 1;      /* output delim is input delim by default */
-    mudconf.includenest = 3;        /* Default nesting of @include */
-    mudconf.includecnt = 10;        /* Maximum count of @includes per command session */
-    mudconf.lfunction_max = 20;     /* Maximum lfunctions allowed per user */
-    mudconf.blind_snuffs_cons = 0;  /* BLIND flag snuff connect/disconnect */
-    mudconf.atrperms_max = 100;     /* Maximum attribute prefix perms */
-    mudconf.safer_ufun = 0;     /* are u()'s and the like protected */
-    mudconf.listen_parents = 0;     /* ^listens do parents */
-    mudconf.icmd_obj = -1;      /* @icmd eval object */
-    mudconf.ansi_txtfiles = 0;      /* ANSI textfile support */
-    mudconf.list_max_chars = 1000000;   /* Let's allow 1 million characters */
+    mudconf.includenest = 3;		/* Default nesting of @include */
+    mudconf.includecnt = 10;		/* Maximum count of @includes per command session */
+    mudconf.lfunction_max = 20;		/* Maximum lfunctions allowed per user */
+    mudconf.function_max = 1000;	/* Maximum functions allowed period */
+    mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
+    mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
+    mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
+    mudconf.listen_parents = 0;		/* ^listens do parents */
+    mudconf.icmd_obj = -1;		/* @icmd eval object */
+    mudconf.ansi_txtfiles = 0;		/* ANSI textfile support */
+    mudconf.list_max_chars = 1000000;	/* Let's allow 1 million characters */
     mudconf.tor_paranoid = 0;
     mudconf.float_precision = 6;        /* Precision of math functions */
     mudconf.file_object = -1;       /* File object for @list_file overloading */
@@ -295,6 +316,8 @@ NDECL(cf_init)
     mudconf.idle_stamp = 0;             /* Enable for idle checking on players */
     mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
     mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
+    mudconf.delim_null = 0;		/* Allow '@@' for null delims */
+    mudconf.parent_follow = 1;		/* Parent allows following if you control target */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -725,8 +748,8 @@ NDECL(cf_init)
     mudstate.global_regs[i] = NULL;
     mudstate.global_regsname[i] = NULL;
     }
-    mudstate.remote = -1;
-    mudstate.remotep = -1;
+    mudstate.remote = NOTHING;
+    mudstate.remotep = NOTHING;
 #ifdef EXPANDED_QREGS
     strcpy(mudstate.nameofqreg, "0123456789abcdefghijklmnopqrstuvwxyz");
     mudstate.nameofqreg[36]='\0';
@@ -735,6 +758,8 @@ NDECL(cf_init)
     mudstate.nameofqreg[10]='\0';
 #endif
     mudstate.emit_substitute = 0; /* Toggle @emit/substitute */
+    mudconf.allow_fancy_quotes = 0;  /* Allow UTF-8 double quote characters */
+    mudconf.allow_fullwidth_colon = 0; /* Allow UTF-8 fullwidth colon character */
 #else
     mudconf.paylimit = 10000;
     mudconf.digcost = 10;
@@ -769,9 +794,6 @@ NDECL(cf_init)
     mudconf.vlimit = 750;
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
     mudconf.vattr_limit_checkwiz = 0; /* Check if wizards check vattr limits */
-    mudconf.allow_fancy_quotes = 0;  /* Allow UTF-8 double quote characters */
-    mudconf.allow_fullwidth_colon = 0; /* Allow UTF-8 fullwidth colon character */
-    mudconf.ifelse_compat = 0; /* Enable MUX compatible @ifelse behavior */
     mudstate.logging = 0;
     mudstate.attr_next = A_USER_START;
     mudstate.iter_alist.data = NULL;
@@ -785,7 +807,8 @@ NDECL(cf_init)
     mudstate.db_size = 0;
     mudstate.freelist = NOTHING;
     mudstate.markbits = NULL;
-    mudstate.remote = -1;
+    mudstate.remote = NOTHING;
+    mudstate.remotep = NOTHING;
 #endif /* STANDALONE */
 }
 
@@ -3636,6 +3659,9 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.debug_id, 0, 0, CA_WIZARD,
      (char *) "Unique key for debug monitor.\r\n"\
               "                             Default: 42010   Value: %d"},
+    {(char *) "delim_null",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.delim_null, 0, 0, CA_PUBLIC,
+     (char *) "Are @@ in output seperator considered a null?"},
     {(char *) "accent_extend",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.accent_extend, 0, 0, CA_WIZARD,
      (char *) "Are accents extended past 250 to 255??"},
@@ -3822,6 +3848,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.func_invk_lim, 0, 0, CA_WIZARD,
      (char *) "The current function invocation limit.\r\n"\
               "                             Default: 2500   Value: %d"},
+    {(char *) "function_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.function_max, 0, 0, CA_WIZARD,
+     (char *) "Max global functions (@functions).\r\n"\
+              "                             Default: 1000  Value: %d"},
     {(char *) "function_recursion_limit",
      cf_recurseint, CA_GOD | CA_IMMORTAL, &mudconf.func_nest_lim, 0, 0, CA_WIZARD,
      (char *) "The current function recursion limit.\r\n"\
@@ -4323,6 +4353,9 @@ CONF conftable[] =
     {(char *) "parentable_control_lock",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.parent_control, 0, 0, CA_PUBLIC,
      (char *) "Do parents follow Locks?"},
+    {(char *) "parent_follow",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.parent_follow, 0, 0, CA_PUBLIC,
+     (char *) "If you control target do you see entire parent chain?"},
     {(char *) "parent_nest_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.parent_nest_lim, 0, 0, CA_WIZARD,
      (char *) "Maximum nesting allowed on @parents.\r\n"\
@@ -4897,10 +4930,6 @@ CONF conftable[] =
     {(char *)"allow_fullwidth_colon",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_fullwidth_colon, 0, 0, CA_WIZARD,
               "Allow UTF-8 encoded full width colon character.\r\n"\
-              "                             Default: 0   Value: %d"},
-    {(char *)"ifelse_compat",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ifelse_compat, 0, 0, CA_WIZARD,
-              "Enable compatability with MUX @if behavior.\r\n"\
               "                             Default: 0   Value: %d"},
     {NULL,
      NULL, 0, NULL, 0}};

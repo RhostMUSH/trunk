@@ -13,6 +13,7 @@ fi
 ###################################################################
 # check for mysql goodness
 ###################################################################
+FORCE_MYSQL=0
 MYSQL_VER=$(mysql_config --version 2>/dev/null)
 if [ -z "${MYSQL_VER}" ]
 then
@@ -81,7 +82,7 @@ LOPTIONS="1 2 3 4 5"
 C_LOPTIONS=$(echo $LOPTIONS|wc -w)
 AOPTIONS="1 2 3"
 C_AOPTIONS=$(echo $AOPTIONS|wc -w)
-DBOPTIONS="1 2"
+DBOPTIONS="1 2 3"
 C_DBOPTIONS=$(echo $DBOPTIONS|wc -w)
 REPEAT=1
 for i in ${OPTIONS}
@@ -282,6 +283,7 @@ echo " For REMOTE INSTALLS you may specify /dev/null for the socket."
 echo "------------------------------------------------------------------------------"
 echo "[${MS[1]}]  1. Toggle MySQL On/Off"
 echo "[#]  2. Change MySQL Data"
+echo "[${MS[3]}]  3. Force MySQL even if not detected. (Will not compile if no SQL!)"
 echo "------------------------------------------------------------------------------"
 echo "MySQL HostName: ${mysql_host}"
 echo "MySQL UserName: ${mysql_user}"
@@ -1342,6 +1344,59 @@ saveopts() {
    fi
 }
 
+
+###################################################################
+# LOADLASTSTATE - Load the last state
+###################################################################
+loadlaststate() {
+   if [ ! -f ${DUMPFILE} ]
+   then
+      return
+   fi
+   DUMPFILE=asksource.save_default
+   . ${DUMPFILE} 2>/dev/null
+}
+
+###################################################################
+# SAVELASTSTATE - save the last state upon leaving and load it
+# in if you reload it
+###################################################################
+savelaststate() {
+   DUMPFILE=asksource.save_default
+   cat /dev/null > ${DUMPFILE}
+   for i in ${OPTIONS}
+   do
+      echo "X[$i]=\"${X[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${BOPTIONS}
+   do
+      echo "XB[$i]=\"${XB[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${DOPTIONS}
+   do
+      echo "XD[$i]=\"${XD[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${LOPTIONS}
+   do
+      echo "XL[$i]=\"${XL[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${AOPTIONS}
+   do
+      echo "XA[$i]=\"${XA[$i]}\"" >> ${DUMPFILE}
+   done
+   for i in ${DBOPTIONS}
+   do
+      echo "MS[$i]=\"${MS[$i]}\"" >> ${DUMPFILE}
+   done
+   if [ -f "${DUMPFILE}.mark" ]
+   then
+      MARKER=$(cat ${DUMPFILE}.mark)
+   else
+      MARKER=""
+   fi
+   echo "Options saved to slot ${SAVEANS} [${MARKER:-GENERIC}]"
+}
+
 ###################################################################
 # SETOPTS - Set options for compiletime run for makefile mod
 ###################################################################
@@ -1411,7 +1466,7 @@ setdefaults() {
   if [ $? -ne 0 ]
   then
      echo "Your server doesn't handle advanced socket protocols.  Disabling..."
-     DEFS="-BROKEN_PROXY ${DEFS}"
+     DEFS="-DBROKEN_PROXY ${DEFS}"
   fi
   ${MYGCC} ../src/scantst.c -o ../src/scantst >/dev/null 2>&1
   if [ $? -ne 0 ]
@@ -1468,9 +1523,16 @@ setdefaults() {
      Z3=0
      if [ -n "${LDCONFIG}" ]
      then
-        Z4=$(${LDCONFIG} ${LDOPT}|grep -c libsqlite3.so)
+        Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libsqlite3.so$")
      else
         Z4=0
+     fi
+     if [ "$Z4" -eq 0 ]
+     then
+        if [ "$(uname -s)" != "Darwin" ]
+        then
+           Z4=$(ld -lsqlite3 2>&1|grep -c "ld: warning: can")
+        fi
      fi
      if [ "$Z4" -eq 0 ]
      then
@@ -1486,11 +1548,16 @@ setdefaults() {
   fi
   if [ "${MS[1]}" = "X" ]
   then
-     if [ "${MYSQL_VER}" = "0" ]
+     if [ "${MYSQL_VER}" = "0" -a "${MS[3]}" != "X" ]
      then
         MS[1]=" "
         echo "MySQL was not found.  Stripping it..."
      else
+        if [ "${MS[3]}" == "X" ]
+        then
+           FORCE_MYSQL=1
+           echo "Force compiling in MYSQL libs.  You can fail compiling with this."
+        fi
         MORELIBS="\$(MYSQL_LIB) ${MORELIBS}"
      fi
   fi
@@ -1517,6 +1584,13 @@ setdefaults() {
   else
      Z1=0
   fi
+  if [ "$Z1" -eq 0 ]
+  then
+     if [ "$(uname -s)" != "Darwin" ]
+     then
+        Z1=$(ld -lssl 2>&1|grep -c "ld: warning: can")
+     fi
+  fi
   if [ "${X[24]}" != "X" ]
   then
      if [ -f /usr/include/openssl/sha.h -a -f /usr/include/openssl/evp.h -a -f /usr/include/openssl/bio.h ]
@@ -1540,6 +1614,11 @@ setdefaults() {
   fi
   if [ "${MS[1]}" = "X" ]
   then
+     if [ $FORCE_MYSQL -eq 1 ]
+     then
+        echo "MySQL has been forced on.  This may fail compiling."
+        DEFS="${DEFS} -DFORCE_MYSQL"
+     fi
      echo "MySQL identified.  Configuring..."
      DEFS="${DEFS} \$(MYSQL_INCLUDE)"
   fi
@@ -1561,9 +1640,16 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libcrypt.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypt.so$")
    else
       Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lcrypt 2>&1|grep -c "ld: warning: can")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1581,9 +1667,16 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libsocket.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libsocket.so$")
    else
       Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lsocket 2>&1|grep -c "ld: warning: can")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1601,9 +1694,16 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libresolv.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libresolv.so$")
    else
       Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lresolv 2>&1|grep -c "ld: warning: can")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1621,9 +1721,16 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libnsl.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libnsl.so$")
    else
       Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lnsl 2>&1|grep -c "ld: warning: can")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1641,9 +1748,16 @@ setlibs() {
    Z3=0
    if [ -n "${LDCONFIG}" ]
    then
-      Z4=$(${LDCONFIG} ${LDOPT}|grep -c libm.so)
+      Z4=$(${LDCONFIG} ${LDOPT}|grep -c "libm.so$")
    else
       Z4=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lm 2>&1|grep -c "ld: warning: can")
+      fi
    fi
    if [ "$Z4" -eq 0 ]
    then
@@ -1665,9 +1779,16 @@ setlibs() {
    fi
    if [ -n "${LDCONFIG}" ]
    then
-      Z1=$(${LDCONFIG} ${LDOPT}|grep -c openssl.so)
+      Z1=$(${LDCONFIG} ${LDOPT}|grep -c "openssl.so$")
    else
       Z1=0
+   fi
+   if [ "$Z4" -eq 0 ]
+   then
+      if [ "$(uname -s)" != "Darwin" ]
+      then
+         Z4=$(ld -lssl 2>&1|grep -c "ld: warning: can")
+      fi
    fi
    if [ "${X[24]}" != "X" ]
    then
@@ -1676,9 +1797,16 @@ setlibs() {
          Z1=0
          if [ -n "${LDCONFIG}" ]
          then
-            Z2=$(${LDCONFIG} ${LDOPT}|grep -c libcrypto.so)
+            Z2=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypto.so$")
          else
             Z2=0
+         fi
+         if [ "$Z2" -eq 0 ]
+         then
+            if [ "$(uname -s)" != "Darwin" ]
+            then
+               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning: can")
+            fi
          fi
          if [ "$Z2" -eq 0 ]
          then
@@ -1696,9 +1824,16 @@ setlibs() {
          Z1=0
          if [ -n "${LDCONFIG}" ]
          then
-            Z2=$(${LDCONFIG} ${LDOPT}|grep -c libcrypto.so)
+            Z2=$(${LDCONFIG} ${LDOPT}|grep -c "libcrypto.so$")
          else
             Z2=0
+         fi
+         if [ "$Z2" -eq 0 ]
+         then
+            if [ "$(uname -s)" != "Darwin" ]
+            then
+               Z2=$(ld -lcrypto 2>&1|grep -c "ld: warning: can")
+            fi
          fi
          if [ "$Z2" -eq 0 ]
          then
@@ -1786,6 +1921,7 @@ updatemakefile() {
 # MAIN - Main system call and loop
 ###################################################################
 main() {
+   loadlaststate
    while [ ${REPEAT} -eq 1 ]
    do
       menu
@@ -1852,6 +1988,7 @@ main() {
    setdefaults
    setlibs
    updatemakefile
+   savelaststate
    echo "< HIT RETURN KEY TO CONTINUE >"
    read ANS
 }

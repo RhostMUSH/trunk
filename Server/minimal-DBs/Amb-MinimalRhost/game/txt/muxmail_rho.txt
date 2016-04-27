@@ -1,0 +1,312 @@
+& help
+  NOTE:  You must have the BRANDY_MAIL @toggle set to use this.
+         You should also set the MAIL_STRIPRETURN @toggle.
+         Syntax: @toggle me=brandy_mail mail_stripreturn
+  
+  @mail[/<switches>] <player-list> = <subject>
+  @mail[/<switches>] [<msg-list> [= <target>]]
+   
+  @mail invokes the MUX @mail wrapper. This allows sending and receiving mail.
+  Pronoun/function substitution is performed on any messages you may try to send.
+   
+  A <player-list> is a space-separated list of recipients, which may be:
+        Player names, Player dbref #'s, Message numbers to be replied to, or
+        A mix of the above, and mail aliases (see @malias)
+   
+  A <msg-list> is one of the following:
+        A single msg # (ex: 3)
+        A message range (ex: 2-5, -7, 3-)
+        A sender (ex: *lauren)
+        A page (ex: p1, p2, etc)
+        (n)ew, (u)nread,  (b)oth new/unread, (m)arked, (s)aved, or (o)ld
+   
+  See the following topics:
+    mail-sending    mail-reading     mail-folders      mail-other
+    mail-admin      @malias          mail-reviewing    mail-examples
+    mail-syntax
+
+& @mail
+  NOTE:  You must have the BRANDY_MAIL @toggle set to use this.
+         You should also set the MAIL_STRIPRETURN @toggle.
+         Syntax: @toggle me=brandy_mail mail_stripreturn
+  
+  @mail[/<switches>] <player-list> = <subject>
+  @mail[/<switches>] [<msg-list> [= <target>]]
+   
+  @mail invokes the MUX @mail wrapper. This allows sending and receiving mail.
+  Pronoun/function substitution is performed on any messages you may try to send.
+   
+  A <player-list> is a space-separated list of recipients, which may be:
+        Player names, Player dbref #'s, Message numbers to be replied to, or
+        A mix of the above, and mail aliases (see @malias)
+   
+  A <msg-list> is one of the following:
+        A single msg # (ex: 3)
+        A message range (ex: 2-5, -7, 3-)
+        A sender (ex: *lauren)
+        A page (ex: p1, p2, etc)
+        (n)ew, (u)nread,  (b)oth new/unread, (m)arked, (s)aved, or (o)ld
+        For certain commands, "+all".
+   
+  See the following topics:
+    mail-sending    mail-reading     mail-folders      mail-other
+    mail-admin      @malias          mail-reviewing    mail-examples
+    mail-syntax
+
+& mail-syntax
+  -<text>                                    - Append text in editor
+  ~<text>                                    - Prepend text in editor
+  --                                         - Send off mail in progress
+  @mail/send                                 - Send off mail in progress
+  @mail/reply <msg #>                        - Reply to msg # (player)
+  @mail/replyall <msg #>                     - Reply to msg # (all)
+  @mail/reply/quote                          - Reply to msg # (player & text)
+  @mail/reply/quoteall                       - Reply to msg # (all & text)
+  @mail/bcc <player(s)>                      - Add player(s) to blank carbon
+  @bcc <player(s)>                           - Add player(s) to blank carbon
+  @mail/cc <player(s)>                       - Add player(s) to CC list
+  @cc <player(s)>                            - Add player(s) to CC list
+  @mail/proof                                - Proof read mail in progress
+  @proof                                     - Proof read mail in progress
+  @mail/edit <old>=<new>                     - Modify 'old' with 'new'
+  @mail/abort                                - Toss the mail in progress
+  @mail/fwd <msg #> = <player(s)>            - Foward msg # to player(s)
+  @mail/forward <msg #> = <player(s)>        - Foward msg # to player(s)
+  @mail/quickforward <msg #> = <player(s)>   - Quick forward message (no edit)
+  @mail/quick <player(s)>/<subject> = <body> - Quick send a message (no edit)
+  @qmail <player(s)>/<subject> = <body>      - Quick send a message (no edit)
+  @mail/read <msg #>                         - Read a message
+  @mail [range|msg #|*player|marker]         - display or list mail
+  @mail/list [range|msg #|*player|marker]    - display or list mail
+  @malias                                    - Shows help on getting aliases
+  @mail/folder [<folder>]                    - List (or changes) folders
+  @mail/file <msg #>=<folder>                - Move message between folders
+  @mail/review [<player>|<player = msg #>]   - List mail to player or msg
+  @mail/reviewall [<player>]                 - List ALL mail to player
+  @mail/retract <player> = <msg #>           - Yank/delete message number
+  @mail/safe <range>                         - Mark messages saved.
+  @mail/clear <range>                        - Mark message(s) for deletion.
+  @mail/unclear <range>                      - Unmark marked/saved messages
+  @mail/purge                                - Flush all cleared messages
+  @mail/xstats <player>                      - Gather player mail statistics
+  @mail/debug                                - Sanatize and reload the mail db
+  @mail/nuke <player>                        - Destroy a target player's mail
+
+& mail-sending
+  @mail[/switch] <player-list> = <subject>
+        This begins a message to all players in <player-list>.
+  
+  -<text> adds text to the end of the message in progress.
+  ~<text> adds text to the beginning of the message in progress.
+        Example: -This is a test  (appends text)
+                 ~This is a test  (prepends text)
+  
+  @mail/send (or --)
+        This sends the message that is currently in progress.
+   
+  @mail/cc <player-list> (or @cc)
+        This replaces the currect player list with a new one for carbon
+        copying. It does _not_ add onto the existing list.
+   
+  See mail-sending2.
+ 
+& mail-sending2
+  @mail/proof     (or @proof)
+        This shows you the message that is currently in progress, as
+        it would be read by whomever received it.
+  
+  @mail/edit <old text> = <new text>
+        Like @edit, but edits the message in process.  This does not edit
+        text that is in the forward/reply.
+  
+  @mail/abort
+        This aborts the message currently in progress, allowing you
+        to start a new one.
+   
+  @mail/fwd <msg> = <player-list> (or @mail/forward)
+        This sends a copy of <msg> to all the players in <player-list>.
+        The copy will appear to have been sent by you (not the original
+        sender), and its status will be "Forwarded". 
+        You have to use '--' or @mail/send to send the message.
+   
+  @mail/quick <player-list>/<subject> = <message>
+        Sends <message> to the list of players.  No editor is evoked.
+  
+  @qmail <player-list>/<subject> = <message>
+        Sends <message> to the list of players.  No editor is evoked.
+  
+  See mail-sending3
+
+& mail-sending3
+  @mail/quickforward <msg> = <player-list>
+        Quickly forwards a message to a player.  This does not invoke the
+        editor.
+   
+  @mail/reply <msg>
+        This replies to the original sender of the specified message 
+        and puts you in an editor.  It does not include original text.
+        You have to use '--' or @mail/send to send the message.
+  
+  @mail/replyall <msg>
+        This replies to everyone in the specified message and puts you
+        in an editor.  It does not include original text.
+        You have to use '--' or @mail/send to send the message.
+  
+  @mail/reply/quote <msg>
+        This works like @mail/reply but includes the original text.
+        You have to use '--' or @mail/send to send the message.
+  
+  @mail/replyall/quote <msg>
+        This works like @mail/replyall but includes the original text.
+        You have to use '--' or @mail/send to send the message.
+ 
+& mail-admin
+  The @mail command can also take the following switches:
+   
+    @mail/xstats [<player>]   --  Mail statistics, read/unread count,
+                                  and space usage.
+  
+    @mail/nuke <player>       --  Nukes the mailbox of the target player.
+                                  All mail previously sent by the player will 
+                                  be tagged as coming from (NUKED).
+  
+    @mail/debug               --  Attempts to repair the database.
+   
+  Only wizards may stats players other than themselves. The mail statistics
+  commands are computationally expensive, and thus are subject to "daytime"
+  restrictions. They also cost the same as a @find (100 credits).
+   
+  The /debug switch does sanity checking on the mail database, and may only
+  be used by an immortal.   This effectively unloads the database, sanitizes
+  it, then reloads it back in.
+   
+  The /nuke switch destroys targetted player and may only be used by a wizard.
+ 
+& mail-reading
+  @mail <msg #>
+  @mail/read <msg #>
+        This displays messages which match the msg#.
+   
+  @mail
+  @mail <msg-list, but not a single msg #>
+        This gives a brief list of all mail in the current folder,
+        with sender name, a list of receiving players, subject, and
+        message status.
+  
+  @mail/list [<msg-list>]
+        This gives the same list, but with time sent instead of subject.
+        The status field is a set of characters (ex: NC-UF+) which mean:
+                N = New message
+                M = Marked (for clearing) messages
+                U = Unread
+                F = Forwarded message
+                R = Replied to message
+                S = Saved message
+  
+        The opposites of these (read messages, etc.) are indicated with a
+        '-' in the status field in that position.
+ 
+
+& @malias
+  Command: @malias
+  
+  There actually is no @malias command.  However, RhostMUSH does have 
+  significant alias compatability.  To set a personal alias, you would
+  just set a normal attribute on yourself, and have the contents be the
+  list of players (space seperated) you want it to send to.  This can
+  be by player name, alias, or dbref#.
+  Example:  &MYFRIENDS me=#123 Bob Joe #46  
+  
+  To then send with this mail alias, you would specify the special 
+  moniker '&' before the alias.  
+  Example: @mail &myfriends=Hey!
+  
+  There are also global aliases that you may use.  To display the global
+  aliases, you would use the 'mail/alias' command.
+  Example: mail/alias
+  
+  Any aliases that are in the '+' segment, you would use '+' as the moniker,
+  while any aliases that are in the '$' segment you would use '$'.
+  Example: mail/alias +global1 $global2=howdy!
+  
+  See Also: help mail alias
+ 
+& mail-folders
+  @mail/folder
+        This command lists all the folders that you have.  Incoming is
+        a built in folder and you are not allowed to modify it.
+   
+  @mail/folder <folder#|foldername>
+        This command sets your current folder to <folder#>.  If you specify
+        a null folder, it will assume no folder and show all mail by default.
+   
+  @mail/file <msg-list>=<folder#>
+        This command moves all messages in msg-list from the current
+        folder to a new folder, <folder#>.
+  
+  @mail/create <name>
+        This creates a folder by name of <name>.  Must be alphanumeric.
+   
+& mail-reviewing
+  @mail/review <player>
+        Reviews the messages you have sent to <player>.  It only displays
+        UNREAD messages.
+  
+  @mail/reviewall <player> 
+        Reviews the messages you have sent to <player>.  It shows all mail.
+  
+  @mail/review <player>=<msglist>
+        Reads the messages you have sent to <player>.
+   
+  @mail/retract <player>=<msglist>
+        Retracts (deletes) unread messages you have sent to <player>.
+        Specify '+all' for the player if you wish retraction of all players.
+ 
+& mail-other
+  @mail/clear [<msg-list | all>]
+  @mail/unclear [<msg-list> | all>]
+        These commands mark mail in the current folder as cleared or uncleared.
+        Mail marked for clearing is deleted when you disconnect, or
+        if you use @mail/purge. If no msg-list is specified, all
+        mail in your current folder is cleared. If "all" is given instead
+        of a msg-list, all mail in *all* folders is cleared/uncleared.
+  
+        Note: Mail for non-wizards is auto-cleared after a set time.  You will
+              need to mark messages with the @mail/safe switch to save them.
+   
+  @mail/purge
+        Actually deletes all messages marked for clearing with @mail/clear.
+        This is done automatically when you log out.
+  
+{ 'help mail-other2' for more }
+ 
+& mail-other2
+  @mail/safe [<msg-list> | all>]
+        This command marks a message as being safe from mail expiration. It
+        should be used sparingly and only for very imporatant messages.
+        Each player has 10 save messages total that you may use.  This may
+        be bumped up by a wizard if there is sufficient need.
+  
+        Note: You would use @mail/clear to remove the SAVE flag on the message. 
+  
+  +clientcfg
+        If you have a client like mushclient that auto-emails out, this will
+        set it up so it works properly.  Mail wrappers actually @fo the user
+        which can, at times, cause scripted mail systems to not function
+        properly.  This gets around it by setting the original mail code on
+        you so that it may work.
+
+& mail-examples
+  Here is an example of mailing a player, where is the player will be "bob",
+  and sending the mail.
+ 
+  > @mail bob = The MUX              - This is the Subject line. 
+ 
+  Sending mail to player 'Bob'
+  > -Hi bob.                         - This is where you will enter the body
+                                       of the message.
+  Text Added.
+  > @send                            - Basically, sends the @mail.
+ 
+  MAIL: You sent your message to 'Bob'.   
+ 

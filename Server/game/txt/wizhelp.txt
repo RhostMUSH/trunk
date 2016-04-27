@@ -916,7 +916,7 @@
   See Also: AUTOREGISTRATION
 
 & AUTOREG DB
-  The autoregistration system comes with an enhanced seperate database 
+  The autoregistration system comes with an enhanced separate database 
   and tools to manipulate this database.  For help on this, type:
   
          wizhelp @areg
@@ -1607,7 +1607,7 @@
   The @power command is used to give players given abilities not normally
   had.  Any power that SUPER-ROYALTY/ROYALTY wish to grant them are inhereted
   to any/all of their belongings as long as the INHERIT flag is set on it.
-  Each 'arg' specified in the list will be a seperate power to set/unset.  
+  Each 'arg' specified in the list will be a separate power to set/unset.  
   And the toggle for individual powers is optional.  Note that if no switch 
   is specified, /OFF is defaulted.  The @admin param 'power_objects' must
   be enabled for this to have effect on non-players.
@@ -1644,22 +1644,68 @@
   
   There are various powers available to be set with @power.  These are:
   
-   CHANGE_QUOTAS   CHOWN_ANYWHERE *CHOWN_ME       *WIZ_WHO
-  *CHOWN_OTHER    *EXAMINE_ALL    *NOFORCE         SEE_QUEUE_ALL
-   FREE_QUOTA     *GRAB_PLAYER    *JOIN_PLAYER     LONG_FINGERS
-  *NO_BOOT        *BOOT           *STEAL          *SEE_QUEUE
-  *TEL_ANYWHERE   *TEL_ANYTHING   *STAT_ANY        PCREATE
-   FREE_WALL       FREE_PAGE      *HALT_QUEUE      HALT_QUEUE_ALL
-  *NOKILL         *SEARCH_ANY     *SECURITY       *WHO_UNFIND
-  *WRAITH          SHUTDOWN       *PURGE          *HIDEBIT
-   NOWHO           EXAMINE_FULL   FULLTEL         *EXECSCRIPT
+   *BOOT            CHANGE_QUOTAS   CHOWN_ANYWHERE   *CHOWN_ME     
+   *CHOWN_OTHER    *EXAMINE_ALL     EXAMINE_FULL     *EXECSCRIPT    
+    FREE_QUOTA      FORMATTING      FREE_PAGE         FREE_WALL     
+    FULLTEL        *GRAB_PLAYER    *HALT_QUEUE        HALT_QUEUE_ALL
+   *HIDEBIT        *JOIN_PLAYER     LONG_FINGERS     *NO_BOOT      
+   *NOFORCE        *NOKILL          NOWHO             PCREATE    
+   *PURGE          *SEARCH_ANY     *SECURITY         *SEE_QUEUE
+    SEE_QUEUE_ALL   SHUTDOWN       *STAT_ANY         *STEAL          
+   *TEL_ANYWHERE   *TEL_ANYTHING   *WHO_UNFIND       *WIZ_WHO
+   *WRAITH        
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
   down to GUILDMASTER.
 
-  Help is available seperately to explain what each power does by typing:
+  Help is available separately to explain what each power does by typing:
       wizhelp power <power>
 
+& POWER FORMATTING
+  Power argument: @power[/switch] <user>=[@g|@a|@c] formatting
+  
+  Unlike other @powers, this power IS NOT INHERITABLE.  However, unlike other
+  powers, this power works through parent trees.  This also works with
+  global parents via global_parent_room/thing/player/obj.
+  
+  This will follow the following chain to check for the FORMATTING power.
+  
+    self -> @parent(s) -> Global Parent -> Zone(s)
+  
+  The NOGLOBPARENT @toggle will stop it inheriting the FORMATTING power from
+  any global parent.  
+  
+  The NOZONEPARENT @toggle will stop it inheriting the FORMATTING power from
+  any zone master.
+  
+  If it fails a @parent/lock check, it will not inherit the FORMATTING power
+  from that parent in question.  No lock means it automatically passes.
+     
+  This power will grant the target the ability to pass %0-%4 (respectively)
+  into the @conformat, @exitformat, and @darkexitformat container
+  formatters.  The substitutions are separated for each type of format.
+  
+  @conformat, @exitformat, @darkexitformat:
+      %0  -- The dbref list (space separated) that the enactor will have
+             seen normally by looking at the location.
+      %1  -- The name list (| separated) that will show the colorized
+             name, flags, altname, captions, and everything else that
+             they normally will have seen by looking.
+  
+  @exitformat, @darkexitformat
+      %2  -- The dbref list (space separated) of just the dark targets that
+             the enactor would normally have been able to see.
+      %3  -- The name list (| separated) that will show the colorized
+             name, flags, altname, and everything else that would normally
+             be seen with the dark targets that the enactor would normally
+             see.
+  
+  See Also: formats_are_local, format_contents, format_exits, 
+            global_parent_obj, global_parent_room, global_parent_thing,
+            global_parent_player
+  
+  See Normal Help on:  @conformat, @exitformat, @darkexitformat
+  
 & POWER EXECSCRIPT
   Power argument: @power[/switch] <user>=[@g|@a|@c] execscript
   
@@ -2057,6 +2103,7 @@
 
 & SESSION
   Command: SESSION <prefix>
+  
   The SESSION command displays character input and output information for
   all connected players, or just those who match <prefix>.
  
@@ -2082,6 +2129,7 @@
      
 & slay
   Command: slay <player/object>
+  
   Kills the indicated player or object without paying any insurance to the
   victim.  It should be used in places where suicide should not be rewarded.
   
@@ -2135,6 +2183,7 @@
 
 & wizhelp
   Command: wizhelp <topic>
+  
   Displays information from the wizard help file.  The information is
   typically of use only to wizards and/or the game maintainer.
   
@@ -2145,6 +2194,7 @@
 
 & @admin
   Command: @admin[/<switch>] <param>=<value>
+  
   Sets a RhostMUSH configuration parameter to the indicated value.
   Type 'wizhelp config parameters' for a list of the config parameters that
   may be set.
@@ -2186,6 +2236,7 @@
 
 & @apply_marked
   Command: @apply_marked <command>
+  
   Performs <command> once for each object in the database that has its MARK
   flag set, substituting the characters ## for the object number of the
   marked object.  The command is performed by the player invoking the
@@ -2199,6 +2250,7 @@
 
 & @attribute
   Command: @attribute[/<switch>] <attrib>[=<value>]
+  
   Performs operations on user-named attributes depending on the switch used.
   The following switches are available:
      /access   - Changes the access to the named attribute.  <value> is a
@@ -2232,12 +2284,14 @@
  
 & @conncheck
   Command: @conncheck
+  
   This works like WHO or DOING but shows full email idents as well.
   This is only useable by Super-Royalty (Immortals).  This command also
   shows what DOORS (help @door) that people are currently using.
 
 & @remote
   Command: @remote <location>=<command>
+  
   This will execute <command> at a remote location <location>.  The location
   must be valid and controlled by you otherwise it will give a permission 
   denied and execute the command at your current location as normal.
@@ -2250,6 +2304,7 @@
 
 & @reboot
   Command: @reboot[/silent]
+  
   This command will reboot the server loading in any new source code changes
   and successfully unloading and reloading the database to insure database
   integrity. Network socket connections and the log file will remain
@@ -2289,6 +2344,7 @@
 
 & @convert
   Command: @convert[/alternate] <player>
+  
   This converts the player's current QUOTA system from their current system
   to either the alternate and enhanced quota system (by using the /alternate)
   or back to the default system (no switches)
@@ -2305,8 +2361,9 @@
 & blacklist.txt
 & @blacklist
   Command: @blacklist[/<switch>]
+  
   This command lists, loads, or clears the current blacklists.  Blacklists are
-  similiar to forbid sites, except it keeps them in a seperate list to avoid
+  similiar to forbid sites, except it keeps them in a separate list to avoid
   spamming the site list.  You can have a maximum of 100,000 entries in the
   blacklist.  This reads a list of sites in a file blacklist.txt that it 
   populates into the blacklist.  All invalid sites will be ignored.  All
@@ -2325,6 +2382,7 @@
   See Also: forbid_site, @site
 & @boot
   Command: @boot[/<switches>] <player>
+  
   Severs the named player's connection to the game.  The player is given a
   notice that they have been booted.  If the player is connected to the game
   more than once, then all connections to that player are severed.
@@ -2397,6 +2455,7 @@
 
 & @dbclean
   Command: @dbclean[/<switch>]
+  
   This command will perform an attribute purge of the database of any
   unused attributes in the hash tables.  Unused is defined as an attribute
   that is not currently defined (set) on ANY database object in the database.
@@ -2433,6 +2492,7 @@
 
 & @dbck
   Command: @dbck
+  
   Performs a scan of the database looking for inconsistencies in the object
   chains, disconnected rooms, rooms waiting to be destroyed, and problems in
   the object free list.  Problems that are found are reported to the log
@@ -2444,6 +2504,7 @@
 
 & @destroy
   Command: @destroy[/<switches>] <object>
+  
   Players are always considered SAFE.  Objects owned by other players are
   not otherwise treated specially.
   
@@ -2453,6 +2514,7 @@
 
 & @disable
   Command: @disable <option>
+  
   Turns off the indicated RhostMUSH runtime parameter.  The following 
   parameters may be turned off:
     building      - Allows players to use the building commands.
@@ -2478,6 +2540,7 @@
 
 & @doing
   Command: @doing[/<switch>] <text>
+  
   Wizards may use the /header switch to set the Doing header in the WHO 
   report.  If no header is specified, the header is reset to "Doing".
   
@@ -2485,6 +2548,7 @@
 
 & @dump
   Command: @dump[/<switches> [<arg>]]
+  
   Writes a checkpoint dump of the database to disk.  Checkpoint dumps are
   automatically performed periodically, so there is usually no need to use
   this command.  Switches may be used to either dump just the structure
@@ -2496,7 +2560,7 @@
      text       - Ensure that all changes to the text portion of the
                   database are written out to disk.
      flat       - Create full flatfile backup database '<mudname>.db.flat'
-                  You may specify a seperate filename <arg> but it will
+                  You may specify a separate filename <arg> but it will
                   have '.flat' appended to it.  The filename will have
                   validation checking.
   
@@ -2508,6 +2572,7 @@
 
 & @enable
   Command: @enable <option>
+  
   Turns on the indicated RhostMUSH runtime parameter.  The following 
   parameters may be turned on:
     building      - Allows players to use the building commands.
@@ -2533,6 +2598,7 @@
 
 & @fixdb
   Command: @fixdb[/<switch>] <object>=<value>
+  
   This command directly edits the database structure according to the
   switch specified.  As such, it is possible to produce database
   inconsistencies that can hang or crash the server.  This command should
@@ -2647,6 +2713,10 @@
   the arguments to the function are loaded into %0-%9, the <attr> attribute
   from <object> is fetched, and substitution is performed on the resulting
   text.  The result of that substitution is returned as the function result.
+  
+  The @admin config parameter function_max will define how many @functions
+  can be defined.  It defaults to 1000, and setting to '-1' allows unlimited.
+  
   The following switches exist:
     /privilege  - the function is evaluated as if the evaluation were being 
                   performed by the object on which it is stored, instead of 
@@ -2698,10 +2768,14 @@
   
   Note: you may use @function/display to see the flag permissions.
    
-  See Also: @attribute 
+  See Also: @attribute, @lfunction, lfunction_max, function_max
  
+& @lfunction
+  See: 'help @lfunction'
+  
 & @halt
   Command: @halt[/<switches>] [<object>]
+  
   This command can be used to halt commands being run by a specific object,
   all commands being run by objects owned by a specific player, or all
   commands in the game.  If <object> is not specified, the object running
@@ -2717,6 +2791,7 @@
 
 & @kick
   Command: @kick[/switch] <count>
+  
   Immediately executes the first <count> commands from the top of the queue.
   The following switches change the format and syntax:
       /pid      -- This kicks the target pid from the queue and executes it.
@@ -2729,17 +2804,18 @@
 
 & @list
   Command: @list [<option>]
+  
   Lists information from internal databases.  Information is available
   about the following options:
  
-    allocations         attr_permissions    attributes          bad_names
-    buffers             commands            costs               db_stats
-    default_flags       flags               functions           globals
-    hashstats           logging             options             permissions
-    process             site_info           switches            user_attributes
-    toggles             mail_globals        guest_names        *rlevels
-    cmdslogged          powers              depowers            stacks
-    funperms
+    advbuffers          allocations         attr_permissions    attributes 
+    bad_names           buffers             commands            costs     
+    db_stats            default_flags       flags               functions 
+    globals             hashstats           logging             options
+    permissions         process             site_info           switches 
+    user_attributes     toggles             mail_globals        guest_names
+   *rlevels             cmdslogged          powers              depowers 
+    stacks              funperms
  
   Type wizhelp @list <option> for help with a particular option.
   
@@ -2749,6 +2825,7 @@
 
 & @list funperms
   Command: @list funperms
+  
   This command will list all built-in functions and the permissions of each
   function.
   
@@ -2756,6 +2833,7 @@
 
 & @list stacks
   Command: @list stacks
+  
   This command will list the current level of debugmon stacks and all the
   information in the debugmon stack.  It could be helpful in tracing down
   buggy code or other problems when you hack around the hardcode.
@@ -2764,6 +2842,7 @@
 
 & @list allocations
   Command: @list allocations
+  
   This command lists the usage statistics for the internal buffer pools.
   For each buffer pool, the following information is listed:
     Size       - The size of a buffer, in characters.
@@ -2796,6 +2875,7 @@
 
 & @list attr_permissions
   Command: @list attr_permissions
+  
   Lists the attributes and the access restrictions that have been placed on
   them. The attributes are listed one per line.  Refer to the attr_access
   config parameter for the meanings of the restrictions.
@@ -2806,6 +2886,7 @@
 
 & @list mail_globals
   Command: @list mail_globals
+  
   Lists the various global settings for the mail system.
   
     auto deletion         - Shows if the mail autodeletion program is working.
@@ -2823,22 +2904,36 @@
 
 & @list attributes
   Command: @list attributes
+  
   Lists the attributes that are visible or settable by you.
   See Also: @list attr_access, @list permissions.
 
 & @list bad_names
   Command: @list bad_names
+  
   This command lists the player names that are not allowed to be created.
   Any create request (whether via the login screen or @pcreate) that matches
   (after wildcard expansion) one of the names in the list will be rejected.
 
+& @list advbuffers
+  Command: @list advbuffers
+  
+  For each buffer in a buffer pool that is currently allocated, lists where
+  within RhostMUSH the buffer was allocated.  This works like 'buffers' 
+  except it also lists the filename and line number where the buffer was
+  allocated.  This will help greatly in tracing down leaks.
+  
+  This option is available to immortal/#1 only.
+
 & @list buffers
   Command: @list buffers
+  
   For each buffer in a buffer pool that is currently allocated, lists where
   within RhostMUSH the buffer was allocated.
 
 & @list commands
   Command: @list commands
+  
   Lists the internal commands that you may execute.  This command does not
   list the attribute-setting commands that you may use (like @va or @ahear),
   and does not list exits in your current room or $-commands on objects.
@@ -2846,26 +2941,31 @@
 
 & @list costs
   Command: @list costs
+  
   Lists the costs that are associated with some commands, particularly those
   that expand the database.
 
 & @list db_stats
   Command: @list db_stats
+  
   Lists statistics for the database cache.
 
 & @list default_flags
   Command: @list default_flags
+  
   Lists the flags that are automatically given to players, things, rooms,
   exits, and robots when they are created.
   See Also: player_flags, thing_flags, room_flags, exit_flags, robot_flags.
 
 & @list flags
   Command: @list flags
+  
   For each object type, lists the name and key letter for all flags that may
   be set on that object type that are visible to you.
 
 & @list functions
   Command: @list functions
+  
   Lists the functions that may be used to obtain information when evaluating
   command lines.
   
@@ -2878,6 +2978,7 @@
  
 & @list globals
   Command: @list globals
+  
   Lists the global parameters that may be set or cleared by the @enable and
   @disable commands.  The following parameters are displayed.
  
@@ -2898,10 +2999,13 @@
                     to read data from the configured remote RWHO server.
 { 'wizhelp @list globals2' for more }
 & @list globals2
+  Command: @list globals (continued)
+  
     logins        - Indicates whether or not nonwizard players are allowed
                     to connect.
     transmit_rwho - Indicates whether or not user information is to be
                     periodically sent to the configured remote RWHO server.
+  
   See Also: RWHO, @dbck, @disable, @enable, @kick, @list permissions, @purge,
             @timewarp, checkpoint, conn_timeout, dump_interval, dump_offset,
             idle_interval, idle_timeout, rwho_data_port, rwho_dump_interval,
@@ -2909,6 +3013,7 @@
 
 & @list hashstats
   Command: @list hashstats
+  
   Lists the hashing statistics for each of the internal hash tables.
   For each hash table, the following information is displayed:
     Size    - The number of hash buckets in the hash table.
@@ -2925,6 +3030,8 @@
  
 { 'wizhelp @list hashstats2' for more }
 & @list hashstats2
+  Command: @list hashstats (continued)
+  
   Information is displayed for the following hash tables:
     Commands            - Internal RhostMUSH commands
     Logged-out commands - Commands valid whether or not you are connected
@@ -2945,6 +3052,7 @@
 
 & @list logging
   Command: @list logging
+  
   Lists the type of information that is written to the log file and how it is
   displayed.  The following types of information may be logged:
     accounting     - Usage information on player disconnect.
@@ -2970,6 +3078,8 @@
 { 'wizhelp @list logging2' for more }
 
 & @list logging2
+  Command: @list logging (continued)
+  
   The following formatting information is listed:
     flags          - Include flags for players/objects/rooms listed.
     location       - Include location if player/object when requested.
@@ -2980,6 +3090,7 @@
 
 & @list options
   Command: @list options
+  
   Lists the value of many of the configuration parameters.  You may specify
   sub-options with this.  The suboptions are:
     boolean        - list boolean values and the matching admin param.
@@ -2998,12 +3109,15 @@
 
 & @list permissions
   Command: @list permissions
+  
   For each command that you are allowed to use, lists the permissions that are
   needed to execute it.
+  
   See Also: access, attr_cmd_access.
 
 & @list powers
   Command: @list powers
+  
   Lists the access restrictions on the various powers
     change_quotas   - Player may change the building quotas of others.
     chown_mine      - Player may @chown objects to yourself even if not
@@ -3024,8 +3138,11 @@
     see_all_queue   - Player sees entire contents of queue.
     see_hidden      - Player sees hidden players in the WHO report.
     stat_any        - Player may get @stats on any player.
+  
 { 'wizhelp @list powers2' for more }
 & @list powers2
+  Command: @list powers (continued)
+  
     steal_money     - Player may give negative money.
     nokill          - Player may not be killed.
     search_any      - Player can @search/@find based on level.
@@ -3041,6 +3158,9 @@
   See Also: @list depowers
 
 & @list depowers
+  Command: @list depowers
+  
+  Lists the access restrictions on the various depowers
     wall            - Player can not use @wall.
     steal           - Player is limited on rob/steal.
     wiz_who         - Player can't see a wiz-who.
@@ -3067,6 +3187,8 @@
 { wizhelp @list depowers2 to continue }
 
 & @list depowers2
+  Command: @list depowers (continued)
+  
     command         - Player can't use any $commands.
     examine         - Player can't examine anything but self.
     free            - Player doesn't have free/infinite money.
@@ -3106,6 +3228,7 @@
 
 & @list site_information
   Command: @list site_information
+  
   Lists the contents of the site access and suspect lists.
  
     Address - The address to which this entry applies.
@@ -3123,7 +3246,10 @@
                                new characters may be created with the 'create'
                                command.
 { 'wizhelp @list site_information2' for more }
+
 & @list site_information2
+  Command: @list site_information (continued)
+  
               The following statuses may occur in the site suspect list:
  
                 Suspected    - Notify logged-in wizards of any connects or
@@ -3140,11 +3266,13 @@
 
 & @list switches
   Command: @list switches
+  
   Lists the commands that support switches as well as the switches that may
   be used.
 
 & @list user_attributes
   Command: @list user_attributes [<optional wildcard>]
+   
   Lists the defined user-named attributes, along with their internal
   attribute numbers and access restrictions.
   
@@ -3162,12 +3290,17 @@
 
 & @list toggles
   Command: @list toggles
+  
   Lists all the toggles available at your level.
 
 & @list guest_names
+  Command: @list guest_names
+  
   Lists all the guest chars and information about each.
 
 & @list rlevels
+  Command: @list rlevels
+  
   Lists all the current reality levels and information about each.  Will
   only work if enabled at compiletime.
   
@@ -3179,12 +3312,15 @@
     > @list rlevel dec
 
 & @list cmdslogged
+  Command: @list cmdslogged
+  
   Lists all commands that are currently being logged.
   
   To set them, use the @admin parameter 'log_command_list'
 
 & @list_file
   Command: @list_file <file>
+  
   Lists the contents of one of the message files that are shown during the
   connect/create/disconnect process as conditions warrant.  The following
   files may be listed:
@@ -3206,7 +3342,10 @@
      guest_motd       - shown to guest characters immediately after they
                         connect.
 { 'wizhelp @list_file2' for more }
+
 & @list_file2
+  Command: @list_file <file>  (continued)
+  
      motd             - shown to all players immediately after they connect.
                         (except guests and players connecting for the first
                         time)
@@ -3232,12 +3371,14 @@
 
 & @listmotd
   Command: @listmotd
+  
   Lists the current MOTD messages as set by the @motd command.
   
   See Also: @motd.
 
 & @lock
   Command: @lock <object>=<key>
+  
   Note that with attribute locking, a ROYALTY object can read any attribute of
   any object, including attributes invisible to players.
  
@@ -3255,9 +3396,10 @@
 
 & @log
   Command: @log[/<switches>] <text>
-  This command will append to the log (or a seperate manual-log entry) a 
+  
+  This command will append to the log (or a separate manual-log entry) a 
   string of text.  If no switch is specified, it is sent to the mushname.log
-  file.  The following switches exist.  Ansi and carrage returns are stripped.
+  file.  The following switches exist.  Ansi and carriage returns are stripped.
   
       /manual - append text to the file specified by manlog_file @admin param
                 please note that percautions are taken to avoid this being
@@ -3266,7 +3408,7 @@
                 to alphanumeric and '_' and is forced to end with '_manual.log'
                 to the filename.  You may specify subdirectories (up to 127
                 total characters for the filename including path).  This option
-                allows carrage returns, tabs, and ansi.
+                allows carriage returns, tabs, and ansi.
                     Example: @log/file withthisname.
                 This makes a file with the name: withthisname_manual.log
       /stats  - gives you the current stats of the manual log file specified
@@ -3280,6 +3422,7 @@
 
 & @logrotate
   Command: @logrotate[/<switches>] 
+  
   The logrotate command will either rotate the existing game log file or give
   the current statistics of the file.  At this time, the statistics include
   just the current size (in bytes, kbytes, mbytes, or gbytes) depending
@@ -3300,6 +3443,7 @@
 
 & @mark
   Command: @mark[/<switches>] [<player>] [<class>=<restriction>]
+  
   Sets or clears the MARKED flags for objects that match the search criteria.
   This command may only be used when database cleaning is disabled (via
   @disable cleaning), as cleaning uses the MARKED flag to check
@@ -3349,17 +3493,26 @@
   See Also: @listmotd.
 
 & @newpassword
-  Command: @newpassword <player>[=<newpassword>]
+  Command: @newpassword[</switch>] <player>[=<newpassword>]
+  
   Gives <player> the new password <newpassword>.  If <newpassword> is not
   specified, the player is given a null password.  If logged in, the player
   is notified that his password has been changed.
   
-  Example:  @newpassword aplayer=test123
+  The following switches exist:
+    /des    - Enforce a DES password instead of the system default.
+   
+  Example:  
+    > @newpassword aplayer=test123
+    Password changed.
+    > @newpassword/des aplayer=test123
+    Password changed.
   
   See Also: @password.
 
 & @nuke
   Command: @nuke[/<switch>] <player>
+  
   Destroys <player> like the scum they are.  It will wipe their mailbox
   automatically as well as modify their mail sent to others and their
   news postings to detail that they've been turned into a radioactive
@@ -3387,11 +3540,15 @@
   Example:  @pcreate #5 NewPlayer=test123
             @pcreate NewPlayer=test123
             @pcreate/reg NewPlayer=myfriend@myemail.net
+   
+  You may use the lastcreate() function to see the last player @pcreate'd.
   
-  See Also: REGISTRATION.
+  See Also: REGISTRATION 
+  Normal Help: lastcreate()
 
 & @poor
   Command: @poor <amount>
+  
   Sets the wealth of all players to <amount>.
   
   The value must have a valid numerical value for @poor to work.
@@ -3447,6 +3604,7 @@
   
 & @ps
   Command: @ps[/<switches>] [<object>]
+  
   Wizards may also use the following switches with the @ps command:
       /all      - switch to view the entire queue.
       /freeze   - switch to view the frozen queue.
@@ -3458,6 +3616,7 @@
 
 & @purge
   Command: @purge[/<switches>] [<object>]
+  
   Immediately destroys any rooms that are waiting to be destroyed, crediting
   their owners for the cost of creating the room.  The freelist is also 
   repaired if it is damaged.  These operations are performed periodically,
@@ -3487,6 +3646,7 @@
 
 & @recover
   Command: @recover <#dbref>
+  
   This command will recover from destruction the specified dbref# shown
   as previously destroyed in the recover list by the @reclist command.
   Do note, anything recovered will be owned by you and automatically set
@@ -3507,6 +3667,7 @@
 
 & @reclist
   Command: @reclist
+  
   This command will display any object that had previously been destroyed
   that is in the recover list (that can currently be recovered with @recover)
   This command can only be used by super-royalty.
@@ -3553,6 +3714,7 @@
 
 & @open
   Command: @open [#dbref] <name> [=<#room>]
+  
   This works just like the mortal's @open except you can specify the dbref#
   that you wish to use for the exit.  The #dbref *must* be in the free
   list else it will default to the first free object available instead.
@@ -3564,6 +3726,7 @@
 
 & @pemit
   Command: @pemit[/switch] <target> [=<message>] (royalty and higher only)
+  
   This command has an additional switch available for royalty and higher.
   The following switches are available in addition to the existing:
      /PORT   - This switch allows the pemitting to a given port number
@@ -3589,6 +3752,7 @@
 
 & page
   Command: page[/port] <player> [=<message>] (royalty and higher only)
+  
   This command has the wizard only /port option which allows the paging
   to specific ports.  A non-connected port or non-existing port will return
   an error.  
@@ -3614,6 +3778,7 @@
   See Also: whisper, @pemit
 & whisper
   Command: whisper[/port] <player> [=<message>] (royalty and higher only)
+  
   This command has the wizard only /port option which allows the whispering
   to specific ports.  A non-connected port or non-existing port will return
   an error.
@@ -3873,6 +4038,7 @@
 
 & @icmd2
   Command: @icmd</switch> <player [= arguments]>  (CONTINUED)
+  
   Continued Switches:
     /DROOM    - This sets commands disabled on the location.
                 This returns the 'Permission Denied'.
@@ -3995,8 +4161,13 @@
 & @darkexitformat
   Attribute: @darkexitformat <target>=<value> (royalty and higher only)
   This attribute works like @exitformat except it's a secondary descriptor
-  incase the wizard wants to specify how a seperate exit-format list is
+  incase the wizard wants to specify how a separate exit-format list is
   to be displayed.  An example would be the dark exit formats.
+  
+  If the target is @powered FORMATTING, then the dbref# list of items that
+  the target sees will be passed as %0 and the | separated list of names
+  will be passed as %1.  Any dark exits that the target sees will be passed
+  as dbref#'s into %2, and their respective names | separated as %3.
   
   Example:
     > @darkexitformat here=No dark exits!
@@ -4010,6 +4181,8 @@
     No dark exits!
   
   Refer to the normal help on @exitformat and @conformat for more help.
+  
+  See Also: power formatting, formats_are_local, format_exits
 
 & @receivelim
   Attribute: @receivelim <player>=<value> (immortal only)
@@ -4212,6 +4385,7 @@
 
 & @readcache
   Command: @readcache
+  
   Reads the commonly-used text files and help indexes on the game directory
   into an internal cache, destroying the prior contents of the cache.
   Use this command whenever you change one of the text of index files in
@@ -4219,6 +4393,7 @@
 
 & @rwho
   Command: @rwho[/<switches>]
+  
   Sets up or breaks the connection to the remote RWHO server over which
   WHO data is transmitted.  Note that changes to many of the RWHO
   configuration parameters only take effect when RWHO transmission is next
@@ -4234,6 +4409,7 @@
 
 & @shutdown
   Command: @shutdown <text>
+  
   Disconnects all connected players, saves the database to disk, and shuts
   down the game.  The game is unavailable until it is restarted.  If an
   argument is specified, it is written to the file named by the status_file
@@ -4436,6 +4612,7 @@
 
 & @hook2
   Command: @hook[/<switch(s)>] [<command/attribute>]  (continued)
+  
   Exmaples of @hook are as follows:
     > @hook/before look 
     @hook: new mask for 'look' -> before
@@ -4535,6 +4712,7 @@
 
 & @timewarp
   Command: @timewarp[/<switches>] <secs>
+  
   Subtracts (or adds if negative) <secs> to one or more internal timers,
   depending on the switches specified from the following list:
      /check    - The time left until the next consistency check and database
@@ -4557,6 +4735,7 @@
 
 & @turtle
   Command: @turtle[/<switch>] <victim>[=<given name|recipient/given name>]
+  
   Turns, by default, the victim into a turtle.  This is just like @toad, but
   allows some special options.  You may specify a different name to call
   the target.  If left out, or null, it assumes the default of
@@ -4574,6 +4753,7 @@
 
 & @toad
   Command: @toad[/<switches>] <victim>[=<recipient>]
+  
   Turns the victim into an object (a slimy toad) and disconnects them from
   the game.  The named recipient (or the @toading wizard) get ownership of
   all the victim's things, rooms, and exits, as well as of the toad object
@@ -4602,6 +4782,7 @@
   
 & @wall
   Command: @wall[/<switches>] <message>
+  
   With no switches, shouts <message> to every connected player or to every
   connected wizard, prefixed by either 'Announcement:' (if for everyone) or
   'Broadcast:' (if for wizards).  The following switches can be used to get 
@@ -4971,7 +5152,7 @@
 & NO_POSSESS
   Flag: NO_POSSESS([C]) (royalty and higher)
   This flag when set on a player makes it so that player can not be
-  on from two seperate sites at once.  In addition, it makes it so
+  on from two separate sites at once.  In addition, it makes it so
   that player is unable to connect from the same site more than
   twice.  This is to help avoid account sharing.
   
@@ -5084,6 +5265,7 @@
 & @allowance
   Attribute: Allowance
   Command: @allowance <object>[=<amount>]
+  
   Sets the amount of money that the player receives each day he/she connects
   to the RhostMUSH.  The Allowance attribute overrides the default allowance
   specified by the paycheck config parameter.
@@ -5140,7 +5322,7 @@
   Command: @badsite <player>=<list of sites>
   
   This command will set up what sites a given player can _NOT_ log in from.
-  All sites must be seperated by a space and be put into their numerical
+  All sites must be separated by a space and be put into their numerical
   form.   this accepts wildcard matching.
   
   Example:  @badsite *tinyjerk=250.250.2.1 250.100.90.90 123.245.*
@@ -5167,6 +5349,7 @@
 & @comment
   Attribute: Comment
   Command: @comment <object>[=<text>]
+  
   Sets a wizard-visible comment on the indicated object.
   This attribute is only visible and settable by wizards.
   
@@ -5175,6 +5358,7 @@
 & @timeout
   Attribute: Timeout
   Command: @timeout <object>[=<seconds>]
+  
   Sets an idle timeout value on <object> that is different from the default
   value.  If the value is non-numeric or less than or equal to zero, then
   the default value is used.  The only exception is if the value you set is
@@ -5241,12 +5425,12 @@
   conn_timeout             connect_file             connect_reg_file       
   cpu_secure_lvl           cpuintervalchk           cputimechk             
   crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            descs_are_local          default_home           
-  dig_cost                 door_file                door_index             
-  down_file                down_motd_message        dump_interval          
-  dump_message             dump_offset              earn_limit             
-  empower_fulltel          enable_tstamps           enforce_unfindable     
-  enhanced_convtime        error_file 
+  dark_sleepers            default_home             delim_null               
+  descs_are_local          dig_cost                 door_file              
+  door_index               down_file                down_motd_message      
+  dump_interval            dump_message             dump_offset            
+  earn_limit               empower_fulltel          enable_tstamps         
+  enforce_unfindable       enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -5266,19 +5450,19 @@
   format_compatbility       fork_vfork                format_contents         
   format_exits              format_name               formats_are_local       
   full_file                 full_motd_message         function_access         
-  function_alias            function_invocation_limit function_recursion_limit
-  gdbm_cache_size           gdbm_database             global_aconnect         
-  global_adisconnect        global_ansimask           global_attrdefault      
-  global_clone_exit         global_clone_obj          global_clone_player     
-  global_clone_room         global_clone_thing        global_error_obj        
-  global_parent_exit        global_parent_obj         global_parent_player    
-  global_parent_room        global_parent_thing       good_name               
-  goodmail_host             gconf_file                guest_char_num          
-  guest_file                guest_namelist            guild_attrname          
-  guild_default             guild_hdr                 hackattr_nowiz          
-  hackattr_see              hasattrp_compat           heavy_cpu_max           
-  help_file                 help_index                hide_nospoof            
-  hook_cmd                  hook_obj                
+  function_alias            function_invocation_limit function_max
+  function_recursion_limit  gdbm_cache_size           gdbm_database           
+  global_aconnect           global_adisconnect        global_ansimask         
+  global_attrdefault        global_clone_exit         global_clone_obj        
+  global_clone_player       global_clone_room         global_clone_thing      
+  global_error_obj          global_parent_exit        global_parent_obj       
+  global_parent_player      global_parent_room        global_parent_thing     
+  good_name                 goodmail_host             gconf_file              
+  guest_char_num            guest_file                guest_namelist          
+  guild_attrname            guild_default             guild_hdr               
+  hackattr_nowiz            hackattr_see              hasattrp_compat         
+  heavy_cpu_max             help_file                 help_index              
+  hide_nospoof              hook_cmd                  hook_obj                
   
 { 'wizhelp config parameters3' for more }
 
@@ -5330,14 +5514,14 @@
   oattr_uses_altname       offline_reg              old_elist
   online_reg               open_cost                output_database
   output_limit             page_cost                paranoid_allocate
-  paranoid_exit_linking    parentable_control_lock  partial_conn
-  partial_deconn           paycheck                 pcreate_paranoia
-  pemit_any_object         pemit_far_players        penn_playercmds
-  penn_setq                penn_switches            permit_site            
-  player_attr_default      player_dark              player_flags           
-  player_listen            player_match_commands    player_match_own_command
-  player_name_spaces       player_parent            player_queue_limit     
-  player_quota           
+  paranoid_exit_linking    parent_follow            parentable_control_lock
+  partial_conn             partial_deconn           paycheck               
+  pcreate_paranoia         pemit_any_object         pemit_far_players      
+  penn_playercmds          penn_setq                penn_switches          
+  permit_site              player_attr_default      player_dark            
+  player_flags             player_listen            player_match_commands  
+  player_match_own_command player_name_spaces       player_parent          
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -5597,6 +5781,9 @@
     AFTER()   -- Key field reversed if DISABLED
     BEFORE()  -- Key field reversed if DISABLED
     MID()     -- Type field reversed if DISABLED
+    DELETE()  -- Key field reversed if DISABLED
+    LEFT()    -- Key field reversed if DISABLED
+    RIGHT()   -- Key field reversed if DISABLED
   
 & ansi_txtfiles
   Config parameter: ansi_textfiles <boolean>   Default: 0
@@ -6118,6 +6305,13 @@
   parameter is not set, the value of player_starting_home is used instead.
   See Also: player_starting_home.
 
+& delim_null
+  Config parameter: delim_null <yes/no>.   Default: no
+  
+  Specifies if '@@' is to be identified as a special output separator in
+  nearly every function to work as a null output delimiter.  This is to
+  help with MUX compatibility.
+  
 & descs_are_local
   Config parameter: descs_are_local <yes/no>.  Default: no
   
@@ -6738,6 +6932,19 @@
   eval=<arg> parameter is treated as a separate command for the purposes
   of the function invocation limit.
 
+& function_max
+  Config parameter: function_max <n7um>.  Default: 1000 (-1 unlimited)
+  
+  This parameter specifies how many global @functions can be defined in
+  the game.  By default, 1000 can be defined before it will not allow
+  any new definitions.  You may modify or delete functions once the
+  max is reached, but can no longer add new ones.  You may specify this
+  value to '-1' (negative one) to assign an unlimited number which was
+  the previous behavior, however we feel 1000 is more than sufficient
+  for even the most hairy code so was a good default.
+  
+  See also: @function, @lfunction, lfunction_max
+ 
 & function_recursion_limit
   Config parameter: function_recursion_limit <num>.  Default: 50
  
@@ -6864,7 +7071,7 @@
   Config parameter: global_parent_obj <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -6895,7 +7102,7 @@
   Config parameter: global_parent_exit <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -6920,7 +7127,7 @@
   Config parameter: global_parent_room <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -6945,7 +7152,7 @@
   Config parameter: global_parent_thing <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -6970,7 +7177,7 @@
   Config parameter: global_parent_player <dbref>.    Default: -1
   
   Specifies the dbref# (without leading '#') of the object that is to
-  be used for a 'global parent object'.  This works seperate from
+  be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
@@ -7430,7 +7637,7 @@
   @limit command.
   
   See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
-            vattr_limit_checkwiz, max_dest_limit
+            vattr_limit_checkwiz, max_dest_limit, function_max
 
 & list_access
   Config parameter: list_access <param> [!]<privilege> [[!]<privilege>]...
@@ -7931,11 +8138,26 @@
             nand_compat, queue_compatible
 
 & newpass_god
-  Config parameter: newpass_god <1/0>.  Default: 0 
+  Config parameter: newpass_god <1|0|777>.  Default: 0 
   
   This is only valid in the config file.  If specified, it will allow
   an immortal to newpassword the #1 character ONCE during that reboot
-  session.  NOTE.  This is NOT a yes/no issue, it requires a '1/0'.
+  session.  NOTE.  This is NOT a yes/no issue.
+  
+  The following values are recognized:
+      0    - Disabled (default).  This makes this parameter ignored.
+      1    - @newpassword for #1 enabled.  It allows IMMORTAL to @newpassword
+             #1 for ONE TIME ONLY during THAT BOOT CYCLE ONLY.
+      777  - This will automatically newpassword #1 to 'Nyctasia'.
+             This will also encrypt the password with DES encryption.
+   
+  Please keep in mind to disable the 'newpass_god' option in the 
+  netrhost.conf file after this is properly set to avoid it being 
+  re-enabled or re-set during the next reboot. 
+  
+  This option can not be activated via @admin.  This option can not be
+  set via the admin_object.  This option MUST BE SET in the netrhost.conf
+  file only!!!
 
 & news_file
   Config parameter: news_file <path>.  Default: news.txt
@@ -8172,6 +8394,17 @@
   
   Check help on '@link' for more information on exit linking.
 
+& parent_follow
+  Config parameter: parent_follow  <yes/no>.   Default: yes
+  
+  Specifies, that if you control the target, you get to see the entire parent
+  chain of the target with the parents() function.
+  
+  Note: Setting this to no (0) will return the default behavior of requiring
+        control of each parent in order to view it, which I found too 
+        restrictive.
+  
+  
 & parentable_control_lock
   Config parameter: parentable_control_lock <yes/no>.  Default: no
  
@@ -10233,12 +10466,19 @@
   than a handfull of times per command.
 
 & CHKGARBAGE()
-  Function: chkgarbage(<object>, <going|recover>)
+  Function: chkgarbage(<object>, <type>)
   
-  This function returns '1' if the target object is (g)oing or
-  currently (r)ecoverable.  You may specify the 'g' or 'r' for
-  the option or the entire word.  Your choice.  This is a boolean
-  function and will return '1' for TRUE and '0' for FALSE.
+  This function returns '1' (TRUE) if the target object is (g)oing,
+  currently (r)ecoverable, or (b)oth.  If the target object is not
+  going/recover as checking, it will return '0' (FALSE).
+  
+  You must specify a type.  There is no default value.
+  
+  The following types exist:
+      garbage [g] -- check for garbage. 'g' works as shorthand.
+      recover [r] -- check for recoverable. 'r' works as shorthand.
+      both [b]    -- check for both garbage and recoverable.
+
 
 & LOOKUP_SITE()
   Function: lookup_site(<player> [,<port>] [,<type>])
@@ -10276,6 +10516,9 @@
   This function is limited to 1 evocation per command.  This can be 
   changed with the 'log_maximum' @admin parameter.
   
+  If the '<path/file>' option is specified as 'log' it will assume the
+  system log file to log the message to.
+    
   See Also: @log, log_maximum
 
 & BYPASS()
@@ -10411,7 +10654,7 @@
   wildcarded list of matches without the standard help entry header of
   'Here are the entries which match...'.  Useful for functions.
   
-  You may specify a seperate seperator <sep> to be used for returned
+  You may specify a separate separator <sep> to be used for returned
   arguments for matches.  It will default to two spaces.
   
   Example:
@@ -10688,8 +10931,8 @@
   Wizard-owned objects can send mail.  Replies to messages from
     those objects will be sent to the owner.  The from line of those
   messages will be from the object owner.  The address list can
-  be seperated with commas instead of a space. You shouldn't
-  mix commas and spaces as seperators.
+  be separated with commas instead of a space. You shouldn't
+  mix commas and spaces as separator.
   
   NOTE:  All messages from objects you controlled will show up that
          they came from YOU and not your object.
@@ -10700,8 +10943,8 @@
   See 'help mail send' for details on how to use this sub-command.
   This allows immortals to send mail and override any locks or
   max-messages a player has for their mail box.  The address list
-  can be seperated with commas instead of a space. You shouldn't
-  mix commas and spaces as seperators.
+  can be separated with commas instead of a space. You shouldn't
+  mix commas and spaces as separator.
   
   *NOTE*  /fsend sent mail will *not* be autoforwarded.
   
@@ -11013,7 +11256,7 @@
   from you if they're higher bitlevel than you.
   
   The DARK and UNFINDABLE flags otherwise have expected results if used
-  seperate from each other, though DARK, for obvious reasons, will not
+  separate from each other, though DARK, for obvious reasons, will not
   make you 'DARK' like on normal mushes. (unless configured to do so with
   the appropiate @admin parameters)
 

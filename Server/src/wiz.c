@@ -89,11 +89,11 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		 char *dlist[], int nargs)
 {
   dbref	victim, destination, loc;
-  char	*to, *arg1, *arg2;
+  char	*to, *arg1, *arg2, separgs[3];
   int	con, dcount, quiet, side_effect=0, tel_bool_chk;
 
 	/* get victim */
-      if ( mudstate.remotep == player) {
+      if ( mudstate.remotep != NOTHING) {
          notify(player, "You can't teleport.");
          return;
       }
@@ -113,12 +113,18 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 	notify(player,"No destination given.");
 	return;
       }
+      memset(separgs, '\0', sizeof(separgs));
+
       if ((key != TEL_LIST) && (nargs > 1))
 	notify(player,"Extra destinations ignored."); 
       dcount = 0;
       con = 1;
       if (key == TEL_LIST) {
-	arg1 = strtok(slist," ");
+        if ( strchr(slist, ',') != NULL )
+           *separgs = ',';
+        else
+           *separgs = ' ';
+	arg1 = strtok(slist, separgs);
 	if (!arg1) {
 	  notify(player,"No match.");
 	}
@@ -168,7 +174,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -183,7 +189,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -198,7 +204,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -208,7 +214,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -217,11 +223,11 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
-	if ( (mudstate.remotep == victim) || (No_tel(victim) && !Wizard(player)) ) {
+	if ( (mudstate.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
 		if( victim == player )
 			notify_quiet(player,"You aren't allowed to @tel.");
 		else
@@ -229,7 +235,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -243,7 +249,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -256,7 +262,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	}
@@ -273,7 +279,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	case AMBIGUOUS:
@@ -282,7 +288,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL," ");
+		  arg1 = strtok(NULL, separgs);
 		  continue;
 		}
 	default:
@@ -291,7 +297,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -300,7 +306,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -318,7 +324,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -358,7 +364,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL," ");
+		    arg1 = strtok(NULL, separgs);
 		    continue;
 		  }
 		}
@@ -380,7 +386,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		}
 	}
 	if (key == TEL_LIST)
-          arg1 = strtok(NULL," ");
+          arg1 = strtok(NULL, separgs);
       }
 }
 
@@ -789,68 +795,71 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 void do_newpassword(dbref player, dbref cause, int key, char *name, 
 		char *password)
 {
-dbref	victim;
-char	*buf;
+   dbref victim;
+   char *buf;
 
-	if ((victim = lookup_player(player, name, 0)) == NOTHING) {
-		notify_quiet(player, "No such player.");
-		return;
-	}
+   if ((victim = lookup_player(player, name, 0)) == NOTHING) {
+      notify_quiet(player, "No such player.");
+      return;
+   }
 
-	if (*password != '\0' && !ok_password(password, player, 0)) {
+   if (*password != '\0' && !ok_password(password, player, 0)) {
+      /* Can set null passwords, but not bad passwords */
+      notify_quiet(player, "Bad password");
+      return;
+   }
 
-		/* Can set null passwords, but not bad passwords */
-		notify_quiet(player, "Bad password");
-		return;
-	}
+   if (God(victim) && !God(player) && !(mudconf.newpass_god && Immortal(player))) {
+      notify_quiet(player, "You cannot change that player's password.");
+      return;
+   }
 
-	if (God(victim) && !God(player) && !(mudconf.newpass_god && Immortal(player))) {
-		notify_quiet(player, "You cannot change that player's password.");
-		return;
-	}
-	if (Immortal(victim) && !Immortal(player)) {
-		notify(player, "You cannot change an Immortal's password.");
-		return;
-	}
+   if (Immortal(victim) && !Immortal(player)) {
+      notify(player, "You cannot change an Immortal's password.");
+      return;
+   }
 
-	if (Wizard(victim) && !Immortal(player)) {
-		 notify(player, "You cannot change the password of Royalty.");
-		 return;
-	}
+   if (Wizard(victim) && !Immortal(player)) {
+      notify(player, "You cannot change the password of Royalty.");
+      return;
+   }
 
-	if (Admin(victim) && (player != victim) && !Wizard(player)) {
-		 notify(player, "You cannot change that player's password.");
-		 return;
-	}
+   if (Admin(victim) && (player != victim) && !Wizard(player)) {
+      notify(player, "You cannot change that player's password.");
+      return;
+   }
 
-	if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
-		notify_quiet(player, "You cannot change that player's password.");
-		return;
-	}
+   if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
+      notify_quiet(player, "You cannot change that player's password.");
+      return;
+   }
 
-	if (!Immortal(player) && !Immortal(victim)  && DePriv(victim,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
-		notify_quiet(player, "You cannot change that player's password.");
-		return;
-	}
+   if (!Immortal(player) && !Immortal(victim)  && DePriv(victim,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
+      notify_quiet(player, "You cannot change that player's password.");
+      return;
+   }
 
-	STARTLOG(LOG_WIZARD,"WIZ","PASS")
-		log_name(player);
-		log_text((char *)" changed the password of ");
-		log_name(victim);
-	ENDLOG
+   STARTLOG(LOG_WIZARD,"WIZ","PASS")
+      log_name(player);
+      log_text((char *)" changed the password of ");
+      log_name(victim);
+   ENDLOG
 
-	/* it's ok, do it */
-
-	s_Pass(victim, mush_crypt((const char *)password));
-	buf=alloc_lbuf("do_newpassword");
-	notify_quiet(player, "Password changed.");
-	sprintf(buf, "Your password has been changed by %s.", Name(player));
-	notify_quiet(victim, buf);
-        if ( mudconf.newpass_god && God(victim)) {
-           mudconf.newpass_god = 0;
-           notify(player, "The ability to @newpassword #1 has been automatically disabled.");
-        }
-	free_lbuf(buf);
+   /* it's ok, do it */
+   if ( key & NEWPASSWORD_DES ) {
+      s_Pass(victim, mush_crypt((const char *)password, 1));
+   } else {
+      s_Pass(victim, mush_crypt((const char *)password, 0));
+   }
+   buf = alloc_lbuf("do_newpassword");
+   notify_quiet(player, "Password changed.");
+   sprintf(buf, "Your password has been changed by %s.", Name(player));
+   notify_quiet(victim, buf);
+   if ( mudconf.newpass_god && God(victim)) {
+      mudconf.newpass_god = 0;
+      notify(player, "The ability to @newpassword #1 has been automatically disabled.");
+   }
+   free_lbuf(buf);
 }
 
 void do_conncheck(dbref player, dbref cause, int key)

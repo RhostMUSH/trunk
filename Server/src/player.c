@@ -366,7 +366,7 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot)
 
 	/* initialize everything */
 
-	s_Pass(player, mush_crypt(pbuf));
+	s_Pass(player, mush_crypt(pbuf, 0));
 	s_Home(player, start_home());
 	if (!mudconf.start_build)
           s_Flags2(player, Flags2(player) | WANDERER);
@@ -409,7 +409,7 @@ char	*target;
 	} else if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
 		notify(player, "Sorry.");
 	} else {
-		atr_add_raw(player, A_PASS, mush_crypt(newpass));
+		atr_add_raw(player, A_PASS, mush_crypt(newpass, 0));
 		notify(player, "Password changed.");
 	}
 	free_lbuf(target);
@@ -547,48 +547,52 @@ char	*temp, *tp;
 
 dbref lookup_player (dbref doer, char *name, int check_who)
 {
-dbref	p;
-char	*temp, *tp;
+   dbref p;
+   char *temp, *tp;
 
-	if (!string_compare(name, "me"))
-		return doer;
+   if (!string_compare(name, "me"))
+      return doer;
 
-  if (!string_compare(name, "here")) {
-     p = Location(doer);
-     if ( Good_chk(p) && isPlayer(p) )
-        return p;
-  }
+   if (!string_compare(name, "here")) {
+      p = Location(doer);
+      if ( Good_chk(p) && isPlayer(p) )
+         return p;
+   }
 
-	if (*name == NUMBER_TOKEN) {
-		name++;
-		if (!is_number(name))
-			return NOTHING;
-		p = atoi(name);
-		if (!Good_obj(p) || Recover(p))
-			return NOTHING;
-		if (!((Typeof(p) == TYPE_PLAYER) || God(doer)))
-			p = NOTHING;
-		return p;
-	}
-	tp = temp = alloc_lbuf("lookup_player");
-        if (*name == '*') {
-           safe_str(name+1, temp, &tp);
-        } else
-	   safe_str(name, temp, &tp);
-	*tp = '\0';
-	for (tp=temp; *tp; tp++)
-		*tp = ToLower((int)*tp);
-	p = (pmath2)hashfind(temp, &mudstate.player_htab);
-	free_lbuf(temp);
-	if (!p) {
-		if (check_who)
-			p = find_connected_name(doer, name);
-		else
-			p = NOTHING;
-	} else if (!Good_obj(p)) {
-		p = NOTHING;
-	}
-	return p;
+   if (*name == NUMBER_TOKEN) {
+      name++;
+      if ( *name && strchr(name, ':') != NULL ) {
+         return parse_dbref(name);
+      }
+      if (!is_number(name))
+         return NOTHING;
+      p = atoi(name);
+      if (!Good_obj(p) || Recover(p))
+         return NOTHING;
+      if (!((Typeof(p) == TYPE_PLAYER) || God(doer)))
+         p = NOTHING;
+      return p;
+   }
+   tp = temp = alloc_lbuf("lookup_player");
+   if (*name == '*') {
+      safe_str(name+1, temp, &tp);
+   } else {
+      safe_str(name, temp, &tp);
+   }
+   *tp = '\0';
+   for (tp=temp; *tp; tp++)
+      *tp = ToLower((int)*tp);
+   p = (pmath2)hashfind(temp, &mudstate.player_htab);
+   free_lbuf(temp);
+   if (!p) {
+      if (check_who)
+         p = find_connected_name(doer, name);
+      else
+         p = NOTHING;
+   } else if (!Good_obj(p)) {
+      p = NOTHING;
+   }
+   return p;
 }
 
 void NDECL(load_player_names)
@@ -1011,7 +1015,7 @@ char	*buff, *bufp;
 	free_lbuf(buff);
 }
 
-int reg_internal(char *name, char *email, char *dum, int key)
+int reg_internal(char *name, char *email, char *dum, int key, char *buff2)
 {
   DESC *d;
   char rpass[9], work, *pt1, *pt2, *buff, readstr[80], instr_buff[1000], *tmp_email, *tmp_email_ptr, *s_filename;
@@ -1141,6 +1145,9 @@ int reg_internal(char *name, char *email, char *dum, int key)
     rpass[x] = work;
   }
   rpass[8] = '\0';
+  if ( buff2 ) {
+     sprintf(buff2, "%s", rpass);
+  }
   player = create_player(name, rpass, NOTHING, 0);
   if (player == NOTHING) {
     if ( !key ) {
@@ -1260,7 +1267,7 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
   dbref p2;
   DESC *d, *e;
   time_t now, dtime;
-  char *buff;
+  char *buff, *buff2;
 
   if (!mudconf.online_reg) {
     notify(player, "Autoregistration is disabled.");
@@ -1301,10 +1308,14 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
       free_lbuf(buff);
     }
     else if (e) {
-      switch (reg_internal(name,email,(char *)e, 0)) {
+      buff2 = alloc_lbuf("do_register");
+      switch (reg_internal(name,email,(char *)e, 0, buff2)) {
         case 0:
 	  (e->regtries_left)--;
 	  notify(player,"Autoregistration completed.");
+          if ( (key & REGISTER_MSG) && *buff2 ) {
+             notify(player, unsafe_tprintf("Your password for account '%s' is: %s", name, buff2));
+          }
 	  break;
         case 1:
 	  notify(player,"Bad character name in autoregistration.  Invalid name or player already exists.");
@@ -1328,6 +1339,7 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
           notify(player, "Invalid character detected in email.");
           break;
       }
+      free_lbuf(buff2);
     }
   }
 }

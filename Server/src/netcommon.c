@@ -2347,7 +2347,7 @@ announce_connect(dbref player, DESC * d, int dc)
     mudstate.chkcpu_toggle = 0;
     mudstate.chkcpu_locktog = 0;
 
-    look_in(player, Location(player), (LK_SHOWEXIT | LK_OBEYTERSE));
+    look_in(player, player, Location(player), (LK_SHOWEXIT | LK_OBEYTERSE));
     if ( InProgram(player) ) {
        if ( (mudconf.login_to_prog && !(ProgCon(player))) || 
             (!mudconf.login_to_prog && ProgCon(player)) ) {
@@ -4468,7 +4468,7 @@ check_connect(DESC * d, const char *msg)
 	free_lbuf(buff3);
       }
       else {
-        switch (reg_internal(user, password, (char *)d, 0)) {
+        switch (reg_internal(user, password, (char *)d, 0, NULL)) {
 	  case 0:
 	    (d->regtries_left)--;
 	    queue_string(d, "Autoregistration password emailed.\r\n");

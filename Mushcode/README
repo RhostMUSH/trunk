@@ -1,5 +1,6 @@
 This is a file container for what exists here
 
+README                         -- This file you're reading
 +help                          -- Softcoded +help incase you wanted one
 RhostSPACE                     -- Rhost specific Dynamic Space
 comsys                         -- The main comsystem for RhostMUSH -- MUX with Penn compat.
@@ -9,3 +10,11 @@ mailwrappers                   -- Mail wrappers for MUX/TM3 @mail, Penn's @mail,
 scan                           -- Penn's @scan code
 softfunctions.minmax           -- Softfunction wrappers to mimic various MUX/Penn feature sets
 softfunctions.old_donotuse     -- An old version of softfunctions, not useful unless you support old rhost
+TrendObj                       -- A yearly statistical object.  +trend and +trend <date>
+ColorPalette                   -- The 256 color +palette
+ColoredSpeech                  -- Colorized Speech by Kage
+MultiDescer                    -- MultiDescer originally from Kitai, modified by Ashen-Shugar
+MyrddinBBS                     -- Rhost compatible Myrddin BBS system
+MyrddinCRON                    -- Myrddin's Cron system (minute ticks)
+Roster                         -- Roster/Sheet/Stat code -- Fully dynamic generated
+meetme                         -- 'meetme' code

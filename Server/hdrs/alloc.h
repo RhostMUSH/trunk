@@ -49,7 +49,7 @@ extern void	FDECL(pool_init, (int, int));
 extern char *	FDECL(pool_alloc, (int, const char *, int, char *));
 extern void	FDECL(pool_free, (int, char **, int, char *));
 extern void	FDECL(list_bufstats, (dbref));
-extern void	FDECL(list_buftrace, (dbref));
+extern void	FDECL(list_buftrace, (dbref, int));
 extern void	FDECL(do_buff_free, (dbref, dbref, int));
 extern int      FDECL(getBufferSize, (char *));
 

@@ -7,5 +7,8 @@
  )) To see who is on            ----------=>   WHO                        (( 
 ((  To quit your character      ----------=>   QUIT                        ))
  )) To get help once connected  ----------=>   help (i.e. : help commands)(( 
+((                                                                         ))
+ )) Note: use double quotes around name for names with spaces.            (( 
+((  Example: cr "player with spaces" password                              ))
  \_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/
   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  

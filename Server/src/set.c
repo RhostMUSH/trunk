@@ -16,6 +16,7 @@ char *index(const char *, int);
 #include "flags.h"
 #include "alloc.h"
 #include "rhost_ansi.h"
+#include "debug.h"
 
 extern NAMETAB indiv_attraccess_nametab[];
 extern NAMETAB lock_sw[];
@@ -810,7 +811,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
          if ( a_name ) {
             atr_get_str(s_tmp, thing, a_name->number, &aowner, &aflags);
             if ( !*s_tmp ) {
-               set_attr_internal(owner, thing, a_name->number, s_string, SET_QUIET, owner, &val, 1);   
+               set_attr_internal(owner, thing, a_name->number, s_string, SET_QUIET | SET_BYPASS, owner, &val, 1);   
             }
          }
          s_ptr++;
@@ -895,15 +896,20 @@ ATTR	*attr;
       could_hear = Hearer(thing);
       mudstate.vlplay = player;
 
+      if ( !(key & SET_TREE) && ReqTrees(thing) && !(key & SET_BYPASS) && (strchr(attr->name, *(mudconf.tree_character)) != NULL) ) {
+         notify_quiet(player, "Target requires TREE set method for TREE attributes.");
+         return;
+      }
       if ( key & SET_TREE ) {
          *val = set_trees(thing, (char *)attr->name, Owner(player), aflags);
          if ( *val != 0 ) {
             if ( !Quiet(player) && !Quiet(thing) ) {
                buff2ret = alloc_lbuf("error_msg_set_internal");
-               if ( *val == 2 )
+               if ( *val == 2 ) {
                   sprintf(buff2ret, "Empty/Null branches defined in target tree '%s'.", attr->name);
-               else
+               } else {
                   sprintf(buff2ret, "Unable to set attribute branches for target tree '%s'.", attr->name);
+               }
                notify_quiet(player, buff2ret);
                free_lbuf(buff2ret);
             }
@@ -919,13 +925,18 @@ ATTR	*attr;
          STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
             log_name_and_loc(player);
             buff2ret = alloc_lbuf("log_attribute");
-            if ( *attrtext )
-               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                       cause, attr->name, thing, attrtext);
-            else
+            if ( *attrtext ) {
+               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.*s'",
+                       cause, attr->name, thing, (LBUF_SIZE - 100), attrtext);
+            } else {
                sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to an empty string",
                        cause, attr->name, thing);
+            }
             log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+            sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+            log_text(buff2ret);
+#endif
             free_lbuf(buff2ret);
          ENDLOG
       }
@@ -1118,8 +1129,8 @@ POWENT *tp;
 void do_set(dbref player, dbref cause, int key, char *name, char *flag)
 {
 dbref	thing, thing2, aowner;
-char	*p, *buff, *tpr_buff, *tprp_buff;
-int	atr, atr2, aflags, clear, flagvalue, could_hear, i_flagchk, val;
+char	*p, *buff, *tpr_buff, *tprp_buff, *buff2ret;
+int	atr, atr2, aflags, curraflags, clear, flagvalue, could_hear, i_flagchk, val;
 ATTR	*attr, *attr2;
 int     ibf = -1;
 
@@ -1166,7 +1177,7 @@ int     ibf = -1;
 					"Attribute not present on object.");
 				return;
 			}
-
+			curraflags = aflags;
 			/* Make sure we can write to the attribute */
 
 			attr = atr_num(atr);
@@ -1193,6 +1204,20 @@ int     ibf = -1;
 			if (!(key & SET_QUIET) &&
 			    !Quiet(player) && !Quiet(thing)) {
                                 tprp_buff = tpr_buff = alloc_lbuf("do_set");
+				if ( (attr->flags & AF_LOGGED) || (curraflags & AF_LOGGED) ) {
+					STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
+					log_name_and_loc(player);
+					buff2ret = alloc_lbuf("log_attribute_set");
+					sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d %s attribute flag '%s'",
+						cause, attr->name, thing, (clear ? "cleared" : "set"), give_name_aflags(player, cause, flagvalue));
+					log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+					sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+					log_text(buff2ret);
+#endif
+					free_lbuf(buff2ret);
+					ENDLOG
+				}
 				if (clear) {
 				  if ( (key & SET_NOISY) || TogNoisy(player) ) {
                                         if ( give_name_aflags(player, cause, flagvalue) )
@@ -1445,9 +1470,13 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
             STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
             log_name_and_loc(player);
             buff2ret = alloc_lbuf("log_attribute");
-            sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                               cause, out_attr->name, thing, astr);
+            sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.*s'",
+                               cause, out_attr->name, thing, (LBUF_SIZE - 100), astr);
             log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+            sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+            log_text(buff2ret);
+#endif
             free_lbuf(buff2ret);
             ENDLOG
         }
@@ -1480,6 +1509,10 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
           sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d cleared",
                              cause, attr->name, thing);
           log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+          sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+          log_text(buff2ret);
+#endif
           free_lbuf(buff2ret);
           ENDLOG
       }
@@ -1982,9 +2015,13 @@ OBLOCKMASTER master;
                                                STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
                                                log_name_and_loc(player);
                                                buff2ret = alloc_lbuf("log_attribute");
-                                               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.3940s'",
-                                                                  cause, ap->name, thing, result);
+                                               sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d set to '%.*s'",
+                                                                  cause, ap->name, thing, (LBUF_SIZE - 100), result);
                                                log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+                                               sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                                               log_text(buff2ret);
+#endif
                                                free_lbuf(buff2ret);
                                                ENDLOG
                                            }
@@ -2121,6 +2158,10 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
                      sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d cleared",
                              cause, ap->name, thing);
                      log_text(buff2ret);
+#ifndef NODEBUGMONITOR
+                     sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                     log_text(buff2ret);
+#endif
                      free_lbuf(buff2ret);
                   ENDLOG
                }

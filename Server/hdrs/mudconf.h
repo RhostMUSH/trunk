@@ -306,6 +306,7 @@ struct confdata {
         int	penn_playercmds; /* Do $commands on players like PENN */
 	int	format_compatibility;	/* Mush/mux compatibility */
 	int	brace_compatibility;	/* Mux compatibility */
+        int     ifelse_compat; /* ifelse() / @ifelse Mux string boolean compatibility */
 	int	max_cpu_cycles;  /* Maximum allowed CPU slams allowed in a row */
 	int	cpu_secure_lvl;	/* Action to take when max_cpu_cycles reached */
 	int	expand_goto;	/* Toggle on/off expanding exit names to use 'goto' */
@@ -358,46 +359,48 @@ struct confdata {
         int     oattr_enable_altname;   /* Enable/disable alternate names through exits */
         int     empower_fulltel;        /* FULLTEL power handles more than 'self' */
         int     bcc_hidden;             /* +bcc hides who mail is sent to on target */
-    int     exits_conn_rooms;       /* If defined, rooms with an exit are not considered floating */
-    int global_attrdefault; /* Global Attribute Default Handler for Objects */
-    int ahear_maxcount;     /* Maximum loop with ahear counts */
-    int ahear_maxtime;      /* Max time in seconds between ahears */
-    int switch_substitutions;   /* Do @switch/switch()/switchall() allow #$ subs? */
-    int ifelse_substitutions;   /* Do @switch/switch()/switchall() allow #$ subs? */
-    int examine_restrictive;    /* Is examine restrictive  */
-    int queue_compatible;   /* Is the QUEUE mush compatible */
-        int     max_percentsubs;    /* Maximum %-subs per command */
-    int lcon_checks_dark;   /* Does lcon/xcon check dark? */
-    int mail_hidden;        /* Does mail/anon hide who it is originally sent to */
-    int enforce_unfindable; /* Enforce unfindable on target */
-    int zones_like_parents; /* Make zones behave like @parents for self/inventory/contents */
-    int sub_override;       /* override %-substitutions */
-    int log_maximum;        /* Maximum logtotext() allowed */
-    int power_objects;      /* Objects can have powers */
-    int shs_reverse;        /* SHS reversed for sha function */
-    int break_compatibility;    /* @break/@assert double-eval compatibility */
-    char    sub_include[200];   /* Include specified characters for %-subs */
-    int log_network_errors; /* Turn on or off network error logging */
-    int old_elist;      /* old elist processing */
-    int cluster_cap;        /* Cluster cap for processing */
-    int clusterfunc_cap;    /* Cluster cap for processing (function) */
-    int mux_child_compat;   /* Is it MUX/TM3 compatable for children() */
-    int mux_lcon_compat;    /* Is it MUX/TM3 compatable for children() */
-    int ansi_default;       /* Allow functions to be ansi-default aware that can do so */
-    int accent_extend;      /* Expand accents from 251-255 */
-    int switch_search;      /* Switch search() and searchng() */
-    int signal_crontab;     /* Signal the crontab via USR1 */
-        int     max_name_protect;   /* Maximum name protects allowed */
-    int map_delim_space;    /* map() delimitats space if specified null */
-    char    cap_conjunctions[LBUF_SIZE];    /* caplist exceptions */
-    char    cap_articles[LBUF_SIZE];    /* caplist exceptions */
-    char    cap_preposition[LBUF_SIZE]; /* caplist exceptions */
+	int     exits_conn_rooms;       /* If defined, rooms with an exit are not considered floating */
+	int	global_attrdefault;	/* Global Attribute Default Handler for Objects */
+	int	ahear_maxcount;		/* Maximum loop with ahear counts */
+	int	ahear_maxtime;		/* Max time in seconds between ahears */
+	int	switch_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	ifelse_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	examine_restrictive;	/* Is examine restrictive  */
+	int	parent_follow;		/* Allow parent followthrough if you control target */
+	int	queue_compatible;	/* Is the QUEUE mush compatible */
+        int     max_percentsubs;	/* Maximum %-subs per command */
+	int	lcon_checks_dark;	/* Does lcon/xcon check dark? */
+	int	mail_hidden;		/* Does mail/anon hide who it is originally sent to */
+	int	enforce_unfindable;	/* Enforce unfindable on target */
+	int	zones_like_parents;	/* Make zones behave like @parents for self/inventory/contents */
+	int	sub_override;		/* override %-substitutions */
+	int	log_maximum;		/* Maximum logtotext() allowed */
+	int	power_objects;		/* Objects can have powers */
+	int	shs_reverse;		/* SHS reversed for sha function */
+	int	break_compatibility;	/* @break/@assert double-eval compatibility */
+	char	sub_include[200];	/* Include specified characters for %-subs */
+	int	log_network_errors;	/* Turn on or off network error logging */
+	int	old_elist;		/* old elist processing */
+	int	cluster_cap;		/* Cluster cap for processing */
+	int	clusterfunc_cap;	/* Cluster cap for processing (function) */
+	int	mux_child_compat;	/* Is it MUX/TM3 compatable for children() */
+	int	mux_lcon_compat;	/* Is it MUX/TM3 compatable for children() */
+	int	ansi_default;		/* Allow functions to be ansi-default aware that can do so */
+	int	accent_extend;		/* Expand accents from 251-255 */
+	int	switch_search;		/* Switch search() and searchng() */
+	int	signal_crontab;		/* Signal the crontab via USR1 */
+        int 	max_name_protect;	/* Maximum name protects allowed */
+	int	map_delim_space;	/* map() delimitats space if specified null */
+	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
+	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
+	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
         char    atrperms[LBUF_SIZE];
         int	atrperms_max;
         int	safer_ufun;
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
 	int	lfunction_max;	/* Maximum lfunctions allowed */
+	int	function_max;	/* Maximum functions allowed */
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 	int	listen_parents;	/* ^listens handle parents */
 	int     icmd_obj;        /* The object for the icmd evaluation */
@@ -412,6 +415,7 @@ struct confdata {
 	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
 	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
 	int	penn_setq;	/* Do penn setq formatting */
+	int	delim_null;	/* Allow @@ for delimiters */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;    /* How descs are displayed in reality */
@@ -446,6 +450,8 @@ struct confdata {
     int mysql_port;
 #endif
     int name_with_desc; /* Toggle to enable names with descs when looking (if not-examinable) */
+    int allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ascii quotes */
+    int allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
 #else
     int paylimit;   /* getting money gets hard over this much */
     int digcost;    /* cost of @dig command */
@@ -470,19 +476,17 @@ struct confdata {
     int ntfy_nest_lim;  /* Max nesting of notifys */
     int vlimit;
         int     safer_passwords; /* Taken from TinyMUSH - requires harder passwords */
-    int vattr_limit_checkwiz;   /* Is wizard checking enabled? */
-    int switch_substitutions;   /* Do @switch/switch()/switchall() allow #$ subs? */
-    int ifelse_substitutions;   /* Do @switch/switch()/switchall() allow #$ subs? */
-    int enforce_unfindable; /* Enforce unfindable on target */
-    int power_objects;      /* Objects can have powers */
-    int lfunction_max;  /* Maximum lfunctions allowed */
-        int blind_snuffs_cons;  /* Does the BLIND flag snuff aconnect/adisconnect */
-    char    sub_include[200];
-    int old_elist;      /* Old elist processing */  
-#endif  /* STANDALONE */
-    int allow_fancy_quotes;
-    int allow_fullwidth_colon;
-    int ifelse_compat;
+	int	vattr_limit_checkwiz;	/* Is wizard checking enabled? */
+	int	switch_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	ifelse_substitutions;	/* Do @switch/switch()/switchall() allow #$ subs? */
+	int	enforce_unfindable;	/* Enforce unfindable on target */
+	int	power_objects;		/* Objects can have powers */
+	int	lfunction_max;	/* Maximum lfunctions allowed */
+	int	function_max;	/* Maximum functions allowed */
+        int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
+	char	sub_include[200];
+	int	old_elist;		/* Old elist processing */
+#endif	/* STANDALONE */
 };
 
 extern CONFDATA mudconf;

@@ -727,7 +727,11 @@ errmsg(dbref player)
     }
     i_trace = 0;
     htab = &mudstate.error_htab;
-    strcpy(errbuf,myitoa(random() % (mudstate.errornum)));
+    if ( mudstate.errornum == 0 ) {
+       strcpy(errbuf, (char *)"0");
+    } else {
+       strcpy(errbuf,myitoa(random() % (mudstate.errornum)));
+    }
     htab_entry = (struct help_entry *) hashfind(errbuf, htab);
     if (htab_entry)
 	offset = htab_entry->pos;
