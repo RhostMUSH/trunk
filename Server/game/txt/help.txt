@@ -29417,6 +29417,9 @@
   * @list advbuffers to show filename/linenumber of the allocation [ASH]
   * Added FORMATTING @power that when set on target allows %0-%3 to be
     passed to @conformat, @exitformat, and @Nameformat [ASH]
+  * Added new 'minimal-DBs' directory in order to ship multiple different
+    minimal DBs. [AMB]
+  * Added new Amb-MinimalRhost DB to the 'minimal-DBs' directory.
   
   Changes
   ------------
@@ -29474,6 +29477,7 @@
     'linkable' to any valid destination [ASH]
   * make config/confsource now saves your last state you compiled with [ASH]
   * output_limit defaults now based on LBUF size [ASH]
+  * Moved minimal_db into new 'minimal-DBs' folder [AMB]
     
   Bug Fixes
   ------------
