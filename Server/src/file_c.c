@@ -349,7 +349,7 @@ fcache_dump(DESC * d, int num)
     FBLOCK *fp;
     char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2, *lbuf3; 
 #ifdef ZENTY_ANSI
-    char *lbuf1ptr, *lbuf2ptr, lbuf3ptr;
+    char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
     int aflags, nomatch, i_length;
     dbref aowner;
