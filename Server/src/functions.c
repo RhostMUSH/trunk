@@ -26432,7 +26432,6 @@ FUNCTION(fun_caseall)
 FUNCTION(fun_ifelse)
 {
     char *mbuff, *tbuff, *retbuff;
-    int i_istrue;
 
     /* If we don't have at least 2 args, return nothing */
 

@@ -1566,10 +1566,10 @@ raw_broadcast(va_alist)
 #ifdef ZENTY_ANSI   
     mptr = message = alloc_lbuf("raw_broadcast_message");
     mp_ns2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
+    mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
     parse_ansi( (char *) buff, message, &mptr, msg_ns2, &mp_ns2, msg_utf, &mp_utf);
     *mp_ns2 = '\0';
-	*mp_utf = '\0';
+    *mp_utf = '\0';
 #endif   
     strcpy(antemp, ANSI_NORMAL);
     DESC_ITER_CONN(d) {
@@ -1585,7 +1585,7 @@ raw_broadcast(va_alist)
               continue;
 #ifdef ZENTY_ANSI	   
            if ( UTF8(d->player) )
-			  queue_string(d, msg_utf);
+              queue_string(d, msg_utf);
            else if ( Accents(d->player ) )
               queue_string(d, msg_ns2);
            else
@@ -1603,7 +1603,7 @@ raw_broadcast(va_alist)
 #ifdef ZENTY_ANSI
     free_lbuf(message);
     free_lbuf(msg_ns2);
-	free_lbuf(msg_utf);
+    free_lbuf(msg_utf);
 #endif
     va_end(ap);
     VOIDRETURN; /* #114 */
@@ -2888,7 +2888,7 @@ dump_users(DESC * e, char *match, int key)
     buf = alloc_lbuf("dump_users");
     doingAnsiBuf = alloc_lbuf("dump_users_ansi");
     doingAccentBuf = alloc_lbuf("dump_users_accents");
-	doingUtfBuf = alloc_lbuf("dump_users_utf");
+    doingUtfBuf = alloc_lbuf("dump_users_utf");
     tprp_buff = tpr_buff = alloc_lbuf("dump_users_tprintf");
 
     i_pipetype = 1;
@@ -2985,38 +2985,38 @@ dump_users(DESC * e, char *match, int key)
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
            mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-		   mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
+           mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
 	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
            *mp_utf = '\0';
-		   if ( UTF8(e->player) ) {
-			  if ( i_attrpipe ) {
+           if ( UTF8(e->player) ) {
+              if ( i_attrpipe ) {
                  safe_str(msg_utf, atext, &atextptr);
               } else {
-			  queue_string(e, msg_utf);	
-			  }			  
+                 queue_string(e, msg_utf);
+              }
            } else if ( Accents(e->player) ) {
               if ( i_attrpipe ) {
                  safe_str(msg_ns2, atext, &atextptr);
-              } 
+              }
               if ( i_pipetype ) {
 	         queue_string(e, msg_ns2);
               }
            } else {
               if ( i_attrpipe ) {
                  safe_str(strip_safe_accents(abuf), atext, &atextptr);
-              } 
+              }
               if ( i_pipetype ) {
 	         queue_string(e, strip_safe_accents(abuf));
               }
            }
-		   free_lbuf(msg_utf);
+           free_lbuf(msg_utf);
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
            if ( i_attrpipe ) {
               safe_str(mudstate.ng_doing_hdr, atext, &atextptr);
-           } 
+           }
            if ( i_pipetype ) {
 	      queue_string(e, mudstate.ng_doing_hdr);
            }
@@ -3026,18 +3026,18 @@ dump_users(DESC * e, char *match, int key)
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
            mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-		   mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
+           mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
 	   parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
-		   *mp_utf = '\0';
-		   if ( UTF8(e->player) ) {
-			  queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
-							mudstate.guild_hdr, msg_utf));
+           *mp_utf = '\0';
+           if ( UTF8(e->player) ) {
+              queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+                           mudstate.guild_hdr, msg_utf));
            } else if ( Accents(e->player) ) {
               if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_ns2),
                           atext, &atextptr);
-              } 
+              }
               if ( i_pipetype ) {
 	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                               mudstate.guild_hdr, msg_ns2));
@@ -3046,20 +3046,20 @@ dump_users(DESC * e, char *match, int key)
               if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, strip_safe_accents(abuf)),
                           atext, &atextptr);
-              } 
+              }
               if ( i_pipetype ) {
 	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                               mudstate.guild_hdr, strip_safe_accents(abuf)));
               }
            }
-		   free_lbuf(msg_utf);
+           free_lbuf(msg_utf);
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
            if ( i_attrpipe ) {
               safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr,mudstate.doing_hdr),
                        atext, &atextptr);
-           } 
+           }
            if ( i_pipetype ) {
 	      queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s",
                            mudstate.guild_hdr,mudstate.doing_hdr));
@@ -3068,7 +3068,7 @@ dump_users(DESC * e, char *match, int key)
         }
         if ( i_attrpipe ) {
            safe_str("\r\n", atext, &atextptr);
-        } 
+        }
         if ( i_pipetype ) {
 	   queue_string(e, "\r\n");
         }
@@ -3426,7 +3426,7 @@ dump_users(DESC * e, char *match, int key)
     free_lbuf(buf);
     free_lbuf(doingAnsiBuf);
     free_lbuf(doingAccentBuf);
-	free_lbuf(doingUtfBuf);
+    free_lbuf(doingUtfBuf);
     free_lbuf(tpr_buff);
     if ( i_attrpipe ) {
        atr_add_raw(e->player, atr->number, atext);

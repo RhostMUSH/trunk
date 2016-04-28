@@ -50,9 +50,9 @@ typedef struct ansisplit {
 	char	s_bghex[5];	/* Hex representation - background */
 	char	c_fgansi;	/* Normal foreground ansi */
 	char	c_bgansi;	/* Normal background ansi */
-	int	    i_special;	/* Special ansi characters */
+	int     i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
-    int	    i_ascii8;	/* ASCII-8 encoding */
+        int     i_ascii8;	/* ASCII-8 encoding */
 	unsigned int    i_utf8;	    /* UTF8 encoding */
 } ANSISPLIT;
 
@@ -406,14 +406,12 @@ extern int	FDECL(safe_copy_chr, (char, char *, char **, int));
 extern int	FDECL(matches_exit_from_list, (char *, char *));
 extern char *	FDECL(myitoa, (int));
 extern char *   FDECL(translate_string, (const char *, int));
-extern int FDECL(tboolchk,(char *));
+extern int      FDECL(tboolchk,(char *));
 extern char *	FDECL(find_cluster, (dbref, dbref, int));
 extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
 
 extern char * 	FDECL(utf8toucp, (char *));
 extern char * 	FDECL(ucptoutf8, (char *));
-
-extern int   FDECL(tboolchk, (char *));
 
 /* From boolexp.c */
 extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *, int));

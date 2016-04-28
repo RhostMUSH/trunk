@@ -737,9 +737,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
            parse_ansi((char *) msg, msg_ns, &mp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp = '\0';
            *mp2 = '\0';
-		   *mp_utf = '\0';
-		   if ( UTF8(target) ) {
-			  memcpy(msg_ns, msg_utf, LBUF_SIZE);
+           *mp_utf = '\0';
+           if ( UTF8(target) ) {
+              memcpy(msg_ns, msg_utf, LBUF_SIZE);
            } else if ( Accents(target) ) {
               memcpy(msg_ns, msg_ns2, LBUF_SIZE);
            } 
@@ -750,7 +750,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 #ifdef ZENTY_ANSI       
 #endif
         free_lbuf(msg_ns2);
-		free_lbuf(msg_utf);
+        free_lbuf(msg_utf);
     } else {
 	msg_ns = NULL;
     }

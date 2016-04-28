@@ -856,7 +856,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                    safe_chr(*string, buff2, &bufc2);
                    safe_chr(*string, buff_utf, &bufc_utf);
                 }
-            } else if ( (*string == 'f') ) {
+            } else if ( *string == 'f' ) {
                 ch = (unsigned char)*(++string);
                 if ( ch == 'n' ) {
                    accent_toggle = 0;

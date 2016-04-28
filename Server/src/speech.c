@@ -248,11 +248,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
                       } else {
                          notify_except(loc, player, player,
-<<<<<<< HEAD
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), 0);
-=======
                               safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message), 0);
->>>>>>> origin/master
                       }
 #endif /* REALITY_LEVELS */
                    } else {
@@ -270,11 +266,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
                       } else {
                          notify_except(loc, player, player,
-<<<<<<< HEAD
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), 0);
-=======
                               safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message), 0);
->>>>>>> origin/master
                       }
 #endif /* REALITY_LEVELS */
                    }
