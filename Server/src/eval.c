@@ -1195,9 +1195,21 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 char t_label[100][SBUF_SIZE];
 int i_label[100], i_label_lev = 0;
 
+void
+add_trace_label(char *label) {
+}
+
+void
+del_trace_label(char *label, int key) {
+}
+
+void
+purge_trace_label() {
+}
+
 char *
-exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
-     char *cargs[], int ncargs, char *regargs[], int nregargs)
+mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
+     char *cargs[], int ncargs, char *regargs[], int nregargs, int i_line, char *s_file)
 {
 /* MAX_ARGS is located in externs.h - default is 30 */
 #ifdef MAX_ARGS
@@ -1278,7 +1290,8 @@ exec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     else
        intervalchk = mudconf.cpuintervalchk;
 
-    bufc = buff = alloc_lbuf("exec.buff");
+//  bufc = buff = alloc_lbuf("exec.buff");
+    bufc = buff = alloc_lbuf_new("exec.buff", i_line, s_file);
 
     if ( mudstate.chkcpu_toggle || (((endtme - starttme) > timechk) && ((tinterval/100) > intervalchk)) ) {
         mudstate.chkcpu_toggle = 1;
