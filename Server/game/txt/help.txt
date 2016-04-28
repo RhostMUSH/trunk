@@ -29478,6 +29478,7 @@
   * make config/confsource now saves your last state you compiled with [ASH]
   * output_limit defaults now based on LBUF size [ASH]
   * Moved minimal_db into new 'minimal-DBs' folder [AMB]
+  * added advanced buffer labeling to exec calls [ASH]
     
   Bug Fixes
   ------------

@@ -140,7 +140,8 @@ extern int	FDECL(get_gender, (dbref));
 extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **));
 extern int      FDECL(parse_comments, (char *, char *, char **));
 #endif
-extern char *	FDECL(exec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int));
+extern char *	FDECL(mushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
+#define exec(a, b, c, d, e, f, g, h, i) mushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__) 
 
 /* From flags.c */
 extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
