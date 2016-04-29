@@ -9328,10 +9328,6 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
    int old_trainmode, x, i_breakst, forcehalted_state;
 
-   //if ( mudstate.sudo_cntr >= 1 ) {
-   //   notify(player, "You can't nest @sudo.");
-   //   return;
-   //}
    if ( !s_command || !*s_command ) {
       return;
    }
@@ -9345,6 +9341,12 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    }
    if ( !Good_chk(target) || !Controls(player, target) ) {
       notify(player, "Permission denied.");
+      return;
+   }
+
+   if ( ((cause != Owner(target)) && (HasPriv(target,player,POWER_NOFORCE,POWER3,NOTHING) || 
+        DePriv(player,target,DP_FORCE,POWER6,NOTHING)))) { 
+      notify(player,"Permission denied.");
       return;
    }
 

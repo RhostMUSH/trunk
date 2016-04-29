@@ -29511,3 +29511,4 @@
   * parents() was too restrictive for thing getting own parent tree [ASH]
   * Long standing issue with left()/right() with arg of '0' cut string [ASH]
   * missing free when name_with_desc enabled [ASH]
+  * @sudo didn't handle @power/@depower like @fo [ASH]

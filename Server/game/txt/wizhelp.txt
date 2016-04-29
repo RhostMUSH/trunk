@@ -1574,6 +1574,8 @@
   This depower will lower or disable the ability to @fo anyone or
   anything up to that level.  If 'off', all they can @fo are
   themselves and their possessions.
+  
+  This also impacts @sudo.
 
 & DEPOWER MASTER
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] master
@@ -1783,6 +1785,8 @@
   the command line.  Royalty and higher can still @force someone
   powered to shutdown, though it's sorta meaningless since they
   can @shutdown themselves.
+  
+  This also impacts @sudo.
 
 & POWER SEARCH_ANY
   Power argument: @power[/switch] <user>=[@g|@a|@c] search_any
@@ -1948,6 +1952,8 @@
   bit level and lower.  For instance, if I set the NOFORCE power
   at councilor level, no one up to and including councilors can
   @force that user or their belongings to do things.
+  
+  This also impacts @sudo.
 
 & POWER JOIN_PLAYER
   Power argument: @power[/switch] <user>=[@g|@a|@c] join_player
