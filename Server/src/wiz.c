@@ -2687,6 +2687,10 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          notify(player, "@snapshot: Completed.");
       break;
       case SNAPSHOT_DEL:
+         if ( i_over ) {
+            notify(player, "Invalid switch combination.");
+            return;
+         }
          if ( !buff1 || !*buff1 ) {
             notify(player, "Please specify a file to delete.");
             return;
@@ -2759,6 +2763,10 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          free_mbuf(s_mbname);
       break;
       case SNAPSHOT_LOAD:
+         if ( i_over ) {
+            notify(player, "Invalid switch combination.");
+            return;
+         }
          init_match(player, buff1, NOTYPE);
          match_everything(0);
          thing = noisy_match_result();
@@ -2844,6 +2852,10 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          free_lbuf(tpr_buff);
       break;
       case SNAPSHOT_VERIFY:
+         if ( i_over ) {
+            notify(player, "Invalid switch combination.");
+            return;
+         }
          s_mbname = alloc_mbuf("do_snapshot_verify");
          if ( !buff1 || !*buff1 ) {
             notify(player, "Please specify a file to verify.");
