@@ -2509,14 +2509,25 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
 {
    struct dirent **namelist;
    char *tpr_buff, *tprp_buff, *s_mbname, *s_pt, *s_name, *s_alias, *s_aliastmp;
+   char *s_strtok, *s_strtokptr, *tpr_buff2, *tprp_buff2, *tpr_buff3, *tprp_buff3;
    FILE *f_snap;
    int i_dirnums, i_flag, i_count, i_player, i_connect, aflags;
+   int i_found1, i_found2, i_found3, i_over;
    dbref thing, aowner;
 
-   i_flag = i_count = 0;
-   switch (key ) {
+   i_flag = i_count = i_over = 0;
+   /* Overwrite file if exists */
+   if ( key & SNAPSHOT_OVER ) {
+      key &= ~SNAPSHOT_OVER;
+      i_over = 1;
+   } 
+   switch ( key ) {
       case SNAPSHOT_NOOPT:
       case SNAPSHOT_LIST: 
+         if ( i_over ) {
+            notify(player, "Invalid switch combination.");
+            return;
+         }
          i_dirnums = scandir(mudconf.image_dir, &namelist, file_select, alphasort);
          if (i_dirnums < 0) {
             tprp_buff = tpr_buff = alloc_lbuf("do_snapshot");
@@ -2541,6 +2552,91 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             free(namelist);
             free_lbuf(tpr_buff);
          }
+      break;
+      case SNAPSHOT_UNALL:
+         if ( !buff1 || !*buff1 ) {
+            notify(player, "Please specify a target to @snapshot.");
+            return;
+         }
+         if ( buff2 && *buff2 ) {
+            notify(player, "@snapshot/unall does not take target name as an argument.");
+            return;
+         }
+         s_strtok = strtok_r(buff1, " \t", &s_strtokptr);
+         if ( !s_strtok || !*s_strtok ) {
+            notify(player, "Please specify a target to @snapshot.");
+            return;
+         }
+         tprp_buff  = tpr_buff  = alloc_lbuf("do_snapshot_unall1");
+         tprp_buff2 = tpr_buff2 = alloc_lbuf("do_snapshot_unall2");
+         tprp_buff3 = tpr_buff3 = alloc_lbuf("do_snapshot_unall3");
+         s_mbname = alloc_mbuf("do_snapshot_unall");
+         i_found1 = i_found2 = i_found3 = 0;
+         notify(player, "@snapshot: Writing image file(s) ...");
+         while ( s_strtok ) {
+            init_match(player, s_strtok, NOTYPE);
+            match_everything(0);
+            thing = match_result();
+            if ( !Good_chk(thing) ) {
+               if ( i_found1 ) {
+                  safe_chr(' ', tpr_buff, &tprp_buff);
+               } else {
+                  safe_str((char *)"   -> Invalid target @snapshots for: ", tpr_buff, &tprp_buff);
+               }
+               safe_str(s_strtok, tpr_buff, &tprp_buff);
+               s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+               i_found1++;
+               continue;
+            }
+            sprintf(s_mbname, "%s/%d.img", mudconf.image_dir, thing);
+            if ( !i_over && ((f_snap = fopen(s_mbname, "r")) != NULL) ) {
+               if ( i_found2 ) {
+                  safe_chr(' ', tpr_buff2, &tprp_buff2);
+               } else {
+                  safe_str((char *)"   -> Unable to save @snapshots for: ", tpr_buff2, &tprp_buff2);
+               }
+               safe_str(s_strtok, tpr_buff2, &tprp_buff2);
+               fclose(f_snap);
+               s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+               i_found2++;
+               continue;
+            }
+            if ( (f_snap = fopen(s_mbname, "w")) == NULL ) {
+               if ( i_found2 ) {
+                  safe_chr(' ', tpr_buff2, &tprp_buff2);
+               } else {
+                  safe_str((char *)"   -> Unable to save @snapshots for: ", tpr_buff2, &tprp_buff2);
+               }
+               safe_str(s_strtok, tpr_buff2, &tprp_buff2);
+               s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+               i_found2++;
+               continue;
+            }
+            remote_write_obj(f_snap, thing, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS);
+            if ( i_found3 ) {
+               safe_chr(' ', tpr_buff3, &tprp_buff3);
+            } else {
+               safe_str((char *)"   -> Unloaded fresh @snapshots for: ", tpr_buff3, &tprp_buff3);
+            }
+            safe_str(s_strtok, tpr_buff3, &tprp_buff3);
+            s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+            i_found3++;
+            fclose(f_snap);
+         }
+         if ( i_found1 ) {
+            notify(player, tpr_buff);
+         }
+         if ( i_found2 ) {
+            notify(player, tpr_buff2);
+         }
+         if ( i_found3 ) {
+            notify(player, tpr_buff3);
+         }
+         notify(player, "@snapshot: Completed.");
+         free_lbuf(tpr_buff);
+         free_lbuf(tpr_buff2);
+         free_lbuf(tpr_buff3);
+         free_mbuf(s_mbname);
       break;
       case SNAPSHOT_UNLOAD:
          init_match(player, buff1, NOTYPE);
@@ -2571,7 +2667,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                sprintf(s_mbname, "%s/%d_%.60s.img", mudconf.image_dir, thing, strip_all_special(buff2));
             }
          }
-         if ( (f_snap = fopen(s_mbname, "r")) != NULL ) {
+         if ( !i_over && ((f_snap = fopen(s_mbname, "r")) != NULL) ) {
             notify(player, "Filename already exists.  Please delete it first.");
             fclose(f_snap);
             free_mbuf(s_mbname);
@@ -2591,27 +2687,76 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          notify(player, "@snapshot: Completed.");
       break;
       case SNAPSHOT_DEL:
-         s_mbname = alloc_mbuf("do_snapshot");
          if ( !buff1 || !*buff1 ) {
             notify(player, "Please specify a file to delete.");
-            free_mbuf(s_mbname);
-            return;
-         } else if ( strstr(buff1, ".img") != NULL ) {
-            notify(player, "Please do not specify the .img extension.");
-            free_mbuf(s_mbname);
-            return;
-         } else {
-            sprintf(s_mbname, "%s/%.80s.img", mudconf.image_dir, strip_all_special(buff1));
-         }
-         if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
-            notify(player, "Filename specified not found.");
-            free_mbuf(s_mbname);
             return;
          }
-         fclose(f_snap);
-         remove(s_mbname);
+         if ( buff2 && *buff2 ) {
+            notify(player, "@snapshot/delete does not take a second argument.");
+            return;
+         }
+         s_strtok = strtok_r(buff1, " \t", &s_strtokptr);
+         if ( !s_strtok || !*s_strtok ) {
+            notify(player, "Please specify a file to delete.");
+            return;
+         }
+         tprp_buff  = tpr_buff  = alloc_lbuf("do_snapshot_unall1");
+         tprp_buff2 = tpr_buff2 = alloc_lbuf("do_snapshot_unall2");
+         tprp_buff3 = tpr_buff3 = alloc_lbuf("do_snapshot_unall3");
+         s_mbname = alloc_mbuf("do_snapshot");
+         i_found1 = i_found2 = i_found3 = 0;
+         notify(player, "@snapshot: Deleting image file(s) ...");
+         while ( s_strtok ) {
+            if ( strstr(s_strtok, ".img") != NULL ) {
+               if ( i_found1 ) {
+                  safe_chr(' ', tpr_buff, &tprp_buff);
+               } else {
+                  safe_str((char *)"   -> Files skipped with .img extension: ", tpr_buff, &tprp_buff);
+               }
+               i_found1++;
+               safe_str(s_strtok, tpr_buff, &tprp_buff);
+               s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+               continue;
+            } else {
+               sprintf(s_mbname, "%s/%.80s.img", mudconf.image_dir, strip_all_special(s_strtok));
+            }
+            if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
+               if ( i_found2 ) {
+                  safe_chr(' ', tpr_buff2, &tprp_buff2);
+               } else {
+                  safe_str((char *)"   -> Files skipped as not found: ", tpr_buff2, &tprp_buff2);
+               }
+               i_found2++;
+               safe_str(s_strtok, tpr_buff2, &tprp_buff2);
+               s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+               continue;
+            }
+            fclose(f_snap);
+            remove(s_mbname);
+            if ( i_found3 ) {
+               safe_chr(' ', tpr_buff3, &tprp_buff3);
+            } else {
+               safe_str((char *)"   -> Files successfully deleted: ", tpr_buff3, &tprp_buff3);
+            }
+            i_found3++;
+            safe_str(s_strtok, tpr_buff3, &tprp_buff3);
+            s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+            continue;
+         }
+         if ( i_found1 ) {
+            notify(player, tpr_buff);
+         }
+         if ( i_found2 ) {
+            notify(player, tpr_buff2);
+         }
+         if ( i_found3 ) {
+            notify(player, tpr_buff3);
+         }
+         notify(player, "@snapshot: Completed.");
+         free_lbuf(tpr_buff);
+         free_lbuf(tpr_buff2);
+         free_lbuf(tpr_buff3);
          free_mbuf(s_mbname);
-         notify(player, "@snapshot: Snapshot file has been deleted.");
       break;
       case SNAPSHOT_LOAD:
          init_match(player, buff1, NOTYPE);

@@ -4435,12 +4435,16 @@
     /verify - Syntax: @snapshot/verify <imagefile>
               This issues a sanity check on the image file and lets
               you know if the file is valid or corrupt.
-    /del    - Syntax: @snapshot/del <imagefile>
-              This deletes the specified image file from the drive.
+    /del    - Syntax: @snapshot/del <imagefile(s)>
+              This deletes the specified image file(s) from the drive.
+              You may specify more than one in a space-delimited list.
     /unload - Syntax: @snapshot/unload <target> [=<optional prefix>]
               This makes a snapshot file of the specified target and
               creates an optional prefix name for it.  Default name
               will be the dbref#.  '123.img' for example.
+    /unall  - Syntax: @snapshot/unall <list of targets>
+              This works like /unload but takes a list of targets.
+              You can not specify a destination name with this arg.
     /load   - Syntax: @snapshot/load <target> = <imagefile>
               This will load the image file onto the specified object.
               The object types MUST be the same, the object MUST be

@@ -967,10 +967,12 @@ NAMETAB site_sw[] =
 NAMETAB snapshot_sw[] =
 {
   {(char *) "load", 2, CA_IMMORTAL, 0, SNAPSHOT_LOAD},
-  {(char *) "unload", 2, CA_IMMORTAL, 0, SNAPSHOT_UNLOAD},
+  {(char *) "unload", 3, CA_IMMORTAL, 0, SNAPSHOT_UNLOAD},
   {(char *) "list", 2, CA_IMMORTAL, 0, SNAPSHOT_LIST},
   {(char *) "delete", 2, CA_IMMORTAL, 0, SNAPSHOT_DEL},
   {(char *) "verify", 2, CA_IMMORTAL, 0, SNAPSHOT_VERIFY},
+  {(char *) "unall", 3, CA_IMMORTAL, 0, SNAPSHOT_UNALL},
+  {(char *) "overwrite", 2, CA_IMMORTAL, 0, SNAPSHOT_OVER | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}};
 
   /* snoop code -Thorin */

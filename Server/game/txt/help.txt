@@ -29419,7 +29419,9 @@
     passed to @conformat, @exitformat, and @Nameformat [ASH]
   * Added new 'minimal-DBs' directory in order to ship multiple different
     minimal DBs. [AMB]
-  * Added new Amb-MinimalRhost DB to the 'minimal-DBs' directory.
+  * Added new Amb-MinimalRhost DB to the 'minimal-DBs' directory. [AMB]
+  * Added /overwrite switch to @snapshot to overwrite existing files [ASH]
+  * Added /unall to @snapshot to unload a list of targets [ASH]
   
   Changes
   ------------
@@ -29479,6 +29481,7 @@
   * output_limit defaults now based on LBUF size [ASH]
   * Moved minimal_db into new 'minimal-DBs' folder [AMB]
   * added advanced buffer labeling to exec calls [ASH]
+  * @snapshot/del now takes multiple arguments [ASH]
     
   Bug Fixes
   ------------
