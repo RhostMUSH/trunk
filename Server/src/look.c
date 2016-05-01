@@ -3055,104 +3055,151 @@ do_worn(dbref player, dbref cause, int key)
 void 
 do_inventory(dbref player, dbref cause, int key)
 {
-    dbref thing;
-    char *buff, *s, *e, *buf2, invname[80];
-    int cntr=0, wearcnt=0, wieldcnt=0;
+    dbref thing, aowner;
+    char *buff, *e, *buf2, invname[80], *s_exitbuff, *tpr_buff, *tprp_buff;
+    int cntr=0, wearcnt=0, wieldcnt=0, aflags;
 
     thing = Contents(player);
-    if ( ! *(mudconf.invname) )
+    if ( ! *(mudconf.invname) ) {
        strcpy(invname, "backpack");
-    else
+    } else {
        strcpy(invname, strip_returntab(strip_ansi(mudconf.invname),3));
+    }
 
     if (thing == NOTHING) {
-        if ( mudconf.alt_inventories && mudconf.altover_inv )
-           notify(player, unsafe_tprintf("You are not carrying anything in your %s.", invname));
-        else
+       if ( mudconf.alt_inventories && mudconf.altover_inv ) {
+          notify(player, unsafe_tprintf("You are not carrying anything in your %s.", invname));
+       } else {
 	   notify(player, "You are not carrying anything.");
+       }
     } else {
-	DOLIST(thing, thing) {
-            if ( mudconf.alt_inventories && mudconf.altover_inv && 
-                 (Wearable(thing) || Wieldable(thing)) ) {
-	       if (!Cloak(thing) || Immortal(player) || 
-                    (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
-                  if (Wearable(thing)) 
-                     wearcnt++;
-                  if (Wieldable(thing)) 
-                     wieldcnt++;
-               }
-               continue;
-            }
+       DOLIST(thing, thing) {
 #ifdef REALITY_LEVELS
-            if (!IsReal(player, thing))
-               continue;
+          if (!IsReal(player, thing)) {
+             continue;
+          }
 #endif /* REALITY_LEVELS */
-            if ( NoAnsiName(thing) || NoAnsiName(Owner(thing)) ||
+          if ( mudconf.alt_inventories && mudconf.altover_inv && 
+               (Wearable(thing) || Wieldable(thing)) ) {
+	     if ( !Cloak(thing) || Immortal(player) || 
+                  (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
+                if (Wearable(thing)) {
+                   wearcnt++;
+                }
+                if (Wieldable(thing)) {
+                   wieldcnt++;
+                }
+             }
+             continue;
+          }
+          if ( NoAnsiName(thing) || NoAnsiName(Owner(thing)) ||
                ((NoAnsiPlayer(player) || !(mudconf.allow_ansinames & ANSI_PLAYER)) && isPlayer(thing)) ||
                ((NoAnsiThing(player) || !(mudconf.allow_ansinames & ANSI_THING)) && isThing(thing)) ||
                ((NoAnsiExit(player) || !(mudconf.allow_ansinames & ANSI_EXIT)) && isExit(thing)) ||
-               ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) )
-               if (isPlayer(thing) || isThing(thing))
-                  buff = unparse_object_altname(player, thing, 1);
-               else
-	          buff = unparse_object(player, thing, 1);
-            else
-               if (isPlayer(thing) || isThing(thing))
-                  buff = unparse_object_ansi_altname(player, thing, 1);
-               else
-                  buff = unparse_object_ansi(player, thing, 1);
-
-	    if (!Cloak(thing) || Immortal(player) || 
-                 (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
-                if ( cntr == 0 ) {
-	           notify(player, "You are carrying:");
-                   cntr++;
-                }
-		notify(player, buff);
-            }
-	    free_lbuf(buff);
-	}
-        if ( cntr == 0 ) {
-           if ( mudconf.alt_inventories && mudconf.altover_inv )
+               ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) ) {
+             if (isPlayer(thing) || isThing(thing)) {
+                buff = unparse_object_altname(player, thing, 1);
+             } else {
+	        buff = unparse_object(player, thing, 1);
+             }
+          } else {
+             if (isPlayer(thing) || isThing(thing)) {
+                buff = unparse_object_ansi_altname(player, thing, 1);
+             } else {
+                buff = unparse_object_ansi(player, thing, 1);
+             }
+          }
+	  if ( !Cloak(thing) || Immortal(player) || 
+               (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
+             if ( cntr == 0 ) {
+                tprp_buff = tpr_buff = alloc_lbuf("look_carrying");
+	        notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s",
+                       ANSIEX(ANSI_HILITE), (char *)"You are carrying:", ANSIEX(ANSI_NORMAL)));
+                free_lbuf(tpr_buff);
+                cntr++;
+             }
+             notify(player, buff);
+          }
+	  free_lbuf(buff);
+       } /* DOLIST */
+       if ( cntr == 0 ) {
+          if ( mudconf.alt_inventories && mudconf.altover_inv ) {
 	     notify(player, unsafe_tprintf("You are not carrying anything in your %s.",invname));
-           else
+          } else {
 	     notify(player, "You aren't carrying anything.");
-	}
+          }
+       }
     }
 
+    cntr = 0;
     thing = Exits(player);
     if (thing != NOTHING) {
-	e = buff = alloc_lbuf("look_exits");
-	DOLIST(thing, thing) {
-	    /* chop off first exit alias to display */
-	    if (!Cloak(thing) || Immortal(player) || 
-                 (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
-                if ( cntr == 0 ) {
-	           notify(player, "Exits:");
-                   cntr++;
-                }
+       e = buff = alloc_lbuf("look_exits");
+       s_exitbuff = alloc_lbuf("look_exits_2");
+       DOLIST(thing, thing) {
 #ifdef REALITY_LEVELS
-                if (!IsReal(player, thing))
-                   continue;
+          if (!IsReal(player, thing)) {
+             continue;
+          }
 #endif /* REALITY_LEVELS */
-
+          /* chop off first exit alias to display */
+          if ( !Cloak(thing) || Immortal(player) || 
+               (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
+             if ( cntr == 0 ) {
+                tprp_buff = tpr_buff = alloc_lbuf("look_carrying");
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s",
+                       ANSIEX(ANSI_HILITE), (char *)"Exits:", ANSIEX(ANSI_NORMAL)));
+                free_lbuf(tpr_buff);
+                cntr++;
+             } else {
+                safe_str((char *) "  ", buff, &e);
+             }
+             sprintf(s_exitbuff, "%s", Name(thing));
+             if ( strchr(s_exitbuff, ';') != NULL ) {
+                *(strchr(s_exitbuff, ';')) = '\0';
+             }
+             if ( ExtAnsi(thing) ) {
+                buf2 = atr_get(thing, A_ANSINAME, &aowner, &aflags);
+                if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
+                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                   if ( strcmp(strip_all_special(buf2), s_exitbuff) == 0 ) {
+                      if ( !Accents(player) ) {
+                         safe_str(strip_safe_accents(buf2), buff, &e);
+                      } else {
+                         safe_str(buf2, buff, &e);
+                      }
+                      safe_str(ANSI_NORMAL, buff, &e);
+                   } else {
+                      safe_str(s_exitbuff, buff, &e);
+                   }
+                } else {
+                   safe_str(s_exitbuff, buff, &e);
+                }
+                free_lbuf(buf2);
+             } else {
                 buf2 = ansi_exitname(thing);
                 if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
-                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) )
-                   safe_str(buf2, buff, &e);
+                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                   if ( !Accents(player) ) {
+                      safe_str(strip_safe_accents(buf2), buff, &e);
+                   } else {
+                      safe_str(buf2, buff, &e);
+                   }
+                }
                 free_lbuf(buf2);
-	        for (s = Name(thing); *s && (*s != ';'); s++) 
-	    	   safe_chr(*s, buff, &e);
+                safe_str(s_exitbuff, buff, &e);
                 if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
-                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) )
+                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
                    safe_str(ANSI_NORMAL, buff, &e);
-	        safe_str((char *) "  ", buff, &e);
-           }
-	}
-	*e = 0;
-        if ( cntr > 0 )
-	   notify(player, buff);
-	free_lbuf(buff);
+                }
+             }
+          }
+       }
+       if ( cntr > 0 ) {
+          notify(player, buff);
+       }
+       free_lbuf(buff);
+       free_lbuf(s_exitbuff);
     }
     do_score(player, player, 0);
     if ( mudconf.alt_inventories && mudconf.altover_inv ) {

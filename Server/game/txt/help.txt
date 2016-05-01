@@ -29515,3 +29515,4 @@
   * Long standing issue with left()/right() with arg of '0' cut string [ASH]
   * missing free when name_with_desc enabled [ASH]
   * @sudo didn't handle @power/@depower like @fo [ASH]
+  * Inventory was not fully Reality Level aware nor color aware [ASH]
