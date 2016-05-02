@@ -28,6 +28,166 @@ extern int count_chars(const char *, const char c);
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern POWENT * FDECL(find_power, (dbref, char *));
 
+void
+look_inv_parse(dbref player, dbref cause, int i_attr) {
+    dbref thing, aowner;
+    char *s_array[8], *s_ptr[8], sep1, sep2, *s_thing, *s_exitbuff, *buf2;
+    int aflags;
+
+    s_ptr[0] = s_array[0] = alloc_lbuf("look_inv_parse1"); /* Contents */
+    s_ptr[1] = s_array[1] = alloc_lbuf("look_inv_parse2"); /* Content Names */
+    s_ptr[2] = s_array[2] = alloc_lbuf("look_inv_parse3"); /* Exits */
+    s_ptr[3] = s_array[3] = alloc_lbuf("look_inv_parse4"); /* Exit Names */
+    s_ptr[4] = s_array[4] = alloc_lbuf("look_inv_parse5"); /* Wielded */
+    s_ptr[5] = s_array[5] = alloc_lbuf("look_inv_parse6"); /* Worn */
+    s_ptr[6] = s_array[6] = alloc_lbuf("look_inv_parse7"); /* Backpack Name */
+    s_ptr[7] = s_array[7] = NULL;
+    sep1 = ' ';
+    sep2 = '|';
+
+    thing = Contents(player);
+
+    if ( ! *(mudconf.invname) ) {
+       safe_str((char *)"backpack", s_array[6], &s_ptr[6]);
+    } else {
+       safe_str(strip_returntab(strip_ansi(mudconf.invname),3), s_array[6], &s_ptr[6]);
+    }
+
+    if (thing != NOTHING) {
+       s_thing = alloc_sbuf("look_inv_thingy");
+       DOLIST(thing, thing) {
+#ifdef REALITY_LEVELS
+          if (!IsReal(player, thing)) {
+             continue;
+          }
+#endif /* REALITY_LEVELS */
+          sprintf(s_thing, "#%d", thing);
+          if ( (Wearable(thing) || Wieldable(thing)) ) {
+             if ( !Cloak(thing) || Immortal(player) || 
+                  (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
+                if (Wearable(thing)) {
+                   if ( *s_array[5] ) {
+                      safe_chr(sep1, s_array[5], &s_ptr[5]);
+                   } 
+                   safe_str(s_thing, s_array[5], &s_ptr[5]);
+                }
+                if (Wieldable(thing)) {
+                   if ( *s_array[4] ) {
+                      safe_chr(sep1, s_array[4], &s_ptr[4]);
+                   }
+                   safe_str(s_thing, s_array[4], &s_ptr[4]);
+                }
+             }
+          }
+          if ( !Cloak(thing) || Immortal(player) || 
+               (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
+             if ( NoAnsiName(thing) || NoAnsiName(Owner(thing)) ||
+                  ((NoAnsiPlayer(player) || !(mudconf.allow_ansinames & ANSI_PLAYER)) && isPlayer(thing)) ||
+                  ((NoAnsiThing(player) || !(mudconf.allow_ansinames & ANSI_THING)) && isThing(thing)) ||
+                  ((NoAnsiExit(player) || !(mudconf.allow_ansinames & ANSI_EXIT)) && isExit(thing)) ||
+                  ((NoAnsiRoom(player) || !(mudconf.allow_ansinames & ANSI_ROOM)) && isRoom(thing)) ) {
+                if (isPlayer(thing) || isThing(thing)) {
+                   s_exitbuff = unparse_object_altname(player, thing, 1);
+                } else {
+	           s_exitbuff = unparse_object(player, thing, 1);
+                }
+             } else {
+                if (isPlayer(thing) || isThing(thing)) {
+                   s_exitbuff = unparse_object_ansi_altname(player, thing, 1);
+                } else {
+                   s_exitbuff = unparse_object_ansi(player, thing, 1);
+                }
+             }
+             if ( *s_array[0] ) {
+                safe_chr(sep1, s_array[0], &s_ptr[0]);
+             }
+             if ( *s_array[1] ) {
+                safe_chr(sep2, s_array[1], &s_ptr[1]);
+             }
+             safe_str(s_thing, s_array[0], &s_ptr[0]);
+             safe_str(s_exitbuff, s_array[1], &s_ptr[1]);
+	     free_lbuf(s_exitbuff);
+          }
+       }
+       free_sbuf(s_thing);
+    }
+
+    thing = Exits(player);
+    if (thing != NOTHING) {
+       s_exitbuff = alloc_lbuf("look_exits_2");
+       s_thing = alloc_sbuf("look_inv_thingy");
+       DOLIST(thing, thing) {
+#ifdef REALITY_LEVELS
+          if (!IsReal(player, thing)) {
+             continue;
+          }
+#endif /* REALITY_LEVELS */
+          sprintf(s_thing, "#%d", thing);
+          /* chop off first exit alias to display */
+          if ( !Cloak(thing) || Immortal(player) || 
+               (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
+             sprintf(s_exitbuff, "%s", Name(thing));
+             if ( strchr(s_exitbuff, ';') != NULL ) {
+                *(strchr(s_exitbuff, ';')) = '\0';
+             }
+             if ( *s_array[2] ) {
+                safe_chr(sep1, s_array[2], &s_ptr[2]);
+             }
+             if ( *s_array[3] ) {
+                safe_chr(sep2, s_array[3], &s_ptr[3]);
+             }
+             if ( ExtAnsi(thing) ) {
+                buf2 = atr_get(thing, A_ANSINAME, &aowner, &aflags);
+                if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
+                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                   if ( strcmp(strip_all_special(buf2), s_exitbuff) == 0 ) {
+                      if ( !Accents(player) ) {
+                         safe_str(strip_safe_accents(buf2), s_array[3], &s_ptr[3]);
+                      } else {
+                         safe_str(buf2, s_array[3], &s_ptr[3]);
+                      }
+                      safe_str(ANSI_NORMAL, s_array[3], &s_ptr[3]);
+                   } else {
+                      safe_str(s_exitbuff, s_array[3], &s_ptr[3]);
+                   }
+                } else {
+                   safe_str(s_exitbuff, s_array[3], &s_ptr[3]);
+                }
+                free_lbuf(buf2);
+             } else {
+                buf2 = ansi_exitname(thing);
+                if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
+                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                   if ( !Accents(player) ) {
+                      safe_str(strip_safe_accents(buf2), s_array[3], &s_ptr[3]);
+                   } else {
+                      safe_str(buf2, s_array[3], &s_ptr[3]);
+                   }
+                }
+                free_lbuf(buf2);
+                safe_str(s_exitbuff, s_array[3], &s_ptr[3]);
+                if ( isExit(thing) && !NoAnsiExit(player) && (mudconf.allow_ansinames & ANSI_EXIT) &&
+                     !NoAnsiName(thing) && !NoAnsiName(Owner(thing)) ) {
+                   safe_str(ANSI_NORMAL, s_array[3], &s_ptr[3]);
+                }
+             }
+             safe_str(s_thing, s_array[4], &s_ptr[4]);
+          }
+       }
+       free_lbuf(s_exitbuff);
+       free_sbuf(s_thing);
+    }
+    did_it(player, cause, i_attr, NULL, 0, NULL, 0, s_array, 7);
+    free_lbuf(s_array[0]);
+    free_lbuf(s_array[1]);
+    free_lbuf(s_array[2]);
+    free_lbuf(s_array[3]);
+    free_lbuf(s_array[4]);
+    free_lbuf(s_array[5]);
+    free_lbuf(s_array[6]);
+}
+
+
 char *
 look_exit_parse(dbref player, dbref cause, dbref loc, int i_key, int keytype, int cloak)
 {
@@ -349,9 +509,11 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
              if ( !Good_chk(it) ) {
                 it = mudconf.global_parent_obj;
              }
-             t_work = Toggles4(it);
-             t_work >>= (pent->powerpos);
-             t_level = t_work & POWER_LEVEL_COUNC;
+             if ( Good_chk(it) ) {
+                t_work = Toggles4(it);
+                t_work >>= (pent->powerpos);
+                t_level = t_work & POWER_LEVEL_COUNC;
+             }
           }
           if ( !t_level && !NoZoneParent(loc) ) {
              for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
@@ -760,9 +922,11 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                   if ( !Good_chk(it) ) {
                      it = mudconf.global_parent_obj;
                   }
-                  t_work = Toggles4(it);
-                  t_work >>= (pent->powerpos);
-                  t_level = t_work & POWER_LEVEL_COUNC;
+                  if ( Good_chk(it) ) {
+                     t_work = Toggles4(it);
+                     t_work >>= (pent->powerpos);
+                     t_level = t_work & POWER_LEVEL_COUNC;
+                  }
                }
                if ( !t_level && !NoZoneParent(loc) ) {
                   for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
@@ -936,9 +1100,11 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                   if ( !Good_chk(it) ) {
                      it = mudconf.global_parent_obj;
                   }
-                  t_work = Toggles4(it);
-                  t_work >>= (pent->powerpos);
-                  t_level = t_work & POWER_LEVEL_COUNC;
+                  if ( Good_chk(it) ) {
+                     t_work = Toggles4(it);
+                     t_work >>= (pent->powerpos);
+                     t_level = t_work & POWER_LEVEL_COUNC;
+                  }
                }
                if ( !t_level && !NoZoneParent(loc) ) {
                   for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
@@ -3055,9 +3221,94 @@ do_worn(dbref player, dbref cause, int key)
 void 
 do_inventory(dbref player, dbref cause, int key)
 {
-    dbref thing, aowner;
+    dbref thing, aowner, it;
     char *buff, *e, *buf2, invname[80], *s_exitbuff, *tpr_buff, *tprp_buff;
-    int cntr=0, wearcnt=0, wieldcnt=0, aflags;
+    char *s_combine;
+    int cntr=0, wearcnt=0, wieldcnt=0, aflags, t_work, t_level, max_lev, i_attr;
+    ATTR *ap;
+    POWENT *pent;
+    ZLISTNODE *ptr;
+
+    if ( !NoFormat(player) ) {
+       ap = atr_str("invformat");
+       if ( ap ) {
+          i_attr = ap->number;
+          buf2 = atr_get(player, ap->number, &aowner, &aflags);
+          if ( *buf2 ) {
+             s_combine = alloc_lbuf("fun_lexits_formatting");
+             strcpy(s_combine, (char *)"formatting");
+             pent = find_power(player, s_combine);
+             if ( pent ) {
+                t_work = Toggles4(player);
+                t_work >>= (pent->powerpos);
+                t_level = t_work & POWER_LEVEL_COUNC;
+                if ( !t_level ) {
+                   max_lev = 1;
+                   it = Parent(player);
+                   while ( Good_chk(it) ) {
+                      max_lev++;
+                      if ( could_doit(player, it, A_LPARENT, 1, 0) ) {
+                         if ( max_lev > mudconf.parent_nest_lim )
+                            break;
+                         t_work = Toggles4(it);
+                         t_work >>= (pent->powerpos);
+                         t_level = t_work & POWER_LEVEL_COUNC;
+                         if ( t_level )
+                            break;
+                      }
+                      it = Parent(it);
+                   }
+                }
+                if ( !t_level && !NoGlobParent(player) ) {
+                   it = NOTHING;
+                   switch( Typeof(player) ) {
+                      case TYPE_ROOM:
+                         it = mudconf.global_parent_room;
+                         break;
+                      case TYPE_THING:
+                         it = mudconf.global_parent_thing;
+                         break;
+                      case TYPE_PLAYER:
+                         it = mudconf.global_parent_player;
+                         break;
+                   }
+                   if ( !Good_chk(it) ) {
+                      it = mudconf.global_parent_obj;
+                   }
+                   if ( Good_chk(it) ) {
+                      t_work = Toggles4(it);
+                      t_work >>= (pent->powerpos);
+                      t_level = t_work & POWER_LEVEL_COUNC;
+                   }
+                }
+                if ( !t_level && !NoZoneParent(player) ) {
+                   for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+                      if ( ptr && Good_chk(ptr->object) ) {
+                         t_work = Toggles4(ptr->object);
+                         t_work >>= (pent->powerpos);
+                         t_level = t_work & POWER_LEVEL_COUNC;
+                         if ( t_level )
+                            break;
+                      } else {
+                         break;
+                      }
+                   }
+                }
+                if ( t_level ) {
+                   look_inv_parse(player, cause, i_attr);
+                } else {
+                   did_it(player, cause, i_attr, NULL, 0, NULL, 0, (char **)NULL, 0);
+                }
+             } else {
+                did_it(player, cause, i_attr, NULL, 0, NULL, 0, (char **)NULL, 0);
+             }
+             free_lbuf(s_combine);
+             free_lbuf(buf2);
+             return;
+          }
+          free_lbuf(buf2);
+       }
+    }
 
     thing = Contents(player);
     if ( ! *(mudconf.invname) ) {

@@ -217,7 +217,7 @@
       ===<This is a test>===
 
   See Also: ATTRIBUTES, ATTRIBUTE FLAG DEFAULT, @conformat, 
-            @exitformat, @nameformat
+            @exitformat, @nameformat, invformat
 
 & NEW USERS
 & GUESTS
@@ -1022,13 +1022,40 @@
   
 & inventory
   Command: inventory
+  
   Lists what you are carrying and how much money you have.  If alternate 
   inventories are in effect, anything wielded or worn may not be shown up
   by this inventory.  To see these inventories, use the 'wielded' and
   'worn' commands respectively.
   
-  See Also: score, worn, wielded
+  See Also: score, worn, wielded, invformat
   
+& @invformat
+& invformat
+  Attribute: INVFORMAT
+  
+  This attribute is set via &INVFORMAT.  There is no '@invformat'.
+  
+  This attribute when set will format the enctor's inventory.  If the enactor
+  is @powered FORMATTING (either directly or through a parent/zone chain),
+  then you may also use %0-%6 for arguments.  They are:
+    %0 - The space separated list of dbref#'s that would normally show 
+         up in inventory.
+    %1 - The '|' delimited list of names that would normally show up in
+         inventory.
+    %2 - The space separated list of exit#'s that would normally show 
+         up in inventory.
+    %3 - The '|' delimited list of names that would normally show up in
+         inventory.
+    %4 - The space separated list of items that are toggled WIELDED
+    %5 - The space separated list of items that are toggled WORN
+    %6 - The backpack name that is globally set.
+  
+  If the target is not @powered FORMATTING, then none of the % registers
+  will return a result.
+  
+  See Also: @conformat, @exitformat, @nameformat, attribute formatting
+
 & train
   Command: train
   The train command is used to output to the player what exactly you have 
@@ -5483,7 +5510,7 @@
    
   The mush has to be configured to enable this to work.  '@list options'
   
-  See Also: @exitformat, @conformat
+  See Also: @exitformat, @conformat, invformat
   
 & @conformat
   Command: @conformat[/<switch>] <object> = <string>
@@ -5512,7 +5539,7 @@
    
   The mush has to be configured to enable this to work.  '@list options'
   
-  See Also: @exitformat, @nameformat
+  See Also: @exitformat, @nameformat, invformat
   
 & @exitformat
   Command: @exitformat[/<switch>] <object> = <string>
@@ -5543,7 +5570,7 @@
   
   The mush has to be configured to enable this to work.  '@list options'
   
-  See Also: @conformat, @nameformat
+  See Also: @conformat, @nameformat, invformat
   
 & @exitto
   Command: @exitto[/<switch>] <exit> = <string>
@@ -29422,6 +29449,7 @@
   * Added new Amb-MinimalRhost DB to the 'minimal-DBs' directory. [AMB]
   * Added /overwrite switch to @snapshot to overwrite existing files [ASH]
   * Added /unall to @snapshot to unload a list of targets [ASH]
+  * invformat for inventory formatting [ASH]
   
   Changes
   ------------
