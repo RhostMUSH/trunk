@@ -49,6 +49,8 @@ crashbug on random error messages if error.txt was empty
 				- Thanks Darren
 compile issue when you do not have sideeffects enabled at comiletime
 				- Thanks benzaiten
+Idea for /quiet for @pipe
+				- Thanks Ixokai
 
 
 		         RhostMUSH 3.9.4 Update File

@@ -4262,6 +4262,7 @@
     /off    -- Turn off piping to the attribute.
     /tee    -- This turns on piping but also allows viewing output normally.
     /status -- This gives the current status of your piping.
+    /quiet  -- snuff the messages of using the /on and /off switches
   
   Please note, you obviously can not pipe to multiple attributes at once,
   and once the attribute is filled to capacity, piping to that attribute
@@ -29510,6 +29511,7 @@
   * Moved minimal_db into new 'minimal-DBs' folder [AMB]
   * added advanced buffer labeling to exec calls [ASH]
   * @snapshot/del now takes multiple arguments [ASH]
+  * Added /quiet switch to @pipe [ASH]
     
   Bug Fixes
   ------------

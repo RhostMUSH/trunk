@@ -781,6 +781,7 @@ NAMETAB pipe_sw[] =
     {(char *) "off", 1, CA_PUBLIC, 0, PIPE_OFF},
     {(char *) "tee", 1, CA_PUBLIC, 0, PIPE_TEE},
     {(char *) "status", 1, CA_PUBLIC, 0, PIPE_STATUS},
+    {(char *) "quiet", 1, CA_PUBLIC, 0, PIPE_QUIET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pemit_sw[] =
@@ -9429,9 +9430,14 @@ do_pipe(dbref player, dbref cause, int key, char *name)
 {
    ATTR *atr, *atr2;
    dbref aowner;
-   int aflags, anum, i_type;
+   int aflags, anum, i_type, i_quiet;
    char *s_atext, *s_tmpbuff;
 
+   i_quiet = 0;
+   if ( key & PIPE_QUIET ) {
+      key &= ~PIPE_QUIET;
+      i_quiet = 1;
+   }
    switch (key) {
       case PIPE_ON: /* Enable piping to attribute */
       case PIPE_TEE: /* Enable piping to attribute */
@@ -9460,7 +9466,9 @@ do_pipe(dbref player, dbref cause, int key, char *name)
                              if ( !Controlsforattr(player, player, atr2, aflags)) {
                                 notify_quiet(player, (char *)"@pipe: you have no permission to pipe to that attribute.");
                              } else {
-                                notify_quiet(player, (char *)"@pipe: piping to attribute has been enabled.");
+                                if ( !i_quiet ) {
+                                   notify_quiet(player, (char *)"@pipe: piping to attribute has been enabled.");
+                                }
                                 s_tmpbuff = alloc_lbuf("do_pipe_tee");
                                 sprintf(s_tmpbuff, "%s %d", name, ((key & PIPE_TEE) ? 1 : 0));
                                 atr_add_raw(player, atr->number, s_tmpbuff);
@@ -9483,7 +9491,9 @@ do_pipe(dbref player, dbref cause, int key, char *name)
               if ( atr ) {
                  atr_clr(player, atr->number);
               }
-              notify_quiet(player, (char *)"@pipe: piping to attribute has been disabled.");
+              if ( !i_quiet ) {
+                 notify_quiet(player, (char *)"@pipe: piping to attribute has been disabled.");
+              }
            } else {
               notify_quiet(player, (char *)"@pipe: piping to attribute is not currently enabled.");
            }

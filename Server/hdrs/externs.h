@@ -826,6 +826,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PIPE_OFF        2	/* Disable @pipe to attribute */
 #define PIPE_TEE        4	/* Enable @pipe to attribute + normal output */
 #define PIPE_STATUS	8	/* Status of piping */
+#define PIPE_QUIET	16	/* Quiet the on/off/tee of pipe */
 #define	PS_BRIEF	0	/* Short PS report */
 #define	PS_LONG		1	/* Long PS report */
 #define	PS_SUMM		2	/* Queue counts only */
