@@ -1043,13 +1043,13 @@
          up in inventory.
     %1 - The '|' delimited list of names that would normally show up in
          inventory.
-    %2 - The space separated list of exit#'s that would normally show 
+    %2 - The space separated list of exit dbref#'s that would normally 
+         show up in inventory.
+    %3 - The '|' delimited list of exit names that would normally show 
          up in inventory.
-    %3 - The '|' delimited list of names that would normally show up in
-         inventory.
-    %4 - The space separated list of items that are toggled WIELDED
-    %5 - The space separated list of items that are toggled WORN
-    %6 - The backpack name that is globally set.
+    %4 - The space separated list of dbref#'s that are toggled WIELDED
+    %5 - The space separated list of dbref#'s that are toggled WORN
+    %6 - The backpack name that is globally set. (@admin inventory_name)
   
   If the target is not @powered FORMATTING, then none of the % registers
   will return a result.
