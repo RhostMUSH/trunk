@@ -13772,7 +13772,8 @@
   See Also: replace(), lreplace(), totpos(), elementpos()
   
 & strmath()
-  Function: strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>)
+  Function: strmath (syntax follows)
+  strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>,<low>,<hi>)
   
   The strmath function is used to apply math to the entire string.  Numbers
   in the string are modified based on the math chosen applied to the number.
@@ -13781,6 +13782,7 @@
   start you wish to use. If no math is specified, '+' is used as a default.
   The <idlm> and <isep> are inner delimiter and separator to use for the 
   normal delimited string.  This is so you can separate values such as:
+  
                     To hit:5|To Damage:10|Base AC:15
   
   Note:  It handles floating point notation, so values with decimals are seen.
@@ -13788,7 +13790,11 @@
     Key:  str  -- input string    num  -- value to apply  math -- math to use
           dlm  -- delimiter       sep  -- separator       st   -- start value
           amt  -- word count      idlm -- inner delim     isep -- inner sep
+          low  -- low val match   hi   -- high val match
   
+  You may specify the 'low' and 'hi' values to specify a range of what values
+  you wish to apply the math to.
+   
   Valid math arguments are:
         + - apply addition to all numbers in the string.
         - - apply subtraction to all numbers in the string.
@@ -29512,6 +29518,7 @@
   * added advanced buffer labeling to exec calls [ASH]
   * @snapshot/del now takes multiple arguments [ASH]
   * Added /quiet switch to @pipe [ASH]
+  * Added low/high ranges to strmath() [ASH]
     
   Bug Fixes
   ------------

@@ -23839,10 +23839,11 @@ FUNCTION(fun_strmath)
    char *curr, *cp, *objstring, sep, osep, *tcurr, *tmp,
         *s_str, *s_strtok, sep2, osep2, osep_str[3];
    static char mybuff[LBUF_SIZE];
-   int  first, first2, i_start, i_cnt, i_currcnt, i_applycnt;
-   double f_val, f_base, f_number;
+   int  first, first2, i_start, i_cnt, i_currcnt, i_applycnt, 
+        i_mintog, i_maxtog;
+   double f_val, f_base, f_number, f_max, f_min;
 
-   if (!fn_range_check("STRMATH", nfargs, 3, 9, buff, bufcx))
+   if (!fn_range_check("STRMATH", nfargs, 3, 11, buff, bufcx))
       return;
    if ((nfargs > 3) && *fargs[3]) {
       tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3],
@@ -23921,6 +23922,15 @@ FUNCTION(fun_strmath)
    } else {
       osep2 = sep2;
    }
+   i_mintog = i_maxtog = 0;
+   if ((nfargs > 9) && *fargs[9] ) {
+      f_min = safe_atof(fargs[9]);
+      i_mintog = 1;
+   }
+   if ((nfargs > 10) && *fargs[10] ) {
+      f_max = safe_atof(fargs[10]);
+      i_maxtog = 1;
+   }
 
    tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
                     cargs, ncargs, (char **)NULL, 0);
@@ -23962,26 +23972,31 @@ FUNCTION(fun_strmath)
          }
          if ( is_float2(s_str) ) {
             f_number = safe_atof(s_str);
-            if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
-               switch( *fargs[2] ) {
-                  case '+': f_val = f_number + f_base;
-                            break;
-                  case '-': f_val = f_number - f_base;
-                            break;
-                  case '/': if ( f_base == 0 )
-                                  f_val = f_number;
-                            else {
-                               f_val = f_number / f_base;
-                            }
-                            break;
-                  case '*': f_val = f_number * f_base;
-                            break;
-                  case '%': if ( f_base == 0)
-                               f_base = 1;
-                            f_val = fmod(f_number, f_base);
-                            break;
-                  default : f_val = f_number + f_base;
-                            break;
+            if ( (!i_mintog || (i_mintog && (f_number >= f_min))) &&
+                 (!i_maxtog || (i_maxtog && (f_number <= f_max))) ) {
+               if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
+                  switch( *fargs[2] ) {
+                     case '+': f_val = f_number + f_base;
+                               break;
+                     case '-': f_val = f_number - f_base;
+                               break;
+                     case '/': if ( f_base == 0 )
+                                     f_val = f_number;
+                               else {
+                                  f_val = f_number / f_base;
+                               }
+                               break;
+                     case '*': f_val = f_number * f_base;
+                               break;
+                     case '%': if ( f_base == 0)
+                                  f_base = 1;
+                               f_val = fmod(f_number, f_base);
+                               break;
+                     default : f_val = f_number + f_base;
+                               break;
+                  }
+               } else {
+                  f_val = f_number;
                }
             } else {
                f_val = f_number;
