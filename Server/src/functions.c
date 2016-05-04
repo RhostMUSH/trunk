@@ -23786,8 +23786,7 @@ FUNCTION(fun_repeat)
           for (i = 0; i < times && !over; i++)
               over = safe_str(fargs[0], buff, bufcx);
        }
-    } else
-       safe_chr('\0',buff,bufcx);
+    }
 }
 
 /* ---------------------------------------------------------------------------
@@ -25903,16 +25902,13 @@ FUNCTION(fun_mix)
     }
 
     if (!ap) {
-        safe_chr('\0', buff, bufcx);
         return;
     }
     atext = atr_pget(thing, ap->number, &aowner, &aflags);
     if (!atext) {
-        safe_chr('\0', buff, bufcx);
         return;
     } else if (!*atext || !See_attr(player, thing, ap, aowner, aflags, 0)) {
         free_lbuf(atext);
-        safe_chr('\0', buff, bufcx);
         return;
     }
 
@@ -26088,7 +26084,6 @@ FUNCTION(fun_squish)
    char *t_ptr, sep;
 
    if (nfargs == 0) {
-      safe_chr('\0', buff, bufcx);
       return;
    }
    varargs_preamble("SQUISH", 2);
@@ -26099,7 +26094,6 @@ FUNCTION(fun_squish)
          t_ptr++;
       }
       if ( !*t_ptr ) {
-         safe_chr('\0', buff, bufcx);
          return;
       }
       safe_chr(*t_ptr, buff, bufcx);
@@ -26107,7 +26101,6 @@ FUNCTION(fun_squish)
       while ( *t_ptr && (*t_ptr == sep) )
          t_ptr++;
    }
-   safe_chr('\0', buff, bufcx);
 }
 
 /* ---------------------------------------------------------------------------
