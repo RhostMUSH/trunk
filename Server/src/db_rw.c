@@ -1584,10 +1584,12 @@ db_write_object(FILE * f, dbref i, int db_format, int flags, int key)
 		    if (flags & V_ATRNAME)
 			save = 1;
 		    break;
+/* -- This was commented out so allow permissions to be saved/loaded in flatfiles 
 		case A_LOCK:
 		    if (flags & V_ATRKEY)
 			save = 1;
 		    break;
+*/
 		case A_LIST:
 		case A_MONEY:
 		    break;
