@@ -554,7 +554,7 @@ NAMETAB lock_sw[] =
     {(char *) "givetolock", 5, CA_PUBLIC, 0, A_LGIVETO},
     {(char *) "getfromlock", 3, CA_PUBLIC, 0, A_LGETFROM},
     {(char *) "chownlock", 3, CA_PUBLIC, 0, A_LCHOWN},
-    {(char *) "basic", 2, CA_PUBLIC, 0, 0},
+    {(char *) "basic", 2, CA_PUBLIC, 0, A_LOCK},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB zone_sw[] = 
@@ -585,6 +585,11 @@ NAMETAB smell_sw[] =
 NAMETAB look_sw[] =
 {
     {(char *) "outside", 1, CA_PUBLIC, 0, LOOK_OUTSIDE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB lset_sw[] =
+{
+    {(char *) "list", 1, CA_PUBLIC, 0, LSET_LIST},
     {NULL, 0, 0, 0, 0}};
 
 /* MMMail mail switch */
@@ -1275,6 +1280,7 @@ CMDENT command_table[] =
 /* Removed CA_GBL_BUILD from @lock : ASH 08/23/98 */
     {(char *) "@lock", lock_sw, CA_NO_SLAVE, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_lock},
+    {(char *) "@lset", lset_sw, CA_NO_SLAVE | CA_NO_GUEST, 0, 0, CS_TWO_ARG, 0, do_lset},
     {(char *) "@mark", mark_sw, CA_WIZARD, 0,
      SRCH_MARK, CS_ONE_ARG | CS_NOINTERP, 0, do_search},
     {(char *) "@mark_all", markall_sw, CA_WIZARD, 0,

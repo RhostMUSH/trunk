@@ -85,30 +85,30 @@
 & commands
   Help available for RhostMUSH Commands:
    
-  ]          "            :            ;            &              #
-  \\         >
+  ]         "           :            ;            &             #
+  \\        >
   
-  +channel   doing        drop         enter        examine        folder     
-  get        give         goto         grab         help           +help 
-  idle       INFO         inventory    join         kill           leave      
-  listen     LOGOUT       look         lpage        mail           move       
-  mrpage     news         OUTPUTPREFIX OUTPUTSUFFIX page           pose       
-  QUIT       read         rpage        say          score          SESSION    
-  smell      take         taste        think        throw          touch      
-  train      use          version      wield        whisper        who        
+  +channel  doing       drop         enter        examine       folder     
+  get       give        goto         grab         help          +help 
+  idle      INFO        inventory    join         kill          leave      
+  listen    LOGOUT      look         lpage        mail          move       
+  mrpage    news        OUTPUTPREFIX OUTPUTSUFFIX page          pose       
+  QUIT      read        rpage        say          score         SESSION    
+  smell     take        taste        think        throw         touch      
+  train     use         version      wield        whisper       who        
   worn
   
-  @@         @break       @chown       @clone       @create        @decompile
-  @destroy   @dig         @doing       @dolist      @drain         @edit 
-  @emit      @entrances   @eval        @extansi     @femit         @find      
-  @force     @fpose       @fsay        @halt        @hide          @include
-  @last      @link        @list        @listmotd    @lfunction     @lock      
-  @mailsig   @mvattr      @name        @notify      @oemit         @open      
-  @parent    @password    @pemit       @pipe        @program       @protect   
-  @ps        @quitprogram @quota       @register    @robot         @search    
-  @set       @skip        @sql         @sqlconnect  @sqldisconnect @stats     
-  @sudo      @sweep       @switch      @teleport    @trigger       @unlink    
-  @unlock    @verb        @wait        @wall        @wipe        
+  @@        @break      @chown       @clone       @create       @decompile
+  @destroy  @dig        @doing       @dolist      @drain        @edit 
+  @emit     @entrances  @eval        @extansi     @femit        @find      
+  @force    @fpose      @fsay        @halt        @hide         @include
+  @last     @link       @list        @listmotd    @lfunction    @lock      
+  @lset     @mailsig    @mvattr      @name        @notify       @oemit    
+  @open     @parent     @password    @pemit       @pipe         @program  
+  @protect  @ps         @quitprogram @quota       @register     @robot   
+  @search   @set        @skip        @sql         @sqlconnect   @sqldisconnect
+  @stats    @sudo       @sweep       @switch      @teleport     @trigger 
+  @unlink   @unlock     @verb        @wait        @wall         @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -3300,7 +3300,7 @@
          help @lock type <lock> - give detailed help on the specific lock.
          help userlocks   - a special way to define user-defined locking.
   
-  See Also: @chown, @unlock
+  See Also: @unlock, @lset, @chown, lock(), elock()
   
 & @lock locks
   You can set the following locks:
@@ -4500,6 +4500,40 @@
   See Also: @find, search(), searchng(), searchobjid(), searchngobjid(), 
             SEARCH CLASSES
   
+& @lset
+  Command: @lset[/<switches>] <object>[/<lock>] [=<permission>]
+  
+  The default <lock> if not specified will be the DefaultLock.  An alias
+  for DefaultLock is BasicLock.
+  
+  This function will display or set/unset a <permission> on a lock.  The
+  following permissions are available (depending on your permission to set):
+    god         -- Only #1 is allowed to set/unset this lock
+    immortal    -- Only immortal or higher is allowed ot set/unset this lock
+    wizard      -- Only wizard or higher is allowed to set/unset this lock
+    councilor   -- Only councilor or higher is allowed to set/unset this lock
+    architect   -- Only architect or higher is allowed to set/unset this lock
+    guildmaster -- Only guildmaster or higher is allowed to set/unset this lock
+    hidden      -- This lock is hidden based on above permission levels
+    no_inherit  -- if the @admin config parameter parentable_control_lock is 
+                   enabled, stops the lock from being inherited to its children
+    visual      -- Makes the lock globally visible
+    pinvisible  -- Hides the lock but makes it fetchable/checkable
+    no_clone    -- Lock is not copied with a @clone
+    
+  The following <switches> are available:
+    /list       -- List the special permissions on the specified target lock.
+  
+  Examples:
+    > @lset/list *Tester/default
+    @lset: [DefaultLock] on Tester(#123): No additional flags set.
+    > @lset *Tester/default=no_inherit
+    @lset: [DefaultLock] set NO_INHERIT on Tester(#123)
+    > @lset/list *Tester/default
+    @lset: [DefaultLock] on Tester(#123): no_inherit
+    
+  See Also: @lock, @unlock, @set, lock(), elock()
+ 
 & @set
   Command: @set[/<switches>] <object>=[!]<flag> [[!]<flag> [!]<flag> ...]
            @set[/<switches>] <object>=<attribute>:<value>
@@ -4561,7 +4595,7 @@
   Please note, you can not set multiple attributes or flags at once this way.
   Reference: ATTRIBUTE FLAGS
   
-  See Also: @lock, examine, FLAGS, &, @guild, @race, ATTRIBUTE FLAGS,
+  See Also: @lset, @lock, examine, FLAGS, &, @guild, @race, ATTRIBUTE FLAGS,
             ATTRIBUTE TREES
   
 & @stats
@@ -4760,7 +4794,7 @@
          help mail lock   - help on how to remove a mail lock.
          help @lock locks - list of available locks you can @unlock.
   
-  See Also: @chown, @lock, ATTRIBUTE OWNERSHIP
+  See Also: @lock, @lset, @chown, lock(), elock(), ATTRIBUTE OWNERSHIP
   
 & @verb
   Command: @verb <victim>=<actor>,<what>,<def>,<owhat>,<odef>,<awhat>,<args>
@@ -29457,6 +29491,7 @@
   * Added /overwrite switch to @snapshot to overwrite existing files [ASH]
   * Added /unall to @snapshot to unload a list of targets [ASH]
   * invformat for inventory formatting [ASH]
+  * @lset to set permissions for locks [ASH]
   
   Changes
   ------------

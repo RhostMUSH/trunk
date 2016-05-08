@@ -21520,7 +21520,11 @@ FUNCTION(fun_lock)
 
        /* Get the attribute and decode it if we can read it */
 
-       tbuf = atr_get(it, attr->number, &aowner, &aflags);
+       if ( mudconf.parent_control ) {
+          tbuf = atr_pget(it, attr->number, &aowner, &aflags);
+       } else {
+          tbuf = atr_get(it, attr->number, &aowner, &aflags);
+       }
        if (!Read_attr(player, it, attr, aowner, aflags, 0)) {
            free_lbuf(tbuf);
        } else {
@@ -21598,10 +21602,11 @@ FUNCTION(fun_elock)
                !nearby_or_control(player, it)) {
         safe_str("#-1 TOO FAR AWAY", buff, bufcx);
     } else {
-        if ( mudconf.parent_control )
+        if ( mudconf.parent_control ) {
            tbuf = atr_pget(it, attr->number, &aowner, &aflags);
-        else
+        } else {
            tbuf = atr_get(it, attr->number, &aowner, &aflags);
+        }
         if ((attr->number == A_LOCK) ||
             Read_attr(player, it, attr, aowner, aflags, 0)) {
             ival(buff, bufcx, eval_boolexp_atr(victim, it, it, tbuf, i_def, i_locktype));

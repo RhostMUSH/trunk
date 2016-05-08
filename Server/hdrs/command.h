@@ -102,6 +102,7 @@ CMD_ONE_ARG(do_list);			/* List contents of internal tables */
 CMD_ONE_ARG(do_list_file);		/* List contents of message files */
 CMD_TWO_ARG(do_lock);			/* Set a lock on an object */
 CMD_ONE_ARG(do_look);			/* Look here or at something */
+CMD_TWO_ARG(do_lset);                    /* Set flags on locks */
 /* SENSES */
 CMD_ONE_ARG(do_listen);			/* SENSES - listen here or at something */
 CMD_ONE_ARG(do_touch);			/* SENSES - touch location or target */

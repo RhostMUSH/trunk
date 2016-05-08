@@ -27,6 +27,8 @@
 #define DOING_SIZE 32	/* @doing and @doing/header size */
 #define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#') || (c == '.') || (c == '+'))
 
+#define LSET_FLAGS  ( AF_WIZARD | AF_MDARK | AF_GOD | AF_ADMIN | AF_BUILDER | AF_GUILDMASTER | AF_IMMORTAL | AF_PRIVATE | AF_VISUAL | AF_PINVIS | AF_NOCLONE )
+
 #define atrpCit(s) (s == 1)
 #define atrpGuild(s) (s == 2)
 #define atrpArch(s) (s == 3)
@@ -702,6 +704,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define LIMIT_DADD	4	/* @destroy limit */
 #define LIMIT_RESET	8	/* Reset limits to global defaults */
 #define LIMIT_LFUN	16	/* Maximum @lfunctions per player */
+#define LSET_LIST       1       /* @lset/list */
 #define ICMD_DISABLE	0
 #define ICMD_IGNORE	1
 #define ICMD_ON		2
