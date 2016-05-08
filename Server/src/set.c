@@ -29,12 +29,15 @@ extern int count_chars(const char *, const char c);
 static void set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
 
 int
-allowed_to_lock( dbref player, int aflags )
+allowed_to_lock( dbref player, int aflags, int key)
 {
    int i_return, i_enactor, i_thing;
+   ATTR *ap;
 
    i_return = 1;
-   if ( aflags != 0 ) {
+   ap = atr_num(key);
+   if ( (aflags != 0) || (ap && (ap->flags != 0))  ) {
+
       /* Establish the power of the enactor */
       if ( God(player) ) {
          i_enactor = 7;
@@ -53,17 +56,17 @@ allowed_to_lock( dbref player, int aflags )
       }
 
       /* Establish the power of the lock */
-      if ( aflags & AF_GOD ) {
+      if ( (aflags & AF_GOD) || (ap && (ap->flags & AF_GOD)) ) {
          i_thing = 7;
-      } else if ( aflags & AF_IMMORTAL ) {
+      } else if ( (aflags & AF_IMMORTAL) || (ap && (ap->flags & AF_IMMORTAL)) ) {
          i_thing = 6;
-      } else if ( aflags & AF_WIZARD ) {
+      } else if ( (aflags & AF_WIZARD) || (ap && (ap->flags & AF_WIZARD)) ) {
          i_thing = 5;
-      } else if ( aflags & AF_ADMIN ) {
+      } else if ( (aflags & AF_ADMIN) || (ap && (ap->flags & AF_ADMIN)) ) {
          i_thing = 4;
-      } else if ( aflags & AF_BUILDER ) {
+      } else if ( (aflags & AF_BUILDER) || (ap && (ap->flags & AF_BUILDER)) ) {
          i_thing = 3;
-      } else if ( aflags & AF_GUILDMASTER ) {
+      } else if ( (aflags & AF_GUILDMASTER) || (ap && (ap->flags & AF_GUILDMASTER)) ) {
          i_thing = 2;
       } else {
          i_thing = 1;
@@ -399,7 +402,12 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
 
    /* Check flags of lock to flags of enactor */
    if ( atr_get_info(thing, key, &aowner, &aflags) ) {
-      if ( !allowed_to_lock(player, aflags) ) {
+      if ( !allowed_to_lock(player, aflags, key) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
+   } else {
+      if ( !allowed_to_lock(player, 0, key) ) {
          notify_quiet(player, "Permission denied.");
          return;
       }
@@ -514,7 +522,12 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
       }
       /* Check flags of lock to flags of enactor */
       if ( atr_get_info(thing, key, &aowner, &aflags) ) {
-         if ( !allowed_to_lock(player, aflags) ) {
+         if ( !allowed_to_lock(player, aflags, key) ) {
+            notify_quiet(player, "Permission denied.");
+            return;
+         }
+      } else {
+         if ( !allowed_to_lock(player, 0, key) ) {
             notify_quiet(player, "Permission denied.");
             return;
          }
