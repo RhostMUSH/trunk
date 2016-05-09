@@ -1348,11 +1348,12 @@ CF_HAND(cf_sidefx) {
       } else {
          notify(player, unsafe_tprintf("Sideeffects set to %s", ptr));
       }
+    } else {
+       STARTLOG(LOG_CONFIGMODS, "CFG", "INF")
+         log_text("Sideeffects set to ");
+         log_text(ptr);
+       ENDLOG;
     }
-    STARTLOG(LOG_CONFIGMODS, "CFG", "INF")
-      log_text("Sideeffects set to ");
-      log_text(ptr);
-    ENDLOG;
     free_lbuf(ptr);
   } else {
     if ( player > 0 ) {
