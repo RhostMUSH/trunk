@@ -58,6 +58,7 @@ CF_HAND(cf_dynstring);
 
 extern double FDECL(time_ng, (double*));
 extern int FDECL(do_flag_and_toggle_def_conf, (dbref, char *, char *, int *, int));
+extern double FDECL(safe_atof, (char *));
 
 
 /* ---------------------------------------------------------------------------
@@ -1184,9 +1185,9 @@ CF_HAND(cf_verifyint_mysql)
  */
 
 /* The value of MUX/PENN/ALL are taken from 'wizhelp sideeffects' */
-#define MUXMASK         131135
-#define PENNMASK        458719
-#define ALLMASK		268435455 /* 2147483647 would be 'really all', i.e. 32 1s */
+#define MUXMASK         0x00010A3F /* SET CREATE LINK PEMIT TEL LIST OEMIT PARENT DESTROY */
+#define PENNMASK        0x1006FFDF /* SET CREATE LINK PEMIT TEL DIG OPEN EMIT OEMIT CLONE PARENT LOCK LEMIT REMIT WIPE ZEMIT NAME */
+#define ALLMASK		0x1FFFFFFF /* 2147483647 would be 'really all', i.e. 32 1s */
 #define NO_FLAG_FOUND   -1
 
 /* The conversion function relies on the position of words in this array to match
@@ -1195,7 +1196,7 @@ const char * sideEffects[] = {
   "SET" , "CREATE", "LINK", "PEMIT", "TEL", "LIST", "DIG", "OPEN", "EMIT",
   "OEMIT", "CLONE", "PARENT", "LOCK", "LEMIT", "REMIT", "WIPE", "DESTROY",
   "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", 
-  "MAILSEND", "EXECSCRIPT", "ZONE", NULL
+  "MAILSEND", "EXECSCRIPT", "ZONE", "LSET", NULL
 };
 
 /* This function takes an integer mask and converts it to a string list
@@ -1230,24 +1231,32 @@ void sideEffectMaskToString(int mask, char *buff, char **bufc) {
 CF_HAND(cf_sidefx) {
   int mask = 0;
   int i, nErr = 0, flag, bNegate;
-  char *ptr;
+  double d_val;
+  char *ptr, *eosptr;
+  int retval, i_mark;
 
   ptr = str;
 
   /* If nothing passed in, return nothing */
   if (str == NULL || *str == '\0') {
+    if ( player > 0 ) {
+      notify(player, "Sideeffects were not changed.");
+    }
     return 0;
   }
 
   *vp = 0;
-
+  i_mark = 0;
   /* Check for an oldstyle integer definition
    * Note: Will not support a mix of old + new
    */
   if (*str >= '0' && *str <= '9') {
-    char *ptr, *eosptr;
-    int retval;
     retval = cf_int(vp, str, extra, extra2, player, cmd);
+    /* Handle hex */
+    if ( strstr(str, "0x") != NULL ) {
+       d_val = safe_atof(str);
+       *vp = (int)d_val;
+    }
     eosptr = ptr = alloc_lbuf("cf_sidefx");
     *eosptr = '\0';
 
@@ -1280,16 +1289,13 @@ CF_HAND(cf_sidefx) {
 
     if (strcmp("PENN", &ptr[bNegate]) == 0) {
       flag = PENNMASK;
-      if (player > 0) 
-        notify(player, "Sideeffects set to Penn's");
+      i_mark |= 1;
     } else if (strcmp("MUX", &ptr[bNegate]) == 0) {
       flag = MUXMASK;
-      if (player > 0)
-        notify(player, "Sideeffects set to MUX's");
+      i_mark |= 2;
     } else if (strcmp("ALL", &ptr[bNegate]) == 0) {
       flag = ALLMASK;
-      if (player > 0)
-        notify(player, "Sideeffects set to All Enabled");
+      i_mark |= 4;
     } else if (strcmp("NONE", &ptr[bNegate]) == 0) {
       flag = 0;
     } else {
@@ -1325,6 +1331,37 @@ CF_HAND(cf_sidefx) {
   }
   /* Set mask in conf structure, and return with error indicator */
   *vp = mask;
+
+  if ( mask != 0 ) {
+    eosptr = ptr = alloc_lbuf("cf_sidefx");
+    *eosptr = '\0';
+    sideEffectMaskToString(*vp, ptr, &eosptr);
+    if (player > 0) {
+      if ( i_mark & 4 ) {
+         notify(player, unsafe_tprintf("Sideeffects set to [ALL] %s", ptr));
+      } else if ( i_mark == 3 ) {
+         notify(player, unsafe_tprintf("Sideeffects set to [MUX PENN] %s", ptr));
+      } else if ( i_mark & 2 ) {
+         notify(player, unsafe_tprintf("Sideeffects set to [MUX] %s", ptr));
+      } else if ( i_mark & 1 ) {
+         notify(player, unsafe_tprintf("Sideeffects set to [PENN] %s", ptr));
+      } else {
+         notify(player, unsafe_tprintf("Sideeffects set to %s", ptr));
+      }
+    }
+    STARTLOG(LOG_CONFIGMODS, "CFG", "INF")
+      log_text("Sideeffects set to ");
+      log_text(ptr);
+    ENDLOG;
+    free_lbuf(ptr);
+  } else {
+    if ( player > 0 ) {
+       notify(player, "Sideeffects have been cleared.");
+    }
+    STARTLOG(LOG_CONFIGMODS, "CFG", "INF")
+      log_text("Sideeffects have been cleared.");
+    ENDLOG;
+  }
   return (nErr > 0) ? 1 : 0;
 }
 

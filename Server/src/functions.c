@@ -30423,6 +30423,54 @@ FUNCTION(fun_cluster_add)
    free_lbuf(s_buf1);
 }
 
+FUNCTION(fun_lset)
+{
+   char *s_buf1, *s_buf2;
+   int i_key;
+   CMDENT *cmdp;
+
+   if ( !(mudconf.sideeffects & SIDE_LSET) ) {
+      notify(player, "#-1 FUNCTION DISABLED");
+      return;
+   }
+
+   if (!fn_range_check("LSET", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   mudstate.sidefx_currcalls++;
+   cmdp = (CMDENT *)hashfind((char *)"@lset", &mudstate.command_htab);
+   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@lset") ||
+         cmdtest(Owner(player), "@lset") || zonecmdtest(player, "@lset") ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+   if ( !*fargs[0] ) {
+      notify(player, "I don't see that here.");
+      return;
+   }
+   i_key = 0;
+   s_buf1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                 fargs[0], cargs, ncargs, (char **)NULL, 0);
+   if ( nfargs < 2 ) {
+      s_buf2 = alloc_lbuf("lset_temp");
+      i_key = LSET_LIST;
+   } else {
+      s_buf2 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                    fargs[1], cargs, ncargs, (char **)NULL, 0);
+   }
+   if ( !*s_buf2 ) {
+      i_key = LSET_LIST;
+   }
+   do_lset(player, cause, (SIDEEFFECT|i_key), s_buf1, s_buf2);
+   free_lbuf(s_buf1);
+   free_lbuf(s_buf2);
+}
+
 FUNCTION(fun_set)
 {
    char *s_buf1, *s_buf2, *s_tmp;
@@ -32658,6 +32706,9 @@ FUN flist[] =
     {"LRAND", fun_lrand, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LREPLACE", fun_lreplace, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LROOMS", fun_lrooms, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+#ifdef USE_SIDEEFFECT
+    {"LSET", fun_lset, 1, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, 0},
+#endif
     {"LSUB", fun_lsub, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LT", fun_lt, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"LTE", fun_lte, 2, 0, CA_PUBLIC, CA_NO_CODE},

@@ -394,13 +394,19 @@
   
   Type '@list options' to see what side-effects are currently in effect.
     
-  MUX sideeffects supported:   TEL, SET, PEMIT, CREATE, LIST, and LINK
-  PENN sideeffects supported:  TEL, SET, PEMIT, CREATE, LINK, DIG, OPEN, EMIT,
-                               LEMIT, OEMIT, CLONE, LOCK, PARENT, NAME,
-                               WIPE, ZEMIT, and REMIT
+  MUX sideeffects supported:   SET, CREATE, LINK, PEMIT, TEL, LIST, OEMIT,
+                               PARENT, and DESTROY
+  PENN sideeffects supported:  SET, CREATE, LINK, PEMIT, TEL, DIG, OPEN, 
+                               EMIT, OEMIT, CLONE, PARENT, LOCK, LEMIT, 
+                               REMIT, WIPE, ZEMIT, NAME, and LSET
   OTHER sideeffects supported: DESTROY, TOGGLE, TXLEVEL, RXLEVEL, RSET, 
                                and MOVE
-  DATABASE sideeffects supported: SQLITE_QUERY
+
+  The following sideeffects are handled by the database portion as a
+  separate entity.
+  
+  DB sideeffects supported:    SQLITE_QUERY, SQL, SQLON, SQLOFF, 
+                               SQLESCAPE, SQLPING
   
   Help is available on MUX, PENN and OTHER side-effects by name.
   
@@ -4532,7 +4538,7 @@
     > @lset/list *Tester/default
     @lset: [DefaultLock] on Tester(#123): no_inherit
     
-  See Also: @lock, @unlock, @set, lock(), elock()
+  See Also: @lock, @unlock, @set, lock(), elock(), lset(), set()
  
 & @set
   Command: @set[/<switches>] <object>=[!]<flag> [[!]<flag> [!]<flag> ...]
@@ -9708,24 +9714,24 @@
   LN()          LNOR()         LNUM()         LNUM2()          LOC()          
   LOCALFUNC()   LOCALIZE()     LOCATE()       LOCK()           LOCKCHECK()
   LOCKDECODE()  LOCKENCODE()   LOG()          LOR()            LRAND()       
-  LREPLACE()    LROOMS()       LSUB()         LT()             LTE()         
-  LTOGGLES()    LWHO()         LXNOR()        LXOR()           LZONE()       
-  MAILQUICK()   MAP()          MATCH()        MASK()           MAX()         
-  MEMBER()      MERGE()        MID()          MIN()            MIX()         
-  MOD()         MODULO()       MODIFYTIME()   MONEY()          MONEYNAME()   
-  MOON()        MUDNAME()      MUL()          MUNGE()          MWORDS()
-  NAME()        NAMEQ()        NAND()         NCOMP()          NEARBY()       
-  NEQ()         NEXT()         NOR()          NOSTR()          NOT()          
-  NOTCHR()      NPEMIT()       NSITER()       NUM()            NUMMATCH()     
-  NULL()        NUMMEMBER()    NUMPOS()       NUMWILDMATCH()   OBJ()          
-  OBJEVAL()     OBJID()        OEMIT()        OPEN()           OR()           
-  ORCHR()       ORFLAG()       ORFLAGS()      OWNER()          PACK()         
-  PARENMATCH()  PARENT()       PARSE()        PARSESTR()       PEDIT()        
-  PEMIT()       PFIND()        PGREP()        PI()             PID()          
-  PMATCH()      PORT()         POS()          POSS()           POWER()        
-  POWER10()     PRINTF()       PRIVATIZE()    PROGRAMMER()     PTIMEFMT()     
-  PUSHREGS()    QUOTA()        R()            RACE()           RAND()         
-  RANDPOS()     RANDMATCH()    RANDEXTRACT() 
+  LREPLACE()    LROOMS()       LSET()         LSUB()           LT()           
+  LTE()         LTOGGLES()     LWHO()         LXNOR()          LXOR()         
+  LZONE()       MAILQUICK()    MAP()          MATCH()          MASK()         
+  MAX()         MEMBER()       MERGE()        MID()            MIN()          
+  MIX()         MOD()          MODULO()       MODIFYTIME()     MONEY()        
+  MONEYNAME()   MOON()         MUDNAME()      MUL()            MUNGE()        
+  MWORDS()      NAME()         NAMEQ()        NAND()           NCOMP()        
+  NEARBY()      NEQ()          NEXT()         NOR()            NOSTR()        
+  NOT()         NOTCHR()       NPEMIT()       NSITER()         NUM()          
+  NUMMATCH()    NULL()         NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
+  OBJ()         OBJEVAL()      OBJID()        OEMIT()          OPEN()         
+  OR()          ORCHR()        ORFLAG()       ORFLAGS()        OWNER()        
+  PACK()        PARENMATCH()   PARENT()       PARSE()          PARSESTR()     
+  PEDIT()       PEMIT()        PFIND()        PGREP()          PI()           
+  PID()         PMATCH()       PORT()         POS()            POSS()         
+  POWER()       POWER10()      PRINTF()       PRIVATIZE()      PROGRAMMER()   
+  PTIMEFMT()    PUSHREGS()     QUOTA()        R()              RACE()         
+  RAND()        RANDPOS()      RANDMATCH()    RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -19112,6 +19118,43 @@
   
   See Also: @tel, move(), SIDEEFFECTS
   
+& LSET()
+  Function: lset(<object>[/<lock>] [,[!]<flag>])
+            lset(<object>[/<lock>])
+  
+  The lset() function is used to set specialized permissions on locks.  If you
+  do not specify a lock, it will default to 'DefaultLock' which is aliased to 
+  'BasicLock' for backward compatibility with other codebases.  If you do not
+  specify a lock, it will display the current flags on the specified target
+  lock.
+  
+  You may specify the '!' option to remove a specialist lock.
+  
+  Please see help on '@lset' for what specialized locks that you may set.
+  You can only set the flags which you have permission to.
+  
+  This function returns an empty value and notifies the player as if they 
+  ran the @lset command.
+  
+  Examples:
+    > say lset(me,no_inherit)
+    @lset: [DefaultLock] set NO_INHERIT on Ashen-Shugar(#1234)
+    You say ""
+    > say lset(me)
+    @lset: [DefaultLock] on Player(#123): no_inherit
+    You say ""
+    > say lset(me/basic)
+    @lset: [DefaultLock] on Player(#123): no_inherit
+    You say ""
+    > say lset(me/default)
+    @lset: [DefaultLock] on Player(#123): no_inherit
+    You say ""
+    > say lset(me/fubar)
+    #-1 LOCK NOT FOUND
+    You say ""
+  
+  See Also: @lset, @set, set()
+
 & SET()
   Function: set(<object>,<[!]<flag> [[!]<flag> [!]<flag> ...]>)
             set(<object>,<<attribute>:<value>> [,<tree>])
@@ -19139,7 +19182,7 @@
   > say set(me,safe)
   You say ""
   
-  See Also: rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
+  See Also: lset(), rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
   
 & RSET()
   Function: rset(<object>,<[!]<flag> [[!]<flag> [!]<flag> ...]>)
@@ -19172,7 +19215,7 @@
   > say rset(me,safe)
   You say "safe"
   
-  See Also: set(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
+  See Also: lset(), set(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
   
 & toggle()
   Function: toggle(<object>,[!]<toggle>)
@@ -29492,6 +29535,7 @@
   * Added /unall to @snapshot to unload a list of targets [ASH]
   * invformat for inventory formatting [ASH]
   * @lset to set permissions for locks [ASH]
+  * lset() added to mirror @lset but as a sideeffect [ASH]
   
   Changes
   ------------
@@ -29554,6 +29598,7 @@
   * @snapshot/del now takes multiple arguments [ASH]
   * Added /quiet switch to @pipe [ASH]
   * Added low/high ranges to strmath() [ASH]
+  * cleanup of the sideeffect handler to be more verbose [ASH]
     
   Bug Fixes
   ------------
