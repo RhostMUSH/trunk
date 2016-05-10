@@ -5663,6 +5663,11 @@ list_options_system(dbref player)
 #else
     notify(player, "The COMMAND flag ----------------------------------------------- DISABLED");
 #endif
+#ifdef PARIS
+    notify(player, "The WHO/DOING command is using the alternate format [paris]----- ENABLED");
+#else
+    notify(player, "The WHO/DOING command is using the alternate format [paris]----- DISABLED");
+#endif
 #ifdef EXPANDED_QREGS
     notify(player, "A-Z setq registers --------------------------------------------- ENABLED");
 #else
@@ -6432,6 +6437,9 @@ list_options(dbref player)
        notify(player, "lcon()/xcon() obeys dark/unfindable flags.");
 #ifdef ENABLE_COMMAND_FLAG
     notify(player, "$commands require the COMMANDS flag to work.");
+#endif
+#ifdef PARIS
+    notify(player, "PARIS mode WHO/DOING (alternate who) is enabled.");
 #endif
      
 #ifdef USE_SIDEEFFECT

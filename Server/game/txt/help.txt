@@ -29599,6 +29599,7 @@
   * Added /quiet switch to @pipe [ASH]
   * Added low/high ranges to strmath() [ASH]
   * cleanup of the sideeffect handler to be more verbose [ASH]
+  * PARIS mode WHO/DOING (alternate who) is notified on @list options [ASH]
     
   Bug Fixes
   ------------
