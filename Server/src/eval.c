@@ -21,6 +21,7 @@ char *index(const char *, int);
 
 #include "debug.h"
 #define FILENUM EVAL_C
+#define LABEL_MAX 1000
 
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern char * parse_ansi_name(dbref, char *);
@@ -1060,8 +1061,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 
 #endif
 
-char t_label[100][SBUF_SIZE];
-int i_label[100], i_label_lev = 0;
+char t_label[LABEL_MAX][SBUF_SIZE];
+int i_label[LABEL_MAX], i_label_lev = 0;
 
 void
 add_trace_label(char *label) {
@@ -1209,11 +1210,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	savestr = alloc_lbuf("exec.save");
         s_label = alloc_sbuf("exec.save_label");
 	strcpy(savestr, dstr);
-        if ( mudstate.trace_nest_lev < 99) {
+        if ( mudstate.trace_nest_lev < (LABEL_MAX - 1)) {
            if ( (mudstate.trace_nest_lev > 0) && i_label_lev )
 	      strcpy(s_label, t_label[i_label_lev]);
         } else {
-	   strcpy(s_label, t_label[99]);
+	   strcpy(s_label, t_label[LABEL_MAX - 1]);
         }
     }
     if (index(dstr, ESC_CHAR)) {
@@ -1965,9 +1966,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
                             mudstate.trace_nest_lev++;
                             i_label_lev = mudstate.trace_nest_lev;
-                            if ( i_label_lev > 99 )
-                               i_label_lev = 99;
-                            if ( mudstate.trace_nest_lev < 98 ) {
+                            if ( i_label_lev > (LABEL_MAX - 1))
+                               i_label_lev = (LABEL_MAX - 1);
+                            if ( mudstate.trace_nest_lev < (LABEL_MAX - 2) ) {
                                trace_buff = alloc_mbuf("color_by_label");
                                sprintf(trace_buff, "TRACE_COLOR_%.*s", SBUF_SIZE - 1, t_bufa);
                                sub_ap = atr_str(trace_buff);
@@ -2004,10 +2005,10 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                }
                                i_label[mudstate.trace_nest_lev]=1;
                             } else {
-                               sprintf(t_label[99], "%s%s%s", ANSI_RED, "* MAX-REACHED *", ANSI_NORMAL);
+                               sprintf(t_label[LABEL_MAX - 1], "%s%s%s", ANSI_RED, "* MAX-REACHED *", ANSI_NORMAL);
                             }
                          } else if ( *sub_txt && (*t_bufa == '-') && (strstr(sub_txt, t_bufa+1) != NULL) ) {
-                            if ( mudstate.trace_nest_lev < 98 ) {
+                            if ( mudstate.trace_nest_lev < (LABEL_MAX - 2) ) {
                                for ( inum_val = 0; inum_val <= mudstate.trace_nest_lev; inum_val++ ) {
                                   if ( *(t_label[inum_val]) && 
                                         (stricmp(strip_all_special2(t_label[inum_val]), t_bufa+1) == 0) &&
@@ -2029,7 +2030,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                mudstate.trace_nest_lev = 0;
                          } else if ( !stricmp(t_bufa, "off") ) {
                             i_label_lev = mudstate.trace_nest_lev = 0;
-                            for ( inum_val = 0; inum_val < 100; inum_val++) {
+                            for ( inum_val = 0; inum_val < LABEL_MAX; inum_val++) {
                                *(t_label[inum_val]) = '\0';
                                i_label[inum_val] = 0;
                             }

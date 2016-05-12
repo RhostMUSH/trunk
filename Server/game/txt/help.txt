@@ -10393,6 +10393,8 @@
           %_<-label> -- disables debugging for <label>
           %_<off>    -- disables all debugging
   
+  You can have a total of 1000 label declarations total for processing.
+  
   The %_ substitution is a special substitution as it allows you to enbed
   breakpoints into code to toggle on and off debugging on the fly dynamically.
   This is handled by the enactors 'TRACE' attribute that houses the marker
@@ -29600,6 +29602,7 @@
   * Added low/high ranges to strmath() [ASH]
   * cleanup of the sideeffect handler to be more verbose [ASH]
   * PARIS mode WHO/DOING (alternate who) is notified on @list options [ASH]
+  * increase %_ labels to 1000 total instead of 100 [ASH]
     
   Bug Fixes
   ------------
