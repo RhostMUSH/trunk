@@ -18501,7 +18501,7 @@
   See Also: keepflags(), remtype(), keeptype()
 
 & KEEPTYPE()
-  Function: keeptype(<string>,<type(s)>[,<delim>[,<output delim>]])
+  Function: keeptype(<string>,<type(s)>[,<delim>[,<output delim>][,<type>]])
  
   The keeptype function KEEPS all types of 'type' from the string 'string'.
   The different types are standard MUSH object types:
@@ -18514,6 +18514,9 @@
   You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
+  If you specify <type> as 1, the results are always returned as dbref#'s, 
+  otherwise the values are returned as the element in <string>.
+    
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
     > say keeptype(#0 #1 #55 #584 #-1,player)
     You say "#1 #55 #584"
@@ -18529,7 +18532,7 @@
   See Also: delete(), remove(), ldelete(), replace(), remtype()
   
 & REMTYPE()
-  Function: remtype(<string>,<type(s)>[,<delim>[,<output delim>]])
+  Function: remtype(<string>,<type(s)>[,<delim>[,<output delim>][,<type>]])
  
   The remtype function removes all types of 'type' from the string 'string'.
   The different types are standard MUSH object types:
@@ -18542,6 +18545,9 @@
   You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
+  If you specify <type> as 1, the results are always returned as dbref#'s, 
+  otherwise the values are returned as the element in <string>.
+    
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
     > say remtype(#0 #1 #55 #584 #-1,player)
     You say "#0 #-1"
@@ -29603,6 +29609,7 @@
   * cleanup of the sideeffect handler to be more verbose [ASH]
   * PARIS mode WHO/DOING (alternate who) is notified on @list options [ASH]
   * increase %_ labels to 1000 total instead of 100 [ASH]
+  * 5th arg to keeptype() and remtype() to return dbref#'s [ASH]
     
   Bug Fixes
   ------------

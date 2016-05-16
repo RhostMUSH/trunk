@@ -12301,11 +12301,29 @@ extern NAMETAB type_sw[];
 FUNCTION(fun_remtype)
 {
     dbref obj;
-    int otype, stype, do_count, bit_type, loop_cntr;
-    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok;
+    int otype, stype, do_count, bit_type, loop_cntr, i_thing;
+    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok, *s_thing;
     int chk_types[]={1, 2, 4, 8, 16, 32, 64, 128};
 
-    svarargs_preamble("REMTYPE", 4);
+    if (!fn_range_check("REMTYPE", nfargs, 2, 5, buff, bufcx))
+       return;
+
+    sep = osep = ' ';
+    i_thing = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       sep = *fargs[2];
+    }
+    if ( (nfargs > 3) && *fargs[3] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+          osep = '\0';
+       } else {
+          osep = *fargs[3];
+       }
+    }
+    if ( (nfargs > 4) && *fargs[4] ) {
+       i_thing = (atoi(fargs[4]) ? 1 : 0);
+    }
+
     bit_type = loop_cntr = 0;
     pt2 = strtok_r(fargs[1], " ", &s_tok);
     while (pt2 && (loop_cntr <= 7)) {
@@ -12320,10 +12338,11 @@ FUNCTION(fun_remtype)
        safe_str(fargs[0], buff, bufcx);
        return;
     }
-    if ( sep == '\0' )
-       sep = ' ';
-    if ( osep == '\0' )
-       osep = sep;
+
+    if ( i_thing ) {
+       s_thing = alloc_sbuf("fun_remtype");
+    }
+
     sep_buf[0] = sep;
     sep_buf[1] = '\0';
     pt1 = strtok_r(fargs[0], sep_buf, &s_tok);
@@ -12332,7 +12351,7 @@ FUNCTION(fun_remtype)
        init_match(player, pt1, NOTYPE);
        match_everything(MAT_EXIT_PARENTS);
        obj = match_result();
-       if (obj == NOTHING) {
+       if ( !Good_chk(obj) ) {
           stype = TYPE_MASK;
        } else if (Going(obj) || Recover(obj)) {
           stype = TYPE_MASK;
@@ -12346,23 +12365,50 @@ FUNCTION(fun_remtype)
        if ( stype < 0 || stype > 7 )
           stype = TYPE_MASK;
        if ( !(bit_type & chk_types[stype]) ) {
-          if ( do_count )
+          if ( do_count && osep ) {
              safe_chr(osep, buff, bufcx);
+          } 
           do_count = 1;
-          safe_str(pt1, buff, bufcx);
+          if ( i_thing ) {
+             sprintf(s_thing, "#%d", obj);
+             safe_str(s_thing, buff, bufcx);
+          } else {
+             safe_str(pt1, buff, bufcx);
+          }
        }
        pt1 = strtok_r(NULL, sep_buf, &s_tok);
+    }
+    if ( i_thing ) {
+       free_sbuf(s_thing);
     }
 }
 
 FUNCTION(fun_keeptype)
 {
     dbref obj;
-    int otype, stype, do_count, bit_type, loop_cntr;
-    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok;
+    int otype, stype, do_count, bit_type, loop_cntr, i_thing;
+    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok, *s_thing;
     int chk_types[]={1, 2, 4, 8, 16, 32, 64, 128};
 
-    svarargs_preamble("KEEPTYPE", 4);
+    if (!fn_range_check("KEEPTYPE", nfargs, 2, 5, buff, bufcx))
+       return;
+
+    sep = osep = ' ';
+    i_thing = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       sep = *fargs[2];
+    }
+    if ( (nfargs > 3) && *fargs[3] ) {
+       if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+          osep = '\0';
+       } else {
+          osep = *fargs[3];
+       }
+    }
+    if ( (nfargs > 4) && *fargs[4] ) {
+       i_thing = (atoi(fargs[4]) ? 1 : 0);
+    }
+
     bit_type = loop_cntr = 0;
     pt2 = strtok_r(fargs[1], " ", &s_tok);
     while (pt2 && (loop_cntr <= 7)) {
@@ -12377,10 +12423,11 @@ FUNCTION(fun_keeptype)
        safe_str(fargs[0], buff, bufcx);
        return;
     }
-    if ( sep == '\0' )
-       sep = ' ';
-    if ( osep == '\0' )
-       osep = sep;
+
+    if ( i_thing ) {
+       s_thing = alloc_sbuf("fun_keeptype");
+    }
+
     sep_buf[0] = sep;
     sep_buf[1] = '\0';
     pt1 = strtok_r(fargs[0], sep_buf, &s_tok);
@@ -12389,7 +12436,7 @@ FUNCTION(fun_keeptype)
        init_match(player, pt1, NOTYPE);
        match_everything(MAT_EXIT_PARENTS);
        obj = match_result();
-       if (obj == NOTHING) {
+       if ( !Good_chk(obj) ) {
           stype = TYPE_MASK;
        } else if (Going(obj) || Recover(obj)) {
           stype = TYPE_MASK;
@@ -12403,12 +12450,21 @@ FUNCTION(fun_keeptype)
        if ( stype < 0 || stype > 7 )
           stype = TYPE_MASK;
        if ( bit_type & chk_types[stype] ) {
-          if ( do_count )
+          if ( do_count && osep ) {
              safe_chr(osep, buff, bufcx);
+          }
           do_count = 1;
-          safe_str(pt1, buff, bufcx);
+          if ( i_thing ) {
+             sprintf(s_thing, "#%d", obj);
+             safe_str(s_thing, buff, bufcx);
+          } else {
+             safe_str(pt1, buff, bufcx);
+          }
        }
        pt1 = strtok_r(NULL, sep_buf, &s_tok);
+    }
+    if ( i_thing ) {
+       free_sbuf(s_thing);
     }
 }
 
