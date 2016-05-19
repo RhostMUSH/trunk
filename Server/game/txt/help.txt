@@ -27418,12 +27418,13 @@
   Any versioning of Rhost version 1.0 through 3.0 was sadly lost to time.
   
   The developers who may appear in these files are:
-    ASH - Ashen-Shugar      * AMB - Ambrosia            EEH - Noltar
-    KRK - Loki                LNS - Lensman             ODN - Odin
-    SEA - Seawolf             THO - Thorin              NYS - Nyctasia
-    ROK - Rook
+     ASH -  Ashen-Shugar      * AMB -  Ambrosia            EEH - [Noltar]
+     KRK - [Loki]               LNS - [Lensman]            ODN -  Odin
+     SEA - [Seawolf]            THO - [Thorin]             NYS - [Nyctasia]
+     ROK -  Rook                KAG -  Kage
   
   The current Lead Developer (which we change up) is marked with a '*'.
+  Developers who are MIA or retired are surrounded in []'s.
    
   Current Revision: 3.9.5p3
 
