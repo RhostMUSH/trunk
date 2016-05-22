@@ -1506,8 +1506,10 @@ setdefaults() {
   then
      if [ ${gl_chkerrno} -eq 0 -a -f /usr/include/errno.h ]
      then
+        echo "Patching errno.h for MAC compatibility..."
         DEFS="-DHAVE_ERRNO_H ${DEFS}"
      fi
+     echo "Tossing in Malloc for stdlib definition for MAC..."
      DEFS="-DMALLOC_IN_STDLIB_H ${DEFS}"
   fi
   DEFS="-DBROKEN_NDBM ${DEFS}"
