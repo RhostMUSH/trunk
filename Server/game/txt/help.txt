@@ -19867,9 +19867,12 @@
   a sort type after the +/- or if the value is invalid, it assumes alphanum.
   
   You may specify a seperator of <sep> for the elements in the list.  This can
-  only be one character.  If you specify a semicolon followed by a string, it
-  will take this as the <osep> output seperator for the list.  The <osep> may
-  be more than one character.
+  only be one character.  If part of the <sep> value is a semicolon followed 
+  by a string, it will take the first char as the <sep> value and anything
+  after the semi-colon (;) as the <osep> output seperator for the list.  
+  The <osep> may be more than one character.  An example is '%b;FOO' where
+  '%b' (a space) would be the <sep> value, and 'FOO' would be the <osep>
+  value.
   
   The lists may be unequal lists.
   
