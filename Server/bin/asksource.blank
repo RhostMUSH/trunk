@@ -1478,6 +1478,7 @@ setdefaults() {
      DEFS="-DFIX_AIX ${DEFS}"
   fi
 
+  gl_chkerrno=0
   if [ -f /usr/include/sys/errno.h ]
   then
      echo  "Patching for errno.h <sys>..."
@@ -1498,6 +1499,15 @@ setdefaults() {
   elif [ -f /usr/include/errno.h ]
   then
      DEFS="-DHAVE_ERRNO_H ${DEFS}"
+     gl_chkerrno=1
+  fi
+  if [ "$(uname -s)" == "Darwin" ]
+  then
+     if [ ${gl_chkerrno} -eq 0 -a -f /usr/include/errno.h ]
+     then
+        DEFS="-DHAVE_ERRNO_H ${DEFS}"
+     fi
+     DEFS="-DMALLOC_IN_STDLIB_H ${DEFS}"
   fi
   DEFS="-DBROKEN_NDBM ${DEFS}"
   if [ ! -f /usr/include/wait.h ]
