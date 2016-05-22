@@ -53,6 +53,8 @@ Idea for /quiet for @pipe
 				- Thanks Ixokai
 Missing showing PARIS mode enabled in WHO/DOING for @list options
 				- Thanks Myrddin
+El Capitan 10.11.5 would not compile cleanly out of the box due to sudden header file location changes.
+				- Thanks Darren
 
 
 		         RhostMUSH 3.9.4 Update File
