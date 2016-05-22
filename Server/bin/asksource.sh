@@ -1504,7 +1504,7 @@ setdefaults() {
   fi
   if [ "$(uname -s)" == "Darwin" ]
   then
-     if [ ${gl_chkerrno} -eq 0 -a -f /usr/include/errno.h ]
+     if [ ${gl_chkerrno} -eq 0 ]
      then
         echo "Patching errno.h for MAC compatibility..."
         DEFS="-DHAVE_ERRNO_H ${DEFS}"
