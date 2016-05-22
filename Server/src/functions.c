@@ -27587,7 +27587,7 @@ do_asort(char *s[], int n, int sort_type)
 
 FUNCTION(fun_sortlist)
 {
-   char *s_strtok[MAX_ARGS], *s_strtokr[MAX_ARGS], *s_buff[MAX_ARGS], sep[2], sorttype, *s_chk;
+   char *s_strtok[MAX_ARGS], *s_strtokr[MAX_ARGS], *s_buff[MAX_ARGS], sep[2], *osep, sorttype, *s_chk, *s_osep;
    int i_loop, i, i_first, i_order, i_chk, i_chk2, i_initial, i_null;
    double f_chk, f_chk2;
  
@@ -27603,6 +27603,25 @@ FUNCTION(fun_sortlist)
    if ( *fargs[0] == '+' )
       i_order = 1;
 
+   sep[0] = ' ';
+   sep[1] = '\0';
+   if ( *fargs[1] ) {
+      sep[0] = *fargs[1];
+   }       
+
+   s_osep = NULL;
+   osep = sep;
+
+   if ( *fargs[1] && (strchr(fargs[1]+1, ';') != NULL) ) {
+      osep = strchr(fargs[1]+1, ';') + 1;
+      if ( !*osep ) {
+         osep = sep;
+      }
+      if ( mudconf.delim_null && (strcmp(osep, (char *)"@@") == 0) ) {
+         osep =  NULL;
+      }
+   }
+
    switch ( ToLower(*(fargs[0]+1)) ) {
       case 'n':  /* Numeric */
       case 'd':  /* Dbref */
@@ -27610,17 +27629,14 @@ FUNCTION(fun_sortlist)
       case 'a':  /* Alphanumeric */
       case 'm':  /* Merge type */
          sorttype = *(fargs[0]+1);
+         if ( (*(fargs[0]+2) == '|') && (*(fargs[0]+3)) ) {
+            s_osep = (fargs[0]+3);
+         }
          break;
       default:
          sorttype = 'a';
          break;
    }
-
-   sep[0] = ' ';
-   sep[1] = '\0';
-   if ( *fargs[1] ) {
-      sep[0] = *fargs[1];
-   }       
 
    i_loop = 0;
    for ( i=2; i < nfargs; i++ ) {
@@ -27715,9 +27731,11 @@ FUNCTION(fun_sortlist)
                }
                break;
             case 'm': /* Merge */
-               if ( i_first ) {
-                  safe_chr(*sep, buff, bufcx);
+               if ( i_first && osep ) {
+                  safe_str(osep, buff, bufcx);
                   i_first = 0;
+               } else if ( i_initial && s_osep ) {
+                  safe_str(s_osep, buff, bufcx);
                }
                safe_str(s_strtok[i], buff, bufcx);
                break;
@@ -27740,8 +27758,8 @@ FUNCTION(fun_sortlist)
       if ( !i_loop )
          break;
 
-      if ( i_first && (sorttype != 'm') )
-         safe_chr(*sep, buff, bufcx);
+      if ( i_first && osep && (sorttype != 'm') )
+         safe_str(osep, buff, bufcx);
       i_first = 1;
       switch(sorttype) {
          case 'n': /* Numeric */

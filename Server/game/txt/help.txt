@@ -19859,12 +19859,17 @@
             sortlist()
   
 & SORTLIST()
-  Function: sortlist(<order>, <sep>, <list1>, <list2>, [...,<listN>])
+  Function: sortlist(<order>, <sep>[;<osep>], <list1>, <list2>, [...,<listN>])
   
   This function takes 2 or more lists and chooses from each sample the max
   or min value based on the sorting value type.  The <order> must have as the
   first character a + for maxsort or a - for minsort.  If you do not specify
   a sort type after the +/- or if the value is invalid, it assumes alphanum.
+  
+  You may specify a seperator of <sep> for the elements in the list.  This can
+  only be one character.  If you specify a semicolon followed by a string, it
+  will take this as the <osep> output seperator for the list.  The <osep> may
+  be more than one character.
   
   The lists may be unequal lists.
   
@@ -19878,10 +19883,18 @@
     +d  -- sort dbref#'s numerically by maximum valid dbref# (#-1 if invalid)
     -d  -- sort dbref#'s numerically by minimum valid dbref# (#-1 if invalid)
   +/-m  -- merge all the lists into a single list (+ or - does same thing)
+  +/-m| -- same as above, but anything after the '|' will be taken as the 
+           output delimiter between elements in each <list>. 
   
   With the dbref# sort, any invalid dbref# is assigned the value #-1.  If all
   arguments in that list order are all invalid, #-1 will be seen for the
   value.
+  
+{ see 'help sortlist2' for examples }
+
+& SORTLIST2
+  (CONTINUED)
+  Function: sortlist(<order>, <sep>[;<osep>], <list1>, <list2>, [...,<listN>])
   
   Examples:
     > say sortlist(+n,,1 2 3,10 0 20, 0 0 0)
@@ -19897,6 +19910,10 @@
     You say "#10 #3 #20 #-1 #100 #200 #333"
     > say sortlist(+m,,a b c d e,1 2 3 4 5,v w x y z)
     You say "a1v b2w c3x d4y e5z"
+    > say sortlist(+m|++,,a b c d e,1 2 3 4 5,v w x y z)
+    You say "a++1++v b++2++w c++3++x d++4++y e++5++z"
+    > say sortlist(+m|++,%b;@,a b c d e,1 2 3 4 5,v w x y z)
+    You say "a++1++v@b++2++w@c++3++x@d++4++y@e++5++z"
   
   See Also: sort(), munge(), map(), setinter(), setunion(), setdiff(),
             listinter(), listunion(), listdiff()
@@ -29611,6 +29628,7 @@
   * PARIS mode WHO/DOING (alternate who) is notified on @list options [ASH]
   * increase %_ labels to 1000 total instead of 100 [ASH]
   * 5th arg to keeptype() and remtype() to return dbref#'s [ASH]
+  * improved featureset to sortlist() for merging [ASH]
     
   Bug Fixes
   ------------
