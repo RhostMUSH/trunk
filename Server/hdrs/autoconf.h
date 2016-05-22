@@ -253,6 +253,9 @@ extern void	FDECL(perror, (const char *));
 #endif
 #endif
 
+#ifdef MALLOC_IN_STDLIB_H 
+#include <stdlib.h>
+#else
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #else
@@ -260,6 +263,7 @@ extern void	FDECL(perror, (const char *));
 extern char *	FDECL(malloc, (int));
 extern char *	FDECL(realloc, (char *, int));
 extern int	FDECL(free, (char *));
+#endif
 #endif
 #endif
 
