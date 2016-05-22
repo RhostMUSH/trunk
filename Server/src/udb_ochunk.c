@@ -14,20 +14,24 @@ void bzero(void *, int);
 
 
 #ifdef VMS
+#ifndef MALLOC_IN_STDLIB_H
 #ifdef SYS_MALLOC
 #include	<sys/malloc.h>
 #else
 #include	<malloc.h>
+#endif
 #endif
 #include        <types.h>
 #include        <file.h>
 #include        <unixio.h>
 #include        "vms_dbm.h"
 #else
+#ifndef MALLOC_IN_STDLIB_H
 #ifdef SYS_MALLOC
 #include	<sys/malloc.h>
 #else
 #include	<malloc.h>
+#endif
 #endif
 #include	<sys/param.h>
 #include	<sys/types.h>
