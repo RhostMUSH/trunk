@@ -2110,7 +2110,7 @@ void do_edit(dbref player, dbref cause, int key, char *it,
 		char *args[], int nargs)
 {
 dbref	thing, aowner, aowner2;
-int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat;
+int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat, i_tog;
 char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff;
 ATTR	*ap;
 OBLOCKMASTER master;
@@ -2245,8 +2245,19 @@ OBLOCKMASTER master;
 								   ap->name,
 								   result));
                                                 } else {
-						   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s - %s: %s",
+                                                   i_tog = abs(strcmp(atext, retresult));
+						   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s - %s: %s",
+#ifdef ZENTY_ANSI
+                                                                   (i_tog ? SAFE_ANSI_HILITE : SAFE_ANSI_NORMAL),
+#else
+                                                                   (i_tog ? ANSI_HILITE : ANSI_NORMAL),
+#endif
 								   (editchk ? "Check" : "Set"),
+#ifdef ZENTY_ANSI
+                                                                   SAFE_ANSI_NORMAL,
+#else
+                                                                   ANSI_NORMAL,
+#endif
 								   ap->name,
 								   retresult));
                                                 }

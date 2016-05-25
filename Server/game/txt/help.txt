@@ -29632,6 +29632,8 @@
   * increase %_ labels to 1000 total instead of 100 [ASH]
   * 5th arg to keeptype() and remtype() to return dbref#'s [ASH]
   * improved featureset to sortlist() for merging [ASH]
+  * modified @edit so that /check or sets are higlighted if a change 
+    actually occured with the first word 'Set' or 'Check' [ASH]
     
   Bug Fixes
   ------------
