@@ -112,6 +112,9 @@ for i in ${BOPTIONS}
 do
    XB[${i}]=" "
 done
+# default SBUF to 64 chars
+XB[3]="X"
+# default to QDBM database
 XB[5]="X"
 
 for i in ${DOPTIONS}
