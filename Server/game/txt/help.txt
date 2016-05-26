@@ -27438,7 +27438,7 @@
   Any versioning of Rhost version 1.0 through 3.0 was sadly lost to time.
   
   The developers who may appear in these files are:
-     ASH -  Ashen-Shugar      * AMB -  Ambrosia            EEH - [Noltar]
+     ASH - [Ashen-Shugar]     * AMB -  Ambrosia            EEH - [Noltar]
      KRK - [Loki]               LNS - [Lensman]            ODN -  Odin
      SEA - [Seawolf]            THO - [Thorin]             NYS - [Nyctasia]
      ROK -  Rook                KAG -  Kage
