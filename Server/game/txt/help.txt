@@ -29669,3 +29669,4 @@
   * @sudo didn't handle @power/@depower like @fo [ASH]
   * Inventory was not fully Reality Level aware nor color aware [ASH]
   * invalid null termination in mix(), ltoggles(), and squish() [ASH]
+  * rand() didn't handle floating point quite right and cleaned up code [ASH]

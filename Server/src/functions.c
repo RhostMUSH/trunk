@@ -7881,24 +7881,31 @@ FUNCTION(fun_rand)
     d_num = d_num2 = d_num3 = 0;
     if ( (nfargs > 2) && *fargs[2] && (atoi(fargs[2]) == 1) ) {
        d_num = safe_atof(fargs[0]);
+       if ( d_num > (double)1e100 ) {
+          d_num = (double)1e100;
+       }
+
+       fakerandptr = fakerand = alloc_lbuf("double_rand");
+       while ( strlen(fakerand) < 100 ) {
+          i_num=random();
+          sprintf(tempbuff, "%ld", (long)i_num);
+          safe_str(tempbuff, fakerand, &fakerandptr);
+          if ( i_num == 0 ) {
+             break;
+          }
+       }
+       d_num3 = safe_atof(fakerand);
+       free_lbuf(fakerand);
 
        if ( (nfargs > 1) && *fargs[1] ) {
-          fakerandptr = fakerand = alloc_lbuf("double_rand");
-          d_num  = safe_atof(fargs[0]);
           d_num2 = safe_atof(fargs[1]);
+          if ( d_num2 > (double)1e100 ) {
+             d_num2 = (double)1e100;
+          }
           if ( (d_num2 < d_num) || (d_num < 0) ) {
              safe_str("0", buff, bufcx);
              return;
           }
-          while ( strlen(fakerand) < 300 ) {
-             i_num=random();
-             sprintf(tempbuff, "%ld", (long)i_num);
-             safe_str(tempbuff, fakerand, &fakerandptr);
-             if ( i_num == 0 )
-                break;
-          }
-          d_num3 = safe_atof(fakerand);
-          free_lbuf(fakerand);
           if ( d_num2 == d_num ) {
              sprintf(tempbuff, "%.0f", (double)d_num);
           } else {
