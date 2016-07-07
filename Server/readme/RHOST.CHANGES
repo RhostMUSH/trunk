@@ -55,6 +55,8 @@ Missing showing PARIS mode enabled in WHO/DOING for @list options
 				- Thanks Myrddin
 El Capitan 10.11.5 would not compile cleanly out of the box due to sudden header file location changes.
 				- Thanks Darren
+Main Makefile no longer worked on latest FreeBSD because of their change from gmake.
+				- Thanks Oleo
 
 
 		         RhostMUSH 3.9.4 Update File
