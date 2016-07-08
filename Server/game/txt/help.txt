@@ -29671,3 +29671,4 @@
   * invalid null termination in mix(), ltoggles(), and squish() [ASH]
   * rand() didn't handle floating point quite right and cleaned up code [ASH]
   * FreeBSD compatibility change for make/gmake in master Makefile [ASH]
+  * issue with left() and buffering [ASH]

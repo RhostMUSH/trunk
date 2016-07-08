@@ -15212,7 +15212,7 @@ FUNCTION(fun_parse)
 
 FUNCTION(fun_left)
 {
-    int len = atoi(fargs[1]), i_noansi;
+    int len, i_noansi;
     char *outbuff, *s_output;
     ANSISPLIT outsplit[LBUF_SIZE];
 
@@ -15220,6 +15220,7 @@ FUNCTION(fun_left)
        return;
 
     i_noansi = 0;
+    len = atoi(fargs[1]);
     if ( (nfargs > 2) && *fargs[2] ) {
        i_noansi = (atoi(fargs[2]) ? 1 : 0);
     }
