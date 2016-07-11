@@ -1653,6 +1653,12 @@ CF_HAND(cf_dynstring)
    char *buff, *tbuff, *buff2, *tbuff2, *stkbuff, *abuf1, *abuf2, *abuf3, *tabuf2, *tabuf3;
    char quick_buff[LBUF_SIZE+2], *tstrtokr;
 
+   if ( str == NULL || !*str ) {
+      if ( Good_obj(player) )
+         notify(player, "Entry not changed.");
+      return -1;
+   }
+
    chkval = retval = addval = 0;
    if ( strcmp( str, "!ALL" ) == 0 ) {
       if ( Good_obj(player) )
