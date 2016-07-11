@@ -3921,7 +3921,7 @@ check_connect(DESC * d, const char *msg)
     int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest;
     int ok_to_login, i_sitemax;
     DESC *d2, *d3;
-    char buff2[10], *in_tchr, tchar_buffer[600];
+    char buff2[10], *in_tchr, tchar_buffer[600], *tstrtokr;
 
     DPUSH; /* #146 */
 
@@ -4078,10 +4078,10 @@ check_connect(DESC * d, const char *msg)
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tchar_buffer, 0, sizeof(tchar_buffer));
            strcpy(tchar_buffer, mudconf.guest_namelist);
-           in_tchr = strtok(tchar_buffer, " \t");
+           in_tchr = strtok_r(tchar_buffer, " \t", &tstrtokr);
            tchar_num = 1;
            while ( (tchar_num < gnum) && (tchar_num < 32) ) {
-              in_tchr = strtok(NULL, " \t");
+              in_tchr = strtok_r(NULL, " \t", &tstrtokr);
               if ( in_tchr == NULL )
                  break;
               tchar_num++;
@@ -4990,14 +4990,14 @@ list_sites(dbref player, SITE * site_list,
 void
 list_hosts(dbref player, char *hostchrtype, char *hostchrmeth)
 {
-    char *tmp_word, tbuff[LBUF_SIZE], sbuff[SBUF_SIZE], *tpr_buff, *tprp_buff, *tmp_wordptr;
+    char *tmp_word, tbuff[LBUF_SIZE], sbuff[SBUF_SIZE], *tpr_buff, *tprp_buff, *tmp_wordptr, *tstrtokr;
     int i_maxcons, i_found;
 
     memset(tbuff, '\0', sizeof(tbuff));
     memset(sbuff, '\0', sizeof(sbuff));
     strncpy(tbuff, hostchrtype, (LBUF_SIZE > strlen(hostchrtype) ? strlen(hostchrtype) : LBUF_SIZE - 1));
     if ( hostchrtype ) {
-       tmp_word = strtok(tbuff, " ");
+       tmp_word = strtok_r(tbuff, " ", &tstrtokr);
        tprp_buff = tpr_buff = alloc_lbuf("list_hosts_tprintf");
        while( tmp_word ) {
           i_found = 0;
@@ -5024,7 +5024,7 @@ list_hosts(dbref player, char *hostchrtype, char *hostchrmeth)
           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-40.40s  %-14s %-s", tmp_word, sbuff, hostchrmeth));
           if ( i_found )
              *tmp_wordptr = '|';
-          tmp_word = strtok( NULL, " " );
+          tmp_word = strtok_r( NULL, " ", &tstrtokr);
        }
        free_lbuf(tpr_buff);
     }

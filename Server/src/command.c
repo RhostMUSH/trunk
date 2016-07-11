@@ -2705,7 +2705,7 @@ process_command(dbref player, dbref cause, int interactive,
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
-    char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff;
+    char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff, *tstrtokr;
     dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, targetlist[LBUF_SIZE], i_apowner;
     CMDENT *cmdp;
     ZLISTNODE *zonelistnodeptr;
@@ -2806,10 +2806,10 @@ process_command(dbref player, dbref cause, int interactive,
           spamowner = player;
        spamX = atr_get(spamowner, A_SPAMPROTECT, &aownerX, &aflagsX);
        if ( spamX && *spamX ) {
-          spamXptr = strtok(spamX, " ");
+          spamXptr = strtok_r(spamX, " ", &tstrtokr);
           if ( spamXptr && *spamXptr ) {
              spamtimeX = atoi(spamXptr);
-             spamXptr = strtok(NULL, " ");
+             spamXptr = strtok_r(NULL, " ", &tstrtokr);
              if ( spamXptr && *spamXptr )
                 spamcntX = atoi(spamXptr);
              else
@@ -2964,7 +2964,7 @@ process_command(dbref player, dbref cause, int interactive,
 #else
        cut_str_log = alloc_lbuf("process_command.LOG.enhanced");
        strcpy(cut_str_log, command);
-       cut_str_logptr = strtok(cut_str_log, " \t");
+       cut_str_logptr = strtok_r(cut_str_log, " \t", &tstrtokr);
        safe_str(cut_str_logptr, log_indiv, &log_indiv_ptr);
        free_lbuf(cut_str_log);
 #endif
@@ -5014,7 +5014,7 @@ CF_HAND(cf_attr_access)
 
 CF_HAND(cf_cmd_alias)
 {
-    char *alias, *orig, *ap, *p, *tpr_buff, *tprp_buff;
+    char *alias, *orig, *ap, *p, *tpr_buff, *tprp_buff, *tstrtokr;
 
     CMDENT *cmdp, *cp;
     ALIASENT *aliasp, *alias2p;
@@ -5025,8 +5025,8 @@ CF_HAND(cf_cmd_alias)
     int key = 0, perms = 0, perms2 = 0;
     DPUSH; /* #40 */
 
-    alias = strtok(str, " \t=,");
-    orig = strtok(NULL, " \t=,");
+    alias = strtok_r(str, " \t=,", &tstrtokr);
+    orig = strtok_r(NULL, " \t=,", &tstrtokr);
     
 
     retval = 0;
@@ -7406,7 +7406,7 @@ list_functionperms(dbref player, char *s_mask, int key)
 static void
 list_logcommands(dbref player)
 {
-   char tbuff[1000], *strtok_tbuff;
+   char tbuff[1000], *strtok_tbuff, *tstrtokr;
    char tbuff1[2][40], tbuff2[80];
    int i_cntr;
 
@@ -7417,14 +7417,14 @@ list_logcommands(dbref player)
    notify(player, "----------------------------------------"\
                   "----------------------------------------");
    memset(tbuff1, 0, sizeof(tbuff1));
-   strtok_tbuff = strtok(tbuff, " \t");
+   strtok_tbuff = strtok_r(tbuff, " \t", &tstrtokr);
    while ( strtok_tbuff != NULL ) {
       if ( (i_cntr != 0) && ((i_cntr % 2) == 0) ) {
          sprintf(tbuff2, "%-.39s %-.39s", tbuff1[0], tbuff1[1]);
          notify(player, tbuff2);
       }
       sprintf(tbuff1[i_cntr % 2], "%-38.38s ", strtok_tbuff);
-      strtok_tbuff = strtok(NULL, " \t");
+      strtok_tbuff = strtok_r(NULL, " \t", &tstrtokr);
       i_cntr++;
    }
    if ( i_cntr == 0 )
@@ -7446,7 +7446,7 @@ static void
 list_guestparse(dbref player)
 {
    char *instrptr, instr[1001], chrbuff[15], guestbuff[10], dodbref[40], tonchr;
-   char *tpr_buff, *tprp_buff;
+   char *tpr_buff, *tprp_buff, *tstrtokr;
    int cntr; 
    dbref validplr;
   
@@ -7461,7 +7461,7 @@ list_guestparse(dbref player)
       notify(player, unsafe_tprintf("%-15.15s %-20.20s %-s", "---------------", "--------------------", 
                      "----------------------------------------"));
       cntr = 1;
-      instrptr = strtok(instr, " \t");
+      instrptr = strtok_r(instr, " \t", &tstrtokr);
       while ( instrptr != NULL && (cntr < 32 )) {
          sprintf(chrbuff, "Guest #%d", cntr);
          validplr = lookup_player(player, instrptr, 0);
@@ -7484,7 +7484,7 @@ list_guestparse(dbref player)
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-15.15s %-20.20s %-s", chrbuff, instrptr, "No"));
          }
          cntr++;
-         instrptr = strtok(NULL, " \t");
+         instrptr = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( cntr <= mudconf.max_num_guests ) {
          while ( (cntr <= mudconf.max_num_guests) && (cntr < 32) ) {
@@ -7518,7 +7518,7 @@ list_guestparse(dbref player)
       notify(player, unsafe_tprintf("%-15.15s %-20.20s", "Guest Number", "Guest Name"));
       notify(player, unsafe_tprintf("%-15.15s %-20.20s", "---------------", "--------------------"));
       cntr = 1;
-      instrptr = strtok(instr, " \t");
+      instrptr = strtok_r(instr, " \t", &tstrtokr);
       while ( instrptr != NULL && (cntr < 32 )) {
          sprintf(chrbuff, "Guest #%d", cntr);
          validplr = lookup_player(player, instrptr, 0);
@@ -7530,7 +7530,7 @@ list_guestparse(dbref player)
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-15.15s %-20.20s", chrbuff, instrptr));
          }
          cntr++;
-         instrptr = strtok(NULL, " \t");
+         instrptr = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( cntr <= mudconf.max_num_guests ) {
          while ( (cntr <= mudconf.max_num_guests) && (cntr < 32) ) {
@@ -7778,7 +7778,7 @@ void
 do_list(dbref player, dbref cause, int extra, char *arg)
 {
     int flagvalue, p_val, i;
-    char *s_ptr, *s_ptr2, *tpr_buff, *tprp_buff, *save_buff;
+    char *s_ptr, *s_ptr2, *tpr_buff, *tprp_buff, *save_buff, *tstrtokr;
 
     DPUSH; /* #57 */
 
@@ -7790,9 +7790,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
        s_ptr++; 
     save_buff = alloc_lbuf("do_list_save");
     sprintf(save_buff, "%.3900s", s_ptr);
-    s_ptr = strtok(arg, " ");
+    s_ptr = strtok_r(arg, " ", &tstrtokr);
     if ( s_ptr )
-       s_ptr2 = strtok(NULL, " ");
+       s_ptr2 = strtok_r(NULL, " ", &tstrtokr);
     flagvalue = search_nametab(player, list_names, s_ptr);
     switch (flagvalue) {
     case LIST_ALLOCATOR:
@@ -7843,7 +7843,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               else
                  notify(player, "MySQL has been enabled.");
            } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
-              s_ptr = strtok(NULL, " ");
+              s_ptr = strtok_r(NULL, " ", &tstrtokr);
               if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
                  s_ptr = (char *)NULL;
@@ -7851,7 +7851,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
                  p_val = 0;
               list_options_boolean_parse(player, p_val, s_ptr);
            } else if ( stricmp(s_ptr2, "values") == 0 ) {
-              s_ptr = strtok(NULL, " ");
+              s_ptr = strtok_r(NULL, " ", &tstrtokr);
               if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
                  s_ptr = (char *)NULL;
@@ -8099,7 +8099,7 @@ void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char
 void do_limit(dbref player, dbref cause, int key, char *name,
                 char *args[], int nargs)
 {
-   char *s_chkattr, *s_buffptr, *s_newmbuff;
+   char *s_chkattr, *s_buffptr, *s_newmbuff, *tstrtokr;
    int aflags, i_array[LIMIT_MAX], i, i_newval, i_d_default, i_v_default, i_wizcheck;
    dbref aowner, target;
 
@@ -8115,9 +8115,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       if ( *s_chkattr ) {
          i_array[0] = i_array[2] = 0;
          i_array[4] = i_array[1] = i_array[3] = -2;
-         for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+         for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
               s_buffptr && (i < LIMIT_MAX);
-              s_buffptr = (char *) strtok(NULL, " "), i++) {
+              s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
              i_array[i] = atoi(s_buffptr);
          }
          if ( i_array[3] == -2 ) {
@@ -8188,9 +8188,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       i_array[0] = i_array[2] = 0;
       i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
-         for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+         for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
             s_buffptr && (i < LIMIT_MAX);
-            s_buffptr = (char *) strtok(NULL, " "), i++) {
+            s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
             i_array[i] = atoi(s_buffptr);
          }
       }
@@ -8250,9 +8250,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       i_array[0] = i_array[2] = 0;
       i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
-         for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+         for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
             s_buffptr && (i < LIMIT_MAX);
-            s_buffptr = (char *) strtok(NULL, " "), i++) {
+            s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
             i_array[i] = atoi(s_buffptr);
          }
       }

@@ -3888,7 +3888,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 #ifndef STANDALONE
    TOGENT *tp;
    char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;;
-   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff, *tstrtokr;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
@@ -4040,7 +4040,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       if ( key & FLAGDEF_TYPE ) {
          mask_add = mask_del = 0;
          nodecomp = 0;
-         tmp_ptr = strtok(flag2, " \t");
+         tmp_ptr = strtok_r(flag2, " \t", &tstrtokr);
          while (tmp_ptr != NULL) {
             if ( *tmp_ptr == '!' ) {
                nodecomp = 1;
@@ -4055,7 +4055,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                else
                   mask_add |= srch_return;
             }
-            tmp_ptr = strtok(NULL, " \t");
+            tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
          }
          if ( !mask_add && !mask_del ) {
             notify_quiet(player, "Nothing for @flagdef to do.");
@@ -4071,7 +4071,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(tpr_buff);
          return;
       }
-      tmp_ptr = strtok(flag2, " \t");
+      tmp_ptr = strtok_r(flag2, " \t", &tstrtokr);
       nodecomp = 0;
       mask_add = mask_del = 0;
       while (tmp_ptr != NULL) {
@@ -4095,7 +4095,7 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                   mask_add |= 0x40000000;
             } 
          }
-         tmp_ptr = strtok(NULL, " \t");
+         tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( !(mask_add & ~stripmask) && !(mask_del & ~stripmask) ) {
          notify_quiet(player, "Nothing for @toggledef to do.");
@@ -4313,7 +4313,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 #ifndef STANDALONE
    FLAGENT *fp;
    char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;
-   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff;
+   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, *tpr_buff, *tprp_buff, *tstrtokr;
    char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
                           "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
                           "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
@@ -4466,7 +4466,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       if ( key & FLAGDEF_TYPE ) {
          mask_add = mask_del = 0;
          nodecomp = 0;
-         tmp_ptr = strtok(flag2, " \t");
+         tmp_ptr = strtok_r(flag2, " \t", &tstrtokr);
          while (tmp_ptr != NULL) {
             if ( *tmp_ptr == '!' ) {
                nodecomp = 1;
@@ -4481,7 +4481,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                else
                   mask_add |= srch_return;
             }
-            tmp_ptr = strtok(NULL, " \t");
+            tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
          }
          if ( !mask_add && !mask_del ) {
             notify_quiet(player, "Nothing for @flagdef to do.");
@@ -4497,7 +4497,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(tpr_buff);
          return;
       }
-      tmp_ptr = strtok(flag2, " \t");
+      tmp_ptr = strtok_r(flag2, " \t", &tstrtokr);
       nodecomp = 0;
       mask_add = mask_del = 0;
       while (tmp_ptr != NULL) {
@@ -4521,7 +4521,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                   mask_add |= 0x40000000;
             } 
          }
-         tmp_ptr = strtok(NULL, " \t");
+         tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( !(mask_add & ~stripmask) && !(mask_del & ~stripmask) ) {
          notify_quiet(player, "Nothing for @flagdef to do.");

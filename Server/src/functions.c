@@ -26180,9 +26180,9 @@ FUNCTION(fun_squish)
 FUNCTION(fun_subnetmatch)
 {
     int range;
-		struct in_addr ip_addr, ip_addr2, netmask;
+    struct in_addr ip_addr, ip_addr2, netmask;
     uint32_t maskval;
-    char *ptr;
+    char *ptr, *tstrtokr;
     int do_cidr;
     do_cidr=0;
 
@@ -26204,13 +26204,13 @@ FUNCTION(fun_subnetmatch)
 
     if(do_cidr) /* Pick second arg apart, get IP, calculate netmask */
     {
-      ptr = strtok(fargs[1],"/");
+      ptr = strtok_r(fargs[1],"/", &tstrtokr);
       if(!inet_pton(AF_INET,ptr, &(ip_addr2.s_addr)))
       {
         safe_str("#-1 SECOND ARGUMENT NEEDS TO BE 'IPADDRESS/BITS'", buff, bufcx);
         return;
       }
-      ptr = strtok(NULL,"/");
+      ptr = strtok_r(NULL,"/", &tstrtokr);
       if(!ptr)
       {
         safe_str("#-1 SECOND ARGUMENT NEEDS TO BE 'IPADDRESS/BITS'", buff, bufcx);

@@ -1589,7 +1589,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
     int wyes, aflags, ca, ca2, ca3, mt, t2, verbose, ex1, twk1, clr1, clr2, chkv1, aflags2, no_set;
     ATTR *attr;
     ATRST *pt1;
-    char tbuf[80], *tpr_buff, *tprp_buff;
+    char tbuf[80], *tpr_buff, *tprp_buff, *tstrtokr;
 
     wyes = ca = ca2 = ca3 = mt = t2 = clr1 = clr2 = chkv1 = 0;
     if (!nargs || ((nargs == 1) && !*destlist[0])) {
@@ -1686,7 +1686,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	    continue;
         }
 	if (!ca)
-	    pt2 = strtok(sep1 + 1, "/");
+	    pt2 = strtok_r(sep1 + 1, "/", &tstrtokr);
 	else
 	    pt2 = NULL;
         if ( pt2 && strlen(pt2) >= SBUF_SIZE )
@@ -1765,7 +1765,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	    }
             free_lbuf(buff2);
 	    if (pt2)
-		pt2 = strtok(NULL, "/");
+		pt2 = strtok_r(NULL, "/", &tstrtokr);
 	} while (pt2 && (ca != -1));
     }
     free_lbuf(tpr_buff);

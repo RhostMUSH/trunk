@@ -1209,6 +1209,7 @@ void news_mailto(dbref player, dbref cause, int key, char *buf1, char *buf2)
   int seqkey;
   char* buf1_end;
   char* groupkeyptr;
+  char* tstrtokr;
 
   char* seqtok;
   char* grouptok;
@@ -1253,7 +1254,7 @@ void news_mailto(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
 
   /* get group/seq */
-  grouptok = strtok( buf1, " " );
+  grouptok = strtok_r( buf1, " ", &tstrtokr );
 
   if( !grouptok ) {
     notify( player, "News: Invalid command format." );
@@ -1895,6 +1896,7 @@ void news_jump(dbref player, dbref cause, int key, char *buf1, char *buf2)
   NewsGroupInfoRec gi;
   char* groupkeyptr;
   char* tok;
+  char* tstrtokr;
   int jumpseq = 0;
 
   /* check for player */
@@ -1925,8 +1927,8 @@ void news_jump(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
   else { /* one of: jump <group>, jump <seq>, jump <group>/<seq> */
     if( strchr(buf1, '/') ) { /* jump <group>/<seq> */
-      tok = strtok(buf1, "/");
-      tok = strtok(NULL, "/");
+      tok = strtok_r(buf1, "/", &tstrtokr);
+      tok = strtok_r(NULL, "/", &tstrtokr);
 
       groupkeyptr = groupfmt(player, buf1);
 

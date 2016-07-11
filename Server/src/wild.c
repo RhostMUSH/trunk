@@ -461,14 +461,14 @@ static int check_literals(const char *tstr, const char *dstr)
     * is the string-to-match
     */
   char *tbuf1;
-  char *dbuf1;
+  char *dbuf1, *tstrtokr;
   const char delims[] = "?*";
   char *sp, *dp;
 
   tbuf1 = alloc_lbuf("check_literals");
   dbuf1 = alloc_lbuf("check_literals");
 
-  sp = strtok(tbuf1,delims);
+  sp = strtok_r(tbuf1,delims,&tstrtokr);
   while (sp) {
     if (!dp) {
       free_lbuf(dbuf1);
@@ -481,7 +481,7 @@ static int check_literals(const char *tstr, const char *dstr)
       return 0;
     }
     dp += strlen(sp);
-    sp = strtok(NULL,delims);
+    sp = strtok_r(NULL,delims,&tstrtokr);
   }
   free_lbuf(dbuf1);
   free_lbuf(tbuf1);

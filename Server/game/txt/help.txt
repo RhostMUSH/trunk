@@ -29634,6 +29634,7 @@
   * improved featureset to sortlist() for merging [ASH]
   * modified @edit so that /check or sets are higlighted if a change 
     actually occured with the first word 'Set' or 'Check' [ASH]
+  * change over from strtok to strtok_r throughout source code [ASH]
     
   Bug Fixes
   ------------

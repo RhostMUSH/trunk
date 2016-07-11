@@ -89,7 +89,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		 char *dlist[], int nargs)
 {
   dbref	victim, destination, loc;
-  char	*to, *arg1, *arg2, separgs[3];
+  char	*to, *arg1, *arg2, separgs[3], *tstrtokr;
   int	con, dcount, quiet, side_effect=0, tel_bool_chk;
 
 	/* get victim */
@@ -124,7 +124,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
            *separgs = ',';
         else
            *separgs = ' ';
-	arg1 = strtok(slist, separgs);
+	arg1 = strtok_r(slist, separgs, &tstrtokr);
 	if (!arg1) {
 	  notify(player,"No match.");
 	}
@@ -174,7 +174,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL, separgs);
+		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		    continue;
 		  }
 		}
@@ -189,7 +189,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	}
@@ -204,7 +204,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	}
@@ -214,7 +214,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	}
@@ -223,7 +223,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	}
@@ -235,7 +235,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	}
@@ -249,7 +249,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	}
@@ -262,7 +262,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	}
@@ -279,7 +279,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	case AMBIGUOUS:
@@ -288,7 +288,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		if (key != TEL_LIST)
 		  continue;
 		else {
-		  arg1 = strtok(NULL, separgs);
+		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		  continue;
 		}
 	default:
@@ -297,7 +297,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL, separgs);
+		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		    continue;
 		  }
 		}
@@ -306,7 +306,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL, separgs);
+		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		    continue;
 		  }
 		}
@@ -324,7 +324,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL, separgs);
+		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		    continue;
 		  }
 		}
@@ -364,7 +364,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		  if (key != TEL_LIST)
 		    continue;
 		  else {
-		    arg1 = strtok(NULL, separgs);
+		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
 		    continue;
 		  }
 		}
@@ -386,7 +386,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
 		}
 	}
 	if (key == TEL_LIST)
-          arg1 = strtok(NULL, separgs);
+          arg1 = strtok_r(NULL, separgs, &tstrtokr);
       }
 }
 
@@ -476,7 +476,7 @@ char *retbuff;
 void do_turtle(dbref player, dbref cause, int key, char *turtle, char *newowner)
 {
 dbref	victim, recipient, loc, aowner, aowner2, newplayer;
-char	*buf, *s_retval, *s_retplayer, *s_retvalbuff, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf;
+char	*buf, *s_retval, *s_retplayer, *s_retvalbuff, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf, *tstrtokr;
 int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 
 	init_match(player, turtle, TYPE_PLAYER);
@@ -510,9 +510,9 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
               i_array[4] = i_array[1] = i_array[3] = -2;
-              for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+              for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
                    s_buffptr && (i < LIMIT_MAX);
-                   s_buffptr = (char *) strtok(NULL, " "), i++) {
+                   s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                   i_array[i] = atoi(s_buffptr);
               }
               if ( i_array[3] != -1 ) {
@@ -651,7 +651,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 void do_toad(dbref player, dbref cause, int key, char *toad, char *newowner)
 {
 dbref	victim, recipient, loc, aowner, aowner2, newplayer;
-char	*buf, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf;
+char	*buf, *s_strtok, *s_strtokr, *s_chkattr, *s_buffptr, *s_mbuf, *tstrtokr;
 int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 
 	init_match(player, toad, TYPE_PLAYER);
@@ -696,9 +696,9 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
               i_array[4] = i_array[1] = i_array[3] = -2;
-              for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+              for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
                    s_buffptr && (i < LIMIT_MAX);
-                   s_buffptr = (char *) strtok(NULL, " "), i++) {
+                   s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                   i_array[i] = atoi(s_buffptr);
               }
               if ( i_array[3] != -1 ) {

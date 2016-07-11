@@ -254,10 +254,10 @@ void empire_output(DESC *d, int code, char *buf)
 
 int empire_from_empsrv(DESC *d, char *text)
 {
-  char *pt1, *pt2, *pt3;
+  char *pt1, *pt2, *pt3, *tstrtokr;
   int code;
 
-  pt1 = strtok(text,"\n");
+  pt1 = strtok_r(text,"\n", &tstrtokr);
   if (pt1 != NULL) {
     do {
       pt2 = pt1;
@@ -318,7 +318,7 @@ int empire_from_empsrv(DESC *d, char *text)
 	  empire_output(d, code, pt2);
 	  break;
       }
-    } while ((pt1 = strtok(NULL,"\n")) != NULL);
+    } while ((pt1 = strtok_r(NULL,"\n", &tstrtokr)) != NULL);
   }
   return 1;
 }

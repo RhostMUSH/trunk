@@ -1034,7 +1034,7 @@ void
 do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
 {
     int success, negate, f, delcnt, aflags;
-    char *buff, *sp, *p, *q, *lbuff, *s_chkattr;
+    char *buff, *sp, *p, *q, *lbuff, *s_chkattr, *tstrtokr;
     dbref i, aowner;
     VATTR *va;
     ATTR *va2;
@@ -1065,7 +1065,7 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
 
 	for (sp = value; *sp; sp++)
 	    *sp = ToLower((int)*sp);
-	sp = strtok(value, " ");
+	sp = strtok_r(value, " ", &tstrtokr);
 	success = 0;
 	while (sp != NULL) {
 
@@ -1092,7 +1092,7 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
 
 	    /* Get the next token */
 
-	    sp = strtok(NULL, " ");
+	    sp = strtok_r(NULL, " ", &tstrtokr);
 	}
 	if (success && !Quiet(player))
 	    notify(player, "Attribute access changed.");
@@ -1991,7 +1991,7 @@ al_add(dbref thing, int attrnum)
     ATTR *attr;
     dbref aowner2;
     int i, i_array[LIMIT_MAX], aflags2;
-    char *s_chkattr, *s_buffptr;
+    char *s_chkattr, *s_buffptr, *tstrtokr;
 #endif
     /* If trying to modify List attrib, return.  Otherwise, get the
      * attribute list. */
@@ -2065,9 +2065,9 @@ al_add(dbref thing, int attrnum)
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
              i_array[4] = i_array[1] = i_array[3] = -2;
-             for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+             for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
                   s_buffptr && (i < LIMIT_MAX);
-                  s_buffptr = (char *) strtok(NULL, " "), i++) {
+                  s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
              if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
@@ -2170,7 +2170,7 @@ al_delete(dbref thing, int attrnum)
     char *abuf, *cp, *dp;
 #ifndef STANDALONE
     ATTR *attr;
-    char *s_chkattr, *s_buffptr, *s_mbuf;
+    char *s_chkattr, *s_buffptr, *s_mbuf, *tstrtokr;
     dbref aowner2, player;
     int aflags2, i_array[LIMIT_MAX], i;
 #endif
@@ -2220,9 +2220,9 @@ al_delete(dbref thing, int attrnum)
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
              i_array[4] = i_array[1] = i_array[3] = -2;
-             for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+             for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
                   s_buffptr && (i < LIMIT_MAX);
-                  s_buffptr = (char *) strtok(NULL, " "), i++) {
+                  s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
              if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
