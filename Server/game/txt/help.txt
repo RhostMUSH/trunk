@@ -29672,3 +29672,4 @@
   * rand() didn't handle floating point quite right and cleaned up code [ASH]
   * FreeBSD compatibility change for make/gmake in master Makefile [ASH]
   * issue with left() and buffering [ASH]
+  * convert strtok to strtok_r in conf.c to avoid static buffer clobbers [ASH]

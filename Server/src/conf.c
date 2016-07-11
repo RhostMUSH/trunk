@@ -1232,7 +1232,7 @@ CF_HAND(cf_sidefx) {
   int mask = 0;
   int i, nErr = 0, flag, bNegate;
   double d_val;
-  char *ptr, *eosptr;
+  char *ptr, *eosptr, *tstrtokr;
   int retval, i_mark;
 
   ptr = str;
@@ -1282,7 +1282,7 @@ CF_HAND(cf_sidefx) {
   }
 
   /* Tokenize str, and look at each token to see if it matches */
-  ptr = strtok(str, " ");
+  ptr = strtok_r(str, " ", &tstrtokr);
   while (ptr) {
     flag = NO_FLAG_FOUND;
     bNegate = (*ptr == '!') ? 1 : 0; /* Did they specify !SIDEEFFECT ? */
@@ -1327,7 +1327,7 @@ CF_HAND(cf_sidefx) {
       }
     }
     /* Push to next token */
-    ptr = strtok(NULL, " ");
+    ptr = strtok_r(NULL, " ", &tstrtokr);
   }
   /* Set mask in conf structure, and return with error indicator */
   *vp = mask;
@@ -1384,14 +1384,14 @@ NAMETAB hook_names[] =
 
 CF_HAND(cf_hook)
 {
-    char *hookcmd, *hookptr, playbuff[201];
+    char *hookcmd, *hookptr, playbuff[201], *tstrtokr;
     int hookflg, retval;
     CMDENT *cmdp;
 
     retval = -1;
     memset(playbuff, 0, sizeof(playbuff));
     strncpy(playbuff, str, 200);
-    hookcmd = strtok(playbuff, " \t");
+    hookcmd = strtok_r(playbuff, " \t", &tstrtokr);
     if ( hookcmd != NULL )
        cmdp = (CMDENT *)hashfind(hookcmd, &mudstate.command_htab);
     else
@@ -1401,7 +1401,7 @@ CF_HAND(cf_hook)
 
     *vp = cmdp->hookmask;
     strncpy(playbuff, str, 200);
-    hookptr = strtok(NULL, " \t");
+    hookptr = strtok_r(NULL, " \t", &tstrtokr);
     while ( hookptr != NULL ) {
        if ( *hookptr == '!' && *(hookptr+1)) {
           hookflg = search_nametab(GOD, hook_names, hookptr+1);
@@ -1416,7 +1416,7 @@ CF_HAND(cf_hook)
              *vp = *vp | hookflg;
           }
        }
-       hookptr = strtok(NULL, " \t");
+       hookptr = strtok_r(NULL, " \t", &tstrtokr);
     }
     cmdp->hookmask = *vp;
     return retval;
@@ -1482,7 +1482,7 @@ CF_HAND(cf_dynguest)
    char tplayer[6], playbuff[1001], *tplaybuff;
    char *inbufa, *inbufaptr;
    char *inbufb, *inbufbptr;
-   char *tpr_buff, *tprp_buff;
+   char *tpr_buff, *tprp_buff, *tstrtokr;
    int noret_val, first, not;
    dbref lupp;
 
@@ -1498,7 +1498,7 @@ CF_HAND(cf_dynguest)
    if (mudstate.initializing) {
       memset(playbuff, 0, sizeof(playbuff));
       strncpy(playbuff, str, 1000);
-      tplaybuff = strtok(playbuff, " \t");
+      tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
       inbufaptr = inbufa = alloc_lbuf("dynguest.initialize");
       tpr_buff = tprp_buff = alloc_lbuf("dynguest.initialize.2");
       while (tplaybuff != NULL ) {
@@ -1513,7 +1513,7 @@ CF_HAND(cf_dynguest)
          }
          tprp_buff = tpr_buff;
          safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%s ", tplaybuff), inbufa, &inbufaptr);
-         tplaybuff = strtok(NULL, " \t");
+         tplaybuff = strtok_r(NULL, " \t", &tstrtokr);
       }
       free_lbuf(tpr_buff);
       if ( noret_val == -1 ) {
@@ -1538,20 +1538,20 @@ CF_HAND(cf_dynguest)
       }
       memset(playbuff, 0, sizeof(playbuff));
       strncpy(playbuff, mudconf.guest_namelist, 1000);
-      tplaybuff = strtok(playbuff, " \t");
+      tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
       while (tplaybuff != NULL ) {
          lupp = lookup_player(NOTHING, tplaybuff, 0);
          if ( lupp == d->player ) {
             noret_val = 1;
             break;
          }
-         tplaybuff = strtok(NULL, " \t");
+         tplaybuff = strtok_r(NULL, " \t", &tstrtokr);
       }
       if (noret_val == 1)
          break;
       memset(playbuff, 0, sizeof(playbuff));
       strncpy(playbuff, str, 1000);
-      tplaybuff = strtok(playbuff, " \t");
+      tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
       while (tplaybuff != NULL ) {
          lupp = lookup_player(NOTHING, tplaybuff, 0);
          if ( (lupp < 0) && (*tplaybuff != '!') ) {
@@ -1562,7 +1562,7 @@ CF_HAND(cf_dynguest)
             noret_val = 2;
             break;
          }
-         tplaybuff = strtok(NULL, " \t");
+         tplaybuff = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( noret_val > 0 )
          break;
@@ -1581,19 +1581,19 @@ CF_HAND(cf_dynguest)
    inbufaptr = inbufa = alloc_lbuf("dynguest.1");
    memset(playbuff, 0, sizeof(playbuff));
    strncpy(playbuff, mudconf.guest_namelist, 1000);
-   tplaybuff = strtok(playbuff, " \t");
+   tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
    safe_chr(' ', inbufa, &inbufaptr);
    tpr_buff = tprp_buff = alloc_lbuf("dynguest.initialize.2");
    while ( tplaybuff != NULL ) {
       lupp = lookup_player(NOTHING, tplaybuff, 0);
       tprp_buff = tpr_buff;
       safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d ", lupp), inbufa, &inbufaptr);
-      tplaybuff = strtok(NULL, " \t");
+      tplaybuff = strtok_r(NULL, " \t", &tstrtokr);
    }
    inbufbptr = inbufb = alloc_lbuf("dynguest.2");
    memset(playbuff, 0, sizeof(playbuff));
    strncpy(playbuff, str, 1000);
-   tplaybuff = strtok(playbuff, " \t");
+   tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
    first = 0;
    while ( tplaybuff != NULL ) {
       if (first)
@@ -1624,7 +1624,7 @@ CF_HAND(cf_dynguest)
          noret_val = 3;
          break;
       }
-      tplaybuff = strtok(NULL, " \t");
+      tplaybuff = strtok_r(NULL, " \t", &tstrtokr);
       first = 1;
    }
    free_lbuf(tpr_buff);
@@ -1651,7 +1651,7 @@ CF_HAND(cf_dynstring)
 {
    int retval, chkval, addval, first, second, third;
    char *buff, *tbuff, *buff2, *tbuff2, *stkbuff, *abuf1, *abuf2, *abuf3, *tabuf2, *tabuf3;
-   char quick_buff[LBUF_SIZE+2];
+   char quick_buff[LBUF_SIZE+2], *tstrtokr;
 
    chkval = retval = addval = 0;
    if ( strcmp( str, "!ALL" ) == 0 ) {
@@ -1664,7 +1664,7 @@ CF_HAND(cf_dynstring)
       tabuf2 = abuf2 = alloc_lbuf("cf_dynstring.BUF2");
       tabuf3 = abuf3 = alloc_lbuf("cf_dynstring.BUF3");
       strcpy(abuf1, str);
-      stkbuff = strtok(abuf1, " ");
+      stkbuff = strtok_r(abuf1, " ", &tstrtokr);
       second = 0;
       third = 0;
       addval = 0;
@@ -1681,10 +1681,10 @@ CF_HAND(cf_dynstring)
             third = 1;
             addval++;
          }
-         stkbuff = strtok(NULL," ");
+         stkbuff = strtok_r(NULL," ", &tstrtokr);
       }
       strcpy(abuf1, (char *) vp);
-      stkbuff = strtok(abuf1, " ");
+      stkbuff = strtok_r(abuf1, " ", &tstrtokr);
       chkval = 0;
       first = 0;
       tbuff2 = buff2 = alloc_lbuf("cf_dynstring.ALLOC2");
@@ -1700,7 +1700,7 @@ CF_HAND(cf_dynstring)
          } else {
             chkval++;
          }
-         stkbuff = strtok(NULL," ");
+         stkbuff = strtok_r(NULL," ", &tstrtokr);
       }
       free_lbuf(abuf2);
       tbuff = buff = alloc_lbuf("cf_dynstring.ALLOC");
@@ -1708,7 +1708,7 @@ CF_HAND(cf_dynstring)
       if ( buff2 )
          safe_chr(' ', buff, &tbuff);
       free_lbuf(buff2);
-      stkbuff = strtok(abuf3, " ");
+      stkbuff = strtok_r(abuf3, " ", &tstrtokr);
       first = 0;
       second = 0;
       while ( stkbuff ) {
@@ -1718,7 +1718,7 @@ CF_HAND(cf_dynstring)
             first++;
          }
          second++;
-         stkbuff = strtok(NULL, " ");
+         stkbuff = strtok_r(NULL, " ", &tstrtokr);
       }
       free_lbuf(abuf3);
       strncpy((char *) vp, buff, (extra - 1));
@@ -2705,11 +2705,11 @@ int validate_aliases(dbref player,
 
 CF_HAND(cf_alias)
 {
-    char *alias, *orig;
+    char *alias, *orig, *tstrtokr;
     int retval;
 
-    alias = strtok(str, " \t=,");
-    orig = strtok(NULL, " \t=,");
+    alias = strtok_r(str, " \t=,", &tstrtokr);
+    orig = strtok_r(NULL, " \t=,", &tstrtokr);
 
     retval = validate_aliases(player,
 			      (HASHTAB *) vp, orig, alias,
@@ -2741,11 +2741,11 @@ CF_HAND(cf_toggle_access)
 
 CF_HAND(cf_flagalias)
 {
-    char *alias, *orig;
+    char *alias, *orig, *tstrtokr;
     int retval;
 
-    alias = strtok(str, " \t=,");
-    orig = strtok(NULL, " \t=,");
+    alias = strtok_r(str, " \t=,", &tstrtokr);
+    orig = strtok_r(NULL, " \t=,", &tstrtokr);
 
     retval = validate_aliases(player,
 			      &mudstate.flags_htab, orig, alias,
@@ -2755,11 +2755,11 @@ CF_HAND(cf_flagalias)
 
 CF_HAND(cf_flagname)
 {
-    char *alias, *orig;
+    char *alias, *orig, *tstrtokr;
 
     if (mudstate.initializing) {
-	alias = strtok(str, " \t=,");
-	orig = strtok(NULL, " \t=,");
+	alias = strtok_r(str, " \t=,", &tstrtokr);
+	orig = strtok_r(NULL, " \t=,", &tstrtokr);
 	return (flagstuff_internal(orig,alias));
     }
     else
@@ -2772,13 +2772,13 @@ CF_HAND(cf_flagname)
 
 CF_HAND(cf_or_in_bits)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     int f, success, failure;
 
     /* Walk through the tokens */
 
     success = failure = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     while (sp != NULL) {
 
 	/* Set the appropriate bit */
@@ -2794,7 +2794,7 @@ CF_HAND(cf_or_in_bits)
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     return cf_status_from_succfail(player, cmd, success, failure);
 }
@@ -2802,13 +2802,13 @@ CF_HAND(cf_or_in_bits)
 int
 cf_modify_multibits(int *vp, int *vp2, char *str, long extra, long extra2, dbref player, char *cmd)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     int f, negate, success, failure;
 
     /* Walk through the tokens */
 
     success = failure = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     while (sp != NULL) {
 
 	/* Check for negation */
@@ -2846,7 +2846,7 @@ cf_modify_multibits(int *vp, int *vp2, char *str, long extra, long extra2, dbref
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     return cf_status_from_succfail(player, cmd, success, failure);
 }
@@ -2856,13 +2856,13 @@ cf_modify_multibits(int *vp, int *vp2, char *str, long extra, long extra2, dbref
  */
 CF_HAND(cf_modify_bits)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     int f, negate, success, failure;
 
     /* Walk through the tokens */
 
     success = failure = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     while (sp != NULL) {
 
 	/* Check for negation */
@@ -2888,7 +2888,7 @@ CF_HAND(cf_modify_bits)
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     return cf_status_from_succfail(player, cmd, success, failure);
 }
@@ -2899,14 +2899,14 @@ CF_HAND(cf_modify_bits)
 
 CF_HAND(cf_set_bits)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     int f, success, failure;
 
     /* Walk through the tokens */
 
     success = failure = 0;
     *vp = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     while (sp != NULL) {
 
 	/* Set the appropriate bit */
@@ -2922,7 +2922,7 @@ CF_HAND(cf_set_bits)
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     return cf_status_from_succfail(player, cmd, success, failure);
 }
@@ -2933,7 +2933,7 @@ CF_HAND(cf_set_bits)
 
 CF_HAND(cf_set_depowers)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     POWENT *fp;
     FLAGSET *fset;
 
@@ -2942,7 +2942,7 @@ CF_HAND(cf_set_depowers)
     /* Walk through the tokens */
 
     success = failure = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     fset = (FLAGSET *) vp;
 
     while (sp != NULL) {
@@ -2987,7 +2987,7 @@ CF_HAND(cf_set_depowers)
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     if ((success == 0) && (failure == 0)) {
 	(*fset).word6 = 0;
@@ -3007,7 +3007,7 @@ CF_HAND(cf_set_depowers)
 
 CF_HAND(cf_set_powers)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     POWENT *fp;
     FLAGSET *fset;
 
@@ -3016,7 +3016,7 @@ CF_HAND(cf_set_powers)
     /* Walk through the tokens */
 
     success = failure = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     fset = (FLAGSET *) vp;
 
     while (sp != NULL) {
@@ -3061,7 +3061,7 @@ CF_HAND(cf_set_powers)
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     if ((success == 0) && (failure == 0)) {
 	(*fset).word3 = 0;
@@ -3081,7 +3081,7 @@ CF_HAND(cf_set_powers)
 
 CF_HAND(cf_set_toggles)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     TOGENT *fp;
     FLAGSET *fset;
 
@@ -3090,7 +3090,7 @@ CF_HAND(cf_set_toggles)
     /* Walk through the tokens */
 
     success = failure = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     fset = (FLAGSET *) vp;
 
     while (sp != NULL) {
@@ -3130,7 +3130,7 @@ CF_HAND(cf_set_toggles)
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     if ((success == 0) && (failure == 0)) {
 	(*fset).word1 = 0;
@@ -3149,7 +3149,7 @@ CF_HAND(cf_set_toggles)
 
 CF_HAND(cf_set_flags)
 {
-    char *sp;
+    char *sp, *tstrtokr;
     FLAGENT *fp;
     FLAGSET *fset;
 
@@ -3158,7 +3158,7 @@ CF_HAND(cf_set_flags)
     /* Walk through the tokens */
 
     success = failure = 0;
-    sp = strtok(str, " \t");
+    sp = strtok_r(str, " \t", &tstrtokr);
     fset = (FLAGSET *) vp;
 
     while (sp != NULL) {
@@ -3208,7 +3208,7 @@ CF_HAND(cf_set_flags)
 
 	/* Get the next token */
 
-	sp = strtok(NULL, " \t");
+	sp = strtok_r(NULL, " \t", &tstrtokr);
     }
     if ((success == 0) && (failure == 0)) {
 	(*fset).word1 = 0;
@@ -3243,15 +3243,15 @@ CF_HAND(cf_badname)
 CF_HAND(cf_site)
 {
     SITE *site, *last, *head;
-    char *addr_txt, *mask_txt, *maxcon_txt;
+    char *addr_txt, *mask_txt, *maxcon_txt, *tstrtokr;
     int i_maxcon;
     struct in_addr addr_num, mask_num;
     unsigned long maskval;
 
-    addr_txt = strtok(str, " \t=,");
+    addr_txt = strtok_r(str, " \t=,", &tstrtokr);
     mask_txt = NULL;
     if (addr_txt)
-	mask_txt = strtok(NULL, " \t=,");
+	mask_txt = strtok_r(NULL, " \t=,", &tstrtokr);
     if (!addr_txt || !*addr_txt || !mask_txt || !*mask_txt) {
 	cf_log_syntax(player, cmd, "Missing host address or mask.",
 		      (char *) "");
@@ -3275,7 +3275,7 @@ CF_HAND(cf_site)
     }
 
     i_maxcon = -1;
-    maxcon_txt = strtok(NULL, " \t=,");
+    maxcon_txt = strtok_r(NULL, " \t=,", &tstrtokr);
     if ( maxcon_txt && *maxcon_txt ) {
        i_maxcon = atoi(maxcon_txt);
        if ( i_maxcon < 0 )
