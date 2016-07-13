@@ -3406,7 +3406,7 @@ dump_users(DESC * e, char *match, int key)
     free_lbuf(tpr_buff);
     if ( i_attrpipe ) {
        atr_add_raw(e->player, atr->number, atext);
-       if ( TogNoisy(e->player) && !i_pipetype )
+       if ( !Quiet(e->player) && TogNoisy(e->player) && !i_pipetype )
           queue_string(e, "Piping output to attribute.\r\n");
        free_lbuf(atext);
     }

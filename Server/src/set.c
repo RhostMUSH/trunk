@@ -440,9 +440,9 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
             }
             bufr = alloc_lbuf("mbuf_lock_noisy");
             if ( nt && nt->name ) {
-               sprintf(bufr, "Locked - %s/%s.", Name(thing), nt->name);
+               sprintf(bufr, "Locked - %s/%s", Name(thing), nt->name);
             } else {
-               sprintf(bufr, "Locked - %s/%s.", Name(thing), (char*)"(UNKNOWN)");
+               sprintf(bufr, "Locked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
             }
             notify_quiet(player, bufr);
             free_lbuf(bufr);
@@ -542,9 +542,9 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
             }
             bufr = alloc_lbuf("mbuf_lock_noisy");
             if ( nt && nt->name ) {
-               sprintf(bufr, "Unlocked - %s/%s.", Name(thing), nt->name);
+               sprintf(bufr, "Unlocked - %s/%s", Name(thing), nt->name);
             } else {
-               sprintf(bufr, "Unlocked - %s/%s.", Name(thing), (char*)"(UNKNOWN)");
+               sprintf(bufr, "Unlocked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
             }
             notify_quiet(player, bufr);
             free_lbuf(bufr);
@@ -1029,9 +1029,9 @@ ATTR	*attr;
             if ( (key & SET_NOISY) || TogNoisy(player) ) {
                tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
                if ( *attrtext )
-                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s.",Name(thing),attr->name));
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s",Name(thing),attr->name));
                else
-                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared).",Name(thing),attr->name));
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared)",Name(thing),attr->name));
                free_lbuf(tpr_buff);
             } else
                notify_quiet(player, "Set.");
