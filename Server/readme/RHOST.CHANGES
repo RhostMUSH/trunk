@@ -57,6 +57,8 @@ El Capitan 10.11.5 would not compile cleanly out of the box due to sudden header
 				- Thanks Darren
 Main Makefile no longer worked on latest FreeBSD because of their change from gmake.
 				- Thanks Oleo
+Added RPAD and LPAD softcode wrappers
+				- Thanks Darren
 
 
 		         RhostMUSH 3.9.4 Update File

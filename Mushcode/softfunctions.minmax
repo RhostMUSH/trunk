@@ -100,6 +100,8 @@
 &FUN_VMAX soft=[sortlist(+n,%2,%0,%1)]
 &FUN_VMIN soft=[sortlist(-n,%2,%0,%1)]
 &FUN_CPAD soft=[printf($^%1:%2:+s,%0)]
+&FUN_RPAD soft=[printf($%1:%2:+s,%0)]
+&FUN_LPAD soft=[printf($-%1:%2:+s,%0)]
 &FUN_LEHRAND soft=[trunc(fmod(fmod(mul(max(rand(%0),1),279470273),4294967291),%0))]
 @fo softfunc=&DB me=num(softfunc)
 @tel SFSideFX=softfunctions
