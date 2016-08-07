@@ -215,6 +215,8 @@ If it says the shared ID is already in use, please verify that it is the right s
 ./Startmush -f
 
 
+Your mush will over time build up a sizeable log file.  To rotate this use
+the @logrotate command.  See wizhelp on @logrotate
 
 
 
@@ -380,7 +382,53 @@ no changes depending on the complexity of the code in question.
 --------------------------------------------------------------------------------
 V.    Considerations to locking down restrictions in RhostMUSH
 --------------------------------------------------------------------------------
-TBD
+Sometimes, you want to have things run at various privilage levels and do not
+want to have things with too much access.  Weither that is online objects or
+players you want to block from connecting to your mush.  Here's things you can
+do.
+
+One thing to keep in mind is that RhostMUSH, unlike PennMUSH is not flag
+dependant on permission level, it's ownership based.  While setting a wizard
+flag on an object would work, it's not recommended and it is instead recommended
+to chown the object in question to a wizard (like your wizard holder character)
+Then the object must be set inherit to actually inherit the wizard.
+
+Note: inherit is required to inherit anything from the player.  Flags, powers,
+      toggles.  The only thing that is inherited automatically is depowers.
+
+--- Online -- Blocking object abilities 
+We have various flag levels.  It is strongly recommanded you check wizhelp
+on 'control' for a detailed overview of what each bitlevel can or can not do
+prior to giving the ownership to the object.  Things useful for tweaking control
+on players and objects:
+FLAGS (access with @set): IMMORTAL, ROYALTY, COUNCILOR, ARCHITECT, GUILDMASTER,
+                          FUBAR, SLAVE, SIDEFX, NO_CONNECT, WANDERER, SAFE,
+                          AUDITORIUM, BACKSTAGE, NOBACKSTAGE, INDESTRUCTIBLE,
+                          INHERIT, JUMP_OK, NO_TEL, NO_WALL, NO_EXAMINE, 
+                          NO_MODIFY, NO_CONNECT, NO_POSSESS, NO_PESTER, 
+                          NO_OVERRIDE, NO_USELOCK, NO_MOVE, NO_YELL, CLOAK,
+                          SCLOAK, DARK, UNFINDABLE, SEE_OEMIT, TELOK, SUSPECT,
+                          SPAMMONITOR
+
+TOGGLES (@toggle)       : BRANDY_MAIL, PENN_MAIL, MUXPAGE, VPAGE, NOISY,
+                          MONITOR* (all monitor toggles), MORTALREALITY,
+                          NODEFAULT, NO_FORMAT, PAGELOCK, SNUFFDARK, VARIABLE
+
+@powers, @depowers, and @locks
+
+Please review help (and wizhelp) for each of these items on how it can affect
+a player, thing, exit, or room.  The help is quite verbose.
+
+--- Offline -- Blocking twinks from being abusive on your game.
+FLAGS                   : FUBAR, SLAVE, NO_CONNECT
+Commands:               : @boot, @nuke, @toad, @turtle
+Sitelocks: (@admin)     : forbid_host, forbid_site, register_host, 
+                          register_site, noguest_host, noguest_site
+Sitelock by player      : @badsite, @goodsite, NO_CONNECT (flag)
+Monitoring player       : SUSPECT (flag), @snoop
+TOR/Proxy blocking:     : @blacklist (see shell's tor_pull.sh)
+                          @admin proxy_checker (see wizhelp)
+                          @tor (see wizhelp)
 
 --------------------------------------------------------------------------------
 VI.   What FLAGS, TOGGLES, POWERS, and DEPOWERS mean in RhostMUSH
