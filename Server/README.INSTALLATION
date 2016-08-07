@@ -1,0 +1,411 @@
+INTALLATION HELP -- Welcome to RhostMUSH!
+
+I.    What RhostMUSH is about and what's so great about RhostMUSH.
+II.   What to type to Compile and Install RhostMUSH
+III.  How to convert a database from another mush to RhostMUSH
+IV.   What to type to configure and get your RhostMUSH up and running
+V.    What to type to get the basics running if you did not choose a 
+      pre-existing flatfile in step III.
+VI.   Considerations to locking down restrictions in RhostMUSH
+VII.  What FLAGS, TOGGLES, POWERS, and DEPOWERS mean in RhostMUSH
+VIII. Extended lockdown of the mush and considerations.
+IX.   Methods to block anonymous connections and the pros and cons 
+      of doing so.
+X.    What may need to be modified to get softcode from PennMUSH, 
+      TinyMUSH2, TinyMUSH3, or MUX2 to work on Rhost
+XI.   The differences to expect to the end user between PennMUSH, MUX,
+      and RhostMUSH as of 08/06/2016.
+
+
+--------------------------------------------------------------------------------
+I.    What RhostMUSH is about and what's so great about RhostMUSH.
+--------------------------------------------------------------------------------
+RhostMUSH was founded in 1989, originally by Natasha Davis (Nyctasia) and as 
+a branch from the original release of TinyMUD code.  It was her desire to make
+a game that was flexible, with multiple levels of progression and highly 
+customizeable.  She lost time and interested and passed the game to 
+Steve Shivers (Seawolf), Mike McDermott (Thorin), and Jace Hoppel (Ashen-Shugar)
+
+Through their work, the stability improved, we fixed it to be multi-platform
+and as bug free as we could possibly be.  We introduced several methods both 
+in game and in source that allowed consistent memory bounds checking and 
+various alerts for any mischievous naughtyness in-game or possibilities of any
+hacks, patches, or alterations in the code causing leaks or issues.  
+
+While not perfect, it has allowed us to have an absolutely outstanding 
+turn around for any bugs sent our way, which anyone who uses RhostMUSH will
+attest to.
+
+Over the years, others have joined the RhostMUSH team, including Ambrosia
+(who is the current dev lead), Lensman, Kage (who kindly provided the
+UTF8/unicode port), Jeff/Loki, Rook, Noltar, and Odin.
+
+We also have had hundreds of people who have offered (and provided) help,
+patches, suggestions, bug fixes, and alternations all on their own and
+every single one will have had their name mentioned in the RHOST.CHANGES
+file in the readme directory.  It's far too large to have in the online
+help files.
+
+RhostMUSH today provides an amazing tool that allows nearly entire
+customization in-game of every single feature available in Rhost without
+having the requirement to modify the hardcode.  This includes but is
+not limited to:
+
+- The ability to make config file changes in-game without having
+  to reboot or have shell access.
+  @admin admin_object
+- The ability to execute any binary or script as a localized function
+  EXECSCRIPT (power), SIDEFX (flag)
+- Customized percent substitutions (like %n, %#, etc)
+  @admin sub_include, @hook
+- The ability to redefine percent substitutions (like %n, %#, etc)
+  @admin sub_override, @hook
+- The ability to localize command and function overrides in a sandbox.
+  @icmd, @lfunction
+- The ability to have multiple zones and the ability to belong to
+  multiple zones
+  @zone, zones, lzone(), zonecmd()
+- The ability to optionally control, enable, or disable sideeffects
+  @admin sideeffects, SIDEFX (flag)
+- The ability to have 31 cross-interactive realities for locations.
+  This works as a truly independant and self-contained environment
+  for each reality that can optionally interact with other 
+  realities for the same physical space.  This affects all methods
+  within the game including all matching, looking, $commands, 
+  listens, movement, interaction, pretty much every single aspect
+  of mushing.
+  REALITY LEVELS
+- The ability to override any command with softcode
+  @admin access (check ignore)
+  Master room $commands to then override the hardcode
+- The abilility to raise or lower permissions on the various
+  staff bitlevels for each player.
+  @power, @depower, TOGGLES, FLAGS
+- The ability to customize new commands on the connect screen.
+  @admin file_object2
+- The ability to softcode any txt file (like connect.txt)
+  and have it evaluate in-game.  It evaluates as the object
+  it is on.
+  @admin file_object
+- Plenty more not mentioned!
+
+The ability to customize RhostMUSH is what is most daunting.
+Don't fret, you don't need to do it to run RhostMUSH successfully.
+In fact, the default configuration is mostly compatible with
+MUSH and will work out of the box fine for most needs.  For those
+wishing to play, of course the sky is the limit of what you wnat to
+do.  
+
+Have fun!
+
+
+
+
+  
+--------------------------------------------------------------------------------
+II.   What to type to Compile and Install RhostMUSH
+--------------------------------------------------------------------------------
+To install, type:  make confsource
+
+If your binaries do not work or you get an error type:  ./bin/script_setup.sh
+Then type: make confsource
+
+If you are importing a MUX2 flatfile, make ABSOLUTELY SURE that you select
+mux passwords as a compatibility option, or you will NOT BE ABLE to log in
+to players as the password will not be recognizeable.
+
+Make sure to keep QDBM selected as it's a much more stable database engine
+that does not have attribute limit restrictions like GDBM does.
+
+If you are converting from a Penn, TinyMUSH, or MUX database, make sure you
+drill down into the LBUF section and select, at minimum, 8K lbufs.  You likely
+want that anyway as it gives you far more room for attribute content storage.
+
+You can go up to 32K safely.  While 64k is safe and does work, there are issues
+with networking and older routers that use a 32K TCP buffer size that can
+at times cut off the data as overflow resulting in output to the end-point
+players not receiving their data.  So it is strongly recommended not to go
+above 32K in lbuffer size.
+
+Go ahead and select 64 char attributes.  It allows you to have 64 characters
+for attribute names.  It's handy to have.
+
+If you wish at this point to set up mysql and/or sqlite, you  may do so.
+Yes, you can use them in parallel without any issue.
+
+
+
+
+
+--------------------------------------------------------------------------------
+III.  How to convert a database from another mush to RhostMUSH
+--------------------------------------------------------------------------------
+In the ~/Server/convert directory there is a script called 'doconvert.sh'
+
+This script will convert most flatfiles from existing mush engines to 
+RhostMUSH.  The exception is PennMUSH 1.8.0 and later.  For this there is a
+BETA converter penn18x_converter.tgz.  This is proven to work, most of the time,
+with codebases between 1.8.0 and 1.8.2.  It has not been fully vetted with
+the latest PennMUSH databases.  Our apologies.
+
+To convert a non-pennmush game (or a pennmush 1.7.4 or earlier), you first
+need a valid flatfile of the game you're wanting to convert.  Please refer
+to the documentatation of the mush engine in question (MUX, Penn 1.7, TM2/3)
+on how to do this.  Once you have it type:
+
+./doconvert.sh FLATFILETOCONVERT FLATFILEOUTPUT
+
+In this instance, FLATFILETOCONVERT will be the filename (with full path) to
+the flatfile you are wishing to convert.
+
+The FLATFILEOUTPUT is anyfilename you wish to name the RhostMUSH converted
+flatfile.  I suggest netrhost_converted.db.flat so you know by the name
+what it is.
+
+Follow what it asks for and just let it do its thing.
+
+
+
+
+
+--------------------------------------------------------------------------------
+III.  What to type to configure and get your RhostMUSH up and running
+--------------------------------------------------------------------------------
+Once your source is compiled, you need to modify your ./game/netrhost.conf file with whatever changes you need.
+Don't feel overwhelmed, it's all very well documented.
+
+Backups are already handled and integrated with a script 'backup_flat.sh'.  If you wish to customize this, feel
+free.  Again, it is well documented and just require changing settings at the top of this script.
+
+By default, it does 7 contiguous backups.  You may increase or decrease this value to any value you want.
+
+It will, by default, backup all your txt/*.txt files, your netrhost.conf file, your netrhost.db.flat (mush db)
+file, your RhostMUSH.dump.* (mail db) files, your RhostMUSH.news.* (internal news/bbs db -- if used), your
+RhostMUSH.areg.* (the autoregistration db -- if used), and any sqlite database you currently may be using 
+which are OPTIONALLY backed up if you remove the '#' from before it.
+
+The backup script also will optionally rcp/scp, ftp, or mail any backups you want to a remote destination.
+Be forewarned, the backup files can potentially get rather large for larger games, even compressed.  The
+average size for these files will be 1-5 megs.  It could potentially get over 10-20 megs in size for 
+excessively large games, so plan accordingly.
+
+Be aware that the backup system will NOT make successful backups if you run out of disk space.  This includes
+actually running out of disk space or running out of disk quota.  There is a mechanism inside the backup
+script to specify an email address that you wish to get alerts from in these instances.  I recommend using
+it.
+
+If you make changes to your backup_flat.sh script with an already active and running mush and wish to just 
+restart the backup procedure just issue:
+./backup_restart.sh
+
+Then to start your mush:
+
+./Startmush
+
+Startmush will prompt you if this is the first time you'll be running your mush.  At this point say
+yes.  It will then ask you if you have a flatfile to load.  If you do, please specify the FULL PATH
+of the flatfile, including all extentions of the flatfile name that you wish to use.  If you are 
+unsure of the path but know it's under the 'Rhost' directory, just hit RETURN at this point and
+it will scan your Rhost directory and subdirectories for any Rhost flatfile that it detects that
+can be loaded.  At this point select it (by name or by number) and it'll attempt to load the flatfile.
+If it succeeds, it'll start the mush with the relevant data.
+
+
+If it says the shared ID is already in use, please verify that it is the right shared debug id, then type:
+./Startmush -f
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+IV.   What to type to get the basics running if you did not choose a 
+      pre-existing flatfile in step III.
+--------------------------------------------------------------------------------
+If you decided to get a bare-bone configuration, you will find your mush
+has just two things.  The #1 (God) player and the starting room #0.  That's it.
+
+--- Login to #1 from the connect screen.  Nyctasia is the default password
+co #1 Nyctasia
+
+--- Change #1's password to something you'll remember but is hard to guess
+    Note: yourpasswordgoeshere can be any password you choose.  Choose well.
+@password Nyctasia=YOURPASSWORDGOESHERE
+
+--- Master Room
+    At this point you should create your master room:
+    Reason: You need a master room to contain global $commands for players.
+    Note: ^listens are not global for intentional reasons.  It's far too much
+          overhead for far too minimal gains that few people need or use.
+@dig Master Room
+
+--- Flag and protect Master Room
+    It will return a dbref#, it should be #2 if you've not created anything else.
+@set #2=safe ind halt float
+
+--- Player Holder Characters (feel free to change the password to what you want)
+    Reason: You will want to chown global room or global areas to a given
+            bitlevel and a method to keep organized.
+    Note: wizhelp control will give you a complete breakdown of what each bit
+          can do.
+
+    Immortal Holder:
+@pcreate ImmHolder=abc123
+@set *Immholder=no_connect !wanderer immortal
+@badsite *immholder=*
+
+    Royalty/Wizard Holder:
+@pcreate WizHolder=abc123
+@set *Immholder=no_connect !wanderer royalty
+@badsite *immholder=*
+
+    Councilor/Admin Holder:
+@pcreate AdminHolder=abc123
+@set *Immholder=no_connect !wanderer councilor
+@badsite *immholder=*
+
+    Archiect/Staff Holder:
+@pcreate StaffHolder=abc123
+@set *Immholder=no_connect !wanderer architect
+@badsite *immholder=*
+
+    Guildmaster/Lead Holder:
+@pcreate StaffHolder=abc123
+@set *Immholder=no_connect !wanderer guildmaster
+@badsite *immholder=*
+
+--- Chown #0 (The starting room) and #2 (The Master room) to immholder
+    Note: #0 you can chown to a different bitlevel if you want, but the
+          master room should always be owned by an immortal
+@chown/preserve #0=*immholder
+@chown/preserve #2=*immholder
+
+--- Create yourself your own immortal player then log off #1 and into this
+    immortal player
+    Note: Pick what you wnat for playername and playerpassword
+@pcreate PLAYERNAME=PLAYERPASSWORD
+@set *playername=!wanderer immortal
+
+--- Log out of #1 and log into your immortal player
+    Note: use the playername and password you created in the step before
+LOGOUT 
+co PLAYERNAME PLAYERPASSWORD
+
+--- Create your guest characters
+    Note: Feel free to change the description if you want
+@dolist lnum(1,10)={@pcreate Guest##=guest;@set *Guest##=guest;@adisconnect *Guest##=home;@lock *Guest##=*Guest##;@desc *Guest##=A Stranger in a strange land.}
+
+--- Dig a closet to store important objects but non-master room
+    Note: name it anything you want, just remember it.
+@dig Closet
+
+--- Set the flags on the closet and ownership of it
+    Note: use the dbref# that it returned when digging the closet and not #123
+@set #123=inh safe ind float
+@chown/pres #123=*immholder
+
+--- Create an Admin object for future ease of customization
+@create AdminObject
+
+--- Set the flags on the admin object and ownership and location
+    Note: this object must be immortal owned.  Use the dbref# returned previously
+          instead of #123
+    Note2: Use the closet dbref# instead of #234
+@set AdminObject=halt safe ind
+@chown/pres #123=*immholder
+@tel adminobject=#234
+
+--- Modify the netrhost.conf file with the following line at the bottom after
+    the line '# define local alises here' where you replace 123 with the
+    dbref# of the admin object that you made:
+admin_object 123
+
+--- Reboot your mush to load up the change for the admin object.
+@reboot
+
+--- Do @admin/list to see if it shows the admin object
+    Note: do wizhelp @admin for more information on how to use this
+@admin/list
+
+--- Load in all the various softcode that you want.  This is client dependant
+    based on whatever method it uses to load softcode.
+
+1A. Load in the Myrddin Mush Cron.  It's a very handy piece of software and
+    strongly suggested to do so.  You can find this in the 'Mushcode' directory
+    off the main Rhost directory.
+    Filename: ~/Rhost/Mushcode/MyrddinCRON
+
+1B. @chown/preserve the myrddin mush cron to immholder, then move to maste room.
+    Note: the globalroom() function returns the dbref# of the master room.  Handy!
+@chown/pres Myrddin=*Immholder
+@tel Myrddin=globalroom()
+
+2A. Load in default softcoded comsystem.  This is PennMUSH and MUX/TM3 compatible.
+    Filename: ~/Rhost/Mushcode/comsys
+
+2B. Chown the Comsystem and everything inside it to immholder.
+@chown/pres ChanSys=*Immholder
+@dolist lcon(chansys)=@chown/pres ##=*immholder
+@tel Chansys=globalroom()
+
+3A. Load in mail wrappers if you want MUX/TM3 and/or Penn mail wrapping.
+    Filename: (MUX/TM3) ~/Rhost/Mushcode/mailwrappers/muxmail.wrap
+    Filename: (Penn)    ~/Rhost/Mushcode/mailwrappers/pennmail.wrap
+
+3B. Chown to immholder
+@chown/pres MUX=*Immholder
+@chown/pres Penn=*Immholder
+@tel/list mux penn=globalroom()
+
+4A. Load in Myrddin's BBS
+    Filename: ~/Rhost/Mushcode/MyrddinBBS
+
+4B.  Chown to immholder and the contents of it as well.
+@chown/pres Myrddin=*Immholder
+@dolist lcon(myrddin)=@chown/pres ##=*immholder
+@tel myrddin=globalroom()
+
+
+There's other code in the Mushcode directory that you are welcome to install.  You would follow similar procedures
+for loading it in, chowning it, and moving to the master room as you did above.
+
+Likewise, any softcode you find on the internet or on other mushes should be portable to RhostMUSH with little to
+no changes depending on the complexity of the code in question.
+   
+
+
+
+ 
+--------------------------------------------------------------------------------
+V.    Considerations to locking down restrictions in RhostMUSH
+--------------------------------------------------------------------------------
+TBD
+
+--------------------------------------------------------------------------------
+VI.   What FLAGS, TOGGLES, POWERS, and DEPOWERS mean in RhostMUSH
+--------------------------------------------------------------------------------
+TBD
+
+--------------------------------------------------------------------------------
+VII.  Extended lockdown of the mush and considerations.
+--------------------------------------------------------------------------------
+TBD
+
+--------------------------------------------------------------------------------
+VIII. Methods to block anonymous connections and the pros and cons 
+      of doing so.
+--------------------------------------------------------------------------------
+TBD
+
+--------------------------------------------------------------------------------
+IX.   What may need to be modified to get softcode from PennMUSH, 
+      TinyMUSH2, TinyMUSH3, or MUX2 to work on Rhost
+--------------------------------------------------------------------------------
+TBD
+
+--------------------------------------------------------------------------------
+X.    The differences to expect to the end user between PennMUSH, MUX,
+      and RhostMUSH as of 08/06/2016.
+--------------------------------------------------------------------------------
+TBD

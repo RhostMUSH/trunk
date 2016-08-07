@@ -119,6 +119,7 @@ init_datapaths() {
 # DOARCH - "yes" puts the most recient archive in 'prevflat' if desired
 # TXTFILES - all your .txt files you wish archived
 # IMPORTANTFILES - any other file other than .txt files you want included
+# SQLFILES - Uncomment (remove the # from the beginning) to backup these
 #############################################################################
 init_vars() {
    MAXBACKUPS=7
@@ -136,6 +137,7 @@ init_vars() {
    IMPORTANTFILES="alias.conf muxalias.conf rhost_ingame.conf \
                    alternate_netrhost.conf netrhost.conf rhost_mysql.conf \
                    compat.conf pennalias.conf tm3alias.conf"
+#  SQLFILES="sqlite/*"
 }
 #############################################################################
 
@@ -222,7 +224,7 @@ do_full_backup() {
          tar -cvf $OLDFLAT/"${MAILNEWSDB}".dbflat1.tar ./data/"${MAINDBNAME}".db.flat \
                   ./data/"${MAILNEWSDB}".news.flat ./data/"${MAILNEWSDB}".dump.mail \
                   ./data/"${MAILNEWSDB}".areg.dump  ./data/"${MAILNEWSDB}".dump.folder \
-                  ${TXTFILES} ${IMPORTANTFILES} 2>/dev/null 1>&2
+                  ${TXTFILES} ${IMPORTANTFILES} ${SQLFILES} 2>/dev/null 1>&2
          ${COMPREXE} -f ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar
          if [ "${DOARCH}" = "yes" ]
          then
