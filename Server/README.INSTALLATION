@@ -1,4 +1,8 @@
-INTALLATION HELP -- Welcome to RhostMUSH!
+INTALLATION HELP -- Welcome to RhostMUSH!  
+
+Pronounced either Roast-MUSH or Rawst-MUSH.  The latter is the preferred
+method as the name is based off the original mush Rhostshyl that was the
+founding of this codebase back in 1989.
 
 I.    What RhostMUSH is about and what's so great about RhostMUSH.
 II.   What to type to Compile and Install RhostMUSH
@@ -15,6 +19,35 @@ X.    What may need to be modified to get softcode from PennMUSH,
       TinyMUSH2, TinyMUSH3, or MUX2 to work on Rhost
 XI.   The differences to expect to the end user between PennMUSH, MUX,
       and RhostMUSH as of 08/06/2016.
+XII.  Advanced features of RhostMUSH
+      A.  Debugging/Tracing
+      B.  Zoning
+      C.  Reality Levels
+      D.  Function and Command Overriding
+      E.  The Recycle Bin
+      F.  Percent Substitution Adding/Overriding
+      G.  Hooking
+      H.  Command based uselocks
+      I.  Differentating between command and listen locks
+      J.  Wizard auto-overiding and how to disable it
+      K.  Advanced FLAG and TOGGLE control
+      L.  Advanced site control
+      M.  Auto-Registration
+      N.  Which bit level is best?
+      O.  What are the limits for size/growth for RhostMUSH?
+      P.  Sqlite and MySQL/Maria setup and why use it?
+      Q.  Executing outside scripts and binaries within RhostMUSH.
+      R.  Pulling external data into RhostMUSH
+      S.  Integrating a unix cron right into RhostMUSH
+      T.  Signal handling, how it works, and when and why use it
+      U.  Setting up global parents, global inheritance, global attribute
+          formatting, and all the other fun global setups for fun and profit
+      V.  RhostMUSH limitations and how to get around them.
+      W.  Things other mushes can do that Rhost can not and how to emulate it
+      X.  Advanced guest setup 
+      Y.  Attribute permission masking and the joys of the power behind it
+      Z.  The amazing @cluster and what it can do for you
+      ZZ. What we plan for the future
 
 
 --------------------------------------------------------------------------------
@@ -51,22 +84,78 @@ customization in-game of every single feature available in Rhost without
 having the requirement to modify the hardcode.  This includes but is
 not limited to:
 
+- Recycle bin.
+  Yup, you guessed it.  RhostMUSH has a windows like recycle bin.
+  This means the objects you @nuke and @destroy become 'destroyed'
+  but not recycled until they are @purged.  If you use the Myrddin
+  CRON in the Mushcode directory, it by default sets up a job
+  to purge anything over 30 days old, which should be more than
+  sufficient for any needs.  The goodness of this?  You can recover
+  nuked things from any period of time, as long as they were not
+  @purged first.
+  Commands: @purge, @nuke, @destroy, @recover, @reclist
+
+- Wizard and Immortals by default:
+  * are spoofable.  Meaning all their @pemits by default will not 
+    trigger NOSPOOF.  If you do not wish this, set the SPOOF flag
+    this applies to anyone below their level.
+  * override all locks.  There's two flags to disable this. 
+    NO_OVERRIDE to stop overriding all locks (including attribs)
+    and NO_USELOCK to just stop overriding uselocks.  
+    This applies to anything their level and lower.
+  * have the ability to literally cloak from anyone below their
+    level.  This can be highly abused if not careful and there
+    is a @depower to disable cloaking and/or dark that will 
+    disable this.
+  * immortals have the ability to supercloak from even wizards.
+    this can not be disabled, and you must consider that immortals
+    should be treated as the God player (#1) since they are
+    effectively #1 in nearly every way.
+
+- Titles and Captions to a player's name
+  @caption and @titlecaption
+
+- The ability to have an alternate name with locks for NPC 
+  obfuscation.
+  @altname
+  @lock/altname
+
+- The ability to have multiple player aliases as well as a method
+  to reserve player names per player w/o revealing who has what
+  name.
+  @protect
+
+- The ability to actively control how dark works both game-wide
+  and individually.
+  @depower dark
+  @admin allow_whodark, sweep_dark, command_dark, lcon_checks_dark,
+         secure_dark, see_owned_dark, idle_wiz_dark, player_dark
+  @toggle snuffdark
+  @flagdef to redefine who and what can set the DARK flag
+
 - The ability to make config file changes in-game without having
   to reboot or have shell access.
   @admin admin_object
+
 - The ability to execute any binary or script as a localized function
   EXECSCRIPT (power), SIDEFX (flag)
+
 - Customized percent substitutions (like %n, %#, etc)
   @admin sub_include, @hook
+
 - The ability to redefine percent substitutions (like %n, %#, etc)
   @admin sub_override, @hook
+
 - The ability to localize command and function overrides in a sandbox.
   @icmd, @lfunction
+
 - The ability to have multiple zones and the ability to belong to
   multiple zones
   @zone, zones, lzone(), zonecmd()
+
 - The ability to optionally control, enable, or disable sideeffects
   @admin sideeffects, SIDEFX (flag)
+
 - The ability to have 31 cross-interactive realities for locations.
   This works as a truly independant and self-contained environment
   for each reality that can optionally interact with other 
@@ -75,18 +164,32 @@ not limited to:
   listens, movement, interaction, pretty much every single aspect
   of mushing.
   REALITY LEVELS
+
 - The ability to override any command with softcode
   @admin access (check ignore)
   Master room $commands to then override the hardcode
+
 - The abilility to raise or lower permissions on the various
   staff bitlevels for each player.
   @power, @depower, TOGGLES, FLAGS
+
 - The ability to customize new commands on the connect screen.
   @admin file_object2
+
 - The ability to softcode any txt file (like connect.txt)
   and have it evaluate in-game.  It evaluates as the object
   it is on.
   @admin file_object
+
+- Advanced tracing methods for debugging your code including labels!
+  Functions: parenmatch(), trace()
+  Toggles: CPUTIME
+  Flags: TRACE
+  Attributes: TRACE_GREP, TRACE, TRACE_COLOR, TRACE_COLOR_<attr>
+  Substitutions: %_
+
+- Built in pretty-printing of attributes with the parenmatch() function
+
 - Plenty more not mentioned!
 
 The ability to customize RhostMUSH is what is most daunting.
@@ -433,27 +536,455 @@ TOR/Proxy blocking:     : @blacklist (see shell's tor_pull.sh)
 --------------------------------------------------------------------------------
 VI.   What FLAGS, TOGGLES, POWERS, and DEPOWERS mean in RhostMUSH
 --------------------------------------------------------------------------------
-TBD
+Flags:    Flags are pretty much exactly the same as any other mush.  It's a flag
+          that you set or unset on a target which then enables/disables or 
+          alters something that target can do.  There's help on all the flags 
+          in help and wizhelp.  
+
+Toggles:  Toggles were designed as a single point flag that immediately enables
+          or disables a set ability or condition, thus a 'toggle'.  It works 
+          exactly like a flag and was originally designed for two reasons.  To
+          distinguish from the multi-meaning of a 'flag', and because frankly
+          we ran out of flag space :)
+
+@power:   A power is similar to a power on other mushes, but unlike them, our
+          powers are multi-tier.  This means that they can be customized to
+          empower something at a given bitlevel.  You may empower something
+          from guildmaster up to councilor level.  There are some powers 
+          with a power level of N/A meaning they are a toggle power granting
+          an absolute power level as specified in the help for that power.
+          This requires the INHERIT flag for non-players to inherit powers,
+          however, a specific object can be granted a power as well.
+
+@depower: This is the anti-thesis of @power.  Also, depowers do not require
+          inheritance.  They also have priority over flags, toggles, and
+          powers.  You can use depower to remove or lower abilities and
+          control from a target, even a full wizard (royalty) can be 
+          depowered.
 
 --------------------------------------------------------------------------------
 VII.  Extended lockdown of the mush and considerations.
 --------------------------------------------------------------------------------
-TBD
+These are flags, powers, toggles, and various conditions for consideration
+when you decide to use some of the advanced features of RhostMUSH.
+These are not all that is availble, but tend to be the juicier ones to consider.
+
+Attribute Restriction:
+  @attribute -- Used for user-defined attributes
+  @admin attr_access -- used for built in attributes (like desc)
+  @aflags -- Used to set up lovely delicious attribute permission masks
+
+Command Restriction:
+  @icmd    - Very useful.   Please see wizhelp on it.  It disallows commands
+             from executing including overriding them with softcode alternatives
+  @admin access - Changes permissions, disables, or sets to be overridden a
+             command.  Useful when you plan to override commands with softcode.
+
+Flag/Toggle Restriction:
+  @flagdef - Again, see wizhelp on this.  There are also netrhost.conf options
+             so you can have them loaded at start.  This allows tweaking flags
+             and toggles to who can set/unset/see as well as what type can
+             use it or wha type it can be used on.
+
+Config restrictions:
+  @admin config_access - Changes permission of who can set a config param
+
+Function Restrictions:
+  @function/@lfunction -- Allows softcoded functions that you can optionally
+            lock down at your leasure
+  @admin function_access -- You can use this even on softcoded functions if
+            you so desired.
+
+Flags:
+  GUEST    - This is your guest flag, it should only be set on guests
+  WANDERER - the WANDERER flag is default on new players.  This flag disables 
+             all building abilitites of the player.  
+  NO_COMMAND - You can use this to stop a player from being able to connect
+               without worrying about changing their password
+  FUBAR      - As the flag states, it f*'s them up beind all recognition.
+               It essentially stops them from doing absolutely anything in the
+               mush but pose and say.  Yes, it even disables the quit command.
+  SLAVE      - Funny enough, slave allows anything but say and pose.  To ruin
+               a troll's life, set both FUBAR and SLAVE and sit back and smile.
+  NO_TEL     - The target can't teleport or be teleported
+  NO_MOVE    - The target is locked at their location unable to move at all
+  NO_WALL    - They do not see any @wall except a wizard @wall/no_prefix.  This
+               has the bonus of snuffing db save messages.
+  NO_POSSESS - Sometimes it's useful to grant a builder character to multiple
+               players.  The NO_POSSESS flag makes it so that player can not
+               be logged in more than 2 times.
+  NO_MODIFY  - The target can not be modified (except by immortal/#1)
+  NO_EXAMINE - The target can not be examined/decompiled (except by immortal/#1)
+  STOP       - Once a matching $command is found on an object set STOP, it 
+               'stops' trying to find other $command matches.
+  NOSTOP     - If a target that is set STOP is also set NOSTOP, it will check
+               the master room for a command and execute that as well if found.
+  NO_PESTER  - Stops target from @pemit or whisper.  You may use @icmd as well.
+  NO_OVERRIDE - Useful for immortals.  By default they override all locks, 
+                including attribute locks.  This makes it so an immortal's
+                passing of locks will behave like a mortals
+  NO_USELOCK  - This is like NO_OVERRIDE but only effects uselocks.  You likely
+                want to set this on your immortal and wizard.
+  NO_ANSINAME - stops a target from having an ansified name
+  NO_CODE     - lock down advanced coding from a target
+  SPAMMONITOR - stop a target from issuing more than 60 commands a minute.
+  FREE        - Stop costing money for day to day processing of commands/building
+
+Toggles:
+  MONITOR            - Enables site monitoring.  This is the main toggle
+  MONITOR_SITE       - Adds site information to site monitoring 
+  MONITOR_USERID     - Adds the userid to site monitoring
+  MONITOR_STATS      - Adds connection stats to site monitoring
+  MONITOR_FAIL       - Adds showing failed connections to site monitoring
+  MONITOR_CONN       - Adds connection monitoring to site monitoring
+  MONITOR_DISREASON  - Adds disconnect reasons to site monitoring
+  MONITOR_TIME       - Adds time stamps to site monitoring
+  MONITOR_BAD        - Shows all bad creation attempts to site monitoring
+  MONITOR_VLIMIT     - Shows attempts to bypass MAX ATTRIBUTES
+  MONITOR_AREG       - Shows all auto registration attempts 
+  MONITOR_CPU        - Shows all CPU warnings and/or alerts on the mush
+  NO_FORMAT          - Bypasses @conformat, @exitformat, and other formats
+  SEE_SUSPECT        - Allows you to see suspect info in the WHO/DOING 
+  FORCEHALTED        - Allows you to @force/@sudo a HALTED target
+  NOSHPROG           - Disallows using '|' to execute commands outside @program
+  PROG               - Allows the target to use @program
+  IMMPROG            - Disables the ability to use @quitprogram from a @program
+  PROG_ON_CONNECT    - Allows a @program to resume if someone reconnects
+  IGNOREZONE         - Enables a zone to process @icmd's
+  PAGELOCK           - Enforces target to require passing pagelocks
+  MAIL_LOCKDOWN      - Blocks the ability of a wizard to check another 
+                       player's mail
+  ATRUSE             - Enables the attribute to use attribute content locking
+  NOGLOBPARENT       - Disables the target from inheriting global parenting 
+  LOGROOM            - Enables system logs on the room
+  EXFULLWIZATTR      - Allows target to examine all wizard attributes
+  NODEFAULT          - Disables attribute formatting/handling on the target
+  CHKREALITY         - Enables the use of reality locks on the target
+  HIDEIDLE           - Disables deidling when you execute any command
+  MORTALREALITY      - Enforces a wizard to pass realities as a mortal
+  SNUFFDARK          - Hides dark exits from a wizard
+
+@powers:
+  WIZ_WHO            - Allows target to see sites ala wizard who
+  NOFORCE            - target an not be forced (except by immortal/#1)
+  FREE_QUOTA         - Allow target to have unlimited quota
+  JOIN_PLAYER        - Allow to 'join' a player's location
+  NO_BOOT            - Player can not be booted except by immortal/#1
+  STEAL              - Player can give negative money
+  TEL_ANYWHERE       - Player can teleport anywhere
+  STAT_ANY           - Player can @search, @stat, or @find things
+  HALT_QUEUE_ALL     - Player can halt the queue
+  SEARCH_ANY         - Player can search for anything
+  WHO_UNFIND         - Player can see hidden player on WHO
+  SHUTDOWN           - Player can @shutdown the mush
+  PURGE              - Player can use /purge to @destroy and @nuke
+  EXAMINE_FULL       - Player can examine anything (not set NO_EXAMINE or cloaked)
+  FORMATTING         - @*formats allow passing what a person sees as %0, %1, etc  
+  CHOWN_ANYWHERE     - Chown anything anywhere to yourself
+  CHOWN_OTHER        - Chown something you don't own to yourself
+  EXAMINE_ALL        - Examine other things (tiered)
+  SEE_QUEUE_ALL      - Player can see the full queue
+  GRAB_PLAYER        - Player can grab a remote player and pull them to location
+  LONG_FINGERS       - Player is granted remote control of things they own
+  BOOT               - Player can @boot
+  SEE_QUEUE          - Player can see advanced queue features
+  TEL_ANYTHING       - Player can @teleport anything
+  PCREATE            - Player can @pcreate players
+  NOWHO              - Allows the use of @hide
+  HALT_QUEUE         - Allows halting queue by specified bitlevel
+  SECURITY           - Allows setting  NOMOVE    NO_TEL   SLAVE   NO_YELL
+  WRAITH             - Allows bypassing exit locks
+  HIDEBIT            - Hides your admin level from lower levels
+  FULLTEL            - Allows full immortal level teleportation
+  EXECSCRIPT         - Allows executing external scripts in ~/game/scripts
+
+@depowers:
+  WALL               - Disables the ability to @wall  
+  LONG_FINGERS       - Disables remote access to things
+  STEAL              - Can not steal money 
+  CREATE             - Can not create anything
+  WIZ_WHO            - Can not access wizard who  
+  CLOAK              - Can not wizard cloak
+  BOOT               - Can not boot
+  PAGE               - Can not page
+  FORCE              - Can not @force/@sudo
+  LOCKS              - Can not pass locks
+  COMMAND            - Can not execute any $command (including master room)
+  MASTER             - Can not use any master room $command
+  EXAMINE            - Lowers or disables the ability to examine/decompile
+  NUKE               - Can not nuke, toad, or turtle
+  FREE               - No longer has free money for anything
+  OVERRIDE           - No longer can override anything
+  TEL_ANYWHERE       - No longer can teleport anywhere
+  TEL_ANYTHING       - No longer can teleport anything other than themselves
+  POWER              - Can no longer use @power
+  MODIFY             - Can not modify things  
+  CHOWN_ME           - Can not chown anything to themselves
+  CHOWN_OTHER        - Can not chown anything to others
+  ABUSE              - Can not use $commands on anything they do not own
+  UNL_QUOTA          - No longer has infinite quota
+  SEARCH_ANY         - Disables the ability to @search/@find things
+  GIVE               - Disables ability to give things/money
+  RECEIVE            - Disables the ability to recieve things/money
+  NOGOLD             - Limits (or disables) how much gold someone can give
+  NOSTEAL            - Can not give negative gold 
+  PASSWORD           - Can not change password
+  MORTAL_EXAMINE     - drops examine and all fetching to mortal only
+  PERSONAL_COMMAND   - Disables all $commands on anything they own
+
+Site Restrictions:
+  These are accessable via the @admin command, and the following options are
+  allowable.
+  
+  You may see all site information at any time with: @list sites
+  
+* First, the options that are useful for the IP of a player.  You may use CIDR
+  notation such as /32 instead of 255.255.255.255.
+  Config file:  (see section on forbid_site as it describes and gives examples)
+  Online Syntax: MASK: @admin forbid_site=123.123.123.0 255.255.255.0
+                       @admin forbid_site=123.123.123.123 255.255.255.255
+                 CIDR: @admin forbid_site=123.123.123.0 /24
+                       @admin forbid_site=123.123.123.123 /32 
+       REMOVING: MASK: @site/all 123.123.123.123=255.255.255.255
+                       @site/forbid 123.123.123.0=254.255.255.0
+                 CIDR: @site/all 123.123.123.123=/32
+                       @site/forbid 123.123.123.0=/24
+
+    forbid_site      - Set the specified site forbid only
+    register_site    - Set the specified site register only
+    noguest_site     - Set the specified site unable to connect to guests
+    suspect_site     - Set the specified site suspect on connect
+    noautoreg_site   - Set the specified site to not allow autoregistration
+    ---
+    trust_site       - Allow site to bypass suspect site restrictions
+    permit_site      - Allow site to bypass sitelock restrictions
+    ---
+    nodns_site       - Site will no longer do reverse DNS lookups
+    noauth_site      - Site will no longer do AUTH ident lookups
+  
+* Next we have DNS based blocking that you may use.  These allow globbing
+  wildcard matches.  The advanced feature is you can specify filtering on
+  when the condition is matched, such as allowing 2 players from a site to
+  be connected before disallowing anyone else to connect.
+  Config File: (see section on forbid_host as it describes and gives examples)
+  Online Syntax: ADD: @admin forbid_host=*.dsl*.comcast.net *.aol.com *another.site
+                 DEL: @admin forbid_host=!*.aol.com
+            ADVANCED: @admin forbid_host=mudconnect.com|3 (allow 3 at once only)
+
+    forbid_host     - Set the specified site(s) forbid only
+    register_host   - Set the specified site(s) register only
+    noguest_host    - Set the specified site(s) unable to connect to guests
+    suspect_host    - Set the specified site(s) suspect on connect
+    noautoreg_host  - Set the specified site(s) to not allow autoregistration
+    ---
+    validate_host   - Do not allow any autoregistration from emails matching site
+    goodmail_host   - Always allow autoregistration from emails matching site
+    ---
+    nobroadcast_host - Snuff online site broadcasts via MONITOR for specified site
 
 --------------------------------------------------------------------------------
 VIII. Methods to block anonymous connections and the pros and cons 
       of doing so.
 --------------------------------------------------------------------------------
-TBD
+  Now let's assume you have some troll attempting to use proxies to connect.
+  There's multiple ways to stop this.
+  
+  1A.  In ~/Rhost/Server/game you will see a script called tor_pull.sh
+       Execute this by running (from the game directory) ./tor_pull.sh
+       This populates the blacklist with registered proxies from various sites 
+       on the internet.  If you want specified ip's added, feel free to add
+       them at the end of this file.
+
+  1B.  On the mush, have as part of your startup @blacklist/load
+       This will load in the generated blacklist file for automatic forbid 
+       sites based on the ip.
+
+  2A.  @tor.  Please see 'wizhelp tor' on how to set this up.  It in effect
+       will actively block all known exit nodes for TOR's annonymous proxy
+       service.  It self-updates and will actively block TOR connections.
+
+  3A.  @admin proxy_checker (please see wizhelp)
+       This little doodad uses MTU checking against packet size which will
+       detect most methods of proxies.  Sadly, this also has false positives
+       because some situations require a differentating MTU value such as
+       briged network connect with things like cloud services, docker, or
+       similar encapsulated network services.  However, this option has
+       several settings from just monitoring/alerting of possible proxies
+       to downright forbidding them.  If you're being actively attacked,
+       it may be worth considering adding this to add additional protection.    
+
 
 --------------------------------------------------------------------------------
 IX.   What may need to be modified to get softcode from PennMUSH, 
       TinyMUSH2, TinyMUSH3, or MUX2 to work on Rhost
 --------------------------------------------------------------------------------
-TBD
+RhostMUSH, for the most part, will work out of the box with most softcode gotten
+from other codebases.  There are, however, exceptions.  Most of these exceptions
+will be minor code differences between how ANSI is processed, the variences
+of arguments or switches to commands or functions, or required flags.
+
+Most changes will revolve around these:
+
+Problematic functions between codebases:
+lsearch()/search(), align()/printf(), *attrval()
+
+Problematic features between codebases:
+named variables for regexp patterns in $commands are not supported.
+@aliases on non-players are not supported.  Frankly I find them redundant.
+
+Problematic commands:
+@mapsql, hardcoded required comssytem commands (some are redundant)
+
+1.  SIDEFX flag.  Anything that uses sideeffects --DIRECTLY-- requires this flag.
+    Sideeffects are like set(), pemit(), and so forth.  list(), while a 
+    side-effect, does not require this flag as it is considered passive and safe.
+
+2.  Variable exits.  Rhost handles them slightly different.  You do not link
+    exits to #-4.  That's an invalid destination.  I always found it, frankly,
+    stupid to save any data in the database that was literally invalid.  So,
+    you link the exit as you normally would, then @toggle the exit variable.
+    At that point you use @exitto like you would any other codebase.
+
+3.  Zones.  Zones actually can work near exactly as you would expect them to
+    work on TinyMUSH, MUX, or Penn.  Either at once or at different times.
+    We recognize multiple zones, zone masters, zone inheritance, zone 
+    parenting, zone command processing, and the ability to bypass zones
+    entirely.  There's a ton of flexbility with this.  However, the syntax
+    for adding/removing zones is different so the commands will have to be
+    ported to Rhost.
+
+4.  @powers.  Powers work a bit differently in Rhost and they're named
+    differently, which should not be that big a surprise as they're different
+    between all the codebases anyway.  The big difference is our powers are
+    tiered, meaning the can be limited or grown to a given bitlevel and are
+    not just toggle powers like the other codebases.  We also have @depower
+    that is the anti-thesis of @power
+
+5.  Attribute length.  While we have 64 character attribute capabilities like
+    most other codebases, PennMUSH allows 1024 attribute length attributes.
+    Why you need one that long boggles the mind, but if you do use attribs
+    that long you need to make sure they are cut down to the proper length.
+
+6.  Attribute contents.  You'll be happy to know that Rhost allows upwards
+    to 64,000 bytes of data to be assigned an LBUF.  We strongly recommand
+    to cap at 32,000 however as the various TCP socket protocols play nicer
+    with that value.
+
+7.  256 color.  Yup!  We got it.
+
+8.  Unicode/UTF8.  Yup!  We got this too.  Not quiet yet in the main branch,
+    but download Kage's branch, you won't be dissapointed.  We will have
+    UTF8 in Rhost 4.0 when released.
+
+9.  Attributes per object.  This is configurable with the VLIMIT @admin
+    command, however, it is absolutely hard-limited at 10000 maximum.
+    This is to avoid any DoS type situation and because frankly there
+    should never be a reason to exceed that.  If you need more, use 
+    @clusters.
+
+10. Destroying.  @nuke only works on players.  @destroy works on non-players.
+    Never the two will meet.  We also have a built in recycle bin meaning
+    anything destroyed will not be automatically recycled.  If you want it
+    recycled, you have to @purge it.  Yes, if you use  Myrddin's CRON, it
+    has a built in entry to auto-purge anything older than 30 days.  This
+    also means you can on-line recover anything destroyed before that 30 
+    days.  Groovy, eh?
+
+11. object id's.  Yup, we got them.  Even in searches, and, well, everything.
+
+12. lsearch() in Penn is not syntacically similar to non-Penn search().
+    This will have to be altered.  In addition, search() in non-penn games
+    have to have special consideration for escaping out the evaled args.
+
+13. @locks can be different.  We have many more lock capabilities and options
+    so this should be a non-issue.
+
+14. We do not have custom user-locks like Penn.  We do, however, have the way
+    to set encapsulated lock data into an attribute to fetch and compare
+    against which I find more useful and far more flexible.  
+    See: lockencode(), lockdecode(), and lockcheck()
+
+15. Unlike Penn, we don't really have attribute trees.  We do support the
+    basic capabilities of it for compatibility if you load in softcode that
+    uses it, but it doesn't have the advanced features of attribute trees.
+    Please see 'help attribute tree' for more information.
+
+16. We do allow prefix permission locking, and some very advanced abilities
+    of it.  Please see wizhelp on @aflags for more information.
+
+17. We do not have align().  Most of the code that uses align() will have to
+    be converted to our printf() (which is compatible but has different syntax)
+
+18. While we support MySQL, we do not have an async method like MUX2.  This
+    is just not possible, sorry.
+
+19. There are mail wrappers to mimic MUX/TM3 and Penn mail systems.
+
+20. The softcoded comsystem mimics MUX/TM3 and Penn's comsystem.
+
+21. There is a 'softcode.minmax' in the Mushcode directory that loads up a slew
+    of @function wrappers that will emulate various functions that MUX, Penn, or
+    TM3 has.  We have the functionality for nearly all of them, but either our
+    functions have different syntax, or we have different named functions that
+    duplicate the functionality.  It would be far better to recode it to use
+    the native functions, but the @function wrappers are there for lazyness :)
+
+22. Penn allows you to have empty attributes.  Non-penn codebases do not.  
+    Thus, hasattrval and the like are not needed and should likely just point
+    to hasattr instead.
+
+23. MUX has some built in ways for player stats.  We do as well but they're 
+    either done via functions or attribute contents.  Code that requires this
+    will have to be recoded.
+
+24. Some percent substitutions may differ between codebases.  Luckily, Rhost
+    allows the ability to remap or creaete new ones if this is a problem.
+
+25. Some switches may not exist in Rhost that do in other codebases, in such
+    a case, Rhost does allow the ability to @hook a command to define your own
+    softcoded switch to a hardcoded command and work around the limitation.
+
+26. Some flags may be missing.  If it's a dummy flag, feel free to use the
+    marker flags MARKER0 to MARKER9 to set them.  If it's an existing flag
+    that does similar features, feel free to flag_alias it or just flag_name
+    it to the other name if you want.  
+
+27. Multiple aliases are supported via @protect.
 
 --------------------------------------------------------------------------------
 X.    The differences to expect to the end user between PennMUSH, MUX,
       and RhostMUSH as of 08/06/2016.
 --------------------------------------------------------------------------------
-TBD
+Full Unicode/UTF8 in Rhost 4.0
+A fully featured tag system in Rhost 4.0
+Built in Python API handler in Rhost 4.0
+Hopefully a built in Ruby and Perl API in Rhost 4.0/4.1
+Cross-Mush execution between mushes in Rhost 4.1
+More as we think about it :)
+
+--------------------------------------------------------------------------------
+XII.  Advanced features of RhostMUSH
+--------------------------------------------------------------------------------
++/- 5.4 million years can be utilized with the built in time functions 
+which includes timefmt(), secs(), convtime(), convsecs(), and moon().  Party on!
+
+Recycle bins
+
+Multi-Tier Bit Flags
+
+Multi-Tier @powers/@depowers
+
+@protect for multi-aliases or name reservation
+
+Reality levels
+
+Built-in @clustering
+
+Ability to use MySQL and Sqlite at the same time
+
+Ability to incorporate external binaries and scripts (of all languages) as
+a native function.
+
+Changing permission levels in the middle of execution for evaluation.
+
+Full features in-game customization of near every aspect of the game.

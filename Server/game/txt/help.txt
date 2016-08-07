@@ -8739,6 +8739,10 @@
 & ATTRIBUTE USELOCKS
   Topic: Attribute uselocks
   
+  A player must be @toggled ATRUSE in order to set and unset the USELOCK
+  attribute flag on an attribute.  If you need this, please ask a staff
+  about providing this for you.
+  
   Attribute uselocks are a method where you can specify individual uselocks
   per command per object.  The path it takes to check uselocks are as 
   follows:
@@ -8776,6 +8780,10 @@
           - If the uselock attribute returns a '1'.
   
     For failure:
+          - If the uselock attributes returns anything except '1' or null.
+  
+  See @list options to see if USELOCKS are available for attributes.  
+  Depending on the configuration of the rhostmush in question, uselocks may
           - If the uselock attributes returns anything except '1' or null.
   
   See @list options to see if USELOCKS are available for attributes.  
@@ -9349,27 +9357,29 @@
     VISUAL(V)       (this shows up when you set an attribute VISUAL)
     NO_INHERIT(I)   (this shows up when you set an attribute NO_INHERIT)
     LOCK(+)         (this shows when an attribute is @locked)
-    GUILDMASTER(g)  (this shows when an attribute is set GUILDMASTER)
-    ARCHITECT(A)    (this shows when an attribute is set ARCHITECT)
-    COUNCILOR(C)    (this shows when an attribute is set COUNCILOR)
-    ROYALTY(W)      (this shows when an attribute is set WIZARD)    
-    IMMORTAL(i)     (this shows when an attribute is set IMMORTAL)
-    GOD(G)          (this shows when an attribute is set GOD)
-    MDARK(M)        (this shows when an attribute is set HIDDEN)
+  * GUILDMASTER(g)  (this shows when an attribute is set GUILDMASTER)
+  * ARCHITECT(A)    (this shows when an attribute is set ARCHITECT)
+  * COUNCILOR(C)    (this shows when an attribute is set COUNCILOR)
+  * ROYALTY(W)      (this shows when an attribute is set WIZARD)    
+  * IMMORTAL(i)     (this shows when an attribute is set IMMORTAL)
+  * GOD(G)          (this shows when an attribute is set GOD)
+  * MDARK(M)        (this shows when an attribute is set HIDDEN)
     PRIVATE         (this shows when an attribute is set PRIVATE)
     NO_CLONE(N)     (this shows when an attribute is set NO_CLONE)
     NO_PARSE(n)     (this shows when an attribute is set NO_PARSE)
     SAFE(s)         (this shows when an attribute is set SAFE)
-    PINVISIBLE(p)   (this shows when an attribute is set PINVISIBLE)
-    DARK(D)         (this shows when an attribute is set DARK)
-    USELOCK(u)      (this shows when an attribute has a USELOCK)
+  * PINVISIBLE(p)   (this shows when an attribute is set PINVISIBLE)
+  * DARK(D)         (this shows when an attribute is set DARK)
+  * USELOCK(u)      (this shows when an attribute has a USELOCK)
     SINGLETHREAD(S) (this shows when an attribute is set SINGLETHREAD)
     DEFAULT(F)      (this shows when an attribute is set DEFAULT)
-    ATRLOCK(l)      (this shows when an attribute is set ATRLOCK)
-    LOGGED(m)       (this shows when an attribute is set LOGGED)
+  * ATRLOCK(l)      (this shows when an attribute is set ATRLOCK)
+  * LOGGED(m)       (this shows when an attribute is set LOGGED)
     REGEXP(R)       (this shows when REGEXP are enabled on attributes)
-    UNSAFE(U)	    (this shows when attributes bypass safer_ufun)
+  * UNSAFE(U)	    (this shows when attributes bypass safer_ufun)
    
+  Attribute flags marked with a '*' are restricted based on permission level.
+  
 {See 'help attribute flags2' for meanings of the attribute flags}
   
 & ATTRIBUTE FLAGS2
@@ -9381,29 +9391,31 @@
     VISUAL              - The attribute is visual to anyone.
     NO_INHERIT          - The attribute is not inherited to it's children
     LOCK                - The attribute was @locked.
-    GUILDMASTER         - The attribute is modifyable by GuildMaster or higher
-    ARCHITECT           - The attribute is modifyable by Architect or higher
-    COUNCILOR           - The attribute is modifyable by Councilor or higher
-    ROYALTY             - The attribute is modifyable by Wizard or higher
-    IMMORTAL            - The attribute is modifyable by Immortal or higher
-    GOD                 - The attribute is modifyable only by #1
-    MDARK (HIDDEN)      - The attribute is wizard-hidden.
+  * GUILDMASTER         - The attribute is modifyable by GuildMaster or higher
+  * ARCHITECT           - The attribute is modifyable by Architect or higher
+  * COUNCILOR           - The attribute is modifyable by Councilor or higher
+  * ROYALTY             - The attribute is modifyable by Wizard or higher
+  * IMMORTAL            - The attribute is modifyable by Immortal or higher
+  * GOD                 - The attribute is modifyable only by #1
+  * MDARK (HIDDEN)      - The attribute is wizard-hidden.
     PRIVATE             - The attribute is private to the item.
     NO_CLONE            - The attribute is not copied on a @clone
     NO_PARSE            - The attribute does not parse %0-%9 with $commands
     SAFE                - The attribute is safe from modification.
-    PINVISIBLE          - The attribute is seeable by wizards/modifyable to any
-    DARK                - The attribute is #1 seeable only
-    USELOCK             - The attribute can have an ~attribute uselock
+  * PINVISIBLE          - The attribute is seeable by wizards/modifyable to any
+  * DARK                - The attribute is #1 seeable only
+  * USELOCK             - The attribute can have an ~attribute uselock
                           (See help on 'attribute uselock' for more info)
     SINGLETHREAD        - The attribute must wait for completion before re-ran
     DEFAULT             - The attribute 'inherits' built-in attr globals.
-    ATRLOCK             - The attribute has a format lock.
-    LOGGED              - The attribute is logged for sets/edits/clears.
+  * ATRLOCK             - The attribute has a format lock.
+  * LOGGED              - The attribute is logged for sets/edits/clears.
     REGEXP              - The attribute $/^ command/listen use regexp parsing
-    UNSAFE              - The attribute evaluates at object's permission level.
+  * UNSAFE              - The attribute evaluates at object's permission level.
                           (this is the default behavior w/o safer_ufun set)
-    
+   
+  Attribute flags marked with a '*' are restricted based on permission level.
+  
   See Also: FLAG LIST
  
 & ATTRIBUTE FLAG NO_COMMAND
@@ -29655,10 +29667,6 @@
   * mailsend() was too restrictive for non-player types [ASH]
   * cleanup of the idle_checker to always make current hash last in list [ASH]
   * crash bug if error.txt file was empty [ASH]
-  * logic issue with things set STOP and NOSTOP wouldn't always work [ASH]
-  * Some possible race conditions with regards to @remote [ASH]
-  * printf's // cut value wasn't properly initialized in all cases [ASH]
-  * compile time fix for when you do not have siddeffects selected [ASH]
   * possible memory leak in extractword() in certain conditions [ASH]
   * @tel/list didn't handle a comma separator properly for source [ASH]
   * permission issue with guildmaster and setting attributes [ASH]
