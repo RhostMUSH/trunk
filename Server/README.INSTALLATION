@@ -95,6 +95,12 @@ not limited to:
   @purged first.
   Commands: @purge, @nuke, @destroy, @recover, @reclist
 
+- @snapshot.  Live image snapshots to unload or load to and from
+  disk.  As many snapshots as you want, as often as you want.  
+  It essentially does a flatfile dump of a dbref#.  Great for
+  backups or cross-Rhost portability.
+  Command: @snapshot
+
 - Wizard and Immortals by default:
   * are spoofable.  Meaning all their @pemits by default will not 
     trigger NOSPOOF.  If you do not wish this, set the SPOOF flag
