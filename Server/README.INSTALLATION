@@ -368,23 +368,23 @@ co #1 Nyctasia
 
     Royalty/Wizard Holder:
 @pcreate WizHolder=abc123
-@set *Immholder=no_connect !wanderer royalty
-@badsite *immholder=*
+@set *wizholder=no_connect !wanderer royalty
+@badsite *wizholder=*
 
     Councilor/Admin Holder:
 @pcreate AdminHolder=abc123
-@set *Immholder=no_connect !wanderer councilor
-@badsite *immholder=*
+@set *adminholder=no_connect !wanderer councilor
+@badsite *adminholder=*
 
     Archiect/Staff Holder:
 @pcreate StaffHolder=abc123
-@set *Immholder=no_connect !wanderer architect
-@badsite *immholder=*
+@set *staffholder=no_connect !wanderer architect
+@badsite *staffholder=*
 
     Guildmaster/Lead Holder:
-@pcreate StaffHolder=abc123
-@set *Immholder=no_connect !wanderer guildmaster
-@badsite *immholder=*
+@pcreate GuildHolder=abc123
+@set *guildholder=no_connect !wanderer guildmaster
+@badsite *guildholder=*
 
 --- Chown #0 (The starting room) and #2 (The Master room) to immholder
     Note: #0 you can chown to a different bitlevel if you want, but the
