@@ -109,11 +109,11 @@ not limited to:
     NO_OVERRIDE to stop overriding all locks (including attribs)
     and NO_USELOCK to just stop overriding uselocks.  
     This applies to anything their level and lower.
-  * have the ability to literally cloak from anyone below their
-    level.  This can be highly abused if not careful and there
+  * optionally cloak from all non-immortals/God player.
+    This can be highly abused if not careful and there
     is a @depower to disable cloaking and/or dark that will 
     disable this.
-  * immortals have the ability to supercloak from even wizards.
+  * immortals can optionally supercloak from even wizards.
     this can not be disabled, and you must consider that immortals
     should be treated as the God player (#1) since they are
     effectively #1 in nearly every way.
@@ -121,17 +121,17 @@ not limited to:
 - Titles and Captions to a player's name
   @caption and @titlecaption
 
-- The ability to have an alternate name with locks for NPC 
+- Have an alternate name with locks for NPC 
   obfuscation.
   @altname
   @lock/altname
 
-- The ability to have multiple player aliases as well as a method
+- Have multiple player aliases as well as a method
   to reserve player names per player w/o revealing who has what
   name.
   @protect
 
-- The ability to actively control how dark works both game-wide
+- Actively control how dark works both game-wide
   and individually.
   @depower dark
   @admin allow_whodark, sweep_dark, command_dark, lcon_checks_dark,
@@ -139,39 +139,40 @@ not limited to:
   @toggle snuffdark
   @flagdef to redefine who and what can set the DARK flag
 
-- The ability to make config file changes in-game without having
+- Make config file changes in-game without having
   to reboot or have shell access.
   @admin admin_object
 
-- The ability to execute any binary or script as a localized function
+- Execute any binary or script as a localized function
   EXECSCRIPT (power), SIDEFX (flag)
 
 - Customized percent substitutions (like %n, %#, etc)
   @admin sub_include, @hook
 
-- The ability to redefine percent substitutions (like %n, %#, etc)
+- Redefine percent substitutions (like %n, %#, etc)
   @admin sub_override, @hook
 
-- The ability to localize command and function overrides in a sandbox.
+- Localize command and function overrides in a sandbox.
   @icmd, @lfunction
 
-- The ability to have multiple zones and the ability to belong to
+- Have multiple zones which can optionally belong to
   multiple zones
   @zone, zones, lzone(), zonecmd()
 
-- The ability to optionally control, enable, or disable sideeffects
+- Optionally control, enable, or disable sideeffects
   @admin sideeffects, SIDEFX (flag)
 
-- The ability to have 31 cross-interactive realities for locations.
-  This works as a truly independant and self-contained environment
-  for each reality that can optionally interact with other 
-  realities for the same physical space.  This affects all methods
-  within the game including all matching, looking, $commands, 
-  listens, movement, interaction, pretty much every single aspect
-  of mushing.
+- Have 31 cross-interactive realities for locations.
+  This works as a truly independant and self-contained environment.
+  A room can have 31 'layers', each 'layer' is a reality in 
+  the same physical space.  These layers can work independently
+  or allow interaction with other layers for vast customization.
+  This affects all methods within the game including all matching, 
+  looking, $commands, listens, movement, interaction, pretty 
+  much every single aspect of mushing.
   REALITY LEVELS
 
-- The ability to override any command with softcode
+- Override any command with softcode
   @admin access (check ignore)
   Master room $commands to then override the hardcode
 
@@ -179,10 +180,10 @@ not limited to:
   staff bitlevels for each player.
   @power, @depower, TOGGLES, FLAGS
 
-- The ability to customize new commands on the connect screen.
+- Customize new commands on the connect screen.
   @admin file_object2
 
-- The ability to softcode any txt file (like connect.txt)
+- Softcode any txt file (like connect.txt)
   and have it evaluate in-game.  It evaluates as the object
   it is on.
   @admin file_object
@@ -195,13 +196,33 @@ not limited to:
   Substitutions: %_
 
 - Built in pretty-printing of attributes with the parenmatch() function
+  Example Code Output : 
+  @emit [add(1,sub(2,div(3,4)),5)];@emit [extract(get(me/foo),3,1)
+
+  Example Pretty Print: 
+  @emit [
+     add(
+        1,sub(
+           2,div(
+              3,4
+           )
+        ),5
+     )
+  ];@emit [
+     extract(
+        get(
+           me/foo
+        ),3,1
+     )
+  ]
+
 
 - Plenty more not mentioned!
 
-The ability to customize RhostMUSH is what is most daunting.
+The flexibility to customize RhostMUSH is what is most daunting.
 Don't fret, you don't need to do it to run RhostMUSH successfully.
 In fact, the default configuration is mostly compatible with
-MUSH and will work out of the box fine for most needs.  For those
+MUSH and will work correctly out of the box for most needs.  For those
 wishing to play, of course the sky is the limit of what you wnat to
 do.  
 
@@ -295,7 +316,7 @@ which are OPTIONALLY backed up if you remove the '#' from before it.
 
 The backup script also will optionally rcp/scp, ftp, or mail any backups you want to a remote destination.
 Be forewarned, the backup files can potentially get rather large for larger games, even compressed.  The
-average size for these files will be 1-5 megs.  It could potentially get over 10-20 megs in size for 
+average size for these files will be 1-5MB.  It could potentially get over 10-20MB in size for 
 excessively large games, so plan accordingly.
 
 Be aware that the backup system will NOT make successful backups if you run out of disk space.  This includes
@@ -307,10 +328,12 @@ If you make changes to your backup_flat.sh script with an already active and run
 restart the backup procedure just issue:
 ./backup_restart.sh
 
-Then to start your mush:
+Then to start your mush, go to the 'game' directory and type:
 
 ./Startmush
 
+No, you do not need a & at the end.  It has script magic that will background the process for you.
+ 
 Startmush will prompt you if this is the first time you'll be running your mush.  At this point say
 yes.  It will then ask you if you have a flatfile to load.  If you do, please specify the FULL PATH
 of the flatfile, including all extentions of the flatfile name that you wish to use.  If you are 
@@ -1103,47 +1126,190 @@ XII.  Advanced features of RhostMUSH
     - wizhelp hook setup
   
   H.  Command based uselocks
-    -To Be Written
+    This allows you to have unique uselocks per $command.  This is done
+    through the use of the USELOCK attribute flag, then you set up
+    a matching attribute name with a prefix of a ~ to specify how
+    the lock is to be evaluated.  This works in the same manner
+    as an evaluation lock.  To be able to use the USELOCK attribute flag
+    you must be empowered to do so with the 'ATRUSE' @toggle.
+    - wizhelp atruse toggle
+    - help attribute uselocks 
 
   I.  Differentating between command and listen locks
-    -To Be Written
+    We distinguish between commands and listens with uselocks by passing
+    an optional argument to all locks that are uselocks.  This optional
+    argument is 0 for a default lock, 1 for a command lock and 2 for
+    a listen lock.
+    - help @lock type uselock
 
   J.  Wizard auto-overiding and how to disable it
-    -To Be Written
+    By default wizards override all locks, including attribute locks, 
+    can see all dark exits, and bypass pagelocks.  This can be 
+    troublesome, and even abusive, so there's ways to disable this.
+    - wizhelp @depower (for those abusing it)
+    - wizhelp no_override (disable overiding locks)
+    - wizhelp no_uselock (disable just uselock overriding)
+    - wizhelp pagelock toggle (disable pagelock overriding)
 
   K.  Advanced FLAG and TOGGLE control
-    -To Be Written
+    Flags and toggles can be controlled to have multiple permissions
+    and enable/disable targets of how the flags are allowed to be
+    set.  This is done through commands in-game or you can use
+    conf file options to do so.
+    - wizhelp @flagdef
+    - wizhelp @toggledef
+    ------- @admin @flagdef alternatives
+    - wizhelp flag_access_set   
+    - wizhelp flag_access_unset 
+    - wizhelp flag_access_see   
+    - wizhelp flag_access_type  
+    ------- @admin @toggledef alternatives
+    - wizhelp toggle_access_set  
+    - wizhelp toggle_access_unset
+    - wizhelp toggle_access_see  
+    - wizhelp toggle_access_type 
+
 
   L.  Advanced site control
-    -To Be Written
+    We allow advanced site control by not only blocking various sites
+    but we can specify how many times a player can be connected at the
+    same time as well as how many times sites are able to connect at
+    the same time.  This is done through normal site manipulation.
+    - wizhelp forbid_host
+    - wizhelp register_host
+    - wizhelp noguest_host
+    - wizhelp @list (site option)
 
   M.  Auto-Registration
-    -To Be Written
+    Autoregistration is the method that a player can auto-register
+    by providing their email on the connect screen.  It will email
+    them a password and an optional document that the administrator
+    provides.  This is well described in the wizhelp.
+    - wizhelp autoregistration
 
   N.  Which bit level is best?
-    -To Be Written
+    This is something that should be discussed by you and the staff
+    of your game.  As a good rule of thumb, only provide the bitlevel
+    that is required to do the job.  Too much power is always risky.
+    In essence, each tier of bit can do everything the previous bitlevel
+    can do, and then additional stuff on top of it.  The highest bitlevel
+    is #1 itself, being bitlevel 7.  Then immortal, which should be
+    considered the #1 character in most cases and is bitlevel 6.  Then
+    the royalty character, which is equal to wizard on penn, mux, or
+    other codebases.  For most things, this is the bitlevel you want
+    to assign players.  The exception will likely be game owners or
+    people who control the master room code.
+
+    There's a bunch of readme files and online wizhelp that goes into
+    detail of the various bitlevels and what each can do.  
+    - wizhelp control
+    - ~/readme/README.BITS
 
   O.  What are the limits for size/growth for RhostMUSH?
-    -To Be Written
+    While using QDBM, there's really no set limits for most things.
+    The limits that we have are as followed:
+    LBUF - 64K.  It is recommended to only use 32K as there is some
+           issues with networking with 64K lbufs.
+      - Compile time option with the menu configurator
+
+    SBUF - 64 characters (if configured -- it's suggested you do).  
+      - Compile time option with the menu configurator
+
+    MBUF - 200 characters.  Not able to be changed.
+
+    MAX CONNECTIONS - Limited by the total number of open sockets
+           and descriptors on the account and server running on.
+           There are various tools to limit connection DoS attemps
+           and other such nastiness.  This is well documented in
+           the netrhost.conf file.
+      - wizhelp max_players
+      - ~/game/netrhost.conf
+
+    MEMORY - no limit.  Generally runs between 8-50M depending
+           on the size of the mush and the LBUF size specified.
+
+    CPU  - no limit, but has built in cpu abort in code.  The
+           netrhost.conf file documents this well for customizing.
+           the default values are usually good enough.
+      - wizhelp max_cpu_cycles
+      - wizhelp cpuintervalchk
+      - wizhelp cputimechk
+      - wizhelp cpu_secure_lvl
+      - wizhelp heavy_cpu_max
+      - ~/game/netrhost.conf
+ 
+    DISK - no limit.  Generally will be 75-200M depending on size,
+           number of backups and if you leave your compiled object
+           files in.
+
+    DB Size - (20000 default) There is no limit on the number of
+           objects the db can have.  By default it's soft limited
+           to 20K objects, which can be changed by a netrhost.conf
+           file change.  We have had this up past 1.5 million 
+           objects, and other than a second or two of lag for
+           complex searches we had no real problem.
+      - wizhelp maximum_size
+      - help @quota
+      - wizhelp @quota
+      - wizhelp @limit
+
+    Attribute Size - 10K as a hard limit.  750 as a soft limit.
+           You can increase this but it can't exceed 10000 
+           attributes.  This is to avoid DoS style attacks.
+      - wizhelp vlimit
+      - wizhelp @limit
+
 
   P.  Sqlite and MySQL/Maria setup and why use it?
-    -To Be Written
+    Both of these can be configured separately or conjointly to
+    run in parallel.  This can be done through the RhostMUSH
+    configuration utility.  You generally want to use SQL for
+    external data storage or accessing a central repository
+    of data to share between multiple projects.  Like, for
+    example between a wiki, a forum, and the mush.
+    
 
   Q.  Executing outside scripts and binaries within RhostMUSH.
-    -To Be Written
+    Rhost has execscript() which allows executing outside binaries
+    or scripts as a native function.  All effort has been done to
+    avoid any type of DoS based issue or hang by doing this, however
+    the guidelines presented should be followed before doing so.
+    - wizhelp execscript
+    - wizhelp power execscript
+    - help sidefx
+    - wizhelp writing scripts
 
   R.  Pulling external data into RhostMUSH
-    -To Be Written
+    You are capable of pulling external data in to RhostMUSH using
+    several methods.  These are by using:
+      - SQL (mysql or sqlite)
+      - execscript
+      - cron (wizhelp signal)
 
   S.  Integrating a unix cron right into RhostMUSH
-    -To Be Written
+    The unix cron can be used to integrate with Rhost fairly 
+    easilly by use of signals.  By using SIGUSR1 you can specify
+    Rhost to execute code in-game, which part of that could be
+    to pick up a pre-designed list of commands that the unix cron
+    has set up.
+    - wizhelp signal
+    - wizhelp signal_cron
 
   T.  Signal handling, how it works, and when and why use it
-    -To Be Written
+    Signals are used to do different things for the mush.  By default,
+    the following signals are recognized by the mush and will do
+    the following as defaults.
+    - SIGUSR1 - will do a reboot of the mush.  This is also customizable
+                so that you can have it execute code in-mush if you want.
+    - SIGUSR2 - will do a clean shutdown of the mush.
+    - SIGTERM - will immediately scram the mush as cleanly and fast
+                as possible.  It will avoid dumping anything to
+                the database to speed up scramming, but write
+                a TERM flat file to be loaded in if corruption.
 
   U.  Setting up global parents, global inheritance, global attribute
       formatting, and all the other fun global setups for fun and profit
-    -To Be Written
+    
 
   V.  RhostMUSH limitations and how to get around them.
     -To Be Written
