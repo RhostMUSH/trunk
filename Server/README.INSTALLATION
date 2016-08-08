@@ -961,36 +961,221 @@ Problematic commands:
 X.    The differences to expect to the end user between PennMUSH, MUX,
       and RhostMUSH as of 08/06/2016.
 --------------------------------------------------------------------------------
-Full Unicode/UTF8 in Rhost 4.0
-A fully featured tag system in Rhost 4.0
-Built in Python API handler in Rhost 4.0
-Hopefully a built in Ruby and Perl API in Rhost 4.0/4.1
-Cross-Mush execution between mushes in Rhost 4.1
-More as we think about it :)
+The largest end user experience will mostly resolve around some look and feel.
+The general look and feel of how to set attributes, work with commands and 
+functions, and getting around a grid will be identical between the mush flavors.
+@nuke and @destroy will work somewhat differently between the three codebases
+and some effort should be looked at on how different it behaves.
+
+PennMUSH:
+- The way the comsystem (hardcode) works with the latest PennMUSH has some 
+  compatibility now with MUX's comsystem.  
+- The @mail system is different to MUX and Rhost.
+- Debugging code uses DEBUG and has an indented format.
+- The parser for code doesn't require nested escaping like other codebases, but
+  has issues with the pre-parser and nesting.
+- All standard movement, attribute setting, other should be similar
+- Penn allows empty attributes.
+- Penn supports attribute trees.
+- Penn has the standard set of bitlevel flags with on/off @powers
+
+MUX:
+- The comsystem (hardcode) is unique to MUX/TinyMUSH3 and is not compatible 
+  with Penn.
+- The @mail system is unique to MUX/TinyMUSH3 and is not compatible with Penn.
+- Debugging uses TRACE and is the old standard for debugging.
+- The parser requires extra escaping for nested escaping but handles pre-parsing
+  and nesting fine.
+- MUX does not allow empty attributes.
+- MUX does not support attribute trees.
+- MUX has the standard set of bitlevel flags with on/off @powers
+
+Rhost:
+- The comsystem (softcode) is in the Mushcode directory and is compatible
+  to both PennMUSH and MUX.
+- The mail system is unique to Rhost but there exists mail wrappers that
+  allow MUX and Penn compatibility.
+- Debugging uses TRACE and is the old standard for debugging.  It allows
+  advanced features like labeling and grepping for content.
+- The parser requires extra escaping for nested escaping but handles pre-parsing
+  and nesting fine.
+- Rhost does not allow empty attributes.
+- Rhost marginally supports attribute trees.
+- Rhost has a multi-level set of bitlevel flags with multi-tier @powers, 
+  @depowers, and varying other tools for permissions.
+
 
 --------------------------------------------------------------------------------
 XII.  Advanced features of RhostMUSH
 --------------------------------------------------------------------------------
-+/- 5.4 million years can be utilized with the built in time functions 
-which includes timefmt(), secs(), convtime(), convsecs(), and moon().  Party on!
+  A.  Debugging/Tracing
+    Debugging in Rhost allows for advanced features like expressing where and
+    when to do debugging via a trace() function, with toggled labels, and the
+    ability to grep content from trace output.  There also exists features to
+    color-match parenthesis, braces, and brackets in-game as well as pretty print
+    the output of commands and functions.
+    - help trace
+    - help %_
+    - help trace()
+    - help parenmatch()
+    - help parenstr()
+  
+  B.  Zoning
+    Zoning in Rhost allows the same functionality of Penn and MUX, though the
+    syntax is different.  It also allows the ability to belong to multiple
+    zones at the same time and take advantage of mulitple zones at once.
+    This allows for increased levels of complexity.
+    - help zones
+    - help @zone
+    - help zonecmd()
+    - help lzone()
+    - help @Lock type twink
+    - help @lock type zone
+  
+  C.  Reality Levels
+    Reality levels allows for the ability to have a sandboxed 'existance'
+    in each physical location across the entirity of the mush.  Each 
+    reality is its own sandbox and can either stand alone or work 
+    dependently with other realities.  A person can belong to multiple
+    realities at the same time, and realities is geared to a method for
+    send and receive.  Each 'method' requires to be in the given reality
+    to affect it.
+    - help reality levels
+    - wizhelp chkreality
+    - wizhelp reaity level
+    - help @Lock type user
+  
+  D.  Function and Command Overriding
+    Functions and commands can both be overridden with softcode.  To 
+    override a hardcoded command you first set the command ignore.
+    There are various levels of ignoring so that you could have it
+    ignored from mortals but have it executed fine for non-mortals.
+    This allows you to use the actual physical command within a
+    softcode override.  You may also use @Hook for altering how
+    a command works.   Functions are overridden by setting the 
+    function in question ignored, then writing a softcode alternative
+    that is then executed and fetched appropriately.
+      Commands:
+        - wizhelp @admin
+        - wizhelp access
+        - wizhelp permissions
+        - wizhelp @Hook
+        - wizhelp hook setup
+      Functions:
+        - wizhelp @admin
+        - wizhelp function_access
+        - wizhelp @function
+        - help @lfunction
+        - wizhelp bypass()
+  
+  E.  The Recycle Bin
+    Rhost has a recycle bin that works a bit like a windows recycle bin.  
+    Whenever you destroy something within the mush, it is stacked onto
+    the recycle bin and marked unavailable within the mush.  This marks
+    the dbref# as garbage in any sense of the word.  However, the object
+    is not able to be reused until purged.  Once purged, it is put onto
+    a free list that can then be reassigned to a new object.
+    - wizhelp @nuke
+    - wizhelp @destroy
+    - wizhelp @toad
+    - wizhelp @turtle
+    - wizhelp @purge
+    - wizhelp @recover
+    - wizhelp @reclist
+  
+  
+  F.  Percent Substitution Adding/Overriding
+    Rhost allows the ability to both override percent substitutions as 
+    well as creating new ones.  This is done with @Hook and admin 
+    params and issues softcode overriding.  Due to how it is evaluated
+    there is no risk of recursion.
+    - wizhelp @hook
+    - wizhelp hook_cmd
+    - wizhelp sub_include
+    - wizhelp sub_override
+  
+  G.  Hooking
+    Hooking allows you to have advanced methods to manipulate commands
+    including adding customized switches to them via softcode.  
+    - wizhelp @hook
+    - wizhelp hook_cmd
+    - wizhelp hook_obj
+    - wizhelp hook setup
+  
+  H.  Command based uselocks
+    -To Be Written
 
-Recycle bins
+  I.  Differentating between command and listen locks
+    -To Be Written
 
-Multi-Tier Bit Flags
+  J.  Wizard auto-overiding and how to disable it
+    -To Be Written
 
-Multi-Tier @powers/@depowers
+  K.  Advanced FLAG and TOGGLE control
+    -To Be Written
 
-@protect for multi-aliases or name reservation
+  L.  Advanced site control
+    -To Be Written
 
-Reality levels
+  M.  Auto-Registration
+    -To Be Written
 
-Built-in @clustering
+  N.  Which bit level is best?
+    -To Be Written
 
-Ability to use MySQL and Sqlite at the same time
+  O.  What are the limits for size/growth for RhostMUSH?
+    -To Be Written
 
-Ability to incorporate external binaries and scripts (of all languages) as
-a native function.
+  P.  Sqlite and MySQL/Maria setup and why use it?
+    -To Be Written
 
-Changing permission levels in the middle of execution for evaluation.
+  Q.  Executing outside scripts and binaries within RhostMUSH.
+    -To Be Written
 
-Full features in-game customization of near every aspect of the game.
+  R.  Pulling external data into RhostMUSH
+    -To Be Written
+
+  S.  Integrating a unix cron right into RhostMUSH
+    -To Be Written
+
+  T.  Signal handling, how it works, and when and why use it
+    -To Be Written
+
+  U.  Setting up global parents, global inheritance, global attribute
+      formatting, and all the other fun global setups for fun and profit
+    -To Be Written
+
+  V.  RhostMUSH limitations and how to get around them.
+    -To Be Written
+
+  W.  Things other mushes can do that Rhost can not and how to emulate it
+    -To Be Written
+
+  X.  Advanced guest setup 
+    -To Be Written
+
+  Y.  Attribute permission masking and the joys of the power behind it
+    -To Be Written
+
+  Z.  The amazing @cluster and what it can do for you
+    -To Be Written
+
+  ZZ. What we plan for the future
+  Things to look forward to the future with RhostMUSH.
+  - Full Unicode/UTF8 in Rhost 4.0
+  - A fully featured tag system in Rhost 4.0
+  - Built in Python API handler in Rhost 4.0
+  - Hopefully a built in Ruby and Perl API in Rhost 4.0/4.1
+  - Cross-Mush execution between mushes in Rhost 4.1
+  - More as we think about it :)
+  
+  EXT: Additional features not covered otherwise
+  Additional features
+  - +/- 5.4 million years can be utilized with the built in time functions 
+    which includes timefmt(), secs(), convtime(), convsecs(), and moon().  Party on!
+  - @protect for multi-aliases or name reservation
+  - Ability to use MySQL and Sqlite at the same time
+  - Ability to incorporate external binaries and scripts (of all languages) as
+    a native function.
+  - Changing permission levels in the middle of execution for evaluation.
+  - Full features in-game customization of near every aspect of the game.
