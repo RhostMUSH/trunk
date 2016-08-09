@@ -342,6 +342,22 @@ it will scan your Rhost directory and subdirectories for any Rhost flatfile that
 can be loaded.  At this point select it (by name or by number) and it'll attempt to load the flatfile.
 If it succeeds, it'll start the mush with the relevant data.
 
+~/Server/minimal-DBs/Amb-MinimalRhost/netrhost.db.flat -- Ambrosia's secure and featured minimal db.
+  - Use the matching netrhost.conf file under the Amb-MinimalRhost/game directory
+  - Load in the settings specified in the Amb-MinimalRhost/bin directory.
+    - Copy this file into your ~/Server/bin directory
+    - From 'Server' directory type: make clean
+    - From 'Server' directory type: make confsource and 'l'oad option 0
+    - Specify any -additional- options you want at this point.
+    - Recompile your code
+  - Copy the files in Amb-MinimalRhost/game/txt into your ~/Server/game/txt directory
+  - from your ~/Server/game txt file run on each of the txt files:
+    ../mkindx <txtfile>.txt <txtfile>.indx
+    Where <txtfile> is the name of the file (minus the .txt extension)
+  - If running, @reboot your game.
+
+~/Server/minimal-DBs/minimal_db/reimaged.db.flat       -- Default pre-loaded minimal db
+  - Use the matching reimaged.conf file (rename to netrhost.conf) and put in your game directory
 
 If it says the shared ID is already in use, please verify that it is the right shared debug id, then type:
 ./Startmush -f
@@ -1423,6 +1439,7 @@ XII.  Advanced features of RhostMUSH
       - Pueblo is not supported.
       - json is not supported.
       - ssl is not supported (yet).
+      - This uses @shutdown/restart, Rhost uses @reboot
  
     * MUX
       - Mux has an async mysql database engine.  This is not possible
@@ -1431,6 +1448,7 @@ XII.  Advanced features of RhostMUSH
       - Mux's hardcoded comsystem is emulated with the softcode comsys
       - MUX's @mail system is workable with mail wrappers
       - Pueblo is not supported.
+      - This uses @restart, Rhost uses @reboot
 
   X.  Advanced guest setup 
     * After you set up your guests, you can set unique names to each guest
