@@ -489,7 +489,7 @@ admin_object 123
 1B. @chown/preserve the myrddin mush cron to immholder, then move to maste room.
     Note: the globalroom() function returns the dbref# of the master room.  Handy!
 @chown/pres Myrddin=*Immholder
-@tel Myrddin=globalroom()
+@tel Myrddin=#234 (where #234 is the dbref# of your code closet)
 
 2A. Load in default softcoded comsystem.  This is PennMUSH and MUX/TM3 compatible.
     Filename: ~/Rhost/Mushcode/comsys
