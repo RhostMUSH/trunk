@@ -940,6 +940,10 @@ Problematic commands:
 
 16. We do allow prefix permission locking, and some very advanced abilities
     of it.  Please see wizhelp on @aflags for more information.
+    - wizhelp @aflags
+    - wizhelp atrperms_max
+    - wizhelp atrlock
+    - wizhelp atrperms
 
 17. We do not have align().  Most of the code that uses align() will have to
     be converted to our printf() (which is compatible but has different syntax)
@@ -1032,7 +1036,7 @@ Rhost:
 XII.  Advanced features of RhostMUSH
 --------------------------------------------------------------------------------
   A.  Debugging/Tracing
-    Debugging in Rhost allows for advanced features like expressing where and
+  * Debugging in Rhost allows for advanced features like expressing where and
     when to do debugging via a trace() function, with toggled labels, and the
     ability to grep content from trace output.  There also exists features to
     color-match parenthesis, braces, and brackets in-game as well as pretty print
@@ -1044,7 +1048,7 @@ XII.  Advanced features of RhostMUSH
     - help parenstr()
   
   B.  Zoning
-    Zoning in Rhost allows the same functionality of Penn and MUX, though the
+  * Zoning in Rhost allows the same functionality of Penn and MUX, though the
     syntax is different.  It also allows the ability to belong to multiple
     zones at the same time and take advantage of mulitple zones at once.
     This allows for increased levels of complexity.
@@ -1056,7 +1060,7 @@ XII.  Advanced features of RhostMUSH
     - help @lock type zone
   
   C.  Reality Levels
-    Reality levels allows for the ability to have a sandboxed 'existance'
+  * Reality levels allows for the ability to have a sandboxed 'existance'
     in each physical location across the entirity of the mush.  Each 
     reality is its own sandbox and can either stand alone or work 
     dependently with other realities.  A person can belong to multiple
@@ -1069,7 +1073,7 @@ XII.  Advanced features of RhostMUSH
     - help @Lock type user
   
   D.  Function and Command Overriding
-    Functions and commands can both be overridden with softcode.  To 
+  * Functions and commands can both be overridden with softcode.  To 
     override a hardcoded command you first set the command ignore.
     There are various levels of ignoring so that you could have it
     ignored from mortals but have it executed fine for non-mortals.
@@ -1092,7 +1096,7 @@ XII.  Advanced features of RhostMUSH
         - wizhelp bypass()
   
   E.  The Recycle Bin
-    Rhost has a recycle bin that works a bit like a windows recycle bin.  
+  * Rhost has a recycle bin that works a bit like a windows recycle bin.  
     Whenever you destroy something within the mush, it is stacked onto
     the recycle bin and marked unavailable within the mush.  This marks
     the dbref# as garbage in any sense of the word.  However, the object
@@ -1108,7 +1112,7 @@ XII.  Advanced features of RhostMUSH
   
   
   F.  Percent Substitution Adding/Overriding
-    Rhost allows the ability to both override percent substitutions as 
+  * Rhost allows the ability to both override percent substitutions as 
     well as creating new ones.  This is done with @Hook and admin 
     params and issues softcode overriding.  Due to how it is evaluated
     there is no risk of recursion.
@@ -1118,7 +1122,7 @@ XII.  Advanced features of RhostMUSH
     - wizhelp sub_override
   
   G.  Hooking
-    Hooking allows you to have advanced methods to manipulate commands
+  * Hooking allows you to have advanced methods to manipulate commands
     including adding customized switches to them via softcode.  
     - wizhelp @hook
     - wizhelp hook_cmd
@@ -1126,24 +1130,26 @@ XII.  Advanced features of RhostMUSH
     - wizhelp hook setup
   
   H.  Command based uselocks
-    This allows you to have unique uselocks per $command.  This is done
+  * This allows you to have unique uselocks per $command.  This is done
     through the use of the USELOCK attribute flag, then you set up
     a matching attribute name with a prefix of a ~ to specify how
     the lock is to be evaluated.  This works in the same manner
     as an evaluation lock.  To be able to use the USELOCK attribute flag
-    you must be empowered to do so with the 'ATRUSE' @toggle.
+    you must be empowered to do so with the 'ATRUSE' @toggle.  You may
+    also use the secure_atruselock config parameter to globally enable
+    this and not require the toggle to be set.
     - wizhelp atruse toggle
     - help attribute uselocks 
 
   I.  Differentating between command and listen locks
-    We distinguish between commands and listens with uselocks by passing
+  * We distinguish between commands and listens with uselocks by passing
     an optional argument to all locks that are uselocks.  This optional
     argument is 0 for a default lock, 1 for a command lock and 2 for
     a listen lock.
     - help @lock type uselock
 
   J.  Wizard auto-overiding and how to disable it
-    By default wizards override all locks, including attribute locks, 
+  * By default wizards override all locks, including attribute locks, 
     can see all dark exits, and bypass pagelocks.  This can be 
     troublesome, and even abusive, so there's ways to disable this.
     - wizhelp @depower (for those abusing it)
@@ -1152,7 +1158,7 @@ XII.  Advanced features of RhostMUSH
     - wizhelp pagelock toggle (disable pagelock overriding)
 
   K.  Advanced FLAG and TOGGLE control
-    Flags and toggles can be controlled to have multiple permissions
+  * Flags and toggles can be controlled to have multiple permissions
     and enable/disable targets of how the flags are allowed to be
     set.  This is done through commands in-game or you can use
     conf file options to do so.
@@ -1171,7 +1177,7 @@ XII.  Advanced features of RhostMUSH
 
 
   L.  Advanced site control
-    We allow advanced site control by not only blocking various sites
+  * We allow advanced site control by not only blocking various sites
     but we can specify how many times a player can be connected at the
     same time as well as how many times sites are able to connect at
     the same time.  This is done through normal site manipulation.
@@ -1181,14 +1187,14 @@ XII.  Advanced features of RhostMUSH
     - wizhelp @list (site option)
 
   M.  Auto-Registration
-    Autoregistration is the method that a player can auto-register
+  * Autoregistration is the method that a player can auto-register
     by providing their email on the connect screen.  It will email
     them a password and an optional document that the administrator
     provides.  This is well described in the wizhelp.
     - wizhelp autoregistration
 
   N.  Which bit level is best?
-    This is something that should be discussed by you and the staff
+  * This is something that should be discussed by you and the staff
     of your game.  As a good rule of thumb, only provide the bitlevel
     that is required to do the job.  Too much power is always risky.
     In essence, each tier of bit can do everything the previous bitlevel
@@ -1206,7 +1212,7 @@ XII.  Advanced features of RhostMUSH
     - ~/readme/README.BITS
 
   O.  What are the limits for size/growth for RhostMUSH?
-    While using QDBM, there's really no set limits for most things.
+  * While using QDBM, there's really no set limits for most things.
     The limits that we have are as followed:
     LBUF - 64K.  It is recommended to only use 32K as there is some
            issues with networking with 64K lbufs.
@@ -1261,7 +1267,7 @@ XII.  Advanced features of RhostMUSH
 
 
   P.  Sqlite and MySQL/Maria setup and why use it?
-    Both of these can be configured separately or conjointly to
+  * Both of these can be configured separately or conjointly to
     run in parallel.  This can be done through the RhostMUSH
     configuration utility.  You generally want to use SQL for
     external data storage or accessing a central repository
@@ -1270,7 +1276,7 @@ XII.  Advanced features of RhostMUSH
     
 
   Q.  Executing outside scripts and binaries within RhostMUSH.
-    Rhost has execscript() which allows executing outside binaries
+  * Rhost has execscript() which allows executing outside binaries
     or scripts as a native function.  All effort has been done to
     avoid any type of DoS based issue or hang by doing this, however
     the guidelines presented should be followed before doing so.
@@ -1280,14 +1286,14 @@ XII.  Advanced features of RhostMUSH
     - wizhelp writing scripts
 
   R.  Pulling external data into RhostMUSH
-    You are capable of pulling external data in to RhostMUSH using
+  * You are capable of pulling external data in to RhostMUSH using
     several methods.  These are by using:
       - SQL (mysql or sqlite)
       - execscript
       - cron (wizhelp signal)
 
   S.  Integrating a unix cron right into RhostMUSH
-    The unix cron can be used to integrate with Rhost fairly 
+  * The unix cron can be used to integrate with Rhost fairly 
     easilly by use of signals.  By using SIGUSR1 you can specify
     Rhost to execute code in-game, which part of that could be
     to pick up a pre-designed list of commands that the unix cron
@@ -1296,7 +1302,7 @@ XII.  Advanced features of RhostMUSH
     - wizhelp signal_cron
 
   T.  Signal handling, how it works, and when and why use it
-    Signals are used to do different things for the mush.  By default,
+  * Signals are used to do different things for the mush.  By default,
     the following signals are recognized by the mush and will do
     the following as defaults.
     - SIGUSR1 - will do a reboot of the mush.  This is also customizable
@@ -1307,41 +1313,166 @@ XII.  Advanced features of RhostMUSH
                 the database to speed up scramming, but write
                 a TERM flat file to be loaded in if corruption.
 
-  U.  Setting up global parents, global inheritance, global attribute
+  U.  Setting up global parents, global @parents, global attribute
       formatting, and all the other fun global setups for fun and profit
-    
+  * Global parents are useful when you want to have a global 'parent' 
+    without actually having a defined '@parent'.  It always will be the
+    highest tier in a lookup.  The way lookups will go will be:
+       self->@parent(s)->@zone(s)->GlobalParent
+
+    The type of the parent does not have to match the target.
+
+    These global parents can be defined either by using a global
+    generic parent or by using the type.  If a type is specified it
+    overrides the generic.  The following parameters are used:
+    - global_parent_obj     - The generic global parent (if defined)
+    - global_parent_room    - The room global parent
+    - global_parent_exit    - The exit global parent
+    - global_parent_thing   - The thing global parent
+    - global_parent_player  - The player global parent
+  
+  * Global @parents are different than global parents in that any new
+    item of similar type that is created is automatically assigned this
+    physical @parent.  It's obviously more limiting since it sets
+    the literal physical parent defined.  
+
+    The type of the parent does not have to match the target.
+
+    The following parameters are used:
+    - room_parent           - The target that new rooms are @parented
+    - exit_parent           - The target that new exits are @parented
+    - thing_parent          - The target that new things are @parented
+    - player_parent         - The target that new players are @parented
+
+  * Global attribute formatting is a method define a wrapper, of sorts,
+    where attributes like @desc, @odesc, @succ, and anything similar
+    can be processed through this.  All attributes will be either
+    &FORMAT<attribute> or &<attribute>FORMAT based on the current 
+    configuration.  Example: &FORMATDESC or &DESCFORMAT localy, or 
+    use the following global objects for global formatting.  Local
+    formatting has priority.
+
+    The type of the parent does not have to match the target.
+
+    - room_attr_default     - Target for room formatting
+    - exit_attr_default     - Target for exit formatting
+    - thing_attr_default    - Target for thing formatting
+    - player_attr_default   - Target for player formatting
+
 
   V.  RhostMUSH limitations and how to get around them.
-    -To Be Written
+    While Rhost is insanely configurable and quite powerful, there are
+    limitations that exist within it.
+    
+    * Function invocations.  Sometimes you will hit a ceiling on evaluation.
+      You may want to tweak values to allow more functions or commands
+      to execute.  The following controls that:
+      - function_invocation_limit [25000 default] - specifies the total 
+            functions you can execute per command.
+      - function_recursion_limit [50] - specifies the total times a 
+            function can call itself over and over.  Rarely should this
+            be increased and doing so can effect your stack depth.
+
+    * Command queue limits.  Sometimes you want more to be queued up for
+      players or wizards.
+      - player_queue_limit  - Max number of entries a player can queue
+      - wizard_queue_limit  - Max number of entries a wizard can queue
+    
+    * @limit is a wonderful way to lock down limitations per player or
+      global.  Lots of power is available here.
+      - @limit
+      - vattr_limit_checkwiz - Enable @limit checks for wizards
+      - wizmax_vattr_limit   - Set wizard global VATTR limits
+      - wizmax_dest_limit    - Set wizard global @destroy limits
+      - max_vattr_limit      - Set player global VATTR limits
+      - max_dest_limit       - Set player global @destroy limits
+
+    * Lots of trace output can be cut off.  You can modify this with:
+      - trace_output_limit   - Set lines of trace output shown
+
+    * To define how many commands a minute a player set SPAMMONITOR can use
+      - spam_limit -- default 120
+
+    * If you examine things and see 'Output cut off' messages, you may want
+      to increase your output limit, funny enough, the name of this is
+      similar
+      - output_limit - You should set this no less than 4 times the current
+            size of your LBUF.
+  
+    * Attributes names can not exceed 64 characters.  Sorry, it's a hard limit
+
+    * Sometime you may find a single \ may not work for an escape.  You can
+      in most cases use a % instead or double escape the \ to make it work.
+      Also look at lit() as a solution.
+
 
   W.  Things other mushes can do that Rhost can not and how to emulate it
-    -To Be Written
+    * PennMUSH:
+      - Attribute trees.  These are emulated as a base set and can be
+        duplicated enough to at least port code.
+      - lsearch() will have to be recoded to search()
+      - align() will have to be recoded to printf()
+      - Penn allows empty attributes.  Rhost does not.  Work will have to
+        be done to take this into consideration. 
+      - All *val() functions in Penn that are used will have to be 
+        remapped to a non-*val() function.  It should be as simple as 
+        function_alias to the non-*val.  Example:
+            @admin function_alias=hasattrval hasattr
+      - Penn's hardcoded comsystem is emulated with the softcode comsys
+      - Penn's @mail system is workable with mail wrappers
+      - Pueblo is not supported.
+      - json is not supported.
+      - ssl is not supported (yet).
+ 
+    * MUX
+      - Mux has an async mysql database engine.  This is not possible
+        with Rhost.  You'll have to use the sync method instead.
+      - UTF8 is supported but internally passed differently.
+      - Mux's hardcoded comsystem is emulated with the softcode comsys
+      - MUX's @mail system is workable with mail wrappers
+      - Pueblo is not supported.
 
   X.  Advanced guest setup 
-    -To Be Written
+    * After you set up your guests, you can set unique names to each guest
+      if you so want after defining the dbref#'s your guests use.  This is
+      done by defining them in the guest_namelist parameter.  You can also
+      increase guests (or decrease them) between 0-31 guests.
+      - wizhelp guest_namelist
+      - wizhelp num_guests
 
   Y.  Attribute permission masking and the joys of the power behind it
-    -To Be Written
+     * Attribute contentlocks can be set up so you can lock the actual
+       content that you can set (or even unset!) into an attribute.
+       The beauty of this is that you can specify case sensitive 
+       information, lock different ways contents in attributes are set
+       based on who is setting it, or even on where it's being set.
+       The sky's the limit.
+       - global_attrdefault    - Target for defining content locks
+  
 
   Z.  The amazing @cluster and what it can do for you
-    -To Be Written
+     * Clusters is the way to virtually assign multiple objects into 
+       a single physical object.  It essentially chains together two
+       or more objects to share attributes between them, so that any
+       attribute set on any object in that cluster can be set or fetched
+       as if it was a singular entity.  This allows some amazing ability
+       to distribute attribute content or even have a farm of a massive
+       amount of attributes without paying a hefty penalty on object bloat.
+      - help cluster  -- Gives a fantastic overview of how clusters work.
 
   ZZ. What we plan for the future
-  Things to look forward to the future with RhostMUSH.
-  - Full Unicode/UTF8 in Rhost 4.0
-  - A fully featured tag system in Rhost 4.0
-  - Built in Python API handler in Rhost 4.0
-  - Hopefully a built in Ruby and Perl API in Rhost 4.0/4.1
-  - Cross-Mush execution between mushes in Rhost 4.1
-  - More as we think about it :)
+     * Things to look forward to the future with RhostMUSH.
+       - Full Unicode/UTF8 in Rhost 4.0
+       - A fully featured tag system in Rhost 4.0
+       - Built in Python API handler in Rhost 4.0
+       - Hopefully a built in Ruby and Perl API in Rhost 4.0/4.1
+       - Cross-Mush execution between mushes in Rhost 4.1
+       - More as we think about it :)
   
   EXT: Additional features not covered otherwise
   Additional features
   - +/- 5.4 million years can be utilized with the built in time functions 
     which includes timefmt(), secs(), convtime(), convsecs(), and moon().  Party on!
-  - @protect for multi-aliases or name reservation
-  - Ability to use MySQL and Sqlite at the same time
-  - Ability to incorporate external binaries and scripts (of all languages) as
-    a native function.
   - Changing permission levels in the middle of execution for evaluation.
+    * see help on the streval and ueval function
   - Full features in-game customization of near every aspect of the game.
