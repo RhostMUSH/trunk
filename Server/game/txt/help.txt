@@ -18466,7 +18466,7 @@
   setting/clearing attributes and flags to verbose mode.
   
 & KEEPFLAGS()
-  Function: keepflags(<list>, [&|]<flag(s)> [,<delim>[,<output delim>]])
+  Function: keepflags(<list>,[&|]<flag(s)>[,<delim>[,<output delim>][,<type>]])
   
   The keepflags function keeps all dbref#'s in the given list that contains
   the flags specified.  You must use one of the operators for flag checks:
@@ -18475,6 +18475,8 @@
   
   This function returns the list of dbref#'s that correctly match up the
   flags you specified.
+  
+  You may specify a <type> of 1 to return values as objid's.
   
   Examples: (#1 is a wizard, nothing else is)
     > say keepflags(#1 #2 #3 #4,&W)
@@ -18490,7 +18492,7 @@
   See Also: remflags(), remtype(), keeptype()
 
 & REMFLAGS()
-  Function: remflags(<list>, [&|]<flag(s)> [,<delim>[,<output delim>]])
+  Function: remflags(<list>,[&|]<flag(s)>[,<delim>[,<output delim>][,<type>]])
   
   The remflags function removes all dbref#'s in the given list that contains
   the flags specified.  You must use one of the operators for flag checks:
@@ -18499,6 +18501,8 @@
   
   This function returns the list of dbref#'s that correctly match up the
   flags you specified.
+  
+  You may specify a <type> of 1 to return values as objid's.
   
   Examples: (#1 is a wizard, nothing else is)
     > say remflags(#1 #2 #3 #4,&W)
@@ -18529,6 +18533,8 @@
   
   If you specify <type> as 1, the results are always returned as dbref#'s, 
   otherwise the values are returned as the element in <string>.
+  
+  If you specify <type> as 2, the results are returned as objid's.
     
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
     > say keeptype(#0 #1 #55 #584 #-1,player)
@@ -18560,6 +18566,8 @@
   
   If you specify <type> as 1, the results are always returned as dbref#'s, 
   otherwise the values are returned as the element in <string>.
+    
+  If you specify <type> as 2, the results are returned as objid's.
     
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
     > say remtype(#0 #1 #55 #584 #-1,player)
@@ -29648,6 +29656,7 @@
   * modified @edit so that /check or sets are higlighted if a change 
     actually occured with the first word 'Set' or 'Check' [ASH]
   * change over from strtok to strtok_r throughout source code [ASH]
+  * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
     
   Bug Fixes
   ------------

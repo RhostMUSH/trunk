@@ -66,6 +66,8 @@ char *rindex(const char *, int);
 #define INT_MAX 2147483647
 #endif
 
+char *return_objid(dbref, dbref, char *);
+
 typedef struct PENN_COLORMAP {
   char *name;
   int i_xterm;
@@ -1374,6 +1376,7 @@ safe_sha0(const char *text, size_t len, char *buff, char **bufcx)
 #endif
 }
 #endif
+
 
 void
 do_date_conv(char *instr, char *outstr)
@@ -7478,10 +7481,11 @@ FUNCTION(fun_andflags)
 
 FUNCTION(fun_keepflags)
 {
-   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2];
-   int first, i_type, obj;
+   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2], *s_return;
+   int first, i_type, obj, i_objid;
 
-   svarargs_preamble("KEEPFLAGS", 4);
+   if (!fn_range_check("KEEPFLAGS", nfargs, 2, 5, buff, bufcx))
+      return;
 
    if ( !fargs[0] || !fargs[1] || !*fargs[0] || !*fargs[1] )
       return;
@@ -7495,10 +7499,24 @@ FUNCTION(fun_keepflags)
       safe_str("#-1 FUNCTION REQUIRES '&' OR '|' FOR FLAG MATCHES", buff, bufcx);
       return;
    }
-   if ( sep == '\0' )
+   if ( (nfargs > 2) && *fargs[2] ) {
+      sep = *fargs[2];
+   } else {
       sep = ' ';
-   if ( osep == '\0' )
+   }
+   if ( (nfargs > 3) && *fargs[3] ) {
+      if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+         osep = '\0';
+      } else {
+         osep = *fargs[3];
+      }
+   } else {
       osep = sep;
+   }
+   i_objid = 0;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_objid = (atoi(fargs[4]) ? 1 : 0);
+   }
    sep_buf[0] = sep;
    sep_buf[1] = '\0';
    pt2 = fargs[1]+1;
@@ -7513,9 +7531,17 @@ FUNCTION(fun_keepflags)
            continue;
         }
         if ( handle_flaglists(player, cause, safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), pt2, i_type) ) {
-           if ( first )
+           if ( first && osep )
               safe_chr(osep, buff, bufcx);
-           safe_str(safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), buff, bufcx);
+           if ( i_objid ) {
+              sprintf(s_tprintf, "#%d", obj);
+              s_return = return_objid(player, cause, s_tprintf);
+              safe_str(s_return, buff, bufcx);
+              free_lbuf(s_return);
+           } else {
+              s_tprintfptr = s_tprintf;
+              safe_str(safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), buff, bufcx);
+           }
            first = 1;
         }
         pt1 = strtok_r(NULL, sep_buf, &s_tok);
@@ -7525,10 +7551,11 @@ FUNCTION(fun_keepflags)
 
 FUNCTION(fun_remflags)
 {
-   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2];
-   int first, i_type, obj;
+   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2], *s_return;
+   int first, i_type, obj, i_objid;
 
-   svarargs_preamble("REMFLAGS", 4);
+   if (!fn_range_check("REMFLAGS", nfargs, 2, 5, buff, bufcx))
+      return;
 
    if ( !fargs[0] || !fargs[1] || !*fargs[0] || !*fargs[1] )
       return;
@@ -7542,10 +7569,24 @@ FUNCTION(fun_remflags)
       safe_str("#-1 FUNCTION REQUIRES '&' OR '|' FOR FLAG MATCHES", buff, bufcx);
       return;
    }
-   if ( sep == '\0' )
+   if ( (nfargs > 2) && *fargs[2] ) {
+      sep = *fargs[2];
+   } else {
       sep = ' ';
-   if ( osep == '\0' )
+   }
+   if ( (nfargs > 3) && *fargs[3] ) {
+      if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+         osep = '\0';
+      } else {
+         osep = *fargs[3];
+      }
+   } else {
       osep = sep;
+   }
+   i_objid = 0;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_objid = (atoi(fargs[4]) ? 1 : 0);
+   }
    sep_buf[0] = sep;
    sep_buf[1] = '\0';
    pt2 = fargs[1]+1;
@@ -7560,9 +7601,17 @@ FUNCTION(fun_remflags)
            continue;
         }
         if ( !handle_flaglists(player, cause, safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), pt2, i_type) ) {
-           if ( first )
+           if ( first && osep )
               safe_chr(osep, buff, bufcx);
-           safe_str(safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), buff, bufcx);
+           if ( i_objid ) {
+              sprintf(s_tprintf, "#%d", obj);
+              s_return = return_objid(player, cause, s_tprintf);
+              safe_str(s_return, buff, bufcx);
+              free_lbuf(s_return);
+           } else {
+              s_tprintfptr = s_tprintf;
+              safe_str(safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), buff, bufcx);
+           }
            first = 1;
         }
         pt1 = strtok_r(NULL, sep_buf, &s_tok);
@@ -12309,7 +12358,7 @@ FUNCTION(fun_remtype)
 {
     dbref obj;
     int otype, stype, do_count, bit_type, loop_cntr, i_thing;
-    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok, *s_thing;
+    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok, *s_thing, *s_return;
     int chk_types[]={1, 2, 4, 8, 16, 32, 64, 128};
 
     if (!fn_range_check("REMTYPE", nfargs, 2, 5, buff, bufcx))
@@ -12328,7 +12377,9 @@ FUNCTION(fun_remtype)
        }
     }
     if ( (nfargs > 4) && *fargs[4] ) {
-       i_thing = (atoi(fargs[4]) ? 1 : 0);
+       i_thing = atoi(fargs[4]);
+       if ( (i_thing < 0) || (i_thing > 2) )
+          i_thing = 1;
     }
 
     bit_type = loop_cntr = 0;
@@ -12376,9 +12427,14 @@ FUNCTION(fun_remtype)
              safe_chr(osep, buff, bufcx);
           } 
           do_count = 1;
-          if ( i_thing ) {
+          if ( i_thing == 1 ) {
              sprintf(s_thing, "#%d", obj);
              safe_str(s_thing, buff, bufcx);
+          } else if ( i_thing == 2 ) {
+             sprintf(s_thing, "#%d", obj);
+             s_return = return_objid(player, cause, s_thing);
+             safe_str(s_return, buff, bufcx);
+             free_lbuf(s_return);
           } else {
              safe_str(pt1, buff, bufcx);
           }
@@ -12394,7 +12450,7 @@ FUNCTION(fun_keeptype)
 {
     dbref obj;
     int otype, stype, do_count, bit_type, loop_cntr, i_thing;
-    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok, *s_thing;
+    char *pt1, sep, osep, sep_buf[2], *pt2, *s_tok, *s_thing, *s_return;
     int chk_types[]={1, 2, 4, 8, 16, 32, 64, 128};
 
     if (!fn_range_check("KEEPTYPE", nfargs, 2, 5, buff, bufcx))
@@ -12413,7 +12469,9 @@ FUNCTION(fun_keeptype)
        }
     }
     if ( (nfargs > 4) && *fargs[4] ) {
-       i_thing = (atoi(fargs[4]) ? 1 : 0);
+       i_thing = atoi(fargs[4]);
+       if ( (i_thing > 2) || (i_thing < 0) )
+          i_thing = 1;
     }
 
     bit_type = loop_cntr = 0;
@@ -12431,7 +12489,7 @@ FUNCTION(fun_keeptype)
        return;
     }
 
-    if ( i_thing ) {
+    if ( i_thing > 0 ) {
        s_thing = alloc_sbuf("fun_keeptype");
     }
 
@@ -12461,9 +12519,14 @@ FUNCTION(fun_keeptype)
              safe_chr(osep, buff, bufcx);
           }
           do_count = 1;
-          if ( i_thing ) {
+          if ( i_thing == 1) {
              sprintf(s_thing, "#%d", obj);
              safe_str(s_thing, buff, bufcx);
+          } else if ( i_thing == 2 ) {
+             sprintf(s_thing, "#%d", obj);
+             s_return = return_objid(player, cause, s_thing);
+             safe_str(s_return, buff, bufcx);
+             free_lbuf(s_return);
           } else {
              safe_str(pt1, buff, bufcx);
           }
@@ -33875,6 +33938,18 @@ list_functable(dbref player, char *s_filter)
 /* ---------------------------------------------------------------------------
  * cf_func_access: set access on functions
  */
+
+char *
+return_objid(dbref player, dbref cause, char *string)
+{
+   char *trace_buff, *trace_buffptr, *s_array[2];
+
+   trace_buffptr = trace_buff = alloc_lbuf("return_objid");
+   s_array[0] = string;
+   s_array[1] = NULL;
+   fun_objid(trace_buff, &trace_buffptr, player, cause, cause, s_array, 1, (char **)NULL, 0);
+   return(trace_buff);
+}
 
 CF_HAND(cf_func_access)
 {
