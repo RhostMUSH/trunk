@@ -29692,3 +29692,4 @@
   * FreeBSD compatibility change for make/gmake in master Makefile [ASH]
   * issue with left() and buffering [ASH]
   * convert strtok to strtok_r in conf.c to avoid static buffer clobbers [ASH]
+  * dark exits didn't work properly with sees() [ASH]

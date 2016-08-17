@@ -59,6 +59,8 @@ Main Makefile no longer worked on latest FreeBSD because of their change from gm
 				- Thanks Oleo
 Added RPAD and LPAD softcode wrappers
 				- Thanks Darren
+Dark exits were broken with sees()
+				- Thanks Mercutio
 
 
 		         RhostMUSH 3.9.4 Update File

@@ -16608,7 +16608,7 @@ FUNCTION(fun_controls)
 FUNCTION(fun_sees)
 {
     dbref it, thing, thingexit;
-    int can_see_loc, i_chkexit, key, i_loc, i_match;
+    int can_see_loc, i_chkexit, key, i_loc, i_match, i_home;
 
     if (!fn_range_check("SEES", nfargs, 2, 3, buff, bufcx))
        return;
@@ -16628,7 +16628,6 @@ FUNCTION(fun_sees)
         ival(buff, bufcx, 0);
         return;
     }
-    thing = match_thing_quiet(player, fargs[1]);
     if ( i_chkexit != 0 ) {
        i_match = 1;
        i_loc = Location(it);
@@ -16641,20 +16640,35 @@ FUNCTION(fun_sees)
           if ( !Good_chk(thingexit) || !Good_chk(where_is(thingexit)) ) {
              i_match = 0;
           } else {
-             if (Examinable(it, i_loc))
+             i_home = Location(thingexit);
+             if ( !Good_chk(i_home) ) {
+                ival(buff, bufcx, 0);
+                return;
+             }
+             if (Examinable(it, thingexit)) {
                  key |= VE_LOC_XAM;
-             if (Dark(i_loc) && !(!Cloak(i_loc) && could_doit( it, i_loc, A_LDARK, 0, 0)))
+             }
+             if ( ((Cloak(i_home) || Cloak(thingexit)) && !Wizard(it)) ||
+                  ((SCloak(i_home) || SCloak(thingexit)) && !Immortal(it)) ) {
+                ival(buff, bufcx, 0);
+                return;
+             }
+             if ( Dark(i_home) && could_doit( it, i_home, A_LDARK, 0, 0) ) {
                  key |= VE_LOC_DARK;
+             }
              if (exit_visible(thingexit, it, key)) {
                 if ( !(Flags3(thingexit) & PRIVATE) || (where_is(thingexit) == it) ) {
-                   ival(buff, bufcx, 1);
-                   return;
+                   if ( !Dark(thingexit) || (Dark(thingexit) && could_doit( it, thingexit, A_LDARK, 0, 0)) ) {
+                      ival(buff, bufcx, 1);
+                      return;
+                   }
                 }
              }
           }
        }
        i_match = 0;
     } 
+    thing = match_thing_quiet(player, fargs[1]);
     if ( i_match == 0 ) {
        if ( !Good_obj(thing) ) {
            ival(buff, bufcx, 0);
