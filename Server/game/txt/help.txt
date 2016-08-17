@@ -21214,7 +21214,7 @@
   See Also: e(), log(), ln(), power(), power10()
   
 & FOREACH()
-  Function: foreach([<object>/]<attribute>,<string>[,<begin>, <end>])
+  Function: foreach([<object>/]<attribute>,<string>[,<begin>, <end> [,<ansi>]])
    
   Each character in <string> has the user-defined function of the first
   argument performed on it; the character is passed to the function as
@@ -21223,9 +21223,16 @@
   between <begin> and <end> are parsed, other characters are concatenated 
   as they are. This allows a rudimentary form of tokens and speeds up 
   the evaluation greatly if tokenizing is your purpose.
+  
+  If you specify <ansi> as '1', then specify <begin> and <end> as the special 
+  string '@@' to specify to ignore the <begin> and <end> values.  Just putting
+  nulls (empty values) there will assume null begin and end values and may
+  not return the result you are wishing for.  Due to the higher than normal
+  overhead, ansi-awareness in this function is not the default.
    
   Examples:
     > &add_one me=[add(%0,1)]
+    > &ansi me=-%0-
     Set.
     > say [foreach(add_one, 54321)]
     You say, "65432"
@@ -21233,6 +21240,8 @@
     Set.
     > say [foreach(add_one, This adds #0# to numbers in this string,#,#)]
     You say, "This adds 1 to numbers in this string."
+    > say [foreach(ansi,ansi(hr,r,hb,b,hc,c,hg,g),@@,@@,1)]
+    You say "-r--b--c--g-"  (r is red, b is blue, c is cyan, g is green)
     
   See Also: @dolist, iter(), map(), citer(), nsiter(), list()
   
@@ -29657,6 +29666,7 @@
     actually occured with the first word 'Set' or 'Check' [ASH]
   * change over from strtok to strtok_r throughout source code [ASH]
   * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
+  * foreach() is now optionally ansi-aware [ASH]
     
   Bug Fixes
   ------------

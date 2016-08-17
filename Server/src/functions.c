@@ -7627,12 +7627,14 @@ FUNCTION(fun_remflags)
 FUNCTION(fun_foreach)
 {
     dbref aowner, thing;
-    int i_cntr, aflags, anum, tval, flag = 0;
+    int i_cntr, aflags, anum, tval, flag = 0, i_ansi, i_bypass;
     ATTR *ap;
-    char *atext, *atextbuf, *str, *cp, *bp[2], *result, *cpbuff;
+    char *atext, *atextbuf, *str, *cp, *bp[2], *result, *cpbuff, *s_output;
     char cbuf[2], cbuf2[12], prev = '\0';
+    ANSISPLIT outsplit[LBUF_SIZE], *p_cp;
 
-    if (!fn_range_check("FOREACH", nfargs, 2, 4, buff, bufcx)) {
+
+    if (!fn_range_check("FOREACH", nfargs, 2, 5, buff, bufcx)) {
         return;
     }
 
@@ -7656,10 +7658,28 @@ FUNCTION(fun_foreach)
         free_lbuf(atext);
         return;
     }
+
+    i_bypass = i_ansi = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       i_ansi = (atoi(fargs[4]) ? 1 : 0);
+       if ( !strcmp(fargs[2], (char *)"@@")  &&
+            !strcmp(fargs[3], (char *)"@@") ) {
+          i_bypass = 1;
+       }
+    }
     atextbuf = alloc_lbuf("fun_foreach");
-    cp = trim_space_sep(strip_all_special(fargs[1]), ' ');
-    cpbuff = alloc_lbuf("foreach_buff");
-    strcpy(cpbuff, cp);
+
+    if ( i_ansi ) {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       cpbuff = alloc_lbuf("foreach_buff_ansi");
+       memset(cpbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fargs[1]), cpbuff, outsplit);
+       p_cp = outsplit;
+    } else {
+       cp = trim_space_sep(strip_all_special(fargs[1]), ' ');
+       cpbuff = alloc_lbuf("foreach_buff");
+       strcpy(cpbuff, cp);
+    }
     cp = cpbuff;
 
     memset(cbuf2, '\0', sizeof(cbuf2));
@@ -7674,24 +7694,37 @@ FUNCTION(fun_foreach)
             cp++;
             sprintf(cbuf2, "%d", i_cntr);
             i_cntr++;
-            if (flag) {
-                if ( (nfargs >= 4) && (cbuf[0] == *fargs[3]) && (prev != '\\') && (prev != '%')) {
-                    flag = 0;
-                    continue;
-                }
-            } else {
-                if ((cbuf[0] == *fargs[2]) && (prev != '\\') && (prev != '%')) {
-                    flag = 1;
-                    continue;
-                } else {
-                    safe_chr(cbuf[0], buff, bufcx);
-                    continue;
-                }
+            if ( !i_bypass ) {
+               if (flag) {
+                   if ( (nfargs >= 4) && (cbuf[0] == *fargs[3]) && (prev != '\\') && (prev != '%')) {
+                       flag = 0;
+                       continue;
+                   }
+               } else {
+                   if ((cbuf[0] == *fargs[2]) && (prev != '\\') && (prev != '%')) {
+                       flag = 1;
+                       continue;
+                   } else {
+                       if ( i_ansi ) {
+                          s_output = rebuild_ansi(cbuf, p_cp);
+                          safe_str(s_output, buff, bufcx);
+                          free_lbuf(s_output);
+                          p_cp++;
+                       } else {
+                          safe_chr(cbuf[0], buff, bufcx);
+                       }
+                       continue;
+                   }
+               }
             }
 
             memset(atextbuf, '\0', LBUF_SIZE);
             strcpy(atextbuf, atext);
             str = atextbuf;
+            if ( i_ansi ) {
+               s_output = rebuild_ansi(cbuf, p_cp);
+               bp[0] = s_output;
+            }
             if ( (mudconf.secure_functions & 1) ) {
                tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
                if ( tval == -2 ) {
@@ -7709,6 +7742,10 @@ FUNCTION(fun_foreach)
                   result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, bp, 2, (char **)NULL, 0);
                }
             }
+            if ( i_ansi ) {
+               free_lbuf(s_output);
+               p_cp++;
+            }
             safer_unufun(tval);
             safe_str(result, buff, bufcx);
             free_lbuf(result);
@@ -7723,6 +7760,10 @@ FUNCTION(fun_foreach)
             memset(atextbuf, '\0', LBUF_SIZE);
             strcpy(atextbuf, atext);
             str = atextbuf;
+            if ( i_ansi ) {
+               s_output = rebuild_ansi(cbuf, p_cp);
+               bp[0] = s_output;
+            }
             if ( (mudconf.secure_functions & 1) ) {
                tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
                if ( tval == -2 ) {
@@ -7739,6 +7780,10 @@ FUNCTION(fun_foreach)
                } else {
                   result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, str, bp, 2, (char **)NULL, 0);
                }
+            }
+            if ( i_ansi ) {
+               free_lbuf(s_output);
+               p_cp++;
             }
             safer_unufun(tval);
             safe_str(result, buff, bufcx);
