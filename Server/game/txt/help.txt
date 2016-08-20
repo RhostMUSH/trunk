@@ -20329,7 +20329,8 @@
   > think brackets(v(desc))
   1 1 2 2 1 0             (This is: 1-[, 1-], 2-(, 2-), 1-{, 0-})
   
-  See Also: totpos(), numpos(), nummatch(), totmatch()
+  See Also: totpos(), numpos(), nummatch(), totmatch(), parenmatch(),
+            parenstr()
   
 & BOUND()
   Function: bound(<number>,<min-value>[,<max-value>])
