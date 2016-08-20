@@ -33,6 +33,7 @@
   
   The /search switch works for +help as well.
   
+
 & register
 & connect
 & create
@@ -164,8 +165,69 @@
   SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
   VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
   ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
-  ATTRIB FORMATTING   MAX ARGS
+  ATTRIB FORMATTING   MAX ARGS          WILDCARDS
   
+& \*
+& \?
+& WILDCARDS
+& GLOBBING
+  Topic:  WILDCARDS [* and ?]
+  
+  Wildcards are the standard globbing mechanism for the mush engine.  With the
+  wildcards, the '*' character is considered 0 or more characters and the '?'
+  character is considered a single character.  These are used primarilly in
+  commands and functions that allow mulit-matching based on wild card support.
+  
+  Example:
+    > say match(this is a test,?es*)
+    You say "4"
+  
+  Wildcards, however, are most useful for $command substitution matching.
+  When you create your own softcoded command, any argument you want
+  substituted you would place a '*' or a '?' for that argument.  Each argument
+  is then matched up with a numerical argument for each wildcard used.  The
+  first argument being %0, second being %1, and so forth.
+  
+  Example:
+    > &TEST1 me=$test1*:@emit Your First Test:%0
+    > &TEST2 me=$test2?:@emit Your Second Test:%0
+    > &TEST3 me=$test3 *:@emit Your Third Test:%0
+    > test1
+    Your First Test:
+    > test1 abc
+    Your First Test: abc  [notice the space between ':' and 'a']
+    > test2
+    Huh? (Type 'help' for help)  [Because ? requires 1 character exactly]
+    > test2X
+    Your Second Test:X
+    > test2abc
+    Huh? (Type 'help' for help)  [Because ? required 1 character exactly]
+    > test3
+    Huh? (Type 'help' for help)  [because you have a space in the command]
+    > test3 abc
+    Your Third Test:abc  [notice no space between ':' and 'a']
+    
+  { See 'help wildcards2' for clarification and extended explainations }
+ 
+& WILDCARDS2
+  Clarification:
+    The difference between Test1 and Test3 is the fact there is a space in
+    the command between the command (test1 and test3 respectively) and the
+    wildcard.  For test1, when you did 'test1 abc' the space in ' abc' was
+    part of the argument you passed to the command, thus it included the
+    space.  In test3, you had a space as part of the requirement argument
+    so it required the space then saw 'abc' as the argument.   
+  
+    Test2 required a single character after it.  Anything less or more than
+    1 character exactly returned an error message.
+  
+  Additional matching:
+    You may use regular expressions instead of globbing if you set the 
+    attribute in question REGEXP (help attribute flag).  To use 
+    regular expressions instead, please check 'help regexp'.
+  
+  See Also: ATTRIBUTE FLAG, REGEXP, $-command
+
 & MAX ARGS
   Topic: MAX ARGS
   

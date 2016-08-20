@@ -7,6 +7,7 @@
 @@ FUNP_  -- Preserved & Privileged function
 @@ FUNPT_ -- Privileged & NoTrace function
 @create SoftFunctions
+@desc SoftFunctions=The%bfollowing%bsoftfunctions%bcan%bbe%bquoted%bin%bto%bmimic%bMUX/PENN%bmissing%bfunctionality%rNote:%byou'll%bneed%bto%brename%bexisting%bcolumns%(%)%bto%bcolumn%(%).%b%bThe%bscript%bshould%rtake%bcare%bof%bthis%bautomatically.%r[space(5)]FUN_[space(3)]--%bNormal%bfunction%r[space(5)]FUNPR_%b--%bPreserved%bfunction%r[space(5)]FUNPV_%b--%bPrivileged%bfunction%r[space(5)]FUNP_%b%b--%bPreserved%b&%bPrivileged%bfunction%r[space(5)]FUNPT_%b--%bPrivileged%b&%bNoTrace%bfunction%r%r%rMINMAX values can be assigned with:%rMINMAX_<functionname>.  It takes two values.  MIN and MAX value.  Both are required.%r%rAny sideeffects that need to be assigned please use the SFSideFX function to call into it for security reasons.
 @create SFSideFX
 @set SFSideFX=!no_command !halt inh safe indestructable sidefx
 @set SoftFunctions=!no_command !halt inh safe indestructable
