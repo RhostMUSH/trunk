@@ -12094,6 +12094,76 @@ FUNCTION(fun_shl)
   }
 }
 
+FUNCTION(fun_ruler) {
+   static char *s_clrs[] = {ANSI_MAGENTA, ANSI_GREEN, ANSI_YELLOW, ANSI_CYAN, ANSI_RED, ANSI_BLUE, ANSI_MAGENTA, ANSI_GREEN, ANSI_YELLOW, ANSI_CYAN};
+   static char *s_ruler=(char *)"1234567890";
+   static char *s_guide=(char *)"| ---------|10-------|20-------|30-------|40-------|50-------|60-------|70-------|80-------|90-------|00";
+   char *atr_gotten, *atr_pad, *atr_padptr;
+   int i_mult, attrib, aflags, i;
+   dbref thing, aowner;
+   ATTR *atr;
+
+   if ( !fargs[0] || !*fargs[0] ) {
+      return;
+   }
+   if ( !fargs[1] || !*fargs[1] ) {
+      safe_str("#-1 RULER EXPECTS A NUMBER > 0 < 100 OF MULTIPLE OF 10", buff, bufcx);
+      return;
+   }
+   i_mult = atoi(fargs[1]);
+   if ( (i_mult <= 0) || (i_mult > 100) || ((i_mult % 10) != 0) ) {
+      safe_str("#-1 RULER EXPECTS A NUMBER > 0 < 100 OF MULTIPLE OF 10", buff, bufcx);
+      return;
+   }
+
+   if (!parse_attrib(player, fargs[0], &thing, &attrib)) {
+      safe_str("#-1 NO MATCH", buff, bufcx);
+      return;
+   }
+   if (attrib == NOTHING) {
+      safe_str("#-1 NO ATTRIBUTE", buff, bufcx);
+      return;
+   }
+   if (Cloak(thing) && !Wizard(player)) {
+      safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+   if (SCloak(thing) && Cloak(thing) && !Immortal(player)) {
+      safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+   atr = atr_num(attrib); /* We need the attr's flags for this: */
+   if (!atr) {
+      return;
+   }
+   atr_gotten = atr_pget(thing, attrib, &aowner, &aflags);
+   if (check_read_perms2(player, thing, attr, aowner, aflags)) {
+      atr_padptr = atr_pad = alloc_lbuf("fun_ruler");
+      for ( i=0; i < (i_mult / 10); i++ ) {
+         safe_str(s_clrs[i], atr_pad, &atr_padptr);
+         safe_str(s_ruler, atr_pad, &atr_padptr);
+      }
+      safe_str(ANSI_NORMAL, atr_pad, &atr_padptr);
+      atr_padptr = alloc_lbuf("ruler_buffer");
+      sprintf(atr_padptr, "       %.*s |", i_mult + 4, s_guide);
+      notify_quiet(player, atr_padptr);
+      for ( i=0; i < ((strlen(atr_gotten) / i_mult) + 1); i++ ) {
+         sprintf(atr_padptr, "       | %-*.*s   |", i_mult, i_mult, atr_gotten + (i * i_mult));
+         notify_quiet(player, atr_padptr);
+         sprintf(atr_padptr, "%-7d| %s   |", (i * i_mult), atr_pad);
+         notify_quiet(player, atr_padptr);
+      }
+      sprintf(atr_padptr, "       %.*s |", i_mult + 4, s_guide);
+      notify_quiet(player, atr_padptr);
+      free_lbuf(atr_padptr);
+      free_lbuf(atr_pad);
+   } else {
+      safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+   free_lbuf(atr_gotten);
+}
+
 FUNCTION(fun_roman) {
    char *s_romanmill[]={"", "m", "mm", "mmm", NULL};
    char *s_romanhundthous[]={"", "c", "cc", "ccc", "cd", "d", "dc", "dcc", "dccc", "cm", NULL};
@@ -33071,6 +33141,7 @@ FUN flist[] =
 #endif
 #ifdef REALITY_LEVELS
 #ifdef USE_SIDEEFFECT
+    {"RULER", fun_ruler, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"RXLEVEL", fun_rxlevel, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
     {"RXLEVEL", fun_rxlevel, 1, 0, CA_PUBLIC, CA_NO_CODE},

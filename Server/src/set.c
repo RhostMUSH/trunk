@@ -909,6 +909,12 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
    return val;
 }
 
+void ext_set_attr_internal (dbref player, dbref thing, int attrnum, 
+			char *attrtext, int key, dbref cause, int *val, int i_chk)
+{
+   set_attr_internal(player, thing, attrnum, attrtext, key, cause, val, i_chk);
+}
+
 static void set_attr_internal (dbref player, dbref thing, int attrnum, 
 			char *attrtext, int key, dbref cause, int *val, int i_chk)
 {

@@ -848,6 +848,12 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PCRE_REG     	2	/* Register on @pcreate */
 #define	PCRE_ROBOT	4	/* create robot player */
 
+#define LABEL_ADD	1	/* Add the label at position(s) */
+#define LABEL_DEL	2	/* Delete the label */
+#define LABEL_LIST	4	/* List all labels on attribute */
+#define LABEL_PURGE	8	/* Purge all %_ labels from attribute */
+#define LABEL_TRY	16	/* Try the add but don't actually add it */
+
 #define	PEMIT_PEMIT	1	/* emit to named player */
 #define	PEMIT_OEMIT	2	/* emit to all in current room except named */
 #define	PEMIT_WHISPER	4	/* whisper to player in current room */

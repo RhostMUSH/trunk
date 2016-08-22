@@ -115,6 +115,15 @@ NAMETAB type_sw[] =
     {(char *) "other", 1, CA_PUBLIC, 0, TYPE_MASK},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB label_sw[] =
+{
+    {(char *) "add", 1, CA_PUBLIC, 0, LABEL_ADD},
+    {(char *) "delete", 1, CA_PUBLIC, 0, LABEL_DEL},
+    {(char *) "list", 1, CA_PUBLIC, 0, LABEL_LIST},
+    {(char *) "purge", 1, CA_PUBLIC, 0, LABEL_PURGE},
+    {(char *) "try", 1, CA_PUBLIC, 0, LABEL_TRY|SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB hook_sw[] =
 {
     {(char *) "before", 3, CA_IMMORTAL, 0, HOOK_BEFORE},
@@ -1262,6 +1271,8 @@ CMDENT command_table[] =
      0, do_include},
     {(char *) "@kick", kick_sw, CA_WIZARD, 0,
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
+    {(char *) "@label", label_sw, CA_GBL_INTERP, CA_NO_CODE,
+     0, CS_TWO_ARG | CS_INTERP, 0, do_label},
     {(char *) "@last", NULL, CA_NO_GUEST, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_last},
     {(char *) "@lfunction", lfunction_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,
@@ -1562,6 +1573,8 @@ CMDENT command_table[] =
     {(char *) NULL, NULL, 0, 0, 0, 0, 0, NULL}
 };
 
+extern void ext_set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
+
 CMDENT *prefix_cmds[256];
 
 CMDENT *goto_cmdp;
@@ -1701,6 +1714,40 @@ newlist2arr(char *arr[], int maxlen, char *list, char sep)
         arr[i] = p;
     }
     return i;
+}
+
+static int
+check_read_perms2(dbref player, dbref thing, ATTR * attr,
+                  int aowner, int aflags)
+{
+    int see_it;
+
+    /* If we have explicit read permission to the attr, return it */
+
+    if (See_attr_explicit(player, thing, attr, aowner, aflags))
+       return 1;
+
+    /* If we are nearby or have examine privs to the attr and it is
+     * visible to us, return it.
+     */
+
+    if ( thing == GOING || thing == AMBIGUOUS || !Good_obj(thing))
+        return 0;
+    see_it = See_attr(player, thing, attr, aowner, aflags, 0);
+    if ((Examinable(player, thing) || nearby(player, thing))) /* && see_it) */
+       return 1;
+    /* For any object, we can read its visible attributes, EXCEPT
+     * for descs, which are only visible if read_rem_desc is on.
+     */
+
+    if (see_it) {
+       if (!mudconf.read_rem_desc && (attr->number == A_DESC)) {
+          return 0;
+       } else {
+          return 1;
+       }
+    }
+    return 0;
 }
 
 void 
@@ -11612,6 +11659,416 @@ do_tor(dbref player, dbref cause, int key) {
                                 (*(mudconf.tor_localhost) ? mudconf.tor_localhost : (char *)"(Empty)")));
            notify_quiet(player, unsafe_tprintf("TOR host CACHE: %s", 
                                 (*(mudstate.tor_localcache) ? mudstate.tor_localcache : (char *)"(Empty)")));
+           break;
+   }
+}
+
+void
+do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
+{
+   char *attrib, *attribtok, *s_text, *s_new, *s_newptr, *s_scratch, *s_new2, *s_new2ptr;
+   dbref it, aowner;
+   int atr, i_start, i_end, aflags, len, val, i_chk, i_new, i_new2, i_try;
+   ATTR *a_atr;
+
+   i_try = 0;
+   if ( key & LABEL_TRY ) {
+      i_try = 1;
+      key &= ~LABEL_TRY;
+      if ( !(key & LABEL_ADD) ) {
+         notify_quiet(player, "@label: Illegal combination of switches.");
+         return;
+      }
+   }
+   switch(key) {
+      case LABEL_ADD:   /* @label/add <LABEL>=#obj/attr:START,END */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /add switch requires two arguments");
+              return;
+           }
+           s_new = s_label;
+           while ( *s_new && isspace(*s_new) ) {
+              s_new++;
+           }
+           if ( !*s_new ) {
+              notify_quiet(player, "@label: /add requires a valid non-space/non-null label");
+              return;
+           }
+           if ( (strchr(s_target, ':') == NULL) || (strchr(s_target, '/') == NULL) || 
+                (strchr(s_target, ',') == NULL) ) {
+              notify_quiet(player, "@label: /add switch requires target in form <object>/<attribute>:<start>,<end>");
+              return;
+           }
+           attrib = strtok_r(s_target, ":", &attribtok);
+           if ( !attrib ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              return;
+           }
+           if (!parse_attrib(player, attrib, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           len = strlen(s_text);
+           attrib = strtok_r(NULL, ",", &attribtok);
+           s_scratch = alloc_lbuf("label_add_scratch");
+           if ( !attrib ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           if ( !is_number(attrib) ) {
+              if ( stricmp(attrib, "START") != 0 ) {
+                 sprintf(s_scratch, "@label: /add requires valid number in <start>, but was fed '%s'", attrib);
+                 notify_quiet(player, s_scratch);
+                 free_lbuf(s_text);
+                 free_lbuf(s_scratch);
+                 return;
+              }
+           }
+           if ( stricmp(attrib, "START") == 0 ) {
+              i_start = 0;
+           } else {
+              i_start = atoi(attrib);        
+           }
+           attrib = strtok_r(NULL, ",", &attribtok);
+           if ( !attrib ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           if ( !is_number(attrib) ) {
+              if ( stricmp(attrib, "END") != 0 ) {
+                 sprintf(s_scratch, "@label: /add requires valid number in <end>, but was fed '%s'", attrib);
+                 notify_quiet(player, s_scratch);
+                 free_lbuf(s_text);
+                 free_lbuf(s_scratch);
+                 return;
+              }
+           }
+           if ( stricmp(attrib, "END") == 0 ) {
+              i_end = len;
+           } else {
+              i_end = atoi(attrib);        
+           }
+           if ( (i_start < 0) || (i_start >= i_end) || (i_start >= len) ||
+                (i_end <= i_start) || (i_end > len) ) {
+              sprintf(s_scratch, "@label: /add requires <start> and <end> to have valid values but had '%d' and '%d'", i_start, i_end);
+              notify_quiet(player, s_scratch);
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           if ( (len + ((strlen(s_label) + 6) * 2)) >= LBUF_SIZE ) {
+              notify_quiet(player, "@label: /add can not add this label.  Combined size is greater than the LBUF limit.");
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           s_newptr = s_new = alloc_lbuf("label_add");
+           if ( i_try ) {
+#ifdef ZENTY_ANSI
+              sprintf(s_scratch, "%.*s%c%ch%c_<%s>%c%cn%.*s%c%ch%c_<!%s>%c%cn%s", i_start, s_text, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR,
+                      i_end - i_start, s_text + i_start, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR, s_text + i_end);
+#else
+              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<!%s>%s", i_start, s_text, '%', s_label,
+                      i_end - i_start, s_text + i_start, '%', s_label, s_text + i_end);
+#endif
+           } else {
+              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<!%s>%s", i_start, s_text, '%', s_label,
+                      i_end - i_start, s_text + i_start, '%', s_label, s_text + i_end);
+           }
+           safe_str(s_scratch, s_new, &s_newptr);
+           if ( i_try ) {
+              sprintf(s_scratch, "@label: /add [/try] would have modified the attribute to look like:");
+              notify_quiet(player, s_scratch);
+              notify_quiet(player, s_new);
+           } else {
+              ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
+              if ( val ) {
+                 notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              } else {
+                 sprintf(s_scratch, "@label: /add successfully added label '%s' to attribute.", s_label);
+                 notify_quiet(player, s_scratch);
+              }
+           }
+           free_lbuf(s_text);
+           free_lbuf(s_new);
+           free_lbuf(s_scratch);
+           break;
+      case LABEL_DEL:   /* @label/del <LABEL>=#obj/attr */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /delete switch expects two arguments");
+              return;
+           }
+           if ( strchr(s_target, '/') == NULL ) {
+              notify_quiet(player, "@label: /del switch requires target in form <object>/<attribute>");
+              return;
+           }
+           if (!parse_attrib(player, s_target, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /del requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /del requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /del requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           s_newptr = s_new = alloc_lbuf("label_delete");
+           memset(s_new, '\0', LBUF_SIZE);
+           s_scratch = s_text;
+           i_chk = i_start = i_end = 0;
+           while ( *s_scratch ) {
+              len = 0;
+              if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
+                   (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
+                   (strchr(s_scratch, '>') != NULL) ) {
+                 if ( *(s_scratch + 3) == '!' ) {
+                    attribtok = s_scratch + 4;
+                    i_chk = 1;
+                 } else {
+                    attribtok = s_scratch + 3;
+                    i_chk = 0;
+                 }
+                 attrib = strchr(attribtok, '>');
+                 *attrib = '\0';
+                 if ( strcmp(attribtok, s_label) == 0 ) {
+                    len = 1;
+                 }
+                 *attrib = '>';
+                 if ( len ) {
+                    if ( i_chk ) {
+                       i_end++;
+                    } else {
+                       i_start++;
+                    }
+                    while ( *s_scratch && (*s_scratch != '>') ) {
+                       s_scratch++;
+                    }
+                    if ( *s_scratch ) {
+                       s_scratch++;
+                    }
+                    continue;
+                 }
+              }
+              *s_newptr = *s_scratch;
+              if ( !*s_scratch ) {
+                 break;
+              }
+              s_newptr++;
+              s_scratch++;
+           }
+           ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
+           if ( (i_start > 0) || (i_end > 0) ) {
+              sprintf(s_new, "@label: /del removed label '%s'.  %d enable, %d disable.", s_label, i_start, i_end);
+           } else {
+              sprintf(s_new, "@label: /del could not find label '%s' in attribute.", s_label);
+           }
+           notify_quiet(player, s_new);
+           free_lbuf(s_new);
+           free_lbuf(s_text);
+           break;
+      case LABEL_LIST:  /* @label/list #obj/attr */
+           if ( !s_label || !*s_label || (s_target && *s_target) ) {
+              notify_quiet(player, "@label: /list switch expects <object>/<attribute> only");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /list switch requires argument in form <object>/<attribute>");
+              return;
+           }
+           if (!parse_attrib(player, s_label, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /list requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /list requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /list requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           s_newptr = s_new = alloc_lbuf("label_list_enable");
+           s_new2ptr = s_new2 = alloc_lbuf("label_list_disable");
+           memset(s_new, '\0', LBUF_SIZE);
+           s_scratch = s_text;
+           i_new = i_new2 = i_chk = i_start = i_end = 0;
+           while ( *s_scratch ) {
+              if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
+                   (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
+                   (strchr(s_scratch, '>') != NULL) ) {
+                 if ( *(s_scratch + 3) == '!' ) {
+                    attribtok = s_scratch + 4;
+                    i_chk = 1;
+                 } else {
+                    attribtok = s_scratch + 3;
+                    i_chk = 0;
+                 }
+                 attrib = strchr(attribtok, '>');
+                 *attrib = '\0';
+                 if ( i_chk ) {
+                    if ( i_new2 ) {
+                       safe_chr(' ', s_new2, &s_new2ptr);
+                    }
+                    i_new2++;
+                    safe_str(attribtok, s_new2, &s_new2ptr);
+                 } else {
+                    if ( i_new ) {
+                       safe_chr(' ', s_new, &s_newptr);
+                    }
+                    i_new++;
+                    safe_str(attribtok, s_new, &s_newptr);
+                 }
+                 *attrib = '>';
+                 while ( *s_scratch && (*s_scratch != '>') ) {
+                    s_scratch++;
+                 }
+                 if ( *s_scratch ) {
+                    s_scratch++;
+                 }
+                 continue;
+              }
+              if ( !*s_scratch ) {
+                 break;
+              }
+              s_scratch++;
+           }
+           s_scratch = alloc_lbuf("label_list_scratch");
+           if ( !*s_new && !*s_new2 ) {
+              notify_quiet(player, "@label: /list shows no labels for that attribute.");
+           } else {
+              sprintf(s_scratch, "@label: /list of all labels for attribute");
+              notify_quiet(player, s_scratch);
+              sprintf(s_scratch, "        Enable:[%4d] %s%s%s", i_new, ANSI_GREEN, s_new, ANSI_NORMAL);
+              notify_quiet(player, s_scratch);
+              sprintf(s_scratch, "       Disable:[%4d] %s%s%s", i_new2, ANSI_RED, s_new2, ANSI_NORMAL);
+              notify_quiet(player, s_scratch);
+           }
+           free_lbuf(s_new);
+           free_lbuf(s_new2);
+           free_lbuf(s_scratch);
+           free_lbuf(s_text);
+           break;
+      case LABEL_PURGE: /* @label/purge #obj/attr */
+           if ( !s_label || !*s_label || (s_target && *s_target) ) {
+              notify_quiet(player, "@label: /purge switch expects <object>/<attribute> only");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /purge switch requires argument in form <object>/<attribute>");
+              return;
+           }
+           if (!parse_attrib(player, s_label, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /purge requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /purge requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /purge requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           s_newptr = s_new = alloc_lbuf("label_purge");
+           s_new2ptr = s_new2 = alloc_lbuf("label_purge2");
+           memset(s_new, '\0', LBUF_SIZE);
+           s_scratch = s_text;
+           i_new2 = i_chk = i_start = i_end = 0;
+           while ( *s_scratch ) {
+              if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
+                   (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
+                   (strchr(s_scratch, '>') != NULL) ) {
+                 if ( *(s_scratch + 3) == '!' ) {
+                    attribtok = s_scratch + 4;
+                    i_chk = 1;
+                 } else {
+                    attribtok = s_scratch + 3;
+                    i_chk = 0;
+                 }
+                 attrib = strchr(attribtok, '>');
+                 *attrib = '\0';
+                 if ( i_new2 ) {
+                    safe_chr(' ', s_new2, &s_new2ptr);
+                 } 
+#ifdef ZENTY_ANSI
+                 safe_chr('%', s_new2, &s_new2ptr);
+                 safe_chr(SAFE_CHR, s_new2, &s_new2ptr);
+                 if ( i_chk ) {
+                    safe_chr('r', s_new2, &s_new2ptr);
+                 } else {
+                    safe_chr('g', s_new2, &s_new2ptr);
+                 }
+#endif
+                 safe_str(attribtok, s_new2, &s_new2ptr);
+#ifdef ZENTY_ANSI
+                 safe_chr('%', s_new2, &s_new2ptr);
+                 safe_chr(SAFE_CHR, s_new2, &s_new2ptr);
+                 safe_chr('n', s_new2, &s_new2ptr);
+#endif
+                 i_new2 = 1;
+                 *attrib = '>';
+                 if ( i_chk ) {
+                    i_end++;
+                 } else {
+                    i_start++;
+                 }
+                 while ( *s_scratch && (*s_scratch != '>') ) {
+                    s_scratch++;
+                 }
+                 if ( *s_scratch ) {
+                    s_scratch++;
+                 }
+              }
+              *s_newptr = *s_scratch;
+              if ( !*s_scratch ) {
+                 break;
+              }
+              s_newptr++;
+              s_scratch++;
+           }
+           ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
+           if ( (i_start > 0) || (i_end > 0) ) {
+              sprintf(s_new, "@label: /purge removed labels.  %d enable, %d disable.\r\n        Removed: %s", i_start, i_end, s_new2);
+              notify_quiet(player, s_new);
+           } else {
+              notify_quiet(player, "@label: /purge could not find any labels in attribute.");
+           }
+           free_lbuf(s_new);
+           free_lbuf(s_new2);
+           free_lbuf(s_text);
+           break;
+      default:          /* Error out and return syntax */
+           if ( i_try ) {
+              notify_quiet(player, "@label: /try without /add is not allowed.");
+           } else {
+              notify_quiet(player, "@label: Unrecognized switch.");
+           }
            break;
    }
 }

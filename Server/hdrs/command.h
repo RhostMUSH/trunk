@@ -92,6 +92,7 @@ CMD_NO_ARG(do_inventory);		/* Print what I am carrying */
 CMD_NO_ARG(do_worn);		        /* Print what I am wearing */
 CMD_NO_ARG(do_wielded);		        /* Print what I am wielding */
 CMD_TWO_ARG(do_kill);			/* Kill something */
+CMD_TWO_ARG(do_label);			/* %_ label adding/removing of attribs */
 CMD_ONE_ARG(do_last);			/* Get recent login info */
 CMD_TWO_ARG(do_log);			/* Get recent login info */
 CMD_NO_ARG(do_logrotate);		/* Rotate or find status of current logfile */
