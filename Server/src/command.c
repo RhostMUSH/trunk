@@ -12044,6 +12044,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
                  if ( *s_scratch ) {
                     s_scratch++;
                  }
+                 continue;
               }
               *s_newptr = *s_scratch;
               if ( !*s_scratch ) {
