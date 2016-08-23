@@ -12253,11 +12253,11 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
                  } else {
                     notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
                  }
+                 free_lbuf(s_new);
               } else {
                  notify_quiet(player, "@label: /disable has no labels to be disabled.");
               }
               free_lbuf(s_text);
-              free_lbuf(s_new);
            } else {
               notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
            }
