@@ -119,10 +119,14 @@ NAMETAB type_sw[] =
 NAMETAB label_sw[] =
 {
     {(char *) "add", 1, CA_PUBLIC, 0, LABEL_ADD},
-    {(char *) "delete", 1, CA_PUBLIC, 0, LABEL_DEL},
+    {(char *) "delete", 2, CA_PUBLIC, 0, LABEL_DEL},
     {(char *) "list", 1, CA_PUBLIC, 0, LABEL_LIST},
     {(char *) "purge", 1, CA_PUBLIC, 0, LABEL_PURGE},
     {(char *) "try", 1, CA_PUBLIC, 0, LABEL_TRY|SW_MULTIPLE},
+    {(char *) "enable", 1, CA_PUBLIC, 0, LABEL_ENABLE},
+    {(char *) "disable", 2, CA_PUBLIC, 0, LABEL_DISABLE},
+    {(char *) "color", 2, CA_PUBLIC, 0, LABEL_COLOR},
+    {(char *) "grep", 2, CA_PUBLIC, 0, LABEL_GREP},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB hook_sw[] =
@@ -11688,10 +11692,12 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               return;
            }
            s_new = s_label;
-           while ( *s_new && isspace(*s_new) ) {
+           while ( *s_new ) {
+              if ( isspace(*s_new) )
+                 break;
               s_new++;
            }
-           if ( !*s_new ) {
+           if ( *s_new ) {
               notify_quiet(player, "@label: /add requires a valid non-space/non-null label");
               return;
            }
@@ -11782,14 +11788,14 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            s_newptr = s_new = alloc_lbuf("label_add");
            if ( i_try ) {
 #ifdef ZENTY_ANSI
-              sprintf(s_scratch, "%.*s%c%ch%c_<%s>%c%cn%.*s%c%ch%c_<!%s>%c%cn%s", i_start, s_text, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR,
+              sprintf(s_scratch, "%.*s%c%ch%c_<%s>%c%cn%.*s%c%ch%c_<-%s>%c%cn%s", i_start, s_text, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR,
                       i_end - i_start, s_text + i_start, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR, s_text + i_end);
 #else
-              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<!%s>%s", i_start, s_text, '%', s_label,
+              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<-%s>%s", i_start, s_text, '%', s_label,
                       i_end - i_start, s_text + i_start, '%', s_label, s_text + i_end);
 #endif
            } else {
-              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<!%s>%s", i_start, s_text, '%', s_label,
+              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<-%s>%s", i_start, s_text, '%', s_label,
                       i_end - i_start, s_text + i_start, '%', s_label, s_text + i_end);
            }
            safe_str(s_scratch, s_new, &s_newptr);
@@ -11813,6 +11819,16 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
       case LABEL_DEL:   /* @label/del <LABEL>=#obj/attr */
            if ( !s_label || !*s_label || !s_target || !*s_target ) {
               notify_quiet(player, "@label: /delete switch expects two arguments");
+              return;
+           }
+           s_new = s_label;
+           while ( *s_new ) {
+              if ( isspace(*s_new) )
+                 break;
+              s_new++;
+           }
+           if ( *s_new ) {
+              notify_quiet(player, "@label: /delete requires a valid non-space/non-null label");
               return;
            }
            if ( strchr(s_target, '/') == NULL ) {
@@ -11921,7 +11937,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
                    (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
                    (strchr(s_scratch, '>') != NULL) ) {
-                 if ( *(s_scratch + 3) == '!' ) {
+                 if ( *(s_scratch + 3) == '-' ) {
                     attribtok = s_scratch + 4;
                     i_chk = 1;
                  } else {
@@ -12001,7 +12017,6 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            sprintf(s_new2, "#%d/TRACE_COLOR_*", it);
            parse_lattr(s_new, &s_newptr, player, cause, cause, &s_new2, 1, (char **)NULL, 0, (char *)"LATTR", 0, 0);
            if ( *s_new ) {
-              sprintf(s_scratch, "  Color Attribs: %.*s", LBUF_SIZE - 100, s_new);
               s_newptr = strtok_r(s_new, " ", &s_new2ptr);
               while ( s_newptr ) {
                  a_atr = atr_str(s_newptr);
@@ -12017,33 +12032,309 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
                  }
                  s_newptr = strtok_r(NULL, " ", &s_new2ptr);
               }
-              notify_quiet(player, s_scratch);
            }
            free_lbuf(s_new);
            free_lbuf(s_new2);
            free_lbuf(s_scratch);
            break;
-      case LABEL_ENABLE: /* @label/enable <object>/<label> [=<colorcode>] */
-           if ( !s_label || !*s_label || !s_target || !*s_target ) {
-              notify_quiet(player, "@label: /delete switch expects two arguments");
+      case LABEL_ENABLE: /* @label/enable <object>/<label> [=<colorcode>|wipe] */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /enable switch requires argument in form <object>/<label>");
               return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /enable switch requires argument in form <object>/<label>");
+              return;
+           }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /enable needs to have a valid target.");
+              return;
+           }
+           attrib = strtok_r(NULL, "/", &attribtok);
+           if ( !attrib || !*attrib ) {
+              notify_quiet(player, "@label: /enable switch expects a label");
+              return;
+           }
+           s_scratch = attrib;
+           while ( *s_scratch ) {
+              if ( isspace(*s_scratch) )
+                 break;
+              s_scratch++;
+           }
+           if ( *s_scratch ) {
+              notify_quiet(player, "@label: /enable requires a valid non-space/non-null label");
+              return;
+           }
+           atr = mkattr("TRACE");
+           if ( atr >= 0 ) 
+              a_atr = atr_str("TRACE");
+           if ( (atr >= 0) && a_atr ) {
+              s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+              s_newptr = s_new = alloc_lbuf("label_enable");
+              if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                 if ( *s_text ) {
+                    if ( strstr(s_text, attrib) == NULL ) {
+                       i_new = 0;
+                       if ( (strlen(s_text) + strlen(attrib) + 10) > LBUF_SIZE ) {
+                          notify_quiet(player, "@label: /enable can not add label as it would exceed the attribute content size limit.");
+                       } else {
+                          safe_str(s_text, s_new, &s_newptr);
+                          safe_chr(' ', s_new, &s_newptr);
+                          safe_str(attrib, s_new, &s_newptr);
+                          ext_set_attr_internal(player, it, a_atr->number, s_new, SET_QUIET, player, &val, 1);
+                          if ( val ) {
+                             notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
+                          } else {
+                             if ( s_target && *s_target ) {
+                                s_scratch = alloc_lbuf("label_enable_color");
+                                sprintf(s_scratch, "TRACE_COLOR_%.*s", SBUF_SIZE, attrib);
+                                atr = mkattr(s_scratch);
+                                if ( atr >= 0)
+                                   a_atr = atr_str(s_scratch);
+                                if ( (atr >=0) && a_atr ) {
+                                   i_new = 10;
+                                   if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                                      *s_target='\0';
+                                      i_new = 0;
+                                   }
+                                   ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                                   if ( val ) {
+                                      i_new = 0;
+                                      sprintf(s_new, "@label: /enable [WARNING] has no access to target's %.*s attribute", 
+                                              LBUF_SIZE - 100, s_scratch);
+                                      notify_quiet(player, s_new);
+                                   }
+                                }
+                                free_lbuf(s_scratch);
+                             }
+                             if ( i_new == 10 ) {
+                                sprintf(s_new, "@label: /enable has enabled label '%.*s' with color '%.20s'", LBUF_SIZE - 200, attrib, s_target);
+                             } else {
+                                sprintf(s_new, "@label: /enable has enabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                             }
+                             notify_quiet(player, s_new);
+                          }
+                       }
+                    } else {
+                       sprintf(s_new, "@label: /enable already has label '%.*s' enabled.", LBUF_SIZE - 100, attrib);
+                       notify_quiet(player, s_new);
+                    }
+                 } else {
+                    i_new = 0;
+                    ext_set_attr_internal(player, it, a_atr->number, attrib, SET_QUIET, player, &val, 1);
+                    if ( val ) {
+                       notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
+                    } else {
+                       if ( s_target && *s_target) {
+                          s_scratch = alloc_lbuf("label_enable_color");
+                          sprintf(s_scratch, "TRACE_COLOR_%.*s", SBUF_SIZE, attrib);
+                          atr = mkattr(s_scratch);
+                          if ( atr >= 0)
+                             a_atr = atr_str(s_scratch);
+                          if ( (atr >= 0) && a_atr ) {
+                             i_new = 10;
+                             if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                                *s_target='\0';
+                                i_new = 0;
+                             }
+                             ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                             if ( val ) {
+                                sprintf(s_new, "@label: /enable [WARNING] has no access to target's %.*s attribute", 
+                                        LBUF_SIZE - 100, s_scratch);
+                                notify_quiet(player, s_new);
+                             }
+                          }
+                          free_lbuf(s_scratch);
+                       }
+                       if ( i_new == 10 ) {
+                          sprintf(s_new, "@label: /enable has enabled label '%.*s' with color '%.20s'", LBUF_SIZE - 200, attrib, s_target);
+                       } else {
+                          sprintf(s_new, "@label: /enable has enabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                       }
+                       notify_quiet(player, s_new);
+                    }
+                 }
+              } else {
+                 notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
+              }
+              free_lbuf(s_text);
+              free_lbuf(s_new);
+           } else {
+              notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
            }
            break;
       case LABEL_DISABLE: /* @label/disable <object>/<label> [=<wipe>] */
-           if ( !s_label || !*s_label || !s_target || !*s_target ) {
-              notify_quiet(player, "@label: /delete switch expects two arguments");
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
               return;
            }
-           break;
-      case LABEL_COLOR: /* @label/color <object>[/generic]=[<color>|<empty>] */
-           if ( !s_label || !*s_label || !s_target || !*s_target ) {
-              notify_quiet(player, "@label: /delete switch expects two arguments");
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
               return;
            }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /disable needs to have a valid target.");
+              return;
+           }
+           attrib = strtok_r(NULL, "/", &attribtok);
+           if ( !attrib || !*attrib ) {
+              notify_quiet(player, "@label: /disable switch expects a label");
+              return;
+           }
+           s_scratch = attrib;
+           while ( *s_scratch ) {
+              if ( isspace(*s_scratch) )
+                 break;
+              s_scratch++;
+           }
+           if ( *s_scratch ) {
+              notify_quiet(player, "@label: /disable requires a valid non-space/non-null label");
+              return;
+           }
+           atr = mkattr("TRACE");
+           if ( atr >= 0 ) 
+              a_atr = atr_str("TRACE");
+           if ( (atr >= 0) && a_atr ) {
+              s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+              if ( *s_text ) {
+                 s_newptr = s_new = alloc_lbuf("label_enable");
+                 i_new = i_new2 = 0;
+                 if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                    s_new2 = strtok_r(s_text, " ", &s_new2ptr);
+                    while ( s_new2 ) {
+                       if ( strcmp(s_new2, attrib) != 0 ) {
+                          if ( i_new ) {
+                             safe_chr(' ', s_new, &s_newptr);
+                          }
+                          i_new = 1;
+                          safe_str(s_new2, s_new, &s_newptr);
+                       } else {
+                          i_new2 = 1;
+                       }
+                       s_new2 = strtok_r(NULL, " ", &s_new2ptr);
+                    }
+                    if ( i_new2 ) {
+                       ext_set_attr_internal(player, it, a_atr->number, s_new, SET_QUIET, player, &val, 1);
+                       if ( val ) {
+                          notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
+                       } else {
+                          if ( s_target && *s_target && (stricmp(s_target, (char *)"wipe") == 0) ) {
+                             s_scratch = alloc_lbuf("label_enable_color");
+                             sprintf(s_scratch, "TRACE_COLOR_%.*s", SBUF_SIZE, attrib);
+                             a_atr = atr_str(s_scratch);
+                             if ( a_atr ) {
+                                i_new = 10;
+                                *s_target='\0';
+                                ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                                if ( val ) {
+                                   i_new = 0;
+                                   sprintf(s_new, "@label: /disable [WARNING] has no access to target's %.*s attribute", 
+                                           LBUF_SIZE - 100, s_scratch);
+                                   notify_quiet(player, s_new);
+                                }
+                             }
+                             free_lbuf(s_scratch);
+                          }
+                          if ( i_new == 10 ) {
+                             sprintf(s_new, "@label: /disable has disabled label '%.*s' and removed assigned color", LBUF_SIZE - 100, attrib);
+                          } else {
+                             sprintf(s_new, "@label: /disable has disabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                          }
+                          notify_quiet(player, s_new);
+                       }
+                    } else {
+                       sprintf(s_new, "@label: /disable did not find enabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                       notify_quiet(player, s_new);
+                    }
+                 } else {
+                    notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
+                 }
+              } else {
+                 notify_quiet(player, "@label: /disable has no labels to be disabled.");
+              }
+              free_lbuf(s_text);
+              free_lbuf(s_new);
+           } else {
+              notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
+           }
            break;
-      case LABEL_GREP: /* @label/grep <object>[/regexp]=[<string>|<empty>] */
-           if ( !s_label || !*s_label || !s_target || !*s_target ) {
-              notify_quiet(player, "@label: /delete switch expects two arguments");
+      case LABEL_COLOR: /* @label/color <object>[/generic|label]=[<color>|wipe] */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /color switch requires argument in form <object>/<label>");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /color switch requires argument in form <object>/<label>");
+              return;
+           }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /color needs to have a valid target.");
+              return;
+           }
+           attrib = strtok_r(NULL, "/", &attribtok);
+           if ( !attrib || !*attrib ) {
+              notify_quiet(player, "@label: /color switch expects a label");
+              return;
+           }
+           s_scratch = attrib;
+           while ( *s_scratch ) {
+              if ( isspace(*s_scratch) )
+                 break;
+              s_scratch++;
+           }
+           if ( *s_scratch ) {
+              notify_quiet(player, "@label: /color requires a valid non-space/non-null label");
+              return;
+           }
+           s_scratch = alloc_lbuf("label_color");
+           if ( stricmp(attrib, (char *)"general") == 0) {
+              sprintf(s_scratch, "%s", (char *)"TRACE_COLOR");
+           } else {
+              sprintf(s_scratch, "TRACE_COLOR_%.60s", attrib);
+           }
+           atr = mkattr(s_scratch);
+           if ( atr >= 0 ) 
+              a_atr = atr_str(s_scratch);
+           if ( (atr >= 0) && a_atr ) {
+           } else {
+              notify_quiet(player, "@label: /color has no access to target's TRACE COLOR attribute");
+           }
+           free_lbuf(s_scratch);
+           break;
+      case LABEL_GREP: /* @label/grep <object>[/regexp]=[<string>|wipe] */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
+              return;
+           }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /disable needs to have a valid target.");
+              return;
+           }
+           attrib = strtok_r(NULL, "/", &attribtok);
+           if ( !attrib || !*attrib ) {
+              notify_quiet(player, "@label: /disable switch expects a label");
+              return;
+           }
+           s_scratch = attrib;
+           while ( *s_scratch ) {
+              if ( isspace(*s_scratch) )
+                 break;
+              s_scratch++;
+           }
+           if ( *s_scratch ) {
+              notify_quiet(player, "@label: /grep requires a valid non-space/non-null label");
               return;
            }
            break;
@@ -12080,7 +12371,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
                    (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
                    (strchr(s_scratch, '>') != NULL) ) {
-                 if ( *(s_scratch + 3) == '!' ) {
+                 if ( *(s_scratch + 3) == '-' ) {
                     attribtok = s_scratch + 4;
                     i_chk = 1;
                  } else {
