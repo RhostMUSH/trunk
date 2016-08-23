@@ -33,6 +33,7 @@ char *index(const char *, int);
 #include "debug.h"
 #define FILENUM COMMAND_C
 
+extern void parse_lattr(char *, char **, dbref, dbref, dbref, char **, int, char **, int, char *, int, int);
 extern char * attrib_show(char *, int);
 extern void display_perms(dbref, int, int, char *);
 extern void del_perms(dbref, char *, char *, char **, int);
@@ -11730,7 +11731,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            }
            if ( !is_number(attrib) ) {
               if ( stricmp(attrib, "START") != 0 ) {
-                 sprintf(s_scratch, "@label: /add requires valid number in <start>, but was fed '%s'", attrib);
+                 sprintf(s_scratch, "@label: /add requires valid number in <start>, but was fed '%.*s'", LBUF_SIZE - 100, attrib);
                  notify_quiet(player, s_scratch);
                  free_lbuf(s_text);
                  free_lbuf(s_scratch);
@@ -11751,7 +11752,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            }
            if ( !is_number(attrib) ) {
               if ( stricmp(attrib, "END") != 0 ) {
-                 sprintf(s_scratch, "@label: /add requires valid number in <end>, but was fed '%s'", attrib);
+                 sprintf(s_scratch, "@label: /add requires valid number in <end>, but was fed '%.*s'", LBUF_SIZE - 100, attrib);
                  notify_quiet(player, s_scratch);
                  free_lbuf(s_text);
                  free_lbuf(s_scratch);
@@ -11771,7 +11772,8 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               free_lbuf(s_scratch);
               return;
            }
-           if ( (len + ((strlen(s_label) + 6) * 2)) >= LBUF_SIZE ) {
+           /* Add 30 for additional overhead for ansi in display */
+           if ( (len + 30 + ((strlen(s_label) + 6) * 2)) >= LBUF_SIZE ) {
               notify_quiet(player, "@label: /add can not add this label.  Combined size is greater than the LBUF limit.");
               free_lbuf(s_text);
               free_lbuf(s_scratch);
@@ -11800,7 +11802,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               if ( val ) {
                  notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
               } else {
-                 sprintf(s_scratch, "@label: /add successfully added label '%s' to attribute.", s_label);
+                 sprintf(s_scratch, "@label: /add successfully added label '%.*s' to attribute.", LBUF_SIZE - 100, s_label);
                  notify_quiet(player, s_scratch);
               }
            }
@@ -11878,9 +11880,9 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            }
            ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
            if ( (i_start > 0) || (i_end > 0) ) {
-              sprintf(s_new, "@label: /del removed label '%s'.  %d enable, %d disable.", s_label, i_start, i_end);
+              sprintf(s_new, "@label: /del removed label '%.*s'.  %d enable, %d disable.", LBUF_SIZE - 100, s_label, i_start, i_end);
            } else {
-              sprintf(s_new, "@label: /del could not find label '%s' in attribute.", s_label);
+              sprintf(s_new, "@label: /del could not find label '%.*s' in attribute.", LBUF_SIZE - 100, s_label);
            }
            notify_quiet(player, s_new);
            free_lbuf(s_new);
@@ -11961,15 +11963,89 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            } else {
               sprintf(s_scratch, "@label: /list of all labels for attribute");
               notify_quiet(player, s_scratch);
-              sprintf(s_scratch, "        Enable:[%4d] %s%s%s", i_new, ANSI_GREEN, s_new, ANSI_NORMAL);
+              sprintf(s_scratch, "        Enable:[%4d] %s%.*s%s", i_new, ANSI_GREEN, LBUF_SIZE - 100, s_new, ANSI_NORMAL);
               notify_quiet(player, s_scratch);
-              sprintf(s_scratch, "       Disable:[%4d] %s%s%s", i_new2, ANSI_RED, s_new2, ANSI_NORMAL);
+              sprintf(s_scratch, "       Disable:[%4d] %s%.*s%s", i_new2, ANSI_RED, LBUF_SIZE - 100, s_new2, ANSI_NORMAL);
+              notify_quiet(player, s_scratch);
+              memset(s_new, '\0', LBUF_SIZE);
+              s_newptr = s_new;
+
+           }
+           free_lbuf(s_text);
+           a_atr = atr_str("TRACE_GREP");
+           if ( a_atr ) {
+              s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+              if ( *s_text ) {
+                 if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                    if ( PCRE_EXEC && ( (a_atr->flags & AF_REGEXP) || (aflags & AF_REGEXP) ) ) {
+                       sprintf(s_scratch, "   RegExp Grep: %.*s", LBUF_SIZE - 100, s_text);
+                    } else {
+                       sprintf(s_scratch, "          Grep: %.*s", LBUF_SIZE - 100, s_text);
+                    }
+                    notify_quiet(player, s_scratch);
+                 }
+              }
+              free_lbuf(s_text);
+           }
+           a_atr = atr_str("TRACE_COLOR");
+           if ( a_atr ) {
+              s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+              if ( *s_text ) {
+                 if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                    sprintf(s_scratch, "  Global Color: %.*s", LBUF_SIZE - 100, s_text);
+                    notify_quiet(player, s_scratch);
+                 }
+              }
+              free_lbuf(s_text);
+           }
+           sprintf(s_new2, "#%d/TRACE_COLOR_*", it);
+           parse_lattr(s_new, &s_newptr, player, cause, cause, &s_new2, 1, (char **)NULL, 0, (char *)"LATTR", 0, 0);
+           if ( *s_new ) {
+              sprintf(s_scratch, "  Color Attribs: %.*s", LBUF_SIZE - 100, s_new);
+              s_newptr = strtok_r(s_new, " ", &s_new2ptr);
+              while ( s_newptr ) {
+                 a_atr = atr_str(s_newptr);
+                 if ( a_atr ) {
+                    s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+                    if ( *s_text ) {
+                       if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                          sprintf(s_scratch, "  Attrib Color: [%.60s] %.*s", a_atr->name, LBUF_SIZE - 200, s_text);
+                          notify_quiet(player, s_scratch);
+                       }
+                    }
+                    free_lbuf(s_text);
+                 }
+                 s_newptr = strtok_r(NULL, " ", &s_new2ptr);
+              }
               notify_quiet(player, s_scratch);
            }
            free_lbuf(s_new);
            free_lbuf(s_new2);
            free_lbuf(s_scratch);
-           free_lbuf(s_text);
+           break;
+      case LABEL_ENABLE: /* @label/enable <object>/<label> [=<colorcode>] */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /delete switch expects two arguments");
+              return;
+           }
+           break;
+      case LABEL_DISABLE: /* @label/disable <object>/<label> [=<wipe>] */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /delete switch expects two arguments");
+              return;
+           }
+           break;
+      case LABEL_COLOR: /* @label/color <object>[/generic]=[<color>|<empty>] */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /delete switch expects two arguments");
+              return;
+           }
+           break;
+      case LABEL_GREP: /* @label/grep <object>[/regexp]=[<string>|<empty>] */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /delete switch expects two arguments");
+              return;
+           }
            break;
       case LABEL_PURGE: /* @label/purge #obj/attr */
            if ( !s_label || !*s_label || (s_target && *s_target) ) {
@@ -12055,7 +12131,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            }
            ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
            if ( (i_start > 0) || (i_end > 0) ) {
-              sprintf(s_new, "@label: /purge removed labels.  %d enable, %d disable.\r\n        Removed: %s", i_start, i_end, s_new2);
+              sprintf(s_new, "@label: /purge removed labels.  %d enable, %d disable.\r\n        Removed: %.*s", i_start, i_end, LBUF_SIZE - 120, s_new2);
               notify_quiet(player, s_new);
            } else {
               notify_quiet(player, "@label: /purge could not find any labels in attribute.");
