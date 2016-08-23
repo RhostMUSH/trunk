@@ -11859,7 +11859,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
                    (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
                    (strchr(s_scratch, '>') != NULL) ) {
-                 if ( *(s_scratch + 3) == '!' ) {
+                 if ( *(s_scratch + 3) == '-' ) {
                     attribtok = s_scratch + 4;
                     i_chk = 1;
                  } else {
