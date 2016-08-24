@@ -3247,7 +3247,7 @@
   
 & @label
   Command: @label/<switch> <label>=<target>:<start>,<end>
-
+  
   The @label command is used to integrate the %_<label> system for debugging
   and tracing seamlessly into code.  This effectively allows you to add,
   remove, list and purge labels from attributes, cleanly, to allow a far
@@ -3271,7 +3271,7 @@
 
 & @label2
   Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
-  
+    
   The following switches are available:
   Syntax:  @label/add <label>=<object>/<attr>:<start>,<end>
     /add     - Add the label at the specified positions.  It requires two
@@ -3303,7 +3303,7 @@
   
 & @label3
   Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
-  
+    
   Syntax:  @label/enable <object>/<label> [=<color|wipe>]
     /enable  - Will enable the given label to your trace output.  This
                essentially adds it to the 'TRACE' attribute.  This can
@@ -3330,8 +3330,8 @@
   { see 'help @label4' for examples }
 
 & @label4
-  Command: @label/<switch> <label>=<target>:<start>,<end>
-  
+  Command: @label/<switch> <label>=<target>:<start>,<end> (CONTINUED)
+    
   NOTE:  Any label that starts with a '!' (eg: %_<!foo>) is an end/disable
          label.  This would stop the tracing.  This is explained more in
          'help %_'
