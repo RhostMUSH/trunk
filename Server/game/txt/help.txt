@@ -3248,66 +3248,89 @@
 & @label
   Command: @label/<switch> <label>=<target>:<start>,<end>
 
-  Syntax:  @label/add[/try] <label>=<object>/<attr>:<start>,<end>
-           @label/del <label>=<object>/<attr>
-           @label/list <object>/<attr>
-           @label/purge <object>/<attr>
-           @label/enable <object>/<label> [=<color|wipe>]
-           @label/disable <object>/<label> [=<color|wipe>]
-           @label/color <object>/<label|general> = <color|wipe>
-           @label/grep <object>[/regexp] = <string|wipe>
-  
   The @label command is used to integrate the %_<label> system for debugging
   and tracing seamlessly into code.  This effectively allows you to add,
   remove, list and purge labels from attributes, cleanly, to allow a far
   more enjoyable debugging experience.
   
+  Quick overview of switches:
+    /add     - Adds the label in attribute
+    /try     - Shows what adding label would look in attribute
+    /delete  - Deletes label in attribute
+    /purge   - Purge all labels in attributes
+    /list    - Lists all specifics of attribute
+    /enable  - Enables label debugging of specific label
+    /disable - Disables label debugging of specific label
+    /color   - Sets (or wipes) specific label
+    /grep    - Sets (or wipes) grep patterning
+  
+  For further explaination of label tracing:  help %_ 
+  For the complete list of variables used:    help %_var
+  
+  { see 'help @label2' to show syntax and detailing labels of switches  }
+
+& @label2
+  Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
+  
   The following switches are available:
+  Syntax:  @label/add <label>=<object>/<attr>:<start>,<end>
     /add     - Add the label at the specified positions.  It requires two
                positions since you will want a start and stop point for
                each label.  You may use the strings START and END 
                to specify the very beginning and the very end of the
                attribute when adding labels.
+  
+  Syntax:  @label/add/try <label>=<object>/<attr>:<start>,<end>
     /try     - When used in junction with /add it will show you what
                the new attribute would look like if it inserted the
                labels.  It's useful to make sure you have the position
                properly set.
+  
+  Syntax:  @label/del <label>=<object>/<attr>
     /delete  - Remove the specified label (both start and stop points) 
                from the attribute.  This removes all occurances.
+  
+  Syntax:  @label/purge <object>/<attr>
     /purge   - Remove all labels (both start and stop points) from the
                specified attribute.
+  
+  Syntax:  @label/list <object>/<attr>
     /list    - List all labels (both start and stop points) from the
                specified attribute.  This will list all other label
                dependant values of that target.
+  
+  { see 'help @label3' to continue syntax and detailing labels of switches  }
+  
+& @label3
+  Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
+  
+  Syntax:  @label/enable <object>/<label> [=<color|wipe>]
     /enable  - Will enable the given label to your trace output.  This
                essentially adds it to the 'TRACE' attribute.  This can
                optionally remove label-specified colors that are in
                the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
+  
+  Syntax:  @label/disable <object>/<label> [=<color|wipe>]
     /disable - Will remove the given label from your trace output.  This
                removes the label from the 'TRACE' attribute.  This can
                optionally remove label-specified colors that are in
                the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
+  
+  Syntax:  @label/color <object>/<label|general> = <color|wipe>
     /color   - This sets either the 'general' color defined by your
                TRACE_COLOR attribute or the label specific color which
                is defined by TRACE_COLOR_LABEL.  If you specify 'wipe'
                it will delete the attribute.
+  
+  Syntax:  @label/grep <object>[/regexp] = <string|wipe>
     /grep    - This will set your TRACE_GREP string or if you specify
                'wipe' will remove it. If you specify the /regexp
                option it will also set the attribute REGEXP.
   
-  { see 'help @label2' for examples }
+  { see 'help @label4' for examples }
 
-& @label2
+& @label4
   Command: @label/<switch> <label>=<target>:<start>,<end>
-
-  Syntax:  @label/add[/try] <label>=<object>/<attr>:<start>,<end>
-           @label/del <label>=<object>/<attr>
-           @label/list <object>/<attr>
-           @label/purge <object>/<attr>
-           @label/enable <object>/<label> [=<color|wipe>]
-           @label/disable <object>/<label> [=<color|wipe>]
-           @label/color <object>/<label|general> = <color|wipe>
-           @label/grep <object>[/regexp] = <string|wipe>
   
   NOTE:  Any label that starts with a '!' (eg: %_<!foo>) is an end/disable
          label.  This would stop the tracing.  This is explained more in
@@ -10559,6 +10582,7 @@
   
   See Also: GENDER, V(), SHIFT(), ACCENT()
   
+& TRACE_COLOR
 & TRACE_GREP
 & %_
   Topic: SUBSTITUTIONS
@@ -10581,21 +10605,34 @@
   Using the <label> adds to the debug stack and using <-label> reduces one
   from the debug stack.  This allows you to essentially nest debugging
   breakpoints within code and only enable/disable them when you set
-  the specified label in your TRACE value.  For instance, &TRACE me=123
+  the specified label in your TRACE value.  For instance, &TRACE object=123
   
   Note: This has absolutely no impact on the TRACE flag and uses another
   method to keep track of how it's tracing information.  You can use
   this in addition to the TRACE flag if you so wish.
   
-  You may use the attribute TRACE_COLOR to set a standard color for your
-  labels.   For instance, &TRACE_COLOR me=+purple.  You may specify colors
-  by label as &TRACE_COLOR_<label> me=+orange.  Like &TRACE_COLOR_123.
-  This will fall back on 'TRACE_COLOR' if the by label isn't found.
+  { see 'help %_2' to continue }
+
+& %_2
+  Topic: SUBSTITUTIONS (CONTINUED)
+  Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
+          %_<-label> -- disables debugging for <label>
+          %_<off>    -- disables all debugging
   
-  You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
-  if you wish to have a specific piece of code in trace output which matches
-  the trace output return in red the match.  If the TRACE_GREP attribute
-  is attribute-set REGEXP, it will take the string as a regexp match.
+  You may use the attribute TRACE_COLOR to set a standard color for your
+  labels.   For instance, &TRACE_COLOR object=+purple.  You may specify 
+  colors by label as &TRACE_COLOR_<label> object=+orange.  Like 
+  &TRACE_COLOR_123.  This will fall back on 'TRACE_COLOR' if the by 
+  label isn't found.
+  
+  You may specify a TRACE_GREP attibute on the enactor 
+  (&TRACE_GREP object=<string>) if you wish to have a specific piece 
+  of code in trace output which matches the trace output return in red 
+  the match.  If the TRACE_GREP attribute is attribute-set REGEXP, 
+  it will take the string as a regexp match.
+  
+  Keep in mind, the various &TRACE attributes need to be on the enactor,
+  not the thing executing the code.  It will behave like the TRACE flag.
    
   Examples:
     > &TRACE me=123
@@ -10611,6 +10648,43 @@
     You say "Debugging: 246"
   
   In the last exampole, the 123 inside the []'s would have been orange.
+  
+  See 'help %_vars' for variables used with trace label debugging.
+  
+  See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
+  
+& %_vars
+  Topic: SUBSTITUTIONS (CONTINUED)
+  Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
+          %_<-label> -- disables debugging for <label>
+          %_<off>    -- disables all debugging
+  
+  The following special variables are used for %_ label debugging.
+  
+  TRACE            -- This is the main controller for labels.  When the
+                      object running code has a label matching one
+                      in this attribute, it will run debugging code
+                      for that label until turned off. 
+  
+  TRACE_GREP       -- * Without the REGEXP attribute flag, it will use
+                        standard direct string matching and hilight red
+                        any match in your trace output.  Again, this must
+                        be set on the object running code.
+                      * With the REGEXP attribute flag, it uses enhanced
+                        regular expression matching to hilite red any
+                        matching pattern.
+  
+  TRACE_COLOR      -- This is the global generic color code that you wish
+                      any label to have.  If there's not a label specific
+                      color, this is what it will choose.  If no color
+                      is selected, it just hilights it.  Again, this must
+                      be set on the object running code.
+  
+  TRACE_COLOR_<L>  -- Where '<L>' is the name of the label.  For example
+                      if your label was 'bob' the attribute name would be
+                      'TRACE_COLOR_BOB'.  This will set a specific color
+                      for the given label to use.  This will have priority
+                      over the global TRACE_COLOR definition.
   
   See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
   
