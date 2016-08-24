@@ -29970,3 +29970,5 @@
   * issue with left() and buffering [ASH]
   * convert strtok to strtok_r in conf.c to avoid static buffer clobbers [ASH]
   * dark exits didn't work properly with sees() [ASH]
+  * fixed ruler() and introduced internal function for notify quiet to
+    handle ansi [ASH]

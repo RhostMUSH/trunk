@@ -152,6 +152,8 @@ extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
 #define	notify(p,m)			notify_check(p,p,m,0, \
                         MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
 #ifdef ZENTY_ANSI
+#define	noansi_notify_quiet(p,m)		notify_check(p,p,m,0, \
+						MSG_PUP_ALWAYS|MSG_ME|MSG_NO_ANSI, 0)
 #define noansi_notify(p,m)              notify_check(p,p,m,0, \
 						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, 0)
 #define	noansi_notify_all_from_inside(p,c,m)	notify_check(p,c,m,0, \
@@ -165,6 +167,8 @@ extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
 #define	noansi_notify_with_cause2(p,c,m)	notify_check(NOTHING,c,m,p, \
 						MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN|MSG_NO_ANSI, 0)
 #else
+#define	noansi_notify_quiet(p,m)		notify_check(p,p,m,0, \
+						MSG_PUP_ALWAYS|MSG_ME, 0)
 #define	noansi_notify(p,m)			notify_check(p,p,m,0, \
                         MSG_PUP_ALWAYS|MSG_ME_ALL|MSG_F_DOWN, 0)
 #define	noansi_notify_all_from_inside(p,c,m)	notify_check(p,c,m,0, \

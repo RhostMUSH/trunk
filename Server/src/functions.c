@@ -12149,7 +12149,7 @@ FUNCTION(fun_ruler) {
       notify_quiet(player, atr_padptr);
       for ( i=0; i < ((strlen(atr_gotten) / i_mult) + 1); i++ ) {
          sprintf(atr_padptr, "       | %-*.*s   |", i_mult, i_mult, atr_gotten + (i * i_mult));
-         notify_quiet(player, atr_padptr);
+         noansi_notify_quiet(player, atr_padptr);
          sprintf(atr_padptr, "%-7d| %s   |", (i * i_mult), atr_pad);
          notify_quiet(player, atr_padptr);
       }
