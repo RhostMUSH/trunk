@@ -3274,28 +3274,28 @@
     
   The following switches are available:
   Syntax:  @label/add <label>=<object>/<attr>:<start>,<end>
-    /add     - Add the label at the specified positions.  It requires two
+             - Add the label at the specified positions.  It requires two
                positions since you will want a start and stop point for
                each label.  You may use the strings START and END 
                to specify the very beginning and the very end of the
                attribute when adding labels.
   
   Syntax:  @label/add/try <label>=<object>/<attr>:<start>,<end>
-    /try     - When used in junction with /add it will show you what
+             - When used in junction with /add it will show you what
                the new attribute would look like if it inserted the
                labels.  It's useful to make sure you have the position
                properly set.
   
   Syntax:  @label/del <label>=<object>/<attr>
-    /delete  - Remove the specified label (both start and stop points) 
+             - Remove the specified label (both start and stop points) 
                from the attribute.  This removes all occurances.
   
   Syntax:  @label/purge <object>/<attr>
-    /purge   - Remove all labels (both start and stop points) from the
+             - Remove all labels (both start and stop points) from the
                specified attribute.
   
   Syntax:  @label/list <object>/<attr>
-    /list    - List all labels (both start and stop points) from the
+             - List all labels (both start and stop points) from the
                specified attribute.  This will list all other label
                dependant values of that target.
   
@@ -3305,25 +3305,25 @@
   Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
     
   Syntax:  @label/enable <object>/<label> [=<color|wipe>]
-    /enable  - Will enable the given label to your trace output.  This
+             - Will enable the given label to your trace output.  This
                essentially adds it to the 'TRACE' attribute.  This can
                optionally remove label-specified colors that are in
                the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
   
   Syntax:  @label/disable <object>/<label> [=<color|wipe>]
-    /disable - Will remove the given label from your trace output.  This
+             - Will remove the given label from your trace output.  This
                removes the label from the 'TRACE' attribute.  This can
                optionally remove label-specified colors that are in
                the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
   
   Syntax:  @label/color <object>/<label|general> = <color|wipe>
-    /color   - This sets either the 'general' color defined by your
+             - This sets either the 'general' color defined by your
                TRACE_COLOR attribute or the label specific color which
                is defined by TRACE_COLOR_LABEL.  If you specify 'wipe'
                it will delete the attribute.
   
   Syntax:  @label/grep <object>[/regexp] = <string|wipe>
-    /grep    - This will set your TRACE_GREP string or if you specify
+             - This will set your TRACE_GREP string or if you specify
                'wipe' will remove it. If you specify the /regexp
                option it will also set the attribute REGEXP.
   
