@@ -3294,10 +3294,12 @@
              - Remove all labels (both start and stop points) from the
                specified attribute.
   
-  Syntax:  @label/list <object>/<attr>
+  Syntax:  @label/list <object>[/<attr>]
              - List all labels (both start and stop points) from the
                specified attribute.  This will list all other label
-               dependant values of that target.
+               dependant values of that target.  If you specify the
+               object without an attribute, it just lists all global
+               trace values for that object.
   
   { see 'help @label3' to continue syntax and detailing labels of switches  }
   
