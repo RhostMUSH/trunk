@@ -3252,6 +3252,10 @@
            @label/del <label>=<object>/<attr>
            @label/list <object>/<attr>
            @label/purge <object>/<attr>
+           @label/enable <object>/<label> [=<color|wipe>]
+           @label/disable <object>/<label> [=<color|wipe>]
+           @label/color <object>/<label|general> = <color|wipe>
+           @label/grep <object>[/regexp] = <string|wipe>
   
   The @label command is used to integrate the %_<label> system for debugging
   and tracing seamlessly into code.  This effectively allows you to add,
@@ -3259,21 +3263,37 @@
   more enjoyable debugging experience.
   
   The following switches are available:
-    /add    - Add the label at the specified positions.  It requires two
-              positions since you will want a start and stop point for
-              each label.  You may use the strings START and END 
-              to specify the very beginning and the very end of the
-              attribute when adding labels.
-    /try    - When used in junction with /add it will show you what
-              the new attribute would look like if it inserted the
-              labels.  It's useful to make sure you have the position
-              properly set.
-    /delete - Remove the specified label (both start and stop points) 
-              from the attribute.  This removes all occurances.
-    /purge  - Remove all labels (both start and stop points) from the
-              specified attribute.
-    /list   - List all labels (both start and stop points) from the
-              specified attribute.
+    /add     - Add the label at the specified positions.  It requires two
+               positions since you will want a start and stop point for
+               each label.  You may use the strings START and END 
+               to specify the very beginning and the very end of the
+               attribute when adding labels.
+    /try     - When used in junction with /add it will show you what
+               the new attribute would look like if it inserted the
+               labels.  It's useful to make sure you have the position
+               properly set.
+    /delete  - Remove the specified label (both start and stop points) 
+               from the attribute.  This removes all occurances.
+    /purge   - Remove all labels (both start and stop points) from the
+               specified attribute.
+    /list    - List all labels (both start and stop points) from the
+               specified attribute.  This will list all other label
+               dependant values of that target.
+    /enable  - Will enable the given label to your trace output.  This
+               essentially adds it to the 'TRACE' attribute.  This can
+               optionally remove label-specified colors that are in
+               the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
+    /disable - Will remove the given label from your trace output.  This
+               removes the label from the 'TRACE' attribute.  This can
+               optionally remove label-specified colors that are in
+               the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
+    /color   - This sets either the 'general' color defined by your
+               TRACE_COLOR attribute or the label specific color which
+               is defined by TRACE_COLOR_LABEL.  If you specify 'wipe'
+               it will delete the attribute.
+    /grep    - This will set your TRACE_GREP string or if you specify
+               'wipe' will remove it. If you specify the /regexp
+               option it will also set the attribute REGEXP.
   
   { see 'help @label2' for examples }
 
@@ -3284,6 +3304,10 @@
            @label/del <label>=<object>/<attr>
            @label/list <object>/<attr>
            @label/purge <object>/<attr>
+           @label/enable <object>/<label> [=<color|wipe>]
+           @label/disable <object>/<label> [=<color|wipe>]
+           @label/color <object>/<label|general> = <color|wipe>
+           @label/grep <object>[/regexp] = <string|wipe>
   
   NOTE:  Any label that starts with a '!' (eg: %_<!foo>) is an end/disable
          label.  This would stop the tracing.  This is explained more in

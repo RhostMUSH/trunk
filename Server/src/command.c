@@ -12302,6 +12302,32 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            if ( atr >= 0 ) 
               a_atr = atr_str(s_scratch);
            if ( (atr >= 0) && a_atr ) {
+              if ( s_target && *s_target ) {
+                 if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                    *s_target = '\0';
+                 }
+                 ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                 if ( val ) {
+                    notify_quiet(player, "@label: /color has no access to target's TRACE COLOR attribute");
+                 } else {
+                    if ( stricmp(attrib, (char *)"general") == 0 ) {
+                       if ( *s_target ) {
+                          sprintf(s_scratch, "@label: /color changed general color to %.30s", s_target);
+                       } else {
+                          sprintf(s_scratch, "@label: /color removed general color");
+                       }
+                    } else {
+                       if ( *s_target ) {
+                          sprintf(s_scratch, "@label: /color changed label %.*s color to %.30s", LBUF_SIZE - 100, attrib, s_target);
+                       } else {
+                          sprintf(s_scratch, "@label: /color removed label %.*s color", LBUF_SIZE - 100, attrib);
+                       }
+                    }
+                    notify_quiet(player, s_scratch);
+                 }
+              } else {
+                 notify_quiet(player, "@label: /color must specify either a color or the word 'wipe'");
+              }
            } else {
               notify_quiet(player, "@label: /color has no access to target's TRACE COLOR attribute");
            }
@@ -12309,34 +12335,56 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            break;
       case LABEL_GREP: /* @label/grep <object>[/regexp]=[<string>|wipe] */
            if ( !s_label || !*s_label ) {
-              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
-              return;
-           }
-           if ( strchr(s_label, '/') == NULL ) {
-              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
+              notify_quiet(player, "@label: /grep switch requires argument in form <object>/<label>");
               return;
            }
            attrib = strtok_r(s_label, "/", &attribtok);
            it = match_thing(player, attrib);
            if ( !Good_chk(it) || !Controls(player, it) ) {
-              notify_quiet(player, "@label: /disable needs to have a valid target.");
+              notify_quiet(player, "@label: /grep needs to have a valid target.");
               return;
            }
-           attrib = strtok_r(NULL, "/", &attribtok);
-           if ( !attrib || !*attrib ) {
-              notify_quiet(player, "@label: /disable switch expects a label");
-              return;
+           i_new = 0;
+           if ( attrib ) {
+              attrib = strtok_r(NULL, "/", &attribtok);
+              if ( attrib && *attrib && (stricmp(attrib, "regexp") == 0) ) {
+                 i_new = 1;
+              }
            }
-           s_scratch = attrib;
-           while ( *s_scratch ) {
-              if ( isspace(*s_scratch) )
-                 break;
-              s_scratch++;
+           atr = mkattr("TRACE_GREP");
+           if ( atr >= 0 ) 
+              a_atr = atr_str("TRACE_GREP");
+           s_scratch = alloc_lbuf("label_color");
+           if ( (atr >= 0) && a_atr ) {
+              if ( s_target && *s_target ) {
+                 if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                    *s_target = '\0';
+                 }
+                 s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+                 ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                 if ( val ) {
+                    notify_quiet(player, "@label: /grep has no access to target's TRACE GREP attribute");
+                 } else {
+                    if ( i_new ) {
+                       atr_set_flags(it, a_atr->number, AF_REGEXP | aflags);
+                    } else {
+                       atr_set_flags(it, a_atr->number, aflags & ~AF_REGEXP);
+                    }
+                    if ( *s_target ) {
+                       sprintf(s_scratch, "@label: /grep%schanged value to %.30s", (i_new ? " [regexp] " : " "), s_target);
+                    } else {
+                       sprintf(s_scratch, "@label: /grep%sremoved value", (i_new ? " [regexp] " : " "));
+                    }
+                    notify(player, s_scratch);
+                 }
+                 free_lbuf(s_text);
+              } else {
+                 notify_quiet(player, "@label: /grep must specify either a string or the word 'wipe'");
+              }
+           } else {
+              notify_quiet(player, "@label: /grep has no access to target's TRACE GREP attribute");
            }
-           if ( *s_scratch ) {
-              notify_quiet(player, "@label: /grep requires a valid non-space/non-null label");
-              return;
-           }
+           free_lbuf(s_scratch);
            break;
       case LABEL_PURGE: /* @label/purge #obj/attr */
            if ( !s_label || !*s_label || (s_target && *s_target) ) {
