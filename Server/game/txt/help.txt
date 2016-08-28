@@ -10609,6 +10609,8 @@
   breakpoints within code and only enable/disable them when you set
   the specified label in your TRACE value.  For instance, &TRACE object=123
   
+  The <label> needs to be always in lower case.
+  
   Note: This has absolutely no impact on the TRACE flag and uses another
   method to keep track of how it's tracing information.  You can use
   this in addition to the TRACE flag if you so wish.
@@ -10666,7 +10668,8 @@
   TRACE            -- This is the main controller for labels.  When the
                       object running code has a label matching one
                       in this attribute, it will run debugging code
-                      for that label until turned off. 
+                      for that label until turned off.   This should always
+                      have labels in lower case.
   
   TRACE_GREP       -- * Without the REGEXP attribute flag, it will use
                         standard direct string matching and hilight red
@@ -29972,3 +29975,4 @@
   * dark exits didn't work properly with sees() [ASH]
   * fixed ruler() and introduced internal function for notify quiet to
     handle ansi [ASH]
+  * enforce @label to use lowercase for all labels [ASH]

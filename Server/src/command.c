@@ -11671,7 +11671,8 @@ do_tor(dbref player, dbref cause, int key) {
 void
 do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
 {
-   char *attrib, *attribtok, *s_text, *s_new, *s_newptr, *s_scratch, *s_new2, *s_new2ptr, *s_nerf, *s_nerfptr;
+   char *attrib, *attribtok, *s_text, *s_new, *s_newptr, *s_scratch, *s_new2, *s_new2ptr, 
+        *s_nerf, *s_nerfptr, *s_labelptr;
    dbref it, aowner;
    int atr, i_start, i_end, aflags, len, val, i_chk, i_new, i_new2, i_try;
    ATTR *a_atr;
@@ -11786,6 +11787,11 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               return;
            }
            s_newptr = s_new = alloc_lbuf("label_add");
+           s_labelptr = s_label;
+           while ( *s_labelptr ) {
+              *s_labelptr = ToLower(*s_labelptr);
+               s_labelptr++;
+           }
            if ( i_try ) {
 #ifdef ZENTY_ANSI
               sprintf(s_scratch, "%.*s%c%ch%c_<%s>%c%cn%.*s%c%ch%c_<-%s>%c%cn%s", i_start, s_text, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR,
@@ -11854,6 +11860,11 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            memset(s_new, '\0', LBUF_SIZE);
            s_scratch = s_text;
            i_chk = i_start = i_end = 0;
+           s_labelptr = s_label;
+           while ( *s_labelptr ) {
+              *s_labelptr = ToLower(*s_labelptr);
+               s_labelptr++;
+           }
            while ( *s_scratch ) {
               len = 0;
               if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
@@ -11868,7 +11879,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
                  }
                  attrib = strchr(attribtok, '>');
                  *attrib = '\0';
-                 if ( strcmp(attribtok, s_label) == 0 ) {
+                 if ( stricmp(attribtok, s_label) == 0 ) {
                     len = 1;
                  }
                  *attrib = '>';
@@ -12105,6 +12116,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            }
            s_scratch = attrib;
            while ( *s_scratch ) {
+              *s_scratch = ToLower(*s_scratch);
               if ( isspace(*s_scratch) )
                  break;
               s_scratch++;
@@ -12233,6 +12245,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            }
            s_scratch = attrib;
            while ( *s_scratch ) {
+              *s_scratch = ToLower(*s_scratch);
               if ( isspace(*s_scratch) )
                  break;
               s_scratch++;
@@ -12252,7 +12265,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
                  if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
                     s_new2 = strtok_r(s_text, " ", &s_new2ptr);
                     while ( s_new2 ) {
-                       if ( strcmp(s_new2, attrib) != 0 ) {
+                       if ( stricmp(s_new2, attrib) != 0 ) {
                           if ( i_new ) {
                              safe_chr(' ', s_new, &s_newptr);
                           }
@@ -12330,6 +12343,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            }
            s_scratch = attrib;
            while ( *s_scratch ) {
+              *s_scratch = ToLower(*s_scratch);
               if ( isspace(*s_scratch) )
                  break;
               s_scratch++;
