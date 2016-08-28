@@ -3334,7 +3334,7 @@
 & @label4
   Command: @label/<switch> <label>=<target>:<start>,<end> (CONTINUED)
     
-  NOTE:  Any label that starts with a '!' (eg: %_<!foo>) is an end/disable
+  NOTE:  Any label that starts with a '-' (eg: %_<-foo>) is an end/disable
          label.  This would stop the tracing.  This is explained more in
          'help %_'
    
@@ -3348,7 +3348,7 @@
            | ---------|10-------|20-------|30-------|40-------|50-------|60 |
     > @label/add/try test=me/vd:10,20
     @label: /add [/try] would have modified the attribute to look like:
-    [add(1,1)]%_<test>[sub(2,2)]%_<!test>[div(3,3)]
+    [add(1,1)]%_<test>[sub(2,2)]%_<-test>[div(3,3)]
     > @label/add test=me/vd:10,20
     @label: /add successfully added label 'test' to attribute.
     > @label/del test=me/vd
