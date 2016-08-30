@@ -3278,7 +3278,7 @@
   First, let's create an object:
     > @create MyObject
     MyObject created as object #12345
-
+  
   Now, let's set an attribute we want to debug on this object.
     > @set MyObject=inherit
     Set.
@@ -3293,7 +3293,6 @@
       0      | 123456789012345678901234567890123456789012345678901234567890   |
              | ---------|10-------|20-------|30-------|40-------|50-------|60 |
   
-
   Ok, for whatever reason, we want to debug just the sub() function in
   this.  We will call our label 'watson' for giggles.  We have the start 
   position of sub as 25, and the end of it as 35.  
@@ -3306,7 +3305,7 @@
   Ok, it looks good, let's add the label.
     > @label/add watson=myobject/cmd_test:25,35
     @label: /add successfully added label 'watson' to attribute.
- 
+   
   { see 'help @label-example2' to continue with the tutorial }
  
 & @label-example2
@@ -3319,7 +3318,7 @@
   option.  So don't worry if you don't feel colorful right now.
     > @label/enable myobject/watson=+pink
     @label: /enable has enabled label 'watson' with color '+pink'
-
+  
   Good show, we now have debugging enabled for the object for the sub()
   function.  Let's try it out, shall we?
     > foo
