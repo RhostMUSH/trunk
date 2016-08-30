@@ -3267,7 +3267,124 @@
   For further explaination of label tracing:  help %_ 
   For the complete list of variables used:    help %_var
   
-  { see 'help @label2' to show syntax and detailing labels of switches  }
+  { see 'help @label2' to show syntax and detailing labels of switches }
+  { see 'help @label-example' to show step by step in working debug labels }
+
+& @label-example
+  Command: @label/<switch> <label>=<target>:<start>,<end>
+  
+  To use debug labels, you of course need to first set up some code.
+  
+  First, let's create an object:
+    > @create MyObject
+    MyObject created as object #12345
+
+  Now, let's set an attribute we want to debug on this object.
+    > @set MyObject=inherit
+    Set.
+    > &CMD_TEST MyObject=$foo:@pemit %#=[add(1,1)][sub(2,2)][div(3,3)]
+    Set.
+  
+  We need to see the positioning of the sub() function in our attribute.
+  For this, we can use the nifty ruler() function.
+    > think ruler(me/myobject,60)
+             | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+             | $foo:@pemit %#=[add(1,1)][sub(2,2)][div(3,3)]                  |
+      0      | 123456789012345678901234567890123456789012345678901234567890   |
+             | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+  
+
+  Ok, for whatever reason, we want to debug just the sub() function in
+  this.  We will call our label 'watson' for giggles.  We have the start 
+  position of sub as 25, and the end of it as 35.  
+  It will place the labels AFTER the position specified, not before.
+  Let's issue a '/try' on this to make sure we got the positions right.
+    > @label/add/try watson=myobject/cmd_test:25,35
+    @label: /add [/try] would have modified the attribute to look like:
+    $foo:@pemit %#=[add(1,1)]%_<watson>[sub(2,2)]%_<-watson>[div(3,3)]
+  
+  Ok, it looks good, let's add the label.
+    > @label/add watson=myobject/cmd_test:25,35
+    @label: /add successfully added label 'watson' to attribute.
+ 
+  { see 'help @label-example2' to continue with the tutorial }
+ 
+& @label-example2
+  Command: @label/<switch> <label>=<target>:<start>,<end>
+  
+  Now, we have injected the debug label into our code, but we still need to
+  enable the label itself for debugging.  Let's select pink as the optional
+  color.  If you don't specify a color, it'll just highlight it.  You may
+  change or add/remove color from labels after the fact with the /color
+  option.  So don't worry if you don't feel colorful right now.
+    > @label/enable myobject/watson=+pink
+    @label: /enable has enabled label 'watson' with color '+pink'
+
+  Good show, we now have debugging enabled for the object for the sub()
+  function.  Let's try it out, shall we?
+    > foo
+    MyObject(#12345) [watson]} 'sub(2,2)' -> '0'
+    201
+  
+  Ok, let's see what label based debugging we have on the object itself.
+    > @label/list myobject
+    @label: /list -- Global values set on target
+      Trace: watson
+      Attrib Color: [TRACE_COLOR_WATSON] +pink
+  
+  And now, for the attribute we actually did debugging on.
+    > @label/list myobject/cmd_test
+    @label: /list of all labels for attribute
+      Enable:[   1] watson
+      Disable:[   1] watson
+      Grep: sub(
+      Attrib Color: [TRACE_COLOR_WATSON] +pink
+  
+  { see 'help @label-example3' to finish with the tutorial }
+  
+& @label-example3
+  Command: @label/<switch> <label>=<target>:<start>,<end>
+  
+  Ok, we've finished debugging.  You can do multiple things here.  Leaving the
+  debugging in is fine, if it's not enabled it won't have much overhead
+  overall.  The other is you can remove the label.
+  --: Disabling the label which removes the label from debugging
+    > @label/disable myobject/watson
+    @label: /disable has disabled label 'watson'
+  --: Removing the label from the attribute entirely
+    > @label/delete watson=myobject/cmd_test
+    @label: /del removed label 'watson'.  1 enable, 1 disable.
+  --: Purging all labels entirely from the attribute
+    > @label/purge myobj/cmd_test
+    @label: /purge removed labels.  1 enable, 1 disable.
+            Removed: watson watson  (twice as it lists enable and disable)
+  
+  Let's test our command to make sure debugging is disabled.
+    > foo
+    201
+  
+  As shown, this allows some great flexibility to debug code on the fly
+  with pinpoint accuracy of where and how you want things to debug.
+  
+  There are more advanced features that are not covered in this basic
+  tutorial as this is meant to just get you started.  For more help
+  please check the following help entries:
+  
+  --: help %_      -- This will give you the total overview of how the label
+                      debugging engine works and what it is doing under
+                      the hood.  You do not need ot use @label at all to
+                      make use of this, but @label is intended as an easy
+                      front end to make it less... challanging.
+  
+  --: help %_var   -- These are the variables that are set when you interface
+                      with the @label comamnd.  You may set these manually
+                      if you so desire.
+  
+  --: help @label  -- The main front-end engine for the entire label debug
+                      system.  While you don't have to use it, it does make
+                      things a bit easier.
+  
+  See Also: @label, %_, %_var, TRACE, ruler()
 
 & @label2
   Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
