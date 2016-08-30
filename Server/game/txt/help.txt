@@ -3336,7 +3336,6 @@
     @label: /list of all labels for attribute
       Enable:[   1] watson
       Disable:[   1] watson
-      Grep: sub(
       Attrib Color: [TRACE_COLOR_WATSON] +pink
   
   { see 'help @label-example3' to finish with the tutorial }
