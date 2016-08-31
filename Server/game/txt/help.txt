@@ -30091,3 +30091,5 @@
   * fixed ruler() and introduced internal function for notify quiet to
     handle ansi [ASH]
   * enforce @label to use lowercase for all labels [ASH]
+  * objid took localtime instead of GMtime [ASH]
+    - NOTE:  For compatibility to existing behavior, set: objid_localtime 1

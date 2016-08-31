@@ -1505,7 +1505,7 @@ make_objid(dbref thing) {
    dbref aowner;
    int aflags;
    struct tm *ttm;
-   long l_offset;
+   long l_offset, mynow;
    double d_objid;
 
    if ( !Good_obj(thing) ) {
@@ -1519,10 +1519,21 @@ make_objid(dbref thing) {
    } else {
       atext = atr_get(thing, A_CREATED_TIME, &aowner, &aflags);
       if ( atext && *atext ) {
-         ttm = localtime(&mudstate.now);
+         if ( mudconf.objid_localtime ) {
+            ttm = localtime(&mudstate.now);
+         } else {
+            ttm = localtime(&mudstate.now);
+            mynow = mktime(ttm);
+            ttm = gmtime(&mudstate.now);
+            mynow -= mktime(ttm);
+         }
          l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
          if (do_convtime(atext, ttm)) {
-            d_objid = (double)(mktime64(ttm) + l_offset);
+            if ( mudconf.objid_localtime ) {
+               d_objid = (double)(mktime64(ttm) + l_offset);
+            } else {
+               d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+            }
             sprintf(s_return, "#%d:%.0f", thing, d_objid);
          } else {
             strcpy(s_return, (char *)"#-1");
@@ -17911,7 +17922,7 @@ FUNCTION(fun_strlen)
 FUNCTION(fun_objid) {
     dbref it, aowner;
     int aflags;
-    long l_offset;
+    long l_offset, mynow;
     double d_objid;
     char *atext;
     struct tm *ttm;
@@ -17938,10 +17949,21 @@ FUNCTION(fun_objid) {
     } else {
       atext = atr_get(it, A_CREATED_TIME, &aowner, &aflags);
       if ( atext && *atext ) {
-         ttm = localtime(&mudstate.now);
+         if ( mudconf.objid_localtime ) {
+            ttm = localtime(&mudstate.now);
+         } else {
+            ttm = localtime(&mudstate.now);
+            mynow = mktime(ttm);
+            ttm = gmtime(&mudstate.now);
+            mynow -= mktime(ttm);
+         }
          l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
          if (do_convtime(atext, ttm)) {
-            d_objid = (double)(mktime64(ttm) + l_offset);
+            if ( mudconf.objid_localtime ) {
+               d_objid = (double)(mktime64(ttm) + l_offset);
+            } else {
+               d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+            }
             sprintf(atext, "#%d:%.0f", it, d_objid);
             safe_str(atext, buff, bufcx);
             free_lbuf(atext);

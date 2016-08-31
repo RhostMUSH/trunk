@@ -61,6 +61,8 @@ Added RPAD and LPAD softcode wrappers
 				- Thanks Darren
 Dark exits were broken with sees()
 				- Thanks Mercutio
+objid's were based on localtime and not gmtime
+				- Thanks Fantom
 
 
 		         RhostMUSH 3.9.4 Update File

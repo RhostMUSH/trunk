@@ -3406,7 +3406,7 @@ parse_dbref_special(char *s) {
    int aflags;
    double y, z;
    struct tm *ttm;
-   long l_offset;
+   long l_offset, mynow;
    dbref aowner;
 #endif
 
@@ -3429,10 +3429,21 @@ parse_dbref_special(char *s) {
       }
       atext = atr_get(x, A_CREATED_TIME, &aowner, &aflags);
       if ( atext && *atext ) {
-         ttm = localtime(&mudstate.now);
+         if ( mudconf.objid_localtime ) {
+            ttm = localtime(&mudstate.now);
+         } else {
+            ttm = localtime(&mudstate.now);
+            mynow = mktime(ttm);
+            ttm = gmtime(&mudstate.now);
+            mynow -= mktime(ttm);
+         }
          l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
          if (do_convtime(atext, ttm)) {
-            y = (double)(mktime64(ttm) + l_offset);
+            if ( mudconf.objid_localtime ) {
+               y = (double)(mktime64(ttm) + l_offset);
+            } else {
+               y = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+            }
             z = safe_atof(q);
             if ( y == z ) {
                free_lbuf(atext);

@@ -5523,17 +5523,18 @@
   nodns_site               nonindxtxt_maxlines      noregist_onwho
   noshell_prog             nospam_connect           notify_recursion_limit
   notonerr_return          num_guests               oattr_enable_altname
-  oattr_uses_altname       offline_reg              old_elist
-  online_reg               open_cost                output_database
-  output_limit             page_cost                paranoid_allocate
-  paranoid_exit_linking    parent_follow            parentable_control_lock
-  partial_conn             partial_deconn           paycheck               
-  pcreate_paranoia         pemit_any_object         pemit_far_players      
-  penn_playercmds          penn_setq                penn_switches          
-  permit_site              player_attr_default      player_dark            
-  player_flags             player_listen            player_match_commands  
-  player_match_own_command player_name_spaces       player_parent          
-  player_queue_limit       player_quota           
+  oattr_uses_altname       objid_localtime          objid_offset
+  offline_reg              old_elist                online_reg               
+  open_cost                output_database          output_limit           
+  page_cost                paranoid_allocate        paranoid_exit_linking  
+  parent_follow            parentable_control_lock  partial_conn           
+  partial_deconn           paycheck                 pcreate_paranoia       
+  pemit_any_object         pemit_far_players        penn_playercmds        
+  penn_setq                penn_switches            permit_site            
+  player_attr_default      player_dark              player_flags           
+  player_listen            player_match_commands    player_match_own_command
+  player_name_spaces       player_parent            player_queue_limit     
+  player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -8307,6 +8308,28 @@
   
   See Also: oattr_enable_altname
 
+& objid_localtime
+  Config parameter: objid_localtime <yes/no>.  Default: NO
+  
+  Specifies if objid should evaluate based on localtime or GMtime.
+  Keep in mind if you set localtime it likely will not be portable
+  to a different server or if you change the time of the system
+  to another time.  Setting this to 'no' should make it compatible
+  regardless of the time of the server.
+  
+  See Also: objid_offset
+
+& objid_offset
+  Config parameter: objid_offset <value>.    Default: 0
+  
+  Specifies the offset to apply to objid references incase you wish
+  to move between systems and the normal method of GMtime doesn't
+  seem to fully work.  It's not uncommon to have it off by 3600
+  seconds based on some system settings.
+  
+  This is only meaningful if you have objid_localtime set to '0'.
+  
+  See Also: objid_localtime.
 & offline_reg
   Config parameter: offline_reg <yes/no>.  Default: NO
   
