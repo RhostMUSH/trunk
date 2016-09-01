@@ -3263,6 +3263,7 @@
     /disable - Disables label debugging of specific label
     /color   - Sets (or wipes) specific label
     /grep    - Sets (or wipes) grep patterning
+    /ruler   - works like ruler()
   
   For further explaination of label tracing:  help %_ 
   For the complete list of variables used:    help %_var
@@ -3286,8 +3287,9 @@
     Set.
   
   We need to see the positioning of the sub() function in our attribute.
-  For this, we can use the nifty ruler() function.
-    > think ruler(me/myobject,60)
+  For this, we can use the nifty @label/ruler command (or ruler() function)
+      (NOTE: think ruler(myobject/cmd_test,60) also works)
+    > @label/ruler myobject/cmd_test=60    
              | ---------|10-------|20-------|30-------|40-------|50-------|60 |
              | $foo:@pemit %#=[add(1,1)][sub(2,2)][div(3,3)]                  |
       0      | 123456789012345678901234567890123456789012345678901234567890   |
@@ -3444,6 +3446,12 @@
                'wipe' will remove it. If you specify the /regexp
                option it will also set the attribute REGEXP.
   
+  Syntax:  @label/ruler <object>/<attribute> [=<ruler value>]
+             - This will work just like ruler() does.  You may specify
+               an optional <ruler value>.  The rule value must be between
+               0 and 100 and must be a multiple of 10.  The default value
+               is '60' which fits inside a 79 column width.
+  
   { see 'help @label4' for examples }
 
 & @label4
@@ -3456,7 +3464,7 @@
   Examples:
     > @vd me=[add(1,1)][sub(2,2)][div(3,3)]
     Set.
-    > think [ruler(me/vd,60)]
+    > @label/ruler me/vd=60
            | ---------|10-------|20-------|30-------|40-------|50-------|60 |
            | [add(1,1)][sub(2,2)][div(3,3)]                                 |
     0      | 123456789012345678901234567890123456789012345678901234567890   |
@@ -30056,6 +30064,7 @@
   * change over from strtok to strtok_r throughout source code [ASH]
   * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
   * foreach() is now optionally ansi-aware [ASH]
+  * added /ruler to @label to mimic ruler() functionality [ASH]
     
   Bug Fixes
   ------------

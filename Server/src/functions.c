@@ -12149,6 +12149,11 @@ FUNCTION(fun_ruler) {
    }
    atr_gotten = atr_pget(thing, attrib, &aowner, &aflags);
    if (check_read_perms2(player, thing, attr, aowner, aflags)) {
+      if ( !atr_gotten || !*atr_gotten ) {
+         free_lbuf(atr_gotten);
+         safe_str("#-1 ATTRIBUTE NOT FOUND", buff, bufcx);
+         return;
+      }
       atr_padptr = atr_pad = alloc_lbuf("fun_ruler");
       for ( i=0; i < (i_mult / 10); i++ ) {
          safe_str(s_clrs[i], atr_pad, &atr_padptr);

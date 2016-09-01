@@ -861,6 +861,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define LABEL_DISABLE	64	/* Disable the given label */
 #define LABEL_COLOR	128	/* Set/clear color global or per label */
 #define LABEL_GREP	256	/* set grep for trace */
+#define LABEL_RULER	512	/* @label/ruler to work like ruler() */
 
 #define	PEMIT_PEMIT	1	/* emit to named player */
 #define	PEMIT_OEMIT	2	/* emit to all in current room except named */

@@ -50,6 +50,7 @@ extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern ATRP *atrp_head;
+extern void fun_ruler(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
 extern double FDECL(time_ng, (double*));
 extern void FDECL(populate_tor_seed, (void));
@@ -127,6 +128,7 @@ NAMETAB label_sw[] =
     {(char *) "disable", 2, CA_PUBLIC, 0, LABEL_DISABLE},
     {(char *) "color", 2, CA_PUBLIC, 0, LABEL_COLOR},
     {(char *) "grep", 2, CA_PUBLIC, 0, LABEL_GREP},
+    {(char *) "ruler", 2, CA_PUBLIC, 0, LABEL_RULER},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB hook_sw[] =
@@ -11672,7 +11674,7 @@ void
 do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
 {
    char *attrib, *attribtok, *s_text, *s_new, *s_newptr, *s_scratch, *s_new2, *s_new2ptr, 
-        *s_nerf, *s_nerfptr, *s_labelptr;
+        *s_nerf, *s_nerfptr, *s_labelptr, *s_array[3];
    dbref it, aowner;
    int atr, i_start, i_end, aflags, len, val, i_chk, i_new, i_new2, i_try;
    ATTR *a_atr;
@@ -12445,6 +12447,52 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               notify_quiet(player, "@label: /grep has no access to target's TRACE GREP attribute");
            }
            free_lbuf(s_scratch);
+           break;
+      case LABEL_RULER: /* @label/ruler #obj/attr */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /ruler switch expects <object>/<attribute> [=<ruler value>]");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /ruler switch requires argument in form <object>/<attribute>");
+              return;
+           }
+           if (!parse_attrib(player, s_label, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /ruler requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /ruler requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /ruler requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           if ( s_target && *s_target ) {
+              if ( !is_number(s_target) || (atoi(s_target) <= 0) || (atoi(s_target) > 100) || ((atoi(s_target) % 10) != 0) ) {
+                 notify_quiet(player, "@label: /ruler when specifying a ruler value expects between 0-100 in multiples of 10");
+                 free_lbuf(s_text);
+                 return;
+              }
+           }
+           i_new = 60;
+           if ( s_target && *s_target ) {
+              i_new = atoi(s_target);
+           }
+           s_array[0] = s_label;
+           s_array[1] = alloc_lbuf("label_array_1");
+           s_array[2] = (char *)NULL;
+           sprintf(s_array[1], "%d", i_new);
+           s_newptr = s_new = alloc_lbuf("label_array");
+           fun_ruler(s_new, &s_newptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+           notify_quiet(player, s_new);
+           free_lbuf(s_new);
+           free_lbuf(s_array[1]);
+           free_lbuf(s_text);
            break;
       case LABEL_PURGE: /* @label/purge #obj/attr */
            if ( !s_label || !*s_label || (s_target && *s_target) ) {
