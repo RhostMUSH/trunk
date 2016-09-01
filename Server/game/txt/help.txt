@@ -3425,13 +3425,13 @@
              - Will enable the given label to your trace output.  This
                essentially adds it to the 'TRACE' attribute.  This can
                optionally remove label-specified colors that are in
-               the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
+               the form 'TRACE_COLOR_LABEL' where 'LABEL' is the label.
   
   Syntax:  @label/disable <object>/<label> [=<color|wipe>]
              - Will remove the given label from your trace output.  This
                removes the label from the 'TRACE' attribute.  This can
                optionally remove label-specified colors that are in
-               the form 'TRACE_COLOR_LABEL where 'LABEL' is the label.
+               the form 'TRACE_COLOR_LABEL' where 'LABEL' is the label.
   
   Syntax:  @label/color <object>/<label|general> = <color|wipe>
              - This sets either the 'general' color defined by your
