@@ -319,6 +319,8 @@ NDECL(cf_init)
     mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
     mudconf.delim_null = 0;		/* Allow '@@' for null delims */
     mudconf.parent_follow = 1;		/* Parent allows following if you control target */
+    mudconf.objid_localtime = 0;	/* Objid's should use GMtime by default */
+    mudconf.objid_offset = 0;		/* seconds of offset that it should use */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4362,6 +4364,13 @@ CONF conftable[] =
     {(char *) "oattr_uses_altname",
      cf_string, CA_GOD, (int *) mudconf.oattr_uses_altname, 31, 0, CA_WIZARD,
      (char *) "Altname used for o-attributes."},
+    {(char *) "objid_localtime",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.objid_localtime, 0, 0, CA_WIZARD,
+     (char *) "Does objid's use localtime instead of gmtime?"},
+    {(char *) "objid_offset",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.objid_offset, 0, 0, CA_WIZARD,
+     (char *) "Offset in seconds from GMtime that objid's use.\r\n"\
+              "                             Default: 0   Value: %d"},
     {(char *) "offline_reg",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.offline_reg, 0, 0, CA_WIZARD,
      (char *) "Can you autoregister on the connect screen?"},
