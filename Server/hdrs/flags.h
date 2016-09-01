@@ -7,6 +7,7 @@
 
 #include "htab.h"
 #include "attrs.h"
+#include "utils.h"
 
 #define FLAG2	        0x1     /* Lives in extended flag word */
 #define FLAG3		0x2
@@ -906,6 +907,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #ifndef STANDALONE
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \
+                             (evlevchk(p,bittype(p)) ? mudstate.evalresult : 1) && \
 			     (Inherits(p) || !Inherits(x))) || \
                              could_doit(p,x,A_LTWINK,0,0)) && \
 			   ((Immortal(p) && !(((a)->flags & (AF_GOD)) || \
