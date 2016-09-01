@@ -12486,10 +12486,12 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
            s_array[0] = s_label;
            s_array[1] = alloc_lbuf("label_array_1");
            s_array[2] = (char *)NULL;
-           sprintf(s_array[1], "%d", i_new);
            s_newptr = s_new = alloc_lbuf("label_array");
+           sprintf(s_array[1], "@label: /ruler listing of '%.*s' with ruler size %d", LBUF_SIZE - 100, s_label, i_new);
+           notify_quiet(player, s_array[1]);
+           sprintf(s_array[1], "%d", i_new);
+           /* Fun-ruler is a sideeffect, no need to notify the output */
            fun_ruler(s_new, &s_newptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
-           notify_quiet(player, s_new);
            free_lbuf(s_new);
            free_lbuf(s_array[1]);
            free_lbuf(s_text);
