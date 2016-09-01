@@ -10707,7 +10707,8 @@
           %_<-label> -- disables debugging for <label>
           %_<off>    -- disables all debugging
   
-  You can have a total of 1000 label declarations total for processing.
+  You can have a total of 1000 label declarations total for processing per
+  command queue.
   
   The @label command can be used to integrate labels into attributes.
   
@@ -10716,8 +10717,9 @@
   This is handled by the enactors 'TRACE' attribute that houses the marker
   that you specify for the substitutions.  The marker can be any string.
   
-  You use - for the label to turn off debugging for that particular debug
-  marker.  For stacked debugging this will decrement the debug stack count.
+  You use - as a prefix for the label to turn off debugging for that 
+  particular debug marker.  For stacked debugging this will decrement the 
+  debug stack count.
    
   Using the <label> adds to the debug stack and using <-label> reduces one
   from the debug stack.  This allows you to essentially nest debugging
@@ -10750,8 +10752,10 @@
   the match.  If the TRACE_GREP attribute is attribute-set REGEXP, 
   it will take the string as a regexp match.
   
-  Keep in mind, the various &TRACE attributes need to be on the enactor,
-  not the thing executing the code.  It will behave like the TRACE flag.
+  Keep in mind, the various &TRACE attributes need to be on the executor,
+  not the object enacting the command.  It will behave like the TRACE flag.
+  So all attributes (like &TRACE) need to be on the target that you 
+  have the labels on.
    
   Examples:
     > &TRACE me=123

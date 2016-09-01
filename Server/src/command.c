@@ -12030,7 +12030,7 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
                  s_text = atr_get(it, a_atr->number, &aowner, &aflags);
                  if ( *s_text ) {
                     if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
-                       sprintf(s_scratch, "  Trace: %.*s", LBUF_SIZE - 100, s_text);
+                       sprintf(s_scratch, "  Trace Labels: %.*s", LBUF_SIZE - 100, s_text);
                        notify_quiet(player, s_scratch);
                     }
                  }
