@@ -63,6 +63,10 @@ Dark exits were broken with sees()
 				- Thanks Mercutio
 objid's were based on localtime and not gmtime
 				- Thanks Fantom
+Bug in safer_ufun with setting attributes on self and permissions with u().
+				- Thanks Mike/Talvo
+Improvement of help entries for @label and various documentation fixes.
+				- Thanks Mike/Talvo
 
 
 		         RhostMUSH 3.9.4 Update File
