@@ -28,6 +28,56 @@ extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, in
 extern int count_chars(const char *, const char c);
 static void set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
 
+int
+allowed_to_lock( dbref player, int aflags, int key)
+{
+   int i_return, i_enactor, i_thing;
+   ATTR *ap;
+
+   i_return = 1;
+   ap = atr_num(key);
+   if ( (aflags != 0) || (ap && (ap->flags != 0))  ) {
+
+      /* Establish the power of the enactor */
+      if ( God(player) ) {
+         i_enactor = 7;
+      } else if ( Immortal(player) ) {
+         i_enactor = 6;
+      } else if ( Wizard(player) ) {
+         i_enactor = 5;
+      } else if ( Admin(player) ) {
+         i_enactor = 4;
+      } else if ( Builder(player) ) {
+         i_enactor = 3;
+      } else if ( Guildmaster(player) ) {
+         i_enactor = 2;
+      } else {
+         i_enactor = 1;
+      }
+
+      /* Establish the power of the lock */
+      if ( (aflags & AF_GOD) || (ap && (ap->flags & AF_GOD)) ) {
+         i_thing = 7;
+      } else if ( (aflags & AF_IMMORTAL) || (ap && (ap->flags & AF_IMMORTAL)) ) {
+         i_thing = 6;
+      } else if ( (aflags & AF_WIZARD) || (ap && (ap->flags & AF_WIZARD)) ) {
+         i_thing = 5;
+      } else if ( (aflags & AF_ADMIN) || (ap && (ap->flags & AF_ADMIN)) ) {
+         i_thing = 4;
+      } else if ( (aflags & AF_BUILDER) || (ap && (ap->flags & AF_BUILDER)) ) {
+         i_thing = 3;
+      } else if ( (aflags & AF_GUILDMASTER) || (ap && (ap->flags & AF_GUILDMASTER)) ) {
+         i_thing = 2;
+      } else {
+         i_thing = 1;
+      }
+      if ( i_enactor < i_thing ) {
+         i_return = 0;
+      }
+   }
+   return(i_return);
+}
+
 dbref match_controlled(dbref player, const char *name)
 {
 dbref	mat;
@@ -346,6 +396,23 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       return;
    }
 
+   if (!key) {
+      key = A_LOCK;
+   }
+
+   /* Check flags of lock to flags of enactor */
+   if ( atr_get_info(thing, key, &aowner, &aflags) ) {
+      if ( !allowed_to_lock(player, aflags, key) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
+   } else {
+      if ( !allowed_to_lock(player, 0, key) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
+   }
+
    if( key == A_LTWINK && Typeof(thing) == TYPE_PLAYER ) {
       notify_quiet(player, "Warning: Setting a TwinkLock on a player is generally not a good idea.");
    }
@@ -355,8 +422,6 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       notify_quiet(player, "I don't understand that key.");
    } else {
       /* everything ok, do it */
-      if (!key)
-         key = A_LOCK;
       if ( mudconf.enable_tstamps && !NoTimestamp(thing) ) {
          time(&tt);
          bufr = (char *) ctime(&tt);
@@ -365,6 +430,8 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       }
 
       atr_add_raw(thing, key, unparse_boolexp_quiet(player, okey));
+      atr_set_flags(thing, key, aflags);
+
       if (!Quiet(player) && !Quiet(thing)) {
          if ( TogNoisy(player) ) { 
             for ( nt = lock_sw; nt && nt->name; nt++ ) {
@@ -373,9 +440,9 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
             }
             bufr = alloc_lbuf("mbuf_lock_noisy");
             if ( nt && nt->name ) {
-               sprintf(bufr, "Locked - %s/%s.", Name(thing), nt->name);
+               sprintf(bufr, "Locked - %s/%s", Name(thing), nt->name);
             } else {
-               sprintf(bufr, "Locked - %s/%s.", Name(thing), (char*)"(UNKNOWN)");
+               sprintf(bufr, "Locked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
             }
             notify_quiet(player, bufr);
             free_lbuf(bufr);
@@ -444,13 +511,28 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
       }
    }
     
-   if (!key)
+   if (!key) {
       key = A_LOCK;
+   }
+
    if ((thing = match_controlled(player, name)) != NOTHING) {
       if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
          notify_quiet(player, "Permission denied.");
          return;
       }
+      /* Check flags of lock to flags of enactor */
+      if ( atr_get_info(thing, key, &aowner, &aflags) ) {
+         if ( !allowed_to_lock(player, aflags, key) ) {
+            notify_quiet(player, "Permission denied.");
+            return;
+         }
+      } else {
+         if ( !allowed_to_lock(player, 0, key) ) {
+            notify_quiet(player, "Permission denied.");
+            return;
+         }
+      }
+
       atr_clr(thing, key);
       if (!Quiet(player) && !Quiet(thing)) {
          if ( TogNoisy(player) ) {
@@ -460,9 +542,9 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
             }
             bufr = alloc_lbuf("mbuf_lock_noisy");
             if ( nt && nt->name ) {
-               sprintf(bufr, "Unlocked - %s/%s.", Name(thing), nt->name);
+               sprintf(bufr, "Unlocked - %s/%s", Name(thing), nt->name);
             } else {
-               sprintf(bufr, "Unlocked - %s/%s.", Name(thing), (char*)"(UNKNOWN)");
+               sprintf(bufr, "Unlocked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
             }
             notify_quiet(player, bufr);
             free_lbuf(bufr);
@@ -827,6 +909,12 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
    return val;
 }
 
+void ext_set_attr_internal (dbref player, dbref thing, int attrnum, 
+			char *attrtext, int key, dbref cause, int *val, int i_chk)
+{
+   set_attr_internal(player, thing, attrnum, attrtext, key, cause, val, i_chk);
+}
+
 static void set_attr_internal (dbref player, dbref thing, int attrnum, 
 			char *attrtext, int key, dbref cause, int *val, int i_chk)
 {
@@ -947,9 +1035,9 @@ ATTR	*attr;
             if ( (key & SET_NOISY) || TogNoisy(player) ) {
                tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
                if ( *attrtext )
-                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s.",Name(thing),attr->name));
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s",Name(thing),attr->name));
                else
-                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared).",Name(thing),attr->name));
+                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared)",Name(thing),attr->name));
                free_lbuf(tpr_buff);
             } else
                notify_quiet(player, "Set.");
@@ -1126,7 +1214,135 @@ POWENT *tp;
 	  depower_set(thing, player, power, key);
 }
 
-void do_set(dbref player, dbref cause, int key, char *name, char *flag)
+
+void 
+do_lset(dbref player, dbref cause, int key, char *name, char *flag)
+{
+   dbref it, aowner;
+   int nomtest, flagvalue, aflags, i_clear, i_again;
+   char *s_buff, *s_buffptr;
+   ATTR *attr;
+
+   /* @lset, @lset/list, */
+   if ( !name || !*name ) {
+      notify(player, "I don't see that here.");
+      return;
+   }
+   if ( (key & LSET_LIST) && flag && *flag ) {
+      notify(player, "@lset/list does not take flag argument.");
+      return;
+   }
+   if ( !(key & LSET_LIST) && !(flag && *flag) ) {
+      notify(player, "@lset without /list expects a flag to set or unset.");
+      return;
+   }
+   i_clear = 0;
+   if ( *flag == NOT_TOKEN ) {
+      flag++;
+      i_clear = 1;
+   }
+   if ( !(key & LSET_LIST) && !(flag && *flag) ) {
+      notify(player, "@lset without /list expects a flag to set or unset.");
+      return;
+   }
+
+   s_buffptr = s_buff = alloc_lbuf("do_lset");
+   if ( !get_obj_and_lock(player, name, &it, &attr, s_buff, &s_buffptr) ) {
+      notify(player, s_buff);
+      free_lbuf(s_buff);
+      return;
+   }
+   free_lbuf(s_buff);
+
+   if ( !atr_get_info(it, attr->number, &aowner, &aflags)) {
+      notify(player, "Lock not on target.");
+      return;
+   }
+
+   nomtest = ( (NoMod(it) && !WizMod(player)) ||
+               (DePriv(player,Owner(it),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(it))) ||
+               (Backstage(player) && NoBackstage(it) && !Immortal(player)));
+
+   if ( !nomtest && 
+        ( God(player) || (!God(it) && Set_attr(player, player, attr, 0) && Controls(player, aowner)) ||
+          (!God(it) && Set_attr(player, player, attr, 0) && Controls(player, it) &&
+          (Wizard(player) || (Admin(player) && !Wizard(it)) || (aowner == Owner(player)))) ) ) {
+
+      if ( key & LSET_LIST ) {
+         s_buffptr = s_buff = alloc_lbuf("do_lset");
+         if ( aflags & AF_GOD ) {
+            safe_str("god ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_IMMORTAL ) {
+            safe_str("immortal ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_WIZARD ) {
+            safe_str("royalty ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_ADMIN ) {
+            safe_str("councilor ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_BUILDER ) {
+            safe_str("architect ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_GUILDMASTER ) {
+            safe_str("guildmaster ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_MDARK ) {
+            safe_str("hidden ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_PRIVATE ) {
+            safe_str("no_inherit ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_VISUAL ) {
+            safe_str("visual ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_PINVIS ) {
+            safe_str("pinvisible ", s_buff, &s_buffptr);
+         }
+         if ( aflags & AF_NOCLONE ) {
+            safe_str("noclone ", s_buff, &s_buffptr);
+         }
+         s_buffptr = alloc_lbuf("do_lset_format");
+         if ( !*s_buff ) {
+            strcpy(s_buff, (char *)"No additional flags set.");
+         }
+         sprintf(s_buffptr, "@lset: [%s] on %s(#%d): %s", 
+                 attr->name, Name(it), it, s_buff);
+         notify(player, s_buffptr);
+         free_lbuf(s_buff);
+         free_lbuf(s_buffptr);
+      } else {
+         flagvalue = search_nametab(player, indiv_attraccess_nametab, flag);
+         if ( (flagvalue == -1) || !(LSET_FLAGS & flagvalue) ) {
+            notify_quiet(player, "You can't set that!");
+         } else {
+            i_again = aflags;
+            if ( i_clear ) {
+               i_again = !( aflags & flagvalue );
+               aflags &= ~flagvalue;
+            } else {
+               i_again = ( aflags & flagvalue );
+               aflags |= flagvalue;
+            }
+            atr_set_flags(it, attr->number, aflags);
+            s_buff = alloc_lbuf("do_lset");
+            sprintf(s_buff, "@lset: [%s] %s%s%s on %s(#%d)", 
+                    attr->name, (i_clear ? "cleared" : "set"), 
+                    (i_again ? " (again) " : " "), 
+                    give_name_aflags(player, cause, flagvalue), Name(it), it);
+            notify(player, s_buff);
+            free_lbuf(s_buff);
+         }
+      }
+   } else {
+      notify(player, "Permission denied.");
+   }
+}
+
+
+void 
+do_set(dbref player, dbref cause, int key, char *name, char *flag) 
 {
 dbref	thing, thing2, aowner;
 char	*p, *buff, *tpr_buff, *tprp_buff, *buff2ret;
@@ -1900,7 +2116,7 @@ void do_edit(dbref player, dbref cause, int key, char *it,
 		char *args[], int nargs)
 {
 dbref	thing, aowner, aowner2;
-int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat;
+int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat, i_tog;
 char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff;
 ATTR	*ap;
 OBLOCKMASTER master;
@@ -2035,8 +2251,19 @@ OBLOCKMASTER master;
 								   ap->name,
 								   result));
                                                 } else {
-						   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s - %s: %s",
+                                                   i_tog = abs(strcmp(atext, retresult));
+						   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s - %s: %s",
+#ifdef ZENTY_ANSI
+                                                                   (i_tog ? SAFE_ANSI_HILITE : SAFE_ANSI_NORMAL),
+#else
+                                                                   (i_tog ? ANSI_HILITE : ANSI_NORMAL),
+#endif
 								   (editchk ? "Check" : "Set"),
+#ifdef ZENTY_ANSI
+                                                                   SAFE_ANSI_NORMAL,
+#else
+                                                                   ANSI_NORMAL,
+#endif
 								   ap->name,
 								   retresult));
                                                 }

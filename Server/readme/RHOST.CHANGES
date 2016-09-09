@@ -49,6 +49,24 @@ crashbug on random error messages if error.txt was empty
 				- Thanks Darren
 compile issue when you do not have sideeffects enabled at comiletime
 				- Thanks benzaiten
+Idea for /quiet for @pipe
+				- Thanks Ixokai
+Missing showing PARIS mode enabled in WHO/DOING for @list options
+				- Thanks Myrddin
+El Capitan 10.11.5 would not compile cleanly out of the box due to sudden header file location changes.
+				- Thanks Darren
+Main Makefile no longer worked on latest FreeBSD because of their change from gmake.
+				- Thanks Oleo
+Added RPAD and LPAD softcode wrappers
+				- Thanks Darren
+Dark exits were broken with sees()
+				- Thanks Mercutio
+objid's were based on localtime and not gmtime
+				- Thanks Fantom
+Bug in safer_ufun with setting attributes on self and permissions with u().
+				- Thanks Mike/Talvo
+Improvement of help entries for @label and various documentation fixes.
+				- Thanks Mike/Talvo
 
 
 		         RhostMUSH 3.9.4 Update File

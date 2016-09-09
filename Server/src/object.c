@@ -205,7 +205,7 @@ create_obj(dbref player, int objtype, char *name, int cost)
     int quota, okname, value, self_owned, require_inherit, intarray[4], aflags, i;
     FLAG f1, f2, f3, f4, t1, t2, t3, t4, t5, t6, t7, t8;
     time_t tt;
-    char *buff, *lastcreatebuff, *p, *tpr_buff, *tprp_buff;
+    char *buff, *lastcreatebuff, *p, *tpr_buff, *tprp_buff, *tstrtokr;
     const char *tname;
 
     if (DePriv(player, NOTHING, DP_CREATE, POWER6, POWER_LEVEL_NA)) {
@@ -568,9 +568,9 @@ create_obj(dbref player, int objtype, char *name, int cost)
     } else {
        for (i = 0; i < 4; i++)
           intarray[i] = -1;
-       for (p = (char *) strtok(lastcreatebuff, " "), i = 0;
+       for (p = (char *) strtok_r(lastcreatebuff, " ", &tstrtokr), i = 0;
             p && (i < 4);
-            p = (char *) strtok(NULL, " "), i++) {
+            p = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
            intarray[i] = atoi(p);
        }
        switch( objtype ) {

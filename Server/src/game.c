@@ -661,7 +661,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                       free_lbuf(s_pipebuff);
                       if ( i_pipetype == 0 ) {
                          free_lbuf(s_pipeattr);
-                         if ( TogNoisy(target) )
+                         if ( !Quiet(target) && TogNoisy(target) )
                             raw_notify(target, (char *)"Piping output to attribute.", 0, 1);
 	                 mudstate.ntfy_nest_lev--;
 	                 VOIDRETURN; /* #75 */

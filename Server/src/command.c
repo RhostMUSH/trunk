@@ -33,6 +33,7 @@ char *index(const char *, int);
 #include "debug.h"
 #define FILENUM COMMAND_C
 
+extern void parse_lattr(char *, char **, dbref, dbref, dbref, char **, int, char **, int, char *, int, int);
 extern char * attrib_show(char *, int);
 extern void display_perms(dbref, int, int, char *);
 extern void del_perms(dbref, char *, char *, char **, int);
@@ -49,6 +50,7 @@ extern dbref       FDECL(match_thing, (dbref, char *));
 extern void cf_log_syntax(dbref, char *, const char *, char *);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern ATRP *atrp_head;
+extern void fun_ruler(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
 extern double FDECL(time_ng, (double*));
 extern void FDECL(populate_tor_seed, (void));
@@ -113,6 +115,20 @@ NAMETAB type_sw[] =
     {(char *) "exit", 1, CA_PUBLIC, 0, TYPE_EXIT},
     {(char *) "room", 1, CA_PUBLIC, 0, TYPE_ROOM},
     {(char *) "other", 1, CA_PUBLIC, 0, TYPE_MASK},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB label_sw[] =
+{
+    {(char *) "add", 1, CA_PUBLIC, 0, LABEL_ADD},
+    {(char *) "delete", 2, CA_PUBLIC, 0, LABEL_DEL},
+    {(char *) "list", 1, CA_PUBLIC, 0, LABEL_LIST},
+    {(char *) "purge", 1, CA_PUBLIC, 0, LABEL_PURGE},
+    {(char *) "try", 1, CA_PUBLIC, 0, LABEL_TRY|SW_MULTIPLE},
+    {(char *) "enable", 1, CA_PUBLIC, 0, LABEL_ENABLE},
+    {(char *) "disable", 2, CA_PUBLIC, 0, LABEL_DISABLE},
+    {(char *) "color", 2, CA_PUBLIC, 0, LABEL_COLOR},
+    {(char *) "grep", 2, CA_PUBLIC, 0, LABEL_GREP},
+    {(char *) "ruler", 2, CA_PUBLIC, 0, LABEL_RULER},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB hook_sw[] =
@@ -554,7 +570,7 @@ NAMETAB lock_sw[] =
     {(char *) "givetolock", 5, CA_PUBLIC, 0, A_LGIVETO},
     {(char *) "getfromlock", 3, CA_PUBLIC, 0, A_LGETFROM},
     {(char *) "chownlock", 3, CA_PUBLIC, 0, A_LCHOWN},
-    {(char *) "basic", 2, CA_PUBLIC, 0, 0},
+    {(char *) "basic", 2, CA_PUBLIC, 0, A_LOCK},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB zone_sw[] = 
@@ -585,6 +601,11 @@ NAMETAB smell_sw[] =
 NAMETAB look_sw[] =
 {
     {(char *) "outside", 1, CA_PUBLIC, 0, LOOK_OUTSIDE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB lset_sw[] =
+{
+    {(char *) "list", 1, CA_PUBLIC, 0, LSET_LIST},
     {NULL, 0, 0, 0, 0}};
 
 /* MMMail mail switch */
@@ -781,6 +802,7 @@ NAMETAB pipe_sw[] =
     {(char *) "off", 1, CA_PUBLIC, 0, PIPE_OFF},
     {(char *) "tee", 1, CA_PUBLIC, 0, PIPE_TEE},
     {(char *) "status", 1, CA_PUBLIC, 0, PIPE_STATUS},
+    {(char *) "quiet", 1, CA_PUBLIC, 0, PIPE_QUIET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pemit_sw[] =
@@ -967,10 +989,12 @@ NAMETAB site_sw[] =
 NAMETAB snapshot_sw[] =
 {
   {(char *) "load", 2, CA_IMMORTAL, 0, SNAPSHOT_LOAD},
-  {(char *) "unload", 2, CA_IMMORTAL, 0, SNAPSHOT_UNLOAD},
+  {(char *) "unload", 3, CA_IMMORTAL, 0, SNAPSHOT_UNLOAD},
   {(char *) "list", 2, CA_IMMORTAL, 0, SNAPSHOT_LIST},
   {(char *) "delete", 2, CA_IMMORTAL, 0, SNAPSHOT_DEL},
   {(char *) "verify", 2, CA_IMMORTAL, 0, SNAPSHOT_VERIFY},
+  {(char *) "unall", 3, CA_IMMORTAL, 0, SNAPSHOT_UNALL},
+  {(char *) "overwrite", 2, CA_IMMORTAL, 0, SNAPSHOT_OVER | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}};
 
   /* snoop code -Thorin */
@@ -1254,6 +1278,8 @@ CMDENT command_table[] =
      0, do_include},
     {(char *) "@kick", kick_sw, CA_WIZARD, 0,
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
+    {(char *) "@label", label_sw, CA_GBL_INTERP, CA_NO_CODE,
+     0, CS_TWO_ARG | CS_INTERP, 0, do_label},
     {(char *) "@last", NULL, CA_NO_GUEST, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_last},
     {(char *) "@lfunction", lfunction_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,
@@ -1272,6 +1298,7 @@ CMDENT command_table[] =
 /* Removed CA_GBL_BUILD from @lock : ASH 08/23/98 */
     {(char *) "@lock", lock_sw, CA_NO_SLAVE, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_lock},
+    {(char *) "@lset", lset_sw, CA_NO_SLAVE | CA_NO_GUEST, 0, 0, CS_TWO_ARG, 0, do_lset},
     {(char *) "@mark", mark_sw, CA_WIZARD, 0,
      SRCH_MARK, CS_ONE_ARG | CS_NOINTERP, 0, do_search},
     {(char *) "@mark_all", markall_sw, CA_WIZARD, 0,
@@ -1553,6 +1580,8 @@ CMDENT command_table[] =
     {(char *) NULL, NULL, 0, 0, 0, 0, 0, NULL}
 };
 
+extern void ext_set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
+
 CMDENT *prefix_cmds[256];
 
 CMDENT *goto_cmdp;
@@ -1692,6 +1721,40 @@ newlist2arr(char *arr[], int maxlen, char *list, char sep)
         arr[i] = p;
     }
     return i;
+}
+
+static int
+check_read_perms2(dbref player, dbref thing, ATTR * attr,
+                  int aowner, int aflags)
+{
+    int see_it;
+
+    /* If we have explicit read permission to the attr, return it */
+
+    if (See_attr_explicit(player, thing, attr, aowner, aflags))
+       return 1;
+
+    /* If we are nearby or have examine privs to the attr and it is
+     * visible to us, return it.
+     */
+
+    if ( thing == GOING || thing == AMBIGUOUS || !Good_obj(thing))
+        return 0;
+    see_it = See_attr(player, thing, attr, aowner, aflags, 0);
+    if ((Examinable(player, thing) || nearby(player, thing))) /* && see_it) */
+       return 1;
+    /* For any object, we can read its visible attributes, EXCEPT
+     * for descs, which are only visible if read_rem_desc is on.
+     */
+
+    if (see_it) {
+       if (!mudconf.read_rem_desc && (attr->number == A_DESC)) {
+          return 0;
+       } else {
+          return 1;
+       }
+    }
+    return 0;
 }
 
 void 
@@ -2696,7 +2759,7 @@ process_command(dbref player, dbref cause, int interactive,
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
-    char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff;
+    char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff, *tstrtokr;
     dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, targetlist[LBUF_SIZE], i_apowner;
     CMDENT *cmdp;
     ZLISTNODE *zonelistnodeptr;
@@ -2797,10 +2860,10 @@ process_command(dbref player, dbref cause, int interactive,
           spamowner = player;
        spamX = atr_get(spamowner, A_SPAMPROTECT, &aownerX, &aflagsX);
        if ( spamX && *spamX ) {
-          spamXptr = strtok(spamX, " ");
+          spamXptr = strtok_r(spamX, " ", &tstrtokr);
           if ( spamXptr && *spamXptr ) {
              spamtimeX = atoi(spamXptr);
-             spamXptr = strtok(NULL, " ");
+             spamXptr = strtok_r(NULL, " ", &tstrtokr);
              if ( spamXptr && *spamXptr )
                 spamcntX = atoi(spamXptr);
              else
@@ -2955,7 +3018,7 @@ process_command(dbref player, dbref cause, int interactive,
 #else
        cut_str_log = alloc_lbuf("process_command.LOG.enhanced");
        strcpy(cut_str_log, command);
-       cut_str_logptr = strtok(cut_str_log, " \t");
+       cut_str_logptr = strtok_r(cut_str_log, " \t", &tstrtokr);
        safe_str(cut_str_logptr, log_indiv, &log_indiv_ptr);
        free_lbuf(cut_str_log);
 #endif
@@ -5005,7 +5068,7 @@ CF_HAND(cf_attr_access)
 
 CF_HAND(cf_cmd_alias)
 {
-    char *alias, *orig, *ap, *p, *tpr_buff, *tprp_buff;
+    char *alias, *orig, *ap, *p, *tpr_buff, *tprp_buff, *tstrtokr;
 
     CMDENT *cmdp, *cp;
     ALIASENT *aliasp, *alias2p;
@@ -5016,8 +5079,8 @@ CF_HAND(cf_cmd_alias)
     int key = 0, perms = 0, perms2 = 0;
     DPUSH; /* #40 */
 
-    alias = strtok(str, " \t=,");
-    orig = strtok(NULL, " \t=,");
+    alias = strtok_r(str, " \t=,", &tstrtokr);
+    orig = strtok_r(NULL, " \t=,", &tstrtokr);
     
 
     retval = 0;
@@ -5653,6 +5716,11 @@ list_options_system(dbref player)
     notify(player, "The COMMAND flag ----------------------------------------------- ENABLED");
 #else
     notify(player, "The COMMAND flag ----------------------------------------------- DISABLED");
+#endif
+#ifdef PARIS
+    notify(player, "The WHO/DOING command is using the alternate format [paris]----- ENABLED");
+#else
+    notify(player, "The WHO/DOING command is using the alternate format [paris]----- DISABLED");
 #endif
 #ifdef EXPANDED_QREGS
     notify(player, "A-Z setq registers --------------------------------------------- ENABLED");
@@ -6423,6 +6491,9 @@ list_options(dbref player)
        notify(player, "lcon()/xcon() obeys dark/unfindable flags.");
 #ifdef ENABLE_COMMAND_FLAG
     notify(player, "$commands require the COMMANDS flag to work.");
+#endif
+#ifdef PARIS
+    notify(player, "PARIS mode WHO/DOING (alternate who) is enabled.");
 #endif
      
 #ifdef USE_SIDEEFFECT
@@ -7389,7 +7460,7 @@ list_functionperms(dbref player, char *s_mask, int key)
 static void
 list_logcommands(dbref player)
 {
-   char tbuff[1000], *strtok_tbuff;
+   char tbuff[1000], *strtok_tbuff, *tstrtokr;
    char tbuff1[2][40], tbuff2[80];
    int i_cntr;
 
@@ -7400,14 +7471,14 @@ list_logcommands(dbref player)
    notify(player, "----------------------------------------"\
                   "----------------------------------------");
    memset(tbuff1, 0, sizeof(tbuff1));
-   strtok_tbuff = strtok(tbuff, " \t");
+   strtok_tbuff = strtok_r(tbuff, " \t", &tstrtokr);
    while ( strtok_tbuff != NULL ) {
       if ( (i_cntr != 0) && ((i_cntr % 2) == 0) ) {
          sprintf(tbuff2, "%-.39s %-.39s", tbuff1[0], tbuff1[1]);
          notify(player, tbuff2);
       }
       sprintf(tbuff1[i_cntr % 2], "%-38.38s ", strtok_tbuff);
-      strtok_tbuff = strtok(NULL, " \t");
+      strtok_tbuff = strtok_r(NULL, " \t", &tstrtokr);
       i_cntr++;
    }
    if ( i_cntr == 0 )
@@ -7429,7 +7500,7 @@ static void
 list_guestparse(dbref player)
 {
    char *instrptr, instr[1001], chrbuff[15], guestbuff[10], dodbref[40], tonchr;
-   char *tpr_buff, *tprp_buff;
+   char *tpr_buff, *tprp_buff, *tstrtokr;
    int cntr; 
    dbref validplr;
   
@@ -7444,7 +7515,7 @@ list_guestparse(dbref player)
       notify(player, unsafe_tprintf("%-15.15s %-20.20s %-s", "---------------", "--------------------", 
                      "----------------------------------------"));
       cntr = 1;
-      instrptr = strtok(instr, " \t");
+      instrptr = strtok_r(instr, " \t", &tstrtokr);
       while ( instrptr != NULL && (cntr < 32 )) {
          sprintf(chrbuff, "Guest #%d", cntr);
          validplr = lookup_player(player, instrptr, 0);
@@ -7467,7 +7538,7 @@ list_guestparse(dbref player)
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-15.15s %-20.20s %-s", chrbuff, instrptr, "No"));
          }
          cntr++;
-         instrptr = strtok(NULL, " \t");
+         instrptr = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( cntr <= mudconf.max_num_guests ) {
          while ( (cntr <= mudconf.max_num_guests) && (cntr < 32) ) {
@@ -7501,7 +7572,7 @@ list_guestparse(dbref player)
       notify(player, unsafe_tprintf("%-15.15s %-20.20s", "Guest Number", "Guest Name"));
       notify(player, unsafe_tprintf("%-15.15s %-20.20s", "---------------", "--------------------"));
       cntr = 1;
-      instrptr = strtok(instr, " \t");
+      instrptr = strtok_r(instr, " \t", &tstrtokr);
       while ( instrptr != NULL && (cntr < 32 )) {
          sprintf(chrbuff, "Guest #%d", cntr);
          validplr = lookup_player(player, instrptr, 0);
@@ -7513,7 +7584,7 @@ list_guestparse(dbref player)
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-15.15s %-20.20s", chrbuff, instrptr));
          }
          cntr++;
-         instrptr = strtok(NULL, " \t");
+         instrptr = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( cntr <= mudconf.max_num_guests ) {
          while ( (cntr <= mudconf.max_num_guests) && (cntr < 32) ) {
@@ -7760,8 +7831,12 @@ extern NAMETAB logdata_nametab[];
 void 
 do_list(dbref player, dbref cause, int extra, char *arg)
 {
-    int flagvalue, p_val, i;
-    char *s_ptr, *s_ptr2, *tpr_buff, *tprp_buff, *save_buff;
+    int flagvalue, p_val;
+    char *s_ptr, *s_ptr2, *save_buff, *tstrtokr;
+#ifndef NODEBUGMONITOR
+    int i;
+    char *tpr_buff, *tprp_buff;
+#endif
 
     DPUSH; /* #57 */
 
@@ -7773,9 +7848,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
        s_ptr++; 
     save_buff = alloc_lbuf("do_list_save");
     sprintf(save_buff, "%.3900s", s_ptr);
-    s_ptr = strtok(arg, " ");
+    s_ptr = strtok_r(arg, " ", &tstrtokr);
     if ( s_ptr )
-       s_ptr2 = strtok(NULL, " ");
+       s_ptr2 = strtok_r(NULL, " ", &tstrtokr);
     flagvalue = search_nametab(player, list_names, s_ptr);
     switch (flagvalue) {
     case LIST_ALLOCATOR:
@@ -7826,7 +7901,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               else
                  notify(player, "MySQL has been enabled.");
            } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
-              s_ptr = strtok(NULL, " ");
+              s_ptr = strtok_r(NULL, " ", &tstrtokr);
               if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
                  s_ptr = (char *)NULL;
@@ -7834,7 +7909,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
                  p_val = 0;
               list_options_boolean_parse(player, p_val, s_ptr);
            } else if ( stricmp(s_ptr2, "values") == 0 ) {
-              s_ptr = strtok(NULL, " ");
+              s_ptr = strtok_r(NULL, " ", &tstrtokr);
               if ( s_ptr && is_integer(s_ptr) ) {
                  p_val = atoi(s_ptr);
                  s_ptr = (char *)NULL;
@@ -8082,7 +8157,7 @@ void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char
 void do_limit(dbref player, dbref cause, int key, char *name,
                 char *args[], int nargs)
 {
-   char *s_chkattr, *s_buffptr, *s_newmbuff;
+   char *s_chkattr, *s_buffptr, *s_newmbuff, *tstrtokr;
    int aflags, i_array[LIMIT_MAX], i, i_newval, i_d_default, i_v_default, i_wizcheck;
    dbref aowner, target;
 
@@ -8098,9 +8173,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       if ( *s_chkattr ) {
          i_array[0] = i_array[2] = 0;
          i_array[4] = i_array[1] = i_array[3] = -2;
-         for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+         for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
               s_buffptr && (i < LIMIT_MAX);
-              s_buffptr = (char *) strtok(NULL, " "), i++) {
+              s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
              i_array[i] = atoi(s_buffptr);
          }
          if ( i_array[3] == -2 ) {
@@ -8171,9 +8246,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       i_array[0] = i_array[2] = 0;
       i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
-         for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+         for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
             s_buffptr && (i < LIMIT_MAX);
-            s_buffptr = (char *) strtok(NULL, " "), i++) {
+            s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
             i_array[i] = atoi(s_buffptr);
          }
       }
@@ -8233,9 +8308,9 @@ void do_limit(dbref player, dbref cause, int key, char *name,
       i_array[0] = i_array[2] = 0;
       i_array[4] = i_array[1] = i_array[3] = -2;
       if ( *s_chkattr ) {
-         for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+         for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
             s_buffptr && (i < LIMIT_MAX);
-            s_buffptr = (char *) strtok(NULL, " "), i++) {
+            s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
             i_array[i] = atoi(s_buffptr);
          }
       }
@@ -9329,10 +9404,6 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
    int old_trainmode, x, i_breakst, forcehalted_state;
 
-   //if ( mudstate.sudo_cntr >= 1 ) {
-   //   notify(player, "You can't nest @sudo.");
-   //   return;
-   //}
    if ( !s_command || !*s_command ) {
       return;
    }
@@ -9346,6 +9417,12 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    }
    if ( !Good_chk(target) || !Controls(player, target) ) {
       notify(player, "Permission denied.");
+      return;
+   }
+
+   if ( ((cause != Owner(target)) && (HasPriv(target,player,POWER_NOFORCE,POWER3,NOTHING) || 
+        DePriv(player,target,DP_FORCE,POWER6,NOTHING)))) { 
+      notify(player,"Permission denied.");
       return;
    }
 
@@ -9426,9 +9503,14 @@ do_pipe(dbref player, dbref cause, int key, char *name)
 {
    ATTR *atr, *atr2;
    dbref aowner;
-   int aflags, anum, i_type;
+   int aflags, anum, i_type, i_quiet;
    char *s_atext, *s_tmpbuff;
 
+   i_quiet = 0;
+   if ( key & PIPE_QUIET ) {
+      key &= ~PIPE_QUIET;
+      i_quiet = 1;
+   }
    switch (key) {
       case PIPE_ON: /* Enable piping to attribute */
       case PIPE_TEE: /* Enable piping to attribute */
@@ -9457,7 +9539,9 @@ do_pipe(dbref player, dbref cause, int key, char *name)
                              if ( !Controlsforattr(player, player, atr2, aflags)) {
                                 notify_quiet(player, (char *)"@pipe: you have no permission to pipe to that attribute.");
                              } else {
-                                notify_quiet(player, (char *)"@pipe: piping to attribute has been enabled.");
+                                if ( !i_quiet ) {
+                                   notify_quiet(player, (char *)"@pipe: piping to attribute has been enabled.");
+                                }
                                 s_tmpbuff = alloc_lbuf("do_pipe_tee");
                                 sprintf(s_tmpbuff, "%s %d", name, ((key & PIPE_TEE) ? 1 : 0));
                                 atr_add_raw(player, atr->number, s_tmpbuff);
@@ -9480,7 +9564,9 @@ do_pipe(dbref player, dbref cause, int key, char *name)
               if ( atr ) {
                  atr_clr(player, atr->number);
               }
-              notify_quiet(player, (char *)"@pipe: piping to attribute has been disabled.");
+              if ( !i_quiet ) {
+                 notify_quiet(player, (char *)"@pipe: piping to attribute has been disabled.");
+              }
            } else {
               notify_quiet(player, (char *)"@pipe: piping to attribute is not currently enabled.");
            }
@@ -11586,6 +11672,935 @@ do_tor(dbref player, dbref cause, int key) {
                                 (*(mudconf.tor_localhost) ? mudconf.tor_localhost : (char *)"(Empty)")));
            notify_quiet(player, unsafe_tprintf("TOR host CACHE: %s", 
                                 (*(mudstate.tor_localcache) ? mudstate.tor_localcache : (char *)"(Empty)")));
+           break;
+   }
+}
+
+void
+do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
+{
+   char *attrib, *attribtok, *s_text, *s_new, *s_newptr, *s_scratch, *s_new2, *s_new2ptr, 
+        *s_nerf, *s_nerfptr, *s_labelptr, *s_array[3];
+   dbref it, aowner;
+   int atr, i_start, i_end, aflags, len, val, i_chk, i_new, i_new2, i_try;
+   ATTR *a_atr;
+
+   i_try = 0;
+   if ( key & LABEL_TRY ) {
+      i_try = 1;
+      key &= ~LABEL_TRY;
+      if ( !(key & LABEL_ADD) ) {
+         notify_quiet(player, "@label: Illegal combination of switches.");
+         return;
+      }
+   }
+   switch(key) {
+      case LABEL_ADD:   /* @label/add <LABEL>=#obj/attr:START,END */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /add switch requires two arguments");
+              return;
+           }
+           s_new = s_label;
+           while ( *s_new ) {
+              if ( isspace(*s_new) )
+                 break;
+              s_new++;
+           }
+           if ( *s_new ) {
+              notify_quiet(player, "@label: /add requires a valid non-space/non-null label");
+              return;
+           }
+           if ( (strchr(s_target, ':') == NULL) || (strchr(s_target, '/') == NULL) || 
+                (strchr(s_target, ',') == NULL) ) {
+              notify_quiet(player, "@label: /add switch requires target in form <object>/<attribute>:<start>,<end>");
+              return;
+           }
+           attrib = strtok_r(s_target, ":", &attribtok);
+           if ( !attrib ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              return;
+           }
+           if (!parse_attrib(player, attrib, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           len = strlen(s_text);
+           attrib = strtok_r(NULL, ",", &attribtok);
+           s_scratch = alloc_lbuf("label_add_scratch");
+           if ( !attrib ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           if ( !is_number(attrib) ) {
+              if ( stricmp(attrib, "START") != 0 ) {
+                 sprintf(s_scratch, "@label: /add requires valid number in <start>, but was fed '%.*s'", LBUF_SIZE - 100, attrib);
+                 notify_quiet(player, s_scratch);
+                 free_lbuf(s_text);
+                 free_lbuf(s_scratch);
+                 return;
+              }
+           }
+           if ( stricmp(attrib, "START") == 0 ) {
+              i_start = 0;
+           } else {
+              i_start = atoi(attrib);        
+           }
+           attrib = strtok_r(NULL, ",", &attribtok);
+           if ( !attrib ) {
+              notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           if ( !is_number(attrib) ) {
+              if ( stricmp(attrib, "END") != 0 ) {
+                 sprintf(s_scratch, "@label: /add requires valid number in <end>, but was fed '%.*s'", LBUF_SIZE - 100, attrib);
+                 notify_quiet(player, s_scratch);
+                 free_lbuf(s_text);
+                 free_lbuf(s_scratch);
+                 return;
+              }
+           }
+           if ( stricmp(attrib, "END") == 0 ) {
+              i_end = len;
+           } else {
+              i_end = atoi(attrib);        
+           }
+           if ( (i_start < 0) || (i_start >= i_end) || (i_start >= len) ||
+                (i_end <= i_start) || (i_end > len) ) {
+              sprintf(s_scratch, "@label: /add requires <start> and <end> to have valid values but had '%d' and '%d'", i_start, i_end);
+              notify_quiet(player, s_scratch);
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           /* Add 30 for additional overhead for ansi in display */
+           if ( (len + 30 + ((strlen(s_label) + 6) * 2)) >= LBUF_SIZE ) {
+              notify_quiet(player, "@label: /add can not add this label.  Combined size is greater than the LBUF limit.");
+              free_lbuf(s_text);
+              free_lbuf(s_scratch);
+              return;
+           }
+           s_newptr = s_new = alloc_lbuf("label_add");
+           s_labelptr = s_label;
+           while ( *s_labelptr ) {
+              *s_labelptr = ToLower(*s_labelptr);
+               s_labelptr++;
+           }
+           if ( i_try ) {
+#ifdef ZENTY_ANSI
+              sprintf(s_scratch, "%.*s%c%ch%c_<%s>%c%cn%.*s%c%ch%c_<-%s>%c%cn%s", i_start, s_text, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR,
+                      i_end - i_start, s_text + i_start, '%', SAFE_CHR, '%', s_label, '%', SAFE_CHR, s_text + i_end);
+#else
+              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<-%s>%s", i_start, s_text, '%', s_label,
+                      i_end - i_start, s_text + i_start, '%', s_label, s_text + i_end);
+#endif
+           } else {
+              sprintf(s_scratch, "%.*s%c_<%s>%.*s%c_<-%s>%s", i_start, s_text, '%', s_label,
+                      i_end - i_start, s_text + i_start, '%', s_label, s_text + i_end);
+           }
+           safe_str(s_scratch, s_new, &s_newptr);
+           if ( i_try ) {
+              sprintf(s_scratch, "@label: /add [/try] would have modified the attribute to look like:");
+              notify_quiet(player, s_scratch);
+              notify_quiet(player, s_new);
+           } else {
+              ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
+              if ( val ) {
+                 notify_quiet(player, "@label: /add requires a valid/accessible target object and attribute");
+              } else {
+                 sprintf(s_scratch, "@label: /add successfully added label '%.*s' to attribute.", LBUF_SIZE - 100, s_label);
+                 notify_quiet(player, s_scratch);
+              }
+           }
+           free_lbuf(s_text);
+           free_lbuf(s_new);
+           free_lbuf(s_scratch);
+           break;
+      case LABEL_DEL:   /* @label/del <LABEL>=#obj/attr */
+           if ( !s_label || !*s_label || !s_target || !*s_target ) {
+              notify_quiet(player, "@label: /delete switch expects two arguments");
+              return;
+           }
+           s_new = s_label;
+           while ( *s_new ) {
+              if ( isspace(*s_new) )
+                 break;
+              s_new++;
+           }
+           if ( *s_new ) {
+              notify_quiet(player, "@label: /delete requires a valid non-space/non-null label");
+              return;
+           }
+           if ( strchr(s_target, '/') == NULL ) {
+              notify_quiet(player, "@label: /del switch requires target in form <object>/<attribute>");
+              return;
+           }
+           if (!parse_attrib(player, s_target, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /del requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /del requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /del requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           s_newptr = s_new = alloc_lbuf("label_delete");
+           memset(s_new, '\0', LBUF_SIZE);
+           s_scratch = s_text;
+           i_chk = i_start = i_end = 0;
+           s_labelptr = s_label;
+           while ( *s_labelptr ) {
+              *s_labelptr = ToLower(*s_labelptr);
+               s_labelptr++;
+           }
+           while ( *s_scratch ) {
+              len = 0;
+              if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
+                   (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
+                   (strchr(s_scratch, '>') != NULL) ) {
+                 if ( *(s_scratch + 3) == '-' ) {
+                    attribtok = s_scratch + 4;
+                    i_chk = 1;
+                 } else {
+                    attribtok = s_scratch + 3;
+                    i_chk = 0;
+                 }
+                 attrib = strchr(attribtok, '>');
+                 *attrib = '\0';
+                 if ( stricmp(attribtok, s_label) == 0 ) {
+                    len = 1;
+                 }
+                 *attrib = '>';
+                 if ( len ) {
+                    if ( i_chk ) {
+                       i_end++;
+                    } else {
+                       i_start++;
+                    }
+                    while ( *s_scratch && (*s_scratch != '>') ) {
+                       s_scratch++;
+                    }
+                    if ( *s_scratch ) {
+                       s_scratch++;
+                    }
+                    continue;
+                 }
+              }
+              *s_newptr = *s_scratch;
+              if ( !*s_scratch ) {
+                 break;
+              }
+              s_newptr++;
+              s_scratch++;
+           }
+           ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
+           if ( (i_start > 0) || (i_end > 0) ) {
+              sprintf(s_new, "@label: /del removed label '%.*s'.  %d enable, %d disable.", LBUF_SIZE - 100, s_label, i_start, i_end);
+           } else {
+              sprintf(s_new, "@label: /del could not find label '%.*s' in attribute.", LBUF_SIZE - 100, s_label);
+           }
+           notify_quiet(player, s_new);
+           free_lbuf(s_new);
+           free_lbuf(s_text);
+           break;
+      case LABEL_LIST:  /* @label/list #obj/attr */
+           if ( !s_label || !*s_label || (s_target && *s_target) ) {
+              notify_quiet(player, "@label: /list switch expects <object>[/<attribute>] only");
+              return;
+           }
+           i_try = 0;
+           if ( strchr(s_label, '/') == NULL ) {
+              it = match_thing(player, s_label);
+              i_try = 1;
+              if ( !Good_chk(it) || !Controls(player, it) ) {
+                 notify_quiet(player, "@label: /list needs to have a valid target.");
+                 return;
+              }
+           } 
+           if ( !i_try ) { 
+              if (!parse_attrib(player, s_label, &it, &atr) || (atr == NOTHING)) {
+                 notify_quiet(player, "@label: /list requires a valid/accessible target object and attribute");
+                 return;
+              }
+              a_atr = atr_num(atr);
+              if ( !a_atr ) {
+                 notify_quiet(player, "@label: /list requires a valid/accessible target object and attribute");
+                 return;
+              }
+              s_text = atr_get(it, atr, &aowner, &aflags);
+              if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                 notify_quiet(player, "@label: /list requires a valid/accessible target object and attribute");
+                 free_lbuf(s_text);
+                 return;
+              }
+              s_scratch = s_text;
+           }
+           s_newptr = s_new = alloc_lbuf("label_list_enable");
+           s_new2ptr = s_new2 = alloc_lbuf("label_list_disable");
+           memset(s_new, '\0', LBUF_SIZE);
+           i_new = i_new2 = i_chk = i_start = i_end = 0;
+           if ( !i_try ) {
+              s_nerfptr = s_nerf = alloc_lbuf("label_list_nerf");
+              safe_chr(' ', s_nerf, &s_nerfptr);
+              while ( *s_scratch ) {
+                 if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
+                      (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
+                      (strchr(s_scratch, '>') != NULL) ) {
+                    if ( *(s_scratch + 3) == '-' ) {
+                       attribtok = s_scratch + 4;
+                       i_chk = 1;
+                    } else {
+                       attribtok = s_scratch + 3;
+                       i_chk = 0;
+                    }
+                    attrib = strchr(attribtok, '>');
+                    *attrib = '\0';
+                    if ( i_chk ) {
+                       if ( i_new2 ) {
+                          safe_chr(' ', s_new2, &s_new2ptr);
+                       }
+                       i_new2++;
+                       safe_str(attribtok, s_new2, &s_new2ptr);
+                       safe_str((char *)"TRACE_COLOR_", s_nerf, &s_nerfptr);
+                       safe_str(s_new2, s_nerf, &s_nerfptr);
+                       safe_chr(' ', s_nerf, &s_nerfptr);
+                    } else {
+                       if ( i_new ) {
+                          safe_chr(' ', s_new, &s_newptr);
+                       }
+                       i_new++;
+                       safe_str(attribtok, s_new, &s_newptr);
+                       safe_str((char *)"TRACE_COLOR_", s_nerf, &s_nerfptr);
+                       safe_str(s_new, s_nerf, &s_nerfptr);
+                       safe_chr(' ', s_nerf, &s_nerfptr);
+                    }
+                    *attrib = '>';
+                    while ( *s_scratch && (*s_scratch != '>') ) {
+                       s_scratch++;
+                    }
+                    if ( *s_scratch ) {
+                       s_scratch++;
+                    }
+                    continue;
+                 }
+                 if ( !*s_scratch ) {
+                    break;
+                 }
+                 s_scratch++;
+              }
+              safe_chr(' ', s_nerf, &s_nerfptr);
+              s_nerfptr = s_nerf;
+              while ( *s_nerfptr ) {
+                 *s_nerfptr = ToUpper(*s_nerfptr);
+                 s_nerfptr++;
+              }
+           }
+           s_scratch = alloc_lbuf("label_list_scratch");
+           if ( !i_try ) {
+              if ( !*s_new && !*s_new2 ) {
+                 notify_quiet(player, "@label: /list shows no labels for that attribute");
+                 i_new = -1;
+              } else {
+                 sprintf(s_scratch, "@label: /list of all labels for attribute");
+                 notify_quiet(player, s_scratch);
+                 sprintf(s_scratch, "  Enable:[%4d] %s%.*s%s", i_new, ANSI_GREEN, LBUF_SIZE - 100, s_new, ANSI_NORMAL);
+                 notify_quiet(player, s_scratch);
+                 sprintf(s_scratch, "  Disable:[%4d] %s%.*s%s", i_new2, ANSI_RED, LBUF_SIZE - 100, s_new2, ANSI_NORMAL);
+                 notify_quiet(player, s_scratch);
+                 memset(s_new, '\0', LBUF_SIZE);
+                 s_newptr = s_new;
+              }
+              free_lbuf(s_text);
+           } else {
+              notify_quiet(player, "@label: /list -- Global values set on target");
+              a_atr = atr_str("TRACE");
+              if ( a_atr ) {
+                 s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+                 if ( *s_text ) {
+                    if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                       sprintf(s_scratch, "  Trace Labels: %.*s", LBUF_SIZE - 100, s_text);
+                       notify_quiet(player, s_scratch);
+                    }
+                 }
+                 free_lbuf(s_text);
+              }
+           }
+           if ( i_new != -1 ) {
+              a_atr = atr_str("TRACE_GREP");
+              if ( a_atr ) {
+                 s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+                 if ( *s_text ) {
+                    if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                       if ( PCRE_EXEC && ( (a_atr->flags & AF_REGEXP) || (aflags & AF_REGEXP) ) ) {
+                          sprintf(s_scratch, "  RegExp Grep: %.*s", LBUF_SIZE - 100, s_text);
+                       } else {
+                          sprintf(s_scratch, "  Grep: %.*s", LBUF_SIZE - 100, s_text);
+                       }
+                       notify_quiet(player, s_scratch);
+                    }
+                 }
+                 free_lbuf(s_text);
+              }
+              a_atr = atr_str("TRACE_COLOR");
+              if ( a_atr ) {
+                 s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+                 if ( *s_text ) {
+                    if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                       sprintf(s_scratch, "  Global Color: %.*s", LBUF_SIZE - 100, s_text);
+                       notify_quiet(player, s_scratch);
+                    }
+                 }
+                 free_lbuf(s_text);
+              }
+              sprintf(s_new2, "#%d/TRACE_COLOR_*", it);
+              parse_lattr(s_new, &s_newptr, player, cause, cause, &s_new2, 1, (char **)NULL, 0, (char *)"LATTR", 0, 0);
+              if ( *s_new ) {
+                 s_newptr = strtok_r(s_new, " ", &s_new2ptr);
+                 while ( s_newptr ) {
+                    a_atr = atr_str(s_newptr);
+                    if ( a_atr ) {
+                       s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+                       if ( *s_text ) {
+                          if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                             sprintf(s_scratch, " %.*s ", LBUF_SIZE - 100, a_atr->name);
+                             if ( i_try || (!i_try && (strstr(s_nerf, s_scratch) != NULL)) ) {
+                                sprintf(s_scratch, "  Attrib Color: [%.60s] %.*s", a_atr->name, LBUF_SIZE - 200, s_text);
+                                notify_quiet(player, s_scratch);
+                             }
+                          }
+                       }
+                       free_lbuf(s_text);
+                    }
+                    s_newptr = strtok_r(NULL, " ", &s_new2ptr);
+                 }
+              }
+           }
+           free_lbuf(s_new);
+           free_lbuf(s_new2);
+           free_lbuf(s_scratch);
+           if ( !i_try ) {
+              free_lbuf(s_nerf);
+           }
+           break;
+      case LABEL_ENABLE: /* @label/enable <object>/<label> [=<colorcode>|wipe] */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /enable switch requires argument in form <object>/<label>");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /enable switch requires argument in form <object>/<label>");
+              return;
+           }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /enable needs to have a valid target.");
+              return;
+           }
+           attrib = strtok_r(NULL, "/", &attribtok);
+           if ( !attrib || !*attrib ) {
+              notify_quiet(player, "@label: /enable switch expects a label");
+              return;
+           }
+           s_scratch = attrib;
+           while ( *s_scratch ) {
+              *s_scratch = ToLower(*s_scratch);
+              if ( isspace(*s_scratch) )
+                 break;
+              s_scratch++;
+           }
+           if ( *s_scratch ) {
+              notify_quiet(player, "@label: /enable requires a valid non-space/non-null label");
+              return;
+           }
+           atr = mkattr("TRACE");
+           if ( atr >= 0 ) 
+              a_atr = atr_str("TRACE");
+           if ( (atr >= 0) && a_atr ) {
+              s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+              s_newptr = s_new = alloc_lbuf("label_enable");
+              if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                 if ( *s_text ) {
+                    if ( strstr(s_text, attrib) == NULL ) {
+                       i_new = 0;
+                       if ( (strlen(s_text) + strlen(attrib) + 10) > LBUF_SIZE ) {
+                          notify_quiet(player, "@label: /enable can not add label as it would exceed the attribute content size limit.");
+                       } else {
+                          safe_str(s_text, s_new, &s_newptr);
+                          safe_chr(' ', s_new, &s_newptr);
+                          safe_str(attrib, s_new, &s_newptr);
+                          ext_set_attr_internal(player, it, a_atr->number, s_new, SET_QUIET, player, &val, 1);
+                          if ( val ) {
+                             notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
+                          } else {
+                             if ( s_target && *s_target ) {
+                                s_scratch = alloc_lbuf("label_enable_color");
+                                sprintf(s_scratch, "TRACE_COLOR_%.*s", SBUF_SIZE, attrib);
+                                atr = mkattr(s_scratch);
+                                if ( atr >= 0)
+                                   a_atr = atr_str(s_scratch);
+                                if ( (atr >=0) && a_atr ) {
+                                   i_new = 10;
+                                   if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                                      *s_target='\0';
+                                      i_new = 0;
+                                   }
+                                   ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                                   if ( val ) {
+                                      i_new = 0;
+                                      sprintf(s_new, "@label: /enable [WARNING] has no access to target's %.*s attribute", 
+                                              LBUF_SIZE - 100, s_scratch);
+                                      notify_quiet(player, s_new);
+                                   }
+                                }
+                                free_lbuf(s_scratch);
+                             }
+                             if ( i_new == 10 ) {
+                                sprintf(s_new, "@label: /enable has enabled label '%.*s' with color '%.20s'", LBUF_SIZE - 200, attrib, s_target);
+                             } else {
+                                sprintf(s_new, "@label: /enable has enabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                             }
+                             notify_quiet(player, s_new);
+                          }
+                       }
+                    } else {
+                       sprintf(s_new, "@label: /enable already has label '%.*s' enabled.", LBUF_SIZE - 100, attrib);
+                       notify_quiet(player, s_new);
+                    }
+                 } else {
+                    i_new = 0;
+                    ext_set_attr_internal(player, it, a_atr->number, attrib, SET_QUIET, player, &val, 1);
+                    if ( val ) {
+                       notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
+                    } else {
+                       if ( s_target && *s_target) {
+                          s_scratch = alloc_lbuf("label_enable_color");
+                          sprintf(s_scratch, "TRACE_COLOR_%.*s", SBUF_SIZE, attrib);
+                          atr = mkattr(s_scratch);
+                          if ( atr >= 0)
+                             a_atr = atr_str(s_scratch);
+                          if ( (atr >= 0) && a_atr ) {
+                             i_new = 10;
+                             if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                                *s_target='\0';
+                                i_new = 0;
+                             }
+                             ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                             if ( val ) {
+                                sprintf(s_new, "@label: /enable [WARNING] has no access to target's %.*s attribute", 
+                                        LBUF_SIZE - 100, s_scratch);
+                                notify_quiet(player, s_new);
+                             }
+                          }
+                          free_lbuf(s_scratch);
+                       }
+                       if ( i_new == 10 ) {
+                          sprintf(s_new, "@label: /enable has enabled label '%.*s' with color '%.20s'", LBUF_SIZE - 200, attrib, s_target);
+                       } else {
+                          sprintf(s_new, "@label: /enable has enabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                       }
+                       notify_quiet(player, s_new);
+                    }
+                 }
+              } else {
+                 notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
+              }
+              free_lbuf(s_text);
+              free_lbuf(s_new);
+           } else {
+              notify_quiet(player, "@label: /enable has no access to target's TRACE attribute");
+           }
+           break;
+      case LABEL_DISABLE: /* @label/disable <object>/<label> [=<wipe>] */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /disable switch requires argument in form <object>/<label>");
+              return;
+           }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /disable needs to have a valid target.");
+              return;
+           }
+           attrib = strtok_r(NULL, "/", &attribtok);
+           if ( !attrib || !*attrib ) {
+              notify_quiet(player, "@label: /disable switch expects a label");
+              return;
+           }
+           s_scratch = attrib;
+           while ( *s_scratch ) {
+              *s_scratch = ToLower(*s_scratch);
+              if ( isspace(*s_scratch) )
+                 break;
+              s_scratch++;
+           }
+           if ( *s_scratch ) {
+              notify_quiet(player, "@label: /disable requires a valid non-space/non-null label");
+              return;
+           }
+           atr = mkattr("TRACE");
+           if ( atr >= 0 ) 
+              a_atr = atr_str("TRACE");
+           if ( (atr >= 0) && a_atr ) {
+              s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+              if ( *s_text ) {
+                 s_newptr = s_new = alloc_lbuf("label_enable");
+                 i_new = i_new2 = 0;
+                 if ( check_read_perms2(player, it, a_atr, aowner, aflags)) {
+                    s_new2 = strtok_r(s_text, " ", &s_new2ptr);
+                    while ( s_new2 ) {
+                       if ( stricmp(s_new2, attrib) != 0 ) {
+                          if ( i_new ) {
+                             safe_chr(' ', s_new, &s_newptr);
+                          }
+                          i_new = 1;
+                          safe_str(s_new2, s_new, &s_newptr);
+                       } else {
+                          i_new2 = 1;
+                       }
+                       s_new2 = strtok_r(NULL, " ", &s_new2ptr);
+                    }
+                    if ( i_new2 ) {
+                       ext_set_attr_internal(player, it, a_atr->number, s_new, SET_QUIET, player, &val, 1);
+                       if ( val ) {
+                          notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
+                       } else {
+                          if ( s_target && *s_target && (stricmp(s_target, (char *)"wipe") == 0) ) {
+                             s_scratch = alloc_lbuf("label_enable_color");
+                             sprintf(s_scratch, "TRACE_COLOR_%.*s", SBUF_SIZE, attrib);
+                             a_atr = atr_str(s_scratch);
+                             if ( a_atr ) {
+                                i_new = 10;
+                                *s_target='\0';
+                                ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                                if ( val ) {
+                                   i_new = 0;
+                                   sprintf(s_new, "@label: /disable [WARNING] has no access to target's %.*s attribute", 
+                                           LBUF_SIZE - 100, s_scratch);
+                                   notify_quiet(player, s_new);
+                                }
+                             }
+                             free_lbuf(s_scratch);
+                          }
+                          if ( i_new == 10 ) {
+                             sprintf(s_new, "@label: /disable has disabled label '%.*s' and removed assigned color", LBUF_SIZE - 100, attrib);
+                          } else {
+                             sprintf(s_new, "@label: /disable has disabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                          }
+                          notify_quiet(player, s_new);
+                       }
+                    } else {
+                       sprintf(s_new, "@label: /disable did not find enabled label '%.*s'", LBUF_SIZE - 100, attrib);
+                       notify_quiet(player, s_new);
+                    }
+                 } else {
+                    notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
+                 }
+                 free_lbuf(s_new);
+              } else {
+                 notify_quiet(player, "@label: /disable has no labels to be disabled.");
+              }
+              free_lbuf(s_text);
+           } else {
+              notify_quiet(player, "@label: /disable has no access to target's TRACE attribute");
+           }
+           break;
+      case LABEL_COLOR: /* @label/color <object>[/generic|label]=[<color>|wipe] */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /color switch requires argument in form <object>/<label>");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /color switch requires argument in form <object>/<label>");
+              return;
+           }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /color needs to have a valid target.");
+              return;
+           }
+           attrib = strtok_r(NULL, "/", &attribtok);
+           if ( !attrib || !*attrib ) {
+              notify_quiet(player, "@label: /color switch expects a label");
+              return;
+           }
+           s_scratch = attrib;
+           while ( *s_scratch ) {
+              *s_scratch = ToLower(*s_scratch);
+              if ( isspace(*s_scratch) )
+                 break;
+              s_scratch++;
+           }
+           if ( *s_scratch ) {
+              notify_quiet(player, "@label: /color requires a valid non-space/non-null label");
+              return;
+           }
+           s_scratch = alloc_lbuf("label_color");
+           if ( stricmp(attrib, (char *)"general") == 0) {
+              sprintf(s_scratch, "%s", (char *)"TRACE_COLOR");
+           } else {
+              sprintf(s_scratch, "TRACE_COLOR_%.60s", attrib);
+           }
+           atr = mkattr(s_scratch);
+           if ( atr >= 0 ) 
+              a_atr = atr_str(s_scratch);
+           if ( (atr >= 0) && a_atr ) {
+              if ( s_target && *s_target ) {
+                 if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                    *s_target = '\0';
+                 }
+                 ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                 if ( val ) {
+                    notify_quiet(player, "@label: /color has no access to target's TRACE COLOR attribute");
+                 } else {
+                    if ( stricmp(attrib, (char *)"general") == 0 ) {
+                       if ( *s_target ) {
+                          sprintf(s_scratch, "@label: /color changed general color to %.30s", s_target);
+                       } else {
+                          sprintf(s_scratch, "@label: /color removed general color");
+                       }
+                    } else {
+                       if ( *s_target ) {
+                          sprintf(s_scratch, "@label: /color changed label %.*s color to %.30s", LBUF_SIZE - 100, attrib, s_target);
+                       } else {
+                          sprintf(s_scratch, "@label: /color removed label %.*s color", LBUF_SIZE - 100, attrib);
+                       }
+                    }
+                    notify_quiet(player, s_scratch);
+                 }
+              } else {
+                 notify_quiet(player, "@label: /color must specify either a color or the word 'wipe'");
+              }
+           } else {
+              notify_quiet(player, "@label: /color has no access to target's TRACE COLOR attribute");
+           }
+           free_lbuf(s_scratch);
+           break;
+      case LABEL_GREP: /* @label/grep <object>[/regexp]=[<string>|wipe] */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /grep switch requires argument in form <object>/<label>");
+              return;
+           }
+           attrib = strtok_r(s_label, "/", &attribtok);
+           it = match_thing(player, attrib);
+           if ( !Good_chk(it) || !Controls(player, it) ) {
+              notify_quiet(player, "@label: /grep needs to have a valid target.");
+              return;
+           }
+           i_new = 0;
+           if ( attrib ) {
+              attrib = strtok_r(NULL, "/", &attribtok);
+              if ( attrib && *attrib && (stricmp(attrib, "regexp") == 0) ) {
+                 i_new = 1;
+              }
+           }
+           atr = mkattr("TRACE_GREP");
+           if ( atr >= 0 ) 
+              a_atr = atr_str("TRACE_GREP");
+           s_scratch = alloc_lbuf("label_color");
+           if ( (atr >= 0) && a_atr ) {
+              if ( s_target && *s_target ) {
+                 if ( stricmp(s_target, (char *)"wipe") == 0 ) {
+                    *s_target = '\0';
+                 }
+                 s_text = atr_get(it, a_atr->number, &aowner, &aflags);
+                 ext_set_attr_internal(player, it, a_atr->number, s_target, SET_QUIET, player, &val, 1);
+                 if ( val ) {
+                    notify_quiet(player, "@label: /grep has no access to target's TRACE GREP attribute");
+                 } else {
+                    if ( i_new ) {
+                       atr_set_flags(it, a_atr->number, AF_REGEXP | aflags);
+                    } else {
+                       atr_set_flags(it, a_atr->number, aflags & ~AF_REGEXP);
+                    }
+                    if ( *s_target ) {
+                       sprintf(s_scratch, "@label: /grep%schanged value to %.30s", (i_new ? " [regexp] " : " "), s_target);
+                    } else {
+                       sprintf(s_scratch, "@label: /grep%sremoved value", (i_new ? " [regexp] " : " "));
+                    }
+                    notify(player, s_scratch);
+                 }
+                 free_lbuf(s_text);
+              } else {
+                 notify_quiet(player, "@label: /grep must specify either a string or the word 'wipe'");
+              }
+           } else {
+              notify_quiet(player, "@label: /grep has no access to target's TRACE GREP attribute");
+           }
+           free_lbuf(s_scratch);
+           break;
+      case LABEL_RULER: /* @label/ruler #obj/attr */
+           if ( !s_label || !*s_label ) {
+              notify_quiet(player, "@label: /ruler switch expects <object>/<attribute> [=<ruler value>]");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /ruler switch requires argument in form <object>/<attribute>");
+              return;
+           }
+           if (!parse_attrib(player, s_label, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /ruler requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /ruler requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /ruler requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           if ( s_target && *s_target ) {
+              if ( !is_number(s_target) || (atoi(s_target) <= 0) || (atoi(s_target) > 100) || ((atoi(s_target) % 10) != 0) ) {
+                 notify_quiet(player, "@label: /ruler when specifying a ruler value expects between 0-100 in multiples of 10");
+                 free_lbuf(s_text);
+                 return;
+              }
+           }
+           i_new = 60;
+           if ( s_target && *s_target ) {
+              i_new = atoi(s_target);
+           }
+           s_array[0] = s_label;
+           s_array[1] = alloc_lbuf("label_array_1");
+           s_array[2] = (char *)NULL;
+           s_newptr = s_new = alloc_lbuf("label_array");
+           sprintf(s_array[1], "@label: /ruler listing of '%.*s' with ruler size %d", LBUF_SIZE - 100, s_label, i_new);
+           notify_quiet(player, s_array[1]);
+           sprintf(s_array[1], "%d", i_new);
+           /* Fun-ruler is a sideeffect, no need to notify the output */
+           fun_ruler(s_new, &s_newptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
+           free_lbuf(s_new);
+           free_lbuf(s_array[1]);
+           free_lbuf(s_text);
+           break;
+      case LABEL_PURGE: /* @label/purge #obj/attr */
+           if ( !s_label || !*s_label || (s_target && *s_target) ) {
+              notify_quiet(player, "@label: /purge switch expects <object>/<attribute> only");
+              return;
+           }
+           if ( strchr(s_label, '/') == NULL ) {
+              notify_quiet(player, "@label: /purge switch requires argument in form <object>/<attribute>");
+              return;
+           }
+           if (!parse_attrib(player, s_label, &it, &atr) || (atr == NOTHING)) {
+              notify_quiet(player, "@label: /purge requires a valid/accessible target object and attribute");
+              return;
+           }
+           a_atr = atr_num(atr);
+           if ( !a_atr ) {
+              notify_quiet(player, "@label: /purge requires a valid/accessible target object and attribute");
+              return;
+           }
+           s_text = atr_get(it, atr, &aowner, &aflags);
+           if ( !check_read_perms2(player, it, a_atr, aowner, aflags)) {
+              notify_quiet(player, "@label: /purge requires a valid/accessible target object and attribute");
+              free_lbuf(s_text);
+              return;
+           }
+           s_newptr = s_new = alloc_lbuf("label_purge");
+           s_new2ptr = s_new2 = alloc_lbuf("label_purge2");
+           memset(s_new, '\0', LBUF_SIZE);
+           s_scratch = s_text;
+           i_new2 = i_chk = i_start = i_end = 0;
+           while ( *s_scratch ) {
+              if ( (*s_scratch == '%') && *(s_scratch + 1) && *(s_scratch + 2) && 
+                   (*(s_scratch + 1) == '_') && (*(s_scratch + 2) == '<') &&
+                   (strchr(s_scratch, '>') != NULL) ) {
+                 if ( *(s_scratch + 3) == '-' ) {
+                    attribtok = s_scratch + 4;
+                    i_chk = 1;
+                 } else {
+                    attribtok = s_scratch + 3;
+                    i_chk = 0;
+                 }
+                 attrib = strchr(attribtok, '>');
+                 *attrib = '\0';
+                 if ( i_new2 ) {
+                    safe_chr(' ', s_new2, &s_new2ptr);
+                 } 
+#ifdef ZENTY_ANSI
+                 safe_chr('%', s_new2, &s_new2ptr);
+                 safe_chr(SAFE_CHR, s_new2, &s_new2ptr);
+                 if ( i_chk ) {
+                    safe_chr('r', s_new2, &s_new2ptr);
+                 } else {
+                    safe_chr('g', s_new2, &s_new2ptr);
+                 }
+#endif
+                 safe_str(attribtok, s_new2, &s_new2ptr);
+#ifdef ZENTY_ANSI
+                 safe_chr('%', s_new2, &s_new2ptr);
+                 safe_chr(SAFE_CHR, s_new2, &s_new2ptr);
+                 safe_chr('n', s_new2, &s_new2ptr);
+#endif
+                 i_new2 = 1;
+                 *attrib = '>';
+                 if ( i_chk ) {
+                    i_end++;
+                 } else {
+                    i_start++;
+                 }
+                 while ( *s_scratch && (*s_scratch != '>') ) {
+                    s_scratch++;
+                 }
+                 if ( *s_scratch ) {
+                    s_scratch++;
+                 }
+                 continue;
+              }
+              *s_newptr = *s_scratch;
+              if ( !*s_scratch ) {
+                 break;
+              }
+              s_newptr++;
+              s_scratch++;
+           }
+           ext_set_attr_internal(player, it, atr, s_new, SET_QUIET, player, &val, 1);
+           if ( (i_start > 0) || (i_end > 0) ) {
+              sprintf(s_new, "@label: /purge removed labels.  %d enable, %d disable.\r\n        Removed: %.*s", i_start, i_end, LBUF_SIZE - 120, s_new2);
+              notify_quiet(player, s_new);
+           } else {
+              notify_quiet(player, "@label: /purge could not find any labels in attribute.");
+           }
+           free_lbuf(s_new);
+           free_lbuf(s_new2);
+           free_lbuf(s_text);
+           break;
+      default:          /* Error out and return syntax */
+           if ( i_try ) {
+              notify_quiet(player, "@label: /try without /add is not allowed.");
+           } else {
+              notify_quiet(player, "@label: Unrecognized switch.");
+           }
            break;
    }
 }

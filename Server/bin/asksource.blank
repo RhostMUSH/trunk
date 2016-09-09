@@ -1,4 +1,3 @@
-#!/bin/bash
 ###################################################################
 # Test shell capabilities
 ###################################################################
@@ -37,6 +36,7 @@ fi
 # Environments
 ###################################################################
 LDCONFIG=""
+### MANUALLY DEFINE YOUR GCC BELOW IF IT CAN NOT FIND IT
 MYGCC="cc"
 if [ $(uname -s|grep -ic "bsd") -gt 0 ]
 then
@@ -59,6 +59,9 @@ fi
 if [ -f /usr/bin/gcc ]
 then
    MYGCC=/usr/bin/gcc
+elif [ -f /usr/bin/clang ]
+then
+   MYGCC=/usr/bin/clang
 else
    for i in $(slocate gcc)
    do
@@ -67,6 +70,12 @@ else
         MYGCC="$i"
       fi
    done
+fi
+if [ $(${MYGCC} 2>&1 |grep -c "not found") -gt 0 ]
+then
+   echo "No compiler found, it defaulted back to just 'cc' but we can't find it."
+   echo "Please either install a compiler (gcc, clang, etc) or define it in your path."
+   exit 1
 fi
 BETAOPT=0
 DEFS="-Wall"
@@ -89,9 +98,15 @@ for i in ${OPTIONS}
 do
    X[${i}]=" "
 done
+# Check if libpcre is installed
 if [ $(${MYGCC} -lpcre 2>&1|grep -c "cannot find") -eq 0 ]
 then
    X[25]="X"
+fi
+# disable debugmon if on win10 bash
+if [ $(grep -c Microsoft /proc/version) -gt 0 ]
+then
+   X[19]="X"
 fi
 gl_ldd=$(ldd --version 2>/dev/null|head -1|cut -f2 -d')')
 gl_ldd1=$(echo ${gl_ldd}|cut -f1 -d".")
@@ -112,6 +127,9 @@ for i in ${BOPTIONS}
 do
    XB[${i}]=" "
 done
+# default SBUF to 64 chars
+XB[3]="X"
+# default to QDBM database
 XB[5]="X"
 
 for i in ${DOPTIONS}
@@ -1479,6 +1497,7 @@ setdefaults() {
      DEFS="-DFIX_AIX ${DEFS}"
   fi
 
+  gl_chkerrno=0
   if [ -f /usr/include/sys/errno.h ]
   then
      echo  "Patching for errno.h <sys>..."
@@ -1499,6 +1518,17 @@ setdefaults() {
   elif [ -f /usr/include/errno.h ]
   then
      DEFS="-DHAVE_ERRNO_H ${DEFS}"
+     gl_chkerrno=1
+  fi
+  if [ "$(uname -s)" == "Darwin" ]
+  then
+     if [ ${gl_chkerrno} -eq 0 ]
+     then
+        echo "Patching errno.h for MAC compatibility..."
+        DEFS="-DHAVE_ERRNO_H ${DEFS}"
+     fi
+     echo "Tossing in Malloc for stdlib definition for MAC..."
+     DEFS="-DMALLOC_IN_STDLIB_H ${DEFS}"
   fi
   DEFS="-DBROKEN_NDBM ${DEFS}"
   if [ ! -f /usr/include/wait.h ]

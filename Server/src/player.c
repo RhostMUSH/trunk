@@ -225,12 +225,12 @@ char	*target;
 
 int lookup(char *host, char *data, int i_cnt, int *i_retvar)
 {
-  char *parse, *parse_max, buff[MBUF_SIZE];
+  char *parse, *parse_max, buff[MBUF_SIZE], *tstrtokr;
   int i_parse, i_chk;
 
   memset(buff, 0, sizeof(buff));
   strncpy(buff,host,(MBUF_SIZE-1));
-  parse = strtok(data,",/\t ");
+  parse = strtok_r(data,",/\t ", &tstrtokr);
   i_chk = -1;
   while (parse) {
     i_parse = 0;
@@ -244,7 +244,7 @@ int lookup(char *host, char *data, int i_cnt, int *i_retvar)
       break;
     if ( i_parse )
        *parse_max = '|';
-    parse = strtok(NULL,",/\t ");
+    parse = strtok_r(NULL,",/\t ", &tstrtokr);
   }
   *i_retvar = i_chk;
   if (parse)

@@ -7,14 +7,15 @@
 @@ FUNP_  -- Preserved & Privileged function
 @@ FUNPT_ -- Privileged & NoTrace function
 @create SoftFunctions
+@desc SoftFunctions=The%bfollowing%bsoftfunctions%bcan%bbe%bquoted%bin%bto%bmimic%bMUX/PENN%bmissing%bfunctionality%rNote:%byou'll%bneed%bto%brename%bexisting%bcolumns%(%)%bto%bcolumn%(%).%b%bThe%bscript%bshould%rtake%bcare%bof%bthis%bautomatically.%r[space(5)]FUN_[space(3)]--%bNormal%bfunction%r[space(5)]FUNPR_%b--%bPreserved%bfunction%r[space(5)]FUNPV_%b--%bPrivileged%bfunction%r[space(5)]FUNP_%b%b--%bPreserved%b&%bPrivileged%bfunction%r[space(5)]FUNPT_%b--%bPrivileged%b&%bNoTrace%bfunction%r%r%rMINMAX values can be assigned with:%rMINMAX_<functionname>.  It takes two values.  MIN and MAX value.  Both are required.%r%rAny sideeffects that need to be assigned please use the SFSideFX function to call into it for security reasons.
 @create SFSideFX
 @set SFSideFX=!no_command !halt inh safe indestructable sidefx
 @set SoftFunctions=!no_command !halt inh safe indestructable
 @fo me=&SIDEFX SoftFunctions=[num(SFSideFX)]
 &FUN_COLUMN Soft=[columns(%0,min(sub(79,ifelse(gt(%3,78),1,%3)),%1),div(sub(79,ifelse(gt(%3,78),1,%3)),%1),l,,,ifelse(gt(words(%3),0),space(%3)),,,1,%2)]%r
 &MINMAX_COLUMN Soft=2 4
-&FUN_TABLE SoftFunctions=[columns(%0,switch([gt(words(%1),0)][gt(words(%2),0)],11,min(%1,%2),01,max(10,%2),*,10),switch([gt(words(%1),0)][gt(words(%2),0)],11,max(1,div(%2,%1)),10,max(1,div(78,%1)),01,max(1,div(%2,10)),*,7),L,0,1,,ifelse(strlen(%4),%4,%b),,1,%3)]
-&MINMAX_TABLE Soft=1 5
+&FUN_TABLE SoftFunctions=[columns(%0,switch([gt(words(%1),0)][gt(words(%2),0)],11,min(%1,%2),01,max(10,%2),*,10),switch([gt(words(%1),0)][gt(words(%2),0)],11,max(1,div(%2,%1)),10,max(1,div(78,%1)),01,max(1,div(%2,10)),*,7),L,0,1,,ifelse(strlen(%4),%4,%b),,1,%3,%5)]
+&MINMAX_TABLE Soft=1 6
 &FUNPR_LSEARCH Soft=[setq(0,ifelse(match(%0,all),,%0))][ifelse(words(%4),search(%q0 %1=%2,%3,%4),search(%q0 %1=%2))]
 &FUN_LPOS soft=[setdiff(totpos(%1,%0),#-1)]
 &MINMAX_LPOS Soft=2 2
@@ -100,6 +101,8 @@
 &FUN_VMAX soft=[sortlist(+n,%2,%0,%1)]
 &FUN_VMIN soft=[sortlist(-n,%2,%0,%1)]
 &FUN_CPAD soft=[printf($^%1:%2:+s,%0)]
+&FUN_RPAD soft=[printf($%1:%2:+s,%0)]
+&FUN_LPAD soft=[printf($-%1:%2:+s,%0)]
 &FUN_LEHRAND soft=[trunc(fmod(fmod(mul(max(rand(%0),1),279470273),4294967291),%0))]
 @fo softfunc=&DB me=num(softfunc)
 @tel SFSideFX=softfunctions

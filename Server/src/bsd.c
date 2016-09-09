@@ -366,7 +366,7 @@ shovechars(int port,char* address)
     dbref aowner2;
     char *logbuff, *progatr, all[10], tsitebuff[1001], *ptsitebuff, s_cutter[6], 
          s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, 
-         *t_progatr, *b_progatrptr;
+         *t_progatr, *b_progatrptr, *tstrtokr;
 #ifdef ZENTY_ANSI
     char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr, *s_buff3, *s_buff3ptr;
 #endif
@@ -431,7 +431,7 @@ shovechars(int port,char* address)
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tsitebuff, 0, sizeof(tsitebuff));
            strncpy(tsitebuff, mudconf.guest_namelist, 1000);
-           ptsitebuff = strtok(tsitebuff, " \t");
+           ptsitebuff = strtok_r(tsitebuff, " \t", &tstrtokr);
            sitecntr = 1;
            while ( (ptsitebuff != NULL) && (sitecntr < 32) ) {
               if ( lookup_player(NOTHING, ptsitebuff, 0) == d->player ) {
@@ -441,7 +441,7 @@ shovechars(int port,char* address)
                  mudstate.guest_status |= temp2;
                  mudstate.guest_num++;
               }
-              ptsitebuff = strtok(NULL, " \t");
+              ptsitebuff = strtok_r(NULL, " \t", &tstrtokr);
               sitecntr++;
            }
         }
@@ -1328,7 +1328,7 @@ void
 shutdownsock(DESC * d, int reason)
 {
     char *buff, *buff2, all[10], tchbuff[LBUF_SIZE], tsitebuff[1001], *ptsitebuff;
-    char *addroutbuf, *t_addroutbuf;
+    char *addroutbuf, *t_addroutbuf, *tstrtokr;
     time_t now;
     int temp1, temp2, sitecntr, i_sitecnt, i_sitemax, i_retvar = -1;
     struct SNOOPLISTNODE *temp;
@@ -1354,7 +1354,7 @@ shutdownsock(DESC * d, int reason)
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tsitebuff, 0, sizeof(tsitebuff));
            strncpy(tsitebuff, mudconf.guest_namelist, 1000);
-           ptsitebuff = strtok(tsitebuff, " \t");
+           ptsitebuff = strtok_r(tsitebuff, " \t", &tstrtokr);
            sitecntr = 1;
            while ( (ptsitebuff != NULL) && (sitecntr < 32) ) {
               if ( lookup_player(NOTHING, ptsitebuff, 0) == d->player ) {
@@ -1364,7 +1364,7 @@ shutdownsock(DESC * d, int reason)
                  mudstate.guest_status &= ~temp2;
                  mudstate.guest_num--;
               }
-              ptsitebuff = strtok(NULL, " \t");
+              ptsitebuff = strtok_r(NULL, " \t", &tstrtokr);
               sitecntr++;
            }
         }

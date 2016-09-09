@@ -710,7 +710,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
   dbref	target, owner, pl_aowner;
   char	*nbuf, *p1, *p2, buff[50], *dbuff, *dbx, *fbuff, *fbx, *sbuff, sep, *pos1, 
         *pos2, *pos3, *px, *lbuff, *lbx, *alias_pos1, *alias_px, *pl_alias, *mpg, 
-        *t_msg, *t_msgp, *tpr_buff, *tprp_buff, *s_ret_warn, *s_ret_warnptr;
+        *t_msg, *t_msgp, *tpr_buff, *tprp_buff, *s_ret_warn, *s_ret_warnptr, *tstrtokr;
   int	flags, port, got, got2, num, nuts, pc, fnum, lnum, *ilist, pl_aflags, 
         mpr_chk, nkey, s_ret_warnkey, ansikey;
   
@@ -801,7 +801,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		  free_lbuf(lbuff);
 		  return;
 		}
-                mpg = strtok(p1, " ");
+                mpg = strtok_r(p1, " ", &tstrtokr);
 		strcpy(sbuff,mpg);
 		free_lbuf(p1);
 		p1 = tname;
@@ -2099,7 +2099,7 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
   char buf[LBUF_SIZE], buff2[LBUF_SIZE];
   int aflags;
   dbref aowner;
-  char *tmp, *tpr_buff, *tprp_buff;
+  char *tmp, *tpr_buff, *tprp_buff, *tstrtokr;
   char *tmp_word;
   char *chk_ansi;
   int inx, iny;
@@ -2119,7 +2119,7 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
   if(*arg1 == '\0') {
 	 if(*(tmp = atr_get(player,A_CHANNEL,&aowner,&aflags))) {
 		notify(player,"You are currently on the following channels: ");
-      tmp_word = strtok( tmp, " " );
+      tmp_word = strtok_r( tmp, " " , &tstrtokr);
       tprp_buff = tpr_buff = alloc_lbuf("do_channel");
       while( tmp_word ) {
          if ( iny == 0 ) {
@@ -2140,7 +2140,7 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
             sprintf( buf, "%-45.45s     %-20.20s", buf, tmp_word );
             inx++;
          }
-      tmp_word = strtok( NULL, " " );
+      tmp_word = strtok_r( NULL, " ", &tstrtokr );
       } /* While */
       free_lbuf(tpr_buff);
       notify(player, unsafe_tprintf( "   %s", buf ) ); /* Print last line */

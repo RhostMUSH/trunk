@@ -33,6 +33,7 @@
   
   The /search switch works for +help as well.
   
+
 & register
 & connect
 & create
@@ -85,30 +86,31 @@
 & commands
   Help available for RhostMUSH Commands:
    
-  ]          "            :            ;            &              #
-  \\         >
+  ]         "           :            ;            &             #
+  \\        >
   
-  +channel   doing        drop         enter        examine        folder     
-  get        give         goto         grab         help           +help 
-  idle       INFO         inventory    join         kill           leave      
-  listen     LOGOUT       look         lpage        mail           move       
-  mrpage     news         OUTPUTPREFIX OUTPUTSUFFIX page           pose       
-  QUIT       read         rpage        say          score          SESSION    
-  smell      take         taste        think        throw          touch      
-  train      use          version      wield        whisper        who        
+  +channel  doing       drop         enter        examine       folder     
+  get       give        goto         grab         help          +help 
+  idle      INFO        inventory    join         kill          leave      
+  listen    LOGOUT      look         lpage        mail          move       
+  mrpage    news        OUTPUTPREFIX OUTPUTSUFFIX page          pose       
+  QUIT      read        rpage        say          score         SESSION    
+  smell     take        taste        think        throw         touch      
+  train     use         version      wield        whisper       who        
   worn
   
-  @@         @break       @chown       @clone       @create        @decompile
-  @destroy   @dig         @doing       @dolist      @drain         @edit 
-  @emit      @entrances   @eval        @extansi     @femit         @find      
-  @force     @fpose       @fsay        @halt        @hide          @include
-  @last      @link        @list        @listmotd    @lfunction     @lock      
-  @mailsig   @mvattr      @name        @notify      @oemit         @open      
-  @parent    @password    @pemit       @pipe        @program       @protect   
-  @ps        @quitprogram @quota       @register    @robot         @search    
-  @set       @skip        @sql         @sqlconnect  @sqldisconnect @stats     
-  @sudo      @sweep       @switch      @teleport    @trigger       @unlink    
-  @unlock    @verb        @wait        @wall        @wipe        
+  @@              @break      @chown    @clone        @create    @decompile
+  @destroy        @dig        @doing    @dolist       @drain     @edit 
+  @emit           @entrances  @eval     @extansi      @femit     @find      
+  @force          @fpose      @fsay     @halt         @hide      @include
+  @label          @last       @link     @list         @listmotd  @lfunction  
+  @lock           @lset       @mailsig  @mvattr       @name      @notify     
+  @oemit          @open       @parent   @password     @pemit     @pipe       
+  @program        @protect    @ps       @quitprogram  @quota     @register   
+  @robot          @search     @set      @skip         @sql       @sqlconnect 
+  @sqldisconnect  @stats      @sudo     @sweep        @switch    @teleport   
+  @trigger        @unlink     @unlock   @verb         @wait      @wall       
+  @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -164,8 +166,69 @@
   SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
   VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
   ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
-  ATTRIB FORMATTING   MAX ARGS
+  ATTRIB FORMATTING   MAX ARGS          WILDCARDS
   
+& \*
+& \?
+& WILDCARDS
+& GLOBBING
+  Topic:  WILDCARDS [* and ?]
+  
+  Wildcards are the standard globbing mechanism for the mush engine.  With the
+  wildcards, the '*' character is considered 0 or more characters and the '?'
+  character is considered a single character.  These are used primarilly in
+  commands and functions that allow mulit-matching based on wild card support.
+  
+  Example:
+    > say match(this is a test,?es*)
+    You say "4"
+  
+  Wildcards, however, are most useful for $command substitution matching.
+  When you create your own softcoded command, any argument you want
+  substituted you would place a '*' or a '?' for that argument.  Each argument
+  is then matched up with a numerical argument for each wildcard used.  The
+  first argument being %0, second being %1, and so forth.
+  
+  Example:
+    > &TEST1 me=$test1*:@emit Your First Test:%0
+    > &TEST2 me=$test2?:@emit Your Second Test:%0
+    > &TEST3 me=$test3 *:@emit Your Third Test:%0
+    > test1
+    Your First Test:
+    > test1 abc
+    Your First Test: abc  [notice the space between ':' and 'a']
+    > test2
+    Huh? (Type 'help' for help)  [Because ? requires 1 character exactly]
+    > test2X
+    Your Second Test:X
+    > test2abc
+    Huh? (Type 'help' for help)  [Because ? required 1 character exactly]
+    > test3
+    Huh? (Type 'help' for help)  [because you have a space in the command]
+    > test3 abc
+    Your Third Test:abc  [notice no space between ':' and 'a']
+    
+  { See 'help wildcards2' for clarification and extended explainations }
+ 
+& WILDCARDS2
+  Clarification:
+    The difference between Test1 and Test3 is the fact there is a space in
+    the command between the command (test1 and test3 respectively) and the
+    wildcard.  For test1, when you did 'test1 abc' the space in ' abc' was
+    part of the argument you passed to the command, thus it included the
+    space.  In test3, you had a space as part of the requirement argument
+    so it required the space then saw 'abc' as the argument.   
+  
+    Test2 required a single character after it.  Anything less or more than
+    1 character exactly returned an error message.
+  
+  Additional matching:
+    You may use regular expressions instead of globbing if you set the 
+    attribute in question REGEXP (help attribute flag).  To use 
+    regular expressions instead, please check 'help regexp'.
+  
+  See Also: ATTRIBUTE FLAG, REGEXP, $-command
+
 & MAX ARGS
   Topic: MAX ARGS
   
@@ -217,7 +280,7 @@
       ===<This is a test>===
 
   See Also: ATTRIBUTES, ATTRIBUTE FLAG DEFAULT, @conformat, 
-            @exitformat, @nameformat
+            @exitformat, @nameformat, invformat
 
 & NEW USERS
 & GUESTS
@@ -394,13 +457,19 @@
   
   Type '@list options' to see what side-effects are currently in effect.
     
-  MUX sideeffects supported:   TEL, SET, PEMIT, CREATE, LIST, and LINK
-  PENN sideeffects supported:  TEL, SET, PEMIT, CREATE, LINK, DIG, OPEN, EMIT,
-                               LEMIT, OEMIT, CLONE, LOCK, PARENT, NAME,
-                               WIPE, ZEMIT, and REMIT
+  MUX sideeffects supported:   SET, CREATE, LINK, PEMIT, TEL, LIST, OEMIT,
+                               PARENT, and DESTROY
+  PENN sideeffects supported:  SET, CREATE, LINK, PEMIT, TEL, DIG, OPEN, 
+                               EMIT, OEMIT, CLONE, PARENT, LOCK, LEMIT, 
+                               REMIT, WIPE, ZEMIT, NAME, and LSET
   OTHER sideeffects supported: DESTROY, TOGGLE, TXLEVEL, RXLEVEL, RSET, 
                                and MOVE
-  DATABASE sideeffects supported: SQLITE_QUERY
+
+  The following sideeffects are handled by the database portion as a
+  separate entity.
+  
+  DB sideeffects supported:    SQLITE_QUERY, SQL, SQLON, SQLOFF, 
+                               SQLESCAPE, SQLPING
   
   Help is available on MUX, PENN and OTHER side-effects by name.
   
@@ -1022,13 +1091,40 @@
   
 & inventory
   Command: inventory
+  
   Lists what you are carrying and how much money you have.  If alternate 
   inventories are in effect, anything wielded or worn may not be shown up
   by this inventory.  To see these inventories, use the 'wielded' and
   'worn' commands respectively.
   
-  See Also: score, worn, wielded
+  See Also: score, worn, wielded, invformat
   
+& @invformat
+& invformat
+  Attribute: INVFORMAT
+  
+  This attribute is set via &INVFORMAT.  There is no '@invformat'.
+  
+  This attribute when set will format the enctor's inventory.  If the enactor
+  is @powered FORMATTING (either directly or through a parent/zone chain),
+  then you may also use %0-%6 for arguments.  They are:
+    %0 - The space separated list of dbref#'s that would normally show 
+         up in inventory.
+    %1 - The '|' delimited list of names that would normally show up in
+         inventory.
+    %2 - The space separated list of exit dbref#'s that would normally 
+         show up in inventory.
+    %3 - The '|' delimited list of exit names that would normally show 
+         up in inventory.
+    %4 - The space separated list of dbref#'s that are toggled WIELDED
+    %5 - The space separated list of dbref#'s that are toggled WORN
+    %6 - The backpack name that is globally set. (@admin inventory_name)
+  
+  If the target is not @powered FORMATTING, then none of the % registers
+  will return a result.
+  
+  See Also: @conformat, @exitformat, @nameformat, attribute formatting
+
 & train
   Command: train
   The train command is used to output to the player what exactly you have 
@@ -3149,6 +3245,251 @@
   
   See Also: @drain, @notify, @ps, kill, HALTED, SEMAPHORES, pid()
   
+& @label
+  Command: @label/<switch> <label>=<target>:<start>,<end>
+  
+  The @label command is used to integrate the %_<label> system for debugging
+  and tracing seamlessly into code.  This effectively allows you to add,
+  remove, list and purge labels from attributes, cleanly, to allow a far
+  more enjoyable debugging experience.
+  
+  Quick overview of switches:
+    /add     - Adds the label in attribute
+    /try     - Shows what adding label would look in attribute
+    /delete  - Deletes label in attribute
+    /purge   - Purge all labels in attributes
+    /list    - Lists all specifics of attribute
+    /enable  - Enables label debugging of specific label
+    /disable - Disables label debugging of specific label
+    /color   - Sets (or wipes) specific label
+    /grep    - Sets (or wipes) grep patterning
+    /ruler   - works like ruler()
+  
+  For further explaination of label tracing:  help %_ 
+  For the complete list of variables used:    help %_var
+  
+  { see 'help @label2' to show syntax and detailing labels of switches }
+  { see 'help @label-example' to show step by step in working debug labels }
+
+& @label-example
+  Command: @label/<switch> <label>=<target>:<start>,<end>
+  
+  To use debug labels, you of course need to first set up some code.
+  
+  First, let's create an object:
+    > @create MyObject
+    MyObject created as object #12345
+  
+  Now, let's set an attribute we want to debug on this object.
+    > @set MyObject=inherit
+    Set.
+    > &CMD_TEST MyObject=$foo:@pemit %#=[add(1,1)][sub(2,2)][div(3,3)]
+    Set.
+  
+  We need to see the positioning of the sub() function in our attribute.
+  For this, we can use the nifty @label/ruler command (or ruler() function)
+      (NOTE: think ruler(myobject/cmd_test,60) also works)
+    > @label/ruler myobject/cmd_test=60    
+             | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+             | $foo:@pemit %#=[add(1,1)][sub(2,2)][div(3,3)]                  |
+      0      | 123456789012345678901234567890123456789012345678901234567890   |
+             | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+  
+  Ok, for whatever reason, we want to debug just the sub() function in
+  this.  We will call our label 'watson' for giggles.  We have the start 
+  position of sub as 25, and the end of it as 35.  
+  It will place the labels AFTER the position specified, not before.
+  Let's issue a '/try' on this to make sure we got the positions right.
+    > @label/add/try watson=myobject/cmd_test:25,35
+    @label: /add [/try] would have modified the attribute to look like:
+    $foo:@pemit %#=[add(1,1)]%_<watson>[sub(2,2)]%_<-watson>[div(3,3)]
+  
+  Ok, it looks good, let's add the label.
+    > @label/add watson=myobject/cmd_test:25,35
+    @label: /add successfully added label 'watson' to attribute.
+   
+  { see 'help @label-example2' to continue with the tutorial }
+ 
+& @label-example2
+  Command: @label/<switch> <label>=<target>:<start>,<end>
+  
+  Now, we have injected the debug label into our code, but we still need to
+  enable the label itself for debugging.  Let's select pink as the optional
+  color.  If you don't specify a color, it'll just highlight it.  You may
+  change or add/remove color from labels after the fact with the /color
+  option.  So don't worry if you don't feel colorful right now.
+    > @label/enable myobject/watson=+pink
+    @label: /enable has enabled label 'watson' with color '+pink'
+  
+  Good show, we now have debugging enabled for the object for the sub()
+  function.  Let's try it out, shall we?
+    > foo
+    MyObject(#12345) [watson]} 'sub(2,2)' -> '0'
+    201
+  
+  Ok, let's see what label based debugging we have on the object itself.
+    > @label/list myobject
+    @label: /list -- Global values set on target
+      Trace: watson
+      Attrib Color: [TRACE_COLOR_WATSON] +pink
+  
+  And now, for the attribute we actually did debugging on.
+    > @label/list myobject/cmd_test
+    @label: /list of all labels for attribute
+      Enable:[   1] watson
+      Disable:[   1] watson
+      Attrib Color: [TRACE_COLOR_WATSON] +pink
+  
+  { see 'help @label-example3' to finish with the tutorial }
+  
+& @label-example3
+  Command: @label/<switch> <label>=<target>:<start>,<end>
+  
+  Ok, we've finished debugging.  You can do multiple things here.  Leaving the
+  debugging in is fine, if it's not enabled it won't have much overhead
+  overall.  The other is you can remove the label.
+  --: Disabling the label which removes the label from debugging
+    > @label/disable myobject/watson
+    @label: /disable has disabled label 'watson'
+  --: Removing the label from the attribute entirely
+    > @label/delete watson=myobject/cmd_test
+    @label: /del removed label 'watson'.  1 enable, 1 disable.
+  --: Purging all labels entirely from the attribute
+    > @label/purge myobj/cmd_test
+    @label: /purge removed labels.  1 enable, 1 disable.
+            Removed: watson watson  (twice as it lists enable and disable)
+  
+  Let's test our command to make sure debugging is disabled.
+    > foo
+    201
+  
+  As shown, this allows some great flexibility to debug code on the fly
+  with pinpoint accuracy of where and how you want things to debug.
+  
+  There are more advanced features that are not covered in this basic
+  tutorial as this is meant to just get you started.  For more help
+  please check the following help entries:
+  
+  --: help %_      -- This will give you the total overview of how the label
+                      debugging engine works and what it is doing under
+                      the hood.  You do not need ot use @label at all to
+                      make use of this, but @label is intended as an easy
+                      front end to make it less... challanging.
+  
+  --: help %_var   -- These are the variables that are set when you interface
+                      with the @label comamnd.  You may set these manually
+                      if you so desire.
+  
+  --: help @label  -- The main front-end engine for the entire label debug
+                      system.  While you don't have to use it, it does make
+                      things a bit easier.
+  
+  See Also: @label, %_, %_var, TRACE, ruler()
+
+& @label2
+  Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
+    
+  The following switches are available:
+  Syntax:  @label/add <label>=<object>/<attr>:<start>,<end>
+             - Add the label at the specified positions.  It requires two
+               positions since you will want a start and stop point for
+               each label.  You may use the strings START and END 
+               to specify the very beginning and the very end of the
+               attribute when adding labels.
+  
+  Syntax:  @label/add/try <label>=<object>/<attr>:<start>,<end>
+             - When used in junction with /add it will show you what
+               the new attribute would look like if it inserted the
+               labels.  It's useful to make sure you have the position
+               properly set.
+  
+  Syntax:  @label/del <label>=<object>/<attr>
+             - Remove the specified label (both start and stop points) 
+               from the attribute.  This removes all occurances.
+  
+  Syntax:  @label/purge <object>/<attr>
+             - Remove all labels (both start and stop points) from the
+               specified attribute.
+  
+  Syntax:  @label/list <object>[/<attr>]
+             - List all labels (both start and stop points) from the
+               specified attribute.  This will list all other label
+               dependant values of that target.  If you specify the
+               object without an attribute, it just lists all global
+               trace values for that object.
+  
+  { see 'help @label3' to continue syntax and detailing labels of switches  }
+  
+& @label3
+  Command: @label/<switch> <label>=<target>:<start>,<end>  (CONTINUED)
+    
+  Syntax:  @label/enable <object>/<label> [=<color|wipe>]
+             - Will enable the given label to your trace output.  This
+               essentially adds it to the 'TRACE' attribute.  This can
+               optionally remove label-specified colors that are in
+               the form 'TRACE_COLOR_LABEL' where 'LABEL' is the label.
+  
+  Syntax:  @label/disable <object>/<label> [=<color|wipe>]
+             - Will remove the given label from your trace output.  This
+               removes the label from the 'TRACE' attribute.  This can
+               optionally remove label-specified colors that are in
+               the form 'TRACE_COLOR_LABEL' where 'LABEL' is the label.
+  
+  Syntax:  @label/color <object>/<label|general> = <color|wipe>
+             - This sets either the 'general' color defined by your
+               TRACE_COLOR attribute or the label specific color which
+               is defined by TRACE_COLOR_LABEL.  If you specify 'wipe'
+               it will delete the attribute.
+  
+  Syntax:  @label/grep <object>[/regexp] = <string|wipe>
+             - This will set your TRACE_GREP string or if you specify
+               'wipe' will remove it. If you specify the /regexp
+               option it will also set the attribute REGEXP.
+  
+  Syntax:  @label/ruler <object>/<attribute> [=<ruler value>]
+             - This will work just like ruler() does.  You may specify
+               an optional <ruler value>.  The rule value must be between
+               0 and 100 and must be a multiple of 10.  The default value
+               is '60' which fits inside a 79 column width.
+  
+  { see 'help @label4' for examples }
+
+& @label4
+  Command: @label/<switch> <label>=<target>:<start>,<end> (CONTINUED)
+    
+  NOTE:  Any label that starts with a '-' (eg: %_<-foo>) is an end/disable
+         label.  This would stop the tracing.  This is explained more in
+         'help %_'
+   
+  Examples:
+    > @vd me=[add(1,1)][sub(2,2)][div(3,3)]
+    Set.
+    > @label/ruler me/vd=60
+           | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+           | [add(1,1)][sub(2,2)][div(3,3)]                                 |
+    0      | 123456789012345678901234567890123456789012345678901234567890   |
+           | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+    > @label/add/try test=me/vd:10,20
+    @label: /add [/try] would have modified the attribute to look like:
+    [add(1,1)]%_<test>[sub(2,2)]%_<-test>[div(3,3)]
+    > @label/add test=me/vd:10,20
+    @label: /add successfully added label 'test' to attribute.
+    > @label/del test=me/vd
+    @label: /del removed label 'test'.  1 enable, 1 disable.
+    > @label/del test=me/vd
+    @label: /del could not find label 'test' in attribute.
+    > @label/add test=me/vd:10,20
+    @label: /add successfully added label 'test' to attribute.
+    > @label/list me/vd   (label starts are green, ends are red)
+    @label: /list of all labels for attribute
+            Enable:[   1] test
+           Disable:[   1] test
+    > @label/purge me/vd  (label starts are green, ends are red)
+    @label: /purge removed labels.  1 enable, 1 disable.
+            Removed: test test
+  
+  See Also: %_, SUBSTITUTIONS, TRACE, trace(), @label, ruler()
+
 & @last
   Command: @last <player>
   This command displays a short 'connection history' for <player>, showing
@@ -3273,7 +3614,7 @@
          help @lock type <lock> - give detailed help on the specific lock.
          help userlocks   - a special way to define user-defined locking.
   
-  See Also: @chown, @unlock
+  See Also: @unlock, @lset, @chown, lock(), elock()
   
 & @lock locks
   You can set the following locks:
@@ -4235,6 +4576,7 @@
     /off    -- Turn off piping to the attribute.
     /tee    -- This turns on piping but also allows viewing output normally.
     /status -- This gives the current status of your piping.
+    /quiet  -- snuff the messages of using the /on and /off switches
   
   Please note, you obviously can not pipe to multiple attributes at once,
   and once the attribute is filled to capacity, piping to that attribute
@@ -4472,6 +4814,40 @@
   See Also: @find, search(), searchng(), searchobjid(), searchngobjid(), 
             SEARCH CLASSES
   
+& @lset
+  Command: @lset[/<switches>] <object>[/<lock>] [=<permission>]
+  
+  The default <lock> if not specified will be the DefaultLock.  An alias
+  for DefaultLock is BasicLock.
+  
+  This function will display or set/unset a <permission> on a lock.  The
+  following permissions are available (depending on your permission to set):
+    god         -- Only #1 is allowed to set/unset this lock
+    immortal    -- Only immortal or higher is allowed ot set/unset this lock
+    wizard      -- Only wizard or higher is allowed to set/unset this lock
+    councilor   -- Only councilor or higher is allowed to set/unset this lock
+    architect   -- Only architect or higher is allowed to set/unset this lock
+    guildmaster -- Only guildmaster or higher is allowed to set/unset this lock
+    hidden      -- This lock is hidden based on above permission levels
+    no_inherit  -- if the @admin config parameter parentable_control_lock is 
+                   enabled, stops the lock from being inherited to its children
+    visual      -- Makes the lock globally visible
+    pinvisible  -- Hides the lock but makes it fetchable/checkable
+    no_clone    -- Lock is not copied with a @clone
+    
+  The following <switches> are available:
+    /list       -- List the special permissions on the specified target lock.
+  
+  Examples:
+    > @lset/list *Tester/default
+    @lset: [DefaultLock] on Tester(#123): No additional flags set.
+    > @lset *Tester/default=no_inherit
+    @lset: [DefaultLock] set NO_INHERIT on Tester(#123)
+    > @lset/list *Tester/default
+    @lset: [DefaultLock] on Tester(#123): no_inherit
+    
+  See Also: @lock, @unlock, @set, lock(), elock(), lset(), set()
+ 
 & @set
   Command: @set[/<switches>] <object>=[!]<flag> [[!]<flag> [!]<flag> ...]
            @set[/<switches>] <object>=<attribute>:<value>
@@ -4533,7 +4909,7 @@
   Please note, you can not set multiple attributes or flags at once this way.
   Reference: ATTRIBUTE FLAGS
   
-  See Also: @lock, examine, FLAGS, &, @guild, @race, ATTRIBUTE FLAGS,
+  See Also: @lset, @lock, examine, FLAGS, &, @guild, @race, ATTRIBUTE FLAGS,
             ATTRIBUTE TREES
   
 & @stats
@@ -4732,7 +5108,7 @@
          help mail lock   - help on how to remove a mail lock.
          help @lock locks - list of available locks you can @unlock.
   
-  See Also: @chown, @lock, ATTRIBUTE OWNERSHIP
+  See Also: @lock, @lset, @chown, lock(), elock(), ATTRIBUTE OWNERSHIP
   
 & @verb
   Command: @verb <victim>=<actor>,<what>,<def>,<owhat>,<odef>,<awhat>,<args>
@@ -5483,7 +5859,7 @@
    
   The mush has to be configured to enable this to work.  '@list options'
   
-  See Also: @exitformat, @conformat
+  See Also: @exitformat, @conformat, invformat
   
 & @conformat
   Command: @conformat[/<switch>] <object> = <string>
@@ -5512,7 +5888,7 @@
    
   The mush has to be configured to enable this to work.  '@list options'
   
-  See Also: @exitformat, @nameformat
+  See Also: @exitformat, @nameformat, invformat
   
 & @exitformat
   Command: @exitformat[/<switch>] <object> = <string>
@@ -5543,7 +5919,7 @@
   
   The mush has to be configured to enable this to work.  '@list options'
   
-  See Also: @conformat, @nameformat
+  See Also: @conformat, @nameformat, invformat
   
 & @exitto
   Command: @exitto[/<switch>] <exit> = <string>
@@ -8671,6 +9047,11 @@
 & ATTRIBUTE USELOCKS
   Topic: Attribute uselocks
   
+  A player must be @toggled ATRUSE in order to set and unset the USELOCK
+  attribute flag on an attribute.  If you need this, please ask a staff
+  about providing this for you.  This can be bypassed if it's configured
+  to globally allow it via the secure_atruselock config parameter.
+  
   Attribute uselocks are a method where you can specify individual uselocks
   per command per object.  The path it takes to check uselocks are as 
   follows:
@@ -8708,6 +9089,10 @@
           - If the uselock attribute returns a '1'.
   
     For failure:
+          - If the uselock attributes returns anything except '1' or null.
+  
+  See @list options to see if USELOCKS are available for attributes.  
+  Depending on the configuration of the rhostmush in question, uselocks may
           - If the uselock attributes returns anything except '1' or null.
   
   See @list options to see if USELOCKS are available for attributes.  
@@ -9281,27 +9666,29 @@
     VISUAL(V)       (this shows up when you set an attribute VISUAL)
     NO_INHERIT(I)   (this shows up when you set an attribute NO_INHERIT)
     LOCK(+)         (this shows when an attribute is @locked)
-    GUILDMASTER(g)  (this shows when an attribute is set GUILDMASTER)
-    ARCHITECT(A)    (this shows when an attribute is set ARCHITECT)
-    COUNCILOR(C)    (this shows when an attribute is set COUNCILOR)
-    ROYALTY(W)      (this shows when an attribute is set WIZARD)    
-    IMMORTAL(i)     (this shows when an attribute is set IMMORTAL)
-    GOD(G)          (this shows when an attribute is set GOD)
-    MDARK(M)        (this shows when an attribute is set HIDDEN)
+  * GUILDMASTER(g)  (this shows when an attribute is set GUILDMASTER)
+  * ARCHITECT(A)    (this shows when an attribute is set ARCHITECT)
+  * COUNCILOR(C)    (this shows when an attribute is set COUNCILOR)
+  * ROYALTY(W)      (this shows when an attribute is set WIZARD)    
+  * IMMORTAL(i)     (this shows when an attribute is set IMMORTAL)
+  * GOD(G)          (this shows when an attribute is set GOD)
+  * MDARK(M)        (this shows when an attribute is set HIDDEN)
     PRIVATE         (this shows when an attribute is set PRIVATE)
     NO_CLONE(N)     (this shows when an attribute is set NO_CLONE)
     NO_PARSE(n)     (this shows when an attribute is set NO_PARSE)
     SAFE(s)         (this shows when an attribute is set SAFE)
-    PINVISIBLE(p)   (this shows when an attribute is set PINVISIBLE)
-    DARK(D)         (this shows when an attribute is set DARK)
-    USELOCK(u)      (this shows when an attribute has a USELOCK)
+  * PINVISIBLE(p)   (this shows when an attribute is set PINVISIBLE)
+  * DARK(D)         (this shows when an attribute is set DARK)
+  * USELOCK(u)      (this shows when an attribute has a USELOCK)
     SINGLETHREAD(S) (this shows when an attribute is set SINGLETHREAD)
     DEFAULT(F)      (this shows when an attribute is set DEFAULT)
-    ATRLOCK(l)      (this shows when an attribute is set ATRLOCK)
-    LOGGED(m)       (this shows when an attribute is set LOGGED)
+  * ATRLOCK(l)      (this shows when an attribute is set ATRLOCK)
+  * LOGGED(m)       (this shows when an attribute is set LOGGED)
     REGEXP(R)       (this shows when REGEXP are enabled on attributes)
-    UNSAFE(U)	    (this shows when attributes bypass safer_ufun)
+  * UNSAFE(U)	    (this shows when attributes bypass safer_ufun)
    
+  Attribute flags marked with a '*' are restricted based on permission level.
+  
 {See 'help attribute flags2' for meanings of the attribute flags}
   
 & ATTRIBUTE FLAGS2
@@ -9313,29 +9700,31 @@
     VISUAL              - The attribute is visual to anyone.
     NO_INHERIT          - The attribute is not inherited to it's children
     LOCK                - The attribute was @locked.
-    GUILDMASTER         - The attribute is modifyable by GuildMaster or higher
-    ARCHITECT           - The attribute is modifyable by Architect or higher
-    COUNCILOR           - The attribute is modifyable by Councilor or higher
-    ROYALTY             - The attribute is modifyable by Wizard or higher
-    IMMORTAL            - The attribute is modifyable by Immortal or higher
-    GOD                 - The attribute is modifyable only by #1
-    MDARK (HIDDEN)      - The attribute is wizard-hidden.
+  * GUILDMASTER         - The attribute is modifyable by GuildMaster or higher
+  * ARCHITECT           - The attribute is modifyable by Architect or higher
+  * COUNCILOR           - The attribute is modifyable by Councilor or higher
+  * ROYALTY             - The attribute is modifyable by Wizard or higher
+  * IMMORTAL            - The attribute is modifyable by Immortal or higher
+  * GOD                 - The attribute is modifyable only by #1
+  * MDARK (HIDDEN)      - The attribute is wizard-hidden.
     PRIVATE             - The attribute is private to the item.
     NO_CLONE            - The attribute is not copied on a @clone
     NO_PARSE            - The attribute does not parse %0-%9 with $commands
     SAFE                - The attribute is safe from modification.
-    PINVISIBLE          - The attribute is seeable by wizards/modifyable to any
-    DARK                - The attribute is #1 seeable only
-    USELOCK             - The attribute can have an ~attribute uselock
+  * PINVISIBLE          - The attribute is seeable by wizards/modifyable to any
+  * DARK                - The attribute is #1 seeable only
+  * USELOCK             - The attribute can have an ~attribute uselock
                           (See help on 'attribute uselock' for more info)
     SINGLETHREAD        - The attribute must wait for completion before re-ran
     DEFAULT             - The attribute 'inherits' built-in attr globals.
-    ATRLOCK             - The attribute has a format lock.
-    LOGGED              - The attribute is logged for sets/edits/clears.
+  * ATRLOCK             - The attribute has a format lock.
+  * LOGGED              - The attribute is logged for sets/edits/clears.
     REGEXP              - The attribute $/^ command/listen use regexp parsing
-    UNSAFE              - The attribute evaluates at object's permission level.
+  * UNSAFE              - The attribute evaluates at object's permission level.
                           (this is the default behavior w/o safer_ufun set)
-    
+   
+  Attribute flags marked with a '*' are restricted based on permission level.
+  
   See Also: FLAG LIST
  
 & ATTRIBUTE FLAG NO_COMMAND
@@ -9646,24 +10035,24 @@
   LN()          LNOR()         LNUM()         LNUM2()          LOC()          
   LOCALFUNC()   LOCALIZE()     LOCATE()       LOCK()           LOCKCHECK()
   LOCKDECODE()  LOCKENCODE()   LOG()          LOR()            LRAND()       
-  LREPLACE()    LROOMS()       LSUB()         LT()             LTE()         
-  LTOGGLES()    LWHO()         LXNOR()        LXOR()           LZONE()       
-  MAILQUICK()   MAP()          MATCH()        MASK()           MAX()         
-  MEMBER()      MERGE()        MID()          MIN()            MIX()         
-  MOD()         MODULO()       MODIFYTIME()   MONEY()          MONEYNAME()   
-  MOON()        MUDNAME()      MUL()          MUNGE()          MWORDS()
-  NAME()        NAMEQ()        NAND()         NCOMP()          NEARBY()       
-  NEQ()         NEXT()         NOR()          NOSTR()          NOT()          
-  NOTCHR()      NPEMIT()       NSITER()       NUM()            NUMMATCH()     
-  NULL()        NUMMEMBER()    NUMPOS()       NUMWILDMATCH()   OBJ()          
-  OBJEVAL()     OBJID()        OEMIT()        OPEN()           OR()           
-  ORCHR()       ORFLAG()       ORFLAGS()      OWNER()          PACK()         
-  PARENMATCH()  PARENT()       PARSE()        PARSESTR()       PEDIT()        
-  PEMIT()       PFIND()        PGREP()        PI()             PID()          
-  PMATCH()      PORT()         POS()          POSS()           POWER()        
-  POWER10()     PRINTF()       PRIVATIZE()    PROGRAMMER()     PTIMEFMT()     
-  PUSHREGS()    QUOTA()        R()            RACE()           RAND()         
-  RANDPOS()     RANDMATCH()    RANDEXTRACT() 
+  LREPLACE()    LROOMS()       LSET()         LSUB()           LT()           
+  LTE()         LTOGGLES()     LWHO()         LXNOR()          LXOR()         
+  LZONE()       MAILQUICK()    MAP()          MATCH()          MASK()         
+  MAX()         MEMBER()       MERGE()        MID()            MIN()          
+  MIX()         MOD()          MODULO()       MODIFYTIME()     MONEY()        
+  MONEYNAME()   MOON()         MUDNAME()      MUL()            MUNGE()        
+  MWORDS()      NAME()         NAMEQ()        NAND()           NCOMP()        
+  NEARBY()      NEQ()          NEXT()         NOR()            NOSTR()        
+  NOT()         NOTCHR()       NPEMIT()       NSITER()         NUM()          
+  NUMMATCH()    NULL()         NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
+  OBJ()         OBJEVAL()      OBJID()        OEMIT()          OPEN()         
+  OR()          ORCHR()        ORFLAG()       ORFLAGS()        OWNER()        
+  PACK()        PARENMATCH()   PARENT()       PARSE()          PARSESTR()     
+  PEDIT()       PEMIT()        PFIND()        PGREP()          PI()           
+  PID()         PMATCH()       PORT()         POS()            POSS()         
+  POWER()       POWER10()      PRINTF()       PRIVATIZE()      PROGRAMMER()   
+  PTIMEFMT()    PUSHREGS()     QUOTA()        R()              RACE()         
+  RAND()        RANDPOS()      RANDMATCH()    RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -9677,24 +10066,24 @@
   REPEAT()        REPLACE()       REST()         REVERSE()      REVWORDS()    
   RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
   RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
-  ROUND()         RSET()          RXLEVEL()      S()            SAFEBUFF()    
-  SCRAMBLE()      SEARCH()        SEARCHOBJID()  SEARCHNG()     SEARCHNGOBJID()
-  SECS()          SECURE()        SECUREX()      SEES()         SET()        
-  SETDIFF()       SETINTER()      SETQ()         SETQ_OLD()     SETQMATCH()  
-  SETR()          SETR_OLD()      SETUNION()     SHIFT()        SHL()        
-  SHR()           SHUFFLE()       SIGN()         SIN()          SINGLETIME() 
-  SORT()          SORTBY()        SORTLIST()     SOUNDEX()      SOUNDLIKE()  
-  SOUNDSLIKE()    SPACE()         SPELLNUM()     SPLICE()       SQL()        
-  SQLESCAPE()     SQLOFF()        SQLON()        SQLPING()      SQLITE_QUERY()
-  SQRT()          SQUISH()        STARTTIME()    STARTSECS()    STATS()      
-  STEP()          STR()           STRCAT()       STRDISTANCE()  STREQ()      
-  STREVAL()       STRFUNC()       STRIP()        STRIPACCENTS() STRIPANSI()  
-  STRLEN()        STRMATCH()      STRMATH()      SUB()          SUBJ()       
-  SUBNETMATCH()   SWITCH()        SWITCHALL()    T()            TAN()        
-  TEL()           TIME()          TIMEFMT()      TOBIN()        TODEC()      
-  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
-  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
-  TRANSLATE() 
+  ROUND()         RSET()          RULER()        RXLEVEL()      S()          
+  SAFEBUFF()      SCRAMBLE()      SEARCH()       SEARCHOBJID()  SEARCHNG()   
+  SEARCHNGOBJID() SECS()          SECURE()       SECUREX()      SEES()       
+  SET()           SETDIFF()       SETINTER()     SETQ()         SETQ_OLD()   
+  SETQMATCH()     SETR()          SETR_OLD()     SETUNION()     SHIFT()      
+  SHL()           SHR()           SHUFFLE()      SIGN()         SIN()        
+  SINGLETIME()    SORT()          SORTBY()       SORTLIST()     SOUNDEX()    
+  SOUNDLIKE()     SOUNDSLIKE()    SPACE()        SPELLNUM()     SPLICE()     
+  SQL()           SQLESCAPE()     SQLOFF()       SQLON()        SQLPING()    
+  SQLITE_QUERY()  SQRT()          SQUISH()       STARTTIME()    STARTSECS()  
+  STATS()         STEP()          STR()          STRCAT()       STRDISTANCE()
+  STREQ()         STREVAL()       STRFUNC()      STRIP()        STRIPACCENTS()
+  STRIPANSI()     STRLEN()        STRMATCH()     STRMATH()      SUB()        
+  SUBJ()          SUBNETMATCH()   SWITCH()       SWITCHALL()    T()          
+  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()      
+  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()    
+  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()         
+  TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -9887,9 +10276,9 @@
   
   Side-Effects:        CLONE() CREATE() DESTROY() DIG() EMIT() LEMIT() LINK() 
                        LIST() LOCK() NAME() NAMEQ() NPEMIT() OEMIT() OPEN() 
-                       PARENT() PEMIT() R() REMIT() RSET() RXLEVEL() SET() 
-                       SETQ() SETQ_OLD() SETR() SETR_OLD() TEL() TOGGLE() 
-                       TXLEVEL() WIPE() ZEMIT()
+                       PARENT() PEMIT() R() REMIT() RSET() RULER() RXLEVEL() 
+                       SET() SETQ() SETQ_OLD() SETR() SETR_OLD() TEL() 
+                       TOGGLE() TXLEVEL() WIPE() ZEMIT()
              See Also: help side effect functions  
   
   Dbase Side-Effects:  SQLITE_QUERY()
@@ -10318,6 +10707,7 @@
   
   See Also: GENDER, V(), SHIFT(), ACCENT()
   
+& TRACE_COLOR
 & TRACE_GREP
 & %_
   Topic: SUBSTITUTIONS
@@ -10325,32 +10715,55 @@
           %_<-label> -- disables debugging for <label>
           %_<off>    -- disables all debugging
   
+  You can have a total of 1000 label declarations total for processing per
+  command queue.
+  
+  The @label command can be used to integrate labels into attributes.
+  
   The %_ substitution is a special substitution as it allows you to enbed
   breakpoints into code to toggle on and off debugging on the fly dynamically.
   This is handled by the enactors 'TRACE' attribute that houses the marker
   that you specify for the substitutions.  The marker can be any string.
   
-  You use - for the label to turn off debugging for that particular debug
-  marker.  For stacked debugging this will decrement the debug stack count.
+  You use - as a prefix for the label to turn off debugging for that 
+  particular debug marker.  For stacked debugging this will decrement the 
+  debug stack count.
    
   Using the <label> adds to the debug stack and using <-label> reduces one
   from the debug stack.  This allows you to essentially nest debugging
   breakpoints within code and only enable/disable them when you set
-  the specified label in your TRACE value.  For instance, &TRACE me=123
+  the specified label in your TRACE value.  For instance, &TRACE object=123
+  
+  The <label> needs to be always in lower case.
   
   Note: This has absolutely no impact on the TRACE flag and uses another
   method to keep track of how it's tracing information.  You can use
   this in addition to the TRACE flag if you so wish.
   
-  You may use the attribute TRACE_COLOR to set a standard color for your
-  labels.   For instance, &TRACE_COLOR me=+purple.  You may specify colors
-  by label as &TRACE_COLOR_<label> me=+orange.  Like &TRACE_COLOR_123.
-  This will fall back on 'TRACE_COLOR' if the by label isn't found.
+  { see 'help %_2' to continue }
+
+& %_2
+  Topic: SUBSTITUTIONS (CONTINUED)
+  Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
+          %_<-label> -- disables debugging for <label>
+          %_<off>    -- disables all debugging
   
-  You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
-  if you wish to have a specific piece of code in trace output which matches
-  the trace output return in red the match.  If the TRACE_GREP attribute
-  is attribute-set REGEXP, it will take the string as a regexp match.
+  You may use the attribute TRACE_COLOR to set a standard color for your
+  labels.   For instance, &TRACE_COLOR object=+purple.  You may specify 
+  colors by label as &TRACE_COLOR_<label> object=+orange.  Like 
+  &TRACE_COLOR_123.  This will fall back on 'TRACE_COLOR' if the by 
+  label isn't found.
+  
+  You may specify a TRACE_GREP attibute on the enactor 
+  (&TRACE_GREP object=<string>) if you wish to have a specific piece 
+  of code in trace output which matches the trace output return in red 
+  the match.  If the TRACE_GREP attribute is attribute-set REGEXP, 
+  it will take the string as a regexp match.
+  
+  Keep in mind, the various &TRACE attributes need to be on the executor,
+  not the object enacting the command.  It will behave like the TRACE flag.
+  So all attributes (like &TRACE) need to be on the target that you 
+  have the labels on.
    
   Examples:
     > &TRACE me=123
@@ -10367,7 +10780,45 @@
   
   In the last exampole, the 123 inside the []'s would have been orange.
   
-  See Also: SUBSTITUTIONS, TRACE, trace()
+  See 'help %_vars' for variables used with trace label debugging.
+  
+  See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
+  
+& %_vars
+  Topic: SUBSTITUTIONS (CONTINUED)
+  Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
+          %_<-label> -- disables debugging for <label>
+          %_<off>    -- disables all debugging
+  
+  The following special variables are used for %_ label debugging.
+  
+  TRACE            -- This is the main controller for labels.  When the
+                      object running code has a label matching one
+                      in this attribute, it will run debugging code
+                      for that label until turned off.   This should always
+                      have labels in lower case.
+  
+  TRACE_GREP       -- * Without the REGEXP attribute flag, it will use
+                        standard direct string matching and hilight red
+                        any match in your trace output.  Again, this must
+                        be set on the object running code.
+                      * With the REGEXP attribute flag, it uses enhanced
+                        regular expression matching to hilite red any
+                        matching pattern.
+  
+  TRACE_COLOR      -- This is the global generic color code that you wish
+                      any label to have.  If there's not a label specific
+                      color, this is what it will choose.  If no color
+                      is selected, it just hilights it.  Again, this must
+                      be set on the object running code.
+  
+  TRACE_COLOR_<L>  -- Where '<L>' is the name of the label.  For example
+                      if your label was 'bob' the attribute name would be
+                      'TRACE_COLOR_BOB'.  This will set a specific color
+                      for the given label to use.  This will have priority
+                      over the global TRACE_COLOR definition.
+  
+  See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
   
 & SUCCESS
   Topic: SUCCESS
@@ -13084,7 +13535,7 @@
     > say mid(this is a test,3,6)
     You say "s is a"
   
-  See Also: delete(), ldelete(), remove()
+  See Also: delete(), ldelete(), remove(), ruler()
   
 & NCOMP()
   Function: ncomp(<number1>,<number2>)
@@ -13741,10 +14192,11 @@
     > say creplace(this is a test,1 3 4,XYZ)
     You say "XhYZ is a test"
   
-  See Also: replace(), lreplace(), totpos(), elementpos()
+  See Also: replace(), lreplace(), totpos(), elementpos(), ruler()
   
 & strmath()
-  Function: strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>)
+  Function: strmath (syntax follows)
+  strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>,<low>,<hi>)
   
   The strmath function is used to apply math to the entire string.  Numbers
   in the string are modified based on the math chosen applied to the number.
@@ -13753,6 +14205,7 @@
   start you wish to use. If no math is specified, '+' is used as a default.
   The <idlm> and <isep> are inner delimiter and separator to use for the 
   normal delimited string.  This is so you can separate values such as:
+  
                     To hit:5|To Damage:10|Base AC:15
   
   Note:  It handles floating point notation, so values with decimals are seen.
@@ -13760,7 +14213,11 @@
     Key:  str  -- input string    num  -- value to apply  math -- math to use
           dlm  -- delimiter       sep  -- separator       st   -- start value
           amt  -- word count      idlm -- inner delim     isep -- inner sep
+          low  -- low val match   hi   -- high val match
   
+  You may specify the 'low' and 'hi' values to specify a range of what values
+  you wish to apply the math to.
+   
   Valid math arguments are:
         + - apply addition to all numbers in the string.
         - - apply subtraction to all numbers in the string.
@@ -18377,7 +18834,7 @@
   setting/clearing attributes and flags to verbose mode.
   
 & KEEPFLAGS()
-  Function: keepflags(<list>, [&|]<flag(s)> [,<delim>[,<output delim>]])
+  Function: keepflags(<list>,[&|]<flag(s)>[,<delim>[,<output delim>][,<type>]])
   
   The keepflags function keeps all dbref#'s in the given list that contains
   the flags specified.  You must use one of the operators for flag checks:
@@ -18386,6 +18843,8 @@
   
   This function returns the list of dbref#'s that correctly match up the
   flags you specified.
+  
+  You may specify a <type> of 1 to return values as objid's.
   
   Examples: (#1 is a wizard, nothing else is)
     > say keepflags(#1 #2 #3 #4,&W)
@@ -18401,7 +18860,7 @@
   See Also: remflags(), remtype(), keeptype()
 
 & REMFLAGS()
-  Function: remflags(<list>, [&|]<flag(s)> [,<delim>[,<output delim>]])
+  Function: remflags(<list>,[&|]<flag(s)>[,<delim>[,<output delim>][,<type>]])
   
   The remflags function removes all dbref#'s in the given list that contains
   the flags specified.  You must use one of the operators for flag checks:
@@ -18410,6 +18869,8 @@
   
   This function returns the list of dbref#'s that correctly match up the
   flags you specified.
+  
+  You may specify a <type> of 1 to return values as objid's.
   
   Examples: (#1 is a wizard, nothing else is)
     > say remflags(#1 #2 #3 #4,&W)
@@ -18425,7 +18886,7 @@
   See Also: keepflags(), remtype(), keeptype()
 
 & KEEPTYPE()
-  Function: keeptype(<string>,<type(s)>[,<delim>[,<output delim>]])
+  Function: keeptype(<string>,<type(s)>[,<delim>[,<output delim>][,<type>]])
  
   The keeptype function KEEPS all types of 'type' from the string 'string'.
   The different types are standard MUSH object types:
@@ -18438,6 +18899,11 @@
   You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
+  If you specify <type> as 1, the results are always returned as dbref#'s, 
+  otherwise the values are returned as the element in <string>.
+  
+  If you specify <type> as 2, the results are returned as objid's.
+    
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
     > say keeptype(#0 #1 #55 #584 #-1,player)
     You say "#1 #55 #584"
@@ -18453,7 +18919,7 @@
   See Also: delete(), remove(), ldelete(), replace(), remtype()
   
 & REMTYPE()
-  Function: remtype(<string>,<type(s)>[,<delim>[,<output delim>]])
+  Function: remtype(<string>,<type(s)>[,<delim>[,<output delim>][,<type>]])
  
   The remtype function removes all types of 'type' from the string 'string'.
   The different types are standard MUSH object types:
@@ -18466,6 +18932,11 @@
   You may specify optional separators and output separators.   You may specify
   more than one type at once.
   
+  If you specify <type> as 1, the results are always returned as dbref#'s, 
+  otherwise the values are returned as the element in <string>.
+    
+  If you specify <type> as 2, the results are returned as objid's.
+    
   Examples: (#0 is a room, #1 #55 and #584 are players, #-1 is invalid (other))
     > say remtype(#0 #1 #55 #584 #-1,player)
     You say "#0 #-1"
@@ -19044,6 +19515,43 @@
   
   See Also: @tel, move(), SIDEEFFECTS
   
+& LSET()
+  Function: lset(<object>[/<lock>] [,[!]<flag>])
+            lset(<object>[/<lock>])
+  
+  The lset() function is used to set specialized permissions on locks.  If you
+  do not specify a lock, it will default to 'DefaultLock' which is aliased to 
+  'BasicLock' for backward compatibility with other codebases.  If you do not
+  specify a lock, it will display the current flags on the specified target
+  lock.
+  
+  You may specify the '!' option to remove a specialist lock.
+  
+  Please see help on '@lset' for what specialized locks that you may set.
+  You can only set the flags which you have permission to.
+  
+  This function returns an empty value and notifies the player as if they 
+  ran the @lset command.
+  
+  Examples:
+    > say lset(me,no_inherit)
+    @lset: [DefaultLock] set NO_INHERIT on Ashen-Shugar(#1234)
+    You say ""
+    > say lset(me)
+    @lset: [DefaultLock] on Player(#123): no_inherit
+    You say ""
+    > say lset(me/basic)
+    @lset: [DefaultLock] on Player(#123): no_inherit
+    You say ""
+    > say lset(me/default)
+    @lset: [DefaultLock] on Player(#123): no_inherit
+    You say ""
+    > say lset(me/fubar)
+    #-1 LOCK NOT FOUND
+    You say ""
+  
+  See Also: @lset, @set, set()
+
 & SET()
   Function: set(<object>,<[!]<flag> [[!]<flag> [!]<flag> ...]>)
             set(<object>,<<attribute>:<value>> [,<tree>])
@@ -19071,7 +19579,7 @@
   > say set(me,safe)
   You say ""
   
-  See Also: rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
+  See Also: lset(), rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
   
 & RSET()
   Function: rset(<object>,<[!]<flag> [[!]<flag> [!]<flag> ...]>)
@@ -19104,8 +19612,33 @@
   > say rset(me,safe)
   You say "safe"
   
-  See Also: set(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
+  See Also: lset(), set(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
   
+& RULER()
+  Function: ruler(<object>/<attribute>, <ruler value>)
+  
+  This function will provide a ruler to quickly eyeball the character position
+  of the output of the given attribute.  The <ruler value> must be a mulitple
+  of 10, and must be between 0 and 100.  
+  
+  The ruler is color coded to help make it easier to quickly eyeball and 
+  count out the position.  Handy for some functions that require positional
+  arguments like creplace(), mid(), and @label.
+  
+  The output of this command works like a side-effect so the output can not
+  be captured other than with @pipe.
+  
+  Examples:
+    > &TEST me=Testing 1 2 3 Testing 1 2 3 Testing 1 2 3
+    Set.
+    > think ruler(me/test,60)
+           | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+           | Testing 1 2 3 Testing 1 2 3 Testing 1 2 3                      |
+    0      | 123456789012345678901234567890123456789012345678901234567890   |
+           | ---------|10-------|20-------|30-------|40-------|50-------|60 |
+  
+  See Also: mid(), creplace(), @label
+
 & toggle()
   Function: toggle(<object>,[!]<toggle>)
   
@@ -19740,12 +20273,20 @@
             sortlist()
   
 & SORTLIST()
-  Function: sortlist(<order>, <sep>, <list1>, <list2>, [...,<listN>])
+  Function: sortlist(<order>, <sep>[;<osep>], <list1>, <list2>, [...,<listN>])
   
   This function takes 2 or more lists and chooses from each sample the max
   or min value based on the sorting value type.  The <order> must have as the
   first character a + for maxsort or a - for minsort.  If you do not specify
   a sort type after the +/- or if the value is invalid, it assumes alphanum.
+  
+  You may specify a seperator of <sep> for the elements in the list.  This can
+  only be one character.  If part of the <sep> value is a semicolon followed 
+  by a string, it will take the first char as the <sep> value and anything
+  after the semi-colon (;) as the <osep> output seperator for the list.  
+  The <osep> may be more than one character.  An example is '%b;FOO' where
+  '%b' (a space) would be the <sep> value, and 'FOO' would be the <osep>
+  value.
   
   The lists may be unequal lists.
   
@@ -19759,10 +20300,18 @@
     +d  -- sort dbref#'s numerically by maximum valid dbref# (#-1 if invalid)
     -d  -- sort dbref#'s numerically by minimum valid dbref# (#-1 if invalid)
   +/-m  -- merge all the lists into a single list (+ or - does same thing)
+  +/-m| -- same as above, but anything after the '|' will be taken as the 
+           output delimiter between elements in each <list>. 
   
   With the dbref# sort, any invalid dbref# is assigned the value #-1.  If all
   arguments in that list order are all invalid, #-1 will be seen for the
   value.
+  
+{ see 'help sortlist2' for examples }
+
+& SORTLIST2
+  (CONTINUED)
+  Function: sortlist(<order>, <sep>[;<osep>], <list1>, <list2>, [...,<listN>])
   
   Examples:
     > say sortlist(+n,,1 2 3,10 0 20, 0 0 0)
@@ -19778,6 +20327,10 @@
     You say "#10 #3 #20 #-1 #100 #200 #333"
     > say sortlist(+m,,a b c d e,1 2 3 4 5,v w x y z)
     You say "a1v b2w c3x d4y e5z"
+    > say sortlist(+m|++,,a b c d e,1 2 3 4 5,v w x y z)
+    You say "a++1++v b++2++w c++3++x d++4++y e++5++z"
+    > say sortlist(+m|++,%b;@,a b c d e,1 2 3 4 5,v w x y z)
+    You say "a++1++v@b++2++w@c++3++x@d++4++y@e++5++z"
   
   See Also: sort(), munge(), map(), setinter(), setunion(), setdiff(),
             listinter(), listunion(), listdiff()
@@ -20107,7 +20660,8 @@
   > think brackets(v(desc))
   1 1 2 2 1 0             (This is: 1-[, 1-], 2-(, 2-), 1-{, 0-})
   
-  See Also: totpos(), numpos(), nummatch(), totmatch()
+  See Also: totpos(), numpos(), nummatch(), totmatch(), parenmatch(),
+            parenstr()
   
 & BOUND()
   Function: bound(<number>,<min-value>[,<max-value>])
@@ -21054,7 +21608,7 @@
   See Also: e(), log(), ln(), power(), power10()
   
 & FOREACH()
-  Function: foreach([<object>/]<attribute>,<string>[,<begin>, <end>])
+  Function: foreach([<object>/]<attribute>,<string>[,<begin>, <end> [,<ansi>]])
    
   Each character in <string> has the user-defined function of the first
   argument performed on it; the character is passed to the function as
@@ -21063,9 +21617,16 @@
   between <begin> and <end> are parsed, other characters are concatenated 
   as they are. This allows a rudimentary form of tokens and speeds up 
   the evaluation greatly if tokenizing is your purpose.
+  
+  If you specify <ansi> as '1', then specify <begin> and <end> as the special 
+  string '@@' to specify to ignore the <begin> and <end> values.  Just putting
+  nulls (empty values) there will assume null begin and end values and may
+  not return the result you are wishing for.  Due to the higher than normal
+  overhead, ansi-awareness in this function is not the default.
    
   Examples:
     > &add_one me=[add(%0,1)]
+    > &ansi me=-%0-
     Set.
     > say [foreach(add_one, 54321)]
     You say, "65432"
@@ -21073,6 +21634,8 @@
     Set.
     > say [foreach(add_one, This adds #0# to numbers in this string,#,#)]
     You say, "This adds 1 to numbers in this string."
+    > say [foreach(ansi,ansi(hr,r,hb,b,hc,c,hg,g),@@,@@,1)]
+    You say "-r--b--c--g-"  (r is red, b is blue, c is cyan, g is green)
     
   See Also: @dolist, iter(), map(), citer(), nsiter(), list()
   
@@ -27207,6 +27770,7 @@
   r()             - Accesses local registers, and outputs its contents.
   remit()         - Emits text to a specified room.
   rset()          - Like set(), but returns the string that is set.
+  ruler()         - Display a ruler outline of contents of an attribute.
   rxlevel()       - Sets or unsets a reality receive level for an object.
   set()           - Sets an attribute on an object.
   setq()          - Copies a string into a local register.
@@ -27299,12 +27863,13 @@
   Any versioning of Rhost version 1.0 through 3.0 was sadly lost to time.
   
   The developers who may appear in these files are:
-    ASH - Ashen-Shugar      * AMB - Ambrosia            EEH - Noltar
-    KRK - Loki                LNS - Lensman             ODN - Odin
-    SEA - Seawolf             THO - Thorin              NYS - Nyctasia
-    ROK - Rook
+     ASH - [Ashen-Shugar]     * AMB -  Ambrosia            EEH - [Noltar]
+     KRK - [Loki]               LNS - [Lensman]            ODN -  Odin
+     SEA - [Seawolf]            THO - [Thorin]             NYS - [Nyctasia]
+     ROK -  Rook                KAG -  Kage
   
   The current Lead Developer (which we change up) is marked with a '*'.
+  Developers who are MIA or retired are surrounded in []'s.
    
   Current Revision: 3.9.5p3
 
@@ -29419,7 +29984,14 @@
     passed to @conformat, @exitformat, and @Nameformat [ASH]
   * Added new 'minimal-DBs' directory in order to ship multiple different
     minimal DBs. [AMB]
-  * Added new Amb-MinimalRhost DB to the 'minimal-DBs' directory.
+  * Added new Amb-MinimalRhost DB to the 'minimal-DBs' directory. [AMB]
+  * Added /overwrite switch to @snapshot to overwrite existing files [ASH]
+  * Added /unall to @snapshot to unload a list of targets [ASH]
+  * invformat for inventory formatting [ASH]
+  * @lset to set permissions for locks [ASH]
+  * lset() added to mirror @lset but as a sideeffect [ASH]
+  * @label added to help integrate %_ labels into code [ASH]
+  * ruler() added to give a positional ruler for attribute content [ASH]
   
   Changes
   ------------
@@ -29479,6 +30051,20 @@
   * output_limit defaults now based on LBUF size [ASH]
   * Moved minimal_db into new 'minimal-DBs' folder [AMB]
   * added advanced buffer labeling to exec calls [ASH]
+  * @snapshot/del now takes multiple arguments [ASH]
+  * Added /quiet switch to @pipe [ASH]
+  * Added low/high ranges to strmath() [ASH]
+  * cleanup of the sideeffect handler to be more verbose [ASH]
+  * PARIS mode WHO/DOING (alternate who) is notified on @list options [ASH]
+  * increase %_ labels to 1000 total instead of 100 [ASH]
+  * 5th arg to keeptype() and remtype() to return dbref#'s [ASH]
+  * improved featureset to sortlist() for merging [ASH]
+  * modified @edit so that /check or sets are higlighted if a change 
+    actually occured with the first word 'Set' or 'Check' [ASH]
+  * change over from strtok to strtok_r throughout source code [ASH]
+  * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
+  * foreach() is now optionally ansi-aware [ASH]
+  * added /ruler to @label to mimic ruler() functionality [ASH]
     
   Bug Fixes
   ------------
@@ -29499,10 +30085,6 @@
   * mailsend() was too restrictive for non-player types [ASH]
   * cleanup of the idle_checker to always make current hash last in list [ASH]
   * crash bug if error.txt file was empty [ASH]
-  * logic issue with things set STOP and NOSTOP wouldn't always work [ASH]
-  * Some possible race conditions with regards to @remote [ASH]
-  * printf's // cut value wasn't properly initialized in all cases [ASH]
-  * compile time fix for when you do not have siddeffects selected [ASH]
   * possible memory leak in extractword() in certain conditions [ASH]
   * @tel/list didn't handle a comma separator properly for source [ASH]
   * permission issue with guildmaster and setting attributes [ASH]
@@ -29511,3 +30093,17 @@
   * parents() was too restrictive for thing getting own parent tree [ASH]
   * Long standing issue with left()/right() with arg of '0' cut string [ASH]
   * missing free when name_with_desc enabled [ASH]
+  * @sudo didn't handle @power/@depower like @fo [ASH]
+  * Inventory was not fully Reality Level aware nor color aware [ASH]
+  * invalid null termination in mix(), ltoggles(), and squish() [ASH]
+  * rand() didn't handle floating point quite right and cleaned up code [ASH]
+  * FreeBSD compatibility change for make/gmake in master Makefile [ASH]
+  * issue with left() and buffering [ASH]
+  * convert strtok to strtok_r in conf.c to avoid static buffer clobbers [ASH]
+  * dark exits didn't work properly with sees() [ASH]
+  * fixed ruler() and introduced internal function for notify quiet to
+    handle ansi [ASH]
+  * enforce @label to use lowercase for all labels [ASH]
+  * objid took localtime instead of GMtime [ASH]
+    - NOTE:  For compatibility to existing behavior, set: objid_localtime 1
+  * safer_ufun didn't take some conditions into consideration [ASH]

@@ -3832,7 +3832,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 {
     char *p1, *p2, *p3, *p4, *atrxxx, *atryyy, *tcim, *tcimptr, *tcimptr2, msubj[SUBJLIM+1];
     char just, *atrtmp, *atrtmpptr, *mailfunkvar, *ztmp, *ztmpptr, *time_tmp;
-    char *bcctmp, *bcctmpptr, *bccatr, *tpr_buff, *tprp_buff;
+    char *bcctmp, *bcctmpptr, *bccatr, *tpr_buff, *tprp_buff, *tstrtokr;
 //  char *savesend;
     short int line, count, index, min, max, gdcount;
     dbref aowner3, aowner2, owner;
@@ -4091,8 +4091,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 			infodata.dsize = strlen(lbuf1) + 1;
 	                tcim = atr_get(player, A_TEMPBUFFER, &owner, &flags);
                         if ( *tcim ) {
-                           tcimptr = strtok(tcim, " ");
-                           tcimptr2 = strtok(NULL, " ");
+                           tcimptr = strtok_r(tcim, " ", &tstrtokr);
+                           tcimptr2 = strtok_r(NULL, " ", &tstrtokr);
                            totcharinmail = atoi(tcimptr2) + (infodata.dsize - i_type);
 	                   atr_add_raw(player, A_TEMPBUFFER, unsafe_tprintf("%s %d", tcimptr, totcharinmail));
                         } else {
@@ -4176,8 +4176,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 	    } else {
 	        tcim = atr_get(player, A_TEMPBUFFER, &owner, &flags);
                 if ( *tcim ) {
-                   tcimptr = strtok(tcim, " ");
-                   tcimptr2 = strtok(NULL, " ");
+                   tcimptr = strtok_r(tcim, " ", &tstrtokr);
+                   tcimptr2 = strtok_r(NULL, " ", &tstrtokr);
                    totcharinmail = atoi(tcimptr2) + strlen(p1+1);
 	           atr_add_raw(player, A_TEMPBUFFER, unsafe_tprintf("%s %d", tcimptr, totcharinmail));
                 } else {
@@ -4611,8 +4611,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 	    infodata = dbm_fetch(mailfile, keydata);
 	    tcim = atr_get(player, A_TEMPBUFFER, &owner, &flags);
             if ( *tcim ) {
-               tcimptr = strtok(tcim, " ");
-               tcimptr2 = strtok(NULL, " ");
+               tcimptr = strtok_r(tcim, " ", &tstrtokr);
+               tcimptr2 = strtok_r(NULL, " ", &tstrtokr);
                totcharinmail = atoi(tcimptr2) - infodata.dsize;
 	       atr_add_raw(player, A_TEMPBUFFER, unsafe_tprintf("%s %d", tcimptr, totcharinmail));
             } else {
@@ -4859,8 +4859,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 			} else {
 	                    tcim = atr_get(player, A_TEMPBUFFER, &owner, &flags);
                             if ( *tcim ) {
-                               tcimptr = strtok(tcim, " ");
-                               tcimptr2 = strtok(NULL, " ");
+                               tcimptr = strtok_r(tcim, " ", &tstrtokr);
+                               tcimptr2 = strtok_r(NULL, " ", &tstrtokr);
                                totcharinmail = (infodata.dsize - i_type) + atoi(tcimptr2);
 	                       atr_add_raw(player, A_TEMPBUFFER, unsafe_tprintf("%s %d", tcimptr, totcharinmail));
                             } else {
@@ -4973,8 +4973,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
         if ( valid_flag ) {
 	   tcim = atr_get(player, A_TEMPBUFFER, &owner, &flags);
            if ( *tcim ) {
-              tcimptr = strtok(tcim, " ");
-              tcimptr2 = strtok(NULL, " ");
+              tcimptr = strtok_r(tcim, " ", &tstrtokr);
+              tcimptr2 = strtok_r(NULL, " ", &tstrtokr);
               totcharinmail = i_type;
 	      atr_add_raw(player, A_TEMPBUFFER, 
                           unsafe_tprintf("%s %d", tcimptr, totcharinmail));
@@ -5042,8 +5042,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 	        tcim = atr_get(player, A_TEMPBUFFER, &owner, &flags);
                 totcharinmail = infodata.dsize;
                 if ( *tcim ) {
-                   tcimptr = strtok(tcim, " ");
-                   tcimptr2 = strtok(NULL, " ");
+                   tcimptr = strtok_r(tcim, " ", &tstrtokr);
+                   tcimptr2 = strtok_r(NULL, " ", &tstrtokr);
 	           atr_add_raw(player, A_TEMPBUFFER, unsafe_tprintf("%s %d", tcimptr, totcharinmail));
                 } else {
 	           atr_add_raw(player, A_TEMPBUFFER, unsafe_tprintf("X %d", totcharinmail));
@@ -5054,8 +5054,8 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 	    } else {
 	        tcim = atr_get(player, A_TEMPBUFFER, &owner, &flags);
                 if ( *tcim ) {
-                   tcimptr = strtok(tcim, " ");
-                   tcimptr2 = strtok(NULL, " ");
+                   tcimptr = strtok_r(tcim, " ", &tstrtokr);
+                   tcimptr2 = strtok_r(NULL, " ", &tstrtokr);
                    totcharinmail = infodata.dsize + atoi(tcimptr2);
 	           atr_add_raw(player, A_TEMPBUFFER, unsafe_tprintf("%s %d", tcimptr, totcharinmail));
                 } else {
@@ -7921,7 +7921,7 @@ void
 folder_move(dbref player, char *buf1, char *buf2)
 {
     short int ct2, num, count, msize, *spt1, *spt2, *spt3, *spt4;
-    char *p1;
+    char *p1, *tstrtokr;
     char all;
     dbref dest;
 
@@ -7931,13 +7931,13 @@ folder_move(dbref player, char *buf1, char *buf2)
     msize = get_box_size(player);
     spt1 = (short int *)lbuf1;
     if (isdigit((int)*buf1)) {
-	p1 = strtok(buf1, " ");
+	p1 = strtok_r(buf1, " ", &tstrtokr);
 	while (p1 != NULL) {
 	    *(spt1+count) = (short int)atoi(p1);
 	    count++;
 	    if (count == msize)
 		break;
-	    p1 = strtok(NULL, " ");
+	    p1 = strtok_r(NULL, " ", &tstrtokr);
 	}
     } else if (stricmp(buf1, "all") == 0) {
 	all = 1;

@@ -10,8 +10,13 @@ qdbmdir= ./src/qdbm/
 bindir = ./bin
 
 CHK = $(shell uname -s|grep -ic "bsd")
+CHK2 = $(shell gmake --version|grep -ic "GNU")
 ifeq "$(CHK)" "1"
-   MAKE=gmake
+   ifeq "$(CHK2)" "0"
+      MAKE=make
+   else
+      MAKE=gmake
+   endif
 else
    MAKE=make
 endif

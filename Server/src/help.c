@@ -635,7 +635,7 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
 {
    int retval;
    dbref it;
-   char *line, *in_topic, *p_in_topic, *in_file;
+   char *line, *in_topic, *p_in_topic, *in_file, *tstrtokr;
 
    if ( !*msg || !msg ) {
       it = player;
@@ -652,8 +652,8 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
   
    p_in_topic = in_topic = alloc_lbuf("in_topic.dynhelp");
    if ( strchr(fhelp, '/') ) {
-      in_file = strtok(fhelp, "/");
-      safe_str(strtok(NULL, "\0"), in_topic, &p_in_topic);
+      in_file = strtok_r(fhelp, "/", &tstrtokr);
+      safe_str(strtok_r(NULL, "\0", &tstrtokr), in_topic, &p_in_topic);
    } else {
       in_file = fhelp;
    } 

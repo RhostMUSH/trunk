@@ -92,6 +92,7 @@ CMD_NO_ARG(do_inventory);		/* Print what I am carrying */
 CMD_NO_ARG(do_worn);		        /* Print what I am wearing */
 CMD_NO_ARG(do_wielded);		        /* Print what I am wielding */
 CMD_TWO_ARG(do_kill);			/* Kill something */
+CMD_TWO_ARG(do_label);			/* %_ label adding/removing of attribs */
 CMD_ONE_ARG(do_last);			/* Get recent login info */
 CMD_TWO_ARG(do_log);			/* Get recent login info */
 CMD_NO_ARG(do_logrotate);		/* Rotate or find status of current logfile */
@@ -102,6 +103,7 @@ CMD_ONE_ARG(do_list);			/* List contents of internal tables */
 CMD_ONE_ARG(do_list_file);		/* List contents of message files */
 CMD_TWO_ARG(do_lock);			/* Set a lock on an object */
 CMD_ONE_ARG(do_look);			/* Look here or at something */
+CMD_TWO_ARG(do_lset);                    /* Set flags on locks */
 /* SENSES */
 CMD_ONE_ARG(do_listen);			/* SENSES - listen here or at something */
 CMD_ONE_ARG(do_touch);			/* SENSES - touch location or target */

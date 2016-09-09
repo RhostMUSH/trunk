@@ -1,6 +1,6 @@
 +V74247
 +S50
-+N1007
++N1079
 +A643
 1:CMD_LIST_GLOBAL_ALIASES
 +A634
@@ -23,74 +23,116 @@
 1:TR_POST_NOTIFY
 +A408
 1:PENNOPTIONS_SYNTAX
-+A279
-1:DB
++A1066
+1:COMCFGMSG_8X_10
 +A403
 1:VERSION
++A1067
+1:COMCFGMSG_8X_11
++A279
+1:DB
 +A434
 1:CH_LIST
++A1068
+1:COMCFGMSG_8X_12
 +A482
 1:CMD_+BBSCAN
++A1069
+1:COMCFGMSG_8X_13
 +A479
 1:CMD_+BBEDIT
 +A490
 1:CMD_+BBPROOF
++A1070
+1:COMCFGMSG_8X_14
++A1042
+1:DO_PARSECHAN20
++A1071
+1:COMCFGMSG_8X_15
++A1043
+1:DO_PARSECHAN21
++A963
+1:DO_COMALL
 +A626
 1:CMD_+MAIL_+ADDNOTE
 +A571
 1:CMD_+READ_EXTENDED
-+A963
-1:DO_COMALL
++A427
+1:DO_GENPEMIT
++A1072
+1:COMCFGMSG_8X_16
++A1044
+1:DO_PARSECHAN22
++A895
+1:CMD_COMALL
 +A827
 1:CMD.CRONTAB
 +A749
 1:CMD-STAFF-ADD
 +A504
 1:FN_IFELSE
-+A895
-1:CMD_COMALL
-+A427
-1:DO_GENPEMIT
++A1073
+1:COMCFGMSG_8X_17
++A1045
+1:DO_PARSECHAN23
++A379
+1:F_CHK_CEMIT
 +A850
 1:FUNPR_LSEARCH
 +A802
 1:GETINFO
-+A379
-1:F_CHK_CEMIT
-+A699
-1:SECS2HRS
 +A425
 1:DO_CEMITLOCK
-+A546
-1:PENN_MAIL_READ
-+A285
-1:CMD_COMLIST
++A1074
+1:COMCFGMSG_8X_18
++A1046
+1:DO_PARSECHAN24
++A699
+1:SECS2HRS
 +A968
 1:FN_GAGSET
++A1075
+1:COMCFGMSG_8X_19
++A1047
+1:DO_PARSECHAN25
++A285
+1:CMD_COMLIST
++A546
+1:PENN_MAIL_READ
++A1048
+1:DO_PARSECHAN26
 +A312
 1:ADDCOMMSG00
 +A985
 1:DOZONE
++A1049
+1:DO_PARSECHAN27
++A314
+1:ADDCOMMSG01
 +A746
 1:CMD-MOTD_LIST
 +A478
 1:CMD_+BBREAD2
-+A314
-1:ADDCOMMSG01
-+A433
-1:FX-DB
++A1050
+1:DO_PARSECHAN28
 +A849
 1:MINMAX_TABLE
 +A627
 1:CMD_+DELETE
-+A536
-1:PENN_MAIL_NOSIG
-+A284
-1:CMD_CLIST
++A433
+1:FX-DB
++A1051
+1:DO_PARSECHAN29
 +A953
 1:FN_COMHELP_COMNOTIFY
++A284
+1:CMD_CLIST
++A536
+1:PENN_MAIL_NOSIG
 +A981
 1:SCAN_CONTENTS
++A373
+1:DOLAST_RANGE
 +A891
 1:FUN_ALIGN
 +A657
@@ -101,20 +143,20 @@
 1:CMD-PLUS-3WHO
 +A519
 1:PENN_MAIL
-+A373
-1:DOLAST_RANGE
++A1018
+1:CMD_SWITCHES_INDEX
 +A633
 1:CMD_+UNDELETE
 +A624
 1:CMD_+MAIL_+TOSS
 +A346
 1:CHK_PLAYERS
++A905
+1:FUN_CAPTION
 +A258
 1:FUN_COLUMN
 +A990
 1:CMD_LSCAN2
-+A905
-1:FUN_CAPTION
 +A975
 1:DO_SCAN00
 +A991
@@ -125,10 +167,10 @@
 1:TR_TIMEOUT_GROUP
 +A979
 1:DO_SCAN01
-+A980
-1:DO_SCAN02
 +A351
 1:COMCFGSWITCHES
++A980
+1:DO_SCAN02
 +A839
 1:CMD_+SHELP
 +A668
@@ -165,12 +207,14 @@
 1:FN_MAPLIST_2
 +A492
 1:CMD_+BBREAD
-+A637
-1:CMD_EXPAND_PERSONAL_ALIAS
 +A420
 1:DO_CHANDELETE
++A637
+1:CMD_EXPAND_PERSONAL_ALIAS
 +A897
 1:CMD_COMGAG
++A936
+1:FN_COMHELP_COMHELP
 +A274
 1:FUN_WRITETIME
 +A694
@@ -179,12 +223,12 @@
 1:CMD_+RETRACT_LETTER
 +A502
 1:CMD_+BBSEARCH_NOGREP
-+A936
-1:FN_COMHELP_COMHELP
 +A857
 1:MINMAX_OBJMEM
 +A549
 1:CMD_@MAIL_STATS
++A291
+1:CMD_CEMIT
 +A632
 1:CMD_+CLEAR
 +A601
@@ -193,8 +237,10 @@
 1:CMD_+REPLYNM
 +A443
 1:ISGROUPREAD
-+A291
-1:CMD_CEMIT
++A1076
+1:COMCFGMSG_8X_20
++A281
+1:CMD_GENERIC_HACK
 +A261
 1:FUN_LPOS
 +A756
@@ -207,12 +253,10 @@
 1:MAIN_HELP_ARG
 +A467
 1:FN_MSG_FLAGS
-+A281
-1:CMD_GENERIC_HACK
-+A591
-1:CMD_@MAIL_REVIEW
 +A283
 1:CMD_DELCOM
++A591
+1:CMD_@MAIL_REVIEW
 +A620
 1:CMD_+MAIL_BCC
 +A520
@@ -235,18 +279,24 @@
 1:CMD_+BBTIMEOUT
 +A690
 1:HEADER
++A1052
+1:DO_PARSECHAN30
 +A544
 1:CMD_@MAIL_FORWARD
 +A260
 1:FUN_LSEARCH
 +A322
 1:DO_CHANCOLOR
++A1053
+1:DO_PARSECHAN31
 +A266
 1:FUN_BNAND
 +A838
 1:WIZHELP_@CRONTAB
 +A409
 1:PENNOPTIONS_REFERENCE
++A1054
+1:DO_PARSECHAN32
 +A608
 1:CMD_+REVIEW_GENERIC
 +A440
@@ -261,6 +311,8 @@
 1:DOTS_FN
 +A835
 1:TRG.CRON
++A404
+1:COMHELP_SYNTAX
 +A823
 1:CANSPY
 +A805
@@ -273,50 +325,52 @@
 1:CMD_@MAIL_ALL
 +A554
 1:PENN_MAIL_LIST
-+A404
-1:COMHELP_SYNTAX
 +A983
 1:SCAN_SELF
++A964
+1:DO_TOGGLEPARSE
++A333
+1:CLIST0
 +A859
 1:MINMAX_TIMESTRING
 +A469
 1:FN_TIMEOUT_CLOSE
-+A333
-1:CLIST0
-+A964
-1:DO_TOGGLEPARSE
++A343
+1:GENERICDO
++A938
+1:FN_COMHELP_EQ
++A334
+1:CLIST1
++A313
+1:ADDCOMMSG10
 +A750
 1:CMD-STAFF-REMOVE
 +A631
 1:CMD_+UNSAVE
-+A313
-1:ADDCOMMSG10
-+A938
-1:FN_COMHELP_EQ
-+A343
-1:GENERICDO
-+A334
-1:CLIST1
++A332
+1:CLIST2
++A325
+1:ADDCOMMSG11
 +A834
 1:LIST.BAD
 +A764
 1:CMD-JOIN
-+A325
-1:ADDCOMMSG11
-+A332
-1:CLIST2
-+A917
-1:COMMASKMSG00
 +A919
 1:CLIST3
++A917
+1:COMMASKMSG00
++A920
+1:CLIST4
++A916
+1:COMMASKMSG01
 +A769
 1:CMD-PROJECTS-VIEW
 +A452
 1:B36_POWS
-+A916
-1:COMMASKMSG01
-+A920
-1:CLIST4
++A1056
+1:COMCFGMSG_8X_0
++A1009
+1:CLIST5
 +A613
 1:CMD_+REVIEW_LETTERS_UNRPLR
 +A605
@@ -325,52 +379,70 @@
 1:PENN_MAIL_OTHER
 +A564
 1:CMD_@MAIL_MALIAS_ADD
++A1057
+1:COMCFGMSG_8X_1
 +A996
 1:CHUSED_NEWBIE
 +A1002
 1:HIST_TIME_0
 +A661
 1:CREDITS-LWHO
++A1058
+1:COMCFGMSG_8X_2
 +A1005
 1:HIST_TIME_1
++A1059
+1:COMCFGMSG_8X_3
++A1060
+1:COMCFGMSG_8X_4
++A906
+1:FUN_CAPTIONTITLE
 +A888
 1:FUNFLAG_LETQ
 +A978
 1:DO_SCAN10
-+A906
-1:FUN_CAPTIONTITLE
-+A889
-1:FUN_SORTKEY
++A1061
+1:COMCFGMSG_8X_5
 +A407
 1:COMOPTIONS_REFERENCE
++A889
+1:FUN_SORTKEY
++A1062
+1:COMCFGMSG_8X_6
++A336
+1:DO_SORT
 +A890
 1:MINMAX_SORTKEY
 +A495
 1:CMD_+BBEDIT2
-+A336
-1:DO_SORT
 +A970
 1:FN_NOTIFYUNSET
++A1063
+1:COMCFGMSG_8X_7
++A1064
+1:COMCFGMSG_8X_8
++A307
+1:CHANOFFMSG00
 +A717
 1:CMD-FINGER
 +A521
 1:CMD_@MAIL_DEBUG
-+A307
-1:CHANOFFMSG00
-+A902
-1:FN_ERROR
++A1065
+1:COMCFGMSG_8X_9
 +A309
 1:CHANOFFMSG01
++A902
+1:FN_ERROR
 +A971
 1:FN_COMNOTIFYBROADCAST
-+A760
-1:CAN_USE
-+A872
-1:FUNPR_SPEAK
-+A483
-1:CMD_+BBLIST
 +A907
 1:FUN_CNAME2
++A872
+1:FUNPR_SPEAK
++A760
+1:CAN_USE
++A483
+1:CMD_+BBLIST
 +A892
 1:CMD_CHAN_RECALL
 +A551
@@ -381,22 +453,26 @@
 1:COMCFGDO10
 +A435
 1:CHDESC_NEWBIE
++A1078
+1:DO_RENAMECHAN
++A385
+1:COMCFGDO11
 +A815
 1:SPY_ADD
 +A595
 1:CMD_+MAIL_STATUS
-+A385
-1:COMCFGDO11
-+A807
-1:FUNC_ATPLACE
 +A386
 1:COMCFGDO12
-+A287
-1:CMD_GENERIC_NOPARSE
++A807
+1:FUNC_ATPLACE
 +A390
 1:COMCFGDO14
++A287
+1:CMD_GENERIC_NOPARSE
 +A843
 1:CRON_TIME_TIMEONWEEK-PURGE
++A959
+1:COMCFGDO15
 +A864
 1:FUN_DIGITTIME
 +A552
@@ -407,38 +483,40 @@
 1:CMD_+BBPOST
 +A295
 1:CMD_CHAN_LIST
-+A959
-1:COMCFGDO15
 +A960
 1:COMCFGDO16
++A402
+1:DOCBOOT
++A961
+1:COMCFGDO17
++A292
+1:CMD_CBOOT
 +A577
 1:CMD_+REPLY
 +A485
 1:CMD_+BBCATCHUP
-+A292
-1:CMD_CBOOT
-+A961
-1:COMCFGDO17
-+A402
-1:DOCBOOT
-+A695
-1:LIST-SAMPLE
 +A931
 1:FN_COMHELP0
-+A962
-1:COMCFGDO18
 +A412
 1:DO_ALIAS_0
++A962
+1:COMCFGDO18
++A695
+1:LIST-SAMPLE
 +A413
 1:DO_ALIAS_1
++A1019
+1:CMD_SWITCHES_SHORT
++A1014
+1:COMCFGDO19
++A933
+1:FN_COMHELP1
 +A855
 1:MINMAX_BOR
 +A550
 1:CMD_+SHOW_MAIL_OPTIONS
 +A885
 1:SET
-+A933
-1:FN_COMHELP1
 +A511
 1:MAIN_HELP
 +A813
@@ -457,6 +535,8 @@
 1:CMD_+BBREMOVE
 +A988
 1:SCAN_MASTER
++A913
+1:COMMASKF
 +A276
 1:FUN_GET_RAW
 +A767
@@ -469,12 +549,12 @@
 1:PENN_MAIL_FOLDER_UNNAME
 +A441
 1:NXT_MESS
-+A913
-1:COMMASKF
-+A547
-1:CMD_@MAIL_QUICK
 +A374
 1:DO_HISTLINE
++A547
+1:CMD_@MAIL_QUICK
++A915
+1:COMMASKMSG10
 +A638
 1:CMD_LIST_PERSONAL_ALIASES
 +A580
@@ -483,34 +563,32 @@
 1:BBTIME
 +A844
 1:CRON_JOB_TIMEONWEEK-PURGE
-+A915
-1:COMMASKMSG10
-+A553
-1:CMD_+NOTE
-+A286
-1:CMD_COMTITLE
 +A914
 1:COMMASKMSG11
++A286
+1:CMD_COMTITLE
++A553
+1:CMD_+NOTE
 +A598
 1:CMD_+FORWARD_TO
 +A586
 1:CMD_+REPLY_EXTNM
-+A579
-1:CMD_@MAIL_FOLDER_CHANGE
 +A356
 1:COMCFGSYNTAX
++A579
+1:CMD_@MAIL_FOLDER_CHANGE
++A335
+1:FOREACH
 +A540
 1:CMD_+SET_MAIL_OPTION_SEPERATOR
 +A497
 1:CMD_+BBCONFIG
-+A335
-1:FOREACH
++A941
+1:FN_COMHELP_@CLIST
 +A883
 1:FUN_ATTRIB_SET
 +A472
 1:CMD_+BBNEWGROUP
-+A941
-1:FN_COMHELP_@CLIST
 +A812
 1:DO_MUTTER_TT
 +A804
@@ -521,92 +599,98 @@
 1:CMD_REMOVE_GLOBAL_ALIAS
 +A606
 1:CMD_+BOUNCE
++A306
+1:CHANOFFF
 +A537
 1:CMD_@MAIL_EDIT
 +A491
 1:CMD_+BBPOST-POST
-+A306
-1:CHANOFFF
 +A702
 1:TWODIGCONN
 +A508
 1:BB_OMIT
-+A264
-1:FUN_BAND
 +A308
 1:CHANOFFMSG10
-+A893
-1:CMD_COMMASK
-+A302
-1:CHANONMSG00
-+A310
-1:CHANOFFMSG11
++A264
+1:FUN_BAND
 +A398
 1:CBOOTMSG00
++A310
+1:CHANOFFMSG11
++A302
+1:CHANONMSG00
++A893
+1:CMD_COMMASK
++A399
+1:CBOOTMSG01
++A392
+1:DOLISTPLRS_0
++A304
+1:CHANONMSG01
 +A614
 1:CMD_+REVIEW_LETTER
 +A507
 1:BB_READ
-+A304
-1:CHANONMSG01
-+A392
-1:DOLISTPLRS_0
-+A399
-1:CBOOTMSG01
-+A316
-1:GENERICDO0
-+A391
-1:DOLISTPLRS_1
 +A419
 1:DO_CHANCREATE
++A391
+1:DOLISTPLRS_1
++A316
+1:GENERICDO0
++A318
+1:GENERICDO1
 +A587
 1:PENN_MAIL_STATS
 +A821
 1:SELECT_WORDS_FN
-+A318
-1:GENERICDO1
++A937
+1:FN_COMHELP_ADDCOM
++A320
+1:GENERICDO2
 +A786
 1:DO_SIT
 +A456
 1:FN_INC_NEXT_MESS
-+A320
-1:GENERICDO2
-+A937
-1:FN_COMHELP_ADDCOM
-+A514
-1:CHKUSE
-+A863
-1:MINMAX_WRITETIME
 +A321
 1:GENERICDO3
++A863
+1:MINMAX_WRITETIME
++A514
+1:CHKUSE
++A1016
+1:COMCFGDO20
++A326
+1:GENERICDO4
 +A796
 1:NAME_3COL_FN
 +A779
 1:SETUP_FN
 +A989
 1:CMD_LSCAN
-+A326
-1:GENERICDO4
 +A327
 1:GENERICDO5
 +A590
 1:PENN_MAIL_DSTATS
-+A994
-1:_CH_ALIST
++A345
+1:GENERICDO6
 +A732
 1:CMD-REGISTER
 +A619
 1:CMD_+MAIL_CC
-+A345
-1:GENERICDO6
++A994
+1:_CH_ALIST
++A371
+1:GENERICDO7
 +A277
 1:FUN_V_RAW
 +A660
 1:CREDITS-CNOTES
-+A371
-1:GENERICDO7
 +A458
 1:VALID_GLOBAL_CONFIGS
++A428
+1:DO_CBOOT
++A944
+1:FN_COMHELP_COMCFG
 +A814
 1:SPY_WHO
 +A651
@@ -615,20 +699,16 @@
 1:PENN_MAIL_FOLDER_LIST
 +A297
 1:CMD_CHAN_ON
-+A944
-1:FN_COMHELP_COMCFG
-+A428
-1:DO_CBOOT
 +A845
 1:CRON_TIME_BBTIMEOUT
 +A329
 1:DELCOMMSG0
-+A629
-1:CMD_+UNMARK
-+A330
-1:DELCOMMSG1
 +A945
 1:FN_COMHELP_@CEMIT
++A330
+1:DELCOMMSG1
++A629
+1:CMD_+UNMARK
 +A879
 1:FUN_STRINGSECS
 +A649
@@ -673,98 +753,102 @@
 1:BAR
 +A625
 1:CMD_+MAIL_+SEND
-+A381
-1:COMCFGMSG_10
 +A405
 1:COMHELP_REFERENCE
-+A811
-1:DO_MUTTER_PLACE
-+A375
-1:DO_HISTLINECNT
++A381
+1:COMCFGMSG_10
 +A383
 1:COMCFGMSG_11
-+A457
-1:VALID_CONFIGS
++A375
+1:DO_HISTLINECNT
++A811
+1:DO_MUTTER_PLACE
 +A387
 1:COMCFGMSG_12
++A457
+1:VALID_CONFIGS
++A388
+1:COMCFGMSG_13
 +A599
 1:PENN_MAIL_DEBUG
 +A486
 1:CMD_+BBMOVE
-+A388
-1:COMCFGMSG_13
++A389
+1:COMCFGMSG_14
 +A799
 1:DO_TT
 +A574
 1:CMD_+REPLY_EXT
 +A488
 1:CMD_+BBPOST2
-+A389
-1:COMCFGMSG_14
-+A724
-1:CMD-MULTIPAGE2
-+A925
-1:FN_COMNOTIFY0
 +A955
 1:COMCFGMSG_15
++A925
+1:FN_COMNOTIFY0
++A724
+1:CMD-MULTIPAGE2
++A956
+1:COMCFGMSG_16
++A926
+1:FN_COMNOTIFY1
 +A808
 1:FUNC_PLACEINFO
 +A575
 1:PENN_MAIL_UNCLEAR
-+A926
-1:FN_COMNOTIFY1
-+A956
-1:COMCFGMSG_16
++A397
+1:CBOOTF
++A957
+1:COMCFGMSG_17
++A927
+1:FN_COMNOTIFY2
++A301
+1:CHANONF
 +A826
 1:CMD.CRONHELP
 +A806
 1:OEVAL_MSG
-+A301
-1:CHANONF
-+A927
-1:FN_COMNOTIFY2
-+A957
-1:COMCFGMSG_17
-+A397
-1:CBOOTF
-+A928
-1:FN_COMNOTIFY3
 +A958
 1:COMCFGMSG_18
++A928
+1:FN_COMNOTIFY3
 +A430
 1:CH-DB
++A400
+1:CBOOTMSG10
++A1013
+1:COMCFGMSG_19
++A929
+1:FN_COMNOTIFY4
++A303
+1:CHANONMSG10
 +A798
 1:DO_PLOOK_NUMBER
 +A527
 1:CMD_@MAIL_SEND
 +A735
 1:CMD-SELFBOOT
-+A303
-1:CHANONMSG10
-+A929
-1:FN_COMNOTIFY4
-+A400
-1:CBOOTMSG10
 +A982
 1:SCAN_OBJ
++A401
+1:CBOOTMSG11
++A930
+1:FN_COMNOTIFY5
++A305
+1:CHANONMSG11
++A894
+1:CMD_COMPREFIX
 +A713
 1:FN_MMM-DD-YYYY
 +A744
 1:CMD-MOTD_SET
 +A730
 1:CMD-PLUS-WHO
-+A894
-1:CMD_COMPREFIX
-+A305
-1:CHANONMSG11
-+A930
-1:FN_COMNOTIFY5
-+A401
-1:CBOOTMSG11
 +A658
 1:COLDISP_FN
 +A417
 1:DO_CHCNT
++A395
+1:DOPLRLISTCLR_E
 +A1001
 1:____OUTPUTSUFFIX
 +A707
@@ -775,12 +859,14 @@
 1:EVAL_OBJ
 +A673
 1:FIL-LWHO
-+A395
-1:DOPLRLISTCLR_E
 +A712
 1:FN_ISSTAFF
 +A954
 1:FN_COMHELP_ALIAS
++A1055
+1:COMCFGMSG_8X
++A354
+1:COMCFGMSG_0
 +A832
 1:HUH
 +A674
@@ -789,50 +875,52 @@
 1:CMD_+MAILSTATUS
 +A470
 1:FN_HASCONFIG
-+A354
-1:COMCFGMSG_0
 +A967
 1:DO_GAGGING
++A355
+1:COMCFGMSG_1
++A352
+1:COMCFGMSG0
 +A899
 1:VA_0
 +A612
 1:CMD_+REVIEW_LETTERS_UNR
 +A837
 1:FLT.CRON
-+A352
-1:COMCFGMSG0
-+A355
-1:COMCFGMSG_1
-+A900
-1:VA_1
 +A359
 1:COMCFGMSG_2
 +A353
 1:COMCFGMSG1
-+A339
-1:COMTITLEMSG00
++A900
+1:VA_1
 +A360
 1:COMCFGMSG_3
++A339
+1:COMTITLEMSG00
++A362
+1:COMCFGMSG_4
++A341
+1:COMTITLEMSG01
 +A865
 1:MINMAX_DIGITTIME
 +A825
 1:CMD.CRONDEL
-+A341
-1:COMTITLEMSG01
-+A362
-1:COMCFGMSG_4
 +A438
 1:DO_CHANCOLOR_PUBLIC
-+A498
-1:CMD_+BBCONFIG2
 +A364
 1:COMCFGMSG_5
++A498
+1:CMD_+BBCONFIG2
++A365
+1:COMCFGMSG_6
 +A997
 1:NEWBIE_HISTORY
 +A499
 1:CMD_+BBCONFIG3
-+A365
-1:COMCFGMSG_6
++A367
+1:COMCFGMSG_7
++A904
+1:FUN_CNAME
 +A852
 1:MINMAX_MAIL
 +A789
@@ -845,90 +933,92 @@
 1:CMD_EXPAND_GLOBAL_ALIAS
 +A462
 1:DO_TIMEOUTS
-+A367
-1:COMCFGMSG_7
-+A904
-1:FUN_CNAME
++A396
+1:DOPLRLISTCLR_P
++A369
+1:COMCFGMSG_8
 +A693
 1:IDLETIME
 +A570
 1:CMD_@MAIL_MALIAS_OTHER
 +A539
 1:CMD_@MAIL_ABORT
-+A369
-1:COMCFGMSG_8
-+A396
-1:DOPLRLISTCLR_P
-+A581
-1:PENN_MAIL_TAG
-+A344
-1:GENERIC_STRIP
 +A377
 1:COMCFGMSG_9
++A344
+1:GENERIC_STRIP
++A581
+1:PENN_MAIL_TAG
++A393
+1:DOPLRLISTCLR_R
 +A518
 1:CMD_@MAIL_REPLYQUOTE
 +A449
 1:FN_LNUM
-+A393
-1:DOPLRLISTCLR_R
 +A992
 1:SCAN_OBJ0
++A282
+1:CMD_GENERIC
 +A753
 1:CMD-TIMESTAMP-REMOVE
 +A585
 1:CMD_@MAIL_VIEW
-+A282
-1:CMD_GENERIC
 +A294
 1:CMD_PENNOPTIONS
 +A993
 1:SCAN_OBJ1
++A394
+1:DOPLRLISTCLR_T
++A946
+1:FN_COMHELP_@CBOOT
++A921
+1:FN_COMGAG0
 +A603
 1:CMD_@MAIL_TAG
 +A573
 1:CMD_@MAIL_FOLDER
 +A558
 1:CMD_@MAIL_LIST
-+A921
-1:FN_COMGAG0
-+A946
-1:FN_COMHELP_@CBOOT
-+A394
-1:DOPLRLISTCLR_T
++A922
+1:FN_COMGAG1
 +A788
 1:DO_DEPART
 +A610
 1:CMD_+REVIEW_LETTERS
 +A509
 1:BB_SILENT
-+A922
-1:FN_COMGAG1
-+A566
-1:PENN_MAIL_FOLDER_CHANGE
 +A923
 1:FN_COMGAG2
++A566
+1:PENN_MAIL_FOLDER_CHANGE
 +A972
 1:DO_ALIAS_NOTIFY
-+A924
-1:FN_COMGAG3
 +A348
 1:DO_AFTER0
++A924
+1:FN_COMGAG3
++A357
+1:COMCFGF
++A350
+1:DO_AFTER1
++A942
+1:FN_COMHELP_COMLIST
++A1008
+1:DO_CHANCOLORSUB
 +A781
 1:DO_MV
 +A617
 1:CMD_+SET_MAIL_QUOTA
-+A942
-1:FN_COMHELP_COMLIST
-+A350
-1:DO_AFTER1
-+A357
-1:COMCFGF
 +A268
 1:FUN_STRINSERT
 +A703
 1:FN_OSTAFF
 +A524
 1:CMD_@MAIL
++A1015
+1:COMCFGMSG_20
++A1010
+1:FN_SAYSTRING
 +A323
 1:CH_TEMPLATE1
 +A791
@@ -945,20 +1035,22 @@
 1:CMD_@MAIL_PURGE
 +A618
 1:CMD_+DESTROY_MAILBOX_FOR
-+A663
-1:CREDITS-+UPTIME
 +A328
 1:DELCOMF
-+A828
-1:CREDIT
++A663
+1:CREDITS-+UPTIME
 +A289
 1:CMD_COMHELP
++A828
+1:CREDIT
++A410
+1:DOLAST_BACKUP
 +A677
 1:FOOTER-DASH
 +A594
 1:CMD_@MAIL_CLEAR
-+A410
-1:DOLAST_BACKUP
++A429
+1:DO_CHANBORDERS
 +A882
 1:MINMAX_ETIME
 +A873
@@ -967,8 +1059,6 @@
 1:CMD.CRONADD
 +A650
 1:CMD_MOVE_MSG_BY_SUBJ
-+A429
-1:DO_CHANBORDERS
 +A559
 1:CMD_+CHECK_MAIL
 +A887
@@ -977,10 +1067,10 @@
 1:MINMAX_NAMEGRABALL
 +A752
 1:CMD-TIMESTAMP-READ-STAFF
-+A853
-1:MINMAX_POLL
 +A840
 1:CRONJOBS
++A853
+1:MINMAX_POLL
 +A548
 1:CMD_+SET_MAIL_OPTION_REJECT
 +A984
@@ -999,18 +1089,20 @@
 1:CMD_+REPLYALL
 +A847
 1:SIDEFX
-+A436
-1:DO_CHANCOLOR_NEWBIE
 +A569
 1:PENN_MAIL_FOLDER_MOVE
 +A532
 1:CMD_@MAIL_CC_ALIAS
++A436
+1:DO_CHANCOLOR_NEWBIE
 +A453
 1:FN_B36_MAGS
 +A475
 1:DO_CLEARGROUP
 +A842
 1:CRON_JOB_TIMECLOCK
++A338
+1:COMTITLEF
 +A711
 1:FN_FINDPC
 +A771
@@ -1021,18 +1113,16 @@
 1:CMD_@MAIL_FOLDER_MOVE
 +A541
 1:PENN_MAIL_FORWARD
-+A338
-1:COMTITLEF
 +A380
 1:F_DO_CEMIT
-+A745
-1:CMD-MOTD_DEL
 +A340
 1:COMTITLEMSG10
-+A691
-1:HEADER-STAFF
++A745
+1:CMD-MOTD_DEL
 +A342
 1:COMTITLEMSG11
++A691
+1:HEADER-STAFF
 +A473
 1:CMD_+BBLOCK
 +A561
@@ -1045,24 +1135,24 @@
 1:KILL_WORDS_FN
 +A272
 1:FUN_STRTRUNC
-+A670
-1:CREDITS-BACKGROUNDS
 +A311
 1:ADDCOMF
++A670
+1:CREDITS-BACKGROUNDS
 +A656
 1:CANSEE
 +A442
 1:VALID_GROUPS
 +A829
 1:CRON
-+A481
-1:CMD_+BBJOIN
 +A951
 1:FN_COMHELP_COMALL
-+A688
-1:FN_SCANOBJ
++A481
+1:CMD_+BBJOIN
 +A358
 1:COMCFGDO1
++A688
+1:FN_SCANOBJ
 +A275
 1:FUN_PICKRAND
 +A797
@@ -1075,70 +1165,92 @@
 1:FOOTER-COMPLEX
 +A836
 1:FN.CRON
-+A639
-1:CMD_ADD_GLOBAL_ALIAS
 +A361
 1:COMCFGDO3
++A639
+1:CMD_ADD_GLOBAL_ALIAS
++A966
+1:DO_PRUNECHAN
++A363
+1:COMCFGDO4
 +A675
 1:FINGER_LIST
 +A530
 1:CMD_+SET_MAIL_OPTION_DELETE
 +A474
 1:CMD_+BBCLEARGROUP
-+A363
-1:COMCFGDO4
-+A966
-1:DO_PRUNECHAN
++A1021
+1:DO_PARSECHAN0
 +A794
 1:DO_PLOOK
-+A501
-1:CMD_+BBSEARCH
-+A908
-1:FUN_MASKCNAME
++A1022
+1:DO_PARSECHAN1
 +A366
 1:COMCFGDO6
++A908
+1:FUN_MASKCNAME
++A501
+1:CMD_+BBSEARCH
 +A734
 1:CMD_SCAN
++A1023
+1:DO_PARSECHAN2
 +A368
 1:COMCFGDO7
++A1025
+1:DO_PARSECHAN3
 +A884
 1:MINMAX_ATTRIB_SET
 +A517
 1:CMD_@MAIL_REPLYALL
-+A432
-1:STOR-DB
++A1026
+1:DO_PARSECHAN4
++A378
+1:COMCFGDO9
++A943
+1:FN_COMHELP_COMTITLE
++A280
+1:CMD_ADDCOM
 +A1000
 1:____OUTPUTPREFIX
 +A800
 1:DO_TTOOC
 +A534
 1:CMD_@MAIL_PROOF
-+A280
-1:CMD_ADDCOM
-+A943
-1:FN_COMHELP_COMTITLE
-+A378
-1:COMCFGDO9
++A432
+1:STOR-DB
++A1027
+1:DO_PARSECHAN5
 +A741
 1:CMD-VIEW
 +A733
 1:CMD-REGISTER-HELP
++A1028
+1:DO_PARSECHAN6
++A1017
+1:CMD_SWITCHES
++A1029
+1:DO_PARSECHAN7
++A293
+1:CMD_COMOPTIONS
 +A725
 1:CMD-ALT-OOC_EMIT
 +A592
 1:CMD_+REPLYALLNM
 +A567
 1:CMD_@MAIL_MALIAS_DELETE
-+A293
-1:CMD_COMOPTIONS
++A1030
+1:DO_PARSECHAN8
 +A270
 1:FUN_ITEMIZE
++A1031
+1:DO_PARSECHAN9
++A860
+1:MINMAX_ITEMIZE
 +A995
 1:CHLIST_NEWBIE
 +A1003
 1:HIST_DATA_0
-+A860
-1:MINMAX_ITEMIZE
 +A665
 1:CREDITS-REGISTER
 +A1006
@@ -1147,18 +1259,18 @@
 1:CMD_@MAIL_REPLY
 +A652
 1:SGP-OBJECTS
-+A758
-1:CMD-VERSION-REMOVE
-+A288
-1:CMD_COMCFG
 +A421
 1:DO_CHANREDESC
++A288
+1:CMD_COMCFG
++A758
+1:CMD-VERSION-REMOVE
++A315
+1:GENERICF
 +A770
 1:CMD-TRACKER-HELP
 +A463
 1:TR_CONFIG_ANONYMOUS
-+A315
-1:GENERICF
 +A273
 1:FUN_EXPTIME
 +A862
@@ -1167,6 +1279,10 @@
 1:MINMAX_NAMELIST
 +A874
 1:MINMAX_NAMEGRAB
++A1077
+1:DO_NOTIFYBYNAME
++A948
+1:FN_COMHELP_COMPREFIX
 +A851
 1:MINMAX_LPOS
 +A877
@@ -1179,28 +1295,28 @@
 1:CREDITS-+3WHO
 +A298
 1:CMD_CHAN_OFF
-+A948
-1:FN_COMHELP_COMPREFIX
-+A588
-1:CMD_@MAIL_RECALL
 +A952
 1:FN_COMHELP_COMGAG
++A588
+1:CMD_@MAIL_RECALL
++A426
+1:DO_PLRLOCK
 +A416
 1:DOCHK
 +A816
 1:SPY_REMOVE
-+A426
-1:DO_PLRLOCK
++A903
+1:STRIP_ALL
 +A790
 1:DO_PLACES
 +A646
 1:CMD_LIST_FOLDER
-+A903
-1:STRIP_ALL
-+A998
-1:HVAL
++A898
+1:CMD_COMNOTIFY
 +A265
 1:FUN_BOR
++A998
+1:HVAL
 +A787
 1:PLACEFUNCTION
 +A766
@@ -1211,12 +1327,12 @@
 1:CMD_+BBHELP
 +A257
 1:FUN_SORTBY
-+A898
-1:CMD_COMNOTIFY
 +A729
 1:CMD-PLUS-WHERE
 +A719
 1:CMD-IC
++A940
+1:FN_COMHELP_DELCOM
 +A880
 1:MINMAX_STRINGSECS
 +A867
@@ -1225,74 +1341,78 @@
 1:FUN_TIMESTRING
 +A300
 1:CMD_CHAN_TITLE
-+A940
-1:FN_COMHELP_DELCOM
 +A762
 1:CMD-CONTENTS
-+A671
-1:CREDITS-+BEGINNER
 +A424
 1:DO_CHANHISTSET
++A671
+1:CREDITS-+BEGINNER
++A423
+1:DO_PEMIT
++A406
+1:COMOPTIONS_SYNTAX
 +A715
 1:CMD-ACCEPT
 +A505
 1:FN_SETR
-+A406
-1:COMOPTIONS_SYNTAX
-+A423
-1:DO_PEMIT
 +A774
 1:CMD-RSUMMON
 +A568
 1:CMD_+SKIM
-+A635
-1:CMD_+ADD_PERSONAL_ALIAS
++A1020
+1:FN_COMHELP_@CHANNEL
 +A868
 1:FUN_NONZERO
++A635
+1:CMD_+ADD_PERSONAL_ALIAS
 +A869
 1:MINMAX_NONZERO
 +A471
 1:BUFFER_SIZE
++A347
+1:DO_BEFORE0
 +A866
 1:MINMAX_PICKRAND
 +A578
 1:PENN_MAIL_PURGE
-+A347
-1:DO_BEFORE0
++A349
+1:DO_BEFORE1
++A337
+1:ORDER_BY
 +A542
 1:CMD_@MAIL_FWD
 +A818
 1:MUTTER_TO_FN
-+A337
-1:ORDER_BY
-+A349
-1:DO_BEFORE1
++A1011
+1:DO_BEFORE2
 +A858
 1:MINMAX_STRINSERT
 +A722
 1:CMD-KNOCK
++A969
+1:FN_NOTIFYSET
++A965
+1:DO_CHANMASK
++A370
+1:COMCFGHELP
++A1012
+1:DO_BEFORE3
 +A689
 1:FN_SCAN
 +A765
 1:CMD-PROJECT-DELETE
 +A545
 1:CMD_+SET_MAIL_OPTION_VACATION
-+A370
-1:COMCFGHELP
-+A965
-1:DO_CHANMASK
-+A969
-1:FN_NOTIFYSET
 +A793
 1:PLACE_LOOK
 +A572
 1:PENN_MAIL_CLEAR
++A910
+1:COMPREFIXM00
 +A666
 1:CREDITS-+TIMESTAMP
 +A562
 1:CMD_+READ
-+A910
-1:COMPREFIXM00
 +A529
 1:CMD_@MAIL_CC
 +A411
@@ -1335,34 +1455,42 @@
 1:CMD_+ONOTE
 +A515
 1:CMD_@MAIL_PREPEND
++A949
+1:FN_COMHELP_COMOPTIONS
++A947
+1:FN_COMHELP_COMMASK
 +A684
 1:FOOTER-OZ
 +A596
 1:PENN_MAIL_NUKE
-+A947
-1:FN_COMHELP_COMMASK
-+A949
-1:FN_COMHELP_COMOPTIONS
 +A1004
 1:CVAL
++A372
+1:DOLAST
 +A763
 1:CMD-DUTY
 +A526
 1:PENN_MAIL_URGENT
 +A819
 1:MUTTER_FROM_FN
-+A372
-1:DOLAST
 +A973
 1:CRON_TIME_BACKUPS
-+A710
-1:FN_DICE
++A1032
+1:DO_PARSECHAN10
 +A939
 1:FN_COMHELP_.
++A710
+1:FN_DICE
++A1033
+1:DO_PARSECHAN11
++A1034
+1:DO_PARSECHAN12
 +A692
 1:HEADER-STAFFCON
 +A976
 1:CMD_SCAN2
++A1035
+1:DO_PARSECHAN13
 +A262
 1:FUN_MAIL
 +A792
@@ -1373,32 +1501,48 @@
 1:CMD-BEGINNER
 +A977
 1:CMD_SCAN3
++A1036
+1:DO_PARSECHAN14
 +A856
 1:MINMAX_BNAND
 +A714
 1:FN_ROLL
 +A535
 1:CMD_+SET_MAIL_OPTION_FORMAT
++A1037
+1:DO_PARSECHAN15
++A1007
+1:CMD_CHAN
 +A778
 1:DO_CONFIGURE_SPYING
 +A630
 1:CMD_+SAVE
 +A448
 1:FN_UNREAD_LIST
++A1038
+1:DO_PARSECHAN16
 +A682
 1:FOOTER-O-EQ
 +A648
 1:CMD_SELECT_FOLDER
 +A451
 1:B36_DIGITS
++A1039
+1:DO_PARSECHAN17
 +A772
 1:CMD-REGISTER-SHELP
++A1040
+1:DO_PARSECHAN18
++A1041
+1:DO_PARSECHAN19
 +A538
 1:CMD_+SET_MAIL_OPTION_AUTOFORWARD
 +A415
 1:DO_CHKALIAS
 +A523
 1:CMD_@MAIL_GENERIC
++A909
+1:COMPREFIXF
 +A709
 1:FN_DASH
 +A810
@@ -1407,22 +1551,20 @@
 1:COLUMNS2
 +A604
 1:CMD_+FORWARD
-+A909
-1:COMPREFIXF
 +A918
 1:DO_CHANCOLOR_SUB
 +A736
 1:CMD-SHOUT
 +A705
 1:COLUMNS3
++A418
+1:DO_CHANLOCK
++A376
+1:DO_HISTLINEEXTR
 +A740
 1:CMD-UPTIME
 +A737
 1:CMD-STAFF
-+A376
-1:DO_HISTLINEEXTR
-+A418
-1:DO_CHANLOCK
 +A487
 1:CMD_+BBWRITELOCK
 +A846
@@ -1443,36 +1585,36 @@
 1:FOOTER-DASH-PERCENT-1
 +A431
 1:F-DB
-+A680
-1:FOOTER-DASH-PERCENT-2
 +A935
 1:COMHELP_TOPICS
++A680
+1:FOOTER-DASH-PERCENT-2
 +A681
 1:FOOTER-DASH-PERCENT-3
++A911
+1:COMPREFIXM10
 +A748
 1:CMD-MOTD_CLEAR
 +A450
 1:ADDEM
 +A503
 1:CMD_+BBNOTIFY
-+A911
-1:COMPREFIXM10
++A414
+1:DO_JOINCHAN
++A934
+1:FN_COMHELP10
++A912
+1:COMPREFIXM11
++A901
+1:FN_ERROR_ALTERNATE
 +A459
 1:CONFIG_TIMEOUT
 +A278
 1:FUNP_CNAME
-+A901
-1:FN_ERROR_ALTERNATE
-+A912
-1:COMPREFIXM11
-+A934
-1:FN_COMHELP10
-+A414
-1:DO_JOINCHAN
-+A700
-1:STAFF-LIST
 +A932
 1:FN_COMHELP11
++A700
+1:STAFF-LIST
 +A854
 1:MINMAX_BAND
 +A886
@@ -1532,7 +1674,7 @@ Wizard
 0
 0
 0
-0
+262144
 0
 0
 0
@@ -1541,7 +1683,7 @@ Wizard
 0
 -1
 >30
-Sat Sep 13 15:38:55 2014
+Wed Jul 13 13:18:01 2016
 >49
 9
 >38
@@ -1553,11 +1695,11 @@ XXXXFe7xx3Zo2
 >127
 Wanderer
 >187
-0@localhost
+localhost
 >88
 localhost
 >84
-#9;localhost;Sat Sep 13 15:38:55 2014;localhost;Sat Sep 13 15:18:14 2014;localhost;Sat Sep 13 15:17:28 2014;localhost;Sat Sep 13 14:46:26 2014;0;0;;;;;;;
+#10;localhost;Wed Jul 13 13:18:01 2016;localhost;Sat Sep 13 15:38:55 2014;localhost;Sat Sep 13 15:18:14 2014;localhost;Sat Sep 13 15:17:28 2014;0;0;;;;;;;
 >246
 127.0.0.1
 >221
@@ -1568,6 +1710,8 @@ localhost
 1227
 >233
 6785
+>243
+71 -2 0 -2 -2
 <
 !2
 Master Room
@@ -1738,21 +1882,21 @@ Globals: Channel System <CS>
 >280
 1:0:$addcom *=*:@pemit %#=[u(ADDCOMMSG[setr(0,u(addcomf,setr(1,first(lcstr(secure(%0)))),setr(2,lcstr(secure(%1)))))],r(1),r(2))];@break [not(match(11,r(0)))];&_CH_ALIST %#=[setunion(get(%#/_ch_alist),[r(1)]:[r(2)])];&CHLIST_[r(2)] [v(STOR-DB)]=[null(ifelse(match(get([v(STOR-DB)]/chlist_[r(2)]),%#),,u([v(FX-DB)]/do_alias,xxx,:has joined this channel.,xxx:[r(2)])))][setunion(get([v(STOR-DB)]/chlist_[secure(%1)]),%#)]
 >281
-1:37748736:$=*:@break [not(hasattr(%#/COMHACK))];@set me/cmd_generic_hack=!no_command;@pemit %#=[u(genericf,public,%0)];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit/list [ifelse(or(and(eq(words(%0),1),match(on off who,first(%0))),match(last,first(%0))),%#,r(8))][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,get([v(F-DB)]/ch_template1))][setq(4,get([v(F-DB)]/ch_template2))][u(GENERICDO[setr(6,member(v(generic_cmds),mid(%0,0,1)))],public,pedit(%0,%%,\\\%,\\\%c,%c,\\\%C,%C),%#)])][ulocal([v(FX-DB)]/do_hist[r(0)],secs())]=[r(5)]
+1:37748736:$=*:@break [not(hasattr(%#/COMHACK))];@set me/cmd_generic_hack=!no_command;@pemit %#=[u(genericf,public,%0)];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit/list [ifelse(or(and(eq(words(%0),1),match(on off who,first(%0))),match(last,first(%0))),%#,r(8))][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(GENERICDO[setr(6,member(v(generic_cmds),mid(%0,0,1)))],public,pedit(%0,%%,\\\%,\\\%c,%c,\\\%C,%C),%#)])][ulocal([v(FX-DB)]/do_hist[r(0)],secs())]=[r(5)]
 >282
-1:37748736:$=* *:@break [hasattr(%#/COMHACK)];@set me/cmd_generic=!no_command;@pemit %#=[u(genericf,%0,%1)];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit/list [ifelse(or(and(match(on off who,first(%1)),eq(words(%1),1)),match(last,first(%1))),%#,r(8))][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,get([v(F-DB)]/ch_template1))][setq(4,get([v(F-DB)]/ch_template2))][u(GENERICDO[setr(6,member(v(generic_cmds),mid(%1,0,1)))],%0,pedit(%1,%%,\\\%,\\\%c,%c,\\\%C,%C),%#)])][ulocal([v(FX-DB)]/do_hist[r(0)],secs())]=[r(5)]
+1:37748736:$=* *:@break [hasattr(%#/COMHACK)];@set me/cmd_generic=!no_command;@pemit %#=[u(genericf,%0,%1)];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit/list [ifelse(or(and(match(on off who,first(%1)),eq(words(%1),1)),match(last,first(%1))),%#,r(8))][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(GENERICDO[setr(6,member(v(generic_cmds),mid(%1,0,1)))],%0,pedit(%1,%%,\\\%,\\\%c,%c,\\\%C,%C),%#)])][ulocal([v(FX-DB)]/do_hist[r(0)],secs())]=[r(5)]
 >283
 1:0:$delcom *:@pemit %#=[u(DELCOMMSG[setr(0,u(delcomf,setr(1,first(lcstr(secure(%0))))))],r(1))];@break [not(r(0))];&_CH_ALIST %#=[setdiff(get(%#/_ch_alist),grab(get(%#/_ch_alist),[r(1)]:*))]
 >39
 1:0:@swi [totcmds(%#)]=<10,{&_CH_ALIST %#=[setunion(get(%#/_CH_ALIST),n:newbie)];@toggle %#=forcehalted;@wait 0={@fo %#=@fo %#=n on;@wait 1=@toggle %#=!forcehalted};@pemit %#=ComSys: Welcome new player. Your alias for 'Newbie' is 'n'.};@swi/f [!hasflag(%#,dark)]=1,@eval [u([v(FX-DB)]/FN_COMNOTIFYBROADCAST,%#,[ifelse(match(%0,1),has reconnected.,has connected.)])]
 >284
-1:0:$@clist*:@pemit %#=[u(CLIST[match(/headers /full /aliases /notify,%0*)])]
+1:0:$@clist*:@pemit %#=[u(CLIST[match(/headers /full /aliases /notify /borders,%0*)])]
 >285
-1:0:$comlist*:@pemit %#=[ljust(Alias,10)][ljust(Channel,32)][ljust(Status,8)]Title[iter(munge(do_sort,u(order_by,%#),get(%#/_ch_alist)),%r[ljust(before(##,:),10)][s(default([v(F-DB)]/do_chancolor_[after(##,:)],[after(##,:)]))][space(sub(32,strlen(trim(after(##,:)))))][ljust(ifelse(match(get(%#/_ch_lock),after(##,:)),LCK,ifelse(match(get([v(STOR-DB)]/chlist_[after(##,:)]),%#),on,OFF)),8)][get_eval(%#/_ch_alias_[after(##,:)])])]%r---- End of comlist ----
+1:0:$comlist*:@pemit %#=[ljust(Alias,10)][ljust(Channel,32)][ljust(Status,8)]Title[iter(munge(do_sort,u(order_by,%#),get(%#/_ch_alist)),%r[ljust(before(##,:),10)][s(default([v(F-DB)]/do_chancolor_[after(##,:)],[after(##,:)]))][space(sub(32,strlen(trim(after(##,:)))))][ljust(ifelse(match(get(%#/_ch_lock),after(##,:)),LCK,switch([!!match(get([v(STOR-DB)]/chlist_[after(##,:)]),%#)][!!match(get(%#/_ch_gagged),after(##,:))],10,on,11,GAGGED,OFF)),8)][get_eval(%#/_ch_alias_[after(##,:)])])]%r---- End of comlist ----
 >286
 1:4194304:$comtitle *=*:@pemit %#=[u(COMTITLEMSG[setr(0,u(comtitlef,%0,%1))],%0,%1)];@break [not(match(01 11,r(0)))];&_CH_ALIAS_[secure(r(3))] %#=%1
 >287
-1:37748736:$.* *:@set me/CMD_GENERIC_NOPARSE=!no_command;@pemit %#=[u(genericf,%0,%1)];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit/list [ifelse(or(and(match(on off who,first(%1)),eq(1,words(%1))),match(last,first(%1))),%#,r(8))][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,get([v(F-DB)]/ch_template1))][setq(4,get([v(F-DB)]/ch_template2))][u(GENERICDO[setr(6,member(v(generic_cmds),mid(%1,0,1)))],%0,escape(%1),%#)])][ulocal([v(FX-DB)]/do_hist[r(0)],secs())]=[r(5)]
+1:37748736:$.* *:@set me/CMD_GENERIC_NOPARSE=!no_command;@pemit %#=[u(genericf,%0,%1)];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit/list [ifelse(or(and(match(on off who,first(%1)),eq(1,words(%1))),match(last,first(%1))),%#,r(8))][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(GENERICDO[setr(6,member(v(generic_cmds),mid(%1,0,1)))],%0,escapex(pedit(%1,%c,%%c,%x,%%x,%m,%%m),f;),%#)])][ulocal([v(FX-DB)]/do_hist[r(0)],secs())]=[r(5)]
 >288
 1:4194304:$comcfg*:@pemit %#=[u(COMCFGMSG[setr(0,gte(bittype(%#),6))],setr(1,u(comcfgf,%0,%#)),%0)];@break [not(and(r(0),r(1)))];@eval [u(comcfgdo[r(1)],%0)]
 >289
@@ -1764,7 +1908,7 @@ CANUSE/1
 >75
 1:0:ComSys: I'm sorry, but you can not use the comsystem.
 >291
-1:0:$@cemit *=*:@pemit %#=[u(F_CHK_CEMIT,%0,%1)];@break [not(match(111,r(2)))];@pemit/list [r(8)][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,get([v(F-DB)]/ch_template1))][setq(4,get([v(F-DB)]/ch_template2))][u(F_DO_CEMIT,%0,%1,%#)])][ulocal([v(FX-DB)]/do_hist1,secs())]=[r(5)]
+1:0:$@cemit *=*:@pemit %#=[u(F_CHK_CEMIT,%0,%1)];@break [not(match(111,r(2)))];@pemit/list [r(8)][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(F_DO_CEMIT,%0,%1,%#)])][ulocal([v(FX-DB)]/do_hist1,secs())]=[r(5)]
 >292
 1:0:$@cboot *=*:@pemit %#=[u(CBOOTMSG[setr(0,u(cbootf,%0,%1,%#))],%0,%1,%#)];@break [not(match(11,r(0)))];@eval [u(docboot,%0,%1,%#)]
 >293
@@ -1797,6 +1941,10 @@ CANUSE/1
 1:0:$comnotify*:@pemit %#=[u(FN_COMNOTIFY[match(/enable /disable /list /on /off,first(%0))],rest(%0))]
 >40
 1:0:@swi/f [!hasflag(%#,dark)]=1,@eval [u([v(FX-DB)]/FN_COMNOTIFYBROADCAST,%#,has disconnected.)]
+>227
+Wed Jul 13 13:32:51 2016
+>1007
+1:536870912:$^@chan(((n)?(e)?(l)?)?)(/.*)?( .*)?$:@include me/do_parsechan[match(v(cmd_switches),ifelse(!!pos(/,first(%0)),after(first(%0),/),help))]
 <
 !7
 ChannelDB
@@ -1868,7 +2016,7 @@ GlobalErrObject
 >100
 1:0:[localize(u(VA_%vd,%0))]
 >102
-1:0:[switch([gt(words(rest(%0)),0)][and(match(get(%#/_ch_alist),*:[grab(get([v(STOR-DB)]/ch_list),[first(%0)]*)]),not(match(get(%#/_ch_lock),grab(get([v(STOR-DB)]/ch_list),[first(%0)]*))))],01,No message.,11,u([v(FX-DB)]/do_chkalias,first(%0),rest(%0),xxx:[grab(get([v(STOR-DB)]/ch_list),[first(%0)]*)]),u(fn_error,%0))]
+1:0:[switch([gt(words(rest(%0)),0)][setq(t,grab(get(%#/_ch_alist),[first(%0)]:*))][ifelse(!$r(t),setq(t,grab(get(%#/_ch_alist),*:[first(%0)]*)))][ifelse(!$r(t),setq(t,*:[grab(get([v(STOR-DB)]/ch_list),[first(%0)]*)]))][and(match(get(%#/_ch_alist),%qt),not(match(get(%#/_ch_lock),after(%qt,:))))],01,No message.,11,u([v(FX-DB)]/do_chkalias,first(%0),rest(%0),xxx:[after(%qt,:)]),u(fn_error,%0))]
 >430
 1:0:#6
 >431
@@ -1886,11 +2034,13 @@ GlobalErrObject
 >104
 1:0:[switch([gt(words(rest(%0)),0)][and(match(edit(get(%#/_CH_ALIST),*,#),[first(pedit(%0,?,#,*,#))]:*),not(match(get(%#/_ch_lock),after(grab(edit(get(%#/_ch_alist),*,#),[first(pedit(%0,?,#,*,#))]:*),:))))],01,No message.,11,u([v(FX-DB)]/do_chkalias,first(edit(%0,*,#)),rest(%0),grab(edit(get(%#/_ch_alist),*,#),[first(pedit(%0,?,#,*,#))]:*)),u(fn_error,%0))]
 >105
-1:0:[switch([gt(words(rest(%0)),0)][and(match(get(%#/_ch_alist),*:[grab(get([v(STOR-DB)]/ch_list),[first(%0)]*)]),not(match(get(%#/_ch_lock),grab(get([v(STOR-DB)]/ch_list),[first(%0)]*))))],01,No message.,11,u([v(FX-DB)]/do_chkalias,first(%0),rest(%0),xxx:[grab(get([v(STOR-DB)]/ch_list),[first(%0)]*)]),u(fn_error,%0))]
+1:0:[switch([gt(words(rest(%0)),0)][setq(t,grab(get(%#/_ch_alist),[first(%0)]:*))][ifelse(!$r(t),setq(t,grab(get(%#/_ch_alist),*:[first(%0)]*)))][ifelse(!$r(t),setq(t,*:[grab(get([v(STOR-DB)]/ch_list),[first(%0)]*)]))][and(match(get(%#/_ch_alist),%qt),not(match(get(%#/_ch_lock),after(%qt,:))))],01,No message.,11,u([v(FX-DB)]/do_chkalias,first(%0),rest(%0),xxx:[after(%qt,:)]),u(fn_error,%0))]
 >901
 1:0:[setq(w,textfile(help,*%0*,2))][ifelse(or(hasattr(%#,NOERROR),strmatch(%qw,*here are no entries*)),error(%#),[error(%#)]%rHowever%, you may try one of:%r[trim(after(%qw,:),b,%r)])]
 >902
 1:0:[error(%#)]
+>227
+Wed Jul 13 13:33:09 2016
 <
 !9
 ChanFunc
@@ -1903,7 +2053,7 @@ ChanFunc
 5
 -1
 1
-33558529
+37752833
 0
 0
 0
@@ -1919,7 +2069,7 @@ ChanFunc
 >237
 -1 -1 -1 -1
 >301
-1:0:[setq(5,ifelse(isdbref(pmatch(%3)),pmatch(%3),%#))][isdbref(r(5))][ifelse(and(or(gte(bittype(r(5)),5),uldefault([v(F-DB)]/[r(2)]_lock,1,r(5))),match(get([v(STOR-DB)]/ch_list),r(2))),1,0)][ifelse(match(get([v(STOR-DB)]/chlist_[r(2)]),r(5)),setq(4,1),setq(4,0))]
+1:0:[setq(5,ifelse(isdbref(pmatch(%3)),pmatch(%3),%#))][and(%0,isdbref(r(5)))][ifelse(and(or(gte(bittype(r(5)),5),uldefault([v(F-DB)]/[r(2)]_lock,1,r(5),JOIN)),match(get([v(STOR-DB)]/ch_list),r(2))),1,0)][ifelse(match(get([v(STOR-DB)]/chlist_[r(2)]),r(5)),setq(4,1),setq(4,0))]
 >302
 1:0:ComSys: Invalid channel specified. Use @clist for a list of channels.
 >303
@@ -1939,7 +2089,7 @@ ChanFunc
 >310
 1:0:[ifelse(r(4),ComSys: [ifelse(match(r(5),%#),You are,[name(r(5))] is)] already off that channel.)]
 >311
-1:0:[and(gt(words(%0),0),not(match(get(%#/_ch_alist),%0:*)))][and(match(get([V(STOR-DB)]/ch_list),%1),or(gte(bittype(%#),5),uldefault([v(F-DB)]/%1_lock,1,%#)),not(match(get(%#/_ch_lock),%1)))]
+1:0:[and(gt(words(%0),0),not(match(get(%#/_ch_alist),%0:*)))][and(match(get([V(STOR-DB)]/ch_list),%1),or(gte(bittype(%#),5),uldefault([v(F-DB)]/%1_lock,1,%#,JOIN)),not(match(get(%#/_ch_lock),%1)))]
 >312
 1:0:ComSys: Invalid channel specified. Use @clist for a list of channels.
 >313
@@ -1947,9 +2097,9 @@ ChanFunc
 >314
 1:0:ComSys: [ifelse(words(%0),That alias already exists. Delete it first.,Invalid alias specified. Alias must be 1 or more printable characters.)]
 >315
-1:0:[setq(1,grab(get([v(STOR-DB)]/ch_list),%0*))][setq(1,ifelse(or(words(r(1)),words(%0)),r(1),public))][switch([setr(2,[gt(words(r(1)),0)][and(uldefault([r(1)]_lock,1,%#),not(match(get(%#/_ch_lock),r(1))))])][or(strmatch(on,%1),gt(match(setr(8,setinter(lwho(),u([v(FX-DB)]/do_gagging,r(1)))),%#),0))][and(strmatch(on,%1),not(match(get([v(STOR-DB)]/CHLIST_[r(1)]),%#)))][and(strmatch(on,%1),match(get([v(STOR-DB)]/CHLIST_[r(1)]),%#))],0*,ComSys: Sorry\, that channel does not exist.,?0*,ComSys: Sorry\, You have no access to that channel.,*00?,ComSys: Sorry\, you are not on that channel.,*11?,[setq(8,setunion(r(8),%#))],*?01,ComSys: You are already on that channel[setq(2,10)])]
+1:0:[setq(1,grab(get([v(STOR-DB)]/ch_list),%0*))][ifelse(!$r(1),setq(1,after(grab(get(%#/_ch_alist),%0:*),:)))][setq(1,ifelse(or(words(r(1)),words(%0)),r(1),public))][setq(h,!!match(get(%#/_ch_gagged),%q1))][switch([setr(2,[gt(words(r(1)),0)][and(uldefault([r(1)]_lock,1,%#,[switch([match(on off,%1)],1,JOIN,2,LEAVE,TALK)]),not(match(get(%#/_ch_lock),r(1))))])][or(strmatch(on,%1),gt(match(setr(8,setinter(lwho(),u([v(FX-DB)]/do_gagging,r(1)))),%#),0))][and(strmatch(on,%1),not(match(get([v(STOR-DB)]/CHLIST_[r(1)]),%#)))][and(strmatch(on,%1),match(get([v(STOR-DB)]/CHLIST_[r(1)]),%#))],0*,ComSys: Sorry\, that channel does not exist.,?0*,ComSys: Sorry\, You have no access to that channel.,*00?,[ifelse(%qh,Comsys: Sorry%, that channel is currently gagged.,ComSys: Sorry%, you are not on that channel - %qh.)],*11?,[setq(8,setunion(r(8),%#))],*?01,ComSys: You are already on that channel[setq(2,10)])]
 >316
-1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))] [default(%2/saystring,says%,)] "[objeval(%2,ifelse(hasattr(%2,CH_ANSI),ansi(get(%2/ch_ansi),s(%1)),s(%1)))]")]
+1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))] [u(fn_saystring,%2)] "[objeval(%2,ifelse(hasattr(%2,CH_ANSI),ansi(get(%2/ch_ansi),s(%1)),s(%1)))]")]
 >317
 1:0:%q3[u(DO_CHANCOLOR,r(1))]%q4[ifelse(hasattr(%0/_CH_ALIAS_[r(1)]),[setq(7,localize([setq(9,get(%0/_ch_alias_[r(1)]))][objeval(%0,[s(r(9))]%b)]))],setq(7,))]
 >318
@@ -1959,9 +2109,9 @@ ChanFunc
 >320
 1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))][ifelse(match(;,trim(mid(%1,0,2))),%b,)][objeval(%2,ifelse(hasattr(%2,CH_ANSI),ansi(get(%2/ch_ansi),s(after(%1,;))),s(after(%1,;))))])]
 >321
-1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))] [default(%2/saystring,says%,)] [objeval(%2,ifelse(hasattr(%2,CH_ANSI),"[ansi(get(%2/ch_ansi),s(delete(%1,0,1)))],s(%1)))]")]
+1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))] [u(fn_saystring,%2)] [objeval(%2,ifelse(hasattr(%2,CH_ANSI),"[ansi(get(%2/ch_ansi),s(delete(%1,0,1)))],s(%1)))]")]
 >322
-1:0:[u(do_chancolor_sub,%0)]
+1:0:[u(do_chancolorsub,%0)]
 >323
 1:0:[
 >324
@@ -1979,13 +2129,13 @@ ChanFunc
 >330
 1:0:ComSys: Alias '%0' has been deleted.
 >331
-1:0:[s(edit(center(- channel [r(1)] listing -,78,-),r(1),v(DO_CHANCOLOR_[r(1)])))]%r*** players ***[iter(setinter(objeval(%#,lwho()),get([v(STOR-DB)]/chlist_[r(1)])),%r[space(5)][ljust([ifelse(setr(9,hasattr(##,_ch_mask_[r(1)])),get(##/_ch_mask_[r(1)]),cname(##))][ifelse(objeval(%#,visible(##)),%(##[objeval(%#,flags(##))]%) [ifelse(r(9),%{[cname(##)]%})])],50)][ljust(ifelse(match(get(##/_ch_gagged),r(1)),%[gagged%],%b),10)][ifelse(gt(idle(##),120),Idle [switch(setr(w,singletime(idle(##))),*m*,ansi(hg,%qw),*h*,ansi(hy,%qw),ansi(hr,%qw))])])]%r*** objects ***[setq(0,iter(keeptype(get([v(STOR-DB)]/chlist_[r(1)]),thing),ifelse(or(not(hasflag(##,dark)),controls(%#,##)),##)))][iter(r(0),%r[cname(##)][ifelse(controls(%#,##),%(##[flags(##)]%) <Owned by: [name(owner(##))]%(##%)>)])][ifelse(words(r(0)),,%r%(None Found%))]%r[repeat(-,78)]
+1:0:[printf($78^:-:s,-channel [u(do_chancolor_%q1)] listing -)][ifelse(hasattr(v(F-DB),DO_CHANCOLOR_OVER_%q1),%r[printf($78^s,- masked as [u(do_chancolor_over_%q1)] -)])]%r*** players ***[iter(setinter(objeval(%#,lwho()),get([v(STOR-DB)]/chlist_[r(1)])),%r[space(5)][ljust([ifelse(setr(9,hasattr(##,_ch_mask_[r(1)])),get(##/_ch_mask_[r(1)]),cname(##))][ifelse(objeval(%#,visible(##)),%(##[objeval(%#,flags(##))]%) [ifelse(r(9),%{[cname(##)]%})])],50)][ljust(ifelse(match(get(##/_ch_gagged),r(1)),%[gagged%],%b),10)][ifelse(gt(idle(##),120),Idle [switch(setr(w,singletime(idle(##))),*m*,ansi(hg,%qw),*h*,ansi(hy,%qw),ansi(hr,%qw))])])]%r*** objects ***[setq(0,iter(keeptype(get([v(STOR-DB)]/chlist_[r(1)]),thing),ifelse(or(not(hasflag(##,dark)),controls(%#,##)),##)))][iter(r(0),%r[cname(##)][ifelse(controls(%#,##),%(##[flags(##)]%) <Owned by: [name(owner(##))]%(##%)>)])][ifelse(words(r(0)),,%r%(None Found%))]%r[repeat(-,78)]
 >332
-1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,44)][ljust(--Flags--,11)][space(3)][rjust(Users,7)][rjust(Messages,11)])][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#),gte(bittype(%#),5)),printf([space(4)]$-44s$-11s$-3s$7s$11s,u(do_chancolor_##,##),ifelse(match(get([v(STOR-DB)]/commask_chanlist),##),M),ifelse(match(get(%#/_ch_lock),##),%bL%b),words(get([v(STOR-DB)]/chlist_##)),add(0,get([v(STOR-DB)]/chused_##)))))]---- End of list of channels ----
+1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,44)][ljust(--Flags--,11,-)][space(3)][rjust(Users,7)][rjust(Messages,11)])][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#,ALL),gte(bittype(%#),5)),printf([space(4)]$-44s$-11s$-3s$7s$11s,u(do_chancolor_##,##),[ifelse(match(get([v(STOR-DB)]/commask_chanlist),##),M,-)][ifelse(match(get(%#/_ch_gagged),##),g,-)][ifelse(match(get([v(STOR-DB)]/chlist_##),%#),o,-)][ifelse(hasattr([v(F-DB)]/##_lock),L,-)]-------,ifelse(match(get(%#/_ch_lock),##),%bL%b),words(get([v(STOR-DB)]/chlist_##)),add(0,get([v(STOR-DB)]/chused_##)))))]---- End of list of channels ----%rKey: M (alias enabled), g (gagged), o (online), L (locked)
 >333
 1:0:ComSys: Unrecognized switch for @clist.
 >334
-1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Description)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][wrap(get([V(STOR-DB)]/chdesc_##),45,l,,,32)]))]---- End of list of channels ----
+1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Description)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#,ALL),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][wrap(get([V(STOR-DB)]/chdesc_##),45,l,,,32)]))]---- End of list of channels ----
 >335
 1:0:[ansi(h[mid(scramble(rgbymc),0,1)],%0)]
 >336
@@ -2003,23 +2153,23 @@ ChanFunc
 >342
 1:0:ComSys: Title set for channel '[capstr(lcstr(r(3)))]'.
 >343
-1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))] [default(%2/saystring,says%,)] "[objeval(%2,s(%1))]")]
+1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))] [u(fn_saystring,%2)] "[objeval(%2,s(%1))]")]
 >344
 1:0:457
 >345
-1:0:[setq(0,1)][ulocal(format_chan,%2)] [setr(6,localize(%[To: [ifelse(gt(numpos(`,%1),1),strfunc(elist,iter(u(chk_players,before(after(secure(%1),`),`)),[u(fun_cname2,##)],,|)@and@|,@),u(fun_cname2,u(chk_players,first(after(secure(%1),`)))))]%]:[localize([setq(6,get(%2/_ch_alias_[r(1)]))][objeval(%2,[s(r(6))]%b)])][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))] [setq(5,trim(ifelse(gt(numpos(`,secure(%1)),1),after(after(objeval(%2,%1),`),`),rest(after(objeval(%2,%1),`)))))][v(do_before[setr(4,member(" : ;,mid(r(5),0,1)))])][objeval(%#,s(ifelse(member(; " :,mid(r(5),0,1)),delete(r(5),0,1),r(5))))][v(do_after[r(4)])]))][setq(7,[r(6)])]
+1:0:[setq(0,1)][ulocal(format_chan,%2)] [setr(6,localize(%[To: [ifelse(gt(numpos(`,%1),1),strfunc(elist,iter(u(chk_players,before(after(secure(%1),`),`)),[u(fun_cname2,##)],,|)@and@|,@),u(fun_cname2,u(chk_players,first(after(secure(%1),`)))))]%]:[localize([setq(6,get(%2/_ch_alias_[r(1)]))][objeval(%2,[s(r(6))]%b)])][ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))][setq(5,trim(ifelse(gt(numpos(`,secure(%1)),1),after(after(objeval(%2,%1),`),`),rest(after(objeval(%2,%1),`)))))][u(do_before[setr(4,member(" : ;,mid(r(5),0,1)))],%#,mid(r(5),1,1))][objeval(%#,s(ifelse(member(; " :,mid(r(5),0,1)),delete(r(5),0,1),r(5))))][v(do_after[r(4)])]))][setq(7,[r(6)])]
 >346
 1:0:[localize([setq(0,iter(%0,ifelse(isdbref(pmatch(##)),pmatch(##))))][ifelse(words(r(0)),r(0),%#)])]
 >347
-1:0:says, "
+1:0:%b[u(fn_saystring,%0)] "
 >348
 1:0:"
 >349
-1:0:says, "
+1:0:%b[u(fn_saystring,%0)] "
 >350
 1:0:"
 >351
-1:0:/lock /locklist /chanadd /chandel /chanlist /chancolor /redesc /help /hist /cemitlock /plrlock /plrunlock /plrlist /chanborder /prune /maskadd /maskdel /parsealias
+1:0:/lock /locklist /chanadd /chandel /chanlist /chancolor /redesc /help /hist /cemitlock /plrlock /plrunlock /plrlist /chanborder /prune /maskadd /maskdel /parsealias /notify /rename
 >352
 1:0:ComSys: Permission denied.
 >353
@@ -2029,15 +2179,15 @@ ChanFunc
 >355
 1:0:[ifelse(and(match(get([V(STOR-DB)]/ch_list),rest(before(%0,=))),pos(=,rest(%0))),ComSys: Lock [ifelse(words(after(%0,=)),set,cleared)] for channel [capstr(lcstr(rest(before(%0,=))))],ComSys: Invalid arguments given with [first(secure(%0))] switch.%r[space(8)]Syntax: [extract(v(comcfgsyntax),1,1,|)][setq(1,0)])]
 >356
-1:0:comcfg/lock <valid channel>=[<lock>]|comcfg/locklist <valid channel>|comcfg/chanadd <new channel>=<description>|comcfg/chandel <valid channel>|comcfg/chanlist|concfg/chancolor <valid channel>=[<function>] (works like @extansi)|comcfg/redesc <valid channel>=<new description>|comcfg/help|comcfg/hist <valid channel>=<value>|comcfg/cemitlock <valid channel>=[<lock>]|comcfg/plrlock <target>=<list of channels>|comcfg/plrunlock <target>=<list of channels>|comcfg/plrlist [<optional target>]|comcfg/chanborder <left> <right>|comcfg/prune <channel:list>[=<object:all>]|comcfg/maskadd <valid channel>|comcfg/maskdel <valid channel>|comcfg/parsealias [<1:0>]
+1:0:comcfg/lock <channel>=[<lock>]|comcfg/locklist <channel>|comcfg/chanadd <channel>=<description>|comcfg/chandel <channel>|comcfg/chanlist|concfg/chancolor <channel>=[<function>]|comcfg/redesc <channel>=<description>|comcfg/help|comcfg/hist <channel>=<value>|comcfg/cemitlock <channel>=[<lock>]|comcfg/plrlock <target>=<channel(s)>|comcfg/plrunlock <target>=<channel(s)>|comcfg/plrlist [<optional target>]|comcfg/chanborder <left> <right> [channel]|comcfg/prune <channel:list>[=<object:all>]|comcfg/maskadd <channel>|comcfg/maskdel <channel>|comcfg/parsealias [<1:0>]|comcfg/notify [+:-][<channel>:list]|comcfg/rename <channel> [=<new name mask>]
 >357
 1:0:[match(v(comcfgswitches),first(secure(%0)))]
 >358
 1:0:[u([v(FX-DB)]/do_chanlock,rest(before(%0,=)),after(%0,=))]
 >359
-1:0:[ifelse(and(match(get([V(STOR-DB)]/ch_list),rest(%0)),words(rest(%0))),ComSys: Lock for channel '[capstr(lcstr(setr(9,rest(secure(%0)))))]'%r[space(8)]EvalLock: [ifelse(hasattr([v(F-DB)]/%q9_lock),parenmatch([v(F-DB)]/%q9_lock),<None Defined>)]%r[space(8)]CemitLock: [ifelse(hasattr([v(F-DB)]/%q9_cemit_lock),parenmatch([v(F-DB)]/%q9_cemit_lock),<None Defined>)],ComSys: Invalid arguments given with [first(secure(%0))] switch.%r[space(8)]Syntax: [extract(v(comcfgsyntax),1,1,|)])][setq(1,0)]
+1:0:[ifelse(and(match(get([V(STOR-DB)]/ch_list),rest(%0)),words(rest(%0))),ComSys: Lock for channel '[capstr(lcstr(setr(9,rest(secure(%0)))))]'%r[space(8)]EvalLock: [ifelse(hasattr([v(F-DB)]/%q9_lock),parenmatch([v(F-DB)]/%q9_lock),<None Defined>)]%r[space(8)]CemitLock: [ifelse(hasattr([v(F-DB)]/%q9_cemit_lock),parenmatch([v(F-DB)]/%q9_cemit_lock),<None Defined>)],ComSys: Invalid arguments given with [first(secure(%0))] switch.%r[space(8)]Syntax: [extract(v(comcfgsyntax),2,1,|)])][setq(1,0)]
 >360
-1:0:[ifelse(and(setr(3,not(match(get([V(STOR-DB)]/ch_list),before(rest(%0),=)))),setr(4,words(after(%0,=)))),ComSys: New channel '[secure(capstr(lcstr(before(rest(%0),=))))]' created with desc of '[secure(after(%0,=))]'.,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch([r(3)][r(4)][gt(pos(=,%0),0)],*0,<Must use an equals>,0*,<Channel already exists>,?0?,<No description given>)][setq(1,0)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),3,1,|)])]
+1:0:[ifelse(and(setr(e,valid(attrname,CHLIST_[before(rest(%0),=)])),setr(3,not(match(get([V(STOR-DB)]/ch_list),before(rest(%0),=)))),setr(4,words(after(%0,=)))),ComSys: New channel '[secure(capstr(lcstr(before(rest(%0),=))))]' created with desc of '[secure(after(%0,=))]'.,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch(%qe[r(3)][r(4)][gt(pos(=,%0),0)],*0,<Must use an equals>,?0*,<Channel already exists>,??0?,<No description given>,0*,<Illegal Channel Name>)][setq(1,0)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),3,1,|)])]
 >361
 1:0:[u([v(FX-DB)]/do_chancreate,rest(before(secure(%0),=)),after(secure(%0),=))]
 >362
@@ -2047,17 +2197,17 @@ ChanFunc
 >364
 1:0:[ifelse(setr(3,words(rest(%0))),ComSys: Invalid arguments given with [first(secure(%0))] switch. <No arguments required>%r[space(8)]Syntax: [extract(v(comcfgsyntax),5,1,|)],[u([v(FX-DB)]/do_genpemit,%#,ComSys: Administrative listing of channels...%r[space(5)][ljust(Channel Name,25)][ljust(Locked?,8)][ljust(History?,12)][ljust(Masked?,8)][ljust(Users,8)][ljust(Input #,8)])][list(get([V(STOR-DB)]/ch_list),[space(5)][u([v(F-DB)]/do_chancolor_##)][space(sub(25,strlen(##)))][ljust(ifelse(hasattr([v(F-DB)]/##_lock),Yes,No),8)][ljust(ifelse(hasattr([v(F-DB)]/##_history),Yes %([get([get([v(F-DB)]/##_history)]/HVAL)]%),No),12)][ljust(ifelse(match(get([v(STOR-DB)]/commask_chanlist),##),Yes,No),8)][ljust(words(get([V(STOR-DB)]/chlist_##)),8)][ljust(add(0,get([V(STOR-DB)]/chused_##)),8)])]ComSys: Listing completed.)][setq(1,0)]
 >365
-1:0:[ifelse(setr(3,match(before(rest(%0),=),u(strip_all,objeval(%#,s(after(%0,=)))))),ComSys: Channel '[capstr(lcstr(before(rest(%0),=)))]' colorcodes established.,ComSys: Invalid arguments given with [first(secure(%0))] switch. <Channels must match.>%r[space(8)]Syntax: [extract(v(comcfgsyntax),6,1,|)][setq(1,0)])]
+1:0:[ifelse(setr(3,and(!!$before(rest(%0),=),match(before(rest(%0),=),u(strip_all,objeval(%#,s(after(%0,=))))))),ComSys: Channel '[capstr(lcstr(before(rest(%0),=)))]' colorcodes established.,ComSys: Invalid arguments given with [first(secure(%0))] switch. <Channels must match.>%r[space(8)]Syntax: [extract(v(comcfgsyntax),6,1,|)][setq(1,0)])]
 >366
 1:0:[u([v(FX-DB)]/do_chancolor,before(rest(secure(%0)),=),after(%0,=))]
 >367
-1:0:[ifelse(and(setr(3,match(get([V(STOR-DB)]/ch_list),before(rest(%0),=))),setr(4,words(after(%0,=)))),ComSys: Channel '[secure(capstr(lcstr(before(rest(%0),=))))]' re-desced with '[secure(after(%0,=))]'.,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch([r(3)][r(4)][gt(pos(=,%0),0)],*0,<Must use an equals>,0*,<Channel does not exist>,?0?,<No description given>)][setq(1,0)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),3,1,|)])]
+1:0:[ifelse(and(setr(3,match(get([V(STOR-DB)]/ch_list),before(rest(%0),=))),setr(4,words(after(%0,=)))),ComSys: Channel '[secure(capstr(lcstr(before(rest(%0),=))))]' re-desced with '[secure(after(%0,=))]'.,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch([r(3)][r(4)][gt(pos(=,%0),0)],*0,<Must use an equals>,0*,<Channel does not exist>,?0?,<No description given>)][setq(1,0)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),7,1,|)])]
 >368
 1:0:[u([v(FX-DB)]/do_chanredesc,rest(before(secure(%0),=)),after(secure(%0),=))]
 >369
-1:0:[ifelse(words(rest(%0)),ComSys: Invalid arguments given with [first(secure(%0))] switch.%rSyntax: [extract(v(comcfgsyntax),8,1,|)],ComSys: Help for command 'comcfg'[iter(v(comcfgswitches),%r[space(5)][ljust(##%b,12,.)] [extract(v(comcfghelp),#@,1,|)]%r[space(18)]Syntax: [extract(v(comcfgsyntax),#@,1,|)])])]
+1:0:[ifelse(words(rest(%0)),ComSys: WizHelp for version [ansi(hb,first(v(version)))] of AshComV2 %[[ansi(hc,rest(v(version)))]%]%r[repeat(-,78)]%r[u(comcfgmsg_8x_[match(strip(v(comcfgswitches),/),rest(%0))],rest(%0))]%r[repeat(-,78)]%rComSys: Individual Topic WizHelp completed.,u(comcfgmsg_8x))]
 >370
-1:0:Establishes lock for channel.|Lists lock for specified channel.|Create a new channel.|Delete an existing channel.|List special fields of all channels.|Set a colorcode for a channel.|Re-describe a channel.|Show this listing.|Set up history on channel.|Establishes cemitlock for the channel.|Lock channels from player|Restore channels to player|List locked channels (of all/player)|Set left and right channel borders.|Prune players/all from channel. (Optionally list)|Adds channels to 'alias mask' list.|Removes channels from 'alias mask' list.|Enable/Disable parsing with comaliases.
+1:0:Establishes lock for channel.|Lists lock for channel.|Create a new channel.|Delete an existing channel.|List fields of channels.|Set colorcode for channel.|Re-describe a channel.|Show this listing.|Set up history on channel.|Set cemitlock for channel.|Lock channel(s) from player|Restore channel(s) to player|List locks for [chan(s)/player]|Set left/right channel borders.|Prune players/all from channel.|Add Chans to 'alias mask'.|Remove Chans from 'alias mask'.|Enable/Disable channel parsing.|Add/Remove channels from notify list.|Add/Clear channel rename mask.
 >371
 1:0:[ifelse(and(lt(words(%1),3),match(last,first(%1))),ulocal(ifelse(match(rest(%1),*?-?*),dolast_range,dolast),first(%1),rest(strip(%1,@)),%2,member(@,mid(rest(%1),0,1))),u(genericdo[strip(member(v(generic_cmds),mid(%1,0,1)),v(generic_strip))],%0,%1,%2,%3))]
 >372
@@ -2075,27 +2225,27 @@ ChanFunc
 >378
 1:0:[u([v(FX-DB)]/do_chanhistset,rest(before(secure(%0),=)),min(350,max(0,after(secure(%0),=))))]
 >379
-1:0:[setq(1,grab(get([v(STOR-DB)]/ch_list),%0*))][setq(8,setinter(lwho(),get([v(STOR-DB)]/CHLIST_[r(1)])))][switch([setr(2,[gt(words(r(1)),0)][and(uldefault([r(1)]_lock,1,%#),1)][or(uldefault([r(1)]_cemit_lock,0,%#),[gte(bittype(%#),5)])])],0*,ComSys: Sorry\, that channel does not exist.,?0*,ComSys: Sorry\, You have no access to that channel.,*0,ComSys: Sorry\, You do not have permission to do that.)]
+1:0:[setq(1,grab(get([v(STOR-DB)]/ch_list),%0*))][setq(8,setinter(lwho(),u([v(FX-DB)]/do_gagging,r(1))))][switch([setr(2,[gt(words(r(1)),0)][and(uldefault([r(1)]_lock,1,%#,TALK),1)][or(uldefault([r(1)]_cemit_lock,0,%#),[gte(bittype(%#),5)])])],0*,ComSys: Sorry\, that channel does not exist.,?0*,ComSys: Sorry\, You have no access to that channel.,*0,ComSys: Sorry\, You do not have permission to do that.)]
 >380
 1:0:[setq(0,1)][u(format_chan,%2)] [setr(7,[objeval(%2,s(%1))])]
 >381
-1:0:[ifelse(and(match(get([V(STOR-DB)]/ch_list),rest(before(%0,=))),pos(=,rest(%0))),ComSys: CemitLock [ifelse(words(after(%0,=)),set,cleared)] for channel [capstr(lcstr(rest(before(%0,=))))],ComSys: Invalid arguments given with [first(secure(%0))] switch.%r[space(8)]Syntax: [extract(v(comcfgsyntax),1,1,|)][setq(1,0)])]
+1:0:[ifelse(and(match(get([V(STOR-DB)]/ch_list),rest(before(%0,=))),pos(=,rest(%0))),ComSys: CemitLock [ifelse(words(after(%0,=)),set,cleared)] for channel [capstr(lcstr(rest(before(%0,=))))],ComSys: Invalid arguments given with [first(secure(%0))] switch.%r[space(8)]Syntax: [extract(v(comcfgsyntax),10,1,|)][setq(1,0)])]
 >382
 1:0:[u([v(FX-DB)]/do_cemitlock,rest(before(%0,=)),after(%0,=))]
 >383
-1:0:[ifelse(and(isdbref(setr(3,pfind(rest(before(%0,=))))),words(setr(4,setdiff(setinter(lcstr(trim(after(%0,=))),get([V(STOR-DB)]/ch_list)),get([r(3)]/_ch_lock))))),ComSys: [capstr(lcstr(type(r(3))))] [name(r(3))] blocked from [elist(r(4))].,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch([isdbref(r(3))][words(r(4))][gt(words(setinter(lcstr(after(%0,=)),get([r(3)]/_ch_lock))),0)],0*,<Invalid target>,?00,<Invalid channel%(s%) specified>,?01,<Target already omitted from channel%(s%)>)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),11,1,|)][setq(1,0)])]
+1:0:[ifelse(and(isdbref(setr(3,pfind(rest(before(%0,=))))),words(setr(4,setdiff(setinter(setr(q,lcstr(trim(ifelse(match(after(%0,=),+all),get([v(STOR-DB)]/ch_list),after(%0,=))))),get([v(STOR-DB)]/ch_list)),get([r(3)]/_ch_lock))))),ComSys: [capstr(lcstr(type(r(3))))] [name(r(3))] blocked from [elist(r(4))].,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch([isdbref(r(3))][words(r(4))][gt(words(setinter(%qq,get([r(3)]/_ch_lock))),0)],0*,<Invalid target>,?00,<Invalid channel%(s%) specified>,?01,<Target already omitted from channel%(s%)>)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),11,1,|)][setq(1,0)])]
 >385
-1:0:[u([v(FX-DB)]/do_plrlock,rest(before(%0,=)),setinter(lcstr(after(%0,=)),get([V(STOR-DB)]/ch_list)),1)]
+1:0:[u([v(FX-DB)]/do_plrlock,rest(before(%0,=)),setinter(lcstr(ifelse(match(after(%0,=),+all),get([v(STOR-DB)]/ch_list),after(%0,=))),get([V(STOR-DB)]/ch_list)),1)]
 >386
-1:0:[u([v(FX-DB)]/do_plrlock,rest(before(%0,=)),after(%0,=),0)]
+1:0:[u([v(FX-DB)]/do_plrlock,rest(before(%0,=)),ifelse(match(after(%0,=),+all),get([v(STOR-DB)]/ch_list),after(%0,=)),0)]
 >387
-1:0:[ifelse(and(isdbref(setr(3,pfind(rest(before(%0,=))))),words(setr(4,setinter(lcstr(trim(after(%0,=))),get([r(3)]/_ch_lock))))),ComSys: [capstr(lcstr(type(r(3))))] [name(r(3))] restored access to [elist(r(4))].,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch([isdbref(r(3))][words(r(4))],0*,<Invalid target>,?0,<Player not locked from channel%(s%) specified>)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),12,1,|)][setq(1,0)])]
+1:0:[ifelse(and(isdbref(setr(3,pfind(rest(before(%0,=))))),words(setr(4,setinter(lcstr(trim(ifelse(match(after(%0,=),+all),get([v(STOR-DB)]/ch_list),after(%0,=)))),get([r(3)]/_ch_lock))))),ComSys: [capstr(lcstr(type(r(3))))] [name(r(3))] restored access to [elist(r(4))].,ComSys: Invalid arguments given with [first(secure(%0))] switch. [switch([isdbref(r(3))][words(r(4))],0*,<Invalid target>,?0,<Player not locked from channel%(s%) specified>)]%r[space(8)]Syntax: [extract(v(comcfgsyntax),12,1,|)][setq(1,0)])]
 >388
 1:0:[ifelse(or(isdbref(setr(3,pfind(rest(%0)))),not(words(rest(%0)))),u(dolistplrs_[isdbref(r(3))]),ComSys: Invalid arguments given with [first(secure(%0))] switch. <Invalid optional target specified>%r[space(8)]Syntax: [extract(v(comcfgsyntax),13,1,|)])][setq(1,0)]
 >389
-1:0:[ifelse(neq(words(rest(%0)),2),ComSys: Invalid arguments given with [first(secure(%0))] switch. <Requires left and right borders>%r[space(8)]Syntax: [extract(v(comcfgsyntax),14,1,|)][setq(1,0)],ComSys: Border set to be: [objeval(%#,s(first(rest(%0))))]CHANNEL-NAME[objeval(%#,s(rest(rest(%0))))])]
+1:0:[ifelse(!and(between(2,3,words(rest(%0)),1),or(lt(words(rest(%0)),3),match(get([v(STOR-DB)]/ch_list),extract(rest(%0),3,1)))),ComSys: Invalid arguments given with [first(secure(%0))] switch[ifelse(eq(words(rest(%0)),3),%b%[Invalid Channel Specified%])]. <Requires left and right borders with optional channel name as 3rd arg>%r[space(8)]Syntax: [extract(v(comcfgsyntax),14,1,|)][setq(1,0)],ComSys: Border [ifelse(gt(words(rest(%0)),2),for channel [extract(rest(%0),3,1)]%b)]set to be: [objeval(%#,s(first(rest(%0))))]CHANNEL-NAME[objeval(%#,s(first(rest(rest(%0)))))])]
 >390
-1:0:[u([v(FX-DB)]/do_chanborders,rest(%0),%#)]
+1:0:[u([v(FX-DB)]/do_chanborders,rest(%0),%#,extract(rest(%0),3,1))]
 >391
 1:0:ComSys: [capstr(lcstr(type(r(3))))] [name(r(3))] [ifelse(words(get([r(3)]/_ch_lock)),locked from channels: [elist(get([r(3)]/_ch_lock))],is not locked from any channels.)]
 >392
@@ -2121,11 +2271,11 @@ ChanFunc
 >402
 1:0:[u([v(FX-DB)]/do_cboot,%0,%1,%2)]
 >403
-1:0:1.0.9b 12/03/2013
+1:0:1.1.3d 04/14/2016
 >404
-1:0:comhelp|addcom <alias>=<channel>|=<channel> <message>|.<channel> <message>|<alias> <message>|<alias> on|<alias> off|<alias> who|<alias> last[<value>]|delcom <channel>|@clist[/full /alias /notify]|comlist|comtitle <channel>=<title>|comcfg[/<switch>]|@cemit <channel>=<message>|@cboot <target>=<channel>|commask <channel>=<alias>|comprefix[/clear] [<character(s)>]|comoptions|pennoptions|comall|comgag[/on /off /list] <channel>|comnotify[/enable /disable /on /off /list]
+1:0:comhelp|addcom <alias>=<channel>|=<channel> <message>|.<channel> <message>|<alias> <message>|<alias> on|<alias> off|<alias> who|<alias> last [<value>]|delcom <channel>|@clist[/full /alias /notify /borders]|comlist|comtitle <channel>=<title>|comcfg[/<switch>]|@cemit <channel>=<message>|@cboot <target>=<channel>|commask <channel>=<alias>|comprefix[/clear] [<character(s)>]|comoptions|@channel|comall|comgag[/on /off /list] <channel>|comnotify[/enable /disable /on /off /list]
 >405
-1:0:Show this screen.|Adds aliases to channel.|Method to talk on channel.|no-eval talk on channel.|Method to talk on channel.|Join a channel.|Leave a channel.|See who's on channel.|List channel history.|Remove alias (doesn't leave)|Lists available channels.|Lists connected channels.|Set channel comtitle.|Config comsys (see /help)|Emit over channel.|Boot target from channel.|Set name alias.|Config personal prefixes.|List speaking options.|PennMUSH syntax help.|List all users on chans.|Turn gagging on/off/list.|Notification Broadcasts
+1:0:Show this screen.|Adds aliases to channel.|Method to talk on channel.|no-eval talk on channel.|Method to talk on channel.|Join a channel.|Leave a channel.|See who's on channel.|List channel history.|Remove alias (doesn't leave)|Lists available channels.|Lists connected channels.|Set channel comtitle.|Config comsys (see /help)|Emit over channel.|Boot target from channel.|Set name alias.|Config personal prefixes.|List speaking options.|@chan interface. (@chan/help)|List all users on chans.|Turn gagging on/off/list.|Notification Broadcasts
 >406
 1:0:<alias>:<message>|<alias>;<message>|<alias>"<message>|<alias>`<player> <message>|<alias>`<player(s)>` <message>
 >407
@@ -2181,15 +2331,15 @@ ChanFunc
 >918
 1:0:[ifelse(hasattr(me,do_chancolor_over_%0),u(do_chancolor_over_%0,%0),u(do_chancolor_%0,%0))]
 >919
-1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Channel Alias ReName)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][ifelse(hasattr([v(F-DB)],do_chancolor_over_##),u(do_chancolor_over_##,##),u(do_chancolor_##,##))]))]---- End of list of channels ----
+1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Channel Alias ReName)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#,ALL),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][ifelse(hasattr([v(F-DB)],do_chancolor_over_##),u(do_chancolor_over_##,##),u(do_chancolor_##,##))]))]---- End of list of channels ----
 >920
-1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Notify[space(4)]Broadcast)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][ljust(ifelse(or(match(get(%#/_ch_notify),##),match(get(%#/_ch_notify),+all)),[ansi(hr,DISABLED)],[ansi(hg,enabled)]),10)][ifelse(or(match(get(%#/_ch_unnotify),##),match(get(%#/_ch_unnotify),+all)),[ansi(hr,DISABLED)],[ansi(hg,enabled)])]))]---- End of list of channels ----
+1:0:[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Notify[space(4)]Broadcast)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#,ALL),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][ljust(switch([or(match(get([v(F-DB)]/notify_list),0),and(hasattr([v(F-DB)]/notify_list),!match(get([v(F-DB)]/notify_list),##)))][or(match(get(%#/_ch_notify),##),match(get(%#/_ch_notify),+all))],1?,[ansi(c,IGNORED)],?1,[ansi(hr,DISABLED)],[ansi(hg,enabled)]),10)][switch([or(match(get(%#/_ch_unnotify),##),match(get(%#/_ch_unnotify),+all))][or(match(get([v(F-DB)]/notify_list),0),and(hasattr([v(F-DB)]/notify_list),!match(get([v(F-DB)]/notify_list),##)))],?1,[ansi(c,IGNORED)],1?,[ansi(hr,DISABLED)],[ansi(hg,enabled)])]))]---- End of list of channels ----
 >921
 1:0:Comsys: COMGAG -- Invalid switch specified. Use /on, /off, or /list.
 >922
-1:0:[ifelse(or(!$u([v(F-DB)]/do_chancolor,%0),match(get(%#/_ch_gagged),%0)),ComSys: COMGAG -- [setq(0,u([v(F-DB)]/do_chancolor,%0))][ifelse(!!$r(0),Channel %q0 already in your gagged list,Channel %0 is not a valid channel)],[u([v(FX-DB)]/fn_gagset,%#,add,%0)]ComSys: COMGAG -- [u([v(F-DB)]/do_chancolor,%0)] added to your gag list.)]
+1:0:[ifelse(and(!match(%0,+all),or(!$u([v(F-DB)]/do_chancolor,%0),match(get(%#/_ch_gagged),%0))),ComSys: COMGAG -- [setq(0,u([v(F-DB)]/do_chancolor,%0))][ifelse(!!$r(0),Channel %q0 already in your gagged list,Channel %0 is not a valid channel)],[u([v(FX-DB)]/fn_gagset,%#,add,%0)]ComSys: COMGAG -- [ifelse(match(%0,+all),ALL CHANNELS,[u([v(F-DB)]/do_chancolor,%0)])] added to your gag list.)]
 >923
-1:0:[ifelse(match(get(%#/_ch_gagged),%0),[u([v(FX-DB)]/fn_gagset,%#,remove,%0)]ComSys: COMGAG -- [u([v(F-DB)]/do_chancolor,%0)] removed from your gag list.,ComSys: COMGAG -- [setq(0,u([v(F-DB)]/do_chancolor,%0))][ifelse(!!$r(0),Channel %q0 not in your gagged list,Channel %0 is not a valid channel)])]
+1:0:[ifelse(match([get(%#/_ch_gagged)] +all,%0),[u([v(FX-DB)]/fn_gagset,%#,remove,%0)]ComSys: COMGAG -- [ifelse(match(%0,+all),ALL CHANNELS,[u([v(F-DB)]/do_chancolor,%0)])] removed from your gag list.,ComSys: COMGAG -- [setq(0,u([v(F-DB)]/do_chancolor,%0))][ifelse(!!$r(0),Channel %q0 not in your gagged list,Channel %0 is not a valid channel)])]
 >924
 1:0:ComSys: Channels currently gagged:%r[repeat(-,78)]%r[ifelse(hasattr(%#,_ch_gagged),elist(get(%#/_ch_gagged),,,,,u([v(F-DB)]/do_chancolor,%0)),No Channels set as gagged found)]%r[repeat(-,78)]
 >925
@@ -2211,9 +2361,9 @@ ChanFunc
 >933
 1:0:[u(FN_COMHELP1[!!match(v(comhelp_topics),%0)],%0)]
 >934
-1:0:No such topic '%0'.%r[repeat(-,78)]%rComSys: Individual Topic Help completed.
+1:0:[center(No such topic '%0'. Please choose one of:,78)]%r%b[repeat(+,76)]%r[columns(v(comhelp_topics),20,3,l,,,%b+%b%b,%b%b+%b%b,%b%b+,0,,,1)]%r%b[repeat(+,76)]%r[repeat(-,78)]%rComSys: Individual Topic Help completed.%r[space(8)]Use 'eq' for '=', and 'alias' for '<alias>'.
 >935
-1:0:comhelp addcom eq . alias delcom @clist comlist comtitle comcfg @cemit @cboot commask comprefix comoptions pennoptions comall comgag comnotify
+1:0:comhelp addcom eq . alias delcom @clist comlist comtitle comcfg @cemit @cboot commask comprefix comoptions @channel comall comgag comnotify
 >936
 1:0:Syntax: comhelp %[<topic>%]%r%rThe comhelp command shows this screen as well as%rthe main index for the comsystem help.
 >937
@@ -2225,7 +2375,7 @@ ChanFunc
 >940
 1:0:Syntax: delcom <alias>%r%rThis will remove the alias from your alias lists.%r%rNote: This does not cause you to leave the channel. To leave the%rchannel, you must use <alias> off.
 >941
-1:0:Syntax: @clist%[/switch%]%r%rThis allows you to display all available channels to you in varous%rformats for display.%r%r[space(5)]@clist -- default listing%r[space(5)]@clist/full -- full listing with channel output%r[space(5)]@clist/alias -- the channel name alias that shows up when talking on channel%r[space(5)]@clist/notify -- the notification broadcasting settings you have for channels.
+1:0:Syntax: @clist%[/switch%]%r%rThis allows you to display all available channels to you in varous%rformats for display.%r%r[space(5)]@clist -- default listing%r[space(5)]@clist/full -- full listing with channel output%r[space(5)]@clist/alias -- the channel name alias that shows up when talking on channel%r[space(5)]@clist/notify -- the notification broadcasting settings you have for channels.%r[space(5)]@clist/borders -- Show the left and right borders for each channel.
 >942
 1:0:Syntax: comlist%r%rThis lists all your aliases and matching channels for those aliases.%r%rIt will display the status of the channel as well%ras any comsystem titles you may have in use for that channel.
 >943
@@ -2247,17 +2397,17 @@ ChanFunc
 >951
 1:0:Syntax: comall%r%rHoly this is a spammy function!%rIt will display all users on all channels that you have access to.
 >952
-1:0:Syntax: comgag%[/switch%] <channel>%r%rThis will allow you to manipulate the gagging of channel output.%r%r/on -- this turns on gagging on the specified channel%r/off -- this turns off gagging on the specified channel.%r/list -- this lists the channels currently gagged.
+1:0:Syntax: comgag%[/switch%] <channel>%r%rThis will allow you to manipulate the gagging of channel output.%r%r/on -- this turns on gagging on the specified channel%r/off -- this turns off gagging on the specified channel.%r/list -- this lists the channels currently gagged.%r%rYou may use the '+all" option for <channel> to gag/ungag all channels.
 >953
 1:0:Syntax: comnotify%[/switch%] <channel>%r%rThis will allow you to set up automated connect/disconnect%rmessages when you connect or disconnect from the mush%rto all the channels that you are currently on. As this can become annoying,%rthere are options that you can use to tweak the settings.%r%r/enable %[default%] will enable your broadcasting your own %[dis%]connects.%r/disable will disable your broadcasting your own %[dis%]connects.%r/on %[default%} will allow you to receive broadcasted %[dis%]connects.%r/off will disable your receiving broadcasted %[dis%]connects.%r/list will list all your current notification settings%r%rYou may specify '+all' for /enable /disable /on /off.%r%r@clist/notify will show all channels and all notify settings.
 >954
-1:0:Syntax: <multiple> See below%r%rThe <alias> option is the primary method you talk on the comsystem%r%rYou define an alias with the addcom option.%r%rOne the alias is defined, you will use the alias as follows.%rFor examples, we'll assume you have an alias 'pub' for public.%r%rpub on -- this will join you to public if you've not joined it.%rpub off -- this will leave the public channel.%rpub who -- this will show who is on public.%rpub last -- will show the last 10 lines of history (if available)%rpub last 30 -- will show the last 30 lines of history (if available)%rpub :waves -- will pose 'waves' on the public channel%rpub ;'s head hurts -- will possessive-pose the message%rpub "heya -- will speak on the channel%rpub heya -- will also speak on the channel%r%rThe comsystem uses the @saystring variable for says. (see 'help @saystring')%r%rTitles and com masks are automatically utilized if configured.%r%rIf you have the channel gagged, you will be notified the channel is gagged.
+1:0:Syntax: <multiple> See below%r%rThe <alias> option is the primary method you talk on the comsystem%r%rYou define an alias with the addcom option.%r%rOne the alias is defined, you will use the alias as follows.%rFor examples, we'll assume you have an alias 'pub' for public.%r%rpub on -- this will join you to public if you've not joined it.%rpub off -- this will leave the public channel.%rpub who -- this will show who is on public.%rpub last -- will show the last 10 lines of history (if available)%rpub last 30 -- will show the last 30 lines of history (if available)%rpub :waves -- will pose 'waves' on the public channel%rpub ;'s head hurts -- will possessive-pose the message%rpub "heya -- will speak on the channel%rpub heya -- will also speak on the channel%r%rThe comsystem uses the @saystring variable for says. (see 'help @saystring')%rYou may also use &CHAN_SAYSTRING me=<value> for evaluated saystrings (up to 30 chars)%r[space(5)]Example: &CHAN_SAYSTRING me=%[randextract(says speaks swears)],%r%rTitles and com masks are automatically utilized if configured.%r%rIf you have the channel gagged, you will be notified the channel is gagged.
 >955
 1:0:[switch([or(not(words(rest(%0))),match(rest(%0),list))][and(match(get([v(STOR-DB)]/ch_list),first(before(rest(%0),=))),match(object all,[first(after(rest(%0),=))]*))],10,[u([v(FX-DB)]/do_genpemit,%#,ComSys: Listing Channels:%r[ljust(Channel,34)][ljust(Players,10)][ljust(Objects,10)]Invalid)][list(get([v(STOR-DB)]/ch_list),[ljust(u(do_chancolor_##,%#),34)][rjust(words(keeptype(get([v(STOR-DB)]/chlist_##),player)),7)][space(3)][rjust(words(keeptype(get([v(STOR-DB)]/chlist_##),thing)),7)][space(3)][localize(rjust(ifelse(gt(setr(9,words(remtype(get([V(STOR-DB)]/chlist_##),player thing))),0),ansi(hr,r(9)),0),7))])]Listing Completed.[setq(1,0)],01,ComSys: Purging [ifelse(match(all,[first(after(%0,=))]*),all non-players,all non-players/non-objects)] from channel [u(do_chancolor_[first(before(rest(%0),=))])],ComSys: Invalid argument(s) for [extract(v(comcfgswitches),15,1)] switch%r[space(8)]Syntax: [extract(v(comcfgsyntax),15,1,|)][setq(1,0)])]
 >956
-1:0:[ifelse(match(get([v(STOR-DB)]/ch_list),rest(%0)),ifelse(match(get([v(STOR-DB)]/commask_chanlist),rest(%0)),ComSys: Channel already added to alias mask list.[setq(1,0)],ComSys: Channel '[u(DO_CHANCOLOR,rest(%0))]' allowed to have alias masks.),ComSys: Channel does not exist.%r[space(8)]Syntax: [extract(v(comcfgsyntax),15,1,|)][setq(1,0)])]
+1:0:[ifelse(match(get([v(STOR-DB)]/ch_list),rest(%0)),ifelse(match(get([v(STOR-DB)]/commask_chanlist),rest(%0)),ComSys: Channel already added to alias mask list.[setq(1,0)],ComSys: Channel '[u(DO_CHANCOLOR,rest(%0))]' allowed to have alias masks.),ComSys: Channel does not exist.%r[space(8)]Syntax: [extract(v(comcfgsyntax),16,1,|)][setq(1,0)])]
 >957
-1:0:[ifelse(and(words(rest(%0)),match(get([v(STOR-DB)]/commask_chanlist),rest(%0))),ComSys: Channel '[u(DO_CHANCOLOR,rest(%0))]' removed from mask alias list.,[ifelse(words(rest(%0)),ComSys: Channel has not been added to mask alias list.[setq(1,0)],ComSys: Invalid channel specified.%r[space(8)]Syntax: [extract(v(comcfgsyntax),16,1,|)])][setq(1,0)])]
+1:0:[ifelse(and(words(rest(%0)),match(get([v(STOR-DB)]/commask_chanlist),rest(%0))),ComSys: Channel '[u(DO_CHANCOLOR,rest(%0))]' removed from mask alias list.,[ifelse(words(rest(%0)),ComSys: Channel has not been added to mask alias list.[setq(1,0)],ComSys: Invalid channel specified.%r[space(8)]Syntax: [extract(v(comcfgsyntax),17,1,|)])][setq(1,0)])]
 >958
 1:0:[ifelse(and(words(rest(%0)),between(0,1,rest(%0),1)),ComSys: Comsystem aliases will [ifelse(rest(%0),no longer,now)] evaluate,ComSys: [ifelse(words(rest(%0)),Invaliad argument. Choose '0' for parsing or '1' for non-parsing.,Current setting is [ifelse(get(#[config(global_error_obj)]/vd),non-parsing,parsing)].)][setq(1,0)])]
 >959
@@ -2274,6 +2424,146 @@ ChanFunc
 #39
 >999
 #40
+>227
+Wed Jul 13 13:37:11 2016
+>19
+1:0:@function/priv cname=me/fun_cname
+>1008
+1:0:[ifelse(hasattr([v(F-DB)],do_chancolor_over_%0),u(do_chancolor_over_%0,%0),u(do_chancolor_%0,%0))]
+>1009
+1:0:[u([v(FX-DB)]/do_genpemit,%#,[printf($-15:.:s $-25:.:s $-15:.:s,Left-Border,Channel-Name,Right-Border)][iter(get([v(STOR-DB)]/ch_list),%r[printf($-15s $-25s $-15s,default([v(F-DB)]/ch_template1_%i0,get([v(F-DB)]/ch_template1)),u(do_chancolor_%i0),default([v(F-DB)]/ch_template2_%i0,get([v(F-DB)]/ch_template2)))])]%r---- End of list of channels ----)]
+>1010
+1:0:[ifelse(hasattr(%0,chan_saystring),mid(objeval(%0,eval(%0,chan_saystring)),0,50),default(%0/saystring,says%,))]
+>1011
+1:0:%b
+>1012
+1:0:[ifelse(isspace(%1),%b)]
+>1013
+1:0:[switch([match(rest(%0),list)][!!member(+ -,mid(rest(%0),0,1))][!!match([get([v(STOR-DB)]/ch_list)] 0,delete(rest(%0),0,1))][!or(and(member(+,mid(rest(%0),0,1)),match(get([v(F-DB)]/notify_list),delete(rest(%0),0,1))),and(member(-,mid(rest(%0),0,1)),!match(get([v(F-DB)]/notify_list),delete(rest(%0),0,1))))],1*,ComSys: Channels being notified (0 means NO notifications): [default([v(F-DB)]/notify_list,**ALL CHANNELS**)][setq(1,0)],?0*,ComSys: Must specify '+' or '-' to add or remove channel from %(dis%)connect notification.[setq(1,0)],??0?,ComSys: Invalid channel specified [delete(rest(%0),0,1)].[setq(1,0)],???0,ComSys: Channel has already been [ifelse(member(+,mid(rest(%0),0,1)),added,removed)] from notification.[setq(1,0)],ComSys: Channel [delete(rest(%0),0,1)] has been [ifelse(member(+,mid(rest(%0),0,1)),added,removed)] from %(dis%)connect notifications.)][ifelse(!r(1),%r[space(8)]Syntax: [extract(v(comcfgsyntax),19,1,|)])]
+>1014
+1:0:[u([v(FX-DB)]/do_notifybyname,mid(rest(%0),0,1),delete(rest(%0),0,1))]
+>1015
+1:0:[switch([or(!$before(rest(%0),=),!member(get([v(STOR-DB)]/ch_list),lcstr(before(rest(%0),=))))][!!$after(%0,=)],1?,[setq(1,0)]ComSys: Invalid channel specified.%r[space(8)]Syntax: [extract(v(comcfgsyntax),20,1,|)],?0,ComSys: Channel '[u(do_chancolor,before(rest(%0),=))]' name-mask cleared.,ComSys: Channel '[u(do_chancolor,before(rest(%0),=))]' name-masked to '[after(%0,=)]')]
+>1016
+1:0:[u([v(FX-DB)]/do_renamechan,before(rest(%0),=),after(%0,=)))]
+>1017
+1:0:help list title on off who recall all gag ungag desc add brief buffer chown combine uncombine decompile delete hide unhide join leave mogrifier mute unmute name privs quiet rename what wipe
+>1018
+1:0:@chan[nel]/help|@chan[nel]/list|@chan[nel]/title <channel>[=<title>]|@chan[nel]/on <channel>[=<player>]|@chan[nel]/off <channel>[=<player>]|@chan[nel]/who <channel>|@chan[nel]/recall <channel>[=<lines>]|@chan[nel]/all|@chan[nel]/gag [<channel:+all>]|@chan[nel]/ungag [<channel:+all>]|@chan[nel]/desc|@chan[nel]/add|@chan[nel]/brief|@chan[nel]/buffer|@chan[nel]/chown|@chan[nel]/combine|@chan[nel]/uncombine|@chan[nel]/decompile|@chan[nel]/delete|@chan[nel]/hide|@chan[nel]/unhide|@chan[nel]/join <channel>[=<player>]|@chan[nel]/leave <channel>[=<player>]|@chan[nel]/mogrifier|@chan[nel]/mute|@chan[nel]/unmute|@chan[nel]/name|@chan[nel]/privs|@chan[nel]/quiet|@chan[nel]/rename|@chan[nel]/what|@chan[nel]/wipe
+>1019
+1:0:this listing|lists channels|sets/displays channel title|joins channel|leaves channel|lists who's on channel|recalls channel history|join all channels|gag channel/+all|ungag channel/+all|see: comcfg/redesc|see: comcfg/chanadd|show quick channel list|see: comcfg/hist|see: comcfg/lock|see: comnotify|see: comnotify|not implemented|see: comcfg/chandel|see: commask|see: commask|joins channel|leaves channel|not implemented|see: comcfg/plrlock|see: comcfg/plrunlock|see: comcfg/chancolor|see: comcfg/lock or comcfg/locklist|see: comnotify|see: comcfg/chancolor|chan description listing|see: comcfg/prune
+>1020
+1:0:Syntax: @channel%[/switch%] %[<options>%]%r%rThis is the fully functional @channel interface to the comsystem.%r%rPlease refer to @channel/help (or @chan/help) for full releveant syntax.
+>1021
+1:0:@pemit %#=Unrecognized switch '[after(first(%0),/)]' for command '@channel'.%rAvailable Switches: [v(cmd_switches)]
+>1022
+1:0:@pemit %#=[printf($^78:-:s,- @channel help index listing -)][iter(v(cmd_switches),%r[printf($-40:.:s $s,[extract(v(cmd_switches_index),#@,1,|)]%b,extract(v(cmd_switches_short),#@,1,|))])]%r[repeat(-,78)]
+>1023
+1:0:@pemit %#=[u(clist2)]
+>1025
+1:0:@swi/inline [!!pos(=,rest(%0))]=1,{@include/command me/cmd_comtitle=[trim(before(rest(%0),=))],[trim(after(%0,=))]},{@pemit %#=ComSys: Your title for [u(do_chancolor,before(rest(%0),=))] is '[default(%#/_ch_alias_[trim(before(rest(%0),=))],*NOT SET*)]'}
+>1026
+1:0:@pemit %#=[setq(i,rest(%0))][u(CHANONMSG[setr(0,u(chanonf,or(match(pos(=,%qi),#-1),and(pos(=,%qi),controls(%#,pmatch(after(%qi,=))))),gt(match(get([v(STOR-DB)]/ch_list),before(%qi,=)),0),setr(2,before(%qi,=)),after(%qi,=)))],%qi)];@break [or(r(4),not(match(11,r(0))))];&CHLIST_[r(2)] [v(STOR-DB)]=[setq(1,r(2))][setq(3,default([v(F-DB)]/ch_template1_%q2,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q2,get([v(F-DB)]/ch_template2)))][null(u([v(FX-DB)]/do_genpemit,[setunion(%#,u([v(FX-DB)]/do_gagging,r(2)))],u(genericdo1,XXX,:has joined this channel.,r(5))))][setunion(get([v(STOR-DB)]/CHLIST_%q2),%q5)];&_CH_ALIST %#=[setunion(get(%#/_ch_alist),[lcstr([r(2)]:[r(2)])])]
+>1027
+1:0:@pemit %#=[setq(i,rest(%0))][u(CHANOFFMSG[setr(0,u(chanofff,or(match(pos(=,%qi),#-1),and(pos(=,%qi),controls(%#,pmatch(after(%qi,=))))),gt(match(get([v(STOR-DB)]/ch_list),before(%qi,=)),0),setr(2,before(%qi,=)),after(%qi,=)))],%qi)];@break [or(r(4),not(match(11,r(0))))];&CHLIST_[r(2)] [v(STOR-DB)]=[setq(1,r(2))][setq(3,default([v(F-DB)]/ch_template1_%q2,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q2,get([v(F-DB)]/ch_template2)))][null(u([v(FX-DB)]/do_genpemit,u([v(FX-DB)]/do_gagging,r(2)),u(genericdo1,XXX,:has left this channel.,r(5))))][setdiff(get([v(STOR-DB)]/CHLIST_%q2),%q5)]
+>1028
+1:0:@pemit %#=[setq(i,rest(%0))][u(genericf,%qi,who)];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit %#[u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(GENERICDO[setr(6,member(v(generic_cmds),w))],%qi,who,%#)])]=[r(5)]
+>1029
+1:0:@pemit %#=[setq(i,rest(%0))][setq(j,ifelse(!!$after(%qi,=),add(0,after(%qi,=)),10))][ifelse(eq(%qj,0),setq(j,2000))][u(genericf,trim(before(%qi,=)),squish(trim(last %qj)))];@break [or(not(match(11,r(2))),not(match(r(8),%#)))];@pemit %#=[u(genericdo7,trim(before(%qi,=)),squish(trim(last %qj)),%#)]
+>1030
+1:0:@break [!hasattr(%#/_ch_alist)]={@pemit %#=ComSys: You have no channels to join.};@dolist/inline [setr(p,setdiff(lcstr(iter(get(%#/_ch_alist),ifelse(!match(get([v(STOR-DB)]/CHLIST_[after(##,:)]),%#),after(##,:)))),#-1))]=@include me/do_parsechan4=X %d0;@skip [!!$r(p)]={@pemit %#=You're already on all your channels.}
+>1031
+1:0:@pemit %#=[u(FN_COMGAG1,rest(%0))]
+>1032
+1:0:@pemit %#=[u(FN_COMGAG2,rest(%0))]
+>1033
+1:0:@pemit %#=ComSys: Please type: comcfg/redesc <channel-name>=<description>
+>1034
+1:0:@pemit %#=ComSys: Please type: comcfg/chanadd <channel-name>=<description>
+>1035
+1:0:@include/command [v(CH-DB)]/cmd_comlist
+>1036
+1:0:@pemit %#=ComSys: Please type: comcfg/hist <channel>=<number of lines of history>
+>1037
+1:0:@pemit %#=ComSys: Please type: comcfg/lock <channel>=<lock>
+>1038
+1:0:@pemit %#=ComSys: We do not offer this. Please see 'comhelp comnotify'
+>1039
+1:0:@pemit %#=ComSys: We do not offer this. Please see 'comhelp comnotify'
+>1040
+1:0:@pemit %#=ComSys: Unsupported feature.
+>1041
+1:0:@pemit %#=Comsys: Please type: comcfg/chandel <channel>
+>1042
+1:0:@pemit %#=ComSys: Please see 'comhelp commask'
+>1043
+1:0:@pemit %#=ComSys: Please see 'comhelp commask'
+>1044
+1:0:@include [v(F-DB)]/do_parsechan4
+>1045
+1:0:@include [v(F-DB)]/do_parsechan5
+>1046
+1:0:@pemit %#=ComSys: Unsupported feature.
+>1047
+1:0:@pemit %#=ComSys: Please type: comcfg/plrlock <player>=<channel(s)>
+>1048
+1:0:ComSys: Please type: comcfg/plrunlock <player>=<channel(s)>
+>1049
+1:0:@pemit %#=ComSys: Please type: comcfg/chancolor <channel>=<new name with optional colors>
+>1050
+1:0:@pemit %#=ComSys: Please review: comcfg/lock and comcfg/locklist
+>1051
+1:0:@pemit %#=ComSys: Please see 'comhelp comnotify'
+>1052
+1:0:@pemit %#=ComSys: Please type: comcfg/chancolor <channel>=<name>
+>1053
+1:0:@pemit %#=[u(clist1)]
+>1054
+1:0:@pemit %#=ComSys: Please type: comcfg/prune <channel>
+>1055
+1:0:ComSys: WizHelp for version [ansi(hb,first(v(version)))] of AshComV2 %[[ansi(hc,rest(v(version)))]%]%r[repeat(-,78)][iter(v(comcfgsyntax),%r[ljc(%i0,45,.)] [ljc(extract(v(comcfghelp),#@,1,|),32)],|)]%r[repeat(-,78)]%rComSys: WizHelp completed. %[Individual help available: comcfg/help <topic>%]%r[space(8)]Example: comcfg/help maskdel
+>1056
+1:0:[center(No such topic '%0'. Please choose one of:,78)]%r%b[repeat(+,76)]%r[columns(strip(v(comcfgswitches),/),20,3,l,,,%b+%b%b,%b%b+%b%b,%b%b+,0,,,1)]%r%b[repeat(+,76)]
+>1057
+1:0:Syntax: comcfg/lock <channel> = <lock> (leave empty to clear)%r%rThis will establish (or remove) a lock on the given channel.%r%rThis controls who may join/leave and/or chat on the channel.%r%rThe following arguments are available when setting locks:%r[space(5)]%%0 - The player/object passing the lock.%r[space(5)]%%1 - The type of lock to eval. JOIN, LEAVE, TALK, or ALL%r[space(10)]JOIN -- Controls specific joining channel.%r[space(10)]LEAVE -- Controls specific leaving channel.%r[space(10)]TALK -- Controls specific talking on channel.%r[space(10)]ALL -- Value for non-specific locking.%r%rOne of the values (JOIN, LEAVE, TALK, ALL) will be passed%rfor each lock that you can optionally check against in the lock.
+>1058
+1:0:Syntax: comcfg/locklist <channel>%r%rThis will show the locks that exist on the channel.%r%rThe EvalLock controls who may join/leave/talk on a channel.%r%rThe CemitLock controls who may @cemit on the channel.%r%rNote: wizards by default can @cemit to any channel.
+>1059
+1:0:Syntax: comcfg/chanadd <channel>=<description>%r%rThis will add a channel by the name '<channel>' with the description%rof <description> that describes what the channel is for.%r%rChannel names can not contain spaces and must contain valid characters for attributes.
+>1060
+1:0:Syntax: comcfg/chandel <channel>%r%rThis will delete the channel <channel> and wipe all references of%rthis channel. This includes all player lists, descriptions, locks, or other.
+>1061
+1:0:Syntax: comcfg/chanlist%r%rThis will list the administrative details of a given channel. Fields are:%r[space(5)]Locked? -- Is the channel a locked channel?%r[space(5)]History? -- Does the channel have history? If so max lines?%r[space(5)]Masked? -- Does the channel allow alias masking?%r[space(5)]Users: Total number of users on channel.%r[space(5)]Input # -- Total number of uses the channel has had.
+>1062
+1:0:Syntax: comcfg/chancolor <channel>=<channel with color in name>%r%rThis allows you to colorize the channel as well as alter the name.%r%rThe channel name MUST be the same as the main channel, but you can%ralter color, case, and special encoding like accents with%rthis feature.
+>1063
+1:0:Syntax: comcfg/redesc <channel>=<new description>%r%rThis allows you to re-describe the given channel. You have no%rmethod to wipe a description as all channels must%rhave a valid description, however, you can use this to change it.
+>1064
+1:0:Syntax: comcfg/help [<topic>]%r%rThis allows you to either show the full syntax help of all options in channel%rwizhelp or optionally drill down to specific help as specified.%r%rThis screen is shown with 'comcfg/help help' as expected.
+>1065
+1:0:Syntax: comcfg/hist <channel>=<history>%r%rThis will set or reset the history recall lines of a given channel.%r%rIf the channel does not have a hitory, this will effectively set it.%rIf the channel already has a history, this will reset it to the new value.
+>1066
+1:0:Syntax: comcfg/cemitlock <channel>=<lock>%r%rThis will establish a lock on a given channel. By default, wizards can%rcan @cemit to any channel, however, if a lock is established they will%rhave to pass the lock like anyone else to @cemit to the channel.%r%rThis lock only affects who may or may not ue @cemit on that channel.
+>1067
+1:0:Syntax: comcfg/plrlock <player> = <one or more channels or +all>%r%rThis will effectively lock the target player from being able to interact with%rthe specified channel list. You may specify one or more channels to deny%rthe target player. If they are already on the channel%rthen they can receive output but will not be able to talk on it.%rYou may specify '+all' for all channels.
+>1068
+1:0:Syntax: comcfg/plrunlock <player> = <one or more channels or +all>%r%rThis will remove the channel restrictions from the target player thereby allowing them%runfettered use of the channel based on existing locks and restrictions.%rYou may specify more than one channel at a time with this command.%rYou may specify '+all' for all channels.
+>1069
+1:0:Syntax: comcfg/plrlist [<player>]%r%rIf no argument is specified, this will list all players and channel restrictions%rthat have been applied to that specified user.%rIf a player is specified as an optional argument, then only those channels that%rare restricted from that player are shown for that specified player.
+>1070
+1:0:Syntax: comcfg/chanborder <left> <right> [<channel>]%r%rIf <channel> is not specified, then the left and right borders are defined%rglobally for the comsystem. If <channel> is specified, then individual%rchannel-based borders are specified for that channel. Individual channel%rborders have precidence over the global settings.%r%rUse @clist/borders to list the borders of all the channels.
+>1071
+1:0:Syntax: comcfg/prune %[<list>%]%r[space(8)]comcfg/prune <channel> %[=<all>%]%r[space(8)]comcfg/prune <channel> = object%r%rThe first syntax option will list all the channels and show objects and%rinvalid players that exist on the channel. The 'list' is assumed in this%rcase and optional.%r%rThe second syntax will prune all non-players from the given channel. This%rincludes all object types as well as all invalid types.%r%rThe third option will prune only the invalid types from the channel but keep%rall the non-player objects.
+>1072
+1:0:Syntax: comcfg/maskadd <channel>%r%rThis toggles the channel to allow player masking. This will allow a player%rto hide their player name from all non-wizards with a specified alias%rwhich shows up when taling or who listing.%rWizards will see through commasks.
+>1073
+1:0:Syntax: comcfg/maskdel <channel>%r%rThis toggles the channel to no longer allow player masking. This will stop a player%rfrom hiding their player name with the use of commasks.
+>1074
+1:0:Syntax: comcfg/parsealias <boolean>%r%rThis will specify if you are allowed to parse the comsystem using aliases%ror you are not allowed to parse the comsystem using aliases.%r%rAs this is the default value, the logic is a bit reversed.%r%r0 -- Allow the comsystem to parse when using com aliases%r1 -- Disallow the comsystem to parse when using com aliases.
+>1075
+1:0:Syntax: comcfg/notify +<0 or channel name>%r[space(8)]comcfg/notify -<0 or channel name>%r[space(8)]comcfg/notify list%r%rThe first syntax allows you to specify what channels are NOT allowed%rto broadcast player connects/disconnects. Specifying '0' means all channels.%r%rThe second syntax allows you to specify what channels ARE allowed%rto broadcast player connects/disconnects. Specifying '0' means all channels.%r%rThe third syntax shows the current channel(s) that are broadcasting on the channel.%r%rYou can type @clist/notify to see what channels are doing notifications.
+>1076
+1:0:Syntax: comcfg/rename <channel>=<new name with optional color/accents/other>%r%rThis allows you to rename the channel to anything you want.%rThis is the name that will show up when talking on the channel or in showing%rheader information for the channel. This is NOT the channel name that a player%ruses when joining/leaving. This is a channel mask only.%r%rYou may use the @clist/alias to see all channels and all channel rename masks.%r%rYou may specify spaces in channel renames as it applies only to the mask.
 <
 !10
 ComSysSIDEFX
@@ -2302,11 +2592,11 @@ ComSysSIDEFX
 >237
 -1 -1 40 -1
 >411
-1:0:[u(do_alias_[and(uldefault([v(F-DB)]/[after(%2,:)]_lock,1,%#),not(match(get(%#/_ch_lock),after(%2,:))))],%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
+1:0:[u(do_alias_[and(uldefault([v(F-DB)]/[after(%2,:)]_lock,1,%#,[switch(match(on off,first(%1)),1,JOIN,2,LEAVE,TALK)]),not(match(get(%#/_ch_lock),after(%2,:))))],%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
 >412
 1:0:ComSys: Sorry, you have no access to that channel.
 >413
-1:0:[setq(3,get([v(F-DB)]/ch_template1))][setq(4,get([v(F-DB)]/ch_template2))][setq(9,v(1))][setq(1,after(%2,:))][setq(5,u([v(F-DB)]/genericdo[setr(6,member(get([v(F-DB)]/generic_cmds),mid(r(9),0,1)))],%0,r(9),%#))][ifelse(match(get(%#/_ch_gagged),r(1)),pemit(%#,ComSys: NOTICE -- You are currently gagged on [u([v(F-DB)]/do_chancolor,r(1))]))][npemit(ifelse(or(and(match(on off who,first(%1)),eq(1,words(%1))),and(lt(words(%1),3),match(last,first(%1)))),%#,u([v(FX-DB)]/do_gagging,r(1))),r(5))][u([v(FX-DB)]/do_chcnt,r(1))][ulocal([v(FX-DB)]/do_hist[r(0)],secs())]
+1:0:[setq(9,v(1))][setq(1,after(%2,:))][setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][setq(5,u([v(F-DB)]/genericdo[setr(6,member(get([v(F-DB)]/generic_cmds),mid(r(9),0,1)))],%0,r(9),%#))][ifelse(match(get(%#/_ch_gagged),r(1)),pemit(%#,ComSys: NOTICE -- You are currently gagged on [u([v(F-DB)]/do_chancolor,r(1))]))][ifelse(or(!match(get(%#/_ch_gagged),%q1),match(who,first(%1))),[npemit(ifelse(or(and(match(on off who,first(%1)),eq(1,words(%1))),and(lt(words(%1),3),match(last,first(%1)))),%#,u([v(FX-DB)]/do_gagging,r(1))),r(5))][u([v(FX-DB)]/do_chcnt,r(1))][ulocal([v(FX-DB)]/do_hist[r(0)],secs())])]
 >414
 1:0:[ifelse(%1,set([V(STOR-DB)],CHLIST_%2:[setunion(get([V(STOR-DB)]/CHLIST_%2),%#)]),set([V(STOR-DB)],CHLIST_%2:[setdiff(get([V(STOR-DB)]/CHLIST_%2),%#)]))]
 >415
@@ -2340,7 +2630,7 @@ ComSysSIDEFX
 >428
 1:0:[u([v(FX-DB)]/do_alias,xxx,:has @cbooted [name(pfind(%0))] off the channel,xxx:%1)][set([V(STOR-DB)],chlist_%1:[setdiff(get([V(STOR-DB)]/chlist_%1),pfind(%0))])]
 >429
-1:0:[set([v(F-DB)],ch_template1:[objeval(%1,s(first(%0)))])][set([v(F-DB)],ch_template2:[objeval(%1,s(rest(%0)))])]
+1:0:[set([v(F-DB)],ch_template1[ifelse(match(get([v(STOR-DB)]/CH_LIST),%2),_%2)]:[objeval(%1,s(first(%0)))])][set([v(F-DB)],ch_template2[ifelse(match(get([v(STOR-DB)]/CH_LIST),%2),_%2)]:[objeval(%1,s(first(rest(%0))))])]
 >430
 1:0:#6
 >431
@@ -2358,15 +2648,21 @@ ComSysSIDEFX
 >967
 1:0:[iter(get([v(STOR-DB)]/CHLIST_%0),ifelse(or(and(match(%qn,snuffit),or(match(get(##/_ch_unnotify),%0),match(get(##/_ch_unnotify),+all))),match(get(##/_ch_gagged),%0)),,%i0))]
 >968
-1:0:[ifelse(match(%1,remove),set(%0,_CH_GAGGED:[setdiff(get(%0/_ch_gagged),lcstr(%2))]),set(%0,_CH_GAGGED:[setunion(get(%0/_ch_gagged),lcstr(%2))]))]
+1:0:[ifelse(match(%1,remove),set(%0,_CH_GAGGED:[setdiff(get(%0/_ch_gagged),ifelse(match(%2,+all),[get([v(STOR-DB)]/ch_list)] +all,[lcstr(%2)] +all))]),set(%0,_CH_GAGGED:[setunion(get(%0/_ch_gagged),ifelse(match(%2,+all),[get([v(STOR-DB)]/ch_list)],lcstr(%2)))]))]
 >969
 1:0:[switch(%1,remove,set(%0,_CH_NOTIFY:[setunion(get(%0/_ch_notify),lcstr(%2))]),add,set(%0,_CH_NOTIFY:[setdiff(get(%0/_ch_notify),lcstr(%2))]),clear,set(%0,_CH_NOTIFY:),all,set(%0,_CH_NOTIFY:+all))]
 >970
 1:0:[switch(%1,remove,set(%0,_CH_UNNOTIFY:[setunion(get(%0/_ch_unnotify),lcstr(%2))]),add,set(%0,_CH_UNNOTIFY:[setdiff(get(%0/_ch_unnotify),lcstr(%2))]),clear,set(%0,_CH_UNNOTIFY:),all,set(%0,_CH_UNNOTIFY:+all))]
 >971
-1:0:[setq(n,snuffit)][nsiter(lattr([v(STOR-DB)]/CHLIST_*),ifelse(and(match(get([v(STOR-DB)]/##),%0),!or(match(get(%0/_ch_notify),after(##,_)),match(get(%0/_ch_notify),+all))),u([v(FX-DB)]/do_alias_notify,%0,%k %1,after(##,_))))]
+1:0:[setq(n,snuffit)][nsiter(setdiff(default([v(F-DB)]/notify_list,get([v(STOR-DB)]/CH_LIST)),0),ifelse(and(match(get([v(STOR-DB)]/CHLIST_##),%0),!or(match(get(%0/_ch_notify),##),match(get(%0/_ch_notify),+all))),u([v(FX-DB)]/do_alias_notify,%0,%k %1,##)))]
 >972
-1:0:[setq(n,snuffit)][setq(3,get([v(F-DB)]/ch_template1))][setq(4,get([v(F-DB)]/ch_template2))][setq(1,%2)][setq(g,u([v(F-DB)]/f_do_cemit,%2,%1,%0))][setq(f,u([v(FX-DB)]/do_gagging,%2))][ulocal([v(FX-DB)]/do_hist1,secs())][pemit(%qf,%qg)]
+1:0:[setq(n,snuffit)][setq(3,default([v(F-DB)]/ch_template1_%2,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%2,get([v(F-DB)]/ch_template2)))][setq(1,%2)][setq(g,u([v(F-DB)]/f_do_cemit,%2,%1,%0))][setq(f,u([v(FX-DB)]/do_gagging,%2))][ulocal([v(FX-DB)]/do_hist1,secs())][pemit(%qf,%qg)]
+>227
+Wed Jul 13 13:37:47 2016
+>1077
+1:0:[ifelse(match(%0,+),set([v(F-DB)],NOTIFY_LIST:[setunion(get([v(F-DB)]/notify_list),%1)]),set([v(F-DB)],NOTIFY_LIST:[setdiff(get([v(F-DB)]/notify_list),%1)]))]
+>1078
+1:0:[set([v(F-DB)],DO_CHANCOLOR_OVER_%0:%1)]
 <
 !11
 bbpocket
@@ -2392,6 +2688,8 @@ bbpocket
 0
 0
 -1
+>42
+(#5)
 >237
 -1 -1 -1 -1
 >6
@@ -2485,6 +2783,8 @@ Globals: BBS - Myrddin's Global BBS v4.0.6 <BMGB>
 0
 0
 -1
+>42
+(#5)
 >237
 -1 -1 -1 -1
 >6
@@ -2578,6 +2878,8 @@ Guest1
 0
 0
 -1
+>42
+(#13)
 >30
 Sat Sep 13 15:38:47 2014
 >49
@@ -2641,6 +2943,8 @@ Guest2
 0
 0
 -1
+>42
+(#14)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -2686,6 +2990,8 @@ Guest3
 0
 0
 -1
+>42
+(#15)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -2731,6 +3037,8 @@ Guest4
 0
 0
 -1
+>42
+(#16)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -2776,6 +3084,8 @@ Guest5
 0
 0
 -1
+>42
+(#17)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -2821,6 +3131,8 @@ Guest6
 0
 0
 -1
+>42
+(#18)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -2866,6 +3178,8 @@ Guest7
 0
 0
 -1
+>42
+(#19)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -2911,6 +3225,8 @@ Guest8
 0
 0
 -1
+>42
+(#20)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -2956,6 +3272,8 @@ Guest9
 0
 0
 -1
+>42
+(#21)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -3001,6 +3319,8 @@ Guest10
 0
 0
 -1
+>42
+(#22)
 >30
 Wed Jan 29 23:39:02 2003
 >49
@@ -4215,6 +4535,8 @@ Globals: CRON - Myrddin's mushcron <CMM>
 0
 0
 -1
+>42
+(#1)
 >237
 -1 -1 -1 -1
 >19

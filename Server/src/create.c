@@ -1420,7 +1420,7 @@ do_destroy(dbref player, dbref cause, int key, char *what)
 {
     dbref thing, newplayer, aowner2;
     int aflags2, i_array[LIMIT_MAX], i;
-    char *s_chkattr, *s_buffptr, *s_mbuf, *tpr_buff, *tprp_buff;
+    char *s_chkattr, *s_buffptr, *s_mbuf, *tpr_buff, *tprp_buff, *tstrtokr;
 
 
     if (mudstate.remotep != NOTHING) {
@@ -1508,9 +1508,9 @@ do_destroy(dbref player, dbref cause, int key, char *what)
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
              i_array[4] = i_array[1] = i_array[3] = -2;
-             for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+             for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
                   s_buffptr && (i < LIMIT_MAX);
-                  s_buffptr = (char *) strtok(NULL, " "), i++) {
+                  s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
              if ( (i_array[3] != -1) && !((i_array[3] == -2) && ((Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) == -1)) ) {
@@ -1597,7 +1597,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
 {
     dbref thing, aowner2, newplayer;
     int aflags2,  i_array[LIMIT_MAX], i;
-    char *s_chkattr, *s_buffptr, *s_mbuf;
+    char *s_chkattr, *s_buffptr, *s_mbuf, *tstrtokr;
 
     /* XXX This is different from Pern. */
 
@@ -1646,9 +1646,9 @@ do_nuke(dbref player, dbref cause, int key, char *name)
                   if ( *s_chkattr ) {
                      i_array[0] = i_array[2] = 0;
                      i_array[4] = i_array[1] = i_array[3] = -2;
-                     for (s_buffptr = (char *) strtok(s_chkattr, " "), i = 0;
+                     for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
                           s_buffptr && (i < LIMIT_MAX);
-                          s_buffptr = (char *) strtok(NULL, " "), i++) {
+                          s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                          i_array[i] = atoi(s_buffptr);
                      }
                      if ( i_array[3] != -1 ) {
