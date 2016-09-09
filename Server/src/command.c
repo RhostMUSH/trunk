@@ -7831,8 +7831,12 @@ extern NAMETAB logdata_nametab[];
 void 
 do_list(dbref player, dbref cause, int extra, char *arg)
 {
-    int flagvalue, p_val, i;
-    char *s_ptr, *s_ptr2, *tpr_buff, *tprp_buff, *save_buff, *tstrtokr;
+    int flagvalue, p_val;
+    char *s_ptr, *s_ptr2, *save_buff, *tstrtokr;
+#ifndef NODEBUGMONITOR
+    int i;
+    char *tpr_buff, *tprp_buff;
+#endif
 
     DPUSH; /* #57 */
 
