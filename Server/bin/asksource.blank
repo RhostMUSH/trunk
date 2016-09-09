@@ -36,6 +36,7 @@ fi
 # Environments
 ###################################################################
 LDCONFIG=""
+### MANUALLY DEFINE YOUR GCC BELOW IF IT CAN NOT FIND IT
 MYGCC="cc"
 if [ $(uname -s|grep -ic "bsd") -gt 0 ]
 then
@@ -58,6 +59,9 @@ fi
 if [ -f /usr/bin/gcc ]
 then
    MYGCC=/usr/bin/gcc
+elif [ -f /usr/bin/clang ]
+then
+   MYGCC=/usr/bin/clang
 else
    for i in $(slocate gcc)
    do
@@ -66,6 +70,12 @@ else
         MYGCC="$i"
       fi
    done
+fi
+if [ $(${MYGCC} 2>&1 |grep -c "not found") -gt 0 ]
+then
+   echo "No compiler found, it defaulted back to just 'cc' but we can't find it."
+   echo "Please either install a compiler (gcc, clang, etc) or define it in your path."
+   exit 1
 fi
 BETAOPT=0
 DEFS="-Wall"
