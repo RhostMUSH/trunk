@@ -7,6 +7,11 @@ if [ "$1" = "-cyg" -o "$2" = "-cyg" ]
 then
    CYGWIN=1
 fi
+# enforce CYGWIN mode for Windows 10 bash
+if [ $(grep -c Windows /proc/version) -gt 0 ]
+then
+   CYGWIN=1
+fi
 PATH=/usr/local/bin:/usr/ucb:/bin:/usr/bin:.; export PATH
 # You need this library path for the new gdbm
 # LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/gdbm-1.8.3:../src/gdbm-1.8.3/.libs
