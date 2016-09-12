@@ -9,7 +9,7 @@ then
    exit 0
 fi
 case "$1" in
-   compile) # compile source
+   patch) # compile source
       if [ -d ../rhost_tmp ]
       then
          echo "..."
