@@ -29929,10 +29929,26 @@ FUNCTION(fun_chomp)
 
 FUNCTION(fun_asc)
 {
+    int i_chk = 0;
+    char *s_buff;
+
+    if (!fn_range_check("ASC", nfargs, 1, 2, buff, bufcx))
+       return;
+    
+    if ( nfargs > 1) {
+       i_chk = ( atoi(fargs[1]) ? 1 : 0);  
+    }
     if (strlen(fargs[0]) > 1) {
-         safe_str("#-1 TOO MANY CHARACTERS", buff, bufcx);
+       safe_str("#-1 TOO MANY CHARACTERS", buff, bufcx);
     } else {
-         ival(buff, bufcx, (int)*fargs[0]);
+       if ( i_chk ) {
+          s_buff = alloc_sbuf("fun_asc");
+          sprintf(s_buff, "%03d", (int)*fargs[0]);
+          safe_str(s_buff, buff, bufcx);
+          free_sbuf(s_buff);
+       } else {
+          ival(buff, bufcx, (int)*fargs[0]);
+       }
     }
 }
 
@@ -32709,7 +32725,7 @@ FUN flist[] =
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
     {"ARRAY", fun_array, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ART", fun_art, 1, FN_VARARGS, CA_PUBLIC, 0},
-    {"ASC", fun_asc, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ASC", fun_asc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ASIN", fun_asin, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN", fun_atan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN2", fun_atan2, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

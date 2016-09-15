@@ -14063,13 +14063,18 @@
   See Also: ASC()
   
 & ASC()
-  Function: asc(<character>)
+  Function: asc(<character> [,<key>])
   
   This function returns the ASCII numerical value of the given character.
   
+  If you specify a key of '1', then it will padd zeros (0) to a three
+  character number.  The default is zero '0'.
+   
   Examples:
   > say asc(a)
   You say "97"
+  > say asc(a,1)
+  You say "097"
   
   See Also: CHR()
   
@@ -30065,6 +30070,7 @@
   * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
   * foreach() is now optionally ansi-aware [ASH]
   * added /ruler to @label to mimic ruler() functionality [ASH]
+  * asc() now handles optional second argument for 3 char padding [ASH]
     
   Bug Fixes
   ------------
