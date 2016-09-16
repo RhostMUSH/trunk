@@ -474,44 +474,44 @@
   be discussed later.
   
   First, the main control is handled by a bitlevel tier as follows.
-    #1    [Bitlevel 7] - This is the db owner and highest control authority
-                         in the game.  All garbage/recycled information is
-                         owned by this player, and because of this, this 
-                         player should not own anything.  Let me re-iterate.
-                         This player should not own anything.  If you need
-                         #1 style power, use the immortal flag for an 
-                         immortal player.
-   Immortal    [Bit 6] - This is essentially your 'leader' bit.  it can do
-                         pretty much anything within the game with few
-                         exceptions.  They override all locks by default
-                         unless they set the no_override/no_uselock flags.
-   Wizard      [Bit 5] - This is your normal MUX/Penn Wizard bitlevel.  It
-                         can do all your normal wizardly goodness.
-                         They override all locks their level and lower
-                         unless set no_override/no_uselock.  Yes, this
-                         also includes pagelocks.  This is referred to as
-                         'Royalty' within the codebase, but is in fact a
-                         full Wizard bit.  Re-iterate.  Full wizard.
-   Councilor   [Bit 4] - This is the 'admin' bit.  It has most of the wiz
-                         privs, but lacks some of the higher level db
-                         control.
-   Architect   [Bit 3] - This is the first staff bit that can control 
-                         things outside of its own ownership.  This does
-                         including, attribute/flags/toggles and player
-                         modification, but not player destruction.
-   Guildmaster [Bit 2] - This is the first admin bit.  It has small 
-                         amounts of control including examining stuff
-                         outside of ownership, but lacks modify power.
-   Citizen     [Bit 1] - Yup, this is just your normal player bit.
-   Wanderer    [Bit 0] - Consider this an unregistered player.  This is
-                         a Citizen with the WANDERER flag.  It stops 
-                         them from all building commands.
-   Guest       [Bit 0] - This is a guest player, as a guest they have
-                         very little power or control.  They lack any
-                         and all db modification abilities, including
-                         but not limited to editing, creating, etc.
-                         They also can not use mail.  Yes, this is
-                         intentional.
+    #1 (god)        [Bit 7] - This is the db owner and highest control 
+                              authority in the game.  All garbage/recycled 
+                              information is owned by this player, and because
+                              of this, this player should not own anything.  
+                              Let me re-iterate.  This player should not own 
+                              anything.  If you need #1 style power, use the 
+                              immortal flag for an immortal player.
+   Immortal         [Bit 6] - This is essentially your 'leader' bit.  it can do
+                              pretty much anything within the game with few
+                              exceptions.  They override all locks by default
+                              unless they set the no_override/no_uselock flags.
+   Wizard (Royalty) [Bit 5] - This is your normal MUX/Penn Wizard bitlevel.  It
+                              can do all your normal wizardly goodness.
+                              They override all locks their level and lower
+                              unless set no_override/no_uselock.  Yes, this
+                              also includes pagelocks.  This is referred to as
+                              'Royalty' within the codebase, but is in fact a
+                              full Wizard bit.  Re-iterate.  Full wizard.
+   Councilor        [Bit 4] - This is the 'admin' bit.  It has most of the wiz
+                              privs, but lacks some of the higher level db
+                              control.
+   Architect        [Bit 3] - This is the first staff bit that can control 
+                              things outside of its own ownership.  This does
+                              including, attribute/flags/toggles and player
+                              modification, but not player destruction.
+   Guildmaster      [Bit 2] - This is the first admin bit.  It has small 
+                              amounts of control including examining stuff
+                              outside of ownership, but lacks modify power.
+   Citizen          [Bit 1] - Yup, this is just your normal player bit.
+   Wanderer         [Bit 0] - Consider this an unregistered player.  This is
+                              a Citizen with the WANDERER flag.  It stops 
+                              them from all building commands.
+   Guest            [Bit 0] - This is a guest player, as a guest they have
+                              very little power or control.  They lack any
+                              and all db modification abilities, including
+                              but not limited to editing, creating, etc.
+                              They also can not use mail.  Yes, this is
+                              intentional.
   
   {wizhelp control2 for exceptions}
   {wizhelp control flow for the general flow of permissions}
@@ -530,7 +530,7 @@
      @hook
      NO_MODIFY (with @admin params imm_nomod enabled)
      Immortal Owned thing set INHERIT
-              Wizard ---+
+              Wizard (Royalty) ---+
               Power(Toggled/Special)
               @hook
               NO_MODIFY/NO_EXAMINE (without @admin params imm_nomod enabled)
@@ -576,7 +576,7 @@
   There are exceptions to every rule, and RhostMUSH is no exception (sic).
   While Immortal and #1 are basically immune from exceptions, being
   too high in the chain to warrent effecting them, the rest of the bits
-  can be modified (yes, including full wizard).  
+  can be modified (yes, including full wizard (royalty)).  
   
   They can be controlled as follows.
     @power    -- This is a method to tier-level up a bitlevel to higher
