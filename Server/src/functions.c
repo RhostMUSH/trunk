@@ -17014,7 +17014,7 @@ FUNCTION(fun_name)
 FUNCTION(fun_cname)
 {
     dbref it, aname;
-    int i_extansi, aflags;
+    int i_extansi, aflags, i_val;
     char *s;
     char *namebuff, *namebufcx, *ansibuf, *ansiparse;
 
@@ -17028,8 +17028,10 @@ FUNCTION(fun_cname)
            return;
        }
     }
+    i_extansi = i_val = 0;
     ansibuf = atr_pget(it, A_ANSINAME, &aname, &aflags);
-    i_extansi = 0;
+    if ( !ansibuf || !*ansibuf )
+       i_val = 1;
 
     namebuff  = namebufcx = alloc_lbuf("fun_name.namebuff");
     safe_str(Name(it), namebuff, &namebufcx);
@@ -17060,11 +17062,13 @@ FUNCTION(fun_cname)
        safe_str(ansiparse, buff, bufcx);
        free_lbuf(ansiparse);
        safe_str(namebuff, buff, bufcx);
+       if ( !i_val ) {
 #ifdef ZENTY_ANSI
-       safe_str(SAFE_ANSI_NORMAL, buff, bufcx);
+          safe_str(SAFE_ANSI_NORMAL, buff, bufcx);
 #else
-       safe_str(ANSI_NORMAL, buff, bufcx);
+          safe_str(ANSI_NORMAL, buff, bufcx);
 #endif
+       }
     } else {
        safe_str(namebuff, buff, bufcx);
     }
