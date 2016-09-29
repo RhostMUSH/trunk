@@ -1523,6 +1523,11 @@ setdefaults() {
   fi
   if [ "$(uname -s)" == "Darwin" ]
   then
+     ${MYGCC} ../src/gettime_test.c -o ../src/gettime_test > /dev/null 2>&1
+     if [ $? -eq 0 ]
+     then
+        DEFS="-DMACH_TIMER ${DEFS}"
+     fi
      if [ ${gl_chkerrno} -eq 0 ]
      then
         echo "Patching errno.h for MAC compatibility..."
