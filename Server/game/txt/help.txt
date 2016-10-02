@@ -30071,6 +30071,8 @@
   * foreach() is now optionally ansi-aware [ASH]
   * added /ruler to @label to mimic ruler() functionality [ASH]
   * asc() now handles optional second argument for 3 char padding [ASH]
+  * added 'fake' config params lbuf_size, mbuf_size, and sbuf_size to
+    the config() function for mortals to pull values [ASH]
     
   Bug Fixes
   ------------

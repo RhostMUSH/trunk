@@ -5417,33 +5417,46 @@ void list_options_values(dbref player, int p_val, char *s_val)
 void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc)
 {
     CONF *tp;
-    int first, bVerboseSideFx = 0;
+    int first, bVerboseSideFx = 0, i_wild = 0;
     static char tempbuff[LBUF_SIZE/2];
     char *t_pt, *t_buff;
 
-    if ( key || (*param_name == '1') || (*param_name == '0') ) {
+    if ( *param_name && ((strchr(param_name, '*') != NULL) || (strchr(param_name, '*') != NULL)) ) {
+       i_wild = 1;
+    }
+    if ( key || i_wild || (*param_name == '1') || (*param_name == '0') ) {
        first = 0;
        t_pt = t_buff = alloc_lbuf("cf_display");
        for (tp = conftable; tp->pname; tp++) {
            if (check_access(player, tp->flags2, 0, 0)) {
-              if ( first )
-                 safe_chr(' ', buff, bufc);
-              if ( strlen(buff) > 3900 ) {
-                 if (*param_name == '1')
-                    break;
-                 safe_str(tp->pname, t_buff, &t_pt);
-                 safe_chr(' ', t_buff, &t_pt);
-              } else {
-                 safe_str(tp->pname, buff, bufc);
+              if ( !i_wild || (i_wild && quick_wild(param_name, tp->pname)) ) {
+                 if ( first )
+                    safe_chr(' ', buff, bufc);
+                 if ( strlen(buff) > (LBUF_SIZE - 100) ) {
+                    if (*param_name == '1')
+                       break;
+                    safe_str(tp->pname, t_buff, &t_pt);
+                    safe_chr(' ', t_buff, &t_pt);
+                 } else {
+                    safe_str(tp->pname, buff, bufc);
+                 }
+                 first = 1;
               }
-              first = 1;
            }
        }
        if ( *t_buff )
           notify(player, t_buff);
        free_lbuf(t_buff);
+    } else  if ( stricmp(param_name, (char *)"lbuf_size") == 0 ) {
+       sprintf(tempbuff, "%d", LBUF_SIZE);
+       safe_str(tempbuff, buff, bufc);
+    } else  if ( stricmp(param_name, (char *)"mbuf_size") == 0 ) {
+       sprintf(tempbuff, "%d", MBUF_SIZE);
+       safe_str(tempbuff, buff, bufc);
+    } else  if ( stricmp(param_name, (char *)"sbuf_size") == 0 ) {
+       sprintf(tempbuff, "%d", SBUF_SIZE);
+       safe_str(tempbuff, buff, bufc);
     } else {
-
        if (stricmp(param_name, "sideeffects_txt") == 0) {
 	 param_name[11] = '\0';
 	 bVerboseSideFx = 1;
