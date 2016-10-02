@@ -15394,6 +15394,9 @@
   
   Given a config option name, this function returns its value.
   
+  Special values 'lbuf_size', 'mbuf_size' and 'sbuf_size' exist to pull
+  the sizes of the various buffers for compatibility to other codebases.
+  
   The available special arguments can be used:
     0 - show all config options pushing extras on additional stack (default)
     1 - show all config options that can be placed in a single LBUF
