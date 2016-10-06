@@ -43,6 +43,10 @@ The main parts of making your RhostMUSH, easy pleasy:
 5.  If you wish to port in an old flatfile, please refer to the readme directory
     on how to port your flatfile in (README.DBLOADING).
 
+At this point you can modify your netrhost.conf file settings in your game directory.
+You can use the 'vi' editor or 'nano' if you like a more menu driven DOS like experience.
+You can of course use any other editor you're familar with.
+
 For a more thorough understanding of how to set things up, keep reading!
 
 If you have syntax issues running 'make config', 'make confsource' 
