@@ -67,8 +67,13 @@ fi
 
 if [ ${lc_pid_chk} -gt 0 ]
 then
-   echo "Rhost is already running on pid ${lc_pid}"
+   lc_port=`grep ^port ${GAMENAME}.conf|awk '{print $2}'`
+   lc_debugid=`grep ^debug_id ${GAMENAME}.conf|awk '{print $2}'`
+   echo "Rhost is already running on pid ${lc_pid} [port: ${lc_port}, debug id: ${lc_debugid}]"
    ps -lp ${lc_pid}
+   echo ""
+   echo "If you wish to kill this process at the shell, please do the following:"
+   echo "kill -USR2 ${lc_pid}"
    exit 1
 fi
 
