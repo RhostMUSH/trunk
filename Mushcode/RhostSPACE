@@ -1,9 +1,15 @@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ Version 0.1.1 of RhostSPACE Dynamic Space System
+@@ Author: Ashen-Shugar [additions by Rockpath]
 @@
-@@ Version 0.1.0 of RhostSPACE Dynamic Space System
-@@ Author: Ashen-Shugar
+@@ Changes file:
+@@ Version        Author             Desc of Changes
+@@ -------------- ------------------ --------------------------------------
+@@ 0.1.0          Ashen-Shugar       Original Buildout
+@@ 0.1.1          Rockpath           Added +rspace/purge
 @@
 @@ Help is available with +rspace/help once installed.
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ RhostSpace Closet
 @@
 @dig/teleport RhostSpace Closet
@@ -94,9 +100,9 @@
 &RSPACE_MAP_MSG2 RhostSpaceTools=[setq(1,1)]RSpace: [switch([eq(4,words(before(%0,=)))][!!match(wall !wall,after(%0,=))][u(rspace_desc_rangechk,before(%0,=))],0*,Syntax: +rspace/map set X Y Z=<wall|!wall>,10*,Unrecognized term. Must use WALL or !WALL.,110,Coordinates outside range of [get([v(room_parent)]/min-coords)] and [get([v(room_parent)]/max-coords)].,111,Coordinates [rest(before(%0,=))] established to be [ifelse(pos(!,after(%0,=)),not a wall,wall)].[setq(1,0)])]
 &RSPACE_MAP_MODIFY RhostSpaceTools=[u([v(FX_DB)]/rspace_map_modify,%0)]
 &RSPACE_MAP_MSG3 RhostSpaceTools=[setq(1,1)]RSpace: Re-mapping wall-map coordinates where required:%r[repeat(-,78)]%r[setq(8,add(1,abs(sub(extract(get([v(room_parent)]/max-coords),2,1),extract(get([v(room_parent)]/min-coords),2,1)))))][setq(9,iter(lattr([v(room_db)]/map_omit.*),ifelse(eq(strlen(get([v(room_db)]/##)),%q8),,##)))][ifelse(words(%q9),[space(5)][words(%q9)] X/Z Coordinate[ifelse(gt(words(%q9),1),s)] resized.[setq(1,0)],No Coordinate resizing necessary)]%r[repeat(-,78)]
-&RSPACE_HELP_MSG0 RhostSpaceTools=Rspace: Main Help%r[repeat(-,78)]%r[ljust(+rspace/help %[topic%],45,.)] This help%r[ljust(+rspace/dyn %[list|flush-cache%],45,.)] List/Wipe rooms in dynamic space.%r+rspace/set %[max-coords|min-coords|%r[space(13)]default_name|rxlevels|txlevels%]. set/change globals.%r[ljust(+rspace/static %[list|edit|add|remove%],45,.)] modify static rooms.%r[ljust(+rspace/desc %[list|display|set|edit|clear%],45,.)] Modify desc coordinates.%r[ljust(+rspace/name %[list|display|set|edit|clear%],45,.)] Modify name coordinates.%r[ljust(+rspace/map %[list|set|resize%],45,.)] Manipulate map WALLS.%r[ljust(+rspace/switch %[<rspace dbref#>%],45,.)] List or switch to Rspace.%r[ljust(+rspace/spawn,45,.)] Spawn New RSpace.%r[ljust(+rspace/label %[<string>%],45,.)] Set a label for the space.%r[ljust(+rspace/list,45,.)] List current space values.%r[repeat(-,78)]
+&RSPACE_HELP_MSG0 RhostSpaceTools=Rspace: Main Help%r[repeat(-,78)]%r[ljust(+rspace/help %[topic%],45,.)] This help%r[ljust(+rspace/dyn %[list|flush-cache%],45,.)] List/Wipe rooms in dynamic space.%r+rspace/set %[max-coords|min-coords|%r[space(13)]default_name|rxlevels|txlevels%]. set/change globals.%r[ljust(+rspace/static %[list|edit|add|remove%],45,.)] modify static rooms.%r[ljust(+rspace/desc %[list|display|set|edit|clear%],45,.)] Modify desc coordinates.%r[ljust(+rspace/name %[list|display|set|edit|clear%],45,.)] Modify name coordinates.%r[ljust(+rspace/map %[list|set|resize%],45,.)] Manipulate map WALLS.%r[ljust(+rspace/switch %[<rspace dbref#>%],45,.)] List or switch to Rspace.%r[ljust(+rspace/spawn,45,.)] Spawn New RSpace.%r[ljust(+rspace/label %[<string>%],45,.)] Set a label for the space.%r[ljust(+rspace/list,45,.)] List current space values.%r[ljust(+rspace/purge %[<rspace dbref#>%],45,.)] List or remove an Rspace%r[repeat(-,78)]
 &RSPACE_HELP_MSG1 RhostSpaceTools=[u(RSPACE_HELP_MSG1_[match(v(rspace_help_switches),trim(%0))],%0)]
-&RSPACE_HELP_SWITCHES RhostSpaceTools=help dyn set static desc name map switch spawn label list
+&RSPACE_HELP_SWITCHES RhostSpaceTools=help dyn set static desc name map switch spawn label list purge
 &RSPACE_HELP_MSG1_0 RhostSpaceTools=RSpace: [u(rspace_deferror,%0,+rspace/help,v(rspace_help_switches))]
 &RSPACE_HELP_MSG1_1 RhostSpaceTools=RSpace: Sub-topic 'help':%r[repeat(-,78)]%rThis topic breaks down help for the dynamic space%rsystem. %rAvailable topics: [v(rspace_help_switches)]%r[repeat(-,78)]
 &RSPACE_HELP_MSG1_2 RhostSpaceTools=RSpace: Sub-topic 'dyn':%r[repeat(-,78)]%rThe dyn subfunction to +rspace is used to list all currently%rused dynamic space rooms or clear out the existing dynamic%rspace rooms currently allocated.%r%rSyntax #1: +rspace/dyn list%rThis lists all the rooms currently allocated to dynamic space.%r%rSyntax #2: +rspace/dyn flush-cache%rThis will purge all dynamic rooms not currently utilized.%rAny dynamic room currently in-use will not be wiped.%r[repeat(-,78)]
@@ -109,11 +115,17 @@
 &RSPACE_HELP_MSG1_9 RhostSpaceTools=RSpace: Sub-topic 'spawn':%r[repeat(-,78)]%rThis subtopic will spawn a new reality level.  Sadly you can't delete them.%r[repeat(-,78)]
 &RSPACE_HELP_MSG1_10 RhostSpaceTools=RSpace: Sub-topic 'label':%r[repeat(-,78)]%rThis will label the currently selected rhost space with the specified%rlabel.  The lbael should be an identifier of what the space is.%r[repeat(-,78)]
 &RSPACE_HELP_MSG1_11 RhostSpaceTools=RSpace: Sub-topic 'list':%r[repeat(-,78)]%rThis lists current settings of the currently selected rhost space reality%r[repeat(-,78)]
+&RSPACE_HELP_MSG1_12 RhostSpaceTools=RSpace: Sub-topic 'purge':%r[repeat(-,78)]%rThis subtopic lists or removes the current dynamic space system that%ryou wish to alter, list, and/or display. If no arguments specified,%rit will return something like this:%r%rListing%bDynamic%bSpaces%bCurrently%bDefined:%r+Active%b-%bLabel%b[repeat(-,10)]%bRSpace%b[repeat(-,3)]%bRoomDB%b[repeat(-,3)]%bStatic%b[repeat(-,3)]%bDynamic%b[repeat(-,9)]+%r|[space(9)]1st%bSpace[space(8)]#1293[space(6)]#1280[space(6)]1[space(10)]0[space(16)]|%r|[space(3)]*[space(5)]The%bDesert[space(7)]#1295[space(6)]#1297[space(6)]2[space(10)]2[space(16)]|%r+[repeat(-,76)]+%rKey:%bSelect%bbased%bon%bRSpace%bdbref#%bto%bdestroy%ba%breality%r%rIf you wish to remove a reality, specify the dbref# %runder 'RSpace' to select.
 &RSPACE_SWITCH RhostSpaceTools=$+rspace/switch*:@pemit %#=[u(rspace_switch_do[!!$v(0)],%0)];@break [r(1)];@eval [u([v(fx_db)]/rspace_switch_issue,%0)]
 &RSPACE_SWITCH_DO0 RhostSpaceTools=[setq(1,1)][list(v(rspace_listspaces),[printf(| %b $-5s $-16s $-10s $-10s $-10s $-16s |,ifelse(match(v(room_parent),first(##)),*),default([first(##)]/default_label,Unlabeled),first(##),rest(##),words(get([rest(##)]/static_rooms)),words(get([rest(##)]/dynamic_rooms)))],|,Listing Dynamic Spaces Currently Defined:%r+[ljust(Active - Label ---------- RSpace --- RoomDB --- Static --- Dynamic --,76,-)]+)]+[repeat(-,76)]+%rKey: Select based on RSpace dbref# to switch between realities.
 &RSPACE_SWITCH_DO1 RhostSpaceTools=[setq(1,0)][ifelse(match(v(rspace_listspaces),[setr(9,trim(%0))] #*,|),RSpace: Switching to Reality %q9[setq(8,rest(grab(v(rspace_listspaces),%q9 #*,|)))].,RSpace: Target %q9 is not a valid R-Space dbref#. +rspace/switch to list.[setq(1,1)])]
 &RSPACE_SWITCH_DO0_A RhostSpaceTools=[setq(1,1)][list(v(rspace_listspaces),[printf(| %b $-5s $-16s $-10s $-10s $-10s $-16s |,ifelse(match(v(room_parent),first(##)),*),default([first(##)]/default_label,Unlabeled),first(##),rest(##),words(get([rest(##)]/static_rooms)),words(get([rest(##)]/dynamic_rooms)))],|,Listing Dynamic Spaces Currently Defined:%r+[ljust(Active - Label ---------- RSpace --- RoomDB --- Static --- Dynamic --,76,-)]+)]+[repeat(-,76)]+%rKey: Select based on RSpace dbref# to switch between realities.
 &RSPACE_LABEL RhostSpaceTools=$+rspace/label*:@pemit %#=[ifelse(!!$v(0),New label set for reality [v(room_parent)] of [secure(%0)].[setq(1,0)],Label for reality [v(room_parent)] is: [default([v(room_parent)]/default_label,Unlabeled)].[setq(1,1)])];@break [r(1)];&DEFAULT_LABEL [v(room_parent)]=[trim(secure(%0))]
+
+&RSPACE_PURGE RhostSpaceTools=$+rspace/purge*:@pemit %#=[u(rspace_purge_do[!!$v(0)],%0)]
+&RSPACE_PURGE RhostSpaceTools=$+rspace/purge*:@pemit %#=[u(rspace_purge_do[!!$v(0)],%0)]
+&RSPACE_PURGE_DO0 RhostSpaceTools=[setq(1,1)][list(v(rspace_listspaces),[printf(| %b $-5s $-16s $-10s $-10s $-10s $-16s |,ifelse(match(v(room_parent),first(##)),*),default([first(##)]/default_label,Unlabeled),first(##),rest(##),words(get([rest(##)]/static_rooms)),words(get([rest(##)]/dynamic_rooms)))],|,Listing Dynamic Spaces Currently Defined:%r+[ljust(Active - Label ---------- RSpace --- RoomDB --- Static --- Dynamic --,76,-)]+)]+[repeat(-,76)]+%rKey: Select based on RSpace dbref# to destroy a reality.
+&RSPACE_PURGE_DO1 RhostSpaceTools=[ifelse(match(v(rspace_listspaces),[setr(9,trim(%0))] #*,|),RSpace: Purging the Reality %q9[setq(8,rest(grab(v(rspace_listspaces),%q9 #*,|)))][iter([get(%q8/dynamic_rooms)] [get(%q8/static_rooms)] %q9 %q8, [set(##,!safe !ind)][destroy(##)],,)][set(#45, rspace_listspaces:[remove([v(rspace_listspaces)], %q9 %q8, |)])],RSpace: Target %q9 is not a valid R-Space dbref#.  +rspace/purge to list.)]
 @set RhostSpaceTools=SAFE
 @set RhostSpaceTools=INHERIT
 @set RhostSpaceTools=SIDEFX
