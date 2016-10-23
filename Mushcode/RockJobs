@@ -10,9 +10,9 @@
 @@  necessary objects for you and modify all referenced dbref's in the      @@
 @@  code.                                                                   @@
 @@                                                                          @@
-@@                    Rockpath's Job System v 1.0.0                         @@
-@@                    Initial creation of the system                        @@
-@@                 Use +jobs/help to see the help file                      @@
+@@                    Rockpath's Job System v 1.0.1                         @@
+@@                  Quick Fixes to remove Huh? messages                     @@
+@@                  Use +jobs/help to see the help file                     @@
 @@  Instructions should appear at the bottom when you finish installation.  @@ 
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -20,10 +20,10 @@
 
 @eval [setq(0, [create(Rockpath's Job System)])][setq(1, [create(Rockpath's Job Database)])][set(%q0, dat`database:%q1)][set(%q1, dat`system:%q0)]
 
-@switch [setr(0, search(eval=%[match%(%[name%(##%)%], bbpocket%)%]))]=,@pemit %#=[ansi(hg, You do not have a BBoard System in place. Some things may work incorrectly.)])]%r%rContinuing....[set(Rockpath's Job Database, dat`bbpocket:%q0)], [set(Rockpath's Job Database, dat`bbpocket:%q0)]
+@switch/first [setr(0, search(eval=%[match%(%[name%(##%)%], bbpocket%)%]))]=,@pemit %#={[ansi(hg, You do not have a BBoard System in place. Some things may work incorrectly.)])]%r%rContinuing....[set(Rockpath's Job Database, dat`bbpocket:%q0)]}, {@eval [set(Rockpath's Job Database, dat`bbpocket:%q0)]}
 
-@@Setting self quiet so that you aren't spammed...
-@set me=Quiet
+@@ Setting self quiet so that you aren't spammed...
+@set me=quiet
 
 
 @lock Rockpath's Job System=me
@@ -77,7 +77,7 @@
 
 &CMD`REQ-COMMENT Rockpath's Job System=$+request/comment *=*:@skip/ifelse [strmatch(%#, [get([u([v(dat`database)]/fn`get-job, %0)]/requester)])]={[setq(0, [u([v(dat`database)]/fn`get-job, %0)])][switch(0, [isint(%0)], [pemit(%#, [prompt(jobs)] Request must be a number!)], [t(%q0)], [pemit(%#, [prompt(jobs)] No such request!)], [pemit(%#, [prompt(Jobs)] You have commented on [edit([name(%q0)], Job, Request)].)][set(%q0, desc:[strcat([get(%q0/desc)], %r%r[name(%#)] %[[timefmt($M/$D/$Y $H:$02T$p, [secs()])]%]: %1)])])]}, [pemit(%#, [prompt(game)] You don't have permission to do that.)]
 
-&CMD`REQ-HELP Rockpath's Job System=$+request/help:[pemit(%#, [u(me/req-help)])]
+&CMD`REQ-HELP Rockpath's Job System=$+request/help:@eval [pemit(%#, [u(me/req-help)])]
 
 &CMD`VIEW-ALL2 Rockpath's Job System=$+job:@include/command me/cmd`view-all
 
@@ -124,12 +124,12 @@
 
 &FN`URGENT Rockpath's Job Database=[set(%0, urgency:[setr(3, [switch(%1, 1, 1, 2, 2, 3, 3, green, 1, yellow, 2, red, 3, 4)])])][pemit(%#, [prompt(Jobs)] You have set [name(%0)]'s urgency as 'Level %q3'.)])]
 
-@set Rockpath's Job Database=INHERIT SIDEFX
-
-@set me=!quiet
-
 &CREDIT Rockpath's Job Database=Inspiration taken from Anomaly Jobs. This setup-file was based off of Myrddin's BBoard Setup File, and there is some code within here so that things are compatible between the BBoard System she created and the Jobs System that I (Rockpath) created. The code above is all my own doing.
 
 &Last_UPdate Rockpath's Job Database=October 23, 2016
 
-@wait 1=@pemit me=%Jobs System construction complete. It is suggested that you create a Jobs_System character with Immortal permissions so that mails don't look like they come from a single staffer.%r%r[ansi(hg, Please create a new BBGroup and set the group with &dat`bb-group Rockpath's Job Database=<DBref of bb-group>.%r[repeat(=,78)]
+@set Rockpath's Job Database=INHERIT SIDEFX
+
+@set me=!quiet
+
+@wait 1=@pemit me=%Jobs System construction complete. It is suggested that you create a Jobs_System character with Immortal permissions so that mails don't look like they come from a single staffer.%r%r[ansi(hg, Please create a new BBGroup and set the group with &dat`bb-group Rockpath's Job Database=<DBref of bb-group>.)]%r[repeat(=,78)]
