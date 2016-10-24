@@ -348,6 +348,11 @@
 @fo me=&RSPACE_LISTSPACES RhostSpaceFX=[num(Firstspace)] [num(RhostDB)]
 @fo me=&RHOST_MAINPARENT RhostSpaceFX=num(RhostSpace)
 @@
+@@ Mapping function
+@@ [iter([lnum([elements([get([parent(%l)]/max-coords)],1)], [elements([get([parent(%l)]/min-coords)],1)])], [if([t([get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])])], [edit([edit([if([eq(##, [elements([get(%l/coords)], 1)])], [creplace([get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])], [add(1,[elements([get(%l/coords)], 2)], [elements([get([parent(%l)]/max-coords)], 2)])],X)], [get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])])], X, [ansi(hg, X)])], #, [ansi(r, #)])],[printf($[inc([sub([elements([get([parent(%l)]/max-coords)],1)], [elements([get([parent(%l)]/min-coords)],1)])])]:.:s,)])],,%r)]
+@@ Mini-Mapping function
+@@ [iter([lnum([add([elements([get(%l/coords)],1)], 5)], [sub([elements([get(%l/coords)],1)], 5)])], [if([t([get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])])], [mid([edit([edit([if([eq(##, [elements([get(%l/coords)], 1)])], [creplace([get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])], [add(1,[elements([get(%l/coords)], 2)], [elements([get([parent(%l)]/max-coords)], 2)])],X)], [get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])])], X, [ansi(hg, X)])], #, [ansi(r, #)])], [add([sub([get(%l/coords)], 5)], [elements([get([parent(%l)]/max-coords)], 1)])], 10,1)], [printf($11:.:s,)])],,%r)]
+@@
 @@ ok, we're done
 @@
 think Completed.
