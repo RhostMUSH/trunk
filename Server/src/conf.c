@@ -1651,9 +1651,9 @@ CF_HAND(cf_dynguest)
  */
 CF_HAND(cf_dynstring)
 {
-   int retval, chkval, addval, first, second, third;
+   int retval, chkval, addval, first, second, third, i_skip;
    char *buff, *tbuff, *buff2, *tbuff2, *stkbuff, *abuf1, *abuf2, *abuf3, *tabuf2, *tabuf3;
-   char quick_buff[LBUF_SIZE+2], *tstrtokr;
+   char quick_buff[LBUF_SIZE+2], *tstrtokr, *tstval, *tstvalptr, *tstvalstr, *tstvalstrptr, *dup, *dupptr;
 
    if ( str == NULL || !*str ) {
       if ( Good_obj(player) )
@@ -1676,6 +1676,11 @@ CF_HAND(cf_dynstring)
       second = 0;
       third = 0;
       addval = 0;
+      i_skip = 0;
+      if ( extra2 == 1 ) {
+         tstvalptr = tstval = alloc_lbuf("cf_dynstring_checkfordupes");
+         dupptr = dup = alloc_lbuf("cf_dynstring_dupliates");
+      }
       while (stkbuff) {
          if (*stkbuff == '!') {
             if ( second )
@@ -1683,13 +1688,40 @@ CF_HAND(cf_dynstring)
             safe_str(stkbuff+1, abuf2, &tabuf2);
             second = 1;
          } else {
-            if ( third )
-               safe_chr(' ', abuf3, &tabuf3);
-            safe_str(stkbuff, abuf3, &tabuf3);
-            third = 1;
-            addval++;
+            if ( extra2 == 1 ) {
+               memset(tstval, '\0', LBUF_SIZE);
+               tstvalptr = tstval;
+               safe_str((char *)vp, tstval, &tstvalptr);
+               safe_chr(' ', tstval, &tstvalptr);
+               safe_str(abuf3, tstval, &tstvalptr);
+               tstvalstr = strtok_r(tstval, (char *)" ", &tstvalstrptr);
+               while ( tstvalstr ) {
+                  if ( stricmp(tstvalstr, stkbuff) == 0 ) {
+                     i_skip = 1;
+                     if ( !dup && !*dup ) {
+                        safe_str(stkbuff, dup, &dupptr);
+                     } else {
+                        safe_chr(' ', dup, &dupptr);
+                        safe_str(stkbuff, dup, &dupptr);
+                     }
+                     break;
+                  }
+                  tstvalstr = strtok_r(NULL, (char *)" ", &tstvalstrptr);
+               }
+            }
+            if ( !i_skip ) {
+               if ( third )
+                  safe_chr(' ', abuf3, &tabuf3);
+               safe_str(stkbuff, abuf3, &tabuf3);
+               third = 1;
+               addval++;
+            }
          }
          stkbuff = strtok_r(NULL," ", &tstrtokr);
+         i_skip = 0;
+      }
+      if ( extra2 == 1 ) {
+         free_lbuf(tstval);
       }
       strcpy(abuf1, (char *) vp);
       stkbuff = strtok_r(abuf1, " ", &tstrtokr);
@@ -1768,6 +1800,14 @@ CF_HAND(cf_dynstring)
                   notify(player, unsafe_tprintf("Entry updated.  %d added.", first));
             }
          }
+         if ( (extra2 == 1) && Good_obj(player) ) {
+            if ( dup && *dup ) {
+               notify(player, unsafe_tprintf("Duplicate entries ignored: %.*s", LBUF_SIZE - 100, dup));
+            }
+         }
+      }
+      if ( extra2 == 1 ) {
+         free_lbuf(dup);
       }
    }
    if ( !chkval && !addval  )
@@ -3250,9 +3290,9 @@ CF_HAND(cf_badname)
 
 CF_HAND(cf_site)
 {
-    SITE *site, *last, *head;
-    char *addr_txt, *mask_txt, *maxcon_txt, *tstrtokr;
-    int i_maxcon;
+    SITE *site, *last, *head, *s_tmp;
+    char *addr_txt, *mask_txt, *maxcon_txt, *tstrtokr, *s_val;
+    int i_maxcon, i_found;
     struct in_addr addr_num, mask_num;
     unsigned long maskval;
 
@@ -3289,9 +3329,29 @@ CF_HAND(cf_site)
        if ( i_maxcon < 0 )
           i_maxcon = -1;
     }
-    head = (SITE *) (pmath2)*vp;
-    /* Parse the access entry and allocate space for it */
 
+
+    head = (SITE *) (pmath2)*vp;
+
+    i_found = 0;
+    for ( s_tmp = head; s_tmp; s_tmp = s_tmp->next ) {
+       if ( (s_tmp->maxcon == i_maxcon) &&
+            (s_tmp->address.s_addr == addr_num.s_addr) &&
+            (s_tmp->mask.s_addr == mask_num.s_addr) &&
+            (s_tmp->flag == extra) ) {
+          i_found = 1;
+          break;
+       }
+    }
+    if ( i_found ) {
+       s_val = alloc_lbuf("cf_site");
+       sprintf(s_val, "%.200s %.200s", addr_txt, mask_txt);
+       cf_log_syntax(player, cmd, "Duplicate entry: %s", s_val);
+       free_lbuf(s_val);
+       return -1;
+    }
+
+    /* Parse the access entry and allocate space for it */
     site = (SITE *) malloc(sizeof(SITE));
 
     /* Initialize the site entry */
@@ -3852,7 +3912,7 @@ CONF conftable[] =
      H_FORBIDDEN, 0, CA_WIZARD,
      (char *) "This specifies sites for forbid."},
     {(char *) "forbid_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbid_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbid_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to forbid."},
     {(char *) "fork_dump",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.fork_dump, 0, 0, CA_PUBLIC,
@@ -3972,7 +4032,7 @@ CONF conftable[] =
      cf_badname, CA_GOD | CA_IMMORTAL, NULL, 1, 0, CA_WIZARD,
      (char *) "Remove names from the bad_name list."},
     {(char *) "goodmail_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.goodmail_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.goodmail_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Mail addresses to ALLOW ALWAYS from autoreg."},
     {(char *) "guest_file",
      cf_string, CA_DISABLED, (int *) mudconf.guest_file, 32, 0, CA_WIZARD,
@@ -4318,10 +4378,10 @@ CONF conftable[] =
      H_NOAUTOREG, 0, CA_WIZARD,
      (char *) "Specify sites to block autoregistration."},
     {(char *) "noautoreg_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.autoreg_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.autoreg_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Specify site NAMES to block autoregistration."},
     {(char *) "nobroadcast_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.nobroadcast_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.nobroadcast_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to not MONITOR."},
     {(char *) "nodns_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.special_list,
@@ -4332,7 +4392,7 @@ CONF conftable[] =
      H_NOGUEST, 0, CA_WIZARD,
      (char *) "Specify sites to block guest connections."},
     {(char *) "noguest_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.noguest_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.noguest_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Specify site NAMES to block guest connections"},
     {(char *) "nonindxtxt_maxlines",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.nonindxtxt_maxlines, 0, 0, CA_IMMORTAL,
@@ -4552,7 +4612,7 @@ CONF conftable[] =
      H_REGISTRATION, 0, CA_WIZARD,
      (char *) "Site permissions for registration."},
     {(char *) "register_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.register_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.register_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Site permissions for NAME registration."},
     {(char *) "regtry_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.regtry_limit, 0, 0, CA_WIZARD,
@@ -4732,7 +4792,7 @@ CONF conftable[] =
      H_SUSPECT, 0, CA_WIZARD,
      (char *) "Site list for specifying suspects."},
     {(char *) "suspect_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.suspect_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.suspect_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Site NAME list for specifying suspects."},
     {(char *) "sweep_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.sweep_dark, 0, 0, CA_PUBLIC,
@@ -4791,7 +4851,7 @@ CONF conftable[] =
      (pmath2) attraccess_nametab, 0, CA_WIZARD,
      (char *) "Default permissions for user-attributes."},
     {(char *) "validate_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.validate_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.validate_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Mail addresses to block from autoreg."},
     {(char *) "vattr_limit_checkwiz",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.vattr_limit_checkwiz, 0, 0, CA_WIZARD,

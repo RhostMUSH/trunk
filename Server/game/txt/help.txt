@@ -30076,6 +30076,7 @@
   * asc() now handles optional second argument for 3 char padding [ASH]
   * added 'fake' config params lbuf_size, mbuf_size, and sbuf_size to
     the config() function for mortals to pull values [ASH]
+  * *_site and *_host will no longer allow duplicated entries [ASH]
     
   Bug Fixes
   ------------
