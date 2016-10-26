@@ -30120,3 +30120,4 @@
     - NOTE:  For compatibility to existing behavior, set: objid_localtime 1
   * safer_ufun didn't take some conditions into consideration [ASH]
   * erraneous ansi-normal on cname() if the name was not ansified [ASH]
+  * small bug in time conversion in timefmt() with daylight savings [ASH]

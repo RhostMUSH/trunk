@@ -10089,6 +10089,7 @@ FUNCTION(fun_timefmt)
   tms2 = localtime(&mudstate.now);
 
   tzmush = NULL;
+  i_frell = 0;
   if ( (nfargs > 2) && *fargs[2] ) {
      for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
         if ( stricmp((char *)tzmush->mush_tzone, (char *)fargs[2]) == 0 ) {
@@ -10096,9 +10097,19 @@ FUNCTION(fun_timefmt)
         }
      }
      if ( tzmush->mush_tzone ) {
-        secs = secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
-        secs2 = secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
-        i_frell = (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
+        if ( (!daylight && !tzmush->mush_tz) || (daylight && tzmush->mush_tz) ) {
+           i_frell = 0;
+        } else {
+           tms2 = localtime(&i_frell);
+           if ( tms2->tm_isdst && !tzmush->mush_tz ) {
+              i_frell = 0;
+           } else {
+              i_frell = -3600;
+           }
+        }
+        secs = i_frell + secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
+        secs2 = (double)i_frell + secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
+        i_frell += (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
         tms2 = localtime(&i_frell);
      }
   }
