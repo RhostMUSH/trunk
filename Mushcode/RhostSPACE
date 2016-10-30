@@ -1,5 +1,5 @@
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@ Version 0.1.1 of RhostSPACE Dynamic Space System
+@@ Version 0.1.2 of RhostSPACE Dynamic Space System
 @@ Author: Ashen-Shugar [additions by Rockpath]
 @@
 @@ Changes file:
@@ -7,6 +7,7 @@
 @@ -------------- ------------------ --------------------------------------
 @@ 0.1.0          Ashen-Shugar       Original Buildout
 @@ 0.1.1          Rockpath           Added +rspace/purge
+@@ 0.1.2          Ashen-Shugar       MAPCHECK on north didn't do walls right
 @@
 @@ Help is available with +rspace/help once installed.
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -170,7 +171,7 @@
 &DYNAMIC_CHECK North <N>=[iter(get([get([room(%#)]/room_db)]/dynamic_rooms),ifelse(match(con(##),#-1),setq(2,##,room_dbref)[ibreak(0)]))]
 &SETUPROOM North <N>=[u(CHECKCOORDS)][null([u(static_check)][ifelse(!isdbref(r(room_dbref)),u(dynamic_used))][ifelse(!isdbref(r(room_dbref)),u(dynamic_check))][ifelse(!isdbref(r(room_dbref)),[setq(2,dig(get([room(%#)]/room_name)),room_dbref)][set(r(room_dbref),float)][parent(r(room_dbref),parent(room(%#)))][set(get([room(%#)]/room_db),DYNAMIC_ROOMS:[setunion(get([get([room(%#)]/room_db)]/dynamic_rooms),r(room_dbref))])][toggle(r(room_dbref),noglobparent)][set(r(room_dbref),COORDS:[r(newcoords)])][rxlevel(r(room_dbref),get([room(%#)]/set_rxlevels))][txlevel(r(room_dbref),get([room(%#)]/set_txlevels))],set(r(room_dbref),COORDS:[r(newcoords)]))])][r(room_dbref)]
 &DYNAMIC_USED North <N>=[iter(get([get([room(%#)]/room_db)]/dynamic_rooms),ifelse(and(!match(con(##),#-1),strmatch(r(newcoords),get(##/coords))),setq(2,##,room_dbref)[ibreak(0)]))]
-&MAPCHECK North <N>=[u(checkcoords)][cor(!$setr(9,mid(get([get([room(%#)]/room_db)]/map_omit.[edit(delextract(r(newcoords),2,1),%b,-)]),add(extract(get([room(%#)]/max-coords),2,1),extract(r(newcoords),2,1)),1)),!member(#,%q9))]
+&MAPCHECK North <N>=[u(checkcoords)][cor(!$setr(9,mid(get([get([room(%#)]/room_db)]/map_omit.[edit(delextract(r(newcoords),2,1),%b,-)]),sub(extract(r(newcoords),2,1),extract(get([room(%#)]/min-coords),2,1)),1)),!member(#,%q9))]
 &ISSUE_NEW_ROOM North <N>=[setq(2,dig(default(%1/room_name,Dynamic Space)),room_dbref)][set(r(room_dbref),float)][parent(r(room_dbref),%1))][set(get(%1/room_db),DYNAMIC_ROOMS:[setunion(get([get(%1/room_db)]/dynamic_rooms),r(room_dbref))])][toggle(r(room_dbref),noglobparent)][set(r(room_dbref),COORDS:%2)][rxlevel(r(room_dbref),get(%1/set_rxlevels))][txlevel(r(room_dbref),get(%1/set_txlevels))]
 &ISSUE_OLD_ROOM North <N>=[set(%3,COORDS:%2)][tel(%0,%3)]
 @set North <N>=DARK
