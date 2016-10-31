@@ -2,6 +2,9 @@
 @@ Version 0.1.2 of RhostSPACE Dynamic Space System
 @@ Author: Ashen-Shugar [additions by Rockpath]
 @@
+@@ Note: This will teleport you around while it is installing.  This is
+@@       normal, don't panic.
+@@
 @@ Changes file:
 @@ Version        Author             Desc of Changes
 @@ -------------- ------------------ --------------------------------------
@@ -11,8 +14,10 @@
 @@
 @@ Help is available with +rspace/help once installed.
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ RhostSpace Closet
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @dig/teleport RhostSpace Closet
 @@
 @@ - RhostSpace Parent
@@ -30,14 +35,16 @@
 &NAME.0-0-0 RhostSpace=RhostSpace - Point of Orgin
 @set RhostSpace=SAFE
 @set RhostSpace=INHERIT
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ Main Database
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @create RhostDB
 @set RhostDB=halt
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ RhostSpace Tools
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @create RhostSpaceTools
 &RSPACE_DYN RhostSpaceTools=$+rspace/dyn *:@pemit %#=[u(RSPACE_DYN_MSG[u(rspace_dyn_fun,%0)],%0)];@break [r(1)];@dolist [setr(0,iter(get([v(ROOM_DB)]/dynamic_rooms),ifelse(match(con(##),#-1),##)))]=@destroy/purge ##;&DYNAMIC_ROOMS [v(ROOM_DB)]=[setdiff(get([v(ROOM_DB)]/dynamic_rooms),%q0)]
 &RSPACE_LIST RhostSpaceTools=$+rspace/list:@pemit %#=RSpace: Current statistics of RSpace%r[repeat(-,78)]%rMax Coordinates (MAX-COORDS): X:[ljust(first(get([v(room_parent)]/max-coords))%,,5)] Y:[ljust(extract(get([v(room_parent)]/max-coords),1,1)%,,5)] Z:[ljust(last(get([v(room_parent)]/max-coords))%,,5)]%rMin Coordinates (MIN-COORDS): X:[ljust(first(get([v(room_parent)]/min-coords))%,,5)] Y:[ljust(extract(get([v(room_parent)]/min-coords),1,1)%,,5)] Z:[ljust(last(get([v(room_parent)]/min-coords))%,,5)]%rNumber of Static Rooms Defined (STATIC_ROOMS): [words(get([v(room_db)]/static_rooms))]%rNumber of Dynamic Rooms Defined (DYNAMIC_ROOMS): [words(get([v(room_db)]/dynamic_rooms))]%rNumber of coordinate based descriptions (DESC.X-Y-Z): [words(lattr([v(room_parent)]/desc.*-*-*))]%rNumber of coordinate based names (NAME.X-Y-Z): [words(lattr([v(room_parent)]/name.*-*-*))]%r[repeat(-,78)]%rDefault Name (DEFAULT_NAME): [get([v(room_parent)]/default_name)]%rDefault Description (DEFAULT_DESC): [get([v(room_parent)]/default_desc)]%rDefault RXLevels (SET_RXLEVELS): [default([v(room_parent)]/set_rxlevels,*NONE*)]%rDefault TXLevels (SET_TXLEVELS): [default([v(room_parent)]/set_txlevels,*NONE*)]%rNumber of override coordinate mappings (MAP_OMIT.X-Z): [words(lattr([v(room_db)]/map_omit.*-*))]%r[repeat(-,78)]
@@ -132,9 +139,10 @@
 @set RhostSpaceTools=INHERIT
 @set RhostSpaceTools=SIDEFX
 @set RhostSpaceTools=command
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ RhostSpace Tools FX object
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @create RhostSpaceFX
 &RSPACE_DESC_MODIFY RhostSpaceFX=[switch(match(set edit clear,first(%0)),1,set(v(room_parent),DESC.[edit(rest(before(%0,=)),%b,-)]:[after(%0,=)]),2,set(v(room_parent),DESC.[setr(8,edit(rest(before(%0,=)),%b,-))]:[edit(get([v(room_parent)]/DESC.%q8),before(after(%0,=),/),after(after(%0,=),/))]),3,set(v(room_parent),DESC.[edit(rest(%0),%b,-)]:))]
 &RSPACE_STATIC_MODIFY RhostSpaceFX=[switch(match(edit add remove,first(%0)),1,set(rest(before(%0,=)),COORDS:[after(%0,=)]),2,[set(v(room_db),STATIC_ROOMS:[setunion(get([v(room_db)]/static_rooms),rest(before(%0,=)))])][set(rest(before(%0,=)),COORDS:[after(%0,=)])][set(v(room_db),DYNAMIC_ROOMS:[setdiff(get([v(room_db)]/dynamic_rooms),rest(before(%0,=)))])],3,set(v(room_db),STATIC_ROOMS:[setdiff(get([v(room_db)]/static_rooms),last(%0))]))]
@@ -151,15 +159,17 @@
 @set RhostSpaceFX=SAFE
 @set RhostSpaceFX=INHERIT
 @set RhostSpaceFX=SIDEFX
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ Exit Creation Time
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 &VISLOCK me
 &VISLOCK2 me
 &PASSBOTH me
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ North
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open North <N>;north;n=rhostspace
 @lock North <N>=VISLOCK/1
 @lock/DarkLock North <N>=VISLOCK/1
@@ -185,9 +195,10 @@
 @set North <N>=SIDEFX
 @toggle North <N>=variable
 @fo me=&EXIT_NORTH RhostSpace=num(North <N>)
-@@ 
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ South
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open South <S>;south;s=rhostspace
 @lock South=VISLOCK/1
 @lock/DarkLock South=VISLOCK/1
@@ -199,9 +210,10 @@
 @set South=INHERIT
 @set South=SIDEFX
 @toggle South=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ East
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open East <E>;east;e=rhostspace
 @lock East=VISLOCK/1
 @lock/DarkLock East=VISLOCK/1
@@ -213,9 +225,10 @@
 @set East=INHERIT
 @set East=SIDEFX
 @toggle East=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ West
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open West <W>;west;w=rhostspace
 @lock West=VISLOCK/1
 @lock/DarkLock West=VISLOCK/1
@@ -227,9 +240,10 @@
 @set West=INHERIT
 @set West=SIDEFX
 @toggle West=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ NorthEast
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open NorthEast <NE>;northeast;ne=rhostspace
 @lock NorthEast=PASSBOTH/1
 @lock/DarkLock NorthEast=PASSBOTH/1
@@ -244,9 +258,10 @@
 @set NorthEast=INHERIT
 @set NorthEast=SIDEFX
 @toggle NorthEast=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ NorthWest
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open NorthWest <NW>;northwest;nw=rhostspace
 @lock NorthWest=PASSBOTH/1
 @lock/DarkLock NorthWest=PASSBOTH/1
@@ -261,9 +276,10 @@
 @set NorthWest=INHERIT
 @set NorthWest=SIDEFX
 @toggle NorthWest=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ SouthEast
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open SouthEast <SE>;southeast;se=rhostspace
 @lock SouthEast=PASSBOTH/1
 @lock/DarkLock SouthEast=PASSBOTH/1
@@ -278,9 +294,10 @@
 @set SouthEast=INHERIT
 @set SouthEast=SIDEFX
 @toggle SouthEast=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ SouthWest
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open SouthWest <SW>;southwest;sw=rhostspace
 @lock SouthWest=PASSBOTH/1
 @lock/DarkLock SouthWest=PASSBOTH/1
@@ -294,9 +311,10 @@
 @set SouthWest=INHERIT
 @set SouthWest=SIDEFX
 @toggle SouthWest=variable
-@@ 
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ Up
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open Up <U>;up;u=rhostspace
 @lock Up <U>=VISLOCK/1
 @lock/DarkLock Up <U>=VISLOCK/1
@@ -308,9 +326,10 @@
 @set Up <U>=INHERIT
 @set Up <U>=SIDEFX
 @toggle Up <U>=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ Down
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @open Down <D>;down;d=rhostspace
 @lock Down <D>=VISLOCK/1
 @lock/DarkLock Down <D>=VISLOCK/1
@@ -322,9 +341,10 @@
 @set Down <D>=INHERIT
 @set Down <D>=SIDEFX
 @toggle Down <D>=variable
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ finish up exits
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @fo me=&EXIT_NORTH RhostSpaceFX=num(North <N>)
 @parent South <S>=North <N>
 @parent East <E>=North <N>
@@ -336,9 +356,10 @@
 @parent Up <U>=North <N>
 @parent Down <D>=North <N>
 @tel/list [lexits(here)]=rhostspace
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ finish up parenting foo
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @create FirstSpace
 @set FirstSpace=inh safe
 @parent FirstSpace=RhostSpace
@@ -354,7 +375,10 @@
 @fo me=&ROOM_PARENT RhostSpaceFX=num(FirstSpace)
 @fo me=&RSPACE_LISTSPACES RhostSpaceFX=[num(Firstspace)] [num(RhostDB)]
 @fo me=&RHOST_MAINPARENT RhostSpaceFX=num(RhostSpace)
-@@
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@ miscellenious things you should know and can use
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ Mapping function: @function/pres/priv - No args
 @@ [iter([lnum([elements([get([parent(%l)]/max-coords)],1)], [elements([get([parent(%l)]/min-coords)],1)])], [if([t([get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])])], [edit([edit([if([eq(##, [elements([get(%l/coords)], 1)])], [creplace([get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])], [add(1,[elements([get(%l/coords)], 2)], [elements([get([parent(%l)]/max-coords)], 2)])],X)], [get([get([parent(%l)]/room_db)]/MAP_OMIT.##-[elements([get(%l/coords)], 3)])])], X, [ansi(hg, X)])], #, [ansi(r, #)])],[printf($[inc([sub([elements([get([parent(%l)]/max-coords)],1)], [elements([get([parent(%l)]/min-coords)],1)])])]:.:s,)])],,%r)]
 @@ Mini-Mapping function: @function/pres/priv - No args
@@ -362,6 +386,8 @@
 @@
 @@ Teleport/bamph function to put someone into an rspace at given coordinates: @function/preserve/priv - Arg: %0-player, %1-dbref#-of-space, %2-X Y Z coords
 @@ [setq(7,)][setq(9,get(%1/max-coords))][setq(8,get(%1/min-coords))][ifelse([cand(cor(hastype(%0,player),hastype(%0,thing)),hasattrp(%1,exit_north),eq(words(%2),3),between(first(%q8),first(%q9),first(%2),1),between(extract(%q8,1,1),extract(%q9,1,1),extract(%2,1,1),1),between(last(%q8),last(%q9),last(%2),1))],[null([iter(get([get(%1/room_db)]/static_rooms),ifelse(strmatch(%2,get(##/coords)),[setq(7,##)][ibreak(0)]))][ifelse(!$r(7),[iter(get([get(%1/room_db)]/dynamic_rooms),ifelse(and(!match(con(##),#-1),strmatch(%2,get(##/coords))),setq(7,##)[ibreak(0)]))])][ifelse(!$r(7),[iter(get([get(%1/room_db)]/dynamic_rooms),ifelse(match(con(##),#-1),setq(7,##)[ibreak(0)]))])][ifelse(!$r(7),[setq(7,u([get(%1/exit_north)]/issue_new_room,%0,%1,%2))])])][u([get(%1/exit_north)]/issue_old_room,%0,%1,%2,r(7))][r(7)],#-1 INVALID COORDIANTES%, TARGET%, OR RSPACE SPECIFIED)]
+
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ ok, we're done
-@@
+@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 think Completed.
