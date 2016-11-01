@@ -13279,10 +13279,10 @@ paren_match2(char *atext)
 }
 
 int
-paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_indent)
+paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_indent, int i_extra)
 {
     char *atextptr;
-    int oldtcnt, tcnt, i_clr, i_err, esc_val, i_pos, i_indentnow, i_close, i_lastclose;
+    int oldtcnt, tcnt, i_clr, i_err, esc_val, i_pos, i_indentnow, i_close, i_lastclose, i_space;
     static int iarr[LBUF_SIZE];
     static char *s_clrs[] = {ANSI_MAGENTA, ANSI_GREEN, ANSI_YELLOW, ANSI_CYAN, ANSI_BLUE};
 
@@ -13290,22 +13290,43 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
     atextptr = atext;
     while ( *atextptr ) {
        i_lastclose = i_close;
-       i_close = 0;
+       i_close = i_space = 0;
        if ( (*atextptr == '%') || (*atextptr == '\\') )
           esc_val = !esc_val;
        if (!esc_val) {
           switch(*atextptr) {
+             case ',' :
+             case ';' :
+                        if ( i_extra & 1 ) {
+                           i_space = 1;
+                        }
+                        break;
+             case '=' :
+                        if ( i_extra & 1 ) {
+                           safe_chr(' ', buff, bptr);
+                           i_space = 1;
+                        }
+                        break;
              case '[' : iarr[tcnt] = 1;
                         tcnt++;
                         i_clr = tcnt;
+                        if ( i_extra & 4 ) {
+                           i_space = 1;              
+                        }
                         break;
              case '(' : iarr[tcnt] = 2;
                         tcnt++;
                         i_clr = tcnt;
+                        if ( i_extra & 2 ) {
+                           i_space = 1;              
+                        }
                         break;
              case '{' : iarr[tcnt] = 3;
                         tcnt++;
                         i_clr = tcnt;
+                        if ( i_extra & 8 ) {
+                           i_space = 1;              
+                        }
                         break;
              case ']' : if (tcnt == 0)
                            i_err = 1;
@@ -13314,6 +13335,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                         i_clr = tcnt;
                         tcnt--;
                         i_close = 1;
+                        if ( i_extra & 4 ) {
+                           safe_chr(' ', buff, bptr);
+                        }
                         break;
              case ')' : if (tcnt == 0)
                            i_err = 1;
@@ -13322,6 +13346,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                         i_clr = tcnt;
                         tcnt--;
                         i_close = 1;
+                        if ( i_extra & 2 ) {
+                           safe_chr(' ', buff, bptr);
+                        }
                         break;
              case '}' : if (tcnt == 0)
                            i_err = 1;
@@ -13330,6 +13357,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                         i_clr = tcnt;
                         tcnt--;
                         i_close = 1;
+                        if ( i_extra & 8 ) {
+                           safe_chr(' ', buff, bptr);
+                        }
                         break;
           }
        }
@@ -13341,6 +13371,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              safe_strmax(ANSI_HILITE, buff, bptr);
              safe_chr(*atextptr, buff, bptr);
              safe_str(ANSI_NORMAL, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
              atextptr++;
              safe_str(atextptr, buff, bptr);
              return 0;
@@ -13357,6 +13390,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              safe_strmax(ANSI_HILITE, buff, bptr);
              safe_chr(*atextptr, buff, bptr);
              safe_str(ANSI_NORMAL, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
              atextptr++;
              safe_str(atextptr, buff, bptr);
              return 0;
@@ -13373,6 +13409,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              }
              safe_strmax(s_clrs[i_clr % 5], buff, bptr);
              safe_chr(*atextptr, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
              safe_str(ANSI_NORMAL, buff, bptr);
              if ( i_indent ) {
                 if ( !i_close ) {
@@ -13384,6 +13423,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              }
           } else {
              safe_chr(*atextptr, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
           }
           oldtcnt = tcnt;
           atextptr++;
@@ -13396,10 +13438,10 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
 FUNCTION(fun_parenmatch)
 {
     dbref aowner, thing;
-    int aflags, anum, tcnt, i_type, i_indent;
+    int aflags, anum, tcnt, i_type, i_indent, i_extra;
     ATTR *ap;
     char *atext, *atextptr, *revatext, *revatextptr;
-    char *tbuff, *tbuffptr;
+    char *tbuff, *tbuffptr, *p_extra;
 
     if (mudstate.last_cmd_timestamp == mudstate.now) {
        mudstate.heavy_cpu_recurse += 1;
@@ -13408,7 +13450,7 @@ FUNCTION(fun_parenmatch)
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
-    if (!fn_range_check("PARENMATCH", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("PARENMATCH", nfargs, 1, 4, buff, bufcx))
         return;
     if (nfargs == 2) {
        i_type = atoi(fargs[1]);
@@ -13462,9 +13504,31 @@ FUNCTION(fun_parenmatch)
        i_indent = ((atoi(fargs[2]) > 0) ? 1 : 0);
     }
 
+    i_extra = 0;
+    if ( (nfargs > 3) && *fargs[3] ) {
+       p_extra = fargs[3];
+       while ( p_extra && *p_extra ) {
+          switch(*p_extra) {
+             case 's': /* Spaces after commas and semi-colons */
+                i_extra |= 1;
+                break;
+             case 'p': /* Spaces before/after Parenthesis */
+                i_extra |= 2;
+                break;
+             case 'b': /* Spaces before/after Brackets */
+                i_extra |= 4;
+                break;
+             case 'B': /* Spaces before/after Braces */
+                i_extra |= 8;
+                break;
+          }
+          p_extra++;
+       }
+    }
+
     tcnt = 0;
     tbuffptr = tbuff = alloc_lbuf("fun_parenmatch");
-    tcnt = paren_match(atext, tbuff, &tbuffptr, -1, i_type, i_indent);
+    tcnt = paren_match(atext, tbuff, &tbuffptr, -1, i_type, i_indent, i_extra);
     if ( tcnt > 0 ) {
        revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
        atextptr = strip_escapes(atext);
@@ -13473,7 +13537,7 @@ FUNCTION(fun_parenmatch)
        tbuffptr = tbuff;
        tcnt = paren_match2(revatext);
        free_lbuf(revatext);
-       tcnt = paren_match(atext, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(atext)-tcnt) : -1), i_type, i_indent);
+       tcnt = paren_match(atext, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(atext)-tcnt) : -1), i_type, i_indent, i_extra);
        free_lbuf(atext);
        safe_str(tbuff, buff, bufcx);
        free_lbuf(tbuff);
@@ -13502,7 +13566,7 @@ FUNCTION(fun_parenstr)
       strcpy(sbuff, fargs[0]);
    }
    tbuffptr = tbuff = alloc_lbuf("parenstr");
-   tcnt = paren_match(sbuff, tbuff, &tbuffptr, -1, i_type, 0);
+   tcnt = paren_match(sbuff, tbuff, &tbuffptr, -1, i_type, 0, 0);
    if ( tcnt > 0 ) {
       revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
       atextptr = strip_escapes(sbuff);
@@ -13511,7 +13575,7 @@ FUNCTION(fun_parenstr)
       tbuffptr = tbuff;
       tcnt = paren_match2(revatext);
       free_lbuf(revatext);
-      tcnt = paren_match(sbuff, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(sbuff)-tcnt) : -1), i_type, 0);
+      tcnt = paren_match(sbuff, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(sbuff)-tcnt) : -1), i_type, 0, 0);
       safe_str(tbuff, buff, bufcx);
    } else {
       safe_str(tbuff, buff, bufcx);

@@ -19434,7 +19434,7 @@
   See Also: parenmatch(), brackets(), pos(), totpos()
 
 & PARENMATCH()
-  Function: parenmatch([<object>/]<attribute> [,<type>, [<key>]])
+  Function: parenmatch([<object>/]<attribute> [,<type>, [<key>], [<flags>]])
   
   This function returns an ansified match of parenthesis, brackets, and braces
   while hilighting red any mis-matched of the three.  The comparison will 
@@ -19443,7 +19443,7 @@
   and braces, it is possible the result will be cut off as ansi takes up 
   extra spaces.  If this is the case, use type '1' to just return 
   errors (if any).  An optional key of '1' will issue a pretty-print of the
-  output in addition to the color output.
+  output in addition to the color output.  You may specify more than one flag.
   
   The following types exist:
     0 - Ansify the string and highlight red the first missmatch found (default)
@@ -19454,6 +19454,12 @@
     1 - pretty print the output.  Be aware on attribs that approach the 
         maximum output buffer size you may get values cut off.
   
+  The following flags exist:
+    s - put spaces after every , and ; character and before and after =
+    p - put spaces before ) and after (
+    b - put spaces before ] and after [
+    B - put spaces before } and after {
+  
   Examples:
     > @va me=[add(1,1)]
     > @vb me=[add(1,2))]
@@ -19461,6 +19467,8 @@
     You say "[add(1,2))]"       (The second ')' would be hilighted red)
     > say parenmatch(vb,1)
     You say "[add(1,2))]"       (Just the second ')' would be colorized)
+    > say parenmatch(vb,,,bps)
+    You say "[ add( 1, 2 ) )]"  (it stops adding spaces on an error)
   
   See Also: parenstr(), brackets(), pos(), totpos()
   
@@ -30077,6 +30085,8 @@
   * added 'fake' config params lbuf_size, mbuf_size, and sbuf_size to
     the config() function for mortals to pull values [ASH]
   * *_site and *_host will no longer allow duplicated entries [ASH]
+  * parenmatch() optionally allows stateful flags to specify additional
+    spaces for padding to make output easier to read [ASH]
     
   Bug Fixes
   ------------
