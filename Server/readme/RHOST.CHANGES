@@ -67,6 +67,8 @@ Bug in safer_ufun with setting attributes on self and permissions with u().
 				- Thanks Mike/Talvo
 Improvement of help entries for @label and various documentation fixes.
 				- Thanks Mike/Talvo
+Added additional spacing to parenmatch() to help with pretty printing.
+				- Suggestion from Thenomain (thanks!)
 
 
 		         RhostMUSH 3.9.4 Update File
