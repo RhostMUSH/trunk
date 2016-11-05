@@ -20903,10 +20903,17 @@ sanitize_input_cnt(char *s_base_str, char *s_in_str, char sep, int  *i_len, int 
 
 FUNCTION(fun_replace)
 {       /* replace a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
-    varargs_preamble("REPLACE", 4);
+    if (!fn_range_check("REPLACE", nfargs, 3, 5, buff, bufcx))
+       return;
+
+    if ( (nfargs > 3) && *fargs[3]) {
+       sep = *fargs[3];
+    } else {
+       sep = ' ';
+    }
 
     i_len=0;
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_REPLACE);
@@ -20927,6 +20934,27 @@ FUNCTION(fun_replace)
        }
     }
 
+    if ( (nfargs > 4) && ((*fargs[4] != sep) || *(fargs[4]+1)) ) {
+       if ( mudconf.delim_null && *fargs[4] && (strcmp(fargs[4], (char *)"@@") == 0)) {
+          *fargs[4] = '\0';
+       }
+       memcpy(st_mash, st_tmp, LBUF_SIZE);
+       memset(st_tmp, '\0', LBUF_SIZE);
+       st_tmpptr = st_tmp;
+       st_mashtmp[0] = sep;
+       st_mashtmp[1] = '\0';  
+       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
+       i_found = 0;
+       while ( stok ) {
+          if ( i_found && *fargs[4] ) {
+             safe_str(fargs[4], st_tmp, &st_tmpptr);
+          }
+          safe_str(stok, st_tmp, &st_tmpptr);
+          stok = strtok_r(NULL, st_mashtmp, &stok_r);
+          i_found = 1;
+       }
+       
+    }
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
@@ -20934,10 +20962,17 @@ FUNCTION(fun_replace)
 
 FUNCTION(fun_ldelete)
 {       /* delete a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
-    varargs_preamble("LDELETE", 3);
+    if (!fn_range_check("LDELETE", nfargs, 2, 4, buff, bufcx))
+       return;
+
+    if ( (nfargs > 2) && *fargs[2]) {
+       sep = *fargs[2];
+    } else {
+       sep = ' ';
+    }
 
     i_len=0;
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_DELETE);
@@ -20946,8 +20981,8 @@ FUNCTION(fun_ldelete)
        return;
     }
 
-    st_tmpptr = st_tmp = alloc_lbuf("fun_replace");
-    st_mash = alloc_lbuf("fun_replace2");
+    st_tmpptr = st_tmp = alloc_lbuf("fun_ldelete");
+    st_mash = alloc_lbuf("fun_ldelete2");
     memcpy(st_mash, fargs[0], LBUF_SIZE);
 
     for (i_tmp = (i_len + 2); i_tmp>=0; i_tmp--) {
@@ -20958,6 +20993,28 @@ FUNCTION(fun_ldelete)
        }
     }
 
+    if ( (nfargs > 3) && ((*fargs[3] != sep) || *(fargs[3]+1)) ) {
+       if ( mudconf.delim_null && *fargs[3] && (strcmp(fargs[3], (char *)"@@") == 0)) {
+          *fargs[3] = '\0';
+       }
+       memcpy(st_mash, st_tmp, LBUF_SIZE);
+       memset(st_tmp, '\0', LBUF_SIZE);
+       st_tmpptr = st_tmp;
+       st_mashtmp[0] = sep;
+       st_mashtmp[1] = '\0';  
+       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
+       i_found = 0;
+       while ( stok ) {
+          if ( i_found && *fargs[3] ) {
+             safe_str(fargs[3], st_tmp, &st_tmpptr);
+          }
+          safe_str(stok, st_tmp, &st_tmpptr);
+          stok = strtok_r(NULL, st_mashtmp, &stok_r);
+          i_found = 1;
+       }
+       
+    }
+
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
@@ -20965,10 +21022,17 @@ FUNCTION(fun_ldelete)
 
 FUNCTION(fun_insert)
 {       /* insert a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
-    varargs_preamble("INSERT", 4);
+    if (!fn_range_check("INSERT", nfargs, 3, 5, buff, bufcx))
+       return;
+
+    if ( (nfargs > 3) && *fargs[3]) {
+       sep = *fargs[3];
+    } else {
+       sep = ' ';
+    }
 
     i_len=0;
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_INSERT);
@@ -20977,8 +21041,8 @@ FUNCTION(fun_insert)
        return;
     }
 
-    st_tmpptr = st_tmp = alloc_lbuf("fun_replace");
-    st_mash = alloc_lbuf("fun_replace2");
+    st_tmpptr = st_tmp = alloc_lbuf("fun_insert");
+    st_mash = alloc_lbuf("fun_insert2");
     memcpy(st_mash, fargs[0], LBUF_SIZE);
 
     for (i_tmp = (i_len + 2); i_tmp>=0; i_tmp--) {
@@ -20987,6 +21051,28 @@ FUNCTION(fun_insert)
           st_tmpptr=st_tmp;
           memcpy(st_mash, st_tmp, LBUF_SIZE);
        }
+    }
+
+    if ( (nfargs > 4) && ((*fargs[4] != sep) || *(fargs[4]+1)) ) {
+       if ( mudconf.delim_null && *fargs[4] && (strcmp(fargs[4], (char *)"@@") == 0)) {
+          *fargs[4] = '\0';
+       }
+       memcpy(st_mash, st_tmp, LBUF_SIZE);
+       memset(st_tmp, '\0', LBUF_SIZE);
+       st_tmpptr = st_tmp;
+       st_mashtmp[0] = sep;
+       st_mashtmp[1] = '\0';  
+       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
+       i_found = 0;
+       while ( stok ) {
+          if ( i_found && *fargs[4] ) {
+             safe_str(fargs[4], st_tmp, &st_tmpptr);
+          }
+          safe_str(stok, st_tmp, &st_tmpptr);
+          stok = strtok_r(NULL, st_mashtmp, &stok_r);
+          i_found = 1;
+       }
+       
     }
 
     safe_str(st_tmp, buff, bufcx);

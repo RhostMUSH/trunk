@@ -22385,7 +22385,7 @@
   See Also: ljust(), rjust(), ljc(), rjc(), printf()
   
 & INSERT()
-  Function: insert(<list>, <pos> [<pos2>...<posN>], <word>[, <sep>])
+  Function: insert(<list>, <pos> [<pos2>..<posN>], <word>[[,<sep>] [,<osep>]])
    
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and all subsequent list elements are moved
@@ -22397,6 +22397,13 @@
   
   The <pos> fields may be negative to take the argument from the right
   instead of the left.
+  
+  You may specify a separate <sep> seperator or it assumes space if not
+  provided.  
+  
+  The <osep> output delimiter may be more than one character, and if 
+  enabled, '@@' can be used as another method for a null.  You may specify 
+  an empty <osep> as well.
    
   Examples:
     > say insert(This is a test, 4, new)
@@ -22426,7 +22433,7 @@
   See Also: replace(), rindex(), ldelete(), ldelete(), delete()
   
 & REPLACE()
-  Function: replace(<list>, <pos> [<pos2>...<posN>], <word>[, <delim>])
+  Function: replace(<list>, <pos> [<pos2>..<posN>], <word>[[,<sep>] [,<osep>]])
    
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and the word previously in that position
@@ -22435,10 +22442,15 @@
   position.  This function may not be used to append a word to a list.
   You may specify more than one position.
    
-  <delim> may be used to specify a delimiter other than a space.
-  
   The <pos> fields may be negative to take the argument from the right
   instead of the left.
+  
+  You may specify a separate <sep> seperator or it assumes space if not
+  provided.  
+  
+  The <osep> output delimiter may be more than one character, and if 
+  enabled, '@@' can be used as another method for a null.  You may specify 
+  an empty <osep> as well.
    
   Examples:
     > say replace(This is a test, 4, quiz)
@@ -22450,7 +22462,7 @@
             edit()
   
 & LDELETE()
-  Function: ldelete(<list>, <pos> [<pos2>...<posN>] [, <sep>])
+  Function: ldelete(<list>, <pos> [<pos2>..<posN>] [[,<sep>] [,<osep>]])
  
   This function removes a word from <list> by position.
   
@@ -22458,6 +22470,13 @@
   
   The <pos> fields may be negative to take the argument from the right
   instead of the left.
+  
+  You may specify a separate <sep> seperator or it assumes space if not
+  provided.  
+  
+  The <osep> output delimiter may be more than one character, and if 
+  enabled, '@@' can be used as another method for a null.  You may specify 
+  an empty <osep> as well.
    
   Examples:
     > say ldelete(This is not a test, 3)
@@ -30087,6 +30106,7 @@
   * *_site and *_host will no longer allow duplicated entries [ASH]
   * parenmatch() optionally allows stateful flags to specify additional
     spaces for padding to make output easier to read [ASH]
+  * ldelete(), replace(), and insert() now take optional output delims [ASH]
     
   Bug Fixes
   ------------
