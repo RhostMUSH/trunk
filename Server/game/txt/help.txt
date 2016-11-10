@@ -4484,6 +4484,23 @@
   Command: @password <old password>=<new password>
  
   This command changes your password.
+  
+  If the system uses the old DES style of passwords, you are limited
+  to 8 character passwords.
+  
+  If the system uses the newer SHA512 style of passwords, you may have
+  a password up to 160 characters in length.
+  
+  No white space characters (spaces, tabs, carrage returns, etc) are 
+  allowed in the password.
+  
+  If secured passwords are enabled, it will enforce a minimum length
+  of 5 characters for passwords and require at least one lowercase 
+  and uppercase letter, and require a special character which is
+  non-alphanumeric or ', or -.
+  
+  Please see @list options system to see what method of password
+  algo is currently in place.
    
   See Also: @name
   

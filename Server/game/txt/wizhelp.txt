@@ -3505,6 +3505,11 @@
   specified, the player is given a null password.  If logged in, the player
   is notified that his password has been changed.
   
+  DES passwords are limited to 8 characters or less in length.
+  SHA512 passwords are limited to 160 characters or less in length.
+  
+  You can not have white space in passwords.
+  
   The following switches exist:
     /des    - Enforce a DES password instead of the system default.
    
@@ -3514,7 +3519,7 @@
     > @newpassword/des aplayer=test123
     Password changed.
   
-  See Also: @password.
+  See Also: (normal help) @password
 
 & @nuke
   Command: @nuke[/<switch>] <player>
