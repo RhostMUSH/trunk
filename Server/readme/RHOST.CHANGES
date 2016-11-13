@@ -69,6 +69,8 @@ Improvement of help entries for @label and various documentation fixes.
 				- Thanks Mike/Talvo
 Added additional spacing to parenmatch() to help with pretty printing.
 				- Suggestion from Thenomain (thanks!)
+&pageformat and &outpageformat idea from PennMUSH
+				- Thanks Mike and the PennMUSH folk :)
 
 
 		         RhostMUSH 3.9.4 Update File
