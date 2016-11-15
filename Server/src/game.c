@@ -2253,6 +2253,11 @@ main(int argc, char *argv[])
     mudstate.autoreg = areg_init();
     start_news_system();
     val_count();
+
+    /* Load in the command hashes for vattrs before startup foo */
+    cf_read((char *)"rhost_vattr.conf");
+    unlink("rhost_vattr.conf");
+
     process_preload();
     if (mudconf.rwho_transmit)
 	do_rwho(NOTHING, NOTHING, RWHO_START);
@@ -2268,9 +2273,6 @@ main(int argc, char *argv[])
        mudconf.newpass_god = 0;
     }
     /* go do it */
-
-    cf_read((char *)"rhost_vattr.conf");
-    unlink("rhost_vattr.conf");
 
 
     mudstate.nowmsec = time_ng(NULL);
