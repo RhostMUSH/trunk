@@ -5121,7 +5121,11 @@ cf_read(char *fn)
 {
     int retval;
 
-    mudstate.initializing = 1;
+    if ( strcmp(fn, "rhost_vattr.conf") == 0 ) {
+       mudstate.initializing = -1;
+    } else {
+       mudstate.initializing = 1;
+    }
     retval = cf_include(NULL, fn, 0, 0, 0, (char *) "init");
     mudstate.initializing = 0;
 

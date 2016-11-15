@@ -2237,7 +2237,6 @@ main(int argc, char *argv[])
     nhashreset(&mudstate.parent_htab);
     hashreset(&mudstate.ansi_htab);
 
-
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);
     mudstate.lastnowmsec = mudstate.nowmsec;
@@ -2269,6 +2268,10 @@ main(int argc, char *argv[])
        mudconf.newpass_god = 0;
     }
     /* go do it */
+
+    cf_read((char *)"rhost_vattr.conf");
+    unlink("rhost_vattr.conf");
+
 
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);
