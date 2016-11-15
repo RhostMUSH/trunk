@@ -1116,6 +1116,11 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
 	break;
 
     case ATTRIB_DELETE:
+        if ( va->command_flag > 0 ) {
+           notify(player, unsafe_tprintf("Attribute %s is command-accessed %d times.  Can not delete.", va->name, va->command_flag));
+           break;
+        }
+
         /* Let's verify the attribute is not in use first */
         s_chkattr = alloc_lbuf("attribute_delete");
         DO_WHOLE_DB(i) {
@@ -1145,8 +1150,13 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
 
     if (key != ATTRIB_DELETE) {
 	lbuff = alloc_lbuf("attrib_access");
-	sprintf(lbuff, "Access for %s:",
-		va->name);
+        if ( va->command_flag > 0 ) {
+	   sprintf(lbuff, "Access for %s [%d commands linked]:",
+		   va->name, va->command_flag);
+        } else {
+	   sprintf(lbuff, "Access for %s:",
+		   va->name);
+        }
 	listset_nametab(player, attraccess_nametab, 0,
 			va->flags, 0, lbuff, 1);
 	free_lbuf(lbuff);
@@ -3694,14 +3704,18 @@ void do_dbclean(dbref player, dbref cause, int key)
        if ( va )
           va2 = vattr_next(va);
        if ( va && !(va->flags & AF_DELETED)) {
-          if ( !(va->flags & AF_NONBLOCKING) && va->name ) {
-             strcpy(s_buff, va->name);
-             if ( key & DBCLEAN_CHECK )
+          if ( va->command_flag == 0 ) {
+             if ( !(va->flags & AF_NONBLOCKING) && va->name ) {
+                strcpy(s_buff, va->name);
+                if ( key & DBCLEAN_CHECK )
+                   va->flags &= ~AF_NONBLOCKING;
+                else
+	           vattr_delete(s_buff);
+                i_del++;
+                i_cntr++;
+             } else {
                 va->flags &= ~AF_NONBLOCKING;
-             else
-	        vattr_delete(s_buff);
-             i_del++;
-             i_cntr++;
+             }
           } else {
              va->flags &= ~AF_NONBLOCKING;
           }

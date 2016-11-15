@@ -3476,6 +3476,7 @@ CF_HAND(cf_include)
 
 extern CF_HDCL(cf_access);
 extern CF_HDCL(cf_cmd_alias);
+extern CF_HDCL(cf_cmd_vattr);
 extern CF_HDCL(cf_acmd_access);
 extern CF_HDCL(cf_attr_access);
 extern CF_HDCL(cf_ntab_access);
@@ -3503,6 +3504,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ahear_maxtime, 0, 0, CA_PUBLIC,
      (char *) "Maximum listen/ahear time laps (in seconds)?\r\n"\
               "                             Default: 60   Value: %d"},
+    {(char *) "vattr_command",
+     cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
+     (char *) "Define dynamic VATTR commands."},
     {(char *) "alias",
      cf_cmd_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_htab, 0, 0, CA_WIZARD,
      (char *) "Define command alises."},

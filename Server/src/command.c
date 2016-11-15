@@ -1769,6 +1769,7 @@ NDECL(init_cmdtab)
     DPUSH; /* #25 */
 
     hashinit(&mudstate.command_htab, 511);
+    hashinit(&mudstate.command_vattr_htab, 511);
     hashinit(&mudstate.cmd_alias_htab, 511);
 
     /* Load attribute-setting commands */
@@ -2722,6 +2723,11 @@ CMDENT * lookup_command(char *cmdname) {
       cmd.perms |= aliasp->perms;
       cmd.perms2 |= aliasp->perms2;
       retval = &cmd;
+    } else {
+       cmdp = (CMDENT *) hashfind(cmdname, &mudstate.command_vattr_htab);
+       if (cmdp) {
+          retval = cmdp;
+       }
     }
   }
   return retval;
@@ -2742,6 +2748,11 @@ CMDENT *lookup_orig_command(char *cmdname) {
     aliasp = (ALIASENT *) hashfind(cmdname, &mudstate.cmd_alias_htab);
     if (aliasp) {
       retval = aliasp->cmdp;
+    } else {
+       cmdp = (CMDENT *) hashfind(cmdname, &mudstate.command_vattr_htab);
+       if (cmdp) {
+          retval = cmdp;
+       }
     }
   }
   return retval;
@@ -4654,6 +4665,35 @@ static void list_cmdtable(dbref player) {
   }
   *bp = '\0';
   notify(player, buff);
+
+  nptrs = 0;
+  memset(buff, '\0', LBUF_SIZE);
+  bp = buff;
+  safe_str("Vattr Commands: ", buff, &bp);
+  for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_vattr_htab);
+       cmdp;
+       cmdp = (CMDENT *) hash_nextentry(&mudstate.command_vattr_htab)) {
+
+    if ( check_access(player, cmdp->perms, cmdp->perms2, 0) ) {
+      if (!(cmdp->perms & CF_DARK)) {   
+	ptrs[nptrs] = cmdp->cmdname;
+	nptrs++;
+      }
+    }
+  }
+
+  qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+
+  safe_str((char *)ptrs[0], buff, &bp);
+  for (i = 1; i < nptrs; i++) {
+    safe_chr(' ', buff, &bp);
+    safe_str((char *)ptrs[i], buff, &bp);
+  }
+  *bp = '\0';
+  if ( nptrs ) {
+     notify(player, buff);
+  }
+
   free_lbuf(buff);
   VOIDRETURN;  /* #31 */
 }
@@ -4747,41 +4787,61 @@ list_cmdaccess(dbref player, char *s_mask, int key)
 
     if ( key ) {
        notify(player, "--- Command Access (wildmatched) ---");
-    } else
+    } else {
        notify(player, "--- Command Access ---");
+    }
     buff = alloc_sbuf("list_cmdaccess");
     for (cmdp = command_table; cmdp->cmdname; cmdp++) {
-	if (check_access(player, cmdp->perms, cmdp->perms2, 0)) {
-	    if (!(cmdp->perms & CF_DARK)) {
-                if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)cmdp->cmdname)) ) {
-		   sprintf(buff, "%.30s:", cmdp->cmdname);
-		      listset_nametab(player, access_nametab, access_nametab2,
-				   cmdp->perms, cmdp->perms2, buff, 1);
-                }
-	    }
-	}
+       if (check_access(player, cmdp->perms, cmdp->perms2, 0)) {
+          if (!(cmdp->perms & CF_DARK)) {
+             if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)cmdp->cmdname)) ) {
+                sprintf(buff, "%.30s:", cmdp->cmdname);
+                listset_nametab(player, access_nametab, access_nametab2,
+                                cmdp->perms, cmdp->perms2, buff, 1);
+             }
+          }
+       }
     }
     for (ap = attr; ap->name; ap++) {
-	p = buff;
-	*p++ = '@';
-	for (q = (char *) ap->name; *q; p++, q++)
-	    *p = ToLower((int)*q);
-	if (ap->flags & AF_NOCMD)
-	    continue;
-	*p = '\0';
-	cmdp = lookup_orig_command(buff);
-	if (cmdp == NULL)
-	    continue;
-	if (!check_access(player, cmdp->perms, cmdp->perms2, 0))
-	    continue;
-	if (!(cmdp->perms & CF_DARK)) {
-            if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)cmdp->cmdname)) ) {
-	       sprintf(buff, "%.30s:", cmdp->cmdname);
-	       listset_nametab(player, access_nametab, access_nametab2,
-			       cmdp->perms, cmdp->perms2, buff, 1);
-            }
-	}
+       p = buff;
+       *p++ = '@';
+       for (q = (char *) ap->name; *q; p++, q++) {
+          *p = ToLower((int)*q);
+       }
+       if (ap->flags & AF_NOCMD) {
+          continue;
+       }
+       *p = '\0';
+       cmdp = lookup_orig_command(buff);
+       if (cmdp == NULL) {
+          continue;
+       }
+       if (!check_access(player, cmdp->perms, cmdp->perms2, 0)) {
+          continue;
+       }
+       if (!(cmdp->perms & CF_DARK)) {
+          if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)cmdp->cmdname)) ) {
+             sprintf(buff, "%.30s:", cmdp->cmdname);
+             listset_nametab(player, access_nametab, access_nametab2,
+                             cmdp->perms, cmdp->perms2, buff, 1);
+          }
+       }
     }
+    for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_vattr_htab);
+         cmdp;
+         cmdp = (CMDENT *) hash_nextentry(&mudstate.command_vattr_htab)) {
+
+       if ( check_access(player, cmdp->perms, cmdp->perms2, 0) ) {
+          if (!(cmdp->perms & CF_DARK)) {
+             if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)cmdp->cmdname)) ) {
+                sprintf(buff, "%.30s:", cmdp->cmdname);
+                listset_nametab(player, access_nametab, access_nametab2,
+                                cmdp->perms, cmdp->perms2, buff, 1);
+             }
+          }
+       }
+    }
+
     free_sbuf(buff);
     DPOP; /* #34 */
 }
@@ -5057,6 +5117,127 @@ CF_HAND(cf_attr_access)
 }
 
 /* ---------------------------------------------------------------------------
+ * cf_cmd_vattr: add a VATTR as a command entry
+ */
+CF_HAND(cf_cmd_vattr)
+{
+  char *orig, *alias, *tstrtokr, *cbuff, *p, *q;
+  CMDENT *cmdp, *cp;
+  VATTR *va;
+  ATTR *atr;
+  int sbuf_cntr;
+
+  DPUSH /* #40A */
+  alias = strtok_r(str, " \t=,", &tstrtokr);
+  orig = strtok_r(NULL, " \t=,", &tstrtokr);
+  
+  /* Delete entry */
+  if ( !alias || !orig) {
+     if ( !mudstate.initializing )
+        notify(player, "Error - you need to pass in the VATTR comamnd-alias and original VATTR");
+     DPOP; /* #40A */
+     return -1;
+  }
+
+  if (!strcmp(orig, "!")) {
+     cbuff = alloc_sbuf("init_cmdtab");
+     p = cbuff;
+     *p++ = '@';
+     sbuf_cntr = 0;
+     for (q = (char *) alias; *q && (sbuf_cntr < (SBUF_SIZE-1)); p++, q++) {
+        *p = ToLower((int)*q);
+        sbuf_cntr++;
+     }
+     *p = '\0';
+     cmdp = (CMDENT *) hashfind(cbuff, &mudstate.command_vattr_htab);
+     if (!cmdp) {
+        cf_log_syntax(player, cmd, "Error: Cannot delete non-existant VATTR command '%s'.", cbuff);       
+        free_sbuf(cbuff);
+        DPOP; /* #40A */
+        return -1;
+     } else {
+        atr = atr_num(cmdp->extra);
+        if ( atr ) {
+           va = (VATTR *) vattr_find((char *)atr->name);
+           (va->command_flag)--;
+        }
+        cf_log_syntax(player, cmd, "Warning: Deleting VATTR command '%s'.", cbuff);
+        hashdelete(cbuff, &mudstate.command_vattr_htab);
+     }
+     free_sbuf(cbuff);
+     DPOP; /* #40A */
+     return 0;
+  }
+  
+  va = (VATTR *) vattr_find((char *)orig);
+
+  if ( !va ) {
+     cf_log_syntax(player, cmd, "Error: Cannot define command to non-existant VATTR attr '%s'.", orig);       
+     DPOP; /* #40A */
+     return -1;
+  }
+
+
+  cbuff = alloc_sbuf("init_cmdtab");
+  p = cbuff;
+  *p++ = '@';
+  sbuf_cntr = 0;
+  for (q = (char *) alias; *q && (sbuf_cntr < (SBUF_SIZE-1)); p++, q++) {
+     *p = ToLower((int)*q);
+     sbuf_cntr++;
+  }
+  *p = '\0';
+
+  cmdp = (CMDENT *) hashfind(cbuff, &mudstate.command_vattr_htab);
+  if (cmdp) {
+     cf_log_syntax(player, cmd, "Error: Command '%s' already set as a VATTR command.", cbuff);       
+     free_sbuf(cbuff);
+     DPOP; /* #40A */
+     return -1;
+  }   
+
+  cmdp = (CMDENT *) hashfind(cbuff, &mudstate.command_htab);
+  if ( cmdp ) {
+     cf_log_syntax(player, cmd, "Error: '%s' is an existing standard command or alias.", cbuff);       
+     free_sbuf(cbuff);
+     DPOP; /* #40A */
+     return -1;
+  }
+
+  cp = (CMDENT *) malloc(sizeof(CMDENT));
+  cp->cmdname = (char *) strsave(cbuff);
+  cp->perms = CA_NO_GUEST | CA_NO_SLAVE;
+  cp->perms2 = 0;
+  cp->switches = set_sw;
+  if (va->flags & AF_GUILDMASTER) {
+     cp->perms |= CA_GUILDMASTER;
+  }
+  if (va->flags & AF_BUILDER) {
+     cp->perms |= CA_BUILDER;
+  }
+  if (va->flags & AF_ADMIN) {
+     cp->perms |= CA_ADMIN;
+  }
+  if (va->flags & (AF_WIZARD | AF_MDARK)) {
+     cp->perms |= CA_WIZARD;
+  }
+  if (va->flags & (AF_IMMORTAL)) {
+     cp->perms |= CA_IMMORTAL;
+  }
+  (va->command_flag)++;
+  cp->extra = va->number;
+  cp->callseq = CS_TWO_ARG | CS_SEP;
+  cp->handler = do_setattr;
+  cp->hookmask = 0;
+  cp->cmdtype = CMD_ATTR_e;
+  hashadd(cp->cmdname, (int *) cp, &mudstate.command_vattr_htab);
+  free_sbuf(cbuff);
+  DPOP; /* #40A */
+  return 0;
+
+}
+
+/* ---------------------------------------------------------------------------
  * cf_cmd_alias: Add a command alias.
  *
  * Lensy Note: If you delete an aliased command you MUST delete it from the
@@ -5070,7 +5251,7 @@ CF_HAND(cf_cmd_alias)
 {
     char *alias, *orig, *ap, *p, *tpr_buff, *tprp_buff, *tstrtokr;
 
-    CMDENT *cmdp, *cp;
+    CMDENT *cmdp, *cp, *cmdp2;
     ALIASENT *aliasp, *alias2p;
 
     NAMETAB *nt = NULL;
@@ -5092,6 +5273,7 @@ CF_HAND(cf_cmd_alias)
     }
 
     /* If only one argument, then we want to return the alias info */
+    cmdp2 = (CMDENT *) hashfind(alias, &mudstate.command_vattr_htab);
     if (!orig){
       cp = lookup_command(alias);
       if (!cp) { 
@@ -5101,6 +5283,13 @@ CF_HAND(cf_cmd_alias)
            free_lbuf(tpr_buff);
         }
 	retval = -1;      
+      } else if (cmdp2) {
+        if ( !mudstate.initializing ) {
+           tprp_buff = tpr_buff = alloc_lbuf("cf_cmd_alias");
+	   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "'%s' is a dynamic VATTR command.", alias));
+           free_lbuf(tpr_buff);
+        }
+	retval = -3;
       } else if (strcmp(alias, cp->cmdname) == 0) {
         if ( !mudstate.initializing ) {
            tprp_buff = tpr_buff = alloc_lbuf("cf_cmd_alias");
@@ -7332,6 +7521,7 @@ list_hashstats(dbref player)
     DPUSH; /* #51 */
     notify(player, "Hash Stats      Size Entries Deleted   Empty Lookups    Hits  Checks Longest");
     list_hashstat(player, "Commands", &mudstate.command_htab);
+    list_hashstat(player, "VATTR Commands", &mudstate.command_vattr_htab);
     list_hashstat(player, "Alias", &mudstate.cmd_alias_htab);
     list_hashstat(player, "Logged-out Cmds", &mudstate.logout_cmd_htab);
     list_hashstat(player, "Functions", &mudstate.func_htab);
@@ -8068,6 +8258,7 @@ void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char
 {
   char *buff, *s_buff, *t_buff, *s_chkattr, *s_format;
   int atrnum, aflags, atrcnt, i_page, i_key;
+  VATTR *vp;
   dbref i, aowner;
 
   i_page = i_key = 0;
@@ -8117,6 +8308,7 @@ void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char
                                       ((!mudconf.hackattr_see && !mudconf.hackattr_nowiz) ? " " : ""),
                                       (!mudconf.hackattr_nowiz ? "wizard" : "") );
      }
+     vp = vattr_find(fname);
      if ( key & AFLAGS_FULL ) {
         s_chkattr = alloc_lbuf("attribute_delete");
         DO_WHOLE_DB(i) {
@@ -8127,19 +8319,39 @@ void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char
         }
         free_lbuf(s_chkattr);
         if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
-           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s%s %s%s", 
-                                        atrnum, atrcnt, buff, s_format, s_buff, t_buff));
+           if ( vp && (vp->command_flag > 0) ) {
+              notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d [%d commands linked]) Flags are: %s%s %s%s", 
+                                           atrnum, atrcnt, vp->command_flag, buff, s_format, s_buff, t_buff));
+           } else {
+              notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s%s %s%s", 
+                                           atrnum, atrcnt, buff, s_format, s_buff, t_buff));
+           }
         } else {
-           notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s %s%s", 
-                                        atrnum, atrcnt, buff, s_buff, t_buff));
+           if ( vp && (vp->command_flag > 0) ) {
+              notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d [%d commands linked]) Flags are: %s %s%s", 
+                                           atrnum, atrcnt, vp->command_flag, buff, s_buff, t_buff));
+           } else {
+              notify(player,unsafe_tprintf("(Attribute %d, Total Used: %d) Flags are: %s %s%s", 
+                                           atrnum, atrcnt, buff, s_buff, t_buff));
+           }
         }
      } else {
         if ( !mudconf.hackattr_see || !mudconf.hackattr_nowiz ) {
-           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s%s %s%s", 
-                                        atrnum, buff, s_format, s_buff, t_buff));
+           if ( vp && (vp->command_flag > 0) ) {
+              notify(player,unsafe_tprintf("(Attribute %d [%d commands linked]) Flags are: %s%s %s%s", 
+                                           atrnum, vp->command_flag, buff, s_format, s_buff, t_buff));
+           } else {
+              notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s%s %s%s", 
+                                           atrnum, buff, s_format, s_buff, t_buff));
+           }
         } else {
-           notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s %s%s", 
-                                        atrnum, buff, s_buff, t_buff));
+           if ( vp && (vp->command_flag > 0) ) {
+              notify(player,unsafe_tprintf("(Attribute %d [%d commands linked]) Flags are: %s %s%s", 
+                                           atrnum, vp->command_flag, buff, s_buff, t_buff));
+           } else {
+              notify(player,unsafe_tprintf("(Attribute %d) Flags are: %s %s%s", 
+                                           atrnum, buff, s_buff, t_buff));
+           }
         }
      }
   } else {

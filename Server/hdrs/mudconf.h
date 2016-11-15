@@ -629,6 +629,7 @@ struct statedata {
 	SITE	*special_list;	/* Sites that have special requirements */
         HASHTAB cmd_alias_htab; /* Command alias hashtable */
 	HASHTAB	command_htab;	/* Commands hashtable */
+	HASHTAB	command_vattr_htab;	/* Commands VATTR dynamic hashtable */
 	HASHTAB	logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
 	HASHTAB func_htab;	/* Functions hashtable */
 	HASHTAB ufunc_htab;	/* Local functions hashtable */

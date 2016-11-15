@@ -5587,14 +5587,14 @@
   toggle_access_unset       tor_localhost             tor_paranoid            
   trace_output_limit        trace_topdown             tree_character
   trust_site                uncompress_program        unowned_safe            
-  user_attr_flags           validate_host             vattr_limit_checkwiz    
-  vlimit                    wait_cost                 wall_cost               
-  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
-  who_default               who_unfindable            who_showwiz             
-  who_wizlevel              who_whowiztype            whohost_size            
-  wiz_override              wiz_uselock               wizard_help_file        
-  wizard_help_index         wizard_motd_file          wizard_motd_message     
-  wizard_queue_limit        zone_parents
+  user_attr_flags           validate_host             vattr_command
+  vattr_limit_checkwiz      vlimit                    wait_cost               
+  wall_cost                 whereis_notify            wizmax_dest_limit       
+  wizmax_vattr_limit        who_default               who_unfindable          
+  who_showwiz               who_wizlevel              who_whowiztype          
+  whohost_size              wiz_override              wiz_uselock             
+  wizard_help_file          wizard_help_index         wizard_motd_file        
+  wizard_motd_message       wizard_queue_limit        zone_parents
 
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -9888,6 +9888,49 @@
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
              suspect_host, goodmail_host, @site
 
+& vattr_command
+  Config parameter: vattr_command <alias> <user-attribute>
+                    vattr_command <alias> !
+  
+  The <alias> should be entered without a '@' prefix.
+  
+  Will define or delete a @command alias to a user-defined attribute.  This
+  allows you to set a @command sequence to a user-defined attribute.  Once
+  a command is defined, the attribute can not be deleted from the hash tables
+  via @attribute/delete, but may be renamed.  If there is any db rollback
+  or other situation which deletes the attribute in-game, the attribute
+  will be unsettable with this command until the command is deleted then
+  re-defined to the attribute. 
+  
+  The reason for this is that the defined command is linked to the REFERENCE
+  of the attribute and not the name of the attribute itself.  Once an 
+  attribute is deleted and redefined, it will likely have a different
+  reference number.
+  
+  You may specify an unlimited number of command aliases for a single 
+  user defined attribute.  Use '!' as the user-attribute if you wish
+  to delete the command reference to the attribute.
+  
+  You can not set up @command aliases to user-defined attributes if the
+  command already exists in the command table as a command, an alias, or
+  pre-exists in the user-attribute table.
+    
+  The attribute must be pre-defined in the attribute hash table before
+  being able to be made a command.  You may do this by just 
+  typing: &ATTRIBNAME me  (where ATTRIBNAME is the attribute name)
+  
+  netrhost.conf example:
+    > vattr_command pageformat pageformat
+    > vattr_command outpageformat outpageformat
+  
+  In-game example:
+    > @admin vattr_command=pageformat pageformat
+    > @admin vattr_command=outpageformat outpageformat
+  
+  The above will define @pageformat and @outpageformat respectively.
+  
+  See Also: @list commands, @list permissions, @aflags
+  
 & vattr_limit_checkwiz
   Config parameter: vattr_limit_checkwiz <boolean>.  Default: 0
   

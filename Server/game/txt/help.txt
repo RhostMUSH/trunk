@@ -30099,6 +30099,8 @@
   * @label added to help integrate %_ labels into code [ASH]
   * ruler() added to give a positional ruler for attribute content [ASH]
   * &pageformat and &outpage format added [ASH]
+  * @admin param vattr_command allows you to make @commands for 
+    user-defined attributes (VATTRS) [ASH]
   
   Changes
   ------------

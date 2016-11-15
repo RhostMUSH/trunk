@@ -141,6 +141,7 @@ VATTR *vattr_define(char *name, int number, int flags)
 
 	vp->name = store_string(name);
 	vp->flags = flags;
+	vp->command_flag = 0;
 	vp->number = number;
 
 	hash = vattr_hash(name);
