@@ -71,6 +71,8 @@ Added additional spacing to parenmatch() to help with pretty printing.
 				- Suggestion from Thenomain (thanks!)
 &pageformat and &outpageformat idea from PennMUSH
 				- Thanks Mike and the PennMUSH folk :)
+Added help entry for a suggestion on special characters.
+				- Thanks Tesagk
 
 
 		         RhostMUSH 3.9.4 Update File
