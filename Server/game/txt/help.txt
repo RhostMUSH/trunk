@@ -162,11 +162,11 @@
   REGEXP CLASSES      REGEXP EXAMPLES   ROBBERY              ROYALTY          
   SEARCH CLASSES      SEMAPHORES        SENSES               SETQ_TEMPLATES   
   SQL                 SQLESCAPE         SIDEEFFECTS          SINGLETHREADING  
-  SPOOFING            STACK             SUBSTITUTIONS        SUCCESS          
-  SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
-  VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
-  ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
-  ATTRIB FORMATTING   MAX ARGS          WILDCARDS
+  SPECIAL CHARACTERS  SPOOFING          STACK                SUBSTITUTIONS      
+  SUCCESS             SWITCHES          TOGGLES              USEFUL             
+  USER ATTRIBUTES     VARIABLE EXITS    VATOVZ               VERBS              
+  WANDERER            ZATOZZ            ZONES                $-COMMANDS         
+  #LAMBDA             ATTRIB FORMATTING MAX ARGS             WILDCARDS
   
 & \*
 & \?
@@ -16976,10 +16976,41 @@
   
   See Also: room(), lexits()
   
+& SPECIAL CHARACTERS
+  Topic: special characters
+  
+  There are characters considered 'special' based on the situation where
+  they are used in mush.  They usually do not have a global meaning for
+  these cases, but only in special situations.
+  
+    $ - Specify the start of a command, or used in regexp matching.
+    ^ - Specify the start of a listen, or used in regexp matching.
+    \ - Escape character to escape the next character in a string.
+    % - substitution character.  Also used for the ansi-markup.
+    , - function separation character to separate arguments to functions.
+    ; - command seperation character to separate commands in a list.
+   () - used in functions to denote start and end of a function call.
+   [] - also used in functions to help with function separation calls.
+   {} - a method to string together commands, strings, lists, or similar
+        into a single command or call.
+    & - the start of an attribute set command.
+    @ - the start of most general built in commands or attribute calls.
+    | - used to break out of @program and execute an outside command
+    ! - used to break out of the current @door and execute a command
+        to the previous calling mush.
+    # - Specify the start of a dbref#
+    * - Specify a long-distance lookup of a player
+  
+  Some functions and commands also have unique one-off use of characters
+  or strings for special purposes as well, and this document will not
+  cover those cases.
+  
+  See Also: escape(), search()
+
 & SECURE()
   Function: secure(<string>)
- 
-  Returns <string> after replacing the characters [](){};%\$, with spaces.
+  
+  Returns <string> after replacing the characters [](){};%\^,$ with spaces.
   This prevents strings entered by players from causing undesired side
   effects when used, such as making your object perform unintended commands
   or give out information to which you have access.  Note that this function
@@ -17049,7 +17080,7 @@
   Function: escape(<string>)
  
   Returns <string> after adding an escape character (\) at the start of the
-  string and also before each of the characters %;[]{}\ that appear in the
+  string and also before each of the characters [](){};%\,^ that appear in the
   string.  This prevents strings entered by players from causing undesired
   side effects when used, such as making your object perform unintended
   commands or give out information to which you have access.  Note that this
