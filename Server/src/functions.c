@@ -11750,28 +11750,58 @@ FUNCTION(fun_listcommands)
 {
   CMDENT *cmdp;
   const char *ptrs[LBUF_SIZE / 2];
-  int nptrs = 0, i;
+  int nptrs = 0, i, i_cmdtype;
 
-  for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
-       cmdp;
-       cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
-
-    if ( (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&
-          check_access(player, cmdp->perms, cmdp->perms2, 0)) {
-      if ( (!strcmp(cmdp->cmdname, "@snoop") || !strcmp(cmdp->cmdname, "@depower")) &&
-            !Immortal(player))
-         continue;
-      if ( !(cmdp->perms & CF_DARK) ) {
-         ptrs[nptrs] = cmdp->cmdname;
-         nptrs++;
-      }
-    }
+  i_cmdtype = 0;
+  if ( (nfargs > 0) && *fargs[0] ) {
+     i_cmdtype = atoi(fargs[0]);
   }
-  qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
-  safe_str((char *)ptrs[0], buff, bufcx);
-  for (i = 1; i < nptrs; i++) {
-    safe_chr(' ', buff, bufcx);
-    safe_str((char *)ptrs[i], buff, bufcx);
+  if ( (i_cmdtype < 0) || (i_cmdtype > 2) ) {
+     i_cmdtype = 0;
+  }
+
+  if ( !i_cmdtype || (i_cmdtype == 2) ) {
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
+          cmdp;
+          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
+
+       if ( (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&
+             check_access(player, cmdp->perms, cmdp->perms2, 0)) {
+         if ( (!strcmp(cmdp->cmdname, "@snoop") || !strcmp(cmdp->cmdname, "@depower")) &&
+               !Immortal(player))
+            continue;
+         if ( !(cmdp->perms & CF_DARK) ) {
+            ptrs[nptrs] = cmdp->cmdname;
+            nptrs++;
+         }
+       }
+     }
+     qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+     safe_str((char *)ptrs[0], buff, bufcx);
+     for (i = 1; i < nptrs; i++) {
+       safe_chr(' ', buff, bufcx);
+       safe_str((char *)ptrs[i], buff, bufcx);
+     }
+  } 
+  if ( (i_cmdtype == 1) || (i_cmdtype == 2) ) {
+     nptrs = 0;
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_vattr_htab);
+          cmdp;
+          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_vattr_htab)) {
+         if ( !(cmdp->perms & CF_DARK) ) {
+            ptrs[nptrs] = cmdp->cmdname;
+            nptrs++;
+         }
+     }
+     qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+     if ( i_cmdtype == 2 ) {
+       safe_chr(' ', buff, bufcx);
+     }
+     safe_str((char *)ptrs[0], buff, bufcx);
+     for (i = 1; i < nptrs; i++) {
+       safe_chr(' ', buff, bufcx);
+       safe_str((char *)ptrs[i], buff, bufcx);
+     }
   }
 }
 
@@ -33143,7 +33173,7 @@ FUN flist[] =
     {"LINK", fun_link, 2, 0, CA_PUBLIC, 0},
 #endif
     {"LIST", fun_list, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
-    {"LISTCOMMANDS", fun_listcommands, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LISTCOMMANDS", fun_listcommands, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTDIFF", fun_listdiff, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTFUNCTIONS", fun_listfunctions, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTFLAGS", fun_listflags, 0, 0, CA_PUBLIC, CA_NO_CODE},

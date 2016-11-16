@@ -13757,9 +13757,14 @@
   See Also: listcommands(), listfunctions()
   
 & LISTCOMMANDS()
-  Function: listcommands()
+  Function: listcommands([<key>])
   
   This function will return all the commands that you have access to.
+  
+  The available keys are:
+    0 - list all the main commands you have access to (default)
+    1 - list all the VATTR based commands you have access to
+    2 - list all VATTR based and main commands you have access to
   
   Example:
     > say listcommands()
