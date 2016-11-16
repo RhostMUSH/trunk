@@ -5126,12 +5126,12 @@ CF_HAND(cf_cmd_vattr)
   VATTR *va;
   ATTR *atr;
   int sbuf_cntr;
+  FILE *fp;
 
   DPUSH /* #40A */
   alias = strtok_r(str, " \t=,", &tstrtokr);
   orig = strtok_r(NULL, " \t=,", &tstrtokr);
   
-  /* Delete entry */
   if ( !alias || !orig) {
      if ( !mudstate.initializing )
         notify(player, "Error - you need to pass in the VATTR comamnd-alias and original VATTR");
@@ -5139,6 +5139,15 @@ CF_HAND(cf_cmd_vattr)
      return -1;
   }
 
+  if ( mudstate.initializing == 1) {
+     if ( (fp = fopen("rhost_vattr.conf", "a")) != NULL ) {
+        fprintf(fp, "vattr_command %s %s\n", orig, alias);
+        fclose(fp);
+     }
+     return 0;
+  }
+
+  /* Delete entry */
   if (!strcmp(orig, "!")) {
      cbuff = alloc_sbuf("init_cmdtab");
      p = cbuff;
