@@ -11793,14 +11793,16 @@ FUNCTION(fun_listcommands)
             nptrs++;
          }
      }
-     qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
-     if ( i_cmdtype == 2 ) {
-       safe_chr(' ', buff, bufcx);
-     }
-     safe_str((char *)ptrs[0], buff, bufcx);
-     for (i = 1; i < nptrs; i++) {
-       safe_chr(' ', buff, bufcx);
-       safe_str((char *)ptrs[i], buff, bufcx);
+     if ( nptrs ) {
+        qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+        if ( i_cmdtype == 2 ) {
+          safe_chr(' ', buff, bufcx);
+        }
+        safe_str((char *)ptrs[0], buff, bufcx);
+        for (i = 1; i < nptrs; i++) {
+          safe_chr(' ', buff, bufcx);
+          safe_str((char *)ptrs[i], buff, bufcx);
+        }
      }
   }
 }
