@@ -4627,9 +4627,39 @@ static int s_comp(const void *s1, const void *s2)
   return strcmp(*(char **) s1, *(char **) s2);
 }
 
+static void list_vattrcmds(dbref player) {
+  CMDENT *cmdp;
+  char *buff;  
+  ATTR *atr;
+
+  DPUSH; /* #31 */
+  buff = alloc_lbuf("list_vattrcmds");
+  
+  notify(player, "Listing all commands and attributes linked to them:");
+  for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_vattr_htab);
+       cmdp;
+       cmdp = (CMDENT *) hash_nextentry(&mudstate.command_vattr_htab)) {
+
+    if ( check_access(player, cmdp->perms, cmdp->perms2, 0) ) {
+      if (!(cmdp->perms & CF_DARK)) {   
+         atr = atr_num(cmdp->extra);
+         if ( atr ) {
+            sprintf(buff, "   %-*s -> %s", SBUF_SIZE, cmdp->cmdname, atr->name);
+         } else {
+            sprintf(buff, "   %-*s -> (DELETED ATTRIBUTE)", SBUF_SIZE, cmdp->cmdname);
+         }
+	 notify(player, buff);
+      }
+    }
+  }
+  free_lbuf(buff);
+  notify(player, "Completed.");
+
+}
+
 static void list_cmdtable(dbref player) {
   CMDENT *cmdp;
- const char *ptrs[LBUF_SIZE / 2];
+  const char *ptrs[LBUF_SIZE / 2];
   char *buff;  
   char *bp;
   int nptrs = 0, i;
@@ -7984,6 +8014,7 @@ list_rlevels(dbref player, int i_key)
 #define LIST_FUNPERMS	30
 #define	LIST_DF_TOGGLES	31
 #define LIST_BUFTRACEADV 32
+#define LIST_VATTRCMDS 33
 
 NAMETAB list_names[] =
 {
@@ -8021,6 +8052,7 @@ NAMETAB list_names[] =
     {(char *) "depowers", 3, CA_IMMORTAL, 0, LIST_DEPOWERS},
     {(char *) "stacks", 3, CA_IMMORTAL, 0, LIST_STACKS},
     {(char *) "funperms", 4, CA_IMMORTAL, 0, LIST_FUNPERMS},
+    {(char *) "vattrcmds", 4, CA_WIZARD, 0, LIST_VATTRCMDS},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];
@@ -8171,6 +8203,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
     case LIST_ATTRPERMS:
 	list_attraccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;
+    case LIST_VATTRCMDS:
+        list_vattrcmds(player);
+        break;
     case LIST_VATTRS:
 	list_vattrs(player, save_buff, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;

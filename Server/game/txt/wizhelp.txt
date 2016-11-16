@@ -2817,11 +2817,11 @@
     advbuffers          allocations         attr_permissions    attributes 
     bad_names           buffers             commands            costs     
     db_stats            default_flags       flags               functions 
-    globals             hashstats           logging             options
-    permissions         process             site_info           switches 
-    user_attributes     toggles             mail_globals        guest_names
-   *rlevels             cmdslogged          powers              depowers 
-    stacks              funperms
+    funperms            globals             hashstats           logging   
+    options             permissions         process             site_info   
+    switches            user_attributes     toggles             mail_globals  
+    guest_names        *rlevels             cmdslogged          powers  
+    depowers           *stacks              vattrcmds
  
   Type wizhelp @list <option> for help with a particular option.
   
@@ -2829,6 +2829,15 @@
   
   Example:  @list alloc
 
+& @list vattrcmds
+  Command: @list vattrcmds
+  
+  This will list all the dynamically defined @commands that are linked to
+  user defined attributes.  These are defined with the @admin config
+  parameter 'vattr_command'.
+  
+  See Also: vattr_command, @list commands
+ 
 & @list funperms
   Command: @list funperms
   
@@ -2943,7 +2952,9 @@
   Lists the internal commands that you may execute.  This command does not
   list the attribute-setting commands that you may use (like @va or @ahear),
   and does not list exits in your current room or $-commands on objects.
-  See Also: @list attr_access, @list attributes, @list permissions.
+  
+  See Also: @list attr_access, @list attributes, @list permissions,
+            @list vattrcmds
 
 & @list costs
   Command: @list costs
@@ -2961,6 +2972,7 @@
   
   Lists the flags that are automatically given to players, things, rooms,
   exits, and robots when they are created.
+  
   See Also: player_flags, thing_flags, room_flags, exit_flags, robot_flags.
 
 & @list flags

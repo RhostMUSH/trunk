@@ -30106,6 +30106,7 @@
   * &pageformat and &outpage format added [ASH]
   * @admin param vattr_command allows you to make @commands for 
     user-defined attributes (VATTRS) [ASH]
+  * @list vattrcmds to show attribute relationships to commands [ASH]
   
   Changes
   ------------
