@@ -420,6 +420,8 @@ char	*s;
  * #define SPLIT_UNDERSCORE        0x04
  * #define SPLIT_INVERSE           0x08
  * #define SPLIT_NOANSI            0x10
+ * #define SPLIT_FG                0x20
+ * #define SPLIT_BG                0x40
  *
  * typedef struct ansisplit {
  *         char    s_fghex[5];     // Hex representation - foreground
@@ -444,7 +446,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
 {
    ANSISPLIT *s_pt, *r_pt, *a_pt;
    char *s_iptr;
-   int i_mark;
+   int i_mark, i_fg, i_bg;
 
 #ifndef ZENTY_ANSI
    return;
@@ -454,6 +456,13 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
    a_pt = a_input;
    r_pt = replace_val;
    s_pt = search_val;
+
+   i_fg = (i_search & SPLIT_FG);
+   i_search &= ~SPLIT_FG;
+   i_bg = (i_search & SPLIT_BG);
+   i_search &= ~SPLIT_BG;
+   i_replace &= ~SPLIT_FG;
+   i_replace &= ~SPLIT_BG;
 
    while ( s_iptr && *s_iptr ) {
       /* No Special Char Searching Here : exact match and replace */
@@ -474,10 +483,10 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special = r_pt->i_special;
           }
       /* Exact match searching here : exact match and replace */
-      } else if ( (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0) &&
-                  (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0) &&
-                  (s_pt->c_fgansi == a_pt->c_fgansi) &&
-                  (s_pt->c_bgansi == a_pt->c_bgansi) &&
+      } else if ( ((*(a_pt->s_fghex) && i_fg) || (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0)) &&
+                  ((*(a_pt->s_bghex) && i_bg) || (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0)) &&
+                  (((a_pt->c_fgansi) && i_fg) || (s_pt->c_fgansi == a_pt->c_fgansi)) &&
+                  (((a_pt->c_bgansi) && i_bg) || (s_pt->c_bgansi == a_pt->c_bgansi)) &&
                  !(i_search && (a_pt->i_special & i_search)) &&
                   (s_pt->i_special == a_pt->i_special) ) {
           strcpy(a_pt->s_fghex, r_pt->s_fghex); 
@@ -491,7 +500,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special = r_pt->i_special;
           }
       /* Just match if ANSI fg hex : fg to fg */
-      } else if ( (*(s_pt->s_fghex) && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0)) &&
+      } else if ( ((*(a_pt->s_fghex) && i_fg) || (*(s_pt->s_fghex) && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0))) &&
                   !*(s_pt->s_bghex) &&
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
@@ -511,7 +520,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
           }
       /* Just match if ANSI bg hex : bg to bg */
       } else if ( !*(s_pt->s_fghex) &&
-                  (*(s_pt->s_bghex) && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0)) &&
+                  ((*(a_pt->s_bghex) && i_bg) || (*(s_pt->s_bghex) && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0))) &&
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
@@ -531,7 +540,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
       /* Just match if ANSI fg normal : fg to fg */
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
-                  (s_pt->c_fgansi && (s_pt->c_fgansi == a_pt->c_fgansi)) &&
+                  (((a_pt->c_fgansi) && i_fg) || (s_pt->c_fgansi && (s_pt->c_fgansi == a_pt->c_fgansi))) &&
                   !(s_pt->c_bgansi) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
                   !(s_pt->i_special) ) {
@@ -551,7 +560,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
                   !(s_pt->c_fgansi) &&
-                  (s_pt->c_bgansi && (s_pt->c_bgansi == a_pt->c_bgansi)) &&
+                  (((a_pt->c_bgansi) && i_bg) || (s_pt->c_bgansi && (s_pt->c_bgansi == a_pt->c_bgansi))) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
                   !(s_pt->i_special) ) {
           strcpy(a_pt->s_bghex, r_pt->s_bghex); 

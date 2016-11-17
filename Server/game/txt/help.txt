@@ -18170,6 +18170,10 @@
     F - anything NOT set flash.
     N - anything NOT using ansi colors.
   
+  The following ansi special matches are allowed for search.
+    d - any foreground color.
+    D - any background color.
+  
   If these are specified in replace, it will strip those specified ansi
   special encodings. 
     

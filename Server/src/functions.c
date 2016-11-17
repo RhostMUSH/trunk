@@ -27356,6 +27356,10 @@ FUNCTION(fun_ansi)
                     safe_str(SAFE_ANSI_UNDERSCORE, ansi_special, &ansi_specialptr);
                  i_allow[0] = 1;
                  break;
+              case 'd': ansi_omitter |= SPLIT_FG;
+                 break;
+              case 'D': ansi_omitter |= SPLIT_BG;
+                 break;
               case 'U': ansi_omitter |= SPLIT_UNDERSCORE;
                  break;
               case 'h': 
