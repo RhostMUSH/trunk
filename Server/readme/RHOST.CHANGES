@@ -73,6 +73,8 @@ Added additional spacing to parenmatch() to help with pretty printing.
 				- Thanks Mike and the PennMUSH folk :)
 Added help entry for a suggestion on special characters.
 				- Thanks Tesagk
+Added 'd' and 'D' options for wildcarding on editansi.
+				- Thanks Anixy
 
 
 		         RhostMUSH 3.9.4 Update File
