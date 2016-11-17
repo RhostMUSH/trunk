@@ -470,6 +470,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
            !*(s_pt->s_bghex) && !*(a_pt->s_bghex) &&
            !(s_pt->c_fgansi) && !(a_pt->c_fgansi) &&
            !(s_pt->c_bgansi) && !(a_pt->c_bgansi) &&
+           !i_fg && !i_bg &&
            !(i_search && (a_pt->i_special & i_search)) &&
            !(s_pt->i_special) && !(a_pt->i_special) ) {
           strcpy(a_pt->s_fghex, r_pt->s_fghex); 
@@ -483,10 +484,10 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special = r_pt->i_special;
           }
       /* Exact match searching here : exact match and replace */
-      } else if ( ((*(a_pt->s_fghex) && i_fg) || (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0)) &&
-                  ((*(a_pt->s_bghex) && i_bg) || (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0)) &&
-                  (((a_pt->c_fgansi) && i_fg) || (s_pt->c_fgansi == a_pt->c_fgansi)) &&
-                  (((a_pt->c_bgansi) && i_bg) || (s_pt->c_bgansi == a_pt->c_bgansi)) &&
+      } else if ( ((*(a_pt->s_fghex) && i_fg) || (!i_fg && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0))) &&
+                  ((*(a_pt->s_bghex) && i_bg) || (!i_bg && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0))) &&
+                  (((a_pt->c_fgansi) && i_fg) || (!i_fg && (s_pt->c_fgansi == a_pt->c_fgansi))) &&
+                  (((a_pt->c_bgansi) && i_bg) || (!i_bg && (s_pt->c_bgansi == a_pt->c_bgansi))) &&
                  !(i_search && (a_pt->i_special & i_search)) &&
                   (s_pt->i_special == a_pt->i_special) ) {
           strcpy(a_pt->s_fghex, r_pt->s_fghex); 
