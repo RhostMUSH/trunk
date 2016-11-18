@@ -3955,7 +3955,7 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
 	    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",
 				               (i_tf ? qualout : (char *)""), tname, buff2));
 	}
-        if ( !i_tf ) {
+/*      if ( !i_tf ) { */
 	   for (np = indiv_attraccess_nametab;
 	        np->name;
 	        np++) {
@@ -3973,7 +3973,7 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
 			          np->name));
 	       }
 	   }
-        }
+/*      } */
       }
     }
     free_lbuf(buf);
@@ -4210,7 +4210,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 		       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",
 					     (i_tf ? qualout : (char *)""), thingname, buff));
 		   }
-                   if ( !i_tf ) {
+/*                 if ( !i_tf ) { */
 		      for (np = indiv_attraccess_nametab;
 		           np->name;
 		           np++) {
@@ -4227,7 +4227,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 				             np->name));
 		          }
 		      }
-                   }
+/*                 } */
 	       }
 	   }
    	   free_lbuf(got);
