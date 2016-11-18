@@ -30266,3 +30266,5 @@
   * safer_ufun didn't take some conditions into consideration [ASH]
   * erraneous ansi-normal on cname() if the name was not ansified [ASH]
   * small bug in time conversion in timefmt() with daylight savings [ASH]
+  * @decompile/tf showed attribute flags when based on other codebases it did
+    not [ASH]

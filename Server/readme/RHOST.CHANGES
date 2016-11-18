@@ -75,6 +75,8 @@ Added help entry for a suggestion on special characters.
 				- Thanks Tesagk
 Added 'd' and 'D' options for wildcarding on editansi.
 				- Thanks Anixy
+Removed attribute flags from @decompile/tf
+				- Thanks Darren
 
 
 		         RhostMUSH 3.9.4 Update File
