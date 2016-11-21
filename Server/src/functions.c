@@ -17704,20 +17704,27 @@ FUNCTION(fun_randextract)
 
 FUNCTION(fun_extractword)
 {
-   int start, len, i_cntr, i_cntr2, first, i_del;
+   int start, len, i_cntr, i_cntr2, first, i_del, i_numwords;
    char *sep, *osep, *pos, *prevpos, *fargbuff, *outbuff;
    ANSISPLIT outsplit[LBUF_SIZE], *optr, *prevoptr;
 
-   if (!fn_range_check("WORDEXTRACT", nfargs, 3, 6, buff, bufcx))
+   if (!fn_range_check("EXTRACTWORD", nfargs, 1, 6, buff, bufcx)) {
       return;
+   }
 
-   if ( !*fargs[0] )
+   if ( !*fargs[0] ) {
       return;
+   }
 
-   start = atoi(fargs[1]);
-   len = atoi(fargs[2]);
-   if ((start < 1) || (len < 1)) {
-      return;
+   if ( nfargs < 2 ) {
+      start = 1;
+   } else {
+      start = atoi(fargs[1]);
+   }
+   if ( nfargs < 3 ) {
+      len = 1;
+   } else {
+      len = atoi(fargs[2]);
    }
 
    initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -17734,8 +17741,9 @@ FUNCTION(fun_extractword)
    }
    if ( (nfargs > 4) && *fargs[4] ) {
       strcpy(osep, fargs[4]);
-      if ( mudconf.delim_null && (strcmp(osep, (char *)"@@") == 0) )
+      if ( mudconf.delim_null && (strcmp(osep, (char *)"@@") == 0) ) {
          *osep = '\0';
+      }
    } else {
       strcpy(osep, sep);
    }
@@ -17745,6 +17753,33 @@ FUNCTION(fun_extractword)
    } else {
       i_del = 0;
    }
+
+   if( (len < 0) || (start < 0) ) {
+      i_numwords = 1;
+      pos = fargbuff;
+      while ( pos && *pos ) {
+         prevpos = strstr(pos, sep);
+         if ( !prevpos ) {
+            break;
+         }
+         i_numwords++;
+         pos = prevpos + strlen(sep);
+      }
+      if ( start < 0 ) {
+         start = i_numwords + start + 1;
+      }
+      if ( (start > 0) && (len < 0) ) {
+         len = i_numwords - start + len + 2;
+      }
+   }
+
+   if ( (start < 1) || (len < 1) ) {
+      free_lbuf(sep);
+      free_lbuf(osep);
+      free_lbuf(fargbuff);
+      return;
+   }
+
    pos = fargbuff;
    optr = outsplit;
    i_cntr = 1;

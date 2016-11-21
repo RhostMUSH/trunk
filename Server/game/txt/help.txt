@@ -15052,12 +15052,23 @@
             randextract()
   
 & EXTRACTWORD()
-  Function: extractword(<string>, <first>, <length>[, <delim>], <sep>] ,<del>])
+  Function: extractword(<string> [,<first>, <len>[, <delim>], <sep>] ,<del>]])
   
-  Extractword returns a string of length words, starting with the first
+  Extractword returns a string of <len> length words, starting with the first
   word.  This works effectively like extract(), however, the deliminiter 
   <delim> and separator <sep> can be multi-character.  In addition, the
   separator may also contain ansi or special characters.
+  
+  If you specify only <string> and no other arguments, it returns the first
+  word of the string as if the first() function.
+  
+  If you specify a negative number to <first>, it counts backwards from the end
+  of the string.  So -1 is the last argument, -2 is previous to last, and so
+  forth.
+  
+  If you specify a negative number to <len>, it will return up to the total
+  words minus the length.  So -1 will return all words from start to the
+  last element, -2 to the previous to last element, and so forth.
   
   If you specify the <del> toggle to '1' it assumes delextract() compatibility
   where the words choosen are all the words EXCEPT the range specified.
@@ -15074,6 +15085,10 @@
     You say "multi@@@char"
     > say extractword(a@@@multi@@@char@@@delimiter, 2, 2, @@@,%b)
     You say "multi char"
+    > say extractword(Skip the first and last elements, 2, -2)
+    You say "the first and last"
+    > say extractword((Get just the last three elements,-3, 3)
+    You say "last three elements"
   
   See Also: extract(), extractword(), index(), insert(), ldelete(), replace(),
             randextract() 
