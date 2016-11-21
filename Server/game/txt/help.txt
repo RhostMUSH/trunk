@@ -30237,6 +30237,7 @@
   * parenmatch() optionally allows stateful flags to specify additional
     spaces for padding to make output easier to read [ASH]
   * ldelete(), replace(), and insert() now take optional output delims [ASH]
+  * extractword() handles args from 1 now and negative operators [ASH]
     
   Bug Fixes
   ------------
