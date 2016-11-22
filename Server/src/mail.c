@@ -1480,8 +1480,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     if ((!*pt2) && (key == M_FORWARD)) {
       notify_quiet(p2,"MAIL ERROR: Improper forward format");
       return 1;
-    }
-    else if (*pt2 && (key == M_REPLY)) {
+    } else if (*pt2 && (key == M_REPLY)) {
       notify_quiet(p2,"MAIL ERROR: Improper reply format");
       return 1;
     }
@@ -1498,7 +1497,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     }
     acheck = atoi(pt1);
     acheck = get_msg_index(player,acheck,1,NOTHING,1);
-//  if ((acheck < 1) || (acheck > 9999)) {
+/*  if ((acheck < 1) || (acheck > 9999)) { */
     if (acheck < 1) {
       notify_quiet(p2,"MAIL ERROR: Bad message number specified");
       return 1;
@@ -1509,9 +1508,9 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     if (acheck & tomask) {
       acheck &= ~tomask;
       repaal = 1;
-    }
-    else
+    } else {
       repaal = 0;
+    }
     if (rmsg || (key == M_FORWARD)) {
       *(int *)sbuf1 = MIND_MSG;
       *(int *)(sbuf1 + sizeof(int)) = *(int *)mbuf1;
@@ -1529,8 +1528,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
         if (subpass) {
 	  spt = subpass;
 	  mpt = buf2;
-        }
-        else {
+        } else {
           if ( Good_obj(p2) && PennMail(p2) )
   	     spt = strstr(buf2,"/");
           else
@@ -1545,8 +1543,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
             else
   	       mpt = spt+2;
   	    spt = buf2;
-  	  }
-  	  else {
+  	  } else {
   	    spt = NULL;
   	    mpt = buf2;
   	  }
@@ -1554,8 +1551,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	if ((strlen(mpt) + strlen(infodata.dptr)) > LBUF_SIZE - 134) {
 	  notify_quiet(p2,"MAIL ERROR: Combined reply message too long");
 	  return 1;
-	}
-	else {
+	} else {
 	  strcpy(lbuf8,infodata.dptr);
 	  strcat(lbuf8,"\r\n");
 	  pt2 = lbuf8 + strlen(lbuf8);
@@ -1586,6 +1582,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	  notify_quiet(p2,"MAIL ERROR: Reply list too long");
 	  return 1;
 	}
+        comma_exists = 0;
         if ( (strchr(lbuf3, ',') != NULL) && (key == M_REPLY) )
            comma_exists = 1;
 	if (Good_obj(t1)) {
@@ -1595,13 +1592,11 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	     strcat(lbuf3," #");
 	  strcat(lbuf3,myitoa(Owner(t1)));
 	}
-      }
-      else {
+      } else {
 	if (Good_obj(t1)) {
 	  *lbuf3 = '#';
 	  strcpy(lbuf3+1,myitoa(Owner(t1)));
-	}
-	else
+	} else
 	  *lbuf3 = '\0';
       }
     }
@@ -1610,8 +1605,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
       if (subpass) {
 	spt = subpass;
 	mpt = buf2;
-      }
-      else {
+      } else {
         if ( Good_obj(p2) && PennMail(p2) )
   	   spt = strstr(buf2,"/");
         else
@@ -1749,8 +1743,14 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     *lbuf4 = '\0';
     pt1 = lbuf3;
     term = 0;
+    comma_exists = 0;
+    if ( strchr(lbuf3, ',') != NULL )
+       comma_exists = 1;
     while (!term && *pt1) {
-      while (isspace((int)*pt1) && *pt1) pt1++;
+      if ( comma_exists )
+         while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
+      else
+         while ( *pt1 && isspace((int)*pt1)) pt1++;
       if (!*pt1) break;
       pt2 = pt1+1;
       if ((sepchar == '\0') || (*pt1 == '#')) {
@@ -1901,7 +1901,10 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	      else {
 		acheck = 1;
 		strcat(lbuf4,apt);
-		strcat(lbuf4," ");
+                if ( strchr(apt, ',') != NULL )
+		   strcat(lbuf4,",");
+                else
+		   strcat(lbuf4," ");
 	      }
 	    }
             if ( chk_lbuf_free )
@@ -1936,8 +1939,14 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   if ( Good_chk(p2) && MailValid(p2) ) {
      strcpy(tpr_buff, lbuf3);
      pt1 = tpr_buff;
+     comma_exists = 0;
+     if ( strchr(tpr_buff, ',') != NULL )
+        comma_exists = 1;
      while ( !term && *pt1 ) {
-        while (isspace((int)*pt1) && *pt1) pt1++;
+        if ( comma_exists )
+           while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
+        else
+           while (*pt1 && isspace((int)*pt1)) pt1++;
         if (!*pt1) {
            if ( i_nogood != 2 )
               i_nogood = 1;
@@ -1980,8 +1989,14 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   pt1 = lbuf3;
   sepchar = '\0';
   term = 0;
+  comma_exists = 0;
+  if ( strchr(lbuf3, ',') != NULL )
+     comma_exists = 1;
   while (!term && *pt1) {
-    while (isspace((int)*pt1) && *pt1) pt1++;
+    if ( comma_exists )
+       while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
+    else
+       while (*pt1 && isspace((int)*pt1)) pt1++;
     if (!*pt1) break;
     pt2 = pt1+1;
     if ((sepchar == '\0') || (*pt1 == '#')) {
@@ -2098,8 +2113,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     infodata.dptr = mpt;
     infodata.dsize = strlen(mpt) + 1;
     dbm_store(mailfile, keydata, infodata, DBM_REPLACE);
-  }
-  else {
+  } else {
     notify_quiet(p2,"MAIL ERROR: No valid recipients");
     return 1;
   }
