@@ -3668,7 +3668,8 @@
          help @lock type <lock> - give detailed help on the specific lock.
          help userlocks   - a special way to define user-defined locking.
   
-  See Also: @unlock, @lset, @chown, lock(), elock()
+  See Also: @unlock, @lset, @chown, lock(), elock(), testlock(), 
+            lockencode(), lockdecode(), lockcheck()
   
 & @lock locks
   You can set the following locks:
@@ -11621,18 +11622,49 @@
   
   See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
 
+& TESTLOCK()
+  Function: testlock(<key>, <target> [,<type>])
+  
+  The testlock function will evaluate a lock that you pass against the
+  target <target>.  It will evaluate permissions based on the enactor.
+  
+  The key <key> may be any normal key found in locks.  Please see
+  'help @lock' for more information on how locks work and keys available.
+  
+  You may specify an optional type <type> for specialized locks that
+  may require a subtype.  Following types are allowed:
+    0 - default lock.  Neither a $command nor a ^listen
+    1 - $command lock
+    2 - ^listen lock
+  
+  Examples:
+    > say testlock(*tester&&!*tester,*tester)
+    You say "0"
+    > say testlock(*tester,*tester)
+    You say "1"
+  
+  See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+  
 & lockencode()
 & lockdecode()
 & lockcheck()
   Function: lockencode(<string>)
             lockdecode(<string>)
-            lockcheck(<string>,<target>)
+            lockcheck(<string>, <target> [<type>])
   
   lockencode() returns an encoded string of a boolean lock evaluation.
    
   lockdecode() returns the decoded string of the encoded boolean.
   
   lockcheck() returns boolean true(1)/false(0) based on the encoded boolean.
+  
+  The optional <type> to lockcheck() is used for specialist lock values like
+  USELOCK where based on how the eval lock works it will pass.  You do not
+  have to specify a type, but locks that check for it should be used.
+  Types allowed are as follows:
+    0 - default lock.  Neither a $command nor a ^listen
+    1 - $command lock
+    2 - ^listen lock
   
   This is the same value (though encoded) that would be set when you issue
   a @Lock on something.  This is useful if you wish to enbed lock values
@@ -11652,7 +11684,8 @@
     > say lockcheck(KCMxMjM0KSYoIzkwMSk=,*Guest)
     You say "0"
   
-  See Also: lockdecode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+  See Also: testlock(), lockdecode(), lockdecode(), lockcheck(), lock(), 
+            elock(), @lock
 
 & lock()
   Function: lock(<object>[/<whichlock>][,<key>][,<attribute>])
@@ -11680,7 +11713,8 @@
     > say lock(me,yes,va)
     You say "Attribute locked."
   
-  See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck()
+  See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck(),
+            testlock()
   
 & elock()
   Function: elock(<object>[/<whichlock>], <victim> [,<type> [,<default>]])
@@ -11712,7 +11746,7 @@
     > say elock(me/pagelock,*twink,,0)
       You say "0"
   
-  See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck()
+  See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck(), testlock()
   
 & LWHO()
   Function: lwho([[<value>], [<target>], [<isobjid>]])
@@ -15864,13 +15898,15 @@
   See Also: lt(), lte(), gt(), eq(), neq()
   
 & lt()
-  Function: lt(<integer1>,<integer2>)
- 
-  Takes two integers, and returns 1 if and only if <integer1> is less than
-  <integer2>, and 0 otherwise.  Warning: passing anything but integers will
-  produce unexpected results, as non-numeric strings usually are treated
-  as numeric 0.
- 
+  Function: lt(<integer1>, <integer2> [,<integer3>,...])
+   
+  Takes two (or more) integers, and returns 1 if and only if <integer1> is 
+  less than <integer2> (which is less than <integer3> and so forth), and 0 
+  otherwise.  This function handles floating point numbers as well.
+  
+  Warning: passing anything but integers will produce unexpected results, 
+  as non-numeric strings usually are treated as numeric 0.  
+   
   Example:
     > say lt(4,5)
     You say "1"
@@ -15880,17 +15916,24 @@
     You say "0"
     > say lt(foo, bar)
     You say "0"
+   > say lt(1,2,3,4,5)
+    You say "1"
+   > say lt(1,2,3,4,5,3)
+    You say "0"
   
   See Also: lte(), gte(), gt(), eq(), neq()
   
 & lte()
-  Function: lte(<integer1>,<integer2>)
- 
-  Takes two integers, and returns 1 if and only if <integer1> is less than 
-  or equal to <integer2>, and 0 otherwise.  Warning: passing anything but 
-  integers will produce unexpected results, as non-numeric strings usually 
-  are treated as numeric 0.
- 
+  Function: lte(<integer1>, <integer2> [,<integer3>,...])
+   
+  Takes two (or more) integers, and returns 1 if and only if <integer1> is 
+  less than or equal to <integer2> (which is less than or equal <integer3>
+  and so forth), and 0 otherwise.  This function handles floating point
+  numbers as well.
+  
+  Warning: passing anything but integers will produce unexpected results, 
+  as non-numeric strings usually are treated as numeric 0.
+   
   Example:
     > say lte(4,5)
     You say "1"
@@ -15900,16 +15943,23 @@
     You say "0"
     > say lte(foo, bar)
     You say "1"
+   > say lte(1,2,3,4,5)
+    You say "1"
+   > say lte(1,2,3,4,5,3)
+    You say "0"
   
   See Also: lt(), gte(), gt(), eq(), neq()
   
 & eq()
-  Function: eq(<integer1>,<integer2>)
+  Function: eq(<integer1>, <integer2> [,<integer3>,...])
  
-  Takes two integers, and returns 1 if they are equal and 0 if they are not.
+  Takes two (or more) integers, and returns 1 if all the values
+  are equal, otherwise it returns a 0.  This function handles floating 
+  point numbers as well.
+  
   Warning: passing anything but integers will produce unexpected results,
   as non-numeric strings usually are treated as numeric 0.
- 
+   
   Example:
     > say eq(1,-1)
     You say "0"
@@ -15917,16 +15967,23 @@
     You say "1"
     > say eq(foo, bar)
     You say "1"
+    > say eq(5,5,5,5,5,5)
+    You say "1"
+    > say eq(5,5,5,3,5,5)
+    You say "0"
   
   See Also: lt(), lte(), gte(), gt(), neq()
   
 & neq()
-  Function: neq(<integer1>,<integer2>)
- 
-  Takes two integers, and returns 1 if they are not equal and 0 if they are
-  equal.  Warning: passing anything but integers will produce unexpected
+  Function: neq(<integer1>, <integer2> [,<integer3>,...])
+   
+  Takes two (or more) integers, and returns 1 if one of the integers
+  are different or '0' if they are all the same.  This function handles 
+  floating point numbers as well.
+  
+  Warning: passing anything but integers will produce unexpected
   results, as non-numeric strings usually are treated as numeric 0.
- 
+   
   Examples:
     > say neq(1,-1)
     You say "1"
@@ -15934,6 +15991,10 @@
     You say "0"
     > say neq(foo, bar)
     You say "0"
+    > say neq(5,5,5,5,5,5)
+    You say "0"
+    > say neq(5,5,5,3,5,5)
+    You say "1"
   
   See Also: lt(), lte(), gte(), gt(), eq(), not()
   
@@ -28032,7 +28093,7 @@
   The current Lead Developer (which we change up) is marked with a '*'.
   Developers who are MIA or retired are surrounded in []'s.
    
-  Current Revision: 3.9.5p3
+  Current Revision: 3.9.5p4
 
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
@@ -28048,7 +28109,7 @@
     3.9.2: 3.9.2p0, 3.9.2p1
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
-    3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3
+    3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -30283,3 +30344,18 @@
   * erraneous ansi-normal on cname() if the name was not ansified [ASH]
   * small bug in time conversion in timefmt() with daylight savings [ASH]
   * mail did not handle commas for player separation properly [ASH]
+
+& 3.9.5p4
+  Release Date: 11/23/16
+  Status: Alpha
+  
+  New Features
+  ------------
+  * testlock() for PennMUSH compatibility on testing locks [ASH]
+  
+  Changes
+  ------------
+  * lt(), lte(), gt(), gte(), eq(), neq() handle multiple args [ASH]
+  
+  Bug Fixes
+  ------------

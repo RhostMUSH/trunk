@@ -5171,6 +5171,51 @@ FUNCTION(fun_lockcheck)
    free_lbuf(s_instr);
 }
 
+FUNCTION(fun_testlock)
+{
+   char *s_instr;
+   dbref target;
+   int i_locktype;
+   struct boolexp *okey;
+
+   if (!fn_range_check("TESTLOCK", nfargs, 2, 3, buff, bufcx)) 
+      return;
+
+   if ( !fargs[0] || !*fargs[0] || !fargs[1] || !*fargs[1] ) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+      return;
+   }
+
+   target = match_thing(player, fargs[1]);
+   if ( !Good_chk(target) ) {
+      safe_str("#-1 NOT FOUND", buff, bufcx);
+   }
+   if ( (Cloak(target) && !Wizard(player)) ||
+        ((SCloak(target) && Cloak(target)) && !Immortal(player)) ) {
+      safe_str("#-1 NOT FOUND", buff, bufcx);
+   }
+
+   i_locktype = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_locktype = atoi(fargs[2]);
+      if ( (i_locktype < 0) || (i_locktype > 2) )
+         i_locktype = 0;
+   }
+
+   okey = parse_boolexp(player, strip_all_special(fargs[0]), 0);
+   if ( okey == TRUE_BOOLEXP ) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+   } else {
+      s_instr = alloc_lbuf("fun_testlock");
+      memset(s_instr, '\0', LBUF_SIZE);
+      sprintf(s_instr, "%s", unparse_boolexp_quiet(player, okey));
+      ival(buff, bufcx, eval_boolexp_atr(target, target, target, s_instr, 1, i_locktype));
+      free_lbuf(s_instr);
+   }
+   free_boolexp(okey);
+}
+
+
 /* Encode/Decode require OpenSSL or will return an error */
 FUNCTION(fun_encode64)
 {
@@ -18178,32 +18223,111 @@ FUNCTION(fun_rnum)
 
 FUNCTION(fun_gt)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) > safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (GT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+  
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) > safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_gte)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) >= safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (GTE) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) >= safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_lt)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) < safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (LT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) < safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_lte)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) <= safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (LTE) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) <= safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_eq)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) == safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (EQ) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) == safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_neq)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) != safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (NEQ) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( (i_ret = (safe_atof(fargs[i-1]) != safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_mask)
@@ -33106,7 +33230,7 @@ FUN flist[] =
     {"ENCRYPT", fun_encrypt, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"ENTRANCES", fun_entrances, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"EQ", fun_eq, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"EQ", fun_eq, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ERROR", fun_error, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPE", fun_escape, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPEX", fun_escape, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33139,8 +33263,8 @@ FUN flist[] =
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GRABALL", fun_graball, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GREP", fun_grep, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"GT", fun_gt, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"GTE", fun_gte, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"GT", fun_gt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"GTE", fun_gte, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GUILD", fun_guild, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"HASATTR", fun_hasattr, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"HASATTRP", fun_hasattrp, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33263,8 +33387,8 @@ FUN flist[] =
     {"LSET", fun_lset, 1, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, 0},
 #endif
     {"LSUB", fun_lsub, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"LT", fun_lt, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"LTE", fun_lte, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LT", fun_lt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"LTE", fun_lte, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LTOGGLES", fun_ltoggles, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LWHO", fun_lwho, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LXNOR", fun_lxnor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33310,7 +33434,7 @@ FUN flist[] =
     {"NAND", fun_nand, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NCOMP", fun_ncomp, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"NEARBY", fun_nearby, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"NEQ", fun_neq, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"NEQ", fun_neq, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NEXT", fun_next, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"NPEMIT", fun_pemit, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33506,6 +33630,7 @@ FUN flist[] =
 #ifdef USE_SIDEEFFECT
     {"TEL", fun_tel, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"TESTLOCK", fun_testlock, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TEXTFILE", fun_textfile, 1, FN_VARARGS, CA_WIZARD, 0},
     {"TIME", fun_time, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"TIMEFMT", fun_timefmt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
