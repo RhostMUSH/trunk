@@ -30352,10 +30352,15 @@
   New Features
   ------------
   * testlock() for PennMUSH compatibility on testing locks [ASH]
+  * hook_offline if enabled will trigger the @hook/after on
+    @pcreate/@register on AO_<command> attribute.  Player created 
+    will be %# [ASH]
   
   Changes
   ------------
   * lt(), lte(), gt(), gte(), eq(), neq() handle multiple args [ASH]
+  * @hook will show if hook_offline is enabled [ASH]
+  * offline 'create' optionally triggers @hook [ASH]
   
   Bug Fixes
   ------------

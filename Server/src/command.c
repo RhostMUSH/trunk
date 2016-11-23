@@ -9925,7 +9925,7 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
    }
 }
 
-void show_hook(char *bf, char *bfptr, int key)
+void show_hook(char *bf, char *bfptr, int key, char *cmdname)
 {
    if ( key & HOOK_BEFORE )
       safe_str("before ", bf, &bfptr);
@@ -9939,6 +9939,9 @@ void show_hook(char *bf, char *bfptr, int key)
       safe_str("igswitch ", bf, &bfptr);
    if ( key & HOOK_FAIL )
       safe_str("fail ", bf, &bfptr);
+   if ( ((strcmp(cmdname, "@register") == 0) || (strcmp(cmdname, "@pcreate") == 0)) && (key & HOOK_AFTER) && mudconf.hook_offline ) {
+      safe_str("[offline] ", bf, &bfptr);
+   }
    return;
 }
 
@@ -10142,7 +10145,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
       }
       if ( cmdp->hookmask ) {
          s_ptr = s_ptrbuff = alloc_lbuf("@hook");
-         show_hook(s_ptrbuff, s_ptr, cmdp->hookmask);
+         show_hook(s_ptrbuff, s_ptr, cmdp->hookmask, cmdp->cmdname);
          notify(player, unsafe_tprintf("@hook: new mask for '%s' -> %s", cmdp->cmdname, s_ptrbuff));
          free_lbuf(s_ptrbuff);
       } else {
@@ -10153,7 +10156,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
       if ( cmdp ) {
          if ( cmdp->hookmask ) {
             s_ptr = s_ptrbuff = alloc_lbuf("@hook");
-            show_hook(s_ptrbuff, s_ptr, cmdp->hookmask);
+            show_hook(s_ptrbuff, s_ptr, cmdp->hookmask, cmdp->cmdname);
             notify(player, unsafe_tprintf("@hook: mask for hashed-command '%s' -> %s", cmdp->cmdname, s_ptrbuff));
             free_lbuf(s_ptrbuff);
          } else {
@@ -10181,7 +10184,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
             s_ptr = s_ptrbuff;
             if ( cmdp->hookmask ) {
                found = 1;
-               show_hook(s_ptrbuff, s_ptr, cmdp->hookmask);
+               show_hook(s_ptrbuff, s_ptr, cmdp->hookmask, cmdp->cmdname);
                tprp_buff = tpr_buff;
                if ( strcmp(cmdp->cmdname, "S") == 0 ) 
                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
@@ -10235,7 +10238,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
             cmdp = lookup_orig_command(cbuff);
             if ( cmdp && cmdp->hookmask ) {
                found = 1;
-               show_hook(s_ptrbuff, s_ptr, cmdp->hookmask);
+               show_hook(s_ptrbuff, s_ptr, cmdp->hookmask, cmdp->cmdname);
                tprp_buff = tpr_buff;
                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-32.32s | %s", cmdp->cmdname, s_ptrbuff));
             }

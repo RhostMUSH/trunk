@@ -61,6 +61,9 @@ extern int FDECL(lookup, (char *, char *, int, int *));
 static void set_userstring(char **, const char *);
 extern const char *addrout(struct in_addr);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern CMDENT * lookup_command(char *);
+extern int process_hook(dbref, dbref, char *, ATTR *, int);
+
 
 /* for aconnect: player = room, target = connecting player */
 /*
@@ -3917,11 +3920,13 @@ static int
 check_connect(DESC * d, const char *msg)
 {
     char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff;
-    dbref player, aowner, player2;
+    dbref player, aowner, player2, victim;
     int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest;
-    int ok_to_login, i_sitemax;
+    int ok_to_login, i_sitemax, chk_stop, chk_tog;
     DESC *d2, *d3;
-    char buff2[10], *in_tchr, tchar_buffer[600], *tstrtokr;
+    CMDENT *cmdp;
+    ATTR *hk_ap2;
+    char buff2[10], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
 
     DPUSH; /* #146 */
 
@@ -4418,6 +4423,24 @@ check_connect(DESC * d, const char *msg)
 		d->player = player;
 		fcache_dump(d, FC_CREA_NEW);
 		announce_connect(player, d, 0);
+                /* Trigger the hook for player creation */
+                if ( Good_chk(mudconf.hook_obj) ) {
+                   cmdp = lookup_command((char *)"@pcreate");
+                   if ( (cmdp->hookmask & HOOK_AFTER) ) {
+                      s_uselock = alloc_sbuf("offline_create");
+                      sprintf(s_uselock, "%s", (char *)"AO_@PCREATE");
+                      hk_ap2 = atr_str(s_uselock);
+                      chk_stop = mudstate.chkcpu_stopper;
+                      chk_tog  = mudstate.chkcpu_toggle;
+                      mudstate.chkcpu_stopper = time(NULL);
+                      mudstate.chkcpu_toggle = 0;
+                      mudstate.chkcpu_locktog = 0;
+                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+                      mudstate.chkcpu_toggle = chk_tog;
+                      mudstate.chkcpu_stopper = chk_stop;
+                      free_sbuf(s_uselock);
+                   }
+                }
 	    }
 	}
     } else if (mudconf.offline_reg && !strncmp(command, "reg", 3)) {
@@ -4446,6 +4469,24 @@ check_connect(DESC * d, const char *msg)
 	  case 0:
 	    (d->regtries_left)--;
 	    queue_string(d, "Autoregistration password emailed.\r\n");
+            victim = lookup_player(1, user, 1);
+            if ( Good_chk(mudconf.hook_obj) && Good_chk(victim) ) {
+               cmdp = lookup_command((char *)"@register");
+               if ( (cmdp->hookmask & HOOK_AFTER) ) {
+                  s_uselock = alloc_sbuf("offline_register");
+                  sprintf(s_uselock, "%s", (char *)"AO_@REGISTER");
+                  hk_ap2 = atr_str(s_uselock);
+                  chk_stop = mudstate.chkcpu_stopper;
+                  chk_tog  = mudstate.chkcpu_toggle;
+                  mudstate.chkcpu_stopper = time(NULL);
+                  mudstate.chkcpu_toggle = 0;
+                  mudstate.chkcpu_locktog = 0;
+                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+                  mudstate.chkcpu_toggle = chk_tog;
+                  mudstate.chkcpu_stopper = chk_stop;
+                  free_sbuf(s_uselock);
+               }
+            }
 	    break;
 	  case 1:
 	    queue_string(d, "Autoregistration character invalid or already exists.\r\n");

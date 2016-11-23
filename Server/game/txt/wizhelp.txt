@@ -5492,6 +5492,7 @@
   hackattr_nowiz            hackattr_see              hasattrp_compat         
   heavy_cpu_max             help_file                 help_index              
   hide_nospoof              hook_cmd                  hook_obj                
+  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -7394,7 +7395,7 @@
   For detailed information on how to set up hooks, please see wizhelp on:
                                 HOOK SETUP
   
-  See Also: HOOK SETUP, @hook, hook_obj
+  See Also: HOOK SETUP, @hook, hook_obj, hook_offline
                       
 & hook_obj
   Config parameter: hook_obj <dbref>.  Default: -1
@@ -7407,6 +7408,7 @@
           A_<command> - after configuration
           B_<command> - before configuration
          AF_<command> - fail configuration
+         AO_<command> - after offline (connect screen) configuration 
    
   Percent substitutions are handled differently than normal '@hooks' and
   can be seen with reviewing wizhelp on 'sub_override'.
@@ -7418,7 +7420,19 @@
   For detailed information on how to set up hooks, please see wizhelp on:
                                 HOOK SETUP
   
-  See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include
+  See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include,
+            hook_offline
+  
+& hook_offline
+  Config parameter: hook_offline <on/off>.  Default: off
+  
+  This option if enabled will allow connect screen (offline) player
+  creates to trigger @pcreate/after and/or @register/after.  
+  The attribute for this is special and will be AO_@pcreate 
+  instead of A_@pcreate and AO_@register instead of A_@register
+  
+  See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include,
+            hook_offline
   
 & hostnames
   Config parameter: hostnames <yes/no>.  Default: yes

@@ -321,6 +321,7 @@ NDECL(cf_init)
     mudconf.parent_follow = 1;		/* Parent allows following if you control target */
     mudconf.objid_localtime = 0;	/* Objid's should use GMtime by default */
     mudconf.objid_offset = 0;		/* seconds of offset that it should use */
+    mudconf.hook_offline = 0;		/* Trigger @hook/after on offline player create */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4082,6 +4083,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.hook_obj, 0, 0, CA_WIZARD,
      (char *) "Global Hook Object dbref#.\r\n"\
               "    (-1 for no defined obj)  Default: -1   Value: %d"},
+    {(char *) "hook_offline",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hook_offline, 0, 0, CA_WIZARD,
+     (char *) "Allow offline 'create' to hook on @pcreate/after?"},
     {(char *) "hostnames",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.use_hostname, 0, 0, CA_WIZARD,
      (char *) "Are hostnames viewable or just numerics?"},
