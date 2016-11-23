@@ -3335,7 +3335,7 @@ CF_HAND(cf_site)
 
     i_found = 0;
     for ( s_tmp = head; s_tmp; s_tmp = s_tmp->next ) {
-       if ( (s_tmp->maxcon == i_maxcon) &&
+       if ( s_tmp && (s_tmp->maxcon == i_maxcon) &&
             (s_tmp->address.s_addr == addr_num.s_addr) &&
             (s_tmp->mask.s_addr == mask_num.s_addr) &&
             (s_tmp->flag == extra) ) {
