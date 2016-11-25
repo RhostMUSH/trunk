@@ -70,6 +70,8 @@ ifeq "$(CHK)" "0"
 else
    CHK = $(shell which gcc >/dev/null; echo $$?)
    ifeq "$(CHK)" "0"
+      CC = gcc
+   else
       CC = cc
    endif
 endif
