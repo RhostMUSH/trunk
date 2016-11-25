@@ -3289,7 +3289,7 @@ CF_HAND(cf_badname)
  * cf_site: Update site information
  */
 
-CF_HAND(cf_site)
+CF_HAND2(cf_site)
 {
     SITE *site, *last, *head, *s_tmp;
     char *addr_txt, *mask_txt, *maxcon_txt, *tstrtokr, *s_val;
@@ -3324,11 +3324,13 @@ CF_HAND(cf_site)
     }
 
     i_maxcon = -1;
-    maxcon_txt = strtok_r(NULL, " \t=,", &tstrtokr);
-    if ( maxcon_txt && *maxcon_txt ) {
-       i_maxcon = atoi(maxcon_txt);
-       if ( i_maxcon < 0 )
-          i_maxcon = -1;
+    if ( mask_txt ) {
+       maxcon_txt = strtok_r(NULL, " \t=,", &tstrtokr);
+       if ( maxcon_txt && *maxcon_txt ) {
+          i_maxcon = atoi(maxcon_txt);
+          if ( i_maxcon < 0 )
+             i_maxcon = -1;
+       }
     }
 
 
@@ -3913,7 +3915,7 @@ CONF conftable[] =
      cf_string_chr, CA_GOD | CA_IMMORTAL, (int *) mudconf.tree_character, 2, 0, CA_WIZARD,
      (char *) "The character for the tree seperator."},
     {(char *) "forbid_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.access_list,
      H_FORBIDDEN, 0, CA_WIZARD,
      (char *) "This specifies sites for forbid."},
     {(char *) "forbid_host",
@@ -4378,11 +4380,11 @@ CONF conftable[] =
      (char *) "Are startups de-active?\r\n"\
               "                             Default: 0   Value: %d"},
     {(char *) "noauth_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.special_list,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.special_list,
      H_NOAUTH, 0, CA_WIZARD,
      (char *) "Specify sites to block AUTH/IDENT lookups."},
     {(char *) "noautoreg_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.access_list,
      H_NOAUTOREG, 0, CA_WIZARD,
      (char *) "Specify sites to block autoregistration."},
     {(char *) "noautoreg_host",
@@ -4392,11 +4394,11 @@ CONF conftable[] =
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.nobroadcast_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to not MONITOR."},
     {(char *) "nodns_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.special_list,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.special_list,
      H_NODNS, 0, CA_WIZARD,
      (char *) "Specify sites to block dns lookups."},
     {(char *) "noguest_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.access_list,
      H_NOGUEST, 0, CA_WIZARD,
      (char *) "Specify sites to block guest connections."},
     {(char *) "noguest_host",
@@ -4509,7 +4511,7 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.penn_switches, 0, 0, CA_PUBLIC,
      (char *) "Does switch() understand > and <?"},
     {(char *) "permit_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list, 0, 0, CA_WIZARD,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.access_list, 0, 0, CA_WIZARD,
      (char *) "Site permission for allowing site."},
     {(char *) "player_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.player_dark, 0, 0, CA_PUBLIC,
@@ -4616,7 +4618,7 @@ CONF conftable[] =
      cf_string, CA_DISABLED, (int *) mudconf.regf_file, 32, 0, CA_WIZARD,
      (char *) "File used for registering."},
     {(char *) "register_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.access_list,
      H_REGISTRATION, 0, CA_WIZARD,
      (char *) "Site permissions for registration."},
     {(char *) "register_host",
@@ -4796,7 +4798,7 @@ CONF conftable[] =
      (char *) "Override mask for percent-substitutions.\r\n"\
               "                             Default: 0   Value: %d"},
     {(char *) "suspect_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.suspect_list,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.suspect_list,
      H_SUSPECT, 0, CA_WIZARD,
      (char *) "Site list for specifying suspects."},
     {(char *) "suspect_host",
@@ -4845,7 +4847,7 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.trace_topdown, 0, 0, CA_PUBLIC,
      (char *) "Does trace go top down, or bottom up?"},
     {(char *) "trust_site",
-     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.suspect_list, 0, 0, CA_WIZARD,
+     cf_site, CA_GOD | CA_IMMORTAL, (pmath2 *) &mudstate.suspect_list, 0, 0, CA_WIZARD,
      (char *) "Site used to specify trusted people."},
     {(char *) "uncompress_program",
      cf_string, CA_DISABLED, (int *) mudconf.uncompress, 128, 0, CA_WIZARD,
