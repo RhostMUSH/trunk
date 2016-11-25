@@ -64,11 +64,16 @@ else
    EXTLIBS=-lrt
 endif
 
-CHK = $(shell which gcc >/dev/null; echo $$?)
+CHK = $(shell which clang >/dev/null; echo $$?)
 ifeq "$(CHK)" "0"
-   CC = gcc
+   CC = clang
 else
-   CC = cc
+   CHK = $(shell which gcc >/dev/null; echo $$?)
+   ifeq "$(CHK)" "0"
+      CC = gcc
+   else
+      CC = cc
+   endif
 endif
 
 # CPP = gcc -E	# This is broken in autoconf.  Sigh.

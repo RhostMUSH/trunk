@@ -56,12 +56,12 @@ else
       fi
    done
 fi
-if [ -f /usr/bin/gcc ]
-then
-   MYGCC=/usr/bin/gcc
-elif [ -f /usr/bin/clang ]
+if [ -f /usr/bin/clang ]
 then
    MYGCC=/usr/bin/clang
+elif [ -f /usr/bin/gcc ]
+then
+   MYGCC=/usr/bin/gcc
 else
    for i in $(slocate gcc)
    do
