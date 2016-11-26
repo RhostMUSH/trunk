@@ -759,7 +759,7 @@ shovechars(int port,char* address)
 		}
 
                 /* Idle stamp checking for command typed */
-                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
+                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && (char *)(d->input_head->cmd) ) {
                    ulCRC32 = 0;
                    i_len = strlen(d->input_head->cmd);
                    ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, i_len);
@@ -845,7 +845,7 @@ shovechars(int port,char* address)
                    }
                 }
 
-                if ( (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
+                if ( (d->flags & DS_CONNECTED) && d->input_head && (char *)(d->input_head->cmd) ) {
                    memcpy(s_cutter, d->input_head->cmd, 5);
                    memcpy(s_cutter2, d->input_head->cmd, 7);
                    s_cutter[5] = '\0';
@@ -868,7 +868,7 @@ shovechars(int port,char* address)
                 }
 
                 /* Ignore Null Input */
-                if ( (d->input_tot <= (i_oldlastcnt + 2)) && d->input_head && d->input_head->cmd &&
+                if ( (d->input_tot <= (i_oldlastcnt + 2)) && d->input_head && (char *)(d->input_head->cmd) &&
                      ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
                    d->last_time = i_oldlasttime;
                 }
@@ -965,8 +965,14 @@ new_connection(int sock)
     struct sockaddr_in addr;
     static int spam_log = 0;
     char *logbuff, *addroutbuf;
-    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, 
-        i_mtu, i_mtulen, i_mss, i_msslen, i_proxychk;
+    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, i_proxychk;
+#ifndef __MACH__
+#ifndef CYGWIN
+#ifndef BROKEN_PROXY
+    int i_mtu, i_mtulen, i_mss, i_msslen;
+#endif
+#endif
+#endif
 
 #ifndef TLI
     int addr_len;
