@@ -50,23 +50,27 @@ char	*cp;
 
 char *munge_space(char *string)
 {
-char	*buffer, *p, *q;
+   char *buffer, *p, *q;
 
-	buffer = alloc_lbuf("munge_space");
-	p = string;
-	q = buffer;
-	while (p && *p && isspace((int)*p))
-		p++;		/* remove inital spaces */
-	while (p && *p) {
-		while (*p && !isspace((int)*p))
-			*q++ = *p++;
-		while (*p && isspace((int)*++p)) ;
-			if (*p)
-				*q++ = ' ';
-	}
-	*q = '\0';		/* remove terminal spaces and terminate
-				 * string */
-	return (buffer);
+   buffer = alloc_lbuf("munge_space");
+   p = string;
+   q = buffer;
+   while (p && *p && isspace((int)*p)) {
+      p++;		/* remove inital spaces */
+   }
+   while (p && *p) {
+      while (*p && !isspace((int)*p)) {
+         *q++ = *p++;
+      }
+      while (*p && isspace((int)*++p)) {
+         ;
+      }
+      if (*p) {
+         *q++ = ' ';
+      }
+   }
+   *q = '\0'; /* remove terminal spaces and terminate string */
+   return (buffer);
 }
 
 /* ---------------------------------------------------------------------------

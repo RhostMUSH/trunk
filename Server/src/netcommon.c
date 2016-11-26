@@ -422,10 +422,12 @@ strip_ansi_color(const char *raw)
 	       *q++ = *p++;
 	   } else {
 	      /* Skip to end. */
-	      while (*p && !isalpha((int)*p))
+	      while (*p && !isalpha((int)*p)) {
                  p++;
-                 if (*p)
-                    p++;
+              }
+              if (*p) {
+                 p++;
+              }
            }
         }
     }
@@ -2934,23 +2936,23 @@ dump_users(DESC * e, char *match, int key)
 	   queue_string(e, "Characters Input----  Characters Output---\r\n");
            queue_string(e, "Player Name          #Cmnds Port  ");
         }
-    }
-    else
+    } else {
 #ifdef PARIS
-      if ( i_attrpipe ) {
-         safe_str((char *)"Player Name            On For Idle  ", atext, &atextptr);
-      } 
-      if ( i_pipetype ) {
-         queue_string(e, "Player Name            On For Idle  ");
-      }
+        if ( i_attrpipe ) {
+           safe_str((char *)"Player Name            On For Idle  ", atext, &atextptr);
+        } 
+        if ( i_pipetype ) {
+           queue_string(e, "Player Name            On For Idle  ");
+        }
 #else
-      if ( i_attrpipe ) {
-         safe_str((char *)"Player Name          On For Idle  ", atext, &atextptr);
-      } 
-      if ( i_pipetype ) {
-         queue_string(e, "Player Name          On For Idle  ");
-      }
+        if ( i_attrpipe ) {
+           safe_str((char *)"Player Name          On For Idle  ", atext, &atextptr);
+        } 
+        if ( i_pipetype ) {
+           queue_string(e, "Player Name          On For Idle  ");
+        }
 #endif
+    }
     if (key == CMD_SESSION) {
         if ( i_attrpipe ) {
            safe_str((char *)"Pend  Lost     Total  Pend  Lost     Total\r\n", atext, &atextptr);
@@ -2959,8 +2961,8 @@ dump_users(DESC * e, char *match, int key)
 	   queue_string(e, "Pend  Lost     Total  Pend  Lost     Total\r\n");
         }
     } else if ((e->flags & DS_CONNECTED) && (Wizard(e->player) || HasPriv(e->player, NOTHING, POWER_WIZ_WHO, POWER3, POWER_LEVEL_NA))
-	&& (!DePriv(e->player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
-	       && (key == CMD_WHO)) {
+               && (!DePriv(e->player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
+               && (key == CMD_WHO)) {
 #ifdef PARIS
         if ( i_attrpipe ) {
            safe_str((char *)"Room      Cmds Host\r\n", atext, &atextptr);

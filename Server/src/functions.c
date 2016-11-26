@@ -4103,10 +4103,12 @@ FUNCTION(fun_wrapcolumns)
                  winfo.width = maxw;
                  if (cut2) {
                     pp = leftstart + maxw;
-                    while (*pp && !isspace((int)*pp))
+                    while (*pp && !isspace((int)*pp)) {
                        pp++;
-                    if (*pp)
-                    pp++;
+                    }
+                    if (*pp) {
+                       pp++;
+                    }
                     buffleft -= pp - leftstart;
                     leftstart += pp - leftstart;
                  } else {
@@ -4114,10 +4116,11 @@ FUNCTION(fun_wrapcolumns)
                     buffleft -= maxw;
                  }
               } else { /* we hit a space, chop it there */
-                 if ((pp - leftstart) > winfo.width)
+                 if ((pp - leftstart) > winfo.width) {
                     winfo.width = pp - leftstart;
-                    buffleft -= pp - leftstart + 1;
-                    leftstart += pp - leftstart + 1; /* eat the space */
+                 }
+                 buffleft -= pp - leftstart + 1;
+                 leftstart += pp - leftstart + 1; /* eat the space */
               }
            }
         }
@@ -21942,10 +21945,11 @@ FUNCTION(fun_lflags)
        if ( (target != NOTHING) && (target != AMBIGUOUS) && (!Cloak(target) || (Cloak(target) &&
             (Examinable(player, target) || Wizard(player)))) &&
             (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
-            (mudconf.pub_flags || Examinable(player, target) || (target == cause)) )
+            (mudconf.pub_flags || Examinable(player, target) || (target == cause)) ) {
           parse_aflags(player, target, olist_first(&master), buff, bufcx, 1);
-          olist_cleanup(&master);
-          return;
+       }
+       olist_cleanup(&master);
+       return;
     }
     olist_cleanup(&master);
 
@@ -30379,9 +30383,9 @@ FUNCTION(fun_ljc)
   memset(t_buff, '\0', sizeof(t_buff));
   s = t = NULL;
   if ( (nfargs > 2) && *fargs[2] ) {
-     if ( strlen(strip_all_special(fargs[2])) < 1 )
+     if ( strlen(strip_all_special(fargs[2])) < 1 ) {
         sprintf(filler, " ");
-     else
+     } else {
 #ifdef ZENTY_ANSI
         s = strip_all_special(fargs[2]);          
         t = filler;
@@ -30407,6 +30411,7 @@ FUNCTION(fun_ljc)
 #else
         sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
 #endif
+     }
   } else {
      sprintf(filler, " ");
   }

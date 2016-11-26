@@ -333,32 +333,32 @@ void door_raw_output(DESC *d, char *output)
 static int setup_player(DESC *d, int sock, int doorIdx) {
   int retval = sock;
 
-  if (sock >= 0)
-    d->door_lbuf = alloc_lbuf("door_lbuf");
-    if (d->door_lbuf == NULL) {
-      close(sock);
-      queue_string(d, "Could not allocate door buffer\r\n");
-      retval = -1;
-    }
-    *(d->door_lbuf) = '\0';
+  if (sock >= 0) {
+      d->door_lbuf = alloc_lbuf("door_lbuf");
+      if (d->door_lbuf == NULL) {
+          close(sock);
+          queue_string(d, "Could not allocate door buffer\r\n");
+          retval = -1;
+      }
+      *(d->door_lbuf) = '\0';
+      d->door_mbuf = alloc_mbuf("door_lbuf");
+      if ( (sock >= 0) && d->door_mbuf == NULL ) {
+          close(sock);
+          queue_string(desc_in_use, "Could not allocate door buffer\r\n");
+          free_lbuf(d->door_lbuf);
+          d->door_lbuf = NULL;
+          retval = -1;
+      }
 
-    d->door_mbuf = alloc_mbuf("door_lbuf");
-    if (d->door_mbuf == NULL && sock >= 0) {
-      close(sock);
-      queue_string(desc_in_use, "Could not allocate door buffer\r\n");
-      free_lbuf(d->door_lbuf);
-      d->door_lbuf = NULL;
-      retval = -1;
-    }
-
-    if (retval >= 0) {
-      *(d->door_mbuf) = '\0';
-      d->door_desc = sock;
-      d->flags |= DS_HAS_DOOR;   
-      d->door_num = doorIdx;
-/*    process_output(d); */
-    }
-    return sock;
+      if (retval >= 0) {
+          *(d->door_mbuf) = '\0';
+          d->door_desc = sock;
+          d->flags |= DS_HAS_DOOR;   
+          d->door_num = doorIdx;
+      /*  process_output(d); */
+      }
+  }
+  return sock;
 }
 
 int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx)

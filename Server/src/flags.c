@@ -1608,7 +1608,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 	} else {
 	    tp = find_toggle(target, pt1);
 	    if (tp == NULL) {
-              if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) )
+              if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
                 fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
 		   notify(player, "I don't understand that toggle.");
@@ -1617,6 +1617,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @set me=%s?]", pt1));
                    free_lbuf(tpr_buff);
                 }
+              }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
