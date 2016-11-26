@@ -30365,3 +30365,5 @@
   Bug Fixes
   ------------
   * GCC 6.2 had different sizes for pointer and structure data [ASH]
+  * cleanup of warnings for GCC 6.2.
+  * fix crash bug in ljc()

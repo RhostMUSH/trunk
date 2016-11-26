@@ -2859,11 +2859,13 @@ atr_cpy(dbref player, dbref dest, dbref source)
 	    aowner = owner;	/* chg owner */
 	at = atr_num(attr);
 	if (attr) {
-	    if ((attr != A_MONEY) && Write_attr(owner, dest, at, aflags))
+	    if ((attr != A_MONEY) && Write_attr(owner, dest, at, aflags)) {
 		/* Only set attrs that owner has perm to set */
     		mudstate.vlplay = player;
-                if ( !((aflags & AF_NOCLONE) || (at && (at->flags & AF_NOCLONE))) )
+                if ( !((aflags & AF_NOCLONE) || (at && (at->flags & AF_NOCLONE))) ) {
 		   atr_add(dest, attr, buf, aowner, aflags);
+                }
+            }
 	}
 	free_lbuf(buf);
     }
