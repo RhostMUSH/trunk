@@ -5168,12 +5168,19 @@ CF_HAND(cf_cmd_vattr)
      DPOP; /* #40A */
      return -1;
   }
+  if ( (strchr(alias, '/') != NULL) || (strchr(alias, '\n') != NULL) || (strchr(alias, '\r') != NULL) ) {
+     if ( !mudstate.initializing )
+        notify(player, "Error - you can not have the '/' or CRLF characters in your VATTR command alias");
+     DPOP; /* #40A */
+     return -1;
+  }
 
   if ( mudstate.initializing == 1) {
      if ( (fp = fopen("rhost_vattr.conf", "a")) != NULL ) {
         fprintf(fp, "vattr_command %s %s\n", orig, alias);
         fclose(fp);
      }
+     DPOP; /* #40A */
      return 0;
   }
 
