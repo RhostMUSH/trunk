@@ -4654,6 +4654,7 @@ static void list_vattrcmds(dbref player) {
   }
   free_lbuf(buff);
   notify(player, "Completed.");
+  DPOP;
 
 }
 
