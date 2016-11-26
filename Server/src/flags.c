@@ -960,9 +960,10 @@ NDECL(init_flagtab)
 
     hashinit(&mudstate.flags_htab, 521);
     nbuf = alloc_sbuf("init_flagtab");
-    for (fp = gen_flags; fp->flagname && *fp->flagname != '\0'; fp++) {
-      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++)
+    for (fp = gen_flags; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
 	*np = ToLower((int)*bp);
+      }
       *np = '\0';
       hashadd2(nbuf, (int *) fp, &mudstate.flags_htab, 1);
     }
@@ -977,9 +978,10 @@ NDECL(init_toggletab)
 
     hashinit(&mudstate.toggles_htab, 131);
     nbuf = alloc_sbuf("init_toggletab");
-    for (tp = tog_table; tp->togglename; tp++) {
-	for (np = nbuf, bp = (char *) tp->togglename; *bp; np++, bp++)
+    for (tp = tog_table; (char *)(tp->togglename); tp++) {
+	for (np = nbuf, bp = (char *) tp->togglename; *bp; np++, bp++) {
 	    *np = ToLower((int)*bp);
+        }
 	*np = '\0';
 	hashadd(nbuf, (int *) tp, &mudstate.toggles_htab);
     }
@@ -4442,7 +4444,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
             break;
       }
-      if ( !fp || !(fp->flagname)) {
+      if ( !fp || !((char *)(fp->flagname))) {
          notify_quiet(player, "Bad flag given to @flagdef");
          return;
       }
