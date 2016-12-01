@@ -4802,8 +4802,7 @@ FUNCTION(fun_checkpass)
 FUNCTION(fun_digest)
 {
 #ifdef HAS_OPENSSL
-#define OPENSSL11 (SHLIB_VERSION_NUMBER >= 1.1)
-#ifdef OPENSSL11 
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
   EVP_MD_CTX *ctx;
 	ctx = EVP_MD_CTX_new();
 #else
@@ -4821,7 +4820,7 @@ FUNCTION(fun_digest)
     return;
   }
 
-#ifdef OPENSSL11
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
   EVP_DigestInit(ctx, mp);
   EVP_DigestUpdate(ctx, fargs[1], len2);
   EVP_DigestFinal(ctx, md, &len);
@@ -4835,7 +4834,7 @@ FUNCTION(fun_digest)
      safe_chr(digits[md[n] >> 4], buff, bufcx);
      safe_chr(digits[md[n] & 0x0F], buff, bufcx);
   }
-#ifdef OPENSSL11
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
 	EVP_MD_CTX_free(ctx);
 #endif
 #else
