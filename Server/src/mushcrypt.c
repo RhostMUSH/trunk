@@ -310,7 +310,13 @@ decode_base64(char *encoded, int len, char *buff, char **bp, int key)
 int
 check_mux_password(const char *saved, const char *password)
 {
+#define OPENSSL11 (SHLIB_VERSION_NUMBER >= 1.1)
+#ifdef OPENSSL11
+   EVP_MD_CTX *ctx;
+   ctx = EVP_MD_CTX_new();
+#else
    EVP_MD_CTX ctx;
+#endif
    const EVP_MD *md;
    uint8_t hash[EVP_MAX_MD_SIZE];
    unsigned int rlen = EVP_MAX_MD_SIZE;
@@ -352,10 +358,17 @@ check_mux_password(const char *saved, const char *password)
    decode_base64(start, strlen(start), decoded, &dp, 1);
 
    /* Double-hash the password */
+#ifdef OPENSSL11
+   EVP_DigestInit(ctx, md);
+   EVP_DigestUpdate(ctx, start, strlen(start));
+   EVP_DigestUpdate(ctx, password, strlen(password));
+   EVP_DigestFinal(ctx, hash, &rlen);
+#else
    EVP_DigestInit(&ctx, md);
    EVP_DigestUpdate(&ctx, start, strlen(start));
    EVP_DigestUpdate(&ctx, password, strlen(password));
    EVP_DigestFinal(&ctx, hash, &rlen);
+#endif
 
    /* Decode the stored password */
    dp = decoded;
@@ -364,6 +377,9 @@ check_mux_password(const char *saved, const char *password)
    /* Compare stored to hashed */
    return_chk = (memcmp(decoded, hash, rlen) == 0);
    free_lbuf(decoded);
+#ifdef OPENSSL11
+   EVP_MD_CTX_free(ctx);
+#endif
    return (return_chk);
 }
 #else
