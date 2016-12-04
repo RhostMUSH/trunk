@@ -4802,7 +4802,12 @@ FUNCTION(fun_checkpass)
 FUNCTION(fun_digest)
 {
 #ifdef HAS_OPENSSL
-  EVP_MD_CTX ctx;
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+  EVP_MD_CTX *ctx;
+	ctx = EVP_MD_CTX_new();
+#else
+	EVP_MD_CTX ctx;
+#endif
   const EVP_MD *mp;
   unsigned char md[EVP_MAX_MD_SIZE];
   unsigned int n, len = 0;
@@ -4815,15 +4820,23 @@ FUNCTION(fun_digest)
     return;
   }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+  EVP_DigestInit(ctx, mp);
+  EVP_DigestUpdate(ctx, fargs[1], len2);
+  EVP_DigestFinal(ctx, md, &len);
+#else
   EVP_DigestInit(&ctx, mp);
   EVP_DigestUpdate(&ctx, fargs[1], len2);
   EVP_DigestFinal(&ctx, md, &len);
+#endif
 
   for (n = 0; n < len; n++) {
      safe_chr(digits[md[n] >> 4], buff, bufcx);
      safe_chr(digits[md[n] & 0x0F], buff, bufcx);
   }
-
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+	EVP_MD_CTX_free(ctx);
+#endif
 #else
   int len2;
 
