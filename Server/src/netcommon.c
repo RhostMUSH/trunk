@@ -3895,7 +3895,7 @@ check_connect(DESC * d, const char *msg)
     DESC *d2, *d3;
     CMDENT *cmdp;
     ATTR *hk_ap2;
-    char buff2[10], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
+    char buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
 
     DPUSH; /* #146 */
 
@@ -3909,13 +3909,24 @@ check_connect(DESC * d, const char *msg)
 
     /* Crack the command apart */
 
+    memset(cchk, '\0', 4);
+    if ( *msg ) {
+       cchk[0] = ToLower(*msg);
+       if ( *(msg+1) ) {
+          cchk[1] = ToLower(*(msg+1));
+          if ( *(msg+2) ) {
+             cchk[2] = ToLower(*(msg+2));
+          }
+       }
+    }
+
     command = alloc_mbuf("check_conn.cmd");
     user = alloc_mbuf("check_conn.user");
     password = alloc_mbuf("check_conn.pass");
     overf = parse_connect(msg, command, user, password);
     if ( strlen(user) > 120 )
        overf = 0;
-    if ( !((!strncmp(msg, "co", 2)) || (!strncmp(msg, "cd", 2)) || (!strncmp(msg, "ch", 2))) )
+    if ( !((!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2))) )
        overf = 1;
     if ( strlen(msg) > 2000 )
        overf = 0;
@@ -3953,7 +3964,7 @@ check_connect(DESC * d, const char *msg)
     /* Guest determination */
     strncpy(buff2, user, 5);
     *(buff2 + 5) = '\0';
-    if (!strncmp(command, "co", 2)) {
+    if (!strncmp(cchk, "co", 2)) {
 	comptest = stricmp(buff2, "guest");
     } else {
 	comptest = 1;
@@ -4072,7 +4083,7 @@ check_connect(DESC * d, const char *msg)
 	   strcat(user, buff2);
         }
     }
-    if ( (!strncmp(command, "co", 2)) || (!strncmp(command, "cd", 2)) || (!strncmp(command, "ch", 2)) ) {
+    if ( (!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)) ) {
 
 	/* See if this connection would exceed the max #players */
         
@@ -4092,9 +4103,9 @@ check_connect(DESC * d, const char *msg)
 	}
 
         ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
-	if (!strncmp(command, "cd", 2))
+	if (!strncmp(cchk, "cd", 2))
 	  dc = 1;
-	else if ( !strncmp(command, "ch", 2))
+	else if ( !strncmp(cchk, "ch", 2))
           dc = 2;
         else
 	  dc =0;
@@ -4256,7 +4267,7 @@ check_connect(DESC * d, const char *msg)
             }
 	  }
 	}
-    } else if (!strncmp(command, "cr", 2)) {
+    } else if (!strncmp(cchk, "cr", 2)) {
 
 	/* Enforce game down */
 
@@ -4412,7 +4423,7 @@ check_connect(DESC * d, const char *msg)
                 }
 	    }
 	}
-    } else if (mudconf.offline_reg && !strncmp(command, "reg", 3)) {
+    } else if (mudconf.offline_reg && !strncmp(cchk, "reg", 3)) {
       if (d->host_info & H_NOAUTOREG) {
 	buff3 = alloc_lbuf("reg.fail");
 	queue_string(d, "Permission denied.\r\n");

@@ -30361,6 +30361,8 @@
   * lt(), lte(), gt(), gte(), eq(), neq() handle multiple args [ASH]
   * @hook will show if hook_offline is enabled [ASH]
   * offline 'create' optionally triggers @hook [ASH]
+  * [co]nnect, [cr]eate, etc on connect screen are no longer case
+    sensitive [ASH]
   
   Bug Fixes
   ------------
