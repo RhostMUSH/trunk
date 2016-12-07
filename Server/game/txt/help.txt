@@ -14347,12 +14347,12 @@
        %% - return remainder of division. (you need to use two %%'s)
   
   Valid conditional <math> arguments are:
-         <VALUE - set to <math> for every condition < VALUE (eg. <10)
-         >VALUE - set to <math> for every condition > VALUE (eg. >10)
-         =VALUE - set to <math> for every condition = VALUE (eg. =10)
-        !=VALUE - set to <math> for every condition != VALUE (eg. !=10)
-        <=VALUE - set to <math> for every condition <= VALUE (eg. <=10)
-        >=VALUE - set to <math> for every condition >= VALUE (eg. >=10)
+         <VALUE - set to <num> for every condition < VALUE (eg. <10)
+         >VALUE - set to <num> for every condition > VALUE (eg. >10)
+         =VALUE - set to <num> for every condition = VALUE (eg. =10)
+        !=VALUE - set to <num> for every condition != VALUE (eg. !=10)
+        <=VALUE - set to <num> for every condition <= VALUE (eg. <=10)
+        >=VALUE - set to <num> for every condition >= VALUE (eg. >=10)
   
   Examples:
     > say strmath(1 fish 2 fish green fish blue fish,10,+)   (default)
