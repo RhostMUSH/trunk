@@ -14333,12 +14333,26 @@
   You may specify the 'low' and 'hi' values to specify a range of what values
   you wish to apply the math to.
    
-  Valid math arguments are:
+{ see 'help strmath2' for value values for <math> and examples }
+
+& strmath2
+  Function: strmath (syntax follows)  (CONTINUED)
+  strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>,<low>,<hi>)
+  
+  Valid <math> arguments are:
         + - apply addition to all numbers in the string.
         - - apply subtraction to all numbers in the string.
         / - apply division to all numbers in the string.
         * - apply multiplication to all numbers in the string.
        %% - return remainder of division. (you need to use two %%'s)
+  
+  Valid conditional <math> arguments are:
+         <VALUE - set to <math> for every condition < VALUE (eg. <10)
+         >VALUE - set to <math> for every condition > VALUE (eg. >10)
+         =VALUE - set to <math> for every condition = VALUE (eg. =10)
+        !=VALUE - set to <math> for every condition != VALUE (eg. !=10)
+        <=VALUE - set to <math> for every condition <= VALUE (eg. <=10)
+        >=VALUE - set to <math> for every condition >= VALUE (eg. >=10)
   
   Examples:
     > say strmath(1 fish 2 fish green fish blue fish,10,+)   (default)
@@ -14349,6 +14363,14 @@
     You say "1 fish 12 fish 13 shoe 4 shoe"
     > say strmath(To hit:5|To Damage:10|Base AC:15,150,+,|,|,1,0,:,:)
     You say "To hit:155|To Damage:10|Base AC:15"
+    > say strmath(10 beats 5 but is less than 100,0,<40)
+    You say "0 beats 0 but is less than 100"
+    > say strmath(10 beats 5 but is less than 100,0,>40)
+    You say "10 beats 5 but is less than 0"
+    > say strmath(10 beats 5 but is less than 100,0,=5)
+    You say "10 beats 0 but is less than 100"
+    > say strmath(10 beats 5 but is less than 100,0,!=5)
+    You say "0 beats 5 but is less than 0"
   
   See Also: add(), sub(), mul(), div(), mod(), strfunc(), spellnum()
   
@@ -30363,6 +30385,7 @@
   * offline 'create' optionally triggers @hook [ASH]
   * [co]nnect, [cr]eate, etc on connect screen are no longer case
     sensitive [ASH]
+  * strmath() now handles <, >, <=, >=, =, != [ASH]
   
   Bug Fixes
   ------------

@@ -24652,6 +24652,36 @@ FUNCTION(fun_strmath)
                                   f_base = 1;
                                f_val = fmod(f_number, f_base);
                                break;
+                     case '<': f_val = f_number;
+                               if ( (*(fargs[2]+1) == '=') && (f_number <= safe_atof(fargs[2]+2)) ) {
+                                  f_val = f_base;
+                               } else if ( f_number < safe_atof(fargs[2]+1) ) {
+                                  f_val = f_base;
+                               }
+                               break;
+                     case '>': f_val = f_number;
+                               if ( (*(fargs[2]+1) == '=') && (f_number >= safe_atof(fargs[2]+2)) ) {
+                                  f_val = f_base;
+                               } else if ( f_number > safe_atof(fargs[2]+1) ) {
+                                  f_val = f_base;
+                               }
+                               break;
+                     case '!': f_val = f_number;
+                               if ( (*(fargs[2]+1) == '=') && (f_number != safe_atof(fargs[2]+2)) ) {
+                                  f_val = f_base;
+                               }
+                               break;
+                     case '=': f_val = f_number;
+                               if ( (*(fargs[2]+1) == '>') && (f_number >= safe_atof(fargs[2]+2)) ) {
+                                  f_val = f_base;
+                               } else if ( (*(fargs[2]+1) == '<') && (f_number <= safe_atof(fargs[2]+2)) ) {
+                                  f_val = f_base;
+                               } else if ( (*(fargs[2]+1) == '!') && (f_number != safe_atof(fargs[2]+2)) ) {
+                                  f_val = f_base;
+                               } else if ( f_number == safe_atof(fargs[2]+1) ) {
+                                  f_val = f_base;
+                               }
+                               break;
                      default : f_val = f_number + f_base;
                                break;
                   }
