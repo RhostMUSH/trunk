@@ -1,4 +1,5 @@
 #!/bin/bash
+export BC_LINE_LENGTH=3998
 bc --version > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
