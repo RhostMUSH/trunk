@@ -2065,7 +2065,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
             mudstate.password_nochk = 1;
          }
 #endif
-         if ( hook_type & HOOK_INCLUDE ) {
+         if ( (hook_type & HOOK_INCLUDE) && (( hook_type & HOOK_BEFORE) || (hook_type & HOOK_AFTER)) ) {
             result = alloc_lbuf("hook_result_fake");
             sprintf(result, "%s", (char *)"0");
             i_now = mudstate.now;
