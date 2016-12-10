@@ -2882,6 +2882,7 @@ process_command(dbref player, dbref cause, int interactive,
 	ENDLOG
         mudstate.debug_cmd = cmdsave;
         DPOP; /* #29 */
+        mudstate.no_hook = 0;
 	return;
     }
     /* Make sure player isn't going or halted */
@@ -2897,6 +2898,7 @@ process_command(dbref player, dbref cause, int interactive,
         free_lbuf(tpr_buff);
 	mudstate.debug_cmd = cmdsave;
         DPOP; /* #29 */
+        mudstate.no_hook = 0;
 	return;
     }
     }
@@ -2950,6 +2952,7 @@ process_command(dbref player, dbref cause, int interactive,
              }
              free_lbuf(spamX);
              DPOP; /* #29 */
+             mudstate.no_hook = 0;
              return;
           } else if ( time(NULL) < (spamtimeX + 60) ) {
              spamcntX++;
@@ -3233,6 +3236,7 @@ process_command(dbref player, dbref cause, int interactive,
           setitimer(ITIMER_PROF, &itimer, NULL);
           mudstate.shell_program = 0;
           DPOP; /* #29 */
+          mudstate.no_hook = 0;
           return;
        }
     }
@@ -3333,6 +3337,7 @@ process_command(dbref player, dbref cause, int interactive,
 	if (cval || cval2) {
           process_error_control(player, prefix_cmds[i]);
 	  DPOP; /* #29 */
+          mudstate.no_hook = 0;
 	  return;
 	}
 	mudstate.write_status = 1;
@@ -3629,6 +3634,7 @@ process_command(dbref player, dbref cause, int interactive,
           itimer.it_value.tv_usec = 0;
           setitimer(ITIMER_PROF, &itimer, NULL);
           DPOP; /* #29 */
+          mudstate.no_hook = 0;
 	  return;
 	}
         if ( msave ) {
@@ -3665,6 +3671,7 @@ process_command(dbref player, dbref cause, int interactive,
         itimer.it_value.tv_usec = 0;
         setitimer(ITIMER_PROF, &itimer, NULL);
         DPOP; /* #29 */
+        mudstate.no_hook = 0;
 	return;
     } else if ((string_compare(command, "home") == 0) && ( Fubar(player) || (cval == 1) ||
                                                            ((cval2 == 0) && (cval != 2)) || 
@@ -3673,6 +3680,7 @@ process_command(dbref player, dbref cause, int interactive,
 	notify_quiet(player, "Permission denied.");
 	mudstate.debug_cmd = cmdsave;
         DPOP; /* #29 */
+        mudstate.no_hook = 0;
 	return;
     }
     /* Only check for exits if we may use the goto command */
@@ -3783,6 +3791,7 @@ process_command(dbref player, dbref cause, int interactive,
                       itimer.it_value.tv_usec = 0;
                       setitimer(ITIMER_PROF, &itimer, NULL);
                       DPOP; /* #29 */
+                      mudstate.no_hook = 0;
 		      return;
                    }
 	        }
@@ -3869,6 +3878,7 @@ process_command(dbref player, dbref cause, int interactive,
                      itimer.it_value.tv_usec = 0;
                      setitimer(ITIMER_PROF, &itimer, NULL);
                      DPOP; /* #29 */
+                     mudstate.no_hook = 0;
 		     return;
                   }
 	        }
@@ -3877,6 +3887,7 @@ process_command(dbref player, dbref cause, int interactive,
 	        mudstate.debug_cmd = cmdsave;
 	        mudstate.exitcheck = 0;
                 DPOP; /* #29 */
+                mudstate.no_hook = 0;
 	        return;
 	     }
 	     mudstate.exitcheck = 0;
@@ -4313,6 +4324,7 @@ process_command(dbref player, dbref cause, int interactive,
         setitimer(ITIMER_PROF, &itimer, NULL);
 	mudstate.debug_cmd = cmdsave;
         DPOP; /* #29 */
+        mudstate.no_hook = 0;
 	return;
     }
 
@@ -4355,6 +4367,7 @@ process_command(dbref player, dbref cause, int interactive,
                 itimer.it_value.tv_usec = 0;
                 setitimer(ITIMER_PROF, &itimer, NULL);
                 DPOP; /* #29 */
+                mudstate.no_hook = 0;
 		return;
 	    }
 	}
@@ -4380,6 +4393,7 @@ process_command(dbref player, dbref cause, int interactive,
                     itimer.it_value.tv_usec = 0;
                     setitimer(ITIMER_PROF, &itimer, NULL);
                     DPOP; /* #29 */
+                    mudstate.no_hook = 0;
 		    return;
 		}
 	    }
@@ -4550,6 +4564,7 @@ process_command(dbref player, dbref cause, int interactive,
     setitimer(ITIMER_PROF, &itimer, NULL);
     mudstate.debug_cmd = cmdsave;
     DPOP; /* #29 */
+    mudstate.no_hook = 0;
     return;
 }
 
