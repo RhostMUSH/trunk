@@ -62,7 +62,7 @@ static void set_userstring(char **, const char *);
 extern const char *addrout(struct in_addr);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern CMDENT * lookup_command(char *);
-extern int process_hook(dbref, dbref, char *, ATTR *, int);
+extern int process_hook(dbref, dbref, char *, ATTR *, int, int);
 
 
 /* for aconnect: player = room, target = connecting player */
@@ -4415,7 +4415,7 @@ check_connect(DESC * d, const char *msg)
                       mudstate.chkcpu_stopper = time(NULL);
                       mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
-                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, HOOK_AFTER);
                       mudstate.chkcpu_toggle = chk_tog;
                       mudstate.chkcpu_stopper = chk_stop;
                       free_sbuf(s_uselock);
@@ -4461,7 +4461,7 @@ check_connect(DESC * d, const char *msg)
                   mudstate.chkcpu_stopper = time(NULL);
                   mudstate.chkcpu_toggle = 0;
                   mudstate.chkcpu_locktog = 0;
-                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, HOOK_AFTER);
                   mudstate.chkcpu_toggle = chk_tog;
                   mudstate.chkcpu_stopper = chk_stop;
                   free_sbuf(s_uselock);
@@ -4630,7 +4630,7 @@ do_command(DESC * d, char *command)
 	    mudstate.curr_enactor = d->player;
 	    desc_in_use = d;
 	    process_command(d->player, d->player, 1,
-			    command, (char **) NULL, 0, mudstate.shell_program);
+			    command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook);
             mudstate.curr_cmd = (char *) "";
 	    if (d->output_suffix) {
 		queue_string(d, d->output_suffix);

@@ -30377,6 +30377,9 @@
   * hook_offline if enabled will trigger the @hook/after on
     @pcreate/@register on AO_<command> attribute.  Player created 
     will be %# [ASH]
+  * @hook/include converts A_* (after) and B_* (before) hooks into
+    command processors instead of function processors.  Work was done
+    to avoid recursive calling.
   
   Changes
   ------------

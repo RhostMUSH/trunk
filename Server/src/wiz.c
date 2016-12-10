@@ -464,7 +464,7 @@ char *retbuff;
   }
   mudstate.remote = target;
   mudstate.remotep = player;
-  process_command(player, player, 0, command, args, nargs, 0);
+  process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook);
   mudstate.remote = -1;
   mudstate.remotep = -1;
 }

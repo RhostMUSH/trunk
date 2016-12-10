@@ -4636,6 +4636,7 @@
          /clear     - When used in junction with any of the above switches, 
                       will clear the hook from being applied.
          /list      - This lists the current commands/attributes with hooks.
+         /include   - Convert the BEFORE and AFTER hooks to command @includes.
   
 { help @hook2 for examples}
 
@@ -11576,6 +11577,8 @@
   4)  The IGSWITCH config parameter is a toggle only.
   
   5)  The BEFORE and AFTER switches are automatically processed if existing.
+      If you also have the INCLUDE hook, these are processed for commands
+      and not functions.
   
   6)  The following attributes on the global hook object (hook_obj) exist:
          I_<command> - ignore            P_<command> - permit
@@ -11613,6 +11616,10 @@
   There, your hook object is all set up.  If you want it to last through
   reboots, you need to either put the @hook's in a @startup, or add the 
   hook_cmd to the .conf file.  You probably want the hook_cmd :)
+  
+  Also if you specify INCLUDE (@hook/include) for a command, then the A_ and
+  B_ for AFTER and BEFORE (respectively) are processed as if @include, ergo
+  it will do command processing and not function processing.
  
 { see 'wizhelp hook setup3' for special situations }
   

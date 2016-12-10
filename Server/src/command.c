@@ -142,6 +142,7 @@ NAMETAB hook_sw[] =
     {(char *) "igswitch", 3, CA_IMMORTAL, 0, HOOK_IGSWITCH},
     {(char *) "extend", 3, CA_IMMORTAL, 0, HOOK_IGSWITCH},
     {(char *) "fail", 3, CA_IMMORTAL, 0, HOOK_FAIL},
+    {(char *) "include", 3, CA_IMMORTAL, 0, HOOK_INCLUDE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB aflags_sw[] =
@@ -2032,11 +2033,16 @@ check_access(dbref player, int mask, int mask2, int ccheck)
  * Hooks processed:  before, after, ignore, permit
  *****************************************************************************/
 int
-process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_flg)
+process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_flg, int hook_type)
 {
    dbref thing2;
-   int attrib2, aflags_set, i_cpuslam, x, retval;
-   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam;
+   int attrib2, aflags_set, i_cpuslam, x, retval, no_hook;
+   time_t i_now;
+   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam, *cp, *atextptr;
+
+   if ( mudstate.no_hook ) {
+      return 0;
+   }
 
    i_cpuslam = 0;
    retval = 1;
@@ -2059,8 +2065,32 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
             mudstate.password_nochk = 1;
          }
 #endif
-         result = exec(thing, player, player, EV_FCHECK | EV_EVAL, atext,
-                       (char **)NULL, 0, (char **)NULL, 0);
+         if ( hook_type & HOOK_INCLUDE ) {
+            result = alloc_lbuf("hook_result_fake");
+            sprintf(result, "%s", (char *)"0");
+            i_now = mudstate.now;
+            no_hook = mudstate.no_hook;
+            mudstate.no_hook = 1;
+            atextptr = atext;
+            if ( mudstate.no_hook_count < 5 ) {
+               while (atextptr) {
+                  cp = parse_to(&atextptr, ';', 0);
+                  if (cp && *cp && !mudstate.breakst) {
+                     process_command(thing, player, 0, cp, (char **)NULL, 0, 0, 1);
+                     if ( time(NULL) > (i_now + 5) ) {
+                         notify(player, "@skip:  Aborted for high utilization.");
+                         mudstate.breakst=1;
+                         break;
+                     }
+                  }
+               }
+            }
+            mudstate.no_hook_count++;
+            mudstate.no_hook = no_hook;
+         } else {
+            result = exec(thing, player, player, EV_FCHECK | EV_EVAL, atext,
+                          (char **)NULL, 0, (char **)NULL, 0);
+         }
          mudstate.password_nochk = 0;
          if ( save_flg ) {
             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
@@ -2147,7 +2177,7 @@ process_error_control(dbref player, CMDENT *cmdp)
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        mudstate.chkcpu_locktog = 0;
-       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask);
        mudstate.chkcpu_toggle = chk_tog;
        mudstate.chkcpu_stopper = chk_stop;
        free_sbuf(s_uselock);
@@ -2340,7 +2370,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        mudstate.chkcpu_locktog = 0;
-       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask);
        mudstate.chkcpu_toggle = chk_tog;
        mudstate.chkcpu_stopper = chk_stop;
        free_sbuf(s_uselock);
@@ -2530,7 +2560,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        mudstate.chkcpu_locktog = 0;
-       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+       process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask);
        mudstate.chkcpu_toggle = chk_tog;
        mudstate.chkcpu_stopper = chk_stop;
        free_sbuf(s_uselock);
@@ -2763,7 +2793,7 @@ CMDENT *lookup_orig_command(char *cmdname) {
  */
 void 
 process_command(dbref player, dbref cause, int interactive,
-		char *command, char *args[], int nargs, int shellprg)
+		char *command, char *args[], int nargs, int shellprg, int inhook)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
     int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0;
@@ -2790,6 +2820,14 @@ process_command(dbref player, dbref cause, int interactive,
     if (!command)
 	abort();
 
+    if ( inhook ) {
+       mudstate.no_hook = 1;
+    } else {
+       mudstate.no_hook = 0;
+    }
+    if ( !(inhook || mudstate.no_hook || (player == mudconf.hook_obj) || (cause == mudconf.hook_obj) || (interactive == mudconf.hook_obj)) ) {
+       mudstate.no_hook_count = 0;
+    }
     cval = cval2 = 0;
     mudstate.func_bypass = 0;
     mudstate.shifted = 0;
@@ -3262,7 +3300,7 @@ process_command(dbref player, dbref cause, int interactive,
                            break;
                case '&' :  sprintf(s_uselock, "P_%s", "@set");
                            break;
-               case '>' :  sprintf(s_uselock, "I_%s", "@set");
+               case '>' :  sprintf(s_uselock, "P_%s", "@set");
                            break;
                case '-' :  sprintf(s_uselock, "P_%s", "mail");
                            break;
@@ -3282,7 +3320,7 @@ process_command(dbref player, dbref cause, int interactive,
          mudstate.chkcpu_stopper = time(NULL);
          mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
-         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1);
+         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, prefix_cmds[i]->hookmask);
          mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
          free_sbuf(s_uselock);
@@ -3687,7 +3725,7 @@ process_command(dbref player, dbref cause, int interactive,
                       mudstate.chkcpu_stopper = time(NULL);
                       mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
-                      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1);
+                      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, goto_cmdp->hookmask);
                       mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
                       free_sbuf(s_uselock);
@@ -3713,7 +3751,7 @@ process_command(dbref player, dbref cause, int interactive,
 		         mudstate.chkcpu_stopper = time(NULL);
 		         mudstate.chkcpu_toggle = 0;
                          mudstate.chkcpu_locktog = 0;
-		         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+		         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask);
 		         mudstate.chkcpu_toggle = chk_tog;
 		         mudstate.chkcpu_stopper = chk_stop;
 		         free_sbuf(s_uselock);
@@ -3730,7 +3768,7 @@ process_command(dbref player, dbref cause, int interactive,
 		         mudstate.chkcpu_stopper = time(NULL);
 		         mudstate.chkcpu_toggle = 0;
                          mudstate.chkcpu_locktog = 0;
-		         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+		         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask);
 		         mudstate.chkcpu_toggle = chk_tog;
 		         mudstate.chkcpu_stopper = chk_stop;
 		         free_sbuf(s_uselock);
@@ -3775,7 +3813,7 @@ process_command(dbref player, dbref cause, int interactive,
                       hk_ap2 = atr_str(s_uselock);
                       mudstate.chkcpu_stopper = time(NULL);
                       mudstate.chkcpu_toggle = 0;
-                      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1);
+                      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, goto_cmdp->hookmask);
                       mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
                       free_sbuf(s_uselock);
@@ -3797,7 +3835,7 @@ process_command(dbref player, dbref cause, int interactive,
 		      mudstate.chkcpu_stopper = time(NULL);
 		      mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
-		      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+		      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask);
 		      mudstate.chkcpu_toggle = chk_tog;
 		      mudstate.chkcpu_stopper = chk_stop;
 		      free_sbuf(s_uselock);
@@ -3814,7 +3852,7 @@ process_command(dbref player, dbref cause, int interactive,
 		      mudstate.chkcpu_stopper = time(NULL);
 		      mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
-		      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0);
+		      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask);
 		      mudstate.chkcpu_toggle = chk_tog;
 		      mudstate.chkcpu_stopper = chk_stop;
 		      free_sbuf(s_uselock);
@@ -3976,7 +4014,7 @@ process_command(dbref player, dbref cause, int interactive,
          mudstate.chkcpu_stopper = time(NULL);
          mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
-         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1);
+         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, cmdp->hookmask);
          mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
          free_sbuf(s_uselock);
@@ -9007,10 +9045,9 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
           }
-          /* process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9036,10 +9073,9 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
           }
-/*        process_command(player, cause, 1, arg2, cargs, ncargs, 0); */
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9515,7 +9551,7 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
       } else {
          mudstate.train_cntr++;
          getitimer(ITIMER_PROF, &itimer);
-         process_command(player, cause, 1, string, args, nargs, 0);
+         process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook);
          setitimer(ITIMER_PROF, &itimer, NULL); 
          mudstate.train_cntr--;
       }
@@ -9566,7 +9602,7 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
    free_lbuf(newstring);
    mudstate.train_cntr++;
    getitimer(ITIMER_PROF, &itimer);
-   process_command(player, cause, 1, string, args, nargs, 0);
+   process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook);
    setitimer(ITIMER_PROF, &itimer, NULL); 
    mudstate.train_cntr--;
 }
@@ -9610,7 +9646,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
-               process_command(player, cause, 0, cp, cargs, ncargs, 0);
+               process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
@@ -9625,7 +9661,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          while (mys) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
-               process_command(player, cause, 0, cp, cargs, ncargs, 0);
+               process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
@@ -9641,7 +9677,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       while (mys) {
          cp = parse_to(&mys, ';', 0);
          if (cp && *cp && !mudstate.breakst) {
-            process_command(player, cause, 0, cp, cargs, ncargs, 0);
+            process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
             if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@skip:  Aborted for high utilization.");
                 mudstate.breakst=1;
@@ -9713,7 +9749,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    while (s_command) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
-         process_command(target, target, 0, cp, args, nargs, 0);
+         process_command(target, target, 0, cp, args, nargs, 0, mudstate.no_hook);
       }
    }
    if ( desc_in_use != NULL ) {
@@ -9728,7 +9764,6 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       }
    }
 
-   /* process_command(target, target, 1, s_command, args, nargs, 0); */
    mudstate.trainmode = old_trainmode;
    mudstate.sudo_cntr--;
    mudstate.force_halt = forcehalted_state;
@@ -9755,7 +9790,7 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
    mudstate.train_cntr++;
    mudstate.trainmode = 1;
    getitimer(ITIMER_PROF, &itimer);
-   process_command(player, cause, 1, string+1, args, nargs, 0);
+   process_command(player, cause, 1, string+1, args, nargs, 0, mudstate.no_hook);
    setitimer(ITIMER_PROF, &itimer, NULL); 
    mudstate.trainmode = 0;
    mudstate.train_cntr--;
@@ -9945,6 +9980,8 @@ void show_hook(char *bf, char *bfptr, int key, char *cmdname)
       safe_str("ignore ", bf, &bfptr);
    if ( key & HOOK_IGSWITCH )
       safe_str("igswitch ", bf, &bfptr);
+   if ( key & HOOK_INCLUDE )
+      safe_str("include ", bf, &bfptr);
    if ( key & HOOK_FAIL )
       safe_str("fail ", bf, &bfptr);
    if ( ((strcmp(cmdname, "@register") == 0) || (strcmp(cmdname, "@pcreate") == 0)) && (key & HOOK_AFTER) && mudconf.hook_offline ) {
@@ -10145,7 +10182,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
    } else
       negate = 0;
 
-   if ( key & (HOOK_BEFORE|HOOK_AFTER|HOOK_PERMIT|HOOK_IGNORE|HOOK_IGSWITCH|HOOK_AFAIL|HOOK_FAIL) ) {
+   if ( key & (HOOK_BEFORE|HOOK_AFTER|HOOK_PERMIT|HOOK_IGNORE|HOOK_IGSWITCH|HOOK_AFAIL|HOOK_FAIL|HOOK_INCLUDE) ) {
       if (negate) {
          cmdp->hookmask = cmdp->hookmask & ~key;
       } else {

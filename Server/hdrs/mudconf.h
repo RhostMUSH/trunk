@@ -592,6 +592,8 @@ struct statedata {
 	char	*dol_arr[50];	/* Dolist Array */
 	int	alarm_triggered;/* Has periodic alarm signal occurred? */
 	time_t	now;		/* What time is it now? */
+	int	no_hook;	/* Do not hook */
+	int	no_hook_count;	/* count of how many hooks are processed per 'command'  no more than 5 */
 	double  nowmsec; /* What time is it now, with msecs */
 	time_t	lastnow;	/* What time was it last? */
 	double  lastnowmsec; /* What time was it last, with msecs */

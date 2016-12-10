@@ -338,6 +338,8 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.no_hook = 0;		/* Do not process hooks */
+    mudstate.no_hook_count = 0;		/* Count of times hook include can be called per command */
     mudstate.zone_return = 0;		/* State data of zonecmd() */
     mudstate.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
     mudstate.mysql_last = 0;		/* Time of last mysql hang check */

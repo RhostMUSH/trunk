@@ -140,7 +140,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             while ( !mudstate.breakdolist && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
-                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
+                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook);
                }
                if ( time(NULL) > (i_now + 3) ) {
                    if ( !mudstate.breakdolist ) {
