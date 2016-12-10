@@ -4415,7 +4415,7 @@ check_connect(DESC * d, const char *msg)
                       mudstate.chkcpu_stopper = time(NULL);
                       mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
-                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, HOOK_AFTER);
+                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask);
                       mudstate.chkcpu_toggle = chk_tog;
                       mudstate.chkcpu_stopper = chk_stop;
                       free_sbuf(s_uselock);
@@ -4461,7 +4461,7 @@ check_connect(DESC * d, const char *msg)
                   mudstate.chkcpu_stopper = time(NULL);
                   mudstate.chkcpu_toggle = 0;
                   mudstate.chkcpu_locktog = 0;
-                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, HOOK_AFTER);
+                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask);
                   mudstate.chkcpu_toggle = chk_tog;
                   mudstate.chkcpu_stopper = chk_stop;
                   free_sbuf(s_uselock);
