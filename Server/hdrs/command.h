@@ -291,6 +291,8 @@ typedef struct aliasentry {
 #define CA_NO_EVAL	0x00000002      /* Code doesn't eval? */
 #define CA_EVAL		0x00000004      /* Code evals? */
 #define CA_CLUSTER	0x00000010	/* Clustered? */
+#define CA_SB_DENY	0x40000000      /* Function is sandbox denied */
+#define CA_SB_IGNORE	0x80000000      /* Function is sandbox ignored */
 
 #define BREAK_INLINE	0x00000001	/* @break/@assert should not go to wait queue */
 

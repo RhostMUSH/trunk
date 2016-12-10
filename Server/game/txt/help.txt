@@ -10139,23 +10139,23 @@
   RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
   RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
   ROUND()         RSET()          RULER()        RXLEVEL()      S()          
-  SAFEBUFF()      SCRAMBLE()      SEARCH()       SEARCHOBJID()  SEARCHNG()   
-  SEARCHNGOBJID() SECS()          SECURE()       SECUREX()      SEES()       
-  SET()           SETDIFF()       SETINTER()     SETQ()         SETQ_OLD()   
-  SETQMATCH()     SETR()          SETR_OLD()     SETUNION()     SHIFT()      
-  SHL()           SHR()           SHUFFLE()      SIGN()         SIN()        
-  SINGLETIME()    SORT()          SORTBY()       SORTLIST()     SOUNDEX()    
-  SOUNDLIKE()     SOUNDSLIKE()    SPACE()        SPELLNUM()     SPLICE()     
-  SQL()           SQLESCAPE()     SQLOFF()       SQLON()        SQLPING()    
-  SQLITE_QUERY()  SQRT()          SQUISH()       STARTTIME()    STARTSECS()  
-  STATS()         STEP()          STR()          STRCAT()       STRDISTANCE()
-  STREQ()         STREVAL()       STRFUNC()      STRIP()        STRIPACCENTS()
-  STRIPANSI()     STRLEN()        STRMATCH()     STRMATH()      SUB()        
-  SUBJ()          SUBNETMATCH()   SWITCH()       SWITCHALL()    T()          
-  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()      
-  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()    
-  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()         
-  TRACE()         TRANSLATE() 
+  SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()       SEARCHOBJID()
+  SEARCHNG()      SEARCHNGOBJID() SECS()         SECURE()       SECUREX()    
+  SEES()          SET()           SETDIFF()      SETINTER()     SETQ()       
+  SETQ_OLD()      SETQMATCH()     SETR()         SETR_OLD()     SETUNION()   
+  SHIFT()         SHL()           SHR()          SHUFFLE()      SIGN()       
+  SIN()           SINGLETIME()    SORT()         SORTBY()       SORTLIST()   
+  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()   
+  SPLICE()        SQL()           SQLESCAPE()    SQLOFF()       SQLON()      
+  SQLPING()       SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()  
+  STARTSECS()     STATS()         STEP()         STR()          STRCAT()     
+  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()      
+  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()    
+  SUB()           SUBJ()          SUBNETMATCH()  SWITCH()       SWITCHALL()  
+  T()             TAN()           TEL()          TIME()         TIMEFMT()    
+  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()      
+  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
+  TR()            TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -10263,7 +10263,7 @@
   Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCKCHECK() LOCKDECODE()
                       LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
                       PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
-                      SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD() 
+                      SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
                       SOUNDEX() SOUNDLIKE() TRACE()
             See Also: help miscellaneous functions
   
@@ -18742,7 +18742,45 @@
     > say [privatize(1)][setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--(before R0: ) My R0:internal--external"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), @lfunction
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), 
+            sandbox(), @lfunction
+
+& SANDBOX()
+  Function: sandbox(<string>, <function list> [,<key> [,<local>]])
+  
+  This function sandboxes the evaluated <string> based on the list of
+  space separated functions in <function list>.  Any function that matches
+  any function in the list will have restricted access.
+  
+  The following <key> exists:
+    0 - Set the function deny (default)
+    1 - Set the function ignore and check for local function.
+  
+  The following <local> key exists:
+    0 - Don't check for local functions (@function/@lfunction) (default)
+    1 - Check against @functions (in addition to built-in functions)
+    2 - Check against @lfunctions (in addition to build-in functions)
+    3 - Check against all possible function combinations
+  
+  A <key> of deny will return the #-1 PERMISSION DENIED
+  A <key> of ignore will return the #-1 FUNCTION (blah) NOT FOUND
+  
+  Examples:
+    > @va me=BOO
+    Set.
+    > @lfunction boo=me/va
+    LOCAL Function boo defined.
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],add)
+    You say "Test - #-1 PERMISSION DENIED 0 BOO"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub)
+    You say "Test - 2 #-1 PERMISSION DENIED BOO"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub boo)
+    You say "Test - 2 #-1 PERMISSION DENIED BOO"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub boo,,3)
+    You say "Test - 2 #-1 PERMISSION DENIED #-1 PERMISSION DENIED"
+  
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
+            localize(), @lfunction
 
 & LOCALIZE()
   Function: localize(<string> [,<register-list>, [<key>]])
@@ -18773,7 +18811,8 @@
   
   Note: In the last example, we allowed '12345' to be localized, but not '0'.
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), @lfunction
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
+            sandbox(), @lfunction
   
 & LOCALFUNC()
   Function: localfunc(<function-name>, <args>...)
@@ -18995,7 +19034,7 @@
     > say [@@(this is a test[setq(0,test)])]- [r(0)]
     You say "- "
   
-  See Also: localize(), eval(), null(), privatize()
+  See Also: localize(), eval(), null(), privatize(), sandbox()
   
 & NULL()
   Function: null(<string>)
@@ -19008,7 +19047,7 @@
     > say [null(this is a test[setq(0,test)])]- [r(0)]
     You say "- test"
   
-  See Also: localize(), eval(), @@(), privatize()
+  See Also: localize(), eval(), @@(), privatize(), sandbox()
   
 & STEP()
   Function: step([<obj>/]<attr>,<list>,<step size>[,<delim>[,<output delim>]])
@@ -27713,6 +27752,7 @@
   privatize() - All localized variables are initialized to null
   pushregs() - Preserves, and restores setq() registers.
   r() - Accesses local registers.
+  sandbox() - Evaluates code with specific function restrictions
   setq() - Copies a string into a local register.
   setq_old() - Like setq(), but uses old MUSH style evaluation.
   setqmatch() - Sets a register if a pattern matches <string>.
@@ -30380,6 +30420,7 @@
   * @hook/include converts A_* (after) and B_* (before) hooks into
     command processors instead of function processors.  Work was done
     to avoid recursive calling.
+  * sandbox() to deny access to functions (built in or user) [ASH]
   
   Changes
   ------------

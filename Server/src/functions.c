@@ -24706,6 +24706,127 @@ FUNCTION(fun_strmath)
    free_lbuf(curr);
 }
 
+FUNCTION(fun_sandbox)
+{
+    char *s_tmp, *s_strtok, *s_strtokptr, *s_pad, *retarg0, *retarg1, *retargtmp;
+    int i_ignore, i_ufun;
+    FUN *pfun;
+    UFUN *upfun, *upfun2;
+
+    if (!fn_range_check("SANDBOX", nfargs, 2, 4, buff, bufcx))
+       return;
+
+    if ( !fargs[0] || !*fargs[0] ) {
+       return;
+    }
+
+    if ( !fargs[1] || !*fargs[1] ) {
+       retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+       safe_str(retarg0, buff, bufcx);
+       free_lbuf(retarg0);
+       return;
+    }
+
+    retarg1 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+    if ( !*retarg1 ) {
+       retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+       safe_str(retarg0, buff, bufcx);
+       free_lbuf(retarg0);
+       free_lbuf(retarg1);
+       return;
+    }
+
+    i_ignore = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       retargtmp = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[2], cargs, ncargs, (char **)NULL, 0);
+       i_ignore = (atoi(retargtmp) ? 1 : 0);
+       free_lbuf(retargtmp);
+    }
+
+    i_ufun = 0;
+    if ( (nfargs > 3) && *fargs[3] ) {
+       retargtmp = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
+       i_ufun = atoi(retargtmp);
+       if ( i_ufun > 3 )
+          i_ufun = 3;
+       if ( i_ufun < 0 )
+          i_ufun = 0;
+       free_lbuf(retargtmp);
+    }
+
+    s_tmp = alloc_lbuf("fun_sandbox");
+    s_pad = alloc_mbuf("fun_sandbox_mbuf");
+    strcpy(s_tmp, retarg1);
+    s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
+    while ( s_strtok ) {
+       pfun = (FUN *)NULL;
+       upfun = (UFUN *)NULL;
+       upfun2 = (UFUN *)NULL;
+       pfun = (FUN *) hashfind(s_strtok, &mudstate.func_htab);
+       if ( i_ufun && !pfun ) {
+          if ( i_ufun & 1 ) {
+             upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
+          }
+          if ( i_ufun & 2 ) {
+             sprintf(s_pad, "%d_%.100s", Owner(player), s_strtok);
+             upfun2 = (UFUN *) hashfind(s_pad, &mudstate.ulfunc_htab);
+             if ( upfun2 && (!Good_chk(upfun2->obj) || (upfun2->orig_owner != Owner(upfun2->obj))) ) {
+                upfun2 = NULL;
+             }
+          }
+       }
+       if ( pfun ) {
+          pfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       }
+       if ( upfun ) {
+          upfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       } 
+       if ( upfun2 ) {
+          upfun2->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       } 
+       s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+    }
+
+    retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+    safe_str(retarg0, buff, bufcx);
+    free_lbuf(retarg0);
+
+    strcpy(s_tmp, retarg1);
+    s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
+    while ( s_strtok ) {
+       pfun = (FUN *)NULL;
+       upfun = (UFUN *)NULL;
+       upfun2 = (UFUN *)NULL;
+       pfun = (FUN *) hashfind(s_strtok, &mudstate.func_htab);
+       if ( i_ufun && !pfun ) {
+          if ( i_ufun & 1 ) {
+             upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
+          }
+          if ( i_ufun & 2 ) {
+             sprintf(s_pad, "%d_%.100s", Owner(player), s_strtok);
+             upfun2 = (UFUN *) hashfind(s_pad, &mudstate.ulfunc_htab);
+             if ( upfun2 && (!Good_chk(upfun2->obj) || (upfun2->orig_owner != Owner(upfun2->obj))) ) {
+                upfun2 = NULL;
+             }
+          }
+       }
+       if ( pfun ) {
+          pfun->perms2 &= ~(i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       }
+       if ( upfun ) {
+          upfun->perms2 &= ~(i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       } 
+       if ( upfun2 ) {
+          upfun2->perms2 &= ~(i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       } 
+       s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+    }
+
+    free_lbuf(retarg1);
+    free_lbuf(s_tmp); 
+    free_mbuf(s_pad);
+}
+
 FUNCTION(fun_objeval)
 {
     dbref obj;
@@ -33600,6 +33721,7 @@ FUN flist[] =
 #endif /* REALITY_LEVELS */
     {"S", fun_s, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SAFEBUFF", fun_safebuff, 1, FN_VARARGS , CA_PUBLIC, CA_NO_CODE},
+    {"SANDBOX", fun_sandbox, 1, FN_NO_EVAL | FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SCRAMBLE", fun_scramble, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SEARCH", fun_search, -1, 0, CA_PUBLIC, 0},
     {"SEARCHNG", fun_searchng, -1, 0, CA_PUBLIC, 0},

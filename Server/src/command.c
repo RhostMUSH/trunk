@@ -1955,6 +1955,16 @@ check_access(dbref player, int mask, int mask2, int ccheck)
         DPOP; /* #26 */
 	return 0;
     }
+    if (mask2 & CA_SB_IGNORE ) {
+	mudstate.func_ignore = 1;
+        DPOP; /* #26 */
+	return 0;
+    }
+    if (mask2 & CA_SB_DENY ) {
+        DPOP; /* #26 */
+	return 0;
+    }
+
     if (God(player) || mudstate.initializing) {
         DPOP; /* #26 */
 	return 1;
