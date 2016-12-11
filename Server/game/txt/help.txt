@@ -13788,7 +13788,7 @@
     > say listflags()
     You say "ABODE(A) ARCHITECT(B) ... " 
   
-  See Also: listcommands(), listfunctions()
+  See Also: listcommands(), listfunctions(), listtoggles()
   
 & LISTCOMMANDS()
   Function: listcommands([<key>])
@@ -13804,22 +13804,26 @@
     > say listcommands()
     You say "@@ @alias ... "
   
-  See Also: listfunctions(), listtoggles()
+  See Also: listfunctions(), listtoggles(), listflags()
   
 & LISTFUNCTIONS()
   Function: listfunctions([keyval])
   
   This function will return all the functions that you have access to.
-  Valid keyvalues are:
-    0 - List all functions (built-in and user-defined)  This is the default.
+  Valid keyvalues masks are:
+    0 - List all functions (built-in, user-defined, and local) this is default.
     1 - List only the built-in functions.
     2 - List only the user-defined functions.
+    4 - List only the local user-defined functions.
+  
+  These are bitwise masks.  So if you selected '3' it would do built-in and
+  user-defined.  '6' would do user-defined and local user-defined.
   
   Example:
     > say listfunctions()
     You say "@@ ABS ... "
    
-  See Also: listcommands(), listtoggles()
+  See Also: listcommands(), listtoggles(), listflags()
   
 & LISTNEWSGROUPS()
   Function: listnewsgroups([<player>])
@@ -30437,3 +30441,6 @@
   * cleanup of warnings for GCC 6.2. [ASH]
   * cleanup of warnings for CLANG on MacOSX Sierra [ASH]
   * fix crash bug in ljc() [ASH]
+  * potential buffer corruption with very large function, flag,
+    toggle, and command lists [ASH]
+  * listfunctions() didn't work properly with local @lfunctions [ASH]

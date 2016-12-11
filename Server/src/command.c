@@ -4747,6 +4747,10 @@ static void list_cmdtable(dbref player) {
 	ptrs[nptrs] = cmdp->cmdname;
 	nptrs++;
       }
+      if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+         notify(player, "WARNING: Command table listing too large to display");
+         break;
+      }
     }
   }
 
@@ -4772,6 +4776,10 @@ static void list_cmdtable(dbref player) {
       if (!(cmdp->perms & CF_DARK)) {   
 	ptrs[nptrs] = cmdp->cmdname;
 	nptrs++;
+      }
+      if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+         notify(player, "WARNING: VATTR Command table listing too large to display");
+         break;
       }
     }
   }

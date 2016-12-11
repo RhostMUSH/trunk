@@ -11802,7 +11802,7 @@ FUNCTION(fun_listfunctions)
    keyval = 0;
    if ( (nfargs == 1) && fargs[0] && *fargs[0] )
       keyval = atoi(fargs[0]);
-   if (keyval > 2)
+   if (keyval > 7)
       keyval = 0;
    list_functable2(player, buff, bufcx, keyval);
 }
@@ -11835,6 +11835,10 @@ FUNCTION(fun_listcommands)
             ptrs[nptrs] = cmdp->cmdname;
             nptrs++;
          }
+         if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+            notify(player, "WARNING: Command listing too large to display.");
+            break;
+         }
        }
      }
      qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
@@ -11852,6 +11856,10 @@ FUNCTION(fun_listcommands)
          if ( !(cmdp->perms & CF_DARK) ) {
             ptrs[nptrs] = cmdp->cmdname;
             nptrs++;
+         }
+         if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+            notify(player, "WARNING: VATTR Command listing too large to display.");
+            break;
          }
      }
      if ( nptrs ) {
@@ -16108,7 +16116,7 @@ FUNCTION(fun_strfunc)
       while ( strtok ) {
          ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
          strcpy(ptrs[nitems], strtok);
-         if ( nitems >= (LBUF_SIZE / 2) ) {
+         if ( nitems >= ((LBUF_SIZE / 2) - 2) ) {
             nitems++;
             break;
          }
@@ -34546,17 +34554,21 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     int f_int, i, j, nptrs, nptrs2, nptrs3;
 
     memset(tbuff, '\0', sizeof(tbuff));
-    if ( !key || (key == 1) ) {
+    f_int = 0;
+    if ( !key || (key & 1) ) {
        nptrs = 0;
        for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
                 fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
           if (check_access(player, fp->perms, fp->perms2, 0)) {
              ptrs[nptrs] = fp->name;
              nptrs++;
+             if ( nptrs > ((LBUF_SIZE / 2) -1) ) {
+                notify_quiet(player, "WARNING: Function list too large to display all.");
+                break;
+             }
           }
        }
        qsort(ptrs, nptrs, sizeof(char *), s_comp);
-       f_int = 0;
        for (i = 0 ; i < nptrs ; i++) {
           if ( f_int )
              safe_chr(' ', buff, bufcx);
@@ -34564,16 +34576,19 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
           safe_str((char *) ptrs[i], buff, bufcx);
        }
     }
-    if ( !key || (key == 2) ) {
+    if ( !key || (key & 2) ) {
        nptrs2 = 0;
        for (ufp = ufun_head; ufp; ufp = ufp->next) {
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
             ptrs2[nptrs2] = ufp->name;
             nptrs2++;
+            if ( nptrs2 > ((LBUF_SIZE / 2) -1) ) {
+               notify_quiet(player, "WARNING: USER Function list too large to display all.");
+               break;
+            }
          }
        }
        qsort(ptrs2, nptrs2, sizeof(char *), s_comp);
-       f_int = 0;
        for (i = 0 ; i < nptrs2 ; i++) {
          if ( f_int )
             safe_chr(' ', buff, bufcx);
@@ -34581,7 +34596,7 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
          safe_str((char *) ptrs2[i], buff, bufcx);
        }
     }
-    if ( !key || (key == 4) ) {
+    if ( !key || (key & 4) ) {
        j = nptrs3 = 0;
        for (ufp = ulfun_head; ufp; ufp = ufp->next) {
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
@@ -34595,10 +34610,13 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
                nptrs3++;
                j++;
             }
+            if ( nptrs3 > ((LBUF_SIZE / 2) -1) ) {
+               notify_quiet(player, "WARNING: LOCAL Function list too large to display all.");
+               break;
+            }
          }
        }
        qsort(ptrs3, nptrs3, sizeof(char *), s_comp);
-       f_int = 0;
        for (i = 0 ; i < nptrs3 ; i++) {
          if ( f_int )
             safe_chr(' ', buff, bufcx);

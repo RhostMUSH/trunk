@@ -1058,6 +1058,10 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
 	    continue;
 	ptrs[nptrs] = fp;
 	nptrs++;
+        if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+           notify(player, "WARNING: Flag table too large to display.");
+           break;
+        }
     }       
 
     qsort(ptrs, nptrs, sizeof(FLAGENT *), flagent_comp);
@@ -1128,6 +1132,10 @@ display_toggletab2(dbref player, char *buff, char **bufcx)
 	
 	ptrs[nptrs] = tp;
 	nptrs++;
+        if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+           notify(player, "WARNING: Toggle table too large to display.");
+           break;
+        }
     }    
     qsort(ptrs, nptrs, sizeof(TOGENT *), togent_comp); 
      
