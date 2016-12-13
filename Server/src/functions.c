@@ -24726,7 +24726,7 @@ FUNCTION(fun_strmath)
 
 FUNCTION(fun_sandbox)
 {
-    char *s_tmp, *s_strtok, *s_strtokptr, *s_pad, *retarg0, *retarg1, *retargtmp;
+    char *s_tmp, *s_strtok, *s_strtokptr, *s_pad, *retarg0, *retarg1, *retargtmp, *s_copy, *s_copy2;
     int i_ignore, i_ufun;
     FUN *pfun;
     UFUN *upfun, *upfun2;
@@ -24773,8 +24773,15 @@ FUNCTION(fun_sandbox)
     }
 
     s_tmp = alloc_lbuf("fun_sandbox");
+    memset(s_tmp, '\0', LBUF_SIZE);
     s_pad = alloc_mbuf("fun_sandbox_mbuf");
-    strcpy(s_tmp, retarg1);
+    s_copy = retarg1;
+    s_copy2 = s_tmp;
+    while ( s_copy && *s_copy ) {
+       *s_copy2 = ToLower(*s_copy);
+       s_copy++;
+       s_copy2++;
+    }
     s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
     while ( s_strtok ) {
        pfun = (FUN *)NULL;
