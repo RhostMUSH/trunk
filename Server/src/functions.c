@@ -24816,7 +24816,13 @@ FUNCTION(fun_sandbox)
     safe_str(retarg0, buff, bufcx);
     free_lbuf(retarg0);
 
-    strcpy(s_tmp, retarg1);
+    s_copy = retarg1;
+    s_copy2 = s_tmp;
+    while ( s_copy && *s_copy ) {
+       *s_copy2 = ToLower(*s_copy);
+       s_copy++;
+       s_copy2++;
+    }
     s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
     while ( s_strtok ) {
        pfun = (FUN *)NULL;
