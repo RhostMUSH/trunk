@@ -24806,6 +24806,9 @@ FUNCTION(fun_sandbox)
        if ( pfun ) {
           if ( !( i_ignore && (pfun->perms2 & CA_SB_IGNORE)) &&
                !(!i_ignore && (pfun->perms2 & CA_SB_DENY)) ) {
+             if ( strlen(s_build) > (LBUF_SIZE - (SBUF_SIZE + 2)) ) {
+                break;
+             }
              if ( i_found ) {
                 safe_chr(' ', s_build, &s_buildptr);
              }
@@ -24817,6 +24820,9 @@ FUNCTION(fun_sandbox)
        if ( upfun ) {
           if ( !( i_ignore && (upfun->perms2 & CA_SB_IGNORE)) &&
                !(!i_ignore && (upfun->perms2 & CA_SB_DENY)) ) {
+             if ( strlen(s_build) > (LBUF_SIZE - (SBUF_SIZE + 2)) ) {
+                break;
+             }
              if ( i_found ) {
                 safe_chr(' ', s_build, &s_buildptr);
              }
@@ -24828,6 +24834,9 @@ FUNCTION(fun_sandbox)
        if ( upfun2 ) {
           if ( !( i_ignore && (upfun2->perms2 & CA_SB_IGNORE)) &&
                !(!i_ignore && (upfun2->perms2 & CA_SB_DENY)) ) {
+             if ( strlen(s_build) > (LBUF_SIZE - (SBUF_SIZE + 2)) ) {
+                break;
+             }
              if ( i_found ) {
                 safe_chr(' ', s_build, &s_buildptr);
              }
