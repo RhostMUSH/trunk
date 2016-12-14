@@ -24727,7 +24727,8 @@ FUNCTION(fun_strmath)
 FUNCTION(fun_sandbox)
 {
     char *s_tmp, *s_strtok, *s_strtokptr, *s_pad, *retarg0, *retarg1, *retargtmp, *s_copy, *s_copy2;
-    int i_ignore, i_ufun;
+    char *s_build, *s_buildptr;
+    int i_ignore, i_ufun, i_found;
     FUN *pfun;
     UFUN *upfun, *upfun2;
 
@@ -24783,6 +24784,8 @@ FUNCTION(fun_sandbox)
        s_copy2++;
     }
     s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
+    i_found = 0;
+    s_buildptr = s_build = alloc_lbuf("sandbox_recursion_block");
     while ( s_strtok ) {
        pfun = (FUN *)NULL;
        upfun = (UFUN *)NULL;
@@ -24801,13 +24804,37 @@ FUNCTION(fun_sandbox)
           }
        }
        if ( pfun ) {
-          pfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          if ( !( i_ignore && (pfun->perms2 & CA_SB_IGNORE)) &&
+               !(!i_ignore && (pfun->perms2 & CA_SB_DENY)) ) {
+             if ( i_found ) {
+                safe_chr(' ', s_build, &s_buildptr);
+             }
+             i_found=1;
+             safe_str(s_strtok, s_build, &s_buildptr);
+             pfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          }
        }
        if ( upfun ) {
-          upfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          if ( !( i_ignore && (upfun->perms2 & CA_SB_IGNORE)) &&
+               !(!i_ignore && (upfun->perms2 & CA_SB_DENY)) ) {
+             if ( i_found ) {
+                safe_chr(' ', s_build, &s_buildptr);
+             }
+             i_found=1;
+             safe_str(s_strtok, s_build, &s_buildptr);
+             upfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          }
        } 
        if ( upfun2 ) {
-          upfun2->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          if ( !( i_ignore && (upfun2->perms2 & CA_SB_IGNORE)) &&
+               !(!i_ignore && (upfun2->perms2 & CA_SB_DENY)) ) {
+             if ( i_found ) {
+                safe_chr(' ', s_build, &s_buildptr);
+             }
+             i_found=1;
+             safe_str(s_strtok, s_build, &s_buildptr);
+             upfun2->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          }
        } 
        s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
     }
@@ -24816,13 +24843,8 @@ FUNCTION(fun_sandbox)
     safe_str(retarg0, buff, bufcx);
     free_lbuf(retarg0);
 
-    s_copy = retarg1;
-    s_copy2 = s_tmp;
-    while ( s_copy && *s_copy ) {
-       *s_copy2 = ToLower(*s_copy);
-       s_copy++;
-       s_copy2++;
-    }
+    strcpy(s_tmp, s_build);
+    free_lbuf(s_build);
     s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
     while ( s_strtok ) {
        pfun = (FUN *)NULL;
@@ -24852,7 +24874,6 @@ FUNCTION(fun_sandbox)
        } 
        s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
     }
-
     free_lbuf(retarg1);
     free_lbuf(s_tmp); 
     free_mbuf(s_pad);
