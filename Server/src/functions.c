@@ -24727,8 +24727,8 @@ FUNCTION(fun_strmath)
 FUNCTION(fun_sandbox)
 {
     char *s_tmp, *s_strtok, *s_strtokptr, *s_pad, *retarg0, *retarg1, *retargtmp, *s_copy, *s_copy2;
-    char *s_build, *s_buildptr;
-    int i_ignore, i_ufun, i_found;
+    char *s_build, *s_buildptr, *s_fail, *s_failptr;
+    int i_ignore, i_ufun, i_found, i_ffound;
     FUN *pfun;
     UFUN *upfun, *upfun2;
 
@@ -24784,8 +24784,9 @@ FUNCTION(fun_sandbox)
        s_copy2++;
     }
     s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
-    i_found = 0;
+    i_ffound = i_found = 0;
     s_buildptr = s_build = alloc_lbuf("sandbox_recursion_block");
+    s_failptr = s_fail = alloc_lbuf("sandbox_recursion_fail");
     while ( s_strtok ) {
        pfun = (FUN *)NULL;
        upfun = (UFUN *)NULL;
@@ -24802,6 +24803,39 @@ FUNCTION(fun_sandbox)
                 upfun2 = NULL;
              }
           }
+       }
+       if ( pfun && (pfun->perms2 & CA_SB_BYPASS) ) {
+          if ( !i_ffound ) {
+             safe_str((char *)"WARNING - Unable to sandbox functions: ", s_fail, &s_failptr);
+          }
+          if ( i_ffound  ) {
+             safe_chr(' ', s_fail, &s_failptr);
+          }
+          i_ffound = 1;
+          safe_str(s_strtok, s_fail, &s_failptr);
+          pfun = NULL;
+       }
+       if ( upfun && (upfun->perms2 & CA_SB_BYPASS) ) {
+          if ( !i_ffound ) {
+             safe_str((char *)"WARNING - Unable to sandbox functions: ", s_fail, &s_failptr);
+          }
+          if ( i_ffound  ) {
+             safe_chr(' ', s_fail, &s_failptr);
+          }
+          i_ffound = 1;
+          safe_str(s_strtok, s_fail, &s_failptr);
+          upfun = NULL;
+       }
+       if ( upfun2 && (upfun2->perms2 & CA_SB_BYPASS) ) {
+          if ( !i_ffound ) {
+             safe_str((char *)"WARNING - Unable to sandbox functions: ", s_fail, &s_failptr);
+          }
+          if ( i_ffound  ) {
+             safe_chr(' ', s_fail, &s_failptr);
+          }
+          i_ffound = 1;
+          safe_str(s_strtok, s_fail, &s_failptr);
+          upfun2 = NULL;
        }
        if ( pfun ) {
           if ( !( i_ignore && (pfun->perms2 & CA_SB_IGNORE)) &&
@@ -24883,6 +24917,10 @@ FUNCTION(fun_sandbox)
        } 
        s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
     }
+    if ( *s_fail ) {
+        notify_quiet(player, s_fail);
+    }
+    free_lbuf(s_fail);
     free_lbuf(retarg1);
     free_lbuf(s_tmp); 
     free_mbuf(s_pad);

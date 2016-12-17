@@ -570,7 +570,7 @@
   Also, some flags and toggles may grant and/or remove some of these very
   same abilities.  The TwinkLock also allows some complexity.
   
-  See Also: CONTROL
+  See Also: CONTROL, PERMISSION
   
 & CONTROL2
   There are exceptions to every rule, and RhostMUSH is no exception (sic).
@@ -620,7 +620,7 @@
   There's obviously a lot more that can be tweaked or modified, but this
   gives the general control flow.
   
-  See Also: CONTROL FLOW
+  See Also: CONTROL FLOW, PERMISSION
 
 & TOR 
   RhostMUSH has some fairly advanced features for proxy and masquarding
@@ -10335,6 +10335,7 @@
   attribute is logged.
   
   See Also: global_attrdefault
+  
 & PERMISSIONS
   Topic: PERMISSIONS
  
@@ -10355,7 +10356,9 @@
     no_suspect    - Suspect players (SUSPECT bit) may not use this feature.
     no_guest      - Guest players (GUEST bit) may not use this feature.
     no_wanderer   - Wanderer players (WANDERER bit) may not use this feature.
+  
 { 'wizhelp permissions2' for more }
+
 & permissions2
     global_build  - This feature may only be used when the global building
                     flag is turned on.
@@ -10378,6 +10381,7 @@
     no_code       - The command is disabled from non-coders
     eval          - The function forces evaluation (useful for @function)
     no_eval       - The function forces non-evaluation (useful for @function)
+    bypass        - The function is ignored for sandbox()
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions

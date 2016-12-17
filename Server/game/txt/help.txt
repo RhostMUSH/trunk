@@ -30425,6 +30425,8 @@
     command processors instead of function processors.  Work was done
     to avoid recursive calling.
   * sandbox() to deny access to functions (built in or user) [ASH]
+  * BYPASS @admin function permission to tag a function (built in or user)
+    to not be affected by the sandbox() function [ASH]
   
   Changes
   ------------
