@@ -11154,12 +11154,15 @@
   
 & elements()
   Function: elements(<list of words>,<list of numbers>[[,<delim>][,<sep>]])
- 
+   
   This function returns the words in <list of words> that are in the
   positions specified by <list of numbers>. Optionally, a list delimiter
   other than a space can be separated.  This function does not assume a null
   to be a valid argument.  For that, use elementsmux().
- 
+  
+  If you specify <list of numbers> as negative, it takes from the end starting
+  at -1.
+   
   Examples:
     > say elements(Foo Ack Beep Moo Zot,2 4)
     You say "Ack Moo"
@@ -11171,17 +11174,20 @@
     You say "is@test@is@is@is@is"
     > say elements(this@is@a@test,2 4 2 2 2 2,@,)
     You say "is test is is is is"
- 
+   
   See Also: extract(), extractword(), elementsmux(), elementpos()
   
 & elementsmux()
   Function: elementsmux(<list of words>,<list of numbers>[[,<delim>][,<sep>]])
- 
+   
   This function returns the words in <list of words> that are in the
   positions specified by <list of numbers>. Optionally, a list delimiter
   other than a space can be separated.  This function assumes 'null' arguments
   are valid arguments while elements() does not.
- 
+  
+  If you specify <list of numbers> as negative, it takes from the end starting
+  at -1.
+   
   Examples:
     > say elementsmux(Foo Ack Beep Moo Zot,2 4)
     You say "Ack Moo"
@@ -11193,7 +11199,7 @@
     You say "is@test@is@is@is@is"
     > say elementsmux(this@is@a@test,2 4 2 2 2 2,@,)
     You say "is test is is is is"
- 
+   
   See Also: extract(), extractword(), elements(), elementpos()
   
   
@@ -24037,6 +24043,7 @@
   
   See Also: folder
   
+& folder/cshare
 & folder cshare
   Command: folder/cshare
   
@@ -24045,6 +24052,7 @@
  
   See Also: folder share
   
+& folder/change
 & folder change
   Command: folder/change [<folder>]
   
@@ -24057,6 +24065,7 @@
   
   See Also: folder list
   
+& folder/share
 & folder share
   Command: folder/share [<folder>]
   
@@ -24074,6 +24083,7 @@
   
   See Also: mail share, mail number, mail check, folder list
  
+& folder/list
 & folder list
   Command: folder/list
   
@@ -24081,6 +24091,7 @@
   
   See Also: folder share, folder cshare
   
+& folder/current
 & folder current
   Command: folder/current
   
@@ -24088,6 +24099,7 @@
   
   See Also: folder list, folder cshare
   
+& folder/rename
 & folder rename
   Command: folder/rename <original name>=<new name>
   
@@ -24098,6 +24110,7 @@
   
   See Also: folder list
   
+& folder/move
 & folder move
   Command: folder/move all=<from>,<to>
            folder/move <# list>=<from>,<to>
@@ -24122,6 +24135,7 @@
   
   See Also: folder share, mail mark, mail save, folder list
   
+& folder/create
 & folder create
   Command: folder/create <folder name>
   
@@ -24134,6 +24148,7 @@
   
   See Also: folder list, folder share
   
+& folder/delete
 & folder delete
   Command: folder/delete <folder name>
   
@@ -24141,13 +24156,16 @@
    
   Example:
     > folder/delete love-letters
+ 
 & mail
   Command: mail [@]<player-list>=<subject> (with BRANDY_MAIL toggle)
            mail [@]<player-list>=[<subj>/]<body> (with PENN_MAIL toggle)
            mail [@]<player-list>=[<subj>//]<body> (with no toggle)
            mail [<mesg#>|new|unread|nall|uall|ball]
   
-  'HELP MAIL MAIN' for main index.    'HELP MAIL TOPICS' for topical help.
+                      'HELP MAIL MAIN' for main index.    
+  
+                    'HELP MAIL TOPICS' for topical help.
   
   If you are used to the MUX standard of @mail or the softcoded BrandyMail
   you will want to use the BRANDY_MAIL toggle.  
@@ -24564,6 +24582,7 @@
   
   See Also: mail, folder, folder cmdlist
   
+& mail/quick
 & mail quick
   Command: mail/quick
  
@@ -24702,11 +24721,13 @@
   Please keep in mind that this attribute is *NOT* evaluated for functions and
   is taken as-is.
   
+& mail/version
 & mail version
   Command: mail/version
   
   this command will show the current version of the mailsystem.
   
+& mail/reject
 & mail reject
   Command: mail/reject <msg>
            mail/reject +list
@@ -24860,6 +24881,7 @@
   For information on setting up folders, type 'help folder'
   For more information on mail, type in 'help mail <command>'
   
+& mail/quota
 & mail quota
   Command:  mail/quota
 
@@ -24871,6 +24893,7 @@
   See Also: quick, status
   Wizards: wizhelp wmail size
   
+& mail/autofor
 & mail autofor
   Command: mail/autofor <player-name>
            mail/autofor +off
@@ -24892,6 +24915,8 @@
   
   See Also: mail lock, mail share
   
+& mail/save
+& mail/mark/save
 & mail save
   Command: mail/mark/save <range>
            mail/unmark <range> (notice, you do not use /save with this)
@@ -24906,6 +24931,7 @@
   
   See Also: mail mark
   
+& mail/alias
 & mail alias
   Command: mail/alias
   
@@ -24918,6 +24944,7 @@
   Syntax: mail/alias
   Wizards: wizhelp wmail alias
   
+& mail/anonymous
 & mail anonymous
   Command: mail/anon player=message
            mail/anon/send player=message
@@ -24942,7 +24969,7 @@
   Topic: mail mass mailing
   
   Massmailing is done by using the optional /SEND feature of the mail
-  system.  The syntax is as follows:
+  system.  You may use commas as the delimiter.  The syntax is as follows:
   
   mail[/send] usr1 usr2 .. +<gls> $<gev> &<pls> ~<eval> = [subject//]message
   
@@ -24963,6 +24990,7 @@
   
   See Also: mail send forward, mail send reply, mail send
   
+& mail/previous
 & mail previous
   Command:  mail/next -
   
@@ -24980,6 +25008,7 @@
   
   See Also: mail next, mail zap
   
+& mail/next
 & mail next
   Command:  mail/next
   
@@ -24998,6 +25027,7 @@
   
   See Also: mail status, mail zap, mail read
   
+& mail/zap
 & mail zap
   Command:  mail/zap
   
@@ -25018,7 +25048,7 @@
   
   See Also: mail status, mail next, mail mark, mail delete, mail read
   
-& mail send
+& mail sending
   Topic: mail sending
   
   There are three ways that you can send mail with the mail system.  Depending 
@@ -25082,6 +25112,7 @@
      
   See Also: BRANDY_MAIL, mail write, mail send quick, mail send brandy
   
+& mail/send
 & mail send quick
   Command:  mail/send [@]<address list>=[<subject>//]<message>
   The address list can contain any number of recipients (up to the mush
@@ -25107,6 +25138,7 @@
   automatically stripped out.
   
 { help mail send2 for more, or help mail send examples for examples }
+
 & mail send2
   Command: mail/send (CONTINUED)
   
@@ -25164,6 +25196,7 @@
   
   See Also: mail write, mail forward, mail reply, mail recall
   
+& mail/reply
 & mail reply
   Command: mail/reply [@|^]<msg #>[*]=[<subject>//]<message>.
 
@@ -25192,6 +25225,7 @@
   
   See Also: mail forward, mail send
   
+& mail/forward
 & mail forward
   Command: mail/forward <msg #> [@|^]<list> [=[<subject>//]<additional text>]
   
@@ -25215,6 +25249,7 @@
   
   See Also: mail reply, mail send
   
+& mail/read
 & mail read
   Command: mail[/read] <msg #|new|unread>
   
@@ -25241,6 +25276,7 @@
             mail unmark, mail save, mail new, mail unread, mail nall, 
             mail ball, mail uall
   
+& mail/lock
 & mail lock
   Command: mail/lock <key>
   
@@ -25261,6 +25297,7 @@
    
   See Also: mail reject, mail recall
   
+& mail/status
 & mail status
   Command: mail/status [[p#] [*player] [#-#] [U/N/B/O/M/S] [/SUBJECT]]
   
@@ -25318,6 +25355,7 @@
   See Also: mail number, mail read, mail mark, mail unmark, mail save, 
             mail page
   
+& mail/delete
 & mail delete
   Command: mail/delete
   
@@ -25325,6 +25363,7 @@
   
   See Also: mark, unmark, recall, save
   
+& mail/recall
 & mail recall
   Command: mail/recall [ <#>|+all|*<player> [=<player>|+all] ]
            mail/recall <various options>
@@ -25399,6 +25438,7 @@
   
   See Also: mail save, mail send, mail mark, mail unmark
   
+& mail/mark
 & mail mark
   Command: mail/mark <#>|all|<*player>
   
@@ -25422,6 +25462,7 @@
    
   See Also: mail unmark, mail delete, mail status, mail save
   
+& mail/unmark
 & mail unmark
   Command: mail/unmark <#>|all   (this works for saved messages as well)
   
@@ -25441,6 +25482,7 @@
   
   See Also: mail mark, mail delete, mail status, mail save
   
+& mail/number
 & mail number
   Command: mail/number <target>=# 
    
@@ -25458,6 +25500,7 @@
    
   See Also: mail status, mail check, mail page, mail share
   
+& mail/check
 & mail check
   Command: mail/check <target>=<#>
   
@@ -25469,6 +25512,7 @@
    
   See Also: mail read, mail number, mail share
   
+& mail/password
 & mail password
   Command: mail/password +set=<password>
            mail/password <password>    
@@ -25491,6 +25535,7 @@
   
   See Also: mail share, mail lock, mail autofor
   
+& mail/share
 & mail share
   Command: mail/share <key>
   
@@ -25515,6 +25560,7 @@
   
   See Also: mail number, mail check, mail folders, mail folder, mail share
   
+& mail/write
 & mail write
   Topic: mail writing
   
@@ -25553,6 +25599,7 @@
   
   See Also: mail write cmdlist
   
+& mail/write +proof
 & mail write +proof
   Command: mail/write +proof
   
@@ -25577,6 +25624,7 @@
   
   See Also: mail write +list, mail write
   
+& mail/write +send
 & mail write +send
   Command: mail/write +send=<player list>
   
@@ -25599,6 +25647,7 @@
   See Also: mail write +reply, mail write +forward, mail send, mail forward,
             mail reply, mail status
     
+& mail/write +forget
 & mail write +forget
   Command: mail/write +forget
   
@@ -25621,6 +25670,7 @@
   
   See Also: mail write +edit, mail write +del
     
+& mail/write +subject
 & mail write +subject
   Command: mail/write +subject=<subject>
   
@@ -25643,6 +25693,7 @@
     
   See Also: mail write +send, mail write -, mail write +forget
   
+& mail/write +reply
 & mail write +reply
   Command: mail/write +reply=<message number>
   
@@ -25667,6 +25718,7 @@
   See Also: mail write +forward, mail write quicksending, mail reply, 
             mail status
   
+& mail/write +forward
 & mail write +forward
   Command: mail/write +forward=<message number> <player-list>
   
@@ -25692,6 +25744,7 @@
   See Also: mail write +reply, mail write quicksending, mail forward
             mail status
   
+& mail/write +list
 & mail write +list
   Command: mail/write +list [=<args>]
   
@@ -25721,6 +25774,7 @@
   
   See Also: mail write +forget, mail write +send
   
+& mail/write +insert
 & mail write +insert
   Command: mail/write +insert=<args>
   
@@ -25750,6 +25804,7 @@
   
   See Also: mail write +del, mail write +join
   
+& mail/write +split
 & mail write +split
   Command: mail/write +split=<args>
   
@@ -25779,6 +25834,7 @@
   
   See Also: mail write +justify, mail write +join, mail write +del
  
+& mail/write +justify
 & mail write +justify
   Command: mail/write +justify=<args>
   
@@ -25812,6 +25868,7 @@
   
   See Also: mail write +join, mail write +del
   
+& mail/write +join
 & mail write +join
   Command: mail/write +join=<args>
   
@@ -25842,6 +25899,7 @@
   
   See Also: mail write +del, mail write +split
   
+& mail/write +del
 & mail write +del
   Command: mail/write +del=<args>
   
@@ -25871,6 +25929,7 @@
   
   See Also: mail write +edit, mail write +split, mail write +forget
     
+& mail/write +fedit
 & mail write +fedit
   Command: mail/write +fedit <line>=<old>,<new>
   
@@ -25901,6 +25960,7 @@
   See Also: mail write +del, mail write +join, mail write +justify,
             mail write +fedit, mail write +editall, mail write +feditall
   
+& mail/write +cc
 & mail write +cc
   Command: mail/write +cc=<player-list>
   
@@ -25917,6 +25977,7 @@
   
   See Also: mail write +bcc, mail write +acc
   
+& mail/write +bcc
 & mail write +bcc
   Command: mail/write +bcc=<player-list>
   
@@ -25943,6 +26004,7 @@
   
   See Also: mail write +cc, mail write +acc
   
+& mail/write +acc
 & mail write +acc
   Command: mail/write +acc=<player-list>
   
@@ -25959,6 +26021,7 @@
   
   See Also: mail write +cc, mail write +bcc
   
+& mail/write +feditall
 & mail write +feditall
   Command: mail/write +feditall=<old>,<new>
   
@@ -25987,6 +26050,7 @@
   
   See Also: mail write +editall, mail write +edit, mail write +fedit
   
+& mail/write +editall
 & mail write +editall
   Command: mail/write +editall=<old>,<new>
   
@@ -26015,6 +26079,7 @@
   
   See Also: mail write +feditall, mail write +edit, mail write +fedit
    
+& mail/write +edit
 & mail write +edit
   Command: mail/write +edit <line>=<old>,<new>
   
@@ -26043,6 +26108,7 @@
    
   See Also: mail write +del, mail write +join, mail write +justify 
   
+& -
 & mail write -
   Command: mail/write <text>
            -<text>
@@ -26242,6 +26308,7 @@
    
   See Also: mail send, mail forward, mail reply
   
+& mail/page
 & mail page
   Command: mail/page <value>
   
@@ -30436,6 +30503,8 @@
   * [co]nnect, [cr]eate, etc on connect screen are no longer case
     sensitive [ASH]
   * strmath() now handles <, >, <=, >=, =, != [ASH]
+  * elements()/elementsmux() now handles negative values to pull
+    from the end [ASH]
   
   Bug Fixes
   ------------

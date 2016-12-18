@@ -15284,86 +15284,105 @@ FUNCTION(fun_u2ldefault)
 
 FUNCTION(fun_elements)
 {
-  char delim, *pt1, *pt2, *pos1, *pos2, *mybuff, filler;
-  int x, place, got, end;
+   char delim, *pt1, *pt2, *pos1, *pos2, *mybuff, filler;
+   int x, place, got, end, i_countwords;
 
-  if (!fn_range_check("ELEMENTS", nfargs, 2, 4, buff, bufcx)) {
-    return;
-  }
-  if (!*fargs[0] || !*fargs[1])
-    return;
-  if ((nfargs > 2) && (*fargs[2]))
-    delim = *fargs[2];
-  else
-    delim = ' ';
-  if ((nfargs > 3) && (*fargs[3])) {
-    if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
-       filler = '\0';
-    } else {
-       filler = *fargs[3];
-    }
-  } else {
-    filler = delim;
-  }
-  pos1 = fargs[1];
-  while (*pos1 && isspace((int)*pos1))
-    pos1++;
-  got = 0;
-  mybuff = alloc_lbuf("fun_element");
-  if (mybuff == NULL)
-    return;
-  memset(mybuff, 0, LBUF_SIZE);
-  while (*pos1) {
-    pos2 = pos1 + 1;
-    while (*pos2 && !isspace((int)*pos2))
-      pos2++;
-    if (*pos2) {
-      end = 0;
-      *pos2 = '\0';
-    }
-    else
-      end = 1;
-    place = atoi(pos1);
-    if ((place > 0) && (place < LBUF_SIZE)) {
-      pt1 = fargs[0];
-      while (*pt1 && (*pt1 == delim)) {
-  pt1++;
+   if (!fn_range_check("ELEMENTS", nfargs, 2, 4, buff, bufcx)) {
+      return;
+   }
+
+   if (!*fargs[0] || !*fargs[1])
+      return;
+
+   if ((nfargs > 2) && (*fargs[2])) {
+      delim = *fargs[2];
+   } else {
+      delim = ' ';
+   }
+
+   if ((nfargs > 3) && (*fargs[3])) {
+      if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+         filler = '\0';
+      } else {
+         filler = *fargs[3];
       }
-      if (*pt1) {
-  for (x = 1; x < place; x++) {
-    while (*pt1 && (*pt1 != delim))
-      pt1++;
-    if (!*pt1)
-      break;
-    while (*pt1 && (*pt1 == delim)) {
-      pt1++;
-          }
-  }
-  if (*pt1) {
-    pt2 = pt1+1;
-    while (*pt2 && (*pt2 != delim))
-      pt2++;
-    x = pt2 - pt1;
-    if (x >= LBUF_SIZE)
-      x = LBUF_SIZE - 1;
-    strncpy(mybuff,pt1,x);
-    *(mybuff+x) = '\0';
-    if (got && filler)
-      safe_chr(filler, buff, bufcx);
-    safe_str(mybuff, buff, bufcx);
-    got = 1;
-  }
+   } else {
+      filler = delim;
+   }
+
+   pos1 = fargs[1];
+   while (*pos1 && isspace((int)*pos1)) {
+      pos1++;
+   }
+
+   got = 0;
+   mybuff = alloc_lbuf("fun_element");
+   if (mybuff == NULL)
+      return;
+
+   memset(mybuff, 0, LBUF_SIZE);
+   while (*pos1) {
+      pos2 = pos1 + 1;
+      while (*pos2 && !isspace((int)*pos2)) {
+         pos2++;
       }
-    }
-    if (end)
-      pos1 = pos2;
-    else {
-      pos1 = pos2 + 1;
-      while (*pos1 && isspace((int)*pos1))
-  pos1++;
-    }
-  }
-  free_lbuf(mybuff);
+      if (*pos2) {
+         end = 0;
+         *pos2 = '\0';
+      } else {
+         end = 1;
+      }
+      place = atoi(pos1);
+      if ( place < 0 ) {
+         i_countwords = countwords(fargs[0], delim);
+         place += (i_countwords + 1);
+      }
+      if ((place > 0) && (place < LBUF_SIZE)) {
+         pt1 = fargs[0];
+         while (*pt1 && (*pt1 == delim)) {
+            pt1++;
+         }
+         if (*pt1) {
+            for (x = 1; x < place; x++) {
+               while (*pt1 && (*pt1 != delim)) {
+                  pt1++;
+               }
+               if (!*pt1) {
+                  break;
+               }
+               while (*pt1 && (*pt1 == delim)) {
+                  pt1++;
+               }
+            }
+            if (*pt1) {
+               pt2 = pt1+1;
+               while (*pt2 && (*pt2 != delim)) {
+                  pt2++;
+               }
+               x = pt2 - pt1;
+               if (x >= LBUF_SIZE) {
+                  x = LBUF_SIZE - 1;
+               }
+               strncpy(mybuff,pt1,x);
+               *(mybuff+x) = '\0';
+               if (got && filler) {
+                  safe_chr(filler, buff, bufcx);
+               }
+               safe_str(mybuff, buff, bufcx);
+               got = 1;
+            }
+         }
+      }
+      if (end) {
+         pos1 = pos2;
+      } else {
+         pos1 = pos2 + 1;
+         while (*pos1 && isspace((int)*pos1)) {
+            pos1++;
+         }
+      }
+   }
+   free_lbuf(mybuff);
 }
 
 /******************************************************************
@@ -15372,36 +15391,41 @@ FUNCTION(fun_elements)
  ******************************************************************/
 FUNCTION(fun_elementsmux)
 {
-  int nwords, cur, bFirst;
-  char *ptrs[LBUF_SIZE / 2];
-  char *wordlist, *s, *r, sep, osep;
-  svarargs_preamble("ELEMENTSMUX", 4);
-  bFirst = 1;
+   int nwords, cur, bFirst;
+   char *ptrs[LBUF_SIZE / 2];
+   char *wordlist, *s, *r, sep, osep;
 
-  /* Turn the first list into an array. */
-  wordlist = alloc_lbuf("fun_elements.wordlist");
+   svarargs_preamble("ELEMENTSMUX", 4);
 
-  /* Same size - no worries */
-  strcpy(wordlist, fargs[0]);
-  nwords = list2arr(ptrs, LBUF_SIZE / 2, wordlist, sep);
-  s = trim_space_sep(fargs[1], ' ');
+   bFirst = 1;
+
+   /* Turn the first list into an array. */
+   wordlist = alloc_lbuf("fun_elements.wordlist");
+
+   /* Same size - no worries */
+   strcpy(wordlist, fargs[0]);
+   nwords = list2arr(ptrs, LBUF_SIZE / 2, wordlist, sep);
+   s = trim_space_sep(fargs[1], ' ');
 
   /* Go through the second list, grabbing the numbers and finding the
    * corresponding elements.
    */
 
-  do {
-    r = split_token(&s, ' ');
-    cur = atoi(r) - 1;
-    if (  (cur >= 0) && (cur < nwords) && ptrs[cur]) {
-      if (!bFirst) {
-  safe_chr(osep, buff, bufcx);
+   do {
+      r = split_token(&s, ' ');
+      cur = atoi(r) - 1;
+      if ( cur < 0 ) {
+         cur += nwords + 1;
       }
-      bFirst = 0;
-      safe_str(ptrs[cur], buff, bufcx);
-    }
-  } while (s);
-  free_lbuf(wordlist);
+      if (  (cur >= 0) && (cur < nwords) && ptrs[cur]) {
+         if (!bFirst) {
+            safe_chr(osep, buff, bufcx);
+         }
+         bFirst = 0;
+         safe_str(ptrs[cur], buff, bufcx);
+      }
+   } while (s);
+   free_lbuf(wordlist);
 }
 
 /* ---------------------------------------------------------------------------
