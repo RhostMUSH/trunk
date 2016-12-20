@@ -10779,8 +10779,6 @@
   
   See Also: GENDER, V(), SHIFT(), ACCENT()
   
-& TRACE_COLOR
-& TRACE_GREP
 & %_
   Topic: SUBSTITUTIONS
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
@@ -10814,6 +10812,8 @@
   
   { see 'help %_2' to continue }
 
+& TRACE_COLOR
+& TRACE_GREP
 & %_2
   Topic: SUBSTITUTIONS (CONTINUED)
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
