@@ -24584,13 +24584,16 @@
   
 & mail/quick
 & mail quick
-  Command: mail/quick
+  Command: mail/quick [<folder>]
  
   Get a quick summary of how many new, unread, old, and marked messages
   in the current folder.  Also reports the current folder.
   
+  You may specify an optional folder to get quick a quick summary of that
+  particular mail folder.
+  
   The /quick switch is optional for this command and you can just type 'mail'
-  standalone.
+  standalone.  The /quick switch is required if you specify a folder.
   
   See Also: mail status, mail
   
