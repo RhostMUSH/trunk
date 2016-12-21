@@ -683,10 +683,10 @@ int get_ind_rec(dbref player, char itype, char *rtbuf, int check, dbref wiz, int
     keydata.dptr = sbuf1;
     keydata.dsize = sizeof(int) << 1;
     infodata = dbm_fetch(foldfile,keydata);
+    if ( *quickfolder ) {
+       infodata.dptr = quickfolder;
+    }
     if (infodata.dptr) {
-      if ( *quickfolder ) {
-         infodata.dptr = quickfolder;
-      }
       foldmast = 1;
       *(int *)sbuf1 = FIND_BOX;
       *(int *)(sbuf1 + sizeof(int)) = player;
@@ -708,9 +708,9 @@ int get_ind_rec(dbref player, char itype, char *rtbuf, int check, dbref wiz, int
   keydata.dptr = sbuf1;
   keydata.dsize = sizeof(int) << 1;
   infodata = dbm_fetch(mailfile,keydata);
-  if (!(infodata.dptr))
+  if (!(infodata.dptr)) {
     return 0;
-  else {
+  } else {
     memcpy(rtbuf,infodata.dptr,infodata.dsize);
     return(infodata.dsize);
   }
