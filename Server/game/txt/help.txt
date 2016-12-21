@@ -30520,3 +30520,4 @@
     toggle, and command lists [ASH]
   * listfunctions() didn't work properly with local @lfunctions [ASH]
   * mail/status [<folder>] wouldn't show mail of the given folder [ASH]
+  * bug with matching when NO_NAME was in effect on a target [ASH]

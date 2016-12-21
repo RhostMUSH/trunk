@@ -297,6 +297,17 @@ match_list_altname(first)
     char *namebuf, *namebuf2, *namebuf3;
     int aflags;
 
+    dbref buff_exact_match = NOTHING;	/* holds result of exact match */
+    int buff_have_exact = 0;	/* Have a precise match (dbref, 'me', etc) */
+    int buff_check_keys = 0;	/* if non-zero, check for keys */
+    dbref buff_last_match = NOTHING;	/* holds result of last match */
+    int buff_match_count = 0;	/* holds total number of inexact matches */
+    dbref buff_match_who = NOTHING;	/* player performing match */
+    const char *buff_match_name = "";	/* name to match */
+    int buff_preferred_type = NOTYPE;	/* preferred type */
+    int buff_local_match = 0;	/* Matched something locally, not by number */
+    int buff_reality_valuechk = 0;        /* Reality level check */
+
 #ifdef REALITY_LEVELS
 /* Buffer the results */
     dbref pres_exact_match = NOTHING;   /* holds result of exact match */
@@ -376,9 +387,35 @@ match_list_altname(first)
            if ( NoName(first) ) {
 	      namebuf2 = atr_pget(first, A_NAME_FMT, &aowner, &aflags);
               if ( *namebuf2 ) {
+                 /* We need this because exec can clobber the match stack */
+                 buff_exact_match = exact_match;	/* holds result of exact match */
+                 buff_have_exact = have_exact;	/* Have a precise match (dbref, 'me', etc) */
+                 buff_check_keys = check_keys;	/* if non-zero, check for keys */
+                 buff_last_match = last_match;	/* holds result of last match */
+                 buff_match_count = match_count;	/* holds total number of inexact matches */
+                 buff_match_who = match_who;	/* player performing match */
+                 buff_match_name = alloc_lbuf("match_exec");
+                 strcpy((char *)buff_match_name, (char *)match_name);
+                 buff_preferred_type = preferred_type;	/* preferred type */
+                 buff_local_match = local_match;	/* Matched something locally, not by number */
+                 buff_reality_valuechk = reality_valuechk;        /* Reality level check */
+
                  namebuf3 = exec(first, match_who, match_who, EV_FIGNORE|EV_EVAL|EV_TOP, namebuf2, (char **) NULL, 0, (char **)NULL, 0);
                  strcpy(namebuf, strip_all_special(namebuf3));
                  free_lbuf(namebuf3);
+
+                 /* And now we restore the match stack that exec likely clobbered */
+                 exact_match = buff_exact_match;	/* holds result of exact match */
+                 have_exact = buff_have_exact;	/* Have a precise match (dbref, 'me', etc) */
+                 check_keys = buff_check_keys;	/* if non-zero, check for keys */
+                 last_match = buff_last_match;	/* holds result of last match */
+                 match_count = buff_match_count;	/* holds total number of inexact matches */
+                 match_who = buff_match_who;	/* player performing match */
+                 strcpy((char *)match_name, (char *)buff_match_name);
+                 free_lbuf(buff_match_name);
+                 preferred_type = buff_preferred_type;	/* preferred type */
+                 local_match = buff_local_match;	/* Matched something locally, not by number */
+                 reality_valuechk = buff_reality_valuechk;        /* Reality level check */
               }
               free_lbuf(namebuf2);
            }
