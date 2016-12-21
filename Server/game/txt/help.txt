@@ -30505,6 +30505,7 @@
   * strmath() now handles <, >, <=, >=, =, != [ASH]
   * elements()/elementsmux() now handles negative values to pull
     from the end [ASH]
+  * improve folder/list to be more descriptive [ASH]
   
   Bug Fixes
   ------------

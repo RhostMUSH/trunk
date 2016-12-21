@@ -2181,6 +2181,8 @@ mail_quick_function(dbref player, char *fname, int keyval)
        safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d", old + saved + mark, new + unread, mark), ret_buff, &ret_ptr);
     else if ( keyval == 3 )
        safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d", old + saved, new + unread, mark), ret_buff, &ret_ptr);
+    else if ( keyval == 4 )
+       safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%dT %dN %dU %dO %dM %dS", c2, new, unread, old, mark, saved), ret_buff, &ret_ptr);
     else
        safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d %d %d %d", c2, new, unread, old, mark, saved), ret_buff, &ret_ptr);
     free_lbuf(tpr_buff);
@@ -2190,6 +2192,8 @@ mail_quick_function(dbref player, char *fname, int keyval)
        safe_str("0", ret_buff, &ret_ptr);
     else if ( (keyval == 1) || (keyval == 3) )
        safe_str("0 0 0", ret_buff, &ret_ptr);
+    else if ( keyval == 4 )
+       safe_str("0T 0N 0U 0O 0M 0S", ret_buff, &ret_ptr);
     else
        safe_str("0 0 0 0 0 0", ret_buff, &ret_ptr);
   }
@@ -7638,6 +7642,8 @@ folder_plist_function(dbref player, char *buf1, char *buff, char *bufcx)
 void 
 folder_list(dbref player, dbref wiz, int flag)
 {
+  char *s_tmp1, *s_buff, *s_strtok, *s_strtokr, *retval;
+
   strcpy(lbuf1,"Incoming ");
   *(int *)sbuf1 = FIND_LST;
   *(int *)(sbuf1 + sizeof(int)) = player;
@@ -7646,14 +7652,43 @@ folder_list(dbref player, dbref wiz, int flag)
   infodata = dbm_fetch(foldfile,keydata);
   if (infodata.dptr)
     strcat(lbuf1,infodata.dptr);
+  s_tmp1 = alloc_lbuf("folder_list_tmp");
+  s_buff = alloc_lbuf("folder_list_buff");
+  strcpy(s_tmp1, lbuf1);
   if (flag) {
     notify_quiet(player,"Mail: You have the following folders ->");
-    notify_quiet(player,lbuf1);
-  }
-  else {
+    s_strtok = strtok_r(s_tmp1, " ", &s_strtokr);
+    while ( s_strtok ) {
+       retval = mail_quick_function(player, s_strtok, 4);
+       sprintf(s_buff, "  %-24s %s", s_strtok, retval);
+       free_lbuf(retval);
+       notify_quiet(player, s_buff);
+       s_strtok = strtok_r(NULL, " ", &s_strtokr);
+    }
+    folder_current(player, 0, NOTHING, 1);
+  } else {
     notify_quiet(wiz,"Mail: That player has the following folders ->");
-    notify_quiet(wiz,lbuf1);
+    s_strtok = strtok_r(s_tmp1, " ", &s_strtokr);
+    while ( s_strtok ) {
+       retval = mail_quick_function(player, s_strtok, 4);
+       sprintf(s_buff, "  %-24s %s", s_strtok, retval);
+       free_lbuf(retval);
+       notify_quiet(wiz, s_buff);
+       s_strtok = strtok_r(NULL, " ", &s_strtokr);
+    }	    
+    *s_buff = '\0';
+    s_strtok = s_buff;
+    sprintf(s_tmp1, "#%d", player);
+    folder_current_function(GOD, 0, s_tmp1, s_buff, s_strtok);
+    if ( *s_buff ) {
+       sprintf(s_tmp1, "Mail: That player's current folder is -> %s", s_buff);
+    } else {
+       sprintf(s_tmp1, "Mail: That player has no current folder");
+    }
+    notify_quiet(wiz, s_tmp1);
   }
+  free_lbuf(s_tmp1);
+  free_lbuf(s_buff);
 }
 
 void folder_delete(dbref player, char *buf)
