@@ -30515,3 +30515,4 @@
   * potential buffer corruption with very large function, flag,
     toggle, and command lists [ASH]
   * listfunctions() didn't work properly with local @lfunctions [ASH]
+  * mail/status [<folder>] wouldn't show mail of the given folder [ASH]

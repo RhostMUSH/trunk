@@ -684,6 +684,9 @@ int get_ind_rec(dbref player, char itype, char *rtbuf, int check, dbref wiz, int
     keydata.dsize = sizeof(int) << 1;
     infodata = dbm_fetch(foldfile,keydata);
     if (infodata.dptr) {
+      if ( *quickfolder ) {
+         infodata.dptr = quickfolder;
+      }
       foldmast = 1;
       *(int *)sbuf1 = FIND_BOX;
       *(int *)(sbuf1 + sizeof(int)) = player;
@@ -2191,6 +2194,7 @@ mail_quick_function(dbref player, char *fname, int keyval)
        safe_str("0 0 0 0 0 0", ret_buff, &ret_ptr);
   }
 
+  *quickfolder = '\0';
   return(ret_buff);
 }
 
@@ -2253,9 +2257,10 @@ void mail_quick(dbref player, char *fname)
       }
     }
     free_lbuf(tpr_buff);
-  }
-  else
+  } else {
     notify_quiet(player,"Mail: You have no mail");
+  }
+  *quickfolder = '\0';
 }
 
 void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *out_buff, char *out_buffptr)
