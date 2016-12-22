@@ -19605,7 +19605,7 @@
   See Also: unpack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(), 
             roman(), packmath()
   
-& PACKMATH
+& PACKMATH()
   Function: packmath(<number>, <radix>, <offset> [,<math>])
   
   This function applies the specified <math> to <number> by applying
