@@ -7562,8 +7562,7 @@ void folder_create(dbref player, char *buf)
     infodata.dsize = strlen(lbuf1) + 1;
     dbm_store(foldfile,keydata,infodata,DBM_REPLACE);
     notify_quiet(player,"Mail: Folder created");
-  }
-  else {
+  } else {
     inc = 0;
     p1 = mystrchr(infodata.dptr,' ');
     while (p1) {

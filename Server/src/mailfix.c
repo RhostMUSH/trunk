@@ -837,9 +837,23 @@ int readin()
       }
       pt1 = findplay(player);
       if (!pt1) {
-	err_out(19,Name(player),NULL);
-	keydata = dbm_nextkey(foldfile);
-	continue;
+         if ( Good_chk(player) ) {
+            pt1 = (PLYST *)myapush(sizeof(PLYST));
+            if (pt1) {
+               pt1->next = allplay;
+               allplay = pt1;
+               pt1->player = player;
+               initplay(pt1);
+            } else {
+	       err_out(19,Name(player),NULL);
+	       keydata = dbm_nextkey(foldfile);
+	       continue;
+            }
+        } else {
+	   err_out(19,Name(player),NULL);
+	   keydata = dbm_nextkey(foldfile);
+	   continue;
+        }
       }
       switch (key) {
 	case FIND_LST:
@@ -2193,9 +2207,9 @@ int fixfolder()
         if (checkfold(pt4,1)) {
 	  strcat(buf2," ");
 	  strcat(buf2,pt4);
-        }
-        else
+        } else {
 	  err_out(119,Name(pt1->player),NULL);
+        }
         if (!test)
 	  pt4 = pt5+1;
       }
