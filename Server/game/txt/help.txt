@@ -30547,6 +30547,7 @@
   * sandbox() to deny access to functions (built in or user) [ASH]
   * BYPASS @admin function permission to tag a function (built in or user)
     to not be affected by the sandbox() function [ASH]
+  * packmath() to allow math on varying radix compressions [ASH]
   
   Changes
   ------------
