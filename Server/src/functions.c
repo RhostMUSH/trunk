@@ -7070,6 +7070,92 @@ FUNCTION(fun_pack)
   }
 }
 
+FUNCTION(fun_packmath)
+{
+   double i_val, i_num;
+   char *s_tmp[2], *s_str, *s_strptr, sep;
+
+   if (!fn_range_check("PACKMATH", nfargs, 3, 4, buff, bufcx)) {
+      return;
+   }
+
+   sep = '+';
+   i_val = 0;
+   if ( (nfargs > 3) && *fargs[3] )
+      sep = *fargs[3];
+   if ( (nfargs > 2) && *fargs[2] )
+      i_val = safe_atof(fargs[2]);
+
+   if ( !*fargs[0] || ((*fargs[0] == '0') && (strlen(fargs[0]) == 1)) ) {
+      switch(sep) {
+         case '+': /* Add */
+            fval(buff, bufcx, i_val);
+            break;
+         case '-': /* Subtract */
+            fval(buff, bufcx, 0 - i_val);
+            break;
+         case '/': /* Divide */
+         case '%': /* Mod */
+            if ( i_val == 0 ) {
+               safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+            } else {
+               fval(buff, bufcx, 0);
+            }
+            break;
+         case '*': /* Multiply */
+            fval(buff, bufcx, 0);
+            break;
+      }
+      return;
+   }
+   
+   s_strptr = s_str = alloc_lbuf("fun_packadd");
+   fun_unpack(s_str, &s_strptr, player, cause, cause, fargs, 2, (char **)NULL, 0);
+   if ( (*s_str == '0') && (strlen(s_str) == 1) ) {
+      safe_str("#-1 VALUE WAS WRONG BASE", buff, bufcx);
+   } else {
+      i_num = safe_atof(s_str);
+      switch(sep) {
+         case '+': /* Add */
+            sprintf(s_str, "%.0f", i_num + i_val);
+            break;
+         case '-': /* Subtract */
+            sprintf(s_str, "%.0f", i_num - i_val);
+            break;
+         case '/': /* Divide */
+            if ( i_val == 0 ) {
+               safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+               free_lbuf(s_str);
+               return;
+            } else {
+               sprintf(s_str, "%.0f", i_num / i_val);
+            }
+            break;
+         case '%': /* Divide */
+            if ( i_val == 0 ) {
+               safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+               free_lbuf(s_str);
+               return;
+            } else {
+               sprintf(s_str, "%.0f", fmod(i_num, i_val));
+            }
+            break;
+         case '*': /* Multiply */
+            sprintf(s_str, "%.0f", i_num * i_val);
+            break;
+      }
+      s_tmp[0] = alloc_lbuf("fun_packadd");
+      strcpy(s_tmp[0], s_str);
+      s_tmp[1] = fargs[1];
+      *s_str = '\0';
+      s_strptr = s_str;
+      fun_pack(s_str, &s_strptr, player, cause, cause, s_tmp, 2, (char **)NULL, 0);
+      safe_str(s_str, buff, bufcx);
+      free_lbuf(s_str);
+      free_lbuf(s_tmp[0]);
+   }
+}
+
 static unsigned int CRC32_Table[256] =
 {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
@@ -33839,6 +33925,7 @@ FUN flist[] =
     {"ORFLAGS", fun_orflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"OWNER", fun_owner, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PACK", fun_pack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"PACKMATH", fun_packmath, 3,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PARENMATCH", fun_parenmatch, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PARENSTR", fun_parenstr, -1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT

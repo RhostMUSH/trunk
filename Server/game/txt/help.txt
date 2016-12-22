@@ -10119,12 +10119,12 @@
   NUMMATCH()    NULL()         NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
   OBJ()         OBJEVAL()      OBJID()        OEMIT()          OPEN()         
   OR()          ORCHR()        ORFLAG()       ORFLAGS()        OWNER()        
-  PACK()        PARENMATCH()   PARENT()       PARSE()          PARSESTR()     
-  PEDIT()       PEMIT()        PFIND()        PGREP()          PI()           
-  PID()         PMATCH()       PORT()         POS()            POSS()         
-  POWER()       POWER10()      PRINTF()       PRIVATIZE()      PROGRAMMER()   
-  PTIMEFMT()    PUSHREGS()     QUOTA()        R()              RACE()         
-  RAND()        RANDPOS()      RANDMATCH()    RANDEXTRACT() 
+  PACK()        PACKMATH()     PARENMATCH()   PARENT()         PARSE()        
+  PARSESTR()    PEDIT()        PEMIT()        PFIND()          PGREP()        
+  PI()          PID()          PMATCH()       PORT()           POS()          
+  POSS()        POWER()        POWER10()      PRINTF()         PRIVATIZE()    
+  PROGRAMMER()  PTIMEFMT()     PUSHREGS()     QUOTA()          R()            
+  RACE()        RAND()         RANDPOS()      RANDMATCH()      RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -10217,9 +10217,9 @@
                         LISTTOGGLES() PMATCH() RNUM() VALID() XCON()
               See Also: help database information functions
   
-  Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() ROMAN() ROUND()
-                        SPELLNUM() TOBIN() TODEC() TOHEX() TOOCT() TRUNC() 
-                        UNPACK()
+  Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() PACKMATH() 
+                        ROMAN() ROUND() SPELLNUM() TOBIN() TODEC() TOHEX() 
+                        TOOCT() TRUNC() UNPACK()
               See Also: help numerical conversion functions
   
   { 'help function classes2' for more }    
@@ -19603,8 +19603,39 @@
     -bVxTM
    
   See Also: unpack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(), 
-            roman()
+            roman(), packmath()
   
+& PACKMATH
+  Function: packmath(<number>, <radix>, <offset> [,<math>])
+  
+  This function applies the specified <math> to <number> by applying
+  the value of <offset>.  The value returned will be in the same <radix>
+  that you specified.  The <radix> allowed is 2 to 64.  If no <math>
+  is specified it assumes '+' (addition).
+  
+  The valid values for <math> are:
+    +  - apply addition (default)
+    -  - apply subtraction
+    *  - apply multiplication
+    /  - apply division
+    %  - apply modulus (use two %'s)
+  
+  Examples:
+    > think pack(629126998,64)
+    bVxTM
+    > think packmath(bVxTM,64,100)
+    bVxUw
+    > think unpack(bVxUw,64)
+    629127098
+    > think add(629126998,100)
+    629127098
+    > think unpack(packmath(pack(629126998,64),64,5555),64)
+    629132553
+    > think add(629126998,5555)
+    629132553
+  
+  See Also: pack(), unpack(), strmath()
+
 & UNESCLIST()
   Function: unesclist(<list of characters to un-escape>|<string>)
   
@@ -19640,7 +19671,8 @@
     >think unpack(1111,2)
     15
    
-  See Also: pack(), crc32(), mask(), tobin(), tohex(), tooct(), todec()
+  See Also: pack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(),
+            packmath()
   
 & CRC32()
   Function: crc32(<string1>[, ..., <stringN>])
@@ -19658,7 +19690,7 @@
     629126998
   
   See Also: pack(), unpack(), mask(), tobin(), tohex(), tooct(), todec(),
-            digest()
+            digest(), packmath()
   
 & PARENSTR()
   Function: parenstr(<string>)
@@ -27677,6 +27709,7 @@
   fbound()      - Bounds a floating point between a min and max value.
   floor()       - Returns the largest integer less than <number>
   pack()        - Returns the equivalent of a given number using a radix.
+  packmath()    - Applies math to the compressed radix value.
   roman()       - Returns the Roman Numerals for the specified number.
   spellnum()    - List the long name of the number fed into it.
   tobin()       - Converts a number to binary.
