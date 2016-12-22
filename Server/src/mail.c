@@ -635,7 +635,11 @@ void mail_rem_dump()
   char *tpr_buff, *tprp_buff;
   
   tprp_buff = tpr_buff = alloc_lbuf("mail_rem_dump");
+  system(safe_tprintf(tpr_buff, &tprp_buff, "cp -f \"%s\" \"%s.bkup\"",dumpname, dumpname));
+  tprp_buff = tpr_buff;
   system(safe_tprintf(tpr_buff, &tprp_buff, "rm \"%s\"",dumpname));
+  tprp_buff = tpr_buff;
+  system(safe_tprintf(tpr_buff, &tprp_buff, "cp -f \"%s\" \"%s.bkup\"",fdumpname, fdumpname));
   tprp_buff = tpr_buff;
   system(safe_tprintf(tpr_buff, &tprp_buff, "rm \"%s\"",fdumpname));
   free_lbuf(tpr_buff);
