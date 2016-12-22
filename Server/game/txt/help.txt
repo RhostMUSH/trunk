@@ -22332,7 +22332,7 @@
   See Also: setq(), setr(), nameq(), inc(), dec()
   
 & XINC()
-  Function: xinc(<number>)
+  Function: xinc(<number> [,<key>])
   
   INC() and XINC() may be reversed.  to check if they are, Please reference:  
                            @list options system  
@@ -22340,11 +22340,19 @@
   The xinc() function is used to increment the number passed into it.
   Any number passed into it is automatically incremented by one.
   
+  If <key> is 1, it does advanced increments.  It then will take the number
+  at the end of the string and increment, or if the string is a hexidicimal
+  code starting with '0x' or '0X' it will increment the hex number. 
+  
   Example:
-    > say inc(5)
+    > say xinc(5)
     You say "6"
-    > say inc(-5)
+    > say xinc(-5)
     You say "-4"
+    > say xinc(test123,1)
+    You say "test124"
+    > say xinc(0xfa,1)
+    You say "0xfb"
   
   See Also: xdec(), inc(), dec(), add(), sub()
   
@@ -22377,7 +22385,7 @@
   
   
 & XDEC()
-  Function: xdec(<number>)
+  Function: xdec(<number> [,<key>])
   
   DEC() and XDEC() may be reversed.  to check if they are, Please reference:  
                            @list options system  
@@ -22385,11 +22393,19 @@
   The xdec() function is used to decrement the number passed into it.
   Any number passed into it is automatically decremented by one.
   
+  If <key> is 1, it does advanced increments.  It then will take the number
+  at the end of the string and increment, or if the string is a hexidicimal
+  code starting with '0x' or '0X' it will increment the hex number. 
+  
   Example:
-    > say dec(5)
+    > say xdec(5)
     You say "4"
-    > say dec(-5)
+    > say xdec(-5)
     You say "-6"
+    > say xdec(test123,1)
+    You say "test122"
+    > say xdec(0xfa,1)
+    You say "0xf9"
   
   See Also: xinc(), inc(), dec(), add(), sub()
   
@@ -30509,6 +30525,7 @@
   * elements()/elementsmux() now handles negative values to pull
     from the end [ASH]
   * improve folder/list to be more descriptive [ASH]
+  * xinc() and xdec() modified to handle advanced inc/dec [ASH]
   
   Bug Fixes
   ------------

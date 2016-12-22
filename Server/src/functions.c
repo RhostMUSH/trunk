@@ -29494,10 +29494,50 @@ FUNCTION(fun_center)
 
 FUNCTION(fun_xdec)
 {
-   int num;
+   int num, i_chk;
+   char *ptr;
 
-   num = atoi(fargs[0]);
-   ival(buff, bufcx, --num);
+   if (!fn_range_check("XDEC", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   i_chk = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_chk = (atoi(fargs[1]) ? 1 : 0);
+   }
+
+   if ( i_chk ) {
+      if ( *(fargs[0]) && (*(fargs[0]) == '0') && 
+           ((*(fargs[0]+1) == 'x') || (*(fargs[0]+1) == 'X')) ) {
+         ptr = alloc_lbuf("fun_xdec");
+         sprintf(ptr, "%c%c%x", *(fargs[0]), *(fargs[0]+1), convnum(fargs[0])-1 );
+         safe_str(ptr, buff, bufcx);
+         free_lbuf(ptr);
+      } else if ( !*fargs[0] || is_number(fargs[0]) ) {
+         num = atoi(fargs[0]);
+         ival(buff, bufcx, --num);
+      } else {
+         ptr = fargs[0] + strlen(fargs[0]) - 1;
+         while ( ptr && (isdigit(*ptr)) ) {
+            ptr--;
+            if ( !isdigit(*ptr) ) {
+               ptr++;
+               break;
+            }
+         }
+         if ( isdigit(*ptr) ) {
+            num = atoi(ptr);
+            *ptr = '\0';
+            safe_str(fargs[0], buff, bufcx);
+            ival(buff, bufcx, --num);
+         } else {
+            safe_str(fargs[0], buff, bufcx);
+            safe_str((char *)"-1", buff, bufcx);
+         }
+      }
+   } else {
+      num = atoi(fargs[0]);
+      ival(buff, bufcx, --num);
+   }
 }
 
 FUNCTION(fun_dec)
@@ -29565,10 +29605,50 @@ FUNCTION(fun_dec)
 
 FUNCTION(fun_xinc)
 {
-   int num;
+   int num, i_chk;
+   char *ptr;
 
-   num = atoi(fargs[0]);
-   ival(buff, bufcx, ++num);
+   if (!fn_range_check("XINC", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   i_chk = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_chk = (atoi(fargs[1]) ? 1 : 0);
+   }
+
+   if ( i_chk ) {
+      if ( *(fargs[0]) && (*(fargs[0]) == '0') &&
+           ((*(fargs[0]+1) == 'x') || (*(fargs[0]+1) == 'X')) ) {
+         ptr = alloc_lbuf("fun_xinc");
+         sprintf(ptr, "%c%c%x", *(fargs[0]), *(fargs[0]+1), convnum(fargs[0])+1 );
+         safe_str(ptr, buff, bufcx);
+         free_lbuf(ptr);
+      } else if ( !*fargs[0] || is_number(fargs[0]) ) {
+         num = atoi(fargs[0]);
+         ival(buff, bufcx, ++num);
+      } else {
+         ptr = fargs[0] + strlen(fargs[0]) - 1;
+         while ( ptr && (isdigit(*ptr)) ) {
+            ptr--;
+            if ( !isdigit(*ptr) ) {
+               ptr++;
+               break;
+            }
+         }
+         if ( isdigit(*ptr) ) {
+            num = atoi(ptr);
+            *ptr = '\0';
+            safe_str(fargs[0], buff, bufcx);
+            ival(buff, bufcx, ++num);
+         } else {
+            safe_str(fargs[0], buff, bufcx);
+            safe_chr('1', buff, bufcx);
+         }
+      }
+   } else {
+      num = atoi(fargs[0]);
+      ival(buff, bufcx, ++num);
+   }
 }
 
 FUNCTION(fun_inc)
@@ -33480,7 +33560,7 @@ FUN flist[] =
     {"CREATETIME", fun_createtime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CTU", fun_ctu, 3, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef MUX_INCDEC
-    {"DEC", fun_xdec, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"DEC", fun_xdec, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
     {"DEC", fun_dec, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
@@ -33579,7 +33659,7 @@ FUN flist[] =
     {"IFELSE", fun_ifelse, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"ILEV", fun_ilev, 0, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef MUX_INCDEC
-    {"INC", fun_xinc, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"INC", fun_xinc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
     {"INC", fun_inc, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
@@ -34012,8 +34092,8 @@ FUN flist[] =
     {"XDEC", fun_dec, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"XINC", fun_inc, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #else
-    {"XDEC", fun_xdec, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"XINC", fun_xinc, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"XDEC", fun_xdec, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"XINC", fun_xinc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"XNOR", fun_xnor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"XOR", fun_xor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
