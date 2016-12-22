@@ -67,6 +67,16 @@ Bug in safer_ufun with setting attributes on self and permissions with u().
 				- Thanks Mike/Talvo
 Improvement of help entries for @label and various documentation fixes.
 				- Thanks Mike/Talvo
+Added additional spacing to parenmatch() to help with pretty printing.
+				- Suggestion from Thenomain (thanks!)
+&pageformat and &outpageformat idea from PennMUSH
+				- Thanks Mike and the PennMUSH folk :)
+Added help entry for a suggestion on special characters.
+				- Thanks Tesagk
+Added 'd' and 'D' options for wildcarding on editansi.
+				- Thanks Anixy
+Removed attribute flags from @decompile/tf
+				- Thanks Darren
 
 
 		         RhostMUSH 3.9.4 Update File

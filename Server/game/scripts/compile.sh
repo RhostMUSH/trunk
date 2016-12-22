@@ -8,8 +8,9 @@ then
    echo "   recompile -- recompile the source."
    exit 0
 fi
-case "$1" in
-   compile) # compile source
+arg=$(echo $1)
+case "${arg}" in
+   patch) # compile source
       if [ -d ../rhost_tmp ]
       then
          echo "..."

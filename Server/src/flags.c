@@ -960,9 +960,10 @@ NDECL(init_flagtab)
 
     hashinit(&mudstate.flags_htab, 521);
     nbuf = alloc_sbuf("init_flagtab");
-    for (fp = gen_flags; fp->flagname && *fp->flagname != '\0'; fp++) {
-      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++)
+    for (fp = gen_flags; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
 	*np = ToLower((int)*bp);
+      }
       *np = '\0';
       hashadd2(nbuf, (int *) fp, &mudstate.flags_htab, 1);
     }
@@ -977,9 +978,10 @@ NDECL(init_toggletab)
 
     hashinit(&mudstate.toggles_htab, 131);
     nbuf = alloc_sbuf("init_toggletab");
-    for (tp = tog_table; tp->togglename; tp++) {
-	for (np = nbuf, bp = (char *) tp->togglename; *bp; np++, bp++)
+    for (tp = tog_table; (char *)(tp->togglename); tp++) {
+	for (np = nbuf, bp = (char *) tp->togglename; *bp; np++, bp++) {
 	    *np = ToLower((int)*bp);
+        }
 	*np = '\0';
 	hashadd(nbuf, (int *) tp, &mudstate.toggles_htab);
     }
@@ -1056,6 +1058,10 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
 	    continue;
 	ptrs[nptrs] = fp;
 	nptrs++;
+        if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+           notify(player, "WARNING: Flag table too large to display.");
+           break;
+        }
     }       
 
     qsort(ptrs, nptrs, sizeof(FLAGENT *), flagent_comp);
@@ -1126,6 +1132,10 @@ display_toggletab2(dbref player, char *buff, char **bufcx)
 	
 	ptrs[nptrs] = tp;
 	nptrs++;
+        if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+           notify(player, "WARNING: Toggle table too large to display.");
+           break;
+        }
     }    
     qsort(ptrs, nptrs, sizeof(TOGENT *), togent_comp); 
      
@@ -1608,7 +1618,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 	} else {
 	    tp = find_toggle(target, pt1);
 	    if (tp == NULL) {
-              if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) )
+              if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
                 fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
 		   notify(player, "I don't understand that toggle.");
@@ -1617,6 +1627,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @set me=%s?]", pt1));
                    free_lbuf(tpr_buff);
                 }
+              }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
@@ -4441,7 +4452,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
             break;
       }
-      if ( !fp || !(fp->flagname)) {
+      if ( !fp || !((char *)(fp->flagname))) {
          notify_quiet(player, "Bad flag given to @flagdef");
          return;
       }

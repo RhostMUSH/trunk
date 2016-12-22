@@ -22,6 +22,7 @@ struct user_attribute {
 	char	*name; /* Name of user attribute */
 	int	number;		/* Assigned attribute number */
 	int	flags;		/* Attribute flags */
+	int	command_flag;	/* turned into @command */
 	struct user_attribute *next;	/* name hash chain. */
 };
 

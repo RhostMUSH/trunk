@@ -474,44 +474,44 @@
   be discussed later.
   
   First, the main control is handled by a bitlevel tier as follows.
-    #1    [Bitlevel 7] - This is the db owner and highest control authority
-                         in the game.  All garbage/recycled information is
-                         owned by this player, and because of this, this 
-                         player should not own anything.  Let me re-iterate.
-                         This player should not own anything.  If you need
-                         #1 style power, use the immortal flag for an 
-                         immortal player.
-   Immortal    [Bit 6] - This is essentially your 'leader' bit.  it can do
-                         pretty much anything within the game with few
-                         exceptions.  They override all locks by default
-                         unless they set the no_override/no_uselock flags.
-   Wizard      [Bit 5] - This is your normal MUX/Penn Wizard bitlevel.  It
-                         can do all your normal wizardly goodness.
-                         They override all locks their level and lower
-                         unless set no_override/no_uselock.  Yes, this
-                         also includes pagelocks.  This is referred to as
-                         'Royalty' within the codebase, but is in fact a
-                         full Wizard bit.  Re-iterate.  Full wizard.
-   Councilor   [Bit 4] - This is the 'admin' bit.  It has most of the wiz
-                         privs, but lacks some of the higher level db
-                         control.
-   Architect   [Bit 3] - This is the first staff bit that can control 
-                         things outside of its own ownership.  This does
-                         including, attribute/flags/toggles and player
-                         modification, but not player destruction.
-   Guildmaster [Bit 2] - This is the first admin bit.  It has small 
-                         amounts of control including examining stuff
-                         outside of ownership, but lacks modify power.
-   Citizen     [Bit 1] - Yup, this is just your normal player bit.
-   Wanderer    [Bit 0] - Consider this an unregistered player.  This is
-                         a Citizen with the WANDERER flag.  It stops 
-                         them from all building commands.
-   Guest       [Bit 0] - This is a guest player, as a guest they have
-                         very little power or control.  They lack any
-                         and all db modification abilities, including
-                         but not limited to editing, creating, etc.
-                         They also can not use mail.  Yes, this is
-                         intentional.
+    #1 (god)        [Bit 7] - This is the db owner and highest control 
+                              authority in the game.  All garbage/recycled 
+                              information is owned by this player, and because
+                              of this, this player should not own anything.  
+                              Let me re-iterate.  This player should not own 
+                              anything.  If you need #1 style power, use the 
+                              immortal flag for an immortal player.
+   Immortal         [Bit 6] - This is essentially your 'leader' bit.  it can do
+                              pretty much anything within the game with few
+                              exceptions.  They override all locks by default
+                              unless they set the no_override/no_uselock flags.
+   Wizard (Royalty) [Bit 5] - This is your normal MUX/Penn Wizard bitlevel.  It
+                              can do all your normal wizardly goodness.
+                              They override all locks their level and lower
+                              unless set no_override/no_uselock.  Yes, this
+                              also includes pagelocks.  This is referred to as
+                              'Royalty' within the codebase, but is in fact a
+                              full Wizard bit.  Re-iterate.  Full wizard.
+   Councilor        [Bit 4] - This is the 'admin' bit.  It has most of the wiz
+                              privs, but lacks some of the higher level db
+                              control.
+   Architect        [Bit 3] - This is the first staff bit that can control 
+                              things outside of its own ownership.  This does
+                              including, attribute/flags/toggles and player
+                              modification, but not player destruction.
+   Guildmaster      [Bit 2] - This is the first admin bit.  It has small 
+                              amounts of control including examining stuff
+                              outside of ownership, but lacks modify power.
+   Citizen          [Bit 1] - Yup, this is just your normal player bit.
+   Wanderer         [Bit 0] - Consider this an unregistered player.  This is
+                              a Citizen with the WANDERER flag.  It stops 
+                              them from all building commands.
+   Guest            [Bit 0] - This is a guest player, as a guest they have
+                              very little power or control.  They lack any
+                              and all db modification abilities, including
+                              but not limited to editing, creating, etc.
+                              They also can not use mail.  Yes, this is
+                              intentional.
   
   {wizhelp control2 for exceptions}
   {wizhelp control flow for the general flow of permissions}
@@ -530,7 +530,7 @@
      @hook
      NO_MODIFY (with @admin params imm_nomod enabled)
      Immortal Owned thing set INHERIT
-              Wizard ---+
+              Wizard (Royalty) ---+
               Power(Toggled/Special)
               @hook
               NO_MODIFY/NO_EXAMINE (without @admin params imm_nomod enabled)
@@ -570,13 +570,13 @@
   Also, some flags and toggles may grant and/or remove some of these very
   same abilities.  The TwinkLock also allows some complexity.
   
-  See Also: CONTROL
+  See Also: CONTROL, PERMISSION
   
 & CONTROL2
   There are exceptions to every rule, and RhostMUSH is no exception (sic).
   While Immortal and #1 are basically immune from exceptions, being
   too high in the chain to warrent effecting them, the rest of the bits
-  can be modified (yes, including full wizard).  
+  can be modified (yes, including full wizard (royalty)).  
   
   They can be controlled as follows.
     @power    -- This is a method to tier-level up a bitlevel to higher
@@ -620,7 +620,7 @@
   There's obviously a lot more that can be tweaked or modified, but this
   gives the general control flow.
   
-  See Also: CONTROL FLOW
+  See Also: CONTROL FLOW, PERMISSION
 
 & TOR 
   RhostMUSH has some fairly advanced features for proxy and masquarding
@@ -2817,11 +2817,11 @@
     advbuffers          allocations         attr_permissions    attributes 
     bad_names           buffers             commands            costs     
     db_stats            default_flags       flags               functions 
-    globals             hashstats           logging             options
-    permissions         process             site_info           switches 
-    user_attributes     toggles             mail_globals        guest_names
-   *rlevels             cmdslogged          powers              depowers 
-    stacks              funperms
+    funperms            globals             hashstats           logging   
+    options             permissions         process             site_info   
+    switches            user_attributes     toggles             mail_globals  
+    guest_names        *rlevels             cmdslogged          powers  
+    depowers           *stacks              vattrcmds
  
   Type wizhelp @list <option> for help with a particular option.
   
@@ -2829,6 +2829,15 @@
   
   Example:  @list alloc
 
+& @list vattrcmds
+  Command: @list vattrcmds
+  
+  This will list all the dynamically defined @commands that are linked to
+  user defined attributes.  These are defined with the @admin config
+  parameter 'vattr_command'.
+  
+  See Also: vattr_command, @list commands
+ 
 & @list funperms
   Command: @list funperms
   
@@ -2943,7 +2952,9 @@
   Lists the internal commands that you may execute.  This command does not
   list the attribute-setting commands that you may use (like @va or @ahear),
   and does not list exits in your current room or $-commands on objects.
-  See Also: @list attr_access, @list attributes, @list permissions.
+  
+  See Also: @list attr_access, @list attributes, @list permissions,
+            @list vattrcmds
 
 & @list costs
   Command: @list costs
@@ -2961,6 +2972,7 @@
   
   Lists the flags that are automatically given to players, things, rooms,
   exits, and robots when they are created.
+  
   See Also: player_flags, thing_flags, room_flags, exit_flags, robot_flags.
 
 & @list flags
@@ -3505,6 +3517,11 @@
   specified, the player is given a null password.  If logged in, the player
   is notified that his password has been changed.
   
+  DES passwords are limited to 8 characters or less in length.
+  SHA512 passwords are limited to 160 characters or less in length.
+  
+  You can not have white space in passwords.
+  
   The following switches exist:
     /des    - Enforce a DES password instead of the system default.
    
@@ -3514,7 +3531,7 @@
     > @newpassword/des aplayer=test123
     Password changed.
   
-  See Also: @password.
+  See Also: (normal help) @password
 
 & @nuke
   Command: @nuke[/<switch>] <player>
@@ -4619,6 +4636,7 @@
          /clear     - When used in junction with any of the above switches, 
                       will clear the hook from being applied.
          /list      - This lists the current commands/attributes with hooks.
+         /include   - Convert the BEFORE and AFTER hooks to command @includes.
   
 { help @hook2 for examples}
 
@@ -5475,6 +5493,7 @@
   hackattr_nowiz            hackattr_see              hasattrp_compat         
   heavy_cpu_max             help_file                 help_index              
   hide_nospoof              hook_cmd                  hook_obj                
+  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -5582,14 +5601,14 @@
   toggle_access_unset       tor_localhost             tor_paranoid            
   trace_output_limit        trace_topdown             tree_character
   trust_site                uncompress_program        unowned_safe            
-  user_attr_flags           validate_host             vattr_limit_checkwiz    
-  vlimit                    wait_cost                 wall_cost               
-  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
-  who_default               who_unfindable            who_showwiz             
-  who_wizlevel              who_whowiztype            whohost_size            
-  wiz_override              wiz_uselock               wizard_help_file        
-  wizard_help_index         wizard_motd_file          wizard_motd_message     
-  wizard_queue_limit        zone_parents
+  user_attr_flags           validate_host             vattr_command
+  vattr_limit_checkwiz      vlimit                    wait_cost               
+  wall_cost                 whereis_notify            wizmax_dest_limit       
+  wizmax_vattr_limit        who_default               who_unfindable          
+  who_showwiz               who_wizlevel              who_whowiztype          
+  whohost_size              wiz_override              wiz_uselock             
+  wizard_help_file          wizard_help_index         wizard_motd_file        
+  wizard_motd_message       wizard_queue_limit        zone_parents
 
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -7377,7 +7396,7 @@
   For detailed information on how to set up hooks, please see wizhelp on:
                                 HOOK SETUP
   
-  See Also: HOOK SETUP, @hook, hook_obj
+  See Also: HOOK SETUP, @hook, hook_obj, hook_offline
                       
 & hook_obj
   Config parameter: hook_obj <dbref>.  Default: -1
@@ -7390,6 +7409,7 @@
           A_<command> - after configuration
           B_<command> - before configuration
          AF_<command> - fail configuration
+         AO_<command> - after offline (connect screen) configuration 
    
   Percent substitutions are handled differently than normal '@hooks' and
   can be seen with reviewing wizhelp on 'sub_override'.
@@ -7401,7 +7421,19 @@
   For detailed information on how to set up hooks, please see wizhelp on:
                                 HOOK SETUP
   
-  See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include
+  See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include,
+            hook_offline
+  
+& hook_offline
+  Config parameter: hook_offline <on/off>.  Default: off
+  
+  This option if enabled will allow connect screen (offline) player
+  creates to trigger @pcreate/after and/or @register/after.  
+  The attribute for this is special and will be AO_@pcreate 
+  instead of A_@pcreate and AO_@register instead of A_@register
+  
+  See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include,
+            hook_offline
   
 & hostnames
   Config parameter: hostnames <yes/no>.  Default: yes
@@ -9883,6 +9915,49 @@
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
              suspect_host, goodmail_host, @site
 
+& vattr_command
+  Config parameter: vattr_command <alias> <user-attribute>
+                    vattr_command <alias> !
+  
+  The <alias> should be entered without a '@' prefix.
+  
+  Will define or delete a @command alias to a user-defined attribute.  This
+  allows you to set a @command sequence to a user-defined attribute.  Once
+  a command is defined, the attribute can not be deleted from the hash tables
+  via @attribute/delete, but may be renamed.  If there is any db rollback
+  or other situation which deletes the attribute in-game, the attribute
+  will be unsettable with this command until the command is deleted then
+  re-defined to the attribute. 
+  
+  The reason for this is that the defined command is linked to the REFERENCE
+  of the attribute and not the name of the attribute itself.  Once an 
+  attribute is deleted and redefined, it will likely have a different
+  reference number.
+  
+  You may specify an unlimited number of command aliases for a single 
+  user defined attribute.  Use '!' as the user-attribute if you wish
+  to delete the command reference to the attribute.
+  
+  You can not set up @command aliases to user-defined attributes if the
+  command already exists in the command table as a command, an alias, or
+  pre-exists in the user-attribute table.
+    
+  The attribute must be pre-defined in the attribute hash table before
+  being able to be made a command.  You may do this by just 
+  typing: &ATTRIBNAME me  (where ATTRIBNAME is the attribute name)
+  
+  netrhost.conf example:
+    > vattr_command pageformat pageformat
+    > vattr_command outpageformat outpageformat
+  
+  In-game example:
+    > @admin vattr_command=pageformat pageformat
+    > @admin vattr_command=outpageformat outpageformat
+  
+  The above will define @pageformat and @outpageformat respectively.
+  
+  See Also: @list commands, @list permissions, @aflags
+  
 & vattr_limit_checkwiz
   Config parameter: vattr_limit_checkwiz <boolean>.  Default: 0
   
@@ -10260,6 +10335,7 @@
   attribute is logged.
   
   See Also: global_attrdefault
+  
 & PERMISSIONS
   Topic: PERMISSIONS
  
@@ -10280,7 +10356,9 @@
     no_suspect    - Suspect players (SUSPECT bit) may not use this feature.
     no_guest      - Guest players (GUEST bit) may not use this feature.
     no_wanderer   - Wanderer players (WANDERER bit) may not use this feature.
+  
 { 'wizhelp permissions2' for more }
+
 & permissions2
     global_build  - This feature may only be used when the global building
                     flag is turned on.
@@ -10303,6 +10381,7 @@
     no_code       - The command is disabled from non-coders
     eval          - The function forces evaluation (useful for @function)
     no_eval       - The function forces non-evaluation (useful for @function)
+    bypass        - The function is ignored for sandbox()
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions
@@ -11502,6 +11581,8 @@
   4)  The IGSWITCH config parameter is a toggle only.
   
   5)  The BEFORE and AFTER switches are automatically processed if existing.
+      If you also have the INCLUDE hook, these are processed for commands
+      and not functions.
   
   6)  The following attributes on the global hook object (hook_obj) exist:
          I_<command> - ignore            P_<command> - permit
@@ -11539,6 +11620,10 @@
   There, your hook object is all set up.  If you want it to last through
   reboots, you need to either put the @hook's in a @startup, or add the 
   hook_cmd to the .conf file.  You probably want the hook_cmd :)
+  
+  Also if you specify INCLUDE (@hook/include) for a command, then the A_ and
+  B_ for AFTER and BEFORE (respectively) are processed as if @include, ergo
+  it will do command processing and not function processing.
  
 { see 'wizhelp hook setup3' for special situations }
   

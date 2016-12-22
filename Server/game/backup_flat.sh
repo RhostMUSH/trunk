@@ -34,6 +34,8 @@
 # INIT_RCP - initialize the RCP/SCP and/or NCFTPPUT remote archivers
 #----------------------------------------------------------------------------
 # RCP - path and binary to use for rcp/scp copy
+# RCPOPTS - Options to pass to RCP.  Example if you're using scp you can
+#           give it special options here like a separate port
 # NCFTP - path and binary to use for ncftpput
 # NCFTPFILE - filename that is used to store login/password info for ncftpput
 #             We force this file user read only for safty
@@ -51,6 +53,7 @@
 #############################################################################
 init_rcp() {
    RCP=/usr/bin/scp	
+#  RCPOPTS="-P 22"
    CPLOGIN=none@none.com
    BKUPPATH=/home/none
    NCFTP=/usr/bin/ncftpput
@@ -289,7 +292,7 @@ do_remote_copy() {
    then
       if [ ${ENABLEREMOTE} -eq 1 ]
       then
-         ${RCP} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT} ${CPLOGIN}:${BKUPPATH}
+         ${RCP} ${RCPOPTS} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT} ${CPLOGIN}:${BKUPPATH}
       elif [ ${ENABLEREMOTE} -eq 2 ]
       then
          ${NCFTP} -f ${NCFTPFILE} ${BKUPPATH} ${OLDFLAT}/"${MAILNEWSDB}".dbflat1.tar.${COMPREXT}
@@ -302,7 +305,7 @@ do_remote_copy() {
    else
       if [ ${ENABLEREMOTE} -eq 1 ]
       then
-         ${RCP} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT} ${CPLOGIN}:${BKUPPATH}
+         ${RCP} ${RCPOPTS} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT} ${CPLOGIN}:${BKUPPATH}
       elif [ ${ENABLEREMOTE} -eq 2 ]
       then
          ${NCFTP} -f ${NCFTPFILE} ${BKUPPATH} ${OLDFLAT}/"${MAILNEWSDB}".flat.1.${COMPREXT}

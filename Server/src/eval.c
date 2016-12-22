@@ -2279,10 +2279,16 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 if ( fp == NULL ) {
 		   ufp = (UFUN *) hashfind(tbangc, &mudstate.ufunc_htab);
 		}
+                if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                   ufp = NULL;
+                }
                 if ( ufp == NULL ) {
                    sprintf(tfunlocal, "%d_%s", Owner(player), tbangc);
 		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
+                      ulfp = NULL;
+                   }
+                   if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
                       ulfp = NULL;
                    }
                 }
@@ -2293,10 +2299,16 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 if ( fp == NULL ) {
 		   ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
 		}
+                if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                   ufp = NULL;
+                }
                 if ( ufp == NULL ) {
                    sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
 		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
+                      ulfp = NULL;
+                   }
+                   if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
                       ulfp = NULL;
                    }
                 }
@@ -2310,16 +2322,22 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    if (fp == NULL) {
 		ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
 	    }
+            if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+               ufp = NULL;
+            }
             if ( ufp == NULL ) {
                 sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
 		ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                 if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                    ulfp = NULL;
                 }
+                if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
+                   ulfp = NULL;
+                }
             }
 #endif
             /* Compare to see if it has an IGNORE mask */
-            if ( fp && (fp->perms & 0x00007F00) ) {
+            if ( fp && ((fp->perms & 0x00007F00) || (fp->perms2 & CA_SB_IGNORE)) ) {
 	       check_access(player, fp->perms, fp->perms2, 0);
                if ( mudstate.func_ignore && !mudstate.func_bypass) {
                   memset(tfunbuff, 0, sizeof(tfunbuff));
@@ -2333,13 +2351,24 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                   } else {
                      sprintf(tfunbuff, "_%.31s", tbuf);
                   }
-	          ufp = (UFUN *) hashfind((char *)tfunbuff,
-					   &mudstate.ufunc_htab);
+	          ufp = (UFUN *) hashfind((char *)tfunbuff, &mudstate.ufunc_htab);
+                  if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                     ufp = NULL;
+                  }
                   if ( ufp == NULL ) {
                       sprintf(tfunlocal, "%d_%s", Owner(player), tfunbuff);
 		      ulfp = (UFUN *) hashfind((char *)tfunlocal, &mudstate.ulfunc_htab);
                       if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                          ulfp = NULL;
+                      }
+                      if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
+                         ulfp = NULL;
+                      }
+                      if ( ulfp ) {
+                         check_access(player, ulfp->perms, ulfp->perms2, 0);
+                         if ( mudstate.func_ignore && !mudstate.func_bypass ) {
+                            ulfp = NULL;
+                         }
                       }
                   }
                }

@@ -115,7 +115,7 @@ void execute_entry(BQUE *queue)
 					queue->cause,
 					0, cp,
 					queue->env,
-					queue->nargs, queue->shellprg);
+					queue->nargs, queue->shellprg, queue->hooked_command);
 		    }
 		}
                 mudstate.shell_program = 0;
@@ -438,6 +438,7 @@ freeze_pid(dbref player, int pid, int key)
             freezepid->shellprg = point->shellprg;
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
+            freezepid->hooked_command = point->hooked_command;
             if ( Good_obj(point->player) )
                freezepid->plr_type = Typeof(point->player);
             else
@@ -514,6 +515,7 @@ freeze_pid(dbref player, int pid, int key)
             freezepid->shellprg = freezepid->shellprg;
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
+            freezepid->hooked_command = point->hooked_command;
             if ( Good_obj(point->player) )
                freezepid->plr_type = Typeof(point->player);
             else
@@ -640,6 +642,7 @@ thaw_pid(dbref player, int pid, int key)
                freezepid->shellprg = point->shellprg;
                freezepid->stop_bool = point->stop_bool;
                freezepid->stop_bool_val = point->stop_bool_val;
+               freezepid->hooked_command = point->hooked_command;
             }
 	    numhalted++;
 	    if (trail)
@@ -720,6 +723,7 @@ thaw_pid(dbref player, int pid, int key)
                freezepid->shellprg = point->shellprg;
                freezepid->stop_bool = point->stop_bool;
                freezepid->stop_bool_val = point->stop_bool_val;
+               freezepid->hooked_command = point->hooked_command;
             }
 	    numhalted++;
 	    if (trail)
@@ -1716,6 +1720,7 @@ setup_que(dbref player, dbref cause, char *command,
     tmp->nargs = nargs;
     tmp->stop_bool = 0;
     tmp->stop_bool_val = 0;
+    tmp->hooked_command = mudstate.no_hook;
     if ( InProgram(player) )
        tmp->shellprg = 1;
     else

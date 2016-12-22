@@ -1,0 +1,19 @@
+@@ This is the main execscript object.  This interfaces with scripts from the ~/game/scripts directory
+@@ If you wish to add more scripts there, feel free to tack on to this
+@@
+@@ This object _MUST_ be owned by an immortal.
+@@
+@create ExecObject=10
+@power/counc ExecObject=execscript
+&CMD_DIFF ExecObject=$+diff */*:@pemit %#=[execscript(diff.sh,%0,|,%1)]
+&CMD_ISPELL ExecObject=$+ispell*:@pemit %#=[ifelse(!$v(0),+spell: Spell what?,[rjust(- +spell ----,78,-)]%r[execscript(spell.sh,trim(%0))]%r[repeat(-,78)])]
+&CMD_DICT ExecObject=$+dict*:@pemit %#=[ifelse(!$v(0),+dict: Define what?,[rjust(- +dict ----,78,-)]%r[execscript(dict.sh,trim(%0))]%r[repeat(-,78)])]
+&CMD_MATH ExecObject=$+math*:@pemit %#=[ifelse(!$v(0),+math: do what?,[rjust(- +math ----,78,-)]%rMath: %0%rResult: [execscript(math.sh,%0)][repeat(-,78)])]
+@set ExecObject/CMD_MATH = no_parse
+&CMD_THES ExecObject=$+thes*:@pemit %#=[ifelse(!$v(0),+thes: Thesaurus on what?,[rjust(- +thes ----,78,-)]%r[setq(0,execscript(thes.sh,trim(%0)))][ifelse(!!^r(0),%q0,Nothing found for word.)]%r[repeat(-,78)])]
+&COMPILE ExecObject=$+compile*:@assert [u(CANCOMPILE,%#)]=@pemit %#=+compile: Permission denied;@pemit %#=[execscript(compile.sh,%0)]
+&CANCOMPILE ExecObject=[gte(bittype(%0),6)]
+&FUN_MATH ExecObject=[chomp(execscript(math.sh,objeval(%#,%0)))]
+@startup ExecObject=@dolist lattr(me/fun_*)=@function/priv/pres [after(##,_)]=me/##
+@set ExecObject=INHERIT SIDEFX SAFE IND
+@tr/quiet ExecObject/startup

@@ -162,11 +162,11 @@
   REGEXP CLASSES      REGEXP EXAMPLES   ROBBERY              ROYALTY          
   SEARCH CLASSES      SEMAPHORES        SENSES               SETQ_TEMPLATES   
   SQL                 SQLESCAPE         SIDEEFFECTS          SINGLETHREADING  
-  SPOOFING            STACK             SUBSTITUTIONS        SUCCESS          
-  SWITCHES            TOGGLES           USEFUL               USER ATTRIBUTES  
-  VARIABLE EXITS      VATOVZ            VERBS                WANDERER         
-  ZATOZZ              ZONES             $-COMMANDS           #LAMBDA
-  ATTRIB FORMATTING   MAX ARGS          WILDCARDS
+  SPECIAL CHARACTERS  SPOOFING          STACK                SUBSTITUTIONS      
+  SUCCESS             SWITCHES          TOGGLES              USEFUL             
+  USER ATTRIBUTES     VARIABLE EXITS    VATOVZ               VERBS              
+  WANDERER            ZATOZZ            ZONES                $-COMMANDS         
+  #LAMBDA             ATTRIB FORMATTING MAX ARGS             WILDCARDS
   
 & \*
 & \?
@@ -1980,6 +1980,9 @@
   Note: If you are paging people with spaces in their name, start the page
         with a comma.  i.e.  page ,player with space, player2 = message
   
+  You may use the &PAGEFORMAT and &OUTPAGEFORMAT attributes for format
+  incoming and outgoing pages.
+  
   <control> is the formatter for the page (", ;, :, etc)
   
   This command sends <message> to <player-list>.  If you do not specify a 
@@ -2022,8 +2025,59 @@
          the same.
   
   See Also: pose, say, whisper, :, ;, ", @pemit, @away, @idle, @reject,
-            rpage, lpage, mrpage
+            rpage, lpage, mrpage, PAGEFORMAT, OUTPAGEFORMAT
   
+& @PAGEFORMAT
+& &PAGEFORMAT
+& PAGEFORMAT
+& @OUTPAGEFORMAT
+& &OUTPAGEFORMAT
+& OUTPAGEFORMAT
+  Attribute: &outpageformat <object>[=<message>]
+             &pageformat <object>[=<message>]
+  
+  &PAGEFORMAT changes the message seen by <object> when it receives a page.
+  &OUTPAGEFORMAT sets the message seen by <object> when it sends a page.
+  
+  %0 - will be set to the page message (not including :, ; or ").
+  %1 - will be set to ':' ';' or '"' for pose, semipose and normal page, 
+       reespectively.
+  %2 - will be set to the alias of the pager, if any.
+  %3 - will be a space-separated list of recipient dbrefs.
+  %4 - will be set to the default message (based on pageformat/outpageformat).
+  
+  { See 'help &pageformat2' for examples. }
+
+& &pageformat2
+& @pageformat2
+& pageformat2
+  Attribute: &outpageformat <object>[=<message>]    (CONTINUED)
+             &pageformat <object>[=<message>]
+  
+  Examples:
+    > &pageformat me=\[[time()]\] %4
+    Set.
+    > @outpageformat me=\[[time()]\] %4
+    Set.
+
+    (To obtain @toggle vpage behavior:)
+    > &pageformat me=[setq(0,%n[if(%2,%b(%2))],1,switch(%3,%!,,elist(iter(%3,
+                     name(##),%b,|),,|)))][switch(%1,",%q0 pages[if(%q1,%b%q1)]:
+                     %0,:,From afar[if(%q1,%b(to %q1))]\, %q0 %0,
+                     From afar[if(%q1, %b(to %q1))]\, %q0%0)]
+    Set.
+
+    (To obtain no @toggle vpage behavior:)
+    > &pageformat me=[setq(1,switch(%3,%!,,elist(iter(%3,name(##),%b,|),,|)))]
+                     [switch(%1,",%n pages[if(%q1,%b%q1)]: %0,:,From 
+                     afar[if(%q1,%b(to %q1))]\, %n %0,From 
+                     afar[if(%q1,%b(to %q1))]\, %n%0)]
+    Set.
+  
+    Both examples above will return how 'page' would normally show.
+  
+  See Also: page, lpage, rpage, mrpage
+
 & mrpage
   Command: mrpage[/<switch>] [[<control>]<message>]
   
@@ -3614,7 +3668,8 @@
          help @lock type <lock> - give detailed help on the specific lock.
          help userlocks   - a special way to define user-defined locking.
   
-  See Also: @unlock, @lset, @chown, lock(), elock()
+  See Also: @unlock, @lset, @chown, lock(), elock(), testlock(), 
+            lockencode(), lockdecode(), lockcheck()
   
 & @lock locks
   You can set the following locks:
@@ -4484,6 +4539,23 @@
   Command: @password <old password>=<new password>
  
   This command changes your password.
+  
+  If the system uses the old DES style of passwords, you are limited
+  to 8 character passwords.
+  
+  If the system uses the newer SHA512 style of passwords, you may have
+  a password up to 160 characters in length.
+  
+  No white space characters (spaces, tabs, carrage returns, etc) are 
+  allowed in the password.
+  
+  If secured passwords are enabled, it will enforce a minimum length
+  of 5 characters for passwords and require at least one lowercase 
+  and uppercase letter, and require a special character which is
+  non-alphanumeric or ', or -.
+  
+  Please see @list options system to see what method of password
+  algo is currently in place.
    
   See Also: @name
   
@@ -10047,12 +10119,12 @@
   NUMMATCH()    NULL()         NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
   OBJ()         OBJEVAL()      OBJID()        OEMIT()          OPEN()         
   OR()          ORCHR()        ORFLAG()       ORFLAGS()        OWNER()        
-  PACK()        PARENMATCH()   PARENT()       PARSE()          PARSESTR()     
-  PEDIT()       PEMIT()        PFIND()        PGREP()          PI()           
-  PID()         PMATCH()       PORT()         POS()            POSS()         
-  POWER()       POWER10()      PRINTF()       PRIVATIZE()      PROGRAMMER()   
-  PTIMEFMT()    PUSHREGS()     QUOTA()        R()              RACE()         
-  RAND()        RANDPOS()      RANDMATCH()    RANDEXTRACT() 
+  PACK()        PACKMATH()     PARENMATCH()   PARENT()         PARSE()        
+  PARSESTR()    PEDIT()        PEMIT()        PFIND()          PGREP()        
+  PI()          PID()          PMATCH()       PORT()           POS()          
+  POSS()        POWER()        POWER10()      PRINTF()         PRIVATIZE()    
+  PROGRAMMER()  PTIMEFMT()     PUSHREGS()     QUOTA()          R()            
+  RACE()        RAND()         RANDPOS()      RANDMATCH()      RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -10067,23 +10139,23 @@
   RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
   RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
   ROUND()         RSET()          RULER()        RXLEVEL()      S()          
-  SAFEBUFF()      SCRAMBLE()      SEARCH()       SEARCHOBJID()  SEARCHNG()   
-  SEARCHNGOBJID() SECS()          SECURE()       SECUREX()      SEES()       
-  SET()           SETDIFF()       SETINTER()     SETQ()         SETQ_OLD()   
-  SETQMATCH()     SETR()          SETR_OLD()     SETUNION()     SHIFT()      
-  SHL()           SHR()           SHUFFLE()      SIGN()         SIN()        
-  SINGLETIME()    SORT()          SORTBY()       SORTLIST()     SOUNDEX()    
-  SOUNDLIKE()     SOUNDSLIKE()    SPACE()        SPELLNUM()     SPLICE()     
-  SQL()           SQLESCAPE()     SQLOFF()       SQLON()        SQLPING()    
-  SQLITE_QUERY()  SQRT()          SQUISH()       STARTTIME()    STARTSECS()  
-  STATS()         STEP()          STR()          STRCAT()       STRDISTANCE()
-  STREQ()         STREVAL()       STRFUNC()      STRIP()        STRIPACCENTS()
-  STRIPANSI()     STRLEN()        STRMATCH()     STRMATH()      SUB()        
-  SUBJ()          SUBNETMATCH()   SWITCH()       SWITCHALL()    T()          
-  TAN()           TEL()           TIME()         TIMEFMT()      TOBIN()      
-  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()    
-  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()         
-  TRACE()         TRANSLATE() 
+  SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()       SEARCHOBJID()
+  SEARCHNG()      SEARCHNGOBJID() SECS()         SECURE()       SECUREX()    
+  SEES()          SET()           SETDIFF()      SETINTER()     SETQ()       
+  SETQ_OLD()      SETQMATCH()     SETR()         SETR_OLD()     SETUNION()   
+  SHIFT()         SHL()           SHR()          SHUFFLE()      SIGN()       
+  SIN()           SINGLETIME()    SORT()         SORTBY()       SORTLIST()   
+  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()   
+  SPLICE()        SQL()           SQLESCAPE()    SQLOFF()       SQLON()      
+  SQLPING()       SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()  
+  STARTSECS()     STATS()         STEP()         STR()          STRCAT()     
+  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()      
+  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()    
+  SUB()           SUBJ()          SUBNETMATCH()  SWITCH()       SWITCHALL()  
+  T()             TAN()           TEL()          TIME()         TIMEFMT()    
+  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()      
+  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
+  TR()            TRACE()         TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -10145,9 +10217,9 @@
                         LISTTOGGLES() PMATCH() RNUM() VALID() XCON()
               See Also: help database information functions
   
-  Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() ROMAN() ROUND()
-                        SPELLNUM() TOBIN() TODEC() TOHEX() TOOCT() TRUNC() 
-                        UNPACK()
+  Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() PACKMATH() 
+                        ROMAN() ROUND() SPELLNUM() TOBIN() TODEC() TOHEX() 
+                        TOOCT() TRUNC() UNPACK()
               See Also: help numerical conversion functions
   
   { 'help function classes2' for more }    
@@ -10191,7 +10263,7 @@
   Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCKCHECK() LOCKDECODE()
                       LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
                       PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
-                      SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD() 
+                      SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
                       SOUNDEX() SOUNDLIKE() TRACE()
             See Also: help miscellaneous functions
   
@@ -10707,8 +10779,6 @@
   
   See Also: GENDER, V(), SHIFT(), ACCENT()
   
-& TRACE_COLOR
-& TRACE_GREP
 & %_
   Topic: SUBSTITUTIONS
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
@@ -10742,6 +10812,8 @@
   
   { see 'help %_2' to continue }
 
+& TRACE_COLOR
+& TRACE_GREP
 & %_2
   Topic: SUBSTITUTIONS (CONTINUED)
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
@@ -11082,12 +11154,15 @@
   
 & elements()
   Function: elements(<list of words>,<list of numbers>[[,<delim>][,<sep>]])
- 
+   
   This function returns the words in <list of words> that are in the
   positions specified by <list of numbers>. Optionally, a list delimiter
   other than a space can be separated.  This function does not assume a null
   to be a valid argument.  For that, use elementsmux().
- 
+  
+  If you specify <list of numbers> as negative, it takes from the end starting
+  at -1.
+   
   Examples:
     > say elements(Foo Ack Beep Moo Zot,2 4)
     You say "Ack Moo"
@@ -11099,17 +11174,20 @@
     You say "is@test@is@is@is@is"
     > say elements(this@is@a@test,2 4 2 2 2 2,@,)
     You say "is test is is is is"
- 
+   
   See Also: extract(), extractword(), elementsmux(), elementpos()
   
 & elementsmux()
   Function: elementsmux(<list of words>,<list of numbers>[[,<delim>][,<sep>]])
- 
+   
   This function returns the words in <list of words> that are in the
   positions specified by <list of numbers>. Optionally, a list delimiter
   other than a space can be separated.  This function assumes 'null' arguments
   are valid arguments while elements() does not.
- 
+  
+  If you specify <list of numbers> as negative, it takes from the end starting
+  at -1.
+   
   Examples:
     > say elementsmux(Foo Ack Beep Moo Zot,2 4)
     You say "Ack Moo"
@@ -11121,7 +11199,7 @@
     You say "is@test@is@is@is@is"
     > say elementsmux(this@is@a@test,2 4 2 2 2 2,@,)
     You say "is test is is is is"
- 
+   
   See Also: extract(), extractword(), elements(), elementpos()
   
   
@@ -11550,18 +11628,49 @@
   
   See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
 
+& TESTLOCK()
+  Function: testlock(<key>, <target> [,<type>])
+  
+  The testlock function will evaluate a lock that you pass against the
+  target <target>.  It will evaluate permissions based on the enactor.
+  
+  The key <key> may be any normal key found in locks.  Please see
+  'help @lock' for more information on how locks work and keys available.
+  
+  You may specify an optional type <type> for specialized locks that
+  may require a subtype.  Following types are allowed:
+    0 - default lock.  Neither a $command nor a ^listen
+    1 - $command lock
+    2 - ^listen lock
+  
+  Examples:
+    > say testlock(*tester&&!*tester,*tester)
+    You say "0"
+    > say testlock(*tester,*tester)
+    You say "1"
+  
+  See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+  
 & lockencode()
 & lockdecode()
 & lockcheck()
   Function: lockencode(<string>)
             lockdecode(<string>)
-            lockcheck(<string>,<target>)
+            lockcheck(<string>, <target> [<type>])
   
   lockencode() returns an encoded string of a boolean lock evaluation.
    
   lockdecode() returns the decoded string of the encoded boolean.
   
   lockcheck() returns boolean true(1)/false(0) based on the encoded boolean.
+  
+  The optional <type> to lockcheck() is used for specialist lock values like
+  USELOCK where based on how the eval lock works it will pass.  You do not
+  have to specify a type, but locks that check for it should be used.
+  Types allowed are as follows:
+    0 - default lock.  Neither a $command nor a ^listen
+    1 - $command lock
+    2 - ^listen lock
   
   This is the same value (though encoded) that would be set when you issue
   a @Lock on something.  This is useful if you wish to enbed lock values
@@ -11581,7 +11690,8 @@
     > say lockcheck(KCMxMjM0KSYoIzkwMSk=,*Guest)
     You say "0"
   
-  See Also: lockdecode(), lockdecode(), lockcheck(), lock(), elock(), @lock
+  See Also: testlock(), lockdecode(), lockdecode(), lockcheck(), lock(), 
+            elock(), @lock
 
 & lock()
   Function: lock(<object>[/<whichlock>][,<key>][,<attribute>])
@@ -11609,7 +11719,8 @@
     > say lock(me,yes,va)
     You say "Attribute locked."
   
-  See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck()
+  See Also: @lock, elock(), lockencode(), lockdecode(), lockcheck(),
+            testlock()
   
 & elock()
   Function: elock(<object>[/<whichlock>], <victim> [,<type> [,<default>]])
@@ -11641,7 +11752,7 @@
     > say elock(me/pagelock,*twink,,0)
       You say "0"
   
-  See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck()
+  See Also: @lock, lock(), lockencode(), lockdecode(), lockcheck(), testlock()
   
 & LWHO()
   Function: lwho([[<value>], [<target>], [<isobjid>]])
@@ -13683,33 +13794,42 @@
     > say listflags()
     You say "ABODE(A) ARCHITECT(B) ... " 
   
-  See Also: listcommands(), listfunctions()
+  See Also: listcommands(), listfunctions(), listtoggles()
   
 & LISTCOMMANDS()
-  Function: listcommands()
+  Function: listcommands([<key>])
   
   This function will return all the commands that you have access to.
+  
+  The available keys are:
+    0 - list all the main commands you have access to (default)
+    1 - list all the VATTR based commands you have access to
+    2 - list all VATTR based and main commands you have access to
   
   Example:
     > say listcommands()
     You say "@@ @alias ... "
   
-  See Also: listfunctions(), listtoggles()
+  See Also: listfunctions(), listtoggles(), listflags()
   
 & LISTFUNCTIONS()
   Function: listfunctions([keyval])
   
   This function will return all the functions that you have access to.
-  Valid keyvalues are:
-    0 - List all functions (built-in and user-defined)  This is the default.
+  Valid keyvalues masks are:
+    0 - List all functions (built-in, user-defined, and local) this is default.
     1 - List only the built-in functions.
     2 - List only the user-defined functions.
+    4 - List only the local user-defined functions.
+  
+  These are bitwise masks.  So if you selected '3' it would do built-in and
+  user-defined.  '6' would do user-defined and local user-defined.
   
   Example:
     > say listfunctions()
     You say "@@ ABS ... "
    
-  See Also: listcommands(), listtoggles()
+  See Also: listcommands(), listtoggles(), listflags()
   
 & LISTNEWSGROUPS()
   Function: listnewsgroups([<player>])
@@ -14063,13 +14183,18 @@
   See Also: ASC()
   
 & ASC()
-  Function: asc(<character>)
+  Function: asc(<character> [,<key>])
   
   This function returns the ASCII numerical value of the given character.
   
+  If you specify a key of '1', then it will padd zeros (0) to a three
+  character number.  The default is zero '0'.
+   
   Examples:
   > say asc(a)
   You say "97"
+  > say asc(a,1)
+  You say "097"
   
   See Also: CHR()
   
@@ -14218,12 +14343,26 @@
   You may specify the 'low' and 'hi' values to specify a range of what values
   you wish to apply the math to.
    
-  Valid math arguments are:
+{ see 'help strmath2' for value values for <math> and examples }
+
+& strmath2
+  Function: strmath (syntax follows)  (CONTINUED)
+  strmath(<str>,<num>,<math>[,<dlm>,<sep>,<st>,<amt>,<idlm>,<isep>,<low>,<hi>)
+  
+  Valid <math> arguments are:
         + - apply addition to all numbers in the string.
         - - apply subtraction to all numbers in the string.
         / - apply division to all numbers in the string.
         * - apply multiplication to all numbers in the string.
        %% - return remainder of division. (you need to use two %%'s)
+  
+  Valid conditional <math> arguments are:
+         <VALUE - set to <num> for every condition < VALUE (eg. <10)
+         >VALUE - set to <num> for every condition > VALUE (eg. >10)
+         =VALUE - set to <num> for every condition = VALUE (eg. =10)
+        !=VALUE - set to <num> for every condition != VALUE (eg. !=10)
+        <=VALUE - set to <num> for every condition <= VALUE (eg. <=10)
+        >=VALUE - set to <num> for every condition >= VALUE (eg. >=10)
   
   Examples:
     > say strmath(1 fish 2 fish green fish blue fish,10,+)   (default)
@@ -14234,6 +14373,14 @@
     You say "1 fish 12 fish 13 shoe 4 shoe"
     > say strmath(To hit:5|To Damage:10|Base AC:15,150,+,|,|,1,0,:,:)
     You say "To hit:155|To Damage:10|Base AC:15"
+    > say strmath(10 beats 5 but is less than 100,0,<40)
+    You say "0 beats 0 but is less than 100"
+    > say strmath(10 beats 5 but is less than 100,0,>40)
+    You say "10 beats 5 but is less than 0"
+    > say strmath(10 beats 5 but is less than 100,0,=5)
+    You say "10 beats 0 but is less than 100"
+    > say strmath(10 beats 5 but is less than 100,0,!=5)
+    You say "0 beats 5 but is less than 0"
   
   See Also: add(), sub(), mul(), div(), mod(), strfunc(), spellnum()
   
@@ -14971,12 +15118,23 @@
             randextract()
   
 & EXTRACTWORD()
-  Function: extractword(<string>, <first>, <length>[, <delim>], <sep>] ,<del>])
+  Function: extractword(<string> [,<first>, <len>[, <delim>], <sep>] ,<del>]])
   
-  Extractword returns a string of length words, starting with the first
+  Extractword returns a string of <len> length words, starting with the first
   word.  This works effectively like extract(), however, the deliminiter 
   <delim> and separator <sep> can be multi-character.  In addition, the
   separator may also contain ansi or special characters.
+  
+  If you specify only <string> and no other arguments, it returns the first
+  word of the string as if the first() function.
+  
+  If you specify a negative number to <first>, it counts backwards from the end
+  of the string.  So -1 is the last argument, -2 is previous to last, and so
+  forth.
+  
+  If you specify a negative number to <len>, it will return up to the total
+  words minus the length.  So -1 will return all words from start to the
+  last element, -2 to the previous to last element, and so forth.
   
   If you specify the <del> toggle to '1' it assumes delextract() compatibility
   where the words choosen are all the words EXCEPT the range specified.
@@ -14993,6 +15151,10 @@
     You say "multi@@@char"
     > say extractword(a@@@multi@@@char@@@delimiter, 2, 2, @@@,%b)
     You say "multi char"
+    > say extractword(Skip the first and last elements, 2, -2)
+    You say "the first and last"
+    > say extractword((Get just the last three elements,-3, 3)
+    You say "last three elements"
   
   See Also: extract(), extractword(), index(), insert(), ldelete(), replace(),
             randextract() 
@@ -15389,6 +15551,9 @@
   
   Given a config option name, this function returns its value.
   
+  Special values 'lbuf_size', 'mbuf_size' and 'sbuf_size' exist to pull
+  the sizes of the various buffers for compatibility to other codebases.
+  
   The available special arguments can be used:
     0 - show all config options pushing extras on additional stack (default)
     1 - show all config options that can be placed in a single LBUF
@@ -15765,13 +15930,15 @@
   See Also: lt(), lte(), gt(), eq(), neq()
   
 & lt()
-  Function: lt(<integer1>,<integer2>)
- 
-  Takes two integers, and returns 1 if and only if <integer1> is less than
-  <integer2>, and 0 otherwise.  Warning: passing anything but integers will
-  produce unexpected results, as non-numeric strings usually are treated
-  as numeric 0.
- 
+  Function: lt(<integer1>, <integer2> [,<integer3>,...])
+   
+  Takes two (or more) integers, and returns 1 if and only if <integer1> is 
+  less than <integer2> (which is less than <integer3> and so forth), and 0 
+  otherwise.  This function handles floating point numbers as well.
+  
+  Warning: passing anything but integers will produce unexpected results, 
+  as non-numeric strings usually are treated as numeric 0.  
+   
   Example:
     > say lt(4,5)
     You say "1"
@@ -15781,17 +15948,24 @@
     You say "0"
     > say lt(foo, bar)
     You say "0"
+   > say lt(1,2,3,4,5)
+    You say "1"
+   > say lt(1,2,3,4,5,3)
+    You say "0"
   
   See Also: lte(), gte(), gt(), eq(), neq()
   
 & lte()
-  Function: lte(<integer1>,<integer2>)
- 
-  Takes two integers, and returns 1 if and only if <integer1> is less than 
-  or equal to <integer2>, and 0 otherwise.  Warning: passing anything but 
-  integers will produce unexpected results, as non-numeric strings usually 
-  are treated as numeric 0.
- 
+  Function: lte(<integer1>, <integer2> [,<integer3>,...])
+   
+  Takes two (or more) integers, and returns 1 if and only if <integer1> is 
+  less than or equal to <integer2> (which is less than or equal <integer3>
+  and so forth), and 0 otherwise.  This function handles floating point
+  numbers as well.
+  
+  Warning: passing anything but integers will produce unexpected results, 
+  as non-numeric strings usually are treated as numeric 0.
+   
   Example:
     > say lte(4,5)
     You say "1"
@@ -15801,16 +15975,23 @@
     You say "0"
     > say lte(foo, bar)
     You say "1"
+   > say lte(1,2,3,4,5)
+    You say "1"
+   > say lte(1,2,3,4,5,3)
+    You say "0"
   
   See Also: lt(), gte(), gt(), eq(), neq()
   
 & eq()
-  Function: eq(<integer1>,<integer2>)
+  Function: eq(<integer1>, <integer2> [,<integer3>,...])
  
-  Takes two integers, and returns 1 if they are equal and 0 if they are not.
+  Takes two (or more) integers, and returns 1 if all the values
+  are equal, otherwise it returns a 0.  This function handles floating 
+  point numbers as well.
+  
   Warning: passing anything but integers will produce unexpected results,
   as non-numeric strings usually are treated as numeric 0.
- 
+   
   Example:
     > say eq(1,-1)
     You say "0"
@@ -15818,16 +15999,23 @@
     You say "1"
     > say eq(foo, bar)
     You say "1"
+    > say eq(5,5,5,5,5,5)
+    You say "1"
+    > say eq(5,5,5,3,5,5)
+    You say "0"
   
   See Also: lt(), lte(), gte(), gt(), neq()
   
 & neq()
-  Function: neq(<integer1>,<integer2>)
- 
-  Takes two integers, and returns 1 if they are not equal and 0 if they are
-  equal.  Warning: passing anything but integers will produce unexpected
+  Function: neq(<integer1>, <integer2> [,<integer3>,...])
+   
+  Takes two (or more) integers, and returns 1 if one of the integers
+  are different or '0' if they are all the same.  This function handles 
+  floating point numbers as well.
+  
+  Warning: passing anything but integers will produce unexpected
   results, as non-numeric strings usually are treated as numeric 0.
- 
+   
   Examples:
     > say neq(1,-1)
     You say "1"
@@ -15835,6 +16023,10 @@
     You say "0"
     > say neq(foo, bar)
     You say "0"
+    > say neq(5,5,5,5,5,5)
+    You say "0"
+    > say neq(5,5,5,3,5,5)
+    You say "1"
   
   See Also: lt(), lte(), gte(), gt(), eq(), not()
   
@@ -16892,10 +17084,41 @@
   
   See Also: room(), lexits()
   
+& SPECIAL CHARACTERS
+  Topic: special characters
+  
+  There are characters considered 'special' based on the situation where
+  they are used in mush.  They usually do not have a global meaning for
+  these cases, but only in special situations.
+  
+    $ - Specify the start of a command, or used in regexp matching.
+    ^ - Specify the start of a listen, or used in regexp matching.
+    \ - Escape character to escape the next character in a string.
+    % - substitution character.  Also used for the ansi-markup.
+    , - function separation character to separate arguments to functions.
+    ; - command seperation character to separate commands in a list.
+   () - used in functions to denote start and end of a function call.
+   [] - also used in functions to help with function separation calls.
+   {} - a method to string together commands, strings, lists, or similar
+        into a single command or call.
+    & - the start of an attribute set command.
+    @ - the start of most general built in commands or attribute calls.
+    | - used to break out of @program and execute an outside command
+    ! - used to break out of the current @door and execute a command
+        to the previous calling mush.
+    # - Specify the start of a dbref#
+    * - Specify a long-distance lookup of a player
+  
+  Some functions and commands also have unique one-off use of characters
+  or strings for special purposes as well, and this document will not
+  cover those cases.
+  
+  See Also: escape(), search()
+
 & SECURE()
   Function: secure(<string>)
- 
-  Returns <string> after replacing the characters [](){};%\$, with spaces.
+  
+  Returns <string> after replacing the characters [](){};%\^,$ with spaces.
   This prevents strings entered by players from causing undesired side
   effects when used, such as making your object perform unintended commands
   or give out information to which you have access.  Note that this function
@@ -16965,7 +17188,7 @@
   Function: escape(<string>)
  
   Returns <string> after adding an escape character (\) at the start of the
-  string and also before each of the characters %;[]{}\ that appear in the
+  string and also before each of the characters [](){};%\,^ that appear in the
   string.  This prevents strings entered by players from causing undesired
   side effects when used, such as making your object perform unintended
   commands or give out information to which you have access.  Note that this
@@ -18055,6 +18278,10 @@
     F - anything NOT set flash.
     N - anything NOT using ansi colors.
   
+  The following ansi special matches are allowed for search.
+    d - any foreground color.
+    D - any background color.
+  
   If these are specified in replace, it will strip those specified ansi
   special encodings. 
     
@@ -18525,7 +18752,45 @@
     > say [privatize(1)][setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--(before R0: ) My R0:internal--external"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), @lfunction
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), 
+            sandbox(), @lfunction
+
+& SANDBOX()
+  Function: sandbox(<string>, <function list> [,<key> [,<local>]])
+  
+  This function sandboxes the evaluated <string> based on the list of
+  space separated functions in <function list>.  Any function that matches
+  any function in the list will have restricted access.
+  
+  The following <key> exists:
+    0 - Set the function deny (default)
+    1 - Set the function ignore and check for local function.
+  
+  The following <local> key exists:
+    0 - Don't check for local functions (@function/@lfunction) (default)
+    1 - Check against @functions (in addition to built-in functions)
+    2 - Check against @lfunctions (in addition to build-in functions)
+    3 - Check against all possible function combinations
+  
+  A <key> of deny will return the #-1 PERMISSION DENIED
+  A <key> of ignore will return the #-1 FUNCTION (blah) NOT FOUND
+  
+  Examples:
+    > @va me=BOO
+    Set.
+    > @lfunction boo=me/va
+    LOCAL Function boo defined.
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],add)
+    You say "Test - #-1 PERMISSION DENIED 0 BOO"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub)
+    You say "Test - 2 #-1 PERMISSION DENIED BOO"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub boo)
+    You say "Test - 2 #-1 PERMISSION DENIED BOO"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub boo,,3)
+    You say "Test - 2 #-1 PERMISSION DENIED #-1 PERMISSION DENIED"
+  
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
+            localize(), @lfunction
 
 & LOCALIZE()
   Function: localize(<string> [,<register-list>, [<key>]])
@@ -18556,7 +18821,8 @@
   
   Note: In the last example, we allowed '12345' to be localized, but not '0'.
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), @lfunction
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
+            sandbox(), @lfunction
   
 & LOCALFUNC()
   Function: localfunc(<function-name>, <args>...)
@@ -18778,7 +19044,7 @@
     > say [@@(this is a test[setq(0,test)])]- [r(0)]
     You say "- "
   
-  See Also: localize(), eval(), null(), privatize()
+  See Also: localize(), eval(), null(), privatize(), sandbox()
   
 & NULL()
   Function: null(<string>)
@@ -18791,7 +19057,7 @@
     > say [null(this is a test[setq(0,test)])]- [r(0)]
     You say "- test"
   
-  See Also: localize(), eval(), @@(), privatize()
+  See Also: localize(), eval(), @@(), privatize(), sandbox()
   
 & STEP()
   Function: step([<obj>/]<attr>,<list>,<step size>[,<delim>[,<output delim>]])
@@ -19337,8 +19603,39 @@
     -bVxTM
    
   See Also: unpack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(), 
-            roman()
+            roman(), packmath()
   
+& PACKMATH()
+  Function: packmath(<number>, <radix>, <offset> [,<math>])
+  
+  This function applies the specified <math> to <number> by applying
+  the value of <offset>.  The value returned will be in the same <radix>
+  that you specified.  The <radix> allowed is 2 to 64.  If no <math>
+  is specified it assumes '+' (addition).
+  
+  The valid values for <math> are:
+    +  - apply addition (default)
+    -  - apply subtraction
+    *  - apply multiplication
+    /  - apply division
+    %  - apply modulus (use two %'s)
+  
+  Examples:
+    > think pack(629126998,64)
+    bVxTM
+    > think packmath(bVxTM,64,100)
+    bVxUw
+    > think unpack(bVxUw,64)
+    629127098
+    > think add(629126998,100)
+    629127098
+    > think unpack(packmath(pack(629126998,64),64,5555),64)
+    629132553
+    > think add(629126998,5555)
+    629132553
+  
+  See Also: pack(), unpack(), strmath()
+
 & UNESCLIST()
   Function: unesclist(<list of characters to un-escape>|<string>)
   
@@ -19374,7 +19671,8 @@
     >think unpack(1111,2)
     15
    
-  See Also: pack(), crc32(), mask(), tobin(), tohex(), tooct(), todec()
+  See Also: pack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(),
+            packmath()
   
 & CRC32()
   Function: crc32(<string1>[, ..., <stringN>])
@@ -19392,7 +19690,7 @@
     629126998
   
   See Also: pack(), unpack(), mask(), tobin(), tohex(), tooct(), todec(),
-            digest()
+            digest(), packmath()
   
 & PARENSTR()
   Function: parenstr(<string>)
@@ -19426,7 +19724,7 @@
   See Also: parenmatch(), brackets(), pos(), totpos()
 
 & PARENMATCH()
-  Function: parenmatch([<object>/]<attribute> [,<type>, [<key>]])
+  Function: parenmatch([<object>/]<attribute> [,<type>, [<key>], [<flags>]])
   
   This function returns an ansified match of parenthesis, brackets, and braces
   while hilighting red any mis-matched of the three.  The comparison will 
@@ -19435,7 +19733,7 @@
   and braces, it is possible the result will be cut off as ansi takes up 
   extra spaces.  If this is the case, use type '1' to just return 
   errors (if any).  An optional key of '1' will issue a pretty-print of the
-  output in addition to the color output.
+  output in addition to the color output.  You may specify more than one flag.
   
   The following types exist:
     0 - Ansify the string and highlight red the first missmatch found (default)
@@ -19446,6 +19744,12 @@
     1 - pretty print the output.  Be aware on attribs that approach the 
         maximum output buffer size you may get values cut off.
   
+  The following flags exist:
+    s - put spaces after every , and ; character and before and after =
+    p - put spaces before ) and after (
+    b - put spaces before ] and after [
+    B - put spaces before } and after {
+  
   Examples:
     > @va me=[add(1,1)]
     > @vb me=[add(1,2))]
@@ -19453,6 +19757,8 @@
     You say "[add(1,2))]"       (The second ')' would be hilighted red)
     > say parenmatch(vb,1)
     You say "[add(1,2))]"       (Just the second ')' would be colorized)
+    > say parenmatch(vb,,,bps)
+    You say "[ add( 1, 2 ) )]"  (it stops adding spaces on an error)
   
   See Also: parenstr(), brackets(), pos(), totpos()
   
@@ -22058,7 +22364,7 @@
   See Also: setq(), setr(), nameq(), inc(), dec()
   
 & XINC()
-  Function: xinc(<number>)
+  Function: xinc(<number> [,<key>])
   
   INC() and XINC() may be reversed.  to check if they are, Please reference:  
                            @list options system  
@@ -22066,11 +22372,19 @@
   The xinc() function is used to increment the number passed into it.
   Any number passed into it is automatically incremented by one.
   
+  If <key> is 1, it does advanced increments.  It then will take the number
+  at the end of the string and increment, or if the string is a hexidicimal
+  code starting with '0x' or '0X' it will increment the hex number. 
+  
   Example:
-    > say inc(5)
+    > say xinc(5)
     You say "6"
-    > say inc(-5)
+    > say xinc(-5)
     You say "-4"
+    > say xinc(test123,1)
+    You say "test124"
+    > say xinc(0xfa,1)
+    You say "0xfb"
   
   See Also: xdec(), inc(), dec(), add(), sub()
   
@@ -22103,7 +22417,7 @@
   
   
 & XDEC()
-  Function: xdec(<number>)
+  Function: xdec(<number> [,<key>])
   
   DEC() and XDEC() may be reversed.  to check if they are, Please reference:  
                            @list options system  
@@ -22111,11 +22425,19 @@
   The xdec() function is used to decrement the number passed into it.
   Any number passed into it is automatically decremented by one.
   
+  If <key> is 1, it does advanced increments.  It then will take the number
+  at the end of the string and increment, or if the string is a hexidicimal
+  code starting with '0x' or '0X' it will increment the hex number. 
+  
   Example:
-    > say dec(5)
+    > say xdec(5)
     You say "4"
-    > say dec(-5)
+    > say xdec(-5)
     You say "-6"
+    > say xdec(test123,1)
+    You say "test122"
+    > say xdec(0xfa,1)
+    You say "0xf9"
   
   See Also: xinc(), inc(), dec(), add(), sub()
   
@@ -22369,7 +22691,7 @@
   See Also: ljust(), rjust(), ljc(), rjc(), printf()
   
 & INSERT()
-  Function: insert(<list>, <pos> [<pos2>...<posN>], <word>[, <sep>])
+  Function: insert(<list>, <pos> [<pos2>..<posN>], <word>[[,<sep>] [,<osep>]])
    
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and all subsequent list elements are moved
@@ -22381,6 +22703,13 @@
   
   The <pos> fields may be negative to take the argument from the right
   instead of the left.
+  
+  You may specify a separate <sep> seperator or it assumes space if not
+  provided.  
+  
+  The <osep> output delimiter may be more than one character, and if 
+  enabled, '@@' can be used as another method for a null.  You may specify 
+  an empty <osep> as well.
    
   Examples:
     > say insert(This is a test, 4, new)
@@ -22410,7 +22739,7 @@
   See Also: replace(), rindex(), ldelete(), ldelete(), delete()
   
 & REPLACE()
-  Function: replace(<list>, <pos> [<pos2>...<posN>], <word>[, <delim>])
+  Function: replace(<list>, <pos> [<pos2>..<posN>], <word>[[,<sep>] [,<osep>]])
    
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and the word previously in that position
@@ -22419,10 +22748,15 @@
   position.  This function may not be used to append a word to a list.
   You may specify more than one position.
    
-  <delim> may be used to specify a delimiter other than a space.
-  
   The <pos> fields may be negative to take the argument from the right
   instead of the left.
+  
+  You may specify a separate <sep> seperator or it assumes space if not
+  provided.  
+  
+  The <osep> output delimiter may be more than one character, and if 
+  enabled, '@@' can be used as another method for a null.  You may specify 
+  an empty <osep> as well.
    
   Examples:
     > say replace(This is a test, 4, quiz)
@@ -22434,7 +22768,7 @@
             edit()
   
 & LDELETE()
-  Function: ldelete(<list>, <pos> [<pos2>...<posN>] [, <sep>])
+  Function: ldelete(<list>, <pos> [<pos2>..<posN>] [[,<sep>] [,<osep>]])
  
   This function removes a word from <list> by position.
   
@@ -22442,6 +22776,13 @@
   
   The <pos> fields may be negative to take the argument from the right
   instead of the left.
+  
+  You may specify a separate <sep> seperator or it assumes space if not
+  provided.  
+  
+  The <osep> output delimiter may be more than one character, and if 
+  enabled, '@@' can be used as another method for a null.  You may specify 
+  an empty <osep> as well.
    
   Examples:
     > say ldelete(This is not a test, 3)
@@ -23750,6 +24091,7 @@
   
   See Also: folder
   
+& folder/cshare
 & folder cshare
   Command: folder/cshare
   
@@ -23758,6 +24100,7 @@
  
   See Also: folder share
   
+& folder/change
 & folder change
   Command: folder/change [<folder>]
   
@@ -23770,6 +24113,7 @@
   
   See Also: folder list
   
+& folder/share
 & folder share
   Command: folder/share [<folder>]
   
@@ -23787,6 +24131,7 @@
   
   See Also: mail share, mail number, mail check, folder list
  
+& folder/list
 & folder list
   Command: folder/list
   
@@ -23794,6 +24139,7 @@
   
   See Also: folder share, folder cshare
   
+& folder/current
 & folder current
   Command: folder/current
   
@@ -23801,6 +24147,7 @@
   
   See Also: folder list, folder cshare
   
+& folder/rename
 & folder rename
   Command: folder/rename <original name>=<new name>
   
@@ -23811,6 +24158,7 @@
   
   See Also: folder list
   
+& folder/move
 & folder move
   Command: folder/move all=<from>,<to>
            folder/move <# list>=<from>,<to>
@@ -23835,6 +24183,7 @@
   
   See Also: folder share, mail mark, mail save, folder list
   
+& folder/create
 & folder create
   Command: folder/create <folder name>
   
@@ -23847,6 +24196,7 @@
   
   See Also: folder list, folder share
   
+& folder/delete
 & folder delete
   Command: folder/delete <folder name>
   
@@ -23854,13 +24204,16 @@
    
   Example:
     > folder/delete love-letters
+ 
 & mail
   Command: mail [@]<player-list>=<subject> (with BRANDY_MAIL toggle)
            mail [@]<player-list>=[<subj>/]<body> (with PENN_MAIL toggle)
            mail [@]<player-list>=[<subj>//]<body> (with no toggle)
            mail [<mesg#>|new|unread|nall|uall|ball]
   
-  'HELP MAIL MAIN' for main index.    'HELP MAIL TOPICS' for topical help.
+                      'HELP MAIL MAIN' for main index.    
+  
+                    'HELP MAIL TOPICS' for topical help.
   
   If you are used to the MUX standard of @mail or the softcoded BrandyMail
   you will want to use the BRANDY_MAIL toggle.  
@@ -24277,14 +24630,18 @@
   
   See Also: mail, folder, folder cmdlist
   
+& mail/quick
 & mail quick
-  Command: mail/quick
+  Command: mail/quick [<folder>]
  
   Get a quick summary of how many new, unread, old, and marked messages
   in the current folder.  Also reports the current folder.
   
+  You may specify an optional folder to get quick a quick summary of that
+  particular mail folder.
+  
   The /quick switch is optional for this command and you can just type 'mail'
-  standalone.
+  standalone.  The /quick switch is required if you specify a folder.
   
   See Also: mail status, mail
   
@@ -24415,11 +24772,13 @@
   Please keep in mind that this attribute is *NOT* evaluated for functions and
   is taken as-is.
   
+& mail/version
 & mail version
   Command: mail/version
   
   this command will show the current version of the mailsystem.
   
+& mail/reject
 & mail reject
   Command: mail/reject <msg>
            mail/reject +list
@@ -24573,6 +24932,7 @@
   For information on setting up folders, type 'help folder'
   For more information on mail, type in 'help mail <command>'
   
+& mail/quota
 & mail quota
   Command:  mail/quota
 
@@ -24584,6 +24944,7 @@
   See Also: quick, status
   Wizards: wizhelp wmail size
   
+& mail/autofor
 & mail autofor
   Command: mail/autofor <player-name>
            mail/autofor +off
@@ -24605,6 +24966,8 @@
   
   See Also: mail lock, mail share
   
+& mail/save
+& mail/mark/save
 & mail save
   Command: mail/mark/save <range>
            mail/unmark <range> (notice, you do not use /save with this)
@@ -24619,6 +24982,7 @@
   
   See Also: mail mark
   
+& mail/alias
 & mail alias
   Command: mail/alias
   
@@ -24631,6 +24995,7 @@
   Syntax: mail/alias
   Wizards: wizhelp wmail alias
   
+& mail/anonymous
 & mail anonymous
   Command: mail/anon player=message
            mail/anon/send player=message
@@ -24655,7 +25020,7 @@
   Topic: mail mass mailing
   
   Massmailing is done by using the optional /SEND feature of the mail
-  system.  The syntax is as follows:
+  system.  You may use commas as the delimiter.  The syntax is as follows:
   
   mail[/send] usr1 usr2 .. +<gls> $<gev> &<pls> ~<eval> = [subject//]message
   
@@ -24676,6 +25041,7 @@
   
   See Also: mail send forward, mail send reply, mail send
   
+& mail/previous
 & mail previous
   Command:  mail/next -
   
@@ -24693,6 +25059,7 @@
   
   See Also: mail next, mail zap
   
+& mail/next
 & mail next
   Command:  mail/next
   
@@ -24711,6 +25078,7 @@
   
   See Also: mail status, mail zap, mail read
   
+& mail/zap
 & mail zap
   Command:  mail/zap
   
@@ -24731,7 +25099,7 @@
   
   See Also: mail status, mail next, mail mark, mail delete, mail read
   
-& mail send
+& mail sending
   Topic: mail sending
   
   There are three ways that you can send mail with the mail system.  Depending 
@@ -24795,6 +25163,7 @@
      
   See Also: BRANDY_MAIL, mail write, mail send quick, mail send brandy
   
+& mail/send
 & mail send quick
   Command:  mail/send [@]<address list>=[<subject>//]<message>
   The address list can contain any number of recipients (up to the mush
@@ -24820,6 +25189,7 @@
   automatically stripped out.
   
 { help mail send2 for more, or help mail send examples for examples }
+
 & mail send2
   Command: mail/send (CONTINUED)
   
@@ -24877,6 +25247,7 @@
   
   See Also: mail write, mail forward, mail reply, mail recall
   
+& mail/reply
 & mail reply
   Command: mail/reply [@|^]<msg #>[*]=[<subject>//]<message>.
 
@@ -24905,6 +25276,7 @@
   
   See Also: mail forward, mail send
   
+& mail/forward
 & mail forward
   Command: mail/forward <msg #> [@|^]<list> [=[<subject>//]<additional text>]
   
@@ -24928,6 +25300,7 @@
   
   See Also: mail reply, mail send
   
+& mail/read
 & mail read
   Command: mail[/read] <msg #|new|unread>
   
@@ -24954,6 +25327,7 @@
             mail unmark, mail save, mail new, mail unread, mail nall, 
             mail ball, mail uall
   
+& mail/lock
 & mail lock
   Command: mail/lock <key>
   
@@ -24974,6 +25348,7 @@
    
   See Also: mail reject, mail recall
   
+& mail/status
 & mail status
   Command: mail/status [[p#] [*player] [#-#] [U/N/B/O/M/S] [/SUBJECT]]
   
@@ -25027,10 +25402,12 @@
     > mail/status U        (shows all the unread mail in your mailbox)
     > mail/status B        (shows all the unread and new mail in your mailbox)
     > mail/status /biff    (shows mail with subjects containing the word biff)
+    > mail/status @folder  (shows all your mail of the specified folder)
   
   See Also: mail number, mail read, mail mark, mail unmark, mail save, 
             mail page
   
+& mail/delete
 & mail delete
   Command: mail/delete
   
@@ -25038,6 +25415,7 @@
   
   See Also: mark, unmark, recall, save
   
+& mail/recall
 & mail recall
   Command: mail/recall [ <#>|+all|*<player> [=<player>|+all] ]
            mail/recall <various options>
@@ -25112,6 +25490,7 @@
   
   See Also: mail save, mail send, mail mark, mail unmark
   
+& mail/mark
 & mail mark
   Command: mail/mark <#>|all|<*player>
   
@@ -25135,6 +25514,7 @@
    
   See Also: mail unmark, mail delete, mail status, mail save
   
+& mail/unmark
 & mail unmark
   Command: mail/unmark <#>|all   (this works for saved messages as well)
   
@@ -25154,6 +25534,7 @@
   
   See Also: mail mark, mail delete, mail status, mail save
   
+& mail/number
 & mail number
   Command: mail/number <target>=# 
    
@@ -25171,6 +25552,7 @@
    
   See Also: mail status, mail check, mail page, mail share
   
+& mail/check
 & mail check
   Command: mail/check <target>=<#>
   
@@ -25182,6 +25564,7 @@
    
   See Also: mail read, mail number, mail share
   
+& mail/password
 & mail password
   Command: mail/password +set=<password>
            mail/password <password>    
@@ -25204,6 +25587,7 @@
   
   See Also: mail share, mail lock, mail autofor
   
+& mail/share
 & mail share
   Command: mail/share <key>
   
@@ -25228,6 +25612,7 @@
   
   See Also: mail number, mail check, mail folders, mail folder, mail share
   
+& mail/write
 & mail write
   Topic: mail writing
   
@@ -25266,6 +25651,7 @@
   
   See Also: mail write cmdlist
   
+& mail/write +proof
 & mail write +proof
   Command: mail/write +proof
   
@@ -25290,6 +25676,7 @@
   
   See Also: mail write +list, mail write
   
+& mail/write +send
 & mail write +send
   Command: mail/write +send=<player list>
   
@@ -25312,6 +25699,7 @@
   See Also: mail write +reply, mail write +forward, mail send, mail forward,
             mail reply, mail status
     
+& mail/write +forget
 & mail write +forget
   Command: mail/write +forget
   
@@ -25334,6 +25722,7 @@
   
   See Also: mail write +edit, mail write +del
     
+& mail/write +subject
 & mail write +subject
   Command: mail/write +subject=<subject>
   
@@ -25356,6 +25745,7 @@
     
   See Also: mail write +send, mail write -, mail write +forget
   
+& mail/write +reply
 & mail write +reply
   Command: mail/write +reply=<message number>
   
@@ -25380,6 +25770,7 @@
   See Also: mail write +forward, mail write quicksending, mail reply, 
             mail status
   
+& mail/write +forward
 & mail write +forward
   Command: mail/write +forward=<message number> <player-list>
   
@@ -25405,6 +25796,7 @@
   See Also: mail write +reply, mail write quicksending, mail forward
             mail status
   
+& mail/write +list
 & mail write +list
   Command: mail/write +list [=<args>]
   
@@ -25434,6 +25826,7 @@
   
   See Also: mail write +forget, mail write +send
   
+& mail/write +insert
 & mail write +insert
   Command: mail/write +insert=<args>
   
@@ -25463,6 +25856,7 @@
   
   See Also: mail write +del, mail write +join
   
+& mail/write +split
 & mail write +split
   Command: mail/write +split=<args>
   
@@ -25492,6 +25886,7 @@
   
   See Also: mail write +justify, mail write +join, mail write +del
  
+& mail/write +justify
 & mail write +justify
   Command: mail/write +justify=<args>
   
@@ -25525,6 +25920,7 @@
   
   See Also: mail write +join, mail write +del
   
+& mail/write +join
 & mail write +join
   Command: mail/write +join=<args>
   
@@ -25555,6 +25951,7 @@
   
   See Also: mail write +del, mail write +split
   
+& mail/write +del
 & mail write +del
   Command: mail/write +del=<args>
   
@@ -25584,6 +25981,7 @@
   
   See Also: mail write +edit, mail write +split, mail write +forget
     
+& mail/write +fedit
 & mail write +fedit
   Command: mail/write +fedit <line>=<old>,<new>
   
@@ -25614,6 +26012,7 @@
   See Also: mail write +del, mail write +join, mail write +justify,
             mail write +fedit, mail write +editall, mail write +feditall
   
+& mail/write +cc
 & mail write +cc
   Command: mail/write +cc=<player-list>
   
@@ -25630,6 +26029,7 @@
   
   See Also: mail write +bcc, mail write +acc
   
+& mail/write +bcc
 & mail write +bcc
   Command: mail/write +bcc=<player-list>
   
@@ -25656,6 +26056,7 @@
   
   See Also: mail write +cc, mail write +acc
   
+& mail/write +acc
 & mail write +acc
   Command: mail/write +acc=<player-list>
   
@@ -25672,6 +26073,7 @@
   
   See Also: mail write +cc, mail write +bcc
   
+& mail/write +feditall
 & mail write +feditall
   Command: mail/write +feditall=<old>,<new>
   
@@ -25700,6 +26102,7 @@
   
   See Also: mail write +editall, mail write +edit, mail write +fedit
   
+& mail/write +editall
 & mail write +editall
   Command: mail/write +editall=<old>,<new>
   
@@ -25728,6 +26131,7 @@
   
   See Also: mail write +feditall, mail write +edit, mail write +fedit
    
+& mail/write +edit
 & mail write +edit
   Command: mail/write +edit <line>=<old>,<new>
   
@@ -25756,6 +26160,7 @@
    
   See Also: mail write +del, mail write +join, mail write +justify 
   
+& -
 & mail write -
   Command: mail/write <text>
            -<text>
@@ -25955,6 +26360,7 @@
    
   See Also: mail send, mail forward, mail reply
   
+& mail/page
 & mail page
   Command: mail/page <value>
   
@@ -27304,6 +27710,7 @@
   fbound()      - Bounds a floating point between a min and max value.
   floor()       - Returns the largest integer less than <number>
   pack()        - Returns the equivalent of a given number using a radix.
+  packmath()    - Applies math to the compressed radix value.
   roman()       - Returns the Roman Numerals for the specified number.
   spellnum()    - List the long name of the number fed into it.
   tobin()       - Converts a number to binary.
@@ -27469,6 +27876,7 @@
   privatize() - All localized variables are initialized to null
   pushregs() - Preserves, and restores setq() registers.
   r() - Accesses local registers.
+  sandbox() - Evaluates code with specific function restrictions
   setq() - Copies a string into a local register.
   setq_old() - Like setq(), but uses old MUSH style evaluation.
   setqmatch() - Sets a register if a pattern matches <string>.
@@ -27871,7 +28279,7 @@
   The current Lead Developer (which we change up) is marked with a '*'.
   Developers who are MIA or retired are surrounded in []'s.
    
-  Current Revision: 3.9.5p3
+  Current Revision: 3.9.5p4
 
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
@@ -27887,7 +28295,7 @@
     3.9.2: 3.9.2p0, 3.9.2p1
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
-    3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3
+    3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -29992,6 +30400,10 @@
   * lset() added to mirror @lset but as a sideeffect [ASH]
   * @label added to help integrate %_ labels into code [ASH]
   * ruler() added to give a positional ruler for attribute content [ASH]
+  * &pageformat and &outpage format added [ASH]
+  * @admin param vattr_command allows you to make @commands for 
+    user-defined attributes (VATTRS) [ASH]
+  * @list vattrcmds to show attribute relationships to commands [ASH]
   
   Changes
   ------------
@@ -30065,6 +30477,14 @@
   * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
   * foreach() is now optionally ansi-aware [ASH]
   * added /ruler to @label to mimic ruler() functionality [ASH]
+  * asc() now handles optional second argument for 3 char padding [ASH]
+  * added 'fake' config params lbuf_size, mbuf_size, and sbuf_size to
+    the config() function for mortals to pull values [ASH]
+  * *_site and *_host will no longer allow duplicated entries [ASH]
+  * parenmatch() optionally allows stateful flags to specify additional
+    spaces for padding to make output easier to read [ASH]
+  * ldelete(), replace(), and insert() now take optional output delims [ASH]
+  * extractword() handles args from 1 now and negative operators [ASH]
     
   Bug Fixes
   ------------
@@ -30107,3 +30527,51 @@
   * objid took localtime instead of GMtime [ASH]
     - NOTE:  For compatibility to existing behavior, set: objid_localtime 1
   * safer_ufun didn't take some conditions into consideration [ASH]
+  * erraneous ansi-normal on cname() if the name was not ansified [ASH]
+  * small bug in time conversion in timefmt() with daylight savings [ASH]
+  * mail did not handle commas for player separation properly [ASH]
+
+& 3.9.5p4
+  Release Date: 11/23/16
+  Status: Alpha
+  
+  New Features
+  ------------
+  * testlock() for PennMUSH compatibility on testing locks [ASH]
+  * hook_offline if enabled will trigger the @hook/after on
+    @pcreate/@register on AO_<command> attribute.  Player created 
+    will be %# [ASH]
+  * @hook/include converts A_* (after) and B_* (before) hooks into
+    command processors instead of function processors.  Work was done
+    to avoid recursive calling.
+  * sandbox() to deny access to functions (built in or user) [ASH]
+  * BYPASS @admin function permission to tag a function (built in or user)
+    to not be affected by the sandbox() function [ASH]
+  * packmath() to allow math on varying radix compressions [ASH]
+  
+  Changes
+  ------------
+  * lt(), lte(), gt(), gte(), eq(), neq() handle multiple args [ASH]
+  * @hook will show if hook_offline is enabled [ASH]
+  * offline 'create' optionally triggers @hook [ASH]
+  * [co]nnect, [cr]eate, etc on connect screen are no longer case
+    sensitive [ASH]
+  * strmath() now handles <, >, <=, >=, =, != [ASH]
+  * elements()/elementsmux() now handles negative values to pull
+    from the end [ASH]
+  * improve folder/list to be more descriptive [ASH]
+  * xinc() and xdec() modified to handle advanced inc/dec [ASH]
+  * mail/status @folder works for displaying mail of folder [ASH]
+  
+  Bug Fixes
+  ------------
+  * GCC 6.2 had different sizes for pointer and structure data [ASH]
+  * cleanup of warnings for GCC 6.2. [ASH]
+  * cleanup of warnings for CLANG on MacOSX Sierra [ASH]
+  * fix crash bug in ljc() [ASH]
+  * potential buffer corruption with very large function, flag,
+    toggle, and command lists [ASH]
+  * listfunctions() didn't work properly with local @lfunctions [ASH]
+  * mail/status [<folder>] wouldn't show mail of the given folder [ASH]
+  * bug with matching when NO_NAME was in effect on a target [ASH]
+  * folders mistakenly seen as corrupt when you had no mail at all [ASH]

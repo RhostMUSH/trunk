@@ -4103,10 +4103,12 @@ FUNCTION(fun_wrapcolumns)
                  winfo.width = maxw;
                  if (cut2) {
                     pp = leftstart + maxw;
-                    while (*pp && !isspace((int)*pp))
+                    while (*pp && !isspace((int)*pp)) {
                        pp++;
-                    if (*pp)
-                    pp++;
+                    }
+                    if (*pp) {
+                       pp++;
+                    }
                     buffleft -= pp - leftstart;
                     leftstart += pp - leftstart;
                  } else {
@@ -4114,10 +4116,11 @@ FUNCTION(fun_wrapcolumns)
                     buffleft -= maxw;
                  }
               } else { /* we hit a space, chop it there */
-                 if ((pp - leftstart) > winfo.width)
+                 if ((pp - leftstart) > winfo.width) {
                     winfo.width = pp - leftstart;
-                    buffleft -= pp - leftstart + 1;
-                    leftstart += pp - leftstart + 1; /* eat the space */
+                 }
+                 buffleft -= pp - leftstart + 1;
+                 leftstart += pp - leftstart + 1; /* eat the space */
               }
            }
         }
@@ -4799,7 +4802,12 @@ FUNCTION(fun_checkpass)
 FUNCTION(fun_digest)
 {
 #ifdef HAS_OPENSSL
-  EVP_MD_CTX ctx;
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+  EVP_MD_CTX *ctx;
+	ctx = EVP_MD_CTX_new();
+#else
+	EVP_MD_CTX ctx;
+#endif
   const EVP_MD *mp;
   unsigned char md[EVP_MAX_MD_SIZE];
   unsigned int n, len = 0;
@@ -4812,15 +4820,23 @@ FUNCTION(fun_digest)
     return;
   }
 
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+  EVP_DigestInit(ctx, mp);
+  EVP_DigestUpdate(ctx, fargs[1], len2);
+  EVP_DigestFinal(ctx, md, &len);
+#else
   EVP_DigestInit(&ctx, mp);
   EVP_DigestUpdate(&ctx, fargs[1], len2);
   EVP_DigestFinal(&ctx, md, &len);
+#endif
 
   for (n = 0; n < len; n++) {
      safe_chr(digits[md[n] >> 4], buff, bufcx);
      safe_chr(digits[md[n] & 0x0F], buff, bufcx);
   }
-
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+	EVP_MD_CTX_free(ctx);
+#endif
 #else
   int len2;
 
@@ -5170,6 +5186,51 @@ FUNCTION(fun_lockcheck)
    free_boolexp(okey);
    free_lbuf(s_instr);
 }
+
+FUNCTION(fun_testlock)
+{
+   char *s_instr;
+   dbref target;
+   int i_locktype;
+   struct boolexp *okey;
+
+   if (!fn_range_check("TESTLOCK", nfargs, 2, 3, buff, bufcx)) 
+      return;
+
+   if ( !fargs[0] || !*fargs[0] || !fargs[1] || !*fargs[1] ) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+      return;
+   }
+
+   target = match_thing(player, fargs[1]);
+   if ( !Good_chk(target) ) {
+      safe_str("#-1 NOT FOUND", buff, bufcx);
+   }
+   if ( (Cloak(target) && !Wizard(player)) ||
+        ((SCloak(target) && Cloak(target)) && !Immortal(player)) ) {
+      safe_str("#-1 NOT FOUND", buff, bufcx);
+   }
+
+   i_locktype = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_locktype = atoi(fargs[2]);
+      if ( (i_locktype < 0) || (i_locktype > 2) )
+         i_locktype = 0;
+   }
+
+   okey = parse_boolexp(player, strip_all_special(fargs[0]), 0);
+   if ( okey == TRUE_BOOLEXP ) {
+      safe_str("#-1 UNDEFINED KEY", buff, bufcx);
+   } else {
+      s_instr = alloc_lbuf("fun_testlock");
+      memset(s_instr, '\0', LBUF_SIZE);
+      sprintf(s_instr, "%s", unparse_boolexp_quiet(player, okey));
+      ival(buff, bufcx, eval_boolexp_atr(target, target, target, s_instr, 1, i_locktype));
+      free_lbuf(s_instr);
+   }
+   free_boolexp(okey);
+}
+
 
 /* Encode/Decode require OpenSSL or will return an error */
 FUNCTION(fun_encode64)
@@ -7007,6 +7068,92 @@ FUNCTION(fun_pack)
   } else {
      safe_str(TempBuffer, buff, bufcx);
   }
+}
+
+FUNCTION(fun_packmath)
+{
+   double i_val, i_num;
+   char *s_tmp[2], *s_str, *s_strptr, sep;
+
+   if (!fn_range_check("PACKMATH", nfargs, 3, 4, buff, bufcx)) {
+      return;
+   }
+
+   sep = '+';
+   i_val = 0;
+   if ( (nfargs > 3) && *fargs[3] )
+      sep = *fargs[3];
+   if ( (nfargs > 2) && *fargs[2] )
+      i_val = safe_atof(fargs[2]);
+
+   if ( !*fargs[0] || ((*fargs[0] == '0') && (strlen(fargs[0]) == 1)) ) {
+      switch(sep) {
+         case '+': /* Add */
+            fval(buff, bufcx, i_val);
+            break;
+         case '-': /* Subtract */
+            fval(buff, bufcx, 0 - i_val);
+            break;
+         case '/': /* Divide */
+         case '%': /* Mod */
+            if ( i_val == 0 ) {
+               safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+            } else {
+               fval(buff, bufcx, 0);
+            }
+            break;
+         case '*': /* Multiply */
+            fval(buff, bufcx, 0);
+            break;
+      }
+      return;
+   }
+   
+   s_strptr = s_str = alloc_lbuf("fun_packadd");
+   fun_unpack(s_str, &s_strptr, player, cause, cause, fargs, 2, (char **)NULL, 0);
+   if ( (*s_str == '0') && (strlen(s_str) == 1) ) {
+      safe_str("#-1 VALUE WAS WRONG BASE", buff, bufcx);
+   } else {
+      i_num = safe_atof(s_str);
+      switch(sep) {
+         case '+': /* Add */
+            sprintf(s_str, "%.0f", i_num + i_val);
+            break;
+         case '-': /* Subtract */
+            sprintf(s_str, "%.0f", i_num - i_val);
+            break;
+         case '/': /* Divide */
+            if ( i_val == 0 ) {
+               safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+               free_lbuf(s_str);
+               return;
+            } else {
+               sprintf(s_str, "%.0f", i_num / i_val);
+            }
+            break;
+         case '%': /* Divide */
+            if ( i_val == 0 ) {
+               safe_str("#-1 DIVIDE BY ZERO", buff, bufcx);
+               free_lbuf(s_str);
+               return;
+            } else {
+               sprintf(s_str, "%.0f", fmod(i_num, i_val));
+            }
+            break;
+         case '*': /* Multiply */
+            sprintf(s_str, "%.0f", i_num * i_val);
+            break;
+      }
+      s_tmp[0] = alloc_lbuf("fun_packadd");
+      strcpy(s_tmp[0], s_str);
+      s_tmp[1] = fargs[1];
+      *s_str = '\0';
+      s_strptr = s_str;
+      fun_pack(s_str, &s_strptr, player, cause, cause, s_tmp, 2, (char **)NULL, 0);
+      safe_str(s_str, buff, bufcx);
+      free_lbuf(s_str);
+      free_lbuf(s_tmp[0]);
+   }
 }
 
 static unsigned int CRC32_Table[256] =
@@ -10089,6 +10236,7 @@ FUNCTION(fun_timefmt)
   tms2 = localtime(&mudstate.now);
 
   tzmush = NULL;
+  i_frell = 0;
   if ( (nfargs > 2) && *fargs[2] ) {
      for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
         if ( stricmp((char *)tzmush->mush_tzone, (char *)fargs[2]) == 0 ) {
@@ -10096,9 +10244,19 @@ FUNCTION(fun_timefmt)
         }
      }
      if ( tzmush->mush_tzone ) {
-        secs = secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
-        secs2 = secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
-        i_frell = (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
+        if ( (!daylight && !tzmush->mush_tz) || (daylight && tzmush->mush_tz) ) {
+           i_frell = 0;
+        } else {
+           tms2 = localtime(&i_frell);
+           if ( tms2->tm_isdst && !tzmush->mush_tz ) {
+              i_frell = 0;
+           } else {
+              i_frell = -3600;
+           }
+        }
+        secs = i_frell + secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
+        secs2 = (double)i_frell + secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
+        i_frell += (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
         tms2 = localtime(&i_frell);
      }
   }
@@ -11730,7 +11888,7 @@ FUNCTION(fun_listfunctions)
    keyval = 0;
    if ( (nfargs == 1) && fargs[0] && *fargs[0] )
       keyval = atoi(fargs[0]);
-   if (keyval > 2)
+   if (keyval > 7)
       keyval = 0;
    list_functable2(player, buff, bufcx, keyval);
 }
@@ -11739,28 +11897,68 @@ FUNCTION(fun_listcommands)
 {
   CMDENT *cmdp;
   const char *ptrs[LBUF_SIZE / 2];
-  int nptrs = 0, i;
+  int nptrs = 0, i, i_cmdtype;
 
-  for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
-       cmdp;
-       cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
-
-    if ( (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&
-          check_access(player, cmdp->perms, cmdp->perms2, 0)) {
-      if ( (!strcmp(cmdp->cmdname, "@snoop") || !strcmp(cmdp->cmdname, "@depower")) &&
-            !Immortal(player))
-         continue;
-      if ( !(cmdp->perms & CF_DARK) ) {
-         ptrs[nptrs] = cmdp->cmdname;
-         nptrs++;
-      }
-    }
+  i_cmdtype = 0;
+  if ( (nfargs > 0) && *fargs[0] ) {
+     i_cmdtype = atoi(fargs[0]);
   }
-  qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
-  safe_str((char *)ptrs[0], buff, bufcx);
-  for (i = 1; i < nptrs; i++) {
-    safe_chr(' ', buff, bufcx);
-    safe_str((char *)ptrs[i], buff, bufcx);
+  if ( (i_cmdtype < 0) || (i_cmdtype > 2) ) {
+     i_cmdtype = 0;
+  }
+
+  if ( !i_cmdtype || (i_cmdtype == 2) ) {
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
+          cmdp;
+          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
+
+       if ( (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&
+             check_access(player, cmdp->perms, cmdp->perms2, 0)) {
+         if ( (!strcmp(cmdp->cmdname, "@snoop") || !strcmp(cmdp->cmdname, "@depower")) &&
+               !Immortal(player))
+            continue;
+         if ( !(cmdp->perms & CF_DARK) ) {
+            ptrs[nptrs] = cmdp->cmdname;
+            nptrs++;
+         }
+         if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+            notify(player, "WARNING: Command listing too large to display.");
+            break;
+         }
+       }
+     }
+     qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+     safe_str((char *)ptrs[0], buff, bufcx);
+     for (i = 1; i < nptrs; i++) {
+       safe_chr(' ', buff, bufcx);
+       safe_str((char *)ptrs[i], buff, bufcx);
+     }
+  } 
+  if ( (i_cmdtype == 1) || (i_cmdtype == 2) ) {
+     nptrs = 0;
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_vattr_htab);
+          cmdp;
+          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_vattr_htab)) {
+         if ( !(cmdp->perms & CF_DARK) ) {
+            ptrs[nptrs] = cmdp->cmdname;
+            nptrs++;
+         }
+         if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+            notify(player, "WARNING: VATTR Command listing too large to display.");
+            break;
+         }
+     }
+     if ( nptrs ) {
+        qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+        if ( i_cmdtype == 2 ) {
+          safe_chr(' ', buff, bufcx);
+        }
+        safe_str((char *)ptrs[0], buff, bufcx);
+        for (i = 1; i < nptrs; i++) {
+          safe_chr(' ', buff, bufcx);
+          safe_str((char *)ptrs[i], buff, bufcx);
+        }
+     }
   }
 }
 
@@ -13268,10 +13466,10 @@ paren_match2(char *atext)
 }
 
 int
-paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_indent)
+paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_indent, int i_extra)
 {
     char *atextptr;
-    int oldtcnt, tcnt, i_clr, i_err, esc_val, i_pos, i_indentnow, i_close, i_lastclose;
+    int oldtcnt, tcnt, i_clr, i_err, esc_val, i_pos, i_indentnow, i_close, i_lastclose, i_space;
     static int iarr[LBUF_SIZE];
     static char *s_clrs[] = {ANSI_MAGENTA, ANSI_GREEN, ANSI_YELLOW, ANSI_CYAN, ANSI_BLUE};
 
@@ -13279,22 +13477,43 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
     atextptr = atext;
     while ( *atextptr ) {
        i_lastclose = i_close;
-       i_close = 0;
+       i_close = i_space = 0;
        if ( (*atextptr == '%') || (*atextptr == '\\') )
           esc_val = !esc_val;
        if (!esc_val) {
           switch(*atextptr) {
+             case ',' :
+             case ';' :
+                        if ( i_extra & 1 ) {
+                           i_space = 1;
+                        }
+                        break;
+             case '=' :
+                        if ( i_extra & 1 ) {
+                           safe_chr(' ', buff, bptr);
+                           i_space = 1;
+                        }
+                        break;
              case '[' : iarr[tcnt] = 1;
                         tcnt++;
                         i_clr = tcnt;
+                        if ( i_extra & 4 ) {
+                           i_space = 1;              
+                        }
                         break;
              case '(' : iarr[tcnt] = 2;
                         tcnt++;
                         i_clr = tcnt;
+                        if ( i_extra & 2 ) {
+                           i_space = 1;              
+                        }
                         break;
              case '{' : iarr[tcnt] = 3;
                         tcnt++;
                         i_clr = tcnt;
+                        if ( i_extra & 8 ) {
+                           i_space = 1;              
+                        }
                         break;
              case ']' : if (tcnt == 0)
                            i_err = 1;
@@ -13303,6 +13522,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                         i_clr = tcnt;
                         tcnt--;
                         i_close = 1;
+                        if ( i_extra & 4 ) {
+                           safe_chr(' ', buff, bptr);
+                        }
                         break;
              case ')' : if (tcnt == 0)
                            i_err = 1;
@@ -13311,6 +13533,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                         i_clr = tcnt;
                         tcnt--;
                         i_close = 1;
+                        if ( i_extra & 2 ) {
+                           safe_chr(' ', buff, bptr);
+                        }
                         break;
              case '}' : if (tcnt == 0)
                            i_err = 1;
@@ -13319,6 +13544,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
                         i_clr = tcnt;
                         tcnt--;
                         i_close = 1;
+                        if ( i_extra & 8 ) {
+                           safe_chr(' ', buff, bptr);
+                        }
                         break;
           }
        }
@@ -13330,6 +13558,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              safe_strmax(ANSI_HILITE, buff, bptr);
              safe_chr(*atextptr, buff, bptr);
              safe_str(ANSI_NORMAL, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
              atextptr++;
              safe_str(atextptr, buff, bptr);
              return 0;
@@ -13346,6 +13577,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              safe_strmax(ANSI_HILITE, buff, bptr);
              safe_chr(*atextptr, buff, bptr);
              safe_str(ANSI_NORMAL, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
              atextptr++;
              safe_str(atextptr, buff, bptr);
              return 0;
@@ -13362,6 +13596,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              }
              safe_strmax(s_clrs[i_clr % 5], buff, bptr);
              safe_chr(*atextptr, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
              safe_str(ANSI_NORMAL, buff, bptr);
              if ( i_indent ) {
                 if ( !i_close ) {
@@ -13373,6 +13610,9 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
              }
           } else {
              safe_chr(*atextptr, buff, bptr);
+             if ( i_space ) {
+                safe_chr(' ', buff, bptr);
+             }
           }
           oldtcnt = tcnt;
           atextptr++;
@@ -13385,10 +13625,10 @@ paren_match(char *atext, char *buff, char **bptr, int key, int i_type, int i_ind
 FUNCTION(fun_parenmatch)
 {
     dbref aowner, thing;
-    int aflags, anum, tcnt, i_type, i_indent;
+    int aflags, anum, tcnt, i_type, i_indent, i_extra;
     ATTR *ap;
     char *atext, *atextptr, *revatext, *revatextptr;
-    char *tbuff, *tbuffptr;
+    char *tbuff, *tbuffptr, *p_extra;
 
     if (mudstate.last_cmd_timestamp == mudstate.now) {
        mudstate.heavy_cpu_recurse += 1;
@@ -13397,7 +13637,7 @@ FUNCTION(fun_parenmatch)
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
-    if (!fn_range_check("PARENMATCH", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("PARENMATCH", nfargs, 1, 4, buff, bufcx))
         return;
     if (nfargs == 2) {
        i_type = atoi(fargs[1]);
@@ -13451,9 +13691,31 @@ FUNCTION(fun_parenmatch)
        i_indent = ((atoi(fargs[2]) > 0) ? 1 : 0);
     }
 
+    i_extra = 0;
+    if ( (nfargs > 3) && *fargs[3] ) {
+       p_extra = fargs[3];
+       while ( p_extra && *p_extra ) {
+          switch(*p_extra) {
+             case 's': /* Spaces after commas and semi-colons */
+                i_extra |= 1;
+                break;
+             case 'p': /* Spaces before/after Parenthesis */
+                i_extra |= 2;
+                break;
+             case 'b': /* Spaces before/after Brackets */
+                i_extra |= 4;
+                break;
+             case 'B': /* Spaces before/after Braces */
+                i_extra |= 8;
+                break;
+          }
+          p_extra++;
+       }
+    }
+
     tcnt = 0;
     tbuffptr = tbuff = alloc_lbuf("fun_parenmatch");
-    tcnt = paren_match(atext, tbuff, &tbuffptr, -1, i_type, i_indent);
+    tcnt = paren_match(atext, tbuff, &tbuffptr, -1, i_type, i_indent, i_extra);
     if ( tcnt > 0 ) {
        revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
        atextptr = strip_escapes(atext);
@@ -13462,7 +13724,7 @@ FUNCTION(fun_parenmatch)
        tbuffptr = tbuff;
        tcnt = paren_match2(revatext);
        free_lbuf(revatext);
-       tcnt = paren_match(atext, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(atext)-tcnt) : -1), i_type, i_indent);
+       tcnt = paren_match(atext, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(atext)-tcnt) : -1), i_type, i_indent, i_extra);
        free_lbuf(atext);
        safe_str(tbuff, buff, bufcx);
        free_lbuf(tbuff);
@@ -13491,7 +13753,7 @@ FUNCTION(fun_parenstr)
       strcpy(sbuff, fargs[0]);
    }
    tbuffptr = tbuff = alloc_lbuf("parenstr");
-   tcnt = paren_match(sbuff, tbuff, &tbuffptr, -1, i_type, 0);
+   tcnt = paren_match(sbuff, tbuff, &tbuffptr, -1, i_type, 0, 0);
    if ( tcnt > 0 ) {
       revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
       atextptr = strip_escapes(sbuff);
@@ -13500,7 +13762,7 @@ FUNCTION(fun_parenstr)
       tbuffptr = tbuff;
       tcnt = paren_match2(revatext);
       free_lbuf(revatext);
-      tcnt = paren_match(sbuff, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(sbuff)-tcnt) : -1), i_type, 0);
+      tcnt = paren_match(sbuff, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(sbuff)-tcnt) : -1), i_type, 0, 0);
       safe_str(tbuff, buff, bufcx);
    } else {
       safe_str(tbuff, buff, bufcx);
@@ -15108,86 +15370,105 @@ FUNCTION(fun_u2ldefault)
 
 FUNCTION(fun_elements)
 {
-  char delim, *pt1, *pt2, *pos1, *pos2, *mybuff, filler;
-  int x, place, got, end;
+   char delim, *pt1, *pt2, *pos1, *pos2, *mybuff, filler;
+   int x, place, got, end, i_countwords;
 
-  if (!fn_range_check("ELEMENTS", nfargs, 2, 4, buff, bufcx)) {
-    return;
-  }
-  if (!*fargs[0] || !*fargs[1])
-    return;
-  if ((nfargs > 2) && (*fargs[2]))
-    delim = *fargs[2];
-  else
-    delim = ' ';
-  if ((nfargs > 3) && (*fargs[3])) {
-    if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
-       filler = '\0';
-    } else {
-       filler = *fargs[3];
-    }
-  } else {
-    filler = delim;
-  }
-  pos1 = fargs[1];
-  while (*pos1 && isspace((int)*pos1))
-    pos1++;
-  got = 0;
-  mybuff = alloc_lbuf("fun_element");
-  if (mybuff == NULL)
-    return;
-  memset(mybuff, 0, LBUF_SIZE);
-  while (*pos1) {
-    pos2 = pos1 + 1;
-    while (*pos2 && !isspace((int)*pos2))
-      pos2++;
-    if (*pos2) {
-      end = 0;
-      *pos2 = '\0';
-    }
-    else
-      end = 1;
-    place = atoi(pos1);
-    if ((place > 0) && (place < LBUF_SIZE)) {
-      pt1 = fargs[0];
-      while (*pt1 && (*pt1 == delim)) {
-  pt1++;
+   if (!fn_range_check("ELEMENTS", nfargs, 2, 4, buff, bufcx)) {
+      return;
+   }
+
+   if (!*fargs[0] || !*fargs[1])
+      return;
+
+   if ((nfargs > 2) && (*fargs[2])) {
+      delim = *fargs[2];
+   } else {
+      delim = ' ';
+   }
+
+   if ((nfargs > 3) && (*fargs[3])) {
+      if ( mudconf.delim_null && (strcmp(fargs[3], (char *)"@@") == 0) ) {
+         filler = '\0';
+      } else {
+         filler = *fargs[3];
       }
-      if (*pt1) {
-  for (x = 1; x < place; x++) {
-    while (*pt1 && (*pt1 != delim))
-      pt1++;
-    if (!*pt1)
-      break;
-    while (*pt1 && (*pt1 == delim)) {
-      pt1++;
-          }
-  }
-  if (*pt1) {
-    pt2 = pt1+1;
-    while (*pt2 && (*pt2 != delim))
-      pt2++;
-    x = pt2 - pt1;
-    if (x >= LBUF_SIZE)
-      x = LBUF_SIZE - 1;
-    strncpy(mybuff,pt1,x);
-    *(mybuff+x) = '\0';
-    if (got && filler)
-      safe_chr(filler, buff, bufcx);
-    safe_str(mybuff, buff, bufcx);
-    got = 1;
-  }
+   } else {
+      filler = delim;
+   }
+
+   pos1 = fargs[1];
+   while (*pos1 && isspace((int)*pos1)) {
+      pos1++;
+   }
+
+   got = 0;
+   mybuff = alloc_lbuf("fun_element");
+   if (mybuff == NULL)
+      return;
+
+   memset(mybuff, 0, LBUF_SIZE);
+   while (*pos1) {
+      pos2 = pos1 + 1;
+      while (*pos2 && !isspace((int)*pos2)) {
+         pos2++;
       }
-    }
-    if (end)
-      pos1 = pos2;
-    else {
-      pos1 = pos2 + 1;
-      while (*pos1 && isspace((int)*pos1))
-  pos1++;
-    }
-  }
-  free_lbuf(mybuff);
+      if (*pos2) {
+         end = 0;
+         *pos2 = '\0';
+      } else {
+         end = 1;
+      }
+      place = atoi(pos1);
+      if ( place < 0 ) {
+         i_countwords = countwords(fargs[0], delim);
+         place += (i_countwords + 1);
+      }
+      if ((place > 0) && (place < LBUF_SIZE)) {
+         pt1 = fargs[0];
+         while (*pt1 && (*pt1 == delim)) {
+            pt1++;
+         }
+         if (*pt1) {
+            for (x = 1; x < place; x++) {
+               while (*pt1 && (*pt1 != delim)) {
+                  pt1++;
+               }
+               if (!*pt1) {
+                  break;
+               }
+               while (*pt1 && (*pt1 == delim)) {
+                  pt1++;
+               }
+            }
+            if (*pt1) {
+               pt2 = pt1+1;
+               while (*pt2 && (*pt2 != delim)) {
+                  pt2++;
+               }
+               x = pt2 - pt1;
+               if (x >= LBUF_SIZE) {
+                  x = LBUF_SIZE - 1;
+               }
+               strncpy(mybuff,pt1,x);
+               *(mybuff+x) = '\0';
+               if (got && filler) {
+                  safe_chr(filler, buff, bufcx);
+               }
+               safe_str(mybuff, buff, bufcx);
+               got = 1;
+            }
+         }
+      }
+      if (end) {
+         pos1 = pos2;
+      } else {
+         pos1 = pos2 + 1;
+         while (*pos1 && isspace((int)*pos1)) {
+            pos1++;
+         }
+      }
+   }
+   free_lbuf(mybuff);
 }
 
 /******************************************************************
@@ -15196,36 +15477,41 @@ FUNCTION(fun_elements)
  ******************************************************************/
 FUNCTION(fun_elementsmux)
 {
-  int nwords, cur, bFirst;
-  char *ptrs[LBUF_SIZE / 2];
-  char *wordlist, *s, *r, sep, osep;
-  svarargs_preamble("ELEMENTSMUX", 4);
-  bFirst = 1;
+   int nwords, cur, bFirst;
+   char *ptrs[LBUF_SIZE / 2];
+   char *wordlist, *s, *r, sep, osep;
 
-  /* Turn the first list into an array. */
-  wordlist = alloc_lbuf("fun_elements.wordlist");
+   svarargs_preamble("ELEMENTSMUX", 4);
 
-  /* Same size - no worries */
-  strcpy(wordlist, fargs[0]);
-  nwords = list2arr(ptrs, LBUF_SIZE / 2, wordlist, sep);
-  s = trim_space_sep(fargs[1], ' ');
+   bFirst = 1;
+
+   /* Turn the first list into an array. */
+   wordlist = alloc_lbuf("fun_elements.wordlist");
+
+   /* Same size - no worries */
+   strcpy(wordlist, fargs[0]);
+   nwords = list2arr(ptrs, LBUF_SIZE / 2, wordlist, sep);
+   s = trim_space_sep(fargs[1], ' ');
 
   /* Go through the second list, grabbing the numbers and finding the
    * corresponding elements.
    */
 
-  do {
-    r = split_token(&s, ' ');
-    cur = atoi(r) - 1;
-    if (  (cur >= 0) && (cur < nwords) && ptrs[cur]) {
-      if (!bFirst) {
-  safe_chr(osep, buff, bufcx);
+   do {
+      r = split_token(&s, ' ');
+      cur = atoi(r) - 1;
+      if ( cur < 0 ) {
+         cur += nwords + 1;
       }
-      bFirst = 0;
-      safe_str(ptrs[cur], buff, bufcx);
-    }
-  } while (s);
-  free_lbuf(wordlist);
+      if (  (cur >= 0) && (cur < nwords) && ptrs[cur]) {
+         if (!bFirst) {
+            safe_chr(osep, buff, bufcx);
+         }
+         bFirst = 0;
+         safe_str(ptrs[cur], buff, bufcx);
+      }
+   } while (s);
+   free_lbuf(wordlist);
 }
 
 /* ---------------------------------------------------------------------------
@@ -15940,7 +16226,7 @@ FUNCTION(fun_strfunc)
       while ( strtok ) {
          ptrs[nitems] = alloc_lbuf("strfunc_lbuf_alloc");
          strcpy(ptrs[nitems], strtok);
-         if ( nitems >= (LBUF_SIZE / 2) ) {
+         if ( nitems >= ((LBUF_SIZE / 2) - 2) ) {
             nitems++;
             break;
          }
@@ -17014,7 +17300,7 @@ FUNCTION(fun_name)
 FUNCTION(fun_cname)
 {
     dbref it, aname;
-    int i_extansi, aflags;
+    int i_extansi, aflags, i_val;
     char *s;
     char *namebuff, *namebufcx, *ansibuf, *ansiparse;
 
@@ -17028,8 +17314,10 @@ FUNCTION(fun_cname)
            return;
        }
     }
+    i_extansi = i_val = 0;
     ansibuf = atr_pget(it, A_ANSINAME, &aname, &aflags);
-    i_extansi = 0;
+    if ( !ansibuf || !*ansibuf )
+       i_val = 1;
 
     namebuff  = namebufcx = alloc_lbuf("fun_name.namebuff");
     safe_str(Name(it), namebuff, &namebufcx);
@@ -17060,11 +17348,13 @@ FUNCTION(fun_cname)
        safe_str(ansiparse, buff, bufcx);
        free_lbuf(ansiparse);
        safe_str(namebuff, buff, bufcx);
+       if ( !i_val ) {
 #ifdef ZENTY_ANSI
-       safe_str(SAFE_ANSI_NORMAL, buff, bufcx);
+          safe_str(SAFE_ANSI_NORMAL, buff, bufcx);
 #else
-       safe_str(ANSI_NORMAL, buff, bufcx);
+          safe_str(ANSI_NORMAL, buff, bufcx);
 #endif
+       }
     } else {
        safe_str(namebuff, buff, bufcx);
     }
@@ -17593,20 +17883,27 @@ FUNCTION(fun_randextract)
 
 FUNCTION(fun_extractword)
 {
-   int start, len, i_cntr, i_cntr2, first, i_del;
+   int start, len, i_cntr, i_cntr2, first, i_del, i_numwords;
    char *sep, *osep, *pos, *prevpos, *fargbuff, *outbuff;
    ANSISPLIT outsplit[LBUF_SIZE], *optr, *prevoptr;
 
-   if (!fn_range_check("WORDEXTRACT", nfargs, 3, 6, buff, bufcx))
+   if (!fn_range_check("EXTRACTWORD", nfargs, 1, 6, buff, bufcx)) {
       return;
+   }
 
-   if ( !*fargs[0] )
+   if ( !*fargs[0] ) {
       return;
+   }
 
-   start = atoi(fargs[1]);
-   len = atoi(fargs[2]);
-   if ((start < 1) || (len < 1)) {
-      return;
+   if ( nfargs < 2 ) {
+      start = 1;
+   } else {
+      start = atoi(fargs[1]);
+   }
+   if ( nfargs < 3 ) {
+      len = 1;
+   } else {
+      len = atoi(fargs[2]);
    }
 
    initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -17623,8 +17920,9 @@ FUNCTION(fun_extractword)
    }
    if ( (nfargs > 4) && *fargs[4] ) {
       strcpy(osep, fargs[4]);
-      if ( mudconf.delim_null && (strcmp(osep, (char *)"@@") == 0) )
+      if ( mudconf.delim_null && (strcmp(osep, (char *)"@@") == 0) ) {
          *osep = '\0';
+      }
    } else {
       strcpy(osep, sep);
    }
@@ -17634,6 +17932,33 @@ FUNCTION(fun_extractword)
    } else {
       i_del = 0;
    }
+
+   if( (len < 0) || (start < 0) ) {
+      i_numwords = 1;
+      pos = fargbuff;
+      while ( pos && *pos ) {
+         prevpos = strstr(pos, sep);
+         if ( !prevpos ) {
+            break;
+         }
+         i_numwords++;
+         pos = prevpos + strlen(sep);
+      }
+      if ( start < 0 ) {
+         start = i_numwords + start + 1;
+      }
+      if ( (start > 0) && (len < 0) ) {
+         len = i_numwords - start + len + 2;
+      }
+   }
+
+   if ( (start < 1) || (len < 1) ) {
+      free_lbuf(sep);
+      free_lbuf(osep);
+      free_lbuf(fargbuff);
+      return;
+   }
+
    pos = fargbuff;
    optr = outsplit;
    i_cntr = 1;
@@ -18032,32 +18357,111 @@ FUNCTION(fun_rnum)
 
 FUNCTION(fun_gt)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) > safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (GT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+  
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) > safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_gte)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) >= safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (GTE) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) >= safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_lt)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) < safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (LT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) < safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_lte)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) <= safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (LTE) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) <= safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_eq)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) == safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (EQ) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( !(i_ret = (safe_atof(fargs[i-1]) == safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_neq)
 {
-    ival(buff, bufcx, (safe_atof(fargs[0]) != safe_atof(fargs[1])));
+    int i, i_ret;
+
+    if ( nfargs < 2 ) {
+       safe_str("#-1 FUNCTION (NEQ) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    i_ret = 0;
+    for (i=1; i < nfargs; i++) {
+       if ( (i_ret = (safe_atof(fargs[i-1]) != safe_atof(fargs[i]))) )
+          break;
+    }
+    ival(buff, bufcx, i_ret);
 }
 
 FUNCTION(fun_mask)
@@ -20824,10 +21228,17 @@ sanitize_input_cnt(char *s_base_str, char *s_in_str, char sep, int  *i_len, int 
 
 FUNCTION(fun_replace)
 {       /* replace a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
-    varargs_preamble("REPLACE", 4);
+    if (!fn_range_check("REPLACE", nfargs, 3, 5, buff, bufcx))
+       return;
+
+    if ( (nfargs > 3) && *fargs[3]) {
+       sep = *fargs[3];
+    } else {
+       sep = ' ';
+    }
 
     i_len=0;
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_REPLACE);
@@ -20848,6 +21259,27 @@ FUNCTION(fun_replace)
        }
     }
 
+    if ( (nfargs > 4) && ((*fargs[4] != sep) || *(fargs[4]+1)) ) {
+       if ( mudconf.delim_null && *fargs[4] && (strcmp(fargs[4], (char *)"@@") == 0)) {
+          *fargs[4] = '\0';
+       }
+       memcpy(st_mash, st_tmp, LBUF_SIZE);
+       memset(st_tmp, '\0', LBUF_SIZE);
+       st_tmpptr = st_tmp;
+       st_mashtmp[0] = sep;
+       st_mashtmp[1] = '\0';  
+       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
+       i_found = 0;
+       while ( stok ) {
+          if ( i_found && *fargs[4] ) {
+             safe_str(fargs[4], st_tmp, &st_tmpptr);
+          }
+          safe_str(stok, st_tmp, &st_tmpptr);
+          stok = strtok_r(NULL, st_mashtmp, &stok_r);
+          i_found = 1;
+       }
+       
+    }
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
@@ -20855,10 +21287,17 @@ FUNCTION(fun_replace)
 
 FUNCTION(fun_ldelete)
 {       /* delete a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
-    varargs_preamble("LDELETE", 3);
+    if (!fn_range_check("LDELETE", nfargs, 2, 4, buff, bufcx))
+       return;
+
+    if ( (nfargs > 2) && *fargs[2]) {
+       sep = *fargs[2];
+    } else {
+       sep = ' ';
+    }
 
     i_len=0;
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_DELETE);
@@ -20867,8 +21306,8 @@ FUNCTION(fun_ldelete)
        return;
     }
 
-    st_tmpptr = st_tmp = alloc_lbuf("fun_replace");
-    st_mash = alloc_lbuf("fun_replace2");
+    st_tmpptr = st_tmp = alloc_lbuf("fun_ldelete");
+    st_mash = alloc_lbuf("fun_ldelete2");
     memcpy(st_mash, fargs[0], LBUF_SIZE);
 
     for (i_tmp = (i_len + 2); i_tmp>=0; i_tmp--) {
@@ -20879,6 +21318,28 @@ FUNCTION(fun_ldelete)
        }
     }
 
+    if ( (nfargs > 3) && ((*fargs[3] != sep) || *(fargs[3]+1)) ) {
+       if ( mudconf.delim_null && *fargs[3] && (strcmp(fargs[3], (char *)"@@") == 0)) {
+          *fargs[3] = '\0';
+       }
+       memcpy(st_mash, st_tmp, LBUF_SIZE);
+       memset(st_tmp, '\0', LBUF_SIZE);
+       st_tmpptr = st_tmp;
+       st_mashtmp[0] = sep;
+       st_mashtmp[1] = '\0';  
+       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
+       i_found = 0;
+       while ( stok ) {
+          if ( i_found && *fargs[3] ) {
+             safe_str(fargs[3], st_tmp, &st_tmpptr);
+          }
+          safe_str(stok, st_tmp, &st_tmpptr);
+          stok = strtok_r(NULL, st_mashtmp, &stok_r);
+          i_found = 1;
+       }
+       
+    }
+
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
@@ -20886,10 +21347,17 @@ FUNCTION(fun_ldelete)
 
 FUNCTION(fun_insert)
 {       /* insert a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
-    varargs_preamble("INSERT", 4);
+    if (!fn_range_check("INSERT", nfargs, 3, 5, buff, bufcx))
+       return;
+
+    if ( (nfargs > 3) && *fargs[3]) {
+       sep = *fargs[3];
+    } else {
+       sep = ' ';
+    }
 
     i_len=0;
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_INSERT);
@@ -20898,8 +21366,8 @@ FUNCTION(fun_insert)
        return;
     }
 
-    st_tmpptr = st_tmp = alloc_lbuf("fun_replace");
-    st_mash = alloc_lbuf("fun_replace2");
+    st_tmpptr = st_tmp = alloc_lbuf("fun_insert");
+    st_mash = alloc_lbuf("fun_insert2");
     memcpy(st_mash, fargs[0], LBUF_SIZE);
 
     for (i_tmp = (i_len + 2); i_tmp>=0; i_tmp--) {
@@ -20908,6 +21376,28 @@ FUNCTION(fun_insert)
           st_tmpptr=st_tmp;
           memcpy(st_mash, st_tmp, LBUF_SIZE);
        }
+    }
+
+    if ( (nfargs > 4) && ((*fargs[4] != sep) || *(fargs[4]+1)) ) {
+       if ( mudconf.delim_null && *fargs[4] && (strcmp(fargs[4], (char *)"@@") == 0)) {
+          *fargs[4] = '\0';
+       }
+       memcpy(st_mash, st_tmp, LBUF_SIZE);
+       memset(st_tmp, '\0', LBUF_SIZE);
+       st_tmpptr = st_tmp;
+       st_mashtmp[0] = sep;
+       st_mashtmp[1] = '\0';  
+       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
+       i_found = 0;
+       while ( stok ) {
+          if ( i_found && *fargs[4] ) {
+             safe_str(fargs[4], st_tmp, &st_tmpptr);
+          }
+          safe_str(stok, st_tmp, &st_tmpptr);
+          stok = strtok_r(NULL, st_mashtmp, &stok_r);
+          i_found = 1;
+       }
+       
     }
 
     safe_str(st_tmp, buff, bufcx);
@@ -21586,10 +22076,11 @@ FUNCTION(fun_lflags)
        if ( (target != NOTHING) && (target != AMBIGUOUS) && (!Cloak(target) || (Cloak(target) &&
             (Examinable(player, target) || Wizard(player)))) &&
             (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
-            (mudconf.pub_flags || Examinable(player, target) || (target == cause)) )
+            (mudconf.pub_flags || Examinable(player, target) || (target == cause)) ) {
           parse_aflags(player, target, olist_first(&master), buff, bufcx, 1);
-          olist_cleanup(&master);
-          return;
+       }
+       olist_cleanup(&master);
+       return;
     }
     olist_cleanup(&master);
 
@@ -24279,6 +24770,46 @@ FUNCTION(fun_strmath)
                                   f_base = 1;
                                f_val = fmod(f_number, f_base);
                                break;
+                     case '<': f_val = f_number;
+                               if ( *(fargs[2]+1) == '=') {
+                                  if ( f_number <= safe_atof(fargs[2]+2) ) {
+                                     f_val = f_base;
+                                  }
+                               } else if ( f_number < safe_atof(fargs[2]+1) ) {
+                                  f_val = f_base;
+                               }
+                               break;
+                     case '>': f_val = f_number;
+                               if ( *(fargs[2]+1) == '=') {
+                                  if ( f_number >= safe_atof(fargs[2]+2) ) {
+                                     f_val = f_base;
+                                  }
+                               } else if ( f_number > safe_atof(fargs[2]+1) ) {
+                                  f_val = f_base;
+                               }
+                               break;
+                     case '!': f_val = f_number;
+                               if ( (*(fargs[2]+1) == '=') && (f_number != safe_atof(fargs[2]+2)) ) {
+                                  f_val = f_base;
+                               }
+                               break;
+                     case '=': f_val = f_number;
+                               if ( *(fargs[2]+1) == '>') {
+                                  if (f_number >= safe_atof(fargs[2]+2) ) {
+                                     f_val = f_base;
+                                  }
+                               } else if ( *(fargs[2]+1) == '<') {
+                                  if (f_number <= safe_atof(fargs[2]+2) ) {
+                                     f_val = f_base;
+                                  }
+                               } else if ( *(fargs[2]+1) == '!') {
+                                  if (f_number != safe_atof(fargs[2]+2) ) {
+                                     f_val = f_base;
+                                  }
+                               } else if ( f_number == safe_atof(fargs[2]+1) ) {
+                                  f_val = f_base;
+                               }
+                               break;
                      default : f_val = f_number + f_base;
                                break;
                   }
@@ -24301,6 +24832,208 @@ FUNCTION(fun_strmath)
       first = 0;
    }
    free_lbuf(curr);
+}
+
+FUNCTION(fun_sandbox)
+{
+    char *s_tmp, *s_strtok, *s_strtokptr, *s_pad, *retarg0, *retarg1, *retargtmp, *s_copy, *s_copy2;
+    char *s_build, *s_buildptr, *s_fail, *s_failptr;
+    int i_ignore, i_ufun, i_found, i_ffound;
+    FUN *pfun;
+    UFUN *upfun, *upfun2;
+
+    if (!fn_range_check("SANDBOX", nfargs, 2, 4, buff, bufcx))
+       return;
+
+    if ( !fargs[0] || !*fargs[0] ) {
+       return;
+    }
+
+    if ( !fargs[1] || !*fargs[1] ) {
+       retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+       safe_str(retarg0, buff, bufcx);
+       free_lbuf(retarg0);
+       return;
+    }
+
+    retarg1 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+    if ( !*retarg1 ) {
+       retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+       safe_str(retarg0, buff, bufcx);
+       free_lbuf(retarg0);
+       free_lbuf(retarg1);
+       return;
+    }
+
+    i_ignore = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       retargtmp = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[2], cargs, ncargs, (char **)NULL, 0);
+       i_ignore = (atoi(retargtmp) ? 1 : 0);
+       free_lbuf(retargtmp);
+    }
+
+    i_ufun = 0;
+    if ( (nfargs > 3) && *fargs[3] ) {
+       retargtmp = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
+       i_ufun = atoi(retargtmp);
+       if ( i_ufun > 3 )
+          i_ufun = 3;
+       if ( i_ufun < 0 )
+          i_ufun = 0;
+       free_lbuf(retargtmp);
+    }
+
+    s_tmp = alloc_lbuf("fun_sandbox");
+    memset(s_tmp, '\0', LBUF_SIZE);
+    s_pad = alloc_mbuf("fun_sandbox_mbuf");
+    s_copy = retarg1;
+    s_copy2 = s_tmp;
+    while ( s_copy && *s_copy ) {
+       *s_copy2 = ToLower(*s_copy);
+       s_copy++;
+       s_copy2++;
+    }
+    s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
+    i_ffound = i_found = 0;
+    s_buildptr = s_build = alloc_lbuf("sandbox_recursion_block");
+    s_failptr = s_fail = alloc_lbuf("sandbox_recursion_fail");
+    while ( s_strtok ) {
+       pfun = (FUN *)NULL;
+       upfun = (UFUN *)NULL;
+       upfun2 = (UFUN *)NULL;
+       pfun = (FUN *) hashfind(s_strtok, &mudstate.func_htab);
+       if ( i_ufun && !pfun ) {
+          if ( i_ufun & 1 ) {
+             upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
+          }
+          if ( i_ufun & 2 ) {
+             sprintf(s_pad, "%d_%.100s", Owner(player), s_strtok);
+             upfun2 = (UFUN *) hashfind(s_pad, &mudstate.ulfunc_htab);
+             if ( upfun2 && (!Good_chk(upfun2->obj) || (upfun2->orig_owner != Owner(upfun2->obj))) ) {
+                upfun2 = NULL;
+             }
+          }
+       }
+       if ( pfun && (pfun->perms2 & CA_SB_BYPASS) ) {
+          if ( !i_ffound ) {
+             safe_str((char *)"WARNING - Unable to sandbox functions: ", s_fail, &s_failptr);
+          }
+          if ( i_ffound  ) {
+             safe_chr(' ', s_fail, &s_failptr);
+          }
+          i_ffound = 1;
+          safe_str(s_strtok, s_fail, &s_failptr);
+          pfun = NULL;
+       }
+       if ( upfun && (upfun->perms2 & CA_SB_BYPASS) ) {
+          if ( !i_ffound ) {
+             safe_str((char *)"WARNING - Unable to sandbox functions: ", s_fail, &s_failptr);
+          }
+          if ( i_ffound  ) {
+             safe_chr(' ', s_fail, &s_failptr);
+          }
+          i_ffound = 1;
+          safe_str(s_strtok, s_fail, &s_failptr);
+          upfun = NULL;
+       }
+       if ( upfun2 && (upfun2->perms2 & CA_SB_BYPASS) ) {
+          if ( !i_ffound ) {
+             safe_str((char *)"WARNING - Unable to sandbox functions: ", s_fail, &s_failptr);
+          }
+          if ( i_ffound  ) {
+             safe_chr(' ', s_fail, &s_failptr);
+          }
+          i_ffound = 1;
+          safe_str(s_strtok, s_fail, &s_failptr);
+          upfun2 = NULL;
+       }
+       if ( pfun ) {
+          if ( !( i_ignore && (pfun->perms2 & CA_SB_IGNORE)) &&
+               !(!i_ignore && (pfun->perms2 & CA_SB_DENY)) ) {
+             if ( strlen(s_build) > (LBUF_SIZE - (SBUF_SIZE + 2)) ) {
+                break;
+             }
+             if ( i_found ) {
+                safe_chr(' ', s_build, &s_buildptr);
+             }
+             i_found=1;
+             safe_str(s_strtok, s_build, &s_buildptr);
+             pfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          }
+       }
+       if ( upfun ) {
+          if ( !( i_ignore && (upfun->perms2 & CA_SB_IGNORE)) &&
+               !(!i_ignore && (upfun->perms2 & CA_SB_DENY)) ) {
+             if ( strlen(s_build) > (LBUF_SIZE - (SBUF_SIZE + 2)) ) {
+                break;
+             }
+             if ( i_found ) {
+                safe_chr(' ', s_build, &s_buildptr);
+             }
+             i_found=1;
+             safe_str(s_strtok, s_build, &s_buildptr);
+             upfun->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          }
+       } 
+       if ( upfun2 ) {
+          if ( !( i_ignore && (upfun2->perms2 & CA_SB_IGNORE)) &&
+               !(!i_ignore && (upfun2->perms2 & CA_SB_DENY)) ) {
+             if ( strlen(s_build) > (LBUF_SIZE - (SBUF_SIZE + 2)) ) {
+                break;
+             }
+             if ( i_found ) {
+                safe_chr(' ', s_build, &s_buildptr);
+             }
+             i_found=1;
+             safe_str(s_strtok, s_build, &s_buildptr);
+             upfun2->perms2 |= (i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+          }
+       } 
+       s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+    }
+
+    retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+    safe_str(retarg0, buff, bufcx);
+    free_lbuf(retarg0);
+
+    strcpy(s_tmp, s_build);
+    free_lbuf(s_build);
+    s_strtok = strtok_r(s_tmp, " \t", &s_strtokptr);
+    while ( s_strtok ) {
+       pfun = (FUN *)NULL;
+       upfun = (UFUN *)NULL;
+       upfun2 = (UFUN *)NULL;
+       pfun = (FUN *) hashfind(s_strtok, &mudstate.func_htab);
+       if ( i_ufun && !pfun ) {
+          if ( i_ufun & 1 ) {
+             upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
+          }
+          if ( i_ufun & 2 ) {
+             sprintf(s_pad, "%d_%.100s", Owner(player), s_strtok);
+             upfun2 = (UFUN *) hashfind(s_pad, &mudstate.ulfunc_htab);
+             if ( upfun2 && (!Good_chk(upfun2->obj) || (upfun2->orig_owner != Owner(upfun2->obj))) ) {
+                upfun2 = NULL;
+             }
+          }
+       }
+       if ( pfun ) {
+          pfun->perms2 &= ~(i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       }
+       if ( upfun ) {
+          upfun->perms2 &= ~(i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       } 
+       if ( upfun2 ) {
+          upfun2->perms2 &= ~(i_ignore ? CA_SB_IGNORE : CA_SB_DENY);
+       } 
+       s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
+    }
+    if ( *s_fail ) {
+        notify_quiet(player, s_fail);
+    }
+    free_lbuf(s_fail);
+    free_lbuf(retarg1);
+    free_lbuf(s_tmp); 
+    free_mbuf(s_pad);
 }
 
 FUNCTION(fun_objeval)
@@ -27159,6 +27892,10 @@ FUNCTION(fun_ansi)
                     safe_str(SAFE_ANSI_UNDERSCORE, ansi_special, &ansi_specialptr);
                  i_allow[0] = 1;
                  break;
+              case 'd': ansi_omitter |= SPLIT_FG;
+                 break;
+              case 'D': ansi_omitter |= SPLIT_BG;
+                 break;
               case 'U': ansi_omitter |= SPLIT_UNDERSCORE;
                  break;
               case 'h': 
@@ -28843,10 +29580,50 @@ FUNCTION(fun_center)
 
 FUNCTION(fun_xdec)
 {
-   int num;
+   int num, i_chk;
+   char *ptr;
 
-   num = atoi(fargs[0]);
-   ival(buff, bufcx, --num);
+   if (!fn_range_check("XDEC", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   i_chk = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_chk = (atoi(fargs[1]) ? 1 : 0);
+   }
+
+   if ( i_chk ) {
+      if ( *(fargs[0]) && (*(fargs[0]) == '0') && 
+           ((*(fargs[0]+1) == 'x') || (*(fargs[0]+1) == 'X')) ) {
+         ptr = alloc_lbuf("fun_xdec");
+         sprintf(ptr, "%c%c%x", *(fargs[0]), *(fargs[0]+1), convnum(fargs[0])-1 );
+         safe_str(ptr, buff, bufcx);
+         free_lbuf(ptr);
+      } else if ( !*fargs[0] || is_number(fargs[0]) ) {
+         num = atoi(fargs[0]);
+         ival(buff, bufcx, --num);
+      } else {
+         ptr = fargs[0] + strlen(fargs[0]) - 1;
+         while ( ptr && (isdigit(*ptr)) ) {
+            ptr--;
+            if ( !isdigit(*ptr) ) {
+               ptr++;
+               break;
+            }
+         }
+         if ( isdigit(*ptr) ) {
+            num = atoi(ptr);
+            *ptr = '\0';
+            safe_str(fargs[0], buff, bufcx);
+            ival(buff, bufcx, --num);
+         } else {
+            safe_str(fargs[0], buff, bufcx);
+            safe_str((char *)"-1", buff, bufcx);
+         }
+      }
+   } else {
+      num = atoi(fargs[0]);
+      ival(buff, bufcx, --num);
+   }
 }
 
 FUNCTION(fun_dec)
@@ -28914,10 +29691,50 @@ FUNCTION(fun_dec)
 
 FUNCTION(fun_xinc)
 {
-   int num;
+   int num, i_chk;
+   char *ptr;
 
-   num = atoi(fargs[0]);
-   ival(buff, bufcx, ++num);
+   if (!fn_range_check("XINC", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   i_chk = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_chk = (atoi(fargs[1]) ? 1 : 0);
+   }
+
+   if ( i_chk ) {
+      if ( *(fargs[0]) && (*(fargs[0]) == '0') &&
+           ((*(fargs[0]+1) == 'x') || (*(fargs[0]+1) == 'X')) ) {
+         ptr = alloc_lbuf("fun_xinc");
+         sprintf(ptr, "%c%c%x", *(fargs[0]), *(fargs[0]+1), convnum(fargs[0])+1 );
+         safe_str(ptr, buff, bufcx);
+         free_lbuf(ptr);
+      } else if ( !*fargs[0] || is_number(fargs[0]) ) {
+         num = atoi(fargs[0]);
+         ival(buff, bufcx, ++num);
+      } else {
+         ptr = fargs[0] + strlen(fargs[0]) - 1;
+         while ( ptr && (isdigit(*ptr)) ) {
+            ptr--;
+            if ( !isdigit(*ptr) ) {
+               ptr++;
+               break;
+            }
+         }
+         if ( isdigit(*ptr) ) {
+            num = atoi(ptr);
+            *ptr = '\0';
+            safe_str(fargs[0], buff, bufcx);
+            ival(buff, bufcx, ++num);
+         } else {
+            safe_str(fargs[0], buff, bufcx);
+            safe_chr('1', buff, bufcx);
+         }
+      }
+   } else {
+      num = atoi(fargs[0]);
+      ival(buff, bufcx, ++num);
+   }
 }
 
 FUNCTION(fun_inc)
@@ -29929,10 +30746,26 @@ FUNCTION(fun_chomp)
 
 FUNCTION(fun_asc)
 {
+    int i_chk = 0;
+    char *s_buff;
+
+    if (!fn_range_check("ASC", nfargs, 1, 2, buff, bufcx))
+       return;
+    
+    if ( nfargs > 1) {
+       i_chk = ( atoi(fargs[1]) ? 1 : 0);  
+    }
     if (strlen(fargs[0]) > 1) {
-         safe_str("#-1 TOO MANY CHARACTERS", buff, bufcx);
+       safe_str("#-1 TOO MANY CHARACTERS", buff, bufcx);
     } else {
-         ival(buff, bufcx, (int)*fargs[0]);
+       if ( i_chk ) {
+          s_buff = alloc_sbuf("fun_asc");
+          sprintf(s_buff, "%03d", (int)*fargs[0]);
+          safe_str(s_buff, buff, bufcx);
+          free_sbuf(s_buff);
+       } else {
+          ival(buff, bufcx, (int)*fargs[0]);
+       }
     }
 }
 
@@ -30003,9 +30836,9 @@ FUNCTION(fun_ljc)
   memset(t_buff, '\0', sizeof(t_buff));
   s = t = NULL;
   if ( (nfargs > 2) && *fargs[2] ) {
-     if ( strlen(strip_all_special(fargs[2])) < 1 )
+     if ( strlen(strip_all_special(fargs[2])) < 1 ) {
         sprintf(filler, " ");
-     else
+     } else {
 #ifdef ZENTY_ANSI
         s = strip_all_special(fargs[2]);          
         t = filler;
@@ -30031,6 +30864,7 @@ FUNCTION(fun_ljc)
 #else
         sprintf(filler, "%.*s", (LBUF_SIZE - 1), strip_all_special(fargs[2]));
 #endif
+     }
   } else {
      sprintf(filler, " ");
   }
@@ -32709,7 +33543,7 @@ FUN flist[] =
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
     {"ARRAY", fun_array, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ART", fun_art, 1, FN_VARARGS, CA_PUBLIC, 0},
-    {"ASC", fun_asc, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ASC", fun_asc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ASIN", fun_asin, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN", fun_atan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN2", fun_atan2, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -32812,7 +33646,7 @@ FUN flist[] =
     {"CREATETIME", fun_createtime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CTU", fun_ctu, 3, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef MUX_INCDEC
-    {"DEC", fun_xdec, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"DEC", fun_xdec, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
     {"DEC", fun_dec, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
@@ -32854,7 +33688,7 @@ FUN flist[] =
     {"ENCRYPT", fun_encrypt, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"ENTRANCES", fun_entrances, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"EQ", fun_eq, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"EQ", fun_eq, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ERROR", fun_error, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPE", fun_escape, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ESCAPEX", fun_escape, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -32887,8 +33721,8 @@ FUN flist[] =
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GRABALL", fun_graball, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GREP", fun_grep, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"GT", fun_gt, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"GTE", fun_gte, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"GT", fun_gt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"GTE", fun_gte, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GUILD", fun_guild, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"HASATTR", fun_hasattr, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"HASATTRP", fun_hasattrp, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -32911,7 +33745,7 @@ FUN flist[] =
     {"IFELSE", fun_ifelse, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"ILEV", fun_ilev, 0, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef MUX_INCDEC
-    {"INC", fun_xinc, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"INC", fun_xinc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
     {"INC", fun_inc, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
@@ -32962,7 +33796,7 @@ FUN flist[] =
     {"LINK", fun_link, 2, 0, CA_PUBLIC, 0},
 #endif
     {"LIST", fun_list, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
-    {"LISTCOMMANDS", fun_listcommands, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LISTCOMMANDS", fun_listcommands, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTDIFF", fun_listdiff, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTFUNCTIONS", fun_listfunctions, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTFLAGS", fun_listflags, 0, 0, CA_PUBLIC, CA_NO_CODE},
@@ -33011,8 +33845,8 @@ FUN flist[] =
     {"LSET", fun_lset, 1, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, 0},
 #endif
     {"LSUB", fun_lsub, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"LT", fun_lt, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"LTE", fun_lte, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LT", fun_lt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"LTE", fun_lte, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LTOGGLES", fun_ltoggles, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LWHO", fun_lwho, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LXNOR", fun_lxnor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33058,7 +33892,7 @@ FUN flist[] =
     {"NAND", fun_nand, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NCOMP", fun_ncomp, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"NEARBY", fun_nearby, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"NEQ", fun_neq, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"NEQ", fun_neq, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NEXT", fun_next, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"NPEMIT", fun_pemit, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33091,6 +33925,7 @@ FUN flist[] =
     {"ORFLAGS", fun_orflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"OWNER", fun_owner, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PACK", fun_pack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"PACKMATH", fun_packmath, 3,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PARENMATCH", fun_parenmatch, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PARENSTR", fun_parenstr, -1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
@@ -33176,6 +34011,7 @@ FUN flist[] =
 #endif /* REALITY_LEVELS */
     {"S", fun_s, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SAFEBUFF", fun_safebuff, 1, FN_VARARGS , CA_PUBLIC, CA_NO_CODE},
+    {"SANDBOX", fun_sandbox, 1, FN_NO_EVAL | FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SCRAMBLE", fun_scramble, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SEARCH", fun_search, -1, 0, CA_PUBLIC, 0},
     {"SEARCHNG", fun_searchng, -1, 0, CA_PUBLIC, 0},
@@ -33254,6 +34090,7 @@ FUN flist[] =
 #ifdef USE_SIDEEFFECT
     {"TEL", fun_tel, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"TESTLOCK", fun_testlock, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TEXTFILE", fun_textfile, 1, FN_VARARGS, CA_WIZARD, 0},
     {"TIME", fun_time, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"TIMEFMT", fun_timefmt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33342,8 +34179,8 @@ FUN flist[] =
     {"XDEC", fun_dec, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"XINC", fun_inc, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #else
-    {"XDEC", fun_xdec, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"XINC", fun_xinc, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"XDEC", fun_xdec, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"XINC", fun_xinc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"XNOR", fun_xnor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"XOR", fun_xor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -33999,17 +34836,21 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     int f_int, i, j, nptrs, nptrs2, nptrs3;
 
     memset(tbuff, '\0', sizeof(tbuff));
-    if ( !key || (key == 1) ) {
+    f_int = 0;
+    if ( !key || (key & 1) ) {
        nptrs = 0;
        for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
                 fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
           if (check_access(player, fp->perms, fp->perms2, 0)) {
              ptrs[nptrs] = fp->name;
              nptrs++;
+             if ( nptrs > ((LBUF_SIZE / 2) -1) ) {
+                notify_quiet(player, "WARNING: Function list too large to display all.");
+                break;
+             }
           }
        }
        qsort(ptrs, nptrs, sizeof(char *), s_comp);
-       f_int = 0;
        for (i = 0 ; i < nptrs ; i++) {
           if ( f_int )
              safe_chr(' ', buff, bufcx);
@@ -34017,16 +34858,19 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
           safe_str((char *) ptrs[i], buff, bufcx);
        }
     }
-    if ( !key || (key == 2) ) {
+    if ( !key || (key & 2) ) {
        nptrs2 = 0;
        for (ufp = ufun_head; ufp; ufp = ufp->next) {
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
             ptrs2[nptrs2] = ufp->name;
             nptrs2++;
+            if ( nptrs2 > ((LBUF_SIZE / 2) -1) ) {
+               notify_quiet(player, "WARNING: USER Function list too large to display all.");
+               break;
+            }
          }
        }
        qsort(ptrs2, nptrs2, sizeof(char *), s_comp);
-       f_int = 0;
        for (i = 0 ; i < nptrs2 ; i++) {
          if ( f_int )
             safe_chr(' ', buff, bufcx);
@@ -34034,7 +34878,7 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
          safe_str((char *) ptrs2[i], buff, bufcx);
        }
     }
-    if ( !key || (key == 4) ) {
+    if ( !key || (key & 4) ) {
        j = nptrs3 = 0;
        for (ufp = ulfun_head; ufp; ufp = ufp->next) {
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
@@ -34048,10 +34892,13 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
                nptrs3++;
                j++;
             }
+            if ( nptrs3 > ((LBUF_SIZE / 2) -1) ) {
+               notify_quiet(player, "WARNING: LOCAL Function list too large to display all.");
+               break;
+            }
          }
        }
        qsort(ptrs3, nptrs3, sizeof(char *), s_comp);
-       f_int = 0;
        for (i = 0 ; i < nptrs3 ; i++) {
          if ( f_int )
             safe_chr(' ', buff, bufcx);

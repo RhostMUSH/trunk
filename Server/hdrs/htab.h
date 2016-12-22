@@ -93,6 +93,7 @@ struct bque {
         int     shellprg;        /* Did you shell from the program */
 	int	plr_type;	/* Type of player - used only in freeze/thaw */
         int     text_len;       /* Size of text length */
+	int	hooked_command;	/* Is command hooked ? */
 };
 
 

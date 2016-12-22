@@ -2090,6 +2090,8 @@ main(int argc, char *argv[])
 #ifdef HAS_OPENSSL
     OpenSSL_add_all_digests();
 #endif
+    /* Clean the conf to avoid naughtyness */
+    unlink("rhost_vattr.conf");
 
     for( argidx = 1; argidx < argc; argidx++ ) {
       if( !strcmp(argv[argidx], "-s") ) {
@@ -2210,6 +2212,7 @@ main(int argc, char *argv[])
     /* Reset all the hash stats */
 
     hashreset(&mudstate.command_htab);
+    hashreset(&mudstate.command_vattr_htab);
     hashreset(&mudstate.logout_cmd_htab);
     hashreset(&mudstate.func_htab);
     hashreset(&mudstate.toggles_htab);
@@ -2236,7 +2239,6 @@ main(int argc, char *argv[])
     nhashreset(&mudstate.parent_htab);
     hashreset(&mudstate.ansi_htab);
 
-
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);
     mudstate.lastnowmsec = mudstate.nowmsec;
@@ -2253,6 +2255,11 @@ main(int argc, char *argv[])
     mudstate.autoreg = areg_init();
     start_news_system();
     val_count();
+
+    /* Load in the command hashes for vattrs before startup foo */
+    cf_read((char *)"rhost_vattr.conf");
+    unlink("rhost_vattr.conf");
+
     process_preload();
     if (mudconf.rwho_transmit)
 	do_rwho(NOTHING, NOTHING, RWHO_START);
@@ -2268,6 +2275,7 @@ main(int argc, char *argv[])
        mudconf.newpass_god = 0;
     }
     /* go do it */
+
 
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);

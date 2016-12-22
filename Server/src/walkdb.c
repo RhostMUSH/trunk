@@ -140,7 +140,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             while ( !mudstate.breakdolist && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
-                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player));
+                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook);
                }
                if ( time(NULL) > (i_now + 3) ) {
                    if ( !mudstate.breakdolist ) {
@@ -858,32 +858,32 @@ int	save_invk_ctr;
 
 static void search_mark (dbref player, int key, FILE** master)
 {
-dbref	thing;
-int	nchanged, is_marked;
+   dbref thing;
+   int nchanged, is_marked;
 
-	nchanged = 0;
-	for (thing=file_olist_first(master); thing!=NOTHING; thing=file_olist_next(master)) {
-		is_marked = Marked(thing);
+   nchanged = 0;
+   for (thing=file_olist_first(master); thing!=NOTHING; thing=file_olist_next(master)) {
+      is_marked = Marked(thing);
 
-		/* Don't bother checking if marking and already marked
-		 * (or if unmarking and not marked) */
+      /* Don't bother checking if marking and already marked
+       * (or if unmarking and not marked) 
+       */
 
-		if (((key == SRCH_MARK) && is_marked) ||
-		    ((key == SRCH_UNMARK) && !is_marked))
-			continue;
-			/* Toggle the mark bit and update the counters */
-			if (key == SRCH_MARK) {
-			Mark(thing);
-			nchanged++;
-		} else {
-			Unmark(thing);
-			nchanged++;
-		}
-	}
-	notify(player,
-		unsafe_tprintf("%d objects %smarked",
-			nchanged, ((key==SRCH_MARK) ? "" : "un")));
-	return;
+      if (((key == SRCH_MARK) && is_marked) || ((key == SRCH_UNMARK) && !is_marked)) {
+         continue;
+      }
+      /* Toggle the mark bit and update the counters */
+      if (key == SRCH_MARK) {
+         Mark(thing);
+         nchanged++;
+      } else {
+         Unmark(thing);
+         nchanged++;
+      }
+   }
+   notify(player, unsafe_tprintf("%d objects %smarked",
+                                 nchanged, ((key==SRCH_MARK) ? "" : "un")));
+   return;
 }
 					
 void do_search (dbref player, dbref cause, int key, char *arg)

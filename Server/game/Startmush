@@ -67,8 +67,20 @@ fi
 
 if [ ${lc_pid_chk} -gt 0 ]
 then
-   echo "Rhost is already running on pid ${lc_pid}"
+   lc_port=`grep ^port ${GAMENAME}.conf|awk '{print $2}'`
+   lc_debugid=`grep ^debug_id ${GAMENAME}.conf|awk '{print $2}'`
+   echo "Rhost is already running on pid ${lc_pid} [port: ${lc_port}, debug id: ${lc_debugid}]"
    ps -lp ${lc_pid}
+   echo ""
+   if [ -f /usr/bin/ipcs ]
+   then
+      gl_shm=$(echo ${DEBUG_ID}|awk '{printf("%x", $0)}')
+      echo "Shared Memory Segment ${DEBUG_ID} [${gl_shm}]"
+      ipcs -m|egrep "(key|${gl_shm})"
+      echo ""
+   fi
+   echo "If you wish to kill this process at the shell, please do the following:"
+   echo "kill -USR2 ${lc_pid}"
    exit 1
 fi
 
