@@ -25402,6 +25402,7 @@
     > mail/status U        (shows all the unread mail in your mailbox)
     > mail/status B        (shows all the unread and new mail in your mailbox)
     > mail/status /biff    (shows mail with subjects containing the word biff)
+    > mail/status @folder  (shows all your mail of the specified folder)
   
   See Also: mail number, mail read, mail mark, mail unmark, mail save, 
             mail page
@@ -30559,6 +30560,7 @@
     from the end [ASH]
   * improve folder/list to be more descriptive [ASH]
   * xinc() and xdec() modified to handle advanced inc/dec [ASH]
+  * mail/status @folder works for displaying mail of folder [ASH]
   
   Bug Fixes
   ------------

@@ -2289,6 +2289,16 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
   subjsearch = 0;
   pcheck2 = NOTHING;
   msize = get_box_size(player);	
+
+  *quickfolder = '\0';
+  if ( *buf == '@' ) {
+     if (fname_check(player,buf+1,0)) {
+       fname_conv(buf+1,quickfolder);
+     } else {
+       notify_quiet(player,"MAIL ERROR: Bad folder in status function");
+     }
+  }
+
   if ( type )
      folder_current(player,0,wiz,key);
   else
@@ -2336,6 +2346,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if (!is_number(buf+1)) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       page = atoi(buf+1);
@@ -2343,6 +2354,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if ((i > absmaxinx) || (i < 1)) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       *(int *)sbuf1 = MIND_PAGE;
@@ -2353,6 +2365,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if (!infodata.dptr) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       memcpy(sbuf2,infodata.dptr,infodata.dsize);
@@ -2362,6 +2375,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if (i > y) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       min = (short int)i;
@@ -2620,10 +2634,10 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
         if ( type )
            notify_quiet(player,"Mail Warning: Your mail box is full");
       }
-      if ( type )
+      if ( type ) {
          notify_quiet(player2,"Mail: Done");
-    }
-    else {
+      }
+    } else {
       if (key) {
         if ( type )
            notify_quiet(player,"Mail: You have no mail");
@@ -2632,8 +2646,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
 	   notify_quiet(player2,"Mail: That person has no mail");
       }
     }
-  }
-  else
+  } else {
     if (key ) {
       if ( type )
          notify_quiet(player,"Mail: You have no mail");
@@ -2641,6 +2654,8 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if ( type )
          notify_quiet(player2,"Mail: That person has no mail");
     }
+  }
+  *quickfolder = '\0';
 }
 
 void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type)
