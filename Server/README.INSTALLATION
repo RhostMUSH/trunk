@@ -264,7 +264,10 @@ for attribute names.  It's handy to have.
 If you wish at this point to set up mysql and/or sqlite, you  may do so.
 Yes, you can use them in parallel without any issue.
 
-
+---------------------- NOTE ABOUT RECOMPILING ----------------------------------
+If you plan to use 'make confsource' to recompile your source, you should first
+issue a 'make clean' before re-issuing a 'make confsource'.  'make confsource'
+remembers the last options you used.
 
 
 
