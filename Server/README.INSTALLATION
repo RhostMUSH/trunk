@@ -264,9 +264,33 @@ for attribute names.  It's handy to have.
 If you wish at this point to set up mysql and/or sqlite, you  may do so.
 Yes, you can use them in parallel without any issue.
 
+---------------------- NOTE ABOUT RECOMPILING ----------------------------------
+If you plan to use 'make confsource' to recompile your source, you should first
+issue a 'make clean' before re-issuing a 'make confsource'.  'make confsource'
+remembers the last options you used.
 
+---------------------- NOTE ABOUT PATCHING    ----------------------------------
+There's two ways you can look to patch the source.  If you plan to run the
+RhostMUSH source from a git repository, then please use the git repo to
+constantly update your code.  If you knew enough to want to set up a git repo
+then we expect knowledge on how to keep source trees updated in the git repo
+to be used the same as any other source distribution.
 
+If, however, you have no idea what a git repo even is, or have no inclination
+of using git to manage your RhostMUSH source, or just don't care one way
+or another, then you can use the included patch.sh routine (from under the
+Server directory) to patch your source at any time.
 
+From the server directory just type: ./patch.sh
+
+That will auto-compile your source, auto make all your header files and
+essentially keep everything up to date to the latest source.
+Once that's done, all you do from within the game is two commands:
+
+1.  @reboot (or @reboot/silent)  -- This will load in the new binary
+2.  @readcache  -- This will read in all the .txt file changes
+
+Happy Rhosting.
 
 --------------------------------------------------------------------------------
 III.  How to convert a database from another mush to RhostMUSH

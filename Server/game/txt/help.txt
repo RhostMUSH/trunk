@@ -30575,3 +30575,4 @@
   * mail/status [<folder>] wouldn't show mail of the given folder [ASH]
   * bug with matching when NO_NAME was in effect on a target [ASH]
   * folders mistakenly seen as corrupt when you had no mail at all [ASH]
+  * potential crash with NONAME when examining [ASH]
