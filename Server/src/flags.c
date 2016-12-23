@@ -2593,7 +2593,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
 
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {   
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
@@ -2663,7 +2663,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
 
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
@@ -3074,7 +3074,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
        memset(buf, 0, LBUF_SIZE);
 
     free_lbuf(buf2);    
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
@@ -3250,7 +3250,7 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
        memset(buf, 0, LBUF_SIZE);
 
     free_lbuf(buf2);    
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);

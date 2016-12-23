@@ -77,6 +77,8 @@ Added 'd' and 'D' options for wildcarding on editansi.
 				- Thanks Anixy
 Removed attribute flags from @decompile/tf
 				- Thanks Darren
+Potential crash bug with flag-handling with NONAME in use.
+				- Thanks Polk & Aqua
 
 
 		         RhostMUSH 3.9.4 Update File
