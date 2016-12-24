@@ -30577,6 +30577,7 @@
   * xinc() and xdec() modified to handle advanced inc/dec [ASH]
   * mail/status @folder works for displaying mail of folder [ASH]
   * backend exec() parser passes EV_NOFCHECK to avoid parsing funcs [ASH]
+  * modified the backend to allow easy setting permissions on user attrib [ASH]
   
   Bug Fixes
   ------------

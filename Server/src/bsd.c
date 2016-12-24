@@ -767,6 +767,7 @@ shovechars(int port,char* address)
                    if ( anum > 0 ) {
                       ap = atr_num(anum);
                       if (ap) {
+                         attr_wizhidden("_IDLESTAMP");
                          progatr = atr_get(d->player, ap->number, &aowner2, &aflags2);
                          if ( progatr ) {
                             progatr_str = progatr;

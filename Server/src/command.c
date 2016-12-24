@@ -9835,7 +9835,7 @@ do_pipe(dbref player, dbref cause, int key, char *name)
 {
    ATTR *atr, *atr2;
    dbref aowner;
-   int aflags, anum, i_type, i_quiet;
+   int aflags, anum, i_type, i_quiet, i_num;
    char *s_atext, *s_tmpbuff;
 
    i_quiet = 0;
@@ -9866,6 +9866,8 @@ do_pipe(dbref player, dbref cause, int key, char *name)
                           if ( !atr ) {
                              notify_quiet(player, (char *)"@pipe: the piping attribute could not be written to.");
                           } else {
+                             attr_internal("__ATTRPIPE");
+                             i_num = atr->number;
                              s_atext = atr_get(player, atr2->number, &aowner, &aflags);
                              free_lbuf(s_atext);
                              if ( !Controlsforattr(player, player, atr2, aflags)) {
@@ -9876,7 +9878,7 @@ do_pipe(dbref player, dbref cause, int key, char *name)
                                 }
                                 s_tmpbuff = alloc_lbuf("do_pipe_tee");
                                 sprintf(s_tmpbuff, "%s %d", name, ((key & PIPE_TEE) ? 1 : 0));
-                                atr_add_raw(player, atr->number, s_tmpbuff);
+                                atr_add_raw(player, i_num, s_tmpbuff);
                                 free_lbuf(s_tmpbuff);
                                 s_Flags4(player, Flags4(player) | HAS_ATTRPIPE);
                              }
@@ -9913,6 +9915,7 @@ do_pipe(dbref player, dbref cause, int key, char *name)
                     s_Flags4(player, Flags4(player) & ~HAS_ATTRPIPE);
                     notify_quiet(player, (char *)"@pipe: piping could not continue so was automatically stopped.");
                  } else {
+                    attr_internal("__ATTRPIPE");
                     s_atext = atr_get(player, atr->number, &aowner, &aflags);
                     s_tmpbuff = strchr(s_atext, ' ');
                     if ( s_tmpbuff ) {
@@ -10588,6 +10591,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                if ( !attr ) {
                   notify(player, "Can not make cluster attribute!  Aborting!");
                } else {
+                  attr_internal("_CLUSTER");
                   atr_add_raw(thing,attr->number,safe_tprintf(tpr_buff, &tprp_buff, "#%d", thing));
                   tprp_buff = tpr_buff;
                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
@@ -10613,6 +10617,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                if ( !attr ) {
                   notify(player, "Can not make cluster attribute!  Aborting!");
                } else {
+                  attr_internal("_CLUSTER");
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
                   if ( !*s_text ) {
                      notify(player, "The cluster listing got corrupted!  Aborting!");
@@ -10644,6 +10649,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                if ( !attr ) {
                   notify(player, "Can not make cluster attribute!  Aborting!");
                } else {
+                  attr_internal("_CLUSTER");
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
                   if ( !*s_text ) {
                      notify(player, "The cluster listing got corrupted!  Aborting!");
@@ -10745,6 +10751,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                if ( !attr ) {
                   notify(player, "Can not make cluster attribute!  Aborting!");
                } else {
+                  attr_internal("_CLUSTER");
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
                   if ( !*s_text ) {
                      notify(player, "The cluster listing got corrupted!  Aborting!");
@@ -11063,10 +11070,13 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                notify(player, "Unable to create action attribute for cluster!");
                break;
             }
+            attr_internal("_CLUSTER_ACTION");
+            attr_internal("_CLUSTER_ACTION_FUNC");
             attr = atr_str("_CLUSTER");
             if ( !attr ) {
                notify(player, "The cluster list is corrupt!");
             } else {
+               attr_internal("_CLUSTER");
                s_text = atr_get(thing, attr->number, &aowner, &aflags);
                if ( !*s_text ) {
                   notify(player, "The cluster list is corrupt!");
@@ -11122,10 +11132,13 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                notify(player, "Unable to create action attribute for cluster!");
                break;
             }
+            attr_internal("_CLUSTER_ACTION");
+            attr_internal("_CLUSTER_ACTION_FUNC");
             attr = atr_str("_CLUSTER");
             if ( !attr ) {
                notify(player, "The cluster list is corrupt!");
             } else {
+               attr_internal("_CLUSTER");
                s_text = atr_get(thing, attr->number, &aowner, &aflags);
                if ( !*s_text ) {
                   notify(player, "The cluster list is corrupt!");
@@ -11352,6 +11365,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             if ( !attr ) {
                notify(player, "The cluster list is corrupt!");
             } else {
+               attr_internal("_CLUSTER");
                s_text = atr_get(thing, attr->number, &aowner, &aflags);
                if ( !*s_text ) {
                   notify(player, "The cluster list is corrupt!");

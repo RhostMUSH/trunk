@@ -11,10 +11,43 @@
 #include "externs.h"
 #include "alloc.h"
 #include "rhost_ansi.h"
+#include "vattr.h"
 
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
 extern dbref    FDECL(match_thing, (dbref, char *));
 
+/*
+ * set attribs hidden
+ */
+void attr_wizhidden(char *str)
+{
+   static char x_buff[SBUF_SIZE+1], *p, *q;
+   VATTR *va;
+
+   for (p = x_buff, q = str; *q && ((p - x_buff) < (SBUF_SIZE - 1)); p++, q++)
+       *p = ToLower((int)*q);
+   *p = '\0';
+
+   va = (VATTR *) vattr_find(x_buff);
+   if ( va ) {
+      va->flags |= (AF_WIZARD|AF_MDARK);
+   }
+}
+
+void attr_internal(char *str)
+{
+   static char x_buff[SBUF_SIZE+1], *p, *q;
+   VATTR *va;
+
+   for (p = x_buff, q = str; *q && ((p - x_buff) < (SBUF_SIZE - 1)); p++, q++)
+       *p = ToLower((int)*q);
+   *p = '\0';
+
+   va = (VATTR *) vattr_find(x_buff);
+   if ( va ) {
+      va->flags |= (AF_GOD|AF_DARK|AF_INTERNAL);
+   }
+}
 /*
  * returns a pointer to the non-space character in s, or a NULL if s == NULL
  * or *s == NULL or s has only spaces.
