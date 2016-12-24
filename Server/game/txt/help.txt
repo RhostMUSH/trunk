@@ -6987,7 +6987,7 @@
   Example:
      > @function/del #12345_myfunction
   
-  See Also: u(), streval(), eval()
+  See Also: u(), streval(), eval(), sandbox(), subeval()
  
 & @listen
   Command: @listen[/<switch>] <object> = <string>
@@ -10151,11 +10151,11 @@
   STARTSECS()     STATS()         STEP()         STR()          STRCAT()     
   STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()      
   STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()    
-  SUB()           SUBJ()          SUBNETMATCH()  SWITCH()       SWITCHALL()  
-  T()             TAN()           TEL()          TIME()         TIMEFMT()    
-  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()      
-  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
-  TR()            TRACE()         TRANSLATE() 
+  SUB()           SUBEVAL()       SUBJ()         SUBNETMATCH()  SWITCH()     
+  SWITCHALL()     T()             TAN()          TEL()          TIME()       
+  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
+  TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
+  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE() 
 
 { 'help function list5' for more }
 
@@ -10184,13 +10184,12 @@
  FLIP() ----> reverse()  DIE() -------> dice()      IF() ---------> ifelse()
  MATCHALL() > totmatch() LPARENT() ---> parents()   NONZERO() ----> ifelse()
  STRTRUNC() > left()     SOUNDSLIKE() > soundlike() FILTERBOOL() -> filter()
- SUBEVAL() -> eval()     GREPI() -----> grep()      LANDBOOL() ---> land()
+ LMATH()   -> strfunc()  GREPI() -----> grep()      LANDBOOL() ---> land()
  ZONE() ----> lzone()    ELEMENT() ---> elements()  LORBOOL() ----> lor()
  LNORBOOL() > lnor()     ANDBOOL() ---> and()       ORBOOL() -----> or()
  NOTBOOL() -> not()      XORBOOL() ---> xor()       LOOP() -------> parse()
  MEAN()    -> avg()      ENUMERATE() -> elist()     MOD() --------> remainder()
- LMATH()   -> strfunc()
-  
+    
   To see the help on the aliased function, please check the help of the 
   function that it aliases.
    
@@ -10323,9 +10322,10 @@
                        ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
                        SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
                        STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
-                       STRLEN() STRMATCH() SUBNETMATCH() SWITCH() SWITCHALL() 
-                       T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR() UNESCLIST()
-                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
+                       STRLEN() STRMATCH() SUBEVAL() SUBNETMATCH() SWITCH() 
+                       SWITCHALL() T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR()
+                       UNESCLIST() WORDPOS() WORDS() WRAP() WRAPCOLUMNS() 
+                       XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
@@ -13225,7 +13225,7 @@
     > say eval(me,va)
     You say "1+1=2"
   
-  See Also: s(), get_eval(), get(), u(), u2(), zfun()
+  See Also: s(), get_eval(), get(), u(), u2(), zfun(), subeval(), sandbox()
   
 & EXIT()
   Function: exit(<object>)
@@ -13346,6 +13346,14 @@
   
   See Also: add(), div(), mod(), mul()
   
+& SUBEVAL()
+  Function: subeval(<string>)
+  
+  This function will evaluate <string> by parsing all substitutions but will 
+  not evaluate functions, built in or otherwise.
+  
+  See Also: s(), eval(), sandbox()
+
 & MUL()
   Function: mul(<number1>,<number2>[,<numberN>]...)
    
@@ -13953,7 +13961,7 @@
     > say translate(v(va),s)
     You say "this  is atest"
   
-  See Also: strip(), edit(), editansi(), s(), eval(), regedit()
+  See Also: strip(), edit(), editansi(), s(), eval(), regedit(), subeval()
   
 & TOTCMDS()
   Function: totcmds(<player>)
@@ -18423,7 +18431,7 @@
   This evaluates the lwho() function at citizen level even if you are
   a wizard.
   
-  See Also: u(), u2(), get_eval(), objeval(), ueval() 
+  See Also: u(), u2(), get_eval(), objeval(), ueval(), streval(), sandbox()
   
 & ZFUNEVAL()
   Function: zfuneval([<zone>/]<attr>/permission[,<arg>],...)
@@ -18450,7 +18458,8 @@
     > say zfuneval(va/citizen)
     You say "#-1"
   
-  See Also: zfun(), zfun2(), objeval(), zfunlocal(), zfun2local()
+  See Also: zfun(), zfun2(), objeval(), zfunlocal(), zfun2local(), sandbox(),
+            subeval()
   
 & UEVAL()
   Function: ueval([<obj>/]<attr>/permission[,<arg>],...)
@@ -18477,7 +18486,8 @@
     > say ueval(va/citizen)
     You say "#-1"
   
-  See Also: u(), u2(), objeval(), ulocal(), u2local(), streval()
+  See Also: u(), u2(), objeval(), ulocal(), u2local(), streval(), subeval(),
+            sandbox()
   
 & U()
   Function: u([<obj>/]<attr>[,<arg>]...)
@@ -18504,7 +18514,7 @@
     You say "Word is u, arg2 is Foobar."
   
   See Also: s(), v(), get(), get_eval(), map(), ueval(), streval(),
-            objeval(), @lfunction
+            objeval(), @lfunction, sandbox(), subeval()
   
 & STREVAL()
   Function: streval(<string>, <evaluation level> [,<arg>,<arg2>,...,<argN>])
@@ -18535,7 +18545,8 @@
     > say streval(Test: [s(%0)],citizen,[bittype(me)])
     You say "Test: 1"
   
-  See Also: ueval(), u(), default(), @lfunction
+  See Also: ueval(), u(), default(), subeval(), sandbox(), objeval(), 
+            @lfunction
     
 & U2()
   Function: u2([<obj>/]<attr>[,<arg>]...)
@@ -18753,7 +18764,7 @@
     You say "external--(before R0: ) My R0:internal--external"
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), 
-            sandbox(), @lfunction
+            sandbox(), subeval(), @lfunction
 
 & SANDBOX()
   Function: sandbox(<string>, <function list> [,<key> [,<local>]])
@@ -18790,7 +18801,7 @@
     You say "Test - 2 #-1 PERMISSION DENIED #-1 PERMISSION DENIED"
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
-            localize(), @lfunction
+            localize(), subeval(), @lfunction
 
 & LOCALIZE()
   Function: localize(<string> [,<register-list>, [<key>]])
@@ -18822,7 +18833,7 @@
   Note: In the last example, we allowed '12345' to be localized, but not '0'.
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
-            sandbox(), @lfunction
+            sandbox(), subeval(), @lfunction
   
 & LOCALFUNC()
   Function: localfunc(<function-name>, <args>...)
@@ -19044,7 +19055,7 @@
     > say [@@(this is a test[setq(0,test)])]- [r(0)]
     You say "- "
   
-  See Also: localize(), eval(), null(), privatize(), sandbox()
+  See Also: localize(), eval(), subeval(), null(), privatize(), sandbox()
   
 & NULL()
   Function: null(<string>)
@@ -19057,7 +19068,7 @@
     > say [null(this is a test[setq(0,test)])]- [r(0)]
     You say "- test"
   
-  See Also: localize(), eval(), @@(), privatize(), sandbox()
+  See Also: localize(), eval(), subeval(), @@(), privatize(), sandbox()
   
 & STEP()
   Function: step([<obj>/]<attr>,<list>,<step size>[,<delim>[,<output delim>]])
@@ -28071,13 +28082,14 @@
   rjust()       - Right justifies a string by padding it with specified char.
   rotl()        - Rotates a string X characters to the left.
   rotr()        - Rotates a string X characters to the right.
-  s()           - Performs pronoun substitution on a string.
+  s()           - Force evaluation of a string.
   
   { Continued in string functions3 }
 
 & string functions3
   Continued from string functions2
     
+  sandbox()     - Evaluates code with specific function restrictions
   scramble()    - Scrambles a string, returning the characters randomly.
   secure()      - Removes special characters from a string.
   securex()     - Like secure(), but you can specify characters not to remove.
@@ -28097,6 +28109,7 @@
   strlenraw()   - Returns the length of the RAW string.
   strlenvis()   - Returns the length of the VISUAL string.
   strmatch()    - Returns true if a pattern is found in a string.
+  subeval()     - Performs pronoun substitution on a string.
   subnetmatch() - Returns true if an IP address is part of a subnet.
   switch()      - Powerful string-pattern conditional.
   switchall()   - Like switch(), but matches all occurrences of a pattern.
@@ -30548,6 +30561,7 @@
   * BYPASS @admin function permission to tag a function (built in or user)
     to not be affected by the sandbox() function [ASH]
   * packmath() to allow math on varying radix compressions [ASH]
+  * subeval() evaluates string without executiong functions [ASH]
   
   Changes
   ------------
@@ -30562,6 +30576,7 @@
   * improve folder/list to be more descriptive [ASH]
   * xinc() and xdec() modified to handle advanced inc/dec [ASH]
   * mail/status @folder works for displaying mail of folder [ASH]
+  * backend exec() parser passes EV_NOFCHECK to avoid parsing funcs [ASH]
   
   Bug Fixes
   ------------

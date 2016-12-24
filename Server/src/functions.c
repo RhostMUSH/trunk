@@ -16001,6 +16001,19 @@ FUNCTION(fun_shift)
 }
 
 /* ---------------------------------------------------------------------------
+ * fun_subeval: Force substitution without functions to occur.
+ */
+FUNCTION(fun_subeval)
+{
+    char *tbuf;
+
+    tbuf = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, fargs[0],
+    cargs, ncargs, (char **)NULL, 0);
+    safe_str(tbuf, buff, bufcx);
+    free_lbuf(tbuf);
+}
+
+/* ---------------------------------------------------------------------------
  * fun_s: Force substitution to occur.
  */
 
@@ -34080,6 +34093,7 @@ FUN flist[] =
     {"STRMATCH", fun_strmatch, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRMATH", fun_strmath, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUB", fun_sub, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"SUBEVAL", fun_subeval, -1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUBJ", fun_subj, 1, 0, CA_PUBLIC, 0},
     {"SUBNETMATCH", fun_subnetmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
