@@ -824,7 +824,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
       s_ptr2++;
    }
 
-   i_attrcnts = atrcint(1, thing, 0);
+   i_attrcnts = atrcint(GOD, thing, 0);
    if ( ((i_attrcnts + 1) >= mudconf.vlimit) || (i_attrcnts < 0) ) 
       return 1;
 
