@@ -483,26 +483,26 @@ create_obj(dbref player, int objtype, char *name, int cost)
          Good_obj(mudconf.global_clone_player) && 
          !Recover(mudconf.global_clone_player) &&
          !Going(mudconf.global_clone_player) ) {
-       atr_cpy(1, obj, mudconf.global_clone_player);
+       atr_cpy(GOD, obj, mudconf.global_clone_player);
     } else if ( (objtype == TYPE_ROOM) &&
          Good_obj(mudconf.global_clone_room) && 
          !Recover(mudconf.global_clone_room) &&
          !Going(mudconf.global_clone_room) ) {
-       atr_cpy(1, obj, mudconf.global_clone_room);
+       atr_cpy(GOD, obj, mudconf.global_clone_room);
     } else if ( (objtype == TYPE_THING) &&
          Good_obj(mudconf.global_clone_thing) && 
          !Recover(mudconf.global_clone_thing) &&
          !Going(mudconf.global_clone_thing) ) {
-       atr_cpy(1, obj, mudconf.global_clone_thing);
+       atr_cpy(GOD, obj, mudconf.global_clone_thing);
     } else if ( (objtype == TYPE_EXIT) &&
          Good_obj(mudconf.global_clone_exit) && 
          !Recover(mudconf.global_clone_exit) &&
          !Going(mudconf.global_clone_exit) ) {
-       atr_cpy(1, obj, mudconf.global_clone_exit);
+       atr_cpy(GOD, obj, mudconf.global_clone_exit);
     } else if ( Good_obj(mudconf.global_clone_obj) && 
          !Recover(mudconf.global_clone_obj) &&
          !Going(mudconf.global_clone_obj) ) {
-       atr_cpy(1, obj, mudconf.global_clone_obj);
+       atr_cpy(GOD, obj, mudconf.global_clone_obj);
     }
     s_Owner(obj, (self_owned ? obj : owner));
 

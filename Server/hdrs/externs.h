@@ -70,6 +70,9 @@ typedef struct atrp {
         struct atrp *next;      /* Next ufun in chain */
 } ATRP;
 
+extern void	FDECL(attr_internal,(char *));
+extern void	FDECL(attr_wizhidden,(char *));
+extern void	FDECL(attr_generic,(char *, char *));
 extern long	FDECL(count_player,(dbref, int));
 /* From conf.c */
 extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
@@ -1189,6 +1192,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	EV_TOP		0x00010000	/* This is a toplevel call to eval() */
 #define	EV_NOTRACE	0x00020000	/* Don't trace this call to eval */
 #define EV_PARSE_ANSI   0x00040000 	/* Parse the ansi in EXEC */
+#define EV_NOFCHECK	0x00080000	/* Do not evaluate functions */
 
 /* %-SUB overriding */
 #define SUB_N           0x00000001

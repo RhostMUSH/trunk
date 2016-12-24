@@ -4461,7 +4461,7 @@ check_connect(DESC * d, const char *msg)
 	  case 0:
 	    (d->regtries_left)--;
 	    queue_string(d, "Autoregistration password emailed.\r\n");
-            victim = lookup_player(1, user, 1);
+            victim = lookup_player(GOD, user, 1);
             if ( Good_chk(mudconf.hook_obj) && Good_chk(victim) ) {
                cmdp = lookup_command((char *)"@register");
                if ( (cmdp->hookmask & HOOK_AFTER) ) {
