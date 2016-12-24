@@ -3894,7 +3894,7 @@ check_connect(DESC * d, const char *msg)
     int ok_to_login, i_sitemax, chk_stop, chk_tog, i_ncmsg;
     DESC *d2, *d3;
     CMDENT *cmdp;
-    ATTR *hk_ap2, *nc_attr;
+    ATTR *hk_ap2;
     char buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
     
 #ifdef ZENTY_ANSI
