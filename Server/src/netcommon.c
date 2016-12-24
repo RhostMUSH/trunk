@@ -3888,15 +3888,19 @@ softcode_trigger(DESC *d, const char *msg) {
 static int 
 check_connect(DESC * d, const char *msg)
 {
-    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, *nc_buff;
+    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, *nc_buff, *s_text;
     dbref player, aowner, player2, victim;
     int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest;
-    int ok_to_login, i_sitemax, chk_stop, chk_tog;
+    int ok_to_login, i_sitemax, chk_stop, chk_tog, i_ncmsg;
     DESC *d2, *d3;
     CMDENT *cmdp;
     ATTR *hk_ap2, *nc_attr;
     char buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
-
+    
+#ifdef ZENTY_ANSI
+    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr;
+#endif
+    
     DPUSH; /* #146 */
 
     bittemp = 0;
@@ -3919,6 +3923,11 @@ check_connect(DESC * d, const char *msg)
           }
        }
     }
+    
+    /* Obtain _NOCONNECT_MSG details */
+    /* This ensures it is created and locked before it can be used by players */
+    i_ncmsg = mkattr("_NOCONNECT_MSG");
+    attr_wizhidden("_NOCONNECT_MSG");
 
     command = alloc_mbuf("check_conn.cmd");
     user = alloc_mbuf("check_conn.user");
@@ -4158,14 +4167,25 @@ check_connect(DESC * d, const char *msg)
 
 	    /* Not a player, or wrong password */
 
-        nc_attr = atr_str("_MSG_NOCONNECT");
-        if (nc_attr)
-            nc_buff = atr_get(player, nc_attr->number, &aowner, &aflags);
+        /* Obtain _NOCONNECT_MSG text and evaluate it */
+        nc_buff = atr_get(player, i_ncmsg, &aowner, &aflags);
         
         if ((Flags3(player) & NOCONNECT) && *nc_buff) {
             buff = alloc_mbuf("msg_noconnect");
             sprintf(buff, "%s\r\n", nc_buff);
-            queue_string(d, buff);
+            s_text = exec(player, player, player, EV_FCHECK | EV_EVAL, buff, (char **)NULL, 0, (char **)NULL, 0);
+#ifdef ZENTY_ANSI
+            lbuf1 = alloc_lbuf("fcache_dump3");
+            lbuf2 = alloc_lbuf("fcache_dump4");
+            lbuf1ptr = lbuf1;
+            lbuf2ptr = lbuf2;
+            parse_ansi(s_text, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+            queue_write(d, lbuf1, strlen(lbuf1));
+            free_lbuf(lbuf1);
+            free_lbuf(lbuf2);
+#else
+            queue_string(d, s_text);
+#endif            
             free_mbuf(buff);
             free_lbuf(nc_buff);
         } else {
