@@ -72,6 +72,7 @@ typedef struct atrp {
 
 extern void	FDECL(attr_internal,(char *));
 extern void	FDECL(attr_wizhidden,(char *));
+extern void	FDECL(attr_generic,(char *, char *));
 extern long	FDECL(count_player,(dbref, int));
 /* From conf.c */
 extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));

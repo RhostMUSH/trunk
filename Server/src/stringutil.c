@@ -14,7 +14,9 @@
 #include "vattr.h"
 
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
-extern dbref    FDECL(match_thing, (dbref, char *));
+extern dbref FDECL(match_thing, (dbref, char *));
+extern NAMETAB attraccess_nametab[];
+
 
 /*
  * set attribs hidden
@@ -48,6 +50,52 @@ void attr_internal(char *str)
       va->flags |= (AF_GOD|AF_DARK|AF_INTERNAL);
    }
 }
+
+void attr_generic(char *str, char *flags)
+{
+   static char x_buff[SBUF_SIZE+1], *p, *q;
+#ifndef STANDALONE
+   int i_flag, i_not;
+   char *s_strtok, *s_strtokr, *s_buff;
+#endif
+   VATTR *va;
+
+
+   for (p = x_buff, q = str; *q && ((p - x_buff) < (SBUF_SIZE - 1)); p++, q++)
+       *p = ToLower((int)*q);
+   *p = '\0';
+
+   va = (VATTR *) vattr_find(x_buff);
+   if ( va ) {
+#ifndef STANDALONE
+      s_buff = alloc_lbuf("attr_generic");
+      sprintf(s_buff, "%.*s", LBUF_SIZE - 1, flags);
+      for ( s_strtok = s_buff; *s_strtok; s_strtok++ ) {
+         *s_strtok = ToLower((int)*s_strtok);
+      }
+      s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+      while ( s_strtok ) {
+         i_not = 0;
+         if ( *s_strtok == '!' ) {
+            i_not = 1;
+            i_flag = search_nametab(GOD, attraccess_nametab, s_strtok+1);
+         } else {
+            i_flag = search_nametab(GOD, attraccess_nametab, s_strtok);
+         }
+         if ( i_flag >= 0 ) {
+            if ( i_not ) {
+               va->flags &= ~i_flag;
+            } else {
+               va->flags |= i_flag;
+            }
+         }
+         s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+      }
+      free_lbuf(s_buff);
+#endif
+   }
+}
+
 /*
  * returns a pointer to the non-space character in s, or a NULL if s == NULL
  * or *s == NULL or s has only spaces.
