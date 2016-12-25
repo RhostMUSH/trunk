@@ -4173,10 +4173,11 @@ check_connect(DESC * d, const char *msg)
 	    /* Not a player, or wrong password */
 
         /* Obtain _NOCONNECT_MSG text and evaluate it */
+        nc_buff = NULL;
         if (Good_chk(player) && attr)
             nc_buff = atr_get(player, attr->number, &aowner, &aflags);
         
-        if ((Flags3(player) & NOCONNECT) && *nc_buff) {
+        if (player != NOTHING && (Flags3(player) & NOCONNECT) && *nc_buff) {
             buff = alloc_mbuf("msg_noconnect");
             sprintf(buff, "%s\r\n", nc_buff);
             s_text = exec(player, player, player, EV_FCHECK | EV_EVAL, buff, (char **)NULL, 0, (char **)NULL, 0);
@@ -4196,7 +4197,9 @@ check_connect(DESC * d, const char *msg)
         } else {
 	        queue_string(d, connect_fail);
         }
-        free_lbuf(nc_buff);
+        
+        if (nc_buff)
+            free_lbuf(nc_buff);
         
 	    STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
 		buff = alloc_mbuf("check_conn.LOG.bad");
