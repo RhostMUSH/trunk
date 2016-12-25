@@ -420,6 +420,7 @@ struct confdata {
 	int	delim_null;	/* Allow @@ for delimiters */
 	int	hook_offline;	/* Hook offline commands */
 	dbref	file_object;	/* The file object to override @list_file foo */
+    char noconnect_msg[LBUF_SIZE];   /* Message to display to players set NOCONNECT when they try to connect */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
