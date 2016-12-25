@@ -4193,7 +4193,7 @@ check_connect(DESC * d, const char *msg)
 #else
             queue_string(d, s_text);
 #endif            
-            free_mbuf(buff);
+            free_lbuf(buff);
         } else {
 	        queue_string(d, connect_fail);
         }
