@@ -3894,7 +3894,7 @@ check_connect(DESC * d, const char *msg)
     int ok_to_login, i_sitemax, chk_stop, chk_tog, i_ncmsg;
     DESC *d2, *d3;
     CMDENT *cmdp;
-    ATTR *hk_ap2;
+    ATTR *hk_ap2, attr;
     char buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
     
 #ifdef ZENTY_ANSI
@@ -3927,7 +3927,12 @@ check_connect(DESC * d, const char *msg)
     /* Obtain _NOCONNECT_MSG details */
     /* This ensures it is created and locked before it can be used by players */
     i_ncmsg = mkattr("_NOCONNECT_MSG");
-    attr_wizhidden("_NOCONNECT_MSG");
+    if (i_ncmsg > 0) {
+        attr = atr_num(i_ncmsg);
+        if (attr) {
+            attr_wizhidden("_NOCONNECT_MSG");
+        }
+    }
 
     command = alloc_mbuf("check_conn.cmd");
     user = alloc_mbuf("check_conn.user");
@@ -4168,7 +4173,8 @@ check_connect(DESC * d, const char *msg)
 	    /* Not a player, or wrong password */
 
         /* Obtain _NOCONNECT_MSG text and evaluate it */
-        nc_buff = atr_get(player, i_ncmsg, &aowner, &aflags);
+        if (Good_chk(player) && attr)
+            nc_buff = atr_get(player, attr->number, &aowner, &aflags);
         
         if ((Flags3(player) & NOCONNECT) && *nc_buff) {
             buff = alloc_mbuf("msg_noconnect");
