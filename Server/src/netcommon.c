@@ -4187,10 +4187,11 @@ check_connect(DESC * d, const char *msg)
             queue_string(d, s_text);
 #endif            
             free_mbuf(buff);
-            free_lbuf(nc_buff);
         } else {
 	        queue_string(d, connect_fail);
         }
+        free_lbuf(nc_buff);
+        
 	    STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
 		buff = alloc_mbuf("check_conn.LOG.bad");
 	    sprintf(buff, "[%d/%s] Failed connect to '%s'",
