@@ -4177,9 +4177,9 @@ check_connect(DESC * d, const char *msg)
         if (Good_chk(player) && attr)
             nc_buff = atr_get(player, attr->number, &aowner, &aflags);
         
-        if (player != NOTHING && (Flags3(player) & NOCONNECT) && *nc_buff) {
-            buff = alloc_mbuf("msg_noconnect");
-            sprintf(buff, "%s\r\n", nc_buff);
+        if ((player != NOTHING) && (Flags3(player) & NOCONNECT) && nc_buff && *nc_buff) {
+            buff = alloc_lbuf("msg_noconnect");
+            sprintf(buff, "%.*s\r\n", LBUF_SIZE - 10, nc_buff);
             s_text = exec(player, player, player, EV_FCHECK | EV_EVAL, buff, (char **)NULL, 0, (char **)NULL, 0);
 #ifdef ZENTY_ANSI
             lbuf1 = alloc_lbuf("fcache_dump3");
