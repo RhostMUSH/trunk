@@ -330,6 +330,7 @@ NDECL(cf_init)
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
     strcpy(mudconf.tree_character, (char *)"`");
+    strcpy(mudconf.noconnect_msg, "");
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -4986,6 +4987,9 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.round_kludge, 0, 0, CA_PUBLIC,
      (char *) "Kludgy fix for rounding even numbers.\r\n"\
               "                             Default: 0   Value: %d"}, /* [Loki] */
+    {(char *) "noconnect_message",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *)mudconf.noconnect_msg, LBUF_SIZE - 2, 0, CA_WIZARD,
+     (char *) "Default message shown to NOCONNECT players when attempting to connect."},
 #ifdef SQLITE
     {(char *) "sqlite_query_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.sqlite_query_limit, 0, 0, CA_WIZARD,

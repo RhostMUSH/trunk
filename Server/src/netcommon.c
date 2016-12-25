@@ -3894,7 +3894,7 @@ check_connect(DESC * d, const char *msg)
     int ok_to_login, i_sitemax, chk_stop, chk_tog, i_ncmsg;
     DESC *d2, *d3;
     CMDENT *cmdp;
-    ATTR *hk_ap2, attr;
+    ATTR *hk_ap2, *attr;
     char buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
     
 #ifdef ZENTY_ANSI
@@ -4174,12 +4174,17 @@ check_connect(DESC * d, const char *msg)
 
         /* Obtain _NOCONNECT_MSG text and evaluate it */
         nc_buff = NULL;
-        if (Good_chk(player) && attr)
+        if (Good_chk(player) && attr) {
             nc_buff = atr_get(player, attr->number, &aowner, &aflags);
+        }
         
-        if ((player != NOTHING) && (Flags3(player) & NOCONNECT) && nc_buff && *nc_buff) {
-            buff = alloc_lbuf("msg_noconnect");
-            sprintf(buff, "%.*s\r\n", LBUF_SIZE - 10, nc_buff);
+        if ((player != NOTHING) && (Flags3(player) & NOCONNECT) && 
+                                   ((nc_buff && *nc_buff) || (mudconf.noconnect_msg && *mudconf.noconnect_msg))) {
+            buff = alloc_lbuf("noconnect_msg");
+            if (nc_buff && *nc_buff)
+                sprintf(buff, "%.*s\r\n", LBUF_SIZE - 10, nc_buff);
+            else
+                sprintf(buff, "%.*s\r\n", LBUF_SIZE - 10, mudconf.noconnect_msg);
             s_text = exec(player, player, player, EV_FCHECK | EV_EVAL, buff, (char **)NULL, 0, (char **)NULL, 0);
 #ifdef ZENTY_ANSI
             lbuf1 = alloc_lbuf("fcache_dump3");
