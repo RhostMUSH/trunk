@@ -602,7 +602,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 #ifdef ZENTY_ANSI
     char *mp2;
 #endif
-    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
+    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *msg_utf, *mp_utf;
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0;
@@ -700,6 +700,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 #ifdef ZENTY_ANSI
 	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
 #endif
+	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
 	if (!port && Nospoof(target) &&
 	    (target != sender) &&
 	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&
@@ -733,10 +734,13 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	}
 #ifdef ZENTY_ANSI       
        if(!(key & MSG_NO_ANSI)) {
-           parse_ansi((char *) msg, msg_ns, &mp, msg_ns2, &mp2);
+           parse_ansi((char *) msg, msg_ns, &mp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp = '\0';
            *mp2 = '\0';
-           if ( Accents(target) ) {
+		   *mp_utf = '\0';
+		   if ( UTF8(target) ) {
+			  memcpy(msg_ns, msg_utf, LBUF_SIZE);
+           } else if ( Accents(target) ) {
               memcpy(msg_ns, msg_ns2, LBUF_SIZE);
            } 
        } else
@@ -746,6 +750,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 #ifdef ZENTY_ANSI       
 #endif
         free_lbuf(msg_ns2);
+		free_lbuf(msg_utf);
     } else {
 	msg_ns = NULL;
     }

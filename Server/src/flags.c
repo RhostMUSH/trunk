@@ -712,6 +712,7 @@ TOGENT tog_table[] =
   {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, th_noset},
   {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, 0, 0, 0, th_player},
   {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"UTF8", TOG_UTF8, '$', 1, 0, 0, 0, 0, th_player},
   {NULL, 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 

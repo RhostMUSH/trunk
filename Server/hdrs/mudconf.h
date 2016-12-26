@@ -453,6 +453,8 @@ struct confdata {
 	int	mysql_port;
 #endif
 	int	name_with_desc;	/* Toggle to enable names with descs when looking (if not-examinable) */
+    int allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ascii quotes */
+    int allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */

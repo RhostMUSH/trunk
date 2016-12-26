@@ -1535,7 +1535,7 @@ raw_broadcast(va_alist)
     char *buff;
     char antemp[20];
 #ifdef ZENTY_ANSI
-    char *message, *mptr, *msg_ns2, *mp_ns2;
+    char *message, *mptr, *msg_ns2, *mp_ns2, *msg_utf, *mp_utf;
 #endif
     DESC *d;
     va_list ap;
@@ -1571,8 +1571,10 @@ raw_broadcast(va_alist)
 #ifdef ZENTY_ANSI   
     mptr = message = alloc_lbuf("raw_broadcast_message");
     mp_ns2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-    parse_ansi( (char *) buff, message, &mptr, msg_ns2, &mp_ns2);
+	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
+    parse_ansi( (char *) buff, message, &mptr, msg_ns2, &mp_ns2, msg_utf, &mp_utf);
     *mp_ns2 = '\0';
+	*mp_utf = '\0';
 #endif   
     strcpy(antemp, ANSI_NORMAL);
     DESC_ITER_CONN(d) {
@@ -1586,8 +1588,10 @@ raw_broadcast(va_alist)
 	     ((inflags & IMMORTAL) && Immortal(d->player)))) {
            if ( i_nowalls && (Flags2(d->player) & NO_WALLS) ) 
               continue;
-#ifdef ZENTY_ANSI	   
-           if ( Accents(d->player ) )
+#ifdef ZENTY_ANSI
+		   if ( UTF8(d->player) )
+			  queue_string(d, msg_utf);
+           else if ( Accents(d->player ) )
               queue_string(d, msg_ns2);
            else
 	      queue_string(d, strip_safe_accents(message));
@@ -1604,6 +1608,7 @@ raw_broadcast(va_alist)
 #ifdef ZENTY_ANSI
     free_lbuf(message);
     free_lbuf(msg_ns2);
+	free_lbuf(msg_utf);
 #endif
     va_end(ap);
     VOIDRETURN; /* #114 */
@@ -2138,7 +2143,7 @@ announce_connect(dbref player, DESC * d, int dc)
     char *argv[1];
     int totsucc, totfail, newfail;
 #ifdef ZENTY_ANSI
-    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+    char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
 #endif
 
     DPUSH; /* #130 */
@@ -2360,10 +2365,12 @@ announce_connect(dbref player, DESC * d, int dc)
 #ifdef ZENTY_ANSI
                       s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
                       s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-                      parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                      s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+                      parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
                       queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
                       free_lbuf(s_buff);
                       free_lbuf(s_buff2);
+                      free_lbuf(s_buff3);
 #else
                       queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
 #endif
@@ -2861,9 +2868,9 @@ dump_users(DESC * e, char *match, int key)
     dbref aowner;
     int count, rcount = 0, i_attrpipe = 0, aflags, i_pipetype;
     time_t now;
-    char *buf, *fp, *gp, *doingAnsiBuf, *doingAccentBuf, *pDoing, *atext, *atext2, *atextptr, *a_tee; 
+    char *buf, *fp, *gp, *doingAnsiBuf, *doingAccentBuf, *doingUtfBuf, *pDoing, *atext, *atext2, *atextptr, *a_tee; 
 #ifdef ZENTY_ANSI
-    char *doingAnsiBufp, *abuf, *abufp, *msg_ns2, *mp2, *doingAccentBufp;
+    char *doingAnsiBufp, *abuf, *abufp, *msg_ns2, *mp2, *doingAccentBufp, *doingUtfBufp, *msg_utf, *mp_utf;
 #endif
     char smallbuf[25];
     char antemp[20];
@@ -2887,6 +2894,7 @@ dump_users(DESC * e, char *match, int key)
     buf = alloc_lbuf("dump_users");
     doingAnsiBuf = alloc_lbuf("dump_users_ansi");
     doingAccentBuf = alloc_lbuf("dump_users_accents");
+	doingUtfBuf = alloc_lbuf("dump_users_utf");
     tprp_buff = tpr_buff = alloc_lbuf("dump_users_tprintf");
 
     i_pipetype = 1;
@@ -2983,15 +2991,14 @@ dump_users(DESC * e, char *match, int key)
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
            mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-	   parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+		   mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
+           parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
-           if ( Accents(e->player) ) {
-              if ( i_attrpipe ) {
-                 safe_str(msg_ns2, atext, &atextptr);
-              } 
-              if ( i_pipetype ) {
-	         queue_string(e, msg_ns2);
-              }
+		   *mp_utf = '\0';
+		   if ( UTF8(e->player) ) {
+			  queue_string(e, msg_utf);			  
+           } else if ( Accents(e->player) ) {
+	      queue_string(e, msg_ns2);
            } else {
               if ( i_attrpipe ) {
                  safe_str(strip_safe_accents(abuf), atext, &atextptr);
@@ -3000,6 +3007,7 @@ dump_users(DESC * e, char *match, int key)
 	         queue_string(e, strip_safe_accents(abuf));
               }
            }
+		   free_lbuf(msg_utf);
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
@@ -3015,10 +3023,21 @@ dump_users(DESC * e, char *match, int key)
 #ifdef ZENTY_ANSI
            abufp = abuf = alloc_lbuf("doing_header");
            mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
-	   parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2);
+		   mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
+           parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
-           if ( Accents(e->player) ) {
-              if ( i_attrpipe ) {
+		   *mp_utf = '\0';
+		   if ( UTF8(e->player) ) {
+			  if ( i_attrpipe ) {
+                 safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_utf),
+                          atext, &atextptr);
+              } 
+              if ( i_pipetype ) {
+	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+                              mudstate.guild_hdr, msg_utf));
+              }
+           } else if ( Accents(e->player) ) {
+	          if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_ns2),
                           atext, &atextptr);
               } 
@@ -3036,6 +3055,7 @@ dump_users(DESC * e, char *match, int key)
                               mudstate.guild_hdr, strip_safe_accents(abuf)));
               }
            }
+		   free_lbuf(msg_utf);
            free_lbuf(msg_ns2);
            free_lbuf(abuf);
 #else
@@ -3063,7 +3083,8 @@ dump_users(DESC * e, char *match, int key)
 #ifdef ZENTY_ANSI
 	doingAnsiBufp = doingAnsiBuf;
 	doingAccentBufp = doingAccentBuf;
-	parse_ansi(d->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp);
+	doingUtfBufp = doingUtfBuf;
+	parse_ansi(d->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
         if ( !Accents(e->player) ) {
            strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
         }
@@ -3408,6 +3429,7 @@ dump_users(DESC * e, char *match, int key)
     free_lbuf(buf);
     free_lbuf(doingAnsiBuf);
     free_lbuf(doingAccentBuf);
+	free_lbuf(doingUtfBuf);
     free_lbuf(tpr_buff);
     if ( i_attrpipe ) {
        atr_add_raw(e->player, atr->number, atext);
@@ -3756,7 +3778,7 @@ softcode_trigger(DESC *d, const char *msg) {
     ATTR *atr;
     char *s_text, *s_return, *s_strtok, *s_strtokr, *s_buff, *s_array[10], *s_ptr;
 #ifdef ZENTY_ANSI
-    char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2;
+    char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2, *lbuf3ptr, *lbuf3;
 #endif
     int aflags, i_found;
     dbref aowner;
@@ -3861,12 +3883,15 @@ softcode_trigger(DESC *d, const char *msg) {
 #ifdef ZENTY_ANSI
           lbuf1 = alloc_lbuf("fcache_dump3");
           lbuf2 = alloc_lbuf("fcache_dump4");
+          lbuf3 = alloc_lbuf("fcache_dump5");
           lbuf1ptr = lbuf1;
           lbuf2ptr = lbuf2;
-          parse_ansi(s_buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+          lbuf3ptr = lbuf3;
+          parse_ansi(s_buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
           queue_write(d, lbuf1, strlen(lbuf1));
           free_lbuf(lbuf1);
           free_lbuf(lbuf2);
+          free_lbuf(lbuf3);
 #else
           queue_string(d, s_buff);
 #endif
@@ -4782,7 +4807,7 @@ NDECL(process_commands)
     char *cmdsave, *progatr;
     dbref aowner2;
 #ifdef ZENTY_ANSI
-    char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+    char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
 #endif
 
     DPUSH; /* #148 */
@@ -4817,10 +4842,12 @@ NDECL(process_commands)
 #ifdef ZENTY_ANSI
                                  s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
                                  s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-                                 parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                                 s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+                                 parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
                                  queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
                                  free_lbuf(s_buff);
                                  free_lbuf(s_buff2);
+                                 free_lbuf(s_buff3);
 #else
                                  queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
 #endif

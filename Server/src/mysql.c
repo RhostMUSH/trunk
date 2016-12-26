@@ -42,8 +42,12 @@
 /* Edit this if needed */
 #define MYSQL_RETRY_TIMES 3
 
+<<<<<<< HEAD
 extern double NDECL(next_timer);
 extern int FDECL(alarm_msec, (double));
+=======
+extern int NDECL(next_timer);
+>>>>>>> Merge of Ashen's updates and start of UTF8/Unicode support
 
 /************* DON'T EDIT ANYTHING BELOW HERE **********/
 
