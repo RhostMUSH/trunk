@@ -24,7 +24,7 @@ extern POWENT pow_table[];
 extern POWENT depow_table[];
 extern void depower_set(dbref, dbref, char *, int);
 extern dbref    FDECL(match_thing, (dbref, char *));
-extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int));
+extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int, int));
 extern int count_chars(const char *, const char c);
 static void set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
 
@@ -824,7 +824,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
       s_ptr2++;
    }
 
-   i_attrcnts = atrcint(1, thing, 0);
+   i_attrcnts = atrcint(GOD, thing, 0);
    if ( ((i_attrcnts + 1) >= mudconf.vlimit) || (i_attrcnts < 0) ) 
       return 1;
 
@@ -2337,6 +2337,7 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
    
    olist_init(&master);
    orig_revwild = mudstate.reverse_wild;
+
    if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp, 0)) {
       if ( !(key & SIDEEFFECT) )
          notify_quiet(player, "No match.");
@@ -2501,7 +2502,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
    while (buff1ptr && !mudstate.breakst) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
-         process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing));
+         process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook);
          if ( key & INCLUDE_NOBREAK )
             mudstate.breakst = i_savebreak;
       }

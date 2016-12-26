@@ -83,10 +83,10 @@
 &FUNPT_RLEXITS soft=[ifelse(and(hastype(%@,room),member(get(%@/_RLEXITS),crc32(get(%@/exitformat)))),objeval(%#,lexits(here)),objeval(%@,lexits(me)))]
 &FUNPR_SETSYMDIFF soft=[setq(0,setinter(%0,%1,%2,%2,%4))][listunion(setdiff(%0,%q0,%2,%2,%4),setdiff(%1,%q0,%2,%2,%4),%2,%3)]
 &FUNPR_SETSYMDIFF soft=[setq(0,listinter(%0,%1,%2,%2,%4))][listunion(listdiff(%0,%q0,%2,%2,%4),listdiff(%1,%q0,%2,%2,%4),%2,%3)]
-&MINMAX_NCOND soft=2 2
-&MINMAX_NCONDALL soft=2 2
-&MINMAX_COND soft=2 2
-&MINMAX_CONDALL soft=2 2
+&MINMAX_NCOND soft=2 -1
+&MINMAX_NCONDALL soft=2 -1 
+&MINMAX_COND soft=2 -1 
+&MINMAX_CONDALL soft=2 -1
 @@ Old systems -- Use prior to 3.9.5p2
 @@ &FUNPR_FIRSTOF soft=[trim(iter(lnum(0,sub(%+,2)),ifelse(!!^setr(0,s(v(%i0))),%q0[ibreak(0)])))][ifelse(!^r(0),s(v(sub(%+,1))))]
 @@ &FUNPR_ALLOF soft=[trim(squish(iter(lnum(0,sub(%+,2)),ifelse(!!^setr(0,s(v(%i0))),%q0),%b,v(sub(%+,1))),v(sub(%+,1))),,v(sub(%+,1)))]
@@ -104,6 +104,7 @@
 &FUN_RPAD soft=[printf($%1:%2:+s,%0)]
 &FUN_LPAD soft=[printf($-%1:%2:+s,%0)]
 &FUN_LEHRAND soft=[trunc(fmod(fmod(mul(max(rand(%0),1),279470273),4294967291),%0))]
+&FUN_BASECONV soft=[pack(unpack(%0,%1,1),%2,1)]
 @fo softfunc=&DB me=num(softfunc)
 @tel SFSideFX=softfunctions
 @startup softfunc=@dolist lattr([v(db)]/fun_*)=@function [after(##,_)]=[v(db)]/##;@dolist lattr([v(db)]/funp_*)=@function/priv/pres [after(##,_)]=[v(db)]/##;@dolist lattr([v(DB)]/funpr_*)=@function/pres [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpv_*)=@function/priv [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpt_*)=@function/priv/notrace [after(##,_)]=[v(db)]/##;@wait 10={@dolist lattr([v(db)]/funflag_*)=@admin function_access=[after(##,_)] [get([v(db)]/##)]};@wait 10=@dolist lattr([v(db)]/minmax_*)={@function/min [after(##,_)]=[first(get([v(db)]/##))];@function/max [after(##,_)]=[rest(get([v(db)]/##))]}

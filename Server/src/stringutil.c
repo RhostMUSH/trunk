@@ -10,11 +10,92 @@
 #include "config.h"
 #include "externs.h"
 #include "alloc.h"
-#include "rhost_ansi.h"
 #include "rhost_utf8.h"
+#include "rhost_ansi.h"
+#include "vattr.h"
 
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
-extern dbref    FDECL(match_thing, (dbref, char *));
+extern dbref FDECL(match_thing, (dbref, char *));
+extern NAMETAB attraccess_nametab[];
+
+
+/*
+ * set attribs hidden
+ */
+void attr_wizhidden(char *str)
+{
+   static char x_buff[SBUF_SIZE+1], *p, *q;
+   VATTR *va;
+
+   for (p = x_buff, q = str; *q && ((p - x_buff) < (SBUF_SIZE - 1)); p++, q++)
+       *p = ToLower((int)*q);
+   *p = '\0';
+
+   va = (VATTR *) vattr_find(x_buff);
+   if ( va ) {
+      va->flags |= (AF_WIZARD|AF_MDARK);
+   }
+}
+
+void attr_internal(char *str)
+{
+   static char x_buff[SBUF_SIZE+1], *p, *q;
+   VATTR *va;
+
+   for (p = x_buff, q = str; *q && ((p - x_buff) < (SBUF_SIZE - 1)); p++, q++)
+       *p = ToLower((int)*q);
+   *p = '\0';
+
+   va = (VATTR *) vattr_find(x_buff);
+   if ( va ) {
+      va->flags |= (AF_GOD|AF_DARK|AF_INTERNAL);
+   }
+}
+
+void attr_generic(char *str, char *flags)
+{
+   static char x_buff[SBUF_SIZE+1], *p, *q;
+#ifndef STANDALONE
+   int i_flag, i_not;
+   char *s_strtok, *s_strtokr, *s_buff;
+#endif
+   VATTR *va;
+
+
+   for (p = x_buff, q = str; *q && ((p - x_buff) < (SBUF_SIZE - 1)); p++, q++)
+       *p = ToLower((int)*q);
+   *p = '\0';
+
+   va = (VATTR *) vattr_find(x_buff);
+   if ( va ) {
+#ifndef STANDALONE
+      s_buff = alloc_lbuf("attr_generic");
+      sprintf(s_buff, "%.*s", LBUF_SIZE - 1, flags);
+      for ( s_strtok = s_buff; *s_strtok; s_strtok++ ) {
+         *s_strtok = ToLower((int)*s_strtok);
+      }
+      s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+      while ( s_strtok ) {
+         i_not = 0;
+         if ( *s_strtok == '!' ) {
+            i_not = 1;
+            i_flag = search_nametab(GOD, attraccess_nametab, s_strtok+1);
+         } else {
+            i_flag = search_nametab(GOD, attraccess_nametab, s_strtok);
+         }
+         if ( i_flag >= 0 ) {
+            if ( i_not ) {
+               va->flags &= ~i_flag;
+            } else {
+               va->flags |= i_flag;
+            }
+         }
+         s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+      }
+      free_lbuf(s_buff);
+#endif
+   }
+}
 
 /*
  * returns a pointer to the non-space character in s, or a NULL if s == NULL
@@ -51,23 +132,27 @@ char    *cp;
 
 char *munge_space(char *string)
 {
-char    *buffer, *p, *q;
+   char *buffer, *p, *q;
 
-    buffer = alloc_lbuf("munge_space");
-    p = string;
-    q = buffer;
-    while (p && *p && isspace((int)*p))
-        p++;        /* remove inital spaces */
-    while (p && *p) {
-        while (*p && !isspace((int)*p))
-            *q++ = *p++;
-        while (*p && isspace((int)*++p)) ;
-            if (*p)
-                *q++ = ' ';
-    }
-    *q = '\0';      /* remove terminal spaces and terminate
-                 * string */
-    return (buffer);
+   buffer = alloc_lbuf("munge_space");
+   p = string;
+   q = buffer;
+   while (p && *p && isspace((int)*p)) {
+      p++;		/* remove inital spaces */
+   }
+   while (p && *p) {
+      while (*p && !isspace((int)*p)) {
+         *q++ = *p++;
+      }
+      while (*p && isspace((int)*++p)) {
+         ;
+      }
+      if (*p) {
+         *q++ = ' ';
+      }
+   }
+   *q = '\0'; /* remove terminal spaces and terminate string */
+   return (buffer);
 }
 
 /* ---------------------------------------------------------------------------
@@ -421,6 +506,8 @@ char    *s;
  * #define SPLIT_UNDERSCORE        0x04
  * #define SPLIT_INVERSE           0x08
  * #define SPLIT_NOANSI            0x10
+ * #define SPLIT_FG                0x20
+ * #define SPLIT_BG                0x40
  *
  * typedef struct ansisplit {
  *         char    s_fghex[5];     // Hex representation - foreground
@@ -445,7 +532,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
 {
    ANSISPLIT *s_pt, *r_pt, *a_pt;
    char *s_iptr;
-   int i_mark;
+   int i_mark, i_fg, i_bg;
 
 #ifndef ZENTY_ANSI
    return;
@@ -456,12 +543,20 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
    r_pt = replace_val;
    s_pt = search_val;
 
+   i_fg = (i_search & SPLIT_FG);
+   i_search &= ~SPLIT_FG;
+   i_bg = (i_search & SPLIT_BG);
+   i_search &= ~SPLIT_BG;
+   i_replace &= ~SPLIT_FG;
+   i_replace &= ~SPLIT_BG;
+
    while ( s_iptr && *s_iptr ) {
       /* No Special Char Searching Here : exact match and replace */
       if ( !*(s_pt->s_fghex) && !*(a_pt->s_fghex) &&
            !*(s_pt->s_bghex) && !*(a_pt->s_bghex) &&
            !(s_pt->c_fgansi) && !(a_pt->c_fgansi) &&
            !(s_pt->c_bgansi) && !(a_pt->c_bgansi) &&
+           !i_fg && !i_bg &&
            !(i_search && (a_pt->i_special & i_search)) &&
            !(s_pt->i_special) && !(a_pt->i_special) ) {
           strcpy(a_pt->s_fghex, r_pt->s_fghex); 
@@ -475,10 +570,10 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special = r_pt->i_special;
           }
       /* Exact match searching here : exact match and replace */
-      } else if ( (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0) &&
-                  (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0) &&
-                  (s_pt->c_fgansi == a_pt->c_fgansi) &&
-                  (s_pt->c_bgansi == a_pt->c_bgansi) &&
+      } else if ( ((*(a_pt->s_fghex) && i_fg) || (!i_fg && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0))) &&
+                  ((*(a_pt->s_bghex) && i_bg) || (!i_bg && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0))) &&
+                  (((a_pt->c_fgansi) && i_fg) || (!i_fg && (s_pt->c_fgansi == a_pt->c_fgansi))) &&
+                  (((a_pt->c_bgansi) && i_bg) || (!i_bg && (s_pt->c_bgansi == a_pt->c_bgansi))) &&
                  !(i_search && (a_pt->i_special & i_search)) &&
                   (s_pt->i_special == a_pt->i_special) ) {
           strcpy(a_pt->s_fghex, r_pt->s_fghex); 
@@ -492,7 +587,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
              a_pt->i_special = r_pt->i_special;
           }
       /* Just match if ANSI fg hex : fg to fg */
-      } else if ( (*(s_pt->s_fghex) && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0)) &&
+      } else if ( ((*(a_pt->s_fghex) && i_fg) || (*(s_pt->s_fghex) && (strcmp(s_pt->s_fghex, a_pt->s_fghex) == 0))) &&
                   !*(s_pt->s_bghex) &&
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
@@ -512,7 +607,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
           }
       /* Just match if ANSI bg hex : bg to bg */
       } else if ( !*(s_pt->s_fghex) &&
-                  (*(s_pt->s_bghex) && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0)) &&
+                  ((*(a_pt->s_bghex) && i_bg) || (*(s_pt->s_bghex) && (strcmp(s_pt->s_bghex, a_pt->s_bghex) == 0))) &&
                   !(s_pt->c_fgansi) &&
                   !(s_pt->c_bgansi) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
@@ -532,7 +627,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
       /* Just match if ANSI fg normal : fg to fg */
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
-                  (s_pt->c_fgansi && (s_pt->c_fgansi == a_pt->c_fgansi)) &&
+                  (((a_pt->c_fgansi) && i_fg) || (s_pt->c_fgansi && (s_pt->c_fgansi == a_pt->c_fgansi))) &&
                   !(s_pt->c_bgansi) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
                   !(s_pt->i_special) ) {
@@ -552,7 +647,7 @@ search_and_replace_ansi(char *s_input, ANSISPLIT *a_input, ANSISPLIT *search_val
       } else if ( !*(s_pt->s_fghex) &&
                   !*(s_pt->s_bghex) &&
                   !(s_pt->c_fgansi) &&
-                  (s_pt->c_bgansi && (s_pt->c_bgansi == a_pt->c_bgansi)) &&
+                  (((a_pt->c_bgansi) && i_bg) || (s_pt->c_bgansi && (s_pt->c_bgansi == a_pt->c_bgansi))) &&
                   !(i_search && (a_pt->i_special & i_search)) &&
                   !(s_pt->i_special) ) {
           strcpy(a_pt->s_bghex, r_pt->s_bghex); 
@@ -865,7 +960,8 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       s_last.c_bgansi = s_ptr->c_bgansi;
       s_last.c_accent = s_ptr->c_accent;
       s_last.i_special = s_ptr->i_special;
-
+      /* no need for s_last duplicating i_ascii8 */
+      /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
       if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
         safe_chr('%', s_buffer, &s_buffptr);
         sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
@@ -903,7 +999,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 #ifdef ZENTY_ANSI
 
    ANSISPLIT *s_ptr;
-   char *s_inptr, *s_outptr, *endptr;
+   char *s_inptr, *s_outptr;
    int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt;
    char buf_utf8[10];
 
@@ -1733,7 +1829,45 @@ trigger_cluster_action(dbref thing, dbref player)
  * the unicode code point.
  ***/
 char *
-utf8toucp(char *utf) 
+encode_utf8(char *utf) 
+{
+    char *ucp, *result;
+    int i_ucp;
+    
+    result = (char*)malloc(12);
+    
+    // Convert UTF-8 Bytes to Unicode Code Point
+    ucp = utf8toucp(utf);
+    
+    // Encode into parser string
+    i_ucp = (int)strtol(ucp, NULL, 16);
+    switch (i_ucp) {
+        case DOUBLE_QUOTE_LEFT:
+        case DOUBLE_QUOTE_RIGHT:
+        case DOUBLE_QUOTE_REVERSED:
+            if (!mudconf.allow_fancy_quotes)
+                sprintf(ucp, "%c", ASCII_DOUBLE_QUOTE);
+            break;
+        
+        case FULLWIDTH_COLON:
+            if (!mudconf.allow_fullwidth_colon)
+                sprintf(ucp, "%c", ASCII_COLON);
+            break;
+        case ASCII_SPACE:
+            sprintf(result, " ");
+            break;            
+        default:
+            sprintf(result, "%c<u%s>", '%', ucp);
+            break;
+    }
+    
+    free(ucp);
+    
+    return  result;
+}
+
+char *
+utf8toucp(char *utf)
 {
     char *ucp, *ptr, *tmp;
     int i_b1, i_b2, i_b3, i_b4, i_bytecnt, i_ucp;
@@ -1752,7 +1886,7 @@ utf8toucp(char *utf)
         strncpy(tmp, utf+2, 2);
         i_b2 = strtol(tmp, &ptr, 16);       
         i_ucp = ((i_b1 - 192) * 64) + (i_b2 - 128);
-        sprintf(ucp, "%c<u%04x>", '%', i_ucp);
+        sprintf(ucp, "%04x", i_ucp);
     } else if (i_bytecnt == 3) {
         strncpy(tmp, utf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
@@ -1761,7 +1895,7 @@ utf8toucp(char *utf)
         strncpy(tmp, utf+4, 2);
         i_b3 = strtol(tmp, &ptr, 16);
         i_ucp = ((i_b1 - 224) * 4096) + ((i_b2 - 128) * 64) + (i_b3 - 128);
-        sprintf(ucp, "%c<u%04x>", '%', i_ucp);
+        sprintf(ucp, "%04x", i_ucp);
     } else if (i_bytecnt == 4) {
         strncpy(tmp, utf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
@@ -1772,25 +1906,9 @@ utf8toucp(char *utf)
         strncpy(tmp, utf+6, 2);
         i_b4 = strtol(tmp, &ptr, 16);
         i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
-        sprintf(ucp, "%c<u%04x>", '%', i_ucp);
+        sprintf(ucp, "%04x", i_ucp);
     } else {
-        sprintf(ucp, " ");
-    }
-    
-    // If the Unicode Code Point is a fancy double quote
-    // convert it to ASCII double quote
-    switch (i_ucp) {
-        case DOUBLE_QUOTE_LEFT:
-        case DOUBLE_QUOTE_RIGHT:
-        case DOUBLE_QUOTE_REVERSED:
-            if (!mudconf.allow_fancy_quotes)
-                sprintf(ucp, "%c", ASCII_DOUBLE_QUOTE);
-            break;
-        
-        case FULLWIDTH_COLON:
-            if (!mudconf.allow_fullwidth_colon)
-                sprintf(ucp, "%c", ASCII_COLON);
-            break;
+        sprintf(ucp, "0020");
     }
     
     free(tmp);

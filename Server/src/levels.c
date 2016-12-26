@@ -19,12 +19,12 @@ RLEVEL RxLevel(dbref thing)
     int i;
 	RLEVEL rx;
 	
-	if (mudconf.wiz_always_real && Typeof(thing) == TYPE_PLAYER && Wizard(thing) && !TogMortReal(thing))
-		return(~(RLEVEL)0);
+    if (mudconf.wiz_always_real && (Typeof(thing) == TYPE_PLAYER) && Wizard(thing) && !TogMortReal(thing)) {
+        return(~(RLEVEL)0);
+    }
     buff = atr_get_raw(thing, A_RLEVEL);
-    if (!buff || strlen(buff) != 17)
-        switch(Typeof(thing))
-        {
+    if (!buff || strlen(buff) != 17) {
+        switch(Typeof(thing)) {
             case TYPE_ROOM:
             	return(mudconf.def_room_rx);
             case TYPE_PLAYER:
@@ -34,23 +34,25 @@ RLEVEL RxLevel(dbref thing)
             default:
             	return(mudconf.def_thing_rx);
         }
-    for(rx=0, i=0; buff[i] && isxdigit((int)buff[i]); ++i)
+    }
+    for(rx=0, i=0; buff[i] && isxdigit((int)buff[i]); ++i) {
     	rx = 16 * rx + ((buff[i] <= '9')?(buff[i]-'0'):(10 + toupper(buff[i]) - 'A'));
-	return(rx);
+    }
+    return(rx);
 }
 
 RLEVEL TxLevel(dbref thing)
 {
     char *buff;
     int i;
-	RLEVEL tx;
+    RLEVEL tx;
 
-	if (mudconf.wiz_always_real && Typeof(thing) == TYPE_PLAYER && Wizard(thing) && !TogMortReal(thing))
-		return(~(RLEVEL)0);
+    if (mudconf.wiz_always_real && (Typeof(thing) == TYPE_PLAYER) && Wizard(thing) && !TogMortReal(thing)) {
+        return(~(RLEVEL)0);
+    }
     buff = atr_get_raw(thing, A_RLEVEL);
-    if (!buff || strlen(buff) != 17)
-        switch(Typeof(thing))
-        {
+    if (!buff || strlen(buff) != 17) {
+        switch(Typeof(thing)) {
             case TYPE_ROOM:
             	return(mudconf.def_room_tx);
             case TYPE_PLAYER:
@@ -60,10 +62,15 @@ RLEVEL TxLevel(dbref thing)
             default:
             	return(mudconf.def_thing_tx);
         }
-    for(tx=0, i=0; buff[i] && !isspace((int)buff[i]); ++i);
-    if(buff[i])
-    	for(++i; buff[i] && isxdigit((int)buff[i]); ++i)
-    		tx = 16 * tx + ((buff[i] <= '9')?(buff[i]-'0'):(10 + toupper(buff[i]) - 'A'));
+    }
+    for(tx=0, i=0; buff[i] && !isspace((int)buff[i]); ++i) {
+        ;
+    }
+    if(buff[i]) {
+        for(++i; buff[i] && isxdigit((int)buff[i]); ++i) {
+            tx = 16 * tx + ((buff[i] <= '9')?(buff[i]-'0'):(10 + toupper(buff[i]) - 'A'));
+        }
+    }
     return(tx);
 }
 
@@ -72,8 +79,9 @@ RLEVEL find_rlevel(char *name)
     int i;
 
     for(i=0; i < mudconf.no_levels; ++i) {
-        if(!strcasecmp(name, mudconf.reality_level[i].name))
+        if(!strcasecmp(name, mudconf.reality_level[i].name)) {
              return mudconf.reality_level[i].value;
+        }
     }
     return 0;
 }
@@ -100,16 +108,18 @@ rxlevel_description(dbref player, dbref target, int flag, int f2)
     level = RxLevel(target);
     chk_x = sizeof( mudconf.reality_level );
     chk_y = sizeof( mudconf.reality_level[0] );
-    if ( chk_y == 0 )
+    if ( chk_y == 0 ) {
        chk_z = 0;
-    else
+    } else {
        chk_z = chk_x / chk_y;
+    }
     for(i = 0; (i < mudconf.no_levels) && (i < chk_z); ++i) {
     	if((level & mudconf.reality_level[i].value) == mudconf.reality_level[i].value) {
-    	    if(f2a)
+    	    if(f2a) {
     	    	safe_chr(' ', buff, &bp);
-    	    else
+    	    } else {
     	    	f2a = 1;
+            }
     	    safe_str(mudconf.reality_level[i].name, buff, &bp);
     	}
     }
@@ -144,16 +154,18 @@ txlevel_description(dbref player, dbref target, int flag, int f2)
     level = TxLevel(target);
     chk_x = sizeof( mudconf.reality_level );
     chk_y = sizeof( mudconf.reality_level[0] );
-    if ( chk_y == 0 )
+    if ( chk_y == 0 ) {
        chk_z = 0;
-    else
+    } else {
        chk_z = chk_x / chk_y;
+    }
     for(i = 0; (i < mudconf.no_levels) && (i < chk_z); ++i) {
     	if((level & mudconf.reality_level[i].value) == mudconf.reality_level[i].value) {
-    	    if(f2a)
+    	    if(f2a) {
     	    	safe_chr(' ', buff, &bp);
-    	    else
+    	    } else {
     	    	f2a = 1;
+            }
     	    safe_str(mudconf.reality_level[i].name, buff, &bp);
     	}
     }

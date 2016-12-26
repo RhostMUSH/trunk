@@ -441,7 +441,6 @@ look_iter_parse(dbref player, dbref loc, const char *contents_name, int key)
     return(retbuff);
 }
 
-
 static void 
 look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keytype)
 {
@@ -1449,14 +1448,14 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
                    }
                    free_lbuf(buf3);
                 }
-		if (i_chk) {
-                    if ( i_key ) {
-                       sprintf(tbuf2, "#%d/", othing);
-                       safe_str(tbuf2, retbuff, &bp);
-                    }
-		    safe_str(tbuf, retbuff, &bp);
-		    safe_chr(' ', retbuff, &bp);
-		}
+            if (i_chk) {
+                        if ( i_key ) {
+                           sprintf(tbuf2, "#%d/", othing);
+                           safe_str(tbuf2, retbuff, &bp);
+                        }
+                safe_str(tbuf, retbuff, &bp);
+                safe_chr(' ', retbuff, &bp);
+            }
 	    }
 	    free_lbuf(buf);
 	}
@@ -3955,23 +3954,25 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
 	    noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",
 				               (i_tf ? qualout : (char *)""), tname, buff2));
 	}
-	for (np = indiv_attraccess_nametab;
-	     np->name;
-	     np++) {
-
-	    if ((aflags & np->flag) &&
-		check_access(player, np->perm, np->perm2, 0) &&
-		(!(np->perm & CA_NO_DECOMP))) {
-
-                tprp_buff = tpr_buff;
-		noansi_notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s/%s = %s",
-                               (i_tf ? qualout : (char *)""),
-			       tname,
-			       buff2,
-			       np->name));
-	    }
-	}
+/*      if ( !i_tf ) { */
+	   for (np = indiv_attraccess_nametab;
+	        np->name;
+	        np++) {
+   
+	       if ((aflags & np->flag) &&
+		   check_access(player, np->perm, np->perm2, 0) &&
+		   (!(np->perm & CA_NO_DECOMP))) {
+   
+                   tprp_buff = tpr_buff;
+		   noansi_notify(player,
+		          safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s/%s = %s",
+                                  (i_tf ? qualout : (char *)""),
+			          tname,
+			          buff2,
+			          np->name));
+	       }
+	   }
+/*      } */
       }
     }
     free_lbuf(buf);
@@ -4208,22 +4209,24 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 		       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",
 					     (i_tf ? qualout : (char *)""), thingname, buff));
 		   }
-		   for (np = indiv_attraccess_nametab;
-		        np->name;
-		        np++) {
-   
-		       if ((aflags & np->flag) &&
-			   check_access(player, np->perm, np->perm2, 0) &&
-			   (!(np->perm & CA_NO_DECOMP))) {
-   
-		           tprp_buff = tpr_buff;
-			   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s/%s = %s",
-                                          (i_tf ? qualout : (char *)""),
-				          thingname,
-				          buff,
-				          np->name));
-		       }
-		   }
+/*                 if ( !i_tf ) { */
+		      for (np = indiv_attraccess_nametab;
+		           np->name;
+		           np++) {
+      
+		          if ((aflags & np->flag) &&
+			      check_access(player, np->perm, np->perm2, 0) &&
+			      (!(np->perm & CA_NO_DECOMP))) {
+      
+		              tprp_buff = tpr_buff;
+			      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s/%s = %s",
+                                             (i_tf ? qualout : (char *)""),
+				             thingname,
+				             buff,
+				             np->name));
+		          }
+		      }
+/*                 } */
 	       }
 	   }
    	   free_lbuf(got);

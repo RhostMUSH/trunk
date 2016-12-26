@@ -33,4 +33,7 @@
 #define ASCII_COLON     0x003A
 #define FULLWIDTH_COLON 0xFF1A 
 
+// Standard space
+#define ASCII_SPACE     0x0020
+
 #endif

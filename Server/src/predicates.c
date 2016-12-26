@@ -328,73 +328,69 @@ int Read_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key )
 #endif
   if ((((a)->flags & AF_IMMORTAL) || 
        ((a)->flags & AF_GOD) || (f & AF_IMMORTAL) || (f & AF_GOD)) && 
-      (((a)->flags & (AF_DARK | AF_MDARK)) || (f & (AF_DARK|AF_MDARK))))
+      (((a)->flags & (AF_DARK | AF_MDARK)) || (f & (AF_DARK|AF_MDARK)))) {
     return 0;
+  }
 
-  if( ((a)->flags & AF_VISUAL) ||
-      (f & AF_VISUAL) )
+  if( ((a)->flags & AF_VISUAL) || (f & AF_VISUAL) ) {
     return 1;
+  }
 
-    if( DePriv(p,Owner(x),DP_EXAMINE,POWER6,NOTHING) && 
-	(Owner(p) != Owner(x))) 
-      return 0;
+  if( DePriv(p,Owner(x),DP_EXAMINE,POWER6,NOTHING) && (Owner(p) != Owner(x))) {
+    return 0;
+  }
 
   if ( DePriv(p, Owner(x), DP_MORTAL_EXAMINE, POWER8, NOTHING) ) {
-     if ( ((a)->flags & (AF_DARK|AF_MDARK)) ||
-          (f & (AF_DARK|AF_MDARK)) )
+     if ( ((a)->flags & (AF_DARK|AF_MDARK)) || (f & (AF_DARK|AF_MDARK)) ) {
         return 0;
-     if ( !(Visual(x) || (Owner(p) == Owner(x))) )
+     }
+     if ( !(Visual(x) || (Owner(p) == Owner(x))) ) {
         return 0;
+     }
   }
 
   if( (Wizard(p) || (HasPriv(p, NOTHING, POWER_EX_FULL, POWER5, NOTHING) && ExFullWizAttr(p))) &&
-      (!Immortal(Owner(x)) ||
-       (((a)->flags & AF_WIZARD) || (f & AF_WIZARD))) &&
-       !(((a)->flags & AF_DARK) || (f & AF_DARK)) )
+      (!Immortal(Owner(x)) || (((a)->flags & AF_WIZARD) || (f & AF_WIZARD))) &&
+       !(((a)->flags & AF_DARK) || (f & AF_DARK)) ) {
     return 1;
-  else if ((((a)->flags & AF_WIZARD) || (f & AF_WIZARD)) && 
-           (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK))))
+  } else if ((((a)->flags & AF_WIZARD) || (f & AF_WIZARD)) && 
+             (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK)))) {
     return 0;
+  }
 
-  if( Admin(p) &&
-      ((!Wizard(Owner(x)) &&
-        !Immortal(Owner(x))) ||
-       (((a)->flags & AF_ADMIN) || (f & AF_ADMIN))) )
+  if( Admin(p) && ((!Wizard(Owner(x)) && !Immortal(Owner(x))) ||
+      (((a)->flags & AF_ADMIN) || (f & AF_ADMIN))) ) {
     return 1;
-  else if ((((a)->flags & AF_ADMIN) || (f & AF_ADMIN)) && 
-           (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK))))
+  } else if ((((a)->flags & AF_ADMIN) || (f & AF_ADMIN)) && 
+             (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK)))) {
     return 0;
+  }
 
-  if( Builder(p) &&
-      ((!Admin(Owner(x)) &&
-        !Wizard(Owner(x)) &&
-        !Immortal(Owner(x))) ||
-       (((a)->flags & AF_BUILDER) || (f & AF_BUILDER))) )
+  if( Builder(p) && ((!Admin(Owner(x)) && !Wizard(Owner(x)) && !Immortal(Owner(x))) ||
+      (((a)->flags & AF_BUILDER) || (f & AF_BUILDER))) ) {
     return 1;
-  else if ((((a)->flags & AF_BUILDER) || (f & AF_BUILDER)) && 
-           (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK))))
+  } else if ((((a)->flags & AF_BUILDER) || (f & AF_BUILDER)) && 
+             (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK)))) {
     return 0;
-
-  if( Guildmaster(p) &&
-      ((!Guildmaster(Owner(x)) &&
-        !Builder(Owner(x)) &&
-        !Admin(Owner(x)) &&
-        !Wizard(Owner(x)) &&
-        !Immortal(Owner(x))) ||
-       (((a)->flags & AF_GUILDMASTER) || (f & AF_GUILDMASTER))) )
+  }
+  if( Guildmaster(p) && ((!Guildmaster(Owner(x)) && !Builder(Owner(x)) &&
+        !Admin(Owner(x)) && !Wizard(Owner(x)) && !Immortal(Owner(x))) ||
+       (((a)->flags & AF_GUILDMASTER) || (f & AF_GUILDMASTER))) ) {
     return 1;
-  else if ((((a)->flags & AF_GUILDMASTER) || (f & AF_GUILDMASTER)) && 
-           (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK))))
+  } else if ((((a)->flags & AF_GUILDMASTER) || (f & AF_GUILDMASTER)) && 
+             (((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK)))) {
     return 0;
+  }
 
-  if( (Examinable(p,x) ||
-       (Owner(p) == o)) &&
+  if( (Examinable(p,x) || (Owner(p) == o)) &&
       (!(f & AF_LOCK) || Controls(p,x)) &&
-      !(((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK))) ) 
+      !(((a)->flags & (AF_MDARK|AF_DARK)) || (f & (AF_MDARK|AF_DARK))) ) {
     return 1;
-
-  if( !(((a)->flags & (AF_MDARK|AF_ODARK|AF_DARK)) || (f & (AF_MDARK|AF_ODARK|AF_DARK))) ) 
+  }
+  if( !(((a)->flags & (AF_MDARK|AF_ODARK|AF_DARK)) || 
+        (f & (AF_MDARK|AF_ODARK|AF_DARK))) ) {
     return 1;
+  }
 
   return 0;
 }
@@ -1401,7 +1397,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                   }
                }
                free_lbuf(s_buff);
@@ -1440,7 +1436,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                   }
                }
                free_lbuf(s_buff);
@@ -1489,7 +1485,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                }
             }
             free_lbuf(s_buff);
@@ -1528,7 +1524,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 0, cp, cargs, ncargs, 0);
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                }
             }
             free_lbuf(s_buff);

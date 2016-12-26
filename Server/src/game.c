@@ -701,6 +701,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
 	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
 #endif
+	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
 	if (!port && Nospoof(target) &&
 	    (target != sender) &&
 	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&
@@ -737,9 +738,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
            parse_ansi((char *) msg, msg_ns, &mp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp = '\0';
            *mp2 = '\0';
-           *mp_utf = '\0';
-           if ( UTF8(target) ) {
-              memcpy(msg_ns, msg_utf, LBUF_SIZE);
+		   *mp_utf = '\0';
+		   if ( UTF8(target) ) {
+			  memcpy(msg_ns, msg_utf, LBUF_SIZE);
            } else if ( Accents(target) ) {
               memcpy(msg_ns, msg_ns2, LBUF_SIZE);
            } 
@@ -750,7 +751,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 #ifdef ZENTY_ANSI       
 #endif
         free_lbuf(msg_ns2);
-        free_lbuf(msg_utf);
+		free_lbuf(msg_utf);
     } else {
 	msg_ns = NULL;
     }
@@ -2095,6 +2096,8 @@ main(int argc, char *argv[])
 #ifdef HAS_OPENSSL
     OpenSSL_add_all_digests();
 #endif
+    /* Clean the conf to avoid naughtyness */
+    unlink("rhost_vattr.conf");
 
     for( argidx = 1; argidx < argc; argidx++ ) {
       if( !strcmp(argv[argidx], "-s") ) {
@@ -2215,6 +2218,7 @@ main(int argc, char *argv[])
     /* Reset all the hash stats */
 
     hashreset(&mudstate.command_htab);
+    hashreset(&mudstate.command_vattr_htab);
     hashreset(&mudstate.logout_cmd_htab);
     hashreset(&mudstate.func_htab);
     hashreset(&mudstate.toggles_htab);
@@ -2241,7 +2245,6 @@ main(int argc, char *argv[])
     nhashreset(&mudstate.parent_htab);
     hashreset(&mudstate.ansi_htab);
 
-
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);
     mudstate.lastnowmsec = mudstate.nowmsec;
@@ -2258,6 +2261,11 @@ main(int argc, char *argv[])
     mudstate.autoreg = areg_init();
     start_news_system();
     val_count();
+
+    /* Load in the command hashes for vattrs before startup foo */
+    cf_read((char *)"rhost_vattr.conf");
+    unlink("rhost_vattr.conf");
+
     process_preload();
     if (mudconf.rwho_transmit)
 	do_rwho(NOTHING, NOTHING, RWHO_START);
@@ -2273,6 +2281,7 @@ main(int argc, char *argv[])
        mudconf.newpass_god = 0;
     }
     /* go do it */
+
 
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);

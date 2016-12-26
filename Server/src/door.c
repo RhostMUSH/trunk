@@ -150,6 +150,7 @@ static int addDoor(const char *doorName,
 		   doorInput_t  pFnRead,
 		   int bitLvl, int loc) {
   int door, deAlloc = 0;
+  void *v_toss;
   DPUSH; /* 3 */
   door = findDoor(doorName);
   if (door > 0) {
@@ -162,7 +163,11 @@ static int addDoor(const char *doorName,
 
   if (gnDoors == (maxDoors - 1)) {
     // grow array
+<<<<<<< HEAD
     gaDoors = realloc(gaDoors, sizeof(door_t) * (maxDoors + 5));
+=======
+    v_toss = realloc(gaDoors, sizeof(door_t) * (maxDoors + 5));
+>>>>>>> Merge of Ashen's updates and start of UTF8/Unicode support
     if (gaDoors == NULL) {
       LOGTEXT("ERR", -1, "Could not allocate memory for resizing door array.");
       RETURN(-1); /* 3 */      
@@ -333,32 +338,32 @@ void door_raw_output(DESC *d, char *output)
 static int setup_player(DESC *d, int sock, int doorIdx) {
   int retval = sock;
 
-  if (sock >= 0)
-    d->door_lbuf = alloc_lbuf("door_lbuf");
-    if (d->door_lbuf == NULL) {
-      close(sock);
-      queue_string(d, "Could not allocate door buffer\r\n");
-      retval = -1;
-    }
-    *(d->door_lbuf) = '\0';
+  if (sock >= 0) {
+      d->door_lbuf = alloc_lbuf("door_lbuf");
+      if (d->door_lbuf == NULL) {
+          close(sock);
+          queue_string(d, "Could not allocate door buffer\r\n");
+          retval = -1;
+      }
+      *(d->door_lbuf) = '\0';
+      d->door_mbuf = alloc_mbuf("door_lbuf");
+      if ( (sock >= 0) && d->door_mbuf == NULL ) {
+          close(sock);
+          queue_string(desc_in_use, "Could not allocate door buffer\r\n");
+          free_lbuf(d->door_lbuf);
+          d->door_lbuf = NULL;
+          retval = -1;
+      }
 
-    d->door_mbuf = alloc_mbuf("door_lbuf");
-    if (d->door_mbuf == NULL && sock >= 0) {
-      close(sock);
-      queue_string(desc_in_use, "Could not allocate door buffer\r\n");
-      free_lbuf(d->door_lbuf);
-      d->door_lbuf = NULL;
-      retval = -1;
-    }
-
-    if (retval >= 0) {
-      *(d->door_mbuf) = '\0';
-      d->door_desc = sock;
-      d->flags |= DS_HAS_DOOR;   
-      d->door_num = doorIdx;
-/*    process_output(d); */
-    }
-    return sock;
+      if (retval >= 0) {
+          *(d->door_mbuf) = '\0';
+          d->door_desc = sock;
+          d->flags |= DS_HAS_DOOR;   
+          d->door_num = doorIdx;
+      /*  process_output(d); */
+      }
+  }
+  return sock;
 }
 
 int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx)

@@ -635,7 +635,11 @@ void mail_rem_dump()
   char *tpr_buff, *tprp_buff;
   
   tprp_buff = tpr_buff = alloc_lbuf("mail_rem_dump");
+  system(safe_tprintf(tpr_buff, &tprp_buff, "cp -f \"%s\" \"%s.bkup\"",dumpname, dumpname));
+  tprp_buff = tpr_buff;
   system(safe_tprintf(tpr_buff, &tprp_buff, "rm \"%s\"",dumpname));
+  tprp_buff = tpr_buff;
+  system(safe_tprintf(tpr_buff, &tprp_buff, "cp -f \"%s\" \"%s.bkup\"",fdumpname, fdumpname));
   tprp_buff = tpr_buff;
   system(safe_tprintf(tpr_buff, &tprp_buff, "rm \"%s\"",fdumpname));
   free_lbuf(tpr_buff);
@@ -683,6 +687,9 @@ int get_ind_rec(dbref player, char itype, char *rtbuf, int check, dbref wiz, int
     keydata.dptr = sbuf1;
     keydata.dsize = sizeof(int) << 1;
     infodata = dbm_fetch(foldfile,keydata);
+    if ( *quickfolder ) {
+       infodata.dptr = quickfolder;
+    }
     if (infodata.dptr) {
       foldmast = 1;
       *(int *)sbuf1 = FIND_BOX;
@@ -705,9 +712,9 @@ int get_ind_rec(dbref player, char itype, char *rtbuf, int check, dbref wiz, int
   keydata.dptr = sbuf1;
   keydata.dsize = sizeof(int) << 1;
   infodata = dbm_fetch(mailfile,keydata);
-  if (!(infodata.dptr))
+  if (!(infodata.dptr)) {
     return 0;
-  else {
+  } else {
     memcpy(rtbuf,infodata.dptr,infodata.dsize);
     return(infodata.dsize);
   }
@@ -1480,8 +1487,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     if ((!*pt2) && (key == M_FORWARD)) {
       notify_quiet(p2,"MAIL ERROR: Improper forward format");
       return 1;
-    }
-    else if (*pt2 && (key == M_REPLY)) {
+    } else if (*pt2 && (key == M_REPLY)) {
       notify_quiet(p2,"MAIL ERROR: Improper reply format");
       return 1;
     }
@@ -1498,7 +1504,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     }
     acheck = atoi(pt1);
     acheck = get_msg_index(player,acheck,1,NOTHING,1);
-//  if ((acheck < 1) || (acheck > 9999)) {
+/*  if ((acheck < 1) || (acheck > 9999)) { */
     if (acheck < 1) {
       notify_quiet(p2,"MAIL ERROR: Bad message number specified");
       return 1;
@@ -1509,9 +1515,9 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     if (acheck & tomask) {
       acheck &= ~tomask;
       repaal = 1;
-    }
-    else
+    } else {
       repaal = 0;
+    }
     if (rmsg || (key == M_FORWARD)) {
       *(int *)sbuf1 = MIND_MSG;
       *(int *)(sbuf1 + sizeof(int)) = *(int *)mbuf1;
@@ -1529,8 +1535,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
         if (subpass) {
 	  spt = subpass;
 	  mpt = buf2;
-        }
-        else {
+        } else {
           if ( Good_obj(p2) && PennMail(p2) )
   	     spt = strstr(buf2,"/");
           else
@@ -1545,8 +1550,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
             else
   	       mpt = spt+2;
   	    spt = buf2;
-  	  }
-  	  else {
+  	  } else {
   	    spt = NULL;
   	    mpt = buf2;
   	  }
@@ -1554,8 +1558,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	if ((strlen(mpt) + strlen(infodata.dptr)) > LBUF_SIZE - 134) {
 	  notify_quiet(p2,"MAIL ERROR: Combined reply message too long");
 	  return 1;
-	}
-	else {
+	} else {
 	  strcpy(lbuf8,infodata.dptr);
 	  strcat(lbuf8,"\r\n");
 	  pt2 = lbuf8 + strlen(lbuf8);
@@ -1586,6 +1589,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	  notify_quiet(p2,"MAIL ERROR: Reply list too long");
 	  return 1;
 	}
+        comma_exists = 0;
         if ( (strchr(lbuf3, ',') != NULL) && (key == M_REPLY) )
            comma_exists = 1;
 	if (Good_obj(t1)) {
@@ -1595,13 +1599,11 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	     strcat(lbuf3," #");
 	  strcat(lbuf3,myitoa(Owner(t1)));
 	}
-      }
-      else {
+      } else {
 	if (Good_obj(t1)) {
 	  *lbuf3 = '#';
 	  strcpy(lbuf3+1,myitoa(Owner(t1)));
-	}
-	else
+	} else
 	  *lbuf3 = '\0';
       }
     }
@@ -1610,8 +1612,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
       if (subpass) {
 	spt = subpass;
 	mpt = buf2;
-      }
-      else {
+      } else {
         if ( Good_obj(p2) && PennMail(p2) )
   	   spt = strstr(buf2,"/");
         else
@@ -1749,8 +1750,14 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     *lbuf4 = '\0';
     pt1 = lbuf3;
     term = 0;
+    comma_exists = 0;
+    if ( strchr(lbuf3, ',') != NULL )
+       comma_exists = 1;
     while (!term && *pt1) {
-      while (isspace((int)*pt1) && *pt1) pt1++;
+      if ( comma_exists )
+         while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
+      else
+         while ( *pt1 && isspace((int)*pt1)) pt1++;
       if (!*pt1) break;
       pt2 = pt1+1;
       if ((sepchar == '\0') || (*pt1 == '#')) {
@@ -1901,7 +1908,10 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	      else {
 		acheck = 1;
 		strcat(lbuf4,apt);
-		strcat(lbuf4," ");
+                if ( strchr(apt, ',') != NULL )
+		   strcat(lbuf4,",");
+                else
+		   strcat(lbuf4," ");
 	      }
 	    }
             if ( chk_lbuf_free )
@@ -1936,8 +1946,14 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   if ( Good_chk(p2) && MailValid(p2) ) {
      strcpy(tpr_buff, lbuf3);
      pt1 = tpr_buff;
+     comma_exists = 0;
+     if ( strchr(tpr_buff, ',') != NULL )
+        comma_exists = 1;
      while ( !term && *pt1 ) {
-        while (isspace((int)*pt1) && *pt1) pt1++;
+        if ( comma_exists )
+           while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
+        else
+           while (*pt1 && isspace((int)*pt1)) pt1++;
         if (!*pt1) {
            if ( i_nogood != 2 )
               i_nogood = 1;
@@ -1980,8 +1996,14 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   pt1 = lbuf3;
   sepchar = '\0';
   term = 0;
+  comma_exists = 0;
+  if ( strchr(lbuf3, ',') != NULL )
+     comma_exists = 1;
   while (!term && *pt1) {
-    while (isspace((int)*pt1) && *pt1) pt1++;
+    if ( comma_exists )
+       while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
+    else
+       while (*pt1 && isspace((int)*pt1)) pt1++;
     if (!*pt1) break;
     pt2 = pt1+1;
     if ((sepchar == '\0') || (*pt1 == '#')) {
@@ -2098,8 +2120,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
     infodata.dptr = mpt;
     infodata.dsize = strlen(mpt) + 1;
     dbm_store(mailfile, keydata, infodata, DBM_REPLACE);
-  }
-  else {
+  } else {
     notify_quiet(p2,"MAIL ERROR: No valid recipients");
     return 1;
   }
@@ -2164,6 +2185,8 @@ mail_quick_function(dbref player, char *fname, int keyval)
        safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d", old + saved + mark, new + unread, mark), ret_buff, &ret_ptr);
     else if ( keyval == 3 )
        safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d", old + saved, new + unread, mark), ret_buff, &ret_ptr);
+    else if ( keyval == 4 )
+       safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%dT %dN %dU %dO %dM %dS", c2, new, unread, old, mark, saved), ret_buff, &ret_ptr);
     else
        safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d %d %d %d", c2, new, unread, old, mark, saved), ret_buff, &ret_ptr);
     free_lbuf(tpr_buff);
@@ -2173,10 +2196,13 @@ mail_quick_function(dbref player, char *fname, int keyval)
        safe_str("0", ret_buff, &ret_ptr);
     else if ( (keyval == 1) || (keyval == 3) )
        safe_str("0 0 0", ret_buff, &ret_ptr);
+    else if ( keyval == 4 )
+       safe_str("0T 0N 0U 0O 0M 0S", ret_buff, &ret_ptr);
     else
        safe_str("0 0 0 0 0 0", ret_buff, &ret_ptr);
   }
 
+  *quickfolder = '\0';
   return(ret_buff);
 }
 
@@ -2239,9 +2265,10 @@ void mail_quick(dbref player, char *fname)
       }
     }
     free_lbuf(tpr_buff);
-  }
-  else
+  } else {
     notify_quiet(player,"Mail: You have no mail");
+  }
+  *quickfolder = '\0';
 }
 
 void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *out_buff, char *out_buffptr)
@@ -2266,6 +2293,16 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
   subjsearch = 0;
   pcheck2 = NOTHING;
   msize = get_box_size(player);	
+
+  *quickfolder = '\0';
+  if ( *buf == '@' ) {
+     if (fname_check(player,buf+1,0)) {
+       fname_conv(buf+1,quickfolder);
+     } else {
+       notify_quiet(player,"MAIL ERROR: Bad folder in status function");
+     }
+  }
+
   if ( type )
      folder_current(player,0,wiz,key);
   else
@@ -2313,6 +2350,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if (!is_number(buf+1)) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       page = atoi(buf+1);
@@ -2320,6 +2358,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if ((i > absmaxinx) || (i < 1)) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       *(int *)sbuf1 = MIND_PAGE;
@@ -2330,6 +2369,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if (!infodata.dptr) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       memcpy(sbuf2,infodata.dptr,infodata.dsize);
@@ -2339,6 +2379,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if (i > y) {
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
+        *quickfolder = '\0';
 	return;
       }
       min = (short int)i;
@@ -2597,10 +2638,10 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
         if ( type )
            notify_quiet(player,"Mail Warning: Your mail box is full");
       }
-      if ( type )
+      if ( type ) {
          notify_quiet(player2,"Mail: Done");
-    }
-    else {
+      }
+    } else {
       if (key) {
         if ( type )
            notify_quiet(player,"Mail: You have no mail");
@@ -2609,8 +2650,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
 	   notify_quiet(player2,"Mail: That person has no mail");
       }
     }
-  }
-  else
+  } else {
     if (key ) {
       if ( type )
          notify_quiet(player,"Mail: You have no mail");
@@ -2618,6 +2658,8 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
       if ( type )
          notify_quiet(player2,"Mail: That person has no mail");
     }
+  }
+  *quickfolder = '\0';
 }
 
 void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type)
@@ -7524,8 +7566,7 @@ void folder_create(dbref player, char *buf)
     infodata.dsize = strlen(lbuf1) + 1;
     dbm_store(foldfile,keydata,infodata,DBM_REPLACE);
     notify_quiet(player,"Mail: Folder created");
-  }
-  else {
+  } else {
     inc = 0;
     p1 = mystrchr(infodata.dptr,' ');
     while (p1) {
@@ -7619,6 +7660,8 @@ folder_plist_function(dbref player, char *buf1, char *buff, char *bufcx)
 void 
 folder_list(dbref player, dbref wiz, int flag)
 {
+  char *s_tmp1, *s_buff, *s_strtok, *s_strtokr, *retval;
+
   strcpy(lbuf1,"Incoming ");
   *(int *)sbuf1 = FIND_LST;
   *(int *)(sbuf1 + sizeof(int)) = player;
@@ -7627,14 +7670,43 @@ folder_list(dbref player, dbref wiz, int flag)
   infodata = dbm_fetch(foldfile,keydata);
   if (infodata.dptr)
     strcat(lbuf1,infodata.dptr);
+  s_tmp1 = alloc_lbuf("folder_list_tmp");
+  s_buff = alloc_lbuf("folder_list_buff");
+  strcpy(s_tmp1, lbuf1);
   if (flag) {
     notify_quiet(player,"Mail: You have the following folders ->");
-    notify_quiet(player,lbuf1);
-  }
-  else {
+    s_strtok = strtok_r(s_tmp1, " ", &s_strtokr);
+    while ( s_strtok ) {
+       retval = mail_quick_function(player, s_strtok, 4);
+       sprintf(s_buff, "  %-24s %s", s_strtok, retval);
+       free_lbuf(retval);
+       notify_quiet(player, s_buff);
+       s_strtok = strtok_r(NULL, " ", &s_strtokr);
+    }
+    folder_current(player, 0, NOTHING, 1);
+  } else {
     notify_quiet(wiz,"Mail: That player has the following folders ->");
-    notify_quiet(wiz,lbuf1);
+    s_strtok = strtok_r(s_tmp1, " ", &s_strtokr);
+    while ( s_strtok ) {
+       retval = mail_quick_function(player, s_strtok, 4);
+       sprintf(s_buff, "  %-24s %s", s_strtok, retval);
+       free_lbuf(retval);
+       notify_quiet(wiz, s_buff);
+       s_strtok = strtok_r(NULL, " ", &s_strtokr);
+    }	    
+    *s_buff = '\0';
+    s_strtok = s_buff;
+    sprintf(s_tmp1, "#%d", player);
+    folder_current_function(GOD, 0, s_tmp1, s_buff, s_strtok);
+    if ( *s_buff ) {
+       sprintf(s_tmp1, "Mail: That player's current folder is -> %s", s_buff);
+    } else {
+       sprintf(s_tmp1, "Mail: That player has no current folder");
+    }
+    notify_quiet(wiz, s_tmp1);
   }
+  free_lbuf(s_tmp1);
+  free_lbuf(s_buff);
 }
 
 void folder_delete(dbref player, char *buf)

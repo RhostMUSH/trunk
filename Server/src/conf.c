@@ -1,4 +1,4 @@
-/* conf.c:      set up configuration information and static data */
+/* conf.c:      s   et up configuration information and static data */
 
 #include <stdio.h>
 #include <math.h>
@@ -321,6 +321,7 @@ NDECL(cf_init)
     mudconf.parent_follow = 1;		/* Parent allows following if you control target */
     mudconf.objid_localtime = 0;	/* Objid's should use GMtime by default */
     mudconf.objid_offset = 0;		/* seconds of offset that it should use */
+    mudconf.hook_offline = 0;		/* Trigger @hook/after on offline player create */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -337,6 +338,8 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.no_hook = 0;		/* Do not process hooks */
+    mudstate.no_hook_count = 0;		/* Count of times hook include can be called per command */
     mudstate.zone_return = 0;		/* State data of zonecmd() */
     mudstate.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
     mudstate.mysql_last = 0;		/* Time of last mysql hang check */
@@ -1653,9 +1656,9 @@ CF_HAND(cf_dynguest)
  */
 CF_HAND(cf_dynstring)
 {
-   int retval, chkval, addval, first, second, third;
+   int retval, chkval, addval, first, second, third, i_skip;
    char *buff, *tbuff, *buff2, *tbuff2, *stkbuff, *abuf1, *abuf2, *abuf3, *tabuf2, *tabuf3;
-   char quick_buff[LBUF_SIZE+2], *tstrtokr;
+   char quick_buff[LBUF_SIZE+2], *tstrtokr, *tstval, *tstvalptr, *tstvalstr, *tstvalstrptr, *dup, *dupptr;
 
    if ( str == NULL || !*str ) {
       if ( Good_obj(player) )
@@ -1678,6 +1681,11 @@ CF_HAND(cf_dynstring)
       second = 0;
       third = 0;
       addval = 0;
+      i_skip = 0;
+      if ( extra2 == 1 ) {
+         tstvalptr = tstval = alloc_lbuf("cf_dynstring_checkfordupes");
+         dupptr = dup = alloc_lbuf("cf_dynstring_dupliates");
+      }
       while (stkbuff) {
          if (*stkbuff == '!') {
             if ( second )
@@ -1685,13 +1693,40 @@ CF_HAND(cf_dynstring)
             safe_str(stkbuff+1, abuf2, &tabuf2);
             second = 1;
          } else {
-            if ( third )
-               safe_chr(' ', abuf3, &tabuf3);
-            safe_str(stkbuff, abuf3, &tabuf3);
-            third = 1;
-            addval++;
+            if ( extra2 == 1 ) {
+               memset(tstval, '\0', LBUF_SIZE);
+               tstvalptr = tstval;
+               safe_str((char *)vp, tstval, &tstvalptr);
+               safe_chr(' ', tstval, &tstvalptr);
+               safe_str(abuf3, tstval, &tstvalptr);
+               tstvalstr = strtok_r(tstval, (char *)" ", &tstvalstrptr);
+               while ( tstvalstr ) {
+                  if ( stricmp(tstvalstr, stkbuff) == 0 ) {
+                     i_skip = 1;
+                     if ( !dup && !*dup ) {
+                        safe_str(stkbuff, dup, &dupptr);
+                     } else {
+                        safe_chr(' ', dup, &dupptr);
+                        safe_str(stkbuff, dup, &dupptr);
+                     }
+                     break;
+                  }
+                  tstvalstr = strtok_r(NULL, (char *)" ", &tstvalstrptr);
+               }
+            }
+            if ( !i_skip ) {
+               if ( third )
+                  safe_chr(' ', abuf3, &tabuf3);
+               safe_str(stkbuff, abuf3, &tabuf3);
+               third = 1;
+               addval++;
+            }
          }
          stkbuff = strtok_r(NULL," ", &tstrtokr);
+         i_skip = 0;
+      }
+      if ( extra2 == 1 ) {
+         free_lbuf(tstval);
       }
       strcpy(abuf1, (char *) vp);
       stkbuff = strtok_r(abuf1, " ", &tstrtokr);
@@ -1770,6 +1805,14 @@ CF_HAND(cf_dynstring)
                   notify(player, unsafe_tprintf("Entry updated.  %d added.", first));
             }
          }
+         if ( (extra2 == 1) && Good_obj(player) ) {
+            if ( dup && *dup ) {
+               notify(player, unsafe_tprintf("Duplicate entries ignored: %.*s", LBUF_SIZE - 100, dup));
+            }
+         }
+      }
+      if ( extra2 == 1 ) {
+         free_lbuf(dup);
       }
    }
    if ( !chkval && !addval  )
@@ -3250,11 +3293,11 @@ CF_HAND(cf_badname)
  * cf_site: Update site information
  */
 
-CF_HAND(cf_site)
+CF_HAND2(cf_site)
 {
-    SITE *site, *last, *head;
-    char *addr_txt, *mask_txt, *maxcon_txt, *tstrtokr;
-    int i_maxcon;
+    SITE *site, *last, *head, *s_tmp;
+    char *addr_txt, *mask_txt, *maxcon_txt, *tstrtokr, *s_val;
+    int i_maxcon, i_found;
     struct in_addr addr_num, mask_num;
     unsigned long maskval;
 
@@ -3285,15 +3328,37 @@ CF_HAND(cf_site)
     }
 
     i_maxcon = -1;
-    maxcon_txt = strtok_r(NULL, " \t=,", &tstrtokr);
-    if ( maxcon_txt && *maxcon_txt ) {
-       i_maxcon = atoi(maxcon_txt);
-       if ( i_maxcon < 0 )
-          i_maxcon = -1;
+    if ( mask_txt ) {
+       maxcon_txt = strtok_r(NULL, " \t=,", &tstrtokr);
+       if ( maxcon_txt && *maxcon_txt ) {
+          i_maxcon = atoi(maxcon_txt);
+          if ( i_maxcon < 0 )
+             i_maxcon = -1;
+       }
     }
-    head = (SITE *) (pmath2)*vp;
-    /* Parse the access entry and allocate space for it */
 
+
+    head = (SITE *) (pmath2)*vp;
+
+    i_found = 0;
+    for ( s_tmp = head; s_tmp; s_tmp = s_tmp->next ) {
+       if ( s_tmp && (s_tmp->maxcon == i_maxcon) &&
+            (s_tmp->address.s_addr == addr_num.s_addr) &&
+            (s_tmp->mask.s_addr == mask_num.s_addr) &&
+            (s_tmp->flag == extra) ) {
+          i_found = 1;
+          break;
+       }
+    }
+    if ( i_found ) {
+       s_val = alloc_lbuf("cf_site");
+       sprintf(s_val, "%.200s %.200s", addr_txt, mask_txt);
+       cf_log_syntax(player, cmd, "Duplicate entry: %s", s_val);
+       free_lbuf(s_val);
+       return -1;
+    }
+
+    /* Parse the access entry and allocate space for it */
     site = (SITE *) malloc(sizeof(SITE));
 
     /* Initialize the site entry */
@@ -3418,6 +3483,7 @@ CF_HAND(cf_include)
 
 extern CF_HDCL(cf_access);
 extern CF_HDCL(cf_cmd_alias);
+extern CF_HDCL(cf_cmd_vattr);
 extern CF_HDCL(cf_acmd_access);
 extern CF_HDCL(cf_attr_access);
 extern CF_HDCL(cf_ntab_access);
@@ -3445,6 +3511,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ahear_maxtime, 0, 0, CA_PUBLIC,
      (char *) "Maximum listen/ahear time laps (in seconds)?\r\n"\
               "                             Default: 60   Value: %d"},
+    {(char *) "vattr_command",
+     cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
+     (char *) "Define dynamic VATTR commands."},
     {(char *) "alias",
      cf_cmd_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_htab, 0, 0, CA_WIZARD,
      (char *) "Define command alises."},
@@ -3854,7 +3923,7 @@ CONF conftable[] =
      H_FORBIDDEN, 0, CA_WIZARD,
      (char *) "This specifies sites for forbid."},
     {(char *) "forbid_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbid_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbid_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to forbid."},
     {(char *) "fork_dump",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.fork_dump, 0, 0, CA_PUBLIC,
@@ -3974,7 +4043,7 @@ CONF conftable[] =
      cf_badname, CA_GOD | CA_IMMORTAL, NULL, 1, 0, CA_WIZARD,
      (char *) "Remove names from the bad_name list."},
     {(char *) "goodmail_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.goodmail_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.goodmail_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Mail addresses to ALLOW ALWAYS from autoreg."},
     {(char *) "guest_file",
      cf_string, CA_DISABLED, (int *) mudconf.guest_file, 32, 0, CA_WIZARD,
@@ -4020,6 +4089,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.hook_obj, 0, 0, CA_WIZARD,
      (char *) "Global Hook Object dbref#.\r\n"\
               "    (-1 for no defined obj)  Default: -1   Value: %d"},
+    {(char *) "hook_offline",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hook_offline, 0, 0, CA_WIZARD,
+     (char *) "Allow offline 'create' to hook on @pcreate/after?"},
     {(char *) "hostnames",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.use_hostname, 0, 0, CA_WIZARD,
      (char *) "Are hostnames viewable or just numerics?"},
@@ -4320,10 +4392,10 @@ CONF conftable[] =
      H_NOAUTOREG, 0, CA_WIZARD,
      (char *) "Specify sites to block autoregistration."},
     {(char *) "noautoreg_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.autoreg_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.autoreg_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Specify site NAMES to block autoregistration."},
     {(char *) "nobroadcast_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.nobroadcast_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.nobroadcast_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to not MONITOR."},
     {(char *) "nodns_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.special_list,
@@ -4334,7 +4406,7 @@ CONF conftable[] =
      H_NOGUEST, 0, CA_WIZARD,
      (char *) "Specify sites to block guest connections."},
     {(char *) "noguest_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.noguest_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.noguest_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Specify site NAMES to block guest connections"},
     {(char *) "nonindxtxt_maxlines",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.nonindxtxt_maxlines, 0, 0, CA_IMMORTAL,
@@ -4554,7 +4626,7 @@ CONF conftable[] =
      H_REGISTRATION, 0, CA_WIZARD,
      (char *) "Site permissions for registration."},
     {(char *) "register_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.register_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.register_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Site permissions for NAME registration."},
     {(char *) "regtry_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.regtry_limit, 0, 0, CA_WIZARD,
@@ -4734,7 +4806,7 @@ CONF conftable[] =
      H_SUSPECT, 0, CA_WIZARD,
      (char *) "Site list for specifying suspects."},
     {(char *) "suspect_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.suspect_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.suspect_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Site NAME list for specifying suspects."},
     {(char *) "sweep_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.sweep_dark, 0, 0, CA_PUBLIC,
@@ -4793,7 +4865,7 @@ CONF conftable[] =
      (pmath2) attraccess_nametab, 0, CA_WIZARD,
      (char *) "Default permissions for user-attributes."},
     {(char *) "validate_host",
-     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.validate_host, LBUF_SIZE-1, 0, CA_WIZARD,
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.validate_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Mail addresses to block from autoreg."},
     {(char *) "vattr_limit_checkwiz",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.vattr_limit_checkwiz, 0, 0, CA_WIZARD,
@@ -5067,7 +5139,11 @@ cf_read(char *fn)
 {
     int retval;
 
-    mudstate.initializing = 1;
+    if ( strcmp(fn, "rhost_vattr.conf") == 0 ) {
+       mudstate.initializing = -1;
+    } else {
+       mudstate.initializing = 1;
+    }
     retval = cf_include(NULL, fn, 0, 0, 0, (char *) "init");
     mudstate.initializing = 0;
 
@@ -5427,33 +5503,46 @@ void list_options_values(dbref player, int p_val, char *s_val)
 void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc)
 {
     CONF *tp;
-    int first, bVerboseSideFx = 0;
+    int first, bVerboseSideFx = 0, i_wild = 0;
     static char tempbuff[LBUF_SIZE/2];
     char *t_pt, *t_buff;
 
-    if ( key || (*param_name == '1') || (*param_name == '0') ) {
+    if ( *param_name && ((strchr(param_name, '*') != NULL) || (strchr(param_name, '*') != NULL)) ) {
+       i_wild = 1;
+    }
+    if ( key || i_wild || (*param_name == '1') || (*param_name == '0') ) {
        first = 0;
        t_pt = t_buff = alloc_lbuf("cf_display");
        for (tp = conftable; tp->pname; tp++) {
            if (check_access(player, tp->flags2, 0, 0)) {
-              if ( first )
-                 safe_chr(' ', buff, bufc);
-              if ( strlen(buff) > 3900 ) {
-                 if (*param_name == '1')
-                    break;
-                 safe_str(tp->pname, t_buff, &t_pt);
-                 safe_chr(' ', t_buff, &t_pt);
-              } else {
-                 safe_str(tp->pname, buff, bufc);
+              if ( !i_wild || (i_wild && quick_wild(param_name, tp->pname)) ) {
+                 if ( first )
+                    safe_chr(' ', buff, bufc);
+                 if ( strlen(buff) > (LBUF_SIZE - 100) ) {
+                    if (*param_name == '1')
+                       break;
+                    safe_str(tp->pname, t_buff, &t_pt);
+                    safe_chr(' ', t_buff, &t_pt);
+                 } else {
+                    safe_str(tp->pname, buff, bufc);
+                 }
+                 first = 1;
               }
-              first = 1;
            }
        }
        if ( *t_buff )
           notify(player, t_buff);
        free_lbuf(t_buff);
+    } else  if ( stricmp(param_name, (char *)"lbuf_size") == 0 ) {
+       sprintf(tempbuff, "%d", LBUF_SIZE);
+       safe_str(tempbuff, buff, bufc);
+    } else  if ( stricmp(param_name, (char *)"mbuf_size") == 0 ) {
+       sprintf(tempbuff, "%d", MBUF_SIZE);
+       safe_str(tempbuff, buff, bufc);
+    } else  if ( stricmp(param_name, (char *)"sbuf_size") == 0 ) {
+       sprintf(tempbuff, "%d", SBUF_SIZE);
+       safe_str(tempbuff, buff, bufc);
     } else {
-
        if (stricmp(param_name, "sideeffects_txt") == 0) {
      param_name[11] = '\0';
      bVerboseSideFx = 1;

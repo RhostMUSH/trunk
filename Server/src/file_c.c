@@ -197,6 +197,7 @@ fcache_read(FBLOCK ** cp, char *filename)
 #ifdef ZENTY_ANSI
               lbuf1ptr = lbuf1;
               lbuf2ptr = lbuf2;
+              lbuf3ptr = lbuf3;
               parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
 #else
               strncpy(lbuf1, buff, LBUF_SIZE - 1);

@@ -461,6 +461,7 @@ shovechars(int port,char* address)
                   queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
                   free_lbuf(s_buff);
                   free_lbuf(s_buff2);
+                  free_lbuf(s_buff3);
 #else
                   queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
 #endif
@@ -762,7 +763,7 @@ shovechars(int port,char* address)
 		}
 
                 /* Idle stamp checking for command typed */
-                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
+                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && (char *)(d->input_head->cmd) ) {
                    ulCRC32 = 0;
                    i_len = strlen(d->input_head->cmd);
                    ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, i_len);
@@ -770,6 +771,7 @@ shovechars(int port,char* address)
                    if ( anum > 0 ) {
                       ap = atr_num(anum);
                       if (ap) {
+                         attr_wizhidden("_IDLESTAMP");
                          progatr = atr_get(d->player, ap->number, &aowner2, &aflags2);
                          if ( progatr ) {
                             progatr_str = progatr;
@@ -848,7 +850,7 @@ shovechars(int port,char* address)
                    }
                 }
 
-                if ( (d->flags & DS_CONNECTED) && d->input_head && d->input_head->cmd ) {
+                if ( (d->flags & DS_CONNECTED) && d->input_head && (char *)(d->input_head->cmd) ) {
                    memcpy(s_cutter, d->input_head->cmd, 5);
                    memcpy(s_cutter2, d->input_head->cmd, 7);
                    s_cutter[5] = '\0';
@@ -871,7 +873,7 @@ shovechars(int port,char* address)
                 }
 
                 /* Ignore Null Input */
-                if ( (d->input_tot <= (i_oldlastcnt + 2)) && d->input_head && d->input_head->cmd &&
+                if ( (d->input_tot <= (i_oldlastcnt + 2)) && d->input_head && (char *)(d->input_head->cmd) &&
                      ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
                    d->last_time = i_oldlasttime;
                 }
@@ -968,8 +970,14 @@ new_connection(int sock)
     struct sockaddr_in addr;
     static int spam_log = 0;
     char *logbuff, *addroutbuf;
-    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, 
-        i_mtu, i_mtulen, i_mss, i_msslen, i_proxychk;
+    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, i_proxychk;
+#ifndef __MACH__
+#ifndef CYGWIN
+#ifndef BROKEN_PROXY
+    int i_mtu, i_mtulen, i_mss, i_msslen;
+#endif
+#endif
+#endif
 
 #ifndef TLI
     int addr_len;
@@ -2022,95 +2030,84 @@ process_input(DESC * d)
     memset(tmpbuf, '\0', sizeof(tmpbuf));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
-    mudstate.debug_cmd = cmdsave;
-    RETURN(0); /* #16 */
+        mudstate.debug_cmd = cmdsave;
+        RETURN(0); /* #16 */
     }
     if (!d->raw_input) {
-    d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-    d->raw_input_at = d->raw_input->cmd;
+        d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+        d->raw_input_at = d->raw_input->cmd;
     }
     p = d->raw_input_at;
     pend = d->raw_input->cmd + LBUF_SIZE - sizeof(CBLKHDR) - 1;
     lost = 0;
     for (q = buf, qend = buf + got; q < qend; q++) {
-    if (*q == '\n') {
-        *p = '\0';
-        if (p > d->raw_input->cmd) {
-        save_command(d, d->raw_input);
-        d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-        p = d->raw_input_at = d->raw_input->cmd;
-        pend = d->raw_input->cmd + LBUF_SIZE -
-            sizeof(CBLKHDR) - 1;
-        } else {
-        in -= 1;    /* for newline */
-        }
-    } else if ((*q == '\b') || (*q == 127)) {
-        if (*q == 127)
-        queue_string(d, "\b \b");
-        else
-        queue_string(d, " \b");
-        in -= 2;
-        if (p > d->raw_input->cmd)
-        p--;
-        if (p < d->raw_input_at)
-        (d->raw_input_at)--;
-    } else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
-        *p++ = *q;
-    } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
-        sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
-        tmpptr = utf8toucp(tmpbuf);
-        sprintf(qfind, "%s", tmpptr);
-		
-        q+=3;
-        in+=12;
-        got+=12;
-        qf = qfind;
-        while (*qf) {
-            *p++ = *qf++;
-        }
-    } else if ((p+13) < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
-        sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
-        tmpptr = utf8toucp(tmpbuf);
-        sprintf(qfind, "%s", tmpptr);
-		
-        q+=2;
-        in+=10;
-        got+=10;
-        qf = qfind;
-        while (*qf) {
-            *p++ = *qf++;
-        }   
-    } else if ((p+13) < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
-        sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
-        tmpptr = utf8toucp(tmpbuf);
-        sprintf(qfind, "%s", tmpptr);
-        
-        q+=1;
-        in+=8;
-        got+=8;
-        qf = qfind;
-        while (*qf) {
-            *p++ = *qf++;
-        }
-    } else if ( (((int)(unsigned char)*q) > 160) && 
-                    ((!mudconf.accent_extend && ((int)(unsigned char)*q) < 250) || (mudconf.accent_extend && ((int)(unsigned char)*q) < 256)) && 
-                    ((p+10) < pend) ) {
-            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {             
-               sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-               in+=5;
-               got+=5;
-               qf = qfind;
-               while ( *qf ) {
-                  *p++ = *qf++;
-               }
+        if (*q == '\n') {
+            *p = '\0';
+            if (p > d->raw_input->cmd) {
+            save_command(d, d->raw_input);
+            d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+            p = d->raw_input_at = d->raw_input->cmd;
+            pend = d->raw_input->cmd + LBUF_SIZE -
+                sizeof(CBLKHDR) - 1;
+            } else {
+            in -= 1;	/* for newline */
+            }
+        } else if ((*q == '\b') || (*q == 127)) {
+            if (*q == 127)
+            queue_string(d, "\b \b");
+            else
+            queue_string(d, " \b");
+            in -= 2;
+            if (p > d->raw_input->cmd)
+            p--;
+            if (p < d->raw_input_at)
+            (d->raw_input_at)--;
+        } else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
+            *p++ = *q;
+        } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+            sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            
+            q+=3;
+            in+=12;
+            got+=12;
+            qf = qfind;
+            while (*qf) {
+                *p++ = *qf++;
+            }
+        } else if ((p+13) < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+            sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            
+            q+=2;
+            in+=10;
+            got+=10;
+            qf = qfind;
+            while (*qf) {
+                *p++ = *qf++;
+            }   
+        } else if ((p+13) < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+            sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            
+            q+=1;
+            in+=8;
+            got+=8;
+            qf = qfind;
+            while (*qf) {
+                *p++ = *qf++;
             }
         } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != '\0') ) {
-            q++;
-	} else {
-	    in--;
-	    if (p >= pend)
-		lost++;
-	}
+                q++;
+
+        } else {
+            in--;
+            if (p >= pend)
+            lost++;
+        }
     }
     if (p > d->raw_input->cmd) {
     d->raw_input_at = p;

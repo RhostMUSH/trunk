@@ -48,6 +48,7 @@ XII.  Advanced features of RhostMUSH
       Y.  Attribute permission masking and the joys of the power behind it
       Z.  The amazing @cluster and what it can do for you
       ZZ. What we plan for the future
+XIII. Signals and why you need them for control
 
 
 --------------------------------------------------------------------------------
@@ -263,9 +264,33 @@ for attribute names.  It's handy to have.
 If you wish at this point to set up mysql and/or sqlite, you  may do so.
 Yes, you can use them in parallel without any issue.
 
+---------------------- NOTE ABOUT RECOMPILING ----------------------------------
+If you plan to use 'make confsource' to recompile your source, you should first
+issue a 'make clean' before re-issuing a 'make confsource'.  'make confsource'
+remembers the last options you used.
 
+---------------------- NOTE ABOUT PATCHING    ----------------------------------
+There's two ways you can look to patch the source.  If you plan to run the
+RhostMUSH source from a git repository, then please use the git repo to
+constantly update your code.  If you knew enough to want to set up a git repo
+then we expect knowledge on how to keep source trees updated in the git repo
+to be used the same as any other source distribution.
 
+If, however, you have no idea what a git repo even is, or have no inclination
+of using git to manage your RhostMUSH source, or just don't care one way
+or another, then you can use the included patch.sh routine (from under the
+Server directory) to patch your source at any time.
 
+From the server directory just type: ./patch.sh
+
+That will auto-compile your source, auto make all your header files and
+essentially keep everything up to date to the latest source.
+Once that's done, all you do from within the game is two commands:
+
+1.  @reboot (or @reboot/silent)  -- This will load in the new binary
+2.  @readcache  -- This will read in all the .txt file changes
+
+Happy Rhosting.
 
 --------------------------------------------------------------------------------
 III.  How to convert a database from another mush to RhostMUSH
@@ -415,7 +440,7 @@ co #1 Nyctasia
 @set *adminholder=no_connect !wanderer councilor
 @badsite *adminholder=*
 
-    Archiect/Staff Holder:
+    Architect/Staff Holder:
 @pcreate StaffHolder=abc123
 @set *staffholder=no_connect !wanderer architect
 @badsite *staffholder=*
@@ -1494,3 +1519,41 @@ XII.  Advanced features of RhostMUSH
   - Changing permission levels in the middle of execution for evaluation.
     * see help on the streval and ueval function
   - Full features in-game customization of near every aspect of the game.
+
+--------------------------------------------------------------------------------
+XIII. Signals and why you need them for control
+--------------------------------------------------------------------------------
+Rhost by default allows signals at the shell to handle various processes in-game.
+
+The following signals are useful.
+
+TERM (kill -TERM or kill -15).
+   - This will immediately terminate the mush, dumping a special flatfile called
+     netrhost.db.TERM and scramming the db in question by force-closing it
+     without any writes.  A TERM is the effort for the mush to shut down the
+     mush as fast as possible to avoid any db corruption if possible since
+     a TERM signal is common during a server shutdown, so time is paramount.
+
+USR1 (kill -USR1)
+   - This by default issues a reboot on the server.  This is a special parameter
+     because this can actually be changed in-game to do any number of other 
+     things.  Please refer to the RhostMUSH running in question if this is
+     the default behavior or if the method for USR1 is doing something else.
+
+USR2 (kill -USR2)
+   - This will shutdown (cleanly) the mush.  This behaves as if you issued
+     a @shutdown from within the game, and follows all proper procedure
+     in bringing the game down cleanly and safely.  This shoudl be used
+     when doing maintenance on the game or if you need to bring it down
+     from the shell.
+
+KILL (kill -KILL or kill -9)
+   - This signal can not be caught and will immediately terminate the game
+     without any safty to the database at all.  Short of something horribly
+     wrong going on, this should never be used to bring down your mush.
+     Doing so will almost certainly corrupt your databases (ALL OF THEM)
+     that are open, including but not limited to your main database, your
+     mail database, your autoregistration database, and so forth.  So if
+     you do this, plan to do some database recovery from your flat files.
+     Also, when you bring down a mush in this manner, you need to issue
+     Startmush -f to bring it back up.

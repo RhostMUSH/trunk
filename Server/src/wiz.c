@@ -464,7 +464,7 @@ char *retbuff;
   }
   mudstate.remote = target;
   mudstate.remotep = player;
-  process_command(player, player, 0, command, args, nargs, 0);
+  process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook);
   mudstate.remote = -1;
   mudstate.remotep = -1;
 }
@@ -2795,7 +2795,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             s_name = alloc_lbuf("@snapshot_name");
             s_alias = alloc_lbuf("@snapshot_alias");
             sprintf(s_name, "#%d", thing);
-            do_alias(1, 1, 0, s_name, s_alias);
+            do_alias(GOD, 1, 0, s_name, s_alias);
             free_lbuf(s_name);
             free_lbuf(s_alias);
          }
@@ -2807,8 +2807,8 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             s_alias = atr_get(thing, A_ALIAS, &aowner, &aflags);
             if ( s_alias && *s_alias ) {
                s_aliastmp = alloc_lbuf("@snapshot_aliastmp");
-               do_alias(1, 1, 0, s_name, s_aliastmp);
-               do_alias(1, 1, 0, s_name, s_alias);
+               do_alias(GOD, GOD, 0, s_name, s_aliastmp);
+               do_alias(GOD, GOD, 0, s_name, s_alias);
                free_lbuf(s_aliastmp);
             }
             if ( i_connect ) {

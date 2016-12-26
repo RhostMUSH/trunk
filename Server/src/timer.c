@@ -23,6 +23,7 @@
  * functionality, so define below when required for each arch-type
  ******************************************************************************/
 #ifdef __MACH__
+#ifndef MACH_TIMER
 #include <sys/time.h>
 #define CLOCK_REALTIME  0
 #define CLOCK_MONOTONIC 0
@@ -36,6 +37,7 @@ int clock_gettime(int clk_id, struct timespec* t) {
    t->tv_nsec = now.tv_usec * 1000;
    return 0;
 }
+#endif
 #endif
 
 /*#include <sys/resource.h>*/

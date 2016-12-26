@@ -64,11 +64,16 @@ else
    EXTLIBS=-lrt
 endif
 
-CHK = $(shell which gcc >/dev/null; echo $$?)
+CHK = $(shell which clang >/dev/null; echo $$?)
 ifeq "$(CHK)" "0"
-   CC = gcc
+   CC = clang
 else
-   CC = cc
+   CHK = $(shell which gcc >/dev/null; echo $$?)
+   ifeq "$(CHK)" "0"
+      CC = gcc
+   else
+      CC = cc
+   endif
 endif
 
 # CPP = gcc -E	# This is broken in autoconf.  Sigh.
@@ -206,6 +211,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 
 # DEFS is handled by asksource.sh  Feel free to add new definitions but do not remove CUSTDEFS
 DEFS = $(CUSTDEFS) -Wall 
+
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).

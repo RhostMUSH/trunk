@@ -418,6 +418,7 @@ struct confdata {
 	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
 	int	penn_setq;	/* Do penn setq formatting */
 	int	delim_null;	/* Allow @@ for delimiters */
+	int	hook_offline;	/* Hook offline commands */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;    /* How descs are displayed in reality */
@@ -451,7 +452,7 @@ struct confdata {
         char    mysql_socket[128];
     int mysql_port;
 #endif
-    int name_with_desc; /* Toggle to enable names with descs when looking (if not-examinable) */
+	int	name_with_desc;	/* Toggle to enable names with descs when looking (if not-examinable) */
     int allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ascii quotes */
     int allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
 #else
@@ -589,24 +590,26 @@ struct statedata {
         int     iter_inumarr[50];/* Iter recursive memory - number*/
         int     iter_inumbrk[50];/* Iter recursive memory - break*/
         int     iter_inum;      /* Iter inum value */
-    int dol_inumarr[50];/* Dolist array */
-    char    *dol_arr[50];   /* Dolist Array */
-    int alarm_triggered;/* Has periodic alarm signal occurred? */
-    time_t  now;        /* What time is it now? */
-    double  nowmsec; /* What time is it now, with msecs */
-    time_t  lastnow;    /* What time was it last? */
-    double  lastnowmsec; /* What time was it last, with msecs */
-    double  dump_counter;   /* Countdown to next db dump */
-    double  check_counter;  /* Countdown to next db check */
-    double  idle_counter;   /* Countdown to next idle check */
-    double  rwho_counter;   /* Countdown to next RWHO dump */
-    double  mstats_counter; /* Countdown to next mstats snapshot */
-    time_t  chkcpu_stopper; /* What time was it when command started */
-    int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
-    int chkcpu_locktog; /* Toggles the chkcpu to notify if aborted via locks */
-    int ahear_count;    /* Current ahear nest count */
-    dbref   ahear_lastplr;  /* Last Player to try the ahear thingy */
-    int ahear_currtime; /* Time the ahear was issued */
+	int	dol_inumarr[50];/* Dolist array */
+	char	*dol_arr[50];	/* Dolist Array */
+	int	alarm_triggered;/* Has periodic alarm signal occurred? */
+	time_t	now;		/* What time is it now? */
+	int	no_hook;	/* Do not hook */
+	int	no_hook_count;	/* count of how many hooks are processed per 'command'  no more than 5 */
+	double  nowmsec; /* What time is it now, with msecs */
+	time_t	lastnow;	/* What time was it last? */
+	double  lastnowmsec; /* What time was it last, with msecs */
+	double	dump_counter;	/* Countdown to next db dump */
+	double	check_counter;	/* Countdown to next db check */
+	double	idle_counter;	/* Countdown to next idle check */
+	double	rwho_counter;	/* Countdown to next RWHO dump */
+	double	mstats_counter;	/* Countdown to next mstats snapshot */
+	time_t  chkcpu_stopper; /* What time was it when command started */
+	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
+	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
+	int	ahear_count;	/* Current ahear nest count */
+	dbref	ahear_lastplr;	/* Last Player to try the ahear thingy */
+	int	ahear_currtime;	/* Time the ahear was issued */
         int     force_halt;     /* Can you force the halted person? */
     int rwho_on;    /* Have we connected to an RWHO server? */
     int shutdown_flag;  /* Should interface be shut down? */
@@ -630,26 +633,27 @@ struct statedata {
     SITE    *suspect_list;  /* Sites that are suspect */
     SITE    *special_list;  /* Sites that have special requirements */
         HASHTAB cmd_alias_htab; /* Command alias hashtable */
-    HASHTAB command_htab;   /* Commands hashtable */
-    HASHTAB logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
-    HASHTAB func_htab;  /* Functions hashtable */
-    HASHTAB ufunc_htab; /* Local functions hashtable */
-    HASHTAB ulfunc_htab;    /* User-Defiend Local functions hashtable */
-    HASHTAB flags_htab; /* Flags hashtable */
-    HASHTAB toggles_htab;   /* Toggles hashtable */
-    HASHTAB powers_htab;
-    HASHTAB depowers_htab;
-    HASHTAB attr_name_htab; /* Attribute names hashtable */
-    NHSHTAB attr_num_htab;  /* Attribute numbers hashtable */
-    HASHTAB player_htab;    /* Player name->number hashtable */
-    NHSHTAB desc_htab;  /* Socket descriptor hashtable */
-    NHSHTAB fwdlist_htab;   /* Room forwardlists */
-    NHSHTAB parent_htab;    /* Parent $-command exclusion */
-    HASHTAB news_htab;  /* News topics hashtable */
-    HASHTAB help_htab;  /* Help topics hashtable */
-    HASHTAB wizhelp_htab;   /* Wizard help topics hashtable */
-    HASHTAB error_htab;
-        HASHTAB ansi_htab;  /* 256 colortab */
+	HASHTAB	command_htab;	/* Commands hashtable */
+	HASHTAB	command_vattr_htab;	/* Commands VATTR dynamic hashtable */
+	HASHTAB	logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
+	HASHTAB func_htab;	/* Functions hashtable */
+	HASHTAB ufunc_htab;	/* Local functions hashtable */
+	HASHTAB ulfunc_htab;	/* User-Defiend Local functions hashtable */
+	HASHTAB flags_htab;	/* Flags hashtable */
+	HASHTAB toggles_htab;	/* Toggles hashtable */
+	HASHTAB powers_htab;
+	HASHTAB depowers_htab;
+	HASHTAB	attr_name_htab;	/* Attribute names hashtable */
+	NHSHTAB	attr_num_htab;	/* Attribute numbers hashtable */
+	HASHTAB player_htab;	/* Player name->number hashtable */
+	NHSHTAB	desc_htab;	/* Socket descriptor hashtable */
+	NHSHTAB	fwdlist_htab;	/* Room forwardlists */
+	NHSHTAB	parent_htab;	/* Parent $-command exclusion */
+	HASHTAB	news_htab;	/* News topics hashtable */
+	HASHTAB	help_htab;	/* Help topics hashtable */
+	HASHTAB	wizhelp_htab;	/* Wizard help topics hashtable */
+	HASHTAB error_htab;
+        HASHTAB ansi_htab;	/* 256 colortab */
 #ifdef PLUSHELP
     HASHTAB plushelp_htab;  /* PlusHelp topics hashtable */
 #endif
@@ -802,9 +806,11 @@ extern STATEDATA mudstate;
 
 /* Configuration parameter handler definition */
 
-#define CF_HAND(proc)   int proc (int *vp, char *str, long extra, long extra2, \
-                      dbref player, char *cmd)
-#define CF_HDCL(proc)   int FDECL(proc, (int *, char *, long, long, dbref, char *))
+#define CF_HAND(proc)	int proc (int *vp, char *str, long extra, long extra2, \
+ 			          dbref player, char *cmd)
+#define CF_HAND2(proc)	int proc (pmath2 *vp, char *str, long extra, long extra2, \
+ 			          dbref player, char *cmd)
+#define CF_HDCL(proc)	int FDECL(proc, (int *, char *, long, long, dbref, char *))
 
 /* Global flags */
 

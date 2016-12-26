@@ -675,12 +675,13 @@ static const int mux_isprint[256] =
  * This handles accents as well!
  * buff/bufptr is the ansi
  * buff2/buf2ptr is the accents + ansi
- * Change %c/%x/%m substitutions into real ansi now.
+ * buff_utf/bufc_utf is the utf-8 + ansi
+ * Change %c/%x substitutions into real ansi now.
  ******************************************************/
 void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr, char *buff_utf, char **bufuptr)
 {
-    char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4];
-    char s_utfbuf[3], s_ucpbuf[7], *ptr, tmpbuf[10], *tmpptr = NULL, *tmp;
+    char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], *ptr;
+    char s_utfbuf[2], s_ucpbuf[7], *tmpptr = NULL, *tmp;
     unsigned char ch1, ch2, ch;
     int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt;
 
@@ -692,7 +693,6 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     memset(s_final, '\0', sizeof(s_final));
     memset(s_utfbuf, '\0', sizeof(s_utfbuf));
     memset(s_ucpbuf, '\0', sizeof(s_ucpbuf));
-    memset(tmpbuf, '\0', sizeof(tmpbuf));
     bufc = *bufptr;
     bufc2 = *buf2ptr;
     bufc_utf = *bufuptr;
@@ -702,6 +702,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     i_utfcnt = 0;
     s_intbuf[3] = '\0';
     ch = ch1 = ch2 = '\0';
+
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
@@ -737,14 +738,14 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 else if(*(string+1) == SAFE_CHR2) {
                   safe_str((char*)SAFE_CHRST2, buff, &bufc);
                   safe_str((char*)SAFE_CHRST2, buff2, &bufc2);
-                  safe_str((char*)SAFE_CHRST, buff_utf, &bufc_utf);
+                  safe_str((char*)SAFE_CHRST2, buff_utf, &bufc_utf);
                 }
 #endif
 #ifdef SAFE_CHR3
                 else if(*(string+1) == SAFE_CHR3) {
                   safe_str((char*)SAFE_CHRST3, buff, &bufc);
                   safe_str((char*)SAFE_CHRST3, buff2, &bufc2);
-                  safe_str((char*)SAFE_CHRST, buff_utf, &bufc_utf);
+                  safe_str((char*)SAFE_CHRST3, buff_utf, &bufc_utf);
                 }
 #endif
                 else {
@@ -761,6 +762,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
             } else if ( (*string == '%') && (*(string+1) == '<') ) { 
                 safe_str("%<", buff, &bufc);
                 safe_str("%<", buff2, &bufc2);
+                safe_str("%<", buff_utf, &bufc_utf);
                 string++;
             } else if ( ((*string != SAFE_CHR)
 #ifdef SAFE_CHR2
@@ -776,9 +778,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff2, &bufc2);
                 safe_chr('%', buff_utf, &bufc_utf);
                 safe_chr(*string, buff_utf, &bufc_utf);
-/*          } else if ( (*string == '%') && (*(string+1) == '<') ) { 
-                string+=2; */
-            } else if ( (*string == '<') ) {
+            } else if ( *string == '<' ) {
                 string++;
                 if ( (*string == 'u') && 
                      (((strlen(string)) > 5 && (*(string+5) == '>')) 
@@ -799,24 +799,22 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     i_utfnum = atoi(s_ucpbuf);
                     
                    
-                    //if (i_utfnum > 31) {
-                        tmpptr = ucptoutf8(s_ucpbuf);
+                    tmpptr = ucptoutf8(s_ucpbuf);
 
-                        i_utfcnt = 0;
-                        tmp = tmpptr;
-                        while (*tmp) {
-                            s_utfbuf[i_utfcnt % 2] = *tmp;                      
-                            if (i_utfcnt % 2) {
-                                i_utfnum = strtol(s_utfbuf, &ptr, 16);
-                                safe_chr((char)i_utfnum, buff_utf, &bufc_utf);
-                            }
-                            
-                            i_utfcnt++;
-                            tmp++;
+                    i_utfcnt = 0;
+                    tmp = tmpptr;
+                    while (*tmp) {
+                        s_utfbuf[i_utfcnt % 2] = *tmp;                      
+                        if (i_utfcnt % 2) {
+                            i_utfnum = strtol(s_utfbuf, &ptr, 16);
+                            safe_chr((char)i_utfnum, buff_utf, &bufc_utf);
                         }
-                        safe_chr(' ', buff2, &bufc2);
-                        safe_chr(' ', buff, &bufc);
-                    //}
+                        
+                        i_utfcnt++;
+                        tmp++;
+                    }
+                    safe_chr(' ', buff2, &bufc2);
+                    safe_chr(' ', buff, &bufc);
                 } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
                    s_intbuf[0] = *(string);
                    s_intbuf[1] = *(string+1);
@@ -826,14 +824,15 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
                       safe_chr((char) i_extendnum, buff2, &bufc2);
                       safe_chr((char) i_extendnum, buff, &bufc);
+                      safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
                    } else if ( (i_extendnum >= 160) && 
                            ((!mudconf.accent_extend && (i_extendnum <= 250)) || (mudconf.accent_extend && (i_extendnum <=255))) ) {
                       if ( i_extendnum == 255 ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
                          safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
                       }
-                      safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
                       safe_chr((char) i_extendnum, buff2, &bufc2);
+                      safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
                       safe_chr(' ', buff, &bufc);                         
                    } else {
                       switch(i_extendnum) {
@@ -843,10 +842,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                                    break;
                          case 253:
                          case 255: safe_chr('y', buff2, &bufc2);
-                                   safe_chr('y', buff_utf, &bufc_utf);                       
+                                   safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                          case 254: safe_chr('p', buff2, &bufc2);
-                                   safe_chr('p', buff_utf, &bufc_utf);                       
+                                   safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                       }
                    }
@@ -915,7 +914,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
                             safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);                         
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
 #ifdef SAFE_CHR2
                           else if(*(string-1) == SAFE_CHR2) {
@@ -923,8 +922,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_chr(*string, buff, &bufc);
                             safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
-                            safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);                         
+                            safe_str((char *)SAFE_CHRST2, buff_utf, &bufc_utf);
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
 #endif
 #ifdef SAFE_CHR3
@@ -933,8 +932,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_chr(*string, buff, &bufc);
                             safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
-                            safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);                         
+                            safe_str((char *)SAFE_CHRST3, buff_utf, &bufc_utf);
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
 #endif
                           else {
@@ -943,7 +942,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
                             safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);                         
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
                           break;
                     }  
@@ -1100,7 +1099,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
                       safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                      safe_chr(*string, buff_utf, &bufc_utf);                     
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
 #ifdef SAFE_CHR2
                     else if(*(string-1) == SAFE_CHR2) {
@@ -1108,8 +1107,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_chr(*string, buff, &bufc);
                       safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
-                      safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                      safe_chr(*string, buff_utf, &bufc_utf);                     
+                      safe_str((char *)SAFE_CHRST2, buff_utf, &bufc_utf);
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
 #endif
 #ifdef SAFE_CHR3
@@ -1118,8 +1117,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_chr(*string, buff, &bufc);
                       safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
-                      safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                      safe_chr(*string, buff_utf, &bufc_utf);                     
+                      safe_str((char *)SAFE_CHRST3, buff_utf, &bufc_utf);
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
 #endif
                     else {
@@ -1128,7 +1127,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
                       safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                      safe_chr(*string, buff_utf, &bufc_utf);                     
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
                     break;
                 }
@@ -1174,6 +1173,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                safe_chr(*string, buff_utf, &bufc_utf);
             }
             safe_chr(*string, buff, &bufc);
+            safe_chr(*string, buff_utf, &bufc_utf);
         }
         if ( *string )
            string++;
@@ -1185,10 +1185,6 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     *bufptr = bufc;
     *buf2ptr = bufc2;
     *bufuptr = bufc_utf;
-    
-    if (tmpptr) {
-        free(tmpptr);
-    }
 }
 
 #endif
@@ -1254,7 +1250,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     DPUSH; /* #67 */
         
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
-#ifdef EXPANDED_QREGS
+#ifdef EXPANDED_QREGS    
     w = 0;
 #endif
     mudstate.evalcount++;
@@ -1341,12 +1337,12 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     is_top = tcache_empty();
     savestr = alloc_lbuf("exec.save");
         s_label = alloc_sbuf("exec.save_label");
-	strcpy(savestr, dstr);
+    strcpy(savestr, dstr);
         if ( mudstate.trace_nest_lev < (LABEL_MAX - 1)) {
            if ( (mudstate.trace_nest_lev > 0) && i_label_lev )
           strcpy(s_label, t_label[i_label_lev]);
         } else {
-	   strcpy(s_label, t_label[LABEL_MAX - 1]);
+       strcpy(s_label, t_label[LABEL_MAX - 1]);
         }
     }
     if (index(dstr, ESC_CHAR)) {
@@ -1398,6 +1394,12 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
         at_space = 0;
         tstr = dstr++;
+            if ( eval & EV_NOFCHECK ) {
+                mudstate.stack_val--;
+        safe_chr('{', buff, &bufc);
+        dstr = tstr;
+        break;
+            }
         tbuf = parse_to(&dstr, ']', 0);
         if (dstr == NULL) {
         safe_chr('[', buff, &bufc);
@@ -2411,10 +2413,16 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 if ( fp == NULL ) {
            ufp = (UFUN *) hashfind(tbangc, &mudstate.ufunc_htab);
         }
+                if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                   ufp = NULL;
+                }
                 if ( ufp == NULL ) {
                    sprintf(tfunlocal, "%d_%s", Owner(player), tbangc);
            ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
+                      ulfp = NULL;
+                   }
+                   if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
                       ulfp = NULL;
                    }
                 }
@@ -2425,10 +2433,16 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 if ( fp == NULL ) {
            ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
         }
+                if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                   ufp = NULL;
+                }
                 if ( ufp == NULL ) {
                    sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
            ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
+                      ulfp = NULL;
+                   }
+                   if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
                       ulfp = NULL;
                    }
                 }
@@ -2442,16 +2456,22 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
         if (fp == NULL) {
         ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
         }
+            if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+               ufp = NULL;
+            }
             if ( ufp == NULL ) {
                 sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
         ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                 if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                    ulfp = NULL;
                 }
+                if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
+                   ulfp = NULL;
+                }
             }
 #endif
             /* Compare to see if it has an IGNORE mask */
-            if ( fp && (fp->perms & 0x00007F00) ) {
+            if ( fp && ((fp->perms & 0x00007F00) || (fp->perms2 & CA_SB_IGNORE)) ) {
            check_access(player, fp->perms, fp->perms2, 0);
                if ( mudstate.func_ignore && !mudstate.func_bypass) {
                   memset(tfunbuff, 0, sizeof(tfunbuff));
@@ -2465,13 +2485,24 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                   } else {
                      sprintf(tfunbuff, "_%.31s", tbuf);
                   }
-              ufp = (UFUN *) hashfind((char *)tfunbuff,
-                       &mudstate.ufunc_htab);
+              ufp = (UFUN *) hashfind((char *)tfunbuff, &mudstate.ufunc_htab);
+                  if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                     ufp = NULL;
+                  }
                   if ( ufp == NULL ) {
                       sprintf(tfunlocal, "%d_%s", Owner(player), tfunbuff);
               ulfp = (UFUN *) hashfind((char *)tfunlocal, &mudstate.ulfunc_htab);
                       if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                          ulfp = NULL;
+                      }
+                      if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
+                         ulfp = NULL;
+                      }
+                      if ( ulfp ) {
+                         check_access(player, ulfp->perms, ulfp->perms2, 0);
+                         if ( mudstate.func_ignore && !mudstate.func_bypass ) {
+                            ulfp = NULL;
+                         }
                       }
                   }
                }

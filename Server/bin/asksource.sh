@@ -57,12 +57,12 @@ else
       fi
    done
 fi
-if [ -f /usr/bin/gcc ]
-then
-   MYGCC=/usr/bin/gcc
-elif [ -f /usr/bin/clang ]
+if [ -f /usr/bin/clang ]
 then
    MYGCC=/usr/bin/clang
+elif [ -f /usr/bin/gcc ]
+then
+   MYGCC=/usr/bin/gcc
 else
    for i in $(slocate gcc)
    do
@@ -1523,6 +1523,11 @@ setdefaults() {
   fi
   if [ "$(uname -s)" == "Darwin" ]
   then
+     ${MYGCC} ../src/gettime_test.c -o ../src/gettime_test > /dev/null 2>&1
+     if [ $? -eq 0 ]
+     then
+        DEFS="-DMACH_TIMER ${DEFS}"
+     fi
      if [ ${gl_chkerrno} -eq 0 ]
      then
         echo "Patching errno.h for MAC compatibility..."

@@ -39,13 +39,14 @@
 #define atrpGod(s) (s == 7)
 #define atrpPreReg(s) (s == 0)
 
-
 #define SPLIT_NORMAL		0x00
 #define SPLIT_HILITE		0x01
 #define SPLIT_FLASH		    0x02
 #define SPLIT_UNDERSCORE	0x04
 #define SPLIT_INVERSE		0x08
 #define SPLIT_NOANSI		0x10
+#define SPLIT_FG		0x20
+#define SPLIT_BG		0x40
 
 typedef struct ansisplit {
 	char	s_fghex[5];	/* Hex representation - foreground */
@@ -54,8 +55,8 @@ typedef struct ansisplit {
 	char	c_bgansi;	/* Normal background ansi */
 	int     i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
-        int     i_ascii8;	/* ASCII-8 encoding */
-	unsigned int    i_utf8;	    /* UTF8 encoding */
+        int	i_ascii8;	/* ASCII-8 encoding */
+    int i_utf8; /* UTF-8 encoding */
 } ANSISPLIT;
 
 typedef struct atrp {
@@ -69,6 +70,9 @@ typedef struct atrp {
         struct atrp *next;      /* Next ufun in chain */
 } ATRP;
 
+extern void	FDECL(attr_internal,(char *));
+extern void	FDECL(attr_wizhidden,(char *));
+extern void	FDECL(attr_generic,(char *, char *));
 extern long	FDECL(count_player,(dbref, int));
 /* From conf.c */
 extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
@@ -417,6 +421,7 @@ extern int      FDECL(tboolchk,(char *));
 extern char *	FDECL(find_cluster, (dbref, dbref, int));
 extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
 
+extern char *   FDECL(encode_utf8, (char *));
 extern char * 	FDECL(utf8toucp, (char *));
 extern char * 	FDECL(ucptoutf8, (char *));
 
@@ -1191,6 +1196,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	EV_TOP		0x00010000	/* This is a toplevel call to eval() */
 #define	EV_NOTRACE	0x00020000	/* Don't trace this call to eval */
 #define EV_PARSE_ANSI   0x00040000 	/* Parse the ansi in EXEC */
+#define EV_NOFCHECK	0x00080000	/* Do not evaluate functions */
 
 /* %-SUB overriding */
 #define SUB_N           0x00000001

@@ -732,7 +732,7 @@ TOGENT tog_table[] =
   {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, th_noset},
   {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, 0, 0, 0, th_player},
   {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, 0, 0, 0, th_wiz},
-  {"UTF8", TOG_UTF8, '$', 1, 0, 0, 0, 0, th_noaccents},
+  {"UTF8", TOG_UTF8, '$', 1, 0, 0, 0, 0, th_player},
   {NULL, 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 
@@ -981,9 +981,10 @@ NDECL(init_flagtab)
 
     hashinit(&mudstate.flags_htab, 521);
     nbuf = alloc_sbuf("init_flagtab");
-    for (fp = gen_flags; fp->flagname && *fp->flagname != '\0'; fp++) {
-      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++)
+    for (fp = gen_flags; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
 	*np = ToLower((int)*bp);
+      }
       *np = '\0';
       hashadd2(nbuf, (int *) fp, &mudstate.flags_htab, 1);
     }
@@ -998,9 +999,10 @@ NDECL(init_toggletab)
 
     hashinit(&mudstate.toggles_htab, 131);
     nbuf = alloc_sbuf("init_toggletab");
-    for (tp = tog_table; tp->togglename; tp++) {
-	for (np = nbuf, bp = (char *) tp->togglename; *bp; np++, bp++)
+    for (tp = tog_table; (char *)(tp->togglename); tp++) {
+	for (np = nbuf, bp = (char *) tp->togglename; *bp; np++, bp++) {
 	    *np = ToLower((int)*bp);
+        }
 	*np = '\0';
 	hashadd(nbuf, (int *) tp, &mudstate.toggles_htab);
     }
@@ -1077,6 +1079,10 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
 	    continue;
 	ptrs[nptrs] = fp;
 	nptrs++;
+        if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+           notify(player, "WARNING: Flag table too large to display.");
+           break;
+        }
     }       
 
     qsort(ptrs, nptrs, sizeof(FLAGENT *), flagent_comp);
@@ -1147,6 +1153,10 @@ display_toggletab2(dbref player, char *buff, char **bufcx)
 	
 	ptrs[nptrs] = tp;
 	nptrs++;
+        if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+           notify(player, "WARNING: Toggle table too large to display.");
+           break;
+        }
     }    
     qsort(ptrs, nptrs, sizeof(TOGENT *), togent_comp); 
      
@@ -1629,7 +1639,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 	} else {
 	    tp = find_toggle(target, pt1);
 	    if (tp == NULL) {
-              if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) )
+              if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
                 fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
 		   notify(player, "I don't understand that toggle.");
@@ -1638,6 +1648,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @set me=%s?]", pt1));
                    free_lbuf(tpr_buff);
                 }
+              }
 	    } else {
 		if ((NoMod(target) && !WizMod(player)) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
@@ -2603,7 +2614,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
 
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {   
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
@@ -2673,7 +2684,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
 
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
@@ -3084,7 +3095,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
        memset(buf, 0, LBUF_SIZE);
 
     free_lbuf(buf2);    
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
@@ -3260,7 +3271,7 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
        memset(buf, 0, LBUF_SIZE);
 
     free_lbuf(buf2);    
-    if ( NoName(target) && (Typeof(target) == TYPE_THING) ) {
+    if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
@@ -4462,7 +4473,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
             break;
       }
-      if ( !fp || !(fp->flagname)) {
+      if ( !fp || !((char *)(fp->flagname))) {
          notify_quiet(player, "Bad flag given to @flagdef");
          return;
       }
