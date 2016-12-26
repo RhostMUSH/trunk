@@ -10,6 +10,7 @@
 #include "config.h"
 #include "externs.h"
 #include "alloc.h"
+#include "rhost_utf8.h"
 #include "rhost_ansi.h"
 #include "vattr.h"
 
@@ -756,6 +757,7 @@ clone_ansi(char *s_input, char *s_inputptr,
       s_outsplitptr->c_accent = s_insplitptr->c_accent;
       s_outsplitptr->i_special = s_insplitptr->i_special;
       s_outsplitptr->i_ascii8 = s_insplitptr->i_ascii8;
+      s_outsplitptr->i_utf8 = s_insplitptr->i_utf8;
       s_inputptr++;
       s_insplitptr++;
       s_outputptr++;
@@ -788,6 +790,7 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_fgansi  = p_cp->c_fgansi;
       p_ap->c_bgansi  = p_cp->c_bgansi;
       p_ap->i_ascii8  = p_cp->i_ascii8;
+      p_ap->i_utf8    = p_cp->i_utf8;
    } else {
       strcpy(p_ap->s_fghex, p_bp->s_fghex);
       strcpy(p_ap->s_bghex, p_bp->s_bghex);
@@ -796,6 +799,7 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_fgansi  = p_bp->c_fgansi;
       p_ap->c_bgansi  = p_bp->c_bgansi;
       p_ap->i_ascii8  = p_bp->i_ascii8;
+      p_ap->i_utf8    = p_bp->i_utf8;
    }
 }
 
@@ -812,6 +816,7 @@ void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
    p_ap->c_fgansi  = p_bp->c_fgansi;
    p_ap->c_bgansi  = p_bp->c_bgansi;
    p_ap->i_ascii8  = p_bp->i_ascii8;
+   p_ap->i_utf8    = p_bp->i_utf8;
 }
 
 void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
@@ -824,6 +829,7 @@ void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
       memset(p_bp->s_bghex, '\0', 5);
       p_bp->i_special = 0;
       p_bp->i_ascii8 = 0;
+      p_bp->i_utf8 = 0;
       p_bp->c_accent = '\0';
       p_bp->c_fgansi = '\0';
       p_bp->c_bgansi = '\0';
@@ -846,6 +852,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
    s_last.c_accent = '\0';
    s_last.i_special = 0;
    s_last.i_ascii8 = 0;
+   s_last.i_utf8 = 0;
 
    s_buffptr = s_buffer = alloc_lbuf("rebuild_ansi");
    s_format = alloc_sbuf("rebuild_ansi");
@@ -955,7 +962,11 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       s_last.i_special = s_ptr->i_special;
       /* no need for s_last duplicating i_ascii8 */
       /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
-      if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
+      if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
+        safe_chr('%', s_buffer, &s_buffptr);
+        sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
+        safe_str(s_format, s_buffer, &s_buffptr);
+      } else if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
          safe_chr('%', s_buffer, &s_buffptr);
          sprintf(s_format, "<%03d>", s_ptr->i_ascii8);
          safe_str(s_format, s_buffer, &s_buffptr);
@@ -989,7 +1000,8 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 
    ANSISPLIT *s_ptr;
    char *s_inptr, *s_outptr;
-   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent;
+   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt;
+   char buf_utf8[10];
 
    i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
@@ -1001,6 +1013,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_outptr = s_output;
    s_ptr = s_split;
 
+   memset(buf_utf8, '\0', 10);
    memset(s_ptr->s_fghex, '\0', 5);
    memset(s_ptr->s_bghex, '\0', 5);
    s_ptr->c_fgansi = '\0';
@@ -1008,6 +1021,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->c_accent = '\0';
    s_ptr->i_special = 0;
    s_ptr->i_ascii8 = 0;
+   s_ptr->i_utf8 = 0;
    while ( s_inptr && *s_inptr ) {
       if ( (*s_inptr == '%') && ((*(s_inptr+1) == SAFE_CHR)
 #ifdef SAFE_CHR2
@@ -1085,14 +1099,31 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             continue;
          }
       }
-      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
+      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') && 
+            ((strlen(s_inptr) > 8 && *(s_inptr+5) == '>') || (strlen(s_inptr) > 10 && *(s_inptr+7) == '>')) ) {
+        *s_outptr = '?';
+        s_inptr+=3;
+        memset(buf_utf8, '\0', 10);
+        utfcnt = 0;
+
+        while (utfcnt < 6 && *s_inptr != '>') {
+            buf_utf8[utfcnt] = *s_inptr;
+            utfcnt++;
+            s_inptr++;
+        }
+                
+        s_ptr->i_utf8 = strtol(buf_utf8, NULL, 16);
+        s_ptr->i_ascii8 = 0;
+      } else if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
            isdigit(*(s_inptr+3)) && isdigit(*(s_inptr+4)) && (*(s_inptr+5) == '>') ) {
          *s_outptr = '?';
          s_ptr->i_ascii8 = atoi(s_inptr+2);
+         s_ptr->i_utf8 = 0;
          s_inptr+=5;
       } else {
          *s_outptr = *s_inptr;
          s_ptr->i_ascii8 = 0;
+         s_ptr->i_utf8 = 0;
       }
       s_ptr++;
       if ( !s_ptr || !s_outptr ) 
@@ -1791,4 +1822,137 @@ trigger_cluster_action(dbref thing, dbref player)
       }
    }
 }
+
+/***
+ * Convert the UTF-8 bytes represented as a string
+ * of hex values to a string of hex values representing
+ * the unicode code point.
+ ***/
+char *
+encode_utf8(char *utf) 
+{
+    char *ucp, *result;
+    int i_ucp;
+    
+    result = (char*)malloc(12);
+    
+    // Convert UTF-8 Bytes to Unicode Code Point
+    ucp = utf8toucp(utf);
+    
+    // Encode into parser string
+    i_ucp = (int)strtol(ucp, NULL, 16);
+    switch (i_ucp) {
+        case DOUBLE_QUOTE_LEFT:
+        case DOUBLE_QUOTE_RIGHT:
+        case DOUBLE_QUOTE_REVERSED:
+            if (!mudconf.allow_fancy_quotes)
+                sprintf(ucp, "%c", ASCII_DOUBLE_QUOTE);
+            break;
+        
+        case FULLWIDTH_COLON:
+            if (!mudconf.allow_fullwidth_colon)
+                sprintf(ucp, "%c", ASCII_COLON);
+            break;
+        case ASCII_SPACE:
+            sprintf(result, " ");
+            break;            
+        default:
+            sprintf(result, "%c<u%s>", '%', ucp);
+            break;
+    }
+    
+    free(ucp);
+    
+    return  result;
+}
+
+char *
+utf8toucp(char *utf)
+{
+    char *ucp, *ptr, *tmp;
+    int i_b1, i_b2, i_b3, i_b4, i_bytecnt, i_ucp;
+    
+    tmp = (char*)malloc(3);
+    ucp = (char*)malloc(12);
+    
+    i_bytecnt = strlen(utf) / 2;
+    
+    // Convert UTF-8 Bytes to Unicode Code Point
+    if (i_bytecnt == 1) {
+        return utf;
+    } else if (i_bytecnt == 2) {
+        strncpy(tmp, utf, 2);
+        i_b1 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+2, 2);
+        i_b2 = strtol(tmp, &ptr, 16);       
+        i_ucp = ((i_b1 - 192) * 64) + (i_b2 - 128);
+        sprintf(ucp, "%04x", i_ucp);
+    } else if (i_bytecnt == 3) {
+        strncpy(tmp, utf, 2);
+        i_b1 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+2, 2);
+        i_b2 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+4, 2);
+        i_b3 = strtol(tmp, &ptr, 16);
+        i_ucp = ((i_b1 - 224) * 4096) + ((i_b2 - 128) * 64) + (i_b3 - 128);
+        sprintf(ucp, "%04x", i_ucp);
+    } else if (i_bytecnt == 4) {
+        strncpy(tmp, utf, 2);
+        i_b1 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+2, 2);
+        i_b2 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+4, 2);
+        i_b3 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+6, 2);
+        i_b4 = strtol(tmp, &ptr, 16);
+        i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
+        sprintf(ucp, "%04x", i_ucp);
+    } else {
+        sprintf(ucp, "0020");
+    }
+    
+    free(tmp);
+    
+    return  ucp;
+}
+
+/***
+ * Convert string representation of unicode code point hex values
+ * to string representation of UTF8 byte hex values
+ */
+char *
+ucptoutf8(char *ucp)
+{
+    char *ptr, *utf;
+    int i_ucp, i_b1, i_b2, i_b3, i_b4;
+    
+    utf = (char *)malloc(10);
+    memset(utf, '\0', 10);
+    
+    i_ucp = strtol(ucp, &ptr, 16);
+    
+    if ( i_ucp > 31 && i_ucp <= 127) {  // Single byte, return value and not return code
+        sprintf(utf, "%02x", i_ucp);
+    } else if (i_ucp <= 2047) { // 2 byte
+        i_b1 = (i_ucp / 64) + 192;
+        i_b2 = (i_ucp % 64) + 128;      
+        sprintf(utf, "%02x%02x", i_b1, i_b2);
+    } else if (i_ucp <= 65535) { // 3 byte
+        i_b1 = (i_ucp / 4096) + 224;
+        i_b2 = ((i_ucp % 4096) / 64) + 128;
+        i_b3 = (i_ucp % 64) + 128;
+        sprintf(utf, "%02x%02x%02x", i_b1, i_b2, i_b3);
+    } else if (i_ucp <= 1114111) { // 4 byte
+        i_b1 = (i_ucp / 262144) + 240;
+        i_b2 = ((i_ucp % 262144) / 4096) + 128;
+        i_b3 = ((i_ucp % 4096) / 64) + 128;
+        i_b4 = (i_ucp % 64) + 128;
+        sprintf(utf, "%02x%02x%02x%02x", i_b1, i_b2, i_b3, i_b4);
+    } else { // Invalid, return space
+        sprintf(utf, " ");
+    }
+    
+    return utf;
+}
+
 #endif

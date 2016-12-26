@@ -104,9 +104,9 @@ fcache_read(FBLOCK ** cp, char *filename)
 {
     int n, nmax, nmax2, tchars, fd;
     char *buff, *buff2;
-    char *lbuf1, *lbuf2;
+    char *lbuf1, *lbuf2, *lbuf3;
 #ifdef ZENTY_ANSI
-    char *lbuf1ptr, *lbuf2ptr;
+    char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
     FBLOCK *fp, *tfp;
     int max_lines, tot_lines;
@@ -153,15 +153,18 @@ fcache_read(FBLOCK ** cp, char *filename)
     tot_lines = 0;
     lbuf1 = alloc_lbuf("Testing");
     lbuf2 = alloc_lbuf("Testing2");
+    lbuf3 = alloc_lbuf("Testing3");
     if ( mudconf.ansi_txtfiles ) {
        memset(lbuf1, '\0', LBUF_SIZE);
        memset(lbuf2, '\0', LBUF_SIZE);
+       memset(lbuf3, '\0', LBUF_SIZE);
        nmax2 = read(fd, buff, LBUF_SIZE - 1);
        if ( nmax2 > 0 ) {
 #ifdef ZENTY_ANSI
           lbuf1ptr = lbuf1;
           lbuf2ptr = lbuf2;
-          parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+          lbuf3ptr = lbuf3;
+          parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
 #else
           strncpy(lbuf1, buff, LBUF_SIZE - 1);
 #endif
@@ -189,11 +192,13 @@ fcache_read(FBLOCK ** cp, char *filename)
 	   nmax2 = read(fd, buff, LBUF_SIZE - 1);
            memset(lbuf1, '\0', LBUF_SIZE);
            memset(lbuf2, '\0', LBUF_SIZE);
+           memset(lbuf3, '\0', LBUF_SIZE);
            if ( nmax2 > 0 ) {
 #ifdef ZENTY_ANSI
               lbuf1ptr = lbuf1;
               lbuf2ptr = lbuf2;
-              parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+              lbuf3ptr = lbuf3;
+              parse_ansi(buff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
 #else
               strncpy(lbuf1, buff, LBUF_SIZE - 1);
 #endif
@@ -216,6 +221,7 @@ fcache_read(FBLOCK ** cp, char *filename)
     free_lbuf(buff);
     free_lbuf(lbuf1);
     free_lbuf(lbuf2);
+    free_lbuf(lbuf3);
     tf_close(fd);
 
     /* If we didn't read anything in, toss the initial buffer */
@@ -233,9 +239,9 @@ fcache_rawdump(int fd, int num, struct in_addr host)
     int cnt, remaining;
     char *start;
     FBLOCK *fp;
-    char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2;
+    char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2, *lbuf3;
 #ifdef ZENTY_ANSI
-    char *lbuf1ptr, *lbuf2ptr;
+    char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
     int aflags, nomatch;
     dbref aowner;
@@ -275,10 +281,12 @@ fcache_rawdump(int fd, int num, struct in_addr host)
              } else {
                 lbuf1 = alloc_lbuf("fcache_dump3");
                 lbuf2 = alloc_lbuf("fcache_dump4");
+                lbuf3 = alloc_lbuf("fcache_dump5");
 #ifdef ZENTY_ANSI
                 lbuf1ptr = lbuf1;
                 lbuf2ptr = lbuf2;
-                parse_ansi(retbuff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+                lbuf3ptr = lbuf3;
+                parse_ansi(retbuff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
 #else
                 strcpy(lbuf1, retbuff);
 #endif
@@ -293,6 +301,7 @@ fcache_rawdump(int fd, int num, struct in_addr host)
 	        }
                 free_lbuf(lbuf1);
                 free_lbuf(lbuf2);
+                free_lbuf(lbuf3);
              }
              free_lbuf(retbuff);
              free_lbuf(sarray[0]);
@@ -339,9 +348,9 @@ void
 fcache_dump(DESC * d, int num)
 {
     FBLOCK *fp;
-    char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2; 
+    char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2, *lbuf3; 
 #ifdef ZENTY_ANSI
-    char *lbuf1ptr, *lbuf2ptr;
+    char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
     int aflags, nomatch, i_length;
     dbref aowner;
@@ -383,10 +392,12 @@ fcache_dump(DESC * d, int num)
              } else {
                 lbuf1 = alloc_lbuf("fcache_dump3");
                 lbuf2 = alloc_lbuf("fcache_dump4");
+                lbuf3 = alloc_lbuf("fcache_dump5");
 #ifdef ZENTY_ANSI
                 lbuf1ptr = lbuf1;
                 lbuf2ptr = lbuf2;
-                parse_ansi(retbuff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+                lbuf3ptr = lbuf3;
+                parse_ansi(retbuff, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
 #else
                 strcpy(lbuf1, retbuff);
 #endif
@@ -395,6 +406,7 @@ fcache_dump(DESC * d, int num)
                 queue_write(d, "\r\n", 2);
                 free_lbuf(lbuf1);
                 free_lbuf(lbuf2);
+                free_lbuf(lbuf3);
              }
              free_lbuf(retbuff);
              free_lbuf(sarray[0]);

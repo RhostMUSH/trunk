@@ -211,6 +211,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 
 # DEFS is handled by asksource.sh  Feel free to add new definitions but do not remove CUSTDEFS
 DEFS = $(CUSTDEFS) -Wall 
+
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
 # unix crypt() function (DES).

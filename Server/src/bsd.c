@@ -48,6 +48,7 @@ void bzero(void *, int);
 #include "attrs.h"
 #include "mail.h"
 #include "rhost_ansi.h"
+#include "rhost_utf8.h"
 #include "local.h"
 #include "door.h"
 
@@ -367,7 +368,7 @@ shovechars(int port,char* address)
          s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, 
          *t_progatr, *b_progatrptr, *tstrtokr;
 #ifdef ZENTY_ANSI
-    char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr;
+    char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr, *s_buff3, *s_buff3ptr;
 #endif
     FILE *f;
     int silent, i_progatr, anum;
@@ -455,10 +456,12 @@ shovechars(int port,char* address)
 #ifdef ZENTY_ANSI
                   s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
                   s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-                  parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+                  s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+                  parse_ansi((char *) progatr, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
                   queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
                   free_lbuf(s_buff);
                   free_lbuf(s_buff2);
+                  free_lbuf(s_buff3);
 #else
                   queue_string(d, unsafe_tprintf("%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
 #endif
@@ -753,6 +756,7 @@ shovechars(int port,char* address)
 		/* Process received data */
 
                 i_oldlastcnt = d->input_tot;
+				
 		if (!process_input(d)) {
 		    shutdownsock(d, R_SOCKDIED);
 		    continue;
@@ -2015,7 +2019,7 @@ process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost;
-    char *p, *pend, *q, *qend, qfind[8], *qf;
+    char *p, *pend, *q, *qend, qfind[12], *qf, *tmpptr = NULL, tmpbuf[15];
     char *cmdsave;
 
     DPUSH; /* #16 */
@@ -2023,6 +2027,7 @@ process_input(DESC * d)
     mudstate.debug_cmd = (char *) "< process_input >";
 
     memset(qfind, '\0', sizeof(qfind));
+    memset(tmpbuf, '\0', sizeof(tmpbuf));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
 	mudstate.debug_cmd = cmdsave;
@@ -2059,20 +2064,45 @@ process_input(DESC * d)
 		(d->raw_input_at)--;
   	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
-        } else if ( (((int)(unsigned char)*q) > 160) && 
-                    ((!mudconf.accent_extend && ((int)(unsigned char)*q) < 250) || (mudconf.accent_extend && ((int)(unsigned char)*q) < 256)) && 
-                    ((p+10) < pend) ) {
-            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {
-               sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-               in+=5;
-               got+=5;
+        } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+            sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            
+            q+=3;
+            in+=12;
+            got+=12;
                qf = qfind;
                while ( *qf ) {
                   *p++ = *qf++;
                }
+        } else if ((p+13) < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+            sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            
+            q+=2;
+            in+=10;
+            got+=10;
+            qf = qfind;
+            while (*qf) {
+                *p++ = *qf++;
+            }   
+        } else if ((p+13) < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+            sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            
+            q+=1;
+            in+=8;
+            got+=8;
+            qf = qfind;
+            while (*qf) {
+                *p++ = *qf++;
             }
         } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != '\0') ) {
             q++;
+
 	} else {
 	    in--;
 	    if (p >= pend)
@@ -2092,6 +2122,11 @@ process_input(DESC * d)
        d->input_size += in;
     if ( lost > 0 )
        d->input_lost += lost;
+    
+    if (tmpptr) {
+        free(tmpptr);
+    }
+    
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #16 */
 }
