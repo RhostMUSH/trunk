@@ -76,23 +76,23 @@ sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, ch
 
 static char *
 parse_to_cleanup(int eval, int first, char *cstr,
-		 char *rstr, char *zstr)
+         char *rstr, char *zstr)
 {
     DPUSH; /* #59 */
     if ((mudconf.space_compress || (eval & EV_STRIP_TS)) &&
-	!first && (cstr[-1] == ' '))
-	zstr--;
+    !first && (cstr[-1] == ' '))
+    zstr--;
     if ((eval & EV_STRIP_AROUND) && (*rstr == '{') && (zstr[-1] == '}')) {
-	rstr++;
-	if (mudconf.space_compress || (eval & EV_STRIP_LS))
-	    while (*rstr && isspace((int)*rstr))
-		rstr++;
-	rstr[-1] = '\0';
-	zstr--;
-	if (mudconf.space_compress || (eval & EV_STRIP_TS))
-	    while (zstr[-1] && isspace((int)(zstr[-1])))
-		zstr--;
-	*zstr = '\0';
+    rstr++;
+    if (mudconf.space_compress || (eval & EV_STRIP_LS))
+        while (*rstr && isspace((int)*rstr))
+        rstr++;
+    rstr[-1] = '\0';
+    zstr--;
+    if (mudconf.space_compress || (eval & EV_STRIP_TS))
+        while (zstr[-1] && isspace((int)(zstr[-1])))
+        zstr--;
+    *zstr = '\0';
     }
     *zstr = '\0';
     DPOP; /* #59 */
@@ -100,11 +100,11 @@ parse_to_cleanup(int eval, int first, char *cstr,
 }
 
 #define NEXTCHAR \
-	if (cstr == zstr) { \
-		cstr++; \
-		zstr++; \
-	} else \
-		*zstr++ = *cstr++
+    if (cstr == zstr) { \
+        cstr++; \
+        zstr++; \
+    } else \
+        *zstr++ = *cstr++
 
 char *
 parse_to(char **dstr, char delim, int eval)
@@ -117,128 +117,128 @@ parse_to(char **dstr, char delim, int eval)
     DPUSH; /* #60 */
     if ((dstr == NULL) || (*dstr == NULL)) {
         DPOP; /* #60 */
-	return NULL;
+    return NULL;
     }
     if (**dstr == '\0') {
-	rstr = *dstr;
-	*dstr = NULL;
+    rstr = *dstr;
+    *dstr = NULL;
         DPOP; /* #60 */
-	return rstr;
+    return rstr;
     }
     sp = 0;
     first = 1;
     rstr = *dstr;
     if (mudconf.space_compress | (eval & EV_STRIP_LS)) {
-	while (*rstr && isspace((int)*rstr))
-	    rstr++;
-	*dstr = rstr;
+    while (*rstr && isspace((int)*rstr))
+        rstr++;
+    *dstr = rstr;
     }
     zstr = cstr = rstr;
     while (*cstr) {
-	switch (*cstr) {
-	case '\\':		/* general escape */
-	case '%':		/* also escapes chars */
-	  if ((*cstr == '\\') && (eval & EV_STRIP_ESC)) {
-	    cstr++;
-	  } else {
-	    NEXTCHAR;
-	  }
-	  if (*cstr) {
-	    NEXTCHAR;
-	  }
-	    first = 0;
-	    break;
-	case ']':
-	case ')':
-	    for (tp = sp - 1; (tp >= 0) && (stack[tp] != *cstr); tp--);
+    switch (*cstr) {
+    case '\\':      /* general escape */
+    case '%':       /* also escapes chars */
+      if ((*cstr == '\\') && (eval & EV_STRIP_ESC)) {
+        cstr++;
+      } else {
+        NEXTCHAR;
+      }
+      if (*cstr) {
+        NEXTCHAR;
+      }
+        first = 0;
+        break;
+    case ']':
+    case ')':
+        for (tp = sp - 1; (tp >= 0) && (stack[tp] != *cstr); tp--);
 
-	    /* If we hit something on the stack, unwind to it
-	     * Otherwise (it's not on stack), if it's our delim
-	     * we are done, and we convert the delim to a null
-	     * and return a ptr to the char after the null.
-	     * If it's not our delimiter, skip over it normally */
+        /* If we hit something on the stack, unwind to it
+         * Otherwise (it's not on stack), if it's our delim
+         * we are done, and we convert the delim to a null
+         * and return a ptr to the char after the null.
+         * If it's not our delimiter, skip over it normally */
 
-	    if (tp >= 0)
-		sp = tp;
-	    else if (*cstr == delim) {
-		rstr = parse_to_cleanup(eval, first,
-					cstr, rstr, zstr);
-		*dstr = ++cstr;
+        if (tp >= 0)
+        sp = tp;
+        else if (*cstr == delim) {
+        rstr = parse_to_cleanup(eval, first,
+                    cstr, rstr, zstr);
+        *dstr = ++cstr;
                 DPOP; /* #60 */
-		return rstr;
-	    }
-	    first = 0;
-	    NEXTCHAR;
-	    break;
-	case '{':
-	    bracketlev = 1;
-	    if (eval & EV_STRIP) {
-		cstr++;
-	    } else {
-		NEXTCHAR;
-	    }
-	    while (*cstr && (bracketlev > 0)) {
-		switch (*cstr) {
-		case '\\':
-		case '%':
-		    if (cstr[1]) {
-			if ((*cstr == '\\') &&
-			    (eval & EV_STRIP_ESC))
-			    cstr++;
-			else
-			    NEXTCHAR;
-		    }
-		    break;
-		case '{':
-		    bracketlev++;
-		    break;
-		case '}':
-		    bracketlev--;
-		    break;
-		}
-		if (bracketlev > 0) {
-		    NEXTCHAR;
-		}
-	    }
-	    if ((eval & EV_STRIP) && (bracketlev == 0)) {
-		cstr++;
-	    } else if (bracketlev == 0) {
-		NEXTCHAR;
-	    }
-	    first = 0;
-	    break;
-	default:
-	    if ((*cstr == delim) && (sp == 0)) {
-		rstr = parse_to_cleanup(eval, first,
-					cstr, rstr, zstr);
-		*dstr = ++cstr;
+        return rstr;
+        }
+        first = 0;
+        NEXTCHAR;
+        break;
+    case '{':
+        bracketlev = 1;
+        if (eval & EV_STRIP) {
+        cstr++;
+        } else {
+        NEXTCHAR;
+        }
+        while (*cstr && (bracketlev > 0)) {
+        switch (*cstr) {
+        case '\\':
+        case '%':
+            if (cstr[1]) {
+            if ((*cstr == '\\') &&
+                (eval & EV_STRIP_ESC))
+                cstr++;
+            else
+                NEXTCHAR;
+            }
+            break;
+        case '{':
+            bracketlev++;
+            break;
+        case '}':
+            bracketlev--;
+            break;
+        }
+        if (bracketlev > 0) {
+            NEXTCHAR;
+        }
+        }
+        if ((eval & EV_STRIP) && (bracketlev == 0)) {
+        cstr++;
+        } else if (bracketlev == 0) {
+        NEXTCHAR;
+        }
+        first = 0;
+        break;
+    default:
+        if ((*cstr == delim) && (sp == 0)) {
+        rstr = parse_to_cleanup(eval, first,
+                    cstr, rstr, zstr);
+        *dstr = ++cstr;
                 DPOP; /* #60 */
-		return rstr;
-	    }
-	    switch (*cstr) {
-	    case ' ':		/* space */
-		if (mudconf.space_compress) {
-		    if (first)
-			rstr++;
-		    else if (cstr[-1] == ' ')
-			zstr--;
-		}
-		break;
-	    case '[':
-		if (sp < stacklim)
-		    stack[sp++] = ']';
-		first = 0;
-		break;
-	    case '(':
-		if (sp < stacklim)
-		    stack[sp++] = ')';
-		first = 0;
-		break;
-	    default:
-		first = 0;
-	    }
-	    NEXTCHAR;
-	}
+        return rstr;
+        }
+        switch (*cstr) {
+        case ' ':       /* space */
+        if (mudconf.space_compress) {
+            if (first)
+            rstr++;
+            else if (cstr[-1] == ' ')
+            zstr--;
+        }
+        break;
+        case '[':
+        if (sp < stacklim)
+            stack[sp++] = ']';
+        first = 0;
+        break;
+        case '(':
+        if (sp < stacklim)
+            stack[sp++] = ')';
+        first = 0;
+        break;
+        default:
+        first = 0;
+        }
+        NEXTCHAR;
+    }
     }
     rstr = parse_to_cleanup(eval, first, cstr, rstr, zstr);
     *dstr = NULL;
@@ -256,50 +256,50 @@ parse_to(char **dstr, char delim, int eval)
 char *
 parse_arglist(dbref player, dbref cause, dbref caller, char *dstr, 
               char delim, dbref eval,
-	      char *fargs[], dbref nfargs, char *cargs[],
-	      dbref ncargs, int i_type, char *regargs[], int nregargs)
+          char *fargs[], dbref nfargs, char *cargs[],
+          dbref ncargs, int i_type, char *regargs[], int nregargs)
 {
     char *rstr, *tstr, *mychar, *mycharptr, *s;
     int arg, peval;
     DPUSH; /* #61 */
 
     for (arg = 0; arg < nfargs; arg++)
-	fargs[arg] = NULL;
+    fargs[arg] = NULL;
     if (dstr == NULL) {
         DPOP; /* #61 */
-	return NULL;
+    return NULL;
     }
     rstr = parse_to(&dstr, delim, 0);
     arg = 0;
 
     if (eval & EV_EVAL) {
-	peval = 0;
-	if (eval & EV_STRIP_LS)
-	    peval |= EV_STRIP_LS;
-	if (eval & EV_STRIP_TS)
-	    peval |= EV_STRIP_TS;
-	if (eval & EV_STRIP_ESC)
-	    peval |= EV_STRIP_ESC;
-	if (eval & EV_TOP)
-	    peval |= EV_TOP;
-	if (eval & EV_NOTRACE)
-	    peval |= EV_NOTRACE;
+    peval = 0;
+    if (eval & EV_STRIP_LS)
+        peval |= EV_STRIP_LS;
+    if (eval & EV_STRIP_TS)
+        peval |= EV_STRIP_TS;
+    if (eval & EV_STRIP_ESC)
+        peval |= EV_STRIP_ESC;
+    if (eval & EV_TOP)
+        peval |= EV_TOP;
+    if (eval & EV_NOTRACE)
+        peval |= EV_NOTRACE;
     } else {
-	peval = eval;
+    peval = eval;
     }
 
     if ( i_type ) {
        peval = peval | EV_EVAL | ~EV_STRIP_ESC;
     }
     while ((arg < nfargs) && rstr) {
-	if (arg < (nfargs - 1))
-	    tstr = parse_to(&rstr, ',', peval);
-	else
-	    tstr = parse_to(&rstr, '\0', peval);
-	if (eval & EV_EVAL) {
-	    fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK, tstr,
-			      cargs, ncargs, regargs, nregargs);
-	} else {
+    if (arg < (nfargs - 1))
+        tstr = parse_to(&rstr, ',', peval);
+    else
+        tstr = parse_to(&rstr, '\0', peval);
+    if (eval & EV_EVAL) {
+        fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK, tstr,
+                  cargs, ncargs, regargs, nregargs);
+    } else {
             if (  i_type  ) {
                mychar = mycharptr = alloc_lbuf("no_eval_parse_arglist");
                s = tstr;
@@ -321,15 +321,15 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
                   }
                   s++;
                }
-	       fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK | EV_EVAL | ~EV_STRIP_ESC, mychar,
-			         cargs, ncargs, regargs, nregargs);
+           fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK | EV_EVAL | ~EV_STRIP_ESC, mychar,
+                     cargs, ncargs, regargs, nregargs);
                free_lbuf(mychar);
             } else {
-	       fargs[arg] = alloc_lbuf("parse_arglist");
-	       strcpy(fargs[arg], tstr);
+           fargs[arg] = alloc_lbuf("parse_arglist");
+           strcpy(fargs[arg], tstr);
             }
-	}
-	arg++;
+    }
+    arg++;
     }
     DPOP; /* #61 */
     return dstr;
@@ -354,20 +354,20 @@ get_gender(dbref player)
     case 'P':
     case 'p':
         DPOP; /* #62 */
-	return 4;
+    return 4;
     case 'M':
     case 'm':
         DPOP; /* #62 */
-	return 3;
+    return 3;
     case 'F':
     case 'f':
     case 'W':
     case 'w':
         DPOP; /* #62 */
-	return 2;
+    return 2;
     default:
         DPOP; /* #62 */
-	return 1;
+    return 1;
     }
 /*NOTREACHED */
     DPOP; /* #62 */
@@ -403,10 +403,10 @@ NDECL(tcache_empty)
 {
     DPUSH; /* #64 */
     if (tcache_top) {
-	tcache_top = 0;
-	tcache_count = 0;
+    tcache_top = 0;
+    tcache_count = 0;
         DPOP; /* #64 */
-	return 1;
+    return 1;
     }
     DPOP; /* #64 */
     return 0;
@@ -420,23 +420,23 @@ tcache_add(dbref player, char *orig, char *result, char *s_label)
     DPUSH; /* #65 */
 
     if (strcmp(orig, result)) {
-	tcache_count++;
-	if (tcache_count <= mudconf.trace_limit) {
-	    xp = (TCENT *) alloc_sbuf("tcache_add.sbuf");
-	    tp = alloc_lbuf("tcache_add.lbuf");
-	    strcpy(tp, result);
+    tcache_count++;
+    if (tcache_count <= mudconf.trace_limit) {
+        xp = (TCENT *) alloc_sbuf("tcache_add.sbuf");
+        tp = alloc_lbuf("tcache_add.lbuf");
+        strcpy(tp, result);
             xp->player = player;
-	    xp->orig = orig;
-	    xp->result = tp;
+        xp->orig = orig;
+        xp->result = tp;
             xp->label = s_label;
-	    xp->next = tcache_head;
-	    tcache_head = xp;
-	} else {
-	    free_lbuf(orig);
-            free_sbuf(s_label);
-	}
+        xp->next = tcache_head;
+        tcache_head = xp;
     } else {
-	free_lbuf(orig);
+        free_lbuf(orig);
+            free_sbuf(s_label);
+    }
+    } else {
+    free_lbuf(orig);
         free_sbuf(s_label);
     }
     DPOP; /* #65 */
@@ -465,8 +465,8 @@ tcache_finish(void)
     tprp_buff = tpr_buff = alloc_lbuf("tcache_finish");
     tbuff = alloc_lbuf("bounce_on_notify_exec");
     while (tcache_head != NULL) {
-	xp = tcache_head;
-	tcache_head = xp->next;
+    xp = tcache_head;
+    tcache_head = xp->next;
         tprp_buff = tpr_buff;
         ap_log = atr_str("TRACE_GREP");
         if ( ap_log ) {
@@ -509,13 +509,13 @@ tcache_finish(void)
         }
 
         if ( *(xp->label) ) {
-	   notify(Owner(xp->player),
-	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} '%s' -> '%s'", Name(xp->player), xp->player,
-		          ANSI_HILITE, xp->label, ANSI_NORMAL, tstr2, xp->result));
+       notify(Owner(xp->player),
+              safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} '%s' -> '%s'", Name(xp->player), xp->player,
+                  ANSI_HILITE, xp->label, ANSI_NORMAL, tstr2, xp->result));
         } else {
-	   notify(Owner(xp->player),
-	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
-		          tstr2, xp->result));
+       notify(Owner(xp->player),
+              safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
+                  tstr2, xp->result));
         }
         free_lbuf(tstr2);
 
@@ -551,10 +551,10 @@ tcache_finish(void)
         }
 
 
-	free_lbuf(xp->orig);
-	free_lbuf(xp->result);
+    free_lbuf(xp->orig);
+    free_lbuf(xp->result);
         free_sbuf(xp->label);
-	free_sbuf(xp);
+    free_sbuf(xp);
     }
     free_lbuf(tbuff);
     free_lbuf(tpr_buff);
@@ -675,13 +675,15 @@ static const int mux_isprint[256] =
  * This handles accents as well!
  * buff/bufptr is the ansi
  * buff2/buf2ptr is the accents + ansi
- * Change %c/%x/%m substitutions into real ansi now.
+ * buff_utf/bufc_utf is the utf-8 + ansi
+ * Change %c/%x substitutions into real ansi now.
  ******************************************************/
-void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr)
+void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr, char *buff_utf, char **bufuptr)
 {
-    char *bufc, *bufc2, s_twochar[3], s_final[80], s_intbuf[4];
+    char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], *ptr;
+    char s_utfbuf[2], s_ucpbuf[7], *tmpptr = NULL, *tmp;
     unsigned char ch1, ch2, ch;
-    int i_tohex, accent_toggle, i_extendcnt, i_extendnum;
+    int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt;
 
 
 /* Debugging only
@@ -690,26 +692,36 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 
     memset(s_twochar, '\0', sizeof(s_twochar));
     memset(s_final, '\0', sizeof(s_final));
+    memset(s_utfbuf, '\0', sizeof(s_utfbuf));
+    memset(s_ucpbuf, '\0', sizeof(s_ucpbuf));
     bufc = *bufptr;
     bufc2 = *buf2ptr;
+    bufc_utf = *bufuptr;
     accent_toggle = 0;
     i_extendcnt = 0;
+    i_utfnum = 0;
+    i_utfcnt = 0;
     s_intbuf[3] = '\0';
     ch = ch1 = ch2 = '\0';
+
     while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
         if(*string == '\\') {
             string++;
             safe_chr('\\', buff, &bufc);
             safe_chr('\\', buff2, &bufc2);
+            safe_chr('\\', buff_utf, &bufc_utf);
             safe_chr(*string, buff, &bufc);
             safe_chr(*string, buff2, &bufc2);
+            safe_chr(*string, buff_utf, &bufc_utf);
         } else if(*string == '%') {
             string++;
             if(*string == '\\') {
                 safe_chr('%', buff, &bufc);
                 safe_chr('%', buff2, &bufc2);
+                safe_chr('%', buff_utf, &bufc_utf);
                 safe_chr(*string, buff, &bufc);
                 safe_chr(*string, buff2, &bufc2);
+                safe_chr(*string, buff_utf, &bufc_utf);
             } else if ((*string == '%') && ((*(string+1) == SAFE_CHR )
 #ifdef SAFE_CHR2
                                         || (*(string+1) == SAFE_CHR2 )
@@ -721,31 +733,37 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 if(*(string+1) == SAFE_CHR) {
                   safe_str((char*)SAFE_CHRST, buff, &bufc);
                   safe_str((char*)SAFE_CHRST, buff2, &bufc2);
+                  safe_str((char*)SAFE_CHRST, buff_utf, &bufc_utf);
                 }
 #ifdef SAFE_CHR2
                 else if(*(string+1) == SAFE_CHR2) {
                   safe_str((char*)SAFE_CHRST2, buff, &bufc);
                   safe_str((char*)SAFE_CHRST2, buff2, &bufc2);
+                  safe_str((char*)SAFE_CHRST2, buff_utf, &bufc_utf);
                 }
 #endif
 #ifdef SAFE_CHR3
                 else if(*(string+1) == SAFE_CHR3) {
                   safe_str((char*)SAFE_CHRST3, buff, &bufc);
                   safe_str((char*)SAFE_CHRST3, buff2, &bufc2);
+                  safe_str((char*)SAFE_CHRST3, buff_utf, &bufc_utf);
                 }
 #endif
                 else {
                   safe_str((char*)SAFE_CHRST, buff, &bufc);
                   safe_str((char*)SAFE_CHRST, buff2, &bufc2);
+                  safe_str((char*)SAFE_CHRST, buff_utf, &bufc_utf);
                 }
                 string++;
             } else if ((*string == '%') && (*(string+1) == 'f')) {
                 safe_str("%f", buff, &bufc);
                 safe_str("%f", buff2, &bufc2);
+                safe_str("%f", buff_utf, &bufc_utf);
                 string++;
             } else if ( (*string == '%') && (*(string+1) == '<') ) { 
                 safe_str("%<", buff, &bufc);
                 safe_str("%<", buff2, &bufc2);
+                safe_str("%<", buff_utf, &bufc_utf);
                 string++;
             } else if ( ((*string != SAFE_CHR)
 #ifdef SAFE_CHR2
@@ -759,9 +777,46 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff, &bufc);
                 safe_chr('%', buff2, &bufc2);
                 safe_chr(*string, buff2, &bufc2);
+                safe_chr('%', buff_utf, &bufc_utf);
+                safe_chr(*string, buff_utf, &bufc_utf);
             } else if ( *string == '<' ) {
                 string++;
-                if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
+                if ( (*string == 'u') && 
+                     (((strlen(string)) > 5 && (*(string+5) == '>')) 
+                       || ((strlen(string) > 6) && (*(string+6) == '>')) 
+                       || ((strlen(string) > 7) && (*(string+7) == '>')))) {
+                    string++;
+                    i_utfcnt = 0;
+                    while ( *string ) {
+                        if (i_utfcnt >= 6 || *string == '>') {
+                            break;
+                        }
+                        
+                        s_ucpbuf[i_utfcnt] = *string;
+                        i_utfcnt++;
+                        string++;
+                    }
+                    
+                    i_utfnum = atoi(s_ucpbuf);
+                    
+                   
+                    tmpptr = ucptoutf8(s_ucpbuf);
+
+                    i_utfcnt = 0;
+                    tmp = tmpptr;
+                    while (*tmp) {
+                        s_utfbuf[i_utfcnt % 2] = *tmp;                      
+                        if (i_utfcnt % 2) {
+                            i_utfnum = strtol(s_utfbuf, &ptr, 16);
+                            safe_chr((char)i_utfnum, buff_utf, &bufc_utf);
+                        }
+                        
+                        i_utfcnt++;
+                        tmp++;
+                    }
+                    safe_chr(' ', buff2, &bufc2);
+                    safe_chr(' ', buff, &bufc);
+                } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
                    s_intbuf[0] = *(string);
                    s_intbuf[1] = *(string+1);
                    s_intbuf[2] = *(string+2);
@@ -769,21 +824,28 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                    if ( (i_extendnum >= 32) && (i_extendnum <= 126) ) {
                       safe_chr((char) i_extendnum, buff2, &bufc2);
                       safe_chr((char) i_extendnum, buff, &bufc);
+                      safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
                    } else if ( (i_extendnum >= 160) && 
                            ((!mudconf.accent_extend && (i_extendnum <= 250)) || (mudconf.accent_extend && (i_extendnum <=255))) ) {
-                      if ( i_extendnum == 255 )
+                      if ( i_extendnum == 255 ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
+                         safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
+                      }
                       safe_chr((char) i_extendnum, buff2, &bufc2);
+                      safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
                       safe_chr(' ', buff, &bufc);                         
                    } else {
                       switch(i_extendnum) {
                          case 251:
                          case 252: safe_chr('u', buff2, &bufc2);
+                                   safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                          case 253:
                          case 255: safe_chr('y', buff2, &bufc2);
+                                   safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                          case 254: safe_chr('p', buff2, &bufc2);
+                                   safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                       }
                    }
@@ -792,6 +854,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 } else {
                    safe_chr(*string, buff, &bufc);
                    safe_chr(*string, buff2, &bufc2);
+                   safe_chr(*string, buff_utf, &bufc_utf);
                 }
             } else if ( *string == 'f' ) {
                 ch = (unsigned char)*(++string);
@@ -805,6 +868,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       if ( !isprint(*string) ) {
                          safe_chr(*string, buff, &bufc);
                          safe_chr(*string, buff2, &bufc2);
+                         safe_chr(*string, buff_utf, &bufc_utf);
                       }
                    }
                 }
@@ -813,6 +877,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 case '\0':
                     safe_chr(*string, buff, &bufc);
                     safe_chr(*string, buff2, &bufc2);
+                    safe_chr(*string, buff_utf, &bufc_utf);
                     break;
                 case '0': /* Do XTERM color here */
                     switch ( *(string+1) ) {
@@ -825,6 +890,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                              sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
                              safe_str(s_final, buff, &bufc);
                              safe_str(s_final, buff2, &bufc2);
+                             safe_str(s_final, buff_utf, &bufc_utf);
                              sprintf(s_final, "%dm", i_tohex);
                           }
                           break;
@@ -837,6 +903,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                              string+=3;
                              safe_str(s_final, buff, &bufc);
                              safe_str(s_final, buff2, &bufc2);
+                             safe_str(s_final, buff_utf, &bufc_utf);
                              sprintf(s_final, "%dm", i_tohex);
                           }
                           break;
@@ -846,6 +913,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_chr(*string, buff, &bufc);
                             safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
+                            safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
 #ifdef SAFE_CHR2
                           else if(*(string-1) == SAFE_CHR2) {
@@ -853,6 +922,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_chr(*string, buff, &bufc);
                             safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
+                            safe_str((char *)SAFE_CHRST2, buff_utf, &bufc_utf);
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
 #endif
 #ifdef SAFE_CHR3
@@ -861,6 +932,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_chr(*string, buff, &bufc);
                             safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
+                            safe_str((char *)SAFE_CHRST3, buff_utf, &bufc_utf);
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
 #endif
                           else {
@@ -868,6 +941,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_chr(*string, buff, &bufc);
                             safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                             safe_chr(*string, buff2, &bufc2);
+                            safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
+                            safe_chr(*string, buff_utf, &bufc_utf);
                           }
                           break;
                     }  
@@ -875,125 +950,146 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 case 'n':
                     safe_str((char *) ANSI_NORMAL, buff, &bufc);
                     safe_str((char *) ANSI_NORMAL, buff2, &bufc2);
+                    safe_str((char *) ANSI_NORMAL, buff_utf, &bufc_utf);
                     break;
                 case 'f':
                     if ( mudconf.global_ansimask & MASK_BLINK ) {
                         safe_str((char *) ANSI_BLINK, buff, &bufc);
                         safe_str((char *) ANSI_BLINK, buff2, &bufc2);
+                        safe_str((char *) ANSI_BLINK, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'u':
                     if ( mudconf.global_ansimask & MASK_UNDERSCORE ) {
                         safe_str((char *) ANSI_UNDERSCORE, buff, &bufc);
                         safe_str((char *) ANSI_UNDERSCORE, buff2, &bufc2);
+                        safe_str((char *) ANSI_UNDERSCORE, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'i':
                     if ( mudconf.global_ansimask & MASK_INVERSE ) {
                         safe_str((char *) ANSI_INVERSE, buff, &bufc);
                         safe_str((char *) ANSI_INVERSE, buff2, &bufc2);
+                        safe_str((char *) ANSI_INVERSE, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'h':
                     if ( mudconf.global_ansimask & MASK_HILITE ) {
                         safe_str((char *) ANSI_HILITE, buff, &bufc);
                         safe_str((char *) ANSI_HILITE, buff2, &bufc2);
+                        safe_str((char *) ANSI_HILITE, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'x':
                     if ( mudconf.global_ansimask & MASK_BLACK ) {
                         safe_str((char *) ANSI_BLACK, buff, &bufc);
                         safe_str((char *) ANSI_BLACK, buff2, &bufc2);
+                        safe_str((char *) ANSI_BLACK, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'X':
                     if ( mudconf.global_ansimask & MASK_BBLACK ) {
                         safe_str((char *) ANSI_BBLACK, buff, &bufc);
                         safe_str((char *) ANSI_BBLACK, buff2, &bufc2);
+                        safe_str((char *) ANSI_BBLACK, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'r':
                     if ( mudconf.global_ansimask & MASK_RED ) {
                         safe_str((char *) ANSI_RED, buff, &bufc);
                         safe_str((char *) ANSI_RED, buff2, &bufc2);
+                        safe_str((char *) ANSI_RED, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'R':
                     if ( mudconf.global_ansimask & MASK_BRED ) {
                         safe_str((char *) ANSI_BRED, buff, &bufc);
                         safe_str((char *) ANSI_BRED, buff2, &bufc2);
+                        safe_str((char *) ANSI_BRED, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'g':
                     if ( mudconf.global_ansimask & MASK_GREEN ) {
                         safe_str((char *) ANSI_GREEN, buff, &bufc);
                         safe_str((char *) ANSI_GREEN, buff2, &bufc2);
+                        safe_str((char *) ANSI_GREEN, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'G':
                     if ( mudconf.global_ansimask & MASK_BGREEN ) {
                         safe_str((char *) ANSI_BGREEN, buff, &bufc);
                         safe_str((char *) ANSI_BGREEN, buff2, &bufc2);
+                        safe_str((char *) ANSI_BGREEN, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'y':
                     if ( mudconf.global_ansimask & MASK_YELLOW ) {
                         safe_str((char *) ANSI_YELLOW, buff, &bufc);
                         safe_str((char *) ANSI_YELLOW, buff2, &bufc2);
+                        safe_str((char *) ANSI_YELLOW, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'Y':
                     if ( mudconf.global_ansimask & MASK_BYELLOW ) {
                         safe_str((char *) ANSI_BYELLOW, buff, &bufc);
                         safe_str((char *) ANSI_BYELLOW, buff2, &bufc2);
+                        safe_str((char *) ANSI_BYELLOW, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'b':
                     if ( mudconf.global_ansimask & MASK_BLUE ) {
                         safe_str((char *) ANSI_BLUE, buff, &bufc);
                         safe_str((char *) ANSI_BLUE, buff2, &bufc2);
+                        safe_str((char *) ANSI_BLUE, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'B':
                     if ( mudconf.global_ansimask & MASK_BBLUE ) {
                         safe_str((char *) ANSI_BBLUE, buff, &bufc);
                         safe_str((char *) ANSI_BBLUE, buff2, &bufc2);
+                        safe_str((char *) ANSI_BBLUE, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'm':
                     if ( mudconf.global_ansimask & MASK_MAGENTA ) {
                         safe_str((char *) ANSI_MAGENTA, buff, &bufc);
                         safe_str((char *) ANSI_MAGENTA, buff2, &bufc2);
+                        safe_str((char *) ANSI_MAGENTA, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'M':
                     if ( mudconf.global_ansimask & MASK_BMAGENTA ) {
                         safe_str((char *) ANSI_BMAGENTA, buff, &bufc);
                         safe_str((char *) ANSI_BMAGENTA, buff2, &bufc2);
+                        safe_str((char *) ANSI_BMAGENTA, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'c':
                     if ( mudconf.global_ansimask & MASK_CYAN ) {
                         safe_str((char *) ANSI_CYAN, buff, &bufc);
                         safe_str((char *) ANSI_CYAN, buff2, &bufc2);
+                        safe_str((char *) ANSI_CYAN, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'C':
                     if ( mudconf.global_ansimask & MASK_BCYAN ) {
                         safe_str((char *) ANSI_BCYAN, buff, &bufc);
                         safe_str((char *) ANSI_BCYAN, buff2, &bufc2);
+                        safe_str((char *) ANSI_BCYAN, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'w':
                     if ( mudconf.global_ansimask & MASK_WHITE ) {
                         safe_str((char *) ANSI_WHITE, buff, &bufc);
                         safe_str((char *) ANSI_WHITE, buff2, &bufc2);
+                        safe_str((char *) ANSI_WHITE, buff_utf, &bufc_utf);
                     }
                     break;
                 case 'W':
                     if ( mudconf.global_ansimask & MASK_BWHITE ) {
                         safe_str((char *) ANSI_BWHITE, buff, &bufc);
                         safe_str((char *) ANSI_BWHITE, buff2, &bufc2);
+                        safe_str((char *) ANSI_BWHITE, buff_utf, &bufc_utf);
                     }
                     break;
                 default:
@@ -1002,6 +1098,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_chr(*string, buff, &bufc);
                       safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
+                      safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
 #ifdef SAFE_CHR2
                     else if(*(string-1) == SAFE_CHR2) {
@@ -1009,6 +1107,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_chr(*string, buff, &bufc);
                       safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
+                      safe_str((char *)SAFE_CHRST2, buff_utf, &bufc_utf);
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
 #endif
 #ifdef SAFE_CHR3
@@ -1017,6 +1117,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_chr(*string, buff, &bufc);
                       safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
+                      safe_str((char *)SAFE_CHRST3, buff_utf, &bufc_utf);
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
 #endif
                     else {
@@ -1024,6 +1126,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       safe_chr(*string, buff, &bufc);
                       safe_str((char *)SAFE_CHRST, buff2, &bufc2);
                       safe_chr(*string, buff2, &bufc2);
+                      safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
+                      safe_chr(*string, buff_utf, &bufc_utf);
                     }
                     break;
                 }
@@ -1048,6 +1152,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                safe_chr(*string, buff2, &bufc2);
             }
             safe_chr(*string, buff, &bufc);
+            safe_chr(*string, buff_utf, &bufc_utf);
         }
         if ( *string )
            string++;
@@ -1055,8 +1160,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     // toss in the normal
     safe_str(ANSI_NORMAL, buff, &bufc); 
     safe_str(ANSI_NORMAL, buff2, &bufc2); 
+    safe_str(ANSI_NORMAL, buff_utf, &bufc_utf); 
     *bufptr = bufc;
     *buf2ptr = bufc2;
+    *bufuptr = bufc_utf;
 }
 
 #endif
@@ -1082,7 +1189,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 {
 /* MAX_ARGS is located in externs.h - default is 30 */
 #ifdef MAX_ARGS
-#define	NFARGS	MAX_ARGS
+#define NFARGS  MAX_ARGS
 #else
 #define NFARGS 30
 #endif
@@ -1120,15 +1227,15 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
 
     DPUSH; /* #67 */
-		
+        
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
-#ifdef EXPANDED_QREGS
+#ifdef EXPANDED_QREGS    
     w = 0;
 #endif
     mudstate.evalcount++;
 
     if (dstr == NULL) {
-	RETURN(NULL); /* #67 */
+    RETURN(NULL); /* #67 */
     }
 
     if ( mudconf.func_nest_lim > 300 )
@@ -1172,8 +1279,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     }
     // Requires strict ansi compliance, but it looks pretty.
     if ( mudstate.stack_val > mudconf.stack_limit 
-	 &&
-	 (mudconf.stack_limit > 0 || (mudconf.stack_limit = 1))) {
+     &&
+     (mudconf.stack_limit > 0 || (mudconf.stack_limit = 1))) {
         mudstate.stack_toggle = 1;
         RETURN(buff); /* #67 */
     }
@@ -1184,8 +1291,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     }
 #endif
     if ( mudstate.sidefx_currcalls >= mudconf.sidefx_maxcalls 
-	 &&
-	 (mudconf.sidefx_maxcalls > 0 || (mudconf.sidefx_maxcalls = 1))) {
+     &&
+     (mudconf.sidefx_maxcalls > 0 || (mudconf.sidefx_maxcalls = 1))) {
         mudstate.sidefx_toggle = 1;
         RETURN(buff); /* #67 */
     }
@@ -1206,19 +1313,19 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     savestr = NULL;
     if (is_trace) {
-	is_top = tcache_empty();
-	savestr = alloc_lbuf("exec.save");
+    is_top = tcache_empty();
+    savestr = alloc_lbuf("exec.save");
         s_label = alloc_sbuf("exec.save_label");
-	strcpy(savestr, dstr);
+    strcpy(savestr, dstr);
         if ( mudstate.trace_nest_lev < (LABEL_MAX - 1)) {
            if ( (mudstate.trace_nest_lev > 0) && i_label_lev )
-	      strcpy(s_label, t_label[i_label_lev]);
+          strcpy(s_label, t_label[i_label_lev]);
         } else {
-	   strcpy(s_label, t_label[LABEL_MAX - 1]);
+       strcpy(s_label, t_label[LABEL_MAX - 1]);
         }
     }
     if (index(dstr, ESC_CHAR)) {
-	strcpy(dstr, strip_ansi(dstr));
+    strcpy(dstr, strip_ansi(dstr));
     }
 
 /* Debugging only
@@ -1228,22 +1335,22 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     memset(tfunlocal, '\0', sizeof(tfunlocal));
     while (*dstr && !alldone) {
       if ( mudstate.curr_percentsubs < mudconf.max_percentsubs )
-	switch (*dstr) {
-	case ' ':
-	    /* A space.  Add a space if not compressing or if
-	     * previous char was not a space */
+    switch (*dstr) {
+    case ' ':
+        /* A space.  Add a space if not compressing or if
+         * previous char was not a space */
 
-	    if (!(mudconf.space_compress && at_space)) {
-		safe_chr(' ', buff, &bufc);
-		at_space = 1;
-	    }
-	    break;
-	case '\\':
-	    /* General escape.  Add the following char without
-	     * special processing */
+        if (!(mudconf.space_compress && at_space)) {
+        safe_chr(' ', buff, &bufc);
+        at_space = 1;
+        }
+        break;
+    case '\\':
+        /* General escape.  Add the following char without
+         * special processing */
 
-	    at_space = 0;
-	    dstr++;
+        at_space = 0;
+        dstr++;
 
             if ( !i_start && mudstate.start_of_cmds && (*dstr == '\\') ) {
 #ifdef ZENTY_ANSI
@@ -1252,83 +1359,83 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
                mudstate.start_of_cmds = 0;
             }
-	    if (*dstr)
+        if (*dstr)
                safe_chr(*dstr, buff, &bufc);
-	    else
+        else
                dstr--;
             mudstate.start_of_cmds = 1;
-	    break;
-	case '[':
+        break;
+    case '[':
             mudstate.stack_val++;
-	    /* Function start.  Evaluate the contents of the
-	     * square brackets as a function.  If no closing
-	     * bracket, insert the [ and continue. */
+        /* Function start.  Evaluate the contents of the
+         * square brackets as a function.  If no closing
+         * bracket, insert the [ and continue. */
 
-	    at_space = 0;
-	    tstr = dstr++;
+        at_space = 0;
+        tstr = dstr++;
             if ( eval & EV_NOFCHECK ) {
                 mudstate.stack_val--;
-		safe_chr('{', buff, &bufc);
-		dstr = tstr;
-		break;
+        safe_chr('{', buff, &bufc);
+        dstr = tstr;
+        break;
             }
-	    tbuf = parse_to(&dstr, ']', 0);
-	    if (dstr == NULL) {
-		safe_chr('[', buff, &bufc);
-		dstr = tstr;
-	    } else {
+        tbuf = parse_to(&dstr, ']', 0);
+        if (dstr == NULL) {
+        safe_chr('[', buff, &bufc);
+        dstr = tstr;
+        } else {
                 mudstate.stack_val--;
-		tstr = exec(player, cause, caller,
-			    (eval | EV_FCHECK | EV_FMAND),
-			    tbuf, cargs, ncargs, regargs, nregargs);
-		safe_str(tstr, buff, &bufc);
-		free_lbuf(tstr);
-		dstr--;
-	    }
-	    break;
-	case '{':
+        tstr = exec(player, cause, caller,
+                (eval | EV_FCHECK | EV_FMAND),
+                tbuf, cargs, ncargs, regargs, nregargs);
+        safe_str(tstr, buff, &bufc);
+        free_lbuf(tstr);
+        dstr--;
+        }
+        break;
+    case '{':
             mudstate.stack_val++;
-	    /* Literal start.  Insert everything up to the
-	     * terminating } without parsing.  If no closing
-	     * brace, insert the { and continue. */
+        /* Literal start.  Insert everything up to the
+         * terminating } without parsing.  If no closing
+         * brace, insert the { and continue. */
 
-	    at_space = 0;
-	    tstr = dstr++;
-	    tbuf = parse_to(&dstr, '}', 0);
-	    if (dstr == NULL) {
-		safe_chr('{', buff, &bufc);
-		dstr = tstr;
-	    } else {
+        at_space = 0;
+        tstr = dstr++;
+        tbuf = parse_to(&dstr, '}', 0);
+        if (dstr == NULL) {
+        safe_chr('{', buff, &bufc);
+        dstr = tstr;
+        } else {
                 mudstate.stack_val--;
-		if (!(eval & EV_STRIP)) {
-		    safe_chr('{', buff, &bufc);
-		}
-		/* Preserve leading spaces (Felan) */
+        if (!(eval & EV_STRIP)) {
+            safe_chr('{', buff, &bufc);
+        }
+        /* Preserve leading spaces (Felan) */
 
-		if (*tbuf == ' ') {
-		    safe_chr(' ', buff, &bufc);
-		    tbuf++;
-		}
-		tstr = exec(player, cause, caller,
-			    (eval & ~(EV_STRIP | EV_FCHECK)),
-			    tbuf, cargs, ncargs, regargs, nregargs);
-		safe_str(tstr, buff, &bufc);
-		if (!(eval & EV_STRIP)) {
-		    safe_chr('}', buff, &bufc);
-		}
-		free_lbuf(tstr);
-		dstr--;
-	    }
-	    break;
+        if (*tbuf == ' ') {
+            safe_chr(' ', buff, &bufc);
+            tbuf++;
+        }
+        tstr = exec(player, cause, caller,
+                (eval & ~(EV_STRIP | EV_FCHECK)),
+                tbuf, cargs, ncargs, regargs, nregargs);
+        safe_str(tstr, buff, &bufc);
+        if (!(eval & EV_STRIP)) {
+            safe_chr('}', buff, &bufc);
+        }
+        free_lbuf(tstr);
+        dstr--;
+        }
+        break;
 
-	case '%':
-	    /* Percent-replace start.  Evaluate the chars following
-	     * and perform the appropriate substitution. */
+    case '%':
+        /* Percent-replace start.  Evaluate the chars following
+         * and perform the appropriate substitution. */
 
-	    at_space = 0;
-	    dstr++;
-	    savec = *dstr;
-	    savepos = bufc;
+        at_space = 0;
+        dstr++;
+        savec = *dstr;
+        savepos = bufc;
             mudstate.curr_percentsubs++;
             c_last_chr = ' ';
             
@@ -1340,17 +1447,17 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
             if ( mudstate.curr_percentsubs >= mudconf.max_percentsubs )
                break;
-	    switch (savec) {
-	    case '\0':		/* Null - all done */
-		dstr--;
-		break;
+        switch (savec) {
+        case '\0':      /* Null - all done */
+        dstr--;
+        break;
 #ifdef ZENTY_ANSI            
             case '\\':
 /*          safe_str("%\\", buff, &bufc); */
             safe_chr('\\', buff, &bufc);
             break;
 #endif
-	    case '%':		/* Percent - a literal % */
+        case '%':       /* Percent - a literal % */
 #ifdef ZENTY_ANSI            
                if ( ((*(dstr + 1) == SAFE_CHR) && 1) /* Needed && 1 to ignore clang warning */
 #ifdef SAFE_CHR2
@@ -1368,23 +1475,23 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                else
 #endif                
                   safe_chr('%', buff, &bufc);            
-		  break;
+          break;
 #ifndef NOEXTSUBS
 #ifdef TINY_SUB
-	    case 'x':
-	    case 'X':		/* ansi subs */
+        case 'x':
+        case 'X':       /* ansi subs */
                  if ( c_last_chr == ' ' )
                     c_last_chr = 'X';
 #endif
 #ifdef C_SUB
-	    case 'c':
-	    case 'C':		/* ansi subs */
+        case 'c':
+        case 'C':       /* ansi subs */
                  if ( c_last_chr == ' ' )
                     c_last_chr = 'C';
 #endif
 #ifdef M_SUB
-	    case 'm':
-	    case 'M':   	/* ansi subs */
+        case 'm':
+        case 'M':       /* ansi subs */
                  if ( c_last_chr == ' ' )
                     c_last_chr = 'M';
 #endif
@@ -1442,142 +1549,142 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     break;
                 }
 #endif
-		dstr++;
-		if (mudstate.eval_rec != 1) {
-		    if (!*dstr)
-			dstr--;
-		    break;
-		}
-		switch (*dstr) {
-		case '\0':
-		    dstr--;
-		    break;
-		case 'n':
-		    safe_str((char *) ANSI_NORMAL, buff, &bufc);
-		    break;
-		case 'f':
+        dstr++;
+        if (mudstate.eval_rec != 1) {
+            if (!*dstr)
+            dstr--;
+            break;
+        }
+        switch (*dstr) {
+        case '\0':
+            dstr--;
+            break;
+        case 'n':
+            safe_str((char *) ANSI_NORMAL, buff, &bufc);
+            break;
+        case 'f':
                     if ( mudconf.global_ansimask & MASK_BLINK )
-		       safe_str((char *) ANSI_BLINK, buff, &bufc);
-		    break;
-		case 'u':
+               safe_str((char *) ANSI_BLINK, buff, &bufc);
+            break;
+        case 'u':
                     if ( mudconf.global_ansimask & MASK_UNDERSCORE )
-		       safe_str((char *) ANSI_UNDERSCORE, buff, &bufc);
-		    break;
-		case 'i':
+               safe_str((char *) ANSI_UNDERSCORE, buff, &bufc);
+            break;
+        case 'i':
                     if ( mudconf.global_ansimask & MASK_INVERSE )
-		       safe_str((char *) ANSI_INVERSE, buff, &bufc);
-		    break;
-		case 'h':
+               safe_str((char *) ANSI_INVERSE, buff, &bufc);
+            break;
+        case 'h':
                     if ( mudconf.global_ansimask & MASK_HILITE )
-		       safe_str((char *) ANSI_HILITE, buff, &bufc);
-		    break;
-		case 'x':
+               safe_str((char *) ANSI_HILITE, buff, &bufc);
+            break;
+        case 'x':
                     if ( mudconf.global_ansimask & MASK_BLACK )
-		       safe_str((char *) ANSI_BLACK, buff, &bufc);
-		    break;
-		case 'X':
+               safe_str((char *) ANSI_BLACK, buff, &bufc);
+            break;
+        case 'X':
                     if ( mudconf.global_ansimask & MASK_BBLACK )
-		       safe_str((char *) ANSI_BBLACK, buff, &bufc);
-		    break;
-		case 'r':
+               safe_str((char *) ANSI_BBLACK, buff, &bufc);
+            break;
+        case 'r':
                     if ( mudconf.global_ansimask & MASK_RED )
-		       safe_str((char *) ANSI_RED, buff, &bufc);
-		    break;
-		case 'R':
+               safe_str((char *) ANSI_RED, buff, &bufc);
+            break;
+        case 'R':
                     if ( mudconf.global_ansimask & MASK_BRED )
-		       safe_str((char *) ANSI_BRED, buff, &bufc);
-		    break;
-		case 'g':
+               safe_str((char *) ANSI_BRED, buff, &bufc);
+            break;
+        case 'g':
                     if ( mudconf.global_ansimask & MASK_GREEN )
-		       safe_str((char *) ANSI_GREEN, buff, &bufc);
-		    break;
-		case 'G':
+               safe_str((char *) ANSI_GREEN, buff, &bufc);
+            break;
+        case 'G':
                     if ( mudconf.global_ansimask & MASK_BGREEN )
-		       safe_str((char *) ANSI_BGREEN, buff, &bufc);
-		    break;
-		case 'y':
+               safe_str((char *) ANSI_BGREEN, buff, &bufc);
+            break;
+        case 'y':
                     if ( mudconf.global_ansimask & MASK_YELLOW )
-		       safe_str((char *) ANSI_YELLOW, buff, &bufc);
-		    break;
-		case 'Y':
+               safe_str((char *) ANSI_YELLOW, buff, &bufc);
+            break;
+        case 'Y':
                     if ( mudconf.global_ansimask & MASK_BYELLOW )
-		       safe_str((char *) ANSI_BYELLOW, buff, &bufc);
-		    break;
-		case 'b':
+               safe_str((char *) ANSI_BYELLOW, buff, &bufc);
+            break;
+        case 'b':
                     if ( mudconf.global_ansimask & MASK_BLUE )
-		       safe_str((char *) ANSI_BLUE, buff, &bufc);
-		    break;
-		case 'B':
+               safe_str((char *) ANSI_BLUE, buff, &bufc);
+            break;
+        case 'B':
                     if ( mudconf.global_ansimask & MASK_BBLUE )
-		       safe_str((char *) ANSI_BBLUE, buff, &bufc);
-		    break;
-		case 'm':
+               safe_str((char *) ANSI_BBLUE, buff, &bufc);
+            break;
+        case 'm':
                     if ( mudconf.global_ansimask & MASK_MAGENTA )
-		       safe_str((char *) ANSI_MAGENTA, buff, &bufc);
-		    break;
-		case 'M':
+               safe_str((char *) ANSI_MAGENTA, buff, &bufc);
+            break;
+        case 'M':
                     if ( mudconf.global_ansimask & MASK_BMAGENTA )
-		       safe_str((char *) ANSI_BMAGENTA, buff, &bufc);
-		    break;
-		case 'c':
+               safe_str((char *) ANSI_BMAGENTA, buff, &bufc);
+            break;
+        case 'c':
                     if ( mudconf.global_ansimask & MASK_CYAN )
-		       safe_str((char *) ANSI_CYAN, buff, &bufc);
-		    break;
-		case 'C':
+               safe_str((char *) ANSI_CYAN, buff, &bufc);
+            break;
+        case 'C':
                     if ( mudconf.global_ansimask & MASK_BCYAN )
-		       safe_str((char *) ANSI_BCYAN, buff, &bufc);
-		    break;
-		case 'w':
+               safe_str((char *) ANSI_BCYAN, buff, &bufc);
+            break;
+        case 'w':
                     if ( mudconf.global_ansimask & MASK_WHITE )
-		       safe_str((char *) ANSI_WHITE, buff, &bufc);
-		    break;
-		case 'W':
+               safe_str((char *) ANSI_WHITE, buff, &bufc);
+            break;
+        case 'W':
                     if ( mudconf.global_ansimask & MASK_BWHITE )
-		       safe_str((char *) ANSI_BWHITE, buff, &bufc);
-		    break;
-		default:
-		    safe_chr(*dstr, buff, &bufc);
-		}
-		break;
-            case '<':		/* High-Bit/UTF8 characters */
+               safe_str((char *) ANSI_BWHITE, buff, &bufc);
+            break;
+        default:
+            safe_chr(*dstr, buff, &bufc);
+        }
+        break;
+            case '<':       /* High-Bit/UTF8 characters */
                 safe_str("%<", buff, &bufc);
                 break;
-            case 'f':		/* Accents */
-            case 'F':	
+            case 'f':       /* Accents */
+            case 'F':   
                 if ( !sub_override_process(SUB_F, (char *)"%f", (char *)"F", buff, &bufc, cause, caller, feval) ) {
-		   safe_str("%f", buff, &bufc);
+           safe_str("%f", buff, &bufc);
                 }
                 break;
-	    case 'r':		/* Carriage return */
-	    case 'R':
+        case 'r':       /* Carriage return */
+        case 'R':
                 if ( !sub_override_process(SUB_R, (char *)"\r\n", (char *)"R", buff, &bufc, cause, caller, feval) ) {
-		   safe_str((char *)"\r\n", buff, &bufc);
+           safe_str((char *)"\r\n", buff, &bufc);
                 }
-		break;
-	    case 't':		/* Tab */
-	    case 'T':
+        break;
+        case 't':       /* Tab */
+        case 'T':
                 if ( !sub_override_process(SUB_T, (char *)"\t", (char *)"T", buff, &bufc, cause, caller, feval) ) {
-		   safe_str("\t", buff, &bufc);
+           safe_str("\t", buff, &bufc);
                 }
-		break;
-	    case 'B':		/* Blank */
-	    case 'b':
-		safe_chr(' ', buff, &bufc);
-		break;
-	    case '0':		/* Command argument number N */
-	    case '1':
-	    case '2':
-	    case '3':
-	    case '4':
-	    case '5':
-	    case '6':
-	    case '7':
-	    case '8':
-	    case '9':
-		i = (*dstr - '0') + (10 * mudstate.shifted);
-		if ((i < ncargs) && (cargs[i] != NULL))
-		    safe_str(cargs[i], buff, &bufc);
-		break;
+        break;
+        case 'B':       /* Blank */
+        case 'b':
+        safe_chr(' ', buff, &bufc);
+        break;
+        case '0':       /* Command argument number N */
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        i = (*dstr - '0') + (10 * mudstate.shifted);
+        if ((i < ncargs) && (cargs[i] != NULL))
+            safe_str(cargs[i], buff, &bufc);
+        break;
             case '-':
                 if (ncargs >= 10) {
                    for (i=10; ((i < ncargs) && (i <= MAX_ARGS) && cargs[i] != NULL); i++) {
@@ -1587,20 +1694,20 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }
                 }
                 break;
-	    case 'V':		/* Variable attribute */
-	    case 'v':
-		dstr++;
-		ch = ToUpper((int)*dstr);
-		if (!*dstr)
-		    dstr--;
-		if ((ch < 'A') || (ch > 'Z'))
-		    break;
-		i = 100 + ch - 'A';
-		atr_gotten = atr_pget(player, i, &aowner,
-				      &aflags);
-		safe_str(atr_gotten, buff, &bufc);
-		free_lbuf(atr_gotten);
-		break;
+        case 'V':       /* Variable attribute */
+        case 'v':
+        dstr++;
+        ch = ToUpper((int)*dstr);
+        if (!*dstr)
+            dstr--;
+        if ((ch < 'A') || (ch > 'Z'))
+            break;
+        i = 100 + ch - 'A';
+        atr_gotten = atr_pget(player, i, &aowner,
+                      &aflags);
+        safe_str(atr_gotten, buff, &bufc);
+        free_lbuf(atr_gotten);
+        break;
             case '$':
                 i = -1;
                 dstr++;
@@ -1619,9 +1726,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
                 break;
 #ifndef NO_ENH
-	    case 'Q':
-	    case 'q':
-		dstr++;
+        case 'Q':
+        case 'q':
+        dstr++;
                 if ( *dstr == '<' ) {
                    sub_cntr = 0;
                    t_bufb = t_bufa = alloc_sbuf("sub_include_setq");
@@ -1644,21 +1751,21 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                break;
                          }
                          i = w;
-		         if ( mudstate.global_regs[i] ) {
-		            safe_str(mudstate.global_regs[i], buff, &bufc);
+                 if ( mudstate.global_regs[i] ) {
+                    safe_str(mudstate.global_regs[i], buff, &bufc);
                          }
 #else
                       if ( *t_bufa && !*(t_bufa+1) && isdigit(*t_bufa) ) {
-		         i = (*t_bufa - '0');
-		         if ((i >= 0) && (i <= 9) && mudstate.global_regs[i] ) {
-		            safe_str(mudstate.global_regs[i], buff, &bufc);
+                 i = (*t_bufa - '0');
+                 if ((i >= 0) && (i <= 9) && mudstate.global_regs[i] ) {
+                    safe_str(mudstate.global_regs[i], buff, &bufc);
                          }
 #endif
                       } else {
                          for ( sub_cntr = 0 ; sub_cntr < MAX_GLOBAL_REGS; sub_cntr++ ) {
                             if (  mudstate.global_regsname[sub_cntr] &&
                                   !stricmp(mudstate.global_regsname[sub_cntr], t_bufa) ) {
-		               safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
+                       safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
                                break;
                             }
                          }
@@ -1666,7 +1773,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }
                    free_sbuf(t_bufa);
                 } else {
-		   i = (*dstr - '0');
+           i = (*dstr - '0');
 #ifdef EXPANDED_QREGS
                    if ( *dstr && isalpha((int)*dstr) ) {
                       for ( w = 0; w < 37; w++ ) {
@@ -1677,114 +1784,114 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }  else if ( (i < 0 || i > 9) ) {
                       i = -1;
                    }
-		   if (!*dstr)
-		       dstr--;
-		   if ((i >= 0) && (i <= 35) &&
-		       mudstate.global_regs[i]) {
-		       safe_str(mudstate.global_regs[i],
-			        buff, &bufc);
-		   }
+           if (!*dstr)
+               dstr--;
+           if ((i >= 0) && (i <= 35) &&
+               mudstate.global_regs[i]) {
+               safe_str(mudstate.global_regs[i],
+                    buff, &bufc);
+           }
 #else
-		   if (!*dstr)
-		       dstr--;
-		   if ((i >= 0) && (i <= 9) &&
-		       mudstate.global_regs[i]) {
-		       safe_str(mudstate.global_regs[i],
-			        buff, &bufc);
-		   }
+           if (!*dstr)
+               dstr--;
+           if ((i >= 0) && (i <= 9) &&
+               mudstate.global_regs[i]) {
+               safe_str(mudstate.global_regs[i],
+                    buff, &bufc);
+           }
 #endif
                 }
-		break;
+        break;
 #endif
-	    case 'O':		/* Objective pronoun */
-	    case 'o':
-		if (gender < 0)
-		    gender = get_gender(cause);
-		if (!gender)
-		    tbuf = Name(cause);
-		else
-		    tbuf = (char *) obj[gender];
+        case 'O':       /* Objective pronoun */
+        case 'o':
+        if (gender < 0)
+            gender = get_gender(cause);
+        if (!gender)
+            tbuf = Name(cause);
+        else
+            tbuf = (char *) obj[gender];
                 if ( !sub_override_process(SUB_O, tbuf, (char *)"O", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
-		break;
-	    case 'P':		/* Personal pronoun */
-	    case 'p':
-		tbuf = alloc_lbuf("exec.pronoun");
-		if (gender < 0)
-		    gender = get_gender(cause);
-		if (!gender) {
+        break;
+        case 'P':       /* Personal pronoun */
+        case 'p':
+        tbuf = alloc_lbuf("exec.pronoun");
+        if (gender < 0)
+            gender = get_gender(cause);
+        if (!gender) {
                     sprintf(tbuf, "%.1000ss", Name(cause));
-		} else {
+        } else {
                     sprintf(tbuf, "%.1000s", (char *) poss[gender]);
-		}
+        }
                 if ( !sub_override_process(SUB_P, tbuf, (char *)"P", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
                 free_lbuf(tbuf);
-		break;
-	    case 'S':		/* Subjective pronoun */
-	    case 's':
-		if (gender < 0)
-		    gender = get_gender(cause);
-		if (!gender)
-		    tbuf = Name(cause);
-		else
-		    tbuf = (char *) subj[gender];
+        break;
+        case 'S':       /* Subjective pronoun */
+        case 's':
+        if (gender < 0)
+            gender = get_gender(cause);
+        if (!gender)
+            tbuf = Name(cause);
+        else
+            tbuf = (char *) subj[gender];
                 if ( !sub_override_process(SUB_S, tbuf, (char *)"S", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
-		break;
-	    case 'A':		/* Absolute posessive */
-	    case 'a':		/* idea from Empedocles */
-		tbuf = alloc_lbuf("exec.absolutepossessive");
-		if (gender < 0)
-		    gender = get_gender(cause);
-		if (!gender) {
+        break;
+        case 'A':       /* Absolute posessive */
+        case 'a':       /* idea from Empedocles */
+        tbuf = alloc_lbuf("exec.absolutepossessive");
+        if (gender < 0)
+            gender = get_gender(cause);
+        if (!gender) {
                     sprintf(tbuf, "%.1000ss", Name(cause));
-		} else {
+        } else {
                     sprintf(tbuf, "%.1000s", (char *) absp[gender]);
-		}
+        }
                 if ( !sub_override_process(SUB_A, tbuf, (char *)"A", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
                 free_lbuf(tbuf);
-		break;
+        break;
             case ':':           /* Invoker ObjID Number */
-		tbuf = alloc_sbuf("exec.invoker");
-		sprintf(tbuf, "#%d", cause);
+        tbuf = alloc_sbuf("exec.invoker");
+        sprintf(tbuf, "#%d", cause);
                 trace_buffptr = trace_buff = alloc_lbuf("buffer_for_objid");
                 trace_array[0] = tbuf;
                 trace_array[1] = NULL;
                 trace_array[2] = NULL;
                 fun_objid(trace_buff, &trace_buffptr, player, cause, cause, trace_array, 1, (char **)NULL, 0);
                 if ( !sub_override_process(SUB_COLON, trace_buff, (char *)"COLON", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(trace_buff, buff, &bufc);
+           safe_str(trace_buff, buff, &bufc);
                 }
-		free_sbuf(tbuf);
+        free_sbuf(tbuf);
                 free_lbuf(trace_buff);
                 break;
-	    case '#':		/* Invoker DB number */
-		tbuf = alloc_sbuf("exec.invoker");
-		sprintf(tbuf, "#%d", cause);
+        case '#':       /* Invoker DB number */
+        tbuf = alloc_sbuf("exec.invoker");
+        sprintf(tbuf, "#%d", cause);
                 if ( !sub_override_process(SUB_NUM, tbuf, (char *)"NUM", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
-		free_sbuf(tbuf);
-		break;
-	    case '!':		/* Executor DB number */
-		tbuf = alloc_sbuf("exec.executor");
-		sprintf(tbuf, "#%d", player);
+        free_sbuf(tbuf);
+        break;
+        case '!':       /* Executor DB number */
+        tbuf = alloc_sbuf("exec.executor");
+        sprintf(tbuf, "#%d", player);
                 if ( !sub_override_process(SUB_BANG, tbuf, (char *)"BANG", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
-		free_sbuf(tbuf);
-		break;
+        free_sbuf(tbuf);
+        break;
             case '@':           /* Immediate Executor DB number */
                 tbuf = alloc_sbuf("exec.executor");
                 sprintf(tbuf, "#%d", caller);
                 if ( !sub_override_process(SUB_AT, tbuf, (char *)"AT", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
                 free_sbuf(tbuf);
                 break;
@@ -1820,7 +1927,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     dstr--;
                  }
                  break;
-            case 'd':		/* dtext */
+            case 'd':       /* dtext */
             case 'D':
                  dstr++;
                  if ( dstr && *dstr ) {
@@ -1841,16 +1948,16 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  }
                  break;
             case 'w':
-            case 'W':		/* TwinkLock enactor */
-		tbuf = alloc_sbuf("exec.twink");
-		sprintf(tbuf, "#%d", mudstate.twinknum);
+            case 'W':       /* TwinkLock enactor */
+        tbuf = alloc_sbuf("exec.twink");
+        sprintf(tbuf, "#%d", mudstate.twinknum);
                 if ( !sub_override_process(SUB_W, tbuf, (char *)"W", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
-		free_sbuf(tbuf);
+        free_sbuf(tbuf);
                 break;
-	    case 'K':		/* Invoker name */
-	    case 'k':
+        case 'K':       /* Invoker name */
+        case 'k':
                 /* We don't use sub_aowner or sub_aflags here so we don't care if they get clobbered  */
                 t_bufa = atr_pget(cause, A_ANSINAME, &sub_aowner, &sub_aflags);
                 t_bufb = NULL;
@@ -1890,7 +1997,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          }
                       } else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_K;
-		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                 sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
                          if ( !*sub_buf ) {
                             if ( t_bufb ) {
                                safe_str(t_bufb, buff, &bufc);
@@ -1919,34 +2026,34 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 free_sbuf(t_bufc);
                 if ( t_bufb )
                    free_lbuf(t_bufb);
-		break;
-	    case 'N':		/* Invoker name */
-	    case 'n':
+        break;
+        case 'N':       /* Invoker name */
+        case 'n':
                 if ( !sub_override_process(SUB_N, Name(cause), (char *)"N", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(Name(cause), buff, &bufc);
+           safe_str(Name(cause), buff, &bufc);
                 }
-		break;
-	    case 'L':		/* Invoker location db# */
-	    case 'l':
-		twhere = where_is(cause);
-		if (Immortal(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && SCloak(twhere) && !Immortal(cause) && (twhere != cause)) {
-		  twhere = -1;
-		} else if (Wizard(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && !Wizard(cause) && (twhere != cause)) {
-		  twhere = -1;
+        break;
+        case 'L':       /* Invoker location db# */
+        case 'l':
+        twhere = where_is(cause);
+        if (Immortal(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && SCloak(twhere) && !Immortal(cause) && (twhere != cause)) {
+          twhere = -1;
+        } else if (Wizard(Owner(twhere)) && Dark(twhere) && Unfindable(twhere) && !Wizard(cause) && (twhere != cause)) {
+          twhere = -1;
                 } else if (mudconf.enforce_unfindable && (twhere != cause) &&
                             ((Immortal(Owner(cause)) && Dark(cause) && Unfindable(cause) && SCloak(cause) && !Immortal(player)) ||
                              (Wizard(Owner(cause)) && Dark(cause) && Unfindable(cause) && !Wizard(player)) ||
                              (Unfindable(cause) && !Controls(player,cause) && (cause != player)) || 
                              (Unfindable(twhere) && !Controls(player,twhere) && (Owner(twhere) != player) && (cause != player)) )) {
-		  twhere = -1;
+          twhere = -1;
                 }
-		tbuf = alloc_sbuf("exec.exloc");
-		sprintf(tbuf, "#%d", twhere);
+        tbuf = alloc_sbuf("exec.exloc");
+        sprintf(tbuf, "#%d", twhere);
                 if ( !sub_override_process(SUB_L, tbuf, (char *)"L", buff, &bufc, cause, caller, feval) ) {
-		   safe_str(tbuf, buff, &bufc);
+           safe_str(tbuf, buff, &bufc);
                 }
-		free_sbuf(tbuf);
-		break;
+        free_sbuf(tbuf);
+        break;
             case '_':           /* Yay is the trace breakpoint */
                 if ( (dstr+1) && (*(dstr+1) == '<') && strchr(dstr, '>') ) {
                    dstr+=2;
@@ -2049,19 +2156,19 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 break;
 #ifndef NOEXTSUBS
 #ifndef C_SUB
-            case 'C':		/* Command substitution */
+            case 'C':       /* Command substitution */
             case 'c':
                  if ( c_last_chr == ' ' )
                     c_last_chr = 'C';
 #endif
 #ifndef TINY_SUB
-            case 'X':		/* Command substitution */
+            case 'X':       /* Command substitution */
             case 'x':
                  if ( c_last_chr == ' ' )
                     c_last_chr = 'X';
 #endif
 #ifndef M_SUB
-            case 'M':		/* Command substitution */
+            case 'M':       /* Command substitution */
             case 'm':
                  if ( c_last_chr == ' ' )
                     c_last_chr = 'M';
@@ -2128,7 +2235,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    safe_str("XXX", buff, &bufc);
                 }
                 break;
-	    default:		/* Just copy */
+        default:        /* Just copy */
                 if ( !mudstate.sub_includestate && *mudconf.sub_include && 
                      Good_obj(mudconf.hook_obj) && (strchr(mudconf.sub_include, ToLower(*dstr)) != NULL) ) {
                    t_bufa = alloc_sbuf("sub_include");
@@ -2210,87 +2317,87 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          }
                          free_lbuf(sub_txt);
                       } else {
-		         safe_chr(*dstr, buff, &bufc);
+                 safe_chr(*dstr, buff, &bufc);
                       }
                       mudstate.sub_includestate = 0;
                    } else {
-		      safe_chr(*dstr, buff, &bufc);
+              safe_chr(*dstr, buff, &bufc);
                    }
                    free_sbuf(t_bufa);
                 } else {
-		   safe_chr(*dstr, buff, &bufc);
+           safe_chr(*dstr, buff, &bufc);
                 }
-	    }
-	    if (isupper((int)savec))
-		*savepos = ToUpper((int)*savepos);
-	    break;
-	case '(':
-	    /* Arglist start.  See if what precedes is a function.
-	     * If so, execute it if we should. */
+        }
+        if (isupper((int)savec))
+        *savepos = ToUpper((int)*savepos);
+        break;
+    case '(':
+        /* Arglist start.  See if what precedes is a function.
+         * If so, execute it if we should. */
 
-	    at_space = 0;
-	    if (!(eval & EV_FCHECK)) {
-		safe_chr('(', buff, &bufc);
-		break;
-	    }
-	    /* Load an sbuf with an uppercase version of the func
-	     * name, and see if the func exists.  Trim trailing
-	     * spaces from the name if configured. */
+        at_space = 0;
+        if (!(eval & EV_FCHECK)) {
+        safe_chr('(', buff, &bufc);
+        break;
+        }
+        /* Load an sbuf with an uppercase version of the func
+         * name, and see if the func exists.  Trim trailing
+         * spaces from the name if configured. */
 
-	    *bufc = '\0';
-	    tbufc = tbuf = alloc_sbuf("exec.tbuf");
-	    safe_sb_str(buff, tbuf, &tbufc);
-	    *tbufc = '\0';
-	    if (mudconf.space_compress) {
-		while ((--tbufc >= tbuf) && isspace((int)*tbufc));
-		tbufc++;
-	    }
-	    for (tbufc = tbuf; *tbufc; tbufc++)
-		*tbufc = ToLower((int)*tbufc);
+        *bufc = '\0';
+        tbufc = tbuf = alloc_sbuf("exec.tbuf");
+        safe_sb_str(buff, tbuf, &tbufc);
+        *tbufc = '\0';
+        if (mudconf.space_compress) {
+        while ((--tbufc >= tbuf) && isspace((int)*tbufc));
+        tbufc++;
+        }
+        for (tbufc = tbuf; *tbufc; tbufc++)
+        *tbufc = ToLower((int)*tbufc);
 #ifdef BANGS
-	    /* C++ Inspired Bangs
-	     * 
-	     * Possible combinations are: ! !! !$ !!$ !^ !!^
-	     * Stepping past the possible combinations at the beginning of
-	     * the function's name, pushing a pointer up as we go. The
-	     * modified pointer will be used to search the hash table
-	     * if a bang condition is found.
-	     */
-	    tbangc = tbuf;
-	    bang_not = 0;
-	    bang_yes = 0;
-	    bang_string = 0;
+        /* C++ Inspired Bangs
+         * 
+         * Possible combinations are: ! !! !$ !!$ !^ !!^
+         * Stepping past the possible combinations at the beginning of
+         * the function's name, pushing a pointer up as we go. The
+         * modified pointer will be used to search the hash table
+         * if a bang condition is found.
+         */
+        tbangc = tbuf;
+        bang_not = 0;
+        bang_yes = 0;
+        bang_string = 0;
             bang_truebool = 0;
-	    if (*tbangc == '!') {
-		bang_not = 1;
-		tbangc++;
-		}
-	    if (*tbangc == '!') {
-		bang_not = 0;
-		bang_yes = 1;
-		tbangc++;
-		}
-	    if ((bang_not || bang_yes) && *tbangc == '$') {
-		bang_string = 1;
-		tbangc++;
-	    } else if ((bang_not || bang_yes) && *tbangc == '^') {
-		bang_string = 1;
+        if (*tbangc == '!') {
+        bang_not = 1;
+        tbangc++;
+        }
+        if (*tbangc == '!') {
+        bang_not = 0;
+        bang_yes = 1;
+        tbangc++;
+        }
+        if ((bang_not || bang_yes) && *tbangc == '$') {
+        bang_string = 1;
+        tbangc++;
+        } else if ((bang_not || bang_yes) && *tbangc == '^') {
+        bang_string = 1;
                 bang_truebool = 1;
-		tbangc++;
+        tbangc++;
             }
-	    if (bang_not || bang_yes) {
-		fp = (FUN *) hashfind(tbangc, &mudstate.func_htab);
-		ufp = NULL;
+        if (bang_not || bang_yes) {
+        fp = (FUN *) hashfind(tbangc, &mudstate.func_htab);
+        ufp = NULL;
                 ulfp = NULL;
                 if ( fp == NULL ) {
-		   ufp = (UFUN *) hashfind(tbangc, &mudstate.ufunc_htab);
-		}
+           ufp = (UFUN *) hashfind(tbangc, &mudstate.ufunc_htab);
+        }
                 if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
                    ufp = NULL;
                 }
                 if ( ufp == NULL ) {
                    sprintf(tfunlocal, "%d_%s", Owner(player), tbangc);
-		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
+           ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                       ulfp = NULL;
                    }
@@ -2299,18 +2406,18 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }
                 }
             } else {
-		fp = (FUN *) hashfind(tbuf, &mudstate.func_htab);
-    		ufp = NULL;
+        fp = (FUN *) hashfind(tbuf, &mudstate.func_htab);
+            ufp = NULL;
                 ulfp = NULL;
                 if ( fp == NULL ) {
-		   ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
-		}
+           ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
+        }
                 if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
                    ufp = NULL;
                 }
                 if ( ufp == NULL ) {
                    sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
-		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
+           ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                       ulfp = NULL;
                    }
@@ -2320,20 +2427,20 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
             }
 #else
-	    fp = (FUN *) hashfind(tbuf, &mudstate.func_htab);
-	    /* If not a builtin func, check for global func */
+        fp = (FUN *) hashfind(tbuf, &mudstate.func_htab);
+        /* If not a builtin func, check for global func */
 
-	    ufp = NULL;
+        ufp = NULL;
             ulfp = NULL;
-	    if (fp == NULL) {
-		ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
-	    }
+        if (fp == NULL) {
+        ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
+        }
             if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
                ufp = NULL;
             }
             if ( ufp == NULL ) {
                 sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
-		ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
+        ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                 if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                    ulfp = NULL;
                 }
@@ -2344,7 +2451,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
             /* Compare to see if it has an IGNORE mask */
             if ( fp && ((fp->perms & 0x00007F00) || (fp->perms2 & CA_SB_IGNORE)) ) {
-	       check_access(player, fp->perms, fp->perms2, 0);
+           check_access(player, fp->perms, fp->perms2, 0);
                if ( mudstate.func_ignore && !mudstate.func_bypass) {
                   memset(tfunbuff, 0, sizeof(tfunbuff));
 #ifdef BANGS
@@ -2357,13 +2464,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                   } else {
                      sprintf(tfunbuff, "_%.31s", tbuf);
                   }
-	          ufp = (UFUN *) hashfind((char *)tfunbuff, &mudstate.ufunc_htab);
+              ufp = (UFUN *) hashfind((char *)tfunbuff, &mudstate.ufunc_htab);
                   if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
                      ufp = NULL;
                   }
                   if ( ufp == NULL ) {
                       sprintf(tfunlocal, "%d_%s", Owner(player), tfunbuff);
-		      ulfp = (UFUN *) hashfind((char *)tfunlocal, &mudstate.ulfunc_htab);
+              ulfp = (UFUN *) hashfind((char *)tfunlocal, &mudstate.ulfunc_htab);
                       if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                          ulfp = NULL;
                       }
@@ -2379,37 +2486,37 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                   }
                }
             }
-	    /* Do the right thing if it doesn't exist */
+        /* Do the right thing if it doesn't exist */
 
-	    if (!fp && !ufp && !ulfp) {
-		if (eval & EV_FMAND) {
-		    bufc = buff;
-		    safe_str((char *) "#-1 FUNCTION (",
-			     buff, &bufc);
-		    safe_str(tbuf, buff, &bufc);
-		    safe_str((char *) ") NOT FOUND",
-			     buff, &bufc);
-		    alldone = 1;
-		} else {
-		    safe_chr('(', buff, &bufc);
-		}
-		free_sbuf(tbuf);
-		eval &= ~EV_FCHECK;
-		break;
-	    }
-	    free_sbuf(tbuf);
+        if (!fp && !ufp && !ulfp) {
+        if (eval & EV_FMAND) {
+            bufc = buff;
+            safe_str((char *) "#-1 FUNCTION (",
+                 buff, &bufc);
+            safe_str(tbuf, buff, &bufc);
+            safe_str((char *) ") NOT FOUND",
+                 buff, &bufc);
+            alldone = 1;
+        } else {
+            safe_chr('(', buff, &bufc);
+        }
+        free_sbuf(tbuf);
+        eval &= ~EV_FCHECK;
+        break;
+        }
+        free_sbuf(tbuf);
 
-	    /* Get the arglist and count the number of args
-	     * Neg # of args means catenate subsequent args
-	     */
+        /* Get the arglist and count the number of args
+         * Neg # of args means catenate subsequent args
+         */
 
-	    if (ufp || ulfp)
-		nfargs = NFARGS;
-	    else if (fp->nargs < 0)
-		nfargs = -fp->nargs;
-	    else
-		nfargs = NFARGS;
-	    tstr = dstr;
+        if (ufp || ulfp)
+        nfargs = NFARGS;
+        else if (fp->nargs < 0)
+        nfargs = -fp->nargs;
+        else
+        nfargs = NFARGS;
+        tstr = dstr;
             i_type = 0;
             if ( ((fp && ((fp->flags & FN_NO_EVAL) || (fp->perms2 & CA_NO_EVAL)) && !(fp->perms2 & CA_EVAL)) ||
                   (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
@@ -2435,51 +2542,51 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  (ulfp && (ulfp->perms & CA_EVAL)) ) {
                 feval = (feval | EV_NOTRACE);
             }
-	    dstr = parse_arglist(player, cause, caller, dstr + 1,
-				 ')', feval, fargs, nfargs,
-				 cargs, ncargs, i_type, regargs, nregargs);
-	    /* If no closing delim, just insert the '(' and
-	     * continue normally */
+        dstr = parse_arglist(player, cause, caller, dstr + 1,
+                 ')', feval, fargs, nfargs,
+                 cargs, ncargs, i_type, regargs, nregargs);
+        /* If no closing delim, just insert the '(' and
+         * continue normally */
 
             if ( i_type ) { 
                feval = (feval | EV_EVAL | EV_STRIP | ~EV_STRIP_ESC);
             }
-	    if (!dstr) {
-		dstr = tstr;
-		safe_chr(*dstr, buff, &bufc);
-		for (i = 0; i < nfargs; i++)
-		    if (fargs[i] != NULL)
-			free_lbuf(fargs[i]);
-		eval &= ~EV_FCHECK;
-		break;
-	    }
+        if (!dstr) {
+        dstr = tstr;
+        safe_chr(*dstr, buff, &bufc);
+        for (i = 0; i < nfargs; i++)
+            if (fargs[i] != NULL)
+            free_lbuf(fargs[i]);
+        eval &= ~EV_FCHECK;
+        break;
+        }
             /*  no stopping us now, we're either going to issue an
                 error message or execute a function, so toast the function
                 name in the buffer */
 
             bufc = buff;
 
-	    /* Count number of args returned */
+        /* Count number of args returned */
 
-	    dstr--;
-	    j = 0;
-	    for (i = 0; i < nfargs; i++)
-		if (fargs[i] != NULL) {
-		    j = i + 1;
-		    if (index(fargs[i], ESC_CHAR)) {
-			strcpy(fargs[i], strip_ansi(fargs[i]));
-		    }
-		}
-	    nfargs = j;
+        dstr--;
+        j = 0;
+        for (i = 0; i < nfargs; i++)
+        if (fargs[i] != NULL) {
+            j = i + 1;
+            if (index(fargs[i], ESC_CHAR)) {
+            strcpy(fargs[i], strip_ansi(fargs[i]));
+            }
+        }
+        nfargs = j;
 
-	    /* If it's a user-defined function, perform it now. */
+        /* If it's a user-defined function, perform it now. */
 
 
             if ( !ufp )
                ufp = ulfp;
 
-	    if (ufp) {
-		mudstate.func_nest_lev++;
+        if (ufp) {
+        mudstate.func_nest_lev++;
                 if ( ((ufp->minargs != -1) && (nfargs < ufp->minargs)) ||
                      ((ufp->maxargs != -1) && (nfargs > ufp->maxargs)) ) {
                  bufc = buff;
@@ -2527,21 +2634,21 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    safe_str(tstr, buff, &bufc);
                  free_sbuf(tstr);
                 } else if ( mudstate.ufunc_nest_lev >= mudconf.func_nest_lim ) {
-		    safe_str("#-1 FUNCTION RECURSION LIMIT EXCEEDED",
+            safe_str("#-1 FUNCTION RECURSION LIMIT EXCEEDED",
                              buff, &bufc);
                 } else if ( Fubar(player) ) {
                     safe_str("#-1 PERMISSION DENIED", buff, &bufc);
-		} else if (!check_access(player, ufp->perms, ufp->perms2, 0)) {
-		    safe_str("#-1 PERMISSION DENIED", buff, &bufc);
-		} else {
-		    tstr = atr_get(ufp->obj, ufp->atr,
-				   &aowner, &aflags);
-		    if (ufp->flags & FN_PRIV)
-			i = ufp->obj;
-		    else
-			i = player;
-		    mudstate.ufunc_nest_lev++;
-		    mudstate.func_invk_ctr++;
+        } else if (!check_access(player, ufp->perms, ufp->perms2, 0)) {
+            safe_str("#-1 PERMISSION DENIED", buff, &bufc);
+        } else {
+            tstr = atr_get(ufp->obj, ufp->atr,
+                   &aowner, &aflags);
+            if (ufp->flags & FN_PRIV)
+            i = ufp->obj;
+            else
+            i = player;
+            mudstate.ufunc_nest_lev++;
+            mudstate.func_invk_ctr++;
                     if ( ufp->flags & FN_PRES ) {
                        for (z = 0; z < MAX_GLOBAL_REGS; z++) {
                           savereg[z] = alloc_lbuf("ulocal_reg");
@@ -2552,17 +2659,17 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                           }
                        }
                     }
-		    mudstate.allowbypass = 1;
+            mudstate.allowbypass = 1;
                     if ( ufp->flags & FN_NOTRACE ) {
                        is_trace_bkup = mudstate.notrace;
                        mudstate.notrace = 1;
                     }
-		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs, regargs, nregargs);
+            tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs, regargs, nregargs);
                     is_trace_bkup = 0;
                     if ( ufp->flags & FN_NOTRACE ) {
                        mudstate.notrace = is_trace_bkup;
                     }
-		    mudstate.allowbypass = 0;
+            mudstate.allowbypass = 0;
                     if ( ufp->flags & FN_PRES ) {
                        for (z = 0; z < MAX_GLOBAL_REGS; z++) {
                           ptsavereg = mudstate.global_regs[z];
@@ -2570,14 +2677,14 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                           free_lbuf(savereg[z]);
                        }
                     }
-		    mudstate.ufunc_nest_lev--;
+            mudstate.ufunc_nest_lev--;
 #ifdef BANGS
-		    /* Ufun handling of bangs
-		     * 
-		     * Real straight-forward. Handle the bangs inside-out,
-		     * strings first, then negate or yes-gate it.
-		     */
-		    if (bang_string && *tbuf) {
+            /* Ufun handling of bangs
+             * 
+             * Real straight-forward. Handle the bangs inside-out,
+             * strings first, then negate or yes-gate it.
+             */
+            if (bang_string && *tbuf) {
                         if ( bang_truebool ) {
                            if ( (*tbuf == '#') && (*(tbuf+1) == '-') ) {
                               tbuf[0] = '0';
@@ -2594,102 +2701,102 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                               }
                            }
                         } else {
-			   tbuf[0] = '1';
+               tbuf[0] = '1';
                         }
-			tbuf[1] = '\0';
-		    } else if (bang_string) {
-			tbuf[0] = '0';
-			tbuf[1] = '\0';
-		    }
-		    if (bang_not && atoi(tbuf)) {
-			tbuf[0] = '0';
-		    } else if (bang_not && !atoi(tbuf)) {
-			tbuf[0] = '1';
-		    } else if (bang_yes && atoi(tbuf)) {
-			tbuf[0] = '1';
-		    } else if (bang_yes && !atoi(tbuf)) {
-			tbuf[0] = '0';
-		    }
-		    if (bang_not || bang_yes) {
-			tbuf[1] = '\0';
-		    }
+            tbuf[1] = '\0';
+            } else if (bang_string) {
+            tbuf[0] = '0';
+            tbuf[1] = '\0';
+            }
+            if (bang_not && atoi(tbuf)) {
+            tbuf[0] = '0';
+            } else if (bang_not && !atoi(tbuf)) {
+            tbuf[0] = '1';
+            } else if (bang_yes && atoi(tbuf)) {
+            tbuf[0] = '1';
+            } else if (bang_yes && !atoi(tbuf)) {
+            tbuf[0] = '0';
+            }
+            if (bang_not || bang_yes) {
+            tbuf[1] = '\0';
+            }
 #endif
-		    safe_str(tbuf, buff, &bufc);
-		    free_lbuf(tstr);
-		    free_lbuf(tbuf);
-		}
+            safe_str(tbuf, buff, &bufc);
+            free_lbuf(tstr);
+            free_lbuf(tbuf);
+        }
 
-		/* Return the space allocated for the args */
+        /* Return the space allocated for the args */
 
-		mudstate.func_nest_lev--;
-		for (i = 0; i < nfargs; i++)
-		    if (fargs[i] != NULL)
-			free_lbuf(fargs[i]);
-		eval &= ~EV_FCHECK;
+        mudstate.func_nest_lev--;
+        for (i = 0; i < nfargs; i++)
+            if (fargs[i] != NULL)
+            free_lbuf(fargs[i]);
+        eval &= ~EV_FCHECK;
                 mudstate.funccount++;
-		break;
-	    }
-	    /* If the number of args is right, perform the func.
-	     * Otherwise return an error message.  Note that
-	     * parse_arglist returns zero args as one null arg,
-	     * so we have to handle that case specially.
-	     */
+        break;
+        }
+        /* If the number of args is right, perform the func.
+         * Otherwise return an error message.  Note that
+         * parse_arglist returns zero args as one null arg,
+         * so we have to handle that case specially.
+         */
 
-	    if ((fp->nargs == 0) && (nfargs == 1)) {
-		if (!*fargs[0]) {
-		    free_lbuf(fargs[0]);
-		    fargs[0] = NULL;
-		    nfargs = 0;
-		}
-	    }
-	    if ((nfargs == fp->nargs) ||
-		(nfargs == -fp->nargs) ||
-		(fp->flags & FN_VARARGS)) {
+        if ((fp->nargs == 0) && (nfargs == 1)) {
+        if (!*fargs[0]) {
+            free_lbuf(fargs[0]);
+            fargs[0] = NULL;
+            nfargs = 0;
+        }
+        }
+        if ((nfargs == fp->nargs) ||
+        (nfargs == -fp->nargs) ||
+        (fp->flags & FN_VARARGS)) {
 
-		/* Check recursion limit */
+        /* Check recursion limit */
 
-		mudstate.func_nest_lev++;
-		mudstate.func_invk_ctr++;
-		if (mudstate.func_nest_lev >=
-		    mudconf.func_nest_lim) {
-		    safe_str("#-1 FUNCTION RECURSION LIMIT EXCEEDED",
+        mudstate.func_nest_lev++;
+        mudstate.func_invk_ctr++;
+        if (mudstate.func_nest_lev >=
+            mudconf.func_nest_lim) {
+            safe_str("#-1 FUNCTION RECURSION LIMIT EXCEEDED",
                              buff, &bufc);
                 } else if ( Fubar(player) ) {
-		    safe_str("#-1 PERMISSION DENIED", buff, &bufc);
-		} else if (mudstate.func_invk_ctr >=
-			   mudconf.func_invk_lim) {
-		    safe_str("#-1 FUNCTION INVOCATION LIMIT EXCEEDED",
+            safe_str("#-1 PERMISSION DENIED", buff, &bufc);
+        } else if (mudstate.func_invk_ctr >=
+               mudconf.func_invk_lim) {
+            safe_str("#-1 FUNCTION INVOCATION LIMIT EXCEEDED",
                              buff, &bufc);
-		} else if ( !check_access(player, fp->perms, fp->perms2, 0) &&
+        } else if ( !check_access(player, fp->perms, fp->perms2, 0) &&
                             !((fp->perms & 0x00007F00) && (mudstate.func_ignore && mudstate.func_bypass)) ) {
-		  if ( mudstate.func_ignore) {
-		    safe_str((char *) "#-1 FUNCTION (",
-			     buff, &bufc);
-		    y = strlen(fp->name);
-		    for (x = 0; x < y; x++)
-		      safe_chr(tolower(*(fp->name + x)), buff, &bufc);
-		    safe_str((char *) ") NOT FOUND",
-			     buff, &bufc);
-		  }
-		  else
-		    safe_str("#-1 PERMISSION DENIED", buff, &bufc);
-		} else if (mudstate.func_invk_ctr <
-			   mudconf.func_invk_lim) {
-		    fp->fun(buff, &bufc, player, cause, caller,
-			    fargs, nfargs, cargs, ncargs);
+          if ( mudstate.func_ignore) {
+            safe_str((char *) "#-1 FUNCTION (",
+                 buff, &bufc);
+            y = strlen(fp->name);
+            for (x = 0; x < y; x++)
+              safe_chr(tolower(*(fp->name + x)), buff, &bufc);
+            safe_str((char *) ") NOT FOUND",
+                 buff, &bufc);
+          }
+          else
+            safe_str("#-1 PERMISSION DENIED", buff, &bufc);
+        } else if (mudstate.func_invk_ctr <
+               mudconf.func_invk_lim) {
+            fp->fun(buff, &bufc, player, cause, caller,
+                fargs, nfargs, cargs, ncargs);
                     mudstate.funccount++;
 #ifdef BANGS
-		    /* Standard function handling
-		     * This is sideways. A null result from a builtin
-		     * function doesn't return a null string. Buff will
-		     * contain the name of the function, from before 
-		     * passing it to the hash table. BUT ... bufc will
-		     * point to the beginning of the array.
-		     *
-		     * safe_str is used to load the string with a "0"
-		     * if the result was null. I don't want to consider
-		     * what would happen otherwise.
-		     */
+            /* Standard function handling
+             * This is sideways. A null result from a builtin
+             * function doesn't return a null string. Buff will
+             * contain the name of the function, from before 
+             * passing it to the hash table. BUT ... bufc will
+             * point to the beginning of the array.
+             *
+             * safe_str is used to load the string with a "0"
+             * if the result was null. I don't want to consider
+             * what would happen otherwise.
+             */
                     if (bang_string && (buff != bufc)) {
                         if ( bang_truebool ) {
                            bufc2 = buff;
@@ -2713,7 +2820,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     } else if (bang_string) {
                         safe_str("0", buff, &bufc);
                     }
-		    if (bang_not && atoi(buff)) {
+            if (bang_not && atoi(buff)) {
                        buff[0] = '0';
                     } else if (bang_not && !atoi(buff)) {
                        buff[0] = '1';
@@ -2722,44 +2829,44 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     } else if (bang_yes && !atoi(buff)) {
                        buff[0] = '0';
                     }
-		    if (bang_not || bang_yes) {
+            if (bang_not || bang_yes) {
                        buff[1] = '\0';
                     }
 #endif
 
-		}
-		mudstate.func_nest_lev--;
-	    } else {
-		bufc = buff;
-		tstr = alloc_sbuf("exec.funcargs");
-		sprintf(tstr, "%d", fp->nargs);
-		safe_str((char *) "#-1 FUNCTION (",
-			 buff, &bufc);
-		safe_str((char *) fp->name, buff, &bufc);
-		safe_str((char *) ") EXPECTS ",
-			 buff, &bufc);
-		safe_str(tstr, buff, &bufc);
-		safe_str((char *) " ARGUMENTS [RECEIVED ",
-			 buff, &bufc);
+        }
+        mudstate.func_nest_lev--;
+        } else {
+        bufc = buff;
+        tstr = alloc_sbuf("exec.funcargs");
+        sprintf(tstr, "%d", fp->nargs);
+        safe_str((char *) "#-1 FUNCTION (",
+             buff, &bufc);
+        safe_str((char *) fp->name, buff, &bufc);
+        safe_str((char *) ") EXPECTS ",
+             buff, &bufc);
+        safe_str(tstr, buff, &bufc);
+        safe_str((char *) " ARGUMENTS [RECEIVED ",
+             buff, &bufc);
                 sprintf(tstr, "%d]", nfargs);
                 safe_str(tstr, buff, &bufc);
-		free_sbuf(tstr);
-	    }
+        free_sbuf(tstr);
+        }
 
-	    /* Return the space allocated for the arguments */
+        /* Return the space allocated for the arguments */
 
-	    for (i = 0; i < nfargs; i++)
-		if (fargs[i] != NULL)
-		    free_lbuf(fargs[i]);
-	    eval &= ~EV_FCHECK;
-	    break;
-	default:
-	    /* A mundane character.  Just copy it */
+        for (i = 0; i < nfargs; i++)
+        if (fargs[i] != NULL)
+            free_lbuf(fargs[i]);
+        eval &= ~EV_FCHECK;
+        break;
+    default:
+        /* A mundane character.  Just copy it */
 
-	    at_space = 0;
-	    safe_chr(*dstr, buff, &bufc);
-	}
-	dstr++;
+        at_space = 0;
+        safe_chr(*dstr, buff, &bufc);
+    }
+    dstr++;
         i_start++;
     }
 
@@ -2770,25 +2877,25 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
      */
 
     if (mudconf.space_compress && at_space && (bufc != buff))
-	bufc--;
+    bufc--;
 
     *bufc = '\0';
 
     /* Report trace information */
 
     if (is_trace) {
-	tcache_add(player, savestr, buff, s_label);
-	save_count = tcache_count - mudconf.trace_limit;;
-	if (is_top || !mudconf.trace_topdown)
-	    tcache_finish();
-	if (is_top && (save_count > 0)) {
-	    tbuf = alloc_mbuf("exec.trace_diag");
-	    sprintf(tbuf,
-		    "%d lines of trace output discarded.",
-		    save_count);
-	    notify(player, tbuf);
-	    free_mbuf(tbuf);
-	}
+    tcache_add(player, savestr, buff, s_label);
+    save_count = tcache_count - mudconf.trace_limit;;
+    if (is_top || !mudconf.trace_topdown)
+        tcache_finish();
+    if (is_top && (save_count > 0)) {
+        tbuf = alloc_mbuf("exec.trace_diag");
+        sprintf(tbuf,
+            "%d lines of trace output discarded.",
+            save_count);
+        notify(player, tbuf);
+        free_mbuf(tbuf);
+    }
     }
     mudstate.eval_rec--;
 

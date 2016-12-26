@@ -10,6 +10,7 @@
 #include "config.h"
 #include "externs.h"
 #include "alloc.h"
+#include "rhost_utf8.h"
 #include "rhost_ansi.h"
 #include "vattr.h"
 
@@ -104,10 +105,10 @@ char *skip_space(const char *s)
 {
 char *cp;
 
-	cp = (char *)s;
-	while (cp && *cp && isspace((int)*cp))
-		cp++;
-	return (cp);
+    cp = (char *)s;
+    while (cp && *cp && isspace((int)*cp))
+        cp++;
+    return (cp);
 }
 
 /*
@@ -116,12 +117,12 @@ char *cp;
  */
 char *seek_char(const char *s, char c)
 {
-char	*cp;
+char    *cp;
 
-	cp = (char *)s;
-	while (cp && *cp && (*cp != c))
-		cp++;
-	return (cp);
+    cp = (char *)s;
+    while (cp && *cp && (*cp != c))
+        cp++;
+    return (cp);
 }
 
 /* ---------------------------------------------------------------------------
@@ -160,22 +161,22 @@ char *munge_space(char *string)
 
 char *trim_spaces(char *string)
 {
-char	*buffer, *p, *q;
+char    *buffer, *p, *q;
 
-	buffer = alloc_lbuf("trim_spaces");
-	p = string;
-	q = buffer;
-	while (p && *p && isspace((int)*p))		/* remove inital spaces */
-		p++;
-	while (p && *p) {
-		while (*p && !isspace((int)*p))	/* copy nonspace chars */
-			*q++ = *p++;
-		while (*p && isspace((int)*p))	/* compress spaces */
-			p++;
-		if (*p) *q++ = ' ';		/* leave one space */
-	}
-	*q = '\0';				/* terminate string */
-	return (buffer);
+    buffer = alloc_lbuf("trim_spaces");
+    p = string;
+    q = buffer;
+    while (p && *p && isspace((int)*p))     /* remove inital spaces */
+        p++;
+    while (p && *p) {
+        while (*p && !isspace((int)*p)) /* copy nonspace chars */
+            *q++ = *p++;
+        while (*p && isspace((int)*p))  /* compress spaces */
+            p++;
+        if (*p) *q++ = ' ';     /* leave one space */
+    }
+    *q = '\0';              /* terminate string */
+    return (buffer);
 }
 
 /* ---------------------------------------------------------------------------
@@ -185,18 +186,18 @@ char	*buffer, *p, *q;
 
 char *grabto (char **str, char targ)
 {
-char	*savec, *cp;
+char    *savec, *cp;
 
-	if (!str || !*str || !**str)
-		return NULL;
+    if (!str || !*str || !**str)
+        return NULL;
 
-	savec = cp = *str;
-	while (*cp && *cp != targ)
-		cp++;
-	if (*cp)
-		*cp++ = '\0';
-	*str = cp;
-	return savec;
+    savec = cp = *str;
+    while (*cp && *cp != targ)
+        cp++;
+    if (*cp)
+        *cp++ = '\0';
+    *str = cp;
+    return savec;
 }
 
 int string_compare(const char *s1, const char *s2)
@@ -214,12 +215,12 @@ int string_compare(const char *s1, const char *s2)
     while (isspace((int)*s2))
       s2++;
     while (*s1 && *s2 && ((ToLower((int)*s1) == ToLower((int)*s2)) ||
-			  (isspace((int)*s1) && isspace((int)*s2)))) {
-      if (isspace((int)*s1) && isspace((int)*s2)) {	/* skip all other spaces */
+              (isspace((int)*s1) && isspace((int)*s2)))) {
+      if (isspace((int)*s1) && isspace((int)*s2)) { /* skip all other spaces */
         while (isspace((int)*s1))
-	  s1++;
+      s1++;
         while (isspace((int)*s2))
-	  s2++;
+      s2++;
       } else {
         s1++;
         s2++;
@@ -264,12 +265,12 @@ const char *string_match(const char *src, const char *sub)
   if ((*sub != '\0') && (src)) {
     while (*src) {
       if (string_prefix(src, sub))
-	return src;
+    return src;
       /* else scan to beginning of next word */
       while (*src && isalnum((int)*src))
-	src++;
+    src++;
       while (*src && !isalnum((int)*src))
-	src++;
+    src++;
     }
   }
   return 0;
@@ -285,8 +286,8 @@ const char *string_match(const char *src, const char *sub)
 char *replace_string_ansi(const char *s_old, const char *new, 
                           const char *string, int i_value, int i_flag)
 {
-   char	*i, *r, *s, *outbuff, *outbuff2, *inbuff, *result, *old;
-   int	olen, i_once, i_count, i_olen;
+   char *i, *r, *s, *outbuff, *outbuff2, *inbuff, *result, *old;
+   int  olen, i_once, i_count, i_olen;
    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
              insplit[LBUF_SIZE], *p_ip, *p_sptmp;
 
@@ -381,46 +382,46 @@ char *replace_string_ansi(const char *s_old, const char *new,
 #endif
 
 char *replace_string(const char *old, const char *new, 
-		const char *string, int i_value)
+        const char *string, int i_value)
 {
-char	*result, *r, *s;
-int	olen, i_once;
+char    *result, *r, *s;
+int olen, i_once;
 
-	if (string == NULL) {
+    if (string == NULL) {
            return NULL;
         } 
-	s=(char *)string;
-	olen = strlen(old);
-	r = result = alloc_lbuf("replace_string");
+    s=(char *)string;
+    olen = strlen(old);
+    r = result = alloc_lbuf("replace_string");
         i_once = 0;
-	while (*s) {
+    while (*s) {
 
-		/* Copy up to the next occurrence of the first char of OLD */
+        /* Copy up to the next occurrence of the first char of OLD */
 
-		while (*s && *s!=*old) {
-			safe_chr(*s, result, &r);
-			s++;
-		}
+        while (*s && *s!=*old) {
+            safe_chr(*s, result, &r);
+            s++;
+        }
 
-		/* If we are really at an OLD, append NEW to the result and
-		 * bump the input string past the occurrence of OLD.
-		 * Otherwise, copy the char and try again.
-		 */
-			
-		if (*s) {
-			if (!i_once && !strncmp(old, s, olen)) {
-				safe_str((char *)new, result, &r);
-				s += olen;
+        /* If we are really at an OLD, append NEW to the result and
+         * bump the input string past the occurrence of OLD.
+         * Otherwise, copy the char and try again.
+         */
+            
+        if (*s) {
+            if (!i_once && !strncmp(old, s, olen)) {
+                safe_str((char *)new, result, &r);
+                s += olen;
                                 if ( i_value ) 
                                    i_once = 1;
-			} else {
-				safe_chr(*s, result, &r);
-				s++;
-			}
-		}
-	}
-	*r = '\0';
-	return result;
+            } else {
+                safe_chr(*s, result, &r);
+                s++;
+            }
+        }
+    }
+    *r = '\0';
+    return result;
 }
 
 /* ---------------------------------------------------------------------------
@@ -487,12 +488,12 @@ replace_tokens(const char *s, const char *pBound, const char *pListPlace, const 
 
 char *replace_string_inplace(const char *old, const char *new, char *string)
 {
-char	*s;
+char    *s;
 
-	s = replace_string(old, new, string, 0);
-	strcpy(string, s);
-	free_lbuf(s);
-	return string;
+    s = replace_string(old, new, string, 0);
+    strcpy(string, s);
+    free_lbuf(s);
+    return string;
 }
 
 /* Counts occurances of C in STR. - mnp 7 feb 91 */
@@ -756,6 +757,7 @@ clone_ansi(char *s_input, char *s_inputptr,
       s_outsplitptr->c_accent = s_insplitptr->c_accent;
       s_outsplitptr->i_special = s_insplitptr->i_special;
       s_outsplitptr->i_ascii8 = s_insplitptr->i_ascii8;
+      s_outsplitptr->i_utf8 = s_insplitptr->i_utf8;
       s_inputptr++;
       s_insplitptr++;
       s_outputptr++;
@@ -788,6 +790,7 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_fgansi  = p_cp->c_fgansi;
       p_ap->c_bgansi  = p_cp->c_bgansi;
       p_ap->i_ascii8  = p_cp->i_ascii8;
+      p_ap->i_utf8    = p_cp->i_utf8;
    } else {
       strcpy(p_ap->s_fghex, p_bp->s_fghex);
       strcpy(p_ap->s_bghex, p_bp->s_bghex);
@@ -796,6 +799,7 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_fgansi  = p_bp->c_fgansi;
       p_ap->c_bgansi  = p_bp->c_bgansi;
       p_ap->i_ascii8  = p_bp->i_ascii8;
+      p_ap->i_utf8    = p_bp->i_utf8;
    }
 }
 
@@ -812,6 +816,7 @@ void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
    p_ap->c_fgansi  = p_bp->c_fgansi;
    p_ap->c_bgansi  = p_bp->c_bgansi;
    p_ap->i_ascii8  = p_bp->i_ascii8;
+   p_ap->i_utf8    = p_bp->i_utf8;
 }
 
 void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
@@ -824,6 +829,7 @@ void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
       memset(p_bp->s_bghex, '\0', 5);
       p_bp->i_special = 0;
       p_bp->i_ascii8 = 0;
+      p_bp->i_utf8 = 0;
       p_bp->c_accent = '\0';
       p_bp->c_fgansi = '\0';
       p_bp->c_bgansi = '\0';
@@ -846,6 +852,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
    s_last.c_accent = '\0';
    s_last.i_special = 0;
    s_last.i_ascii8 = 0;
+   s_last.i_utf8 = 0;
 
    s_buffptr = s_buffer = alloc_lbuf("rebuild_ansi");
    s_format = alloc_sbuf("rebuild_ansi");
@@ -955,7 +962,11 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       s_last.i_special = s_ptr->i_special;
       /* no need for s_last duplicating i_ascii8 */
       /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
-      if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
+      if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
+        safe_chr('%', s_buffer, &s_buffptr);
+        sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
+        safe_str(s_format, s_buffer, &s_buffptr);
+      } else if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
          safe_chr('%', s_buffer, &s_buffptr);
          sprintf(s_format, "<%03d>", s_ptr->i_ascii8);
          safe_str(s_format, s_buffer, &s_buffptr);
@@ -989,7 +1000,8 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 
    ANSISPLIT *s_ptr;
    char *s_inptr, *s_outptr;
-   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent;
+   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt;
+   char buf_utf8[10];
 
    i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
@@ -1001,6 +1013,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_outptr = s_output;
    s_ptr = s_split;
 
+   memset(buf_utf8, '\0', 10);
    memset(s_ptr->s_fghex, '\0', 5);
    memset(s_ptr->s_bghex, '\0', 5);
    s_ptr->c_fgansi = '\0';
@@ -1008,6 +1021,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->c_accent = '\0';
    s_ptr->i_special = 0;
    s_ptr->i_ascii8 = 0;
+   s_ptr->i_utf8 = 0;
    while ( s_inptr && *s_inptr ) {
       if ( (*s_inptr == '%') && ((*(s_inptr+1) == SAFE_CHR)
 #ifdef SAFE_CHR2
@@ -1085,15 +1099,32 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             continue;
          }
       }
-      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
+      if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') && 
+            ((strlen(s_inptr) > 8 && *(s_inptr+5) == '>') || (strlen(s_inptr) > 10 && *(s_inptr+7) == '>')) ) {
+        *s_outptr = '?';
+        s_inptr+=3;
+        memset(buf_utf8, '\0', 10);
+        utfcnt = 0;
+
+        while (utfcnt < 6 && *s_inptr != '>') {
+            buf_utf8[utfcnt] = *s_inptr;
+            utfcnt++;
+            s_inptr++;
+        }
+                
+        s_ptr->i_utf8 = strtol(buf_utf8, NULL, 16);
+        s_ptr->i_ascii8 = 0;
+      } else if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
            isdigit(*(s_inptr+3)) && isdigit(*(s_inptr+4)) && (*(s_inptr+5) == '>') ) {
          *s_outptr = '?';
          s_ptr->i_ascii8 = atoi(s_inptr+2);
+         s_ptr->i_utf8 = 0;
          s_inptr+=5;
       } else {
          *s_outptr = *s_inptr;
          s_ptr->i_ascii8 = 0;
-      }
+         s_ptr->i_utf8 = 0;
+      }   
       s_ptr++;
       if ( !s_ptr || !s_outptr ) 
          break;
@@ -1138,7 +1169,7 @@ int count_chars(const char *str, const char c)
   if (p)
     while (*p != '\0')
       if (*p++ == c)
-	out++;
+    out++;
   return out;
 }
 
@@ -1183,13 +1214,13 @@ char **string2list(char *str, const char sep)
     }
     for (;;) {
       while (*beg == sep)
-	beg++;
+    beg++;
       if (*beg == '\0')
-	break;
+    break;
       out[count++] = beg;
       for (end = beg; *end != '\0' && *end != sep; end++) ;
       if (*end == '\0')
-	break;
+    break;
       *end++ = '\0';
       beg = end;
     }
@@ -1254,32 +1285,32 @@ int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc)
 
 int safe_copy_str(char *src, char *buff, char **bufp, int max)
 {
-char	*tp;
+char    *tp;
 
-	tp = *bufp;
-	if (src == NULL) return 0;
-	while (*src && ((tp - buff) < max))
-		*tp++ = *src++;
-	*tp = '\0';
-/*	*(buff + max) = '\0'; */
-	*bufp = tp;
-	return strlen(src);
+    tp = *bufp;
+    if (src == NULL) return 0;
+    while (*src && ((tp - buff) < max))
+        *tp++ = *src++;
+    *tp = '\0';
+/*  *(buff + max) = '\0'; */
+    *bufp = tp;
+    return strlen(src);
 }
 
 int safe_copy_strmax(char *src, char *buff, char **bufp, int max)
 {
-char	*tp;
-int	left;
-	tp = *bufp;
-	if (src == NULL) return 0;
+char    *tp;
+int left;
+    tp = *bufp;
+    if (src == NULL) return 0;
         left = (buff + max) - tp - strlen(src);
-	if ( left < 1 )
+    if ( left < 1 )
            return 0;
-	while (*src && ((tp - buff) < max))
-		*tp++ = *src++;
-	*tp = '\0';
-	*bufp = tp;
-	return strlen(src);
+    while (*src && ((tp - buff) < max))
+        *tp++ = *src++;
+    *tp = '\0';
+    *bufp = tp;
+    return strlen(src);
 }
 
 int safe_copy_chr(char src, char *buff, char **bufp, int max)
@@ -1304,36 +1335,36 @@ int	retval;
 
 int matches_exit_from_list (char *str, char *pattern)
 {
-char	*s;
+char    *s;
 
-	while (*pattern) {
-		for (s=str;	/* check out this one */
-		     (*s && (ToLower((int)*s) == ToLower((int)*pattern)) &&
-		      *pattern && (*pattern != EXIT_DELIMITER));
-		     s++,pattern++) ;
+    while (*pattern) {
+        for (s=str; /* check out this one */
+             (*s && (ToLower((int)*s) == ToLower((int)*pattern)) &&
+              *pattern && (*pattern != EXIT_DELIMITER));
+             s++,pattern++) ;
 
-		/* Did we match it all? */
+        /* Did we match it all? */
 
-		if (*s == '\0') {
+        if (*s == '\0') {
 
-			/* Make sure nothing afterwards */
+            /* Make sure nothing afterwards */
 
-			while (*pattern && isspace((int)*pattern))
-				pattern++;
+            while (*pattern && isspace((int)*pattern))
+                pattern++;
 
-			/* Did we get it? */
+            /* Did we get it? */
 
-			if (!*pattern || (*pattern == EXIT_DELIMITER))
-				return 1;		  
-		}
+            if (!*pattern || (*pattern == EXIT_DELIMITER))
+                return 1;         
+        }
 
-		/* We didn't get it, find next string to test */
+        /* We didn't get it, find next string to test */
 
-		while (*pattern && *pattern++ != EXIT_DELIMITER) ;
-		while (isspace((int)*pattern))
-			pattern++;
-	}
-	return 0;
+        while (*pattern && *pattern++ != EXIT_DELIMITER) ;
+        while (isspace((int)*pattern))
+            pattern++;
+    }
+    return 0;
 }
 
 char *myitoa(int n)
@@ -1619,7 +1650,7 @@ char
                 safe_str("%t", new0, &bp);
             else
                 safe_chr(' ', new0, &bp);
-	    break;
+        break;
         default:
             if ( i_keyval == 1 ) {
                safe_chr(',', new0, &bp);
@@ -1791,4 +1822,137 @@ trigger_cluster_action(dbref thing, dbref player)
       }
    }
 }
+
+/***
+ * Convert the UTF-8 bytes represented as a string
+ * of hex values to a string of hex values representing
+ * the unicode code point.
+ ***/
+char *
+encode_utf8(char *utf) 
+{
+    char *ucp, *result;
+    int i_ucp;
+    
+    result = (char*)malloc(12);
+    
+    // Convert UTF-8 Bytes to Unicode Code Point
+    ucp = utf8toucp(utf);
+    
+    // Encode into parser string
+    i_ucp = (int)strtol(ucp, NULL, 16);
+    switch (i_ucp) {
+        case DOUBLE_QUOTE_LEFT:
+        case DOUBLE_QUOTE_RIGHT:
+        case DOUBLE_QUOTE_REVERSED:
+            if (!mudconf.allow_fancy_quotes)
+                sprintf(ucp, "%c", ASCII_DOUBLE_QUOTE);
+            break;
+        
+        case FULLWIDTH_COLON:
+            if (!mudconf.allow_fullwidth_colon)
+                sprintf(ucp, "%c", ASCII_COLON);
+            break;
+        case ASCII_SPACE:
+            sprintf(result, " ");
+            break;            
+        default:
+            sprintf(result, "%c<u%s>", '%', ucp);
+            break;
+    }
+    
+    free(ucp);
+    
+    return  result;
+}
+
+char *
+utf8toucp(char *utf)
+{
+    char *ucp, *ptr, *tmp;
+    int i_b1, i_b2, i_b3, i_b4, i_bytecnt, i_ucp;
+    
+    tmp = (char*)malloc(3);
+    ucp = (char*)malloc(12);
+    
+    i_bytecnt = strlen(utf) / 2;
+    
+    // Convert UTF-8 Bytes to Unicode Code Point
+    if (i_bytecnt == 1) {
+        return utf;
+    } else if (i_bytecnt == 2) {
+        strncpy(tmp, utf, 2);
+        i_b1 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+2, 2);
+        i_b2 = strtol(tmp, &ptr, 16);       
+        i_ucp = ((i_b1 - 192) * 64) + (i_b2 - 128);
+        sprintf(ucp, "%04x", i_ucp);
+    } else if (i_bytecnt == 3) {
+        strncpy(tmp, utf, 2);
+        i_b1 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+2, 2);
+        i_b2 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+4, 2);
+        i_b3 = strtol(tmp, &ptr, 16);
+        i_ucp = ((i_b1 - 224) * 4096) + ((i_b2 - 128) * 64) + (i_b3 - 128);
+        sprintf(ucp, "%04x", i_ucp);
+    } else if (i_bytecnt == 4) {
+        strncpy(tmp, utf, 2);
+        i_b1 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+2, 2);
+        i_b2 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+4, 2);
+        i_b3 = strtol(tmp, &ptr, 16);
+        strncpy(tmp, utf+6, 2);
+        i_b4 = strtol(tmp, &ptr, 16);
+        i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
+        sprintf(ucp, "%04x", i_ucp);
+    } else {
+        sprintf(ucp, "0020");
+    }
+    
+    free(tmp);
+    
+    return  ucp;
+}
+
+/***
+ * Convert string representation of unicode code point hex values
+ * to string representation of UTF8 byte hex values
+ */
+char *
+ucptoutf8(char *ucp)
+{
+    char *ptr, *utf;
+    int i_ucp, i_b1, i_b2, i_b3, i_b4;
+    
+    utf = (char *)malloc(10);
+    memset(utf, '\0', 10);
+    
+    i_ucp = strtol(ucp, &ptr, 16);
+    
+    if ( i_ucp > 31 && i_ucp <= 127) {  // Single byte, return value and not return code
+        sprintf(utf, "%02x", i_ucp);
+    } else if (i_ucp <= 2047) { // 2 byte
+        i_b1 = (i_ucp / 64) + 192;
+        i_b2 = (i_ucp % 64) + 128;      
+        sprintf(utf, "%02x%02x", i_b1, i_b2);
+    } else if (i_ucp <= 65535) { // 3 byte
+        i_b1 = (i_ucp / 4096) + 224;
+        i_b2 = ((i_ucp % 4096) / 64) + 128;
+        i_b3 = (i_ucp % 64) + 128;
+        sprintf(utf, "%02x%02x%02x", i_b1, i_b2, i_b3);
+    } else if (i_ucp <= 1114111) { // 4 byte
+        i_b1 = (i_ucp / 262144) + 240;
+        i_b2 = ((i_ucp % 262144) / 4096) + 128;
+        i_b3 = ((i_ucp % 4096) / 64) + 128;
+        i_b4 = (i_ucp % 64) + 128;
+        sprintf(utf, "%02x%02x%02x%02x", i_b1, i_b2, i_b3, i_b4);
+    } else { // Invalid, return space
+        sprintf(utf, " ");
+    }
+    
+    return utf;
+}
+
 #endif

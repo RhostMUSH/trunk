@@ -377,6 +377,26 @@ th_monitor(dbref target, dbref player, int toggle, int tflags, int reset)
     return (th_any(target, player, toggle, tflags, reset));
 }
 
+int
+th_noaccents(dbref target, dbref player, int toggle, int tflags, int reset) {
+	if (Accents(target)) {
+		notify(player, "UTF8 and Accents toggles can not both be set on a player.");
+		return 0;
+	}
+	
+	return (th_player(target, player, toggle, tflags, reset));
+}
+
+int
+th_noutf8(dbref target, dbref player, int toggle, int tflags, int reset) {
+	if (UTF8(target)) {
+		notify(player, "UTF8 and Accents toggles can not both be set on a player.");
+		return 0;
+	}
+	
+	return (th_player(target, player, toggle, tflags, reset));
+}
+
 int 
 pw_any(dbref target, dbref player, int powerpos, int pflags, int level, int slevel)
 {
@@ -707,11 +727,12 @@ TOGENT tog_table[] =
   {"ZONECMDCHK", TOG_ZONECMDCHK, 'k', 1, 0, 0, 0, 0, th_player},
   {"HIDEIDLE", TOG_HIDEIDLE, 'h', 1, 0, 0, 0, 0, th_wiz},
   {"MORTALREALITY", TOG_MORTALREALITY, 'M', 1, 0, 0, 0, 0, th_wiz},
-  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, 0, 0, 0, th_player},
+  {"ACCENTS", TOG_ACCENTS, 'X', 1, 0, 0, 0, 0, th_noutf8},
   {"MAILVALIDATE", TOG_PREMAILVALIDATE, '-', 1, 0, 0, 0, 0, th_player},
   {"CLUSTER", TOG_CLUSTER, '~', 0, CA_IMMORTAL|CA_NO_DECOMP, 0, 0, 0, th_noset},
   {"SAFELOG", TOG_SAFELOG, 'Y', 1, 0, 0, 0, 0, th_player},
   {"SNUFFDARK", TOG_SNUFFDARK, 'u', 0, CA_WIZARD, 0, 0, 0, th_wiz},
+  {"UTF8", TOG_UTF8, '$', 1, 0, 0, 0, 0, th_player},
   {NULL, 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 

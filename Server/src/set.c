@@ -2337,6 +2337,7 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
    
    olist_init(&master);
    orig_revwild = mudstate.reverse_wild;
+
    if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp, 0)) {
       if ( !(key & SIDEEFFECT) )
          notify_quiet(player, "No match.");

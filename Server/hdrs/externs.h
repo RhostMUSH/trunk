@@ -39,10 +39,9 @@
 #define atrpGod(s) (s == 7)
 #define atrpPreReg(s) (s == 0)
 
-
 #define SPLIT_NORMAL		0x00
 #define SPLIT_HILITE		0x01
-#define SPLIT_FLASH		0x02
+#define SPLIT_FLASH		    0x02
 #define SPLIT_UNDERSCORE	0x04
 #define SPLIT_INVERSE		0x08
 #define SPLIT_NOANSI		0x10
@@ -54,9 +53,10 @@ typedef struct ansisplit {
 	char	s_bghex[5];	/* Hex representation - background */
 	char	c_fgansi;	/* Normal foreground ansi */
 	char	c_bgansi;	/* Normal background ansi */
-	int	i_special;	/* Special ansi characters */
+	int     i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
         int	i_ascii8;	/* ASCII-8 encoding */
+    int i_utf8; /* UTF-8 encoding */
 } ANSISPLIT;
 
 typedef struct atrp {
@@ -144,7 +144,7 @@ extern char *	FDECL(parse_arglist, (dbref, dbref, dbref, char *, char, int,
 			char *[], int, char*[], int, int, char *[], int));
 extern int	FDECL(get_gender, (dbref));
 #ifdef ZENTY_ANSI
-extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **));
+extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **, char*, char **));
 extern int      FDECL(parse_comments, (char *, char *, char **));
 #endif
 extern char *	FDECL(mushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
@@ -417,9 +417,13 @@ extern int	FDECL(safe_copy_chr, (char, char *, char **, int));
 extern int	FDECL(matches_exit_from_list, (char *, char *));
 extern char *	FDECL(myitoa, (int));
 extern char *   FDECL(translate_string, (const char *, int));
-extern int FDECL(tboolchk,(char *));
+extern int      FDECL(tboolchk,(char *));
 extern char *	FDECL(find_cluster, (dbref, dbref, int));
 extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
+
+extern char *   FDECL(encode_utf8, (char *));
+extern char * 	FDECL(utf8toucp, (char *));
+extern char * 	FDECL(ucptoutf8, (char *));
 
 /* From boolexp.c */
 extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *, int));
