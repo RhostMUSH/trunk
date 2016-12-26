@@ -150,7 +150,7 @@ static int addDoor(const char *doorName,
 		   doorInput_t  pFnRead,
 		   int bitLvl, int loc) {
   int door, deAlloc = 0;
-  void *v_toss;
+
   DPUSH; /* 3 */
   door = findDoor(doorName);
   if (door > 0) {
