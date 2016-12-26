@@ -441,6 +441,7 @@ look_iter_parse(dbref player, dbref loc, const char *contents_name, int key)
     return(retbuff);
 }
 
+
 static void 
 look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keytype)
 {
