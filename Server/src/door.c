@@ -163,11 +163,7 @@ static int addDoor(const char *doorName,
 
   if (gnDoors == (maxDoors - 1)) {
     // grow array
-<<<<<<< HEAD
     gaDoors = realloc(gaDoors, sizeof(door_t) * (maxDoors + 5));
-=======
-    v_toss = realloc(gaDoors, sizeof(door_t) * (maxDoors + 5));
->>>>>>> Merge of Ashen's updates and start of UTF8/Unicode support
     if (gaDoors == NULL) {
       LOGTEXT("ERR", -1, "Could not allocate memory for resizing door array.");
       RETURN(-1); /* 3 */      
