@@ -1377,6 +1377,7 @@ safe_sha0(const char *text, size_t len, char *buff, char **bufcx)
 }
 #endif
 
+
 void
 do_date_conv(char *instr, char *outstr)
 {
@@ -9124,7 +9125,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                              || (*(s_pp+1) == SAFE_CHR3)
 #endif
-) && (*(s_pp+2) == '0') &&
+) && (*(s_pp+2) == '0') && 
                               ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                                *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                      memset(s_normal, '\0', MBUF_SIZE);
@@ -15808,6 +15809,7 @@ FUNCTION(fun_mid)
        safe_str( "#-1 OUT OF RANGE", buff, bufcx);
        return;
     }
+
 
     outbuff = alloc_lbuf("fun_mid");
     memset(outbuff, '\0', LBUF_SIZE);
