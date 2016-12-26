@@ -16212,18 +16212,18 @@ FUNCTION(fun_strfunc)
       return;
    }
 
-    nitems = 0;
-    strtok = fargs[1];
-    while ( *strtok ) {
-       if ( *strtok == sep )
-          nitems++;
-       strtok++;
-    }
-    
-    if ( nitems >= 1000 ) {
-       safe_str((char *)"#-1 STRFUNC WILL NOT PROCESS OVER 1000 ARGUMENTS", buff, bufcx);
-       return;
-    }
+   nitems = 0;
+   strtok = fargs[1];
+   while ( *strtok ) {
+      if ( *strtok == sep )
+         nitems++;
+      strtok++;
+   }
+   
+   if ( nitems >= 1000 ) {
+      safe_str((char *)"#-1 STRFUNC WILL NOT PROCESS OVER 1000 ARGUMENTS", buff, bufcx);
+      return;
+   }
 
    list = alloc_lbuf("fun_strfunc");
 
