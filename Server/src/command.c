@@ -8622,14 +8622,6 @@ void do_limit(dbref player, dbref cause, int key, char *name,
                         i_newval,
                         ((i_newval == -1) ? " (Unlimited)" : ((i_newval == -2) ? " (Default)" : "")) ));
          return;
-      } else if ( key & LIMIT_LFUN ) {
-         s_newmbuff = alloc_mbuf("@limit.lfun");
-         sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_array[3], i_newval);
-         atr_add_raw(target, A_DESTVATTRMAX, s_newmbuff);
-         free_mbuf(s_newmbuff);
-         notify(player, unsafe_tprintf("@limit: New @lfunction maximum for %s(#%d) set from %d to %d", 
-                        Name(target), target, i_array[4], i_newval));
-         return;
       } else {
          s_newmbuff = alloc_mbuf("@limit.dadd");
          sprintf(s_newmbuff, "%d %d %d %d %d", i_array[0], i_array[1], i_array[2], i_newval, i_array[4]);

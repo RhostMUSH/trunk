@@ -5490,14 +5490,6 @@ FUNCTION(fun_elist)
        s_array[2] = NULL;
        i_munge = 1;
     }
-    i_munge = 0;
-    if ( nfargs > 5 && *fargs[5] ) {
-       r_store = alloc_lbuf("munge_elist");
-       s_array[0] = alloc_lbuf("munge_elist_num");
-       s_array[1] = alloc_lbuf("munge_elist_num2");
-       s_array[2] = NULL;
-       i_munge = 1;
-    }
 
     curr = alloc_lbuf("fun_elist");
     cp = curr;
@@ -9132,7 +9124,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                              || (*(s_pp+1) == SAFE_CHR3)
 #endif
-) && (*(s_pp+2) == '0') && 
+) && (*(s_pp+2) == '0') &&
                               ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                                *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                      memset(s_normal, '\0', MBUF_SIZE);
@@ -15951,6 +15943,7 @@ FUNCTION(fun_v)
     sbuf = alloc_sbuf("fun_v");
     sbufc = sbuf;
     safe_sb_chr('%', sbuf, &sbufc);
+    i_shifted = 0;
     if ( isdigit(*fargs[0]) ) {
        i_shifted = atoi(fargs[0]) / 10;
        if ( i_shifted < 0 )
@@ -16219,6 +16212,19 @@ FUNCTION(fun_strfunc)
       return;
    }
 
+    nitems = 0;
+    strtok = fargs[1];
+    while ( *strtok ) {
+       if ( *strtok == sep )
+          nitems++;
+       strtok++;
+    }
+    
+    if ( nitems >= 1000 ) {
+       safe_str((char *)"#-1 STRFUNC WILL NOT PROCESS OVER 1000 ARGUMENTS", buff, bufcx);
+       return;
+    }
+
    list = alloc_lbuf("fun_strfunc");
 
    /* These will always be the same list and null terminated */
@@ -16247,9 +16253,6 @@ FUNCTION(fun_strfunc)
    if ( (nitems == fp->nargs) || (nitems == -fp->nargs) ||
         (fp->flags & FN_VARARGS) ) {
       fp->fun(buff, bufcx, player, cause, caller, ptrs, nitems, cargs, ncargs);
-      for ( i = 0; i < nitems; i++ ) {
-         free_lbuf(ptrs[i]);
-      }
    } else {
       tprp_buff = tpr_buff = alloc_lbuf("strfunc_tprbuff");
       safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#-1 FUNCTION (%s) EXPECTS %d ARGUMENTS [RECEIVED %d]",
@@ -26567,15 +26570,6 @@ FUNCTION(fun_parsestr)
      safe_str(result, buff, bufcx);
      free_lbuf(result);
    }
-   if ( c_transform )
-      free_lbuf(c_transform);
-   if ( p_transform )
-      free_lbuf(p_transform);
-   free_lbuf(savebuff[0]);
-   free_lbuf(savebuff[1]);
-   free_lbuf(savebuff[2]);
-   free_lbuf(savebuff[3]);
-   free_lbuf(savebuff[4]);
    free_lbuf(atextbuf);
    if ( c_transform )
       free_lbuf(c_transform);
@@ -32378,9 +32372,6 @@ FUNCTION(fun_wipe)
    int i_flags;
 
    if (!fn_range_check("WIPE", nfargs, 1, 4, buff, bufcx))
-      return;
-
-   if (!fn_range_check("WIPE", nfargs, 1, 2, buff, bufcx))
       return;
 
    if ( !(mudconf.sideeffects & SIDE_WIPE) ) {

@@ -1588,7 +1588,7 @@ raw_broadcast(va_alist)
 	     ((inflags & IMMORTAL) && Immortal(d->player)))) {
            if ( i_nowalls && (Flags2(d->player) & NO_WALLS) ) 
               continue;
-#ifdef ZENTY_ANSI	   
+#ifdef ZENTY_ANSI
 		   if ( UTF8(d->player) )
 			  queue_string(d, msg_utf);
            else if ( Accents(d->player ) )
@@ -2996,15 +2996,25 @@ dump_users(DESC * e, char *match, int key)
            *mp2 = '\0';
 		   *mp_utf = '\0';
 		   if ( UTF8(e->player) ) {
-			  queue_string(e, msg_utf);			  
+                if (i_attrpipe) {
+                   safe_str(msg_utf, atext, &atextptr);
+                }
+                if (i_pipetype) {
+                    queue_string(e, msg_utf);   
+                }			  
            } else if ( Accents(e->player) ) {
-	         queue_string(e, msg_ns2);
+	          if (i_attrpipe) {
+                   safe_str(msg_ns2, atext, &atextptr);
+                }
+                if (i_pipetype) {
+                    queue_string(e, msg_ns2);   
+                }
            } else {
               if ( i_attrpipe ) {
                  safe_str(strip_safe_accents(abuf), atext, &atextptr);
               } 
               if ( i_pipetype ) {
-	         queue_string(e, strip_safe_accents(abuf));
+	             queue_string(e, strip_safe_accents(abuf));
               }
            }
 		   free_lbuf(msg_utf);
@@ -3037,7 +3047,7 @@ dump_users(DESC * e, char *match, int key)
                               mudstate.guild_hdr, msg_utf));
               }
            } else if ( Accents(e->player) ) {
-              if ( i_attrpipe ) {
+	          if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_ns2),
                           atext, &atextptr);
               } 
