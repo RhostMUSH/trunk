@@ -105,7 +105,7 @@ then
    X[25]="X"
 fi
 # disable debugmon if on win10 bash
-if [ $(grep -c Microsoft /proc/version) -gt 0 -o $(grep -ic cygwin /proc/version) -gt 0 ]
+if [ $(grep -c Microsoft /proc/version) -gt 0 ]
 then
    X[19]="X"
 fi

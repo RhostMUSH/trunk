@@ -3888,13 +3888,13 @@ softcode_trigger(DESC *d, const char *msg) {
 static int 
 check_connect(DESC * d, const char *msg)
 {
-    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff;
+    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, *nc_buff;
     dbref player, aowner, player2, victim;
     int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest;
     int ok_to_login, i_sitemax, chk_stop, chk_tog;
     DESC *d2, *d3;
     CMDENT *cmdp;
-    ATTR *hk_ap2;
+    ATTR *hk_ap2, *nc_attr;
     char buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
 
     DPUSH; /* #146 */
@@ -4158,7 +4158,19 @@ check_connect(DESC * d, const char *msg)
 
 	    /* Not a player, or wrong password */
 
-	    queue_string(d, connect_fail);
+        nc_attr = atr_str("_MSG_NOCONNECT");
+        if (nc_attr)
+            nc_buff = atr_get(player, nc_attr->number, &aowner, &aflags);
+        
+        if ((Flags3(player) & NOCONNECT) && *nc_buff) {
+            buff = alloc_mbuf("msg_noconnect");
+            sprintf(buff, "%s\r\n", nc_buff);
+            queue_string(d, buff);
+            free_mbuf(buff);
+            free_lbuf(nc_buff);
+        } else {
+	        queue_string(d, connect_fail);
+        }
 	    STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
 		buff = alloc_mbuf("check_conn.LOG.bad");
 	    sprintf(buff, "[%d/%s] Failed connect to '%s'",
