@@ -24220,7 +24220,7 @@
   Command: mail [@]<player-list>=<subject> (with BRANDY_MAIL toggle)
            mail [@]<player-list>=[<subj>/]<body> (with PENN_MAIL toggle)
            mail [@]<player-list>=[<subj>//]<body> (with no toggle)
-           mail [<mesg#>|new|unread|nall|uall|ball]
+           mail [<mesg#>|new|unread|nall|uall|ball|1-N]
   
                       'HELP MAIL MAIN' for main index.    
   
@@ -25311,19 +25311,32 @@
   
   See Also: mail reply, mail send
   
+& mail/save/read
+& mail/read/save
 & mail/read
 & mail read
-  Command: mail[/read] <msg #|new|unread>
+  Command: mail[/read] <msg #|new|unread|nall|uall|ball|1-N>
+           mail/read/save <msg #|new|unread|nall|uall|ball|1-N>
   
   Read a mail message.  You can specify the message number, or to read the 
   first new or unread mail message.  Check help on the status sub-command 
   (wizhelp mail status)for information on how to see mail headers.  The /READ
-  switch is optional.  Optional arguments to 'mail/read' is as follows:
+  switch is optional.  
+  
+  The optional /save switch when used in junction with the /read switch will
+  output the mail in a standard EMail format which you can then save to file
+  and load in your favorite email program (mutt, pine, elm, outlook,
+  thunderbird, and so forth).  You would just import the file as an MBOX
+  formatted file.  Please refer to your mail program on how to read in this
+  mail format.
+  
+  Optional arguments to 'mail/read[/save]' is as follows:
       mail[/read] new    - read first new message
       mail[/read] nall   - read ALL new messages
       mail[/read] unread - read first unread message
       mail[/read] uall   - read ALL unread messages
       mail[/read] ball   - read ALL new AND unread messages
+      mail[/read] X-Y    - read messages starting at 'X' and until 'Y'
       mail[/read] #      - read specified mail message number
  
   Examples:
@@ -25332,6 +25345,8 @@
     > mail/read new
     > mail new
     > mail/read unread
+    > mail/read 3-7
+    > mail 2-8
     > mail unread
   
   See Also: mail status, mail delete, mail mark, mail next, mail zap,
@@ -30578,6 +30593,8 @@
   * mail/status @folder works for displaying mail of folder [ASH]
   * backend exec() parser passes EV_NOFCHECK to avoid parsing funcs [ASH]
   * modified the backend to allow easy setting permissions on user attrib [ASH]
+  * When /save is used with /read it will output the format of your mail
+    in an MBOX standard format [ASH]
   
   Bug Fixes
   ------------

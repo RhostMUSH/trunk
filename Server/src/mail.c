@@ -955,9 +955,9 @@ void unparse_al(char *pass, int len, char *rtbuf, int number)
   free_sbuf(pt3);
 }
 
-void unparse_to(dbref player, short int index, char *rtbuf, dbref *plrdb)
+void unparse_to(dbref player, short int index, char *rtbuf, dbref *plrdb, int i_mushname)
 {
-  char *pt2, *mbuftmp;
+  char *pt2, *mbuftmp, *s_mushname;
   int *pt1, count, x;
 
   *(int *)sbuf6 = MIND_HSND;
@@ -968,6 +968,18 @@ void unparse_to(dbref player, short int index, char *rtbuf, dbref *plrdb)
   infodata = dbm_fetch(mailfile,keydata);
   *rtbuf = '\0';
   if (infodata.dptr) {
+    s_mushname = alloc_lbuf("unparse_to_mushname");
+    if ( i_mushname ) {
+       memset(s_mushname, '\0', LBUF_SIZE);
+       sprintf(s_mushname, "%s", mudconf.mud_name);
+       mbuftmp = s_mushname;
+       while ( *mbuftmp ) {
+          if ( isspace(*mbuftmp) ) {
+             *mbuftmp = '_';
+          }
+          mbuftmp++;
+       }
+    }
     memcpy(lbuf12,infodata.dptr,infodata.dsize);
     pt1 = (int *)lbuf12;
     count = *pt1;
@@ -989,20 +1001,27 @@ void unparse_to(dbref player, short int index, char *rtbuf, dbref *plrdb)
          pt2 = Name(*pt1);
       }
       *plrdb = *pt1;
-      if ((strlen(rtbuf) + strlen(pt2)) < LBUF_SIZE -12) {
+      if ((strlen(rtbuf) + strlen(s_mushname) + strlen(pt2)) < (LBUF_SIZE - 12)) {
 	if (*rtbuf != '\0') {
-          if ( mudconf.name_spaces )
+          if ( i_mushname ) 
+	     strcat(rtbuf,", ");
+          else if ( mudconf.name_spaces )
 	     strcat(rtbuf,",");
           else
 	     strcat(rtbuf," ");
         }
 	strcat(rtbuf,pt2);
+        if ( i_mushname ) {
+	  strcat(rtbuf,"@");
+	  strcat(rtbuf,s_mushname);
+        }
 	pt1 += 2;
       }
       else
 	break;
     }
     free_mbuf(mbuftmp);
+    free_lbuf(s_mushname);
   }
 }
 
@@ -1584,7 +1603,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
       }
       t1 = *(int *)mbuf1;
       if (repall && repaal) {
-	unparse_to(*(int *)mbuf1,acheck,lbuf3, &plrdb);
+	unparse_to(*(int *)mbuf1,acheck,lbuf3, &plrdb, 0);
 	if (strlen(lbuf3) > NDBMBUFSZ - 10) {
 	  notify_quiet(p2,"MAIL ERROR: Reply list too long");
 	  return 1;
@@ -2662,29 +2681,52 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
   *quickfolder = '\0';
 }
 
-void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type)
+void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type, int i_offload)
 {
-   char *retval;
+   char *retval, *s_tmp;
    int a, b, c, d, i_new, i_unread, i_loop, i_chk; 
 
+   if ( i_offload ) {
+      key |= 32;
+   }
    retval = (char *)mail_quick_function(player, "", 0); 
    sscanf(retval, "%d %d %d %d %d %d", &a, &i_new, &i_unread, &b, &c, &d);
    i_chk = 0;
-   if ( (i_type == 1) || (i_type == 3) ) {
-      for (i_loop = 0;i_loop < i_new; i_loop++)
-         mail_read(player, (char *)"new", wiz, key);
-      i_chk = i_loop;
-   } 
-   if ( (i_type == 2) || (i_type == 3) ) {
-      for (i_loop = 0;i_loop < i_unread; i_loop++)
-         mail_read(player, (char *)"unread", wiz, key);
-      i_chk += i_loop;
+   if ( i_type == 4 ) {
+      if ( strchr(buf, '-') != NULL ) {
+         i_unread = atoi(buf);
+         i_new = atoi(strchr(buf, '-')+1);
+         if ( ((i_unread > 0) && (i_unread <= a) && (i_unread < i_new)) &&
+              ((i_new > 0) && (i_new <= a)) ) {
+            s_tmp = alloc_sbuf("mail_readall");
+            for (i_loop = i_unread; i_loop <= i_new; i_loop++) {
+               sprintf(s_tmp, "%d", i_loop);
+               mail_read(player, s_tmp, wiz, key);
+            }
+            free_sbuf(s_tmp);
+         } else {
+            i_type = 0;
+         }
+      } else {
+         i_type = 0;
+      }
+   } else {
+      if ( (i_type == 1) || (i_type == 3) ) {
+         for (i_loop = 0;i_loop < i_new; i_loop++)
+            mail_read(player, (char *)"new", wiz, key);
+         i_chk = i_loop;
+      } 
+      if ( (i_type == 2) || (i_type == 3) ) {
+         for (i_loop = 0;i_loop < i_unread; i_loop++)
+            mail_read(player, (char *)"unread", wiz, key);
+         i_chk += i_loop;
+      }
+      if ( i_chk < 1 )
+         notify_quiet(player,"Mail: You have no new/unread mail");
    }
-   if ( (i_type < 1) || (i_type > 3) ) {
+   if ( (i_type < 1) || (i_type > 4) ) {
       notify_quiet(player,"MAIL ERROR: Bad message number specified");
    }
-   if ( i_chk < 1 )
-      notify_quiet(player,"Mail: You have no new/unread mail");
 
    free_lbuf(retval);
 }
@@ -2896,7 +2938,7 @@ void mail_read_func(dbref player, char *buf, dbref wiz, char *s_type, int key, c
       if ( key )
          *s_type = 'U';
 
-      unparse_to(send,ind2,lbuf7, &plrdb);
+      unparse_to(send,ind2,lbuf7, &plrdb, 0);
       switch ( ToUpper(*s_type) ) {
         case 'B':  /* Body of Message */
                    safe_str(lbuf8, buff, bufcx);
@@ -2976,24 +3018,32 @@ void mail_read_func(dbref player, char *buf, dbref wiz, char *s_type, int key, c
 
 void mail_read(dbref player, char *buf, dbref wiz, int key)
 {
-  int mesg, len, send, x, i_type, chk_anon, chk_anon2;
+  int mesg, len, send, x, i_type, chk_anon, chk_anon2, i_version;
   short int index, size, *spt1, ind2;
-  char *pt1, test, *tpr_buff, *tprp_buff;
+  char *pt1, test, *tpr_buff, *tprp_buff, *s_mail, *s_mailptr;
   dbref player2, plrdb;
   static char anon_player[17], s_status[10];
 
-  mesg = len = send = x = i_type = chk_anon = chk_anon2 = 0;
+  mesg = len = send = x = i_type = chk_anon = chk_anon2 = i_version = 0;
+
+  if ( key & 32 ) {
+    key &= ~32;
+    i_version = 1;
+  }
+
   memset(anon_player, 0, sizeof(anon_player));
   memset(s_status, 0, sizeof(s_status));
   if ((!stricmp(buf,"nall") || !stricmp(buf,"uall") ||
-       !stricmp(buf,"ball")) && key) {
+       !stricmp(buf,"ball") || (strchr(buf, '-') != NULL) ) && key) {
      if ( toupper(*buf) == 'N' )
        i_type = 1;
      else if ( toupper(*buf) == 'U' )
        i_type = 2;
+     else if ( strchr(buf, '-') != NULL )
+       i_type = 4;
      else
        i_type = 3;
-     mail_readall(player, buf, wiz, key, i_type);
+     mail_readall(player, buf, wiz, key, i_type, i_version);
      return;
   }
   if (key)
@@ -3179,37 +3229,66 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
 	pt1 = NULL;
       else
 	pt1 = mbuf1+hsuboff;
-      notify_quiet(player2,mbuf2);
+
+      if ( !i_version )
+         notify_quiet(player2,mbuf2);
+
       if (Good_obj(send) && !Recover(send) && !Going(send))
 	strncpy(sbuf7,Name(send),22);
       else
 	strcpy(sbuf7,"(NONE)");
       tprp_buff = tpr_buff = alloc_lbuf("mail_read");
-      if (toall) {
-	unparse_to(send,ind2,lbuf7, &plrdb);
-        notify_quiet(player2,
-                     safe_tprintf(tpr_buff, &tprp_buff, 
-                                  "Message #: %d  %s\nStatus: %-11s From: %-16s%s%s\nTo: %s\nDate/Time: %-31s Size: %d %s", mesg, 
-                                  ((Good_obj(send) && !chk_anon && (Connected(send) && Chk_Cloak(send,player2) && !Chk_Dark(send,player2))) ? "      (Connected)" : ""), 
-                                  s_status, (chk_anon ? anon_player : sbuf7), (chk_anon2 ? " [Anonymous] " : " "),
-                                  sbuf2, lbuf7, sbuf4, size, sbuf3));
+      if ( i_version ) {
+         s_mail = alloc_lbuf("read_mail_export");
+         sprintf(s_mail, "%s", mudconf.mud_name);
+         s_mailptr = s_mail;
+         while ( *s_mailptr ) {
+            if ( isspace(*s_mailptr) ) {
+               *s_mailptr = '_';
+            }
+            s_mailptr++;
+         }
+	 unparse_to(send, ind2, lbuf7, &plrdb, 1);
+         notify_quiet(player2, 
+                      safe_tprintf(tpr_buff, &tprp_buff,
+                                   "From %s@%s  %s\n%s\n%s\nDate: %s\nTo: %s\nSubject: %s\nUser-Agent: %s\n%s\n%s\n%s\nFrom: %s@%s\n%s\n\n%s\n\n", 
+                                   (chk_anon ? anon_player : sbuf7), s_mail, sbuf4,
+                                   (char *)"Reply-To: donotreply@dev.null",
+                                   (char *)"Return-Path: <donotreply@dev.null>", sbuf4, lbuf7, ( pt1 ? pt1 : "(No Subject)"),
+                                   (char *)"RhostMUSH mailer", (char *)"MIME-Version: 1.0",
+                                   (char *)"Content-Type: text/plain; charset=us-ascii",
+                                   (char *)"Content-Transfer-Encoding: 7bit", 
+                                   (chk_anon ? anon_player : sbuf7), s_mail, (char *)"Status: N", lbuf8));
+         free_lbuf(s_mail);
+      } else {
+         if (toall) {
+	   unparse_to(send,ind2,lbuf7, &plrdb, 0);
+           notify_quiet(player2,
+                        safe_tprintf(tpr_buff, &tprp_buff, 
+                                     "Message #: %d  %s\nStatus: %-11s From: %-16s%s%s\nTo: %s\nDate/Time: %-31s Size: %d %s", mesg, 
+                                     ((Good_obj(send) && !chk_anon && (Connected(send) && Chk_Cloak(send,player2) && !Chk_Dark(send,player2))) ? "      (Connected)" : ""), 
+                                     s_status, (chk_anon ? anon_player : sbuf7), (chk_anon2 ? " [Anonymous] " : " "),
+                                     sbuf2, lbuf7, sbuf4, size, sbuf3));
+         } else {
+           notify_quiet(player2,
+                        safe_tprintf(tpr_buff, &tprp_buff, 
+                                     "Message #: %d  %s\nStatus: %-11s From: %-16s%s%s\nDate/Time: %-31s Size: %d %s", mesg, 
+                                     ((Good_obj(send) && !chk_anon && (Connected(send) && Chk_Cloak(send,player2) && !Chk_Dark(send,player2))) ? "      (Connected)" : ""),
+                                     s_status, (chk_anon ? anon_player : sbuf7), (chk_anon2 ? " [Anonymous] " : " "), 
+                                     sbuf2, sbuf4, size, sbuf3));
+         }
       }
-      else
-        notify_quiet(player2,
-                     safe_tprintf(tpr_buff, &tprp_buff, 
-                                  "Message #: %d  %s\nStatus: %-11s From: %-16s%s%s\nDate/Time: %-31s Size: %d %s", mesg, 
-                                  ((Good_obj(send) && !chk_anon && (Connected(send) && Chk_Cloak(send,player2) && !Chk_Dark(send,player2))) ? "      (Connected)" : ""),
-                                  s_status, (chk_anon ? anon_player : sbuf7), (chk_anon2 ? " [Anonymous] " : " "), 
-                                  sbuf2, sbuf4, size, sbuf3));
-      if (pt1) {
+      if (!i_version && pt1) {
         tprp_buff = tpr_buff;
 	notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, "Subject: %s",pt1));
       }
       free_lbuf(tpr_buff);
-      notify_quiet(player2,mbuf2);
-      notify_quiet(player2,lbuf8);
-      notify_quiet(player2,mbuf2);
-      notify_quiet(player2,"Mail: Done");
+      if ( !i_version ) {
+         notify_quiet(player2,mbuf2);
+         notify_quiet(player2,lbuf8);
+         notify_quiet(player2,mbuf2);
+         notify_quiet(player2,"Mail: Done");
+      }
       if (key) {
         *(int *)sbuf1 = MIND_HRCV;
         *(int *)(sbuf1 + sizeof(int)) = player;
@@ -7082,7 +7161,7 @@ void mail_recall(dbref player, char *buf1, char *buf2, int key, int later1, int 
       tprp_buff = tpr_buff = alloc_lbuf("mail_recall");
       for (x = 0; x < num; x++, spt1++) {
 	if (key & M_ALL)
-	  unparse_to(chkplayer2, *spt1, lbuf9, &plrdb);
+	  unparse_to(chkplayer2, *spt1, lbuf9, &plrdb, 0);
 	else
 	  unparse_to_2(chkplayer2,*spt1,lbuf9, &plrdb);
         if ( do_chk ) {
@@ -7167,12 +7246,12 @@ void mail_recall(dbref player, char *buf1, char *buf2, int key, int later1, int 
         strcpy(sbuf4, "N/A");
       }
       if (key & M_ALL)
-	unparse_to(player, *spt1, lbuf10, &plrdb);
+	unparse_to(player, *spt1, lbuf10, &plrdb, 0);
       else
         unparse_to_2(player,*spt1,lbuf10, &plrdb);
       /* Enforce a re-read of the player if doesn't exist */
       if ( !*lbuf10 )
-	unparse_to(player, *spt1, lbuf10, &plrdb);
+	unparse_to(player, *spt1, lbuf10, &plrdb, 0);
       notify_quiet(player, "---------------------------------------"
                            "---------------------------------------");
       notify_quiet(player,
@@ -8269,11 +8348,11 @@ void
 do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 {
     int key2, flags, flags2, forcesend, i_fill1, i_fill2, i_fill3,
-        i_fill4, i_fill5, i_fill6;
+        i_fill4, i_fill5, i_fill6, i_version;
     char *p1, *p2, *atrxxx;
     dbref owner, owner2;
 
-    recblock = 0;
+    recblock = i_version = 0;
     i_fill1 = i_fill2 = i_fill3 = 0;
     i_fill4 = i_fill5 = i_fill6 = 0;
     if (key & M_FSEND) {
@@ -8282,6 +8361,12 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
     } else {
 	override = 0;
     }
+
+    if ( (key & M_SAVE) && (key & M_READM) ) {
+       key &= ~M_SAVE;
+       i_version = 32;
+    }
+
     if (mudstate.mail_state != 1) {
 	notify_quiet(player, "Mail: Mail is currently turned off.");
 	return;
@@ -8389,7 +8474,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	break;
     case M_READM:
 	if ((*buf2 == '\0') && (*buf1 != '\0')) {
-	    mail_read(player, buf1, NOTHING, 1);
+	    mail_read(player, buf1, NOTHING, (1 | i_version));
 	} else {
 	    notify_quiet(player, "MAIL ERROR: Improper read format or no message specified.");
 	}
