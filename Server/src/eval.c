@@ -2285,7 +2285,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 if ( fp == NULL ) {
 		   ufp = (UFUN *) hashfind(tbangc, &mudstate.ufunc_htab);
 		}
-                if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                if ( ufp && ((ufp->perms & 0x00007F00) || 
+                     ((!mudstate.func_reverse && (ufp->perms2 & CA_SB_IGNORE)) ||
+                      ((mudstate.func_reverse == 2) && !(ufp->perms2 & CA_SB_IGNORE)))) ) {
                    ufp = NULL;
                 }
                 if ( ufp == NULL ) {
@@ -2294,7 +2296,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                       ulfp = NULL;
                    }
-                   if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
+                   if ( ulfp && ((ulfp->perms & 0x00007F00) || 
+                        ((!mudstate.func_reverse && (ulfp->perms2 & CA_SB_IGNORE)) ||
+                         ((mudstate.func_reverse == 2) && (ulfp->perms2 & CA_SB_IGNORE)))) ) {
                       ulfp = NULL;
                    }
                 }
@@ -2305,7 +2309,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 if ( fp == NULL ) {
 		   ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
 		}
-                if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                if ( ufp && ((ufp->perms & 0x00007F00) || 
+                     ((!mudstate.func_reverse && (ufp->perms2 & CA_SB_IGNORE)) ||
+                      ((mudstate.func_reverse == 2) && (ufp->perms2 & CA_SB_IGNORE)))) ) {
                    ufp = NULL;
                 }
                 if ( ufp == NULL ) {
@@ -2314,7 +2320,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                       ulfp = NULL;
                    }
-                   if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
+                   if ( ulfp && ((ulfp->perms & 0x00007F00) || 
+                        ((!mudstate.func_reverse && (ulfp->perms2 & CA_SB_IGNORE)) ||
+                         ((mudstate.func_reverse == 2) && (ulfp->perms2 & CA_SB_IGNORE)))) ) {
                       ulfp = NULL;
                    }
                 }
@@ -2328,7 +2336,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    if (fp == NULL) {
 		ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
 	    }
-            if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+            if ( ufp && ((ufp->perms & 0x00007F00) || 
+                 ((!mudstate.func_reverse && (ufp->perms2 & CA_SB_IGNORE)) ||
+                  ((mudstate.func_reverse == 2) && (ufp->perms2 & CA_SB_IGNORE)))) ) {
                ufp = NULL;
             }
             if ( ufp == NULL ) {
@@ -2343,7 +2353,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             }
 #endif
             /* Compare to see if it has an IGNORE mask */
-            if ( fp && ((fp->perms & 0x00007F00) || (fp->perms2 & CA_SB_IGNORE)) ) {
+            if ( fp && ((fp->perms & 0x00007F00) || 
+                 ((!mudstate.func_reverse && (fp->perms2 & CA_SB_IGNORE)) ||
+                  ((mudstate.func_reverse == 2) && (fp->perms2 & CA_SB_IGNORE)))) ) {
 	       check_access(player, fp->perms, fp->perms2, 0);
                if ( mudstate.func_ignore && !mudstate.func_bypass) {
                   memset(tfunbuff, 0, sizeof(tfunbuff));
@@ -2358,7 +2370,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                      sprintf(tfunbuff, "_%.31s", tbuf);
                   }
 	          ufp = (UFUN *) hashfind((char *)tfunbuff, &mudstate.ufunc_htab);
-                  if ( ufp && ((ufp->perms & 0x00007F00) || (ufp->perms2 & CA_SB_IGNORE)) ) {
+                  if ( ufp && ((ufp->perms & 0x00007F00) || 
+                       ((!mudstate.func_reverse && (ufp->perms2 & CA_SB_IGNORE)) ||
+                        ((mudstate.func_reverse == 2) && (ufp->perms2 & CA_SB_IGNORE)))) ) {
                      ufp = NULL;
                   }
                   if ( ufp == NULL ) {
@@ -2367,7 +2381,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                          ulfp = NULL;
                       }
-                      if ( ulfp && ((ulfp->perms & 0x00007F00) || (ulfp->perms2 & CA_SB_IGNORE)) ) {
+                      if ( ulfp && ((ulfp->perms & 0x00007F00) || 
+                           ((!mudstate.func_reverse && (ulfp->perms2 & CA_SB_IGNORE)) ||
+                            ((mudstate.func_reverse == 2) && (ulfp->perms2 & CA_SB_IGNORE)))) ) {
                          ulfp = NULL;
                       }
                       if ( ulfp ) {

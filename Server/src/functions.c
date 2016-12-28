@@ -24851,11 +24851,11 @@ FUNCTION(fun_sandbox)
 {
     char *s_tmp, *s_strtok, *s_strtokptr, *s_pad, *retarg0, *retarg1, *retargtmp, *s_copy, *s_copy2;
     char *s_build, *s_buildptr, *s_fail, *s_failptr;
-    int i_ignore, i_ufun, i_found, i_ffound;
+    int i_ignore, i_ufun, i_found, i_ffound, i_reverse, i_reverse_save;
     FUN *pfun;
     UFUN *upfun, *upfun2;
 
-    if (!fn_range_check("SANDBOX", nfargs, 2, 4, buff, bufcx))
+    if (!fn_range_check("SANDBOX", nfargs, 2, 5, buff, bufcx))
        return;
 
     if ( !fargs[0] || !*fargs[0] ) {
@@ -24893,6 +24893,18 @@ FUNCTION(fun_sandbox)
           i_ufun = 3;
        if ( i_ufun < 0 )
           i_ufun = 0;
+       free_lbuf(retargtmp);
+    }
+
+    /* if it's in reverse mode, we want to stay in reverse mode for all sandboxes after */
+    i_reverse = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       retargtmp = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[4], cargs, ncargs, (char **)NULL, 0);
+       if ( i_ignore ) {
+          i_reverse = (atoi(retargtmp) ? 2 : 0);
+       } else {
+          i_reverse = (atoi(retargtmp) ? 1 : 0);
+       }
        free_lbuf(retargtmp);
     }
 
@@ -25005,7 +25017,13 @@ FUNCTION(fun_sandbox)
        s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
     }
 
+    i_reverse_save = mudstate.func_reverse;
+    /* If in reverse mode, do not unreverse */
+    if ( !mudstate.func_reverse ) {
+       mudstate.func_reverse = i_reverse;
+    }
     retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+    mudstate.func_reverse = i_reverse_save;
     safe_str(retarg0, buff, bufcx);
     free_lbuf(retarg0);
 

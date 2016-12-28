@@ -18767,7 +18767,7 @@
             sandbox(), subeval(), @lfunction
 
 & SANDBOX()
-  Function: sandbox(<string>, <function list> [,<key> [,<local>]])
+  Function: sandbox(<string>, <function list> [,<key> [,<local> [,<type>]]])
   
   This function sandboxes the evaluated <string> based on the list of
   space separated functions in <function list>.  Any function that matches
@@ -18783,8 +18783,22 @@
     2 - Check against @lfunctions (in addition to build-in functions)
     3 - Check against all possible function combinations
   
+  The following <type> exists:
+    0 - The function list is the list of functions denied. (default)
+    1 - The function list is the list of functions allowed.
+  
   A <key> of deny will return the #-1 PERMISSION DENIED
   A <key> of ignore will return the #-1 FUNCTION (blah) NOT FOUND
+  
+  Once you have the <type> defined as '1', it remains that way through
+  all iterations of the sandbox()'d evaluation, regardless of how
+  often sandbox() may be called recursively from inside it.
+  
+{ see 'help sandbox2' for examples }
+
+& SANDBOX2
+  (CONTINUED)
+  Function: sandbox(<string>, <function list> [,<key> [,<local> [,<type>]]])
   
   Examples:
     > @va me=BOO
@@ -18799,6 +18813,12 @@
     You say "Test - 2 #-1 PERMISSION DENIED BOO"
     > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub boo,,3)
     You say "Test - 2 #-1 PERMISSION DENIED #-1 PERMISSION DENIED"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub,,3,1)
+    You say "Test - #-1 PERMISSION DENIED 0 #-1 PERMISSION DENIED"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub boo,,1,1)
+    You say "Test - #-1 PERMISSION DENIED 0 #-1 PERMISSION DENIED"
+    > say sandbox(Test - [add(1,1)] [sub(1,1)] [boo()],sub boo,,3,1)
+    You say "Test - #-1 PERMISSION DENIED 0 BOO"
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
             localize(), subeval(), @lfunction

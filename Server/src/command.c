@@ -1955,12 +1955,14 @@ check_access(dbref player, int mask, int mask2, int ccheck)
         DPOP; /* #26 */
 	return 0;
     }
-    if (mask2 & CA_SB_IGNORE ) {
+    if ( (!mudstate.func_reverse && (mask2 & CA_SB_IGNORE)) ||
+         ((mudstate.func_reverse == 2) && !(mask2 & CA_SB_IGNORE)) ) {
 	mudstate.func_ignore = 1;
         DPOP; /* #26 */
 	return 0;
     }
-    if (mask2 & CA_SB_DENY ) {
+    if ( (!mudstate.func_reverse && (mask2 & CA_SB_DENY)) ||
+         ((mudstate.func_reverse == 1) && !(mask2 & CA_SB_DENY)) ) {
         DPOP; /* #26 */
 	return 0;
     }

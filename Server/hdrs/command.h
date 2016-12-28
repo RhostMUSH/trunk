@@ -291,7 +291,7 @@ typedef struct aliasentry {
 #define CA_NO_EVAL	0x00000002      /* Code doesn't eval? */
 #define CA_EVAL		0x00000004      /* Code evals? */
 #define CA_CLUSTER	0x00000010	/* Clustered? */
-#define CA_SB_BYPASS	0x20000000
+#define CA_SB_BYPASS	0x20000000	/* Function can not be bypassed */
 #define CA_SB_DENY	0x40000000      /* Function is sandbox denied */
 #define CA_SB_IGNORE	0x80000000      /* Function is sandbox ignored */
 

@@ -374,6 +374,8 @@ NDECL(cf_init)
     mudstate.sub_overridestate = 0;	/* %-sub override state */
     mudstate.sub_includestate = 0;	/* %-sub override state */
     mudstate.recurse_rlevel = 0;
+    mudstate.func_reverse = 0;
+    mudstate.func_ignore = 0;
     mudstate.func_bypass = 0;
     mudstate.nolookie = 1;
     mudstate.reality_notify = 0;

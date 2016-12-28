@@ -574,6 +574,7 @@ struct statedata {
         int     evalcount;
         int     funccount;
         int     attribfetchcount;
+	int	func_reverse;
 	int	func_ignore;
         int     func_bypass;
 	int	initializing;	/* are we reading config file at startup? */
