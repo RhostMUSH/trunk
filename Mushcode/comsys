@@ -21,6 +21,7 @@ think %r[space(9)]---> If these tests failed, you are given [ansi(hrf,10 seconds
 think Continuing with loading of script...
 @@
 @create ChanSys=10
+@startup ChanSys=@function/priv cemit=[v(F-DB)]/fun_cemit
 &CMD_CHAN ChanSys=$^@chan(((n)?(e)?(l)?)?)(/.*)?( .*)?$:@include me/do_parsechan[match(v(cmd_switches),ifelse(!!pos(/,first(%0)),after(first(%0),/),help))]
 @set ChanSys/CMD_CHAN=regexp
 &CMD_ADDCOM ChanSys=$addcom *=*:@pemit %#=[u(ADDCOMMSG[setr(0,u(addcomf,setr(1,first(lcstr(secure(%0)))),setr(2,lcstr(secure(%1)))))],r(1),r(2))];@break [not(match(11,r(0)))];&_CH_ALIST %#=[setunion(get(%#/_ch_alist),[r(1)]:[r(2)])];&CHLIST_[r(2)] [v(STOR-DB)]=[null(ifelse(match(get([v(STOR-DB)]/chlist_[r(2)]),%#),,u([v(FX-DB)]/do_alias,xxx,:has joined this channel.,xxx:[r(2)])))][setunion(get([v(STOR-DB)]/chlist_[secure(%1)]),%#)]
@@ -86,8 +87,7 @@ think Continuing with loading of script...
 @@
 @create ChanFunc=10
 @parent ChanSys=ChanFunc
-&FUN_CNAME ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,u(F_CHK_CEMIT,%0,%1))][ifelse(match(111,r(2)),u([v(FX-DB)]/do_genpemit,[r(8)][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(F_DO_CEMIT,%0,%1,%#)])][ulocal([v(FX-DB)]/do_hist1,secs())],r(5)))]
-@startup ChanFunc=@function/priv cname=me/fun_cname
+&FUN_CEMIT ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,u(F_CHK_CEMIT,%0,%1))][ifelse(match(111,r(2)),u([v(FX-DB)]/do_genpemit,[r(8)][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(F_DO_CEMIT,%0,%1,%#)])][ulocal([v(FX-DB)]/do_hist1,secs())],r(5)))]
 &STRIP_ALL ChanFunc=[ifelse(strmatch(stripaccents(),*NOT FOUND),stripansi(%0),stripansi(stripaccents(%0)))]
 &FUN_CNAME ChanFunc=[u(fun_captiontitle,%0)][switch([strmatch(name(%0),u(strip_all,get(%0/ansiname)))][hastoggle(%0,extansi)][hasattr(%0,ansiname)],111,[get(%0/ansiname)][ansi(n,)],001,ansi(get(%0/ansiname),name(%0)),name(%0))][u(fun_caption,%0)]
 &FUN_CAPTION ChanFunc=[ifelse(hasattr(%0,caption),%b[get(%0/caption)])]
