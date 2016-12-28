@@ -1268,7 +1268,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    tstr = dstr++;
             if ( eval & EV_NOFCHECK ) {
                 mudstate.stack_val--;
-		safe_chr('{', buff, &bufc);
+		safe_chr('[', buff, &bufc);
 		dstr = tstr;
 		break;
             }
