@@ -13039,7 +13039,7 @@ FUNCTION(fun_mailstatus)
 FUNCTION(fun_zfuneval)
 {
     dbref aowner, thing;
-    int aflags, anum, tlev, goodzone, tval;
+    int aflags, anum, tlev, goodzone, tval, i_extra;
     ATTR *ap;
     ZLISTNODE *ptr;
     char *atext, *result, *pt1, *pt2, *lbuf;
@@ -13136,10 +13136,15 @@ FUNCTION(fun_zfuneval)
        free_lbuf(lbuf);
        return;
     }
+
+    i_extra = 0;
     if (mudstate.evalnum < MAXEVLEVEL) {
        tlev = search_nametab(player, evaltab_sw, lbuf);
        free_lbuf(lbuf);
-       if (God(player)) {
+       if ( tlev == 6 ) {
+          tlev = -1;
+          i_extra = EV_NOFCHECK;
+       } else if (God(player)) {
            if (tlev > 5)
                tlev = -1;
        } else if (Immortal(player)) {
@@ -13173,7 +13178,7 @@ FUNCTION(fun_zfuneval)
     if ( tlev == -1 ) {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
     }
-    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
+    result = exec(player, cause, player, EV_FCHECK | EV_EVAL | i_extra, atext,
                   &(fargs[1]), nfargs - 1, (char **)NULL, 0);
     safer_unufun(tval);
     free_lbuf(atext);
@@ -13249,7 +13254,7 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
              char *fargs[], int nfargs, char *cargs[], int ncargs, int i_type)
 {
     dbref aowner, thing;
-    int aflags, anum, tlev, tval;
+    int aflags, anum, tlev, tval, i_extra;
     ATTR *ap;
     char *atext, *result, *pt1, *pt2, *lbuf;
 
@@ -13331,10 +13336,14 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
        free_lbuf(lbuf);
        return;
     }
+    i_extra = 0;
     if (mudstate.evalnum < MAXEVLEVEL) {
        tlev = search_nametab(player, evaltab_sw, lbuf);
        free_lbuf(lbuf);
-       if (God(player)) {
+       if ( tlev == 6 ) {
+          tlev = -1;
+          i_extra = EV_NOFCHECK;
+       } else if (God(player)) {
            if (tlev > 5)
               tlev = -1;
        } else if (Immortal(player)) {
@@ -13368,7 +13377,7 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     if ( tlev == -1 ) {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
     }
-    result = exec(player, cause, player, EV_FCHECK | EV_EVAL, atext,
+    result = exec(player, cause, player, EV_FCHECK | EV_EVAL | i_extra, atext,
                   &(fargs[1]), nfargs - 1, (char **)NULL, 0);
 
     safer_unufun(tval);
@@ -16008,7 +16017,7 @@ FUNCTION(fun_subeval)
     char *tbuf;
 
     tbuf = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, fargs[0],
-    cargs, ncargs, (char **)NULL, 0);
+                cargs, ncargs, (char **)NULL, 0);
     safe_str(tbuf, buff, bufcx);
     free_lbuf(tbuf);
 }

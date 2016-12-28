@@ -18446,9 +18446,12 @@
   supplied the attribute.  For more detail on functionality, look at ZFUN().
  
   The available permission levels are CIT[IZEN], GUILD[MASTER], ARCH[ITECT],
-  COUN[CILOR], ROY[ALTY], IMM[ORTAL].  You must have the permissions of the
-  given level in order to use it else it defaults to your permission level.
-  The permission must be included for the function to work.
+  COUN[CILOR], ROY[ALTY], IMM[ORTAL], SUB[EVAL].  You must have the permissions
+  of the given level in order to use it else it defaults to your permission 
+  level.  The permission must be included for the function to work.
+  
+  The special permission SUB[EVAL] will work like subeval() in that it will
+  only evaluate substitutions on the target and not evaluate functions.
   
   Examples:
     > @set me=royalty (let's assume you're a wizard)
@@ -18474,9 +18477,12 @@
   attribute.  For more detail on functionality, look at U().
  
   The available permission levels are CIT[IZEN], GUILD[MASTER], ARCH[ITECT],
-  COUN[CILOR], ROY[ALTY], IMM[ORTAL].  You must have the permissions of the
-  given level in order to use it else it defaults to your permission level.
+  COUN[CILOR], ROY[ALTY], IMM[ORTAL], SUB[EVAL].  You must have the permissions 
+  of the given level in order to use it else it defaults to your permission level.
   The permission must be included for the function to work.
+  
+  The special permission SUB[EVAL] will work like subeval() in that it will
+  only evaluate substitutions on the target and not evaluate functions.
   
   Examples:
     > @set me=royalty (let's assume you're a wizard)
@@ -30615,6 +30621,7 @@
   * modified the backend to allow easy setting permissions on user attrib [ASH]
   * When /save is used with /read it will output the format of your mail
     in an MBOX standard format [ASH]
+  * UEVAL() and ZFUNEVAL() now accept /SUBEVAL as a switch [ASH]
   
   Bug Fixes
   ------------

@@ -99,6 +99,7 @@ NAMETAB break_sw[] =
 
 NAMETAB evaltab_sw[] =
 {
+    {(char *) "subeval", 1, CA_PUBLIC, 0, 6},
     {(char *) "immortal", 1, CA_IMMORTAL, 0, 5},
     {(char *) "royalty", 1, CA_WIZARD, 0, 4},
     {(char *) "wizard", 1, CA_WIZARD, 0, 4},
