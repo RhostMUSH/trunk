@@ -1579,11 +1579,23 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    safe_str(cargs[i], buff, &bufc);
 		break;
             case '-':
-                if (ncargs >= 10) {
-                   for (i=10; ((i < ncargs) && (i <= MAX_ARGS) && cargs[i] != NULL); i++) {
-                    safe_str(cargs[i], buff, &bufc);
-                      if ( i < (ncargs - 1) )
-                       safe_chr(',', buff, &bufc);
+                if ( isdigit((unsigned char)*(dstr+1)) ) {
+                   if ( isdigit((unsigned char)*(dstr+2)) ) {
+                      i = ((*(dstr+1) - '0') * 10) + (*(dstr+2) - '0');
+                      dstr+=2;
+                   } else {
+                      i = (*(dstr+1) - '0');
+                      dstr++;
+                   }
+		   if ((i < ncargs) && (cargs[i] != NULL))
+		       safe_str(cargs[i], buff, &bufc);
+                } else {
+                   if (ncargs >= 10) {
+                      for (i=10; ((i < ncargs) && (i <= MAX_ARGS) && cargs[i] != NULL); i++) {
+                       safe_str(cargs[i], buff, &bufc);
+                         if ( i < (ncargs - 1) )
+                          safe_chr(',', buff, &bufc);
+                      }
                    }
                 }
                 break;

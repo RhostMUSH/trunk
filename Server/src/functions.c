@@ -16014,12 +16014,80 @@ FUNCTION(fun_shift)
  */
 FUNCTION(fun_subeval)
 {
-    char *tbuf;
+    char *tbuf, *tbuf2;
+    dbref thing, aowner;
+    int aflags, free_buffer;
+    ATTR *attr;
+    struct boolexp *okey;
 
-    tbuf = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, fargs[0],
-                cargs, ncargs, (char **)NULL, 0);
-    safe_str(tbuf, buff, bufcx);
-    free_lbuf(tbuf);
+    if (!fn_range_check("SUBEVAL", nfargs, 1, 2, buff, bufcx)) {
+       return;
+    }
+
+    if ( nfargs == 1 ) {
+       tbuf = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, fargs[0],
+                   cargs, ncargs, (char **)NULL, 0);
+       safe_str(tbuf, buff, bufcx);
+       free_lbuf(tbuf);
+    } else {
+       tbuf = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], 
+                   cargs, ncargs, (char **)NULL, 0);
+       thing = match_thing(player, tbuf);
+       free_lbuf(tbuf);
+#ifdef REALITY_LEVELS
+       if ( !Good_chk(thing) || !IsReal(player, thing) || (SCloak(thing) && !Immortal(player)) || (Cloak(thing) && Wizard(thing) && !Wizard(player)) ) {
+          safe_str("#-1 PERMISSION DENIED", buff, bufcx); 
+          return;
+       }
+#else
+       if ( !Good_chk(thing) || (SCloak(thing) && !Immortal(player)) || (Cloak(thing) && Wizard(thing) && !Wizard(player)) ) {
+          safe_str("#-1 PERMISSION DENIED", buff, bufcx); 
+          return;
+       }
+#endif /* REALITY_LEVELS */
+       tbuf = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], 
+                   cargs, ncargs, (char **)NULL, 0);
+       attr = atr_str(tbuf);
+       free_lbuf(tbuf);
+       if ( !attr ) {
+          safe_str("#-1 PERMISSION DENIED", buff, bufcx); 
+          return;
+       }
+       free_buffer = 1; 
+       if (attr->flags & AF_IS_LOCK) {
+          if ( mudconf.parent_control ) {
+             tbuf = atr_pget(thing, attr->number, &aowner, &aflags);
+          } else {
+             tbuf = atr_get(thing, attr->number, &aowner, &aflags);
+          }
+          if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
+             okey = parse_boolexp(player, tbuf, 1);
+             free_lbuf(tbuf);
+             tbuf = unparse_boolexp(player, okey);
+             free_boolexp(okey);
+          } else {
+             free_lbuf(tbuf);
+             tbuf = (char *) "#-1 PERMISSION DENIED";
+          }
+          free_buffer = 0;
+       } else {
+          tbuf = atr_pget(thing, attr->number, &aowner, &aflags);
+       }
+
+    /* Perform access checks.  c_r_p fills buff with an error message
+     * if needed.
+     */
+    if ( check_read_perms(player, thing, attr, aowner, aflags, buff, bufcx) ) {
+       tbuf2 = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, tbuf,
+                    cargs, ncargs, (char **)NULL, 0);
+       safe_str(tbuf2, buff, bufcx);
+       free_lbuf(tbuf2);
+    }
+    if (free_buffer) {
+       free_lbuf(tbuf);
+    }
+    return;
+    }
 }
 
 /* ---------------------------------------------------------------------------
@@ -34120,7 +34188,7 @@ FUN flist[] =
     {"STRMATCH", fun_strmatch, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"STRMATH", fun_strmath, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUB", fun_sub, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"SUBEVAL", fun_subeval, -1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"SUBEVAL", fun_subeval, 1,FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUBJ", fun_subj, 1, 0, CA_PUBLIC, 0},
     {"SUBNETMATCH", fun_subnetmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},

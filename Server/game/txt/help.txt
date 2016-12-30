@@ -10706,7 +10706,8 @@
     %b      = space character.
     %%      = literal '%' character.
     %0-%9   = Value of positional parameter/stack location 0 through 9.
-    %-      = Stack 10+ that are comma delimited
+    %-<num> = Stack 10+ that are comma delimited or if <num> specified
+              the positional stack location 0 through 999.
     %i0-%i9 = Equivalent to itext(0) through itext(9). [%il for outer]
     %d0-%d9 = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
               Only useable with /inline only.
@@ -13348,9 +13349,15 @@
   
 & SUBEVAL()
   Function: subeval(<string>)
+            subeval(<thing>, <attribute>)
   
   This function will evaluate <string> by parsing all substitutions but will 
   not evaluate functions, built in or otherwise.
+  
+  The second form will evaluate <attribute> from <thing> parsing all
+  substitutions but not evaluating any functions, built in or otherwise.
+  
+  You must be able to control <thing> to fetch the attribute.
   
   See Also: s(), eval(), sandbox(), ueval()
 
@@ -30630,6 +30637,7 @@
   * When /save is used with /read it will output the format of your mail
     in an MBOX standard format [ASH]
   * UEVAL() and ZFUNEVAL() now accept /SUBEVAL as a switch [ASH]
+  * %-<number> now optionally handles %-subs 0-999 [ASH]
   
   Bug Fixes
   ------------
