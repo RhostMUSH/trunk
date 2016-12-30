@@ -10203,7 +10203,7 @@
   
   Arithmetic:           ABS() ADD() AVG() BETWEEN() BOUND() DEC() DICE()
                         DIV() EE() FBETWEEN() FBOUND() FDIV() FLOORDIV() INC()
-                        MOD() MODULO() MUL() NCOMP() RAND() REMAINDER() 
+                        MASK() MOD() MODULO() MUL() NCOMP() RAND() REMAINDER() 
                         SIGN() STRMATH() SUB() XDEC() XINC() 
               See Also: help arithmetic functions
   
@@ -10216,9 +10216,9 @@
                         LISTTOGGLES() PMATCH() RNUM() VALID() XCON()
               See Also: help database information functions
   
-  Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() PACK() PACKMATH() 
-                        ROMAN() ROUND() SPELLNUM() TOBIN() TODEC() TOHEX() 
-                        TOOCT() TRUNC() UNPACK()
+  Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() MASK() PACK() 
+                        PACKMATH() ROMAN() ROUND() SPELLNUM() TOBIN() TODEC() 
+                        TOHEX() TOOCT() TRUNC() UNPACK()
               See Also: help numerical conversion functions
   
   { 'help function classes2' for more }    
@@ -13352,7 +13352,7 @@
   This function will evaluate <string> by parsing all substitutions but will 
   not evaluate functions, built in or otherwise.
   
-  See Also: s(), eval(), sandbox()
+  See Also: s(), eval(), sandbox(), ueval()
 
 & MUL()
   Function: mul(<number1>,<number2>[,<numberN>]...)
@@ -18050,8 +18050,13 @@
     > say garble(this is a test!?,50,,-,1,1) (50 percent, no garble punct.)
     You say "---- is a ----!?"
   
-  See Also: strip(), edit(), editansi(), mask(), regedit()
+  See Also: strip(), edit(), editansi(), regedit()
   
+& BAND()
+& BXOR()
+& BNAND()
+& BNOT()
+& BOR()
 & MASK()
   Function: mask(<value>,<value>[,<masktype>])
             mask(<value>,<value>,...,<value>,<masktype>)
@@ -18079,7 +18084,8 @@
     > say mask(3,4,^)
     You say "7"
   
-  See Also: strip(), edit(), editansi(), garble(), regedit()
+  See Also: edit(), regedit(), pack(), unpack(), packmath(), shl(), shr(),
+            crc32()
   
 & ANDFLAG()
   Function: andflag(<target>,<flag1>[,<flag2>,...,<flagN>])
@@ -27701,6 +27707,7 @@
   fdiv()      - Division with floating point support.
   floordiv()  - Returns the integer quotient from dividing two values.
   inc()       - Increases a value held in a register by 1.
+  mask()      - Applies a specified mask to a value.
   mod()       - Returns the integer remainder from dividing two values.
   modulo()    - Returns the modulo of two values
   mul()       - Multiplies two values.
@@ -27761,6 +27768,7 @@
   digest()      - Returns digest information for encryption algorithms.
   fbound()      - Bounds a floating point between a min and max value.
   floor()       - Returns the largest integer less than <number>
+  mask()        - Applies a specified mask to a value.
   pack()        - Returns the equivalent of a given number using a radix.
   packmath()    - Applies math to the compressed radix value.
   roman()       - Returns the Roman Numerals for the specified number.
