@@ -11592,7 +11592,7 @@
          A_<command> - after             B_<command> - before
         AF_<command> - fail             AO_<command> - offline after
    
-      You may use %m for the command the person typed which will work for
+      You may use %-m for the command the person typed which will work for
       all options except AO_* where it's an offline command.
    
   7A) substitution hooks are handled with the sub_override @admin parameter.
@@ -11613,6 +11613,10 @@
   > &is-ignored #1234=#5 #8 #9 #12   (this gets 'Huh? (type 'help' for help)')
   > &is-forbidden #1234=#6 #10 #15   (this gets 'Permission denied.')
   > @set #1234=sidefx                (needed to use side-effects like pemit())
+  
+  Note: You may use %-m (not %m, %-m) for the last command that @hook
+        processed.  You may use %m as well for last command as normal, but
+        %-m will always be the command issued that triggered that @hook.
   
   Now you can do one of two things:
   > @hook/before look                (netrhost.conf:  hook_cmd look before)
