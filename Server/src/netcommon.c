@@ -62,7 +62,7 @@ static void set_userstring(char **, const char *);
 extern const char *addrout(struct in_addr);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern CMDENT * lookup_command(char *);
-extern int process_hook(dbref, dbref, char *, ATTR *, int, int);
+extern int process_hook(dbref, dbref, char *, ATTR *, int, int, char *);
 
 
 /* for aconnect: player = room, target = connecting player */
@@ -4415,7 +4415,7 @@ check_connect(DESC * d, const char *msg)
                       mudstate.chkcpu_stopper = time(NULL);
                       mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
-                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask);
+                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
                       mudstate.chkcpu_toggle = chk_tog;
                       mudstate.chkcpu_stopper = chk_stop;
                       free_sbuf(s_uselock);
@@ -4461,7 +4461,7 @@ check_connect(DESC * d, const char *msg)
                   mudstate.chkcpu_stopper = time(NULL);
                   mudstate.chkcpu_toggle = 0;
                   mudstate.chkcpu_locktog = 0;
-                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask);
+                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
                   mudstate.chkcpu_toggle = chk_tog;
                   mudstate.chkcpu_stopper = chk_stop;
                   free_sbuf(s_uselock);

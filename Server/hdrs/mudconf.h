@@ -585,6 +585,7 @@ struct statedata {
 	dbref	curr_enactor;	/* Who initiated the current command */
 	dbref	curr_player;	/* Who is running the current command */
         char    *curr_cmd;      /* The current command */
+        char    curr_cmd_hook[LBUF_SIZE]; /* The current command - for hooking */
         char    *iter_arr[50];   /* Iter recursive memory - text*/
         int     iter_inumarr[50];/* Iter recursive memory - number*/
         int     iter_inumbrk[50];/* Iter recursive memory - break*/

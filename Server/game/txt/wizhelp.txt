@@ -7432,6 +7432,9 @@
   The attribute for this is special and will be AO_@pcreate 
   instead of A_@pcreate and AO_@register instead of A_@register
   
+  Be aware that as these are offline hooks, %m for last command will
+  not work properly.
+  
   See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include,
             hook_offline
   
@@ -11587,8 +11590,11 @@
   6)  The following attributes on the global hook object (hook_obj) exist:
          I_<command> - ignore            P_<command> - permit
          A_<command> - after             B_<command> - before
-        AF_<command> - fail
-  
+        AF_<command> - fail             AO_<command> - offline after
+   
+      You may use %m for the command the person typed which will work for
+      all options except AO_* where it's an offline command.
+   
   7A) substitution hooks are handled with the sub_override @admin parameter.
       wizhelp on this explains in detail how substitution hooks are set up.
   

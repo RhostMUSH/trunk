@@ -699,6 +699,7 @@ NDECL(cf_init)
     mudstate.curr_player = NOTHING;
     mudstate.curr_enactor = NOTHING;
     mudstate.curr_cmd = (char *) "< none >";
+    memset(mudstate.curr_cmd_hook, '\0', LBUF_SIZE);
     mudstate.shutdown_flag = 0;
     mudstate.reboot_flag = 0;
     mudstate.rwho_on = 0;
@@ -1385,8 +1386,10 @@ NAMETAB hook_names[] =
     {(char *) "permit", 3, 0, 0, 4},
     {(char *) "ignore", 3, 0, 0, 8},
     {(char *) "igswitch", 3, 0, 0, 16},
+    {(char *) "extend", 3, 0, 0, 16},
     {(char *) "afail", 3, 0, 0, 32},
     {(char *) "fail", 3, 0, 0, 256},
+    {(char *) "include", 3, 0, 0, 512},
     {NULL, 0, 0, 0, 0}};
 
 CF_HAND(cf_hook)

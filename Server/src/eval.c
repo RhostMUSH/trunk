@@ -1579,10 +1579,20 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    safe_str(cargs[i], buff, &bufc);
 		break;
             case '-':
-                if ( isdigit((unsigned char)*(dstr+1)) ) {
+                if ( *(dstr+1) == 'm' ) {
+                   if ( *(mudstate.curr_cmd_hook) ) {
+                      safe_str(mudstate.curr_cmd_hook, buff, &bufc);
+                   }
+                   dstr++;
+                } else if ( isdigit((unsigned char)*(dstr+1)) ) {
                    if ( isdigit((unsigned char)*(dstr+2)) ) {
-                      i = ((*(dstr+1) - '0') * 10) + (*(dstr+2) - '0');
-                      dstr+=2;
+                      if ( isdigit((unsigned char)*(dstr+3)) ) {
+                         i = ((*(dstr+1) - '0') * 100) + ((*(dstr+2) - '0') * 10) + (*(dstr+3) - '0');
+                         dstr+=3;
+                      } else {
+                         i = ((*(dstr+1) - '0') * 10) + (*(dstr+2) - '0');
+                         dstr+=2;
+                      }
                    } else {
                       i = (*(dstr+1) - '0');
                       dstr++;

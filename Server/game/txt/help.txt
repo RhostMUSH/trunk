@@ -10708,6 +10708,7 @@
     %0-%9   = Value of positional parameter/stack location 0 through 9.
     %-<num> = Stack 10+ that are comma delimited or if <num> specified
               the positional stack location 0 through 999.
+    %-m     = The last command executed that the @hook picked up
     %i0-%i9 = Equivalent to itext(0) through itext(9). [%il for outer]
     %d0-%d9 = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
               Only useable with /inline only.
@@ -30638,6 +30639,7 @@
     in an MBOX standard format [ASH]
   * UEVAL() and ZFUNEVAL() now accept /SUBEVAL as a switch [ASH]
   * %-<number> now optionally handles %-subs 0-999 [ASH]
+  * %-m handles last command for @hooks only [ASH]
   
   Bug Fixes
   ------------
@@ -30652,3 +30654,4 @@
   * bug with matching when NO_NAME was in effect on a target [ASH]
   * folders mistakenly seen as corrupt when you had no mail at all [ASH]
   * potential crash with NONAME when examining [ASH]
+  * @hook/include would break IGNORE feature sets [ASH]
