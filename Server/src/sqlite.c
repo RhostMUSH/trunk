@@ -346,6 +346,7 @@ void local_sqlite_init(void) {
       *dp = '\0';
       hashadd2(buff, (int *) fp, &mudstate.func_htab, 1);
    }
+   free_sbuf(buff);
 }
 
 #endif // SQLITE
