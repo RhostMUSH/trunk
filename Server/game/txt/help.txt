@@ -30656,3 +30656,4 @@
   * potential crash with NONAME when examining [ASH]
   * @hook/include would break IGNORE feature sets [ASH]
   * missing free buffer for sqlite [ASH]
+  * @hook didn't case desensitize commands passed to it [ASH]

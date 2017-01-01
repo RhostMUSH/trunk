@@ -2083,7 +2083,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
             mudstate.password_nochk = 1;
          }
 #endif
-         if ( ((*(hk_ap2->name) == 'B') || (*(hk_ap2->name) == 'A')) &&
+         if ( (((*(hk_ap2->name) == 'B') || (*(hk_ap2->name) == 'A')) && (*(hk_ap2->name+1) == '_'))  &&
               (hook_type & HOOK_INCLUDE) && (( hook_type & HOOK_BEFORE) || (hook_type & HOOK_AFTER)) ) {
             result = alloc_lbuf("hook_result_fake");
             sprintf(result, "%s", (char *)"0");
@@ -10211,6 +10211,11 @@ void do_hook(dbref player, dbref cause, int key, char *name)
    /* mudconf here for full hash table or just strict command table */
 
    if ( (key && !(key & HOOK_LIST)) || ((!key || (key & HOOK_LIST)) && *name) ) {
+      s_ptr = name;
+      while ( *s_ptr ) {
+         *s_ptr = ToLower(*s_ptr);
+         s_ptr++;
+      }
       cmdp = lookup_orig_command(name);
       if ( !cmdp ) { 
          notify(player, "@hook: non-existant command-name given."); 
