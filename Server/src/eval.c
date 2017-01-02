@@ -2084,7 +2084,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             if ( !*trace_buff ) {
                                strcpy(trace_buff, (char *)"(NONE)");
                             }
-                            sprintf(sub_buf, "%d Total, %d In-Use, Values: %.*s", mudstate.trace_nest_lev, sub_value, (LBUF_SIZE - 80), trace_buff);
+                            sprintf(sub_buf, "%d Total, %d In-Use, Values: %.*s", 
+                                             ((mudstate.trace_nest_lev > (LABEL_MAX - 1)) ? (LABEL_MAX - 1) : mudstate.trace_nest_lev), 
+                                             sub_value, (LBUF_SIZE - 80), trace_buff);
                             notify_quiet(player, sub_buf);
                             free_lbuf(sub_buf);
                             free_lbuf(trace_buff);
@@ -2096,7 +2098,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                   sub_value++;
                                }
                             }
-                            sprintf(sub_buf, "%d Total, %d In-Use", mudstate.trace_nest_lev, sub_value);
+                            sprintf(sub_buf, "%d Total, %d In-Use", 
+                                             ((mudstate.trace_nest_lev > (LABEL_MAX - 1)) ? (LABEL_MAX - 1) : mudstate.trace_nest_lev), 
+                                             sub_value);
                             notify_quiet(player, sub_buf);
                             free_lbuf(sub_buf);
                          } else if ( !stricmp(t_bufa, "off") ) {
