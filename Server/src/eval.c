@@ -2039,10 +2039,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             if ( mudstate.trace_nest_lev < (LABEL_MAX - 2) ) {
                                if ( !*(t_bufa+1) && (i_label_lev >= 0) ) {
                                   i_label[i_label_lev] = 0;
+/*
                                   if ( i_label_lev == mudstate.trace_nest_lev ) {
-                                     /* We can recover some labels here */
                                      mudstate.trace_nest_lev--;
                                   }
+*/
                                } else {
                                   for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
                                      if ( *(t_label[inum_val]) && 
@@ -2052,10 +2053,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                         break;
                                      }
                                   }
+/*
                                   if ( inum_val == mudstate.trace_nest_lev ) {
-                                     /* We can recover some labels here */
                                      mudstate.trace_nest_lev--;
                                   }
+*/
                                }
                                i_label_lev = 0;
                                for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
@@ -2064,6 +2066,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                      break;
                                   }
                                }
+                               mudstate.trace_nest_lev = i_label_lev;
                             }
 /*                          mudstate.trace_nest_lev--; */
                             if ( mudstate.trace_nest_lev < 0 )
