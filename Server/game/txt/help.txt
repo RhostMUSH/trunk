@@ -10784,8 +10784,9 @@
 & %_
   Topic: SUBSTITUTIONS
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
-          %_<-label> -- disables debugging for <label>
-          %_<off>    -- disables all debugging
+          %_<-label> -- disables debugging for last named <label>
+          %_<->      -- disables debugging for last defined label
+          %_<off>    -- disables all debugging labels
   
   You can have a total of 1000 label declarations total for processing per
   command queue.
@@ -10798,13 +10799,17 @@
   that you specify for the substitutions.  The marker can be any string.
   
   You use - as a prefix for the label to turn off debugging for that 
-  particular debug marker.  For stacked debugging this will decrement the 
-  debug stack count.
+  particular debug marker.  For stacked debugging this will remove the
+  last defined label from the stack.  If you use the same label twice,
+  it will remove the newest defined first working backwards.
+  
+  If you specify a label of just '-' it removes the last defined label.
    
   Using the <label> adds to the debug stack and using <-label> reduces one
-  from the debug stack.  This allows you to essentially nest debugging
-  breakpoints within code and only enable/disable them when you set
-  the specified label in your TRACE value.  For instance, &TRACE object=123
+  from the debug stack by removing the latest named label.  This allows you 
+  to essentially nest debugging breakpoints within code and only 
+  enable/disable them when you set the specified label in your TRACE value.  
+  For instance, &TRACE object=123
   
   The <label> needs to be always in lower case.
   
@@ -10819,7 +10824,8 @@
 & %_2
   Topic: SUBSTITUTIONS (CONTINUED)
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
-          %_<-label> -- disables debugging for <label>
+          %_<-label> -- disables debugging for last named <label>
+          %_<->      -- disables debugging for last defined label
           %_<off>    -- disables all debugging
   
   You may use the attribute TRACE_COLOR to set a standard color for your
@@ -10851,8 +10857,11 @@
     > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<off>[add(3,3)]
     YourPlayerName(#12345) [123]} 'add(2,2)' -> '4'
     You say "Debugging: 246"
+    > say Debugging: [add(1,1)]%_<123>[add(2,2)]%_<->[add(3,3)]
+    YourPlayerName(#12345) [123]} 'add(2,2)' -> '4'
+    You say "Debugging: 246"
   
-  In the last exampole, the 123 inside the []'s would have been orange.
+  In the last two examples, the 123 inside the []'s would have been orange.
   
   See 'help %_vars' for variables used with trace label debugging.
   
@@ -10861,7 +10870,8 @@
 & %_vars
   Topic: SUBSTITUTIONS (CONTINUED)
   Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
-          %_<-label> -- disables debugging for <label>
+          %_<-label> -- disables debugging for last named <label>
+          %_<->      -- disables debugging for last defined label
           %_<off>    -- disables all debugging
   
   The following special variables are used for %_ label debugging.
@@ -30619,6 +30629,7 @@
     to not be affected by the sandbox() function [ASH]
   * packmath() to allow math on varying radix compressions [ASH]
   * subeval() evaluates string without executiong functions [ASH]
+  * %_<-> pops last stack for debug labels [ASH]
   
   Changes
   ------------
@@ -30640,6 +30651,8 @@
   * UEVAL() and ZFUNEVAL() now accept /SUBEVAL as a switch [ASH]
   * %-<number> now optionally handles %-subs 0-999 [ASH]
   * %-m handles last command for @hooks only [ASH]
+  * improved %_<subs> to be more vigerous with removal and pops
+    last match first.
   
   Bug Fixes
   ------------

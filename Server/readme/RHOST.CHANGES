@@ -81,6 +81,8 @@ Potential crash bug with flag-handling with NONAME in use.
 				- Thanks Polk & Aqua
 Missing free on an sbuf in sqlite.c
 				- Thanks Darren
+Added %_<-> to pop last label used.
+				- Suggestion -- Ixokai
 
 
 		         RhostMUSH 3.9.4 Update File

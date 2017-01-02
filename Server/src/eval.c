@@ -2037,13 +2037,21 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             }
                          } else if ( *sub_txt && (*t_bufa == '-') && (strstr(sub_txt, t_bufa+1) != NULL) ) {
                             if ( mudstate.trace_nest_lev < (LABEL_MAX - 2) ) {
-                               for ( inum_val = 0; inum_val <= mudstate.trace_nest_lev; inum_val++ ) {
-                                  if ( *(t_label[inum_val]) && 
-                                        (stricmp(strip_all_special2(t_label[inum_val]), t_bufa+1) == 0) &&
-                                        i_label[inum_val] ) {
-                                     i_label[inum_val] = 0;
-                                     break;
+                               if ( !*(t_bufa+1) && (i_label_lev >= 0) ) {
+                                  i_label[i_label_lev] = 0;
+                               } else {
+                                  for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
+                                     if ( *(t_label[inum_val]) && 
+                                           (stricmp(strip_all_special2(t_label[inum_val]), t_bufa+1) == 0) &&
+                                           i_label[inum_val] ) {
+                                        i_label[inum_val] = 0;
+                                        break;
+                                     }
                                   }
+                               }
+                               if ( i_label_lev == mudstate.trace_nest_lev ) {
+                                  /* We can recover some labels here */
+                                  mudstate.trace_nest_lev--;
                                }
                                i_label_lev = 0;
                                for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
