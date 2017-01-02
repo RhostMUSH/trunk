@@ -10783,10 +10783,12 @@
   
 & %_
   Topic: SUBSTITUTIONS
-  Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
-          %_<-label> -- disables debugging for last named <label>
-          %_<->      -- disables debugging for last defined label
-          %_<off>    -- disables all debugging labels
+  Syntax: %_<label>      -- enables debugging if <label> is in TRACE attribute.
+          %_<-label>     -- disables debugging for last named <label>
+          %_<->          -- disables debugging for last defined label
+          %_<off>        -- disables all debugging labels
+          %_<!list>      -- List current stack, in-use stack, and all labels.
+          %_<!shortlist> -- List current stack and in-use stack.
   
   You can have a total of 1000 label declarations total for processing per
   command queue.
@@ -10823,10 +10825,12 @@
 & TRACE_GREP
 & %_2
   Topic: SUBSTITUTIONS (CONTINUED)
-  Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
-          %_<-label> -- disables debugging for last named <label>
-          %_<->      -- disables debugging for last defined label
-          %_<off>    -- disables all debugging
+  Syntax: %_<label>      -- enables debugging if <label> is in TRACE attribute.
+          %_<-label>     -- disables debugging for last named <label>
+          %_<->          -- disables debugging for last defined label
+          %_<off>        -- disables all debugging
+          %_<!list>      -- List current stack, in-use stack, and all labels.
+          %_<!shortlist> -- List current stack and in-use stack.
   
   You may use the attribute TRACE_COLOR to set a standard color for your
   labels.   For instance, &TRACE_COLOR object=+purple.  You may specify 
@@ -10869,10 +10873,12 @@
   
 & %_vars
   Topic: SUBSTITUTIONS (CONTINUED)
-  Syntax: %_<label>  -- enables debugging if <label> is in TRACE attribute.
-          %_<-label> -- disables debugging for last named <label>
-          %_<->      -- disables debugging for last defined label
-          %_<off>    -- disables all debugging
+  Syntax: %_<label>      -- enables debugging if <label> is in TRACE attribute.
+          %_<-label>     -- disables debugging for last named <label>
+          %_<->          -- disables debugging for last defined label
+          %_<off>        -- disables all debugging
+          %_<!list>      -- List current stack, in-use stack, and all labels.
+          %_<!shortlist> -- List current stack and in-use stack.
   
   The following special variables are used for %_ label debugging.
   
