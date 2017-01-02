@@ -2039,6 +2039,10 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             if ( mudstate.trace_nest_lev < (LABEL_MAX - 2) ) {
                                if ( !*(t_bufa+1) && (i_label_lev >= 0) ) {
                                   i_label[i_label_lev] = 0;
+                                  if ( i_label_lev == mudstate.trace_nest_lev ) {
+                                     /* We can recover some labels here */
+                                     mudstate.trace_nest_lev--;
+                                  }
                                } else {
                                   for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
                                      if ( *(t_label[inum_val]) && 
@@ -2048,10 +2052,10 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                                         break;
                                      }
                                   }
-                               }
-                               if ( i_label_lev == mudstate.trace_nest_lev ) {
-                                  /* We can recover some labels here */
-                                  mudstate.trace_nest_lev--;
+                                  if ( inum_val == mudstate.trace_nest_lev ) {
+                                     /* We can recover some labels here */
+                                     mudstate.trace_nest_lev--;
+                                  }
                                }
                                i_label_lev = 0;
                                for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
@@ -2064,6 +2068,37 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 /*                          mudstate.trace_nest_lev--; */
                             if ( mudstate.trace_nest_lev < 0 )
                                mudstate.trace_nest_lev = 0;
+                         } else if ( !stricmp(t_bufa, "!list") ) {
+                            sub_value = 0;
+                            sub_buf = alloc_lbuf("_<!list>");
+                            trace_buffptr = trace_buff = alloc_lbuf("_<!list-2>");
+                            for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
+                               if ( i_label[inum_val] == 1 ) {
+                                  if ( sub_value ) {
+                                     safe_chr(' ', trace_buff, &trace_buffptr);
+                                  }
+                                  safe_str(t_label[inum_val], trace_buff, &trace_buffptr);
+                                  sub_value++;
+                               }
+                            }
+                            if ( !*trace_buff ) {
+                               strcpy(trace_buff, (char *)"(NONE)");
+                            }
+                            sprintf(sub_buf, "%d Total, %d In-Use, Values: %.*s", mudstate.trace_nest_lev, sub_value, (LBUF_SIZE - 80), trace_buff);
+                            notify_quiet(player, sub_buf);
+                            free_lbuf(sub_buf);
+                            free_lbuf(trace_buff);
+                         } else if ( !stricmp(t_bufa, "!shortlist") ) {
+                            sub_value = 0;
+                            sub_buf = alloc_lbuf("_<!list>");
+                            for ( inum_val = mudstate.trace_nest_lev; inum_val >= 0; inum_val-- ) {
+                               if ( i_label[inum_val] == 1 ) {
+                                  sub_value++;
+                               }
+                            }
+                            sprintf(sub_buf, "%d Total, %d In-Use", mudstate.trace_nest_lev, sub_value);
+                            notify_quiet(player, sub_buf);
+                            free_lbuf(sub_buf);
                          } else if ( !stricmp(t_bufa, "off") ) {
                             i_label_lev = mudstate.trace_nest_lev = 0;
                             for ( inum_val = 0; inum_val < LABEL_MAX; inum_val++) {
