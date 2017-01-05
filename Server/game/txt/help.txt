@@ -16375,6 +16375,8 @@
     0-2     - page value of the total list of colornames available. (0 def)
     string  - the string of the color name you wish to see the value of.
     *wild*  - the list of colors that match the wildcard (* and ? accepted)
+   any ansi - With the '(n)ame' option you may specify anything you'd pass
+              ansi() and have it return the names matching the encoding.
   
   Valid <key> parameters:
     d       - show the decimal value (0-255) of the XTERM specific color (def).
@@ -16382,6 +16384,9 @@
     c       - show the 16 color code translation of the XTERM specific color.
     x       - show the 24bit (#000000-#FFFFFF) color code XTERM translation.
     r       - show the RGB (0 0 0 - 255 255 255) color code XTERM translation.
+    n       - show the name of the ansi() encoding passed.
+  
+  Note: you can not use wildcards with a key.
   
   Examples:
     > say colors()
@@ -30659,6 +30664,7 @@
   * %-m handles last command for @hooks only [ASH]
   * improved %_<subs> to be more vigerous with removal and pops
     last match first.
+  * colors have a (n)ame option to display name of the ansi arg [ASH]
   
   Bug Fixes
   ------------

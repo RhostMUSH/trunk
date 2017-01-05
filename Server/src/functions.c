@@ -27710,6 +27710,274 @@ FUNCTION(fun_accent)
 }
 
 #ifdef ZENTY_ANSI
+int ansi_convtable[256] = 
+{
+ /*0 .........................................................................................31 */
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            /*  31 */
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            /*  63 */
+   0, 0, 21, 44, 0, 0, 0, 40, 0, 0, 0, 0, 0, 164, 0, 0, 0, 0, 160, 0, 0, 0, 0, 254, 0, 184, 0, 0, 0, 0, 0, 0, /*  95 */
+   0, 0, 21, 44, 0, 0, 0, 40, 0, 0, 0, 0, 0, 164, 0, 0, 0, 0, 160, 0, 0, 0, 0, 254, 0, 184, 0, 0, 0, 0, 0, 0, /* 127 */
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            /* 159 */
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            /* 191 */
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            /* 223 */
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0             /* 255 */
+};
+
+void 
+deansi(char *string, char *buff, char **bufcx)
+{
+    PENNANSI *cm;
+    MUXANSI  *cx;
+    char *q, *s, t_buff[60], t_buff3[61];;
+    int i_haveslash, i_tmp, i_trgbackground, i_fgcolor, i_bgcolor, rgb_diff, rgb_diff2,
+        r1, b1, g1, r2, b2, g2;
+
+    if ( !string || !*string ) {
+       safe_str("#-1 INVALID COLOR", buff, bufcx);
+       return;
+    }
+
+    q = trim_spaces(string);
+    memset(t_buff, '\0', sizeof(t_buff));
+    strncpy(t_buff, q, 59);
+    free_lbuf(q);
+    s = t_buff;
+    i_haveslash = i_tmp = i_trgbackground = 0;
+    i_fgcolor = i_bgcolor = -1;
+    while ( *s ) {
+       switch ( *s ) {
+          case '/': 
+             i_trgbackground = 1;
+             i_haveslash = 1;
+             break;
+          case '+':
+             cm = (PENNANSI *)NULL;
+             memset(t_buff3, 0, sizeof(t_buff3));
+             q = t_buff3;
+             s++;
+             while ( s && *s && !(isspace(*s) || (*s == '/')) ) {
+                *q = *s;
+                q++;
+                s++;
+             }
+             if ( *s == '/' )
+                s--;
+             if ( *t_buff3 ) {
+                cm = (PENNANSI *)hashfind(t_buff3, &mudstate.ansi_htab);
+             }
+             if ( cm ) {
+                if ( i_trgbackground ) {
+                   i_bgcolor = cm->i_xterm;
+                } else {
+                   i_fgcolor = cm->i_xterm;
+                }
+             } else {
+                safe_str("#-1 INVALID COLOR", buff, bufcx);
+                return;
+             }
+             break;
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+             i_tmp = atoi(s);
+             if ( (i_tmp >= 0) && (i_tmp <= 255) ) {
+                if ( i_trgbackground )
+                   i_bgcolor = i_tmp;
+                else
+                   i_fgcolor = i_tmp;
+             } else {
+                safe_str("#-1 INVALID COLOR", buff, bufcx);
+                return;
+             }
+             while ( s && *s && isdigit(*s) ) {
+                s++;
+             }
+             if ( *s == '/' ) {
+                s--;
+             }
+             break;
+          case '0':
+             if ( ((*(s+1) == 'x') || (*(s+1) == 'X')) && isxdigit(*(s+2)) && isxdigit(*(s+3)) ) {
+                if ( i_trgbackground )
+                   sscanf(s+2, "%2x", &i_bgcolor);
+                else
+                   sscanf(s+2, "%2x", &i_fgcolor);
+                s+=3;
+             } else {
+                i_tmp = atoi(s);
+                if ( (i_tmp >= 0) && (i_tmp <= 255) ) {
+                   if ( i_trgbackground )
+                      i_bgcolor = i_tmp;
+                   else
+                      i_fgcolor = i_tmp;
+                } else {
+                   safe_str("#-1 INVALID COLOR", buff, bufcx);
+                   return;
+                }
+                while ( s && *s && isdigit(*s) )
+                   s++;
+                if ( *s == '/' )
+                   s--;
+             }
+             break;
+          case '#':
+             if ( isxdigit(*(s+1)) && isxdigit(*(s+2)) && isxdigit(*(s+3)) &&
+                  isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) ) {
+                sscanf(s+1, "%2x%2x%2x", &r1, &g1, &b1);
+                rgb_diff = rgb_diff2 = 1000;
+                for (cx = mux_namecolors; cx->s_hex; cx++) {
+                   if(cx->i_dec < 16) 
+                      continue;
+                   sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                   rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                   if ( rgb_diff < rgb_diff2 ) {
+                      rgb_diff2 = rgb_diff;
+                      if ( i_trgbackground )
+                         i_bgcolor = cx->i_dec;
+                      else
+                         i_fgcolor = cx->i_dec;
+                      /* Exact match -- break out */
+                      if ( rgb_diff2 == 0 )
+                         break;
+                   }
+                }
+                s+=6;
+             }
+             break;
+          case '<':
+             if ( (*(s+1) == '#') && isxdigit(*(s+2)) && isxdigit(*(s+3)) && 
+                  isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) && 
+                  isxdigit(*(s+7)) && *(s+8) == '>' ) {
+                sscanf(s+2, "%2x%2x%2x", &r1, &g1, &b1);
+                rgb_diff = rgb_diff2 = 1000;
+                for (cx = mux_namecolors; cx->s_hex; cx++) {
+                   if(cx->i_dec < 16) 
+                      continue;
+                   sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                   rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                   if ( rgb_diff < rgb_diff2 ) {
+                      rgb_diff2 = rgb_diff;
+                      if ( i_trgbackground )
+                         i_bgcolor = cx->i_dec;
+                      else
+                         i_fgcolor = cx->i_dec;
+                      /* Exact match -- break out */
+                      if ( rgb_diff2 == 0 )
+                         break;
+                   }
+                }
+                while ( s && *s && (*s != '>') )
+                   s++;
+             } else {
+                if ( (strchr(s, '>') != NULL) && ((strchr(s, '/') == NULL) || ((long)strchr(s, '>') < (long)strchr(s, '/'))) ) {
+                   r1 = atoi(s+1);
+                   if ( strchr(s+1, ' ') != NULL ) {
+                      g1 = atoi(strchr(s+1, ' ')+1);
+                      if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
+                         b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
+                         rgb_diff = rgb_diff2 = 1000;
+                         for (cx = mux_namecolors; cx->s_hex; cx++) {
+                            if(cx->i_dec < 16) 
+                               continue;
+                            sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                            rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                            if ( rgb_diff < rgb_diff2 ) {
+                               rgb_diff2 = rgb_diff;
+                               if ( i_trgbackground )
+                                  i_bgcolor = cx->i_dec;
+                               else
+                                  i_fgcolor = cx->i_dec;
+                               /* Exact match -- break out */
+                               if ( rgb_diff2 == 0 )
+                                  break;
+                            }
+                         }
+                      }
+                   }
+                   while ( s && *s && (*s != '>') )
+                      s++;
+                }
+             }
+             break;
+          case 'u':     
+          case 'U':     
+          case 'f':     
+          case 'F':     
+          case 'h':     
+          case 'H':     
+          case 'i':     
+          case 'I':     
+          case 'n':     
+          case 'N':     
+          case ' ':
+          case '\t':
+          case '\r':
+          case '\n':
+             /* ignore specials */
+             break;
+          case 'x':
+          case 'r':
+          case 'g':
+          case 'y':
+          case 'b':
+          case 'm':
+          case 'c':
+          case 'w':
+             i_fgcolor = ansi_convtable[(int)*s];
+             /* Do table lookup for color here */
+             break;
+          case 'X':
+          case 'R':
+          case 'G':
+          case 'Y':
+          case 'B':
+          case 'M':
+          case 'C':
+          case 'W':
+             /* Do table lookup for color here */
+             i_bgcolor = ansi_convtable[(int)*s];
+             break;
+          default:
+             safe_str("#-1 INVALID COLOR", buff, bufcx);
+             return;
+             break;
+             /* return error */
+       }
+       s++;
+    }
+    i_tmp = 0;
+    for (cm = penn_namecolors; cm->name; cm++) {
+       if ( cm->i_xterm == i_fgcolor ) {
+          if ( i_tmp ) {
+             safe_chr(' ', buff, bufcx);
+          }
+          safe_str(cm->name, buff, bufcx);
+          i_tmp = 1;
+       }
+    }
+    i_tmp = 0;
+    if ( i_bgcolor >= 0 ) {
+       for (cm = penn_namecolors; cm->name; cm++) {
+          if ( cm->i_xterm == i_bgcolor ) {
+             if ( i_tmp ) {
+                safe_chr(' ', buff, bufcx);
+             } else {
+                safe_chr('/', buff, bufcx);
+             }
+             safe_str(cm->name, buff, bufcx);
+             i_tmp = 1;
+          }
+       }
+    }
+    /* Do magic mojo to do reverse lookup on the PENN ansi table here */
+}
+
 FUNCTION(fun_colors)
 {
     PENNANSI *cm; 
@@ -27721,7 +27989,9 @@ FUNCTION(fun_colors)
     if (!fn_range_check("COLORS", nfargs, 1, 2, buff, bufcx))
        return;
 
+    i_key = 0;
     if ( (nfargs > 1) && *fargs[1] ) {
+          i_key = -1;
        if ( *fargs[1] == 'h' )
           i_key = 1;
        if ( *fargs[1] == 'c' )
@@ -27730,9 +28000,23 @@ FUNCTION(fun_colors)
           i_key = 3;
        if ( *fargs[1] == 'r' )
           i_key = 4;
+       if ( *fargs[1] == 'n' )
+          i_key = 5;
+    }
+    if ( i_key < 0 ) {
+       safe_str("#-1 UNRECOGNIZED KEY", buff, bufcx);
+       return;
     }
     if ( *fargs[0] && (strchr(fargs[0], '*') || strchr(fargs[0], '?')) ) {
+       if ( i_key > 0 ) {
+          safe_str("#-1 CAN NOT USE WILDCARDS AGAINST A KEY", buff, bufcx);
+          return;
+       }
        i_iswild = 1;
+    }
+    if ( !i_iswild && (i_key == 5) ) {
+       deansi(fargs[0], buff, bufcx);
+       return;
     }
     if ( !i_iswild && (nfargs > 0) && *fargs[0] ) {
        if ( isalpha(*fargs[0]) ) {
@@ -27801,6 +28085,7 @@ FUNCTION(fun_colors)
 }
 
 int ansi_omitter = 0;
+
 
 FUNCTION(fun_ansi)
 {
