@@ -27729,7 +27729,7 @@ deansi(char *string, char *buff, char **bufcx)
     PENNANSI *cm;
     MUXANSI  *cx;
     char *q, *s, t_buff[60], t_buff3[61];;
-    int i_haveslash, i_tmp, i_trgbackground, i_fgcolor, i_bgcolor, rgb_diff, rgb_diff2,
+    int i_tmp, i_trgbackground, i_fgcolor, i_bgcolor, rgb_diff, rgb_diff2,
         r1, b1, g1, r2, b2, g2;
 
     if ( !string || !*string ) {
@@ -27742,13 +27742,12 @@ deansi(char *string, char *buff, char **bufcx)
     strncpy(t_buff, q, 59);
     free_lbuf(q);
     s = t_buff;
-    i_haveslash = i_tmp = i_trgbackground = 0;
+    i_tmp = i_trgbackground = 0;
     i_fgcolor = i_bgcolor = -1;
     while ( *s ) {
        switch ( *s ) {
           case '/': 
              i_trgbackground = 1;
-             i_haveslash = 1;
              break;
           case '+':
              cm = (PENNANSI *)NULL;
