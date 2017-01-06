@@ -10211,10 +10211,12 @@ void do_hook(dbref player, dbref cause, int key, char *name)
    /* mudconf here for full hash table or just strict command table */
 
    if ( (key && !(key & HOOK_LIST)) || ((!key || (key & HOOK_LIST)) && *name) ) {
-      s_ptr = name;
-      while ( *s_ptr ) {
-         *s_ptr = ToLower(*s_ptr);
-         s_ptr++;
+      if ( strlen(name) > 1 ) {
+         s_ptr = name;
+         while ( *s_ptr ) {
+            *s_ptr = ToLower(*s_ptr);
+            s_ptr++;
+         }
       }
       cmdp = lookup_orig_command(name);
       if ( !cmdp ) { 

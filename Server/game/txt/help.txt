@@ -30679,6 +30679,6 @@
   * bug with matching when NO_NAME was in effect on a target [ASH]
   * folders mistakenly seen as corrupt when you had no mail at all [ASH]
   * potential crash with NONAME when examining [ASH]
-  * @hook/include would break IGNORE feature sets [ASH]
+  * @hook/include would break IGNORE feature sets and single chr commands [ASH]
   * missing free buffer for sqlite [ASH]
   * @hook didn't case desensitize commands passed to it [ASH]
