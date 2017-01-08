@@ -7075,7 +7075,7 @@ FUNCTION(fun_packmath)
    double i_val, i_num;
    char *s_tmp[2], *s_str, *s_strptr, sep;
 
-   if (!fn_range_check("PACKMATH", nfargs, 3, 4, buff, bufcx)) {
+   if (!fn_range_check("PACKMATH", nfargs, 3, 5, buff, bufcx)) {
       return;
    }
 
@@ -7083,8 +7083,17 @@ FUNCTION(fun_packmath)
    i_val = 0;
    if ( (nfargs > 3) && *fargs[3] )
       sep = *fargs[3];
-   if ( (nfargs > 2) && *fargs[2] )
-      i_val = safe_atof(fargs[2]);
+   if ( (nfargs > 4) && *fargs[4] ) {
+      s_strptr = s_str = alloc_lbuf("fun_packadd");
+      s_tmp[0] = fargs[2];
+      s_tmp[1] = fargs[4];
+      fun_unpack(s_str, &s_strptr, player, cause, cause, s_tmp, 2, (char **)NULL, 0);
+      i_val = safe_atof(s_str);
+      free_lbuf(s_str);
+   } else {
+      if ( (nfargs > 2) && *fargs[2] )
+         i_val = safe_atof(fargs[2]);
+   }
 
    if ( !*fargs[0] || ((*fargs[0] == '0') && (strlen(fargs[0]) == 1)) ) {
       switch(sep) {

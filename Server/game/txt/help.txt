@@ -19678,13 +19678,16 @@
             roman(), packmath()
   
 & PACKMATH()
-  Function: packmath(<number>, <radix>, <offset> [,<math>])
+  Function: packmath(<number>, <radix>, <offset> [[,<math> ][,<offset-radix>])
   
   This function applies the specified <math> to <number> by applying
   the value of <offset>.  The value returned will be in the same <radix>
   that you specified.  The <radix> allowed is 2 to 64.  If no <math>
   is specified it assumes '+' (addition).
   
+  If your <offset> is not in decimal (base 10), you may specify the optional
+  <offset-radix> to specify the radix that the value is in.
+   
   The valid values for <math> are:
     +  - apply addition (default)
     -  - apply subtraction
