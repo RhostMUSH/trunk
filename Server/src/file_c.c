@@ -228,7 +228,7 @@ fcache_read(FBLOCK ** cp, char *filename)
 }
 
 void 
-fcache_rawdump(int fd, int num, struct in_addr host)
+fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
 {
     int cnt, remaining;
     char *start;
@@ -239,7 +239,7 @@ fcache_rawdump(int fd, int num, struct in_addr host)
 #endif
     int aflags, nomatch;
     dbref aowner;
-    ATTR *atr;
+    ATTR *atr = NULL;
     char *site_info[]={"connect", "badsite", "down", "full", "guest", "register", "newuser", 
                        "regfail", "motd", "wizmotd", "quit", "guestfail", "autoreg", "autoreghost",
                        NULL};
@@ -250,7 +250,12 @@ fcache_rawdump(int fd, int num, struct in_addr host)
 
     if ( Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
        nomatch = 0;
-       atr = atr_str(site_info[num]);
+       if ( s_site ) {
+          atr = atr_str(s_site);
+       }
+       if ( !atr ) {
+          atr = atr_str(site_info[num]);
+       }
        if ( !atr ) {
           nomatch = 1;
        } else {
@@ -336,7 +341,7 @@ fcache_rawdump(int fd, int num, struct in_addr host)
 }
 
 void 
-fcache_dump(DESC * d, int num)
+fcache_dump(DESC * d, int num, char *s_site)
 {
     FBLOCK *fp;
     char *atext, *retbuff, *sarray[5], *lbuf1, *lbuf2; 
@@ -345,7 +350,7 @@ fcache_dump(DESC * d, int num)
 #endif
     int aflags, nomatch, i_length;
     dbref aowner;
-    ATTR *atr;
+    ATTR *atr = NULL;
     char *site_info[]={"connect", "badsite", "down", "full", "guest", "register", "newuser", 
                        "regfail", "motd", "wizmotd", "quit", "guestfail", "autoreg", "autoreghost",
                        NULL};
@@ -355,7 +360,12 @@ fcache_dump(DESC * d, int num)
 
     if ( Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
        nomatch = 0;
-       atr = atr_str(site_info[num]);
+       if ( s_site ) {
+          atr = atr_str(s_site);
+       }
+       if ( !atr ) {
+          atr = atr_str(site_info[num]);
+       }
        if ( !atr ) {
           nomatch = 1;
        } else {
@@ -427,7 +437,7 @@ fcache_send(dbref player, int num)
     DESC *d;
 
     DESC_ITER_PLAYER(player, d) {
-	fcache_dump(d, num);
+	fcache_dump(d, num, (char *)NULL);
     }
 }
 

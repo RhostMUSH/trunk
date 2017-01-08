@@ -30641,6 +30641,8 @@
   * packmath() to allow math on varying radix compressions [ASH]
   * subeval() evaluates string without executiong functions [ASH]
   * %_<-> pops last stack for debug labels [ASH]
+  * alternative messages for those who hit 'MAX' on optional max values
+    for site restrictions for noguest, register, and forbid. [ASH]
   
   Changes
   ------------
@@ -30682,3 +30684,4 @@
   * @hook/include would break IGNORE feature sets and single chr commands [ASH]
   * missing free buffer for sqlite [ASH]
   * @hook didn't case desensitize commands passed to it [ASH]
+  * MAX on noguest didn't actually check guests connected when it should [ASH]

@@ -1137,7 +1137,7 @@ new_connection(int sock)
           }
           free_mbuf(buff);
        ENDLOG
-       fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
+       fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)NULL);
        shutdown(newsock, 2);
        close(newsock);
        errno = 0;
@@ -1256,7 +1256,11 @@ new_connection(int sock)
                                 inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
            }
         }
- 	fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr);
+        if ( i_chksite != -1 ) {
+ 	   fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)"SITE_FORBID");
+        } else {
+ 	   fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)NULL);
+        }
 	shutdown(newsock, 2);
 	close(newsock);
 	errno = 0;
@@ -1334,7 +1338,7 @@ shutdownsock(DESC * d, int reason)
     char *buff, *buff2, all[10], tchbuff[LBUF_SIZE], tsitebuff[1001], *ptsitebuff;
     char *addroutbuf, *t_addroutbuf, *tstrtokr;
     time_t now;
-    int temp1, temp2, sitecntr, i_sitecnt, i_sitemax, i_retvar = -1;
+    int temp1, temp2, sitecntr, i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1;
     struct SNOOPLISTNODE *temp;
     DESC *dchk, *dchknext;
 
@@ -1385,7 +1389,7 @@ shutdownsock(DESC * d, int reason)
 	 */
 
 	if (reason != R_LOGOUT) {
-	    fcache_dump(d, FC_QUIT);
+	    fcache_dump(d, FC_QUIT, (char *)NULL);
 	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "DISC")
 		buff = alloc_mbuf("shutdownsock.LOG.disconn");
 	    sprintf(buff, "[%d/%s] Logout by ",
@@ -1446,7 +1450,7 @@ shutdownsock(DESC * d, int reason)
     process_output(d);
     process_door_output(d);
     clearstrings(d);
-    i_sitecnt = 0;
+    i_sitecnt = i_guestcnt = 0;
     if (d->flags & DS_HAS_DOOR) closeDoorWithId(d, d->door_num);
     if (reason == R_LOGOUT) {
         addroutbuf = (char *) addrout((d->address).sin_addr);
@@ -1454,8 +1458,12 @@ shutdownsock(DESC * d, int reason)
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {
            DESC_SAFEITER_ALL(dchk, dchknext) {
-              if ( strcmp(t_addroutbuf, dchk->addr) == 0 )
+              if ( strcmp(t_addroutbuf, dchk->addr) == 0 ) {
+                 if ( Good_chk(dchk->player) && Guest(dchk->player) ) {
+                    i_guestcnt++;
+                 }
                  i_sitecnt++;
+              }
            }
         }
         free_mbuf(t_addroutbuf);
@@ -1480,7 +1488,7 @@ shutdownsock(DESC * d, int reason)
         if ( (i_sitemax != -1) && (i_sitecnt < (i_sitemax + 1)) )
            d->host_info &= ~H_REGISTRATION;
         i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
-        if ( (i_sitemax != -1) && (i_sitecnt < (i_sitemax + 1)) )
+        if ( (i_sitemax != -1) && (i_guestcnt < (i_sitemax + 1)) )
            d->host_info &= ~H_NOGUEST;
 
         memset(tchbuff, 0, sizeof(tchbuff));
@@ -1494,7 +1502,7 @@ shutdownsock(DESC * d, int reason)
         if ((char *)mudconf.autoreg_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_NOAUTOREG;
         strcpy(tchbuff, mudconf.noguest_host);
-        if ((char *)mudconf.noguest_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+        if ((char *)mudconf.noguest_host && lookup(d->addr, tchbuff, i_guestcnt, &i_retvar))
            d->host_info = d->host_info | H_NOGUEST;
         strcpy(tchbuff, mudconf.suspect_host);
         if ((char *)mudconf.suspect_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
@@ -1827,7 +1835,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
     DESC *d, *dchk, *dchknext;
     char tchbuff[LBUF_SIZE];
     char *addroutbuf, *t_addroutbuf;
-    int i_sitecnt, i_sitemax, i_retvar = -1;
+    int i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1;
 
     DPUSH; /* #11 */
 
@@ -1843,11 +1851,15 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
     addroutbuf = (char *) addrout((*a).sin_addr);
     t_addroutbuf = alloc_mbuf("check_max_sitecons");
     strcpy(t_addroutbuf, addroutbuf);
-    i_sitecnt = 0;
+    i_sitecnt = i_guestcnt = 0;
     if ( t_addroutbuf ) {
        DESC_SAFEITER_ALL(dchk, dchknext) {
-          if ( strcmp(t_addroutbuf, dchk->addr) == 0 )
+          if ( strcmp(t_addroutbuf, dchk->addr) == 0 ) {
+             if ( Good_chk(dchk->player) && Guest(dchk->player) ) {
+                i_guestcnt++;
+             }
              i_sitecnt++;
+          }
        }
     }
     free_mbuf(t_addroutbuf);
@@ -1860,7 +1872,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
     if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
        d->host_info &= ~H_REGISTRATION;
     i_sitemax = site_check((*a).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
-    if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
+    if ( (i_sitemax != -1) && (i_guestcnt < i_sitemax) )
        d->host_info &= ~H_NOGUEST;
     memset(tchbuff, 0, sizeof(tchbuff));
     strcpy(tchbuff, mudconf.forbid_host);
@@ -1873,7 +1885,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
     if ((char *)mudconf.autoreg_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_NOAUTOREG;
     strcpy(tchbuff, mudconf.noguest_host);
-    if ((char *)mudconf.noguest_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
+    if ((char *)mudconf.noguest_host && lookup(addr, tchbuff, i_guestcnt, &i_retvar))
        d->host_info = d->host_info | H_NOGUEST;
     strcpy(tchbuff, mudconf.suspect_host);
     if ((char *)mudconf.suspect_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))

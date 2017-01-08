@@ -6600,6 +6600,18 @@
     autoreg       autoreg.txt     What a user sees when autoreg is enabled
     autoreghost   areghost.txt    What a user sees when host is autoreg
   
+  The following special attributes are used to handle the MAX values to site
+  that you pass.  For example, if you specify that '3' max connections are
+  allowed guests from the site, the following is an override that is provided
+  to the player who reaches that maximum.   This is only relevant when you 
+  use the 'max' option to any site restrictions.
+   
+    ATTRIBUTE     PERMISSION      FUNCTION
+    ------------- --------------- -------------------------------------------
+    site_noguest  NO_GUEST        Shown to player who hits max guests
+    site_register REGISTER        Shown to player who hits max registers
+    site_forbid   FORBID          Shown to player who hits max forbids
+  
   An empty evaluated attribute or a missing attribute will call the default
   txt file instead of the evaluation.  The following arguments are passed
   into the evaluation:
