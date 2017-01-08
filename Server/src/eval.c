@@ -2643,12 +2643,12 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        }
                     }
 		    mudstate.allowbypass = 1;
+                    is_trace_bkup = 0;
                     if ( ufp->flags & FN_NOTRACE ) {
                        is_trace_bkup = mudstate.notrace;
                        mudstate.notrace = 1;
                     }
 		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs, regargs, nregargs);
-                    is_trace_bkup = 0;
                     if ( ufp->flags & FN_NOTRACE ) {
                        mudstate.notrace = is_trace_bkup;
                     }

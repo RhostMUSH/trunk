@@ -30688,3 +30688,4 @@
   * missing free buffer for sqlite [ASH]
   * @hook didn't case desensitize commands passed to it [ASH]
   * MAX on noguest didn't actually check guests connected when it should [ASH]
+  * nested /NOTRACE on @function/@lfunction didn't work [ASH]
