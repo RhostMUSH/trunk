@@ -1950,13 +1950,13 @@ welcome_user(DESC * d)
 {
     DPUSH; /* #124 */
     if (mudconf.offline_reg && (d->host_info & H_REGISTRATION))
-	fcache_dump(d, FC_CONN_AUTO_H);
+	fcache_dump(d, FC_CONN_AUTO_H, (char *)NULL);
     else if (mudconf.offline_reg)
-	fcache_dump(d, FC_CONN_AUTO);
+	fcache_dump(d, FC_CONN_AUTO, (char *)NULL);
     else if (d->host_info & H_REGISTRATION)
-	fcache_dump(d, FC_CONN_REG);
+	fcache_dump(d, FC_CONN_REG, (char *)NULL);
     else
-	fcache_dump(d, FC_CONN);
+	fcache_dump(d, FC_CONN, (char *)NULL);
     VOIDRETURN; /* #124 */
 }
 
@@ -3733,7 +3733,7 @@ failconn(const char *logcode, const char *logtype,
     log_text((char *) logreason);
     log_text((char *) ")");
     ENDLOG
-	fcache_dump(d, filecache);
+	fcache_dump(d, filecache, (char *)NULL);
     if (motd_msg && *motd_msg) {
 	queue_string(d, motd_msg);
 	queue_write(d, "\r\n", 2);
@@ -4002,7 +4002,6 @@ check_connect(DESC * d, const char *msg)
 	*command = 'a';
 	comptest = 1;
     } else if (!comptest && (d->host_info & H_NOGUEST)) {
-	fcache_dump(d, FC_GUEST_FAIL);
         i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
         if ( i_sitemax == -1 ) {
            tsite_buff = alloc_lbuf("noguest_check");
@@ -4014,9 +4013,12 @@ check_connect(DESC * d, const char *msg)
         }
         if ( i_sitemax == -1 ) {
 	   broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, "NO GUEST FAIL", d->userid, d->addr, 0, 0, 0, NULL);
+	   fcache_dump(d, FC_GUEST_FAIL, (char *)NULL);
         } else {
 	   broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, unsafe_tprintf("NO GUEST FAIL[%d max]", i_sitemax), d->userid, d->addr, 0, 0, 0, NULL);
+	   fcache_dump(d, FC_GUEST_FAIL, (char *)"SITE_NOGUEST");
         }
+
 	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "GUESTFAIL")
 	  buff = alloc_mbuf("check_conn.LOG,badguest");
 	  sprintf(buff, "[%d/%s] Attempt to connect to guest char from registered site",
@@ -4196,16 +4198,16 @@ check_connect(DESC * d, const char *msg)
 	     * try to match on the text. */
 
 	    if (Guest(player)) {
-		fcache_dump(d, FC_CONN_GUEST);
+		fcache_dump(d, FC_CONN_GUEST, (char *)NULL);
 	    } else {
 		buff = atr_get(player, A_LAST, &aowner, &aflags);
 		if ((buff == NULL) || (*buff == '\0'))
-		    fcache_dump(d, FC_CREA_NEW);
+		    fcache_dump(d, FC_CREA_NEW, (char *)NULL);
 		else {
-		    fcache_dump(d, FC_MOTD);
+		    fcache_dump(d, FC_MOTD, (char *)NULL);
 		}
 		if (Builder(player)) {
-		    fcache_dump(d, FC_WIZMOTD);
+		    fcache_dump(d, FC_WIZMOTD, (char *)NULL);
 		}
 		free_lbuf(buff);
 	    }
@@ -4362,7 +4364,20 @@ check_connect(DESC * d, const char *msg)
 	    RETURN(0); /* #146 */
         }
 	if (d->host_info & H_REGISTRATION) {
-	    fcache_dump(d, FC_CREA_REG);
+            i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_REGISTRATION);
+            if ( i_sitemax == -1 ) {
+               tsite_buff = alloc_lbuf("register_check");
+               addroutbuf = (char *) addrout((d->address).sin_addr);
+               strcpy(tsite_buff, addroutbuf);
+               strcpy(tsite_buff, mudconf.register_host);
+               lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
+               free_lbuf(tsite_buff);
+            }
+            if ( i_sitemax != -1 ) {
+	       fcache_dump(d, FC_CREA_REG, (char *)"SITE_REGISTER");
+            } else {
+	       fcache_dump(d, FC_CREA_REG, (char *)NULL);
+            }
 	} else {
 	    player = create_player(user, password, NOTHING, 0);
 	    if (player == NOTHING) {
@@ -4401,7 +4416,7 @@ check_connect(DESC * d, const char *msg)
 		d->flags |= DS_CONNECTED;
 		d->connected_at = time(0);
 		d->player = player;
-		fcache_dump(d, FC_CREA_NEW);
+		fcache_dump(d, FC_CREA_NEW, (char *)NULL);
 		announce_connect(player, d, 0);
                 /* Trigger the hook for player creation */
                 if ( Good_chk(mudconf.hook_obj) ) {
