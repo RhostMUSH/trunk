@@ -4037,7 +4037,11 @@ check_connect(DESC * d, const char *msg)
 	*command = 'a';
 	comptest = 1;
     } else if (!comptest && (mudstate.guest_num >= mudconf.max_num_guests)) {
-	queue_string(d, "Maximum number of guests has been reached.\r\n");
+        if ( mudconf.max_num_guests <= 0 ) {
+	   queue_string(d, "Guests have been disabled.\r\n");
+        } else {
+	   queue_string(d, "Maximum number of guests has been reached.\r\n");
+        }
 	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
 	    buff = alloc_mbuf("check_conn.LOG.bad");
 	sprintf(buff, "[%d/%s] Failed connect to '%s'",
