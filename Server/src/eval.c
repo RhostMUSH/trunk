@@ -2507,8 +2507,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    feval = (eval & ~EV_EVAL & ~EV_STRIP) | EV_STRIP_ESC;
                 else
                    feval = (eval & ~EV_EVAL) | EV_STRIP_ESC;
-            } else
+            } else {
                 feval = eval;
+            }
             if ( (fp && (fp->perms2 & CA_NO_EVAL)) ||
                  (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
                  (ulfp && (ulfp->perms2 & CA_NO_EVAL)) ) {
@@ -2519,8 +2520,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 feval = (feval | EV_EVAL | EV_STRIP | ~EV_STRIP_ESC);
                 i_type = 0;
             }
-            if ( (ufp && (ufp->flags & FN_NOTRACE)) ||
-                 (ulfp && (ulfp->perms & CA_EVAL)) ) {
+            if ( (fp && (fp->flags & FN_NOTRACE)) ||
+                 (ufp && (ufp->flags & FN_NOTRACE)) ||
+                 (ulfp && (ulfp->flags & FN_NOTRACE)) ) {
                 feval = (feval | EV_NOTRACE);
             }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
