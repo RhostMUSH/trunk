@@ -10260,7 +10260,8 @@ FUNCTION(fun_timefmt)
            if ( tms2->tm_isdst && !tzmush->mush_tz ) {
               i_frell = 0;
            } else {
-              i_frell = -3600;
+              if ( !daylight )
+                 i_frell = -3600;
            }
         }
         secs = i_frell + secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
