@@ -24280,15 +24280,23 @@
   Example:
     > folder/delete love-letters
  
+& @mail
 & mail
   Command: mail [@]<player-list>=<subject> (with BRANDY_MAIL toggle)
            mail [@]<player-list>=[<subj>/]<body> (with PENN_MAIL toggle)
            mail [@]<player-list>=[<subj>//]<body> (with no toggle)
            mail [<mesg#>|new|unread|nall|uall|ball|1-N]
   
-                      'HELP MAIL MAIN' for main index.    
+   Note: For folder help please type 'help folder'
   
-                    'HELP MAIL TOPICS' for topical help.
+   Important topics:
+      'HELP MAIL MAIN' for main index.    
+      'HELP MAIL TOPICS' for topical help.
+  
+   Important initial help entries:
+      'HELP MAIL CMDLIST' for a command listing and quick description
+      'HELP MAIL DTUTOR' for a quick tutorial on how to use mail
+      'HELP MAIL BTUTOR' for a quick tutorial on the mail editor (optional)
   
   If you are used to the MUX standard of @mail or the softcoded BrandyMail
   you will want to use the BRANDY_MAIL toggle.  
@@ -24308,7 +24316,7 @@
     Mail: Message sent to -> <your name>
     Mail: Done
   
-  See Also: mail main, mail topics
+  See Also: mail main, mail topics, folder
   
 & mail topics
     Available Mail Topics are:
