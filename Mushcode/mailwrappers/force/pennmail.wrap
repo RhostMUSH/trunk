@@ -1,0 +1,63 @@
+@create PennMailer Object <PMO>=10
+&VERSION PennMailer Object <PMO>=1.0
+&CHKUSE PennMailer Object <PMO>=[and(hastoggle(%#,penn_mail),not(hastoggle(%#,brandy_mail)))]
+@lock/UseLock PennMailer Object <PMO>=CHKUSE/1
+&MAIN_HELP PennMailer Object <PMO>=$pmail:@dynhelp pennmail_rho=%#
+&MAIN_HELP_ARG PennMailer Object <PMO>=$pmail *:@dynhelp pennmail_rho/%0=%#
+@set PennMailer Object <PMO>/MAIN_HELP_ARG = no_parse
+&PENN_MAIL PennMailer Object <PMO>=$@mail *=*:@sudo %#={mail %0=%1}
+@set PennMailer Object <PMO>/PENN_MAIL = no_parse
+&PENN_MAIL_SEND PennMailer Object <PMO>=$@mail/send *=*:@sudo %#={mail/send %0=%1}
+@set PennMailer Object <PMO>/PENN_MAIL_SEND = no_parse
+&PENN_MAIL_URGENT PennMailer Object <PMO>=$@mail/urgent *=*:@sudo %#={mail/send %0=%1}
+@set PennMailer Object <PMO>/PENN_MAIL_URGENT = no_parse
+&PENN_MAIL_SILENT PennMailer Object <PMO>=$@mail/silent *=*:@sudo %#={mail/send %0=%1}
+@set PennMailer Object <PMO>/PENN_MAIL_SILENT = no_parse
+&PENN_MAIL_NOSIG PennMailer Object <PMO>=$@mail/nosig *=*:@sudo %#={mail/send %0=%1}
+@set PennMailer Object <PMO>/PENN_MAIL_NOSIG = no_parse
+&PENN_MAIL_FORWARD PennMailer Object <PMO>=$@mail/fwd *=*:@sudo %#={@dolist %0=mail/forward ## %1}
+&PENN_MAIL_FORWARD2 PennMailer Object <PMO>=$@mail/forward *=*:@sudo %#={@dolist %0=mail/forward ## %1}
+@set PennMailer Object <PMO>/PENN_MAIL_FORWARD = no_parse
+@set PennMailer Object <PMO>/PENN_MAIL_FORWARD2 = no_parse
+&PENN_MAIL_READ PennMailer Object <PMO>=$@mail/read *:@swi [match(%0,*-*)]=0,@sudo %#={mail/read %0},@sudo %#={@dolist [lnum(before(%0,-),after(%0,-))]=mail/read ##}
+@set PennMailer Object <PMO>/PENN_MAIL_READ = no_parse
+&PENN_MAIL_LISTS PennMailer Object <PMO>=$@mail:@pemit %#=------------------------- MAIL (folder incoming) ----------------------------;@pemit %#=[list(mailstatus(%#),u(mail_status_penn,mailstatus(%#,##)))][repeat(-,77)]
+&PENN_MAIL_LIST PennMailer Object <PMO>=$@mail/list:@pemit %#=------------------------- MAIL (folder incoming) ----------------------------;@pemit %#=[list(mailstatus(%#),u(mail_status_penn,mailstatus(%#,##)))][repeat(-,77)]
+&PENN_MAIL_FOLDER_LIST PennMailer Object <PMO>=$@mail/folder:@sudo %#={folder/list}
+&PENN_MAIL_FOLDER_NAME PennMailer Object <PMO>=$@mail/folder *=*:@pemit %#=Folders always have names.
+&PENN_MAIL_FOLDER_UNNAME PennMailer Object <PMO>=$@mail/unfolder *:@pemit %#=Folders always have names.
+&PENN_MAIL_FOLDER_CHANGE PennMailer Object <PMO>=$@mail/folder *:@sudo %#={folder/change %0}
+&PENN_MAIL_FOLDER_MOVE PennMailer Object <PMO>=$@mail/file *=*:@sudo %#={folder/move %0=Incoming,%1}
+&PENN_MAIL_CLEAR PennMailer Object <PMO>=$@mail/clear *:@sudo %#={mail/mark %0}
+&PENN_MAIL_UNCLEAR PennMailer Object <PMO>=$@mail/unclear *:@sudo %#={mail/unmark %0}
+&PENN_MAIL_PURGE PennMailer Object <PMO>=$@mail/purge:@sudo %#={mail/delete}
+&PENN_MAIL_TAG PennMailer Object <PMO>=$@mail/tag*:@pemit %#=Sorry, this function unavailable.
+&PENN_MAIL_UNTAG PennMailer Object <PMO>=$@mail/untag*:@pemit %#=Sorry, this function unavailable.
+&PENN_MAIL_STATS PennMailer Object <PMO>=$@mail/stats*:@sudo %#={mail/quota %0}
+&PENN_MAIL_DSTATS PennMailer Object <PMO>=$@mail/dstats*:@sudo %#={mail/quota %0;@pemit %#=[setr(0,mailquick(ifelse(hastype(%0,player),%0,%#),,1))][first(r(0))] Read/[extract(r(0),2,1)] Unread}
+&PENN_MAIL_FSTATS PennMailer Object <PMO>=$@mail/fstats*:@sudo %#={mail/quota %0;@pemit %#=[setr(0,mailquick(ifelse(hastype(%0,player),%0,%#),,1))][first(r(0))] Read/[extract(r(0),2,1)] Unread%rTotal size in bytes for mail sy system: [msizetot()]}
+&PENN_MAIL_NUKE PennMailer Object <PMO>=$@mail/nuke:@pemit %#=Check 'wizhelp wmail cmdlist'.
+&PENN_MAIL_DEBUG PennMailer Object <PMO>=$@mail/debug*:@pemit %#=Check 'wizhelp wmail cmdlist'.
+&PENN_MAIL_REVIEW PennMailer Object <PMO>=$@mail/review*:@swi/inline [gt(pos(=,%0),1)][eq(words(%0),0)]=01,{@sudo %#=mail/recall/all},00,{@sudo %#=mail/recall/all *[trim(%0)]},1?,{@sudo %#=mail/recall/all [after(%0,=)]}
+&PENN_MAIL_RETRACT PennMailer Object <PMO>=$@mail/retract *:@sudo %#=mail/recall [after(%0,=)]=+all
+&PENN_MAIL_OTHER PennMailer Object <PMO>=$@mail*:@swi/first [and(words(%0),not(match(%0,*-*)))]=1,{@sudo %#=mail %0},{@pemit %#=------------------------- MAIL (folder incoming) ----------------------------;@pemit %#=[list(mailstatus(%#),u(mail_status_penn,mailstatus(%#,##)))][repeat(-,77)]}
+@set PennMailer Object <PMO>/PENN_MAIL_OTHER = no_parse
+@@ &PENN_MAIL_LISTS_BACKUP PennMailer Object <PMO>=$@mail:@sudo %#={mail/status}
+@@ @set PennMailer Object <PMO>/PENN_MAIL_LISTS_BACKUP = no_command
+@@ &PENN_MAIL_LIST_BACKUP PennMailer Object <PMO>=$@mail/list:@sudo %#={mail/status}
+@@ @set PennMailer Object <PMO>/PENN_MAIL_LIST_BACKUP = no_command
+@@ &PENN_MAIL_FOLDER_LIST_BACKUP PennMailer Object <PMO>=$@mail/folder:@sudo %#={folder/list}
+@@ @set PennMailer Object <PMO>/PENN_MAIL_FOLDER_LIST_BACKUP = no_command
+@@ &PENN_MAIL_OTHER_BACKUP PennMailer Object <PMO>=$@mail*:@sudo %#={[ifelse(or(words(%0),match(%0,*-*)),mail %0,mail/status)]}
+@@ @set PennMailer Object <PMO>/PENN_MAIL_OTHER_BACKUP = no_command
+@@ @set PennMailer Object <PMO>/PENN_MAIL_OTHER_BACKUP = no_parse
+&MAIL_FIELD_PENN PennMailer Object <PMO>=N--X- U---- -M-X- --SX- ---XE
+&MAIL_FWDRPLY PennMailer Object <PMO>=[switch(%0%1,00,-,01,F,10,R)]
+&MAIL_STATUS_PENN PennMailer Object <PMO>=%[[edit(ifelse(words(setr(0,grab(v(mail_field_penn),*[mid(v(0),1,1)]*))),r(0),---X-),X,u(mail_fwdrply,strmatch(v(0),*Bytes%) Reply*),strmatch(v(0),*Bytes%) Fwd*)))]%]%b%b-:[ljust(trim(before(after(v(0),%(),%))),5)][ljc(trim(after(before(v(0),<),:)),14)][ljc(ifelse(words(after(v(0),Subj:)),after(v(0),Subj:),%bNONE),31)]%cn[mid(before(after(v(0),<),>),0,16)]
+@set PennMailer Object <PMO>=SCLOAK
+@set PennMailer Object <PMO>=INDESTRUCTABLE
+@set PennMailer Object <PMO>=DARK
+@set PennMailer Object <PMO>=SAFE
+@set PennMailer Object <PMO>=INHERIT
+@set PennMailer Object <PMO>=UNFINDABLE
+@set PennMailer Object <PMO>=STOP

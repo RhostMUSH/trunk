@@ -8,28 +8,28 @@
 @set @mail RhostAliases <MRA>/MAIN_HELP_ARG = no_parse
 &CMD_@MAIL_PREPEND @mail RhostAliases <MRA>=$~*:@sudo %#={mail/write +insert=1,%0}
 &CMD_@MAIL_REPLY @mail RhostAliases <MRA>=$@mail/reply*:@sudo %#[setq(1,[ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))])]={mail/reply %q1=Reply...}
-&CMD_@MAIL_REPLYALL @mail RhostAliases <MRA>=$@mail/replyall*:@sudo [setq(0,get(%#/mailcurrent))]%#={mail/reply @[ifelse(words(%0),%0,ifelse(gt(%q0,0),%q0,1))]=Reply...}
-&CMD_@MAIL_REPLYQUOTE @mail RhostAliases <MRA>=$@mail/reply/quote*:@sudo [setq(0,get(%#/mailcurrent))]%#={mail/reply [ifelse(words(%0),%0,ifelse(gt(%q0,0),%q0,1))]*=Reply...}
-&CMD_@MAIL_REPLYALLQUOTE @mail RhostAliases <MRA>=$@mail/replyall/quote*:@sudo [setq(0,get(%#/mailcurrent))]%#={mail/reply @[ifelse(words(%0),%0,ifelse(gt(%q0,0),%q0,1))]*=Reply...}
+&CMD_@MAIL_REPLYALL @mail RhostAliases <MRA>=$@mail/replyall*:@fo %#={mail/reply @[ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))]=Reply...}
+&CMD_@MAIL_REPLYQUOTE @mail RhostAliases <MRA>=$@mail/reply/quote*:@fo %#={mail/reply [ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))]*=Reply...}
+&CMD_@MAIL_REPLYALLQUOTE @mail RhostAliases <MRA>=$@mail/replyall/quote*:@fo %#={mail/reply @[ifelse(words(%0),%0,ifelse(gt(setr(0,get(%#/mailcurrent)),0),r(0),1))]*=Reply...}
 &CMD_@MAIL_DEBUG @mail RhostAliases <MRA>=$@mail/debug*:@swi/f [gte(bittype(%#),6)]=0,@pemit %#=Permission Denied.,{@pemit %#=Fixing mail database.;@fo %#=wmail/fix;@wait 2={@pemit %#=Loading fixed database;@fo %#=wmail/lfix}}
 &CMD_@MAIL_GENERIC @mail RhostAliases <MRA>=$@mail:@pemit %#=[center(- %bMAIL: Folder Current%b -,78,-)];@pemit %#=[list(mailstatus(%#),u(mail_status_mux,mailstatus(%#,##)))][repeat(-,78)]
-&CMD_@MAIL @mail RhostAliases <MRA>=$@mail *=*:@sudo %#={mail @%0=%1}
-&CMD_@MAIL_SEND @mail RhostAliases <MRA>=$@mail/send:@sudo %#={--}
-&CMD_@MAIL_BCC @mail RhostAliases <MRA>=$@mail/bcc*:@sudo %#={mail/write +bcc=%0}
-&CMD_@MAIL_BCC_ALIAS @mail RhostAliases <MRA>=$@bcc *:@sudo %#={mail/write +bcc=%0}
-&CMD_@MAIL_CC @mail RhostAliases <MRA>=$@mail/cc*:@sudo %#={mail/write +acc=%0} 
-&CMD_@MAIL_CC_ALIAS @mail RhostAliases <MRA>=$@cc *:@sudo %#={mail/write +acc=%0}
-&CMD_@MAIL_PROOF @mail RhostAliases <MRA>=$@mail/proof:@sudo %#={mail/write +proof}
-&CMD_@MAIL_PROOF2 @mail RhostAliases <MRA>=$@proof:@sudo %#={mail/write +proof}
-&CMD_@MAIL_EDIT @mail RhostAliases <MRA>=$@mail/edit *=*:@sudo %#={mail/write +feditall=%0,%1}
-&CMD_@MAIL_ABORT @mail RhostAliases <MRA>=$@mail/abort:@sudo %#={mail/write +forget}
-&CMD_@MAIL_FWD @mail RhostAliases <MRA>=$@mail/fwd *=*:@sudo %#={mail/forward %0 @%1=Forward...}
-&CMD_@MAIL_FORWARD @mail RhostAliases <MRA>=$@mail/forward *=*:@sudo %#={mail/forward %0 @%1=Forward...}
-&CMD_@MAIL_QUICK @mail RhostAliases <MRA>=$@mail/quick */*=*:@sudo %#={mail/send @%0=%1//%2}
-&CMD_@MAIL_QMAIL @mail RhostAliases <MRA>=$@qmail */*=*:@sudo %#={mail/send @%0=%1//%2}
-&CMD_@MAIL_STATS @mail RhostAliases <MRA>=$@mail/?stats*:@break [!^setr(z,pmatch(trim(%1)))]=@pemit %#=Player Not Found.;@pemit %#=[ifelse(setr(0,and(gte(bittype(%#),5),controls(%#,%qz))),[first(mailquick(%qz))] Total: [extract(mailquick(%qz),2,1)] New%, [extract(mailquick(%qz),3,1)] Unread%, [mailsize(%qz,2)] Bytes)];@sudo %#={mail/quota %qz}
-&CMD_@MAIL_NUKE @mail RhostAliases <MRA>=$@mail/nuke *;@swi [gte(bittype(%#),5)]=1,{@sudo %#=wmail/wipe %0},{@pemit %#=Permission denied.}
-&CMD_@MAIL_READ @mail RhostAliases <MRA>=$@mail/read *:@sudo %#={mail %0}
+&CMD_@MAIL @mail RhostAliases <MRA>=$@mail *=*:@fo %#={mail @%0=%1}
+&CMD_@MAIL_SEND @mail RhostAliases <MRA>=$@mail/send:@fo %#={--}
+&CMD_@MAIL_BCC @mail RhostAliases <MRA>=$@mail/bcc*:@fo %#={mail/write +bcc=%0}
+&CMD_@MAIL_BCC_ALIAS @mail RhostAliases <MRA>=$@bcc *:@fo %#={mail/write +bcc=%0}
+&CMD_@MAIL_CC @mail RhostAliases <MRA>=$@mail/cc*:@fo %#={mail/write +acc=%0} 
+&CMD_@MAIL_CC_ALIAS @mail RhostAliases <MRA>=$@cc *:@fo %#={mail/write +acc=%0}
+&CMD_@MAIL_PROOF @mail RhostAliases <MRA>=$@mail/proof:@fo %#={mail/write +proof}
+&CMD_@MAIL_PROOF2 @mail RhostAliases <MRA>=$@proof:@fo %#={mail/write +proof}
+&CMD_@MAIL_EDIT @mail RhostAliases <MRA>=$@mail/edit *=*:@fo %#={mail/write +feditall=%0,%1}
+&CMD_@MAIL_ABORT @mail RhostAliases <MRA>=$@mail/abort:@fo %#={mail/write +forget}
+&CMD_@MAIL_FWD @mail RhostAliases <MRA>=$@mail/fwd *=*:@fo %#={mail/forward %0 @%1=Forward...}
+&CMD_@MAIL_FORWARD @mail RhostAliases <MRA>=$@mail/forward *=*:@fo %#={mail/forward %0 @%1=Forward...}
+&CMD_@MAIL_QUICK @mail RhostAliases <MRA>=$@mail/quick */*=*:@fo %#={mail/send @%0=%1//%2}
+&CMD_@MAIL_QMAIL @mail RhostAliases <MRA>=$@qmail */*=*:@fo %#={mail/send @%0=%1//%2}
+&CMD_@MAIL_STATS @mail RhostAliases <MRA>=$@mail/?stats*:@break [!^setr(z,pmatch(trim(%1)))]=@pemit %#=Player Not Found.;@pemit %#=[ifelse(setr(0,and(gte(bittype(%#),5),controls(%#,%qz))),[first(mailquick(%qz))] Total: [extract(mailquick(%qz),2,1)] New%, [extract(mailquick(%qz),3,1)] Unread%, [mailsize(%qz,2)] Bytes)];@fo %#={mail/quota %qz}
+&CMD_@MAIL_NUKE @mail RhostAliases <MRA>=$@mail/nuke *;@swi [gte(bittype(%#),5)]=1,{@fo %#=wmail/wipe %0},{@pemit %#=Permission denied.}
+&CMD_@MAIL_READ @mail RhostAliases <MRA>=$@mail/read *:@fo %#={mail %0}
 &CMD_@MAIL_GENERIC_LIST @mail RhostAliases <MRA>=$@mail/list *:@pemit %#=[center(- %bMAIL: Folder Current%b -,78,-)];@pemit %#=[list(mailstatus(%#,%0),u(mail_status_mux,mailstatus(%#,##)))][repeat(-,78)]
 &CMD_@MAIL_MALIAS @mail RhostAliases <MRA>=$@malias:@fo %#={mail/alias}
 &CMD_@MAIL_MALIAS_ADD @mail RhostAliases <MRA>=$@malias *=*:@pemit %#=@mail: Type: &[strip(first(secure(%0)),*)] me=@[secure(%0)]%r[space(5)]Then to use it, use &[strip(first(secure(%0)),*)] when sending mail.%r[space(5)]Example: @mail &[strip(first(secure(%0)),*)]=My Subject
@@ -44,13 +44,13 @@
 &CMD_@MAIL_RECALL @mail RhostAliases <MRA>=$@mail/retract *=*:@fo %#={mail/recall %1=%0}
 &CMD_@MAIL_REVIEW @mail RhostAliases <MRA>=$@mail/review *:@fo %#={mail/recall *%0}
 &CMD_@MAIL_REVIEWALL @mail=$@mail/reviewall *:@fo %#={mail/recall/all *%0}
-&CMD_@MAIL_CLEAR @mail RhostAliases <MRA>=$@mail/clear *:@sudo %#={mail/mark %0}
-&CMD_@MAIL_UNCLEAR @mail RhostAliases <MRA>=$@mail/unclear *:@sudo %#={mail/unmark %0}
+&CMD_@MAIL_CLEAR @mail RhostAliases <MRA>=$@mail/clear *:@fo %#={mail/mark %0}
+&CMD_@MAIL_UNCLEAR @mail RhostAliases <MRA>=$@mail/unclear *:@fo %#={mail/unmark %0}
 &CMD_@MAIL_PURGE @mail RhostAliases <MRA>=$@mail/purge:@fo %#={mail/delete}
-&CMD_@MAIL_SAFE @mail RhostAliases <MRA>=$@mail/safe *:@sudo %#={mail/mark/save %0}
-&CMD_@MAIL_ALL @mail RhostAliases <MRA>=$@mail *:@sudo %#={mail %0}
+&CMD_@MAIL_SAFE @mail RhostAliases <MRA>=$@mail/safe *:@fo %#={mail/mark/save %0}
+&CMD_@MAIL_ALL @mail RhostAliases <MRA>=$@mail *:@fo %#={mail %0}
 &CMD_CLIENTCFG @mail RhostAliases <MRA>=$+clientcfg:@Pemit %#=[ifelse(setr(0,or(hasattr(%#,cmd_@mail),hasattr(%#,cmd_+mail))),You already have mud/mush client mail alias compatability configured.,The mud/mush client mail aliases have been established.)];@break [r(0)];&CMD_@MAIL %#=$@mail *=*:mail %%0=%%1;&CMD_+MAIL %#=$+mail *=*:mail %%0=%%1
-&CMD_@MAIL_QUICKFORWARD @mail RhostAliases <MRA>=$@mail/quickforward *=*:@toggle %#=!brandy_mail;@sudo %#={mail/forward %0 @%1=Forward...//};@wait 0=@toggle %#=brandy_mail
+&CMD_@MAIL_QUICKFORWARD @mail RhostAliases <MRA>=$@mail/quickforward *=*:@toggle %#=!brandy_mail;@fo %#={mail/forward %0 @%1=Forward...//};@wait 0=@toggel %#=brandy_mail
 &CMD_@MAIL_FOLDERCREATE @mail RhostAliases <MRA>=$@mail/create *:@fo %#={folder/create %0}
 &CMD_@MAIL_FAKESKIM @mail RhostAliases <MRA>=$@skim:@pemit %#=Mail: I believe you want to use '@mail'.
 &CMD_@MAIL_GENERIC_BACKUP @mail RhostAliases <MRA>=$@mail:@fo %#={mail/status}
