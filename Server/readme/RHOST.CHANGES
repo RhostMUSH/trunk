@@ -86,6 +86,10 @@ Added %_<-> to pop last label used.
 Nested /notrace on @function/@lfunction was broke.
 				- Thanks Ixokai
 Idea and general code for NO_CONNECT message -- Kage
+				- Thanks Kage
+Alternate date formats for convtime()
+				- Thanks Ixokai
+
 
 
 		         RhostMUSH 3.9.4 Update File

@@ -30679,6 +30679,7 @@
   * improved %_<subs> to be more vigerous with removal and pops
     last match first.
   * colors have a (n)ame option to display name of the ansi arg [ASH]
+  * alternate date formats for convtime() [ASH]
   
   Bug Fixes
   ------------
