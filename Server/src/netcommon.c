@@ -3891,7 +3891,10 @@ check_connect(DESC * d, const char *msg)
    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff,
         buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
    int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest,
-       ok_to_login, i_sitemax, chk_stop, chk_tog, postestcnt;
+       ok_to_login, i_sitemax, chk_stop, chk_tog, postestcnt, i_atr;
+#ifdef ZENTY_ANSI
+   char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr;
+#endif
    dbref player, aowner, player2, victim;
    DESC *d2, *d3;
    CMDENT *cmdp;
@@ -4170,7 +4173,22 @@ check_connect(DESC * d, const char *msg)
             /* Not a player, or wrong password */
 
             atr = NULL;
-            if ( Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
+            i_atr = -1;
+            if ( Good_chk(player) && (Flags3(player) & NOCONNECT) ) {
+               i_atr = mkattr("_NOCONNECT_MSG");
+               if ( i_atr > 0 ) {
+                  atr = atr_num(i_atr);
+                  if ( atr ) {
+                     attr_wizhidden("_NOCONNECT_MSG");
+                     buff = atr_get(player, atr->number, &aowner, &aflags);
+                     if ( !buff || !*buff ) {
+                        free_lbuf(buff);
+                        i_atr = -1;
+                     }
+                  }
+               }
+            }
+            if ( (i_atr <= 0 ) && Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
                if ( postest ) {
                   atr = atr_str("SITE_NOPOSSESS");
                } else if ( Good_chk(player) && (Flags3(player) & NOCONNECT) ) {
@@ -4178,7 +4196,9 @@ check_connect(DESC * d, const char *msg)
                }
             }
             if ( atr ) {
-               buff = atr_get(mudconf.file_object, atr->number, &aowner, &aflags);
+               if ( i_atr == -1 ) {
+                  buff = atr_get(mudconf.file_object, atr->number, &aowner, &aflags);
+               }
                if ( buff && *buff ) {
                   sarray[0] = alloc_lbuf("noconnect1");
                   sarray[1] = alloc_lbuf("noconnect2");
@@ -4193,11 +4213,26 @@ check_connect(DESC * d, const char *msg)
                   else
                      sprintf(sarray[3], "#%d", player);
                   mudstate.chkcpu_stopper = time(NULL);
-                  buff3 = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
-                               EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                  if ( i_atr == -1 ) {
+                     buff3 = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                                  EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                  } else {
+                     buff3 = exec(player, player, player,
+                                  EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                  }
                   if ( buff3 && *buff3 ) {
+#ifdef ZENTY_ANSI
+                     lbuf1ptr = lbuf1 = alloc_lbuf("noconnect_ansi1");
+                     lbuf2ptr = lbuf2 = alloc_lbuf("noconnect_ansi2");
+                     parse_ansi(buff3, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+                     queue_write(d, lbuf1, strlen(lbuf1));
+                     queue_string(d, "\r\n");
+                     free_lbuf(lbuf1);
+                     free_lbuf(lbuf2);
+#else
                      queue_string(d, buff3);
                      queue_string(d, "\r\n");
+#endif
                   } else {
                      queue_string(d, connect_fail);
                   }
