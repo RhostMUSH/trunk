@@ -462,6 +462,32 @@
   REALITY LEVELS     MAIL ALIASES       HOOK SETUP         FUNCTION OVERLOADING
   FLAG ALIAS         ATTRIB CONTLOCKS   GLOBAL INHERITANCE ATTRIB FORMATTING
   SIGNALS            TOR                CONTROL            CUSTOMIZED CONNECT
+  SPECIAL ATTRIBS
+
+& SPECIAL ATTRIBS
+  There are special attributes you can set on objects that will have
+  special notation based on the purpose.  
+  
+  Currently, the following exist:
+    _NOPOSSESS_MSG    -- When set on a player will give a customized message
+                         upon triggering the event.  This is used with the
+                         NOPOSSESS flag.
+            Arguments Allowed:
+              %0 - Numerical Site/Host
+              %1 - DNS Site/Host Name
+              %2 - Port of connection
+              %3 - Player dbref# or '#-1' if no valid player.
+                       
+    _NOCONNECT_MSG    -- When set on a player will give a customized message
+                         upon triggering the event.  This is used with the
+                         NOCONNECT flag.
+            Arguments Allowed:
+              %0 - Numerical Site/Host
+              %1 - DNS Site/Host Name
+              %2 - Port of connection
+              %3 - Player dbref# or '#-1' if no valid player.
+  
+  See Also: file_object, NOPOSSESS, NOCONNECT
 
 & CONTROL
   RhostMUSH has multiple levels and tiers for control.  In addition, it has
@@ -5088,16 +5114,21 @@
   This is an internal flag in use with command parsing permissions
   and should not be manually set or unset on anything.
 
+& _NOCONNECT_MSG
 & NOCONNECT
 & NO_CONNECT
   Flag: NO_CONNECT([A]) (councilor and higher)
   This flag when set on a player stops them from being able to connect to
   their character.  Keep in mind, this flag will work on councilors and
   lower.  The '[A]' uses a second flag list.
+  
+  You may specify a custom noconnect message with an attribute
+  _NOCONNECT_MSG on the player, or globally via the file object defined
+  by the file_object config parameter.
    
   This is aliased to 'NOCONNECT' for compatibility.
    
-  See Also: FUBAR SLAVE
+  See Also: FUBAR, SLAVE, file_object
 
 & NOCODE
 & NO_CODE
@@ -5178,6 +5209,7 @@
   This flag does absolutely nothing.  It is used specifically as a marker
   for guildobjects to allow an easy method to search for them.
 
+& _NOPOSSESS_MSG
 & NOPOSSESS
 & NO_POSSESS
   Flag: NO_POSSESS([C]) (royalty and higher)
@@ -5186,7 +5218,13 @@
   that player is unable to connect from the same site more than
   twice.  This is to help avoid account sharing.
   
+  You may set an attribute _NOPOSSESS_MSG on a player that will give
+  them a customized message, or set a global one on the file object
+  (via file_object config param).
+    
   This is aliased to 'NOPOSSESS' for compatibility.
+  
+  See Also: admin_object
   
 & RECOVER
   Flag: RECOVER($) (super-royalty (immortal) only)
@@ -6624,7 +6662,9 @@
   
   All ansi and such will process normally.
   
-  See Also: @list_file, file_object2, customized connect
+  See Also: @list_file, file_object2, customized connect, NOCONNECT,
+            NOPOSSESS
+
   
 { See 'wizhelp file_object2' or 'wizhelp customized connect' for connect mods }
 

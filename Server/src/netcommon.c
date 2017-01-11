@@ -4187,6 +4187,19 @@ check_connect(DESC * d, const char *msg)
                      }
                   }
                }
+            } else if ( postest ) {
+               i_atr = mkattr("_NOPOSSESS_MSG");
+               if ( i_atr > 0 ) {
+                  atr = atr_num(i_atr);
+                  if ( atr ) {
+                     attr_wizhidden("_NOPOSSESS_MSG");
+                     buff = atr_get(player, atr->number, &aowner, &aflags);
+                     if ( !buff || !*buff ) {
+                        free_lbuf(buff);
+                        i_atr = -1;
+                     }
+                  }
+               }
             }
             if ( (i_atr <= 0 ) && Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
                if ( postest ) {
