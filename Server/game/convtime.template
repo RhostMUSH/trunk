@@ -19,6 +19,11 @@
 %H:%M:%S %m-%d-%Y
 %H:%M:%S %m/%d/%Y
 %H:%M:%S %m.%d.%Y
+%Y-%m-%d %I:%M:%S [AM|PM]
+%Y/%m/%d %I:%M:%S [AM|PM]
+%Y-%m-%d %I:%M [AM|PM]
+%Y/%m/%d %I:%M [AM|PM]
+%Y-%m-%d
 %m-%d-%Y
 %m/%d/%Y
 %m.%d.%Y
