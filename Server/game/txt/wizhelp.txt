@@ -7287,9 +7287,14 @@
   is currently connected, or the player you're trying to add is connected.
   You may specify '!ALL' to clear the list and return to the default naming.
   
+  The list actually stores the dbref#'s of the players and will convert 
+  the names in the list to the corresponding dbref#'s.  You may use names,
+  dbref#'s, or aliases when you enter the names.  Again, it'll convert
+  it to dbref#'s regardless of how you specify.
+  
   Examples:
-    > @admin guest_namelist=Fred Tom
-    Entry updated.  2 added.
+    > @admin guest_namelist=Fred Tom #123
+    Entry updated.  3 added.
     > @admin guest_namelist=!Fred
     Entry updated.  1 removed.
   
