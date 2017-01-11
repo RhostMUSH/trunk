@@ -85,6 +85,7 @@ Added %_<-> to pop last label used.
 				- Suggestion -- Ixokai
 Nested /notrace on @function/@lfunction was broke.
 				- Thanks Ixokai
+Idea and general code for NO_CONNECT message -- Kage
 
 
 		         RhostMUSH 3.9.4 Update File

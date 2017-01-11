@@ -30654,6 +30654,7 @@
   * %_<-> pops last stack for debug labels [ASH]
   * alternative messages for those who hit 'MAX' on optional max values
     for site restrictions for noguest, register, and forbid. [ASH]
+  * alternative messages for those set NOCONNECT or NOPOSSESS [KAG, ASH]
   
   Changes
   ------------

@@ -3888,66 +3888,63 @@ softcode_trigger(DESC *d, const char *msg) {
 static int 
 check_connect(DESC * d, const char *msg)
 {
-    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff;
-    dbref player, aowner, player2, victim;
-    int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest;
-    int ok_to_login, i_sitemax, chk_stop, chk_tog;
-    DESC *d2, *d3;
-    CMDENT *cmdp;
-    ATTR *hk_ap2;
-    char buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock;
+   char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff,
+        buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
+   int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest,
+       ok_to_login, i_sitemax, chk_stop, chk_tog, postestcnt;
+   dbref player, aowner, player2, victim;
+   DESC *d2, *d3;
+   CMDENT *cmdp;
+   ATTR *hk_ap2, *atr;
 
-    DPUSH; /* #146 */
+   DPUSH; /* #146 */
 
-    bittemp = 0;
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "< check_connect >";
+   bittemp = 0;
+   cmdsave = mudstate.debug_cmd;
+   mudstate.debug_cmd = (char *) "< check_connect >";
 
-    /* Hide the password length from SESSION */
+   /* Hide the password length from SESSION */
+   d->input_tot -= (strlen(msg) + 1);
 
-    d->input_tot -= (strlen(msg) + 1);
+   /* Crack the command apart */
+   memset(cchk, '\0', 4);
+   if ( *msg ) {
+      cchk[0] = ToLower(*msg);
+      if ( *(msg+1) ) {
+         cchk[1] = ToLower(*(msg+1));
+         if ( *(msg+2) ) {
+            cchk[2] = ToLower(*(msg+2));
+         }
+      }
+   }
 
-    /* Crack the command apart */
-
-    memset(cchk, '\0', 4);
-    if ( *msg ) {
-       cchk[0] = ToLower(*msg);
-       if ( *(msg+1) ) {
-          cchk[1] = ToLower(*(msg+1));
-          if ( *(msg+2) ) {
-             cchk[2] = ToLower(*(msg+2));
-          }
-       }
-    }
-
-    command = alloc_mbuf("check_conn.cmd");
-    user = alloc_mbuf("check_conn.user");
-    password = alloc_mbuf("check_conn.pass");
-    overf = parse_connect(msg, command, user, password);
-    if ( strlen(user) > 120 )
-       overf = 0;
-    if ( !((!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2))) )
-       overf = 1;
-    if ( strlen(msg) > 2000 )
-       overf = 0;
-    if (!overf) {
-	queue_string(d,"Your attempt to crash this mush has been noted and logged.\r\n");
-	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "OVERFLOW")
-	  *(((char *)msg)+LBUF_SIZE-MBUF_SIZE-1) = '\0';
-	  buff = alloc_lbuf("check_conn.LOG.over");
-	  sprintf(buff, "[%d/%s] Attempted overflow -> %.3800s",
-		d->descriptor, d->addr, msg);
-	  log_text(buff);
-	  free_lbuf(buff);
-	ENDLOG
-	broadcast_monitor(NOTHING, MF_CONN, "ATTEMPTED OVERFLOW", d->userid, d->addr, d->descriptor, 0, 0, NULL);
-	free_mbuf(command);
-	free_mbuf(user);
-	free_mbuf(password);
-	shutdownsock(d, R_HACKER);
-	mudstate.debug_cmd = cmdsave;
-	RETURN(0); /* #146 */
-    }
+   command = alloc_mbuf("check_conn.cmd");
+   user = alloc_mbuf("check_conn.user");
+   password = alloc_mbuf("check_conn.pass");
+   overf = parse_connect(msg, command, user, password);
+   if ( strlen(user) > 120 )
+      overf = 0;
+   if ( !((!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2))) )
+      overf = 1;
+   if ( strlen(msg) > 2000 )
+      overf = 0;
+   if (!overf) {
+      queue_string(d,"Your attempt to crash this mush has been noted and logged.\r\n");
+      STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "OVERFLOW")
+         *(((char *)msg)+LBUF_SIZE-MBUF_SIZE-1) = '\0';
+         buff = alloc_lbuf("check_conn.LOG.over");
+         sprintf(buff, "[%d/%s] Attempted overflow -> %.3800s", d->descriptor, d->addr, msg);
+         log_text(buff);
+         free_lbuf(buff);
+      ENDLOG
+      broadcast_monitor(NOTHING, MF_CONN, "ATTEMPTED OVERFLOW", d->userid, d->addr, d->descriptor, 0, 0, NULL);
+      free_mbuf(command);
+      free_mbuf(user);
+      free_mbuf(password);
+      shutdownsock(d, R_HACKER);
+      mudstate.debug_cmd = cmdsave;
+      RETURN(0); /* #146 */
+   }
 
 /* PUT IN TOR PROTECTION HERE FOR CO, CD, CR and REG */
 
@@ -3961,230 +3958,279 @@ check_connect(DESC * d, const char *msg)
     ENDLOG
 */
 
-    /* Guest determination */
-    strncpy(buff2, user, 5);
-    *(buff2 + 5) = '\0';
-    if (!strncmp(cchk, "co", 2)) {
-	comptest = stricmp(buff2, "guest");
-    } else {
-	comptest = 1;
-    }
-    player2 = lookup_player(NOTHING, user, 0);
-    is_guest = 0;
-    if ( player2 != NOTHING && Guest(player2) )
-       is_guest = 1;
-    if ( (!comptest && ((strlen(user) > 5) || (strcmp(password, "guest")))) ||
-         (is_guest && !strcmp(password, "guest") && comptest) ) {
-	queue_string(d, "Use 'co guest guest' to connect to a guest character.\r\n");
-	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
-	    buff = alloc_mbuf("check_conn.LOG.bad");
-	sprintf(buff, "[%d/%s] Failed connect to '%s'",
-		d->descriptor, d->addr, user);
-	log_text(buff);
-	free_mbuf(buff);
-	ENDLOG
-        if (player2 == NOTHING) {
-		broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD GUEST CONNECT)", 
-                                  d->userid, d->addr, 0, 0, 0, user);
-        } else {
-		broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD GUEST CONNECT)", 
-                                  d->userid, d->addr, 0, 0, 0, 
-                                  (char *)unsafe_tprintf("%s  [%s]", user, Name(player2)));
-        }
-	if (--(d->retries_left) <= 0) {
-	    free_mbuf(command);
-	    free_mbuf(user);
-	    free_mbuf(password);
-	    shutdownsock(d, R_BADLOGIN);
-	    mudstate.debug_cmd = cmdsave;
-	    RETURN(0); /* #146 */
-	}
-	*command = 'a';
-	comptest = 1;
-    } else if (!comptest && (d->host_info & H_NOGUEST)) {
-        i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
-        if ( i_sitemax == -1 ) {
-           tsite_buff = alloc_lbuf("noguest_check");
-           addroutbuf = (char *) addrout((d->address).sin_addr);
-           strcpy(tsite_buff, addroutbuf);
-           strcpy(tsite_buff, mudconf.noguest_host);
-           lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
-           free_lbuf(tsite_buff);
-        }
-        if ( i_sitemax == -1 ) {
-	   broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, "NO GUEST FAIL", d->userid, d->addr, 0, 0, 0, NULL);
-	   fcache_dump(d, FC_GUEST_FAIL, (char *)NULL);
-        } else {
-	   broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, unsafe_tprintf("NO GUEST FAIL[%d max]", i_sitemax), d->userid, d->addr, 0, 0, 0, NULL);
-	   fcache_dump(d, FC_GUEST_FAIL, (char *)"SITE_NOGUEST");
-        }
+   /* Guest determination */
+   strncpy(buff2, user, 5);
+   *(buff2 + 5) = '\0';
+   if (!strncmp(cchk, "co", 2)) {
+      comptest = stricmp(buff2, "guest");
+   } else {
+      comptest = 1;
+   }
+   player2 = lookup_player(NOTHING, user, 0);
+   is_guest = 0;
+   if ( player2 != NOTHING && Guest(player2) )
+      is_guest = 1;
+   if ( (!comptest && ((strlen(user) > 5) || (strcmp(password, "guest")))) ||
+        (is_guest && !strcmp(password, "guest") && comptest) ) {
+      queue_string(d, "Use 'co guest guest' to connect to a guest character.\r\n");
+      STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
+         buff = alloc_mbuf("check_conn.LOG.bad");
+         sprintf(buff, "[%d/%s] Failed connect to '%s'", d->descriptor, d->addr, user);
+         log_text(buff);
+         free_mbuf(buff);
+      ENDLOG
+      if (player2 == NOTHING) {
+         broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD GUEST CONNECT)", 
+                           d->userid, d->addr, 0, 0, 0, user);
+      } else {
+         broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD GUEST CONNECT)", 
+                           d->userid, d->addr, 0, 0, 0, 
+                           (char *)unsafe_tprintf("%s  [%s]", user, Name(player2)));
+      }
+      if ( --(d->retries_left) <= 0 ) {
+         free_mbuf(command);
+         free_mbuf(user);
+         free_mbuf(password);
+         shutdownsock(d, R_BADLOGIN);
+         mudstate.debug_cmd = cmdsave;
+         RETURN(0); /* #146 */
+      }
+      *command = 'a';
+      comptest = 1;
+   } else if (!comptest && (d->host_info & H_NOGUEST)) {
+      i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
+      if ( i_sitemax == -1 ) {
+         tsite_buff = alloc_lbuf("noguest_check");
+         addroutbuf = (char *) addrout((d->address).sin_addr);
+         strcpy(tsite_buff, addroutbuf);
+         strcpy(tsite_buff, mudconf.noguest_host);
+         lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
+         free_lbuf(tsite_buff);
+      }
+      if ( i_sitemax == -1 ) {
+         broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, "NO GUEST FAIL", 
+                           d->userid, d->addr, 0, 0, 0, NULL);
+         fcache_dump(d, FC_GUEST_FAIL, (char *)NULL);
+      } else {
+         broadcast_monitor(NOTHING, MF_SITE | MF_FAIL | MF_GFAIL, unsafe_tprintf("NO GUEST FAIL[%d max]", i_sitemax), 
+                           d->userid, d->addr, 0, 0, 0, NULL);
+         fcache_dump(d, FC_GUEST_FAIL, (char *)"SITE_NOGUEST");
+      }
+ 
+      STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "GUESTFAIL")
+         buff = alloc_mbuf("check_conn.LOG,badguest");
+         sprintf(buff, "[%d/%s] Attempt to connect to guest char from registered site",
+                 d->descriptor, d->addr);
+         log_text(buff);
+         free_mbuf(buff);
+      ENDLOG
+      if ( --(d->retries_left) <= 0 ) {
+         free_mbuf(command);
+         free_mbuf(user);
+         free_mbuf(password);
+	 shutdownsock(d, R_BADLOGIN);
+	 mudstate.debug_cmd = cmdsave;
+	 RETURN(0); /* #146 */
+      }
+      *command = 'a';
+      comptest = 1;
+   } else if (!comptest && (mudstate.guest_num >= mudconf.max_num_guests)) {
+      if ( mudconf.max_num_guests <= 0 ) {
+         queue_string(d, "Guests have been disabled.\r\n");
+      } else {
+         queue_string(d, "Maximum number of guests has been reached.\r\n");
+      }
+      STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
+         buff = alloc_mbuf("check_conn.LOG.bad");
+         sprintf(buff, "[%d/%s] Failed connect to '%s'",
+                 d->descriptor, d->addr, user);
+         log_text(buff);
+         free_mbuf(buff);
+      ENDLOG
+      if ( --(d->retries_left) <= 0 ) {
+         free_mbuf(command);
+         free_mbuf(user);
+         free_mbuf(password);
+         shutdownsock(d, R_BADLOGIN);
+         mudstate.debug_cmd = cmdsave;
+         RETURN(0); /* #146 */
+      }
+      *command = 'a';
+      comptest = 1;
+   } else if (!comptest) {
+      bittemp = 0x00000001;
+      gnum = 1;
+      while ((bittemp & (mudstate.guest_status)) && (gnum < 32)) {
+         bittemp <<= 1;
+         gnum++;
+      }
+      if ( strlen(mudconf.guest_namelist) > 0 ) {
+         memset(tchar_buffer, 0, sizeof(tchar_buffer));
+         strcpy(tchar_buffer, mudconf.guest_namelist);
+         in_tchr = strtok_r(tchar_buffer, " \t", &tstrtokr);
+         tchar_num = 1;
+         while ( (tchar_num < gnum) && (tchar_num < 32) ) {
+            in_tchr = strtok_r(NULL, " \t", &tstrtokr);
+            if ( in_tchr == NULL ) {
+               break;
+            }
+            tchar_num++;
+         }
+         if ( (tchar_num == gnum) && in_tchr != NULL ) {
+            strncpy(user, (char *)in_tchr, 16);
+            *(user + 16) = '\0';
+         } else { 
+            sprintf(buff2, "%d", gnum);
+            strcat(user, buff2);
+         }
+      } else {
+         sprintf(buff2, "%d", gnum);
+         strcat(user, buff2);
+      }
+   }
+   if ( (!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)) ) {
+      /* See if this connection would exceed the max #players */
+      if (mudconf.max_players > mudstate.max_logins_allowed)
+         mudconf.max_players = mudstate.max_logins_allowed;
+      if (mudconf.max_players < 0) {
+         /* Can't be helped.  Have to check conn players regardless */
+         nplayers = 0;
+         DESC_ITER_CONN(d2) {
+            nplayers++;
+         }
+         if ( nplayers > mudstate.max_logins_allowed ) {
+            nplayers = mudconf.max_players - 1;
+         }
+      } else {
+         nplayers = 0;
+         DESC_ITER_CONN(d2) {
+            nplayers++;
+         }
+      }
 
-	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "GUESTFAIL")
-	  buff = alloc_mbuf("check_conn.LOG,badguest");
-	  sprintf(buff, "[%d/%s] Attempt to connect to guest char from registered site",
-		d->descriptor, d->addr);
-	  log_text(buff);
-	  free_mbuf(buff);
-	ENDLOG
-	if (--(d->retries_left) <= 0) {
-	    free_mbuf(command);
-	    free_mbuf(user);
-	    free_mbuf(password);
-	    shutdownsock(d, R_BADLOGIN);
-	    mudstate.debug_cmd = cmdsave;
-	    RETURN(0); /* #146 */
-	}
-	*command = 'a';
-	comptest = 1;
-    } else if (!comptest && (mudstate.guest_num >= mudconf.max_num_guests)) {
-        if ( mudconf.max_num_guests <= 0 ) {
-	   queue_string(d, "Guests have been disabled.\r\n");
-        } else {
-	   queue_string(d, "Maximum number of guests has been reached.\r\n");
-        }
-	STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
-	    buff = alloc_mbuf("check_conn.LOG.bad");
-	sprintf(buff, "[%d/%s] Failed connect to '%s'",
-		d->descriptor, d->addr, user);
-	log_text(buff);
-	free_mbuf(buff);
-	ENDLOG
-	if (--(d->retries_left) <= 0) {
-	    free_mbuf(command);
-	    free_mbuf(user);
-	    free_mbuf(password);
-	    shutdownsock(d, R_BADLOGIN);
-	    mudstate.debug_cmd = cmdsave;
-	    RETURN(0); /* #146 */
-	}
-	*command = 'a';
-	comptest = 1;
-    } else if (!comptest) {
-	bittemp = 0x00000001;
-	gnum = 1;
-	while ((bittemp & (mudstate.guest_status)) && (gnum < 32)) {
-	    bittemp <<= 1;
-	    gnum++;
-	}
-        if ( strlen(mudconf.guest_namelist) > 0 ) {
-           memset(tchar_buffer, 0, sizeof(tchar_buffer));
-           strcpy(tchar_buffer, mudconf.guest_namelist);
-           in_tchr = strtok_r(tchar_buffer, " \t", &tstrtokr);
-           tchar_num = 1;
-           while ( (tchar_num < gnum) && (tchar_num < 32) ) {
-              in_tchr = strtok_r(NULL, " \t", &tstrtokr);
-              if ( in_tchr == NULL )
-                 break;
-              tchar_num++;
-           }
-           if ( (tchar_num == gnum) && in_tchr != NULL ) {
-              strncpy(user, (char *)in_tchr, 16);
-              *(user + 16) = '\0';
-           } else { 
-	      sprintf(buff2, "%d", gnum);
-	      strcat(user, buff2);
-           }
-        } else {
-	   sprintf(buff2, "%d", gnum);
-	   strcat(user, buff2);
-        }
-    }
-    if ( (!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)) ) {
-
-	/* See if this connection would exceed the max #players */
-        
-        if (mudconf.max_players > mudstate.max_logins_allowed)
-           mudconf.max_players = mudstate.max_logins_allowed;
-	if (mudconf.max_players < 0) {
-            /* Can't be helped.  Have to check conn players regardless */
-            nplayers = 0;
-            DESC_ITER_CONN(d2)
-                nplayers++;
-            if ( nplayers > mudstate.max_logins_allowed )
-	       nplayers = mudconf.max_players - 1;
-	} else {
-	    nplayers = 0;
-	    DESC_ITER_CONN(d2)
-		nplayers++;
-	}
-
-        ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
-	if (!strncmp(cchk, "cd", 2))
-	  dc = 1;
-	else if ( !strncmp(cchk, "ch", 2))
-          dc = 2;
-        else
-	  dc =0;
-	player = connect_player(user, password, (char *)d);
-        player2 = lookup_player(NOTHING, user, 0);
-	if (player == NOPERM) {
-		queue_string(d, "Connections to that player are not allowed from your site.\r\n");
-	    STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BADSITE")
-		buff = alloc_mbuf("check_conn.LOG.bad");
-	    sprintf(buff, "[%d/%s] Failed connect to '%s'",
-		    d->descriptor, d->addr, user);
-	    log_text(buff);
-	    free_mbuf(buff);
-	    ENDLOG
-		if (--(d->retries_left) <= 0) {
-		  free_mbuf(command);
-		  free_mbuf(user);
-		  free_mbuf(password);
-		  shutdownsock(d, R_BADLOGIN);
-		  mudstate.debug_cmd = cmdsave;
-		  RETURN(0); /* #146 */
-		}
-	} else {
-
-	  postest = 0;
-	  if ((player != NOTHING) && NoPossess(player)) {
-	    DESC_ITER_CONN(d3) {
-		if (d3->player == player) {
-		    if (strcmp(d3->addr, d->addr) || strcmp(d3->userid, d->userid)) {
-			postest = 1;
-			break;
-		    }
-		}
-	    }
-	  }
-	  if ((player == NOTHING) || (Flags3(player) & NOCONNECT) || postest ) {
-	    if ((player != NOTHING) && (Flags3(player) & NOCONNECT))
-		broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (NOCONNECT)", 
-                                  d->userid, d->addr, 0, 0, 0, NULL);
-	    if (postest)
-		broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (NOPOSSESS)", 
-                                  d->userid, d->addr, 0, 0, 0, NULL);
+      ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
+      if (!strncmp(cchk, "cd", 2))
+         dc = 1;
+      else if ( !strncmp(cchk, "ch", 2))
+         dc = 2;
+      else
+         dc =0;
+      player = connect_player(user, password, (char *)d);
+      player2 = lookup_player(NOTHING, user, 0);
+      if (player == NOPERM) {
+         queue_string(d, "Connections to that player are not allowed from your site.\r\n");
+         STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BADSITE")
+            buff = alloc_mbuf("check_conn.LOG.bad");
+            sprintf(buff, "[%d/%s] Failed connect to '%s'",
+                    d->descriptor, d->addr, user);
+            log_text(buff);
+            free_mbuf(buff);
+         ENDLOG
+         if ( --(d->retries_left) <= 0 ) {
+            free_mbuf(command);
+            free_mbuf(user);
+            free_mbuf(password);
+            shutdownsock(d, R_BADLOGIN);
+            mudstate.debug_cmd = cmdsave;
+            RETURN(0); /* #146 */
+         }
+      } else {
+         postest = postestcnt = 0;
+         if ((player != NOTHING) && NoPossess(player)) {
+            DESC_ITER_CONN(d3) {
+               if (d3->player == player) {
+                  if ( strcmp(d3->addr, d->addr) || strcmp(d3->userid, d->userid)) {
+                     postest = 1;
+                     break;
+                  }
+                  if ( !strcmp(d3->addr, d->addr) ) {
+                     postestcnt++;
+                  }
+               }
+            }
+         }
+         if ( postestcnt >= 2 ) {
+            postest = 1;
+         }
+         if ((player == NOTHING) || (Flags3(player) & NOCONNECT) || postest ) {
+            if ((player != NOTHING) && (Flags3(player) & NOCONNECT))
+               broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (NOCONNECT)", 
+                                 d->userid, d->addr, 0, 0, 0, NULL);
+            if (postest)
+               broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (NOPOSSESS)", 
+                                 d->userid, d->addr, 0, 0, 0, NULL);
             if ((player == NOTHING) && (player2 == NOTHING))
-		broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CONNECT)", 
-                                  d->userid, d->addr, 0, 0, 0, user);
+               broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CONNECT)", 
+                                 d->userid, d->addr, 0, 0, 0, user);
             if (player == NOTHING && (player2 != NOTHING))
-		broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CONNECT)", 
-                                  d->userid, d->addr, 0, 0, 0, 
-                                  (char *)unsafe_tprintf("%s  [%s]", user, Name(player2)));
+               broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CONNECT)", 
+                                 d->userid, d->addr, 0, 0, 0, 
+                                 (char *)unsafe_tprintf("%s  [%s]", user, Name(player2)));
 
-	    /* Not a player, or wrong password */
+            /* Not a player, or wrong password */
 
-	    queue_string(d, connect_fail);
-	    STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
-		buff = alloc_mbuf("check_conn.LOG.bad");
-	    sprintf(buff, "[%d/%s] Failed connect to '%s'",
-		    d->descriptor, d->addr, user);
-	    log_text(buff);
-	    free_mbuf(buff);
-	    ENDLOG
-		if (--(d->retries_left) <= 0) {
-		free_mbuf(command);
-		free_mbuf(user);
-		free_mbuf(password);
-		shutdownsock(d, R_BADLOGIN);
-		mudstate.debug_cmd = cmdsave;
-		RETURN(0); /* #146 */
-	    }
-          } else if (((mudconf.control_flags & CF_LOGIN) && ok_to_login) ||
-                    Wizard(player) || God(player) || (Login(player) & ok_to_login)) {
-
-	    /* Logins are enabled, or wiz or god */
-
+            atr = NULL;
+            if ( Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
+               if ( postest ) {
+                  atr = atr_str("SITE_NOPOSSESS");
+               } else if ( Good_chk(player) && (Flags3(player) & NOCONNECT) ) {
+                  atr = atr_str("SITE_NOCONNECT");
+               }
+            }
+            if ( atr ) {
+               buff = atr_get(mudconf.file_object, atr->number, &aowner, &aflags);
+               if ( buff && *buff ) {
+                  sarray[0] = alloc_lbuf("noconnect1");
+                  sarray[1] = alloc_lbuf("noconnect2");
+                  sarray[2] = alloc_lbuf("noconnect3");
+                  sarray[3] = alloc_lbuf("noconnect4");
+                  sarray[4] = NULL;
+                  strcpy(sarray[0], inet_ntoa(d->address.sin_addr));
+                  strcpy(sarray[1], d->addr);
+                  sprintf(sarray[2], "%d", d->descriptor);
+                  if ( !Good_chk(player ) )
+                     sprintf(sarray[3], "#%d", NOTHING);
+                  else
+                     sprintf(sarray[3], "#%d", player);
+                  mudstate.chkcpu_stopper = time(NULL);
+                  buff3 = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                               EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                  if ( buff3 && *buff3 ) {
+                     queue_string(d, buff3);
+                     queue_string(d, "\r\n");
+                  } else {
+                     queue_string(d, connect_fail);
+                  }
+                  free_lbuf(buff3);
+                  free_lbuf(sarray[0]);
+                  free_lbuf(sarray[1]);
+                  free_lbuf(sarray[2]);
+                  free_lbuf(sarray[3]);
+               } else {
+                  queue_string(d, connect_fail);
+               }
+               free_lbuf(buff);
+            } else {
+               queue_string(d, connect_fail);
+            }
+            STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
+               buff = alloc_mbuf("check_conn.LOG.bad");
+               sprintf(buff, "[%d/%s] Failed connect to '%s'",
+                       d->descriptor, d->addr, user);
+               log_text(buff);
+               free_mbuf(buff);
+            ENDLOG
+            if ( --(d->retries_left) <= 0 ) {
+               free_mbuf(command);
+               free_mbuf(user);
+               free_mbuf(password);
+               shutdownsock(d, R_BADLOGIN);
+               mudstate.debug_cmd = cmdsave;
+               RETURN(0); /* #146 */
+            }
+         } else if ( ((mudconf.control_flags & CF_LOGIN) && ok_to_login) ||
+                     Wizard(player) || God(player) || (Login(player) & ok_to_login)) {
+            /* Logins are enabled, or wiz or god */
             STARTLOG(LOG_LOGIN, "CON", "LOGIN")
                buff = alloc_mbuf("check_conn.LOG.login");
                sprintf(buff, "[%d/%s] Connected to ",
@@ -4194,43 +4240,44 @@ check_connect(DESC * d, const char *msg)
                free_mbuf(buff);
             ENDLOG
             d->flags |= DS_CONNECTED;
-	    d->connected_at = time(0);
-	    d->player = player;
+            d->connected_at = time(0);
+            d->player = player;
 
-	    /* Give the player the MOTD file and the settable MOTD
-	     * message(s). Use raw notifies so the player doesn't
-	     * try to match on the text. */
+            /* Give the player the MOTD file and the settable MOTD
+             * message(s). Use raw notifies so the player doesn't
+             * try to match on the text. */
 
-	    if (Guest(player)) {
-		fcache_dump(d, FC_CONN_GUEST, (char *)NULL);
-	    } else {
-		buff = atr_get(player, A_LAST, &aowner, &aflags);
-		if ((buff == NULL) || (*buff == '\0'))
-		    fcache_dump(d, FC_CREA_NEW, (char *)NULL);
-		else {
-		    fcache_dump(d, FC_MOTD, (char *)NULL);
-		}
-		if (Builder(player)) {
-		    fcache_dump(d, FC_WIZMOTD, (char *)NULL);
-		}
-		free_lbuf(buff);
-	    }
-	    if (dc == 1) {
-	      if (Immortal(player)) {
-                buff = alloc_lbuf("connect_dark");
-                sprintf(buff, "%s", (char *)"scloak unfindable dark");
-                flag_set(player, player, buff, SET_MUFFLE);
-                free_lbuf(buff);
-	      }
-	      else if (Wizard(player)) {
-                buff = alloc_lbuf("connect_dark");
-                sprintf(buff, "%s", (char *)"unfindable dark");
-                flag_set(player, player, buff, SET_MUFFLE);
-                free_lbuf(buff);
-	      }
-	      if ((!Immortal(player) && !Wizard(player)) || (Wizard(player) && DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)))
-		dc = 0;
-	    } else if (dc == 2) { 
+            if (Guest(player)) {
+               fcache_dump(d, FC_CONN_GUEST, (char *)NULL);
+            } else {
+               buff = atr_get(player, A_LAST, &aowner, &aflags);
+               if ((buff == NULL) || (*buff == '\0')) {
+                  fcache_dump(d, FC_CREA_NEW, (char *)NULL);
+               } else {
+                  fcache_dump(d, FC_MOTD, (char *)NULL);
+               }
+               if (Builder(player)) {
+                  fcache_dump(d, FC_WIZMOTD, (char *)NULL);
+               }
+               free_lbuf(buff);
+            }
+            if (dc == 1) {
+               if (Immortal(player)) {
+                  buff = alloc_lbuf("connect_dark");
+                  sprintf(buff, "%s", (char *)"scloak unfindable dark");
+                  flag_set(player, player, buff, SET_MUFFLE);
+                  free_lbuf(buff);
+               } else if (Wizard(player)) {
+                  buff = alloc_lbuf("connect_dark");
+                  sprintf(buff, "%s", (char *)"unfindable dark");
+                  flag_set(player, player, buff, SET_MUFFLE);
+                  free_lbuf(buff);
+               }
+               if ( (!Immortal(player) && !Wizard(player)) || 
+                    (Wizard(player) && DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA))) {
+                  dc = 0;
+               }
+            } else if (dc == 2) { 
                if ( Wizard(player) || HasPriv(player, NOTHING, POWER_NOWHO, POWER5, NOTHING) ) {
                   s_Flags3(player, Flags3(player) | NOWHO);
                } else {
@@ -4240,7 +4287,7 @@ check_connect(DESC * d, const char *msg)
             mudstate.chkcpu_stopper = time(NULL);
             mudstate.chkcpu_toggle = 0;
             mudstate.chkcpu_locktog = 0;
-	    announce_connect(player, d, dc);
+            announce_connect(player, d, dc);
 
             if ( (Wizard(player) || God(player)) && (nplayers >= mudstate.max_logins_allowed) ) {
                buff = alloc_lbuf("warn_logins");
@@ -4251,280 +4298,275 @@ check_connect(DESC * d, const char *msg)
                raw_notify(player, "         You will have serious issues if this number is reached.", 0, 1);
                free_lbuf(buff);
             }
-	  } else if (!(mudconf.control_flags & CF_LOGIN)) {
-	    failconn("CON", "Connect", "Logins Disabled", d,
-		     R_GAMEDOWN, player, FC_CONN_DOWN,
-		     mudconf.downmotd_msg, command, user, password,
-		     cmdsave);
-	    RETURN(0); /* #146 */
-	  } else {
+         } else if (!(mudconf.control_flags & CF_LOGIN)) {
+            failconn("CON", "Connect", "Logins Disabled", d,
+                     R_GAMEDOWN, player, FC_CONN_DOWN,
+                     mudconf.downmotd_msg, command, user, password,
+                     cmdsave);
+            RETURN(0); /* #146 */
+         } else {
             if (nplayers >= mudstate.max_logins_allowed) {
-	       failconn("CON", "Connect", "No Free Descriptors", d,
-		        R_NODESCRIPTOR, player, FC_CONN_FULL,
-		        mudconf.fullmotd_msg, command, user, password,
-		        cmdsave);
-	       RETURN(0); /* #146 */
+               failconn("CON", "Connect", "No Free Descriptors", d,
+                        R_NODESCRIPTOR, player, FC_CONN_FULL,
+                        mudconf.fullmotd_msg, command, user, password,
+                        cmdsave);
+               RETURN(0); /* #146 */
             } else {
-	       failconn("CON", "Connect", "Game Full", d,
-		        R_GAMEFULL, player, FC_CONN_FULL,
-		        mudconf.fullmotd_msg, command, user, password,
-		        cmdsave);
-	       RETURN(0); /* #146 */
+               failconn("CON", "Connect", "Game Full", d,
+                        R_GAMEFULL, player, FC_CONN_FULL,
+                        mudconf.fullmotd_msg, command, user, password,
+                        cmdsave);
+               RETURN(0); /* #146 */
             }
-	  }
-	}
-    } else if (!strncmp(cchk, "cr", 2)) {
-
-	/* Enforce game down */
-
-	if (!(mudconf.control_flags & CF_LOGIN)) {
-	    failconn("CRE", "Create", "Logins Disabled", d,
-		     R_GAMEDOWN, NOTHING, FC_CONN_DOWN,
-		     mudconf.downmotd_msg, command, user, password,
-		     cmdsave);
-	    RETURN(0); /* #146 */
-	}
-
-	/* Enforce ceiling on creates */
-        if (mudconf.max_pcreate_lim != -1) {
-           if ( (mudstate.last_pcreate_cnt >= mudconf.max_pcreate_lim) &&
-                ((mudstate.last_pcreate_time + mudconf.max_pcreate_time) > mudstate.now) ) {
-              broadcast_monitor(NOTHING, (MF_SITE | MF_BFAIL), "FAIL (CREATE CEILING)", d->userid,
-                                d->addr, 0, 0, 0, user);
-              buff = alloc_mbuf("check_conn.LOG.badcrea");
-              if ( mudconf.pcreate_paranoia > 0 ) {
-                 sprintf(buff, "%.100s 255.255.255.255", inet_ntoa(d->address.sin_addr));
-                 if ( (mudconf.pcreate_paranoia == 1) && 
-                      !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
-                      !(d->host_info & H_REGISTRATION) ) {
-                    cf_site((int *)&mudstate.access_list, buff, 
-                            H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
-                    sprintf(buff, "(PCREATE) [%.100s] marked for autoregistration.  (Remote port %d)",
-                            inet_ntoa(d->address.sin_addr), ntohs(d->address.sin_port));
-                 } else if ( (mudconf.pcreate_paranoia == 2) &&
-                            !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
-                    cf_site((int *)&mudstate.access_list, buff, 
-                            H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
-                    sprintf(buff, "(PCREATE) [%.100s] marked for autoforbid.  (Remote port %d)",
-                            inet_ntoa(d->address.sin_addr), ntohs(d->address.sin_port));
-                 }
-                 broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("PCREATE-SITE AUTO-BLOCKED[%d attempts/%ds time]",
-                                   mudstate.last_pcreate_cnt,
-                                   (mudstate.now - mudstate.last_pcreate_time)),
-                                   d->userid, d->addr, 0, 0, 0, user);
-                 STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
-                 log_text(buff);
-                 ENDLOG
-              }
-              free_mbuf(buff);
-	      failconn("CRE", "Create", unsafe_tprintf("[%d/%ds] Max Create Reached", 
-                                                mudconf.max_pcreate_lim,
-                                                mudconf.max_pcreate_time),
-		       d, R_HACKER, NOTHING, FC_QUIT,
-		       (char *)NULL, command, user, password,
-		       cmdsave);
-              RETURN(0); /* #146 */
-           } else {
-              if ( (mudstate.last_pcreate_time + mudconf.max_pcreate_time) < mudstate.now ) {
-                 mudstate.last_pcreate_cnt = 0;
-              }
-              mudstate.last_pcreate_time = mudstate.now;
-           } 
-           mudstate.last_pcreate_cnt++;
-        }
-	/* Enforce max #players */
-
-        if (mudconf.max_players > mudstate.max_logins_allowed)
-           mudconf.max_players = mudstate.max_logins_allowed;
-	if (mudconf.max_players < 0) {
-            /* Sorry man, we need to do this */
-            nplayers = 0;
-	    DESC_ITER_CONN(d2)
-		nplayers++;
-            if ( nplayers > (mudstate.max_logins_allowed) )
-	       nplayers = mudconf.max_players - 1;
-	} else {
-	    nplayers = 0;
-	    DESC_ITER_CONN(d2)
-		nplayers++;
-	}
-        ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
-	if ((nplayers > mudconf.max_players) && (mudconf.max_players >= 0)) {
-
-	    /* Too many players on, reject the attempt */
-
-	    failconn("CRE", "Create", "Game Full", d,
-		     R_GAMEFULL, NOTHING, FC_CONN_FULL,
-		     mudconf.fullmotd_msg, command, user, password,
-		     cmdsave);
-	    RETURN(0); /* #146 */
-	}
-        if (nplayers >= mudstate.max_logins_allowed) {
-            /* More players than the OS can handle for descriptors */
-	    failconn("CRE", "Create", "No Free Descriptors", d,
-		     R_NODESCRIPTOR, NOTHING, FC_CONN_FULL,
-		     mudconf.fullmotd_msg, command, user, password,
-		     cmdsave);
-	    RETURN(0); /* #146 */
-        }
-	if (d->host_info & H_REGISTRATION) {
-            i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_REGISTRATION);
-            if ( i_sitemax == -1 ) {
-               tsite_buff = alloc_lbuf("register_check");
-               addroutbuf = (char *) addrout((d->address).sin_addr);
-               strcpy(tsite_buff, addroutbuf);
-               strcpy(tsite_buff, mudconf.register_host);
-               lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
-               free_lbuf(tsite_buff);
-            }
-            if ( i_sitemax != -1 ) {
-	       fcache_dump(d, FC_CREA_REG, (char *)"SITE_REGISTER");
-            } else {
-	       fcache_dump(d, FC_CREA_REG, (char *)NULL);
-            }
-	} else {
-	    player = create_player(user, password, NOTHING, 0);
-	    if (player == NOTHING) {
-                if ( !ok_password(password, NOTHING, 0) ) {
-                   queue_string(d, (char *)"Invalid password specified.\r\n");
-                   if ( mudconf.safer_passwords ) {
-                      queue_string(d, (char *)"Passwords must have 1 upper, 1 lower, and 1 non-alpha and be 5+ chars long.\r\n");
-                   }
-                } 
-		broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CREATE)", d->userid, 
-                                  d->addr, 0, 0, 0, user);
-		queue_string(d, create_fail);
-		STARTLOG(LOG_SECURITY | LOG_PCREATES, "CON", "BAD")
-		    buff = alloc_mbuf("check_conn.LOG.badcrea");
-		sprintf(buff,
-			"[%d/%s] Create of '%s' failed",
-			d->descriptor, d->addr, user);
-		log_text(buff);
-		free_mbuf(buff);
-		ENDLOG
-	    } else {
-		STARTLOG(LOG_LOGIN | LOG_PCREATES, "CON", "CREA")
-		    buff = alloc_mbuf("check_conn.LOG.create");
-		sprintf(buff, "[%d/%s] Created ",
-			d->descriptor, d->addr);
-		log_text(buff);
-		log_name(player);
-		free_mbuf(buff);
-		ENDLOG
-
-                mudstate.chkcpu_stopper = time(NULL);
-                mudstate.chkcpu_toggle = 0;
-                mudstate.chkcpu_locktog = 0;
-
-		move_object(player, mudconf.start_room);
-		d->flags |= DS_CONNECTED;
-		d->connected_at = time(0);
-		d->player = player;
-		fcache_dump(d, FC_CREA_NEW, (char *)NULL);
-		announce_connect(player, d, 0);
-                /* Trigger the hook for player creation */
-                if ( Good_chk(mudconf.hook_obj) ) {
-                   cmdp = lookup_command((char *)"@pcreate");
-                   if ( (cmdp->hookmask & HOOK_AFTER) ) {
-                      s_uselock = alloc_sbuf("offline_create");
-                      sprintf(s_uselock, "%s", (char *)"AO_@PCREATE");
-                      hk_ap2 = atr_str(s_uselock);
-                      chk_stop = mudstate.chkcpu_stopper;
-                      chk_tog  = mudstate.chkcpu_toggle;
-                      mudstate.chkcpu_stopper = time(NULL);
-                      mudstate.chkcpu_toggle = 0;
-                      mudstate.chkcpu_locktog = 0;
-                      process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
-                      mudstate.chkcpu_toggle = chk_tog;
-                      mudstate.chkcpu_stopper = chk_stop;
-                      free_sbuf(s_uselock);
-                   }
-                }
-	    }
-	}
-    } else if (mudconf.offline_reg && !strncmp(cchk, "reg", 3)) {
-      if (d->host_info & H_NOAUTOREG) {
-	buff3 = alloc_lbuf("reg.fail");
-	queue_string(d, "Permission denied.\r\n");
-	process_output(d);
-	strcpy(buff3,user);
-	strcat(buff3,"/");
-	strcat(buff3,password);
-	broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL (NoAutoReg)", d->userid, d->addr, d->descriptor, 0, 0, buff3);
-	free_lbuf(buff3);
+         }
       }
-      else if (d->regtries_left <= 0) {
-	buff3 = alloc_lbuf("reg.fail");
-	queue_string(d, "Registration limit reached.\r\n");
-	process_output(d);
-	strcpy(buff3,user);
-	strcat(buff3,"/");
-	strcat(buff3,password);
-	broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL LIMIT", d->userid, d->addr, d->descriptor, 0, 0, buff3);
-	free_lbuf(buff3);
+   } else if (!strncmp(cchk, "cr", 2)) {
+      /* Enforce game down */
+      if (!(mudconf.control_flags & CF_LOGIN)) {
+         failconn("CRE", "Create", "Logins Disabled", d,
+                  R_GAMEDOWN, NOTHING, FC_CONN_DOWN,
+                  mudconf.downmotd_msg, command, user, password,
+                  cmdsave);
+         RETURN(0); /* #146 */
       }
-      else {
-        switch (reg_internal(user, password, (char *)d, 0, NULL)) {
-	  case 0:
-	    (d->regtries_left)--;
-	    queue_string(d, "Autoregistration password emailed.\r\n");
-            victim = lookup_player(GOD, user, 1);
-            if ( Good_chk(mudconf.hook_obj) && Good_chk(victim) ) {
-               cmdp = lookup_command((char *)"@register");
+
+      /* Enforce ceiling on creates */
+      if (mudconf.max_pcreate_lim != -1) {
+         if ( (mudstate.last_pcreate_cnt >= mudconf.max_pcreate_lim) &&
+              ((mudstate.last_pcreate_time + mudconf.max_pcreate_time) > mudstate.now) ) {
+            broadcast_monitor(NOTHING, (MF_SITE | MF_BFAIL), "FAIL (CREATE CEILING)", d->userid,
+                              d->addr, 0, 0, 0, user);
+            buff = alloc_mbuf("check_conn.LOG.badcrea");
+            if ( mudconf.pcreate_paranoia > 0 ) {
+               sprintf(buff, "%.100s 255.255.255.255", inet_ntoa(d->address.sin_addr));
+               if ( (mudconf.pcreate_paranoia == 1) && 
+                    !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
+                    !(d->host_info & H_REGISTRATION) ) {
+                  cf_site((int *)&mudstate.access_list, buff, 
+                          H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
+                  sprintf(buff, "(PCREATE) [%.100s] marked for autoregistration.  (Remote port %d)",
+                          inet_ntoa(d->address.sin_addr), ntohs(d->address.sin_port));
+               } else if ( (mudconf.pcreate_paranoia == 2) &&
+                           !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                  cf_site((int *)&mudstate.access_list, buff, 
+                           H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
+                  sprintf(buff, "(PCREATE) [%.100s] marked for autoforbid.  (Remote port %d)",
+                          inet_ntoa(d->address.sin_addr), ntohs(d->address.sin_port));
+               }
+               broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("PCREATE-SITE AUTO-BLOCKED[%d attempts/%ds time]",
+                                 mudstate.last_pcreate_cnt,
+                                 (mudstate.now - mudstate.last_pcreate_time)),
+                                 d->userid, d->addr, 0, 0, 0, user);
+               STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
+                  log_text(buff);
+               ENDLOG
+            }
+            free_mbuf(buff);
+            failconn("CRE", "Create", unsafe_tprintf("[%d/%ds] Max Create Reached", mudconf.max_pcreate_lim, mudconf.max_pcreate_time),
+		     d, R_HACKER, NOTHING, FC_QUIT,
+		     (char *)NULL, command, user, password,
+		     cmdsave);
+            RETURN(0); /* #146 */
+         } else {
+            if ( (mudstate.last_pcreate_time + mudconf.max_pcreate_time) < mudstate.now ) {
+               mudstate.last_pcreate_cnt = 0;
+            }
+            mudstate.last_pcreate_time = mudstate.now;
+         } 
+         mudstate.last_pcreate_cnt++;
+      }
+      /* Enforce max #players */
+      if (mudconf.max_players > mudstate.max_logins_allowed)
+         mudconf.max_players = mudstate.max_logins_allowed;
+      if (mudconf.max_players < 0) {
+         /* Sorry man, we need to do this */
+         nplayers = 0;
+         DESC_ITER_CONN(d2) {
+            nplayers++;
+         }
+         if ( nplayers > (mudstate.max_logins_allowed) ) {
+            nplayers = mudconf.max_players - 1;
+         }
+      } else {
+         nplayers = 0;
+         DESC_ITER_CONN(d2) {
+            nplayers++;
+         }
+      }
+      ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
+      if ((nplayers > mudconf.max_players) && (mudconf.max_players >= 0)) {
+         /* Too many players on, reject the attempt */
+         failconn("CRE", "Create", "Game Full", d,
+                  R_GAMEFULL, NOTHING, FC_CONN_FULL,
+                  mudconf.fullmotd_msg, command, user, password,
+                  cmdsave);
+         RETURN(0); /* #146 */
+      }
+      if (nplayers >= mudstate.max_logins_allowed) {
+         /* More players than the OS can handle for descriptors */
+         failconn("CRE", "Create", "No Free Descriptors", d,
+                  R_NODESCRIPTOR, NOTHING, FC_CONN_FULL,
+                  mudconf.fullmotd_msg, command, user, password,
+                  cmdsave);
+         RETURN(0); /* #146 */
+      }
+      if (d->host_info & H_REGISTRATION) {
+         i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_REGISTRATION);
+         if ( i_sitemax == -1 ) {
+            tsite_buff = alloc_lbuf("register_check");
+            addroutbuf = (char *) addrout((d->address).sin_addr);
+            strcpy(tsite_buff, addroutbuf);
+            strcpy(tsite_buff, mudconf.register_host);
+            lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
+            free_lbuf(tsite_buff);
+         }
+         if ( i_sitemax != -1 ) {
+            fcache_dump(d, FC_CREA_REG, (char *)"SITE_REGISTER");
+         } else {
+            fcache_dump(d, FC_CREA_REG, (char *)NULL);
+         }
+      } else {
+         player = create_player(user, password, NOTHING, 0);
+         if (player == NOTHING) {
+            if ( !ok_password(password, NOTHING, 0) ) {
+               queue_string(d, (char *)"Invalid password specified.\r\n");
+               if ( mudconf.safer_passwords ) {
+                  queue_string(d, (char *)"Passwords must have 1 upper, 1 lower, and 1 non-alpha and be 5+ chars long.\r\n");
+               }
+            } 
+            broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CREATE)", d->userid, 
+                              d->addr, 0, 0, 0, user);
+            queue_string(d, create_fail);
+            STARTLOG(LOG_SECURITY | LOG_PCREATES, "CON", "BAD")
+               buff = alloc_mbuf("check_conn.LOG.badcrea");
+               sprintf(buff, "[%d/%s] Create of '%s' failed",
+                       d->descriptor, d->addr, user);
+               log_text(buff);
+               free_mbuf(buff);
+            ENDLOG
+         } else {
+            STARTLOG(LOG_LOGIN | LOG_PCREATES, "CON", "CREA")
+               buff = alloc_mbuf("check_conn.LOG.create");
+               sprintf(buff, "[%d/%s] Created ", d->descriptor, d->addr);
+               log_text(buff);
+               log_name(player);
+               free_mbuf(buff);
+            ENDLOG
+
+            mudstate.chkcpu_stopper = time(NULL);
+            mudstate.chkcpu_toggle = 0;
+            mudstate.chkcpu_locktog = 0;
+
+            move_object(player, mudconf.start_room);
+            d->flags |= DS_CONNECTED;
+            d->connected_at = time(0);
+            d->player = player;
+            fcache_dump(d, FC_CREA_NEW, (char *)NULL);
+            announce_connect(player, d, 0);
+
+            /* Trigger the hook for player creation */
+            if ( Good_chk(mudconf.hook_obj) ) {
+               cmdp = lookup_command((char *)"@pcreate");
                if ( (cmdp->hookmask & HOOK_AFTER) ) {
-                  s_uselock = alloc_sbuf("offline_register");
-                  sprintf(s_uselock, "%s", (char *)"AO_@REGISTER");
+                  s_uselock = alloc_sbuf("offline_create");
+                  sprintf(s_uselock, "%s", (char *)"AO_@PCREATE");
                   hk_ap2 = atr_str(s_uselock);
                   chk_stop = mudstate.chkcpu_stopper;
                   chk_tog  = mudstate.chkcpu_toggle;
                   mudstate.chkcpu_stopper = time(NULL);
                   mudstate.chkcpu_toggle = 0;
                   mudstate.chkcpu_locktog = 0;
-                  process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
+                  process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
                   mudstate.chkcpu_toggle = chk_tog;
                   mudstate.chkcpu_stopper = chk_stop;
                   free_sbuf(s_uselock);
                }
             }
-	    break;
-	  case 1:
-	    queue_string(d, "Autoregistration character invalid or already exists.\r\n");
-	    break;
-	  case 2:
-	    queue_string(d, "Email of password failed.\r\n");
-	    break;
-	  case 3:
-	    queue_string(d, "Space in email address.\r\n");
-	    break;
-	  case 4:
-	    queue_string(d, "Permission denied.\r\n");
-	    break;
-          case 5:
-            queue_string(d, "Invalid email specified.\r\n");
-            break;
-          case 6:
-            queue_string(d, "That email address is not allowed.\r\n");
-            break;
-          case 7:
-            queue_string(d, "Invalid character detected in email.\r\n");
-            break;
-        }
+         }
       }
-    } else {
-        if ( !softcode_trigger(d, msg) )
-	   welcome_user(d);
-        if ( Good_obj(d->player) && !TogHideIdle(d->player) )
-	   d->command_count++;
-    }
-    free_mbuf(command);
-    free_mbuf(user);
-    free_mbuf(password);
-    if (!comptest) {
-	mudstate.guest_num++;
-	mudstate.guest_status |= bittemp;
-    }
-    mudstate.debug_cmd = cmdsave;
-    RETURN(1); /* #146 */
+   } else if (mudconf.offline_reg && !strncmp(cchk, "reg", 3)) {
+      if (d->host_info & H_NOAUTOREG) {
+         buff3 = alloc_lbuf("reg.fail");
+         queue_string(d, "Permission denied.\r\n");
+         process_output(d);
+         strcpy(buff3,user);
+         strcat(buff3,"/");
+         strcat(buff3,password);
+         broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL (NoAutoReg)", d->userid, d->addr, d->descriptor, 0, 0, buff3);
+         free_lbuf(buff3);
+      } else if (d->regtries_left <= 0) {
+         buff3 = alloc_lbuf("reg.fail");
+         queue_string(d, "Registration limit reached.\r\n");
+         process_output(d);
+         strcpy(buff3,user);
+         strcat(buff3,"/");
+         strcat(buff3,password);
+         broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL LIMIT", d->userid, d->addr, d->descriptor, 0, 0, buff3);
+         free_lbuf(buff3);
+      } else {
+         switch (reg_internal(user, password, (char *)d, 0, NULL)) {
+            case 0: /* Success -- Email out */
+               (d->regtries_left)--;
+               queue_string(d, "Autoregistration password emailed.\r\n");
+               victim = lookup_player(GOD, user, 1);
+               if ( Good_chk(mudconf.hook_obj) && Good_chk(victim) ) {
+                  cmdp = lookup_command((char *)"@register");
+                  if ( (cmdp->hookmask & HOOK_AFTER) ) {
+                     s_uselock = alloc_sbuf("offline_register");
+                     sprintf(s_uselock, "%s", (char *)"AO_@REGISTER");
+                     hk_ap2 = atr_str(s_uselock);
+                     chk_stop = mudstate.chkcpu_stopper;
+                     chk_tog  = mudstate.chkcpu_toggle;
+                     mudstate.chkcpu_stopper = time(NULL);
+                     mudstate.chkcpu_toggle = 0;
+                     mudstate.chkcpu_locktog = 0;
+                     process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
+                     mudstate.chkcpu_toggle = chk_tog;
+                     mudstate.chkcpu_stopper = chk_stop;
+                     free_sbuf(s_uselock);
+                  }
+               }
+               break;
+            case 1: /* Invalid character name or name exists already */
+               queue_string(d, "Autoregistration character invalid or already exists.\r\n");
+               break;
+            case 2: /* Failing in emailing the password to player */
+               queue_string(d, "Email of password failed.\r\n");
+               break;
+            case 3: /* Invalid email address due to white space */
+               queue_string(d, "Space in email address.\r\n");
+               break;
+            case 4: /* No permission to register */
+               queue_string(d, "Permission denied.\r\n");
+               break;
+            case 5: /* Invalid email address */
+               queue_string(d, "Invalid email specified.\r\n");
+               break;
+            case 6: /* Email is not allowed due to matching config disallowing email addy */
+               queue_string(d, "That email address is not allowed.\r\n");
+               break;
+            case 7: /* Invalid character(s) in email address */
+               queue_string(d, "Invalid character detected in email.\r\n");
+               break;
+         }
+      }
+   } else {
+      if ( !softcode_trigger(d, msg) ) {
+         welcome_user(d);
+      }
+      if ( Good_obj(d->player) && !TogHideIdle(d->player) ) {
+         d->command_count++;
+      }
+   }
+   free_mbuf(command);
+   free_mbuf(user);
+   free_mbuf(password);
+   if (!comptest) {
+      mudstate.guest_num++;
+      mudstate.guest_status |= bittemp;
+   }
+   mudstate.debug_cmd = cmdsave;
+   RETURN(1); /* #146 */
 }
 
 extern int igcheck(dbref, int);

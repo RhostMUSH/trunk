@@ -271,7 +271,7 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
              strcpy(sarray[0], inet_ntoa(host));
              strcpy(sarray[1], sarray[0]);
              sprintf(sarray[2], "%d", fd);
-             sprintf(sarray[3], "%d", NOTHING);
+             sprintf(sarray[3], "#%d", NOTHING);
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
                             EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
@@ -381,10 +381,10 @@ fcache_dump(DESC * d, int num, char *s_site)
              strcpy(sarray[0], inet_ntoa(d->address.sin_addr));
              strcpy(sarray[1], d->addr);
              sprintf(sarray[2], "%d", d->descriptor);
-             if ( d->player == 0 )
-                sprintf(sarray[3], "%d", NOTHING);
+             if ( d->player <= 0 )
+                sprintf(sarray[3], "#%d", NOTHING);
              else
-                sprintf(sarray[3], "%d", d->player);
+                sprintf(sarray[3], "#%d", d->player);
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
                             EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);

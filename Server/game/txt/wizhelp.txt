@@ -6606,11 +6606,13 @@
   to the player who reaches that maximum.   This is only relevant when you 
   use the 'max' option to any site restrictions.
    
-    ATTRIBUTE     PERMISSION      FUNCTION
-    ------------- --------------- -------------------------------------------
-    site_noguest  NO_GUEST        Shown to player who hits max guests
-    site_register REGISTER        Shown to player who hits max registers
-    site_forbid   FORBID          Shown to player who hits max forbids
+    ATTRIBUTE       PERMISSION      FUNCTION
+    -------------   --------------- ------------------------------------------
+    site_noguest    NO_GUEST        Shown to player who hits max guests
+    site_register   REGISTER        Shown to player who hits max registers
+    site_forbid     FORBID          Shown to player who hits max forbids
+    site_noconnect  NOCONNECT       Shown to player set NO_CONNECT
+    site_nopossess  NOPOSSESS       Shown to player set NO_POSSESS
   
   An empty evaluated attribute or a missing attribute will call the default
   txt file instead of the evaluation.  The following arguments are passed
@@ -6618,7 +6620,7 @@
     %0 -- The numerical site host of the incomming connection.
     %1 -- The dns host entry (if availabe, else ip) of incoming connection.
     %2 -- The port that they're connected to on the mush
-    %3 -- The player dbref#, if connected, otherwise shows '-1'.
+    %3 -- The player dbref#, if connected, otherwise shows '#-1'.
   
   All ansi and such will process normally.
   
