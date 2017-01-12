@@ -16063,20 +16063,31 @@ FUNCTION(fun_shift)
  */
 FUNCTION(fun_subeval)
 {
-    char *tbuf, *tbuf2;
+    char *tbuf, *tbuf2, *tbuf3;
     dbref thing, aowner;
-    int aflags, free_buffer;
+    int aflags, free_buffer, i_doubleeval;
     ATTR *attr;
     struct boolexp *okey;
 
-    if (!fn_range_check("SUBEVAL", nfargs, 1, 2, buff, bufcx)) {
+    if (!fn_range_check("SUBEVAL", nfargs, 1, 3, buff, bufcx)) {
        return;
     }
 
-    if ( nfargs == 1 ) {
+    i_doubleeval = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_doubleeval = (atoi(fargs[2]) ? 1 : 0);
+    }
+    if ( (nfargs == 1) || ((nfargs == 3) && !*fargs[1]) ) {
        tbuf = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, fargs[0],
                    cargs, ncargs, (char **)NULL, 0);
-       safe_str(tbuf, buff, bufcx);
+       if ( i_doubleeval ) {
+          tbuf2 = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, tbuf,
+                      cargs, ncargs, (char **)NULL, 0);
+          safe_str(tbuf2, buff, bufcx);
+          free_lbuf(tbuf2);
+       } else {
+          safe_str(tbuf, buff, bufcx);
+       }
        free_lbuf(tbuf);
     } else {
        tbuf = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], 
@@ -16129,7 +16140,14 @@ FUNCTION(fun_subeval)
     if ( check_read_perms(player, thing, attr, aowner, aflags, buff, bufcx) ) {
        tbuf2 = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, tbuf,
                     cargs, ncargs, (char **)NULL, 0);
-       safe_str(tbuf2, buff, bufcx);
+       if ( i_doubleeval ) {
+          tbuf3 = exec(player, cause, caller, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, tbuf2,
+                       cargs, ncargs, (char **)NULL, 0);
+          safe_str(tbuf3, buff, bufcx);
+          free_lbuf(tbuf3);
+       } else {
+          safe_str(tbuf2, buff, bufcx);
+       }
        free_lbuf(tbuf2);
     }
     if (free_buffer) {

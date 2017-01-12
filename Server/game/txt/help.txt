@@ -13366,7 +13366,7 @@
   
 & SUBEVAL()
   Function: subeval(<string>)
-            subeval(<thing>, <attribute>)
+            subeval(<thing>, <attribute> [,<key>])
   
   This function will evaluate <string> by parsing all substitutions but will 
   not evaluate functions, built in or otherwise.
@@ -13375,6 +13375,21 @@
   substitutions but not evaluating any functions, built in or otherwise.
   
   You must be able to control <thing> to fetch the attribute.
+  
+  You may specify an optional <key> of 1 to force a double-parse of 
+  substitutions.
+  
+  Example:
+    > @va me=[add(1,1)] %# %n %%#
+    Set
+    > say [subeval(%# %N %%# [sub(1,1)])]
+    You say "#123 Tester %# [sub(1,1)]"
+    > say [subeval(%# %N %%# [sub(1,1)],,1)]
+    You say "#123 Tester #123 [sub(1,1)]"
+    > say [subeval(me,va)]
+    You say "[add(1,1)] #123 Tester %#"
+    > say [subeval(me,va,1)]
+    You say "[add(1,1)] #123 Tester #123"
   
   See Also: s(), eval(), sandbox(), ueval()
 
@@ -30680,6 +30695,7 @@
     last match first.
   * colors have a (n)ame option to display name of the ansi arg [ASH]
   * alternate date formats for convtime() [ASH]
+  * optional double eval for subeval (safe as it doesn't do functs) [ASH]
   
   Bug Fixes
   ------------
