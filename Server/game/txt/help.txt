@@ -13365,7 +13365,7 @@
   See Also: add(), div(), mod(), mul()
   
 & SUBEVAL()
-  Function: subeval(<string>)
+  Function: subeval(<string> [,,<key>])
             subeval(<thing>, <attribute> [,<key>])
   
   This function will evaluate <string> by parsing all substitutions but will 
@@ -13376,8 +13376,8 @@
   
   You must be able to control <thing> to fetch the attribute.
   
-  You may specify an optional <key> of 1 to force a double-parse of 
-  substitutions.
+  You may specify an optional <key> in both forms of 1 to force a double-parse
+  of substitutions.
   
   Example:
     > @va me=[add(1,1)] %# %n %%#
