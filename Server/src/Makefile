@@ -1,4 +1,4 @@
-# Makefile for RhostMUSH V:3.9.5p2
+# Makefile for RhostMUSH V:4.0.0p0
 # Pre-defined and built with the make config builder script
 #
 # Search for the text 'CONFIGURATION SECTION' and make any changes needed

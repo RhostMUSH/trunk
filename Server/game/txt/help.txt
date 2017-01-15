@@ -28396,7 +28396,7 @@
   The current Lead Developer (which we change up) is marked with a '*'.
   Developers who are MIA or retired are surrounded in []'s.
    
-  Current Revision: 3.9.5p4
+  Current Revision: 4.0.0p0
 
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
@@ -28413,6 +28413,7 @@
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
+    4.0.0: 4.0.0p0
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -30715,3 +30716,17 @@
   * @hook didn't case desensitize commands passed to it [ASH]
   * MAX on noguest didn't actually check guests connected when it should [ASH]
   * nested /NOTRACE on @function/@lfunction didn't work [ASH]
+
+& 4.0.0p0
+  Release Date: 01/15/17
+  Status: Alpha
+  
+  New Features
+  ------------
+
+  Changes
+  ------------
+
+  Bug Fixes
+  ------------
+
