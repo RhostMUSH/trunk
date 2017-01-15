@@ -272,7 +272,7 @@
     #define SAFE_CHRST3	"%m"
   #else
     #define SAFE_CHR2 'm'
-    #define SAFE_CHRST3	"%m"
+    #define SAFE_CHRST2	"%m"
   #endif
 #else
 #define SAFE_CHR 'm'
