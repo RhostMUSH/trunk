@@ -9436,7 +9436,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
    char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[LBUF_SIZE], *tpr_buff, *tprp_buff;
    DESC *d;
 #ifdef ZENTY_ANSI
-   char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+   char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
 #endif
 
    if (!*name || !name) {
@@ -9508,10 +9508,12 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 #ifdef ZENTY_ANSI
               s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
               s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-              parse_ansi((char *) strprompt, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+              s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+              parse_ansi((char *) strprompt, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
               free_lbuf(s_buff);
               free_lbuf(s_buff2);
+              free_lbuf(s_buff3);
 #else
               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, strprompt, ANSI_NORMAL));
 #endif
@@ -11818,7 +11820,7 @@ do_progreset(dbref player, dbref cause, int key, char *name)
    char *buff = NULL, *tpr_buff, *tprp_buff;
    int i_buff = 0;
 #ifdef ZENTY_ANSI
-   char *s_buff, *s_buff2, *s_buffptr, *s_buff2ptr;
+   char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
 #endif
 
    if ( !name && !*name ) {
@@ -11866,10 +11868,12 @@ do_progreset(dbref player, dbref cause, int key, char *name)
 #ifdef ZENTY_ANSI
               s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
               s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
-              parse_ansi((char *) buff, s_buff, &s_buffptr, s_buff2, &s_buff2ptr);
+              s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
+              parse_ansi((char *) buff, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, s_buff, ANSI_NORMAL));
               free_lbuf(s_buff);
               free_lbuf(s_buff2);
+              free_lbuf(s_buff3);
 #else
               queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, buff, ANSI_NORMAL));
 #endif

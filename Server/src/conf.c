@@ -767,6 +767,8 @@ NDECL(cf_init)
     mudstate.nameofqreg[10]='\0';
 #endif
     mudstate.emit_substitute = 0; /* Toggle @emit/substitute */
+    mudconf.allow_fancy_quotes = 0;  /* Allow UTF-8 double quote characters */
+    mudconf.allow_fullwidth_colon = 0; /* Allow UTF-8 fullwidth colon character */
 #else
     mudconf.paylimit = 10000;
     mudconf.digcost = 10;
@@ -5051,6 +5053,14 @@ CONF conftable[] =
      (char *) "Default object TX level.\r\n"\
               "                             Default: 1   Value: %d"},
 #endif /* REALITY_LEVELS */
+    {(char *)"allow_fancy_quotes",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_fancy_quotes, 0, 0, CA_WIZARD,
+     (char *) "Allow UTF-8 encoded double quotes.\r\n"\
+              "                             Default: 0   Value: %d"},
+    {(char *)"allow_fullwidth_colon",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_fullwidth_colon, 0, 0, CA_WIZARD,
+              "Allow UTF-8 encoded full width colon character.\r\n"\
+              "                             Default: 0   Value: %d"},
     {NULL,
      NULL, 0, NULL, 0}};
 

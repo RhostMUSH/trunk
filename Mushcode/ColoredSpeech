@@ -33,11 +33,11 @@
 @@ Create hook object with default hooks and trigger attribute to add @hooks.
 @@
 @create Hook Handler=10
-&I_SAY Hook Handler=0
-&I_POSE Hook Handler=0
-&I_@EMIT Hook Handler=0
+&I_SAY Hook Handler=[not(hastype(%#,PLAYER))]
+&I_POSE Hook Handler=[not(hastype(%#,PLAYER))]
+&I_@EMIT Hook Handler=[not(hastype(%#,PLAYER))]
 &TRIG_HOOKS Hook Handler=@hook/ignore say;@hook/ignore S;@hook/ignore pose;@hook/ignore P;@hook/ignore @emit;@hook/ignore E
 
 @@ Trigger the hooks and add the hook object, or provide directions needed to setup on existing hook object.
 @@
-@ifelse [match(config(hook_obj),-1)]={@admin hook_obj=[setr(0,num(Hook Handler))];@trig %q0/TRIG_HOOKS},{think You already have a hook handler setup. You will need to copy the I_SAY, I_POSE, and I_@EMIT attributes from [setr(1,num(Hook Handler))] to your hook object and trigger the TRIG_HOOKS attribute on %q1.}
+@ifelse [match(config(hook_obj),-1)]={@admin hook_obj=[mid(setr(0,num(Hook Handler)),1,strlen(%q0))];@trig %q0/TRIG_HOOKS},{think You already have a hook handler setup. You will need to copy the I_SAY, I_POSE, and I_@EMIT attributes from [setr(1,num(Hook Handler))] to your hook object and trigger the TRIG_HOOKS attribute on %q1.}
