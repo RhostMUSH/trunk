@@ -38,20 +38,25 @@ else
    then
       gl_extra="-b rhost-3.9.5"
       gl_label="Rhost 3.9"
+      gl_test=$(git clone --single-branch 2>&1|grep -c unknown)
+      if [ "${gl_test}" = "1" ]
+      then
+         gl_addon="--single-branch"
+      fi
    fi
    echo "Hum.  No source files.  I'll tell git to yoink the source files for you then."
    echo "downloading ${gl_label}..."|tr -d '\012'
-   git clone ${gl_extra} https://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+   git clone ${gl_extra} ${gl_addon} https://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
    if [ $? -ne 0 ]
    then
       echo "error."
       echo "Ugh.  Https failed, let's try normal http...."|tr -d '\012'
-      git clone ${gl_extra} http://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+      git clone ${gl_extra} ${gl_addon} http://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
       if [ $? -ne 0 ]
       then
          echo "error"
          echo "Double ugh.  Http failed, too.  Let's try the full git itself..."|tr -d '\012'
-         git clone ${gl_extra} git://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
+         git clone ${gl_extra} ${gl_addon} git://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
          if [ $? -ne 0 ]
          then
             echo "error."
