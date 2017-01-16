@@ -3928,7 +3928,7 @@ check_connect(DESC * d, const char *msg)
    int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest,
        ok_to_login, i_sitemax, chk_stop, chk_tog, postestcnt, i_atr;
 #ifdef ZENTY_ANSI
-   char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr;
+   char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
 #endif
    dbref player, aowner, player2, victim;
    DESC *d2, *d3;
@@ -4272,7 +4272,7 @@ check_connect(DESC * d, const char *msg)
 #ifdef ZENTY_ANSI
                      lbuf1ptr = lbuf1 = alloc_lbuf("noconnect_ansi1");
                      lbuf2ptr = lbuf2 = alloc_lbuf("noconnect_ansi2");
-                     parse_ansi(buff3, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr);
+                     parse_ansi(buff3, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
                      queue_write(d, lbuf1, strlen(lbuf1));
                      queue_string(d, "\r\n");
                      free_lbuf(lbuf1);
