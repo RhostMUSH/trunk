@@ -282,14 +282,34 @@ const char *string_match(const char *src, const char *sub)
  * (mitch 1 feb 91)
  */
 
+int compare_ansibits(ANSISPLIT *sp1, ANSISPLIT *sp2, int len)
+{
+   ANSISPLIT *p1, *p2;
+   int i_count;
+
+   p1 = sp1;
+   p2 = sp2;
+   i_count = 0;
+   while ( p1 && p2 && (i_count < len)) {
+      i_count++;
+      if ( (p1->i_ascii8 != p2->i_ascii8) ||
+           (p1->i_utf8 != p2->i_utf8) ) {
+         return 0;
+      }
+      p1++;
+      p2++;
+   }
+   return 1;
+}
+
 #ifndef STANDALONE
 char *replace_string_ansi(const char *s_old, const char *new, 
                           const char *string, int i_value, int i_flag)
 {
    char	*i, *r, *s, *outbuff, *outbuff2, *inbuff, *result, *old;
    int	olen, i_once, i_count, i_olen;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
-             insplit[LBUF_SIZE], *p_ip, *p_sptmp;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2, *p_old,
+             insplit[LBUF_SIZE], oldsplit[LBUF_SIZE], *p_ip, *p_sptmp;
 
    if (string == NULL) 
       return NULL;
@@ -297,6 +317,7 @@ char *replace_string_ansi(const char *s_old, const char *new,
    initialize_ansisplitter(outsplit, LBUF_SIZE);
    initialize_ansisplitter(outsplit2, LBUF_SIZE);
    initialize_ansisplitter(insplit, LBUF_SIZE);
+   initialize_ansisplitter(oldsplit, LBUF_SIZE);
    outbuff = alloc_lbuf("replace_string_ansi");
    outbuff2 = alloc_lbuf("replace_string_ansi2");
    inbuff = alloc_lbuf("replace_string_ansi3");
@@ -307,18 +328,21 @@ char *replace_string_ansi(const char *s_old, const char *new,
    memset(old, '\0', LBUF_SIZE);
    split_ansi(strip_ansi(string), outbuff, outsplit);
    split_ansi(strip_ansi(new), inbuff, insplit);
+   split_ansi(strip_ansi(s_old), old, oldsplit);
 
 
    s = (char *)outbuff;
    r = (char *)outbuff2;
-   strcpy(old, strip_all_ansi(s_old));
    p_sp = outsplit;
    p_sp2 = outsplit2;
+   p_old = oldsplit;
    olen = strlen(old);
    i_once = i_count = 0;
 
    while (*s && (i_count < (LBUF_SIZE - 20)) ) { /* Copy up to the next occurrence of the first char of OLD */
-      while (*s && (*s!=*old) && (i_count < (LBUF_SIZE - 20)) ) {
+      while (*s && (*s!=*old) && 
+             (!(p_sp->i_ascii8) || (p_sp->i_ascii8 != p_old->i_ascii8)) &&
+             (!(p_sp->i_utf8) || (p_sp->i_utf8 != p_old->i_utf8)) && (i_count < (LBUF_SIZE - 20)) ) {
          *r++ = *s++;         
          clone_ansisplitter(p_sp2, p_sp);
          p_sp++;
@@ -331,7 +355,7 @@ char *replace_string_ansi(const char *s_old, const char *new,
        * Otherwise, copy the char and try again.
        */
       if (*s && (i_count < (LBUF_SIZE - 20) )) {
-         if (!i_once && !strncmp(old, s, olen)) {
+         if (!i_once && !strncmp(old, s, olen) && compare_ansibits(p_old, p_sp, olen)) {
             i = (char *)inbuff;
             p_ip = insplit;
             p_sptmp = p_sp;
@@ -1102,17 +1126,19 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
       if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') &&
             *(s_inptr+3) && *(s_inptr+4) && 
             ((*(s_inptr+5) == '>') || (*(s_inptr+5) && *(s_inptr+6) && (*(s_inptr+7) == '>'))) ) {
-         *s_outptr = '?';
-         s_inptr+=3;
-         memset(buf_utf8, '\0', 10);
-         utfcnt = 0;
-         while (utfcnt < 6 && *s_inptr != '>') {
+        *s_outptr = '?';
+        s_inptr+=3;
+        memset(buf_utf8, '\0', 10);
+        utfcnt = 0;
+
+        while (utfcnt < 6 && *s_inptr != '>') {
             buf_utf8[utfcnt] = *s_inptr;
             utfcnt++;
             s_inptr++;
-         }
-         s_ptr->i_utf8 = strtol(buf_utf8, NULL, 16);
-         s_ptr->i_ascii8 = 0;
+        }
+                
+        s_ptr->i_utf8 = strtol(buf_utf8, NULL, 16);
+        s_ptr->i_ascii8 = 0;
       } else if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && isdigit(*(s_inptr+2)) &&
            isdigit(*(s_inptr+3)) && isdigit(*(s_inptr+4)) && (*(s_inptr+5) == '>') ) {
          *s_outptr = '?';
