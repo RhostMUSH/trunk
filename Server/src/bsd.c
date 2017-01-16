@@ -2112,8 +2112,6 @@ process_input(DESC * d)
             while (*qf) {
                 *p++ = *qf++;
             }
-        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != '\0') ) {
-            q++;
         } else if ( (((int)(unsigned char)*q) > 160) && 
                     ((!mudconf.accent_extend && ((int)(unsigned char)*q) < 250) || (mudconf.accent_extend && ((int)(unsigned char)*q) < 256)) && 
                     ((p+10) < pend) ) {
@@ -2126,8 +2124,9 @@ process_input(DESC * d)
                   *p++ = *qf++;
                }
              }
+        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != '\0') ) {
+            q++;
 	} else {
-
 	    in--;
 	    if (p >= pend)
 		lost++;
