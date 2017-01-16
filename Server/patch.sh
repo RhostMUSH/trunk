@@ -33,24 +33,25 @@ else
       echo "Oopse!  You do not have git installed.  You need that to use patch.sh.  Sorry!"
       exit 1
    fi
-   gl_repo=trunk
+   gl_label="Rhost 4.0+"
    if [ "$1" = "39" ]
    then
-      gl_repo=Rhost-3.9
+      gl_extra="-b rhost-3.9.5"
+      gl_label="Rhost 3.9"
    fi
    echo "Hum.  No source files.  I'll tell git to yoink the source files for you then."
-   echo "downloading..."|tr -d '\012'
-   git clone https://github.com/RhostMUSH/${gl_repo} rhost_tmp > /dev/null 2>&1
+   echo "downloading ${gl_label}..."|tr -d '\012'
+   git clone ${gl_extra} https://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
    if [ $? -ne 0 ]
    then
       echo "error."
       echo "Ugh.  Https failed, let's try normal http...."|tr -d '\012'
-      git clone http://github.com/RhostMUSH/${gl_repo} rhost_tmp > /dev/null 2>&1
+      git clone ${gl_extra} http://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
       if [ $? -ne 0 ]
       then
          echo "error"
          echo "Double ugh.  Http failed, too.  Let's try the full git itself..."|tr -d '\012'
-         git clone git://github.com/RhostMUSH/${gl_repo} rhost_tmp > /dev/null 2>&1
+         git clone ${gl_extra} git://github.com/RhostMUSH/trunk rhost_tmp > /dev/null 2>&1
          if [ $? -ne 0 ]
          then
             echo "error."
