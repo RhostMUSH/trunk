@@ -2083,6 +2083,11 @@ process_input(DESC * d)
                sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
                in+=5;
                got+=5;
+               qf = qfind;
+               while ( *qf ) {
+                  *p++ = *qf++;
+               }
+             }
         } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
             sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
             tmpptr = encode_utf8(tmpbuf);
