@@ -4272,11 +4272,13 @@ check_connect(DESC * d, const char *msg)
 #ifdef ZENTY_ANSI
                      lbuf1ptr = lbuf1 = alloc_lbuf("noconnect_ansi1");
                      lbuf2ptr = lbuf2 = alloc_lbuf("noconnect_ansi2");
+                     lbuf3ptr = lbuf3 = alloc_lbuf("noconnect_ansi3");
                      parse_ansi(buff3, lbuf1, &lbuf1ptr, lbuf2, &lbuf2ptr, lbuf3, &lbuf3ptr);
                      queue_write(d, lbuf1, strlen(lbuf1));
                      queue_string(d, "\r\n");
                      free_lbuf(lbuf1);
                      free_lbuf(lbuf2);
+                     free_lbuf(lbuf3);
 #else
                      queue_string(d, buff3);
                      queue_string(d, "\r\n");
