@@ -4756,6 +4756,8 @@ do_command(DESC * d, char *command)
     }
 
     if ( !(d->flags & DS_CONNECTED) && cp && (cp->perm & CF_DARK) ) {
+      if ( chk_perm && cp )
+         cp->perm = store_perm;
       cp = NULL;
     }
 
@@ -4783,13 +4785,13 @@ do_command(DESC * d, char *command)
 		queue_write(d, "\r\n", 2);
 	    }
 	    mudstate.debug_cmd = cmdsave;
-	    if ( chk_perm) 
+	    if ( chk_perm && cp ) 
 	      cp->perm = store_perm;
 	    RETURN(1); /* #147 */
 	} else {
 	    mudstate.debug_cmd = cmdsave;
             retval = check_connect(d, command);
-	    if ( chk_perm)
+	    if ( chk_perm && cp )
 	      cp->perm = store_perm;
 	    RETURN(retval); /* #147 */
 	}
@@ -4816,7 +4818,7 @@ do_command(DESC * d, char *command)
 	    if (!Fubar(d->player)) {
 		shutdownsock(d, R_QUIT);
 		mudstate.debug_cmd = cmdsave;
-		if ( chk_perm )
+		if ( chk_perm && cp )
 		  cp->perm = store_perm;
 		RETURN(0); /* #147 */
 	    } else {
@@ -4902,7 +4904,7 @@ do_command(DESC * d, char *command)
 	}
     }
     mudstate.debug_cmd = cmdsave;
-    if ( chk_perm )
+    if ( chk_perm && cp )
       cp->perm = store_perm;
     RETURN(1); /* #147 */
 }

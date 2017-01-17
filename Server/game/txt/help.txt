@@ -30720,13 +30720,13 @@
 & 4.0.0p0
   Release Date: 01/15/17
   Status: Alpha
-  
+    
   New Features
   ------------
-
+  
   Changes
   ------------
-
+  
   Bug Fixes
   ------------
-
+  * permission combination sets on connect screen could cause a crash [ASH]
