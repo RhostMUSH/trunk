@@ -813,8 +813,6 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_accent  = p_cp->c_accent;
       p_ap->c_fgansi  = p_cp->c_fgansi;
       p_ap->c_bgansi  = p_cp->c_bgansi;
-      p_ap->i_ascii8  = p_cp->i_ascii8;
-      p_ap->i_utf8    = p_cp->i_utf8;
    } else {
       strcpy(p_ap->s_fghex, p_bp->s_fghex);
       strcpy(p_ap->s_bghex, p_bp->s_bghex);
@@ -822,8 +820,20 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
       p_ap->c_accent  = p_bp->c_accent;
       p_ap->c_fgansi  = p_bp->c_fgansi;
       p_ap->c_bgansi  = p_bp->c_bgansi;
+   }
+   if ( p_bp->i_ascii8 ) {
       p_ap->i_ascii8  = p_bp->i_ascii8;
+   } else if (p_cp->i_ascii8) {
+      p_ap->i_ascii8  = p_cp->i_ascii8;
+   } else {
+      p_ap->i_ascii8  = 0;
+   }
+   if ( p_bp->i_utf8 ) {
       p_ap->i_utf8    = p_bp->i_utf8;
+   } else if (p_cp->i_utf8) {
+      p_ap->i_utf8    = p_cp->i_utf8;
+   } else {
+      p_ap->i_utf8    = 0;
    }
 }
 
