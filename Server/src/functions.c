@@ -8831,6 +8831,15 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
           free_lbuf(s_output);
        }
        free_lbuf(outbuff);
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       outbuff = alloc_lbuf("showfield_printf");
+       memset(outbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fmtbuff), outbuff, outsplit);
+       s_output = rebuild_ansi(outbuff, outsplit);
+       strcpy(fmtbuff, s_output);
+       free_lbuf(s_output);
+       free_lbuf(outbuff);
     }
     padwidth = (fm->fieldwidth + morepadd) - i_stripansi;
     if ( fm->format_padch )
