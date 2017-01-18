@@ -8644,11 +8644,10 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
   int padwidth = 0;
   int currwidth = 0;
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
-       *s_special, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
+       *s_special, *s_normal, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
       center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt;
   char *outbuff, *s_output, *s_outptr;
-  static char sc_foreground[20], sc_background[20], sc_special[20], sc_accent[20];
   ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
   i_breakhappen = i_usepadding = 0;
@@ -8657,16 +8656,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
   }
 
 
-  memset(sc_foreground, '\0', 20);
-  memset(sc_background, '\0', 20);
-  memset(sc_special, '\0', 20);
-  memset(sc_accent, '\0', 20);
   x1 = x2 = x3 = x4 = '\0';
   i_stripansi = i_nostripansi = i_inansi = 0;
   s_padbuf = s_padbufptr = alloc_lbuf("printf_buffering_crap");
   s_special = alloc_mbuf("printf_mbuf_1");
   s_normal = alloc_mbuf("printf_mbuf_2");
-  s_normalbg = alloc_mbuf("printf_mbuf_2");
   s_accent = alloc_mbuf("printf_mbuf_3");
   memset(s_padstring, '\0', sizeof(s_padstring));
   i_linecnt = i_chk = i_lastspace = spares = 0;
@@ -8836,6 +8830,15 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
           strcpy(fmtbuff, s_output);
           free_lbuf(s_output);
        }
+       free_lbuf(outbuff);
+    } else {
+       initialize_ansisplitter(outsplit, LBUF_SIZE);
+       outbuff = alloc_lbuf("showfield_printf");
+       memset(outbuff, '\0', LBUF_SIZE);
+       split_ansi(strip_ansi(fmtbuff), outbuff, outsplit);
+       s_output = rebuild_ansi(outbuff, outsplit);
+       strcpy(fmtbuff, s_output);
+       free_lbuf(s_output);
        free_lbuf(outbuff);
     }
     padwidth = (fm->fieldwidth + morepadd) - i_stripansi;
@@ -9041,12 +9044,20 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
     i_padmenow = 0;
     if ( (i_stripansi == 0) && (i_nostripansi > 0) )
        currwidth--;
-
     while ( *fmtbuff && (currwidth < (fm->fieldwidth + morepadd)) ) {
 #ifdef ZENTY_ANSI
          if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == 'f') && isprint(*(fmtbuff+2))) ) {
-            memset(sc_accent, '\0', 20);
-            sprintf(sc_accent, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
+            safe_chr( *fmtbuff, buff, bufcx );
+            safe_chr( *(fmtbuff+1), buff, bufcx );
+            safe_chr( *(fmtbuff+2), buff, bufcx );
+            safe_chr( *fmtbuff, s_padbuf, &s_padbufptr );
+            safe_chr( *(fmtbuff+1), s_padbuf, &s_padbufptr );
+            safe_chr( *(fmtbuff+2), s_padbuf, &s_padbufptr );
+            if ( fm->breakonreturn && shold ) {
+               safe_chr( *fmtbuff, shold, sholdptr );
+               safe_chr( *(fmtbuff+1), shold, sholdptr );
+               safe_chr( *(fmtbuff+2), shold, sholdptr );
+            }
             fmtbuff+=3;
             i_inansi=1;
             continue;
@@ -9058,31 +9069,18 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                 || (*(fmtbuff+1) == SAFE_CHR3)
 #endif
-         )) {
+)) {
             if ( isAnsi[(int) *(fmtbuff+2)] ) {
-               switch( *(fmtbuff+2) ) {
-                  case 'f':
-                  case 'h':
-                  case 'i':
-                  case 'u':
-                     memset(sc_special, '\0', 20);
-                     sprintf(sc_special, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                     break;
-                  case 'n':
-                     memset(sc_special, '\0', 20);
-                     memset(sc_background, '\0', 20);
-                     memset(sc_foreground, '\0', 20);
-                     sprintf(sc_special, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                     break;
-                  default:
-                     if ( *(fmtbuff+2) == ToUpper(*(fmtbuff+2)) ) {
-                        memset(sc_background, '\0', 20);
-                        sprintf(sc_background, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                     } else {
-                        memset(sc_foreground, '\0', 20);
-                        sprintf(sc_foreground, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                     }
-                     break;
+               safe_chr( *fmtbuff, buff, bufcx );
+               safe_chr( *(fmtbuff+1), buff, bufcx );
+               safe_chr( *(fmtbuff+2), buff, bufcx );
+               safe_chr( *fmtbuff, s_padbuf, &s_padbufptr );
+               safe_chr( *(fmtbuff+1), s_padbuf, &s_padbufptr );
+               safe_chr( *(fmtbuff+2), s_padbuf, &s_padbufptr );
+               if ( fm->breakonreturn && shold ) {
+                   safe_chr( *fmtbuff, shold, sholdptr );
+                   safe_chr( *(fmtbuff+1), shold, sholdptr );
+                   safe_chr( *(fmtbuff+2), shold, sholdptr );
                }
                fmtbuff+=3;
                i_inansi=1;
@@ -9090,48 +9088,32 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
             }
             if ( (*(fmtbuff+2) == '0') && (*(fmtbuff+3) && ((*(fmtbuff+3) == 'X') || (*(fmtbuff+3) == 'x'))) ) {
                if ( *(fmtbuff+4) && *(fmtbuff+5) && isxdigit(*(fmtbuff+4)) && isxdigit(*(fmtbuff+5)) ) {
-                  if ( *(fmtbuff+3) == 'X' ) {
-                     memset(sc_background, '\0', 20);
-                     sprintf(sc_background, "%c%c%c%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2), 
-                             *(fmtbuff+3), *(fmtbuff+4), *(fmtbuff+5));
-                  } else {
-                     memset(sc_foreground, '\0', 20);
-                     sprintf(sc_foreground, "%c%c%c%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2), 
-                             *(fmtbuff+3), *(fmtbuff+4), *(fmtbuff+5));
-                  } 
+                  safe_chr( *fmtbuff, buff, bufcx );
+                  safe_chr( *(fmtbuff+1), buff, bufcx );
+                  safe_chr( *(fmtbuff+2), buff, bufcx );
+                  safe_chr( *(fmtbuff+3), buff, bufcx );
+                  safe_chr( *(fmtbuff+4), buff, bufcx );
+                  safe_chr( *(fmtbuff+5), buff, bufcx );
+                  safe_chr( *fmtbuff, s_padbuf, &s_padbufptr );
+                  safe_chr( *(fmtbuff+1), s_padbuf, &s_padbufptr );
+                  safe_chr( *(fmtbuff+2), s_padbuf, &s_padbufptr );
+                  safe_chr( *(fmtbuff+3), s_padbuf, &s_padbufptr );
+                  safe_chr( *(fmtbuff+4), s_padbuf, &s_padbufptr );
+                  safe_chr( *(fmtbuff+5), s_padbuf, &s_padbufptr );
+                  if ( fm->breakonreturn && shold ) {
+                      safe_chr( *fmtbuff, shold, sholdptr );
+                      safe_chr( *(fmtbuff+1), shold, sholdptr );
+                      safe_chr( *(fmtbuff+2), shold, sholdptr );
+                      safe_chr( *(fmtbuff+3), shold, sholdptr );
+                      safe_chr( *(fmtbuff+4), shold, sholdptr );
+                      safe_chr( *(fmtbuff+5), shold, sholdptr );
+                  }
                   fmtbuff+=6;
                   i_inansi=1;
                   continue;
                }
             }
          }
-
-       if ( sc_foreground ) {
-          safe_str(sc_foreground, s_padbuf, &s_padbufptr);
-          safe_str(sc_foreground, buff, bufcx);
-       }
-       if ( sc_background ) {
-          safe_str(sc_background, s_padbuf, &s_padbufptr);
-          safe_str(sc_background, buff, bufcx);
-       }
-       if ( sc_special ) {
-          safe_str(sc_special, s_padbuf, &s_padbufptr);
-          safe_str(sc_special, buff, bufcx);
-       }
-       if ( sc_accent ) {
-          safe_str(sc_accent, s_padbuf, &s_padbufptr);
-          safe_str(sc_accent, buff, bufcx);
-       }
-       if ( fm->breakonreturn && shold ) {
-          if ( sc_foreground ) 
-             safe_str(sc_foreground, shold, sholdptr);
-          if ( sc_background )
-             safe_str(sc_background, shold, sholdptr);
-          if ( sc_special ) 
-             safe_str(sc_special, shold, sholdptr);
-          if ( sc_accent )
-             safe_str(sc_accent, shold, sholdptr);
-       }
 
 #endif
        if ( fm->breakonreturn && (*fmtbuff == '\n') && (*(fmtbuff+1) != '\0') ) {
@@ -9183,17 +9165,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                            case 'n':
                                  memset(s_special, '\0', MBUF_SIZE);
                                  memset(s_normal, '\0', MBUF_SIZE);
-                                 memset(s_normalbg, '\0', MBUF_SIZE);
                                  sprintf(s_special, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
                               break;
                            default:
-                                 if ( *(s_pp+2) == ToUpper(*(s_pp+2)) ) {
-                                    memset(s_normalbg, '\0', MBUF_SIZE);
-                                    sprintf(s_normalbg, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
-                                 } else {
-                                    memset(s_normal, '\0', MBUF_SIZE);
-                                    sprintf(s_normal, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
-                                 }
+                                 memset(s_normal, '\0', MBUF_SIZE);
+                                 sprintf(s_normal, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
                               break;
                         }
                      }
@@ -9209,13 +9185,8 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 ) && (*(s_pp+2) == '0') && 
                               ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                                *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
-                     if( *(s_pp+3) == 'X' ) {
-                        memset(s_normalbg, '\0', MBUF_SIZE);
-                        sprintf(s_normalbg, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
-                     } else {
-                        memset(s_normal, '\0', MBUF_SIZE);
-                        sprintf(s_normal, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
-                     }
+                     memset(s_normal, '\0', MBUF_SIZE);
+                     sprintf(s_normal, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
                      s_pp+=6;
                      i_usepadding = 1;
                   } else if (*s_pp ) {
@@ -9231,15 +9202,12 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                                  safe_str(s_special, buff, bufcx);
                               if ( *s_normal)
                                  safe_str(s_normal, buff, bufcx);
-                              if ( *s_normalbg)
-                                 safe_str(s_normalbg, buff, bufcx);
                               if ( *s_accent)
                                  safe_str(s_accent, buff, bufcx);
                               safe_chr_fm( x1, buff, bufcx, fm );
                               memset(s_special, '\0', MBUF_SIZE);
                               memset(s_accent, '\0', MBUF_SIZE);
                               memset(s_normal, '\0', MBUF_SIZE);
-                              memset(s_normalbg, '\0', MBUF_SIZE);
                               s_pp++;
                            } else {
                               i_chk = 0;
@@ -9299,8 +9267,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                      safe_str(s_special, buff, bufcx);
                   if ( *s_normal)
                      safe_str(s_normal, buff, bufcx);
-                  if ( *s_normalbg)
-                     safe_str(s_normalbg, buff, bufcx);
                   if ( *s_accent)
                      safe_str(s_accent, buff, bufcx);
                   if ( i_chk > 2 )
@@ -9310,7 +9276,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                   memset(s_special, '\0', MBUF_SIZE);
                   memset(s_accent, '\0', MBUF_SIZE);
                   memset(s_normal, '\0', MBUF_SIZE);
-                  memset(s_normalbg, '\0', MBUF_SIZE);
                } 
 #else
                if ( i_chk > 2 )
@@ -9326,8 +9291,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                    safe_str(s_special, buff, bufcx);
                 if ( *s_normal)
                    safe_str(s_normal, buff, bufcx);
-                if ( *s_normalbg)
-                   safe_str(s_normalbg, buff, bufcx);
                 if ( *s_accent)
                    safe_str(s_accent, buff, bufcx);
                 if ( i_chk > 2 )
@@ -9374,14 +9337,12 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
        currwidth++;
     } 
 #ifdef ZENTY_ANSI
-    memset(sc_foreground, '\0', 20);
-    memset(sc_background, '\0', 20);
-    memset(sc_special, '\0', 20);
-    memset(sc_accent, '\0', 20);
     while ( *fmtbuff ) {
        if ( !fm->leftjust && fm->breakonreturn && shold ) {
           if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == 'f') && isprint(*(fmtbuff+2))) ) {
-             sprintf(sc_accent, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
+             safe_chr( *fmtbuff, shold, sholdptr );
+             safe_chr( *(fmtbuff+1), shold, sholdptr );
+             safe_chr( *(fmtbuff+2), shold, sholdptr );
              fmtbuff+=3;
           } else if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == SAFE_CHR)
 #ifdef SAFE_CHR2
@@ -9392,42 +9353,18 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 #endif
 )) {
              if ( isAnsi[(int) *(fmtbuff+2)] ) {
-                switch( *(fmtbuff+2) ) {
-                   case 'f':
-                   case 'h':
-                   case 'i':
-                   case 'u':
-                      memset(sc_special, '\0', 20);
-                      sprintf(sc_special, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                      break;
-                   case 'n':
-                      memset(sc_special, '\0', 20);
-                      memset(sc_background, '\0', 20);
-                      memset(sc_foreground, '\0', 20);
-                      sprintf(sc_special, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                      break;
-                   default:
-                      if ( *(fmtbuff+2) == ToUpper(*(fmtbuff+2)) ) {
-                         memset(sc_background, '\0', 20);
-                         sprintf(sc_background, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                      } else {
-                         memset(sc_foreground, '\0', 20);
-                         sprintf(sc_foreground, "%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2));
-                      }
-                      break;
-                }
+                safe_chr( *fmtbuff, shold, sholdptr );
+                safe_chr( *(fmtbuff+1), shold, sholdptr );
+                safe_chr( *(fmtbuff+2), shold, sholdptr );
                 fmtbuff+=3;
              } else if ( (*(fmtbuff+2) == '0') && (*(fmtbuff+3) && ((*(fmtbuff+3) == 'X') || (*(fmtbuff+3) == 'x'))) ) {
                 if ( *(fmtbuff+4) && *(fmtbuff+5) && isxdigit(*(fmtbuff+4)) && isxdigit(*(fmtbuff+5)) ) {
-                   if ( *(fmtbuff+3) == 'X' ) {
-                      memset(sc_background, '\0', 20);
-                      sprintf(sc_background, "%c%c%c%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2), 
-                              *(fmtbuff+3), *(fmtbuff+4), *(fmtbuff+5));
-                   } else {
-                      memset(sc_foreground, '\0', 20);
-                      sprintf(sc_foreground, "%c%c%c%c%c%c", *fmtbuff, *(fmtbuff+1), *(fmtbuff+2), 
-                              *(fmtbuff+3), *(fmtbuff+4), *(fmtbuff+5));
-                   }
+                   safe_chr( *fmtbuff, shold, sholdptr );
+                   safe_chr( *(fmtbuff+1), shold, sholdptr );
+                   safe_chr( *(fmtbuff+2), shold, sholdptr );
+                   safe_chr( *(fmtbuff+3), shold, sholdptr );
+                   safe_chr( *(fmtbuff+4), shold, sholdptr );
+                   safe_chr( *(fmtbuff+5), shold, sholdptr );
                    fmtbuff+=6;
                 }
              } else {
@@ -9439,16 +9376,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
        } else {
           break;
        }
-    }
-    if ( fm->breakonreturn && shold ) {
-       if ( sc_foreground ) 
-          safe_str(sc_foreground, shold, sholdptr);
-       if ( sc_background )
-          safe_str(sc_background, shold, sholdptr);
-       if ( sc_special ) 
-          safe_str(sc_special, shold, sholdptr);
-       if ( sc_accent )
-          safe_str(sc_accent, shold, sholdptr);
     }
 #endif
     if ( fm->breakonreturn && shold ) {
@@ -9504,17 +9431,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                        case 'n':
                              memset(s_special, '\0', MBUF_SIZE);
                              memset(s_normal, '\0', MBUF_SIZE);
-                             memset(s_normalbg, '\0', MBUF_SIZE);
                              sprintf(s_special, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
                           break;
                        default:
-                             if ( *(s_pp+2) == ToUpper(*(s_pp+2)) ) {
-                                memset(s_normalbg, '\0', MBUF_SIZE);
-                                sprintf(s_normalbg, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
-                             } else {
-                                memset(s_normal, '\0', MBUF_SIZE);
-                                sprintf(s_normal, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
-                             }
+                             memset(s_normal, '\0', MBUF_SIZE);
+                             sprintf(s_normal, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
                           break;
                     }
                  }
@@ -9530,13 +9451,8 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 ) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                            *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
-                 if ( *(s_pp+3) == 'X' ) {
-                    memset(s_normalbg, '\0', MBUF_SIZE);
-                    sprintf(s_normalbg, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
-                 } else {
-                    memset(s_normal, '\0', MBUF_SIZE);
-                    sprintf(s_normal, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
-                 }
+                 memset(s_normal, '\0', MBUF_SIZE);
+                 sprintf(s_normal, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
                  i_usepadding = 1;
                  s_pp+=6;
               } else if (*s_pp ) {
@@ -9579,8 +9495,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
               safe_str(s_special, buff, bufcx);
            if ( *s_normal) 
               safe_str(s_normal, buff, bufcx);
-           if ( *s_normalbg) 
-              safe_str(s_normalbg, buff, bufcx);
            if ( *s_accent) 
               safe_str(s_accent, buff, bufcx);
            if ( i_chk > 2 )
@@ -9590,7 +9504,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
            memset(s_special, '\0', MBUF_SIZE);
            memset(s_accent, '\0', MBUF_SIZE);
            memset(s_normal, '\0', MBUF_SIZE);
-           memset(s_normalbg, '\0', MBUF_SIZE);
            s_pp++;
          }
 #ifdef ZENTY_ANSI
@@ -9640,17 +9553,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                        case 'n':
                              memset(s_special, '\0', MBUF_SIZE);
                              memset(s_normal, '\0', MBUF_SIZE);
-                             memset(s_normalbg, '\0', MBUF_SIZE);
                              sprintf(s_special, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
                           break;
                        default:
-                             if ( *(s_pp+2) == ToUpper(*(s_pp+2)) ) {
-                                memset(s_normalbg, '\0', MBUF_SIZE);
-                                sprintf(s_normalbg, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
-                             } else {
-                                memset(s_normal, '\0', MBUF_SIZE);
-                                sprintf(s_normal, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
-                             }
+                             memset(s_normal, '\0', MBUF_SIZE);
+                             sprintf(s_normal, "%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+2));
                           break;
                     }
                  }
@@ -9666,13 +9573,8 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
 ) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                            *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
-                 if ( *(s_pp+3) == 'X' ) {
-                    memset(s_normalbg, '\0', MBUF_SIZE);
-                    sprintf(s_normalbg, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
-                 } else {
-                    memset(s_normal, '\0', MBUF_SIZE);
-                    sprintf(s_normal, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
-                 }
+                 memset(s_normal, '\0', MBUF_SIZE);
+                 sprintf(s_normal, "%c%c0%c%c%c", (char)'%', (char)SAFE_CHR, *(s_pp+3), *(s_pp+4), *(s_pp+5));
                  i_usepadding = 1;
                  s_pp+=6;
               } else if (*s_pp ) {
@@ -9719,8 +9621,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
               safe_str(s_special, buff, bufcx);
            if ( *s_normal)
               safe_str(s_normal, buff, bufcx);
-           if ( *s_normalbg)
-              safe_str(s_normalbg, buff, bufcx);
            if ( *s_accent)
               safe_str(s_accent, buff, bufcx);
            if ( i_chk > 2 )
@@ -9731,7 +9631,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
            memset(s_special, '\0', MBUF_SIZE);
            memset(s_accent, '\0', MBUF_SIZE);
            memset(s_normal, '\0', MBUF_SIZE);
-           memset(s_normalbg, '\0', MBUF_SIZE);
          }
 #ifdef ZENTY_ANSI
          safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
@@ -9747,7 +9646,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
   free_lbuf(s_padbuf);
   free_mbuf(s_special);
   free_mbuf(s_normal);
-  free_mbuf(s_normalbg);
   free_mbuf(s_accent);
   if ( i_savejust != -1 )
      fm->leftjust = i_savejust;
