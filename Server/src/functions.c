@@ -8639,7 +8639,7 @@ void snarfle_special_characters(char *s_instring, char *s_outstring)
 
 void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_format* fm, 
                       int numeric, char *shold, char **sholdptr, int morepadd,
-                      int *adjust_padd, int *start_line, int i_cleanansi)
+                      int *adjust_padd, int *start_line)
 {
   int padwidth = 0;
   int currwidth = 0;
@@ -8831,7 +8831,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
           free_lbuf(s_output);
        }
        free_lbuf(outbuff);
-    } else if ( 0 && i_cleanansi) {
+    } else {
        initialize_ansisplitter(outsplit, LBUF_SIZE);
        outbuff = alloc_lbuf("showfield_printf");
        memset(outbuff, '\0', LBUF_SIZE);
@@ -9053,13 +9053,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
             safe_chr( *fmtbuff, s_padbuf, &s_padbufptr );
             safe_chr( *(fmtbuff+1), s_padbuf, &s_padbufptr );
             safe_chr( *(fmtbuff+2), s_padbuf, &s_padbufptr );
-/*
             if ( fm->breakonreturn && shold ) {
                safe_chr( *fmtbuff, shold, sholdptr );
                safe_chr( *(fmtbuff+1), shold, sholdptr );
                safe_chr( *(fmtbuff+2), shold, sholdptr );
             }
-*/
             fmtbuff+=3;
             i_inansi=1;
             continue;
@@ -9079,13 +9077,11 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                safe_chr( *fmtbuff, s_padbuf, &s_padbufptr );
                safe_chr( *(fmtbuff+1), s_padbuf, &s_padbufptr );
                safe_chr( *(fmtbuff+2), s_padbuf, &s_padbufptr );
-/*
                if ( fm->breakonreturn && shold ) {
                    safe_chr( *fmtbuff, shold, sholdptr );
                    safe_chr( *(fmtbuff+1), shold, sholdptr );
                    safe_chr( *(fmtbuff+2), shold, sholdptr );
                }
-*/
                fmtbuff+=3;
                i_inansi=1;
                continue;
@@ -9104,7 +9100,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                   safe_chr( *(fmtbuff+3), s_padbuf, &s_padbufptr );
                   safe_chr( *(fmtbuff+4), s_padbuf, &s_padbufptr );
                   safe_chr( *(fmtbuff+5), s_padbuf, &s_padbufptr );
-/*
                   if ( fm->breakonreturn && shold ) {
                       safe_chr( *fmtbuff, shold, sholdptr );
                       safe_chr( *(fmtbuff+1), shold, sholdptr );
@@ -9113,7 +9108,6 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
                       safe_chr( *(fmtbuff+4), shold, sholdptr );
                       safe_chr( *(fmtbuff+5), shold, sholdptr );
                   }
-*/
                   fmtbuff+=6;
                   i_inansi=1;
                   continue;
@@ -10115,13 +10109,13 @@ FUNCTION(fun_printf)
                                  i_breakarray[i_arrayval] = 0;
                               i_widtharray[i_arrayval] = fm.fieldwidth;
                               i_totwidth = 0;
-                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, s_strarray[i_arrayval], &s_strptr, morepadd, &adjust_padd, &start_line, 1);
+                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, s_strarray[i_arrayval], &s_strptr, morepadd, &adjust_padd, &start_line);
                               fm.forcebreakonreturn = 0;
                               fm_array[i_arrayval] = fm;
                               i_arrayval++;
                               i_loopydo = 1;
                            } else {
-                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, (char *)NULL, (char **)NULL, morepadd, &adjust_padd, &start_line, 1);
+                              showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, (char *)NULL, (char **)NULL, morepadd, &adjust_padd, &start_line);
                               if ( fm.supressing )
                                  i_totwidth -= fm.fieldwidth;
                            }
@@ -10187,18 +10181,6 @@ FUNCTION(fun_printf)
    } /* For */
    start_line = adjust_padd = 0;
    if ( i_arrayval > 0 ) {
-/*
-      outbuff = alloc_lbuf("showfield_printf");
-      for ( i = 0; i < i_arrayval; i++ ) {
-          initialize_ansisplitter(outsplit, LBUF_SIZE);
-          memset(outbuff, '\0', LBUF_SIZE);
-          split_ansi(strip_ansi(s_strarray[i]), outbuff, outsplit);
-          s_tmpbuff = rebuild_ansi(outbuff, outsplit);
-          strcpy(s_strarray[i], s_tmpbuff);
-          free_lbuf(s_tmpbuff);
-      }
-      free_lbuf(outbuff);
-*/
       s_tmpbuff = alloc_lbuf("fun_printf_tempbuff");
       i_outbuff = 0;
       while ( i_loopydo ) {
@@ -10248,13 +10230,13 @@ FUNCTION(fun_printf)
             }
             if ( strchr(s_strarray[i], '\n') != NULL ) {
                s_strptr = s_tmpbuff;
-               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, s_tmpbuff, &s_strptr, morepadd, &adjust_padd, &start_line, 1);
+               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, s_tmpbuff, &s_strptr, morepadd, &adjust_padd, &start_line);
                strcpy(s_strarray[i], s_tmpbuff);
                i_loopydo = 1;
                i_widtharray[i] = i_widtharray[i] + i_totwidth;
                i_totwidth = 0;
             } else {
-               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, (char *)NULL, (char **)NULL, morepadd, &adjust_padd, &start_line, 1);
+               showfield_printf(s_strarray[i], buff, bufcx, &fm_array[i], 1, (char *)NULL, (char **)NULL, morepadd, &adjust_padd, &start_line);
                fmtdone = 0;
                if ( *s_strarray[i] )
                   fmtdone = 1;
