@@ -30726,6 +30726,7 @@
   
   Changes
   ------------
+  * increased the size of altname to 100 characters due to unicode [ASH]
   
   Bug Fixes
   ------------

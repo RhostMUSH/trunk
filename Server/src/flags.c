@@ -2633,7 +2633,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
 char *
 unparse_object_altname(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *fp, name_str[31], *nfmt;
+    char *buf, *buf2, *fp, name_str[101], *nfmt;
     int exam, aowner;
     dbref aflags;
 
@@ -2649,7 +2649,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
     } else {
         buf2 = atr_get(target, A_ALTNAME, &aowner, &aflags);
         memset(name_str, 0, sizeof(name_str));
-        strncpy(name_str, buf2, 30); 
+        strncpy(name_str, buf2, 100); 
         free_lbuf(buf2);
 	if (obey_myopic)
 	    exam = MyopicExam(player, target);
@@ -2666,9 +2666,9 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
                  !could_doit(player,target,A_LALTNAME,0,0) )
 	       sprintf(buf, "%s(#%d%s)", name_str, target, fp);
             else if ( name_str[0] == '\0' )
-	       sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp );
+	       sprintf(buf, "%.3400s(#%d%.400s)", Name(target), target, fp );
             else 
-	       sprintf(buf, "%.3500s(#%d%.400s) {%.60s}", Name(target), target, fp, name_str );
+	       sprintf(buf, "%.3400s(#%d%.400s) {%.100s}", Name(target), target, fp, name_str );
 	    free_mbuf(fp);
 	} else {
 	    /* show only the name. */
@@ -2676,9 +2676,9 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
                  !could_doit(player,target,A_LALTNAME,0,0) )
                strcpy(buf, name_str);
             else if ( name_str[0] == '\0' )
-               sprintf(buf, "%.3900s", Name(target));
+               sprintf(buf, "%.3800s", Name(target));
             else
-               sprintf(buf, "%.3900s {%.60s}", Name(target), name_str );
+               sprintf(buf, "%.3800s {%.100s}", Name(target), name_str );
 	}
     }
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
@@ -2911,7 +2911,7 @@ parse_ansi_name(dbref target, char *ansibuf)
 char *
 unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[31], *nfmt;
+    char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[101], *nfmt;
     int exam, aowner, ansi_ok;
     dbref aflags;
 #ifndef ZENTY_ANSI
@@ -3031,7 +3031,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 #endif       
         buf3 = atr_get(target, A_ALTNAME, &aowner, &aflags);
         memset(name_str, 0, sizeof(name_str));
-        strncpy(name_str, buf3, 30);
+        strncpy(name_str, buf3, 100);
         free_lbuf(buf3);
 	if (obey_myopic)
 	    exam = MyopicExam(player, target);
@@ -3046,23 +3046,23 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 	    fp = unparse_flags(player, target);
             if ( !Wizard(player) && name_str[0] != '\0' &&
                  !could_doit(player,target,A_LALTNAME,0,0) )
-	       sprintf(buf, "%s%s%s(#%d%s)", buf2, name_str,  ANSI_NORMAL, target, fp);
+	       sprintf(buf, "%.100s%s%s(#%d%s)", buf2, name_str,  ANSI_NORMAL, target, fp);
             else if ( name_str[0] == '\0' ) {
                if ( ExtAnsi(target) ) {
                   if ( ansi_ok == 0 )
-	             sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, ANSI_NORMAL, target, fp);
+	             sprintf(buf, "%.3400s%s(#%d%.400s)", ansibuf, ANSI_NORMAL, target, fp);
                   else
-	             sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp);
+	             sprintf(buf, "%.3400s(#%d%.400s)", Name(target), target, fp);
                } else
 	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), ANSI_NORMAL, target, fp);
             } else {
                if ( ExtAnsi(target) ) {
                   if ( ansi_ok == 0 )
-	             sprintf(buf, "%.3500s%s(#%d%.400s) {%.60s}", ansibuf, ANSI_NORMAL, target, fp, name_str);
+	             sprintf(buf, "%.3400s%s(#%d%.400s) {%.100s}", ansibuf, ANSI_NORMAL, target, fp, name_str);
                   else
-	             sprintf(buf, "%.3500s(#%d%.400s) {%.60s}", Name(target), target, fp, name_str);
+	             sprintf(buf, "%.3400s(#%d%.400s) {%.100s}", Name(target), target, fp, name_str);
                } else
-	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s) {%.60s}", buf2, Name(target), 
+	          sprintf(buf, "%.100s%.3400s%s(#%d%.300s) {%.100s}", buf2, Name(target), 
                           ANSI_NORMAL, target, fp, name_str);
             }
 	    free_mbuf(fp);
@@ -3082,11 +3082,11 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
             } else {
                if ( ExtAnsi(target) ) {
                   if ( ansi_ok == 0 )
-                     sprintf(buf, "%.3800s%s {%.60s}", ansibuf, ANSI_NORMAL, name_str);
+                     sprintf(buf, "%.3800s%s {%.100s}", ansibuf, ANSI_NORMAL, name_str);
                   else
-                     sprintf(buf, "%.3800s {%.60s}", Name(target), name_str);
+                     sprintf(buf, "%.3800s {%.100s}", Name(target), name_str);
                } else
-                  sprintf(buf, "%.100s%.3800s%s {%.60s}", buf2, Name(target), ANSI_NORMAL, name_str);
+                  sprintf(buf, "%.100s%.3700s%s {%.100s}", buf2, Name(target), ANSI_NORMAL, name_str);
             }
 	}
     free_lbuf(ansibuf);
