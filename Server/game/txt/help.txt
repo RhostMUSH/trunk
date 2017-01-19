@@ -13327,7 +13327,7 @@
     > say min(2,4)
     You say "2"
     > say min(-100,50,0,25)
-    You say "-10"
+    You say "-100"
    
   See Also: max(), alphamin(), alphamax()
   
