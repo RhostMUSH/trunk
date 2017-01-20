@@ -30733,3 +30733,4 @@
   * permission combination sets on connect screen could cause a crash [ASH]
   * small bug in backend ansi handler that wouldn't allow background 16color
     with foreground 256color [ASH]
+  * lnum2() didn't work properly with lnum_compat enabled [ASH]

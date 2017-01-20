@@ -23550,7 +23550,7 @@ FUNCTION(fun_lnum2)
       over = 0;
       x = 0;
       t = atoi(fargs[0]);
-      if ( (nfargs == 1) && (mudconf.lnum_compat == 1) && (x < 1) ) {
+      if ( (nfargs == 1) && (mudconf.lnum_compat == 1) && (t < 1) ) {
          return;
       }
       if (nfargs == 1)
