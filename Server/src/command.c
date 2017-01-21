@@ -1821,6 +1821,7 @@ NDECL(init_cmdtab)
 
     for (cp = command_table; cp->cmdname; cp++) {
       cp->cmdtype = CMD_BUILTIN_e;
+      cp->hookmask = 0;
       hashadd(cp->cmdname, (int *) cp, &mudstate.command_htab);
     }
 
