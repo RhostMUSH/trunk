@@ -265,6 +265,7 @@ void local_mysql_init(void) {
   /* Add the commands to the command table */
   for (cmdp = mysql_cmd_table; cmdp->cmdname; cmdp++) {
     cmdp->cmdtype = CMD_LOCAL_e;
+    cmdp->hookmask = 0;
     hashadd(cmdp->cmdname, (int *) cmdp, &mudstate.command_htab);
   }
 
