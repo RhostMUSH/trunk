@@ -30727,6 +30727,7 @@
   Changes
   ------------
   * increased the size of altname to 100 characters due to unicode [ASH]
+  * laxed some restrictions (like line length) for execscript [ASH]
   
   Bug Fixes
   ------------

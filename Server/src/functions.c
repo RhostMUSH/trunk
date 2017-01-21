@@ -16880,9 +16880,9 @@ FUNCTION(fun_execscript)
          s_inbufptr++;
       }
       if ( i_alttimeout == 1 )
-         sprintf(s_combine, "../bin/timeout -9 5 ./scripts/%.100s %.3800s", fargs[0], sptr);
+         sprintf(s_combine, "../bin/timeout -9 5 ./scripts/%.100s %.*s", fargs[0], (LBUF_SIZE - 200), sptr);
       else
-         sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s %.3800s", fargs[0], sptr);
+         sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s %.*s", fargs[0], (LBUF_SIZE - 200), sptr);
       free_lbuf(s_inbuf);
       free_lbuf(sptr);
    } else {
