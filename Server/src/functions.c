@@ -10272,7 +10272,7 @@ FUNCTION(fun_printf)
                                  fm.tabtospace = 10;
                               pp = strchr(pp+1,'#');
                            } else {
-                              fm.tabtospace = 5;
+                              fm.tabtospace = 4;
                            }
                         }
                         formatpass = 1;
