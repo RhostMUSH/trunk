@@ -8428,6 +8428,7 @@ struct timefmt_format {
   int cutatlength_line;
   int specialpadder;
   int nolaster;
+  int tabtospace;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -8637,7 +8638,7 @@ void snarfle_special_characters(char *s_instring, char *s_outstring)
     }
 }
 
-void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_format* fm, 
+void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_format *fm, 
                       int numeric, char *shold, char **sholdptr, int morepadd,
                       int *adjust_padd, int *start_line)
 {
@@ -8647,7 +8648,7 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
        *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
       center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special;
-  char *outbuff, *s_output, *s_outptr, s_padd[10];
+  char *outbuff, *s_output, *s_outptr, s_padd[12];
   ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
   i_special = i_breakhappen = i_usepadding = 0;
@@ -8667,6 +8668,22 @@ void showfield_printf(char* fmtbuff, char* buff, char** bufcx, struct timefmt_fo
   i_linecnt = i_chk = i_lastspace = spares = 0;
   i_savejust = -1;
 
+  if ( fm->tabtospace > 0 ) {
+     t = s_padstring;
+     s = fmtbuff;
+     memset(s_padd, ' ', sizeof(s_padd));
+     s_padd[((fm->tabtospace > 10) ? 10 : fm->tabtospace)] = '\0';
+     while ( *s ) {
+        if ( *s == '\t' ) {
+           safe_str(s_padd, s_padstring, &t); 
+        } else {
+           safe_chr(*s, s_padstring, &t);
+        }
+        s++;
+     }
+     strcpy(fmtbuff, s_padstring);
+     memset(s_padstring, '\0', LBUF_SIZE);
+  }
   if( !fm->fieldwidth ) {
     safe_str_fm( fmtbuff, buff, bufcx, fm );
   }
@@ -9978,31 +9995,6 @@ FUNCTION(fun_printf)
                }
             }
             break;
-         case '#': /* end of fieldsuppress4 */
-            if( fm.insup4 ) {
-               if( *(pp + 1) == '#' ) {
-                  if( !fm.supressing ) {
-                     i_totwidth++;
-                     safe_chr(*pp, buff, bufcx);
-                  } else if( fm.insup2 || fm.insup4 ) {
-                     i_totwidth++;
-                     safe_chr(' ', buff, bufcx);
-                  }
-                  pp++;
-               } else {
-                  fm.supressing = 0;
-                  fm.insup4 = 0;
-               }
-            } else {
-               if( !fm.supressing ) {
-                  i_totwidth++;
-                  safe_chr(*pp, buff, bufcx);
-               } else if( fm.insup2 || fm.insup4 ) {
-                  i_totwidth++;
-                  safe_chr(' ', buff, bufcx);
-               }
-            }
-            break;
          case '$': /* start of format */
             fm.format_padch = '\0';
             memset(fm.format_padst, '\0', sizeof(fm.format_padst));
@@ -10047,7 +10039,7 @@ FUNCTION(fun_printf)
                      case ':': /* Filler Character */
                         if ( *(pp+1) && (*(pp+2) == ':') ) {
                            if( fm.formatting ) {
-                              safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                              safe_str( "#-1 FIELD SPECIFIER EXPECTED [: ALREADY SPECIFIED]", buff, bufcx );
                               fmterror = 1;
                               break;
                            }
@@ -10057,7 +10049,7 @@ FUNCTION(fun_printf)
                            fm.formatting = 1;
                         } else if ( *(pp+1) && (strchr(pp+1, ':') != NULL) ) {
                            if( fm.formatting ) {
-                              safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                              safe_str( "#-1 FIELD SPECIFIER EXPECTED [: ALREADY SPECIFIED]", buff, bufcx );
                               fmterror = 1;
                               break;
                            }
@@ -10120,7 +10112,7 @@ FUNCTION(fun_printf)
                         break;
                      case '!': /* fieldsuppress type 1 */
                         if( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [PAD SUPPRESSION ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10155,7 +10147,7 @@ FUNCTION(fun_printf)
                         break;
                      case '@': /* fieldsuppress type 3 */
                         if ( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [PAD SUPPRESSION ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10165,12 +10157,12 @@ FUNCTION(fun_printf)
                         break;
                      case '*': /* Cut field from RIGHT and not LEFT */
                         if( fm.nocutval ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [* OR + ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
                         if( fm.breakonreturn || fm.forcebreakonreturn ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [CAN NOT USE * WITH | OR &]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10179,7 +10171,7 @@ FUNCTION(fun_printf)
                         break;
                      case '+': /* don't cut the fields */
                         if( fm.nocutval ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [* OR + ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10188,7 +10180,7 @@ FUNCTION(fun_printf)
                         break;
                      case '-': /* left justify field */
                         if( fm.leftjust ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [ALIGNMENT PREVIOUSLY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10197,7 +10189,7 @@ FUNCTION(fun_printf)
                         break;
                      case '^': /* center justify field */
                         if( fm.leftjust ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [ALIGNMENT PREVIOUSLY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10206,7 +10198,7 @@ FUNCTION(fun_printf)
                         break;
                      case '_': /* wrap justify field */
                         if( fm.leftjust ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [ALIGNMENT PREVIOUSLY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10215,7 +10207,7 @@ FUNCTION(fun_printf)
                         break;
                      case '~': /* fieldsuppress type 2 */
                         if( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [ALIGNMENT PREVIOUSLY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10229,17 +10221,17 @@ FUNCTION(fun_printf)
                         break;
                      case '&': /* breakonreturn */
                         if( fm.nocutval == 2 ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [CAN NOT USE & WITH * OPTION]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
                         if( fm.breakonreturn || fm.forcebreakonreturn ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [| OR & ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
                         if ( i_arrayval > 30 ) {
-                           safe_str("#-1 EXCEEDED MAXIMUM BUFFERING FOR RETURN BREAKS", buff, bufcx);
+                           safe_str("#-1 EXCEEDED MAXIMUM BUFFERING FOR RETURN BREAKS [MUST BE < 30]", buff, bufcx);
                            fmterror = 1;
                            break;
                         }
@@ -10247,13 +10239,18 @@ FUNCTION(fun_printf)
                         formatpass = 1;
                         break;
                      case '|': /* Force break on return */
+                        if( fm.nocutval == 2 ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [CAN NOT USE | WITH * OPTION]", buff, bufcx );
+                           fmterror = 1;
+                           break;
+                        }
                         if( fm.forcebreakonreturn || fm.breakonreturn ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [| OR & ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
                         if ( i_arrayval > 30 ) {
-                           safe_str("#-1 EXCEEDED MAXIMUM BUFFERING FOR RETURN BREAKS", buff, bufcx);
+                           safe_str("#-1 EXCEEDED MAXIMUM BUFFERING FOR RETURN BREAKS [MUST BE < 30]", buff, bufcx);
                            fmterror = 1;
                            break;
                         }
@@ -10261,14 +10258,23 @@ FUNCTION(fun_printf)
                         fm.breakonreturn = 1;
                         formatpass = 1;
                         break;
-                     case '#': /* fieldsuppress type 4 */
-                        if( fm.fieldsupress1 || fm.fieldsupress2 || fm.fieldsupress3 || fm.fieldsupress4 ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                     case '#': /* tabs to spaces */
+                        if ( fm.tabtospace > 0 ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [TAB TO SPACE ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
+                        } else {
+                           if ( *(pp+1) && (strchr(pp+1, '#') != NULL) ) {
+                              fm.tabtospace = atoi(pp+1);
+                              if ( fm.tabtospace < 1 )
+                                 fm.tabtospace = 1;
+                              if ( fm.tabtospace > 10 )
+                                 fm.tabtospace = 10;
+                              pp = strchr(pp+1,'#');
+                           } else {
+                              fm.tabtospace = 5;
+                           }
                         }
-                        fm.insup4 = 1;
-                        fm.fieldsupress4 = 1;
                         formatpass = 1;
                         break;
                      case '0': /* field width argument start */
@@ -10282,7 +10288,7 @@ FUNCTION(fun_printf)
                      case '8':
                      case '9':
                         if( fm.fieldwidth || fm.zeropad ) {
-                           safe_str( "#-1 FIELD SPECIFIER EXPECTED", buff, bufcx );
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [FIELD WIDTH VALUE ALREADY SPECIFIED]", buff, bufcx );
                            fmterror = 1;
                            break;
                         }
@@ -10298,7 +10304,9 @@ FUNCTION(fun_printf)
                         /* this next check isn't to protect the buffer, but rather keep
                            people from lagging the mush with huge field width processing */
                         if( fm.fieldwidth > LBUF_SIZE - 100 ) {
-                           safe_str( "#-1 FIELD WIDTH OUT OF RANGE", buff, bufcx );
+                           safe_str( "#-1 FIELD WIDTH OUT OF RANGE [MUST BE > 0 AND < ", buff, bufcx );
+                           ival(buff, bufcx, (LBUF_SIZE - 100));
+                           safe_chr(']', buff, bufcx);
                            fmterror = 1;
                            break;
                         }

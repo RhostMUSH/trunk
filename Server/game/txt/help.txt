@@ -11936,6 +11936,11 @@
              Use of /w<number>/ cuts off on the line when '|' and '"' is used.
                examples: /w1/ -- when using '|"' cut off after first line.
              Valid values: 0 - (LBUF - 100) (0 is unlimited)
+         # - Convert tabs to spaces.  You may specify a value between #'s
+             to specify a specific number of spaces (from 1 to 10) otherwise
+             if defaults to five.
+               examples: #   -- Convert all tabs to 5 spaces
+                         #7# -- Convert all tabs to 7 spaces
       Value fields:
          1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
                         See: @list options system for current LBUF size.
