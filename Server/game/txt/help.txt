@@ -30728,6 +30728,7 @@
     
   New Features
   ------------
+  * # option to printf for converting tabs to specified number of spaces [ASH]
   
   Changes
   ------------
