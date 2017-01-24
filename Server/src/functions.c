@@ -28848,14 +28848,16 @@ FUNCTION(fun_ansi)
 /* editansi -- edit the color/accent markup in a string */
 FUNCTION(fun_editansi)
 {
+#ifdef ZENTY_ANSI
    ANSISPLIT search_val[LBUF_SIZE], replace_val[LBUF_SIZE], a_input[LBUF_SIZE];
    char *s_input, *s_combine, *s_buff, *s_buffptr, *s_array[3];
    int i_omit1, i_omit2, i_loop;
+#endif
 
 #ifndef ZENTY_ANSI
    safe_str((char *)"#-1 ZENTY ANSI REQUIRED FOR THIS FUNCTION.", buff, bufcx);
    return;
-#endif
+#else
    if (!fn_range_check_real("EDITANSI", nfargs, 3, MAX_ARGS, buff, bufcx, 1)) 
        return;
 
@@ -28908,6 +28910,7 @@ FUNCTION(fun_editansi)
    free_lbuf(s_buff);
    free_lbuf(s_array[0]);
    free_lbuf(s_array[1]);
+#endif
 }
 
 FUNCTION(fun_stripansi)

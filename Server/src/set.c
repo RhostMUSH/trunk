@@ -284,6 +284,9 @@ char	*oldalias, *trimalias;
 			atr_add(thing, A_ALIAS, trimalias, Owner(player),
 				aflags);
 			if (add_player_name(thing, trimalias)) {
+				if ( strchr(trimalias, ';') != NULL ) {
+					notify_quiet(player, "Warning: ';' detected.  If you want multiple aliases, use @protect.");
+				}
 				if (!Quiet(player))
 					notify_quiet(player, "Alias set.");
 			} else {
@@ -2100,11 +2103,11 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                    if ( i_compat == 2 ) {
                       *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
                                              (i_redeye ? ANSI_RED : ANSI_HILITE),
-                                             to, ANSI_NORMAL), src, i_type, i_compat);
+                                             to, ANSI_NORMAL), src, i_type);
                    } else {
                       *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
                                              (i_redeye ? ANSI_RED : ANSI_HILITE),
-                                             strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);
+                                             strip_all_ansi(to), ANSI_NORMAL), src, i_type);
                    }
 #endif
                    free_lbuf(tpr_buff);

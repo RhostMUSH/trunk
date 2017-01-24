@@ -600,7 +600,7 @@ void
 notify_check(dbref target, dbref sender, const char *msg, int port, int key, int i_type)
 {
 #ifdef ZENTY_ANSI
-    char *mp2;
+    char *mp2, *msg_utf, *mp_utf;
 #endif
     char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *msg_utf, *mp_utf;
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
