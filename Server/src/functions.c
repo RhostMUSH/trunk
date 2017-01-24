@@ -9270,6 +9270,10 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                         if ( spares ) {
                            if ( !x1 ) {
                               x1 = *s_pp;
+                              if ( *s_special || *s_normal || *s_normalbg )
+                                 safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
+                              if ( *s_accent )
+                                 safe_str("%fn", buff, bufcx);
                               if ( *s_special)
                                  safe_str(s_special, buff, bufcx);
                               if ( *s_normal)
@@ -9279,10 +9283,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                               if ( *s_accent)
                                  safe_str(s_accent, buff, bufcx);
                               safe_chr_fm( x1, buff, bufcx, fm );
+/* NEED TO FIGURE THIS OUT
                               if ( *s_special || *s_normal || *s_normalbg )
                                  safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
                               if ( *s_accent )
                                  safe_str("%fn", buff, bufcx);
+*/
                               memset(s_special, '\0', MBUF_SIZE);
                               s_specialptr = s_special;
                               memset(s_accent, '\0', MBUF_SIZE);
@@ -9344,6 +9350,10 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 #endif
 #ifdef ZENTY_ANSI
                if ( !spares ) {
+                  if ( *s_special || *s_normal || *s_normalbg )
+                     safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
+                  if ( *s_accent )
+                     safe_str("%fn", buff, bufcx);
                   if ( *s_special)
                      safe_str(s_special, buff, bufcx);
                   if ( *s_normal)
@@ -9356,10 +9366,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                      safe_chr_fm( (char)' ', buff, bufcx, fm );
                   else
                      safe_chr_fm( x1, buff, bufcx, fm );
+/* NEED TO FIGURE THIS OUT
                   if ( *s_special || *s_normal || *s_normalbg )
                      safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
                   if ( *s_accent )
                      safe_str("%fn", buff, bufcx);
+*/
                   memset(s_special, '\0', MBUF_SIZE);
                   s_specialptr = s_special;
                   memset(s_accent, '\0', MBUF_SIZE);
@@ -9643,6 +9655,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  break;
            }
 #endif
+#ifdef ZENTY_ANSI
+           if ( *s_special || *s_normal || *s_normalbg )
+              safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
+           if ( *s_accent )
+              safe_str("%fn", buff, bufcx);
+#endif
            if ( *s_special) 
               safe_str(s_special, buff, bufcx);
            if ( *s_normal) 
@@ -9655,12 +9673,14 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
               safe_chr_fm( (char)' ', buff, bufcx, fm );
            else
               safe_chr_fm( *s_pp, buff, bufcx, fm );
+/* NEED TO FIGURE THIS OUT
 #ifdef ZENTY_ANSI
            if ( *s_special || *s_normal || *s_normalbg )
               safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
            if ( *s_accent )
               safe_str("%fn", buff, bufcx);
 #endif
+*/
            memset(s_special, '\0', MBUF_SIZE);
            s_specialptr = s_special;
            memset(s_accent, '\0', MBUF_SIZE);
@@ -9834,6 +9854,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  break;
            }
 #endif
+#ifdef ZENTY_ANSI
+           if ( *s_special || *s_normal || *s_normalbg )
+              safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
+           if ( *s_accent )
+              safe_str("%fn", buff, bufcx);
+#endif
            if ( *s_special)
               safe_str(s_special, buff, bufcx);
            if ( *s_normal)
@@ -9846,12 +9872,14 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
               safe_chr_fm( (char)' ', buff, bufcx, fm );
            else
               safe_chr_fm( *s_pp, buff, bufcx, fm );
+/* NEED TO FIGURE THIS OUT
 #ifdef ZENTY_ANSI
            if ( *s_special || *s_normal || *s_normalbg )
               safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
            if ( *s_accent )
               safe_str("%fn", buff, bufcx);
 #endif
+*/
            s_pp++;
            memset(s_special, '\0', MBUF_SIZE);
            s_specialptr = s_special;
