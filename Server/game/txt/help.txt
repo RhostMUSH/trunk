@@ -30743,3 +30743,4 @@
   * lnum2() didn't work properly with lnum_compat enabled [ASH]
   * a one off unitialized variable for loading in command tables [ASH]
   * small cleanup with compiling without ZENTY_ANSI [ASH]
+  * handler cleaned up for no-op handling [ASH,AMB]

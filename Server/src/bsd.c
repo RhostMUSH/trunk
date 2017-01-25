@@ -2074,6 +2074,26 @@ process_input(DESC * d)
 		p--;
 	    if (p < d->raw_input_at)
 		(d->raw_input_at)--;
+        /* Display char 255 */
+        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) == 255) ) {
+           if ( mudconf.accent_extend ) {
+               sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
+               in+=5;
+               got+=5;
+               qf = qfind;
+               while ( *qf ) {
+                  *p++ = *qf++;
+               }
+           } else {
+               in++;
+               got++;
+               *p++ = 'y';
+           }
+           q++;
+        /* This is telnet negotiation -- we eat telnet negotiation */
+        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != 255) ) {
+           q++;
+        /* Else let's print printables -- This is ASCII-7 [0-128] */
   	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
 	    *p++ = *q;
         } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
@@ -2112,10 +2132,9 @@ process_input(DESC * d)
             while (*qf) {
                 *p++ = *qf++;
             }
-        } else if ( (((int)(unsigned char)*q) > 160) && 
-                    ((!mudconf.accent_extend && ((int)(unsigned char)*q) < 250) || (mudconf.accent_extend && ((int)(unsigned char)*q) < 256)) && 
-                    ((p+10) < pend) ) {
-            if ( (((int)(unsigned char)*q == 255) && *(q++) != '\0') || ((int)(unsigned char)*q != 255) ) {
+        /* Let's handle accents [129-255] */
+        } else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 256) && ((p+10) < pend) ) {
+            if ( (mudconf.accent_extend && ((int)(unsigned char)*q >= 250)) || ((int)(unsigned char)*q < 250) ) {
                sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
                in+=5;
                got+=5;
@@ -2123,9 +2142,15 @@ process_input(DESC * d)
                while ( *qf ) {
                   *p++ = *qf++;
                }
-             }
-        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != '\0') ) {
-            q++;
+            } else {
+               if ( ((int)(unsigned char)*q) < 253 ) {
+                  *p++ = 'u';
+               } else if ( ((int)(unsigned char)*q) == 254 ) {
+                  *p++ = 'b';
+               } else {
+                  *p++ = 'y';
+               }
+            }
 	} else {
 	    in--;
 	    if (p >= pend)
