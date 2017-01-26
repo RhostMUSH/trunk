@@ -2026,6 +2026,64 @@ process_output(DESC * d)
     RETURN(1); /* #12 */
 }
 
+
+/* The monster that's telnet negotiation -- for now we just eat it */
+int
+snarfle_the_garthok(char *input, char *output) 
+{
+   int i_count;
+   char *s_in, *s_out;
+
+   i_count = 0;
+   s_in = input;
+   s_out = input;
+   switch ((unsigned char)*s_in) {
+      /* IAC/255 is already handled */
+      case 254: /* DONT */
+         if ( *(s_in+1) ) {
+            i_count+=2;
+         } else {
+            i_count++;
+         }
+         break;
+      case 253: /* DO */
+         if ( *(s_in+1) ) {
+            i_count+=2;
+         } else {
+            i_count++;
+         }
+         break;
+      case 252: /* WONT */
+         if ( *(s_in+1) ) {
+            i_count+=2;
+         } else {
+            i_count++;
+         }
+         break;
+      case 251: /* WILL */
+         if ( *(s_in+1) ) {
+            i_count+=2;
+         } else {
+            i_count++;
+         }
+         break;
+      case 250: /* SB -- NEED TO LOOK FOR SE/240 or corrupt packet stream */
+         if ( strchr(s_in, (unsigned char)240) == NULL ) {
+            /* No SE found -- eat what we can and ignore it */
+            i_count+=2;
+         } else {
+            i_count=(int)((unsigned int)strchr(s_in, (unsigned char)240) - (unsigned int)s_in);
+         }
+      case 241: /* NOP */
+         i_count++;
+         break;
+      default: /* Any other char */
+         i_count++;
+         break;
+   }
+   return(i_count);
+}
+
 int 
 process_input(DESC * d)
 {
@@ -2074,22 +2132,16 @@ process_input(DESC * d)
 		p--;
 	    if (p < d->raw_input_at)
 		(d->raw_input_at)--;
-        /* Display char 255 */
+        /* Display char 255  -- no need for accent_extend as it's handled in eval.c */
         } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) == 255) ) {
-           if ( mudconf.accent_extend ) {
-               sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-               in+=5;
-               got+=5;
-               qf = qfind;
-               while ( *qf ) {
-                  *p++ = *qf++;
-               }
-           } else {
-               in++;
-               got++;
-               *p++ = 'y';
-           }
-           q++;
+            sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
+            in+=5;
+            got+=5;
+            qf = qfind;
+            while ( *qf ) {
+               *p++ = *qf++;
+            }
+            q++;
         /* This is telnet negotiation -- we eat telnet negotiation */
         } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != 255) ) {
            q++;
@@ -2132,24 +2184,14 @@ process_input(DESC * d)
             while (*qf) {
                 *p++ = *qf++;
             }
-        /* Let's handle accents [129-255] */
+        /* Let's handle accents [129-255] -- no accent_extend here as it's handled in eval.c in parse_ansi */
         } else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 256) && ((p+10) < pend) ) {
-            if ( (mudconf.accent_extend && ((int)(unsigned char)*q >= 250)) || ((int)(unsigned char)*q < 250) ) {
-               sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-               in+=5;
-               got+=5;
-               qf = qfind;
-               while ( *qf ) {
-                  *p++ = *qf++;
-               }
-            } else {
-               if ( ((int)(unsigned char)*q) < 253 ) {
-                  *p++ = 'u';
-               } else if ( ((int)(unsigned char)*q) == 254 ) {
-                  *p++ = 'b';
-               } else {
-                  *p++ = 'y';
-               }
+            sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
+            in+=5;
+            got+=5;
+            qf = qfind;
+            while ( *qf ) {
+               *p++ = *qf++;
             }
 	} else {
 	    in--;
