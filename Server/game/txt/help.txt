@@ -397,7 +397,9 @@
   specify '!^' and '!!^' for true-boolean FALSE or TRUE conditions on
   functions that return true-boolean based on the function t()'.
   
-  
+  You may also use these in %q<> substitutions and %-<num> argument
+  specifications.
+    
   Example:
     > say match(one two three four five,four)
     You say "4"
@@ -413,9 +415,15 @@
     You say "0"
     > say !!$space(1000)                  (spaces are not-null strings)
     You say "1" 
+    > say [setq(0,space(1000))]%q<!!$0> // %q<!!^0>     (process register 0)
+    YOu say "1 // 0"     (spaces are not null // spaces are non-boolean)
+    > say u(#lambda/[lit(%-!!$0 // %-!!^0)],space(10))  (process argument 0)
+    YOu say "1 // 0"     (spaces are not null // spaces are non-boolean)
   
   Bang notation may or may not be enabled based on the RhostMUSH that you are
   on.  Please check @list options to see if it is currently enabled.
+  
+  See Also: %-, %q
   
 & VARIABLE EXITS
   Variable exits are done somewhat differently than Penn and TinyMUSH3.  First,
@@ -846,11 +854,13 @@
   delete any name you, yourself, have protected.  Wizards may remove any
   protected name.  Immortals bypass protected names.
   
+  Note: See @list options system to see what is enabled.
+  
   Switches available:
     /list    - (default) - list the names you current have protected.  This
                does not take any arguments.
     /add     - Add your current name to your protected name list.  This does
-               not take any arguments.
+               not take any arguments unless protect_addenh is enabled.
     /del     - Remove the specified name from your protected name list.  This
                requires an argument.
     /alias   - Adds the protected name as an alias.  This will work like 
@@ -10674,6 +10684,7 @@
 & %i
 & %d
 & %q
+& %q<
 & %v
 & %0
 & %1
@@ -10708,11 +10719,15 @@
     %0-%9   = Value of positional parameter/stack location 0 through 9.
     %-<num> = Stack 10+ that are comma delimited or if <num> specified
               the positional stack location 0 through 999.
+              NOTE: You may specify bangs with %-<bangs><num>.
+                    example: %-!!$22 (see if arg 22 contains a string)
     %-m     = The last command executed that the @hook picked up
     %i0-%i9 = Equivalent to itext(0) through itext(9). [%il for outer]
     %d0-%d9 = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
               Only useable with /inline only.
     %q0-%q9 = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
+              Note: You may use %q<reg> or %q<BANGreg> for registers.
+                    example: %q<0>, %q<bob>, %q<!!$0>, %q<!!$bob>
     %qa-%qz = Extended value of registers.
     %va-%vz = Contents of attribute va through vz.
   
@@ -11648,9 +11663,18 @@
 
 & TESTLOCK()
   Function: testlock(<key>, <target> [,<type>])
+            testlock(<key>, <target1> [... <targetN>], <type>, <sep>[, <osep>])
   
-  The testlock function will evaluate a lock that you pass against the
-  target <target>.  It will evaluate permissions based on the enactor.
+  The first example of the testlock function will evaluate a lock that you 
+  pass against the target <target>.  It will evaluate permissions based 
+  on the enactor.
+  
+  The second example of the testlock function will evaluate a lock that you
+  pass against a list of target(s).  It will return each target's dbref#
+  based on the <key> and only evaluates <key> once for quicker processing.
+  You may specify an optional <sep> seperator, or leave blank for a default
+  of a space.  An optional <osep> for an output seperator may be specified
+  or it defaults to what the <sep> value is.
   
   The key <key> may be any normal key found in locks.  Please see
   'help @lock' for more information on how locks work and keys available.
@@ -11666,6 +11690,8 @@
     You say "0"
     > say testlock(*tester,*tester)
     You say "1"
+    > say testlock(*tester|*bob,*tester *bob *foo,,%b)
+    You say "#123 #234"
   
   See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
   
@@ -30729,11 +30755,13 @@
   New Features
   ------------
   * # option to printf for converting tabs to specified number of spaces [ASH]
+  * BANG support is now supported in %-<num> regs and %q<> regs [ASH]
   
   Changes
   ------------
   * increased the size of altname to 100 characters due to unicode [ASH]
   * laxed some restrictions (like line length) for execscript [ASH]
+  * TESTLOCK() now handles more arguments for multi-targets [ASH]
   
   Bug Fixes
   ------------
@@ -30744,3 +30772,4 @@
   * a one off unitialized variable for loading in command tables [ASH]
   * small cleanup with compiling without ZENTY_ANSI [ASH]
   * handler cleaned up for no-op handling [ASH,AMB]
+  * small parsing issue with bang notation with functions caused cutoff [ASH]

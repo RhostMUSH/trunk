@@ -38,6 +38,79 @@ extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char 
  * returned as NULL.
  */
 
+#ifdef BANGS
+void
+setup_bangs(int *bang_not, int *bang_yes, int *bang_string, int *bang_truebool, char **dstr)
+{
+   *bang_not = 0;
+   *bang_yes = 0;
+   *bang_string = 0;
+   *bang_truebool = 0;
+
+   if (**dstr == '!') {
+      *bang_not = 1;
+      (*dstr)++;
+   }
+   if (**dstr == '!') {
+      *bang_not = 0;
+      *bang_yes = 1;
+      (*dstr)++;
+   }
+   if ((*bang_not || *bang_yes) && **dstr == '$') {
+      *bang_string = 1;
+      (*dstr)++;
+   } else if ((*bang_not || *bang_yes) && **dstr == '^') {
+      *bang_string = 1;
+      *bang_truebool = 1;
+      (*dstr)++;
+   }
+}
+
+void
+issue_bangs(int bang_not, int bang_yes, int bang_string, int bang_truebool, char *tbuf)
+{
+   char *ttmp;
+
+   ttmp = tbuf;
+   if (bang_string && *tbuf) {
+      if ( bang_truebool ) {
+         if ( (*tbuf == '#') && (*(tbuf+1) == '-') ) {
+            tbuf[0] = '0';
+         } else if ( (*tbuf == '0') && !*(tbuf+1)) {
+            tbuf[0] = '0';
+         } else {
+            while (isspace(*ttmp) && *ttmp) {
+               ttmp++;
+            }
+            if (*ttmp) {
+               tbuf[0] = '1';
+            } else {
+               tbuf[0] = '0';
+            }
+         }
+      } else {
+         tbuf[0] = '1';
+      }
+      tbuf[1] = '\0';
+   } else if (bang_string) {
+      tbuf[0] = '0';
+      tbuf[1] = '\0';
+   }
+   if (bang_not && atoi(tbuf)) {
+      tbuf[0] = '0';
+   } else if (bang_not && !atoi(tbuf)) {
+      tbuf[0] = '1';
+   } else if (bang_yes && atoi(tbuf)) {
+      tbuf[0] = '1';
+   } else if (bang_yes && !atoi(tbuf)) {
+      tbuf[0] = '0';
+   }
+   if (bang_not || bang_yes) {
+      tbuf[1] = '\0';
+   }
+}
+#endif
+
 int
 sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, char **bufc, dbref cause, dbref caller, int feval) {
    ATTR *sub_ap;
@@ -1214,7 +1287,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     static unsigned long tstart, tend, tinterval;
 #ifdef BANGS
     int bang_not, bang_string, bang_truebool, bang_yes;
-    char *tbangc;
+    int regbang_not, regbang_string, regbang_truebool, regbang_yes;
+    char *tbangc, *tbang_tmp;
 #endif
     static const char *subj[5] =
     {"", "it", "she", "he", "they"};
@@ -1686,11 +1760,24 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    safe_str(cargs[i], buff, &bufc);
 		break;
             case '-':
+#ifdef BANGS
+                   /* Check for bang support here */
+                if ( *(dstr+1) == '!' ) {
+                   dstr++;
+                   setup_bangs(&regbang_not, &regbang_yes, &regbang_string, &regbang_truebool, &dstr);
+                   dstr--;
+                   *dstr='-';
+                } else {
+                   regbang_not = regbang_yes = regbang_string = regbang_truebool = 0;
+                }
+#endif
+                /* Ignore bangs for this */
                 if ( *(dstr+1) == 'm' ) {
                    if ( *(mudstate.curr_cmd_hook) ) {
                       safe_str(mudstate.curr_cmd_hook, buff, &bufc);
                    }
                    dstr++;
+                /* Do the bangs if there */
                 } else if ( isdigit((unsigned char)*(dstr+1)) ) {
                    if ( isdigit((unsigned char)*(dstr+2)) ) {
                       if ( isdigit((unsigned char)*(dstr+3)) ) {
@@ -1704,8 +1791,21 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       i = (*(dstr+1) - '0');
                       dstr++;
                    }
-		   if ((i < ncargs) && (cargs[i] != NULL))
-		       safe_str(cargs[i], buff, &bufc);
+		   if ((i < ncargs) && (cargs[i] != NULL)) {
+#ifdef BANGS
+                      if ( regbang_not || regbang_yes ) {
+                         tbang_tmp = alloc_lbuf("bang_qregs");
+                         strcpy(tbang_tmp, cargs[i]);
+                         issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
+                         safe_str(tbang_tmp, buff, &bufc);
+                         free_lbuf(tbang_tmp);
+                      } else {
+		         safe_str(cargs[i], buff, &bufc);
+                      }
+#else
+		      safe_str(cargs[i], buff, &bufc);
+#endif
+                   }
                 } else {
                    if (ncargs >= 10) {
                       for (i=10; ((i < ncargs) && (i <= MAX_ARGS) && cargs[i] != NULL); i++) {
@@ -1756,6 +1856,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    t_bufb = t_bufa = alloc_sbuf("sub_include_setq");
                    orig_dstr = dstr;
                    dstr++;
+#ifdef BANGS
+                   /* Check for bang support here */
+                   setup_bangs(&regbang_not, &regbang_yes, &regbang_string, &regbang_truebool, &dstr);
+#endif
+
                    while ( *dstr && (*dstr != '>') && (sub_cntr < (SBUF_SIZE - 1)) ) {
                       *t_bufb = *dstr;
                       dstr++;
@@ -1774,20 +1879,57 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          }
                          i = w;
 		         if ( mudstate.global_regs[i] ) {
+#ifdef BANGS
+                         
+                            if ( regbang_not || regbang_yes ) {
+                               tbang_tmp = alloc_lbuf("bang_qregs");
+                               strcpy(tbang_tmp, mudstate.global_regs[i]);
+                               issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
+                               safe_str(tbang_tmp, buff, &bufc);
+                               free_lbuf(tbang_tmp);
+                            } else {
+		               safe_str(mudstate.global_regs[i], buff, &bufc);
+                            }
+#else
 		            safe_str(mudstate.global_regs[i], buff, &bufc);
+#endif
                          }
 #else
                       if ( *t_bufa && !*(t_bufa+1) && isdigit(*t_bufa) ) {
 		         i = (*t_bufa - '0');
 		         if ((i >= 0) && (i <= 9) && mudstate.global_regs[i] ) {
+#ifdef BANGS
+                            if ( regbang_not || regbang_yes ) {
+                               tbang_tmp = alloc_lbuf("bang_qregs");
+                               strcpy(tbang_tmp, mudstate.global_regs[i]);
+                               issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
+                               safe_str(tbang_tmp, buff, &bufc);
+                               free_lbuf(tbang_tmp);
+                            } else {
+		               safe_str(mudstate.global_regs[i], buff, &bufc);
+                            }
+#else
 		            safe_str(mudstate.global_regs[i], buff, &bufc);
+#endif
                          }
 #endif
                       } else {
                          for ( sub_cntr = 0 ; sub_cntr < MAX_GLOBAL_REGS; sub_cntr++ ) {
                             if (  mudstate.global_regsname[sub_cntr] &&
                                   !stricmp(mudstate.global_regsname[sub_cntr], t_bufa) ) {
+#ifdef BANGS
+                               if ( regbang_not || regbang_yes ) {
+                                  tbang_tmp = alloc_lbuf("bang_qregs");
+                                  strcpy(tbang_tmp, mudstate.global_regs[sub_cntr]);
+                                  issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
+                                  safe_str(tbang_tmp, buff, &bufc);
+                                  free_lbuf(tbang_tmp);
+                               } else {
+		                  safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
+                               }
+#else
 		               safe_str(mudstate.global_regs[sub_cntr], buff, &bufc);
+#endif
                                break;
                             }
                          }
@@ -1810,16 +1952,14 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		       dstr--;
 		   if ((i >= 0) && (i <= 35) &&
 		       mudstate.global_regs[i]) {
-		       safe_str(mudstate.global_regs[i],
-			        buff, &bufc);
+		       safe_str(mudstate.global_regs[i], buff, &bufc);
 		   }
 #else
 		   if (!*dstr)
 		       dstr--;
 		   if ((i >= 0) && (i <= 9) &&
 		       mudstate.global_regs[i]) {
-		       safe_str(mudstate.global_regs[i],
-			        buff, &bufc);
+		       safe_str(mudstate.global_regs[i], buff, &bufc);
 		   }
 #endif
                 }
@@ -2419,7 +2559,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    *bufc = '\0';
 	    tbufc = tbuf = alloc_sbuf("exec.tbuf");
 	    safe_sb_str(buff, tbuf, &tbufc);
-	    *tbufc = '\0';
+  	    *tbufc = '\0';
 	    if (mudconf.space_compress) {
 		while ((--tbufc >= tbuf) && isspace((int)*tbufc));
 		tbufc++;
@@ -2435,28 +2575,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	     * modified pointer will be used to search the hash table
 	     * if a bang condition is found.
 	     */
-	    tbangc = tbuf;
-	    bang_not = 0;
-	    bang_yes = 0;
-	    bang_string = 0;
-            bang_truebool = 0;
-	    if (*tbangc == '!') {
-		bang_not = 1;
-		tbangc++;
-		}
-	    if (*tbangc == '!') {
-		bang_not = 0;
-		bang_yes = 1;
-		tbangc++;
-		}
-	    if ((bang_not || bang_yes) && *tbangc == '$') {
-		bang_string = 1;
-		tbangc++;
-	    } else if ((bang_not || bang_yes) && *tbangc == '^') {
-		bang_string = 1;
-                bang_truebool = 1;
-		tbangc++;
-            }
+  	    tbangc = tbuf;
+            setup_bangs(&bang_not, &bang_yes, &bang_string, &bang_truebool, &tbangc);
 	    if (bang_not || bang_yes) {
 		fp = (FUN *) hashfind(tbangc, &mudstate.func_htab);
 		ufp = NULL;
@@ -2774,42 +2894,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		     * Real straight-forward. Handle the bangs inside-out,
 		     * strings first, then negate or yes-gate it.
 		     */
-		    if (bang_string && *tbuf) {
-                        if ( bang_truebool ) {
-                           if ( (*tbuf == '#') && (*(tbuf+1) == '-') ) {
-                              tbuf[0] = '0';
-                           } else if ( (*tbuf == '0') && !*(tbuf+1)) {
-                              tbuf[0] = '0';
-                           } else {
-                              while (isspace(*tbuf) && *tbuf)
-                                 tbuf++;
-                              if (*tbuf) {
-                                 tbuf[0] = '1';
-                              } else {
-                                 tbuf[0] = '1';
-                                 tbuf[0] = '0';
-                              }
-                           }
-                        } else {
-			   tbuf[0] = '1';
-                        }
-			tbuf[1] = '\0';
-		    } else if (bang_string) {
-			tbuf[0] = '0';
-			tbuf[1] = '\0';
-		    }
-		    if (bang_not && atoi(tbuf)) {
-			tbuf[0] = '0';
-		    } else if (bang_not && !atoi(tbuf)) {
-			tbuf[0] = '1';
-		    } else if (bang_yes && atoi(tbuf)) {
-			tbuf[0] = '1';
-		    } else if (bang_yes && !atoi(tbuf)) {
-			tbuf[0] = '0';
-		    }
-		    if (bang_not || bang_yes) {
-			tbuf[1] = '\0';
-		    }
+                    issue_bangs(bang_not, bang_yes, bang_string, bang_truebool, tbuf);
 #endif
 		    safe_str(tbuf, buff, &bufc);
 		    free_lbuf(tstr);
@@ -2906,11 +2991,12 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                         } else {
                            buff[0] = '1';
                         }
-                        buff[1] = '\0';
+                        bufc2 = buff;
+                        bufc = bufc2+1;
                     } else if (bang_string) {
                         safe_str("0", buff, &bufc);
                     }
-		    if (bang_not && atoi(buff)) {
+                    if (bang_not && atoi(buff)) {
                        buff[0] = '0';
                     } else if (bang_not && !atoi(buff)) {
                        buff[0] = '1';
@@ -2919,11 +3005,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     } else if (bang_yes && !atoi(buff)) {
                        buff[0] = '0';
                     }
-		    if (bang_not || bang_yes) {
-                       buff[1] = '\0';
+                    if ( bang_not || bang_yes ) {
+                       bufc2 = buff;
+                       bufc = bufc2+1;
                     }
 #endif
-
 		}
 		mudstate.func_nest_lev--;
 	    } else {

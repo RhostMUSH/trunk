@@ -419,6 +419,7 @@ struct confdata {
 	int	penn_setq;	/* Do penn setq formatting */
 	int	delim_null;	/* Allow @@ for delimiters */
 	int	hook_offline;	/* Hook offline commands */
+	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */
 	dbref	file_object;	/* The file object to override @list_file foo */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */

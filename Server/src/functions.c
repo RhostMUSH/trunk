@@ -5048,9 +5048,10 @@ FUNCTION(fun_grab)
     if ((nfargs == 2) || ((nfargs == 3) && !*fargs[2])) {
       pt2 = toks;
       strcpy(toks," \t\r\n,");
-    }
-    else
+    } else {
       pt2 = fargs[2];
+    }
+
     pt1 = strtok_r(fargs[0], pt2, &s_tok);
     while (pt1) {
        if (quick_wild(fargs[1], pt1))
@@ -5228,12 +5229,12 @@ FUNCTION(fun_lockcheck)
 
 FUNCTION(fun_testlock)
 {
-   char *s_instr;
+   char *s_instr, *s_strtok, *s_strtokptr, sep[2], *osep;
    dbref target;
-   int i_locktype;
+   int i_locktype, i_multi, i_first;
    struct boolexp *okey;
 
-   if (!fn_range_check("TESTLOCK", nfargs, 2, 3, buff, bufcx)) 
+   if (!fn_range_check("TESTLOCK", nfargs, 2, 5, buff, bufcx)) 
       return;
 
    if ( !fargs[0] || !*fargs[0] || !fargs[1] || !*fargs[1] ) {
@@ -5241,13 +5242,35 @@ FUNCTION(fun_testlock)
       return;
    }
 
-   target = match_thing(player, fargs[1]);
-   if ( !Good_chk(target) ) {
-      safe_str("#-1 NOT FOUND", buff, bufcx);
+   i_multi = 0;
+   if ( nfargs > 3 ) {
+      if ( *fargs[3] ) {
+         sep[0] = *fargs[3];
+      } else {
+         sep[0] = ' ';
+      }
+      sep[1] = '\0';
+      osep = sep;
+      i_multi = 1;
    }
-   if ( (Cloak(target) && !Wizard(player)) ||
-        ((SCloak(target) && Cloak(target)) && !Immortal(player)) ) {
-      safe_str("#-1 NOT FOUND", buff, bufcx);
+   if ( (nfargs > 4) && *fargs[4] ) {
+      if ( mudconf.delim_null && (strcmp(fargs[4], (char *)"@@") == 0) ) {
+         osep=NULL;
+      } else {
+         osep = fargs[4];
+      }
+   } 
+   if ( !i_multi ) {
+      target = match_thing(player, fargs[1]);
+      if ( !Good_chk(target) ) {
+         safe_str("#-1 NOT FOUND", buff, bufcx);
+         return;
+      }
+      if ( (Cloak(target) && !Wizard(player)) ||
+           ((SCloak(target) && Cloak(target)) && !Immortal(player)) ) {
+         safe_str("#-1 NOT FOUND", buff, bufcx);
+         return;
+      }
    }
 
    i_locktype = 0;
@@ -5264,7 +5287,27 @@ FUNCTION(fun_testlock)
       s_instr = alloc_lbuf("fun_testlock");
       memset(s_instr, '\0', LBUF_SIZE);
       sprintf(s_instr, "%s", unparse_boolexp_quiet(player, okey));
-      ival(buff, bufcx, eval_boolexp_atr(target, target, target, s_instr, 1, i_locktype));
+      if ( !i_multi ) {
+         ival(buff, bufcx, eval_boolexp_atr(target, target, target, s_instr, 1, i_locktype));
+      } else {
+         s_strtok = strtok_r(fargs[1], sep, &s_strtokptr);
+         i_first = 0;
+         while ( s_strtok ) {
+            target = match_thing(player, s_strtok);
+            if ( Good_chk(target) &&
+                 !( (Cloak(target) && !Wizard(player)) ||
+                    ((SCloak(target) && Cloak(target)) && !Immortal(player))) ) {
+               if ( eval_boolexp_atr(target, target, target, s_instr, 1, i_locktype) ) {
+                  if ( i_first && osep ) {
+                     safe_str(osep, buff, bufcx);
+                  }
+                  dbval(buff, bufcx, target);
+                  i_first = 1;
+               }
+            }
+            s_strtok = strtok_r(NULL, sep, &s_strtokptr);
+         }
+      }
       free_lbuf(s_instr);
    }
    free_boolexp(okey);

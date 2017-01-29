@@ -5601,28 +5601,28 @@
   player_starting_home      player_starting_room      player_toggles
   plushelp_file             plushelp_index            port                    
   proxy_checker             postdump_message          power_access            
-  public_flags              queue_active_chunk        queue_compatible        
-  queue_idle_chunk          quiet_look                quiet_whisper           
-  quit_file                 quotas                    read_remote_desc        
-  read_remote_name          recycling                 register_create_file    
-  register_host             register_site             regtry_limit            
-  restrict_home             restrict_sidefx           retry_limit             
-  robot_cost                robot_flags               robot_speech            
-  robot_toggles             room_aconnect             room_adisconnect        
-  room_attr_default         room_flags                room_parent             
-  room_quota                room_toggles              roomlog_path            
-  round_kludge              rwho_data_port            rwho_dump_interval      
-  rwho_host                 rwho_info_port            rwho_password           
-  rwho_transmit             sacrifice_adjust          sacrifice_factor        
-  safe_wipe                 safer_passwords           safer_ufun              
-  search_cost               secure_atruselock         secure_dark             
-  secure_functions          secure_jumpok             see_owned_dark          
-  showother_altname         shs_reverse               sidefx_maxcalls         
-  sidefx_returnval          sideeffects               signal_action           
-  signal_cron               signal_object             signal_object_type      
-  space_compress            spam_limit                spam_msg                
-  spam_objmsg               sqlite_db_path            sqlite_query_limit      
-  stack_limit
+  protect_addenh            public_flags              queue_active_chunk      
+  queue_compatible          queue_idle_chunk          quiet_look              
+  quiet_whisper             quit_file                 quotas                  
+  read_remote_desc          read_remote_name          recycling               
+  register_create_file      register_host             register_site           
+  regtry_limit              restrict_home             restrict_sidefx         
+  retry_limit               robot_cost                robot_flags             
+  robot_speech              robot_toggles             room_aconnect           
+  room_adisconnect          room_attr_default         room_flags              
+  room_parent               room_quota                room_toggles            
+  roomlog_path              round_kludge              rwho_data_port          
+  rwho_dump_interval        rwho_host                 rwho_info_port          
+  rwho_password             rwho_transmit             sacrifice_adjust        
+  sacrifice_factor          safe_wipe                 safer_passwords         
+  safer_ufun                search_cost               secure_atruselock       
+  secure_dark               secure_functions          secure_jumpok           
+  see_owned_dark            showother_altname         shs_reverse             
+  sidefx_maxcalls           sidefx_returnval          sideeffects             
+  signal_action             signal_cron               signal_object           
+  signal_object_type        space_compress            spam_limit              
+  spam_msg                  spam_objmsg               sqlite_db_path          
+  sqlite_query_limit        stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -8832,6 +8832,12 @@
   addition to the owner.  The higher power (for @power) or harsher restriction
   (for @depower) between the two will be chosen.
 
+& protect_addenh
+  Config parameter: protect_addenh <boolean>.  Default: 0
+  
+  If enabled, allows @protect/add to be given an argument to add names to and
+  not just the current player's name.
+  
 & queue_active_chunk
   Config parameter: queue_idle_chunk <num>.  Default: 0
   

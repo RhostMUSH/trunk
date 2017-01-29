@@ -322,6 +322,7 @@ NDECL(cf_init)
     mudconf.objid_localtime = 0;	/* Objid's should use GMtime by default */
     mudconf.objid_offset = 0;		/* seconds of offset that it should use */
     mudconf.hook_offline = 0;		/* Trigger @hook/after on offline player create */
+    mudconf.protect_addenh = 0;		/* Enhanced @protect/add */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4581,6 +4582,9 @@ CONF conftable[] =
     {(char *) "float_precision",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.float_precision, 48, 1, CA_WIZARD,
      (char *) "The decimal placement of float precision for math functions.   Default: 0   Value: %d"},
+    {(char *) "protect_addenh",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.protect_addenh, 0, 0, CA_WIZARD,
+     (char *) "Will you allow arguments to @protect/add?"},
     {(char *) "proxy_checker",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.proxy_checker, 0, 0, CA_WIZARD,
      (char *) "The Proxy Checker.  0 off, >0 on, 2 block guests, 4 block register.\r\n"\

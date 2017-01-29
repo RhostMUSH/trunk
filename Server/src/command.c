@@ -6122,6 +6122,10 @@ list_options_system(dbref player)
        notify(player, "@@ recognized as null output seperator ------------------------- ENABLED");
     else
        notify(player, "@@ recognized as null output seperator ------------------------- DISABLED");
+    if ( mudconf.protect_addenh)
+       notify(player, "@protect/add protect_addenh argument for player name adding ---- ENABLED");
+    else
+       notify(player, "@protect/add protect_addenh argument for player name adding ---- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
@@ -10061,19 +10065,33 @@ void do_protect(dbref player, dbref cause, int key, char *name)
    }
 
    if ( (key & PROTECT_DEL) && (!*name || !ok_player_name(name)) ) {
-      notify(player, "@protect with /del or /add requires valid name");
+      notify(player, "@protect with /del requires valid name");
+      return;
+   }
+   if ( (key & PROTECT_ADD) && mudconf.protect_addenh && *name && !ok_player_name(name) ) {
+      notify(player, "@protect with /add requires valid name");
       return;
    }
    s_protect_ptr = s_protect_buff=alloc_lbuf("do_protect");
    switch (key ) {
       case PROTECT_ADD:
-         i_return = (dbref) protectname_add(Name(player), player);
+         if ( mudconf.protect_addenh && *name && badname_check(name, player)) {
+            i_return = (dbref) protectname_add(name, player);
+         } else {
+            i_return = (dbref) protectname_add(Name(player), player);
+         }
          if ( i_return == 1 ) {
             notify(player, unsafe_tprintf("You have reached the maximum of %d protected names.", mudconf.max_name_protect));
          } else if ( i_return == 2 ) {
-            notify(player, "Your current name is already protected.");
+            if ( mudconf.protect_addenh && *name )
+               notify(player, "That name is already protected.");
+            else
+               notify(player, "Your current name is already protected.");
          } else {
-            notify(player, "Your current name has been added to your protect list.");
+            if ( mudconf.protect_addenh && *name ) 
+               notify(player, "The name has been added to your protect list.");
+            else
+               notify(player, "Your current name has been added to your protect list.");
             for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
                if ( bp->i_name == player ) {
                   if ( i_first )
