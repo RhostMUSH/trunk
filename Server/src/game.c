@@ -91,8 +91,11 @@ setq_templates(dbref thing)
 {
    char *s_instr, *s_intok, *s_intokr, *s_intok2, *s_intokr2, c_field[2];
    dbref target_id;
-   int target_attr, regnum, i;
+   int target_attr, regnum;
    ATTR *m_attr;
+#ifdef EXPANDED_QREGS
+   int i;
+#endif
  
    regnum = -1;
    m_attr = atr_str("setq_template");

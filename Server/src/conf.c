@@ -825,6 +825,7 @@ NDECL(cf_init)
 
 #ifndef STANDALONE
 
+#ifdef REALITY_LEVELS
 static int
 countwordsnew(char *str)
 {
@@ -844,6 +845,7 @@ countwordsnew(char *str)
     }
     return n;
 }
+#endif
 
 /* ---------------------------------------------------------------------------
  * cf_log_notfound: Log a 'parameter not found' error.

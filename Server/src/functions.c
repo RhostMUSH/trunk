@@ -30690,7 +30690,7 @@ FUNCTION(fun_nameq)
 #ifdef EXPANDED_QREGS
              safe_chr(mudstate.nameofqreg[regnum], buff, bufcx);
 #else
-             ival(regnum, buff, bufcx);
+             ival(buff, bufcx, regnum);
 #endif
           } else {
              safe_str(mudstate.global_regsname[regnum], buff, bufcx);
