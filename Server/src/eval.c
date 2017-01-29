@@ -1268,7 +1268,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
-    char *buff, *bufc, *bufc2, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
+    char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr;
     char *trace_array[3], *trace_buff, *trace_buffptr;
     static char tfunbuff[33], tfunlocal[100];
@@ -1288,7 +1288,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #ifdef BANGS
     int bang_not, bang_string, bang_truebool, bang_yes;
     int regbang_not, regbang_string, regbang_truebool, regbang_yes;
-    char *tbangc, *tbang_tmp;
+    char *tbangc, *bufc2, *tbang_tmp;
 #endif
     static const char *subj[5] =
     {"", "it", "she", "he", "they"};

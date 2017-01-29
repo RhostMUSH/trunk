@@ -2072,7 +2072,7 @@ snarfle_the_garthok(char *input, char *output)
             /* No SE found -- eat what we can and ignore it */
             i_count+=2;
          } else {
-            i_count=(int)((unsigned int)strchr(s_in, (unsigned char)240) - (unsigned int)s_in);
+            i_count=(strchr(s_in, (unsigned char)240) - s_in);
          }
       case 241: /* NOP */
          i_count++;
