@@ -1802,10 +1802,16 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       } else {
 		         safe_str(cargs[i], buff, &bufc);
                       }
+                   } else if ( (regbang_not || regbang_yes) && (i < ncargs) ) {
+                      tbang_tmp = alloc_lbuf("bang_qregs");
+                      issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
+                      safe_str(tbang_tmp, buff, &bufc);
+                      free_lbuf(tbang_tmp);
+                   }
 #else
 		      safe_str(cargs[i], buff, &bufc);
-#endif
                    }
+#endif
                 } else {
                    if (ncargs >= 10) {
                       for (i=10; ((i < ncargs) && (i <= MAX_ARGS) && cargs[i] != NULL); i++) {
