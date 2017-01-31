@@ -333,9 +333,10 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
            }
            chkwild = regexp_wild_match(buff2,
                                 ((aflags & AF_NOPARSE) ? mudstate.last_command : str), args, 10, 1);
-        } else
+        } else {
            chkwild = wild_match(buff + 1, 
                                 ((aflags & AF_NOPARSE) ? mudstate.last_command : str), args, 10, 0);
+        }
 	if ( chkwild ) {
 	  if (!dpcheck || (dpcheck && ((Owner(player) == Owner(thing)) || 
 	    !DePriv(player,NOTHING,DP_ABUSE,POWER7,POWER_LEVEL_NA)) &&
@@ -366,7 +367,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                               cputext = alloc_lbuf("store_text_attruselock");
                               strcpy(cputext, atext);
                               result = exec(parent, player, player, EV_FCHECK | EV_EVAL, atext,
-                                            (char **)NULL, 0, (char **)NULL, 0);
+                                            args, 10, (char **)NULL, 0);
                               if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
                                  i_cpuslam = 1;
                                  cpuslam = alloc_lbuf("uselock_cpuslam");

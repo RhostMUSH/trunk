@@ -30762,6 +30762,7 @@
   * increased the size of altname to 100 characters due to unicode [ASH]
   * laxed some restrictions (like line length) for execscript [ASH]
   * TESTLOCK() now handles more arguments for multi-targets [ASH]
+  * attribute uselocks now pass args %0-%9 that $commands have [ASH]
   
   Bug Fixes
   ------------
