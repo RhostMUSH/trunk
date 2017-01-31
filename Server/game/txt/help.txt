@@ -389,16 +389,23 @@
   
   You may globally set the attribute SINGLETHREAD as well.
   
+& BANGS NOTATION
 & BANG NOTATION
   Bang notation allows you to use '!' and '!!' in functions for 'not' and
   'not-not' functionality.  This works similiarilly to the C equivelant of
-  using 'bangs'.  You may also specify '!$' and '!!$' for FALSE or TRUE
-  conditions on functions that return string values.  Finally, you may
-  specify '!^' and '!!^' for true-boolean FALSE or TRUE conditions on
-  functions that return true-boolean based on the function t()'.
+  using 'bangs'.  A value of '1' means the condition was matched, '0' not.
+  The following formats are available with BANG support ([] is return value):
+    !   - 'not' BOOLEAN/MATH value.         Example:   !match(me,you)   [1]
+    !!  - 'not not' BOOLEAN/MATH value.     Example:  !!match(me,you)   [0]
+    !$  - 'not' STRING value.               Example:  !$grep(me,you)    [1]
+    !!$ - 'not not' STRING value.           Example: !!$grep(me,you)    [0]
+    !^  - 'not' TRUE BOOLEAN (like t())     Example:  !^grep(me,you)    [1]
+    !!^ - 'not not' TRUE BOOLEAN (like t()) Example: !!^grep(me,you)    [0]
   
-  You may also use these in %q<> substitutions and %-<num> argument
-  specifications.
+  You may also use these in %q<> substitutions,  %-<num> arguments, %i
+  substitutions and %d substitutions.
+  
+  See 'help t()' for how TRUE BOOLEAN works.
     
   Example:
     > say match(one two three four five,four)
@@ -423,7 +430,7 @@
   Bang notation may or may not be enabled based on the RhostMUSH that you are
   on.  Please check @list options to see if it is currently enabled.
   
-  See Also: %-, %q
+  See Also: %-, %q, %i, %d, t()
   
 & VARIABLE EXITS
   Variable exits are done somewhat differently than Penn and TinyMUSH3.  First,
@@ -12775,6 +12782,8 @@
   
 & T()
   Function: t(<string>)
+  
+  This is a TRUE BOOLEAN function.
   
   Returns a '0' if the string is null (empty), a '0', or a # followed by any
   negative number, or a string containing nothing but spaces.  
