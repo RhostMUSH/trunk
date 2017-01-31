@@ -10721,20 +10721,23 @@
     %%      = literal '%' character.
     %0-%9   = Value of positional parameter/stack location 0 through 9.
     %-<num> = Stack 10+ that are comma delimited or if <num> specified
-              the positional stack location 0 through 999.
-              NOTE: You may specify bangs with %-<bangs><num>.
-                    example: %-!!$22 (see if arg 22 contains a string)
-    %-m     = The last command executed that the @hook picked up
+              the positional stack location 0 through 999.  BANGS supported.
+    %-m     = The last command executed that issued @hook.  
     %i0-%i9 = Equivalent to itext(0) through itext(9). [%il for outer]
+              BANGS supported.
     %d0-%d9 = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
-              Only useable with /inline only.
+              Only useable with /inline only.  BANGS supported.
     %q0-%q9 = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
-              Note: You may use %q<reg> or %q<BANGreg> for registers.
-                    example: %q<0>, %q<bob>, %q<!!$0>, %q<!!$bob>
+              Note: You may use %q<label> or %q<0> as well.  BANGS supported.
     %qa-%qz = Extended value of registers.
     %va-%vz = Contents of attribute va through vz.
   
-  Note: %q<label> works for setq labels.  ie.  [setq(0,foo,bar)]%q<bar>
+    NOTE: Anything that says BANGS supported may use BANGS for the process.
+          example: %-!!$22 (see if arg 22 contains a string)
+                   %q<!!$0> (see if register 0 is a string)
+                   %q<!!$foo> (see if register with label 'foo' is a string)
+                   %i!!$0 (see if iter()'s itext(0) is a string)
+                   %d!!$0 (see if @dolist/inline's dtext(0) is a string)
   
 { 'help substitutions2' for more }
 
@@ -30759,6 +30762,7 @@
   ------------
   * # option to printf for converting tabs to specified number of spaces [ASH]
   * BANG support is now supported in %-<num> regs and %q<> regs [ASH]
+  * BANG support is now supported in %i<num> and %d<num> substitutions [ASH]
   
   Changes
   ------------
