@@ -9134,6 +9134,9 @@
   about providing this for you.  This can be bypassed if it's configured
   to globally allow it via the secure_atruselock config parameter.
   
+  You may specify %0 to %9 as the arguments passed in the ^listen or
+  $command for to this lock.
+  
   Attribute uselocks are a method where you can specify individual uselocks
   per command per object.  The path it takes to check uselocks are as 
   follows:
