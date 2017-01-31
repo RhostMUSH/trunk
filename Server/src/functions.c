@@ -17826,14 +17826,37 @@ FUNCTION(fun_cname)
  */
 FUNCTION(fun_listmatch)
 {
-   char *t_args[10], sep;
-   int i, first;
+   char *t_args[10], sep, sepstr[2], *s_strtok, *s_strtokr;
+   int i, first, i_snarf[10];
 
-   varargs_preamble("LISTMATCH", 3);
+   if (!fn_range_check("LISTMATCH", nfargs, 2, 4, buff, bufcx))
+      return;
+
+   sep = ' ';
+   if ( (nfargs > 2) && *fargs[2] ) 
+      sep = *fargs[2];
+
+   sepstr[0] = ' ';
+   sepstr[1] = '\0';
+
+   if ( (nfargs > 3) && *fargs[3] ) {
+      memset(i_snarf, 0, sizeof(i_snarf));
+      s_strtok = strtok_r(fargs[3], sepstr, &s_strtokr);
+      while ( s_strtok ) {
+         first = atoi(s_strtok);
+         if ( (first >= 0) && (first < 10) ) {
+            i_snarf[first] = 1;
+         }
+         s_strtok = strtok_r(NULL, sepstr, &s_strtokr);
+      }
+   } else {
+      memset(i_snarf, 1, sizeof(i_snarf));
+   }
+
    if (wild_match(fargs[1], fargs[0], t_args, 10, 0)) {
       first = 0;
       for (i = 0; i < 10; i++) {
-         if ( t_args[i] ) {
+         if ( t_args[i] && i_snarf[i] ) {
             if ( first )
                safe_chr(sep, buff, bufcx);
             safe_str(t_args[i], buff, bufcx);

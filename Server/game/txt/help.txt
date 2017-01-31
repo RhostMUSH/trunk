@@ -20205,13 +20205,16 @@
   See Also: @create, @dig, @open, dig(), open(), SIDEEFFECTS
   
 & LISTMATCH()
-  Function: listmatch(<string>, <pattern>[, <delimiter>])
+  Function: listmatch(<string>, <pattern>[, <delimiter> [,<args>]])
  
   The listmatch() function tries to match <pattern> against <string>. If it
   succeeds, it returns a list of the text that matched each wildcard (up to
   ten) in <pattern>. Normally, the list is space-separated, but if
   <delimiter> is specified, the list will be separated by that instead.
- 
+  
+  You may specify the optional <args> that you want to display in a space
+  delimited list.
+   
   If it fails, or <pattern> contains no wildcards, it returns an empty
   string.
  
@@ -20220,6 +20223,12 @@
     You say "This is a "
     > say listmatch(hit the troll with the sword, hit * with *, /)
     You say "the troll/the sword"
+    > say listmatch(hit the troll with the sword, hit * with *, /, 0 1)
+    You say "the troll/the sword"
+    > say listmatch(hit the troll with the sword, hit * with *, /, 1)
+    You say "the sword"
+    > say listmatch(hit the troll with the sword, hit * with *, /, 0)
+    You say "the troll"
     > say listmatch(kow, wok)
     You say ""
   
@@ -30775,6 +30784,7 @@
   * laxed some restrictions (like line length) for execscript [ASH]
   * TESTLOCK() now handles more arguments for multi-targets [ASH]
   * attribute uselocks now pass args %0-%9 that $commands have [ASH]
+  * listmatch() takes optional 4th arg to specify args to display [ASH]
   
   Bug Fixes
   ------------
