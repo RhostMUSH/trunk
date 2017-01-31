@@ -30796,3 +30796,4 @@
   * small cleanup with compiling without ZENTY_ANSI [ASH]
   * handler cleaned up for no-op handling [ASH,AMB]
   * small parsing issue with bang notation with functions caused cutoff [ASH]
+  * rare issue of not null terminating string for a parser condition [ASH]
