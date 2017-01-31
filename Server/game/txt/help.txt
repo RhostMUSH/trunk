@@ -6934,6 +6934,11 @@
   performed on the resulting text.  The result of that substitution is 
   returned as the function result.
   
+  Any function that starts with a _ that matches a hardcode function you can
+  use to override the hardcoded function with sandbox.
+  Example:  @lfunction _ladd=me/my_add_function
+            say sandbox([add(1,1)] is my own add function,add,1)
+  
   You may only have 20 localized functions defined.
   
   The following switches exist:
