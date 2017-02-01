@@ -30806,3 +30806,4 @@
   * handler cleaned up for no-op handling [ASH,AMB]
   * small parsing issue with bang notation with functions caused cutoff [ASH]
   * rare issue of not null terminating string for a parser condition [ASH]
+  * the mail fix routine didn't range-check player lookups properly [ASH]

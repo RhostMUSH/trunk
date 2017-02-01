@@ -309,6 +309,17 @@ static char *err_msg[]={"Corrupted key in mail database",
 void err_out(int errnum, char *info1, char *info2)
 {
   errcount++;
+  if ( (errnum < 0) || (errnum > 141) ) {
+     if ( info2 ) {
+        fprintf(stderr, "FIX ERROR: Unrecognized error code %d -> %s,%s\n", errnum, info1, info2);
+     } else if ( info1 ) {
+        fprintf(stderr, "FIX ERROR: Unrecognized error code %d -> %s\n", errnum, info1);
+     } else {
+        fprintf(stderr, "FIX ERROR: Unrecognized error code %d\n", errnum);
+     }
+     return;
+  }
+
   if (info2)
     fprintf(stderr,"FIX ERROR: %s -> %s,%s\n",err_msg[errnum],info1,info2);
   else if (info1)
@@ -826,12 +837,20 @@ int readin()
 	continue;
       }
       if ((key == FIND_BOX) && (keydata.dsize < ((sizeof(int) << 1) + 2))) {
-	err_out(40,Name(player),NULL);
+        if ( Good_obj(player) ) {
+	   err_out(40,Name(player),NULL);
+        } else {
+	   err_out(40,"(INVALID PLAYER)",NULL);
+        }
 	keydata = dbm_nextkey(foldfile);
 	continue;
       }
       if (infodata.dsize > NDBMBUFSZ) {
-	err_out(41,Name(player),NULL);
+        if ( Good_obj(player) ) {
+	   err_out(41,Name(player),NULL);
+        } else {
+	   err_out(41,"(INVALID PLAYER)",NULL);
+        }
 	keydata = dbm_nextkey(foldfile);
 	continue;
       }
@@ -845,21 +864,33 @@ int readin()
                pt1->player = player;
                initplay(pt1);
             } else {
-	       err_out(19,Name(player),NULL);
+               if ( Good_obj(player) ) {
+	          err_out(19,Name(player),NULL);
+               } else {
+	          err_out(19,"(INVALID PLAYER)",NULL);
+               }
 	       keydata = dbm_nextkey(foldfile);
 	       continue;
             }
         } else {
-	   err_out(19,Name(player),NULL);
+           if ( Good_obj(player) ) {
+	      err_out(19,Name(player),NULL);
+           } else {
+	      err_out(19,"(INVALID PLAYER)",NULL);
+           }
 	   keydata = dbm_nextkey(foldfile);
 	   continue;
         }
       }
       switch (key) {
 	case FIND_LST:
-	  if (pt1->flist)
-	    err_out(20,Name(player),NULL);
-	  else {
+	  if (pt1->flist) {
+            if ( Good_obj(player) ) {
+	       err_out(20,Name(player),NULL);
+            } else {
+	       err_out(20,"(INVALID PLAYER)",NULL);
+            }
+	  } else {
 	    pt1->flist = myapush(infodata.dsize);
 	    if (!pt1->flist) return 0;
 	    bcopy(infodata.dptr,pt1->flist,infodata.dsize);
@@ -867,9 +898,13 @@ int readin()
 	  }
 	  break;
 	case FIND_CSHR:
-	  if (pt1->cshare)
-	    err_out(21,Name(player),NULL);
-	  else {
+	  if (pt1->cshare) {
+            if ( Good_obj(player) ) {
+	       err_out(21,Name(player),NULL);
+            } else {
+	       err_out(21,"(INVALID PLAYER)",NULL);
+            }
+	  } else {
 	    pt1->cshare = myapush(infodata.dsize);
 	    if (!pt1->cshare) return 0;
 	    bcopy(infodata.dptr,pt1->cshare,infodata.dsize);
@@ -877,9 +912,13 @@ int readin()
 	  }
 	  break;
 	case FIND_CURR:
-	  if (pt1->curr)
-	    err_out(22,Name(player),NULL);
-	  else {
+	  if (pt1->curr) {
+            if ( Good_obj(player) ) {
+	       err_out(22,Name(player),NULL);
+            } else {
+	       err_out(22,"(INVALID PLAYER)",NULL);
+            }
+	  } else {
 	    pt1->curr = myapush(infodata.dsize);
 	    if (!pt1->curr) return 0;
 	    bcopy(infodata.dptr,pt1->curr,infodata.dsize);
@@ -888,9 +927,13 @@ int readin()
 	  break;
 	case FIND_BOX:
 	  pt5 = keydata.dptr + (sizeof(int) << 1);
-	  if (boxsearch(pt1->box,pt5))
-	    err_out(23,Name(player),pt5);
-	  else {
+	  if (boxsearch(pt1->box,pt5)) {
+             if ( Good_obj(player) ) {
+	       err_out(23,Name(player),pt5);
+             } else {
+	       err_out(23,"(INVALID PLAYER)",pt5);
+             }
+	  } else {
 	    pt6 = (BLIST *)myapush(sizeof(BLIST));
 	    if (!pt6) return 0;
 	    pt6->name = myapush(strlen(pt5) + 1);
@@ -899,9 +942,13 @@ int readin()
 	    pt6->list = (short int *)myapush(infodata.dsize);
 	    if (!pt6->list) return 0;
 	    bcopy(infodata.dptr,pt6->list,infodata.dsize);
-	    if (infodata.dsize != (sizeof(short int) * (*(pt6->list) + 1)))
-	      err_out(42,Name(player),pt5);
-	    else {
+	    if (infodata.dsize != (sizeof(short int) * (*(pt6->list) + 1))) {
+              if ( Good_obj(player) ) {
+	         err_out(42,Name(player),pt5);
+              } else {
+	         err_out(42,"(INVALID PLAYER)",pt5);
+              }
+	    } else {
 	      pt6->next = pt1->box;
 	      pt1->box = pt6;
 	    }
@@ -1021,7 +1068,11 @@ PTRLST2 *fixmsg1(PTRLST2 *pass1)
     pt3 = NULL;
     while (pt1) {
       if (ptrlst2_sch(pt1->next,pt1->index)) {
-	err_out(43,Name(pt2->player),NULL);
+        if ( Good_obj(pt2->player) ) {
+	   err_out(43,Name(pt2->player),NULL);
+        } else {
+	   err_out(43,"(INVALID PLAYER)",NULL);
+        }
 	pt4 = NULL;
 	pt5 = pt1->next;
 	while (pt5) {
@@ -1040,14 +1091,26 @@ PTRLST2 *fixmsg1(PTRLST2 *pass1)
       lcheck = verlen(pt1->ptr,pt1->len);
       if (lcheck < pt1->len) {
 	if (lcheck) {
-	  err_out(44,Name(pt2->player),NULL);
+          if ( Good_obj(pt2->player) ) {
+	     err_out(44,Name(pt2->player),NULL);
+          } else {
+	     err_out(44,"(INVALID PLAYER)",NULL);
+          }
 	  pt1->len = lcheck;
-	}
-	else
-	  err_out(45,Name(pt2->player),NULL);
+	} else {
+          if ( Good_obj(pt2->player) ) {
+	     err_out(45,Name(pt2->player),NULL);
+          } else {
+	     err_out(45,"(INVALID PLAYER)",NULL);
+          }
+        }
       }
       if (lcheck > LBUF_SIZE) {
-	err_out(104,Name(pt2->player),NULL);
+        if ( Good_obj(pt2->player) ) {
+	   err_out(104,Name(pt2->player),NULL);
+        } else {
+	   err_out(104,"(INVALID PLAYER)",NULL);
+        }
 	pt1->len = LBUF_SIZE;
 	*(pt1->ptr + (LBUF_SIZE - 1)) = '\0';
       }
@@ -1094,7 +1157,11 @@ INTLST *fixsndhd1(INTLST *pass1)
     pt3 = NULL;
     while (pt2) {
       if (intlst_sch(pt2->next,pt2->index)) {
-	err_out(46,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(46,Name(pt1->player),NULL);
+        } else {
+	   err_out(46,"(INVALID PLAYER)",NULL);
+        }
 	pt4 = NULL;
 	pt5 = pt2->next;
 	while (pt5) {
@@ -1130,9 +1197,13 @@ INTLST *fixsndhd1(INTLST *pass1)
       if (count) {
 	pt4->next = pt3;
 	pt3 = pt4;
+      } else {
+        if ( Good_obj(pt1->player) ) {
+	   err_out(47,Name(pt1->player),NULL);
+        } else {
+	   err_out(47,"(INVALID PLAYER)",NULL);
+        }
       }
-      else
-	err_out(47,Name(pt1->player),NULL);
     }
     if (pass1) 
       return pt3;
@@ -1939,17 +2010,29 @@ void fixwrt()
     }
     else if (!(pt1->wrtm)) {
       if (pt1->wrts || pt1->wrtlen) {
-	err_out(90,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(90,Name(pt1->player),NULL);
+        } else {
+	   err_out(90,"(INVALID PLAYER)",NULL);
+        }
 	pt1->wrtlen = 0;
 	pt1->wrts = NULL;
       }
       if (pt1->wrtl) {
-	err_out(91,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(91,Name(pt1->player),NULL);
+        } else {
+	   err_out(91,"(INVALID PLAYER)",NULL);
+        }
 	pt1->wrtl = NULL;
       }
     }
     else if (pt1->wrtm < 0) {
-      err_out(92,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(92,Name(pt1->player),NULL);
+      } else {
+         err_out(92,"(INVALID PLAYER)",NULL);
+      }
       pt1->wrtm = 0;
       pt1->wrtl = NULL;
       pt1->wrts = NULL;
@@ -1965,21 +2048,37 @@ void fixwrt()
       while (pt2) {
 	if (pt2->index <= pt1->wrtm) {
 	  if (ilst[pt2->index - 1]) {
-	    err_out(94,Name(pt1->player),NULL);
+            if ( Good_obj(pt1->player) ) {
+	       err_out(94,Name(pt1->player),NULL);
+            } else {
+	       err_out(94,"(INVALID PLAYER)",NULL);
+            }
 	    pt2 = pt2->next;
 	  }
 	  else if (pt2->len < 2) {
-	    err_out(95,Name(pt1->player),NULL);
+            if ( Good_obj(pt1->player) ) {
+	       err_out(95,Name(pt1->player),NULL);
+            } else {
+	       err_out(95,"(INVALID PLAYER)",NULL);
+            }
 	    pt2 = pt2->next;
 	  }
 	  else {
 	    lcheck = verlen(pt2->ptr,pt2->len);
 	    if (lcheck != pt2->len) {
-	      err_out(96,Name(pt1->player),NULL);
+              if ( Good_obj(pt1->player) ) {
+	         err_out(96,Name(pt1->player),NULL);
+              } else {
+	         err_out(96,"(INVALID PLAYER)",NULL);
+              }
 	      pt2->len = lcheck;
 	    }
 	    if ((pt2->len < 2) || (pt2->len > LBUF_SIZE)) {
-	      err_out(95,Name(pt1->player),NULL);
+              if ( Good_obj(pt1->player) ) {
+	         err_out(95,Name(pt1->player),NULL);
+              } else {
+	         err_out(95,"(INVALID PLAYER)",NULL);
+              }
 	      pt2 = pt2->next;
 	    }
 	    else {
@@ -1993,15 +2092,22 @@ void fixwrt()
 	      count++;
 	    }
 	  }
-	}
-	else {
-	  err_out(93,Name(pt1->player),NULL);
+	} else {
+          if ( Good_obj(pt1->player) ) {
+	     err_out(93,Name(pt1->player),NULL);
+          } else {
+	     err_out(93,"(INVALID PLAYER)",NULL);
+          }
 	  pt2 = pt2->next;
 	}
       }
       pt1->wrtl = pt3;
       if (pt1->wrtm != count) {
-	err_out(139,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(139,Name(pt1->player),NULL);
+        } else {
+	   err_out(139,"(INVALID PLAYER)",NULL);
+        }
         pt1->wrtm = count;
       }
       count = 0;
@@ -2015,24 +2121,40 @@ void fixwrt()
       while (pt2) {
 	if (ilst[pt2->index - 1]) {
 	  pt2->index += ilst[pt2->index - 1];
-	  err_out(140,Name(pt1->player),NULL);
+          if ( Good_obj(pt1->player) ) {
+	     err_out(140,Name(pt1->player),NULL);
+          } else {
+	     err_out(140,"(INVALID PLAYER)",NULL);
+          }
 	}
 	pt2 = pt2->next;
       }
       if (pt1->wrts) {
 	lcheck = verlen(pt1->wrts,pt1->wrtlen);
 	if (lcheck != pt1->wrtlen) {
-	  err_out(97,Name(pt1->player),NULL);
+          if ( Good_obj(pt1->player) ) {
+	     err_out(97,Name(pt1->player),NULL);
+          } else {
+	     err_out(97,"(INVALID PLAYER)",NULL);
+          }
 	  pt1->wrtlen = lcheck;
 	}
 	if ((pt1->wrtlen < 2) || (pt1->wrtlen > LBUF_SIZE)) {
-	  err_out(98,Name(pt1->player),NULL);
+          if ( Good_obj(pt1->player) ) {
+	     err_out(98,Name(pt1->player),NULL);
+          } else {
+	     err_out(98,"(INVALID PLAYER)",NULL);
+          }
 	  pt1->wrtlen = 0;
 	  pt1->wrts = NULL;
 	}
+      } else if (pt1->wrtlen) {
+        if ( Good_obj(pt1->player) ) {
+	   err_out(97,Name(pt1->player),NULL);
+        } else {
+	   err_out(97,"(INVALID PLAYER)",NULL);
+        }
       }
-      else if (pt1->wrtlen)
-	err_out(97,Name(pt1->player),NULL);
     }
     pt1 = pt1->next;
   }
@@ -2051,39 +2173,67 @@ void fixother()
     }
     if (pt1->bsize) {
       if ((pt1->bsize < BSMIN) || (pt1->bsize > BSMAX)) {
-	err_out(99,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(99,Name(pt1->player),NULL);
+        } else {
+	   err_out(99,"(INVALID PLAYER)",NULL);
+        }
 	pt1->bsize = 0;
       }
     }
     if ((pt1->rejm) && (pt1->rejlen < 2)) {
-      err_out(100,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(100,Name(pt1->player),NULL);
+      } else {
+         err_out(100,"(INVALID PLAYER)",NULL);
+      }
       pt1->rejm = NULL;
       pt1->rejlen = 0;
     }
     else if ((pt1->rejlen > 1) && !(pt1->rejm)) {
-      err_out(101,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(101,Name(pt1->player),NULL);
+      } else {
+         err_out(101,"(INVALID PLAYER)",NULL);
+      }
       pt1->rejlen = 0;
     }
     else if (pt1->rejm) {
       lcheck = verlen(pt1->rejm,pt1->rejlen);
       if (lcheck != pt1->rejlen) {
-        err_out(102,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+           err_out(102,Name(pt1->player),NULL);
+        } else {
+           err_out(102,"(INVALID PLAYER)",NULL);
+        }
         pt1->rejlen = lcheck;
       }
       if ((lcheck < 2)  || (lcheck > LBUF_SIZE)) {
 	pt1->rejm = NULL;
-	err_out(103,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(103,Name(pt1->player),NULL);
+        } else {
+	   err_out(103,"(INVALID PLAYER)",NULL);
+        }
       }
     }
     if (pt1->page) {
       if ((pt1->page < 1) || (pt1->page > BSMAX)) {
-        err_out(105,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+           err_out(105,Name(pt1->player),NULL);
+        } else {
+           err_out(105,"(INVALID PLAYER)",NULL);
+        }
 	pt1->page = 0;
       }
     }
     if (pt1->afor != NOTHING) {
       if (!Useg_obj(pt1->afor) || !isPlayer(pt1->afor)) {
-	err_out(106,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(106,Name(pt1->player),NULL);
+        } else {
+	   err_out(106,"(INVALID PLAYER)",NULL);
+        }
 	pt1->afor = NOTHING;
       }
     }
@@ -2128,64 +2278,110 @@ int fixfolder()
       continue;
     }
     if (pt1->flist && ((pt1->fllen < 2) || (pt1->fllen > NDBMBUFSZ))) {
-      err_out(107,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(107,Name(pt1->player),NULL);
+      } else {
+         err_out(107,"(INVALID PLAYER)",NULL);
+      }
       pt1->flist = NULL;
       pt1->fllen = 0;
     }
     else if (pt1->fllen && !pt1->flist) {
-      err_out(108,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(108,Name(pt1->player),NULL);
+      } else {
+         err_out(108,"(INVALID PLAYER)",NULL);
+      }
       pt1->fllen = 0;
     }
     else if (pt1->flist) {
       lcheck = verlen(pt1->flist,pt1->fllen);
       if (lcheck != pt1->fllen) {
-	err_out(109,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(109,Name(pt1->player),NULL);
+        } else {
+	   err_out(109,"(INVALID PLAYER)",NULL);
+        }
 	pt1->fllen = lcheck;
       }
       if (lcheck < 2) {
-	err_out(110,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(110,Name(pt1->player),NULL);
+        } else {
+	   err_out(110,"(INVALID PLAYER)",NULL);
+        }
 	pt1->fllen = 0;
 	pt1->flist = NULL;
       }
     }
     if (pt1->cshare && ((pt1->cslen < 2) || (pt1->cslen > NDBMBUFSZ))) {
-      err_out(111,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(111,Name(pt1->player),NULL);
+      } else {
+         err_out(111,"(INVALID PLAYER)",NULL);
+      }
       pt1->cshare = NULL;
       pt1->cslen = 0;
-    }
-    else if (pt1->cslen && !pt1->cshare) {
-      err_out(112,Name(pt1->player),NULL);
+    } else if (pt1->cslen && !pt1->cshare) {
+      if ( Good_obj(pt1->player) ) {
+         err_out(112,Name(pt1->player),NULL);
+      } else {
+         err_out(112,"(INVALID PLAYER)",NULL);
+      }
       pt1->cslen = 0;
     }
     else if (pt1->cshare) {
       lcheck = verlen(pt1->cshare,pt1->cslen);
       if (lcheck != pt1->cslen) {
-	err_out(113,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(113,Name(pt1->player),NULL);
+        } else {
+	   err_out(113,"(INVALID PLAYER)",NULL);
+        }
 	pt1->cslen = lcheck;
       }
       if (lcheck < 2) {
-	err_out(114,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(114,Name(pt1->player),NULL);
+        } else {
+	   err_out(114,"(INVALID PLAYER)",NULL);
+        }
 	pt1->cslen = 0;
 	pt1->cshare = NULL;
       }
     }
     if (pt1->curr && ((pt1->culen < 2) || (pt1->culen > NDBMBUFSZ))) {
-      err_out(115,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(115,Name(pt1->player),NULL);
+      } else {
+         err_out(115,"(INVALID PLAYER)",NULL);
+      }
       pt1->curr = NULL;
       pt1->culen = 0;
     }
     else if (pt1->culen && !pt1->curr) {
-      err_out(116,Name(pt1->player),NULL);
+      if ( Good_obj(pt1->player) ) {
+         err_out(116,Name(pt1->player),NULL);
+      } else {
+         err_out(116,"(INVALID PLAYER)",NULL);
+      }
       pt1->culen = 0;
-    }
-    else if (pt1->culen) {
+    } else if (pt1->culen) {
       lcheck = verlen(pt1->curr,pt1->culen);
       if (lcheck != pt1->culen) {
-	err_out(117,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(117,Name(pt1->player),NULL);
+        } else {
+	   err_out(117,"(INVALID PLAYER)",NULL);
+        }
 	pt1->culen = lcheck;
       }
       if (lcheck < 2) {
-	err_out(118,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(118,Name(pt1->player),NULL);
+        } else {
+	   err_out(118,"(INVALID PLAYER)",NULL);
+        }
 	pt1->culen = 0;
 	pt1->curr = NULL;
       }
@@ -2208,7 +2404,11 @@ int fixfolder()
 	  strcat(buf2," ");
 	  strcat(buf2,pt4);
         } else {
-	  err_out(119,Name(pt1->player),NULL);
+          if ( Good_obj(pt1->player) ) {
+	     err_out(119,Name(pt1->player),NULL);
+          } else {
+	     err_out(119,"(INVALID PLAYER)",NULL);
+          }
         }
         if (!test)
 	  pt4 = pt5+1;
@@ -2222,14 +2422,22 @@ int fixfolder()
     }
     if (pt1->cshare) {
       if (!strstr2(buf2,pt1->cshare)) {
-	err_out(120,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(120,Name(pt1->player),NULL);
+        } else {
+	   err_out(120,"(INVALID PLAYER)",NULL);
+        }
 	pt1->cshare = NULL;
 	pt1->cslen = 0;
       }
     }
     if (pt1->curr) {
       if (!strstr2(buf2,pt1->curr)) {
-	err_out(121,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(121,Name(pt1->player),NULL);
+        } else {
+	   err_out(121,"(INVALID PLAYER)",NULL);
+        }
 	pt1->curr = NULL;
 	pt1->culen = 0;
       }
@@ -2253,7 +2461,11 @@ int fixfolder()
       count = 0;
       pt7 = (short int *)buf3;
       if ((!checkfold(pt2->name,0)) || (!strstr2(buf2,pt2->name))) {
-	err_out(122,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(122,Name(pt1->player),NULL);
+        } else {
+	   err_out(122,"(INVALID PLAYER)",NULL);
+        }
 	pt2 = pt2->next;
       }
       else {
@@ -2262,13 +2474,25 @@ int fixfolder()
 	pt8 = pt2->list;
 	lcheck = *pt8++;
 	for (x = 0; x < lcheck; x++, pt8++) {
-	  if ((*pt8 < 1) || (*pt8 > absmaxinx))
-	    err_out(123,Name(pt1->player),pt2->name);
-	  else if (*(hdlst + (*pt8 - 1)))
-	    err_out(124,Name(pt1->player),pt2->name);
-	  else if (!*(mslst + (*pt8 - 1)))
-	    err_out(125,Name(pt1->player),pt2->name);
-	  else {
+	  if ((*pt8 < 1) || (*pt8 > absmaxinx)) {
+            if ( Good_obj(pt1->player) ) {
+	       err_out(123,Name(pt1->player),pt2->name);
+            } else {
+	       err_out(123,"(INVALID PLAYER)",pt2->name);
+            }
+	  } else if (*(hdlst + (*pt8 - 1))) {
+            if ( Good_obj(pt1->player) ) {
+	       err_out(124,Name(pt1->player),pt2->name);
+            } else {
+	       err_out(124,"(INVALID PLAYER)",pt2->name);
+            }
+	  } else if (!*(mslst + (*pt8 - 1))) {
+            if ( Good_obj(pt1->player) ) {
+	       err_out(125,Name(pt1->player),pt2->name);
+            } else {
+	       err_out(125,"(INVALID PLAYER)",pt2->name);
+            }
+	  } else {
 	    *(hdlst + (*pt8 - 1)) = 1;
 	    *(mslst + (*pt8 - 1)) = 0;
 	    *pt7++ = *pt8;
@@ -2294,7 +2518,11 @@ int fixfolder()
     pt7 = (short int *)buf1;
     for (x = 0; x < top; x++) {
       if (*(mslst + x)) {
-	err_out(126,Name(pt1->player),NULL);
+        if ( Good_obj(pt1->player) ) {
+	   err_out(126,Name(pt1->player),NULL);
+        } else {
+	   err_out(126,"(INVALID PLAYER)",NULL);
+        }
 	count++;
 	*pt7++ = x+1;
       }
