@@ -2083,6 +2083,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     inum_val = atoi(dstr);
                     if( inum_val < 0 || ( inum_val > mudstate.iter_inum ) ) {   
                         safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
+                        if ( !dstr || !*dstr ) {
+                           dstr--;
+                        }
                     } else {   
                         if ( (*dstr == 'l') || (*dstr == 'L') ) {
                            if ( regbang_not || regbang_yes ) {
@@ -2120,6 +2123,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     inum_val = atoi(dstr);
                     if( inum_val < 0 || ( inum_val > (mudstate.dolistnest-1) ) ) {   
                        safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
+                       if ( !dstr || !*dstr ) {
+                          dstr--;
+                       }
                     } else {   
                        if ( (*dstr == 'l') || (*dstr == 'L') ) {
                            if ( regbang_not || regbang_yes ) {
