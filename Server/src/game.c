@@ -637,7 +637,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	VOIDRETURN; /* #75 */
     }
     /* Let's optionally log to a file if specified -- Note:  This bypasses spoof output obviously */ 
-    if ( H_Attrpipe(target) ) {
+    if ( !pipe && H_Attrpipe(target) ) {
        i_pipetype = 0;
        ap_attrpipe = atr_str_notify("___ATTRPIPE");
        if ( ap_attrpipe ) {
@@ -741,19 +741,21 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
            parse_ansi((char *) msg, msg_ns, &mp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp = '\0';
            *mp2 = '\0';
-		   *mp_utf = '\0';
-		   if ( UTF8(target) ) {
-			  memcpy(msg_ns, msg_utf, LBUF_SIZE);
-           } else if ( Accents(target) ) {
-              memcpy(msg_ns, msg_ns2, LBUF_SIZE);
-           } 
+           *mp_utf = '\0';
+           if ( !port ) {
+              if ( UTF8(target) ) {
+                 memcpy(msg_ns, msg_utf, LBUF_SIZE);
+              } else if ( Accents(target) ) {
+                 memcpy(msg_ns, msg_ns2, LBUF_SIZE);
+              } 
+           }
        } else
 #endif
            safe_str((char *) msg, msg_ns, &mp);
     
 #ifdef ZENTY_ANSI       
-        free_lbuf(msg_ns2);
-        free_lbuf(msg_utf);
+       free_lbuf(msg_ns2);
+       free_lbuf(msg_utf);
 #endif
     } else {
 	msg_ns = NULL;
@@ -764,8 +766,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
   if (port) {
       raw_notify(target, msg_ns, port, 1);
-  }
-  else {
+  } else {
     check_listens = Halted(target) ? 0 : 1;
     switch (Typeof(target)) {
     case TYPE_PLAYER:
@@ -1117,10 +1118,10 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	}
     }
   }
-    if (msg_ns)
-	free_lbuf(msg_ns);
-    mudstate.ntfy_nest_lev--;
-    VOIDRETURN; /* #75 */
+  if (msg_ns)
+     free_lbuf(msg_ns);
+  mudstate.ntfy_nest_lev--;
+  VOIDRETURN; /* #75 */
 }
 
 void 
