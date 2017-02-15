@@ -637,7 +637,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	VOIDRETURN; /* #75 */
     }
     /* Let's optionally log to a file if specified -- Note:  This bypasses spoof output obviously */ 
-    if ( !pipe && H_Attrpipe(target) ) {
+    if ( !port && H_Attrpipe(target) ) {
        i_pipetype = 0;
        ap_attrpipe = atr_str_notify("___ATTRPIPE");
        if ( ap_attrpipe ) {
