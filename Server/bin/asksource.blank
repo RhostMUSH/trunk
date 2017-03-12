@@ -1,4 +1,3 @@
-#!/bin/bash
 ###################################################################
 # Test shell capabilities
 ###################################################################
@@ -17,11 +16,8 @@ FORCE_MYSQL=0
 MYSQL_VER=$(mysql_config --version 2>/dev/null)
 if [ -z "${MYSQL_VER}" ]
 then
-   MYSQL_VER=$(mysql -V|awk '{print $5}')
-   if [ -z "${MYSQL_VER}" ]
-   then
-      MYSQL_VER=0
-   fi
+   MYSQL_VER=0
+   MYSQL_VER2=$(mysql -V|awk '{print $5}')
 fi
 # load in mysql goodness
 mysql_host=$(grep ^mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
@@ -291,6 +287,10 @@ then
    echo "WARNING: MySQL config is not being detected on this server."
    echo "         if you do not have mysql libraries installed, enabling"
    echo "         this will cause the compile to fail."
+   if [ -n "$MYSQL_VER2}" ]
+   then
+      echo "         I think MySQL may be installed and version is ${MYSQL_VER2}"
+   fi
    echo "<ENTER RETURN TO CONTINUE>"
    read ANS
 fi
