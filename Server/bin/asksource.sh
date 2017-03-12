@@ -17,7 +17,11 @@ FORCE_MYSQL=0
 MYSQL_VER=$(mysql_config --version 2>/dev/null)
 if [ -z "${MYSQL_VER}" ]
 then
-   MYSQL_VER=0
+   MYSQL_VER=$(mysql -V|awk '{print $5}')
+   if [ -z "${MYSQL_VER}" ]
+   then
+      MYSQL_VER=0
+   fi
 fi
 # load in mysql goodness
 mysql_host=$(grep ^mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
@@ -284,10 +288,11 @@ echo "mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
 mysqlmenu() {
 if [ "${MYSQL_VER}" = "0" ]
 then
-   echo "MySQL client is not installed on this server.  Can not install module."
+   echo "WARNING: MySQL config is not being detected on this server."
+   echo "         if you do not have mysql libraries installed, enabling"
+   echo "         this will cause the compile to fail."
    echo "<ENTER RETURN TO CONTINUE>"
    read ANS
-   return 200
 fi
 clear
 echo "               RhostMUSH MySQL / MariaDB Configuration Utility"
