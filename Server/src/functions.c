@@ -31424,7 +31424,7 @@ FUNCTION(fun_trim)
          trim = 3;
     }
     sep = alloc_lbuf("fun_trim");
-    if ( nfargs >= 3 ) {
+    if ( (nfargs >= 3) && *fargs[2] ) {
        sprintf(sep, "%s", fargs[2]);
     } else {
        sprintf(sep, " ");
