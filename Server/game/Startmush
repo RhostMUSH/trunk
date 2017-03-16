@@ -8,8 +8,8 @@ then
    CYGWIN=1
 fi
 # enforce CYGWIN mode for Windows 10 bash
-t1=`cat /proc/version|grep -c Microsoft`
-t2=`cat /proc/version|grep -ci cygwin`
+t1=`cat /proc/version 2>/dev/null|grep -c Microsoft`
+t2=`cat /proc/version 2>/dev/null|grep -ci cygwin`
 if [ $t1 -gt 0 -o $t2 -gt 0 ]
 then
    CYGWIN=1
