@@ -3325,7 +3325,9 @@ CF_HAND2(cf_site)
 	  cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
 	  return -1;
        }
-       maskval = (0xFFFFFFFFUL << (32 - maskval));
+       if ( maskval != 0 ) {
+          maskval = (0xFFFFFFFFUL << (32 - maskval));
+       }
        mask_num.s_addr = htonl(maskval);
     } else
        mask_num.s_addr = inet_addr(mask_txt);
