@@ -30809,3 +30809,4 @@
   * the mail fix routine didn't range-check player lookups properly [ASH]
   * possible out of bounds with UTF8 on notify to port [ASH]
   * trim didn't default to 'space' if third argument existed and null [ASH]
+  * fix for *BSD missing 'daylight' timezone variable definition [ASH]

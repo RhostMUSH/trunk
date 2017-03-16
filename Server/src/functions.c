@@ -10592,6 +10592,7 @@ FUNCTION(fun_timefmt)
         }
      }
      if ( tzmush->mush_tzone ) {
+#ifndef BSD_LIKE
         if ( (!daylight && !tzmush->mush_tz) || (daylight && tzmush->mush_tz) ) {
            i_frell = 0;
         } else {
@@ -10603,6 +10604,7 @@ FUNCTION(fun_timefmt)
                  i_frell = -3600;
            }
         }
+#endif
         secs = i_frell + secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
         secs2 = (double)i_frell + secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
         i_frell += (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
