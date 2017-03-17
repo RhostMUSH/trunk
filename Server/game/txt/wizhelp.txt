@@ -3580,7 +3580,10 @@
   
   Super-royalty have the added ability to specify the dbref# they wish
   to use for that player.  The dbref# *must* be in the free list else
-  it will default to the highest dbref# on the free list automatically.
+  it will default to the highest dbref# on the free list automatically,
+  
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
   
   Optional switches are:
       /register - Allows you to email a registration email to the
@@ -3746,6 +3749,9 @@
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
   
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
+  
   Example:  @create #5 An Object
   
   See Also: @dig, @open, @pcreate
@@ -3756,6 +3762,9 @@
   that you wish to use for the room.  The #dbref *must* be in the
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
   
   Example:  @dig #5 An Object
   
@@ -3768,6 +3777,9 @@
   that you wish to use for the exit.  The #dbref *must* be in the free
   list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
   
   Example:  @open #5 An Exit <AE>;ae;an exit=#12345
   
