@@ -15233,7 +15233,7 @@ FUNCTION(fun_ulocal)
     dbref aowner, thing;
     int aflags, anum, x, tval;
     ATTR *ap;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
 
     /* We need at least one argument */
 
@@ -15288,10 +15288,14 @@ FUNCTION(fun_ulocal)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_reg_name");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
@@ -15309,8 +15313,11 @@ FUNCTION(fun_ulocal)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 
@@ -15428,7 +15435,7 @@ FUNCTION(fun_u2local)
     dbref aowner, thing;
     int aflags, anum, x, tval;
     ATTR *ap;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
 
     /* We need at least one argument */
 
@@ -15483,10 +15490,14 @@ FUNCTION(fun_u2local)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
@@ -15504,8 +15515,11 @@ FUNCTION(fun_u2local)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 
