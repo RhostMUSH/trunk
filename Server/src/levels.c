@@ -375,7 +375,8 @@ int *desclist_match(dbref player, dbref thing)
 void did_it_rlevel(dbref player, dbref thing, int what, const char *def, int owhat, 
 	const char *odef, int awhat, char *args[], int nargs)
 {
-char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS], *pt;
+char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS], *pt,
+        *saveregname[MAX_GLOBAL_REGS], *npt;
 char	*tmpformat_buff, *tpr_buff, *tprp_buff;
 dbref	loc, aowner, aowner3, master;
 int	num, aflags, cpustopper, nocandoforyou, aflags3, tst_attr, chkoldstate;
@@ -420,8 +421,11 @@ ATTR 	*tst_glb, *format_atr;
              i_didsave = 1;
              for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                 savereg[x] = alloc_lbuf("ulocal_reg");
+                saveregname[x] = alloc_sbuf("ulocal_regname");
                 pt = savereg[x];
+                npt = saveregname[x];
                 safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
              }
           }
 	  for(i = 1; i < desclist[0]; ++i)
@@ -704,8 +708,11 @@ ATTR 	*tst_glb, *format_atr;
            i_didsave = 0;
            for (x = 0; x < MAX_GLOBAL_REGS; x++) {
               pt = mudstate.global_regs[x];
+              npt = mudstate.global_regsname[x];
               safe_str(savereg[x],mudstate.global_regs[x],&pt);
+              safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
               free_lbuf(savereg[x]);
+              free_sbuf(saveregname[x]);
            }
         }
 
@@ -782,8 +789,11 @@ ATTR 	*tst_glb, *format_atr;
          i_didsave = 0;
          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             pt = mudstate.global_regs[x];
+            npt = mudstate.global_regsname[x];
             safe_str(savereg[x],mudstate.global_regs[x],&pt);
+            safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
             free_lbuf(savereg[x]);
+            free_sbuf(saveregname[x]);
          }
       }
       mudstate.chkcpu_toggle = chkoldstate;

@@ -219,7 +219,8 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
     int match, attr, aflags, i, ck, ck2, ck3, loc, attrib2, x, i_cpuslam, 
         do_brk, aflags_set, oldchk, chkwild, i_inparen;
     char *buff, *s, *s2, *s3, *as, *s_uselock, *atext, *result, buff2[LBUF_SIZE+1];
-    char *args[10], *savereg[MAX_GLOBAL_REGS], *pt, *cpuslam, *cputext, *cpulbuf;
+    char *args[10], *savereg[MAX_GLOBAL_REGS], *pt, *cpuslam, *cputext, *cpulbuf,
+         *saveregname[MAX_GLOBAL_REGS], *npt;
     ATTR *ap, *ap2;
 
     DPUSH; /* #70 */
@@ -361,8 +362,11 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                            if ( !(attrib2 & AF_NOPROG) ) {
                               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                                  savereg[x] = alloc_lbuf("ulocal_reg");
+                                 saveregname[x] = alloc_sbuf("ulocal_regname");
                                  pt = savereg[x];
+                                 npt = saveregname[x];
                                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                                 safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
                               }
                               cputext = alloc_lbuf("store_text_attruselock");
                               strcpy(cputext, atext);
@@ -388,8 +392,11 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                               free_lbuf(cputext);
                               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                                  pt = mudstate.global_regs[x];
+                                 npt = mudstate.global_regsname[x];
                                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                                 safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                                  free_lbuf(savereg[x]);
+                                 free_sbuf(saveregname[x]);
                               }
                               if ( *result && result && (atoi(result) != 1) ) 
                                  do_brk=1;
@@ -2212,8 +2219,8 @@ main(int argc, char *argv[])
     /* initialize the buffers and variables */
     for (mindb = 0; mindb < MAX_GLOBAL_REGS; mindb++) {
 	mudstate.global_regs[mindb] = alloc_lbuf("main.global_reg");
-	mudstate.global_regsname[mindb] = alloc_sbuf("main.global_reg");
-	mudstate.global_regs_backup[mindb] = alloc_lbuf("main.global_reg");
+	mudstate.global_regsname[mindb] = alloc_sbuf("main.global_regname");
+	mudstate.global_regs_backup[mindb] = alloc_lbuf("main.global_regbkup");
     }
 
     /* Do a consistency check and set up the freelist */

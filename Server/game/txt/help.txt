@@ -30811,4 +30811,4 @@
   * trim didn't default to 'space' if third argument existed and null [ASH]
   * fix for *BSD missing 'daylight' timezone variable definition [ASH]
   * /0 CIDR notation would not set properly [ASH]
-  * all localization doesn't keep setq names properly [ASH] (TODO FINISH)
+  * all localization doesn't keep setq names properly + clear [ASH] 

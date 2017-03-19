@@ -91,6 +91,10 @@ Alternate date formats for convtime()
 				- Thanks Ixokai
 Typos in help.txt
 				- Thanks Kilmoran
+all localization didn't save state for register names.
+				- Thanks Myrddin
+All locatization with CLEAR didn't wipe and reset register names.
+				- Thanks Myrddin
 
 
 

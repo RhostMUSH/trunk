@@ -757,6 +757,7 @@ NDECL(cf_init)
     for (i = 0; i < MAX_GLOBAL_REGS; i++) {
 	mudstate.global_regs[i] = NULL;
 	mudstate.global_regsname[i] = NULL;
+	mudstate.global_regs_backup[i] = NULL;
     }
     mudstate.remote = NOTHING;
     mudstate.remotep = NOTHING;

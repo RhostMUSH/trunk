@@ -2052,7 +2052,8 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
    dbref thing2;
    int attrib2, aflags_set, i_cpuslam, x, retval, no_hook;
    time_t i_now;
-   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam, *cp, *atextptr;
+   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam, *cp, *atextptr,
+        *npt, *saveregname[MAX_GLOBAL_REGS];
 
    if ( mudstate.no_hook ) {
       return 0;
@@ -2072,8 +2073,11 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
          if ( save_flg ) {
             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                savereg[x] = alloc_lbuf("ulocal_reg");
+               saveregname[x] = alloc_sbuf("ulocal_regname");
                pt = savereg[x];
+               npt = saveregname[x];
                safe_str(mudstate.global_regs[x],savereg[x],&pt);
+               safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
             }
          }
          cputext = alloc_lbuf("store_text_process_hook");
@@ -2115,8 +2119,11 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
          if ( save_flg ) {
             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                pt = mudstate.global_regs[x];
+               npt = mudstate.global_regsname[x];
                safe_str(savereg[x],mudstate.global_regs[x],&pt);
+               safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                free_lbuf(savereg[x]);
+               free_sbuf(saveregname[x]);
             }
          }
          if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
@@ -9751,7 +9758,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
-   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
+   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
    int old_trainmode, x, i_breakst, forcehalted_state;
 
    if ( !s_command || !*s_command ) {
@@ -9788,10 +9795,14 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( !(key & SUDO_GLOBAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
+         saveregname[x] = alloc_sbuf("ulocal_regname");
          pt = savereg[x];
+         npt = saveregname[x];
          safe_str(mudstate.global_regs[x],savereg[x],&pt);
+         safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
          if ( key & SUDO_CLEAR ) {
             *mudstate.global_regs[x] = '\0';
+            *mudstate.global_regsname[x] = '\0';
          }
       }
    }
@@ -9810,8 +9821,11 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          pt = mudstate.global_regs[x];
+         npt = mudstate.global_regsname[x];
          safe_str(savereg[x],mudstate.global_regs[x],&pt);
+         safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
          free_lbuf(savereg[x]);
+         free_sbuf(saveregname[x]);
       }
    }
 

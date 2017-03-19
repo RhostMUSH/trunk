@@ -4942,6 +4942,7 @@ NDECL(process_commands)
 		    else {
                         for (i = 0; i < MAX_GLOBAL_REGS; i++) {
                            *mudstate.global_regs[i] = '\0';
+                           *mudstate.global_regs_backup[i] = '\0';
                            *mudstate.global_regsname[i] = '\0';
                         }
                         mudstate.global_regs_wipe = 0;

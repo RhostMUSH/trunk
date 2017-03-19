@@ -2425,7 +2425,8 @@ void do_include(dbref player, dbref cause, int key, char *string,
    dbref thing, owner, target;
    int attrib, flags, i, x, i_savebreak;
    time_t  i_now;
-   char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS];
+   char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS],
+        *npt, *saveregname[MAX_GLOBAL_REGS];
 
    if ( desc_in_use != NULL ) {
       notify_quiet(player, "You can not use @include at command line.");
@@ -2492,10 +2493,14 @@ void do_include(dbref player, dbref cause, int key, char *string,
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
+         saveregname[x] = alloc_sbuf("ulocal_regname");
          pt = savereg[x];
+         npt = saveregname[x];
          safe_str(mudstate.global_regs[x],savereg[x],&pt);
+         safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
          if ( key & INCLUDE_CLEAR ) {
             *mudstate.global_regs[x] = '\0';
+            *mudstate.global_regsname[x] = '\0';
          }
       }
    }
@@ -2517,8 +2522,11 @@ void do_include(dbref player, dbref cause, int key, char *string,
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          pt = mudstate.global_regs[x];
+         npt = mudstate.global_regsname[x];
          safe_str(savereg[x],mudstate.global_regs[x],&pt);
+         safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
          free_lbuf(savereg[x]);
+         free_sbuf(saveregname[x]);
       }
    }
    free_lbuf(buff1);

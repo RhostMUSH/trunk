@@ -1311,7 +1311,8 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
 {
    int a, any, chkwild, i_regexp, i_case, i_notify, i_inline, x,
         i_nobreak, i_breakst, i_localize, i_clearreg;
-   char *cp, *s_buff, *s_buffptr, *buff, *retbuff, *s_switch_notify, *pt, *savereg[MAX_GLOBAL_REGS];
+   char *cp, *s_buff, *s_buffptr, *buff, *retbuff, *s_switch_notify, *pt, *savereg[MAX_GLOBAL_REGS],
+        *npt, *saveregname[MAX_GLOBAL_REGS];
 
    if (!expr || (nargs <= 0))
       return;
@@ -1382,10 +1383,14 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                if ( i_clearreg || i_localize ) {
                   for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                      savereg[x] = alloc_lbuf("ulocal_reg");
+                     saveregname[x] = alloc_sbuf("ulocal_regname");
                      pt = savereg[x];
+                     npt = saveregname[x];
                      safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                     safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
                      if ( i_clearreg ) {
                         *mudstate.global_regs[x] = '\0';
+                        *mudstate.global_regsname[x] = '\0';
                      }
                   }
                }
@@ -1407,8 +1412,11 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                if ( i_clearreg || i_localize ) {
                   for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                      pt = mudstate.global_regs[x];
+                     npt = mudstate.global_regsname[x];
                      safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                     safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                      free_lbuf(savereg[x]);
+                     free_sbuf(saveregname[x]);
                   }
                }
             } else {
@@ -1421,10 +1429,14 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                if ( i_clearreg || i_localize ) {
                   for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                      savereg[x] = alloc_lbuf("ulocal_reg");
+                     saveregname[x] = alloc_sbuf("ulocal_regname");
                      pt = savereg[x];
+                     npt = saveregname[x];
                      safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                     safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
                      if ( i_clearreg ) {
                         *mudstate.global_regs[x] = '\0';
+                        *mudstate.global_regsname[x] = '\0';
                      }
                   }
                }
@@ -1446,8 +1458,11 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                if ( i_clearreg || i_localize ) {
                   for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                      pt = mudstate.global_regs[x];
+                     npt = mudstate.global_regsname[x];
                      safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                     safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                      free_lbuf(savereg[x]);
+                     free_sbuf(saveregname[x]);
                   }
                }
             } else {
@@ -1470,10 +1485,14 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   savereg[x] = alloc_lbuf("ulocal_reg");
+                  saveregname[x] = alloc_sbuf("ulocal_regname");
                   pt = savereg[x];
+                  npt = saveregname[x];
                   safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                  safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
                   if ( i_clearreg ) {
                      *mudstate.global_regs[x] = '\0';
+                     *mudstate.global_regsname[x] = '\0';
                   }
                }
             }
@@ -1495,8 +1514,11 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   pt = mudstate.global_regs[x];
+                  npt = mudstate.global_regsname[x];
                   safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                  safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                   free_lbuf(savereg[x]);
+                  free_sbuf(saveregname[x]);
                }
             }
          } else {
@@ -1509,10 +1531,14 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   savereg[x] = alloc_lbuf("ulocal_reg");
+                  saveregname[x] = alloc_sbuf("ulocal_regname");
                   pt = savereg[x];
+                  npt = saveregname[x];
                   safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                  safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
                   if ( i_clearreg ) {
                      *mudstate.global_regs[x] = '\0';
+                     *mudstate.global_regsname[x] = '\0';
                   }
                }
             }
@@ -1534,8 +1560,11 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   pt = mudstate.global_regs[x];
+                  npt = mudstate.global_regsname[x];
                   safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                  safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                   free_lbuf(savereg[x]);
+                  free_sbuf(saveregname[x]);
                }
             }
          } else {
@@ -2031,7 +2060,8 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 	const char *odef, int awhat, char *args[], int nargs)
 {
   char	*d, *buff, *act, *charges, *lcbuf, *pt, *npc_name, *savereg[MAX_GLOBAL_REGS], *master_str, *master_ret;
-  char *pt2, *savereg2[MAX_GLOBAL_REGS], *tmpformat_buff, *tpr_buff, *tprp_buff;
+  char *pt2, *savereg2[MAX_GLOBAL_REGS], *tmpformat_buff, *tpr_buff, *tprp_buff,
+       *npt2, *savereg2name[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
   dbref	loc, aowner, aowner2, master, aowner3;
   int	num, aflags, cpustopper, nocandoforyou, x, aflags2, o_chkr, tst_attr, aflags3, chkoldstate, i_didsave;
   int   did_allocate_buff;
@@ -2079,8 +2109,11 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                    i_didsave = 1;
                    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                       savereg2[x] = alloc_lbuf("ulocal_reg");
+                      savereg2name[x] = alloc_sbuf("ulocal_regname");
                       pt2 = savereg2[x];
+                      npt2 = savereg2name[x];
                       safe_str(mudstate.global_regs[x],savereg2[x],&pt2);
+                      safe_str(mudstate.global_regsname[x],savereg2name[x],&npt2);
                    }
                 }
 		d = atr_pget(thing, what, &aowner, &aflags);
@@ -2119,8 +2152,11 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                               (what == A_LDEXIT_FMT)) ) {
                            for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                              savereg[x] = alloc_lbuf("ulocal_reg");
+                             saveregname[x] = alloc_sbuf("ulocal_reg");
                              pt = savereg[x];
+                             npt = saveregname[x];
                              safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                             safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
                            }
                         }
 			if ( tst_attr && *master_str ) {
@@ -2144,8 +2180,11 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                               (what == A_LDEXIT_FMT)) ) {
                            for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                              pt = mudstate.global_regs[x];
+                             npt = mudstate.global_regsname[x];
                              safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                             safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                              free_lbuf(savereg[x]);
+                             free_sbuf(saveregname[x]);
                            }
                         }
 			notify(player, buff);
@@ -2357,8 +2396,11 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
            i_didsave = 0;
            for (x = 0; x < MAX_GLOBAL_REGS; x++) {
               pt2 = mudstate.global_regs[x];
+              npt2 = mudstate.global_regsname[x];
               safe_str(savereg2[x],mudstate.global_regs[x],&pt2);
+              safe_str(savereg2name[x],mudstate.global_regsname[x],&npt2);
               free_lbuf(savereg2[x]);
+              free_sbuf(savereg2name[x]);
            }
         }
 
@@ -2451,8 +2493,11 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
          i_didsave = 0;
          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             pt2 = mudstate.global_regs[x];
+            npt2 = mudstate.global_regsname[x];
             safe_str(savereg2[x],mudstate.global_regs[x],&pt2);
+            safe_str(savereg2name[x],mudstate.global_regsname[x],&npt2);
             free_lbuf(savereg2[x]);
+            free_sbuf(savereg2name[x]);
          }
       }
       mudstate.chkcpu_toggle = chkoldstate;

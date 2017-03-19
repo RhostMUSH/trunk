@@ -2105,7 +2105,7 @@ show_desc(dbref player, dbref loc, int key)
 void 
 look_in(dbref player, dbref cause, dbref loc, int key)
 {
-    char *s, *nfmt, *pt, *savereg[MAX_GLOBAL_REGS];
+    char *s, *nfmt, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
     int pattr, oattr, aattr, is_terse, showkey, has_namefmt, aflags2, x;
     dbref aowner2;
 
@@ -2153,16 +2153,22 @@ look_in(dbref player, dbref cause, dbref loc, int key)
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             savereg[x] = alloc_lbuf("ulocal_reg");
+            saveregname[x] = alloc_sbuf("ulocal_regname");
             pt = savereg[x];
+            npt = saveregname[x];
             safe_str(mudstate.global_regs[x],savereg[x],&pt);
+            safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
           }
        }
        s = exec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             pt = mudstate.global_regs[x];
+            npt = mudstate.global_regsname[x];
             safe_str(savereg[x],mudstate.global_regs[x],&pt);
+            safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
             free_lbuf(savereg[x]);
+            free_sbuf(saveregname[x]);
           }
        }
        free_lbuf(nfmt);

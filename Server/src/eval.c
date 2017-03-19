@@ -1269,7 +1269,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
-    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr;
+    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
+         *nptsavereg, *saveregname[MAX_GLOBAL_REGS];
     char *trace_array[3], *trace_buff, *trace_buffptr;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
@@ -2908,10 +2909,14 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     if ( ufp->flags & FN_PRES ) {
                        for (z = 0; z < MAX_GLOBAL_REGS; z++) {
                           savereg[z] = alloc_lbuf("ulocal_reg");
+                          saveregname[z] = alloc_sbuf("ulocal_regname");
                           ptsavereg = savereg[z];
+                          nptsavereg = saveregname[z];
                           safe_str(mudstate.global_regs[z],savereg[z],&ptsavereg);
+                          safe_str(mudstate.global_regsname[z],saveregname[z],&nptsavereg);
                           if ( ufp->flags & FN_PROTECT ) {
                              *mudstate.global_regs[z] = '\0';
+                             *mudstate.global_regsname[z] = '\0';
                           }
                        }
                     }
@@ -2929,8 +2934,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     if ( ufp->flags & FN_PRES ) {
                        for (z = 0; z < MAX_GLOBAL_REGS; z++) {
                           ptsavereg = mudstate.global_regs[z];
+                          nptsavereg = mudstate.global_regsname[z];
                           safe_str(savereg[z],mudstate.global_regs[z],&ptsavereg);
+                          safe_str(saveregname[z],mudstate.global_regsname[z],&nptsavereg);
                           free_lbuf(savereg[z]);
+                          free_sbuf(saveregname[z]);
                        }
                     }
 		    mudstate.ufunc_nest_lev--;

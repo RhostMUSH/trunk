@@ -14401,7 +14401,7 @@ FUNCTION(fun_zfunlocal)
     int aflags, anum, goodzone, x, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
 
     /* We need at least one argument */
 
@@ -14479,10 +14479,14 @@ FUNCTION(fun_zfunlocal)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
@@ -14499,8 +14503,11 @@ FUNCTION(fun_zfunlocal)
     free_lbuf(result);
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 
@@ -14510,7 +14517,8 @@ FUNCTION(fun_zfunldefault)
     int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS];
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (ZFUNLOCAL) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -14578,10 +14586,14 @@ FUNCTION(fun_zfunldefault)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
     if ( nfargs > 2 ) {
@@ -14620,8 +14632,11 @@ FUNCTION(fun_zfunldefault)
     free_lbuf(result);
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 
@@ -14631,7 +14646,8 @@ FUNCTION(fun_zfun2ldefault)
     int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS];
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (ZFUN2LDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -14704,10 +14720,14 @@ FUNCTION(fun_zfun2ldefault)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
     if ( nfargs > 2 ) {
@@ -14746,8 +14766,11 @@ FUNCTION(fun_zfun2ldefault)
     free_lbuf(result);
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 FUNCTION(fun_zfundefault)
@@ -15326,7 +15349,8 @@ FUNCTION(fun_uldefault)
     dbref aowner, thing;
     int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS];
 
     if (nfargs < 2) {
         safe_str("#-1 FUNCTION (ULDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -15381,10 +15405,14 @@ FUNCTION(fun_uldefault)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
 
@@ -15425,8 +15453,11 @@ FUNCTION(fun_uldefault)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 
@@ -15529,7 +15560,7 @@ FUNCTION(fun_zfun2local)
     int aflags, anum, goodzone, x, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
 
     /* We need at least one argument */
 
@@ -15607,10 +15638,14 @@ FUNCTION(fun_zfun2local)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
@@ -15627,8 +15662,11 @@ FUNCTION(fun_zfun2local)
     free_lbuf(result);
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 
@@ -15637,7 +15675,8 @@ FUNCTION(fun_u2ldefault)
     dbref aowner, thing;
     int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS];
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (U2LDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -15692,10 +15731,14 @@ FUNCTION(fun_u2ldefault)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
 
@@ -15737,8 +15780,11 @@ FUNCTION(fun_u2ldefault)
 
     for (x = 0; x < MAX_GLOBAL_REGS; x++) {
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
 }
 
@@ -16520,7 +16566,7 @@ FUNCTION(fun_privatize)
  */
 FUNCTION(fun_localize)
 {
-    char *result, *pt, *savereg[MAX_GLOBAL_REGS], *resbuff;
+    char *result, *pt, *savereg[MAX_GLOBAL_REGS], *resbuff, *npt, *saveregname[MAX_GLOBAL_REGS];
     int x, i_flagreg[MAX_GLOBAL_REGS], i_reverse;
 
     if (!fn_range_check("LOCALIZE", nfargs, 1, 3, buff, bufcx)) {
@@ -16562,10 +16608,14 @@ FUNCTION(fun_localize)
       if ( !i_flagreg[x] )
          continue;
       savereg[x] = alloc_lbuf("ulocal_reg");
+      saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
+      npt = saveregname[x];
       safe_str(mudstate.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
          *mudstate.global_regs[x] = '\0';
+         *mudstate.global_regsname[x] = '\0';
       }
     }
     result = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0],
@@ -16574,8 +16624,11 @@ FUNCTION(fun_localize)
       if ( !i_flagreg[x] )
          continue;
       pt = mudstate.global_regs[x];
+      npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
+      free_sbuf(saveregname[x]);
     }
     safe_str(result, buff, bufcx);
     free_lbuf(result);
@@ -17900,7 +17953,7 @@ FUNCTION(fun_setqmatch)
       for (i = 0; i < 10; i++) {
          if ( t_args[i] ) {
             if (!mudstate.global_regs[i])
-               mudstate.global_regs[i] = alloc_lbuf("fun_setq");
+               mudstate.global_regs[i] = alloc_lbuf("fun_setqmatch");
             pt = mudstate.global_regs[i];
             safe_str(t_args[i],mudstate.global_regs[i],&pt);
             first = 1;
@@ -31091,7 +31144,7 @@ FUNCTION(fun_setr_old)
           mudstate.global_regs[regnum] = alloc_lbuf("fun_setr");
        strcpy(mudstate.global_regs[regnum], fargs[1]);
        if (!mudstate.global_regsname[regnum])
-          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
+          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setr_name");
        if ( i_penntog || ((nfargs > 2) && *fargs[2]) ) {
           strncpy(mudstate.global_regsname[regnum], (i_penntog ? fargs[0] : fargs[2]), (SBUF_SIZE - 1));
           *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
@@ -31106,7 +31159,7 @@ FUNCTION(fun_setr_old)
            mudstate.global_regs[regnum] = alloc_lbuf("fun_setr");
        strcpy(mudstate.global_regs[regnum], fargs[1]);
        if (!mudstate.global_regsname[regnum])
-          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
+          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setr_name");
        if ( i_penntog || ((nfargs > 2) && *fargs[2]) ) {
           strncpy(mudstate.global_regsname[regnum], (i_penntog ? fargs[0] : fargs[2]), (SBUF_SIZE - 1));
           *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
@@ -31232,7 +31285,7 @@ FUNCTION(fun_setr)
                      fargs[1], cargs, ncargs, (char **)NULL, 0);
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
-          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
+          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setr_name");
        if ( (i_nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
@@ -31250,7 +31303,7 @@ FUNCTION(fun_setr)
                      fargs[1], cargs, ncargs, (char **)NULL, 0);
        strcpy(mudstate.global_regs[regnum], result);
        if (!mudstate.global_regsname[regnum])
-          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
+          mudstate.global_regsname[regnum] = alloc_sbuf("fun_setr_name");
        if ( (i_nfargs > 2) && *result_second ) {
             strncpy(mudstate.global_regsname[regnum], result_second, (SBUF_SIZE - 1));
             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
@@ -33886,7 +33939,8 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     dbref thing;
     int anum, i, i_bypass;
     ATTR *ap;
-    char *atext, *result, *xargs[MAX_ARG], *savereg[MAX_GLOBAL_REGS], *pt;
+    char *atext, *result, *xargs[MAX_ARG], *savereg[MAX_GLOBAL_REGS], *pt, 
+         *npt, *saveregname[MAX_GLOBAL_REGS];
 
     /* We need at least one argument */
 
@@ -33977,8 +34031,11 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     if ( i_is_local ) {
        for (i = 0; i < MAX_GLOBAL_REGS; i++) {
          savereg[i] = alloc_lbuf("cluster_ulocal_reg");
+         saveregname[i] = alloc_sbuf("cluster_ulocal_regname");
          pt = savereg[i];
+         npt = saveregname[i];
          safe_str(mudstate.global_regs[i], savereg[i], &pt);
+         safe_str(mudstate.global_regsname[i], saveregname[i], &npt);
        }
     }
     switch(i_is_alt) {
@@ -34016,8 +34073,11 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     if ( i_is_local ) {
        for (i = 0; i < MAX_GLOBAL_REGS; i++) {
          pt = mudstate.global_regs[i];
+         npt = mudstate.global_regsname[i];
          safe_str(savereg[i], mudstate.global_regs[i], &pt);
+         safe_str(saveregname[i], mudstate.global_regsname[i], &npt);
          free_lbuf(savereg[i]);
+         free_sbuf(saveregname[i]);
        }
     }
     free_lbuf(result);
