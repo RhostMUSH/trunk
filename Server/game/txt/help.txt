@@ -146,27 +146,386 @@
 & topics
   Help available on the following Topics:
  
-  ALT INVENTORIES     ALTNAMES          ANSINAMES            ARBITRARY COMMANDS
-  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS   ATTRIBUTE OWNERSHIP  ATTRIBUTE TREES
-  BANG NOTATION       BEING KILLED      BOGUS COMMANDS       BOOLEAN VALUES    
-  CHANGES             CHANNEL           COLORS               COMMAND EVALUATION
-  CONTROL             COPYRIGHT         COSTS                CREDITS         
-  CLUSTERS            DROP-TO           ENACTOR              EXITS           
-  FAILURE             FLAG ALIAS        FLAG LIST            FLAGS           
-  FUNCTION ALIASES    FUNCTION LIST     FUNCTION TYPES       FUNCTIONS       
-  GENDER              GOALS             GUESTS               HERE              
-  HOMES               LINKING           LISTENING            LISTS            
-  LOOPING             MAIL              ME                   MONEY          
-  MOVING              OBJECT TYPES      PARENT OBJECTS       PUPPETS       
-  QUICKREFERENCE      REALITY LEVELS    REGEXPS              REGEXP SYNTAX    
-  REGEXP CLASSES      REGEXP EXAMPLES   ROBBERY              ROYALTY          
-  SEARCH CLASSES      SEMAPHORES        SENSES               SETQ_TEMPLATES   
-  SQL                 SQLESCAPE         SIDEEFFECTS          SINGLETHREADING  
-  SPECIAL CHARACTERS  SPOOFING          STACK                SUBSTITUTIONS      
-  SUCCESS             SWITCHES          TOGGLES              USEFUL             
-  USER ATTRIBUTES     VARIABLE EXITS    VATOVZ               VERBS              
-  WANDERER            ZATOZZ            ZONES                $-COMMANDS         
-  #LAMBDA             ATTRIB FORMATTING MAX ARGS             WILDCARDS
+  ALT INVENTORIES    ALTNAMES            ANSINAMES         ARBITRARY COMMANDS
+  ATTRIB FORMATTING  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS   ATTRIBUTE OWNERSHIP
+  ATTRIBUTE TREES    BANG NOTATION       BEING KILLED      BOGUS COMMANDS 
+  BOOLEAN VALUES     CHANGES             CHANNEL           CODING             
+  COLORS             COMMAND EVALUATION  CONTROL           COPYRIGHT          
+  COSTS              CREDITS             CLUSTERS          DROP-TO            
+  ENACTOR            EXITS               FAILURE           FLAG ALIAS 
+  FLAG LIST          FLAGS               FUNCTION ALIASES  FUNCTION LIST 
+  FUNCTION TYPES     FUNCTIONS           GENDER            GOALS              
+  GUESTS             HERE                HOMES             LINKING            
+  LISTENING          LISTS               LOOPING           MAIL               
+  MAX ARGS           ME                  MONEY             MOVING  
+  OBJECT TYPES       PARENT OBJECTS      PUPPETS           QUICKREFERENCE
+  REALITY LEVELS     REGEXPS             REGEXP SYNTAX     REGEXP CLASSES 
+  REGEXP EXAMPLES    ROBBERY             ROYALTY           SEARCH CLASSES 
+  SEMAPHORES         SENSES              SETQ_TEMPLATES    SIDEEFFECTS    
+  SINGLETHREADING    SPECIAL CHARACTERS  SPOOFING          SQL           
+  SQLESCAPE          STACK               SUBSTITUTIONS     SUCCESS        
+  SWITCHES           TOGGLES             USEFUL            USER ATTRIBUTES
+  VARIABLE EXITS     VATOVZ              VERBS             WANDERER       
+  WILDCARDS          ZATOZZ              ZONES             $-COMMANDS     
+  #LAMBDA          
+  
+& CODING
+  Topic: CODING
+  
+  This topic discusses the ins and outs of mush programming.  While not a 
+  complete document by any regard, it should help you understand the basics
+  and get around programming on a mush.
+  
+  There are sub-topics available with coding that you may reference at
+  anytime.  These are:
+  
+    CODING QUEUE   -- A quick overview of how the queue works in the mush
+    CODING COMMAND -- A quick overview of what defines a command
+    CODING FUNCT   -- A quick overview of what defines a function
+    CODING NEST    -- A quick overview of operators to nest commands
+    CODING ATTRIB  -- A quick overview of setting attributes
+    CODING REGS    -- A quick overview of temporary registers/arguments
+    CODING SUBS    -- A quick overview of substitutions
+  
+  To continue with the overview and explain how a general layout works,
+  please see 'CODING2'.
+  
+& CODING SUBS
+  Topic: CODING SUBS
+  
+  Substitutions are a quick reference to call a value that may dynamically
+  change.  For example, '%n' will reference the name of whatever is 
+  executing the code, and '%#' is the dbref# that is calling.  For a list
+  of all substitutions, please see 'help substitutions'.  It lists all
+  the subs as well as a short description of how they work.  Don't hesitate
+  to play with the values to see how they work.  You won't hurt anything
+  by doing so :)
+  
+  Examples:
+  > say %# %n
+  You say "#123 Bob"
+  > say [setq(0,foo)]Register is: %q0
+  You say "Register is: foo"
+  
+& CODING2
+  Topic: CODING2
+  
+  When you start coding on a mush, each sequence usually starts withi a
+  command, which then uses functions to manipulate the data the command
+  is calling.  You may also make soft-coded commands ($-commands in help)
+  by starting a command with a '$' and then any wildcards with '*' for
+  1 or more characters or '?' meaning one character only.  You may use
+  the ^ command for having objects listen for a word sequence.  Please
+  refer to 'help monitor' to explain a bit more on how ^ sequences work.
+  
+  When you establish a softcoded command, the sequence works as follows:
+  &ATTRIBUTE TARGET=$command *:COMMAND1;COMMAND2;...;COMMANDx
+  
+  Example: (assuming you own an object 'Fred' with dbref #123)
+  &BOO #123=$boo *:@pemit %#=You have booed '%0'.
+  
+  Breaking this down.  #123 is the dbref# of 'Fred'.  The dbref# will
+  always be unique in a mush database.  BOO is the attribute that you
+  set with the '&' command.  'boo' is the command it will be looking
+  for, identified with the '$' starter character.  You have one argument
+  being passed signified with the '*' character.  The command it is
+  executing is '@pemit', and it's using the percent substitutions '%#'
+  which is specifying the dbref# of whatever is enacting the command,
+  which in this case would be you.  The '%0' at the end is the argument
+  that aligns with the wildcard.  All arguments start at '0' and go
+  from 0-9.  You can have more than 9 arguments but that becomes more
+  complex code.  So if you had two *'s and one ?, the first two *'s 
+  would be %0 and %1 respectively, and the ? would be %2.
+  
+  So, we have set our BOO attribute to the 'boo' command.  Let's now
+  execute the command:
+  > boo
+  Huh? (Type 'help' for help)
+  
+  Ok, wait a second.  Why didn't it see the command?  The answer if
+  you look at the command makes sense.  It's expecting an argument
+  AFTER a space.  If you wanted the argument to be optional you would
+  instead set it like:
+  &BOO #123=$boo*:@pemit %#=You have booed '%0'.
+  
+  Notice no space between 'boo' and '*'.  So let's try it again:
+  > boo
+  You have booed ''
+  > boo abc123
+  You have booed 'abc123'
+  
+{ help coding3 to learn how to nest commands }
+
+& CODING3
+  Topic: CODING3
+  
+  You may nest commands together with the ';' identifier.  This will
+  link commands together.  If you with to 'cluster' commands together,
+  you may use the {}'s characters to surround a list of commands you
+  wish to link together.
+  
+  For example:
+  $foo *:@switch %0=yes,{@emit 1;@emit 2;@emit 3},no,{@emit A;@emit B;@emit C}
+  
+  In this example, if you typed 'foo yes' it would display 1, 2, and 3.
+  If you typed 'foo no' it would instead display A, B, and C.
+  
+  The @switch command (which you may shorten to @swi), executes a 'switch'
+  or evaluation based on what you specified.  In this case you are comparing
+  '%0' (or what is typed after foo), to two expected arguments.  'yes' or
+  'no'.  @switch allows multiple arguments, as well as a default value.
+  Note with how it's set up above, if foo does not have a 'yes' or 'no' value
+  you will get no output since @switch is expecting 'yes' or 'no' only and
+  has no default case to fall back on.
+  
+  You may notice that you use {}'s to cluster the commands for each separate
+  conditional.  You may nest {}'s inside each other for nested @switches or
+  other commands that allow arguments passed to them of commands.  Such
+  example commands are @switch, @ifelse, @skip, @sudo, @force, @wait, and
+  so forth.
+
+& CODING ATTRIB
+  Topic: CODING ATTRIB
+  
+  Attributes are a 'permanent' storage of values.  The content that can be
+  stored on attributes are limited by the buffer limit for the mush in
+  question.  The buffer limit can be 4K, 8K, 16K, 32K, or 64K.  You may
+  find out the size of the buffer with the command:
+  
+  > say config(lbuf_size)
+  You say "32768"   (note, this would be 32K) 
+  > say config(sbuf_size)
+  You say "64"
+  
+
+  When setting attributes, you give it three arguments.  The name of
+  the attribute (which we will be calling ATTRIBUTE), the target that
+  you will set the attribute on (which we will be calling TARGET), and
+  the contents you wish to set to this (which we will be calling CONTENT).
+  The attribute can be most characters (primarilly alpha-numeric) that is
+  under an SBUF in size.  This is by default 32 bytes, but can be extended 
+  to 64 bytes.  
+  
+  When setting attributes there are multiple methods to do so.  First,
+  we will cover commands that allow you to do so.
+  Setting attributes:
+    > &ATTRIBUTE TARGET=CONTENTS     (& is shorthand for '@set')
+    > @set TARGET=ATTRIBUTE:CONTENTS (this works like the & command above)
+  
+  Fetching attributes: (note: examine and @decompile allow wildcards)
+    > examine TARGET
+    > examine TARGET/ATTRIBUTE
+    > @decompile TARGET
+    > @decompile TARGET/ATTRIBUTE
+  
+  Editing attributes: (note: @edit allows wildcards)
+    > @edit TARGET/ATTRIBUTE=OLD,NEW
+  
+  Copying Attributes: (note: @cpattr allows wildcards)
+    > @cpattr TARGET/ATTRIBUTE=DESTINATION
+    > @cpattr TARGET/ATTRIBUTE=DESTINATION/NEWATTRIBUTE
+  
+  Moving Attributes:
+    > @cpattr/clear TARGET/ATTRIBUTE=DESTINATION
+    > @cpattr/clear TARGET/ATTRIBUTE=DESTINATION/NEWATTRIBUTE
+    > @mvattr TARGET=ATTRIBUTE,NEWATTRIBUTE
+  
+  Clearing Attributes: (note: @wipe allows wildcards)
+    > @wipe TARGET/ATTRIBUTE 
+    > &ATTRIBUTE TARGET
+    > @set TARGET=ATTRIBUTE:
+  
+{ See 'help coding attrib2' for functions used to manipulate attributes }
+
+& CODING ATTRIB2
+  Topic: CODING ATTRIB2
+  
+  Just like commands, you may use functions to set and clear attributes.
+  Since these affect objects and 'events' as a side-effect, these are 
+  considered 'side effect functions' and will require the SIDEFX flag to
+  be set on anything DIRECTLY using these functions.  
+  
+  The following functions are used to manipulate attribute data.
+  Setting attributes:
+    > @eval set(TARGET, ATTRIBUTE:CONTENTS)
+  
+  Fetching attributes: (note: lattr takes wildcards)
+    > @eval lattr(TARGET/ATTRIBUTE)
+    > @eval get(TARGET/ATTRIBUTE)
+    > @eval xget(TARGET,ATTRIBUTE)
+  
+  Fetching & Executing attributes: (not a complete list)
+    > @eval u(TARGET/ATTRIBUTE)
+    > @eval ueval(TARGET/ATTRIBUTE/CITIZEN)
+    > @eval ulocal(TARGET/ATTRIBUTE)
+    > @eval eval(TARGET,ATTRIBUTE)
+    > @eval subeval(TARGET,ATTRIBUTE)
+  
+  Editing attributes:
+    > @eval edit(CONTENTS,OLD,NEW)
+ 
+  Clearing attributes: (note: wipe allows wildcards)
+    > @eval wipe(TARGET/ATTRIBUTE)
+    > @eval set(TARGET,ATTRIBUTE:)
+  
+  This list is not complete and there are quite a few functions that allow
+  manipulation of attributes and data.  Please review help files for these.
+   
+& CODING REGS
+  Topic: CODING REGS
+  
+  Registers (and arguments) are special substitutions that hold the values
+  that you have either set before time or are passing into a command or
+  function.  To store temporary values, you use two functions to do so:
+  > say setq(0,bob)
+  You say ""
+   
+  This will store 'bob' to register '0'.  This function as seen returns
+  nothing.  You have 36 registers that you can use.  0-9 and a-z.  
+  You may label these registers with any name you want that is 32 characters 
+  or less in length.  The label may contain spaces.
+  
+  > say setr(0,bob)
+  You say "bob"
+  
+  This function works just like setq(), but notice it not only stores the 
+  value, but it returns the value you have set.  This is intentional and
+  used when you plan to store the value but still need to have the results
+  returned for evaluation.  Like setq(), you may specify labels where the
+  same rules apply.
+  
+  Arguments are temporary only for the runtime of that given command or
+  function.   With commands you can have:
+  $foo *=*:@emit Args: %0 and %1.
+  
+  The command 'foo' has two arguments.  argument 0 (%0) will be before the
+  '=' and argument 1 (%1) will be after the '='.  You may pass this
+
+& CODING QUEUE
+  Topic: CODING QUEUE
+  
+  The mush queue is a single threaded interpreted parser.  It works by pushing
+  and popping entries into and out of the queue based on a timed or event
+  driven engine.  Each time something is pushed onto the queue, it is
+  evaluated then popped off.  If you have a command that has itself other
+  commands, then it queues those results, so please keep that in mind when
+  programming.
+  
+  An example of how you would queue a command is as follows.
+  
+  > @wait 0={think 1;think 2;@switch 1=1,think 3;think 4}
+  1
+  2
+  4
+  3
+
+  WAAIIIIT a minute.  Why was this out of order?  The reason why is because
+  of how the queue works.  The command 'think' pushes the contents on the
+  queue.  The command '@switch' pushes the contents on the queue.  However,
+  the contents of @switch is, itself, a command and the @switch command
+  then queues and executes its own arguments.  This requires a SECOND call
+  to the queue.  Remember, the queue is processed linearilly and in order.
+  
+  So to wrap up, the first order of queue would be:
+  -> think, think, @switch, think
+  
+  The second order of queue would be:
+  -> think
+
+& CODING COMMAND
+  Topic: CODING COMMAND
+  
+  To see commands please type:  @list commands.  'help' available on each.
+  
+  A 'command' is defined as a call to a process that essentailly forks its
+  own sandbox for running its pre-defined execution.  Examples of commands
+  are 'think', '@emit', '@pemit', 'page', 'say', 'pose', and so forth.  
+  Commands should not be confused with functions, since a segment MUST
+  start with a command, and you can't start a segment with a function.
+  
+  It's easier to consider that each command starts its own sandbox, and
+  functions are used to manipulate the environment of that given command.
+  
+  You may nest commands together and link them one after another, in
+  such a situation, the environment 'pokes holes' into each sandboxed
+  environment and allows the commands that follow the previous command
+  to be able to see and inherit values that may have been manipulated or
+  seen by the previous command.
+  
+  One way that you can preserve values to pass to other commands is with
+  arguments.  Most commands accept arguments to them which you can string
+  and pass along.
+  
+  The other way is setting registers, which are essentially pre-allocated
+  buffers that you may store values into that can be accessed by any
+  command following the previous commands in the sequence.  Once the
+  command sequence is finished, the registers are reset and cleared
+  automatically.  There is no way to preserve these values and it is
+  always considered to be temporary until the process of all the commands
+  in the sequence is completed.
+
+
+& CODING FUNCT
+  Topic: CODING FUNCT
+  
+  'help function type' is very informative and it's requested you check
+  that out for a list of functions for every 'type'.
+  
+  To see functions please type: @list functions.  'help' available on each.
+  
+  A 'function' is considered a method to manipulate, display, or set the
+  environment that the command has set up.  There are literally hundreds
+  of functions that you may use, and with the use of @lfunction 
+  (or @function for wizards) you may define any number of additional
+  functions with softcode for the game and user-space to use.  The mushing
+  language is highly extensible and allows some heavy modifications.
+  
+  You may nest functions or string them together.
+  
+  Example of nesting functions:
+  > say [add(sub(mul(3,3),2,div(10,5)),20)]
+  You say "25"
+  The above example is doing:  ((3 * 3) - 2 - (10 / 5)) + 20
+  
+  Example of stringing functions:
+  > say [add(1,1)][sub(4,3)][mul(10,10)]
+  You say "21100"
+  The above example is displaying '2' '1' and '100' strung together.
+  
+  All functions allow manipulation of the input and/or output of each given
+  command, and some special functions like sideeffects allow you to do 
+  things outside of that given command.  Again, help is available on them all.
+  
+  With the use of functions and commands, you will find MUSH an extensive
+  interpreted language and quite powerful in its own right.
+   
+& CODING NEST
+  Topic: CODING NEST
+  
+  You may nest commands or functions with the use of {}'s, []'s, or ()'s.  The
+  previous is mostly used for command nesting, and the latter used for
+  function nesting and declaration.
+  
+  Command Nesting: An example of command nesting
+  $foo*:@wait 10={@emit 1;@swi [trim(%0)]=bob,{@emit bob;@emit was;@emit here}}
+  
+  In this example, if you specify 'bob' as the argument to foo, it will
+  display '1', 'bob', 'was', 'here' on separate lines.  Notice the trim()
+  function around the argument (%0).  This is trimming extra spaces around the
+  argument so that you don't have ' bob', ' bob ', or 'bob ' as commands which
+  based on comparisons may or may not work as expected.  It's essentially one 
+  of the ways to control the data that you are being given.
+  
+  If you pass 'foo' anything but 'bob', all you will get is '1' and nothing
+  else.
+  
+  Function Nesting: An example of function nesting 
+  > say [add(sub(1,1),2)]
+  You say '2'
+  
+  You are, in this example, subtracting 1 and 1, passing that nested value to
+  the 'add' function and then adding that result to the number '2'.  So
+  in this case, 1 - 1 is 0, and 0 + 2 is 2, so you will be returning '2'
   
 & \*
 & \?
