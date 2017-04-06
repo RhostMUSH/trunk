@@ -788,7 +788,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  vap[2] = alloc_mbuf("speech_prefix2");
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
-                 sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon, ttm2->tm_year);
+                 sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
                  s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
                                       vap, 3, (char **)NULL, 0);
@@ -831,7 +831,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  vap[2] = alloc_mbuf("speech_prefix2");
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
-                 sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon, ttm2->tm_year);
+                 sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
                  s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
                                       vap, 3, (char **)NULL, 0);
