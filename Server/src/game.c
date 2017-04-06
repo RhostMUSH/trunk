@@ -613,11 +613,12 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 #ifdef ZENTY_ANSI
     char *mp2, *msg_utf, *mp_utf;
 #endif
-    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff;
+    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[3], *pvap[3];
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0;
     int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
+    struct tm *ttm2;
     FWDLIST *fp;
     ATTR *ap_log, *ap_attrpipe;
 
@@ -777,6 +778,37 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     check_listens = Halted(target) ? 0 : 1;
     switch (Typeof(target)) {
     case TYPE_PLAYER:
+        if ( mudstate.posesay_fluff ) {
+           ap_attrpipe = atr_str_notify("SPEECH_PREFIX");
+           if ( ap_attrpipe ) {
+              s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+              if ( *s_pipeattr ) {
+                 vap[0] = msg_ns;
+                 vap[1] = alloc_mbuf("speech_prefix");
+                 vap[2] = alloc_mbuf("speech_prefix2");
+                 ttm2 = localtime(&mudstate.now);
+                 ttm2->tm_year += 1900;
+                 sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon, ttm2->tm_year);
+                 sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
+                 s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
+                                      vap, 3, (char **)NULL, 0);
+                 free_mbuf(vap[1]);
+                 free_mbuf(vap[2]);
+                 if ( *s_pipebuffptr ) {
+                    pvap[0] = vap[0] = alloc_lbuf("vap0");
+                    pvap[1] = vap[1] = alloc_lbuf("vap1");
+                    pvap[2] = vap[2] = alloc_lbuf("vap2");
+                    parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
+                    raw_notify(target, vap[0], port, 1);
+                    free_lbuf(vap[0]);
+                    free_lbuf(vap[1]);
+                    free_lbuf(vap[2]);
+                 }
+                 free_lbuf(s_pipebuffptr);
+              }
+              free_lbuf(s_pipeattr);
+           }
+        }
 	if (key & MSG_ME) {
            if ( mudstate.emit_substitute ) {
               s_tbuff = alloc_sbuf("emit_substitute");
@@ -787,6 +819,37 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
               free_lbuf(s_tstr);
            } else {
              raw_notify(target, msg_ns, port, 1);
+           }
+        }
+        if ( mudstate.posesay_fluff ) {
+           ap_attrpipe = atr_str_notify("SPEECH_SUFFIX");
+           if ( ap_attrpipe ) {
+              s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+              if ( *s_pipeattr ) {
+                 vap[0] = msg_ns;
+                 vap[1] = alloc_mbuf("speech_prefix");
+                 vap[2] = alloc_mbuf("speech_prefix2");
+                 ttm2 = localtime(&mudstate.now);
+                 ttm2->tm_year += 1900;
+                 sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon, ttm2->tm_year);
+                 sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
+                 s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
+                                      vap, 3, (char **)NULL, 0);
+                 free_mbuf(vap[1]);
+                 free_mbuf(vap[2]);
+                 if ( *s_pipebuffptr ) {
+                    pvap[0] = vap[0] = alloc_lbuf("vap0");
+                    pvap[1] = vap[1] = alloc_lbuf("vap1");
+                    pvap[2] = vap[2] = alloc_lbuf("vap2");
+                    parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
+                    raw_notify(target, vap[0], port, 1);
+                    free_lbuf(vap[0]);
+                    free_lbuf(vap[1]);
+                    free_lbuf(vap[2]);
+                 }
+                 free_lbuf(s_pipebuffptr);
+              }
+              free_lbuf(s_pipeattr);
            }
         }
 	if (!mudconf.player_listen)

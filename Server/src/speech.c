@@ -171,6 +171,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 	case SAY_SAY:
                 pbuf = atr_get(player, A_SAYSTRING, &aowner, &aflags);
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
+                mudstate.posesay_fluff = 1;
                 if ( SafeLog(player) ) {
                    if ( pbuf && *pbuf ) {
                       if ( no_ansi ) {
@@ -271,11 +272,13 @@ void do_say (dbref player, dbref cause, int key, char *message)
 #endif /* REALITY_LEVELS */
                    }
                 }
+                mudstate.posesay_fluff = 0;
                 free_lbuf(tpr_buff);
                 free_lbuf(pbuf);
 		break;
 	case SAY_POSE:
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
+                mudstate.posesay_fluff = 1;
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
@@ -313,10 +316,12 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    }
 #endif /* REALITY_LEVELS */
                 }
+                mudstate.posesay_fluff = 0;
                 free_lbuf(tpr_buff);
 		break;
 	case SAY_POSE_NOSPC:
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
+                mudstate.posesay_fluff = 1;
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
@@ -354,6 +359,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    }
 #endif /* REALITY_LEVELS */
                 }
+                mudstate.posesay_fluff = 0;
                 free_lbuf(tpr_buff);
 		break;
 	case SAY_EMIT:

@@ -2502,11 +2502,22 @@
   
 & pose
   Command: pose[/<switches>] <message>
+  
   Displays <message> to everyone in your current room, preceded by your name
-  and optionally a space.  Example: the command 'pose jumps for joy' produces
-  '<yourname> jumps for joy'.
+  and optionally a space.  
   
   No switches are available for the ':' or ';' shorthands.
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
    
   The following switches are available:
      /default - (default) Put a space between your name and the message
@@ -2516,6 +2527,10 @@
      /noansi   - Show the string literally and don't process ansi.  Only
                  useful with ZENTY_ANSI enabled (at compiletime).
  
+  Example: (assuming your name is Bob)
+    > pose jumps for joy
+    Bob jumps for joy
+  
   See Also: page, say, whisper, :, ;, "
   
 & quit    
@@ -2526,6 +2541,7 @@
   
 & read
   Command: read [<object>]
+  
   Displays the description of <object>, or the room you're in if you don't
   specify an object.  Specifying object as <name> or #<dbref> or 'me' or
   'here' is legal.  You can also use look to look at objects held by other
@@ -2543,23 +2559,53 @@
   
 & ;
   Command: ;<message>
+  
   This command is much like the ':' command, except that no space is inserted
-  between your name and the action.  Example: the command ';'s watch beeps.'
-  produces '<yourname>'s watch beeps.'.
- 
+  between your name and the action.  
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+  
+  Example: (assuming your name is Bob)
+    > ;'s watch beeps.
+    Bob's watch beeps.
+   
   Warning: This command does not work in command lists run from an attribute
   because the ';' is treated as the command separator.  Use pose/nospace
   instead.
   
   If you have a space after the ';' it will use the ':' format instead.
- 
+   
   See Also: page, pose, say, whisper, :, "
   
 & :
   Command: :<message>
+   
   Displays <message> to everyone in your current room, preceded by your name
-  and a space.  Example: the command ':jumps for joy' produces
-  '<yourname> jumps for joy'.
+  and a space.  
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+  
+  Example: (assuming your name is Bob)
+    > :jumps for joy
+    Bob jumps for joy
   
   If you have a space after the ':' it will use the ';' format instead.
   
@@ -2567,38 +2613,83 @@
   
 & "
   Command: "<message>
-  Says <message> out loud to everyone in your current room.  Example:
-  the command '"Where is the movie theater?' produces
-  '<yourname> says "Where is the movie theater>"'.  Note that the closing
-  double quote is automatically added.
+  
+  Says <message> out loud to everyone in your current room.  
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+  
+  Example: (assuming your name is Bob)
+   > "Where is the movie theater?
+   Bob says "Where is the movie theater>"  
+  
+  Note that the closing double quote is automatically added.
   
   See Also: page, pose, say, :, ", @saystring
   
 & #
   Command: #<number> <command>
-  Forces the object whose database number is <number> to perform <command>.
-  Example: '#1033 move north' forces object #1033 to go north (assuming that
-  you control it).  The same restrictions that apply to @force also apply to
-  this command.
   
-  See Also: @force
+  Forces the object whose database number is <number> to perform <command>.
+  
+  Example: 
+    > #1033 move north 
+
+  This forces object #1033 to go north (assuming that you control it).  
+  The same restrictions that apply to @force also apply to this command.
+  
+  See Also: @force, @sudo
   
 & \\
   Command: \\<message>
+  
   Outputs <message> to everyone in your current room without embellishment.
-  Example: the command '\\A chill falls over the room.' produces
-  'A chill falls over the room.'
+  
+  Example: 
+    > \\A chill falls over the room.
+    A chill falls over the room.
   
   See Also: @emit, @oemit, NOSPOOF
   
+& SPEECH_PREFIX
+& SPEECH_SUFFIX
+  Topic: special attributes
+  
+  These attributes are settable with &SPEECH_PREFIX and &SPEECH_SUFFIX.
+  They are pre and post handlers for the say and pose commands which will
+  be triggered upon these commands being issued.  These will only evaluate
+  substitutions and will not evaluate functions.
+  
+  See Also: say, pose, ", :, ;
+   
 & say
   Command: say[/<switches>] <message>
+  
   Says <message> out loud to everyone in your current room. You can also
   use '"<message>'.  No switches are allowed with the '"' shorthand.
   
   The following switches exist for the say command:
     /noansi    - Show the string literally and don't process ansi.  Only
                  useful with ZENTY_ANSI enabled (at compiletime).
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
   
   See Also: page, pose, whisper, :, ;, ", @saystring
   
@@ -31145,6 +31236,8 @@
   * # option to printf for converting tabs to specified number of spaces [ASH]
   * BANG support is now supported in %-<num> regs and %q<> regs [ASH]
   * BANG support is now supported in %i<num> and %d<num> substitutions [ASH]
+  * SPEECH_PREFIX and SPEECH_SUFFIX attributes for prefix and suffix
+    processing of say (") and pose (: & ;) messages [ASH]
   
   Changes
   ------------
