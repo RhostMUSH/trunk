@@ -781,6 +781,7 @@ struct statedata {
 	int	argtwo_fix;	/* Arg 2 fix test for '=' */
         int     zone_return;	/* Return value of zonecmd() function */
 	int	posesay_fluff;	/* Allow pose/say fluffing */
+	dbref	posesay_dbref;	/* Allow pose/say fluffing */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

@@ -613,7 +613,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 #ifdef ZENTY_ANSI
     char *mp2, *msg_utf, *mp_utf;
 #endif
-    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[3], *pvap[3];
+    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[4], *pvap[4];
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0;
@@ -786,14 +786,24 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");
                  vap[2] = alloc_mbuf("speech_prefix2");
+                 vap[3] = alloc_mbuf("speech_prefix3");
+                 if ( Good_chk(mudstate.posesay_dbref) && 
+                      ((!Wizard(mudstate.posesay_dbref) || 
+                      (Wizard(mudstate.posesay_dbref) && Immortal(target))) || 
+                      (Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)))) ) {
+                    sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+                 } else {
+                    sprintf(vap[3], "#%d", -1);
+                 }
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
                  sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
                  s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
-                                      vap, 3, (char **)NULL, 0);
+                                      vap, 4, (char **)NULL, 0);
                  free_mbuf(vap[1]);
                  free_mbuf(vap[2]);
+                 free_mbuf(vap[3]);
                  if ( *s_pipebuffptr ) {
                     pvap[0] = vap[0] = alloc_lbuf("vap0");
                     pvap[1] = vap[1] = alloc_lbuf("vap1");
@@ -829,14 +839,24 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");
                  vap[2] = alloc_mbuf("speech_prefix2");
+                 vap[3] = alloc_mbuf("speech_prefix3");
+                 if ( Good_chk(mudstate.posesay_dbref) && 
+                      ((!Wizard(mudstate.posesay_dbref) || 
+                      (Wizard(mudstate.posesay_dbref) && Immortal(target))) || 
+                      (Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)))) ) {
+                    sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+                 } else {
+                    sprintf(vap[3], "#%d", -1);
+                 }
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
                  sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
                  s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
-                                      vap, 3, (char **)NULL, 0);
+                                      vap, 4, (char **)NULL, 0);
                  free_mbuf(vap[1]);
                  free_mbuf(vap[2]);
+                 free_mbuf(vap[3]);
                  if ( *s_pipebuffptr ) {
                     pvap[0] = vap[0] = alloc_lbuf("vap0");
                     pvap[1] = vap[1] = alloc_lbuf("vap1");

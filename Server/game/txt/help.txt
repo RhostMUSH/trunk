@@ -2511,13 +2511,14 @@
   You may use two special attributes for pre and post processing of any
   says you receive.  These attributes will have substitutions evaluated
   but will not evaluate functions.
-    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
-    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose/emit.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose/emit.
   
   Both of these attributes handle three arguments.  These are:
     %0 - The original say/pose that triggered the attribute.
     %1 - The date in the form MM/DD/YYYY
     %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
    
   The following switches are available:
      /default - (default) Put a space between your name and the message
@@ -2573,6 +2574,7 @@
     %0 - The original say/pose that triggered the attribute.
     %1 - The date in the form MM/DD/YYYY
     %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
   Example: (assuming your name is Bob)
     > ;'s watch beeps.
@@ -2602,6 +2604,7 @@
     %0 - The original say/pose that triggered the attribute.
     %1 - The date in the form MM/DD/YYYY
     %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
   Example: (assuming your name is Bob)
     > :jumps for joy
@@ -2626,6 +2629,7 @@
     %0 - The original say/pose that triggered the attribute.
     %1 - The date in the form MM/DD/YYYY
     %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
   Example: (assuming your name is Bob)
    > "Where is the movie theater?
@@ -2663,6 +2667,7 @@
     %0 - The original @emit that triggered the attribute.
     %1 - The date in the form MM/DD/YYYY
     %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
   Example: 
     > \\A chill falls over the room.
@@ -2701,6 +2706,7 @@
     %0 - The original say/pose that triggered the attribute.
     %1 - The date in the form MM/DD/YYYY
     %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
   See Also: page, pose, whisper, :, ;, ", @saystring
   
@@ -3656,6 +3662,7 @@
     %0 - The original @emit that triggered the attribute.
     %1 - The date in the form MM/DD/YYYY
     %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
  
   Some MUSHes may restrict the use of this command.
   
@@ -31261,6 +31268,8 @@
   * BANG support is now supported in %i<num> and %d<num> substitutions [ASH]
   * SPEECH_PREFIX and SPEECH_SUFFIX attributes for prefix and suffix
     processing of say ("), pose (: & ;), and @emit (//)  messages [ASH]
+  * Added argument %3 to SPEECH_PREFIX/SUFFIX for dbref# of enactor.  This
+    follows rules of 'spoofing' and spoofers show up as #-1.  [ASH]
   
   Changes
   ------------
