@@ -2653,6 +2653,17 @@
   
   Outputs <message> to everyone in your current room without embellishment.
   
+  You may use two special attributes for pre and post processing of any
+  emits you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.
+    SPEECH_PREFIX  -- Contents will be evaluated before the @emit.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the @emit.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original @emit that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+  
   Example: 
     > \\A chill falls over the room.
     A chill falls over the room.
@@ -3615,6 +3626,7 @@
   
 & @emit
   Command: @emit[/<switches>] <message>
+  
   Sends <message> to everyone in your current location without prefixing it by
   your character name.  You can also send the message to everyone in the room
   that contains the object you are inside with the /room switch.
@@ -3633,6 +3645,17 @@
   
   If both /here and /room switches are specified, the message is sent to both 
   places.  If neither is specified, /here is assumed.
+  
+  You may use two special attributes for pre and post processing of any
+  emits you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.
+    SPEECH_PREFIX  -- Contents will be evaluated before the @emit.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the @emit.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original @emit that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
  
   Some MUSHes may restrict the use of this command.
   
@@ -31237,7 +31260,7 @@
   * BANG support is now supported in %-<num> regs and %q<> regs [ASH]
   * BANG support is now supported in %i<num> and %d<num> substitutions [ASH]
   * SPEECH_PREFIX and SPEECH_SUFFIX attributes for prefix and suffix
-    processing of say (") and pose (: & ;) messages [ASH]
+    processing of say ("), pose (: & ;), and @emit (//)  messages [ASH]
   
   Changes
   ------------

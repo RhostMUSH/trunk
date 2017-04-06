@@ -363,6 +363,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 free_lbuf(tpr_buff);
 		break;
 	case SAY_EMIT:
+                mudstate.posesay_fluff = 1;
 	        if (say_flags2 & SAY_SUBSTITUTE)
 		  mudstate.emit_substitute = 1;
 		if ((say_flags & SAY_HERE) || !say_flags) {
@@ -383,6 +384,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		if (say_flags & SAY_ROOM) {
                    if ((Typeof(loc) == TYPE_ROOM) && (say_flags & SAY_HERE)) {
                       mudstate.emit_substitute = 0;
+                      mudstate.posesay_fluff = 0;
                       return;
                    }
                    depth = 0;
@@ -390,6 +392,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                       loc = Location(loc);
                       if ((loc == NOTHING) || (loc == Location(loc))) {
                          mudstate.emit_substitute = 0;
+                         mudstate.posesay_fluff = 0;
                          return;
                       }
                    }
@@ -409,6 +412,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 #endif /* REALITY_LEVELS */
                    }
 		}
+                mudstate.posesay_fluff = 0;
 		mudstate.emit_substitute = 0;
 		break;
 	case SAY_SHOUT:
