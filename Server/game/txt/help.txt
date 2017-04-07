@@ -2510,7 +2510,8 @@
   
   You may use two special attributes for pre and post processing of any
   says you receive.  These attributes will have substitutions evaluated
-  but will not evaluate functions.
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
     SPEECH_PREFIX  -- Contents will be evaluated before the say/pose/emit.
     SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose/emit.
   
@@ -2566,7 +2567,8 @@
   
   You may use two special attributes for pre and post processing of any
   says you receive.  These attributes will have substitutions evaluated
-  but will not evaluate functions.
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
     SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
     SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
   
@@ -2596,7 +2598,8 @@
   
   You may use two special attributes for pre and post processing of any
   says you receive.  These attributes will have substitutions evaluated
-  but will not evaluate functions.
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
     SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
     SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
   
@@ -2621,7 +2624,8 @@
   
   You may use two special attributes for pre and post processing of any
   says you receive.  These attributes will have substitutions evaluated
-  but will not evaluate functions.
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
     SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
     SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
   
@@ -2659,7 +2663,8 @@
   
   You may use two special attributes for pre and post processing of any
   emits you receive.  These attributes will have substitutions evaluated
-  but will not evaluate functions.
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
     SPEECH_PREFIX  -- Contents will be evaluated before the @emit.
     SPEECH_SUFFIX  -- Contents will be evaluated after the @emit.
   
@@ -2684,6 +2689,8 @@
   be triggered upon these commands being issued.  These will only evaluate
   substitutions and will not evaluate functions.
   
+  If these attributes are set NO_COMMAND they will not return any message.
+  
   See Also: say, pose, ", :, ;
    
 & say
@@ -2698,7 +2705,8 @@
   
   You may use two special attributes for pre and post processing of any
   says you receive.  These attributes will have substitutions evaluated
-  but will not evaluate functions.
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
     SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
     SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
   
@@ -3654,7 +3662,8 @@
   
   You may use two special attributes for pre and post processing of any
   emits you receive.  These attributes will have substitutions evaluated
-  but will not evaluate functions.
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
     SPEECH_PREFIX  -- Contents will be evaluated before the @emit.
     SPEECH_SUFFIX  -- Contents will be evaluated after the @emit.
   
@@ -31267,9 +31276,12 @@
   * BANG support is now supported in %-<num> regs and %q<> regs [ASH]
   * BANG support is now supported in %i<num> and %d<num> substitutions [ASH]
   * SPEECH_PREFIX and SPEECH_SUFFIX attributes for prefix and suffix
-    processing of say ("), pose (: & ;), and @emit (//)  messages [ASH]
+    processing of say ("), pose (: & ;), and @emit (//)  messages.  
+    Note: if set NO_COMMAND these will not process [ASH]
   * Added argument %3 to SPEECH_PREFIX/SUFFIX for dbref# of enactor.  This
     follows rules of 'spoofing' and spoofers show up as #-1.  [ASH]
+  * @admin param posesay_funct will optionally allow SPEECH_PREFIX and
+    SPEECH_SUFFIX to evaluate functions as long as not set NO_COMMAND.  [ASH]
   
   Changes
   ------------

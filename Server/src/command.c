@@ -6129,10 +6129,14 @@ list_options_system(dbref player)
        notify(player, "@@ recognized as null output seperator ------------------------- ENABLED");
     else
        notify(player, "@@ recognized as null output seperator ------------------------- DISABLED");
-    if ( mudconf.protect_addenh)
+    if ( mudconf.protect_addenh )
        notify(player, "@protect/add protect_addenh argument for player name adding ---- ENABLED");
     else
        notify(player, "@protect/add protect_addenh argument for player name adding ---- DISABLED");
+    if ( mudconf.posesay_funct )
+       notify(player, "Attributes SPEECH_PREFIX and SPEECH_SUFFIX allow functions ----- ENABLED");
+    else
+       notify(player, "Attributes SPEECH_PREFIX and SPEECH_SUFFIX allow functions ----- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 

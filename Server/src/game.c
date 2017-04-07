@@ -616,7 +616,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[4], *pvap[4];
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
-    int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0;
+    int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0, i_chkcpu;
     int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
     struct tm *ttm2;
     FWDLIST *fp;
@@ -629,6 +629,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     msg_ns2 = NULL;
     cpulbuf = NULL;
+    i_chkcpu = 0;
 
     /* If speaker is invalid or message is empty, just exit */
 
@@ -778,15 +779,18 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     check_listens = Halted(target) ? 0 : 1;
     switch (Typeof(target)) {
     case TYPE_PLAYER:
-        if ( mudstate.posesay_fluff ) {
+        i_chkcpu = mudstate.chkcpu_toggle;
+        if ( mudstate.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_PREFIX");
            if ( ap_attrpipe ) {
               s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
-              if ( *s_pipeattr ) {
+              if ( *s_pipeattr && !(aflags & AF_NOPROG) ) {
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");
                  vap[2] = alloc_mbuf("speech_prefix2");
                  vap[3] = alloc_mbuf("speech_prefix3");
+                 s_pipeattr2 = alloc_lbuf("speech_cpu");
+                 sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
                  if ( Good_chk(mudstate.posesay_dbref) && 
                       ((!Wizard(mudstate.posesay_dbref) || 
                       (Wizard(mudstate.posesay_dbref) && Immortal(target))) || 
@@ -799,8 +803,26 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  ttm2->tm_year += 1900;
                  sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
-                 s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
-                                      vap, 4, (char **)NULL, 0);
+                 if ( mudconf.posesay_funct && !mudstate.chkcpu_toggle ) {
+                    mudstate.posesay_fluff = 0;
+                    s_pipebuffptr = exec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
+                                         vap, 4, (char **)NULL, 0);
+                    mudstate.posesay_fluff = 1;
+                    if ( mudstate.chkcpu_toggle ) {
+                       aflags |= AF_NOPROG;
+                       atr_set_flags(target, ap_attrpipe->number, aflags);
+                       broadcast_monitor(target, MF_CPU, "CPU RUNAWAY PROCESS (SPEECH_PREFIX)",
+                                         (char *)s_pipeattr2, NULL, target, 0, 0, NULL);
+                       STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                          log_name_and_loc(target);
+                          sprintf(s_pipeattr, " CPU/SPEECH_PREFIX overload: (#%d) %.*s", target, (LBUF_SIZE - 100), s_pipeattr2);
+                          log_text(s_pipeattr);
+                       ENDLOG
+                    }
+                 } else {
+                    s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
+                                         vap, 4, (char **)NULL, 0);
+                 }
                  free_mbuf(vap[1]);
                  free_mbuf(vap[2]);
                  free_mbuf(vap[3]);
@@ -815,6 +837,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     free_lbuf(vap[2]);
                  }
                  free_lbuf(s_pipebuffptr);
+                 free_lbuf(s_pipeattr2);
               }
               free_lbuf(s_pipeattr);
            }
@@ -831,15 +854,17 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
              raw_notify(target, msg_ns, port, 1);
            }
         }
-        if ( mudstate.posesay_fluff ) {
+        if ( mudstate.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_SUFFIX");
            if ( ap_attrpipe ) {
               s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
-              if ( *s_pipeattr ) {
+              if ( *s_pipeattr && !(aflags & AF_NOPROG) ) {
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");
                  vap[2] = alloc_mbuf("speech_prefix2");
                  vap[3] = alloc_mbuf("speech_prefix3");
+                 s_pipeattr2 = alloc_lbuf("speech_cpu");
+                 sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
                  if ( Good_chk(mudstate.posesay_dbref) && 
                       ((!Wizard(mudstate.posesay_dbref) || 
                       (Wizard(mudstate.posesay_dbref) && Immortal(target))) || 
@@ -852,8 +877,26 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  ttm2->tm_year += 1900;
                  sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
-                 s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
-                                      vap, 4, (char **)NULL, 0);
+                 if ( mudconf.posesay_funct && !mudstate.chkcpu_toggle ) {
+                    mudstate.posesay_fluff = 0;
+                    s_pipebuffptr = exec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
+                                         vap, 4, (char **)NULL, 0);
+                    mudstate.posesay_fluff = 1;
+                    if ( mudstate.chkcpu_toggle ) {
+                       aflags |= AF_NOPROG;
+                       atr_set_flags(target, ap_attrpipe->number, aflags);
+                       broadcast_monitor(target, MF_CPU, "CPU RUNAWAY PROCESS (SPEECH_SUFFIX)",
+                                         (char *)s_pipeattr2, NULL, target, 0, 0, NULL);
+                       STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                          log_name_and_loc(target);
+                          sprintf(s_pipeattr, " CPU/SPEECH overload: (#%d) %.*s", target, (LBUF_SIZE - 100), s_pipeattr2);
+                          log_text(s_pipeattr);
+                       ENDLOG
+                    }
+                 } else {
+                    s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
+                                         vap, 4, (char **)NULL, 0);
+                 }
                  free_mbuf(vap[1]);
                  free_mbuf(vap[2]);
                  free_mbuf(vap[3]);
@@ -868,10 +911,12 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     free_lbuf(vap[2]);
                  }
                  free_lbuf(s_pipebuffptr);
+                 free_lbuf(s_pipeattr2);
               }
               free_lbuf(s_pipeattr);
            }
         }
+        mudstate.chkcpu_toggle = i_chkcpu;
 	if (!mudconf.player_listen)
 	    check_listens = 0;
     case TYPE_THING:

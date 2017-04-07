@@ -5612,29 +5612,29 @@
 
   player_starting_home      player_starting_room      player_toggles
   plushelp_file             plushelp_index            port                    
-  proxy_checker             postdump_message          power_access            
-  protect_addenh            public_flags              queue_active_chunk      
-  queue_compatible          queue_idle_chunk          quiet_look              
-  quiet_whisper             quit_file                 quotas                  
-  read_remote_desc          read_remote_name          recycling               
-  register_create_file      register_host             register_site           
-  regtry_limit              restrict_home             restrict_sidefx         
-  retry_limit               robot_cost                robot_flags             
-  robot_speech              robot_toggles             room_aconnect           
-  room_adisconnect          room_attr_default         room_flags              
-  room_parent               room_quota                room_toggles            
-  roomlog_path              round_kludge              rwho_data_port          
-  rwho_dump_interval        rwho_host                 rwho_info_port          
-  rwho_password             rwho_transmit             sacrifice_adjust        
-  sacrifice_factor          safe_wipe                 safer_passwords         
-  safer_ufun                search_cost               secure_atruselock       
-  secure_dark               secure_functions          secure_jumpok           
-  see_owned_dark            showother_altname         shs_reverse             
-  sidefx_maxcalls           sidefx_returnval          sideeffects             
-  signal_action             signal_cron               signal_object           
-  signal_object_type        space_compress            spam_limit              
-  spam_msg                  spam_objmsg               sqlite_db_path          
-  sqlite_query_limit        stack_limit
+  proxy_checker             posesay_funct             postdump_message        
+  power_access              protect_addenh            public_flags            
+  queue_active_chunk        queue_compatible          queue_idle_chunk        
+  quiet_look                quiet_whisper             quit_file               
+  quotas                    read_remote_desc          read_remote_name        
+  recycling                 register_create_file      register_host           
+  register_site             regtry_limit              restrict_home           
+  restrict_sidefx           retry_limit               robot_cost              
+  robot_flags               robot_speech              robot_toggles           
+  room_aconnect             room_adisconnect          room_attr_default       
+  room_flags                room_parent               room_quota              
+  room_toggles              roomlog_path              round_kludge            
+  rwho_data_port            rwho_dump_interval        rwho_host               
+  rwho_info_port            rwho_password             rwho_transmit           
+  sacrifice_adjust          sacrifice_factor          safe_wipe               
+  safer_passwords           safer_ufun                search_cost             
+  secure_atruselock         secure_dark               secure_functions        
+  secure_jumpok             see_owned_dark            showother_altname       
+  shs_reverse               sidefx_maxcalls           sidefx_returnval        
+  sideeffects               signal_action             signal_cron             
+  signal_object             signal_object_type        space_compress          
+  spam_limit                spam_msg                  spam_objmsg             
+  sqlite_db_path            sqlite_query_limit        stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -8814,6 +8814,15 @@
   Specifies the IP port on which the game listens for new connections.
   See Also: ip_address.
 
+& posesay_funct
+  Config parameter: posesay_funct <yes/no>.  Default: no
+  
+  Specifies if the SPEECH_PREFIX and SPEECH_SUFFIX attributes evaluate
+  functions.  As this could potentially be cpu intensive, by default this
+  is disabled.  If these attributes break cpu alerts, the cpu alerter
+  will stop it then set the attribute NO_COMMAND so it won't be 
+  processed again.
+  
 & postdump_message
   Config parameter: postdump_message <message>.  Default: blank
   

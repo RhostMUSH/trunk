@@ -323,6 +323,7 @@ NDECL(cf_init)
     mudconf.objid_offset = 0;		/* seconds of offset that it should use */
     mudconf.hook_offline = 0;		/* Trigger @hook/after on offline player create */
     mudconf.protect_addenh = 0;		/* Enhanced @protect/add */
+    mudconf.posesay_funct = 0;		/* Enable functions in SPEECH_PREFIX/SPEECH_SUFFIX */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3835,6 +3836,9 @@ CONF conftable[] =
     {(char *) "dump_message",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.dump_msg, 128, 0, CA_WIZARD,
      (char *) "Message seen BEFORE database dumps."},
+    {(char *) "posesay_funct",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.posesay_funct, 0, 0, CA_PUBLIC,
+     (char *) "Does SPEECH_PREFIX/SPEECH_SUFFIX allow functions?"},
     {(char *) "postdump_message",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.postdump_msg, 128, 0, CA_WIZARD,
      (char *) "Message seen AFTER database dumps."},
