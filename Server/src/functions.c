@@ -1398,6 +1398,7 @@ do_date_conv(char *instr, char *outstr)
    time(&tt);
    tbuff = (char *) ctime(&tt);
    tbuff[strlen(tbuff) - 1] = '\0';
+   /* Populate date information */
    sscanf(tbuff, "%s %s %d %d:%d:%d %d", s_week, s_mon, &i_day, &i_hour, &i_min, &i_sec, &i_year);
 
    if ( sscanf(instr, "%s %s %s %2s:%2s:%2s %s", str1, str2, str3, str4, str5, str6, str7) == 7) {
@@ -1414,6 +1415,20 @@ do_date_conv(char *instr, char *outstr)
 /* %b %d %H:%M:%S */
 /* %B %d %H:%M:%S */
       sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), atoi(str3), atoi(str4), atoi(str5), i_year);
+   } else if ( sscanf(instr, "%s %s %2s:%2s %s", str1, str2, str3, str4, str5) == 5) {
+/* %b %d %H:%M %Y */
+/* %B %d %H:%M %Y */
+      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), atoi(str3), atoi(str4), i_sec, atoi(str5));
+   } else if ( sscanf(instr, "%s %s %2s:%2s", str1, str2, str3, str4) == 4) {
+/* %b %d %H:%M */
+/* %B %d %H:%M */
+      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), atoi(str3), atoi(str4), i_sec, i_year);
+   } else if ( sscanf(instr, "%s %s %s %2s:%2s %s", str1, str2, str3, str4, str5, str6) == 6) {
+/* %a %b %d %H:%M %Y */
+      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str2, atoi(str3), atoi(str4), atoi(str5), i_sec, atoi(str6));
+   } else if ( sscanf(instr, "%s %s %s %2s:%2s", str1, str2, str3, str4, str5) == 5) {
+/* %a %b %d %H:%M */
+      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str2, atoi(str3), atoi(str4), atoi(str5), i_sec, i_year);
    } else if ( sscanf(instr, "%2s-%2s-%s %2s:%2s:%2s", str1, str2, str3, str4, str5, str6) == 6 ) {
 /* %m-%d-%Y %H:%M:%S */
       if ( (atoi(str1) <= 12) && (atoi(str1) >= 1) ) {
@@ -1495,14 +1510,6 @@ do_date_conv(char *instr, char *outstr)
       } else {
          strcpy(outstr, instr);
       }
-   } else if ( sscanf(instr, "%s %s %s", str1, str2, str3) == 3) {
-/* %b %d %Y */
-/* %B %d %Y */
-      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, atoi(str3));
-   } else if ( sscanf(instr, "%s %s", str1, str2) == 2) {
-/* %b %d */
-/* %B %d */
-      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, i_year);
    } else if ( sscanf(instr, "%2s.%2s.%s", str4, str5, str6) == 3) {
 /* mm.dd.yy */
       if ( (atoi(str4) <= 12) && (atoi(str4) >= 1) ) {
@@ -1524,6 +1531,16 @@ do_date_conv(char *instr, char *outstr)
       } else {
          strcpy(outstr, instr);
       }
+   } else if ( sscanf(instr, "%s %s %s", str1, str2, str3) == 3) {
+/* -- THIS NEEDS TO BE NEXT TO LAST */
+/* %b %d %Y */
+/* %B %d %Y */
+      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, atoi(str3));
+   } else if ( sscanf(instr, "%s %s", str1, str2) == 2) {
+/* -- THIS NEEDS TO BE LAST */
+/* %b %d */
+/* %B %d */
+      sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", str1, atoi(str2), i_hour, i_min, i_sec, i_year);
    } else {
 /* FIFO it */
       strcpy(outstr, instr);
@@ -2448,7 +2465,8 @@ static void
 do_spellnum(char *num, unsigned int len, char *buff, char **bufcx)
 {
    static const char *bigones[] = {
-      "", "thousand", "million", "billion", "trillion", NULL
+      "", "thousand", "million", "billion", "trillion", "quadrillion", "quintillion", 
+      "sextillion", "septillion", "octillion", "nonillion", "decillion", NULL
    };
    static const char *singles[] = {
       "", "one", "two", "three", "four",
@@ -2526,7 +2544,14 @@ FUNCTION(fun_spellnum)
       "ten-thousandth", "hundred-thousandth", "millionth",
       "ten-millionth", "hundred-millionth", "billionth",
       "ten-billionth", "hundred-billionth", "trillionth",
-      "ten-trillionth", "hundred-trillionth", NULL
+      "ten-trillionth", "hundred-trillionth", "quadrillionth",
+      "ten-quadrillionth", "hundred-quadrillionth", "quintillionth",
+      "ten-quintillionth", "hundred-quitillionth", "sextillionth",
+      "ten-sextillionth", "hundred-sextillionth", "septillionth",
+      "ten-septillionth", "hundred-septillionth", "octillionth",
+      "ten-octillionth", "hundred-octillionth", "nonillionth",
+      "ten-nonillionth", "hundred-nonillionth", "decillionth",
+      "ten-decillionth", "hundred-decillionth",  NULL
    };
    char *num, *pnumber, *pnum1, *pnum2,
         *s_numtoken, *tpr_buff, *tprp_buff;
@@ -2613,8 +2638,8 @@ FUNCTION(fun_spellnum)
    len1 = ( ((pnum1 == NULL) || !*pnum1) ? 0 : strlen(pnum1));
    len2 = ( ((pnum2 == NULL) || !*pnum2) ? 0 : strlen(pnum2));
 
-   /* Max number is 999,999,999,999,999.999,999,999,999 */
-   if ( (len1 > 15) || (len2 > 14) ) {
+   /* Max number is 999,999,999,999,999,999,999,999,999,999,999,999 */
+   if ( (len1 > 36) || (len2 > 35) ) {
       safe_str((char *)"#-1 NOT A VALID NUMBER", buff, bufcx);
       free_lbuf(num);
       return;
@@ -16547,19 +16572,6 @@ FUNCTION(fun_localfunc)
   local_function(fargs[0], buff, bufcx, player, cause, fargs+1, nfargs-1, cargs, ncargs);
 }
 
-FUNCTION(fun_privatize)
-{
-    if ( !fargs[0] || !*fargs[0] ) {
-       safe_str("#-1 FUNCTION (PRIVATIZE) EXPECTS 1 ARGUMENT [RECEIVED 0]", buff, bufcx);
-       return;
-    }
-    if ( atoi(fargs[0]) == 0 ) {
-       mudstate.global_regs_wipe = 0;
-    } else {
-       mudstate.global_regs_wipe = 1;
-    }
-}
-
 /* ---------------------------------------------------------------------------
  * fun_localize: Keep function's inside of it localized with memory registers
  * Idea borrowed from TinyMUSH 3.0
@@ -16633,6 +16645,38 @@ FUNCTION(fun_localize)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
 }
+
+FUNCTION(fun_privatize)
+{
+    char *sbuff;
+
+    sbuff = NULL;
+    if (!fn_range_check("PRIVATIZE", nfargs, 1, 4, buff, bufcx)) {
+       return;
+    }
+    if ( !fargs[0] || !*fargs[0] ) {
+       safe_str("#-1 FUNCTION (PRIVATIZE) EXPECTS 1 ARGUMENT [RECEIVED 0]", buff, bufcx);
+       return;
+    }
+    sbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
+                 cargs, ncargs, (char **)NULL, 0);
+    if ( !sbuff || !*sbuff ) {
+       safe_str("#-1 FUNCTION (PRIVATIZE) EXPECTS 1 ARGUMENT [RECEIVED 0]", buff, bufcx);
+       free_lbuf(sbuff);
+       return;
+    }
+    if ( atoi(sbuff) == 0 ) {
+       mudstate.global_regs_wipe = 0;
+    } else {
+       mudstate.global_regs_wipe = 1;
+       if ( nfargs > 1 ) {
+          fun_localize(buff, bufcx, player, cause, caller, fargs+1, nfargs-1, cargs, ncargs);
+          mudstate.global_regs_wipe = 0;
+       }
+    }
+    free_lbuf(sbuff);
+}
+
 
 /* ---------------------------------------------------------------------------
  * fun_null: eat output
@@ -34819,7 +34863,7 @@ FUN flist[] =
     {"POWER", fun_power, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"POWER10", fun_power10, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PRINTF", fun_printf, 2, FN_VARARGS, CA_PUBLIC, 0},
-    {"PRIVATIZE", fun_privatize, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"PRIVATIZE", fun_privatize, 1, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"PROGRAMMER", fun_programmer, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PTIMEFMT", fun_ptimefmt, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PUSHREGS", fun_pushregs, 1, 0, CA_PUBLIC, CA_NO_CODE},

@@ -89,8 +89,7 @@ CMD_ONE_ARG(do_hook);			/* Warp various timers */
 CMD_TWO_ARG_ARGV(do_icmd);
 CMD_TWO_ARG_ARGV_CMDARG(do_include);	/* @include attribute into command */
 CMD_NO_ARG(do_inventory);		/* Print what I am carrying */
-CMD_NO_ARG(do_worn);		        /* Print what I am wearing */
-CMD_NO_ARG(do_wielded);		        /* Print what I am wielding */
+CMD_TWO_ARG_CMDARG(do_jump);
 CMD_TWO_ARG(do_kill);			/* Kill something */
 CMD_TWO_ARG(do_label);			/* %_ label adding/removing of attribs */
 CMD_ONE_ARG(do_last);			/* Get recent login info */
@@ -193,7 +192,9 @@ CMD_TWO_ARG_ARGV(do_verb);		/* Execute a user-created verb */
 CMD_TWO_ARG_CMDARG(do_wait);		/* Perform command after a wait */
 CMD_NO_ARG(do_whereall);
 CMD_ONE_ARG(do_whereis);
+CMD_NO_ARG(do_wielded);		        /* Print what I am wielding */
 CMD_ONE_ARG(do_wipe);			/* Mass-remove attrs from obj */
+CMD_NO_ARG(do_worn);		        /* Print what I am wearing */
 CMD_TWO_ARG(do_snoop);			/* port redirection for immortals */
 /*CMD_NO_ARG(do_dbclean); */		/* Clean db of unused attributes */
 #ifdef REALITY_LEVELS

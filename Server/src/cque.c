@@ -103,10 +103,15 @@ void execute_entry(BQUE *queue)
 
 		command = queue->comm;
 		mudstate.breakst = 0;
+		mudstate.jumpst = 0;
+		mudstate.rollbackcnt = 0;
                 mudstate.breakdolist = 0;
                 mudstate.includecnt = 0;
                 mudstate.includenest = 0;
                 mudstate.force_halt =0;
+                if ( command ) {
+		   strncpy(mudstate.rollback, command, LBUF_SIZE);
+                }
 		while (command && !mudstate.breakst) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {

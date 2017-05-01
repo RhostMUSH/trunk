@@ -566,6 +566,9 @@ struct statedata {
         /* command profiling */
         int     objevalst;
 	int	breakst;
+	int	jumpst;
+	int	rollbackcnt;
+	char	rollback[LBUF_SIZE];
 	int	breakdolist;
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player*/

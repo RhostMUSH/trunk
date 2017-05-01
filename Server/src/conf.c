@@ -352,6 +352,9 @@ NDECL(cf_init)
     mudstate.dumpstatechk = 0;		/* State of the dump state */
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
+    mudstate.jumpst = 0;
+    mudstate.rollbackcnt = 0;
+    memset(mudstate.rollback, '\0', LBUF_SIZE);
     mudstate.breakdolist = 0;
     mudstate.dolistnest = 0;
     mudstate.twinknum = -1;		/* Dbref of originator if inside a twinklock */

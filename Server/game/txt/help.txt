@@ -99,18 +99,18 @@
   train     use         version      wield        whisper       who        
   worn
   
-  @@              @break      @chown    @clone        @create    @decompile
-  @destroy        @dig        @doing    @dolist       @drain     @edit 
-  @emit           @entrances  @eval     @extansi      @femit     @find      
-  @force          @fpose      @fsay     @halt         @hide      @include
-  @label          @last       @link     @list         @listmotd  @lfunction  
-  @lock           @lset       @mailsig  @mvattr       @name      @notify     
-  @oemit          @open       @parent   @password     @pemit     @pipe       
-  @program        @protect    @ps       @quitprogram  @quota     @register   
-  @robot          @search     @set      @skip         @sql       @sqlconnect 
-  @sqldisconnect  @stats      @sudo     @sweep        @switch    @teleport   
-  @trigger        @unlink     @unlock   @verb         @wait      @wall       
-  @wipe        
+  @@           @break          @chown    @clone    @create       @decompile
+  @destroy     @dig            @doing    @dolist   @drain        @edit 
+  @emit        @entrances      @eval     @extansi  @femit        @find      
+  @force       @fpose          @fsay     @halt     @hide         @include
+  @jump        @label          @last     @link     @list         @listmotd  
+  @lfunction   @lock           @lset     @mailsig  @mvattr       @name    
+  @notify      @oemit          @open     @parent   @password     @pemit   
+  @pipe        @program        @protect  @ps       @quitprogram  @quota   
+  @register    @robot          @search   @set      @skip         @sql     
+  @sqlconnect  @sqldisconnect  @stats    @sudo     @sweep        @switch  
+  @teleport    @trigger        @unlink   @unlock   @verb         @wait    
+  @wall        @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -2989,7 +2989,7 @@
     > test 0
       Before assert
   
-  See Also: $-COMMAND, @@, @break, @skip
+  See Also: $-COMMAND, @@, @break, @skip, @jump
 
 & @break
   Command: @break[/switch] <value> [=<command(s)>]
@@ -3015,7 +3015,7 @@
     > testme 1
       Before break
   
-  See Also: $-COMMAND, @@, @assert, @skip
+  See Also: $-COMMAND, @@, @assert, @skip, @jump
   
 & @chown
   Command: @chown <object>[=<player>]
@@ -5574,7 +5574,7 @@
     > @switch/first FooFoo=*boo*,say yes,*oo*,say maybe,say no
     You say "maybe"
   
-  See Also: switch(), case(), ifelse()
+  See Also: switch(), case(), ifelse(), @skip, @break, @assert, @jump
   
 & @teleport
   Simple:  @teleport [<object>=] <location>
@@ -7212,7 +7212,7 @@
     2
     4
   
-  See Also: @include, @force, @trigger, @skip, @break, @assert, @switch
+  See Also: @include, @force, @trigger, @skip, @break, @assert, @switch, @jump
 
 & @attach
 & @include
@@ -7328,6 +7328,34 @@
     Wizard waves some more.
   
   See Also: @filter, @infilter, @listen, @prefix
+  
+& @jump
+  Command: @jump[/<switch>] <amount> [=<evaluation>]
+  
+  This command will skip ahead <amount> number of commands in the current
+  queue.  This effectively 'skips' execution of commands until the number
+  of commands are met.  If <amount> exceeds the number of commands in the
+  current queue, it will gracefully end the command sequence as if the
+  @jump was the last command in the sequence.
+  
+  You can not nest @jumps.  A value for <amount> that is zero or less than
+  zero will assume nothing to be @jump'd and the @jump will be ignored.
+  
+  You may specify an optionale valuation to be evaluated for the @jump
+  processing.  This is intended to execute commands whenever @jump is
+  called.  If a zero or less than zero value is passed, the <evaluation>
+  is not triggered.
+   
+  The following switches exist:
+    /queued  -- The <evaluation> passed to @jump is queued (default)
+    /inline  -- The <evaluation> passed to @jump is in-line.
+  
+  Example:
+    > &FOO me=$foo:say one;@jump 2;say two;say three;say four
+    You say "one"
+    You say "four"
+  
+  See Also: @break, @assert, @skip, @force, @sudo, @switch
   
 & @kill
   Command: @kill[/<switch>] <object> = <message>
@@ -19334,22 +19362,43 @@
              @lfunction
   
 & PRIVATIZE()
-  Function: privatize(<value>)
+  Function: privatize(<boolean>)
+            privatize(<boolean> [,<string>, [,<register-list>, [<key>]]])
   
-  This function takes two values.  1 to enable or 0 to disable (default).
-  When enabled, any function call that is using localization for registers,
-  such as localize(), ulocal(), ueval(), uzfun(), etc, will be initialized
-  to a null (empty string) instead of housing the contents that was passed
-  to it (which is the default).  Keep in mind, this only initializes the
-  localized values, and once the localization is finished, the values are
-  returned to their previous value, as how localization is intended.
+  This function has two uses.  
   
-  The Values allowed are:
+  First, if you just pass a boolean (1) value to the function, it will 
+  optionally privatize everything that is localized.  It does this by 
+  initializing to null every register that is referenced within the localized
+  register.  A boolean of '0' turns off privatization.
+  
+  The second option allows you to pass a string to be evaluated which will
+  combine localize() and privatize() for the duration of the evaluation
+  of the string.  
+  
+  The register list can be 0-9 or a-z.  You can not use labels.  These will
+  be, by default, what registers will be privatized/localized.  
+  
+  The <key> if '1' will reverse the effect of <register-list> and effective
+  turn the list to an omission list.
+  
+  Once privatization is finished, functionality returns as normally expected. 
+  
+  The <boolean> allowed are:
     1 - Toggle on the feature to initialize to null all registers (%q0-z)
         that are used in localized functions (localize(), ulocal(), etc)
     0 - Toggle off the feature to initialize to null registers (default).
   
-  Example:
+{ see 'help privatize2' for examples }
+& PRIVATIZE2
+  (CONTINUED)
+  Function: privatize(<boolean>)
+            privatize(<boolean> [,<string>, [,<register-list>, [<key>]]])
+  
+  For Example 1, we will show the difference between calling the function,
+  localizing the function, the privatizing before localizing the function.
+
+  Example: (option 1)
     > @va me=(before R0: [r(0)])[setq(0,internal)] --My R0:[r(0)]--
     Set.
     > say [setq(0,external)][r(0)][u(va)][r(0)]
@@ -19359,6 +19408,21 @@
     > say [privatize(1)][setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--(before R0: ) My R0:internal--external"
   
+  For Example 2, we show what it's like to essentially privatize a specific
+  evaluation which auto-localizes the results.
+  
+  Example: (option 2)
+    > @va me=[setr(0,ONE)]:[r(1)]
+    Set.
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va))], %q0:%q1
+    You say "TWO:CHEESE, ONE:, TWO:CHEESE"
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va),0)], %q0:%q1
+    You say "TWO:CHEESE, ONE:CHEESE, TWO:CHEESE"
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va),1)], %q0:%q1
+    You say "TWO:CHEESE, ONE:, ONE:CHEESE"
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va),0,1)], %q0:%q1
+    You say "TWO:CHEESE, ONE:, ONE:CHEESE"
+
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), 
             sandbox(), subeval(), @lfunction
 
@@ -31282,6 +31346,8 @@
     follows rules of 'spoofing' and spoofers show up as #-1.  [ASH]
   * @admin param posesay_funct will optionally allow SPEECH_PREFIX and
     SPEECH_SUFFIX to evaluate functions as long as not set NO_COMMAND.  [ASH]
+  * privatize() handles localize level of evaluation [ASH]
+  * @jump added to jump 'ahead' a set number of commands in sequence [ASH]
   
   Changes
   ------------
@@ -31290,6 +31356,8 @@
   * TESTLOCK() now handles more arguments for multi-targets [ASH]
   * attribute uselocks now pass args %0-%9 that $commands have [ASH]
   * listmatch() takes optional 4th arg to specify args to display [ASH]
+  * increased spellnum() to decillion [ASH]
+  * Added additional time formats to convtime() [ASH]
   
   Bug Fixes
   ------------

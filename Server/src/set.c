@@ -2419,6 +2419,15 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
    }
 }
 
+/* @rollback <steps> [= <args>]
+   @rollback <steps>/<count> [= <args>]
+   @rollback/retry <boolean> [= <args>]
+*/
+void do_rollback(dbref player, dbref cause, int key, char *string,
+                 char *argv[], int nargs, char *cargs[], int ncargs)
+{
+}
+
 void do_include(dbref player, dbref cause, int key, char *string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {

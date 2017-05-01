@@ -5,13 +5,19 @@
 # -- The Rhost Devs
 %a %b %d %H:%M:%S %Y
 %a %b %d %H:%M:%S
+%a %b %d %H:%M %Y
+%a %b %d %H:%M
 %b %d %H:%M:%S %Y
+%B %d %H:%M:%S %Y
+%b %d %H:%M %Y
+%B %d %H:%M %Y
 %b %d %H:%M:%S
 %B %d %H:%M:%S
-%B %d %H:%M:%S %Y
+%b %d %H:%M
+%B %d %H:%M
 %b %d %Y
-%b %d
 %B %d %Y
+%b %d
 %B %d
 %m-%d-%Y %H:%M:%S
 %m/%d/%Y %H:%M:%S

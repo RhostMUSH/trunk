@@ -1278,6 +1278,8 @@ CMDENT command_table[] =
     {(char *) "@include", include_sw, CA_GBL_INTERP, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_STRIP_AROUND,
      0, do_include},
+    {(char *) "@jump", break_sw, CA_PUBLIC, CA_NO_CODE,
+     0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_jump},
     {(char *) "@kick", kick_sw, CA_WIZARD, 0,
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
     {(char *) "@label", label_sw, CA_GBL_INTERP, CA_NO_CODE,
@@ -2848,6 +2850,11 @@ process_command(dbref player, dbref cause, int interactive,
     if (!command)
 	abort();
 
+    mudstate.rollbackcnt++;
+    if ( mudstate.jumpst > 0 ) {
+       mudstate.jumpst--;
+       return;
+    }
     if ( inhook ) {
        mudstate.no_hook = 1;
     } else {
@@ -5964,8 +5971,9 @@ list_options_convtime(dbref player)
       fclose(fp);
       notify(player, "------------------------------------------------------------------------------");
       notify(player, "Key: %a/%A - Weekday Name (Www), %b/%B - Month Name (Mmm), %D - %m/%d/%y");
-      notify(player, "     %m    - month (01-12),      %d    - day (01-31),      %Y - year (yyyy)");
+      notify(player, "     %m    - month (01-12),      %d    - day (01-31),      %Y - year (yyyy+)");
       notify(player, "     %H    - hour (00-23),       %M    - minute (00-59),   %S - second (00-59)");
+      notify(player, "     %I    - hour (01-12),       AM|PM - Morning/After");
       notify(player, "------------------------------------------------------------------------------");
       free_lbuf(s_line);
    }
@@ -9113,6 +9121,39 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
        }
     }
     mudstate.breakst = 1;
+  }
+  if ( i_evaled )
+     free_lbuf(arg1_eval);
+}
+
+void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
+  char *arg1_eval = NULL, *cp;
+  int i_evaled = 0;
+
+  if ( mudstate.jumpst > 0 ) {
+     notify_quiet(player, "Can not call @jump inside another @jump state... yet...");
+     return;
+  }
+  if ( mudconf.break_compatibility ) {
+     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
+     i_evaled = 1;
+  } else {
+     arg1_eval = arg1;
+  }
+  if (is_number(arg1_eval) && (atoi(arg1_eval) > 0)) {
+    if ( arg2 && *arg2 ) {
+       if ( key == BREAK_INLINE) {
+          while (arg2) {
+             cp = parse_to(&arg2, ';', 0);
+             if (cp && *cp) {
+                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
+             }
+          }
+       } else {
+          wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+       }
+    }
+    mudstate.jumpst = atoi(arg1_eval);
   }
   if ( i_evaled )
      free_lbuf(arg1_eval);
