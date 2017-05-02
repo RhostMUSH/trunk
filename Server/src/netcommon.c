@@ -4673,6 +4673,7 @@ do_command(DESC * d, char *command)
     mudstate.debug_cmd = (char *) "< do_command >";
     mudstate.breakst = 0;
     mudstate.jumpst = 0;
+    mudstate.gotolabel = 0;
     mudstate.rollbackcnt = 0;
     mudstate.breakdolist = 0;
     memset(mudstate.rollback, '\0', LBUF_SIZE);

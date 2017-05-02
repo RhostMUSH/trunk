@@ -353,6 +353,7 @@ NDECL(cf_init)
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
     mudstate.jumpst = 0;
+    mudstate.gotolabel = 0;
     mudstate.rollbackcnt = 0;
     memset(mudstate.rollback, '\0', LBUF_SIZE);
     mudstate.breakdolist = 0;

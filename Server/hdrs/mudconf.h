@@ -567,6 +567,7 @@ struct statedata {
         int     objevalst;
 	int	breakst;
 	int	jumpst;
+	int	gotolabel;
 	int	rollbackcnt;
 	char	rollback[LBUF_SIZE];
 	int	breakdolist;

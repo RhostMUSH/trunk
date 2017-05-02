@@ -104,6 +104,7 @@ void execute_entry(BQUE *queue)
 		command = queue->comm;
 		mudstate.breakst = 0;
 		mudstate.jumpst = 0;
+		mudstate.gotolabel = 0;
 		mudstate.rollbackcnt = 0;
                 mudstate.breakdolist = 0;
                 mudstate.includecnt = 0;

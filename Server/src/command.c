@@ -97,6 +97,11 @@ NAMETAB break_sw[] =
     {(char *) "inline", 1, CA_PUBLIC, 0, BREAK_INLINE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB gotolabel_sw[] =
+{
+    {(char *) "label", 1, CA_PUBLIC, 0, GOTO_LABEL},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB evaltab_sw[] =
 {
     {(char *) "subeval", 1, CA_PUBLIC, 0, 6},
@@ -1280,6 +1285,8 @@ CMDENT command_table[] =
      0, do_include},
     {(char *) "@jump", break_sw, CA_PUBLIC, CA_NO_CODE,
      0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_jump},
+    {(char *) "@goto", gotolabel_sw, CA_PUBLIC, CA_NO_CODE,
+     0, CS_ONE_ARG | CS_INTERP, 0, do_goto},
     {(char *) "@kick", kick_sw, CA_WIZARD, 0,
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
     {(char *) "@label", label_sw, CA_GBL_INTERP, CA_NO_CODE,
@@ -2854,6 +2861,10 @@ process_command(dbref player, dbref cause, int interactive,
     if ( mudstate.jumpst > 0 ) {
        mudstate.jumpst--;
        return;
+    }
+    if ( mudstate.gotolabel > 0 ) {
+       if ( strncasecmp(command,"@goto/label ",12) )
+         return;
     }
     if ( inhook ) {
        mudstate.no_hook = 1;
@@ -9157,6 +9168,24 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
   }
   if ( i_evaled )
      free_lbuf(arg1_eval);
+}
+
+void do_goto(dbref player, dbref cause, int key, char *label) {
+  if (is_number(label) && (atoi(label) > 0)) {
+      if(key == GOTO_LABEL)
+      {
+          if(mudstate.gotolabel == atoi(label)) {
+              mudstate.gotolabel = 0;
+          }
+      }
+      else
+      {
+          mudstate.gotolabel = atoi(label);
+      }
+  }
+  else {
+     notify_quiet(player, "#-1 ARGUMENT MUST BE A NUMBER GREATER THAN 0");
+  }
 }
 
 void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {

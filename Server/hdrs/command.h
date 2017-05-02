@@ -80,6 +80,7 @@ CMD_ONE_ARG(do_freeze);			/* FREEZE a frozen queue entry */
 CMD_TWO_ARG(do_function);		/* Make iser-def global function */
 CMD_ONE_ARG(do_get);			/* Get an object */
 CMD_TWO_ARG(do_give);			/* Give something away */
+CMD_ONE_ARG(do_goto);
 CMD_TWO_ARG_ARGV(do_grep);
 CMD_ONE_ARG(do_global);			/* Enable/disable global flags */
 CMD_ONE_ARG(do_halt);			/* Remove commands from the queue */
@@ -297,6 +298,8 @@ typedef struct aliasentry {
 #define CA_SB_IGNORE	0x80000000      /* Function is sandbox ignored */
 
 #define BREAK_INLINE	0x00000001	/* @break/@assert should not go to wait queue */
+#define GOTO_LABEL	0x00000001	/* @goto label marker */
+
 
 #define ADMIN_LOAD	0x00000001	/* @admin/load the parameters */
 #define ADMIN_SAVE	0x00000002	/* @admin/save the parameters */
