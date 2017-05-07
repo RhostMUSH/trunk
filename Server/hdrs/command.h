@@ -88,6 +88,7 @@ CMD_ONE_ARG(do_hide);			/* Hide/Unhide from WHO */
 CMD_ONE_ARG(do_hook);			/* Warp various timers */
 CMD_TWO_ARG_ARGV(do_icmd);
 CMD_TWO_ARG_ARGV_CMDARG(do_include);	/* @include attribute into command */
+CMD_TWO_ARG_ARGV_CMDARG(do_rollback);	/* @rollback attribute into command */
 CMD_NO_ARG(do_inventory);		/* Print what I am carrying */
 CMD_TWO_ARG_CMDARG(do_jump);
 CMD_TWO_ARG(do_kill);			/* Kill something */
@@ -245,6 +246,7 @@ typedef struct aliasentry {
 #define	CS_STRIP_AROUND	 0x0400	/* Strip braces around entire string only */
 #define CS_SEP		 0x0800
 #define CS_PASS_SWITCHES 0x1000 /* Pass switches unparsed */
+#define CS_ROLLBACK      0x2000 /* Special rollback */
 /* Command permission flags */
 
 #define CA_PUBLIC	0x00000000	/* No access restrictions */

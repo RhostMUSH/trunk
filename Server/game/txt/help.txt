@@ -2989,7 +2989,7 @@
     > test 0
       Before assert
   
-  See Also: $-COMMAND, @@, @break, @skip, @jump
+  See Also: $-COMMAND, @@, @break, @skip, @jump, @rollback
 
 & @break
   Command: @break[/switch] <value> [=<command(s)>]
@@ -3015,7 +3015,7 @@
     > testme 1
       Before break
   
-  See Also: $-COMMAND, @@, @assert, @skip, @jump
+  See Also: $-COMMAND, @@, @assert, @skip, @jump, @rollback
   
 & @chown
   Command: @chown <object>[=<player>]
@@ -7183,7 +7183,7 @@
     Player says "boo"
     Player says "baa"
   
-  See Also: @include, @force, @trigger, @skip 
+  See Also: @include, @force, @trigger, @skip, @jump, @rollback
   
 & @if
 & @ifelse
@@ -7212,7 +7212,9 @@
     2
     4
   
-  See Also: @include, @force, @trigger, @skip, @break, @assert, @switch, @jump
+  See Also: @include, @force, @trigger, @skip, @break, @assert, @switch,
+            @jump, @rollback
+
 
 & @attach
 & @include
@@ -7274,7 +7276,7 @@
     inny2: bah!
     test2
   
-  See Also: @trigger, @force, @sudo, @skip
+  See Also: @trigger, @force, @sudo, @skip, @jump, @rollback
 
 & @infilter
   Command: @infilter[/<switch>] <object> = <pattern>[, <pattern>...]
@@ -7329,6 +7331,166 @@
   
   See Also: @filter, @infilter, @listen, @prefix
   
+& @retry
+& @rollback
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+  
+  The rollback command has multiple facets that allow you flexibility to
+  'roll back' the current queue and re-issue the command sequence a number
+  of times.  There's three distinct flavors of the @rollback command that can
+  be used.  On most RhostMUSH's, the @rollback/retry will be aliased to @retry
+  which for the most part mimic's penn's @retry command.  You may optionally
+  pass 10 arguments to @rollback.  The arguments as well as the <boolean> wil
+  be re-evaluated on every pass.
+  
+  NOTE:  All %0-%9 arguments are RESET TO THEIR ORIGINAL VALUES after the end
+         of the rollback segment.  This is intentional.
+  
+  The arguments that are passed are:
+    <count>    - The number of arguments you wish to roll back to.  If you
+                 specify the /retry it ignores this option and always rolls
+                 back to the start of the command queue.  This is only
+                 evaluated once.  Must be greater than zero(0).
+    <repeats>  - The number of times you wish to repeat the rolled back
+                 segment.  The default maximum is 1000 retries, regardless
+                 of the option you specify.  This is only evaluated once.
+                 This value defaults to '1'.  Must be greater than zero(0).
+    <waittime> - The waittime that you wish to use in the @wait for the
+                 rolled back segment.  Defaults to '0'.  This is evaluated
+                 for every rollback.  Must be zero(0) or greater.
+    <boolean>  - This is evaluated to a 'true(1)' or 'false(0)' value on
+                 every rollback pass.  The retry will continue until a
+                 false condition is met or until the MAX (1000 default)
+                 rollback count threshold is met.
+  
+  The switches available are:
+    /wait      - Slice the rolled back section into its own waited queue.
+    /retry     - retry everything from before the @rollback segment.  
+  
+{ see 'help @rollback2' for examples on condition 1 }
+{ see 'help @rollback3' for examples on condition 2 }
+{ see 'help @rollback4' for examples on condition 3 }
+
+& @rollback2
+(CONTINUED)
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+  
+  The first condition is the standard default method for @rollback.  With
+  this method you specify a <count> of how many arguments you wish to roll
+  back to.  If <count> exceeds the total number of commands in the argument
+  list, it grabs the all the arguments.  If the value is zero, it ignores
+  the @rollback in the entirity and continues on to the next command.
+   
+  You may specify a <repeats> value if you wish to have more than one repeat
+  of the subset of previous commands.  The default value for this is one(1).
+  
+  You may specify optional arguments to pass to the retried commands.  This
+  will override the originally passed arguments and will be evaluated for
+  every rollback.  This allows you to specify a new set of arguments for
+  every rollback run.  Once the rollback is completed, the arguments are
+  reset to their original values.
+  
+  All passed arguments are re-evaluated on every retry.
+   
+  Examples: (condition 1)
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback 2/2=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+      1-5
+      2-5
+      3-5
+      2-10
+      3-10
+      2-15
+      3-15
+      END-5
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback 2=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+      1-5
+      2-5
+      3-5
+      2-10
+      3-10
+      END-5
+  
+{ see 'help @rollback2' for examples on condition 1 }
+{ see 'help @rollback3' for examples on condition 2 }
+{ see 'help @rollback4' for examples on condition 3 }
+
+& @rollback3
+(CONTINUED)
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+  
+  The second condition allows you to toss the rolled back segment of code into
+  its own separate wait queue.  The <count> and <repeats> are set initially on
+  the first pass and will not be re-evaluated.  The actual waittime is 
+  re-evaluated for every rollback segment, meaning for every rollback you can 
+  give it a unique wait time.  Be aware that once the <waittime> is a negative 
+  number, the @rollback will abort itself.
+  
+  All passed arguments are re-evaluated on every retry.
+  
+  Examples: (condition 2)
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback/wait 2/2/100=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+    1-5
+    2-5
+    3-5
+    end-5
+
+    (then 100 seconds later -- specified by the wait value)
+    2-10
+    3-10
+    2-15
+    3-15
+  
+{ see 'help @rollback2' for examples on condition 1 }
+{ see 'help @rollback3' for examples on condition 2 }
+{ see 'help @rollback4' for examples on condition 3 }
+
+& @rollback4
+(CONTINUED)
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+  
+  The third condition is commonly referred to as the @retry option.  This will
+  effectively retry the entire code segment prior to the @rollback in the
+  entirity until <boolean> is false(0) or until the maximum rollback threshold
+  is met, which by default is 1000 retries.  The <boolean> value is evaluated
+  for every rollback pass to see if the new condition will be true or false.
+  
+  All passed arguments are re-evaluated on every retry.
+  
+  Examples: (condition 3)  
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback/retry [gt(%0,1)]=[sub(%0,1)];think end-%0
+    Set.
+    > foo 3
+    1-3
+    2-3
+    3-3
+    1-2
+    2-2
+    3-2
+    1-1
+    2-1
+    3-1
+    end-3
+  
+  See Also: @jump, @skip, @include, @break, @assert, @sudo, @switch
+  
 & @jump
   Command: @jump[/<switch>] <amount> [=<evaluation>]
   
@@ -7355,7 +7517,7 @@
     You say "one"
     You say "four"
   
-  See Also: @break, @assert, @skip, @force, @sudo, @switch
+  See Also: @break, @assert, @skip, @force, @sudo, @switch, @rollback
   
 & @kill
   Command: @kill[/<switch>] <object> = <message>
@@ -31348,6 +31510,8 @@
     SPEECH_SUFFIX to evaluate functions as long as not set NO_COMMAND.  [ASH]
   * privatize() handles localize level of evaluation [ASH]
   * @jump added to jump 'ahead' a set number of commands in sequence [ASH]
+  * @rollback to allow rolling back in the command queue based on varying
+    abilities [ASH]
   
   Changes
   ------------
@@ -31376,3 +31540,5 @@
   * fix for *BSD missing 'daylight' timezone variable definition [ASH]
   * /0 CIDR notation would not set properly [ASH]
   * all localization doesn't keep setq names properly + clear [ASH] 
+  * fix that @jump could potentially blow the stack of the mush
+    to fix a stack leak, you must @shutdown then start mush [ASH]

@@ -4659,11 +4659,11 @@ extern int igcheck(dbref, int);
 int 
 do_command(DESC * d, char *command)
 {
-    char *arg, *cmdsave, *time_str;
+    char *arg, *cmdsave, *time_str, *s_rollback;
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
     NAMETAB *cp;
-    int retval, cval, gotone, store_perm, chk_perm;
+    int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump;
 
     DPUSH; /* #147 */
 
@@ -4673,9 +4673,11 @@ do_command(DESC * d, char *command)
     mudstate.debug_cmd = (char *) "< do_command >";
     mudstate.breakst = 0;
     mudstate.jumpst = 0;
-    mudstate.rollbackcnt = 0;
+    if ( !mudstate.rollbackstate ) {
+       mudstate.rollbackcnt = 0;
+       memset(mudstate.rollback, '\0', LBUF_SIZE);
+    }
     mudstate.breakdolist = 0;
-    memset(mudstate.rollback, '\0', LBUF_SIZE);
     
     /* snoop on player input -Thorin */
     if (d->snooplist) {
@@ -4780,8 +4782,18 @@ do_command(DESC * d, char *command)
 	    mudstate.curr_player = d->player;
 	    mudstate.curr_enactor = d->player;
 	    desc_in_use = d;
+            s_rollback = alloc_lbuf("s_rollback_docommand");
+            strcpy(s_rollback, mudstate.rollback);
+            i_rollback = mudstate.rollbackcnt;
+            i_jump = mudstate.jumpst;
+            mudstate.jumpst = mudstate.rollbackcnt = 0;
+            strcpy(mudstate.rollback, command);
 	    process_command(d->player, d->player, 1,
 			    command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook);
+            mudstate.rollbackcnt = i_rollback;
+            mudstate.jumpst = i_jump;
+            strcpy(mudstate.rollback, s_rollback);
+            free_lbuf(s_rollback);
             mudstate.curr_cmd = (char *) "";
 	    if (d->output_suffix) {
 		queue_string(d, d->output_suffix);

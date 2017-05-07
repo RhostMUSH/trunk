@@ -421,6 +421,7 @@ struct confdata {
 	int	hook_offline;	/* Hook offline commands */
 	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */
 	dbref	file_object;	/* The file object to override @list_file foo */
+	int	rollbackmax;	/* Maximum rollback with @retry option */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -568,6 +569,8 @@ struct statedata {
 	int	breakst;
 	int	jumpst;
 	int	rollbackcnt;
+	int	rollbackstate;
+	int	inlinestate;
 	char	rollback[LBUF_SIZE];
 	int	breakdolist;
   dbref remote; /* Remote location for @remote */

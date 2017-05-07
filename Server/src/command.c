@@ -83,6 +83,12 @@ CMDENT * lookup_orig_command(char *cmdname);
  *    switch bitwise
  */
 
+NAMETAB rollback_sw[] =
+{
+    {(char *) "retry", 2, CA_PUBLIC, 0, ROLLBACK_RETRY},
+    {(char *) "wait", 2, CA_PUBLIC, 0, ROLLBACK_WAIT},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB admin_sw[] =
 {
     {(char *) "load", 2, CA_IMMORTAL, 0, ADMIN_LOAD},
@@ -1378,6 +1384,9 @@ CMDENT command_table[] =
     {(char *) "@robot", NULL,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_NO_GUEST | CA_PLAYER | CA_NO_WANDER, CA_NO_CODE,
      PCRE_ROBOT, CS_TWO_ARG, 0, do_pcreate},
+    {(char *) "@rollback", rollback_sw, 0, CA_NO_CODE,
+     0, CS_ROLLBACK | CS_TWO_ARG | CS_ARGV | CS_CMDARG,
+     0, do_rollback},
     {(char *) "@rwho", rwho_sw, CA_GOD, 0,
      0, CS_NO_ARGS, 0, do_rwho},
 #ifdef REALITY_LEVELS
@@ -2053,9 +2062,9 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
 {
    dbref thing2;
    int attrib2, aflags_set, i_cpuslam, x, retval, no_hook;
-   time_t i_now;
+   time_t i_now, i_rollback, i_jump;
    char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam, *cp, *atextptr,
-        *npt, *saveregname[MAX_GLOBAL_REGS];
+        *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
 
    if ( mudstate.no_hook ) {
       return 0;
@@ -2099,17 +2108,30 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
             mudstate.no_hook = 1;
             atextptr = atext;
             if ( mudstate.no_hook_count < 5 ) {
+               s_rollback = alloc_lbuf("s_rollback_hook");
+               strcpy(s_rollback, mudstate.rollback);
+               if ( atextptr ) {
+                  strcpy(mudstate.rollback, atextptr);
+               }
+               i_rollback = mudstate.rollbackcnt;
+               i_jump = mudstate.jumpst;
+               mudstate.rollbackcnt = i_jump = 0;
                while (atextptr) {
                   cp = parse_to(&atextptr, ';', 0);
                   if (cp && *cp && !mudstate.breakst) {
                      process_command(thing, player, 0, cp, (char **)NULL, 0, 0, 1);
                      if ( time(NULL) > (i_now + 5) ) {
                          notify(player, "@skip:  Aborted for high utilization.");
+                         mudstate.chkcpu_toggle=1;
                          mudstate.breakst=1;
                          break;
                      }
                   }
                }
+               mudstate.jumpst = i_jump;
+               mudstate.rollbackcnt = i_rollback;
+               strcpy(mudstate.rollback, s_rollback);
+               free_lbuf(s_rollback);
             }
             mudstate.no_hook_count++;
             mudstate.no_hook = no_hook;
@@ -2420,7 +2442,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
     else
 	interp = 0;
 
-   if ( mudstate.trainmode )
+   if ( mudstate.trainmode || (cmdp->callseq & CS_ROLLBACK) )
         interp = interp & ~EV_EVAL & ~EV_STRIP;
 
     switch (cmdp->callseq & CS_NARG_MASK) {
@@ -2480,7 +2502,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    arg = &tchar;
 	    *arg = '\0';
 	}
-        if ( mudstate.trainmode ) {
+        if ( mudstate.trainmode || (cmdp->callseq & CS_ROLLBACK) ) {
            buf1 = alloc_lbuf("temp_buffer_for_parser");
            if ( buf2 && *buf2 )
               sprintf(buf1, "%s", buf2);
@@ -2850,9 +2872,11 @@ process_command(dbref player, dbref cause, int interactive,
     if (!command)
 	abort();
 
-    mudstate.rollbackcnt++;
+//  if ( !mudstate.rollbackstate )
+       mudstate.rollbackcnt++;
     if ( mudstate.jumpst > 0 ) {
        mudstate.jumpst--;
+       DPOP;
        return;
     }
     if ( inhook ) {
@@ -9099,8 +9123,8 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
 }
 
 void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
-  char *arg1_eval = NULL, *cp;
-  int i_evaled = 0;
+  char *arg1_eval = NULL, *cp, *s_rollback;
+  int i_evaled = 0, i_rollback, i_jump;
 
   if ( mudconf.break_compatibility ) {
      arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
@@ -9110,12 +9134,24 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
   if (is_number(arg1_eval) && (atoi(arg1_eval) == 0)) {
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
+          s_rollback = alloc_lbuf("s_rollback_assert");
+          strcpy(s_rollback, mudstate.rollback);
+          i_rollback = mudstate.rollbackcnt;
+          i_jump = mudstate.jumpst;
+          mudstate.jumpst = mudstate.rollbackcnt = 0;
+          if ( arg2 ) {
+             strcpy(mudstate.rollback, arg2);
+          }
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
           }
+          mudstate.jumpst = i_jump;
+          mudstate.rollbackcnt = i_rollback;
+          strcpy(mudstate.rollback, s_rollback);
+          free_lbuf(s_rollback);
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9127,8 +9163,8 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
 }
 
 void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
-  char *arg1_eval = NULL, *cp;
-  int i_evaled = 0;
+  char *arg1_eval = NULL, *cp, *s_rollback;
+  int i_evaled = 0, i_rollback, i_jump;
 
   if ( mudstate.jumpst > 0 ) {
      notify_quiet(player, "Can not call @jump inside another @jump state... yet...");
@@ -9143,25 +9179,42 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
   if (is_number(arg1_eval) && (atoi(arg1_eval) > 0)) {
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
+          s_rollback = alloc_lbuf("s_rollback_jump");
+          strcpy(s_rollback, mudstate.rollback);
+          i_jump = mudstate.jumpst;
+          i_rollback = mudstate.rollbackcnt;
+          mudstate.jumpst = mudstate.rollbackcnt = 0;
+          if ( arg2 ) {
+             strcpy(mudstate.rollback, arg2);
+          }
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
           }
+          mudstate.rollbackcnt = i_rollback;
+          mudstate.jumpst = i_jump;
+          strcpy(mudstate.rollback, s_rollback);
+          free_lbuf(s_rollback);
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
     }
     mudstate.jumpst = atoi(arg1_eval);
+/*
+    if ( mudstate.rollbackstate != 0 ) {
+       mudstate.jumpst--;
+    } 
+*/
   }
   if ( i_evaled )
      free_lbuf(arg1_eval);
 }
 
 void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
-  char *arg1_eval = NULL, *cp;
-  int i_evaled = 0;
+  char *arg1_eval = NULL, *cp, *s_rollback;
+  int i_evaled = 0, i_rollback, i_jump;
 
   if ( mudconf.break_compatibility ) {
      arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
@@ -9171,12 +9224,24 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
   if (is_number(arg1_eval) && (atoi(arg1_eval) != 0)) {
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
+          s_rollback = alloc_lbuf("s_rollback_break");
+          strcpy(s_rollback, mudstate.rollback);
+          i_jump = mudstate.jumpst;
+          i_rollback = mudstate.rollbackcnt;
+          mudstate.jumpst = mudstate.rollbackcnt = 0;
+          if ( arg2 ) {
+             strcpy(mudstate.rollback, arg2);
+          }
           while (arg2) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
           }
+          mudstate.jumpst = i_jump;
+          mudstate.rollbackcnt = i_rollback;
+          strcpy(mudstate.rollback, s_rollback);
+          free_lbuf(s_rollback);
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9641,6 +9706,8 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
 
 void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
 {
+   char *s_rollback;
+   int i_rollback, i_jump;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr > 0 ) {
@@ -9654,7 +9721,16 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
       } else {
          mudstate.train_cntr++;
          getitimer(ITIMER_PROF, &itimer);
+         s_rollback = alloc_lbuf("s_rollback_idle");
+         strcpy(s_rollback, mudstate.rollback);
+         i_jump = mudstate.jumpst;
+         i_rollback = mudstate.rollbackcnt;
+         strcpy(mudstate.rollback, string);
          process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook);
+         mudstate.jumpst = i_jump;
+         mudstate.rollbackcnt = i_rollback;
+         strcpy(mudstate.rollback, s_rollback);
+         free_lbuf(s_rollback);
          setitimer(ITIMER_PROF, &itimer, NULL); 
          mudstate.train_cntr--;
       }
@@ -9670,7 +9746,8 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
 void do_train(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
 {
    dbref loc, obj;
-   char *newstring, *newstringptr, *pupbuff, *pupbuffptr, *tpr_buff, *tprp_buff;
+   char *newstring, *newstringptr, *pupbuff, *pupbuffptr, *tpr_buff, *tprp_buff, *s_rollback;
+   int i_jump, i_rollback;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr > 2 ) {
@@ -9705,15 +9782,27 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
    free_lbuf(newstring);
    mudstate.train_cntr++;
    getitimer(ITIMER_PROF, &itimer);
+   s_rollback = alloc_lbuf("s_rollback_train");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.rollbackcnt = mudstate.jumpst = 0;
+   if ( string ) {
+      strcpy(mudstate.rollback, string);
+   }
    process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook);
+   mudstate.rollbackcnt = i_rollback;
+   mudstate.jumpst = i_jump;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback);
    setitimer(ITIMER_PROF, &itimer, NULL); 
    mudstate.train_cntr--;
 }
 void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], int nargs, char *cargs[], int ncargs)
 {
-   char *retbuff, *cp, *mys, *s_buildptr, *s_build;
+   char *retbuff, *cp, *mys, *s_buildptr, *s_build, *s_rollback;
    time_t i_now;
-   int old_trainmode, i_breakst, i_joiner;
+   int old_trainmode, i_breakst, i_joiner, i_rollback, i_jump;
 
    if ( !nargs || !args[0] || !*args[0] )
       return;
@@ -9731,6 +9820,12 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       i_evalResult=tboolchk(retbuff);
    else
       i_evalResult=atoi(retbuff);
+
+   s_rollback = alloc_lbuf("s_rollback_skip");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.jumpst = mudstate.rollbackcnt = 0;
    if ( *retbuff && (((i_evalResult == 0) && !(key & SKIP_IFELSE)) ||
                      ((i_evalResult != 0) &&  (key & SKIP_IFELSE))) ) {
     /* I have no idea why this is here, but I left it in incase I need 
@@ -9746,6 +9841,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             safe_str(args[i_joiner], mys, &s_buildptr);
          }
          i_now = mudstate.now;
+         if ( mys ) {
+            strcpy(mudstate.rollback, mys);
+         }
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
@@ -9753,6 +9851,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
+                   mudstate.chkcpu_toggle=1;
                    break;
                }
             }
@@ -9761,6 +9860,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       } else {
          mys = args[0];
          i_now = mudstate.now;
+         if ( mys ) {
+            strcpy(mudstate.rollback, mys);
+         }
          while (mys) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
@@ -9768,6 +9870,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
+                   mudstate.chkcpu_toggle=1;
                    break;
                }
             }
@@ -9777,6 +9880,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
    } else if ( *retbuff && (i_evalResult == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
       mys = args[1];
       i_now = mudstate.now;
+      if ( mys ) {
+         strcpy(mudstate.rollback, mys);
+      }
       while (mys) {
          cp = parse_to(&mys, ';', 0);
          if (cp && *cp && !mudstate.breakst) {
@@ -9784,11 +9890,16 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@skip:  Aborted for high utilization.");
                 mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
                 break;
             }
          }
       }
    }
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackcnt = i_rollback;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback); 
    if ( !s_boolian || !*s_boolian ) {
       retbuff = NULL;
    }
@@ -9803,8 +9914,8 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
-   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
-   int old_trainmode, x, i_breakst, forcehalted_state;
+   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
+   int old_trainmode, x, i_breakst, forcehalted_state, i_jump, i_rollback;
 
    if ( !s_command || !*s_command ) {
       return;
@@ -9853,6 +9964,14 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    }
 
    i_breakst = mudstate.breakst;
+   s_rollback = alloc_lbuf("s_rollback_sudo");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.jumpst = mudstate.rollbackcnt = 0;
+   if ( s_command ) {
+      strcpy(mudstate.rollback, s_command);
+   }
    while (s_command) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
@@ -9862,7 +9981,10 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( desc_in_use != NULL ) {
       mudstate.breakst = i_breakst;
    }
-
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackcnt = i_rollback;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback); 
    if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          pt = mudstate.global_regs[x];
@@ -9882,6 +10004,8 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
 void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
 {
    dbref loc;
+   char *s_rollback;
+   int i_rollback, i_jump;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr > 2 ) {
@@ -9893,14 +10017,24 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
       notify(player, "Bad location.");
       return;
    }
-   if ( !*string || !string || !*(string+1) || !(string+1) ) {
+   if ( !string || !*string || !(string+1) || !*(string+1) ) {
       notify(player, "] requires an argument.");
       return;
    }
    mudstate.train_cntr++;
    mudstate.trainmode = 1;
    getitimer(ITIMER_PROF, &itimer);
+   s_rollback = alloc_lbuf("s_rollback_nocmd");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.jumpst = mudstate.rollbackcnt = 0;
+   strcpy(mudstate.rollback, string+1);
    process_command(player, cause, 1, string+1, args, nargs, 0, mudstate.no_hook);
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackcnt = i_rollback;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback);
    setitimer(ITIMER_PROF, &itimer, NULL); 
    mudstate.trainmode = 0;
    mudstate.train_cntr--;

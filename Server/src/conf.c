@@ -324,6 +324,7 @@ NDECL(cf_init)
     mudconf.hook_offline = 0;		/* Trigger @hook/after on offline player create */
     mudconf.protect_addenh = 0;		/* Enhanced @protect/add */
     mudconf.posesay_funct = 0;		/* Enable functions in SPEECH_PREFIX/SPEECH_SUFFIX */
+    mudconf.rollbackmax = 1000;		/* Maximum rollback value (10-10000) */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -354,6 +355,8 @@ NDECL(cf_init)
     mudstate.breakst = 0;
     mudstate.jumpst = 0;
     mudstate.rollbackcnt = 0;
+    mudstate.rollbackstate = 0;
+    mudstate.inlinestate = 0;
     memset(mudstate.rollback, '\0', LBUF_SIZE);
     mudstate.breakdolist = 0;
     mudstate.dolistnest = 0;
@@ -4629,6 +4632,10 @@ CONF conftable[] =
     {(char *) "quotas",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.quotas, 0, 0, CA_PUBLIC,
      (char *) "Are @quotas being used?"},
+    {(char *) "rollbackmax",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.rollbackmax, 10000, 10, CA_WIZARD,
+     (char *) "Max rollback (retry) count allowed.\r\n"\
+              "      Range: 10-10000        Default: 1000   Value: %d"},
     {(char *) "rooms_can_open",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.rooms_can_open, 0, 0, CA_PUBLIC,
      (char *) "Are rooms able to use @open/open()?"},

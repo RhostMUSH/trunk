@@ -955,6 +955,9 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define REGISTER_MSG	1	/* Include a message to @register to output the password */
 
+#define ROLLBACK_RETRY	1	/* @rollback works like @retry */
+#define ROLLBACK_WAIT   2 	/* @rollback works with @wait */
+
 #define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
 #define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
 
