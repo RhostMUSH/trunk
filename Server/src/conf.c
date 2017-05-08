@@ -354,7 +354,8 @@ NDECL(cf_init)
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
     mudstate.jumpst = 0;
-    mudstate.gotolabel = 0;
+    memset(mudstate.gotolabel, '\0', 16);
+    mudstate.gotostate = 0;
     mudstate.rollbackcnt = 0;
     mudstate.rollbackstate = 0;
     mudstate.inlinestate = 0;

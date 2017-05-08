@@ -2886,7 +2886,7 @@ process_command(dbref player, dbref cause, int interactive,
        DPOP;
        return;
     }
-    if ( mudstate.gotolabel > 0 ) {
+    if ( mudstate.gotostate > 0 ) {
        if ( strncasecmp(command,"@goto/label ",12) )
          return;
     }
@@ -9224,20 +9224,17 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
 }
 
 void do_goto(dbref player, dbref cause, int key, char *label) {
-  if (is_number(label) && (atoi(label) > 0)) {
-      if(key == GOTO_LABEL)
-      {
-          if(mudstate.gotolabel == atoi(label)) {
-              mudstate.gotolabel = 0;
-          }
-      }
-      else
-      {
-          mudstate.gotolabel = atoi(label);
+  if(key == GOTO_LABEL)
+  {
+      if(!strncasecmp(mudstate.gotolabel,label,16)) {
+          mudstate.gotostate = 0;
+          memset(mudstate.gotolabel,'\0',16);
       }
   }
-  else {
-     notify_quiet(player, "#-1 ARGUMENT MUST BE A NUMBER GREATER THAN 0");
+  else
+  {
+      mudstate.gotostate = 1;
+      strcpy(mudstate.gotolabel,label);
   }
 }
 

@@ -4673,7 +4673,10 @@ do_command(DESC * d, char *command)
     mudstate.debug_cmd = (char *) "< do_command >";
     mudstate.breakst = 0;
     mudstate.jumpst = 0;
-    mudstate.gotolabel = 0;
+    if( mudstate.gotostate > 0) {
+       memset(mudstate.gotolabel, '\0', 16);
+       mudstate.gotostate = 0;
+    }
     mudstate.rollbackcnt = 0;
     if ( !mudstate.rollbackstate ) {
        mudstate.rollbackcnt = 0;

@@ -568,7 +568,8 @@ struct statedata {
         int     objevalst;
 	int	breakst;
 	int	jumpst;
-	int	gotolabel;
+	char	gotolabel[16];
+  int gotostate;
 	int	rollbackcnt;
 	int	rollbackstate;
 	int	inlinestate;
