@@ -7128,9 +7128,12 @@
     e
     f
 
-  Note that @goto'ing to a label that does not exist later in the code makes
-  @goto jump the entire remainder of the queue. This can actually be used to
-  skip out of loops and command queues entirely.
+  Notes:
+    1) @goto'ing to a label that does not exist later in the code makes
+       @goto jump the entire remainder of the queue. This can actually be used
+       to skip out of loops and command queues entirely.
+    2) Labels can have a maximum of 16 characters. Any additional characters
+       used in a label's name get ignored.
 
   See Also: @break, @assert, @skip, @force, @sudo, @switch, @rollback, @jump
 
