@@ -44,9 +44,9 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
 		char *command, char *cargs[], int ncargs)
 {
    char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
-        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr, *npt, *saveregname[MAX_GLOBAL_REGS];
+        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr, *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
    time_t i_now;
-   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak;
+   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback;
 
    pid_val = 0;
    i_storebreak = mudstate.breakst;
@@ -105,6 +105,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
          saveregname[x] = alloc_sbuf("ulocal_regname");
       }
    }
+   s_rollback = alloc_lbuf("s_rollback_dolist");
    while (curr && *curr) {
       if ((x % 25) == 0)
          cache_reset(0);
@@ -142,6 +143,13 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
 
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3tok = buff3;
+            strcpy(s_rollback, mudstate.rollback);
+            i_jump = mudstate.jumpst;
+            i_rollback = mudstate.rollbackcnt;
+            mudstate.jumpst = mudstate.rollbackcnt = 0;
+            if ( buff3tok ) {
+               strcpy(mudstate.rollback, buff3tok);
+            }
             while ( !mudstate.breakdolist && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
@@ -156,6 +164,9 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                    break;
                }
             }
+            mudstate.jumpst = i_jump;
+            mudstate.rollbackcnt = i_rollback;
+            strcpy(mudstate.rollback, s_rollback);
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   pt = mudstate.global_regs[x];
@@ -182,6 +193,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
       }
       cntr++;
    }
+   free_lbuf(s_rollback);
    if ( i_inline ) {
       if ( desc_in_use != NULL ) {
          mudstate.breakst = i_storebreak;

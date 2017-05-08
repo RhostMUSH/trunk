@@ -106,13 +106,18 @@ void execute_entry(BQUE *queue)
 		mudstate.jumpst = 0;
 		mudstate.gotolabel = 0;
 		mudstate.rollbackcnt = 0;
-                mudstate.breakdolist = 0;
-                mudstate.includecnt = 0;
-                mudstate.includenest = 0;
-                mudstate.force_halt =0;
-                if ( command ) {
-		   strncpy(mudstate.rollback, command, LBUF_SIZE);
-                }
+    mudstate.breakdolist = 0;
+    mudstate.includecnt = 0;
+    mudstate.includenest = 0;
+    mudstate.force_halt =0;
+    if ( !mudstate.rollbackstate ) {
+		   mudstate.rollbackcnt = 0;
+       if ( command ) {
+		      strncpy(mudstate.rollback, command, LBUF_SIZE);
+       } else {
+		      memset(mudstate.rollback, '\0', LBUF_SIZE);
+       }
+    }
 		while (command && !mudstate.breakst) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {

@@ -442,7 +442,8 @@ void do_remote(dbref player, dbref cause, int key, char *loc,
     char *command, char *args[], int nargs)
 {
 dbref target;
-char *retbuff;
+char *retbuff, *s_rollback;
+int i_jump, i_rollback;
 
    if ( mudstate.remote != -1 ) {
       notify(player, "You can not nest @remote.");
@@ -464,7 +465,17 @@ char *retbuff;
   }
   mudstate.remote = target;
   mudstate.remotep = player;
+  s_rollback = alloc_lbuf("s_rollback_remote");
+  strcpy(s_rollback, mudstate.rollback);
+  i_jump = mudstate.jumpst;
+  i_rollback = mudstate.rollbackcnt;
+  mudstate.jumpst = mudstate.rollbackcnt = 0;
+  strcpy(mudstate.rollback, command);
   process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook);
+  mudstate.jumpst = i_jump;
+  mudstate.rollbackcnt = i_rollback;
+  strcpy(mudstate.rollback, s_rollback);
+  free_lbuf(s_rollback);
   mudstate.remote = -1;
   mudstate.remotep = -1;
 }
