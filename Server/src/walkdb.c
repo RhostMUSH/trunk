@@ -147,8 +147,8 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             i_jump = mudstate.jumpst;
             i_rollback = mudstate.rollbackcnt;
             mudstate.jumpst = mudstate.rollbackcnt = 0;
-            if ( buff3ptr ) {
-               strcpy(mudstate.rollback, buff3ptr);
+            if ( buff3tok ) {
+               strcpy(mudstate.rollback, buff3tok);
             }
             while ( !mudstate.breakdolist && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
