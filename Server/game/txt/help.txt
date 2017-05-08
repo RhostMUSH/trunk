@@ -102,15 +102,15 @@
   @@           @break          @chown    @clone    @create       @decompile
   @destroy     @dig            @doing    @dolist   @drain        @edit 
   @emit        @entrances      @eval     @extansi  @femit        @find      
-  @force       @fpose          @fsay     @halt     @hide         @include
-  @jump        @label          @last     @link     @list         @listmotd  
-  @lfunction   @lock           @lset     @mailsig  @mvattr       @name    
-  @notify      @oemit          @open     @parent   @password     @pemit   
-  @pipe        @program        @protect  @ps       @quitprogram  @quota   
-  @register    @robot          @search   @set      @skip         @sql     
-  @sqlconnect  @sqldisconnect  @stats    @sudo     @sweep        @switch  
-  @teleport    @trigger        @unlink   @unlock   @verb         @wait    
-  @wall        @wipe        
+  @force       @fpose          @fsay     @goto     @halt         @hide
+  @include     @jump           @label    @last     @link         @list
+  @listmotd    @lfunction      @lock     @lset     @mailsig      @mvattr
+  @name        @notify         @oemit    @open     @parent       @password
+  @pemit       @pipe           @program  @protect  @ps           @quitprogram
+  @quota       @register       @robot    @search   @set          @skip
+  @sql         @sqlconnect     @sqldisconnect      @stats        @sudo
+  @sweep       @switch         @teleport @trigger  @unlink       @unlock
+  @verb        @wait           @wall     @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -2989,7 +2989,7 @@
     > test 0
       Before assert
   
-  See Also: $-COMMAND, @@, @break, @skip, @jump, @rollback
+  See Also: $-COMMAND, @@, @break, @skip, @jump, @rollback, @goto
 
 & @break
   Command: @break[/switch] <value> [=<command(s)>]
@@ -3015,7 +3015,7 @@
     > testme 1
       Before break
   
-  See Also: $-COMMAND, @@, @assert, @skip, @jump, @rollback
+  See Also: $-COMMAND, @@, @assert, @skip, @jump, @rollback, @goto
   
 & @chown
   Command: @chown <object>[=<player>]
@@ -5574,7 +5574,8 @@
     > @switch/first FooFoo=*boo*,say yes,*oo*,say maybe,say no
     You say "maybe"
   
-  See Also: switch(), case(), ifelse(), @skip, @break, @assert, @jump
+  See Also: switch(), case(), ifelse(), @skip, @break, @assert, @jump,
+            @rollback, @goto
   
 & @teleport
   Simple:  @teleport [<object>=] <location>
@@ -7108,6 +7109,31 @@
   
   See Also: give, @agfail, @ogfail, @lock
   
+& @goto
+  Command: @goto[/label] <textlabel>
+ 
+  This command is similiar to @jump, in that it can be used to skip commands
+  following it in the queue, up to a certain point. Unlike @jump, this command
+  does not skip a specified amount of commands, but lets you skip all commands
+  until a specified, text-based label is reached.
+
+  This makes it, yes, quite similiar to classic GOTO commands from other
+  programming languages, with the exception that the @goto command only allows
+  you to skip *forward*, never backward. For backward jumps, see @rollback.
+
+  Example:
+    > @wait 0={th a; th b;@goto foo;th c;th d;@goto/label foo;th e;th f}
+    a
+    b
+    e
+    f
+
+  Note that @goto'ing to a label that does not exist later in the code makes
+  @goto jump the entire remainder of the queue. This can actually be used to
+  skip out of loops and command queues entirely.
+
+  See Also: @break, @assert, @skip, @force, @sudo, @switch, @rollback, @jump
+
 & @idesc
   Command: @idesc[/<switch>] <object> = <message>
   Attribute: Idesc
@@ -7183,7 +7209,7 @@
     Player says "boo"
     Player says "baa"
   
-  See Also: @include, @force, @trigger, @skip, @jump, @rollback
+  See Also: @include, @force, @trigger, @skip, @jump, @rollback, @goto
   
 & @if
 & @ifelse
@@ -7213,7 +7239,7 @@
     4
   
   See Also: @include, @force, @trigger, @skip, @break, @assert, @switch,
-            @jump, @rollback
+            @jump, @rollback, @goto
 
 
 & @attach
@@ -7276,7 +7302,7 @@
     inny2: bah!
     test2
   
-  See Also: @trigger, @force, @sudo, @skip, @jump, @rollback
+  See Also: @trigger, @force, @sudo, @skip, @jump, @rollback, @goto
 
 & @infilter
   Command: @infilter[/<switch>] <object> = <pattern>[, <pattern>...]
@@ -7489,7 +7515,7 @@
     3-1
     end-3
   
-  See Also: @jump, @skip, @include, @break, @assert, @sudo, @switch
+  See Also: @jump, @skip, @include, @break, @assert, @sudo, @switch @goto
   
 & @jump
   Command: @jump[/<switch>] <amount> [=<evaluation>]
@@ -7516,8 +7542,8 @@
     > &FOO me=$foo:say one;@jump 2;say two;say three;say four
     You say "one"
     You say "four"
-  
-  See Also: @break, @assert, @skip, @force, @sudo, @switch, @rollback
+ 
+  See Also: @break, @assert, @skip, @force, @sudo, @switch, @rollback, @goto
   
 & @kill
   Command: @kill[/<switch>] <object> = <message>
@@ -31512,6 +31538,7 @@
   * @jump added to jump 'ahead' a set number of commands in sequence [ASH]
   * @rollback to allow rolling back in the command queue based on varying
     abilities [ASH]
+  * @goto command, a command similiar to @jump, using numerical labels. [AMB]
   
   Changes
   ------------
