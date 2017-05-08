@@ -9234,6 +9234,7 @@ void do_goto(dbref player, dbref cause, int key, char *label) {
   else
   {
       mudstate.gotostate = 1;
+      memset(mudstate.gotolabel,'\0',16);
       strcpy(mudstate.gotolabel,label);
   }
 }
