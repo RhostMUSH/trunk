@@ -2887,8 +2887,10 @@ process_command(dbref player, dbref cause, int interactive,
        return;
     }
     if ( mudstate.gotostate > 0 ) {
-       if ( strncasecmp(command,"@goto/label ",12) )
+       if ( strncasecmp(command,"@goto/label ",12) ) {
+         DPOP;
          return;
+       }
     }
     if ( inhook ) {
        mudstate.no_hook = 1;
