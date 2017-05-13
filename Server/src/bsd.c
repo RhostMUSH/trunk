@@ -1513,7 +1513,28 @@ shutdownsock(DESC * d, int reason)
            d->host_info = d->host_info | H_SUSPECT;
 	d->input_tot = d->input_size;
 	d->output_tot = 0;
+         
+        mudstate.total_bytesin += d->input_size;
+        if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
+           if ( mudstate.avg_bytesin == 0 ) {
+              mudstate.avg_bytesin = mudstate.daily_bytesin;
+           } else {
+              mudstate.avg_bytesin = (mudstate.avg_bytesin + mudstate.daily_bytesin) / 2;
+           }
+           if ( mudstate.avg_bytesout == 0 ) {
+              mudstate.avg_bytesout = mudstate.daily_bytesout;
+           } else {
+              mudstate.avg_bytesout = (mudstate.avg_bytesout + mudstate.daily_bytesout) / 2;
+           }
+           mudstate.daily_bytesout = 0;
+           mudstate.daily_bytesin = d->input_size;
+           mudstate.reset_daily_bytes = time(NULL);
+        } else {
+           mudstate.daily_bytesin += d->input_size;
+        }
+ 
 	/* free up the snooplist before freeing the desc -Thorin */
+          
 	while (d->snooplist) {
 	    temp = d->snooplist->next;
 	    if (d->snooplist->sfile) {
@@ -2206,8 +2227,27 @@ process_input(DESC * d)
 	d->raw_input = NULL;
 	d->raw_input_at = NULL;
     }
-    if ( got > 0 )
+    if ( got > 0 ) {
        d->input_tot += got;
+       mudstate.total_bytesin += got;
+       if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
+          if ( mudstate.avg_bytesin == 0 ) {
+             mudstate.avg_bytesin = mudstate.daily_bytesin;
+          } else {
+             mudstate.avg_bytesin = (mudstate.avg_bytesin + mudstate.daily_bytesin) / 2;
+          }
+          if ( mudstate.avg_bytesout == 0 ) {
+             mudstate.avg_bytesout = mudstate.daily_bytesout;
+          } else {
+             mudstate.avg_bytesout = (mudstate.avg_bytesout + mudstate.daily_bytesout) / 2;
+          }
+          mudstate.daily_bytesout = 0;
+          mudstate.daily_bytesin = got;
+          mudstate.reset_daily_bytes = time(NULL);
+       } else {
+          mudstate.daily_bytesin += got;
+       }
+    }
     if ( in > 0 )
        d->input_size += in;
     if ( lost > 0 )

@@ -31542,6 +31542,7 @@
   * @rollback to allow rolling back in the command queue based on varying
     abilities [ASH]
   * @goto command, a command similiar to @jump, using numerical labels. [AMB]
+  * @list alloc now lists network statistics for current running mush [ASH]
   
   Changes
   ------------

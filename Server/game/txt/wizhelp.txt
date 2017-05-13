@@ -2892,7 +2892,7 @@
     Allocs     - The total number of buffers ever allocated from the pool.
     Lost       - The number of buffers lost due to buffer header corruption.
     Total Mem  - The total memory required for each catagory (in-use memory)
-
+  
   Information is reported for the following pools:
     Sbufs      - Small buffers, for when you need only a little space.
     Mbufs      - Medium-sized buffers, for when an sbuf is too small but an 
@@ -2906,12 +2906,33 @@
                  queue. (@wait, @trigger, @switch, @dolist, etc).
     Pcaches    - Total number of cache entries of players.
     ZListNodes - Zone buffers, used to hold the zone linking information.
- 
+   
+  Information is given for current Tprintf dynamic allocation buffers:
+    Current    - Current allocated dynamic (unsafe_tprintf) buffers
+    Maximum    - Current maximum ever allocated
+    Average    - Average allocated over period of time
+  
+  Information is given for total network usage:
+    Total-In   - Total bytes of all inbound traffic for current reboot
+    Daily-In   - Total inbound for current 24 hour period for current reboot
+    Avg-In     - Total inbound daily average for current reboot
+    Total-Out  - Total bytes of all outbound traffic for current reboot
+    Daily-Out  - Total outbound for current 24 hour period for current reboot
+    Avg-Out    - Total outbound daily average for current reboot
+   
   Information is given for total ammounts with disk/memory use:
     DB Size         - Gives the total size of the database in Kbytes
     DB Top          - Gives the size of the database since last startup
     DB Object Size  - Gives size of a single object
+    VHash Size      - Gives total memory of all overhead of all user-attribs
     Total Mem       - Gives total memory that the RhostMUSH is taking up in K
+  
+  Misc statistics:
+    Total Lbufs used in Q-regs: These are always allocated.
+    Total Sbufs used in Q-regs: These are always allocated.  
+    Highest debugmon stack depth: How many stack levels the mush has reached
+    Current debugmon stack depth: Current stack depth (should be around 7)
+  
   See Also: @list buffers.
 
 & @list attr_permissions

@@ -341,6 +341,13 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.total_bytesin = 0;		/* Bytes total into the mush */
+    mudstate.total_bytesout = 0;	/* Bytes total out of the mush */
+    mudstate.daily_bytesin = 0;		/* Bytes total in for current day */
+    mudstate.daily_bytesout = 0;	/* Bytes total out for current day */
+    mudstate.avg_bytesin = 0;		/* Bytes total in avg */
+    mudstate.avg_bytesout = 0;		/* Bytes total out avg */
+    mudstate.reset_daily_bytes = time(NULL); /* Reset marker for daily totals */
     mudstate.posesay_dbref = -1;	/* Dbref# of person doing @emit/say/pose */
     mudstate.posesay_fluff = 0;		/* Pose and say fluff */
     mudstate.no_hook = 0;		/* Do not process hooks */

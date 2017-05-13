@@ -1768,6 +1768,25 @@ queue_write(DESC * d, const char *b, int n)
 
     d->output_size += n;
     d->output_tot += n;
+    mudstate.total_bytesout += n;
+    if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
+       if ( mudstate.avg_bytesin == 0 ) {
+          mudstate.avg_bytesin = mudstate.daily_bytesin;
+       } else {
+          mudstate.avg_bytesin = (mudstate.avg_bytesin + mudstate.daily_bytesin) / 2;
+       }
+       if ( mudstate.avg_bytesout == 0 ) {
+          mudstate.avg_bytesout = mudstate.daily_bytesout;
+       } else {
+          mudstate.avg_bytesout = (mudstate.avg_bytesout + mudstate.daily_bytesout) / 2;
+       }
+       mudstate.daily_bytesin = 0;
+       mudstate.daily_bytesout = n;
+       mudstate.reset_daily_bytes = time(NULL);
+    } else {
+       mudstate.daily_bytesout += n;
+    }
+
     do {
 
 	/* See if there is enough space in the buffer to hold the

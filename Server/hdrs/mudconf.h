@@ -568,6 +568,13 @@ struct statedata {
         int     objevalst;
 	int	breakst;
 	int	jumpst;
+	double	total_bytesin;
+	double	total_bytesout;
+	double	daily_bytesin;
+	double	daily_bytesout;
+	double	avg_bytesin;
+	double	avg_bytesout;
+	time_t	reset_daily_bytes;
 	char	gotolabel[16];
   int gotostate;
 	int	rollbackcnt;
