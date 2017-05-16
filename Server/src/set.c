@@ -2578,6 +2578,7 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
       if ( (i_step <= 0) || (i_count <= 0) ) {
          free_lbuf(t_string);
          mudstate.rollbackstate = i_rollbackstate;
+         free_lbuf(s_tmp);
          return; 
       }
       if ( i_count > mudconf.rollbackmax ) {

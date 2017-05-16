@@ -31573,3 +31573,4 @@
   * all localization doesn't keep setq names properly + clear [ASH] 
   * fix that @jump could potentially blow the stack of the mush
     to fix a stack leak, you must @shutdown then start mush [ASH]
+  * @rollback had a missing buffer free [ASH]
