@@ -11755,9 +11755,13 @@
      F - This is matching as '#' and looks for <char>_@force on HOOK_OBJ.
      V - This is the same as '&' and looks for <char>_@set on HOOK_OBJ.
      M - This is the same as '-' and looks for <char>_mail on HOOK_OBJ.
+     N - This is the same as ']' and looks for <char>_N on HOOK_OBJ.
   
   Example:
     > &A_POSE #1234=<function-executed-after-:/;/pose> 
+    Set.
+    > &A_N #1234=<function executed-after ] syntax>
+    Set.
   
   You must use the letter representation instead of the special char when
   issuing '@hook' or 'hook_cmd'.
@@ -11767,6 +11771,7 @@
     > @hook/before P             (handles ':' and ';')
     > @hook/before mail          (handles the 'mail' command)
     > @hook/before M             (handles the '-' input for mail)
+    > @hook/after N              (handles the ']' input for no-parsing)
   
   See Also: hook_obj, hook_cmd, hook setup
 
