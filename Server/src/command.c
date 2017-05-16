@@ -3360,6 +3360,8 @@ process_command(dbref player, dbref cause, int interactive,
                            break;
                case '-' :  sprintf(s_uselock, "I_%s", "mail");
                            break;
+               case ']' :  sprintf(s_uselock, "I_%s", "N");
+                           break;
                default  :  sprintf(s_uselock, "I_%s", "error");
                            break;
             }
@@ -3379,6 +3381,8 @@ process_command(dbref player, dbref cause, int interactive,
                case '>' :  sprintf(s_uselock, "P_%s", "@set");
                            break;
                case '-' :  sprintf(s_uselock, "P_%s", "mail");
+                           break;
+               case ']' :  sprintf(s_uselock, "P_%s", "N");
                            break;
                default  :  sprintf(s_uselock, "P_%s", "error");
                            break;

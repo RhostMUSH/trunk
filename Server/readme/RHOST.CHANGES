@@ -97,6 +97,8 @@ All locatization with CLEAR didn't wipe and reset register names.
 				- Thanks Myrddin
 &SPEECH_PREFIX/&SPEECH_SUFFIX for say/pose pre and post processing.
 				- Thanks MuSoapBox (Auspice, Sparks, Seamus, faraday, Thenomain, and others)
+] for @hook/ignore and @hook/permit was broken.
+				- Thanks Ixokai
 
 
 
