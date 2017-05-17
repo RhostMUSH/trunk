@@ -87,6 +87,7 @@ NAMETAB rollback_sw[] =
 {
     {(char *) "retry", 2, CA_PUBLIC, 0, ROLLBACK_RETRY},
     {(char *) "wait", 2, CA_PUBLIC, 0, ROLLBACK_WAIT},
+    {(char *) "label", 2, CA_PUBLIC, 0, ROLLBACK_LABEL},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB admin_sw[] =
@@ -9241,7 +9242,7 @@ void do_goto(dbref player, dbref cause, int key, char *label) {
   {
       mudstate.gotostate = 1;
       memset(mudstate.gotolabel,'\0',16);
-      strcpy(mudstate.gotolabel,label);
+      strncpy(mudstate.gotolabel,label,15);
   }
 }
 

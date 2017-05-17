@@ -31575,3 +31575,4 @@
     to fix a stack leak, you must @shutdown then start mush [ASH]
   * @rollback had a missing buffer free [ASH]
   * ] for @hook/ignore and @hook/permit was broken [ASH]
+  * @goto could potentially overflow a buffer [ASH]
