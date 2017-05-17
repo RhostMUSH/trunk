@@ -2420,23 +2420,44 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
    }
 }
 
-/* @rollback <steps> [= <args>]
-   @rollback <steps>/<count> [= <args>]
-   @rollback/retry <boolean> [= <args>]
-   @rollback/wait <steps>/<count>[</wait-value>] [= <args>]
+/* @rollback <steps> [= <args>]   @rollback/label <label>|<steps> [=<args>]
+   @rollback <steps>/<count> [= <args>]   @rollback/label <label>|<steps>/<count> [= <args>]
+   @rollback/retry <boolean> [= <args>]   @rollback/retry/label <label>|<boolean> [= <args>]
+   @rollback/wait <steps>/<count>[</wait-value>] [= <args>]   @rollback/wait/label <label>|<steps>/<count>[</wait-value>] [= <args>]  
 */
-void do_rollback(dbref player, dbref cause, int key, char *string,
+void do_rollback(dbref player, dbref cause, int key, char *in_string,
                  char *argv[], int nargs, char *cargs[], int ncargs)
 {
    char *s_buff, *s_buffptr, *s_tmp, *s_eval[10], *s_store[10], *t_string, 
-        *cp, *cp2, *s_waitbuff, *s_waitbuffptr, *s_tmp2;
+        *cp, *cp2, *s_waitbuff, *s_waitbuffptr, *s_tmp2, *string,
+        labelorig[16], labelbak[16];
    int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, 
-       i_waitcnt, i_waitfirst;
+       i_waitcnt, i_waitfirst, i_dolabel, i_gotostate;
    double i_wait;
    time_t  i_now;
 
    if ( !*(mudstate.rollback) ) {
       return;
+   }
+
+   string = in_string;
+   i_dolabel = 0;
+   if ( key & ROLLBACK_LABEL ) {
+      if ( (string = strchr(string, '|')) != NULL ) {
+         *string = '\0';
+         string++;
+         i_dolabel = 1;
+         i_gotostate = mudstate.gotostate;
+         mudstate.gotostate = 1;
+         memset(mudstate.gotolabel,'\0',16);
+         memset(labelorig, '\0', 16);
+         memset(labelbak, '\0', 16);
+         strncpy(labelbak, mudstate.gotolabel, 15);
+         strncpy(mudstate.gotolabel, in_string, 15);
+      } else {
+         notify_quiet(player, "@rollback/label expects a label");
+         return;
+      }
    }
 
    i_rollbackstate = mudstate.rollbackstate;
@@ -2457,6 +2478,11 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
          i_count = 0;
       }
    } else if ( key & ROLLBACK_WAIT ) {
+      /* @wait state is handled differently */
+      if ( i_dolabel ) {
+         mudstate.gotostate = i_gotostate;
+         strncpy(mudstate.gotolabel, labelbak, 15);
+      }
       i_step = atoi(s_tmp);
       i_count = 1;
       if ( (cp = strchr(s_tmp, '/')) != NULL ) {
@@ -2490,6 +2516,12 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
       s_waitbuffptr = s_waitbuff = alloc_lbuf("do_rollback_waitbuff");
       strcpy(s_buff, mudstate.rollback);
       s_buffptr = s_buff;
+      i_waitfirst = 0;
+      if ( i_dolabel ) {
+         safe_str("@goto ", s_waitbuff, &s_waitbuffptr);
+         safe_str(in_string, s_waitbuff, &s_waitbuffptr);
+         i_waitfirst = 1;
+      }
 
       i_waitcnt = 0;
       while ( s_buffptr ) {
@@ -2501,7 +2533,6 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
          i_waitcnt++;
       }
 
-      i_waitfirst = 0;
       while ( s_buffptr ) {
          if ( i_waitcnt < (mudstate.rollbackcnt - 1) ) {
             if ( i_waitfirst ) {
@@ -2612,6 +2643,10 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
       if ( mudstate.rollbackcnt < 0 )
          mudstate.rollbackcnt = 0; 
       mudstate.jumpst = 0;
+      mudstate.gotostate = 0;
+      if ( i_dolabel ) {
+         mudstate.gotostate = 1;
+      }
       while (s_buffptr && !mudstate.chkcpu_toggle) {
          i_loop++;
          cp = parse_to(&s_buffptr, ';', 0);
@@ -2637,6 +2672,10 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
       i_count--;
 
       if ( i_count > 0 ) {
+         if ( i_dolabel) {
+            strncpy(mudstate.gotolabel, in_string, 15);
+            mudstate.gotostate = 1;
+         }
          if ( (i_step <= 0) ) {
             free_lbuf(t_string);
             free_lbuf(s_buff);
@@ -2646,6 +2685,10 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
             for (i = 0; i < 10; i++ ) {
                free_lbuf(s_eval[i]);
                free_lbuf(s_store[i]);
+            }
+            if ( i_dolabel ) {
+               mudstate.gotostate = i_gotostate;
+               strncpy(mudstate.gotolabel, labelbak, 15);
             }
             return; 
          }
@@ -2683,6 +2726,10 @@ void do_rollback(dbref player, dbref cause, int key, char *string,
    for (i = 0; i < 10; i++ ) {
       free_lbuf(s_eval[i]);
       free_lbuf(s_store[i]);
+   }
+   if ( i_dolabel ) {
+      mudstate.gotostate = i_gotostate;
+      strncpy(mudstate.gotolabel, labelbak, 15);
    }
    mudstate.rollbackcnt = i_rollbackcnt;
    mudstate.jumpst = i_jump;

@@ -87,7 +87,7 @@ NAMETAB rollback_sw[] =
 {
     {(char *) "retry", 2, CA_PUBLIC, 0, ROLLBACK_RETRY},
     {(char *) "wait", 2, CA_PUBLIC, 0, ROLLBACK_WAIT},
-    {(char *) "label", 2, CA_PUBLIC, 0, ROLLBACK_LABEL},
+    {(char *) "label", 2, CA_PUBLIC, 0, ROLLBACK_LABEL | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB admin_sw[] =
