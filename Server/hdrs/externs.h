@@ -957,6 +957,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define ROLLBACK_RETRY	1	/* @rollback works like @retry */
 #define ROLLBACK_WAIT   2 	/* @rollback works with @wait */
+#define ROLLBACK_LABEL	4	/* @rollback with /label.  Works in every mode */
 
 #define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
 #define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
