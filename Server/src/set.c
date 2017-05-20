@@ -2428,7 +2428,7 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
 void do_rollback(dbref player, dbref cause, int key, char *in_string,
                  char *argv[], int nargs, char *cargs[], int ncargs)
 {
-   char *s_buff, *s_buffptr, *s_tmp, *s_eval[10], *s_store[10], *t_string, 
+   char *s_buff, *s_buffptr, *s_tmp, *s_eval[10], *s_teval[10], *s_store[10], *t_string, 
         *cp, *cp2, *s_waitbuff, *s_waitbuffptr, *s_tmp2, *string,
         labelorig[16], labelbak[16];
    int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, 
@@ -2621,6 +2621,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    i_now = mudstate.now;
    for (i = 0; i < 10; i++ ) {
       s_store[i] = alloc_lbuf("do_rollback_store");
+      s_teval[i] = alloc_lbuf("do_rollback_stackbuff");
       if ( (i < nargs) && (((nargs == 1) && *argv[i]) || (nargs > 1)) ) {
          strcpy(s_store[i], argv[i]);
          s_eval[i] = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], cargs, ncargs, (char **)NULL, 0);
@@ -2684,6 +2685,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             mudstate.jumpst = i_jump;
             for (i = 0; i < 10; i++ ) {
                free_lbuf(s_eval[i]);
+               free_lbuf(s_teval[i]);
                free_lbuf(s_store[i]);
             }
             if ( i_dolabel ) {
@@ -2710,11 +2712,14 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             if ( (i < nargs) && (((nargs == 1) && *argv[i]) || (nargs > 1)) ) {
                strcpy(s_store[i], argv[i]);
                s_tmp = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], s_eval, 10, (char **)NULL, 0);
-               strcpy(s_eval[i], s_tmp);
+               strcpy(s_teval[i], s_tmp);
                free_lbuf(s_tmp);
                if ( mudstate.chkcpu_toggle )
                   break;
             }
+         }
+         for (i = 0; i < 10; i++ ) {
+            strcpy(s_eval[i], s_teval[i]);
          }
          if ( mudstate.chkcpu_toggle )
             break;
@@ -2725,6 +2730,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    free_lbuf(t_string);
    for (i = 0; i < 10; i++ ) {
       free_lbuf(s_eval[i]);
+      free_lbuf(s_teval[i]);
       free_lbuf(s_store[i]);
    }
    if ( i_dolabel ) {

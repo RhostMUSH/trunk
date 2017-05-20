@@ -31641,3 +31641,4 @@
   * @rollback had a missing buffer free [ASH]
   * ] for @hook/ignore and @hook/permit was broken [ASH]
   * @goto could potentially overflow a buffer [ASH]
+  * off by one argument handler for @rollback [ASH]
