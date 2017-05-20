@@ -2551,6 +2551,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
          for (i = 0; i < 10; i++ ) {
             s_store[i] = alloc_lbuf("do_rollback_store");
             s_eval[i] = alloc_lbuf("do_rollback_args");
+            s_teval[i] = alloc_lbuf("do_rollback_stackbuff");
             *s_eval[i] = '\0';
             if ( (i < ncargs) && cargs[i] ) {
                strcpy(s_eval[i], cargs[i]);
@@ -2561,12 +2562,15 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
                if ( (i < nargs) && (((nargs == 1) && *argv[i]) || (nargs > 1)) ) {
                   strcpy(s_store[i], argv[i]);
                   s_tmp2 = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], s_eval, 10, (char **)NULL, 0);
-                  strcpy(s_eval[i], s_tmp2);
+                  strcpy(s_teval[i], s_tmp2);
                   free_lbuf(s_tmp2);
                   if ( mudstate.chkcpu_toggle ) {
                      break;
                   }
                }
+            }
+            for ( i = 0; i < 10; i++ ) {
+               strcpy(s_eval[i], s_teval[i]);
             }
             if ( mudstate.chkcpu_toggle ) {
                break;
@@ -2590,6 +2594,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
          }
          for (i = 0; i < 10; i++ ) {
             free_lbuf(s_eval[i]);
+            free_lbuf(s_teval[i]);
             free_lbuf(s_store[i]);
          }
       }
