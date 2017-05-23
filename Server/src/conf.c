@@ -404,6 +404,7 @@ NDECL(cf_init)
     mudstate.ahear_lastplr = -1;
     mudstate.chkcpu_toggle = 0;
     mudstate.chkcpu_locktog = 0;
+    mudstate.chkcpu_stopper = time(NULL);
     mudstate.sidefx_currcalls = 0; /* Counter for sideeffects called */
     mudstate.curr_percentsubs = 0; /* Counter for substitutions called */
     mudstate.cntr_reset = time_ng(NULL);

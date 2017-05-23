@@ -3960,6 +3960,11 @@ check_connect(DESC * d, const char *msg)
    cmdsave = mudstate.debug_cmd;
    mudstate.debug_cmd = (char *) "< check_connect >";
 
+    /* Initialize cpu for non connected players */
+   mudstate.chkcpu_stopper = time(NULL);
+   mudstate.chkcpu_toggle = 0;
+   mudstate.chkcpu_locktog = 0;
+
    /* Hide the password length from SESSION */
    d->input_tot -= (strlen(msg) + 1);
 

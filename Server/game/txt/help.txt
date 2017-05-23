@@ -31642,3 +31642,4 @@
   * ] for @hook/ignore and @hook/permit was broken [ASH]
   * @goto could potentially overflow a buffer [ASH]
   * off by one argument handler for @rollback [ASH]
+  * segments not initialized properly for CPU alarms [ASH]
