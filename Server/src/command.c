@@ -2880,6 +2880,28 @@ process_command(dbref player, dbref cause, int interactive,
     if (!command)
 	abort();
 
+    /* For all valid commands we must initialize the timers */
+    mudstate.heavy_cpu_recurse = 0;
+    mudstate.heavy_cpu_tmark1 = time(NULL);
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.stack_val = 0;
+    mudstate.stack_toggle = 0;
+    mudstate.sidefx_currcalls = 0;
+    mudstate.curr_percentsubs = 0;
+    mudstate.tog_percentsubs = 0;
+    mudstate.sidefx_toggle = 0;
+    mudstate.log_maximum = 0;
+
+    /* profiling */
+    mudstate.evalcount = 0;
+    mudstate.funccount = 0;
+    mudstate.attribfetchcount = 0;
+    itimer.it_interval.tv_sec = 0;
+    itimer.it_interval.tv_usec = 0;
+    itimer.it_value.tv_usec = 0;
+    itimer.it_value.tv_sec = 1000;
+    setitimer(ITIMER_PROF, &itimer, NULL);
+
 //  if ( !mudstate.rollbackstate )
        mudstate.rollbackcnt++;
     if ( mudstate.jumpst > 0 ) {
@@ -2916,30 +2938,9 @@ process_command(dbref player, dbref cause, int interactive,
     *(check2 + 1) = '\0';
 
     /* Robustify player */
-
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_command >";
     mudstate.last_cmd_timestamp = mudstate.now;
-    mudstate.heavy_cpu_recurse = 0;
-    mudstate.heavy_cpu_tmark1 = time(NULL);
-    mudstate.stack_val = 0;
-    mudstate.stack_toggle = 0;
-    mudstate.sidefx_currcalls = 0;
-    mudstate.curr_percentsubs = 0;
-    mudstate.tog_percentsubs = 0;
-    mudstate.sidefx_toggle = 0;
-    mudstate.log_maximum = 0;
-    mudstate.chkcpu_stopper = time(NULL);
-
-    /* profiling */
-    mudstate.evalcount = 0;
-    mudstate.funccount = 0;
-    mudstate.attribfetchcount = 0;
-    itimer.it_interval.tv_sec = 0;
-    itimer.it_interval.tv_usec = 0;
-    itimer.it_value.tv_usec = 0;
-    itimer.it_value.tv_sec = 1000;
-    setitimer(ITIMER_PROF, &itimer, NULL);
 
     if (!Good_obj(player) || !Good_obj(cause)) {
 	STARTLOG(LOG_BUGS, "CMD", "PLYR")

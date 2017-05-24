@@ -31618,6 +31618,7 @@
   * listmatch() takes optional 4th arg to specify args to display [ASH]
   * increased spellnum() to decillion [ASH]
   * Added additional time formats to convtime() [ASH]
+  * moved up initializers for cpu alerts to be more aggressive [ASH]
   
   Bug Fixes
   ------------
