@@ -3305,7 +3305,8 @@ process_command(dbref player, dbref cause, int interactive,
 	  mudstate.debug_cmd = cmdsave;
           getitimer(ITIMER_PROF, &itimer);
           reportcputime(player, &itimer);
-          itimer.it_value.tv_sec = 0;
+//        itimer.it_value.tv_sec = 0;
+          itimer.it_value.tv_sec = 1000;
           itimer.it_value.tv_usec = 0;
           setitimer(ITIMER_PROF, &itimer, NULL);
           mudstate.shell_program = 0;
@@ -3708,7 +3709,8 @@ process_command(dbref player, dbref cause, int interactive,
 	  mudstate.debug_cmd = cmdsave;
           getitimer(ITIMER_PROF, &itimer);
           reportcputime(player, &itimer);
-          itimer.it_value.tv_sec = 0;
+//        itimer.it_value.tv_sec = 0;
+          itimer.it_value.tv_sec = 1000;
           itimer.it_value.tv_usec = 0;
           setitimer(ITIMER_PROF, &itimer, NULL);
           DPOP; /* #29 */
@@ -3745,7 +3747,8 @@ process_command(dbref player, dbref cause, int interactive,
 	mudstate.debug_cmd = cmdsave;
         getitimer(ITIMER_PROF, &itimer);
         reportcputime(player, &itimer);
-        itimer.it_value.tv_sec = 0;
+//      itimer.it_value.tv_sec = 0;
+        itimer.it_value.tv_sec = 1000;
         itimer.it_value.tv_usec = 0;
         setitimer(ITIMER_PROF, &itimer, NULL);
         DPOP; /* #29 */
@@ -3865,7 +3868,8 @@ process_command(dbref player, dbref cause, int interactive,
 		      mudstate.exitcheck = 0;
                       getitimer(ITIMER_PROF, &itimer);
                       reportcputime(player, &itimer);
-                      itimer.it_value.tv_sec = 0;
+//                    itimer.it_value.tv_sec = 0;
+                      itimer.it_value.tv_sec = 1000;
                       itimer.it_value.tv_usec = 0;
                       setitimer(ITIMER_PROF, &itimer, NULL);
                       DPOP; /* #29 */
@@ -3952,7 +3956,8 @@ process_command(dbref player, dbref cause, int interactive,
 		     mudstate.exitcheck = 0;
                      getitimer(ITIMER_PROF, &itimer);
                      reportcputime(player, &itimer);
-                     itimer.it_value.tv_sec = 0;
+//                   itimer.it_value.tv_sec = 0;
+                     itimer.it_value.tv_sec = 1000;
                      itimer.it_value.tv_usec = 0;
                      setitimer(ITIMER_PROF, &itimer, NULL);
                      DPOP; /* #29 */
@@ -4397,7 +4402,8 @@ process_command(dbref player, dbref cause, int interactive,
 
         getitimer(ITIMER_PROF, &itimer);
         reportcputime(player, &itimer);
-        itimer.it_value.tv_sec = 0;
+//      itimer.it_value.tv_sec = 0;
+        itimer.it_value.tv_sec = 1000;
         itimer.it_value.tv_usec = 0;
         setitimer(ITIMER_PROF, &itimer, NULL);
 	mudstate.debug_cmd = cmdsave;
@@ -4441,7 +4447,8 @@ process_command(dbref player, dbref cause, int interactive,
 		  do_leave(player, player, 0);
                 getitimer(ITIMER_PROF, &itimer);
                 reportcputime(player, &itimer);
-                itimer.it_value.tv_sec = 0;
+//              itimer.it_value.tv_sec = 0;
+                itimer.it_value.tv_sec = 1000;
                 itimer.it_value.tv_usec = 0;
                 setitimer(ITIMER_PROF, &itimer, NULL);
                 DPOP; /* #29 */
@@ -4467,7 +4474,8 @@ process_command(dbref player, dbref cause, int interactive,
 		      do_enter_internal(player, pcexit, 0);
                     getitimer(ITIMER_PROF, &itimer);
                     reportcputime(player, &itimer);
-                    itimer.it_value.tv_sec = 0;
+//                  itimer.it_value.tv_sec = 0;
+                    itimer.it_value.tv_sec = 1000;
                     itimer.it_value.tv_usec = 0;
                     setitimer(ITIMER_PROF, &itimer, NULL);
                     DPOP; /* #29 */
@@ -4637,7 +4645,8 @@ process_command(dbref player, dbref cause, int interactive,
     }
     getitimer(ITIMER_PROF, &itimer);
     reportcputime(player, &itimer);
-    itimer.it_value.tv_sec = 0;
+//  itimer.it_value.tv_sec = 0;
+    itimer.it_value.tv_sec = 1000;
     itimer.it_value.tv_usec = 0;
     setitimer(ITIMER_PROF, &itimer, NULL);
     mudstate.debug_cmd = cmdsave;
