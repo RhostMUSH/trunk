@@ -155,6 +155,7 @@ struct descriptor_data {
 #define DS_AUTH_CONNECTING      0x0040          /* AUTH doing non-blocking connect */
 #define DS_HAVEpFX		0x0080		/* Target has prefix */
 #define DS_HAVEsFX		0x0100		/* Target has suffix */
+#define DS_API			0x0200		/* Target is an API handler */
 
 extern DESC *descriptor_list;
 extern DESC *desc_in_use;

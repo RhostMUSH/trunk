@@ -5540,31 +5540,31 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index               examine_flags             examine_public_attrs   
-  examine_restrictive       exit_attr_default         exit_flags              
-  exit_parent               exit_quota                exit_toggles
-  exits_connect_rooms       expand_goto               fascist_teleport        
-  file_object               find_money_chance         flag_alias              
-  flag_name                 flag_access_see           flag_access_set         
-  flag_access_type          flag_access_unset         float_precision         
-  forbid_host               forbid_site               fork_dump               
-  format_compatbility       fork_vfork                format_contents         
-  format_exits              format_name               formats_are_local       
-  full_file                 full_motd_message         function_access         
-  function_alias            function_invocation_limit function_max
-  function_recursion_limit  gdbm_cache_size           gdbm_database           
-  global_aconnect           global_adisconnect        global_ansimask         
-  global_attrdefault        global_clone_exit         global_clone_obj        
-  global_clone_player       global_clone_room         global_clone_thing      
-  global_error_obj          global_parent_exit        global_parent_obj       
-  global_parent_player      global_parent_room        global_parent_thing     
-  good_name                 goodmail_host             gconf_file              
-  guest_char_num            guest_file                guest_namelist          
-  guild_attrname            guild_default             guild_hdr               
-  hackattr_nowiz            hackattr_see              hasattrp_compat         
-  heavy_cpu_max             help_file                 help_index              
-  hide_nospoof              hook_cmd                  hook_obj                
-  hook_offline
+  error_index             examine_flags             examine_public_attrs   
+  examine_restrictive     exec_secure               exit_attr_default       
+  exit_flags              exit_parent               exit_quota              
+  exit_toggles            exits_connect_rooms       expand_goto             
+  fascist_teleport        file_object               find_money_chance       
+  flag_alias              flag_name                 flag_access_see         
+  flag_access_set         flag_access_type          flag_access_unset       
+  float_precision         forbid_host               forbid_site             
+  fork_dump               format_compatbility       fork_vfork              
+  format_contents         format_exits              format_name             
+  formats_are_local       full_file                 full_motd_message       
+  function_access         function_alias            function_invocation_limit
+  function_max            function_recursion_limit  gdbm_cache_size         
+  gdbm_database           global_aconnect           global_adisconnect      
+  global_ansimask         global_attrdefault        global_clone_exit       
+  global_clone_obj        global_clone_player       global_clone_room       
+  global_clone_thing      global_error_obj          global_parent_exit      
+  global_parent_obj       global_parent_player      global_parent_room      
+  global_parent_thing     good_name                 goodmail_host           
+  gconf_file              guest_char_num            guest_file              
+  guest_namelist          guild_attrname            guild_default           
+  guild_hdr               hackattr_nowiz            hackattr_see            
+  hasattrp_compat         heavy_cpu_max             help_file               
+  help_index              hide_nospoof              hook_cmd                
+  hook_obj                hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -6566,6 +6566,16 @@
   
   There is nothing to block immortals as immortals are considered #1.
   The current setting is visible through @list options.
+
+& exec_secure
+  Config parameter: exec_secure <boolean>.  Default: 1
+  
+  Tells execscript() to escape all characters that are passed into it.  This
+  is the default behavior.  If you specify '0' then it will only escape out
+  non-alphanumeric characters.  Ergo, it will only then escape out characters
+  that are not A-Z, a-z, or 0-9.
+  
+  See Also: execscript()
 
 & exit_attr_default
   Config parameter: exit_attr_default <dbref>.  Default: -1
@@ -10624,7 +10634,7 @@
   
   See 'writing scripts' for help on dos and don'ts in writing execscripts.
     
-  See Also: POWER EXECSCRIPT
+  See Also: POWER EXECSCRIPT, exec_secure
 
 & WRITING SCRIPTS
   Topic: Writing Scripts

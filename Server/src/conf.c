@@ -325,6 +325,7 @@ NDECL(cf_init)
     mudconf.protect_addenh = 0;		/* Enhanced @protect/add */
     mudconf.posesay_funct = 0;		/* Enable functions in SPEECH_PREFIX/SPEECH_SUFFIX */
     mudconf.rollbackmax = 1000;		/* Maximum rollback value (10-10000) */
+    mudconf.exec_secure = 1;		/* execscript() escapes out everything by default */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3894,6 +3895,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.examine_restrictive, 0, 0, CA_PUBLIC,
      (char *) "What level is restrictions on Examine?\r\n"\
               "  (0-off 1-6 level based)    Default: 0   Value: %d"},
+    {(char *) "exec_secure",
+     cf_bool, CA_DISABLED, &mudconf.exec_secure, 0, 0, CA_WIZARD,
+     (char *) "Is execscript() escaping everything?"},
     {(char *) "exit_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.exit_flags, 0, 0, CA_PUBLIC,
      (char *) "These are default flags set on new exits."},

@@ -10898,30 +10898,31 @@
   
 & FUNCTION LIST3
     
-  LISTFLAGS()   LISTINTER()    LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS() LISTTOGGLES()  LISTUNION()    LIT()            LJC()          
-  LJUST()       LLOC()         LMAX()         LMIN()           LMUL()         
-  LN()          LNOR()         LNUM()         LNUM2()          LOC()          
-  LOCALFUNC()   LOCALIZE()     LOCATE()       LOCK()           LOCKCHECK()
-  LOCKDECODE()  LOCKENCODE()   LOG()          LOR()            LRAND()       
-  LREPLACE()    LROOMS()       LSET()         LSUB()           LT()           
-  LTE()         LTOGGLES()     LWHO()         LXNOR()          LXOR()         
-  LZONE()       MAILQUICK()    MAP()          MATCH()          MASK()         
-  MAX()         MEMBER()       MERGE()        MID()            MIN()          
-  MIX()         MOD()          MODULO()       MODIFYTIME()     MONEY()        
-  MONEYNAME()   MOON()         MUDNAME()      MUL()            MUNGE()        
-  MWORDS()      NAME()         NAMEQ()        NAND()           NCOMP()        
-  NEARBY()      NEQ()          NEXT()         NOR()            NOSTR()        
-  NOT()         NOTCHR()       NPEMIT()       NSITER()         NUM()          
-  NUMMATCH()    NULL()         NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
-  OBJ()         OBJEVAL()      OBJID()        OEMIT()          OPEN()         
-  OR()          ORCHR()        ORFLAG()       ORFLAGS()        OWNER()        
-  PACK()        PACKMATH()     PARENMATCH()   PARENT()         PARSE()        
-  PARSESTR()    PEDIT()        PEMIT()        PFIND()          PGREP()        
-  PI()          PID()          PMATCH()       PORT()           POS()          
-  POSS()        POWER()        POWER10()      PRINTF()         PRIVATIZE()    
-  PROGRAMMER()  PTIMEFMT()     PUSHREGS()     QUOTA()          R()            
-  RACE()        RAND()         RANDPOS()      RANDMATCH()      RANDEXTRACT() 
+  LISTFLAGS()    LISTINTER()   LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
+  LISTRLEVELS()  LISTTOGGLES() LISTUNION()    LIT()            LJC()          
+  LJUST()        LLOC()        LMAX()         LMIN()           LMUL()         
+  LN()           LNOR()        LNUM()         LNUM2()          LOC()          
+  LOCALFUNC()    LOCALIZE()    LOCATE()       LOCK()           LOCKCHECK()
+  LOCKDECODE()   LOCKENCODE()  LOG()          LOR()            LRAND()       
+  LREPLACE()     LROOMS()      LSET()         LSUB()           LT()           
+  LTE()          LTOGGLES()    LWHO()         LXNOR()          LXOR()         
+  LZONE()        MAILQUICK()   MAP()          MATCH()          MASK()         
+  MAX()          MEMBER()      MERGE()        MID()            MIN()          
+  MIX()          MOD()         MODULO()       MODIFYTIME()     MONEY()        
+  MONEYNAME()    MOON()        MSECS()        MUDNAME()        MUL()          
+  MUNGE()        MWORDS()      NAME()         NAMEQ()          NAND()         
+  NCOMP()        NEARBY()      NEQ()          NEXT()           NOR()          
+  NOSTR()        NOT()         NOTCHR()       NPEMIT()         NSITER()       
+  NUM()          NUMMATCH()    NULL()         NUMMEMBER()      NUMPOS()       
+  NUMWILDMATCH() OBJ()         OBJEVAL()      OBJID()          OEMIT()        
+  OPEN()         OR()          ORCHR()        ORFLAG()         ORFLAGS()      
+  OWNER()        PACK()        PACKMATH()     PARENMATCH()     PARENT()       
+  PARSE()        PARSESTR()    PEDIT()        PEMIT()          PFIND()        
+  PGREP()        PI()          PID()          PMATCH()         PORT()         
+  POS()          POSS()        POWER()        POWER10()        PRINTF()       
+  PRIVATIZE()    PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
+  R()            RACE()        RAND()         RANDPOS()        RANDMATCH()    
+  RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -11125,8 +11126,8 @@
                        XORCHR()
              See Also: help string functions
   
-  Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
-                       TIME() TIMEFMT()
+  Time:                CONVSECS() CONVTIME() MSECS() PTIMEFMT() SECS() 
+                       SINGLETIME() TIME() TIMEFMT()
              See Also: help time functions  
   
   { 'help function classes6' for more }
@@ -13613,7 +13614,7 @@
     > say time()
     You say "Thu Dec 19 09:48:06 1991"
   
-  See Also: convsecs(), convtime(), secs()
+  See Also: convsecs(), convtime(), secs(), msecs()
  
 & timezone list
   Zone   Zone Name                           Zone Location    UTC/GMT Offset
@@ -17010,7 +17011,7 @@
     > say reboottime()
     You say "Sat Dec  7 00:09:13 1991
     
-  See Also: convtime(), starttime(), rebootsecs(), startsecs()
+  See Also: convtime(), starttime(), rebootsecs(), startsecs(), msecs()
   
 & STARTTIME()
   Function: starttime()
@@ -17022,7 +17023,7 @@
     > say starttime()
     You say "Sat Dec  7 00:09:13 1991
   
-  See Also: convtime(), reboottime(), startsecs(), rebootsecs()
+  See Also: convtime(), reboottime(), startsecs(), rebootsecs(), msecs()
   
 & REBOOTSECS()
   Function: rebootsecs()
@@ -17033,7 +17034,7 @@
     > say startsecs()
     You say "2324234"
    
-  See Also: startime(), secs(), startsecs(), reboottime()
+  See Also: startime(), secs(), startsecs(), reboottime(), msecs()
   
 & STARTSECS()
   Function: startsecs()
@@ -17044,7 +17045,7 @@
     > say startsecs()
     You say "2324234"
    
-  See Also: startime(), secs(), rebootsecs(), reboottime()
+  See Also: startime(), secs(), rebootsecs(), reboottime(), msecs()
   
 & WRITABLE()
   Function: writable(<player>, <target>/<attrib>)
@@ -17440,7 +17441,7 @@
   'P'    AM or PM                 AM/PM
   'p'    am or pm                 am/pm
   
-  See Also: timefmt examples, secs()
+  See Also: timefmt examples, secs(), msecs()
   
 & TIMEFMT DATE
   The following format specifiers are available for processing the <secs>
@@ -17460,7 +17461,7 @@
   'Y'    Year                     0..????
   'y'    Year (two digit)         0..99
   
-  See Also: timefmt examples, secs()
+  See Also: timefmt examples, secs(), msecs()
   
 & TIMEFMT ELAPSED
   The following format specifiers are available for processing the <secs>
@@ -17649,18 +17650,25 @@
                   02F tells it to print the minute field and pad with zeroes 
                       if the total character count is less than two. IE: '12'
   
+& MSECS()
 & SECS()
   Function: secs()
+            msecs()
  
   Returns the number of elapsed seconds since midnight, January 1, 1970.
   This is an easy way to time things.
- 
+  
+  The msecs() function works like secs() but gives the fractional milisecond
+  of the current time.
+   
   Example:
      > say secs()
      You say "692636020"
      ... wait a bit ...
      > say secs()
      You say "692636043"
+     > say msecs()
+     You say "692636049.7"
   
   See Also: convsecs(), convtime(), time(), timefmt()
   
@@ -31608,6 +31616,9 @@
   * @goto command, a command similiar to @jump, using numerical labels. [AMB]
   * @list alloc now lists network statistics for current running mush [ASH]
   * @rollback handles /label to be compatible with @goto [ASH]
+  * msecs() like secs() but shows milisecond counts [ASH]
+  * exec_secure for execscript(_) config param (default 1) which does as it 
+    does now.  setting it to '0' escapes all characters but alphanumeric [ASH]
   
   Changes
   ------------

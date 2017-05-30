@@ -11284,6 +11284,11 @@ FUNCTION(fun_ptimefmt)
  * fun_secs: Seconds since 0:00 1/1/70
  */
 
+FUNCTION(fun_msecs)
+{
+    fval(buff, bufcx, mudstate.nowmsec);
+}
+
 FUNCTION(fun_secs)
 {
     ival(buff, bufcx, mudstate.now);
@@ -17065,7 +17070,9 @@ FUNCTION(fun_execscript)
                continue;
                break;
             default:
-               safe_chr('\\', sptr, &sptr2);
+               if ( mudconf.exec_secure || (!mudconf.exec_secure && !isalnum(*s_inbufptr)) ) {
+                  safe_chr('\\', sptr, &sptr2);
+               }
                break;
          }
          safe_chr(*s_inbufptr, sptr, &sptr2);
@@ -34783,6 +34790,7 @@ FUN flist[] =
 #ifdef USE_SIDEEFFECT
     {"MOVE", fun_move, 2, 0, CA_PUBLIC, 0},
 #endif
+    {"MSECS", fun_msecs, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"MSIZETOT", fun_msizetot, 0, 0, CA_IMMORTAL, 0},
     {"MUDNAME", fun_mudname, 0, 0, CA_PUBLIC, 0},
     {"MUL", fun_mul, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

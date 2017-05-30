@@ -422,6 +422,7 @@ struct confdata {
 	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */
 	dbref	file_object;	/* The file object to override @list_file foo */
 	int	rollbackmax;	/* Maximum rollback with @retry option */
+	int	exec_secure;	/* Execscript is overly secure -- this is default */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
