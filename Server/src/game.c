@@ -1501,7 +1501,6 @@ do_reboot(dbref player, dbref cause, int key)
   }
 #endif
 
-  alarm_msec(0);
   alarm_stop();
   mudstate.dumpstatechk=1;
   ignore_signals();

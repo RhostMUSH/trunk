@@ -2649,7 +2649,6 @@ sighandler(int sig)
                 }
              }
           }
-          alarm_msec(0); 
           alarm_stop();
           ignore_signals();
           raw_broadcast(0, 0, "Game: Restarting due to signal SIGUSR1.");
