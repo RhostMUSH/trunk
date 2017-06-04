@@ -1326,6 +1326,10 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     endtme = time(NULL);
     starttme = mudstate.chkcpu_stopper;
 
+    /* Conditional if clock rolled back between chkcpu_stopper and current time check */
+    if ( starttme > endtme )
+       endtme = starttme;
+
     //if ( mudconf.cputimechk < 10 )
     //   timechk = 10;
     //else if ( mudconf.cputimechk > 3600 )
