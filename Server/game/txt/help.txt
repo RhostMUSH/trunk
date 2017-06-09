@@ -3435,7 +3435,7 @@
       /regexp  - use regular expression matching
       /tree    - Examine based on Penn trees using '`' as a separator.
       /tf      - allows prefix formatting for clients.  If you add /attrib
-                 to this switch (@decompile/tf/attr) it will also add flags.
+                 to this switch (@decompile/tf/attr) it will remove flags.
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
