@@ -3956,7 +3956,7 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
                             (i_tf ? qualout : (char *)""), 
                             ((ap->number < A_USER_START) ? '@' : '&'), buff2, tname), 0, 0);
         noansi_notify(player, buf);
-        if ( !i_tf || (i_tf && !(i_key & DECOMP_ATTRS)) ) {
+        if ( !i_tf || (i_tf && !(i_key & DECOMP_NOEXTRA)) ) {
 	   if (aflags & AF_LOCK) {
                tprp_buff = tpr_buff;
 	       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",

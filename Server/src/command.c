@@ -272,6 +272,7 @@ NAMETAB decomp_sw[] =
     {(char *) "tree", 2, CA_PUBLIC, 0, DECOMP_TREE},
     {(char *) "regexp", 1, CA_PUBLIC, 0, DECOMP_REGEXP},
     {(char *) "tf", 2, CA_PUBLIC, 0, DECOMP_TF | SW_MULTIPLE},
+    {(char *) "noextra", 2, CA_PUBLIC, 0, DECOMP_NOEXTRA | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
    
 NAMETAB dbclean_sw[] =

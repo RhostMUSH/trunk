@@ -3434,8 +3434,9 @@
       /flags   - Show just flags
       /regexp  - use regular expression matching
       /tree    - Examine based on Penn trees using '`' as a separator.
-      /tf      - allows prefix formatting for clients.  If you add /attrib
-                 to this switch (@decompile/tf/attr) it will remove flags.
+      /tf      - allows prefix formatting for clients.
+      /noextra - when used in junction with /tf removes the additional
+                 flags and other information from attribute displaying.
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
@@ -31631,8 +31632,8 @@
   * increased spellnum() to decillion [ASH]
   * Added additional time formats to convtime() [ASH]
   * moved up initializers for cpu alerts to be more aggressive [ASH]
-  * @decompile/tf now requires the addition of /attrib for additional 
-    information being passed [ASH]
+  * @decompile/tf will now, if passed /noextra in addition, surpress the
+    additional information on decompile (like attribute flags) [ASH]
   
   Bug Fixes
   ------------
