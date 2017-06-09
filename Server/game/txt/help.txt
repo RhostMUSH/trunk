@@ -31630,6 +31630,8 @@
   * increased spellnum() to decillion [ASH]
   * Added additional time formats to convtime() [ASH]
   * moved up initializers for cpu alerts to be more aggressive [ASH]
+  * @decompile/tf now requires the addition of /attrib for additional 
+    information being passed [ASH]
   
   Bug Fixes
   ------------
