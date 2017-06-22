@@ -1479,7 +1479,23 @@ do_date_conv(char *instr, char *outstr)
          i_hour = atoi(str4);
       }
       sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+   } else if ( sscanf(instr, "-%4s-%2s-%2s %2s:%2s:%2s %02s", str1, str2, str3, str4, str5, str6, str7) == 7) {
+/* %Y-%m-%d %I:%M:%S AM/PM */
+      if ( stricmp(str7, (char *)"PM") == 0) {
+         i_hour = atoi(str4) + 12;
+      } else {
+         i_hour = atoi(str4);
+      }
+      sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
    } else if ( sscanf(instr, "%4s/%2s/%2s %2s:%2s:%2s %02s", str1, str2, str3, str4, str5, str6, str7) == 7) {
+/* %Y/%m/%d %I:%M:%S AM/PM */
+      if ( stricmp(str7, (char *)"PM") == 0) {
+         i_hour = atoi(str4) + 12;
+      } else {
+         i_hour = atoi(str4);
+      }
+      sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+   } else if ( sscanf(instr, "-%4s/%2s/%2s %2s:%2s:%2s %02s", str1, str2, str3, str4, str5, str6, str7) == 7) {
 /* %Y/%m/%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
@@ -1495,6 +1511,14 @@ do_date_conv(char *instr, char *outstr)
          i_hour = atoi(str4);
       }
       sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+   } else if ( sscanf(instr, "-%4s-%2s-%2s %2s:%2s %02s", str1, str2, str3, str4, str5, str6) == 6) {
+/* %Y-%m-%d %I:%M AM/PM */
+      if ( stricmp(str6, (char *)"PM") == 0) {
+         i_hour = atoi(str4) + 12;
+      } else {
+         i_hour = atoi(str4);
+      }
+      sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
    } else if ( sscanf(instr, "%4s/%2s/%2s %2s:%2s %02s", str1, str2, str3, str4, str5, str6) == 6) {
 /* %Y/%m/%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
@@ -1503,7 +1527,22 @@ do_date_conv(char *instr, char *outstr)
          i_hour = atoi(str4);
       }
       sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+   } else if ( sscanf(instr, "-%4s/%2s/%2s %2s:%2s %02s", str1, str2, str3, str4, str5, str6) == 6) {
+/* %Y/%m/%d %I:%M AM/PM */
+      if ( stricmp(str6, (char *)"PM") == 0) {
+         i_hour = atoi(str4) + 12;
+      } else {
+         i_hour = atoi(str4);
+      }
+      sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
    } else if ( sscanf("%4s-%2s-%2s", str1, str2, str3) == 3) {
+/* %Y-%m-%d */
+      if ( (atoi(str2) <= 12) && (atoi(str3) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, i_min, i_sec, atoi(str1));
+      } else {
+         strcpy(outstr, instr);
+      }
+   } else if ( sscanf("-%4s-%2s-%2s", str1, str2, str3) == 3) {
 /* %Y-%m-%d */
       if ( (atoi(str2) <= 12) && (atoi(str3) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, i_min, i_sec, atoi(str1));

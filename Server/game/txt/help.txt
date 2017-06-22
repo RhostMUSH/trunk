@@ -31634,6 +31634,7 @@
   * moved up initializers for cpu alerts to be more aggressive [ASH]
   * @decompile/tf will now, if passed /noextra in addition, surpress the
     additional information on decompile (like attribute flags) [ASH]
+  * added negative time values for some sequences for convtime() [ASH]
   
   Bug Fixes
   ------------
