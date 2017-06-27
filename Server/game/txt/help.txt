@@ -28097,6 +28097,14 @@
   mail write cmdlist    - lists all commands with the mail line-editor
   folder cmdlist        - lists all commands with the mail folder system
   page                  - lists differences in the page system
+  goto                  - for movement (or just type the exit name)
+  look                  - to look at something.  Specify optional target.
+  drop                  - to drop something
+  get                   - to get something
+  inventory             - to see your inventory
+  say                   - to say something (use " as shorthand)
+  pose                  - to pose/emote something (use : as shorthand)
+  @emit                 - to emit something (use \\ as shorthand)
   WHO                   - needs to be capitalized to who (unless changed)
   QUIT                  - needs to be capitalized to quit (unless changed)
   LOGOUT                - needs to be capitalized to logout (unless changed)
@@ -28127,7 +28135,48 @@
   
   See Also: &, >, @set, set(), @cpattr, @mvattr
   
+& MUDDIFF
+  Topic: MUDDIFF
+  
+  Ok, so you come from a mudding background and want to jump on the mush
+  bandwagon.  The biggest thing behind the scenes is the power of the 
+  interpreted coding system (help coding).  Otherwise, here's the base
+  set of command differences you can use to get around things.
+  
+  As all muds are slightly different for command syntax, we obviously
+  can not cover all bases, but hopefully it's close enough you can grok
+  the changes.
+  
+  Mud Command                           Mush Equiv
+  ------------------------------------  -------------------------------------
+  tell <player> <message>               page <player>=<message>
+  emote <text>                          pose <text> (or :<text>)
+  say <text>                            say <text> (or "<text>)
+  spoof <text>                          @emit <text> (or \\<text>)
+  inventory                             inventory
+  score                                 score (fairly meaningless)
+  examine/decompile                     examine/@decompile
+  oset <id>=<attrib>:<value>            &<attrib> <object>=<value> or
+                                        @set <object>=<attrib>:<value>
+  mset <id>=<attrib>:<value>            & or @set again.
+  @force                                @force
+  @teleport                             @teleport
+  home                                  home
+  look                                  look
+  goto/move                             goto/move (or just type exitname)
+  save                                  [mush saves automatically]
+  quit                                  quit
+  
+  There's obviously other similar commands, but this should get you going
+  on the basics.
+  
+  See Also: DIFFERENCES, CODING
+
 & DIFFERENCES
+  Topic: DIFFERENCES
+  
+  If you are coming from a MUD/LP, type 'help muddiff' for those.
+  
   First we'll touch on the TinyMUX differences.
   1) Paging.
      In mux, you can type: page <player-list>=topic, but you need to 
@@ -28160,6 +28209,8 @@
   { type 'help differences2' for tinymush differences. }
   
 & DIFFERENCES2
+  Topic: DIFFERENCES
+  
   Welp, there's not many differences to be honest.  However, as most TinyMUSH's
   use the brandy mailer, you may use the mail method above to make a syntax
   that you'd be compatible with.
