@@ -626,7 +626,8 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
 	  int hush)
 {
     dbref loc, aowner;
-    int oattr, aattr, x, aflags;
+    int oattr, aattr, x, aflags, chk_tog;
+    time_t chk_stop;
     char *retbuff, *atext, *savereg[MAX_GLOBAL_REGS], *pt, *saveregname[MAX_GLOBAL_REGS], *npt;
 
     if ( mudstate.remotep != NOTHING ) {
@@ -640,6 +641,8 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
     if ( VariableExit(exit) && !mudstate.chkcpu_toggle ) {
        atext = atr_pget(exit, A_EXITTO, &aowner, &aflags);
        if ( *atext ) {
+          chk_stop = mudstate.chkcpu_stopper;
+          chk_tog = mudstate.chkcpu_toggle;
           mudstate.chkcpu_stopper = time(NULL);
           mudstate.chkcpu_toggle = 0;
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
@@ -650,7 +653,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
              safe_str(mudstate.global_regs[x],savereg[x],&pt);
              safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
           }
-          retbuff = exec(exit, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, atext, (char **) NULL, 0, (char **)NULL, 0);
+          retbuff = cpuexec(exit, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, atext, (char **) NULL, 0, (char **)NULL, 0);
           if ( !*retbuff ) {
              loc = NOTHING;
           } else if ( *retbuff && (stricmp(retbuff, "home") == 0) ) {
@@ -676,6 +679,8 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
              free_lbuf(savereg[x]);
              free_sbuf(saveregname[x]);
           }
+          mudstate.chkcpu_stopper = chk_stop;
+          mudstate.chkcpu_toggle = chk_tog;
        } else {
           loc = NOTHING;
        }

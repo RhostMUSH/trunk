@@ -953,8 +953,8 @@ ATTR	*attr;
          buff2 = alloc_lbuf("global_attr_chk");
          atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
          if ( *buff2 ) {
-            buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1, (char **)NULL, 0);
+            buff2ret = cpuexec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
+                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1, (char **)NULL, 0);
             if ( atoi(buff2ret) == 0 ) {
                free_lbuf(buff2);
                free_lbuf(buff2ret);

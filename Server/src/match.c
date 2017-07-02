@@ -400,7 +400,7 @@ match_list_altname(first)
                  buff_local_match = local_match;	/* Matched something locally, not by number */
                  buff_reality_valuechk = reality_valuechk;        /* Reality level check */
 
-                 namebuf3 = exec(first, match_who, match_who, EV_FIGNORE|EV_EVAL|EV_TOP, namebuf2, (char **) NULL, 0, (char **)NULL, 0);
+                 namebuf3 = cpuexec(first, match_who, match_who, EV_FIGNORE|EV_EVAL|EV_TOP, namebuf2, (char **) NULL, 0, (char **)NULL, 0);
                  strcpy(namebuf, strip_all_special(namebuf3));
                  free_lbuf(namebuf3);
 

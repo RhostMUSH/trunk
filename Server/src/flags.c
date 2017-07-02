@@ -775,6 +775,8 @@ POWENT pow_table[] =
   {"EXAMINE_FULL", POWER_EX_FULL, 'x', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"EXECSCRIPT", POWER_EXECSCRIPT, '$', POWER4, 0, POWER_LEVEL_COUNC, pw_imm},
   {"FORMATTING", POWER_FORMATTING, '^', POWER4, 0, POWER_LEVEL_NA, pw_imm},
+  {"API", POWER_API, 'z', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"MONITORAPI", POWER_MONITORAPI, '8', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {NULL, 0, 0, 0, 0, 0, NULL}
 };
 
@@ -2617,7 +2619,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {   
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
@@ -2687,7 +2689,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
@@ -3098,7 +3100,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
@@ -3274,7 +3276,7 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {

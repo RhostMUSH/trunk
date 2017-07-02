@@ -574,8 +574,8 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             if ( (*p == '\n') || (*p == '\r') )
                 *p = '\0';
          if ( key & DYN_PARSE ) {
-            result = exec(player, cause, cause,
-                         EV_STRIP | EV_FCHECK | EV_EVAL, line, (char**)NULL, 0, (char **)NULL, 0);
+            result = cpuexec(player, cause, cause,
+                            EV_STRIP | EV_FCHECK | EV_EVAL, line, (char**)NULL, 0, (char **)NULL, 0);
             if ( t_val ) {
                safe_str(result, t_buff, &t_bufptr);
                safe_str("\r\n", t_buff, &t_bufptr);
@@ -803,7 +803,7 @@ errmsg(dbref player)
     if ( *errbuf == '!' ) {
        i_trace = mudstate.notrace;
        mudstate.notrace = 1;
-       buffp = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, errbuf+1, (char **) NULL, 0, (char **)NULL, 0);
+       buffp = cpuexec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, errbuf+1, (char **) NULL, 0, (char **)NULL, 0);
        strcpy(errbuf, buffp);
        free_lbuf(buffp);
        mudstate.notrace = i_trace;

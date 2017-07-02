@@ -370,8 +370,8 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                               }
                               cputext = alloc_lbuf("store_text_attruselock");
                               strcpy(cputext, atext);
-                              result = exec(parent, player, player, EV_FCHECK | EV_EVAL, atext,
-                                            args, 10, (char **)NULL, 0);
+                              result = cpuexec(parent, player, player, EV_FCHECK | EV_EVAL, atext,
+                                               args, 10, (char **)NULL, 0);
                               if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
                                  i_cpuslam = 1;
                                  cpuslam = alloc_lbuf("uselock_cpuslam");
@@ -547,8 +547,8 @@ check_filter(dbref object, dbref player, int filter, const char *msg)
 	free_lbuf(buf);
 	RETURN(1); /* #72 */
     }
-    dp = nbuf = exec(object, player, player, EV_FIGNORE | EV_EVAL | EV_TOP, buf,
-		     (char **) NULL, 0, (char **)NULL, 0);
+    dp = nbuf = cpuexec(object, player, player, EV_FIGNORE | EV_EVAL | EV_TOP, buf,
+		        (char **) NULL, 0, (char **)NULL, 0);
     free_lbuf(buf);
     do {
 	cp = parse_to(&dp, ',', EV_STRIP);
@@ -576,8 +576,8 @@ add_prefix(dbref object, dbref player, int prefix,
 	cp = buf;
 	safe_str((char *) dflt, buf, &cp);
     } else {
-	nbuf = exec(object, player, player, EV_FIGNORE | EV_EVAL | EV_TOP, buf,
-		    (char **) NULL, 0, (char **)NULL, 0);
+	nbuf = cpuexec(object, player, player, EV_FIGNORE | EV_EVAL | EV_TOP, buf,
+		       (char **) NULL, 0, (char **)NULL, 0);
 	free_lbuf(buf);
 	buf = nbuf;
 	cp = &buf[strlen(buf)];
@@ -805,8 +805,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
                  if ( mudconf.posesay_funct && !mudstate.chkcpu_toggle ) {
                     mudstate.posesay_fluff = 0;
-                    s_pipebuffptr = exec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
-                                         vap, 4, (char **)NULL, 0);
+                    s_pipebuffptr = cpuexec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
+                                            vap, 4, (char **)NULL, 0);
                     mudstate.posesay_fluff = 1;
                     if ( mudstate.chkcpu_toggle ) {
                        aflags |= AF_NOPROG;
@@ -820,8 +820,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                        ENDLOG
                     }
                  } else {
-                    s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
-                                         vap, 4, (char **)NULL, 0);
+                    s_pipebuffptr = cpuexec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
+                                            vap, 4, (char **)NULL, 0);
                  }
                  free_mbuf(vap[1]);
                  free_mbuf(vap[2]);
@@ -879,8 +879,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
                  if ( mudconf.posesay_funct && !mudstate.chkcpu_toggle ) {
                     mudstate.posesay_fluff = 0;
-                    s_pipebuffptr = exec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
-                                         vap, 4, (char **)NULL, 0);
+                    s_pipebuffptr = cpuexec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
+                                            vap, 4, (char **)NULL, 0);
                     mudstate.posesay_fluff = 1;
                     if ( mudstate.chkcpu_toggle ) {
                        aflags |= AF_NOPROG;
@@ -894,8 +894,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                        ENDLOG
                     }
                  } else {
-                    s_pipebuffptr = exec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
-                                         vap, 4, (char **)NULL, 0);
+                    s_pipebuffptr = cpuexec(target, target, target, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_pipeattr,
+                                            vap, 4, (char **)NULL, 0);
                  }
                  free_mbuf(vap[1]);
                  free_mbuf(vap[2]);

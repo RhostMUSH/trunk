@@ -381,11 +381,13 @@ char	*tmpformat_buff, *tpr_buff, *tprp_buff;
 dbref	loc, aowner, aowner3, master;
 int	num, aflags, cpustopper, nocandoforyou, aflags3, tst_attr, chkoldstate;
 int     i, i_rlvl, *desclist, found_a_desc, x, i_didsave, i_currattr, did_allocate_buff;
+time_t  chk_stop;
 ATTR 	*tst_glb, *format_atr;
 
 	nocandoforyou = !(!(Toggles2(thing) & TOG_SILENTEFFECTS));
 	/* message to player */
 
+        chk_stop = mudstate.chkcpu_stopper;
         mudstate.chkcpu_stopper = time(NULL);
         chkoldstate = mudstate.chkcpu_toggle;
 	cpustopper = 0;
@@ -736,6 +738,7 @@ ATTR 	*tst_glb, *format_atr;
 					free_lbuf(buff);
 					free_lbuf(charges);
 					mudstate.chkcpu_toggle = chkoldstate;
+                                        mudstate.chkcpu_stopper = chk_stop;
 					return;
 				}
 			}
@@ -797,6 +800,7 @@ ATTR 	*tst_glb, *format_atr;
          }
       }
       mudstate.chkcpu_toggle = chkoldstate;
+      mudstate.chkcpu_stopper = chk_stop;
 }
 
 void 

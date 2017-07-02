@@ -33250,6 +33250,8 @@ FUNCTION(fun_cluster_wipe)
 
    endtme = time(NULL);
    starttme = mudstate.chkcpu_stopper;
+   if ( endtme < starttme )
+      endtme = starttme;
    if ( mudconf.cputimechk < 10 )
       timechk = 10;
    else if ( mudconf.cputimechk > 3600 )
@@ -33263,6 +33265,8 @@ FUNCTION(fun_cluster_wipe)
 
    while ( s_strtok ) {
       endtme = time(NULL);
+      if ( endtme < starttme )
+         endtme = starttme;
       if ( mudstate.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
           mudstate.chkcpu_toggle = 1;
       }

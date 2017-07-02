@@ -2107,6 +2107,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
   dbref	loc, aowner, aowner2, master, aowner3;
   int	num, aflags, cpustopper, nocandoforyou, x, aflags2, o_chkr, tst_attr, aflags3, chkoldstate, i_didsave;
   int   did_allocate_buff;
+  time_t chk_stop;
   ATTR *o_atr, *tst_glb, *format_atr;
 
 	/* message to player */
@@ -2116,6 +2117,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
            nocandoforyou=1;
 	}
 
+        chk_stop = mudstate.chkcpu_stopper;
         mudstate.chkcpu_stopper = time(NULL);
         chkoldstate = mudstate.chkcpu_toggle;
 	cpustopper = 0;
@@ -2476,6 +2478,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 					free_lbuf(buff);
 					free_lbuf(charges);
                                         mudstate.chkcpu_toggle = chkoldstate;
+                                        mudstate.chkcpu_stopper = chk_stop;
 					return;
 				}
 			}
@@ -2543,6 +2546,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
          }
       }
       mudstate.chkcpu_toggle = chkoldstate;
+      mudstate.chkcpu_stopper = chk_stop;
 }
 
 /* ---------------------------------------------------------------------------

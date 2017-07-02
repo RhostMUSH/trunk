@@ -243,7 +243,8 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
-    int aflags, nomatch;
+    int aflags, nomatch, chk_tog;
+    time_t chk_stop;
     dbref aowner;
     ATTR *atr = NULL;
     char *site_info[]={"connect", "badsite", "down", "full", "guest", "register", "newuser", 
@@ -278,9 +279,13 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
              strcpy(sarray[1], sarray[0]);
              sprintf(sarray[2], "%d", fd);
              sprintf(sarray[3], "#%d", NOTHING);
+             chk_stop = mudstate.chkcpu_stopper;
+             chk_tog = mudstate.chkcpu_toggle;
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
                             EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
+             mudstate.chkcpu_stopper = chk_stop;
+             mudstate.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -357,7 +362,8 @@ fcache_dump(DESC * d, int num, char *s_site)
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
-    int aflags, nomatch, i_length;
+    int aflags, nomatch, i_length, chk_tog;
+    time_t chk_stop;
     dbref aowner;
     ATTR *atr = NULL;
     char *site_info[]={"connect", "badsite", "down", "full", "guest", "register", "newuser", 
@@ -394,9 +400,13 @@ fcache_dump(DESC * d, int num, char *s_site)
                 sprintf(sarray[3], "#%d", NOTHING);
              else
                 sprintf(sarray[3], "#%d", d->player);
+             chk_stop = mudstate.chkcpu_stopper;
+             chk_tog = mudstate.chkcpu_toggle;
              mudstate.chkcpu_stopper = time(NULL);
              retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
                             EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
+             mudstate.chkcpu_stopper = chk_stop;
+             mudstate.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {

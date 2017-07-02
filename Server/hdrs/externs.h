@@ -149,6 +149,8 @@ extern int      FDECL(parse_comments, (char *, char *, char **));
 #endif
 extern char *	FDECL(mushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
 #define exec(a, b, c, d, e, f, g, h, i) mushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__) 
+extern char *	FDECL(cpumushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
+#define cpuexec(a, b, c, d, e, f, g, h, i) cpumushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__) 
 
 /* From flags.c */
 extern int      FDECL(DePriv, (dbref, dbref, int, int, int));

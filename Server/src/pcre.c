@@ -5711,6 +5711,8 @@ i, and fc and c, can be the same variables. */
 
   endtme = time(NULL);
   starttme = mudstate.chkcpu_stopper;
+  if ( endtme < starttme )
+     endtme = starttme;
 
   if ( mudconf.cputimechk < 10 )
      timechk = 10;
@@ -7467,6 +7469,8 @@ pcre_exec(const pcre * external_re, const pcre_extra * extra_data,
 
   endtme = time(NULL);
   starttme = mudstate.chkcpu_stopper;
+  if ( endtme < starttme )
+     endtme = starttme;
 
   if ( mudconf.cputimechk < 10 )
      timechk = 10;

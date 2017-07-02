@@ -77,14 +77,14 @@ extern char *t_errlist[];
 extern void NDECL(dispatch);
 void NDECL(pcache_sync);
 
-static int sock;
+static int sock, sock2;
 int ndescriptors = 0;
 
 DESC *descriptor_list = NULL;
 DESC *desc_in_use = NULL;
 
-DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *, int));
-DESC *FDECL(new_connection, (int));
+DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *, int, int));
+DESC *FDECL(new_connection, (int, int));
 int FDECL(process_output, (DESC *));
 int FDECL(process_input, (DESC *));
 extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, int, int, char *));
@@ -334,7 +334,11 @@ int make_socket(int port, char* address)
     listen(s, 5);
 #endif
     STARTLOG(LOG_STARTUP, "INI", "BSD")
-      log_text(unsafe_tprintf("RhostMUSH is now listening on port <%d>", port));
+      if ( mudconf.api_port == port ) {
+         log_text(unsafe_tprintf("RhostMUSH API is now listening on port <%d>", port));
+      } else {
+         log_text(unsafe_tprintf("RhostMUSH is now listening on port <%d>", port));
+      }
     ENDLOG
     if ( (f_fptr = fopen("netrhost.pid", "w")) != NULL ) {
        fprintf(f_fptr, "%d\n", (int)getpid());
@@ -371,7 +375,7 @@ shovechars(int port,char* address)
     char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr, *s_buff3, *s_buff3ptr;
 #endif
     FILE *f;
-    int silent, i_progatr, anum;
+    int silent, i_progatr, anum, apiport;
     unsigned int ulCRC32;
     ATTR *ap;
 
@@ -387,8 +391,12 @@ shovechars(int port,char* address)
 #endif
 
     DPUSH; /* #2 */
+    apiport = mudconf.api_port;
     mudstate.debug_cmd = (char *) "< shovechars >";
     sock = make_socket(port, address);
+    if ( apiport != -1 ) {
+       sock2 = make_socket(apiport, address);
+    }
     maxd = sock + 1;
     get_tod(&last_slice);
     flagkeep = i_oldlasttime = i_oldlastcnt = 0;
@@ -541,8 +549,15 @@ shovechars(int port,char* address)
 #ifdef TLI
 	    fds[sock].fd = sock;
 	    fds[sock].events = POLLIN;
+            if ( apiport != -1 ) {
+	       fds[sock2].fd = sock2;
+	       fds[sock2].events = POLLIN;
+            }
 #else
 	    FD_SET(sock, &input_set);
+            if ( apiport != -1 ) {
+	       FD_SET(sock2, &input_set);
+            }
 #endif
 	}
 
@@ -667,7 +682,7 @@ shovechars(int port,char* address)
 
 	check = CheckInput(sock);
 	if (check) {
-	    newd = new_connection(sock);
+	    newd = new_connection(sock, 0);
 	    if (!newd) {
 #ifdef TLI
 		check = (errno && (errno != ENFILE));
@@ -691,6 +706,34 @@ shovechars(int port,char* address)
 		    maxd = newd->descriptor + 1;
 	    }
 	}
+        if ( apiport != -1 ) {
+	   check = CheckInput(sock2);
+	   if (check) {
+	       newd = new_connection(sock2, 1);
+	       if (!newd) {
+#ifdef TLI
+		   check = (errno && (errno != ENFILE));
+#else
+		   check = (errno && (errno != EINTR) &&
+			    (errno != EMFILE) &&
+			    (errno != ENFILE));
+#endif
+		   if (check) {
+                       if( ++new_connection_error_count == 10 ) {
+                         log_perror("NET", "FAIL", NULL,
+                                    "new_connection/stop");
+                       }
+                       else if( new_connection_error_count < 10 ) {
+		         log_perror("NET", "FAIL", NULL,
+		   	            "new_connection");
+                       }
+		   }
+	       } else {
+		   if (newd->descriptor >= maxd)
+		       maxd = newd->descriptor + 1;
+	       }
+	   }
+        }
 
 	/* Check for activity on user sockets */
 	DESC_SAFEITER_ALL(d, dnext) {
@@ -887,6 +930,11 @@ shovechars(int port,char* address)
 		    shutdownsock(d, R_SOCKDIED);
 		}
 	    }
+            if ( (d->flags & DS_API) ) {
+		if ( (d->connected_at + 5) < time(NULL) ) {
+			shutdownsock(d, R_QUIT);
+		}
+            }
 	}
 	door_checkInternalDoorDescriptors(&input_set, &output_set);
 	
@@ -962,7 +1010,7 @@ struct t_call *nc_call = (struct t_call *) NULL;
 #endif
 
 DESC *
-new_connection(int sock)
+new_connection(int sock, int key)
 {
     int newsock, maxsitecon, maxtsitecon, cur_port, i_retvar = -1;
     char *buff, *buff1, *cmdsave, tchbuff[LBUF_SIZE], *tsite_buff;
@@ -970,7 +1018,7 @@ new_connection(int sock)
     struct sockaddr_in addr;
     static int spam_log = 0;
     char *logbuff, *addroutbuf;
-    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, i_proxychk;
+    int myerrno = 0, i_chktor = 0, i_chksite = -1, i_forbid = 0, i_proxychk, i_addflags;
 #ifndef __MACH__
 #ifndef CYGWIN
 #ifndef BROKEN_PROXY
@@ -992,6 +1040,10 @@ new_connection(int sock)
     cur_port = i_proxychk = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< new_connection >";
+    i_addflags = 0;
+    if ( key ) {
+       i_addflags = MF_API;
+    }
 #ifdef TLI
     if (!nc_call) {
 	nc_call = (struct t_call *) t_alloc(sock, T_CALL, T_ALL);
@@ -1105,18 +1157,18 @@ new_connection(int sock)
           ENDLOG
           if ( (mudconf.proxy_checker & 2) && (mudconf.proxy_checker & 4) ) {
              i_proxychk = H_NOGUEST | H_REGISTRATION;
-             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [GUEST/REGISTER DISABLED]", NULL,
+             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [GUEST/REGISTER DISABLED]", NULL,
                                      inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
           } else if ( mudconf.proxy_checker & 2 ) {
              i_proxychk = H_NOGUEST;
-             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [GUEST DISABLED]", NULL,
+             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [GUEST DISABLED]", NULL,
                                      inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
           } else if ( mudconf.proxy_checker & 4 ) {
              i_proxychk = H_REGISTRATION;
-             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY [REGISTER DISABLED]", NULL,
+             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [REGISTER DISABLED]", NULL,
                                      inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
           } else {
-             broadcast_monitor(NOTHING, MF_CONN, "POSSIBLE PROXY", NULL,
+             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY", NULL,
                                      inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
           }
        } 
@@ -1133,10 +1185,10 @@ new_connection(int sock)
                   newsock, inet_ntoa(addr.sin_addr), (i_chktor ? "TOR" : "Blacklisted"), cur_port);
           log_text(buff);
           if ( i_chktor ) {
-             broadcast_monitor(NOTHING, MF_CONN, "SITE IN TOR", NULL,
+             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "SITE IN TOR", NULL,
                                inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
           } else {
-             broadcast_monitor(NOTHING, MF_CONN, "SITE IN BLACKLIST", NULL,
+             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "SITE IN BLACKLIST", NULL,
                                inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
           }
           free_mbuf(buff);
@@ -1164,7 +1216,7 @@ new_connection(int sock)
           if (mudconf.lastsite_paranoia == 1) {
              cf_site((int *)&mudstate.access_list, tchbuff,
                      H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
-  	     broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("SITE SET AUTO-REGISTER[%d attempts/%ds time]", 
+  	     broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-REGISTER[%d attempts/%ds time]", 
                                mudstate.cmp_lastsite_cnt, 
                                (mudstate.now - mudstate.last_con_attempt)),
                                NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
@@ -1178,7 +1230,7 @@ new_connection(int sock)
           } else {
              cf_site((int *)&mudstate.access_list, tchbuff,
                      H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
-  	     broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("SITE SET AUTO-FORBID[%d attempts/%ds time]", 
+  	     broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-FORBID[%d attempts/%ds time]", 
                                mudstate.cmp_lastsite_cnt, 
                                (mudstate.now - mudstate.last_con_attempt)),
                                NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
@@ -1244,19 +1296,19 @@ new_connection(int sock)
 	   ENDLOG
         }
         if ( maxsitecon >= mudconf.max_sitecons ) {
-  	   broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("MAX OPEN PORTS[%d]", maxsitecon), NULL, 
+  	   broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("MAX OPEN PORTS[%d]", maxsitecon), NULL, 
                              inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
         } else if ( maxtsitecon >= (mudstate.max_logins_allowed+7) ) {
-  	   broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("MAX OPEN DESCRIPTORS[%d]", maxtsitecon), NULL, 
+  	   broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("MAX OPEN DESCRIPTORS[%d]", maxtsitecon), NULL, 
                              inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
         } else {
            if ( i_chksite == -1 )
               i_chksite = i_retvar;
            if ( i_chksite != -1 ) {
-  	      broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("PORT REJECT[%d max]", i_chksite), NULL, 
+  	      broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("PORT REJECT[%d max]", i_chksite), NULL, 
                                 inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
            } else {
-  	      broadcast_monitor(NOTHING, MF_CONN, "PORT REJECT", NULL, 
+  	      broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT REJECT", NULL, 
                                 inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
            }
         }
@@ -1288,13 +1340,16 @@ new_connection(int sock)
            free_lbuf(buff1);
            ENDLOG
         }
-	d = initializesock(newsock, &addr, buff, i_proxychk);
-        broadcast_monitor(NOTHING, MF_CONN, "PORT CONNECT", NULL, buff, newsock, 0, cur_port, NULL);
+	d = initializesock(newsock, &addr, buff, i_proxychk, key);
+        broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT CONNECT", NULL, buff, newsock, 0, cur_port, NULL);
 	free_mbuf(buff);
 	mudstate.debug_cmd = cmdsave;
     }
     mudstate.debug_cmd = cmdsave;
 
+    if ( key ) {
+       d->flags |= DS_API;
+    }
     RETURN(d); /* #5 */
 }
 
@@ -1314,7 +1369,8 @@ static const char *disc_reasons[] =
     "Too Many Connected Players",
     "Reboot",
     "Attempted Hacking",
-    "Too Many Open OS-Based Descriptors"
+    "Too Many Open OS-Based Descriptors",
+    "API Connection"
 };
 
 /* Disconnect reasons that get fed to A_ADISCONNECT via announce_disconnect */
@@ -1333,7 +1389,8 @@ static const char *disc_messages[] =
     "toomany",
     "reboot",
     "hacking",
-    "nodescriptor"
+    "nodescriptor",
+    "api"
 };
 
 void 
@@ -1342,11 +1399,15 @@ shutdownsock(DESC * d, int reason)
     char *buff, *buff2, all[10], tchbuff[LBUF_SIZE], tsitebuff[1001], *ptsitebuff;
     char *addroutbuf, *t_addroutbuf, *tstrtokr;
     time_t now;
-    int temp1, temp2, sitecntr, i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1;
+    int temp1, temp2, sitecntr, i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1, i_addflags;
     struct SNOOPLISTNODE *temp;
     DESC *dchk, *dchknext;
 
     DPUSH; /* #6 */
+    i_addflags = 0;
+    if ( d->flags & DS_API ) {
+       i_addflags = MF_API;
+    }
 
     if ((reason == R_LOGOUT) &&
     (site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN))
@@ -1438,7 +1499,7 @@ shutdownsock(DESC * d, int reason)
 	free_lbuf(buff);
 	free_mbuf(buff2);
 	ENDLOG
-	    announce_disconnect(d->player, d, disc_messages[reason]);
+	announce_disconnect(d->player, d, disc_messages[reason]);
     } else {
 	if (reason == R_LOGOUT)
 	    reason = R_QUIT;
@@ -1548,7 +1609,7 @@ shutdownsock(DESC * d, int reason)
 	d->logged = 0;
 	welcome_user(d);
     } else {
-	broadcast_monitor(NOTHING, MF_CONN, "PORT DISCONNECT", d->userid, d->addr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
+	broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT DISCONNECT", d->userid, d->addr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
 	shutdown(d->descriptor, 2);
 	close(d->descriptor);
 	freeqs(d,0); /* 0 is for all */
@@ -1855,7 +1916,7 @@ check_auth(DESC * d)
 
 
 DESC *
-initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
+initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int keyval)
 {
     DESC *d, *dchk, *dchknext;
     char tchbuff[LBUF_SIZE];
@@ -1961,7 +2022,11 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag)
     d->next = descriptor_list;
     d->prev = &descriptor_list;
     descriptor_list = d;
-    welcome_user(d);
+    if ( !keyval ) {
+       welcome_user(d);
+    } else {
+       d->timeout = 1;
+    }
     start_auth(d);
     RETURN(d); /* #11 */
 }
@@ -2109,7 +2174,7 @@ int
 process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
-    int got, in, lost;
+    int got, in, lost, in_get;
     char *p, *pend, *q, *qend, qfind[12], *qf, *tmpptr = NULL, tmpbuf[15];
     char *cmdsave;
 
@@ -2131,18 +2196,26 @@ process_input(DESC * d)
     p = d->raw_input_at;
     pend = d->raw_input->cmd + LBUF_SIZE - sizeof(CBLKHDR) - 1;
     lost = 0;
+    in_get = 1;
+    if ( d->flags & DS_API ) {
+       in_get = 0;
+    }
+//fprintf(stderr, "Test: %s\nVal: %d", buf, in_get);
     for (q = buf, qend = buf + got; q < qend; q++) {
-	if (*q == '\n') {
-	    *p = '\0';
-	    if (p > d->raw_input->cmd) {
-		save_command(d, d->raw_input);
-		d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-		p = d->raw_input_at = d->raw_input->cmd;
-		pend = d->raw_input->cmd + LBUF_SIZE -
-		    sizeof(CBLKHDR) - 1;
-	    } else {
-		in -= 1;	/* for newline */
-	    }
+	if ( (*q == '\n') && (!(d->flags & DS_API) || (!in_get && ((q+10) > qend) && (d->flags & DS_API))) ) {
+	      *p = '\0';
+if ( d->flags & DS_API ) {
+   fprintf(stderr, ">>>>>>>>>>>>>>>>>>>\nArg: %s\n<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", d->raw_input->cmd);
+}
+		if (p > d->raw_input->cmd) {
+			save_command(d, d->raw_input);
+			d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+			p = d->raw_input_at = d->raw_input->cmd;
+			pend = d->raw_input->cmd + LBUF_SIZE -
+			sizeof(CBLKHDR) - 1;
+		} else {
+			in -= 1;	/* for newline */
+		}
 	} else if ((*q == '\b') || (*q == 127)) {
 	    if (*q == 127)
 		queue_string(d, "\b \b");
@@ -2167,7 +2240,7 @@ process_input(DESC * d)
         } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != 255) ) {
            q++;
         /* Else let's print printables -- This is ASCII-7 [0-128] */
-  	} else if (p < pend && isascii((int)*q) && isprint((int)*q)) {
+  	} else if (p < pend && ((*q == '\n') || (isascii((int)*q) && isprint((int)*q))) ) {
 	    *p++ = *q;
         } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
             sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
@@ -2287,12 +2360,18 @@ close_sockets(int emergency, char *message)
 	}
     }
     close(sock);
+    if ( mudconf.api_port != -1 ) {
+       close(sock2);
+    }
     DPOP; /* #17 */
 }
   
 void close_main_socket( void )
 {
     close(sock);
+    if ( mudconf.api_port != -1 ) {
+       close(sock2);
+    }
 }
 
 void 

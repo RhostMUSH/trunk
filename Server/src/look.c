@@ -1406,6 +1406,8 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 	if (!attr)
 	    continue;
         endtme = time(NULL);
+        if ( endtme < mudstate.chkcpu_stopper )
+           endtme = mudstate.chkcpu_stopper;
         if ( mudstate.chkcpu_toggle || ((endtme - mudstate.chkcpu_stopper) > timechk) ) {
            mudstate.chkcpu_toggle = 1;
            break;
@@ -2106,7 +2108,8 @@ void
 look_in(dbref player, dbref cause, dbref loc, int key)
 {
     char *s, *nfmt, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
-    int pattr, oattr, aattr, is_terse, showkey, has_namefmt, aflags2, x;
+    int pattr, oattr, aattr, is_terse, showkey, has_namefmt, aflags2, x, chk_tog;
+    time_t chk_stop;
     dbref aowner2;
 
     is_terse = (key & LK_OBEYTERSE) ? Terse(player) : 0;
@@ -2148,6 +2151,8 @@ look_in(dbref player, dbref cause, dbref loc, int key)
           else
              s = unparse_object_ansi(player, loc, 1);
     } else {
+       chk_stop = mudstate.chkcpu_stopper;
+       chk_tog = mudstate.chkcpu_toggle;
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        if ( mudconf.formats_are_local ) {
@@ -2160,7 +2165,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
             safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
           }
        }
-       s = exec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
+       s = cpuexec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             pt = mudstate.global_regs[x];
@@ -2171,6 +2176,8 @@ look_in(dbref player, dbref cause, dbref loc, int key)
             free_sbuf(saveregname[x]);
           }
        }
+       mudstate.chkcpu_stopper = chk_stop;
+       mudstate.chkcpu_toggle = chk_tog;
        free_lbuf(nfmt);
     }
     notify(player, s);

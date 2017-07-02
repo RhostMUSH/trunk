@@ -48,6 +48,9 @@ extern int ndescriptors;
 #define	CMD_SESSION	8
 #define	CMD_GET         9
 #define CMD_INFO        10
+#define CMD_HEAD        11
+#define CMD_POST	12
+#define CMD_PUT 	13
 
 #define	CMD_MASK	0xff
 #define	CMD_NOxFIX	0x100
@@ -55,6 +58,7 @@ extern int ndescriptors;
 #define INFO_VERSION    "1"
 
 extern int FDECL(process_output, (DESC * d));
+extern int decode_base64(const char *, int, char *, char **, int);
 extern CF_HAND(cf_site);
 static void desc_addhash(DESC * d);
 extern int FDECL(lookup, (char *, char *, int, int *));
@@ -1332,6 +1336,8 @@ broadcast_monitor(dbref player, int inflags, char *type,
       pt1 = NULL;
      
     DESC_ITER_CONN(d) {
+        if ((inflags & MF_API) && !HasPriv(d->player, NOTHING, POWER_MONITORAPI, POWER5, NOTHING))
+            continue;
         if ((inflags & MF_COMPFAIL) && (Toggles2(d->player) & TOG_MONITOR_BFAIL))
             continue;
         if ((inflags & MF_BFAIL) && !(Toggles2(d->player) & TOG_MONITOR_BFAIL))
@@ -1354,7 +1360,11 @@ broadcast_monitor(dbref player, int inflags, char *type,
 	    if ( (Toggles(d->player) & TOG_MONITOR_CONN) && (Toggles(d->player) & TOG_MONITOR) ) {
 		if( ShowAnsi(d->player) ) 
                   queue_string(d, ANSI_HILITE);
-		queue_string(d, "[MONITOR] ");
+                if (inflags & MF_API ) {
+		   queue_string(d, "[MONITOR] API ");
+                } else {
+		   queue_string(d, "[MONITOR] ");
+                }
 		if( ShowAnsi(d->player) ) 
                   queue_string(d, ANSI_NORMAL);
 		if (Wizard(d->player) || (pt1 == NULL) || SeeSuspect(d->player))
@@ -2366,10 +2376,6 @@ announce_connect(dbref player, DESC * d, int dc)
        }
     }
 
-    /* Initialize cpu for connected players */
-    mudstate.chkcpu_stopper = time(NULL);
-    mudstate.chkcpu_toggle = 0;
-    mudstate.chkcpu_locktog = 0;
 
     look_in(player, player, Location(player), (LK_SHOWEXIT | LK_OBEYTERSE));
     if ( InProgram(player) ) {
@@ -2875,6 +2881,9 @@ NDECL(check_idle)
 			     "*** Login Timeout ***\r\n");
 		shutdownsock(d, R_TIMEOUT);
 	    }
+            if ( (idletime > 1) && (d->flags & DS_API) ) {
+		shutdownsock(d, R_QUIT);
+            }
 	}
     }
     VOIDRETURN; /* #137 */
@@ -3741,6 +3750,9 @@ NAMETAB logout_cmdtable[] =
     {(char *) "WHO", 3, CA_PUBLIC, 0, CMD_WHO},
     {(char *) "GET", 3, CA_PUBLIC, 0, CMD_GET},
     {(char *) "INFO", 4, CA_PUBLIC, 0, CMD_INFO},
+    {(char *) "POST", 4, CA_PUBLIC, 0, CMD_POST},
+    {(char *) "HEAD", 4, CA_PUBLIC, 0, CMD_HEAD},
+    {(char *) "PUT", 3, CA_PUBLIC, 0, CMD_PUT},
     {NULL, 0, 0, 0, 0}};
 
 void 
@@ -3809,12 +3821,9 @@ softcode_trigger(DESC *d, const char *msg) {
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2, *lbuf3ptr, *lbuf3;
 #endif
-    int aflags, i_found;
+    int aflags, i_found, chk_tog;
+    time_t chk_stop;
     dbref aowner;
-
-    mudstate.chkcpu_stopper = time(NULL);
-    mudstate.chkcpu_toggle = 0;
-    mudstate.chkcpu_locktog = 0;
 
     if ( !Good_chk(mudconf.file_object) ) {
        return(0);
@@ -3866,8 +3875,15 @@ softcode_trigger(DESC *d, const char *msg) {
     s_ptr = s_array[4];
     ival(s_array[4], &s_ptr, d->descriptor);
 
+    chk_stop = mudstate.chkcpu_stopper;
+    chk_tog  = mudstate.chkcpu_toggle;
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
     s_return = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                     EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+    mudstate.chkcpu_stopper = chk_stop;
+    mudstate.chkcpu_toggle = chk_tog;
     free_lbuf(s_text);
     if ( !s_return || !*s_return ) {
         free_lbuf(s_return);
@@ -3881,6 +3897,11 @@ softcode_trigger(DESC *d, const char *msg) {
  
     s_strtok = strtok_r(s_return, "|", &s_strtokr);
     i_found = 0;
+    chk_stop = mudstate.chkcpu_stopper;
+    chk_tog  = mudstate.chkcpu_toggle;
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_locktog = 0;
     while ( s_strtok ) {
        if ( stricmp(s_strtok, s_array[0]) == 0 ) {
           i_found = 1;
@@ -3930,6 +3951,8 @@ softcode_trigger(DESC *d, const char *msg) {
        }
        s_strtok = strtok_r(NULL, "|", &s_strtokr);
     }
+    mudstate.chkcpu_stopper = chk_stop;
+    mudstate.chkcpu_toggle = chk_tog;
     free_lbuf(s_array[0]);
     free_lbuf(s_array[1]);
     free_lbuf(s_array[2]);
@@ -3960,10 +3983,6 @@ check_connect(DESC * d, const char *msg)
    cmdsave = mudstate.debug_cmd;
    mudstate.debug_cmd = (char *) "< check_connect >";
 
-    /* Initialize cpu for non connected players */
-   mudstate.chkcpu_stopper = time(NULL);
-   mudstate.chkcpu_toggle = 0;
-   mudstate.chkcpu_locktog = 0;
 
    /* Hide the password length from SESSION */
    d->input_tot -= (strlen(msg) + 1);
@@ -4284,7 +4303,11 @@ check_connect(DESC * d, const char *msg)
                      sprintf(sarray[3], "#%d", NOTHING);
                   else
                      sprintf(sarray[3], "#%d", player);
+                  chk_stop = mudstate.chkcpu_stopper;
+                  chk_tog  = mudstate.chkcpu_toggle;
                   mudstate.chkcpu_stopper = time(NULL);
+                  mudstate.chkcpu_toggle = 0;
+                  mudstate.chkcpu_locktog = 0;
                   if ( i_atr == -1 ) {
                      buff3 = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                                   EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
@@ -4292,6 +4315,8 @@ check_connect(DESC * d, const char *msg)
                      buff3 = exec(player, player, player,
                                   EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
                   }
+                  mudstate.chkcpu_toggle = chk_tog;
+                  mudstate.chkcpu_stopper = chk_stop;
                   if ( buff3 && *buff3 ) {
 #ifdef ZENTY_ANSI
                      lbuf1ptr = lbuf1 = alloc_lbuf("noconnect_ansi1");
@@ -4393,9 +4418,6 @@ check_connect(DESC * d, const char *msg)
                   dc = 0;
                }
             }
-            mudstate.chkcpu_stopper = time(NULL);
-            mudstate.chkcpu_toggle = 0;
-            mudstate.chkcpu_locktog = 0;
             announce_connect(player, d, dc);
 
             if ( (Wizard(player) || God(player)) && (nplayers >= mudstate.max_logins_allowed) ) {
@@ -4562,10 +4584,6 @@ check_connect(DESC * d, const char *msg)
                free_mbuf(buff);
             ENDLOG
 
-            mudstate.chkcpu_stopper = time(NULL);
-            mudstate.chkcpu_toggle = 0;
-            mudstate.chkcpu_locktog = 0;
-
             move_object(player, mudconf.start_room);
             d->flags |= DS_CONNECTED;
             d->connected_at = time(0);
@@ -4683,7 +4701,12 @@ extern int igcheck(dbref, int);
 int 
 do_command(DESC * d, char *command)
 {
-    char *arg, *cmdsave, *time_str, *s_rollback;
+    char *arg, *cmdsave, *time_str, *s_rollback; 
+    char *s_buffer, *s_snarfing, *s_strtok, *s_strtokr, *s_usepass, *s_usepassptr, 
+         *s_get, *s_pass, *s_user, *s_dtime;
+    int  i_snarfing, i_usepass, aflags;
+    dbref aowner, thing;
+    ATTR *atrp;
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
     NAMETAB *cp;
@@ -4795,6 +4818,19 @@ do_command(DESC * d, char *command)
       cp = NULL;
     }
 
+    if ( (d->flags & DS_API) && (cp == NULL) ) {
+       s_dtime = (char *) ctime(&mudstate.now);
+       queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
+       queue_string(d, "Content-type: text/html\r\n");
+       queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+       queue_string(d, "Exec: Error - Invalid Headers Supplied\r\n");
+       shutdownsock(d, R_API);
+       mudstate.debug_cmd = cmdsave;
+       if ( chk_perm && cp )
+          cp->perm = store_perm;
+       RETURN(0); /* #147 */
+    }
+
     if (cp == NULL || (cp != NULL && InProgram(d->player) && command[0] != '|') || 
         (((NoShProg(d->player) && !mudconf.noshell_prog) ||
           (!NoShProg(d->player) && mudconf.noshell_prog && !Immortal(d->player))) && 
@@ -4859,7 +4895,7 @@ do_command(DESC * d, char *command)
 	mudstate.debug_cmd = cp->name;
 	switch (cp->flag & CMD_MASK) {
 	case CMD_QUIT:
-	    if (!Fubar(d->player)) {
+	    if (Good_chk(d->player) && !Fubar(d->player)) {
 		shutdownsock(d, R_QUIT);
 		mudstate.debug_cmd = cmdsave;
 		if ( chk_perm && cp )
@@ -4900,13 +4936,139 @@ do_command(DESC * d, char *command)
 	case CMD_SUFFIX:
 	    set_userstring(&d->output_suffix, arg);
 	    break;
+        case CMD_PUT:
+        case CMD_HEAD:
+            if ( d->flags & DS_CONNECTED ) {
+               notify_quiet(d->player, "Not supported.");
+               break;
+            }
+            shutdownsock(d, R_API);
+            mudstate.debug_cmd = cmdsave;
+            if ( chk_perm && cp )
+               cp->perm = store_perm;
+            RETURN(0); /* #147 */
+            break;
         case CMD_GET:
-          queue_string(d, "Content-type: text/html\r\n"
-                          "\r\n"
-                          "<H1>Rhostshyl HTML Test</H1>\r\n"
-                          "This is a test.");
-          queue_write(d, "\r\n", 2);
-          break;
+            if ( !(d->flags & DS_API) || (d->flags & DS_CONNECTED) ) {
+               if ( d->flags & DS_CONNECTED ) {
+                  notify_quiet(d->player, "Permission denied.");
+               }
+               break;
+            }
+#ifndef HAS_OPENSSL
+            s_dtime = (char *) ctime(&mudstate.now);
+            queue_string(d, "HTTP/1.1 200 OK\r\n");
+            queue_string(d, "Content-type: text/html\r\n");
+            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+            queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
+#else
+            queue_string(d, "To be added.\r\n");
+            shutdownsock(d, R_API);
+            mudstate.debug_cmd = cmdsave;
+            if ( chk_perm && cp )
+               cp->perm = store_perm;
+            RETURN(0); /* #147 */
+            break;
+#endif
+
+        case CMD_POST:
+            if ( !(d->flags & DS_API) || (d->flags & DS_CONNECTED) ) {
+               if ( d->flags & DS_CONNECTED ) {
+                  notify_quiet(d->player, "Permission denied.");
+               }
+               break;
+            }
+            s_dtime = (char *) ctime(&mudstate.now);
+#ifndef HAS_OPENSSL
+            queue_string(d, "HTTP/1.1 200 OK\r\n");
+            queue_string(d, "Content-type: text/html\r\n");
+            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+            queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
+#else
+            s_snarfing = alloc_lbuf("cmd_get");
+            s_buffer = alloc_lbuf("cmd_get_buff");
+            s_usepassptr = s_usepass = alloc_lbuf("cmd_get_userpass");
+            s_user = alloc_lbuf("cmd_get_user");
+            strcpy(s_buffer, arg);
+            s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
+            i_snarfing = i_usepass = 0;
+            while ( s_strtok ) {
+               if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
+                  i_snarfing = 1;
+               }
+               if ( !i_usepass && (sscanf(s_strtok, "Authorization: Basic %[^\n]", s_user) == 1) ) {
+                  i_usepass = strlen(s_user);
+                  decode_base64((const char*)s_user, i_usepass, s_usepass, &s_usepassptr, 0);
+                  i_usepass = 1;
+               }
+               s_strtok = strtok_r(NULL, "\n", &s_strtokr);
+            }
+            if ( ((*s_usepass == '#') && isdigit(*(s_usepass+1))) && (strchr(s_usepass, ':') != NULL) ) {
+               free_lbuf(s_user);
+               s_user = s_usepass+1;
+               s_pass = strchr(s_usepass, ':');
+               *s_pass = '\0';
+               s_pass++;
+               thing = atoi(s_user);
+               if ( !Good_chk(thing) ) {
+                  queue_string(d, "HTTP/1.1 404 Not Found\r\n");
+                  queue_string(d, "Content-type: text/html\r\n");
+                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                  queue_string(d, "Exec: Error - Invalid target\r\n");
+               } else if ( !HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) )  {
+                  queue_string(d, "HTTP/1.1 403 Not Found\r\n");
+                  queue_string(d, "Content-type: text/html\r\n");
+                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                  queue_string(d, "Exec: Error - Permission Denied\r\n");
+               } else {
+                  atrp = atr_str3("_APIPASSWD");
+                  if ( atrp ) {
+                     s_get = atr_get(thing, atrp->number, &aowner, &aflags);
+                     if ( *s_get && mush_crypt_validate(thing, s_pass, s_get, 0)) {
+                        if ( *s_snarfing ) {
+	                   wait_que(thing, thing, 0, NOTHING, s_snarfing, (char **)NULL, 0, NULL, NULL);
+                           queue_string(d, "HTTP/1.1 200 OK\r\n");
+                           queue_string(d, "Content-type: text/html\r\n");
+                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                           queue_string(d, "Exec: Ok - Queued\r\n");
+                        } else {
+                           queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
+                           queue_string(d, "Content-type: text/html\r\n");
+                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                           queue_string(d, "Exec: Error - Empty String\r\n");
+                        }
+                     } else {
+                        queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                        queue_string(d, "Content-type: text/html\r\n");
+                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                        queue_string(d, "Exec: Error - Permission Denied\r\n");
+                     }
+                     free_lbuf(s_get);
+                  } else {
+                     queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                     queue_string(d, "Content-type: text/html\r\n");
+                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                     queue_string(d, "Exec: Error - Permission Denied\r\n");
+                  }
+               }
+            } else {
+               queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+               queue_string(d, "Content-type: text/html\r\n");
+               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+               queue_string(d, "Exec: Error - Malformed User or Password\r\n");
+               free_lbuf(s_user);
+            }
+            free_lbuf(s_snarfing);
+            free_lbuf(s_buffer);
+            free_lbuf(s_usepass);
+            shutdownsock(d, R_API);
+            mudstate.debug_cmd = cmdsave;
+            if ( chk_perm && cp )
+               cp->perm = store_perm;
+            RETURN(0); /* #147 */
+            break;
+#endif
+
         case CMD_INFO:
           gotone = 0;
           DESC_ITER_CONN(d2) {
@@ -4930,7 +5092,15 @@ do_command(DESC * d, char *command)
           queue_string(d, "### End INFO");
           queue_write(d, "\r\n", 2); 
           break;
+
 	default:
+            if ( d->flags & DS_API ) {
+               shutdownsock(d, R_API);
+               mudstate.debug_cmd = cmdsave;
+               if ( chk_perm && cp )
+                  cp->perm = store_perm;
+               RETURN(0); /* #147 */
+            }
 	    STARTLOG(LOG_BUGS, "BUG", "PARSE")
 		arg = alloc_lbuf("do_command.LOG");
 	    sprintf(arg,
@@ -4940,6 +5110,14 @@ do_command(DESC * d, char *command)
 	    free_lbuf(arg);
 	    ENDLOG
 	}
+    }
+    /* Any API foo should just drop here as we have nothing for them to do */
+    if ( d->flags & DS_API ) {
+       shutdownsock(d, R_QUIT);
+       mudstate.debug_cmd = cmdsave;
+       if ( chk_perm && cp )
+          cp->perm = store_perm;
+       RETURN(0); /* #147 */
     }
     if (cp && !(cp->flag & CMD_NOxFIX)) {
 	if (d->output_suffix) {

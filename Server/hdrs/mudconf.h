@@ -44,6 +44,7 @@ struct confdata {
 	char ip_address[15];
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
+	int	api_port;	/* API port -- Ashen-Shugar 6/2017 */
         int     debug_id;       /* shared memory key for debug monitor */
 	int	authenticate;	/* Do we wish to use AUTH protocol? */
 	int	init_size;	/* initial db size */

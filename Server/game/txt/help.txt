@@ -31672,6 +31672,8 @@
   * msecs() like secs() but shows milisecond counts [ASH]
   * exec_secure for execscript(_) config param (default 1) which does as it 
     does now.  setting it to '0' escapes all characters but alphanumeric [ASH]
+  * BETA -- Added API handler for POST notation (still need GET).  This
+    is undocumented still and not fully tested.  Enable at own risk.
   
   Changes
   ------------
@@ -31712,3 +31714,4 @@
   * off by one argument handler for @rollback [ASH]
   * segments not initialized properly for CPU alarms [ASH]
   * error in CPUTIME not always being initialized properly [ASH]
+  * Some CPU handlers were broke and far too aggressive [ASH]

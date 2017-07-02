@@ -627,15 +627,17 @@ static void page_return (dbref player, dbref target, const char *tag,
                          int anum, const char *dflt, const char *s_pagestr)
 {
    dbref aowner;
-   int aflags, i_pagebuff;
+   int aflags, i_pagebuff, chk_tog;
    char *str, *str2, *tpr_buff, *tprp_buff, *s_pagebuff[2];
    struct tm *tp;
-   time_t t;
+   time_t t, chk_stop;
 
    if (Wizard(player))
       mudstate.droveride = 1;
    str = atr_pget(target, anum, &aowner, &aflags);
    if (*str) {
+      chk_stop = mudstate.chkcpu_stopper;
+      chk_tog  = mudstate.chkcpu_toggle;
       mudstate.chkcpu_stopper = time(NULL);
       mudstate.chkcpu_toggle = 0;
       s_pagebuff[1] = NULL;
@@ -646,8 +648,8 @@ static void page_return (dbref player, dbref target, const char *tag,
          s_pagebuff[0] = NULL;
          i_pagebuff = 0;
       }
-      str2 = exec(target, player, player, EV_FCHECK|EV_EVAL|EV_TOP, str,
-                  s_pagebuff, i_pagebuff, (char **)NULL, 0);
+      str2 = cpuexec(target, player, player, EV_FCHECK|EV_EVAL|EV_TOP, str,
+                     s_pagebuff, i_pagebuff, (char **)NULL, 0);
       t = time(NULL);
       tp = localtime(&t);
       if (*str2) {
@@ -662,6 +664,8 @@ static void page_return (dbref player, dbref target, const char *tag,
          free_lbuf(tpr_buff);
       }
       free_lbuf(str2);
+      mudstate.chkcpu_stopper = chk_stop;
+      mudstate.chkcpu_toggle = chk_tog;
    } else if (dflt && *dflt) {
       notify_with_cause(player, target, dflt);
    }

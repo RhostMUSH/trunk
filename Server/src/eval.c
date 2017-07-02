@@ -130,7 +130,7 @@ sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, ch
             safe_str(s_include, buff, bufc);
          else {
             mudstate.sub_overridestate = mudstate.sub_overridestate | i_include;
-            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+            sub_buf = cpuexec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
             if ( !*sub_buf )
                safe_str(s_include, buff, bufc);
             else
@@ -370,8 +370,8 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 	else
 	    tstr = parse_to(&rstr, '\0', peval);
 	if (eval & EV_EVAL) {
-	    fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK, tstr,
-			      cargs, ncargs, regargs, nregargs);
+	    fargs[arg] = cpuexec(player, cause, caller, eval | EV_FCHECK, tstr,
+			         cargs, ncargs, regargs, nregargs);
 	} else {
             if (  i_type  ) {
                mychar = mycharptr = alloc_lbuf("no_eval_parse_arglist");
@@ -394,8 +394,8 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
                   }
                   s++;
                }
-	       fargs[arg] = exec(player, cause, caller, eval | EV_FCHECK | EV_EVAL | ~EV_STRIP_ESC, mychar,
-			         cargs, ncargs, regargs, nregargs);
+	       fargs[arg] = cpuexec(player, cause, caller, eval | EV_FCHECK | EV_EVAL | ~EV_STRIP_ESC, mychar,
+			            cargs, ncargs, regargs, nregargs);
                free_lbuf(mychar);
             } else {
 	       fargs[arg] = alloc_lbuf("parse_arglist");
@@ -1325,9 +1325,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
        tinterval = 0;
     endtme = time(NULL);
     starttme = mudstate.chkcpu_stopper;
-
-    /* Conditional if clock rolled back between chkcpu_stopper and current time check */
-    if ( starttme > endtme )
+    if ( endtme < starttme ) 
        endtme = starttme;
 
     //if ( mudconf.cputimechk < 10 )
@@ -3135,3 +3133,21 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     RETURN(buff); /* #67 */
 }
+
+char *
+cpumushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
+     char *cargs[], int ncargs, char *regargs[], int nregargs, int i_line, char *s_file)
+{
+   int chk_tog;
+   time_t chk_stop;
+   char *s_bob;
+
+   chk_stop = mudstate.chkcpu_stopper;
+   chk_tog = mudstate.chkcpu_toggle;
+   mudstate.chkcpu_stopper = time(NULL);
+   s_bob = mushexec(player, cause, caller, eval, dstr, cargs, ncargs, regargs, nregargs, i_line, s_file);
+   mudstate.chkcpu_stopper = chk_stop;
+/* mudstate.chkcpu_toggle = chk_tog; */
+   return(s_bob);
+}
+

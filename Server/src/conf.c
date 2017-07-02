@@ -89,6 +89,7 @@ NDECL(cf_init)
 	strcpy(mudconf.ip_address, "0.0.0.0");
     mudconf.port = 6250;
     mudconf.html_port = 6251;
+    mudconf.api_port = -1;
     mudconf.debug_id = 44660;
     mudconf.authenticate = 1;
     mudconf.init_size = 1000;
@@ -1890,7 +1891,7 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
    sprintf(mybuff[1], "#%d", target);
    sprintf(mybuff[2], "%d", i_type);
    mudstate.insideaflags = 1;
-   retval = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL,
+   retval = cpuexec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL,
                             atext, mybuff, 3, (char **)NULL, 0);
    mudstate.insideaflags = 0;
    free_sbuf(mybuff[0]);
@@ -3820,6 +3821,10 @@ CONF conftable[] =
     {(char *) "ansi_txtfiles",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ansi_txtfiles, 0, 0, CA_WIZARD,
      (char *) "Are .txt files processed for ansi?"},
+    {(char *) "api_port",
+     cf_int, CA_DISABLED, &mudconf.api_port, 0, 0, CA_WIZARD,
+     (char *) "Specifies what the API port is.  '-1' disables this.\r\n"\
+              "                             Default: -1   Value: %d"},
     {(char *) "authenticate",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.authenticate, 0, 0, CA_WIZARD,
      (char *) "Are site AUTH/IDENT lookups done?"},
