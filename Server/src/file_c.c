@@ -282,8 +282,8 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
              chk_stop = mudstate.chkcpu_stopper;
              chk_tog = mudstate.chkcpu_toggle;
              mudstate.chkcpu_stopper = time(NULL);
-             retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
+             retbuff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
+                               EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
              mudstate.chkcpu_stopper = chk_stop;
              mudstate.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
@@ -403,8 +403,8 @@ fcache_dump(DESC * d, int num, char *s_site)
              chk_stop = mudstate.chkcpu_stopper;
              chk_tog = mudstate.chkcpu_toggle;
              mudstate.chkcpu_stopper = time(NULL);
-             retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
+             retbuff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
+                               EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
              mudstate.chkcpu_stopper = chk_stop;
              mudstate.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
