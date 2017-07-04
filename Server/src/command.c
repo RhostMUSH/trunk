@@ -2883,6 +2883,7 @@ process_command(dbref player, dbref cause, int interactive,
     /* For all valid commands we must initialize the timers */
     mudstate.heavy_cpu_recurse = 0;
     mudstate.heavy_cpu_tmark1 = time(NULL);
+    mudstate.chkcpu_toggle = 0;
     mudstate.chkcpu_stopper = time(NULL);
     mudstate.chkcpu_locktog = 0;
     mudstate.stack_val = 0;
@@ -3437,6 +3438,7 @@ process_command(dbref player, dbref cause, int interactive,
 	process_cmdent(prefix_cmds[i], NULL, player, cause,
 		       interactive, command, command, args, nargs, 0, lst_cmd);
         if ( mudstate.chkcpu_toggle ) {
+           mudstate.chkcpu_toggle = 0;
            if ( mudstate.curr_cpu_user != player ) {
               mudstate.curr_cpu_user = player;
               mudstate.curr_cpu_cycle = 0;
@@ -4145,6 +4147,7 @@ process_command(dbref player, dbref cause, int interactive,
 	process_cmdent(cmdp, slashp, player, cause, interactive, arg,
 		       command, args, nargs, cval, lst_cmd);
         if ( mudstate.chkcpu_toggle ) {
+           mudstate.chkcpu_toggle = 0;
            if ( mudstate.curr_cpu_user != player ) {
               mudstate.curr_cpu_user = player;
               mudstate.curr_cpu_cycle = 0;
