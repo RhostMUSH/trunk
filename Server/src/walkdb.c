@@ -150,17 +150,18 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             if ( buff3tok ) {
                strcpy(mudstate.rollback, buff3tok);
             }
-            while ( !mudstate.breakdolist && buff3tok && !mudstate.breakst ) { 
+            while ( !mudstate.breakdolist && !mudstate.chkcpu_toggle && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
                   process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook);
                }
-               if ( time(NULL) > (i_now + 3) ) {
+               if ( mudstate.chkcpu_toggle || (time(NULL) > (i_now + 3)) ) {
                    if ( !mudstate.breakdolist ) {
                       notify(player, unsafe_tprintf("@dolist/inline:  Aborted for high utilization [nest level %d].", mudstate.dolistnest));
                    }
                    i_nobreak=0;
-                   mudstate.breakdolist=1;
+                   mudstate.breakdolist = 1;
+                   mudstate.chkcpu_toggle = 1;
                    break;
                }
             }

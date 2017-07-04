@@ -31715,3 +31715,4 @@
   * segments not initialized properly for CPU alarms [ASH]
   * error in CPUTIME not always being initialized properly [ASH]
   * Some CPU handlers were broke and far too aggressive [ASH]
+  * bug in @dolist/inline that wouldn't fully honor CPU protection [ASH]
