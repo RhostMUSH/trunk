@@ -156,8 +156,8 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
                mybuff[0] = alloc_sbuf("boolexp_eval");
                mybuff[1] = NULL;
                sprintf(mybuff[0], "%d", i_evaltype);
-	       buff2 = exec(source, player, player, EV_FIGNORE | EV_EVAL | EV_TOP,
-			    buff, mybuff, 1, (char **)NULL, 0);
+	       buff2 = cpuexec(source, player, player, EV_FIGNORE | EV_EVAL | EV_TOP,
+			       buff, mybuff, 1, (char **)NULL, 0);
                free_sbuf(mybuff[0]);
                if ( mudstate.chkcpu_toggle && !lockchk )
                   mudstate.chkcpu_locktog = 1;
