@@ -1,3 +1,7 @@
+                         RhostMUSH 4.0 Update File
+MUX passwords didn't work properly because of a memcmp() bug.
+				- Thanks Locke
+
                          RhostMUSH 3.9.5 Update File
 Softcode overrides for connect files
 				- Thanks Matrix

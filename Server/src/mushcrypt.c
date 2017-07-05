@@ -374,7 +374,8 @@ check_mux_password(const char *saved, const char *password)
    decode_base64(end, strlen(end), decoded, &dp, 1);
 
    /* Compare stored to hashed */
-   return_chk = (memcmp(decoded, hash, rlen) == 0);
+/* return_chk = (memcmp(decoded, hash, rlen) == 0); */
+   return_chk = (strcmp(decoded, hash) == 0);
    free_lbuf(decoded);
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
    EVP_MD_CTX_free(ctx);
