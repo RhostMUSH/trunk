@@ -192,10 +192,10 @@
 
   Example curl commands that are used for the API handler are:
   GET Examples (this is from a command line using the 'curl' application)
-    > curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]"  http://localhost:2222
+> curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" --head http://localhost:2222
   
   POST Example: (this is from a command line using the 'curl' application)
-    > curl -X POST --user "#12:ya" -H "Exec: @emit hi!"  http://localhost:2222
+> curl -X POST --user "#12:ya" -H "Exec: @emit hi!" --head http://localhost:2222
   
   To have a target dbref# enabled for API processing, please alert a staff
   on your game as it requires staff approval and authentication to enable
