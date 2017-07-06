@@ -574,6 +574,13 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define AFLAGS_DEL	0x00000010
 #define AFLAGS_SEARCH	0x00000020
 
+#define API_STATUS	0x00000001
+#define API_PASSWORD	0x00000002
+#define API_IP		0x00000004
+#define API_ENABLE	0x00000008
+#define API_DISABLE	0x00000010
+#define API_CHKPASSWD	0x00000020
+
 #define AREG_LOAD	0x00000001
 #define AREG_UNLOAD	0x00000002
 #define AREG_LIST	0x00000004
@@ -1049,9 +1056,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SITE_NOAUTH	32
 #define SITE_NODNS	64
 #define SITE_ALL	128
-#define SITE_PER	256
+#define SITE_FORAPI	256
 #define SITE_TRU	512
 #define SITE_LIST	1024	/* List @site/list information */
+#define SITE_PER	2048
 
 #define SKIP_IFELSE	1	/* @ifelse conversion for @skip */
 

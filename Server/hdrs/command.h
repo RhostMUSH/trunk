@@ -160,6 +160,7 @@ CMD_ONE_ARG(do_search_for_players);
 CMD_ONE_ARG(do_selfboot);
 CMD_TWO_ARG(do_set);			/* Set flags or attributes */
 CMD_TWO_ARG(do_toggle);			/* Set flags or attributes */
+CMD_TWO_ARG(do_api);			/* Set flags or attributes */
 CMD_NO_ARG(do_tor);			/* TOR cache manipulation */
 CMD_TWO_ARG_SEP(do_setattr);		/* Set object attribute */
 CMD_TWO_ARG(do_setvattr);		/* Set variable attribute */

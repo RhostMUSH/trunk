@@ -427,20 +427,20 @@
   slay            WHO             wizhelp        mail            wmail
   channel         cd              news           newsdb
  
-  @admin          @aflags         @apply_marked  @areg           @attribute 
-  @blacklist      @boot           @chown         @chownall       @clone     
-  @conncheck      @convert        @cut           @dbck           @dbclean
-  @depower        @destroy        @disable       @doing          @dump       
-  @dynhelp        @enable         @fixdb         @flag           @flagdef    
-  @freeze         @function       @halt          @hide           @hook       
-  @icmd           @kick           @limit         @list           @list_file  
-  @listmotd       @lock           @log           @logrotate      @mark       
-  @mark_all       @money          @motd          @newpassword    @nuke       
-  @pcreate        @poor           @power         @progreset      @protect    
-  @ps             @purge          @quota         @readcache      @reboot     
-  @recover        @reclist        @remote        @rwho           @site       
-  @shutdown       @snapshot       @thaw          @timewarp       @toad       
-  @tor            @turtle         @wall          +players
+  @admin          @aflags         @api           @apply_marked   @areg       
+  @attribute      @blacklist      @boot          @chown          @chownall   
+  @clone          @conncheck      @convert       @cut            @dbck       
+  @dbclean        @depower        @destroy       @disable        @doing      
+  @dump           @dynhelp        @enable        @fixdb          @flag      
+  @flagdef        @freeze         @function      @halt           @hide       
+  @hook           @icmd           @kick          @limit          @list       
+  @list_file      @listmotd       @lock          @log            @logrotate   
+  @mark           @mark_all       @money         @motd           @newpassword
+  @nuke           @pcreate        @poor          @power          @progreset  
+  @protect        @ps             @purge         @quota          @readcache  
+  @reboot         @recover        @reclist       @remote         @rwho       
+  @site           @shutdown       @snapshot      @thaw           @timewarp   
+  @toad           @tor            @turtle        @wall           +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -453,16 +453,190 @@
 & topics
   Help available on the following Topics:
  
-  CAUTIONS           CONFIG PARAMETERS  DEBUG FEATURES     FILES
-  FLAGS              INHERITANCE        LOGGING            MASTER ROOM
-  PERMISSIONS        SEARCH CRITERIA    SITE LISTS         TOGGLES
-  POWER LIST         DEPOWER LIST       AUTOREGISTRATION   CLOAKING
-  ALT INVENTORIES    CPU                GUEST SETUP        NEWS SETUP
-  HELP SETUP         PLUSHELP SETUP     HUH SETUP          ELSEFILE SETUP
-  REALITY LEVELS     MAIL ALIASES       HOOK SETUP         FUNCTION OVERLOADING
-  FLAG ALIAS         ATTRIB CONTLOCKS   GLOBAL INHERITANCE ATTRIB FORMATTING
-  SIGNALS            TOR                CONTROL            CUSTOMIZED CONNECT
-  SPECIAL ATTRIBS
+  API                   CAUTIONS         CONFIG PARAMETERS  DEBUG FEATURES   
+  FILES                 FLAGS            INHERITANCE        LOGGING          
+  MASTER ROOM           PERMISSIONS      SEARCH CRITERIA    SITE LISTS       
+  TOGGLES               POWER LIST       DEPOWER LIST       AUTOREGISTRATION 
+  CLOAKING              ALT INVENTORIES  CPU                GUEST SETUP      
+  NEWS SETUP            HELP SETUP       PLUSHELP SETUP     HUH SETUP        
+  ELSEFILE SETUP        REALITY LEVELS   MAIL ALIASES       HOOK SETUP       
+  FUNCTION OVERLOADING  FLAG ALIAS       ATTRIB CONTLOCKS   GLOBAL INHERITANCE
+  ATTRIB FORMATTING     SIGNALS          TOR                CONTROL          
+  CUSTOMIZED CONNECT    SPECIAL ATTRIBS
+
+& API
+  Topic: API
+  
+  RhostMUSH has a process where it allows API connections to happen on another
+  port.  It requires to have the api_port specified to a unique port for the
+  API handler, then various optional config parameters to optimize how the
+  API works.  The API, unlike normal connections, allows any valid dbref# to
+  talk to the mush from the API engine.  It does this through multi-factor
+  authentication including host match and password authentication.
+  
+  It uses Basic Authorization and encapsulates.  Example of using curl for
+  login authentication to the API's object would be:
+             curl --user "#123:foobar"
+  
+  The dbref# would be #123, and the password you want to authenticate would
+  be 'foobar'.
+  
+  The API handler uses headers only.  No data is recognized.
+  
+  The following config options exist:
+    api_port          -- Port that the API engine listens on
+    api_nodns         -- Optionally disable DNS lookups.  Auth lookups
+                         are already disabled.
+    forbidapi_host    -- Forbid the given hostname from connecting to 
+                         the API
+    forbidapi_site    -- Forbid the given IP from connecting to the API
+    max_lastsite_api  -- Maximum number of connections from a given site
+                         to the API handler a minute before auto-forbid.
+  
+  To configure a dbref# to be allowed to process API requests, you must 
+  configure the dbref#.  To do this you use the @api command.  If you wish
+  to monitor all API connections, you can do so with a specific @power.
+  The @power acts as an additional 'power up' to the existing MONITOR_SITE
+  and for busy API systems can be quite spammy.  You have been warned.
+  
+  The following @powers are relevant to the API subsystem:
+    API               -- The main API enable/disable control mechanism
+                         that specifies if a dbref# can be used for API
+                         processing.  @api interfaces this.
+    MONITORAPI        -- The MONITOR filter for API connections.
+  
+  The following attributes are relevant to the API subsystem:
+    _APIPASSWD        -- The attribute the encrypted password is stored
+                         for the dbref#.  @api interfaces this.
+    _APIIP            -- The allowable ip addresses that can use that
+                         specific dbref# for connections.  Defaults to
+                         just localhost.
+  
+{ see 'wizhelp api setup' for steps on how to set up a dbref# for use }
+{ see 'wizhelp api processing' to see how to actually use the API system }
+{ see 'wizhelp api return' for values you can expect back from the API }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+
+& API SETUP
+  Topic: API SETUP
+  
+  To setup and initialize a dbref# for use for the API subsystem, you would
+  use the @api command to configure it.  The following steps are required.
+  
+  1.  @api/enable <target>
+      -- This will tag the target to be API enabled.  It essentially sets
+         the target with the API @power.  While any valid dbref# will work
+         if you plan to use players you want to take extra percautions.
+  
+  2.  @api/password <target>=<password>
+      -- This sets a password hash of <password> that you then use to connect
+         to the target dbref# using the API subsystem.  If it doesn't match
+         the password it can't connect.
+  
+  3.  @api/ip <taget>=<site(s)>  
+      -- This is a list of wild-carded IP addresses that you wish to allow
+         connectivity through the API to that specific dbref#.  This is an
+         optional step and if not specified defaults to localhost only.
+  
+  4.  @api/status <target>
+      -- This will check the target object to make sure it's ready for API
+         connectivity.
+  
+{ see 'wizhelp api processing' to see how to actually use the API system }
+{ see 'wizhelp api return' for values you can expect back from the API }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+
+& API PROCESSING
+  Topic: API PROCESSING
+  
+  To actually execute an API request, you need to send a web request to the 
+  API handler.  The API handler handles two request types.  POST and GET.
+  You use the POST handler to push (or execute) code on the mush, and the GET
+  handler to fetch (or receive) results from the mush.  It does this by using
+  HTTP headers only to configure the requests.  It uses customized headers.
+  
+  The following headers are available with the following options:
+  POST:
+     header - Exec:
+       -- The Exec: header is used to tell the mush what code to execute.
+          You would ensapsulate the code you want to run in double quotes.
+          You may specify more than one command by using semi-colons.
+          An empty Exec: call returns an error.
+          Example:  Exec: "@emit test1;@emit test2"
+     header - Time:
+       -- The Time: header is used to tell the queue how long to push the
+          request for.   If no Time: header is specified, it defaults to '0'.
+          If a negative value is fed to this, it defaults to '0'.  You may
+          use fractional values.
+          Example:  Time: "100.5"
+  
+  GET:
+     header - Exec:
+       -- The Exec: header is used to tell the mush what code to execute.
+          Unlike the POST requester, this only accepts functions/strings.
+          Example:  Exec: "[lattr(#123/foo)]"
+     header - Parse:
+       -- This specifies the type of parsing you wish to apply to the 
+          return string.  If not specified it assumes 'parse'.
+          The following applies:
+            parse       -- default.  Just parse the function as normal.
+            noparse     -- just evaluate percent substitutions, not code.
+            ansiparse   -- parse and return the ansi as translated encoding.
+            ansinoparse -- evaluate percent subs and translate ansi.
+            ansionly  -- do not parse and return the string as translated.
+          Example: Parse: "parse"
+  
+{ see 'wizhelp api setup' for steps on how to set up a dbref# for use }
+{ see 'wizhelp api return' for values you can expect back from the API }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+
+& API RETURN
+  Topic: API RETURN
+  
+  When the mush responds to your API requests, it will do so with headers
+  only.  There is no data submitted.  If there is header data it does not
+  recognize or is malformed, it will return an appropiate error message.
+  
+  The following return encoding can be expected
+  POST:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:37:52 2017
+      Exec: <STRING>
+  
+  GET:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:51:16 2017
+      Exec: <STRING>
+      Return: <VALUE>
+
+  
+      -- <CODE> may be any of the following with matching <STRING>
+         200 - OK            <STRING>: Ok - Executed
+         400 - Bad Request   <STRING>: Error - Invalid Headers Supplied
+         400 - Bad Request   <STRING>: Error - Empty String
+         404 - Not Found     <STRING>: Error - Invalid target
+         403 - Forbidden     <STRING>: Error - Permission Denied
+         403 - Forbidden     <STRING>: Error - IP not allowed
+         403 - Forbidden     <STRING>: Error - Malformed User or Password
+   
+      -- <VALUE> is the actual return value for a GET fetch.  This is what
+         the evaluated string will have been.
+  
+  GET Examples (this is from a command line using the 'curl' application)
+    > curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" > http://localhost:2222
+  
+  POST Example: (this is from a command line using the 'curl' application)
+    > curl -X POST --user "#12:ya" -H "Exec: @emit hi!" > http://localhost:2222
+  
+  See Also: @api 
+   
+{ see 'wizhelp api setup' for steps on how to set up a dbref# for use }
+{ see 'wizhelp api processing' to see how to actually use the API system }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+  
+
 
 & SPECIAL ATTRIBS
   There are special attributes you can set on objects that will have
@@ -1295,6 +1469,45 @@
   completely.
   
   See Also: help toggles, help toggle list, help @toggle
+
+& @api
+  Command: @api[/switch] <target> [=<value>]
+  
+  The @api command is used to enable/disable a target from using the API 
+  interface as well as enable authentication through both password and
+  IP.   This is the central tool for configurating an object to be allowed
+  for the API interface.
+  
+  The following switches exist:
+    /status    -- (default) show the current API status of the target object
+    /enable    -- entables the target to use the API interface.  This will
+                  effectively @power the object API
+    /disable   -- disables the target from using the API interface.  This will
+                  remove the API @power
+    /password  -- this will set the password into the _APIPASSWD attribute
+                  on the target in a hash.  This should NOT BE CONFUSED with
+                  the @password or @newpassword command.  TOTALLY different.
+    /chkpasswd -- This will compare the password in the hash to one you enter
+    /ip        -- This will set IP range(s) that is allowed to use the target.
+                  If this is unset, it defaults to localhost.
+   
+  Examples: 
+    > @api/enable #12345
+    @api: Target is now allowed to process API handling
+    > @api/ip #12345=123.123.*.*
+    @api: IP allow list set
+    > @api/password #12345=foobar
+    @api: Password set
+    > @api/chkpasswd #12345=bob
+    @api: Password did not match.
+    > @api/chkpasswd #12345=foobar
+    @api: Password matched.
+    > @api/disable #12345
+    @api: Target is no longer allowed to process API handling
+  
+  See Also: API, api_port, api_nodns, forbidapi_host, forbidapi_site, 
+            max_lastsite_api
+
 & @DEPOWER
   Command: @depower[[/switch] <user>=[@o|@g|@a] arg ...]
   
@@ -1672,16 +1885,16 @@
   
   There are various powers available to be set with @power.  These are:
   
-   *BOOT            CHANGE_QUOTAS   CHOWN_ANYWHERE   *CHOWN_ME     
-   *CHOWN_OTHER    *EXAMINE_ALL     EXAMINE_FULL     *EXECSCRIPT    
-    FREE_QUOTA      FORMATTING      FREE_PAGE         FREE_WALL     
-    FULLTEL        *GRAB_PLAYER    *HALT_QUEUE        HALT_QUEUE_ALL
-   *HIDEBIT        *JOIN_PLAYER     LONG_FINGERS     *NO_BOOT      
-   *NOFORCE        *NOKILL          NOWHO             PCREATE    
-   *PURGE          *SEARCH_ANY     *SECURITY         *SEE_QUEUE
-    SEE_QUEUE_ALL   SHUTDOWN       *STAT_ANY         *STEAL          
-   *TEL_ANYWHERE   *TEL_ANYTHING   *WHO_UNFIND       *WIZ_WHO
-   *WRAITH        
+    API            *BOOT            CHANGE_QUOTAS     CHOWN_ANYWHERE 
+   *CHOWN_ME       *CHOWN_OTHER    *EXAMINE_ALL       EXAMINE_FULL     
+   *EXECSCRIPT      FREE_QUOTA      FORMATTING        FREE_PAGE       
+    FREE_WALL       FULLTEL        *GRAB_PLAYER      *HALT_QUEUE      
+    HALT_QUEUE_ALL *HIDEBIT        *JOIN_PLAYER       LONG_FINGERS   
+    MONITORAPI     *NO_BOOT        *NOFORCE          *NOKILL          
+    NOWHO           PCREATE        *PURGE            *SEARCH_ANY   
+   *SECURITY       *SEE_QUEUE       SEE_QUEUE_ALL     SHUTDOWN     
+   *STAT_ANY       *STEAL          *TEL_ANYWHERE     *TEL_ANYTHING
+   *WHO_UNFIND     *WIZ_WHO        *WRAITH        
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
   down to GUILDMASTER.
@@ -1689,6 +1902,27 @@
   Help is available separately to explain what each power does by typing:
       wizhelp power <power>
 
+& POWER API
+  Power argument: @power[/switch] <user>=[@g|@a|@c] api
+  
+  This power is set/removed with the @api command.  You may specify this
+  through the @power system as well.  This essentially is a toggle power
+  to empower the target from being able to use the API system.
+  
+  Without this power, API will not work on the target.
+  
+  See Also: @api
+  
+& POWER MONITORAPI
+  Power argument: @power[/switch] <user>=[@g|@a|@c] monitorapi
+  
+  This is a filter @power that if set will monitor all API connections
+  to the mush.  This filter was created because it can get VERY VERY
+  spammy.  Upwards to hundreds of connections a minute spammy.
+  But hey, it's useful so it's in here.
+  
+  See Also: MONITOR
+  
 & POWER FORMATTING
   Power argument: @power[/switch] <user>=[@g|@a|@c] formatting
   
@@ -2357,6 +2591,7 @@
     /REGISTER      - removes site information for register only sites.
     /SUSPECT       - removes site information for suspect sites.
     /FORBID        - removes site information for forbidden sites.
+    /FORBIDAPI     - removes site information for API forbidden sites.
     /PERMIT        - removes site information for unrestricted sites.
     /TRUST         - removes site information for trusted sites.
     /NOAUTH        - removes site information for authentication checks.
@@ -3296,17 +3531,24 @@
   
   Lists the contents of the site access and suspect lists.
  
-    Address - The address to which this entry applies.
-    Mask    - The mask that is ANDed to both the input address and the address
-              in the entry when checking to see if this entry is to be used.
-    Status  - Indicates what type of access or restriction is to be applied.
-              The following statuses may occur in the site access list:
+    Address   - The address to which this entry applies.
+    Mask      - The mask that is ANDed to both the input address and the address
+                in the entry when checking to see if this entry is to be used.
+    Max-Conns - Maximum connections allowed before site restriction is
+                enabled.  'Restricted' means use default method.  N/A in this
+                field means it's not applicable.
+    Status    - Indicates what type of access or restriction is to be applied.
+                The following statuses may occur in the site access list:
  
                 Forbidden    - Connections from this site are rejected.
+                               (AutoSite) means the block was automatic.
+                Forbid API   - API connections from this site are rejected.
+                               (AutoSite) means the block was automatic.
                 Registration - Connections from this site are accepted,
                                new characters may not be created with the
                                'create' command, players wanting a character
                                must get a wizard to create one for them.
+                               (AutoSite) means the block was automatic.
                 Unrestricted - Connections from this site are accepted,
                                new characters may be created with the 'create'
                                command.
@@ -3324,8 +3566,8 @@
                 NoGuest      - Disallows guests from connecting by this site
                 NoAutoReg    - This site can not autoregister
  
-  See Also: forbid_site, permit_site, register_site, suspect_site, trust_site,
-            noguest_site, noautoreg_site, forbid_host, suspect_host, 
+  See Also: forbid_site, forbidapi_site, permit_site, register_site, suspect_site, 
+            trust_site, noguest_site, noautoreg_site, forbid_host, suspect_host, 
             register_host, noguest_host, noautoreg_host, validate_host,
             nobroadcast_host
 
@@ -5511,27 +5753,28 @@
   admin_object             ahear_maxcount           ahear_maxtime          
   alias                    allow_ansinames          allow_whodark          
   alt_inventories          altover_inv              always_blind           
-  ansi_default             ansi_textfiles           areg_file              
-  areg_lim                 aregh_file               atrperms               
-  atrperms_max             attr_access              attr_alias             
-  attr_cmd_access          authenticate             bad_name               
-  badsite_file             bcc_hidden               blind_snuffs_cons      
-  brace_compatibility      break_compatability      cache_depth            
-  cache_steal_dirty        cache_trim               cache_width            
-  cap_articles             cap_conjunctions         cap_preposition        
-  check_interval           check_offset             clone_copies_cost      
-  cluster_cap              clusterfunc_cap          comcost                
-  command_dark             command_quota_increment  command_quota_max      
-  compress_program         compression              config_access          
-  conn_timeout             connect_file             connect_reg_file       
-  cpu_secure_lvl           cpuintervalchk           cputimechk             
-  crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            default_home             delim_null               
-  descs_are_local          dig_cost                 door_file              
-  door_index               down_file                down_motd_message      
-  dump_interval            dump_message             dump_offset            
-  earn_limit               empower_fulltel          enable_tstamps         
-  enforce_unfindable       enhanced_convtime        error_file 
+  ansi_default             ansi_textfiles           api_nodns
+  api_port                 areg_file                areg_lim               
+  aregh_file               atrperms                 atrperms_max           
+  attr_access              attr_alias               attr_cmd_access        
+  authenticate             bad_name                 badsite_file           
+  bcc_hidden               blind_snuffs_cons        brace_compatibility    
+  break_compatability      cache_depth              cache_steal_dirty      
+  cache_trim               cache_width              cap_articles           
+  cap_conjunctions         cap_preposition          check_interval         
+  check_offset             clone_copies_cost        cluster_cap            
+  clusterfunc_cap          comcost                  command_dark           
+  command_quota_increment  command_quota_max        compress_program       
+  compression              config_access            conn_timeout           
+  connect_file             connect_reg_file         cpu_secure_lvl         
+  cpuintervalchk           cputimechk               crash_database         
+  create_max_cost          create_min_cost          dark_sleepers          
+  default_home             delim_null               descs_are_local        
+  dig_cost                 door_file                door_index             
+  down_file                down_motd_message        dump_interval          
+  dump_message             dump_offset              earn_limit             
+  empower_fulltel          enable_tstamps           enforce_unfindable     
+  enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -5540,31 +5783,32 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index             examine_flags             examine_public_attrs   
-  examine_restrictive     exec_secure               exit_attr_default       
-  exit_flags              exit_parent               exit_quota              
-  exit_toggles            exits_connect_rooms       expand_goto             
-  fascist_teleport        file_object               find_money_chance       
-  flag_alias              flag_name                 flag_access_see         
-  flag_access_set         flag_access_type          flag_access_unset       
-  float_precision         forbid_host               forbid_site             
-  fork_dump               format_compatbility       fork_vfork              
-  format_contents         format_exits              format_name             
-  formats_are_local       full_file                 full_motd_message       
-  function_access         function_alias            function_invocation_limit
-  function_max            function_recursion_limit  gdbm_cache_size         
-  gdbm_database           global_aconnect           global_adisconnect      
-  global_ansimask         global_attrdefault        global_clone_exit       
-  global_clone_obj        global_clone_player       global_clone_room       
-  global_clone_thing      global_error_obj          global_parent_exit      
-  global_parent_obj       global_parent_player      global_parent_room      
-  global_parent_thing     good_name                 goodmail_host           
-  gconf_file              guest_char_num            guest_file              
-  guest_namelist          guild_attrname            guild_default           
-  guild_hdr               hackattr_nowiz            hackattr_see            
-  hasattrp_compat         heavy_cpu_max             help_file               
-  help_index              hide_nospoof              hook_cmd                
-  hook_obj                hook_offline
+  error_index               examine_flags              examine_public_attrs
+  examine_restrictive       exec_secure                exit_attr_default       
+  exit_flags                exit_parent                exit_quota              
+  exit_toggles              exits_connect_rooms        expand_goto             
+  fascist_teleport          file_object                find_money_chance       
+  flag_alias                flag_name                  flag_access_see         
+  flag_access_set           flag_access_type           flag_access_unset       
+  float_precision           forbid_host                forbid_site             
+  forbidapi_host            forbidapi_site             fork_dump             
+  format_compatbility       fork_vfork                 format_contents       
+  format_exits              format_name                formats_are_local     
+  full_file                 full_motd_message          function_access       
+  function_alias            function_invocation_limit  function_max          
+  function_recursion_limit  gdbm_cache_size            gdbm_database         
+  global_aconnect           global_adisconnect         global_ansimask       
+  global_attrdefault        global_clone_exit          global_clone_obj      
+  global_clone_player       global_clone_room          global_clone_thing    
+  global_error_obj          global_parent_exit         global_parent_obj     
+  global_parent_player      global_parent_room         global_parent_thing   
+  good_name                 goodmail_host              gconf_file            
+  guest_char_num            guest_file                 guest_namelist        
+  guild_attrname            guild_default              guild_hdr             
+  hackattr_nowiz            hackattr_see               hasattrp_compat       
+  heavy_cpu_max             help_file                  help_index            
+  hide_nospoof              hook_cmd                   hook_obj              
+  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -5592,8 +5836,9 @@
   mailsub                  mailmax_send             master_room
   match_own_commands       manlog_file              map_delim_space
   max_cpu_cycles           max_dest_limit           max_folders
-  max_lastsite_cnt         max_name_protect         max_pcreate_lim
-  max_pcreate_time         max_percentsubs          max_players
+  max_lastsite_api         max_lastsite_cnt         max_name_protect       
+  max_pcreate_lim          max_pcreate_time         max_percentsubs        
+  max_players
   
 { 'wizhelp config parameters4' for more }
 
@@ -6692,6 +6937,7 @@
     site_noguest    NO_GUEST        Shown to player who hits max guests
     site_register   REGISTER        Shown to player who hits max registers
     site_forbid     FORBID          Shown to player who hits max forbids
+    site_Forbidapi  FORBIDAPI       Shown to max connections for API
     site_noconnect  NOCONNECT       Shown to player set NO_CONNECT
     site_nopossess  NOPOSSESS       Shown to player set NO_POSSESS
   
@@ -6896,8 +7142,13 @@
   attacked with spoofed IP header information.  You can review DNS 
   difficulties by reviewing the mush.log file.
 
+& forbidapi_host
 & forbid_host
   Config parameter: forbid_host <!host> <host> ... <host>
+                    forbidapi_host <!host> <host> ... <host>
+  
+  The forbidapi_host works like forbid_host, except it handles ONLY the
+  api port connections.  It will not affect other connections to the mush.
   
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will not be allowed to connect and will be rejected
@@ -6925,8 +7176,13 @@
   See Also: register_host, suspect_host, noguest_host, noautoreg_host, 
             validate_host, @site
 
+& forbidapi_site
 & forbid_site
   Config parameter: forbid_site <addr> <mask>.
+                    forbidapi_site <addr> <mask>.
+  
+  The forbidapi_site works like forbid_site, except it handles ONLY the
+  api port connections.  It will not affect other connections to the mush.
   
   Indicates that connections are to be rejected from sites whose address
   matches the specified address when ANDed with the mask.  The contents of
@@ -8086,6 +8342,20 @@
   Specifies the total number of mail folders that a player may have at
   any given time.  The player may never have more than max_folders.
 
+& max_lastsite_api
+  Config parameter: max_lastsite_api <num>.  Default: 60
+  
+  Sets the maximum number of times a site can connect to the API handler
+  in a given minute.  The range for this value must be between 1 and 500.
+  
+  The maximum average connections an API handler can accept is around 400
+  on a somewhat slower system.
+  
+  Be aware that if you hit MAX connections for a given IP in a minute,
+  that connection will automatically be set FORBID for security reasons.
+  
+  See Also: forbidapi_host, forbidapi_site
+ 
 & max_lastsite_cnt
   Config parameter: max_lastsite_cnt <num>.  Default: 20
   
@@ -8355,7 +8625,7 @@
             (this clears the noautoreg_host list)
   
   See Also:  forbid_host, noguest_host, register_host, suspect_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
 
 & noautoreg_site
   Config parameter: noautoreg_site <site> <mask>
@@ -8364,7 +8634,7 @@
   This is effectively the same as forbid_site but only effects the
   built-in autoregistration.
   
-  See Also: forbid_site
+  See Also: forbid_site, forbidapi_site
 
 & noguest_host
   Config parameter: noguest_host <!host> <host> ... <host>
@@ -8393,7 +8663,7 @@
          the raw site information that you can use to remove the site.
    
   See Also:  forbid_host, suspect_host, register_host, noautoreg_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
 
 & noguest_site
   Config parameter: noguest_site <site> <mask>
@@ -8401,7 +8671,7 @@
   Establishes sites that are not permitted to use the guest characters.
   This is effectively the same as forbid_site but only effects guests.
   
-  See Also: forbid_site
+  See Also: forbid_site, forbidapi_site
 
 & nonindxtxt_maxlines
   Config parameter: nonindxtxt_maxlines <value>.    Default: 200
@@ -8680,7 +8950,8 @@
   with the mask.  This directive is typically used to enable connections from
   a few selected hosts or subnets that would otherwise be disallowed by a
   forbid_site directive.  The default is all sites permitted, none forbidden.
-  See Also: badsite_file, forbid_site, register_site, SITE LISTS.
+  See Also: badsite_file, forbid_site, register_site, forbidapi_site, 
+            SITE LISTS.
 
 & player_attr_default
   Config parameter: player_attr_default <dbref>.  Default: -1
@@ -8839,11 +9110,28 @@
   can effectively block innocent players.  The option however, is there
   anyway.
 
+& api_port
+  Config parameter: api_port <port>.  Default: -1
+  
+  Specifies the IP port on which the API handler for the game listens 
+  for new connections.  This must be a unique port ID and not match
+  the other 'port' config option.
+  
+  See Also: ip_address, port, api_nodns
+
+& api_nodns
+  Config parameter: api_nodns <boolean>.  Default: 0
+  
+  Specifies that API connections should not use the DNS lookup.  Please
+  not that AUTH lookups automatically do not occur for API connections.
+  
+  See Also: api_port
+
 & port
   Config parameter: port <port>.  Default: 6250
   
   Specifies the IP port on which the game listens for new connections.
-  See Also: ip_address.
+  See Also: ip_address, api_port.
 
 & posesay_funct
   Config parameter: posesay_funct <yes/no>.  Default: no
@@ -9013,14 +9301,15 @@
          the raw site information that you can use to remove the site.
   
   See Also:  forbid_host, suspect_host, noguest_host, noautoreg_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
 
 & register_site
   Config parameter: register_site <addr> <mask>.
   
   Indicates that registration is to be enforced for sites whose address
   matches the specified address when ANDed with the mask.
-  See Also: forbid_site, noguest_site, permit_site, REGISTRATION, SITE LISTS.
+  See Also: forbid_site, forbidapi_site, noguest_site, permit_site, 
+            REGISTRATION, SITE LISTS.
 
 & regtry_limit
   Config parameter: regtry_limit <count>.  Default: 1
@@ -9776,7 +10065,7 @@
             (this clears the suspect_host list)
   
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
   
 & suspect_site
   Config parameter: suspect_site <addr> <mask>.
@@ -10033,7 +10322,7 @@
             (this clears the validate_host list)
  
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             suspect_host, goodmail_host, @site
+             suspect_host, goodmail_host, forbidapi_host, @site
 
 & vattr_command
   Config parameter: vattr_command <alias> <user-attribute>
@@ -10580,8 +10869,10 @@
   for those sites), while people connecting from elsewhere on the 135.246
   net are allowed to create their own characters.
  
-  See Also: @admin, @list site_information, forbid_site, permit_site,
-            register_site, suspect_site, trust_site, noguest_site.
+  See Also: @admin, @list site_information, forbid_site, forbidapi_site, 
+            permit_site, register_site, suspect_site, trust_site, 
+            noguest_site
+
 & function list
 & functions
   Help is available for the following RhostMUSH wizard only functions:

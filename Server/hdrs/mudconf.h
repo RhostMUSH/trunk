@@ -45,6 +45,7 @@ struct confdata {
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
 	int	api_port;	/* API port -- Ashen-Shugar 6/2017 */
+	int	api_nodns;	/* Disable DNS lookup on api */
         int     debug_id;       /* shared memory key for debug monitor */
 	int	authenticate;	/* Do we wish to use AUTH protocol? */
 	int	init_size;	/* initial db size */
@@ -289,6 +290,7 @@ struct confdata {
         char    autoreg_host[LBUF_SIZE]; /* noguest host names */
         char    validate_host[LBUF_SIZE]; /* Invalidate autoregister email masks */
         char    goodmail_host[LBUF_SIZE]; /* Good hosts to allow to autoregister ALWAYS */
+        char    forbidapi_host[LBUF_SIZE]; /* Forbid API host names */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
@@ -328,6 +330,7 @@ struct confdata {
 	int	lastsite_paranoia;	/* Enable paranoia level on connections */
 	int	pcreate_paranoia;	/* Enable paranoia level on creations */
 	int	max_lastsite_cnt;	/* Count of maximum lastsite information */
+	int	max_lastsite_api;	/* API Count of maximum lastsite information */
 	int	min_con_attempt;	/* Minimum ammount of time between connections */
         int	lattr_default_oldstyle;	/* lattr's output is snuffed? */
 	int	formats_are_local;	/* A_*_FMT's are local to self */
@@ -627,6 +630,8 @@ struct statedata {
 	double	mstats_counter;	/* Countdown to next mstats snapshot */
 	time_t  chkcpu_stopper; /* What time was it when command started */
 	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
+	int	chkcpu_inline;	/* We are inline */
+        char    chkcpu_inlinestr[SBUF_SIZE]; /* Name of the inline process */
 	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
 	int	ahear_count;	/* Current ahear nest count */
 	dbref	ahear_lastplr;	/* Last Player to try the ahear thingy */
@@ -749,7 +754,10 @@ struct statedata {
         int	heavy_cpu_lockdown;	/* Lock down a function if heavilly abused */
 	int	cmp_lastsite;    	/* Last site that connected */
 	int	cmp_lastsite_cnt; 	/* Number of times last site connected */
+	int	api_lastsite;    	/* API Last site that connected */
+	int	api_lastsite_cnt; 	/* API Number of times last site connected */
 	int	last_con_attempt;
+	int	last_apicon_attempt;
         int     last_pcreate_cnt;
         int     last_pcreate_time;
 	int	reverse_wild;	/* @wipe and such have wildmatches REVERSED */
@@ -859,6 +867,7 @@ extern STATEDATA mudstate;
 #define H_NOAUTH	0x0020  /* Don't use AUTH protocol - Thorin 5/00 */
 #define H_NODNS		0x0040  /* Don't do reverse DNS lookups - Thorin 5/00 */
 #define H_AUTOSITE	0x0080  /* Site was automatically updated */
+#define H_FORBIDAPI	0x0100	/* Forbid API from connecting */
 
 /* Logging options */
 

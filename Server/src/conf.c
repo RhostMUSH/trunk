@@ -90,6 +90,7 @@ NDECL(cf_init)
     mudconf.port = 6250;
     mudconf.html_port = 6251;
     mudconf.api_port = -1;
+    mudconf.api_nodns = 0;
     mudconf.debug_id = 44660;
     mudconf.authenticate = 1;
     mudconf.init_size = 1000;
@@ -405,6 +406,8 @@ NDECL(cf_init)
     mudstate.ahear_currtime = 0;
     mudstate.ahear_lastplr = -1;
     mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_inline = 0;
+    memset(mudstate.chkcpu_inlinestr, '\0', SBUF_SIZE);
     mudstate.chkcpu_locktog = 0;
     mudstate.chkcpu_stopper = time(NULL);
     mudstate.sidefx_currcalls = 0; /* Counter for sideeffects called */
@@ -654,11 +657,15 @@ NDECL(cf_init)
     /* Connection security level */
     mudstate.cmp_lastsite = -1;
     mudstate.cmp_lastsite_cnt = 0;
+    mudstate.api_lastsite = -1;
+    mudstate.api_lastsite_cnt = 0;
     mudconf.lastsite_paranoia = 0; /* 0-off, 1-register, 2-forbid */
     mudconf.pcreate_paranoia = 0; /* 0-off, 1-register, 2-forbid */
     mudconf.max_lastsite_cnt = 20;	/* Shouldn't connect more than 20 times in X period */
+    mudconf.max_lastsite_api = 60;	/* API Shouldn't connect more than 60 times in X period */
     mudconf.min_con_attempt = 60;	/* 60 seconds default */
     mudstate.last_con_attempt = 0;
+    mudstate.last_apicon_attempt = 0;
     mudconf.max_pcreate_lim = -1;
     mudconf.max_pcreate_time = 60;
     mudstate.last_pcreate_time = 0;
@@ -3756,6 +3763,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_dest_limit, 0, 0, CA_WIZARD,
      (char *) "Max times user allowed to use @destroy.\r\n"\
               "                             Default: 1000   Value: %d"},
+    {(char *) "max_lastsite_api",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.max_lastsite_api, 500, 1, CA_WIZARD,
+     (char *) "Max times API samesite allowed to connect in row.\r\n"\
+              "(Range: 1-500 - 120+ warn)   Default: 60   Value: %d"},
     {(char *) "max_lastsite_cnt",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_lastsite_cnt, 0, 0, CA_WIZARD,
      (char *) "Max times samesite allowed to connect in row.\r\n"\
@@ -3763,7 +3774,7 @@ CONF conftable[] =
     {(char *) "max_name_protect",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.max_name_protect, 100, 0, CA_WIZARD,
      (char *) "Max name protections a player is allowed.\r\n"\
-              "                             Default: 0   Value: %d"},
+              "     (Range: 0-100)          Default: 0   Value: %d"},
     {(char *) "max_pcreate_lim",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_pcreate_lim, 0, 0, CA_WIZARD,
      (char *) "Max times a player can create on connect screen.\r\n"\
@@ -3825,6 +3836,9 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.api_port, 0, 0, CA_WIZARD,
      (char *) "Specifies what the API port is.  '-1' disables this.\r\n"\
               "                             Default: -1   Value: %d"},
+    {(char *) "api_nodns",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.api_nodns, 0, 0, CA_WIZARD,
+     (char *) "Are site DNS lookups done for the API layer?"},
     {(char *) "authenticate",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.authenticate, 0, 0, CA_WIZARD,
      (char *) "Are site AUTH/IDENT lookups done?"},
@@ -3960,10 +3974,17 @@ CONF conftable[] =
     {(char *) "tree_character",
      cf_string_chr, CA_GOD | CA_IMMORTAL, (int *) mudconf.tree_character, 2, 0, CA_WIZARD,
      (char *) "The character for the tree seperator."},
+    {(char *) "forbidapi_site",
+     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     H_FORBIDAPI, 0, CA_WIZARD,
+     (char *) "This specifies sites for forbid that are API."},
     {(char *) "forbid_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
      H_FORBIDDEN, 0, CA_WIZARD,
      (char *) "This specifies sites for forbid."},
+    {(char *) "forbidapi_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbidapi_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "This specifies sites by NAME to forbid API."},
     {(char *) "forbid_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbid_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to forbid."},

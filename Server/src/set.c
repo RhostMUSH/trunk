@@ -2432,7 +2432,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
         *cp, *cp2, *s_waitbuff, *s_waitbuffptr, *s_tmp2, *string,
         labelorig[16], labelbak[16];
    int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, 
-       i_waitcnt, i_waitfirst, i_dolabel, i_gotostate;
+       i_waitcnt, i_waitfirst, i_dolabel, i_gotostate, i_orig, i_chkinline;
    double i_wait;
    time_t  i_now;
 
@@ -2641,6 +2641,10 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
 
    s_buff = alloc_lbuf("do_rollback");
 
+   i_orig = mudstate.chkcpu_toggle;
+   i_chkinline = mudstate.chkcpu_inline;
+   sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@rollback");
+   mudstate.chkcpu_inline = 1;
    while ( !mudstate.chkcpu_toggle && (i_count > 0) ) {
       strcpy(s_buff, mudstate.rollback);
       s_buffptr = s_buff;
@@ -2731,6 +2735,8 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
       }
 
    }
+   mudstate.chkcpu_inline = i_chkinline;
+   mudstate.chkcpu_toggle = i_orig;
    free_lbuf(s_buff);
    free_lbuf(t_string);
    for (i = 0; i < 10; i++ ) {

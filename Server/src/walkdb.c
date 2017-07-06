@@ -46,7 +46,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
         *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr, *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
    time_t i_now;
-   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback;
+   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback, i_chkinline;
 
    pid_val = 0;
    i_storebreak = mudstate.breakst;
@@ -150,6 +150,9 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             if ( buff3tok ) {
                strcpy(mudstate.rollback, buff3tok);
             }
+            i_chkinline = mudstate.chkcpu_inline;
+            sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@dolist/inline");
+            mudstate.chkcpu_inline = 1;
             while ( !mudstate.breakdolist && !mudstate.chkcpu_toggle && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
@@ -161,10 +164,10 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                    }
                    i_nobreak=0;
                    mudstate.breakdolist = 1;
-                   mudstate.chkcpu_toggle = 1;
                    break;
                }
             }
+            mudstate.chkcpu_inline = i_chkinline;
             mudstate.jumpst = i_jump;
             mudstate.rollbackcnt = i_rollback;
             strcpy(mudstate.rollback, s_rollback);
@@ -220,9 +223,11 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    }
    if ( cntr == 1 )
       notify (player, "That's terrific, but what should I do with the list?");
+/*
    if ( (mudstate.dolistnest == 0) && mudstate.breakdolist ) {
       mudstate.chkcpu_toggle = 1;
    }
+*/
 }
 
 /* Regular @find command */

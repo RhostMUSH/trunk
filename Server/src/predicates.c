@@ -1310,7 +1310,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
 		char *args[], int nargs, char *cargs[], int ncargs)
 {
    int a, any, chkwild, i_regexp, i_case, i_notify, i_inline, x,
-        i_nobreak, i_breakst, i_localize, i_clearreg, i_jump, i_rollback;
+        i_nobreak, i_breakst, i_localize, i_clearreg, i_jump, i_rollback, i_chkinline, i_orig;
    char *cp, *s_buff, *s_buffptr, *buff, *retbuff, *s_switch_notify, *pt, *savereg[MAX_GLOBAL_REGS],
         *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
 
@@ -1366,6 +1366,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
       i_regexp = 1;
    }
    s_rollback = alloc_lbuf("s_rollback_switch");
+   i_orig = mudstate.chkcpu_toggle;
    for (a=0; (a<(nargs-1)) && args[a] && args[a+1]; a+=2) {
       buff = exec(player, cause, cause, EV_FCHECK|EV_EVAL|EV_TOP, args[a],
                   cargs, ncargs, (char **)NULL, 0);
@@ -1405,7 +1406,10 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                if ( s_buffptr ) {
                   strcpy(mudstate.rollback, s_buffptr);
                }
-               while (s_buffptr) {
+               i_chkinline = mudstate.chkcpu_inline;
+               sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+               mudstate.chkcpu_inline = 1;
+               while (s_buffptr && !mudstate.chkcpu_toggle) {
                   if ( mudstate.breakst )
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
@@ -1413,6 +1417,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                   }
                }
+               mudstate.chkcpu_inline = i_chkinline;
                mudstate.jumpst = i_jump;
                mudstate.rollbackcnt = i_rollback;
                strcpy(mudstate.rollback, s_rollback);
@@ -1460,7 +1465,10 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                if ( s_buffptr ) {
                   strcpy(mudstate.rollback, s_buffptr);
                }
-               while (s_buffptr) {
+               i_chkinline = mudstate.chkcpu_inline;
+               sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+               mudstate.chkcpu_inline = 1;
+               while (s_buffptr && !mudstate.chkcpu_toggle) {
                   if ( mudstate.breakst )
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
@@ -1468,6 +1476,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                   }
                }
+               mudstate.chkcpu_inline = i_chkinline;
                strcpy(mudstate.rollback, s_rollback);
                mudstate.jumpst = i_jump;
                mudstate.rollbackcnt = i_rollback;
@@ -1527,7 +1536,10 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             if ( s_buffptr ) {
                strcpy(mudstate.rollback, s_buffptr);
             }
-            while (s_buffptr) {
+            i_chkinline = mudstate.chkcpu_inline;
+            sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+            mudstate.chkcpu_inline = 1;
+            while (s_buffptr && !mudstate.chkcpu_toggle) {
                if ( mudstate.breakst )
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
@@ -1535,6 +1547,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                }
             }
+            mudstate.chkcpu_inline = i_chkinline;
             mudstate.rollbackcnt = i_rollback;
             mudstate.jumpst = i_jump;
             strcpy(mudstate.rollback, s_rollback);
@@ -1583,7 +1596,10 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             if ( s_buffptr ) {
                strcpy(mudstate.rollback, s_buffptr);
             }
-            while (s_buffptr) {
+            i_chkinline = mudstate.chkcpu_inline;
+            sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+            mudstate.chkcpu_inline = 1;
+            while (s_buffptr && !mudstate.chkcpu_toggle) {
                if ( mudstate.breakst )
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
@@ -1591,6 +1607,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                }
             }
+            mudstate.chkcpu_inline = i_chkinline;
             mudstate.rollbackcnt = i_rollback;
             mudstate.jumpst = i_jump;
             strcpy(mudstate.rollback, s_rollback);
@@ -1613,6 +1630,9 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      mudstate.global_regs, mudstate.global_regsname);
          }
       }
+   }
+   if ( i_inline ) {
+      mudstate.chkcpu_toggle = i_orig;
    }
    free_lbuf(s_rollback);
    if ( i_notify ) {

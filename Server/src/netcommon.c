@@ -63,7 +63,7 @@ extern CF_HAND(cf_site);
 static void desc_addhash(DESC * d);
 extern int FDECL(lookup, (char *, char *, int, int *));
 static void set_userstring(char **, const char *);
-extern const char *addrout(struct in_addr);
+extern const char *addrout(struct in_addr, int);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern CMDENT * lookup_command(char *);
 extern int process_hook(dbref, dbref, char *, ATTR *, int, int, char *);
@@ -3882,6 +3882,15 @@ softcode_trigger(DESC *d, const char *msg) {
     mudstate.chkcpu_locktog = 0;
     s_return = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                     EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+    if ( !chk_tog && mudstate.chkcpu_toggle ) {
+       broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN CUSTOMCMD",
+                         (char *)atr->name, NULL, mudconf.file_object, 0, 0, NULL);
+       STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+          log_name_and_loc(mudconf.file_object);
+          sprintf(s_text, " CPU login customcmd overload on attribute %s", (char *)atr->name);
+          log_text(s_text);
+       ENDLOG
+    }
     mudstate.chkcpu_stopper = chk_stop;
     mudstate.chkcpu_toggle = chk_tog;
     free_lbuf(s_text);
@@ -3923,6 +3932,15 @@ softcode_trigger(DESC *d, const char *msg) {
           
           s_buff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                         EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+          if ( !chk_tog && mudstate.chkcpu_toggle ) {
+             broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN CUSTOMCMD",
+                               unsafe_tprintf("run_%s", s_strtok), NULL, mudconf.file_object, 0, 0, NULL);
+             STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                log_name_and_loc(mudconf.file_object);
+                sprintf(s_text, " CPU login customcmd overload on attribute run_%s", s_strtok);
+                log_text(s_text);
+             ENDLOG
+          }
           free_lbuf(s_text);
           if ( !s_buff || !*s_buff ) {
              i_found = 0;
@@ -4082,7 +4100,7 @@ check_connect(DESC * d, const char *msg)
       i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
       if ( i_sitemax == -1 ) {
          tsite_buff = alloc_lbuf("noguest_check");
-         addroutbuf = (char *) addrout((d->address).sin_addr);
+         addroutbuf = (char *) addrout((d->address).sin_addr, 0);
          strcpy(tsite_buff, addroutbuf);
          strcpy(tsite_buff, mudconf.noguest_host);
          lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
@@ -4311,9 +4329,31 @@ check_connect(DESC * d, const char *msg)
                   if ( i_atr == -1 ) {
                      buff3 = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                                   EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                     if ( !chk_tog && mudstate.chkcpu_toggle ) {
+                        broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN PROCESS",
+                                          (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"), 
+                                          NULL, mudconf.file_object, 0, 0, NULL);
+                        STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                           log_name_and_loc(mudconf.file_object);
+                           sprintf(buff, " CPU login process overload on attribute %s", 
+                                   (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"));
+                           log_text(buff);
+                        ENDLOG
+                     }
                   } else {
                      buff3 = exec(player, player, player,
                                   EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                     if ( !chk_tog && mudstate.chkcpu_toggle ) {
+                        broadcast_monitor(player, MF_CPU, "CPU RUNAWAY LOGIN PROCESS",
+                                          (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"), 
+                                          NULL, player, 0, 0, NULL);
+                        STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                           log_name_and_loc(player);
+                           sprintf(buff, " CPU login process overload on attribute %s", 
+                                   (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"));
+                           log_text(buff);
+                        ENDLOG
+                     }
                   }
                   mudstate.chkcpu_toggle = chk_tog;
                   mudstate.chkcpu_stopper = chk_stop;
@@ -4545,7 +4585,7 @@ check_connect(DESC * d, const char *msg)
          i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_REGISTRATION);
          if ( i_sitemax == -1 ) {
             tsite_buff = alloc_lbuf("register_check");
-            addroutbuf = (char *) addrout((d->address).sin_addr);
+            addroutbuf = (char *) addrout((d->address).sin_addr, 0);
             strcpy(tsite_buff, addroutbuf);
             strcpy(tsite_buff, mudconf.register_host);
             lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
@@ -4702,9 +4742,10 @@ int
 do_command(DESC * d, char *command)
 {
     char *arg, *cmdsave, *time_str, *s_rollback; 
-    char *s_buffer, *s_snarfing, *s_strtok, *s_strtokr, *s_usepass, *s_usepassptr, 
-         *s_get, *s_pass, *s_user, *s_dtime;
-    int  i_snarfing, i_usepass, aflags;
+    char *s_buffer, *s_snarfing, *s_snarfing2, *s_strtok, *s_strtokr, *s_usepass, *s_usepassptr, 
+         *s_get, *s_pass, *s_user, *s_dtime, *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
+    int  i_snarfing, i_parse, i_usepass, aflags, i_cputog;
+    double i_time;
     dbref aowner, thing;
     ATTR *atrp;
     struct SNOOPLISTNODE *node;
@@ -4821,7 +4862,7 @@ do_command(DESC * d, char *command)
     if ( (d->flags & DS_API) && (cp == NULL) ) {
        s_dtime = (char *) ctime(&mudstate.now);
        queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
-       queue_string(d, "Content-type: text/html\r\n");
+       queue_string(d, "Content-type: text/plain\r\n");
        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
        queue_string(d, "Exec: Error - Invalid Headers Supplied\r\n");
        shutdownsock(d, R_API);
@@ -4955,14 +4996,201 @@ do_command(DESC * d, char *command)
                }
                break;
             }
-#ifndef HAS_OPENSSL
             s_dtime = (char *) ctime(&mudstate.now);
+#ifndef HAS_OPENSSL
             queue_string(d, "HTTP/1.1 200 OK\r\n");
-            queue_string(d, "Content-type: text/html\r\n");
+            queue_string(d, "Content-type: text/plain\r\n");
             queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
             queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
+            queue_string(d, "Return: <NULL>\r\n");
 #else
-            queue_string(d, "To be added.\r\n");
+            s_snarfing = alloc_lbuf("cmd_get");
+            s_snarfing2 = alloc_lbuf("cmd_get2");
+            s_buffer = alloc_lbuf("cmd_get_buff");
+            s_usepassptr = s_usepass = alloc_lbuf("cmd_get_userpass");
+            s_user = alloc_lbuf("cmd_get_user");
+            strcpy(s_buffer, arg);
+            s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
+            i_parse = i_snarfing = i_usepass = 0;
+            while ( s_strtok ) {
+               if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
+                  i_snarfing = 1;
+               }
+               if ( sscanf(s_strtok, "Parse: %[^\n]", s_snarfing2) == 1 ) {
+                  /* Default behavior -- set to 0 */
+                  if ( stricmp( s_snarfing2, (char *)"parse") == 0 ) {
+                     i_parse = 0;
+                  } else if ( stricmp( s_snarfing2, (char *)"ansiparse") == 0 ) {
+                     i_parse = 3;
+                  /* Do not parse -- ergo, only percent subs */
+                  } else if ( stricmp( s_snarfing2, (char *)"noparse") == 0 ) {
+                     i_parse = 1;
+                  } else if ( stricmp( s_snarfing2, (char *)"ansinoparse") == 0 ) {
+                     i_parse = 4;
+                  } else if ( stricmp( s_snarfing2, (char *)"ansionly") == 0 ) {
+                  /* Take the string and only process it through the ansi processor */
+                     i_parse = 2;
+                  /* Illegal value so just set to default */
+                  } else {
+                     i_parse = 0;
+                  }
+               }
+               if ( !i_usepass && (sscanf(s_strtok, "Authorization: Basic %[^\n]", s_user) == 1) ) {
+                  i_usepass = strlen(s_user);
+                  decode_base64((const char*)s_user, i_usepass, s_usepass, &s_usepassptr, 0);
+                  i_usepass = 1;
+               }
+               s_strtok = strtok_r(NULL, "\n", &s_strtokr);
+            }
+            if ( ((*s_usepass == '#') && isdigit(*(s_usepass+1))) && (strchr(s_usepass, ':') != NULL) ) {
+               free_lbuf(s_user);
+               s_user = s_usepass+1;
+               s_pass = strchr(s_usepass, ':');
+               *s_pass = '\0';
+               s_pass++;
+               thing = atoi(s_user);
+               if ( !Good_chk(thing) ) {
+                  queue_string(d, "HTTP/1.1 404 Not Found\r\n");
+                  queue_string(d, "Content-type: text/plain\r\n");
+                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                  queue_string(d, "Exec: Error - Invalid target\r\n");
+                  queue_string(d, "Return: <NULL>\r\n");
+               } else if ( !HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) )  {
+                  queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                  queue_string(d, "Content-type: text/plain\r\n");
+                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                  queue_string(d, "Exec: Error - Permission Denied\r\n");
+                  queue_string(d, "Return: <NULL>\r\n");
+               } else {
+                  atrp = atr_str3("_APIIP");
+                  i_snarfing = 0;
+                  if ( atrp ) {
+                     s_get = atr_get(thing, atrp->number, &aowner, &aflags);
+                     if ( !*s_get ) {
+                        sprintf(s_get, "%s", (char *)"127.0.0.1");
+                     }
+                  } else {
+                     s_get = alloc_lbuf("GET_fetchip");
+                     sprintf(s_get, "%s", (char *)"127.0.0.1");
+                  }
+                  if ( !lookup(inet_ntoa(d->address.sin_addr), s_get, 1, &aflags) ) {
+                     queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                     queue_string(d, "Content-type: text/plain\r\n");
+                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                     queue_string(d, "Exec: Error - IP not allowed\r\n");
+                     queue_string(d, "Return: <NULL>\r\n");
+                     i_snarfing = 1;
+                  }
+                  free_lbuf(s_get);
+                  if ( !i_snarfing ) {
+                     atrp = atr_str3("_APIPASSWD");
+                     if ( atrp ) {
+                        s_get = atr_get(thing, atrp->number, &aowner, &aflags);
+                        if ( *s_get && mush_crypt_validate(thing, s_pass, s_get, 0)) {
+                           if ( *s_snarfing ) {
+                              free_lbuf(s_buffer);
+                              i_cputog = mudstate.chkcpu_toggle;
+                              sprintf(s_snarfing2, "[%s]->%.*s", inet_ntoa(d->address.sin_addr), (LBUF_SIZE-30), s_snarfing);
+                              switch(i_parse) {
+                                 case 1: /* Do not parse -- percent args only */
+                                 case 4: /* Do not parse -- percent args only -- show ansi */
+                                         s_buffer = cpuexec(thing, thing, thing,
+                                                            EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_snarfing, (char **)NULL, 0, (char **)NULL, 0);
+                                         if ( i_parse == 4 ) {
+                                            strcpy(s_snarfing, s_buffer);
+                                            s_ansi1p = s_ansi1 = alloc_lbuf("get_parse_ansibuf1");
+                                            s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
+                                            s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
+                                            parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
+                                            strcpy(s_buffer, s_ansi2); 
+                                            free_lbuf(s_ansi1);
+                                            free_lbuf(s_ansi2);
+                                            free_lbuf(s_ansi3);
+                                         }
+                                         break;
+                                 case 2: /* Just return the string as an ansi handler */
+                                         s_buffer = alloc_lbuf("get_parse_ansi");
+                                         s_ansi1p = s_ansi1 = alloc_lbuf("get_parse_ansibuf1");
+                                         s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
+                                         s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
+                                         parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
+                                         strcpy(s_buffer, s_ansi2); 
+                                         free_lbuf(s_ansi1);
+                                         free_lbuf(s_ansi2);
+                                         free_lbuf(s_ansi3);
+                                         break;
+                                 case 3:
+                                 default: /* Default case */
+                                         s_buffer = cpuexec(thing, thing, thing,
+                                                            EV_FCHECK | EV_EVAL, s_snarfing, (char **)NULL, 0, (char **)NULL, 0);
+                                         if ( i_parse == 3 ) {
+                                            strcpy(s_snarfing, s_buffer);
+                                            s_ansi1p = s_ansi1 = alloc_lbuf("get_parse_ansibuf1");
+                                            s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
+                                            s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
+                                            parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
+                                            strcpy(s_buffer, s_ansi2); 
+                                            free_lbuf(s_ansi1);
+                                            free_lbuf(s_ansi2);
+                                            free_lbuf(s_ansi3);
+                                         }
+                                         break;
+                              }
+                              if ( mudstate.chkcpu_toggle && !i_cputog ) {
+                                 /* Ok, API hit the cpu -- remove the API @power and sort out later */
+                                 sprintf(s_snarfing, "%s", (char *)"API");
+                                 power_set(thing, GOD, s_snarfing, POWER_LEVEL_OFF);
+                                 broadcast_monitor(thing, MF_CPU | MF_API, "CPU RUNAWAY API GET", s_snarfing2,
+                                                   NULL, thing, 0, 0, NULL);
+                                 STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                                    log_name_and_loc(thing);
+                                    sprintf(s_snarfing, " CPU API GET overload on attribute %.*s", 
+                                            (LBUF_SIZE - 100), s_snarfing2);
+                                    log_text(s_snarfing);
+                                 ENDLOG
+                              }
+                              mudstate.chkcpu_toggle = i_cputog;
+                              queue_string(d, "HTTP/1.1 200 OK\r\n");
+                              queue_string(d, "Content-type: text/plain\r\n");
+                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                              queue_string(d, "Exec: Ok - Executed\r\n");
+                              queue_string(d, unsafe_tprintf("Return: %.*s\r\n", (LBUF_SIZE - 14), s_buffer));
+                           } else {
+                              queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
+                              queue_string(d, "Content-type: text/plain\r\n");
+                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                              queue_string(d, "Exec: Error - Empty String\r\n");
+                              queue_string(d, "Return: <NULL>\r\n");
+                           }
+                        } else {
+                           queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                           queue_string(d, "Content-type: text/plain\r\n");
+                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                           queue_string(d, "Exec: Error - Permission Denied\r\n");
+                           queue_string(d, "Return: <NULL>\r\n");
+                        }
+                        free_lbuf(s_get);
+                     } else {
+                        queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                        queue_string(d, "Content-type: text/plain\r\n");
+                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                        queue_string(d, "Exec: Error - Permission Denied\r\n");
+                        queue_string(d, "Return: <NULL>\r\n");
+                     }
+                  }
+               }
+            } else {
+               queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+               queue_string(d, "Content-type: text/plain\r\n");
+               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+               queue_string(d, "Exec: Error - Malformed User or Password\r\n");
+               queue_string(d, "Return: <NULL>\r\n");
+               free_lbuf(s_user);
+            }
+            free_lbuf(s_snarfing);
+            free_lbuf(s_snarfing2);
+            free_lbuf(s_buffer);
+            free_lbuf(s_usepass);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -4981,20 +5209,27 @@ do_command(DESC * d, char *command)
             s_dtime = (char *) ctime(&mudstate.now);
 #ifndef HAS_OPENSSL
             queue_string(d, "HTTP/1.1 200 OK\r\n");
-            queue_string(d, "Content-type: text/html\r\n");
+            queue_string(d, "Content-type: text/plain\r\n");
             queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
             queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
 #else
-            s_snarfing = alloc_lbuf("cmd_get");
-            s_buffer = alloc_lbuf("cmd_get_buff");
-            s_usepassptr = s_usepass = alloc_lbuf("cmd_get_userpass");
-            s_user = alloc_lbuf("cmd_get_user");
+            s_snarfing = alloc_lbuf("cmd_post");
+            s_buffer = alloc_lbuf("cmd_post_buff");
+            s_usepassptr = s_usepass = alloc_lbuf("cmd_post_userpass");
+            s_user = alloc_lbuf("cmd_post_user");
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
             i_snarfing = i_usepass = 0;
+            i_time = 0.0;
             while ( s_strtok ) {
                if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
                   i_snarfing = 1;
+               }
+               if ( sscanf(s_strtok, "Time: %lf", &i_time) == 1 ) {
+                  if ( i_time < 0 )
+                     i_time = 0;
+                  if ( i_time > 2000000000 )
+                     i_time = 2000000000;
                }
                if ( !i_usepass && (sscanf(s_strtok, "Authorization: Basic %[^\n]", s_user) == 1) ) {
                   i_usepass = strlen(s_user);
@@ -5012,48 +5247,69 @@ do_command(DESC * d, char *command)
                thing = atoi(s_user);
                if ( !Good_chk(thing) ) {
                   queue_string(d, "HTTP/1.1 404 Not Found\r\n");
-                  queue_string(d, "Content-type: text/html\r\n");
+                  queue_string(d, "Content-type: text/plain\r\n");
                   queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                   queue_string(d, "Exec: Error - Invalid target\r\n");
                } else if ( !HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) )  {
-                  queue_string(d, "HTTP/1.1 403 Not Found\r\n");
-                  queue_string(d, "Content-type: text/html\r\n");
+                  queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                  queue_string(d, "Content-type: text/plain\r\n");
                   queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                   queue_string(d, "Exec: Error - Permission Denied\r\n");
                } else {
-                  atrp = atr_str3("_APIPASSWD");
+                  atrp = atr_str3("_APIIP");
+                  i_snarfing = 0;
                   if ( atrp ) {
                      s_get = atr_get(thing, atrp->number, &aowner, &aflags);
-                     if ( *s_get && mush_crypt_validate(thing, s_pass, s_get, 0)) {
-                        if ( *s_snarfing ) {
-	                   wait_que(thing, thing, 0, NOTHING, s_snarfing, (char **)NULL, 0, NULL, NULL);
-                           queue_string(d, "HTTP/1.1 200 OK\r\n");
-                           queue_string(d, "Content-type: text/html\r\n");
-                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                           queue_string(d, "Exec: Ok - Queued\r\n");
+                     if ( !*s_get ) {
+                        sprintf(s_get, "%s", (char *)"127.0.0.1");
+                     }
+                  } else {
+                     s_get = alloc_lbuf("GET_fetchip");
+                     sprintf(s_get, "%s", (char *)"127.0.0.1");
+                  }
+                  if ( !lookup(inet_ntoa(d->address.sin_addr), s_get, 1, &aflags) ) {
+                     queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                     queue_string(d, "Content-type: text/plain\r\n");
+                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                     queue_string(d, "Exec: Error - IP not allowed\r\n");
+                     i_snarfing = 1;
+                  }
+                  free_lbuf(s_get);
+                  if ( !i_snarfing ) {
+                     atrp = atr_str3("_APIPASSWD");
+                     if ( atrp ) {
+                        s_get = atr_get(thing, atrp->number, &aowner, &aflags);
+                        if ( *s_get && mush_crypt_validate(thing, s_pass, s_get, 0)) {
+                           if ( *s_snarfing ) {
+	                      wait_que(thing, thing, i_time, NOTHING, s_snarfing, (char **)NULL, 0, NULL, NULL);
+                              queue_string(d, "HTTP/1.1 200 OK\r\n");
+                              queue_string(d, "Content-type: text/plain\r\n");
+                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                              queue_string(d, "Exec: Ok - Queued\r\n");
+                           } else {
+                              queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
+                              queue_string(d, "Content-type: text/plain\r\n");
+                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                              queue_string(d, "Exec: Error - Empty String\r\n");
+                           }
                         } else {
-                           queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
-                           queue_string(d, "Content-type: text/html\r\n");
+                           queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                           queue_string(d, "Content-type: text/plain\r\n");
                            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                           queue_string(d, "Exec: Error - Empty String\r\n");
+                           queue_string(d, "Exec: Error - Permission Denied\r\n");
                         }
+                        free_lbuf(s_get);
                      } else {
                         queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                        queue_string(d, "Content-type: text/html\r\n");
+                        queue_string(d, "Content-type: text/plain\r\n");
                         queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                         queue_string(d, "Exec: Error - Permission Denied\r\n");
                      }
-                     free_lbuf(s_get);
-                  } else {
-                     queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                     queue_string(d, "Content-type: text/html\r\n");
-                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                     queue_string(d, "Exec: Error - Permission Denied\r\n");
                   }
                }
             } else {
                queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-               queue_string(d, "Content-type: text/html\r\n");
+               queue_string(d, "Content-type: text/plain\r\n");
                queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                queue_string(d, "Exec: Error - Malformed User or Password\r\n");
                free_lbuf(s_user);
@@ -5299,6 +5555,12 @@ stat_string(int strtype, int flag, int key)
 	break;
     case S_ACCESS:
 	switch (flag) {
+        case H_FORBIDAPI:
+            if ( key )
+               str = "Forbid API (AutoSite)";
+            else
+               str = "Forbid API";
+            break;
 	case H_FORBIDDEN:
             if ( key )
 	       str = "Forbidden (AutoSite)";
@@ -5361,6 +5623,7 @@ list_sites(dbref player, SITE * site_list,
 	str = (char *) stat_string(stat_type, this->flag, this->key);
         if ( (this->flag & H_REGISTRATION) ||
              (this->flag & H_FORBIDDEN) ||
+             (this->flag & H_FORBIDAPI) ||
              (this->flag & H_NOGUEST) ) {
            if ( this->maxcon == -1 ) 
               strcpy(str2, (char *)"Restricted");
@@ -5453,6 +5716,7 @@ list_siteinfo(dbref player)
     notify(player, "----- DNS Access Permissions -----");
     notify(player, unsafe_tprintf("%-40s  %-14s %-s", "DNS Name Convention", "Max-Conns", "Status"));
     list_hosts(player, mudconf.forbid_host, "Forbidden");
+    list_hosts(player, mudconf.forbidapi_host, "Forbid API");
     list_hosts(player, mudconf.suspect_host, "Suspected");
     list_hosts(player, mudconf.register_host, "Registration");
     list_hosts(player, mudconf.noguest_host, "Noguest");

@@ -633,7 +633,7 @@ shovechars(int port,char* address)
 		if (mudstate.scheck > 2) {
 		  log_perror("NET","FAIL","Repeated select failures.  Shutting down.","select");
 		  break;
-		}
+                }
 	    }
 	}
 
@@ -932,7 +932,7 @@ shovechars(int port,char* address)
 	    }
             if ( (d->flags & DS_API) ) {
 		if ( (d->connected_at + 5) < time(NULL) ) {
-			shutdownsock(d, R_QUIT);
+			shutdownsock(d, R_API);
 		}
             }
 	}
@@ -943,7 +943,7 @@ shovechars(int port,char* address)
 }
 
 const char *
-addrout(struct in_addr a)
+addrout(struct in_addr a, int i_key)
 {
     extern char *inet_ntoa();
     char *retval;
@@ -955,7 +955,7 @@ addrout(struct in_addr a)
 	struct hostent *he;
 
         /* check the nodns_site list */
-        if( site_check(a, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS ) {
+        if( (i_key && mudconf.api_nodns) || site_check(a, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS ) {
           retval = inet_ntoa(a);
           RETURN(retval); /* #3 */
         }
@@ -1200,11 +1200,41 @@ new_connection(int sock, int key)
        RETURN(0);
     }
 
-/* Ok, check all the sites that match this one.  If it does, don't allow it if > max */
+    /* Ok, check all the sites that match this one.  If it does, don't allow it if > max */
     maxsitecon = 0;
     maxtsitecon = 0;
     tsite_buff = alloc_mbuf("check_max_sitecons");
-    if ( mudconf.lastsite_paranoia > 0 ) { 
+
+    /* Only do this for API */
+    if ( i_addflags & MF_API ) {
+       mudstate.api_lastsite_cnt++;
+       if ( ((mudstate.last_apicon_attempt + 60) < mudstate.now) || (mudstate.last_apicon_attempt == 0) ) {
+          mudstate.last_apicon_attempt = mudstate.now;
+       }
+       if ( (mudstate.api_lastsite_cnt >= mudconf.max_lastsite_api) &&
+            (mudstate.api_lastsite == (int)addr.sin_addr.s_addr) &&
+            (mudstate.last_apicon_attempt >= (mudstate.now - 60)) ) {
+          sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(addr.sin_addr));
+          if ( !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDAPI) == H_FORBIDAPI) ) {
+             cf_site((int *)&mudstate.access_list, tchbuff, H_FORBIDAPI|H_AUTOSITE, 0, 1, "forbidapi_site");
+             broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("API SITE SET AUTO-FORBID[%d attempts/%ds time]", 
+                               mudstate.api_lastsite_cnt, (mudstate.now - mudstate.last_apicon_attempt)),
+                               NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+             STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
+                buff = alloc_mbuf("new_connection.LOG.autoforbidapi");
+                sprintf(buff, "[%d/%s] marked for autoAPIforbid.  (Remote port %d)",
+                 newsock, inet_ntoa(addr.sin_addr), cur_port);
+                log_text(buff);
+                free_mbuf(buff);
+             ENDLOG
+          }
+          mudstate.api_lastsite_cnt = 0;
+          memset(tchbuff, 0, sizeof(tchbuff));
+       }
+       mudstate.api_lastsite = (int)addr.sin_addr.s_addr;
+    }
+    /* Only do this for non-API */
+    if ( !(i_addflags & MF_API) && (mudconf.lastsite_paranoia > 0) ) { 
      if ( ((mudconf.lastsite_paranoia > 1) && 
            !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) ||
           ((mudconf.lastsite_paranoia == 1) &&
@@ -1258,7 +1288,7 @@ new_connection(int sock, int key)
      }
     }
 /*  strcpy(tsite_buff, addrout(addr.sin_addr)); */
-    addroutbuf = (char *) addrout(addr.sin_addr);
+    addroutbuf = (char *) addrout(addr.sin_addr, (i_addflags & MF_API));
     strcpy(tsite_buff, addroutbuf);
     if ( tsite_buff ) {
        DESC_SAFEITER_ALL(dchk, dchknext) {
@@ -1280,6 +1310,22 @@ new_connection(int sock, int key)
        if ( i_chksite != -1 ) {  
           if ( maxsitecon < i_chksite ) {
              i_forbid = 0;
+          }
+       }
+    }
+    if ( !i_forbid && (i_addflags & MF_API) ) {
+       strcpy(tchbuff, mudconf.forbidapi_host);
+       strcpy(tsite_buff, addroutbuf);
+       if ((site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDAPI) == H_FORBIDAPI) ||
+           (maxsitecon >= mudconf.max_sitecons) || (maxtsitecon >= (mudstate.max_logins_allowed+7)) ||
+           ((char *)mudconf.forbidapi_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) {
+   
+          i_chksite = site_check(addr.sin_addr, mudstate.access_list, 1, 1, H_FORBIDAPI);
+          i_forbid = 1;
+          if ( i_chksite != -1 ) {  
+             if ( maxsitecon < i_chksite ) {
+                i_forbid = 0;
+             }
           }
        }
     }
@@ -1312,10 +1358,14 @@ new_connection(int sock, int key)
                                 inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
            }
         }
-        if ( i_chksite != -1 ) {
- 	   fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)"SITE_FORBID");
+        if ( i_addflags & MF_API ) {
+           fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)"SITE_FORBIDAPI");
         } else {
- 	   fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)NULL);
+           if ( i_chksite != -1 ) {
+ 	      fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)"SITE_FORBID");
+           } else {
+ 	      fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)NULL);
+           }
         }
 	shutdown(newsock, 2);
 	close(newsock);
@@ -1347,7 +1397,7 @@ new_connection(int sock, int key)
     }
     mudstate.debug_cmd = cmdsave;
 
-    if ( key ) {
+    if ( key && d ) {
        d->flags |= DS_API;
     }
     RETURN(d); /* #5 */
@@ -1518,7 +1568,7 @@ shutdownsock(DESC * d, int reason)
     i_sitecnt = i_guestcnt = 0;
     if (d->flags & DS_HAS_DOOR) closeDoorWithId(d, d->door_num);
     if (reason == R_LOGOUT) {
-        addroutbuf = (char *) addrout((d->address).sin_addr);
+        addroutbuf = (char *) addrout((d->address).sin_addr, (d->flags & MF_API));
         t_addroutbuf = alloc_mbuf("check_max_sitecons");
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {
@@ -1676,6 +1726,11 @@ start_auth(DESC * d)
     struct sockaddr_in sin;
 
     DPUSH; /* #8 */
+    if ( d->flags & DS_API ) {
+      d->flags &= ~DS_AUTH_IN_PROGRESS;
+      VOIDRETURN; /* #8 */
+    }
+
     if( !mudconf.authenticate ) {
       d->flags &= ~DS_AUTH_IN_PROGRESS;
       VOIDRETURN; /* #8 */
@@ -1934,7 +1989,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->regtries_left = mudconf.regtry_limit;
     d->command_count = 0;
     d->timeout = mudconf.idle_timeout;
-    addroutbuf = (char *) addrout((*a).sin_addr);
+    addroutbuf = (char *) addrout((*a).sin_addr, keyval);
     t_addroutbuf = alloc_mbuf("check_max_sitecons");
     strcpy(t_addroutbuf, addroutbuf);
     i_sitecnt = i_guestcnt = 0;
@@ -2026,6 +2081,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
        welcome_user(d);
     } else {
        d->timeout = 1;
+       d->flags |= DS_API;
     }
     start_auth(d);
     RETURN(d); /* #11 */
@@ -2204,9 +2260,6 @@ process_input(DESC * d)
     for (q = buf, qend = buf + got; q < qend; q++) {
 	if ( (*q == '\n') && (!(d->flags & DS_API) || (!in_get && ((q+10) > qend) && (d->flags & DS_API))) ) {
 	      *p = '\0';
-if ( d->flags & DS_API ) {
-   fprintf(stderr, ">>>>>>>>>>>>>>>>>>>\nArg: %s\n<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", d->raw_input->cmd);
-}
 		if (p > d->raw_input->cmd) {
 			save_command(d, d->raw_input);
 			d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");

@@ -83,6 +83,16 @@ CMDENT * lookup_orig_command(char *cmdname);
  *    switch bitwise
  */
 
+NAMETAB api_sw[] =
+{
+    {(char *) "status", 2, CA_PUBLIC, 0, API_STATUS},
+    {(char *) "password", 2, CA_PUBLIC, 0, API_PASSWORD},
+    {(char *) "ip", 2, CA_PUBLIC, 0, API_IP},
+    {(char *) "enable", 2, CA_PUBLIC, 0, API_ENABLE},
+    {(char *) "disable", 2, CA_PUBLIC, 0, API_DISABLE},
+    {(char *) "chkpasswd", 2, CA_PUBLIC, 0, API_CHKPASSWD},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB rollback_sw[] =
 {
     {(char *) "retry", 2, CA_PUBLIC, 0, ROLLBACK_RETRY},
@@ -990,6 +1000,7 @@ NAMETAB site_sw[] =
 {
   {(char *) "register", 1, CA_IMMORTAL, 0, SITE_REG},
   {(char *) "forbidden", 1, CA_IMMORTAL, 0, SITE_FOR},
+  {(char *) "forbidapi", 1, CA_IMMORTAL, 0, SITE_FORAPI},
   {(char *) "suspect", 1, CA_IMMORTAL, 0, SITE_SUS},
   {(char *) "noguest", 3, CA_IMMORTAL, 0, SITE_NOG},
   {(char *) "all", 1, CA_IMMORTAL, 0, SITE_ALL},
@@ -1169,6 +1180,8 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_aflags},
     {(char *) "@alias", NULL, CA_NO_GUEST | CA_NO_SLAVE, 0,
      0, CS_TWO_ARG, 0, do_alias},
+    {(char *) "@api", api_sw, CA_GOD | CA_IMMORTAL, 0,
+     0, CS_TWO_ARG, 0, do_api},
     {(char *) "@apply_marked", NULL, CA_WIZARD | CA_GBL_INTERP, 0,
      0, CS_ONE_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND,
      0, do_apply_marked},
@@ -2130,7 +2143,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
                   if (cp && *cp && !mudstate.breakst) {
                      process_command(thing, player, 0, cp, (char **)NULL, 0, 0, 1);
                      if ( time(NULL) > (i_now + 5) ) {
-                         notify(player, "@skip:  Aborted for high utilization.");
+                         notify(player, "@hook:  Aborted for high utilization.");
                          mudstate.chkcpu_toggle=1;
                          mudstate.breakst=1;
                          break;
@@ -3445,16 +3458,27 @@ process_command(dbref player, dbref cause, int interactive,
            }
            mudstate.curr_cpu_cycle++;
            notify(player, "Overload on CPU detected.  Process aborted.");
-           if ( mudstate.chkcpu_locktog )
+           if ( mudstate.chkcpu_locktog ) {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (LOCK-EVAL)",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
-           else
+           } else if ( mudstate.chkcpu_inline ) {
+              broadcast_monitor(player, MF_CPU, unsafe_tprintf("CPU RUNAWAY INLINE PROCESS [%s]", mudstate.chkcpu_inlinestr),
+			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           } else {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           }
 	   cpulbuf = alloc_lbuf("process_commands.LOG.badcpu");
+           if ( HasPriv(player, NOTHING, POWER_API, POWER5, NOTHING) ) {
+              /* Remove API from the object -- one chance only */
+              sprintf(cpulbuf, "%s", (char *)"API");
+              power_set(player, GOD, cpulbuf, POWER_LEVEL_OFF);
+              sprintf(cpulbuf, " CPU [possible API] overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           } else {
+              sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           }
            STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
 	   log_name_and_loc(player);
-           sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
            log_text(cpulbuf);
            free_lbuf(cpulbuf);
            ENDLOG
@@ -4142,8 +4166,9 @@ process_command(dbref player, dbref cause, int interactive,
         mudstate.chkcpu_stopper = time(NULL);
         mudstate.chkcpu_toggle = 0;
         mudstate.chkcpu_locktog = 0;
-        if ( cval2 > 0 )
+        if ( cval2 > 0 ) {
            cmdp->perms |= CA_DISABLED;
+        }
 	process_cmdent(cmdp, slashp, player, cause, interactive, arg,
 		       command, args, nargs, cval, lst_cmd);
         if ( mudstate.chkcpu_toggle ) {
@@ -4154,16 +4179,27 @@ process_command(dbref player, dbref cause, int interactive,
            }
            mudstate.curr_cpu_cycle++;
            notify(player, "Overload on CPU detected.  Process aborted.");
-           if ( mudstate.chkcpu_locktog )
+           if ( mudstate.chkcpu_locktog ) {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (LOCK-EVAL)",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
-           else
+           } else if ( mudstate.chkcpu_inline ) {
+              broadcast_monitor(player, MF_CPU, unsafe_tprintf("CPU RUNAWAY INLINE PROCESS [%s]", mudstate.chkcpu_inlinestr),
+			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           } else {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           }
 	   cpulbuf = alloc_lbuf("process_commands.LOG.badcpu");
+           if ( HasPriv(player, NOTHING, POWER_API, POWER5, NOTHING) ) {
+              /* Remove API from the object -- one chance only */
+              sprintf(cpulbuf, "%s", (char *)"API");
+              power_set(player, GOD, cpulbuf, POWER_LEVEL_OFF);
+              sprintf(cpulbuf, " CPU [possible API] overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           } else {
+              sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           }
            STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
 	   log_name_and_loc(player);
-           sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
            log_text(cpulbuf);
            free_lbuf(cpulbuf);
            ENDLOG
@@ -9174,7 +9210,8 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
 
 void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
   char *arg1_eval = NULL, *cp, *s_rollback;
-  int i_evaled = 0, i_rollback, i_jump;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  time_t i_now;
 
   if ( mudconf.break_compatibility ) {
      arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
@@ -9192,12 +9229,25 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           if ( arg2 ) {
              strcpy(mudstate.rollback, arg2);
           }
-          while (arg2) {
+          sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@assert/inline");
+          i_chkinline = mudstate.chkcpu_inline;
+          mudstate.chkcpu_inline = 1;
+          i_now = mudstate.now;
+          i_orig = mudstate.chkcpu_toggle;
+          while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
+             if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@assert:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
+                break;
+             }
           }
+          mudstate.chkcpu_toggle = i_orig;
+          mudstate.chkcpu_inline = i_chkinline;
           mudstate.jumpst = i_jump;
           mudstate.rollbackcnt = i_rollback;
           strcpy(mudstate.rollback, s_rollback);
@@ -9214,7 +9264,8 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
 
 void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
   char *arg1_eval = NULL, *cp, *s_rollback;
-  int i_evaled = 0, i_rollback, i_jump;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  time_t i_now;
 
   if ( mudstate.jumpst > 0 ) {
      notify_quiet(player, "Can not call @jump inside another @jump state... yet...");
@@ -9237,16 +9288,29 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
           if ( arg2 ) {
              strcpy(mudstate.rollback, arg2);
           }
-          while (arg2) {
+          sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@jump");
+          i_chkinline = mudstate.chkcpu_inline;
+          mudstate.chkcpu_inline = 1;
+          i_now = mudstate.now;
+          i_orig = mudstate.chkcpu_toggle;
+          while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
+             if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@jump:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
+                break;
+             }
           }
+          mudstate.chkcpu_inline = i_chkinline;
           mudstate.rollbackcnt = i_rollback;
           mudstate.jumpst = i_jump;
           strcpy(mudstate.rollback, s_rollback);
           free_lbuf(s_rollback);
+          mudstate.chkcpu_toggle = i_orig;
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9280,16 +9344,19 @@ void do_goto(dbref player, dbref cause, int key, char *label) {
 
 void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
   char *arg1_eval = NULL, *cp, *s_rollback;
-  int i_evaled = 0, i_rollback, i_jump;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  time_t i_now;
 
   if ( mudconf.break_compatibility ) {
      arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
      i_evaled = 1;
   } else
      arg1_eval = arg1;
+
   if (is_number(arg1_eval) && (atoi(arg1_eval) != 0)) {
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
+          i_orig = mudstate.chkcpu_toggle;
           s_rollback = alloc_lbuf("s_rollback_break");
           strcpy(s_rollback, mudstate.rollback);
           i_jump = mudstate.jumpst;
@@ -9298,16 +9365,28 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
           if ( arg2 ) {
              strcpy(mudstate.rollback, arg2);
           }
-          while (arg2) {
+          sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@break/inline");
+          i_chkinline = mudstate.chkcpu_inline;
+          mudstate.chkcpu_inline = 1;
+          i_now = mudstate.now;
+          while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
+             if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@break:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
+                break;
+             }
           }
+          mudstate.chkcpu_inline = i_chkinline;
           mudstate.jumpst = i_jump;
           mudstate.rollbackcnt = i_rollback;
           strcpy(mudstate.rollback, s_rollback);
           free_lbuf(s_rollback);
+          mudstate.chkcpu_toggle = i_orig;
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9868,10 +9947,11 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
 {
    char *retbuff, *cp, *mys, *s_buildptr, *s_build, *s_rollback;
    time_t i_now;
-   int old_trainmode, i_breakst, i_joiner, i_rollback, i_jump;
+   int old_trainmode, i_breakst, i_joiner, i_rollback, i_jump, i_chkinline, i_orig;
 
    if ( !nargs || !args[0] || !*args[0] )
       return;
+   i_orig = mudstate.chkcpu_toggle;
    i_breakst = mudstate.breakst;
    char c_dummy[]="0";
    if ( !s_boolian || !*s_boolian ) {
@@ -9910,6 +9990,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          if ( mys ) {
             strcpy(mudstate.rollback, mys);
          }
+         sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
+         i_chkinline = mudstate.chkcpu_inline;
+         mudstate.chkcpu_inline = 1;
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
@@ -9922,6 +10005,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                }
             }
          }
+         mudstate.chkcpu_inline = i_chkinline;
          free_lbuf(s_build);
       } else {
          mys = args[0];
@@ -9929,6 +10013,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          if ( mys ) {
             strcpy(mudstate.rollback, mys);
          }
+         i_chkinline = mudstate.chkcpu_inline;
+         sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
+         mudstate.chkcpu_inline = 1;
          while (mys) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
@@ -9941,6 +10028,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                }
             }
          }
+         mudstate.chkcpu_inline = i_chkinline;
       }
       mudstate.trainmode = old_trainmode;
    } else if ( *retbuff && (i_evalResult == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
@@ -9949,6 +10037,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       if ( mys ) {
          strcpy(mudstate.rollback, mys);
       }
+      i_chkinline = mudstate.chkcpu_inline;
+      sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
+      mudstate.chkcpu_inline = 1;
       while (mys) {
          cp = parse_to(&mys, ';', 0);
          if (cp && *cp && !mudstate.breakst) {
@@ -9961,7 +10052,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             }
          }
       }
+      mudstate.chkcpu_inline = i_chkinline;
    }
+   mudstate.chkcpu_toggle = i_orig;
    mudstate.jumpst = i_jump;
    mudstate.rollbackcnt = i_rollback;
    strcpy(mudstate.rollback, s_rollback);
@@ -9981,7 +10074,8 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
 {
    dbref target;
    char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
-   int old_trainmode, x, i_breakst, forcehalted_state, i_jump, i_rollback;
+   int old_trainmode, x, i_breakst, forcehalted_state, i_jump, i_rollback, i_chkinline, i_orig;
+   time_t i_now;
 
    if ( !s_command || !*s_command ) {
       return;
@@ -10005,6 +10099,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       return;
    }
 
+   i_orig = mudstate.chkcpu_toggle;
    forcehalted_state = mudstate.force_halt;
    if ( Halted(target) && ForceHalted(player) ) {
       mudstate.force_halt = target;
@@ -10038,12 +10133,24 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( s_command ) {
       strcpy(mudstate.rollback, s_command);
    }
-   while (s_command) {
+   i_chkinline = mudstate.chkcpu_inline;
+   sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@sudo");
+   mudstate.chkcpu_inline = 1;
+   i_now = mudstate.now;
+   while (s_command && !mudstate.chkcpu_toggle) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
          process_command(target, target, 0, cp, args, nargs, 0, mudstate.no_hook);
+         if ( time(NULL) > (i_now + 5) ) {
+            notify(player, "@sudo:  Aborted for high utilization.");
+            mudstate.breakst=1;
+            mudstate.chkcpu_toggle=1;
+            break;
+         }
       }
    }
+   mudstate.chkcpu_toggle = i_orig;
+   mudstate.chkcpu_inline = i_chkinline;
    if ( desc_in_use != NULL ) {
       mudstate.breakst = i_breakst;
    }

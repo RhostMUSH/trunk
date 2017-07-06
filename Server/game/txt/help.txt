@@ -146,29 +146,102 @@
 & topics
   Help available on the following Topics:
  
-  ALT INVENTORIES    ALTNAMES            ANSINAMES         ARBITRARY COMMANDS
-  ATTRIB FORMATTING  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS   ATTRIBUTE OWNERSHIP
-  ATTRIBUTE TREES    BANG NOTATION       BEING KILLED      BOGUS COMMANDS 
-  BOOLEAN VALUES     CHANGES             CHANNEL           CODING             
-  COLORS             COMMAND EVALUATION  CONTROL           COPYRIGHT          
-  COSTS              CREDITS             CLUSTERS          DROP-TO            
-  ENACTOR            EXITS               FAILURE           FLAG ALIAS 
-  FLAG LIST          FLAGS               FUNCTION ALIASES  FUNCTION LIST 
-  FUNCTION TYPES     FUNCTIONS           GENDER            GOALS              
-  GUESTS             HERE                HOMES             LINKING            
-  LISTENING          LISTS               LOOPING           MAIL               
-  MAX ARGS           ME                  MONEY             MOVING  
-  OBJECT TYPES       PARENT OBJECTS      PUPPETS           QUICKREFERENCE
-  REALITY LEVELS     REGEXPS             REGEXP SYNTAX     REGEXP CLASSES 
-  REGEXP EXAMPLES    ROBBERY             ROYALTY           SEARCH CLASSES 
-  SEMAPHORES         SENSES              SETQ_TEMPLATES    SIDEEFFECTS    
-  SINGLETHREADING    SPECIAL CHARACTERS  SPOOFING          SQL           
-  SQLESCAPE          STACK               SUBSTITUTIONS     SUCCESS        
-  SWITCHES           TOGGLES             USEFUL            USER ATTRIBUTES
-  VARIABLE EXITS     VATOVZ              VERBS             WANDERER       
-  WILDCARDS          ZATOZZ              ZONES             $-COMMANDS     
-  #LAMBDA          
+  ALT INVENTORIES     ALTNAMES           ANSINAMES           API
+  ARBITRARY COMMANDS  ATTRIB FORMATTING  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS 
+  ATTRIBUTE OWNERSHIP ATTRIBUTE TREES    BANG NOTATION       BEING KILLED    
+  BOGUS COMMANDS      BOOLEAN VALUES     CHANGES             CHANNEL         
+  CODING              COLORS             COMMAND EVALUATION  CONTROL         
+  COPYRIGHT           COSTS              CREDITS             CLUSTERS        
+  DROP-TO             ENACTOR            EXITS               FAILURE         
+  FLAG ALIAS          FLAG LIST          FLAGS               FUNCTION ALIASES
+  FUNCTION LIST       FUNCTION TYPES     FUNCTIONS           GENDER          
+  GOALS               GUESTS             HERE                HOMES           
+  LINKING             LISTENING          LISTS               LOOPING         
+  MAIL                MAX ARGS           ME                  MONEY           
+  MOVING              OBJECT TYPES       PARENT OBJECTS      PUPPETS         
+  QUICKREFERENCE      REALITY LEVELS     REGEXPS             REGEXP SYNTAX   
+  REGEXP CLASSES      REGEXP EXAMPLES    ROBBERY             ROYALTY         
+  SEARCH CLASSES      SEMAPHORES         SENSES              SETQ_TEMPLATES  
+  SIDEEFFECTS         SINGLETHREADING    SPECIAL CHARACTERS  SPOOFING        
+  SQL                 SQLESCAPE          STACK               SUBSTITUTIONS   
+  SUCCESS             SWITCHES           TOGGLES             USEFUL          
+  USER ATTRIBUTES     VARIABLE EXITS     VATOVZ              VERBS           
+  WANDERER            WILDCARDS          ZATOZZ              ZONES           
+  $-COMMANDS          #LAMBDA          
   
+& API
+  Topic: API
+
+  RhostMUSH has a process where it allows API connections to happen on another
+  port.  It requires to have the api_port specified to a unique port for the
+  API handler, then various optional config parameters to optimize how the
+  API works.  The API, unlike normal connections, allows any valid dbref# to
+  talk to the mush from the API engine.  It does this through multi-factor
+  authentication including host match and password authentication.
+  
+  Keep in mind, the API port is NOT the mush port.  It is a different port.
+  There is also quite a lot of protection on the API port which will
+  automatically disable the object or the IP from connecting if abused.
+  
+  It uses Basic Authorization and encapsulates.  Example of using curl for
+  login authentication to the API's object would be:
+             curl --user "#123:foobar"
+
+  The dbref# would be #123, and the password you want to authenticate would
+  be 'foobar'.
+
+  Example curl commands that are used for the API handler are:
+  GET Examples (this is from a command line using the 'curl' application)
+    > curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" >
+    > http://localhost:2222
+  
+  POST Example: (this is from a command line using the 'curl' application)
+    > curl -X POST --user "#12:ya" -H "Exec: @emit hi!" >
+    > http://localhost:2222
+  
+  To have a target dbref# enabled for API processing, please alert a staff
+  on your game as it requires staff approval and authentication to enable
+  the dbref# to be useable for the API sub engine.
+  
+{ see 'help api return' for expected return codes }
+
+& API RETURN
+  Topic: API RETURN
+
+  When the mush responds to your API requests, it will do so with headers
+  only.  There is no data submitted.  If there is header data it does not
+  recognize or is malformed, it will return an appropiate error message.
+
+  The following return encoding can be expected
+  POST:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:37:52 2017
+      Exec: <STRING>
+
+  GET:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:51:16 2017
+      Exec: <STRING>
+      Return: <VALUE>
+
+
+      -- <CODE> may be any of the following with matching <STRING>
+         200 - OK            <STRING>: Ok - Executed
+         400 - Bad Request   <STRING>: Error - Invalid Headers Supplied
+         400 - Bad Request   <STRING>: Error - Empty String
+         404 - Not Found     <STRING>: Error - Invalid target
+         403 - Forbidden     <STRING>: Error - Permission Denied
+         403 - Forbidden     <STRING>: Error - IP not allowed
+         403 - Forbidden     <STRING>: Error - Malformed User or Password
+
+      -- <VALUE> is the actual return value for a GET fetch.  This is what
+         the evaluated string will have been.
+  
+  For help on setting up, authentication, or administration of the API 
+  engine, please refer to the wizhelp topics for the API.
+
 & CODING
   Topic: CODING
   
@@ -31672,8 +31745,15 @@
   * msecs() like secs() but shows milisecond counts [ASH]
   * exec_secure for execscript(_) config param (default 1) which does as it 
     does now.  setting it to '0' escapes all characters but alphanumeric [ASH]
-  * BETA -- Added API handler for POST notation (still need GET).  This
-    is undocumented still and not fully tested.  Enable at own risk.
+  * A form of STEP API has been added.  Please refer to documentation in-game
+    in help and wizhelp for how to use the API handler. [ASH]
+  * @api command to empower/enable API handling of a target [ASH]
+  * forbidapi_host/forbidapi_site for API handling [ASH]
+  * api_port for the unique port for the API handler [ASH]
+  * api_nodns to disable DNS lookups for all API handling [ASH]
+  * max_lastsite_api to set maximum API connections a minute [ASH]
+  * @power API (used with @api) for empowering objects [ASH]
+  * @power MONITORAPI (used with MONITOR_SITE) for filtering API [ASH]
   
   Changes
   ------------
@@ -31688,6 +31768,7 @@
   * @decompile/tf will now, if passed /noextra in addition, surpress the
     additional information on decompile (like attribute flags) [ASH]
   * added negative time values for some sequences for convtime() [ASH]
+  * Split up and improved the CPU alarm subsystem [ASH]
   
   Bug Fixes
   ------------

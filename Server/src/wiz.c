@@ -21,6 +21,7 @@ char *strtok_r(char *, const char *, char **);
 #include "alloc.h"
 #include "attrs.h"
 #include "door.h"
+#include "rhost_ansi.h"
 
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*);
@@ -2323,6 +2324,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
 
   if ( key & SITE_LIST ) {
      do_site_buff(player, mudconf.forbid_host, (char *)"forbid_host");
+     do_site_buff(player, mudconf.forbidapi_host, (char *)"forbidapi_host");
      do_site_buff(player, mudconf.suspect_host, (char *)"suspect_host");
      do_site_buff(player, mudconf.register_host, (char *)"register_host");
      do_site_buff(player, mudconf.noguest_host, (char *)"noguest_host");
@@ -2896,3 +2898,193 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
       break;
    }   
 }
+
+/* The main command interface for setting up and configuring API */
+void do_api(dbref player, dbref cause, int key, char *s_target, char *s_string)
+{
+   ATTR *atr;
+   char *s_buff, *s_tmp, *s_tmpptr, *s_text;
+   int aflags, i_flag, anum;
+   dbref aowner, thing;
+
+   init_match(player, s_target, NOTYPE);
+   match_everything(0);
+   thing = noisy_match_result();
+   if ( !Good_chk(thing) ) {
+      notify(player, "Invalid dbref# specified for @api.");
+      return;
+   }
+   
+   s_tmpptr = s_tmp = alloc_lbuf("do_api");
+   s_buff = alloc_lbuf("do_api_buff");
+   switch (key) {
+      case API_STATUS:  /* Status of target */
+      default:
+         notify(player, safe_tprintf(s_tmp, &s_tmpptr, "@api: Status of %s(#%d):", Name(thing), thing));
+         if ( HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) ) {
+#ifdef ZENTY_ANSI
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Access (@power API): %sENABLED%s", SAFE_ANSI_GREEN, SAFE_ANSI_NORMAL));
+#else
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Access (@power API): %sENABLED%s", ANSI_GREEN, ANSI_NORMAL));
+#endif
+         } else {
+#ifdef ZENTY_ANSI
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Access (@power API): %sDISABLED%s", SAFE_ANSI_RED, SAFE_ANSI_NORMAL));
+#else
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Access (@power API): %sDISABLED%s", ANSI_RED, ANSI_NORMAL));
+#endif
+         }
+
+         /* Validate the password field */
+         atr = atr_str("_APIPASSWD");
+         i_flag = 0;
+         if ( !atr ) {
+            i_flag = 1;
+         } else {
+            s_text = atr_get(thing, atr->number, &aowner, &aflags);
+            if ( !*s_text ) {
+               i_flag = 1;
+               free_lbuf(s_text);
+            }
+         }
+         if ( !i_flag ) {
+#ifdef ZENTY_ANSI
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Password (_APIPASSWD): %sSET%s", SAFE_ANSI_GREEN, SAFE_ANSI_NORMAL));
+#else
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Password (_APIPASSWD): %sSET%s", ANSI_GREEN, ANSI_NORMAL));
+#endif
+            free_lbuf(s_text);
+         } else {
+#ifdef ZENTY_ANSI
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Password (_APIPASSWD): %sUNSET%s", SAFE_ANSI_RED, SAFE_ANSI_NORMAL));
+#else
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API Password (_APIPASSWD): %sUNSET%s", ANSI_RED, ANSI_NORMAL));
+#endif
+         }
+
+         /* Validate the optional IP field */
+         atr = atr_str("_APIIP");
+         i_flag = 0;
+         if ( !atr ) {
+            i_flag = 1;
+         } else {
+            s_text = atr_get(thing, atr->number, &aowner, &aflags);
+            if ( !*s_text ) {
+               i_flag = 1;
+               free_lbuf(s_text);
+            }
+         }
+         if ( !i_flag ) {
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API IP Allowed (_APIIP): %s", s_text));
+            free_lbuf(s_text);
+         } else {
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "  --> API IP Allowed (_APIIP): 127.0.0.1 only (default)", s_text));
+         }
+         break;
+
+      case API_PASSWORD:
+         if ( *s_string && !ok_password(s_string, player, 0) ) {
+            notify(player, safe_tprintf(s_tmp, &s_tmpptr, "@api: Invalid password specified: %s", s_string));
+         } else {
+            sprintf(s_buff, "%s", (char *)"_APIPASSWD");
+            anum = mkattr(s_buff);
+            i_flag = 0;
+            if ( anum < 0 ) {
+               i_flag = 1;
+            } else {
+               atr = atr_num(anum);
+               if ( !atr ) {
+                  i_flag = 1;
+               } else {
+                  if ( !*s_string ) {
+                     atr_clr(thing, atr->number);
+                     notify(player, "@api: Password cleared");
+                  } else {
+                     atr_add_raw(thing, atr->number, mush_crypt(s_string, 0));
+                     notify(player, "@api: Password set");
+                  }
+               }
+            }
+            if ( i_flag ) {
+               notify(player, "@api: Unable to set the password attribute!");
+            }
+         }
+         break;
+
+      case API_CHKPASSWD:
+         atr = atr_str("_APIPASSWD");
+         i_flag = 0;
+         if ( !atr ) {
+            i_flag = 2;
+         } else {
+            s_text = atr_get(thing, atr->number, &aowner, &aflags);
+            if ( !*s_text ) {
+               i_flag = 2;
+               free_lbuf(s_text);
+            }
+         }
+         if ( !i_flag ) {
+            if ( *s_string && mush_crypt_validate(thing, s_string, s_text, 0)) {
+               notify(player, "@api: Password matched.");
+            } else {
+               i_flag = 1;
+            }
+            free_lbuf(s_text);
+         }
+         if ( i_flag == 2 ) {
+            notify(player, "@api: Password is not currently set.");
+         }
+         if ( i_flag == 1 ) {
+            notify(player, "@api: Password did not match.");
+         }
+         break;
+
+      case API_IP:
+         sprintf(s_buff, "%s", (char *)"_APIIP");
+         anum = mkattr(s_buff);
+         i_flag = 0;
+         if ( anum < 0 ) {
+            i_flag = 1;
+         } else {
+            atr = atr_num(anum);
+            if ( !atr ) {
+               i_flag = 1;
+            } else {
+               if ( !*s_string ) {
+                  atr_clr(thing, atr->number);
+                  notify(player, "@api: IP allow list cleared and reset to localhost (127.0.0.1)");
+               } else {
+                  atr_add_raw(thing, atr->number, s_string);
+                  notify(player, "@api: IP allow list set");
+               }
+            }
+            if ( i_flag ) {
+               notify(player, "@api: Unable to set the IP attribute!");
+            }
+         }
+         break;
+
+      case API_ENABLE:
+         if ( !HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) ) {
+            sprintf(s_buff, "%s", (char *)"API");
+            power_set(thing, GOD, s_buff, POWER_LEVEL_COUNC);
+            notify(player, "@api: Target is now allowed to process API handling");
+         } else {
+            notify(player, "@api: Target is already enabled for API handling");
+         }
+         break;
+
+      case API_DISABLE:
+         if ( HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) ) {
+            sprintf(s_buff, "%s", (char *)"API");
+            power_set(thing, GOD, s_buff, POWER_LEVEL_OFF);
+            notify(player, "@api: Target is no longer allowed to process API handling");
+         } else {
+            notify(player, "@api: Target is already disabled from API handling");
+         }
+         break;
+   }
+   free_lbuf(s_buff);
+   free_lbuf(s_tmp);
+}
+
