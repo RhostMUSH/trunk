@@ -585,6 +585,11 @@
             ansinoparse -- evaluate percent subs and translate ansi.
             ansionly  -- do not parse and return the string as translated.
           Example: Parse: "parse"
+     header - Encode: 
+       -- This will tell it to encode the Return: value in base64.
+          Options you can pass this is 'yes' to enable, and 'no' to disable.
+          No is the default value.  This is handy when you have multi-line
+          input that headers may not necessarily handle.
   
 { see 'wizhelp api setup' for steps on how to set up a dbref# for use }
 { see 'wizhelp api return' for values you can expect back from the API }

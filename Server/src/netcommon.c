@@ -67,6 +67,7 @@ extern const char *addrout(struct in_addr, int);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern CMDENT * lookup_command(char *);
 extern int process_hook(dbref, dbref, char *, ATTR *, int, int, char *);
+extern int encode_base64(const char *, int, char *, char **);
 
 
 /* for aconnect: player = room, target = connecting player */
@@ -4742,9 +4743,9 @@ int
 do_command(DESC * d, char *command)
 {
     char *arg, *cmdsave, *time_str, *s_rollback; 
-    char *s_buffer, *s_snarfing, *s_snarfing2, *s_strtok, *s_strtokr, *s_usepass, *s_usepassptr, 
+    char *s_buffer, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_strtok, *s_strtokr, *s_usepass, *s_usepassptr, 
          *s_get, *s_pass, *s_user, *s_dtime, *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
-    int  i_snarfing, i_parse, i_usepass, aflags, i_cputog;
+    int  i_snarfing, i_parse, i_usepass, aflags, i_cputog, i_encode64;
     double i_time;
     dbref aowner, thing;
     ATTR *atrp;
@@ -4756,7 +4757,7 @@ do_command(DESC * d, char *command)
     DPUSH; /* #147 */
 
     time_str = NULL;
-    chk_perm = store_perm = 0;
+    chk_perm = store_perm = i_encode64 = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< do_command >";
     mudstate.breakst = 0;
@@ -5012,6 +5013,7 @@ do_command(DESC * d, char *command)
 #else
             s_snarfing = alloc_lbuf("cmd_get");
             s_snarfing2 = alloc_lbuf("cmd_get2");
+            s_snarfing3 = alloc_lbuf("cmd_get3");
             s_buffer = alloc_lbuf("cmd_get_buff");
             s_usepassptr = s_usepass = alloc_lbuf("cmd_get_userpass");
             s_user = alloc_lbuf("cmd_get_user");
@@ -5039,6 +5041,13 @@ do_command(DESC * d, char *command)
                   /* Illegal value so just set to default */
                   } else {
                      i_parse = 0;
+                  }
+               }
+               if ( sscanf(s_strtok, "Encode: %[^\n]", s_snarfing3) == 1 ) {
+notify(1234, "Ping1");
+                  if ( stricmp(s_snarfing3, (char *)"yes") == 0) {
+notify(1234, "Ping2");
+                     i_encode64 = 1;
                   }
                }
                if ( !i_usepass && (sscanf(s_strtok, "Authorization: Basic %[^\n]", s_user) == 1) ) {
@@ -5160,7 +5169,16 @@ do_command(DESC * d, char *command)
                               queue_string(d, "Content-type: text/plain\r\n");
                               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                               queue_string(d, "Exec: Ok - Executed\r\n");
-                              queue_string(d, unsafe_tprintf("Return: %.*s\r\n", (LBUF_SIZE - 14), s_buffer));
+                              if ( i_encode64 ) {
+                                 free_lbuf(s_snarfing2);
+                                 s_snarfing2 = s_snarfing;
+                                 i_encode64 = strlen(s_buffer);
+                                 encode_base64((const char*)s_buffer, i_encode64, s_snarfing, &s_snarfing2);
+                                 queue_string(d, unsafe_tprintf("Return: %.*s\r\n", (LBUF_SIZE - 14), s_snarfing));
+                                 s_snarfing2 = alloc_lbuf("tmp_get_buffer");
+                              } else {
+                                 queue_string(d, unsafe_tprintf("Return: %.*s\r\n", (LBUF_SIZE - 14), s_buffer));
+                              }
                            } else {
                               queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
                               queue_string(d, "Content-type: text/plain\r\n");
@@ -5195,6 +5213,7 @@ do_command(DESC * d, char *command)
             }
             free_lbuf(s_snarfing);
             free_lbuf(s_snarfing2);
+            free_lbuf(s_snarfing3);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
             shutdownsock(d, R_API);
