@@ -5044,9 +5044,7 @@ do_command(DESC * d, char *command)
                   }
                }
                if ( sscanf(s_strtok, "Encode: %[^\n]", s_snarfing3) == 1 ) {
-notify(1234, "Ping1");
                   if ( stricmp(s_snarfing3, (char *)"yes") == 0) {
-notify(1234, "Ping2");
                      i_encode64 = 1;
                   }
                }
