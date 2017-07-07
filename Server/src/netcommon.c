@@ -5003,6 +5003,12 @@ do_command(DESC * d, char *command)
             queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
             queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
             queue_string(d, "Return: <NULL>\r\n");
+            shutdownsock(d, R_API);
+            mudstate.debug_cmd = cmdsave;
+            if ( chk_perm && cp )
+               cp->perm = store_perm;
+            RETURN(0); /* #147 */
+            break;
 #else
             s_snarfing = alloc_lbuf("cmd_get");
             s_snarfing2 = alloc_lbuf("cmd_get2");

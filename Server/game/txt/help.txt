@@ -31743,7 +31743,7 @@
   * msecs() like secs() but shows milisecond counts [ASH]
   * exec_secure for execscript(_) config param (default 1) which does as it 
     does now.  setting it to '0' escapes all characters but alphanumeric [ASH]
-  * A form of STEP API has been added.  Please refer to documentation in-game
+  * A form of REST API has been added.  Please refer to documentation in-game
     in help and wizhelp for how to use the API handler. [ASH]
   * @api command to empower/enable API handling of a target [ASH]
   * forbidapi_host/forbidapi_site for API handling [ASH]
