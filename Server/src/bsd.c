@@ -2179,6 +2179,9 @@ snarfle_the_garthok(char *input, char *output)
    i_count = 0;
    s_in = input;
    s_out = input;
+   if ( s_out )
+      ; /* Temporary initialize for warnings */
+
    switch ((unsigned char)*s_in) {
       /* IAC/255 is already handled */
       case 254: /* DONT */

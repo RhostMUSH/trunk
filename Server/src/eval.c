@@ -3138,16 +3138,13 @@ char *
 cpumushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
      char *cargs[], int ncargs, char *regargs[], int nregargs, int i_line, char *s_file)
 {
-   int chk_tog;
    time_t chk_stop;
    char *s_bob;
 
    chk_stop = mudstate.chkcpu_stopper;
-   chk_tog = mudstate.chkcpu_toggle;
    mudstate.chkcpu_stopper = time(NULL);
    s_bob = mushexec(player, cause, caller, eval, dstr, cargs, ncargs, regargs, nregargs, i_line, s_file);
    mudstate.chkcpu_stopper = chk_stop;
-/* mudstate.chkcpu_toggle = chk_tog; */
    return(s_bob);
 }
 
