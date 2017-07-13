@@ -3822,8 +3822,7 @@ softcode_trigger(DESC *d, const char *msg) {
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2, *lbuf3ptr, *lbuf3;
 #endif
-    int aflags, i_found, chk_tog;
-    time_t chk_stop;
+    int aflags, i_found;
     dbref aowner;
 
     if ( !Good_chk(mudconf.file_object) ) {
@@ -3876,14 +3875,9 @@ softcode_trigger(DESC *d, const char *msg) {
     s_ptr = s_array[4];
     ival(s_array[4], &s_ptr, d->descriptor);
 
-    chk_stop = mudstate.chkcpu_stopper;
-    chk_tog  = mudstate.chkcpu_toggle;
-    mudstate.chkcpu_stopper = time(NULL);
-    mudstate.chkcpu_toggle = 0;
-    mudstate.chkcpu_locktog = 0;
-    s_return = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
-                    EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
-    if ( !chk_tog && mudstate.chkcpu_toggle ) {
+    s_return = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                       EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
+    if ( mudstate.chkcpu_toggle ) {
        broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN CUSTOMCMD",
                          (char *)atr->name, NULL, mudconf.file_object, 0, 0, NULL);
        STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -3891,9 +3885,8 @@ softcode_trigger(DESC *d, const char *msg) {
           sprintf(s_text, " CPU login customcmd overload on attribute %s", (char *)atr->name);
           log_text(s_text);
        ENDLOG
+       mudstate.chkcpu_toggle = 0;
     }
-    mudstate.chkcpu_stopper = chk_stop;
-    mudstate.chkcpu_toggle = chk_tog;
     free_lbuf(s_text);
     if ( !s_return || !*s_return ) {
         free_lbuf(s_return);
@@ -3907,11 +3900,6 @@ softcode_trigger(DESC *d, const char *msg) {
  
     s_strtok = strtok_r(s_return, "|", &s_strtokr);
     i_found = 0;
-    chk_stop = mudstate.chkcpu_stopper;
-    chk_tog  = mudstate.chkcpu_toggle;
-    mudstate.chkcpu_stopper = time(NULL);
-    mudstate.chkcpu_toggle = 0;
-    mudstate.chkcpu_locktog = 0;
     while ( s_strtok ) {
        if ( stricmp(s_strtok, s_array[0]) == 0 ) {
           i_found = 1;
@@ -3931,9 +3919,9 @@ softcode_trigger(DESC *d, const char *msg) {
              break;
           }
           
-          s_buff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+          s_buff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                         EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
-          if ( !chk_tog && mudstate.chkcpu_toggle ) {
+          if ( mudstate.chkcpu_toggle ) {
              broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN CUSTOMCMD",
                                unsafe_tprintf("run_%s", s_strtok), NULL, mudconf.file_object, 0, 0, NULL);
              STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -3941,6 +3929,7 @@ softcode_trigger(DESC *d, const char *msg) {
                 sprintf(s_text, " CPU login customcmd overload on attribute run_%s", s_strtok);
                 log_text(s_text);
              ENDLOG
+             mudstate.chkcpu_toggle = 0;
           }
           free_lbuf(s_text);
           if ( !s_buff || !*s_buff ) {
@@ -3970,8 +3959,6 @@ softcode_trigger(DESC *d, const char *msg) {
        }
        s_strtok = strtok_r(NULL, "|", &s_strtokr);
     }
-    mudstate.chkcpu_stopper = chk_stop;
-    mudstate.chkcpu_toggle = chk_tog;
     free_lbuf(s_array[0]);
     free_lbuf(s_array[1]);
     free_lbuf(s_array[2]);
@@ -3987,10 +3974,11 @@ check_connect(DESC * d, const char *msg)
    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff,
         buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
    int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest,
-       ok_to_login, i_sitemax, chk_stop, chk_tog, postestcnt, i_atr;
+       ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog;
 #ifdef ZENTY_ANSI
    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
 #endif
+   time_t chk_stop;
    dbref player, aowner, player2, victim;
    DESC *d2, *d3;
    CMDENT *cmdp;
@@ -4322,15 +4310,10 @@ check_connect(DESC * d, const char *msg)
                      sprintf(sarray[3], "#%d", NOTHING);
                   else
                      sprintf(sarray[3], "#%d", player);
-                  chk_stop = mudstate.chkcpu_stopper;
-                  chk_tog  = mudstate.chkcpu_toggle;
-                  mudstate.chkcpu_stopper = time(NULL);
-                  mudstate.chkcpu_toggle = 0;
-                  mudstate.chkcpu_locktog = 0;
                   if ( i_atr == -1 ) {
-                     buff3 = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
-                                  EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
-                     if ( !chk_tog && mudstate.chkcpu_toggle ) {
+                     buff3 = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
+                                     EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                     if ( mudstate.chkcpu_toggle ) {
                         broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN PROCESS",
                                           (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"), 
                                           NULL, mudconf.file_object, 0, 0, NULL);
@@ -4340,11 +4323,12 @@ check_connect(DESC * d, const char *msg)
                                    (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"));
                            log_text(buff);
                         ENDLOG
+                        mudstate.chkcpu_toggle = 0;
                      }
                   } else {
-                     buff3 = exec(player, player, player,
-                                  EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
-                     if ( !chk_tog && mudstate.chkcpu_toggle ) {
+                     buff3 = cpuexec(player, player, player,
+                                     EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
+                     if ( mudstate.chkcpu_toggle ) {
                         broadcast_monitor(player, MF_CPU, "CPU RUNAWAY LOGIN PROCESS",
                                           (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"), 
                                           NULL, player, 0, 0, NULL);
@@ -4354,10 +4338,9 @@ check_connect(DESC * d, const char *msg)
                                    (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"));
                            log_text(buff);
                         ENDLOG
+                        mudstate.chkcpu_toggle = 0;
                      }
                   }
-                  mudstate.chkcpu_toggle = chk_tog;
-                  mudstate.chkcpu_stopper = chk_stop;
                   if ( buff3 && *buff3 ) {
 #ifdef ZENTY_ANSI
                      lbuf1ptr = lbuf1 = alloc_lbuf("noconnect_ansi1");

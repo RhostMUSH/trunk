@@ -2211,7 +2211,8 @@ void
 process_error_control(dbref player, CMDENT *cmdp, char *s_command)
 {
     char *s_uselock, *dx_tmp;
-    int chk_stop, chk_tog;
+    int chk_tog;
+    time_t chk_stop;
     ATTR *hk_ap2;
 
     if ( (cmdp && (cmdp->hookmask & HOOK_FAIL)) && 
@@ -3421,8 +3422,8 @@ process_command(dbref player, dbref cause, int interactive,
          mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
          hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, prefix_cmds[i]->hookmask, lst_cmd);
-         mudstate.chkcpu_toggle = 0;
-         mudstate.chkcpu_locktog = 0;
+         mudstate.chkcpu_toggle = chk_tog;
+         mudstate.chkcpu_stopper = chk_stop;
          free_sbuf(s_uselock);
          if ( !hk_retval && (prefix_cmds[i]->hookmask & HOOK_IGNORE) )
             cval = 2;

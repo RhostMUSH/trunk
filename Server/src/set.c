@@ -2657,7 +2657,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
       if ( i_dolabel ) {
          mudstate.gotostate = 1;
       }
-      while (s_buffptr && !mudstate.chkcpu_toggle) {
+      while (s_buffptr && !mudstate.chkcpu_toggle && !mudstate.breakst) {
          i_loop++;
          cp = parse_to(&s_buffptr, ';', 0);
          if ( !cp )
