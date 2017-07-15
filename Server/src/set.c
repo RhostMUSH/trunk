@@ -2758,7 +2758,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {
    dbref thing, owner, target;
-   int attrib, flags, i, x, i_savebreak, i_rollback, i_jump;
+   int attrib, flags, i, x, i_savebreak, i_rollback, i_jump, chk_tog, i_chkinline;
    time_t  i_now;
    char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS],
         *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
@@ -2849,7 +2849,10 @@ void do_include(dbref player, dbref cause, int key, char *string,
    if ( buff1ptr ) {
       strcpy(mudstate.rollback, buff1ptr);
    }
-   while (buff1ptr && !mudstate.breakst) {
+   chk_tog = mudstate.chkcpu_toggle;
+   i_chkinline = mudstate.chkcpu_inline;
+   mudstate.chkcpu_inline = 1;
+   while (buff1ptr && !mudstate.breakst && !mudstate.chkcpu_toggle) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
          process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook);
@@ -2859,10 +2862,11 @@ void do_include(dbref player, dbref cause, int key, char *string,
       if ( time(NULL) > (i_now + 5) ) {
          notify(player, "@include:  Aborted for high utilization.");
          mudstate.breakst=1;
-         mudstate.chkcpu_toggle =1;
          break;
       }
    }
+   mudstate.chkcpu_toggle = chk_tog;
+   mudstate.chkcpu_inline = i_chkinline;
    mudstate.jumpst = i_jump;
    mudstate.rollbackcnt = i_rollback;
    strcpy(mudstate.rollback, s_rollback);
