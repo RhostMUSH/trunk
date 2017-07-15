@@ -139,8 +139,11 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                   }
                }
             }
-            i_now = time(NULL);
-
+            if ( mudstate.chkcpu_inline ) {
+               i_now = mudstate.now;
+            } else {
+               i_now = time(NULL);
+            }
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3tok = buff3;
             strcpy(s_rollback, mudstate.rollback);

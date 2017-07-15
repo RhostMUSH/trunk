@@ -2643,8 +2643,12 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    i_orig = mudstate.chkcpu_toggle;
    i_chkinline = mudstate.chkcpu_inline;
    sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@rollback");
+   if ( mudstate.chkcpu_inline ) {
+      i_now = mudstate.now;
+   } else {
+      i_now = time(NULL);
+   }
    mudstate.chkcpu_inline = 1;
-   i_now = time(NULL);
    while ( !mudstate.chkcpu_toggle && (i_count > 0) ) {
       strcpy(s_buff, mudstate.rollback);
       s_buffptr = s_buff;
@@ -2840,7 +2844,11 @@ void do_include(dbref player, dbref cause, int key, char *string,
       }
    }
    i_savebreak = mudstate.breakst;
-   i_now = time(NULL);
+   if ( mudstate.chkcpu_inline ) {
+      i_now = mudstate.now;
+   } else {
+      i_now = time(NULL);
+   }
    s_rollback = alloc_lbuf("s_rollback_include");
    strcpy(s_rollback, mudstate.rollback);
    i_jump = mudstate.jumpst;
