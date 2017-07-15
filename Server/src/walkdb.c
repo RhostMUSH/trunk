@@ -139,7 +139,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                   }
                }
             }
-            i_now = mudstate.now;
+            i_now = time(NULL);
 
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3tok = buff3;

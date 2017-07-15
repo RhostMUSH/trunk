@@ -2125,7 +2125,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
               (hook_type & HOOK_INCLUDE) && (( hook_type & HOOK_BEFORE) || (hook_type & HOOK_AFTER)) ) {
             result = alloc_lbuf("hook_result_fake");
             sprintf(result, "%s", (char *)"0");
-            i_now = mudstate.now;
+            i_now = time(NULL);
             no_hook = mudstate.no_hook;
             mudstate.no_hook = 1;
             atextptr = atext;
@@ -9233,7 +9233,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@assert/inline");
           i_chkinline = mudstate.chkcpu_inline;
           mudstate.chkcpu_inline = 1;
-          i_now = mudstate.now;
+          i_now = time(NULL);
           i_orig = mudstate.chkcpu_toggle;
           while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
@@ -9292,7 +9292,7 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
           sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@jump");
           i_chkinline = mudstate.chkcpu_inline;
           mudstate.chkcpu_inline = 1;
-          i_now = mudstate.now;
+          i_now = time(NULL);
           i_orig = mudstate.chkcpu_toggle;
           while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
@@ -9369,7 +9369,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
           sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@break/inline");
           i_chkinline = mudstate.chkcpu_inline;
           mudstate.chkcpu_inline = 1;
-          i_now = mudstate.now;
+          i_now = time(NULL);
           while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
@@ -9987,7 +9987,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             safe_chr(',', mys, &s_buildptr);
             safe_str(args[i_joiner], mys, &s_buildptr);
          }
-         i_now = mudstate.now;
+         i_now = time(NULL);
          if ( mys ) {
             strcpy(mudstate.rollback, mys);
          }
@@ -10010,7 +10010,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          free_lbuf(s_build);
       } else {
          mys = args[0];
-         i_now = mudstate.now;
+         i_now = time(NULL);
          if ( mys ) {
             strcpy(mudstate.rollback, mys);
          }
@@ -10034,7 +10034,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       mudstate.trainmode = old_trainmode;
    } else if ( *retbuff && (i_evalResult == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
       mys = args[1];
-      i_now = mudstate.now;
+      i_now = time(NULL);
       if ( mys ) {
          strcpy(mudstate.rollback, mys);
       }
@@ -10137,7 +10137,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    i_chkinline = mudstate.chkcpu_inline;
    sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@sudo");
    mudstate.chkcpu_inline = 1;
-   i_now = mudstate.now;
+   i_now = time(NULL);
    while (s_command && !mudstate.chkcpu_toggle) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {

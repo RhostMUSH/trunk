@@ -2623,7 +2623,6 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    }
    free_lbuf(s_tmp);
 
-   i_now = mudstate.now;
    for (i = 0; i < 10; i++ ) {
       s_store[i] = alloc_lbuf("do_rollback_store");
       s_teval[i] = alloc_lbuf("do_rollback_stackbuff");
@@ -2645,6 +2644,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    i_chkinline = mudstate.chkcpu_inline;
    sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@rollback");
    mudstate.chkcpu_inline = 1;
+   i_now = time(NULL);
    while ( !mudstate.chkcpu_toggle && (i_count > 0) ) {
       strcpy(s_buff, mudstate.rollback);
       s_buffptr = s_buff;
@@ -2840,7 +2840,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
       }
    }
    i_savebreak = mudstate.breakst;
-   i_now = mudstate.now;
+   i_now = time(NULL);
    s_rollback = alloc_lbuf("s_rollback_include");
    strcpy(s_rollback, mudstate.rollback);
    i_jump = mudstate.jumpst;
