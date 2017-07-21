@@ -30,8 +30,9 @@ do
    echo "4)  TinyMUX 1.X"
    echo "5)  PennMUSH 1.7.2 (all patches) - ALPHA converter"
    echo "6)  PennMUSH 1.7.5-1.7.7 (MIGHT work with 1.8) (all patches) - BETA converter."
-   echo "7)  TinyMUX 2.0-2.8"
-   echo "8)  TinyMUX 2.9+"
+   echo "7)  TinyMUX 2.0-2.6"
+   echo "8)  TinyMUX 2.7-2.8"
+   echo "9)  TinyMUX 2.9+"
    echo "------------------------------------------------------------------------------"
    echo "Q)  Quit"
    echo ""
@@ -48,6 +49,7 @@ do
       echo "Value must be numeric."
       continue
    fi
+   i_utf8=0
    if [ "$ANS" -lt 1 -o "$ANS" -gt 9 ]
    then
       echo "Value must be between 1 and 8."
@@ -76,11 +78,21 @@ do
          TYPE="MUX2"
       elif [ "$ANS" -eq 8 ]
       then
+         TYPE="MUX2"
+         i_utf8=1
+      elif [ "$ANS" -eq 9 ]
+      then
          TYPE="MUX2NEW"
+         i_utf8=1
       fi
       CONT=1
    fi
 done
+if [ ! -f "./utf8clean" ]
+then
+   echo "Compiling utf8 converter..."
+   gcc utf8clean.c utf8helpers.c -o utf8clean 2>/dev/null
+fi
 if [ -f "./convm2lock" -a -f "./quote2" -a -f "./conv" -a -f "./tinyquote" -a -f "./tinyconv" -a -f "./pennconv" -a -f "./convm2" -a -f "./convm2new" -a -f "./convtm3" -a -f "./convtm31" -a -f "./quote2tm31" ]
 then
    echo  "Binaries detected. Continuing..."
@@ -275,11 +287,25 @@ then
    ./pennconv < $1.noquote > $2 2>err.log
 elif [ "$TYPE" = "MUX2" ]
 then
-   ./convm2 < $1.noquote > $2 2>err.log
+   if [ -f ./utf8clean -a ${i_utf8} -eq 1 ]
+   then
+      echo "Converting utf8 encoding to markup..."
+      ./utf8clean < $1.noquote > $1.noutf8
+   else
+      cp $1.noquote $1.noutf8
+   fi
+   ./convm2 < $1.noutf8 > $2 2>err.log
 elif [ "$TYPE" = "MUX2NEW" ]
 then
    ./convm2lock $1.noquote muxlocks.out
-   ./convm2new < $1.noquote > $2 2>err.log
+   if [ -f ./utf8clean -a ${i_utf8} -eq 1 ]
+   then
+      echo "Converting utf8 encoding to markup..."
+      ./utf8clean < $1.noquote > $1.noutf8
+   else
+      cp $1.noquote $1.noutf8
+   fi
+   ./convm2new < $1.noutf8 > $2 2>err.log
    chk=$(wc -l muxlocks.out|cut -f1 -d" ")
    if [ ${chk} -gt 0 ]
    then
