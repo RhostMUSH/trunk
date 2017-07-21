@@ -31,6 +31,7 @@ cat hidemyass_static.txt >> blacklist.txt
 cat freeproxy.txt >> blacklist.txt
 cat rebroproxy.txt >> blacklist.txt
 
+wget -q -O - https://free-proxy-list.net/|sed "s/<td>/\n/g"|sed "s/<\/td>/\n/g"|grep "^[1-9].*\." >> blacklist.txt
 wget -q -O - http://proxy-ip-list.com/download/free-proxy-list.txt|tr '\015' '\012'|egrep -v "(^$|^#)"|cut -f1 -d ":" >> blacklist.txt
 
 # This is massive, and will grab a ton of sites
