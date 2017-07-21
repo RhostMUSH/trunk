@@ -28,6 +28,7 @@ then
 fi
 
 cat hidemyass_static.txt >> blacklist.txt
+cat freeproxy.txt >> blacklist.txt
 
 wget -q -O - http://proxy-ip-list.com/download/free-proxy-list.txt|tr '\015' '\012'|egrep -v "(^$|^#)"|cut -f1 -d ":" >> blacklist.txt
 
