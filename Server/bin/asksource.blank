@@ -1477,7 +1477,13 @@ setdefaults() {
   lc_utmp=$(echo '#include <utmpx.h>' | cpp -H -o /dev/null 2>&1 | head -n1|grep -c "/utmpx.h")
   if [ ${lc_utmp} -eq 0 ]
   then
-     DEFS="-DUTMP_ONLY ${DEFS}"
+     lc_utmp=$(echo '#include <utmp.h>' | cpp -H -o /dev/null 2>&1 | head -n1|grep -c "/utmp.h")
+     if [ ${lc_utmp} -eq 0 ]
+     then
+        DEFS="-DUTMP_MISSING ${DEFS}"
+     else
+        DEFS="-DUTMP_ONLY ${DEFS}"
+     fi
   fi
 
   # compile timeout.c incase we need it
