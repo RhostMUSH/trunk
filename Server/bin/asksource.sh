@@ -1474,6 +1474,13 @@ setopts() {
 # SETDEFAULTS - Assign default DEFS required for platform
 ###################################################################
 setdefaults() {
+  # check for utmpx.h else fall back to utmp.h
+  lc_utmp=$(echo '#include <utmpx.h>' | cpp -H -o /dev/null 2>&1 | head -n1|grep -c "/utmpx.h")
+  if [ ${lc_utmp} -eq 0 ]
+  then
+     DEFS="-DUTMP_ONLY ${DEFS}"
+  fi
+
   # compile timeout.c incase we need it
   ${MYGCC} ../src/timeout.c -o ../bin/timeout > /dev/null 2>&1
   echo "Configuring default definitions..."

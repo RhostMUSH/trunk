@@ -9,7 +9,11 @@
 /* Solaris has borked header file declarations */
 char *index(const char *, int);
 #endif
+#ifdef UTMP_ONLY
+#include <utmp.h>
+#else
 #include <utmpx.h>
+#endif
 
 #include "copyright.h"
 #include "autoconf.h"
@@ -3536,7 +3540,11 @@ do_uptime(dbref player, dbref cause, int key)
   time_t now;
   char *buff;
   char *s_uptime;
+#ifdef UTMP_ONLY
+  struct utmp *ut;
+#else
   struct utmpx *ut;
+#endif
 
   DPUSH; /* #141 */
   
@@ -3545,6 +3553,18 @@ do_uptime(dbref player, dbref cause, int key)
   buff = alloc_mbuf("uptime");
   s_uptime = alloc_mbuf("uptime_sys");
 
+#ifdef UTMP_ONLY
+  setutent();
+  ut = getutent();
+  while ( ut && (ut->ut_type != BOOT_TIME) )
+     ut = getutent();
+
+  memset(s_uptime, '\0', MBUF_SIZE);
+  if ( ut ) {
+     strcpy(s_uptime, time_format_1(mudstate.now - ut->ut_tv.tv_sec));
+  }
+  endutent();
+#else
   setutxent();
   ut = getutxent();
   while ( ut && (ut->ut_type != BOOT_TIME) )
@@ -3555,6 +3575,7 @@ do_uptime(dbref player, dbref cause, int key)
      strcpy(s_uptime, time_format_1(mudstate.now - ut->ut_tv.tv_sec));
   }
   endutxent();
+#endif
 
   strcpy(buff,time_format_1(now - mudstate.reboot_time));
 
