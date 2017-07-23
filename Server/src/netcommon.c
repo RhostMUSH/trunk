@@ -4752,13 +4752,16 @@ extern int igcheck(dbref, int);
 int 
 do_command(DESC * d, char *command)
 {
-    char *arg, *cmdsave, *time_str, *s_rollback; 
-    char *s_buffer, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_strtok, *s_strtokr, *s_usepass, *s_usepassptr, 
-         *s_get, *s_pass, *s_user, *s_dtime, *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
-    int  i_snarfing, i_parse, i_usepass, aflags, i_cputog, i_encode64;
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime;
+#ifdef HAS_OPENSSL
+    char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p, *s_usepass, *s_usepassptr,
+         *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_strtok, *s_strtokr, *s_buffer,
+         *s_get, *s_pass;
     double i_time;
+    int aflags, i_cputog, i_encode64, i_snarfing, i_parse, i_usepass;
     dbref aowner, thing;
     ATTR *atrp;
+#endif
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
     NAMETAB *cp;
@@ -4767,7 +4770,7 @@ do_command(DESC * d, char *command)
     DPUSH; /* #147 */
 
     time_str = NULL;
-    chk_perm = store_perm = i_encode64 = 0;
+    chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< do_command >";
     mudstate.breakst = 0;
@@ -5021,6 +5024,7 @@ do_command(DESC * d, char *command)
             RETURN(0); /* #147 */
             break;
 #else
+            i_encode64 = 0;
             s_snarfing = alloc_lbuf("cmd_get");
             s_snarfing2 = alloc_lbuf("cmd_get2");
             s_snarfing3 = alloc_lbuf("cmd_get3");
