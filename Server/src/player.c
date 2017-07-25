@@ -1,5 +1,6 @@
 /* player.c */
 
+/* This is for Miyo.  Hi Miyo!  --Ash */
 #ifdef SOLARIS
 /* Solaris is stupid on declarations */
 char *index(const char *, int);
