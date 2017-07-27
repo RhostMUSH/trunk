@@ -1383,7 +1383,7 @@ destroy_player(dbref player, dbref victim, int purge)
     mudstate.nuke_status = 1;
     areg_del_player(victim);
     do_mail(victim, victim, M_WRITE, "+forget", NULL);
-    do_wmail(player, player, WM_WIPE, myitoa(victim), "");
+    do_wmail(GOD, GOD, WM_WIPE, myitoa(victim), "");
     mail_rem_dump();
     mudstate.nuke_status = 0;
 
