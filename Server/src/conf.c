@@ -151,6 +151,7 @@ NDECL(cf_init)
     memset(mudconf.nobroadcast_host, 0, sizeof(mudconf.nobroadcast_host));
     memset(mudconf.guest_namelist, 0, sizeof(mudconf.guest_namelist));
     memset(mudconf.log_command_list, 0, sizeof(mudconf.log_command_list));
+    mudconf.guest_randomize = 0; /* Randomize guests */
     mudconf.mailsub = 1;
     mudconf.mailbox_size = 99;
     mudconf.mailmax_send = 100;
@@ -4108,6 +4109,9 @@ CONF conftable[] =
     {(char *) "goodmail_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.goodmail_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Mail addresses to ALLOW ALWAYS from autoreg."},
+    {(char *) "guest_randomize",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.guest_randomize, 0, 0, CA_WIZARD,
+     (char *) "Guests connect in random order?"},
     {(char *) "guest_file",
      cf_string, CA_DISABLED, (int *) mudconf.guest_file, 32, 0, CA_WIZARD,
      (char *) "File used for guest connections."},

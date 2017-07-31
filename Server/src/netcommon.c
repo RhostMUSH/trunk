@@ -4000,8 +4000,8 @@ check_connect(DESC * d, const char *msg)
 {
    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff,
         buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
-   int aflags, nplayers, comptest, gnum, bittemp, postest, overf, dc, tchar_num, is_guest,
-       ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog;
+   int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest,
+       ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount;
 #ifdef ZENTY_ANSI
    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
 #endif
@@ -4013,7 +4013,7 @@ check_connect(DESC * d, const char *msg)
 
    DPUSH; /* #146 */
 
-   bittemp = 0;
+   bittemp = bitcmp = 0;
    cmdsave = mudstate.debug_cmd;
    mudstate.debug_cmd = (char *) "< check_connect >";
 
@@ -4173,11 +4173,35 @@ check_connect(DESC * d, const char *msg)
       *command = 'a';
       comptest = 1;
    } else if (!comptest) {
-      bittemp = 0x00000001;
+      bittemp = bitcmp = 0x00000001;
       gnum = 1;
-      while ((bittemp & (mudstate.guest_status)) && (gnum < 32)) {
-         bittemp <<= 1;
-         gnum++;
+      if ( mudconf.guest_randomize ) {
+         guest_randcount = 0;
+         while ( gnum < 32 ) {
+            guest_randomize[gnum-1] = 1;
+            guest_bits[gnum-1] = 0x00000001;
+            if ( !(bitcmp & mudstate.guest_status) && (gnum <= mudconf.max_num_guests) ) {
+               guest_randomize[guest_randcount] = gnum;
+               guest_bits[guest_randcount] = bitcmp;
+               guest_randcount++;
+            }
+            bitcmp <<= 1;
+            gnum++;
+         }
+         if ( guest_randcount > 0 ) {
+            guest_randcount = random() % guest_randcount;
+            gnum = guest_randomize[guest_randcount];
+            bitcmp = guest_bits[guest_randcount];
+         } else {
+            gnum = 1;
+            bitcmp = 0x00000001;
+         }
+         bittemp = bitcmp;
+      } else {
+         while ((bittemp & (mudstate.guest_status)) && (gnum < 32)) {
+            bittemp <<= 1;
+            gnum++;
+         }
       }
       if ( strlen(mudconf.guest_namelist) > 0 ) {
          memset(tchar_buffer, 0, sizeof(tchar_buffer));

@@ -302,6 +302,7 @@ struct confdata {
         int     max_sitecons;	/* Define maximum number of connects from a site */
 	int	mail_def_object;	/* Default object to use global mail eval aliases */
 	int	mail_autodeltime;	/* Autodelete on mail - time in days */
+	int	guest_randomize;	/* Randomize guest connects */
         char    guest_namelist[1000]; /* A string of guest names that can be used */
         int	nonindxtxt_maxlines; /* Maximum lines a non-indexed .txt file can have */
         int     hackattr_nowiz;	/* _attributes are not wiz only by default */

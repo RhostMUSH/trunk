@@ -5809,11 +5809,11 @@
   global_parent_player      global_parent_room         global_parent_thing   
   good_name                 goodmail_host              gconf_file            
   guest_char_num            guest_file                 guest_namelist        
-  guild_attrname            guild_default              guild_hdr             
-  hackattr_nowiz            hackattr_see               hasattrp_compat       
-  heavy_cpu_max             help_file                  help_index            
-  hide_nospoof              hook_cmd                   hook_obj              
-  hook_offline
+  guest_randomize           guild_attrname             guild_default          
+  guild_hdr                 hackattr_nowiz             hackattr_see 
+  hasattrp_compat           heavy_cpu_max              help_file  
+  help_index                hide_nospoof               hook_cmd    
+  hook_obj                  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -7620,7 +7620,8 @@
   
   Specifies the file that is to be shown to people connecting to the
   guest character in place of the motd file.
-  See Also: guest_char_num.
+  
+  See Also: guest_char_num
 
 & guest_namelist
   Config parameter: guest_namelist <val !val val>.  Default: (none)
@@ -7636,6 +7637,8 @@
   dbref#'s, or aliases when you enter the names.  Again, it'll convert
   it to dbref#'s regardless of how you specify.
   
+  You may randomize the selection if you have guest_randomize enabled.  
+  
   Examples:
     > @admin guest_namelist=Fred Tom #123
     Entry updated.  3 added.
@@ -7647,7 +7650,16 @@
   
   Any players over 31 total added to the list will be ignored.
   
-  See Also: guest_file, num_guests
+  See Also: guest_file, num_guests, guest_randomize
+
+& guest_randomize
+  Config parameter: guest_randomize <boolean>.   Default: off (0)
+  
+  This parameter will randomize guest connections to randomly select
+  a guest based on the free list of guests currently available.  This
+  also takes into account the guest_namelist.
+  
+  See Also: guest_namelist, num_guests
 
 & guild_attrname
   Config parameter: guild_attrname <string>.  Default: Guild
@@ -8808,6 +8820,8 @@
   Specifies the total number of guest characters allowed to connect at one 
   time.  Do note that each and every guest will be unique and that if more 
   are required, more need to be @pcreated.
+  
+  See Also: guest_namelist, guest_randomize
 
 & comcost
   Config parameter: comcost <ammount>.  Default: 5

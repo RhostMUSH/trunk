@@ -31752,6 +31752,8 @@
   * max_lastsite_api to set maximum API connections a minute [ASH]
   * @power API (used with @api) for empowering objects [ASH]
   * @power MONITORAPI (used with MONITOR_SITE) for filtering API [ASH]
+  * @admin param guest_randomize if enabled will randomly select a guest
+    each time one connects [ASH]
   
   Changes
   ------------

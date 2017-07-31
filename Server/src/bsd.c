@@ -429,13 +429,6 @@ shovechars(int port,char* address)
         }
         strncpy(all, Name(d->player), 5);
         *(all + 5) = '\0';
-        if (!stricmp(all, "guest")) {
-            temp1 = atoi((Name(d->player) + 5));
-            temp2 = 0x00000001;
-            temp2 <<= (temp1 - 1);
-            mudstate.guest_status |= temp2;
-            mudstate.guest_num++;
-        }
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tsitebuff, 0, sizeof(tsitebuff));
            strncpy(tsitebuff, mudconf.guest_namelist, 1000);
@@ -452,6 +445,12 @@ shovechars(int port,char* address)
               ptsitebuff = strtok_r(NULL, " \t", &tstrtokr);
               sitecntr++;
            }
+        } else if (!stricmp(all, "guest")) {
+            temp1 = atoi((Name(d->player) + 5));
+            temp2 = 0x00000001;
+            temp2 <<= (temp1 - 1);
+            mudstate.guest_status |= temp2;
+            mudstate.guest_num++;
         }
       }
       if ( Good_obj(d->player) && InProgram(d->player) ) {
@@ -1467,13 +1466,6 @@ shutdownsock(DESC * d, int reason)
 
 	strncpy(all, Name(d->player), 5);
 	*(all + 5) = '\0';
-	if (!stricmp(all, "guest")) {
-	    temp1 = atoi((Name(d->player) + 5));
-	    temp2 = 0x00000001;
-	    temp2 <<= (temp1 - 1);
-	    mudstate.guest_status &= ~temp2;
-	    mudstate.guest_num--;
-	}
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tsitebuff, 0, sizeof(tsitebuff));
            strncpy(tsitebuff, mudconf.guest_namelist, 1000);
@@ -1490,7 +1482,13 @@ shutdownsock(DESC * d, int reason)
               ptsitebuff = strtok_r(NULL, " \t", &tstrtokr);
               sitecntr++;
            }
-        }
+        } else if (!stricmp(all, "guest")) {
+	    temp1 = atoi((Name(d->player) + 5));
+	    temp2 = 0x00000001;
+	    temp2 <<= (temp1 - 1);
+	    mudstate.guest_status &= ~temp2;
+	    mudstate.guest_num--;
+	}
 	if (mudconf.maildelete)
 	    mail_md1(d->player, d->player, 1, -1);
 	strcpy(all, "all");
