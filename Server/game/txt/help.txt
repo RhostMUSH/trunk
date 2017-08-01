@@ -31799,4 +31799,3 @@
   * bug in @dolist/inline that wouldn't fully honor CPU protection [ASH]
   * MUX password check algo didn't fully work because memcmp() is stupid [ASH]
   * Bug with @nuke on wiping mail if issued from a non-player [ASH]
-  * crash bug in right() [ASH]
