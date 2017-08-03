@@ -7962,8 +7962,8 @@ list_guestparse(dbref player)
    strncpy(instr, mudconf.guest_namelist, 1000);
    tprp_buff = tpr_buff = alloc_lbuf("list_guestparse");
    if ( Guildmaster(player) ) { 
-      notify(player, unsafe_tprintf("--------------- Total Current Guests Allowed: %d", 
-             mudconf.max_num_guests));
+      notify(player, unsafe_tprintf("--------------- Total Current Guests Allowed: %d [randomized: %s]", 
+             mudconf.max_num_guests, (mudconf.guest_randomize ? (char *)"yes" : (char *)"no")));
       notify(player, unsafe_tprintf("%-15.15s %-20.20s %-s", "Guest Number", "Guest Name", 
                      "Valid     Guest/Player           On"));
       notify(player, unsafe_tprintf("%-15.15s %-20.20s %-s", "---------------", "--------------------", 
