@@ -919,6 +919,10 @@ shovechars(int port,char* address)
                      ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
                    d->last_time = i_oldlasttime;
                 }
+                /* Ignore Potatoe's broken NOP code */
+                if ( (d->input_tot == (i_oldlastcnt + 3)) && !d->input_head ) {
+                   d->last_time = i_oldlasttime;
+                }
 	    }
 
 	    /* Process output for sockets with pending output */
