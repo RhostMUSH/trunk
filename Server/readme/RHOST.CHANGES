@@ -3,6 +3,8 @@ MUX passwords didn't work properly because of a memcmp() bug.
 				- Thanks Locke
 @nuke didn't properly wipe mail if issued from a non-player.
 				- Thanks Benzaiten & Rockpath
+@protect set/unset the wrong flags.
+				- Thanks Rockpath
 
                          RhostMUSH 3.9.5 Update File
 Softcode overrides for connect files
