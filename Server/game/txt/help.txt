@@ -31802,3 +31802,4 @@
   * Fixed an ancient crashbug in right() when second arg was missing [AMB]
   * potatoe sent invalid data-stream of NULL followed by CRLF.  We ignore
     this now and no longer update idle time [ASH]
+  * bug in @protect that didn't set/unset the proper flags [ASH]

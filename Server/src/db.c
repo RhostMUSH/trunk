@@ -2481,7 +2481,7 @@ atr_add_raw(dbref thing, int atr, char *buff)
 	s_Flags(thing, Flags(thing) | HAS_STARTUP);
 	break;
     case A_PROTECTNAME:
-	s_Flags4(thing, Flags(thing) | HAS_PROTECT);
+	s_Flags4(thing, Flags4(thing) | HAS_PROTECT);
 	break;
     case A_FORWARDLIST:
 	s_Flags2(thing, Flags2(thing) | HAS_FWDLIST);
