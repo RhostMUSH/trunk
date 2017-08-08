@@ -4558,6 +4558,13 @@ CONF conftable[] =
     {(char *) "partial_deconn",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.partial_deconn, 0, 0, CA_PUBLIC,
      (char *) "Partial deconn trig master-room @adisconnect?"},
+    {(char *) "passproxy_site",
+     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.suspect_list,
+     H_PASSPROXY, 0, CA_WIZARD,
+     (char *) "Site list for specifying those who pass proxy checks."},
+    {(char *) "passproxy_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.passproxy_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "This specifies sites by NAME to bypass proxy checks."},
     {(char *) "paycheck",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.paycheck, 0, 0, CA_PUBLIC,
      (char *) "Money player receives daily on connect.\r\n"\

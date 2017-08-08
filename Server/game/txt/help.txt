@@ -31754,6 +31754,8 @@
   * @power MONITORAPI (used with MONITOR_SITE) for filtering API [ASH]
   * @admin param guest_randomize if enabled will randomly select a guest
     each time one connects [ASH]
+  * passproxy_site/passproxy_host for bypassing the automatic proxy
+    detection subsystem.
   
   Changes
   ------------
@@ -31769,6 +31771,7 @@
     additional information on decompile (like attribute flags) [ASH]
   * added negative time values for some sequences for convtime() [ASH]
   * Split up and improved the CPU alarm subsystem [ASH]
+  * decode64 handles carrage returns where before it did not [ASH]
   
   Bug Fixes
   ------------

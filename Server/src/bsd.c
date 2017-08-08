@@ -1140,6 +1140,10 @@ new_connection(int sock, int key)
        i_chktor = check_tor(addr.sin_addr, mudconf.port);
     }
 
+    tsite_buff = alloc_mbuf("check_max_sitecons");
+    maxsitecon = 0;
+    maxtsitecon = 0;
+
 #ifndef __MACH__
 #ifndef CYGWIN
 #ifndef BROKEN_PROXY
@@ -1149,32 +1153,39 @@ new_connection(int sock, int key)
        i_msslen = sizeof(i_mss);
        getsockopt(newsock, SOL_IP, IP_MTU, &i_mtu, (unsigned int *)&i_mtulen);
        getsockopt(newsock, IPPROTO_TCP, TCP_MAXSEG,  &i_mss, (unsigned int*)&i_msslen);
-
+   
        if ( (i_mtu <= 1500) && ((i_mss + 80) < i_mtu) ) { /* Possible Proxy -- Block */
-          STARTLOG(LOG_NET | LOG_SECURITY, "NET", "PROXY");
-             buff = alloc_mbuf("new_connection.LOG.badsite");
-             sprintf(buff, "[%d/%s] Possible Proxy [MTU %d/MSS %d].  (Remote port %d)",
-                     newsock, inet_ntoa(addr.sin_addr), i_mtu, i_mss, cur_port);
-             log_text(buff);
-             free_mbuf(buff);
-          ENDLOG
-          if ( (mudconf.proxy_checker & 2) && (mudconf.proxy_checker & 4) ) {
-             i_proxychk = H_NOGUEST | H_REGISTRATION;
-             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [GUEST/REGISTER DISABLED]", NULL,
-                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-          } else if ( mudconf.proxy_checker & 2 ) {
-             i_proxychk = H_NOGUEST;
-             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [GUEST DISABLED]", NULL,
-                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-          } else if ( mudconf.proxy_checker & 4 ) {
-             i_proxychk = H_REGISTRATION;
-             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [REGISTER DISABLED]", NULL,
-                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-          } else {
-             broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY", NULL,
-                                     inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-          }
-       } 
+          /* Ignore all this if user is in the bypass site list */
+          addroutbuf = (char *) addrout(addr.sin_addr, (i_addflags & MF_API));
+          strcpy(tsite_buff, addroutbuf);
+          strcpy(tchbuff, mudconf.passproxy_host);
+          if ( !( (site_check(addr.sin_addr, mudstate.suspect_list, 1, 0, H_PASSPROXY) == H_PASSPROXY) || 
+                  ((char *)mudconf.passproxy_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) ) {
+             STARTLOG(LOG_NET | LOG_SECURITY, "NET", "PROXY");
+                buff = alloc_mbuf("new_connection.LOG.badsite");
+                sprintf(buff, "[%d/%s] Possible Proxy [MTU %d/MSS %d].  (Remote port %d)",
+                        newsock, inet_ntoa(addr.sin_addr), i_mtu, i_mss, cur_port);
+                log_text(buff);
+                free_mbuf(buff);
+             ENDLOG
+             if ( (mudconf.proxy_checker & 2) && (mudconf.proxy_checker & 4) ) {
+                i_proxychk = H_NOGUEST | H_REGISTRATION;
+                broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [GUEST/REGISTER DISABLED]", NULL,
+                                        inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+             } else if ( mudconf.proxy_checker & 2 ) {
+                i_proxychk = H_NOGUEST;
+                broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [GUEST DISABLED]", NULL,
+                                        inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+             } else if ( mudconf.proxy_checker & 4 ) {
+                i_proxychk = H_REGISTRATION;
+                broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY [REGISTER DISABLED]", NULL,
+                                        inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+             } else {
+                broadcast_monitor(NOTHING, MF_CONN | i_addflags, "POSSIBLE PROXY", NULL,
+                                        inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+             }
+          } 
+       }
     }
 #endif
 #endif
@@ -1200,13 +1211,11 @@ new_connection(int sock, int key)
        shutdown(newsock, 2);
        close(newsock);
        errno = 0;
+       free_mbuf(tsite_buff);
        RETURN(0);
     }
 
     /* Ok, check all the sites that match this one.  If it does, don't allow it if > max */
-    maxsitecon = 0;
-    maxtsitecon = 0;
-    tsite_buff = alloc_mbuf("check_max_sitecons");
 
     /* Only do this for API */
     if ( i_addflags & MF_API ) {
@@ -1624,6 +1633,9 @@ shutdownsock(DESC * d, int reason)
         strcpy(tchbuff, mudconf.suspect_host);
         if ((char *)mudconf.suspect_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_SUSPECT;
+        strcpy(tchbuff, mudconf.passproxy_host);
+        if ((char *)mudconf.passproxy_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+           d->host_info = d->host_info | H_PASSPROXY;
 	d->input_tot = d->input_size;
 	d->output_tot = 0;
          
@@ -2033,6 +2045,9 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     strcpy(tchbuff, mudconf.suspect_host);
     if ((char *)mudconf.suspect_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_SUSPECT;
+    strcpy(tchbuff, mudconf.passproxy_host);
+    if ((char *)mudconf.passproxy_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
+       d->host_info = d->host_info | H_PASSPROXY;
     d->host_info = d->host_info | i_keyflag;
     d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';

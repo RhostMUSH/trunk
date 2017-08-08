@@ -2332,6 +2332,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
      do_site_buff(player, mudconf.validate_host, (char *)"validate_host");
      do_site_buff(player, mudconf.goodmail_host, (char *)"goodmail_host");
      do_site_buff(player, mudconf.nobroadcast_host, (char *)"nobroadcast_host");
+     do_site_buff(player, mudconf.passproxy_host, (char *)"passproxy_host");
      return;
   }
 
@@ -2357,7 +2358,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
   count = 0;
 
   /* remove from suspect list */
-  if ((key & SITE_SUS) || (key & SITE_ALL) || (key & SITE_TRU)) {
+  if ((key & SITE_SUS) || (key & SITE_PASSPROX) || (key & SITE_ALL) || (key & SITE_TRU)) {
     pt2 = NULL;
     pt1 = mudstate.suspect_list;
     while (pt1) {

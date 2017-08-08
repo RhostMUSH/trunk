@@ -37,5 +37,6 @@
 @@ +commandtree [<dbref#>] -- return all commands on everything in master room or specified target
 @@ +searchtree <command> -- search all items in master room for specified partial command
 @@ +searchbyobj <dbref#>=<command> -- search target and all at location of target for partial command
+@@ +searchdb <command> -- search entire db for matching command.
 @@ By default guildmaster or higher (staff only) can use this command.  Controlled with 'CANUSE' attribute.
 

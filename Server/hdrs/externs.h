@@ -1057,9 +1057,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SITE_NODNS	64
 #define SITE_ALL	128
 #define SITE_FORAPI	256
-#define SITE_TRU	512
+#define SITE_PASSPROX	512
 #define SITE_LIST	1024	/* List @site/list information */
 #define SITE_PER	2048
+#define SITE_TRU	4096
 
 #define SKIP_IFELSE	1	/* @ifelse conversion for @skip */
 

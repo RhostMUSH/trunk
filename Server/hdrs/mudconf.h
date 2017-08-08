@@ -291,6 +291,7 @@ struct confdata {
         char    validate_host[LBUF_SIZE]; /* Invalidate autoregister email masks */
         char    goodmail_host[LBUF_SIZE]; /* Good hosts to allow to autoregister ALWAYS */
         char    forbidapi_host[LBUF_SIZE]; /* Forbid API host names */
+        char    passproxy_host[LBUF_SIZE]; /* Bypass Proxy host names */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
@@ -869,6 +870,7 @@ extern STATEDATA mudstate;
 #define H_NODNS		0x0040  /* Don't do reverse DNS lookups - Thorin 5/00 */
 #define H_AUTOSITE	0x0080  /* Site was automatically updated */
 #define H_FORBIDAPI	0x0100	/* Forbid API from connecting */
+#define H_PASSPROXY	0x0200  /* Linked to suspect_list for bypassing proxies */
 
 /* Logging options */
 

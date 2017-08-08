@@ -293,9 +293,9 @@ decode_base64(char *encoded, int len, char *buff, char **bp, int key)
   pdec = decoded;
   if ( !key ) {
      while ( pdec && *pdec ) {
-        if ( !((*pdec == BEEP_CHAR) || isprint(*pdec) || isascii(*pdec)) )
+        if ( !((*pdec == BEEP_CHAR) || isprint(*pdec) || isascii(*pdec) || (*pdec == '\n') || (*pdec == '\r')) )
            *pdec = '?';
-        if ( !(*pdec == BEEP_CHAR) && (((int)*pdec > 255) || ((int)*pdec < 32)) )
+        if ( !(*pdec == BEEP_CHAR) && !(*pdec == '\n') && !(*pdec == '\r') && (((int)*pdec > 255) || ((int)*pdec < 32)) )
            *pdec = '?';
         pdec++;
      }

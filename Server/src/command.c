@@ -1009,6 +1009,7 @@ NAMETAB site_sw[] =
   {(char *) "noautoreg", 6, CA_IMMORTAL, 0, SITE_NOAR},
   {(char *) "noauth", 6, CA_IMMORTAL, 0, SITE_NOAUTH},
   {(char *) "nodns", 3, CA_IMMORTAL, 0, SITE_NODNS},
+  {(char *) "passproxy", 3, CA_IMMORTAL, 0, SITE_PASSPROX},
   {(char *) "list", 2, CA_IMMORTAL, 0, SITE_LIST},
   {NULL, 0, 0, 0, 0}};
 

@@ -2601,6 +2601,7 @@
     /TRUST         - removes site information for trusted sites.
     /NOAUTH        - removes site information for authentication checks.
     /NOHOST        - removes site information for DNS checks.
+    /PASSPROX      - removes site information for bypassing proxy checks.
     /ALL           - removes all matching site information.
     /LIST          - show the raw *_host listings that you can use for
                      removal.  Handy if you use the optional connection args.
@@ -2612,7 +2613,8 @@
             @site/permit 123.123.123.0=/24
   
   See Also:  @admin, permit_site, register_site, suspect_site, forbid_site,
-             noguest_site, trust_site, noautoreg_site, @list 
+             noguest_site, trust_site, passproxy_site, forbidapi_site,
+             noautoreg_site, nodns_site, noauth_site, @list 
 
 & @convert
   Command: @convert[/alternate] <player>
@@ -3568,13 +3570,14 @@
                                disconnects from this site.
                 Trusted      - Don't notify wizards of connects or disconnects
                                from this site.
+                Proxy Bypass - Sites will bypass the automatic proxy detection
                 NoGuest      - Disallows guests from connecting by this site
                 NoAutoReg    - This site can not autoregister
  
   See Also: forbid_site, forbidapi_site, permit_site, register_site, suspect_site, 
             trust_site, noguest_site, noautoreg_site, forbid_host, suspect_host, 
             register_host, noguest_host, noautoreg_host, validate_host,
-            nobroadcast_host
+            nobroadcast_host, passproxy_host
 
 & @list switches
   Command: @list switches
@@ -5868,13 +5871,13 @@
   open_cost                output_database          output_limit           
   page_cost                paranoid_allocate        paranoid_exit_linking  
   parent_follow            parentable_control_lock  partial_conn           
-  partial_deconn           paycheck                 pcreate_paranoia       
-  pemit_any_object         pemit_far_players        penn_playercmds        
-  penn_setq                penn_switches            permit_site            
-  player_attr_default      player_dark              player_flags           
-  player_listen            player_match_commands    player_match_own_command
-  player_name_spaces       player_parent            player_queue_limit     
-  player_quota           
+  partial_deconn           passproxy_host           passproxy_site
+  paycheck                 pcreate_paranoia         pemit_any_object       
+  pemit_far_players        penn_playercmds          penn_setq              
+  penn_switches            permit_site              player_attr_default    
+  player_dark              player_flags             player_listen          
+  player_match_commands    player_match_own_command player_name_spaces     
+  player_parent            player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -9128,6 +9131,12 @@
   positives, issuing option 2 or 4 (or an option of 6 which combines them)
   can effectively block innocent players.  The option however, is there
   anyway.
+  
+  You may use the @admin site restrictions 'passproxy_site' and 
+  'passproxy_host' to set up site restrictions that automatically bypass
+  these proxy checks.
+  
+  See Also: passproxy_site, passproxy_host, @site, @admin
 
 & api_port
   Config parameter: api_port <port>.  Default: -1
@@ -10068,6 +10077,34 @@
     > think round( 2.5, 0 )
     3
 
+& passproxy_host
+  Config parameter: passproxy_host <!host> <host> ... <host>
+  
+  Indicates that connections matching the wildcard match of the specified
+  sites in their DNS HOST will be marked as bypassing automatic proxy
+  detection upon socket connection.  This works like 'passproxy_site' but deals
+  with DNS wildcard name conventions.  This will add or remove to existing or 
+  from existing site information already specified with passproxy_host.  You 
+  may use '!ALL' to clear the suspect host table.
+  
+  Example:  @admin passproxy_host=*.aol.com 
+            (bypasses proxy any site matching *.aol.com)
+            @admin passproxy_host=!ALL
+            (this clears the passproxy_host list)
+  
+  See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
+             validate_host, forbidapi_host, suspect_host, @site
+  
+  
+& passproxy_site
+  Config parameter: passproxy_site <addr> <mask>
+  
+  Indicates that sites whose address matches the specified address when ANDed
+  with the mask are to be allowed through automated proxy detection.  This
+  proxy detection is enabled with the proxy_checker @admin config parameter.
+  
+  See Also: proxy_checker, @site, @admin, @list, SITE LISTS
+ 
 & suspect_host
   Config parameter: suspect_host <!host> <host> ... <host>
   
@@ -10087,7 +10124,7 @@
              validate_host, forbidapi_host, @site
   
 & suspect_site
-  Config parameter: suspect_site <addr> <mask>.
+  Config parameter: suspect_site <addr> <mask>
   
   Indicates that sites whose address matches the specified address when ANDed
   with the mask are to be considered suspect, and any player creates, connects

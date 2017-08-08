@@ -2242,6 +2242,9 @@ announce_connect(dbref player, DESC * d, int dc)
        else if (d->host_info & H_SUSPECT)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "RECONNECT [SUSPECT SITE]",
 			     d->userid, d->addr, totsucc, newfail, totfail, NULL);
+       else if (d->host_info & H_PASSPROXY)
+	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "RECONNECT [PROXY BYPASS]",
+			     d->userid, d->addr, totsucc, newfail, totfail, NULL);
        else if (dc)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_DCONN, "RECONNECT",
 			     d->userid, d->addr, totsucc, newfail, totfail, NULL);
@@ -2254,6 +2257,9 @@ announce_connect(dbref player, DESC * d, int dc)
 			     d->userid, d->addr, totsucc, newfail, totfail, NULL);
        else if (d->host_info & H_SUSPECT)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "CONNECT [SUSPECT SITE]",
+			     d->userid, d->addr, totsucc, newfail, totfail, NULL);
+       else if (d->host_info & H_PASSPROXY)
+	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "CONNECT [PROXY BYPASS]",
 			     d->userid, d->addr, totsucc, newfail, totfail, NULL);
        else if (dc)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_DCONN, "CONNECT",
@@ -2475,6 +2481,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
                              d->userid, d->addr, 0, 0, 0, (char *)reason);
         else
 	   broadcast_monitor(player, MF_TRIM, "PARTIAL DISCONN [SUSPECT SITE]", 
+                             d->userid, d->addr, 0, 0, 0, (char *)reason);
+    } else if (d->host_info & H_PASSPROXY) {
+        if ( num < 2 )
+	   broadcast_monitor(player, MF_TRIM, "DISCONN [PROXY BYPASS]", 
+                             d->userid, d->addr, 0, 0, 0, (char *)reason);
+        else
+	   broadcast_monitor(player, MF_TRIM, "PARTIAL DISCONN [PROXY BYPASS]", 
                              d->userid, d->addr, 0, 0, 0, (char *)reason);
     } else {
         if ( num < 2 )
@@ -3274,6 +3287,9 @@ dump_users(DESC * e, char *match, int key)
 		if ((d->host_info & H_SUSPECT) && (Wizard(e->player) || SeeSuspect(e->player)) && 
 		    (e->flags & DS_CONNECTED))
 		    *fp++ = '+';
+		if ((d->host_info & H_PASSPROXY) && (Wizard(e->player) || SeeSuspect(e->player)) && 
+		    (e->flags & DS_CONNECTED))
+		    *fp++ = '^';
 	    } else if (key == CMD_SESSION) {
 		sprintf(buf,
 			"%-16.16s %10d %4d  %4d%6d%10d%6d%6d%10d\r\n",
@@ -3368,6 +3384,9 @@ dump_users(DESC * e, char *match, int key)
 		    if ((d->host_info & H_SUSPECT) && (Wizard(e->player) || SeeSuspect(e->player)) && 
                         (e->flags & DS_CONNECTED))
 			*fp++ = '+';
+		    if ((d->host_info & H_PASSPROXY) && (Wizard(e->player) || SeeSuspect(e->player)) && 
+                        (e->flags & DS_CONNECTED))
+			*fp++ = '^';
 		}
 		else if (HasPriv(e->player, d->player, POWER_WHO_UNFIND, POWER4, NOTHING) && 
 				(e->flags & DS_CONNECTED))
@@ -5609,8 +5628,10 @@ stat_string(int strtype, int flag, int key)
 
     switch (strtype) {
     case S_SUSPECT:
-	if (flag)
+	if (flag == H_SUSPECT)
 	    str = "Suspected";
+	else if (flag == H_PASSPROXY)
+	    str = "Proxy Bypass";
 	else
 	    str = "Trusted";
 	break;
@@ -5785,6 +5806,7 @@ list_siteinfo(dbref player)
     list_hosts(player, mudconf.validate_host, "InvalidAReg");
     list_hosts(player, mudconf.goodmail_host, "ValidAReg");
     list_hosts(player, mudconf.nobroadcast_host, "NoMonitor");
+    list_hosts(player, mudconf.passproxy_host, "Proxy Bypass");
 
     VOIDRETURN; /* #152 */
 }
