@@ -258,6 +258,9 @@
     CODING REGS    -- A quick overview of temporary registers/arguments
     CODING SUBS    -- A quick overview of substitutions
   
+    WILDCARDS      -- Help on how wildcards work
+    REGEXP         -- If you feel adventurous for regular expressions
+  
   To continue with the overview and explain how a general layout works,
   please see 'CODING2'.
   
@@ -368,7 +371,6 @@
   > say config(sbuf_size)
   You say "64"
   
-
   When setting attributes, you give it three arguments.  The name of
   the attribute (which we will be calling ATTRIBUTE), the target that
   you will set the attribute on (which we will be calling TARGET), and
@@ -470,7 +472,12 @@
   $foo *=*:@emit Args: %0 and %1.
   
   The command 'foo' has two arguments.  argument 0 (%0) will be before the
-  '=' and argument 1 (%1) will be after the '='.  You may pass this
+  '=' and argument 1 (%1) will be after the '='.  You may pass this multiple
+  words.  You can use '*' or '?' for wildcards.  You may also use regular
+  expressions if you feel adventerous, but that is for advanced coding.
+  
+  See 'help wildcard' to see more on normal wildcarding.
+  See 'help regexp' to see more on regular expressions.
 
 & CODING QUEUE
   Topic: CODING QUEUE
