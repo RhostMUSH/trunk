@@ -284,7 +284,7 @@
 & CODING2
   Topic: CODING2
   
-  When you start coding on a mush, each sequence usually starts withi a
+  When you start coding on a mush, each sequence usually starts with a
   command, which then uses functions to manipulate the data the command
   is calling.  You may also make soft-coded commands ($-commands in help)
   by starting a command with a '$' and then any wildcards with '*' for
