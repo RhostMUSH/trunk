@@ -3009,7 +3009,7 @@
   The function definitions created by @function are not stored in the database
   so they need to be re-created each time the RhostMUSH is started.  It is
   recommended that the Startup attribute for player #1 include code to
-  set up all global functions.  The privalaged and preserved, protect, and
+  set up all global functions.  The privileged and preserved, protect, and
   notrace switches may be combined.
    
   Function definitions may not be removed (aside from shutting down and
@@ -3032,7 +3032,7 @@
              @function/min myfunction=3
   
   Note: With the /list switch, the following letters represent the following:
-             W - privalaged
+             W - privileged
              p - preserved
              + - protected
              t - notrace
@@ -8835,7 +8835,7 @@
 & wall_cost
   Config parameter: wall_cost <ammount>.  Default: 250
   
-  Specifies the cost of using a @wall if you're not privalaged.
+  Specifies the cost of using a @wall if you're not privileged.
   Privalaged is defined of having at least a GUILDMASTER bit.
 
 & paranoid_allocate
@@ -12396,7 +12396,7 @@
   have access to the 'real' add() function, while everyone below would
   access the softcoded add() function.
   
-  @function/privalaged will take the level of the object the @function
+  @function/privilege will take the level of the object the @function
   is on for permission checks (which can allow a lot of flexability)
   
   Example:

@@ -4473,7 +4473,7 @@
      > @lock/twink player=CANUSE/1
   
   Special note:  You can set the item NOMODIFY if you want it to just have
-                 examine privalages and not modify privalages.  You may
+                 examine privileges and not modify privileges.  You may
                  also customize your @lock/twink to check %w against the
                  target player dbref# with a complex lock.
   
@@ -7823,7 +7823,7 @@
   The function definitions created by @lfunction are not stored in the database
   so they need to be re-created each time the RhostMUSH is started.  It is
   recommended that the Startup attribute for the target include code to set up
-  all global functions.  The privalaged and preserved, protect, and notrace 
+  all global functions.  The privileged and preserved, protect, and notrace 
   switches may be combined.
    
   All global functions have precedence over local functions.  All built-in
@@ -7844,7 +7844,7 @@
              @lfunction/min myfunction=3
   
   Note: With the /list switch, the following letters represent the following:
-             W - privalaged
+             W - privileged
              p - preserved
              + - protected
              t - notrace
@@ -29690,7 +29690,7 @@
   * @ansiname now allows raw ansi [ASH]
   * dig(), create(), open(), clone() all optionally return dbref#'s [ASH]
   * @list options now shows more (and valuable) information [ASH]
-  * @function/list now shows flags for privalaged/preserved functions [ASH]
+  * @function/list now shows flags for privileged/preserved functions [ASH]
   * mail/status and mail/read now show connected players [ASH]
   * mail/write and - now show how many characters you have written [ASH]
   * mail/forward and mail/reply now recognize the BRANDY_MAIL @toggle [ASH]
