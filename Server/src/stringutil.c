@@ -1948,7 +1948,7 @@ utf8toucp(char *utf)
         i_b3 = strtol(tmp, &ptr, 16);
         strncpy(tmp, utf+6, 2);
         i_b4 = strtol(tmp, &ptr, 16);
-        i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
+        i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) + (i_b4 - 128); // Math fix. Add i_b4, don't subtract. By eery
         sprintf(ucp, "%04x", i_ucp);
     } else {
         sprintf(ucp, "0020");

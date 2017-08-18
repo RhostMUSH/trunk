@@ -1,3 +1,19 @@
 & help
-This is a sample +help file.
-Enter topics like you would normal help/news files.
+
+ 0============================0 Minimal DB Help 0=============================0
+
+  OOC Systems:
+  ------------
+  Bulletin-Boards    Jobs               Mail-Systems       Places
+
+  OOC Commands:
+  -------------
+  +follow
+
+  IC Systems:
+  -----------
+  Places
+
+  IC Commands:
+  ------------
+

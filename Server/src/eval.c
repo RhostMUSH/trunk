@@ -869,6 +869,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         i_utfcnt++;
                         string++;
                     }
+                    s_ucpbuf[i_utfcnt] = '\0'; // Null fix by eery
                     
                     i_utfnum = atoi(s_ucpbuf);
                     
