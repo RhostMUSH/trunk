@@ -4121,6 +4121,7 @@ check_connect(DESC * d, const char *msg)
                            d->userid, d->addr, 0, 0, 0, 
                            (char *)unsafe_tprintf("%s  [%s]", user, Name(player2)));
       }
+      is_guest = 1; /* Enforce guest check */
       if ( --(d->retries_left) <= 0 ) {
          free_mbuf(command);
          free_mbuf(user);
@@ -4317,10 +4318,10 @@ check_connect(DESC * d, const char *msg)
             if (postest)
                broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (NOPOSSESS)", 
                                  d->userid, d->addr, 0, 0, 0, NULL);
-            if ((player == NOTHING) && (player2 == NOTHING))
+            if ( !is_guest && (player == NOTHING) && (player2 == NOTHING))
                broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CONNECT)", 
                                  d->userid, d->addr, 0, 0, 0, user);
-            if (player == NOTHING && (player2 != NOTHING))
+            if ( !is_guest && (player == NOTHING) && (player2 != NOTHING))
                broadcast_monitor(NOTHING, MF_SITE | MF_BFAIL, "FAIL (BAD CONNECT)", 
                                  d->userid, d->addr, 0, 0, 0, 
                                  (char *)unsafe_tprintf("%s  [%s]", user, Name(player2)));
