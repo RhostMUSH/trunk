@@ -103,7 +103,7 @@ char *ansi_translate_16[257]={
    "r", "rh", "mh", "mh", "mh", "mh", "rh", "rh",
    "rh", "mh", "mh", "mh",  "y", "y", "y", "mh",
    "mh", "mh", "y", "y", "yh", "mh", "mh", "mh",
-   "y", "y", "yh", "wh", "wh", "wh", "yw", "yw",
+   "y", "y", "yh", "wh", "wh", "wh", "yh", "yh",
    "yh", "wh", "wh", "wh", "rh", "rh", "rh", "mh",
    "mh", "mh", "rh", "rh", "rh", "mh", "mh", "mh",
    "rh", "rh", "mh", "mh", "mh", "mh", "yh", "yh",
