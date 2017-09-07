@@ -2195,7 +2195,7 @@ snarfle_the_garthok(char *input, char *output)
 
    i_count = 0;
    s_in = input;
-   s_out = input;
+   s_out = output;
    if ( s_out )
       ; /* Temporary initialize for warnings */
 
