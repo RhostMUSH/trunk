@@ -29403,7 +29403,7 @@
   The current Lead Developer (which we change up) is marked with a '*'.
   Developers who are MIA or retired are surrounded in []'s.
    
-  Current Revision: 4.0.0p0
+  Current Revision: 4.0.0p1
 
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
@@ -29420,7 +29420,7 @@
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
-    4.0.0: 4.0.0p0
+    4.0.0: 4.0.0p0, 4.0.0p1
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -31815,3 +31815,17 @@
   * bug in @protect that didn't set/unset the proper flags [ASH]
   * The base UTF8 conversion had a math error in stringutil.c [eery]
   * UTF8 ran into codepoint corruption due to missing terminator [eery]
+
+& 4.0.0p1
+  Release Date: 09/08/17
+  Status: Alpha
+    
+  New Features
+  ------------
+  
+  Changes
+  ------------
+  
+  Bug Fixes
+  ------------
+  * ANSI16 conversion had bad entries for highlighted yellow [Polk]
