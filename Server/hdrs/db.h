@@ -51,11 +51,17 @@ extern ATTR *	FDECL(atr_num, (int anum));
 extern ATTR *	FDECL(atr_num2, (int anum));
 extern ATTR *	FDECL(atr_num3, (int anum));
 extern ATTR *	FDECL(atr_num4, (int anum));
+extern ATTR *	FDECL(atr_num_ex, (int anum));
+extern ATTR *	FDECL(atr_num_pinfo, (int anum));
+extern ATTR *	FDECL(atr_num_aladd, (int anum));
+extern ATTR *	FDECL(atr_num_exec, (int anum));
 extern ATTR *	FDECL(atr_str, (char *s));
 extern ATTR *	FDECL(atr_str2, (char *s));
 extern ATTR *	FDECL(atr_str3, (char *s));
+extern ATTR *	FDECL(atr_str_atrpeval, (char *s));
 extern ATTR *	FDECL(atr_str_notify, (char *s));
 extern ATTR *	FDECL(atr_str_parseatr, (char *s));
+extern ATTR *	FDECL(atr_str_exec, (char *s));
 extern ATTR *	FDECL(atr_num_bool, (int anum));
 extern ATTR *	FDECL(atr_str_bool, (char *s));
 

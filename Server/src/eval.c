@@ -121,7 +121,7 @@ sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, ch
    if ( Good_obj(mudconf.hook_obj) && (mudconf.sub_override & i_include) && !(mudstate.sub_overridestate & i_include) ) {
       s_buf = alloc_sbuf("sub_override_process");
       sprintf(s_buf, "SUB_%s", s_chr);
-      sub_ap = atr_str(s_buf);
+      sub_ap = atr_str_exec(s_buf);
       if ( !sub_ap ) {
          safe_str(s_include, buff, bufc);
       } else {
@@ -541,7 +541,7 @@ tcache_finish(void)
 	xp = tcache_head;
 	tcache_head = xp->next;
         tprp_buff = tpr_buff;
-        ap_log = atr_str("TRACE_GREP");
+        ap_log = atr_str_exec("TRACE_GREP");
         if ( ap_log ) {
            s_grep = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
            if ( s_grep && *s_grep ) {
@@ -593,7 +593,7 @@ tcache_finish(void)
         free_lbuf(tstr2);
 
         if ( Bouncer(xp->player) ) {
-            ap_log = atr_str("BOUNCEFORWARD");
+            ap_log = atr_str_exec("BOUNCEFORWARD");
             if ( ap_log ) {
                s_aptext = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
                if ( s_aptext && *s_aptext ) {
@@ -1580,15 +1580,15 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       ((c_last_chr == 'M') && (mudconf.sub_override & SUB_M) && !(mudstate.sub_overridestate & SUB_M))) ) {
                    switch(c_last_chr) {
                       case 'X':
-                         sub_ap = atr_str("SUB_X");
+                         sub_ap = atr_str_exec("SUB_X");
                          i_last_chr = SUB_X;
                          break;
                       case 'M':
-                         sub_ap = atr_str("SUB_M");
+                         sub_ap = atr_str_exec("SUB_M");
                          i_last_chr = SUB_M;
                          break;
                       default:
-                         sub_ap = atr_str("SUB_C");
+                         sub_ap = atr_str_exec("SUB_C");
                          i_last_chr = SUB_C;
                          break;
                    }
@@ -2188,7 +2188,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 strcpy(t_bufc, ANSI_NORMAL);
 #endif
                 if ( (mudconf.sub_override & SUB_K) && !(mudstate.sub_overridestate & SUB_K) && Good_obj(mudconf.hook_obj) ) {
-                   sub_ap = atr_str("SUB_K");
+                   sub_ap = atr_str_exec("SUB_K");
                    if (!sub_ap) {
                       if ( t_bufb ) {
                          safe_str(t_bufb, buff, &bufc);
@@ -2285,7 +2285,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       }
                       *t_bufb = '\0';
                       *(t_bufa+SBUF_SIZE-1) = '\0';
-                      sub_ap = atr_str("TRACE");
+                      sub_ap = atr_str_exec("TRACE");
                       if ( sub_ap ) {
                          sub_txt = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( *sub_txt && (strstr(sub_txt, t_bufa) != NULL) ) { 
@@ -2296,16 +2296,16 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             if ( mudstate.trace_nest_lev < (LABEL_MAX - 2) ) {
                                trace_buff = alloc_mbuf("color_by_label");
                                sprintf(trace_buff, "TRACE_COLOR_%.*s", SBUF_SIZE - 1, t_bufa);
-                               sub_ap = atr_str(trace_buff);
+                               sub_ap = atr_str_exec(trace_buff);
                                free_mbuf(trace_buff);
                                if ( sub_ap ) {
                                   sub_buf = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
                                   if ( !*sub_buf ) {
-                                     sub_ap = atr_str("TRACE_COLOR");
+                                     sub_ap = atr_str_exec("TRACE_COLOR");
                                   }
                                   free_lbuf(sub_buf);
                                } else {
-                                  sub_ap = atr_str("TRACE_COLOR");
+                                  sub_ap = atr_str_exec("TRACE_COLOR");
                                }
                                if ( sub_ap ) {
                                   sub_buf = atr_get(player, sub_ap->number, &sub_aowner, &sub_aflags);
@@ -2442,15 +2442,15 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       ((c_last_chr == 'M') && (mudconf.sub_override & SUB_M) && !(mudstate.sub_overridestate & SUB_M))) ) {
                    switch(c_last_chr) {
                       case 'X':
-                         sub_ap = atr_str("SUB_X");
+                         sub_ap = atr_str_exec("SUB_X");
                          i_last_chr = SUB_X;
                          break;
                       case 'M':
-                         sub_ap = atr_str("SUB_M");
+                         sub_ap = atr_str_exec("SUB_M");
                          i_last_chr = SUB_M;
                          break;
                       default:
-                         sub_ap = atr_str("SUB_C");
+                         sub_ap = atr_str_exec("SUB_C");
                          i_last_chr = SUB_C;
                          break;
                    }
@@ -2505,7 +2505,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    if ( !ok_attr_name(t_bufa) ) {
                       sprintf(t_bufa, "SUB_%03d", (int)*dstr);
                    }
-                   sub_ap = atr_str(t_bufa);
+                   sub_ap = atr_str_exec(t_bufa);
                    sub_delim = sub_value = 0;
                    if (sub_ap) {
                       mudstate.sub_includestate = 1;
@@ -2514,7 +2514,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( !ok_attr_name(t_bufa) ) {
                          sprintf(t_bufa, "CHR_%03d", (int)*dstr);
                       }
-                      sub_ap = atr_str(t_bufa);
+                      sub_ap = atr_str_exec(t_bufa);
                       if ( sub_ap ) {
                          sub_txt2 = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( sub_txt2 && *sub_txt2) {

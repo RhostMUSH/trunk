@@ -7,6 +7,8 @@ MUX passwords didn't work properly because of a memcmp() bug.
 				- Thanks Rockpath
 Help file typos fixed
 				- Thanks Rockpath
+Bug in EVAL could overwrite static pointer to attribute fetches
+				- Thanks Ixokai
 
 
                          RhostMUSH 3.9.5 Update File

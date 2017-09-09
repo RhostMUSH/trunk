@@ -31829,3 +31829,4 @@
   Bug Fixes
   ------------
   * ANSI16 conversion had bad entries for highlighted yellow [Polk]
+  * EVAL locks had a race condition on redefining calling attrib [ASH]

@@ -1779,7 +1779,7 @@ int	aflags;
 
 	/* Get the named attribute from the object if we can */
 
-	attr = atr_str(str);
+	attr = atr_str_parseatr(str);
 	free_lbuf(buff);
 	if (!attr) {
 		*atr = NOTHING;
@@ -1836,12 +1836,11 @@ int	aflags;
 	if (!attr) {
 		*atr = NOTHING;
 	} else {
-		atr_pget_info(*thing, attr->number, &aowner, &aflags);
-		if (!See_attr(player, *thing, attr, aowner, aflags, 1)) {
-			*atr = NOTHING;
-		} else {
-			*atr = attr->number;
-		}
+		*atr = attr->number;
+  		atr_pget_info(*thing, attr->number, &aowner, &aflags);
+  		if (!See_attr(player, *thing, attr, aowner, aflags, 1)) {
+  			*atr = NOTHING;
+  		}
 	}
 	return 1;
 }
@@ -1865,7 +1864,7 @@ int	ca, ok, aflags, i_nowild;
         }
 	atr_push();
 	for (ca=atr_head(thing, &as); ca; ca=atr_next(&as)) {
-		attr = atr_num(ca);
+		attr = atr_num_pinfo(ca);
 
 		/* Discard bad attributes and ones we've seen before. */
 
@@ -1974,7 +1973,7 @@ ATTR	*attr;
 
         if ( check_cluster ) {
 		check_exclude = 0;
-		attr = atr_str("_CLUSTER");
+		attr = atr_str_atrpeval("_CLUSTER");
                 if ( attr ) {
                    s_text = atr_get(*thing, attr->number, &aowner, &aflags);
                    if ( *s_text ) {

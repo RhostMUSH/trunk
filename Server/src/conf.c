@@ -1879,7 +1879,7 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
       return 1;
    }
 
-   ap = atr_str((char *)"AFLAG_EVAL");
+   ap = atr_str_atrpeval((char *)"AFLAG_EVAL");
    if ( !ap ) {
       return 1;
    }

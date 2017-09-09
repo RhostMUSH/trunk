@@ -1866,7 +1866,7 @@ look_atrs1(dbref player, dbref thing, dbref othing,
     for (ca = atr_head(thing, &as); ca; ca = atr_next(&as)) {
 	if ((ca == A_DESC) || (ca == A_LOCK))
 	    continue;
-	attr = atr_num(ca);
+	attr = atr_num_ex(ca);
 	if (!attr)
 	    continue;
 
@@ -2425,7 +2425,7 @@ debug_examine(dbref player, dbref thing)
 
     tprp_buff = tpr_buff = alloc_lbuf("debug_examine");
     for (ca = atr_head(thing, &as); ca; ca = atr_next(&as)) {
-	attr = atr_num(ca);
+	attr = atr_num_ex(ca);
 	if (!attr)
 	    continue;
 
@@ -2446,7 +2446,7 @@ debug_examine(dbref player, dbref thing)
     free_lbuf(buf);
 
     for (ca = atr_head(thing, &as); ca; ca = atr_next(&as)) {
-	attr = atr_num(ca);
+	attr = atr_num_ex(ca);
 	if (!attr)
 	    continue;
 
@@ -2468,7 +2468,7 @@ exam_wildattrs(dbref player, dbref thing, int do_parent,
 
     got_any = 0;
     for (atr = olist_first(master); atr != NOTHING; atr = olist_next(master)) {
-        ap = atr_num(atr);
+        ap = atr_num_ex(atr);
         if (!ap)
 	    continue;
 
@@ -3943,7 +3943,7 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
     strncpy(tname, Name(thing), (LBUF_SIZE - 1));
   tprp_buff = tpr_buff = alloc_lbuf("decomp_wildattrs");
   for (atr = olist_first(master); atr != NOTHING; atr = olist_next(master)) {
-    ap = atr_num(atr);
+    ap = atr_num_ex(atr);
     if (!ap)
       continue;
     buf = atr_get(thing, atr, &aowner, &aflags);
@@ -4180,7 +4180,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
        for (ca = atr_head(thing, &as); ca; ca = atr_next(&as)) {
 	   if ((ca == A_NAME) || (ca == A_LOCK))
 	       continue;
-	   attr = atr_num(ca);
+	   attr = atr_num_ex(ca);
 	   if (!attr)
 	       continue;
 	   if ((attr->flags & AF_NOCMD) && !(attr->flags & AF_IS_LOCK))
