@@ -101,7 +101,8 @@ dbref	mat;
 	init_match(player, name, NOTYPE);
 	match_everything(MAT_EXIT_PARENTS);
 	mat = noisy_match_result();
-	if (Good_obj(mat) && !(Controls(player, mat) || could_doit(player,mat,A_LTWINK,0,0)) ) {
+	if (Good_obj(mat) && !Controls(player, mat) &&
+            !could_doit(player,mat,A_LTWINK,0,0)) {
 		notify_quiet(player, "Permission denied.");
 		return NOTHING;
 	} else {
@@ -251,7 +252,8 @@ char	*oldalias, *trimalias;
 
                 if ( NoMod(thing) && !WizMod(player) ) {
 			notify_quiet(player, "Permission denied.");
-                } else if ( !(Controls(player, thing) || could_doit(player,thing,A_LTWINK,0,0)) ) {
+                } else if (!Controls(player, thing) &&
+                    !could_doit(player,thing,A_LTWINK,0,0)) {
 
 			/* Make sure we have rights to do it.  We can't do
 			 * the normal Set_attr check because ALIAS is only
@@ -415,7 +417,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       }
    }
 
-   if( (key == A_LTWINK) && (Typeof(thing) == TYPE_PLAYER) ) {
+   if( key == A_LTWINK && Typeof(thing) == TYPE_PLAYER ) {
       notify_quiet(player, "Warning: Setting a TwinkLock on a player is generally not a good idea.");
    }
    
@@ -579,7 +581,8 @@ dbref	exit;
 	default:
                 if ( NoMod(exit) && !WizMod(player) ) {
 			notify_quiet(player, "Permission denied.");
-                } else if ( !(controls(player, exit) || could_doit(player,exit,A_LTWINK,0,0)) ) {
+                } else if (!controls(player, exit) &&
+                    !could_doit(player,exit,A_LTWINK,0,0)) {
 			notify_quiet(player, "Permission denied.");
 		} else {
 			switch (Typeof(exit)) {
@@ -2780,7 +2783,8 @@ void do_include(dbref player, dbref cause, int key, char *string,
       notify_quiet(player, "No match.");
       return;
    }
-   if (!Good_chk(thing) || (!(controls(player, thing) || could_doit(player,thing,A_LTWINK,0,0))) ) {
+   if (!Good_chk(thing) || (!controls(player, thing) &&
+       !could_doit(player,thing,A_LTWINK,0,0)) ) {
        notify_quiet(player, "Permission denied.");
        return;
    }
@@ -2915,7 +2919,8 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
         notify_quiet(player, "No match.");
         return;
      }
-     if ( !(controls(it, thing) || could_doit(it,thing,A_LTWINK,0,0)) ) {
+     if (!controls(it, thing) &&
+         !could_doit(it,thing,A_LTWINK,0,0)) {
          notify_quiet(it, "Permission denied.");
          return;
      }
@@ -2924,7 +2929,8 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
         notify_quiet(player, "No match.");
         return;
      }
-     if ( !(controls(player, thing) || could_doit(player,thing,A_LTWINK,0,0)) ) {
+     if (!controls(player, thing) &&
+         !could_doit(player,thing,A_LTWINK,0,0)) {
          notify_quiet(player, "Permission denied.");
          return;
      }
