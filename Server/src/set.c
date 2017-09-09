@@ -1831,7 +1831,7 @@ int	aflags;
 
 	/* Get the named attribute from the object if we can */
 
-	attr = atr_str(str);
+	attr = atr_str_parseatr(str);
 	free_lbuf(buff);
 	if (!attr) {
 		*atr = NOTHING;
