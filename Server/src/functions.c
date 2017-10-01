@@ -3600,7 +3600,8 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 #else
       wrap_out( leftstart, crp - leftstart, &winfo, buff, bufcx, " ", 0 );
       safe_str( "\r\n", buff, bufcx );
-      if ( i_firstrun && i_inansi );
+      if ( i_firstrun && i_inansi )
+         ;
 #endif
       buffleft -= (crp - leftstart) + 2;
       leftstart = crp + 2;
@@ -30279,7 +30280,8 @@ FUNCTION(fun_ljust)
     s = t = NULL;
     i_len = 0;
 #ifndef ZENTY_ANSI
-    if ( s );
+    if ( s )
+      ;
 #endif
 
     filllen = 1;
@@ -30355,7 +30357,8 @@ FUNCTION(fun_rjust)
     memset(filler, '\0', sizeof(filler));
     s = t = NULL;
 #ifndef ZENTY_ANSI
-    if ( s );
+    if ( s )
+      ;
 #endif
 
     if ( (nfargs > 2) && *fargs[2] ) {
@@ -30441,7 +30444,8 @@ FUNCTION(fun_center)
     s = t = NULL;
 
 #ifndef ZENTY_ANSI
-    if ( s );
+    if ( s )
+      ;
 #endif
    
     if ( (nfargs > 2) && *fargs[2] ) {
@@ -31769,9 +31773,11 @@ FUNCTION(fun_ljc)
      return;
   }
 
+  s = NULL;
 #ifndef ZENTY_ANSI
   inlen = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
-  if ( s );
+  if ( s )
+    ;
 #endif
   len = atoi(fargs[1]);
 
@@ -31966,7 +31972,8 @@ FUNCTION(fun_rjc)
   filllen = 1;
 
 #ifndef ZENTY_ANSI
-  if ( s );
+  if ( s )
+    ;
 #endif
 
   if ( (nfargs > 2) && *fargs[2] ) {

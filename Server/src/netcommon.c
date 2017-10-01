@@ -4798,7 +4798,10 @@ do_command(DESC * d, char *command)
 {
     char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime;
 #ifdef HAS_OPENSSL
-    char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p, *s_usepass, *s_usepassptr,
+#ifdef ZENTY_ANSI
+    char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
+#endif
+    char *s_usepass, *s_usepassptr,
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_strtok, *s_strtokr, *s_buffer,
          *s_get, *s_pass;
     double i_time;
@@ -5167,6 +5170,7 @@ do_command(DESC * d, char *command)
                                  case 4: /* Do not parse -- percent args only -- show ansi */
                                          s_buffer = cpuexec(thing, thing, thing,
                                                             EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_snarfing, (char **)NULL, 0, (char **)NULL, 0);
+#ifdef ZENTY_ANSI
                                          if ( i_parse == 4 ) {
                                             strcpy(s_snarfing, s_buffer);
                                             s_ansi1p = s_ansi1 = alloc_lbuf("get_parse_ansibuf1");
@@ -5178,8 +5182,10 @@ do_command(DESC * d, char *command)
                                             free_lbuf(s_ansi2);
                                             free_lbuf(s_ansi3);
                                          }
+#endif
                                          break;
                                  case 2: /* Just return the string as an ansi handler */
+#ifdef ZENTY_ANSI
                                          s_buffer = alloc_lbuf("get_parse_ansi");
                                          s_ansi1p = s_ansi1 = alloc_lbuf("get_parse_ansibuf1");
                                          s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
@@ -5189,11 +5195,15 @@ do_command(DESC * d, char *command)
                                          free_lbuf(s_ansi1);
                                          free_lbuf(s_ansi2);
                                          free_lbuf(s_ansi3);
+#else
+                                         strcpy(s_buffer, s_snarfing);
+#endif
                                          break;
                                  case 3:
                                  default: /* Default case */
                                          s_buffer = cpuexec(thing, thing, thing,
                                                             EV_FCHECK | EV_EVAL, s_snarfing, (char **)NULL, 0, (char **)NULL, 0);
+#ifdef ZENTY_ANSI
                                          if ( i_parse == 3 ) {
                                             strcpy(s_snarfing, s_buffer);
                                             s_ansi1p = s_ansi1 = alloc_lbuf("get_parse_ansibuf1");
@@ -5205,6 +5215,7 @@ do_command(DESC * d, char *command)
                                             free_lbuf(s_ansi2);
                                             free_lbuf(s_ansi3);
                                          }
+#endif
                                          break;
                               }
                               if ( mudstate.chkcpu_toggle && !i_cputog ) {

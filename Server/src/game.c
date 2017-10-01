@@ -611,9 +611,9 @@ void
 notify_check(dbref target, dbref sender, const char *msg, int port, int key, int i_type)
 {
 #ifdef ZENTY_ANSI
-    char *mp2, *msg_utf, *mp_utf;
+    char *mp2, *msg_utf, *mp_utf, *pvap[4];
 #endif
-    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[4], *pvap[4];
+    char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[4];
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0, i_chkcpu;
@@ -827,6 +827,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  free_mbuf(vap[2]);
                  free_mbuf(vap[3]);
                  if ( *s_pipebuffptr ) {
+#ifdef ZENTY_ANSI
                     pvap[0] = vap[0] = alloc_lbuf("vap0");
                     pvap[1] = vap[1] = alloc_lbuf("vap1");
                     pvap[2] = vap[2] = alloc_lbuf("vap2");
@@ -835,6 +836,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     free_lbuf(vap[0]);
                     free_lbuf(vap[1]);
                     free_lbuf(vap[2]);
+#else
+                    raw_notify(target, s_pipebuffptr, port, 1);
+#endif
                  }
                  free_lbuf(s_pipebuffptr);
                  free_lbuf(s_pipeattr2);
@@ -901,6 +905,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  free_mbuf(vap[2]);
                  free_mbuf(vap[3]);
                  if ( *s_pipebuffptr ) {
+#ifdef ZENTY_ANSI
                     pvap[0] = vap[0] = alloc_lbuf("vap0");
                     pvap[1] = vap[1] = alloc_lbuf("vap1");
                     pvap[2] = vap[2] = alloc_lbuf("vap2");
@@ -909,6 +914,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     free_lbuf(vap[0]);
                     free_lbuf(vap[1]);
                     free_lbuf(vap[2]);
+#else
+                    raw_notify(target, s_pipebuffptr, port, 1);
+#endif
                  }
                  free_lbuf(s_pipebuffptr);
                  free_lbuf(s_pipeattr2);

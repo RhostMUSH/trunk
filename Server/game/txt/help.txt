@@ -31830,3 +31830,5 @@
   ------------
   * ANSI16 conversion had bad entries for highlighted yellow [Polk]
   * EVAL locks had a race condition on redefining calling attrib [ASH]
+  * ANSI didn't fully honor ZENTY_ANSI when ZENTY_ANSI was enabled [ASH]
+  * compiler warnings when ZENTY_ANSI not specified [ASH]
