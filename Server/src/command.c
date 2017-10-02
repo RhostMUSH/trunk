@@ -726,6 +726,11 @@ NAMETAB motd_sw[] =
     {(char *) "wizard", 1, CA_WIZARD, 0, MOTD_WIZ},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB name_sw[] =
+{
+    {(char *) "ansi", 3, CA_PUBLIC, 0, NAME_ANSI},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB newsdb_sw[] =
 {
     {(char *) "dbinfo", 3, CA_IMMORTAL, 0, NEWSDB_DBINFO},
@@ -1347,7 +1352,7 @@ CMDENT command_table[] =
      CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV, 0, do_mvattr},
 /* Removed CA_GBL_BUILD from @name : ASH 08/23/98 */
-    {(char *) "@name", NULL,
+    {(char *) "@name", name_sw,
      CA_NO_SLAVE | CA_NO_GUEST, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_name},
     {(char *) "@newpassword", newpassword_sw, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,

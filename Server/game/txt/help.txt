@@ -4983,13 +4983,27 @@
   See Also: @mvattr, @set, &
   
 & @name
-  Command: @name <object> = <new name>
+  Command: @name[/<switch>] <object> = <new name>
   
   Changes the name of <object>.  <object> can be a thing, player, exit, or
   room, specified as <name> or #<dbref> or 'me' or 'here'.
  
   See '@list options' as to whether or not a player name may contain 
   spaces.  The default for RhostMUSH is to disallow spaces in player names.
+  
+  The following switches exist for name:
+    /ansi - combine @name and @extansi to both (re)name the item and
+            set the specified ansiname for it at the same time.
+            It does this by stripping all special characters for the real
+            name then applying the accented/ansified name entered for the
+            extansified name.
+    
+  Examples:
+    > @name me=Bob
+      Name set.
+    > @name/ansi me=[ansi(hr,B,hb,o,hr,b)]
+      Ansi string entered for Bob of 'Bob'.  (note: 'Bob' would be colorized)
+      Name set.
   
   See Also: name(), @protect, @list options, @alias, @ansiname, @extansi, 
             @caption, @titlecaption
@@ -6307,6 +6321,8 @@
   
 & @extansi
   Command: @extansi[/<switch>] <object> = <string>
+  
+  Note: @name/ansi combines this feature with @name
   
   The @extansi command allows you to set multi-color names for an item.  This
   only effects contents, inventories, and the normal 'look'.  It will not
@@ -9520,10 +9536,48 @@
   ANSICOLOR flag.  Without this flag, all ansi codes are stripped before
   you see them.
   
+  You may use ansi with ansi() or %c (or if configured %x/%m substitutions).
+  See '@list options system' to see what options are configured for ANSI.
+  
   You need both the ANSI and ANSICOLOR flags to see ansi color.
+  
+  For 256 color you need the XTERMCOLOR flag in addition to ANSI and 
+  ANSICOLOR.
+  
+{ 'help ansi usage' on how to use ansi}
   
   See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
   
+& ANSI USAGE
+  Topic: ANSI USAGE
+  
+  Note: Make sure to @list options to see what percent subs handle ANSI!
+  
+  To use ANSI, you may use the ansi() function or ANSI substitutions.  You
+  may reference 'help ansi()' to see what syntaxes are allowed for ANSI.
+  
+  To enable ansi, you would set up the flags to see ansi.
+  The following flags are required:
+    ANSI       - This is the central ansi handler.  This handles base ANSI 
+                 codes like hilight, flash, and underscore but not color.
+    ANSICOLOR  - This, in addition to ANSI, will enable you the base set 
+                 of ansicodes.  This is the base 16 color set.
+    XTERMCOLOR - This, with the addition of ANSI and ANSICOLOR, allows
+                 the extended 256 color set.
+  
+  To use the ANSI function you would use:
+    16 color mode:
+    > think ansi(hr,this is highlight red)
+    > think %ch%crthis is highlight red%cn
+  
+  Do note that as far as the parser is concerned, ansi() and the %c subs
+  are exactly the same.  Also be aware that if ANSI subs are %x only, 
+  use %x instead of %c.
+  
+    256 color mode: 
+    > think ansi(+pink,this is pink)
+    > think ansi(0xda,this is also pink)
+    
 & XTERMCOLOR
   Flag: XTERMCOLOR([t])
   
@@ -24107,6 +24161,7 @@
   
 { 'help ansi2' for more -- The 256 Color Support}
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
 
 & ANSI2
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -24147,6 +24202,7 @@
      
 { 'help ansi3' for more -- about XTERMCOLOR and ANSI examples }
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
   
 & ANSI3
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -24186,6 +24242,7 @@
    
 { 'help ansi4' for more -- Flags required and information }
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
 
 & ANSI4
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -24205,6 +24262,7 @@
             SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
 
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
   
 & ANSI QUIRKS
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -24239,6 +24297,8 @@
     You say "%cn"                              (the %cn is highlight red)
     > say ansi(hr,chr(37))                     
     You say "%"                                (the % is highlight red)
+  
+{ 'help ansi usage' on how to use ansi}
     
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
             SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
@@ -31822,6 +31882,8 @@
     
   New Features
   ------------
+  * @name/ansi combines @name and @extansi.  If you do not have @extansi
+    access, @name/ansi will fail as well [ASH]
   
   Changes
   ------------

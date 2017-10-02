@@ -760,6 +760,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define LSET_LIST       1       /* @lset/list */
 
+#define NAME_ANSI       1	/* Combine @name and @extansi together */
+
 #define ICMD_DISABLE	0
 #define ICMD_IGNORE	1
 #define ICMD_ON		2

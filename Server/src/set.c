@@ -9,6 +9,7 @@ char *index(const char *, int);
 
 #include "mudconf.h"
 #include "config.h"
+#include "command.h"
 #include "db.h"
 #include "match.h"
 #include "interface.h"
@@ -146,84 +147,134 @@ dbref	mat;
 	}
 }
 
-void do_name(dbref player, dbref cause, int key, const char *name, 
-		const char *newname)
+void do_name(dbref player, dbref cause, int key, char *name, char *newname)
 {
-dbref	thing;
-int	i_chk1, i_chk2;
-char	*buff;
+   dbref thing;
+   int i_chk1, i_chk2, i_ansi;
+   char *buff, *buff2, *s_namebuff, *s_tmp;
+   CMDENT *cmdp;
 
-	if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
-		return;
+   if ((thing = match_controlled_or_twinked(player, name)) == NOTHING) {
+      return;
+   }
 
-	/* check for bad name */
-	if (*newname == '\0') {
-		notify_quiet(player, "Give it what new name?");
-		return;
-	}
+   /* check for bad name */
+   if (*newname == '\0') {
+      notify_quiet(player, "Give it what new name?");
+      return;
+   }
 
-	if ((NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
-		(Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
-	  notify(player, "Permission denied.");
-	  return;
-	}
+   if ( (NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
+        (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
+      notify(player, "Permission denied.");
+      return;
+   }
 
-        i_chk1 = i_chk2 = 0;
-	/* check for renaming a player */
-	if (isPlayer(thing)) {
-		buff = trim_spaces((char *)strip_all_special(newname));
-                i_chk1 = protectname_check(Name(thing), player, 0);
-                i_chk2 = protectname_check(buff, player, 0);
-		if (!ok_player_name(buff) || !i_chk2 ||
-			   !badname_check(buff, player)) {
-			notify_quiet(player, "You can't use that name.");
-			free_lbuf(buff);
-			return;
-		} else if (string_compare(buff, Name(thing)) &&
-			   (lookup_player(NOTHING, buff, 0) != NOTHING)) {
+   i_ansi = 0;
+   if ( key & NAME_ANSI ) {
+      cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+      if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+         notify(player, "Permission denied.");
+         return;
+      }
+      i_ansi = 1;
+   }
+   s_namebuff = alloc_lbuf("do_name_ansi");
+   s_tmp = alloc_lbuf("do_name_tmpbuf");
+   sprintf(s_tmp, "#%d", thing);
+   strcpy(s_namebuff, strip_all_special(newname));
 
-			/* string_compare allows changing foo to Foo, etc. */
+   i_chk1 = i_chk2 = 0;
+   /* check for renaming a player */
+   if ( isPlayer(thing) ) {
+      buff = trim_spaces((char *)s_namebuff);
+      buff2 = trim_spaces((char *)newname);
+      i_chk1 = protectname_check(Name(thing), player, 0);
+      i_chk2 = protectname_check(buff, player, 0);
+      if (!ok_player_name(buff) || !i_chk2 || !badname_check(buff, player)) {
+         notify_quiet(player, "You can't use that name.");
+         free_lbuf(buff);
+         free_lbuf(buff2);
+         free_lbuf(s_namebuff);
+         free_lbuf(s_tmp);
+         return;
+      } else if (string_compare(buff, Name(thing)) && (lookup_player(NOTHING, buff, 0) != NOTHING)) {
+         /* string_compare allows changing foo to Foo, etc. */
+         if ( i_chk2 != 2 ) {
+            notify_quiet(player, "That name is already in use.");
+            free_lbuf(buff);
+            free_lbuf(buff2);
+            free_lbuf(s_namebuff);
+            free_lbuf(s_tmp);
+            return;
+         }
+      }
 
-                        if ( i_chk2 != 2 ) {
-			   notify_quiet(player, "That name is already in use.");
-			   free_lbuf(buff);
-			   return;
-                        }
-		}
+      /* everything ok, notify */
+      STARTLOG(LOG_SECURITY,"SEC","CNAME")
+         log_name(thing),
+         log_text((char *)" renamed to ");
+         log_text(buff);
+      ENDLOG
 
-		/* everything ok, notify */
-		STARTLOG(LOG_SECURITY,"SEC","CNAME")
-			log_name(thing),
-			log_text((char *)" renamed to ");
-			log_text(buff);
-		ENDLOG
-		if (Suspect(thing)) {
-			raw_broadcast(0, WIZARD,
-				"[Suspect] %s renamed to %s",Name(thing),buff);
-		}
+      if (Suspect(thing)) {
+         raw_broadcast(0, WIZARD, "[Suspect] %s renamed to %s",Name(thing),buff);
+      }
 
-                if ( i_chk1 != 2 ) {
-		   delete_player_name(thing, Name(thing));
-                }
-		s_Name(thing, buff);
-                if ( i_chk2 != 2 ) {
-		   add_player_name(thing, Name(thing));
-                }
-		if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT))
-			notify_quiet(player, "Name set.");
-		free_lbuf(buff);
-		return;
-	} else {
-		if (!ok_name(newname)) {
-			notify_quiet(player, "That is not a reasonable name.");
-			return;
-		}
+      if ( i_chk1 != 2 ) {
+         delete_player_name(thing, Name(thing));
+      }
 
-		/* everything ok, change the name */
-		s_Name(thing, strip_all_special(newname));
-		if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT))
-			notify_quiet(player, "Name set.");
-	}
+      s_Name(thing, buff);
+
+      if ( i_chk2 != 2 ) {
+         add_player_name(thing, Name(thing));
+      }
+
+      if ( i_ansi ) {
+         s_Toggles2(thing, (Toggles2(thing) | TOG_EXTANSI));
+         do_extansi(player, player, 0, s_tmp, buff2);
+      }
+
+      if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
+         notify_quiet(player, "Name set.");
+      }
+      free_lbuf(buff);
+      free_lbuf(buff2);
+      free_lbuf(s_namebuff);
+      free_lbuf(s_tmp);
+      return;
+  } else {
+     if (!ok_name(s_namebuff)) {
+        notify_quiet(player, "That is not a reasonable name.");
+        free_lbuf(s_namebuff);
+        free_lbuf(s_tmp);
+        return;
+     }
+
+     /* everything ok, change the name */
+     s_Name(thing, s_namebuff);
+     if ( i_ansi ) {
+        s_Toggles2(thing, (Toggles2(thing) | TOG_EXTANSI));
+        if ( Typeof(thing) == TYPE_EXIT ) {
+           buff2 = newname;
+           while ( buff2 && *buff2 ) {
+             if ( *buff2 == ';' ) {
+                *buff2 = '\0';
+                break;
+             }
+             buff2++;
+           }
+        }
+        do_extansi(player, player, 0, s_tmp, newname);
+     }
+     if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
+        notify_quiet(player, "Name set.");
+     }
+  }
+  free_lbuf(s_namebuff);
+  free_lbuf(s_tmp);
 }
 
 /* ---------------------------------------------------------------------------
