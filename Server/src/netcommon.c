@@ -4652,7 +4652,7 @@ check_connect(DESC * d, const char *msg)
             fcache_dump(d, FC_CREA_REG, (char *)NULL);
          }
       } else {
-         player = create_player(user, password, NOTHING, 0);
+         player = create_player(user, password, NOTHING, 0, user, 0);
          if (player == NOTHING) {
             if ( !ok_password(password, NOTHING, 0) ) {
                queue_string(d, (char *)"Invalid password specified.\r\n");
@@ -4726,7 +4726,7 @@ check_connect(DESC * d, const char *msg)
          broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL LIMIT", d->userid, d->addr, d->descriptor, 0, 0, buff3);
          free_lbuf(buff3);
       } else {
-         switch (reg_internal(user, password, (char *)d, 0, NULL)) {
+         switch (reg_internal(user, password, (char *)d, 0, NULL, user, 0)) {
             case 0: /* Success -- Email out */
                (d->regtries_left)--;
                queue_string(d, "Autoregistration password emailed.\r\n");

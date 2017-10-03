@@ -51,13 +51,14 @@ parse_linkable_room(dbref player, char *room_name)
  */
 
 static void 
-open_exit(dbref player, dbref loc, char *direction, char *linkto, int key)
+open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char *ansiname, int isansi)
 {
     dbref exit;
     char *tpr_buff, *tprp_buff;
 
-    if (!Good_obj(loc))
+    if (!Good_obj(loc)) {
 	return;
+    }
 
     if (!direction || !*direction) {
 	notify_quiet(player, "Open where?");
@@ -66,9 +67,10 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key)
 	notify_quiet(player, "Permission denied.");
 	return;
     }
-    exit = create_obj(player, TYPE_EXIT, direction, 0);
-    if (exit == NOTHING)
+    exit = create_obj(player, TYPE_EXIT, direction, ansiname, 0, isansi);
+    if (exit == NOTHING) {
 	return;
+    }
 
     /* Initialize everything and link it in. */
 
@@ -146,37 +148,55 @@ do_open(dbref player, dbref cause, int key, char *direction,
 	char *links[], int nlinks)
 {
     dbref loc, destnum;
-    char *dest, *dir2;
+    char *dest, *dir2, *diransi;
     char spam_chr[32];
+    int i_ansi;
+    CMDENT *cmdp;
 
     memset(spam_chr, 0, sizeof(spam_chr));
     if ( (key & SIDEEFFECT) && !SideFX(player) ) {
        notify(player, "#-1 FUNCTION DISABLED");
        return;
     }
+
+    i_ansi = 0;
+    if ( key & OPEN_ANSI ) {
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+           cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+          notify(player, "Permission denied.");
+          return;
+       }
+       i_ansi = 1;
+       key &= ~OPEN_ANSI;
+    }
+
     if (Immortal(player) && (*direction == '#')) {
 	dir2 = get_free_num(player, direction);
     } else {
 	dir2 = direction;
     }
 
+    diransi = strip_all_special(dir2);
     /* Create the exit and link to the destination, if there is one */
 
-    if (nlinks >= 1)
+    if (nlinks >= 1) {
 	dest = links[0];
-    else
+    } else {
 	dest = NULL;
-
-    if ((key == OPEN_INVENTORY) || ((Typeof(player) == TYPE_ROOM) && (mudconf.rooms_can_open == 1)))
-	loc = player;
-    else {
-        if ( mudstate.store_loc != NOTHING )
-            loc = mudstate.store_loc;
-        else
-           loc = Location(player);
     }
 
-    open_exit(player, loc, dir2, dest, key);
+    if ((key & OPEN_INVENTORY) || ((Typeof(player) == TYPE_ROOM) && (mudconf.rooms_can_open == 1))) {
+	loc = player;
+    } else {
+        if ( mudstate.store_loc != NOTHING ) {
+           loc = mudstate.store_loc;
+        } else {
+           loc = Location(player);
+        }
+    }
+
+    open_exit(player, loc, diransi, dest, key, dir2, i_ansi);
 
     /* Open the back link if we can */
 
@@ -184,8 +204,9 @@ do_open(dbref player, dbref cause, int key, char *direction,
 	destnum = parse_linkable_room(player, dest);
 	if (destnum != NOTHING) {
 /* For some reason unsafe_tprintf() doesn't work right here */
-            sprintf(spam_chr, "%d", loc);
-            open_exit(player, destnum, links[1], spam_chr, key);
+            sprintf(spam_chr, "#%d", loc);
+            diransi = strip_all_special(links[1]);
+            open_exit(player, destnum, diransi, spam_chr, key, links[1], i_ansi);
 	}
     }
 }
@@ -873,17 +894,30 @@ do_dig(dbref player, dbref cause, int key, char *name,
        char *args[], int nargs)
 {
     dbref room, location;
-    char *buff, *name2;
-    int old_lastobj;
+    char *buff, *name2, *buff2;
+    int old_lastobj, i_ansi;
+    CMDENT *cmdp;
 
     if ( (key & SIDEEFFECT) && !SideFX(player) ) {
        notify(player, "#-1 FUNCTION DISABLED");
        return;
     }
-    if ( mudstate.store_loc != NOTHING )
+    i_ansi = 0;
+    if ( key & DIG_ANSI ) {
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+           cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+          notify(player, "Permission denied.");
+          return;
+       }
+       i_ansi = 1;
+       key &= ~DIG_ANSI;
+    }
+    if ( mudstate.store_loc != NOTHING ) {
        location = mudstate.store_loc;
-    else
+    } else {
        location = Location(player);
+    }
     /* we don't need to know player's location!  hooray! */
 
     if (!name || !*name) {
@@ -896,24 +930,28 @@ do_dig(dbref player, dbref cause, int key, char *name,
 	name2 = name;
     }
 
-    room = create_obj(player, TYPE_ROOM, name2, 0);
-    if (room == NOTHING)
+    buff2 = strip_all_special(name2);
+    room = create_obj(player, TYPE_ROOM, buff2, name2, 0, i_ansi);
+    if (room == NOTHING) {
 	return;
+    }
 
     old_lastobj = mudstate.store_lastcr;
-    if ( !(key & SIDEEFFECT) ) 
-       notify(player,
-	   unsafe_tprintf("%s created with room number %d.", name2, room));
+    if ( !(key & SIDEEFFECT) ) {
+       notify(player, unsafe_tprintf("%s created with room number %d.", name2, room));
+    }
 
     buff = alloc_sbuf("do_dig");
     if ((nargs >= 1) && args[0] && *args[0]) {
+        buff2 = strip_all_special(args[0]);
 	sprintf(buff, "%d", room);
-	open_exit(player, location, args[0], buff, key);
+	open_exit(player, location, buff2, buff, key, args[0], i_ansi);
         mudstate.store_lastx1 = mudstate.store_lastcr;
     }
     if ((nargs >= 2) && args[1] && *args[1]) {
+        buff2 = strip_all_special(args[1]);
 	sprintf(buff, "%d", location);
-	open_exit(player, room, args[1], buff, key);
+	open_exit(player, room, buff2, buff, key, args[1], i_ansi);
         mudstate.store_lastx2 = mudstate.store_lastcr;
     }
     free_sbuf(buff);
@@ -935,8 +973,9 @@ void
 do_create(dbref player, dbref cause, int key, char *name, char *coststr)
 {
     dbref thing;
-    int cost;
+    int cost, i_ansi;
     char *name2;
+    CMDENT *cmdp;
 
     if ( (key & SIDEEFFECT) && !SideFX(player) ) {
        notify(player, "#-1 FUNCTION DISABLED");
@@ -947,8 +986,7 @@ do_create(dbref player, dbref cause, int key, char *name, char *coststr)
 	notify_quiet(player, "Create what?");
 	return;
     } else if (cost < 0) {
-	notify_quiet(player,
-		     "You can't create an object for less than nothing!");
+	notify_quiet(player, "You can't create an object for less than nothing!");
 	return;
     }
     if (Immortal(player) && (*name == '#')) {
@@ -957,16 +995,26 @@ do_create(dbref player, dbref cause, int key, char *name, char *coststr)
 	name2 = name;
     }
 
-    thing = create_obj(player, TYPE_THING, strip_all_special(name2), cost);
-    if (thing == NOTHING)
+    i_ansi = 0;
+    if ( key & CREATE_ANSI ) {
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+           cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+          notify(player, "Permission denied.");
+          return;
+       }
+       i_ansi = 1;
+    }
+
+    thing = create_obj(player, TYPE_THING, strip_all_special(name2), name2, cost, i_ansi);
+    if (thing == NOTHING) {
 	return;
+    }
 
     move_via_generic(thing, player, NOTHING, 0);
     s_Home(thing, new_home(player));
     if (!(Quiet(player) || (key & SIDEEFFECT))) {
-	notify(player,
-	       unsafe_tprintf("%s created as object #%d",
-		       Name(thing), thing));
+	notify(player, unsafe_tprintf("%s created as object #%d", Name(thing), thing));
     }
 }
 
@@ -979,16 +1027,36 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 {
     dbref clone, thing, new_owner, loc;
     FLAG rmv_flags;
-    int cost, side_effect;
-    char *tpr_buff, *tprp_buff;
+    int cost, side_effect, i_ansi;
+    char *tpr_buff, *tprp_buff, *arg2_noansi;
+    CMDENT *cmdp;
 
-    if ((key & CLONE_INVENTORY) || !Has_location(player))
+    if ((key & CLONE_INVENTORY) || !Has_location(player)) {
 	loc = player;
-    else
+    } else {
 	loc = Location(player);
+    }
 
-    if (!Good_obj(loc))
+    if ( (key & CLONE_SET_COST) && (key & CLONE_ANSI) ) {
+       notify_quiet(player, "Illegal combination of switches.");
+       return;
+    }
+
+    if (!Good_obj(loc)) {
 	return;
+    }
+
+    i_ansi = 0;
+    if ( key & CLONE_ANSI ) {
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+           cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+          notify(player, "Permission denied.");
+          return;
+       }
+       i_ansi = 1;
+       key &= ~CLONE_ANSI;
+    }
 
     side_effect = 0;
     if ( key & SIDEEFFECT ) {
@@ -998,8 +1066,9 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
     init_match(player, name, NOTYPE);
     match_everything(0);
     thing = noisy_match_result();
-    if ((thing == NOTHING) || (thing == AMBIGUOUS))
+    if ((thing == NOTHING) || (thing == AMBIGUOUS)) {
 	return;
+    }
 
     /* Let players clone things set VISUAL.  It's easier than retyping in
      * all that data
@@ -1031,6 +1100,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
     /* Determine the cost of cloning */
 
     new_owner = (key & CLONE_PRESERVE) ? Owner(thing) : Owner(player);
+    arg2_noansi = alloc_lbuf("clone_arg2_noansi");
     if (key & CLONE_SET_COST) {
 	cost = atoi(arg2);
 	arg2 = NULL;
@@ -1038,8 +1108,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 	cost = 1;
 	switch (Typeof(thing)) {
 	case TYPE_THING:
-	    cost = OBJECT_DEPOSIT((mudconf.clone_copy_cost) ?
-				  Pennies(thing) : 1);
+	    cost = OBJECT_DEPOSIT((mudconf.clone_copy_cost) ?  Pennies(thing) : 1);
 	    break;
 	case TYPE_ROOM:
 	    cost = mudconf.digcost;
@@ -1052,53 +1121,96 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 	    cost = mudconf.digcost;
 	    break;
 	}
+        sprintf(arg2_noansi, "%s", strip_all_special(arg2));
     }
 
     /* Go make the clone object */
 
-    clone = create_obj(new_owner, Typeof(thing), Name(thing), cost);
-    if (clone == NOTHING)
+    clone = create_obj(new_owner, Typeof(thing), Name(thing), Name(thing), cost, 0);
+    if (clone == NOTHING) {
 	return;
+    }
 
     /* Wipe out any old attributes and copy in the new data */
 
     cost = Pennies(clone);
     al_destroy(clone);
-    if (key & CLONE_PARENT)
+    if (key & CLONE_PARENT) {
 	s_Parent(clone, thing);
-    else
+    } else {
 	atr_cpy(player, clone, thing);
+    }
     s_Pennies(clone,cost);
-    if (arg2 && *arg2) {
-	if (ok_name(arg2))
-	    s_Name(clone, arg2);
-	else {
+    if (arg2_noansi && *arg2_noansi) {
+	if (ok_name(arg2_noansi)) {
+	    s_Name(clone, arg2_noansi);
+            if ( i_ansi ) {
+               tpr_buff = alloc_lbuf("do_clone_arg2");
+               sprintf(tpr_buff, "#%d", clone);
+               s_Toggles2(clone, (Toggles2(clone) | TOG_EXTANSI));
+               do_extansi(player, player, 0, tpr_buff, arg2);
+               free_lbuf(tpr_buff);
+            }
+	} else {
 	    s_Name(clone, Name(thing));
 	    notify(player, "Bad name for given for clone object.");
 	    *arg2 = '\0';
 	}
-    } else
+    } else {
 	s_Name(clone, Name(thing));
+    }
+    free_lbuf(arg2_noansi);
 
     /* Clear out problem flags from the original */
 
     rmv_flags = WIZARD;
-    if (!(key & CLONE_INHERIT) || (!Inherits(player)))
-	rmv_flags |= INHERIT | IMMORTAL;
+    if (!(key & CLONE_INHERIT) || (!Inherits(player))) {
+	rmv_flags |= INHERIT | IMMORTAL | WIZARD;
+    }
     s_Flags(clone, Flags(thing) & ~rmv_flags);
+
+    if (!(key & CLONE_INHERIT) || (!Inherits(player))) {
+	rmv_flags |= BUILDER | ADMIN | GUILDMASTER;
+    }
+    s_Flags2(clone, Flags2(thing) & ~rmv_flags);
+
+    if (!(key & CLONE_INHERIT) || (!Inherits(player))) {
+	rmv_flags = 0;
+    }
+    s_Flags3(clone, Flags3(thing) & ~rmv_flags);
+
+    if (!(key & CLONE_INHERIT) || (!Inherits(player))) {
+	rmv_flags = 0;
+    }
+    s_Flags4(clone, Flags4(thing) & ~rmv_flags);
+
+    /* Copy Toggles */
+    s_Toggles(clone, Toggles(thing));
+    s_Toggles2(clone, (Toggles2(thing) | Toggles2(clone)));
+
+    /* If inherit copy powers */
+    if (key & CLONE_INHERIT) {
+       s_Toggles3(clone, Toggles3(thing));
+       s_Toggles4(clone, Toggles4(thing));
+       s_Toggles5(clone, Toggles5(thing));
+    }
+
+    /* Clone depowers */
+    s_Toggles6(clone, Toggles3(thing));
+    s_Toggles7(clone, Toggles4(thing));
+    s_Toggles8(clone, Toggles5(thing));
 
     /* Tell creator about it */
 
     if (!(Quiet(player) || side_effect) ) {
         tprp_buff = tpr_buff = alloc_lbuf("do_clone");
-	if (arg2 && *arg2)
-	    notify(player,
-		   safe_tprintf(tpr_buff, &tprp_buff, "%s cloned as %s, new copy is object #%d.",
+	if (arg2 && *arg2) {
+	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s cloned as %s, new copy is object #%d.",
 			   Name(thing), arg2, clone));
-	else
-	    notify(player,
-		   safe_tprintf(tpr_buff, &tprp_buff, "%s cloned, new copy is object #%d.",
+	} else {
+	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s cloned, new copy is object #%d.",
 			   Name(thing), clone));
+        }
         free_lbuf(tpr_buff);
     }
     /* Put the new thing in its new home.  Break any dropto or link, then
@@ -1112,15 +1224,17 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 	break;
     case TYPE_ROOM:
 	s_Dropto(clone, NOTHING);
-	if (Dropto(thing) != NOTHING)
+	if (Dropto(thing) != NOTHING) {
 	    link_exit(player, clone, Dropto(thing), key);
+        }
 	break;
     case TYPE_EXIT:
 	s_Exits(loc, insert_first(Exits(loc), clone));
 	s_Exits(clone, loc);
 	s_Location(clone, NOTHING);
-	if (Location(thing) != NOTHING)
+	if (Location(thing) != NOTHING) {
 	    link_exit(player, clone, Location(thing), key);
+        }
 	break;
     }
 
@@ -1129,14 +1243,15 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
      */
 
     if (new_owner == Owner(thing)) {
-	if (!(key & CLONE_PARENT))
+	if (!(key & CLONE_PARENT)) {
 	    s_Parent(clone, Parent(thing));
-	did_it(player, clone, 0, NULL, 0, NULL, A_ACLONE,
-	       (char **) NULL, 0);
+        }
+	did_it(player, clone, 0, NULL, 0, NULL, A_ACLONE, (char **) NULL, 0);
     } else {
-	if (!(key & CLONE_PARENT) &&
-	    (Controls(player, thing) || Parent_ok(thing)))
+	if (!(key & CLONE_PARENT) && 
+	    (Controls(player, thing) || Parent_ok(thing))) {
 	    s_Parent(clone, Parent(thing));
+        }
 	s_Halted(clone);
     }
 }
@@ -1148,11 +1263,12 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 void 
 do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
 {
-    int isrobot;
+    int isrobot, i_ansi;
     dbref newplayer, dest, goodplayer;
-    char *name2;
+    char *name2, *name3;
     time_t now, dtime;
     DESC *d, *e;
+    CMDENT *cmdp;
 
     if ( (key & PCRE_REG) && !Wizard(player) ) {
 	notify(player, "Permission denied.");
@@ -1164,27 +1280,40 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
 	notify(player, "Permission denied.");
 	return;
     }
-    if (Immortal(player) && (*name == '#')) {
-	name2 = get_free_num(player, name);
-    } else {
-	name2 = name;
+    i_ansi = 0;
+    if ( key & PCRE_ANSI ) {
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+           cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+          notify(player, "Permission denied.");
+          return;
+       }
+       i_ansi = 1;
     }
+    if (Immortal(player) && (*name == '#')) {
+	name3 = get_free_num(player, name);
+    } else {
+	name3 = name;
+    }
+    name2 = strip_all_special(name3);
     if ( key & PCRE_REG ) {
        time(&now);
        dtime = 0;
        e = NULL;
        goodplayer = NOTHING;
        if ( Good_obj(player) ) {
-          if ( isPlayer(player) )
+          if ( isPlayer(player) ) {
              goodplayer = player;
-          else
+          } else {
              goodplayer = Owner(player);
+          }
        }
        if ( !Good_obj(goodplayer) || !(Connected(goodplayer) && isPlayer(goodplayer)) ) {
-          if ( Good_obj(cause) && isPlayer(cause) )
+          if ( Good_obj(cause) && isPlayer(cause) ) {
              goodplayer = cause;
-          else
+          } else {
              goodplayer = Owner(cause);
+          }
        }
 
        if ( !Good_obj(goodplayer) || !isPlayer(goodplayer) ) {
@@ -1210,7 +1339,7 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
           notify(player, "Unable to create player.  Unable to validate enactor site information.");
           return;
        }
-       switch (reg_internal(name2, pass, (char *)e, 1, NULL)) {
+       switch (reg_internal(name2, pass, (char *)e, 1, NULL, name3, i_ansi)) {
           case 0:
             newplayer = lookup_player(player, name2, 0);
             notify(player,unsafe_tprintf("Player '%s [#%d]' autoregistered to email '%s'.", name2, newplayer, pass));
@@ -1259,7 +1388,7 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
        }
     } else {
        isrobot = (key == PCRE_ROBOT) ? 1 : 0;
-       newplayer = create_player(name2, pass, player, isrobot);
+       newplayer = create_player(name2, pass, player, isrobot, name3, i_ansi);
        if (newplayer == NOTHING) {
 	   notify_quiet(player, unsafe_tprintf("Failure creating '%s'", name2));
 	   return;

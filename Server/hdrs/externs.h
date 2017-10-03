@@ -301,7 +301,7 @@ extern int	FDECL(can_set_home, (dbref, dbref, dbref));
 extern dbref	FDECL(new_home, (dbref));
 extern dbref	FDECL(clone_home, (dbref, dbref));
 extern void	FDECL(divest_object, (dbref));
-extern dbref	FDECL(create_obj, (dbref, int, char *, int));
+extern dbref	FDECL(create_obj, (dbref, int, char *, char *, int, int));
 extern void	FDECL(destroy_obj, (dbref, dbref, int));
 extern void	FDECL(empty_obj, (dbref));
 
@@ -309,7 +309,7 @@ extern void	FDECL(empty_obj, (dbref));
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
 extern int	FDECL(check_pass, (dbref, const char *, int));
 extern dbref	FDECL(connect_player, (char *, char *, char *));
-extern dbref	FDECL(create_player, (char *, char *, dbref, int));
+extern dbref	FDECL(create_player, (char *, char *, dbref, int, char *, int));
 extern int	FDECL(add_player_name, (dbref, char *));
 extern int	FDECL(delete_player_name, (dbref, char *));
 extern dbref	FDECL(lookup_player, (dbref, char *, int));
@@ -324,7 +324,7 @@ extern int	FDECL(protectname_check, (char *, dbref, int));
 extern void	FDECL(protectname_list, (dbref, int, dbref));
 extern dbref	FDECL(protectname_alias, (char *, dbref));
 extern dbref	FDECL(protectname_unalias, (char *, dbref));
-extern int	FDECL(reg_internal, (char *, char *, char *, int, char *));
+extern int	FDECL(reg_internal, (char *, char *, char *, int, char *, char *, int));
 
 /* From predicates.c */
 extern int	FDECL(isreal_chk, (dbref, dbref, int));
@@ -616,6 +616,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CLONE_SET_LOC	0x00000010	/* ARG2 is location of cloned object */
 #define	CLONE_SET_NAME	0x00000020	/* ARG2 is alternate name of cloned object */
 #define	CLONE_PARENT	0x00000040	/* Set parent on obj instd of cloning attrs */
+#define CLONE_ANSI	0x00000080	/* Ansify the name */
 
 #define CONV_ALTERNATE	0x00000001
 #define CONV_ALL	0x00000002
@@ -627,6 +628,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CRE_INVENTORY	0x00000000	/* Create object in my inventory */
 #define	CRE_LOCATION	0x00000001	/* Create object in my location */
 #define	CRE_SET_LOC	0x00000002	/* ARG2 is location of new object */
+
+#define CREATE_ANSI     0x00000001	/* Combine @create and @extansi together */
 
 #define DECOMP_ALL	0x00000000	/* Decompile everything - default */
 #define DECOMP_FLAGS    0x00000001	/* Decompile flags */
@@ -658,6 +661,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DEST_PURGE	0x00000008	/* @destroy/purge */
 
 #define	DIG_TELEPORT	0x00000001	/* teleport to room after @digging */
+#define DIG_ANSI	0x00000002	/* ANSI in @dig */
 
 #define DOLIST_SPACE    0x00000000	/* expect spaces as delimiter */
 #define DOLIST_DELIMIT  0x00000001       /* expect custom delimiter */
@@ -857,6 +861,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define	OPEN_LOCATION	0	/* Open exit in my location */
 #define	OPEN_INVENTORY	1	/* Open exit in me */
+#define OPEN_ANSI	2	/* Open with ansi */
 
 #define PAGE_LAST	1
 #define PAGE_RET	2
@@ -872,6 +877,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	PCRE_PLAYER	1	/* create new player */
 #define PCRE_REG     	2	/* Register on @pcreate */
 #define	PCRE_ROBOT	4	/* create robot player */
+#define PCRE_ANSI	8	/* Ansi on player create */
 
 #define LABEL_ADD	1	/* Add the label at position(s) */
 #define LABEL_DEL	2	/* Delete the label */
@@ -966,6 +972,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define REBOOT_PORT	0x00000002	/* What is @reboot/port ? */
 
 #define REGISTER_MSG	1	/* Include a message to @register to output the password */
+#define REGISTER_ANSI	2	/* Allow ANSI for @register */
 
 #define ROLLBACK_RETRY	1	/* @rollback works like @retry */
 #define ROLLBACK_WAIT   2 	/* @rollback works with @wait */

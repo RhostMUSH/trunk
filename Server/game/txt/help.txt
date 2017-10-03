@@ -3149,16 +3149,25 @@
 & @clone2
   The following switches are available:
      /cost       - Treat the argument after the = as the cost of the new
-                   object, not the name.
+                   object, not the name.  Can not be used with /ansi.
      /inherit    - Don't reset the INHERIT bit on the new object.
      /inventory  - Create the new object in your inventory (or your exitlist,
                    in the case of cloning exits).
      /location   - Create the new object in your location (default).
      /parent     - Set the new object's parent to be the template object and
                    don't copy the attributes.
+     /ansi       - Combine @clone and @extansi together.  This follows
+                   @extansi permissions and can not be used with /cost.
    
   You may use the lastcreate() function to see the last room that @clone'd.
   This would be based on the type of thing you @cloned.
+  
+  Examples:
+    > @clone RedWagon
+    RedWagon cloned, new copy is object #17447.
+    > @clone/ansi RedWagon=[ansi(hb,BlueWagon)]
+    Ansi string entered for BlueWagon of 'BlueWagon'. (this would be in blue)
+    RedWagon cloned as BlueWagon, new copy is object #17444.
   
   See Also: @create, @decompile, @destroy, VISUAL, lastcreate()
   
@@ -3485,13 +3494,26 @@
   See Also:  clusters, cluster functions, cluster commands, >
 
 & @create
-  Command: @create <name> [=<cost>]
+  Command: @create[/<switch>] <name> [=<cost>]
+  
   Creates a thing with the specified name.  Creation costs either <cost>
   or 10 coins, whichever is greater. The value of a thing is proportional
   to its cost, specifically, value=(cost/5)-1.  The value may not be greater
   than 100, values that would be greater than 100 are rounded down to 100.
   
   You may use the lastcreate() function to see the last thing @create'd
+  
+  Available switches:
+    /ansi - This combines @create with @extansi to essentially auto-ansify
+            the object that you create with <name>.  This follows 
+            permissions of @extansi.
+  
+  Examples:
+    > @create MyObj
+    MyObj created as object #17508
+    > @create/ansi [ansi(hy,MyObj)]
+    Ansi string entered for MyObj of 'MyObj'. ('MyObj' would be in yellow)
+    MyObj created as object #17508
   
   See Also: @destroy, TYPES OF OBJECTS, lastcreate()
   
@@ -3575,10 +3597,29 @@
   'Kitchen' back to where you are.  Only the first Exit name is displayed in
   the Obvious exits list.
  
-  If you specify the /teleport switch, then you are @teleported to the
-  room after it is created and any exits are opened.
+  The following switches are available:
+    /teleport - You are @teleported to the room after it is created 
+                and any exits are opened.
+    /ansi     - Combines @dig with @extansi.  @extansi colorization is
+                applied to the room AND THE EXITS that you specify.  This
+                follows permissions of @extansi.
  
   You may use the lastcreate() function to see the last room that @dig'd.
+  
+  Examples:
+    > @dig A Room=Exit In <EI>;exit in;ei,Exit Out <EO>;exit out;eo
+    A Room created with room number 17506.
+    Opened.
+    Linked.
+    Opened.
+    Linked.
+  
+    > @dig/ansi [ansi(hb,Blue Room)]=[ansi(hb,Exit In)] [ansi(hr,<EI>)]
+    Ansi string entered for Blue Room of 'Blue Room'.  (This would be blue)
+    Blue Room created with room number 17503.
+    Ansi string entered for Exit In <EI> of 'Exit In <EI>'. (this would be red)
+    Opened.
+    Linked.
   
   See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS,
             lastcreate()
@@ -4996,7 +5037,7 @@
             set the specified ansiname for it at the same time.
             It does this by stripping all special characters for the real
             name then applying the accented/ansified name entered for the
-            extansified name.
+            extansified name.  This follows permissions for @extansi.
     
   Examples:
     > @name me=Bob
@@ -5041,14 +5082,21 @@
   
 & @open
   Command: @open[/<switches>] <direction list> [=<number>[,<direction list>]]
+  
   Creates an exit in the specified direction(s). If <number> is specified,
   it is linked to that room. Otherwise, it is created unlinked. You or anyone
   else may use the '@link' command to specify where the unlinked exit leads.
-  Opening an exit costs 1 coin. If you specify <number>, linking costs 1 more
-  coin.  You can specify a second direction list (after the comma), which is 
+  Opening an exit costs 1 coin. 
+  
+  If you specify <number>, linking costs 1 more coin.  
+  
+  You can specify a second direction list (after the comma), which is 
   automatically opened in the room that the new exit goes TO and which is
-  linked back to where you are.  I.e.  @open north;n=#1234,south;s
-  would open exit 'north;n' from here to #1234, and an exit 'south;s'
+  linked back to where you are.  
+  
+              I.e.  @open north;n=#1234,south;s
+  
+  This would open exit 'north;n' from here to #1234, and an exit 'south;s'
   from #1234 to here, assuming you have rights to open exits and link to
   the rooms in question.
   
@@ -5058,8 +5106,25 @@
   The following switches are available:
      /location  - Create the exit in your location (default).
      /inventory - Create the exit on yourself.
+     /ansi      - Combine @open and @extansi to colorize with the names.
+                  This follows the permissions of @extansi.
   
   You may use the lastcreate() function to see the last thing @open'd
+  
+  Examples:
+    > @open North <N>;north;n=#1234,South <S>;south;s
+    Opened.
+    Linked.
+    Opened.
+    Linked.
+  
+    > @open/ansi [ansi(hb,North <N>)];north;n=#1234,[ansi(hr,South <S>)];south;s
+    Ansi string entered for North <N> of 'North <N>'. (this is in blue)
+    Opened.
+    Linked.
+    Ansi string entered for South <S> of 'South <S>'. (this is in red)
+    Opened.
+    Linked.
   
   See Also: @dig, @link, LINKING, lastcreate()
   
@@ -5431,6 +5496,8 @@
     /message - in addition to emailing the user the password, message the
                user online what their password is.  This switch may be
                disabled on the RhostMUSH you connect to.
+    /ansi    - Combines @register with @extansi to colorize the player
+               name.  This follows @extansi permissions.
   
   The switches will only affect the online @register command and will not
   impact the offline method at all.
@@ -5439,6 +5506,9 @@
     > @register player=my@email
     Autoregistration completed.   
     > @register A Player With Spaces=my@email
+    Autoregistration completed.   
+    > @register/ansi [ansi(hb,Player)]=my@email
+    Ansi string entered for Player of 'Player' (this would be in blue)
     Autoregistration completed.   
     > @register/message player=my@email
     Autoregistration completed.   
@@ -31884,6 +31954,8 @@
   ------------
   * @name/ansi combines @name and @extansi.  If you do not have @extansi
     access, @name/ansi will fail as well [ASH]
+  * @pcreate, @create, @open, @dig, @clone, and @register now handle
+    /ansi as well [ASH]
   
   Changes
   ------------

@@ -198,17 +198,17 @@ clone_home(dbref player, dbref thing)
 #ifndef STANDALONE
 
 dbref 
-create_obj(dbref player, int objtype, char *name, int cost)
+create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int isansi)
 {
     dbref obj, owner, tlink, aowner;
     ZLISTNODE* z_ptr;
     int quota, okname, value, self_owned, require_inherit, intarray[4], aflags, i;
     FLAG f1, f2, f3, f4, t1, t2, t3, t4, t5, t6, t7, t8;
     time_t tt;
-    char *buff, *lastcreatebuff, *p, *tpr_buff, *tprp_buff, *tstrtokr;
+    char *buff, *lastcreatebuff, *p, *tpr_buff, *tprp_buff, *tstrtokr, *buff2;
     const char *tname;
 
-    if (DePriv(player, NOTHING, DP_CREATE, POWER6, POWER_LEVEL_NA)) {
+    if (Good_chk(player) && DePriv(player, NOTHING, DP_CREATE, POWER6, POWER_LEVEL_NA)) {
 	notify(player, "Permission denied.");
 	return NOTHING;
     }
@@ -274,6 +274,13 @@ create_obj(dbref player, int objtype, char *name, int cost)
 	t6 = mudconf.exit_toggles.word6;
 	t7 = mudconf.exit_toggles.word7;
 	t8 = mudconf.exit_toggles.word8;
+        buff2 = ansiname;
+        while ( buff2 && *buff2 ) {
+           if ( *buff2 == ';' ) {
+              *buff2 = '\0';
+           }
+           buff2++;
+        }
 	okname = ok_name(name);
 	tname = "an exit";
 	break;
@@ -366,21 +373,24 @@ create_obj(dbref player, int objtype, char *name, int cost)
     }
 
     if (require_inherit) {
-	if (!Inherits(player)) {
+	if (Good_chk(player) && !Inherits(player)) {
 	    notify(player, "Permission denied.");
 	    return NOTHING;
 	}
     }
     if (!okname) {
         tprp_buff = tpr_buff = alloc_lbuf("create_obj");
-	notify(player, safe_tprintf(tpr_buff, &tprp_buff, "That's a silly name for %s!", tname));
+        if ( Good_chk(player) ) {
+	   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "That's a silly name for %s!", tname));
+        }
         free_lbuf(tpr_buff);
 	return NOTHING;
     }
     /* Make sure the creator can pay for the object. */
 
-    if ((player != NOTHING) && !canpayfees(player, player, cost, quota, objtype))
+    if ((player != NOTHING) && !canpayfees(player, player, cost, quota, objtype)) {
 	return NOTHING;
+    }
 
     /* Get the first object from the freelist.  If the object is not clean,
      * discard the remainder of the freelist and go get a completely new
@@ -435,8 +445,10 @@ create_obj(dbref player, int objtype, char *name, int cost)
     if (obj == NOTHING) {
 	if (mudconf.max_size > 0) {
 	    if (mudstate.db_top >= mudconf.max_size) {
-		notify(player, "The database has reached it MAXIMUM number of objects.");
-		notify(player, "Please recycle some old objects!");
+                if ( Good_chk(player) ) {
+		   notify(player, "The database has reached it MAXIMUM number of objects.");
+		   notify(player, "Please recycle some old objects!");
+                }
 		return NOTHING;
 	    }
 	}
@@ -506,12 +518,12 @@ create_obj(dbref player, int objtype, char *name, int cost)
     }
     s_Owner(obj, (self_owned ? obj : owner));
 
-    if ( AutoZoneAll(player) && db[player].zonelist ) {
+    if ( Good_chk(player) && AutoZoneAll(player) && db[player].zonelist ) {
        for( z_ptr = db[player].zonelist; z_ptr; z_ptr = z_ptr->next ) {
           zlist_add(obj, z_ptr->object);
           zlist_add(z_ptr->object, obj);
        }
-    } else if ( AutoZoneAdd(player) && db[player].zonelist ) {
+    } else if ( Good_chk(player) && AutoZoneAdd(player) && db[player].zonelist ) {
        z_ptr = db[player].zonelist;
        zlist_add(obj, z_ptr->object);
        zlist_add(z_ptr->object, obj);
@@ -524,6 +536,19 @@ create_obj(dbref player, int objtype, char *name, int cost)
     buff = munge_space((char *) strip_all_special(name));
     s_Name(obj, buff);
     free_lbuf(buff);
+    if( isansi ) {
+       buff = alloc_lbuf("temp_create_obj");
+       sprintf(buff, "#%d", obj);
+       buff2 = munge_space((char *)ansiname);
+       s_Toggles2(obj, (Toggles2(obj) | TOG_EXTANSI));
+       if ( Good_obj(player) ) {
+          do_extansi(player, player, 0, buff, buff2);
+       } else if ( player == NOTHING ) {
+          do_extansi(GOD, GOD, SIDEEFFECT, buff, buff2);
+       }
+       free_lbuf(buff);
+       free_lbuf(buff2);
+    }
 
     if (objtype == TYPE_PLAYER) {
 	time(&tt);
@@ -549,22 +574,29 @@ create_obj(dbref player, int objtype, char *name, int cost)
        atr_add_raw(obj, A_MODIFY_TIME, buff);
     }
     atr_add_raw(obj, A_LASTCREATE, "-1 -1 -1 -1");
-    lastcreatebuff = atr_get(player, A_LASTCREATE, &aowner, &aflags);
+    lastcreatebuff = NULL;
+    if ( Good_chk(player) ) {
+       lastcreatebuff = atr_get(player, A_LASTCREATE, &aowner, &aflags);
+    } else {
+       lastcreatebuff = alloc_lbuf("dummy_lastcreatebuff");
+    }
     /* Copy attributes from clone if clone exits and is valid */
     mudstate.store_lastcr = obj;
     if ( !*lastcreatebuff ) {
-       tprp_buff = tpr_buff = alloc_lbuf("create_obj");
-       if ( objtype == TYPE_ROOM )
-          atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "%d -1 -1 -1", obj));
-       else if ( objtype == TYPE_EXIT )
-          atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "-1 %d -1 -1", obj));
-       else if ( objtype == TYPE_THING )
-          atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "-1 -1 %d -1", obj));
-       else if ( objtype == TYPE_PLAYER )
-          atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "-1 -1 -1 %d", obj));
-       else
-          atr_add_raw(player,  A_LASTCREATE, (char *)"-1 -1 -1 -1");
-       free_lbuf(tpr_buff);
+       if ( Good_chk(player) ) {
+          tprp_buff = tpr_buff = alloc_lbuf("create_obj");
+          if ( objtype == TYPE_ROOM )
+             atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "%d -1 -1 -1", obj));
+          else if ( objtype == TYPE_EXIT )
+             atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "-1 %d -1 -1", obj));
+          else if ( objtype == TYPE_THING )
+             atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "-1 -1 %d -1", obj));
+          else if ( objtype == TYPE_PLAYER )
+             atr_add_raw(player,  A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "-1 -1 -1 %d", obj));
+          else
+             atr_add_raw(player,  A_LASTCREATE, (char *)"-1 -1 -1 -1");
+          free_lbuf(tpr_buff);
+       }
     } else {
        for (i = 0; i < 4; i++)
           intarray[i] = -1;
@@ -583,10 +615,12 @@ create_obj(dbref player, int objtype, char *name, int cost)
           case TYPE_PLAYER: intarray[3] = obj;
                             break;
        }
-       tprp_buff = tpr_buff = alloc_lbuf("create_obj");
-       atr_add_raw(player, A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d %d", 
-                   intarray[0], intarray[1], intarray[2], intarray[3]));
-       free_lbuf(tpr_buff);
+       if ( Good_chk(player) ) {
+          tprp_buff = tpr_buff = alloc_lbuf("create_obj");
+          atr_add_raw(player, A_LASTCREATE, safe_tprintf(tpr_buff, &tprp_buff, "%d %d %d %d", 
+                      intarray[0], intarray[1], intarray[2], intarray[3]));
+          free_lbuf(tpr_buff);
+       }
     }
     free_lbuf(lastcreatebuff);
     return obj;

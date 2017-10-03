@@ -265,6 +265,7 @@ NAMETAB clone_sw[] =
     {(char *) "location", 1, CA_PUBLIC, 0, CLONE_LOCATION},
     {(char *) "parent", 2, CA_PUBLIC, 0, CLONE_PARENT | SW_MULTIPLE},
     {(char *) "preserve", 2, CA_WIZARD, 0, CLONE_PRESERVE | SW_MULTIPLE},
+    {(char *) "ansi", 2, CA_PUBLIC, 0, CLONE_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB convert_sw[] =
@@ -272,6 +273,11 @@ NAMETAB convert_sw[] =
     {(char *) "alternate", 3, CA_IMMORTAL, 0, CONV_ALTERNATE},
     {(char *) "all", 3, CA_IMMORTAL, 0, CONV_ALL | SW_MULTIPLE},
     {(char *) "override", 1, CA_IMMORTAL, 0, CONV_OVER | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB create_sw[] =
+{
+    {(char *) "ansi", 1, CA_PUBLIC, 0, CREATE_ANSI},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB decomp_sw[] =
@@ -306,6 +312,7 @@ NAMETAB destroy_sw[] =
 NAMETAB dig_sw[] =
 {
     {(char *) "teleport", 1, CA_PUBLIC, 0, DIG_TELEPORT},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, DIG_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB doing_sw[] =
@@ -814,6 +821,7 @@ NAMETAB open_sw[] =
 {
     {(char *) "inventory", 1, CA_PUBLIC, 0, OPEN_INVENTORY},
     {(char *) "location", 1, CA_PUBLIC, 0, OPEN_LOCATION},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, OPEN_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB newpassword_sw[] =
@@ -824,6 +832,7 @@ NAMETAB newpassword_sw[] =
 NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, PCRE_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pipe_sw[] =
@@ -970,6 +979,7 @@ NAMETAB reclist_sw[] =
 NAMETAB register_sw[] =
 {
     {(char *) "message", 1, CA_PUBLIC, 0, REGISTER_MSG},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, REGISTER_ANSI},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB rwho_sw[] =
@@ -1220,7 +1230,7 @@ CMDENT command_table[] =
      CS_INTERP | CS_TWO_ARG, 0, do_convert},
     {(char *) "@cpattr", cpattr_sw, CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP | CS_ARGV, 0, do_cpattr},
-    {(char *) "@create", NULL,
+    {(char *) "@create", create_sw,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_CONTENTS | CA_NO_GUEST | CA_NO_WANDER, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_create},
     {(char *) "@cut", NULL, CA_WIZARD | CA_LOCATION, 0,
@@ -10369,21 +10379,27 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
 
    thing = match_thing(player, name);
    if ( thing == NOTHING || !Good_obj(thing) || Recover(thing) || Going(thing) ) {
-      notify(player, "Permission denied.");
+      if ( !(key & SIDEEFFECT) ) {
+         notify(player, "Permission denied.");
+      }
       return;
    }
    if ( !(Controls(player, thing) || could_doit(player, thing, A_LTWINK, 0, 0)) ||
         ((Cloak(thing) && SCloak(thing) && Immortal(thing) && !Immortal(player)) ||
          (Cloak(thing) && !Wizard(player))) ) {
-      notify(player, "Permission denied.");
+      if ( !(key & SIDEEFFECT) ) {
+         notify(player, "Permission denied.");
+      }
       return;
    }
    if ( !ExtAnsi(thing) ) {
-      notify(player, "Target is not toggled EXTANSI.");
+      if ( !(key & SIDEEFFECT) ) {
+         notify(player, "Target is not toggled EXTANSI.");
+      }
       return;
    }
    if ( !*instr || !instr ) {
-      if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+      if (!(key & SET_QUIET) && !(key & SIDEEFFECT) && !Quiet(player) && !Quiet(thing)) {
           notify(player, "Ansi string cleared.");
       }
       atr_clr(thing, A_ANSINAME);
@@ -10403,17 +10419,19 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
 #endif
 
       if ( strcmp(extansi_strip(retbuff), namebuff) != 0 ) {
-         notify(player, unsafe_tprintf("String '%s' does not match the name of the target, '%s'.",
-				extansi_strip(retbuff),
-				Name(thing)));
+         if ( !(key & SIDEEFFECT) ) {
+            notify(player, unsafe_tprintf("String '%s' does not match the name of the target, '%s'.",
+				   extansi_strip(retbuff),
+				   Name(thing)));
+         }
          free_lbuf(retbuff);
          free_lbuf(namebuff);
          return;
 #undef extansi_strip
       } else {
-         if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
-                notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
-                strip_returntab(retbuff,3)));
+         if (!(key & SET_QUIET) && !(key & SIDEEFFECT) && !Quiet(player) && !Quiet(thing)) {
+            notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
+                   strip_returntab(retbuff,3)));
          }
          atr_add_raw(thing, A_ANSINAME, 
                      unsafe_tprintf("%.3900s%s", strip_returntab(retbuff,3), ANSI_NORMAL));

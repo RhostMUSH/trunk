@@ -3859,10 +3859,13 @@
   Optional switches are:
       /register - Allows you to email a registration email to the
                   target email.  Only wizards and higher may use this.
+      /ansi     - Combines @pcreate with @extansi to ansify the name
+                  of the player.  This follows @extansi permissions.
   
   Example:  @pcreate #5 NewPlayer=test123
             @pcreate NewPlayer=test123
             @pcreate/reg NewPlayer=myfriend@myemail.net
+            @pcreate/ansi [ansi(hb,Blueboy)]=test123
    
   You may use the lastcreate() function to see the last player @pcreate'd.
   

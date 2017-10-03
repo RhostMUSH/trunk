@@ -1198,9 +1198,11 @@ int ok_password(const char *password, dbref player, int key)
   if (*password == '\0')
     return 0;
 
-  if ( strlen(password) > 160 ) {
+  if ( (strlen(password) > 160) ) {
 #ifndef STANDALONE
-    notify_quiet(player, "The password must be less than 160 characters long.");
+    if ( Good_chk(player) ) {
+       notify_quiet(player, "The password must be less than 160 characters long.");
+    }
 #endif
     return 0;
   }

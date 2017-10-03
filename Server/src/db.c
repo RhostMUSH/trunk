@@ -3641,7 +3641,7 @@ NDECL(db_make_minimal)
     /* Safer passwords don't allow #1 creation here.  Bad bad mojo */
     safepwd_chk = mudconf.safer_passwords;
     mudconf.safer_passwords = 0;
-    obj = create_player((char *) "Wizard", (char *) "Nyctasia", NOTHING, 0);
+    obj = create_player((char *) "Wizard", (char *) "Nyctasia", NOTHING, 0, (char *)"Wizard", 0);
     mudconf.safer_passwords = safepwd_chk;
     s_Flags(obj, Flags(obj) | IMMORTAL);
     s_Flags2(obj, Flags2(obj) & ~WANDERER);
