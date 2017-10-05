@@ -8,6 +8,7 @@
 @@ 1.1.6   08/07/17     Ashen-Shugar   Add arg %2 to locks for length of string sent,
 @@                                     Also cleanup of deleting channels.
 @@ 1.2.0   09/22/17     Ashen-Shugar   comset to control how output on channels work.
+@@ 1.2.1   10/04/17     Ashen-Shugar   Fix a bug reported by Ixokai with +comset
 @@
 @@ You need -DHACK_ATTR, -DTINY_U, -DSIDEEFFECTS all defined for this to work at compiletime!
 @@
@@ -95,7 +96,7 @@ think Continuing with loading of script...
 @@
 @create ChanFunc=10
 @parent ChanSys=ChanFunc
-&F_USER_COMSET ChanFunc=[ifelse(eq(%2,7),0,localize([setq(z,grab(get(%0/_ch_comset),+all:*))][ifelse(!$r(z),setq(z,grab(get(%0/_ch_comset),%1:*)))][add(0,after(%qz,:))]))]
+&F_USER_COMSET ChanFunc=[ifelse(member(4 5 7,%2),0,localize([setq(z,grab(get(%0/_ch_comset),+all:*))][ifelse(!$r(z),setq(z,grab(get(%0/_ch_comset),%1:*)))][add(0,after(%qz,:))]))]
 &FUN_CEMIT ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,u(F_CHK_CEMIT,%0,%1))][ifelse(match(111,r(2)),u([v(FX-DB)]/do_genpemit,[r(8)][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(F_DO_CEMIT,%0,%1,%#)])][ulocal([v(FX-DB)]/do_hist1,secs())],r(5)))]
 &STRIP_ALL ChanFunc=[ifelse(strmatch(stripaccents(),*NOT FOUND),stripansi(%0),stripansi(stripaccents(%0)))]
 &FUN_CNAME ChanFunc=[u(fun_captiontitle,%0)][switch([strmatch(name(%0),u(strip_all,get(%0/ansiname)))][hastoggle(%0,extansi)][hasattr(%0,ansiname)],111,[get(%0/ansiname)][ansi(n,)],001,ansi(get(%0/ansiname),name(%0)),name(%0))][u(fun_caption,%0)]
@@ -273,7 +274,7 @@ think Continuing with loading of script...
 &CBOOTMSG10 ChanFunc=[ifelse(isdbref(pfind(%0)),ComSys: The target channel does not exist.,ComSys: The target specified is not valid.)]
 &CBOOTMSG11 ChanFunc=ComSys: [capstr(lcstr(type(pfind(%0))))] [name(pfind(%0))] has been booted from [u([v(F-DB)]/do_chancolor_%1)].
 &DOCBOOT ChanFunc=[u([v(FX-DB)]/do_cboot,%0,%1,%2)]
-&VERSION ChanFunc=1.2.0 09/22/2017
+&VERSION ChanFunc=1.2.1 10/04/2017
 &COMHELP_SYNTAX ChanFunc=comhelp|addcom <alias>=<channel>|=<channel> <message>|.<channel> <message>|<alias> <message>|<alias> on|<alias> off|<alias> who|<alias> last [<value>]|delcom <channel>|@clist[/full /alias /notify /borders]|comlist|comtitle <channel>=<title>|comcfg[/<switch>]|@cemit <channel>=<message>|@cboot <target>=<channel>|commask <channel>=<alias>|comprefix[/clear] [<character(s)>]|comoptions|@channel|comall|comgag[/on /off /list] <channel>|comnotify[/<switches>]|comset[/<switch>] <channel> [<1-3>]
 &COMHELP_REFERENCE ChanFunc=Show this screen.|Adds aliases to channel.|Method to talk on channel.|no-eval talk on channel.|Method to talk on channel.|Join a channel.|Leave a channel.|See who's on channel.|List channel history.|Remove alias (doesn't leave)|Lists available channels.|Lists connected channels.|Set channel comtitle.|Config comsys (see /help)|Emit over channel.|Boot target from channel.|Set name alias.|Config personal prefixes.|List speaking options.|@chan interface. (@chan/help)|List all users on chans.|Turn gagging on/off/list.|Notification Broadcasts|Set/Unset/List channel options
 &COMOPTIONS_SYNTAX ChanFunc=<alias>:<message>|<alias>;<message>|<alias>"<message>|<alias>`<player> <message>|<alias>`<player(s)>` <message>
@@ -350,6 +351,7 @@ think Continuing with loading of script...
 &DO_ALIAS ComSysSIDEFX=[u(do_alias_[and(uldefault([v(F-DB)]/[after(%2,:)]_lock,1,%#,[switch(match(on off,first(%1)),1,JOIN,2,LEAVE,TALK)],ifelse(match(%0,xxx),0,strlen(%1))),not(match(get(%#/_ch_lock),after(%2,:))))],%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)]
 &DO_ALIAS_0 ComSysSIDEFX=ComSys: Sorry, you have no access to that channel.
 &DO_ALIAS_1 ComSysSIDEFX=[setq(9,v(1))][setq(1,after(%2,:))][setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][setq(5,u([v(F-DB)]/genericdo[setr(6,member(get([v(F-DB)]/generic_cmds),mid(r(9),0,1)))],%0,r(9),%#))][ifelse(match(get(%#/_ch_gagged),r(1)),pemit(%#,ComSys: NOTICE -- You are currently gagged on [u([v(F-DB)]/do_chancolor,r(1))]))][ifelse(or(!match(get(%#/_ch_gagged),%q1),match(who,first(%1))),[npemit(ifelse(or(and(match(on off who,first(%1)),eq(1,words(%1))),and(lt(words(%1),3),match(last,first(%1)))),%#,u([v(FX-DB)]/do_gagging,r(1))),switch(u([v(F-DB)]/f_user_comset,##,%q1,member(get([v(F-DB)]/generic_cmds),mid(r(9),0,1))),1,%qb [stripansi(%qc%qk%qd)],2,%qb [stripansi(%qk%qd)],3,%qb %qk%qd,r(5)),1)][u([v(FX-DB)]/do_chcnt,r(1))][ulocal([v(FX-DB)]/do_hist[r(0)],secs())])]
+&DO_ALIAS_1 ComSysSIDEFX=[setq(9,v(1))][setq(1,after(%2,:))][setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][setq(5,u([v(F-DB)]/genericdo[setr(6,member(get([v(F-DB)]/generic_cmds),mid(%1,0,1)))],%0,%1,%#))][ifelse(match(get(%#/_ch_gagged),r(1)),pemit(%#,ComSys: NOTICE -- You are currently gagged on [u([v(F-DB)]/do_chancolor,r(1))]))][ifelse(or(!match(get(%#/_ch_gagged),%q1),match(who,first(%1))),[npemit(ifelse(or(and(match(on off who,first(%1)),eq(1,words(%1))),and(lt(words(%1),3),match(last,first(%1)))),%#,u([v(FX-DB)]/do_gagging,r(1))),switch(u([v(F-DB)]/f_user_comset,##,%q1,member(get([v(F-DB)]/generic_cmds),mid(%1,0,1))),1,%qb [stripansi(%qc%qk%qd)],2,%qb [stripansi(%qk%qd)],3,%qb %qk%qd,r(5)),1)][u([v(FX-DB)]/do_chcnt,r(1))][ulocal([v(FX-DB)]/do_hist[r(0)],secs())])]
 &DO_JOINCHAN ComSysSIDEFX=[ifelse(%1,set([V(STOR-DB)],CHLIST_%2:[setunion(get([V(STOR-DB)]/CHLIST_%2),%#)]),set([V(STOR-DB)],CHLIST_%2:[setdiff(get([V(STOR-DB)]/CHLIST_%2),%#)]))]
 &DO_CHKALIAS ComSysSIDEFX=[ifelse(ulocal(dochk,%0,%1,%2,%3,%#),u(do_alias,%0,%1,%2,%3,%4),ComSys: [switch(%1,on,You are already on that channel,off,You are already off that channel,Sorry%, you are not on that channel.)])]
 &DOCHK ComSysSIDEFX=[or(and(not(member(on,lcstr(%1))),setr(5,match(get([V(STOR-DB)]/chlist_[after(%2,:)]),%#))),and(member(on,lcstr(%1)),not(r(5))))]
@@ -415,5 +417,6 @@ comcfg/chancolor newbie=[ansi(h,Newbie)]
 comcfg/chanadd Public=New Player Channel
 comcfg/chancolor public=[ansi(hb,Public)]
 @swi/f [isdbref(globalroom())]=1,{@pemit %#=Installing into your globalroom %([name(globalroom())]%([globalroom()][flags(globalroom())]%);@tel/quiet ChanSys=globalroom();@pemit %#=Installation Completed. (type 'comhelp' for help)},{@pemit %#=Either the global room isn't configured or you have no access to it.  You will need to manually place the object into the global room.%rInstallation Completed. (type 'comhelp' for help)}
+
 
 
