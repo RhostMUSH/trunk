@@ -10025,16 +10025,16 @@ FUNCTION(fun_printf)
    int fmterror = 0;
    int fmtdone = 0;
    int fmtcurrarg = 1;
-   int i_arrayval, i_totwidth, i, j, i_loopydo;
+   int i_arrayval, i_totwidth, i, j, i_loopydo, i_tabdiff;
    int i_breakarray[30], i_widtharray[30];
    int morepadd = 0;
    int i_outbuff = 0;
    int adjust_padd, start_line;
-   char *s_strarray[30], *s_strptr, *s_tmpbuff, *outbuff, *outbuff2, *o_p1, *o_p2;
+   char *s_strarray[30], *s_strptr, *s_tmpbuff, *outbuff, *outbuff2, *o_p1, *o_p2, *s_tabdiff;
    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
    struct timefmt_format fm, fm_array[30];
 
-   adjust_padd = start_line = 0;
+   adjust_padd = start_line = i_tabdiff = 0;
    if ( (nfargs < 2) || (nfargs > 28) ) {
       safe_str("#-1 FUNCTION (PRINTF) EXPECTS BETWEEN 2 AND 28 ARGUMENTS [RECEIVED ", buff, bufcx);
       ival(buff, bufcx, nfargs);
@@ -10458,7 +10458,17 @@ FUNCTION(fun_printf)
                         if ( fmtcurrarg < nfargs ) {
                            if ( *fargs[fmtcurrarg] )
                               fm.lastval = 1;
-                           if ( (fm.forcebreakonreturn && ((strlen(strip_all_special(fargs[fmtcurrarg])) - count_extended(fargs[fmtcurrarg])) > fm.fieldwidth)) || 
+                           if ( fm.tabtospace > 0 ) {
+                              s_tabdiff = fargs[fmtcurrarg];
+                              i_tabdiff = 0;
+                              while ( s_tabdiff && *s_tabdiff ) {
+                                 if ( *s_tabdiff == '\t' ) {
+                                    i_tabdiff += fm.tabtospace;
+                                 }
+                                 s_tabdiff++;
+                              }
+                           }
+                           if ( (fm.forcebreakonreturn && ((strlen(strip_all_special(fargs[fmtcurrarg])) - count_extended(fargs[fmtcurrarg]) + i_tabdiff) > fm.fieldwidth)) || 
                                 (fm.breakonreturn && (strchr(fargs[fmtcurrarg], '\n') != NULL)) ) {
                               s_strptr = s_strarray[i_arrayval] = alloc_lbuf("showfield_printf_cr");
                               if ( i_totwidth > 0 )
