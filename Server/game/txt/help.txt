@@ -31967,3 +31967,4 @@
   * ANSI didn't fully honor ZENTY_ANSI when ZENTY_ANSI was enabled [ASH]
   * compiler warnings when ZENTY_ANSI not specified [ASH]
   * crash bug in printf [ASH]
+  * printf tab replacement did not reset value for next arg [ASH]

@@ -10499,6 +10499,7 @@ FUNCTION(fun_printf)
                         fm.forcebreakonreturn = 0;
                         fm.morepadd = 0;
                         fm.nolaster = 0;
+                        fm.tabtospace = 0;
                         break;
                      default: /* Do nothing */
                         formatpass = 1;
@@ -10519,6 +10520,7 @@ FUNCTION(fun_printf)
                      fm.cutatlength = 0;
                      fm.cutatlength_line = 0;
                      fm.nolaster = 0;
+                     fm.tabtospace = 0;
                   }
                } /* For */
                pp--;
