@@ -9,6 +9,8 @@ Help file typos fixed
 				- Thanks Rockpath
 Bug in EVAL could overwrite static pointer to attribute fetches
 				- Thanks Ixokai
+Bug in printf that could cause a SIGSEGV
+				- Thanks Ixokai
 
 
                          RhostMUSH 3.9.5 Update File

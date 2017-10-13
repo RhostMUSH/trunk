@@ -9242,8 +9242,10 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
          }
 
 #endif
-       if ( fm->breakonreturn && (*fmtbuff == '\n') && (*(fmtbuff+1) != '\0') ) {
-          safe_str(fmtbuff+1, shold, sholdptr);
+       if ( fm->breakonreturn && (*fmtbuff == '\n') && (*(fmtbuff+1)) ) {
+          if ( shold ) {
+             safe_str(fmtbuff+1, shold, sholdptr);
+          }
           i_breakhappen = 1;
           break;
        }
