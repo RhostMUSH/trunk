@@ -5050,6 +5050,45 @@ FUNCTION(fun_shuffle)
     free(numpt);
 }
 
+FUNCTION(fun_ansipos)
+{
+    char *outbuff, *returnbuff, *ptr;
+    ANSISPLIT outsplit[LBUF_SIZE];
+    int i_pos, i_cur; 
+    
+    outbuff = alloc_lbuf("fun_ansipos");
+    i_pos = atoi(fargs[1]);
+    if ( (i_pos <= 0) || (i_pos > LBUF_SIZE) ) {
+       sprintf(outbuff, "#-1 VALUE MUST BE BETWEEN 1 AND %d", LBUF_SIZE);  
+       safe_str(outbuff, buff, bufcx);
+       free_lbuf(outbuff);
+       return;
+    }
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    memset(outbuff, '\0', LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+    returnbuff = alloc_sbuf("fun_ansipos"); 
+    memset(returnbuff, '\0', SBUF_SIZE);
+    i_cur = 1;
+    ptr = outbuff;
+    while ( ptr && (i_cur <= i_pos) ) {
+       if ( i_cur == i_pos ) {
+          *returnbuff = ' ';
+          ptr = rebuild_ansi(returnbuff, outsplit + i_cur -1);
+          if ( (strlen(ptr) > 4) && (strchr(ptr, ' ') != NULL) ) {
+             *(strchr(ptr, ' ')) = '\0';
+             safe_str(ptr, buff, bufcx);
+          }
+          free_lbuf(ptr);
+          break;
+       }
+       ptr++;
+       i_cur++;
+    }
+    free_sbuf(returnbuff);
+    free_lbuf(outbuff);
+}
+
 FUNCTION(fun_scramble)
 {
     int x, pic, num, numleft;
@@ -34517,6 +34556,7 @@ FUN flist[] =
     {"ANDFLAG", fun_andflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANDFLAGS", fun_andflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ANSI", fun_ansi, 0, FN_VARARGS, CA_PUBLIC, 0},
+    {"ANSIPOS", fun_ansipos, 2, 0, CA_PUBLIC, 0},
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
     {"ARRAY", fun_array, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ART", fun_art, 1, FN_VARARGS, CA_PUBLIC, 0},

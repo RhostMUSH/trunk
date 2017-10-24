@@ -11046,27 +11046,27 @@
  
   Help is available for the following functions:
  
- @@()               ABS()               ACCENT()             ACOS()        
- ADD()              AFTER()             AINDEX()             AIINDEX()         
- ALPHAMAX()         ALPHAMIN()          AND()                ANDCHR()        
- ANDFLAG()          ANDFLAGS()          ANSI()               APOSS()     
- ARRAY()            ART()               ASC()                ASIN()           
- ATAN()             ATAN2()             ATTRCNT()            AVG()            
- BEFORE()           BETWEEN()           BITTYPE()            BOUND()          
- BRACKETS()         CAND()              CAPSTR()             CASE()           
- CASEALL()          CAT()               CEIL()               CENTER()         
- CHARIN()           CHAROUT()           CHKREALITY()         CHKTRACE()       
- CHOMP()            CHR()               CITER()              CLONE()          
- CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT()
- CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()   
- CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP() 
- CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()      
- CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()
- CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL() 
- CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()           
- CNAME()            COLORS()            COLUMNS()            COMP()           
- CON()              CONFIG()            CONN()               CONTROLS()       
- CONVSECS()    
+ @@()               ABS()              ACCENT()            ACOS()        
+ ADD()              AFTER()            AINDEX()            AIINDEX()         
+ ALPHAMAX()         ALPHAMIN()         AND()               ANDCHR()        
+ ANDFLAG()          ANDFLAGS()         ANSI()              ANSIPOS()
+ APOSS()            ARRAY()            ART()               ASC()            
+ ASIN()             ATAN()             ATAN2()             ATTRCNT()       
+ AVG()              BEFORE()           BETWEEN()           BITTYPE()    
+ BOUND()            BRACKETS()         CAND()              CAPSTR()       
+ CASE()             CASEALL()          CAT()               CEIL()           
+ CENTER()           CHARIN()           CHAROUT()           CHKREALITY()     
+ CHKTRACE()         CHOMP()            CHR()               CITER()   
+ CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()
+ CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()
+ CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()
+ CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()   
+ CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT()
+ CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()
+ CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()   
+ CMDS()             CNAME()            COLORS()            COLUMNS() 
+ COMP()             CON()              CONFIG()            CONN() 
+ CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -11200,7 +11200,7 @@
 & FUNCTION CLASSES
   Topic: FUNCTION CLASSES
    
-  Ansi:                 ANSI() STRIPANSI() COLORS()
+  Ansi:                 ANSI() ANSIPOS() EDITANSI() STRIPANSI() COLORS() 
               See Also: help ansi functions
   
   Arithmetic:           ABS() ADD() AVG() BETWEEN() BOUND() DEC() DICE()
@@ -19386,7 +19386,7 @@
     > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
     You say "abcxyzdef" (abc is yellow, xyz is blue, def is non-ansi)
   
-  See Also: accents(), edit(), regedit(), pemit(), @edit
+  See Also: ansipos(), accents(), edit(), regedit(), pemit(), @edit
 
 & PEDIT()
   Function: pedit(<string>,<from>,<to>[,<from>,<to>,...])
@@ -24373,6 +24373,18 @@
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
             SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
 
+& ANSIPOS()
+  Function: ansipos(<string>, <position>)
+  
+  This function returns the markup of the ansified string based on the
+  position specified.  This will return the foreground, background, 
+  accents and UTF8 encoding for that position.
+  
+  Examples:
+    > think [ansipos([ansi(+orange,orange)],5)]This string is orange%cn
+  
+  See Also: editansi(), pos(), ansi(), stripansi()
+  
 & STRIPANSI()
   Function: stripansi(<string>)
   
@@ -24382,7 +24394,7 @@
     > say stripansi(ansi(hr,red))
     You say "red"
   
-  See Also: NO_FLASH, ANSI, ANSICOLOR, stripaccents()
+  See Also: NO_FLASH, ANSI, ANSICOLOR, stripaccents(), ansipos()
   
 & CLUSTER_ADD()
   Function: cluster_add(<cluster>, <object>)
@@ -29372,6 +29384,7 @@
   Function Lists: Ansi Functions
       
   ansi()        - ANSI formats a string.
+  ansipos()     - ANSI substitutions based on the position of the ansi string.
   colors()      - List colors or optionally display value of color.
   editansi()    - Edit the ANSI of a string.
   stripansi()   - Strips ANSI characters from a string.
@@ -31956,6 +31969,8 @@
     access, @name/ansi will fail as well [ASH]
   * @pcreate, @create, @open, @dig, @clone, and @register now handle
     /ansi as well [ASH]
+  * ansipos() to return the markup of the ansi and accents of the given
+    position in the string.
   
   Changes
   ------------
