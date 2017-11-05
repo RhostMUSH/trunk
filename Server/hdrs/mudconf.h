@@ -429,6 +429,7 @@ struct confdata {
 	dbref	file_object;	/* The file object to override @list_file foo */
 	int	rollbackmax;	/* Maximum rollback with @retry option */
 	int	exec_secure;	/* Execscript is overly secure -- this is default */
+	int	crypt_rounds;	/* Number of rounds to encrypt -- default 5000 */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */

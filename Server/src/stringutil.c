@@ -395,7 +395,7 @@ char *replace_string_ansi(const char *s_old, const char *new,
          }
       }
    }
-   result = rebuild_ansi(outbuff2, outsplit2);
+   result = rebuild_ansi(outbuff2, outsplit2, 0);
    free_lbuf(outbuff);
    free_lbuf(outbuff2);
    free_lbuf(inbuff);
@@ -872,7 +872,7 @@ void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
 }
 
 char *
-rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
+rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
    char *s_buffer;
 #ifdef ZENTY_ANSI
    char *s_inptr, *s_buffptr, *s_format;

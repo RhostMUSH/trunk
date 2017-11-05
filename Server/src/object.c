@@ -202,11 +202,12 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 {
     dbref obj, owner, tlink, aowner;
     ZLISTNODE* z_ptr;
-    int quota, okname, value, self_owned, require_inherit, intarray[4], aflags, i;
+    int quota, okname, value, self_owned, require_inherit, intarray[4], aflags, i, i_ct, i_time;
     FLAG f1, f2, f3, f4, t1, t2, t3, t4, t5, t6, t7, t8;
     time_t tt;
     char *buff, *lastcreatebuff, *p, *tpr_buff, *tprp_buff, *tstrtokr, *buff2;
     const char *tname;
+    ATTR *a_ct;
 
     if (Good_chk(player) && DePriv(player, NOTHING, DP_CREATE, POWER6, POWER_LEVEL_NA)) {
 	notify(player, "Permission denied.");
@@ -567,11 +568,22 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 	atr_add_raw(obj, A_RQUOTA, "0");
     }
     if ( mudconf.enable_tstamps && !NoTimestamp(obj) ) {
-       time(&tt);
+       i_time = time(&tt);
        buff = (char *) ctime(&tt);
        buff[strlen(buff) - 1] = '\0';
        atr_add_raw(obj, A_CREATED_TIME, buff);
        atr_add_raw(obj, A_MODIFY_TIME, buff);
+       i_ct = mkattr("__OBJID_INTERNAL");
+       if (i_ct > 0) {
+          a_ct = atr_num_objid(i_ct);
+          if (a_ct) {
+	     buff = alloc_sbuf("create_obj.objid");
+             sprintf(buff, "%d", i_time);
+             atr_add_raw(obj, a_ct->number, buff);
+             atr_set_flags(obj, a_ct->number, AF_INTERNAL|AF_GOD);
+             free_sbuf(buff);
+          }
+       }
     }
     atr_add_raw(obj, A_LASTCREATE, "-1 -1 -1 -1");
     lastcreatebuff = NULL;

@@ -1595,13 +1595,14 @@ do_date_conv(char *instr, char *outstr)
 
 char *
 make_objid(dbref thing) {
-   char *atext; 
+   char *atext, *buff; 
    static char s_return[MBUF_SIZE];
    dbref aowner;
-   int aflags;
+   int aflags, i_id, i_id_found;
    struct tm *ttm;
    long l_offset, mynow;
    double d_objid;
+   ATTR *a_id;
 
    if ( !Good_obj(thing) ) {
       strcpy(s_return, (char *)"#-1");
@@ -1612,31 +1613,56 @@ make_objid(dbref thing) {
    if (  !mudconf.enable_tstamps || NoTimestamp(thing) ) {
       sprintf(s_return, "#%d", thing);
    } else {
-      atext = atr_get(thing, A_CREATED_TIME, &aowner, &aflags);
-      if ( atext && *atext ) {
-         if ( mudconf.objid_localtime ) {
-            ttm = localtime(&mudstate.now);
-         } else {
-            ttm = localtime(&mudstate.now);
-            mynow = mktime(ttm);
-            ttm = gmtime(&mudstate.now);
-            mynow -= mktime(ttm);
-         }
-         l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
-         if (do_convtime(atext, ttm)) {
-            if ( mudconf.objid_localtime ) {
-               d_objid = (double)(mktime64(ttm) + l_offset);
-            } else {
-               d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+      i_id = mkattr("__OBJID_INTERNAL");
+      i_id_found = 0;
+      if (i_id > 0) {
+         a_id = atr_num_objid(i_id);
+         if (a_id) {
+            i_id_found = 1;
+            atext = atr_get(thing, a_id->number, &aowner, &aflags);
+            if ( atext && *atext ) {
+               d_objid = safe_atof(atext);
+               i_id_found = 2;
             }
-            sprintf(s_return, "#%d:%.0f", thing, d_objid);
-         } else {
-            strcpy(s_return, (char *)"#-1");
+            free_lbuf(atext);
          }
-      } else {
-         sprintf(s_return, "#%d", thing);
       }
-      free_lbuf(atext);
+      if ( i_id_found == 2 ) {
+         sprintf(s_return, "#%d:%.0f", thing, d_objid);
+      } else { 
+         atext = atr_get(thing, A_CREATED_TIME, &aowner, &aflags);
+         if ( atext && *atext ) {
+            if ( mudconf.objid_localtime ) {
+               ttm = localtime(&mudstate.now);
+            } else {
+               ttm = localtime(&mudstate.now);
+               mynow = mktime(ttm);
+               ttm = gmtime(&mudstate.now);
+               mynow -= mktime(ttm);
+            }
+            l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+            if (do_convtime(atext, ttm)) {
+               if ( mudconf.objid_localtime ) {
+                  d_objid = (double)(mktime64(ttm) + l_offset);
+               } else {
+                  d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+               }
+               if ( i_id_found == 1 ) {
+                  buff = alloc_sbuf("create_objid");
+                  sprintf(buff, "%.0f", d_objid);
+                  atr_add_raw(thing, a_id->number, buff);
+                  atr_set_flags(thing, a_id->number, AF_INTERNAL|AF_GOD);
+                  free_sbuf(buff);
+               }
+               sprintf(s_return, "#%d:%.0f", thing, d_objid);
+            } else {
+               strcpy(s_return, (char *)"#-1");
+            }
+         } else {
+            sprintf(s_return, "#%d", thing);
+         }
+         free_lbuf(atext);
+      }
    }
    return(s_return);
 }
@@ -3952,7 +3978,7 @@ FUNCTION(fun_columns)
      winfo.right = fargs[8];
   }
   free_lbuf(string);
-  string = rebuild_ansi(holdbuff, outsplit2);
+  string = rebuild_ansi(holdbuff, outsplit2, 0);
   if (wtype) {
      hbpt = string;
      while (count > 0) {
@@ -4324,7 +4350,7 @@ FUNCTION(fun_wrapcolumns)
   } else
      winfo.right = NULL;
 
-  string = rebuild_ansi(holdbuff, outsplit2);
+  string = rebuild_ansi(holdbuff, outsplit2, 0);
 
   if (wtype) {
      hbpt = string;
@@ -5021,7 +5047,7 @@ FUNCTION(fun_shuffle)
           }
           pic--;
        }
-       s_output = rebuild_ansi(pt1, p_sp);
+       s_output = rebuild_ansi(pt1, p_sp, 0);
        safe_str(s_output, buff, bufcx);
        free_lbuf(s_output);
        safe_chr(osep, buff, bufcx);
@@ -5043,7 +5069,7 @@ FUNCTION(fun_shuffle)
        }
        pic--;
     }
-    s_output = rebuild_ansi(pt1, p_sp);
+    s_output = rebuild_ansi(pt1, p_sp, 0);
     safe_str(s_output, buff, bufcx);
     free_lbuf(s_output);
     free_lbuf(outbuff);
@@ -5074,7 +5100,7 @@ FUNCTION(fun_ansipos)
     while ( ptr && (i_cur <= i_pos) ) {
        if ( i_cur == i_pos ) {
           *returnbuff = ' ';
-          ptr = rebuild_ansi(returnbuff, outsplit + i_cur -1);
+          ptr = rebuild_ansi(returnbuff, outsplit + i_cur -1, 0);
           if ( (strlen(ptr) > 4) && (strchr(ptr, ' ') != NULL) ) {
              *(strchr(ptr, ' ')) = '\0';
              safe_str(ptr, buff, bufcx);
@@ -5134,7 +5160,7 @@ FUNCTION(fun_scramble)
        pic++;
     safe_chr(*(outbuff + pic), mybuff, &pmybuff);
     clone_ansisplitter(p_sp, outsplit+pic);
-    s_output = rebuild_ansi(mybuff, outsplit2);
+    s_output = rebuild_ansi(mybuff, outsplit2, 0);
     safe_str(s_output, buff, bufcx);
     free_lbuf(mybuff);
     free_lbuf(s_output);
@@ -6621,7 +6647,7 @@ FUNCTION(fun_tr)
       p_sp2++;
    }
    if ( !i_noansi ) {
-      s_output = rebuild_ansi(s_holdstr, outsplit2);
+      s_output = rebuild_ansi(s_holdstr, outsplit2, 0);
       safe_str(s_output, buff, bufcx);
       free_lbuf(s_output);
       free_lbuf(outbuff);
@@ -8059,7 +8085,7 @@ FUNCTION(fun_foreach)
                        continue;
                    } else {
                        if ( i_ansi ) {
-                          s_output = rebuild_ansi(cbuf, p_cp);
+                          s_output = rebuild_ansi(cbuf, p_cp, 0);
                           safe_str(s_output, buff, bufcx);
                           free_lbuf(s_output);
                           p_cp++;
@@ -8075,7 +8101,7 @@ FUNCTION(fun_foreach)
             strcpy(atextbuf, atext);
             str = atextbuf;
             if ( i_ansi ) {
-               s_output = rebuild_ansi(cbuf, p_cp);
+               s_output = rebuild_ansi(cbuf, p_cp, 0);
                bp[0] = s_output;
             }
             if ( (mudconf.secure_functions & 1) ) {
@@ -8114,7 +8140,7 @@ FUNCTION(fun_foreach)
             strcpy(atextbuf, atext);
             str = atextbuf;
             if ( i_ansi ) {
-               s_output = rebuild_ansi(cbuf, p_cp);
+               s_output = rebuild_ansi(cbuf, p_cp, 0);
                bp[0] = s_output;
             }
             if ( (mudconf.secure_functions & 1) ) {
@@ -8991,7 +9017,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
        if ( strlen(outbuff) > (fm->fieldwidth + morepadd) ) {
           s_outptr = outbuff + (strlen(outbuff) - (fm->fieldwidth + morepadd));
           p_sp = outsplit + (s_outptr - outbuff);
-          s_output = rebuild_ansi(s_outptr, p_sp);
+          s_output = rebuild_ansi(s_outptr, p_sp, 0);
           strcpy(fmtbuff, s_output);
           free_lbuf(s_output);
        }
@@ -9001,7 +9027,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
        outbuff = alloc_lbuf("showfield_printf");
        memset(outbuff, '\0', LBUF_SIZE);
        split_ansi(strip_ansi(fmtbuff), outbuff, outsplit);
-       s_output = rebuild_ansi(outbuff, outsplit);
+       s_output = rebuild_ansi(outbuff, outsplit, 0);
        strcpy(fmtbuff, s_output);
        free_lbuf(s_output);
        free_lbuf(outbuff);
@@ -10279,7 +10305,7 @@ FUNCTION(fun_printf)
                               }
                            }
                            free_lbuf(outbuff);
-                           outbuff = rebuild_ansi(outbuff2, outsplit2);
+                           outbuff = rebuild_ansi(outbuff2, outsplit2, 0);
                            free_lbuf(outbuff2);
                            strcpy(fm.format_padst, outbuff);
                            free_lbuf(outbuff);
@@ -16266,7 +16292,7 @@ FUNCTION(fun_left)
           if (len < (LBUF_SIZE - 1)) {
               outbuff[len] = '\0';
           }
-          s_output = rebuild_ansi(outbuff, outsplit);
+          s_output = rebuild_ansi(outbuff, outsplit, 0);
           safe_str(s_output, buff, bufcx);
           free_lbuf(s_output);
           free_lbuf(outbuff);
@@ -16315,7 +16341,7 @@ FUNCTION(fun_right)
            if (len < 1 || len > (LBUF_SIZE - 1) ) {
               safe_str(fargs[0], buff, bufcx);
            } else {
-              s_output = rebuild_ansi(outbuff + len, outsplit + len);
+              s_output = rebuild_ansi(outbuff + len, outsplit + len, 0);
               safe_str(s_output, buff, bufcx);
               free_lbuf(s_output);
            }
@@ -16370,7 +16396,7 @@ FUNCTION(fun_mid)
     if ( i_noansi ) {
        safe_str(outbuff+l, buff, bufcx);
     } else {
-       s_output = rebuild_ansi(outbuff+l, outsplit+l);
+       s_output = rebuild_ansi(outbuff+l, outsplit+l, 0);
        safe_str(s_output, buff, bufcx);
        free_lbuf(s_output);
     }
@@ -16416,7 +16442,7 @@ FUNCTION(fun_first)
        while ( *s && *s != sep ) s++;
        *s = '\0';
        if ( *first ) {
-          retbuff = rebuild_ansi(first, sp);
+          retbuff = rebuild_ansi(first, sp, 0);
           safe_str(retbuff, buff, bufcx);
           free_lbuf(retbuff);
        }
@@ -18677,7 +18703,7 @@ FUNCTION(fun_extractword)
       if ( first )
          safe_str(osep, buff, bufcx);
       first = 1;
-      outbuff = rebuild_ansi(pos, optr);
+      outbuff = rebuild_ansi(pos, optr, 0);
       safe_str(outbuff, buff, bufcx);
       free_lbuf(outbuff);
       pos = prevpos + strlen(sep);
@@ -18695,7 +18721,7 @@ FUNCTION(fun_extractword)
         (((i_cntr < start) || (i_cntr >= (start + len))) && i_del) )) {
       if ( first )
          safe_str(osep, buff, bufcx);
-      outbuff = rebuild_ansi(pos, optr);
+      outbuff = rebuild_ansi(pos, optr, 0);
       safe_str(outbuff, buff, bufcx);
       free_lbuf(outbuff);
    }
@@ -18945,11 +18971,12 @@ FUNCTION(fun_strlen)
 
 FUNCTION(fun_objid) {
     dbref it, aowner;
-    int aflags;
+    int aflags, i_id, i_id_found;
     long l_offset, mynow;
     double d_objid;
-    char *atext;
+    char *atext, *tbuff;
     struct tm *ttm;
+    ATTR *a_id;
 
     it = match_thing(player, fargs[0]);
     if (it != NOTHING) {
@@ -18971,34 +18998,61 @@ FUNCTION(fun_objid) {
        dbval(buff, bufcx, it);
        return;
     } else {
-      atext = atr_get(it, A_CREATED_TIME, &aowner, &aflags);
-      if ( atext && *atext ) {
-         if ( mudconf.objid_localtime ) {
-            ttm = localtime(&mudstate.now);
-         } else {
-            ttm = localtime(&mudstate.now);
-            mynow = mktime(ttm);
-            ttm = gmtime(&mudstate.now);
-            mynow -= mktime(ttm);
-         }
-         l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
-         if (do_convtime(atext, ttm)) {
-            if ( mudconf.objid_localtime ) {
-               d_objid = (double)(mktime64(ttm) + l_offset);
-            } else {
-               d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+      i_id = mkattr("__OBJID_INTERNAL");
+      i_id_found = 0;
+      if (i_id > 0) {
+         a_id = atr_num_objid(i_id);
+         if (a_id) {
+            i_id_found = 1;
+            atext = atr_get(it, a_id->number, &aowner, &aflags);
+            if ( atext && *atext ) {
+               d_objid = safe_atof(atext);
+               i_id_found = 2;
             }
-            sprintf(atext, "#%d:%.0f", it, d_objid);
-            safe_str(atext, buff, bufcx);
             free_lbuf(atext);
+         }
+      }
+      if ( i_id_found == 2 ) {
+         sprintf(atext, "#%d:%.0f", it, d_objid);
+         safe_str(atext, buff, bufcx);
+         return;
+      } else {
+         atext = atr_get(it, A_CREATED_TIME, &aowner, &aflags);
+         if ( atext && *atext ) {
+            if ( mudconf.objid_localtime ) {
+               ttm = localtime(&mudstate.now);
+            } else {
+               ttm = localtime(&mudstate.now);
+               mynow = mktime(ttm);
+               ttm = gmtime(&mudstate.now);
+               mynow -= mktime(ttm);
+            }
+            l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+            if (do_convtime(atext, ttm)) {
+               if ( mudconf.objid_localtime ) {
+                  d_objid = (double)(mktime64(ttm) + l_offset);
+               } else {
+                  d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+               }
+               if ( i_id_found == 1 ) {
+                  tbuff = alloc_sbuf("create_objid");
+                  sprintf(tbuff, "%.0f", d_objid);
+                  atr_add_raw(it, a_id->number, tbuff);
+                  atr_set_flags(it, a_id->number, AF_INTERNAL|AF_GOD);
+                  free_sbuf(tbuff);
+               }
+               sprintf(atext, "#%d:%.0f", it, d_objid);
+               safe_str(atext, buff, bufcx);
+               free_lbuf(atext);
+               return;
+            }
+         } else {
+            free_lbuf(atext);
+            dbval(buff, bufcx, it);
             return;
          }
-      } else {
          free_lbuf(atext);
-         dbval(buff, bufcx, it);
-         return;
       }
-      free_lbuf(atext);
     }
     safe_str("#-1", buff, bufcx);
     return;
@@ -21641,7 +21695,7 @@ FUNCTION(fun_elementpos)
    }
   
    free_lbuf(outbuff); 
-   outbuff = rebuild_ansi(outbuff2, outsplit2);
+   outbuff = rebuild_ansi(outbuff2, outsplit2, 0);
    free_lbuf(outbuff2);
    safe_str(outbuff, buff, bufcx);
    free_lbuf(outbuff);
@@ -22751,7 +22805,7 @@ FUNCTION(fun_delete)
             spl2++;
          }
       }
-      s_output = rebuild_ansi(outbuff2, outsplit2);
+      s_output = rebuild_ansi(outbuff2, outsplit2, 0);
       safe_str(s_output, buff, bufcx);
       free_lbuf(s_output);
       free_lbuf(outbuff);
@@ -24390,7 +24444,7 @@ FUNCTION(fun_array)
             } else {
                *(s_outptr-1) = '\0';
             }
-            s_tmpbuff = rebuild_ansi(s_output, outsplit);
+            s_tmpbuff = rebuild_ansi(s_output, outsplit, 0);
             s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
             if ( *mudstate.global_regs[i_regcurr] ) {
                if ( *osep )
@@ -24410,7 +24464,7 @@ FUNCTION(fun_array)
          s_inptr++;
       }   
       if ( *s_output && i ) {
-         s_tmpbuff = rebuild_ansi(s_output, outsplit);
+         s_tmpbuff = rebuild_ansi(s_output, outsplit, 0);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
          if ( *mudstate.global_regs[i_regcurr] ) {
             if ( *osep )
@@ -24481,7 +24535,7 @@ FUNCTION(fun_array)
             } else {
                *(s_outptr-1) = '\0';
             }
-            s_tmpbuff = rebuild_ansi(s_output, outsplit);
+            s_tmpbuff = rebuild_ansi(s_output, outsplit, 0);
 
 
             if ( !i_counter[i_regcurr] ) {
@@ -24512,7 +24566,7 @@ FUNCTION(fun_array)
          s_inptr++;
       }   
       if ( *s_output && i ) {
-         s_tmpbuff = rebuild_ansi(s_output, outsplit);
+         s_tmpbuff = rebuild_ansi(s_output, outsplit, 0);
          s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
          if ( *mudstate.global_regs[i_regcurr] ) {
             if ( *osep )
@@ -24547,7 +24601,7 @@ FUNCTION(fun_reverse)
     pmybuff = mybuff = alloc_lbuf("fun_reverse");
     do_reverse(s_output, mybuff, &pmybuff);
     free_lbuf(s_output);
-    s_output = rebuild_ansi(mybuff, outsplit2);
+    s_output = rebuild_ansi(mybuff, outsplit2, 0);
     free_lbuf(mybuff);
     safe_str(s_output, buff, bufcx);
     free_lbuf(s_output);
@@ -24656,7 +24710,7 @@ FUNCTION(fun_after)
             if ( i_noansi ) {
                safe_str(bp, buff, bufcx);
             } else {
-               s_output = rebuild_ansi(bp, p_sp);
+               s_output = rebuild_ansi(bp, p_sp, 0);
                safe_str(s_output, buff, bufcx);
                free_lbuf(s_output);
             }
@@ -24732,7 +24786,7 @@ FUNCTION(fun_before)
            if ( i_noansi ) {
               safe_str(ip, buff, bufcx);
            } else {
-              s_output = rebuild_ansi(ip, outsplit);
+              s_output = rebuild_ansi(ip, outsplit, 0);
               safe_str(s_output, buff, bufcx);
               free_lbuf(s_output);
            }
@@ -24749,7 +24803,7 @@ FUNCTION(fun_before)
            if ( i_noansi ) { 
               safe_str(ip, buff, bufcx);
            } else {
-              s_output = rebuild_ansi(ip, outsplit);
+              s_output = rebuild_ansi(ip, outsplit, 0);
               safe_str(s_output, buff, bufcx);
               free_lbuf(s_output);
            }
@@ -24766,7 +24820,7 @@ FUNCTION(fun_before)
     if ( i_noansi ) {
        safe_str(ip, buff, bufcx);
     } else {
-       s_output = rebuild_ansi(ip, outsplit);
+       s_output = rebuild_ansi(ip, outsplit, 0);
        safe_str(s_output, buff, bufcx);
        free_lbuf(s_output);
     }
@@ -25250,7 +25304,7 @@ FUNCTION(fun_repeat)
                 p_sp2++;
              }
           }
-          s_combine = rebuild_ansi(outbuff2, outsplit2);
+          s_combine = rebuild_ansi(outbuff2, outsplit2, 0);
           free_lbuf(outbuff);
           free_lbuf(outbuff2);
           safe_str(s_combine, buff, bufcx);
@@ -25999,7 +26053,7 @@ FUNCTION(fun_citer)
        } else {
           *(objstring+1) = '\0';
        }
-       s_output = rebuild_ansi(objstring, p_sp);
+       s_output = rebuild_ansi(objstring, p_sp, 0);
        cp++;
        p_sp++;
        tprp_buff = tpr_buff;
@@ -29211,7 +29265,7 @@ FUNCTION(fun_editansi)
       i_loop++;
    }
    free_lbuf(s_combine);
-   s_combine = rebuild_ansi(s_input, a_input);
+   s_combine = rebuild_ansi(s_input, a_input, 0);
    safe_str(s_combine, buff, bufcx);
    free_lbuf(s_input);
    free_lbuf(s_combine);
@@ -32410,7 +32464,7 @@ FUNCTION(fun_last)
           sp--;
        }
 
-       retbuff = rebuild_ansi(p+1, sp+1);
+       retbuff = rebuild_ansi(p+1, sp+1, 0);
        safe_str(retbuff, buff, bufcx);
        free_lbuf(outbuff);
        free_lbuf(retbuff);

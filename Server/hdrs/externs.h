@@ -404,7 +404,7 @@ extern char *	FDECL(replace_string_ansi, (const char *, const char *,
 			const char *, int, int));
 extern char *	FDECL(replace_tokens, (const char *, const char *, const char *, const char *));
 extern void     FDECL(split_ansi, (char *, char *, ANSISPLIT *));
-extern char *   FDECL(rebuild_ansi, (char *, ANSISPLIT *));
+extern char *   FDECL(rebuild_ansi, (char *, ANSISPLIT *, int));
 
 extern char *	FDECL(replace_string_inplace, (const char *,  const char *,
 			char *));

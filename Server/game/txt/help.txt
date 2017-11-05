@@ -31970,10 +31970,12 @@
   * @pcreate, @create, @open, @dig, @clone, and @register now handle
     /ansi as well [ASH]
   * ansipos() to return the markup of the ansi and accents of the given
-    position in the string.
+    position in the string. [ASH]
   
   Changes
   ------------
+  * objid's are now statically stored on things to finally get around
+    weird timezone issues [ASH]
   
   Bug Fixes
   ------------
