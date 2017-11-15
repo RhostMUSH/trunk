@@ -897,9 +897,11 @@ shovechars(int port,char* address)
                    memcpy(s_cutter2, d->input_head->cmd, 7);
                    s_cutter[5] = '\0';
                    s_cutter2[7] = '\0';
-                   if ( (Good_obj(d->player) && Wizard(d->player) && (stricmp(s_cutter, "idle ") == 0)) || 
+                   if ( Good_obj(d->player) && 
+                       ((Wizard(d->player) && (stricmp(s_cutter, "idle ") == 0)) || 
+                        ((stricmp(s_cutter, "@@") == 0) && mudconf.null_is_idle) ||
                         (stricmp(s_cutter, "idle") == 0) ||
-                        (stricmp(s_cutter2, "idle @@") == 0) ) {
+                        (stricmp(s_cutter2, "idle @@") == 0)) ) {
                       cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);
                       if ( cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
                          if ( !(CmdCheck(d->player) && cmdtest(d->player, "idle")) ) {

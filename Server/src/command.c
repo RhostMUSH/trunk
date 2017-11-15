@@ -6272,6 +6272,10 @@ list_options_system(dbref player)
        notify(player, "Attributes SPEECH_PREFIX and SPEECH_SUFFIX allow functions ----- ENABLED");
     else
        notify(player, "Attributes SPEECH_PREFIX and SPEECH_SUFFIX allow functions ----- DISABLED");
+    if ( mudconf.null_is_idle )
+       notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- ENABLED");
+    else
+       notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 

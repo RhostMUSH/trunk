@@ -11232,7 +11232,7 @@
                       STARTSECS() STARTTIME() VERSION()
             See Also: help game information functions
   
-  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() CITER() 
+  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() ARRAY() CITER() 
                       DELEXTRACT() ELEMENTS() ELEMENTSMUX() ELIST() EXTRACT()
                       EXTRACTWORD() FILTER() FIRST() FLAGS() FOLD() FOREACH()
                       IBREAK() IINDEX() ILEV() INDEX() INSERT() INUM() ITER()
@@ -29002,6 +29002,7 @@
   aindex()      - Appends a string at a position in another string.
   aiindex()     - Similar to aindex(), but allows adding to an empty string.
   andflags()    - Checks if a target has all the indicated flags.
+  array()       - Break up a string into an array list of registers
   caplist()     - Performs a capstr() on a list of words.
   citer()       - Similar to iter(), but by character instead of word.
   delextract()  - Returns words specified that are not present in a list.
@@ -31971,6 +31972,8 @@
     /ansi as well [ASH]
   * ansipos() to return the markup of the ansi and accents of the given
     position in the string. [ASH]
+  * added @admin param 'null_is_idle' to treat @@ like IDLE to stop @@
+    from updating idle times. [ASH]
   
   Changes
   ------------

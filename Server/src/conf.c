@@ -330,6 +330,7 @@ NDECL(cf_init)
     mudconf.rollbackmax = 1000;		/* Maximum rollback value (10-10000) */
     mudconf.exec_secure = 1;		/* execscript() escapes out everything by default */
     mudconf.crypt_rounds = 5000;	/* Number of crypt rounds for passwords */
+    mudconf.null_is_idle = 0;		/* Treat @@ as idle for idle timer */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -4496,6 +4497,9 @@ CONF conftable[] =
     {(char *) "notonerr_return",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.notonerr_return, 0, 0, CA_PUBLIC,
      (char *) "Does #-1 return a '0' on boolean logic?"},
+    {(char *) "null_is_idle",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.null_is_idle, 0, 0, CA_PUBLIC,
+     (char *) "Will '@@' be treated like 'idle' for updating idle time?"},
     {(char *) "num_guests",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_num_guests, 0, 0, CA_WIZARD,
      (char *) "Maximum number of guests allowed.\r\n"\
