@@ -31974,6 +31974,7 @@
     position in the string. [ASH]
   * added @admin param 'null_is_idle' to treat @@ like IDLE to stop @@
     from updating idle times. [ASH]
+  * @power wiz_idle to allow target players the enhanced idle features [ASH]
   
   Changes
   ------------

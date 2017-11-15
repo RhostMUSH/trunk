@@ -898,7 +898,7 @@ shovechars(int port,char* address)
                    s_cutter[5] = '\0';
                    s_cutter2[7] = '\0';
                    if ( Good_obj(d->player) && 
-                       ((Wizard(d->player) && (stricmp(s_cutter, "idle ") == 0)) || 
+                       (((Wizard(d->player) || HasPriv(d->player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) && (stricmp(s_cutter, "idle ") == 0)) || 
                         ((stricmp(s_cutter, "@@") == 0) && mudconf.null_is_idle) ||
                         (stricmp(s_cutter, "idle") == 0) ||
                         (stricmp(s_cutter2, "idle @@") == 0)) ) {

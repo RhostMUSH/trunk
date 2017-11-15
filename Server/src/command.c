@@ -9893,7 +9893,7 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
       return;
    }
 
-   if ( Wizard(player) && string && *string ) {
+   if ( (Wizard(player) || HasPriv(player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) && string && *string ) {
       if ( (*string == '@') && (*(string+1) == '@') ) {
          notify_quiet(player, string+2);
       } else {

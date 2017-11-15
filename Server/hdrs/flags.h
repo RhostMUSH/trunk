@@ -315,7 +315,7 @@
 #define POWER_EX_FULL           8
 #define POWER_API		10
 #define POWER_MONITORAPI	12
-/* 14 free */
+#define POWER_WIZ_IDLE		14
 /* 16 free */
 /* 18 free */
 /* 20 free */
