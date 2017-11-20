@@ -31989,3 +31989,4 @@
   * compiler warnings when ZENTY_ANSI not specified [ASH]
   * crash bug in printf [ASH]
   * printf tab replacement did not reset value for next arg [ASH]
+  * mail functions could potentially crash the game if mail is off [ASH]

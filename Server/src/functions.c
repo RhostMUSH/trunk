@@ -13404,6 +13404,10 @@ FUNCTION(fun_mailquota)
    if (!fn_range_check("MAILQUOTA", nfargs, 1, 2, buff, bufcx))
       return;
 
+   if ( mudstate.mail_state != 1 ) {
+      safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
+      return;
+   }
    if ( !*fargs[0] ) {
       safe_str((char *)"-1 -1 -1 -1 -1 -1", buff, bufcx); 
       return;
@@ -13475,6 +13479,10 @@ FUNCTION(fun_folderlist)
 {
    char *tbuff, *tbuffptr;
 
+   if ( mudstate.mail_state != 1 ) {
+      safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
+      return;
+   }
    if ( !fargs[0] || !*fargs[0] ) {
       safe_str("#-1 NOT FOUND", buff, bufcx);
       return;
@@ -13493,6 +13501,10 @@ FUNCTION(fun_foldercurrent)
    if (!fn_range_check("FOLDERCURRENT", nfargs, 1, 2, buff, bufcx))
       return;
 
+   if ( mudstate.mail_state != 1 ) {
+      safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
+      return;
+   }
    if ( !fargs[0] || !*fargs[0] ) {
       safe_str("#-1 NOT FOUND", buff, bufcx);
       return;
@@ -32557,6 +32569,10 @@ FUNCTION(fun_mailread)
    if (!fn_range_check("MAILREAD", nfargs, 3, 4, buff, bufcx))
       return;
 
+   if ( mudstate.mail_state != 1 ) {
+      safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
+      return;
+   }
    if ( !*fargs[0] || !*fargs[1] || !*fargs[2] ) {
       safe_str("#-1 INVALID ARGUMENTS TO MAILREAD", buff, bufcx);
       return;
@@ -33049,6 +33065,10 @@ FUNCTION(fun_mailsend)
 
    if (!fn_range_check("MAILSEND", nfargs, 3, 4, buff, bufcx))
       return;
+   if ( mudstate.mail_state != 1 ) {
+      safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
+      return;
+   }
 
    if ( !*fargs[0] ) {
       safe_str("#-1 EMPTY PLAYER LIST", buff, bufcx);
