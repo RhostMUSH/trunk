@@ -1221,6 +1221,39 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
   else
     infodata.dsize = hsuboff;
   dbm_store(mailfile, keydata, infodata, DBM_REPLACE);
+
+  /* Trigger a target's mail notify attribute */
+  s_atr = atr_str("mailnotify");
+  if ( s_atr && Good_chk(*toplay) ) {
+     s_mailfilter = atr_get(*toplay, s_atr->number, &s_aowner, &s_aflags);
+     if ( s_mailfilter && *s_mailfilter ) {
+        s_tmparry[0] = alloc_lbuf("s_tmparry_0");
+        s_tmparry[1] = alloc_lbuf("s_tmparry_1");
+        s_tmparry[2] = alloc_lbuf("s_tmparry_1");
+        s_tmparry[3] = alloc_lbuf("s_tmparry_1");
+        sprintf(s_tmparry[0], "#%d", ((chk_anon && !chk_anon2) ? -1 : player));
+        if ( subj && *subj )
+           sprintf(s_tmparry[1], "%s", subj);
+        strcpy(s_tmparry[2], msg);
+	strcat(s_tmparry[3], ctime((time_t *)pt3));
+ 	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
+        s_returnfilter = exec(*toplay, *toplay, *toplay, EV_FCHECK | EV_EVAL, s_mailfilter,
+                                 s_tmparry, 4, (char **)NULL, 0);
+        if ( *s_returnfilter ) {
+           sprintf(s_tmparry[2], "%s", Name(*toplay));
+           sprintf(s_tmparry[1], "Mailnotify from %.30s: %.*s", s_tmparry[2], (LBUF_SIZE - 60), s_returnfilter);
+           notify_quiet(player, s_tmparry[1]);
+        }
+        free_lbuf(s_tmparry[0]);
+        free_lbuf(s_tmparry[1]);
+        free_lbuf(s_tmparry[2]);
+        free_lbuf(s_tmparry[3]);
+        free_lbuf(s_returnfilter);
+     }
+     free_lbuf(s_mailfilter);
+  }  
+
+  /* Trigger a target's mailfilter attribute to handle folder moving */
   s_atr = atr_str("mailfilter");
   if ( s_atr && Good_obj(*toplay) ) {
      s_mailfilter = atr_get(*toplay, s_atr->number, &s_aowner, &s_aflags);
@@ -1236,7 +1269,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
 	strcat(s_tmparry[3], ctime((time_t *)pt3));
  	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
         s_returnfilter = exec(*toplay, *toplay, *toplay, EV_FCHECK | EV_EVAL, s_mailfilter,
-                              s_tmparry, 4, (char **)NULL, 0);
+                                 s_tmparry, 4, (char **)NULL, 0);
         free_lbuf(s_tmparry[0]);
         free_lbuf(s_tmparry[1]);
         free_lbuf(s_tmparry[2]);

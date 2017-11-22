@@ -25403,7 +25403,7 @@
    Note: For folder help please type 'help folder'
   
    Important topics:
-      'HELP MAIL MAIN' for main index.    
+      'HELP MAIL MAIN' for main index.    -- this is very helpful
       'HELP MAIL TOPICS' for topical help.
   
    Important initial help entries:
@@ -25437,11 +25437,48 @@
     mail-writing           mail-reading            mail-deleting
     mail-folders           mail-admin              mail-reviewing
     mail-sharing           mail-examples           mail-other
-    mail-aliases           mail-filtering
+    mail-aliases           mail-filtering          mail-attributes
   
     A tutorial can be seen with:
     mail tutorial
   
+& &MAILNOTIFY
+& @MAILNOTIFY
+& MAILNOTIFY
+  Attribute: &MAILNOTIFY
+  
+  This attribute, when set on a player, will send a message to the person
+  mailing them depending on the evaluated text in the attribute.
+  
+  If the message evaluates to an empty string, no message is sent.
+  
+  The following arguments are passed for evaluation:
+              %0  - the dbref# of the player (or #-1 if anonymous)
+              %1  - the subject of the message
+              %2  - the body of the message
+              %3  - the date/time of the message
+  
+  Examples:
+    > &mailnotify me=Hi, [name(%0)]!  You sent me mail!
+    Set.
+    > think [name(me)]
+    Bob
+    > mail me=Test!
+    Hi, Bob!  You sent me mail!
+    Mail: You have new mail from -> Bob
+    Mail: Message sent to -> Bob
+    Mail: Done
+    > think [name(me)]
+    Betty
+    > mail bob=Test!
+    Hi, Betty! You sent me mail!
+    Mail: Message sent to -> Bob
+    Mail: Done
+  
+  See Also: @mailsig, &mailfilter
+
+& &MAILFILTER
+& @MAILFILTER
 & MAILFILTER
   Attribute: &MAILFILTER
   
@@ -25470,7 +25507,7 @@
       Mail: You have new mail from -> Tony [Subj: You smell]
       Mail: Auto-Moved to folder -> Junk
   
-  See Also: @mailsig
+  See Also: @mailsig, &mailnotify
  
 & mail-filtering
   You can specify mail filtering by using the MAILFILTER attribute.  This
@@ -25716,7 +25753,7 @@
       mail massmail          mail credits            mail send examples
       mail line examples     mail write examples     mail signature
       mail cmdlist           mail technical          mail tutorial
-      mail quicklist         mail setup_aliases
+      mail quicklist         mail setup_aliases      mail attributes
   
   help on options can be seen by using the help command with any topic.
   
@@ -25732,6 +25769,29 @@
   
   See help on the BRANDY_MAIL @toggle as well. (help brandy_mail toggle)
   
+& mail-attributes
+& mail attributes
+  Topic: MAIL ATTRIBUTES
+  
+  The following attributes have special meaning in the mail system.
+    @mailsig     -- The signature that is assigned to any mail sent.
+    &mailfilter  -- This is evaluated to auto-filter what folder mail goes to.
+    &mailnotify  -- This is evaluated to auto-send notification to senders.
+    @mailtime    -- (Wizard only) Sets the auto-delete time on a player.
+    @mailsmax    -- (Wizard only) Sets the maximum saved messages on a player.
+    MailLock     -- (Internal) This is the lock mail/lock sets
+  
+  The following wildcard patterns are used for mail:
+    mail &foo=text    -- This will check your personal FOO attribute for
+                         the player list you want to send to.
+                         This is non-evaluated.
+    mail ~foo=text    -- This will check your personal FOO attribute for
+                         the player list you want to send to.
+                         This is evaluated.
+  
+  See Also: @mailsig, &mailfilter, &mailnotify, mail lock, mail setup_aliases
+  For wizards, wizhelp: @mailsmax, @mailtime
+
 & mail creating
   Please see 'help mail send'
   
@@ -31975,6 +32035,8 @@
   * added @admin param 'null_is_idle' to treat @@ like IDLE to stop @@
     from updating idle times. [ASH]
   * @power wiz_idle to allow target players the enhanced idle features [ASH]
+  * attribute 'mailnotify' (set via &mailnotify) will evaluate the attribute
+    and send to the target person who is issuing mail [ASH]
   
   Changes
   ------------
