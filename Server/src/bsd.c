@@ -936,6 +936,15 @@ shovechars(int port,char* address)
 		}
 	    }
             if ( (d->flags & DS_API) ) {
+            /* Force activity check for API */
+	        check = CheckInput(d->descriptor);
+                if ( check ) {
+                   process_input(d);
+                }
+	        check = CheckOutput(d->descriptor);
+                if ( check ) {
+                   process_output(d);
+                }
 		if ( (d->connected_at + 5) < time(NULL) ) {
 			shutdownsock(d, R_API);
 		}
