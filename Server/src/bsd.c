@@ -375,7 +375,7 @@ shovechars(int port,char* address)
     char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr, *s_buff3, *s_buff3ptr;
 #endif
     FILE *f;
-    int silent, i_progatr, anum, apiport;
+    int silent, i_progatr, anum, apiport, i_isapi;
     unsigned int ulCRC32;
     ATTR *ap;
 
@@ -544,6 +544,7 @@ shovechars(int port,char* address)
 
 	/* Listen for new connections if there are free descriptors */
 
+        i_isapi = 0;
 	if (ndescriptors < avail_descriptors) {
 #ifdef TLI
 	    fds[sock].fd = sock;
@@ -579,12 +580,16 @@ shovechars(int port,char* address)
 	    if (d->output_head)
 		FD_SET(d->descriptor, &output_set);
 	    if (d->flags & DS_AUTH_IN_PROGRESS) {
-                active_auths++;
-		if (d->authdescriptor >= maxd)
-		    maxd = d->authdescriptor + 1;
-		if (d->flags & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
-		    FD_SET(d->authdescriptor, &output_set);
-		FD_SET(d->authdescriptor, &input_set);
+                if ( d->flags & DS_API ) {
+                   d->flags &= ~DS_AUTH_IN_PROGRESS;
+                } else {
+                   active_auths++;
+		   if (d->authdescriptor >= maxd)
+		       maxd = d->authdescriptor + 1;
+		   if (d->flags & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
+		       FD_SET(d->authdescriptor, &output_set);
+		   FD_SET(d->authdescriptor, &input_set);
+               }
 	    }
 	    if (d->flags & DS_HAS_DOOR) {
 	      if (d->door_desc >= maxd)
@@ -936,15 +941,6 @@ shovechars(int port,char* address)
 		}
 	    }
             if ( (d->flags & DS_API) ) {
-            /* Force activity check for API */
-	        check = CheckInput(d->descriptor);
-                if ( check ) {
-                   process_input(d);
-                }
-	        check = CheckOutput(d->descriptor);
-                if ( check ) {
-                   process_output(d);
-                }
 		if ( (d->connected_at + 5) < time(NULL) ) {
 			shutdownsock(d, R_API);
 		}
@@ -2008,7 +2004,9 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     ndescriptors++;
     d = alloc_desc("init_sock");
     d->descriptor = s;
-    d->flags = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;	/* start authenticating */
+    if ( !keyval ) {
+       d->flags = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;	/* start authenticating */
+    }
     d->connected_at = mudstate.now;
     d->retries_left = mudconf.retry_limit;
     d->regtries_left = mudconf.regtry_limit;
