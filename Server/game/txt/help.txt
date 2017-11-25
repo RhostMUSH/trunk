@@ -32042,6 +32042,7 @@
   ------------
   * objid's are now statically stored on things to finally get around
     weird timezone issues [ASH]
+  * More aggressively handle API processing [ASH]
   
   Bug Fixes
   ------------

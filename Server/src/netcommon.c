@@ -1190,13 +1190,16 @@ raw_notify(dbref player, const char *msg, int port, int type)
     strcpy(antemp, ANSI_NORMAL);
     if (!port) {
       DESC_ITER_PLAYER(player, d) {
-	if ((d->flags & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(d->player) & DOORRED))
+	if ((d->flags & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(d->player) & DOORRED)) {
 	  continue;
+        }
 	queue_string(d, msg);
-	if (ShowAnsi(d->player) && index(msg, ESC_CHAR))
+	if (ShowAnsi(d->player) && index(msg, ESC_CHAR)) {
 	    queue_string(d, antemp);
-        if ( type )
+        }
+        if ( type ) {
 	   queue_write(d, "\r\n", 2);
+        }
 	if (d->snooplist) {
 	    for (node = d->snooplist; node; node = node->next) {
 		if (node->sfile) {
@@ -1207,11 +1210,13 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		    fputc('\n', node->sfile);
                     fflush(node->sfile);
 		}
-		if (!Connected(node->snooper) || node->logonly)
+		if (!Connected(node->snooper) || node->logonly) {
 		    continue;
+                }
 		DESC_ITER_PLAYER(node->snooper, sd) {
-		    if ((sd->flags & DS_HAS_DOOR) && (Flags3(sd->player) & DOORRED))
+		    if ((sd->flags & DS_HAS_DOOR) && (Flags3(sd->player) & DOORRED)) {
 			continue;
+                    }
                     if( ShowAnsi(sd->player) ) {
                       queue_string(sd, ANSI_HILITE);
                       queue_string(sd, ANSI_WHITE);
@@ -1223,25 +1228,27 @@ raw_notify(dbref player, const char *msg, int port, int type)
                       queue_string(sd, ANSI_NORMAL);
 		      queue_string(sd, msg);
 		      queue_string(sd, antemp);
-                    }
-                    else {
+                    } else {
 		      queue_string(sd, "|");
 		      queue_string(sd, Name(player));
 		      queue_string(sd, "> ");
 		      queue_string(sd, msg);
                     }
-                    if ( type )
+                    if ( type ) {
 		       queue_write(sd, "\r\n", 2);
+                    }
+                    process_output(sd);
 		}
 	    }
 	}
+        process_output(d);
       }
-    }
-    else {
+    } else {
       found = 0;
       DESC_SAFEITER_ALL(d,dnext) {
-	if (d->descriptor != port)
+	if (d->descriptor != port) {
 	  continue;
+        }
 	if (!(d->player) && !Immortal(mudstate.pageref)) {
 	  mudstate.pageref = NOTHING;
 	  break;
@@ -1251,11 +1258,13 @@ raw_notify(dbref player, const char *msg, int port, int type)
 	  break;
 	}
 	found = 1;
-	if ((d->flags & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(d->player) & DOORRED))
+	if ((d->flags & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(d->player) & DOORRED)) {
 	  continue;
+        }
 	queue_string(d, msg);
-	if (d->player && ShowAnsi(d->player) && index(msg, ESC_CHAR))
+	if (d->player && ShowAnsi(d->player) && index(msg, ESC_CHAR)) {
 	    queue_string(d, antemp);
+        }
 	queue_write(d, "\r\n", 2);
 	if (d->snooplist) {
 	    for (node = d->snooplist; node; node = node->next) {
@@ -1267,11 +1276,13 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		    fputc('\n', node->sfile);
                     fflush(node->sfile);
 		}
-		if (!Connected(node->snooper) || node->logonly)
+		if (!Connected(node->snooper) || node->logonly) {
 		    continue;
+                }
 		DESC_ITER_PLAYER(node->snooper, sd) {
-		    if ((sd->flags & DS_HAS_DOOR) && (Flags3(sd->player) & DOORRED))
+		    if ((sd->flags & DS_HAS_DOOR) && (Flags3(sd->player) & DOORRED)) {
 			continue;
+                    }
                     if( ShowAnsi(sd->player) ) {
                       queue_string(sd, ANSI_HILITE);
                       queue_string(sd, ANSI_WHITE);
@@ -1283,21 +1294,23 @@ raw_notify(dbref player, const char *msg, int port, int type)
                       queue_string(sd, ANSI_NORMAL);
 		      queue_string(sd, msg);
 		      queue_string(sd, antemp);
-                    }
-                    else {
+                    } else {
 		      queue_string(sd, "|");
 		      queue_string(sd, Name(d->player));
 		      queue_string(sd, "> ");
 		      queue_string(sd, msg);
                     }
 		    queue_write(sd, "\r\n", 2);
+                    process_output(sd);
 		}
 	    }
 	}
+        process_output(d);
 	break;
       }
-      if (!found)
+      if (!found) {
         mudstate.pageref=NOTHING;
+      }
     }
     VOIDRETURN; /* #112 */
 }
@@ -2417,6 +2430,7 @@ announce_connect(dbref player, DESC * d, int dc)
                    queue_string(d, unsafe_tprintf("%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
                 }
                 free_lbuf(progatr);
+                process_output(d);
                 break;
              }
           }
@@ -2427,6 +2441,7 @@ announce_connect(dbref player, DESC * d, int dc)
              if ( d->player == player ) {
                 queue_string(d, "\377\371");
              }
+             process_output(d);
           }
           mudstate.shell_program = 0;
           atr_clr(player, A_PROGBUFFER);
@@ -2740,6 +2755,7 @@ boot_off(dbref player, char *message)
 	if (message && *message) {
 	    queue_string(d, message);
 	    queue_string(d, "\r\n");
+            process_output(d);
 	}
 	shutdownsock(d, R_BOOT);
 	count++;
@@ -2771,6 +2787,7 @@ boot_by_port(int port, int no_god, int who, char *message)
 		if (message && *message) {
 		    queue_string(d, message);
 		    queue_string(d, "\r\n");
+                    process_output(d);
 		}
 		shutdownsock(d, R_BOOT);
 		count++;
@@ -2866,8 +2883,8 @@ NDECL(check_idle)
             else
 	       idletime = mudstate.now - d->last_time;
 	    if ((idletime > d->timeout && d->timeout != -1) && !Wizard(d->player)) {
-		queue_string(d,
-			     "*** Inactivity Timeout ***\r\n");
+		queue_string(d, "*** Inactivity Timeout ***\r\n");
+                process_output(d);
 		shutdownsock(d, R_TIMEOUT);
             } else if (mudconf.idle_wiz_cloak &&
 		       (idletime > d->timeout && d->timeout != -1) &&
@@ -2897,8 +2914,8 @@ NDECL(check_idle)
             else
 	       idletime = mudstate.now - d->connected_at;
 	    if (idletime > mudconf.conn_timeout) {
-		queue_string(d,
-			     "*** Login Timeout ***\r\n");
+		queue_string(d, "*** Login Timeout ***\r\n");
+                process_output(d);
 		shutdownsock(d, R_TIMEOUT);
 	    }
             if ( (idletime > 1) && (d->flags & DS_API) ) {
@@ -3847,6 +3864,7 @@ failconn(const char *logcode, const char *logtype,
     if (motd_msg && *motd_msg) {
 	queue_string(d, motd_msg);
 	queue_write(d, "\r\n", 2);
+        process_output(d);
     }
     free_mbuf(command);
     free_mbuf(user);
@@ -4001,6 +4019,7 @@ softcode_trigger(DESC *d, const char *msg) {
 #endif
 	  queue_write(d, "\r\n", 2);
           free_lbuf(s_buff);
+          process_output(d);
           break;
        }
        s_strtok = strtok_r(NULL, "|", &s_strtokr);
@@ -4864,6 +4883,7 @@ do_command(DESC * d, char *command)
                 }
 		queue_string(sd, command);
 		queue_write(sd, "\r\n", 2);
+                process_output(sd);
 	    }
 	}
     }
@@ -4928,8 +4948,10 @@ do_command(DESC * d, char *command)
        queue_string(d, "Exec: Error - Invalid Headers Supplied\r\n");
        shutdownsock(d, R_API);
        mudstate.debug_cmd = cmdsave;
-       if ( chk_perm && cp )
+       if ( chk_perm && cp ) {
           cp->perm = store_perm;
+       }
+       process_output(d);
        RETURN(0); /* #147 */
     }
 
@@ -4967,8 +4989,10 @@ do_command(DESC * d, char *command)
 		queue_write(d, "\r\n", 2);
 	    }
 	    mudstate.debug_cmd = cmdsave;
-	    if ( chk_perm && cp ) 
+	    if ( chk_perm && cp ) {
 	      cp->perm = store_perm;
+            }
+            process_output(d);
 	    RETURN(1); /* #147 */
 	} else {
 	    mudstate.debug_cmd = cmdsave;
@@ -4998,6 +5022,7 @@ do_command(DESC * d, char *command)
 	switch (cp->flag & CMD_MASK) {
 	case CMD_QUIT:
 	    if (Good_chk(d->player) && !Fubar(d->player)) {
+                process_output(d);
 		shutdownsock(d, R_QUIT);
 		mudstate.debug_cmd = cmdsave;
 		if ( chk_perm && cp )
@@ -5009,6 +5034,7 @@ do_command(DESC * d, char *command)
 	    }
 	case CMD_LOGOUT:
 	    if (!Fubar(d->player)) {
+                process_output(d);
 		shutdownsock(d, R_LOGOUT);
 		break;
 	    } else {
@@ -5044,6 +5070,7 @@ do_command(DESC * d, char *command)
                notify_quiet(d->player, "Not supported.");
                break;
             }
+            process_output(d);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -5064,6 +5091,7 @@ do_command(DESC * d, char *command)
             queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
             queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
             queue_string(d, "Return: <NULL>\r\n");
+            process_output(d);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -5283,6 +5311,7 @@ do_command(DESC * d, char *command)
             free_lbuf(s_snarfing3);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
+            process_output(d);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -5304,6 +5333,13 @@ do_command(DESC * d, char *command)
             queue_string(d, "Content-type: text/plain\r\n");
             queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
             queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
+            process_output(d);
+            shutdownsock(d, R_API);
+            mudstate.debug_cmd = cmdsave;
+            if ( chk_perm && cp )
+               cp->perm = store_perm;
+            RETURN(0); /* #147 */
+            break;
 #else
             s_snarfing = alloc_lbuf("cmd_post");
             s_buffer = alloc_lbuf("cmd_post_buff");
@@ -5409,6 +5445,7 @@ do_command(DESC * d, char *command)
             free_lbuf(s_snarfing);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
+            process_output(d);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -5439,10 +5476,12 @@ do_command(DESC * d, char *command)
           queue_string(d, unsafe_tprintf("Version: %s\r\n", mudstate.short_ver));
           queue_string(d, "### End INFO");
           queue_write(d, "\r\n", 2); 
+          process_output(d);
           break;
 
 	default:
             if ( d->flags & DS_API ) {
+               process_output(d);
                shutdownsock(d, R_API);
                mudstate.debug_cmd = cmdsave;
                if ( chk_perm && cp )
@@ -5461,6 +5500,7 @@ do_command(DESC * d, char *command)
     }
     /* Any API foo should just drop here as we have nothing for them to do */
     if ( d->flags & DS_API ) {
+       process_output(d);
        shutdownsock(d, R_QUIT);
        mudstate.debug_cmd = cmdsave;
        if ( chk_perm && cp )
@@ -5476,6 +5516,7 @@ do_command(DESC * d, char *command)
     mudstate.debug_cmd = cmdsave;
     if ( chk_perm && cp )
       cp->perm = store_perm;
+    process_output(d);
     RETURN(1); /* #147 */
 }
 
