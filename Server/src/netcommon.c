@@ -876,6 +876,10 @@ int dump_reboot_db( void )
     if (d->flags & DS_HAS_DOOR) {
       d->flags &= ~DS_HAS_DOOR;
     }
+    /* Don't save API data on reboot, and don't attempt to reconnect it */
+    if (d->flags & DS_API) {
+      continue;
+    }
     if ( (i_prefix > 0 ) && d->output_prefix && *(d->output_prefix) && Good_chk(d->player) ) {
        if (!fwrite(d->output_prefix, LBUF_SIZE, 1, suffixfile)) {
           STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
