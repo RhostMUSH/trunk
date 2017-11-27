@@ -1478,9 +1478,13 @@ shutdownsock(DESC * d, int reason)
        i_addflags = MF_API;
     }
 
-    if ((reason == R_LOGOUT) &&
-    (site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN))
+    if ( (reason == R_LOGOUT) &&
+         (site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) {
 	reason = R_QUIT;
+        if( d->flags & DS_API ) {
+           reason = R_API; 
+        }
+    }
 
     if (d->flags & DS_CONNECTED) {
 
@@ -1569,8 +1573,12 @@ shutdownsock(DESC * d, int reason)
 	ENDLOG
 	announce_disconnect(d->player, d, disc_messages[reason]);
     } else {
-	if (reason == R_LOGOUT)
+	if (reason == R_LOGOUT) {
 	    reason = R_QUIT;
+        }
+        if ( d->flags & DS_API ) {
+	    reason = R_API;
+        }
 	STARTLOG(LOG_SECURITY | LOG_NET, "NET", "DISC")
 	    buff = alloc_mbuf("shutdownsock.LOG.neverconn");
 	sprintf(buff,

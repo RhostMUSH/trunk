@@ -2922,8 +2922,8 @@ NDECL(check_idle)
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
 	    }
-            if ( (idletime > 1) && (d->flags & DS_API) ) {
-		shutdownsock(d, R_QUIT);
+            if ( (idletime > 5) && (d->flags & DS_API) ) {
+		shutdownsock(d, R_API);
             }
 	}
     }
@@ -5029,7 +5029,11 @@ do_command(DESC * d, char *command)
 	case CMD_QUIT:
 	    if (Good_chk(d->player) && !Fubar(d->player)) {
                 process_output(d);
-		shutdownsock(d, R_QUIT);
+                if ( d && (d->flags & DS_API) ) {
+		   shutdownsock(d, R_API);
+                } else {
+		   shutdownsock(d, R_QUIT);
+                }
 		mudstate.debug_cmd = cmdsave;
 		if ( chk_perm && cp )
 		  cp->perm = store_perm;
@@ -5041,7 +5045,11 @@ do_command(DESC * d, char *command)
 	case CMD_LOGOUT:
 	    if (!Fubar(d->player)) {
                 process_output(d);
-		shutdownsock(d, R_LOGOUT);
+                if ( d && (d->flags & DS_API) ) {
+		   shutdownsock(d, R_API);
+                } else {
+		   shutdownsock(d, R_LOGOUT);
+                }
 		break;
 	    } else {
 		notify_quiet(d->player, "Permission denied.");
@@ -5517,8 +5525,14 @@ do_command(DESC * d, char *command)
     }
     /* Any API foo should just drop here as we have nothing for them to do */
     if ( d->flags & DS_API ) {
+       s_dtime = (char *) ctime(&mudstate.now);
+       queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
+       queue_string(d, "Content-type: text/plain\r\n");
+       queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+       queue_string(d, "Exec: Error - Unrecognized Input\r\n");
+       queue_string(d, "Return: <NULL>\r\n");
        process_output(d);
-       shutdownsock(d, R_QUIT);
+       shutdownsock(d, R_API);
        mudstate.debug_cmd = cmdsave;
        if ( chk_perm && cp )
           cp->perm = store_perm;
