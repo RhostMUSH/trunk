@@ -4959,52 +4959,54 @@ do_command(DESC * d, char *command)
        RETURN(0); /* #147 */
     }
 
-    if (cp == NULL || (cp != NULL && InProgram(d->player) && command[0] != '|') || 
-        (((NoShProg(d->player) && !mudconf.noshell_prog) ||
-          (!NoShProg(d->player) && mudconf.noshell_prog && !Immortal(d->player))) && 
-         InProgram(d->player))) {
-	if (*arg)
-	    *--arg = ' ';	/* restore nullified space */
-	if (d->flags & DS_CONNECTED) {
-            if ( Good_obj(d->player) && !TogHideIdle(d->player) )
-	       d->command_count++;
-	    if (d->output_prefix) {
-		queue_string(d, d->output_prefix);
-		queue_write(d, "\r\n", 2);
-	    }
-	    mudstate.curr_player = d->player;
-	    mudstate.curr_enactor = d->player;
-	    desc_in_use = d;
-            s_rollback = alloc_lbuf("s_rollback_docommand");
-            strcpy(s_rollback, mudstate.rollback);
-            i_rollback = mudstate.rollbackcnt;
-            i_jump = mudstate.jumpst;
-            mudstate.jumpst = mudstate.rollbackcnt = 0;
-            strcpy(mudstate.rollback, command);
-	    process_command(d->player, d->player, 1,
-			    command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook);
-            mudstate.rollbackcnt = i_rollback;
-            mudstate.jumpst = i_jump;
-            strcpy(mudstate.rollback, s_rollback);
-            free_lbuf(s_rollback);
-            mudstate.curr_cmd = (char *) "";
-	    if (d->output_suffix) {
-		queue_string(d, d->output_suffix);
-		queue_write(d, "\r\n", 2);
-	    }
-	    mudstate.debug_cmd = cmdsave;
-	    if ( chk_perm && cp ) {
-	      cp->perm = store_perm;
-            }
-            process_output(d);
-	    RETURN(1); /* #147 */
-	} else {
-	    mudstate.debug_cmd = cmdsave;
-            retval = check_connect(d, command);
-	    if ( chk_perm && cp )
-	      cp->perm = store_perm;
-	    RETURN(retval); /* #147 */
-	}
+    if ( !(d->flags & DS_API) ) {
+       if (cp == NULL || (cp != NULL && InProgram(d->player) && command[0] != '|') || 
+           (((NoShProg(d->player) && !mudconf.noshell_prog) ||
+             (!NoShProg(d->player) && mudconf.noshell_prog && !Immortal(d->player))) && 
+            InProgram(d->player))) {
+	   if (*arg)
+	       *--arg = ' ';	/* restore nullified space */
+	   if (d->flags & DS_CONNECTED) {
+               if ( Good_obj(d->player) && !TogHideIdle(d->player) )
+	          d->command_count++;
+	       if (d->output_prefix) {
+		   queue_string(d, d->output_prefix);
+		   queue_write(d, "\r\n", 2);
+	       }
+	       mudstate.curr_player = d->player;
+	       mudstate.curr_enactor = d->player;
+	       desc_in_use = d;
+               s_rollback = alloc_lbuf("s_rollback_docommand");
+               strcpy(s_rollback, mudstate.rollback);
+               i_rollback = mudstate.rollbackcnt;
+               i_jump = mudstate.jumpst;
+               mudstate.jumpst = mudstate.rollbackcnt = 0;
+               strcpy(mudstate.rollback, command);
+	       process_command(d->player, d->player, 1,
+			       command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook);
+               mudstate.rollbackcnt = i_rollback;
+               mudstate.jumpst = i_jump;
+               strcpy(mudstate.rollback, s_rollback);
+               free_lbuf(s_rollback);
+               mudstate.curr_cmd = (char *) "";
+	       if (d->output_suffix) {
+		   queue_string(d, d->output_suffix);
+		   queue_write(d, "\r\n", 2);
+	       }
+	       mudstate.debug_cmd = cmdsave;
+	       if ( chk_perm && cp ) {
+	         cp->perm = store_perm;
+               }
+               process_output(d);
+	       RETURN(1); /* #147 */
+	   } else {
+	       mudstate.debug_cmd = cmdsave;
+               retval = check_connect(d, command);
+	       if ( chk_perm && cp )
+	         cp->perm = store_perm;
+	       RETURN(retval); /* #147 */
+	   }
+       }
     }
     /* The command was in the logged-out command table.  Perform prefix
      * and suffix processing, and invoke the command handler.
@@ -5018,7 +5020,7 @@ do_command(DESC * d, char *command)
 	    queue_write(d, "\r\n", 2);
 	}
     }
-    if ( cp && (!check_access(d->player, cp->perm, cp->perm2, 0) || cval ||
+    if ( cp && ((Good_chk(d->player) && !check_access(d->player, cp->perm, cp->perm2, 0)) || cval ||
 	((cp->perm & CA_PLAYER) && !(d->flags & DS_CONNECTED))) ) {
 	queue_string(d, "Permission denied.\r\n");
     } else if ( cp ){
@@ -5070,21 +5072,29 @@ do_command(DESC * d, char *command)
 	    break;
         case CMD_PUT:
         case CMD_HEAD:
-            if ( d->flags & DS_CONNECTED ) {
-               notify_quiet(d->player, "Not supported.");
-               break;
+            if ( (d->flags & DS_CONNECTED) || !(d->flags & DS_API) ) {
+               if ( d->flags & DS_CONNECTED ) {
+                  notify_quiet(d->player, "Not supported.");
+               } else {
+                  queue_string(d, "Not on API port and not supported.\r\n");
+                  process_output(d);
+                  if ( d->flags & DS_API ) {
+                     shutdownsock(d, R_API);
+                     mudstate.debug_cmd = cmdsave;
+                     if ( chk_perm && cp )
+                        cp->perm = store_perm;
+                     RETURN(0); /* #147 */
+                  }
+               }
             }
-            process_output(d);
-            shutdownsock(d, R_API);
-            mudstate.debug_cmd = cmdsave;
-            if ( chk_perm && cp )
-               cp->perm = store_perm;
-            RETURN(0); /* #147 */
             break;
         case CMD_GET:
             if ( !(d->flags & DS_API) || (d->flags & DS_CONNECTED) ) {
                if ( d->flags & DS_CONNECTED ) {
                   notify_quiet(d->player, "Permission denied.");
+               } else {
+                  queue_string(d, "Not on API port.\r\n");
+                  process_output(d);
                }
                break;
             }
@@ -5328,6 +5338,9 @@ do_command(DESC * d, char *command)
             if ( !(d->flags & DS_API) || (d->flags & DS_CONNECTED) ) {
                if ( d->flags & DS_CONNECTED ) {
                   notify_quiet(d->player, "Permission denied.");
+               } else {
+                  queue_string(d, "Not on API port.\r\n");
+                  process_output(d);
                }
                break;
             }
