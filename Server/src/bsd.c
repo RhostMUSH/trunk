@@ -2012,6 +2012,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     ndescriptors++;
     d = alloc_desc("init_sock");
     d->descriptor = s;
+    d->flags = 0;
     if ( !keyval ) {
        d->flags = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;	/* start authenticating */
     }
