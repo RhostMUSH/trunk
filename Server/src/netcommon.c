@@ -5020,10 +5020,10 @@ do_command(DESC * d, char *command)
 	    queue_write(d, "\r\n", 2);
 	}
     }
-    if ( cp && ((Good_chk(d->player) && !check_access(d->player, cp->perm, cp->perm2, 0)) || cval ||
+    if ( cp && !(d->flags & DS_API) && ((Good_chk(d->player) && !check_access(d->player, cp->perm, cp->perm2, 0)) || cval ||
 	((cp->perm & CA_PLAYER) && !(d->flags & DS_CONNECTED))) ) {
 	queue_string(d, "Permission denied.\r\n");
-    } else if ( cp ){
+    } else if ( cp ) {
 	mudstate.debug_cmd = cp->name;
 	switch (cp->flag & CMD_MASK) {
 	case CMD_QUIT:
