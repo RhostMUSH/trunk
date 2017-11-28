@@ -32054,4 +32054,4 @@
   * printf tab replacement did not reset value for next arg [ASH]
   * mail functions could potentially crash the game if mail is off [ASH]
   * API would wrongly do AUTH checks even if the code ignored lookups [ASH]
-  * cleanup @reboot data to strip API lookups [ASH]
+  * cleanup @reboot data to strip API lookups and other things [ASH]
