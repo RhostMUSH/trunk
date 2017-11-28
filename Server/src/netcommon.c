@@ -5530,7 +5530,11 @@ do_command(DESC * d, char *command)
        queue_string(d, "Content-type: text/plain\r\n");
        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
        queue_string(d, "Exec: Error - Unrecognized Input\r\n");
-       queue_string(d, "Return: <NULL>\r\n");
+       if ( cp ) {
+          queue_string(d, unsafe_tprintf("Return: Bad command -> %s", cp->name));
+       } else { 
+          queue_string(d, "Return: <NULL>\r\n");
+       }
        process_output(d);
        shutdownsock(d, R_API);
        mudstate.debug_cmd = cmdsave;
