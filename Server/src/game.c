@@ -714,11 +714,10 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	mp2 = msg_ns2 = alloc_lbuf("notify_check_accents");
 	mp_utf = msg_utf = alloc_lbuf("notify_check_utf");
 #endif
-	if (!port && Nospoof(target) &&
-	    (target != sender) &&
-	    ((!Wizard(sender) || (Wizard(sender) && Immortal(target))) || (Spoof(sender) || Spoof(Owner(sender)))) &&
-	    (target != mudstate.curr_enactor) &&
-	    (target != mudstate.curr_player)) {
+	if ( !port && Nospoof(target) && (target != sender) &&
+  	     ( !(Wizard(sender) || HasPriv(sender, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
+               Immortal(target) || Spoof(sender) || Spoof(Owner(sender)) ) &&
+	     (target != mudstate.curr_enactor) && (target != mudstate.curr_player)) {
 
 	    /* I'd really like to use unsafe_tprintf here but I can't
 	     * because the caller may have.
@@ -744,6 +743,10 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	    }
 	    safe_str((char *) "] ", msg_ns, &mp);
 	    free_sbuf(tbuff);
+#ifdef ZENTY_ANSI
+            safe_str(msg_ns, msg_ns2, &mp2);
+            safe_str(msg_ns, msg_utf, &mp_utf);
+#endif
 	}
 #ifdef ZENTY_ANSI       
        if(!(key & MSG_NO_ANSI)) {
@@ -792,9 +795,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  s_pipeattr2 = alloc_lbuf("speech_cpu");
                  sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
                  if ( Good_chk(mudstate.posesay_dbref) && 
-                      ((!Wizard(mudstate.posesay_dbref) || 
-                      (Wizard(mudstate.posesay_dbref) && Immortal(target))) || 
-                      (Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)))) ) {
+	              ( !(Wizard(mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
+                        Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) ) {
                     sprintf(vap[3], "#%d", mudstate.posesay_dbref);
                  } else {
                     sprintf(vap[3], "#%d", -1);
@@ -870,9 +872,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  s_pipeattr2 = alloc_lbuf("speech_cpu");
                  sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
                  if ( Good_chk(mudstate.posesay_dbref) && 
-                      ((!Wizard(mudstate.posesay_dbref) || 
-                      (Wizard(mudstate.posesay_dbref) && Immortal(target))) || 
-                      (Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)))) ) {
+	              ( !(Wizard(mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
+                        Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) ) {
                     sprintf(vap[3], "#%d", mudstate.posesay_dbref);
                  } else {
                     sprintf(vap[3], "#%d", -1);

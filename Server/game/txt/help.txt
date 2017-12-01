@@ -32037,6 +32037,7 @@
   * @power wiz_idle to allow target players the enhanced idle features [ASH]
   * attribute 'mailnotify' (set via &mailnotify) will evaluate the attribute
     and send to the target person who is issuing mail [ASH]
+  * WIZ_SPOOF @power to grant spoofing ability to target [ASH]
   
   Changes
   ------------
@@ -32055,3 +32056,4 @@
   * mail functions could potentially crash the game if mail is off [ASH]
   * API would wrongly do AUTH checks even if the code ignored lookups [ASH]
   * cleanup @reboot data to strip API lookups and other things [ASH]
+  * Nospoof didn't work if you were @toggled UTF8

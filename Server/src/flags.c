@@ -778,6 +778,7 @@ POWENT pow_table[] =
   {"API", POWER_API, 'z', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"MONITORAPI", POWER_MONITORAPI, '8', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"WIZ_IDLE", POWER_WIZ_IDLE, '@', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"WIZ_SPOOF", POWER_WIZ_SPOOF, '~', POWER5, 0, POWER_LEVEL_COUNC, pw_wiz},
   {NULL, 0, 0, 0, 0, 0, NULL}
 };
 

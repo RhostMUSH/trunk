@@ -316,7 +316,7 @@
 #define POWER_API		10
 #define POWER_MONITORAPI	12
 #define POWER_WIZ_IDLE		14
-/* 16 free */
+#define POWER_WIZ_SPOOF		16
 /* 18 free */
 /* 20 free */
 /* 22 free */
