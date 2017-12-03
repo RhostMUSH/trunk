@@ -370,8 +370,10 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 	else
 	    tstr = parse_to(&rstr, '\0', peval);
 	if (eval & EV_EVAL) {
+            mudstate.trace_indent++;
 	    fargs[arg] = cpuexec(player, cause, caller, eval | EV_FCHECK, tstr,
 			         cargs, ncargs, regargs, nregargs);
+            mudstate.trace_indent--;
 	} else {
             if (  i_type  ) {
                mychar = mycharptr = alloc_lbuf("no_eval_parse_arglist");
@@ -394,8 +396,10 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
                   }
                   s++;
                }
+               mudstate.trace_indent++;
 	       fargs[arg] = cpuexec(player, cause, caller, eval | EV_FCHECK | EV_EVAL | ~EV_STRIP_ESC, mychar,
 			            cargs, ncargs, regargs, nregargs);
+               mudstate.trace_indent--;
                free_lbuf(mychar);
             } else {
 	       fargs[arg] = alloc_lbuf("parse_arglist");
@@ -457,6 +461,7 @@ struct tcache_ent {
     char *orig;
     char *result;
     char *label;
+    int i_tabbing;
     struct tcache_ent *next;
 }         *tcache_head;
 int tcache_top, tcache_count;
@@ -499,6 +504,7 @@ tcache_add(dbref player, char *orig, char *result, char *s_label)
 	    tp = alloc_lbuf("tcache_add.lbuf");
 	    strcpy(tp, result);
             xp->player = player;
+            xp->i_tabbing = mudstate.trace_indent;
 	    xp->orig = orig;
 	    xp->result = tp;
             xp->label = s_label;
@@ -521,13 +527,13 @@ tcache_finish(void)
     TCENT *xp;
     char *tpr_buff = NULL, *tprp_buff = NULL, *s_aptext = NULL, *s_aptextptr = NULL, *s_strtokr = NULL, *tbuff = NULL, 
          *tstr, *tstr2, *s_grep;
-    int i_apflags, i_targetlist;
+    int i_apflags, i_targetlist, i_tabspace;
 #ifdef PCRE_EXEC
     char *trace_buffptr, *trace_array[4], *trace_tmp;
     int i_trace;
 #endif
     dbref i_apowner, passtarget, targetlist[LBUF_SIZE], i;
-    ATTR *ap_log;
+    ATTR *ap_log, *ap_byusr;
 
     DPUSH; /* #66 */
 
@@ -581,14 +587,48 @@ tcache_finish(void)
            strcpy(tstr2, xp->orig);
         }
 
+        i_tabspace = 0;
+        ap_byusr = atr_str_exec("TRACETAB");
+        if ( ap_byusr && xp && Good_chk(xp->player) ) {
+           if ( Good_chk(Owner(xp->player)) ) {
+              s_aptext = atr_get(Owner(xp->player), ap_byusr->number, &i_apowner, &i_apflags);
+              if ( !*s_aptext ) {
+                 free_lbuf(s_aptext);
+                 s_aptext = atr_get(xp->player, ap_byusr->number, &i_apowner, &i_apflags);
+              }
+           } else {
+              s_aptext = atr_get(xp->player, ap_byusr->number, &i_apowner, &i_apflags);
+           }
+           if ( s_aptext && *s_aptext ) {
+              i_tabspace = atoi(s_aptext);
+              if ( i_tabspace > 10 )
+                 i_tabspace = 10;
+              if ( i_tabspace < 0 )
+                 i_tabspace = 0;
+              i_tabspace *= xp->i_tabbing;
+           }
+           free_lbuf(s_aptext);
+        }
         if ( *(xp->label) ) {
-	   notify(Owner(xp->player),
-	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} '%s' -> '%s'", Name(xp->player), xp->player,
-		          ANSI_HILITE, xp->label, ANSI_NORMAL, tstr2, xp->result));
+           if ( i_tabspace > 0 ) {
+	      notify(Owner(xp->player),
+	             safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} %*s'%s' -> '%s'", Name(xp->player), xp->player,
+		             ANSI_HILITE, xp->label, ANSI_NORMAL, i_tabspace, (char *)" ", tstr2, xp->result));
+           } else {
+	      notify(Owner(xp->player),
+	             safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} '%s' -> '%s'", Name(xp->player), xp->player,
+		             ANSI_HILITE, xp->label, ANSI_NORMAL, tstr2, xp->result));
+           }
         } else {
-	   notify(Owner(xp->player),
-	          safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
-		          tstr2, xp->result));
+           if ( i_tabspace > 0 ) {
+	      notify(Owner(xp->player),
+	             safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} %*s'%s' -> '%s'", Name(xp->player), xp->player,
+		             i_tabspace, (char *)" ", tstr2, xp->result));
+           } else {
+	      notify(Owner(xp->player),
+	             safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d)} '%s' -> '%s'", Name(xp->player), xp->player,
+		             tstr2, xp->result));
+           }
         }
         free_lbuf(tstr2);
 
@@ -1463,9 +1503,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		dstr = tstr;
 	    } else {
                 mudstate.stack_val--;
+                mudstate.trace_indent++;
 		tstr = exec(player, cause, caller,
 			    (eval | EV_FCHECK | EV_FMAND),
 			    tbuf, cargs, ncargs, regargs, nregargs);
+                mudstate.trace_indent--;
 		safe_str(tstr, buff, &bufc);
 		free_lbuf(tstr);
 		dstr--;
@@ -1494,9 +1536,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    safe_chr(' ', buff, &bufc);
 		    tbuf++;
 		}
+                mudstate.trace_indent++;
 		tstr = exec(player, cause, caller,
 			    (eval & ~(EV_STRIP | EV_FCHECK)),
 			    tbuf, cargs, ncargs, regargs, nregargs);
+                mudstate.trace_indent--;
 		safe_str(tstr, buff, &bufc);
 		if (!(eval & EV_STRIP)) {
 		    safe_chr('}', buff, &bufc);
@@ -1597,7 +1641,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( sub_txt  ) {
                          if ( *sub_txt ) {
                             mudstate.sub_overridestate = mudstate.sub_overridestate | i_last_chr;
+                            mudstate.trace_indent++;
                             sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                            mudstate.trace_indent--;
                             mudstate.sub_overridestate = mudstate.sub_overridestate & ~i_last_chr;
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_txt);
@@ -2209,7 +2255,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          }
                       } else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_K;
+                         mudstate.trace_indent++;
 		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                         mudstate.trace_indent--;
                          if ( !*sub_buf ) {
                             if ( t_bufb ) {
                                safe_str(t_bufb, buff, &bufc);
@@ -2459,7 +2507,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( sub_txt ) {
                          if ( *sub_txt ) {
                             mudstate.sub_overridestate = mudstate.sub_overridestate | i_last_chr;
+                            mudstate.trace_indent++;
                             sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                            mudstate.trace_indent--;
                             mudstate.sub_overridestate = mudstate.sub_overridestate & ~i_last_chr;
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_txt);
@@ -2518,8 +2568,10 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( sub_ap ) {
                          sub_txt2 = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( sub_txt2 && *sub_txt2) {
+                            mudstate.trace_indent++;
                             sub_buf2 = exec(mudconf.hook_obj, cause, caller, 
                                             EV_EVAL|EV_STRIP|EV_FCHECK, sub_txt2, (char **)NULL, 0, (char **)NULL, 0);
+                            mudstate.trace_indent--;
                             sub_delim = 1;
                             if ( *sub_buf2 ) {
                                if ( is_integer(sub_buf2) ) {
@@ -2568,12 +2620,15 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       }
                       if ( sub_txt  ) {
                          if ( *sub_txt ) {
-                            if ( sub_delim )
+                            mudstate.trace_indent++;
+                            if ( sub_delim ) {
                                sub_buf = exec(mudconf.hook_obj, player, caller, EV_EVAL|EV_STRIP|EV_FCHECK, 
                                          sub_txt, (char **)&t_bufa, 1, (char **)NULL, 0);
-                            else
+                            } else {
                                sub_buf = exec(mudconf.hook_obj, player, caller, EV_EVAL|EV_STRIP|EV_FCHECK, 
                                          sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                            }
+                            mudstate.trace_indent--;
                             safe_str(sub_buf, buff, &bufc);
                             free_lbuf(sub_buf);
                          }
@@ -2929,7 +2984,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        is_trace_bkup = mudstate.notrace;
                        mudstate.notrace = 1;
                     }
+                    mudstate.trace_indent++;
 		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs, regargs, nregargs);
+                    mudstate.trace_indent--;
                     if ( ufp->flags & FN_NOTRACE ) {
                        mudstate.notrace = is_trace_bkup;
                     }

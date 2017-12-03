@@ -9844,7 +9844,12 @@
   number of trace output lines that may be produced by an evaluation is limited
   to 200.  Bottom-up trace output is not limited.
   
-  See Also: VERBOSE, PUPPET, %_, trace(), chktrace()
+  You may set a TRACETAB attribute to a value between 0 and 10 to indent 
+  related trace output if you prefer that.
+   
+  You may use LABELS (help @label and help %_) for advanced tracing.
+   
+  See Also: VERBOSE, PUPPET, %_, trace(), chktrace(), TRACETAB
 
 & NOSPOOF
 & NO_SPOOF
@@ -11881,6 +11886,7 @@
   
   See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
   
+& TRACETAB
 & %_vars
   Topic: SUBSTITUTIONS (CONTINUED)
   Syntax: %_<label>      -- enables debugging if <label> is in TRACE attribute.
@@ -11917,6 +11923,8 @@
                       'TRACE_COLOR_BOB'.  This will set a specific color
                       for the given label to use.  This will have priority
                       over the global TRACE_COLOR definition.
+  
+  TRACETAB         -- Specify how many spaces to indent on each parse
   
   See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
   
@@ -16105,6 +16113,9 @@
   attribute. You will not see trace output for the @emit or the switch().
   However, if the TRACE flag was set on the object prior to execution, then
   you would see trace output for everything up to the trace(0) call.
+  
+  You may specify a TRACETAB attribute that contains a number between 0-10
+  to indent related trace output.
   
   See Also: %_, TRACE, VERBOSE, PUPPET, chktrace()
   
@@ -32038,6 +32049,8 @@
   * attribute 'mailnotify' (set via &mailnotify) will evaluate the attribute
     and send to the target person who is issuing mail [ASH]
   * WIZ_SPOOF @power to grant spoofing ability to target [ASH]
+  * Attribute TRACETAB to control how many spaces(0-10) to indent on trace
+    output for those who prefer PENN's debug format [ASH]
   
   Changes
   ------------

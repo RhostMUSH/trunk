@@ -347,6 +347,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.trace_indent = 0;		/* Initialize trace indent */
     mudstate.total_bytesin = 0;		/* Bytes total into the mush */
     mudstate.total_bytesout = 0;	/* Bytes total out of the mush */
     mudstate.daily_bytesin = 0;		/* Bytes total in for current day */
