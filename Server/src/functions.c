@@ -28688,8 +28688,12 @@ FUNCTION(fun_colors)
        return;
     }
     if ( !i_iswild && (nfargs > 0) && *fargs[0] ) {
-       if ( isalpha(*fargs[0]) ) {
-          cm = (PENNANSI *)hashfind(fargs[0], &mudstate.ansi_htab);
+       if ( *fargs[0] && (isalpha(*fargs[0]) || ((*fargs[0] == '+') && isalpha(*(fargs[0]+1)))) ) {
+          if ( *fargs[0] == '+' ) {
+             cm = (PENNANSI *)hashfind(fargs[0]+1, &mudstate.ansi_htab);
+          } else {
+             cm = (PENNANSI *)hashfind(fargs[0], &mudstate.ansi_htab);
+          }
           if ( cm ) {
              s_buff = alloc_sbuf("fun_colors");
              if ( i_key == 1) {
@@ -28723,7 +28727,8 @@ FUNCTION(fun_colors)
     }
     for (cm = penn_namecolors; cm->name; cm++) {
        if ( i_iswild ) {
-          if ( quick_wild(fargs[0], cm->name) ) {
+          if ( ((*fargs[0] != '+') && quick_wild(fargs[0], cm->name)) ||
+               ((*fargs[0] == '+') && quick_wild(fargs[0]+1,cm->name)) ) {
              if ( i_first ) {
                 safe_chr(' ', buff, bufcx);
              }

@@ -17428,6 +17428,7 @@
   Valid optional <value> parameters:
     0-2     - page value of the total list of colornames available. (0 def)
     string  - the string of the color name you wish to see the value of.
+              You may use the literal string or +string (like pink or +pink)
     *wild*  - the list of colors that match the wildcard (* and ? accepted)
    any ansi - With the '(n)ame' option you may specify anything you'd pass
               ansi() and have it return the names matching the encoding.
@@ -32057,6 +32058,7 @@
   * objid's are now statically stored on things to finally get around
     weird timezone issues [ASH]
   * More aggressively handle API processing [ASH]
+  * colors() works with +<color> as well as <color> now [ASH]
   
   Bug Fixes
   ------------

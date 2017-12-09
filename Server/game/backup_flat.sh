@@ -219,9 +219,9 @@ do_full_backup() {
          while [ ${CNTR} -ne 0 ]
          do
             NEWCNTR=$(expr $CNTR + 1)
-            test -f ${OLDFLAT}/"${MAILNEWSDB}".dbflat${CNTR}.tar.gz && \
-                    mv -f ${OLDFLAT}/"${MAILNEWSDB}".dbflat${CNTR}.tar.gz \
-                             ${OLDFLAT}/"${MAILNEWSDB}".dbflat${NEWCNTR}.tar.gz
+            test -f ${OLDFLAT}/"${MAILNEWSDB}".dbflat${CNTR}.tar.${COMPREXT} && \
+                    mv -f ${OLDFLAT}/"${MAILNEWSDB}".dbflat${CNTR}.tar.${COMPREXT} \
+                             ${OLDFLAT}/"${MAILNEWSDB}".dbflat${NEWCNTR}.tar.${COMPREXT}
             CNTR=$(expr $CNTR - 1)
          done
          tar -cvf $OLDFLAT/"${MAILNEWSDB}".dbflat1.tar ./data/"${MAINDBNAME}".db.flat \
@@ -248,9 +248,9 @@ do_partial_backup() {
          while [ ${CNTR} -ne 0 ]
          do
             NEWCNTR=$(expr $CNTR + 1)
-            test -f ${OLDFLAT}/"${MAILNEWSDB}".flat.${CNTR}.gz && \
-                  mv -f ${OLDFLAT}/"${MAILNEWSDB}".flat.${CNTR}.gz \
-                            ${OLDFLAT}/"${MAILNEWSDB}".flat.${NEWCNTR}.gz
+            test -f ${OLDFLAT}/"${MAILNEWSDB}".flat.${CNTR}.${COMPREXT} && \
+                  mv -f ${OLDFLAT}/"${MAILNEWSDB}".flat.${CNTR}.${COMPREXT} \
+                            ${OLDFLAT}/"${MAILNEWSDB}".flat.${NEWCNTR}.${COMPREXT}
             CNTR=$(expr ${CNTR} - 1)
          done
          mv -f ./data/"${MAINDBNAME}".db.flat ${OLDFLAT}/"${MAILNEWSDB}".flat.1 2>/dev/null
