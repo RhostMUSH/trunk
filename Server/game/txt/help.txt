@@ -32059,6 +32059,7 @@
     weird timezone issues [ASH]
   * More aggressively handle API processing [ASH]
   * colors() works with +<color> as well as <color> now [ASH]
+  * Initial fix for stored procedures in MySQL [ASH]
   
   Bug Fixes
   ------------
