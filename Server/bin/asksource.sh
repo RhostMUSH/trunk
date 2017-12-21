@@ -20,6 +20,7 @@ then
    MYSQL_VER=$(./mysql_config --version 2>/dev/null)
 fi
 if [ -z "${MYSQL_VER}" ]
+then
    MYSQL_VER=0
    MYSQL_VER2=$(mysql -V|awk '{print $5}')
 fi
