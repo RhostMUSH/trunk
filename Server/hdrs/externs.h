@@ -1010,6 +1010,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SET_TREECHK	16	/* Verify we can set trees */
 #define SET_MUFFLE	32	/* Totally  muffle set messages */
 #define SET_BYPASS	64	/* Internal to set attribs on tree objects */
+#define SET_STRICT	128	/* Strict set of attribute 'as is', no specialness */
 
 #define	SHUTDN_NORMAL	0	/* Normal shutdown */
 #define	SHUTDN_PANIC	1	/* Write a panic dump file */

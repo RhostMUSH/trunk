@@ -5599,9 +5599,10 @@
            &`<tree`attribute> <object>[=<value>] (for setting a tree variable)
  
   The available switches are:
-        /QUIET - sets/removes the target without the 'Set.' or 'Cleared.' 
-        /NOISY - sets/removes the target with a verbose SET message.
-        /TREE  - sets a TREE (with branches) of a given attribute.
+        /QUIET  - sets/removes the target without the 'Set.' or 'Cleared.' 
+        /NOISY  - sets/removes the target with a verbose SET message.
+        /TREE   - sets a TREE (with branches) of a given attribute.
+        /STRICT - bypasses special meaning of '_' on attribute setting.
    
   The first form sets (or clears) the indicated flag(s) on <object>, It 
   accepts multiple flags for arguments if so desired. the second form sets 
@@ -5609,6 +5610,8 @@
   attribute if there is no attribute named <attribute>.  The third form 
   copies an attribute from another object, and the fourth form sets 
   (or clears) an attribute flag on the <attr> attribute of <object>.
+  
+  Note: the third form will be ignored if using /strict.
    
   When setting attributes on an object, you may also use the command
   '@<attribute> <object> = <value>' if the attribute is a predefined
@@ -21041,12 +21044,17 @@
   worked with @set will work with set().  It follows the same permissions and
   restrictions of the command.  The SIDEFX flag is required to use set().
   
-  You may specify the optional <tree> of '1' to specifically set a TREE with
-  all branches filled (that do not exist) on the target.  A TREE set will
-  also verify permission on every branch of that tree prior to setting.  
-  Failure to set any of the branches, for any reason, will disallow 
+  You may specify the optional <tree> of '1' or '3' to specifically set a 
+  TREE with all branches filled (that do not exist) on the target.  A TREE 
+  set will also verify permission on every branch of that tree prior to 
+  setting.  Failure to set any of the branches, for any reason, will disallow 
   setting the attribute as well.
   
+  You may specify an optional <tree> of '2' or '3' to specify that all
+  attributes set will ignore the special case of '_' (third example above) 
+  when setting attributes.  Otherwise, doing '_foo/bar' will try to fetch
+  attribute 'bar' from object '_foo' and set it to that attribute. 
+    
   The <tree> toggle is ignored on any method of set() that does not 
   set or clear attributes.
    
@@ -21056,6 +21064,10 @@
   > @set me=safe
   Set.
   > say set(me,safe)
+  You say ""
+  > say set(me,_content_)
+  You say "No match."
+  > say set(me,_content_,2)
   You say ""
   
   See Also: lset(), rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
@@ -32060,6 +32072,8 @@
   * More aggressively handle API processing [ASH]
   * colors() works with +<color> as well as <color> now [ASH]
   * Initial fix for stored procedures in MySQL [ASH]
+  * optional argument to set() and @set to allow setting attributes with
+    a content that starts with '_'  [ASH]
   
   Bug Fixes
   ------------

@@ -1004,6 +1004,7 @@ NAMETAB set_sw[] =
     {(char *) "quiet", 1, CA_PUBLIC, 0, SET_QUIET},
     {(char *) "noisy", 1, CA_PUBLIC, 0, SET_NOISY},
     {(char *) "tree", 1, CA_PUBLIC, 0, SET_TREE},
+    {(char *) "strict", 1, CA_PUBLIC, 0, SET_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB skip_sw[] =

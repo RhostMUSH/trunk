@@ -32716,8 +32716,26 @@ FUNCTION(fun_set)
    if ( (nfargs > 2) && *fargs[2] ) {
        s_tmp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                      fargs[2], cargs, ncargs, (char **)NULL, 0);
-       if ( *s_tmp ) 
-          i_key = (atoi(s_tmp) ? SET_TREE : 0);
+       if ( *s_tmp ) {
+          switch(atoi(s_tmp)) {
+             case 0: /* Reset to 0 */
+                     i_key = 0;
+                     break;
+             case 1: /* Set tree */
+                     i_key |= SET_TREE;
+                     break;
+             case 2: /* Set strict */
+                     i_key |= SET_STRICT;
+                     break;
+             case 3: /* Set tree and strict */
+                     i_key |= (SET_STRICT | SET_TREE);
+                     break;
+             default: /* Default is set tree */
+                     i_key |= SET_TREE;
+                     break;
+                     
+          }
+       }
        free_lbuf(s_tmp);
    }
    s_buf1 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,

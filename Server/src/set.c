@@ -1558,7 +1558,7 @@ int     ibf = -1;
 		buff=alloc_lbuf("do_set");
 
 		/* check for _ */
-		if (*p == '_') {
+		if (*p == '_' && !(key & SET_STRICT)) {
 			strcpy(buff, p + 1);
 			if (!parse_attrib(player, p + 1, &thing2, &atr2) ||
 			    (atr2 == NOTHING) || (!Immortal(player) && Cloak(thing2) && SCloak(thing2)) ||
