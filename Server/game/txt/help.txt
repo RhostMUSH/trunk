@@ -8829,9 +8829,18 @@
  
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
- 
-  Example: @startup me = @vz me=MUSH was last restarted at [time()].
-           @startup me = home
+  
+  Be aware that @startup could potentially have a race condition on some
+  functions and commands.  This is because at the time of the @startup
+  the game is still in a 'starting state' which limits some features,
+  such as new sockets.  To get around this limitation, please put a small
+  wait before the @startup.
+   
+  Examples: 
+    > @startup me = @vz me=MUSH was last restarted at [time()].
+    > @startup me = home
+    > @startup me = @wait 1=think [execscript(runme.sh)]
+        
   
 & @success
   Command: @success[/<switch>] <object> = <message>
