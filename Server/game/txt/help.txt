@@ -32110,3 +32110,4 @@
   * API would wrongly do AUTH checks even if the code ignored lookups [ASH]
   * cleanup @reboot data to strip API lookups and other things [ASH]
   * Nospoof didn't work if you were @toggled UTF8
+  * bug in objid where the validation check wouldn't always work [ASH]
