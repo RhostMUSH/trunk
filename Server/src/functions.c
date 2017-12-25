@@ -20464,15 +20464,78 @@ FUNCTION(fun_dist3d)
 
 FUNCTION(fun_comp)
 {
-    int x;
+    int x, y;
+    double a, b;
+    char z, *p;
 
-    x = strcmp(fargs[0], fargs[1]);
-    if (x > 0)
-       safe_str("1", buff, bufcx);
-    else if (x < 0)
-       safe_str("-1", buff, bufcx);
-    else
-       safe_str("0", buff, bufcx);
+    if (!fn_range_check("COMP", nfargs, 2, 3, buff, bufcx)) {
+       return;
+    }
+    if ( (nfargs > 2) && *fargs[2] ) {
+       z = ToUpper(*fargs[2]);
+    } else {
+       z = 'A';
+    }
+    x = -2;
+    switch(z) {
+       default:
+       case 'A': /* standard lexicographic */
+          x = strcmp(fargs[0], fargs[1]);
+       case 'I': /* Ignore case */
+          if ( x == -2 ) {
+             x = stricmp(fargs[0], fargs[1]);
+          }
+          if (x > 0) {
+             safe_str("1", buff, bufcx);
+          } else if (x < 0) {
+             safe_str("-1", buff, bufcx);
+          } else {
+             safe_str("0", buff, bufcx);
+          }
+          break;
+       case 'D': /* Dbref#'s */
+          p = fargs[0];
+          if ( *p == '#' ) {
+             x = parse_dbref(p+1);
+          } else {
+             x = -1;
+          }
+          p = fargs[1];
+          if ( *p == '#' ) {
+             y = parse_dbref(p+1);
+          } else {
+             y = -1;
+          }
+          if ( Good_chk(x) ) {
+             if ( Good_chk(y) ) {
+                x = atoi(fargs[0]+1);
+                y = atoi(fargs[1]+1);
+                ival(buff, bufcx, (x == y ? 0 : (x < y ? -1 : 1)) );
+             } else {
+                safe_str("-1", buff, bufcx);
+                notify_quiet(player, "Warning: Invalid dbref# for argument 1");
+             }
+          } else {
+             if ( !Good_chk(y) ) {
+                notify_quiet(player, "Warning: Invalid dbref# for argument 0 and 1");
+                safe_str("0", buff, bufcx);
+             } else {
+                notify_quiet(player, "Warning: Invalid dbref# for argument 0");
+                safe_str("1", buff, bufcx);
+             }
+          }
+          break;
+       case 'N': /* Integers */
+          x = atoi(fargs[0]);
+          y = atoi(fargs[1]);
+          ival(buff, bufcx, (x == y ? 0 : (x < y ? -1 : 1)) );
+          break;
+       case 'F': /* Integers */
+          a = safe_atof(fargs[0]);
+          b = safe_atof(fargs[1]);
+          ival(buff, bufcx, (a == b ? 0 : (a < b ? -1 : 1)) );
+          break;
+    }
 }
 
 FUNCTION(fun_ncomp)
@@ -34741,7 +34804,7 @@ FUN flist[] =
     {"CNAME", fun_cname, 1, 0, CA_PUBLIC, 0},
     {"COLORS", fun_colors, 1, FN_VARARGS, CA_PUBLIC, 0},
     {"COLUMNS", fun_columns, 3, FN_VARARGS, CA_PUBLIC, 0},
-    {"COMP", fun_comp, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"COMP", fun_comp, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CON", fun_con, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONFIG", fun_config, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONN", fun_conn, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

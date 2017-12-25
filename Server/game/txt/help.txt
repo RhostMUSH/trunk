@@ -14760,14 +14760,27 @@
   See Also: alphamin(), alphamax(), comp(), strdistance()
   
 & COMP()
-  Function: comp(<string1>, <string2>)
- 
-  Comp compares two strings.  It returns 0 if they are the same, 1 if
+  Function: comp(<string1>, <string2> [,<type>])
+   
+  Comp compares two values.  It returns 0 if they are the same, 1 if
   string2 is less than/precedes alphabetically string1, and -1 
   otherwise.
   
+  The following <type> types are available:
+    A - Always case-sensitive (default)
+    I - Always case-insensitive 
+    D - Dbrefs of valid objects (warns if invalid dbref#'s)
+    N - Integers
+    F - Floating point numbers
+  
   Example:
     > say comp(is,is)
+    You say "0"
+    > say comp(is,is,a)
+    You say "0"
+    > say comp(is,IS)
+    You say "1"
+    > say comp(is,IS,i)
     You say "0"
   
   See Also: alphamin(), alphamax(), ncomp(), strdistance()
@@ -32083,6 +32096,7 @@
   * Initial fix for stored procedures in MySQL [ASH]
   * optional argument to set() and @set to allow setting attributes with
     a content that starts with '_'  [ASH]
+  * COMP() now handles case insensitive, numbers, floats, and dbref#s [ASH]
   
   Bug Fixes
   ------------
