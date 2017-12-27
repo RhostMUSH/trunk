@@ -1014,6 +1014,7 @@ NAMETAB skip_sw[] =
 
 NAMETAB site_sw[] =
 {
+  {(char *) "passapi", 1, CA_IMMORTAL, 0, SITE_PASSAPI},
   {(char *) "register", 1, CA_IMMORTAL, 0, SITE_REG},
   {(char *) "forbidden", 1, CA_IMMORTAL, 0, SITE_FOR},
   {(char *) "forbidapi", 1, CA_IMMORTAL, 0, SITE_FORAPI},

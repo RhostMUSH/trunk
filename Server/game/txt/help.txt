@@ -32086,6 +32086,7 @@
   * WIZ_SPOOF @power to grant spoofing ability to target [ASH]
   * Attribute TRACETAB to control how many spaces(0-10) to indent on trace
     output for those who prefer PENN's debug format [ASH]
+  * passapi_host and passapi_site to bypass max api connections [ASH]
   
   Changes
   ------------

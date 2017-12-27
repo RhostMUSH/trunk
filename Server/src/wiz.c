@@ -2333,6 +2333,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
      do_site_buff(player, mudconf.goodmail_host, (char *)"goodmail_host");
      do_site_buff(player, mudconf.nobroadcast_host, (char *)"nobroadcast_host");
      do_site_buff(player, mudconf.passproxy_host, (char *)"passproxy_host");
+     do_site_buff(player, mudconf.passapi_host, (char *)"passapi_host");
      return;
   }
 

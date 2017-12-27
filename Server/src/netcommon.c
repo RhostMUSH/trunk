@@ -5725,6 +5725,9 @@ stat_string(int strtype, int flag, int key)
 	break;
     case S_ACCESS:
 	switch (flag) {
+        case H_PASSAPI:
+            str = "API Bypass";
+            break;
         case H_FORBIDAPI:
             if ( key )
                str = "Forbid API (AutoSite)";
@@ -5794,6 +5797,7 @@ list_sites(dbref player, SITE * site_list,
         if ( (this->flag & H_REGISTRATION) ||
              (this->flag & H_FORBIDDEN) ||
              (this->flag & H_FORBIDAPI) ||
+             (this->flag & H_PASSAPI) ||
              (this->flag & H_NOGUEST) ) {
            if ( this->maxcon == -1 ) 
               strcpy(str2, (char *)"Restricted");
@@ -5895,6 +5899,7 @@ list_siteinfo(dbref player)
     list_hosts(player, mudconf.goodmail_host, "ValidAReg");
     list_hosts(player, mudconf.nobroadcast_host, "NoMonitor");
     list_hosts(player, mudconf.passproxy_host, "Proxy Bypass");
+    list_hosts(player, mudconf.passapi_host, "API Bypass");
 
     VOIDRETURN; /* #152 */
 }

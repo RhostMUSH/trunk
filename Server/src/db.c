@@ -3780,6 +3780,7 @@ parse_dbref_special(char *s) {
          if ( y == z ) {
             return ((x >= 0) ? x : NOTHING);
          }
+         x = -1;
       } else {
          atext = atr_get(x, A_CREATED_TIME, &aowner, &aflags);
          if ( atext && *atext ) {

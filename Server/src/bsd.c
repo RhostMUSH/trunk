@@ -1230,9 +1230,13 @@ new_connection(int sock, int key)
        if ( ((mudstate.last_apicon_attempt + 60) < mudstate.now) || (mudstate.last_apicon_attempt == 0) ) {
           mudstate.last_apicon_attempt = mudstate.now;
        }
-       if ( (mudstate.api_lastsite_cnt >= mudconf.max_lastsite_api) &&
-            (mudstate.api_lastsite == (int)addr.sin_addr.s_addr) &&
-            (mudstate.last_apicon_attempt >= (mudstate.now - 60)) ) {
+       strcpy(tchbuff, mudconf.passapi_host);
+       addroutbuf = (char *) addrout(addr.sin_addr, (i_addflags & MF_API));
+       if ( ((mudstate.api_lastsite_cnt >= mudconf.max_lastsite_api) &&
+             (mudstate.api_lastsite == (int)addr.sin_addr.s_addr) &&
+             (mudstate.last_apicon_attempt >= (mudstate.now - 60))) &&
+           !((site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_PASSAPI) == H_PASSAPI) ||
+             ((char *)mudconf.passapi_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) ) {
           sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(addr.sin_addr));
           if ( !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDAPI) == H_FORBIDAPI) ) {
              cf_site((int *)&mudstate.access_list, tchbuff, H_FORBIDAPI|H_AUTOSITE, 0, 1, "forbidapi_site");
