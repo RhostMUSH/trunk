@@ -22142,7 +22142,7 @@ sanitize_input_cnt(char *s_base_str, char *s_in_str, char sep, int  *i_len, int 
 
 FUNCTION(fun_replace)
 {       /* replace a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r, *st_tmpptr2;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
     if (!fn_range_check("REPLACE", nfargs, 3, 5, buff, bufcx))
@@ -22179,20 +22179,32 @@ FUNCTION(fun_replace)
        }
        memcpy(st_mash, st_tmp, LBUF_SIZE);
        memset(st_tmp, '\0', LBUF_SIZE);
-       st_tmpptr = st_tmp;
+       st_tmpptr = st_mash;
+       stok = stok_r = st_tmp;
        st_mashtmp[0] = sep;
        st_mashtmp[1] = '\0';  
-       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
-       i_found = 0;
-       while ( stok ) {
-          if ( i_found && *fargs[4] ) {
-             safe_str(fargs[4], st_tmp, &st_tmpptr);
+       st_tmpptr2 = strstr(st_tmpptr, st_mashtmp);
+       if ( st_tmpptr2 == NULL ) {
+          strcpy(st_tmp, st_mash);
+       } else {
+          while ( st_tmpptr2 ) {
+             *st_tmpptr2 = '\0';
+             if ( st_tmpptr ) {
+                safe_str(st_tmpptr, stok, &stok_r);
+             }
+             if ( *fargs[4] ) {
+                safe_str(fargs[4], stok, &stok_r);
+             }
+             /* change to this if 'sep' ever made a string 
+             st_tmpptr = st_tmpptr2 + strlen(sep);
+             */
+             st_tmpptr = st_tmpptr2 + 1;
+             st_tmpptr2 = strstr(st_tmpptr, st_mashtmp);
           }
-          safe_str(stok, st_tmp, &st_tmpptr);
-          stok = strtok_r(NULL, st_mashtmp, &stok_r);
-          i_found = 1;
+          if ( st_tmpptr ) {
+             safe_str(st_tmpptr, stok, &stok_r);
+          }
        }
-       
     }
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
@@ -22201,7 +22213,7 @@ FUNCTION(fun_replace)
 
 FUNCTION(fun_ldelete)
 {       /* delete a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r, *st_tmpptr2;
     int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
 
     if (!fn_range_check("LDELETE", nfargs, 2, 4, buff, bufcx))
@@ -22238,20 +22250,32 @@ FUNCTION(fun_ldelete)
        }
        memcpy(st_mash, st_tmp, LBUF_SIZE);
        memset(st_tmp, '\0', LBUF_SIZE);
-       st_tmpptr = st_tmp;
+       st_tmpptr = st_mash;
+       stok = stok_r = st_tmp;
        st_mashtmp[0] = sep;
        st_mashtmp[1] = '\0';  
-       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
-       i_found = 0;
-       while ( stok ) {
-          if ( i_found && *fargs[3] ) {
-             safe_str(fargs[3], st_tmp, &st_tmpptr);
+       st_tmpptr2 = strstr(st_tmpptr, st_mashtmp);
+       if ( st_tmpptr2 == NULL ) {
+          strcpy(st_tmp, st_mash);
+       } else {
+          while ( st_tmpptr2 ) {
+             *st_tmpptr2 = '\0';
+             if ( st_tmpptr ) {
+                safe_str(st_tmpptr, stok, &stok_r);
+             }
+             if ( *fargs[3] ) {
+                safe_str(fargs[3], stok, &stok_r);
+             }
+             /* change to this if 'sep' ever made a string 
+             st_tmpptr = st_tmpptr2 + strlen(sep);
+             */
+             st_tmpptr = st_tmpptr2 + 1;
+             st_tmpptr2 = strstr(st_tmpptr, st_mashtmp);
           }
-          safe_str(stok, st_tmp, &st_tmpptr);
-          stok = strtok_r(NULL, st_mashtmp, &stok_r);
-          i_found = 1;
+          if ( st_tmpptr ) {
+             safe_str(st_tmpptr, stok, &stok_r);
+          }
        }
-       
     }
 
     safe_str(st_tmp, buff, bufcx);
