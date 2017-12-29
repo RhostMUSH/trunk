@@ -11174,13 +11174,13 @@
   SWITCHALL()     T()             TAN()          TEL()          TIME()       
   TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
   TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
-  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE() 
+  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE()    TRIM()
 
 { 'help function list5' for more }
 
 & FUNCTION LIST5
   
-  TRIM()         TRUNC()       TXLEVEL()       TYPE()          U() 
+  TRREVERSE()    TRUNC()       TXLEVEL()       TYPE()          U() 
   U2()           UCSTR()       UDEFAULT()      UDEFAULT2()     UEVAL()
   ULDEFAULT()    U2LDEFAULT()  ULOCAL()        ULOCAL2()       UNESCLIST()
   UNPACK()       V()           VADD()          VALID()         VATTRCNT()   
@@ -11263,7 +11263,7 @@
                       REVERSE() REVWORDS() RINDEX() SAFEBUFF() SETDIFF() 
                       SETINTER() SETUNION() SORT() SORTBY() SORTLIST() STEP() 
                       STRFUNC() STRMATH() TOTMATCH() TOTMEMBER() TOTWILDMATCH()
-                      WHILE() WILDMATCH()
+                      TRREVERSE() WHILE() WILDMATCH()
             See Also: help list functions
   
   Logarithms:         E() EXP() LN() LOG() PI() POWER() POWER10() SHL() SHR()
@@ -18579,11 +18579,16 @@
   
   See Also: revwords()
   
+& TRREVERSE()
 & REVERSE()
   Function: reverse(<string>)
+            trreverse(<string>)
  
   Reverses the order of the characters of <string>.
- 
+  
+  trreverse() works like reverse() except it transposes characters that 
+  are reverseable.  Ergo, > to <, ] to [, } to { and so forth.
+   
   Examples:
     > say reverse(This is a test)
     You say "tset a si sihT"
@@ -18591,6 +18596,10 @@
     You say "...yllaeR ,tset a si sihT"
     > say reverse(A man, a plan, a canal -- Panama!)
     You say "!amanaP -- lanac a ,nalp a ,nam A"
+    > say reverse(>>test<<)
+    You say "<<tset>>"
+    > say trreverse(>>test<<)
+    You say ">>tset<<"
   
   See Also: revwords()
   
@@ -18609,7 +18618,7 @@
     > say revwords(Was it a cat I saw?)
     You say "saw? I cat a it Was"
   
-  See Also: reverse()
+  See Also: reverse(), trreverse()
   
 & BEFORE()
   Function: before(<string1>, <string2> [,<key>])
@@ -23907,7 +23916,7 @@
   See Also: ljust(), rjust(), ljc(), rjc(), printf()
   
 & INSERT()
-  Function: insert(<list>, <pos> [<pos2>..<posN>], <word>[[,<sep>] [,<osep>]])
+  Function: insert(<list>, <pos> [..<posN>], <word>[[,<sep>] [,<osep>]], <key>)
    
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and all subsequent list elements are moved
@@ -23926,12 +23935,39 @@
   The <osep> output delimiter may be more than one character, and if 
   enabled, '@@' can be used as another method for a null.  You may specify 
   an empty <osep> as well.
-   
+  
+  The following <key>s exist for insert:
+    0 - (default) do normal insert
+    1 - Append the text to the position(s)
+    2 - Prepend the text to the position(s)
+    3 - Box in the position(s) with the text (prepend and append)
+    4 - Transpose box in the position(s) with the text (prepend and append)
+  
+{ see 'help insert2' for examples } 
+
+& INSERT2 
+ (CONTINUED)
+  Function: insert(<list>,<pos> [..<posN>],<word>[[,<sep>][,<osep>][,<key>]])
+  
+  Note: if you leave the <osep> output seperator null when using <key>, it 
+        assumes you want an empty (null) output seperator.  To have it use 
+        the same seperator explicitly specify the <osep> if you plan to 
+        use <key>.  You only need to explicitly set <osep> if you use <key>
+        or if you plan to use a different output seperator.
+  
   Examples:
     > say insert(This is a test, 4, new)
     You say "This is a new test"
     > say insert(Yet@Another@List, 3, Funky, @)
     You say "Yet@Another@Funky@List"
+    > say insert(1|2|3,2,>>,|,|,1)
+    You say "1|2>>|3"
+    > say insert(1|2|3,2,>>,|,|,2)
+    You say "1|>>2|3"
+    > say insert(1|2|3,2,>>,|,|,3)
+    You say "1|>>2>>|3"
+    > say insert(1|2|3,2,>>,|,|,4)          (this transposes the > character)
+    You say "1|>>2<<|3"
   
   See Also: extract(), extractword(), ldelete(), replace(), iindex(), aindex(),
             rindex()
@@ -29201,6 +29237,7 @@
   totmatch()    - Returns all matches of a pattern against a string.
   totmember()   - Returns all matches of a pattern against a list.
   totwildmatch()- Like wildmatch(), but returns every match.
+  trreverse()   - Like reverse() but transposes characters.
   while()       - Evaluates a list until a condition is reached.
   wildmatch()   - Matches a pattern against a string.
   
@@ -32087,6 +32124,9 @@
   * Attribute TRACETAB to control how many spaces(0-10) to indent on trace
     output for those who prefer PENN's debug format [ASH]
   * passapi_host and passapi_site to bypass max api connections [ASH]
+  * trreverse().  Works like reverse() but transposes characters like <> [ASH]
+  * insert() now has additional arguments to append, prepend, and box
+    (including transposing box) arguments [ASH]  
   
   Changes
   ------------

@@ -2399,13 +2399,42 @@ int delim_check(char *fargs[], int nfargs, int sep_arg, char *sep,
  */
 
 static void
-do_reverse(char *from, char *to, char **tocx)
+do_reverse(char *from, char *to, char **tocx, int i_transpose)
 {
     char *fp;
 
     fp = from + strlen(from) - 1;
-    while( fp >= from )
-       safe_chr( *fp--, to, tocx);
+    while( fp >= from ) {
+       if ( i_transpose ) {
+          switch(*fp) {
+             case '[': safe_chr(']', to, tocx);
+                       break;
+             case ']': safe_chr('[', to, tocx);
+                       break;
+             case '<': safe_chr('>', to, tocx);
+                       break;
+             case '>': safe_chr('<', to, tocx);
+                       break;
+             case '{': safe_chr('}', to, tocx);
+                       break;
+             case '}': safe_chr('{', to, tocx);
+                       break;
+             case '(': safe_chr(')', to, tocx);
+                       break;
+             case ')': safe_chr('(', to, tocx);
+                       break;
+             case '/': safe_chr('\\', to, tocx);
+                       break;
+             case '\\': safe_chr('/', to, tocx);
+                       break;
+             default: safe_chr(*fp, to, tocx);
+                       break;
+          }
+          fp--;
+       } else {
+          safe_chr( *fp--, to, tocx);
+       }
+    }
 }
 
 FUNCTION(fun_singletime)
@@ -14240,7 +14269,7 @@ FUNCTION(fun_parenmatch)
     if ( tcnt > 0 ) {
        revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
        atextptr = strip_escapes(atext);
-       do_reverse(atextptr, revatext, &revatextptr);
+       do_reverse(atextptr, revatext, &revatextptr, 0);
        free_lbuf(atextptr);
        tbuffptr = tbuff;
        tcnt = paren_match2(revatext);
@@ -14278,7 +14307,7 @@ FUNCTION(fun_parenstr)
    if ( tcnt > 0 ) {
       revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
       atextptr = strip_escapes(sbuff);
-      do_reverse(atextptr, revatext, &revatextptr);
+      do_reverse(atextptr, revatext, &revatextptr, 0);
       free_lbuf(atextptr);
       tbuffptr = tbuff;
       tcnt = paren_match2(revatext);
@@ -21885,10 +21914,14 @@ FUNCTION(fun_randpos)
 #define IF_DELETE       0
 #define IF_REPLACE      1
 #define IF_INSERT       2
+#define IF_APPEND	3
+#define IF_PREPEND	4
+#define IF_BOX		5
+#define IF_REVBOX	6
 
 static void
 do_itemfuns(char *buff, char **bufcx, char *str, int el, char *word,
-      char sep, int flag)
+      char sep, int flag, char *word2)
 {
     int ct, overrun;
     char *sptr, *iptr, *eptr;
@@ -21974,6 +22007,64 @@ do_itemfuns(char *buff, char **bufcx, char *str, int el, char *word,
                     safe_chr(sep, buff, bufcx);
             }
             if (eptr) {
+                safe_str(eptr, buff, bufcx);
+            }
+            break;
+        case IF_APPEND:     /* Appending */
+            if (sptr) {
+                safe_str(sptr, buff, bufcx);
+                safe_chr(sep, buff, bufcx);
+            }
+            if (iptr) {
+                safe_str(iptr, buff, bufcx);
+            }
+            safe_str(word, buff, bufcx);
+            if (eptr) {
+                safe_chr(sep, buff, bufcx);
+                safe_str(eptr, buff, bufcx);
+            }
+            break;
+        case IF_PREPEND:     /* Appending */
+            if (sptr) {
+                safe_str(sptr, buff, bufcx);
+                safe_chr(sep, buff, bufcx);
+            }
+            safe_str(word, buff, bufcx);
+            if (iptr) {
+                safe_str(iptr, buff, bufcx);
+            }
+            if (eptr) {
+                safe_chr(sep, buff, bufcx);
+                safe_str(eptr, buff, bufcx);
+            }
+            break;
+        case IF_REVBOX:     /* Append and Prepend reverse */
+            if (sptr) {
+                safe_str(sptr, buff, bufcx);
+                safe_chr(sep, buff, bufcx);
+            }
+            safe_str(word, buff, bufcx);
+            if (iptr) {
+                safe_str(iptr, buff, bufcx);
+            }
+            safe_str(word2, buff, bufcx);
+            if (eptr) {
+                safe_chr(sep, buff, bufcx);
+                safe_str(eptr, buff, bufcx);
+            }
+            break;
+        case IF_BOX:     /* Append and Prepend */
+            if (sptr) {
+                safe_str(sptr, buff, bufcx);
+                safe_chr(sep, buff, bufcx);
+            }
+            safe_str(word, buff, bufcx);
+            if (iptr) {
+                safe_str(iptr, buff, bufcx);
+            }
+            safe_str(word, buff, bufcx);
+            if (eptr) {
+                safe_chr(sep, buff, bufcx);
                 safe_str(eptr, buff, bufcx);
             }
             break;
@@ -22076,7 +22167,7 @@ FUNCTION(fun_replace)
 
     for (i_tmp = (i_len + 2); i_tmp>=0; i_tmp--) {
        if ( i_pos[i_tmp] == 1 ) {
-          do_itemfuns(st_tmp, &st_tmpptr, st_mash, i_tmp, fargs[2], sep, IF_REPLACE);
+          do_itemfuns(st_tmp, &st_tmpptr, st_mash, i_tmp, fargs[2], sep, IF_REPLACE, NULL);
           st_tmpptr=st_tmp;
           memcpy(st_mash, st_tmp, LBUF_SIZE);
        }
@@ -22135,7 +22226,7 @@ FUNCTION(fun_ldelete)
 
     for (i_tmp = (i_len + 2); i_tmp>=0; i_tmp--) {
        if ( i_pos[i_tmp] == 1 ) {
-          do_itemfuns(st_tmp, &st_tmpptr, st_mash, i_tmp, NULL, sep, IF_DELETE);
+          do_itemfuns(st_tmp, &st_tmpptr, st_mash, i_tmp, NULL, sep, IF_DELETE, NULL);
           st_tmpptr=st_tmp;
           memcpy(st_mash, st_tmp, LBUF_SIZE);
        }
@@ -22168,12 +22259,38 @@ FUNCTION(fun_ldelete)
     free_lbuf(st_mash);
 }
 
+FUNCTION(fun_trreverse)
+{
+    char *s_output, *mybuff, *pmybuff;
+    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE];
+    int i_icntr, i_max;
+
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    initialize_ansisplitter(outsplit2, LBUF_SIZE);
+
+    s_output = alloc_lbuf("fun_trreverse");
+    split_ansi(strip_ansi(fargs[0]), s_output, outsplit);
+    i_icntr = 0;
+    i_max = strlen(s_output);
+    while ( i_icntr < i_max ) {
+       clone_ansisplitter(outsplit2+i_icntr, outsplit+(i_max - 1 - i_icntr));
+       i_icntr++;
+    }
+    pmybuff = mybuff = alloc_lbuf("fun_trreverse");
+    do_reverse(s_output, mybuff, &pmybuff, 1);
+    free_lbuf(s_output);
+    s_output = rebuild_ansi(mybuff, outsplit2, 0);
+    free_lbuf(mybuff);
+    safe_str(s_output, buff, bufcx);
+    free_lbuf(s_output);
+}
+
 FUNCTION(fun_insert)
 {       /* insert a word at position X of a list */
-    char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r;
-    int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
+    char sep, *st_tmp, *st_tmpptr, *st_mash, *st_mash2, *st_tmpptr2, st_mashtmp[2], *stok, *stok_r, *pmybuff;
+    int i_pos[LBUF_SIZE], i_tmp, i_len, i_found, i_append, i_flag;
 
-    if (!fn_range_check("INSERT", nfargs, 3, 5, buff, bufcx))
+    if (!fn_range_check("INSERT", nfargs, 3, 6, buff, bufcx))
        return;
 
     if ( (nfargs > 3) && *fargs[3]) {
@@ -22181,9 +22298,30 @@ FUNCTION(fun_insert)
     } else {
        sep = ' ';
     }
+    i_append = 0;
+    if ( (nfargs > 5) && *fargs[5] ) {
+       i_append = atoi(fargs[5]);
+    }
+    switch(i_append) {
+       case 1: /* Append */
+          i_flag = IF_APPEND;
+          break;
+       case 2: /* Prepend */
+          i_flag = IF_PREPEND;
+          break;
+       case 3: /* Box */
+          i_flag = IF_BOX;
+          break;
+       case 4: /* Box */
+          i_flag = IF_REVBOX;
+          break;
+       default: /* Just insert */
+          i_flag = IF_INSERT;
+          break;
+    }
 
     i_len=0;
-    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_INSERT);
+    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, i_flag);
     if ( !i_found ) {
        safe_str(fargs[0], buff, bufcx);
        return;
@@ -22192,13 +22330,25 @@ FUNCTION(fun_insert)
     st_tmpptr = st_tmp = alloc_lbuf("fun_insert");
     st_mash = alloc_lbuf("fun_insert2");
     memcpy(st_mash, fargs[0], LBUF_SIZE);
-
+    
+    if ( i_flag == IF_REVBOX ) {
+       stok = alloc_lbuf("if_revbox_tmp");
+       strcpy(stok, fargs[2]);
+       pmybuff = st_mash2 = alloc_lbuf("if_revbox");
+       fun_trreverse(st_mash2, &pmybuff, player, cause, cause, &stok, 1, (char **)NULL, 0);
+       free_lbuf(stok);
+    } else {
+       st_mash2 = fargs[2];
+    }
     for (i_tmp = (i_len + 2); i_tmp>=0; i_tmp--) {
        if ( i_pos[i_tmp] == 1 ) {
-          do_itemfuns(st_tmp, &st_tmpptr, st_mash, i_tmp, fargs[2], sep, IF_INSERT);
+          do_itemfuns(st_tmp, &st_tmpptr, st_mash, i_tmp, fargs[2], sep, i_flag, st_mash2);
           st_tmpptr=st_tmp;
           memcpy(st_mash, st_tmp, LBUF_SIZE);
        }
+    }
+    if ( i_flag == IF_REVBOX ) {
+       free_lbuf(st_mash2);
     }
 
     if ( (nfargs > 4) && ((*fargs[4] != sep) || *(fargs[4]+1)) ) {
@@ -22207,20 +22357,32 @@ FUNCTION(fun_insert)
        }
        memcpy(st_mash, st_tmp, LBUF_SIZE);
        memset(st_tmp, '\0', LBUF_SIZE);
-       st_tmpptr = st_tmp;
+       st_tmpptr = st_mash;
+       stok = stok_r = st_tmp;
        st_mashtmp[0] = sep;
        st_mashtmp[1] = '\0';  
-       stok = strtok_r(st_mash, st_mashtmp, &stok_r);
-       i_found = 0;
-       while ( stok ) {
-          if ( i_found && *fargs[4] ) {
-             safe_str(fargs[4], st_tmp, &st_tmpptr);
+       st_tmpptr2 = strstr(st_tmpptr, st_mashtmp);
+       if ( st_tmpptr2 == NULL ) {
+          strcpy(st_tmp, st_mash);
+       } else {
+          while ( st_tmpptr2 ) {
+             *st_tmpptr2 = '\0';
+             if ( st_tmpptr ) {
+                safe_str(st_tmpptr, stok, &stok_r);
+             }
+             if ( *fargs[4] ) {
+                safe_str(fargs[4], stok, &stok_r);
+             }
+             /* change to this if 'sep' ever made a string 
+             st_tmpptr = st_tmpptr2 + strlen(sep);
+             */
+             st_tmpptr = st_tmpptr2 + 1;
+             st_tmpptr2 = strstr(st_tmpptr, st_mashtmp);
           }
-          safe_str(stok, st_tmp, &st_tmpptr);
-          stok = strtok_r(NULL, st_mashtmp, &stok_r);
-          i_found = 1;
+          if ( st_tmpptr ) {
+             safe_str(st_tmpptr, stok, &stok_r);
+          }
        }
-       
     }
 
     safe_str(st_tmp, buff, bufcx);
@@ -24674,7 +24836,7 @@ FUNCTION(fun_reverse)
        i_icntr++;
     }
     pmybuff = mybuff = alloc_lbuf("fun_reverse");
-    do_reverse(s_output, mybuff, &pmybuff);
+    do_reverse(s_output, mybuff, &pmybuff, 0);
     free_lbuf(s_output);
     s_output = rebuild_ansi(mybuff, outsplit2, 0);
     free_lbuf(mybuff);
@@ -24697,7 +24859,7 @@ FUNCTION(fun_revwords)
 
     /* Reverse the whole string */
 
-    do_reverse(fargs[0], temp, &tempcx);
+    do_reverse(fargs[0], temp, &tempcx, 0);
     *tempcx = '\0';
 
 
@@ -24712,7 +24874,7 @@ FUNCTION(fun_revwords)
         if (!first)
             safe_chr(sep, buff, bufcx);
         t1 = split_token(&tp, sep);
-        do_reverse(t1, buff, bufcx);
+        do_reverse(t1, buff, bufcx, 0);
         first = 0;
     }
     free_lbuf(temp);
@@ -35289,6 +35451,7 @@ FUN flist[] =
     {"TRACE", fun_trace, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRANSLATE", fun_translate, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"TRIM", fun_trim, 0, FN_VARARGS, CA_PUBLIC, 0},
+    {"TRREVERSE", fun_trreverse, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRUNC", fun_trunc, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef REALITY_LEVELS
 #ifdef USE_SIDEEFFECT
