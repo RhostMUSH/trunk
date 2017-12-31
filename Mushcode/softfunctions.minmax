@@ -107,6 +107,7 @@
 &FUN_LPAD soft=[printf($-%1:%2:+s,%0)]
 &FUN_LEHRAND soft=[trunc(fmod(fmod(mul(max(rand(%0),1),279470273),4294967291),%0))]
 &FUN_BASECONV soft=[pack(unpack(%0,%1,1),%2,1)]
+&FUN_MEDIAN soft=[ifelse(mod(%+,2),v(div(%+,2)),fdiv(ladd(iter(lnum(%+),v(%i0))),2))]
 @fo softfunc=&DB me=num(softfunc)
 @tel SFSideFX=softfunctions
 @startup softfunc=@dolist lattr([v(db)]/fun_*)=@function [after(##,_)]=[v(db)]/##;@dolist lattr([v(db)]/funp_*)=@function/priv/pres [after(##,_)]=[v(db)]/##;@dolist lattr([v(DB)]/funpr_*)=@function/pres [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpv_*)=@function/priv [after(##,_)]=[v(DB)]/##;@dolist lattr([v(db)]/funpt_*)=@function/priv/notrace [after(##,_)]=[v(db)]/##;@wait 10={@dolist lattr([v(db)]/funflag_*)=@admin function_access=[after(##,_)] [get([v(db)]/##)]};@wait 10=@dolist lattr([v(db)]/minmax_*)={@function/min [after(##,_)]=[first(get([v(db)]/##))];@function/max [after(##,_)]=[rest(get([v(db)]/##))]}
