@@ -18933,7 +18933,12 @@
   
   You may use %i0-%i9 for itext(0) to itext(9).  
   You may use %il for the outermost layer, equiv to itext(ilev())
-   
+  
+  <list> can be a special handler of :<value>:<key>: where <value> is a
+  positive or negative number, and <key> is > or <.  Such as ':50:>:'   
+  
+  You may not mix the special handler and other values.
+  
   Examples:
     > say iter(This is a test,-## #@-)
     You say "-This 1- -is 2- -a 3- -test 4-"
@@ -18947,6 +18952,8 @@
     You say "This***is***a***test"
     > say iter(This is a test,%i0,,***)
     You say "This***is***a***test"
+    > say iter(:1000:>:,%i0)
+    You say "1000 1001 ..."    (it'll print values from 1000 to the LBUF size)
   
   See Also: nsiter(), citer(), @dolist, parse(), list(), list(), itext(), 
             inum(), ilev(), ibreak()
@@ -32127,6 +32134,13 @@
   * trreverse().  Works like reverse() but transposes characters like <> [ASH]
   * insert() now has additional arguments to append, prepend, and box
     (including transposing box) arguments [ASH]  
+  * noparse @admin function_access parameter [ASH]
+  * @admin param iter_loop_max to control maximum cycles of iter special
+    processing [ASH]
+  * iter() allows special string substitutions for input of :<value>:>: or
+    :<value>:<: for 'infinite loop' checks.  Normal function invocation and
+    cpu alarms as well as the @admin param iter_loop_max dictates maximums
+    for the looping [ASH]
   
   Changes
   ------------
@@ -32154,3 +32168,5 @@
   * bug in objid where the validation check wouldn't always work [ASH]
   * insert(), ldelete(), and replace() didn't fully work with output
     seperators [ASH]
+  * mail attributes allowed evaluation of mail functions and it likely
+    shouldn't for security reasons [ASH]

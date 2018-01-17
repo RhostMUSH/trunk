@@ -331,6 +331,7 @@ NDECL(cf_init)
     mudconf.exec_secure = 1;		/* execscript() escapes out everything by default */
     mudconf.crypt_rounds = 5000;	/* Number of crypt rounds for passwords */
     mudconf.null_is_idle = 0;		/* Treat @@ as idle for idle timer */
+    mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -347,6 +348,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.mail_inline = 0;		/* Mail is inline */
     mudstate.trace_indent = 0;		/* Initialize trace indent */
     mudstate.total_bytesin = 0;		/* Bytes total into the mush */
     mudstate.total_bytesout = 0;	/* Bytes total out of the mush */
@@ -4242,6 +4244,10 @@ CONF conftable[] =
     {(char *) "ip_address",
      cf_string, CA_DISABLED, (int *) mudconf.ip_address, 15, 0, CA_WIZARD,
      (char *) "IP address for the MUSH to listen on."},
+    {(char *) "iter_loop_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.iter_loop_max, 0, 0, CA_PUBLIC,
+     (char *) "Maximum iteration allowed for iter() infinite looops.\r\n"\
+              "                             Default: 100000   Value: %d"},
     {(char *) "kill_guarantee_cost",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.killguarantee, 0, 0, CA_PUBLIC,
      (char *) "How much money to guarentee a kill?\r\n"\

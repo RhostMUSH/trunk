@@ -5853,24 +5853,24 @@
   ifelse_compat            ifelse_substitution      imm_nomod
   include                  includecnt               includenest
   initial_size             input_database           internal_compress_string
-  inventory_name           kill_guarantee_cost      kill_max_cost
-  kill_min_cost            lastsite_paranoia        lattr_default_oldstyle
-  lcon_checks_dark         lfunction_max            list_access
-  list_max_chars           listen_parents           link_cost
-  lnum_compat              lock_recursion_limit     log
-  log_command_list         log_maximum              log_network_errors
-  log_options              login_to_prog            logout_cmd_access
-  logout_cmd_alias         look_moreflags           look_obey_terse
-  machine_command_cost     mail_anonymous           mail_autodeltime
-  mail_default             mail_def_object          mail_hidden
-  mail_tolist              mail_verbosity           mailbox_size
-  maildelete               mailinclude_file         mailprog
-  mailsub                  mailmax_send             master_room
-  match_own_commands       manlog_file              map_delim_space
-  max_cpu_cycles           max_dest_limit           max_folders
-  max_lastsite_api         max_lastsite_cnt         max_name_protect       
-  max_pcreate_lim          max_pcreate_time         max_percentsubs        
-  max_players
+  inventory_name           iter_loop_max            kill_guarantee_cost    
+  kill_max_cost            kill_min_cost            lastsite_paranoia      
+  lattr_default_oldstyle   lcon_checks_dark         lfunction_max          
+  list_access              list_max_chars           listen_parents         
+  link_cost                lnum_compat              lock_recursion_limit   
+  log                      log_command_list         log_maximum            
+  log_network_errors       log_options              login_to_prog          
+  logout_cmd_access        logout_cmd_alias         look_moreflags         
+  look_obey_terse          machine_command_cost     mail_anonymous         
+  mail_autodeltime         mail_default             mail_def_object        
+  mail_hidden              mail_tolist              mail_verbosity         
+  mailbox_size             maildelete               mailinclude_file       
+  mailprog                 mailsub                  mailmax_send          
+  master_room              match_own_commands       manlog_file            
+  map_delim_space          max_cpu_cycles           max_dest_limit         
+  max_folders              max_lastsite_api         max_lastsite_cnt       
+  max_name_protect         max_pcreate_lim          max_pcreate_time       
+  max_percentsubs          max_players
   
 { 'wizhelp config parameters4' for more }
 
@@ -8037,6 +8037,21 @@
   when ALT_INVENTORIES are enabled.  If no string is specified, the default
   of 'backpack' is used.  Ansi, tabs, and carriage returns are stripped.
 
+& iter_loop_max
+  Config parameter: iter_loop_max <value>.  Default: 100000
+  
+  The default loop maximum that iter() allows with the special substitution
+  of :<value>:<method>:.  Such as ':100:>:' or ':0:<:'.  This should be
+  careful on any modification because while function invocations are taken
+  into account it is possible to use iter() without any evaluation per
+  say.  So this is a necesssary evil and 100,000 is considered a good
+  value to hit.
+  
+  Of note, anything over a million tends to trigger a 1 second CPU alarm
+  so something to keep in mind based on the hardware.
+  
+  See Also: (normal 'help') iter()
+  
 & ip_address
   Config parameter: ip_address <address>.  Default: 0.0.0.0
   
@@ -10900,6 +10915,7 @@
     eval          - The function forces evaluation (useful for @function)
     no_eval       - The function forces non-evaluation (useful for @function)
     bypass        - The function is ignored for sandbox()
+    noparse       - The function does not parse functions (but does subs)
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions

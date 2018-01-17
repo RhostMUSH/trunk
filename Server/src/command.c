@@ -5031,6 +5031,7 @@ NAMETAB access_nametab2[] =
     {(char *) "no_eval", 5, CA_WIZARD, 0, CA_NO_EVAL},
     {(char *) "eval", 5, CA_WIZARD, 0, CA_EVAL},
     {(char *) "bypass", 5, CA_WIZARD, 0, CA_SB_BYPASS},
+    {(char *) "noparse", 5, CA_WIZARD, 0, CA_NO_PARSE},
     {NULL, 0, 0, 0, 0}};
 
 static void 

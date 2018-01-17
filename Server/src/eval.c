@@ -2857,6 +2857,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  (ulfp && (ulfp->flags & FN_NOTRACE)) ) {
                 feval = (feval | EV_NOTRACE);
             }
+            if ( (fp && (fp->perms2 & CA_NO_PARSE)) ||
+                 (ufp && (ufp->perms2 & CA_NO_PARSE)) ||
+                 (ulfp && (ulfp->perms2 & CA_NO_PARSE)) ) {
+                feval |= EV_NOFCHECK;
+            }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
 				 ')', feval, fargs, nfargs,
 				 cargs, ncargs, i_type, regargs, nregargs);

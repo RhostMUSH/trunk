@@ -13412,6 +13412,10 @@ FUNCTION(fun_mailalias)
       safe_str("#-1 ALIAS TOO LONG", buff, bufcx);
       return;
    }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
+      return;
+   }
    if ( nfargs == 2 ) {
       keyval = atoi(fargs[1]);
       if ( keyval < 0 || keyval > 1 )
@@ -13435,6 +13439,10 @@ FUNCTION(fun_mailquota)
 
    if ( mudstate.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
+      return;
+   }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
       return;
    }
    if ( !*fargs[0] ) {
@@ -13487,6 +13495,10 @@ FUNCTION(fun_mailquick)
       safe_str("#-1 NOT FOUND", buff, bufcx);
       return;
    }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
+      return;
+   }
    if ( !(Controls(player, it) || Immortal(player)) ) {
       safe_str("-1 -1 -1 -1 -1 -1", buff, bufcx);
       return;
@@ -13516,6 +13528,10 @@ FUNCTION(fun_folderlist)
       safe_str("#-1 NOT FOUND", buff, bufcx);
       return;
    }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
+      return;
+   }
    tbuffptr = tbuff = alloc_lbuf("folderlist");
    folder_plist_function(player, fargs[0], tbuff, tbuffptr);
    safe_str(tbuff, buff, bufcx);
@@ -13536,6 +13552,10 @@ FUNCTION(fun_foldercurrent)
    }
    if ( !fargs[0] || !*fargs[0] ) {
       safe_str("#-1 NOT FOUND", buff, bufcx);
+      return;
+   }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
       return;
    }
    i_key = 0;
@@ -13566,6 +13586,10 @@ FUNCTION(fun_mailstatus)
    if ( !(Controls(player, it) || Immortal(player)) ) {
         safe_str("#-1 PERMISSION DENIED", buff, bufcx);
         return;
+   }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
+      return;
    }
    r_buffptr = r_buff = alloc_lbuf("fun_mailstatus");
    tbuff = alloc_lbuf("fun_mailstatus_temp");
@@ -23210,6 +23234,10 @@ FUNCTION(fun_mailsize)
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
     }
+    if ( mudstate.mail_inline ) {
+       safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
+       return;
+    }
     target = lookup_player(player, fargs[0], 0);
     if ((target == NOTHING) || !Controls(player, target)) {
        safe_str("#-1", buff, bufcx);
@@ -23223,6 +23251,10 @@ FUNCTION(fun_msizetot)
     if ( mudstate.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
+    }
+    if ( mudstate.mail_inline ) {
+       safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
+       return;
     }
     ival(buff,bufcx, mcount_size_tot());
 }
@@ -26112,7 +26144,7 @@ FUNCTION(fun_iter)
 {
     char *sop_buf, *sep_buf, *curr, *objstring, *buff3, *result, *cp, sep, sop[LBUF_SIZE+1];
     char *bptr, *st_buff, *tpr_buff, *tprp_buff;
-    int first, cntr;
+    int first, cntr, i_endloop, i_start, i_dir;
 
     if (!fn_range_check("ITER", nfargs, 2, 4, buff, bufcx))
        return;
@@ -26142,16 +26174,37 @@ FUNCTION(fun_iter)
        sep = ' ';
     }
 
+    i_dir = i_endloop = i_start = 0;
     st_buff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
-         cargs, ncargs, (char **)NULL, 0);
+                   cargs, ncargs, (char **)NULL, 0);
+    if ( (cp = strchr(st_buff, ':')) != NULL ) {
+       if ( (curr = strchr(cp+1, ':')) != NULL ) {
+          if ( (strcmp(curr, ":<:") == 0) ||
+               (strcmp(curr, ":>:") == 0) ) {
+             if ( *(curr+1) == '>' ) {
+                i_dir = 1;
+             } else {
+                i_dir = -1;
+             }
+             i_endloop = 1;
+             i_start = atoi(cp+1);
+          }
+       }
+    }
     cp = curr = alloc_lbuf("fun_iter");
-    safe_str(strip_ansi(st_buff), curr, &cp);
-    free_lbuf(st_buff);
-    cp = curr;
-    cp = trim_space_sep(cp, sep);
-    if (!*cp) {
-       free_lbuf(curr);
-       return;
+    if ( i_endloop ) {
+       free_lbuf(st_buff);
+       sprintf(curr, "%d", i_start);
+       cp = curr;
+    } else {
+       safe_str(strip_ansi(st_buff), curr, &cp);
+       free_lbuf(st_buff);
+       cp = curr;
+       cp = trim_space_sep(cp, sep);
+       if (!*cp) {
+          free_lbuf(curr);
+          return;
+       }
     }
     first = 1;
     cntr=1;
@@ -26160,7 +26213,11 @@ FUNCTION(fun_iter)
     mudstate.iter_inumbrk[mudstate.iter_inum] = 0;
     tprp_buff = tpr_buff = alloc_lbuf("fun_iter");
     while (cp) {
-        objstring = split_token(&cp, sep);
+        if ( i_endloop ) {
+           objstring = cp = curr;
+        } else {
+           objstring = split_token(&cp, sep);
+        }
         bptr = mudstate.iter_arr[mudstate.iter_inum];
         safe_str(objstring, mudstate.iter_arr[mudstate.iter_inum], &bptr);
         mudstate.iter_inumarr[mudstate.iter_inum] = cntr;
@@ -26174,8 +26231,19 @@ FUNCTION(fun_iter)
         first = 0;
         safe_str(result, buff, bufcx);
         free_lbuf(result);
-        if ( mudstate.iter_inumbrk[mudstate.iter_inum] )
+        if ( mudstate.chkcpu_toggle ) {
            break;
+        }
+        if ( mudstate.iter_inumbrk[mudstate.iter_inum] ) {
+           break;
+        }
+        if ( i_endloop && (cntr > mudconf.iter_loop_max) ) {
+           break;
+        }
+        if ( i_endloop ) {
+           i_start += i_dir;
+           sprintf(curr, "%d", i_start);
+        }
         cntr++;
     }
     mudstate.iter_inumbrk[mudstate.iter_inum] = 0;
@@ -32836,6 +32904,10 @@ FUNCTION(fun_mailread)
       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
       return;
    }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
+      return;
+   }
 
    i_key = 0;
    if ( (nfargs > 3) && *fargs[3] )
@@ -33348,6 +33420,10 @@ FUNCTION(fun_mailsend)
    }
    if ( !*fargs[2] ) {
       safe_str("#-1 EMPTY MESSAGE BODY", buff, bufcx);
+      return;
+   }
+   if ( mudstate.mail_inline ) {
+      safe_str("#-1 CAN NOT USE MAIL FUNCTIONS INLINE MAIL ATTRIBUTES", buff, bufcx);
       return;
    }
    i_key = 0;

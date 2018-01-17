@@ -1083,7 +1083,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
                         int lcount, int chk_anon, char *anon_player, int chk_anon3,
                         char *plr_list)
 {
-  int *pt1, dest, save, loop, chk_anon2, i_foundfolder, s_aflags;
+  int *pt1, dest, save, loop, chk_anon2, i_foundfolder, s_aflags, i_mail_inline;
   dbref s_aowner;
   short int index, *pt2;
   time_t *pt3;
@@ -1092,7 +1092,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
   ATTR *s_atr;
 
   save = -1;
-  chk_anon2 = i_foundfolder = 0;
+  i_mail_inline = chk_anon2 = i_foundfolder = 0;
   s_mailfilter = tprp_buff = tpr_buff = NULL;
   s_tmparry[0] = s_tmparry[1] = s_tmparry[2] = s_tmparry[3] = s_tmparry[4] = NULL;
   if ( chk_anon && Wizard(*toplay) ) {
@@ -1237,8 +1237,11 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
         strcpy(s_tmparry[2], msg);
 	strcat(s_tmparry[3], ctime((time_t *)pt3));
  	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
+        i_mail_inline = mudstate.mail_inline;
+        mudstate.mail_inline = 1;
         s_returnfilter = exec(*toplay, *toplay, *toplay, EV_FCHECK | EV_EVAL, s_mailfilter,
                                  s_tmparry, 4, (char **)NULL, 0);
+        mudstate.mail_inline = i_mail_inline;
         if ( *s_returnfilter ) {
            sprintf(s_tmparry[2], "%s", Name(*toplay));
            sprintf(s_tmparry[1], "Mailnotify from %.30s: %.*s", s_tmparry[2], (LBUF_SIZE - 60), s_returnfilter);
@@ -1268,8 +1271,11 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
         strcpy(s_tmparry[2], msg);
 	strcat(s_tmparry[3], ctime((time_t *)pt3));
  	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
+        i_mail_inline = mudstate.mail_inline;
+        mudstate.mail_inline = 1;
         s_returnfilter = exec(*toplay, *toplay, *toplay, EV_FCHECK | EV_EVAL, s_mailfilter,
                                  s_tmparry, 4, (char **)NULL, 0);
+        mudstate.mail_inline = i_mail_inline;
         free_lbuf(s_tmparry[0]);
         free_lbuf(s_tmparry[1]);
         free_lbuf(s_tmparry[2]);
@@ -1342,14 +1348,14 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
 {
    char *strtok_buff, *s_strtokptr, *s_tbuff, *s_tbuffptr, *s_ptr, *s_plratr,
         *tbuff_malias, *s_plratrretval;
-   int in_list, anum_tmp, dummy2, did_alloc;
+   int in_list, anum_tmp, dummy2, did_alloc, i_mail_inline;
    dbref thing_tmp, dummy1, target;
    MAMEM *ma_ptr;
    ATTR *attr = NULL;
  
    s_tbuffptr = s_tbuff = alloc_lbuf("build_bcc_list");
    s_strtokptr = (char *)strtok_r(s_instr, " ", &strtok_buff);
-   in_list = did_alloc = 0;
+   i_mail_inline = in_list = did_alloc = 0;
    while ( s_strtokptr && *s_strtokptr ) {
       s_ptr = s_strtokptr;
       if ( *s_ptr == '+' ) {
@@ -1403,8 +1409,11 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
             if ( !(!s_plratr || !Good_obj(player) || (Cloak(thing_tmp) && !Wizard(player)) ||
                     ((Cloak(thing_tmp) && SCloak(thing_tmp)) && !Immortal(player))) ) {
                if ( check_read_perms2(player, thing_tmp, attr, dummy1, dummy2) ) {
+                  i_mail_inline = mudstate.mail_inline;
+                  mudstate.mail_inline = 1;
                   s_plratrretval = exec(player, thing_tmp, thing_tmp, EV_FCHECK | EV_EVAL, 
                                         s_plratr, (char **) NULL, 0, (char **)NULL, 0);
+                  mudstate.mail_inline = i_mail_inline;
                   did_alloc = 1;
                } else {
                   s_plratrretval = NULL;
@@ -1442,8 +1451,11 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
          if ( attr ) {
             s_plratr = atr_pget(thing_tmp, attr->number, &dummy1, &dummy2);
             if ( s_plratr && Good_obj(player) ) { 
+               i_mail_inline = mudstate.mail_inline;
+               mudstate.mail_inline = 1;
                s_plratrretval = exec(thing_tmp, player, player, EV_FCHECK | EV_EVAL, 
                                      s_plratr, (char **) NULL, 0, (char **)NULL, 0);
+               mudstate.mail_inline = i_mail_inline;
                did_alloc = 1;
             } else {
                s_plratrretval = NULL;
@@ -1489,12 +1501,12 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   int toplay, count, offct, term, dummy1, dummy2, repall, repaal, rmsg, x, atrash, i_nogood;
   short int index, isend;
   int acheck, atest, t1, aft, tolist, anum_tmp, glob_malias, chk_anon, chk_anon2, chk_lbuf_free;
-  int comma_exists;
+  int comma_exists, i_mail_inline;
   MAMEM *pt3;
   ATTR *attr = NULL;
   static char anon_player[17];
 
-  comma_exists = 0;
+  i_mail_inline = comma_exists = 0;
   spt = mpt = NULL;
   memset(anon_player, 0, sizeof(anon_player));
   tolist = mudconf.mail_tolist;
@@ -1931,8 +1943,12 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
                if ( !apt_tmp || !*apt_tmp ) {
                   apt = NULL;
                   chk_lbuf_free = 0;
-               } else
+               } else {
+                  i_mail_inline = mudstate.mail_inline;
+                  mudstate.mail_inline = 1;
                   apt = exec(thing_tmp, p2, p2, EV_FCHECK | EV_EVAL, apt_tmp, (char **) NULL, 0, (char **)NULL, 0);
+                  mudstate.mail_inline = i_mail_inline;
+               }
                free_lbuf(apt_tmp);
             } else {
                apt_tmp = atr_pget(thing_tmp, attr->number, &dummy1, &dummy2);
@@ -1942,8 +1958,11 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
                   chk_lbuf_free = 0;
                } else {
                   if ( check_read_perms2(p2, thing_tmp, attr, dummy1, dummy2) ) {
+                     i_mail_inline = mudstate.mail_inline;
+                     mudstate.mail_inline = 1;
                      apt = exec(p2, thing_tmp, thing_tmp, EV_FCHECK | EV_EVAL, apt_tmp,
                                 (char **) NULL, 0, (char **)NULL, 0);
+                     mudstate.mail_inline = i_mail_inline;
                   } else {
                      chk_lbuf_free = 0;
                      apt = NULL;
