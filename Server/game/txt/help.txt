@@ -3700,7 +3700,7 @@
     @dolist/delimit , {Frodo, Bilbo Baggins, Gandalf} = page ## = HELP!!!!
     @wait me=@emit Zapping Finished;@dolist/notify bob joe=@emit Zapped ##
   
-  See Also: iter(), parse(), list()
+  See Also: iter(), parse(), list(), inf()
   
 & @drain
   Command: @drain[</switch>] <object>
@@ -11106,14 +11106,15 @@
   HASATTRP()      HASFLAG()     HASTOGGLE()    HASTYPE()       HASQUOTA()  
   HASRXLEVEL()    HASTXLEVEL()  HOME()         IBREAK()        IDLE()      
   IFELSE()        IINDEX()      ILEV()         INC()           INDEX()     
-  INPROGRAM()     INSERT()      INUM()         INZONE()        ISALNUM()   
-  ISALPHA()       ISCLUSTER()   ISDBREF()      ISDIGIT()       ISHIDDEN()  
-  ISNUM()         ISOBJID()     ISPUNCT()      ISSPACE()       ISWORD()      
-  ISXDIGIT()      ITER()        ITEXT()        KEEPFLAGS()     KEEPTYPE()    
-  LADD()          LAND()        LAST()         LASTCREATE()    LATTR()       
-  LAVG()          LCMDS()       LCON()         LCSTR()         LDELETE()     
-  LDIV()          LEMIT()       LEFT()         LEXITS()        LFLAGS()      
-  LINK()          LIST()        LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS()
+  INF()           INPROGRAM()   INSERT()       INUM()          INZONE()      
+  ISALNUM()       ISALPHA()     ISCLUSTER()    ISDBREF()       ISDIGIT()     
+  ISHIDDEN()      ISNUM()       ISOBJID()      ISPUNCT()       ISSPACE()     
+  ISWORD()        ISXDIGIT()    ITER()         ITEXT()         KEEPFLAGS()   
+  KEEPTYPE()      LADD()        LAND()         LAST()          LASTCREATE()  
+  LATTR()         LAVG()        LCMDS()        LCON()          LCSTR()       
+  LDELETE()       LDIV()        LEMIT()        LEFT()          LEXITS()      
+  LFLAGS()        LINK()        LIST()         LISTCOMMANDS()  LISTDIFF()    
+  LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -11252,9 +11253,9 @@
   Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() ARRAY() CITER() 
                       DELEXTRACT() ELEMENTS() ELEMENTSMUX() ELIST() EXTRACT()
                       EXTRACTWORD() FILTER() FIRST() FLAGS() FOLD() FOREACH()
-                      IBREAK() IINDEX() ILEV() INDEX() INSERT() INUM() ITER()
-                      ITEXT() KEEPFLAGS() KEEPTYPE() LADD() LAND() LAST() 
-                      LAVG() LDELETE() LDIV() LISTDIFF() LISTINTER() 
+                      IBREAK() IINDEX() ILEV() INDEX() INF() INSERT() INUM() 
+                      ITER() ITEXT() KEEPFLAGS() KEEPTYPE() LADD() LAND() 
+                      LAST() LAVG() LDELETE() LDIV() LISTDIFF() LISTINTER() 
                       LISTMATCH() LISTUNION() LMAX() LMIN() LMUL() LNOR()
                       LNUM() LNUM2() LOR() LRAND() LREPLACE() LSUB() LXNOR() 
                       LXOR() MAP() MATCH() MEMBER() MIX() MUNGE() NSITER() 
@@ -13825,7 +13826,7 @@
     > say mix(do_moremath,1,2,3,4,5,6,7 8,9 10 11 12,)
     You say "37 18 11 12"
   
-  See Also: map(), iter(), merge(), elements(), list(), elementpos()
+  See Also: map(), iter(), merge(), elements(), list(), elementpos(), inf()
   
 & TIME()
   Function: time()
@@ -15379,7 +15380,7 @@
     > say elist(one/two/three,what a life,/,/)
     You say "one,/two,/what a life/three"
   
-  See Also: iter(), citer(), nsiter(), list()
+  See Also: iter(), citer(), nsiter(), list(), inf()
   
 & CREPLACE()
   Function: creplace(<string>, <position>, <string2>[, <type>][,<range>])
@@ -18854,7 +18855,7 @@
   This example shows that the ilev() is in the 3rd (starting at 0)
   level of iter.
   
-  See Also: inum(), itext(), iter(), ibreak(), list()
+  See Also: inum(), itext(), iter(), ibreak(), list(), inf()
   
 & INUM()
   Function: inum(<n> [,<key>])
@@ -18884,7 +18885,7 @@
   > say [iter(red blue green,iter(fish shoe, [itext(1)]:[itext(0)]))]
   You say, "red:fish red:shoe blue:fish blue:shoe green:fish green:shoe"
   
-  See Also: iter(), itext(), ilev(), ibreak(), list()
+  See Also: iter(), itext(), ilev(), ibreak(), list(), inf()
 
 & IBREAK()
   Function: ibreak(<n>)
@@ -18916,11 +18917,13 @@
   > say [iter(red blue green,iter(fish shoe, [inum(1)]:[itext(1)][ibreak(0)]))]
   You say, "1:red 2:blue 3:green"
   
-  See Also: iter(), itext(), ilev(), inum(), list()
+  See Also: iter(), itext(), ilev(), inum(), list(), inf()
 
   
+& INF()
 & ITER()
   Function: iter(<list>, <eval>[, <delim> [, <output separator>]])
+             inf(<list>, <eval>[, <delim> [, <output separator>]])
  
   <list> is a <delimiter>-separated list of strings, which can be object
   numbers, attributes, or arbitrary words.  <eval> is a string that is to be
@@ -18934,8 +18937,9 @@
   You may use %i0-%i9 for itext(0) to itext(9).  
   You may use %il for the outermost layer, equiv to itext(ilev())
   
-  <list> can be a special handler of :<value>:<key>: where <value> is a
-  positive or negative number, and <key> is > or <.  Such as ':50:>:'   
+  The inf() function is special in that it allows <list> to be passed a 
+  special handler of :<value>:<key>: where <value> is a positive or negative 
+  number, and <key> is > or <.  Such as ':50:>:'   
   
   You may not mix the special handler and other values.
   
@@ -18953,6 +18957,8 @@
     > say iter(This is a test,%i0,,***)
     You say "This***is***a***test"
     > say iter(:1000:>:,%i0)
+    You say ":1000:>:"         (iter does not allow the special <list>)
+    > say inf(:1000:>:,%i0)
     You say "1000 1001 ..."    (it'll print values from 1000 to the LBUF size)
   
   See Also: nsiter(), citer(), @dolist, parse(), list(), list(), itext(), 
@@ -18991,7 +18997,7 @@
     > say nsiter(Was it a cat I saw,words(##),s)
     You say "141"
   
-  See Also: iter(), citer(), @dolist, parse(), list()
+  See Also: iter(), citer(), @dolist, parse(), list(), inf()
   
 & MUNGE()
   Function: munge([<obj>/]<attr>,<list 1>,<list 2>[[,<delim>][,<sep>]])
@@ -19062,7 +19068,7 @@
     > say citer(bob,## WHEE ##,@)
     You say "b WHEE b@o WHEE o@b WHEE b"
   
-  See Also: iter(), nsiter(), list(), @dolist, creplace(), foreach()
+  See Also: iter(), nsiter(), list(), @dolist, creplace(), foreach(), inf()
   
 & LOCATE()
   Function: locate(<looker>,<string>,<where>)
@@ -19518,7 +19524,7 @@
   
   This function provided for TinyMUSH 3.0 compatibility.
   
-  See Also: map(), step(), foreach(), iter()
+  See Also: map(), step(), foreach(), iter(), inf()
   
 & STR()
   Function: str(<string>,<match>)
@@ -20293,7 +20299,7 @@
   
   This function provided for compatibility with TinyMUSH 3.0
   
-  See Also: while(), map(), munge(), iter(), columns()
+  See Also: while(), map(), munge(), iter(), columns(), inf()
   
 & ZONECMDCHK
   Toggle: ZONECMDCHK(k)
@@ -21399,7 +21405,7 @@
     2
     BB
     
-  See Also: nsiter(), citer(), @dolist, parse(), list()
+  See Also: nsiter(), citer(), @dolist, parse(), list(), inf()
   
 & DIGEST()
   Function: digest(<algorithm>, <string>)
@@ -23175,7 +23181,7 @@
     > say [foreach(ansi,ansi(hr,r,hb,b,hc,c,hg,g),@@,@@,1)]
     You say "-r--b--c--g-"  (r is red, b is blue, c is cyan, g is green)
     
-  See Also: @dolist, iter(), map(), citer(), nsiter(), list()
+  See Also: @dolist, iter(), map(), citer(), nsiter(), list(), inf()
   
 & PARSE()
   Function: parse(<list>,<eval>[,<delimiter> [,<output separator>]])
@@ -23206,7 +23212,7 @@
     > say nsiter(Was it a cat I saw,words(##),s)
     You say "141"
   
-  See Also: iter(), citer(), @dolist, parse(), list()
+  See Also: iter(), citer(), @dolist, parse(), list(), inf()
   
   
 & PARSESTR()
@@ -23326,7 +23332,7 @@
   Note: It will auto-close double quotes if it detects a non-escaped odd count.
         Also note the colorizations will be displayed appropiately.
   
-  See Also: garble(), parse(), iter(), strmath(), spellnum()
+  See Also: garble(), parse(), iter(), strmath(), spellnum(), inf()
   
 & controls()
   Function: controls(<object>,<victim>)
@@ -23367,7 +23373,7 @@
   You say "2 3 4 5 6"
   
   See Also: filter(), fold(), iter(), parse(), u(), munge(), citer(), 
-            nsiter(), sortlist()
+            nsiter(), sortlist(), inf()
   
 & filter()
   Function: filter([<obj>/]<attr>,<list>[,<delim>[,<sep>][,<arg1>,...,<argN>]])
@@ -23391,7 +23397,8 @@
     > say filter(object/is_odd,1@2@3@4@5,@,|)
     You say "1|3|5"
   
-  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list(), sortlist()
+  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list(), 
+            sortlist(), inf()
   
 & fold()
   Function: fold([<obj>/]<attr>, <list>[, <base-case>[, <delim>])
@@ -23415,7 +23422,7 @@
     > say fold(object/add_nums,1 2 3 4 5)
     You say "15"
   
-  See Also: u(), iter(), map(), filter(), citer(), nsiter(), list()
+  See Also: u(), iter(), map(), filter(), citer(), nsiter(), list(), inf()
   
 & RJ()
 & RJUST()
@@ -29169,6 +29176,7 @@
   iindex()      - Similar to index, but inserts <string> at <position>.
   ilev()        - Returns the level of recursion you are at in iter().
   index()       - Like extract(), but supports items being more than one word.
+  inf()         - Like iter() but allows special list args for Infinite vals.
   insert()      - Inserts a word into a list.
   inum()        - The equivalant of #@ inside an iter()
   iter()        - Iterates over a list, and processes code for each member.
@@ -32137,10 +32145,10 @@
   * noparse @admin function_access parameter [ASH]
   * @admin param iter_loop_max to control maximum cycles of iter special
     processing [ASH]
-  * iter() allows special string substitutions for input of :<value>:>: or
-    :<value>:<: for 'infinite loop' checks.  Normal function invocation and
-    cpu alarms as well as the @admin param iter_loop_max dictates maximums
-    for the looping [ASH]
+  * inf() (an iter() clone) allows special string substitutions for input 
+    of :<value>:>: or :<value>:<: for 'infinite loop' checks.  Normal 
+    function invocation and cpu alarms as well as the @admin param 
+    iter_loop_max dictates maximums for the looping [ASH]
   
   Changes
   ------------

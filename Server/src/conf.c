@@ -349,6 +349,7 @@ NDECL(cf_init)
     mudconf.mysql_port=3306;
 #endif
     mudstate.mail_inline = 0;		/* Mail is inline */
+    mudstate.iter_special = 0;		/* iter inf special */
     mudstate.trace_indent = 0;		/* Initialize trace indent */
     mudstate.total_bytesin = 0;		/* Bytes total into the mush */
     mudstate.total_bytesout = 0;	/* Bytes total out of the mush */

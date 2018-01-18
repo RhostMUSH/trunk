@@ -816,6 +816,7 @@ struct statedata {
 	dbref	posesay_dbref;	/* Allow pose/say fluffing */
 	int	trace_indent;	/* Trace indention */
 	int	mail_inline;	/* Do not let mail work inline other mail */
+        int	iter_special;	/* Special iter handler for 'inf' args */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

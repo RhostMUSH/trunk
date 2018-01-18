@@ -26177,19 +26177,22 @@ FUNCTION(fun_iter)
     i_dir = i_endloop = i_start = 0;
     st_buff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0],
                    cargs, ncargs, (char **)NULL, 0);
-    if ( (cp = strchr(st_buff, ':')) != NULL ) {
-       if ( (curr = strchr(cp+1, ':')) != NULL ) {
-          if ( (strcmp(curr, ":<:") == 0) ||
-               (strcmp(curr, ":>:") == 0) ) {
-             if ( *(curr+1) == '>' ) {
-                i_dir = 1;
-             } else {
-                i_dir = -1;
+    if ( mudstate.iter_special ) {
+       if ( (cp = strchr(st_buff, ':')) != NULL ) {
+          if ( (curr = strchr(cp+1, ':')) != NULL ) {
+             if ( (strcmp(curr, ":<:") == 0) ||
+                  (strcmp(curr, ":>:") == 0) ) {
+                if ( *(curr+1) == '>' ) {
+                   i_dir = 1;
+                } else {
+                   i_dir = -1;
+                }
+                i_endloop = 1;
+                i_start = atoi(cp+1);
              }
-             i_endloop = 1;
-             i_start = atoi(cp+1);
           }
        }
+       mudstate.iter_special = 0;
     }
     cp = curr = alloc_lbuf("fun_iter");
     if ( i_endloop ) {
@@ -26251,6 +26254,19 @@ FUNCTION(fun_iter)
     free_lbuf(mudstate.iter_arr[mudstate.iter_inum]);
     mudstate.iter_inum--;
     free_lbuf(curr);
+}
+
+FUNCTION(fun_inf) 
+{
+   int i_iter_special;
+
+   if (!fn_range_check("INF", nfargs, 2, 4, buff, bufcx))
+       return;
+
+   i_iter_special = mudstate.iter_special;
+   mudstate.iter_special = 1;
+   fun_iter(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs);
+   mudstate.iter_special = i_iter_special;
 }
 
 FUNCTION(fun_itext)
@@ -35189,6 +35205,7 @@ FUN flist[] =
     {"INC", fun_inc, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
     {"INDEX", fun_index, 4, 0, CA_PUBLIC, CA_NO_CODE},
+    {"INF", fun_inf, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"INPROGRAM", fun_inprogram, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"INSERT", fun_insert, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INUM", fun_inum, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
