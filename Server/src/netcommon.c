@@ -1157,6 +1157,9 @@ update_quotas(struct timeval last, struct timeval current)
 
     DPUSH; /* #111 */
 
+    if ( mudconf.timeslice <= 0 ) {
+       mudconf.timeslice = 1;
+    }
     nslices = msec_diff(current, last) / mudconf.timeslice;
 
     if (nslices > 0) {

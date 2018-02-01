@@ -4941,8 +4941,8 @@ CONF conftable[] =
      (char *) "Quota that each thing takes up.\r\n"\
               "                             Default: 1   Value: %d"},
     {(char *) "timeslice",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.timeslice, 0, 0, CA_WIZARD,
-     (char *) "N/A\r\n"\
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.timeslice, 100000, 1, CA_WIZARD,
+     (char *) "Timeslice for next player commands (must be >0)\r\n"\
               "                             Default: 1000   Value: %d"},
     {(char *) "trace_output_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.trace_limit, 0, 0, CA_WIZARD,
