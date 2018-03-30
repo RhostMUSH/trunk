@@ -15,6 +15,8 @@ Bug in AUTH and API handling where AUTH lookups happened with internal checks
 				- Thanks Neil "Polk" Stevens 
 @set and set() now allow optionally setting contents starting with '_'.
 				- Thanks Gallifrey@BrazilMUX
+Added better user error handling to the build script.
+				- Thanks qa'toq
 
 
                          RhostMUSH 3.9.5 Update File
