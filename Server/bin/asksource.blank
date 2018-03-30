@@ -222,6 +222,7 @@ DEFA[3]="-DM_SUB"
 ###################################################################
 mysql_set_args() {
 looper=1
+sql_vals=0
 while [ ${looper} -eq 1 ]
 do
 clear
@@ -245,21 +246,27 @@ clear
            ;;
       1) echo "[${mysql_host}]: "|tr -d '\012'
          sqlval=mysql_host
+         ((sql_vals++))
          ;;
       2) echo "[${mysql_user}]: "|tr -d '\012'
          sqlval=mysql_user
+         ((sql_vals++))
          ;;
       3) echo "[${mysql_pass}]: "|tr -d '\012'
          sqlval=mysql_pass
+         ((sql_vals++))
          ;;
       4) echo "[${mysql_dbname}]: "|tr -d '\012'
          sqlval=mysql_dbname
+         ((sql_vals++))
          ;;
       5) echo "[${mysql_socket}]: "|tr -d '\012'
          sqlval=mysql_socket
+         ((sql_vals++))
          ;;
       6) echo "[${mysql_port}]: "|tr -d '\012'
          sqlval=mysql_port
+         ((sql_vals++))
          ;;
       *) echo "Invalid argument"
          echo "<ENTER RETURN TO CONTINUE>"
@@ -273,16 +280,23 @@ clear
       eval ${sqlval}=\${SQLANS}
    fi
 done
-echo "Creating new file."
+if [ ${sql_vals} -eq 0 ]
+then
+   echo "No changes.  Aborted by user."
+else
+   echo "Creating new file."
+   cat ../bin/mysql.blank > ../game/rhost_mysql.conf 2>/dev/null
+   echo "# Generated from make config" >> ../game/rhost_mysql.conf
+   echo "mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
+   echo "mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
+   echo "mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
+   echo "mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
+   echo "mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
+   echo "mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
+   echo "Finished."
+fi
+echo "< HIT RETURN KEY TO CONTINUE >"
 read ANS
-cat ../bin/mysql.blank > ../game/rhost_mysql.conf 2>/dev/null
-echo "# Generated from make config" >> ../game/rhost_mysql.conf
-echo "mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
-echo "mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
-echo "mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
-echo "mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
-echo "mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
-echo "mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
 }
 
 mysqlmenu() {
@@ -407,6 +421,7 @@ echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
 echo "      [x]tra default cores (MUX, TinyMUSH3, Penn, Rhost-Default)"
 echo "      Or, you may select a numer to toggle on/off"
+echo "      '#' means you may drill down into that option for a sub-menu."
 echo ""
 echo "Please Enter selection: "|tr -d '\012'
 }
