@@ -32179,3 +32179,4 @@
   * mail attributes allowed evaluation of mail functions and it likely
     shouldn't for security reasons [ASH]
   * timeslice config param could crash the game if used [ASH]
+  * corrupted LBUF in functions.c [ASH]

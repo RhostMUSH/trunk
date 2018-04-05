@@ -19078,8 +19078,10 @@ FUNCTION(fun_objid) {
          }
       }
       if ( i_id_found == 2 ) {
+         atext = alloc_mbuf("objid_mbuffer");
          sprintf(atext, "#%d:%.0f", it, d_objid);
          safe_str(atext, buff, bufcx);
+         free_mbuf(atext);
          return;
       } else {
          atext = atr_get(it, A_CREATED_TIME, &aowner, &aflags);
