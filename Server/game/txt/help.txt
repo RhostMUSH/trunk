@@ -13698,25 +13698,32 @@
   See Also: @cluster 
 
 & SQUISH()
-  Function squish(<string>[,<delimeter>])
+  Function squish(<string>[,<delimeter> [,<count>])
   
   This function will remove multiple spaces (or specified delimiter) from
   the string.  This is meant for the ability to remove excess spaces from
-  strings.
+  strings.  The delimeter defaults to a space.
+  
+  You may specify a <count> of how many repeated characters will be 
+  inserted between the values in the string.  The count defaults to 1.
   
   Examples:
     > @wait 0=@va me=Test[space(20)]Test
     Set.
-    > say v(va)
+    > say u(va)
     You say "Test                    Test"
-    > say squish(v(va))
+    > say squish(u(va))
     You say "Test Test"
+    > say squish(u(va),,5)
+    You say "Test     Test"
     > @vb me=TestaaaaaaaaaaaaaaaaaTest
     Set.
-    > say v(vb)
+    > say u(vb)
     You say "TestaaaaaaaaaaaaaaaaaTest"
-    > say squish(v(vb),a)
+    > say squish(u(vb),a)
     You say "TestaTest"
+    > say squish(u(vb),a,5)
+    You say "TestaaaaaTest"
   
   See Also: s(), strip(), creplace(), trim()
   
@@ -32160,6 +32167,7 @@
   * optional argument to set() and @set to allow setting attributes with
     a content that starts with '_'  [ASH]
   * COMP() now handles case insensitive, numbers, floats, and dbref#s [ASH]
+  * squish() now offers a second argument to specify count for filler [ASH]
   
   Bug Fixes
   ------------

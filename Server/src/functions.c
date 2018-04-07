@@ -28216,11 +28216,28 @@ FUNCTION(fun_locate)
 FUNCTION(fun_squish)
 {
    char *t_ptr, sep;
+   int i_count, i;
 
    if (nfargs == 0) {
       return;
    }
-   varargs_preamble("SQUISH", 2);
+   if (!fn_range_check("SQUISH", nfargs, 1, 3, buff, bufcx)) {
+       return;
+   }
+   sep = ' ';
+   if ( (nfargs > 1) && *fargs[1] ) {
+      sep = *fargs[1];
+   }
+   i_count = 1;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_count = atoi(fargs[2]);
+      if ( i_count > LBUF_SIZE/2 ) {
+         i_count = LBUF_SIZE/2;
+      }
+      if ( i_count < 1 ) {
+         i_count = 1; 
+      }
+   }
    t_ptr = fargs[0];
    while ( *t_ptr ) {
       while ( *t_ptr && (*t_ptr != sep) ) {
@@ -28230,10 +28247,16 @@ FUNCTION(fun_squish)
       if ( !*t_ptr ) {
          return;
       }
-      safe_chr(*t_ptr, buff, bufcx);
+      for (i = 0; i < i_count; i++ ) {
+         safe_chr(*t_ptr, buff, bufcx);
+      }
+      if ( strlen(buff) > (LBUF_SIZE - 40) ) {
+        return;
+      }
       t_ptr++;
-      while ( *t_ptr && (*t_ptr == sep) )
+      while ( *t_ptr && (*t_ptr == sep) ) {
          t_ptr++;
+      }
    }
 }
 
