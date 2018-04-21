@@ -15093,28 +15093,36 @@
    >say squish([space(10)]hi![space(10)]Bye![space(10)])
     You say "hi! Bye!"
   
-  See Also: s()
+  See Also: s(), trim(), edit(), tr()
   
 & S()
   Function: s(string)
  
-  This function performs pronoun substitution in a string, and then returns
-  that string.  As usually, %n is the name, %s the subjective pronoun, %o the
-  objective, %p the possessive, and %a the absolute possessive.  It is
-  important to note that the pronoun is that of the triggering object.
+  This function works like eval() in that it evaluates the string doing full 
+  pronoun substitution and function evaluation and then returns that string.  
+  As usually, %n is the name, %s the subjective pronoun, %o the objective, 
+  %p the possessive, and %a the absolute possessive.  It is important to 
+  note that the pronoun is that of the triggering object.
  
   So, if the ve of an object were: "[s(This is %n)], and I were to 
   type @trigger <object>/ve, it would return "This is <myname>", but 
   if vf were @trigger me/ve, then triggering the vf makes the ve 
   return "This is <object>"
   
+  As stated, this will also evaluate functions as well.  If you wish to
+  only evaluate substitutions, please refer to the subeval() function.
+  
   Example:
     > @sex me=male
     Set.
-    > s(this [add(1,1)] %s)
+    > s(this [add(1,1)] %p)
     You say "this 2 his" 
+    > eval(this [add(1,1)] %p)
+    You say "this 2 his" 
+    > subeval(this [add(1,1)] %p)
+    You say "this [add(1,1)] his" 
   
-  See Also: SUBSTITUTIONS
+  See Also: SUBSTITUTIONS, eval(), subeval(), ueval(), streval(), u(), v()
   
 & SAFEBUFF()
   Function: safebuff(<list> [,<delim>])
