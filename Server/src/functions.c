@@ -18668,11 +18668,11 @@ FUNCTION(fun_randextract)
 
 FUNCTION(fun_extractword)
 {
-   int start, len, i_cntr, i_cntr2, first, i_del, i_numwords;
+   int start, len, i_cntr, i_cntr2, first, i_del, i_numwords, i_mod, i_words;
    char *sep, *osep, *pos, *prevpos, *fargbuff, *outbuff;
    ANSISPLIT outsplit[LBUF_SIZE], *optr, *prevoptr;
 
-   if (!fn_range_check("EXTRACTWORD", nfargs, 1, 6, buff, bufcx)) {
+   if (!fn_range_check("EXTRACTWORD", nfargs, 1, 7, buff, bufcx)) {
       return;
    }
 
@@ -18716,6 +18716,29 @@ FUNCTION(fun_extractword)
       i_del = atoi(fargs[5]);
    } else {
       i_del = 0;
+   }
+
+   if ( (nfargs > 6) && *fargs[6] ) {
+      i_mod = atoi(fargs[6]);
+   } else {
+      i_mod = 0;
+   }
+
+   if ( i_mod ) {
+      pos = fargbuff;
+      i_words = 0;
+      while ( pos && *pos ) {
+         i_words++;
+         prevpos = strstr(pos, sep);
+         if ( !prevpos || !*prevpos )
+            break;
+         pos = prevpos + strlen(sep);
+      }
+      if ( (i_words > 0) && start ) {
+         start = (start % i_words);
+         if ( !start )
+            start = i_words;
+      }
    }
 
    if( (len < 0) || (start < 0) ) {
