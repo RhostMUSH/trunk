@@ -32182,6 +32182,8 @@
     a content that starts with '_'  [ASH]
   * COMP() now handles case insensitive, numbers, floats, and dbref#s [ASH]
   * squish() now offers a second argument to specify count for filler [ASH]
+  * laxed permissions for exits so that they can fetch lcon/lexits on
+    both source and destination points it is linked to [ASH]
   
   Bug Fixes
   ------------

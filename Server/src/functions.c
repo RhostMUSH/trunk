@@ -21286,6 +21286,7 @@ FUNCTION(fun_lcon)
         (Has_contents(it)) &&
         (Examinable(player, it) ||
          (Location(player) == it) ||
+         (isExit(player) && (where_is(player) == it)) ||
          (it == cause))) {
 
         tbuf = alloc_sbuf("fun_lcon");
@@ -21536,7 +21537,7 @@ FUNCTION(fun_lexits)
        return;
     }
     exam = Examinable(player, it);
-    if (!exam && (where_is(player) != it) && (it != cause)) {
+    if (!exam && (where_is(player) != it) && (it != cause) && (isExit(player) && (Location(player) != it)) ) {
        safe_str("#-1", buff, bufcx);
        return;
     }
