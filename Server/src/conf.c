@@ -332,6 +332,7 @@ NDECL(cf_init)
     mudconf.crypt_rounds = 5000;	/* Number of crypt rounds for passwords */
     mudconf.null_is_idle = 0;		/* Treat @@ as idle for idle timer */
     mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
+    mudconf.vlimit = 400;		/* Runtime vlimit here */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -538,7 +539,6 @@ NDECL(cf_init)
     mudconf.robot_toggles.word6 = 0;
     mudconf.robot_toggles.word7 = 0;
     mudconf.robot_toggles.word8 = 0;
-    mudconf.vlimit = 400;
     mudconf.vattr_flags = AF_ODARK;
     mudconf.abort_on_bug = 0;
     mudconf.rwho_transmit = 0;
@@ -837,7 +837,7 @@ NDECL(cf_init)
     mudconf.ntfy_nest_lim = 20;
     mudconf.cache_trim = 0;
     mudconf.cache_steal_dirty = 1;
-    mudconf.vlimit = 750;
+    mudconf.vlimit = 100000; /* we need this to be very large for db conversions */
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
     mudconf.vattr_limit_checkwiz = 0; /* Check if wizards check vattr limits */
     mudstate.logging = 0;

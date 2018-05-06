@@ -32204,3 +32204,5 @@
     shouldn't for security reasons [ASH]
   * timeslice config param could crash the game if used [ASH]
   * corrupted LBUF in functions.c [ASH]
+  * flatfiles loaded with dbref#'s having more than 750 attributes 
+    could be cut off.  [ASH]
