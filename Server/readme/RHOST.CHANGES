@@ -17,6 +17,9 @@ Bug in AUTH and API handling where AUTH lookups happened with internal checks
 				- Thanks Gallifrey@BrazilMUX
 Added better user error handling to the build script.
 				- Thanks qa'toq
+Due to an insanely old bug in singleuser mode with attribute caps, flatfiles
+   would cut off attributes at 750 on dbloading.
+				- Thanks Aqua@MuxNexus
 
 
                          RhostMUSH 3.9.5 Update File
