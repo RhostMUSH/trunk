@@ -4271,6 +4271,7 @@
   Displays the current message-of-the-day.  Note that it is displayed when
   you connect to your character.
   
+& locks
 & @lock
   Command: @lock[/<whichlock>] <object>=<key>
            @lock <object>/<attrib>
