@@ -32171,6 +32171,8 @@
     iter_loop_max dictates maximums for the looping [ASH]
   * extractword() takes an optional MOD argument that allows applying a modulo
     to the 'first' value for automatic wrap-around.
+  * @recover has a /detail switch that now will show attribute details of the
+    target object.
   
   Changes
   ------------

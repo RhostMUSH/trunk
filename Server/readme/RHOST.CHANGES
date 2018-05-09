@@ -20,6 +20,8 @@ Added better user error handling to the build script.
 Due to an insanely old bug in singleuser mode with attribute caps, flatfiles
    would cut off attributes at 750 on dbloading.
 				- Thanks Aqua@MuxNexus
+@recover/detail to show attributes and details of recoverable item
+				- Thanks Ixokai
 
 
                          RhostMUSH 3.9.5 Update File

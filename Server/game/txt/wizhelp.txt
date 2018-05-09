@@ -3992,7 +3992,7 @@
   See Also: @dbck, @recover, @reclist, @dbclean
 
 & @recover
-  Command: @recover <#dbref>
+  Command: @recover[/<switch>] <#dbref>
   
   This command will recover from destruction the specified dbref# shown
   as previously destroyed in the recover list by the @reclist command.
@@ -4008,8 +4008,30 @@
   
   Items @purged are gone for good.
   
-  Example:  @recover #123
+  The following switches are available:
+    /detail - Instead of recovering the object list details of the
+              object in question.  This will display the dbref#,
+              flags, and attributes on the object.  The Rectime is
+              the time (in secs()) the object was destroyed.
+    
+  Example:  
+    > @recover/detail #123
+    MyObj(#123$Ih)
+    Type: THING Flags: RECOVER INHERIT HALTED
+    Name([$D]): MyObj
+    *Money([$D]): 1
+    ModifiedStamp([$D]): Tue Oct  3 13:30:32 2017
+    FOO: $fooz:@pipe/on va;think test;@pipe/off
+    VA: xyz
+    OOC: $ooc *:@pemit %#=[parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
+    AnsiName([$]): %cr%chMy%cn%cc%chO%cn%cb%chbj%cn
+    TRACE_GREP: sub(
+    TRACE_COLOR_WATSON: +pink
+    Rectime([$Mi]): 1507055461
   
+    > @recover #123
+    Restored.
+   
   See Also: @purge, @reclist
 
 & @reclist

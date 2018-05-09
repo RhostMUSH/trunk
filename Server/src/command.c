@@ -904,6 +904,11 @@ NAMETAB depower_sw[] =
     {(char *) "remove", 1, CA_PUBLIC, 0, POWER_REMOVE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB recover_sw[] =
+{
+    {(char *) "detail", 1, CA_WIZARD, 0, RECOVER_DETAIL},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB rpage_sw[] =
 {
     {(char *) "noansi", 1, CA_PUBLIC, 0, PAGE_NOANSI | SW_MULTIPLE},
@@ -1414,7 +1419,7 @@ CMDENT command_table[] =
      0, CS_NO_ARGS, 0, do_reboot},
     {(char *) "@reclist", reclist_sw, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_reclist},
-    {(char *) "@recover", NULL, CA_IMMORTAL, 0,
+    {(char *) "@recover", recover_sw, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_recover},
     {(char *) "@register", register_sw, CA_PUBLIC, 0,
      0, CS_TWO_ARG, 0, do_register},

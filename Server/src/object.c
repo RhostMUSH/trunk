@@ -19,8 +19,9 @@
 #define ZAP_LOC(i)	{ s_Location(i, NOTHING); s_Next(i, NOTHING); }
 
 extern double NDECL(next_timer);
-
 extern int FDECL(alarm_msec, (double));
+extern void FDECL(show_desc_redir, (dbref, dbref, int));
+extern void FDECL(look_atrs_redir, (dbref, dbref, int, int, dbref, int));
 
 static int check_type;
 
@@ -779,7 +780,7 @@ do_recover(dbref player, dbref cause, int key, char *buff)
 {
     dbref obj, owner, place, aowner;
     int aflags;
-    char *tname, *aregbuff, *pt1;
+    char *tname, *aregbuff, *pt1, *s_detail;
 
     if (*buff != '#') {
 	notify(player, "No dbref specified.");
@@ -807,66 +808,79 @@ do_recover(dbref player, dbref cause, int key, char *buff)
 	notify(player, "Dbref not found in recover list.");
 	return;
     }
-    if ((Typeof(obj) == TYPE_PLAYER) && (lookup_player(NOTHING, Name(obj), 0) != NOTHING)) {
-	notify(player, "Player name already exists.");
-	return;
-    }
-    if (place == NOTHING) {
-	mudstate.recoverlist = Link(obj);
+    if ( key == RECOVER_DETAIL ) {
+        s_detail = unparse_object(player, obj, 0);
+        notify(player, s_detail);
+        free_lbuf(s_detail);
+        if (mudconf.ex_flags) {
+           s_detail = flag_description(player, obj, 1, (int *)NULL, 0);
+           notify(player, s_detail);
+           free_lbuf(s_detail);
+        }
+        show_desc_redir(player, obj, 0);
+        look_atrs_redir(player, obj, 0, 0, NOTHING, 1);
     } else {
-	s_Link(place, Link(obj));
+       if ((Typeof(obj) == TYPE_PLAYER) && (lookup_player(NOTHING, Name(obj), 0) != NOTHING)) {
+	   notify(player, "Player name already exists.");
+	   return;
+       }
+       if (place == NOTHING) {
+	   mudstate.recoverlist = Link(obj);
+       } else {
+	   s_Link(place, Link(obj));
+       }
+       s_Flags2(obj, Flags2(obj) & ~RECOVER);
+       atr_clr(obj, A_RECTIME);
+       switch (Typeof(obj)) {
+       case TYPE_ROOM:
+	   s_Link(obj, NOTHING);
+	   s_Owner(obj, player);
+	   s_Next(obj, NOTHING);
+	   break;
+       case TYPE_THING:
+	   s_Owner(obj, player);
+	   s_Next(obj, NOTHING);
+	   s_Link(obj, NOTHING);
+	   move_via_generic(obj, player, NOTHING, 0);
+	   s_Home(obj, player);
+	   break;
+       case TYPE_PLAYER:
+	   s_Link(obj, NOTHING);
+	   if (Robot(obj)) {
+	       payfor_force(Next(obj), mudconf.robotcost);
+	       pay_quota_force(Next(obj), mudconf.player_quota, TYPE_PLAYER);
+	   }
+	   add_player_name(obj, Name(obj));
+	   s_Owner(obj, Next(obj));
+	   s_Home(obj, start_home());
+	   s_Next(obj, NOTHING);
+	   aregbuff = atr_get(obj,A_AUTOREG,&aowner,&aflags);
+	   if (*aregbuff && (strlen(aregbuff) > 14)) {
+	     pt1 = strstr(aregbuff+7,", Site: ");
+	     if (pt1) {
+	       *pt1 = '\0';
+	       if (areg_check(aregbuff+7,1))
+	         areg_add(aregbuff+7,obj);
+	     }
+	   }
+	   free_lbuf(aregbuff);
+	   move_object(obj, mudconf.start_room);
+	   break;
+       case TYPE_EXIT:
+	   s_Link(obj, NOTHING);
+	   s_Owner(obj, player);
+	   s_Exits(obj, Location(player));
+	   s_Next(obj, Exits(Location(player)));
+	   s_Exits(Location(player), obj);
+	   break;
+       default:
+	   notify(player, "Unknown object type in recover.");
+	   return;
+       }
+       s_Contents(obj, NOTHING);
+       Unmark(obj);
+       notify(player, "Restored.");
     }
-    s_Flags2(obj, Flags2(obj) & ~RECOVER);
-    atr_clr(obj, A_RECTIME);
-    switch (Typeof(obj)) {
-    case TYPE_ROOM:
-	s_Link(obj, NOTHING);
-	s_Owner(obj, player);
-	s_Next(obj, NOTHING);
-	break;
-    case TYPE_THING:
-	s_Owner(obj, player);
-	s_Next(obj, NOTHING);
-	s_Link(obj, NOTHING);
-	move_via_generic(obj, player, NOTHING, 0);
-	s_Home(obj, player);
-	break;
-    case TYPE_PLAYER:
-	s_Link(obj, NOTHING);
-	if (Robot(obj)) {
-	    payfor_force(Next(obj), mudconf.robotcost);
-	    pay_quota_force(Next(obj), mudconf.player_quota, TYPE_PLAYER);
-	}
-	add_player_name(obj, Name(obj));
-	s_Owner(obj, Next(obj));
-	s_Home(obj, start_home());
-	s_Next(obj, NOTHING);
-	aregbuff = atr_get(obj,A_AUTOREG,&aowner,&aflags);
-	if (*aregbuff && (strlen(aregbuff) > 14)) {
-	  pt1 = strstr(aregbuff+7,", Site: ");
-	  if (pt1) {
-	    *pt1 = '\0';
-	    if (areg_check(aregbuff+7,1))
-	      areg_add(aregbuff+7,obj);
-	  }
-	}
-	free_lbuf(aregbuff);
-	move_object(obj, mudconf.start_room);
-	break;
-    case TYPE_EXIT:
-	s_Link(obj, NOTHING);
-	s_Owner(obj, player);
-	s_Exits(obj, Location(player));
-	s_Next(obj, Exits(Location(player)));
-	s_Exits(Location(player), obj);
-	break;
-    default:
-	notify(player, "Unknown object type in recover.");
-	return;
-    }
-    s_Contents(obj, NOTHING);
-    Unmark(obj);
-    notify(player, "Restored.");
 }
 #endif
 
