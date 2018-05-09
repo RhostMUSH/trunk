@@ -961,6 +961,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define QUOTA_ROOM	4096
 #define QUOTA_ALL	8192
 
+#define RECOVER_DETAIL	1
+
 #define REC_TYPE	1
 #define REC_OWNER	2
 #define REC_COUNT	4
