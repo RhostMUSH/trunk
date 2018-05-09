@@ -1877,14 +1877,20 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 	     nhashfind(ca, &mudstate.parent_htab)))
 	    continue;
 
+        if ( override && (attr->flags & AF_INTERNAL) ) {
+            continue;
+        }
+
 	buf = atr_get(thing, ca, &aowner, &aflags);
 	if (override || Read_attr(player, othing, attr, aowner, aflags, 0)) {
            if ( !i_tree || (i_tree && !count_chars(attr->name, *(mudconf.tree_character))) ) {
 	      if (!(check_exclude && (aflags & AF_PRIVATE))) {
 		 if (hash_insert)
 		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);
-		 view_atr(player, thing, attr, buf,
-			  aowner, aflags, 0, (thing != othing ? thing : (i_cluster != NOTHING ? i_cluster : -1)));
+                 if ( !override || (override && !(aflags & AF_INTERNAL)) ) {
+		    view_atr(player, thing, attr, buf,
+			     aowner, aflags, 0, (thing != othing ? thing : (i_cluster != NOTHING ? i_cluster : -1)));
+                 }
 	      }
            }
 	}
