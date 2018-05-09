@@ -4018,9 +4018,6 @@
     > @recover/detail #123
     MyObj(#123$Ih)
     Type: THING Flags: RECOVER INHERIT HALTED
-    Name([$D]): MyObj
-    *Money([$D]): 1
-    ModifiedStamp([$D]): Tue Oct  3 13:30:32 2017
     FOO: $fooz:@pipe/on va;think test;@pipe/off
     VA: xyz
     OOC: $ooc *:@pemit %#=[parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
