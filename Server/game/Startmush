@@ -8,9 +8,7 @@ then
    CYGWIN=1
 fi
 # enforce CYGWIN mode for Windows 10 bash
-t1=`cat /proc/version 2>/dev/null|grep -c Microsoft`
-t2=`cat /proc/version 2>/dev/null|grep -ci cygwin`
-if [ $t1 -gt 0 -o $t2 -gt 0 ]
+if [ `grep -c Microsoft /proc/version 2>/dev/null` -gt 0 -o `grep -ci cygwin /proc/version 2>/dev/null` -gt 0 ]
 then
    CYGWIN=1
 fi
@@ -67,16 +65,18 @@ then
    lc_pid_chk=`ps -p ${lc_pid}|grep -c rhost`
 fi
 
+gl_shm=`echo ${DEBUG_ID}|awk '{printf("%x", $0)}'`
+gl_shmchk=`ipcs -m 2>/dev/null|grep "${gl_shm}"`
+lc_port=`grep ^port ${GAMENAME}.conf|awk '{print $2}'`
+lc_debugid=`grep ^debug_id ${GAMENAME}.conf|awk '{print $2}'`
+
 if [ ${lc_pid_chk} -gt 0 ]
 then
-   lc_port=`grep ^port ${GAMENAME}.conf|awk '{print $2}'`
-   lc_debugid=`grep ^debug_id ${GAMENAME}.conf|awk '{print $2}'`
    echo "Rhost is already running on pid ${lc_pid} [port: ${lc_port}, debug id: ${lc_debugid}]"
    ps -lp ${lc_pid}
    echo ""
    if [ -f /usr/bin/ipcs ]
    then
-      gl_shm=$(echo ${DEBUG_ID}|awk '{printf("%x", $0)}')
       echo "Shared Memory Segment ${DEBUG_ID} [${gl_shm}]"
       ipcs -m|egrep "(key|${gl_shm})"
       echo ""
@@ -84,6 +84,13 @@ then
    echo "If you wish to kill this process at the shell, please do the following:"
    echo "kill -USR2 ${lc_pid}"
    exit 1
+fi
+if [ -z "${gl_shmchk}" ]
+then
+   echo "There is an existing shared memory segment that the mush will try to use."
+   echo "If this is because you kill -9'd your mush process then you may need"
+   echo "to start your mush with 'Startmush -f'."
+   echo ""
 fi
 
 if [ ! -r ./netrhost ]; then
