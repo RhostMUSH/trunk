@@ -433,6 +433,7 @@ struct confdata {
 	int	crypt_rounds;	/* Number of rounds to encrypt -- default 5000 */
 	int	null_is_idle;	/* Treat '@@@' like idle for, well, idle */
 	int	iter_loop_max;	/* Infinite iter loop counter */
+	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */

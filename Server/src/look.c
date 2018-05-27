@@ -670,10 +670,13 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
 		    /* chop off first exit alias to display */
 
 		    if (buff != e) {
-		      if (Transparent(loc))
+		      if (Transparent(loc)) {
 			safe_str("\r\n", buff, &e);
-		      else
-			safe_str((char *) "  ", buff, &e);
+		      } else {
+                        if ( *mudconf.exit_separator ) {
+			   safe_str(mudconf.exit_separator, buff, &e);
+                        }
+                      }
 		    }
 
                     if ( ExtAnsi(thing) ) {

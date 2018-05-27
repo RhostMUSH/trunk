@@ -339,8 +339,11 @@ NDECL(cf_init)
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
-    memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
+    memset(mudconf.tree_character, '\0', sizeof(mudconf.exit_separator));
+    memset(mudconf.exit_separator, '\0', sizeof(mudconf.exit_separator));
+    strcpy(mudconf.exit_separator, (char *)"  ");
     strcpy(mudconf.tree_character, (char *)"`");
+    memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -2648,22 +2651,27 @@ CF_HAND(cf_atrperms)
 CF_HAND(cf_string_chr)
 {
     int retval;
+    long l_diff;
     char *buff;
 
     /* Copy the string to the buffer if it is not too big */
 
     retval = 0;
-    if (strlen(str) >= extra) {
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
 	str[extra - 1] = '\0';
 	if (mudstate.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String truncated", cmd);
-	    log_text(buff);
-	    free_lbuf(buff);
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
 	    ENDLOG
 	} else {
-	    notify(player, "String truncated");
+	    buff = alloc_lbuf("cf_string.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
 	}
 	retval = 1;
     }
@@ -2678,22 +2686,27 @@ CF_HAND(cf_string_chr)
 CF_HAND(cf_string)
 {
     int retval;
+    long l_diff;
     char *buff;
 
     /* Copy the string to the buffer if it is not too big */
 
     retval = 0;
-    if (strlen(str) >= extra) {
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
 	str[extra - 1] = '\0';
 	if (mudstate.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String truncated", cmd);
-	    log_text(buff);
-	    free_lbuf(buff);
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
 	    ENDLOG
 	} else {
-	    notify(player, "String truncated");
+	    buff = alloc_lbuf("cf_string.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
 	}
 	retval = 1;
     }
@@ -2704,22 +2717,27 @@ CF_HAND(cf_string)
 CF_HAND(cf_string_sub)
 {
     int retval;
+    long l_diff;
     char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-:", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 
     retval = 0;
-    if (strlen(str) >= extra) {
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
 	str[extra - 1] = '\0';
 	if (mudstate.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String truncated", cmd);
-	    log_text(buff);
-	    free_lbuf(buff);
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
 	    ENDLOG
 	} else {
-	    notify(player, "String truncated");
+	    buff = alloc_lbuf("cf_string.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
 	}
 	retval = 1;
     }
@@ -3621,6 +3639,9 @@ CONF conftable[] =
      {(char *) "exits_connect_rooms",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.exits_conn_rooms, 0, 0, CA_WIZARD,
      (char *) "Is a room with an exit considered floating?"},
+    {(char *) "exit_separator",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.exit_separator, 31, 0, CA_WIZARD,
+     (char *) "Specify the characters for default exit separation." },
     {(char *) "cache_depth",
      cf_int, CA_DISABLED, &mudconf.cache_depth, 0, 0, CA_WIZARD,
      (char *) "Show what the current cache debth is.\r\n"\

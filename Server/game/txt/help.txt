@@ -29742,7 +29742,7 @@
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
-    4.0.0: 4.0.0p0, 4.0.0p1
+    4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -32209,3 +32209,17 @@
   * corrupted LBUF in functions.c [ASH]
   * flatfiles loaded with dbref#'s having more than 750 attributes 
     could be cut off.  [ASH]
+
+& 4.0.0p2
+  Release Date: 05/26/18
+  Status: Alpha
+    
+  New Features
+  ------------
+  * exit_separator @admin param to specify separator between exits [ASH]
+  
+  Changes
+  ------------
+  
+  Bug Fixes
+  ------------

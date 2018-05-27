@@ -5834,32 +5834,32 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index               examine_flags              examine_public_attrs
-  examine_restrictive       exec_secure                exit_attr_default       
-  exit_flags                exit_parent                exit_quota              
-  exit_toggles              exits_connect_rooms        expand_goto             
-  fascist_teleport          file_object                find_money_chance       
-  flag_alias                flag_name                  flag_access_see         
-  flag_access_set           flag_access_type           flag_access_unset       
-  float_precision           forbid_host                forbid_site             
-  forbidapi_host            forbidapi_site             fork_dump             
-  format_compatbility       fork_vfork                 format_contents       
-  format_exits              format_name                formats_are_local     
-  full_file                 full_motd_message          function_access       
-  function_alias            function_invocation_limit  function_max          
-  function_recursion_limit  gdbm_cache_size            gdbm_database         
-  global_aconnect           global_adisconnect         global_ansimask       
-  global_attrdefault        global_clone_exit          global_clone_obj      
-  global_clone_player       global_clone_room          global_clone_thing    
-  global_error_obj          global_parent_exit         global_parent_obj     
-  global_parent_player      global_parent_room         global_parent_thing   
-  good_name                 goodmail_host              gconf_file            
-  guest_char_num            guest_file                 guest_namelist        
-  guest_randomize           guild_attrname             guild_default          
-  guild_hdr                 hackattr_nowiz             hackattr_see 
-  hasattrp_compat           heavy_cpu_max              help_file  
-  help_index                hide_nospoof               hook_cmd    
-  hook_obj                  hook_offline
+  error_index             examine_flags              examine_public_attrs
+  examine_restrictive     exec_secure                exit_attr_default       
+  exit_flags              exit_parent                exit_quota              
+  exit_separator          exit_toggles               exits_connect_rooms  
+  expand_goto             fascist_teleport           file_object   
+  find_money_chance       flag_alias                 flag_name           
+  flag_access_see         flag_access_set            flag_access_type 
+  flag_access_unset       float_precision            forbid_host 
+  forbid_site             forbidapi_host             forbidapi_site 
+  fork_dump               format_compatbility        fork_vfork 
+  format_contents         format_exits               format_name 
+  formats_are_local       full_file                  full_motd_message
+  function_access         function_alias             function_invocation_limit
+  function_max            function_recursion_limit   gdbm_cache_size 
+  gdbm_database           global_aconnect            global_adisconnect 
+  global_ansimask         global_attrdefault         global_clone_exit  
+  global_clone_obj        global_clone_player        global_clone_room  
+  global_clone_thing      global_error_obj           global_parent_exit
+  global_parent_obj       global_parent_player       global_parent_room
+  global_parent_thing     good_name                  goodmail_host  
+  gconf_file              guest_char_num             guest_file 
+  guest_namelist          guest_randomize            guild_attrname  
+  guild_default           guild_hdr                  hackattr_nowiz
+  hackattr_see            hasattrp_compat            heavy_cpu_max 
+  help_file               help_index                 hide_nospoof  
+  hook_cmd                hook_obj                   hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -6900,6 +6900,15 @@
   See Also: @list, exit_toggles, player_flags, robot_flags, room_flags, 
             thing_flags.
 
+& exit_separator
+  Config parameter: exit_separator <string>.   Default: %b%b
+  
+  Specifies the string that will separate exits by default when you look
+  at a location.  It defaults to two spaces.  You may have up to 31
+  characters separating exit names.
+  
+  See Also: format_exits
+  
 & exit_toggles
   Config parameter: exit_toggles <toggles>.  Default: blank
   
@@ -7310,7 +7319,7 @@
   includes both ExitFormat and DarkExitFormat.  If either of these 
   attributes exist, it will take presidence over the default 'Exits'.
   
-  See Also: format_contents, format_name
+  See Also: format_contents, format_name, exit_separator
 
 & format_name
   Config parameter: format_name <yes/no>.  Default: no
