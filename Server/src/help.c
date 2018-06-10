@@ -262,6 +262,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
           if ( !i_found && quick_wild(topic, s_tmpbuff) ) {
              if ( matched ) {
                 if ( *(mudconf.help_separator) ) {
+                   s_hbuff2 = alloc_lbuf("help_buff");
                    strcpy(s_hbuff2, mudconf.help_separator);
                    s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                   (char **)NULL, 0, (char **)NULL, 0);
@@ -317,6 +318,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 		}
                 if ( matched ) {
                    if ( *(mudconf.help_separator) ) {
+                      s_hbuff2 = alloc_lbuf("help_buff");
                       strcpy(s_hbuff2, mudconf.help_separator);
                       s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                      (char **)NULL, 0, (char **)NULL, 0);
@@ -372,6 +374,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                if ( i_tier0 > 0 ) {
                   for (i=0; i<i_tier0; i++) {
                      if ( matched && *(mudconf.help_separator) ) {
+                        s_hbuff2 = alloc_lbuf("help_buff");
                         strcpy(s_hbuff2, mudconf.help_separator);
                         s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                        (char **)NULL, 0, (char **)NULL, 0);
@@ -388,6 +391,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                if ( i_tier1 > 0 ) {
                   for (i=0; i<i_tier1; i++) {
                      if ( matched && *(mudconf.help_separator) ) {
+                        s_hbuff2 = alloc_lbuf("help_buff");
                         strcpy(s_hbuff2, mudconf.help_separator);
                         s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                        (char **)NULL, 0, (char **)NULL, 0);
@@ -404,6 +408,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                if ( !i_tier1 && (i_tier2 > 0) ) {
                   for (i=0; i<i_tier2; i++) {
                      if ( matched && *(mudconf.help_separator) ) {
+                        s_hbuff2 = alloc_lbuf("help_buff");
                         strcpy(s_hbuff2, mudconf.help_separator);
                         s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                        (char **)NULL, 0, (char **)NULL, 0);
@@ -420,6 +425,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                if ( !i_tier1 && !i_tier2 && (i_tier3 > 0) ) {
                   for (i=0; i<i_tier3; i++) {
                      if ( matched && *(mudconf.help_separator) ) {
+                        s_hbuff2 = alloc_lbuf("help_buff");
                         strcpy(s_hbuff2, mudconf.help_separator);
                         s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                        (char **)NULL, 0, (char **)NULL, 0);
@@ -721,6 +727,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          if ( i_tier0 > 0 ) {
             for (i=0; i<i_tier0; i++) {
                if ( matched && *(mudconf.help_separator) ) {
+                  s_hbuff2 = alloc_lbuf("help_buff");
                   strcpy(s_hbuff2, mudconf.help_separator);
                   s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                  (char **)NULL, 0, (char **)NULL, 0);
@@ -737,6 +744,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          if ( i_tier1 > 0 ) {
             for (i=0; i<i_tier1; i++) {
                if ( matched && *(mudconf.help_separator) ) {
+                  s_hbuff2 = alloc_lbuf("help_buff");
                   strcpy(s_hbuff2, mudconf.help_separator);
                   s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                  (char **)NULL, 0, (char **)NULL, 0);
@@ -753,6 +761,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          if ( !i_tier1 && (i_tier2 > 0) ) {
             for (i=0; i<i_tier2; i++) {
                if ( matched && *(mudconf.help_separator) ) {
+                  s_hbuff2 = alloc_lbuf("help_buff");
                   strcpy(s_hbuff2, mudconf.help_separator);
                   s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                  (char **)NULL, 0, (char **)NULL, 0);
@@ -769,6 +778,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          if ( !i_tier1 && !i_tier2 && (i_tier3 > 0) ) {
             for (i=0; i<i_tier3; i++) {
                if ( matched && *(mudconf.help_separator) ) {
+                  s_hbuff2 = alloc_lbuf("help_buff");
                   strcpy(s_hbuff2, mudconf.help_separator);
                   s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                  (char **)NULL, 0, (char **)NULL, 0);
@@ -1076,6 +1086,7 @@ errmsg(dbref player)
 		}
 		safe_str(htab_entry->key, topic_list, &buffp);
 		if ( *(mudconf.help_separator) ) {
+                   s_hbuff2 = alloc_lbuf("help_buff");
                    strcpy(s_hbuff2, mudconf.help_separator);
                    s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                   (char **)NULL, 0, (char **)NULL, 0);
