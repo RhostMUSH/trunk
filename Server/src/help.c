@@ -15,6 +15,8 @@
 #include "alloc.h"
 #include "rhost_ansi.h"
 
+extern void fun_strdistance(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+
 int
 pstricmp(char *buf1, char *buf2, int len)
 {
@@ -175,10 +177,11 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 {
     FILE *fp;
     char *p, *line;
-    int offset, i_first, i_found, matched;
+    int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3;
     struct help_entry *htab_entry;
     char *topic_list, *buffp, *mybuff, *myp;
     char realFilename[129 + 32], *s_tmpbuff, *s_ptr;
+    char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_buff, *s_buffptr, *s_nbuff[2];
 
     if (*topic == '\0')
 	topic = (char *) "help";
@@ -238,16 +241,28 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
              i_first = 1;
              safe_str(line, s_tmpbuff, &s_ptr);
              if ( quick_wild( topic, line ) ) {
+                if ( i_found ) {
+                   if ( *(mudconf.help_separator) ) {
+		      safe_str(mudconf.help_separator, topic_list, &buffp);
+                   } else {
+		      safe_str((char *) "  ", topic_list, &buffp);
+                   }
+                }
                 i_found = matched = 1;
 		safe_str(htab_entry->key, topic_list, &buffp);
-		safe_str((char *) "  ", topic_list, &buffp);
                 break;
              }
           }
           if ( !i_found && quick_wild(topic, s_tmpbuff) ) {
+             if ( matched ) {
+                if ( *(mudconf.help_separator) ) {
+                   safe_str(mudconf.help_separator, topic_list, &buffp);
+                } else {
+                   safe_str((char *) "  ", topic_list, &buffp);
+                }
+             }
              matched = 1;
              safe_str(htab_entry->key, topic_list, &buffp);
-             safe_str((char *) "  ", topic_list, &buffp);
           }
           memset(s_tmpbuff, '\0', LBUF_SIZE);
           s_ptr = s_tmpbuff;
@@ -267,32 +282,138 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
     }
 
     htab_entry = (struct help_entry *) hashfind(topic, htab);
-    if (htab_entry)
+    if (htab_entry) {
 	offset = htab_entry->pos;
-    else {
+    } else {
 	matched = 0;
+        i_tier0 = i_tier1 = i_tier2 = i_tier3 = 0;
+        for (i=0; i < 3; i++ ) {
+           s_tier0[i] = alloc_sbuf("s_tier1");
+           s_tier1[i] = alloc_sbuf("s_tier1");
+           s_tier2[i] = alloc_sbuf("s_tier2");
+           s_tier3[i] = alloc_sbuf("s_tier3");
+        }
+        s_buffptr = s_buff = alloc_lbuf("help_topical");
+        s_tmpbuff = alloc_lbuf("help_wild_checker");
 	for (htab_entry = (struct help_entry *) hash_firstentry(htab);
 	     htab_entry != NULL;
 	     htab_entry = (struct help_entry *) hash_nextentry(htab)) {
 	    if (htab_entry->original &&
 		quick_wild(topic, htab_entry->key)) {
 		if (matched == 0) {
-		    matched = 1;
 		    topic_list = alloc_lbuf("help_write");
 		    buffp = topic_list;
 		}
+                if ( matched ) {
+                   if ( *(mudconf.help_separator) ) {
+		      safe_str(mudconf.help_separator, topic_list, &buffp);
+                   } else {
+		      safe_str((char *) "  ", topic_list, &buffp);
+                   }
+                }
+		matched = 1;
 		safe_str(htab_entry->key, topic_list, &buffp);
-		safe_str((char *) "  ", topic_list, &buffp);
-	    }
+            }
+            if ( !matched && !strcmp(htab_entry->key, htab_entry->keyorig) ) {
+               s_nbuff[0] = topic;
+               s_nbuff[1] = htab_entry->keyorig;
+               s_buffptr = s_buff;
+               if ( i_tier0 < 3 ) {
+                  sprintf(s_tmpbuff, "*%.*s*", LBUF_SIZE-100, topic);
+                  if ( quick_wild(s_tmpbuff, htab_entry->keyorig) ) {
+                     sprintf(s_tier0[i_tier0], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                     i_tier0++;
+                  }
+               }
+               fun_strdistance(s_buff, &s_buffptr, 1, 1, 1, s_nbuff, 2, (char **)NULL, 0);
+               switch(atoi(s_buff)) {
+                  case 1: /* case 1 */
+                     if ( i_tier1 < 3 ) {
+                        sprintf(s_tier1[i_tier1], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                        i_tier1++;
+                     }
+                     break;
+                  case 2: /* case 2 */
+                     if ( i_tier2 < 3 ) {
+                        sprintf(s_tier2[i_tier2], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                        i_tier2++;
+                     }
+                     break;
+                  case 3: /* case 3 */
+                     if ( i_tier3 < 3 ) {
+                        sprintf(s_tier3[i_tier3], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                        i_tier3++;
+                     }
+                     break;
+               }
+            }
 	}
-	if (matched == 0)
-	    notify(player, unsafe_tprintf("No entry for '%s'.", topic));
-	else {
+        free_lbuf(s_tmpbuff);
+	if (matched == 0) {
+            if ( i_tier0 || i_tier1 || i_tier2 || i_tier3 ) {
+               s_buffptr = s_buff;
+	       safe_str(unsafe_tprintf("No entry for '%s'.  Suggestions:", topic), s_buff, &s_buffptr);
+               if ( i_tier0 > 0 ) {
+                  for (i=0; i<i_tier0; i++) {
+                     if ( matched && *(mudconf.help_separator) ) {
+                        safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+                     } else {
+                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     }
+                     safe_str(s_tier0[i], s_buff, &s_buffptr);
+                     matched = 1;
+                  }
+               }
+               if ( i_tier1 > 0 ) {
+                  for (i=0; i<i_tier1; i++) {
+                     if ( matched && *(mudconf.help_separator) ) {
+                        safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+                     } else {
+                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     }
+                     safe_str(s_tier1[i], s_buff, &s_buffptr);
+                     matched = 1;
+                  }
+               }
+               if ( !i_tier1 && (i_tier2 > 0) ) {
+                  for (i=0; i<i_tier2; i++) {
+                     if ( matched && *(mudconf.help_separator) ) {
+                        safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+                     } else {
+                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     }
+                     safe_str(s_tier2[i], s_buff, &s_buffptr);
+                     matched = 1;
+                  }
+               }
+               if ( !i_tier1 && !i_tier2 && (i_tier3 > 0) ) {
+                  for (i=0; i<i_tier3; i++) {
+                     if ( matched && *(mudconf.help_separator) ) {
+                        safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+                     } else {
+                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     }
+                     safe_str(s_tier3[i], s_buff, &s_buffptr);
+                     matched = 1;
+                  }
+               }
+               notify(player, s_buff);
+            } else {
+	       notify(player, unsafe_tprintf("No entry for '%s'.  No suggestions available.", topic));
+            }
+	} else {
 	    notify(player, unsafe_tprintf("Here are the entries which match '%s':", topic));
 	    *buffp = '\0';
 	    notify(player, topic_list);
 	    free_lbuf(topic_list);
 	}
+        for (i=0; i<3; i++) {
+           free_sbuf(s_tier0[i]);
+           free_sbuf(s_tier1[i]);
+           free_sbuf(s_tier2[i]);
+           free_sbuf(s_tier3[i]);
+        }
+        free_lbuf(s_buff);
 	return;
     }
 
@@ -361,18 +482,25 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
 {
    help_indx entry;
    char *tmp, *p_tmp, *p, *q, *line, *msg, *p_msg, *result, *tpass;
-   int first, found, matched, one_through, space_compress, i_noindex;
-   FILE *fp_indx, *fp_help;
    char filename[129 + 40], *mybuff, *myp;
+   char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff,
+        *s_buff, *s_buffptr, *s_nbuff[2]; 
+   int first, found, matched, one_through, space_compress, i_noindex;
+   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i;
+   FILE *fp_indx, *fp_help;
 
    if ( (key & DYN_SEARCH) && (key & DYN_NOLABEL) ) {
       notify_quiet(player, "Illegal combination of switches.");
       return(1);
    }
-   i_noindex = 0;
+   i_noindex = i_suggest = 0;
    if ( key & DYN_NOLABEL ) {
       key &= ~DYN_NOLABEL;
       i_noindex = 1;
+   }
+   if ( key & DYN_SUGGEST ) {
+      key &= ~DYN_SUGGEST;
+      i_suggest = 1;
    }
    fp_help = NULL;
    memset(filename, 0, sizeof(filename));
@@ -483,8 +611,19 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       tf_fclose(fp_indx);
       return 0;
    }
-
-   while (!found && ((fread((char *)&entry, sizeof(help_indx), 1, fp_indx) == 1))) { 
+   
+   if ( i_suggest ) {
+      for ( i=0; i<3; i++ ) {
+         s_tier0[i] = alloc_sbuf("dynhelp_suggest");
+         s_tier1[i] = alloc_sbuf("dynhelp_suggest");
+         s_tier2[i] = alloc_sbuf("dynhelp_suggest");
+         s_tier3[i] = alloc_sbuf("dynhelp_suggest");
+      }
+      s_tmpbuff = alloc_lbuf("dynhelp_suggest_wildcard");
+      s_buffptr = s_buff = alloc_lbuf("dynhelp_topical");
+      i_tier0 = i_tier1 = i_tier2 = i_tier3 = 0;
+   }
+   while (!found && ((fread((char *)&entry, sizeof(help_indx), 1, fp_indx) == 1))) {
       for (p = entry.topic; *p; p++)
           *p = ToLower((int)*p);
 
@@ -504,8 +643,94 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             first = 1;
          }
       }
+      if ( i_suggest && !matched ) {
+         if ( i_tier0 < 3 ) {
+            sprintf(s_tmpbuff, "*%.*s*", LBUF_SIZE - 100, msg);
+            if ( quick_wild(s_tmpbuff, entry.topic) ) {
+               sprintf(s_tier0[i_tier0], "%.*s", SBUF_SIZE-1, entry.topic);
+               i_tier0++;
+            }
+         }
+         s_buffptr = s_buff;
+         s_nbuff[0] = msg;
+         s_nbuff[1] = entry.topic;
+         fun_strdistance(s_buff, &s_buffptr, 1, 1, 1, s_nbuff, 2, (char **)NULL, 0);
+         switch(atoi(s_buff)) {
+            case 1: /* case 1 */
+               if ( i_tier1 < 3 ) {
+                  sprintf(s_tier1[i_tier1], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                  i_tier1++;
+               }
+               break;
+            case 2: /* case 2 */
+               if ( i_tier2 < 3 ) {
+                  sprintf(s_tier2[i_tier2], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                  i_tier2++;
+               }
+               break;
+            case 3: /* case 3 */
+               if ( i_tier3 < 3 ) {
+                  sprintf(s_tier3[i_tier3], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                  i_tier3++;
+               }
+               break;
+         }
+      }
    }
-
+   if ( i_suggest ) {
+      free_lbuf(s_tmpbuff);
+      if ( i_tier0 || i_tier1 || i_tier2 || i_tier3 ) {
+         s_buffptr = s_buff;
+	 safe_str(unsafe_tprintf("No entry for '%s'.  Suggestions:", msg), s_buff, &s_buffptr);
+         if ( i_tier0 > 0 ) {
+            for (i=0; i<i_tier0; i++) {
+               if ( matched && *(mudconf.help_separator) ) {
+                  safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+               } else {
+                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               }
+               safe_str(s_tier0[i], s_buff, &s_buffptr);
+               matched = 1;
+            }
+         }
+         if ( i_tier1 > 0 ) {
+            for (i=0; i<i_tier1; i++) {
+               if ( matched && *(mudconf.help_separator) ) {
+                  safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+               } else {
+                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               }
+               safe_str(s_tier1[i], s_buff, &s_buffptr);
+               matched = 1;
+            }
+         }
+         if ( !i_tier1 && (i_tier2 > 0) ) {
+            for (i=0; i<i_tier2; i++) {
+               if ( matched && *(mudconf.help_separator) ) {
+                  safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+               } else {
+                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               }
+               safe_str(s_tier2[i], s_buff, &s_buffptr);
+               matched = 1;
+            }
+         }
+         if ( !i_tier1 && !i_tier2 && (i_tier3 > 0) ) {
+            for (i=0; i<i_tier3; i++) {
+               if ( matched && *(mudconf.help_separator) ) {
+                  safe_str(mudconf.help_separator, s_buff, &s_buffptr);
+               } else {
+                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               }
+               safe_str(s_tier3[i], s_buff, &s_buffptr);
+               matched = 1;
+            }
+         }
+      } else {
+	 safe_str(unsafe_tprintf("No entry for '%s'.  No suggestions.", msg), s_buff, &s_buffptr);
+      }
+      matched = 0;
+   }
    tf_fclose(fp_indx);
    if ( found ) {
       memset(filename, 0, sizeof(filename));
@@ -525,6 +750,15 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             notify(player, "Sorry, that file doesn't seem to exist.");
          free_lbuf(tmp);
          free_lbuf(msg);
+         if ( i_suggest ) {
+            for ( i=0; i<3; i++ ) {
+               free_sbuf(s_tier0[i]);
+               free_sbuf(s_tier1[i]);
+               free_sbuf(s_tier2[i]);
+               free_sbuf(s_tier3[i]);
+            }
+            free_lbuf(s_buff);
+         }
          return(1);
       } 
       if (fseek(fp_help, entry.pos, 0) < 0L) {
@@ -541,6 +775,15 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          free_lbuf(tmp);
          tf_fclose(fp_help);
          free_lbuf(msg);
+         if ( i_suggest ) {
+            for ( i=0; i<3; i++ ) {
+               free_sbuf(s_tier0[i]);
+               free_sbuf(s_tier1[i]);
+               free_sbuf(s_tier2[i]);
+               free_sbuf(s_tier3[i]);
+            }
+            free_lbuf(s_buff);
+         }
          return(1);
       }
       line = alloc_lbuf("help_write");
@@ -594,10 +837,19 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       mudconf.space_compress = space_compress;
       free_lbuf(line);
       if ( !one_through ) {
-         if ( t_val )
-            safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
-         else
-            notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+         if ( t_val ) {
+            if ( i_suggest ) {
+               safe_str(s_buff, t_buff, &t_bufptr);
+            } else {
+               safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
+            }
+         } else {
+            if ( i_suggest ) {
+               notify(player, s_buff);
+            } else {
+               notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+            }
+         }
          STARTLOG(LOG_PROBLEMS, "DYN", "INDX")
          line = alloc_lbuf("help_write.LOG.seek");
          sprintf(line, "Missmatched index for %.3900s[.indx/.txt].", fhelp);
@@ -617,16 +869,35 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
    } else {
       if ( t_val ) {
-         if ( !i_type )
-            safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
+         if ( !i_type ) {
+            if ( i_suggest ) {
+               safe_str(s_buff, t_buff, &t_bufptr);
+            } else {
+               safe_str(unsafe_tprintf("No entry for '%s'.", msg), t_buff, &t_bufptr);
+            }
+         }
       } else {
-         if ( !i_type )
-            notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+         if ( !i_type ) {
+            if ( i_suggest ) {
+               notify(player, s_buff);
+            } else {
+               notify(player, unsafe_tprintf("No entry for '%s'.", msg));
+            }
+         }
       }
    }
    free_lbuf(tmp);
    tf_fclose(fp_help);
    free_lbuf(msg);
+   if ( i_suggest ) {
+      for ( i=0; i<3; i++ ) {
+         free_sbuf(s_tier0[i]);
+         free_sbuf(s_tier1[i]);
+         free_sbuf(s_tier2[i]);
+         free_sbuf(s_tier3[i]);
+      }
+      free_lbuf(s_buff);
+   }
    return(0);
 }
 
@@ -748,7 +1019,11 @@ errmsg(dbref player)
 		    buffp = topic_list;
 		}
 		safe_str(htab_entry->key, topic_list, &buffp);
-		safe_str((char *) "  ", topic_list, &buffp);
+		if ( *(mudconf.help_separator) ) {
+		   safe_str(mudconf.help_separator, topic_list, &buffp);
+		} else {
+		   safe_str((char *) "  ", topic_list, &buffp);
+		}
 	    }
 	}
 	if (matched == 0)

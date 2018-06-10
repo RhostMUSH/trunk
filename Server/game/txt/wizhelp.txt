@@ -5858,8 +5858,9 @@
   guest_namelist          guest_randomize            guild_attrname  
   guild_default           guild_hdr                  hackattr_nowiz
   hackattr_see            hasattrp_compat            heavy_cpu_max 
-  help_file               help_index                 hide_nospoof  
-  hook_cmd                hook_obj                   hook_offline
+  help_file               help_index                 help_separator
+  hide_nospoof            hook_cmd                   hook_obj               
+  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -7823,6 +7824,14 @@
   
   See Also: help, @readcache, help_file
 
+& help_separator
+  Config parameter: help_separator <string>.  Default: %b%b
+  
+  Specifies the default separator for help entries when displaying a list,
+  including suggestions. 
+  
+  See Also: @dynhelp, dynhelp(), textfile(), exit_separator
+  
 & hide_nospoof
   Config parameter: hide_nospoof <ON(1)/OFF(0)>  Default: OFF
   

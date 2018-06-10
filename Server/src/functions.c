@@ -4656,7 +4656,7 @@ FUNCTION(fun_art)
 
 FUNCTION(fun_textfile)
 {
-   int t_val, i_check;
+   int t_val, i_check, i_suggest;
    dbref it;
    char *t_buff, *t_bufptr, *tmp_buff;
    CMDENT *cmdp;
@@ -4675,11 +4675,11 @@ FUNCTION(fun_textfile)
       return;
    }
 
-   if (!fn_range_check("TEXTFILE", nfargs, 2, 5, buff, bufcx))
+   if (!fn_range_check("TEXTFILE", nfargs, 2, 6, buff, bufcx))
        return;
 
    it = player;
-   t_val = 0;
+   t_val = i_suggest = 0;
    if ( nfargs > 2 && *fargs[2] ) {
       t_val = atoi(fargs[2]);
       t_val = (((t_val < 0) || (t_val > 2)) ? 0 : t_val);
@@ -4697,6 +4697,12 @@ FUNCTION(fun_textfile)
    } else {
       strcpy(tmp_buff, (char *)"  ");
    }
+   if ( (nfargs > 5) && *fargs[5] ) {
+      i_suggest = atoi(fargs[5]);
+      if ( i_suggest ) {
+         t_val |= DYN_SUGGEST;
+      }
+   }
    parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], t_buff, t_bufptr, 1, i_check, tmp_buff);
 
    free_lbuf(tmp_buff);
@@ -4707,7 +4713,7 @@ FUNCTION(fun_textfile)
 FUNCTION(fun_dynhelp)
 {
    char *tpr_buff, *tprp_buff;
-   int retval, t_val;
+   int retval, t_val, i_suggest;
    dbref it;
    CMDENT *cmdp;
 
@@ -4725,7 +4731,7 @@ FUNCTION(fun_dynhelp)
       return;
    }
 
-   if (!fn_range_check("DYNHELP", nfargs, 2, 4, buff, bufcx))
+   if (!fn_range_check("DYNHELP", nfargs, 2, 5, buff, bufcx))
        return;
 
    if ( nfargs < 3 || !*fargs[2] ) {
@@ -4739,10 +4745,16 @@ FUNCTION(fun_dynhelp)
          return;
       }
    }
-   t_val = 0;
-   if ( nfargs > 3 && *fargs[3] ) {
+   t_val = i_suggest = 0;
+   if ( (nfargs > 3) && *fargs[3] ) {
       t_val = atoi(fargs[3]);
       t_val = (((t_val < 0) || (t_val > 2)) ? 0 : t_val);
+   }
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_suggest = atoi(fargs[4]);
+      if ( i_suggest ) {
+         t_val |= DYN_SUGGEST;
+      }
    }
 
    retval = parse_dynhelp(it, cause, t_val, fargs[0], fargs[1], (char *)NULL, (char *)NULL, 0, 0, (char *)NULL);

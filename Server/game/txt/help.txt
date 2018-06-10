@@ -32217,9 +32217,13 @@
   New Features
   ------------
   * exit_separator @admin param to specify separator between exits [ASH]
+  * help_separator @admin param to specify separator between help [ASH]
+  * @dynhelp/suggest for suggestions if not finding help entry [ASH] 
+  * dynhelp() and textfile() optionally allow suggestions [ASH]
   
   Changes
   ------------
+  * help allows suggestions when it can not find help entry [ASH]
   
   Bug Fixes
   ------------

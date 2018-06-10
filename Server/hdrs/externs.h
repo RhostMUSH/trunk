@@ -1176,6 +1176,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DYN_PARSE       1	/* Parse the help */
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
 #define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */
+#define DYN_SUGGEST	8	/* Allow suggestions in dynhelp -- multi-option */
 
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */

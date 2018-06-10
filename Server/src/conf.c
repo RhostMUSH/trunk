@@ -339,8 +339,9 @@ NDECL(cf_init)
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
-    memset(mudconf.tree_character, '\0', sizeof(mudconf.exit_separator));
+    memset(mudconf.tree_character, '\0', sizeof(mudconf.tree_character));
     memset(mudconf.exit_separator, '\0', sizeof(mudconf.exit_separator));
+    memset(mudconf.help_separator, '\0', sizeof(mudconf.help_separator));
     strcpy(mudconf.exit_separator, (char *)"  ");
     strcpy(mudconf.tree_character, (char *)"`");
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
@@ -4173,6 +4174,9 @@ CONF conftable[] =
     {(char *) "help_index",
      cf_string, CA_DISABLED, (int *) mudconf.help_indx, 32, 0, CA_WIZARD,
      (char *) "Index used for help."},
+    {(char *) "help_separator",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.help_separator, 31, 0, CA_WIZARD,
+     (char *) "Specify the characters for default help separation." },
     {(char *) "hide_nospoof",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hide_nospoof, 0, 0, CA_WIZARD,
      (char *) "Is the NOSPOOF flag hidden from others?"},
