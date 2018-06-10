@@ -342,7 +342,6 @@ NDECL(cf_init)
     memset(mudconf.tree_character, '\0', sizeof(mudconf.tree_character));
     memset(mudconf.exit_separator, '\0', sizeof(mudconf.exit_separator));
     memset(mudconf.help_separator, '\0', sizeof(mudconf.help_separator));
-    strcpy(mudconf.exit_separator, (char *)"  ");
     strcpy(mudconf.tree_character, (char *)"`");
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
 #ifdef MYSQL_VERSION
