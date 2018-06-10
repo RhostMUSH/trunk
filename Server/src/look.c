@@ -674,7 +674,13 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
 			safe_str("\r\n", buff, &e);
 		      } else {
                         if ( *mudconf.exit_separator ) {
-			   safe_str(mudconf.exit_separator, buff, &e);
+                           tbuffptr = alloc_lbuf("exit_separator");
+                           strcpy(tbuffptr, mudconf.exit_separator);
+                           tbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, tbuffptr,
+                                        (char **)NULL, 0, (char **)NULL, 0);
+			   safe_str(tbuff, buff, &e);
+                           free_lbuf(tbuffptr);
+                           free_lbuf(tbuff);
                         }
                       }
 		    }
