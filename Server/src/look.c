@@ -673,7 +673,7 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
 		      if (Transparent(loc)) {
 			safe_str("\r\n", buff, &e);
 		      } else {
-                        if ( *mudconf.exit_separator ) {
+                        if ( *(mudconf.exit_separator) ) {
                            tbuffptr = alloc_lbuf("exit_separator");
                            strcpy(tbuffptr, mudconf.exit_separator);
                            tbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, tbuffptr,
@@ -681,6 +681,8 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
 			   safe_str(tbuff, buff, &e);
                            free_lbuf(tbuffptr);
                            free_lbuf(tbuff);
+                        } else {
+                           safe_str((char *)"  ", buff, &e);
                         }
                       }
 		    }
