@@ -24,6 +24,8 @@ Due to an insanely old bug in singleuser mode with attribute caps, flatfiles
 				- Thanks Ixokai
 Suggestions in help files inspired from PennMUSH.
 				- Thanks PennMUSH (Raevnos)
+@door/push could crash with non-players
+				- Thanks Xperta/Paige
 
 
                          RhostMUSH 3.9.5 Update File
