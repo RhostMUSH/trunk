@@ -762,7 +762,7 @@ void openDoor(dbref player,
     } else {
        notify(player, "Only players can open a door.");
     }
-  } else if (desc_in_use->flags & DS_HAS_DOOR) {
+  } else if (desc_in_use && (desc_in_use->flags & DS_HAS_DOOR) ) {
     if ( player != cause ) {
        notify(cause, "Target already has a door open on the attempted connection.");
     } else {

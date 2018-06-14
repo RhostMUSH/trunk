@@ -32227,3 +32227,4 @@
   
   Bug Fixes
   ------------
+  * door.c could crash if non-player executed @door/push [ASH]
