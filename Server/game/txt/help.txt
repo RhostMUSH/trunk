@@ -14986,9 +14986,12 @@
     0 - list all protected names of the target player (default)
     1 - list only the protected names that are marked as aliases.
     2 - list only the protected names that are not marked as aliases.
+    3 - list protect names that are marked as aliases and the @alias.
+    4 - list only the @alias
   
   If the player is invalid, it returns an error, otherwise it returns an
-  empty string if nothing is found for that criteria.
+  empty string if nothing is found for that criteria.  If the key is outside
+  of the range, it uses the default.
   
   The default deliminator is a colon (:).
   
@@ -32224,6 +32227,7 @@
   Changes
   ------------
   * help allows suggestions when it can not find help entry [ASH]
+  * listprotection() has additional arguments to handle @alias [ASH]
   
   Bug Fixes
   ------------

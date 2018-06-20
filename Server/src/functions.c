@@ -12372,6 +12372,9 @@ FUNCTION(fun_listprotection)
    }
    if ( (nfargs > 1) && *fargs[1] ) {
       i_key = atoi(fargs[1]);
+      if ( (i_key < 0) || (i_key > 4) ) {
+         i_key = 0;
+      }
    } else { 
       i_key = 0;
    }
@@ -12384,8 +12387,7 @@ FUNCTION(fun_listprotection)
    tstr = alloc_lbuf("listprotection_1");
    tstr2 = alloc_lbuf("listprotection_2");
    if (H_Protect(thing)) {
-      (void) atr_get_str(tstr, thing, A_PROTECTNAME,
-                         &aowner, &aflags);
+      (void) atr_get_str(tstr, thing, A_PROTECTNAME, &aowner, &aflags);
       if ( *tstr ) {
          strcpy(tstr2, tstr);
          s_strtok = strtok_r(tstr2, "\t", &s_strtokr);
@@ -12394,7 +12396,7 @@ FUNCTION(fun_listprotection)
             if ( s_matchstr ) {
                *s_matchstr = '\0';
                i_matchint = atoi(s_matchstr+1);
-               if ( (!i_key || (i_key == 1)) && (i_matchint == 1) ) {
+               if ( (!i_key || (i_key == 1) || (i_key == 3)) && (i_matchint == 1) ) {
                   if ( i_first )
                      safe_chr(c_buf, buff, bufcx);
                   safe_str(s_strtok, buff, bufcx);
@@ -12414,6 +12416,16 @@ FUNCTION(fun_listprotection)
             s_strtok = strtok_r(NULL, "\t", &s_strtokr);
          }
       }
+   }
+   if ( (i_key == 3) || (i_key == 4) ) {
+      s_strtok = atr_get(thing, A_ALIAS, &aowner, &aflags);
+      if ( *s_strtok ) {
+         if ( i_first ) {
+            safe_chr(c_buf, buff, bufcx);
+         }
+         safe_str(s_strtok, buff, bufcx);
+      }
+      free_lbuf(s_strtok);
    }
    free_lbuf(tstr);
    free_lbuf(tstr2);
