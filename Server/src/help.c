@@ -205,6 +205,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
        buffp = topic_list = alloc_lbuf("help_write");
        i_found = i_first = matched = 0;
        s_ptr = s_tmpbuff = alloc_lbuf("help_write_search");
+       i_found = i_first = 0;
        for (htab_entry = (struct help_entry *) hash_firstentry(htab);
             htab_entry != NULL;
             htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -225,7 +226,6 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
               tf_fclose(fp);
               return;
           }
-          i_found = i_first = 0;
           for (;;) {
              if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
                 break;
@@ -247,7 +247,11 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                       strcpy(s_hbuff2, mudconf.help_separator);
                       s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                      (char **)NULL, 0, (char **)NULL, 0);
-		      safe_str(s_hbuff, topic_list, &buffp);
+                      if ( !*s_hbuff ) {
+		         safe_str((char *) "  ", topic_list, &buffp);
+                      } else {
+		         safe_str(s_hbuff, topic_list, &buffp);
+                      }
                       free_lbuf(s_hbuff);
                       free_lbuf(s_hbuff2);
                    } else {
@@ -266,7 +270,11 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                    strcpy(s_hbuff2, mudconf.help_separator);
                    s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                   (char **)NULL, 0, (char **)NULL, 0);
-		   safe_str(s_hbuff, topic_list, &buffp);
+                   if ( !*s_hbuff ) {
+                      safe_str((char *) "  ", topic_list, &buffp);
+                   } else {
+		      safe_str(s_hbuff, topic_list, &buffp);
+                   }
                    free_lbuf(s_hbuff);
                    free_lbuf(s_hbuff2);
                 } else {
@@ -322,7 +330,11 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                       strcpy(s_hbuff2, mudconf.help_separator);
                       s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                      (char **)NULL, 0, (char **)NULL, 0);
-		      safe_str(s_hbuff, topic_list, &buffp);
+                      if ( !*s_hbuff ) {
+		         safe_str((char *) "  ", topic_list, &buffp);
+                      } else {
+		         safe_str(s_hbuff, topic_list, &buffp);
+                      }
                       free_lbuf(s_hbuff);
                       free_lbuf(s_hbuff2);
                    } else {
@@ -1090,7 +1102,11 @@ errmsg(dbref player)
                    strcpy(s_hbuff2, mudconf.help_separator);
                    s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                                   (char **)NULL, 0, (char **)NULL, 0);
-		   safe_str(s_hbuff, topic_list, &buffp);
+                   if ( !*s_hbuff ) {
+		      safe_str((char *) "  ", topic_list, &buffp);
+                   } else {
+		      safe_str(s_hbuff, topic_list, &buffp);
+                   }
                    free_lbuf(s_hbuff);
                    free_lbuf(s_hbuff2);
 		} else {
