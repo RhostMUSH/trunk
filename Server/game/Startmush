@@ -85,7 +85,7 @@ then
    echo "kill -USR2 ${lc_pid}"
    exit 1
 fi
-if [ -z "${gl_shmchk}" ]
+if [ -n "${gl_shmchk}" ]
 then
    echo "There is an existing shared memory segment that the mush will try to use."
    echo "If this is because you kill -9'd your mush process then you may need"
