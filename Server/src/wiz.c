@@ -99,6 +99,10 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
          return;
       }
 
+      if ( !mudstate.argtwo_fix && nargs && !*dlist[0] ) {
+         notify(player, "No valid destination to teleport to.");
+         return;
+      }
       tel_bool_chk = 0;
       if (key & TEL_QUIET) {
 	key &= ~TEL_QUIET;
