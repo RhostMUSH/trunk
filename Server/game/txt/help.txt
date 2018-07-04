@@ -32237,6 +32237,7 @@
   * help_separator @admin param to specify separator between help [ASH]
   * @dynhelp/suggest for suggestions if not finding help entry [ASH] 
   * dynhelp() and textfile() optionally allow suggestions [ASH]
+  * randextract() optionally has weighted values [ASH]
   
   Changes
   ------------
