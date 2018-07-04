@@ -18675,7 +18675,9 @@ FUNCTION(fun_randextract)
            end = 1;
          if (got && osep)
            safe_chr(osep,buff,bufcx);
-         safe_str(p1, buff, bufcx);
+         if ( *p1 ) {
+            safe_str(p1, buff, bufcx);
+         }
          got = 1;
          if (end)
            break;
@@ -18759,7 +18761,9 @@ FUNCTION(fun_randextract)
          *(b2 + z) = '\0';
          if (got && osep)
            safe_chr(osep,buff,bufcx);
-         safe_str(b2, buff, bufcx);
+         if ( *p1 && *b2 ) {
+            safe_str(b2, buff, bufcx);
+         }
          got = 1;
       }
       free_lbuf(b2);
