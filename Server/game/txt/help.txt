@@ -12496,15 +12496,25 @@
   
 & pickrand()
 & randextract()
-  Function: randextract(<string>[, <numwords>, <delim>, <type>, <output sep>])
+  Function: randextract(<str>[, <numwords>, <delim>, <type>, <osep>, <weight>])
   
   The randextract() function is unique but somewhat similar to extract(). 
   The randextract() function takes <numwords> number of words from the string
-  <string> and returns those words in random order.  You may specify an 
+  <str> and returns those words in random order.  You may specify an 
   optional delimiter <delim> other than a space (the default).  You may also 
   specify what <type> of randextract() you wish to perform.  The following 
-  types exist.  You may specify an optional output separator else it uses
-  the same character as the delimiter.
+  types exist.  You may specify an optional output separator <osep> else it 
+  uses the same character as the delimiter.  You may apply a <weight> to each
+  word (using the same separator) that is a 1 to 1 order to the words in
+  <str>.  Any weights not applied to a word is assigned a normal weight of
+  '0'.  Each weight is a fuzzy multiplier of how often a word will be allowed 
+  to be picked with randextract.  It does this by applying a filter of weights
+  PRIOR to extracting the list.  Weight values start at '0' and max at '100'.
+  A weight of 100 you can be fairly assured will always appear.  Two weights
+  of 100 will have a 50/50 chance of appearing while the remaining would
+  have a rough estimate of a 1/100 chance of appearing.
+  
+  Valid types are:
       L - Grab given number of words lineally from the first random selection
       R - Grab <numwords> number of words but do not duplicate matches
       D - Grab <numwords> number of words and allow duplicate matches
@@ -12520,6 +12530,10 @@
     You say "this test a"
     > say randextract(this is a test,3,,D)
     You say "this a this"
+    > say randextract(this is a test,3,,D,,0 3 0)
+    You say "is this is is this test is this is is" (is has a 3x more chance)
+    > say randextract(this is a test,10,,D,,0 3 0)
+    You say "is is is this is is this is is is" (is has a 10x more chance)
   
   See Also: randpos(), randmatch(), extract(), extractword(), index(), rand()
   

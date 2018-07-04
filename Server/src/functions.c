@@ -18547,12 +18547,15 @@ FUNCTION(fun_streq)
 
 FUNCTION(fun_randextract)
 {
-  int *used, nword, numext, got, pos, x, y, z, end;
-  char *p1, *p2, sep, te, *b2, osep;
+  int *used, nword, numext, got, pos, x, y, z, end, i_sum, i_max, i_loop,
+      ilist[LBUF_SIZE / 2], ilist2[LBUF_SIZE / 2], i_slist, i_nlist, i_weight, i_usable;
+  char *p1, *p2, sep, te, *b2, osep, *tbuff, *tbuff2, *tbuffptr, 
+       *slist[LBUF_SIZE / 2], *nlist[LBUF_SIZE / 2], *s_use;
 
-  if (!fn_range_check("RANDEXTRACT", nfargs, 1, 5, buff, bufcx)) {
+  if (!fn_range_check("RANDEXTRACT", nfargs, 1, 6, buff, bufcx)) {
     return;
   }
+  i_weight = 0;
   if (nfargs > 3)
     te = toupper(*fargs[3]);
   else
@@ -18567,11 +18570,54 @@ FUNCTION(fun_randextract)
 
   if ((!*fargs[0]) || (numext < 1) || (numext > LBUF_SIZE) || ((te != 'L') && (te != 'R') && (te != 'D')))
     return;
+
   if ((nfargs > 2) && (*fargs[2])) {
     sep = *fargs[2];
   } else {
     sep = ' ';
   }
+
+  i_usable = i_max = i_sum = 0;
+  s_use = fargs[0];
+  if ( (nfargs > 5) && *fargs[5] ) {
+     i_weight = 1;
+     tbuff = alloc_lbuf("fun_randextract_weighted");
+     tbuff2 = alloc_lbuf("fun_randextract_weighted2");
+     strcpy(tbuff2, fargs[0]);
+     strcpy(tbuff, fargs[5]);
+     i_slist = list2arr(slist, LBUF_SIZE / 2, tbuff2, sep);
+     i_nlist = list2arr(nlist, LBUF_SIZE / 2, tbuff, sep);
+     for ( i_loop = 0; i_loop < i_slist; i_loop++) {
+        if ( i_loop < i_nlist ) {
+           ilist[i_loop] = atoi(nlist[i_loop]);
+           if ( ilist[i_loop] > 100 ) {
+              ilist[i_loop] = 100;
+           }
+           if ( ilist[i_loop] < 0 ) {
+              ilist[i_loop] = 0;
+           }
+           if ( i_max < ilist[i_loop] ) {
+              i_max = ilist[i_loop];
+           }
+        } else {
+           ilist[i_loop] = 0;
+        }
+     } 
+     if ( i_max > 0 ) {
+        i_sum = random() % i_max;
+     }
+     memset(tbuff, '\0', LBUF_SIZE);
+     tbuffptr = tbuff;
+     for ( i_loop = 0; i_loop < i_slist; i_loop++ ) {
+        if ( ilist[i_loop] >= i_sum ) {
+           ilist2[i_usable] = i_loop;
+           i_usable++;
+        }
+     }
+     free_lbuf(tbuff2);
+     free_lbuf(tbuff);
+  }
+
   if (nfargs > 4 && (*fargs[4])) {
     if ( mudconf.delim_null && (strcmp(fargs[4], (char *)"@@") == 0) ) {
        osep = '\0';
@@ -18582,7 +18628,7 @@ FUNCTION(fun_randextract)
     osep = sep;
   }
   nword = 0;
-  p1 = fargs[0];
+  p1 = s_use;
   while (*p1 && (*p1 == sep))
     p1++;
   while (*p1) {     /* count number of words */
@@ -18602,8 +18648,12 @@ FUNCTION(fun_randextract)
   used = NULL;
   switch (te) {
     case 'L':
-      pos = random() % nword;
-      p1 = fargs[0];
+      if ( i_weight ) {
+         pos = ilist2[random() % i_usable];
+      } else {
+         pos = random() % nword;
+      }
+      p1 = s_use;
       while (*p1 == sep)
          p1++;
       for (x = 0; x < pos; x++) { /* find start of extract */
@@ -18643,7 +18693,21 @@ FUNCTION(fun_randextract)
       for (x = 0; x < nword; x++)
          *(used + x) = x;
       for (x = nword; x > 1; x--) {
-         y = random() % x;
+         if ( i_weight ) {
+            y = ilist2[random() % i_usable];
+            if ( i_max > 0 ) {
+               i_sum = random() % i_max;
+               i_usable=0;
+               for ( i_loop = 0; i_loop < i_slist; i_loop++ ) {
+                  if ( ilist[i_loop] >= i_sum ) {
+                     ilist2[i_usable] = i_loop;
+                     i_usable++;
+                  }
+               }
+            }
+         } else {
+            y = random() % x;
+         }
          if (y < (x - 1)) {
            z = *(used + y);
            *(used + y) = *(used + x - 1);
@@ -18657,9 +18721,24 @@ FUNCTION(fun_randextract)
       for (x = 0; x < numext; x++) {
          if (te == 'R')
            pos = *(used+x);
-         else
-           pos = random() % nword;
-         p1 = fargs[0];
+         else {
+           if ( i_weight ) {
+              pos = ilist2[random() % i_usable];
+              if ( i_max > 0 ) {
+                 i_sum = random() % i_max;
+                 i_usable=0;
+                 for ( i_loop = 0; i_loop < i_slist; i_loop++ ) {
+                    if ( ilist[i_loop] >= i_sum ) {
+                       ilist2[i_usable] = i_loop;
+                       i_usable++;
+                    }
+                 }
+              }
+           } else {
+              pos = random() % nword;
+           }
+         }
+         p1 = s_use;
          while (*p1 == sep)
            p1++;
          for (y = 0; y < pos; y++) { /* find start of word */
@@ -18686,8 +18765,9 @@ FUNCTION(fun_randextract)
       free_lbuf(b2);
       break;
   }
-  if (used)
+  if (used) {
     free(used);
+  }
 }
 
 FUNCTION(fun_extractword)
