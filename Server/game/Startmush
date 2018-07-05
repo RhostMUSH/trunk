@@ -158,6 +158,7 @@ fi
 #
 # Make sure the port '42010' matches the port of the debugmon.
 # In your mushname.conf file!
+gl_newdb=0
 if [ "$1" = "-f" ]
 then
    DEBUG_OVERRIDE=1
@@ -250,6 +251,7 @@ else
             else
                (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
             fi
+            gl_newdb=1
          fi
       else
          if [ ${CYGWIN} -eq 1 ]
@@ -258,8 +260,14 @@ else
          else
             (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
          fi
+         gl_newdb=1
       fi
-      echo "Have fun with your new mush.  #1's initial password will be 'Nyctasia'"
+      if [ ${gl_newdb} -eq 1 ]
+      then
+         echo "Have fun with your new mush.  #1's initial password will be 'Nyctasia'"
+      else
+         echo "Have fun with your imported db.  If you don't remember #1's password set newpass_god 777 in your netrhost.conf file."
+      fi
       echo "Don't forget to @shutdown as soon as you connect to save the new database."
    else
       echo "You have some trouble with your database files.  Please review the problem."
