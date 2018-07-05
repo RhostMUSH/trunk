@@ -267,6 +267,7 @@ else
          echo "Have fun with your new mush.  #1's initial password will be 'Nyctasia'"
       else
          echo "Have fun with your imported db.  If you don't remember #1's password set newpass_god 777 in your netrhost.conf file."
+         echo "Once your game is up remove the newpass_god parameter as this resets #1's password if enabled on every reboot!"
       fi
       echo "Don't forget to @shutdown as soon as you connect to save the new database."
    else
