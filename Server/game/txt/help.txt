@@ -32244,6 +32244,7 @@
   ------------
   * help allows suggestions when it can not find help entry [ASH]
   * listprotection() has additional arguments to handle @alias [ASH]
+  * Added comments and continous lines to content for execscript [ASH]
   
   Bug Fixes
   ------------

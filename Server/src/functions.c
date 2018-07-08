@@ -17139,8 +17139,8 @@ FUNCTION(fun_execscript)
    FILE *fp, *fp2;
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, 
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff,
-        *s_varupper, *s_variable, *s_dbref, *s_string;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex;
+        *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments;
    dbref aowner;
    time_t i_now;
    struct stat st_buf;
@@ -17423,6 +17423,9 @@ FUNCTION(fun_execscript)
    if ( !i_noex ) {
       sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
       s_buff = alloc_lbuf("fun_execscript_errors");
+      s_inread2 = alloc_lbuf("fun_execscript_read2");
+      s_appendptr = s_append = alloc_lbuf("fun_execscript_buffer");
+      i_comments = 0;
       if ( (fp2 = fopen(s_combine, "r")) != NULL) {
          s_inread = alloc_lbuf("fun_execscript_read2");
          memset(s_inread, '\0', LBUF_SIZE);
@@ -17432,6 +17435,11 @@ FUNCTION(fun_execscript)
             fgets(s_inread, LBUF_SIZE-1, fp2);
             if ( feof(fp2) ) {
                break;
+            }
+            /* Ignore comments */
+            if ( *s_inread == '#' ) {
+               i_comments++;
+               continue;
             }
             sptr = s_inread;
             /* convert to a '?' non-printable non-ascii-7 chars */
@@ -17462,6 +17470,34 @@ FUNCTION(fun_execscript)
                s_inbuf++;
                s_string = s_inbuf;
                *(s_string+strlen(s_string)-1)='\0';
+               if ( *(s_string+strlen(s_string)-1) == LINEFEED_CHAR ) {
+                  memset(s_append, '\0', LBUF_SIZE);
+                  s_appendptr = s_append;
+                  while (  !feof(fp2) ) {
+                     *(s_string+strlen(s_string)-1)='\0';
+                     safe_str(s_string, s_append, &s_appendptr);
+                     safe_str((char *)"\r\n", s_append, &s_appendptr);
+                     fgets(s_inread2, LBUF_SIZE-1, fp2);
+                     if ( feof(fp2) ) {
+                        break;
+                     }
+                     sptr = s_inread2;
+                     while ( *sptr ) {
+                        if ( !((isprint(*sptr) || (*sptr == BEEP_CHAR) || isspace(*sptr)) && isascii(*sptr)) )
+                           *sptr = '?';
+                        sptr++;
+                     }
+                     s_string = s_inread2;
+                     *(s_string+strlen(s_string)-1)='\0';
+                     if ( feof(fp2) || *(s_string+strlen(s_string)-1) != LINEFEED_CHAR ) {
+                        *(s_string+strlen(s_string)-1)='\0';
+                        safe_str(s_string, s_append, &s_appendptr);
+                        safe_str((char *)"\r\n", s_append, &s_appendptr);
+                        break;
+                     }
+                  }
+                  s_string = s_append;
+               }
             } else {
                s_string = NULL;
             }
@@ -17480,12 +17516,14 @@ FUNCTION(fun_execscript)
                        }
                     }
                  } else {
-                    sprintf(s_buff, "Warning: Line %d of script variable setter %.100s is invalid. [invalid register %.100s]", i_count, s_combine, s_variable);
+                    sprintf(s_buff, "Warning: Line %d of script variable setter %.100s is invalid. [invalid register %.100s]", 
+                            i_count, s_combine, s_variable);
                     notify_quiet(player, s_buff);
                  }
                  continue;
             } else if ( (*s_dbref != '#') || !isdigit(*(s_dbref+1)) ) {
-               sprintf(s_buff, "Warning: Line %d of script variable setter %.100s is invalid. [invalid dbref format %.100s]", i_count, s_combine, s_dbref);
+               sprintf(s_buff, "Warning: Line %d of script variable setter %.100s is invalid. [invalid dbref format %.100s]", 
+                       i_count, s_combine, (*s_dbref ? s_dbref : (char *)"-NULL-"));
                notify_quiet(player, s_buff);
                continue;
             }
@@ -17518,7 +17556,13 @@ FUNCTION(fun_execscript)
          }
          fclose(fp2);
       }
+      if ( i_comments ) {
+         sprintf(s_buff, "Notice: %d total comments ignored from variable setter %.100s", i_comments, s_combine);
+         notify_quiet(player, s_buff);
+      }
+      free_lbuf(s_append);
       free_lbuf(s_buff);
+      free_lbuf(s_inread2);
    }
    if ( s_varsbak ) {
       s_varstok = strtok_r(s_varsbak, (char *)" ", &s_varstokptr);

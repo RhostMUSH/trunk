@@ -51,5 +51,7 @@ echo "SHELLED ${MUSH_PLAYER} This is my shelled script to player" >> $0.set
 if [ "${MUSH_PLAYER}" != "${MUSH_CAUSE}" ]
 then
    echo "Setting SHELLED variable on cause ${MUSH_CAUSE}"
-   echo "SHELLED ${MUSH_CAUSE} This is my shelled script to cause" >> $0.set
+   echo "SHELLED ${MUSH_CAUSE} This is my shelled script to cause" >> $0.set
+   echo "Appending to SHELLED variable on cause ${MUSH_CAUSE}"
+   echo "And more text on the cause." >> $0.set
 fi

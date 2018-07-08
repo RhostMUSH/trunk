@@ -19,7 +19,7 @@
 #endif
 #include "debug.h"
 #include "sha1.h"
-#include "ansi.h"
+#include "rhost_ansi.h"
 
 #define FILENUM MUSHCRYPT_C
 

@@ -20,6 +20,7 @@
 
 #define BEEP_CHAR     '\a'
 #define ESC_CHAR      '\x1B'
+#define LINEFEED_CHAR '\x0d'
 
 #define ANSI_XTERM_BG	"\x1B[48;5;"
 #define ANSI_XTERM_FG	"\x1B[38;5;"
@@ -116,6 +117,7 @@
 
 #define BEEP_CHAR     '\07'
 #define ESC_CHAR      '\033'
+#define LINEFEED_CHAR '\015'
 
 #define ANSI_XTERM_BG	"\033[48;5;"
 #define ANSI_XTERM_FG	"\033[38;5;"
