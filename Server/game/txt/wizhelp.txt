@@ -11069,7 +11069,7 @@
   You can pass a maximum of 9 arguments to the script not including the
   script name.
   
-  The following variables are available from inside the scripts called:
+  The following global variables are available from inside the scripts called:
     MUSH_PLAYER       - [%!] dbref# of player followed by name of player.  
     MUSH_CAUSE        - [%#] dbref# of cause followed by name of cause.  
     MUSH_CALLER       - [%@] dbref# of caller followed by name of caller.  
@@ -11078,6 +11078,7 @@
     MUSH_OWNER        - dbref# of player's owner by name of owner.
     MUSH_OWNERFLAGS   - the flags of the player's owner.
     MUSH_OWNERTOGGLES - the toggles of the player's owner.
+    MUSHL_VARS        - All the variables you want the script to see
   
   Examples:
     > say execscript(hello.sh)
@@ -11086,8 +11087,89 @@
     You say "hello from the script with args: 'test'"
   
   See 'writing scripts' for help on dos and don'ts in writing execscripts.
+  See 'working with execscript' for how to use registers and variables.
+
     
   See Also: POWER EXECSCRIPT, exec_secure
+
+& WORKING WITH EXECSCRIPT
+  Topic: Working with Execscript
+  
+  All registers are passed to the script in the form MUSHQ_<reg>.  So
+  for example you would use the environment variable MUSHQ_A to see
+  the A register that was set with setq(a,foo).   All registers from
+  0-9 and A-Z are automatically set.
+  
+  Variables are passed and set by the list defined in MUSHL_VARS.
+  This is a space separated list of variables you wish to define
+  as enviornment variables for your script.  They are automatically
+  assigned the contents of the MUSH variable.
+  
+  These variables are set in the form MUSHV_<variable>.  So for
+  example if you passed the following variables in MUSHL_VARS:
+  
+         MUSHL_VARS=foo bar baz
+  
+  You are saying you want to pass three variables to the execscript
+  which are 'foo' 'bar' and 'baz'.  
+  
+  To see these variables in your script you would pull the environment
+  variable prepended with MUSHV_.  So for example to see the 'foo'
+  attribute you would use the environment variable MUSHV_FOO
+  
+  At the end of the execscript() the mush does house keeping and
+  will remove all environment variables that were originally set.
+  
+  To see how you return variables back to the mush, please refer
+  to section 'working with execscript 2' 
+ 
+& WORKING WITH EXECSCRIPT 2
+  Topic: Working with Execscript Part 2
+  
+  If you wish to have variables and registers pushed back to the mush,
+  you must stage a file to be read at the end of your script execution.
+  
+  Yes yes, I know, this isn't exactly clean, but it's one of the few
+  clean ways a child can refer back to the parent short of writing
+  complex (and not fully platform supported) shared memory.  We took
+  the easy way out here.
+  
+  The file that will be read is the name of the execscript() with a
+  '.set' appended to it.  
+  
+  So if your script was called 'myscript.sh'.  The file it would read
+  in would be called 'myscript.sh.set'.
+  
+  The syntax of this file will be as follows.
+  
+  To set registers back to the mush you would use:
+  <register> Q      -- This clears the register
+  <register> Q bob  -- This sets the register to contents 'bob'
+  
+  Examples:
+    W Q
+    0 Q Setting Register 0
+    A Q Setting register A
+  
+  See 'working with execscript 3' on setting dynamic variables
+
+& WORKING WITH EXECSCRIPT 3
+  Topic: Working with Execscript Part 3
+  
+  To continue, you again would still be using the .set file.  For
+  the example we were using 'myscript.sh.set' because the example
+  execscript() was myscript.sh.
+  
+  To set variables back into the mush you would use:
+  <variable> <dbref#>      -- This clears the attribute on dbref#
+  <variable> <dbref#> bob  -- This sets 'bob' to the attribute
+  
+  Examples:
+    SEX #123 Male
+    DESC #123 This is my desc%r%rI like my %crred%cn desc.
+    WIPEATTR #123
+  
+  See also: execscript(), WRITING SCRIPTS
 
 & WRITING SCRIPTS
   Topic: Writing Scripts

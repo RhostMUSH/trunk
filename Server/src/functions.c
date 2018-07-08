@@ -17136,11 +17136,15 @@ FUNCTION(fun_eval)
 /* Fun execscript for external script execution */
 FUNCTION(fun_execscript)
 {
-   FILE *fp;
-   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2;
-   int i_count, i_buff, i_power, i_level, i_alttimeout;
+   FILE *fp, *fp2;
+   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, 
+        *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff,
+        *s_varupper, *s_variable, *s_dbref, *s_string;
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex;
+   dbref aowner;
    time_t i_now;
    struct stat st_buf;
+   ATTR *attr;
    POWENT *pent;
 
 
@@ -17262,6 +17266,78 @@ FUNCTION(fun_execscript)
    free_lbuf(sptr2);
    setenv("MUSH_OWNERTOGGLES", s_combine, 1);
 
+   /* Set user defined environment variables */
+   attr = atr_str("EXECSCRIPT_VARS");
+   s_varsbak = NULL;
+   sptr2 = sptr = alloc_lbuf("execscript_attrs");
+   if ( attr && Good_chk(player) ) {
+      s_buff = alloc_lbuf("execscript_vars_buffer");
+      s_vars = atr_pget(player, attr->number, &aowner, &aflags);
+      if ( *s_vars ) {
+         s_varupper = s_vars;
+         while ( *s_varupper ) {
+            *s_varupper = ToUpper(*s_varupper);
+            s_varupper++;
+         }
+         s_varstok = strtok_r(s_vars, (char *)" ", &s_varstokptr);
+         s_varset = alloc_sbuf("execscript_variables");
+         i_count = 0;
+         while ( s_varstok && *s_varstok ) {
+            if ( ok_attr_name(s_varstok) ) {
+               if ( i_count ) {
+                  safe_chr(' ', sptr, &sptr2);
+               }
+               safe_str(s_varstok, sptr, &sptr2);
+               i_count=1;
+               attr = atr_str(s_varstok);
+               if ( attr ) {
+                  s_vars2 = atr_pget(player, attr->number, &aowner, &aflags);
+                  if ( *s_vars2 ) {
+                     sprintf(s_varset, "MUSHV_%.*s", (SBUF_SIZE-7), s_varstok);
+                     i_varset = setenv(s_varset, s_vars2, 1);
+                     if ( i_varset != 0 ) {
+                        sprintf(s_buff, "Warning: Unable to set environment variable %.*s", (LBUF_SIZE-100), s_varstok);
+                        notify_quiet(player, s_buff);
+                     }
+                  }
+                  free_lbuf(s_vars2);
+               }
+            } else {
+               sprintf(s_buff, "Warning: Skipping invalid attribute '%.*s'", (LBUF_SIZE-100), s_varstok);
+               notify_quiet(player, s_buff);
+            }
+            s_varstok = strtok_r(NULL, (char *)" ", &s_varstokptr);
+         }
+         setenv((char *)"MUSHL_VARS", sptr, 1);
+         s_varsbak = alloc_lbuf("svars_backup");
+         strcpy(s_varsbak, sptr);
+         free_sbuf(s_varset);
+      }
+      free_lbuf(s_buff);
+      free_lbuf(s_vars);
+   }
+   free_lbuf(sptr);
+   /* set setq register to environment variables */
+   s_varset = alloc_sbuf("execscript_variables2");
+   for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
+      if ( *mudstate.global_regs[i_count] ) {
+         sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+         i_varset = setenv(s_varset, mudstate.global_regs[i_count], 1);
+      }
+   } 
+   free_sbuf(s_varset);
+
+   i_noex = 0;
+   sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
+   if ( stat(s_combine, &st_buf) == 0 ) {
+      if ( unlink(s_combine) != 0 ) {
+         s_buff = alloc_lbuf("fun_execscript_errors");
+         sprintf(s_buff, "Warning: Unable to remove pre-existing script variable setter %.100s.  Will NOT execute.", s_combine);
+         notify_quiet(player, s_buff);
+         i_noex = 1;
+         free_lbuf(s_buff);
+      }
+   }
    if ( nfargs > 1 ) {
       s_inbufptr = s_inbuf = alloc_lbuf("fun_execscript_buffer");
       for ( i_count = 1; i_count < nfargs; i_count++ ) {
@@ -17320,7 +17396,7 @@ FUNCTION(fun_execscript)
          sptr = s_inread;
          /* convert to a '?' non-printable non-ascii-7 chars */
          while ( *sptr ) {
-            if ( !((isprint(*sptr) || isspace(*sptr)) && isascii(*sptr)) )
+            if ( !((isprint(*sptr) || (*sptr == BEEP_CHAR) || isspace(*sptr)) && isascii(*sptr)) )
                *sptr = '?';
             sptr++;
          }
@@ -17336,6 +17412,139 @@ FUNCTION(fun_execscript)
       sprintf(s_combine, "#-1 UNABLE TO EXECUTE '%s'", fargs[0]);
       safe_str(s_combine, buff, bufcx);
    }
+
+   /* Cleanup on isle 2 -- cleanup variables we set */
+   /* We also set the variables in use -back- based on setq regs and contents of MUSHL_VARS */
+   s_varset = alloc_sbuf("execscript_variables2");
+   for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
+      sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+      unsetenv(s_varset);
+   }
+   if ( !i_noex ) {
+      sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
+      s_buff = alloc_lbuf("fun_execscript_errors");
+      if ( (fp2 = fopen(s_combine, "r")) != NULL) {
+         s_inread = alloc_lbuf("fun_execscript_read2");
+         memset(s_inread, '\0', LBUF_SIZE);
+         i_count = 0;
+         while ( !feof(fp2) && (i_count <= 1000) ) {
+            i_count++;
+            fgets(s_inread, LBUF_SIZE-1, fp2);
+            if ( feof(fp2) ) {
+               break;
+            }
+            sptr = s_inread;
+            /* convert to a '?' non-printable non-ascii-7 chars */
+            while ( *sptr ) {
+               if ( !((isprint(*sptr) || (*sptr == BEEP_CHAR) || isspace(*sptr)) && isascii(*sptr)) )
+                  *sptr = '?';
+               sptr++;
+            }
+            s_variable = s_inread;
+            s_inbuf = s_inread;
+            while ( *s_inbuf && !isspace(*s_inbuf) ) {
+               s_inbuf++;
+            }
+            if ( isspace(*s_inbuf) ) {
+               *s_inbuf = '\0';
+               s_inbuf++;
+               s_dbref = s_inbuf;
+            } else {
+               sprintf(s_buff, "Warning: Line %d of script variable setter %.100s is invalid. [null second arg]", i_count, s_combine);
+               notify_quiet(player, s_buff);
+               continue;
+            }
+            while ( *s_inbuf && !isspace(*s_inbuf) ) {
+               s_inbuf++;
+            }
+            if ( isspace(*s_inbuf) ) {
+               *s_inbuf = '\0';
+               s_inbuf++;
+               s_string = s_inbuf;
+               *(s_string+strlen(s_string)-1)='\0';
+            } else {
+               s_string = NULL;
+            }
+            if ( ((*s_dbref == 'q') || (*s_dbref == 'Q')) && !*(s_dbref+1) ) {
+                 if ( (strlen(s_variable) == 1) && (index(mudstate.nameofqreg, ToLower(*s_variable)) != NULL) ) {
+                    for ( i_id = 0; i_id < MAX_GLOBAL_REGS; i_id++ ) {
+                       if ( ToLower(*s_variable) == mudstate.nameofqreg[i_id] ) {
+                          if ( !s_string || !*s_string ) {
+                             *mudstate.global_regs[i_id]='\0';
+                          } else {
+                             sprintf(mudstate.global_regs[i_id], "%.*s", (LBUF_SIZE-10), s_string);
+                          }
+                          break;
+                       } else {
+                          sprintf(s_buff, "Warning: Invalid setq register %c on line %d", *s_variable, i_count);
+                       }
+                    }
+                 } else {
+                    sprintf(s_buff, "Warning: Line %d of script variable setter %.100s is invalid. [invalid register %.100s]", i_count, s_combine, s_variable);
+                    notify_quiet(player, s_buff);
+                 }
+                 continue;
+            } else if ( (*s_dbref != '#') || !isdigit(*(s_dbref+1)) ) {
+               sprintf(s_buff, "Warning: Line %d of script variable setter %.100s is invalid. [invalid dbref format %.100s]", i_count, s_combine, s_dbref);
+               notify_quiet(player, s_buff);
+               continue;
+            }
+            i_varset = atoi(s_dbref+1);
+            if ( !Good_chk(i_varset) || !controls(player, i_varset) ) {
+               sprintf(s_buff, "Warning: Invalid dbref #%d on line %d", i_varset, i_count);
+               notify_quiet(player, s_buff);
+               continue;
+            }
+            if ( !ok_attr_name(s_variable) ) {
+               sprintf(s_buff, "Warning: Invalid variable name '%s' on line %d", s_variable, i_count);
+               notify_quiet(player, s_buff);
+               continue;
+            }
+            if ( s_string && *s_string ) {
+               sprintf(s_buff, "%s:%.*s", s_variable, (LBUF_SIZE-100), s_string);
+            } else {
+               sprintf(s_buff, "%s:", s_variable);
+            }
+            do_set(player, cause, (SET_QUIET|SIDEEFFECT), s_dbref, s_buff);
+         }
+         free_lbuf(s_inread);
+         if ( unlink(s_combine) != 0 ) {
+            sprintf(s_buff, "Warning: Unable to remove script variable setter %.100s", s_combine);
+            notify_quiet(player, s_buff);
+         }
+         if ( i_count >= 1000 ) {
+            sprintf(s_buff, "Warning: variable setter %.100s contained more than 1000 lines.  Rest ignored.", s_combine);
+            notify_quiet(player, s_buff);
+         }
+         fclose(fp2);
+      }
+      free_lbuf(s_buff);
+   }
+   if ( s_varsbak ) {
+      s_varstok = strtok_r(s_varsbak, (char *)" ", &s_varstokptr);
+      while ( s_varstok && *s_varstok ) {
+         s_varupper = s_varstok;
+         while ( *s_varupper ) {
+            *s_varupper = ToUpper(*s_varupper);
+            s_varupper++;
+         }
+         sprintf(s_varset, "MUSHV_%.*s", (SBUF_SIZE-7), s_varstok);
+         unsetenv(s_varset);
+         s_varstok = strtok_r(NULL, (char *)" ", &s_varstokptr);
+      }
+      free_lbuf(s_varsbak);
+   }
+   free_sbuf(s_varset);
+   unsetenv("MUSHL_VARS");
+   unsetenv("MUSH_PLAYER");
+   unsetenv("MUSH_CAUSE");
+   unsetenv("MUSH_CALLER");
+   unsetenv("MUSH_OWNER");
+   unsetenv("MUSH_FLAGS");
+   unsetenv("MUSH_OWNERFLAGS");
+   unsetenv("MUSH_TOGGLES");
+   unsetenv("MUSH_OWNERTOGGLES");
+
    free_lbuf(s_combine);
 }
 
