@@ -11098,6 +11098,7 @@
   Note1: you may start lines with a '#' for comments.
   Note2: you may continue content by ending previous line with a <ctrl>M
          (which is a line feed)
+  Note3: A maximum of 1000 lines are read (including comments)
   
   All registers are passed to the script in the form MUSHQ_<reg>.  So
   for example you would use the environment variable MUSHQ_A to see
