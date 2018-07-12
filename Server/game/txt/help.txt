@@ -32251,3 +32251,4 @@
   * door.c could crash if non-player executed @door/push [ASH]
   * help separator bug with /search
   * @tel target= will now give an error message [ASH]
+  * cleanup script for execscript a bit too aggressive [ASH]

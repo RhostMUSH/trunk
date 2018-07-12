@@ -17413,13 +17413,8 @@ FUNCTION(fun_execscript)
       safe_str(s_combine, buff, bufcx);
    }
 
-   /* Cleanup on isle 2 -- cleanup variables we set */
    /* We also set the variables in use -back- based on setq regs and contents of MUSHL_VARS */
    s_varset = alloc_sbuf("execscript_variables2");
-   for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
-      sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
-      unsetenv(s_varset);
-   }
    if ( !i_noex ) {
       sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
       s_buff = alloc_lbuf("fun_execscript_errors");
@@ -17563,6 +17558,11 @@ FUNCTION(fun_execscript)
       free_lbuf(s_append);
       free_lbuf(s_buff);
       free_lbuf(s_inread2);
+   }
+   /* Cleanup on isle 2 -- cleanup variables we set */
+   for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
+      sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+      unsetenv(s_varset);
    }
    if ( s_varsbak ) {
       s_varstok = strtok_r(s_varsbak, (char *)" ", &s_varstokptr);
