@@ -11207,9 +11207,6 @@
     <register> Q bob  -- This sets the register to contents 'bob'
     <label>    QN boo -- This sets register with label' <label> 'boo'
   
-  Note: <label> is CASE SENSITIVE just as the labels in the mush are.
-        It is expected you will know the case sensitivity of labels you use.
-  
   To set variables back to the mush you would use:
     <variable> <dbref#>      -- This clears the attribute on dbref#
     <variable> <dbref#> bob  -- This sets 'bob' to the attribute
@@ -11227,7 +11224,7 @@
      W Q
      0 Q Setting Register 0
      A Q Setting register A
-     snork QN Setting register with label snork (case sensitive)
+     snork QN Setting register with label snork 
      BOB #456 This is my BOB attribute
      SEX #123 Male
      DESC #123 This is my desc%r%rI like my %crred%cn desc.

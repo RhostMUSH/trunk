@@ -17529,7 +17529,7 @@ FUNCTION(fun_execscript)
                  (!*(s_dbref+1) || (((*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N')) && !*(s_dbref+2))) ) {
                   if ( (*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N' ) ) {
                     for ( i_id = 0; i_id < MAX_GLOBAL_REGS; i_id++ ) {
-                       if ( *(mudstate.global_regsname[i_id]) && !strcmp(mudstate.global_regsname[i_id], s_variable) ) {
+                       if ( *(mudstate.global_regsname[i_id]) && !stricmp(mudstate.global_regsname[i_id], s_variable) ) {
                           if ( !s_string || !*s_string ) {
                              *mudstate.global_regs[i_id]='\0';
                           } else {
