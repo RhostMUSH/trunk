@@ -11100,6 +11100,10 @@
          (which is a line feed)
   Note3: A maximum of 1000 lines are read (including comments)
   
+  The file loader after the execscript is executed is the name of the
+  script plus '.set' after it.  So if execscript called hello.sh then
+  the loader script it calls after execution is hello.sh.set  
+  
   All registers are passed to the script in the form MUSHQ_<reg>.  So
   for example you would use the environment variable MUSHQ_A to see
   the A register that was set with setq(a,foo).   All registers from
