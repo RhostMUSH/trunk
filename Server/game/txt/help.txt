@@ -32239,6 +32239,7 @@
   * dynhelp() and textfile() optionally allow suggestions [ASH]
   * randextract() optionally has weighted values [ASH]
   * execscript() modified to pass back and forth registers and vars [ASH]
+  * execscript() passes register names as well [ASH]
   
   Changes
   ------------

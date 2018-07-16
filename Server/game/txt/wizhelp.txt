@@ -11062,12 +11062,17 @@
   directory's sub-directory 'scripts'.  It is case sensitive and strips
   illegal characters (like, .., /, $, etc) from the script name.
   
-  This requires the EXECSCRIPT @power of GUILDMASTER to use the function.
-  It requires the ARCHITECT level to allow the use of passing arguments
-  to the script.  Unlike other powers, this power is not inheritable.
+  MUSH Requirements:
+     - @power of EXECSCRIPT (guildmaster to use, arch+ to pass vars)
+     - SIDEFX flag
+     - EXECSCRIPT_VAR (optional)  --> passed as enviornment var MUSHL_VARS
+       This is set on the thing with execscript() on it to define what
+       variables it has that will be passed as MUSHV_<args> to the script
+  
+  Note: The EXECSCRIPT @power is not inheritable.
   
   You can pass a maximum of 9 arguments to the script not including the
-  script name.
+  script name.  It combines all arguments into a singular argument to script.
   
   The following global variables are available from inside the scripts called:
     MUSH_PLAYER       - [%!] dbref# of player followed by name of player.  
@@ -11081,6 +11086,12 @@
     MUSHL_VARS        - All the variables you want the script to see which
                         is passed as the mush attribute EXECSCRIPT_VARS
                         on the container that is executing execscript()
+    MUSHV_<arg>       - Dynamic variables passed from above EXECSCRIPT_VARS
+    MUSHQ_<arg>       - SetQ registers (0-9 and a-z) 
+    MUSHQN_<arg>      - Label names of registers (0-9 and a-z)
+    MUSHN_<arg>       - Register name contents of the setq register.
+                        Note: setq 0 label of 'bob' will have MUSHQ_0 and
+                              MUSHN_BOB have the same contents.
   
   Examples:
     > say execscript(hello.sh)
@@ -11089,7 +11100,7 @@
     You say "hello from the script with args: 'test'"
   
   See 'writing scripts' for help on dos and don'ts in writing execscripts.
-  See 'working with execscript' for how to use registers and variables.
+  See 'working with execscript' to use registers and variables and callbacks.
 
     
   See Also: POWER EXECSCRIPT, exec_secure
@@ -11097,100 +11108,147 @@
 & WORKING WITH EXECSCRIPT
   Topic: Working with Execscript
   
+  The file that will be passed back to the mush is the name of the 
+  executing script with '.set' after it.  With the example 'myscript.sh'
+  the loader file will be 'myscript.sh.set'.
+ 
   Note1: you may start lines with a '#' for comments.
   Note2: you may continue content by ending previous line with a <ctrl>M
          (which is a line feed)
   Note3: A maximum of 1000 lines are read (including comments)
   
   The file loader after the execscript is executed is the name of the
-  script plus '.set' after it.  So if execscript called hello.sh then
-  the loader script it calls after execution is hello.sh.set  
+  script plus '.set' after it.  So if execscript called myscript.sh then
+  the loader script it calls after execution is myscript.sh.set.  This file
+  will be not be triggered if it detects the file existing prior to 
+  the executing of the script.  This is a safty margin.
   
-  All registers are passed to the script in the form MUSHQ_<reg>.  So
-  for example you would use the environment variable MUSHQ_A to see
-  the A register that was set with setq(a,foo).   All registers from
-  0-9 and A-Z are automatically set.
+  The following registers are passed to the script as environment variables:
+    MUSHQ_<reg>   - Where <reg> is 0-9 or a-z for the SETQ registers.
+    MUSHQN_<reg>  - The label name of the <reg> defined above.
+    MUSHN_<label> - The label contents of the named register.
   
-  The list of variables you wish to pass from the object issuing
-  the execscript (not the executor, but the container), will be passed
-  as a space separated list stored in the variable EXECSCRIPT_VARS.
+  The following variables are passed to the script as environment variables:
+    MUSHL_VARS    - This is the contents of the EXECSCRIPT_VARS mush attribute
+                    that has a space seperated list of attribute names you
+                    wish to pass to the script.
+    MUSHV_<arg>   - Each <arg> is a mush attribute variable from MUSHL_VARS.
+
+{ see 'working with execscript2' for details and examples }
+
+& WORKING WITH EXECSCRIPT2
+  Topic: Working with Execscript Part 2
   
-    Example: &EXECSCRIPT_VARS #123=foo bar baz
+  The list of variables you wish to pass will be from the object issuing
+  the execscript (not the executor, but the container) as a space separated 
+  list stored in the variable EXECSCRIPT_VARS.  Let's assume the execscript
+  is on object #123
   
-  This list is passed into an environment variable MUSHL_VARS.  
-  This is a space separated list of variables you wish to define 
-  as enviornment variables for your script.  They are automatically 
-  assigned the contents of the MUSH variable.
+  Example: 
+    > @set #123=SIDEFX INHERIT
+    > @power/counc #123=EXECSCRIPT
+    > &EXECSCRIPT_VARS #123=foo bar baz
+    > &FOO #123=This is my foo variable
+    > &BAR #123=This is my bar variable
+    > &BAZ #123=This is my baz variable
+    > &EXEC_ONE #123=$run1:@pemit %#=[execscript(hi.sh)]
+    > &EXEC_TWO #123=$run2 *:@pemit %#=[setq(0,foo,bar)][execscript(hi.sh,%0)]
   
-  These variables are set in environment variables in the form 
-  MUSHV_<variable>.  So for example if you passed the following 
-  variables to the environment MUSHL_VARS:
+  The EXECSCRIPT_VARS contents as passed as environment variable MUSHL_VARS.
+  This will always be a space delimited list of varibles you want your script
+  to see.  The contents of the example is 'foo bar baz' which are then defined
+  as the environment variables with contents:
+     environment MUSHV_FOO containing 'This is my foo variable' from &FOO
+     environment MUSHV_BAR containing 'This is my bar variable' from &BAR
+     environment MUSHV_BAZ containing 'This is my baz variable' from &BAZ
   
-         MUSHL_VARS=foo bar baz
+  All registers that are defined are allocated and defined as environments
+  with labels if declared.  It only assigns registers and labels where defined.
+     environment variable MUSHQ_0 containing 'foo' from setq 0 contents
+     environment variable MUSHQN_0 containing 'bar' from setq 0 label
+     environment variable MUSHN_BAR containing 'foo' from setq 0 contents
   
-  The MUSHL_VARS is seen in your script as an environment variable.
-  This again is passed via the MUSH attribute EXECSCRIPT_VARS.
-  
-  With the above, you are saying you want to pass three variables 
-  to the execscript which are 'foo' 'bar' and 'baz'.  
-  
-  To see these variables in your script you would pull the environment
-  variable prepended with MUSHV_.  So for example to see the 'foo'
-  attribute you would use the environment variable MUSHV_FOO
+  Notice the difference between 'run1' and 'run2' above is that run1 just
+  execs the script.  No registers are passed, but EXECSCRIPT_VARS passes
+  three variables that will be seen by your script.  'run2' in addition
+  passes argument 0 (%0) to the script, as well as sets a register and
+  label.
   
   At the end of the execscript() the mush does house keeping and
   will remove all environment variables that were originally set.
   
-  To see how you return variables back to the mush, please refer
-  to section 'working with execscript 2' 
- 
-& WORKING WITH EXECSCRIPT 2
-  Topic: Working with Execscript Part 2
+{ See 'working with execscript3' for passing information back into the mush}
+  
+& WORKING WITH EXECSCRIPT3
+  Topic: Working with Execscript Part 3
   
   If you wish to have variables and registers pushed back to the mush,
   you must stage a file to be read at the end of your script execution.
   
+  The filename created will be <scriptname>.set.  This file will be removed
+  after the end of processing. 
+  
   Yes yes, I know, this isn't exactly clean, but it's one of the few
-  clean ways a child can refer back to the parent short of writing
+  'clean' ways a child can refer back to the parent short of writing
   complex (and not fully platform supported) shared memory.  We took
   the easy way out here.
   
-  The file that will be read is the name of the execscript() with a
-  '.set' appended to it.  
+  The file that will be read is the name of the script execscript() called
+  with a '.set' appended to it.  
   
   So if your script was called 'myscript.sh'.  The file it would read
-  in would be called 'myscript.sh.set'.
+  in would be called 'myscript.sh.set'.  Again, this file is removed after
+  it runs.  
   
   The syntax of this file will be as follows.
   
   To set registers back to the mush you would use:
-  <register> Q      -- This clears the register
-  <register> Q bob  -- This sets the register to contents 'bob'
+    <register> Q      -- This clears the register
+    <register> Q bob  -- This sets the register to contents 'bob'
+    <label>    QN boo -- This sets register with label' <label> 'boo'
   
-  Examples:
-    W Q
-    0 Q Setting Register 0
-    A Q Setting register A
+  Note: <label> is CASE SENSITIVE just as the labels in the mush are.
+        It is expected you will know the case sensitivity of labels you use.
   
-  See 'working with execscript 3' on setting dynamic variables
+  To set variables back to the mush you would use:
+    <variable> <dbref#>      -- This clears the attribute on dbref#
+    <variable> <dbref#> bob  -- This sets 'bob' to the attribute
+  
+{ see 'working with execscript4' for examples and descriptions }
 
-& WORKING WITH EXECSCRIPT 3
-  Topic: Working with Execscript Part 3
+& WORKING WITH EXECSCRIPT4
+  Topic: Working with Execscript Part 4
   
   To continue, you again would still be using the .set file.  For
   the example we were using 'myscript.sh.set' because the example
   execscript() was myscript.sh.
   
-  To set variables back into the mush you would use:
-  <variable> <dbref#>      -- This clears the attribute on dbref#
-  <variable> <dbref#> bob  -- This sets 'bob' to the attribute
+  Example <script>.set file contents:
+     W Q
+     0 Q Setting Register 0
+     A Q Setting register A
+     snork QN Setting register with label snork (case sensitive)
+     BOB #456 This is my BOB attribute
+     SEX #123 Male
+     DESC #123 This is my desc%r%rI like my %crred%cn desc.
+     MULTILINE #123 Multi Line Input^M
+     More for the line^M
+     And the end
+     WIPEATTR #123
+   
+  To describe what the examples do: 
+     W Q  -- this clears register W
+     0 Q <string> -- This sets <string> into register 0 (%q0)
+     A Q <string> -- This sets <String> into register A (%qa)
+     snork QN <string> -- sets string to register with label 'snork'
+     BOB #456 <string> -- Same as &BOB #456=<string>
+     SEX #123 <string> -- Same as @sex #123=<string>
+     DESC #123 <string> -- Same as @desc #123=<string>
+     MULTILINE #123 <string> -- Each ^M says to keep reading
+                                until no ^M or end of file
+     WIPEATTR #123 -- same as &WIPEATTR #123 or @wipe #123/WIPEATTR
   
-  Examples:
-    SEX #123 Male
-    DESC #123 This is my desc%r%rI like my %crred%cn desc.
-    WIPEATTR #123
-  
-  See also: execscript(), WRITING SCRIPTS
+  See also: execscript(), WRITING SCRIPTS, POWER EXECSCRIPT
 
 & WRITING SCRIPTS
   Topic: Writing Scripts

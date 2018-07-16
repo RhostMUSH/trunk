@@ -17138,9 +17138,9 @@ FUNCTION(fun_execscript)
 {
    FILE *fp, *fp2;
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, 
-        *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff,
-        *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments;
+        *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs,
+        *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_flags[MAX_GLOBAL_REGS];
    dbref aowner;
    time_t i_now;
    struct stat st_buf;
@@ -17318,14 +17318,43 @@ FUNCTION(fun_execscript)
    }
    free_lbuf(sptr);
    /* set setq register to environment variables */
-   s_varset = alloc_sbuf("execscript_variables2");
+   s_varset = alloc_mbuf("execscript_variables2");
+   s_nregsptr = s_nregs = alloc_lbuf("execscript_regnames");
    for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
+      i_flags[i_count] = 0;
       if ( *mudstate.global_regs[i_count] ) {
          sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
          i_varset = setenv(s_varset, mudstate.global_regs[i_count], 1);
+         if ( mudstate.global_regsname[i_count] && *(mudstate.global_regsname[i_count]) ) {
+            sprintf(s_varset, "MUSHN_%s", mudstate.global_regsname[i_count]);
+            s_buff = s_varset;
+            i_noex = 0;
+            while ( *s_buff ) {
+               if ( isspace(*s_buff) || !isascii(*s_buff) ) {
+                  i_noex = 1;
+                  break;
+               }
+               *s_buff = ToUpper(*s_buff);
+               s_buff++;
+            }
+            if ( i_noex ) {
+               sprintf(s_varset, "Warning: Unable to pass register name '%s' for register '%c'", 
+                        mudstate.global_regsname[i_count], ToUpper(mudstate.nameofqreg[i_count]));
+               notify_quiet(player, s_varset);
+            } else {
+               if ( *s_nregs ) {
+                  safe_chr(' ', s_nregs, &s_nregsptr);
+               }
+               i_flags[i_count] = 1;
+               safe_str(s_varset, s_nregs, &s_nregsptr);
+               i_varset = setenv(s_varset, mudstate.global_regs[i_count], 1);
+               sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+               i_varset = setenv(s_varset, mudstate.global_regsname[i_count], 1);
+            }
+         }
       }
    } 
-   free_sbuf(s_varset);
+   free_mbuf(s_varset);
 
    i_noex = 0;
    sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
@@ -17496,8 +17525,20 @@ FUNCTION(fun_execscript)
             } else {
                s_string = NULL;
             }
-            if ( ((*s_dbref == 'q') || (*s_dbref == 'Q')) && !*(s_dbref+1) ) {
-                 if ( (strlen(s_variable) == 1) && (index(mudstate.nameofqreg, ToLower(*s_variable)) != NULL) ) {
+            if ( ((*s_dbref == 'q') || (*s_dbref == 'Q')) && 
+                 (!*(s_dbref+1) || (((*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N')) && !*(s_dbref+2))) ) {
+                  if ( (*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N' ) ) {
+                    for ( i_id = 0; i_id < MAX_GLOBAL_REGS; i_id++ ) {
+                       if ( *(mudstate.global_regsname[i_id]) && !strcmp(mudstate.global_regsname[i_id], s_variable) ) {
+                          if ( !s_string || !*s_string ) {
+                             *mudstate.global_regs[i_id]='\0';
+                          } else {
+                             sprintf(mudstate.global_regs[i_id], "%.*s", (LBUF_SIZE-10), s_string);
+                          }
+                          break;
+                       }
+                    }
+                  } else if ( (strlen(s_variable) == 1) && (index(mudstate.nameofqreg, ToLower(*s_variable)) != NULL) ) {
                     for ( i_id = 0; i_id < MAX_GLOBAL_REGS; i_id++ ) {
                        if ( ToLower(*s_variable) == mudstate.nameofqreg[i_id] ) {
                           if ( !s_string || !*s_string ) {
@@ -17559,11 +17600,24 @@ FUNCTION(fun_execscript)
       free_lbuf(s_buff);
       free_lbuf(s_inread2);
    }
-   /* Cleanup on isle 2 -- cleanup variables we set */
+   /* Cleanup registers */
    for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
       sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
       unsetenv(s_varset);
+      if ( i_flags[i_count] ) {
+         sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+         unsetenv(s_varset);
+      }
    }
+   /* Cleanup register names */
+   if ( *s_nregs ) {
+      s_buff = strtok_r(s_nregs, (char *)" ", &s_nregsptr);
+      while ( s_buff && *s_buff ) {
+         unsetenv(s_buff);
+         s_buff = strtok_r(NULL, (char *)" ", &s_nregsptr);
+      }
+   }
+   /* Cleanup on isle 2 -- cleanup variables we set */
    if ( s_varsbak ) {
       s_varstok = strtok_r(s_varsbak, (char *)" ", &s_varstokptr);
       while ( s_varstok && *s_varstok ) {
@@ -17578,7 +17632,6 @@ FUNCTION(fun_execscript)
       }
       free_lbuf(s_varsbak);
    }
-   free_sbuf(s_varset);
    unsetenv("MUSHL_VARS");
    unsetenv("MUSH_PLAYER");
    unsetenv("MUSH_CAUSE");
@@ -17589,6 +17642,8 @@ FUNCTION(fun_execscript)
    unsetenv("MUSH_TOGGLES");
    unsetenv("MUSH_OWNERTOGGLES");
 
+   free_lbuf(s_nregs);
+   free_sbuf(s_varset);
    free_lbuf(s_combine);
 }
 
