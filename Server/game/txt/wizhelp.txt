@@ -11065,7 +11065,7 @@
   MUSH Requirements:
      - @power of EXECSCRIPT (guildmaster to use, arch+ to pass vars)
      - SIDEFX flag
-     - EXECSCRIPT_VAR (optional)  --> passed as enviornment var MUSHL_VARS
+     - EXECSCRIPT_VARS (optional)  --> passed as enviornment var MUSHL_VARS
        This is set on the thing with execscript() on it to define what
        variables it has that will be passed as MUSHV_<args> to the script
   
@@ -11133,7 +11133,7 @@
                     that has a space seperated list of attribute names you
                     wish to pass to the script.
     MUSHV_<arg>   - Each <arg> is a mush attribute variable from MUSHL_VARS.
-
+  
 { see 'working with execscript2' for details and examples }
 
 & WORKING WITH EXECSCRIPT2
@@ -11155,7 +11155,7 @@
     > &EXEC_TWO #123=$run2 *:@pemit %#=[setq(0,foo,bar)][execscript(hi.sh,%0)]
   
   The EXECSCRIPT_VARS contents as passed as environment variable MUSHL_VARS.
-  This will always be a space delimited list of varibles you want your script
+  This will always be a space delimited list of variables you want your script
   to see.  The contents of the example is 'foo bar baz' which are then defined
   as the environment variables with contents:
      environment MUSHV_FOO containing 'This is my foo variable' from &FOO
