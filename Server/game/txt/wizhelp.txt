@@ -11078,7 +11078,9 @@
     MUSH_OWNER        - dbref# of player's owner by name of owner.
     MUSH_OWNERFLAGS   - the flags of the player's owner.
     MUSH_OWNERTOGGLES - the toggles of the player's owner.
-    MUSHL_VARS        - All the variables you want the script to see
+    MUSHL_VARS        - All the variables you want the script to see which
+                        is passed as the mush attribute EXECSCRIPT_VARS
+                        on the container that is executing execscript()
   
   Examples:
     > say execscript(hello.sh)
@@ -11109,18 +11111,28 @@
   the A register that was set with setq(a,foo).   All registers from
   0-9 and A-Z are automatically set.
   
-  Variables are passed and set by the list defined in MUSHL_VARS.
-  This is a space separated list of variables you wish to define
-  as enviornment variables for your script.  They are automatically
+  The list of variables you wish to pass from the object issuing
+  the execscript (not the executor, but the container), will be passed
+  as a space separated list stored in the variable EXECSCRIPT_VARS.
+  
+    Example: &EXECSCRIPT_VARS #123=foo bar baz
+  
+  This list is passed into an environment variable MUSHL_VARS.  
+  This is a space separated list of variables you wish to define 
+  as enviornment variables for your script.  They are automatically 
   assigned the contents of the MUSH variable.
   
-  These variables are set in the form MUSHV_<variable>.  So for
-  example if you passed the following variables in MUSHL_VARS:
+  These variables are set in environment variables in the form 
+  MUSHV_<variable>.  So for example if you passed the following 
+  variables to the environment MUSHL_VARS:
   
          MUSHL_VARS=foo bar baz
   
-  You are saying you want to pass three variables to the execscript
-  which are 'foo' 'bar' and 'baz'.  
+  The MUSHL_VARS is seen in your script as an environment variable.
+  This again is passed via the MUSH attribute EXECSCRIPT_VARS.
+  
+  With the above, you are saying you want to pass three variables 
+  to the execscript which are 'foo' 'bar' and 'baz'.  
   
   To see these variables in your script you would pull the environment
   variable prepended with MUSHV_.  So for example to see the 'foo'
