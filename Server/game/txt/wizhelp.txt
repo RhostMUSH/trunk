@@ -4800,26 +4800,27 @@
   image file and the object in question.  The following switches exist:
   
     /list      - Syntax: @snapshot/list  (default)
-                 This lists all image files you currently have to disk.
+                   This lists all image files you currently have to disk.
     /verify    - Syntax: @snapshot/verify <imagefile>
-                 This issues a sanity check on the image file and lets
-                 you know if the file is valid or corrupt.
+                   This issues a sanity check on the image file and lets
+                   you know if the file is valid or corrupt.
     /del       - Syntax: @snapshot/del <imagefile(s)>
-                 This deletes the specified image file(s) from the drive.
-                 You may specify more than one in a space-delimited list.
-    /unload    - Syntax: @snapshot/unload <target> [=<optional prefix>]
-                 This makes a snapshot file of the specified target and
-                 creates an optional prefix name for it.  Default name
-                 will be the dbref#.  '123.img' for example.
+                   This deletes the specified image file(s) from the drive.
+                   You may specify more than one in a space-delimited list.
+    /unload    - Syntax: @snapshot/unload <target> [=<optional suffix>]
+                   This makes a snapshot file of the specified target and
+                   creates an optional suffix name for it.  Default name
+                   will be the dbref#.  '123.img' for example.  The new
+                   name will be 123_<suffix>.img.
     /unall     - Syntax: @snapshot/unall <list of targets>
-                 This works like /unload but takes a list of targets.
-                 You can not specify a destination name with this arg.
+                   This works like /unload but takes a list of targets.
+                   You can not specify a destination name with this arg.
     /load      - Syntax: @snapshot/load <target> = <imagefile>
-                 This will load the image file onto the specified object.
-                 The object types MUST be the same, the object MUST be
-                 a valid object, and some things (like location) will
-                 be skipped on the restore.  Parents and Zones will be
-                 set if validated.
+                   This will load the image file onto the specified object.
+                   The object types MUST be the same, the object MUST be
+                   a valid object, and some things (like location) will
+                   be skipped on the restore.  Parents and Zones will be
+                   set if validated.
     /overwrite - when specified with /unload or /unall will allow
                  overwriting the target file.
   
