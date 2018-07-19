@@ -97,6 +97,7 @@ struct confdata {
 	char	postdump_msg[128];  /* Message displayed after @dump-ing */
         char  spam_msg[128];    /* Message displayed when spammonitor kicks in */
         char  spam_objmsg[128]; /* Message displayed when object spammonitor kicks in */
+	int	mailmutt;	/* Is MUTT the mail prorgram of choice */
 	int	whereis_notify;
 	int	max_size;
 	int	name_spaces;	/* allow player names to have spaces */
@@ -819,6 +820,7 @@ struct statedata {
 	int	trace_indent;	/* Trace indention */
 	int	mail_inline;	/* Do not let mail work inline other mail */
         int	iter_special;	/* Special iter handler for 'inf' args */
+	int	nested_control;	/* Nested controlock */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */
