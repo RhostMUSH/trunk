@@ -1103,6 +1103,8 @@
   
   MAILPROG          -- Defines the mail program used with autoregistration.
                        Default:  elm
+  MAILMUTT          -- Defines if the mail program used is mutt.
+                       Default:  no
   MAILSUB           -- Defines if the mail program used recognizes subjects.
                        Default:  yes
   OFFLINE_REG       -- Enables off-line (ie: connect screen) registration.
@@ -5886,12 +5888,12 @@
   mail_autodeltime         mail_default             mail_def_object        
   mail_hidden              mail_tolist              mail_verbosity         
   mailbox_size             maildelete               mailinclude_file       
-  mailprog                 mailsub                  mailmax_send          
-  master_room              match_own_commands       manlog_file            
-  map_delim_space          max_cpu_cycles           max_dest_limit         
-  max_folders              max_lastsite_api         max_lastsite_cnt       
-  max_name_protect         max_pcreate_lim          max_pcreate_time       
-  max_percentsubs          max_players
+  mailmutt                 mailprog                 mailsub                
+  mailmax_send             master_room              match_own_commands     
+  manlog_file              map_delim_space          max_cpu_cycles         
+  max_dest_limit           max_folders              max_lastsite_api       
+  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
+  max_pcreate_time         max_percentsubs          max_players
   
 { 'wizhelp config parameters4' for more }
 
@@ -12020,18 +12022,32 @@
   
   See Also: size(), msizetot()
 
+& mailmutt
+  Config parameter: mailmutt <yes/no>.  Default: NO
+  
+  Specifies if the mail program being used is MUTT.
+  This is required to add an additional parameter to the email program.
+  
+  See Also: mailsub, mailprog
+
 & mailprog
   Config parameter: mailprog <string>.  Default: elm
+  
   Specifies the mail program used to send autoregistration email.
-  See Also: mailsub
+  
+  See Also: mailsub, mailmutt
 
 & mailsub
   Config parameter: mailsub <yes/no>.  Default:  YES
+  
   Specifies if a '-s' is used with the mailprogram defined by 'mailprog'
   config parameter.  The '-s' would be the subject line.
+  
+  See Also: mailmutt, mailprog
 
 & mail_anonymous
   Config parameter: mail_anonymous <string>.  Default: *Anonymous*
+  
   Defines the 'anonymous' name seen when a player reads/stats/other a
   mail that was sent anonymously.
   
@@ -12039,6 +12055,7 @@
 
 & mail_autodeltime
   Config parameter: mail_autodeltime <days>.  Default: 21
+  
   Specifies the time, in days, that mail is auto-purged from non-wizards.
   This does effect councilors and lower.
   
@@ -12046,6 +12063,7 @@
 
 & mail_def_object
   Config parameter: mail_def_object <dbref>.  Default: -1
+  
   Specifies the dbref# (without the '#') of the object that houses the
   global dymamic mail aliases.  Global dynamic mail aliases are literally
   functions that return a list of dbref#.  The syntax would be:
@@ -12060,12 +12078,14 @@
   
 & mail_hidden
   Config parameter: mail_hidden <on/off>.  Default: off
+  
   Specifies if mail/anon will hide who the message was originally sent
   to.  Like the /anon switch itself, WIZARD and higher can see through
   hidden/anonymous names to the real sender behind it.
   
 & mail_tolist
   Config parameter: mail_tolist <yes/no>.  Default: NO
+  
   Specifies if the To: list in mail is automatically added in any sent
   mail, showing everyone who the mail want sent to.  If this is enabled,
   using '@' when sending mail will do the reverse of what it says and
@@ -12073,6 +12093,7 @@
 
 & mail_verbosity
   Config parameter: mail_verbosity <yes/no>.  Default: NO
+  
   Specifies if subjects are displayed with the 'You have new mail' message
   that a player receives, as well if players receive this message even
   if they're disconnected.  This is tied in as both have to do with
@@ -12082,11 +12103,14 @@
 
 & mail_default
   Config parameter: mail_default <yes/no>.  Default: NO
+  
   Specifies if 'mail' will return 'mail/status' instead of the default
   of 'mail/quick'.  This is done for backward compatibility to other
   mail systems.
 
 & CLOAKING
+  Topic: CLOAKING
+  
   Cloaking on RhostMUSH is unique from other server types.  If you happen
   to be bitlevel 5 or higher (ROYALTY (wizard) or IMMORTAL (super-royalty))
   and set both the UNFINDABLE and DARK flags, you are considered WIZCLOAKED.
@@ -12107,6 +12131,8 @@
   the appropiate @admin parameters)
 
 & ALT INVENTORIES
+  Topic: ALT INVENTORIES
+  
   RhostMUSH allows alternate inventory types.  They are pretty robust with
   what they allow.  To successfully set up alternate inventories, the
   following are used for configuration.
@@ -12133,6 +12159,8 @@
   { type 'wizhelp alt inventories2' for step-by-step examples to configure }
 
 & ALT INVENTORIES2
+  Topic: ALT INVENTORIES
+  
   Alternate Inventories - A tutorial...
   [ Ok, let's first enable alternate inventories, worn, and wielded. ]
     > @admin alt_inventories=1
@@ -12184,6 +12212,8 @@
   See Also: wizhelp wmail alias, help mail alias
 
 & guest setup
+  Topic: GUEST SETUP
+  
   Setting up guests is relatively simple.  You have to do the following 
   things in order, however.
   
@@ -12210,6 +12240,7 @@
 
 & mailinclude_file
   Config parameter: mailinclude_file <string>  (Default 'autoreg_include.txt')
+  
   Specifies the text file that is included when someone autoregisters.  If
   no text file is found, or the file is invalid, it sends the base information
   to the user (login, password, and who it's from).
@@ -12217,6 +12248,8 @@
   Note: this has some protection and requires the file end in '.txt'.
 
 & news setup
+  Topic: NEWS SETUP
+  
   The news.txt file (and help.txt file) uses a unique index system for 
   references.  You design the file with a '&' to start an index key and the
   text after it is the content of that topic.  The main topic is *ALWAYS* 
@@ -12226,6 +12259,8 @@
 { For help on how to set one up, please see:  'wizhelp news setup2' }
   
 & news setup2
+  Topic: NEWS SETUP
+  
   This is an example of how a news.txt file will look like:
   
     & help
@@ -12257,6 +12292,8 @@
 { wizhelp news setup3 to continue }
 
 & news setup3
+  Topic: NEWS SETUP
+  
   Once the .txt file is finished, you need to create the index for the text
   file.  To do this, from within the txt directory you would type 
   the following:
@@ -12279,22 +12316,30 @@
   wizhelp.txt, error.txt, and all other text files.
  
 & help setup
+  Topic: HELP SETUP
+  
   The help.txt file is set up like the news.txt file.  To see how this file
   is designed and updated, please refer to 'wizhelp news setup'.
   
   See Also: news setup
 
 & plushelp setup
+  Topic: PLUSHELP SETUP
+  
   The plushelp.txt file is set up like the news.txt file.  To see how this
   file is designed and updated, please refer to 'wizhelp news setup'.
 
 & elsefile setup
+  Topic: ELSEFILE SETUP
+  
   You may set up ANY file to be read from within the mush by using the
   @dynhelp command or dynhelp() function.  The only stipulation to this
   is that the file MUST end in '.txt' and the file MUST have a matching
   '.indx' at the same location.
 
 & hook setup
+  Topic: HOOK SETUP
+  
   Hooks are set up by following the shown methods.
   1)  You must first create and setup a hook object to store the data.
       Once you have @created the object, the object needs to be defined
@@ -12332,6 +12377,8 @@
 { see 'wizhelp hook setup2' for examples }
 
 & hook setup2
+  Topic: HOOK SETUP 
+  
   > @create HookObject
   HookObject created as object #1234
   > @admin hook_obj=1234             (and/or in netrhost.conf: hook_obj 1234)
@@ -12367,6 +12414,8 @@
 { see 'wizhelp hook setup3' for special situations }
   
 & hook setup3
+  Topic: HOOK SETUP
+  
   Special commands like ':' for pose, and '"' for say are handled specially.
   The following are issued with @hook or hook_cmd:
   
@@ -12398,6 +12447,8 @@
   See Also: hook_obj, hook_cmd, hook setup
 
 & huh setup
+  Topic: HUH SETUP
+  
   The error.txt file is used to define what a player can see when they
   type a non-existant command. (and get the Huh? (Type 'help' for help).
   This allows you to randomize the messages a player can get.

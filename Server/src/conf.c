@@ -151,6 +151,7 @@ NDECL(cf_init)
     memset(mudconf.nobroadcast_host, 0, sizeof(mudconf.nobroadcast_host));
     memset(mudconf.guest_namelist, 0, sizeof(mudconf.guest_namelist));
     memset(mudconf.log_command_list, 0, sizeof(mudconf.log_command_list));
+    mudconf.mailmutt = 0;
     mudconf.guest_randomize = 0; /* Randomize guests */
     mudconf.mailsub = 1;
     mudconf.mailbox_size = 99;
@@ -352,6 +353,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
     mudstate.mail_inline = 0;		/* Mail is inline */
     mudstate.iter_special = 0;		/* iter inf special */
     mudstate.trace_indent = 0;		/* Initialize trace indent */
@@ -4392,6 +4394,9 @@ CONF conftable[] =
     {(char *) "mailprog",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mailprog, 16, 0, CA_WIZARD,
      (char *) "Program used for autoregistering (Def. elm)."},
+    {(char *) "mailmutt",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.mailmutt, 0, 0, CA_PUBLIC,
+     (char *) "Do you want MUTT compatibility for mail?"},
     {(char *) "mailsub",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.mailsub, 0, 0, CA_WIZARD,
      (char *) "Are subjects included in autoregistration?"},

@@ -1218,9 +1218,11 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
                               d->descriptor, 0, 0, "There is an error in the autoreg_include file!");
       }
       if (mudconf.mailsub)
-        sprintf(buff,"%s -s \"%s autoregistration\" %s < mailtemp",mudconf.mailprog,mudconf.mud_name,email);
+        sprintf(buff,"%s -s \"%s autoregistration\" %s%s < mailtemp", 
+                mudconf.mailprog, mudconf.mud_name, (mudconf.mailmutt ? "-- " : " "), email);
       else
-        sprintf(buff,"%s %s < mailtemp",mudconf.mailprog,email);
+        sprintf(buff,"%s %s%s < mailtemp", 
+                mudconf.mailprog, (mudconf.mailmutt ? "-- " : " "), email);
       system(buff);
       system("rm mailtemp");
       if ( !key ) {

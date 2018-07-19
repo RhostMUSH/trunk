@@ -6023,6 +6023,10 @@ list_options_mail(dbref player)
                      "Mail program used with autoregistration.", " ",
                      mudconf.mailprog));
       notify(player, unsafe_tprintf("%-28.28s %c %s",
+                     "mailmutt",
+                     (mudconf.mailmutt ? 'Y' : 'N'),
+                     "Does the mail program use mutt syntax?"));
+      notify(player, unsafe_tprintf("%-28.28s %c %s",
                      "mailsub",
                      (mudconf.mailsub ? 'Y' : 'N'),
                      "Does the mail program use subjects?"));
@@ -6624,8 +6628,11 @@ list_options_config(dbref player)
           notify(player,buff);
           notify(player, unsafe_tprintf("                   Current mail used: %s.", 
                          mudconf.mailprog));       
+          if ( mudconf.mailmutt > 0 )
+             notify(player, "                   mail uses mutt compatibility.");
+          else
           if ( mudconf.mailsub > 0 )
-             notify(player, "                   Subjects in mail are allowed.");
+             notify(player, "                   mail does not use mutt compatibility.");
           else
              notify(player, "                   Subjects in mail are not allowed.");
           notify(player, unsafe_tprintf("                   Mail file included: %s.", mudconf.mailinclude_file));
@@ -7518,8 +7525,11 @@ list_options(dbref player)
        notify(player,buff);
        notify(player, 
 	      unsafe_tprintf("                   Current mail used: %s.", mudconf.mailprog));
+       if ( mudconf.mailmutt > 0 )
+          notify(player, "                   Mail uses mutt compatibility.");
+       else
        if ( mudconf.mailsub > 0 )
-          notify(player, "                   Subjects in mail are allowed.");
+          notify(player, "                   Mail does not use mutt compatibility.");
        else
           notify(player, "                   Subjects in mail are not allowed.");
        notify(player, unsafe_tprintf("                   Mail file included: %s.", mudconf.mailinclude_file));
