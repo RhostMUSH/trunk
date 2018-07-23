@@ -32247,6 +32247,7 @@
   * listprotection() has additional arguments to handle @alias [ASH]
   * Added comments and continous lines to content for execscript [ASH]
   * Added MUTT compatibility to autoreg mail handling [ASH]
+  * Reality levels with @txlevel/@rxlevel allow setting by bitmask [ASH]
   
   Bug Fixes
   ------------

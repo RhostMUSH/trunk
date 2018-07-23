@@ -76,12 +76,23 @@ RLEVEL TxLevel(dbref thing)
 
 RLEVEL find_rlevel(char *name)
 {
-    int i;
+    int i, i_mask, i_cmp;
 
-    for(i=0; i < mudconf.no_levels; ++i) {
-        if(!strcasecmp(name, mudconf.reality_level[i].name)) {
-             return mudconf.reality_level[i].value;
-        }
+    i_mask = 0;
+    if ( (*name == '0') && (ToLower(*(name+1)) == 'x') && isxdigit(*(name+2)) ) {
+       sscanf(name, "%x", &i_cmp);
+       for(i=0; i < mudconf.no_levels; ++i) {
+          if ( (mudconf.reality_level[i].value &~ i_cmp) == 0 ) {
+             i_mask |= mudconf.reality_level[i].value;
+          }
+       }
+       return i_mask;
+    } else {
+       for(i=0; i < mudconf.no_levels; ++i) {
+           if(!strcasecmp(name, mudconf.reality_level[i].name)) {
+                return mudconf.reality_level[i].value;
+           }
+       }
     }
     return 0;
 }
