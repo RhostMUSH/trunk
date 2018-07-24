@@ -30,6 +30,8 @@ Startmush had a confusing message for Nyctasia as #1's password
 				- Thanks Ixokai
 @rxlevel/@txlevel handle bits as well as tabs
 				- Thanks Myrddin
+@fpose/nospace didn't work because of wrong bitwise flags
+				- Thanks Myrddin
 
 
                          RhostMUSH 3.9.5 Update File

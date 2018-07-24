@@ -32255,3 +32255,4 @@
   * help separator bug with /search
   * @tel target= will now give an error message [ASH]
   * cleanup script for execscript a bit too aggressive [ASH]
+  * @fpose/nospace didn't work properly [ASH]

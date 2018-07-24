@@ -1721,6 +1721,10 @@ ZLISTNODE *z_ptr, *y_ptr;
       notify(player, "Permission denied.");
       return;
    }
+   /* If NS, strip FPOSE but leave NS -- fall-through on a switch */
+   if ( key & PEMIT_FPOSE_NS ) {
+      key &=~PEMIT_FPOSE;
+   }
    if ( key & SIDEEFFECT ) {
       key &=~SIDEEFFECT;
    }

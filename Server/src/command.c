@@ -465,7 +465,7 @@ NAMETAB fsay_sw[] =
 NAMETAB fpose_sw[] =
 {
     {(char *) "default", 1, CA_PUBLIC, 0, 0},
-    {(char *) "nospace", 1, CA_PUBLIC, 0, SAY_NOSPACE},
+    {(char *) "nospace", 1, CA_PUBLIC, 0, PEMIT_FPOSE_NS},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB lfunction_sw[] =
