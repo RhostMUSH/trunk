@@ -32248,6 +32248,7 @@
   * Added comments and continous lines to content for execscript [ASH]
   * Added MUTT compatibility to autoreg mail handling [ASH]
   * Reality levels with @txlevel/@rxlevel allow setting by bitmask [ASH]
+  * @rxlevel/@txlevel follow NOISY @toggle parameters [ASH]
   
   Bug Fixes
   ------------
