@@ -1561,7 +1561,7 @@
 & train
   Command: train
   The train command is used to output to the player what exactly you have 
-  typed.  The output is not parsed and is taken verbatum and displayed as
+  typed.  The output is not parsed and is taken verbatim and displayed as
   is. 
   
   Example:
