@@ -611,7 +611,7 @@ tcache_finish(void)
            }
            free_lbuf(s_aptext);
         }
-        if ( *(xp->label) ) {
+        if ( (xp->label) && *(xp->label) ) {
            if ( i_tabspace > 0 ) {
 	      notify(Owner(xp->player),
 	             safe_tprintf(tpr_buff, &tprp_buff, "%s(#%d) [%s%s%s]} %*s'%s' -> '%s'", Name(xp->player), xp->player,
@@ -668,7 +668,8 @@ tcache_finish(void)
 
 	free_lbuf(xp->orig);
 	free_lbuf(xp->result);
-        free_sbuf(xp->label);
+        if ( xp->label )
+           free_sbuf(xp->label);
 	free_sbuf(xp);
     }
     free_lbuf(tbuff);
