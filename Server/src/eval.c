@@ -512,11 +512,13 @@ tcache_add(dbref player, char *orig, char *result, char *s_label)
 	    tcache_head = xp;
 	} else {
 	    free_lbuf(orig);
-            free_sbuf(s_label);
+            if( s_label ) 
+               free_sbuf(s_label);
 	}
     } else {
 	free_lbuf(orig);
-        free_sbuf(s_label);
+        if ( s_label )
+           free_sbuf(s_label);
     }
     DPOP; /* #65 */
 }
@@ -1282,7 +1284,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 
 #endif
 
-char t_label[LABEL_MAX][SBUF_SIZE];
+char t_label[LABEL_MAX][SBUF_SIZE] = {{0}};
 int i_label[LABEL_MAX], i_label_lev = 0;
 
 void
@@ -1430,6 +1432,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     /* If we are tracing, save a copy of the starting buffer */
 
     savestr = NULL;
+    s_label = NULL;
     if (is_trace) {
 	is_top = tcache_empty();
 	savestr = alloc_lbuf("exec.save");
