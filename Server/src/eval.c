@@ -531,7 +531,7 @@ tcache_finish(void)
          *tstr, *tstr2, *s_grep;
     int i_apflags, i_targetlist, i_tabspace;
 #ifdef PCRE_EXEC
-    char *trace_buffptr, *trace_array[4], *trace_tmp;
+    char *trace_buffptr, *trace_array[4], *trace_tmp, *s_xorigbuff;
     int i_trace;
 #endif
     dbref i_apowner, passtarget, targetlist[LBUF_SIZE], i;
@@ -545,6 +545,7 @@ tcache_finish(void)
 
     tprp_buff = tpr_buff = alloc_lbuf("tcache_finish");
     tbuff = alloc_lbuf("bounce_on_notify_exec");
+    s_xorigbuff = alloc_lbuf("xorig_buffer");
     while (tcache_head != NULL) {
 	xp = tcache_head;
 	tcache_head = xp->next;
@@ -553,6 +554,7 @@ tcache_finish(void)
         if ( ap_log ) {
            s_grep = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
            if ( s_grep && *s_grep ) {
+              sprintf(s_xorigbuff, "%.*s", (LBUF_SIZE-1), xp->orig);
 #ifdef PCRE_EXEC
               if ( (i_apflags & AF_REGEXP) || (ap_log->flags & AF_REGEXP) ) {
                  trace_buffptr = tstr2 = alloc_lbuf("grep_regexp");
@@ -562,7 +564,7 @@ tcache_finish(void)
 #else
                  sprintf(trace_tmp, "%s$0%s", ANSI_RED, ANSI_NORMAL);
 #endif
-                 trace_array[0] = xp->orig;
+                 trace_array[0] = s_xorigbuff;
                  trace_array[1] = s_grep;
                  trace_array[2] = trace_tmp;
                  trace_array[3] = NULL;
@@ -572,11 +574,11 @@ tcache_finish(void)
                  mudstate.notrace = i_trace;
                  free_lbuf(trace_tmp);
               } else {
-                 edit_string(xp->orig, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
+                 edit_string(s_xorigbuff, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
                  free_lbuf(tstr);
               }
 #else
-              edit_string(xp->orig, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
+              edit_string(s_xorigbuff, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
               free_lbuf(tstr);
 #endif
            } else {
@@ -672,6 +674,7 @@ tcache_finish(void)
            free_sbuf(xp->label);
 	free_sbuf(xp);
     }
+    free_lbuf(s_xorigbuff);
     free_lbuf(tbuff);
     free_lbuf(tpr_buff);
     tcache_top = 1;
