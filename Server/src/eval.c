@@ -120,7 +120,7 @@ sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, ch
 
    if ( Good_obj(mudconf.hook_obj) && (mudconf.sub_override & i_include) && !(mudstate.sub_overridestate & i_include) ) {
       s_buf = alloc_sbuf("sub_override_process");
-      sprintf(s_buf, "SUB_%s", s_chr);
+      sprintf(s_buf, "SUB_%.27s", s_chr);
       sub_ap = atr_str_exec(s_buf);
       if ( !sub_ap ) {
          safe_str(s_include, buff, bufc);

@@ -1906,7 +1906,7 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
    mybuff[1] = alloc_sbuf("atrpEval2");
    mybuff[2] = alloc_sbuf("atrpEval3");
    mybuff[3] = NULL;
-   strncpy(mybuff[0], s_attr, SBUF_SIZE);
+   strncpy(mybuff[0], s_attr, SBUF_SIZE-1);
    sprintf(mybuff[1], "#%d", target);
    sprintf(mybuff[2], "%d", i_type);
    mudstate.insideaflags = 1;

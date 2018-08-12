@@ -32259,3 +32259,4 @@
   * @fpose/nospace didn't work properly [ASH]
   * initializing of unitialized variables for trace [ASH]
   * trace buffers were insufficiently sized on 32 byte SBUFS [ASH]
+  * cleanup of possible buffer null terminate on SBUF [ASH]

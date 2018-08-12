@@ -5132,7 +5132,7 @@ list_cmdswitches(dbref player, char *s_mask, int key)
 	    if (check_access(player, cmdp->perms, cmdp->perms2, 0)) {
 		if (!(cmdp->perms & CF_DARK)) {
                     if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)cmdp->cmdname)) ) {
-		       sprintf(buff, "%.31s:", cmdp->cmdname);
+		       sprintf(buff, "%.30s:", cmdp->cmdname);
 		       display_nametab(player, cmdp->switches,
 				       buff, 0);
                     }
@@ -7909,7 +7909,7 @@ list_functionperms(dbref player, char *s_mask, int key)
    } else {
        notify(player, "--- Function Permissions ---");
    }
-   s_buf = alloc_sbuf("list_functionperms");
+   s_buf = alloc_mbuf("list_functionperms");
    for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
         fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
       if ( chk_tog || check_access(player, fp->perms, fp->perms2, 0)) {
@@ -7947,7 +7947,7 @@ list_functionperms(dbref player, char *s_mask, int key)
          }
       }
    }
-   free_sbuf(s_buf);
+   free_mbuf(s_buf);
 }
 
 static void
