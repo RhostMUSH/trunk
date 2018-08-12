@@ -26098,7 +26098,7 @@ FUNCTION(fun_nsiter)
 FUNCTION(fun_strmath)
 {
    char *curr, *cp, *objstring, sep, osep, *tcurr, *tmp,
-        *s_str, *s_strtok, sep2, osep2, osep_str[3];
+        *s_str, *s_strtok, sep2, osep2, osep_str[3], *myfargs2;
    static char mybuff[LBUF_SIZE];
    int  first, first2, i_start, i_cnt, i_currcnt, i_applycnt, 
         i_mintog, i_maxtog;
@@ -26211,6 +26211,9 @@ FUNCTION(fun_strmath)
       f_base = 0.0;
    else
       f_base = safe_atof(tcurr);
+
+   myfargs2 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[2],
+                    cargs, ncargs, (char **)NULL, 0);
    free_lbuf(tcurr);
    first = 1;
    i_currcnt = 1;
@@ -26236,7 +26239,7 @@ FUNCTION(fun_strmath)
             if ( (!i_mintog || (i_mintog && (f_number >= f_min))) &&
                  (!i_maxtog || (i_maxtog && (f_number <= f_max))) ) {
                if ( (i_currcnt >= i_start) && (i_applycnt <= i_cnt) ) {
-                  switch( *fargs[2] ) {
+                  switch( *myfargs2 ) {
                      case '+': f_val = f_number + f_base;
                                break;
                      case '-': f_val = f_number - f_base;
@@ -26254,42 +26257,42 @@ FUNCTION(fun_strmath)
                                f_val = fmod(f_number, f_base);
                                break;
                      case '<': f_val = f_number;
-                               if ( *(fargs[2]+1) == '=') {
-                                  if ( f_number <= safe_atof(fargs[2]+2) ) {
+                               if ( *(myfargs2+1) == '=') {
+                                  if ( f_number <= safe_atof(myfargs2+2) ) {
                                      f_val = f_base;
                                   }
-                               } else if ( f_number < safe_atof(fargs[2]+1) ) {
+                               } else if ( f_number < safe_atof(myfargs2+1) ) {
                                   f_val = f_base;
                                }
                                break;
                      case '>': f_val = f_number;
-                               if ( *(fargs[2]+1) == '=') {
-                                  if ( f_number >= safe_atof(fargs[2]+2) ) {
+                               if ( *(myfargs2+1) == '=') {
+                                  if ( f_number >= safe_atof(myfargs2+2) ) {
                                      f_val = f_base;
                                   }
-                               } else if ( f_number > safe_atof(fargs[2]+1) ) {
+                               } else if ( f_number > safe_atof(myfargs2+1) ) {
                                   f_val = f_base;
                                }
                                break;
                      case '!': f_val = f_number;
-                               if ( (*(fargs[2]+1) == '=') && (f_number != safe_atof(fargs[2]+2)) ) {
+                               if ( (*(myfargs2+1) == '=') && (f_number != safe_atof(myfargs2+2)) ) {
                                   f_val = f_base;
                                }
                                break;
                      case '=': f_val = f_number;
-                               if ( *(fargs[2]+1) == '>') {
-                                  if (f_number >= safe_atof(fargs[2]+2) ) {
+                               if ( *(myfargs2+1) == '>') {
+                                  if (f_number >= safe_atof(myfargs2+2) ) {
                                      f_val = f_base;
                                   }
-                               } else if ( *(fargs[2]+1) == '<') {
-                                  if (f_number <= safe_atof(fargs[2]+2) ) {
+                               } else if ( *(myfargs2+1) == '<') {
+                                  if (f_number <= safe_atof(myfargs2+2) ) {
                                      f_val = f_base;
                                   }
-                               } else if ( *(fargs[2]+1) == '!') {
-                                  if (f_number != safe_atof(fargs[2]+2) ) {
+                               } else if ( *(myfargs2+1) == '!') {
+                                  if (f_number != safe_atof(myfargs2+2) ) {
                                      f_val = f_base;
                                   }
-                               } else if ( f_number == safe_atof(fargs[2]+1) ) {
+                               } else if ( f_number == safe_atof(myfargs2+1) ) {
                                   f_val = f_base;
                                }
                                break;
@@ -26314,6 +26317,7 @@ FUNCTION(fun_strmath)
       i_currcnt++;
       first = 0;
    }
+   free_lbuf(myfargs2);
    free_lbuf(curr);
 }
 
