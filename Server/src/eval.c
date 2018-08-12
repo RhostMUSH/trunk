@@ -500,7 +500,7 @@ tcache_add(dbref player, char *orig, char *result, char *s_label)
     if (strcmp(orig, result)) {
 	tcache_count++;
 	if (tcache_count <= mudconf.trace_limit) {
-	    xp = (TCENT *) alloc_sbuf("tcache_add.sbuf");
+	    xp = (TCENT *) alloc_mbuf("tcache_add.sbuf");
 	    tp = alloc_lbuf("tcache_add.lbuf");
 	    strcpy(tp, result);
             xp->player = player;
@@ -672,7 +672,7 @@ tcache_finish(void)
 	free_lbuf(xp->result);
         if ( xp->label )
            free_sbuf(xp->label);
-	free_sbuf(xp);
+	free_mbuf(xp);
     }
     free_lbuf(s_xorigbuff);
     free_lbuf(tbuff);

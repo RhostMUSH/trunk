@@ -32258,3 +32258,4 @@
   * cleanup script for execscript a bit too aggressive [ASH]
   * @fpose/nospace didn't work properly [ASH]
   * initializing of unitialized variables for trace [ASH]
+  * trace buffers were insufficiently sized on 32 byte SBUFS [ASH]

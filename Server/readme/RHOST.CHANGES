@@ -34,6 +34,8 @@ Startmush had a confusing message for Nyctasia as #1's password
 				- Thanks Myrddin
 Potential crash with freeing unitialized buffering in trace stack in eval.c
 				- Thanks Myrddin
+Crash with trace located as a 32 byte SBUF if compiled for that
+				- Thanks Myrddin
 
 
                          RhostMUSH 3.9.5 Update File
