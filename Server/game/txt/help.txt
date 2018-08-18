@@ -609,7 +609,10 @@
 & \?
 & WILDCARDS
 & GLOBBING
-  Topic:  WILDCARDS [* and ?]
+  Topic:  WILDCARDS [* and ?]  (also referred to as GLOBBING)
+  
+  Note: RhostMUSH also supports regular expressions.  Please refer to 
+        'help REGEXPS'
   
   Wildcards are the standard globbing mechanism for the mush engine.  With the
   wildcards, the '*' character is considered 0 or more characters and the '?'
@@ -662,7 +665,7 @@
   Additional matching:
     You may use regular expressions instead of globbing if you set the 
     attribute in question REGEXP (help attribute flag).  To use 
-    regular expressions instead, please check 'help regexp'.
+    regular expressions instead, please check 'help REGEXPS'.
   
   See Also: ATTRIBUTE FLAG, REGEXP, $-command
 
@@ -1002,7 +1005,11 @@
   *NOT* working on players.  Talk to your local administration to see if 
   this option has been enabled or disabled.
   
-  See Also: ARBITRARY COMMANDS
+  For normal globbing command syntax, please refer to:
+                    'help ARBITRARY COMMANDS'
+  
+  For regular expression (regex) command syntax, please refer to:
+                    'help REGEXPS'
   
 & colors
   
@@ -10021,6 +10028,9 @@
 & ARBITRARY COMMANDS
   Topic: ARBITRARY COMMANDS
  
+  If you wish to see the help for regular expression pattern matching, please
+  refer to 'help REGEXPS'.
+  
   You may define commands that are triggered whenever someone enters a command
   that matches the command template (wildcarding allowed).  These commands
   are called arbitrary commands, user-defined commands, or $-commands (for how
@@ -10056,7 +10066,10 @@
   The following attributes are never checked for $-commands: ALIAS CHARGES
   DESC DROP FAIL IDESC ODESC ODROP OFAIL OSUCC SEX SUCC.
   
-  All $commands and ^listen pairs may be parsed using regular expressions.   
+  You may set the attribute with the $command or ^listen REGEXP which will
+  allow matching against regular expressions instead of globbing.  In 
+  such a case, all $commands and ^listen pairs would be parsed using 
+  regular expressions.   
   
   See Also: @set, &, VATOVZ, ZATOZZ, $-COMMANDS, REGEXPS
   
@@ -28796,6 +28809,9 @@
   
   (This help text is largely from PennMUSH, with permission)
   
+  If you wish to see the help for the normal globbing command execution,
+  please refer to the help 'ARBITRARY COMMANDS'.
+  
   The majority of matching in MUSH is done with wildcard ("globbing")
   patterns. There is a second type of matching, using regular expressions,
   that is available in certain circumstances.
@@ -28820,10 +28836,16 @@
   player to enter a string and a number ('+setnum <player>=<number>',
   for example), you might do it like this:
   
-  &DO_NUM Command Object=$^\+setnum (.+)=([0-9]+)$: @va me=Data: %1 = %2
-  @set Command Object/DO_NUM = regexp
+  > &DO_NUM Command Object=$^\+setnum (.+)=([0-9]+)$: @va me=Data: %1 = %2
+  Set.
+  > @set Command Object/DO_NUM = regexp
+  Set.
+  > +setnum cookie=30
+  > ex Command Object/va
+  Data: cookies = 30
   
-  Then, '+setnum cookies=30' would set VA to "Data: cookies = 30".
+  How it works:
+  '+setnum cookies=30' would set VA to "Data: cookies = 30".
   This eliminates your having to check to see if the player entered
   a number, since the regular expression matches only numbers.
   Furthermore, the '+' guarantees that there needs to be at least
@@ -28879,7 +28901,7 @@
               or,  extends the meaning of ( after a (
        *      0 or more quantifier
        +      1 or more quantifier
-
+  
 {continued in 'help regexp syntax3'}
 
 & REGEXP SYNTAX3
