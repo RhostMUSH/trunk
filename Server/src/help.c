@@ -16,6 +16,7 @@
 #include "rhost_ansi.h"
 
 extern void fun_strdistance(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
 
 int
 pstricmp(char *buf1, char *buf2, int len)
@@ -177,9 +178,9 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 {
     FILE *fp;
     char *p, *line;
-    int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3;
+    int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3, i_header;
     struct help_entry *htab_entry;
-    char *topic_list, *buffp, *mybuff, *myp;
+    char *topic_list, *buffp, *mybuff, *myp, *help_array[4], *s_buff2, *s_buff2ptr;
     char realFilename[129 + 32], *s_tmpbuff, *s_ptr, *s_hbuff, *s_hbuff2;
     char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_buff, *s_buffptr, *s_nbuff[2];
 
@@ -206,6 +207,8 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
        i_found = i_first = matched = 0;
        s_ptr = s_tmpbuff = alloc_lbuf("help_write_search");
        i_found = i_first = 0;
+       s_buff = alloc_lbuf("help_query");
+       s_buff2ptr = s_buff2 = alloc_lbuf("help_query2");
        for (htab_entry = (struct help_entry *) hash_firstentry(htab);
             htab_entry != NULL;
             htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -221,11 +224,14 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                  free_lbuf(line);
               ENDLOG
               free_lbuf(line);
+              free_lbuf(s_buff);
+              free_lbuf(s_buff2);
               free_lbuf(topic_list);
               free_lbuf(s_tmpbuff);
               tf_fclose(fp);
               return;
           }
+          i_header = 0;
           for (;;) {
              if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
                 break;
@@ -241,29 +247,70 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
              i_first = 1;
              safe_str(line, s_tmpbuff, &s_ptr);
              if ( quick_wild( topic, line ) ) {
-                if ( i_found ) {
-                   if ( *(mudconf.help_separator) ) {
-                      s_hbuff2 = alloc_lbuf("help_buff");
-                      strcpy(s_hbuff2, mudconf.help_separator);
-                      s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                     (char **)NULL, 0, (char **)NULL, 0);
-                      if ( !*s_hbuff ) {
-		         safe_str((char *) "  ", topic_list, &buffp);
-                      } else {
-		         safe_str(s_hbuff, topic_list, &buffp);
-                      }
-                      free_lbuf(s_hbuff);
-                      free_lbuf(s_hbuff2);
-                   } else {
-		      safe_str((char *) "  ", topic_list, &buffp);
+                if ( key == 2 ) {
+                   if ( !i_header ) {
+#ifdef ZENTY_ANSI
+                      sprintf(s_buff, "%s%s%s:", SAFE_ANSI_HILITE, htab_entry->key, SAFE_ANSI_NORMAL);
+#else
+                      sprintf(s_buff, "%s%s%s:", ANSI_HILITE, htab_entry->key, ANSI_NORMAL);
+#endif
+                      notify(player, s_buff);
+                      i_header = 1;
                    }
+#ifdef ZENTY_ANSI
+                  sprintf(s_buff, "%s$0%s", SAFE_ANSI_RED, SAFE_ANSI_NORMAL);
+#else
+                  sprintf(s_buff, "%s$0%s", ANSI_RED, ANSI_NORMAL);
+#endif
+                   s_buffptr = topic;
+                   memset(s_buff2, '\0', LBUF_SIZE);
+                   s_buff2ptr = s_buff2;
+                   while ( *s_buffptr ) {
+                      if ( *s_buffptr == '*' ) {
+                         s_buffptr++;
+                         continue;
+                      }
+                      if ( *s_buffptr == '?' ) {
+                         safe_chr('.', s_buff2, &s_buff2ptr);
+                      } else {
+                         safe_chr(*s_buffptr, s_buff2, &s_buff2ptr);
+                      }
+                      s_buffptr++;
+                   }
+                   help_array[0] = line;
+                   help_array[1] = s_buff2;
+                   help_array[2] = s_buff;
+                   help_array[3] = NULL;
+                   buffp = topic_list;
+                   do_regedit(topic_list, &buffp, GOD, GOD, GOD, help_array, 3, (char **)NULL, 0, 8);
+                   sprintf(s_buff, "   ...%.*s", (LBUF_SIZE - 20), topic_list);
+                   notify(player, s_buff);
+                   i_found = matched = 1;
+                } else {
+                   if ( i_found ) {
+                      if ( *(mudconf.help_separator) ) {
+                         s_hbuff2 = alloc_lbuf("help_buff");
+                         strcpy(s_hbuff2, mudconf.help_separator);
+                         s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
+                                        (char **)NULL, 0, (char **)NULL, 0);
+                         if ( !*s_hbuff ) {
+		            safe_str((char *) "  ", topic_list, &buffp);
+                         } else {
+		            safe_str(s_hbuff, topic_list, &buffp);
+                         }
+                         free_lbuf(s_hbuff);
+                         free_lbuf(s_hbuff2);
+                      } else {
+		         safe_str((char *) "  ", topic_list, &buffp);
+                      }
+                   }
+                   i_found = matched = 1;
+		   safe_str(htab_entry->key, topic_list, &buffp);
+                   break;
                 }
-                i_found = matched = 1;
-		safe_str(htab_entry->key, topic_list, &buffp);
-                break;
              }
           }
-          if ( !i_found && quick_wild(topic, s_tmpbuff) ) {
+          if ( (key != 2) && (!i_found && quick_wild(topic, s_tmpbuff)) ) {
              if ( matched ) {
                 if ( *(mudconf.help_separator) ) {
                    s_hbuff2 = alloc_lbuf("help_buff");
@@ -288,15 +335,17 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
           s_ptr = s_tmpbuff;
        }
        free_lbuf(s_tmpbuff);
-       if (matched == 0)
+       if (matched == 0) {
           notify(player, unsafe_tprintf("No entry for contents '%s'.", topic));
-       else {
+       } else if ( key != 2 ) {
           notify(player, unsafe_tprintf("Here are the entries which contain '%s':", topic));
           *buffp = '\0';
           notify(player, topic_list);
        }
        free_lbuf(topic_list);
        free_lbuf(line);
+       free_lbuf(s_buff);
+       free_lbuf(s_buff2);
        tf_fclose(fp);
        return;
     }
@@ -537,13 +586,13 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    help_indx entry;
    char *tmp, *p_tmp, *p, *q, *line, *msg, *p_msg, *result, *tpass;
    char filename[129 + 40], *mybuff, *myp;
-   char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff,
-        *s_buff, *s_buffptr, *s_nbuff[2], *s_hbuff, *s_hbuff2; 
-   int first, found, matched, one_through, space_compress, i_noindex;
+   char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff, *s_buff2,
+        *s_buff, *s_buffptr, *s_nbuff[2], *s_hbuff, *s_hbuff2, *help_array[4], *s_buff2ptr; 
+   int first, found, matched, one_through, space_compress, i_noindex, i_header;
    int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i;
    FILE *fp_indx, *fp_help;
 
-   if ( (key & DYN_SEARCH) && (key & DYN_NOLABEL) ) {
+   if ( ((key & DYN_SEARCH) || (key & DYN_QUERY)) && (key & DYN_NOLABEL) ) {
       notify_quiet(player, "Illegal combination of switches.");
       return(1);
    }
@@ -586,7 +635,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    found = first = matched = 0;
 
 
-   if ( key & DYN_SEARCH ) {
+   if ( (key & DYN_SEARCH) || (key & DYN_QUERY) ) {
       sprintf(filename, "%.128s/%.32s.txt", mudconf.txt_dir, fhelp);
       if ( (fp_help = fopen(filename, "r")) == NULL ) {
          if ( t_val )
@@ -600,6 +649,8 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
       line = alloc_lbuf("help_write");
       memset(line, '\0', LBUF_SIZE);
+      s_buff = alloc_lbuf("help_query");
+      s_buff2ptr = s_buff2 = alloc_lbuf("help_query2");
       while ( fread((char *)&entry, sizeof(help_indx), 1, fp_indx) == 1 ) { 
          for (p = entry.topic; *p; p++)
              *p = ToLower((int)*p);
@@ -611,10 +662,13 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             free_lbuf(msg);
             free_lbuf(tmp);
             free_lbuf(line);
+            free_lbuf(s_buff);
+            free_lbuf(s_buff2);
             fclose(fp_help);
             tf_fclose(fp_indx);
             return 1;
          }
+         i_header = 0;
          for (;;) {
             if ( fgets(line, (LBUF_SIZE - 1), fp_help) == NULL ) 
                break;
@@ -626,37 +680,84 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                    *p = '\0'; 
             }
             if ( quick_wild(msg, line) ) { 
-               if ( first ) {
-                  if ( i_type ) {
-                     safe_str(sep, tmp, &p_tmp);
-                  } else {
-                     safe_str("  ", tmp, &p_tmp);
+               if ( key & DYN_QUERY ) {
+                  if ( !i_header ) {
+#ifdef ZENTY_ANSI
+                     sprintf(s_buff, "%s%s%s:", SAFE_ANSI_HILITE, entry.topic, SAFE_ANSI_NORMAL);
+#else
+                     sprintf(s_buff, "%s%s%s:", ANSI_HILITE, entry.topic, ANSI_NORMAL);
+#endif
+                     notify(player, s_buff);
+                     i_header = 1;
                   }
+#ifdef ZENTY_ANSI
+                  sprintf(s_buff, "%s$0%s", SAFE_ANSI_RED, SAFE_ANSI_NORMAL);
+#else
+                  sprintf(s_buff, "%s$0%s", ANSI_RED, ANSI_NORMAL);
+#endif
+                  s_buffptr = msg;
+                  memset(s_buff2, '\0', LBUF_SIZE);
+                  s_buff2ptr = s_buff2;
+                  while ( *s_buffptr ) {
+                    if ( *s_buffptr == '*' ) {
+                       s_buffptr++;
+                       continue;
+                    }
+                    if ( *s_buffptr == '?' ) {
+                       safe_chr('.', s_buff2, &s_buff2ptr);
+                    } else {
+                       safe_chr(*s_buffptr, s_buff2, &s_buff2ptr);
+                    }
+                    s_buffptr++;
+                  }
+                  help_array[0] = line;
+                  help_array[1] = s_buff2;
+                  help_array[2] = s_buff;
+                  help_array[3] = NULL;
+                  p_tmp = tmp;
+                  do_regedit(tmp, &p_tmp, GOD, GOD, GOD, help_array, 3, (char **)NULL, 0, 8);
+                  sprintf(s_buff, "   ...%.*s", (LBUF_SIZE - 20), tmp);
+                  notify(player, s_buff);
+                  first = 1;
+               } else {
+                  if ( first ) {
+                     if ( i_type ) {
+                        safe_str(sep, tmp, &p_tmp);
+                     } else {
+                        safe_str("  ", tmp, &p_tmp);
+                     }
+                  }
+                  safe_str(entry.topic, tmp, &p_tmp);
+                  first = 1;
+                  break;
                }
-               safe_str(entry.topic, tmp, &p_tmp);
-               first = 1;
-               break;
             }
          }
       }
-      if ( t_val ) {
-         if ( first ) {
-            if ( !i_type )
-               safe_str(unsafe_tprintf("Here are the entries which match content '%s':\r\n", msg), t_buff, &t_bufptr);
-            safe_str(tmp, t_buff, &t_bufptr);
+      free_lbuf(s_buff);
+      free_lbuf(s_buff2);
+      if ( !(key & DYN_QUERY) ) {
+         if ( t_val ) {
+            if ( first ) {
+               if ( !i_type )
+                  safe_str(unsafe_tprintf("Here are the entries which match content '%s':\r\n", msg), t_buff, &t_bufptr);
+               safe_str(tmp, t_buff, &t_bufptr);
+            } else {
+               if ( !i_type )
+                  safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
+            }
          } else {
-            if ( !i_type )
-               safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
+            if ( first ) {
+               if ( !i_type )
+                  notify(player, unsafe_tprintf("Here are the entries which match content '%s':", msg));
+               notify(player, tmp);
+            } else {
+               if ( !i_type )
+                  notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
+            }
          }
-      } else {
-         if ( first ) {
-            if ( !i_type )
-               notify(player, unsafe_tprintf("Here are the entries which match content '%s':", msg));
-            notify(player, tmp);
-         } else {
-            if ( !i_type )
-               notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
-         }
+      } else if ( !first ) {
+         notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
       }
       free_lbuf(msg);
       free_lbuf(tmp);
@@ -1028,6 +1129,10 @@ do_help(dbref player, dbref cause, int key, char *message)
     if ( key & HELP_SEARCH ) {
        key = (key & ~HELP_SEARCH);
        keyval = 1;
+    }
+    if ( key & HELP_QUERY ) {
+       key = (key & ~HELP_QUERY);
+       keyval = 2;
     }
     switch (key) {
 #ifdef PLUSHELP

@@ -5061,9 +5061,12 @@
   files you wish to read.  Use a '^' to specify sub-directories.  '.' is not
   valid as part of the filename (or path).
   
+  Note: For /search and /query you must have wildcards for patterns.
+  
   Available switches:
     /parse   - this will parse the help evaluating all %n's/functions.
     /search  - search content and list topics containing '<topic>'.
+    /query   - like /search, but gives details on matching lines of '<topic>'
     /nolabel - snuff the hilight index of the topic <topic> when showing.
   
   Example:

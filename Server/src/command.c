@@ -362,6 +362,7 @@ NAMETAB dynhelp_sw[] =
 {
     {(char *) "parse", 1, CA_WIZARD, 0, DYN_PARSE},
     {(char *) "search", 2, CA_WIZARD, 0, DYN_SEARCH},
+    {(char *) "query", 2, CA_WIZARD, 0, DYN_QUERY},
     {(char *) "nolabel", 1, CA_WIZARD, 0, DYN_NOLABEL | SW_MULTIPLE},
     {(char *) "suggest", 2, CA_WIZARD, 0, DYN_SUGGEST | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
@@ -497,6 +498,7 @@ NAMETAB function_sw[] =
 NAMETAB genhelp_sw[] =
 {
     {(char *) "search", 1, CA_PUBLIC, 0, HELP_SEARCH},
+    {(char *) "query", 1, CA_PUBLIC, 0, HELP_QUERY},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB get_sw[] =

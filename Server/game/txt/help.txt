@@ -20,19 +20,25 @@
   
   You may use the /search switch for content searching.  Eg: help/search *mail*
   
+  You may use the /query switch for detailed searching.  Eg: help/query *mail*
+  
   Command syntax help is available by issuing /syntax. Eg: @emit/syntax
   
   If there are any errors in the help text, please notify a Wizard.
   An HTML version of all the help contained here is available at
   http://rhostmush.com/autohelp/help.html
   
+& plushelp
 & +help
   If enabled (please check @list options), this will work just like normal
   'help' does, but for +help.  This is intended for TINY/MUX compatibility
   and is disabled by default.
   
-  The /search switch works for +help as well.
+  The following switches work for +help:
+    /search -- allow wildcard patterning for searches (Eg: help/search *@mail*)
+    /query  -- allow detailed searching and return (Eg: help/query *@mail*)
   
+  See Also: help 
 
 & register
 & connect
@@ -32262,6 +32268,7 @@
   * randextract() optionally has weighted values [ASH]
   * execscript() modified to pass back and forth registers and vars [ASH]
   * execscript() passes register names as well [ASH]
+  * Added /query to help, +help, @dynhelp (but not functions) [ASH]
   
   Changes
   ------------
