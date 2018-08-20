@@ -87,6 +87,12 @@ then
 fi
 if [ -n "${gl_shmchk}" ]
 then
+   if [ -f /usr/bin/ipcs ]
+   then
+      echo "Shared Memory Segment [debug_id: ${DEBUG_ID}] [shmid: ${gl_shm}]"
+      ipcs -m|egrep "(key|${gl_shm})"
+      echo ""
+   fi
    echo "There is an existing shared memory segment that the mush will try to use."
    echo "If this is because you kill -9'd your mush process then you may need"
    echo "to start your mush with 'Startmush -f'."
