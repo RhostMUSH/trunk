@@ -14654,12 +14654,14 @@
   See Also: dist2d()
   
 & REMIT()
-  Function: remit(<list of locations>,<string> [,<to-reality-toggle>])
+  Function: remit(<list of locations>,<string> [,<to-reality-toggle>] [,<key>])
   
   The remit() side-effect function is used to emit the given <string> to every
   location specified in the <list of locations>.
   
-  This works similarilly to @pemit/list/contents.
+  This works similarilly to @pemit/list/contents.  By default ## is substitute
+  for every <location> in the list.  This evaluates by default for every 
+  location in the list.
   
   This function relies on the config parameter 'pemit_any_object' to
   be enabled to allow remitting to any room, otherwise, it will only
@@ -14672,6 +14674,10 @@
   a 'to-reality' model, in which the <list of locations> takes the form:
   
        reality1 reality2 ... realityN/location1 location2 ... locationN
+  
+  Following keys exist:
+    1 - Disable ## from evaluating in <string>.
+    2 - Only evaluate once.  By default this disables ## from evaluating.
  
   Example:
     > say remit(here #0,Boo)
@@ -21230,13 +21236,14 @@
   
   The pemit() function is a side-effect for the @pemit/list command.  All
   restrictions and permissions of that command follow this function.  The
-  SIDEFX flag is required to use pemit().
+  SIDEFX flag is required to use pemit().  Pemit() by default evaluates
+  for every target in the list.
   
-  You may specify an optional <key> of '1' if you wish to have ##
-  substituted for every target object in the list.  Keep in mind the '##'
-  is pre-processed like iter's ## would be and could be a security risk
-  if used improperly.  I'd strongly suggest filtering the target list
-  as dbref#'s to keep it safe.
+  The following key values are allowable:
+    1 - will have ## substituted for every target object in the list.  Keep 
+        in mind the '##' is pre-processed like iter's ## would be and could 
+        be a security risk if used improperly.  
+    2 - only evaluate once.  This by default disables ## from evaluation.
   
   Type @list options to see if this side-effect is enabled.
   
@@ -32278,6 +32285,8 @@
   * Added MUTT compatibility to autoreg mail handling [ASH]
   * Reality levels with @txlevel/@rxlevel allow setting by bitmask [ASH]
   * @rxlevel/@txlevel follow NOISY @toggle parameters [ASH]
+  * Options to pemit() and remit() to disable multi-parsing and ## 
+    evaluation [ASH]
   
   Bug Fixes
   ------------

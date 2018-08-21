@@ -34018,7 +34018,7 @@ FUNCTION(fun_oemit)
 FUNCTION(fun_pemit)
 {
    CMDENT *cmdp;
-   int i_key;
+   int i_key, i_mask;
 
    if ( !(mudconf.sideeffects & SIDE_PEMIT) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -34043,19 +34043,22 @@ FUNCTION(fun_pemit)
    if ( nfargs > 2 && *fargs[2] ) {
       i_key = atoi(fargs[2]);
    }
-   if (i_key == 1 ) {
-      do_pemit( player, cause, (SIDEEFFECT|PEMIT_PEMIT|PEMIT_LIST), fargs[0], fargs[1], cargs, ncargs);
-   } else {
-      do_pemit( player, cause, (SIDEEFFECT|PEMIT_PEMIT|PEMIT_LIST|PEMIT_NOSUB), fargs[0], fargs[1], cargs, ncargs);
+   i_mask = PEMIT_NOSUB;
+   switch (i_key) {
+      case 1: i_mask &= ~PEMIT_NOSUB;
+              break;
+      case 2: i_mask |= PEMIT_ONEEVAL;
+              break;
    }
+   do_pemit( player, cause, (SIDEEFFECT|PEMIT_PEMIT|PEMIT_LIST|i_mask), fargs[0], fargs[1], cargs, ncargs);
 }
 
 FUNCTION(fun_remit)
 {
    CMDENT *cmdp;
-   int i_type;
+   int i_type, i_key, i_mask;
 
-   if (!fn_range_check("REMIT", nfargs, 2, 3, buff, bufcx))
+   if (!fn_range_check("REMIT", nfargs, 2, 4, buff, bufcx))
       return;
    if ( !(mudconf.sideeffects & SIDE_REMIT) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -34073,12 +34076,24 @@ FUNCTION(fun_remit)
       return;
    }
    i_type = 0;
-   if ( (nfargs > 2) && *fargs[2] && *fargs[0] && (strchr(fargs[0], '/') != NULL) )
+   if ( (nfargs > 2) && *fargs[2] && *fargs[0] && (strchr(fargs[0], '/') != NULL) ) {
       i_type = atoi(fargs[2]);
-   if ( i_type )
-      do_pemit( player, cause, (SIDEEFFECT|PEMIT_CONTENTS|PEMIT_LIST|PEMIT_PEMIT|PEMIT_REALITY|PEMIT_TOREALITY), fargs[0], fargs[1], cargs, ncargs);
-   else
-      do_pemit( player, cause, (SIDEEFFECT|PEMIT_CONTENTS|PEMIT_LIST|PEMIT_PEMIT), fargs[0], fargs[1], cargs, ncargs);
+   }
+   i_mask = i_key = 0;
+   if ( (nfargs > 3) && *fargs[3] ) {
+      i_key = atoi(fargs[3]);
+   }
+   switch (i_key) {
+      case 1: i_mask |= PEMIT_NOSUB;
+              break;
+      case 2: i_mask |= (PEMIT_NOSUB|PEMIT_ONEEVAL);
+              break;
+   }
+   if ( i_type ) {
+      do_pemit( player, cause, (SIDEEFFECT|PEMIT_CONTENTS|PEMIT_LIST|PEMIT_PEMIT|PEMIT_REALITY|PEMIT_TOREALITY|i_mask), fargs[0], fargs[1], cargs, ncargs);
+   } else {
+      do_pemit( player, cause, (SIDEEFFECT|PEMIT_CONTENTS|PEMIT_LIST|PEMIT_PEMIT|i_mask), fargs[0], fargs[1], cargs, ncargs);
+   }
 }
 
 FUNCTION(fun_zemit)
