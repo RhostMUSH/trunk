@@ -33995,12 +33995,14 @@ FUNCTION(fun_oemit)
       return;
    }
 
-   if (!fn_range_check("OEMIT", nfargs, 2, 3, buff, bufcx))
+   if (!fn_range_check("OEMIT", nfargs, 2, 3, buff, bufcx)) {
       return;
+   }
 
    i_key = 0;
-   if ( (nfargs > 2) && fargs[2] && *fargs[2] )
+   if ( (nfargs > 2) && fargs[2] && *fargs[2] ) {
       i_key = atoi(fargs[2]);
+   }
       
    mudstate.sidefx_currcalls++;
    cmdp = (CMDENT *)hashfind((char *)"@oemit", &mudstate.command_htab);
@@ -34025,13 +34027,15 @@ FUNCTION(fun_pemit)
       return;
    }
 
-   if (!fn_range_check("PEMIT", nfargs, 2, 3, buff, bufcx))
-      return;
-
    if ( !SideFX(player) || Fubar(player) || return_bit(player) < mudconf.restrict_sidefx ) {
       notify(player, "Permission denied.");
       return;
    }
+
+   if (!fn_range_check("PEMIT", nfargs, 2, 3, buff, bufcx)) {
+      return;
+   }
+
    mudstate.sidefx_currcalls++;
    cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
@@ -34058,8 +34062,6 @@ FUNCTION(fun_remit)
    CMDENT *cmdp;
    int i_type, i_key, i_mask;
 
-   if (!fn_range_check("REMIT", nfargs, 2, 4, buff, bufcx))
-      return;
    if ( !(mudconf.sideeffects & SIDE_REMIT) ) {
       notify(player, "#-1 FUNCTION DISABLED");
       return;
@@ -34068,6 +34070,11 @@ FUNCTION(fun_remit)
       notify(player, "Permission denied.");
       return;
    }
+
+   if (!fn_range_check("REMIT", nfargs, 2, 4, buff, bufcx)) {
+      return;
+   }
+
    mudstate.sidefx_currcalls++;
    cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
@@ -34099,6 +34106,7 @@ FUNCTION(fun_remit)
 FUNCTION(fun_zemit)
 {
    CMDENT *cmdp;
+   int i_key, i_mask;
 
    if ( !(mudconf.sideeffects & SIDE_ZEMIT) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -34108,6 +34116,11 @@ FUNCTION(fun_zemit)
       notify(player, "Permission denied.");
       return;
    }
+
+   if (!fn_range_check("ZEMIT", nfargs, 2, 3, buff, bufcx)) {
+      return;
+   }
+   
    mudstate.sidefx_currcalls++;
    cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
@@ -34115,7 +34128,19 @@ FUNCTION(fun_zemit)
       notify(player, "Permission denied.");
       return;
    }
-   do_pemit( player, cause, (SIDEEFFECT|PEMIT_ZONE|PEMIT_LIST|PEMIT_PEMIT), fargs[0], fargs[1], cargs, ncargs);
+   
+   i_key = i_mask = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_key = atoi(fargs[2]);
+   }
+   switch (i_key) {
+      case 1: i_mask |= PEMIT_NOSUB;
+              break;
+      case 2: i_mask |= (PEMIT_NOSUB|PEMIT_ONEEVAL);
+              break;
+   }
+
+   do_pemit( player, cause, (SIDEEFFECT|PEMIT_ZONE|PEMIT_LIST|PEMIT_PEMIT|i_mask), fargs[0], fargs[1], cargs, ncargs);
 }
 
 FUNCTION(fun_tel)
@@ -36131,9 +36156,9 @@ FUN flist[] =
     {"XORFLAG", fun_xorflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
 #ifdef SECURE_SIDEEFFECT
-    {"ZEMIT", fun_zemit, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"ZEMIT", fun_zemit, 2, FN_NO_EVAL | FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
-    {"ZEMIT", fun_zemit, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ZEMIT", fun_zemit, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
 #endif
 #ifdef TINY_U

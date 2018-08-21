@@ -14654,7 +14654,7 @@
   See Also: dist2d()
   
 & REMIT()
-  Function: remit(<list of locations>,<string> [,<to-reality-toggle>] [,<key>])
+  Function: remit(<list of locations>, <string> [,<to-reality-tog>] [,<key>])
   
   The remit() side-effect function is used to emit the given <string> to every
   location specified in the <list of locations>.
@@ -14670,12 +14670,12 @@
   This side-effect must be enabled (@list options to see if it is) before it
   can be used.  Anything using it must have the SIDEFX flag set.
    
-  If the <to-reality-toggle> is set to '1', then it assumes the remit is
+  If the <to-reality-tog> is set to '1', then it assumes the remit is
   a 'to-reality' model, in which the <list of locations> takes the form:
   
        reality1 reality2 ... realityN/location1 location2 ... locationN
   
-  Following keys exist:
+  Following <key> values exist:
     1 - Disable ## from evaluating in <string>.
     2 - Only evaluate once.  By default this disables ## from evaluating.
  
@@ -21232,12 +21232,12 @@
   You say ""
   
 & PEMIT()
-  Function: pemit(<object> [<object2> ...],<string> [,<key>])
+  Function: pemit(<object1> [<object2> ... <objectN>], <string> [,<key>])
   
   The pemit() function is a side-effect for the @pemit/list command.  All
   restrictions and permissions of that command follow this function.  The
   SIDEFX flag is required to use pemit().  Pemit() by default evaluates
-  for every target in the list.
+  for every target in the list.  It does NOT evaluate ## by default.
   
   The following key values are allowable:
     1 - will have ## substituted for every target object in the list.  Keep 
@@ -21557,16 +21557,22 @@
   See Also: @wipe, @set, &, set()
   
 & ZEMIT()
-  Function: zemit(<list of zones>,<text>)
+  Function: zemit(<list of zones>, <text> [,<key>])
   
   The zemit() function returns 'text' to every room of every zone in
   the specified list.  If the target zone is not a zonemaster, but still
   is contained in a zone, then it will just return the text to that room.
+  This function by default evaluates '##' for each zone in the list and
+  evaluates separately for every zone member.
   
   This works similiarilly to @pemit/zone/list
   
   Check @list options to see if this side-effect is enabled.  
   Anything using this side-effect must have the SIDEFX flag set.
+  
+  Following <key> values exist:
+    1 - disable ## substitution.
+    2 - evaluate only once for every zone in list (disables ## automatically)
   
   Examples:
     > @zone here=#0
@@ -32285,8 +32291,9 @@
   * Added MUTT compatibility to autoreg mail handling [ASH]
   * Reality levels with @txlevel/@rxlevel allow setting by bitmask [ASH]
   * @rxlevel/@txlevel follow NOISY @toggle parameters [ASH]
-  * Options to pemit() and remit() to disable multi-parsing and ## 
+  * Options to pemit(), remit(), and zemit() to disable multi-parsing and ## 
     evaluation [ASH]
+ 
   
   Bug Fixes
   ------------
