@@ -2,6 +2,54 @@
 #
 #	Startmush - Kick off the netmush process.
 #
+NETRHOST_BIN='./netrhost'
+NETRHOST_DEBUG='./netrhost.debugmon'
+VALGRIND=0
+
+start_game()
+{
+   if [ ${CYGWIN} -eq 1 ]
+   then
+      (nohup $NETRHOST_BIN $GAMENAME.conf >$LOGNAME 2>&1 &)
+   elif [ $VALGRIND -eq 1 ]
+   then
+      (nohup $NETRHOST_DEBUG $NETRHOST_BIN $GAMENAME.conf >$LOGNAME 2>&1 &)
+   else
+      (nohup $NETRHOST_DEBUG ${DEBUG_ID} $NETRHOST_BIN $GAMENAME.conf >$LOGNAME 2>&1 &)
+   fi
+}
+
+init_and_start_game()
+{
+   if [ ${CYGWIN} -eq 1 ]
+   then
+      (nohup $NETRHOST_BIN -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+   elif [ $VALGRIND -eq 1 ]
+   then
+      (nohup $NETRHOST_DEBUG $NETRHOST_BIN -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+   else
+      (nohup $NETRHOST_DEBUG ${DEBUG_ID} $NETRHOST_BIN -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+   fi
+}
+
+
+if [ "$1" = "-valgrind" ];
+then
+   valgrind_exec=$(which valgrind)
+   if [ -x "$valgrind_exec" ] ; then
+      echo "*"
+      echo "* Running under valgrind.  See results in netrhost.log"
+      echo "*"
+      NETRHOST_DEBUG='valgrind -v'  # use this for more verbosity in netrhost.log
+      NETRHOST_DEBUG='valgrind'
+      VALGRIND=1
+   else
+      echo "Unable to locate valgrind.  Quitting."
+      exit 1
+   fi
+fi
+
+
 CYGWIN=0
 if [ "$1" = "-cyg" -o "$2" = "-cyg" ]
 then
@@ -87,7 +135,7 @@ then
 fi
 if [ -n "${gl_shmchk}" ]
 then
-   if [ -f /usr/bin/ipcs ]
+  	if [ -f /usr/bin/ipcs ]
    then
       echo "Shared Memory Segment [debug_id: ${DEBUG_ID}] [shmid: ${gl_shm}]"
       ipcs -m|egrep "(key|${gl_shm})"
@@ -172,12 +220,7 @@ then
 fi
 if [ -f "$INPUT_DB" ]
 then
-   if [ ${CYGWIN} -eq 1 ]
-   then
-      (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
-   else
-      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
-   fi
+   start_game
 else
    echo "There was no valid database information found."
    echo "Is this the first time that you are trying to start the mush? (Y/N) : "|tr -d '\012'
@@ -242,30 +285,15 @@ else
          done
          if [ -f "$INPUT_DB" ]
          then
-            if [ ${CYGWIN} -eq 1 ]
-            then
-               (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
-            else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
-            fi
+            start_game
          else
             echo "The database wasn't loaded properly.  Going to initialize a new db.  RETURN to continue, ^C to abort."
             read ANS
-            if [ ${CYGWIN} -eq 1 ]
-            then
-               (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
-            else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
-            fi
+            init_and_start_game
             gl_newdb=1
          fi
       else
-         if [ ${CYGWIN} -eq 1 ]
-         then
-            (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
-         else
-            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
-         fi
+         init_and_start_game
          gl_newdb=1
       fi
       if [ ${gl_newdb} -eq 1 ]
