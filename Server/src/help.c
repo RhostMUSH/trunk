@@ -178,7 +178,8 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 {
     FILE *fp;
     char *p, *line;
-    int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3, i_header;
+    int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3, i_header,
+        i_cntr;
     struct help_entry *htab_entry;
     char *topic_list, *buffp, *mybuff, *myp, *help_array[4], *s_buff2, *s_buff2ptr;
     char realFilename[129 + 32], *s_tmpbuff, *s_ptr, *s_hbuff, *s_hbuff2;
@@ -209,10 +210,13 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
        i_found = i_first = 0;
        s_buff = alloc_lbuf("help_query");
        s_buff2ptr = s_buff2 = alloc_lbuf("help_query2");
+       i_cntr = 0;
        for (htab_entry = (struct help_entry *) hash_firstentry(htab);
             htab_entry != NULL;
             htab_entry = (struct help_entry *) hash_nextentry(htab)) {
           if ( !htab_entry->original )
+             continue;
+          if ( i_cntr > 2000 )
              continue;
           if (fseek(fp, htab_entry->pos, 0) < 0L) {
               notify(player,
@@ -286,6 +290,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                    sprintf(s_buff, "   ...%.*s", (LBUF_SIZE - 20), topic_list);
                    notify(player, s_buff);
                    i_found = matched = 1;
+                   i_cntr++;
                 } else {
                    if ( i_found ) {
                       if ( *(mudconf.help_separator) ) {
@@ -347,6 +352,9 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
        free_lbuf(s_buff);
        free_lbuf(s_buff2);
        tf_fclose(fp);
+       if ( i_cntr > 2000 ) {
+          notify(player, "Warning: /query matches discarded after 2000 matches.");
+       }
        return;
     }
 
@@ -589,7 +597,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff, *s_buff2,
         *s_buff, *s_buffptr, *s_nbuff[2], *s_hbuff, *s_hbuff2, *help_array[4], *s_buff2ptr; 
    int first, found, matched, one_through, space_compress, i_noindex, i_header;
-   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i;
+   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr;
    FILE *fp_indx, *fp_help;
 
    if ( ((key & DYN_SEARCH) || (key & DYN_QUERY)) && (key & DYN_NOLABEL) ) {
@@ -651,6 +659,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       memset(line, '\0', LBUF_SIZE);
       s_buff = alloc_lbuf("help_query");
       s_buff2ptr = s_buff2 = alloc_lbuf("help_query2");
+      i_cntr = 0;
       while ( fread((char *)&entry, sizeof(help_indx), 1, fp_indx) == 1 ) { 
          for (p = entry.topic; *p; p++)
              *p = ToLower((int)*p);
@@ -667,6 +676,9 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             fclose(fp_help);
             tf_fclose(fp_indx);
             return 1;
+         }
+         if ( i_cntr > 2000 ) {
+            continue;
          }
          i_header = 0;
          for (;;) {
@@ -719,6 +731,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                   sprintf(s_buff, "   ...%.*s", (LBUF_SIZE - 20), tmp);
                   notify(player, s_buff);
                   first = 1;
+                  i_cntr++;
                } else {
                   if ( first ) {
                      if ( i_type ) {
@@ -733,6 +746,9 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                }
             }
          }
+      }
+      if ( i_cntr > 2000 ) {
+         notify(player, "Warning: /query matches discarded after 2000 matches.");
       }
       free_lbuf(s_buff);
       free_lbuf(s_buff2);
