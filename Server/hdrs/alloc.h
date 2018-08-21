@@ -1,4 +1,5 @@
 /* alloc.h - External definitions for memory allocation subsystem */
+// vim: ts=8
 
 #include "copyright.h"
 
@@ -53,6 +54,13 @@ extern void	FDECL(list_buftrace, (dbref, int));
 extern void	FDECL(do_buff_free, (dbref, dbref, int));
 extern int      FDECL(getBufferSize, (char *));
 
+// generic buffer free routine
+#define  free_buf(b)    pool_free(-1,((char **)&(b)),__LINE__,__FILE__)
+
+// the pool-type specific frees are now deprecated.  we no longer need to
+// trust that the free type matches the initial allocation type, but we'll
+// leave them here for now to avoid a massive search/replace.  in the future,
+// once we're sure we're happy with this, we may come through and remove them.
 #define	alloc_lbuf(s)	pool_alloc(POOL_LBUF,s,__LINE__,__FILE__)
 #define	alloc_lbuf_new(s,t,u)	pool_alloc(POOL_LBUF,s,t,u)
 #define	free_lbuf(b)	pool_free(POOL_LBUF,((char **)&(b)),__LINE__,__FILE__)

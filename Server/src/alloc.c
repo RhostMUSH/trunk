@@ -1,4 +1,5 @@
 /* alloc.c - memory allocation subsystem */
+// vim: ts=8
 
 #include "copyright.h"
 #include "autoconf.h"
@@ -16,6 +17,8 @@
 typedef struct pool_header {
     int magicnum;		/* For consistency check */
     int pool_size;		/* For consistency check */
+    int poolnum;                /* which type of pool are we?
+                                   now we don't have to match types of frees with their initial alloc */
     struct pool_header *next;	/* Next pool header in chain */
     struct pool_header *nxtfree;	/* Next pool header in freelist */
     char *buf_tag;		/* Debugging/trace tag */
@@ -230,6 +233,7 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
     ph->buf_tag = (char *) tag;
     ph->filename = (char *) file_name;
     ph->linenum = line_num;
+    ph->poolnum = poolnum;
     pools[poolnum].tot_alloc++;
     pools[poolnum].num_alloc++;
 
@@ -259,21 +263,19 @@ getBufferSize(char *pBuff)
 
 
 void 
-pool_free(int poolnum, char **buf, int line_num, char *file_name)
+pool_free(int unsafe_poolnum, char **buf, int line_num, char *file_name)
 {
     int *ibuf;
     char *h;
     POOLHDR *ph;
     POOLFTR *pf;
+    int poolnum;
 
     ibuf = (int *) *buf;
     h = (char *) ibuf;
     h -= sizeof(POOLHDR);
     ph = (POOLHDR *) h;
-    h = (char *) ibuf;    
-    h += pools[poolnum].pool_size;
-    h = QUADALIGN(h);
-    pf = (POOLFTR *) h;
+    poolnum = ph->poolnum;
     if (mudconf.paranoid_alloc)
 	pool_check(ph->buf_tag, line_num, file_name);
 
@@ -288,6 +290,12 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
 	pools[poolnum].tot_alloc--;
 	return;
     }
+
+    h = (char *) ibuf;
+    h += pools[poolnum].pool_size;
+    h = QUADALIGN(h);
+    pf = (POOLFTR *) h;
+
     /* Verify the buffer footer.  Don't unlink if damaged, just repair */
 
     if (pf->magicnum != POOL_MAGICNUM) {
