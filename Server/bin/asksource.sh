@@ -1388,6 +1388,16 @@ saveopts() {
    fi
 }
 
+###################################################################
+# LOADTEMPLATE - Load the template for default compiles
+###################################################################
+loadtemplate() {
+   if [ -f asksource.save_template ]
+   then
+      . ./asksource.save_template 2>/dev/null
+   fi
+}
+###################################################################
 
 ###################################################################
 # LOADLASTSTATE - Load the last state
@@ -1995,6 +2005,11 @@ updatemakefile() {
 # MAIN - Main system call and loop
 ###################################################################
 main() {
+   if [ "$1" = "default" ]
+   then
+      loadtemplate
+      REPEAT=0
+   fi
    loadlaststate
    while [ ${REPEAT} -eq 1 ]
    do
@@ -2063,11 +2078,14 @@ main() {
    setlibs
    updatemakefile
    savelaststate
-   echo "< HIT RETURN KEY TO CONTINUE >"
-   read ANS
+   if [ "$1" != "default" ]
+   then
+      echo "< HIT RETURN KEY TO CONTINUE >"
+      read ANS
+   fi
 }
 
 ###################################################################
 # Ok, let's run it
 ###################################################################
-main
+main "$1"

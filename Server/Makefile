@@ -33,6 +33,9 @@ instructions:
 	@echo "make confsource"
 	@echo "   This ties 'config' and 'source' together into a single"
 	@echo "   command, for ease of use."
+	@echo "make default"
+	@echo "   This auto-configures the most commonly used default values"
+	@echo "   If you don't want to use the menu this can get you running"
 	@echo "make source"
 	@echo "   If you have a source code included distribution, then this"
 	@echo "   will cause rhost to get compiled"
@@ -70,6 +73,15 @@ instructions:
 	@echo
 config:
 	@(cd $(bindir) ; ./asksource.sh)
+default:
+	@(cd $(bindir) ; ./asksource.sh default)
+	@(cd $(srcdir) ; ./do_compile.sh)
+	(cd $(srcdir) ; $(MAKE))
+	@echo
+	@echo " *******************************************************"
+	@echo "  If the build succeeded you might want to 'make links' " 
+	@echo " *******************************************************"
+	@echo 
 confsource: config source
 	@echo
 source:
