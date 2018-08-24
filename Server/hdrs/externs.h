@@ -971,6 +971,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define REC_DEST	16
 #define REC_FREE	32
 
+#define REALITY_RESET	1
+
 #define REBOOT_SILENT 	0x00000001	/* @reboot silently */
 #define REBOOT_PORT	0x00000002	/* What is @reboot/port ? */
 

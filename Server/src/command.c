@@ -907,6 +907,11 @@ NAMETAB depower_sw[] =
     {(char *) "remove", 1, CA_PUBLIC, 0, POWER_REMOVE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB reality_sw[] =
+{
+    {(char *) "reset", 1, CA_WIZARD, 0, REALITY_RESET},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB recover_sw[] =
 {
     {(char *) "detail", 1, CA_WIZARD, 0, RECOVER_DETAIL},
@@ -1438,7 +1443,7 @@ CMDENT command_table[] =
     {(char *) "@rwho", rwho_sw, CA_GOD, 0,
      0, CS_NO_ARGS, 0, do_rwho},
 #ifdef REALITY_LEVELS
-    {(char *) "@rxlevel", NULL, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    {(char *) "@rxlevel", reality_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
     0, CS_TWO_ARG | CS_INTERP, 0, do_rxlevel},
 #endif /* REALITY_LEVELS */
     {(char *) "@search", search_sw, 0, 0,
@@ -1494,7 +1499,7 @@ CMDENT command_table[] =
     {(char *) "@turtle", turtle_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_turtle},
 #ifdef REALITY_LEVELS
-    {(char *) "@txlevel", NULL, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    {(char *) "@txlevel", reality_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_txlevel},
 #endif /* REALITY_LEVELS */ 
     {(char *) "@unlink", NULL, CA_NO_SLAVE | CA_GBL_BUILD, 0,

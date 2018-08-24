@@ -32282,6 +32282,8 @@
   * execscript() modified to pass back and forth registers and vars [ASH]
   * execscript() passes register names as well [ASH]
   * Added /query to help, +help, @dynhelp (but not functions) [ASH]
+  * Added /reset switch to @txlevel and @rxlevel to force a clearing
+    of the reality prior to any new sets [ASH]
   
   Changes
   ------------

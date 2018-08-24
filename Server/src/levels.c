@@ -276,12 +276,35 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
         return;
     
     if (!arg || !*arg) {
-        notify_quiet(player, "I don't know what you want to set!");
+        if ( key & REALITY_RESET ) {
+           buff = alloc_lbuf("do_rxlevel");
+           result = 0xffffffff;
+           andmask = 0;
+           ormask = 0;
+           buff3 = name_rlevel(result, RxLevel(thing), 2);
+           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+           notify_quiet(player, buff);
+           sprintf(buff, "%08X %08X", ((RxLevel(thing) & andmask) | ormask), TxLevel(thing));
+           atr_add_raw(thing, A_RLEVEL, buff);
+           free_lbuf(buff);
+           free_lbuf(buff3);
+        } else {
+           notify_quiet(player, "I don't know what you want to set!");
+        }
         return;
     }
     ormask = 0;
-    andmask = ~ormask;
     buff2 = alloc_lbuf("do_rxlevel_display_set");
+    if ( key & REALITY_RESET ) {
+       andmask = 0;
+       result = 0xffffffff;
+       buff3 = name_rlevel(result, RxLevel(thing), 2);
+       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+       free_lbuf(buff3);
+       notify_quiet(player, buff2);
+    } else {
+       andmask = ~ormask;
+    }
     i_rlevel = RxLevel(thing);
     while(*arg)
     {
@@ -356,12 +379,35 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
         return;
     
     if (!arg || !*arg) {
-        notify_quiet(player, "I don't know what you want to set!");
+        if ( key & REALITY_RESET ) {
+           buff = alloc_lbuf("do_rxlevel");
+           result = 0xffffffff;
+           andmask = 0;
+           ormask = 0;
+           buff3 = name_rlevel(result, TxLevel(thing), 2);
+           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+           notify_quiet(player, buff);
+           sprintf(buff, "%08X %08X", RxLevel(thing), ((TxLevel(thing) & andmask) | ormask));
+           atr_add_raw(thing, A_RLEVEL, buff);
+           free_lbuf(buff);
+           free_lbuf(buff3);
+        } else {
+           notify_quiet(player, "I don't know what you want to set!");
+        }
         return;
     }
     ormask = 0;
-    andmask = ~ormask;
     buff2 = alloc_lbuf("do_rxlevel_display_set");
+    if ( key & REALITY_RESET ) {
+       andmask = 0;
+       result = 0xffffffff;
+       buff3 = name_rlevel(result, TxLevel(thing), 2);
+       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+       free_lbuf(buff3);
+       notify_quiet(player, buff2);
+    } else {
+       andmask = ~ormask;
+    }
     i_tlevel = TxLevel(thing);
     while(*arg)
     {

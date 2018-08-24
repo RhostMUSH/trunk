@@ -12467,7 +12467,7 @@
   if the 'wiz_override' admin param is enabled, this toggle is disregarded.
   
 & @rxlevel
-  Command: @rxlevel <target>=<list>
+  Command: @rxlevel[/<switch>] <target>=[<list>]
   
   Sets or clears the Rx levels for the target. If a level name in list is
   prefixed with !, then the level is cleared.
@@ -12475,16 +12475,26 @@
   The @rxlevel is used for RECEIVING reality levels.  It determines what
   the target can see/hear/interact with.
   
+  You may use the following switches:
+    /reset -- will reset (clear) the reality.  Using this switch you do not 
+              have to specify <list>.  <list> will be applied after
+              clearing.
+  
   Example: @rxlevel *Joe=!Real Umbra
 
 & @txlevel
-  Command: @txlevel <target>=<list>
+  Command: @txlevel[/<switch>] <target>=[<list>]
   
   Sets or clears the Tx levels for the target. If a level name in list is
   prefixed with !, then the level is cleared.
   
   The @txlevel is used for TRANSMITTING reality levels.  It determines what
   things outside of the target can see/hear/interact on.
+  
+  You may use the following switches:
+    /reset -- will reset the reality.  Using this switch you do not have
+              to specify <list>.  <list> will be applied after
+              clearing.
   
   Example: @txlevel *Joe=Real !Umbra
 
