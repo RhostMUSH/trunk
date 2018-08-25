@@ -233,7 +233,7 @@ static int addDoor(const char *doorName,
   if (pFnInit) {
     if (pFnInit() < 0) {
       LOGTEXT("ERR", -1, 
-	      unsafe_tprintf("Could not initialize door '%s'\n", doorName));
+	      unsafe_tprintf("Could not initialize door '%s'\r\n", doorName));
       goto error;
     }
   }
@@ -242,7 +242,7 @@ static int addDoor(const char *doorName,
     if (pFnOpen(gaDoors[gnDoors]->pDescriptor, 0, NULL, gnDoors) < 0) {
       gaDoors[gnDoors]->doorStatus = OFFLINE_e;
       LOGTEXT("ERR", -1,
-	      unsafe_tprintf("Failed to open internal door '%s'\n", doorName));
+	      unsafe_tprintf("Failed to open internal door '%s'\r\n", doorName));
     }
   }
 
@@ -558,12 +558,12 @@ void queue_door_string(DESC *d, const char *s, int addnl)
 	len = strlen(new);
 	if (addnl) {
 	  if (len >= LBUF_SIZE-1) {
+	    *(new + LBUF_SIZE - 2) = '\r';
 	    *(new + LBUF_SIZE - 1) = '\n';
 	    *(new + LBUF_SIZE) = '\0';
 	    len = LBUF_SIZE - 1;
-	  }
-	  else {
-	    strcat(new, "\n");
+	  } else {
+	    strcat(new, "\r\n");
 	    len++;
 	  }
 	}
