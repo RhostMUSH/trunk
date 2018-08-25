@@ -478,7 +478,7 @@ int process_door_input(DESC * d)
       *pt = '\0';
       if ((strlen(d->door_raw) + strlen(buf)) < LBUF_SIZE - sizeof(CBLKHDR) -2) {
 	strcat(d->door_raw,buf);
-	strcat(d->door_raw,"\n");
+	strcat(d->door_raw,"\r\n");
 	save_door(d,d->door_raw);
 	if (*(pt+1) == '\0') {
 	  free_lbuf(d->door_raw);
@@ -498,9 +498,9 @@ int process_door_input(DESC * d)
       }
     }
   }
-  if ((strlen(buf) < LBUF_SIZE - sizeof(CBLKHDR) -1) && (*(buf + got - 1) == '\n'))
+  if ((strlen(buf) < LBUF_SIZE - sizeof(CBLKHDR) -1) && (*(buf + got - 1) == '\n')) {
     save_door(d, buf);
-  else {
+  } else {
     pt = buf + got -2;
     while ((*pt != '\n') && (pt > buf))
       pt--;

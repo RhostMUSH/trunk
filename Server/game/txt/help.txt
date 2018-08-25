@@ -32308,3 +32308,4 @@
   * trace buffers were insufficiently sized on 32 byte SBUFS [ASH]
   * cleanup of possible buffer null terminate on SBUF [ASH]
   * 3rd arg to strmath() wasn't evaluating [ASH]
+  * door only did LF and not CRLF [ASH]
