@@ -16723,10 +16723,12 @@
   Function: loc(<object>)
  
   Returns the number of the location where <object> is.  You must either
-  control the object or be nearby for it to work.  When used on an exit it
-  returns the destination of the exit.  You can also use loc() to find the
-  location of players that are not set UNFINDABLE.
- 
+  control the object or be nearby for it to work.  You can also use loc() 
+  to find the location of players that are not set UNFINDABLE (or DARK).
+  
+  When used on an exit it returns the *destination* of the exit, not the
+  location. Use the home() function on exits to find their location.
+  
   Example:
     > look
     Mortal's Room(#367R)
@@ -16744,7 +16746,7 @@
     > say loc(here)
     You say "#367"
   
-  See Also: rloc(), room(), where()
+  See Also: rloc(), room(), where(), home()
   
 & RLOC()
   Function: rloc(<object>,<levels>)
@@ -16763,6 +16765,11 @@
   rloc(<object>,0) is the same as num(<object>), and rloc(<object>,1) is the
   same as loc(<object>).
   
+  When used on an exit, it will return the exits dbref#.  Exits do not have
+  a nested location so it returns itself.  If you want the exit's location 
+  use the home() function. If you want the exit's destination use the loc()
+  function.
+   
   Example:
     > look
     Object(#123p)
@@ -16777,7 +16784,7 @@
     > say rloc(me,2)
     You say "#124"
   
-  See Also: loc(), where()
+  See Also: loc(), where(), home()
   
 & ERROR()
   Function: error([<target>])
@@ -17997,7 +18004,10 @@
   home(<object>)
  
   Returns the object's home.
- 
+  
+  If used on an exit, it will return the exit's *location*.  Exits do
+  not have a 'home' other than their location.
+   
   Example:
     > exam me
     Mortal(#226Pc)
@@ -18010,7 +18020,7 @@
     > say home(me)
     You say "#367"
   
-  See Also: loc(), room(), @link
+  See Also: loc(), room(), rloc(), @link
   
 & MONEY()
   Function: money(<object>)
@@ -18753,7 +18763,10 @@
   Returns the number of the room that <obj> is in, or would be in if it
   executed LEAVE commands until it got to a room.  You can find out the
   containing room of objects you own, nearby objects, and findable players.
- 
+  
+  If used on an exit, it returns the exits *destination*.  If you wish to
+  return the location of the exit, use the home() function.
+   
   Example:
     > I
     You are carrying:
