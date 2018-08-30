@@ -4318,6 +4318,7 @@
   
 { 'help @lock locks2' for more  or 'help @lock type <type>' for locktype help}
   
+& @lock/receivelock
 & @lock type ReceiveLock
   Lock Type: ReceiveLock
   Syntax   : @lock/receive <target>=<key>
@@ -4331,6 +4332,7 @@
   Rooms, Exits:
      This lock is meaningless on exits and rooms.
   
+& @lock/parentlock
 & @lock type ParentLock
   Lock Type: ParentLock
   Syntax   : @lock/parent <target>=<key>
@@ -4339,6 +4341,7 @@
      This lock determins who may parent (@parent) an item to the target.  If
      you do not pass the lock, you will be unable to parent something to it.
   
+& @lock/pagelock
 & @lock type PageLock
   Lock Type: PageLock
   Syntax   : @lock/page <target>=<key>
@@ -4352,6 +4355,7 @@
   Rooms, Exits, Objects:
      This lock is meaningless on rooms, exits, and objects.
   
+& @lock/linklock
 & @lock type LinkLock
   Lock Type: LinkLock
   Syntax   : @lock/link <target>=<key>
@@ -4365,6 +4369,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/leavelock
 & @lock type LeaveLock
   Lock Type: LeaveLock
   Syntax   : @lock/leave <target>=<key>
@@ -4377,6 +4382,7 @@
   Exits, Rooms:
      This lock is meaningless on rooms and exits.
   
+& @lock/givelock
 & @lock type GiveLock
   Lock Type: GiveLock
   Syntax   : @lock/give <target>=<key>
@@ -4389,6 +4395,7 @@
   Exits, Rooms:
      This lock is meaningless on rooms and exits.
   
+& @lock/enterlock
 & @lock type EnterLock
   Lock Type: EnterLock
   Syntax   : @lock/enter <target>=<key>
@@ -4407,6 +4414,7 @@
   Exits:
      This lock is meaningless for exits.
   
+& @lock/defaultlock
 & @lock type DefaultLock
   Lock Type: Defaultlock 
   Syntax   : @lock <target>=<key>
@@ -4452,6 +4460,7 @@
   
 { 'help @lock locks3' for more  or 'help @lock type <type>' for locktype help}
   
+& @lock/zonetolock
 & @lock type ZoneToLock
   Lock Type: ZoneToLock
   Syntax   : @lock/zoneto <target>=<key>
@@ -4461,6 +4470,7 @@
      zone.  This works similiar to the ParentLock with regards to @parents.
      If the lock does not exist, only those who control the item may @zone it.
   
+& @lock/zonewizlock
 & @lock type ZoneWizLock
   Lock Type: ZoneWizLock
   Syntax   : @lock/zonewiz <target>=<key>
@@ -4475,6 +4485,7 @@
      If it is WIZARD or higher owned, then it follows normal permissions on
      that target to what they can do with it.
   
+& @lock/twinklock
 & @lock type TwinkLock
   Lock Type: TwinkLock
   Syntax   : @lock/twink <target>=<key>
@@ -4511,6 +4522,7 @@
                  also customize your @lock/twink to check %w against the
                  target player dbref# with a complex lock.
   
+& @lock/userlock
 & @lock type UserLock
   Lock Type: UserLock
   Syntax   : @lock/user <target>=<key>
@@ -4538,6 +4550,7 @@
      In condition 2 and 3, if the lock doesn't exist, it assumes pass 
      automatically.
   
+& @lock/uselock
 & @lock type UseLock
   Lock Type: UseLock
   Syntax   : @lock/use <target>=<key>
@@ -4557,6 +4570,7 @@
     
   See Also: SHOWFAILCMD
  
+& @lock/tportlock
 & @lock type TportLock
   Lock Type: TportLock
   Syntax   : @lock/tport <target>=<key>
@@ -4570,6 +4584,7 @@
   Players, Exits:
      This lock is meaningless on players and exits.
   
+& @lock/teloutlock
 & @lock type TeloutLock
   Lock Type: TeloutLock
   Syntax   : @lock/telout <target>=<key>
@@ -4584,6 +4599,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/speechlock
 & @lock type SpeechLock
   Lock Type: SpeechLock
   Syntax   : @lock/speech <target>=<key>
@@ -4598,6 +4614,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/droplock
 & @lock type DropLock
   Lock Type: DropLock
   Syntax   : @lock/drop <target>=<key>
@@ -4628,6 +4645,7 @@
   
   See Also: mail lock
   
+& @lock/givetolock
 & @lock type GiveToLock
   Lock Type: GiveToLock
   Syntax   : @lock/giveto <target>=<key>
@@ -4642,6 +4660,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/getfromlock
 & @lock type GetFromLock
   Lock Type: GetFromLock
   Syntax   : @lock/getfrom <target>=<key>
@@ -4659,6 +4678,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/droptolock
 & @lock type DropToLock
   Lock Type: DropToLock
   Syntax   : @lock/dropto <target>=<key>
@@ -4673,6 +4693,7 @@
   Exits, Players:
      This lock is meaningless on players and exits.
   
+& @lock/openlock
 & @lock type OpenLock
   Lock Type: OpenLock
   Syntax   : @lock/open <target>=<key>
@@ -4686,6 +4707,7 @@
   Players, Exits:
      This lock is meaningless on players and exits.
   
+& @lock/darklock
 & @lock type DarkLock
   Lock Type: DarkLock
   Syntax   : @lock/dark <target>=<key>
@@ -4703,6 +4725,7 @@
      normally.  Please note that all items inside that room that are dark
      are treated on a separate basis for the DarkLocks.
   
+& @lock/chownlock
 & @lock type ChownLock
   Lock Type: ChownLock
   Syntax   : @lock/chown <target>=<key>
