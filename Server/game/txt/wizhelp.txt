@@ -9716,7 +9716,7 @@
   @wipe from working on that specific target that has either of those flags.
 
 & safer_ufun
-  Config parameter: safer_ufun <yes/no>.  Default: o
+  Config parameter: safer_ufun <yes/no>.  Default: no
   
   If this is enabled, then any attribute that is evaluated on something that
   you do not control will be evaluated either at your level or the object
