@@ -16,13 +16,16 @@
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 @pemit me=[repeat(=,78)]%r[center(Constructing Rockpath's Job System v 2.0,78)]%r[repeat(-,78)]%rPlease wait...%r
+
+@pemit me=Setting the SIDEFX flag on yourself to build this.  Unset it when done (@set me=!sidefx)
+@set me=sidefx
  
 @eval [setq(0, [create(Rockpath's Jobs System)])][setq(1, [create(Rockpath's Job Database)])][set(%q0, database:%q1)][set(%q1, system:%q0)]
  
 @@ Setting self quiet so that you aren't spammed...
 @set me=quiet
 
-@lock Rockpath's Job System=me
+@lock Rockpath's Jobs System=me
 
 @Desc Rockpath's Jobs System=[printf($^78:[ansi(hb, -=)]:s, < [ansi(hw, Rockpath's Jobs System Help)] >)]%r[u([v(database)]/fn`formathelp, {+job/create Category/Topic=Contents - Create a new job. Categories are: [elist([get([v(database)]/list`categories)],,,,,[ansi(y, %0)])]%r+jobs - Look at all the jobs%r+job <#> - Look at the details of a job.%r+jobs/reorder - Reorganize the jobs. Known as 'compress'%r+job/delete <#> - Delete a job. There will be some records created%r+job/approve #=<comment> - Approve a job. If you don't want to add a comment, then leave it blank. But keep the = sign.%r+job/deny <#>=<comment> - Deny a job. If you don't want to add a comment, then leave it blank. But keep the = sign.%r+job/complete <#>=<comment> - Complete a job. If you don't want to add a comment, then leave it blank. But keep the = sign.%r+job/status <#>=<new|underway|hold|done|25|50|75|100> - Set the progress of the job%r+job/comment <#>=<comment> - Comment on a job. This is simply appended to the job description.%r+job/cat <#>=<Category> - Move the job from one Category to another. Tier is not chnanged automatically.%r+job/urgency <#>=<1-4|red|yellow|green> - Set the urgency of a job.%r+job/rename <#>=<New Name> - Rename a job. It does /not/ change the Number of a job.%r+job/claim <#> - Claim a job for yourself.%r+job/assign <#>=<Staff Member> - Assign a job to another person. This command will alert other Staff.%r+jobs/mine - List jobs assigned to you.%r+job/tier <#>=[!]<Tier> - Set a job to Tier-level access. Placing a ! in front of the tier removes its access (be sure to always leave at least one level of access.)})]%r[printf($^78:[ansi(hb, -=)]:s, < [ansi(hw, End Help)] >)]
 
@@ -125,7 +128,7 @@
 
 @set Rockpath's Job Database=INHERIT SIDEFX
 
-&CREDIT Rockpath's Rockpath's Job Database=Inspiration taken from Anomaly Jobs. This setup-file was based off of Myrddin's BBoard Setup File. The code above is all my own doing.
+&CREDIT Rockpath's Job Database=Inspiration taken from Anomaly Jobs. This setup-file was based off of Myrddin's BBoard Setup File. The code above is all my own doing.
  
 &FN`PROMPT Rockpath's Job Database=[switch(%0, jobs, [ansi(hc, JOBS)], game, [ansi(hm, GAME)])]:
  
@@ -135,4 +138,4 @@
  
 @set me=!quiet
  
-@wait 1=@pemit me=%Rockpath's Jobs System construction complete. It is suggested that you create a Jobs_System character with Immortal permissions so that mails don't look like they come from a single staffer.%r[repeat(=,78)]
+@wait 1=@pemit me=%rRockpath's Jobs System construction complete. It is suggested that you create a Jobs_System character with Immortal permissions so that mails don't look like they come from a single staffer.%r[repeat(=,78)]
