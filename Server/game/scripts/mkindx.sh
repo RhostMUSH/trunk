@@ -1,3 +1,4 @@
 #!/bin/bash
-./mkindx txt/help.txt txt/help.indx
-./mkindx txt/wizhelp.txt txt/wizhelp.indx
+for files in $(grep -l "^& " txt/*.txt)
+do  ./mkindx ${files} $(echo ${files}|cut -f1 -d".").indx
+done
