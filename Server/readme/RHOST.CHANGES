@@ -36,6 +36,8 @@ Potential crash with freeing unitialized buffering in trace stack in eval.c
 				- Thanks Myrddin
 Crash with trace located as a 32 byte SBUF if compiled for that
 				- Thanks Myrddin
+idle_timeout included in the netrhost.conf by default as highly utilized
+				- Thanks skew
 
 
                          RhostMUSH 3.9.5 Update File
