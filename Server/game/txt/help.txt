@@ -20618,16 +20618,21 @@
   
   See Also: switch(), reswitchi(), reswitchi(), reswitchall(), regexps
 
+& if()
 & ifelse()
   Function: ifelse(<expression>,<true string>[,<false string>])
  
   This function returns <true string> if <expression> is true (not 0), 
   <false string> otherwise. Much more efficient than an equivalent
   switch(). To check if a string contains text or not, use strlen() within
-  the test case.  The false string is optional and if nothing is specified, 
-  it will return an empty string if a false match is met.  This will 
-  effectively mimic the if() function found on other servers.
+  the test case.  
   
+  The false string is optional and if nothing is specified, it will return 
+  an empty string if a false match is met.  This will effectively mimic 
+  the if() function found on other servers.
+  
+  This function is aliased to if().
+   
   Example:
     > say ifelse(v(test),Test exists!,Test doesn't exist.)
     You say "Test doesn't exist."
