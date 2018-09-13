@@ -3034,9 +3034,7 @@
   set up all global functions.  The privileged and preserved, protect, and
   notrace switches may be combined.
    
-  Function definitions may not be removed (aside from shutting down and
-  restarting the RhostMUSH, but they may be redefined so that they point to an
-  unused attribute.  This command may normally only be invoked by player #1.
+  Function definitions may be removed or redefined on the fly.
   
   {see 'wizhelp @function2' for examples}
 
