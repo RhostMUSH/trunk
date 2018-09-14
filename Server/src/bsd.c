@@ -2834,6 +2834,13 @@ sighandler(int sig)
           mudstate.reboot_flag = 1;
           break;			
     case SIGHUP:		/* Perform a database dump */
+        STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
+           log_text((char *)"Queueing a flatfile dump of the database.");
+        ENDLOG
+        s_crontmp = alloc_lbuf("do_sighup_cron");
+        sprintf(s_crontmp, "%s", "@dump/flat netrhost.SIGHUP");
+        wait_que(GOD, GOD, 0, NOTHING, s_crontmp , (char **)NULL, 0, (char **)NULL, (char **)NULL);
+        free_lbuf(s_crontmp);
 	log_signal(signames[sig], sig);
 	mudstate.dump_counter = 0;
 	break;

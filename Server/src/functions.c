@@ -18857,7 +18857,7 @@ FUNCTION(fun_randextract)
 {
   int *used, nword, numext, got, pos, x, y, z, end, i_sum, i_max, i_loop,
       ilist[LBUF_SIZE / 2], ilist2[LBUF_SIZE / 2], i_slist, i_nlist, i_weight, i_usable;
-  char *p1, *p2, sep, te, *b2, osep, *tbuff, *tbuff2, *tbuffptr, 
+  char *p1, *p2, sep, te, *b2, osep, *tbuff, *tbuff2,
        *slist[LBUF_SIZE / 2], *nlist[LBUF_SIZE / 2], *s_use;
 
   if (!fn_range_check("RANDEXTRACT", nfargs, 1, 6, buff, bufcx)) {
@@ -18915,7 +18915,6 @@ FUNCTION(fun_randextract)
         i_sum = random() % i_max;
      }
      memset(tbuff, '\0', LBUF_SIZE);
-     tbuffptr = tbuff;
      for ( i_loop = 0; i_loop < i_slist; i_loop++ ) {
         if ( ilist[i_loop] >= i_sum ) {
            ilist2[i_usable] = i_loop;
