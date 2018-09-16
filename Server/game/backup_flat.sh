@@ -139,7 +139,7 @@ init_vars() {
              txt/plushelp.txt"
    IMPORTANTFILES="alias.conf muxalias.conf rhost_ingame.conf \
                    alternate_netrhost.conf netrhost.conf rhost_mysql.conf \
-                   compat.conf pennalias.conf tm3alias.conf"
+                   compat.conf pennalias.conf tm3alias.conf data/netrhost.SIGHUP.flat"
 #  SQLFILES="sqlite/*"
 }
 #############################################################################
