@@ -256,6 +256,12 @@ then
 else
    cp $1 $1.sed
 fi
+
+if [ ! -f $1.sed ]
+then
+   cp $1.sed2 $1.sed 2>/dev/null
+fi
+
 echo "Converting $TYPE attribute storage to RhostMUSH..."|tr -d '\012'
 if [ "$TYPE" = "TinyMUSH" ]
 then
