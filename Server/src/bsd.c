@@ -2835,6 +2835,7 @@ sighandler(int sig)
           mudstate.reboot_flag = 1;
           break;			
     case SIGHUP:		/* Perform a database dump */
+        log_signal(signames[sig], sig);
         STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
            log_text((char *)"Queueing a flatfile dump of the database.");
         ENDLOG
@@ -2842,8 +2843,8 @@ sighandler(int sig)
         sprintf(s_crontmp, "%s", "@dump/flat netrhost.SIGHUP");
         wait_que(GOD, GOD, 0, NOTHING, s_crontmp , (char **)NULL, 0, (char **)NULL, (char **)NULL);
         free_lbuf(s_crontmp);
-	log_signal(signames[sig], sig);
-	mudstate.dump_counter = 0;
+        sigfillset(&sigs);
+        sigprocmask(SIG_UNBLOCK, &sigs, NULL);
 	break;
     case SIGINT:		/* Log + ignore */
 #ifdef SIGSYS
