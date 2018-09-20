@@ -1305,6 +1305,7 @@ new_connection(int sock, int key)
        if ( ((mudstate.last_con_attempt + mudconf.min_con_attempt) < mudstate.now) ||
              (mudstate.last_con_attempt == 0) ) {
           mudstate.last_con_attempt = mudstate.now;
+          mudstate.cmp_lastsite_cnt = 0;
        }
        mudstate.cmp_lastsite_cnt++;
        memset(tchbuff, 0, sizeof(tchbuff));

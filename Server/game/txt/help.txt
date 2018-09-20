@@ -32353,3 +32353,4 @@
   * 3rd arg to strmath() wasn't evaluating [ASH]
   * door only did LF and not CRLF [ASH]
   * cleanup of an unused variable in functions.c [ASH]
+  * site paranoia was a bit too, well, paranoid [ASH]
