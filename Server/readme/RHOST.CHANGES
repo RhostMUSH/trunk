@@ -38,6 +38,8 @@ Crash with trace located as a 32 byte SBUF if compiled for that
 				- Thanks Myrddin
 idle_timeout included in the netrhost.conf by default as highly utilized
 				- Thanks skew
+all l*() math functions allowed empty args for backward compatibility
+				- Thanks skew
 
 
                          RhostMUSH 3.9.5 Update File

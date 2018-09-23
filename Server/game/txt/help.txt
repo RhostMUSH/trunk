@@ -32339,6 +32339,7 @@
   * sending kill -HUP (SIGHUP) to the main mush process will now
     not only sync the database but issue a flatfile dump in the
     form netrhost.SIGHUP.flat [ASH]
+  * All l*() math functions will return '0' now if fed empty lists [ASH]
   
   Bug Fixes
   ------------

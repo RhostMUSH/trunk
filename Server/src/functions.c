@@ -27488,6 +27488,10 @@ FUNCTION(fun_lavg)
     int cntr;
     char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
     varargs_preamble("LAVG", 2);
 
     sum = 0;
@@ -27508,6 +27512,10 @@ FUNCTION(fun_ladd)
     double sum;
     char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
     varargs_preamble("LADD", 2);
 
     sum = 0;
@@ -27524,6 +27532,10 @@ FUNCTION(fun_lsub)
    double sum;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LSUB", 2);
 
    cp = trim_space_sep(fargs[0], sep);
@@ -27545,6 +27557,10 @@ FUNCTION(fun_lmul)
    double sum;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LMUL", 2);
 
    cp = trim_space_sep(fargs[0], sep);
@@ -27566,6 +27582,10 @@ FUNCTION(fun_ldiv)
    double sum, chksum;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LDIV", 2);
 
    cp = trim_space_sep(fargs[0], sep);
@@ -27589,6 +27609,10 @@ FUNCTION(fun_lor)
    int i;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LOR", 2);
 
    i = 0;
@@ -27605,6 +27629,10 @@ FUNCTION(fun_land)
    int i;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LAND", 2);
 
    i = 1;
@@ -27621,6 +27649,10 @@ FUNCTION(fun_lxor)
    int val, i_val, cntr;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LXOR", 2);
 
    cp = trim_space_sep(fargs[0], sep);
@@ -27644,6 +27676,10 @@ FUNCTION(fun_lnor)
    int val, i_val, cntr;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LNOR", 2);
 
    cp = trim_space_sep(fargs[0], sep);
@@ -27667,6 +27703,10 @@ FUNCTION(fun_lxnor)
    int val, i_val, cntr;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LXNOR", 2);
 
    cp = trim_space_sep(fargs[0], sep);
@@ -27690,6 +27730,10 @@ FUNCTION(fun_lmax)
    double max, val;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LMAX", 2);
 
    cp = trim_space_sep(fargs[0], sep);
@@ -27711,6 +27755,10 @@ FUNCTION(fun_lmin)
    double min, val;
    char *cp, *curr, sep;
 
+    if ( nfargs == 0 ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
    varargs_preamble("LMIN", 2);
 
    cp = trim_space_sep(fargs[0], sep);
