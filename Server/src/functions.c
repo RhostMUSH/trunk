@@ -24253,7 +24253,12 @@ FUNCTION(fun_caplist)
   	              safe_chr( ToUpper( *ap ), buff, bufcx );
                       i_cap = 1;
                    } else {
-                      if ( i_hyphen && (*(ap-1) == '-') ) {
+                      if ( ((i_hyphen & 1  ) && (*(ap-1) == '-' )) || 
+                           ((i_hyphen & 2  ) && (*(ap-1) == '(' )) || 
+                           ((i_hyphen & 4  ) && (*(ap-1) == '[' )) ||
+                           ((i_hyphen & 8  ) && (*(ap-1) == '{' )) ||
+                           ((i_hyphen & 16 ) && (*(ap-1) == '"' )) ||
+                           ((i_hyphen & 32 ) && (*(ap-1) == '\'')) ) {
   	                 safe_chr( ToUpper( *ap ), buff, bufcx );
                       } else {
   	                 safe_chr( ToLower( *ap ), buff, bufcx );
@@ -24352,7 +24357,12 @@ FUNCTION(fun_caplist)
                    }
                    i_cap = i_hcap = 1;
                 } else {
-                   if ( i_hyphen && (*(ap-1) == '-') ) {
+                   if ( ((i_hyphen & 1  ) && (*(ap-1) == '-' )) || 
+                        ((i_hyphen & 2  ) && (*(ap-1) == '(' )) || 
+                        ((i_hyphen & 4  ) && (*(ap-1) == '[' )) ||
+                        ((i_hyphen & 8  ) && (*(ap-1) == '{' )) ||
+                        ((i_hyphen & 16 ) && (*(ap-1) == '"' )) ||
+                        ((i_hyphen & 32 ) && (*(ap-1) == '\'')) ) {
                       safe_chr( ToUpper( *ap ), buff, bufcx );
                    } else {
 	              safe_chr( ToLower( *ap ), buff, bufcx );

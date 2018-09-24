@@ -18451,7 +18451,7 @@
 
 & CAPLIST()
   Function: caplist(<list>[,<delim>[,<osep>[,<key>[,<type>]]]])
-
+  
   Returns <list> with the first character of each word capitalized.  You may
   specify an optional <delim> as a delimiter for the list input, otherwise the
   default of space will be used.  You may also specify an optional <osep>
@@ -18460,21 +18460,25 @@
   Additionally, an optional <key> may be specified which alters the behavior
   of the function slightly.  The key must be one of the following characters:
     - L:    Reduces the entire list to lower case before capitalization is
-            performed.
+            performed.  Allows <type> value.
     - N:    Performs capitalization naturally, and does not affect any other
             characters in the list (default).
     - T:    Performs a 'true' capitalization based on currently English
-            definition for titles.
+            definition for titles.  Allows <type> value.
   
-  A <type> of '1' will work with <key> values of 'L' or 'T' to optionally 
-  capitalize all words contained in a hyphon, optionally.  The default
-  behavior is to capitalize only the start of the word.  This <type> value
-  has no influence on the 'N' <key> type.
+  The following <type> values exist for special handling with <key>
+  'L' or 'T'.  These work as bitmasks so add the values:
+       1  - capitalize all words after a hyphon -.
+       2  - capitalize all words after a right parenthesis (.
+       4  - capitalize all words after a right bracket [.
+       8  - capitalize all words after a right brace {.
+      16  - capitalize all words after a double quote ".
+      32  - capitalize all words after a single quote '.
    
   Example:
     > say caplist(the mAn in thE mOon).
     You say "The MAn In ThE MOon."
-
+  
     > say caplist(the mAn in thE mOon,,|,L).
     You say "The|Man|In|The|Moon."
   
@@ -32340,6 +32344,7 @@
     not only sync the database but issue a flatfile dump in the
     form netrhost.SIGHUP.flat [ASH]
   * All l*() math functions will return '0' now if fed empty lists [ASH]
+  * added parameters to caplist()
   
   Bug Fixes
   ------------
