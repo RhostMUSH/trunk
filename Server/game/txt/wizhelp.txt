@@ -4842,8 +4842,8 @@
   changes override the current default settings and are only good for
   the current boot of the machine (i.e.  Cleared on @shutdowns and @reboots).
   
-  The @toggledef handles all TOGGLES.
-  The @flagdef handlds all FLAGS. 
+  The @toggledef handles all TOGGLES.  (help @toggledef4 for options)
+  The @flagdef handlds all FLAGS.      (help @flagdef4 for options)
   
   The following switches exist for this command.
     /set    - This sets permissions of who can SET the flag.
@@ -4898,8 +4898,12 @@
   
   If you wish to remove a permission, you can use '!permission' to unset a
   given permission.  You may specify multiple permissions to set and remove at
-  the same time.  (i.e.  @flagdef/set marker0=god immortal !royalty mortal)
- 
+  the same time.  
+  
+  Examples:
+    InGame command -> @flagdef/set marker0=!god !immortal !royalty mortal
+    netrhost.conf  -> flag_access_set marker0 !god !immortal !royalty mortal 
+  
   { see 'wizhelp @flagdef3' for a list of available type restrictions }
   { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
@@ -4927,8 +4931,12 @@
    
   If you wish to remove a permission, you can use '!permission' to unset a
   given permission.  You may specify multiple permissions to set and remove at
-  the same time.  (i.e.  @flagdef/type marker0=immortal !royalty room)
-
+  the same time.  
+  
+  Examples: 
+    InGame command -> @flagdef/type marker0=immortal !royalty room
+    netrhost.conf  -> flag_access_type marker0 immortal !royalty room
+  
   {see 'wizhelp @flagdef4' for a list of all @admin related parameters}
   
   See Also: @flag, @flagdef, @toggledef
