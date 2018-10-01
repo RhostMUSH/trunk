@@ -24238,6 +24238,7 @@
   Function: ishidden(<player>)
   
   This function currently is not available to non-bitted players.
+  This returns TRUE if the playere is set hidden.
   
   Example:
     > say ishidden(#1)

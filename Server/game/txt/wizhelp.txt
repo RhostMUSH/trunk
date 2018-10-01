@@ -4208,6 +4208,9 @@
   have.  This can be based on who can SET it, who can SEE it, as well as
   lock that specific mask by owner or by individual object.  Owner and
   object are specified by their dbref#'s.
+  
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
    
   Individual help and examples are available on each attribute prefix switch:
      'wizhelp @aflags perm'    -- help on displaying prefix permissions.
@@ -4227,6 +4230,9 @@
   permissions or <set> permissions.  <set> permissions handles setting and 
   UN-setting.
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   The following bits exist for the <set> and <see> parameters:
       0 - Unable to <set/see> if target is a guest or wanderer
       1 - Normal mortal or higher may <set/see>
@@ -4249,6 +4255,9 @@
 & @aflags args
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   The arguments are the following:
     <prefix>   --  The prefix is the attribute prefix that the permissions 
                    masking is applied.  Any attribute that starts with the
@@ -4288,6 +4297,9 @@
   the owner, target, or enactor, set the value to '#-1' which means 'global' 
   or 'all'.
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   Example:  @aflags/mod boogie=6 3
             @aflags/mod boogie #1234 #9876=5 5 #-1 #9876 #-1
   
@@ -4324,6 +4336,9 @@
   
   If there are no matching prefixes, it'll alert you of that fact.
    
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   See Also: @aflags, @aflags add, @aflags mod, @aflags perm
 
 & @aflags add
@@ -4339,6 +4354,9 @@
   are defined by any entry that matches the prefix, the owner, and 
   the target.  If you wish to modify an entry, use @aflags/mod.
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   Example:  @aflags/add boogie=7 6
             @aflags/add boogie=7 6 #1234 #9876 #123
   
@@ -4356,6 +4374,9 @@
   the results (20 lines per page).  Otherwise it will display all
   the results without page breaks (default).
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   Example:  @aflags/perm
             @aflags/perm 2
 
@@ -11468,7 +11489,11 @@
   Function: ishidden(<player>)
   
   Returns a TRUE(1) if the given player is set UNFINDABLE.
-
+  
+  Example:
+    > say ishidden(#1)
+    You say "1" 
+  
 & DYNHELP()
   Function: dynhelp(<helpfile>,<topic>[[,<target player>],<parsekey>])
   
