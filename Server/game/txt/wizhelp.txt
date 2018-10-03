@@ -4220,7 +4220,7 @@
      'wizhelp @aflags args'    -- explains the arguments to @aflags
      'wizhelp @aflags bits'    -- help on the level bits for see/set perms
   
-  See Also: atrperms, atrperms_max
+  See Also: atrperms, atrperms_max, atrperms_checkall
 
 & @aflags bits
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
@@ -5839,26 +5839,26 @@
   alt_inventories          altover_inv              always_blind           
   ansi_default             ansi_textfiles           api_nodns
   api_port                 areg_file                areg_lim               
-  aregh_file               atrperms                 atrperms_max           
-  attr_access              attr_alias               attr_cmd_access        
-  authenticate             bad_name                 badsite_file           
-  bcc_hidden               blind_snuffs_cons        brace_compatibility    
-  break_compatability      cache_depth              cache_steal_dirty      
-  cache_trim               cache_width              cap_articles           
-  cap_conjunctions         cap_preposition          check_interval         
-  check_offset             clone_copies_cost        cluster_cap            
-  clusterfunc_cap          comcost                  command_dark           
-  command_quota_increment  command_quota_max        compress_program       
-  compression              config_access            conn_timeout           
-  connect_file             connect_reg_file         cpu_secure_lvl         
-  cpuintervalchk           cputimechk               crash_database         
-  create_max_cost          create_min_cost          dark_sleepers          
-  default_home             delim_null               descs_are_local        
-  dig_cost                 door_file                door_index             
-  down_file                down_motd_message        dump_interval          
-  dump_message             dump_offset              earn_limit             
-  empower_fulltel          enable_tstamps           enforce_unfindable     
-  enhanced_convtime        error_file 
+  aregh_file               atrperms                 atrperms_checkall
+  atrperms_max             attr_access              attr_alias             
+  attr_cmd_access          authenticate             bad_name               
+  badsite_file             bcc_hidden               blind_snuffs_cons      
+  brace_compatibility      break_compatability      cache_depth            
+  cache_steal_dirty        cache_trim               cache_width            
+  cap_articles             cap_conjunctions         cap_preposition        
+  check_interval           check_offset             clone_copies_cost      
+  cluster_cap              clusterfunc_cap          comcost                
+  command_dark             command_quota_increment  command_quota_max      
+  compress_program         compression              config_access          
+  conn_timeout             connect_file             connect_reg_file       
+  cpu_secure_lvl           cpuintervalchk           cputimechk             
+  crash_database           create_max_cost          create_min_cost        
+  dark_sleepers            default_home             delim_null             
+  descs_are_local          dig_cost                 door_file              
+  door_index               down_file                down_motd_message      
+  dump_interval            dump_message             dump_offset            
+  earn_limit               empower_fulltel          enable_tstamps         
+  enforce_unfindable       enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -6323,8 +6323,21 @@
   Note #3: When you delete an attribute, you do not need to specify bitmasks.
   Note #4: Specify owner and/or target if you want a specific duplicate prefix.
   
-  See Also: atrperms_max, @aflags
+  See Also: atrperms_max, atrperms_checkall, @aflags
 
+& atrperms_checkall
+  Config parameter: atrperms_checkall <boolean>   Default: 0
+  
+  This will enable checking all @aflag restricted attribute prefixes for any
+  attribute read or set.  This could potentially be costly depending on the
+  number of attributes flags you use.
+  
+  This will use the lowest matching permission for the attribute.
+  
+  Without this enabled, it will take them in order of when they were set.
+  This order can be seen with the @aflags command.
+  
+  See Also: atrperms_max, atrperms, @aflags
 & atrperms_max
   Config Parameter: atrperms_max <value>    Default: 100
   
@@ -11495,14 +11508,20 @@
     You say "1" 
   
 & DYNHELP()
-  Function: dynhelp(<helpfile>,<topic>[[,<target player>],<parsekey>])
+  Function: dynhelp(<helpfile>,<topic>[[[,<target>],<parsekey>],<suggest>])
   
-  This function will read the matching 'helpfile.txt' file, search
-  the 'helpfile.indx' for the topic, and return to the enactor
-  (or targetted player), the result.  If you specify a parsekey of
-  '1' (or true), it will parse the help file.  A '2' will issue content
-  searches.  Keep in mind that as a function, this will strip ansi codes.
-  If you want to display ansi codes in .txt files and parse it, use @dynhelp.
+  This function will read the matching <helpfile> file (such as help.txt), 
+  search the indx file (such as help.indx) for the topic, and return to the 
+  enactor (or target player), the result.  You may use any help file that 
+  has a matching .indx file.  
+  
+  If you specify a <parsekey> of '1' (or true), it will parse the help 
+  file.  A '2' will issue content searches.  Keep in mind that as a 
+  function, this will strip ansi codes.  If you want to display ansi 
+  codes in .txt files and parse it, use @dynhelp.  
+  
+  The <suggest> option enables suggestions if the help topic is not found.
+   
   You may specify either '/' or '^' here for path information.
   
   This function does NOT return the output into a buffer.  This is a
@@ -11520,17 +11539,17 @@
   See Also: @dynhelp, textfile()
 
 & TEXTFILE()
-  Function: textfile(<helpfile>,<topic>[,<parsekey>[,<type>[<sep>]]])
+  Function: textfile(<helpfile>,<topic>[,<parsekey>[,<type>[,<sep>[,<sug>]]]])
+  
+  This function was coded to provide Penn and MUX2 compatibility.
   
   This function works similarilly to dynhelp(), except that the resulting
   string is returned to the controlling command and not as a side-effect.
   This is a possible limitation as the string that it returns has to be
   limited to an LBUF in size, or it will be cut off.
   
-  You may specify a parsekey of '1' to let textfile() know that it needs 
+  You may specify a <parsekey> of '1' to let textfile() know that it needs 
   to parse the input and evaluate it.  A '2' will enable content searches.
-  
-  This function was coded to provide Penn and MUX2 compatibility.
   
   You may specify a <type> of '1' if you wish the function to return the
   wildcarded list of matches without the standard help entry header of
@@ -11539,6 +11558,9 @@
   You may specify a separate separator <sep> to be used for returned
   arguments for matches.  It will default to two spaces.
   
+  The optional <sug> is for suggestion enabling.  Enabling this will have
+  it return suggestions if a lookup doesn't match.
+   
   Example:
     > think textfile(help,mail)
     (returns the 'mail' topic in the help file)

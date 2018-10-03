@@ -303,6 +303,7 @@ NDECL(cf_init)
     mudconf.function_max = 1000;	/* Maximum functions allowed period */
     mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
     mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
+    mudconf.atrperms_checkall = 0;	/* Check all attrib perms -- can be expensive */
     mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
     mudconf.listen_parents = 0;		/* ^listens do parents */
     mudconf.icmd_obj = -1;		/* @icmd eval object */
@@ -1931,10 +1932,14 @@ attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
    dbref i_player;
+   int i_return;
 
    i_player = player;
-   if ( Typeof(player) != TYPE_PLAYER )
+   if ( Typeof(player) != TYPE_PLAYER ) {
       i_player = Owner(player);
+   }
+   
+   i_return = -1;
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
       if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
@@ -1952,11 +1957,20 @@ attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
                  ((HasPriv(player, NOTHING, POWER_EX_FULL, POWER5, NOTHING) && ExFullWizAttr(player)) && atrvWiz(atrp->flag_see)) ||
                   atrpEval(atrp->flag_see, (char *)name, player, target, 0) ||
                   atrpCit(atrp->flag_see) ) {
-               return 1;
+               i_return = 1;
+            } else {
+               if ( i_return == -1 ) {
+                  i_return = 0;
+               }
             }
-            return 0;
+            if ( !mudconf.atrperms_checkall ) {
+               return i_return;
+            }
          }
       }
+   }
+   if ( i_return == -1 ) {
+      i_return = 1;
    }
    return 1;
 }
@@ -1966,10 +1980,14 @@ attrib_canset(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
    dbref i_player;
+   int i_return;
 
    i_player = player;
-   if ( Typeof(player) != TYPE_PLAYER )
+   if ( Typeof(player) != TYPE_PLAYER ) {
       i_player = Owner(player);
+   }
+
+   i_return = -1;
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
       if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
@@ -1986,13 +2004,22 @@ attrib_canset(dbref player, const char *name, dbref owner, dbref target)
                  (!(Wanderer(player) || Guest(player)) && atrpPreReg(atrp->flag_set)) ||
                   atrpEval(atrp->flag_set, (char *)name, player, target, 1) ||
                   atrpCit(atrp->flag_set) ) {
-               return 1;
+               i_return = 1;
+            } else {
+               if ( i_return == -1 ) {
+                  i_return = 0;
+               }
             }
-            return 0;
+            if ( !mudconf.atrperms_checkall ) {
+               return i_return;
+            }
          }
       }
    }
-   return 1;
+   if ( i_return == -1 ) {
+      i_return = 1;
+   }
+   return i_return;
 }
 
 char *
@@ -2070,10 +2097,10 @@ add_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
    i_see = i_set = i_owner = i_target = i_enactor = -1; 
    t_strtok = strtok_r(s_output, " \t", &t_strtokptr);
    if ( t_strtok ) {
-      i_see = atoi(t_strtok);
+      i_set = atoi(t_strtok);
       t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
       if ( t_strtok ) {
-         i_set = atoi(t_strtok);
+         i_see = atoi(t_strtok);
          t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
          if ( t_strtok ) {
             if ( *t_strtok == '#' )
@@ -2115,7 +2142,7 @@ add_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
          return;
       }
    }
-   notify(player, unsafe_tprintf("Entry added [%d of %d used].", i_atrperms_cnt, mudconf.atrperms_max));
+   notify(player, unsafe_tprintf("Entry added [%d of %d used].", i_atrperms_cnt + 1, mudconf.atrperms_max));
    atrp  = (ATRP *) malloc(sizeof(ATRP));
    atrp->name = alloc_sbuf("attribute_perm_array");
    memset(atrp->name, '\0', SBUF_SIZE);
@@ -2403,6 +2430,9 @@ display_perms(dbref player, int i_page, int i_key, char *fname)
        notify(player, safe_tprintf(tprbuff, &tprpbuff, 
                                    "----------------------------[%6d/%6d max]-------------------------------", 
                                    i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max)));
+    if ( mudconf.atrperms_checkall ) {
+       notify(player, "All @aflag permissions are checked against lowest permission.");
+    }
     notify(player, "Note: Immortals are treated as god with regards to seeing attributes.");
     free_lbuf(tprbuff);
 }
@@ -3664,6 +3694,9 @@ CONF conftable[] =
     {(char *) "atrperms",
      cf_atrperms, CA_GOD | CA_IMMORTAL, (int *) mudconf.atrperms, LBUF_SIZE - 2, 0, CA_WIZARD,
      (char *) "Prefix permission masks for attributes."},
+    {(char *) "atrperms_checkall",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.atrperms_checkall, 0, 0, CA_WIZARD,
+     (char *) "Are @aflag attribute permissions checked to lowest?"},
     {(char *) "atrperms_max",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.atrperms_max, 0, 0, CA_WIZARD,
      (char *) "Max Attribute Prefix Permissions?\r\n"

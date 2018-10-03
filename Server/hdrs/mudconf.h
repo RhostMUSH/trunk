@@ -406,6 +406,7 @@ struct confdata {
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
         char    atrperms[LBUF_SIZE];
         int	atrperms_max;
+        int	atrperms_checkall;	/* Go through and check all @aflag perms -- can be expensive if enabled */
         int	safer_ufun;
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
