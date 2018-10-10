@@ -2678,6 +2678,9 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                 }
                 s_pt++;
             }
+            if ( strstr(buff2, ".img") != NULL ) {
+               i_count = 1;
+            }
             if ( i_count ) {
                notify(player, "Invalid characters specified in filename.");
                free_mbuf(s_mbname);

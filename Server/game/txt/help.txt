@@ -32363,3 +32363,4 @@
   * door only did LF and not CRLF [ASH]
   * cleanup of an unused variable in functions.c [ASH]
   * site paranoia was a bit too, well, paranoid [ASH]
+  * some cleanup to @snapshot on making restrictions on filenames [ASH]
