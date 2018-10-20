@@ -375,7 +375,7 @@ shovechars(int port,char* address)
     char *s_buff, *s_buffptr, *s_buff2, *s_buff2ptr, *s_buff3, *s_buff3ptr;
 #endif
     FILE *f;
-    int silent, i_progatr, anum, apiport, i_isapi;
+    int silent, i_progatr, anum, apiport;
     unsigned int ulCRC32;
     ATTR *ap;
 
@@ -544,7 +544,6 @@ shovechars(int port,char* address)
 
 	/* Listen for new connections if there are free descriptors */
 
-        i_isapi = 0;
 	if (ndescriptors < avail_descriptors) {
 #ifdef TLI
 	    fds[sock].fd = sock;
