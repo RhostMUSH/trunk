@@ -1313,8 +1313,8 @@ extern RLEVEL FDECL(find_rlevel, (char *));
 #endif
 extern void local_function(char *, char *, char**, dbref, dbref, char **, int, char**, int);
 extern double mush_mktime64(struct tm *);
-extern struct tm *gmtime64_r(const double *, struct tm *);
-extern struct tm *localtime64_r(const double *, struct tm *);
+extern struct tm *mush_gmtime64_r(const double *, struct tm *);
+extern struct tm *mush_localtime64_r(const double *, struct tm *);
 extern int internal_logstatus(void);
 extern char * parse_ansi_name(dbref, char *);
 extern int count_extended(char *);
@@ -7112,7 +7112,7 @@ FUNCTION(fun_moon)
    ttm = localtime(&mudstate.now);
    l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
    dd_now -= l_offset;
-   GMT = gmtime64_r(&dd_now, ttm);
+   GMT = mush_gmtime64_r(&dd_now, ttm);
    days = (GMT->tm_yday + 1.0) + ((GMT->tm_hour +
           (GMT->tm_min / 60.0) + (GMT->tm_sec / 3600.0)) / 24.0);
    for (cnt = EPOCH_MUSH; cnt < GMT->tm_year; ++cnt)
@@ -10808,7 +10808,7 @@ FUNCTION(fun_timefmt)
 
   l_offset = (long) mktime(tms2) - (long) mush_mktime64(tms2);
   secs2 -= l_offset;
-  tms = gmtime64_r(&secs2, tms2); 
+  tms = mush_gmtime64_r(&secs2, tms2); 
   secs2 += l_offset;
   
   fmtbuff = alloc_mbuf("timefmt");
@@ -11083,7 +11083,7 @@ FUNCTION(fun_timefmt)
                 fmtdone = 1;
                 break;
               case 'z': /* is daylight savings */
-                tms3 = localtime64_r(&secs2, tms2);
+                tms3 = mush_localtime64_r(&secs2, tms2);
                 fm.lastval = tms3->tm_isdst;
                 sprintf(fmtbuff, "%d", fm.lastval);
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
@@ -11471,7 +11471,7 @@ FUNCTION(fun_convsecs)
     ttm2 = localtime(&mudstate.now);
     l_offset = (long) mktime(ttm2) - (long) mush_mktime64(ttm2);
     tt2 -= l_offset;
-    gmtime64_r(&tt2, ttm2);
+    mush_gmtime64_r(&tt2, ttm2);
     ttm2->tm_year += 1900;
     s_format = alloc_mbuf("convsecs");
     sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
