@@ -136,15 +136,15 @@ fi
 if [ -r $INPUT_DB ]; then
 	mv -f $INPUT_DB $SAVE_DB
 fi
-if [ -r $LOGNAME.old ]; then
+if [ -r $MUSHLOGNAME.old ]; then
 	echo "Archiving old log."
-	LOGARCHIVE=$LOGNAME.`date +%Y%m%d`_`date +%H%M`
-	mv -f $LOGNAME.old $LOGARCHIVE
+	LOGARCHIVE=$MUSHLOGNAME.`date +%Y%m%d`_`date +%H%M`
+	mv -f $MUSHLOGNAME.old $LOGARCHIVE
 	gzip $LOGARCHIVE
 	mv -f $LOGARCHIVE.gz oldlogs
 fi
-if [ -r $LOGNAME ]; then
-   mv -f $LOGNAME $LOGNAME.old
+if [ -r $MUSHLOGNAME ]; then
+   mv -f $MUSHLOGNAME $MUSHLOGNAME.old
 fi
 #
 #	If we have a good checkpoint database, make it the input database.
@@ -174,9 +174,9 @@ if [ -f "$INPUT_DB" ]
 then
    if [ ${CYGWIN} -eq 1 ]
    then
-      (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+      (nohup ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
    else
-      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
    fi
 else
    echo "There was no valid database information found."
@@ -244,27 +244,27 @@ else
          then
             if [ ${CYGWIN} -eq 1 ]
             then
-               (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             fi
          else
             echo "The database wasn't loaded properly.  Going to initialize a new db.  RETURN to continue, ^C to abort."
             read ANS
             if [ ${CYGWIN} -eq 1 ]
             then
-               (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             fi
             gl_newdb=1
          fi
       else
          if [ ${CYGWIN} -eq 1 ]
          then
-            (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+            (nohup ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
          else
-            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
          fi
          gl_newdb=1
       fi
