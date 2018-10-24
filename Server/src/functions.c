@@ -1312,7 +1312,7 @@ extern int FDECL(pstricmp, (char *, char *, int));
 extern RLEVEL FDECL(find_rlevel, (char *));
 #endif
 extern void local_function(char *, char *, char**, dbref, dbref, char **, int, char**, int);
-extern double mktime64(struct tm *);
+extern double mush_mktime64(struct tm *);
 extern struct tm *gmtime64_r(const double *, struct tm *);
 extern struct tm *localtime64_r(const double *, struct tm *);
 extern int internal_logstatus(void);
@@ -1640,12 +1640,12 @@ make_objid(dbref thing) {
                ttm = gmtime(&mudstate.now);
                mynow -= mktime(ttm);
             }
-            l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+            l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
             if (do_convtime(atext, ttm)) {
                if ( mudconf.objid_localtime ) {
-                  d_objid = (double)(mktime64(ttm) + l_offset);
+                  d_objid = (double)(mush_mktime64(ttm) + l_offset);
                } else {
-                  d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+                  d_objid = (double)(mush_mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
                }
                if ( i_id_found == 1 ) {
                   buff = alloc_sbuf("create_objid");
@@ -7110,7 +7110,7 @@ FUNCTION(fun_moon)
       dd_now = (double)mudstate.now;
 
    ttm = localtime(&mudstate.now);
-   l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+   l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
    dd_now -= l_offset;
    GMT = gmtime64_r(&dd_now, ttm);
    days = (GMT->tm_yday + 1.0) + ((GMT->tm_hour +
@@ -10806,7 +10806,7 @@ FUNCTION(fun_timefmt)
      }
   }
 
-  l_offset = (long) mktime(tms2) - (long) mktime64(tms2);
+  l_offset = (long) mktime(tms2) - (long) mush_mktime64(tms2);
   secs2 -= l_offset;
   tms = gmtime64_r(&secs2, tms2); 
   secs2 += l_offset;
@@ -11469,7 +11469,7 @@ FUNCTION(fun_convsecs)
 
     tt2 = safe_atof(fargs[0]);
     ttm2 = localtime(&mudstate.now);
-    l_offset = (long) mktime(ttm2) - (long) mktime64(ttm2);
+    l_offset = (long) mktime(ttm2) - (long) mush_mktime64(ttm2);
     tt2 -= l_offset;
     gmtime64_r(&tt2, ttm2);
     ttm2->tm_year += 1900;
@@ -11632,14 +11632,14 @@ FUNCTION(fun_convtime)
     char *outstr;
 
     ttm = localtime(&mudstate.now);
-    l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+    l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
     if (do_convtime(fargs[0], ttm)) {
-       fval(buff, bufcx, (double)(mktime64(ttm) + l_offset));
+       fval(buff, bufcx, (double)(mush_mktime64(ttm) + l_offset));
     } else if ( mudconf.enhanced_convtime ) {
        outstr = alloc_lbuf("fun_convtime_adv");
        do_date_conv(fargs[0], outstr);
        if (do_convtime(outstr, ttm)) {
-          fval(buff, bufcx, (double)(mktime64(ttm) + l_offset));
+          fval(buff, bufcx, (double)(mush_mktime64(ttm) + l_offset));
        } else {
           safe_str("-1", buff, bufcx);
        }
@@ -19532,12 +19532,12 @@ FUNCTION(fun_objid) {
                ttm = gmtime(&mudstate.now);
                mynow -= mktime(ttm);
             }
-            l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
+            l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
             if (do_convtime(atext, ttm)) {
                if ( mudconf.objid_localtime ) {
-                  d_objid = (double)(mktime64(ttm) + l_offset);
+                  d_objid = (double)(mush_mktime64(ttm) + l_offset);
                } else {
-                  d_objid = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+                  d_objid = (double)(mush_mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
                }
                if ( i_id_found == 1 ) {
                   tbuff = alloc_sbuf("create_objid");

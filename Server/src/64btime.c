@@ -83,7 +83,7 @@ savings time adjustments.
 The function prototypes are:
 
     double pivot_time_t (const time_t * now, double *t);
-    double mktime64 (struct tm *t);
+    double mush_mktime64 (struct tm *t);
     struct tm *localtime64_r (const double *t, struct tm *p);
     struct tm *pivotal_localtime_r (const time_t * now, const time_t * t, struct tm *p);
     struct tm *gmtime64_r (const double *t, struct tm *p);
@@ -95,7 +95,7 @@ can use pivot_time_t() to convert any time that may be incorrect.
 pivot_time_t() returns its argument unchanged if either now is NULL or
 sizeof(time_t) is not 4.
 
-mktime64() is a 64-bit equivalent of mktime().
+mush_mktime64() is a 64-bit equivalent of mktime().
 
 localtime64_r() is a 64-bit equivalent of localtime_r().
 
@@ -238,7 +238,7 @@ struct tm *pivotal_gmtime_r (const time_t * now, const time_t * _t, struct tm *p
     return _gmtime64_r (now, &t, p);
 }
 
-double mktime64 (struct tm *t)
+double mush_mktime64 (struct tm *t)
 {
     int i, y;
     long day = 0;
@@ -275,11 +275,11 @@ static struct tm *_localtime64_r (const time_t * now, double *_t, struct tm *p)
     _gmtime64_r (now, _t, &tm);
     if (tm.tm_year > (2037 - 1900))
         tm.tm_year = 2037 - 1900;
-    t = mktime64 (&tm);
+    t = mush_mktime64 (&tm);
     localtime_r (&t, &tm_localtime);
     gmtime_r (&t, &tm_gmtime);
     tl = *_t;
-    tl += (mktime64 (&tm_localtime) - mktime64 (&tm_gmtime));
+    tl += (mush_mktime64 (&tm_localtime) - mush_mktime64 (&tm_gmtime));
     _gmtime64_r (now, &tl, p);
     p->tm_isdst = tm_localtime.tm_isdst;
     return p;
