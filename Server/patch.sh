@@ -95,7 +95,8 @@ else
    rm -rf ./rhost_tmp
 fi
 cd src
-if [ $(uname -s|grep -ic bsd) -gt 0 ]
+lc_chk=$(gmake --version 2>&1|grep -ic GNU)
+if [ ${lc_chk} -gt 0 ]
 then
    gmake clean;gmake
 else

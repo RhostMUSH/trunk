@@ -16,7 +16,7 @@ then
    if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
    then
       make mac
-   elif [ $(uname -s|grep -ic bsd) -eq 1 ]
+   elif [ $(gmake --version 2>&1|grep -ic GNU) -gt 0 ]
    then
       gmake
    else
@@ -27,7 +27,7 @@ else
    if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
    then
       make mac
-   elif [ $(uname -s|grep -ic bsd) -eq 1 ]
+   elif [ $(gmake --version 2>&1|grep -ic GNU) -gt 0 ]
    then
       gmake
    else
