@@ -32366,3 +32366,4 @@
   * site paranoia was a bit too, well, paranoid [ASH]
   * some cleanup to @snapshot on making restrictions on filenames [ASH]
   * mktime64 was defined in IBM so had to be renamed [ASH]
+  * cleanup of DOORS and potential API connections on @reboot [ASH]

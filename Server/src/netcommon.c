@@ -874,10 +874,13 @@ int dump_reboot_db( void )
     /* Lensy, bugfix 29/02/04
      * Doors should NOT be carried through on a reboot, at least not here! */
     if (d->flags & DS_HAS_DOOR) {
-      d->flags &= ~DS_HAS_DOOR;
+      /* Force close the door */
+      closeDoorWithId(d, d->door_num);
     }
     /* Don't save API data on reboot, and don't attempt to reconnect it */
     if (d->flags & DS_API) {
+      /* Force close the API */
+      shutdownsock(d, R_API);
       continue;
     }
     if ( (i_prefix > 0 ) && d->output_prefix && *(d->output_prefix) && Good_chk(d->player) ) {
