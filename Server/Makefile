@@ -9,7 +9,7 @@ gdbmdir= ./src/gdbm-1.8.3/
 qdbmdir= ./src/qdbm/
 bindir = ./bin
 
-CHK = $(shell gmake --version|grep -ic "GNU")
+CHK = $(shell gmake --version 2>/dev/null|grep -ic "GNU")
 ifeq "$(CHK)" "0"
    MAKE=make
 else

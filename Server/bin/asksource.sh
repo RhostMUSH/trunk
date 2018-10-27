@@ -54,7 +54,7 @@ if [ -f /sbin/ldconfig ]
 then
    LDCONFIG="/sbin/ldconfig"
 else
-   for i in $(slocate ldconfig)
+   for i in $(slocate ldconfig 2>/dev/null)
    do
       if [ $(file "$i"|grep -c ELF) -gt 0 ]
       then
@@ -69,7 +69,7 @@ elif [ -f /usr/bin/gcc ]
 then
    MYGCC=/usr/bin/gcc
 else
-   for i in $(slocate gcc)
+   for i in $(slocate gcc 2>/dev/null)
    do
       if [ $(file "$i"|grep -c ELF) -gt 0 ]
       then
