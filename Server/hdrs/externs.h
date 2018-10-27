@@ -1169,6 +1169,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define BLACKLIST_LIST	1	/* List blacklist */
 #define BLACKLIST_CLEAR	2	/* Clear blacklist */
 #define BLACKLIST_LOAD	4	/* Load blacklist.txt file */
+#define BLACKLIST_MASK	8	/* Load blacklist.txt file */
 
 #define WAIT_PID        1       /* Re-wait a PID process */
 #define WAIT_UNTIL	2	/* Wait until specified time */

@@ -204,6 +204,7 @@ NAMETAB attrib_sw[] =
 NAMETAB blacklist_sw[] =
 {
     {(char *) "list", 2, CA_IMMORTAL, 0, BLACKLIST_LIST},
+    {(char *) "mask", 2, CA_IMMORTAL, 0, BLACKLIST_MASK},
     {(char *) "clear", 1, CA_IMMORTAL, 0, BLACKLIST_CLEAR},
     {(char *) "load", 2, CA_IMMORTAL, 0, BLACKLIST_LOAD},
     {NULL, 0, 0, 0, 0}};
@@ -12360,8 +12361,9 @@ do_progreset(dbref player, dbref cause, int key, char *name)
 void
 do_blacklist(dbref player, dbref cause, int key, char *name) 
 {
-   char *s_buff, *s_buffptr, *tmpbuff;
-   int i_loop_chk, i_page, i_page_val, i_invalid;
+   char *s_buff, *s_buffptr, *tmpbuff, *s_addrip, *s_addrmask, *s_addrtok;
+   int i_loop_chk, i_page, i_page_val, i_invalid, i_maskcnt;
+   unsigned long maskval;
    struct in_addr in_tempaddr, in_tempaddr2;
    FILE *f_in;
    BLACKLIST *b_lst_ptr, *b_lst_ptr2;
@@ -12375,6 +12377,65 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
    }
  
    switch (key) {
+      case BLACKLIST_MASK:
+         i_page = i_page_val = 0;
+         if ( !mudstate.bl_list ) {
+            notify(player, "@blacklist: List is currently empty.");
+            break;
+         }
+         if ( name && *name )
+            i_page_val = atoi(name);
+         if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 40) + 1)) ) {
+            notify(player, "@blacklist: Value specified must be a valid page value.");
+            break;
+         }
+         s_buffptr = s_buff = alloc_lbuf("do_blacklistLBUF");
+         tmpbuff = alloc_lbuf("do_blacklistLBUF2");
+         s_addrip = alloc_lbuf("do_blacklistLBUF3");
+         memset(tmpbuff, '\0', LBUF_SIZE);
+         i_loop_chk=0;
+         b_lst_ptr = mudstate.bl_list;
+         notify(player, "================================================================================");
+         if ( i_page_val > 0 ) {
+            sprintf(tmpbuff, "= (Paged List)                    Black List [mask]           %3d/%3d         =", 
+                    i_page_val, (mudstate.blacklist_cnt/40)+1);
+         } else {
+            sprintf(tmpbuff, "= (Full List)                     Black List [mask]                            =");
+         }
+         notify(player, tmpbuff);
+         notify(player, "================================================================================");
+         while ( b_lst_ptr ) {
+            i_loop_chk++;
+            if ( (i_loop_chk % 40) == 1 )
+               i_page++;
+            if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
+               b_lst_ptr = b_lst_ptr->next;
+               continue;
+            }
+            if ( (i_loop_chk % 2) != 0 ) {
+               sprintf(s_addrip, "[%s]", inet_ntoa(b_lst_ptr->mask_addr));
+               if ( !*s_buff ) {
+                  sprintf(s_buff, "   %-16s %-18s", (char *)inet_ntoa(b_lst_ptr->site_addr), s_addrip);
+               } else {
+                  sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr), s_addrip);
+                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
+               }
+            } else {
+               sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr), s_addrip);
+               memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
+               notify(player, s_buff);
+               memset(s_buff, '\0', LBUF_SIZE);
+            }
+            b_lst_ptr = b_lst_ptr->next;
+         } 
+         free_lbuf(tmpbuff);
+         if ( (i_loop_chk % 2) != 0 ) {
+            notify(player, s_buff);
+         }
+         notify(player, "==============================================================================");
+         free_lbuf(s_buff);
+         free_lbuf(s_addrip);
+         break;
       case BLACKLIST_LIST:
          i_page = i_page_val = 0;
          if ( !mudstate.bl_list ) {
@@ -12392,14 +12453,14 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          memset(tmpbuff, '\0', LBUF_SIZE);
          i_loop_chk=0;
          b_lst_ptr = mudstate.bl_list;
-         notify(player, "==============================================================================");
+         notify(player, "================================================================================");
          if ( i_page_val > 0 ) {
-            sprintf(tmpbuff, "= (Paged List)                    Black List                  %3d/%3d        =", i_page_val, (mudstate.blacklist_cnt/80)+1);
+            sprintf(tmpbuff, "= (Paged List)                    Black List                  %3d/%3d         =", i_page_val, (mudstate.blacklist_cnt/80)+1);
          } else {
-            sprintf(tmpbuff, "= (Full List)                     Black List                                 =");
+            sprintf(tmpbuff, "= (Full List)                     Black List                                   =");
          }
          notify(player, tmpbuff);
-         notify(player, "==============================================================================");
+         notify(player, "================================================================================");
          while ( b_lst_ptr ) {
             i_loop_chk++;
             if ( (i_loop_chk % 80) == 1 )
@@ -12409,14 +12470,18 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                continue;
             }
             if ( (i_loop_chk % 4) != 0 ) {
+               s_addrip = (char *)" ";
+               if ( strcmp("255.255.255.255", inet_ntoa(b_lst_ptr->mask_addr)) != 0 ) {
+                  s_addrip = (char *)"[M]";
+               }
                if ( !*s_buff ) {
-                  sprintf(s_buff, "   %-18s", (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
                } else {
-                  sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
                   memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                }
             } else {
-               sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+               sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
                memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                notify(player, s_buff);
                memset(s_buff, '\0', LBUF_SIZE);
@@ -12439,12 +12504,12 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             notify(player, "@blacklist: Error opening blacklist.txt file for reading.");
             break;
          }
-         s_buff = alloc_sbuf("do_blacklist");
-         i_loop_chk = i_invalid = 0;
+         s_buff = alloc_mbuf("do_blacklist");
+         i_loop_chk = i_invalid = i_maskcnt = 0;
          mudstate.bl_list = b_lst_ptr2 = NULL;
-         inet_aton((char *)"255.255.255.255", &in_tempaddr2);
          while ( !feof(f_in) ) {
-            fgets(s_buff, SBUF_SIZE-2, f_in);
+            inet_aton((char *)"255.255.255.255", &in_tempaddr2);
+            fgets(s_buff, MBUF_SIZE-2, f_in);
             if ( feof(f_in) ) 
                break;
             if ( i_loop_chk > 100000 ) {
@@ -12452,12 +12517,35 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                break;
             }
             i_loop_chk++;
-            if ( !inet_aton(s_buff, &in_tempaddr) ) {
+            s_addrip = strtok_r(s_buff, " \t", &s_addrtok);
+            if ( s_addrip ) {
+               s_addrmask = strtok_r(NULL, " \t", &s_addrtok);
+            }
+            if ( s_addrmask ) {
+               if ( *s_addrmask == '/' ) {
+                  maskval = atol(s_addrmask+1);
+                  if (((long)maskval < 0) || (maskval > 32)) {
+                     i_invalid++;
+                     continue;
+                  }
+                  if ( maskval != 0 ) {
+                     maskval = (0xFFFFFFFFUL << (32 - maskval));
+                  }
+                  in_tempaddr2.s_addr = htonl(maskval);
+               } else {
+                  if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
+                     i_invalid++;
+                     continue;
+                  }
+               }
+               i_maskcnt++;
+            }
+            if ( !inet_aton(s_addrip, &in_tempaddr) ) {
                i_invalid++;
                continue;
             }
             b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST)+1);
-            sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_buff,2));
+            sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_addrip,2));
             b_lst_ptr->site_addr = in_tempaddr;
             b_lst_ptr->mask_addr = in_tempaddr2;
             b_lst_ptr->next = NULL;
@@ -12471,10 +12559,10 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             }
             mudstate.blacklist_cnt++;
          }
-         free_sbuf(s_buff);
+         free_mbuf(s_buff);
          s_buffptr = s_buff = alloc_lbuf("do_blacklistLBUF");
-         notify(player, safe_tprintf(s_buff, &s_buffptr, "Blacklist loaded.  %d entries total.  %d read in, %d ignored.", 
-                        i_loop_chk, mudstate.blacklist_cnt, i_invalid));
+         notify(player, safe_tprintf(s_buff, &s_buffptr, "Blacklist loaded.  %d entries total.  %d read in, %d ignored, %d custom netmasks.", 
+                        i_loop_chk, mudstate.blacklist_cnt, i_invalid, i_maskcnt));
          free_lbuf(s_buff);
          fclose(f_in);
          break;

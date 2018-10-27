@@ -2656,7 +2656,7 @@
  
 & blacklist.txt
 & @blacklist
-  Command: @blacklist[/<switch>]
+  Command: @blacklist[/<switch>] [<argument>]
   
   This command lists, loads, or clears the current blacklists.  Blacklists are
   similiar to forbid sites, except it keeps them in a separate list to avoid
@@ -2668,14 +2668,56 @@
   blacklist.  There is a script that can be ran that will populate this
   file with all known TOR exit points.
   
+  You may optionally have a netmask (in ipv4 or CIDR noation) after the IP
+  in the blacklist.txt.  If no masks is seen, it will assume /32.  
+  
   The following switches exist for @blacklist:
     /load  - Load in all sites in the blacklist.txt file
     /clear - purges the blacklist
-    /list  - lists all sites in the blacklist
+    /list  - lists all sites in the blacklist.  This shows 4 to a line.
+    /mask  - like list but will show the IP and associated NETMASK.  This
+             shows 2 IP's and 2 NETMASK's to a line.
   
   If no switch is specified, it gives a summary of sites in the blacklist.
   
+  /list and /mask may specify a page value <argument>.  It is STRONGLY 
+  suggested you do so as with most blacklists that hold proxies, it could
+  contain tens of thousands of entries.  Using /list or /mask without
+  an argument will list ALL sites.
+  
+    Examples:
+    > @blacklist/list 1   (shows page 1)
+    > @blacklist/mask 20  (shows page 20) 
+  
+  With /list, any entry that has a [M] before the IP signifies that there
+  is a non-standard netmask associated with the IP.  A nonstandard netmask
+  is considered one that is not /32 (255.255.255.255).
+  
+  { 'wizhelp blacklist file' for an example of the blacklist.txt file }
+  
   See Also: forbid_site, @site
+
+& blacklist file
+  Topic: blacklist file contents
+  
+  The blacklist.txt file (which will reside in the game directory) will
+  look like the following as an example:
+  
+     123.123.123.123
+     122.122.122.0 /24
+     122.122.0.0 255.255.0.0
+  
+  If you do not specify a netmask, it will assume 255.255.255.255 (/32) as
+  the netmask.  You may use CIDR notation (ie: /24) or the ipv4 notation
+  instead (ie: 255.255.255.0).  
+  
+  IP and NETMASK needs to be separated by a white space.  This can be
+  one or more spaces and/or one or more tabs.
+  
+  If the IP or netmask is invalid, it will skip the entry.
+  
+  See Also: @site, @blacklist
+  
 & @boot
   Command: @boot[/<switches>] <player>
   

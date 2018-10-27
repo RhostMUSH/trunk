@@ -32332,6 +32332,7 @@
     of the reality prior to any new sets [ASH]
   * atrperms_checkall to go through all prefix matching for the lowest
     permission match [ASH]
+  * added NETMASK support to @blacklist [ASH]
   
   Changes
   ------------
