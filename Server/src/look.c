@@ -3275,7 +3275,7 @@ do_inventory(dbref player, dbref cause, int key)
        ap = atr_str("invformat");
        if ( ap ) {
           i_attr = ap->number;
-          buf2 = atr_get(player, ap->number, &aowner, &aflags);
+          buf2 = atr_pget(player, ap->number, &aowner, &aflags);
           if ( *buf2 ) {
              s_combine = alloc_lbuf("fun_lexits_formatting");
              strcpy(s_combine, (char *)"formatting");
