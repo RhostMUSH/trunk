@@ -1750,22 +1750,29 @@ static int s_comp(const void *s1, const void *s2)
 }
 
 static const char *
-time_format_2(time_t dt)
+time_format_2(double dt)
 {
-    register struct tm *delta;
+    register struct tm *delta, *ttm;
     static char buf[64];
 
+    ttm = localtime(&mudstate.now);
 
     if (dt < 0)
         dt = 0;
 
-    delta = gmtime(&dt);
-    if ((int)dt >= 31556926 ) {
-        sprintf(buf, "%dy", (int)dt / 31556926);
-    } else if ((int)dt >= 2629743 ) {
-        sprintf(buf, "%dM", (int)dt / 2629743); 
-    } else if ((int)dt >= 604800) {
-        sprintf(buf, "%dw", (int)dt / 604800);
+    delta = mush_gmtime64_r(&dt, ttm);
+    if ((double)dt >= (double)31556926000000.0 ) {
+        sprintf(buf, "%.0fe", floor(dt / 31556926000000.0));
+    } else if ((double)dt >= (double)31556926000.0 ) {
+        sprintf(buf, "%.0fa", floor(dt / 31556926000.0));
+    } else if ((double)dt >= (double)3155692600.0 ) {
+        sprintf(buf, "%.0fC", floor(dt / 3155692600.0));
+    } else if ((double)dt >= (double)31556926.0 ) {
+        sprintf(buf, "%.0fy", floor(dt / 31556926.0));
+    } else if ((double)dt >= (double)2629743.0 ) {
+        sprintf(buf, "%.0fM", floor(dt / 2629743.0)); 
+    } else if ((double)dt >= (double)604800.0) {
+        sprintf(buf, "%.0fw", floor(dt / 604800.0));
     } else if (delta->tm_yday > 0) {
         sprintf(buf, "%dd", delta->tm_yday);
     } else if (delta->tm_hour > 0) {
@@ -2439,10 +2446,10 @@ do_reverse(char *from, char *to, char **tocx, int i_transpose)
 
 FUNCTION(fun_singletime)
 {
-   int i_time;
+   double d_time;
 
-   i_time = atoi(fargs[0]);
-   safe_str((char *)time_format_2(i_time), buff, bufcx);
+   d_time = safe_atof(fargs[0]);
+   safe_str((char *)time_format_2(d_time), buff, bufcx);
 }
 
 FUNCTION(fun_safebuff)

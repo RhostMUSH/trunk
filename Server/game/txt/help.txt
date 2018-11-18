@@ -22666,7 +22666,14 @@
  
   This function converts seconds to a single time element which is
   the lowest approximation to the given number of <seconds>.
- 
+  
+  The following letters are relevant:
+    s - second    d - day     y - year               e - epoch
+    m - minute    w - week    C - century
+    h - hour      M - month   a - annum(Millennium)
+  
+  Note:  an epoch is 1 million years or more.
+    
   Example:
     > say singletime(45)
     You say "45s"
@@ -22676,6 +22683,7 @@
     You say "1d"
  
   Related Topics: secs(), time(), timefmt()
+
 & CTU()
   Function: ctu(<number>, <units-from>, <units-to>)
   
@@ -32349,6 +32357,7 @@
     form netrhost.SIGHUP.flat [ASH]
   * All l*() math functions will return '0' now if fed empty lists [ASH]
   * added parameters to caplist()
+  * singletime() now handles eons
   
   Bug Fixes
   ------------

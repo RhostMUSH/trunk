@@ -1684,7 +1684,7 @@ dbref TopLocation(dbref num) {
 }
 
 char *
-time_format_2(time_t dt2, char *buf2)
+cmd_time_format_2(time_t dt2, char *buf2)
 {
     struct tm *delta;
     time_t dt;
@@ -6315,9 +6315,9 @@ list_options_system(dbref player)
        strncpy(playerchktime,(char *) ctime(&i_count), 24);
        notify(player, "\r\n--- System Timers and Triggers -----------------------------------------------");
        notify(player, unsafe_tprintf("--> Next DB Check: %s [%s to trigger]\r\n--> Next DB Dump: %s [%s to trigger]\r\n--> Next Idle User Check: %s [%s to trigger]\r\n",
-                      dbchktime, time_format_2(c_count - mudstate.now, buf2),
-                      dbdumptime, time_format_2(d_count - mudstate.now, buf3),
-                      playerchktime, time_format_2(i_count - mudstate.now, buf4)));
+                      dbchktime, cmd_time_format_2(c_count - mudstate.now, buf2),
+                      dbdumptime, cmd_time_format_2(d_count - mudstate.now, buf3),
+                      playerchktime, cmd_time_format_2(i_count - mudstate.now, buf4)));
 
        memset(newstime, 0, sizeof(newstime));
        memset(mailtime, 0, sizeof(mailtime));
