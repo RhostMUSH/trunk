@@ -110,7 +110,7 @@
 &FUN_MEDIAN soft=[ifelse(mod(%+,2),v(div(%+,2)),fdiv(ladd(iter(lnum(%+),v(%i0))),2))]
 &FUN_LOCKFILTER soft=[testlock(%0,%1,0,%2)]
 &MINMAX_LOCKFILTER soft=2 3
-&FUNPR_GRADIENT soft=[setq(a,colors(first(colors(0x%0,n)),x))][setq(b,colors(first(colors(0x%1,n)),x))][setq(0,[mid(%qa,1,2)] [mid(%qa,3,2)] [mid(%qa,5,2)])][setq(1,[mid(%qb,1,2)] [mid(%qb,3,2)] [mid(%qb,5,2)])][setq(c,iter(lnum(0,add(1,min(%2,255))),iter(lnum(1,3),printf($02s,tohex(add(0x[extract(%q0,%i0,1)],div(mul(%i1,sub(0x[extract(%q1,%i0,1)],0x[extract(%q0,%i0,1)])),min(%2,255))))),,)))][citer(%3,ifelse(!words(##),%b,ansi(#[extract(%qc,setr(d,add(1,mod(sub(#@,1),sub(words(%qc),1)))),1)],##)),)]
+&FUNPR_GRADIENT soft=[setq(9,ifelse(lte(%2,0),strlen(%3),%2))][setq(a,colors(ifelse(neq(2,strlen(%0)),%0,first(colors(0x%0,n))),x))][setq(b,colors(ifelse(neq(2,strlen(%1)),%1,first(colors(0x%1,n))),x))][setq(0,[mid(%qa,1,2)] [mid(%qa,3,2)] [mid(%qa,5,2)])][setq(1,[mid(%qb,1,2)] [mid(%qb,3,2)] [mid(%qb,5,2)])][setq(c,iter(lnum(0,add(1,min(%q9,255))),iter(lnum(1,3),printf($02s,tohex(add(0x[extract(%q0,%i0,1)],div(mul(%i1,sub(0x[extract(%q1,%i0,1)],0x[extract(%q0,%i0,1)])),min(%q9,255))))),,)))][citer(%3,ifelse(!words(##),%b,ansi(#[extract(%qc,setr(d,add(1,mod(sub(#@,1),sub(words(%qc),1)))),1)],##)),)]
 &MINMAX_GRADIENT soft=4 -1
 @fo softfunc=&DB me=num(softfunc)
 @tel SFSideFX=softfunctions
