@@ -382,7 +382,7 @@ static int sql_init(dbref player) {
 static void
 free_sql_query(MYSQL_RES *qres)
 {
-   int affected_rows;
+   int affected_rows = 0;
 
    /* Read in anything else to clear the query */
    while (mysql_fetch_row(qres))
@@ -390,6 +390,9 @@ free_sql_query(MYSQL_RES *qres)
 
    /* Free the query */
    mysql_free_result(qres);
+
+   if ( affected_rows)
+   ;
 
    while (mysql_more_results(mysql_struct)) {
       affected_rows = mysql_affected_rows(mysql_struct);

@@ -3063,7 +3063,7 @@ dump_rusers(DESC * call_by)
         VOIDRETURN; /* #24 */
     }
 #else
-    if (connect(fd, &addr, sizeof(addr)) < 0) {
+    if (connect(fd, (const struct sockaddr *) &addr, sizeof(addr)) < 0) {
 	queue_string(call_by, "Error in connecting to rwhod.\r\n");
 	tf_close(fd);
 	VOIDRETURN; /* #24 */

@@ -2324,6 +2324,30 @@
   
   See Also: rest(), before(), after(), extract(), extractword()
   
+& STDERR()
+  Function: stderr(<string> [,<key>])
+  
+  This function will take the input string and optionally redirect it based
+  on it being a recognized function error (starting with #-1) or not.  By
+  default, this function will null out the error entirely.  
+  
+  The following keys are available:
+    0 - null the output of the string that starts with #-1 (default)
+    1 - null the output of the string that starts with #-1
+        In addition, notify() to the player the actual error that started
+        with #-1 so it's no longer part of the function stack.
+  
+  Examples:
+    > say [iter(1 3 5 [lrand(1,3)],##)]
+    You say "1 3 5 #-1 FUNCTION (LRAND) EXPECTS 3 OR 4 ARGUMENTS [RECEIVED 2]" 
+    > say [iter(1 3 5 [stderr(lrand(1,3))],##)]
+    You say "1 3 5"
+    > say [iter(1 3 5 [stderr(lrand(1,3),1)],##)]
+    STDError: #-1 FUNCTION (LRAND) EXPECTS 3 OR 4 ARGUMENTS [RECEIVED 2]
+    You say "1 3 5"
+  
+  See Also: null(), @@()
+
 & FIRSTOF()
 & ALLOF()
 & STRFIRSTOF()
@@ -11190,14 +11214,15 @@
   SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()   
   SPLICE()        SQL()           SQLESCAPE()    SQLOFF()       SQLON()      
   SQLPING()       SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()  
-  STARTSECS()     STATS()         STEP()         STR()          STRCAT()     
-  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()      
-  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()    
-  SUB()           SUBEVAL()       SUBJ()         SUBNETMATCH()  SWITCH()     
-  SWITCHALL()     T()             TAN()          TEL()          TIME()       
-  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
-  TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
-  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE()    TRIM()
+  STARTSECS()     STATS()         STDERR()       STEP()         STR()        
+  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
+  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
+  STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
+  SWITCH()        SWITCHALL()     T()            TAN()          TEL()        
+  TIME()          TIMEFMT()       TOBIN()        TODEC()        TOGGLE()     
+  TOHEX()         TOOCT()         TOTCMDS()      TOTMATCH()     TOTMEMBER()  
+  TOTPOS()        TOTWILDMATCH()  TR()           TRACE()        TRANSLATE()  
+  TRIM()
 
 { 'help function list5' for more }
 
@@ -11305,7 +11330,7 @@
                       LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
                       PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
                       SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
-                      SOUNDEX() SOUNDLIKE() TRACE()
+                      SOUNDEX() SOUNDLIKE() STDERR() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -20342,7 +20367,8 @@
     > say [@@(this is a test[setq(0,test)])]- [r(0)]
     You say "- "
   
-  See Also: localize(), eval(), subeval(), null(), privatize(), sandbox()
+  See Also: localize(), eval(), subeval(), null(), privatize(), sandbox(), 
+            stderr()
   
 & NULL()
   Function: null(<string>)
@@ -20355,7 +20381,8 @@
     > say [null(this is a test[setq(0,test)])]- [r(0)]
     You say "- test"
   
-  See Also: localize(), eval(), subeval(), @@(), privatize(), sandbox()
+  See Also: localize(), eval(), subeval(), @@(), privatize(), sandbox(),
+            stderr()
   
 & STEP()
   Function: step([<obj>/]<attr>,<list>,<step size>[,<delim>[,<output delim>]])
@@ -29643,6 +29670,7 @@
   space()       - Returns X number of whitespace.
   splice()      - Splices two lists together.
   squish()      - Removes excess spaces or delimiters from a string.
+  stderr()      - Convert all #-1 errors to notify() and not the stack.
   str()         - Like after(), and similar to C strstr().
   strdistance() - Calculates the levenshtein distance between two strings.
   streq()       - Compares two strings, returning true if they match.
@@ -32341,6 +32369,8 @@
   * atrperms_checkall to go through all prefix matching for the lowest
     permission match [ASH]
   * added NETMASK support to @blacklist [ASH]
+  * stderr() will convert output starting with #-1 to notify() and remove
+    from the stack. [ASH]
   
   Changes
   ------------

@@ -2444,6 +2444,40 @@ do_reverse(char *from, char *to, char **tocx, int i_transpose)
     }
 }
 
+FUNCTION(fun_stderr)
+{
+  int i_tonotify;
+  char *t_buff, *t_buffptr;
+
+  if (!fn_range_check("STDERR", nfargs, 1, 2, buff, bufcx)) {
+    return;
+  }
+  
+  i_tonotify = 0;
+  if ( (nfargs > 1) && *fargs[1] ) {
+    i_tonotify = (atoi(fargs[1]) ? 1 : 0);
+  }
+  if ( !fargs[0] || !*fargs[0] ) {
+     return;
+  }
+
+  if ( (*fargs[0] == '#') &&
+       (*(fargs[0]+1) == '-') &&
+       (*(fargs[0]+2) == '1') ) {
+     if ( i_tonotify ) {
+        t_buffptr = t_buff = alloc_lbuf("fun_stderr");
+#ifdef ZENTY_ANSI
+        notify(player, safe_tprintf(t_buff, &t_buffptr, "%sSTDError:%s %s", SAFE_ANSI_HILITE, SAFE_ANSI_NORMAL, fargs[0]));
+#else
+        notify(player, safe_tprintf(t_buff, &t_buffptr, "%sSTDError:%s %s", ANSI_HILITE, ANSI_NORMAL, fargs[0]));
+#endif
+        free_lbuf(t_buff);
+     }
+     return;
+  }
+  safe_str(fargs[0], buff, bufcx);
+}
+
 FUNCTION(fun_singletime)
 {
    double d_time;
@@ -36094,6 +36128,7 @@ FUN flist[] =
     {"STARTTIME", fun_starttime, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"STARTSECS", fun_startsecs, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"STATS", fun_stats, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"STDERR", fun_stderr, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STEP", fun_step, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STR", fun_str, 2, 0, CA_PUBLIC, 0},
     {"STRDISTANCE", fun_strdistance, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
