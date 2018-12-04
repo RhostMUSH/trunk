@@ -56,6 +56,7 @@ extern ATTR *	FDECL(atr_num_pinfo, (int anum));
 extern ATTR *	FDECL(atr_num_aladd, (int anum));
 extern ATTR *	FDECL(atr_num_exec, (int anum));
 extern ATTR *	FDECL(atr_num_objid, (int anum));
+extern ATTR *	FDECL(atr_num_lattr, (int anum));
 extern ATTR *	FDECL(atr_str, (char *s));
 extern ATTR *	FDECL(atr_str2, (char *s));
 extern ATTR *	FDECL(atr_str3, (char *s));

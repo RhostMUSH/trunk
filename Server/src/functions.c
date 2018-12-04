@@ -24863,7 +24863,7 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
                s_storname[2] = alloc_sbuf("lattr_storname");
             }
             for (ca = olist_first(&master); ca != NOTHING; ca = olist_next(&master)) {
-                attr = atr_num(ca);
+                attr = atr_num_lattr(ca);
                 if (attr) {
                     if ( (c_lookup == '>') || (c_lookup == '<') ) {
                        if ( *s_storname[0] ) {
@@ -24927,7 +24927,7 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
                     }
                     if (chk_cmd > 0) {
                        atr_get_str(s_shoveattr, thing, attr->number, &aowner, &aflags);
-                       if ( s_shoveattr[0] == c_lookup ) {
+                       if ( (s_shoveattr[0] == c_lookup) && (strchr(s_shoveattr, ':') != NULL) ) {
                           if (!first)
                               safe_chr(' ', buff, bufcx);
                           first = 0;

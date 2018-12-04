@@ -32407,3 +32407,4 @@
   * mktime64 was defined in IBM so had to be renamed [ASH]
   * cleanup of DOORS and potential API connections on @reboot [ASH]
   * @invformat didn't handle parents [ASH]
+  * lattr() with command checking didn't cleanly check commands [ASH]
