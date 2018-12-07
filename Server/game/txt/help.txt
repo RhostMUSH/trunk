@@ -32416,6 +32416,8 @@
   New Features
   ------------
   * queue timer allows specifying offset from 1 second to 1 milisecond [ASH]
+  * Sites that do not properly send AUTH data or RDNS data get auto-added
+    to the NoAUTH and NoDNS entires to avoid future lag [ASH]
   
   Changes
   ------------

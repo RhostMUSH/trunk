@@ -5768,10 +5768,16 @@ stat_string(int strtype, int flag, int key)
     case S_SPECIAL:
         switch( flag ) {
         case H_NOAUTH:
-            str = "NoAUTH";
+            if ( key ) 
+               str = "NoAUTH (AutoSite)";
+            else
+               str = "NoAUTH";
             break;
         case H_NODNS:
-            str = "NoDNS";
+            if ( key )
+               str = "NoDNS (AutoSite)";
+            else
+               str = "NoDNS";
             break;
         default:
             str = "Strange";

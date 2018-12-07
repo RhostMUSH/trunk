@@ -651,18 +651,21 @@ shovechars(int port,char* address)
 	    if( (d->flags & DS_AUTH_IN_PROGRESS) &&
 	        (time(NULL) - d->connected_at >= 3) ) {
 		d->flags &= ~DS_AUTH_IN_PROGRESS;
+	  	logbuff = alloc_mbuf("shovechars.LOG.authtimeout");
+                sprintf(logbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
+                cf_site((int *)&mudstate.special_list, logbuff,
+                    (H_NOAUTH | H_AUTOSITE), 0, 1, "noauth_site");
 	      	shutdown(d->authdescriptor, 2);
 		close(d->authdescriptor);
               	strcpy(d->userid,"");
 		STARTLOG(LOG_NET, "NET", "FAIL")
-	  	  logbuff = alloc_mbuf("shovechars.LOG.authtimeout");
   		  sprintf(logbuff,
 	   	  	"[%d/%s] Auth request timed out",
 		    	d->descriptor,
 			d->addr);
 		  log_text(logbuff);
-		  free_mbuf(logbuff);
 	 	ENDLOG
+		free_mbuf(logbuff);
 	    }
           }
         }
@@ -981,8 +984,12 @@ addrout(struct in_addr a, int i_key)
                ENDLOG
             }
 	    RETURN(retval); /* #3 */
-        }
-	else {
+        } else {
+    	    logbuff = alloc_lbuf("bsd.addrout");
+            sprintf(logbuff, "%s 255.255.255.255", inet_ntoa(a));
+            cf_site((int *)&mudstate.special_list, logbuff,
+                    (H_NODNS | H_AUTOSITE), 0, 1, "nodns_site");
+            free_lbuf(logbuff);
             retval = inet_ntoa(a);
 	    RETURN(retval); /* 3 */
         }
@@ -1815,18 +1822,20 @@ start_auth(DESC * d)
     if( connect(d->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
   	  d->flags &= ~DS_AUTH_IN_PROGRESS;
+          logbuff = alloc_lbuf("start_auth.LOG.timeout");
           if( errno != EINTR ) {
 	    log_perror("NET", "FAIL", "connecting AUTH sock", "connect");
-          }
-          else {
+          } else {
             STARTLOG(LOG_NET, "NET", "AUTH")
-              logbuff = alloc_lbuf("start_auth.LOG.timeout");
               sprintf(logbuff,
               "[%d/%s] AUTH connect alarm timed out", d->descriptor, d->addr);
               log_text(logbuff);
-              free_lbuf(logbuff);
             ENDLOG
           }
+          sprintf(logbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
+          cf_site((int *)&mudstate.special_list, logbuff,
+                    (H_NOAUTH | H_AUTOSITE), 0, 1, "noauth_site");
+          free_lbuf(logbuff);
 	  shutdown(d->authdescriptor, 2);
 	  close(d->authdescriptor);
 	  VOIDRETURN; /* #8 */
