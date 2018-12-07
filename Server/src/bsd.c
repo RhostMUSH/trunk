@@ -530,7 +530,7 @@ shovechars(int port,char* address)
 
 	double next = roundf(que_next() * (double)mudconf.mtimer) / (double)mudconf.mtimer;
 	timeout.tv_sec = floor(next);
-	timeout.tv_usec = floor(1000000 * fmod(next,(double)mudconf.mtimer / 10.0)); ;
+	timeout.tv_usec = floor(1000000 * fmod(next,(double)mudconf.mtimer / 10.0));
 	next_slice = msec_add(last_slice, mudconf.timeslice);
 	timeval_sub(next_slice, current_time);
 

@@ -8740,6 +8740,12 @@
   
   So valid values are: 1, 10, 100, 1000.
   
+  Due note, due to the single threaded engine of a mush and the overhead 
+  involved with all the processing and checks, setting the value to 1000
+  will occasionally lag a few miliseconds and not be a true 1/1000 value.
+  
+  Anything up to and including 100 should be fine however.
+   
   Specifying an invalid value will revert to the previous value.
   
   Rhost's default is 10 miliseconds.
