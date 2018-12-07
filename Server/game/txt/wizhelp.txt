@@ -8744,7 +8744,12 @@
   involved with all the processing and checks, setting the value to 1000
   will occasionally lag a few miliseconds and not be a true 1/1000 value.
   
-  Anything up to and including 100 should be fine however.
+  The lag will include, but not be limited to network latency.  When you
+  consider that most network latency is 20 ms, 1/1000th ms will most
+  likely be very noticeable :)
+  
+  Anything up to and including 100 should be mostly fine however, minus
+  again network latency.
    
   Specifying an invalid value will revert to the previous value.
   
