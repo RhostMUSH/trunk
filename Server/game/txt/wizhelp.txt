@@ -5976,28 +5976,29 @@
   min_con_attempt          money_lim_off             money_lim_gm
   money_lim_arch           money_lim_counc           money_name_plural
   money_name_singular      motd_file                 motd_message
-  mud_name                 muddb_name                must_unlquota
-  mux_child_compat         mus_lcon_compat           name_with_desc
-  nand_compat              newpass_god               news_file
-  news_index               newuser_file              no_startup
-  noauth_site              noautoreg_host            noautoreg_site
-  nobroadcast_host         noguest_host              noguest_site
-  nodns_site               nonindxtxt_maxlines       noregist_onwho
-  noshell_prog             nospam_connect            notify_recursion_limit
-  notonerr_return          null_is_idle              num_guests             
-  oattr_enable_altname     oattr_uses_altname        objid_localtime        
-  objid_offset             offline_reg               old_elist              
-  online_reg               open_cost                 output_database        
-  output_limit             page_cost                 paranoid_allocate      
-  paranoid_exit_linking    parent_follow             parentable_control_lock
-  partial_conn             partial_deconn            passapi_host
-  passapi_site             passproxy_host            passproxy_site         
-  paycheck                 pcreate_paranoia          pemit_any_object       
-  pemit_far_players        penn_playercmds           penn_setq              
-  penn_switches            permit_site               player_attr_default    
-  player_dark              player_flags              player_listen          
-  player_match_commands    player_match_own_command  player_name_spaces     
-  player_parent            player_queue_limit        player_quota           
+  mtimer                   mud_name                  muddb_name              
+  must_unlquota            mux_child_compat          mux_lcon_compat 
+  name_with_desc           nand_compat               newpass_god             
+  news_file                news_index                newuser_file            
+  no_startup               noauth_site               noautoreg_host          
+  noautoreg_site           nobroadcast_host          noguest_host            
+  noguest_site             nodns_site                nonindxtxt_maxlines     
+  noregist_onwho           noshell_prog              nospam_connect          
+  notify_recursion_limit   notonerr_return           null_is_idle            
+  num_guests               oattr_enable_altname      oattr_uses_altname      
+  objid_localtime          objid_offset              offline_reg             
+  old_elist                online_reg                open_cost               
+  output_database          output_limit              page_cost               
+  paranoid_allocate        paranoid_exit_linking     parent_follow           
+  parentable_control_lock  partial_conn              partial_deconn          
+  passapi_host             passapi_site              passproxy_host          
+  passproxy_site           paycheck                  pcreate_paranoia        
+  pemit_any_object         pemit_far_players         penn_playercmds         
+  penn_setq                penn_switches             permit_site             
+  player_attr_default      player_dark               player_flags            
+  player_listen            player_match_commands     player_match_own_command
+  player_name_spaces       player_parent             player_queue_limit      
+  player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -8715,6 +8716,23 @@
   @listmotd command.
   See Also: @listmotd, @motd, motd_file.
 
+& mtimer
+  Config parameter: mtimer <value>.  Default: 10 (miliseconds)
+  
+  This specifies the queue interval that you wish to have for the timer
+  for each queue slice.  The default is 10 miliseconds.  You may specify
+  a multiple of 10 starting at '1' for 1 second up to 1000 for 1 milisecond.
+  
+  So valid values are: 1, 10, 100, 1000.
+  
+  Specifying an invalid value will revert to the previous value.
+  
+  Rhost's default is 10 miliseconds.
+  MUX2's default is 10 miliseconds.
+  PennMUSH and TinyMUSH3's default is 1 second.
+  
+  See Also: @ps, pid()
+ 
 & mud_name
   Config parameter: mud_name <string>.  Default: RhostMUSH
   

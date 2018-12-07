@@ -473,6 +473,7 @@ struct confdata {
 	int 	allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ascii quotes */
 	int 	allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
 	int	posesay_funct;	/* Enable function evaluaton to pose/say fluffing */
+	int	mtimer;		/* The milisecond timer offset range (default 10) */
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */

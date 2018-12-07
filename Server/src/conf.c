@@ -335,6 +335,7 @@ NDECL(cf_init)
     mudconf.null_is_idle = 0;		/* Treat @@ as idle for idle timer */
     mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
     mudconf.vlimit = 400;		/* Runtime vlimit here */
+    mudconf.mtimer = 10;
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -1206,6 +1207,28 @@ CF_HAND(cf_mailint)
 	return 0;
     }
 }
+
+CF_HAND(cf_timerint)
+{
+    int vp_old = 0;
+
+    sscanf(str, "%d", &vp_old);
+    if ((vp_old < extra2) || (vp_old > extra)) {
+        if ( !mudstate.initializing) {
+           notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
+        }
+	return -1;
+    } else if ( (vp_old != 1) && (vp_old != 10) && (vp_old != 100) && (vp_old != 1000) ) {
+        if ( !mudstate.initializing) {
+           notify(player, unsafe_tprintf("Value must be 1, 10, 100, or 1000.", extra2, extra));
+        }
+	return -1;
+    } else {
+        *vp = vp_old;
+	return 0;
+    }
+}
+
 CF_HAND(cf_verifyint)
 {
     int vp_old = 0;
@@ -4484,6 +4507,10 @@ CONF conftable[] =
     {(char *) "motd_message",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.motd_msg, 1024, 0, CA_WIZARD,
      (char *) "Text used for @motd online."},
+    {(char *) "mtimer",
+     cf_timerint, CA_GOD | CA_IMMORTAL, &mudconf.mtimer, 1000, 1, CA_WIZARD,
+     (char *) "The milisecond timer offset to be used.\r\n"\
+              "                             Default: 10   Value: %d"},
     {(char *) "muddb_name",
      cf_string, CA_DISABLED, (int *) mudconf.muddb_name, 32, 0, CA_PUBLIC,
      (char *) "The name used for the RhostMUSH DB's (mail/news)."},
@@ -5618,6 +5645,9 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_verifyint) ||
+           (tp->interpreter == cf_verifyint_mysql) ||
+           (tp->interpreter == cf_timerint) ||
            (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
@@ -5637,6 +5667,9 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_verifyint) ||
+           (tp->interpreter == cf_verifyint_mysql) ||
+           (tp->interpreter == cf_timerint) ||
            (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
@@ -5725,6 +5758,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                     (tp->interpreter == cf_int_runtime) ||
                     (tp->interpreter == cf_mailint) ||
                     (tp->interpreter == cf_vint) ||
+                    (tp->interpreter == cf_timerint) ||
                     (tp->interpreter == cf_chartoint) ||
                     (tp->interpreter == cf_recurseint) ||
 		    (tp->interpreter == cf_sidefx && !bVerboseSideFx)) {

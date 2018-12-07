@@ -831,8 +831,18 @@ int
 wait_que_pidnew(dbref player, int pid, double newwait, int key)
 {
    BQUE *point;
-   int found;
+   int found, mtimerlen;
 
+   switch(mudconf.mtimer) {
+      case 1000: mtimerlen = 3;
+         break;
+      case 100: mtimerlen = 2;
+         break;
+      case 10: mtimerlen = 1;
+         break;
+      default: mtimerlen = 0;
+         break;
+   }
    found = 0;
    for (point = mudstate.qwait; point; point = point->next) {
       if (point->pid == pid) {
@@ -843,15 +853,15 @@ wait_que_pidnew(dbref player, int pid, double newwait, int key)
                if ( (point->waittime - newwait) < (time_ng(NULL) + 10) ) 
                   return -1;
                point->waittime -= newwait;
-               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
-                              pid, (point->waittime - time_ng(NULL))));
+               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
+                              pid, mtimerlen, (point->waittime - time_ng(NULL))));
                found = 2;
             } else if ( key == 1 ) {
                if ( (point->waittime + newwait) < (time(NULL) + 10) ) 
                   return -1;
                point->waittime += newwait;
-               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
-                              pid, (point->waittime - time_ng(NULL))));
+               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
+                              pid, mtimerlen, (point->waittime - time_ng(NULL))));
                found = 2;
             } else {
                point->waittime = time_ng(NULL) + newwait;
@@ -871,15 +881,15 @@ wait_que_pidnew(dbref player, int pid, double newwait, int key)
                   if ( (point->waittime - newwait) < (time_ng(NULL) + 10) ) 
                      return -1;
                   point->waittime -= newwait;
-                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
-                                 pid, (point->waittime - time_ng(NULL))));
+                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
+                                 pid, mtimerlen, (point->waittime - time_ng(NULL))));
                   found = 2;
                } else if ( key == 1 ) {
                   if ( (point->waittime + newwait) < (time_ng(NULL) + 10) ) 
                      return -1;
                   point->waittime += newwait;
-                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
-                                 pid, (point->waittime - time_ng(NULL))));
+                  notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
+                                 pid, mtimerlen, (point->waittime - time_ng(NULL))));
                   found = 2;
                } else {
                   point->waittime = time_ng(NULL) + newwait;
@@ -1842,12 +1852,22 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
 	char *cmd, char *cargs[], int ncargs)
 {
     dbref thing;
-    int num, pid, retval, recpid, recpidval, numwords, i_shiftoffset;
+    int num, pid, retval, recpid, recpidval, numwords, i_shiftoffset, mtimerlen;
     char *what, *event, *eventtok, *pt, *numval;
     double howlong, newwait;
 
     i_shiftoffset = 0;
 
+    switch(mudconf.mtimer) {
+       case 1000: mtimerlen = 3;
+          break;
+       case 100: mtimerlen = 2;
+          break;
+       case 10: mtimerlen = 1;
+          break;
+       default: mtimerlen = 0;
+          break;
+    }
     if ( (key &~ WAIT_PID &~ WAIT_UNTIL ) && (key & WAIT_UNTIL) ) {
        notify(player, "Illegal combination of switches.");
        return;
@@ -1974,15 +1994,15 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
               if ( key & WAIT_UNTIL )
                  notify(player, unsafe_tprintf("New wait time exceeds maximum value of %d.", MYMAXINT - 60));
               else
-	         notify(player, unsafe_tprintf("New wait time must be less than %.1f seconds.", MYMAXINT - time_ng(NULL) - 60));
+	         notify(player, unsafe_tprintf("New wait time must be less than %.*f seconds.", mtimerlen, MYMAXINT - time_ng(NULL) - 60));
            } else {
               retval = wait_que_pidnew(player, pid, newwait, i_shiftoffset);
               if ( retval == -1 )
                  notify(player, "PID value had wait of less than 10 seconds.");
               else if ( retval ) {
                  if (i_shiftoffset == 0) 
-                    notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.1f",
-                                   pid, newwait));
+                    notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
+                                   pid, mtimerlen, newwait));
               } else 
 	         notify(player,"PID not found/Permission denied.");
            }
@@ -2053,7 +2073,7 @@ NDECL(do_second)
     BQUE *trail, *point, *next;
     DESC *d, *dnext;
     char *cmdsave, *cpulbuf;
-    int i_offset;
+    int i_offset, mtimerlen;
     double d_timediff;
 
     /* move contents of low priority queue onto end of normal one
@@ -2064,6 +2084,17 @@ NDECL(do_second)
 
     if ((mudconf.control_flags & CF_DEQUEUE) == 0)
 	return;
+
+    switch(mudconf.mtimer) {
+       case 1000: mtimerlen = 3;
+          break;
+       case 100: mtimerlen = 2;
+          break;
+       case 10: mtimerlen = 1;
+          break;
+       default: mtimerlen = 0;
+          break;
+    }
 
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< do_second >";
@@ -2133,8 +2164,8 @@ NDECL(do_second)
     if ( i_offset ) {
        STARTLOG(LOG_ALWAYS, "WIZ", "CLK");
           cpulbuf = alloc_lbuf("do_second.clockskew");
-          sprintf(cpulbuf, "Clock Skew Detected: Skew was %.1f seconds. Queue compensated.", 
-                  d_timediff);
+          sprintf(cpulbuf, "Clock Skew Detected: Skew was %.*f seconds. Queue compensated.", 
+                  mtimerlen, d_timediff);
           log_text(cpulbuf);
           free_lbuf(cpulbuf);
        ENDLOG
@@ -2242,8 +2273,19 @@ fun_do_chk(BQUE *tmp, dbref player, dbref *player_targ, dbref *obj_targ)
 void 
 fun_do_display(BQUE *tmp, dbref player, dbref player_targ, dbref obj_targ, int key, int first, char *buff, char **bufcx, char sep)
 {
-   int do_sep;
+   int do_sep, mtimerlen;
    static char i_buffering[SBUF_SIZE];
+
+   switch(mudconf.mtimer) {
+      case 1000: mtimerlen = 3;
+         break;
+      case 100: mtimerlen = 2;
+         break;
+      case 10: mtimerlen = 1;
+         break;
+      default: mtimerlen = 0;
+         break;
+   }
 
    do_sep = 0;
    memset(i_buffering, '\0', SBUF_SIZE);
@@ -2272,7 +2314,7 @@ fun_do_display(BQUE *tmp, dbref player, dbref player_targ, dbref obj_targ, int k
       if ( do_sep )
          safe_chr('|', buff, bufcx);
       if ( tmp->waittime )
-         sprintf(i_buffering, "%.1f", (tmp->waittime - mudstate.nowmsec));
+         sprintf(i_buffering, "%.*f", mtimerlen, (tmp->waittime - mudstate.nowmsec));
       else
          sprintf(i_buffering, "%d", 0);
       safe_str(i_buffering, buff, bufcx);
@@ -2371,8 +2413,18 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 {
     BQUE *tmp;
     char *bp, *bufp, *tpr_buff, *tprp_buff, stop_chr;
-    int i, check;
+    int i, check, mtimerlen;
 
+    switch(mudconf.mtimer) {
+       case 1000: mtimerlen = 3;
+          break;
+       case 100: mtimerlen = 2;
+          break;
+       case 10: mtimerlen = 1;
+          break;
+       default: mtimerlen = 0;
+          break;
+    }
     *qtot = 0;
     *qent = 0;
     *qdel = 0;
@@ -2412,17 +2464,19 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                stop_chr = ' ';
 	    if ((tmp->waittime > 0) && (Good_obj(tmp->sem)))
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d/%.1f]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d/%.*f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
 			       tmp->sem,
+                               mtimerlen,
 			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
 			       bufp, tmp->comm));
 	    else if (tmp->waittime > 0)
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [%.1f]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
+                               mtimerlen,
 			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
 			       bufp, tmp->comm));
 	    else if (Good_obj(tmp->sem))
@@ -2542,6 +2596,19 @@ do_ps(dbref player, dbref cause, int key, char *target)
        else
 	   sprintf(bufp, "Totals: Player...%d/%d  Object...%d/%d  Wait...%d/%d  Semaphore...%d/%d",
 		   pqent, pqtot, oqent, oqtot, wqent, wqtot, sqent, sqtot);
+       notify(player, bufp);
+       switch (mudconf.mtimer) {
+          case 1: strcpy(bufp, "Queue TimerInterval: every second (1/1 second)");
+                  break;
+          case 10: strcpy(bufp, "Queue TimerInterval: 10 times a second (1/10 second)");
+                  break;
+          case 100: strcpy(bufp, "Queue TimerInterval: 100 times a second (1/100 second)");
+                  break;
+          case 1000: strcpy(bufp, "Queue TimerInterval: 1000 times a second (1/1000 second)");
+                  break;
+          default: strcpy(bufp, "Queue TimerInterval: Unknown -- Contact staff)");
+                  break;
+       }
        notify(player, bufp);
        free_mbuf(bufp);
     } else {
