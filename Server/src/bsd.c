@@ -528,9 +528,9 @@ shovechars(int port,char* address)
 
 	/* any queued robot commands waiting? */
 
-  double next = roundf(que_next() * 10) / 10;
+	double next = roundf(que_next() * (double)mudconf.mtimer) / (double)mudconf.mtimer;
 	timeout.tv_sec = floor(next);
-	timeout.tv_usec = floor(1000000 * fmod(next,1.0)); ;
+	timeout.tv_usec = floor(1000000 * fmod(next,(double)mudconf.mtimer / 10.0)); ;
 	next_slice = msec_add(last_slice, mudconf.timeslice);
 	timeval_sub(next_slice, current_time);
 
