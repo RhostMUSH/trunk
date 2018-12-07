@@ -12378,13 +12378,27 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
  
    switch (key) {
       case BLACKLIST_MASK:
-         i_page = i_page_val = 0;
+         i_page = 0;
+         i_page_val = 1;
          if ( !mudstate.bl_list ) {
             notify(player, "@blacklist: List is currently empty.");
             break;
          }
-         if ( name && *name )
-            i_page_val = atoi(name);
+         if ( stricmp(name, (char *)"all") == 0 ) {
+            i_page_val = 0;
+         } else if ( !name || !*name ) {
+            i_page_val = 1;
+         } else if ( name && *name ) {
+            if ( isdigit(*name) ) {
+               i_page_val = atoi(name);
+            }
+         }
+         if ( i_page_val < 0 ) {
+            i_page_val = 1;
+         }
+         if ( i_page_val > ((mudstate.blacklist_cnt / 40) + 1) ) {
+            i_page_val = (mudstate.blacklist_cnt / 40 + 1);
+         }
          if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 40) + 1)) ) {
             notify(player, "@blacklist: Value specified must be a valid page value.");
             break;
@@ -12395,15 +12409,16 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          memset(tmpbuff, '\0', LBUF_SIZE);
          i_loop_chk=0;
          b_lst_ptr = mudstate.bl_list;
-         notify(player, "================================================================================");
+         notify(player, "==============================================================================");
          if ( i_page_val > 0 ) {
-            sprintf(tmpbuff, "= (Paged List)                    Black List [mask]           %3d/%3d         =", 
-                    i_page_val, (mudstate.blacklist_cnt/40)+1);
+            sprintf(tmpbuff, "= (Paged List : %7d entries)      Black List [mask]      Page %3d/%3d    =", 
+                    mudstate.blacklist_cnt, i_page_val, (mudstate.blacklist_cnt/40)+1);
          } else {
-            sprintf(tmpbuff, "= (Full List)                     Black List [mask]                            =");
+            sprintf(tmpbuff, "= (Full List : %7d entries)     Black List [mask]                        =",
+                    mudstate.blacklist_cnt);
          }
          notify(player, tmpbuff);
-         notify(player, "================================================================================");
+         notify(player, "==============================================================================");
          while ( b_lst_ptr ) {
             i_loop_chk++;
             if ( (i_loop_chk % 40) == 1 )
@@ -12437,13 +12452,27 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          free_lbuf(s_addrip);
          break;
       case BLACKLIST_LIST:
-         i_page = i_page_val = 0;
+         i_page = 0;
+         i_page_val = 1;
          if ( !mudstate.bl_list ) {
             notify(player, "@blacklist: List is currently empty.");
             break;
          }
-         if ( name && *name )
-            i_page_val = atoi(name);
+         if ( stricmp(name, (char *)"all") == 0 ) {
+            i_page_val = 0;
+         } else if ( !name || !*name ) {
+            i_page_val = 1;
+         } else if ( name && *name ) {
+            if ( isdigit(*name) ) {
+               i_page_val = atoi(name);
+            }
+         }
+         if ( i_page_val < 0 ) {
+            i_page_val = 1;
+         }
+         if ( i_page_val > ((mudstate.blacklist_cnt / 80) + 1) ) {
+            i_page_val = (mudstate.blacklist_cnt / 80 + 1);
+         }
          if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 80) + 1)) ) {
             notify(player, "@blacklist: Value specified must be a valid page value.");
             break;
@@ -12453,14 +12482,16 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          memset(tmpbuff, '\0', LBUF_SIZE);
          i_loop_chk=0;
          b_lst_ptr = mudstate.bl_list;
-         notify(player, "================================================================================");
+         notify(player, "==============================================================================");
          if ( i_page_val > 0 ) {
-            sprintf(tmpbuff, "= (Paged List)                    Black List                  %3d/%3d         =", i_page_val, (mudstate.blacklist_cnt/80)+1);
+            sprintf(tmpbuff, "= (Paged List : %7d entries)      Black List             Page %3d/%3d    =", 
+                    mudstate.blacklist_cnt, i_page_val, (mudstate.blacklist_cnt/80)+1);
          } else {
-            sprintf(tmpbuff, "= (Full List)                     Black List                                   =");
+            sprintf(tmpbuff, "= (Full List : %7d entries)     Black List                               =",
+                    mudstate.blacklist_cnt);
          }
          notify(player, tmpbuff);
-         notify(player, "================================================================================");
+         notify(player, "==============================================================================");
          while ( b_lst_ptr ) {
             i_loop_chk++;
             if ( (i_loop_chk % 80) == 1 )

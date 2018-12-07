@@ -2678,16 +2678,31 @@
     /mask  - like list but will show the IP and associated NETMASK.  This
              shows 2 IP's and 2 NETMASK's to a line.
   
+{ see 'wizhelp @blacklist2' for arguments and examples }
+
+& @blacklist2
+  (CONTINUED)
+  Command: @blacklist[/<switch>] [<argument>]
+  
   If no switch is specified, it gives a summary of sites in the blacklist.
   
-  /list and /mask may specify a page value <argument>.  It is STRONGLY 
-  suggested you do so as with most blacklists that hold proxies, it could
-  contain tens of thousands of entries.  Using /list or /mask without
-  an argument will list ALL sites.
+  /list and /mask may specify a page value <argument> or the argument 'all'.  
+  If you do not specify a value <argument> it defaults to '1'.  You must 
+  specify '0' or 'all' to get a complete listing.
+  
+  It is STRONGLY suggested you use the paging values with most blacklists 
+  that hold proxies, it could contain tens of thousands of entries.  
+  Using /list or /mask with the '0' or 'all' argument will list ALL sites
+  and can be extremely long and spammy.
   
     Examples:
     > @blacklist/list 1   (shows page 1)
+    > @blacklist/list     (shows page 1)
+    > @blacklist/list all (shows all sites)
+    > @blacklist/list 0   (shows all sites)
     > @blacklist/mask 20  (shows page 20) 
+    > @blacklist/mask all (shows all sites)
+    > @blacklist/mask 0   (shows all sites)
   
   With /list, any entry that has a [M] before the IP signifies that there
   is a non-standard netmask associated with the IP.  A nonstandard netmask

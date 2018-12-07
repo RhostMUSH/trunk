@@ -32419,6 +32419,8 @@
   
   Changes
   ------------
+  * @blacklist modified to be more user friendly for display values.
+    Must now specify '0' or 'all' to get a full listing (spammy) [ASH]
   
   Bug Fixes
   ------------
