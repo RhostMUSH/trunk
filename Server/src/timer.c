@@ -105,7 +105,7 @@ double time_ng(double *t)
   s = spec.tv_sec;
   ms = round(spec.tv_nsec / 1.0e6);
   /* result = s + (floor((((1000.0+ms)/1000.0)-1.0) * 10) / 10); */
-  result = s + (floor((((1000.0+ms)/1000.0)-1.0) * (double)mudconf.mtimer) / (double)mudconf.mtimer);
+  result = (double)s + (floor((((1000.0+ms)/1000.0)-1.0) * (double)mudconf.mtimer) / (double)mudconf.mtimer);
   /*if(t != NULL)
     *t = result;*/
   return result;
@@ -147,7 +147,7 @@ void NDECL(init_timer)
 		mudconf.check_interval : mudconf.check_offset) + mudstate.nowmsec;
 	mudstate.idle_counter = mudconf.idle_interval + mudstate.nowmsec;
 	mudstate.rwho_counter = mudconf.rwho_interval + mudstate.nowmsec;
-	mudstate.mstats_counter = 15 + mudstate.nowmsec;
+	mudstate.mstats_counter = 15.0 + mudstate.nowmsec;
 	alarm_msec (next_timer());
 }
 

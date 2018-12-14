@@ -3525,8 +3525,14 @@ CF_HAND(cf_cf_access)
 {
     CONF *tp;
     char *ap;
-
+    /* eat all starting spaces  and skip if blank line */
+    for (ap = str; *ap && isspace((int)*ap); ap++);
+    if ( !*ap ) {
+       return 0;
+    }
+    /* grab the first word */
     for (ap = str; *ap && !isspace((int)*ap); ap++);
+
     if (*ap)
 	*ap++ = '\0';
 

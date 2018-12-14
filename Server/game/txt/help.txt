@@ -32423,6 +32423,10 @@
   ------------
   * @blacklist modified to be more user friendly for display values.
     Must now specify '0' or 'all' to get a full listing (spammy) [ASH]
+  * printf() will now show you the location in the format string erroring [ASH]
+  * the config file handler will now skip lines with nothing but whitespace
+    or entirely blank lines w/o errors [ASH]
   
   Bug Fixes
   ------------
+  * some cleanup on milisecond timers

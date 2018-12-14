@@ -10167,7 +10167,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 
 FUNCTION(fun_printf)
 {
-   char *pp = NULL, *s_pp = NULL;
+   char *pp = NULL, *pporig, *pperror, *pperrorptr, *s_pp = NULL;
    int formatpass = 0;
    int fmterror = 0;
    int fmtdone = 0;
@@ -10203,7 +10203,7 @@ FUNCTION(fun_printf)
    fm.cutatlength = 0;
    fm.cutatlength_line = 0;
    fm.specialpadder = 0;
-   for( pp = fargs[0]; !fmterror && pp && *pp; pp++ ) {
+   for( pporig = pp = fargs[0]; !fmterror && pp && *pp; pp++ ) {
       switch( *pp ) {
          case '!': /* end of fieldsuppress1 */
             if( fm.insup1 ) {
@@ -10696,6 +10696,31 @@ FUNCTION(fun_printf)
             break;
       } /* Case */
    } /* For */
+   if ( fmterror ) {
+      pperrorptr = pperror = alloc_lbuf("format_error");
+      safe_str("Format error location: ", pperror, &pperrorptr);
+      while ( pporig && *pporig && (pporig < (pp - 1)) ) {
+         safe_chr(*pporig, pperror, &pperrorptr);
+         pporig++;
+      }
+#ifdef ZENTY_ANSI
+      safe_str(SAFE_ANSI_RED, pperror, &pperrorptr);
+      safe_chr(*pporig, pperror, &pperrorptr);
+      pporig++;
+      safe_str(SAFE_ANSI_NORMAL, pperror, &pperrorptr);
+#else
+      safe_str(ANSI_RED, pperror, &pperrorptr);
+      safe_chr(*pporig, pperror, &pperrorptr);
+      pporig++;
+      safe_str(ANSI_NORMAL, pperror, &pperrorptr);
+#endif
+      while ( pporig && *pporig ) {
+         safe_chr(*pporig, pperror, &pperrorptr);
+         pporig++;
+      }
+      notify_quiet(player, pperror);
+      free_lbuf(pperror);
+   }
    start_line = adjust_padd = 0;
    if ( i_arrayval > 0 ) {
       s_tmpbuff = alloc_lbuf("fun_printf_tempbuff");
