@@ -24235,7 +24235,7 @@ FUNCTION(fun_caplist)
     int bFirst, i_found, i_last, i_first, i_lastchk, i_cap, i_hcap, i_hyphen;
     
     // We aren't allowed more than 4 args here.
-    if( !fn_range_check( "CAPLIST", nfargs, 1, 5, buff, bufcx ) )
+    if( !fn_range_check( "CAPLIST", nfargs, 1, 6, buff, bufcx ) )
       return;
 
     // If there's no list, then just return nothing.
@@ -24323,12 +24323,17 @@ FUNCTION(fun_caplist)
   	              safe_chr( ToUpper( *ap ), buff, bufcx );
                       i_cap = 1;
                    } else {
-                      if ( ((i_hyphen & 1  ) && (*(ap-1) == '-' )) || 
-                           ((i_hyphen & 2  ) && (*(ap-1) == '(' )) || 
-                           ((i_hyphen & 4  ) && (*(ap-1) == '[' )) ||
-                           ((i_hyphen & 8  ) && (*(ap-1) == '{' )) ||
-                           ((i_hyphen & 16 ) && (*(ap-1) == '"' )) ||
-                           ((i_hyphen & 32 ) && (*(ap-1) == '\'')) ) {
+                      if ( ((i_hyphen & 1  )   && (*(ap-1) == '-' )) || 
+                           ((i_hyphen & 2  )   && (*(ap-1) == '(' )) || 
+                           ((i_hyphen & 4  )   && (*(ap-1) == '[' )) ||
+                           ((i_hyphen & 8  )   && (*(ap-1) == '{' )) ||
+                           ((i_hyphen & 16 )   && (*(ap-1) == '"' )) ||
+                           ((i_hyphen & 32 )   && (*(ap-1) == '\'')) ||
+                           ((i_hyphen & 64 )   && (*(ap-1) == '.' )) ||
+                           ((i_hyphen & 128 )  && (*(ap-1) == '_' )) ||
+                           ((i_hyphen & 256 )  && (*(ap-1) == '`' )) ||
+                           ((i_hyphen & 512 )  && ((nfargs >= 5) && *fargs[5] && index(fargs[5], *(ap-1))))
+                         ) {
   	                 safe_chr( ToUpper( *ap ), buff, bufcx );
                       } else {
   	                 safe_chr( ToLower( *ap ), buff, bufcx );
@@ -24420,19 +24425,22 @@ FUNCTION(fun_caplist)
                 if ( !i_cap ) {
                    if ( !i_found || !i_first || (i_lastchk == i_last) ) {
                       safe_chr( ToUpper( *ap ), buff, bufcx );
-                      i_first = 1;
                    } else {
                       safe_chr( ToLower( *ap ), buff, bufcx );
-                      i_first = 1;
                    }
-                   i_cap = i_hcap = 1;
+                   i_first = i_cap = i_hcap = 1;
                 } else {
-                   if ( ((i_hyphen & 1  ) && (*(ap-1) == '-' )) || 
-                        ((i_hyphen & 2  ) && (*(ap-1) == '(' )) || 
-                        ((i_hyphen & 4  ) && (*(ap-1) == '[' )) ||
-                        ((i_hyphen & 8  ) && (*(ap-1) == '{' )) ||
-                        ((i_hyphen & 16 ) && (*(ap-1) == '"' )) ||
-                        ((i_hyphen & 32 ) && (*(ap-1) == '\'')) ) {
+                   if ( ((i_hyphen & 1  )  && (*(ap-1) == '-' )) || 
+                        ((i_hyphen & 2  )  && (*(ap-1) == '(' )) || 
+                        ((i_hyphen & 4  )  && (*(ap-1) == '[' )) ||
+                        ((i_hyphen & 8  )  && (*(ap-1) == '{' )) ||
+                        ((i_hyphen & 16 )  && (*(ap-1) == '"' )) ||
+                        ((i_hyphen & 32 )  && (*(ap-1) == '\'')) ||
+                        ((i_hyphen & 64 )  && (*(ap-1) == '.' )) ||
+                        ((i_hyphen & 128 ) && (*(ap-1) == '_' )) ||
+                        ((i_hyphen & 256 ) && (*(ap-1) == '`' )) ||
+                        ((i_hyphen & 512 ) && ((nfargs >= 5) && *fargs[5] && index(fargs[5], *(ap-1))))
+                      ) {
                       safe_chr( ToUpper( *ap ), buff, bufcx );
                    } else {
 	              safe_chr( ToLower( *ap ), buff, bufcx );

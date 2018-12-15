@@ -18475,12 +18475,13 @@
   See Also: lcstr(), ucstr(), caplist()
 
 & CAPLIST()
-  Function: caplist(<list>[,<delim>[,<osep>[,<key>[,<type>]]]])
+  Function: caplist(<list> [,<delim> [,<osep> [,<key> [,<type> [,<chars>]]]]])
   
   Returns <list> with the first character of each word capitalized.  You may
   specify an optional <delim> as a delimiter for the list input, otherwise the
   default of space will be used.  You may also specify an optional <osep>
-  as a separator for the list that is returned.
+  as a separator for the list that is returned.  If <type> is 512 you may 
+  specify the characters you wish to capitalize after.
   
   Additionally, an optional <key> may be specified which alters the behavior
   of the function slightly.  The key must be one of the following characters:
@@ -18491,23 +18492,31 @@
     - T:    Performs a 'true' capitalization based on currently English
             definition for titles.  Allows <type> value.
   
+  Note: If you specify a <type> with 'T' the character override will not
+  follow the 'true' capitalization.
+    
   The following <type> values exist for special handling with <key>
-  'L' or 'T'.  These work as bitmasks so add the values:
-       1  - capitalize all words after a hyphon -.
-       2  - capitalize all words after a right parenthesis (.
-       4  - capitalize all words after a right bracket [.
-       8  - capitalize all words after a right brace {.
-      16  - capitalize all words after a double quote ".
-      32  - capitalize all words after a single quote '.
+  'L' or 'T'.  These work as bitmasks so add the values to combine:
+       1  - capitalize all words after a hyphon -
+       2  - capitalize all words after a right parenthesis (
+       4  - capitalize all words after a right bracket [
+       8  - capitalize all words after a right brace {
+      16  - capitalize all words after a double quote "
+      32  - capitalize all words after a single quote '
+      64  - capitalize all words after a period .
+     128  - capitalize all words after an underscore _
+     256  - capitalize all words after a backtick `
+     512  - capitalize all words after the specified character list <chars>
    
-  Example:
+  Examples:
     > say caplist(the mAn in thE mOon).
     You say "The MAn In ThE MOon."
-  
     > say caplist(the mAn in thE mOon,,|,L).
     You say "The|Man|In|The|Moon."
+    > say caplist(000.abc 111.cde 135.moon,,,L,512,.)
+    You say "000.Abc 111.Cde 135.Moon"
   
-  See Also: capstr()
+  See Also: capstr(), ucstr(), lcstr(), regedit()
 
 & LCSTR()
   Function: lcstr(<string>)
@@ -32426,6 +32435,7 @@
   * printf() will now show you the location in the format string erroring [ASH]
   * the config file handler will now skip lines with nothing but whitespace
     or entirely blank lines w/o errors [ASH]
+  * caplist() handles more cases of how to capitalize after special chars [ASH]
   
   Bug Fixes
   ------------
