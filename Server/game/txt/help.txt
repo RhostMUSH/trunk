@@ -11219,10 +11219,10 @@
   STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
   STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
   SWITCH()        SWITCHALL()     T()            TAN()          TEL()        
-  TIME()          TIMEFMT()       TOBIN()        TODEC()        TOGGLE()     
-  TOHEX()         TOOCT()         TOTCMDS()      TOTMATCH()     TOTMEMBER()  
-  TOTPOS()        TOTWILDMATCH()  TR()           TRACE()        TRANSLATE()  
-  TRIM()
+  TEMPLATE()      TIME()          TIMEFMT()      TOBIN()        TODEC()      
+  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
+  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
+  TRANSLATE()     TRIM()
 
 { 'help function list5' for more }
 
@@ -11390,9 +11390,9 @@
                        SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
                        STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
                        STRLEN() STRMATCH() SUBEVAL() SUBNETMATCH() SWITCH() 
-                       SWITCHALL() T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR()
-                       UNESCLIST() WORDPOS() WORDS() WRAP() WRAPCOLUMNS() 
-                       XORCHR()
+                       SWITCHALL() T() TEMPLATE() TOTPOS() TR() TRANSLATE() 
+                       TRIM() UCSTR() UNESCLIST() WORDPOS() WORDS() WRAP() 
+                       WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() MSECS() PTIMEFMT() SECS() 
@@ -12932,7 +12932,7 @@
                         help printf borders   (a quick example on borders)
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
-            wrapcolumns(), array()
+            wrapcolumns(), array(), template()
 
 & PRINTF BORDERS
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -13053,7 +13053,8 @@
   Note: The ` and ' code fields won't work on single line columns.
         The * option is not compatible with the & option.
    
-  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
+  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
+            template()
   
 & PRINTF SYNTAX 
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -13080,7 +13081,8 @@
   
   CR -- Carrage Return, LN - Line, SP - Space
    
-  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
+  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(),
+            template()
 
 & PRINTF EXAMPLES
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -13543,7 +13545,7 @@
     gh
     ij
   
-  See Also: printf(), setq(), setr(), r(), substitutions
+  See Also: printf(), setq(), setr(), r(), template(), substitutions
 
 & APOSS()
   Function: aposs(<object>)
@@ -17459,7 +17461,7 @@
   The width can not be above 4000 characters.
   
   See Also: ljust(), rjust(), center(), columns(), wrapcolumns(), printf(),
-            array()
+            array(), template()
   
 & WRAPCOLUMNS()
   Function: wrapcolumns()  Syntax follows:
@@ -17538,7 +17540,7 @@
     > @emit wrapcolumns(this is a test of wrapcolumns,10,3,R,0,1,<*,|,*>,1)
       <* this is a|   test of|wrapcolumn*>
   
-  See Also: columns(), wrap(), printf(), array()
+  See Also: columns(), wrap(), printf(), array(), template()
   
 & COLORS()
   Function: colors([[<value>], [<key>]])
@@ -17655,7 +17657,7 @@
       <*-=*=--this|-=*=--=*is|-=*=--=*=a*>
       <*-=*=--test|-=*=--=*of|-=*columns*>
   
-  See Also: wrapcolumns(), wrap(), array(), printf()
+  See Also: wrapcolumns(), wrap(), array(), printf(), template()
   
 & PTIMEFMT()
   ptimefmt(<format>[, <secs>])
@@ -23087,6 +23089,46 @@
  
   See also: merge(), foreach(), garble(), creplace(), edit(), editansi()
 
+& TEMPLATE()
+  Function: template(<string>, <arg0> [,<arg1>, ..., <arg9>])
+  
+  This function will take an input string <string> as the template string
+  and do substitution based on the arguments you pass to it.  It will
+  walk through each of the arguments one character at a time and replace
+  the specified characters in the template.  The following characters
+  specify each of the template replacements in question:
+  
+    1 or more 0's -- will be a one to one replacement of chars in arg0
+    1 or more 1's -- will be a one to one replacement of chars in arg1
+    1 or more 2's -- will be a one to one replacement of chars in arg2
+    1 or more 3's -- will be a one to one replacement of chars in arg3
+    1 or more 4's -- will be a one to one replacement of chars in arg4
+    1 or more 5's -- will be a one to one replacement of chars in arg5
+    1 or more 6's -- will be a one to one replacement of chars in arg6
+    1 or more 7's -- will be a one to one replacement of chars in arg7
+    1 or more 8's -- will be a one to one replacement of chars in arg8
+    1 or more 9's -- will be a one to one replacement of chars in arg9
+  
+  You may have any order of substitions in the template.  You may
+  use numbers that have no arguments.  In such a case the template will
+  be replaced with a space character.  If the argument is shorter than
+  the number of substitutions in the template, spaces are used as filler.
+  
+  Tabs will be replaced with a single space. 
+  
+  This function is ansi and accent aware.
+  
+  Examples:
+    > say template(test <0123> test <0123> test,aaaaaaa,bbbbbbb,cccccc,dddddd)
+    You say "test <abcd> test <abcd> test"
+    > say template(test 001 wheee 100,----,<>)
+    You say "test --< wheee >--"
+    > think think template(>>> 000000 <<<%r>>> 000000 <<<,abcde%rtuvwy)
+    >>> abcde  <<<
+    >>> tuvwy  <<<
+  
+  See Also: printf(), edit(), regedit(), template()
+
 & TRUNC()
   Function: trunc(<number>)
  
@@ -23560,7 +23602,7 @@
     > say =[printf($:.:5s,bar)]=       (The default justification is right)
     You say "=..bar="
   
-  See Also: rjc(), ljust(), ljc(), strlen(), printf(), wrap()
+  See Also: rjc(), ljust(), ljc(), strlen(), printf(), wrap(), template()
   
 & RJC()
   Function: rjc(<string>, <length> [,<fill>])     'Right Justify and Cut'
@@ -23578,7 +23620,7 @@
     > say -[rjc(this is foo,6)]-
     You say "-this i-"
    
-  See Also: rjust(), ljc(), ljust(), printf(), wrap()
+  See Also: rjust(), ljc(), ljust(), printf(), wrap(), template()
  
 & STRDISTANCE()
   Function: strdistance(<string1>, <string2> [,<type> [,<damareu match>]])
@@ -23623,7 +23665,7 @@
     > say -[ljc(this is foo,6)]-
     You say "-this i-"
    
-  See Also: ljust(), rjc(), rjust(), printf(), wrap()
+  See Also: ljust(), rjc(), rjust(), printf(), wrap(), template()
  
 & LJ()
 & LJUST()
@@ -23651,7 +23693,7 @@
     > say =[printf($:.:-5s,bar)]=      (the '-' specifies left justifies)
     You say "=bar..="
   
-  See Also: ljc(), rjust(), rjc(), strlen(), printf(), wrap()
+  See Also: ljc(), rjust(), rjc(), strlen(), printf(), wrap(), template()
   
 & BITTYPE()
   Function: bittype(<object> [,<type>])
@@ -24085,7 +24127,7 @@
     > say printf($:-:^5s,a)            (the '^' specifies center justify)
     You say "--a--"
   
-  See Also: ljust(), rjust(), ljc(), rjc(), printf()
+  See Also: ljust(), rjust(), ljc(), rjc(), printf(), template()
   
 & INSERT()
   Function: insert(<list>, <pos> [..<posN>], <word>[[,<sep>] [,<osep>]], <key>)
@@ -29695,6 +29737,7 @@
   switch()      - Powerful string-pattern conditional.
   switchall()   - Like switch(), but matches all occurrences of a pattern.
   t()           - Unifies MUSH responses of 0, null or #-* to return 0.
+  template()    - Direct WYSIWYG substitution in a template string.
   totpos()      - Returns all the positions of a match in a string.
   tr()          - Transforms a string based on find and replace lists.
   translate()   - Translates special characters to percent substitutions.
@@ -32427,6 +32470,7 @@
   * queue timer allows specifying offset from 1 second to 1 milisecond [ASH]
   * Sites that do not properly send AUTH data or RDNS data get auto-added
     to the NoAUTH and NoDNS entires to avoid future lag [ASH]
+  * template() function to do auto-replace in a defined template string [ASH]
   
   Changes
   ------------

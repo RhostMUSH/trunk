@@ -11510,6 +11510,119 @@ FUNCTION(fun_ptimefmt)
   free_lbuf(s);
 }
 
+/* Template display/builder functions
+ * handles 0-9 for args
+ */
+FUNCTION(fun_template)
+{
+  char *pt[10], *ptbase, *s_newstr, *s_newstrptr;
+  int i, i_max, i_return[10], i_ansi[10], i_accent[10], i_ansicheck, i_accentcheck;
+  
+  if (!fn_range_check("TEMPLATE", nfargs, 2, 11, buff, bufcx))
+    return;
+
+  ptbase = strip_all_special(fargs[0]);
+  for ( i = 0; i < 10; i++ ) {
+     pt[i] = NULL;
+     i_accent[i] = i_ansi[i] = i_return[i] = 0;
+  }
+ 
+  i_max = ((nfargs > 11) ? 11 : nfargs); 
+  for ( i = 0; i < i_max; i++ ) {
+     pt[i] = fargs[i+1]; 
+  }
+
+  i_ansicheck = i_accentcheck = 0;
+  s_newstrptr = s_newstr = alloc_lbuf("template_builder");
+  while ( ptbase && *ptbase ) {
+     if ( *ptbase >= '0' && *ptbase <= '9' ) {
+        i = *ptbase - '0';
+#ifdef ZENTY_ANSI
+        if ( pt[i] && (*pt[i] == '%') && ((*(pt[i]+1) == SAFE_CHR)
+#ifdef SAFE_CHR2
+             || (*(pt[i]+1) == SAFE_CHR2)
+#endif
+#ifdef SAFE_CHR3
+             || (*(pt[i]+1) == SAFE_CHR3)
+#endif
+           )) {
+           safe_chr(*pt[i], s_newstr, &s_newstrptr);	/* % */
+           safe_chr(*(pt[i]+1), s_newstr, &s_newstrptr);  /* c/x/m */
+           pt[i]+=2;  /* remove % and c/x */
+           if ( isAnsi[(int) *(pt[i])] ) {
+              safe_chr(*pt[i], s_newstr, &s_newstrptr);	/* ansi letter */
+              pt[i]+=1;
+           } else if ( (*(pt[i]+2) == '0') && ((*(pt[i]+3) == 'x') || (*(pt[i]+3) == 'X')) &&
+                      *(pt[i]+4) && *(pt[i]+5) && isxdigit(*(pt[i]+4)) && isxdigit(*(pt[i]+5)) ) {
+              safe_chr(*pt[i], s_newstr, &s_newstrptr);		/* 0 */
+              safe_chr(*(pt[i]+1), s_newstr, &s_newstrptr);	/* x/X */
+              safe_chr(*(pt[i]+2), s_newstr, &s_newstrptr);	/* first hex */
+              safe_chr(*(pt[i]+3), s_newstr, &s_newstrptr);	/* second hex */
+              pt[i]+=4;
+           }
+           i_ansi[i]=1;
+           continue;
+        }
+        if ( pt[i] && (*pt[i] == '%') && ((*(pt[i]+1) == 'f') && isprint(*(pt[i]+2))) ) {
+           safe_chr(*pt[i], s_newstr, &s_newstrptr);	/* 0 */
+           safe_chr(*(pt[i]+1), s_newstr, &s_newstrptr);	/* x/X */
+           safe_chr(*(pt[i]+2), s_newstr, &s_newstrptr); /* first hex */
+           pt[i]+=3;
+           i_accent[i]=1;
+           continue;
+        }
+#endif
+        if ( pt[i] && ((*pt[i] == '\n') || (*pt[i] == '\r')) ) {
+           i_return[i] = 1;
+           pt[i]++;
+           continue;
+        } else if ( !i_return[i] && pt[i] && *pt[i] == '\t' ) {
+           safe_chr(' ', s_newstr, &s_newstrptr);
+           pt[i]++;
+        } else if ( !i_return[i] && pt[i] && *pt[i] ) {
+           safe_chr(*pt[i], s_newstr, &s_newstrptr);
+           pt[i]++;
+        } else {
+           safe_chr(' ', s_newstr, &s_newstrptr);
+        }
+     } else {
+        for ( i = 0; i < i_max; i++ ) {
+           if ( i_ansi[i] ) {
+              i_ansicheck = 1;
+           }
+           if ( i_accent[i] ) {
+              i_accentcheck = 1;
+           }
+           i_ansi[i] = i_accent[i] = 0;
+        }
+        if ( i_ansicheck ) {
+#ifdef ZENTY_ANSI
+           safe_str(SAFE_ANSI_NORMAL, s_newstr, &s_newstrptr);
+#else
+           safe_str(ANSI_NORMAL, s_newstr, &s_newstrptr);
+#endif           
+        }
+#ifdef ZENTY_ANSI
+        if ( i_accentcheck ) {
+           safe_chr('%', s_newstr, &s_newstrptr); 
+           safe_chr('f', s_newstr, &s_newstrptr); 
+           safe_chr('n', s_newstr, &s_newstrptr); 
+        }
+#endif
+        safe_chr(*ptbase, s_newstr, &s_newstrptr);
+        i_accentcheck = i_ansicheck = 0;
+     }
+     if ( (*ptbase == '\n') || (*ptbase == '\r') ) {
+        for ( i = 0; i < 10; i++ ) {
+           i_ansi[i] = i_accent[i] = i_return[i] = 0;
+        }
+     }
+     ptbase++;
+  }
+  safe_str(s_newstr, buff, bufcx);
+  free_lbuf(s_newstr);
+}
+
 /* ---------------------------------------------------------------------------
  * fun_secs: Seconds since 0:00 1/1/70
  */
@@ -36188,6 +36301,7 @@ FUN flist[] =
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SWITCHALL", fun_switchall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},
+    {"TEMPLATE", fun_template, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TAN", fun_tan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TANH", fun_tanh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
