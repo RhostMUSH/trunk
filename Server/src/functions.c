@@ -11552,8 +11552,8 @@ FUNCTION(fun_template)
            if ( isAnsi[(int) *(pt[i])] ) {
               safe_chr(*pt[i], s_newstr, &s_newstrptr);	/* ansi letter */
               pt[i]+=1;
-           } else if ( (*(pt[i]+2) == '0') && ((*(pt[i]+3) == 'x') || (*(pt[i]+3) == 'X')) &&
-                      *(pt[i]+4) && *(pt[i]+5) && isxdigit(*(pt[i]+4)) && isxdigit(*(pt[i]+5)) ) {
+           } else if ( (*(pt[i]) == '0') && ((*(pt[i]+1) == 'x') || (*(pt[i]+1) == 'X')) &&
+                      *(pt[i]+2) && *(pt[i]+3) && isxdigit(*(pt[i]+2)) && isxdigit(*(pt[i]+3)) ) {
               safe_chr(*pt[i], s_newstr, &s_newstrptr);		/* 0 */
               safe_chr(*(pt[i]+1), s_newstr, &s_newstrptr);	/* x/X */
               safe_chr(*(pt[i]+2), s_newstr, &s_newstrptr);	/* first hex */
