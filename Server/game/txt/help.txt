@@ -164,9 +164,10 @@
   SQL                 SQLESCAPE         SIDEEFFECTS          SINGLETHREADING  
   SPECIAL CHARACTERS  SPOOFING          STACK                SUBSTITUTIONS      
   SUCCESS             SWITCHES          TOGGLES              USEFUL             
-  USER ATTRIBUTES     VARIABLE EXITS    VATOVZ               VERBS              
-  WANDERER            ZATOZZ            ZONES                $-COMMANDS         
-  #LAMBDA             ATTRIB FORMATTING MAX ARGS             WILDCARDS
+  USER ATTRIBUTES     UNICODE SUPPORT   VARIABLE EXITS       VATOVZ
+  VERBS               WANDERER          ZATOZZ               ZONES
+  $-COMMANDS          #LAMBDA           ATTRIB FORMATTING    MAX ARGS
+  WILDCARDS
   
 & \*
 & \?
@@ -26892,6 +26893,13 @@
   Accents are displayed by using the accent() function or the %f
   substitution.
 
+& UTF8 TOGGLE
+  Toggle: UTF8
+  
+  When set on a player, and as long as ZENTY_ANSI has been compiled
+  into the RhostMUSH in question, this allows the player to see
+  strings including extended character sets using UTF8 encoding.
+
 & MAILVALIDATE TOGGLE
   Toggle: MAILVALIDATE
   
@@ -27248,6 +27256,29 @@
   permissions prefixes that may be established.
   
   See Also: &, >, @set, set(), @cpattr, @mvattr
+
+& UTF8 SUPPORT
+& UNICODE SUPPORT
+  RhostMUSH servers can now support unicode characters. Currently this only
+  supports UTF8 encoding of these characters. In order to make use of this
+  feature RhostMUSH must be compiled with ZHENTY ANSI support. This works
+  alongside ACCENTS support but is independent of it.
+
+  For a player to see unicode characters they must enable the UTF8 toggle.
+  This toggle is mutually exclusive from the ACCENTS toggle but also works
+  alongside it, allowing accents sent by players with one toggle to be 
+  correctly seen by the other. However, those with neither toggle will have
+  these extended characters removed as normal. Similarly, unicode characters
+  beyond the supported range for ACCENTS will be removed for players with
+  that toggle.
+
+  Unicode characters are encoded by the parser in the format %<u####> where
+  the ####s represent the unicode code point for the character. 
+
+  A complete list of unicode characters can be found here: 
+  http://unicode.org/charts/
+
+  See Also: UTF8 TOGGLE
   
 & DIFFERENCES
   First we'll touch on the TinyMUX differences.
